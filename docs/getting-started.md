@@ -360,9 +360,9 @@ Check `examples/` directory for complete application samples:
 
 ```python
 # This development pattern demonstrates working functionality
-from Flext_cli import FlextCliService, FlextCliAuth, FlextCliConfig
+from Flext_cli import FlextCliService, FlextCliAuth, FlextCliSettings
 from flext_core import FlextBus
-from flext_core import FlextConfig
+from flext_core import FlextSettings
 from flext_core import FlextConstants
 from flext_core import FlextContainer
 from flext_core import FlextContext
@@ -393,7 +393,7 @@ methods = [m for m in dir(auth) if not m.startswith('_')]
 print(f"Available auth methods: {len(methods)}")  # 35+ methods
 
 # Configuration management
-config = FlextCliConfig(
+config = FlextCliSettings(
     profile="development",
     debug=True,
     output_format="table"

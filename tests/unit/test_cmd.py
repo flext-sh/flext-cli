@@ -26,8 +26,8 @@ from flext_tests import tm
 
 from flext_cli import (
     FlextCliCmd,
-    FlextCliConfig,
     FlextCliServiceBase,
+    FlextCliSettings,
     c,
     r,
     u,
@@ -119,7 +119,7 @@ def _create_config_file(
 def _set_config_dir(temp_dir: Path) -> Path:
     """Set config directory and return original for restoration."""
     # Get the config instance directly (not via get_cli_config which may return cached instance)
-    config = FlextCliConfig.get_instance()
+    config = FlextCliSettings.get_instance()
     original_config_dir = config.config_dir
     # Update config_dir - Pydantic model allows field assignment
     config.config_dir = temp_dir
@@ -424,7 +424,7 @@ class TestsCliCmd:
         assert config_file.exists(), f"Config file should exist at {config_file}"
 
         # Set config_dir to temp_dir - use direct instance access
-        config = FlextCliConfig.get_instance()
+        config = FlextCliSettings.get_instance()
         original_config_dir = config.config_dir
         config.config_dir = temp_dir
 

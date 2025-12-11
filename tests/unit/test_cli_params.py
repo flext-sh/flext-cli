@@ -4,7 +4,7 @@ Tests for FlextCliCommonParams and common_cli_params decorator covering paramete
 config application, decorator functionality, logger integration, precedence rules,
 validation, error handling, and edge cases with 100% coverage.
 
-Modules tested: flext_cli.common_params.FlextCliCommonParams, FlextCliConfig, FlextCliModels,
+Modules tested: flext_cli.common_params.FlextCliCommonParams, FlextCliSettings, FlextCliModels,
 FlextCliServiceBase, FlextLogger integration
 Scope: All common CLI parameters, parameter enforcement, config application, decorator functionality
 
@@ -31,8 +31,8 @@ from typer.testing import CliRunner
 
 from flext_cli import (
     FlextCliCommonParams,
-    FlextCliConfig,
     FlextCliServiceBase,
+    FlextCliSettings,
     c,
     m,
 )
@@ -166,15 +166,15 @@ INVALID_VALUE_ERRORS: dict[InvalidValue, list[str]] = {
 
 def _reset_config_instance() -> None:
     """Reset config instance if method exists."""
-    reset_method = getattr(FlextCliConfig, "_reset_instance", None)
+    reset_method = getattr(FlextCliSettings, "_reset_instance", None)
     if reset_method and callable(reset_method):
         reset_method()
 
 
-def _create_test_config(**overrides: object) -> FlextCliConfig:
+def _create_test_config(**overrides: object) -> FlextCliSettings:
     """Create test config with overrides."""
     # Create a base instance with defaults
-    config = FlextCliConfig()
+    config = FlextCliSettings()
     # Apply overrides directly to the instance
     for key, value in overrides.items():
         if hasattr(config, key):
@@ -192,7 +192,7 @@ def _create_decorated_command(
     # Register command with Typer using specific types for Typer compatibility
     # Business Rule: Typer command parameters MUST use typer.Option() for CLI integration
     # Architecture: create_option() returns OptionInfo which must be used with typer.Option()
-    # Audit Implication: Parameter defaults come from FlextCliConfig field defaults
+    # Audit Implication: Parameter defaults come from FlextCliSettings field defaults
     @app.command(name=command_name)
     def typer_command(
         verbose: bool = typer.Option(
@@ -320,13 +320,13 @@ class TestsCliCommonParams:
         os.environ.pop("FLEXT_CLI_QUIET", None)
         # Reset config instance - must be done before and after
         _reset_config_instance()
-        if hasattr(FlextCliConfig, "_instance"):
-            FlextCliConfig._instance = None
+        if hasattr(FlextCliSettings, "_instance"):
+            FlextCliSettings._instance = None
         yield
         # Clean up after test as well
         _reset_config_instance()
-        if hasattr(FlextCliConfig, "_instance"):
-            FlextCliConfig._instance = None
+        if hasattr(FlextCliSettings, "_instance"):
+            FlextCliSettings._instance = None
 
     # ========================================================================
     # INITIALIZATION AND BASIC FUNCTIONALITY
@@ -615,7 +615,7 @@ class TestsCliCommonParams:
         assert result.exit_code == 0
 
     def test_decorator_with_config_integration(self) -> None:
-        """Test decorator with FlextConfig integration."""
+        """Test decorator with FlextSettings integration."""
         app = typer.Typer()
 
         # Register command with Typer using specific types for Typer compatibility
@@ -734,8 +734,8 @@ class TestsCliCommonParams:
         try:
             # Force cleanup of any previous state - do this BEFORE setting env vars
             _reset_config_instance()
-            if hasattr(FlextCliConfig, "_instance"):
-                FlextCliConfig._instance = None
+            if hasattr(FlextCliSettings, "_instance"):
+                FlextCliSettings._instance = None
 
             # Clear environment variables first to ensure clean state
             os.environ.pop("FLEXT_CLI_DEBUG", None)
@@ -743,8 +743,8 @@ class TestsCliCommonParams:
 
             # Reset again after clearing env vars
             _reset_config_instance()
-            if hasattr(FlextCliConfig, "_instance"):
-                FlextCliConfig._instance = None
+            if hasattr(FlextCliSettings, "_instance"):
+                FlextCliSettings._instance = None
 
             # Set environment variables to explicit False values
             # Use "0" string which Pydantic Settings converts to False boolean
@@ -754,13 +754,13 @@ class TestsCliCommonParams:
 
             # Reset config instance after setting env vars to ensure fresh load
             _reset_config_instance()
-            if hasattr(FlextCliConfig, "_instance"):
-                FlextCliConfig._instance = None
+            if hasattr(FlextCliSettings, "_instance"):
+                FlextCliSettings._instance = None
 
             # Get fresh config instance that will load from environment
-            # Use FlextCliConfig() directly to ensure we get a fresh instance
+            # Use FlextCliSettings() directly to ensure we get a fresh instance
             # after resetting the singleton
-            config = FlextCliConfig()
+            config = FlextCliSettings()
             assert config.debug is False, f"Expected debug=False, got {config.debug}"
             assert config.verbose is False, (
                 f"Expected verbose=False, got {config.verbose}"
@@ -786,8 +786,8 @@ class TestsCliCommonParams:
                 os.environ["FLEXT_CLI_VERBOSE"] = original_verbose
             # Reset config instance after test
             _reset_config_instance()
-            if hasattr(FlextCliConfig, "_instance"):
-                FlextCliConfig._instance = None
+            if hasattr(FlextCliSettings, "_instance"):
+                FlextCliSettings._instance = None
 
     def test_precedence_order_cli_over_all(self, tmp_path: Path) -> None:
         """Test complete precedence: CLI > ENV > .env > defaults."""
@@ -806,8 +806,8 @@ class TestsCliCommonParams:
 
                 # Reset config to ensure fresh load from environment
                 _reset_config_instance()
-                if hasattr(FlextCliConfig, "_instance"):
-                    FlextCliConfig._instance = None
+                if hasattr(FlextCliSettings, "_instance"):
+                    FlextCliSettings._instance = None
 
                 config = FlextCliServiceBase.get_cli_config()
                 result = FlextCliCommonParams.apply_to_config(config, log_level="DEBUG")
@@ -825,8 +825,8 @@ class TestsCliCommonParams:
                 os.environ["FLEXT_CLI_LOG_LEVEL"] = original_log_level
             # Reset config after test
             _reset_config_instance()
-            if hasattr(FlextCliConfig, "_instance"):
-                FlextCliConfig._instance = None
+            if hasattr(FlextCliSettings, "_instance"):
+                FlextCliSettings._instance = None
 
     # ========================================================================
     # LOGGER INTEGRATION

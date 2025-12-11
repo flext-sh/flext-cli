@@ -10,7 +10,6 @@ from typing import (
     Literal,
     Self,
     Union,
-    cast,
     get_args,
     get_origin,
     override,
@@ -63,9 +62,9 @@ class FlextCliModels(FlextModels):
 
         # Metodo estatico para compatibilidade
         @staticmethod
-        def execute() -> r[t.Json.JsonDict]:
+        def execute() -> r[dict[str, t.GeneralValueType]]:
             """Execute models operation - returns empty dict for compatibility."""
-            return r[t.Json.JsonDict].ok({})
+            return r[dict[str, t.GeneralValueType]].ok({})
 
         # Classes base com heranca real - PADRAO CORRETO
         class Entity(FlextModels.Entity):
@@ -109,7 +108,7 @@ class FlextCliModels(FlextModels):
                 """Helper method for model_copy with updates - reduces repetition.
 
                 Composition pattern: centralizes model_copy logic for reuse.
-                Uses object instead of GeneralValueType to accept Protocol types.
+                Uses object instead of t.GeneralValueType to accept Protocol types.
                 """
                 return self.model_copy(update=updates)
 
@@ -179,7 +178,7 @@ class FlextCliModels(FlextModels):
                 description="Command result",
             )
 
-            kwargs: t.Json.JsonDict = Field(
+            kwargs: dict[str, t.GeneralValueType] = Field(
                 default_factory=dict,
                 description="Command keyword arguments",
             )
@@ -253,7 +252,7 @@ class FlextCliModels(FlextModels):
                     if not isinstance(data, dict):
                         return r.fail("Input must be a dictionary")
                     # Type narrowing: data is dict after isinstance check
-                    # Use GeneralValueType from lower layer instead of object
+                    # Use t.GeneralValueType from lower layer instead of object
                     data_dict: dict[str, t.GeneralValueType] = data
                     # Use model_validate for type-safe model creation from dict
                     command = cls.model_validate(data_dict)
@@ -365,7 +364,7 @@ class FlextCliModels(FlextModels):
                 """Helper method for model_copy with updates - reduces repetition.
 
                 Composition pattern: centralizes model_copy logic for reuse.
-                Uses object instead of GeneralValueType to accept Protocol types.
+                Uses object instead of t.GeneralValueType to accept Protocol types.
                 """
                 return self.model_copy(update=updates)
 
@@ -651,7 +650,7 @@ class FlextCliModels(FlextModels):
             Inherits frozen=True and extra="forbid" from FlextModels.Value.
             """
 
-            step_results: Sequence[t.Json.JsonDict] = Field(
+            step_results: Sequence[dict[str, t.GeneralValueType]] = Field(
                 default_factory=list,
                 description="Results for each workflow step",
             )
@@ -865,7 +864,7 @@ class FlextCliModels(FlextModels):
 
             success: bool = Field(default=True)
             context_id: str = Field(default="")
-            metadata: t.Json.JsonDict = Field(default_factory=dict)
+            metadata: dict[str, t.GeneralValueType] = Field(default_factory=dict)
             context_executed: bool = Field(
                 default=False,
                 description="Whether context was executed",
@@ -883,11 +882,11 @@ class FlextCliModels(FlextModels):
             service: str = Field(..., description="Service name")
             level: str = Field(..., description="Debug level")
             message: str = Field(..., description="Debug message")
-            system_info: t.Json.JsonDict = Field(
+            system_info: dict[str, t.GeneralValueType] = Field(
                 default_factory=dict,
                 description="System information",
             )
-            config_info: t.Json.JsonDict = Field(
+            config_info: dict[str, t.GeneralValueType] = Field(
                 default_factory=dict,
                 description="Configuration information",
             )
@@ -941,7 +940,7 @@ class FlextCliModels(FlextModels):
                         system_dict = system_info
                     elif isinstance(system_info, Mapping):
                         # Type narrowing: system_info is Mapping, convert to dict
-                        # Mapping values are GeneralValueType compatible
+                        # Mapping values are t.GeneralValueType compatible
                         system_dict = {str(k): v for k, v in system_info.items()}
                     else:
                         system_dict = {}
@@ -970,7 +969,7 @@ class FlextCliModels(FlextModels):
                         config_dict = config_info
                     elif isinstance(config_info, Mapping):
                         # Type narrowing: config_info is Mapping, convert to dict
-                        # Mapping values are GeneralValueType compatible
+                        # Mapping values are t.GeneralValueType compatible
                         config_dict = {str(k): v for k, v in config_info.items()}
                     else:
                         config_dict = {}
@@ -1000,12 +999,12 @@ class FlextCliModels(FlextModels):
             def __init__(
                 self,
                 field_name: str,
-                registry: Mapping[str, t.Json.JsonDict],
+                registry: Mapping[str, Mapping[str, t.GeneralValueType]],
             ) -> None:
                 """Initialize builder with field name and registry.
 
                 Args:
-                    field_name: Name of field in "FlextCliConfig"
+                    field_name: Name of field in "FlextCliSettings"
                     registry: CLI parameter registry mapping field names to option metadata
 
                 """
@@ -1040,7 +1039,7 @@ class FlextCliModels(FlextModels):
                     msg = "field_meta_raw must be dict"
                     raise TypeError(msg)
                 # Type narrowing: field_meta_raw is dict after isinstance check
-                # Use GeneralValueType from lower layer instead of object
+                # Use t.GeneralValueType from lower layer instead of object
                 field_meta: dict[str, t.GeneralValueType] = field_meta_raw
                 # Extract option metadata from registry using direct dict access
                 help_text = str(field_meta.get("help", ""))
@@ -1064,7 +1063,7 @@ class FlextCliModels(FlextModels):
                 if short_flag:
                     option_args.append(f"-{short_flag}")
 
-                # typer.Option returns typer.Option which is compatible with GeneralValueType
+                # typer.Option returns typer.Option which is compatible with t.GeneralValueType
                 # Do NOT pass is_flag or flag_value - deprecated in Typer
                 option: t.GeneralValueType = typer.Option(
                     default_value,
@@ -1172,7 +1171,7 @@ class FlextCliModels(FlextModels):
             command_name: str = Field(...)
             exit_code: int = Field(default=0)
             output: str = Field(default="")
-            context: t.Json.JsonDict = Field(default_factory=dict)
+            context: dict[str, t.GeneralValueType] = Field(default_factory=dict)
 
         class WorkflowStepResult(Value):
             """Workflow step result.
@@ -1785,24 +1784,19 @@ class FlextCliModels(FlextModels):
                 real_annotations = self._create_real_annotations(annotations)
                 command_wrapper.__annotations__ = real_annotations
 
-                if callable(command_wrapper):
-                    # command_wrapper is created dynamically via exec, so signature is variadic
-                    # Callable[..., T] is necessary for variadic callables
-                    # Type narrowing: command_wrapper is callable, return as Callable[..., GeneralValueType]
-                    # Runtime validation ensures it matches expected signature
-                    # command_wrapper is created dynamically and matches Callable[..., GeneralValueType]
-                    # Special case: exec-generated function needs cast due to dynamic nature
+                # Type narrowing: Use TypeGuard to narrow type from object to Callable
+                # Check if command_wrapper is the expected callable type
+                if _is_callable_function(command_wrapper):
+                    return command_wrapper
 
-                    if not isinstance(command_wrapper, type) and callable(
-                        command_wrapper
-                    ):
-                        return cast(
-                            "Callable[..., t.GeneralValueType]", command_wrapper
-                        )
-                    msg = "command_wrapper must be a callable function"
-                    raise TypeError(msg)
-                msg = "command_wrapper is not callable"
-                raise RuntimeError(msg)
+                # If not callable, provide detailed error
+                if callable(command_wrapper):
+                    msg = (
+                        "command_wrapper must be a callable function, not a class type"
+                    )
+                else:
+                    msg = "command_wrapper must be callable (function, method, or callable object)"
+                raise TypeError(msg)
 
             def build(self) -> Callable[..., t.GeneralValueType]:
                 # Callable[..., T] uses ... for variadic args (created dynamically)
@@ -1891,7 +1885,7 @@ class FlextCliModels(FlextModels):
                 """
                 try:
                     # Use direct model_validate instead of from_dict to avoid type variable issues
-                    # cli_args is already GeneralValueType compatible
+                    # cli_args is already t.GeneralValueType compatible
                     # Type narrowing: model_cls is BaseModel subclass (checked by caller)
                     # Convert Mapping to dict for model_validate
                     cli_args_dict: dict[str, t.GeneralValueType] = dict(cli_args)
@@ -1997,16 +1991,16 @@ class FlextCliModels(FlextModels):
                     ]
                 # Create Click option-like objects with option_name and param_decls
                 # Use simple object with attributes for compatibility with tests
-                # Type cast: dynamically created objects are compatible with GeneralValueType
+                # Type cast: dynamically created objects are compatible with t.GeneralValueType
                 options: list[t.GeneralValueType] = []
                 for param in params:
                     # Type narrowing: param is CliParameterSpecProtocol
                     # Create a simple object with option_name and param_decls attributes
                     option_name = f"--{param.field_name.replace('_', '-')}"
-                    # Type narrowing: param_decls list is compatible with GeneralValueType (list is included)
+                    # Type narrowing: param_decls list is compatible with t.GeneralValueType (list is included)
                     param_decls_list: t.GeneralValueType = [option_name]
                     # Type narrowing: param_type (type) - store as string for dict compatibility
-                    # type is not in GeneralValueType, so we use string representation
+                    # type is not in t.GeneralValueType, so we use string representation
                     param_type_name: str = (
                         getattr(param.param_type, "__name__", "str")
                         if isinstance(param.param_type, type)
@@ -2020,13 +2014,8 @@ class FlextCliModels(FlextModels):
                         "default": param.default,
                         "help": param.help,  # CliParameterSpec stores as .help, not .help_text
                     }
-                    # Type narrowing: dynamically created object is compatible with GeneralValueType
-                    # Cast needed for dynamically created object to be treated as GeneralValueType
-
-                    option_obj: t.GeneralValueType = cast(
-                        "t.GeneralValueType", type("ClickOption", (), option_obj_dict)()
-                    )
-                    options.append(option_obj)
+                    # Append dict directly - it's already GeneralValueType compatible
+                    options.append(option_obj_dict)
                 return r[list[t.GeneralValueType]].ok(options)
 
             @staticmethod
@@ -2036,7 +2025,7 @@ class FlextCliModels(FlextModels):
             ) -> r[p.Cli.CliParameterSpecProtocol]:
                 """Convert Pydantic field to CLI parameter specification."""
                 try:
-                    # Handle both FieldInfo and GeneralValueType
+                    # Handle both FieldInfo and t.GeneralValueType
                     if isinstance(field_info, FieldInfo):
                         annotation = field_info.annotation
                         default = (
@@ -2350,10 +2339,10 @@ class FlextCliModels(FlextModels):
             def convert_field_value(
                 field_value: object,
             ) -> r[t.GeneralValueType]:
-                """Convert field value to GeneralValueType.
+                """Convert field value to t.GeneralValueType.
 
                 models.py cannot use utilities - use direct conversion instead.
-                Uses GeneralValueType from lower layer for proper type safety.
+                Uses t.GeneralValueType from lower layer for proper type safety.
                 """
                 if field_value is None:
                     return r[t.GeneralValueType].ok(None)
@@ -2413,24 +2402,11 @@ class FlextCliModels(FlextModels):
                 """Process validators from field info, filtering only callable validators."""
                 if not isinstance(field_info, (list, tuple, Sequence)):
                     return []
-                validators: list[
-                    Callable[[t.GeneralValueType], t.GeneralValueType]
-                ] = []
-                for item in field_info:
-                    if callable(item):
-                        # Type narrowing: item is callable, cast to proper validator type
-                        # Type narrowing: validators may have different signatures
-                        if not callable(item):
-                            msg = "item must be callable"
-                            raise TypeError(msg)
-                        # Cast needed for callable type narrowing
-                        validator: Callable[
-                            [t.GeneralValueType], t.GeneralValueType
-                        ] = cast(
-                            "Callable[[t.GeneralValueType], t.GeneralValueType]", item
-                        )
-                        validators.append(validator)
-                return validators
+                return [
+                    item
+                    for item in field_info
+                    if callable(item) and not isinstance(item, type)
+                ]
 
         class CliModelDecorators:
             """Decorators for creating CLI commands from Pydantic models."""
@@ -2466,7 +2442,7 @@ class FlextCliModels(FlextModels):
                             model_instance = model_class(**kwargs)
                             # Call original function with model
                             result = func(model_instance)
-                            # Convert result to GeneralValueType if needed
+                            # Convert result to t.GeneralValueType if needed
                             output: t.GeneralValueType
                             if isinstance(result, r):
                                 if result.is_success:

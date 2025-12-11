@@ -340,7 +340,7 @@ All other exports remain:
 # ✅ Still available
 from flext_cli import (
     FlextCli,  # Main API
-    FlextCliConfig,  # Configuration
+    FlextCliSettings,  # Configuration
     FlextCliCore,  # Core service
     FlextCliFormatters,  # Formatting
     FlextCliTables,  # Tables

@@ -20,7 +20,6 @@ from flext_cli.cli import FlextCliCli
 from flext_cli.cli_params import FlextCliCommonParams
 from flext_cli.command_builder import FlextCommandBuilder
 from flext_cli.commands import FlextCliCommands
-from flext_cli.config import FlextCliConfig
 from flext_cli.constants import FlextCliConstants
 from flext_cli.context import FlextCliContext
 from flext_cli.debug import FlextCliDebug
@@ -42,6 +41,7 @@ from flext_cli.services.core import FlextCliCore
 from flext_cli.services.output import FlextCliOutput
 from flext_cli.services.prompts import FlextCliPrompts
 from flext_cli.services.tables import FlextCliTables
+from flext_cli.settings import FlextCliSettings
 from flext_cli.typings import FlextCliTypes
 from flext_cli.utilities import FlextCliUtilities
 
@@ -67,7 +67,6 @@ __all__ = [
     "FlextCliCmd",
     "FlextCliCommands",
     "FlextCliCommonParams",
-    "FlextCliConfig",
     "FlextCliConstants",
     "FlextCliContext",
     "FlextCliCore",
@@ -80,6 +79,7 @@ __all__ = [
     "FlextCliPrompts",
     "FlextCliProtocols",
     "FlextCliServiceBase",
+    "FlextCliSettings",
     "FlextCliTables",
     "FlextCliTypes",
     "FlextCliUtilities",

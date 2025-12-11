@@ -4,7 +4,7 @@ Tests for FlextCli covering core CLI functionality, authentication, file operati
 command execution, configuration, output formatting, error handling, concurrent operations,
 token management, validation, decorators, and edge cases with 100% coverage.
 
-Modules tested: flext_cli.FlextCli (main API), FlextCliConfig, FlextCliModels,
+Modules tested: flext_cli.FlextCli (main API), FlextCliSettings, FlextCliModels,
 FlextCliConstants, FlextCliOutput, FlextCliFileTools, FlextCliCore, FlextCliPrompts, FlextCliCmd
 Scope: All API operations, authentication, file operations, command execution, configuration
 
@@ -646,12 +646,12 @@ class TestsCli:
     def test_create_table_with_dict(self, flext_cli_api: FlextCli) -> None:
         """Test create_table with dictionary data."""
         data = {"name": "John", "age": 30}
-        # dict[str, int] is compatible with Mapping[str, GeneralValueType]
+        # dict[str, int] is compatible with Mapping[str, t.GeneralValueType]
         # Type narrowing: ensure data is dict (already checked)
         if not isinstance(data, dict):
             msg = "data must be dict"
             raise TypeError(msg)
-        # dict[str, int] is structurally compatible with Mapping[str, GeneralValueType]
+        # dict[str, int] is structurally compatible with Mapping[str, t.GeneralValueType]
         typed_data: Mapping[str, t.GeneralValueType] = data
         result = flext_cli_api.create_table(
             typed_data,
@@ -663,12 +663,12 @@ class TestsCli:
     def test_create_table_with_list(self, flext_cli_api: FlextCli) -> None:
         """Test create_table with list data."""
         data = [{"name": "John", "age": 30}, {"name": "Jane", "age": 25}]
-        # list[dict[str, int]] is compatible with Sequence[Mapping[str, GeneralValueType]]
+        # list[dict[str, int]] is compatible with Sequence[Mapping[str, t.GeneralValueType]]
         # Type narrowing: ensure data is list of dicts
         if not isinstance(data, list):
             msg = "data must be list"
             raise TypeError(msg)
-        # list[dict[str, int]] is structurally compatible with Sequence[Mapping[str, GeneralValueType]]
+        # list[dict[str, int]] is structurally compatible with Sequence[Mapping[str, t.GeneralValueType]]
         typed_data: Sequence[Mapping[str, t.GeneralValueType]] = data
         result = flext_cli_api.create_table(
             typed_data,
@@ -685,12 +685,12 @@ class TestsCli:
     def test_create_table_with_title(self, flext_cli_api: FlextCli) -> None:
         """Test create_table with title."""
         data = [{"name": "John", "age": 30}]
-        # list[dict[str, int]] is compatible with Sequence[Mapping[str, GeneralValueType]]
+        # list[dict[str, int]] is compatible with Sequence[Mapping[str, t.GeneralValueType]]
         # Type narrowing: ensure data is list of dicts
         if not isinstance(data, list):
             msg = "data must be list"
             raise TypeError(msg)
-        # list[dict[str, int]] is structurally compatible with Sequence[Mapping[str, GeneralValueType]]
+        # list[dict[str, int]] is structurally compatible with Sequence[Mapping[str, t.GeneralValueType]]
         typed_data: Sequence[Mapping[str, t.GeneralValueType]] = data
         result = flext_cli_api.create_table(
             typed_data,

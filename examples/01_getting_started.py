@@ -52,7 +52,7 @@ class FlextCliGettingStarted:
     # PATTERN 2: Display data as tables
     # ============================================================================
 
-    def display_user_data(self, user: t.Cli.Data.CliDataDict) -> None:
+    def display_user_data(self, user: t.JsonDict) -> None:
         """Show how to display YOUR data as a table."""
         # Your data (from database, API, etc.)
         # Create table from user data
@@ -69,7 +69,7 @@ class FlextCliGettingStarted:
     # PATTERN 3: File I/O with error handling
     # ============================================================================
 
-    def save_config(self, config: t.Cli.Data.CliDataDict, filepath: str) -> bool:
+    def save_config(self, config: t.JsonDict, filepath: str) -> bool:
         """Save YOUR config to JSON with proper error handling."""
         write_result = self.cli.file_tools.write_json_file(
             filepath,
@@ -83,7 +83,7 @@ class FlextCliGettingStarted:
         self.cli.output.print_message(f"✅ Saved to {filepath}")
         return True
 
-    def load_config(self, filepath: str) -> t.Cli.CliJsonDict | None:
+    def load_config(self, filepath: str) -> t.Cli.JsonDict | None:
         """Load YOUR config from JSON with error handling."""
         read_result = self.cli.file_tools.read_json_file(filepath)
 
@@ -108,8 +108,7 @@ class FlextCliGettingStarted:
         result = self.cli.file_tools.read_json_file(nonexistent_file)
 
         if result.is_success:
-            result.value
-            # Process your data
+            # Process your data - result.value contains the loaded data
             self.cli.print("Data loaded successfully", style="green")
         else:
             # Handle error gracefully
@@ -140,7 +139,7 @@ class FlextCliGettingStarted:
         self.cli.print(f"Available formats: {', '.join(valid_formats)}")
 
         # Using advanced type aliases from typings
-        sample_data: t.Cli.CliJsonDict = {
+        sample_data: t.Cli.JsonDict = {
             "status": c.Cli.CommandStatus.COMPLETED.value,
             "data": [1, 2, 3],
             "metadata": {"version": "1.0"},

@@ -4,7 +4,7 @@ Tests for FlextCli.model_command() covering configuration integration, config ex
 default value propagation, parameter validation, alias handling, field precedence rules,
 and edge cases with 100% coverage.
 
-Modules tested: flext_cli.cli.FlextCliCli.model_command(), FlextCliConfig integration
+Modules tested: flext_cli.cli.FlextCliCli.model_command(), FlextCliSettings integration
 Scope: All config-model integration operations, parameter validation, precedence rules
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
@@ -23,7 +23,7 @@ from flext_core import t
 from pydantic import BaseModel, Field, ValidationError
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from flext_cli import FlextCliCli, FlextCliConfig
+from flext_cli import FlextCliCli, FlextCliSettings
 
 
 class TestsCliConfigModelIntegration:
@@ -297,7 +297,7 @@ class TestsCliConfigModelIntegration:
         command = cli.model_command(
             self.AppParams,
             handler,
-            config=cast("FlextCliConfig", config),
+            config=cast("FlextCliSettings", config),
         )
         assert command is not None
         assert callable(command)

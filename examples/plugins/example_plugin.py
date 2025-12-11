@@ -96,7 +96,7 @@ class ExamplePlugin:
         """Initialize plugin."""
         super().__init__()
         self._initialized = False
-        self._config: t.Cli.Data.CliDataDict = {}
+        self._config: t.JsonDict = {}
 
     def initialize(self, _cli_main: object) -> r[bool]:
         """Initialize the plugin.
@@ -141,7 +141,7 @@ class ExamplePlugin:
                 )
 
             # Type cast for pyright: isinstance check ensures compatibility
-            cli_with_group = cast("CliMainWithGroups", cli_main)
+            cli_with_group = cast("CliMainWithGroups", cli_main)  # type: ignore[redundant-cast]
 
             # Register command group
             @cli_with_group.group()
@@ -176,7 +176,7 @@ class ExamplePlugin:
                     "example group does not implement GroupWithCommands protocol",
                 )
 
-            example_group = cast("GroupWithCommands", example)
+            example_group = cast("GroupWithCommands", example)  # type: ignore[redundant-cast]
 
             @example_group.command()
             def hello_cmd(name: str = "World") -> None:
@@ -257,7 +257,7 @@ class DataProcessorPlugin:
                 )
 
             # Type cast for pyright: isinstance check ensures compatibility
-            cli_with_group = cast("CliMainWithGroups", cli_main)
+            cli_with_group = cast("CliMainWithGroups", cli_main)  # type: ignore[redundant-cast]
 
             @cli_with_group.group()
             def data() -> None:
@@ -296,7 +296,7 @@ class DataProcessorPlugin:
                     "data group does not implement GroupWithCommands protocol",
                 )
 
-            data_group = cast("GroupWithCommands", data)
+            data_group = cast("GroupWithCommands", data)  # type: ignore[redundant-cast]
 
             @data_group.command()
             def process_cmd(input_data: str, format_type: str = "json") -> None:

@@ -1,1 +1,886 @@
-{'key': 'value', 'number': 42}
+ERROR Class `Cli` has no class attribute `get_valid_output_formats` [missing-attribute]
+   --> examples/01_getting_started.py:138:25
+    |
+138 |         valid_formats = c.Cli.get_valid_output_formats()
+    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+ERROR Default `Literal[FlextCliConstants.Cli.OutputFormats.TABLE]` is not assignable to parameter `format_type` with type `Literal['csv', 'json', 'plain', 'table', 'yaml']` [bad-function-definition]
+   --> examples/02_output_formatting.py:115:46
+    |
+115 |     format_type: c.Cli.OutputFormatLiteral = c.Cli.OutputFormats.TABLE,
+    |                                              ^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+ERROR Argument `Literal[FlextCliConstants.Cli.OutputFormats.TABLE]` is not assignable to parameter `format_type` with type `Literal['csv', 'json', 'plain', 'table', 'yaml']` in function `export_report` [bad-argument-type]
+   --> examples/02_output_formatting.py:308:47
+    |
+308 |     ascii_result = export_report(sample_data, c.Cli.OutputFormats.TABLE)
+    |                                               ^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+ERROR Class `Cli` has no class attribute `get_valid_output_formats` [missing-attribute]
+   --> examples/02_output_formatting.py:400:21
+    |
+400 |     valid_formats = c.Cli.get_valid_output_formats()
+    |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+ERROR Class `FlextCliUtilities` has no class attribute `map` [missing-attribute]
+   --> examples/04_file_operations.py:397:17
+    |
+397 |                 u.map(
+    |                 ^^^^^
+    |
+ERROR Class `FlextCliUtilities` has no class attribute `process` [missing-attribute]
+   --> examples/06_configuration.py:286:5
+    |
+286 |     u.process(env_vars, processor=print_env, on_error="skip")
+    |     ^^^^^^^^^
+    |
+ERROR Class `FlextCliUtilities` has no class attribute `process` [missing-attribute]
+   --> examples/07_plugin_system.py:182:26
+    |
+182 |         process_result = u.process(
+    |                          ^^^^^^^^^
+    |
+ERROR Returned type `FlextResult[Mapping[str, Unknown]]` is not assignable to declared return type `FlextResult[object]` [bad-return]
+   --> examples/08_shell_interaction.py:161:28
+    |
+161 |                     return result
+    |                            ^^^^^^
+    |
+ERROR Class `FlextCliUtilities` has no class attribute `map` [missing-attribute]
+   --> examples/14_advanced_file_formats.py:111:13
+    |
+111 |             u.map(
+    |             ^^^^^
+    |
+ERROR Class `FlextCliTypes` has no class attribute `Tables` [missing-attribute]
+   --> examples/14_advanced_file_formats.py:132:19
+    |
+132 |             cast("t.Tables.TableData", sample_rows),
+    |                   ^^^^^^^^
+    |
+ERROR Class `FlextCliUtilities` has no class attribute `map` [missing-attribute]
+   --> examples/14_advanced_file_formats.py:141:9
+    |
+141 |         u.map(
+    |         ^^^^^
+    |
+ERROR Class `FlextCliUtilities` has no class attribute `map` [missing-attribute]
+   --> examples/14_advanced_file_formats.py:477:9
+    |
+477 |         u.map(
+    |         ^^^^^
+    |
+ERROR Could not find import of `tests.base` [missing-import]
+  --> tests/__init__.py:11:1
+   |
+11 | from tests.base import TestsCliServiceBase, s
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+  Looked in these locations (from config in `/home/marlonsc/flext/flext-cli/pyproject.toml`):
+  Search path (from config file): ["/home/marlonsc/flext/flext-cli/src", "/home/marlonsc/flext/flext-cli/tests", "/home/marlonsc/flext/flext-cli/examples", "/home/marlonsc/flext/flext-cli/scripts"]
+  Import root (inferred from project layout): "/home/marlonsc/flext/flext-cli/src"
+  Site package path queried from interpreter: ["/usr/lib/python3.13", "/usr/lib/python3.13/lib-dynload", "/home/marlonsc/flext/.venv/lib/python3.13/site-packages", "/home/marlonsc/flext/client-a-oud-mig/src", "/home/marlonsc/flext/flexcore/src", "/home/marlonsc/flext/src", "/home/marlonsc/flext/flext-api/src", "/home/marlonsc/flext/flext-auth/src", "/home/marlonsc/flext/flext-cli/src", "/home/marlonsc/flext/flext-core/src", "/home/marlonsc/flext/flext-db-oracle/src", "/home/marlonsc/flext/flext-dbt-ldap/src", "/home/marlonsc/flext/flext-dbt-ldif/src", "/home/marlonsc/flext/flext-dbt-oracle/src", "/home/marlonsc/flext/flext-dbt-oracle-wms/src", "/home/marlonsc/flext/flext-grpc/src", "/home/marlonsc/flext/flext-ldap/src", "/home/marlonsc/flext/flext-ldif/src", "/home/marlonsc/flext/flext-meltano/src", "/home/marlonsc/flext/flext-observability/src", "/home/marlonsc/flext/flext-oracle-oic/src", "/home/marlonsc/flext/flext-oracle-wms/src", "/home/marlonsc/flext/flext-plugin/src", "/home/marlonsc/flext/flext-quality/src", "/home/marlonsc/flext/flext-tap-ldap/src", "/home/marlonsc/flext/flext-tap-ldif/src", "/home/marlonsc/flext/flext-tap-oracle/src", "/home/marlonsc/flext/flext-tap-oracle-oic/src", "/home/marlonsc/flext/flext-tap-oracle-wms/src", "/home/marlonsc/flext/flext-target-ldap/src", "/home/marlonsc/flext/flext-target-ldif/src", "/home/marlonsc/flext/flext-target-oracle/src", "/home/marlonsc/flext/flext-target-oracle-oic/src", "/home/marlonsc/flext/flext-target-oracle-wms/src", "/home/marlonsc/flext/flext-web/src", "/home/marlonsc/flext/client-b-meltano-native/src"]
+ERROR Could not find import of `tests.constants` [missing-import]
+  --> tests/__init__.py:12:1
+   |
+12 | from tests.constants import TestsCliConstants, c
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+  Looked in these locations (from config in `/home/marlonsc/flext/flext-cli/pyproject.toml`):
+  Search path (from config file): ["/home/marlonsc/flext/flext-cli/src", "/home/marlonsc/flext/flext-cli/tests", "/home/marlonsc/flext/flext-cli/examples", "/home/marlonsc/flext/flext-cli/scripts"]
+  Import root (inferred from project layout): "/home/marlonsc/flext/flext-cli/src"
+  Site package path queried from interpreter: ["/usr/lib/python3.13", "/usr/lib/python3.13/lib-dynload", "/home/marlonsc/flext/.venv/lib/python3.13/site-packages", "/home/marlonsc/flext/client-a-oud-mig/src", "/home/marlonsc/flext/flexcore/src", "/home/marlonsc/flext/src", "/home/marlonsc/flext/flext-api/src", "/home/marlonsc/flext/flext-auth/src", "/home/marlonsc/flext/flext-cli/src", "/home/marlonsc/flext/flext-core/src", "/home/marlonsc/flext/flext-db-oracle/src", "/home/marlonsc/flext/flext-dbt-ldap/src", "/home/marlonsc/flext/flext-dbt-ldif/src", "/home/marlonsc/flext/flext-dbt-oracle/src", "/home/marlonsc/flext/flext-dbt-oracle-wms/src", "/home/marlonsc/flext/flext-grpc/src", "/home/marlonsc/flext/flext-ldap/src", "/home/marlonsc/flext/flext-ldif/src", "/home/marlonsc/flext/flext-meltano/src", "/home/marlonsc/flext/flext-observability/src", "/home/marlonsc/flext/flext-oracle-oic/src", "/home/marlonsc/flext/flext-oracle-wms/src", "/home/marlonsc/flext/flext-plugin/src", "/home/marlonsc/flext/flext-quality/src", "/home/marlonsc/flext/flext-tap-ldap/src", "/home/marlonsc/flext/flext-tap-ldif/src", "/home/marlonsc/flext/flext-tap-oracle/src", "/home/marlonsc/flext/flext-tap-oracle-oic/src", "/home/marlonsc/flext/flext-tap-oracle-wms/src", "/home/marlonsc/flext/flext-target-ldap/src", "/home/marlonsc/flext/flext-target-ldif/src", "/home/marlonsc/flext/flext-target-oracle/src", "/home/marlonsc/flext/flext-target-oracle-oic/src", "/home/marlonsc/flext/flext-target-oracle-wms/src", "/home/marlonsc/flext/flext-web/src", "/home/marlonsc/flext/client-b-meltano-native/src"]
+ERROR Could not find import of `tests.models` [missing-import]
+  --> tests/__init__.py:13:1
+   |
+13 | from tests.models import TestsCliModels, m
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+  Looked in these locations (from config in `/home/marlonsc/flext/flext-cli/pyproject.toml`):
+  Search path (from config file): ["/home/marlonsc/flext/flext-cli/src", "/home/marlonsc/flext/flext-cli/tests", "/home/marlonsc/flext/flext-cli/examples", "/home/marlonsc/flext/flext-cli/scripts"]
+  Import root (inferred from project layout): "/home/marlonsc/flext/flext-cli/src"
+  Site package path queried from interpreter: ["/usr/lib/python3.13", "/usr/lib/python3.13/lib-dynload", "/home/marlonsc/flext/.venv/lib/python3.13/site-packages", "/home/marlonsc/flext/client-a-oud-mig/src", "/home/marlonsc/flext/flexcore/src", "/home/marlonsc/flext/src", "/home/marlonsc/flext/flext-api/src", "/home/marlonsc/flext/flext-auth/src", "/home/marlonsc/flext/flext-cli/src", "/home/marlonsc/flext/flext-core/src", "/home/marlonsc/flext/flext-db-oracle/src", "/home/marlonsc/flext/flext-dbt-ldap/src", "/home/marlonsc/flext/flext-dbt-ldif/src", "/home/marlonsc/flext/flext-dbt-oracle/src", "/home/marlonsc/flext/flext-dbt-oracle-wms/src", "/home/marlonsc/flext/flext-grpc/src", "/home/marlonsc/flext/flext-ldap/src", "/home/marlonsc/flext/flext-ldif/src", "/home/marlonsc/flext/flext-meltano/src", "/home/marlonsc/flext/flext-observability/src", "/home/marlonsc/flext/flext-oracle-oic/src", "/home/marlonsc/flext/flext-oracle-wms/src", "/home/marlonsc/flext/flext-plugin/src", "/home/marlonsc/flext/flext-quality/src", "/home/marlonsc/flext/flext-tap-ldap/src", "/home/marlonsc/flext/flext-tap-ldif/src", "/home/marlonsc/flext/flext-tap-oracle/src", "/home/marlonsc/flext/flext-tap-oracle-oic/src", "/home/marlonsc/flext/flext-tap-oracle-wms/src", "/home/marlonsc/flext/flext-target-ldap/src", "/home/marlonsc/flext/flext-target-ldif/src", "/home/marlonsc/flext/flext-target-oracle/src", "/home/marlonsc/flext/flext-target-oracle-oic/src", "/home/marlonsc/flext/flext-target-oracle-wms/src", "/home/marlonsc/flext/flext-web/src", "/home/marlonsc/flext/client-b-meltano-native/src"]
+ERROR Could not find import of `tests.protocols` [missing-import]
+  --> tests/__init__.py:14:1
+   |
+14 | from tests.protocols import TestsCliProtocols, p
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+  Looked in these locations (from config in `/home/marlonsc/flext/flext-cli/pyproject.toml`):
+  Search path (from config file): ["/home/marlonsc/flext/flext-cli/src", "/home/marlonsc/flext/flext-cli/tests", "/home/marlonsc/flext/flext-cli/examples", "/home/marlonsc/flext/flext-cli/scripts"]
+  Import root (inferred from project layout): "/home/marlonsc/flext/flext-cli/src"
+  Site package path queried from interpreter: ["/usr/lib/python3.13", "/usr/lib/python3.13/lib-dynload", "/home/marlonsc/flext/.venv/lib/python3.13/site-packages", "/home/marlonsc/flext/client-a-oud-mig/src", "/home/marlonsc/flext/flexcore/src", "/home/marlonsc/flext/src", "/home/marlonsc/flext/flext-api/src", "/home/marlonsc/flext/flext-auth/src", "/home/marlonsc/flext/flext-cli/src", "/home/marlonsc/flext/flext-core/src", "/home/marlonsc/flext/flext-db-oracle/src", "/home/marlonsc/flext/flext-dbt-ldap/src", "/home/marlonsc/flext/flext-dbt-ldif/src", "/home/marlonsc/flext/flext-dbt-oracle/src", "/home/marlonsc/flext/flext-dbt-oracle-wms/src", "/home/marlonsc/flext/flext-grpc/src", "/home/marlonsc/flext/flext-ldap/src", "/home/marlonsc/flext/flext-ldif/src", "/home/marlonsc/flext/flext-meltano/src", "/home/marlonsc/flext/flext-observability/src", "/home/marlonsc/flext/flext-oracle-oic/src", "/home/marlonsc/flext/flext-oracle-wms/src", "/home/marlonsc/flext/flext-plugin/src", "/home/marlonsc/flext/flext-quality/src", "/home/marlonsc/flext/flext-tap-ldap/src", "/home/marlonsc/flext/flext-tap-ldif/src", "/home/marlonsc/flext/flext-tap-oracle/src", "/home/marlonsc/flext/flext-tap-oracle-oic/src", "/home/marlonsc/flext/flext-tap-oracle-wms/src", "/home/marlonsc/flext/flext-target-ldap/src", "/home/marlonsc/flext/flext-target-ldif/src", "/home/marlonsc/flext/flext-target-oracle/src", "/home/marlonsc/flext/flext-target-oracle-oic/src", "/home/marlonsc/flext/flext-target-oracle-wms/src", "/home/marlonsc/flext/flext-web/src", "/home/marlonsc/flext/client-b-meltano-native/src"]
+ERROR Could not find import of `tests.typings` [missing-import]
+  --> tests/__init__.py:15:1
+   |
+15 | from tests.typings import TestsCliTypes, t
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+  Looked in these locations (from config in `/home/marlonsc/flext/flext-cli/pyproject.toml`):
+  Search path (from config file): ["/home/marlonsc/flext/flext-cli/src", "/home/marlonsc/flext/flext-cli/tests", "/home/marlonsc/flext/flext-cli/examples", "/home/marlonsc/flext/flext-cli/scripts"]
+  Import root (inferred from project layout): "/home/marlonsc/flext/flext-cli/src"
+  Site package path queried from interpreter: ["/usr/lib/python3.13", "/usr/lib/python3.13/lib-dynload", "/home/marlonsc/flext/.venv/lib/python3.13/site-packages", "/home/marlonsc/flext/client-a-oud-mig/src", "/home/marlonsc/flext/flexcore/src", "/home/marlonsc/flext/src", "/home/marlonsc/flext/flext-api/src", "/home/marlonsc/flext/flext-auth/src", "/home/marlonsc/flext/flext-cli/src", "/home/marlonsc/flext/flext-core/src", "/home/marlonsc/flext/flext-db-oracle/src", "/home/marlonsc/flext/flext-dbt-ldap/src", "/home/marlonsc/flext/flext-dbt-ldif/src", "/home/marlonsc/flext/flext-dbt-oracle/src", "/home/marlonsc/flext/flext-dbt-oracle-wms/src", "/home/marlonsc/flext/flext-grpc/src", "/home/marlonsc/flext/flext-ldap/src", "/home/marlonsc/flext/flext-ldif/src", "/home/marlonsc/flext/flext-meltano/src", "/home/marlonsc/flext/flext-observability/src", "/home/marlonsc/flext/flext-oracle-oic/src", "/home/marlonsc/flext/flext-oracle-wms/src", "/home/marlonsc/flext/flext-plugin/src", "/home/marlonsc/flext/flext-quality/src", "/home/marlonsc/flext/flext-tap-ldap/src", "/home/marlonsc/flext/flext-tap-ldif/src", "/home/marlonsc/flext/flext-tap-oracle/src", "/home/marlonsc/flext/flext-tap-oracle-oic/src", "/home/marlonsc/flext/flext-tap-oracle-wms/src", "/home/marlonsc/flext/flext-target-ldap/src", "/home/marlonsc/flext/flext-target-ldif/src", "/home/marlonsc/flext/flext-target-oracle/src", "/home/marlonsc/flext/flext-target-oracle-oic/src", "/home/marlonsc/flext/flext-target-oracle-wms/src", "/home/marlonsc/flext/flext-web/src", "/home/marlonsc/flext/client-b-meltano-native/src"]
+ERROR Could not find import of `tests.utilities` [missing-import]
+  --> tests/__init__.py:16:1
+   |
+16 | from tests.utilities import TestsCliUtilities, u
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+  Looked in these locations (from config in `/home/marlonsc/flext/flext-cli/pyproject.toml`):
+  Search path (from config file): ["/home/marlonsc/flext/flext-cli/src", "/home/marlonsc/flext/flext-cli/tests", "/home/marlonsc/flext/flext-cli/examples", "/home/marlonsc/flext/flext-cli/scripts"]
+  Import root (inferred from project layout): "/home/marlonsc/flext/flext-cli/src"
+  Site package path queried from interpreter: ["/usr/lib/python3.13", "/usr/lib/python3.13/lib-dynload", "/home/marlonsc/flext/.venv/lib/python3.13/site-packages", "/home/marlonsc/flext/client-a-oud-mig/src", "/home/marlonsc/flext/flexcore/src", "/home/marlonsc/flext/src", "/home/marlonsc/flext/flext-api/src", "/home/marlonsc/flext/flext-auth/src", "/home/marlonsc/flext/flext-cli/src", "/home/marlonsc/flext/flext-core/src", "/home/marlonsc/flext/flext-db-oracle/src", "/home/marlonsc/flext/flext-dbt-ldap/src", "/home/marlonsc/flext/flext-dbt-ldif/src", "/home/marlonsc/flext/flext-dbt-oracle/src", "/home/marlonsc/flext/flext-dbt-oracle-wms/src", "/home/marlonsc/flext/flext-grpc/src", "/home/marlonsc/flext/flext-ldap/src", "/home/marlonsc/flext/flext-ldif/src", "/home/marlonsc/flext/flext-meltano/src", "/home/marlonsc/flext/flext-observability/src", "/home/marlonsc/flext/flext-oracle-oic/src", "/home/marlonsc/flext/flext-oracle-wms/src", "/home/marlonsc/flext/flext-plugin/src", "/home/marlonsc/flext/flext-quality/src", "/home/marlonsc/flext/flext-tap-ldap/src", "/home/marlonsc/flext/flext-tap-ldif/src", "/home/marlonsc/flext/flext-tap-oracle/src", "/home/marlonsc/flext/flext-tap-oracle-oic/src", "/home/marlonsc/flext/flext-tap-oracle-wms/src", "/home/marlonsc/flext/flext-target-ldap/src", "/home/marlonsc/flext/flext-target-ldif/src", "/home/marlonsc/flext/flext-target-oracle/src", "/home/marlonsc/flext/flext-target-oracle-oic/src", "/home/marlonsc/flext/flext-target-oracle-wms/src", "/home/marlonsc/flext/flext-web/src", "/home/marlonsc/flext/client-b-meltano-native/src"]
+ERROR Could not import `c` from `tests` [missing-module-attribute]
+  --> tests/conftest.py:58:5
+   |
+58 |     c,
+   |     ^
+   |
+ERROR Could not import `u` from `tests` [missing-module-attribute]
+  --> tests/conftest.py:59:5
+   |
+59 |     u,
+   |     ^
+   |
+ERROR Could not find import of `tests.utilities` [missing-import]
+  --> tests/conftest.py:61:1
+   |
+61 | from tests.utilities import TestsCliUtilities
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+  Looked in these locations (from config in `/home/marlonsc/flext/flext-cli/pyproject.toml`):
+  Search path (from config file): ["/home/marlonsc/flext/flext-cli/src", "/home/marlonsc/flext/flext-cli/tests", "/home/marlonsc/flext/flext-cli/examples", "/home/marlonsc/flext/flext-cli/scripts"]
+  Import root (inferred from project layout): "/home/marlonsc/flext/flext-cli/src"
+  Site package path queried from interpreter: ["/usr/lib/python3.13", "/usr/lib/python3.13/lib-dynload", "/home/marlonsc/flext/.venv/lib/python3.13/site-packages", "/home/marlonsc/flext/client-a-oud-mig/src", "/home/marlonsc/flext/flexcore/src", "/home/marlonsc/flext/src", "/home/marlonsc/flext/flext-api/src", "/home/marlonsc/flext/flext-auth/src", "/home/marlonsc/flext/flext-cli/src", "/home/marlonsc/flext/flext-core/src", "/home/marlonsc/flext/flext-db-oracle/src", "/home/marlonsc/flext/flext-dbt-ldap/src", "/home/marlonsc/flext/flext-dbt-ldif/src", "/home/marlonsc/flext/flext-dbt-oracle/src", "/home/marlonsc/flext/flext-dbt-oracle-wms/src", "/home/marlonsc/flext/flext-grpc/src", "/home/marlonsc/flext/flext-ldap/src", "/home/marlonsc/flext/flext-ldif/src", "/home/marlonsc/flext/flext-meltano/src", "/home/marlonsc/flext/flext-observability/src", "/home/marlonsc/flext/flext-oracle-oic/src", "/home/marlonsc/flext/flext-oracle-wms/src", "/home/marlonsc/flext/flext-plugin/src", "/home/marlonsc/flext/flext-quality/src", "/home/marlonsc/flext/flext-tap-ldap/src", "/home/marlonsc/flext/flext-tap-ldif/src", "/home/marlonsc/flext/flext-tap-oracle/src", "/home/marlonsc/flext/flext-tap-oracle-oic/src", "/home/marlonsc/flext/flext-tap-oracle-wms/src", "/home/marlonsc/flext/flext-target-ldap/src", "/home/marlonsc/flext/flext-target-ldif/src", "/home/marlonsc/flext/flext-target-oracle/src", "/home/marlonsc/flext/flext-target-oracle-oic/src", "/home/marlonsc/flext/flext-target-oracle-wms/src", "/home/marlonsc/flext/flext-web/src", "/home/marlonsc/flext/client-b-meltano-native/src"]
+ERROR No attribute `ALICE` in module `builtins` [missing-attribute]
+  --> tests/conftest.py:74:5
+   |
+74 |     builtins.ALICE = test_data.ALICE
+   |     ^^^^^^^^^^^^^^
+   |
+ERROR No attribute `VALID_FIELD_NAME` in module `builtins` [missing-attribute]
+  --> tests/conftest.py:75:5
+   |
+75 |     builtins.VALID_FIELD_NAME = test_data.VALID_FIELD_NAME
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+ERROR No attribute `FIELD_NAME` in module `builtins` [missing-attribute]
+  --> tests/conftest.py:76:5
+   |
+76 |     builtins.FIELD_NAME = test_data.FIELD_NAME
+   |     ^^^^^^^^^^^^^^^^^^^
+   |
+ERROR No attribute `WHITESPACE_FIELD_NAME` in module `builtins` [missing-attribute]
+  --> tests/conftest.py:77:5
+   |
+77 |     builtins.WHITESPACE_FIELD_NAME = test_data.WHITESPACE_FIELD_NAME
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+ERROR No attribute `VALID_STRING` in module `builtins` [missing-attribute]
+  --> tests/conftest.py:78:5
+   |
+78 |     builtins.VALID_STRING = test_data.VALID_STRING
+   |     ^^^^^^^^^^^^^^^^^^^^^
+   |
+ERROR No attribute `STRING` in module `builtins` [missing-attribute]
+  --> tests/conftest.py:79:5
+   |
+79 |     builtins.STRING = test_data.STRING
+   |     ^^^^^^^^^^^^^^^
+   |
+ERROR No attribute `WHITESPACE_STRING` in module `builtins` [missing-attribute]
+  --> tests/conftest.py:80:5
+   |
+80 |     builtins.WHITESPACE_STRING = test_data.WHITESPACE_STRING
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+ERROR No attribute `NONE_VALUE` in module `builtins` [missing-attribute]
+  --> tests/conftest.py:81:5
+   |
+81 |     builtins.NONE_VALUE = test_data.NONE_VALUE
+   |     ^^^^^^^^^^^^^^^^^^^
+   |
+ERROR No attribute `CUSTOM` in module `builtins` [missing-attribute]
+  --> tests/conftest.py:82:5
+   |
+82 |     builtins.CUSTOM = test_data.CUSTOM
+   |     ^^^^^^^^^^^^^^^
+   |
+ERROR No attribute `TWO` in module `builtins` [missing-attribute]
+  --> tests/conftest.py:83:5
+   |
+83 |     builtins.TWO = test_data.TWO
+   |     ^^^^^^^^^^^^
+   |
+ERROR No attribute `PASSWORD` in module `builtins` [missing-attribute]
+  --> tests/conftest.py:84:5
+   |
+84 |     builtins.PASSWORD = test_data.PASSWORD
+   |     ^^^^^^^^^^^^^^^^^
+   |
+ERROR No attribute `LONG` in module `builtins` [missing-attribute]
+  --> tests/conftest.py:85:5
+   |
+85 |     builtins.LONG = test_data.LONG
+   |     ^^^^^^^^^^^^^
+   |
+ERROR No attribute `SPECIAL` in module `builtins` [missing-attribute]
+  --> tests/conftest.py:86:5
+   |
+86 |     builtins.SPECIAL = test_data.SPECIAL
+   |     ^^^^^^^^^^^^^^^^
+   |
+ERROR No attribute `UNICODE` in module `builtins` [missing-attribute]
+  --> tests/conftest.py:87:5
+   |
+87 |     builtins.UNICODE = test_data.UNICODE
+   |     ^^^^^^^^^^^^^^^^
+   |
+ERROR No attribute `PERFORMANCE_THRESHOLD` in module `builtins` [missing-attribute]
+  --> tests/conftest.py:88:5
+   |
+88 |     builtins.PERFORMANCE_THRESHOLD = test_data.PERFORMANCE_THRESHOLD
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+ERROR No attribute `INFO` in module `builtins` [missing-attribute]
+  --> tests/conftest.py:90:5
+   |
+90 |     builtins.INFO = c.Status.INFO
+   |     ^^^^^^^^^^^^^
+   |
+ERROR No attribute `WARNING` in module `builtins` [missing-attribute]
+  --> tests/conftest.py:91:5
+   |
+91 |     builtins.WARNING = c.Status.WARNING
+   |     ^^^^^^^^^^^^^^^^
+   |
+ERROR No attribute `ALL` in module `builtins` [missing-attribute]
+  --> tests/conftest.py:92:5
+   |
+92 |     builtins.ALL = c.Status.ALL
+   |     ^^^^^^^^^^^^
+   |
+ERROR No attribute `NAME_HEADER` in module `builtins` [missing-attribute]
+  --> tests/conftest.py:94:5
+   |
+94 |     builtins.NAME_HEADER = c.Format.NAME_HEADER
+   |     ^^^^^^^^^^^^^^^^^^^^
+   |
+ERROR No attribute `GRID` in module `builtins` [missing-attribute]
+  --> tests/conftest.py:95:5
+   |
+95 |     builtins.GRID = c.Format.GRID
+   |     ^^^^^^^^^^^^^
+   |
+ERROR No attribute `FANCY_GRID` in module `builtins` [missing-attribute]
+  --> tests/conftest.py:96:5
+   |
+96 |     builtins.FANCY_GRID = c.Format.FANCY_GRID
+   |     ^^^^^^^^^^^^^^^^^^^
+   |
+ERROR No attribute `INVALID` in module `builtins` [missing-attribute]
+  --> tests/conftest.py:97:5
+   |
+97 |     builtins.INVALID = c.Format.INVALID
+   |     ^^^^^^^^^^^^^^^^
+   |
+ERROR No attribute `ExpectedALL` in module `builtins` [missing-attribute]
+  --> tests/conftest.py:98:5
+   |
+98 |     builtins.ExpectedALL = c.Format.EXPECTED_ALL
+   |     ^^^^^^^^^^^^^^^^^^^^
+   |
+ERROR No attribute `PYTEST_CURRENT_TEST` in module `builtins` [missing-attribute]
+   --> tests/conftest.py:100:5
+    |
+100 |     builtins.PYTEST_CURRENT_TEST = c.Environment.PYTEST_CURRENT_TEST
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+ERROR No attribute `PYTEST_BINARY` in module `builtins` [missing-attribute]
+   --> tests/conftest.py:101:5
+    |
+101 |     builtins.PYTEST_BINARY = c.Environment.PYTEST_BINARY
+    |     ^^^^^^^^^^^^^^^^^^^^^^
+    |
+ERROR No attribute `CI_VALUE` in module `builtins` [missing-attribute]
+   --> tests/conftest.py:102:5
+    |
+102 |     builtins.CI_VALUE = c.Environment.CI_VALUE
+    |     ^^^^^^^^^^^^^^^^^
+    |
+ERROR No attribute `SpecializedCASES` in module `builtins` [missing-attribute]
+   --> tests/conftest.py:104:5
+    |
+104 |     builtins.SpecializedCASES = c.Table.SPECIALIZED_CASES
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+ERROR No attribute `Borders` in module `builtins` [missing-attribute]
+   --> tests/conftest.py:105:5
+    |
+105 |     builtins.Borders = c.Table.Borders
+    |     ^^^^^^^^^^^^^^^^
+    |
+ERROR No attribute `Data` in module `builtins` [missing-attribute]
+   --> tests/conftest.py:106:5
+    |
+106 |     builtins.Data = c.Table.Data
+    |     ^^^^^^^^^^^^^
+    |
+ERROR No attribute `Config` in module `builtins` [missing-attribute]
+   --> tests/conftest.py:108:5
+    |
+108 |     builtins.Config = c.Config
+    |     ^^^^^^^^^^^^^^^
+    |
+ERROR No attribute `OutputFormats` in module `builtins` [missing-attribute]
+   --> tests/conftest.py:110:5
+    |
+110 |     builtins.OutputFormats = c.Cli.OutputFormats
+    |     ^^^^^^^^^^^^^^^^^^^^^^
+    |
+ERROR No attribute `Statuses` in module `builtins` [missing-attribute]
+   --> tests/conftest.py:111:5
+    |
+111 |     builtins.Statuses = c.Statuses
+    |     ^^^^^^^^^^^^^^^^^
+    |
+ERROR No attribute `FileOps` in module `builtins` [missing-attribute]
+   --> tests/conftest.py:112:5
+    |
+112 |     builtins.FileOps = c.FileOps
+    |     ^^^^^^^^^^^^^^^^
+    |
+ERROR No attribute `Password` in module `builtins` [missing-attribute]
+   --> tests/conftest.py:113:5
+    |
+113 |     builtins.Password = c.Password
+    |     ^^^^^^^^^^^^^^^^^
+    |
+ERROR No attribute `Progress` in module `builtins` [missing-attribute]
+   --> tests/conftest.py:114:5
+    |
+114 |     builtins.Progress = c.Progress
+    |     ^^^^^^^^^^^^^^^^^
+    |
+ERROR Class `FlextCliModels` has no class attribute `CliSession` [missing-attribute]
+   --> tests/conftest.py:371:10
+    |
+371 |     ) -> FlextCliModels.CliSession:
+    |          ^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+ERROR Class `FlextCliModels` has no class attribute `DebugInfo` [missing-attribute]
+   --> tests/conftest.py:428:10
+    |
+428 |     ) -> FlextCliModels.DebugInfo:
+    |          ^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+ERROR Class `FlextCliModels` has no class attribute `LoggingConfig` [missing-attribute]
+   --> tests/conftest.py:485:10
+    |
+485 |     ) -> FlextCliModels.LoggingConfig:
+    |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+ERROR Class `Cli` has no class attribute `get_valid_output_formats` [missing-attribute]
+   --> scripts/debug_e2e.py:117:25
+    |
+117 |         valid_formats = c.Cli.get_valid_output_formats()
+    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+ERROR Returned type `(Mapping[str, Unknown] & list[str]) | dict[str, Unknown]` is not assignable to declared return type `dict[str, Unknown]` [bad-return]
+   --> src/flext_cli/services/core.py:436:24
+    |
+436 |                 return context
+    |                        ^^^^^^^
+    |
+ERROR Could not import `c` from `tests` [missing-module-attribute]
+  --> tests/helpers/__init__.py:30:19
+   |
+30 | from tests import c, m, p, t, u  # TestsCli structure
+   |                   ^
+   |
+ERROR Could not import `m` from `tests` [missing-module-attribute]
+  --> tests/helpers/__init__.py:30:22
+   |
+30 | from tests import c, m, p, t, u  # TestsCli structure
+   |                      ^
+   |
+ERROR Could not import `p` from `tests` [missing-module-attribute]
+  --> tests/helpers/__init__.py:30:25
+   |
+30 | from tests import c, m, p, t, u  # TestsCli structure
+   |                         ^
+   |
+ERROR Could not import `t` from `tests` [missing-module-attribute]
+  --> tests/helpers/__init__.py:30:28
+   |
+30 | from tests import c, m, p, t, u  # TestsCli structure
+   |                            ^
+   |
+ERROR Could not import `u` from `tests` [missing-module-attribute]
+  --> tests/helpers/__init__.py:30:31
+   |
+30 | from tests import c, m, p, t, u  # TestsCli structure
+   |                               ^
+   |
+ WARN Redundant cast: `CliMainWithGroups` is the same type as `CliMainWithGroups` [redundant-cast]
+   --> examples/plugins/example_plugin.py:144:34
+    |
+144 |             cli_with_group = cast("CliMainWithGroups", cli_main)
+    |                                  -------------------------------
+    |
+ WARN Redundant cast: `GroupWithCommands` is the same type as `GroupWithCommands` [redundant-cast]
+   --> examples/plugins/example_plugin.py:179:33
+    |
+179 |             example_group = cast("GroupWithCommands", example)
+    |                                 ------------------------------
+    |
+ WARN Redundant cast: `CliMainWithGroups` is the same type as `CliMainWithGroups` [redundant-cast]
+   --> examples/plugins/example_plugin.py:260:34
+    |
+260 |             cli_with_group = cast("CliMainWithGroups", cli_main)
+    |                                  -------------------------------
+    |
+ WARN Redundant cast: `GroupWithCommands` is the same type as `GroupWithCommands` [redundant-cast]
+   --> examples/plugins/example_plugin.py:299:30
+    |
+299 |             data_group = cast("GroupWithCommands", data)
+    |                              ---------------------------
+    |
+ERROR Class member `_ConcreteService.execute` overrides parent class `FlextCliServiceBase` in an inconsistent manner [bad-override]
+  --> tests/unit/test_base.py:35:13
+   |
+35 |         def execute(self) -> r[t.Json.JsonDict]:
+   |             ^^^^^^^
+   |
+  `_ConcreteService.execute` has type `BoundMethod[TestsCliServiceBase._ConcreteService, (self: TestsCliServiceBase._ConcreteService) -> FlextResult[Mapping[str, Unknown]]]`, which is not assignable to `BoundMethod[TestsCliServiceBase._ConcreteService, (self: TestsCliServiceBase._ConcreteService) -> FlextResult[dict[str, Unknown]]]`, the type of `FlextCliServiceBase.execute`
+ERROR No matching overload found for function `_pytest.raises.raises` called with arguments: (tuple[type[TypeError], type[ValueError]]) [no-matching-overload]
+   --> tests/unit/test_cli.py:323:31
+    |
+323 |             with pytest.raises((TypeError, ValueError)):
+    |                               ^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+  Possible overloads:
+  (expected_exception: tuple[type[E], ...] | type[E], *, match: Pattern[str] | str | None = ..., check: (E) -> bool = ...) -> RaisesExc[E] [closest match]
+  (*, match: Pattern[str] | str, check: (BaseException) -> bool = ...) -> RaisesExc[BaseException]
+  (*, check: (BaseException) -> bool) -> RaisesExc[BaseException]
+  (expected_exception: tuple[type[E], ...] | type[E], func: (...) -> Any, *args: Any, **kwargs: Any) -> ExceptionInfo[E]
+ERROR Argument `TestsCliCliExtended.test_global_callback_logic.MockConfig` is not assignable to parameter `config` with type `FlextCliConfig | None` in function `flext_cli.cli.FlextCliCli.create_app_with_common_params` [bad-argument-type]
+  --> tests/unit/test_cli_extended.py:62:20
+   |
+62 |             config=mock_config_instance,
+   |                    ^^^^^^^^^^^^^^^^^^^^
+   |
+ERROR Argument `TestsCliCliExtended.test_global_callback_quiet.MockConfig` is not assignable to parameter `config` with type `FlextCliConfig | None` in function `flext_cli.cli.FlextCliCli.create_app_with_common_params` [bad-argument-type]
+   --> tests/unit/test_cli_extended.py:126:20
+    |
+126 |             config=mock_config_instance,
+    |                    ^^^^^^^^^^^^^^^^^^^^
+    |
+ WARN Identity comparison `False is True` is always False [unnecessary-comparison]
+   --> tests/unit/test_cli_params.py:356:62
+    |
+356 |             assert FlextCliCommonParams._enforcement_mode is True
+    |                                                              ----
+    |
+ERROR Argument `Mapping[str, Unknown]` is not assignable to parameter `config` with type `dict[str, Unknown]` in function `flext_cli.config.FlextCliConfig.save_config` [bad-argument-type]
+   --> tests/unit/test_config.py:548:37
+    |
+548 |         result = config.save_config(new_config)
+    |                                     ^^^^^^^^^^
+    |
+ERROR Class member `ErrorDict.__setitem__` overrides parent class `UserDict` in an inconsistent manner [bad-param-name-override]
+   --> tests/unit/test_core.py:453:21
+    |
+453 |                 def __setitem__(self, key: str, value: t.JsonValue) -> None:
+    |                     ^^^^^^^^^^^
+    |
+  Got parameter name `value`, expected `item`
+ERROR Argument `Mapping[str, Unknown]` is not assignable to parameter `config_data` with type `dict[str, Unknown]` in function `flext_cli.services.core.FlextCliCore.save_configuration` [bad-argument-type]
+   --> tests/unit/test_core.py:649:17
+    |
+649 |                 cast("t.Json.JsonDict", original_config),
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+ERROR Argument `Mapping[str, Unknown]` is not assignable to parameter `context` with type `dict[str, Unknown] | list[str] | None` in function `flext_cli.services.core.FlextCliCore._build_execution_context` [bad-argument-type]
+   --> tests/unit/test_core.py:686:17
+    |
+686 |                 cast("t.Json.JsonDict", context),
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+ERROR Class member `BadDict.keys` overrides parent class `UserDict` in an inconsistent manner [bad-override]
+    --> tests/unit/test_core.py:1271:21
+     |
+1271 |                 def keys(self) -> object:
+     |                     ^^^^
+     |
+  `BadDict.keys` has type `BoundMethod[TestsCliCore.TestCoverageEdgeCases.test_list_commands_exception.BadDict, (self: TestsCliCore.TestCoverageEdgeCases.test_list_commands_exception.BadDict) -> object]`, which is not assignable to `BoundMethod[TestsCliCore.TestCoverageEdgeCases.test_list_commands_exception.BadDict, (self: TestsCliCore.TestCoverageEdgeCases.test_list_commands_exception.BadDict) -> KeysView[Unknown]]`, the type of `UserDict.keys`
+ERROR Argument `Mapping[str, Unknown]` is not assignable to parameter `config` with type `dict[str, Unknown]` in function `flext_cli.services.core.FlextCliCore.update_configuration` [bad-argument-type]
+    --> tests/unit/test_core.py:1349:56
+     |
+1349 |             result = core_service.update_configuration(cast("t.Json.JsonDict", None))
+     |                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+ERROR Argument `Mapping[str, Unknown] | None` is not assignable to parameter `step` with type `dict[str, Unknown] | None` in function `flext_cli.mixins.BusinessRulesMixin.validate_pipeline_step` [bad-argument-type]
+   --> tests/unit/test_mixins.py:188:13
+    |
+188 | /             cast(
+189 | |                 "t.Json.JsonDict | None",
+190 | |                 {"name": "valid_step"},
+191 | |             ),
+    | |_____________^
+    |
+ERROR Argument `Mapping[str, Unknown] | None` is not assignable to parameter `step` with type `dict[str, Unknown] | None` in function `flext_cli.mixins.BusinessRulesMixin.validate_pipeline_step` [bad-argument-type]
+   --> tests/unit/test_mixins.py:212:13
+    |
+212 |             cast("t.Json.JsonDict | None", step),
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+ERROR Argument `Mapping[str, Unknown] | None` is not assignable to parameter `step` with type `dict[str, Unknown] | None` in function `flext_cli.mixins.BusinessRulesMixin.validate_pipeline_step` [bad-argument-type]
+   --> tests/unit/test_mixins.py:239:13
+    |
+239 |             cast("t.Json.JsonDict | None", step),
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+ERROR Argument `Mapping[str, Unknown] | None` is not assignable to parameter `config_data` with type `dict[str, Unknown] | None` in function `flext_cli.mixins.BusinessRulesMixin.validate_configuration_consistency` [bad-argument-type]
+   --> tests/unit/test_mixins.py:250:13
+    |
+250 | /             cast(
+251 | |                 "t.Json.JsonDict | None",
+252 | |                 {"debug": True, "timeout": 30},
+253 | |             ),
+    | |_____________^
+    |
+ERROR Argument `Mapping[str, Unknown] | None` is not assignable to parameter `config_data` with type `dict[str, Unknown] | None` in function `flext_cli.mixins.BusinessRulesMixin.validate_configuration_consistency` [bad-argument-type]
+   --> tests/unit/test_mixins.py:261:13
+    |
+261 | /             cast(
+262 | |                 "t.Json.JsonDict | None",
+263 | |                 {"debug": True},
+264 | |             ),
+    | |_____________^
+    |
+ERROR Argument `Mapping[str, Unknown]` is not assignable to parameter `data` with type `dict[str, Unknown] | list[dict[str, Unknown]] | str` in function `flext_cli.services.output.FlextCliOutput.format_table` [bad-argument-type]
+   --> tests/unit/test_output.py:211:42
+    |
+211 |             result = output.format_table(table_data)
+    |                                          ^^^^^^^^^^
+    |
+ERROR Argument `list[Mapping[str, Unknown]]` is not assignable to parameter `data` with type `dict[str, Unknown] | list[dict[str, Unknown]] | str` in function `flext_cli.services.output.FlextCliOutput.format_table` [bad-argument-type]
+   --> tests/unit/test_output.py:360:33
+    |
+360 |         _ = output.format_table(sample_list)
+    |                                 ^^^^^^^^^^^
+    |
+ERROR Argument `list[Mapping[str, Unknown]]` is not assignable to parameter `data` with type `dict[str, Unknown] | list[dict[str, Unknown]] | str` in function `flext_cli.services.output.FlextCliOutput.format_table` [bad-argument-type]
+   --> tests/unit/test_output.py:450:44
+    |
+450 |         table_result = output.format_table(sample_list)
+    |                                            ^^^^^^^^^^^
+    |
+ERROR Argument `Mapping[str, Unknown]` is not assignable to parameter `data` with type `dict[str, Unknown] | list[dict[str, Unknown]] | str` in function `flext_cli.services.output.FlextCliOutput.format_table` [bad-argument-type]
+   --> tests/unit/test_output.py:507:44
+    |
+507 |         table_result = output.format_table(table_data)
+    |                                            ^^^^^^^^^^
+    |
+ERROR `(result: BaseModel | bool | dict[str, object] | float | list[object] | str | None, format_type: str) -> None` is not assignable to `(FlextResult[object] | Unknown, str) -> None` [bad-assignment]
+   --> tests/unit/test_output.py:724:13
+    |
+724 |             formatter
+    |             ^^^^^^^^^
+    |
+ERROR `(result: BaseModel | bool | dict[str, object] | float | list[object] | str | None, format_type: str) -> None` is not assignable to `(FlextResult[object] | Unknown, str) -> None` [bad-assignment]
+   --> tests/unit/test_output.py:757:13
+    |
+757 |             formatter
+    |             ^^^^^^^^^
+    |
+ERROR `(result: BaseModel | bool | dict[str, object] | float | list[object] | str | None, fmt: str) -> None` is not assignable to `(FlextResult[object] | Unknown, str) -> None` [bad-assignment]
+   --> tests/unit/test_output.py:804:13
+    |
+804 |             formatter
+    |             ^^^^^^^^^
+    |
+ERROR Class member `ErrorDict.__setitem__` overrides parent class `UserDict` in an inconsistent manner [bad-param-name-override]
+   --> tests/unit/test_output.py:847:17
+    |
+847 |             def __setitem__(self, key: type[object], value: object) -> None:
+    |                 ^^^^^^^^^^^
+    |
+  Got parameter name `value`, expected `item`
+ERROR `TestsCliOutput.test_register_result_formatter_exception_with_raising_dict.ErrorDict` is not assignable to `dict[type, (FlextResult[Unknown] | Unknown, str) -> None]` [bad-assignment]
+   --> tests/unit/test_output.py:860:13
+    |
+860 |         ] = ErrorDict()
+    |             ^^^^^^^^^^^
+    |
+ERROR `(result: BaseModel | bool | dict[str, object] | float | list[object] | str | None, fmt: str) -> None` is not assignable to `(FlextResult[object] | Unknown, str) -> None` [bad-assignment]
+   --> tests/unit/test_output.py:866:13
+    |
+866 |             formatter
+    |             ^^^^^^^^^
+    |
+ERROR `TestsCliOutput.test_format_and_display_result_exception.ErrorFormatters` is not assignable to `dict[type, (FlextResult[Unknown] | Unknown, str) -> None]` [bad-assignment]
+   --> tests/unit/test_output.py:911:13
+    |
+911 |         ] = ErrorFormatters()
+    |             ^^^^^^^^^^^^^^^^^
+    |
+ERROR `(result: BaseModel | bool | dict[str, object] | float | list[object] | str | None, format_type: str) -> None` is not assignable to `(FlextResult[object] | Unknown, str) -> None` [bad-assignment]
+   --> tests/unit/test_output.py:949:13
+    |
+949 |             formatter
+    |             ^^^^^^^^^
+    |
+ERROR Argument `str` is not assignable to parameter `headers` with type `list[str] | None` in function `flext_cli.services.output.FlextCliOutput.display_data` [bad-argument-type]
+    --> tests/unit/test_output.py:1354:21
+     |
+1354 |             headers=invalid_headers,
+     |                     ^^^^^^^^^^^^^^^
+     |
+ERROR Object of class `FlextCliOutput` has no attribute `_formatters` [missing-attribute]
+    --> tests/unit/test_output.py:1784:29
+     |
+1784 |         monkeypatch.setattr(output._formatters.console, "print", original_print)
+     |                             ^^^^^^^^^^^^^^^^^^
+     |
+ERROR Object of class `FlextCliOutput` has no attribute `_formatters` [missing-attribute]
+    --> tests/unit/test_output.py:1821:29
+     |
+1821 |         monkeypatch.setattr(output._formatters, "create_table", mock_create)
+     |                             ^^^^^^^^^^^^^^^^^^
+     |
+ERROR Object of class `FlextCliOutput` has no attribute `_formatters` [missing-attribute]
+    --> tests/unit/test_output.py:1842:27
+     |
+1842 |         original_render = output._formatters.render_table_to_string
+     |                           ^^^^^^^^^^^^^^^^^^
+     |
+ERROR Object of class `FlextCliOutput` has no attribute `_formatters` [missing-attribute]
+    --> tests/unit/test_output.py:1843:29
+     |
+1843 |         monkeypatch.setattr(output._formatters, "render_table_to_string", mock_render)
+     |                             ^^^^^^^^^^^^^^^^^^
+     |
+ERROR Object of class `FlextCliOutput` has no attribute `_formatters` [missing-attribute]
+    --> tests/unit/test_output.py:1849:13
+     |
+1849 |             output._formatters,
+     |             ^^^^^^^^^^^^^^^^^^
+     |
+ERROR Object of class `FlextCliOutput` has no attribute `_tables` [missing-attribute]
+    --> tests/unit/test_output.py:1868:38
+     |
+1868 |         original_create_table = type(output._tables).create_table
+     |                                      ^^^^^^^^^^^^^^
+     |
+ERROR Object of class `FlextCliOutput` has no attribute `_tables` [missing-attribute]
+    --> tests/unit/test_output.py:1869:34
+     |
+1869 |         monkeypatch.setattr(type(output._tables), "create_table", mock_create_table)
+     |                                  ^^^^^^^^^^^^^^
+     |
+ERROR Object of class `FlextCliOutput` has no attribute `_tables` [missing-attribute]
+    --> tests/unit/test_output.py:1874:34
+     |
+1874 |         monkeypatch.setattr(type(output._tables), "create_table", original_create_table)
+     |                                  ^^^^^^^^^^^^^^
+     |
+ERROR Object of class `FlextCliOutput` has no attribute `_formatters` [missing-attribute]
+    --> tests/unit/test_output.py:2032:23
+     |
+2032 |         tree_result = output._formatters.create_tree("Root")
+     |                       ^^^^^^^^^^^^^^^^^^
+     |
+ERROR Object of class `FlextCliOutput` has no attribute `_formatters` [missing-attribute]
+    --> tests/unit/test_output.py:2043:23
+     |
+2043 |         tree_result = output._formatters.create_tree("Root")
+     |                       ^^^^^^^^^^^^^^^^^^
+     |
+ERROR Object of class `FlextCliOutput` has no attribute `_formatters` [missing-attribute]
+    --> tests/unit/test_output.py:2054:23
+     |
+2054 |         tree_result = output._formatters.create_tree("Root")
+     |                       ^^^^^^^^^^^^^^^^^^
+     |
+ERROR Object of class `FlextCliOutput` has no attribute `_formatters` [missing-attribute]
+    --> tests/unit/test_output.py:2075:27
+     |
+2075 |         original_create = output._formatters.create_progress
+     |                           ^^^^^^^^^^^^^^^^^^
+     |
+ERROR Object of class `FlextCliOutput` has no attribute `_formatters` [missing-attribute]
+    --> tests/unit/test_output.py:2076:29
+     |
+2076 |         monkeypatch.setattr(output._formatters, "create_progress", mock_create)
+     |                             ^^^^^^^^^^^^^^^^^^
+     |
+ERROR Object of class `FlextCliOutput` has no attribute `_formatters` [missing-attribute]
+    --> tests/unit/test_output.py:2081:29
+     |
+2081 |         monkeypatch.setattr(output._formatters, "create_progress", original_create)
+     |                             ^^^^^^^^^^^^^^^^^^
+     |
+ERROR Object of class `FlextCliOutput` has no attribute `_formatters` [missing-attribute]
+    --> tests/unit/test_output.py:2404:29
+     |
+2404 |         monkeypatch.setattr(output._formatters, "create_table", mock_create_table)
+     |                             ^^^^^^^^^^^^^^^^^^
+     |
+ERROR Object of class `FlextCliOutput` has no attribute `_formatters` [missing-attribute]
+    --> tests/unit/test_output.py:2474:29
+     |
+2474 |         monkeypatch.setattr(output._formatters, "create_progress", mock_create_progress)
+     |                             ^^^^^^^^^^^^^^^^^^
+     |
+ERROR Class member `UnprocessableRow.items` overrides parent class `UserDict` in an inconsistent manner [bad-override]
+    --> tests/unit/test_output.py:2489:17
+     |
+2489 |             def items(self) -> object:
+     |                 ^^^^^
+     |
+  `UnprocessableRow.items` has type `BoundMethod[TestsCliOutput.test_format_csv_with_row_processing_exception.UnprocessableRow, (self: TestsCliOutput.test_format_csv_with_row_processing_exception.UnprocessableRow) -> object]`, which is not assignable to `BoundMethod[TestsCliOutput.test_format_csv_with_row_processing_exception.UnprocessableRow, (self: TestsCliOutput.test_format_csv_with_row_processing_exception.UnprocessableRow) -> ItemsView[str, Unknown]]`, the type of `UserDict.items`
+ERROR Object of class `FlextCliOutput` has no attribute `_formatters` [missing-attribute]
+    --> tests/unit/test_output.py:2546:29
+     |
+2546 |         monkeypatch.setattr(output._formatters, "create_tree", mock_create_tree)
+     |                             ^^^^^^^^^^^^^^^^^^
+     |
+ERROR Could not import `c` from `tests` [missing-module-attribute]
+  --> tests/unit/test_prompts.py:26:19
+   |
+26 | from tests import c
+   |                   ^
+   |
+ERROR Argument `Literal['simple']` is not assignable to parameter `options` with type `list[str]` in function `flext_cli.services.prompts.FlextCliPrompts.select_from_options` [bad-argument-type]
+   --> tests/unit/test_prompts.py:485:13
+    |
+485 |             "simple",
+    |             ^^^^^^^^
+    |
+ERROR Argument `Literal['']` is not assignable to parameter `options` with type `list[str]` in function `flext_cli.services.prompts.FlextCliPrompts.select_from_options` [bad-argument-type]
+   --> tests/unit/test_prompts.py:493:13
+    |
+493 |             "",
+    |             ^^
+    |
+ERROR Could not import `c` from `tests` [missing-module-attribute]
+  --> tests/unit/test_protocols.py:26:19
+   |
+26 | from tests import c
+   |                   ^
+   |
+ERROR Runtime checkable protocol `CliFormatter` has an unsafe overlap with type `TestsCliProtocols.test_duck_typing_with_formatter.DuckFormatter` [invalid-argument]
+  --> tests/unit/test_protocols.py:91:33
+   |
+91 |         assert isinstance(duck, p.Cli.CliFormatter)
+   |                                 ^^^^^^^^^^^^^^^^^^
+   |
+  Attribute `format_data` has incompatible types: expected `BoundMethod[FlextCliProtocols.Cli.CliFormatter, (self: FlextCliProtocols.Cli.CliFormatter, data: Unknown, **options: Unknown) -> FlextProtocols.Result[str]]`, got `BoundMethod[TestsCliProtocols.test_duck_typing_with_formatter.DuckFormatter, (self: TestsCliProtocols.test_duck_typing_with_formatter.DuckFormatter, data: object, **options: object) -> FlextResult[str]]`
+ERROR Argument `FlextProtocols.Result[str]` is not assignable to parameter `result` with type `FlextResult[@_]` in function `flext_tests.matchers.FlextTestsMatchers.ok` [bad-argument-type]
+   --> tests/unit/test_protocols.py:124:23
+    |
+124 |                 tm.ok(format_result)
+    |                       ^^^^^^^^^^^^^
+    |
+ERROR Argument `Mapping[str, Unknown]` is not assignable to parameter `config` with type `dict[str, Unknown]` in function `flext_cli.protocols.CliConfigProvider.save_config` [bad-argument-type]
+   --> tests/unit/test_protocols.py:156:52
+    |
+156 |                 save_result = provider.save_config(test_config)
+    |                                                    ^^^^^^^^^^^
+    |
+ERROR Argument `FlextProtocols.Result[bool]` is not assignable to parameter `result` with type `FlextResult[@_]` in function `flext_tests.matchers.FlextTestsMatchers.ok` [bad-argument-type]
+   --> tests/unit/test_protocols.py:157:23
+    |
+157 |                 tm.ok(save_result)
+    |                       ^^^^^^^^^^^
+    |
+ERROR Argument `FlextProtocols.Result[dict[str, Unknown]]` is not assignable to parameter `result` with type `FlextResult[@_]` in function `flext_tests.matchers.FlextTestsMatchers.ok` [bad-argument-type]
+   --> tests/unit/test_protocols.py:160:23
+    |
+160 |                 tm.ok(load_result)
+    |                       ^^^^^^^^^^^
+    |
+ERROR Argument `FlextProtocols.Result[bool]` is not assignable to parameter `result` with type `FlextResult[@_]` in function `flext_tests.matchers.FlextTestsMatchers.ok` [bad-argument-type]
+   --> tests/unit/test_protocols.py:236:23
+    |
+236 |                 tm.ok(validation_result)
+    |                       ^^^^^^^^^^^^^^^^^
+    |
+ERROR Could not find import of `tests.helpers` [missing-import]
+  --> tests/unit/test_typings.py:37:1
+   |
+37 | from tests.helpers import c, t
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+  Looked in these locations (from config in `/home/marlonsc/flext/flext-cli/pyproject.toml`):
+  Search path (from config file): ["/home/marlonsc/flext/flext-cli/src", "/home/marlonsc/flext/flext-cli/tests", "/home/marlonsc/flext/flext-cli/examples", "/home/marlonsc/flext/flext-cli/scripts"]
+  Import root (inferred from project layout): "/home/marlonsc/flext/flext-cli/src"
+  Site package path queried from interpreter: ["/usr/lib/python3.13", "/usr/lib/python3.13/lib-dynload", "/home/marlonsc/flext/.venv/lib/python3.13/site-packages", "/home/marlonsc/flext/client-a-oud-mig/src", "/home/marlonsc/flext/flexcore/src", "/home/marlonsc/flext/src", "/home/marlonsc/flext/flext-api/src", "/home/marlonsc/flext/flext-auth/src", "/home/marlonsc/flext/flext-cli/src", "/home/marlonsc/flext/flext-core/src", "/home/marlonsc/flext/flext-db-oracle/src", "/home/marlonsc/flext/flext-dbt-ldap/src", "/home/marlonsc/flext/flext-dbt-ldif/src", "/home/marlonsc/flext/flext-dbt-oracle/src", "/home/marlonsc/flext/flext-dbt-oracle-wms/src", "/home/marlonsc/flext/flext-grpc/src", "/home/marlonsc/flext/flext-ldap/src", "/home/marlonsc/flext/flext-ldif/src", "/home/marlonsc/flext/flext-meltano/src", "/home/marlonsc/flext/flext-observability/src", "/home/marlonsc/flext/flext-oracle-oic/src", "/home/marlonsc/flext/flext-oracle-wms/src", "/home/marlonsc/flext/flext-plugin/src", "/home/marlonsc/flext/flext-quality/src", "/home/marlonsc/flext/flext-tap-ldap/src", "/home/marlonsc/flext/flext-tap-ldif/src", "/home/marlonsc/flext/flext-tap-oracle/src", "/home/marlonsc/flext/flext-tap-oracle-oic/src", "/home/marlonsc/flext/flext-tap-oracle-wms/src", "/home/marlonsc/flext/flext-target-ldap/src", "/home/marlonsc/flext/flext-target-ldif/src", "/home/marlonsc/flext/flext-target-oracle/src", "/home/marlonsc/flext/flext-target-oracle-oic/src", "/home/marlonsc/flext/flext-target-oracle-wms/src", "/home/marlonsc/flext/flext-web/src", "/home/marlonsc/flext/client-b-meltano-native/src"]
+ERROR Argument `dict[str, int | str]` is not assignable to parameter `data` with type `dict[str, object]` in function `process_dict` [bad-argument-type]
+   --> tests/unit/test_typings.py:542:40
+    |
+542 |             result_dict = process_dict(test_dict)
+    |                                        ^^^^^^^^^
+    |
+ERROR Could not import `c` from `tests` [missing-module-attribute]
+  --> tests/unit/test_utilities.py:30:19
+   |
+30 | from tests import c, t, u
+   |                   ^
+   |
+ERROR Could not import `t` from `tests` [missing-module-attribute]
+  --> tests/unit/test_utilities.py:30:22
+   |
+30 | from tests import c, t, u
+   |                      ^
+   |
+ERROR Could not import `u` from `tests` [missing-module-attribute]
+  --> tests/unit/test_utilities.py:30:25
+   |
+30 | from tests import c, t, u
+   |                         ^
+   |
+ERROR Returned type `FlextResult[str]` is not assignable to declared return type `FlextResult[bool | str]` [bad-return]
+   --> tests/unit/test_utilities.py:284:28
+    |
+284 |                     return format_result
+    |                            ^^^^^^^^^^^^^
+    |
+ERROR `FlextResult[bool | str]` is not assignable to `FlextResult[object]` [bad-assignment]
+   --> tests/unit/test_utilities.py:335:37
+    |
+335 |             result_obj: r[object] = result
+    |                                     ^^^^^^
+    |
+ WARN Identity comparison `True is True` is always True [unnecessary-comparison]
+   --> tests/unit/test_utilities.py:637:50
+    |
+637 |         assert test_data["validation_result"] is True
+    |                                                  ----
+    |
+ERROR `FlextResult[bool] | FlextResult[str]` is not assignable to `FlextResult[object]` [bad-assignment]
+   --> tests/unit/test_utilities.py:798:33
+    |
+798 |         result_obj: r[object] = result
+    |                                 ^^^^^^
+    |
+ERROR Returned type `list[tuple[str, type[TestsCliUtilities.ModelTestCases.get_from_dict_cases.NotPydantic], dict[str, Unknown], bool, None] | tuple[str, type[BaseModel], dict[str, Unknown], bool, dict[str, object] | None]]` is not assignable to declared return type `list[tuple[str, type[BaseModel], dict[str, Unknown], bool, dict[str, object] | None]]` [bad-return]
+    --> tests/unit/test_utilities.py:1114:20
+     |
+1114 |               return [
+     |  ____________________^
+1115 | |                 (
+1116 | |                     "from_dict_success",
+1117 | |                     TestModel1,
+1118 | |                     {"name": "test_value"},
+1119 | |                     True,
+     | |__________________________^
+     |
+ERROR `object` is not assignable to upper bound `BaseModel` of type variable `M` [bad-specialization]
+    --> tests/unit/test_utilities.py:1298:41
+     |
+1298 |             result = u_core.Model.update(instance, **updates)
+     |                                         ^^^^^^^^^^^^^^^^^^^^^
+     |

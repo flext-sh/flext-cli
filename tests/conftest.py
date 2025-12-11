@@ -16,10 +16,12 @@ from __future__ import annotations
 # All constants are in tests/constants.py (TestsCliConstants)
 # Test files import directly from conftest or use c.ClassName.CONSTANT pattern
 import builtins
+import getpass
 import json
 import os
 import tempfile
-from collections.abc import Generator
+from collections import deque
+from collections.abc import Callable, Generator, Iterator
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Protocol
@@ -28,8 +30,8 @@ import pytest
 import yaml
 from click.testing import CliRunner
 from flext_core import (
-    FlextConfig,
     FlextContainer,
+    FlextSettings,
 )
 from flext_tests.docker import FlextTestsDocker
 from pydantic import TypeAdapter
@@ -38,7 +40,6 @@ from flext_cli import (
     FlextCli,
     FlextCliCmd,
     FlextCliCommands,
-    FlextCliConfig,
     FlextCliConstants,
     FlextCliContext,
     FlextCliCore,
@@ -50,6 +51,8 @@ from flext_cli import (
     FlextCliPrompts,
     FlextCliProtocols,
     FlextCliServiceBase,
+    FlextCliSettings,
+    m,
 )
 
 # Import from correct locations - use TestsCli structure
@@ -60,6 +63,47 @@ from tests import (  # TestsCliConstants, TestsCliModels, TestsCliTypes, TestsCl
 )
 from tests.utilities import TestsCliUtilities
 
+# ============================================================================
+# RUNTIME GLOBALS - Declared for type checking
+# ============================================================================
+# These globals are set dynamically in pytest_configure for test convenience
+# Type stubs allow mypy to understand runtime-added attributes
+ALICE: str
+VALID_FIELD_NAME: str
+FIELD_NAME: str
+WHITESPACE_FIELD_NAME: str
+VALID_STRING: str
+STRING: str
+WHITESPACE_STRING: str
+NONE_VALUE: None
+CUSTOM: object
+TWO: list[str]
+PASSWORD: str
+LONG: str
+SPECIAL: str
+UNICODE: str
+PERFORMANCE_THRESHOLD: float
+INFO: str
+WARNING: str
+ALL: list[str]
+NAME_HEADER: str
+GRID: str
+FANCY_GRID: str
+INVALID: str
+ExpectedALL: str
+PYTEST_CURRENT_TEST: str
+PYTEST_BINARY: str
+CI_VALUE: str
+SpecializedCASES: object
+Borders: object
+Data: object
+Config: object
+OutputFormats: object
+Statuses: object
+FileOps: object
+Password: object
+Progress: object
+
 
 def pytest_configure(config: pytest.Config) -> None:
     """Register test constants as pytest globals and configure markers.
@@ -67,51 +111,60 @@ def pytest_configure(config: pytest.Config) -> None:
     Makes constants available via:
     1. pytest namespace (pytest.ALICE, etc.)
     2. Built-in namespace for direct access in test files
+    3. Module-level globals for type checking
     """
+    global ALICE, VALID_FIELD_NAME, FIELD_NAME, WHITESPACE_FIELD_NAME, VALID_STRING, STRING, WHITESPACE_STRING, NONE_VALUE, CUSTOM, TWO, PASSWORD, LONG, SPECIAL, UNICODE, PERFORMANCE_THRESHOLD, INFO, WARNING, ALL, NAME_HEADER, GRID, FANCY_GRID, INVALID, ExpectedALL, PYTEST_CURRENT_TEST, PYTEST_BINARY, CI_VALUE, SpecializedCASES, Borders, Data, Config, OutputFormats, Statuses, FileOps, Password, Progress  # noqa: PLW0603
+
     # Test data constants - access via TestsCliConstants instance
     # c is type[TestsCliConstants], so we need to access class attributes directly
     test_data = c.TestData
-    builtins.ALICE = test_data.ALICE
-    builtins.VALID_FIELD_NAME = test_data.VALID_FIELD_NAME
-    builtins.FIELD_NAME = test_data.FIELD_NAME
-    builtins.WHITESPACE_FIELD_NAME = test_data.WHITESPACE_FIELD_NAME
-    builtins.VALID_STRING = test_data.VALID_STRING
-    builtins.STRING = test_data.STRING
-    builtins.WHITESPACE_STRING = test_data.WHITESPACE_STRING
-    builtins.NONE_VALUE = test_data.NONE_VALUE
-    builtins.CUSTOM = test_data.CUSTOM
-    builtins.TWO = test_data.TWO
-    builtins.PASSWORD = test_data.PASSWORD
-    builtins.LONG = test_data.LONG
-    builtins.SPECIAL = test_data.SPECIAL
-    builtins.UNICODE = test_data.UNICODE
-    builtins.PERFORMANCE_THRESHOLD = test_data.PERFORMANCE_THRESHOLD
+    ALICE = builtins.ALICE = test_data.ALICE  # type: ignore[attr-defined]
+    VALID_FIELD_NAME = builtins.VALID_FIELD_NAME = test_data.VALID_FIELD_NAME  # type: ignore[attr-defined]
+    FIELD_NAME = builtins.FIELD_NAME = test_data.FIELD_NAME  # type: ignore[attr-defined]
+    WHITESPACE_FIELD_NAME = builtins.WHITESPACE_FIELD_NAME = (  # type: ignore[attr-defined]
+        test_data.WHITESPACE_FIELD_NAME
+    )
+    VALID_STRING = builtins.VALID_STRING = test_data.VALID_STRING  # type: ignore[attr-defined]
+    STRING = builtins.STRING = test_data.STRING  # type: ignore[attr-defined]
+    WHITESPACE_STRING = builtins.WHITESPACE_STRING = test_data.WHITESPACE_STRING  # type: ignore[attr-defined]
+    NONE_VALUE = builtins.NONE_VALUE = test_data.NONE_VALUE  # type: ignore[attr-defined]
+    CUSTOM = builtins.CUSTOM = test_data.CUSTOM  # type: ignore[attr-defined]
+    TWO = builtins.TWO = test_data.TWO  # type: ignore[attr-defined]
+    PASSWORD = builtins.PASSWORD = test_data.PASSWORD  # type: ignore[attr-defined]
+    LONG = builtins.LONG = test_data.LONG  # type: ignore[attr-defined]
+    SPECIAL = builtins.SPECIAL = test_data.SPECIAL  # type: ignore[attr-defined]
+    UNICODE = builtins.UNICODE = test_data.UNICODE  # type: ignore[attr-defined]
+    PERFORMANCE_THRESHOLD = builtins.PERFORMANCE_THRESHOLD = (  # type: ignore[attr-defined]
+        test_data.PERFORMANCE_THRESHOLD
+    )
     # Status constants
-    builtins.INFO = c.Status.INFO
-    builtins.WARNING = c.Status.WARNING
-    builtins.ALL = c.Status.ALL
+    INFO = builtins.INFO = c.Status.INFO  # type: ignore[attr-defined]
+    WARNING = builtins.WARNING = c.Status.WARNING  # type: ignore[attr-defined]
+    ALL = builtins.ALL = c.Status.ALL  # type: ignore[attr-defined]
     # Format constants
-    builtins.NAME_HEADER = c.Format.NAME_HEADER
-    builtins.GRID = c.Format.GRID
-    builtins.FANCY_GRID = c.Format.FANCY_GRID
-    builtins.INVALID = c.Format.INVALID
-    builtins.ExpectedALL = c.Format.EXPECTED_ALL
+    NAME_HEADER = builtins.NAME_HEADER = c.Format.NAME_HEADER  # type: ignore[attr-defined]
+    GRID = builtins.GRID = c.Format.GRID  # type: ignore[attr-defined]
+    FANCY_GRID = builtins.FANCY_GRID = c.Format.FANCY_GRID  # type: ignore[attr-defined]
+    INVALID = builtins.INVALID = c.Format.INVALID  # type: ignore[attr-defined]
+    ExpectedALL = builtins.ExpectedALL = c.Format.EXPECTED_ALL  # type: ignore[attr-defined]
     # Environment constants
-    builtins.PYTEST_CURRENT_TEST = c.Environment.PYTEST_CURRENT_TEST
-    builtins.PYTEST_BINARY = c.Environment.PYTEST_BINARY
-    builtins.CI_VALUE = c.Environment.CI_VALUE
+    PYTEST_CURRENT_TEST = builtins.PYTEST_CURRENT_TEST = (  # type: ignore[attr-defined]
+        c.Environment.PYTEST_CURRENT_TEST
+    )
+    PYTEST_BINARY = builtins.PYTEST_BINARY = c.Environment.PYTEST_BINARY  # type: ignore[attr-defined]
+    CI_VALUE = builtins.CI_VALUE = c.Environment.CI_VALUE  # type: ignore[attr-defined]
     # Table constants
-    builtins.SpecializedCASES = c.Table.SPECIALIZED_CASES
-    builtins.Borders = c.Table.Borders
-    builtins.Data = c.Table.Data
+    SpecializedCASES = builtins.SpecializedCASES = c.Table.SPECIALIZED_CASES  # type: ignore[attr-defined]
+    Borders = builtins.Borders = c.Table.Borders  # type: ignore[attr-defined]
+    Data = builtins.Data = c.Table.Data  # type: ignore[attr-defined]
     # Config constants
-    builtins.Config = c.Config
+    Config = builtins.Config = c.Config  # type: ignore[attr-defined]
     # Other constants
-    builtins.OutputFormats = c.Cli.OutputFormats
-    builtins.Statuses = c.Statuses
-    builtins.FileOps = c.FileOps
-    builtins.Password = c.Password
-    builtins.Progress = c.Progress
+    OutputFormats = builtins.OutputFormats = c.OutputFormats  # type: ignore[attr-defined]
+    Statuses = builtins.Statuses = c.Statuses  # type: ignore[attr-defined]
+    FileOps = builtins.FileOps = c.FileOps  # type: ignore[attr-defined]
+    Password = builtins.Password = c.Password  # type: ignore[attr-defined]
+    Progress = builtins.Progress = c.Progress  # type: ignore[attr-defined]
 
     # Configure pytest markers
     config.addinivalue_line("markers", "integration: marks tests as integration tests")
@@ -209,7 +262,7 @@ def flext_cli_api(
 
     Each test gets a fresh FlextCli instance with configuration pointing
     to a unique temporary directory, ensuring complete isolation between tests.
-    Uses FlextCliConfig modern API: environment variables for configuration.
+    Uses FlextCliSettings modern API: environment variables for configuration.
     """
     # Create unique subdirectory for this specific test
     # This ensures complete isolation even if pytest reuses tmp_path
@@ -217,11 +270,11 @@ def flext_cli_api(
     test_dir.mkdir(exist_ok=True)
 
     # Reset singleton to ensure clean state
-    FlextConfig.reset_global_instance()
-    FlextCliConfig._reset_instance()
+    FlextSettings.reset_global_instance()
+    FlextCliSettings._reset_instance()
 
-    # Configure FlextCliConfig using modern API: environment variables
-    # FlextCliConfig uses pydantic_settings with env_prefix="FLEXT_CLI_"
+    # Configure FlextCliSettings using modern API: environment variables
+    # FlextCliSettings uses pydantic_settings with env_prefix="FLEXT_CLI_"
     monkeypatch.setenv("FLEXT_CLI_CONFIG_DIR", str(test_dir))
     monkeypatch.setenv("FLEXT_CLI_TOKEN_FILE", str(test_dir / "token.json"))
     monkeypatch.setenv(
@@ -255,7 +308,7 @@ class CliCommandFactory(Protocol):
         description: str = ...,
         status: str = ...,
         **kwargs: object,
-    ) -> FlextCliModels.Cli.CliCommand:
+    ) -> m.Cli.CliCommand:
         """Create CliCommand instance."""
         ...
 
@@ -269,7 +322,7 @@ class CliSessionFactory(Protocol):
         user_id: str = ...,
         status: str = ...,
         **kwargs: object,
-    ) -> FlextCliModels.Cli.CliSession:
+    ) -> m.Cli.CliSession:
         """Create CliSession instance."""
         ...
 
@@ -283,7 +336,7 @@ class DebugInfoFactory(Protocol):
         level: str = ...,
         message: str = ...,
         **kwargs: object,
-    ) -> FlextCliModels.Cli.DebugInfo:
+    ) -> m.Cli.DebugInfo:
         """Create DebugInfo instance."""
         ...
 
@@ -296,7 +349,7 @@ class LoggingConfigFactory(Protocol):
         log_level: str = ...,
         log_format: str = ...,
         **kwargs: object,
-    ) -> FlextCliModels.Cli.LoggingConfig:
+    ) -> m.Cli.LoggingConfig:
         """Create LoggingConfig instance."""
         ...
 
@@ -311,11 +364,11 @@ def cli_command_factory() -> CliCommandFactory:
         description: str = "Test command",
         status: str = "pending",
         **kwargs: object,
-    ) -> FlextCliModels.Cli.CliCommand:
+    ) -> m.Cli.CliCommand:
         # No base data needed since CliCommand has extra="forbid"
 
         # Override with CLI-specific data
-        # Use object for kwargs since GeneralValueType may not be accessible via t
+        # Use object for kwargs since t.GeneralValueType may not be accessible via t
         cli_data: dict[str, object]
         cli_data = {
             "command_line": command_line,
@@ -338,14 +391,14 @@ def cli_command_factory() -> CliCommandFactory:
         if not isinstance(raw_data, dict):
             msg = "raw_data must be dict"
             raise TypeError(msg)
-        # ConfigurationDict = Mapping[str, GeneralValueType]
-        typed_data: t.Types.ConfigurationDict = raw_data
+        # ConfigurationDict = Mapping[str, t.GeneralValueType]
+        typed_data: t.ConfigurationDict = raw_data
         transform_result = u.transform(
             typed_data,
             to_json=True,
         )
         if transform_result.is_success:
-            # unwrap() returns GeneralValueType, narrow to dict[str, object]
+            # unwrap() returns t.GeneralValueType, narrow to dict[str, object]
             unwrapped = transform_result.value
             if isinstance(unwrapped, dict):
                 final_data: dict[str, object] = dict(unwrapped.items())
@@ -354,7 +407,7 @@ def cli_command_factory() -> CliCommandFactory:
         else:
             final_data = raw_data
         # Use model_validate which accepts dict[str, Any] and validates at runtime
-        return FlextCliModels.Cli.CliCommand.model_validate(final_data)
+        return m.Cli.CliCommand.model_validate(final_data)
 
     return _create
 
@@ -368,7 +421,7 @@ def cli_session_factory() -> CliSessionFactory:
         user_id: str = "test_user",
         status: str = "active",
         **kwargs: object,
-    ) -> FlextCliModels.CliSession:
+    ) -> m.Cli.CliSession:
         # CliSession has extra="forbid", so no extra fields allowed
         # Pydantic v2 with 'from __future__ import annotations' resolves forward refs
 
@@ -396,7 +449,7 @@ def cli_session_factory() -> CliSessionFactory:
         if not isinstance(raw_data, dict):
             msg = "raw_data must be dict"
             raise TypeError(msg)
-        typed_data: t.Types.ConfigurationDict = raw_data
+        typed_data: t.ConfigurationDict = raw_data
         transform_result = u.transform(
             typed_data,
             to_json=True,
@@ -411,7 +464,7 @@ def cli_session_factory() -> CliSessionFactory:
             final_data = raw_data
         # Create instance - autouse fixture should have handled model_rebuild
         # Use model_validate which accepts dict[str, Any] and validates at runtime
-        return FlextCliModels.Cli.CliSession.model_validate(final_data)
+        return m.Cli.CliSession.model_validate(final_data)
 
     return _create
 
@@ -425,7 +478,7 @@ def debug_info_factory() -> DebugInfoFactory:
         level: str = "INFO",
         message: str = "",
         **kwargs: object,
-    ) -> FlextCliModels.DebugInfo:
+    ) -> m.Cli.DebugInfo:
         # DebugInfo has strict validation (extra='forbid'), use compatible fields
 
         # Add debug-specific fields - only real fields that exist in DebugInfo
@@ -455,7 +508,7 @@ def debug_info_factory() -> DebugInfoFactory:
         if not isinstance(raw_data, dict):
             msg = "raw_data must be dict"
             raise TypeError(msg)
-        typed_data: t.Types.ConfigurationDict = raw_data
+        typed_data: t.ConfigurationDict = raw_data
         transform_result = u.transform(
             typed_data,
             to_json=True,
@@ -469,7 +522,7 @@ def debug_info_factory() -> DebugInfoFactory:
         else:
             final_data = raw_data
         # Use model_validate which accepts dict[str, Any] and validates at runtime
-        return FlextCliModels.Cli.DebugInfo.model_validate(final_data)
+        return m.Cli.DebugInfo.model_validate(final_data)
 
     return _create
 
@@ -482,7 +535,7 @@ def logging_config_factory() -> LoggingConfigFactory:
         log_level: str = "INFO",
         log_format: str = "%(asctime)s - %(message)s",
         **kwargs: object,
-    ) -> FlextCliModels.LoggingConfig:
+    ) -> m.Cli.LoggingConfig:
         # LoggingConfig has strict validation (extra='forbid'), use compatible fields
         # Don't use FlextTestsFactories.create_config as it may have extra fields
 
@@ -501,7 +554,7 @@ def logging_config_factory() -> LoggingConfigFactory:
         if not isinstance(raw_data, dict):
             msg = "raw_data must be dict"
             raise TypeError(msg)
-        typed_data: t.Types.ConfigurationDict = raw_data
+        typed_data: t.ConfigurationDict = raw_data
         transform_result = u.transform(
             typed_data,
             to_json=True,
@@ -515,7 +568,7 @@ def logging_config_factory() -> LoggingConfigFactory:
         else:
             final_data = raw_data
         # Use model_validate which accepts dict[str, Any] and validates at runtime
-        return FlextCliModels.Cli.LoggingConfig.model_validate(final_data)
+        return m.Cli.LoggingConfig.model_validate(final_data)
 
     return _create
 
@@ -536,8 +589,8 @@ def _create_service_instance(service_class: type) -> object:
         New instance of the service class
 
     """
-    # Special handling for FlextCliConfig singleton
-    if service_class is FlextCliConfig:
+    # Special handling for FlextCliSettings singleton
+    if service_class is FlextCliSettings:
         return FlextCliServiceBase.get_cli_config()
 
     return service_class()
@@ -547,7 +600,7 @@ def _create_service_instance(service_class: type) -> object:
 _SERVICE_CLASSES: dict[str, type] = {
     "cmd": FlextCliCmd,
     "commands": FlextCliCommands,
-    "config": FlextCliConfig,
+    "config": FlextCliSettings,
     "constants": FlextCliConstants,
     "context": FlextCliContext,
     "core": FlextCliCore,
@@ -579,10 +632,10 @@ def flext_cli_commands() -> FlextCliCommands:
 
 
 @pytest.fixture
-def flext_cli_config() -> FlextCliConfig:
-    """Create FlextCliConfig instance for testing via FlextCliServiceBase."""
-    instance = _create_service_instance(FlextCliConfig)
-    assert isinstance(instance, FlextCliConfig)
+def flext_cli_config() -> FlextCliSettings:
+    """Create FlextCliSettings instance for testing via FlextCliServiceBase."""
+    instance = _create_service_instance(FlextCliSettings)
+    assert isinstance(instance, FlextCliSettings)
     return instance
 
 
@@ -856,7 +909,7 @@ FLEXT_CLI_RETRIES=3
 
 @pytest.fixture(autouse=True)
 def reset_singletons() -> None:
-    """Reset all FlextConfig singletons between tests for isolation.
+    """Reset all FlextSettings singletons between tests for isolation.
 
     CRITICAL: This fixture runs automatically before EACH test to ensure
     no state leaks between tests regardless of pytest-randomly order.
@@ -908,6 +961,98 @@ class InfoTuples:
     VALID_COMPLEX_TUPLE: tuple[int | str, ...] = (1, 2, 3, "alpha", 1)
     SHORT_TUPLE: tuple[int, int] = (1, 2)
     EMPTY_TUPLE: tuple[()] = ()
+
+
+# ============================================================================
+# INPUT SIMULATION FIXTURES - For eliminating monkeypatch violations
+# ============================================================================
+
+
+@pytest.fixture
+def input_simulator() -> Iterator[Callable[[list[str]], None]]:
+    """Simulate user input via fixture-based queue (REPLACES monkeypatch).
+
+    Usage:
+        def test_something(input_simulator):
+            input_simulator(["value1", "value2"])
+            result = prompts.prompt("Enter:")
+            assert result.is_success
+    """
+    input_queue: deque[str] = deque()
+
+    def queue_inputs(values: list[str]) -> None:
+        """Queue input values to be returned by simulated input."""
+        input_queue.extend(values)
+
+    original_input = builtins.input
+
+    def simulated_input(prompt: str = "") -> str:
+        """Return queued input or empty string."""
+        if input_queue:
+            return input_queue.popleft()
+        return ""
+
+    builtins.input = simulated_input  # type: ignore[assignment]
+    yield queue_inputs
+    builtins.input = original_input
+
+
+@pytest.fixture
+def password_simulator() -> Iterator[Callable[[str], None]]:
+    """Simulate password input via fixture (REPLACES monkeypatch getpass).
+
+    Usage:
+        def test_password(password_simulator):
+            password_simulator("secret123")
+            result = prompts.prompt_password("Enter password:")
+            assert result.is_success
+    """
+    password_value: str = ""
+
+    def set_password(value: str) -> None:
+        """Set the password to be returned by getpass."""
+        nonlocal password_value
+        password_value = value
+
+    original_getpass = getpass.getpass
+
+    def simulated_getpass(prompt: str = "", stream: object = None) -> str:
+        """Return the set password."""
+        return password_value
+
+    getpass.getpass = simulated_getpass
+    yield set_password
+    getpass.getpass = original_getpass
+
+
+@pytest.fixture
+def input_exception_simulator() -> Iterator[Callable[[type[Exception]], None]]:
+    """Simulate exceptions during input (REPLACES monkeypatch with exception).
+
+    Usage:
+        def test_interrupt(input_exception_simulator):
+            input_exception_simulator(KeyboardInterrupt)
+            result = prompts.confirm("Continue?", default=False)
+            assert result.is_failure
+    """
+    exception_to_raise: type[Exception] | None = None
+
+    def set_exception(exc_type: type[Exception]) -> None:
+        """Set the exception to raise on next input call."""
+        nonlocal exception_to_raise
+        exception_to_raise = exc_type
+
+    original_input = builtins.input
+
+    def simulated_input(prompt: str = "") -> str:
+        """Raise the set exception or return empty string."""
+        if exception_to_raise:
+            raise exception_to_raise()
+        return ""
+
+    builtins.input = simulated_input  # type: ignore[assignment]
+    yield set_exception
+    builtins.input = original_input
 
 
 # ============================================================================

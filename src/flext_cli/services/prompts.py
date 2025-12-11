@@ -97,12 +97,12 @@ class FlextCliPrompts(FlextCliServiceBase):
         # Convert data for super().__init__()
         # FlextService.__init__ accepts **data: t.GeneralValueType
         # Note: mypy has generic type inference issue with FlextService[JsonDict].__init__
-        # but runtime accepts dict[str, GeneralValueType] as **kwargs: GeneralValueType
+        # but runtime accepts dict[str, t.GeneralValueType] as **kwargs: t.GeneralValueType
         if not isinstance(data, dict):
             msg = "data must be dict"
             raise TypeError(msg)
-        # Pass data directly - FlextService base class accepts **kwargs: GeneralValueType
-        s[t.Json.JsonDict].__init__(self, **data)
+        # Pass data directly - FlextService base class accepts **kwargs: t.GeneralValueType
+        s[dict[str, t.GeneralValueType]].__init__(self, **data)
 
         self.logger.debug(
             "Initialized CLI prompts service",
@@ -600,11 +600,11 @@ class FlextCliPrompts(FlextCliServiceBase):
                 c.Cli.ErrorMessages.HISTORY_CLEAR_FAILED.format(error=e),
             )
 
-    def get_prompt_statistics(self) -> r[t.Json.JsonDict]:
+    def get_prompt_statistics(self) -> r[dict[str, t.GeneralValueType]]:
         """Get prompt usage statistics.
 
         Returns:
-            r[t.Json.JsonDict]: Statistics data
+            r[dict[str, t.GeneralValueType]]: Statistics data
 
         Pydantic 2 Modernization:
             - Uses PromptStatistics model internally
@@ -653,7 +653,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 source="flext-cli/src/flext_cli/prompts.py",
             )
 
-            return r[t.Json.JsonDict].ok(stats_dict)
+            return r[dict[str, t.GeneralValueType]].ok(stats_dict)
 
         except Exception as e:  # pragma: no cover
             self.logger.exception(  # pragma: no cover
@@ -664,20 +664,22 @@ class FlextCliPrompts(FlextCliServiceBase):
                 consequence="Statistics unavailable",
                 source="flext-cli/src/flext_cli/prompts.py",
             )
-            return r[t.Json.JsonDict].fail(  # pragma: no cover
+            return r[dict[str, t.GeneralValueType]].fail(  # pragma: no cover
                 c.Cli.PromptsErrorMessages.STATISTICS_COLLECTION_FAILED.format(
                     error=e,
                 ),
             )
 
-    def execute(self, **_kwargs: t.Json.JsonDict) -> r[t.Json.JsonDict]:
+    def execute(
+        self, **_kwargs: dict[str, t.GeneralValueType]
+    ) -> r[dict[str, t.GeneralValueType]]:
         """Execute prompt service operation.
 
         Args:
             **_kwargs: Additional execution parameters (unused, for FlextService compatibility)
 
         Returns:
-            r[t.Json.JsonDict]: Service execution result
+            r[dict[str, t.GeneralValueType]]: Service execution result
 
         """
         self.logger.info(
@@ -690,13 +692,13 @@ class FlextCliPrompts(FlextCliServiceBase):
         )
 
         try:
-            # Simple execution that returns empty t.Json.JsonDict as expected by tests
+            # Simple execution that returns empty dict[str, t.GeneralValueType] as expected by tests
             self.logger.debug(
                 "Prompt service execution completed",
                 operation="execute",
                 source="flext-cli/src/flext_cli/prompts.py",
             )
-            return r[t.Json.JsonDict].ok({})
+            return r[dict[str, t.GeneralValueType]].ok({})
 
         except Exception as e:
             self.logger.exception(
@@ -708,7 +710,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 severity="critical",
                 source="flext-cli/src/flext_cli/prompts.py",
             )
-            return r[t.Json.JsonDict].fail(
+            return r[dict[str, t.GeneralValueType]].fail(
                 c.Cli.PromptsErrorMessages.PROMPT_SERVICE_EXECUTION_FAILED.format(
                     error=e,
                 ),
@@ -791,7 +793,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                     source="flext-cli/src/flext_cli/prompts.py",
                 )
 
-            # Only log in non-test environments to avoid FlextConfig CLI parsing issues
+            # Only log in non-test environments to avoid FlextSettings CLI parsing issues
             pytest_test = os.environ.get("PYTEST_CURRENT_TEST")
             underscore_value = os.environ.get("_", "")
             ci_value = os.environ.get("CI")
@@ -1469,7 +1471,7 @@ class FlextCliPrompts(FlextCliServiceBase):
             description: Progress description
 
         Returns:
-            r[list[CliJsonValue]]: Result with original items or error
+            r[list[t.GeneralValueType]]: Result with original items or error
 
         """
         try:

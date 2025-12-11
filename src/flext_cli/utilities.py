@@ -30,9 +30,8 @@ from typing import (
     overload,
 )
 
-from flext_core import r, u as u_core
-from flext_core.result import FlextResult
-from flext_core.typings import P as CORE_P, R
+from flext_core import FlextUtilities, r
+from flext_core.typings import P, R
 from pydantic import (
     BaseModel,
     BeforeValidator,
@@ -46,7 +45,7 @@ from flext_cli.protocols import p
 from flext_cli.typings import t
 
 
-class FlextCliUtilities(u_core):
+class FlextCliUtilities(FlextUtilities):
     """FLEXT CLI Utilities - Centralized helpers eliminating code duplication.
 
     Business Rules:
@@ -102,7 +101,7 @@ class FlextCliUtilities(u_core):
     """
 
     class Cli:
-        """CLI-specific utilities extending u_core.
+        """CLI-specific utilities extending FlextUtilities.
 
         Provides CLI-specific operations and wrappers for flext-core utilities.
         All nested classes and methods are organized within this namespace.
@@ -112,7 +111,7 @@ class FlextCliUtilities(u_core):
         # BASE UTILITIES - Use u wrappers needed
         # =========================================================================
         # All data mapping operations use uirectly
-        # Use t.GeneralValueType and t.Json.JsonDict directly
+        # Use t.GeneralValueType and dict[str, t.GeneralValueType] directly
         # Wrappers for validate/convert to maintain compatibility
         # =========================================================================
 
@@ -127,9 +126,9 @@ class FlextCliUtilities(u_core):
         ) -> r[T]:
             """Validate value using flext-core Validation.validate.
 
-            Wrapper for u_core.Validation.validate() to maintain compatibility.
+            Wrapper for FlextUtilities.Validation.validate() to maintain compatibility.
             """
-            result = u_core.Validation.validate(
+            result = FlextUtilities.Validation.validate(
                 value,
                 *validators,
                 mode=mode,
@@ -137,7 +136,7 @@ class FlextCliUtilities(u_core):
                 collect_errors=collect_errors,
                 field_name=field_name,
             )
-            # Convert RuntimeResult to FlextResult (r[T])
+            # Convert RuntimeResult to r (r[T])
             return (
                 r[T].ok(result.value)
                 if result.is_success
@@ -150,9 +149,9 @@ class FlextCliUtilities(u_core):
         ) -> T:
             """Convert value using flext-core Parser.convert.
 
-            Wrapper for u_core.Parser.convert() to maintain compatibility.
+            Wrapper for FlextUtilities.Parser.convert() to maintain compatibility.
             """
-            return u_core.Parser.convert(value, target_type, default)
+            return FlextUtilities.Parser.convert(value, target_type, default)
 
         @staticmethod
         def filter[T](
@@ -161,7 +160,7 @@ class FlextCliUtilities(u_core):
         ) -> list[T]:
             """Filter items using flext-core Collection.filter.
 
-            Wrapper for u_core.Collection.filter() to maintain compatibility.
+            Wrapper for FlextUtilities.Collection.filter() to maintain compatibility.
             Simplified to list/tuple only for type safety.
             """
             # Type narrowing: predicate needs Callable[..., bool] for flext-core
@@ -171,7 +170,7 @@ class FlextCliUtilities(u_core):
             # Use predicate directly - items is list[T] | tuple[T, ...], so items are T
             # predicate accepts T, so direct call is type-safe
             # No wrapper needed - use predicate directly with proper type narrowing
-            return u_core.Collection.filter(items, predicate)
+            return FlextUtilities.Collection.filter(items, predicate)
 
         @staticmethod
         def process[T, R](
@@ -182,11 +181,13 @@ class FlextCliUtilities(u_core):
         ) -> r[list[R] | dict[str, R]]:
             """Process items using flext-core Collection.process.
 
-            Wrapper for u_core.Collection.process() to maintain compatibility.
+            Wrapper for FlextUtilities.Collection.process() to maintain compatibility.
             Returns r[list[R] | dict[str, R]] as per flext-core signature.
             """
-            result = u_core.Collection.process(items, processor, on_error=on_error)
-            # Convert RuntimeResult to FlextResult (r[T])
+            result = FlextUtilities.Collection.process(
+                items, processor, on_error=on_error
+            )
+            # Convert RuntimeResult to r (r[T])
             return (
                 r[list[R] | dict[str, R]].ok(result.value)
                 if result.is_success
@@ -223,9 +224,9 @@ class FlextCliUtilities(u_core):
         ) -> T | None:
             """Get value from mapping using flext-core Mapper.get.
 
-            Wrapper for u_core.Mapper.get() to maintain compatibility.
+            Wrapper for FlextUtilities.Mapper.get() to maintain compatibility.
             """
-            return u_core.mapper().get(data, key, default=default)
+            return FlextUtilities.mapper().get(data, key, default=default)
 
         @staticmethod
         def extract[T](
@@ -238,16 +239,16 @@ class FlextCliUtilities(u_core):
         ) -> r[T | None]:
             """Extract value from mapping using flext-core Mapper.extract.
 
-            Wrapper for u_core.mapper().extract() to maintain compatibility.
+            Wrapper for FlextUtilities.mapper().extract() to maintain compatibility.
             """
-            result = u_core.mapper().extract(
+            result = FlextUtilities.mapper().extract(
                 data,
                 path,
                 default=default,
                 required=required,
                 separator=separator,
             )
-            # Convert RuntimeResult to FlextResult (r[T | None])
+            # Convert RuntimeResult to r (r[T | None])
             return (
                 r[T | None].ok(result.value)
                 if result.is_success
@@ -261,7 +262,7 @@ class FlextCliUtilities(u_core):
         ) -> T | None:
             """Find first item matching predicate using flext-core Collection.find.
 
-            Wrapper for u_core.Collection.find() to maintain compatibility.
+            Wrapper for FlextUtilities.Collection.find() to maintain compatibility.
             """
             if not callable(predicate):
                 msg = "predicate must be callable"
@@ -269,7 +270,7 @@ class FlextCliUtilities(u_core):
             # Use predicate directly - items is list[T] | tuple[T, ...], so items are T
             # predicate accepts T, so direct call is type-safe
             # No wrapper needed - use predicate directly with proper type narrowing
-            return u_core.Collection.find(items, predicate)
+            return FlextUtilities.Collection.find(items, predicate)
 
         @staticmethod
         def validate_required_string(
@@ -335,7 +336,7 @@ class FlextCliUtilities(u_core):
         ) -> list[R] | set[R] | frozenset[R] | dict[str, R] | r[R]:
             """Map items using flext-core Collection.map.
 
-            Wrapper for u_core.Collection.map() to maintain compatibility.
+            Wrapper for FlextUtilities.Collection.map() to maintain compatibility.
             """
             if not callable(mapper):
                 msg = "mapper must be callable"
@@ -363,19 +364,19 @@ class FlextCliUtilities(u_core):
                 return param_count == dict_param_count
 
             # Type narrowing based on items type and mapper signature
-            # Dispatch to appropriate u_core.Collection.map overload based on items type
+            # Dispatch to appropriate FlextUtilities.Collection.map overload based on items type
             if isinstance(items, r):
                 # For r[T], mapper must be Callable[[T], R] with 1 parameter
                 if not is_single_param_mapper(mapper):
                     msg = "mapper for r[T] must accept 1 parameter"
                     raise TypeError(msg)
                 # Type guard confirms mapper is Callable[[T], R]
-                result = u_core.Collection.map(
+                result = FlextUtilities.Collection.map(
                     items,
                     mapper,
                     default_error=default_error,
                 )
-                # Convert RuntimeResult to FlextResult (r[R])
+                # Convert RuntimeResult to r (r[R])
                 return (
                     r[R].ok(result.value)
                     if result.is_success
@@ -387,39 +388,39 @@ class FlextCliUtilities(u_core):
                     msg = "mapper for dict must accept 2 parameters (str, T)"
                     raise TypeError(msg)
                 # Type guard confirms mapper is Callable[[str, T], R]
-                return u_core.Collection.map(items, mapper)
+                return FlextUtilities.Collection.map(items, mapper)
             # For list, tuple, set, frozenset - mapper must be Callable[[T], R] with 1 parameter
             if not is_single_param_mapper(mapper):
                 msg = "mapper for sequences must accept 1 parameter"
                 raise TypeError(msg)
             # Type guard confirms mapper is Callable[[T], R]
             if isinstance(items, (list, tuple)):
-                return u_core.Collection.map(items, mapper)
+                return FlextUtilities.Collection.map(items, mapper)
             if isinstance(items, (set, frozenset)):
-                return u_core.Collection.map(items, mapper)
+                return FlextUtilities.Collection.map(items, mapper)
             # Single value case - wrap in list
-            return u_core.Collection.map([items], mapper)
+            return FlextUtilities.Collection.map([items], mapper)
 
         @staticmethod
         def build(
             value: t.GeneralValueType,
             *,
-            ops: t.Types.ConfigurationDict | None = None,
+            ops: t.ConfigurationDict | None = None,
             on_error: str = "fail",
         ) -> t.GeneralValueType:
             """Build value using flext-core Mapper.build.
 
-            Wrapper for u_core.mapper().build() to maintain compatibility.
-            Uses GeneralValueType from lower layer instead of object.
+            Wrapper for FlextUtilities.mapper().build() to maintain compatibility.
+            Uses t.GeneralValueType from lower layer instead of object.
             """
-            result = u_core.mapper().build(value, ops=ops, on_error=on_error)
-            # Type narrowing: build() returns T | object, but we know T is GeneralValueType
-            # Verify result is GeneralValueType compatible
+            result = FlextUtilities.mapper().build(value, ops=ops, on_error=on_error)
+            # Type narrowing: build() returns T | object, but we know T is t.GeneralValueType
+            # Verify result is t.GeneralValueType compatible
             if isinstance(
                 result, (str, int, float, bool, type(None), dict, list, tuple)
             ):
                 return result
-            # Fallback: convert to string if not GeneralValueType compatible
+            # Fallback: convert to string if not t.GeneralValueType compatible
             return str(result)
 
         @staticmethod
@@ -436,10 +437,10 @@ class FlextCliUtilities(u_core):
         ) -> r[T]:
             """Parse value using flext-core Parser.parse.
 
-            Wrapper for u_core.Parser.parse() to maintain compatibility.
+            Wrapper for FlextUtilities.Parser.parse() to maintain compatibility.
             Accepts default as positional argument for backward compatibility.
             """
-            result = u_core.Parser.parse(
+            result = FlextUtilities.Parser.parse(
                 value,
                 target,
                 strict=strict,
@@ -450,7 +451,7 @@ class FlextCliUtilities(u_core):
                 field_name=field_name,
             )
             # Type narrowing: result is r[T], so result.value is T when success
-            # FlextResult implements p.Result structurally, so use directly
+            # r implements p.Result structurally, so use directly
             return (
                 r[T].ok(result.value)
                 if result.is_success
@@ -461,8 +462,8 @@ class FlextCliUtilities(u_core):
         # CLI VALIDATION - CLI-specific validation helpers
         # =========================================================================
 
-        class CliValidation(u_core.Validation):
-            """CLI-specific validation operations extending u_core.Validation via inheritance.
+        class CliValidation(FlextUtilities.Validation):
+            """CLI-specific validation operations extending FlextUtilities.Validation via inheritance.
 
             Eliminates code duplication in models.py validate_business_rules methods.
             All validators return r[bool] for railway pattern composition.
@@ -472,8 +473,8 @@ class FlextCliUtilities(u_core):
             """
 
             # Inherit from Validation.String for compatibility with u.V.string.non_empty pattern
-            class V(u_core.Validation.String):
-                """String validation utilities - inherits from u_core.Validation.String."""
+            class V(FlextUtilities.Validation.String):
+                """String validation utilities - inherits from FlextUtilities.Validation.String."""
 
             class VBuilder:
                 """Fluent builder for CLI validation (mnemonic: 'V' = Validate).
@@ -578,8 +579,8 @@ class FlextCliUtilities(u_core):
                 if not empty and (
                     val is None
                     or (
-                        u_core.Guards.is_type(val, str)
-                        and not u_core.Guards.is_string_non_empty(val)
+                        FlextUtilities.Guards.is_type(val, str)
+                        and not FlextUtilities.Guards.is_string_non_empty(val)
                     )
                 ):
                     return r[bool].fail(
@@ -678,9 +679,9 @@ class FlextCliUtilities(u_core):
                             field_name=name,
                         ),
                     )
-                if u_core.Guards.is_type(
+                if FlextUtilities.Guards.is_type(
                     val, str
-                ) and not u_core.Guards.is_string_non_empty(val):
+                ) and not FlextUtilities.Guards.is_string_non_empty(val):
                     return r[bool].fail(
                         c.Cli.MixinsValidationMessages.FIELD_CANNOT_BE_EMPTY.format(
                             field_name=name,
@@ -866,7 +867,7 @@ class FlextCliUtilities(u_core):
                 )
 
             @staticmethod
-            def v_step(step: t.Json.JsonDict | None) -> r[bool]:
+            def v_step(step: dict[str, t.GeneralValueType] | None) -> r[bool]:
                 """Validate pipeline step (mnemonic: 'v_step').
 
                 Args:
@@ -898,7 +899,7 @@ class FlextCliUtilities(u_core):
 
             @staticmethod
             def v_req(
-                data: t.Json.JsonDict | None,
+                data: dict[str, t.GeneralValueType] | None,
                 *,
                 fields: list[str],
             ) -> r[bool]:
@@ -920,7 +921,9 @@ class FlextCliUtilities(u_core):
                             missing_fields=fields,
                         ),
                     )
-                missing = u_core.Collection.filter(fields, lambda f: f not in data)
+                missing = FlextUtilities.Collection.filter(
+                    fields, lambda f: f not in data
+                )
                 if missing:
                     return r[bool].fail(
                         c.Cli.MixinsValidationMessages.CONFIG_MISSING_FIELDS.format(
@@ -962,13 +965,13 @@ class FlextCliUtilities(u_core):
             ) -> r[t.GeneralValueType]:
                 """Convert and validate (mnemonic: 'v_conv').
 
-                Converts value to GeneralValueType.
+                Converts value to t.GeneralValueType.
 
                 Args:
                     val: Value to convert
 
                 Returns:
-                    r[GeneralValueType]: Converted value
+                    r[t.GeneralValueType]: Converted value
 
                 """
                 if val is None:
@@ -979,7 +982,7 @@ class FlextCliUtilities(u_core):
 
             @staticmethod
             def v_config(
-                config: t.Json.JsonDict | None,
+                config: dict[str, t.GeneralValueType] | None,
                 *,
                 fields: list[str],
             ) -> r[bool]:
@@ -1039,7 +1042,7 @@ class FlextCliUtilities(u_core):
 
                 """
                 # Validate environment variables explicitly - no fallback
-                pytest_test = u_core.mapper().get(
+                pytest_test = FlextUtilities.mapper().get(
                     os.environ,
                     c.Cli.EnvironmentConstants.PYTEST_CURRENT_TEST,
                 )
@@ -1206,7 +1209,7 @@ class FlextCliUtilities(u_core):
                 exists_key: str = c.Cli.DictKeys.CONFIG_EXISTS,
                 readable_key: str = c.Cli.DictKeys.CONFIG_READABLE,
                 writable_key: str = c.Cli.DictKeys.CONFIG_WRITABLE,
-            ) -> t.Json.JsonDict:
+            ) -> dict[str, t.GeneralValueType]:
                 """Generic info builder (mnemonic: 'info').
 
                 Builds dict with path info (exists, readable, writable, timestamp).
@@ -1219,7 +1222,7 @@ class FlextCliUtilities(u_core):
                     writable_key: Key for writable status
 
                 Returns:
-                    t.Json.JsonDict: Info dictionary
+                    dict[str, t.GeneralValueType]: Info dictionary
 
                 """
                 exists = path.exists()
@@ -1232,13 +1235,13 @@ class FlextCliUtilities(u_core):
                 }
 
             @staticmethod
-            def get_config_info() -> t.Json.JsonDict:
+            def get_config_info() -> dict[str, t.GeneralValueType]:
                 """Get FLEXT CLI configuration information.
 
                 Delegates to info() for consistency.
 
                 Returns:
-                    t.Json.JsonDict: Configuration information dictionary
+                    dict[str, t.GeneralValueType]: Configuration information dictionary
 
                 Example:
                     >>> info = u.ConfigOps.get_config_info()
@@ -1329,7 +1332,7 @@ class FlextCliUtilities(u_core):
             This normalizes annotations to Union/Optional forms transparently.
 
             Note: TypeNormalizer is CLI-specific and does not exist in flext-core.
-            Nested classes (Enum, Collection) inherit from u_core directly.
+            Nested classes (Enum, Collection) inherit from FlextUtilities directly.
 
             """
 
@@ -1509,11 +1512,11 @@ class FlextCliUtilities(u_core):
             # ═══════════════════════════════════════════════════════════════════
 
             class Enum:
-                """Enum utilities wrapper providing FlextResult conversion.
+                """Enum utilities wrapper providing r conversion.
 
-                Wraps u_core.Enum methods to convert RuntimeResult to FlextResult.
+                Wraps FlextUtilities.Enum methods to convert RuntimeResult to r.
                 Does NOT inherit to avoid type signature conflicts.
-                Provides CLI-specific enum operations with GeneralValueType compatibility.
+                Provides CLI-specific enum operations with t.GeneralValueType compatibility.
 
                 DESIGN PRINCIPLES:
                 ------------------
@@ -1526,7 +1529,7 @@ class FlextCliUtilities(u_core):
                 # -------------------------------------------------------------
                 # TYPEIS FACTORIES: Generate TypeIs functions for any StrEnum
                 # -------------------------------------------------------------
-                # is_member and is_subset are inherited from u_core.Enum
+                # is_member and is_subset are inherited from FlextUtilities.Enum
                 # No need to redefine - inheritance exposes them correctly
 
                 # -------------------------------------------------------------
@@ -1561,7 +1564,7 @@ class FlextCliUtilities(u_core):
 
                     """
                     result = u.Enum.parse(enum_cls, value)
-                    # Convert RuntimeResult to FlextResult (r[E])
+                    # Convert RuntimeResult to r (r[E])
                     return (
                         r[E].ok(result.value)
                         if result.is_success
@@ -1706,10 +1709,10 @@ class FlextCliUtilities(u_core):
             # ═══════════════════════════════════════════════════════════════════
 
             class Collection:
-                """Collection utilities extending u_core.Collection via inheritance.
+                """Collection utilities extending FlextUtilities.Collection via inheritance.
 
                 Exposes all flext-core Collection methods through inheritance hierarchy.
-                Adds CLI-specific collection operations with GeneralValueType compatibility.
+                Adds CLI-specific collection operations with t.GeneralValueType compatibility.
 
                 PADRÕES collections.abc:
                 ------------------------
@@ -1740,7 +1743,7 @@ class FlextCliUtilities(u_core):
 
                     """
                     result = u.Collection.parse_sequence(enum_cls, values)
-                    # Convert RuntimeResult to FlextResult (r[tuple[E, ...]])
+                    # Convert RuntimeResult to r (r[tuple[E, ...]])
                     return (
                         r[tuple[E, ...]].ok(result.value)
                         if result.is_success
@@ -1806,7 +1809,7 @@ class FlextCliUtilities(u_core):
 
                     """
                     result = u.Collection.parse_mapping(enum_cls, mapping)
-                    # Convert RuntimeResult to FlextResult (r[dict[str, E]])
+                    # Convert RuntimeResult to r (r[dict[str, E]])
                     return (
                         r[dict[str, E]].ok(result.value)
                         if result.is_success
@@ -1892,10 +1895,10 @@ class FlextCliUtilities(u_core):
             # ═══════════════════════════════════════════════════════════════════
 
             class Args:
-                """Args utilities extending u_core.Args via inheritance.
+                """Args utilities extending FlextUtilities.Args via inheritance.
 
                 Exposes all flext-core Args methods through inheritance hierarchy.
-                Adds CLI-specific args operations with GeneralValueType compatibility.
+                Adds CLI-specific args operations with t.GeneralValueType compatibility.
                 """
 
                 @staticmethod
@@ -1911,15 +1914,15 @@ class FlextCliUtilities(u_core):
 
                 @staticmethod
                 def validated_with_result(
-                    func: Callable[CORE_P, Union[FlextResult[R], r[R]]],
-                ) -> Callable[CORE_P, Union[FlextResult[R], r[R]]]:
+                    func: Callable[P, r[R]],
+                ) -> Callable[P, r[R]]:
                     """ValidationError -> r.fail().
 
-                    Overrides u_core.Args.validated_with_result with exact signature match.
+                    Overrides FlextUtilities.Args.validated_with_result with exact signature match.
 
                     Note: Mypy reports override incompatibility due to TypeVar resolution
-                    in ResultType alias (Union[FlextResult[R], r[R]]), but the signature
-                    is functionally correct. ResultType is defined as Union[FlextResult[R], r[R]]
+                    in ResultType alias (Union[r[R], r[R]]), but the signature
+                    is functionally correct. ResultType is defined as Union[r[R], r[R]]
                     in the supertype, so this is an exact match.
                     """
                     validated_func = validate_call(
@@ -1928,9 +1931,7 @@ class FlextCliUtilities(u_core):
                     )(func)
 
                     @wraps(func)
-                    def wrapper(
-                        *args: CORE_P.args, **kwargs: CORE_P.kwargs
-                    ) -> Union[FlextResult[R], r[R]]:
+                    def wrapper(*args: P.args, **kwargs: P.kwargs) -> r[R]:
                         try:
                             return validated_func(*args, **kwargs)
                         except ValidationError as e:
@@ -1990,7 +1991,7 @@ class FlextCliUtilities(u_core):
                 def _validate_flexible_value(
                     value: t.GeneralValueType,
                 ) -> t.GeneralValueType:
-                    """Validate and convert GeneralValueType to FlexibleValue.
+                    """Validate and convert t.GeneralValueType to FlexibleValue.
 
                     FlexibleValue = ScalarValue | Sequence[ScalarValue] | Mapping[str, ScalarValue]
                     This function validates that value is compatible with FlexibleValue.
@@ -2031,34 +2032,25 @@ class FlextCliUtilities(u_core):
 
                     """
                     # Convert to dict and normalize values
-                    parsed: dict[str, t.FlexibleValue] = u_core.mapper().to_dict(kwargs)
+                    parsed: dict[str, t.FlexibleValue] = (
+                        FlextUtilities.mapper().to_dict(kwargs)
+                    )
                     for k, v in parsed.items():
                         if isinstance(v, dict):
-                            # Type cast: dict[str, FlexibleValue] is compatible with dict[str, GeneralValueType]
-                            # FlexibleValue is a subset of GeneralValueType
-                            if not isinstance(v, dict):
-                                msg = "v must be dict"
-                                raise TypeError(msg)
+                            # Type cast: dict[str, FlexibleValue] is compatible with dict[str, t.GeneralValueType]
+                            # FlexibleValue is a subset of t.GeneralValueType
                             v_mapping: Mapping[str, t.GeneralValueType] = (
-                                v  # Covariant, ScalarValue ⊆ GeneralValueType
+                                v  # Covariant, ScalarValue ⊆ t.GeneralValueType
                             )
                             t_result = u.transform(dict(v_mapping), to_json=True)
                             if t_result.is_success:
                                 # Use .value directly instead of deprecated .value
-                                # Type narrowing: value is ConfigurationDict (dict[str, GeneralValueType])
+                                # Type narrowing: value is ConfigurationDict (dict[str, t.GeneralValueType])
                                 # transform returns ConfigurationDict, but FlexibleValue needs Mapping[str, ScalarValue]
-                                # ConfigurationDict is dict[str, GeneralValueType] which includes dict[str, JsonValue]
+                                # ConfigurationDict is dict[str, t.GeneralValueType] which includes dict[str, JsonValue]
                                 # JsonValue is ScalarValue, so this is compatible at runtime
                                 # Type narrowing: validate that value is compatible with FlexibleValue
                                 transformed_value = t_result.value
-                                # Runtime validation: transformed_value is dict[str, GeneralValueType]
-                                # FlexibleValue = ScalarValue | Sequence[ScalarValue] | Mapping[str, ScalarValue]
-                                # dict[str, ScalarValue] is Mapping[str, ScalarValue], so it's compatible
-                                # Type narrowing: validate all values are ScalarValue-compatible
-                                if not isinstance(transformed_value, dict):
-                                    msg = "transformed value must be dict"
-                                    raise TypeError(msg)
-                                # Validate all dict values are ScalarValue (str, int, float, bool, None)
                                 # This ensures dict[str, ScalarValue] which is Mapping[str, ScalarValue] = FlexibleValue
                                 if not all(
                                     isinstance(v, (str, int, float, bool, type(None)))
@@ -2070,15 +2062,13 @@ class FlextCliUtilities(u_core):
                                 # Create validated dict with explicit type annotation for type narrowing
                                 validated_dict: dict[
                                     str, str | int | float | bool | None
-                                ] = {}
-                                for key, val in transformed_value.items():
-                                    if not isinstance(key, str):
-                                        msg = "dict keys must be strings"
-                                        raise TypeError(msg)
+                                ] = {
+                                    key: val
+                                    for key, val in transformed_value.items()
                                     if isinstance(
                                         val, (str, int, float, bool, type(None))
-                                    ):
-                                        validated_dict[key] = val
+                                    )
+                                }
                                 # Type narrowing: validated_dict is dict[str, ScalarValue] = Mapping[str, ScalarValue] = FlexibleValue
                                 parsed[k] = validated_dict
 
@@ -2110,7 +2100,7 @@ class FlextCliUtilities(u_core):
 
                 @staticmethod
                 def get_enum_params(
-                    func: u_core.Args._CallableWithHints,
+                    func: FlextUtilities.Args._CallableWithHints,
                 ) -> dict[str, type[StrEnum]]:
                     """Extract StrEnum parameters from function signature."""
                     try:
@@ -2130,10 +2120,10 @@ class FlextCliUtilities(u_core):
             # ═══════════════════════════════════════════════════════════════════
 
             class Model:
-                """Model utilities extending u_core.Model via inheritance.
+                """Model utilities extending FlextUtilities.Model via inheritance.
 
                 Exposes all flext-core Model methods through inheritance hierarchy.
-                Adds CLI-specific model operations with GeneralValueType compatibility.
+                Adds CLI-specific model operations with t.GeneralValueType compatibility.
                 """
 
                 @staticmethod
@@ -2145,7 +2135,7 @@ class FlextCliUtilities(u_core):
                 ) -> r[M]:
                     """Create model from dict with r.
 
-                    Overrides u_core.Model.from_dict() with FlexibleValue compatibility.
+                    Overrides FlextUtilities.Model.from_dict() with FlexibleValue compatibility.
                     Delegates to parent method for consistency.
 
                     Business Rule:
@@ -2160,8 +2150,10 @@ class FlextCliUtilities(u_core):
                     - Invalid data returns r.fail() with error message
                     - Strict mode enforces exact type matching (no coercion)
                     """
-                    result = u_core.Model.from_dict(model_cls, data, strict=strict)
-                    # Convert RuntimeResult to FlextResult (r[M])
+                    result = FlextUtilities.Model.from_dict(
+                        model_cls, data, strict=strict
+                    )
+                    # Convert RuntimeResult to r (r[M])
                     return (
                         r[M].ok(result.value)
                         if result.is_success
@@ -2176,16 +2168,16 @@ class FlextCliUtilities(u_core):
                 ) -> r[M]:
                     """Merge defaults with overrides and create model (mnemonic: 'merge_defaults').
 
-                    Overrides u_core.Model.merge_defaults() with FlexibleValue compatibility.
+                    Overrides FlextUtilities.Model.merge_defaults() with FlexibleValue compatibility.
                     Delegates to parent method for consistency.
 
                     """
-                    result = u_core.Model.merge_defaults(
+                    result = FlextUtilities.Model.merge_defaults(
                         model_cls,
                         defaults,
                         overrides,
                     )
-                    # Convert RuntimeResult to FlextResult (r[M])
+                    # Convert RuntimeResult to r (r[M])
                     return (
                         r[M].ok(result.value)
                         if result.is_success
@@ -2199,12 +2191,12 @@ class FlextCliUtilities(u_core):
                 ) -> r[M]:
                     """Update model with new values (mnemonic: 'update').
 
-                    Overrides u_core.Model.update() with FlexibleValue compatibility.
+                    Overrides FlextUtilities.Model.update() with FlexibleValue compatibility.
                     Delegates to parent method for consistency.
 
                     """
-                    result = u_core.Model.update(instance, **updates)
-                    # Convert RuntimeResult to FlextResult (r[M])
+                    result = FlextUtilities.Model.update(instance, **updates)
+                    # Convert RuntimeResult to r (r[M])
                     return (
                         r[M].ok(result.value)
                         if result.is_success

@@ -18,6 +18,7 @@ import yaml
 from flext_core import (
     FlextRuntime,
     r,
+    t,
 )
 from pydantic import BaseModel
 from rich.tree import Tree as RichTree
@@ -28,7 +29,6 @@ from flext_cli.formatters import FlextCliFormatters
 from flext_cli.models import m
 from flext_cli.protocols import p
 from flext_cli.services.tables import FlextCliTables
-from flext_cli.typings import t
 from flext_cli.utilities import u
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -50,7 +50,7 @@ class FlextCliOutput(FlextCliServiceBase):
     5. CSV formatting MUST escape special characters and handle Unicode
     6. Rich formatting MUST respect no_color configuration flag
     7. All formatting operations MUST return r[T] for error handling
-    8. Output MUST respect configured output format from FlextCliConfig
+    8. Output MUST respect configured output format from FlextCliSettings
 
     Architecture Implications:
     ───────────────────────────
@@ -180,7 +180,9 @@ class FlextCliOutput(FlextCliServiceBase):
         return self._result_formatters
 
     @override
-    def execute(self, **_kwargs: t.Json.JsonDict) -> r[t.Json.JsonDict]:
+    def execute(
+        self, **_kwargs: dict[str, t.GeneralValueType]
+    ) -> r[dict[str, t.GeneralValueType]]:
         """Execute the main domain service operation - required by FlextService.
 
         Args:
@@ -188,7 +190,7 @@ class FlextCliOutput(FlextCliServiceBase):
                 (unused, for FlextService compatibility)
 
         """
-        return r[t.Json.JsonDict].ok({
+        return r[dict[str, t.GeneralValueType]].ok({
             c.Cli.DictKeys.STATUS: (c.Cli.ServiceStatus.OPERATIONAL.value),
             c.Cli.DictKeys.SERVICE: c.Cli.FLEXT_CLI,
         })
@@ -201,7 +203,7 @@ class FlextCliOutput(FlextCliServiceBase):
     def is_json(v: t.GeneralValueType) -> bool:
         """Check if value is JSON-compatible type.
 
-        Uses GeneralValueType from lower layer instead of object for better type safety.
+        Uses t.GeneralValueType from lower layer instead of object for better type safety.
         """
         return isinstance(v, (str, int, float, bool, type(None), dict, list))
 
@@ -223,15 +225,17 @@ class FlextCliOutput(FlextCliServiceBase):
                 # Type narrowing: result is FlextResult
                 return result.value if result.is_success else v
             # If not FlextResult, assume it's the converted value
-            # Type narrowing: result is already GeneralValueType from u.build
-            # u.build returns object, but we know it's GeneralValueType compatible
+            # Type narrowing: result is already t.GeneralValueType from u.build
+            # u.build returns object, but we know it's t.GeneralValueType compatible
             if isinstance(result, (str, int, float, bool, type(None), dict, list)):
                 return result
             return str(result)
         return v
 
     @staticmethod
-    def get_keys(d: dict[str, t.GeneralValueType] | t.GeneralValueType) -> list[str]:
+    def get_keys(
+        d: Mapping[str, t.GeneralValueType] | t.GeneralValueType,
+    ) -> list[str]:
         """Extract keys from dict using build DSL.
 
         Business Rules:
@@ -270,7 +274,7 @@ class FlextCliOutput(FlextCliServiceBase):
             return FlextCliOutput.to_dict_json(item)
         if FlextRuntime.is_list_like(item):
             return FlextCliOutput.to_list_json(item)
-        # Type narrowing: str(item) is already GeneralValueType compatible
+        # Type narrowing: str(item) is already t.GeneralValueType compatible
         return str(item)
 
     @staticmethod
@@ -334,7 +338,7 @@ class FlextCliOutput(FlextCliServiceBase):
 
     @staticmethod
     def get_map_val(
-        m: dict[str, t.GeneralValueType],
+        m: Mapping[str, t.GeneralValueType],
         k: str,
         default: t.GeneralValueType,
     ) -> t.GeneralValueType:
@@ -342,9 +346,9 @@ class FlextCliOutput(FlextCliServiceBase):
         built_result = u.Cli.build(
             m.get(k), ops={"ensure_default": default}, on_error="skip"
         )
-        # Type narrowing: u.build returns GeneralValueType, use default if None
+        # Type narrowing: u.build returns t.GeneralValueType, use default if None
         if built_result is not None:
-            # Type narrowing: built_result is GeneralValueType compatible
+            # Type narrowing: built_result is t.GeneralValueType compatible
             if isinstance(
                 built_result, (str, int, float, bool, type(None), dict, list)
             ):
@@ -755,20 +759,20 @@ class FlextCliOutput(FlextCliServiceBase):
         ] = getattr(self, "_result_formatters", {})
         if result_type in formatters_dict:
             formatter = formatters_dict[result_type]
-            # Type narrowing: formatter accepts GeneralValueType | r[object]
-            # BaseModel is not directly compatible, but we can pass it as GeneralValueType
+            # Type narrowing: formatter accepts t.GeneralValueType | r[object]
+            # BaseModel is not directly compatible, but we can pass it as t.GeneralValueType
             if isinstance(result, BaseModel):
                 # Convert BaseModel to dict for formatter
                 formattable_result: t.GeneralValueType = result.model_dump()
                 formatter(formattable_result, output_format)
-            # result is already GeneralValueType | r[GeneralValueType]
-            # Type narrowing: formatter accepts GeneralValueType
+            # result is already t.GeneralValueType | r[t.GeneralValueType]
+            # Type narrowing: formatter accepts t.GeneralValueType
             elif isinstance(result, r):
                 if result.is_success:
                     # Use .value directly instead of deprecated .value
                     # Use build() DSL: value → ensure JSON-compatible → convert to string if needed
                     result_value = result.value
-                    # Type narrowing: result_value from .value is GeneralValueType compatible
+                    # Type narrowing: result_value from .value is t.GeneralValueType compatible
                     result_value_general: t.GeneralValueType = (
                         result_value
                         if isinstance(
@@ -778,8 +782,8 @@ class FlextCliOutput(FlextCliServiceBase):
                         else str(result_value)
                     )
                     if self.is_json(result_value_general):
-                        # Type narrowing: result_value is GeneralValueType from .value
-                        # Convert to GeneralValueType explicitly for type checker
+                        # Type narrowing: result_value is t.GeneralValueType from .value
+                        # Convert to t.GeneralValueType explicitly for type checker
                         unwrapped_value: t.GeneralValueType = (
                             result_value
                             if isinstance(
@@ -826,7 +830,7 @@ class FlextCliOutput(FlextCliServiceBase):
             return self._format_pydantic_model(result, output_format)
 
         # Handle dict objects directly
-        # Type narrowing: result is GeneralValueType, check if it's a dict
+        # Type narrowing: result is t.GeneralValueType, check if it's a dict
         if isinstance(result, dict):
             return self.format_data(result, output_format)
         if hasattr(result, "__dict__"):
@@ -864,11 +868,11 @@ class FlextCliOutput(FlextCliServiceBase):
             if result.is_failure:
                 return r[str].fail(f"Cannot format failed result: {result.error}")
             # Use .value directly instead of deprecated .value
-            # Type narrowing: .value returns GeneralValueType
-            # Note: Cannot use isinstance with TypeAliasType (GeneralValueType)
-            # result_value is already GeneralValueType from .value
+            # Type narrowing: .value returns t.GeneralValueType
+            # Note: Cannot use isinstance with TypeAliasType (t.GeneralValueType)
+            # result_value is already t.GeneralValueType from .value
             result = result.value
-        # Now result is GeneralValueType - check if it has __dict__
+        # Now result is t.GeneralValueType - check if it has __dict__
         if not hasattr(result, "__dict__"):
             return r[str].fail(
                 f"Object {type(result).__name__} has no __dict__ attribute",
@@ -1407,7 +1411,7 @@ class FlextCliOutput(FlextCliServiceBase):
             c.Cli.MessageTypes.ERROR.value: c.Cli.Emojis.ERROR,
             c.Cli.MessageTypes.WARNING.value: c.Cli.Emojis.WARNING,
         }
-        # Type narrowing: style_map and emoji_map are dict[str, str], convert to GeneralValueType
+        # Type narrowing: style_map and emoji_map are dict[str, str], convert to t.GeneralValueType
         style_map_general: dict[str, t.GeneralValueType] = dict(style_map)
         emoji_map_general: dict[str, t.GeneralValueType] = dict(emoji_map)
         style = self.ensure_str(
@@ -1550,7 +1554,7 @@ class FlextCliOutput(FlextCliServiceBase):
             if FlextRuntime.is_list_like(data) and data:
                 # Type narrowing: data is list-like, check first item
                 if isinstance(data, (list, tuple, Sequence)) and len(data) > 0:
-                    # Type narrowing: data[0] is GeneralValueType, check if dict-like
+                    # Type narrowing: data[0] is t.GeneralValueType, check if dict-like
                     first_item: t.GeneralValueType = data[0]
                     if FlextRuntime.is_dict_like(first_item):
                         # Type narrowing: data is Sequence, convert to list
@@ -1582,7 +1586,7 @@ class FlextCliOutput(FlextCliServiceBase):
     def _coerce_to_list(self, data: t.GeneralValueType) -> list[t.GeneralValueType]:
         """Coerce data to list for CSV processing.
 
-        Uses types from lower layer (GeneralValueType) for proper type safety.
+        Uses types from lower layer (t.GeneralValueType) for proper type safety.
         """
         # Direct list return
         if isinstance(data, list):
@@ -1613,7 +1617,7 @@ class FlextCliOutput(FlextCliServiceBase):
             iterable_items: list[t.GeneralValueType] = []
             try:
                 for item in data:
-                    # Type narrowing: each item from iterable is GeneralValueType compatible
+                    # Type narrowing: each item from iterable is t.GeneralValueType compatible
                     item_general: t.GeneralValueType = (
                         item
                         if isinstance(
@@ -1639,10 +1643,10 @@ class FlextCliOutput(FlextCliServiceBase):
             if isinstance(data, Sequence):
                 return list(data)
             # For other iterables, convert using list comprehension
-            # Each item is narrowed to GeneralValueType from lower layer
+            # Each item is narrowed to t.GeneralValueType from lower layer
             iterable_items: list[t.GeneralValueType] = []
             for item in data:
-                # Type narrowing: item from iterable is GeneralValueType compatible
+                # Type narrowing: item from iterable is t.GeneralValueType compatible
                 item_general: t.GeneralValueType = (
                     item
                     if isinstance(
@@ -1671,7 +1675,7 @@ class FlextCliOutput(FlextCliServiceBase):
             filtered_rows if isinstance(filtered_rows, list) else [],
             [],
         )
-        # Use GeneralValueType from lower layer instead of object
+        # Use t.GeneralValueType from lower layer instead of object
         dict_rows: list[dict[str, t.GeneralValueType]] = [
             item for item in dict_rows_raw if isinstance(item, dict)
         ]
@@ -1697,7 +1701,7 @@ class FlextCliOutput(FlextCliServiceBase):
         writer = csv.DictWriter(output_buffer, fieldnames=fieldnames)
         writer.writeheader()
         # Type narrowing: data is dict-like from format_csv check
-        # Use GeneralValueType from lower layer instead of object
+        # Use t.GeneralValueType from lower layer instead of object
         data_dict: dict[str, t.GeneralValueType] = (
             dict(data) if isinstance(data, dict) else {}
         )
@@ -1710,7 +1714,7 @@ class FlextCliOutput(FlextCliServiceBase):
     ) -> dict[str, str | int | float | bool]:
         """Process CSV row with None replacement.
 
-        Uses GeneralValueType from lower layer instead of object for better type safety.
+        Uses t.GeneralValueType from lower layer instead of object for better type safety.
         """
         processed: dict[str, str | int | float | bool] = {}
         for k, v in row.items():
@@ -1993,7 +1997,7 @@ class FlextCliOutput(FlextCliServiceBase):
 
         Args:
             tree: Tree object from formatters
-            data: Data to build tree from (CliJsonValue - can be dict, list, or primitive)
+            data: Data to build tree from (t.GeneralValueType - can be dict, list, or primitive)
 
         """
         if isinstance(data, dict):

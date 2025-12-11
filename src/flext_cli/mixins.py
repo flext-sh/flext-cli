@@ -15,10 +15,10 @@ from flext_core import (
     FlextMixins,
     FlextResult,
     r,
-    t,
 )
 
 from flext_cli.protocols import p
+from flext_cli.typings import t
 from flext_cli.utilities import u
 
 
@@ -95,14 +95,14 @@ class FlextCliMixins(FlextMixins):
 
         @staticmethod
         def validate_pipeline_step(
-            step: t.Json.JsonDict | None,
+            step: dict[str, t.GeneralValueType] | None,
         ) -> r[bool]:
             """Validate pipeline step configuration (delegates to utilities)."""
             return u.Cli.CliValidation.v_step(step)
 
         @staticmethod
         def validate_configuration_consistency(
-            config_data: t.Json.JsonDict | None,
+            config_data: dict[str, t.GeneralValueType] | None,
             required_fields: list[str],
         ) -> r[bool]:
             """Validate configuration consistency (delegates to utilities)."""
@@ -155,7 +155,7 @@ class FlextCliMixins(FlextMixins):
             )
 
             # Execute with composed decorators
-            # Railway decorator ensures handler_result is always r[GeneralValueType]
+            # Railway decorator ensures handler_result is always r[t.GeneralValueType]
             handler_result = wrapped_handler(**context_data)
 
             # Type narrowing: railway decorator ensures r return
@@ -164,7 +164,7 @@ class FlextCliMixins(FlextMixins):
             if not isinstance(handler_result, FlextResult):
                 # Fallback: wrap non-FlextResult returns (defensive coding)
                 # This path is unreachable if decorators work correctly but kept for runtime safety
-                # handler_result is not FlextResult at this point, convert to GeneralValueType
+                # handler_result is not FlextResult at this point, convert to t.GeneralValueType
                 converted_handler_result: t.GeneralValueType
                 if isinstance(
                     handler_result,
@@ -184,7 +184,7 @@ class FlextCliMixins(FlextMixins):
                     return inner_value
                 # Single-wrapped with value: extract value and wrap in new FlextResult
                 # inner_value is not FlextResult at this point (after isinstance check)
-                # inner_value is object from unwrap - convert to GeneralValueType
+                # inner_value is object from unwrap - convert to t.GeneralValueType
                 converted_value: t.GeneralValueType
                 if isinstance(
                     inner_value,

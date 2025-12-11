@@ -1,9 +1,9 @@
 """FLEXT CLI Config Tests - Comprehensive Configuration Validation Testing.
 
-Tests for FlextCliConfig covering initialization, serialization, file operations,
+Tests for FlextCliSettings covering initialization, serialization, file operations,
 validation, integration workflows, and edge cases with 100% coverage.
 
-Modules tested: flext_cli.config.FlextCliConfig
+Modules tested: flext_cli.config.FlextCliSettings
 Scope: All configuration operations, file operations, validation, integration
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
@@ -31,7 +31,7 @@ from pydantic_settings import BaseSettings
 
 from flext_cli import (
     FlextCli,
-    FlextCliConfig,
+    FlextCliSettings,
     m,
 )
 
@@ -57,7 +57,7 @@ class ConfigTestScenario:
 
     name: str
     test_type: ConfigTestType
-    data: t.Json.JsonDict | None = None
+    data: t.JsonDict | None = None
     should_pass: bool = True
 
 
@@ -87,14 +87,14 @@ class ConfigTestFactory:
     ]
 
     # Test data
-    JSON_CONFIG_DATA: Final[t.Json.JsonDict] = {
+    JSON_CONFIG_DATA: Final[t.JsonDict] = {
         "debug": True,
         "verbose": False,
         "profile": "test",
         "output_format": "json",
     }
 
-    YAML_CONFIG_DATA: Final[t.Json.JsonDict] = {
+    YAML_CONFIG_DATA: Final[t.JsonDict] = {
         "debug": False,
         "verbose": True,
         "profile": "yaml_test",
@@ -146,26 +146,26 @@ class TestsCliConfigBasics:
 
     def test_initialization(self) -> None:
         """Test basic initialization."""
-        config = FlextCliConfig()
+        config = FlextCliSettings()
         assert config is not None
-        assert isinstance(config, FlextCliConfig)
+        assert isinstance(config, FlextCliSettings)
 
     def test_serialization_deserialization(self) -> None:
         """Test model_dump and model_validate."""
-        config = FlextCliConfig()
+        config = FlextCliSettings()
         dumped = config.model_dump()
         assert isinstance(dumped, dict)
         assert "verbose" in dumped
 
         # Validate deserialize
         data = {"verbose": False, "profile": "test"}
-        validated = FlextCliConfig.model_validate(data)
+        validated = FlextCliSettings.model_validate(data)
         assert validated.profile == "test"
 
     def test_singleton_pattern(self) -> None:
         """Test singleton behavior."""
-        config1 = FlextCliConfig.get_instance()
-        config2 = FlextCliConfig.get_instance()
+        config1 = FlextCliSettings.get_instance()
+        config2 = FlextCliSettings.get_instance()
         assert config1.profile == config2.profile
 
 
@@ -174,14 +174,14 @@ class TestsCliConfigService:
 
     def test_reset_instance(self) -> None:
         """Test reset_instance resets global state."""
-        FlextCliConfig()
-        FlextCliConfig._reset_instance()
-        new_config = FlextCliConfig()
+        FlextCliSettings()
+        FlextCliSettings._reset_instance()
+        new_config = FlextCliSettings()
         assert new_config is not None
 
     def test_execute_as_service(self) -> None:
         """Test execute_service returns FlextResult."""
-        config = FlextCliConfig()
+        config = FlextCliSettings()
         result = config.execute_service()
         assert result.is_success
         assert isinstance(result.value, dict)
@@ -251,33 +251,33 @@ class TestsCliConfigFilesOperations:
 
     def test_load_json_config(self, temp_config_json: Path) -> None:
         """Test JSON loading."""
-        result = FlextCliConfig.load_from_config_file(temp_config_json)
+        result = FlextCliSettings.load_from_config_file(temp_config_json)
         assert result.is_success
-        assert isinstance(result.value, FlextCliConfig)
+        assert isinstance(result.value, FlextCliSettings)
 
     def test_load_yaml_config(self, temp_config_yaml: Path) -> None:
         """Test YAML loading."""
-        result = FlextCliConfig.load_from_config_file(temp_config_yaml)
+        result = FlextCliSettings.load_from_config_file(temp_config_yaml)
         assert result.is_success
-        assert isinstance(result.value, FlextCliConfig)
+        assert isinstance(result.value, FlextCliSettings)
 
     def test_load_nonexistent_file(self, tmp_path: Path) -> None:
         """Test error handling for missing file."""
-        result = FlextCliConfig.load_from_config_file(tmp_path / "nonexistent.json")
+        result = FlextCliSettings.load_from_config_file(tmp_path / "nonexistent.json")
         assert result.is_failure
 
     def test_load_invalid_format(self, tmp_path: Path) -> None:
         """Test unsupported file format."""
         txt_file = tmp_path / "config.txt"
         txt_file.write_text("invalid")
-        result = FlextCliConfig.load_from_config_file(txt_file)
+        result = FlextCliSettings.load_from_config_file(txt_file)
         assert result.is_failure
 
     def test_load_invalid_json(self, tmp_path: Path) -> None:
         """Test invalid JSON content."""
         json_file = tmp_path / "invalid.json"
         json_file.write_text("{invalid json}")
-        result = FlextCliConfig.load_from_config_file(json_file)
+        result = FlextCliSettings.load_from_config_file(json_file)
         assert result.is_failure
 
 
@@ -293,8 +293,8 @@ class TestsCliConfigIntegration:
         for key in list(os.environ.keys()):
             if key.startswith("FLEXT_"):
                 os.environ.pop(key, None)
-        FlextCliConfig._reset_instance()
-        FlextCliConfig._instance = None
+        FlextCliSettings._reset_instance()
+        FlextCliSettings._instance = None
         yield None
         # Restore original values after test
         for key in list(os.environ.keys()):
@@ -302,20 +302,20 @@ class TestsCliConfigIntegration:
                 os.environ.pop(key, None)
         for key, value in saved_env.items():
             os.environ[key] = value
-        FlextCliConfig._reset_instance()
-        FlextCliConfig._instance = None
+        FlextCliSettings._reset_instance()
+        FlextCliSettings._instance = None
 
     def test_flext_cli_integration(self) -> None:
         """Test FlextCli uses config."""
         cli = FlextCli()
         config = cli.config
         assert config is not None
-        assert isinstance(config, FlextCliConfig)
+        assert isinstance(config, FlextCliSettings)
 
     def test_config_inheritance(self) -> None:
         """Test inheritance from BaseSettings (Pydantic v2)."""
-        config = FlextCliConfig()
-        # FlextCliConfig inherits from BaseSettings, not FlextConfig.AutoConfig
+        config = FlextCliSettings()
+        # FlextCliSettings inherits from BaseSettings, not FlextSettings.AutoConfig
         assert isinstance(config, BaseSettings)
         assert hasattr(config, "model_config")
 
@@ -328,15 +328,15 @@ class TestsCliConfigIntegration:
             # Set environment variable - fixture already cleared it
             os.environ["FLEXT_CLI_PROFILE"] = "env_profile"
             # Reset singleton to force reload from environment
-            FlextCliConfig._reset_instance()
+            FlextCliSettings._reset_instance()
             # Also reset the class-level _instance to ensure clean state
-            FlextCliConfig._instance = None
+            FlextCliSettings._instance = None
 
             # Create new instance directly to reload from environment
             # Pydantic Settings loads from environment variables automatically
-            # Note: Due to singleton pattern, FlextCliConfig() may return cached instance
+            # Note: Due to singleton pattern, FlextCliSettings() may return cached instance
             # but Pydantic Settings should reload from environment on new instance creation
-            config = FlextCliConfig()
+            config = FlextCliSettings()
             # Verify profile was loaded from environment
             # If it's still 'default', the singleton may be caching - check if env var is set
             if config.profile != "env_profile":
@@ -346,7 +346,7 @@ class TestsCliConfigIntegration:
                 )
                 # Try creating instance with explicit model_validate
                 config_data = {"profile": os.environ["FLEXT_CLI_PROFILE"]}
-                config = FlextCliConfig.model_validate(config_data)
+                config = FlextCliSettings.model_validate(config_data)
             assert config.profile == "env_profile", (
                 f"Expected 'env_profile', got '{config.profile}'"
             )
@@ -355,8 +355,8 @@ class TestsCliConfigIntegration:
             os.environ.pop("FLEXT_CLI_PROFILE", None)
             if original_profile is not None:
                 os.environ["FLEXT_CLI_PROFILE"] = original_profile
-            FlextCliConfig._reset_instance()
-            FlextCliConfig._instance = None
+            FlextCliSettings._reset_instance()
+            FlextCliSettings._instance = None
 
 
 class TestsCliConfigValidation:
@@ -368,7 +368,7 @@ class TestsCliConfigValidation:
     )
     def test_output_format_validation(self, fmt: str, should_pass: bool) -> None:
         """Test output format validation."""
-        config = FlextCliConfig()
+        config = FlextCliSettings()
         result = config.validate_output_format_result(fmt)
         assert result.is_success == should_pass
 
@@ -379,14 +379,14 @@ class TestsCliConfigValidation:
 
     def test_model_dump(self) -> None:
         """Test model_dump returns complete dict."""
-        config = FlextCliConfig()
+        config = FlextCliSettings()
         dumped = config.model_dump()
         assert isinstance(dumped, dict)
         assert len(dumped) > 0
 
     def test_update_from_cli_args(self) -> None:
         """Test update_from_cli_args."""
-        config = FlextCliConfig()
+        config = FlextCliSettings()
         # Don't try to update computed fields like auto_output_format
         result = config.update_from_cli_args(profile="new_profile", debug=True)
         assert result.is_success
@@ -395,7 +395,7 @@ class TestsCliConfigValidation:
 
     def test_validate_cli_overrides(self) -> None:
         """Test validate_cli_overrides."""
-        config = FlextCliConfig()
+        config = FlextCliSettings()
         result = config.validate_cli_overrides(
             profile="valid",
             output_format="json",
@@ -408,7 +408,7 @@ class TestsCliConfigComputedFields:
 
     def test_auto_output_format(self) -> None:
         """Test auto_output_format computed field."""
-        config = FlextCliConfig()
+        config = FlextCliSettings()
         # Access computed_field - it's a property that returns str directly
         # Mypy may see it as Callable, but at runtime it's a property returning str
         fmt_value = config.auto_output_format
@@ -419,7 +419,7 @@ class TestsCliConfigComputedFields:
 
     def test_auto_verbosity(self) -> None:
         """Test auto_verbosity computed field."""
-        config = FlextCliConfig()
+        config = FlextCliSettings()
         # Access computed_field property - Pydantic computed_field returns the value directly
         verb_value = config.auto_verbosity
         # Ensure it's a string (computed_field returns the actual value, not a callable)
@@ -428,7 +428,7 @@ class TestsCliConfigComputedFields:
 
     def test_optimal_table_format(self) -> None:
         """Test optimal_table_format computed field."""
-        config = FlextCliConfig()
+        config = FlextCliSettings()
         # Access computed_field - it's a property that returns str directly
         # Mypy may see it as Callable, but at runtime it's a property returning str
         fmt_value = config.optimal_table_format
@@ -439,7 +439,7 @@ class TestsCliConfigComputedFields:
 
     def test_auto_color_support(self) -> None:
         """Test auto_color_support computed field."""
-        config = FlextCliConfig()
+        config = FlextCliSettings()
         assert isinstance(config.auto_color_support, bool)
 
 
@@ -474,7 +474,7 @@ class TestsCliConfigConcurrency:
 
         def worker(worker_id: int) -> None:
             try:
-                config = FlextCliConfig()
+                config = FlextCliSettings()
                 results.append((worker_id, config.debug, config.environment))
             except Exception as e:
                 errors.append((worker_id, str(e)))
@@ -494,19 +494,19 @@ class TestsCliConfigMemory:
 
     def test_config_cleanup(self) -> None:
         """Test config cleanup with gc."""
-        configs = [FlextCliConfig() for _ in range(10)]
+        configs = [FlextCliSettings() for _ in range(10)]
         del configs
         gc.collect()
 
-        new_config = FlextCliConfig()
+        new_config = FlextCliSettings()
         assert new_config is not None
 
     def test_state_persistence(self) -> None:
         """Test config state persistence using model_copy."""
         # Reset singleton to ensure clean state
-        FlextCliConfig._reset_instance()
+        FlextCliSettings._reset_instance()
         # Create base instance
-        config1 = FlextCliConfig()
+        config1 = FlextCliSettings()
         original_debug = config1.debug
 
         # Create modified instance using model_copy with update
@@ -528,14 +528,14 @@ class TestsCliConfigEdgeCases:
 
     def test_extreme_values(self) -> None:
         """Test config with extreme numeric values."""
-        config = FlextCliConfig()
+        config = FlextCliSettings()
         assert config.max_retries >= 0
         assert config.cli_timeout > 0
         assert config.max_width > 0
 
     def test_load_config(self) -> None:
         """Test load_config method."""
-        config = FlextCliConfig()
+        config = FlextCliSettings()
         result = config.load_config()
         assert result.is_success or result.is_failure
         if result.is_success:
@@ -543,7 +543,7 @@ class TestsCliConfigEdgeCases:
 
     def test_save_config(self) -> None:
         """Test save_config method."""
-        config = FlextCliConfig()
-        new_config: t.Json.JsonDict = {"debug": True}
+        config = FlextCliSettings()
+        new_config: t.JsonDict = {"debug": True}
         result = config.save_config(new_config)
         assert result.is_success or result.is_failure

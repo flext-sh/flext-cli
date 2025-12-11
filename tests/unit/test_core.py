@@ -29,8 +29,8 @@ from flext_core import t
 from pydantic import ValidationError
 
 from flext_cli import (
-    FlextCliConfig,
     FlextCliCore,
+    FlextCliSettings,
     c,
     m,
     p,
@@ -78,7 +78,7 @@ class TestsCliCore:
     @staticmethod
     def _set_commands(
         core_service: FlextCliCore,
-        commands: dict[str, t.Json.JsonDict],
+        commands: dict[str, t.JsonDict],
     ) -> None:
         """Helper method to set _commands for testing.
 
@@ -242,7 +242,7 @@ class TestsCliCore:
             - Invalid configs: Pydantic 2 may emit serialization warnings
             - ValidationError is expected behavior for invalid input types
             """
-            valid_config = FlextCliConfig.model_validate({
+            valid_config = FlextCliSettings.model_validate({
                 "debug": True,
                 "output_format": "json",
                 "cli_timeout": c.Cli.TIMEOUTS.DEFAULT,
@@ -271,7 +271,7 @@ class TestsCliCore:
                     category=UserWarning,
                 )
                 try:
-                    config_instance = FlextCliConfig.model_validate(invalid_config)
+                    config_instance = FlextCliSettings.model_validate(invalid_config)
                     result = FlextCliCore.validate_configuration(config_instance)
                     # Validation should return a result (may succeed if Pydantic converted)
                     assert isinstance(result, r)
@@ -459,7 +459,7 @@ class TestsCliCore:
             # Use helper method to set private field for testing
             TestsCliCore._set_commands(
                 core_service,
-                cast("dict[str, t.Json.JsonDict]", error_dict),
+                cast("dict[str, t.JsonDict]", error_dict),
             )
 
             # Cast to protocol type for type compatibility
@@ -646,7 +646,7 @@ class TestsCliCore:
             # Save configuration
             save_result = core_service.save_configuration(
                 str(config_file),
-                cast("t.Json.JsonDict", original_config),
+                cast("t.JsonDict", original_config),
             )
             assert save_result.is_success
 
@@ -683,7 +683,7 @@ class TestsCliCore:
             # Cast to JsonDict for type compatibility
             # dict[str, str | int] is compatible with JsonDict
             result = core_service._build_execution_context(
-                cast("t.Json.JsonDict", context),
+                cast("t.JsonDict", context),
             )
             assert result == context
 
@@ -769,8 +769,8 @@ class TestsCliCore:
         def test_build_context_from_list(self) -> None:
             """Test _build_context_from_list static method."""
             args = ["arg1", "arg2", 42]
-            # Cast to list[GeneralValueType] for type compatibility
-            # str and int are compatible with GeneralValueType
+            # Cast to list[t.GeneralValueType] for type compatibility
+            # str and int are compatible with t.GeneralValueType
             result = FlextCliCore._build_context_from_list(
                 cast("list[t.GeneralValueType]", args),
             )
@@ -1268,7 +1268,7 @@ class TestsCliCore:
 
             # Use BadDict that fails on keys() but works on len() (which is called by logger)
             class BadDict(UserDict):
-                def keys(self) -> object:
+                def keys(self) -> object:  # type: ignore[override]
                     """Override keys to raise exception for testing."""
                     msg = "Keys failed"
                     raise RuntimeError(msg)
@@ -1276,7 +1276,7 @@ class TestsCliCore:
             # Use helper method to set private field for testing
             TestsCliCore._set_commands(
                 core_service,
-                cast("dict[str, t.Json.JsonDict]", BadDict()),
+                cast("dict[str, t.JsonDict]", BadDict()),
             )
             result = core_service.list_commands()
             assert result.is_failure
@@ -1318,7 +1318,7 @@ class TestsCliCore:
 
             TestsCliCore._set_commands(
                 core_service,
-                cast("dict[str, t.Json.JsonDict]", BadDict()),
+                cast("dict[str, t.JsonDict]", BadDict()),
             )
             result = core_service.health_check()
             assert result.is_failure
@@ -1346,7 +1346,7 @@ class TestsCliCore:
         def test_update_configuration_invalid(self, core_service: FlextCliCore) -> None:
             """Test update_configuration with invalid input."""
             # Pass None (cast to JsonDict)
-            result = core_service.update_configuration(cast("t.Json.JsonDict", None))
+            result = core_service.update_configuration(cast("t.JsonDict", None))
             assert result.is_failure
 
         """Helper and utility method tests."""

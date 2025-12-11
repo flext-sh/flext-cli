@@ -359,7 +359,7 @@ ls src/flext_cli/*.py | wc -l  # Should be 2 fewer (validator, auth deleted)
 ls tests/fixtures/testing_utilities.py  # Should exist
 
 # Check no broken imports
-python -c "from flext_cli import FlextCli, FlextCliConfig; print('✓ Imports working')"
+python -c "from flext_cli import FlextCli, FlextCliSettings; print('✓ Imports working')"
 ```
 
 ---

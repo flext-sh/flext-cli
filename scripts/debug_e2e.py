@@ -20,7 +20,7 @@ import traceback
 from collections.abc import Callable
 from typing import cast
 
-from flext_cli import FlextCli, t, c, r
+from flext_cli import FlextCli, c, r, t
 
 
 class FlextCliDebugE2E:
@@ -107,11 +107,12 @@ class FlextCliDebugE2E:
         self.logger.info(f"Selected output format: {output_format.value}")
 
         # Using collections.abc.Mapping for immutable configuration
-        config: t.Cli.Data.CliConfigMapping = {
+        config: t.Cli.CliConfigMapping = {
             "output_format": "json",
             "timeout": 30,
             "debug": True,
         }
+        self.logger.info(f"Configuration mapping: {config}")
 
         # Demonstrate discriminated union validation
         valid_formats = c.Cli.get_valid_output_formats()

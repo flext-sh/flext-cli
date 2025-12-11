@@ -115,9 +115,9 @@ class FlextCliConstants(FlextConstants):
         # Output format literal - references OutputFormats StrEnum members (line 272+)
         # Literal values match OutputFormats StrEnum for DRY (see class OutputFormats)
         type OutputFormatLiteral = Literal[
-            "json",   # OutputFormats.JSON
-            "yaml",   # OutputFormats.YAML
-            "csv",    # OutputFormats.CSV
+            "json",  # OutputFormats.JSON
+            "yaml",  # OutputFormats.YAML
+            "csv",  # OutputFormats.CSV
             "table",  # OutputFormats.TABLE
             "plain",  # OutputFormats.PLAIN
         ]
@@ -134,9 +134,9 @@ class FlextCliConstants(FlextConstants):
         # Log verbosity literal - references LogVerbosity StrEnum members
         # Use string literals to avoid forward reference issues
         type LogVerbosityLiteral = Literal[
-            "compact",   # LogVerbosity.COMPACT
+            "compact",  # LogVerbosity.COMPACT
             "detailed",  # LogVerbosity.DETAILED
-            "full",      # LogVerbosity.FULL
+            "full",  # LogVerbosity.FULL
         ]
 
         # Error code literal - references ErrorCodes StrEnum members
@@ -302,6 +302,26 @@ class FlextCliConstants(FlextConstants):
             CSV = "csv"  # Standard format
             TABLE = "table"  # Standard format
             PLAIN = "plain"  # CLI-specific format
+
+        @staticmethod
+        def get_valid_output_formats() -> list[str]:
+            """Get list of valid output format strings.
+
+            Returns:
+                List of valid output format names that can be used with CLI.
+
+            """
+            return list(FlextCliConstants.Cli.OutputFormats.__members__.keys())
+
+        @staticmethod
+        def get_valid_command_statuses() -> list[str]:
+            """Get list of valid command status strings.
+
+            Returns:
+                List of valid command status names that can be used with CLI.
+
+            """
+            return list(FlextCliConstants.Cli.CommandStatus.__members__.keys())
 
         # Environment enum - already available via inheritance from FlextConstants.Settings.Environment
         # No need to redeclare - use c.Settings.Environment directly
@@ -888,7 +908,7 @@ class FlextCliConstants(FlextConstants):
             # Validation errors
             NO_DATA_PROVIDED: Final[str] = "No data provided for table"
             TABLE_FORMAT_REQUIRED_DICT: Final[str] = (
-                "Table format requires t.Json.JsonDict or list of dicts"
+                "Table format requires dict[str, t.GeneralValueType] or list of dicts"
             )
             TABLE_HEADERS_MUST_BE_LIST: Final[str] = (
                 "Table headers must be a list for list of dicts data"
@@ -2075,7 +2095,7 @@ class FlextCliConstants(FlextConstants):
                 "--log-level, etc."
             )
             FIELD_NOT_FOUND: Final[str] = (
-                "Field '{field_name}' not found in FlextCliConfig"
+                "Field '{field_name}' not found in FlextCliSettings"
             )
             TRACE_REQUIRES_DEBUG: Final[str] = (
                 "Trace mode requires debug mode to be enabled. "
@@ -2159,7 +2179,7 @@ class FlextCliConstants(FlextConstants):
 
             NO_DATA_PROVIDED: Final[str] = "No data provided for table"
             TABLE_FORMAT_REQUIRED_DICT: Final[str] = (
-                "Table format requires t.Json.JsonDict or list of dicts"
+                "Table format requires dict[str, t.GeneralValueType] or list of dicts"
             )
             TABLE_HEADERS_MUST_BE_LIST: Final[str] = (
                 "Table headers must be a list for list of dicts data"

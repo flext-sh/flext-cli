@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from flext_core import r, t
 
-from flext_cli import FlextCliConfig, FlextCliServiceBase
+from flext_cli import FlextCliServiceBase, FlextCliSettings
 
 
 class TestsCliServiceBase:
@@ -32,9 +32,9 @@ class TestsCliServiceBase:
     class _ConcreteService(FlextCliServiceBase):
         """Concrete implementation for testing abstract base class."""
 
-        def execute(self) -> r[t.Json.JsonDict]:
+        def execute(self) -> r[t.JsonDict]:  # type: ignore[override]
             """Implement abstract method for testing."""
-            return r[t.Json.JsonDict].ok({})
+            return r[t.JsonDict].ok({})
 
     # =========================================================================
     # INITIALIZATION TESTS
@@ -52,24 +52,24 @@ class TestsCliServiceBase:
     # =========================================================================
 
     def test_cli_config_property(self) -> None:
-        """Test cli_config property returns FlextCliConfig singleton."""
+        """Test cli_config property returns FlextCliSettings singleton."""
         service = self._ConcreteService()
 
         # Test property access
         config = service.cli_config
         assert config is not None
-        assert isinstance(config, FlextCliConfig)
+        assert isinstance(config, FlextCliSettings)
 
         # Verify singleton pattern - same instance
         config2 = service.cli_config
         assert config is config2
 
     def test_get_cli_config_static_method(self) -> None:
-        """Test get_cli_config static method returns FlextCliConfig singleton."""
+        """Test get_cli_config static method returns FlextCliSettings singleton."""
         # Test static method without instance
         config = FlextCliServiceBase.get_cli_config()
         assert config is not None
-        assert isinstance(config, FlextCliConfig)
+        assert isinstance(config, FlextCliSettings)
 
         # Verify singleton pattern - same instance
         config2 = FlextCliServiceBase.get_cli_config()

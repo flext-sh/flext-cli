@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import FlextConfig, r, s
+from flext_core import FlextSettings, r, s
 from pydantic import Field
 
 from flext_cli.base import FlextCliServiceBase
@@ -111,19 +111,19 @@ class FlextCliContext(FlextCliServiceBase):
 
         # Set timeout from global config if not provided
         if "timeout_seconds" not in data:
-            global_config = FlextConfig.get_global_instance()
+            global_config = FlextSettings.get_global_instance()
             data["timeout_seconds"] = int(global_config.timeout_seconds)
 
         # Convert data for super().__init__()
         # FlextService.__init__ accepts **data: t.GeneralValueType
         # Note: mypy has generic type inference issue with FlextService[JsonDict].__init__
-        # but runtime accepts dict[str, GeneralValueType] as **kwargs: GeneralValueType
+        # but runtime accepts dict[str, t.GeneralValueType] as **kwargs: t.GeneralValueType
         if not isinstance(data, dict):
             msg = "data must be dict"
             raise TypeError(msg)
-        # Pass data directly - FlextService base class accepts **kwargs: GeneralValueType
+        # Pass data directly - FlextService base class accepts **kwargs: t.GeneralValueType
         # This works at runtime even if mypy complains about generic type inference
-        s[t.Json.JsonDict].__init__(self, **data)
+        s[dict[str, t.GeneralValueType]].__init__(self, **data)
 
     # ==========================================================================
     # PRIVATE HELPERS - Generalize common patterns
@@ -492,7 +492,9 @@ class FlextCliContext(FlextCliServiceBase):
 
         return r[dict[str, t.JsonValue]].ok(summary)
 
-    def execute(self, **_kwargs: t.Json.JsonDict) -> r[t.Json.JsonDict]:
+    def execute(
+        self, **_kwargs: dict[str, t.GeneralValueType]
+    ) -> r[dict[str, t.GeneralValueType]]:
         """Execute the CLI context.
 
         Returns:
@@ -504,7 +506,7 @@ class FlextCliContext(FlextCliServiceBase):
             c.Cli.ContextErrorMessages.ARGUMENTS_NOT_INITIALIZED,
         )
         if init_check.is_failure:
-            return r[t.Json.JsonDict].fail(init_check.error or "")
+            return r[dict[str, t.GeneralValueType]].fail(init_check.error or "")
 
         # Type narrowing: self.arguments is not None after _ensure_initialized check
         # Arguments are guaranteed to be not None after successful initialization check
@@ -525,9 +527,9 @@ class FlextCliContext(FlextCliServiceBase):
             if transform_result.is_success
             else result_model.model_dump()
         )
-        return r[t.Json.JsonDict].ok(result_dict)
+        return r[dict[str, t.GeneralValueType]].ok(result_dict)
 
-    def to_dict(self) -> r[t.Json.JsonDict]:
+    def to_dict(self) -> r[dict[str, t.GeneralValueType]]:
         """Convert context to dictionary."""
         init_checks = [
             FlextCliContext._ensure_initialized(
@@ -542,9 +544,9 @@ class FlextCliContext(FlextCliServiceBase):
 
         for check in init_checks:
             if check.is_failure:
-                return r[t.Json.JsonDict].fail(check.error or "")
+                return r[dict[str, t.GeneralValueType]].fail(check.error or "")
 
-        # Convert all values to CliJsonValue for type safety
+        # Convert all values to t.GeneralValueType for type safety
         result: dict[str, t.GeneralValueType] = {
             c.Cli.ContextDictKeys.ID: self.id,
             c.Cli.ContextDictKeys.COMMAND: self.command,
@@ -561,7 +563,7 @@ class FlextCliContext(FlextCliServiceBase):
             c.Cli.ContextDictKeys.TIMEOUT_SECONDS: self.timeout_seconds,
         }
 
-        return r[t.Json.JsonDict].ok(result)
+        return r[dict[str, t.GeneralValueType]].ok(result)
 
 
 __all__ = ["FlextCliContext"]

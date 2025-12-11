@@ -141,10 +141,10 @@ def execute_deploy_from_cli(cli_args: dict[str, str | int | bool]) -> None:
             cast("dict[str, t.GeneralValueType]", cli_args),
             to_json=True,
         )
-        typed_args: t.Cli.Data.CliDataDict = (
+        typed_args: t.JsonDict = (
             transform_result.value
             if transform_result.is_success
-            else cast("t.Cli.Data.CliDataDict", cli_args)
+            else cast("t.JsonDict", cli_args)
         )
 
         # Pydantic automatically validates ALL constraints
@@ -191,7 +191,7 @@ def deploy_application(config: DeployConfig) -> r[str]:
 
 
 # ============================================================================
-# PATTERN 4: Common CLI parameters (auto-generated from FlextCliConfig)
+# PATTERN 4: Common CLI parameters (auto-generated from FlextCliSettings)
 # ============================================================================
 
 
@@ -206,8 +206,8 @@ def show_common_cli_params() -> None:
         style="yellow",
     )
 
-    # These come from FlextCliConfig Pydantic fields
-    common_params: t.Cli.Data.CliDataDict = {
+    # These come from FlextCliSettings Pydantic fields
+    common_params: t.JsonDict = {
         "verbose": "Enable verbose output (-v)",
         "quiet": "Suppress non-error output (-q)",
         "debug": "Enable debug mode (-d)",
@@ -491,10 +491,10 @@ def main() -> None:
             cast("dict[str, t.GeneralValueType]", invalid_args),
             to_json=True,
         )
-        typed_invalid_args: t.Cli.Data.CliDataDict = (
+        typed_invalid_args: t.JsonDict = (
             transform_result.value
             if transform_result.is_success
-            else cast("t.Cli.Data.CliDataDict", invalid_args)
+            else cast("t.JsonDict", invalid_args)
         )
 
         # DeployConfig constructor handles type conversion and validation

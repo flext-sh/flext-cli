@@ -74,7 +74,7 @@ class FlextCliDebug(FlextCliServiceBase):
     @staticmethod
     def _convert_model_to_dict(
         model: m.Cli.SystemInfo | m.Cli.EnvironmentInfo | m.Cli.PathInfo,
-    ) -> t.Json.JsonDict:
+    ) -> dict[str, t.GeneralValueType]:
         """Generalized model to dict conversion helper."""
         # Use build() DSL for JSON conversion
         # Reuse to_dict_json helper from output module (imported at top)
@@ -86,11 +86,11 @@ class FlextCliDebug(FlextCliServiceBase):
 
     @staticmethod
     def _convert_result_to_json_value(
-        result: r[t.Json.JsonDict],
+        result: r[dict[str, t.GeneralValueType]],
     ) -> t.GeneralValueType:
         """Convert r[JsonDict] to t.GeneralValueType."""
         if result.is_success:
-            # JsonDict is dict[str, GeneralValueType] - return directly
+            # JsonDict is dict[str, t.GeneralValueType] - return directly
             return result.value
         # Return error as string
         return result.error or "Unknown error"
@@ -115,25 +115,27 @@ class FlextCliDebug(FlextCliServiceBase):
     # PUBLIC API METHODS
     # =========================================================================
 
-    def execute(self, **_kwargs: t.Json.JsonDict) -> r[t.Json.JsonDict]:
+    def execute(
+        self, **_kwargs: dict[str, t.GeneralValueType]
+    ) -> r[dict[str, t.GeneralValueType]]:
         """Execute debug service - required by FlextService."""
-        return r[t.Json.JsonDict].ok({
+        return r[dict[str, t.GeneralValueType]].ok({
             "status": "operational",
             "message": c.Cli.ServiceMessages.FLEXT_CLI_DEBUG_OPERATIONAL,
         })
 
     def get_environment_variables(
         self,
-    ) -> r[t.Json.JsonDict]:
+    ) -> r[dict[str, t.GeneralValueType]]:
         """Get environment variables with sensitive data masked."""
         try:
             env_info = self._get_environment_info()
             typed_env_info: dict[str, t.GeneralValueType] = dict(
                 env_info.variables.items(),
             )
-            return r[t.Json.JsonDict].ok(typed_env_info)
+            return r[dict[str, t.GeneralValueType]].ok(typed_env_info)
         except Exception as e:
-            return r[t.Json.JsonDict].fail(
+            return r[dict[str, t.GeneralValueType]].fail(
                 c.Cli.DebugErrorMessages.ENVIRONMENT_INFO_FAILED.format(
                     error=e,
                 ),
@@ -172,49 +174,49 @@ class FlextCliDebug(FlextCliServiceBase):
             )
 
     @staticmethod
-    def execute_health_check() -> r[t.Json.JsonDict]:
+    def execute_health_check() -> r[dict[str, t.GeneralValueType]]:
         """Execute comprehensive health check."""
         try:
-            health_info: t.Json.JsonDict = {
+            health_info: dict[str, t.GeneralValueType] = {
                 c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.HEALTHY.value,
                 c.Cli.DictKeys.TIMESTAMP: u.generate("timestamp"),
                 c.Cli.DictKeys.SERVICE: c.Cli.DebugDefaults.SERVICE_NAME,
                 c.Cli.DebugDictKeys.CHECK_ID: u.generate("id"),
                 c.Cli.DebugDictKeys.CHECKS_PASSED: True,
             }
-            return r[t.Json.JsonDict].ok(health_info)
+            return r[dict[str, t.GeneralValueType]].ok(health_info)
         except Exception as e:
-            return r[t.Json.JsonDict].fail(
+            return r[dict[str, t.GeneralValueType]].fail(
                 c.Cli.DebugErrorMessages.HEALTH_CHECK_FAILED.format(
                     error=e,
                 ),
             )
 
     @staticmethod
-    def execute_trace(args: list[str]) -> r[t.Json.JsonDict]:
+    def execute_trace(args: list[str]) -> r[dict[str, t.GeneralValueType]]:
         """Execute trace operation with provided arguments."""
         try:
-            trace_info: t.Json.JsonDict = {
+            trace_info: dict[str, t.GeneralValueType] = {
                 c.Cli.DebugDictKeys.OPERATION: c.Cli.TRACE,
                 c.Cli.DictKeys.ARGS: list(args),
                 c.Cli.DebugDictKeys.ARGS_COUNT: len(args),
                 c.Cli.DictKeys.TIMESTAMP: u.generate("timestamp"),
                 c.Cli.DebugDictKeys.TRACE_ID: u.generate("id"),
             }
-            return r[t.Json.JsonDict].ok(trace_info)
+            return r[dict[str, t.GeneralValueType]].ok(trace_info)
         except Exception as e:
-            return r[t.Json.JsonDict].fail(
+            return r[dict[str, t.GeneralValueType]].fail(
                 c.Cli.DebugErrorMessages.TRACE_EXECUTION_FAILED.format(
                     error=e,
                 ),
             )
 
-    def get_debug_info(self) -> r[t.Json.JsonDict]:
+    def get_debug_info(self) -> r[dict[str, t.GeneralValueType]]:
         """Get comprehensive debug information."""
         try:
             system_info_model = self._get_system_info()
             system_info_dict = FlextCliDebug._convert_model_to_dict(system_info_model)
-            # Convert system_info_dict to CliJsonValue - filter dict items using dict comprehension
+            # Convert system_info_dict to t.GeneralValueType - filter dict items using dict comprehension
             system_info_json: dict[str, t.GeneralValueType] = {
                 k: v for k, v in system_info_dict.items() if isinstance(k, str)
             }
@@ -229,7 +231,7 @@ class FlextCliDebug(FlextCliServiceBase):
                 k: v for k, v in environment_info_dict.items() if isinstance(k, str)
             }
 
-            debug_info: t.Json.JsonDict = {
+            debug_info: dict[str, t.GeneralValueType] = {
                 c.Cli.DictKeys.SERVICE: c.Cli.DebugDefaults.SERVICE_NAME,
                 c.Cli.DictKeys.TIMESTAMP: u.generate("timestamp"),
                 c.Cli.DebugDictKeys.DEBUG_ID: u.generate("id"),
@@ -237,30 +239,32 @@ class FlextCliDebug(FlextCliServiceBase):
                 c.Cli.DebugDictKeys.ENVIRONMENT_INFO: environment_info_json,
                 c.Cli.DebugDictKeys.CONNECTIVITY_STATUS: c.Cli.ServiceStatus.CONNECTED.value,
             }
-            return r[t.Json.JsonDict].ok(debug_info)
+            return r[dict[str, t.GeneralValueType]].ok(debug_info)
         except Exception as e:
-            return r[t.Json.JsonDict].fail(
+            return r[dict[str, t.GeneralValueType]].fail(
                 c.Cli.DebugErrorMessages.DEBUG_INFO_COLLECTION_FAILED.format(
                     error=e,
                 ),
             )
 
-    def get_system_info(self) -> r[t.Json.JsonDict]:
+    def get_system_info(self) -> r[dict[str, t.GeneralValueType]]:
         """Get system information - public API method."""
         try:
             info_model = self._get_system_info()
-            info_dict: t.Json.JsonDict = FlextCliDebug._convert_model_to_dict(
-                info_model,
+            info_dict: dict[str, t.GeneralValueType] = (
+                FlextCliDebug._convert_model_to_dict(
+                    info_model,
+                )
             )
-            return r[t.Json.JsonDict].ok(info_dict)
+            return r[dict[str, t.GeneralValueType]].ok(info_dict)
         except Exception as e:
-            return r[t.Json.JsonDict].fail(
+            return r[dict[str, t.GeneralValueType]].fail(
                 c.Cli.DebugErrorMessages.SYSTEM_INFO_COLLECTION_FAILED.format(
                     error=e,
                 ),
             )
 
-    def get_system_paths(self) -> r[t.Json.JsonDict]:
+    def get_system_paths(self) -> r[dict[str, t.GeneralValueType]]:
         """Get system path information - public API method."""
         try:
             paths_data = self._get_path_info()
@@ -268,22 +272,22 @@ class FlextCliDebug(FlextCliServiceBase):
             serialized_paths: list[t.GeneralValueType] = []
             for path_info in paths_data:
                 path_dict = FlextCliDebug._convert_model_to_dict(path_info)
-                # path_dict is already CliDataDict (dict[str, CliJsonValue])
-                # dict is part of CliJsonValue union, so it's compatible
+                # path_dict is already CliDataDict (dict[str, t.GeneralValueType])
+                # dict is part of t.GeneralValueType union, so it's compatible
                 # Filter dict items using dict comprehension (u.filter only works with lists/tuples)
                 path_json_dict: dict[str, t.GeneralValueType] = {
                     k: v for k, v in path_dict.items() if isinstance(k, str)
                 }
-                # dict[str, CliJsonValue] is part of CliJsonValue union
+                # dict[str, t.GeneralValueType] is part of t.GeneralValueType union
                 serialized_paths.append(path_json_dict)
 
-            # list[CliJsonValue] is compatible with CliJsonValue (list is part of union)
-            paths_dict: t.Json.JsonDict = {
+            # list[t.GeneralValueType] is compatible with t.GeneralValueType (list is part of union)
+            paths_dict: dict[str, t.GeneralValueType] = {
                 "paths": serialized_paths,
             }
-            return r[t.Json.JsonDict].ok(paths_dict)
+            return r[dict[str, t.GeneralValueType]].ok(paths_dict)
         except Exception as e:
-            return r[t.Json.JsonDict].fail(
+            return r[dict[str, t.GeneralValueType]].fail(
                 c.Cli.DebugErrorMessages.SYSTEM_PATHS_COLLECTION_FAILED.format(
                     error=e,
                 ),
@@ -291,7 +295,7 @@ class FlextCliDebug(FlextCliServiceBase):
 
     def get_comprehensive_debug_info(
         self,
-    ) -> r[t.Json.JsonDict]:
+    ) -> r[dict[str, t.GeneralValueType]]:
         """Get comprehensive debug information combining all debug methods."""
         try:
             comprehensive_info: dict[str, t.GeneralValueType] = {}
@@ -318,9 +322,9 @@ class FlextCliDebug(FlextCliServiceBase):
                 comprehensive_info,
             )
 
-            return r[t.Json.JsonDict].ok(comprehensive_info)
+            return r[dict[str, t.GeneralValueType]].ok(comprehensive_info)
         except Exception as e:
-            return r[t.Json.JsonDict].fail(
+            return r[dict[str, t.GeneralValueType]].fail(
                 c.Cli.DebugErrorMessages.COMPREHENSIVE_DEBUG_INFO_FAILED.format(
                     error=e,
                 ),

@@ -131,20 +131,12 @@ class TestsCliTypings:
                 if cli_namespace is None:
                     return r[bool].fail("Cli namespace is None")
 
-                # Test that Cli namespace has required attributes
-                required_attrs = ["Data", "Auth"]
+                # Test that Cli namespace has flattened type attributes
+                # (Data and Auth sub-namespaces were removed per architecture simplification)
+                required_attrs = ["CliDataDict", "CliAuthData", "ResultFormatter"]
                 for attr in required_attrs:
                     if not hasattr(cli_namespace, attr):
                         return r[bool].fail(f"Missing Cli attribute: {attr}")
-
-                # Test nested Data attributes
-                data_attrs = ["CliDataDict", "CliFormatData", "CliConfigData"]
-                data_class = getattr(cli_namespace, "Data", None)
-                if data_class is None:
-                    return r[bool].fail("Missing Cli.Data attribute")
-                for attr in data_attrs:
-                    if not hasattr(data_class, attr):
-                        return r[bool].fail(f"Missing Cli.Data attribute: {attr}")
 
                 return r[bool].ok(True)
             except Exception as e:
@@ -669,5 +661,6 @@ class TestsCliTypings:
         # Test types class integration - use runtime alias pattern (t.Cli.*)
         assert t is not None
         assert hasattr(t, "Cli")
-        assert hasattr(t.Cli, "Data")
-        assert hasattr(t.Cli, "Auth")
+        # Types are now flattened (no sub-namespaces like Data/Auth)
+        assert hasattr(t.Cli, "CliDataDict")
+        assert hasattr(t.Cli, "CliAuthData")

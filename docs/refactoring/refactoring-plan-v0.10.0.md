@@ -228,7 +228,7 @@ class FlextCliCore(FlextService[CliDataDict]):
         super().__init__()
         self._commands: dict[str, Command] = {}  # STATE
         self._sessions: dict[str, Session] = {}  # STATE
-        self._config: FlextCliConfig = FlextCliConfig()  # STATE
+        self._config: FlextCliSettings = FlextCliSettings()  # STATE
 ```
 
 **Services in v0.10.0**:
@@ -361,7 +361,7 @@ cli.file_tools.read_json_file("config.json")   # Direct
                 │                          │
                 │ • FlextCliContext        │
                 │ • FlextCliModels.*       │
-                │ • FlextCliConfig         │
+                │ • FlextCliSettings         │
                 └──────────────────────────┘
 ```
 

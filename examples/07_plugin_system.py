@@ -60,7 +60,7 @@ class DataExportPlugin:
 
     @staticmethod
     def execute(
-        data: t.Cli.Data.CliDataDict,
+        data: t.JsonDict,
         output_format: str = "json",
     ) -> r[str]:
         """Execute plugin logic in YOUR application."""
@@ -81,7 +81,7 @@ class ReportGeneratorPlugin:
         self.version = "1.0.0"
 
     @staticmethod
-    def execute(data: list[t.Cli.Data.CliDataDict]) -> r[str]:
+    def execute(data: list[t.JsonDict]) -> r[str]:
         """Generate report from data in YOUR CLI."""
         tables = FlextCliTables()
         config = m.Cli.TableConfig(table_format="grid")
@@ -147,7 +147,7 @@ class MyAppPluginManager:
                 # Type narrowing: dict[str, JsonValue] is JsonValue compatible
                 if u.transform(result, to_json=True).is_success:
                     transformed = u.transform(result, to_json=True).value
-                    json_result: t.JsonValue = (
+                    json_result: t.JsonValue = (  # type: ignore[no-redef]
                         transformed
                         if isinstance(
                             transformed, (dict, list, str, int, float, bool, type(None))
@@ -179,12 +179,12 @@ class MyAppPluginManager:
             """Get plugin version."""
             return getattr(plugin, "version", "1.0.0")
 
-        process_result = u.process(
+        process_result = u.process(  # type: ignore[attr-defined]
             self.plugins,
             processor=get_plugin_version,
             on_error="skip",
         )
-        plugin_data: t.Cli.Data.CliDataDict = (
+        plugin_data: t.JsonDict = (
             dict(process_result.value)
             if process_result.is_success and isinstance(process_result.value, dict)
             else {}
@@ -238,25 +238,25 @@ def load_plugins_from_directory(plugin_dir: Path) -> MyAppPluginManager:
 class ConfigurablePlugin:
     """Example of configurable plugin for YOUR CLI."""
 
-    def __init__(self, config: t.Cli.Data.CliDataDict) -> None:
+    def __init__(self, config: t.JsonDict) -> None:
         """Initialize configurable plugin with configuration dictionary."""
         super().__init__()
         self.name = "configurable-plugin"
-        self.config: t.Cli.Data.CliDataDict = config
+        self.config: t.JsonDict = config
 
-    def execute(self) -> r[t.Cli.Data.CliDataDict]:
+    def execute(self) -> r[t.JsonDict]:
         """Execute with configuration in YOUR CLI."""
         cli.print(f"🔧 Plugin config: {self.config}", style="cyan")
 
         # Your plugin logic using config
-        result_data: t.Cli.Data.CliDataDict = {
+        result_data: t.JsonDict = {
             "plugin": self.name,
             "config_applied": True,
             **self.config,  # Unpack config dict instead of using update()
         }
 
         # Cast to expected type (runtime type is compatible)
-        return r[t.Cli.Data.CliDataDict].ok(result_data)
+        return r[t.JsonDict].ok(result_data)
 
 
 # ============================================================================
@@ -320,7 +320,7 @@ def main() -> None:
 
     # Example 3: Execute plugin
     cli.print("\n3. Execute Plugin (data export):", style="bold cyan")
-    test_data: t.Cli.Data.CliDataDict = {
+    test_data: t.JsonDict = {
         "id": 1,
         "name": "Test",
         "status": "active",
@@ -333,7 +333,7 @@ def main() -> None:
 
     # Example 4: Report plugin
     cli.print("\n4. Report Plugin (table generation):", style="bold cyan")
-    report_data: list[t.Cli.Data.CliDataDict] = [
+    report_data: list[t.JsonDict] = [
         {"metric": "Users", "value": "1,234"},
         {"metric": "Orders", "value": "567"},
     ]
@@ -341,7 +341,7 @@ def main() -> None:
 
     # Example 5: Plugin with config
     cli.print("\n5. Configurable Plugin:", style="bold cyan")
-    config: t.Cli.Data.CliDataDict = {"theme": "dark", "verbose": True}
+    config: t.JsonDict = {"theme": "dark", "verbose": True}
     config_plugin = ConfigurablePlugin(config)
     config_result = config_plugin.execute()
     if config_result.is_success:

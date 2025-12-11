@@ -22,8 +22,8 @@ import typer
 from flext_core import FlextLogger as l_core, e, r
 
 from flext_cli.cli import FlextCliCli, UsageError as ClickUsageError
-from flext_cli.config import FlextCliConfig
 from flext_cli.services.output import FlextCliOutput
+from flext_cli.settings import FlextCliSettings
 
 
 class FlextCliAppBase(ABC):
@@ -37,14 +37,14 @@ class FlextCliAppBase(ABC):
     # ClassVars to override in subclass
     app_name: ClassVar[str]
     app_help: ClassVar[str]
-    config_class: ClassVar[type[FlextCliConfig]]
+    config_class: ClassVar[type[FlextCliSettings]]
 
     # Instance attributes
     logger: l_core
     _output: FlextCliOutput
     _cli: FlextCliCli
     _app: typer.Typer
-    _config: FlextCliConfig
+    _config: FlextCliSettings
 
     def __init__(self) -> None:
         """Initialize CLI with FlextCli infrastructure."""
@@ -59,8 +59,8 @@ class FlextCliAppBase(ABC):
             app_name=self.app_name,
         )
 
-        # create_app_with_common_params expects FlextCliConfig | None
-        # Pass config directly since it's already FlextCliConfig
+        # create_app_with_common_params expects FlextCliSettings | None
+        # Pass config directly since it's already FlextCliSettings
         self._app = self._cli.create_app_with_common_params(
             name=self.app_name,
             help_text=self.app_help,

@@ -17,12 +17,7 @@ from typing import TypeGuard
 
 from flext_core import (
     FlextContainer as container_core,
-    FlextDecorators,
-    FlextExceptions,
-    FlextHandlers,
     FlextLogger,
-    FlextLogger as l_core,
-    FlextMixins,
     FlextRuntime,
     r,
 )
@@ -33,7 +28,6 @@ from flext_cli.base import FlextCliServiceBase
 from flext_cli.cli import FlextCliCli
 from flext_cli.cli_params import FlextCliCommonParams
 from flext_cli.commands import FlextCliCommands
-from flext_cli.config import FlextCliConfig
 from flext_cli.constants import c
 from flext_cli.context import FlextCliContext
 from flext_cli.debug import FlextCliDebug
@@ -47,15 +41,9 @@ from flext_cli.services.core import FlextCliCore
 from flext_cli.services.output import FlextCliOutput
 from flext_cli.services.prompts import FlextCliPrompts
 from flext_cli.services.tables import FlextCliTables
+from flext_cli.settings import FlextCliSettings
 from flext_cli.typings import t
 from flext_cli.utilities import u
-
-# r is already imported from flext_core
-e = FlextExceptions
-d = FlextDecorators
-s = FlextCliServiceBase  # Domain-specific service base
-x = FlextMixins
-h = FlextHandlers
 
 
 class FlextCli:
@@ -123,8 +111,8 @@ class FlextCli:
     class FileTools(FlextCliFileTools):
         """CLI file tools extending FlextCliFileTools via inheritance."""
 
-    class Config(FlextCliConfig):
-        """CLI config extending FlextCliConfig via inheritance."""
+    class Config(FlextCliSettings):
+        """CLI config extending FlextCliSettings via inheritance."""
 
     class Context(FlextCliContext):
         """CLI context extending FlextCliContext via inheritance."""
@@ -142,7 +130,7 @@ class FlextCli:
         """CLI app base extending FlextCliAppBase via inheritance."""
 
     # Runtime aliases for 5 basic types - use m, c, p, u, t directly for nested objects
-    # Models: use m.Cli.* directly (no redundant alias)
+    # Models: use m.* directly (no redundant alias)
     # Protocols: use p.Cli.* directly (no redundant alias)
     # Constants: use c.Cli.* directly (no redundant alias)
     # Utilities: use u.Cli.* directly (no redundant alias)
@@ -154,7 +142,7 @@ class FlextCli:
 
     # Public service instances
     logger: FlextLogger
-    config: FlextCliConfig
+    config: FlextCliSettings
     formatters: FlextCliFormatters
     file_tools: FlextCliFileTools
     output: FlextCliOutput
@@ -168,7 +156,7 @@ class FlextCli:
         self._version = c.Cli.CLI_VERSION
         self._description = f"{self._name}{c.Cli.APIDefaults.APP_DESCRIPTION_SUFFIX}"
 
-        self.logger = l_core(__name__)
+        self.logger = FlextLogger(__name__)
         self._container = container_core()
         if not self._container.has_service(
             c.Cli.APIDefaults.CONTAINER_REGISTRATION_KEY,
@@ -201,7 +189,7 @@ class FlextCli:
         self._valid_tokens: set[str] = set()
         self._valid_sessions: set[str] = set()
         self._session_permissions: dict[str, set[str]] = {}
-        self._users: dict[str, t.Json.JsonDict] = {}
+        self._users: dict[str, dict[str, t.GeneralValueType]] = {}
         self._deleted_users: set[str] = set()
 
     @classmethod
@@ -302,9 +290,9 @@ class FlextCli:
             return validation
 
         token_path = self.config.token_file
-        # Create dict with GeneralValueType for Mapper compatibility
+        # Create dict with t.GeneralValueType for Mapper compatibility
         token_data: dict[str, t.GeneralValueType] = {
-            # str is subtype of GeneralValueType
+            # str is subtype of t.GeneralValueType
             c.Cli.DictKeys.TOKEN: token,
         }
 
@@ -335,7 +323,7 @@ class FlextCli:
         }
         # Type narrowing: error_keywords.keys() are all str, error_str is str
         keyword_list: list[str] = list(error_keywords.keys())
-        # Find returns GeneralValueType | None, but we know keywords are str
+        # Find returns t.GeneralValueType | None, but we know keywords are str
         found_keyword_raw = u.Cli.TypeNormalizer.Collection.find(
             keyword_list,
             predicate=lambda kw: isinstance(kw, str) and kw in error_str,
@@ -552,10 +540,10 @@ class FlextCli:
     # EXECUTION
     # =========================================================================
 
-    def execute(self) -> r[t.Json.JsonDict]:
+    def execute(self) -> r[dict[str, t.GeneralValueType]]:
         """Execute CLI service with railway pattern."""
         # Build JsonDict - convert version to string, components as dict
-        result_dict: t.Json.JsonDict = {
+        result_dict: dict[str, t.GeneralValueType] = {
             c.Cli.DictKeys.STATUS: (c.Cli.ServiceStatus.OPERATIONAL.value),
             c.Cli.DictKeys.SERVICE: c.Cli.FLEXT_CLI,
             "timestamp": u.generate("timestamp"),
@@ -568,7 +556,7 @@ class FlextCli:
             },
         }
 
-        return r[t.Json.JsonDict].ok(result_dict)
+        return r[dict[str, t.GeneralValueType]].ok(result_dict)
 
     # =========================================================================
     # CONVENIENCE METHODS - Delegate to service instances
@@ -601,9 +589,7 @@ class FlextCli:
         if isinstance(data, dict):
             # Use u.transform for JSON conversion
             transform_result = u.transform(data, to_json=True)
-            table_data = (
-                transform_result.value if transform_result.is_success else data
-            )
+            table_data = transform_result.value if transform_result.is_success else data
         else:
             # Handle all Sequence types - use u.map to convert items
             data_list: list[t.GeneralValueType] = list(data)

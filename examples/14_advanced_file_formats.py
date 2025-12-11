@@ -30,6 +30,7 @@ from __future__ import annotations
 import hashlib
 import shutil
 import tempfile
+from collections.abc import Sequence
 from pathlib import Path
 from typing import cast
 
@@ -45,7 +46,7 @@ tables = FlextCliTables()
 
 
 def export_to_csv(
-    data: list[t.Cli.Data.CliDataDict],
+    data: list[t.JsonDict],
     output_file: Path,
 ) -> None:
     """Export data to CSV with proper headers."""
@@ -81,7 +82,7 @@ def export_to_csv(
         )
 
 
-def import_from_csv(input_file: Path) -> list[t.Cli.Data.CliDataDict] | None:
+def import_from_csv(input_file: Path) -> list[t.JsonDict] | None:
     """Import data from CSV with headers."""
     cli.output.print_message(
         f"\n📥 Importing from CSV: {input_file.name}",
@@ -107,8 +108,8 @@ def import_from_csv(input_file: Path) -> list[t.Cli.Data.CliDataDict] | None:
         # Convert to JsonDict-compatible format using u
         sample_rows_raw = rows[:5]
         # Use u.map to convert list items to JSON
-        sample_rows: list[t.Cli.Data.CliDataDict] = list(
-            u.map(
+        sample_rows: list[t.JsonDict] = list(
+            u.map(  # type: ignore[attr-defined]
                 sample_rows_raw,
                 mapper=lambda row: (
                     u.transform(
@@ -120,16 +121,16 @@ def import_from_csv(input_file: Path) -> list[t.Cli.Data.CliDataDict] | None:
                         cast("dict[str, t.GeneralValueType]", row),
                         to_json=True,
                     ).is_success
-                    else cast("t.Cli.Data.CliDataDict", row)
+                    else cast("t.JsonDict", row)
                 ),
             ),
         )
-        # Cast to expected type for table creation - TableData is Sequence[JsonDict] | JsonDict | Sequence[Sequence[GeneralValueType]]
+        # Cast to expected type for table creation - t.Cli.TableData is Sequence[JsonDict] | JsonDict | Sequence[Sequence[t.GeneralValueType]]
         config = m.Cli.TableConfig(table_format="grid")
-        # sample_rows is already Sequence[dict[str, GeneralValueType]] which is compatible with TableData
-        # TableData accepts Sequence[JsonDict] which is compatible with Sequence[dict[str, GeneralValueType]]
+        # sample_rows is already Sequence[dict[str, t.GeneralValueType]] which is compatible with t.Cli.TableData
+        # t.Cli.TableData accepts Sequence[JsonDict] which is compatible with Sequence[dict[str, t.GeneralValueType]]
         table_result = tables.create_table(
-            cast("t.Tables.TableData", sample_rows),
+            cast("Sequence[dict[str, t.GeneralValueType]]", sample_rows),
             config=config,
         )
         if table_result.is_success:
@@ -137,8 +138,8 @@ def import_from_csv(input_file: Path) -> list[t.Cli.Data.CliDataDict] | None:
 
     # Convert to JsonDict-compatible format using u
     # Use u.map to convert list items to JSON
-    converted_rows: list[t.Cli.Data.CliDataDict] = list(
-        u.map(
+    converted_rows: list[t.JsonDict] = list(
+        u.map(  # type: ignore[attr-defined]
             rows,
             mapper=lambda row: (
                 u.transform(
@@ -150,7 +151,7 @@ def import_from_csv(input_file: Path) -> list[t.Cli.Data.CliDataDict] | None:
                     cast("dict[str, t.GeneralValueType]", row),
                     to_json=True,
                 ).is_success
-                else cast("t.Cli.Data.CliDataDict", row)
+                else cast("t.JsonDict", row)
             ),
         ),
     )
@@ -210,7 +211,7 @@ def process_binary_file(input_file: Path, output_file: Path) -> None:
 # ============================================================================
 
 
-def load_any_format_file(file_path: Path) -> t.Cli.Data.CliDataDict | None:
+def load_any_format_file(file_path: Path) -> t.JsonDict | None:
     """Load config from ANY format - automatically detected."""
     cli.output.print_message(
         f"\n🔍 Auto-Detecting Format: {file_path.name}",
@@ -263,12 +264,12 @@ def load_any_format_file(file_path: Path) -> t.Cli.Data.CliDataDict | None:
         cast("dict[str, t.GeneralValueType]", data),
         to_json=True,
     )
-    display_data: t.Cli.Data.CliDataDict = (
+    display_data: t.JsonDict = (
         transform_result.value
         if transform_result.is_success
-        else cast("t.Cli.Data.CliDataDict", data)
+        else cast("t.JsonDict", data)
     )
-    # Cast to dict[str, GeneralValueType] for create_table
+    # Cast to dict[str, t.GeneralValueType] for create_table
     table_result = cli.create_table(
         data=cast("dict[str, t.GeneralValueType]", display_data),
         headers=["Key", "Value"],
@@ -283,7 +284,7 @@ def load_any_format_file(file_path: Path) -> t.Cli.Data.CliDataDict | None:
     return (
         transform_result.value
         if transform_result.is_success
-        else cast("t.Cli.Data.CliDataDict", data)
+        else cast("t.JsonDict", data)
     )
 
 
@@ -293,7 +294,7 @@ def load_any_format_file(file_path: Path) -> t.Cli.Data.CliDataDict | None:
 
 
 def export_data_multi_format(
-    data: t.Cli.Data.CliDataDict | list[t.Cli.Data.CliDataDict],
+    data: t.JsonDict | list[t.JsonDict],
     base_path: Path,
 ) -> dict[str, str]:
     """Export same data to multiple formats (JSON, YAML, CSV)."""
@@ -473,8 +474,8 @@ def main() -> None:
     csv_file = temp_dir / "employees.csv"
     # Convert to JsonDict-compatible format using u
     # Use u.map to convert list items to JSON
-    typed_sample_data: list[t.Cli.Data.CliDataDict] = list(
-        u.map(
+    typed_sample_data: list[t.JsonDict] = list(
+        u.map(  # type: ignore[attr-defined]
             sample_data,
             mapper=lambda row: (
                 u.transform(
@@ -486,7 +487,7 @@ def main() -> None:
                     cast("dict[str, t.GeneralValueType]", row),
                     to_json=True,
                 ).is_success
-                else cast("t.Cli.Data.CliDataDict", row)
+                else cast("t.JsonDict", row)
             ),
         ),
     )
@@ -509,7 +510,7 @@ def main() -> None:
     cli.output.print_message("3. Auto-Format Detection:", style="bold cyan")
 
     # Create test files in different formats
-    test_config: t.Cli.Data.CliDataDict = {
+    test_config: t.JsonDict = {
         "app": "test",
         "version": "1.0",
         "debug": True,
@@ -528,7 +529,7 @@ def main() -> None:
     cli.output.print_message("\n" + "=" * 70, style="bold blue")
     cli.output.print_message("4. Multi-Format Export:", style="bold cyan")
 
-    multi_data: list[t.Cli.Data.CliDataDict] = [
+    multi_data: list[t.JsonDict] = [
         {"metric": "CPU", "value": "75%", "status": "OK"},
         {"metric": "Memory", "value": "82%", "status": "Warning"},
         {"metric": "Disk", "value": "45%", "status": "OK"},
@@ -552,7 +553,7 @@ def main() -> None:
     cli.output.print_message("6. File Copy with Verification:", style="bold cyan")
 
     # Recreate json_file for copy verification demo
-    demo_config: t.Cli.Data.CliDataDict = {
+    demo_config: t.JsonDict = {
         "app": "demo",
         "version": "2.0",
         "enabled": True,

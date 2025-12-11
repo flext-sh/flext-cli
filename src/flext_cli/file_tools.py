@@ -173,18 +173,16 @@ class FlextCliFileTools:
                     to_json=True,
                 )
                 unwrapped = (
-                    transform_result.value
-                    if transform_result.is_success
-                    else raw_data
+                    transform_result.value if transform_result.is_success else raw_data
                 )
-                # Type narrowing: ensure return type is GeneralValueType
-                # unwrapped is object from unwrap(), convert to GeneralValueType
+                # Type narrowing: ensure return type is t.GeneralValueType
+                # unwrapped is object from unwrap(), convert to t.GeneralValueType
                 if isinstance(
                     unwrapped, (str, int, float, bool, type(None), dict, list)
                 ):
                     return unwrapped
                 return str(unwrapped)
-            # Type narrowing: raw_data is object, convert to GeneralValueType
+            # Type narrowing: raw_data is object, convert to t.GeneralValueType
             if isinstance(raw_data, (str, int, float, bool, type(None), dict, list)):
                 return raw_data
             return str(raw_data)
@@ -202,18 +200,16 @@ class FlextCliFileTools:
                     to_json=True,
                 )
                 unwrapped = (
-                    transform_result.value
-                    if transform_result.is_success
-                    else raw_data
+                    transform_result.value if transform_result.is_success else raw_data
                 )
-                # Type narrowing: ensure return type is GeneralValueType
-                # unwrapped is object from unwrap(), convert to GeneralValueType
+                # Type narrowing: ensure return type is t.GeneralValueType
+                # unwrapped is object from unwrap(), convert to t.GeneralValueType
                 if isinstance(
                     unwrapped, (str, int, float, bool, type(None), dict, list)
                 ):
                     return unwrapped
                 return str(unwrapped)
-            # Type narrowing: raw_data is object, convert to GeneralValueType
+            # Type narrowing: raw_data is object, convert to t.GeneralValueType
             if isinstance(raw_data, (str, int, float, bool, type(None), dict, list)):
                 return raw_data
             return str(raw_data)
@@ -658,12 +654,12 @@ class FlextCliFileTools:
                     return ext_result.value
             return {}
 
-        # Convert FILE_FORMATS to dict[str, GeneralValueType] for type compatibility
+        # Convert FILE_FORMATS to dict[str, t.GeneralValueType] for type compatibility
         # FILE_FORMATS is Mapping[str, FileFormatConfig] where FileFormatConfig is TypedDict
         # TypedDict needs explicit conversion to plain dict for mypy compatibility
         file_formats_dict: dict[str, t.GeneralValueType] = {}
         for k, v in c.Cli.FILE_FORMATS.items():
-            # Convert TypedDict to plain dict with GeneralValueType values
+            # Convert TypedDict to plain dict with t.GeneralValueType values
             format_dict: dict[str, t.GeneralValueType] = {
                 "extensions": v["extensions"],
                 "mime_type": v["mime_type"],

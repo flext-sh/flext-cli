@@ -17,10 +17,9 @@ from __future__ import annotations
 from typing import TypeVar, cast
 
 import pytest
-from flext_core import t
 from flext_tests import tm
 
-from flext_cli import FlextCliMixins, p, r
+from flext_cli import FlextCliMixins, p, r, t
 
 T = TypeVar("T")
 
@@ -186,7 +185,7 @@ class TestsCliMixins:
         """Test pipeline step validation with valid step."""
         result = FlextCliMixins.BusinessRulesMixin.validate_pipeline_step(
             cast(
-                "t.Json.JsonDict | None",
+                "dict[str, t.GeneralValueType] | None",
                 {"name": "valid_step"},
             ),
         )
@@ -209,7 +208,7 @@ class TestsCliMixins:
     ) -> None:
         """Test pipeline step validation with empty/None step."""
         result = FlextCliMixins.BusinessRulesMixin.validate_pipeline_step(
-            cast("t.Json.JsonDict | None", step),
+            cast("dict[str, t.GeneralValueType] | None", step),
         )
         tm.fail(result)
         # Check for appropriate error message based on step type
@@ -236,7 +235,7 @@ class TestsCliMixins:
     ) -> None:
         """Test pipeline step validation with invalid name."""
         result = FlextCliMixins.BusinessRulesMixin.validate_pipeline_step(
-            cast("t.Json.JsonDict | None", step),
+            cast("dict[str, t.GeneralValueType] | None", step),
         )
         tm.fail(result, has="name")
 
@@ -248,7 +247,7 @@ class TestsCliMixins:
         """Test configuration consistency validation with valid config."""
         result = FlextCliMixins.BusinessRulesMixin.validate_configuration_consistency(
             cast(
-                "t.Json.JsonDict | None",
+                "dict[str, t.GeneralValueType] | None",
                 {"debug": True, "timeout": 30},
             ),
             ["debug", "timeout"],
@@ -259,7 +258,7 @@ class TestsCliMixins:
         """Test configuration consistency with missing required fields."""
         result = FlextCliMixins.BusinessRulesMixin.validate_configuration_consistency(
             cast(
-                "t.Json.JsonDict | None",
+                "dict[str, t.GeneralValueType] | None",
                 {"debug": True},
             ),
             ["debug", "timeout"],

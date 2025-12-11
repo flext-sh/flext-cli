@@ -941,9 +941,9 @@ class TestsCliFileTools:
         """Test saving file."""
         test_file = temp_dir / "test_save.json"
         test_data = {"test": "data", "value": 123}
-        # Type narrowing: dict[str, str | int] is compatible with GeneralValueType
+        # Type narrowing: dict[str, str | int] is compatible with t.GeneralValueType
         if not isinstance(test_data, (dict, list, str, int, float, bool, type(None))):
-            msg = "test_data must be GeneralValueType compatible"
+            msg = "test_data must be t.GeneralValueType compatible"
             raise TypeError(msg)
         typed_data: t.GeneralValueType = test_data
         result = file_tools.save_file(
@@ -1314,11 +1314,11 @@ class TestsCliFileTools:
         unicode_content = {"message": "你好世界", "data": [1, 2, "三"]}
 
         # Write Unicode content
-        # Type narrowing: dict[str, str | list] is compatible with GeneralValueType
+        # Type narrowing: dict[str, str | list] is compatible with t.GeneralValueType
         if not isinstance(
             unicode_content, (dict, list, str, int, float, bool, type(None))
         ):
-            msg = "unicode_content must be GeneralValueType compatible"
+            msg = "unicode_content must be t.GeneralValueType compatible"
             raise TypeError(msg)
         typed_content: t.GeneralValueType = unicode_content
         write_result = file_tools.write_json_file(
@@ -1330,7 +1330,7 @@ class TestsCliFileTools:
         # Read Unicode content
         read_result = file_tools.read_json_file(str(unicode_file))
         assert read_result.is_success
-        # Type narrowing: unwrap() returns GeneralValueType, which includes dict[str, object]
+        # Type narrowing: unwrap() returns t.GeneralValueType, which includes dict[str, object]
         unwrapped = read_result.value
         if not isinstance(unwrapped, dict):
             msg = "read_data must be dict"
@@ -1357,9 +1357,9 @@ class TestsCliFileTools:
         large_file = temp_dir / "large_test.json"
 
         # Write large data
-        # Type narrowing: dict[str, list | dict] is compatible with GeneralValueType
+        # Type narrowing: dict[str, list | dict] is compatible with t.GeneralValueType
         if not isinstance(large_data, (dict, list, str, int, float, bool, type(None))):
-            msg = "large_data must be GeneralValueType compatible"
+            msg = "large_data must be t.GeneralValueType compatible"
             raise TypeError(msg)
         typed_large: t.GeneralValueType = large_data
         write_result = file_tools.write_json_file(
@@ -1471,11 +1471,11 @@ class TestsCliFileTools:
         yaml_file = temp_dir / "complex_test.yaml"
 
         # Write complex YAML
-        # Type narrowing: dict[str, object] is compatible with GeneralValueType
+        # Type narrowing: dict[str, object] is compatible with t.GeneralValueType
         if not isinstance(
             complex_yaml, (dict, list, str, int, float, bool, type(None))
         ):
-            msg = "complex_yaml must be GeneralValueType compatible"
+            msg = "complex_yaml must be t.GeneralValueType compatible"
             raise TypeError(msg)
         typed_yaml: t.GeneralValueType = complex_yaml
         write_result = file_tools.write_yaml_file(
@@ -1524,9 +1524,9 @@ class TestsCliFileTools:
         test_data = {"counter": 0, "thread_data": {}}
 
         # Write initial data
-        # Type narrowing: dict[str, object] is compatible with GeneralValueType
+        # Type narrowing: dict[str, object] is compatible with t.GeneralValueType
         if not isinstance(test_data, (dict, list, str, int, float, bool, type(None))):
-            msg = "test_data must be GeneralValueType compatible"
+            msg = "test_data must be t.GeneralValueType compatible"
             raise TypeError(msg)
         typed_test: t.GeneralValueType = test_data
         file_tools.write_json_file(
@@ -1569,7 +1569,7 @@ class TestsCliFileTools:
                     thread_data[f"thread_{thread_id}"] = f"modified_by_{thread_id}"
 
                     # Write back with synchronization
-                    # Type narrowing: dict[str, object] is compatible with GeneralValueType
+                    # Type narrowing: dict[str, object] is compatible with t.GeneralValueType
                     typed_data: t.GeneralValueType = data
                     write_result = file_tools.write_json_file(
                         str(test_file),

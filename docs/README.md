@@ -21,7 +21,7 @@ Documentação alinhada ao **flext-cli** 0.10.0 conforme o código-fonte atual.
 
 - Compatibilidade mantida pelos wrappers principais (`print`, `create_table`, `create_tree`).
 - Serviços com estado em `services/` separados de utilidades stateless em `formatters.py`, `file_tools.py` e `utilities.py`.
-- Configuração centralizada em `FlextCliConfig` e exposta via `FlextCliServiceBase` para todos os serviços.
+- Configuração centralizada em `FlextCliSettings` e exposta via `FlextCliServiceBase` para todos os serviços.
 - Registro do identificador da aplicação no `FlextContainer` na inicialização do `FlextCli`.
 
 ## Status

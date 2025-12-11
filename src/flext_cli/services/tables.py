@@ -23,9 +23,6 @@ from flext_cli.protocols import p
 from flext_cli.typings import t
 from flext_cli.utilities import u
 
-# Use centralized TableData from typings.py
-TableData = t.Cli.Tables.TableData
-
 
 class FlextCliTables(FlextCliServiceBase):
     """Tabulate integration for lightweight ASCII tables.
@@ -105,17 +102,19 @@ class FlextCliTables(FlextCliServiceBase):
         """Initialize Tabulate tables layer with Phase 1 context enrichment."""
         super().__init__()
 
-    def execute(self, **_kwargs: t.Json.JsonDict) -> r[t.Json.JsonDict]:
+    def execute(
+        self, **_kwargs: dict[str, t.GeneralValueType]
+    ) -> r[dict[str, t.GeneralValueType]]:
         """Execute the main domain service operation - required by FlextService.
 
         Args:
             **_kwargs: Additional execution parameters (unused, for FlextService compatibility)
 
         Returns:
-            r[t.Json.JsonDict]: Service execution result
+            r[dict[str, t.GeneralValueType]]: Service execution result
 
         """
-        return r[t.Json.JsonDict].ok({})
+        return r[dict[str, t.GeneralValueType]].ok({})
 
     # =========================================================================
     # TABLE CREATION
@@ -123,7 +122,7 @@ class FlextCliTables(FlextCliServiceBase):
 
     def create_table(
         self,
-        data: TableData,
+        data: t.Cli.TableData,
         config: p.Cli.TableConfigProtocol | None = None,
         **config_kwargs: t.GeneralValueType,
     ) -> r[str]:
@@ -196,7 +195,7 @@ class FlextCliTables(FlextCliServiceBase):
 
     @staticmethod
     def _validate_table_data(
-        data: TableData,
+        data: t.Cli.TableData,
         table_format: str,
     ) -> r[bool]:
         """Validate table data and format.
@@ -223,7 +222,7 @@ class FlextCliTables(FlextCliServiceBase):
 
     @staticmethod
     def _prepare_headers(
-        data: TableData,
+        data: t.Cli.TableData,
         headers: str | Sequence[str],
     ) -> r[str | Sequence[str]]:
         """Prepare headers based on data type."""
@@ -234,7 +233,7 @@ class FlextCliTables(FlextCliServiceBase):
             if hasattr(data, "__iter__") and not isinstance(data, str)
             else data
         )
-        # Convert to list for indexing - TableData is Iterable, need list for [0]
+        # Convert to list for indexing - t.Cli.TableData is Iterable, need list for [0]
         data_list = (
             list(data)
             if hasattr(data, "__iter__") and not isinstance(data, str)
@@ -257,7 +256,7 @@ class FlextCliTables(FlextCliServiceBase):
 
     def _create_table_string(
         self,
-        data: TableData,
+        data: t.Cli.TableData,
         cfg: m.Cli.TableConfig,
         headers: str | Sequence[str],
     ) -> r[str]:
@@ -303,7 +302,7 @@ class FlextCliTables(FlextCliServiceBase):
 
     def _create_formatted_table(
         self,
-        data: TableData,
+        data: t.Cli.TableData,
         table_format: str,
         headers: Sequence[str] | None = None,
     ) -> r[str]:
@@ -331,7 +330,7 @@ class FlextCliTables(FlextCliServiceBase):
 
     def create_simple_table(
         self,
-        data: TableData,
+        data: t.Cli.TableData,
         headers: Sequence[str] | None = None,
     ) -> r[str]:
         """Create simple ASCII table with minimal formatting.
@@ -359,7 +358,7 @@ class FlextCliTables(FlextCliServiceBase):
 
     def create_grid_table(
         self,
-        data: TableData,
+        data: t.Cli.TableData,
         headers: Sequence[str] | None = None,
         *,
         fancy: bool = False,
@@ -387,7 +386,7 @@ class FlextCliTables(FlextCliServiceBase):
 
     def create_markdown_table(
         self,
-        data: TableData,
+        data: t.Cli.TableData,
         headers: Sequence[str] | None = None,
     ) -> r[str]:
         """Create Markdown pipe table.
@@ -422,7 +421,7 @@ class FlextCliTables(FlextCliServiceBase):
 
     def create_html_table(
         self,
-        data: TableData,
+        data: t.Cli.TableData,
         headers: Sequence[str] | None = None,
         *,
         escape: bool = True,
@@ -450,7 +449,7 @@ class FlextCliTables(FlextCliServiceBase):
 
     def create_latex_table(
         self,
-        data: TableData,
+        data: t.Cli.TableData,
         headers: Sequence[str] | None = None,
         *,
         booktabs: bool = False,
@@ -484,7 +483,7 @@ class FlextCliTables(FlextCliServiceBase):
 
     def create_rst_table(
         self,
-        data: TableData,
+        data: t.Cli.TableData,
         headers: Sequence[str] | None = None,
     ) -> r[str]:
         """Create reStructuredText grid table.

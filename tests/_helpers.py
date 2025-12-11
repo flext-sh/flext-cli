@@ -22,9 +22,9 @@ from flext_cli import (
     FlextCliAppBase,
     FlextCliCli,
     FlextCliCommands,
-    FlextCliConfig,
     FlextCliConstants,
     FlextCliContext,
+    FlextCliSettings,
     FlextCliTables,
     c,
     m,
@@ -140,7 +140,7 @@ class FlextCliTestHelpers(FlextService[dict[str, t.GeneralValueType]]):
         def create_app(
             app_name: str = "test-cli",
             app_help: str = "Test CLI application",
-            config_class: type[FlextCliConfig] | None = None,
+            config_class: type[FlextCliSettings] | None = None,
         ) -> r[FlextCliAppBase]:
             """Create a FlextCliAppBase instance.
 
@@ -154,7 +154,7 @@ class FlextCliTestHelpers(FlextService[dict[str, t.GeneralValueType]]):
 
             """
             try:
-                final_config_class = config_class or FlextCliConfig
+                final_config_class = config_class or FlextCliSettings
 
                 app_name_value = app_name
                 app_help_value = app_help
@@ -323,7 +323,7 @@ class FlextCliTestHelpers(FlextService[dict[str, t.GeneralValueType]]):
         def create_command_model(
             name: str = "test_command",
             command_line: str = "test",
-            status: c.Cli.CommandStatusLiteral = c.Cli.CommandStatus.PENDING.value,
+            status: str = c.Cli.CommandStatus.PENDING.value,
             **overrides: object,
         ) -> r[m.Cli.CliCommand]:
             """Create a CliCommand model instance.
@@ -433,7 +433,7 @@ class FlextCliTestHelpers(FlextService[dict[str, t.GeneralValueType]]):
                     "key4": [1, 2, 3],
                 }
                 # Convert to JsonDict-compatible dict using helper
-                # data is already dict[str, object], convert to GeneralValueType
+                # data is already dict[str, object], convert to t.GeneralValueType
                 data_converted: dict[str, t.GeneralValueType] = data
                 # Use u.transform for JSON conversion
                 transform_result = u.transform(
@@ -592,7 +592,7 @@ class FlextCliTestHelpers(FlextService[dict[str, t.GeneralValueType]]):
                     def __init__(self) -> None:
                         self._config: dict[str, t.GeneralValueType] = {}
 
-                    def load_config(self) -> r[dict[str, object]]:
+                    def load_config(self) -> r[dict[str, t.GeneralValueType]]:
                         # Convert to JsonDict-compatible dict using helper
                         config_copy_raw = self._config.copy()
                         config_copy_converted: dict[
@@ -609,7 +609,7 @@ class FlextCliTestHelpers(FlextService[dict[str, t.GeneralValueType]]):
                             if transform_result.is_success
                             else config_copy_converted
                         )
-                        return r[dict[str, object]].ok(config_copy)
+                        return r[dict[str, t.GeneralValueType]].ok(config_copy)
 
                     def save_config(
                         self,

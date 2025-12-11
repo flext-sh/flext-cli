@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from typing import override
 
 from flext_core import (
@@ -21,9 +21,7 @@ from pydantic import PrivateAttr
 
 from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import c
-from flext_cli.protocols import p
 from flext_cli.typings import t
-from flext_cli.utilities import u
 
 
 class FlextCliCommands(FlextCliServiceBase):
@@ -73,7 +71,7 @@ class FlextCliCommands(FlextCliServiceBase):
                 str,
                 dict[
                     str,
-                    t.GeneralValueType | p.Cli.CliCommandHandler,
+                    t.GeneralValueType | Callable[..., t.GeneralValueType],
                 ],
             ],
         ) -> None:
@@ -87,7 +85,7 @@ class FlextCliCommands(FlextCliServiceBase):
     _description: str = PrivateAttr()
     _commands: dict[
         str,
-        dict[str, t.GeneralValueType | p.Cli.CliCommandHandler],
+        dict[str, t.GeneralValueType | Callable[..., t.GeneralValueType]],
     ] = PrivateAttr(default_factory=dict)
     _cli_group: _CliGroup = PrivateAttr()
 
@@ -102,23 +100,23 @@ class FlextCliCommands(FlextCliServiceBase):
         # Convert data for super().__init__()
         # FlextService.__init__ accepts **data: t.GeneralValueType
         # Note: mypy has generic type inference issue with FlextService[JsonDict].__init__
-        # but runtime accepts dict[str, GeneralValueType] as **kwargs: GeneralValueType
+        # but runtime accepts dict[str, t.GeneralValueType] as **kwargs: t.GeneralValueType
         if not isinstance(data, dict):
             msg = "data must be dict"
             raise TypeError(msg)
-        # Pass data directly - FlextService base class accepts **kwargs: GeneralValueType
-        s[t.Json.JsonDict].__init__(self, **data)
+        # Pass data directly - FlextService base class accepts **kwargs: t.GeneralValueType
+        s[dict[str, t.GeneralValueType]].__init__(self, **data)
         # Logger is automatically provided by FlextMixins mixin
         # Use object.__setattr__ for frozen model private attributes
         object.__setattr__(self, "_name", name)
         object.__setattr__(self, "_description", description)
         # Commands store handler callables - use dict[str, dict] for mutability
-        # Handler is CliCommandHandler Protocol, but name/description are GeneralValueType (str)
+        # Handler is Callable[..., t.GeneralValueType]
         empty_commands: dict[
             str,
             dict[
                 str,
-                t.GeneralValueType | p.Cli.CliCommandHandler,
+                t.GeneralValueType | Callable[..., t.GeneralValueType],
             ],
         ] = {}
         object.__setattr__(
@@ -140,7 +138,7 @@ class FlextCliCommands(FlextCliServiceBase):
             source="flext-cli/src/flext_cli/commands.py",
         )
 
-    def execute(self) -> r[t.Json.JsonDict]:
+    def execute(self) -> r[dict[str, t.GeneralValueType]]:
         """Execute the main domain service operation - required by FlextService."""
         self.logger.info(
             "Executing CLI commands service",
@@ -158,12 +156,12 @@ class FlextCliCommands(FlextCliServiceBase):
         )
 
         # Build result dict with proper types
-        result_dict: t.Json.JsonDict = {
+        result_dict: dict[str, t.GeneralValueType] = {
             c.Cli.CommandsDictKeys.STATUS: c.Cli.ServiceStatus.OPERATIONAL.value,
             c.Cli.CommandsDictKeys.SERVICE: c.Cli.FLEXT_CLI,
             c.Cli.CommandsDictKeys.COMMANDS: list(self._commands.keys()),
         }
-        result = r[t.Json.JsonDict].ok(result_dict)
+        result = r[dict[str, t.GeneralValueType]].ok(result_dict)
 
         self.logger.debug(
             "Service execution completed successfully",
@@ -177,7 +175,7 @@ class FlextCliCommands(FlextCliServiceBase):
     def register_command(
         self,
         name: str,
-        handler: p.Cli.CliCommandHandler,
+        handler: Callable[..., t.GeneralValueType],
         description: str = c.Cli.CommandsDefaults.DEFAULT_DESCRIPTION,
     ) -> r[bool]:
         """Register a command.
@@ -201,11 +199,10 @@ class FlextCliCommands(FlextCliServiceBase):
         )
 
         try:
-            # Store command metadata - handler is CliCommandFunction Protocol
-            # Use type ignore for Protocol in dict (structural typing allows this)
+            # Store command metadata - handler is Callable[..., t.GeneralValueType]
             command_metadata: dict[
                 str,
-                t.GeneralValueType | p.Cli.CliCommandHandler,
+                t.GeneralValueType | Callable[..., t.GeneralValueType],
             ] = {
                 c.Cli.CommandsDictKeys.NAME: name,
                 c.Cli.CommandsDictKeys.HANDLER: handler,
@@ -217,7 +214,7 @@ class FlextCliCommands(FlextCliServiceBase):
                 str,
                 dict[
                     str,
-                    t.GeneralValueType | p.Cli.CliCommandHandler,
+                    t.GeneralValueType | Callable[..., t.GeneralValueType],
                 ],
             ] = dict(self._commands)
             self._cli_group.commands = updated_commands
@@ -316,7 +313,7 @@ class FlextCliCommands(FlextCliServiceBase):
             str,
             dict[
                 str,
-                t.GeneralValueType | p.Cli.CliCommandHandler,
+                t.GeneralValueType | Callable[..., t.GeneralValueType],
             ],
         ]
         | None = None,
@@ -359,7 +356,7 @@ class FlextCliCommands(FlextCliServiceBase):
                 str,
                 dict[
                     str,
-                    t.GeneralValueType | p.Cli.CliCommandHandler,
+                    t.GeneralValueType | Callable[..., t.GeneralValueType],
                 ],
             ] = commands
             group = self._CliGroup(
@@ -514,7 +511,7 @@ class FlextCliCommands(FlextCliServiceBase):
 
     @staticmethod
     def _execute_handler(
-        handler: p.Cli.CliCommandHandler,
+        handler: Callable[..., t.GeneralValueType],
         args: list[str] | None,
     ) -> t.GeneralValueType:
         """Execute command handler with appropriate arguments.
@@ -524,7 +521,7 @@ class FlextCliCommands(FlextCliServiceBase):
             args: Optional command arguments
 
         Returns:
-            Handler execution result as GeneralValueType
+            Handler execution result as t.GeneralValueType
 
         Note:
             Handlers can have different signatures:
@@ -551,18 +548,18 @@ class FlextCliCommands(FlextCliServiceBase):
         else:
             # No args provided, call handler without arguments
             result = handler()
-        # Convert result to GeneralValueType
-        # GeneralValueType = ScalarValue | Sequence[GeneralValueType] | Mapping[str, GeneralValueType]
+        # Convert result to t.GeneralValueType
+        # t.GeneralValueType = ScalarValue | Sequence[t.GeneralValueType] | Mapping[str, t.GeneralValueType]
         # ScalarValue = str | int | float | bool | datetime | None
-        # Type narrowing: result is object, narrow to GeneralValueType
+        # Type narrowing: result is object, narrow to t.GeneralValueType
         if isinstance(result, (str, int, float, bool, type(None))):
-            # ScalarValue is part of GeneralValueType
+            # ScalarValue is part of t.GeneralValueType
             return result
         if isinstance(result, dict):
-            # dict[str, GeneralValueType] is compatible with Mapping[str, GeneralValueType]
+            # dict[str, t.GeneralValueType] is compatible with Mapping[str, t.GeneralValueType]
             return result
         if isinstance(result, list):
-            # list[GeneralValueType] is compatible with Sequence[GeneralValueType]
+            # list[t.GeneralValueType] is compatible with Sequence[t.GeneralValueType]
             return result
         # Fallback: convert to string (ScalarValue)
         return str(result)
@@ -620,7 +617,7 @@ class FlextCliCommands(FlextCliServiceBase):
                 )
 
             command_info_raw = self._commands[command_name]
-            # Type narrowing: command_info is GeneralValueType, need to check if dict
+            # Type narrowing: command_info is not a dict, need to check if dict
             if not isinstance(command_info_raw, dict):
                 self.logger.error(
                     "FAILED to execute command - command_info is not a dict",
@@ -634,9 +631,9 @@ class FlextCliCommands(FlextCliServiceBase):
                     ),
                 )
             # Type narrowing: command_info is dict after isinstance check
-            command_info: dict[str, t.GeneralValueType | p.Cli.CliCommandHandler] = (
-                command_info_raw
-            )
+            command_info: dict[
+                str, t.GeneralValueType | Callable[..., t.GeneralValueType]
+            ] = command_info_raw
             self.logger.debug(
                 "Retrieved command information",
                 operation="execute_command",
@@ -665,14 +662,14 @@ class FlextCliCommands(FlextCliServiceBase):
                 )
 
             # Handler is guaranteed to exist from previous validation
-            # Structural typing: handler conforms to CliCommandHandler Protocol
-            # Type narrowing: handler_value is GeneralValueType | CliCommandHandler
-            # Runtime check ensures it's callable (CliCommandHandler)
-            handler_value: t.GeneralValueType | p.Cli.CliCommandHandler = command_info[
-                c.Cli.CommandsDictKeys.HANDLER
-            ]
-            # Runtime check: ensure handler is callable (CliCommandHandler Protocol)
-            if not isinstance(handler_value, p.Cli.CliCommandHandler):
+            # Structural typing: handler conforms to Callable[..., t.GeneralValueType]
+            # Type narrowing: handler_value is t.GeneralValueType | Callable[..., t.GeneralValueType]
+            # Runtime check ensures it's callable
+            handler_value: t.GeneralValueType | Callable[..., t.GeneralValueType] = (
+                command_info[c.Cli.CommandsDictKeys.HANDLER]
+            )
+            # Runtime check: ensure handler is callable
+            if not callable(handler_value):
                 # This should never happen if register_command was used correctly
                 # But defensive check for type safety - handler is not callable
                 self.logger.error(
@@ -688,7 +685,7 @@ class FlextCliCommands(FlextCliServiceBase):
                         command_name=command_name,
                     ),
                 )
-            handler: p.Cli.CliCommandHandler = handler_value
+            handler: Callable[..., t.GeneralValueType] = handler_value
 
             self.logger.debug(
                 "Executing command handler",
@@ -701,8 +698,8 @@ class FlextCliCommands(FlextCliServiceBase):
 
             result = FlextCliCommands._execute_handler(handler, args)
 
-            # Result from handler is already GeneralValueType compatible from _execute_handler
-            # _execute_handler guarantees GeneralValueType return
+            # Result from handler is already t.GeneralValueType compatible from _execute_handler
+            # _execute_handler guarantees t.GeneralValueType return
             self.logger.info(
                 "Command execution completed",
                 operation="execute_command",
@@ -733,7 +730,7 @@ class FlextCliCommands(FlextCliServiceBase):
         self,
     ) -> dict[
         str,
-        Mapping[str, t.GeneralValueType | p.Cli.CliCommandHandler],
+        Mapping[str, t.GeneralValueType | Callable[..., t.GeneralValueType]],
     ]:
         """Get all registered commands.
 
@@ -741,27 +738,10 @@ class FlextCliCommands(FlextCliServiceBase):
             dict[str, CliCommandMetadata]: Dictionary of registered commands
 
         """
-
         # Return copy of commands dict - convert dict to Mapping for return type
         # _commands is typed as dict[str, dict[...]], so v is guaranteed to be dict
         # Use u.process to create copy
-        def copy_command(
-            _k: str,
-            v: dict[str, t.GeneralValueType | p.Cli.CliCommandHandler],
-        ) -> dict[str, t.GeneralValueType | p.Cli.CliCommandHandler]:
-            """Copy single command dict."""
-            return dict(v)
-
-        process_result = u.Cli.process(
-            self._commands,
-            processor=copy_command,
-            on_error="skip",
-        )
-        return (
-            dict(process_result.value)
-            if process_result.is_success and isinstance(process_result.value, dict)
-            else {}
-        )
+        return {k: dict(v) for k, v in self._commands.items()}
 
     def clear_commands(self) -> r[int]:
         """Clear all registered commands.

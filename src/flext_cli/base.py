@@ -10,41 +10,44 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import s, t
+from flext_core import s
 
-from flext_cli.config import FlextCliConfig
+from flext_cli.settings import FlextCliSettings
+from flext_cli.typings import t
 
 
-class FlextCliServiceBase(s[t.Json.JsonDict]):
+class FlextCliServiceBase(s[dict[str, t.GeneralValueType]]):
     """Base class for flext-cli services with typed configuration access."""
 
     @classmethod
-    def _runtime_bootstrap_options(cls) -> t.Types.RuntimeBootstrapOptions:
+    def _runtime_bootstrap_options(
+        cls,
+    ) -> t.RuntimeBootstrapOptions:
         """Return runtime bootstrap options for CLI services.
 
         Business Rule: This method provides runtime bootstrap configuration for
-        all CLI services, ensuring they use FlextCliConfig as the configuration
+        all CLI services, ensuring they use FlextCliSettings as the configuration
         type. This enables proper DI integration and namespace access.
 
         Implication: All services extending FlextCliServiceBase automatically
-        use FlextCliConfig for their runtime configuration, ensuring consistent
+        use FlextCliSettings for their runtime configuration, ensuring consistent
         configuration handling across all CLI services.
 
         Returns:
-            Runtime bootstrap options with config_type set to FlextCliConfig
+            Runtime bootstrap options with config_type set to FlextCliSettings
 
         """
-        return {"config_type": FlextCliConfig}
+        return {"config_type": FlextCliSettings}
 
     @property
-    def cli_config(self) -> FlextCliConfig:
-        """Return the shared `FlextCliConfig` singleton with full type support."""
-        return FlextCliConfig.get_instance()
+    def cli_config(self) -> FlextCliSettings:
+        """Return the shared `FlextCliSettings` singleton with full type support."""
+        return FlextCliSettings.get_instance()
 
     @staticmethod
-    def get_cli_config() -> FlextCliConfig:
-        """Return shared `FlextCliConfig` singleton without instantiating service."""
-        return FlextCliConfig.get_instance()
+    def get_cli_config() -> FlextCliSettings:
+        """Return shared `FlextCliSettings` singleton without instantiating service."""
+        return FlextCliSettings.get_instance()
 
 
 __all__ = [

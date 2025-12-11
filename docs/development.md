@@ -46,7 +46,7 @@ class FlextCliCore(FlextService[CliDataDict]):
         super().__init__()
         self._commands: dict[str, Command] = {}  # MUTABLE STATE
         self._sessions: dict[str, Session] = {}  # MUTABLE STATE
-        self._config: FlextCliConfig = ...       # MANAGED STATE
+        self._config: FlextCliSettings = ...       # MANAGED STATE
 
     def register_command(self, name: str, command: Command) -> FlextResult[None]:
         """Register command - modifies internal state."""
@@ -186,7 +186,7 @@ src/flext_cli/
 └── Data Models (value objects)
     ├── context.py           # FlextCliContext
     ├── models.py            # All Pydantic models
-    └── config.py            # FlextCliConfig
+    └── config.py            # FlextCliSettings
 ```
 
 ### Direct Access Pattern
@@ -509,7 +509,7 @@ test: add integration tests for config module
 
 ```python
 from flext_core import FlextBus
-from flext_core import FlextConfig
+from flext_core import FlextSettings
 from flext_core import FlextConstants
 from flext_core import FlextContainer
 from flext_core import FlextContext

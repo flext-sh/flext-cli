@@ -25,9 +25,9 @@ import pytest
 
 from flext_cli import (
     FlextCli,
-    FlextCliConfig,
     FlextCliFileTools,
     FlextCliOutput,
+    FlextCliSettings,
     FlextCliTables,
     FlextCliTypes,
     c,
@@ -46,7 +46,7 @@ class FlextCliIntegrationTestTypes(FlextCliTypes):
     class Pipeline:
         """Pipeline data types for integration tests."""
 
-        type ConfigDataPair = tuple[FlextCliConfig, dict[str, object]]
+        type ConfigDataPair = tuple[FlextCliSettings, dict[str, object]]
         """Tuple of configuration and data for pipeline processing."""
 
         type SalesData = dict[str, object]
@@ -80,9 +80,9 @@ class TestCompleteWorkflowIntegration:
         return FlextCli()
 
     @pytest.fixture
-    def config(self) -> FlextCliConfig:
-        """Create FlextCliConfig with test settings."""
-        return FlextCliConfig(debug=True)
+    def config(self) -> FlextCliSettings:
+        """Create FlextCliSettings with test settings."""
+        return FlextCliSettings(debug=True)
 
     @pytest.fixture
     def file_tools(self) -> FlextCliFileTools:
@@ -368,7 +368,7 @@ class TestCompleteWorkflowIntegration:
     def test_config_driven_report_generation(
         self,
         cli: FlextCli,
-        config: FlextCliConfig,
+        config: FlextCliSettings,
         file_tools: FlextCliFileTools,
         tables: FlextCliTables,
         temp_workspace: Path,
@@ -476,7 +476,7 @@ class TestCompleteWorkflowIntegration:
             raise ValueError(msg)
 
         # Apply configuration-based filtering
-        config_obj = cast("FlextCliConfig", config)
+        config_obj = cast("FlextCliSettings", config)
         if config_obj.environment == "production":
             # In production, only include Q1 data
             filtered_sales = [sale for sale in sales if sale.get("quarter") == "Q1"]
@@ -589,7 +589,7 @@ class TestCompleteWorkflowIntegration:
     def _create_report_summary(
         self,
         reports: list[dict[str, object]],
-        config: FlextCliConfig,
+        config: FlextCliSettings,
         report_dir: Path,
     ) -> dict[str, object]:
         """Create comprehensive report summary."""

@@ -15,7 +15,7 @@ import typer
 from flext_core import FlextRuntime
 from typer.testing import CliRunner
 
-from flext_cli import FlextCliCli, FlextCliConfig, m, p
+from flext_cli import FlextCliCli, FlextCliSettings, m, p
 
 
 class TestsCliCliExtended:
@@ -71,8 +71,10 @@ class TestsCliCliExtended:
         # Test with --debug flag
         # We need to mock FlextRuntime.reconfigure_structlog to verify it's called correctly
         with patch.object(FlextRuntime, "reconfigure_structlog") as mock_reconfigure:
-            # Also mock FlextCliConfig.get_global_instance to return a mock config we can inspect
-            with patch.object(FlextCliConfig, "get_global_instance") as mock_get_config:
+            # Also mock FlextCliSettings.get_global_instance to return a mock config we can inspect
+            with patch.object(
+                FlextCliSettings, "get_global_instance"
+            ) as mock_get_config:
                 mock_get_config.return_value = mock_config_instance
 
                 # Put global options BEFORE subcommand

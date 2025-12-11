@@ -57,7 +57,7 @@ flext-cli is a production-ready Python library that provides:
    - Protected operations
 
 6. **[06_configuration.py](06_configuration.py)** - Config management
-   - FlextCliConfig usage
+   - FlextCliSettings usage
    - Environment variables
    - Pydantic validation
    - Multiple profiles
@@ -141,7 +141,7 @@ Or import modules directly:
 ```python
 from flext_cli import (
     FlextCli,
-    FlextCliConfig,
+    FlextCliSettings,
     FlextCliOutput,
     FlextCliFormatters,
     FlextCliTables,
@@ -156,7 +156,7 @@ flext-cli follows the FLEXT ecosystem architecture:
 - **FlextCli** - Main facade providing unified access
 - **Services** - Specialized modules (Output, Formatters, Tables, etc.)
 - **FlextResult** - Railway-oriented error handling (from flext-core)
-- **FlextConfig** - Pydantic-based configuration
+- **FlextSettings** - Pydantic-based configuration
 - **Type Safety** - Complete type hints throughout
 
 ## 💡 Usage Patterns
@@ -184,7 +184,7 @@ output.error("Something went wrong")
 ```python
 from flext_cli import FlextCli
 from flext_core import FlextBus
-from flext_core import FlextConfig
+from flext_core import FlextSettings
 from flext_core import FlextConstants
 from flext_core import FlextContainer
 from flext_core import FlextContext
@@ -219,9 +219,9 @@ def process_data(data: dict) -> FlextResult[dict]:
 ### Pattern 4: With Configuration
 
 ```python
-from flext_cli import FlextCli, FlextCliConfig
+from flext_cli import FlextCli, FlextCliSettings
 
-config = FlextCliConfig(
+config = FlextCliSettings(
     debug=True,
     log_level="DEBUG",
 )
@@ -271,10 +271,10 @@ cli.tables.display_rich_table()  # Not: cli.get_tables().display()
 
 ### 3. Configuration Management
 
-Use FlextCliConfig for settings:
+Use FlextCliSettings for settings:
 
 ```python
-config = FlextCliConfig(
+config = FlextCliSettings(
     debug=True,
     environment="development",
 )
@@ -287,7 +287,7 @@ Complete type hints for IDE support:
 ```python
 from flext_cli import FlextCli
 from flext_core import FlextBus
-from flext_core import FlextConfig
+from flext_core import FlextSettings
 from flext_core import FlextConstants
 from flext_core import FlextContainer
 from flext_core import FlextContext
@@ -340,7 +340,7 @@ if __name__ == "__main__":
 ```python
 from flext_cli import FlextCli
 from flext_core import FlextBus
-from flext_core import FlextConfig
+from flext_core import FlextSettings
 from flext_core import FlextConstants
 from flext_core import FlextContainer
 from flext_core import FlextContext
@@ -425,7 +425,7 @@ def interactive_tool():
 3. **Access services via properties** (cli.output, cli.tables)
 4. **Handle errors explicitly** with FlextResult patterns
 5. **Use type hints** for better IDE support
-6. **Configure via FlextCliConfig** for environment-specific settings
+6. **Configure via FlextCliSettings** for environment-specific settings
 7. **Combine modules** for complete functionality
 
 ---

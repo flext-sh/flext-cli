@@ -384,7 +384,7 @@ class TestsCliContext:
         """Test metadata get/set operations."""
         context = FlextCliContext()
 
-        # Use GeneralValueType directly - set_metadata accepts GeneralValueType
+        # Use t.GeneralValueType directly - set_metadata accepts t.GeneralValueType
         # Convert dict to ensure compatibility
         if isinstance(value, dict):
             json_value: t.GeneralValueType = cast(

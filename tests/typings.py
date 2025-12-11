@@ -12,9 +12,9 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import TypeVar
 
-from flext_tests import t as flext_tests_t
+from flext_tests import FlextTestsTypes
 
-from flext_cli import r, t as flext_cli_t
+from flext_cli import FlextCliTypes, r
 
 # TypeVars for test-specific types
 TTestCommand = TypeVar("TTestCommand")
@@ -22,7 +22,7 @@ TTestSession = TypeVar("TTestSession")
 TTestResult = TypeVar("TTestResult")
 
 
-class TestsCliTypes(flext_tests_t, flext_cli_t):
+class TestsCliTypes(FlextTestsTypes, FlextCliTypes):
     """Test type definitions extending FlextTestsTypes and FlextCliTypes.
 
     Business Rules:
@@ -33,20 +33,17 @@ class TestsCliTypes(flext_tests_t, flext_cli_t):
     4. Uses PEP 695 type aliases for Python 3.13+ syntax
     """
 
-    # Expose GeneralValueType from parent hierarchy for direct access
-    type GeneralValueType = flext_cli_t.GeneralValueType
-
     # Test-specific type aliases
-    type TestDataDict = flext_cli_t.Json.JsonDict
-    type TestResultDict = flext_cli_t.Json.JsonDict
-    type TestFixtureData = flext_cli_t.Json.JsonDict
+    type TestDataDict = FlextCliTypes.JsonDict
+    type TestResultDict = FlextCliTypes.JsonDict
+    type TestFixtureData = FlextCliTypes.JsonDict
 
     class Test:
         """Test-related type aliases."""
 
-        type Handler[T] = Callable[[flext_cli_t.GeneralValueType], r[T]]
-        type Validator = Callable[[flext_cli_t.GeneralValueType], bool]
-        type Fixture = Callable[[], flext_cli_t.GeneralValueType]
+        type Handler[T] = Callable[[FlextCliTypes.GeneralValueType], r[T]]
+        type Validator = Callable[[FlextCliTypes.GeneralValueType], bool]
+        type Fixture = Callable[[], FlextCliTypes.GeneralValueType]
 
     class Assertion:
         """Assertion-related type aliases."""
@@ -57,8 +54,8 @@ class TestsCliTypes(flext_tests_t, flext_cli_t):
     class TestFactory:
         """Factory-related type aliases for tests."""
 
-        type ModelFactory[T] = Callable[[flext_cli_t.Json.JsonDict], r[T]]
-        type CommandFactory = Callable[[str], r[flext_cli_t.GeneralValueType]]
+        type ModelFactory[T] = Callable[[FlextCliTypes.JsonDict], r[T]]
+        type CommandFactory = Callable[[str], r[FlextCliTypes.GeneralValueType]]
 
 
 # Standardized short name - matches src pattern (t = FlextCliTypes)

@@ -20,10 +20,10 @@ from enum import StrEnum
 from typing import cast
 
 import pytest
-from flext_core import t
 from flext_tests import tm
 
 from flext_cli import FlextCliTables, m, r, u
+from flext_cli.typings import t
 
 # Fixtures modules removed - use conftest.py and flext_tests instead
 # from ..fixtures.constants import TestTables
@@ -391,7 +391,7 @@ class TestsCliTables:
                 # Use model_validate for proper type conversion (Pydantic handles validation)
                 # Business Rule: Pydantic model_validate accepts dict[str, object] and validates types
                 config = m.Cli.TableConfig.model_validate(test_case.config)
-                # Convert data to TableData - ensure it's Iterable[Sequence | Mapping]
+                # Convert data to t.Cli.TableData - ensure it's Iterable[Sequence | Mapping]
                 table_data = cast(
                     "Sequence[Sequence[t.GeneralValueType]] | Sequence[Mapping[str, t.GeneralValueType]]",
                     data,
@@ -415,7 +415,7 @@ class TestsCliTables:
                 # Use model_validate for proper type conversion (Pydantic handles validation)
                 # Business Rule: Pydantic model_validate accepts dict[str, object] and validates types
                 config = m.Cli.TableConfig.model_validate(test_case.config)
-                # Convert data to TableData - ensure it's Iterable[Sequence | Mapping]
+                # Convert data to t.Cli.TableData - ensure it's Iterable[Sequence | Mapping]
                 table_data = cast(
                     "Sequence[Sequence[t.GeneralValueType]] | Sequence[Mapping[str, t.GeneralValueType]]",
                     data,
@@ -467,7 +467,7 @@ class TestsCliTables:
         data = test_data["people_dict"]
 
         # Call the appropriate method
-        # Convert data to TableData - ensure it's Iterable[Sequence | Mapping]
+        # Convert data to t.Cli.TableData - ensure it's Iterable[Sequence | Mapping]
         table_data = cast(
             "Sequence[Sequence[t.GeneralValueType]] | Sequence[Mapping[str, t.GeneralValueType]]",
             data,
@@ -556,7 +556,7 @@ class TestsCliTables:
         """Test LaTeX table with various options."""
         data = test_data["people_dict"]
 
-        # Convert data to TableData
+        # Convert data to t.Cli.TableData
         table_data = cast(
             "Sequence[Sequence[t.GeneralValueType]] | Sequence[Mapping[str, t.GeneralValueType]]",
             data,

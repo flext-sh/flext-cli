@@ -8,7 +8,7 @@ WHEN TO USE THIS:
 - Need configuration validation
 
 FLEXT-CLI PROVIDES:
-- FlextCliConfig - Configuration management class
+- FlextCliSettings - Configuration management class
 - cli.config - Access to current config settings
 - Environment variable loading (FLEXT_*)
 - Built-in validation with r
@@ -31,7 +31,7 @@ from typing import cast
 
 from example_utils import display_config_table
 
-from flext_cli import FlextCli, FlextCliConfig, r, t, u
+from flext_cli import FlextCli, FlextCliSettings, r, t, u
 
 cli = FlextCli()
 
@@ -41,7 +41,7 @@ cli = FlextCli()
 # ============================================================================
 
 
-def get_cli_settings() -> FlextCliConfig:
+def get_cli_settings() -> FlextCliSettings:
     """Access flext-cli config settings in YOUR application."""
     config = cli.config
 
@@ -147,7 +147,7 @@ class MyAppConfig:
 
     def display(self) -> None:
         """Display YOUR app configuration."""
-        config_data: t.Cli.Data.CliDataDict = {
+        config_data: t.JsonDict = {
             "App Name": self.app_name,
             "API Key": f"{self.api_key[:10]}..." if self.api_key else "Not set",
             "Max Workers": str(self.max_workers),
@@ -216,12 +216,12 @@ def show_config_locations() -> dict[str, str]:
 # ============================================================================
 
 
-def load_profile_config(profile_name: str = "default") -> FlextCliConfig | None:
+def load_profile_config(profile_name: str = "default") -> FlextCliSettings | None:
     """Load profile-specific config in YOUR tool."""
     cli.print(f"📋 Loading profile: {profile_name}", style="bold cyan")
 
-    # You can create different FlextCliConfig instances for different profiles
-    profile_config = FlextCliConfig(
+    # You can create different FlextCliSettings instances for different profiles
+    profile_config = FlextCliSettings(
         profile=profile_name,
         debug=profile_name == "development",
         output_format="json" if profile_name == "production" else "table",
@@ -242,7 +242,7 @@ def load_profile_config(profile_name: str = "default") -> FlextCliConfig | None:
     cli.print(f"✅ Profile '{profile_name}' loaded successfully", style="green")
 
     # Display profile settings
-    profile_data: t.Cli.Data.CliDataDict = {
+    profile_data: t.JsonDict = {
         "Profile": profile_config.profile,
         "Debug": str(profile_config.debug),
         "Output": profile_config.output_format,
@@ -283,7 +283,7 @@ def show_environment_variables() -> None:
         """Print single environment variable."""
         cli.print(f"   {k}={v}", style="cyan")
 
-    u.process(env_vars, processor=print_env, on_error="skip")
+    u.process(env_vars, processor=print_env, on_error="skip")  # type: ignore[attr-defined]
 
     # Show how to set them
     cli.print("\n💡 How to set environment variables:", style="bold cyan")
@@ -547,7 +547,7 @@ def main() -> None:
     # Integration guide
     cli.print("\n💡 Integration Tips:", style="bold cyan")
     cli.print("  • Access config: Use cli.config for built-in settings", style="white")
-    cli.print("  • Custom config: Extend FlextCliConfig for your app", style="white")
+    cli.print("  • Custom config: Extend FlextCliSettings for your app", style="white")
     cli.print("  • Validation: Use config.validate_business_rules()", style="white")
     cli.print("  • Environment: Use FLEXT_* env vars for configuration", style="white")
 

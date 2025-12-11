@@ -1,6 +1,6 @@
 """FLEXT CLI Configuration Module.
 
-**MODULE**: FlextCliConfig - Enterprise CLI configuration management
+**MODULE**: FlextCliSettings - Enterprise CLI configuration management
 **SCOPE**: Pydantic 2 settings, environment variables, terminal detection, output formatting,
           singleton pattern, functional validation, railway-oriented error handling
 
@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Annotated, ClassVar, Self
 
 import yaml
-from flext_core import FlextConfig, FlextContainer, FlextLogger as l_core, r
+from flext_core import FlextContainer, FlextLogger as l_core, FlextSettings, r
 from pydantic import (
     Field,
     SecretStr,
@@ -37,8 +37,8 @@ from flext_cli.utilities import u
 logger = l_core(__name__)
 
 
-@FlextConfig.auto_register("cli")
-class FlextCliConfig(FlextConfig):
+@FlextSettings.auto_register("cli")
+class FlextCliSettings(FlextSettings):
     """Single flat Pydantic 2 BaseModel class for flext-cli using AutoConfig pattern.
 
     Business Rules:
@@ -54,7 +54,7 @@ class FlextCliConfig(FlextConfig):
 
     Architecture Implications:
     ───────────────────────────
-    - Auto-registration enables namespace access via FlextConfig.get_global_instance().cli
+    - Auto-registration enables namespace access via FlextSettings.get_global_instance().cli
     - Singleton pattern ensures consistent configuration across application
     - Pydantic 2 SettingsConfigDict enables environment variable integration
     - Field validators enforce business rules (trace requires debug)
@@ -74,7 +74,7 @@ class FlextCliConfig(FlextConfig):
 
     **ARCHITECTURAL PATTERN**: Zero-Boilerplate Auto-Registration
 
-    This class uses FlextConfig.AutoConfig for automatic:
+    This class uses FlextSettings.AutoConfig for automatic:
     - Singleton pattern (thread-safe)
     - Namespace registration (accessible via config.cli)
     - Test reset capability (_reset_instance)
@@ -82,28 +82,28 @@ class FlextCliConfig(FlextConfig):
     Implements p.CliConfigProvider through structural subtyping.
 
     Follows standardized pattern:
-    - Extends FlextConfig.AutoConfig (BaseModel) for nested config pattern
+    - Extends FlextSettings.AutoConfig (BaseModel) for nested config pattern
     - Flat class structure with all fields at top level
     - All defaults from FlextCliConstants
     - SecretStr for sensitive data
-    - Uses FlextConfig namespace features for configuration management
+    - Uses FlextSettings namespace features for configuration management
 
     **Usage**:
         # Get singleton instance
-        config = FlextCliConfig.get_instance()
+        config = FlextCliSettings.get_instance()
 
-        # Or via FlextConfig namespace
-        from flext_core import FlextConfig
-        config = FlextConfig.get_global_instance()
+        # Or via FlextSettings namespace
+        from flext_core import FlextSettings
+        config = FlextSettings.get_global_instance()
         cli_config = config.cli
 
     - Uses Python 3.13 + Pydantic 2 features
     """
 
-    # Use FlextConfig.resolve_env_file() to ensure all FLEXT configs use same .env
+    # Use FlextSettings.resolve_env_file() to ensure all FLEXT configs use same .env
     model_config = SettingsConfigDict(
         env_prefix="FLEXT_CLI_",
-        env_file=FlextConfig.resolve_env_file(),
+        env_file=FlextSettings.resolve_env_file(),
         env_file_encoding="utf-8",
         extra="ignore",
         use_enum_values=True,
@@ -234,7 +234,7 @@ class FlextCliConfig(FlextConfig):
     )
 
     # Logging configuration - centralized for all FLEXT projects
-    log_verbosity: str = Field(  # Must match FlextConfig.log_verbosity type
+    log_verbosity: str = Field(  # Must match FlextSettings.log_verbosity type
         default=c.Cli.LogVerbosity.DETAILED.value,  # Python 3.13+ best practice: Use Enum value
         description="Logging verbosity (compact, detailed, full)",
     )
@@ -279,7 +279,7 @@ class FlextCliConfig(FlextConfig):
             context = context_cls() if context_cls is not None else None
             if context is None:
                 return r.fail("FlextContext not available")
-            # Convert config object to GeneralValueType-compatible dict for context
+            # Convert config object to t.GeneralValueType-compatible dict for context
             # Use u.transform for JSON conversion
             transform_result = u.transform(self.model_dump(), to_json=True)
             config_dict = (
@@ -288,7 +288,7 @@ class FlextCliConfig(FlextConfig):
                 else self.model_dump()
             )
             _ = context.set("cli_config", config_dict)
-            # Computed fields return values directly - convert to GeneralValueType
+            # Computed fields return values directly - convert to t.GeneralValueType
             _ = context.set("cli_auto_output_format", str(self.auto_output_format))
             _ = context.set("cli_auto_color_support", bool(self.auto_color_support))
             _ = context.set("cli_auto_verbosity", str(self.auto_verbosity))
@@ -377,7 +377,12 @@ class FlextCliConfig(FlextConfig):
             except Exception as e:
                 return r[int].fail(f"Failed to get terminal width: {e}")
 
-        def determine_format(is_interactive: bool, width: int, has_color: bool) -> str:
+        def determine_format(
+            width: int,
+            *,
+            is_interactive: bool,
+            has_color: bool,
+        ) -> str:
             """Determine optimal format based on capabilities."""
             # Non-interactive always uses JSON
             if not is_interactive:
@@ -404,15 +409,15 @@ class FlextCliConfig(FlextConfig):
             )
             .map(
                 lambda capabilities: determine_format(
-                    capabilities[0]
-                    if len(capabilities)
-                    >= c.Cli.ConfigValidation.CAPABILITIES_TUPLE_MIN_LENGTH
-                    else False,  # is_interactive
-                    capabilities[1]
+                    width=capabilities[1]
                     if len(capabilities)
                     >= c.Cli.ConfigValidation.CAPABILITIES_TUPLE_MIN_LENGTH
                     else c.Cli.ConfigValidation.DEFAULT_TERMINAL_WIDTH,
-                    bool(self.auto_color_support),  # has_color
+                    is_interactive=capabilities[0]
+                    if len(capabilities)
+                    >= c.Cli.ConfigValidation.CAPABILITIES_TUPLE_MIN_LENGTH
+                    else False,
+                    has_color=bool(self.auto_color_support),
                 ),
             )
         )
@@ -526,11 +531,11 @@ class FlextCliConfig(FlextConfig):
         return u.Cli.CliValidation.v_format(value)
 
     @classmethod
-    def load_from_config_file(cls, config_file: Path) -> r[FlextCliConfig]:
+    def load_from_config_file(cls, config_file: Path) -> r[FlextCliSettings]:
         """Load configuration from file with proper error handling."""
         try:
             if not config_file.exists():
-                return r[FlextCliConfig].fail(
+                return r[FlextCliSettings].fail(
                     c.Cli.ErrorMessages.CONFIG_FILE_NOT_FOUND.format(
                         file=config_file,
                     ),
@@ -550,7 +555,7 @@ class FlextCliConfig(FlextConfig):
                 ) as f:
                     data = yaml.safe_load(f)
             else:
-                return r[FlextCliConfig].fail(
+                return r[FlextCliSettings].fail(
                     c.Cli.ErrorMessages.UNSUPPORTED_CONFIG_FORMAT.format(
                         suffix=config_file.suffix,
                     ),
@@ -558,17 +563,17 @@ class FlextCliConfig(FlextConfig):
 
             # Create config instance directly with loaded data
             config = cls(**data)
-            return r[FlextCliConfig].ok(config)
+            return r[FlextCliSettings].ok(config)
 
         except Exception as e:
-            return r[FlextCliConfig].fail(
+            return r[FlextCliSettings].fail(
                 c.Cli.ErrorMessages.FAILED_LOAD_CONFIG_FROM_FILE.format(
                     file=config_file,
                     error=e,
                 ),
             )
 
-    def execute_service(self) -> r[t.Json.JsonDict]:
+    def execute_service(self) -> r[dict[str, t.GeneralValueType]]:
         """Execute config as service operation.
 
         Pydantic 2 Modernization:
@@ -583,18 +588,16 @@ class FlextCliConfig(FlextConfig):
         # Use u.transform for JSON conversion
         transform_result = u.transform(config_dict_raw, to_json=True)
         config_dict = (
-            transform_result.value
-            if transform_result.is_success
-            else config_dict_raw
+            transform_result.value if transform_result.is_success else config_dict_raw
         )
-        result_dict: t.Json.JsonDict = {
+        result_dict: dict[str, t.GeneralValueType] = {
             "status": c.Cli.ServiceStatus.OPERATIONAL.value,
             "service": c.Cli.CliGlobalDefaults.DEFAULT_SERVICE_NAME,
             "timestamp": u.generate("timestamp"),
             "version": c.Cli.CliGlobalDefaults.DEFAULT_VERSION_STRING,
             "config": config_dict,
         }
-        return r[t.Json.JsonDict].ok(result_dict)
+        return r[dict[str, t.GeneralValueType]].ok(result_dict)
 
     def update_from_cli_args(self, **kwargs: t.GeneralValueType) -> r[bool]:
         """Update configuration from CLI arguments with validation.
@@ -609,7 +612,7 @@ class FlextCliConfig(FlextConfig):
             r[bool]: True if update succeeded, failure on error
 
         Example:
-            >>> config = FlextCliConfig()
+            >>> config = FlextCliSettings()
             >>> result = config.update_from_cli_args(
             ...     profile="production", output_format="json", verbose=True
             ... )
@@ -631,7 +634,7 @@ class FlextCliConfig(FlextConfig):
             # Get model fields (not computed fields) from Pydantic model_fields (class attribute)
             model_fields = set(type(self).model_fields.keys())
             # Filter dict items using dict comprehension (u.filter only works with lists/tuples)
-            valid_updates: t.Json.JsonDict = {
+            valid_updates: dict[str, t.GeneralValueType] = {
                 k: v
                 for k, v in kwargs.items()
                 if k in model_fields and k not in computed_fields
@@ -660,7 +663,7 @@ class FlextCliConfig(FlextConfig):
     def validate_cli_overrides(
         self,
         **overrides: t.GeneralValueType,
-    ) -> r[t.Json.JsonDict]:
+    ) -> r[dict[str, t.GeneralValueType]]:
         """Validate CLI overrides without applying them.
 
         Useful for checking if CLI arguments are valid before applying.
@@ -669,10 +672,10 @@ class FlextCliConfig(FlextConfig):
             **overrides: Configuration overrides to validate
 
         Returns:
-            r[t.Json.JsonDict]: Valid overrides or validation errors
+            r[dict[str, t.GeneralValueType]]: Valid overrides or validation errors
 
         Example:
-            >>> config = FlextCliConfig()
+            >>> config = FlextCliSettings()
             >>> result = config.validate_cli_overrides(
             ...     output_format="json", max_width=120
             ... )
@@ -682,7 +685,7 @@ class FlextCliConfig(FlextConfig):
         """
         try:
             # Use mutable dict for building, then convert to JsonDict for return
-            # Use GeneralValueType for compatibility (JsonValue is subset)
+            # Use t.GeneralValueType for compatibility (JsonValue is subset)
             # Filter dict items using dict comprehension (u.filter only works with lists/tuples)
             valid_overrides: dict[str, t.GeneralValueType] = {
                 k: v for k, v in overrides.items() if hasattr(self, k)
@@ -700,13 +703,11 @@ class FlextCliConfig(FlextConfig):
                     test_config = self.model_copy()
                     setattr(test_config, k, v)
                     _ = test_config.model_validate(test_config.model_dump())
-                    # Convert value to GeneralValueType for type safety
+                    # Convert value to t.GeneralValueType for type safety
                     if isinstance(v, dict):
                         transform_result = u.transform(v, to_json=True)
                         json_value: t.GeneralValueType = (
-                            transform_result.value
-                            if transform_result.is_success
-                            else v
+                            transform_result.value if transform_result.is_success else v
                         )
                     else:
                         json_value = v
@@ -722,26 +723,26 @@ class FlextCliConfig(FlextConfig):
             u.Cli.process(overrides, processor=validate_value, on_error="collect")
 
             if errors:
-                return r[t.Json.JsonDict].fail(
+                return r[dict[str, t.GeneralValueType]].fail(
                     c.Cli.ErrorMessages.VALIDATION_ERRORS.format(
                         errors="; ".join(errors),
                     ),
                 )
 
             # Convert mutable dict to JsonDict (Mapping) for return type
-            # GeneralValueType dict is compatible with JsonDict
-            json_dict: t.Json.JsonDict = dict(valid_overrides)
-            return r[t.Json.JsonDict].ok(json_dict)
+            # t.GeneralValueType dict is compatible with JsonDict
+            json_dict: dict[str, t.GeneralValueType] = dict(valid_overrides)
+            return r[dict[str, t.GeneralValueType]].ok(json_dict)
 
         except Exception as e:
-            return r[t.Json.JsonDict].fail(f"Validation failed: {e}")
+            return r[dict[str, t.GeneralValueType]].fail(f"Validation failed: {e}")
 
     # Protocol-compliant methods for CliConfigProvider
-    def load_config(self) -> r[t.Json.JsonDict]:
+    def load_config(self) -> r[dict[str, t.GeneralValueType]]:
         """Load CLI configuration - implements CliConfigProvider protocol.
 
         Returns:
-            r[t.Json.JsonDict]: Configuration data or error
+            r[dict[str, t.GeneralValueType]]: Configuration data or error
 
         """
         try:
@@ -755,15 +756,15 @@ class FlextCliConfig(FlextConfig):
                 if transform_result.is_success
                 else config_dict_raw
             )
-            return r[t.Json.JsonDict].ok(config_dict)
+            return r[dict[str, t.GeneralValueType]].ok(config_dict)
         except Exception as e:
-            return r[t.Json.JsonDict].fail(
+            return r[dict[str, t.GeneralValueType]].fail(
                 c.Cli.ErrorMessages.CONFIG_LOAD_FAILED_MSG.format(error=e),
             )
 
     def save_config(
         self,
-        config: t.Json.JsonDict,
+        config: dict[str, t.GeneralValueType],
     ) -> r[bool]:
         """Save CLI configuration - implements CliConfigProvider protocol.
 
@@ -791,14 +792,14 @@ class FlextCliConfig(FlextConfig):
                 c.Cli.ErrorMessages.CONFIG_SAVE_FAILED_MSG.format(error=e),
             )
 
-    _instance: ClassVar[FlextCliConfig | None] = None
+    _instance: ClassVar[FlextCliSettings | None] = None
 
     @classmethod
-    def get_instance(cls) -> FlextCliConfig:
-        """Get singleton instance of FlextCliConfig.
+    def get_instance(cls) -> FlextCliSettings:
+        """Get singleton instance of FlextCliSettings.
 
         Returns:
-            Singleton instance of FlextCliConfig
+            Singleton instance of FlextCliSettings
 
         """
         if cls._instance is None:
@@ -816,5 +817,5 @@ class FlextCliConfig(FlextConfig):
 
 
 __all__ = [
-    "FlextCliConfig",
+    "FlextCliSettings",
 ]

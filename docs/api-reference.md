@@ -18,7 +18,7 @@ from flext_cli import (
     FlextCliTables,            # Tabelas ASCII via Tabulate
     FlextCliFileTools,         # I/O de arquivos
     FlextCliFormatters,        # Saída Rich
-    FlextCliConfig,            # Configuração validada (singleton)
+    FlextCliSettings,            # Configuração validada (singleton)
     FlextCliContext,           # Contexto imutável
     FlextCliModels,            # Modelos Pydantic
     FlextCliConstants,         # Constantes compartilhadas

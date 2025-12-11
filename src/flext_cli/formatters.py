@@ -68,9 +68,9 @@ class FlextCliFormatters:
         # Use Rich directly (formatters.py is ONE OF TWO files that may import Rich)
         self.console = Console()
 
-    def execute(self) -> r[t.Json.JsonDict]:
+    def execute(self) -> r[dict[str, t.GeneralValueType]]:
         """Execute service - required by FlextService."""
-        return r[t.Json.JsonDict].ok({
+        return r[dict[str, t.GeneralValueType]].ok({
             c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.OPERATIONAL.value,
             c.Cli.DictKeys.SERVICE: c.Cli.Services.FORMATTERS,
         })
@@ -107,7 +107,7 @@ class FlextCliFormatters:
 
     @staticmethod
     def create_table(
-        data: t.Json.JsonDict | None = None,
+        data: dict[str, t.GeneralValueType] | None = None,
         headers: list[str] | None = None,
         title: str | None = None,
     ) -> r[RichTable]:
@@ -136,7 +136,7 @@ class FlextCliFormatters:
 
             # Add rows if data provided
             if data and FlextRuntime.is_dict_like(data):
-                # Simple t.Json.JsonDict to table conversion - key-value pairs for 2-column tables
+                # Simple dict[str, t.GeneralValueType] to table conversion - key-value pairs for 2-column tables
                 # Use u.process to add rows
                 def add_row(k: str, v: t.GeneralValueType) -> None:
                     """Add single row to table."""

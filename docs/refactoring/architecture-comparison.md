@@ -64,7 +64,7 @@ Simple Classes (Utilities - 10+):
 Data Models (Pydantic):
 ✅ FlextCliContext - Execution context
 ✅ FlextCliModels.* - All data models
-✅ FlextCliConfig - Configuration
+✅ FlextCliSettings - Configuration
 ```
 
 ---

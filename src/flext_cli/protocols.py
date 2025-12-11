@@ -144,7 +144,7 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
             @property
-            def kwargs(self) -> t.Json.JsonDict:
+            def kwargs(self) -> dict[str, t.GeneralValueType]:
                 """Command keyword arguments."""
                 ...
 
@@ -309,7 +309,7 @@ class FlextCliProtocols(FlextProtocols):
         class CliLoggingDataProtocol(Protocol):
             """Protocol for CLI logging summary data.
 
-            Complete protocol matching m.CliLoggingData structure.
+            Complete protocol matching m.Cli.CliLoggingData structure.
             """
 
             @property
@@ -326,7 +326,7 @@ class FlextCliProtocols(FlextProtocols):
         class CliParameterSpecProtocol(Protocol):
             """Protocol for CLI parameter specification.
 
-            Complete protocol matching m.CliParameterSpec structure.
+            Complete protocol matching m.Cli.CliParameterSpec structure.
             """
 
             @property
@@ -600,18 +600,6 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
         @runtime_checkable
-        class CliCommandHandler(Protocol):
-            """Protocol for CLI command handler functions."""
-
-            def __call__(
-                self,
-                *args: t.GeneralValueType,
-                **kwargs: t.GeneralValueType,
-            ) -> t.GeneralValueType:
-                """Call handler with arguments."""
-                ...
-
-        @runtime_checkable
         class CliFormatter(Protocol):
             """Protocol for CLI formatters."""
 
@@ -627,12 +615,14 @@ class FlextCliProtocols(FlextProtocols):
         class CliConfigProvider(Protocol):
             """Protocol for CLI configuration providers."""
 
-            def load_config(self) -> FlextProtocols.Result[t.Json.JsonDict]:
+            def load_config(
+                self,
+            ) -> FlextProtocols.Result[dict[str, t.GeneralValueType]]:
                 """Load configuration."""
                 ...
 
             def save_config(
-                self, config: t.Json.JsonDict
+                self, config: Mapping[str, t.GeneralValueType]
             ) -> FlextProtocols.Result[bool]:
                 """Save configuration."""
                 ...
@@ -655,14 +645,17 @@ class FlextCliProtocols(FlextProtocols):
         class CliDebugProvider(Protocol):
             """Protocol for CLI debug providers."""
 
-            def get_debug_info(self) -> FlextProtocols.Result[t.Json.JsonDict]:
+            def get_debug_info(
+                self,
+            ) -> FlextProtocols.Result[dict[str, t.GeneralValueType]]:
                 """Get debug information."""
                 ...
 
         # PEP 695 type aliases - direct type references
-        type CliCommandFunction = FlextCliProtocols.Cli.CliCommandHandler
         # Type for registered commands (decorated functions)
         type CliRegisteredCommand = FlextCliProtocols.Cli.Command
+        # Type for CLI command functions (undecorated callables for decorators)
+        CliCommandFunction = Callable[..., t.GeneralValueType | None]
 
         @runtime_checkable
         class ModelCommandHandler(Protocol):
@@ -839,6 +832,10 @@ class FlextCliProtocols(FlextProtocols):
                 def get_exit_code(self, error: Exception) -> int:
                     """Get appropriate exit code for error."""
                     ...
+
+        # Simple command handler protocol - callable that returns a GeneralValueType
+        # (matches register_command signature: Callable[..., GeneralValueType])
+        CliCommandHandler = Callable[..., t.GeneralValueType]
 
 
 # Direct access: use FlextCliProtocols directly

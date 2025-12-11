@@ -34,11 +34,11 @@ from pydantic import BaseModel
 from typer.testing import CliRunner
 
 from flext_cli.cli_params import FlextCliCommonParams
-from flext_cli.config import FlextCliConfig
 from flext_cli.constants import c
 from flext_cli.models import m
 from flext_cli.protocols import p
 from flext_cli.services.output import FlextCliOutput
+from flext_cli.settings import FlextCliSettings
 from flext_cli.typings import t
 from flext_cli.utilities import u
 
@@ -227,7 +227,7 @@ class FlextCliCli:
             return result
         return str(result)
 
-    def _get_log_level_value(self, config: FlextCliConfig) -> int:
+    def _get_log_level_value(self, config: FlextCliSettings) -> int:
         """Get log level value from config."""
         if config.debug or config.trace:
             return logging.DEBUG
@@ -246,7 +246,7 @@ class FlextCliCli:
         )
         return getattr(logging, log_level_name, logging.INFO)
 
-    def _get_console_enabled(self, config: FlextCliConfig) -> bool:
+    def _get_console_enabled(self, config: FlextCliSettings) -> bool:
         """Get console enabled value from config."""
         console_enabled_built = u.Cli.build(
             getattr(config, "console_enabled", None),
@@ -259,7 +259,7 @@ class FlextCliCli:
 
     def _apply_common_params_to_config(
         self,
-        config: FlextCliConfig,
+        config: FlextCliSettings,
         *,
         debug: bool = False,
         trace: bool = False,
@@ -277,8 +277,8 @@ class FlextCliCli:
         }
 
         # Use mapper to filter out None and False values
-        # Type narrowing: bool | str | None are compatible with GeneralValueType (ScalarValue)
-        # No  needed - values are already compatible with GeneralValueType
+        # Type narrowing: bool | str | None are compatible with t.GeneralValueType (ScalarValue)
+        # No  needed - values are already compatible with t.GeneralValueType
         common_params_typed: dict[str, t.GeneralValueType] = dict(common_params.items())
         active_params: dict[str, t.GeneralValueType] = u.mapper().filter_dict(
             common_params_typed,
@@ -341,7 +341,7 @@ class FlextCliCli:
         self,
         name: str,
         help_text: str,
-        config: FlextCliConfig | None = None,
+        config: FlextCliSettings | None = None,
         *,
         add_completion: bool = True,
     ) -> typer.Typer:
@@ -356,7 +356,7 @@ class FlextCliCli:
         Args:
             name: Application name
             help_text: Application help text
-            config: Optional FlextConfig instance for logger reconfiguration
+            config: Optional FlextSettings instance for logger reconfiguration
             add_completion: Whether to add shell completion support
 
         Returns:
@@ -488,7 +488,11 @@ class FlextCliCli:
     # =========================================================================
 
     def _build_bool_value(
-        self, kwargs: dict[str, t.GeneralValueType], key: str, *, default: bool = False
+        self,
+        kwargs: dict[str, t.GeneralValueType],
+        key: str,
+        *,
+        default: bool = False,
     ) -> bool:
         """Extract and build bool value from kwargs."""
         val = u.mapper().get(kwargs, key)
@@ -530,10 +534,10 @@ class FlextCliCli:
             ops={"ensure_default": None},
             on_error="skip",
         )
-        # Type narrowing: build returns GeneralValueType | None
+        # Type narrowing: build returns t.GeneralValueType | None
         if type_hint_build is None:
             return None
-        # Check for GeneralValueType compatible types
+        # Check for t.GeneralValueType compatible types
         if isinstance(type_hint_build, str):
             return type_hint_build
         if isinstance(type_hint_build, int):
@@ -718,7 +722,7 @@ class FlextCliCli:
         if not isinstance(formats_build, list):
             msg = "formats_build must be list"
             raise TypeError(msg)
-        # Convert GeneralValueType to str for datetime formats
+        # Convert t.GeneralValueType to str for datetime formats
         formats_list: list[str] = [str(fmt) for fmt in formats_build]
         return click.DateTime(formats=formats_list)
 
@@ -999,7 +1003,7 @@ class FlextCliCli:
         """
         # Build config from explicit parameters if not provided
         if config is None:
-            # Type narrowing: kwargs values are bool | str, which are GeneralValueType compatible
+            # Type narrowing: kwargs values are bool | str, which are t.GeneralValueType compatible
             config_instance = FlextCliCli._build_confirm_config_from_kwargs(kwargs)
             # Type narrowing: config_instance implements ConfirmConfigProtocol
             if not hasattr(config_instance, "default") or not hasattr(
@@ -1110,7 +1114,7 @@ class FlextCliCli:
                 show_default (bool), err (bool), show_choices (bool)
 
         Returns:
-            r[GeneralValueType]: Success with input value or failure
+            r[t.GeneralValueType]: Success with input value or failure
 
         Raises:
             typer.Abort: If user aborts
@@ -1143,7 +1147,7 @@ class FlextCliCli:
                 err=config.err,
                 show_choices=config.show_choices,
             )
-            # Convert result to CliJsonValue - typer.prompt returns various types
+            # Convert result to t.GeneralValueType - typer.prompt returns various types
             json_value = (
                 FlextCliOutput.to_json(result) if isinstance(result, dict) else result
             )
@@ -1258,7 +1262,7 @@ class FlextCliCli:
             [BaseModel],
             t.GeneralValueType | r[t.GeneralValueType],
         ],
-        config: FlextCliConfig | None = None,
+        config: FlextCliSettings | None = None,
     ) -> p.Cli.CliCommandFunction:
         """Create Typer command from Pydantic model with automatic config integration.
 
@@ -1358,7 +1362,7 @@ class FlextCliCli:
             msg = f"{class_name} must be a Pydantic model (BaseModel or m subclass)"
             raise TypeError(msg)
 
-        # Handler can return GeneralValueType or r[GeneralValueType]
+        # Handler can return t.GeneralValueType or r[t.GeneralValueType]
         # Validate model_class is a type and handler is callable
         if not isinstance(model_class, type):
             msg = "model_class must be a type"
@@ -1367,7 +1371,7 @@ class FlextCliCli:
             msg = "handler must be callable"
             raise TypeError(msg)
         # Create wrapper that normalizes return type
-        # Handler accepts BaseModel, returns GeneralValueType or r[GeneralValueType]
+        # Handler accepts BaseModel, returns t.GeneralValueType or r[t.GeneralValueType]
 
         def normalized_handler(model: object) -> t.GeneralValueType:
             # Type narrowing: validate model is BaseModel instance
@@ -1382,16 +1386,16 @@ class FlextCliCli:
             # Model is now validated to be an instance of model_class
             # Handler accepts BaseModel, which model satisfies
             result = handler(model)
-            # Normalize return type: if result is r[GeneralValueType], unwrap it
+            # Normalize return type: if result is r[t.GeneralValueType], unwrap it
             if isinstance(result, r):
                 if result.is_success:
-                    # Type narrowing: unwrapped is GeneralValueType
+                    # Type narrowing: unwrapped is t.GeneralValueType
                     return result.value
                 # On failure, raise error
                 msg = f"Handler failed: {result.error}"
                 raise ValueError(msg)
-            # Result is already GeneralValueType
-            # Type narrowing: result is GeneralValueType (not r[GeneralValueType])
+            # Result is already t.GeneralValueType
+            # Type narrowing: result is t.GeneralValueType (not r[t.GeneralValueType])
             return result
 
         # Type narrowing: model_class is type[FlextCliModelT] which extends BaseModel
@@ -1410,15 +1414,15 @@ class FlextCliCli:
         return builder.build()
 
     @staticmethod
-    def execute() -> r[t.Json.JsonDict]:
+    def execute() -> r[dict[str, t.GeneralValueType]]:
         """Execute Click abstraction layer operations.
 
         Returns:
-            r[t.Json.JsonDict]: Success with CLI status or
+            r[dict[str, t.GeneralValueType]]: Success with CLI status or
             failure with error
 
         """
-        return r[t.Json.JsonDict].ok({
+        return r[dict[str, t.GeneralValueType]].ok({
             c.Cli.DictKeys.SERVICE: c.Cli.FLEXT_CLI,
             c.Cli.DictKeys.STATUS: (c.Cli.ServiceStatus.OPERATIONAL.value),
         })

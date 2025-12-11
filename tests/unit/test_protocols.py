@@ -47,7 +47,7 @@ class TestsCliProtocols:
             "CliAuthenticator",
             "CliDebugProvider",
             "CliPlugin",
-            "CliCommandHandler",
+            "ModelCommandHandler",
         ]
         for protocol_name in required_protocols:
             assert hasattr(p.Cli, protocol_name), f"Missing protocol: {protocol_name}"
@@ -60,7 +60,7 @@ class TestsCliProtocols:
             "CliAuthenticator",
             "CliDebugProvider",
             "CliPlugin",
-            "CliCommandHandler",
+            "ModelCommandHandler",
         ],
     )
     def test_protocol_has_runtime_checkable_attribute(self, protocol_name: str) -> None:
@@ -118,7 +118,7 @@ class TestsCliProtocols:
             # Type narrowing using protocol check
             if isinstance(formatter, p.Cli.CliFormatter):
                 test_data_raw = {"key": "value"}  # Simple test data
-                # Cast to CliFormatData (which is CliJsonDict)
+                # Cast to CliFormatData (which is t.JsonDict)
                 test_data = cast("t.JsonDict", test_data_raw)
                 format_result = formatter.format_data(test_data)
                 tm.ok(format_result)
@@ -265,11 +265,11 @@ class TestsCliProtocols:
 
     def test_cli_command_handler_exists(self) -> None:
         """Test that CLI command handler protocol exists."""
-        assert hasattr(p.Cli, "CliCommandHandler")
+        assert hasattr(p.Cli, "ModelCommandHandler")
 
     def test_cli_command_handler_is_runtime_checkable(self) -> None:
         """Test that CLI command handler is runtime checkable."""
-        assert hasattr(p.Cli.CliCommandHandler, "_is_protocol")
+        assert hasattr(p.Cli.ModelCommandHandler, "_is_protocol")
 
     # ========================================================================
     # PROTOCOL INHERITANCE

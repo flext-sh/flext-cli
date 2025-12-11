@@ -33,7 +33,7 @@ class TestsCliUtilities(flext_tests_u, flext_cli_u):
         """Test-specific validation operations."""
 
         @staticmethod
-        def validate_test_data(data: flext_cli_t.Json.JsonDict | None) -> r[bool]:
+        def validate_test_data(data: flext_cli_t.JsonDict | None) -> r[bool]:
             """Validate test data structure."""
             if data is None:
                 return r[bool].fail("Test data cannot be None")

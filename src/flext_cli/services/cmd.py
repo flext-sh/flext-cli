@@ -13,14 +13,13 @@ from __future__ import annotations
 from pathlib import Path
 from typing import override
 
-from flext_core import r
+from flext_core import r, t
 
 from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import c
 from flext_cli.file_tools import FlextCliFileTools
 from flext_cli.models import m
 from flext_cli.services.output import FlextCliOutput
-from flext_cli.typings import t
 from flext_cli.utilities import u
 
 
@@ -66,9 +65,11 @@ class FlextCliCmd(FlextCliServiceBase):
         # Logger is automatically provided by FlextMixins mixin
         self._file_tools = FlextCliFileTools()
 
-    def execute(self, **_kwargs: t.Json.JsonDict) -> r[t.Json.JsonDict]:
+    def execute(
+        self, **_kwargs: dict[str, t.GeneralValueType]
+    ) -> r[dict[str, t.GeneralValueType]]:
         """Report operational status required by `FlextService`."""
-        return r[t.Json.JsonDict].ok({
+        return r[dict[str, t.GeneralValueType]].ok({
             c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.OPERATIONAL.value,
             c.Cli.DictKeys.SERVICE: c.Cli.CmdDefaults.SERVICE_NAME,
         })
@@ -108,13 +109,13 @@ class FlextCliCmd(FlextCliServiceBase):
             )
 
     @staticmethod
-    def get_config_info() -> r[t.Json.JsonDict]:
+    def get_config_info() -> r[dict[str, t.GeneralValueType]]:
         """Get configuration information using FlextCliUtilities directly."""
         try:
             info = u.Cli.ConfigOps.get_config_info()
-            return r[t.Json.JsonDict].ok(info)
+            return r[dict[str, t.GeneralValueType]].ok(info)
         except Exception as e:
-            return r[t.Json.JsonDict].fail(
+            return r[dict[str, t.GeneralValueType]].fail(
                 c.Cli.ErrorMessages.CONFIG_INFO_FAILED.format(error=e),
             )
 
@@ -147,7 +148,7 @@ class FlextCliCmd(FlextCliServiceBase):
                 c.Cli.ErrorMessages.SET_CONFIG_FAILED.format(error=e),
             )
 
-    def get_config_value(self, key: str) -> r[t.Json.JsonDict]:
+    def get_config_value(self, key: str) -> r[dict[str, t.GeneralValueType]]:
         """Get configuration value with real persistence using flext-core."""
         try:
             config_path = (
@@ -156,7 +157,7 @@ class FlextCliCmd(FlextCliServiceBase):
             )
 
             if not config_path.exists():
-                return r[t.Json.JsonDict].fail(
+                return r[dict[str, t.GeneralValueType]].fail(
                     c.Cli.CmdErrorMessages.CONFIG_FILE_NOT_FOUND.format(
                         path=config_path,
                     ),
@@ -164,7 +165,7 @@ class FlextCliCmd(FlextCliServiceBase):
 
             load_result = self._file_tools.read_json_file(str(config_path))
             if load_result.is_failure:
-                return r[t.Json.JsonDict].fail(
+                return r[dict[str, t.GeneralValueType]].fail(
                     c.Cli.CmdErrorMessages.CONFIG_LOAD_FAILED.format(
                         error=load_result.error,
                     ),
@@ -172,12 +173,12 @@ class FlextCliCmd(FlextCliServiceBase):
 
             config_data = load_result.value
             if not isinstance(config_data, dict):
-                return r[t.Json.JsonDict].fail(
+                return r[dict[str, t.GeneralValueType]].fail(
                     c.Cli.CmdErrorMessages.CONFIG_NOT_DICT,
                 )
 
             if key not in config_data:
-                return r[t.Json.JsonDict].fail(
+                return r[dict[str, t.GeneralValueType]].fail(
                     c.Cli.CmdErrorMessages.CONFIG_KEY_NOT_FOUND.format(
                         key=key,
                     ),
@@ -192,10 +193,12 @@ class FlextCliCmd(FlextCliServiceBase):
             }
             # Python 3.13: to_dict_json() always returns dict, cast_if and isinstance are unnecessary
             # Reuse to_dict_json helper from output module
-            result_data: t.Json.JsonDict = FlextCliOutput.to_dict_json(raw_data)
-            return r[t.Json.JsonDict].ok(result_data)
+            result_data: dict[str, t.GeneralValueType] = FlextCliOutput.to_dict_json(
+                raw_data
+            )
+            return r[dict[str, t.GeneralValueType]].ok(result_data)
         except Exception as e:
-            return r[t.Json.JsonDict].fail(
+            return r[dict[str, t.GeneralValueType]].fail(
                 c.Cli.CmdErrorMessages.GET_CONFIG_FAILED.format(error=e),
             )
 

@@ -72,12 +72,12 @@ class TestsCliModels:
             """Test-specific command model for testing."""
 
             test_id: str = Field(..., description="Test identifier")
-            test_data: flext_cli_t.Json.JsonDict = Field(
+            test_data: flext_cli_t.JsonDict = Field(
                 default_factory=dict,
                 description="Test-specific data",
             )
 
-            def with_test_data(self, data: flext_cli_t.Json.JsonDict) -> Self:
+            def with_test_data(self, data: flext_cli_t.JsonDict) -> Self:
                 """Return copy with new test data."""
                 return self._copy_with_update(test_data=data)
 
@@ -85,12 +85,12 @@ class TestsCliModels:
             """Test-specific session model for testing."""
 
             test_session_id: str = Field(..., description="Test session identifier")
-            test_metadata: flext_cli_t.Json.JsonDict = Field(
+            test_metadata: flext_cli_t.JsonDict = Field(
                 default_factory=dict,
                 description="Test metadata",
             )
 
-            def with_metadata(self, metadata: flext_cli_t.Json.JsonDict) -> Self:
+            def with_metadata(self, metadata: flext_cli_t.JsonDict) -> Self:
                 """Return copy with new metadata."""
                 return self._copy_with_update(test_metadata=metadata)
 

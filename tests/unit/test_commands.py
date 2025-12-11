@@ -14,9 +14,8 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import time
-from typing import cast
 
-from flext_cli import FlextCliCommands, c, p, r
+from flext_cli import FlextCliCommands, c, r
 
 # from ..fixtures.constants import TestCommands  # Fixtures removed - use conftest.py and flext_tests
 from ..helpers import CommandsFactory
@@ -364,10 +363,7 @@ class TestsCliCommands:
             description="Test group description",
             commands={
                 "cmd1": {
-                    "handler": cast(
-                        "p.Cli.CliCommandHandler",
-                        lambda: "result1",
-                    ),
+                    "handler": lambda *args: "result1" if not args else args[0],
                 },
             },
         )

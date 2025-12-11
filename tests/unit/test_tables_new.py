@@ -22,7 +22,6 @@ from flext_core import t
 from flext_tests import tm
 
 from flext_cli import FlextCliTables, m, r
-from flext_cli.typings import t as flext_cli_t
 
 from .._helpers import FlextCliTestHelpers
 from ..conftest import c
@@ -32,8 +31,9 @@ from ..conftest import c
 # Alias for nested class
 TablesFactory = FlextCliTestHelpers.TablesFactory
 
-# Use TableData from typings - matches src definition
-TableData = flext_cli_t.Cli.Tables.TableData
+# Use flext_cli_t.Cli.TableData from CLI typings
+# (t is FlextTypes from flext-core, flext_cli_t is FlextCliTypes)
+# Both should work after import, no need to set alias here
 
 
 @pytest.fixture
@@ -123,7 +123,7 @@ class TestsCliTables:
         """Test basic table creation with various formats."""
         config = m.Cli.TableConfig(table_format=format_name)
         result = tables.create_table(
-            data=cast("TableData", test_data["people_dict"]),
+            data=test_data["people_dict"],
             config=config,
         )
 
@@ -147,7 +147,7 @@ class TestsCliTables:
             table_format="simple",
         )
         result = tables.create_table(
-            data=cast("TableData", test_data["people_list"]),
+            data=test_data["people_list"],
             config=config,
         )
 
@@ -165,7 +165,7 @@ class TestsCliTables:
             align=c.Config.Alignment.CENTER,
         )
         result = tables.create_table(
-            data=cast("TableData", test_data["people_dict"]),
+            data=test_data["people_dict"],
             config=config,
         )
 
@@ -182,7 +182,7 @@ class TestsCliTables:
             floatfmt=c.Config.FloatFormat.TWO_DECIMAL,
         )
         result = tables.create_table(
-            data=cast("TableData", test_data["people_dict"]),
+            data=test_data["people_dict"],
             config=config,
         )
 
@@ -199,7 +199,7 @@ class TestsCliTables:
             showindex=c.Config.SHOW_INDEX_TRUE,
         )
         result = tables.create_table(
-            data=cast("TableData", test_data["people_dict"]),
+            data=test_data["people_dict"],
             config=config,
         )
 
@@ -216,7 +216,7 @@ class TestsCliTables:
             colalign=c.Config.Alignment.LIST,
         )
         result = tables.create_table(
-            data=cast("TableData", test_data["people_dict"]),
+            data=test_data["people_dict"],
             config=config,
         )
 
@@ -240,7 +240,7 @@ class TestsCliTables:
         expected_content: list[str],
     ) -> None:
         """Test specialized table format methods."""
-        data = cast("TableData", test_data["people_dict"])
+        data = test_data["people_dict"]
 
         match method_name:
             case "simple":
@@ -281,7 +281,7 @@ class TestsCliTables:
         booktabs: bool,
     ) -> None:
         """Test LaTeX table with various options."""
-        data = cast("TableData", test_data["people_dict"])
+        data = test_data["people_dict"]
 
         result = tables.create_latex_table(
             data=data,
@@ -302,7 +302,7 @@ class TestsCliTables:
         """Test table creation with single row."""
         config = m.Cli.TableConfig(table_format="simple")
         result = tables.create_table(
-            data=cast("TableData", test_data["single_row"]),
+            data=test_data["single_row"],
             config=config,
         )
 
@@ -316,7 +316,7 @@ class TestsCliTables:
         """Test table creation with None values."""
         config = m.Cli.TableConfig(table_format="simple")
         result = tables.create_table(
-            data=cast("TableData", test_data["with_none"]),
+            data=test_data["with_none"],
             config=config,
         )
 
@@ -334,7 +334,7 @@ class TestsCliTables:
             table_format="simple",
         )
         result = tables.create_table(
-            data=cast("TableData", test_data["people_dict"]),
+            data=test_data["people_dict"],
             config=config,
         )
 
@@ -352,7 +352,7 @@ class TestsCliTables:
         """Test handling of empty data."""
         config = m.Cli.TableConfig(table_format="simple")
         result = tables.create_table(
-            data=cast("TableData", test_data["empty"]),
+            data=test_data["empty"],
             config=config,
         )
 
@@ -366,7 +366,7 @@ class TestsCliTables:
         """Test handling of invalid format."""
         config = m.Cli.TableConfig(table_format=c.Format.INVALID)
         result = tables.create_table(
-            data=cast("TableData", test_data["people_dict"]),
+            data=test_data["people_dict"],
             config=config,
         )
 
@@ -391,7 +391,7 @@ class TestsCliTables:
         test_data: dict[str, t.GeneralValueType],
     ) -> None:
         """Test complete integration workflow."""
-        data = cast("TableData", test_data["people_dict"])
+        data = test_data["people_dict"]
 
         formats = tables.list_formats()
         assert isinstance(formats, list)
@@ -414,7 +414,7 @@ class TestsCliTables:
         """Test table creation using validation helpers."""
         config = m.Cli.TableConfig(table_format="simple")
         result = tables.create_table(
-            data=cast("TableData", test_data["people_dict"]),
+            data=test_data["people_dict"],
             config=config,
         )
 
@@ -428,7 +428,7 @@ class TestsCliTables:
         """Test table error handling with validation helpers."""
         config = m.Cli.TableConfig(table_format="simple")
         result = tables.create_table(
-            data=cast("TableData", test_data["empty"]),
+            data=test_data["empty"],
             config=config,
         )
 
@@ -442,7 +442,7 @@ class TestsCliTables:
         """Test table format validation."""
         config = m.Cli.TableConfig(table_format=c.Format.GRID)
         result = tables.create_table(
-            data=cast("TableData", test_data["people_dict"]),
+            data=test_data["people_dict"],
             config=config,
         )
 

@@ -110,7 +110,7 @@ class TestsCliModels:
         models_service: m,
     ) -> None:
         """Test execute method of m."""
-        result = m.Cli.execute()
+        result = m.execute()
         tm.ok(result)
         assert result.value == {}
 
@@ -1336,7 +1336,7 @@ class TestsCliModels:
                 result = result_raw
             else:
                 # If decorator doesn't catch, create failure result manually for test
-                result = r[object].fail("Model validation failed")
+                result: r[object] = r[object].fail("Model validation failed")
         except Exception:
             # If decorator doesn't catch, create failure result manually for test
             result = r[object].fail("Model validation failed")
