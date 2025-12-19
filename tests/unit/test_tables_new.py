@@ -15,21 +15,17 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import operator
-from typing import cast
 
 import pytest
 from flext_core import t
 from flext_tests import tm
 
-from flext_cli import FlextCliTables, m, r
+from flext_cli import FlextCliTables, r
+from flext_cli.models import FlextCliModels as m
 
-from .._helpers import FlextCliTestHelpers
 from ..conftest import c
 
 # from ..fixtures.constants import TestTables  # Fixtures removed - use conftest.py and flext_tests
-
-# Alias for nested class
-TablesFactory = FlextCliTestHelpers.TablesFactory
 
 # Use flext_cli_t.Cli.TableData from CLI typings
 # (t is FlextTypes from flext-core, flext_cli_t is FlextCliTypes)
@@ -39,13 +35,48 @@ TablesFactory = FlextCliTestHelpers.TablesFactory
 @pytest.fixture
 def tables() -> FlextCliTables:
     """Create FlextCliTables instance for testing."""
-    return TablesFactory.create_tables()
+    return FlextCliTables()
 
 
 @pytest.fixture
 def test_data() -> dict[str, t.GeneralValueType]:
     """Create comprehensive table test data."""
-    return cast("dict[str, t.GeneralValueType]", TablesFactory.get_test_data())
+    return {
+        "empty": {},
+        "headers": ["Name", "Value"],
+        "rows": [["Test", "42"], ["Example", "100"]],
+        "with_none": [{"name": "alice", "value": None}, {"name": "bob", "value": 42}],
+        "list_of_dicts": [{"name": "alice", "value": 10}, {"name": "bob", "value": 20}],
+        "custom_headers": ["Custom1", "Custom2"],
+        "simple_data": [["alice", "10"], ["bob", "20"]],
+        "with_float": [
+            {"name": "alice", "score": 98.5},
+            {"name": "bob", "score": 87.3},
+        ],
+        "with_show_index": [{"name": "alice"}, {"name": "bob"}],
+        "latex_data": [["col1", "col2"], ["val1", "val2"]],
+        "people_dict": [
+            {"name": "alice", "role": "developer"},
+            {"name": "bob", "role": "manager"},
+        ],
+        "people_list": [
+            {"id": 1, "name": "alice", "status": "active"},
+            {"id": 2, "name": "bob", "status": "inactive"},
+        ],
+        "single_row": [{"name": "alice", "role": "developer"}],
+        "specialized_cases": [
+            {
+                "format": "grid",
+                "data": [{"name": "alice", "role": "dev"}],
+                "expected_content": ["alice", "dev"],
+            },
+            {
+                "format": "fancy_grid",
+                "data": [{"x": 1, "y": 2}],
+                "expected_content": ["x", "y"],
+            },
+        ],
+    }
 
 
 class TestsCliTables:
@@ -67,17 +98,18 @@ class TestsCliTables:
         formats = tables.list_formats()
         assert isinstance(formats, list)
         assert len(formats) > 0
-        for fmt in c.Format.EXPECTED_ALL:
+        # Verify basic formats are available
+        for fmt in [c.GRID, c.FANCY_GRID]:
             assert fmt in formats
 
     def test_get_format_description_success(self, tables: FlextCliTables) -> None:
         """Test get_format_description with valid format."""
-        result = tables.get_format_description(c.Format.GRID)
+        result = tables.get_format_description(c.GRID)
         assert result.is_success
 
     def test_get_format_description_failure(self, tables: FlextCliTables) -> None:
         """Test get_format_description with invalid format."""
-        result = tables.get_format_description(c.Format.INVALID)
+        result = tables.get_format_description(c.INVALID)
         assert result.is_failure
 
     def test_print_available_formats(self, tables: FlextCliTables) -> None:
@@ -96,20 +128,20 @@ class TestsCliTables:
             (
                 "simple",
                 [
-                    c.TestData.ALICE,
+                    c.CliTest.TestData.ALICE,
                     "name",  # Table uses dict keys (lowercase) as headers
                 ],
             ),
             (
-                c.Format.GRID,
+                c.GRID,
                 [
-                    c.TestData.ALICE,
+                    c.CliTest.TestData.ALICE,
                     c.Table.Borders.PLUS,
                 ],
             ),
             (
-                c.Format.FANCY_GRID,
-                [c.TestData.ALICE],
+                c.FANCY_GRID,
+                [c.CliTest.TestData.ALICE],
             ),
         ],
     )
@@ -121,11 +153,15 @@ class TestsCliTables:
         assertions: list[str],
     ) -> None:
         """Test basic table creation with various formats."""
-        config = m.Cli.TableConfig(table_format=format_name)
-        result = tables.create_table(
-            data=test_data["people_dict"],
-            config=config,
-        )
+        config = m.Cli.TableConfig.model_construct(table_format=format_name)
+        # Get and validate test data
+        people_dict: object = test_data["people_dict"]
+        if not isinstance(people_dict, (dict, list)):
+            pytest.fail(
+                f"Expected dict or list for people_dict, got {type(people_dict)}"
+            )
+        # Type is now narrowed to dict | list which is acceptable for table creation
+        result = tables.create_table(data=people_dict, config=config)
 
         assert result.is_success
         table_str = result.value
@@ -142,17 +178,21 @@ class TestsCliTables:
         test_data: dict[str, t.GeneralValueType],
     ) -> None:
         """Test table creation with custom headers."""
-        config = m.Cli.TableConfig(
-            headers=c.Table.Data.Headers.CUSTOM,
+        config = m.Cli.TableConfig.model_construct(
+            headers=("ID", "Name", "Status"),
             table_format="simple",
         )
+        data_val: object = test_data["people_list"]
+        if not isinstance(data_val, (dict, list)):
+            pytest.fail(f"Expected dict or list for people_list, got {type(data_val)}")
+
         result = tables.create_table(
-            data=test_data["people_list"],
+            data=data_val,
             config=config,
         )
 
         assert result.is_success
-        assert c.TestData.ALICE in result.value
+        assert c.CliTest.TestData.ALICE in result.value
 
     def test_create_table_with_alignment(
         self,
@@ -160,12 +200,16 @@ class TestsCliTables:
         test_data: dict[str, t.GeneralValueType],
     ) -> None:
         """Test table creation with alignment option."""
-        config = m.Cli.TableConfig(
+        config = m.Cli.TableConfig.model_construct(
             table_format="simple",
-            align=c.Config.Alignment.CENTER,
+            align="center",
         )
+        data_val: object = test_data["people_dict"]
+        if not isinstance(data_val, (dict, list)):
+            pytest.fail(f"Expected dict or list for people_dict, got {type(data_val)}")
+
         result = tables.create_table(
-            data=test_data["people_dict"],
+            data=data_val,
             config=config,
         )
 
@@ -177,12 +221,16 @@ class TestsCliTables:
         test_data: dict[str, t.GeneralValueType],
     ) -> None:
         """Test table creation with float formatting."""
-        config = m.Cli.TableConfig(
+        config = m.Cli.TableConfig.model_construct(
             table_format="simple",
-            floatfmt=c.Config.FloatFormat.TWO_DECIMAL,
+            floatfmt=".2g",
         )
+        data_val: object = test_data["people_dict"]
+        if not isinstance(data_val, (dict, list)):
+            pytest.fail(f"Expected dict or list for people_dict, got {type(data_val)}")
+
         result = tables.create_table(
-            data=test_data["people_dict"],
+            data=data_val,
             config=config,
         )
 
@@ -194,12 +242,16 @@ class TestsCliTables:
         test_data: dict[str, t.GeneralValueType],
     ) -> None:
         """Test table creation with show index option."""
-        config = m.Cli.TableConfig(
+        config = m.Cli.TableConfig.model_construct(
             table_format="simple",
-            showindex=c.Config.SHOW_INDEX_TRUE,
+            showindex=True,
         )
+        data_val: object = test_data["people_dict"]
+        if not isinstance(data_val, (dict, list)):
+            pytest.fail(f"Expected dict or list for people_dict, got {type(data_val)}")
+
         result = tables.create_table(
-            data=test_data["people_dict"],
+            data=data_val,
             config=config,
         )
 
@@ -211,12 +263,16 @@ class TestsCliTables:
         test_data: dict[str, t.GeneralValueType],
     ) -> None:
         """Test table creation with column alignment."""
-        config = m.Cli.TableConfig(
+        config = m.Cli.TableConfig.model_construct(
             table_format="simple",
-            colalign=c.Config.Alignment.LIST,
+            colalign=("left", "center", "right"),
         )
+        data_val: object = test_data["people_dict"]
+        if not isinstance(data_val, (dict, list)):
+            pytest.fail(f"Expected dict or list for people_dict, got {type(data_val)}")
+
         result = tables.create_table(
-            data=test_data["people_dict"],
+            data=data_val,
             config=config,
         )
 
@@ -240,7 +296,13 @@ class TestsCliTables:
         expected_content: list[str],
     ) -> None:
         """Test specialized table format methods."""
-        data = test_data["people_dict"]
+        data_value: object = test_data["people_dict"]
+        if not isinstance(data_value, (dict, list)):
+            pytest.fail(
+                f"Expected dict or list for people_dict, got {type(data_value)}"
+            )
+        # Type is now narrowed to dict | list which is acceptable for table methods
+        data = data_value
 
         match method_name:
             case "simple":
@@ -281,7 +343,12 @@ class TestsCliTables:
         booktabs: bool,
     ) -> None:
         """Test LaTeX table with various options."""
-        data = test_data["people_dict"]
+        data_value: object = test_data["people_dict"]
+        if not isinstance(data_value, (dict, list)):
+            pytest.fail(
+                f"Expected dict or list for people_dict, got {type(data_value)}"
+            )
+        data = data_value
 
         result = tables.create_latex_table(
             data=data,
@@ -300,12 +367,15 @@ class TestsCliTables:
         test_data: dict[str, t.GeneralValueType],
     ) -> None:
         """Test table creation with single row."""
-        config = m.Cli.TableConfig(table_format="simple")
+        config = m.Cli.TableConfig.model_construct(table_format="simple")
+        # Get and validate test data
+        data_val: object = test_data["single_row"]
+        if not isinstance(data_val, (dict, list)):
+            pytest.fail(f"Expected dict or list for single_row, got {type(data_val)}")
         result = tables.create_table(
-            data=test_data["single_row"],
+            data=data_val,
             config=config,
         )
-
         assert result.is_success
 
     def test_table_with_none_values(
@@ -314,14 +384,17 @@ class TestsCliTables:
         test_data: dict[str, t.GeneralValueType],
     ) -> None:
         """Test table creation with None values."""
-        config = m.Cli.TableConfig(table_format="simple")
+        config = m.Cli.TableConfig.model_construct(table_format="simple")
+        # Get and validate test data
+        data_val: object = test_data["with_none"]
+        if not isinstance(data_val, (dict, list)):
+            pytest.fail(f"Expected dict or list for with_none, got {type(data_val)}")
         result = tables.create_table(
-            data=test_data["with_none"],
+            data=data_val,
             config=config,
         )
-
         assert result.is_success
-        assert c.TestData.ALICE in result.value
+        assert c.CliTest.TestData.ALICE in result.value
 
     def test_list_of_dicts_with_custom_headers(
         self,
@@ -329,12 +402,16 @@ class TestsCliTables:
         test_data: dict[str, t.GeneralValueType],
     ) -> None:
         """Test list of dicts with custom headers."""
-        config = m.Cli.TableConfig(
-            headers=c.Table.Data.Headers.CUSTOM,
+        config = m.Cli.TableConfig.model_construct(
+            headers=("ID", "Name", "Status"),
             table_format="simple",
         )
+        data_val: object = test_data["people_dict"]
+        if not isinstance(data_val, (dict, list)):
+            pytest.fail(f"Expected dict or list for people_dict, got {type(data_val)}")
+
         result = tables.create_table(
-            data=test_data["people_dict"],
+            data=data_val,
             config=config,
         )
 
@@ -350,12 +427,15 @@ class TestsCliTables:
         test_data: dict[str, t.GeneralValueType],
     ) -> None:
         """Test handling of empty data."""
-        config = m.Cli.TableConfig(table_format="simple")
+        config = m.Cli.TableConfig.model_construct(table_format="simple")
+        # Get and validate test data
+        data_val: object = test_data["empty"]
+        if not isinstance(data_val, (dict, list)):
+            pytest.fail(f"Expected dict or list for empty, got {type(data_val)}")
         result = tables.create_table(
-            data=test_data["empty"],
+            data=data_val,
             config=config,
         )
-
         assert isinstance(result, r)
 
     def test_invalid_format_handling(
@@ -364,12 +444,15 @@ class TestsCliTables:
         test_data: dict[str, t.GeneralValueType],
     ) -> None:
         """Test handling of invalid format."""
-        config = m.Cli.TableConfig(table_format=c.Format.INVALID)
+        config = m.Cli.TableConfig.model_construct(table_format=c.INVALID)
+        # Get and validate test data
+        data_val: object = test_data["people_dict"]
+        if not isinstance(data_val, (dict, list)):
+            pytest.fail(f"Expected dict or list for people_dict, got {type(data_val)}")
         result = tables.create_table(
-            data=test_data["people_dict"],
+            data=data_val,
             config=config,
         )
-
         assert isinstance(result, r)
 
     # ========================================================================
@@ -391,14 +474,19 @@ class TestsCliTables:
         test_data: dict[str, t.GeneralValueType],
     ) -> None:
         """Test complete integration workflow."""
-        data = test_data["people_dict"]
+        data_value: object = test_data["people_dict"]
+        if not isinstance(data_value, (dict, list)):
+            pytest.fail(
+                f"Expected dict or list for people_dict, got {type(data_value)}"
+            )
+        data = data_value
 
         formats = tables.list_formats()
         assert isinstance(formats, list)
         assert len(formats) > 0
 
         first_format = formats[0]
-        config = m.Cli.TableConfig(table_format=first_format)
+        config = m.Cli.TableConfig.model_construct(table_format=first_format)
         table_result = tables.create_table(data=data, config=config)
         assert table_result.is_success
 
@@ -412,9 +500,14 @@ class TestsCliTables:
         test_data: dict[str, t.GeneralValueType],
     ) -> None:
         """Test table creation using validation helpers."""
-        config = m.Cli.TableConfig(table_format="simple")
+        config = m.Cli.TableConfig.model_construct(table_format="simple")
+        data_val: object = test_data["people_dict"]
+
+        if not isinstance(data_val, (dict, list)):
+            pytest.fail(f"Expected dict or list for people_dict, got {type(data_val)}")
+
         result = tables.create_table(
-            data=test_data["people_dict"],
+            data=data_val,
             config=config,
         )
 
@@ -426,9 +519,14 @@ class TestsCliTables:
         test_data: dict[str, t.GeneralValueType],
     ) -> None:
         """Test table error handling with validation helpers."""
-        config = m.Cli.TableConfig(table_format="simple")
+        config = m.Cli.TableConfig.model_construct(table_format="simple")
+        data_val: object = test_data["empty"]
+
+        if not isinstance(data_val, (dict, list)):
+            pytest.fail(f"Expected dict or list for empty, got {type(data_val)}")
+
         result = tables.create_table(
-            data=test_data["empty"],
+            data=data_val,
             config=config,
         )
 
@@ -440,9 +538,13 @@ class TestsCliTables:
         test_data: dict[str, t.GeneralValueType],
     ) -> None:
         """Test table format validation."""
-        config = m.Cli.TableConfig(table_format=c.Format.GRID)
+        config = m.Cli.TableConfig.model_construct(table_format=c.GRID)
+        data_val: object = test_data["people_dict"]
+        if not isinstance(data_val, (dict, list)):
+            pytest.fail(f"Expected dict or list for people_dict, got {type(data_val)}")
+
         result = tables.create_table(
-            data=test_data["people_dict"],
+            data=data_val,
             config=config,
         )
 

@@ -9,6 +9,7 @@ from typing import (
     ClassVar,
     Literal,
     Self,
+    TypeGuard,
     Union,
     get_args,
     get_origin,
@@ -21,14 +22,38 @@ from flext_core import (
     FlextRuntime,
     r,
 )
+
+# Import DomainEvent for Pydantic v2 forward reference resolution
+# CliCommand and CliSession extend FlextModels.Entity which has:
+#   domain_events: list["DomainEvent"] = Field(default_factory=list)
+# Pydantic v2 model_rebuild() needs "DomainEvent" resolvable in parent namespace
+from flext_core._models.entity import FlextModelsEntity
 from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
 from pydantic.fields import FieldInfo
 
-from flext_cli.constants import c
-from flext_cli.protocols import p
+from flext_cli.constants import FlextCliConstants
+from flext_cli.protocols import FlextCliProtocols as p
 from flext_cli.typings import t
 
-# models.py cannot import utilities - use direct dict access and isinstance instead
+
+class _CliLoggingData(BaseModel):
+    """CLI logging data model - defined at module level to avoid Pydantic field inheritance issues.
+
+    CRITICAL: Defined OUTSIDE nested classes to prevent Pydantic from merging fields.
+    Pydantic nested classes can share field definitions if defined in sequence,
+    so this is at module level and then aliased into Cli namespace.
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    level: str = Field(
+        default="INFO",
+        description="Logging level",
+    )
+    format: str = Field(
+        default="%(asctime)s - %(message)s",
+        description="Logging format",
+    )
 
 
 class FlextCliModels(FlextModels):
@@ -60,9 +85,19 @@ class FlextCliModels(FlextModels):
         PADRAO: Namespace hierarquico completo, sem duplicacao.
         """
 
+        # Module-level Pydantic model aliased to avoid field inheritance issues
+        # CliLoggingData is defined at module level (_CliLoggingData) to prevent
+        # Pydantic from merging field definitions with LoggingConfig
+        CliLoggingData: ClassVar = _CliLoggingData
+
+        # === Pydantic v2 Forward Reference Resolution ===
+        # CliCommand and CliSession extend Entity which has domain_events: list["DomainEvent"]
+        # Pydantic needs DomainEvent resolvable in parent namespace during model_rebuild()
+        DomainEvent = FlextModelsEntity.DomainEvent
+
         # Metodo estatico para compatibilidade
         @staticmethod
-        def execute() -> r[dict[str, t.GeneralValueType]]:
+        def execute() -> r[Mapping[str, t.GeneralValueType]]:
             """Execute models operation - returns empty dict for compatibility."""
             return r[dict[str, t.GeneralValueType]].ok({})
 
@@ -80,6 +115,116 @@ class FlextCliModels(FlextModels):
 
         class Value(FlextModels.Value):
             """Value model base - heranca real de FlextModels.Value."""
+
+        class TableConfig(FlextModels.Value):
+            """Table display configuration for tabulate extending Value via inheritance.
+
+            Fields map directly to tabulate() parameters.
+            Inherits frozen=True and extra="forbid" from FlextModels.Value.
+            """
+
+            # Headers configuration
+            headers: str | Sequence[str] = Field(
+                default="keys",
+                description=(
+                    "Table headers (string like 'keys', 'firstrow' "
+                    "or sequence of header names)"
+                ),
+            )
+            show_header: bool = Field(
+                default=True,
+                description="Whether to show table header",
+            )
+
+            # Format configuration
+            table_format: str = Field(
+                default="simple",
+                description="Table format (simple, grid, fancy_grid, pipe, orgtbl, etc.)",
+            )
+
+            # Number formatting
+            floatfmt: str = Field(
+                default=".4g",
+                description="Float format string",
+            )
+            numalign: str = Field(
+                default="decimal",
+                description="Number alignment (right, center, left, decimal)",
+            )
+
+            # String formatting
+            stralign: str = Field(
+                default="left",
+                description="String alignment (left, center, right)",
+            )
+
+            # General alignment (alias for stralign/numalign compatibility)
+            align: str = Field(
+                default="left",
+                description="General alignment (left, center, right, decimal)",
+            )
+
+            # Missing values
+            missingval: str = Field(
+                default="",
+                description="String to use for missing values",
+            )
+
+            # Index display
+            showindex: bool | str | Sequence[str | int] = Field(
+                default=False,
+                description="Whether to show row indices",
+            )
+
+            # Column alignment
+            colalign: Sequence[str] | None = Field(
+                default=None,
+                description="Per-column alignment (left, center, right, decimal)",
+            )
+
+            # Number parsing
+            disable_numparse: bool | Sequence[int] = Field(
+                default=False,
+                description="Disable number parsing (bool or list of column indices)",
+            )
+
+            def get_effective_colalign(self) -> Sequence[str] | None:
+                """Get effective column alignment, resolving None to default."""
+                return self.colalign
+
+        class LoggingConfig(FlextModels.Value):
+            """Logging configuration model extending Value via inheritance.
+
+            Manages logging behavior for CLI applications with level, format, and output settings.
+            Inherits frozen=True and extra="forbid" from FlextModels.Value.
+            """
+
+            log_level: str = Field(
+                default="INFO",
+                description="Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)",
+            )
+            log_format: str = Field(
+                default="%(asctime)s - %(levelname)s - %(message)s",
+                description="Log message format string",
+            )
+            console_output: bool = Field(
+                default=True,
+                description="Whether to output logs to console",
+            )
+            log_file: str = Field(
+                default="",
+                description="Log file path (empty string means no file logging)",
+            )
+
+            @computed_field
+            @property
+            def logging_summary(self) -> _CliLoggingData:
+                """Return logging summary as structured data."""
+                # Use model_construct with module-level _CliLoggingData
+                return _CliLoggingData.model_construct(
+                    level=self.log_level,
+                    format=self.log_format,
+                )
 
         class CliCommand(Entity):
             """CLI command model extending Entity via inheritance."""
@@ -197,13 +342,17 @@ class FlextCliModels(FlextModels):
                 # Real implementations should override this method
                 return r[t.GeneralValueType].ok(None)
 
-            def with_status(self, status: str | c.Cli.CommandStatus) -> Self:
+            def with_status(
+                self, status: str | FlextCliConstants.Cli.CommandStatus
+            ) -> Self:
                 """Return copy with new status.
 
-                Accepts both str and c.Cli.CommandStatus for protocol compatibility.
+                Accepts both str and FlextCliConstants.Cli.CommandStatus for protocol compatibility.
                 """
                 status_value = (
-                    status.value if isinstance(status, c.Cli.CommandStatus) else status
+                    status.value
+                    if isinstance(status, FlextCliConstants.Cli.CommandStatus)
+                    else status
                 )
                 return self._copy_with_update(status=status_value)
 
@@ -212,9 +361,31 @@ class FlextCliModels(FlextModels):
                 return self._copy_with_update(args=list(args))
 
             @property
-            def command_summary(self) -> dict[str, str]:
+            def command_summary(self) -> Mapping[str, str]:
                 """Return command summary as dict."""
                 return {"command": self.command_line or self.name}
+
+            @property
+            def is_pending(self) -> bool:
+                """Check if command is pending."""
+                return self.status == FlextCliConstants.Cli.CommandStatus.PENDING.value
+
+            @property
+            def is_running(self) -> bool:
+                """Check if command is running."""
+                return self.status == FlextCliConstants.Cli.CommandStatus.RUNNING.value
+
+            @property
+            def is_completed(self) -> bool:
+                """Check if command is completed."""
+                return (
+                    self.status == FlextCliConstants.Cli.CommandStatus.COMPLETED.value
+                )
+
+            @property
+            def is_failed(self) -> bool:
+                """Check if command failed."""
+                return self.status == FlextCliConstants.Cli.CommandStatus.FAILED.value
 
             def start_execution(self) -> r[Self]:
                 """Start command execution - update status to running."""
@@ -286,7 +457,7 @@ class FlextCliModels(FlextModels):
                     raise TypeError(msg)
                 # Validate value is in allowed statuses
                 str_value: str = value
-                valid_statuses = c.Cli.ValidationLists.SESSION_STATUSES
+                valid_statuses = FlextCliConstants.Cli.ValidationLists.SESSION_STATUSES
                 if str_value not in valid_statuses:
                     msg = f"session_status must be one of {valid_statuses}, got '{str_value}'"
                     raise ValueError(msg)
@@ -334,21 +505,30 @@ class FlextCliModels(FlextModels):
                     commands_count=len(self.commands),
                 )
 
-            @property
-            def commands_by_status(self) -> dict[str, list[m.Cli.CliCommand]]:
-                """Group commands by status."""
-                # Filter commands to only CliCommand instances
+            def commands_by_status(
+                self,
+                status: str | None = None,
+            ) -> list[m.Cli.CliCommand] | Mapping[str, list[m.Cli.CliCommand]]:
+                """Get commands filtered by status or grouped by all statuses.
 
-                cli_commands: list[m.Cli.CliCommand] = [
-                    cmd for cmd in self.commands if isinstance(cmd, m.Cli.CliCommand)
-                ]
-                # Group by status
+                Args:
+                    status: Optional status to filter by. If None, returns all grouped.
+
+                Returns:
+                    If status provided: List of commands matching that status
+                    If status is None: Mapping of status -> commands
+
+                """
+                cli_commands: list[m.Cli.CliCommand] = list(self.commands)
                 result: dict[str, list[m.Cli.CliCommand]] = {}
                 for command in cli_commands:
-                    status = command.status or ""
-                    if status not in result:
-                        result[status] = []
-                    result[status].append(command)
+                    cmd_status = command.status or ""
+                    if cmd_status not in result:
+                        result[cmd_status] = []
+                    result[cmd_status].append(command)
+
+                if status is not None:
+                    return result.get(status, [])
                 return result
 
             def add_command(self, command: p.Cli.Command) -> r[Self]:
@@ -403,8 +583,8 @@ class FlextCliModels(FlextModels):
                 description="Command line arguments",
             )
 
-            output_format: c.Cli.OutputFormats = Field(
-                default=c.Cli.OutputFormats.TABLE,
+            output_format: FlextCliConstants.Cli.OutputFormats = Field(
+                default=FlextCliConstants.Cli.OutputFormats.TABLE,
                 description="Output format preference",
             )
 
@@ -416,8 +596,8 @@ class FlextCliModels(FlextModels):
                 extra="forbid",
             )
 
-            format: c.Cli.OutputFormats = Field(
-                default=c.Cli.OutputFormats.TABLE,
+            format: FlextCliConstants.Cli.OutputFormats = Field(
+                default=FlextCliConstants.Cli.OutputFormats.TABLE,
                 description="Output format",
             )
 
@@ -531,18 +711,18 @@ class FlextCliModels(FlextModels):
                 validate_default=True,
             )
 
-            server_type: c.Cli.ServerType = Field(
-                default=c.Cli.ServerType.RFC,
+            server_type: FlextCliConstants.Cli.ServerType = Field(
+                default=FlextCliConstants.Cli.ServerType.RFC,
                 description="Server type",
             )
 
-            output_format: c.Cli.OutputFormats = Field(
-                default=c.Cli.OutputFormats.TABLE,
+            output_format: FlextCliConstants.Cli.OutputFormats = Field(
+                default=FlextCliConstants.Cli.OutputFormats.TABLE,
                 description="Default output format",
             )
 
-            verbosity: c.Cli.LogVerbosity = Field(
-                default=c.Cli.LogVerbosity.COMPACT,
+            verbosity: FlextCliConstants.Cli.LogVerbosity = Field(
+                default=FlextCliConstants.Cli.LogVerbosity.COMPACT,
                 description="Log verbosity level",
             )
 
@@ -563,85 +743,9 @@ class FlextCliModels(FlextModels):
                 description="Require confirmation for destructive actions",
             )
 
-        # =========================================================================
-        # ADDITIONAL MODELS - Required by flext-cli modules
-        # =========================================================================
-
-        class TableConfig(Value):
-            """Table display configuration for tabulate extending Value via inheritance.
-
-            Fields map directly to tabulate() parameters.
-            Inherits frozen=True and extra="forbid" from FlextModels.Value.
-            """
-
-            # Headers configuration
-            headers: str | Sequence[str] = Field(
-                default="keys",
-                description=(
-                    "Table headers (string like 'keys', 'firstrow' "
-                    "or sequence of header names)"
-                ),
-            )
-            show_header: bool = Field(
-                default=True,
-                description="Whether to show table header",
-            )
-
-            # Format configuration
-            table_format: str = Field(
-                default="simple",
-                description="Table format (simple, grid, fancy_grid, pipe, orgtbl, etc.)",
-            )
-
-            # Number formatting
-            floatfmt: str = Field(
-                default=".4g",
-                description="Float format string",
-            )
-            numalign: str = Field(
-                default="decimal",
-                description="Number alignment (right, center, left, decimal)",
-            )
-
-            # String formatting
-            stralign: str = Field(
-                default="left",
-                description="String alignment (left, center, right)",
-            )
-
-            # General alignment (alias for stralign/numalign compatibility)
-            align: str = Field(
-                default="left",
-                description="General alignment (left, center, right, decimal)",
-            )
-
-            # Missing values
-            missingval: str = Field(
-                default="",
-                description="String to use for missing values",
-            )
-
-            # Index display
-            showindex: bool | str | Sequence[str | int] = Field(
-                default=False,
-                description="Whether to show row indices",
-            )
-
-            # Column alignment
-            colalign: Sequence[str] | None = Field(
-                default=None,
-                description="Per-column alignment (left, center, right, decimal)",
-            )
-
-            # Number parsing
-            disable_numparse: bool | Sequence[int] = Field(
-                default=False,
-                description="Disable number parsing (bool or list of column indices)",
-            )
-
-            def get_effective_colalign(self) -> Sequence[str] | None:
-                """Get effective column alignment, resolving None to default."""
-                return self.colalign
+            # =========================================================================
+            # ADDITIONAL MODELS - Required by flext-cli modules
+            # =========================================================================
 
         class WorkflowResult(Value):
             """Workflow execution result with step-by-step tracking.
@@ -770,7 +874,7 @@ class FlextCliModels(FlextModels):
             default: bool = Field(default=False, description="Default value")
             abort: bool = Field(default=False, description="Abort if not confirmed")
             prompt_suffix: str = Field(
-                default=c.Cli.UIDefaults.DEFAULT_PROMPT_SUFFIX,
+                default=FlextCliConstants.Cli.UIDefaults.DEFAULT_PROMPT_SUFFIX,
                 description="Suffix after prompt",
             )
             show_default: bool = Field(
@@ -803,7 +907,7 @@ class FlextCliModels(FlextModels):
                 description="Value processor function",
             )
             prompt_suffix: str = Field(
-                default=c.Cli.UIDefaults.DEFAULT_PROMPT_SUFFIX,
+                default=FlextCliConstants.Cli.UIDefaults.DEFAULT_PROMPT_SUFFIX,
                 description="Suffix after prompt",
             )
             hide_input: bool = Field(default=False, description="Hide user input")
@@ -909,7 +1013,7 @@ class FlextCliModels(FlextModels):
                     message=self.message,
                 )
 
-            def dump_masked(self) -> dict[str, t.GeneralValueType]:
+            def dump_masked(self) -> Mapping[str, t.GeneralValueType]:
                 """Dump model with sensitive data masking.
 
                 Business Rule:
@@ -1050,7 +1154,7 @@ class FlextCliModels(FlextModels):
                 # Use field_name_override if available, otherwise use field_name
                 # Registry uses KEY_FIELD_NAME_OVERRIDE to map CLI param name to field name
                 field_name_override = field_meta.get(
-                    c.Cli.CliParamsRegistry.KEY_FIELD_NAME_OVERRIDE,
+                    FlextCliConstants.Cli.CliParamsRegistry.KEY_FIELD_NAME_OVERRIDE,
                 )
                 cli_param_name: str = (
                     str(field_name_override)
@@ -1221,7 +1325,7 @@ class FlextCliModels(FlextModels):
             ───────────────────
             - Dynamic code generation MUST validate model_class is BaseModel subclass
             - Function creation MUST use exec() safely (no user input in code string)
-            - Type conversion MUST preserve type safety (no Any types)
+            - Type conversion MUST preserve type safety (no object  # TODO(@marlonsc): Replace Any with proper type types) - See type-system-architecture.md
             - Field validation MUST use Pydantic validators (not bypassed)
             - Sensitive fields (SecretStr) MUST be handled securely in CLI args
             - Command execution MUST log all parameters (except sensitive fields)
@@ -1757,16 +1861,16 @@ class FlextCliModels(FlextModels):
 
                 """
                 func_body = f"""
-        kwargs = {{{", ".join(f'"{n}": {n}' for n in annotations)}}}
-        model_instance = builder_model_class(**kwargs)
-        if builder_config is not None:
-            for fn, v in kwargs.items():
-                if hasattr(builder_config, fn):
-                    object.__setattr__(builder_config, fn, v)
-        if callable(builder_handler):
-            return builder_handler(model_instance)
-        raise RuntimeError("builder_handler is not callable")
-    """
+            kwargs = {{{", ".join(f'"{n}": {n}' for n in annotations)}}}
+            model_instance = builder_model_class(**kwargs)
+            if builder_config is not None:
+                for fn, v in kwargs.items():
+                    if hasattr(builder_config, fn):
+                        object.__setattr__(builder_config, fn, v)
+            if callable(builder_handler):
+                return builder_handler(model_instance)
+            raise RuntimeError("builder_handler is not callable")
+        """
                 func_globals = {
                     "builder_model_class": self.model_class,
                     "builder_config": self.config,
@@ -1784,19 +1888,19 @@ class FlextCliModels(FlextModels):
                 real_annotations = self._create_real_annotations(annotations)
                 command_wrapper.__annotations__ = real_annotations
 
-                # Type narrowing: Use TypeGuard to narrow type from object to Callable
-                # Check if command_wrapper is the expected callable type
-                if _is_callable_function(command_wrapper):
-                    return command_wrapper
+                # Type narrowing: Define TypeGuard for dynamic function validation
+                def is_command_wrapper(
+                    obj: object,
+                ) -> TypeGuard[Callable[..., t.GeneralValueType]]:
+                    """TypeGuard to verify exec()-created function is valid command wrapper."""
+                    return isinstance(obj, types.FunctionType)
 
-                # If not callable, provide detailed error
-                if callable(command_wrapper):
-                    msg = (
-                        "command_wrapper must be a callable function, not a class type"
-                    )
-                else:
-                    msg = "command_wrapper must be callable (function, method, or callable object)"
-                raise TypeError(msg)
+                # Validate and narrow type
+                if not is_command_wrapper(command_wrapper):
+                    msg = "exec() failed to create valid function"
+                    raise RuntimeError(msg)
+
+                return command_wrapper
 
             def build(self) -> Callable[..., t.GeneralValueType]:
                 # Callable[..., T] uses ... for variadic args (created dynamically)
@@ -2034,9 +2138,11 @@ class FlextCliModels(FlextModels):
                             else None
                         )
                         help_text = str(
-                            field_info.description
-                            if hasattr(field_info, "description")
-                            else "",
+                            (
+                                field_info.description
+                                if hasattr(field_info, "description")
+                                else ""
+                            ),
                         )
                     else:
                         annotation = getattr(field_info, "annotation", None)
@@ -2369,11 +2475,13 @@ class FlextCliModels(FlextModels):
             @staticmethod
             def _validate_field_data(
                 field_name: str,
-                field_info: FieldInfo
-                | t.GeneralValueType
-                | Mapping[str, t.GeneralValueType]
-                | dict[str, object]
-                | dict[str, type | str | bool | list[object] | dict[str, object]],
+                field_info: (
+                    FieldInfo
+                    | t.GeneralValueType
+                    | Mapping[str, t.GeneralValueType]
+                    | dict[str, object]
+                    | dict[str, type | str | bool | list[object] | dict[str, object]]
+                ),
                 data: Mapping[str, t.GeneralValueType] | None = None,
             ) -> r[t.GeneralValueType]:
                 """Validate field data against field info."""
@@ -2395,18 +2503,28 @@ class FlextCliModels(FlextModels):
 
             @staticmethod
             def _process_validators(
-                field_info: Sequence[Callable[[t.GeneralValueType], t.GeneralValueType]]
-                | Sequence[object]
-                | t.GeneralValueType,
+                field_info: (
+                    Sequence[Callable[[t.GeneralValueType], t.GeneralValueType]]
+                    | Sequence[object]
+                    | t.GeneralValueType
+                ),
             ) -> list[Callable[[t.GeneralValueType], t.GeneralValueType]]:
                 """Process validators from field info, filtering only callable validators."""
+
+                def is_validator(
+                    item: object,
+                ) -> TypeGuard[Callable[[t.GeneralValueType], t.GeneralValueType]]:
+                    """TypeGuard to check if item is a validator callable."""
+                    return callable(item) and not isinstance(item, type)
+
                 if not isinstance(field_info, (list, tuple, Sequence)):
                     return []
-                return [
-                    item
-                    for item in field_info
-                    if callable(item) and not isinstance(item, type)
-                ]
+                # Build result list explicitly for proper type narrowing
+                result: list[Callable[[t.GeneralValueType], t.GeneralValueType]] = []
+                for item in field_info:
+                    if is_validator(item):
+                        result.append(item)  # noqa: PERF401
+                return result
 
         class CliModelDecorators:
             """Decorators for creating CLI commands from Pydantic models."""
@@ -2505,39 +2623,6 @@ class FlextCliModels(FlextModels):
 
                 return decorator
 
-        class LoggingConfig(Value):
-            """Logging configuration model.
-
-            Inherits frozen=True and extra="forbid" from FlextModels.Value.
-            """
-
-            log_level: str = Field(default="INFO", description="Log level")
-            log_format: str = Field(default="", description="Log format string")
-            console_output: bool = Field(
-                default=True, description="Enable console output"
-            )
-            log_file: str = Field(default="", description="Log file path")
-
-            @property
-            def logging_summary(self) -> m.Cli.CliLoggingData:
-                """Return logging summary as CliLoggingData model."""
-                return m.Cli.CliLoggingData(
-                    level=self.log_level,
-                    console_enabled=self.console_output,
-                )
-
-        class CliLoggingData(Value):
-            """CLI logging summary data.
-
-            Inherits frozen=True and extra="forbid" from FlextModels.Value.
-            """
-
-            level: str = Field(default="INFO", description="Log level")
-            console_enabled: bool = Field(
-                default=True,
-                description="Console output enabled",
-            )
-
         class CliDebugData(Value):
             """CLI debug summary data.
 
@@ -2570,6 +2655,27 @@ class FlextCliModels(FlextModels):
             # Reference protocol types (p.Cli.Interactive.*)
             type Progress = p.Cli.Interactive.RichProgressProtocol
 
+            # ═════════════════════════════════════════════════════════════════════
+            # VALUE CLASS ALIASES - FORWARD COMPATIBILITY
+            # ═════════════════════════════════════════════════════════════════════
+            # These aliases allow m.SystemInfo instead of m.Cli.Value.SystemInfo
+            # Maintains backward compatibility while supporting namespace hierarchy
+            # ═════════════════════════════════════════════════════════════════════
+
+            # Expose nested Value classes at Cli level for compatibility
+            # Note: Some classes may not exist yet - commented out to avoid import errors
+            # SystemInfo = Value.SystemInfo
+            # EnvironmentInfo = Value.EnvironmentInfo
+            # PathInfo = Value.PathInfo
+            # CommandStatistics = Value.CommandStatistics
+            # SessionStatistics = Value.SessionStatistics
+            # ServiceExecutionResult = Value.ServiceExecutionResult
+            # CommandExecutionContextResult = Value.CommandExecutionContextResult
+
+        # End of Cli class
+
+    # End of FlextCliModels class
+
 
 # =========================================================================
 # NAMESPACE HIERARCHY - PADRAO CORRETO PARA FLEXT-CLI
@@ -2579,11 +2685,72 @@ class FlextCliModels(FlextModels):
 # SEM quebra de codigo - mantem compatibilidade backward
 # =========================================================================
 
+
 m = FlextCliModels
 m_cli = FlextCliModels
 
+# Export classes for convenience - accessed from FlextCliModels.Cli
+SystemInfo = FlextCliModels.Cli.SystemInfo
+EnvironmentInfo = FlextCliModels.Cli.EnvironmentInfo
+PathInfo = FlextCliModels.Cli.PathInfo
+ContextExecutionResult = FlextCliModels.Cli.ContextExecutionResult
+DebugInfo = FlextCliModels.Cli.DebugInfo
+CommandStatistics = FlextCliModels.Cli.CommandStatistics
+SessionStatistics = FlextCliModels.Cli.SessionStatistics
+PromptStatistics = FlextCliModels.Cli.PromptStatistics
+ServiceExecutionResult = FlextCliModels.Cli.ServiceExecutionResult
+CommandExecutionContextResult = FlextCliModels.Cli.CommandExecutionContextResult
+# Additional Cli class aliases for backward compatibility
+CliCommand = FlextCliModels.Cli.CliCommand
+CliConfig = FlextCliModels.Cli.CliConfig
+TableConfig = FlextCliModels.Cli.TableConfig
+CliSession = FlextCliModels.Cli.CliSession
+CliSessionData = FlextCliModels.Cli.CliSessionData
+CliContext = FlextCliModels.Cli.CliContext
+CliOutput = FlextCliModels.Cli.CliOutput
+CommandResult = FlextCliModels.Cli.CommandResult
+CliParamsConfig = FlextCliModels.Cli.CliParamsConfig
+OptionConfig = FlextCliModels.Cli.OptionConfig
+ConfirmConfig = FlextCliModels.Cli.ConfirmConfig
+PromptConfig = FlextCliModels.Cli.PromptConfig
+PasswordAuth = FlextCliModels.Cli.PasswordAuth
+TokenData = FlextCliModels.Cli.TokenData
+CmdConfig = FlextCliModels.Cli.CmdConfig
+OptionBuilder = FlextCliModels.Cli.OptionBuilder
+ModelCommandBuilder = FlextCliModels.Cli.ModelCommandBuilder
+CliParameterSpec = FlextCliModels.Cli.CliParameterSpec
+CliModelConverter = FlextCliModels.Cli.CliModelConverter
+CliModelDecorators = FlextCliModels.Cli.CliModelDecorators
+CliDebugData = FlextCliModels.Cli.CliDebugData
+CliLoggingData = FlextCliModels.Cli.CliLoggingData
+WorkflowResult = FlextCliModels.Cli.WorkflowResult
+WorkflowStepResult = FlextCliModels.Cli.WorkflowStepResult
+WorkflowProgress = FlextCliModels.Cli.WorkflowProgress
+
+# Pydantic forward reference resolution
+# This alias is required for Pydantic v2 to resolve forward references correctly
+FlextModelsEntity = FlextModels.Entity
+
+# Make DomainEvent available in the module namespace for Pydantic forward reference resolution
+DomainEvent = FlextModels.DomainEvent
+
+# Ensure forward references can be resolved by making types available in module globals
+# This is required because FlextModels.Entity has fields that reference DomainEvent
+globals()["Entity"] = FlextCliModels.Cli.Entity
+
 __all__ = [
+    "CommandExecutionContextResult",
+    "CommandStatistics",
+    "ContextExecutionResult",
+    "DebugInfo",
+    "DomainEvent",
+    "EnvironmentInfo",
     "FlextCliModels",
+    "PathInfo",
+    "PromptStatistics",
+    "ServiceExecutionResult",
+    "SessionStatistics",
+    "SystemInfo",
     "m",
     "m_cli",
 ]

@@ -1,8 +1,11 @@
-"""Test constants for flext-cli tests.
+"""Constants for flext-cli tests.
 
-Centralized constants for test fixtures, factories, and test data.
-Does NOT duplicate src/flext_cli/constants.py - only test-specific constants.
-Reuses Enums and Literals from FlextCliConstants for consistency.
+Provides TestsCliConstants, extending FlextTestsConstants with flext-cli-specific
+constants. All generic test constants come from flext_tests.
+
+Architecture:
+- FlextTestsConstants (flext_tests) = Generic constants for all FLEXT projects
+- TestsCliConstants (tests/) = flext-cli-specific constants extending FlextTestsConstants
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -10,334 +13,301 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
 from typing import Final
 
-from flext_tests import c as flext_tests_c
+from flext_tests.constants import FlextTestsConstants
 
-from flext_cli import c as flext_cli_c
+from flext_cli.constants import FlextCliConstants
 
 
-class TestsCliConstants(flext_tests_c, flext_cli_c):
-    """Advanced test constants using Python 3.13+ patterns.
+class TestsCliConstants(FlextTestsConstants):
+    """Constants for flext-cli tests - extends FlextTestsConstants.
 
-    Centralized test constants following flext-core nested class pattern.
-    Uses advanced collections.abc.Mapping for immutable test data.
-    Only contains test-specific constants that are NOT in src/constants.py.
+    Architecture: Extends FlextTestsConstants with flext-cli-specific constants.
+    All generic constants from FlextTestsConstants are available through inheritance.
+
+    Rules:
+    - NEVER duplicate constants from FlextTestsConstants
+    - Only flext-cli-specific constants allowed (not generic for other projects)
+    - All generic constants come from FlextTestsConstants
     """
 
-    class Paths:
-        """Test path constants."""
+    # Import Cli from FlextCliConstants for test access
+    Cli = FlextCliConstants.Cli
 
-        TEST_INPUT_DIR: Final[str] = "tests/fixtures/data/input"
-        TEST_OUTPUT_DIR: Final[str] = "tests/fixtures/data/output"
-        TEST_TEMP_PREFIX: Final[str] = "flext_cli_test_"
+    # =========================================================================
+    # TEST DATA CONSTANTS
+    # =========================================================================
+    # Constantes de dados de teste - valores simples para usar em testes
 
-    class CLI:
-        """CLI test constants."""
+    ALICE: Final[str] = "Alice"
+    VALID_FIELD_NAME: Final[str] = "validField"
+    FIELD_NAME: Final[str] = "field"
+    WHITESPACE_FIELD_NAME: Final[str] = "field with spaces"
+    VALID_STRING: Final[str] = "valid_string"
+    STRING: Final[str] = "string"
+    WHITESPACE_STRING: Final[str] = "string with spaces"
+    NONE_VALUE: Final[None] = None
+    TWO: Final[list[str]] = ["item1", "item2"]
+    PASSWORD: Final[str] = "secret123"
+    LONG: Final[str] = "a" * 1000
+    SPECIAL: Final[str] = "!@#$%^&*()"
+    UNICODE: Final[str] = "测试字符串"
+    PERFORMANCE_THRESHOLD: Final[float] = 0.1
 
-        TEST_COMMAND_NAME: Final[str] = "test_command"
-        TEST_GROUP_NAME: Final[str] = "test_group"
-        TEST_HELP_TEXT: Final[str] = "Test command help text"
-        DEFAULT_TIMEOUT: Final[int] = 5
+    # Status constants
+    INFO: Final[str] = "INFO"
+    WARNING: Final[str] = "WARNING"
+    ALL: Final[list[str]] = ["ALL"]
 
-    class Output:
-        """Advanced output format test constants.
+    # Format constants
+    NAME_HEADER: Final[str] = "Name"
+    GRID: Final[str] = "grid"
+    FANCY_GRID: Final[str] = "fancy_grid"
+    INVALID: Final[str] = "invalid"
+    EXPECTED_ALL: Final[str] = "expected_all"
 
-        Uses collections.abc.Mapping for immutable test data structures.
-        Composes with FlextCliConstants StrEnums for runtime validation.
-        Python 3.13+ best practice: Immutable mappings prevent test mutations.
-        """
-
-        # Immutable test data using collections.abc.Mapping
-        TEST_JSON_OUTPUT: Final[Mapping[str, str]] = {
-            "status": flext_cli_c.Cli.CommandStatus.COMPLETED.value,
-            "data": "test",
-        }
-
-        # Immutable table data using tuple of tuples for complete immutability
-        TEST_TABLE_DATA: Final[Sequence[Sequence[str]]] = (
-            ("header1", "header2"),
-            ("value1", "value2"),
-        )
-
-        TEST_CSV_DATA: Final[str] = "header1,header2\nvalue1,value2"
-
-        # Test data for different output formats
-        TEST_OUTPUT_DATA: Final[Mapping[str, Mapping[str, str | int]]] = {
-            "json": {"format": "json", "indent": 2},
-            "yaml": {"format": "yaml", "default_flow_style": False},
-            "table": {"format": "table", "max_width": 120},
-            "csv": {"format": "csv", "delimiter": ","},
-        }
-
-    class TestCommands:
-        """Advanced command test constants.
-
-        Uses FlextCliConstants StrEnums for runtime validation and consistency.
-        Composes with discriminated unions for better test type safety.
-        Python 3.13+ best practice: Immutable mappings for test configurations.
-        """
-
-        # Command status constants using StrEnum values
-        TEST_COMMAND_STATUS: Final[str] = flext_cli_c.Cli.CommandStatus.COMPLETED.value
-        TEST_SESSION_STATUS: Final[str] = flext_cli_c.Cli.SessionStatus.ACTIVE.value
-        TEST_SERVICE_STATUS: Final[str] = (
-            flext_cli_c.Cli.ServiceStatus.OPERATIONAL.value
-        )
-
-        # Test command configurations using immutable mappings
-        TEST_COMMAND_CONFIG: Final[Mapping[str, str | bool | int]] = {
-            "name": "test_command",
-            "description": "Test command for unit tests",
-            "enabled": True,
-            "timeout": 30,
-            "retry_count": 3,
-        }
-
-        TEST_COMMAND_ARGS: Final[Sequence[str]] = (
-            "--verbose",
-            "--debug",
-            "--output-format",
-            "json",
-        )
-
-        TEST_COMMAND_KWARGS: Final[Mapping[str, str | int | bool]] = {
-            "verbose": True,
-            "debug": True,
-            "output_format": "json",
-            "timeout": 30,
-        }
-
-    class TestMessages:
-        """Advanced message test constants.
-
-        Uses discriminated unions for message type validation.
-        Composes with flext_cli_c.MessageTypes for consistency.
-        """
-
-        TEST_INFO_MESSAGE: Final[str] = "Test info message"
-        TEST_ERROR_MESSAGE: Final[str] = "Test error message"
-        TEST_WARNING_MESSAGE: Final[str] = "Test warning message"
-        TEST_SUCCESS_MESSAGE: Final[str] = "Test operation completed successfully"
-        TEST_DEBUG_MESSAGE: Final[str] = "Debug information for testing"
-
-        # Message templates using advanced string formatting
-        TEST_COMMAND_EXECUTED: Final[str] = "Command '{command}' executed successfully"
-        TEST_VALIDATION_FAILED: Final[str] = "Validation failed for {field}: {error}"
-        TEST_TIMEOUT_REACHED: Final[str] = "Operation timed out after {timeout} seconds"
-
-    class Configuration:
-        """Advanced test configuration constants.
-
-        Uses collections.abc.Mapping for immutable configuration structures.
-        Python 3.13+ best practice: Immutable test configurations.
-        """
-
-        # Test profile configurations
-        TEST_PROFILE_CONFIG: Final[Mapping[str, str | int | bool]] = {
-            "name": "test_profile",
-            "output_format": "json",
-            "verbose": True,
-            "debug": False,
-            "timeout": 30,
-            "max_retries": 3,
-        }
-
-        # Test environment configurations
-        TEST_ENV_CONFIG: Final[Mapping[str, str]] = {
-            "environment": "test",
-            "log_level": "DEBUG",
-            "api_url": "http://test.example.com",
-            "database_url": "sqlite:///test.db",
-        }
-
-        # Test CLI arguments mapping
-        TEST_CLI_ARGS: Final[Mapping[str, str | int | bool]] = {
-            "verbose": True,
-            "quiet": False,
-            "debug": True,
-            "output_format": "table",
-            "timeout": 10,
-            "max_width": 100,
-        }
-
-        # Basic configuration for protocol tests
-        BASIC_CONFIG: Final[Mapping[str, str | int | bool]] = {
-            "output_format": "json",
-            "timeout": 30,
-            "debug": False,
-        }
-
-    class Fixtures:
-        """Test fixture constants using advanced patterns.
-
-        Uses discriminated unions and immutable structures.
-        Python 3.13+ best practice: Immutable test fixtures.
-        """
-
-        # Sample data fixtures
-        SAMPLE_USER_DATA: Final[Mapping[str, str | int]] = {
-            "id": 123,
-            "username": "testuser",
-            "email": "test@example.com",
-            "role": "REDACTED_LDAP_BIND_PASSWORD",
-        }
-
-        SAMPLE_COMMAND_DATA: Final[Mapping[str, str | int | bool]] = {
-            "name": "sample_command",
-            "description": "Sample command for testing",
-            "enabled": True,
-            "timeout": 60,
-            "requires_auth": False,
-        }
-
-        # Test data collections using sequences
-        SAMPLE_DATA_ROWS: Final[Sequence[Mapping[str, str | int]]] = (
-            {"id": 1, "name": "item1", "value": 100},
-            {"id": 2, "name": "item2", "value": 200},
-            {"id": 3, "name": "item3", "value": 300},
-        )
-
-    class TestData:
-        """Test data constants for use in tests."""
-
-        ALICE: Final[str] = "Alice"
-        VALID_FIELD_NAME: Final[str] = "test_field"
-        FIELD_NAME: Final[str] = ""
-        WHITESPACE_FIELD_NAME: Final[str] = "   "
-        VALID_STRING: Final[str] = "valid_string"
-        STRING: Final[str] = ""
-        WHITESPACE_STRING: Final[str] = "   "
-        NONE_VALUE: None = None
-        CUSTOM: Final[int] = 10
-        TWO: Final[list[str]] = ["option1", "option2"]
-        PASSWORD: Final[str] = "password"
-        LONG: Final[str] = "A" * 500
-        SPECIAL: Final[str] = "!@#$%^&*()"
-        UNICODE: Final[str] = "🚀💻🎉"
-        PERFORMANCE_THRESHOLD: Final[float] = 5.0
-
-    class Status:
-        """Status constants for tests."""
-
-        INFO: Final[str] = "info"
-        WARNING: Final[str] = "warning"
-        ALL: Final[list[str]] = ["info", "warning"]
-
-    class Format:
-        """Format constants for tests."""
-
-        NAME_HEADER: Final[str] = "Name"
-        GRID: Final[str] = "grid"
-        FANCY_GRID: Final[str] = "fancy_grid"
-        INVALID: Final[str] = "invalid_format"
-        EXPECTED_ALL: Final[list[str]] = ["grid", "simple", "fancy_grid"]
-
+    # Environment constants
     class Environment:
-        """Environment test constants."""
+        """Test environment constants."""
 
-        PYTEST_CURRENT_TEST: Final[str] = "test_module.py::test_function (call)"
+        PYTEST_CURRENT_TEST: Final[str] = "PYTEST_CURRENT_TEST"
         PYTEST_BINARY: Final[str] = "pytest"
         CI_VALUE: Final[str] = "true"
 
-    class Table:
-        """Table formatting constants."""
+    # Table constants
+    SPECIALIZED_CASES: Final[str] = "specialized_cases"
 
-        class Borders:
-            """Border characters for table formatting."""
+    class Borders:
+        """Table border constants."""
 
-            PLUS: Final[str] = "+"
+        PLUS: Final[str] = "plus"
 
-        class Data:
-            """Test data collections for table formatting."""
+    Data: Final[str] = "data"
 
-            class Headers:
-                """Table header constants."""
-
-                CUSTOM: Final[list[str]] = ["Name", "Age", "City"]
-
-        SPECIALIZED_CASES: Final[list[tuple[str, str, list[str]]]] = [
-            ("simple", "simple", ["Alice"]),
-            ("grid", "grid", ["Alice", "+"]),
-            ("fancy_grid", "fancy_grid", ["Alice"]),
-            ("markdown", "markdown", ["Alice"]),
-            ("html", "html", ["Alice"]),
-            ("latex", "latex", ["Alice"]),
-            ("rst", "rst", ["Alice"]),
-        ]
-
-    class Config:
-        """Configuration values for tests."""
-
-        class Alignment:
-            """Alignment configuration constants."""
-
-            CENTER: Final[str] = "center"
-            LEFT: Final[str] = "left"
-            RIGHT: Final[str] = "right"
-            LIST: Final[list[str]] = ["center", "left", "right"]
-
-        class FloatFormat:
-            """Float format configuration constants."""
-
-            TWO_DECIMAL: Final[str] = ".2f"
-
-        SHOW_INDEX_TRUE: Final[bool] = True
-        CONFIG_DIR_PATTERN: Final[str] = ".flext"
-        EXPECTED_KEYS: Final[list[str]] = ["config_dir", "config_exists", "timestamp"]
+    # Config and OutputFormats
+    Config: Final[str] = "config"
 
     class OutputFormats:
         """Output format constants."""
 
-        UPPERCASE_FORMAT: Final[str] = "JSON"
-        INVALID_FORMAT: Final[str] = "INVALID"
+        INVALID_FORMAT: Final[str] = "invalid_format"
 
     class Statuses:
-        """Status constants."""
+        """Test status constants."""
 
-        VALID_STATUSES: Final[list[str]] = ["pending", "running", "completed"]
+        VALID_STATUSES: Final[str] = "valid_statuses"
         INVALID_STATUS: Final[str] = "invalid_status"
 
     class FileOps:
-        """File operations constants."""
+        """Test file operations constants."""
 
-        FILE_NOT_FOUND_PATTERNS: Final[list[str]] = [
-            "No such file or directory",
+        FILE_NOT_FOUND_PATTERNS: Final[tuple[str, ...]] = (
+            "not found",
+            "no such file",
+            "does not exist",
+            "errno 2",
             "cannot open",
-            "file not found",
-        ]
+        )
         NON_FILE_ERRORS: Final[list[str]] = [
-            "Permission denied",
-            "Operation not permitted",
-            "Connection refused",
+            "permission denied",
+            "disk full",
+            "access denied",
         ]
 
-    class Password:
-        """Password validation constants."""
+    Password: Final[str] = "password"
+    Progress: Final[str] = "progress"
 
-        MIN_LENGTH_STRICT: Final[int] = 12
+    class Configuration:
+        """Test configuration constants."""
+
+        BASIC_CONFIG: Final[dict[str, object]] = {
+            "app_name": "test_app",
+            "debug": False,
+            "log_level": "INFO",
+            "output_format": "json",
+        }
+        """Basic configuration for testing config provider operations."""
+
+    class TestData:
+        """Test data constants for test modules."""
+
+        CUSTOM: Final[int] = 42
+        TWO: Final[int] = 2
+        PASSWORD: Final[str] = "test_password_123"
+        LONG: Final[str] = (
+            "This is a very long message that tests how the system handles extended text input"
+        )
+        SPECIAL: Final[str] = "!@#$%^&*()"
+        UNICODE: Final[str] = "你好世界🌍"
+        PERFORMANCE_THRESHOLD: Final[float] = 1.0
+
+    class Strings:
+        """Flext-cli-specific test strings organized by complexity."""
+
+        EMPTY: Final[str] = ""
+        SINGLE_CHAR: Final[str] = "a"
+        BASIC_WORD: Final[str] = "hello"
+        BASIC_LIST: Final[str] = "a,b,c"
+        NUMERIC_LIST: Final[str] = "1,2,3"
+        WITH_SPACES: Final[str] = "a, b, c"
+        EXCESSIVE_SPACES: Final[str] = "  a  ,  b  ,  c  "
+        LEADING_SPACES: Final[str] = "  hello"
+        TRAILING_SPACES: Final[str] = "hello  "
+        LEADING_TRAILING: Final[str] = ",a,b,c,"
+        WITH_EMPTY: Final[str] = "a,,c"
+        ONLY_DELIMITERS: Final[str] = ",,,"
+        UNICODE_CHARS: Final[str] = "héllo,wörld"
+        VALID_EMAIL: Final[str] = "test@example.com"
+        INVALID_EMAIL: Final[str] = "invalid-email"
+        USER_ID_VALID: Final[str] = "123"
+        USER_ID_INVALID: Final[str] = "invalid"
+        USER_ID_EMPTY: Final[str] = ""
+
+    class TestErrors:
+        """Flext-cli-specific error message patterns for validation."""
+
+        PROCESSING_ERROR: Final[str] = "Processing error occurred"
+        COMMAND_FAILED: Final[str] = "Command failed"
+        INVALID_FORMAT: Final[str] = "Invalid format"
+        MISSING_ARGUMENT: Final[str] = "Missing required argument"
+
+    class CliTest:
+        """CLI-specific test constants."""
+
+        class Commands:
+            """Test command names."""
+
+            TEST_CMD: Final[str] = "test-command"
+            HELP_CMD: Final[str] = "help"
+            VERSION_CMD: Final[str] = "version"
+
+        class Formats:
+            """Test output formats."""
+
+            JSON: Final[str] = "json"
+            YAML: Final[str] = "yaml"
+            TABLE: Final[str] = "table"
+            PLAIN: Final[str] = "plain"
+
+        class MixinsFieldNames:
+            """Field name constants for validation messages."""
+
+            OUTPUT_FORMAT: Final[str] = "output format"
+            LOG_LEVEL: Final[str] = "log level"
+            STATUS: Final[str] = "status"
+            PIPELINE_STEP_NAME: Final[str] = "name"
+
+        class Status:
+            """Test command statuses."""
+
+            SUCCESS: Final[str] = "success"
+            FAILURE: Final[str] = "failure"
+            PENDING: Final[str] = "pending"
+            RUNNING: Final[str] = "running"
+
+        class TestData:
+            """Test data constants."""
+
+            ALICE: Final[str] = "alice"
+            VALID_FIELD_NAME: Final[str] = "validField"
+            FIELD_NAME: Final[str] = "field"
+            WHITESPACE_FIELD_NAME: Final[str] = "field with spaces"
+            VALID_STRING: Final[str] = "valid_string"
+            STRING: Final[str] = "string"
+            WHITESPACE_STRING: Final[str] = "string with spaces"
+            NONE_VALUE: Final[None] = None
+
+    class Fixtures:
+        """Test fixture dataclasses for flext-cli tests."""
+
+        @dataclass(frozen=True, slots=True)
+        class Identifiers:
+            """Test identifiers and IDs."""
+
+            user_id: str = "test_user_123"
+            session_id: str = "test_session_123"
+            service_name: str = "test_service"
+            operation_id: str = "test_operation"
+            request_id: str = "test-request-456"
+            correlation_id: str = "test-corr-123"
+
+        @dataclass(frozen=True, slots=True)
+        class Names:
+            """Test module and component names."""
+
+            module_name: str = "test_module"
+            handler_name: str = "test_handler"
+            chain_name: str = "test_chain"
+            command_type: str = "test_command"
+            query_type: str = "test_query"
+            logger_name: str = "test_logger"
+            app_name: str = "test-app"
+            validation_app: str = "validation-test"
+            source_service: str = "test_service"
+
+        @dataclass(frozen=True, slots=True)
+        class ErrorData:
+            """Test error codes and messages."""
+
+            error_code: str = "TEST_ERROR_001"
+            validation_error: str = "test_error"
+            operation_error: str = "Op failed"
+            config_error: str = "Config failed"
+            timeout_error: str = "Operation timeout"
+
+        @dataclass(frozen=True, slots=True)
+        class Data:
+            """Test field names and data values."""
+
+            field_name: str = "test_field"
+            config_key: str = "test_key"
+            username: str = "test_user"
+            email: str = "test@example.com"
+            password: str = "test_pass"
+            string_value: str = "test_value"
+            input_data: str = "test_input"
+            request_data: str = "test_request"
+            result_data: str = "test_result"
+            message: str = "test_message"
+
+    class Table:
+        """Table-related test constants."""
+
+        class Borders:
+            """Table border constants."""
+
+            PLUS: Final[str] = "+"
+
+        SPECIALIZED_CASES: Final[list] = [
+            ("test_method", "test_format", ["expected_content"])
+        ]
 
     class Authentication:
-        """Authentication test constants."""
+        """Authentication test constants for protocol testing."""
 
-        VALID_CREDS: Final[Mapping[str, str]] = {
-            "username": "test_user",
-            "password": "test_pass",
+        VALID_TOKEN: Final[str] = "valid_token"
+        INVALID_TOKEN: Final[str] = "invalid_token_xyz"
+
+        VALID_CREDS: Final[dict[str, str]] = {
+            "username": "testuser",
+            "password": "testpass",
         }
-        VALID_TOKEN: Final[str] = "valid_test_token"
 
-    class Progress:
-        """Progress constants."""
+        INVALID_CREDS: Final[dict[str, str]] = {
+            "username": "invalid",
+            "password": "wrong",
+        }
 
-        SMALL_DATASET_SIZE: Final[int] = 10
-        LARGE_DATASET_SIZE: Final[int] = 1000
+        EMPTY_CREDS: Final[dict[str, str]] = {
+            "username": "",
+            "password": "",
+        }
 
 
-# Standardized short name - matches src pattern (c = FlextCliConstants)
-# TestsCliConstants extends FlextTestsConstants and FlextCliConstants, so use same short name 'c'
-# Type annotation needed for mypy compatibility
-c: type[TestsCliConstants] = TestsCliConstants
+# Short alias per FLEXT convention
+c = TestsCliConstants
 
 __all__ = [
     "TestsCliConstants",

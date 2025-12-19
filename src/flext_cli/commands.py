@@ -20,7 +20,7 @@ from flext_core import (
 from pydantic import PrivateAttr
 
 from flext_cli.base import FlextCliServiceBase
-from flext_cli.constants import c
+from flext_cli.constants import FlextCliConstants
 from flext_cli.typings import t
 
 
@@ -92,8 +92,8 @@ class FlextCliCommands(FlextCliServiceBase):
     @override
     def __init__(
         self,
-        name: str = c.Cli.CommandsDefaults.DEFAULT_CLI_NAME,
-        description: str = c.Cli.CommandsDefaults.DEFAULT_DESCRIPTION,
+        name: str = FlextCliConstants.Cli.CommandsDefaults.DEFAULT_CLI_NAME,
+        description: str = FlextCliConstants.Cli.CommandsDefaults.DEFAULT_DESCRIPTION,
         **data: t.GeneralValueType,
     ) -> None:
         """Initialize CLI commands manager with Phase 1 context enrichment."""
@@ -157,9 +157,11 @@ class FlextCliCommands(FlextCliServiceBase):
 
         # Build result dict with proper types
         result_dict: dict[str, t.GeneralValueType] = {
-            c.Cli.CommandsDictKeys.STATUS: c.Cli.ServiceStatus.OPERATIONAL.value,
-            c.Cli.CommandsDictKeys.SERVICE: c.Cli.FLEXT_CLI,
-            c.Cli.CommandsDictKeys.COMMANDS: list(self._commands.keys()),
+            FlextCliConstants.Cli.CommandsDictKeys.STATUS: FlextCliConstants.Cli.ServiceStatus.OPERATIONAL.value,
+            FlextCliConstants.Cli.CommandsDictKeys.SERVICE: FlextCliConstants.Cli.FLEXT_CLI,
+            FlextCliConstants.Cli.CommandsDictKeys.COMMANDS: list(
+                self._commands.keys()
+            ),
         }
         result = r[dict[str, t.GeneralValueType]].ok(result_dict)
 
@@ -176,7 +178,7 @@ class FlextCliCommands(FlextCliServiceBase):
         self,
         name: str,
         handler: Callable[..., t.GeneralValueType],
-        description: str = c.Cli.CommandsDefaults.DEFAULT_DESCRIPTION,
+        description: str = FlextCliConstants.Cli.CommandsDefaults.DEFAULT_DESCRIPTION,
     ) -> r[bool]:
         """Register a command.
 
@@ -204,9 +206,9 @@ class FlextCliCommands(FlextCliServiceBase):
                 str,
                 t.GeneralValueType | Callable[..., t.GeneralValueType],
             ] = {
-                c.Cli.CommandsDictKeys.NAME: name,
-                c.Cli.CommandsDictKeys.HANDLER: handler,
-                c.Cli.CommandsDictKeys.DESCRIPTION: description,
+                FlextCliConstants.Cli.CommandsDictKeys.NAME: name,
+                FlextCliConstants.Cli.CommandsDictKeys.HANDLER: handler,
+                FlextCliConstants.Cli.CommandsDictKeys.DESCRIPTION: description,
             }
             self._commands[name] = command_metadata
             # Update CLI group commands - copy dict for type compatibility
@@ -239,7 +241,7 @@ class FlextCliCommands(FlextCliServiceBase):
                 source="flext-cli/src/flext_cli/commands.py",  # pragma: no cover
             )  # pragma: no cover
             return r[bool].fail(  # pragma: no cover
-                c.Cli.ErrorMessages.COMMAND_REGISTRATION_FAILED.format(
+                FlextCliConstants.Cli.ErrorMessages.COMMAND_REGISTRATION_FAILED.format(
                     error=e,
                 ),
             )
@@ -287,7 +289,7 @@ class FlextCliCommands(FlextCliServiceBase):
             )
 
             return r[bool].fail(
-                c.Cli.ErrorMessages.COMMAND_NOT_FOUND.format(name=name),
+                FlextCliConstants.Cli.ErrorMessages.COMMAND_NOT_FOUND.format(name=name),
             )
         except Exception as e:  # pragma: no cover
             self.logger.exception(  # pragma: no cover
@@ -300,7 +302,7 @@ class FlextCliCommands(FlextCliServiceBase):
                 source="flext-cli/src/flext_cli/commands.py",  # pragma: no cover
             )  # pragma: no cover
             return r[bool].fail(  # pragma: no cover
-                c.Cli.ErrorMessages.COMMAND_UNREGISTRATION_FAILED.format(
+                FlextCliConstants.Cli.ErrorMessages.COMMAND_UNREGISTRATION_FAILED.format(
                     error=e,
                 ),
             )
@@ -309,14 +311,16 @@ class FlextCliCommands(FlextCliServiceBase):
         self,
         name: str,
         description: str = "",
-        commands: dict[
-            str,
+        commands: (
             dict[
                 str,
-                t.GeneralValueType | Callable[..., t.GeneralValueType],
-            ],
-        ]
-        | None = None,
+                dict[
+                    str,
+                    t.GeneralValueType | Callable[..., t.GeneralValueType],
+                ],
+            ]
+            | None
+        ) = None,
     ) -> r[FlextCliCommands._CliGroup]:
         """Create a command group.
 
@@ -350,7 +354,7 @@ class FlextCliCommands(FlextCliServiceBase):
                     source="flext-cli/src/flext_cli/commands.py",
                 )
                 return r[FlextCliCommands._CliGroup].fail(
-                    c.Cli.ErrorMessages.COMMANDS_REQUIRED,
+                    FlextCliConstants.Cli.ErrorMessages.COMMANDS_REQUIRED,
                 )
             validated_commands: dict[
                 str,
@@ -385,7 +389,9 @@ class FlextCliCommands(FlextCliServiceBase):
                 source="flext-cli/src/flext_cli/commands.py",  # pragma: no cover
             )  # pragma: no cover
             return r[FlextCliCommands._CliGroup].fail(  # pragma: no cover
-                c.Cli.ErrorMessages.GROUP_CREATION_FAILED.format(error=e),
+                FlextCliConstants.Cli.ErrorMessages.GROUP_CREATION_FAILED.format(
+                    error=e
+                ),
             )
 
     def _validate_cli_args(self, args: list[str] | None) -> r[bool]:
@@ -402,11 +408,13 @@ class FlextCliCommands(FlextCliServiceBase):
             return r[bool].ok(True)
 
         for arg in args:
-            if arg.startswith(c.Cli.CommandsDefaults.OPTION_PREFIX):
+            if arg.startswith(FlextCliConstants.Cli.CommandsDefaults.OPTION_PREFIX):
                 continue  # Skip options
             if arg not in self._commands:
                 return r[bool].fail(
-                    c.Cli.ErrorMessages.COMMAND_NOT_FOUND.format(name=arg),
+                    FlextCliConstants.Cli.ErrorMessages.COMMAND_NOT_FOUND.format(
+                        name=arg
+                    ),
                 )
 
         return r[bool].ok(True)
@@ -497,7 +505,7 @@ class FlextCliCommands(FlextCliServiceBase):
                 source="flext-cli/src/flext_cli/commands.py",  # pragma: no cover
             )  # pragma: no cover
             return r[bool].fail(  # pragma: no cover
-                c.Cli.ErrorMessages.CLI_EXECUTION_ERROR.format(error=e),
+                FlextCliConstants.Cli.ErrorMessages.CLI_EXECUTION_ERROR.format(error=e),
             )
 
     def get_click_group(self) -> FlextCliCommands._CliGroup:
@@ -532,22 +540,35 @@ class FlextCliCommands(FlextCliServiceBase):
 
         """
         # CliCommandHandler Protocol has __call__ method
-        # Try calling with args as single argument first (for handlers like cmd_with_args(args: list[str]))
-        # Then fallback to unpacked args or no args
+        # Try unpacking args first (for handlers like handler(*args: str))
+        # Then fallback to single list arg or no args
         if args:
             try:
-                # Try calling with args as single argument (for handlers expecting list[str])
-                result: object = handler(args)
+                # Try calling with unpacked args (for handlers expecting *args)
+                result: object = handler(*args)
             except TypeError:
-                # Handler doesn't accept single list argument, try unpacking
+                # Handler doesn't accept unpacked args, try single list argument
                 try:
-                    result = handler(*args)
+                    result = handler(args)
                 except TypeError:
-                    # Handler doesn't accept unpacked args either, try without args
+                    # Handler doesn't accept list or unpacked args, try without args
                     result = handler()
         else:
             # No args provided, call handler without arguments
             result = handler()
+
+        # === CRITICAL: Unwrap FlextResult if handler returned one ===
+        # Handlers may return r[T].ok(value) or r[T].fail(error)
+        # We need the unwrapped value/error, not the FlextResult wrapper
+        if hasattr(result, "is_success") and hasattr(result, "value"):
+            # Result is FlextResult-like (duck typing)
+            if result.is_success:
+                # Unwrap success value
+                result = result.value
+            else:
+                # Unwrap failure error to string
+                result = str(result.error) if hasattr(result, "error") else str(result)
+
         # Convert result to t.GeneralValueType
         # t.GeneralValueType = ScalarValue | Sequence[t.GeneralValueType] | Mapping[str, t.GeneralValueType]
         # ScalarValue = str | int | float | bool | datetime | None
@@ -568,7 +589,7 @@ class FlextCliCommands(FlextCliServiceBase):
         self,
         command_name: str,
         args: list[str] | None = None,
-        timeout: int = c.Cli.TIMEOUTS.DEFAULT,
+        timeout: int = FlextCliConstants.Cli.TIMEOUTS.DEFAULT,
     ) -> r[t.GeneralValueType]:
         """Execute a specific command.
 
@@ -611,7 +632,7 @@ class FlextCliCommands(FlextCliServiceBase):
                     source="flext-cli/src/flext_cli/commands.py",
                 )
                 return r[t.GeneralValueType].fail(
-                    c.Cli.CommandsErrorMessages.COMMAND_NOT_FOUND_DETAIL.format(
+                    FlextCliConstants.Cli.CommandsErrorMessages.COMMAND_NOT_FOUND_DETAIL.format(
                         command_name=command_name,
                     ),
                 )
@@ -626,7 +647,7 @@ class FlextCliCommands(FlextCliServiceBase):
                     source="flext-cli/src/flext_cli/commands.py",
                 )
                 return r[t.GeneralValueType].fail(
-                    c.Cli.CommandsErrorMessages.INVALID_COMMAND_STRUCTURE.format(
+                    FlextCliConstants.Cli.CommandsErrorMessages.INVALID_COMMAND_STRUCTURE.format(
                         name=command_name,
                     ),
                 )
@@ -638,25 +659,30 @@ class FlextCliCommands(FlextCliServiceBase):
                 "Retrieved command information",
                 operation="execute_command",
                 command_name=command_name,
-                has_handler=c.Cli.CommandsDictKeys.HANDLER in command_info,
+                has_handler=FlextCliConstants.Cli.CommandsDictKeys.HANDLER
+                in command_info,
                 source="flext-cli/src/flext_cli/commands.py",
             )
 
             # Validate command structure: must be dict-like with handler
-            is_valid_structure = c.Cli.CommandsDictKeys.HANDLER in command_info
+            is_valid_structure = (
+                FlextCliConstants.Cli.CommandsDictKeys.HANDLER in command_info
+            )
             if not is_valid_structure:
                 self.logger.error(
                     "FAILED to execute command - invalid command structure",
                     operation="execute_command",
                     command_name=command_name,
-                    command_info_keys=list(command_info.keys())
-                    if isinstance(command_info, dict)
-                    else None,
+                    command_info_keys=(
+                        list(command_info.keys())
+                        if isinstance(command_info, dict)
+                        else None
+                    ),
                     consequence="Command execution aborted",
                     source="flext-cli/src/flext_cli/commands.py",
                 )
                 return r[t.GeneralValueType].fail(
-                    c.Cli.CommandsErrorMessages.INVALID_COMMAND_STRUCTURE.format(
+                    FlextCliConstants.Cli.CommandsErrorMessages.INVALID_COMMAND_STRUCTURE.format(
                         command_name=command_name,
                     ),
                 )
@@ -666,7 +692,7 @@ class FlextCliCommands(FlextCliServiceBase):
             # Type narrowing: handler_value is t.GeneralValueType | Callable[..., t.GeneralValueType]
             # Runtime check ensures it's callable
             handler_value: t.GeneralValueType | Callable[..., t.GeneralValueType] = (
-                command_info[c.Cli.CommandsDictKeys.HANDLER]
+                command_info[FlextCliConstants.Cli.CommandsDictKeys.HANDLER]
             )
             # Runtime check: ensure handler is callable
             if not callable(handler_value):
@@ -681,7 +707,7 @@ class FlextCliCommands(FlextCliServiceBase):
                     source="flext-cli/src/flext_cli/commands.py",
                 )
                 return r[t.GeneralValueType].fail(
-                    c.Cli.CommandsErrorMessages.HANDLER_NOT_CALLABLE.format(
+                    FlextCliConstants.Cli.CommandsErrorMessages.HANDLER_NOT_CALLABLE.format(
                         command_name=command_name,
                     ),
                 )
@@ -721,7 +747,7 @@ class FlextCliCommands(FlextCliServiceBase):
                 source="flext-cli/src/flext_cli/commands.py",
             )
             return r[t.GeneralValueType].fail(
-                c.Cli.ErrorMessages.COMMAND_EXECUTION_FAILED.format(
+                FlextCliConstants.Cli.ErrorMessages.COMMAND_EXECUTION_FAILED.format(
                     error=e,
                 ),
             )
@@ -781,7 +807,7 @@ class FlextCliCommands(FlextCliServiceBase):
                 source="flext-cli/src/flext_cli/commands.py",  # pragma: no cover
             )  # pragma: no cover
             return r[int].fail(  # pragma: no cover
-                c.Cli.ErrorMessages.COMMAND_EXECUTION_FAILED.format(
+                FlextCliConstants.Cli.ErrorMessages.COMMAND_EXECUTION_FAILED.format(
                     error=e,
                 ),
             )
@@ -822,7 +848,7 @@ class FlextCliCommands(FlextCliServiceBase):
                 source="flext-cli/src/flext_cli/commands.py",  # pragma: no cover
             )  # pragma: no cover
             return r[list[str]].fail(  # pragma: no cover
-                c.Cli.CommandsErrorMessages.FAILED_LIST_COMMANDS.format(
+                FlextCliConstants.Cli.CommandsErrorMessages.FAILED_LIST_COMMANDS.format(
                     error=e,
                 ),
             )
