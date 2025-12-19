@@ -51,7 +51,7 @@ class FlextCliTypes(FlextTypes):
         # ────────────────────────────────────────────────────────────────────
 
         # Formattable result types for output operations
-        type FormatableResult = (
+        FormatableResult = (
             dict[str, FlextTypes.JsonValue]
             | list[FlextTypes.JsonValue]
             | tuple[FlextTypes.JsonValue, ...]
@@ -60,7 +60,7 @@ class FlextCliTypes(FlextTypes):
         )
 
         # Formatter function signature for result formatting
-        type ResultFormatter = Callable[
+        ResultFormatter = Callable[
             [
                 dict[str, FlextTypes.JsonValue]
                 | list[FlextTypes.JsonValue]
@@ -77,26 +77,26 @@ class FlextCliTypes(FlextTypes):
         # ────────────────────────────────────────────────────────────────────
 
         # Basic data dict types
-        type CliDataDict = dict[str, object]
-        type CliFormatData = dict[str, object]
-        type CliConfigData = dict[str, object]
-        type CliConfigMapping = dict[str, FlextTypes.GeneralValueType]
-        type CliJsonDict = dict[str, object]
-        type JsonDict = dict[str, object]
+        CliDataDict = dict[str, object]
+        CliFormatData = dict[str, object]
+        CliConfigData = dict[str, object]
+        CliConfigMapping = dict[str, FlextTypes.GeneralValueType]
+        CliJsonDict = dict[str, object]
+        JsonDict = dict[str, object]
 
         # Auth data types
-        type CliAuthData = dict[str, object]
-        type CliTokenData = dict[str, object]
+        CliAuthData = dict[str, object]
+        CliTokenData = dict[str, object]
 
         # ────────────────────────────────────────────────────────────────────
         # TABLE AND SEQUENCE TYPES
         # ────────────────────────────────────────────────────────────────────
 
         # Tabular data types - for table output formatting
-        type TabularData = Sequence[FlextTypes.JsonDict] | FlextTypes.JsonDict
+        TabularData = Sequence[FlextTypes.JsonDict] | FlextTypes.JsonDict
 
         # Table data with multiple format support
-        type TableData = (
+        TableData = (
             Sequence[FlextTypes.JsonDict]
             | FlextTypes.JsonDict
             | Sequence[Sequence[FlextTypes.GeneralValueType]]
@@ -104,7 +104,7 @@ class FlextCliTypes(FlextTypes):
         )
 
         # Table rows as sequence of dicts
-        type TableRows = Sequence[FlextTypes.JsonDict]
+        TableRows = Sequence[FlextTypes.JsonDict]
 
 
 t = FlextCliTypes

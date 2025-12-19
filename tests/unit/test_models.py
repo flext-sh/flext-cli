@@ -1491,11 +1491,11 @@ class TestsCliModels:
         Invalid values raise ValidationError during model instantiation.
         """
         # Test with invalid status - should raise ValidationError
-        # Use cast to test invalid status (type checker knows it's invalid, but we test validation)
+        # Use regular model instantiation (not model_construct) to trigger validation
         with pytest.raises(ValidationError) as exc_info:
-            m.Cli.CliSession.model_construct(
+            m.Cli.CliSession(
                 session_id="test",
-                status="invalid_status",  # Type narrowing: invalid status for validation test  # Invalid status value
+                status="invalid_status",  # Invalid status value triggers validation
             )
         assert "status" in str(exc_info.value).lower()
 
@@ -1610,8 +1610,8 @@ class TestsCliModels:
         assert summary.session_id == "test"
         assert summary.status == c.Cli.SessionStatus.ACTIVE.value
 
-        # Test commands_by_status property with empty commands
-        commands_by_status = session.commands_by_status
+        # Test commands_by_status method with empty commands
+        commands_by_status = session.commands_by_status()
         assert isinstance(commands_by_status, dict)
 
     def test_field_serializer_edge_cases(self) -> None:

@@ -110,6 +110,22 @@ class CommandHelpers:
     """Command execution test helpers."""
 
     @staticmethod
+    def create_command_model(
+        **overrides: dict[str, Any],
+    ) -> "r[m.Cli.CliCommand]":
+        """Create a command model wrapped in FlextResult.
+
+        Args:
+            **overrides: Optional field overrides
+
+        Returns:
+            r[m.Cli.CliCommand]: Success result with command model
+
+        """
+        cmd = create_test_cli_command(**overrides)
+        return r[m.Cli.CliCommand].ok(cmd)
+
+    @staticmethod
     def create_test_command_data(**overrides: dict[str, Any]) -> dict[str, Any]:
         """Create test command data."""
         defaults = {
@@ -296,26 +312,32 @@ def create_real_cli_session(**overrides: dict[str, Any]) -> m.Cli.CliSession:
 
 
 def generate_edge_case_data() -> list[dict[str, Any]]:
-    """Generate comprehensive edge case test data."""
+    """Generate comprehensive edge case test data for CliCommand.
+
+    Only uses valid CliCommand fields: name, description, command_line, usage,
+    entry_point, plugin_version, args, status, exit_code, output.
+    """
     return [
-        # Boundary values
-        {"timeout": 0.1, "description": "Minimum timeout"},
-        {"timeout": 3600.0, "description": "Maximum timeout"},
+        # Boundary name lengths
         {"name": "a", "description": "Minimum name length"},
         {"name": "a" * 100, "description": "Maximum name length"},
-        # Special characters
+        # Special characters in name
         {"name": "test_123", "description": "Underscores"},
         {"name": "test-123", "description": "Hyphens"},
-        {"name": "test 123", "description": "Spaces"},
         {"name": "test.123", "description": "Dots"},
-        # Unicode
+        # Unicode names
         {"name": "测试命令", "description": "Chinese characters"},
         {"name": "café", "description": "Accented characters"},
-        {"name": "🚀test", "description": "Emojis"},
-        # Empty/null values
-        {"arguments": [], "description": "Empty arguments"},
-        {"tags": [], "description": "Empty tags"},
-        {"environment": {}, "description": "Empty environment"},
+        # Command line variations
+        {"name": "test", "command_line": "test --verbose --debug", "description": "With flags"},
+        {"name": "test", "command_line": "", "description": "Empty command line"},
+        # Args variations
+        {"name": "test", "args": [], "description": "Empty args"},
+        {"name": "test", "args": ["--verbose", "--debug"], "description": "Multiple args"},
+        # Status variations
+        {"name": "test", "status": "pending", "description": "Pending status"},
+        {"name": "test", "status": "running", "description": "Running status"},
+        {"name": "test", "status": "completed", "description": "Completed status"},
     ]
 
 

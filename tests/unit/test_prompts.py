@@ -385,7 +385,7 @@ class TestsCliPrompts:
         prompts = self.Fixtures.create_quiet_prompts()
         result = prompts.prompt_choice(
             "choose",
-            c.TestData.TWO,
+            c.TWO,
         )
         tm.fail(result, contains="Interactive mode disabled")
 
@@ -418,7 +418,7 @@ class TestsCliPrompts:
         TestsCliPrompts._set_prompt_history(prompts, list(error_list))
         result = prompts.prompt_choice(
             "choose",
-            c.TestData.TWO,
+            c.TWO,
             default="choice",
         )
         tm.fail(result)
@@ -438,7 +438,7 @@ class TestsCliPrompts:
         prompts = self.Fixtures.create_quiet_prompts(interactive_mode=False)
         result = prompts.prompt_password(
             c.TestData.PASSWORD,
-            min_length=c.Password.MIN_LENGTH_STRICT,
+            min_length=c.PasswordDefaults.MIN_LENGTH_STRICT,
         )
         assert isinstance(result, FlextResult)
 
@@ -504,7 +504,7 @@ class TestsCliPrompts:
         """Test that select_from_options tracks history."""
         initial_history_len = len(prompts.prompt_history)
         _ = prompts.select_from_options(
-            c.TestData.TWO,
+            c.TWO,
             "choose",
         )
         assert len(prompts.prompt_history) >= initial_history_len
@@ -562,7 +562,7 @@ class TestsCliPrompts:
     def test_with_progress_small_dataset(self, prompts: FlextCliPrompts) -> None:
         """Test with_progress with small dataset."""
         items: list[t.GeneralValueType] = list(
-            range(c.Progress.SMALL_DATASET_SIZE),
+            range(c.ProgressDefaults.SMALL_DATASET_SIZE),
         )
         result = prompts.with_progress(items, "simple")
         tm.ok(result)
@@ -571,7 +571,7 @@ class TestsCliPrompts:
     def test_with_progress_large_dataset(self, prompts: FlextCliPrompts) -> None:
         """Test with_progress with large dataset."""
         items: list[t.GeneralValueType] = list(
-            range(c.Progress.LARGE_DATASET_SIZE),
+            range(c.ProgressDefaults.LARGE_DATASET_SIZE),
         )
         result = prompts.with_progress(items, "simple")
         tm.ok(result)
@@ -732,7 +732,7 @@ class TestsCliPrompts:
 
         # Step 4: Select from options
         select_result = prompts.select_from_options(
-            c.TestData.TWO,
+            c.TWO,  # Use list constant, not TestData.TWO which is int
             "choose",
         )
         assert isinstance(select_result, FlextResult)

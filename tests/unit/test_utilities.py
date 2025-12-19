@@ -89,7 +89,7 @@ class TestsCliUtilities:
                     ValidationType.FIELD_NOT_EMPTY,
                     "Field not empty validation - empty string failure",
                     {
-                        "value": c.CliTest.TestData.FIELD_NAME,
+                        "value": c.Strings.EMPTY,  # Actual empty string
                         "field_name": "Test Field",
                     },
                     expected_result=False,
@@ -99,7 +99,7 @@ class TestsCliUtilities:
                     ValidationType.FIELD_NOT_EMPTY,
                     "Field not empty validation - whitespace failure",
                     {
-                        "value": c.CliTest.TestData.WHITESPACE_FIELD_NAME,
+                        "value": c.Strings.WHITESPACE_ONLY,  # Whitespace-only string
                         "field_name": "Test Field",
                     },
                     expected_result=False,
@@ -154,7 +154,7 @@ class TestsCliUtilities:
                     ValidationType.STRING_NOT_EMPTY,
                     "String not empty validation - empty string failure",
                     {
-                        "value": c.CliTest.TestData.STRING,
+                        "value": c.Strings.EMPTY,  # Use actual empty string
                         "error_msg": "Custom error",
                     },
                     expected_result=False,
@@ -162,9 +162,9 @@ class TestsCliUtilities:
                 ),
                 ValidationTestCase(
                     ValidationType.STRING_NOT_EMPTY,
-                    "String not empty validation - whitespace failure",
+                    "String not empty validation - whitespace only failure",
                     {
-                        "value": c.CliTest.TestData.WHITESPACE_STRING,
+                        "value": c.Strings.WHITESPACE_ONLY,  # True whitespace-only string
                         "error_msg": "Whitespace error",
                     },
                     expected_result=False,

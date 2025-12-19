@@ -348,7 +348,28 @@ class FlextCliTestHelpers:
                 return r.fail(f"Invalid version info: {info_result.error}")
 
             # Check consistency between string and info
-            version_parts = version_string.split(".")
+            # Handle semver with pre-release/metadata: "1.2.3-alpha.1+build.123"
+            # Split by + to separate metadata (ignored)
+            version_without_metadata = version_string.split("+")[0]
+            # Split by - to separate base version and pre-release
+            version_base_and_prerelease = version_without_metadata.split("-")
+            base_parts = version_base_and_prerelease[0].split(".")
+            prerelease_parts = (
+                version_base_and_prerelease[1].split(".")
+                if len(version_base_and_prerelease) > 1
+                else []
+            )
+            # Combine base and pre-release parts
+            version_parts_raw = base_parts + prerelease_parts
+
+            # Convert numeric strings to ints, keep others as strings
+            version_parts = []
+            for part in version_parts_raw:
+                try:
+                    version_parts.append(int(part))
+                except ValueError:
+                    version_parts.append(part)
+
             info_parts = list(version_info)
 
             min_length = min(len(version_parts), len(info_parts))
@@ -356,19 +377,20 @@ class FlextCliTestHelpers:
                 version_part = version_parts[i]
                 info_part = info_parts[i]
 
-                if isinstance(info_part, int):
-                    try:
-                        if int(version_part) != info_part:
-                            return r.fail(
-                                f"Mismatch at position {i}: {version_part} != {info_part}",
-                            )
-                    except ValueError:
+                # Check type compatibility
+                if isinstance(info_part, int) and isinstance(version_part, int):
+                    if version_part != info_part:
                         return r.fail(
-                            f"Cannot convert version part {i} to int: {version_part}",
+                            f"Mismatch at position {i}: {version_part} != {info_part}",
                         )
-                elif isinstance(info_part, str) and version_part != info_part:
+                elif isinstance(info_part, str) and isinstance(version_part, str):
+                    if version_part != info_part:
+                        return r.fail(
+                            f"Mismatch at position {i}: {version_part} != {info_part}",
+                        )
+                elif type(info_part) != type(version_part):
                     return r.fail(
-                        f"Mismatch at position {i}: {version_part} != {info_part}",
+                        f"Type mismatch at position {i}: {type(version_part).__name__} != {type(info_part).__name__}",
                     )
 
             return r.ok((version_string, version_info))
@@ -494,7 +516,8 @@ class FlextCliTestHelpers:
 
                         """
                         # Use same credentials as c.Authentication.VALID_CREDS
-                        if username == "test_user" and password == "test_pass":
+                        # Valid credentials are testuser/testpass
+                        if username == "testuser" and password == "testpass":
                             self.token = "valid_token"
                             return r[str].ok(self.token)
                         return r[str].fail("Invalid credentials")

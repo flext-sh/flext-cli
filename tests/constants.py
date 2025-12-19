@@ -97,7 +97,7 @@ class TestsCliConstants(FlextTestsConstants):
     class Statuses:
         """Test status constants."""
 
-        VALID_STATUSES: Final[str] = "valid_statuses"
+        VALID_STATUSES: Final[list[str]] = ["pending", "running", "completed", "failed"]
         INVALID_STATUS: Final[str] = "invalid_status"
 
     class FileOps:
@@ -117,7 +117,20 @@ class TestsCliConstants(FlextTestsConstants):
         ]
 
     Password: Final[str] = "password"
+
+    class PasswordDefaults:
+        """Password validation constants."""
+
+        MIN_LENGTH_STRICT: Final[int] = 8
+        MIN_LENGTH_DEFAULT: Final[int] = 1
+
     Progress: Final[str] = "progress"
+
+    class ProgressDefaults:
+        """Progress bar constants."""
+
+        SMALL_DATASET_SIZE: Final[int] = 5
+        LARGE_DATASET_SIZE: Final[int] = 100
 
     class Configuration:
         """Test configuration constants."""
@@ -147,6 +160,7 @@ class TestsCliConstants(FlextTestsConstants):
         """Flext-cli-specific test strings organized by complexity."""
 
         EMPTY: Final[str] = ""
+        WHITESPACE_ONLY: Final[str] = "   "
         SINGLE_CHAR: Final[str] = "a"
         BASIC_WORD: Final[str] = "hello"
         BASIC_LIST: Final[str] = "a,b,c"
@@ -280,8 +294,14 @@ class TestsCliConstants(FlextTestsConstants):
 
             PLUS: Final[str] = "+"
 
-        SPECIALIZED_CASES: Final[list] = [
-            ("test_method", "test_format", ["expected_content"])
+        SPECIALIZED_CASES: Final[list[tuple[str, str, list[str]]]] = [
+            ("simple", "simple", ["name", "role", "alice"]),
+            ("grid", "grid", ["+", "-", "|"]),
+            ("fancy_grid", "fancy_grid", ["╒", "═", "│"]),
+            ("markdown", "markdown", ["|", "-"]),
+            ("html", "html", ["<table>", "<tr>", "<td>"]),
+            ("latex", "latex", ["\\begin{tabular}", "\\hline"]),
+            ("rst", "rst", ["name", "role"]),
         ]
 
     class Authentication:

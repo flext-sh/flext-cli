@@ -18,7 +18,7 @@ import os
 import shutil
 import tempfile
 import zipfile
-from collections.abc import Callable, Mapping
+from collections.abc import Callable
 from pathlib import Path
 
 import yaml

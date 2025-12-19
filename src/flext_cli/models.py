@@ -1182,8 +1182,8 @@ class FlextCliModels(FlextModels):
             Inherits frozen=True and extra="forbid" from FlextModels.Value.
             """
 
-            username: str = Field(...)
-            password: str = Field(...)
+            username: str = Field(..., min_length=3)
+            password: str = Field(..., min_length=8)
             realm: str = Field(default="")
 
         class CmdConfig(Value):

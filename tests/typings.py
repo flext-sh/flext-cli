@@ -53,6 +53,7 @@ class TestsCliTypes(FlextTestsTypes):
         CliConfigData = cli_t.Cli.CliConfigData
         CliJsonDict = cli_t.Cli.CliJsonDict
         CliTokenData = cli_t.Cli.CliTokenData
+        ResultFormatter = cli_t.Cli.ResultFormatter
 
         type CliConfigMapping = Mapping[
             str,
