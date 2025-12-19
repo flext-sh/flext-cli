@@ -27,7 +27,6 @@ from __future__ import annotations
 import os
 import time
 from pathlib import Path
-from typing import cast
 
 from example_utils import display_config_table
 
@@ -95,14 +94,10 @@ def load_environment_config() -> dict[str, str | int]:
     # Display config - convert to CliDataDict using u directly
     # Use u.transform for JSON conversion
     transform_result = u.transform(
-        cast("dict[str, t.GeneralValueType]", settings),
+        settings,
         to_json=True,
     )
-    settings_data = (
-        transform_result.value
-        if transform_result.is_success
-        else cast("dict[str, t.GeneralValueType]", settings)
-    )
+    settings_data = transform_result.value if transform_result.is_success else settings
     display_config_table(
         cli=cli,
         config_data=settings_data,
@@ -191,13 +186,11 @@ def show_config_locations() -> dict[str, str]:
     # Display as table - convert to CliDataDict using u directly
     # Use u.transform for JSON conversion
     transform_result = u.transform(
-        cast("dict[str, t.GeneralValueType]", locations),
+        locations,
         to_json=True,
     )
     locations_data = (
-        transform_result.value
-        if transform_result.is_success
-        else cast("dict[str, t.GeneralValueType]", locations)
+        transform_result.value if transform_result.is_success else locations
     )
     table_result = cli.create_table(
         data=locations_data,
@@ -276,14 +269,14 @@ def show_environment_variables() -> None:
         "FLEXT_OUTPUT_FORMAT": os.getenv("FLEXT_OUTPUT_FORMAT", "table"),
     }
 
-    # Display current values using u.process
+    # Display current values using u.Cli.process
     cli.print("\n📊 Current Environment Variables:", style="yellow")
 
     def print_env(k: str, v: str) -> None:
         """Print single environment variable."""
         cli.print(f"   {k}={v}", style="cyan")
 
-    u.process(env_vars, processor=print_env, on_error="skip")  # type: ignore[attr-defined]
+    u.Cli.process(env_vars, processor=print_env, on_error="skip")
 
     # Show how to set them
     cli.print("\n💡 How to set environment variables:", style="bold cyan")
@@ -526,13 +519,11 @@ def main() -> None:
         # Display final config - convert to CliDataDict
         # Use u.transform for JSON conversion
         transform_result = u.transform(
-            cast("dict[str, t.GeneralValueType]", final_config),
+            final_config,
             to_json=True,
         )
         final_config_data = (
-            transform_result.value
-            if transform_result.is_success
-            else cast("dict[str, t.GeneralValueType]", final_config)
+            transform_result.value if transform_result.is_success else final_config
         )
         display_config_table(
             cli=cli,

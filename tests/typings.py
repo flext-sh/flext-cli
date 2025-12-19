@@ -1,7 +1,11 @@
-"""Test type definitions for flext-cli tests.
+"""Type system foundation for flext-cli tests.
 
-Extends FlextTestsTypes and FlextCliTypes with test-specific type aliases using inheritance.
-Centralizes test type objects without duplicating parent class types.
+Provides TestsCliTypes, extending FlextTestsTypes with flext-cli-specific types.
+All generic test types come from flext_tests, only flext-cli-specific additions here.
+
+Architecture:
+- FlextTestsTypes (flext_tests) = Generic types for all FLEXT projects
+- TestsCliTypes (tests/) = flext-cli-specific types extending FlextTestsTypes
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -9,64 +13,88 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Callable
-from typing import TypeVar
+from collections.abc import Mapping, Sequence
+from typing import TypedDict
 
-from flext_tests import FlextTestsTypes
+from flext_core.typings import T, T_co, T_contra, t as core_t
+from flext_tests.typings import (
+    FlextTestsTypes,
+    TTestModel,
+    TTestResult,
+    TTestService,
+)
 
-from flext_cli import FlextCliTypes, r
-
-# TypeVars for test-specific types
-TTestCommand = TypeVar("TTestCommand")
-TTestSession = TypeVar("TTestSession")
-TTestResult = TypeVar("TTestResult")
+from flext_cli.typings import t as cli_t
 
 
-class TestsCliTypes(FlextTestsTypes, FlextCliTypes):
-    """Test type definitions extending FlextTestsTypes and FlextCliTypes.
+class TestsCliTypes(FlextTestsTypes):
+    """Type system foundation for flext-cli tests - extends FlextTestsTypes.
 
-    Business Rules:
-    ───────────────
-    1. Extends FlextTestsTypes and FlextCliTypes via inheritance (not aliases)
-    2. Only contains test-specific types not in src
-    3. Reuses parent types through inheritance hierarchy
-    4. Uses PEP 695 type aliases for Python 3.13+ syntax
+    Architecture: Extends FlextTestsTypes with flext-cli-specific type definitions.
+    All generic types from FlextTestsTypes are available through inheritance.
+
+    Rules:
+    - NEVER redeclare types from FlextTestsTypes
+    - Only flext-cli-specific types allowed (not generic for other projects)
+    - All generic types come from FlextTestsTypes
     """
 
-    # Test-specific type aliases
-    type TestDataDict = FlextCliTypes.JsonDict
-    type TestResultDict = FlextCliTypes.JsonDict
-    type TestFixtureData = FlextCliTypes.JsonDict
+    class Cli(FlextTestsTypes.Core):
+        """Flext-cli-specific type definitions for testing.
 
-    class Test:
-        """Test-related type aliases."""
+        Uses composition of cli_t and core_t for type safety and consistency.
+        Only defines types that are truly flext-cli-specific.
+        """
 
-        type Handler[T] = Callable[[FlextCliTypes.GeneralValueType], r[T]]
-        type Validator = Callable[[FlextCliTypes.GeneralValueType], bool]
-        type Fixture = Callable[[], FlextCliTypes.GeneralValueType]
+        # Import types from FlextCliTypes.Cli for test access
+        CliDataDict = cli_t.Cli.CliDataDict
+        CliAuthData = cli_t.Cli.CliAuthData
+        CliFormatData = cli_t.Cli.CliFormatData
+        CliConfigData = cli_t.Cli.CliConfigData
+        CliJsonDict = cli_t.Cli.CliJsonDict
+        CliTokenData = cli_t.Cli.CliTokenData
 
-    class Assertion:
-        """Assertion-related type aliases."""
+        type CliConfigMapping = Mapping[
+            str,
+            core_t.GeneralValueType | Sequence[str] | Mapping[str, str | int] | None,
+        ]
+        """CLI configuration mapping specific to flext-cli."""
 
-        type AssertionFunction = Callable[[object, object], None]
-        type ComparisonFunction = Callable[[object, object], bool]
+        type CommandArgsMapping = Mapping[
+            str,
+            core_t.GeneralValueType | cli_t.GeneralValueType,
+        ]
+        """Command arguments mapping for CLI operations."""
 
-    class TestFactory:
-        """Factory-related type aliases for tests."""
+    class Fixtures:
+        """TypedDict definitions for test fixtures."""
 
-        type ModelFactory[T] = Callable[[FlextCliTypes.JsonDict], r[T]]
-        type CommandFactory = Callable[[str], r[FlextCliTypes.GeneralValueType]]
+        class CliCommandDict(TypedDict, total=False):
+            """CLI command test data."""
+
+            name: str
+            args: list[str]
+            format: str
+            status: str
+
+        class CliOutputDict(TypedDict, total=False):
+            """CLI output test data."""
+
+            format: str
+            data: dict[str, str | int | bool]
+            success: bool
 
 
-# Standardized short name - matches src pattern (t = FlextCliTypes)
-# TestsCliTypes extends FlextTestsTypes and FlextCliTypes, so use same short name 't'
-# Type annotation needed for mypy compatibility
-t: type[TestsCliTypes] = TestsCliTypes
+# Short alias per FLEXT convention
+t = TestsCliTypes
 
 __all__ = [
-    "TTestCommand",
+    "T",
+    "TTestModel",
     "TTestResult",
-    "TTestSession",
+    "TTestService",
+    "T_co",
+    "T_contra",
     "TestsCliTypes",
     "t",
 ]

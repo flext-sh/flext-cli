@@ -26,7 +26,6 @@ from __future__ import annotations
 
 import tempfile
 from pathlib import Path
-from typing import cast
 
 from flext_cli import FlextCli, FlextCliPrompts, r, t, u
 
@@ -107,13 +106,11 @@ def test_file_operations() -> None:
     # Convert to JsonDict-compatible dict using u
     # Use u.transform for JSON conversion
     transform_result = u.transform(
-        cast("dict[str, t.GeneralValueType]", config_data),
+        config_data,
         to_json=True,
     )
     config: t.JsonDict = (
-        transform_result.value
-        if transform_result.is_success
-        else cast("t.JsonDict", config_data)
+        transform_result.value if transform_result.is_success else config_data
     )
     result = save_config_command(config)
 
@@ -285,12 +282,10 @@ def full_workflow_command() -> r[t.JsonDict]:
     if isinstance(loaded, dict):
         transform_result = u.transform(loaded, to_json=True)
         typed_data: t.JsonDict = (
-            transform_result.value
-            if transform_result.is_success
-            else cast("t.JsonDict", loaded)
+            transform_result.value if transform_result.is_success else loaded
         )
     else:
-        typed_data = cast("t.JsonDict", loaded)
+        typed_data = loaded
     return r[t.JsonDict].ok(typed_data)
 
 

@@ -115,56 +115,55 @@ def pytest_configure(config: pytest.Config) -> None:
     """
     global ALICE, VALID_FIELD_NAME, FIELD_NAME, WHITESPACE_FIELD_NAME, VALID_STRING, STRING, WHITESPACE_STRING, NONE_VALUE, CUSTOM, TWO, PASSWORD, LONG, SPECIAL, UNICODE, PERFORMANCE_THRESHOLD, INFO, WARNING, ALL, NAME_HEADER, GRID, FANCY_GRID, INVALID, ExpectedALL, PYTEST_CURRENT_TEST, PYTEST_BINARY, CI_VALUE, SpecializedCASES, Borders, Data, Config, OutputFormats, Statuses, FileOps, Password, Progress  # noqa: PLW0603
 
-    # Test data constants - access via TestsCliConstants instance
-    # c is type[TestsCliConstants], so we need to access class attributes directly
+    # Test data constants - access from TestsCliConstants directly
+    # Constants at class level (not in TestData subclass)
+    ALICE = builtins.ALICE = c.ALICE
+    VALID_FIELD_NAME = builtins.VALID_FIELD_NAME = c.VALID_FIELD_NAME
+    FIELD_NAME = builtins.FIELD_NAME = c.FIELD_NAME
+    WHITESPACE_FIELD_NAME = builtins.WHITESPACE_FIELD_NAME = c.WHITESPACE_FIELD_NAME
+    VALID_STRING = builtins.VALID_STRING = c.VALID_STRING
+    STRING = builtins.STRING = c.STRING
+    WHITESPACE_STRING = builtins.WHITESPACE_STRING = c.WHITESPACE_STRING
+    NONE_VALUE = builtins.NONE_VALUE = c.NONE_VALUE
+    # Constants in TestData subclass (have different values than class-level ones)
     test_data = c.TestData
-    ALICE = builtins.ALICE = test_data.ALICE  # type: ignore[attr-defined]
-    VALID_FIELD_NAME = builtins.VALID_FIELD_NAME = test_data.VALID_FIELD_NAME  # type: ignore[attr-defined]
-    FIELD_NAME = builtins.FIELD_NAME = test_data.FIELD_NAME  # type: ignore[attr-defined]
-    WHITESPACE_FIELD_NAME = builtins.WHITESPACE_FIELD_NAME = (  # type: ignore[attr-defined]
-        test_data.WHITESPACE_FIELD_NAME
-    )
-    VALID_STRING = builtins.VALID_STRING = test_data.VALID_STRING  # type: ignore[attr-defined]
-    STRING = builtins.STRING = test_data.STRING  # type: ignore[attr-defined]
-    WHITESPACE_STRING = builtins.WHITESPACE_STRING = test_data.WHITESPACE_STRING  # type: ignore[attr-defined]
-    NONE_VALUE = builtins.NONE_VALUE = test_data.NONE_VALUE  # type: ignore[attr-defined]
-    CUSTOM = builtins.CUSTOM = test_data.CUSTOM  # type: ignore[attr-defined]
-    TWO = builtins.TWO = test_data.TWO  # type: ignore[attr-defined]
-    PASSWORD = builtins.PASSWORD = test_data.PASSWORD  # type: ignore[attr-defined]
-    LONG = builtins.LONG = test_data.LONG  # type: ignore[attr-defined]
-    SPECIAL = builtins.SPECIAL = test_data.SPECIAL  # type: ignore[attr-defined]
-    UNICODE = builtins.UNICODE = test_data.UNICODE  # type: ignore[attr-defined]
-    PERFORMANCE_THRESHOLD = builtins.PERFORMANCE_THRESHOLD = (  # type: ignore[attr-defined]
+    CUSTOM = builtins.CUSTOM = test_data.CUSTOM
+    TWO = builtins.TWO = test_data.TWO
+    PASSWORD = builtins.PASSWORD = test_data.PASSWORD
+    LONG = builtins.LONG = test_data.LONG
+    SPECIAL = builtins.SPECIAL = test_data.SPECIAL
+    UNICODE = builtins.UNICODE = test_data.UNICODE
+    PERFORMANCE_THRESHOLD = builtins.PERFORMANCE_THRESHOLD = (
         test_data.PERFORMANCE_THRESHOLD
     )
-    # Status constants
-    INFO = builtins.INFO = c.Status.INFO  # type: ignore[attr-defined]
-    WARNING = builtins.WARNING = c.Status.WARNING  # type: ignore[attr-defined]
-    ALL = builtins.ALL = c.Status.ALL  # type: ignore[attr-defined]
-    # Format constants
-    NAME_HEADER = builtins.NAME_HEADER = c.Format.NAME_HEADER  # type: ignore[attr-defined]
-    GRID = builtins.GRID = c.Format.GRID  # type: ignore[attr-defined]
-    FANCY_GRID = builtins.FANCY_GRID = c.Format.FANCY_GRID  # type: ignore[attr-defined]
-    INVALID = builtins.INVALID = c.Format.INVALID  # type: ignore[attr-defined]
-    ExpectedALL = builtins.ExpectedALL = c.Format.EXPECTED_ALL  # type: ignore[attr-defined]
+    # Status constants - accessed directly from TestsCliConstants
+    INFO = builtins.INFO = c.INFO
+    WARNING = builtins.WARNING = c.WARNING
+    ALL = builtins.ALL = c.ALL
+    # Format constants - accessed directly from TestsCliConstants
+    NAME_HEADER = builtins.NAME_HEADER = c.NAME_HEADER
+    GRID = builtins.GRID = c.GRID
+    FANCY_GRID = builtins.FANCY_GRID = c.FANCY_GRID
+    INVALID = builtins.INVALID = c.INVALID
+    ExpectedALL = builtins.ExpectedALL = c.EXPECTED_ALL
     # Environment constants
-    PYTEST_CURRENT_TEST = builtins.PYTEST_CURRENT_TEST = (  # type: ignore[attr-defined]
+    PYTEST_CURRENT_TEST = builtins.PYTEST_CURRENT_TEST = (
         c.Environment.PYTEST_CURRENT_TEST
     )
-    PYTEST_BINARY = builtins.PYTEST_BINARY = c.Environment.PYTEST_BINARY  # type: ignore[attr-defined]
-    CI_VALUE = builtins.CI_VALUE = c.Environment.CI_VALUE  # type: ignore[attr-defined]
-    # Table constants
-    SpecializedCASES = builtins.SpecializedCASES = c.Table.SPECIALIZED_CASES  # type: ignore[attr-defined]
-    Borders = builtins.Borders = c.Table.Borders  # type: ignore[attr-defined]
-    Data = builtins.Data = c.Table.Data  # type: ignore[attr-defined]
+    PYTEST_BINARY = builtins.PYTEST_BINARY = c.Environment.PYTEST_BINARY
+    CI_VALUE = builtins.CI_VALUE = c.Environment.CI_VALUE
+    # Table and other constants
+    SpecializedCASES = builtins.SpecializedCASES = c.SPECIALIZED_CASES
+    Borders = builtins.Borders = c.Borders
+    Data = builtins.Data = c.Data
     # Config constants
-    Config = builtins.Config = c.Config  # type: ignore[attr-defined]
-    # Other constants
-    OutputFormats = builtins.OutputFormats = c.OutputFormats  # type: ignore[attr-defined]
-    Statuses = builtins.Statuses = c.Statuses  # type: ignore[attr-defined]
-    FileOps = builtins.FileOps = c.FileOps  # type: ignore[attr-defined]
-    Password = builtins.Password = c.Password  # type: ignore[attr-defined]
-    Progress = builtins.Progress = c.Progress  # type: ignore[attr-defined]
+    Config = builtins.Config = c.Config
+    # Nested class constants
+    OutputFormats = builtins.OutputFormats = c.OutputFormats
+    Statuses = builtins.Statuses = c.Statuses
+    FileOps = builtins.FileOps = c.FileOps
+    Password = builtins.Password = c.Password
+    Progress = builtins.Progress = c.Progress
 
     # Configure pytest markers
     config.addinivalue_line("markers", "integration: marks tests as integration tests")

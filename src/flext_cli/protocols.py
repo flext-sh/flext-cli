@@ -144,7 +144,7 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
             @property
-            def kwargs(self) -> dict[str, t.GeneralValueType]:
+            def kwargs(self) -> Mapping[str, t.GeneralValueType]:
                 """Command keyword arguments."""
                 ...
 
@@ -174,7 +174,7 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
             @property
-            def command_summary(self) -> dict[str, str]:
+            def command_summary(self) -> Mapping[str, str]:
                 """Return command summary as dict."""
                 ...
 
@@ -257,7 +257,7 @@ class FlextCliProtocols(FlextProtocols):
             @property
             def commands_by_status(
                 self,
-            ) -> dict[str, list[FlextCliProtocols.Cli.Command]]:
+            ) -> Mapping[str, Sequence[FlextCliProtocols.Cli.Command]]:
                 """Group commands by status."""
                 ...
 
@@ -617,7 +617,7 @@ class FlextCliProtocols(FlextProtocols):
 
             def load_config(
                 self,
-            ) -> FlextProtocols.Result[dict[str, t.GeneralValueType]]:
+            ) -> FlextProtocols.Result[Mapping[str, t.GeneralValueType]]:
                 """Load configuration."""
                 ...
 
@@ -647,7 +647,7 @@ class FlextCliProtocols(FlextProtocols):
 
             def get_debug_info(
                 self,
-            ) -> FlextProtocols.Result[dict[str, t.GeneralValueType]]:
+            ) -> FlextProtocols.Result[Mapping[str, t.GeneralValueType]]:
                 """Get debug information."""
                 ...
 
@@ -727,124 +727,147 @@ class FlextCliProtocols(FlextProtocols):
         # ═══════════════════════════════════════════════════════════════════
         # LAYER 1: Service Protocols (can use Layer 0)
         # ═══════════════════════════════════════════════════════════════════
-        # Note: Renamed to CliService to avoid conflict with FlextProtocols.Service
 
-        class CliService:
-            """CLI service-related protocols."""
+        @runtime_checkable
+        class CliServiceProtocol(Protocol):
+            """Protocol for CLI services."""
 
-            @runtime_checkable
-            class CliServiceProtocol(Protocol):
-                """Protocol for CLI services."""
+            def initialize(
+                self, context: FlextCliProtocols.Cli.CliContextProtocol
+            ) -> FlextProtocols.Result[bool]:
+                """Initialize service with context."""
+                ...
 
-                def initialize(
-                    self, context: FlextCliProtocols.Cli.CliContextProtocol
-                ) -> FlextProtocols.Result[bool]:
-                    """Initialize service with context."""
-                    ...
+            def shutdown(self) -> FlextProtocols.Result[bool]:
+                """Shutdown service."""
+                ...
 
-                def shutdown(self) -> FlextProtocols.Result[bool]:
-                    """Shutdown service."""
-                    ...
+            def is_healthy(self) -> bool:
+                """Check service health."""
+                ...
 
-                def is_healthy(self) -> bool:
-                    """Check service health."""
-                    ...
+        @runtime_checkable
+        class CommandServiceProtocol(Protocol):
+            """Protocol for command processing services."""
 
-            @runtime_checkable
-            class CommandServiceProtocol(Protocol):
-                """Protocol for command processing services."""
+            def register_command(
+                self, command: FlextCliProtocols.Cli.Command
+            ) -> FlextProtocols.Result[bool]:
+                """Register a command."""
+                ...
 
-                def register_command(
-                    self, command: FlextCliProtocols.Cli.Command
-                ) -> FlextProtocols.Result[bool]:
-                    """Register a command."""
-                    ...
+            def get_command(
+                self, name: str
+            ) -> FlextProtocols.Result[FlextCliProtocols.Cli.Command]:
+                """Get command by name."""
+                ...
 
-                def get_command(
-                    self, name: str
-                ) -> FlextProtocols.Result[FlextCliProtocols.Cli.Command]:
-                    """Get command by name."""
-                    ...
+            def list_commands(
+                self,
+            ) -> FlextProtocols.Result[Sequence[FlextCliProtocols.Cli.Command]]:
+                """List all registered commands."""
+                ...
 
-                def list_commands(
-                    self,
-                ) -> FlextProtocols.Result[Sequence[FlextCliProtocols.Cli.Command]]:
-                    """List all registered commands."""
-                    ...
+        @runtime_checkable
+        class OutputServiceProtocol(Protocol):
+            """Protocol for output formatting services."""
 
-            @runtime_checkable
-            class OutputServiceProtocol(Protocol):
-                """Protocol for output formatting services."""
+            def format_table(
+                self,
+                headers: Sequence[str],
+                rows: Sequence[Sequence[str]],
+            ) -> FlextProtocols.Result[str]:
+                """Format data as table."""
+                ...
 
-                def format_table(
-                    self,
-                    headers: Sequence[str],
-                    rows: Sequence[Sequence[str]],
-                ) -> FlextProtocols.Result[str]:
-                    """Format data as table."""
-                    ...
+            def format_json(
+                self, data: t.GeneralValueType
+            ) -> FlextProtocols.Result[str]:
+                """Format data as JSON."""
+                ...
 
-                def format_json(
-                    self, data: t.GeneralValueType
-                ) -> FlextProtocols.Result[str]:
-                    """Format data as JSON."""
-                    ...
-
-                def format_yaml(
-                    self, data: t.GeneralValueType
-                ) -> FlextProtocols.Result[str]:
-                    """Format data as YAML."""
-                    ...
+            def format_yaml(
+                self, data: t.GeneralValueType
+            ) -> FlextProtocols.Result[str]:
+                """Format data as YAML."""
+                ...
 
         # ═══════════════════════════════════════════════════════════════════
         # LAYER 2: Handler Protocols (can use Layer 0 and 1)
         # ═══════════════════════════════════════════════════════════════════
-        # Note: Renamed to CliHandler to avoid conflict with FlextProtocols.Handler
 
-        class CliHandler:
-            """CLI handler-related protocols."""
+        @runtime_checkable
+        class CliHandlerProtocol(Protocol):
+            """Protocol for CLI request handlers."""
 
-            @runtime_checkable
-            class CliHandlerProtocol(Protocol):
-                """Protocol for CLI request handlers."""
+            def can_handle(self, args: Sequence[str]) -> bool:
+                """Check if handler can process arguments."""
+                ...
 
-                def can_handle(self, args: Sequence[str]) -> bool:
-                    """Check if handler can process arguments."""
-                    ...
+            def handle(
+                self,
+                args: Sequence[str],
+                context: FlextCliProtocols.Cli.CliContextProtocol,
+                output: FlextCliProtocols.Cli.CliOutputProtocol,
+            ) -> FlextProtocols.Result[int]:
+                """Handle CLI request."""
+                ...
 
-                def handle(
-                    self,
-                    args: Sequence[str],
-                    context: FlextCliProtocols.Cli.CliContextProtocol,
-                    output: FlextCliProtocols.Cli.CliOutputProtocol,
-                ) -> FlextProtocols.Result[int]:
-                    """Handle CLI request."""
-                    ...
+        @runtime_checkable
+        class ErrorHandlerProtocol(Protocol):
+            """Protocol for error handling."""
 
-            @runtime_checkable
-            class ErrorHandlerProtocol(Protocol):
-                """Protocol for error handling."""
+            def handle_error(self, error: Exception) -> FlextProtocols.Result[str]:
+                """Handle and format error."""
+                ...
 
-                def handle_error(self, error: Exception) -> FlextProtocols.Result[str]:
-                    """Handle and format error."""
-                    ...
-
-                def get_exit_code(self, error: Exception) -> int:
-                    """Get appropriate exit code for error."""
-                    ...
+            def get_exit_code(self, error: Exception) -> int:
+                """Get appropriate exit code for error."""
+                ...
 
         # Simple command handler protocol - callable that returns a GeneralValueType
         # (matches register_command signature: Callable[..., GeneralValueType])
         CliCommandHandler = Callable[..., t.GeneralValueType]
 
+        @runtime_checkable
+        class TableStyleProtocol(Protocol):
+            """Protocol for table style configuration."""
+
+            @property
+            def style(self) -> str | None:
+                """Table style."""
+                ...
+
+            @property
+            def show_header(self) -> bool | None:
+                """Show table header."""
+                ...
+
+            @property
+            def show_lines(self) -> bool | None:
+                """Show table lines."""
+                ...
+
+    # ═══════════════════════════════════════════════════════════════════════
+    # TOP-LEVEL ALIASES for backward compatibility
+    # ═══════════════════════════════════════════════════════════════════════
+
+    # These aliases allow access like FlextCliProtocols.CliPlugin instead of
+    # FlextCliProtocols.Cli.CliPlugin
+    CliPlugin = Cli.CliPlugin
+    CliCommandHandler = Cli.CliCommandHandler
+    Command = Cli.Command
+
 
 # Direct access: use FlextCliProtocols directly
 p = FlextCliProtocols
+
 
 __all__ = [
     "FlextCliProtocols",
     "p",
 ]
+
 
 # Short alias for namespace access
 fcli = FlextCliProtocols

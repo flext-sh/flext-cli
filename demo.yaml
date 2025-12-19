@@ -1,9 +1,0 @@
-api:
-  timeout: 30
-  version: "1.0"
-database:
-  host: localhost
-  port: 5432
-logging:
-  format: json
-  level: INFO

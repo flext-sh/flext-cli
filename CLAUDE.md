@@ -9,12 +9,15 @@
 ## 🔒 FLOCK PROTOCOL - Multi-Agent File Coordination
 
 ### Purpose
+
 Prevent simultaneous file modifications that cause merge conflicts and corrupted code in multi-agent development environment.
 
 ### Protocol Overview
+
 **Flock (File Lock)** establishes exclusive access to files during modification operations.
 
 ### Establishing a Flock
+
 1. **Check .token** for existing locks on target file
 2. **Write lock** to .token: `FLOCK_[AGENT_NAME]_[TARGET_FILE]`
 3. **Re-read file** after lock is established (other agents may have modified)
@@ -23,6 +26,7 @@ Prevent simultaneous file modifications that cause merge conflicts and corrupted
 6. **Release lock**: Update .token with `RELEASE_[AGENT_NAME]_[TARGET_FILE]`
 
 ### Lock Format
+
 ```bash
 # Establish lock
 FLOCK_[AGENT_NAME]_[TARGET_FILE]
@@ -35,6 +39,7 @@ RELEASE_[AGENT_NAME]_[TARGET_FILE]
 ```
 
 ### Critical Rules
+
 - **🔴 NEVER modify a file with active flock from another agent**
 - **🔄 ALWAYS re-read file after establishing your flock**
 - **⚡ RELEASE immediately after changes are complete and tested**
@@ -102,10 +107,12 @@ grep -rEn "(from flext_.*\.(services|api) import)" \
 ---
 
 ## Rule 0 — Cross-Project Alignment
+
 - This file mirrors the root `../CLAUDE.md` standards. Any rule change must be made in the root first and then propagated to this file and to `flext-core/`, `flext-ldap/`, `flext-ldif/`, and `client-a-oud-mig/` `CLAUDE.md` files.
 - All agents accept cross-project changes and resolve conflicts in the root `CLAUDE.md` before coding.
 
 ## Critical Rules — Zero Tolerance
+
 - ❌ No `TYPE_CHECKING`; fix architecture instead.
 - ❌ No `# type: ignore`; resolve typing issues.
 - ❌ No `cast()`; use Models/Protocols/TypeGuards with correct typing.
@@ -126,6 +133,7 @@ grep -rEn "(from flext_.*\.(services|api) import)" \
 **Standards**: FLEXT Advanced Standards, PEP+, Pydantic 2, SOLID, DRY
 
 **Key Architecture**:
+
 - Single consolidated API class: `FlextCli`
 - Wraps Click (CLI framework) and Rich (terminal UI) internally
 - Uses flext-core patterns: `FlextResult[T]` railway pattern, `FlextService`
@@ -168,6 +176,7 @@ src/flext_cli/
 ```
 
 **Pattern Rules**:
+
 - **ONE class per module** - Each module has exactly ONE class prefixed with `FlextCli*`
 - **Short aliases** - `t` (Types), `c` (Constants), `p` (Protocols), `m` (Models), `u` (Utilities), `s` (ServiceBase)
 - **Core aliases** - `r` (FlextResult), `e` (FlextExceptions), `d` (FlextDecorators), `x` (FlextMixins) from `flext_core`
@@ -176,6 +185,7 @@ src/flext_cli/
 - **NO duplicate classes** - Each class has unique responsibility (SOLID)
 
 **Key Module Dependencies**:
+
 - `api.py` → Main entry point, imports most other modules
 - `cli.py` → ONLY file that imports Click (ZERO TOLERANCE)
 - `formatters.py` + `typings.py` → ONLY files that import Rich (ZERO TOLERANCE)
@@ -314,6 +324,7 @@ make reset                   # Complete reset (clean + setup)
 ## Critical Constraints
 
 **ZERO TOLERANCE**:
+
 - **cli.py** is the ONLY file that may import Click directly
 - **formatters.py** and **typings.py** are the ONLY files that may import Rich directly
 - ALL other code must use the abstraction layers
@@ -392,6 +403,7 @@ m = FlextCliModels
 ### 3. Circular Import Avoidance Strategies
 
 **Strategy 1: Forward References with `from __future__ import annotations`**
+
 ```python
 from __future__ import annotations
 from typing import Self
@@ -403,6 +415,7 @@ class FlextCliService:
 ```
 
 **Strategy 2: Protocol-Based Decoupling**
+
 ```python
 # protocols.py (Tier 0 - no internal imports except flext_core)
 from flext_core.protocols import FlextProtocols
@@ -422,6 +435,7 @@ class FlextCliCmd:
 ```
 
 **Strategy 3: Dependency Injection**
+
 ```python
 # Instead of importing services directly, inject them
 from flext_core import FlextContainer
@@ -556,12 +570,14 @@ tests/
 ```
 
 **Test Module Pattern**: ONE class per module, prefixed with `TestsCli*`:
+
 - `TestsCliOutput` in `test_output.py`
 - `TestsCliPrompts` in `test_prompts.py`
 - `TestsCliTables` in `test_tables.py`
 - etc.
 
 **Short Aliases Usage**:
+
 - Use `t`, `c`, `m`, `p`, `u`, `s` from `tests` module for support (NOT for test declarations)
 - Use `r` (FlextResult), `e` (FlextExceptions), `d` (FlextDecorators), `x` (FlextMixins) directly from `flext_core`
 - All aliases must work with class short names without lint complaints
@@ -620,6 +636,7 @@ class TestsCliOutput:
 ### Test Fixtures
 
 Common fixtures available in all tests (from `conftest.py`):
+
 - Service fixtures (all modules have fixtures)
 - Utility fixtures (temp_dir, temp_file, sample_config_data, etc.)
 - Model factories (cli_command_factory, cli_session_factory, etc.)
@@ -628,6 +645,7 @@ Common fixtures available in all tests (from `conftest.py`):
 ### Writing Tests
 
 **CRITICAL TESTING RULES**:
+
 - **ONE class per module** - Prefix with `TestsCli*` (e.g., `TestsCliOutput`)
 - **Use short aliases** - `t`, `c`, `m`, `p`, `u`, `s` from `tests` module for support (NOT for test declarations)
 - **Use flext-core aliases** - `r` (FlextResult), `e` (FlextExceptions), `d` (FlextDecorators), `x` (FlextMixins) directly from `flext_core`
@@ -650,6 +668,7 @@ Common fixtures available in all tests (from `conftest.py`):
 ### Required Patterns
 
 **Model Configuration**:
+
 ```python
 from pydantic import BaseModel, ConfigDict
 
@@ -658,6 +677,7 @@ class CommandExecutionConfig(BaseModel):
 ```
 
 **Field Validators**:
+
 ```python
 from pydantic import field_validator
 
@@ -671,12 +691,14 @@ class CommandModel(BaseModel):
 ```
 
 **Serialization**:
+
 ```python
 model.model_dump()           # Python dict
 model.model_dump_json()      # JSON string (FASTEST)
 ```
 
 **Validation**:
+
 ```python
 CommandModel.model_validate(data)        # From dict
 CommandModel.model_validate_json(json)   # From JSON (FAST)
@@ -715,6 +737,7 @@ make type-check
 ### Circular Import Errors
 
 If you encounter circular imports:
+
 - Usually caused by incorrect import order in `__init__.py` or `api.py`
 - Check the dependency chain
 - Move shared types to `typings.py`, shared constants to `constants.py`
@@ -733,7 +756,7 @@ If you encounter circular imports:
 4. **Root Aliases**: ❌ PROHIBITED COMPLETELY - Always use complete namespace (c.Cli.OutputFormats, not c.OutputFormats)
 5. **Dynamic Assignments**: ❌ PROHIBITED COMPLETELY - Remove all, use only complete namespace
 6. **Functions in constants.py**: ❌ PROHIBITED - constants.py only constants, no functions/metaclasses/code
-7. **Namespace**: ✅ MANDATORY - Complete namespace always (u.Cli.process, not u.process)
+7. **Namespace**: ✅ MANDATORY - Complete namespace always (u.Cli.process, not u.Cli.process)
 
 ### Replacement Rules
 
@@ -756,7 +779,7 @@ def process(protocol: "p.Cli.Display") -> None:
 
 # ❌ PROHIBITED - Root aliases
 c.OutputFormats
-u.process
+u.Cli.process
 m.TableConfig
 
 # ✅ CORRECT - Complete namespace
@@ -906,6 +929,7 @@ exec(func_code, func_globals)  # nosec B102
 ### Quality Gates (Final Status)
 
 **Validation Results** (2025-12-08):
+
 - ✅ **Ruff**: All checks passed (0 issues)
 - ✅ **Mypy**: Success - no issues in 28 source files (strict mode)
 - ✅ **Bandit**: Security scan passed (suppressed intentional exec usage)
@@ -913,6 +937,7 @@ exec(func_code, func_globals)  # nosec B102
 - ℹ️  **Coverage**: 86% (below 90% threshold due to untested utility functions)
 
 **Refactoring Summary**:
+
 - Completed all 8 phases of comprehensive refactoring
 - Fixed 104+ errors across linting, type checking, complexity, and architecture
 - Achieved zero violations of core quality gates (ruff, mypy, tests)
@@ -921,6 +946,7 @@ exec(func_code, func_globals)  # nosec B102
 ---
 
 **See Also**:
+
 - [Workspace Standards](../CLAUDE.md)
 - [flext-core Patterns](../flext-core/CLAUDE.md)
 - [flext-api Patterns](../flext-api/CLAUDE.md)

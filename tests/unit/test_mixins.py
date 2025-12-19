@@ -14,12 +14,13 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TypeVar, cast
+from typing import TypeVar
 
 import pytest
 from flext_tests import tm
 
-from flext_cli import FlextCliMixins, p, r, t
+from flext_cli import FlextCliMixins, r
+from flext_cli.typings import t
 
 T = TypeVar("T")
 
@@ -184,10 +185,7 @@ class TestsCliMixins:
     def test_pipeline_step_valid(self) -> None:
         """Test pipeline step validation with valid step."""
         result = FlextCliMixins.BusinessRulesMixin.validate_pipeline_step(
-            cast(
-                "dict[str, t.GeneralValueType] | None",
-                {"name": "valid_step"},
-            ),
+            {"name": "valid_step"},
         )
         tm.ok(result)
 
@@ -208,7 +206,7 @@ class TestsCliMixins:
     ) -> None:
         """Test pipeline step validation with empty/None step."""
         result = FlextCliMixins.BusinessRulesMixin.validate_pipeline_step(
-            cast("dict[str, t.GeneralValueType] | None", step),
+            step,
         )
         tm.fail(result)
         # Check for appropriate error message based on step type
@@ -235,7 +233,7 @@ class TestsCliMixins:
     ) -> None:
         """Test pipeline step validation with invalid name."""
         result = FlextCliMixins.BusinessRulesMixin.validate_pipeline_step(
-            cast("dict[str, t.GeneralValueType] | None", step),
+            step,
         )
         tm.fail(result, has="name")
 
@@ -246,10 +244,7 @@ class TestsCliMixins:
     def test_configuration_consistency_valid(self) -> None:
         """Test configuration consistency validation with valid config."""
         result = FlextCliMixins.BusinessRulesMixin.validate_configuration_consistency(
-            cast(
-                "dict[str, t.GeneralValueType] | None",
-                {"debug": True, "timeout": 30},
-            ),
+            {"debug": True, "timeout": 30},
             ["debug", "timeout"],
         )
         tm.ok(result)
@@ -257,10 +252,7 @@ class TestsCliMixins:
     def test_configuration_consistency_missing_fields(self) -> None:
         """Test configuration consistency with missing required fields."""
         result = FlextCliMixins.BusinessRulesMixin.validate_configuration_consistency(
-            cast(
-                "dict[str, t.GeneralValueType] | None",
-                {"debug": True},
-            ),
+            {"debug": True},
             ["debug", "timeout"],
         )
         tm.fail(result, has="timeout")
@@ -296,7 +288,7 @@ class TestsCliMixins:
 
         result = FlextCliMixins.CliCommandMixin.execute_with_cli_context(
             operation=operation_name,
-            handler=cast("p.Cli.CliCommandHandler", success_handler),
+            handler=success_handler,
             **{test_param_key: test_param_value},
         )
 
@@ -318,7 +310,7 @@ class TestsCliMixins:
 
         result = FlextCliMixins.CliCommandMixin.execute_with_cli_context(
             operation=operation_name,
-            handler=cast("p.Cli.CliCommandHandler", failure_handler),
+            handler=failure_handler,
         )
 
         tm.fail(result, has=test_error_msg)
@@ -345,7 +337,7 @@ class TestsCliMixins:
         operation_name = "test_operation"
         result = FlextCliMixins.CliCommandMixin.execute_with_cli_context(
             operation=operation_name,
-            handler=cast("p.Cli.CliCommandHandler", params_handler),
+            handler=params_handler,
             **extra_params,
         )
 

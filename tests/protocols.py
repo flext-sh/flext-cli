@@ -1,7 +1,11 @@
-"""Test protocol definitions for flext-cli tests.
+"""Protocol definitions for flext-cli tests.
 
-Extends FlextTestsProtocols and FlextCliProtocols with test-specific protocols using inheritance.
-Centralizes test protocol objects without duplicating parent class protocols.
+Provides TestsCliProtocols, extending FlextTestsProtocols with flext-cli-specific
+protocols. All generic test protocols come from flext_tests.
+
+Architecture:
+- FlextTestsProtocols (flext_tests) = Generic protocols for all FLEXT projects
+- TestsCliProtocols (tests/) = flext-cli-specific protocols extending FlextTestsProtocols
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -9,86 +13,37 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Sequence
-from typing import Protocol, Self, runtime_checkable
+from flext_tests.protocols import FlextTestsProtocols
 
-from flext_tests import p as flext_tests_p
-
-from flext_cli import p as flext_cli_p
-from flext_cli.typings import t as flext_cli_t
+from flext_cli.protocols import FlextCliProtocols
 
 
-class TestsCliProtocols(flext_tests_p, flext_cli_p):
-    """Test protocol definitions extending FlextTestsProtocols and FlextCliProtocols.
+class TestsCliProtocols(FlextTestsProtocols, FlextCliProtocols):
+    """Protocol definitions for flext-cli tests - extends FlextTestsProtocols and FlextCliProtocols.
 
-    Business Rules:
-    ───────────────
-    1. Extends FlextTestsProtocols and FlextCliProtocols via inheritance (not aliases)
-    2. Only contains test-specific protocols not in src
-    3. Reuses parent protocols through inheritance hierarchy
-    4. Uses @runtime_checkable for isinstance() checks
-    5. Uses Self for methods returning the same instance
+    Architecture: Extends both FlextTestsProtocols and FlextCliProtocols with flext-cli-specific protocol
+    definitions. All generic protocols from both are available through inheritance.
+
+    Rules:
+    - NEVER redeclare protocols from FlextTestsProtocols or FlextCliProtocols
+    - Only flext-cli-specific test protocols allowed
+    - All generic protocols come from FlextTestsProtocols and FlextCliProtocols
     """
 
-    class Test:
-        """Test-specific protocols."""
-
-        @runtime_checkable
-        class TestFixtureProtocol(Protocol):
-            """Protocol for test fixtures."""
-
-            def setup(self) -> flext_cli_p.Result[bool]:
-                """Setup test fixture."""
-                ...
-
-            def teardown(self) -> flext_cli_p.Result[bool]:
-                """Teardown test fixture."""
-                ...
-
-            def reset(self) -> Self:
-                """Reset fixture state."""
-                ...
-
-        @runtime_checkable
-        class TestValidatorProtocol(Protocol):
-            """Protocol for test validators."""
-
-            def validate(
-                self, data: flext_cli_t.GeneralValueType
-            ) -> flext_cli_p.Result[bool]:
-                """Validate test data."""
-                ...
-
-            def validate_all(
-                self,
-                data: Sequence[flext_cli_t.GeneralValueType],
-            ) -> flext_cli_p.Result[bool]:
-                """Validate all test data."""
-                ...
-
-        @runtime_checkable
-        class TestFactoryProtocol(Protocol):
-            """Protocol for test factories."""
-
-            def create(
-                self, **kwargs: flext_cli_t.GeneralValueType
-            ) -> flext_cli_p.Result[object]:
-                """Create test object."""
-                ...
-
-            def create_batch(
-                self,
-                count: int,
-                **kwargs: flext_cli_t.GeneralValueType,
-            ) -> flext_cli_p.Result[Sequence[object]]:
-                """Create batch of test objects."""
-                ...
+    # NOTE: FlextTestsProtocols already extends FlextProtocols.
+    # FlextCliProtocols extends FlextProtocols.
+    # All protocols are accessible through TestsCliProtocols via inheritance.
+    #
+    # Available protocols include:
+    # - Foundation: ResultProtocol, ResultLike, ModelProtocol
+    # - CLI: Display, Interactive, Command, etc.
+    # - Test: All test-specific protocols
+    #
+    # Flext-cli-specific test protocols can be added here if needed.
 
 
-# Standardized short name - matches src pattern (p = FlextCliProtocols)
-# TestsCliProtocols extends FlextTestsProtocols and FlextCliProtocols, so use same short name 'p'
-# Type annotation needed for mypy compatibility
-p: type[TestsCliProtocols] = TestsCliProtocols
+# Runtime alias for simplified usage
+p = TestsCliProtocols
 
 __all__ = [
     "TestsCliProtocols",

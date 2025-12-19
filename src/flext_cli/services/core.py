@@ -29,7 +29,9 @@ from flext_core import (
 
 from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import c
-from flext_cli.models import m
+from flext_cli.models import (
+    m,
+)
 from flext_cli.protocols import p
 from flext_cli.services.output import FlextCliOutput
 from flext_cli.settings import FlextCliSettings
@@ -197,7 +199,7 @@ class FlextCliCore(FlextCliServiceBase):
         )
 
     # ==========================================================================
-    # CLI COMMAND MANAGEMENT - Using t.CliCommand types
+    # CLI COMMAND MANAGEMENT - Using t.FlextCliCommandT types
     # ==========================================================================
 
     def register_command(
@@ -259,8 +261,23 @@ class FlextCliCore(FlextCliServiceBase):
                         error="Command must be CliCommand instance",
                     ),
                 )
-            # model_dump() already returns dict with JSON-compatible values
-            command_data: dict[str, t.GeneralValueType] = command.model_dump()
+            # Build command_data dict without using model_dump() to avoid DomainEvent forward reference error
+            # Extract model fields directly instead of calling model_dump() which triggers model_rebuild()
+            command_data: dict[str, t.GeneralValueType] = {
+                "name": command.name,
+                "unique_id": command.unique_id,
+                "status": command.status.value
+                if hasattr(command.status, "value")
+                else str(command.status),
+                "created_at": command.created_at.isoformat()
+                if hasattr(command.created_at, "isoformat")
+                else str(command.created_at),
+                "description": command.description or "",
+                "command_line": getattr(command, "command_line", ""),
+                "usage": getattr(command, "usage", ""),
+                "entry_point": getattr(command, "entry_point", ""),
+                "args": list(getattr(command, "args", [])),
+            }
             self._commands[command.name] = command_data
 
             # Log successful registration with detailed context
@@ -415,7 +432,7 @@ class FlextCliCore(FlextCliServiceBase):
         if FlextRuntime.is_list_like(context):
             # Use build() DSL: process → normalize → ensure JSON-compatible
             # Reuse helpers from output module to avoid duplication
-            process_result = u.Cli.process(
+            process_result = u.process(
                 list(context),
                 processor=lambda _k, item: FlextCliOutput.norm_json(item),
                 on_error="skip",
@@ -1052,7 +1069,7 @@ class FlextCliCore(FlextCliServiceBase):
         return self._session_active
 
     # ==========================================================================
-    # STATISTICS AND MONITORING - Using t.Cli.Data types
+    # STATISTICS AND MONITORING - Using t.Data types
     # ==========================================================================
 
     def get_command_statistics(
@@ -1415,7 +1432,7 @@ class FlextCliCore(FlextCliServiceBase):
         result_dict: dict[str, t.GeneralValueType] = result_model.model_dump()
         return r[dict[str, t.GeneralValueType]].ok(result_dict)
 
-    def health_check(self) -> r[dict[str, t.GeneralValueType]]:
+    def health_check(self) -> r[Mapping[str, t.GeneralValueType]]:
         """Perform health check on the CLI service.
 
         Returns:
@@ -1436,7 +1453,7 @@ class FlextCliCore(FlextCliServiceBase):
                 c.Cli.ErrorMessages.CLI_EXECUTION_ERROR.format(error=e),
             )
 
-    def get_config(self) -> r[dict[str, t.GeneralValueType]]:
+    def get_config(self) -> r[Mapping[str, t.GeneralValueType]]:
         """Get current service configuration.
 
         Returns:
@@ -1576,7 +1593,9 @@ class FlextCliCore(FlextCliServiceBase):
             )
         return r[Path].ok(config_file)
 
-    def load_configuration(self, config_path: str) -> r[dict[str, t.GeneralValueType]]:
+    def load_configuration(
+        self, config_path: str
+    ) -> r[Mapping[str, t.GeneralValueType]]:
         """Load configuration from file."""
         path_result = self._validate_config_path(config_path)
         if path_result.is_failure:
@@ -1589,7 +1608,7 @@ class FlextCliCore(FlextCliServiceBase):
             # Python 3.13: Direct attribute access - unwrap() provides safe access
             config_file: Path = path_result.value or Path()
             content = config_file.read_text(
-                encoding=c.Utilities.DEFAULT_ENCODING,
+                encoding=c.Cli.Utilities.DEFAULT_ENCODING,
             )
             config_data = json.loads(content)
 
@@ -1636,7 +1655,7 @@ class FlextCliCore(FlextCliServiceBase):
             path.parent.mkdir(parents=True, exist_ok=True)
             with path.open(
                 c.Cli.FileIODefaults.FILE_WRITE_MODE,
-                encoding=c.Utilities.DEFAULT_ENCODING,
+                encoding=c.Cli.Utilities.DEFAULT_ENCODING,
             ) as f:
                 json.dump(
                     config_data,
@@ -1773,7 +1792,7 @@ class FlextCliCore(FlextCliServiceBase):
 
         return decorator
 
-    def get_cache_stats(self, cache_name: str) -> r[dict[str, t.GeneralValueType]]:
+    def get_cache_stats(self, cache_name: str) -> r[Mapping[str, t.GeneralValueType]]:
         """Get statistics for a specific cache."""
         try:
             # Use mapper().get() to check cache existence
@@ -1869,7 +1888,7 @@ class FlextCliCore(FlextCliServiceBase):
 
         Returns list of discovered plugin names.
         """
-        entry_points_result = u.Cli.process(
+        entry_points_result = u.process(
             list(dist.entry_points),
             processor=self._load_plugin_entry_point,
             on_error="skip",
@@ -1878,9 +1897,7 @@ class FlextCliCore(FlextCliServiceBase):
             return []
         entry_points_value = entry_points_result.value
         if isinstance(entry_points_value, list):
-            filtered = u.Cli.filter(
-                entry_points_value, predicate=lambda x: x is not None
-            )
+            filtered = u.filter(entry_points_value, predicate=lambda x: x is not None)
             # Type narrowing: filtered contains only non-None values, all should be str
             filtered_list: list[str] = [
                 str(item) for item in filtered if isinstance(item, str)
@@ -1902,7 +1919,7 @@ class FlextCliCore(FlextCliServiceBase):
     def discover_plugins(self) -> r[list[str]]:
         """Discover and register plugins via entry points."""
         try:
-            distributions_result = u.Cli.process(
+            distributions_result = u.process(
                 list(metadata.distributions()),
                 processor=self._process_distribution_entry_points,
                 on_error="skip",
@@ -1949,8 +1966,10 @@ class FlextCliCore(FlextCliServiceBase):
 
             # Use build() DSL: map → ensure dict → transform to JSON
             # Reuse to_json helper from output module
-            mapped_results = u.Cli.map(list(results), mapper=FlextCliOutput.to_json)
-            # Type narrowing: u.Cli.Collection.map returns list, ensure it's list[t.GeneralValueType]
+            mapped_results = [
+                FlextCliOutput.to_json(result) for result in list(results)
+            ]
+            # Type narrowing: u.Collection.map returns list, ensure it's list[t.GeneralValueType]
             results_list: list[t.GeneralValueType] = (
                 list(mapped_results) if isinstance(mapped_results, list) else []
             )
@@ -1965,7 +1984,7 @@ class FlextCliCore(FlextCliServiceBase):
     # and output formatting are now accessed directly through their respective
     # services via the FlextCli facade:
     #   - File operations: Use cli.file_tools.* directly
-    #   - Validation: Use u.validate() with u.CliValidation.V.* validators
+    #   - Validation: Use u.validate() with u.Validation.V.* validators
     #   - HTTP: Use flext-api domain library
     #   - Output: Use cli.output.* directly
     # ==========================================================================

@@ -28,7 +28,8 @@ import pytest
 import yaml
 from flext_core import t
 
-from flext_cli import FlextCliFileTools, c, r
+from flext_cli import FlextCliFileTools, r
+from flext_cli.constants import c
 
 
 class TestsCliFileTools:

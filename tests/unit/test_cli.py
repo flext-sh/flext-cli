@@ -14,17 +14,14 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Callable
-from typing import cast
-
 import click
 import pytest
 import typer
 from click.testing import CliRunner
 from flext_tests import tm
-from pydantic import BaseModel
 
-from flext_cli import FlextCliCli, m, p, r, t
+from flext_cli import FlextCliCli, r
+from flext_cli.models import FlextCliModels as m
 
 # from ..fixtures.constants import TestCli  # Fixtures removed - use conftest.py and flext_tests
 from ..helpers import FlextCliTestHelpers
@@ -96,8 +93,8 @@ class TestsCliCli:
     def test_option_decorator(self) -> None:
         """Test option decorator creation."""
         cli_cli = FlextCliCli()
-        option_config_instance = m.Cli.OptionConfig(default=1)
-        option_config = cast("p.Cli.OptionConfigProtocol", option_config_instance)
+        option_config_instance = m.Cli.OptionConfig.model_construct(default=1)
+        option_config = option_config_instance
         option_decorator = cli_cli.create_option_decorator(
             "--count",
             "-c",
@@ -315,11 +312,9 @@ class TestsCliCli:
             # This should raise TypeError at runtime
             # dict is not a BaseModel subclass, so this should fail
             # Using cast to bypass type checking for this negative test case
-            invalid_model = cast("type[BaseModel]", dict)
-            handler = cast(
-                "Callable[[BaseModel], t.GeneralValueType]",
-                lambda x: x,
-            )
+            invalid_model = dict
+            handler = (lambda x: x,)
+
             with pytest.raises((TypeError, ValueError)):
                 cli.model_command(invalid_model, handler)
 

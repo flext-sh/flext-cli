@@ -27,7 +27,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import time
-from typing import cast
 
 from example_utils import display_config_table, display_success_summary
 from flext_core import FlextResult
@@ -138,13 +137,11 @@ def execute_deploy_from_cli(cli_args: dict[str, str | int | bool]) -> None:
         # Architecture: Use FlextTypes.GeneralValueType for type-safe conversions
         # Audit Implication: Type conversion ensures data integrity
         transform_result = u.transform(
-            cast("dict[str, t.GeneralValueType]", cli_args),
+            cli_args,
             to_json=True,
         )
         typed_args: t.JsonDict = (
-            transform_result.value
-            if transform_result.is_success
-            else cast("t.JsonDict", cli_args)
+            transform_result.value if transform_result.is_success else cli_args
         )
 
         # Pydantic automatically validates ALL constraints
@@ -488,13 +485,11 @@ def main() -> None:
         # Convert to JsonDict-compatible dict using u
         # Use u.transform for JSON conversion
         transform_result = u.transform(
-            cast("dict[str, t.GeneralValueType]", invalid_args),
+            invalid_args,
             to_json=True,
         )
         typed_invalid_args: t.JsonDict = (
-            transform_result.value
-            if transform_result.is_success
-            else cast("t.JsonDict", invalid_args)
+            transform_result.value if transform_result.is_success else invalid_args
         )
 
         # DeployConfig constructor handles type conversion and validation

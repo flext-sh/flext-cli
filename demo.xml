@@ -1,2 +1,0 @@
-<?xml version='1.0' encoding='utf-8'?>
-<project><project><name>flext-cli</name><version>0.9.0</version><dependencies><name>pandas</name><version>&gt;=2.2.0</version></dependencies><dependencies><name>pyarrow</name><version>&gt;=18.0.0</version></dependencies><dependencies><name>pyyaml</name><version>&gt;=6.0</version></dependencies></project></project>

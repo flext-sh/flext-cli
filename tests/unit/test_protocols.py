@@ -14,13 +14,11 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import cast
-
 import pytest
-from flext_core import t
 from flext_tests import tm
 
-from flext_cli import FlextCliProtocols, p, r
+from flext_cli import FlextCliProtocols, r
+from flext_cli.protocols import p
 
 # Import test constants from tests module (TestsCli structure)
 from tests import c
@@ -119,7 +117,7 @@ class TestsCliProtocols:
             if isinstance(formatter, p.Cli.CliFormatter):
                 test_data_raw = {"key": "value"}  # Simple test data
                 # Cast to CliFormatData (which is t.JsonDict)
-                test_data = cast("t.JsonDict", test_data_raw)
+                test_data = test_data_raw
                 format_result = formatter.format_data(test_data)
                 tm.ok(format_result)
 
@@ -152,7 +150,7 @@ class TestsCliProtocols:
             if isinstance(provider, p.Cli.CliConfigProvider):
                 test_config_raw = c.Configuration.BASIC_CONFIG
                 # Cast to CliConfigData
-                test_config = cast("t.JsonDict", test_config_raw)
+                test_config = test_config_raw
                 save_result = provider.save_config(test_config)
                 tm.ok(save_result)
 
@@ -192,9 +190,9 @@ class TestsCliProtocols:
                 # Use test constants from tests module (c.Authentication.VALID_CREDS)
                 creds_raw = c.Authentication.VALID_CREDS
                 # Extract username and password from credentials dict
-                creds = cast("t.JsonDict", creds_raw)
-                username = cast("str", creds.get("username", "test_user"))
-                password = cast("str", creds.get("password", "test_pass"))
+                creds = creds_raw
+                username = creds.get("username", "test_user")
+                password = creds.get("password", "test_pass")
                 # Business Rule: authenticate() MUST be called as instance method (self bound)
                 # Architecture: Bound methods automatically receive self parameter
                 # Audit Implication: Method calls must match protocol signature exactly
@@ -206,7 +204,7 @@ class TestsCliProtocols:
                 if auth_method and callable(auth_method):
                     # Type narrowing: auth_method is callable and returns r[str]
                     # Cast result to r[str] for type compatibility
-                    auth_response = cast("r[str]", auth_method(username, password))
+                    auth_response = auth_method(username, password)
                     # auth_response should be success with "valid_token"
                     if auth_response.is_failure:
                         pytest.fail(

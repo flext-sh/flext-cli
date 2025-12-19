@@ -16,7 +16,7 @@ from __future__ import annotations
 import getpass
 import time
 from collections import UserList
-from typing import Never, TypedDict, TypeVar, cast
+from typing import Never, TypedDict, TypeVar
 
 import pytest
 from flext_core import FlextResult, t
@@ -193,15 +193,16 @@ class TestsCliPrompts:
                 {"message": "simple", "status": None},
                 {
                     "message": "simple",
-                    "status": c.Status.INFO,
+                    "status": c.Cli.MessageTypes.INFO,
                 },
                 {
                     "message": "",
-                    "status": c.Status.WARNING,
+                    "status": c.Cli.MessageTypes.WARNING,
                 },
             ]
             cases.extend([
-                {"message": "simple", "status": status} for status in c.Status.ALL
+                {"message": "simple", "status": status}
+                for status in c.Cli.MESSAGE_TYPES_LIST
             ])
             return cases
 
@@ -560,9 +561,8 @@ class TestsCliPrompts:
 
     def test_with_progress_small_dataset(self, prompts: FlextCliPrompts) -> None:
         """Test with_progress with small dataset."""
-        items: list[t.GeneralValueType] = cast(
-            "list[t.GeneralValueType]",
-            list(range(c.Progress.SMALL_DATASET_SIZE)),
+        items: list[t.GeneralValueType] = list(
+            range(c.Progress.SMALL_DATASET_SIZE),
         )
         result = prompts.with_progress(items, "simple")
         tm.ok(result)
@@ -570,9 +570,8 @@ class TestsCliPrompts:
 
     def test_with_progress_large_dataset(self, prompts: FlextCliPrompts) -> None:
         """Test with_progress with large dataset."""
-        items: list[t.GeneralValueType] = cast(
-            "list[t.GeneralValueType]",
-            list(range(c.Progress.LARGE_DATASET_SIZE)),
+        items: list[t.GeneralValueType] = list(
+            range(c.Progress.LARGE_DATASET_SIZE),
         )
         result = prompts.with_progress(items, "simple")
         tm.ok(result)
@@ -622,7 +621,7 @@ class TestsCliPrompts:
         # BadList is structurally compatible with list[str] (has all list methods including clear)
         # This is a test-only operation to simulate exception during clear()
         # Use helper method to set private field for testing
-        TestsCliPrompts._set_prompt_history(prompts, cast("list[str]", bad_list))
+        TestsCliPrompts._set_prompt_history(prompts, bad_list)
 
         result = prompts.clear_prompt_history()
         tm.fail(result)

@@ -16,14 +16,13 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import cast
 
 import pytest
 from flext_core import t
 from pydantic import BaseModel, Field, ValidationError
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from flext_cli import FlextCliCli, FlextCliSettings
+from flext_cli import FlextCliCli
 
 
 class TestsCliConfigModelIntegration:
@@ -297,7 +296,7 @@ class TestsCliConfigModelIntegration:
         command = cli.model_command(
             self.AppParams,
             handler,
-            config=cast("FlextCliSettings", config),
+            config=config,
         )
         assert command is not None
         assert callable(command)

@@ -7,7 +7,7 @@ Focuses on global callbacks, helper functions, and edge cases.
 from __future__ import annotations
 
 import logging
-from typing import ClassVar, cast
+from typing import ClassVar
 from unittest.mock import MagicMock, patch
 
 import click
@@ -15,7 +15,8 @@ import typer
 from flext_core import FlextRuntime
 from typer.testing import CliRunner
 
-from flext_cli import FlextCliCli, FlextCliSettings, m, p
+from flext_cli import FlextCliCli, FlextCliSettings
+from flext_cli.models import FlextCliModels as m
 
 
 class TestsCliCliExtended:
@@ -170,7 +171,7 @@ class TestsCliCliExtended:
         cli = FlextCliCli()
 
         # Test with explicit config
-        config = m.Cli.ConfirmConfig(default=True, prompt_suffix="?")
+        config = m.Cli.ConfirmConfig.model_construct(default=True, prompt_suffix="?")
 
         with patch("typer.confirm") as mock_confirm:
             mock_confirm.return_value = True
@@ -234,9 +235,9 @@ class TestsCliCliExtended:
 
         # Test 1: Boolean conversion helper
         # passing required=True (bool) and multiple="True" (should be handled/converted if logic allows,
-        # but the helpers use u.build with 'ensure': 'bool', which handles loose types if configured)
+        # but the helpers use u.Cli.build with 'ensure': 'bool', which handles loose types if configured)
 
-        # Actually the helpers in `create_option_decorator` specifically use `u.build` with `ensure="bool"`.
+        # Actually the helpers in `create_option_decorator` specifically use `u.Cli.build` with `ensure="bool"`.
         # Let's verify implicit conversion if any.
 
         deco = cli.create_option_decorator(
@@ -250,7 +251,7 @@ class TestsCliCliExtended:
             pass
 
         # Cast to CliCommandFunction for type compatibility
-        cmd = deco(cast("p.Cli.CliCommandFunction", cmd_impl))
+        cmd = deco(cmd_impl)
 
         # Inspect click info
         # The decorator adds __click_params__ attribute to the function

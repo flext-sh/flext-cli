@@ -1092,7 +1092,7 @@ class TestsCliCommonParams:
     def test_set_log_level_none(self) -> None:
         """Test _set_log_level when log_level is None."""
         config = FlextCliServiceBase.get_cli_config()
-        params = m.Cli.CliParamsConfig(log_level=None)
+        params = m.Cli.CliParamsConfig.model_construct(log_level=None)
         result = FlextCliCommonParams._set_log_level(config, params)
         tm.ok(result)
         assert result.value == config

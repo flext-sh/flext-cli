@@ -24,9 +24,9 @@ from pydantic import BaseModel
 from rich.tree import Tree as RichTree
 
 from flext_cli.base import FlextCliServiceBase
-from flext_cli.constants import c
+from flext_cli.constants import FlextCliConstants
 from flext_cli.formatters import FlextCliFormatters
-from flext_cli.models import m
+from flext_cli.models import FlextCliModels as m
 from flext_cli.protocols import p
 from flext_cli.services.tables import FlextCliTables
 from flext_cli.utilities import u
@@ -96,7 +96,7 @@ class FlextCliOutput(FlextCliServiceBase):
         >>> # Format data in various formats
         >>> result = output.format_data(
         ...     data={"key": "value"},
-        ...     format_type=c.Cli.OutputFormats.JSON.value,
+        ...     format_type=FlextCliConstants.Cli.OutputFormats.JSON.value,
         ... )
         >>>
         >>> # Create Rich table
@@ -191,8 +191,10 @@ class FlextCliOutput(FlextCliServiceBase):
 
         """
         return r[dict[str, t.GeneralValueType]].ok({
-            c.Cli.DictKeys.STATUS: (c.Cli.ServiceStatus.OPERATIONAL.value),
-            c.Cli.DictKeys.SERVICE: c.Cli.FLEXT_CLI,
+            FlextCliConstants.Cli.DictKeys.STATUS: (
+                FlextCliConstants.Cli.ServiceStatus.OPERATIONAL.value
+            ),
+            FlextCliConstants.Cli.DictKeys.SERVICE: FlextCliConstants.Cli.FLEXT_CLI,
         })
 
     # ═══════════════════════════════════════════════════════════════════════════
@@ -211,7 +213,7 @@ class FlextCliOutput(FlextCliServiceBase):
     def to_json(v: t.GeneralValueType) -> t.GeneralValueType:
         """Convert value to JSON-compatible using build DSL."""
         if isinstance(v, dict):
-            result = u.Cli.build(
+            result = u.build(
                 v,
                 ops={"ensure": "dict", "transform": {"to_json": True}},
                 on_error="skip",
@@ -256,7 +258,7 @@ class FlextCliOutput(FlextCliServiceBase):
         - Empty dict returns empty list (expected behavior)
         - Non-dict inputs are handled gracefully without errors
         """
-        d_dict = u.Cli.build(d, ops={"ensure": "dict"}, on_error="skip")
+        d_dict = u.build(d, ops={"ensure": "dict"}, on_error="skip")
         # Python 3.13: Use isinstance with Mapping for proper type narrowing
         # Business Rule: Dict keys MUST be extracted using list() constructor (Python 3.13+)
         # Architecture: Direct list() conversion is type-safe and efficient
@@ -279,14 +281,13 @@ class FlextCliOutput(FlextCliServiceBase):
 
     @staticmethod
     def ensure_str(v: t.GeneralValueType | None, default: str = "") -> str:
-        """Ensure value is str with default using build DSL."""
-        built_result = u.Cli.build(
-            v,
-            ops={"ensure": "str", "ensure_default": default},
-            on_error="skip",
-        )
-        # Type narrowing: u.build with ensure="str" returns str
-        return str(built_result) if built_result is not None else default
+        """Ensure value is str with default."""
+        if v is None:
+            return default
+        try:
+            return str(v)
+        except Exception:
+            return default
 
     @staticmethod
     def ensure_list(
@@ -294,7 +295,7 @@ class FlextCliOutput(FlextCliServiceBase):
         default: list[t.GeneralValueType] | None = None,
     ) -> list[t.GeneralValueType]:
         """Ensure value is list with default using build DSL."""
-        built_result = u.Cli.build(
+        built_result = u.build(
             v,
             ops={"ensure": "list", "ensure_default": default or []},
             on_error="skip",
@@ -313,7 +314,7 @@ class FlextCliOutput(FlextCliServiceBase):
         default: dict[str, t.GeneralValueType] | None = None,
     ) -> dict[str, t.GeneralValueType]:
         """Ensure value is dict with default using build DSL."""
-        built_result = u.Cli.build(
+        built_result = u.build(
             v,
             ops={"ensure": "dict", "ensure_default": default or {}},
             on_error="skip",
@@ -326,7 +327,7 @@ class FlextCliOutput(FlextCliServiceBase):
     @staticmethod
     def ensure_bool(v: t.GeneralValueType | None, *, default: bool = False) -> bool:
         """Ensure value is bool with default using build DSL."""
-        built_result = u.Cli.build(
+        built_result = u.build(
             v,
             ops={"ensure": "bool", "ensure_default": default},
             on_error="skip",
@@ -343,17 +344,28 @@ class FlextCliOutput(FlextCliServiceBase):
         default: t.GeneralValueType,
     ) -> t.GeneralValueType:
         """Get value from map with default using build DSL."""
-        built_result = u.Cli.build(
-            m.get(k), ops={"ensure_default": default}, on_error="skip"
-        )
-        # Type narrowing: u.build returns t.GeneralValueType, use default if None
-        if built_result is not None:
-            # Type narrowing: built_result is t.GeneralValueType compatible
-            if isinstance(
-                built_result, (str, int, float, bool, type(None), dict, list)
-            ):
-                return built_result
-            return str(built_result)
+        value = m.get(k, default)
+        # Ensure value is compatible with GeneralValueType
+        compatible_value: t.GeneralValueType
+        if isinstance(value, (str, int, float, bool, type(None), list)):
+            compatible_value = value
+        elif isinstance(value, dict):
+            # Type-safe dict comprehension: keys are str, values need type assertion
+            dict_items: dict[str, t.GeneralValueType] = {}
+            for kk, vv in value.items():
+                dict_items[str(kk)] = (
+                    vv
+                    if isinstance(vv, (str, int, float, bool, type(None), list, dict))
+                    else str(vv)
+                )
+            compatible_value = dict_items
+        else:
+            compatible_value = str(value)
+        # Return compatible_value if it's valid; fallback to default
+        if isinstance(
+            compatible_value, (str, int, float, bool, type(None), dict, list)
+        ):
+            return compatible_value
         return default
 
     @staticmethod
@@ -417,7 +429,7 @@ class FlextCliOutput(FlextCliServiceBase):
     def to_dict_json(v: t.GeneralValueType) -> dict[str, t.GeneralValueType]:
         """Convert value to dict with JSON transform using build DSL."""
         return FlextCliOutput.cast_if(
-            u.Cli.build(
+            u.build(
                 v,
                 ops={"ensure": "dict", "transform": {"to_json": True}},
                 on_error="skip",
@@ -430,7 +442,7 @@ class FlextCliOutput(FlextCliServiceBase):
     def to_list_json(v: t.GeneralValueType) -> list[t.GeneralValueType]:
         """Convert value to list with JSON transform using build DSL."""
         return FlextCliOutput.cast_if(
-            u.Cli.build(
+            u.build(
                 v,
                 ops={"ensure": "list", "transform": {"to_json": True}},
                 on_error="skip",
@@ -446,7 +458,7 @@ class FlextCliOutput(FlextCliServiceBase):
     def format_data(
         self,
         data: t.GeneralValueType,
-        format_type: str = c.Cli.OutputFormats.TABLE.value,
+        format_type: str = FlextCliConstants.Cli.OutputFormats.TABLE.value,
         title: str | None = None,
         headers: list[str] | None = None,
     ) -> r[str]:
@@ -454,7 +466,7 @@ class FlextCliOutput(FlextCliServiceBase):
 
         Args:
             data: Data to format
-            format_type: Format type from c.Cli.OutputFormats
+            format_type: Format type from FlextCliConstants.Cli.OutputFormats
             title: Optional title for table format
             headers: Optional headers for table format
 
@@ -465,21 +477,21 @@ class FlextCliOutput(FlextCliServiceBase):
             >>> output = FlextCliOutput()
             >>> result = output.format_data(
             ...     data={"name": "Alice", "age": 30},
-            ...     format_type=c.Cli.OutputFormats.JSON.value,
+            ...     format_type=FlextCliConstants.Cli.OutputFormats.JSON.value,
             ... )
 
         """
         # Railway pattern: validate format → dispatch to handler
         # Convert to string and validate choice using generalized helpers
-        parse_result = u.Cli.parse(format_type, str, default="")
+        parse_result = u.parse(format_type, str, default="")
         format_str = self.ensure_str(
             parse_result.unwrap_or(str(format_type)),
             "",
         ).lower()
-        valid_formats = set(c.Cli.OUTPUT_FORMATS_LIST)
+        valid_formats = set(FlextCliConstants.Cli.OUTPUT_FORMATS_LIST)
         if format_str not in valid_formats:
             return r[str].fail(
-                c.Cli.ErrorMessages.INVALID_OUTPUT_FORMAT.format(
+                FlextCliConstants.Cli.ErrorMessages.INVALID_OUTPUT_FORMAT.format(
                     format=format_type,
                 ),
             )
@@ -497,21 +509,29 @@ class FlextCliOutput(FlextCliServiceBase):
         """Dispatch to appropriate formatter based on format type."""
         # Format dispatcher using dict mapping
         formatters: dict[str, Callable[[], r[str]]] = {
-            c.Cli.OutputFormats.JSON.value: lambda: self.format_json(data),
-            c.Cli.OutputFormats.YAML.value: lambda: self.format_yaml(data),
-            c.Cli.OutputFormats.TABLE.value: lambda: self._format_table_data(
+            FlextCliConstants.Cli.OutputFormats.JSON.value: lambda: self.format_json(
+                data
+            ),
+            FlextCliConstants.Cli.OutputFormats.YAML.value: lambda: self.format_yaml(
+                data
+            ),
+            FlextCliConstants.Cli.OutputFormats.TABLE.value: lambda: self._format_table_data(
                 data,
                 title,
                 headers,
             ),
-            c.Cli.OutputFormats.CSV.value: lambda: self.format_csv(data),
-            c.Cli.OutputFormats.PLAIN.value: lambda: r[str].ok(str(data)),
+            FlextCliConstants.Cli.OutputFormats.CSV.value: lambda: self.format_csv(
+                data
+            ),
+            FlextCliConstants.Cli.OutputFormats.PLAIN.value: lambda: r[str].ok(
+                str(data)
+            ),
         }
 
         formatter = formatters.get(format_type)
         if formatter is None:
             return r[str].fail(
-                c.Cli.ErrorMessages.UNSUPPORTED_FORMAT_TYPE.format(
+                FlextCliConstants.Cli.ErrorMessages.UNSUPPORTED_FORMAT_TYPE.format(
                     format_type=format_type,
                 ),
             )
@@ -534,7 +554,7 @@ class FlextCliOutput(FlextCliServiceBase):
 
         if FlextRuntime.is_list_like(data):
             if not data:
-                return r[str].fail(c.Cli.ErrorMessages.NO_DATA_PROVIDED)
+                return r[str].fail(FlextCliConstants.Cli.ErrorMessages.NO_DATA_PROVIDED)
             # Use build() DSL: filter → validate → process → ensure list
             # Type narrowing: is_list_like ensures data is Sequence-like
             if isinstance(data, (list, tuple)):
@@ -544,10 +564,12 @@ class FlextCliOutput(FlextCliServiceBase):
             else:
                 # Should not happen if is_list_like is correct, but type checker needs this
                 data_list = [data] if data is not None else []
-            dict_items = u.Cli.filter(data_list, predicate=FlextRuntime.is_dict_like)
+            dict_items = u.filter(data_list, predicate=FlextRuntime.is_dict_like)
             # Type narrowing: data_list is list after normalization
             if not isinstance(dict_items, list) or len(dict_items) != len(data_list):
-                return r[str].fail(c.Cli.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT)
+                return r[str].fail(
+                    FlextCliConstants.Cli.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT
+                )
             # Use generalized norm_json helper
             # For lists, processor takes only item, not (key, item)
             # Filter first, then process (u.process doesn't accept predicate)
@@ -555,7 +577,7 @@ class FlextCliOutput(FlextCliServiceBase):
             filtered_data = [
                 item for item in data_list if FlextRuntime.is_dict_like(item)
             ]
-            json_list_result = u.Cli.process(
+            json_list_result = u.process(
                 filtered_data,
                 processor=self.norm_json,
                 on_error="skip",
@@ -571,7 +593,9 @@ class FlextCliOutput(FlextCliServiceBase):
             ]
             return self.format_table(converted_list, title=title, headers=headers)
 
-        return r[str].fail(c.Cli.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT)
+        return r[str].fail(
+            FlextCliConstants.Cli.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT
+        )
 
     def create_formatter(self, format_type: str) -> r[FlextCliOutput]:
         """Create a formatter instance for the specified format type.
@@ -587,22 +611,24 @@ class FlextCliOutput(FlextCliServiceBase):
         """
         try:
             # Use build() DSL: parse → ensure str → normalize → validate
-            parse_result = u.Cli.parse(format_type, str, default="")
+            parse_result = u.parse(format_type, str, default="")
             format_str = self.ensure_str(
                 parse_result.unwrap_or(str(format_type)),
                 "",
             ).lower()
-            valid_formats = set(c.Cli.OUTPUT_FORMATS_LIST)
+            valid_formats = set(FlextCliConstants.Cli.OUTPUT_FORMATS_LIST)
             if format_str not in valid_formats:
                 return r[FlextCliOutput].fail(
-                    c.Cli.ErrorMessages.INVALID_OUTPUT_FORMAT.format(
+                    FlextCliConstants.Cli.ErrorMessages.INVALID_OUTPUT_FORMAT.format(
                         format=format_type
                     ),
                 )
             return r[FlextCliOutput].ok(self)
         except Exception as e:
             return r[FlextCliOutput].fail(
-                c.Cli.ErrorMessages.CREATE_FORMATTER_FAILED.format(error=e),
+                FlextCliConstants.Cli.ErrorMessages.CREATE_FORMATTER_FAILED.format(
+                    error=e
+                ),
             )
 
     # =========================================================================
@@ -633,6 +659,7 @@ class FlextCliOutput(FlextCliServiceBase):
         Example:
             ```python
             from flext_cli import FlextCliOutput
+        from flext_cli.constants import FlextCliConstants
             from pydantic import BaseModel
 
 
@@ -649,7 +676,7 @@ class FlextCliOutput(FlextCliServiceBase):
             def format_operation(result: OperationResult, fmt: str) -> None:
                 # Python 3.13: match/case - more elegant and modern
                 match fmt:
-                    case c.Cli.OutputFormats.TABLE.value:
+                    case FlextCliConstants.Cli.OutputFormats.TABLE.value:
                         # Create Rich table from result
                         console = output._formatters.console
                         panel = output._formatters.create_panel(
@@ -660,7 +687,7 @@ class FlextCliOutput(FlextCliServiceBase):
                         )
                         # Use .value directly instead of deprecated .value
                         console.print(panel.value)
-                    case c.Cli.OutputFormats.JSON.value:
+                    case FlextCliConstants.Cli.OutputFormats.JSON.value:
                         print(result.model_dump_json())
 
 
@@ -698,7 +725,7 @@ class FlextCliOutput(FlextCliServiceBase):
     def format_and_display_result(
         self,
         result: BaseModel | t.GeneralValueType | r[object],
-        output_format: str = c.Cli.OutputFormats.TABLE.value,
+        output_format: str = FlextCliConstants.Cli.OutputFormats.TABLE.value,
     ) -> r[bool]:
         """Auto-detect result type and apply registered formatter with extracted helpers.
 
@@ -706,7 +733,7 @@ class FlextCliOutput(FlextCliServiceBase):
 
         Args:
             result: Domain result object to format
-            output_format: Output format ("table", "json", "yaml", etc.)
+            output_format: Output format ("table", "json", "yaml", etFlextCliConstants.Cli.)
 
         Returns:
             r[bool]: True on success, False on failure
@@ -880,7 +907,7 @@ class FlextCliOutput(FlextCliServiceBase):
         # Type narrowing: result has __dict__ attribute
         raw_dict: dict[str, t.GeneralValueType] = getattr(result, "__dict__", {})
         # Use build() DSL: process → to_json → filter → ensure dict
-        json_dict_result = u.Cli.process(
+        json_dict_result = u.process(
             raw_dict,
             processor=lambda _k, v: self.to_json(v),
             on_error="skip",
@@ -895,7 +922,7 @@ class FlextCliOutput(FlextCliServiceBase):
             json_dict,
             lambda _k, v: self.is_json(v),
         )
-        cli_json_dict_result = u.Cli.process(
+        cli_json_dict_result = u.process(
             filtered_json_dict,
             processor=lambda _k, v: v,
             on_error="skip",
@@ -928,7 +955,7 @@ class FlextCliOutput(FlextCliServiceBase):
             """Extract keys from dict row."""
             return set(row.keys())
 
-        all_keys = u.Cli.process(
+        all_keys = u.process(
             data,
             processor=_extract_keys,
             on_error="skip",
@@ -939,7 +966,7 @@ class FlextCliOutput(FlextCliServiceBase):
         for key_set in all_keys.value or []:
             if isinstance(key_set, set):
                 combined_keys.update(key_set)
-        missing = u.Cli.filter(headers, lambda h: h not in combined_keys)
+        missing = u.filter(headers, lambda h: h not in combined_keys)
         if missing:
             return r.fail(f"Header(s) not found in data: {', '.join(missing)}")
         return r[bool].ok(True)
@@ -953,7 +980,7 @@ class FlextCliOutput(FlextCliServiceBase):
 
         def build_row(row_data: dict[str, t.GeneralValueType]) -> list[str]:
             """Build row values using u utilities."""
-            values = u.Cli.process(
+            values = u.process(
                 headers,
                 processor=lambda h: str(u.get(row_data, h)) if h in row_data else None,
                 on_error="skip",
@@ -964,14 +991,14 @@ class FlextCliOutput(FlextCliServiceBase):
             values_list = values.value or []
             if not isinstance(values_list, (list, tuple)):
                 return []
-            filtered = u.Cli.filter(values_list, predicate=lambda v: v is not None)
+            filtered = u.filter(values_list, predicate=lambda v: v is not None)
             # Type narrowing: filtered contains only non-None values, convert to str
             filtered_list: list[str] = [
                 str(item) for item in filtered if item is not None
             ]
             return filtered_list
 
-        rows_result = u.Cli.process(data, processor=build_row, on_error="fail")
+        rows_result = u.process(data, processor=build_row, on_error="fail")
         if rows_result.is_failure:
             return r.fail(rows_result.error or "Failed to build rows")
         # Type narrowing: ensure_list returns list[t.GeneralValueType]
@@ -1050,7 +1077,7 @@ class FlextCliOutput(FlextCliServiceBase):
         Uses RichTableProtocol from lower layer instead of object for better type safety.
         """
         # Add columns
-        u.Cli.process(
+        u.process(
             headers,
             processor=lambda h: table.add_column(str(h)),
             on_error="skip",
@@ -1098,7 +1125,7 @@ class FlextCliOutput(FlextCliServiceBase):
         """
         if not data:
             return r[p.Cli.Display.RichTableProtocol].fail(
-                c.Cli.ErrorMessages.NO_DATA_PROVIDED,
+                FlextCliConstants.Cli.ErrorMessages.NO_DATA_PROVIDED,
             )
 
         try:
@@ -1132,8 +1159,10 @@ class FlextCliOutput(FlextCliServiceBase):
             return r[p.Cli.Display.RichTableProtocol].ok(table)
 
         except Exception as e:
-            error_msg = c.Cli.ErrorMessages.CREATE_RICH_TABLE_FAILED.format(
-                error=e,
+            error_msg = (
+                FlextCliConstants.Cli.ErrorMessages.CREATE_RICH_TABLE_FAILED.format(
+                    error=e,
+                )
             )
             self.logger.exception(error_msg)
             return r[p.Cli.Display.RichTableProtocol].fail(error_msg)
@@ -1166,7 +1195,7 @@ class FlextCliOutput(FlextCliServiceBase):
         self,
         data: list[dict[str, t.GeneralValueType]],
         headers: list[str] | None = None,
-        table_format: str = c.Cli.TableFormats.SIMPLE,
+        table_format: str = FlextCliConstants.Cli.TableFormats.SIMPLE,
         *,
         config: p.Cli.TableConfigProtocol | None = None,
     ) -> r[str]:
@@ -1214,7 +1243,9 @@ class FlextCliOutput(FlextCliServiceBase):
 
         # Use build() DSL for headers normalization
         # Type narrowing: ensure_list returns list[t.GeneralValueType], convert to list[str]
-        validated_headers_raw = self.ensure_list(headers, [c.Cli.TableFormats.KEYS])
+        validated_headers_raw = self.ensure_list(
+            headers, [FlextCliConstants.Cli.TableFormats.KEYS]
+        )
         validated_headers: list[str] = [str(h) for h in validated_headers_raw]
         final_config = m.Cli.TableConfig(
             headers=validated_headers,
@@ -1285,7 +1316,9 @@ class FlextCliOutput(FlextCliServiceBase):
 
         """
         # Use build() DSL for style normalization
-        validated_style = self.ensure_str(style, c.Cli.OutputDefaults.EMPTY_STYLE)
+        validated_style = self.ensure_str(
+            style, FlextCliConstants.Cli.OutputDefaults.EMPTY_STYLE
+        )
         return self._get_formatters().print(message, style=validated_style)
 
     def print_error(self, message: str) -> r[bool]:
@@ -1303,8 +1336,8 @@ class FlextCliOutput(FlextCliServiceBase):
 
         """
         return self.print_message(
-            f"{c.Cli.Symbols.ERROR_PREFIX} {message}",
-            style=c.Cli.Styles.BOLD_RED,
+            f"{FlextCliConstants.Cli.Symbols.ERROR_PREFIX} {message}",
+            style=FlextCliConstants.Cli.Styles.BOLD_RED,
         )
 
     def print_success(self, message: str) -> r[bool]:
@@ -1322,8 +1355,8 @@ class FlextCliOutput(FlextCliServiceBase):
 
         """
         return self.print_message(
-            f"{c.Cli.Symbols.SUCCESS_PREFIX} {message}",
-            style=c.Cli.Styles.BOLD_GREEN,
+            f"{FlextCliConstants.Cli.Symbols.SUCCESS_PREFIX} {message}",
+            style=FlextCliConstants.Cli.Styles.BOLD_GREEN,
         )
 
     def print_warning(self, message: str) -> r[bool]:
@@ -1341,8 +1374,8 @@ class FlextCliOutput(FlextCliServiceBase):
 
         """
         return self.print_message(
-            f"{c.Cli.Emojis.WARNING} {c.Cli.OutputDefaults.WARNING_PREFIX} {message}",
-            style=c.Cli.Styles.BOLD_YELLOW,
+            f"{FlextCliConstants.Cli.Emojis.WARNING} {FlextCliConstants.Cli.OutputDefaults.WARNING_PREFIX} {message}",
+            style=FlextCliConstants.Cli.Styles.BOLD_YELLOW,
         )
 
     def display_text(
@@ -1370,7 +1403,9 @@ class FlextCliOutput(FlextCliServiceBase):
 
         """
         # Use build() DSL for style normalization
-        validated_style = self.ensure_str(style, c.Cli.OutputDefaults.EMPTY_STYLE)
+        validated_style = self.ensure_str(
+            style, FlextCliConstants.Cli.OutputDefaults.EMPTY_STYLE
+        )
         return self._get_formatters().print(text, style=validated_style)
 
     def display_message(
@@ -1395,30 +1430,34 @@ class FlextCliOutput(FlextCliServiceBase):
         # Use build() DSL for message type normalization
         final_message_type = self.ensure_str(
             message_type,
-            c.Cli.OutputDefaults.DEFAULT_MESSAGE_TYPE,
+            FlextCliConstants.Cli.OutputDefaults.DEFAULT_MESSAGE_TYPE,
         )
 
         # Use build() DSL for style and emoji mapping with generalized helpers
         style_map = {
-            c.Cli.MessageTypes.INFO.value: c.Cli.Styles.BLUE,
-            c.Cli.MessageTypes.SUCCESS.value: c.Cli.Styles.BOLD_GREEN,
-            c.Cli.MessageTypes.ERROR.value: c.Cli.Styles.BOLD_RED,
-            c.Cli.MessageTypes.WARNING.value: c.Cli.Styles.BOLD_YELLOW,
+            FlextCliConstants.Cli.MessageTypes.INFO.value: FlextCliConstants.Cli.Styles.BLUE,
+            FlextCliConstants.Cli.MessageTypes.SUCCESS.value: FlextCliConstants.Cli.Styles.BOLD_GREEN,
+            FlextCliConstants.Cli.MessageTypes.ERROR.value: FlextCliConstants.Cli.Styles.BOLD_RED,
+            FlextCliConstants.Cli.MessageTypes.WARNING.value: FlextCliConstants.Cli.Styles.BOLD_YELLOW,
         }
         emoji_map = {
-            c.Cli.MessageTypes.INFO.value: c.Cli.Emojis.INFO,
-            c.Cli.MessageTypes.SUCCESS.value: c.Cli.Emojis.SUCCESS,
-            c.Cli.MessageTypes.ERROR.value: c.Cli.Emojis.ERROR,
-            c.Cli.MessageTypes.WARNING.value: c.Cli.Emojis.WARNING,
+            FlextCliConstants.Cli.MessageTypes.INFO.value: FlextCliConstants.Cli.Emojis.INFO,
+            FlextCliConstants.Cli.MessageTypes.SUCCESS.value: FlextCliConstants.Cli.Emojis.SUCCESS,
+            FlextCliConstants.Cli.MessageTypes.ERROR.value: FlextCliConstants.Cli.Emojis.ERROR,
+            FlextCliConstants.Cli.MessageTypes.WARNING.value: FlextCliConstants.Cli.Emojis.WARNING,
         }
         # Type narrowing: style_map and emoji_map are dict[str, str], convert to t.GeneralValueType
         style_map_general: dict[str, t.GeneralValueType] = dict(style_map)
         emoji_map_general: dict[str, t.GeneralValueType] = dict(emoji_map)
         style = self.ensure_str(
-            self.get_map_val(style_map_general, final_message_type, c.Cli.Styles.BLUE),
+            self.get_map_val(
+                style_map_general, final_message_type, FlextCliConstants.Cli.Styles.BLUE
+            ),
         )
         emoji = self.ensure_str(
-            self.get_map_val(emoji_map_general, final_message_type, c.Cli.Emojis.INFO),
+            self.get_map_val(
+                emoji_map_general, final_message_type, FlextCliConstants.Cli.Emojis.INFO
+            ),
         )
         formatted_message = f"{emoji} {message}"
 
@@ -1436,7 +1475,7 @@ class FlextCliOutput(FlextCliServiceBase):
 
         Args:
             data: Data to display
-            format_type: Format type (table, json, yaml, etc.)
+            format_type: Format type (table, json, yaml, etFlextCliConstants.Cli.)
             title: Optional title for table format
             headers: Optional headers for table format
 
@@ -1447,14 +1486,14 @@ class FlextCliOutput(FlextCliServiceBase):
             >>> output = FlextCliOutput()
             >>> output.display_data(
             ...     {"key": "value"},
-            ...     format_type=c.Cli.OutputFormats.JSON.value,
+            ...     format_type=FlextCliConstants.Cli.OutputFormats.JSON.value,
             ... )
 
         """
         # Use build() DSL for format type normalization
         final_format_type = self.ensure_str(
             format_type,
-            c.Cli.OutputDefaults.DEFAULT_FORMAT_TYPE,
+            FlextCliConstants.Cli.OutputDefaults.DEFAULT_FORMAT_TYPE,
         )
         format_result = self.format_data(
             data,
@@ -1497,12 +1536,14 @@ class FlextCliOutput(FlextCliServiceBase):
                 json.dumps(
                     data,
                     default=str,
-                    indent=c.Cli.OutputDefaults.JSON_INDENT,
+                    indent=FlextCliConstants.Cli.OutputDefaults.JSON_INDENT,
                 ),
             )
         except Exception as e:
-            error_msg = c.Cli.OutputLogMessages.JSON_FORMAT_FAILED.format(
-                error=e,
+            error_msg = (
+                FlextCliConstants.Cli.OutputLogMessages.JSON_FORMAT_FAILED.format(
+                    error=e,
+                )
             )
             self.logger.exception(error_msg)
             return r[str].fail(error_msg)
@@ -1525,12 +1566,14 @@ class FlextCliOutput(FlextCliServiceBase):
             return r[str].ok(
                 yaml.dump(
                     data,
-                    default_flow_style=c.Cli.OutputDefaults.YAML_DEFAULT_FLOW_STYLE,
+                    default_flow_style=FlextCliConstants.Cli.OutputDefaults.YAML_DEFAULT_FLOW_STYLE,
                 ),
             )
         except Exception as e:
-            error_msg = c.Cli.OutputLogMessages.YAML_FORMAT_FAILED.format(
-                error=e,
+            error_msg = (
+                FlextCliConstants.Cli.OutputLogMessages.YAML_FORMAT_FAILED.format(
+                    error=e,
+                )
             )
             self.logger.exception(error_msg)
             return r[str].fail(error_msg)
@@ -1573,12 +1616,14 @@ class FlextCliOutput(FlextCliServiceBase):
                 json.dumps(
                     data,
                     default=str,
-                    indent=c.Cli.OutputDefaults.JSON_INDENT,
+                    indent=FlextCliConstants.Cli.OutputDefaults.JSON_INDENT,
                 ),
             )
         except Exception as e:
-            error_msg = c.Cli.OutputLogMessages.CSV_FORMAT_FAILED.format(
-                error=e,
+            error_msg = (
+                FlextCliConstants.Cli.OutputLogMessages.CSV_FORMAT_FAILED.format(
+                    error=e,
+                )
             )
             self.logger.exception(error_msg)
             return r.fail(error_msg)
@@ -1670,7 +1715,7 @@ class FlextCliOutput(FlextCliServiceBase):
         writer.writeheader()
 
         # Process rows
-        filtered_rows = u.Cli.filter(data_list, predicate=FlextRuntime.is_dict_like)
+        filtered_rows = u.filter(data_list, predicate=FlextRuntime.is_dict_like)
         dict_rows_raw = self.ensure_list(
             filtered_rows if isinstance(filtered_rows, list) else [],
             [],
@@ -1783,8 +1828,10 @@ class FlextCliOutput(FlextCliServiceBase):
         try:
             return self._prepare_table_data(data, headers)
         except Exception as e:
-            error_msg = c.Cli.OutputLogMessages.TABLE_FORMAT_FAILED.format(
-                error=e,
+            error_msg = (
+                FlextCliConstants.Cli.OutputLogMessages.TABLE_FORMAT_FAILED.format(
+                    error=e,
+                )
             )
             self.logger.exception(error_msg)
             return r[tuple[list[dict[str, t.GeneralValueType]], str | list[str]]].fail(
@@ -1806,7 +1853,7 @@ class FlextCliOutput(FlextCliServiceBase):
             # For lists, processor takes only item, not (key, item)
             # Filter first, then process (u.process doesn't accept predicate)
             filtered_data = [item for item in data if FlextRuntime.is_dict_like(item)]
-            process_result = u.Cli.process(
+            process_result = u.process(
                 filtered_data,
                 processor=self.norm_json,
                 on_error="skip",
@@ -1822,7 +1869,7 @@ class FlextCliOutput(FlextCliServiceBase):
             ]
             return self._prepare_list_data(converted_list, headers)
         return r[tuple[list[dict[str, t.GeneralValueType]], str | list[str]]].fail(
-            c.Cli.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT,
+            FlextCliConstants.Cli.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT,
         )
 
     @staticmethod
@@ -1832,20 +1879,23 @@ class FlextCliOutput(FlextCliServiceBase):
     ) -> r[tuple[list[dict[str, t.GeneralValueType]], str | list[str]]]:
         """Prepare dict data for table display."""
         # Reject test invu
-        if c.Cli.OutputDefaults.TEST_INVALID_KEY in data and len(data) == 1:
+        if (
+            FlextCliConstants.Cli.OutputDefaults.TEST_INVALID_KEY in data
+            and len(data) == 1
+        ):
             return r[tuple[list[dict[str, t.GeneralValueType]], str | list[str]]].fail(
-                c.Cli.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT,
+                FlextCliConstants.Cli.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT,
             )
 
         # Use build() DSL: process → kv_pair → ensure dict → extract values → ensure list
-        def kv_pair(k: str, v: t.GeneralValueType) -> dict[str, t.GeneralValueType]:
+        def kv_pair(k: str, v: t.GeneralValueType) -> Mapping[str, t.GeneralValueType]:
             """Create key-value pair dict."""
             return {
-                c.Cli.OutputFieldNames.KEY: k,
-                c.Cli.OutputFieldNames.VALUE: str(v),
+                FlextCliConstants.Cli.OutputFieldNames.KEY: k,
+                FlextCliConstants.Cli.OutputFieldNames.VALUE: str(v),
             }
 
-        process_result = u.Cli.process(data, processor=kv_pair, on_error="skip")
+        process_result = u.process(data, processor=kv_pair, on_error="skip")
         dict_result = FlextCliOutput.ensure_dict(
             process_result.unwrap_or({}),
             {},
@@ -1859,7 +1909,7 @@ class FlextCliOutput(FlextCliServiceBase):
         # Use build() DSL: ensure list → ensure default
         # Type narrowing: ensure_list returns list[t.GeneralValueType], convert to list[str]
         table_headers_raw = FlextCliOutput.ensure_list(
-            headers, [c.Cli.TableFormats.KEYS]
+            headers, [FlextCliConstants.Cli.TableFormats.KEYS]
         )
         table_headers: list[str] = [str(h) for h in table_headers_raw]
         return r[tuple[list[dict[str, t.GeneralValueType]], str | list[str]]].ok((
@@ -1875,21 +1925,25 @@ class FlextCliOutput(FlextCliServiceBase):
         """Prepare list data for table display."""
         if not data:
             return r[tuple[list[dict[str, t.GeneralValueType]], str | list[str]]].fail(
-                c.Cli.ErrorMessages.NO_DATA_PROVIDED,
+                FlextCliConstants.Cli.ErrorMessages.NO_DATA_PROVIDED,
             )
 
         # Validate headers type
         if headers is not None and not FlextRuntime.is_list_like(headers):
             return r[tuple[list[dict[str, t.GeneralValueType]], str | list[str]]].fail(
-                c.Cli.ErrorMessages.TABLE_HEADERS_MUST_BE_LIST,
+                FlextCliConstants.Cli.ErrorMessages.TABLE_HEADERS_MUST_BE_LIST,
             )
 
         # Ensure list and map to str
-        headers_list = FlextCliOutput.ensure_list(headers, [c.Cli.TableFormats.KEYS])
+        headers_list = FlextCliOutput.ensure_list(
+            headers, [FlextCliConstants.Cli.TableFormats.KEYS]
+        )
         table_headers = [str(h) for h in headers_list]
 
         # Validate headers exist in data if headers are provided (not using KEYS)
-        if headers is not None and table_headers != [c.Cli.TableFormats.KEYS]:
+        if headers is not None and table_headers != [
+            FlextCliConstants.Cli.TableFormats.KEYS
+        ]:
             validation_result = FlextCliOutput._validate_headers(table_headers, data)
             if validation_result.is_failure:
                 return r[
@@ -1912,7 +1966,7 @@ class FlextCliOutput(FlextCliServiceBase):
         try:
             config_instance = m.Cli.TableConfig(
                 headers=table_headers,
-                table_format=c.Cli.TableFormats.GRID,
+                table_format=FlextCliConstants.Cli.TableFormats.GRID,
             )
             # Type narrowing: TableConfig implements TableConfigProtocol structurally
             config: p.Cli.TableConfigProtocol = config_instance
@@ -1927,8 +1981,10 @@ class FlextCliOutput(FlextCliServiceBase):
 
             return table_result
         except Exception as e:
-            error_msg = c.Cli.OutputLogMessages.TABLE_FORMAT_FAILED.format(
-                error=e,
+            error_msg = (
+                FlextCliConstants.Cli.OutputLogMessages.TABLE_FORMAT_FAILED.format(
+                    error=e,
+                )
             )
             self.logger.exception(error_msg)
             return r[str].fail(error_msg)
@@ -1937,7 +1993,7 @@ class FlextCliOutput(FlextCliServiceBase):
     def _add_title(table_str: str, title: str | None) -> str:
         """Add title to table string if provided."""
         if title:
-            return f"{title}{c.Cli.OutputDefaults.NEWLINE}{table_str}{c.Cli.OutputDefaults.NEWLINE}"
+            return f"{title}{FlextCliConstants.Cli.OutputDefaults.NEWLINE}{table_str}{FlextCliConstants.Cli.OutputDefaults.NEWLINE}"
         return table_str
 
     def format_as_tree(
@@ -1963,7 +2019,9 @@ class FlextCliOutput(FlextCliServiceBase):
 
         """
         # Use build() DSL for title normalization
-        final_title = self.ensure_str(title, c.Cli.OutputDefaults.DEFAULT_TREE_TITLE)
+        final_title = self.ensure_str(
+            title, FlextCliConstants.Cli.OutputDefaults.DEFAULT_TREE_TITLE
+        )
 
         # Create tree through formatters
         tree_result = self._get_formatters().create_tree(label=final_title)
@@ -1985,7 +2043,7 @@ class FlextCliOutput(FlextCliServiceBase):
         # Render to string using formatters - use concrete tree type (RichTree)
         return self._get_formatters().render_tree_to_string(
             concrete_tree,
-            width=c.Cli.CliDefaults.DEFAULT_MAX_WIDTH,
+            width=FlextCliConstants.Cli.CliDefaults.DEFAULT_MAX_WIDTH,
         )
 
     def _build_tree(
@@ -2009,7 +2067,7 @@ class FlextCliOutput(FlextCliServiceBase):
                     self._build_tree(branch, v)
                 elif isinstance(v, list):
                     branch = tree.add(
-                        f"{k}{c.Cli.OutputDefaults.TREE_BRANCH_LIST_SUFFIX}"
+                        f"{k}{FlextCliConstants.Cli.OutputDefaults.TREE_BRANCH_LIST_SUFFIX}"
                     )
 
                     def process_list_item(item: t.GeneralValueType) -> None:
@@ -2017,18 +2075,20 @@ class FlextCliOutput(FlextCliServiceBase):
                         self._build_tree(branch, item)
 
                     if isinstance(v, list):
-                        u.Cli.process(v, processor=process_list_item, on_error="skip")
+                        u.process(v, processor=process_list_item, on_error="skip")
                 else:
-                    tree.add(f"{k}{c.Cli.OutputDefaults.TREE_VALUE_SEPARATOR}{v}")
+                    tree.add(
+                        f"{k}{FlextCliConstants.Cli.OutputDefaults.TREE_VALUE_SEPARATOR}{v}"
+                    )
 
-            u.Cli.process(data, processor=process_tree_item, on_error="skip")
+            u.process(data, processor=process_tree_item, on_error="skip")
         elif isinstance(data, list):
             # Use build() DSL: process each item
             def process_list_item(item: t.GeneralValueType) -> None:
                 """Process list item."""
                 self._build_tree(tree, item)
 
-            u.Cli.process(data, processor=process_list_item, on_error="skip")
+            u.process(data, processor=process_list_item, on_error="skip")
         else:
             tree.add(str(data))
 

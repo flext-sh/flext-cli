@@ -152,14 +152,14 @@ class DataManagerCLI:
         # Convert to JsonDict-compatible dict using u
         converted_entry: t.JsonDict = (
             u.transform(
-                cast("dict[str, t.GeneralValueType]", entry),
+                entry,
                 to_json=True,
             ).value
             if u.transform(
-                cast("dict[str, t.GeneralValueType]", entry),
+                entry,
                 to_json=True,
             ).is_success
-            else cast("dict[str, t.GeneralValueType]", entry)
+            else entry
         )
         return r[t.JsonDict].ok(converted_entry)
 

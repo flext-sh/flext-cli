@@ -17,11 +17,12 @@ from __future__ import annotations
 import json
 import tempfile
 import time
-from collections.abc import Generator
+from collections.abc import Generator, Mapping
 from pathlib import Path
 from typing import TypedDict, cast
 
 import pytest
+from flext_core import t
 
 from flext_cli import (
     FlextCli,
@@ -32,7 +33,6 @@ from flext_cli import (
     FlextCliTypes,
     c,
     r,
-    t,
     u,
 )
 
@@ -147,12 +147,12 @@ class TestCompleteWorkflowIntegration:
         # Pre-create input file
         file_tools.write_json_file(
             str(input_file),
-            cast("t.GeneralValueType", raw_data),
+            cast("dict[str, t.GeneralValueType]", raw_data),
         )
 
         # Execute complete pipeline using Railway Pattern
         pipeline_result = cast(
-            "r[dict[str, object]]",
+            "r[dict[str, t.GeneralValueType]]",
             (
                 # Step 1: Load raw data
                 file_tools.read_json_file(str(input_file))
@@ -184,9 +184,7 @@ class TestCompleteWorkflowIntegration:
                 )
                 # Step 4: Generate processing statistics
                 .map(
-                    lambda data: self._generate_pipeline_stats(
-                        cast("dict[str, object]", data),
-                    ),
+                    self._generate_pipeline_stats,
                 )
                 .map(
                     lambda data: (
@@ -198,7 +196,7 @@ class TestCompleteWorkflowIntegration:
                 .flat_map(
                     lambda data: file_tools.write_json_file(
                         str(output_file),
-                        cast("t.GeneralValueType", data),
+                        data,
                     ).map(
                         lambda _: (
                             cli.output.print_message("✅ Processed data saved"),
@@ -211,7 +209,7 @@ class TestCompleteWorkflowIntegration:
                 .flat_map(
                     lambda report: file_tools.write_json_file(
                         str(report_file),
-                        cast("t.GeneralValueType", report),
+                        report,
                     ).map(
                         lambda _: (
                             cli.output.print_message("✅ Pipeline report saved"),
@@ -239,20 +237,22 @@ class TestCompleteWorkflowIntegration:
         # Verify processed data
         processed_result = file_tools.read_json_file(str(output_file))
         assert processed_result.is_success
-        processed_data = cast("dict[str, object]", processed_result.value)
+        processed_data = cast("dict[str, t.GeneralValueType]", processed_result.value)
 
-        assert len(cast("list[object]", processed_data["active_users"])) == 2
+        assert (
+            len(cast("list[t.GeneralValueType]", processed_data["active_users"])) == 2
+        )
         assert all(
-            cast("dict[str, object]", user)["is_premium"]
-            for user in cast("list[object]", processed_data["active_users"])
+            cast("dict[str, t.GeneralValueType]", user)["is_premium"]
+            for user in cast("list[t.GeneralValueType]", processed_data["active_users"])
         )
 
-    def _validate_pipeline_data(self, data: object) -> r[object]:
+    def _validate_pipeline_data(self, data: object) -> r[dict[str, t.GeneralValueType]]:
         """Validate pipeline input data structure.
 
         Uses single return point pattern for reduced complexity.
         """
-        result: r[object]
+        result: r[dict[str, t.GeneralValueType]]
 
         if not isinstance(data, dict):
             result = r.fail("Data must be a dictionary")
@@ -281,22 +281,20 @@ class TestCompleteWorkflowIntegration:
                     if validation_error:
                         break
 
-                result = (
-                    r.fail(validation_error)
-                    if validation_error
-                    else cast("r[object]", r.ok(data))
-                )
+                result = r.fail(validation_error) if validation_error else r.ok(data)
 
         return result
 
-    def _transform_pipeline_data(self, data: object) -> object:
+    def _transform_pipeline_data(
+        self, data: dict[str, t.GeneralValueType]
+    ) -> dict[str, t.GeneralValueType]:
         """Transform pipeline data: filter active users and enrich."""
-        data_dict = cast("dict[str, object]", data)
-        users = cast("list[object]", data_dict["users"])
+        data_dict = data
+        users = cast("list[dict[str, t.GeneralValueType]]", data_dict["users"])
         active_users = []
 
         for user in users:
-            user_dict = cast("dict[str, object]", user)
+            user_dict = cast("dict[str, t.GeneralValueType]", user)
             if user_dict["active"]:
                 # Enrich active users
                 enriched_user = dict(user_dict)
@@ -313,10 +311,12 @@ class TestCompleteWorkflowIntegration:
             "pipeline_version": "2.0",
         }
 
-    def _generate_pipeline_stats(self, data: dict[str, object]) -> dict[str, object]:
+    def _generate_pipeline_stats(
+        self, data: dict[str, t.GeneralValueType]
+    ) -> Mapping[str, t.GeneralValueType]:
         """Generate processing statistics."""
-        active_users = cast("list[object]", data["active_users"])
-        total_users = cast("int", data["total_users"])
+        active_users = data["active_users"]
+        total_users = data["total_users"]
 
         return {
             **data,
@@ -325,37 +325,38 @@ class TestCompleteWorkflowIntegration:
             if total_users > 0
             else 0,
             "average_name_length": sum(
-                len(cast("str", cast("dict[str, object]", user)["name"]))
-                for user in active_users
+                len(cast("dict[str, object]", user["name"])) for user in active_users
             )
             / len(active_users)
             if active_users
             else 0,
         }
 
-    def _create_pipeline_report(self, data: object) -> object:
+    def _create_pipeline_report(
+        self, data: dict[str, t.GeneralValueType]
+    ) -> Mapping[str, t.GeneralValueType]:
         """Create comprehensive pipeline report."""
-        data_dict = cast("dict[str, object]", data)
-        active_users = cast("list[object]", data_dict["active_users"])
+        data_dict = data
+        active_users = data_dict["active_users"]
         processed_records = len(active_users)
         # Success rate is 1.0 if all active users were processed successfully
         # (all active users processed = 100% success rate for active users)
         success_rate = 1.0 if processed_records > 0 else 0.0
         return {
             "pipeline_status": c.Cli.CommandStatus.COMPLETED.value,
-            "timestamp": cast("str", data_dict["processed_at"]),
-            "pipeline_version": cast("str", data_dict["pipeline_version"]),
-            "input_records": cast("int", data_dict["total_users"]),
+            "timestamp": data_dict["processed_at"],
+            "pipeline_version": data_dict["pipeline_version"],
+            "input_records": data_dict["total_users"],
             "processed_records": processed_records,
-            "filtered_records": cast("int", data_dict["inactive_count"]),
+            "filtered_records": data_dict["inactive_count"],
             "success_rate": success_rate,
             "processing_metrics": {
                 "average_name_length": round(
-                    cast("float", data_dict["average_name_length"]),
+                    data_dict["average_name_length"],
                     2,
                 ),
                 "efficiency_percentage": round(
-                    cast("float", data_dict["processing_efficiency"]) * 100,
+                    data_dict["processing_efficiency"] * 100,
                     2,
                 ),
             },
@@ -414,7 +415,7 @@ class TestCompleteWorkflowIntegration:
         # Create input data
         file_tools.write_json_file(
             str(data_file),
-            cast("t.GeneralValueType", sales_data),
+            sales_data,
         )
 
         # Execute report generation pipeline
@@ -429,8 +430,8 @@ class TestCompleteWorkflowIntegration:
             # Step 2: Process sales data with config
             .map(
                 lambda config_data_pair: self._process_sales_with_config(
-                    cast("tuple[object, object]", config_data_pair)[0],
-                    cast("tuple[object, object]", config_data_pair)[1],
+                    config_data_pair[0],
+                    config_data_pair[1],
                 ),
             )
             # Step 3: Generate multiple report formats
@@ -444,7 +445,7 @@ class TestCompleteWorkflowIntegration:
             # Step 4: Create report summary
             .map(
                 lambda reports: self._create_report_summary(
-                    cast("list[dict[str, object]]", reports),
+                    reports,
                     config,
                     report_dir,
                 ),
@@ -469,14 +470,14 @@ class TestCompleteWorkflowIntegration:
 
     def _process_sales_with_config(self, config: object, data: object) -> object:
         """Process sales data using configuration settings."""
-        data_dict = cast("dict[str, object]", data)
+        data_dict = data
         sales = data_dict.get("sales", [])
         if not isinstance(sales, list):
             msg = "Sales data must be a list"
             raise ValueError(msg)
 
         # Apply configuration-based filtering
-        config_obj = cast("FlextCliSettings", config)
+        config_obj = config
         if config_obj.environment == "production":
             # In production, only include Q1 data
             filtered_sales = [sale for sale in sales if sale.get("quarter") == "Q1"]
@@ -514,7 +515,7 @@ class TestCompleteWorkflowIntegration:
         tables: FlextCliTables,
     ) -> r[object]:
         """Generate reports in multiple formats."""
-        processed_dict = cast("dict[str, object]", processed_data)
+        processed_dict = processed_data
         report_dir.mkdir(exist_ok=True)
         sales_data = processed_dict.get("sales_data")
         aggregates = processed_dict.get("aggregates")
@@ -531,7 +532,7 @@ class TestCompleteWorkflowIntegration:
 
         json_result = FlextCliFileTools().write_json_file(
             str(report_dir / "sales_report.json"),
-            cast("t.GeneralValueType", json_report),
+            json_report,
         )
         if json_result.is_failure:
             return r.fail(f"JSON report failed: {json_result.error}")
@@ -542,7 +543,7 @@ class TestCompleteWorkflowIntegration:
         })
 
         # CSV Report - convert dict data to CSV format
-        sales_list = cast("list[dict[str, object]]", sales_data)
+        sales_list = sales_data
         if sales_list:
             headers = ["Product", "Region", "Amount", "Quarter"]
             csv_rows = [headers]
@@ -571,7 +572,7 @@ class TestCompleteWorkflowIntegration:
 
         # Table Report (ASCII)
         table_result = tables.create_table(
-            cast("dict[str, t.GeneralValueType]", sales_list),
+            sales_list,
         )
         if table_result.is_success:
             table_content = table_result.value
@@ -584,14 +585,14 @@ class TestCompleteWorkflowIntegration:
         else:
             return r.fail(f"Table report failed: {table_result.error}")
 
-        return r.ok(cast("list[dict[str, object]]", reports))
+        return r.ok(reports)
 
     def _create_report_summary(
         self,
         reports: list[dict[str, object]],
         config: FlextCliSettings,
         report_dir: Path,
-    ) -> dict[str, object]:
+    ) -> Mapping[str, object]:
         """Create comprehensive report summary."""
         # Load JSON report to get aggregates
         json_file = report_dir / "sales_report.json"
@@ -638,7 +639,7 @@ class TestCompleteWorkflowIntegration:
         backup_data = {"users": [{"id": 1, "name": "Backup User", "active": True}]}
         file_tools.write_json_file(
             str(backup_data_file),
-            cast("t.GeneralValueType", backup_data),
+            backup_data,
         )
 
         # Execute workflow with fallback mechanisms
@@ -698,7 +699,7 @@ class TestCompleteWorkflowIntegration:
         assert (
             recovery_report["processing_recovered"] is True
         )  # Partial recovery worked
-        save_attempts = cast("int", recovery_report["save_attempts"])
+        save_attempts = recovery_report["save_attempts"]
         assert save_attempts >= 1  # At least one save attempt
         assert recovery_report["final_status"] == "completed_with_recovery"
 
@@ -719,7 +720,7 @@ class TestCompleteWorkflowIntegration:
                 "r[dict[str, object]]",
                 primary_result.map(
                     lambda data: {
-                        **cast("dict[str, object]", data),
+                        **data,
                         "data_source": "primary",
                     },
                 ),
@@ -734,7 +735,7 @@ class TestCompleteWorkflowIntegration:
             "r[dict[str, object]]",
             backup_result.map(
                 lambda data: {
-                    **cast("dict[str, object]", data),
+                    **data,
                     "data_source": "backup",
                 },
             ),
@@ -777,7 +778,7 @@ class TestCompleteWorkflowIntegration:
             "recovery_stats": recovery_info,
         })
 
-    def _process_single_user(self, user: dict[str, object]) -> dict[str, object]:
+    def _process_single_user(self, user: dict[str, object]) -> Mapping[str, object]:
         """Process a single user record with validation."""
         # Type checker ensures user is dict[str, object], so isinstance check is redundant
 
@@ -807,7 +808,7 @@ class TestCompleteWorkflowIntegration:
             attempts += 1
             result = FlextCliFileTools().write_json_file(
                 str(output_file),
-                cast("t.GeneralValueType", data),
+                data,
             )
 
             if result.is_success:
@@ -821,7 +822,9 @@ class TestCompleteWorkflowIntegration:
 
         return r.fail(f"Save failed after {max_retries} attempts: {last_error}")
 
-    def _generate_recovery_report(self, data: dict[str, object]) -> dict[str, object]:
+    def _generate_recovery_report(
+        self, data: dict[str, object]
+    ) -> Mapping[str, object]:
         """Generate comprehensive recovery report."""
         return {
             "final_status": "completed_with_recovery",
@@ -830,7 +833,7 @@ class TestCompleteWorkflowIntegration:
             "recovery_stats": data.get("recovery_stats"),
             "save_attempts": data.get("save_attempts"),
             "total_records_processed": len(
-                cast("list[object]", data.get("processed_users", [])),
+                data.get("processed_users", []),
             ),
             "recovery_timestamp": "2025-01-01T12:00:00Z",
         }

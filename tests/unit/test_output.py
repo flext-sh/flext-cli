@@ -31,9 +31,12 @@ from flext_core import FlextResult
 from flext_tests import tm
 from pydantic import BaseModel
 
-from flext_cli import FlextCliOutput, c, m, r, u
+from flext_cli import FlextCliOutput, r
+from flext_cli.constants import c
+from flext_cli.models import FlextCliModels as m
 from flext_cli.services.tables import FlextCliTables
 from flext_cli.typings import t
+from flext_cli.utilities import u
 
 T = TypeVar("T")
 
@@ -403,7 +406,7 @@ class TestsCliOutput:
         ):
             msg = "converted_data must be t.GeneralValueType compatible"
             raise TypeError(msg)
-        cli_data: t.GeneralValueType = converted_data  # type: ignore[assignment]
+        cli_data: t.GeneralValueType = converted_data
         result = output.format_as_tree(cli_data)
         tm.ok(result)
 
@@ -686,7 +689,7 @@ class TestsCliOutput:
         data: list[dict[str, t.GeneralValueType]] = []
         for d in raw_data:
             if isinstance(d, dict):
-                typed_d: dict[str, t.GeneralValueType] = d  # type: ignore[assignment]
+                typed_d: dict[str, t.GeneralValueType] = d
                 data.append(typed_d)
         result = output.create_rich_table(
             data=data,
@@ -721,7 +724,7 @@ class TestsCliOutput:
 
         # Type narrowing: formatter is Callable compatible with expected signature
         typed_formatter: Callable[[t.GeneralValueType | r[object], str], None] = (
-            formatter  # type: ignore[assignment]
+            formatter
         )
         result = output.register_result_formatter(
             TestModel,
@@ -754,7 +757,7 @@ class TestsCliOutput:
 
         # Type narrowing: formatter is Callable compatible with expected signature
         typed_formatter: Callable[[t.GeneralValueType | r[object], str], None] = (
-            formatter  # type: ignore[assignment]
+            formatter
         )
         result = output.register_result_formatter(
             TestModel,
@@ -801,7 +804,7 @@ class TestsCliOutput:
         # Register the formatter
         # Type narrowing: formatter is Callable compatible with expected signature
         typed_formatter: Callable[[t.GeneralValueType | r[object], str], None] = (
-            formatter  # type: ignore[assignment]
+            formatter
         )
         register_result = output.register_result_formatter(
             TestModel,
@@ -857,13 +860,13 @@ class TestsCliOutput:
         error_formatters: dict[
             type,
             Callable[[t.GeneralValueType | r[t.GeneralValueType], str], None],
-        ] = ErrorDict()  # type: ignore[assignment]
+        ] = ErrorDict()
         TestsCliOutput._set_result_formatters(output, error_formatters)
 
         # Now register_result_formatter should catch the exception
         # Type narrowing: formatter is Callable compatible with expected signature
         typed_formatter: Callable[[t.GeneralValueType | r[object], str], None] = (
-            formatter  # type: ignore[assignment]
+            formatter
         )
         result = output.register_result_formatter(
             TestModel,
@@ -908,7 +911,7 @@ class TestsCliOutput:
         error_formatters: dict[
             type,
             Callable[[t.GeneralValueType | r[t.GeneralValueType], str], None],
-        ] = ErrorFormatters()  # type: ignore[assignment]
+        ] = ErrorFormatters()
         TestsCliOutput._set_result_formatters(output, error_formatters)
 
         # Now format_and_display_result should catch the exception
@@ -946,7 +949,7 @@ class TestsCliOutput:
 
         # Type narrowing: formatter is Callable compatible with expected signature
         typed_formatter: Callable[[t.GeneralValueType | r[object], str], None] = (
-            formatter  # type: ignore[assignment]
+            formatter
         )
         output.register_result_formatter(
             TestModel,
@@ -1075,7 +1078,7 @@ class TestsCliOutput:
         data: list[dict[str, t.GeneralValueType]] = []
         for d in raw_data:
             if isinstance(d, dict):
-                typed_d: dict[str, t.GeneralValueType] = d  # type: ignore[assignment]
+                typed_d: dict[str, t.GeneralValueType] = d
                 data.append(typed_d)
         # Use header that doesn't exist in data
         result = output.create_rich_table(
@@ -1102,7 +1105,7 @@ class TestsCliOutput:
         data: list[dict[str, t.GeneralValueType]] = []
         for d in raw_data:
             if isinstance(d, dict):
-                typed_d: dict[str, t.GeneralValueType] = d  # type: ignore[assignment]
+                typed_d: dict[str, t.GeneralValueType] = d
                 data.append(typed_d)
         result = output.format_table(data)
         # Should succeed with valid data
@@ -1123,7 +1126,7 @@ class TestsCliOutput:
         data: list[dict[str, t.GeneralValueType]] = []
         for d in raw_data:
             if isinstance(d, dict):
-                typed_d: dict[str, t.GeneralValueType] = d  # type: ignore[assignment]
+                typed_d: dict[str, t.GeneralValueType] = d
                 data.append(typed_d)
         result = output.create_rich_table(
             data=data,
@@ -1183,7 +1186,7 @@ class TestsCliOutput:
         if not isinstance(raw_data, (dict, list, str, int, float, bool, type(None))):
             msg = "raw_data must be t.GeneralValueType compatible"
             raise TypeError(msg)
-        data: t.GeneralValueType = raw_data  # type: ignore[assignment]
+        data: t.GeneralValueType = raw_data
         result = output.display_data(data, format_type="table")
         assert isinstance(result, r)
         assert result.is_success
@@ -1197,7 +1200,7 @@ class TestsCliOutput:
         data: list[dict[str, t.GeneralValueType]] = []
         for d in raw_data:
             if isinstance(d, dict):
-                typed_d: dict[str, t.GeneralValueType] = d  # type: ignore[assignment]
+                typed_d: dict[str, t.GeneralValueType] = d
                 data.append(typed_d)
         table_result = output.create_rich_table(data=data)
         assert table_result.is_success
@@ -1222,7 +1225,7 @@ class TestsCliOutput:
         data: list[dict[str, t.GeneralValueType]] = []
         for d in raw_data:
             if isinstance(d, dict):
-                typed_d: dict[str, t.GeneralValueType] = d  # type: ignore[assignment]
+                typed_d: dict[str, t.GeneralValueType] = d
                 data.append(typed_d)
         result = output.create_ascii_table(data=data)
         assert isinstance(result, r)
@@ -1238,7 +1241,7 @@ class TestsCliOutput:
         data: list[dict[str, t.GeneralValueType]] = []
         for d in raw_data:
             if isinstance(d, dict):
-                typed_d: dict[str, t.GeneralValueType] = d  # type: ignore[assignment]
+                typed_d: dict[str, t.GeneralValueType] = d
                 data.append(typed_d)
         result = output.create_ascii_table(data=data, table_format="grid")
         assert isinstance(result, r)
@@ -1300,7 +1303,7 @@ class TestsCliOutput:
         data: list[dict[str, t.GeneralValueType]] = []
         for d in raw_data:
             if isinstance(d, dict):
-                typed_d: dict[str, t.GeneralValueType] = d  # type: ignore[assignment]
+                typed_d: dict[str, t.GeneralValueType] = d
                 data.append(typed_d)
         result = output.create_rich_table(data=data)
         # Should handle None and empty list values gracefully
@@ -1406,7 +1409,7 @@ class TestsCliOutput:
         if not isinstance(raw_data, (dict, list, str, int, float, bool, type(None))):
             msg = "raw_data must be t.GeneralValueType compatible"
             raise TypeError(msg)
-        data: t.GeneralValueType = raw_data  # type: ignore[assignment]
+        data: t.GeneralValueType = raw_data
         result = output.format_csv(data)
         assert result.is_success
         csv_str = result.value
@@ -1493,7 +1496,7 @@ class TestsCliOutput:
         if not isinstance(raw_data, dict):
             msg = "raw_data must be dict"
             raise TypeError(msg)
-        data: dict[str, t.GeneralValueType] = raw_data  # type: ignore[assignment]
+        data: dict[str, t.GeneralValueType] = raw_data
         result = output.format_table(data, title="Test Title")
         assert result.is_success
         table_str = result.value
@@ -1516,7 +1519,7 @@ class TestsCliOutput:
         if not isinstance(raw_data, dict):
             msg = "raw_data must be dict"
             raise TypeError(msg)
-        data: dict[str, t.GeneralValueType] = raw_data  # type: ignore[assignment]
+        data: dict[str, t.GeneralValueType] = raw_data
         result = output.format_table(data)
         # Should handle nested structures
         assert isinstance(result, r)
@@ -1749,7 +1752,7 @@ class TestsCliOutput:
         if not isinstance(obj_dict, (dict, list, str, int, float, bool, type(None))):
             msg = "obj_dict must be t.GeneralValueType compatible"
             raise TypeError(msg)
-        typed_obj: t.GeneralValueType = obj_dict  # type: ignore[assignment]
+        typed_obj: t.GeneralValueType = obj_dict
         result = output._format_dict_object(
             typed_obj,
             "json",
@@ -1793,7 +1796,7 @@ class TestsCliOutput:
         typed_data: list[dict[str, t.GeneralValueType]] = []
         for d in data:
             if isinstance(d, dict):
-                typed_d: dict[str, t.GeneralValueType] = d  # type: ignore[assignment]
+                typed_d: dict[str, t.GeneralValueType] = d
                 typed_data.append(typed_d)
         result = output.create_rich_table(
             typed_data,
@@ -1961,7 +1964,7 @@ class TestsCliOutput:
         if not isinstance(data, dict):
             msg = "data must be dict"
             raise TypeError(msg)
-        typed_data: dict[str, t.GeneralValueType] = data  # type: ignore[assignment]
+        typed_data: dict[str, t.GeneralValueType] = data
         result = FlextCliOutput._prepare_dict_data(
             typed_data,
             None,
@@ -1988,7 +1991,7 @@ class TestsCliOutput:
         typed_data: list[dict[str, t.GeneralValueType]] = []
         for d in data:
             if isinstance(d, dict):
-                typed_d: dict[str, t.GeneralValueType] = d  # type: ignore[assignment]
+                typed_d: dict[str, t.GeneralValueType] = d
                 typed_data.append(typed_d)
         result = FlextCliOutput._prepare_list_data(
             typed_data,
@@ -2255,8 +2258,8 @@ class TestsCliOutput:
         # Test with actual bool values - these should work correctly
         assert FlextCliOutput.ensure_bool(True) is True
         assert FlextCliOutput.ensure_bool(False) is False
-        # ensure_bool uses u.build which may convert values or return them as-is
-        # The exact behavior depends on u.build implementation
+        # ensure_bool uses u.Cli.build which may convert values or return them as-is
+        # The exact behavior depends on u.Cli.build implementation
         # Just verify it returns a bool value (not None)
         result_none_false = FlextCliOutput.ensure_bool(None, default=False)
         assert isinstance(result_none_false, bool) or result_none_false is None
@@ -2298,18 +2301,22 @@ class TestsCliOutput:
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Test create_formatter with exception during validation."""
-        # Mock u.Cli.parse to raise exception to test exception path
+        # Mock u.parse to raise exception to test exception path
         validation_error_msg = "Validation error"
 
-        def mock_parse(*args: object, **kwargs: object) -> r[str]:
+        def mock_parse(*args: object, **kwargs: object) -> object:
             raise RuntimeError(validation_error_msg)
 
-        # Patch u.Cli.parse to raise exception
-        monkeypatch.setattr(
-            "flext_cli.utilities.FlextCliUtilities.Cli.parse", mock_parse
-        )
+        # Patch u.parse (top-level method, not u.Cli.parse which doesn't exist)
+        monkeypatch.setattr("flext_cli.utilities.FlextCliUtilities.parse", mock_parse)
         result = output.create_formatter("json")
-        tm.fail(result)
+        # Check that result failed (don't repr the value to avoid runtime initialization issues)
+        assert result.is_failure
+        # Error message contains the formatted CREATE_FORMATTER_FAILED message
+        assert (
+            "Failed to create formatter" in result.error
+            or "Validation error" in result.error
+        )
 
     def test_format_and_display_result_exception_in_convert(
         self,
@@ -2464,7 +2471,9 @@ class TestsCliOutput:
         original_create_table = FlextCliTables.create_table
         monkeypatch.setattr(FlextCliTables, "create_table", mock_create_table)
         try:
-            config = m.Cli.TableConfig(headers=["name"], table_format="grid")
+            config = m.Cli.TableConfig.model_construct(
+                headers=["name"], table_format="grid"
+            )
             # Exception propagates - use pytest.raises
             with pytest.raises(RuntimeError, match=table_error_msg):
                 output.create_ascii_table([{"name": "Alice"}], config=config)

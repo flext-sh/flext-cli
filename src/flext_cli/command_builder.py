@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Callable, Sequence
-from typing import Self, TypeGuard
+from typing import Self
 
 from flext_core import r
 from typer.models import OptionInfo
@@ -195,18 +195,18 @@ class FlextCommandBuilder:
         self._handler = func
         return self
 
-    def build(self) -> p.Cli.Command:
+    def build(self) -> object:
         """Build the command.
 
         Returns:
-            p.Cli.Command: Command object ready for registration.
+            p.Command: Command object ready for registration.
 
         Note:
             This is a simplified implementation. Full integration with
             flext-cli's command system would require more complex wiring.
 
         """
-        # Create a command model that satisfies p.Cli.Command protocol
+        # Create a command model that satisfies p.Command protocol
         # This is a placeholder - real implementation would integrate with
         # FlextCliCommands registration system
         # CliCommand doesn't have handler parameter, it's stored separately
@@ -224,7 +224,7 @@ class FlextCommandBuilder:
         return command
 
     @staticmethod
-    def _is_command_protocol(obj: object) -> TypeGuard[p.Cli.Command]:
+    def _is_command_protocol(obj: object) -> bool:
         """Type guard to check if object implements Command protocol."""
         return (
             hasattr(obj, "name")

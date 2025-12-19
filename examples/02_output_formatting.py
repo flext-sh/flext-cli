@@ -112,7 +112,7 @@ def display_database_results(records: list[t.JsonDict]) -> None:
 
 def export_report(
     data: t.Cli.TableRows,
-    format_type: c.Cli.OutputFormatLiteral = c.Cli.OutputFormats.TABLE,  # type: ignore[assignment]
+    format_type: c.Cli.OutputFormatLiteral = "table",
 ) -> FlextResult[str]:
     """Create ASCII tables for logs/reports in your app."""
     # Good for: log files, email reports, markdown docs
@@ -305,7 +305,7 @@ def main() -> None:
 
     # Example 3: ASCII tables
     cli.print("\n3. ASCII Tables (for logs/reports):", style="bold cyan")
-    ascii_result = export_report(sample_data, c.Cli.OutputFormats.TABLE)  # type: ignore[arg-type]
+    ascii_result = export_report(sample_data, "table")
     if ascii_result.is_success:
         pass  # This is plain text - can save to file (ascii_result.value)
 
@@ -383,9 +383,9 @@ def advanced_output_example() -> None:
     """
     cli.print("\n=== Advanced Output Formatting ===", style="bold blue")
 
-    # Using StrEnum for runtime validation
-    output_format = c.Cli.OutputFormats.TABLE
-    cli.print(f"Using format: {output_format.value}", style="cyan")
+    # Using string literal for format
+    output_format = "table"
+    cli.print(f"Using format: {output_format}", style="cyan")
 
     # Using collections.abc.Mapping for immutable configuration
 

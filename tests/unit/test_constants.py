@@ -22,9 +22,11 @@ from pathlib import Path
 
 import pytest
 
-from flext_cli import FlextCliConstants, c, u
+from flext_cli import FlextCliConstants
+from flext_cli.constants import c
+from flext_cli.utilities import u
 
-from .._helpers import FlextCliTestHelpers
+from ..helpers import FlextCliTestHelpers
 
 # from ..fixtures.constants import TestConstants  # Fixtures removed - use conftest.py and flext_tests
 

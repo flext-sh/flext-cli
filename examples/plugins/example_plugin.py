@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Protocol, cast, runtime_checkable
+from typing import Protocol, runtime_checkable
 
 from flext_cli import r, t
 
@@ -141,7 +141,7 @@ class ExamplePlugin:
                 )
 
             # Type cast for pyright: isinstance check ensures compatibility
-            cli_with_group = cast("CliMainWithGroups", cli_main)  # type: ignore[redundant-cast]
+            cli_with_group = cli_main
 
             # Register command group
             @cli_with_group.group()
@@ -176,7 +176,7 @@ class ExamplePlugin:
                     "example group does not implement GroupWithCommands protocol",
                 )
 
-            example_group = cast("GroupWithCommands", example)  # type: ignore[redundant-cast]
+            example_group = example
 
             @example_group.command()
             def hello_cmd(name: str = "World") -> None:
@@ -227,7 +227,7 @@ class DataProcessorPlugin:
 
         """
         try:
-            # Setup processors
+            # Setup.Cli.processors
             self._processors = {
                 "csv": lambda data: f"CSV: {data}",
                 "json": lambda data: f"JSON: {data}",
@@ -257,7 +257,7 @@ class DataProcessorPlugin:
                 )
 
             # Type cast for pyright: isinstance check ensures compatibility
-            cli_with_group = cast("CliMainWithGroups", cli_main)  # type: ignore[redundant-cast]
+            cli_with_group = cli_main
 
             @cli_with_group.group()
             def data() -> None:
@@ -296,7 +296,7 @@ class DataProcessorPlugin:
                     "data group does not implement GroupWithCommands protocol",
                 )
 
-            data_group = cast("GroupWithCommands", data)  # type: ignore[redundant-cast]
+            data_group = data
 
             @data_group.command()
             def process_cmd(input_data: str, format_type: str = "json") -> None:

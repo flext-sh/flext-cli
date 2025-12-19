@@ -27,7 +27,7 @@ class FlextCliMixins(FlextMixins):
 
     Business Rules:
     ───────────────
-    1. BusinessRulesMixin delegates to u.CliValidation (SRP)
+    1. BusinessRulesMixin delegates to u.Validation (SRP)
     2. CliCommandMixin composes flext-core decorators for command execution
     3. Command execution MUST use railway pattern for error handling
     4. Context management MUST include correlation ID and operation logging
@@ -61,14 +61,14 @@ class FlextCliMixins(FlextMixins):
     # =========================================================================
 
     # =========================================================================
-    # BUSINESS RULES MIXIN - Delegating facade to u.CliValidation
+    # BUSINESS RULES MIXIN - Delegating facade to u.Validation
     # =========================================================================
 
     class BusinessRulesMixin:
         """Mixin providing common business rule validation patterns for CLI classes.
 
         NOTE: This is a delegating facade. The actual implementation has been
-        consolidated into u.CliValidation to follow SRP principles.
+        consolidated into u.Validation to follow SRP principles.
         This class is maintained for backward compatibility with existing code.
         """
 
@@ -79,7 +79,7 @@ class FlextCliMixins(FlextMixins):
             operation: str,
         ) -> r[bool]:
             """Validate command execution state for operations (delegates to utilities)."""
-            return u.Cli.CliValidation.v_state(
+            return u.CliValidation.v_state(
                 current_status,
                 required=required_status,
                 name=operation,
@@ -91,14 +91,14 @@ class FlextCliMixins(FlextMixins):
             valid_states: list[str],
         ) -> r[bool]:
             """Validate session state (delegates to utilities)."""
-            return u.Cli.CliValidation.v_session(current_status, valid=valid_states)
+            return u.CliValidation.v_session(current_status, valid=valid_states)
 
         @staticmethod
         def validate_pipeline_step(
             step: dict[str, t.GeneralValueType] | None,
         ) -> r[bool]:
             """Validate pipeline step configuration (delegates to utilities)."""
-            return u.Cli.CliValidation.v_step(step)
+            return u.CliValidation.v_step(step)
 
         @staticmethod
         def validate_configuration_consistency(
@@ -106,7 +106,7 @@ class FlextCliMixins(FlextMixins):
             required_fields: list[str],
         ) -> r[bool]:
             """Validate configuration consistency (delegates to utilities)."""
-            return u.Cli.CliValidation.v_config(config_data, fields=required_fields)
+            return u.CliValidation.v_config(config_data, fields=required_fields)
 
     class CliCommandMixin:
         """Mixin providing CLI command execution patterns with flext-core decorators.
@@ -161,7 +161,7 @@ class FlextCliMixins(FlextMixins):
             # Type narrowing: railway decorator ensures r return
             # Handle both single and double-wrapped r cases
             # Check if handler_result is not FlextResult first (fallback case)
-            if not isinstance(handler_result, FlextResult):
+            if not isinstance(handler_result, FlextResult):  # pragma: no cover
                 # Fallback: wrap non-FlextResult returns (defensive coding)
                 # This path is unreachable if decorators work correctly but kept for runtime safety
                 # handler_result is not FlextResult at this point, convert to t.GeneralValueType
@@ -185,7 +185,7 @@ class FlextCliMixins(FlextMixins):
                 # Single-wrapped with value: extract value and wrap in new FlextResult
                 # inner_value is not FlextResult at this point (after isinstance check)
                 # inner_value is object from unwrap - convert to t.GeneralValueType
-                converted_value: t.GeneralValueType
+                converted_value: t.GeneralValueType  # pragma: no cover
                 if isinstance(
                     inner_value,
                     (str, int, float, bool, type(None), dict, list),

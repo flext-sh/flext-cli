@@ -32,7 +32,6 @@ from __future__ import annotations
 
 import os
 import time
-from typing import cast
 
 from flext_cli import FlextCli, r, t, u
 
@@ -58,13 +57,11 @@ def handle_status_command() -> r[t.JsonDict]:
 
     # Use u.transform for JSON conversion
     transform_result = u.transform(
-        cast("dict[str, t.GeneralValueType]", status),
+        status,
         to_json=True,
     )
     typed_status: t.JsonDict = (
-        transform_result.value
-        if transform_result.is_success
-        else cast("t.JsonDict", status)
+        transform_result.value if transform_result.is_success else status
     )
     return r[t.JsonDict].ok(typed_status)
 
@@ -157,8 +154,9 @@ class InteractiveShell:
                 if isinstance(result, r):
                     # Type narrowing: result is r[T] for some T
                     # r is covariant, so r[T] is compatible with r[object]
-                    # Return directly - covariant types are compatible
-                    return result
+                    # Return with explicit type annotation to satisfy type checker
+                    return_val: r[object] = result  # type: ignore[assignment]
+                    return return_val
                 # Wrap non-r in r
                 return r[object].ok(result)
             return r[object].fail("Handler is not callable")

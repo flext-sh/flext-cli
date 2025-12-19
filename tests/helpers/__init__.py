@@ -6,7 +6,7 @@ through DRY principles and parametrized test patterns.
 Extends src modules via inheritance:
 - TestModels extends FlextCliModels
 - TestTypes extends FlextCliTypes
-- TestUtilities extends FlextCliUtilities
+- TestUtilities extends u
 - TestConstants extends FlextCliConstants
 - TestProtocols extends FlextCliProtocols
 
@@ -27,6 +27,8 @@ from pydantic.fields import FieldInfo
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from flext_cli import r
+from flext_cli.constants import FlextCliConstants
+from flext_cli.context import FlextCliContext
 from tests import c, m, p, t, u  # TestsCli structure
 
 from .. import _helpers as helpers
@@ -623,6 +625,52 @@ class FlextCliTestHelpers:
                 return r.ok(users_data)
             except Exception as e:
                 return r.fail(f"Failed to create API response data: {e!s}")
+
+    class ConstantsFactory:
+        """Factory for creating constants test fixtures."""
+
+        @staticmethod
+        def get_constants() -> type[FlextCliConstants]:
+            """Get FlextCliConstants instance for testing.
+
+            Returns:
+                FlextCliConstants instance
+
+            """
+            return FlextCliConstants
+
+    class ContextFactory:
+        """Factory for creating CLI context test fixtures."""
+
+        @staticmethod
+        def create_context(
+            command: str | None = None,
+            arguments: list[str] | None = None,
+            environment_variables: dict[str, t.GeneralValueType] | None = None,
+            working_directory: str | None = None,
+        ) -> r[object]:
+            """Create a FlextCliContext instance for testing.
+
+            Args:
+                command: Command name
+                arguments: Command arguments
+                environment_variables: Environment variables dict
+                working_directory: Working directory path
+
+            Returns:
+                r with FlextCliContext instance or error
+
+            """
+            try:
+                ctx = FlextCliContext(
+                    command=command,
+                    arguments=arguments or [],
+                    environment_variables=environment_variables or {},
+                    working_directory=working_directory,
+                )
+                return r.ok(ctx)
+            except Exception as e:
+                return r.fail(f"Failed to create context: {e!s}")
 
     class CliHelpers:
         """Helper methods for CLI testing."""

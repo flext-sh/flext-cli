@@ -30,8 +30,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import cast
-
 from flext_cli import FlextCli, FlextCliPrompts, r, t, u
 
 cli = FlextCli()
@@ -191,13 +189,11 @@ def database_setup_wizard() -> r[dict[str, str | int | bool | float]]:
     # Create table from config data - convert using u
     # Use u.transform for JSON conversion
     transform_result = u.transform(
-        cast("dict[str, t.GeneralValueType]", display_config),
+        display_config,
         to_json=True,
     )
     json_config: t.JsonDict = (
-        transform_result.value
-        if transform_result.is_success
-        else cast("t.JsonDict", display_config)
+        transform_result.value if transform_result.is_success else display_config
     )
     table_result = cli.create_table(
         data=json_config,
@@ -489,13 +485,11 @@ def flext_configuration_wizard() -> r[dict[str, str | int | bool | float]]:
     # Create table from config data - convert using u
     # Use u.transform for JSON conversion
     transform_result = u.transform(
-        cast("dict[str, t.GeneralValueType]", config),
+        config,
         to_json=True,
     )
     json_config: t.JsonDict = (
-        transform_result.value
-        if transform_result.is_success
-        else cast("t.JsonDict", config)
+        transform_result.value if transform_result.is_success else config
     )
     table_result = cli.create_table(
         data=json_config,

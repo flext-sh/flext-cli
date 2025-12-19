@@ -37,7 +37,6 @@ import platform
 import shutil
 import tempfile
 from pathlib import Path
-from typing import cast
 
 from flext_cli import (
     FlextCli,
@@ -100,7 +99,7 @@ def load_user_preferences(config_dir: Path) -> dict[str, object] | None:
         return None
     cli.print(f"✅ Loaded preferences from {config_file.name}", style="green")
     # Cast to expected type (runtime type is compatible)
-    return cast("dict[str, object] | None", preferences)
+    return preferences  # type: ignore[return-value]  # type: ignore[return-value]
 
 
 # ============================================================================
@@ -131,7 +130,7 @@ def save_deployment_config(
     return True
 
 
-def load_deployment_config(config_file: Path) -> dict[str, object] | None:
+def load_deployment_config(config_file: Path) -> dict[str, t.GeneralValueType] | None:
     """Load deployment config from YAML in YOUR tool."""
     read_result = cli.file_tools.read_yaml_file(config_file)
 
@@ -144,7 +143,7 @@ def load_deployment_config(config_file: Path) -> dict[str, object] | None:
         return None
     cli.print("✅ Loaded deployment config", style="green")
     # Cast to expected type (runtime type is compatible)
-    return cast("dict[str, object] | None", config)
+    return config
 
 
 # ============================================================================
@@ -276,9 +275,7 @@ def validate_and_import_data(input_file: Path) -> t.JsonDict | None:
     # Use u.transform for JSON conversion
     transform_result = u.transform(data, to_json=True)
     json_data: t.JsonDict = (
-        transform_result.value
-        if transform_result.is_success
-        else cast("t.JsonDict", data)
+        transform_result.value if transform_result.is_success else data
     )
     validated = validate_structure(json_data)
 
@@ -392,9 +389,9 @@ def import_from_csv(input_file: Path) -> list[dict[str, str]] | None:
         config = m.Cli.TableConfig(table_format="grid")
         # Convert to JsonDict-compatible format using u
         tabular_data: t.Cli.TabularData = (
-            # Use u.map to convert list items to JSON
+            # Use u.Collection.map to convert list items to JSON
             list(
-                u.map(  # type: ignore[attr-defined]
+                u.Collection.map(
                     sample_rows,
                     mapper=lambda row: (
                         u.transform(row, to_json=True).value
@@ -458,7 +455,7 @@ def process_binary_file(input_file: Path, output_file: Path) -> bool:
 # ============================================================================
 
 
-def load_config_auto_detect(config_file: Path) -> dict[str, object] | None:
+def load_config_auto_detect(config_file: Path) -> dict[str, t.GeneralValueType] | None:
     """Load config from ANY format with auto-detection."""
     cli.print(f"🔍 Auto-detecting format: {config_file.name}", style="cyan")
 
@@ -491,12 +488,10 @@ def load_config_auto_detect(config_file: Path) -> dict[str, object] | None:
         if isinstance(data, dict):
             transform_result = u.transform(data, to_json=True)
             display_data: t.JsonDict = (
-                transform_result.value
-                if transform_result.is_success
-                else cast("t.JsonDict", data)
+                transform_result.value if transform_result.is_success else data
             )
         else:
-            display_data = cast("t.JsonDict", data)
+            display_data = data
         table_result = cli.create_table(
             data=display_data,
             headers=["Key", "Value"],
@@ -505,7 +500,7 @@ def load_config_auto_detect(config_file: Path) -> dict[str, object] | None:
         if table_result.is_success:
             cli.print_table(table_result.value)
         # Cast to expected type (runtime type is compatible)
-        return cast("dict[str, object] | None", data)
+        return data
 
     return None
 
@@ -530,7 +525,7 @@ def export_multi_format(
     json_payload = data
     json_result = cli.file_tools.write_json_file(
         json_path,
-        cast("t.GeneralValueType", json_payload),
+        json_payload,
         indent=2,
     )
     if json_result.is_success:
@@ -543,7 +538,7 @@ def export_multi_format(
     yaml_payload = data
     yaml_result = cli.file_tools.write_yaml_file(
         yaml_path,
-        cast("t.GeneralValueType", yaml_payload),
+        yaml_payload,
     )
     if yaml_result.is_success:
         size = yaml_path.stat().st_size
@@ -610,7 +605,7 @@ def process_file_pipeline(input_file: Path, output_dir: Path) -> r[dict[str, obj
                     )
                 else:
                     transformed_data = validate_and_transform_data(
-                        cast("dict[str, object]", data),
+                        data,
                     )
                     cli.print("✅ Data validation/transform passed", style="green")
 
@@ -671,7 +666,7 @@ def generate_output_files(
     json_file = output_dir / f"{base_name}.json"
     json_result = cli.file_tools.write_json_file(
         json_file,
-        cast("t.GeneralValueType", data),
+        data,
     )
     if json_result.is_failure:
         return r[dict[str, Path]].fail(f"JSON export failed: {json_result.error}")
@@ -681,7 +676,7 @@ def generate_output_files(
     yaml_file = output_dir / f"{base_name}.yaml"
     yaml_result = cli.file_tools.write_yaml_file(
         yaml_file,
-        cast("t.GeneralValueType", data),
+        data,
     )
     if yaml_result.is_failure:
         return r[dict[str, Path]].fail(f"YAML export failed: {yaml_result.error}")

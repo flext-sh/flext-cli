@@ -94,7 +94,7 @@ class FlextCliGettingStarted:
         # Type narrowing: ensure we return a dict
         data = read_result.value
         if isinstance(data, dict):
-            return data
+            return data  # type: ignore[return-value]
         return None
 
     # ============================================================================

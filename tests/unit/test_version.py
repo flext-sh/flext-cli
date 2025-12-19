@@ -24,8 +24,8 @@ from flext_tests import tm
 
 from flext_cli import __version__, __version_info__
 
-from .._helpers import FlextCliTestHelpers
 from ..conftest import Examples, InfoTuples
+from ..helpers import FlextCliTestHelpers
 
 T = TypeVar("T")
 

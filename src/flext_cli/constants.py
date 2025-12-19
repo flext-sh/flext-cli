@@ -267,6 +267,28 @@ class FlextCliConstants(FlextConstants):
 
         # No DebugLevel class - use FlextConstants.Logging.LogLevel from flext-core
 
+        class Logging:
+            """Logging configuration constants for CLI."""
+
+            CONSOLE_ENABLED: Final[bool] = True
+            FILE_ENABLED: Final[bool] = True
+            DEFAULT_LEVEL: Final[str] = "INFO"
+            DEFAULT_FORMAT: Final[str] = (
+                "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            )
+            MAX_LOG_FILE_SIZE: Final[int] = 10 * 1024 * 1024  # 10MB
+            LOG_BACKUP_COUNT: Final[int] = 5
+
+        class Utilities:
+            """Utility constants for CLI operations."""
+
+            DEFAULT_ENCODING: Final[str] = "utf-8"
+            DEFAULT_BUFFER_SIZE: Final[int] = 8192
+            MAX_FILE_SIZE: Final[int] = 104857600  # 100MB
+            DEFAULT_MAX_WIDTH: Final[int] = 120
+            DEFAULT_TERMINAL_WIDTH: Final[int] = 80
+            DEFAULT_CLI_LOG_VERBOSITY: Final[str] = "detailed"
+
         class ServiceStatus(StrEnum):
             """Service operational status enum.
 
@@ -311,7 +333,10 @@ class FlextCliConstants(FlextConstants):
                 List of valid output format names that can be used with CLI.
 
             """
-            return list(FlextCliConstants.Cli.OutputFormats.__members__.keys())
+            return [
+                fmt.value
+                for fmt in FlextCliConstants.Cli.OutputFormats.__members__.values()
+            ]
 
         @staticmethod
         def get_valid_command_statuses() -> list[str]:
@@ -321,7 +346,10 @@ class FlextCliConstants(FlextConstants):
                 List of valid command status names that can be used with CLI.
 
             """
-            return list(FlextCliConstants.Cli.CommandStatus.__members__.keys())
+            return [
+                status.value
+                for status in FlextCliConstants.Cli.CommandStatus.__members__.values()
+            ]
 
         # Environment enum - already available via inheritance from FlextConstants.Settings.Environment
         # No need to redeclare - use c.Settings.Environment directly
@@ -356,6 +384,21 @@ class FlextCliConstants(FlextConstants):
             RFC = "rfc"
             AD = "ad"
             OPENLDAP = "openldap"
+
+        class Settings:
+            """CLI settings constants namespace."""
+
+            class LogLevel(StrEnum):
+                """CLI log level enum - extends flext-core standard levels.
+
+                Python 3.13+ StrEnum provides string-like behavior with enum validation.
+                """
+
+                DEBUG = "DEBUG"
+                INFO = "INFO"
+                WARNING = "WARNING"
+                ERROR = "ERROR"
+                CRITICAL = "CRITICAL"
 
         class EntityType(StrEnum):
             """CLI entity type enum.
@@ -455,7 +498,6 @@ class FlextCliConstants(FlextConstants):
 
             # Verbosity defaults
             DEFAULT_LOG_VERBOSITY: Final[str] = "detailed"
-            DEFAULT_CLI_LOG_VERBOSITY: Final[str] = "detailed"
 
         class PipelineDefaults:
             """Pipeline and batch processing defaults."""
@@ -566,6 +608,27 @@ class FlextCliConstants(FlextConstants):
                 "CLI_COMMAND_ERROR",
                 "CLI_FORMAT_ERROR",
             ]
+
+        # =====================================================================
+        # CMD MESSAGES - Command Messages
+        # =====================================================================
+
+        class CmdMessages:
+            """Command-related messages."""
+
+            COMMAND_STARTED: Final[str] = "Command started"
+            COMMAND_COMPLETED: Final[str] = "Command completed"
+            COMMAND_FAILED: Final[str] = "Command failed"
+            COMMAND_TIMEOUT: Final[str] = "Command timed out"
+            COMMAND_CANCELLED: Final[str] = "Command cancelled"
+            DEFAULT_PAUSE_MESSAGE: Final[str] = "Press Enter to continue..."
+            CONFIG_DIR_EXISTS: Final[str] = " Main config directory exists"
+            CONFIG_DIR_MISSING: Final[str] = " Main config directory missing"
+            SUBDIR_EXISTS: Final[str] = "{symbol} {subdir} directory exists"
+            SUBDIR_MISSING: Final[str] = "{symbol} {subdir} directory missing"
+            CONFIG_SAVED: Final[str] = "Configuration saved: {key} = {value}"
+            CONFIG_EDIT_COMPLETED_LOG: Final[str] = "Configuration edit completed"
+            CONFIG_INFO_LOG: Final[str] = "Configuration edit completed"
 
         # Backward compatibility aliases (deprecated - use ValidationLists.*)
         OUTPUT_FORMATS_LIST: Final[list[str]] = ValidationLists.OUTPUT_FORMATS
@@ -1546,6 +1609,12 @@ class FlextCliConstants(FlextConstants):
             """User interface default values."""
 
             DEFAULT_PROMPT_SUFFIX: Final[str] = ": "
+
+            class LogLevel:
+                """Log level defaults."""
+
+                INFO: Final[str] = "info"
+
             DEFAULT_PAUSE_MESSAGE: Final[str] = "Press any key to continue..."
 
         class APIDefaults:
@@ -1775,17 +1844,6 @@ class FlextCliConstants(FlextConstants):
             """CMD service defaults and constants."""
 
             SERVICE_NAME: Final[str] = "FlextCliCmd"
-
-        class CmdMessages:
-            """Messages for CMD operations."""
-
-            CONFIG_DIR_EXISTS: Final[str] = " Main config directory exists"
-            CONFIG_DIR_MISSING: Final[str] = " Main config directory missing"
-            SUBDIR_EXISTS: Final[str] = "{symbol} {subdir} directory exists"
-            SUBDIR_MISSING: Final[str] = "{symbol} {subdir} directory missing"
-            CONFIG_SAVED: Final[str] = "Configuration saved: {key} = {value}"
-            CONFIG_EDIT_COMPLETED_LOG: Final[str] = "Configuration edit completed"
-            CONFIG_INFO_LOG: Final[str] = "Configuration edit completed"
 
         class CmdErrorMessages:
             """Error messages for CMD operations."""
@@ -2581,6 +2639,19 @@ class FlextCliConstants(FlextConstants):
             DEFAULT_CLI_LOG_LEVEL: Final[str] = "INFO"
             DEFAULT_LOG_VERBOSITY: Final[str] = "detailed"
             DEFAULT_CLI_LOG_VERBOSITY: Final[str] = "detailed"
+
+        class TestData:
+            """Test data constants for test modules."""
+
+            CUSTOM: Final[int] = 42
+            TWO: Final[int] = 2
+            PASSWORD: Final[str] = "test_password_123"
+            LONG: Final[str] = (
+                "This is a very long message that tests how the system handles extended text input"
+            )
+            SPECIAL: Final[str] = "!@#$%^&*()"
+            UNICODE: Final[str] = "你好世界🌍"
+            PERFORMANCE_THRESHOLD: Final[float] = 1.0
 
         class Lists:
             """List constants."""

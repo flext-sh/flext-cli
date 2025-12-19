@@ -3,29 +3,16 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping, Sequence
-from typing import TypeVar
 
 from flext_core import FlextTypes, r
-from pydantic import BaseModel
 
 # ═══════════════════════════════════════════════════════════════════════════
 # TYPEVARS: Only object allowed outside the class
 # ═══════════════════════════════════════════════════════════════════════════
 # Reuse from FlextTypes when available
 # Centralize all TypeVars here for massive reuse
-
-# CLI domain TypeVars
-FlextCliCommandT = TypeVar("FlextCliCommandT")
-FlextCliSettingsT = TypeVar("FlextCliSettingsT")
-FlextCliOutputT = TypeVar("FlextCliOutputT")
-FlextCliResultT = TypeVar("FlextCliResultT")
-FlextCliSessionT = TypeVar("FlextCliSessionT")
-FlextCliContextT = TypeVar("FlextCliContextT")
-FlextCliPluginT = TypeVar("FlextCliPluginT")
-FlextCliFormatterT = TypeVar("FlextCliFormatterT")
-
-# Model TypeVar for CLI commands
-FlextCliModelT = TypeVar("FlextCliModelT", bound=BaseModel)
+# Use centralized TypeVars from flext-core
+# Import them for local use if needed
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -52,7 +39,7 @@ class FlextCliTypes(FlextTypes):
 
         RULES (Architecture Layer Compliance):
         ─────────────────────────────────────
-        1. Single class pattern - NO nested sub-namespaces (Data, Auth, etc.)
+        1. Single class pattern - NO nested sub-namespaces (Data, Auth, etFlextCliConstants.Cli.)
         2. Direct access via t.Cli.* - simple and clear
         3. Reuse from FlextTypes parent class (inheritance, no duplication)
         4. Complex types only - no simple wrappers
@@ -123,15 +110,6 @@ class FlextCliTypes(FlextTypes):
 t = FlextCliTypes
 
 __all__ = [
-    "FlextCliCommandT",
-    "FlextCliContextT",
-    "FlextCliFormatterT",
-    "FlextCliModelT",
-    "FlextCliOutputT",
-    "FlextCliPluginT",
-    "FlextCliResultT",
-    "FlextCliSessionT",
-    "FlextCliSettingsT",
     "FlextCliTypes",
     "t",
 ]

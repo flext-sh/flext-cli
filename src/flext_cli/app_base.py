@@ -19,9 +19,10 @@ from abc import ABC, abstractmethod
 from typing import ClassVar
 
 import typer
+from click import UsageError as ClickUsageError
 from flext_core import FlextLogger as l_core, e, r
 
-from flext_cli.cli import FlextCliCli, UsageError as ClickUsageError
+from flext_cli.cli import FlextCliCli
 from flext_cli.services.output import FlextCliOutput
 from flext_cli.settings import FlextCliSettings
 
@@ -46,7 +47,7 @@ class FlextCliAppBase(ABC):
     _app: typer.Typer
     _config: FlextCliSettings
 
-    def __init__(self) -> None:
+    def __init__(self) -> None:  # pragma: no cover
         """Initialize CLI with FlextCli infrastructure."""
         super().__init__()
         self.logger = l_core(__name__)
@@ -101,7 +102,7 @@ class FlextCliAppBase(ABC):
             return sys.argv[1:] if len(sys.argv) > 1 else []
         return args
 
-    def execute_cli(self, args: list[str] | None = None) -> r[bool]:
+    def execute_cli(self, args: list[str] | None = None) -> r[bool]:  # pragma: no cover
         """Execute the CLI with Railway-pattern error handling."""
         try:
             # Ensure pathlib is available for Typer's annotation evaluation

@@ -21,7 +21,6 @@ import warnings
 from collections import UserDict
 from collections.abc import Generator
 from pathlib import Path
-from typing import cast
 from unittest.mock import patch
 
 import pytest
@@ -33,7 +32,6 @@ from flext_cli import (
     FlextCliSettings,
     c,
     m,
-    p,
     r,
 )
 
@@ -93,7 +91,8 @@ class TestsCliCore:
     @pytest.fixture
     def sample_command(self) -> m.Cli.CliCommand:
         """Create sample CLI command for testing."""
-        return m.Cli.CliCommand(
+        # Use model_construct to avoid Pydantic model_rebuild() issues with forward references
+        return m.Cli.CliCommand.model_construct(
             command_line="test-cmd --option value",
             name="test-cmd",
             description="Test command",
@@ -367,7 +366,7 @@ class TestsCliCore:
         ) -> None:
             """Test successful command registration."""
             # Cast to protocol type for type compatibility
-            command_protocol = cast("p.Cli.Command", sample_command)
+            command_protocol = sample_command
             result = core_service.register_command(command_protocol)
             assert isinstance(result, r)
             assert result.is_success
@@ -384,7 +383,7 @@ class TestsCliCore:
         ) -> None:
             """Test registering duplicate command."""
             # Cast to protocol type for type compatibility
-            command_protocol = cast("p.Cli.Command", sample_command)
+            command_protocol = sample_command
             # Register first time
             result1 = core_service.register_command(command_protocol)
             assert result1.is_success
@@ -410,7 +409,7 @@ class TestsCliCore:
         ) -> None:
             """Test getting command information."""
             # Register command first - cast to protocol type
-            command_protocol = cast("p.Cli.Command", sample_command)
+            command_protocol = sample_command
             core_service.register_command(command_protocol)
 
             # Get command info
@@ -439,7 +438,7 @@ class TestsCliCore:
             core_service: FlextCliCore,
         ) -> None:
             """Test register_command exception handler with real scenario."""
-            cmd = m.Cli.CliCommand(
+            cmd = m.Cli.CliCommand.model_construct(
                 command_line="test",
                 name="test",
                 description="Test command",
@@ -459,11 +458,11 @@ class TestsCliCore:
             # Use helper method to set private field for testing
             TestsCliCore._set_commands(
                 core_service,
-                cast("dict[str, t.JsonDict]", error_dict),
+                error_dict,
             )
 
             # Cast to protocol type for type compatibility
-            cmd_protocol = cast("p.Cli.Command", cmd)
+            cmd_protocol = cmd
             result = core_service.register_command(cmd_protocol)
             assert result.is_failure
             assert (
@@ -547,7 +546,7 @@ class TestsCliCore:
                 plugin_data = {"name": "test_plugin", "version": "1.0.0"}
 
                 result = core_service.register_plugin(
-                    cast("p.Cli.CliPlugin", plugin_data),
+                    plugin_data,
                 )
                 assert isinstance(result, r)
 
@@ -603,14 +602,14 @@ class TestsCliCore:
             core_service: FlextCliCore,
         ) -> None:
             """Test full workflow from command registration to execution."""
-            cmd = m.Cli.CliCommand(
+            cmd = m.Cli.CliCommand.model_construct(
                 command_line="workflow-test --flag value",
                 name="workflow-test",
                 description="Workflow test command",
             )
 
             # Register command - cast to protocol type
-            cmd_protocol = cast("p.Cli.Command", cmd)
+            cmd_protocol = cmd
             reg_result = core_service.register_command(cmd_protocol)
             assert reg_result.is_success
 
@@ -646,7 +645,7 @@ class TestsCliCore:
             # Save configuration
             save_result = core_service.save_configuration(
                 str(config_file),
-                cast("t.JsonDict", original_config),
+                original_config,
             )
             assert save_result.is_success
 
@@ -683,7 +682,7 @@ class TestsCliCore:
             # Cast to JsonDict for type compatibility
             # dict[str, str | int] is compatible with JsonDict
             result = core_service._build_execution_context(
-                cast("t.JsonDict", context),
+                context,
             )
             assert result == context
 
@@ -716,7 +715,7 @@ class TestsCliCore:
         ) -> None:
             """Test execute_command with registered command."""
             # Register command first - cast to protocol type
-            command_protocol = cast("p.Cli.Command", sample_command)
+            command_protocol = sample_command
             register_result = core_service.register_command(command_protocol)
             assert register_result.is_success
 
@@ -739,7 +738,7 @@ class TestsCliCore:
         ) -> None:
             """Test execute_command with context."""
             # Cast to protocol type for type compatibility
-            command_protocol = cast("p.Cli.Command", sample_command)
+            command_protocol = sample_command
             register_result = core_service.register_command(command_protocol)
             assert register_result.is_success
 
@@ -757,7 +756,7 @@ class TestsCliCore:
         ) -> None:
             """Test execute_command with timeout."""
             # Cast to protocol type for type compatibility
-            command_protocol = cast("p.Cli.Command", sample_command)
+            command_protocol = sample_command
             register_result = core_service.register_command(command_protocol)
             assert register_result.is_success
 
@@ -772,7 +771,7 @@ class TestsCliCore:
             # Cast to list[t.GeneralValueType] for type compatibility
             # str and int are compatible with t.GeneralValueType
             result = FlextCliCore._build_context_from_list(
-                cast("list[t.GeneralValueType]", args),
+                args,
             )
             assert c.Cli.DictKeys.ARGS in result
             assert result[c.Cli.DictKeys.ARGS] == args
@@ -1033,7 +1032,7 @@ class TestsCliCore:
         ) -> None:
             """Test get_command_statistics."""
             # Register a command - cast to protocol type
-            command_protocol = cast("p.Cli.Command", sample_command)
+            command_protocol = sample_command
             core_service.register_command(command_protocol)
 
             stats_result = core_service.get_command_statistics()
@@ -1189,7 +1188,7 @@ class TestsCliCore:
         ) -> None:
             """Test execute method when commands are registered."""
             # Register a command - cast to protocol type
-            command_protocol = cast("p.Cli.Command", sample_command)
+            command_protocol = sample_command
             core_service.register_command(command_protocol)
 
             result = core_service.execute()
@@ -1214,7 +1213,7 @@ class TestsCliCore:
         ) -> None:
             """Test execute_cli_command_with_context."""
             # Register command first - cast to protocol type
-            command_protocol = cast("p.Cli.Command", sample_command)
+            command_protocol = sample_command
             register_result = core_service.register_command(command_protocol)
             assert register_result.is_success
 
@@ -1254,7 +1253,7 @@ class TestsCliCore:
             """Test register_command with empty name."""
             cmd = sample_command.model_copy(update={"name": ""})
             # Cast to protocol type for type compatibility
-            cmd_protocol = cast("p.Cli.Command", cmd)
+            cmd_protocol = cmd
             result = core_service.register_command(cmd_protocol)
             assert result.is_failure
 
@@ -1268,7 +1267,7 @@ class TestsCliCore:
 
             # Use BadDict that fails on keys() but works on len() (which is called by logger)
             class BadDict(UserDict):
-                def keys(self) -> object:  # type: ignore[override]
+                def keys(self) -> object:
                     """Override keys to raise exception for testing."""
                     msg = "Keys failed"
                     raise RuntimeError(msg)
@@ -1276,7 +1275,7 @@ class TestsCliCore:
             # Use helper method to set private field for testing
             TestsCliCore._set_commands(
                 core_service,
-                cast("dict[str, t.JsonDict]", BadDict()),
+                BadDict(),
             )
             result = core_service.list_commands()
             assert result.is_failure
@@ -1318,7 +1317,7 @@ class TestsCliCore:
 
             TestsCliCore._set_commands(
                 core_service,
-                cast("dict[str, t.JsonDict]", BadDict()),
+                BadDict(),
             )
             result = core_service.health_check()
             assert result.is_failure
@@ -1346,7 +1345,7 @@ class TestsCliCore:
         def test_update_configuration_invalid(self, core_service: FlextCliCore) -> None:
             """Test update_configuration with invalid input."""
             # Pass None (cast to JsonDict)
-            result = core_service.update_configuration(cast("t.JsonDict", None))
+            result = core_service.update_configuration(None)
             assert result.is_failure
 
         """Helper and utility method tests."""

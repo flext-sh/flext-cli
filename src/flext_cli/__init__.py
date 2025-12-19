@@ -45,24 +45,18 @@ from flext_cli.settings import FlextCliSettings
 from flext_cli.typings import FlextCliTypes
 from flext_cli.utilities import FlextCliUtilities
 
-# Short aliases exported in root namespace - use domain-specific aliases
+# Short aliases exported in root namespace - defined at end to avoid circular imports
 # u extends FlextUtilities from flext-core via FlextCliUtilities
 # t extends FlextTypes from flext-core via FlextCliTypes
 # s is imported from base.py (which imports from flext_core) - unified runtime alias
 # d, e, h, r are imported from flext_core (line 13)
 # x is domain-specific mixins (not from flext_core to avoid conflict)
-u = FlextCliUtilities  # Domain-specific utilities extending FlextUtilities
-t = FlextCliTypes  # Domain-specific types extending FlextTypes
-c = FlextCliConstants  # Domain-specific constants extending FlextConstants
-m = FlextCliModels  # Domain-specific models extending FlextModels
-p = FlextCliProtocols  # Domain-specific protocols extending FlextProtocols
-# s is imported from base.py (re-exports flext-core FlextService) - unified runtime alias
-x = FlextCliMixins  # Domain-specific mixins extending FlextMixins
 
 
 __all__ = [
     "FlextCli",
     "FlextCliAppBase",
+    "FlextCliCli",
     "FlextCliCli",
     "FlextCliCmd",
     "FlextCliCommands",
@@ -105,3 +99,12 @@ __all__ = [
     "u",
     "x",
 ]
+
+# Define aliases after all imports to avoid circular dependencies
+u = FlextCliUtilities  # Domain-specific utilities extending FlextUtilities
+t = FlextCliTypes  # Domain-specific types extending FlextTypes
+c = FlextCliConstants  # Domain-specific constants extending FlextConstants
+m = FlextCliModels  # Domain-specific models extending FlextModels
+p = FlextCliProtocols  # Domain-specific protocols extending FlextProtocols
+# s is imported from base.py (re-exports flext-core FlextService) - unified runtime alias
+x = FlextCliMixins  # Domain-specific mixins extending FlextMixins

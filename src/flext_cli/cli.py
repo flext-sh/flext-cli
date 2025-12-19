@@ -34,10 +34,9 @@ from pydantic import BaseModel
 from typer.testing import CliRunner
 
 from flext_cli.cli_params import FlextCliCommonParams
-from flext_cli.constants import c
+from flext_cli.constants import FlextCliConstants
 from flext_cli.models import m
 from flext_cli.protocols import p
-from flext_cli.services.output import FlextCliOutput
 from flext_cli.settings import FlextCliSettings
 from flext_cli.typings import t
 from flext_cli.utilities import u
@@ -82,7 +81,7 @@ class FlextCliCli:
 
     - Command and group creation (Typer-based, Click-compatible)
     - Decorators (option, argument, command)
-    - Parameter types (Choice, Path, File, IntRange, etc.)
+    - Parameter types (Choice, Path, File, IntRange, etFlextCliConstants.Cli.)
     - typer.Context management
     - Command execution and testing
 
@@ -110,7 +109,7 @@ class FlextCliCli:
     @staticmethod
     def _is_option_config_protocol(
         obj: object,
-    ) -> TypeGuard[p.Cli.OptionConfigProtocol]:
+    ) -> bool:
         """Type guard to check if object implements OptionConfigProtocol."""
         return (
             hasattr(obj, "default")
@@ -143,7 +142,8 @@ class FlextCliCli:
 
     def _create_cli_decorator(
         self,
-        entity_type: c.Cli.EntityTypeLiteral | c.Cli.EntityType,
+        entity_type: FlextCliConstants.Cli.EntityTypeLiteral
+        | FlextCliConstants.Cli.EntityType,
         name: str | None,
         help_text: str | None,
     ) -> Callable[[p.Cli.CliCommandFunction], click.Command | click.Group]:
@@ -201,7 +201,9 @@ class FlextCliCli:
             ...     typer.echo("Hello!")
 
         """
-        return self._create_cli_decorator(c.Cli.EntityType.COMMAND, name, help_text)
+        return self._create_cli_decorator(
+            FlextCliConstants.Cli.EntityType.COMMAND, name, help_text
+        )
 
     def _extract_typed_value(
         self,
@@ -212,7 +214,16 @@ class FlextCliCli:
         """Extract typed value using build DSL."""
         if val is None:
             return default
-        built_val = u.Cli.build(val, ops={"ensure": type_name}, on_error="skip")
+        # Handle conversion based on type_name with proper type safety
+        if type_name == "str":
+            safe_default = default if default is not None else ""
+            built_val = u.convert(val, str, safe_default)
+        elif type_name == "bool":
+            safe_default = default if default is not None else False
+            built_val = u.convert(val, bool, safe_default)
+        else:  # dict
+            safe_default = default if default is not None else {}
+            built_val = u.convert(val, dict, safe_default)
         result = (
             built_val
             if isinstance(
@@ -223,8 +234,15 @@ class FlextCliCli:
         )
         if result is None:
             return None
-        if isinstance(result, (str, int, float, bool, dict, list)):
+        if isinstance(result, (str, int, float, bool, list)):
             return result
+        if isinstance(result, dict):
+            # Ensure dict keys are strings for GeneralValueType compatibility
+            return {
+                str(k): v
+                for k, v in result.items()
+                if isinstance(v, (str, int, float, bool, list, dict, type(None)))
+            }
         return str(result)
 
     def _get_log_level_value(self, config: FlextCliSettings) -> int:
@@ -236,10 +254,8 @@ class FlextCliCli:
             "log_level",
             None,
         )
-        log_level_built = u.Cli.build(
-            log_level_attr.value if log_level_attr else None,
-            ops={"ensure": "str", "ensure_default": "INFO"},
-            on_error="skip",
+        log_level_built = u.convert(
+            log_level_attr.value if log_level_attr else None, str, "INFO"
         )
         log_level_name: str = (
             str(log_level_built) if log_level_built is not None else "INFO"
@@ -248,14 +264,10 @@ class FlextCliCli:
 
     def _get_console_enabled(self, config: FlextCliSettings) -> bool:
         """Get console enabled value from config."""
-        console_enabled_built = u.Cli.build(
-            getattr(config, "console_enabled", None),
-            ops={"ensure": "bool", "ensure_default": True},
-            on_error="skip",
-        )
-        return (
-            bool(console_enabled_built) if console_enabled_built is not None else True
-        )
+        console_enabled_val = getattr(config, "console_enabled", None)
+        if console_enabled_val is None:
+            return True
+        return bool(console_enabled_val)
 
     def _apply_common_params_to_config(
         self,
@@ -367,7 +379,7 @@ class FlextCliCli:
             >>> app = cli.create_app_with_common_params(
             ...     name="my-app", help_text="My application", config=my_config
             ... )
-            >>> # Now app has --debug, --log-level, etc. at global level
+            >>> # Now app has --debug, --log-level, etFlextCliConstants.Cli. at global level
             >>> # Usage: my-app --debug subcommand
 
         """
@@ -495,18 +507,10 @@ class FlextCliCli:
         default: bool = False,
     ) -> bool:
         """Extract and build bool value from kwargs."""
-        val = u.mapper().get(kwargs, key)
+        val = u.get(kwargs, key)
         if val is None:
             return default
-        build_result = u.Cli.build(
-            val,
-            ops={"ensure": "bool", "ensure_default": default},
-            on_error="skip",
-        )
-        if not isinstance(build_result, bool):
-            msg = "build_result must be bool"
-            raise TypeError(msg)
-        return build_result
+        return u.convert(val, bool, default)
 
     def _build_str_value(
         self, kwargs: dict[str, t.GeneralValueType], key: str, default: str = ""
@@ -515,7 +519,7 @@ class FlextCliCli:
         val = u.mapper().get(kwargs, key)
         if val is None:
             return default
-        build_result = u.Cli.build(
+        build_result = u.build(
             val,
             ops={"ensure": "str", "ensure_default": default},
             on_error="skip",
@@ -529,7 +533,7 @@ class FlextCliCli:
         self, type_hint_val: t.GeneralValueType | None
     ) -> t.GeneralValueType | None:
         """Normalize and validate type hint value."""
-        type_hint_build = u.Cli.build(
+        type_hint_build = u.build(
             type_hint_val,
             ops={"ensure_default": None},
             on_error="skip",
@@ -572,7 +576,7 @@ class FlextCliCli:
     def create_option_decorator(
         self,
         *param_decls: str,
-        config: p.Cli.OptionConfigProtocol | None = None,
+        config: object | None = None,
         **kwargs: t.GeneralValueType,
     ) -> Callable[
         [p.Cli.CliCommandFunction],
@@ -617,7 +621,7 @@ class FlextCliCli:
             if not self._is_option_config_protocol(config_instance):
                 msg = "config_instance must implement OptionConfigProtocol"
                 raise TypeError(msg)
-            config = config_instance
+            config = config_instance  # Type checked by _is_option_config_protocol above
 
         # Type narrowing: config is not None after assignment
         if config is None:
@@ -625,19 +629,23 @@ class FlextCliCli:
             raise ValueError(msg)
 
         # Use Click directly (cli.py is ONLY file that may import Click)
+        # Use safe attribute access since config may not have all attributes
         decorator = click.option(
             *param_decls,
-            default=config.default,
-            type=config.type_hint,
-            required=config.required,
-            help=config.help_text,
-            multiple=config.multiple,
-            count=config.count,
-            show_default=config.show_default,
+            default=getattr(config, "default", None),
+            type=getattr(config, "type_hint", None),
+            required=getattr(config, "required", False),
+            help=getattr(config, "help_text", ""),
+            multiple=getattr(config, "multiple", False),
+            count=getattr(config, "count", False),
+            show_default=getattr(config, "show_default", True),
         )
         self.logger.debug(
             "Created option decorator",
-            extra={"param_decls": param_decls, "required": config.required},
+            extra={
+                "param_decls": param_decls,
+                "required": getattr(config, "required", False),
+            },
         )
         return decorator
 
@@ -711,11 +719,11 @@ class FlextCliCli:
 
         """
         # Use build() DSL for formats normalization
-        formats_build = u.Cli.build(
+        formats_build = u.build(
             formats,
             ops={
                 "ensure": "list",
-                "ensure_default": c.Cli.FileDefaults.DEFAULT_DATETIME_FORMATS,
+                "ensure_default": FlextCliConstants.Cli.FileDefaults.DEFAULT_DATETIME_FORMATS,
             },
             on_error="skip",
         )
@@ -933,7 +941,7 @@ class FlextCliCli:
             val = u.mapper().get(kwargs, k)
             if val is None:
                 return default
-            build_result = u.Cli.build(
+            build_result = u.build(
                 val,
                 ops={"ensure": "bool", "ensure_default": default},
                 on_error="skip",
@@ -948,7 +956,7 @@ class FlextCliCli:
             val = u.mapper().get(kwargs, k)
             if val is None:
                 return default
-            build_result = u.Cli.build(
+            build_result = u.build(
                 val,
                 ops={"ensure": "str", "ensure_default": default},
                 on_error="skip",
@@ -963,7 +971,7 @@ class FlextCliCli:
             abort=get_bool_val("abort", default=False),
             prompt_suffix=get_str_val(
                 "prompt_suffix",
-                default=c.Cli.UIDefaults.DEFAULT_PROMPT_SUFFIX,
+                default=FlextCliConstants.Cli.UIDefaults.DEFAULT_PROMPT_SUFFIX,
             ),
             show_default=get_bool_val("show_default", default=True),
             err=get_bool_val("err", default=False),
@@ -1021,16 +1029,16 @@ class FlextCliCli:
         try:
             result = typer.confirm(
                 text=text,
-                default=config.default,
-                abort=config.abort,
-                prompt_suffix=config.prompt_suffix,
-                show_default=config.show_default,
-                err=config.err,
+                default=getattr(config, "default", None),
+                abort=getattr(config, "abort", False),
+                prompt_suffix=getattr(config, "prompt_suffix", ""),
+                show_default=getattr(config, "show_default", True),
+                err=getattr(config, "err", False),
             )
             return r[bool].ok(result)
         except typer.Abort as e:
             return r[bool].fail(
-                c.Cli.ErrorMessages.USER_ABORTED_CONFIRMATION.format(
+                FlextCliConstants.Cli.ErrorMessages.USER_ABORTED_CONFIRMATION.format(
                     error=e,
                 ),
             )
@@ -1046,7 +1054,7 @@ class FlextCliCli:
             val = u.mapper().get(kwargs, k)
             if val is None:
                 return default
-            build_result = u.Cli.build(
+            build_result = u.build(
                 val,
                 ops={"ensure": "bool", "ensure_default": default},
                 on_error="skip",
@@ -1061,7 +1069,7 @@ class FlextCliCli:
             val = u.mapper().get(kwargs, k)
             if val is None:
                 return default
-            build_result = u.Cli.build(
+            build_result = u.build(
                 val,
                 ops={"ensure": "str", "ensure_default": default},
                 on_error="skip",
@@ -1078,7 +1086,7 @@ class FlextCliCli:
             value_proc=value_proc_val if callable(value_proc_val) else None,
             prompt_suffix=get_str_val(
                 "prompt_suffix",
-                c.Cli.UIDefaults.DEFAULT_PROMPT_SUFFIX,
+                FlextCliConstants.Cli.UIDefaults.DEFAULT_PROMPT_SUFFIX,
             ),
             hide_input=get_bool_val("hide_input", default=False),
             confirmation_prompt=get_bool_val("confirmation_prompt", default=False),
@@ -1099,7 +1107,7 @@ class FlextCliCli:
         ──────────────
         Prompts user for text input. Uses Typer's prompt() function which handles
         input validation, type conversion, and error handling. Supports optional
-        confirmation prompts for sensitive inputs (passwords, etc.).
+        confirmation prompts for sensitive inputs (passwords, etFlextCliConstants.Cli.).
 
         Audit Implication:
         ───────────────────
@@ -1134,6 +1142,9 @@ class FlextCliCli:
             msg = "config cannot be None"
             raise ValueError(msg)
 
+        # Note: config is already properly typed via _build_prompt_config_from_kwargs
+        # and validated via _is_prompt_config_protocol above
+
         try:
             result = typer.prompt(
                 text=text,
@@ -1148,13 +1159,19 @@ class FlextCliCli:
                 show_choices=config.show_choices,
             )
             # Convert result to t.GeneralValueType - typer.prompt returns various types
+            # Use u.build with JSON transformation for dict conversion
             json_value = (
-                FlextCliOutput.to_json(result) if isinstance(result, dict) else result
+                u.build(
+                    result,
+                    ops={"ensure": "dict", "transform": {"to_json": True}},
+                )
+                if isinstance(result, dict)
+                else result
             )
             return r[t.GeneralValueType].ok(json_value)
         except typer.Abort as e:
             return r[t.GeneralValueType].fail(
-                c.Cli.ErrorMessages.USER_ABORTED_PROMPT.format(error=e),
+                FlextCliConstants.Cli.ErrorMessages.USER_ABORTED_PROMPT.format(error=e),
             )
 
     # =========================================================================
@@ -1163,7 +1180,7 @@ class FlextCliCli:
 
     def create_cli_runner(
         self,
-        charset: str = c.Utilities.DEFAULT_ENCODING,
+        charset: str = FlextCliConstants.Cli.Utilities.DEFAULT_ENCODING,
         env: dict[str, str] | None = None,
         *,
         echo_stdin: bool = False,
@@ -1241,7 +1258,7 @@ class FlextCliCli:
 
     @staticmethod
     def pause(
-        info: str = c.Cli.UIDefaults.DEFAULT_PAUSE_MESSAGE,
+        info: str = FlextCliConstants.Cli.CmdMessages.DEFAULT_PAUSE_MESSAGE,
     ) -> r[bool]:
         """Pause execution until key press.
 
@@ -1414,7 +1431,7 @@ class FlextCliCli:
         return builder.build()
 
     @staticmethod
-    def execute() -> r[dict[str, t.GeneralValueType]]:
+    def execute() -> r[Mapping[str, t.GeneralValueType]]:
         """Execute Click abstraction layer operations.
 
         Returns:
@@ -1423,8 +1440,10 @@ class FlextCliCli:
 
         """
         return r[dict[str, t.GeneralValueType]].ok({
-            c.Cli.DictKeys.SERVICE: c.Cli.FLEXT_CLI,
-            c.Cli.DictKeys.STATUS: (c.Cli.ServiceStatus.OPERATIONAL.value),
+            FlextCliConstants.Cli.DictKeys.SERVICE: FlextCliConstants.Cli.FLEXT_CLI,
+            FlextCliConstants.Cli.DictKeys.STATUS: (
+                FlextCliConstants.Cli.ServiceStatus.OPERATIONAL.value
+            ),
         })
 
 

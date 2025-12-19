@@ -25,7 +25,7 @@ class FlextMiddleware(Protocol):
 
     Middleware functions process the CLI context and pass control to the next
     middleware or handler in the chain. They can modify the context, log
-    execution, validate inputs, retry operations, etc.
+    execution, validate inputs, retry operations, etFlextCliConstants.Cli.
 
     """
 

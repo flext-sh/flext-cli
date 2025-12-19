@@ -15,13 +15,14 @@ import pathlib
 import platform
 import sys
 import tempfile
+from collections.abc import Mapping
 from typing import override
 
 from flext_core import r
 
 from flext_cli.base import FlextCliServiceBase
-from flext_cli.constants import c
-from flext_cli.models import m
+from flext_cli.constants import FlextCliConstants
+from flext_cli.models import EnvironmentInfo, PathInfo, SystemInfo
 from flext_cli.services.output import FlextCliOutput
 from flext_cli.typings import t
 from flext_cli.utilities import u
@@ -73,7 +74,7 @@ class FlextCliDebug(FlextCliServiceBase):
 
     @staticmethod
     def _convert_model_to_dict(
-        model: m.Cli.SystemInfo | m.Cli.EnvironmentInfo | m.Cli.PathInfo,
+        model: SystemInfo | EnvironmentInfo | PathInfo,
     ) -> dict[str, t.GeneralValueType]:
         """Generalized model to dict conversion helper."""
         # Use build() DSL for JSON conversion
@@ -121,7 +122,7 @@ class FlextCliDebug(FlextCliServiceBase):
         """Execute debug service - required by FlextService."""
         return r[dict[str, t.GeneralValueType]].ok({
             "status": "operational",
-            "message": c.Cli.ServiceMessages.FLEXT_CLI_DEBUG_OPERATIONAL,
+            "message": FlextCliConstants.Cli.ServiceMessages.FLEXT_CLI_DEBUG_OPERATIONAL,
         })
 
     def get_environment_variables(
@@ -136,7 +137,7 @@ class FlextCliDebug(FlextCliServiceBase):
             return r[dict[str, t.GeneralValueType]].ok(typed_env_info)
         except Exception as e:
             return r[dict[str, t.GeneralValueType]].fail(
-                c.Cli.DebugErrorMessages.ENVIRONMENT_INFO_FAILED.format(
+                FlextCliConstants.Cli.DebugErrorMessages.ENVIRONMENT_INFO_FAILED.format(
                     error=e,
                 ),
             )
@@ -150,68 +151,68 @@ class FlextCliDebug(FlextCliServiceBase):
             return r[list[str]].ok(results)
         except Exception as e:
             return r[list[str]].fail(
-                c.Cli.DebugErrorMessages.ENVIRONMENT_VALIDATION_FAILED.format(
+                FlextCliConstants.Cli.DebugErrorMessages.ENVIRONMENT_VALIDATION_FAILED.format(
                     error=e,
                 ),
             )
 
     @staticmethod
-    def test_connectivity() -> r[dict[str, str]]:
+    def test_connectivity() -> r[Mapping[str, str]]:
         """Test basic connectivity and service status."""
         try:
             connectivity_info = {
-                c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.CONNECTED.value,
-                c.Cli.DictKeys.TIMESTAMP: u.generate("timestamp"),
-                c.Cli.DictKeys.SERVICE: str(FlextCliDebug),
-                c.Cli.DebugDictKeys.CONNECTIVITY: c.Cli.ServiceStatus.OPERATIONAL.value,
+                FlextCliConstants.Cli.DictKeys.STATUS: FlextCliConstants.Cli.ServiceStatus.CONNECTED.value,
+                FlextCliConstants.Cli.DictKeys.TIMESTAMP: u.generate("timestamp"),
+                FlextCliConstants.Cli.DictKeys.SERVICE: str(FlextCliDebug),
+                FlextCliConstants.Cli.DebugDictKeys.CONNECTIVITY: FlextCliConstants.Cli.ServiceStatus.OPERATIONAL.value,
             }
             return r[dict[str, str]].ok(connectivity_info)
         except Exception as e:
             return r[dict[str, str]].fail(
-                c.Cli.DebugErrorMessages.CONNECTIVITY_TEST_FAILED.format(
+                FlextCliConstants.Cli.DebugErrorMessages.CONNECTIVITY_TEST_FAILED.format(
                     error=e,
                 ),
             )
 
     @staticmethod
-    def execute_health_check() -> r[dict[str, t.GeneralValueType]]:
+    def execute_health_check() -> r[Mapping[str, t.GeneralValueType]]:
         """Execute comprehensive health check."""
         try:
             health_info: dict[str, t.GeneralValueType] = {
-                c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.HEALTHY.value,
-                c.Cli.DictKeys.TIMESTAMP: u.generate("timestamp"),
-                c.Cli.DictKeys.SERVICE: c.Cli.DebugDefaults.SERVICE_NAME,
-                c.Cli.DebugDictKeys.CHECK_ID: u.generate("id"),
-                c.Cli.DebugDictKeys.CHECKS_PASSED: True,
+                FlextCliConstants.Cli.DictKeys.STATUS: FlextCliConstants.Cli.ServiceStatus.HEALTHY.value,
+                FlextCliConstants.Cli.DictKeys.TIMESTAMP: u.generate("timestamp"),
+                FlextCliConstants.Cli.DictKeys.SERVICE: FlextCliConstants.Cli.DebugDefaults.SERVICE_NAME,
+                FlextCliConstants.Cli.DebugDictKeys.CHECK_ID: u.generate("id"),
+                FlextCliConstants.Cli.DebugDictKeys.CHECKS_PASSED: True,
             }
             return r[dict[str, t.GeneralValueType]].ok(health_info)
         except Exception as e:
             return r[dict[str, t.GeneralValueType]].fail(
-                c.Cli.DebugErrorMessages.HEALTH_CHECK_FAILED.format(
+                FlextCliConstants.Cli.DebugErrorMessages.HEALTH_CHECK_FAILED.format(
                     error=e,
                 ),
             )
 
     @staticmethod
-    def execute_trace(args: list[str]) -> r[dict[str, t.GeneralValueType]]:
+    def execute_trace(args: list[str]) -> r[Mapping[str, t.GeneralValueType]]:
         """Execute trace operation with provided arguments."""
         try:
             trace_info: dict[str, t.GeneralValueType] = {
-                c.Cli.DebugDictKeys.OPERATION: c.Cli.TRACE,
-                c.Cli.DictKeys.ARGS: list(args),
-                c.Cli.DebugDictKeys.ARGS_COUNT: len(args),
-                c.Cli.DictKeys.TIMESTAMP: u.generate("timestamp"),
-                c.Cli.DebugDictKeys.TRACE_ID: u.generate("id"),
+                FlextCliConstants.Cli.DebugDictKeys.OPERATION: FlextCliConstants.Cli.TRACE,
+                FlextCliConstants.Cli.DictKeys.ARGS: list(args),
+                FlextCliConstants.Cli.DebugDictKeys.ARGS_COUNT: len(args),
+                FlextCliConstants.Cli.DictKeys.TIMESTAMP: u.generate("timestamp"),
+                FlextCliConstants.Cli.DebugDictKeys.TRACE_ID: u.generate("id"),
             }
             return r[dict[str, t.GeneralValueType]].ok(trace_info)
         except Exception as e:
             return r[dict[str, t.GeneralValueType]].fail(
-                c.Cli.DebugErrorMessages.TRACE_EXECUTION_FAILED.format(
+                FlextCliConstants.Cli.DebugErrorMessages.TRACE_EXECUTION_FAILED.format(
                     error=e,
                 ),
             )
 
-    def get_debug_info(self) -> r[dict[str, t.GeneralValueType]]:
+    def get_debug_info(self) -> r[Mapping[str, t.GeneralValueType]]:
         """Get comprehensive debug information."""
         try:
             system_info_model = self._get_system_info()
@@ -232,22 +233,22 @@ class FlextCliDebug(FlextCliServiceBase):
             }
 
             debug_info: dict[str, t.GeneralValueType] = {
-                c.Cli.DictKeys.SERVICE: c.Cli.DebugDefaults.SERVICE_NAME,
-                c.Cli.DictKeys.TIMESTAMP: u.generate("timestamp"),
-                c.Cli.DebugDictKeys.DEBUG_ID: u.generate("id"),
-                c.Cli.DebugDictKeys.SYSTEM_INFO: system_info_json,
-                c.Cli.DebugDictKeys.ENVIRONMENT_INFO: environment_info_json,
-                c.Cli.DebugDictKeys.CONNECTIVITY_STATUS: c.Cli.ServiceStatus.CONNECTED.value,
+                FlextCliConstants.Cli.DictKeys.SERVICE: FlextCliConstants.Cli.DebugDefaults.SERVICE_NAME,
+                FlextCliConstants.Cli.DictKeys.TIMESTAMP: u.generate("timestamp"),
+                FlextCliConstants.Cli.DebugDictKeys.DEBUG_ID: u.generate("id"),
+                FlextCliConstants.Cli.DebugDictKeys.SYSTEM_INFO: system_info_json,
+                FlextCliConstants.Cli.DebugDictKeys.ENVIRONMENT_INFO: environment_info_json,
+                FlextCliConstants.Cli.DebugDictKeys.CONNECTIVITY_STATUS: FlextCliConstants.Cli.ServiceStatus.CONNECTED.value,
             }
             return r[dict[str, t.GeneralValueType]].ok(debug_info)
         except Exception as e:
             return r[dict[str, t.GeneralValueType]].fail(
-                c.Cli.DebugErrorMessages.DEBUG_INFO_COLLECTION_FAILED.format(
+                FlextCliConstants.Cli.DebugErrorMessages.DEBUG_INFO_COLLECTION_FAILED.format(
                     error=e,
                 ),
             )
 
-    def get_system_info(self) -> r[dict[str, t.GeneralValueType]]:
+    def get_system_info(self) -> r[Mapping[str, t.GeneralValueType]]:
         """Get system information - public API method."""
         try:
             info_model = self._get_system_info()
@@ -259,12 +260,12 @@ class FlextCliDebug(FlextCliServiceBase):
             return r[dict[str, t.GeneralValueType]].ok(info_dict)
         except Exception as e:
             return r[dict[str, t.GeneralValueType]].fail(
-                c.Cli.DebugErrorMessages.SYSTEM_INFO_COLLECTION_FAILED.format(
+                FlextCliConstants.Cli.DebugErrorMessages.SYSTEM_INFO_COLLECTION_FAILED.format(
                     error=e,
                 ),
             )
 
-    def get_system_paths(self) -> r[dict[str, t.GeneralValueType]]:
+    def get_system_paths(self) -> r[Mapping[str, t.GeneralValueType]]:
         """Get system path information - public API method."""
         try:
             paths_data = self._get_path_info()
@@ -288,7 +289,7 @@ class FlextCliDebug(FlextCliServiceBase):
             return r[dict[str, t.GeneralValueType]].ok(paths_dict)
         except Exception as e:
             return r[dict[str, t.GeneralValueType]].fail(
-                c.Cli.DebugErrorMessages.SYSTEM_PATHS_COLLECTION_FAILED.format(
+                FlextCliConstants.Cli.DebugErrorMessages.SYSTEM_PATHS_COLLECTION_FAILED.format(
                     error=e,
                 ),
             )
@@ -303,29 +304,29 @@ class FlextCliDebug(FlextCliServiceBase):
             # Collect all info using generalized helper
             self._collect_info_safely(
                 "get_system_info",
-                c.Cli.DebugDictKeys.SYSTEM_ERROR,
+                FlextCliConstants.Cli.DebugDictKeys.SYSTEM_ERROR,
                 comprehensive_info,
             )
             self._collect_info_safely(
                 "get_environment_variables",
-                c.Cli.DebugDictKeys.ENVIRONMENT_ERROR,
+                FlextCliConstants.Cli.DebugDictKeys.ENVIRONMENT_ERROR,
                 comprehensive_info,
             )
             self._collect_info_safely(
                 "get_system_paths",
-                c.Cli.DebugDictKeys.PATHS_ERROR,
+                FlextCliConstants.Cli.DebugDictKeys.PATHS_ERROR,
                 comprehensive_info,
             )
             self._collect_info_safely(
                 "get_debug_info",
-                c.Cli.DebugDictKeys.DEBUG_ERROR,
+                FlextCliConstants.Cli.DebugDictKeys.DEBUG_ERROR,
                 comprehensive_info,
             )
 
             return r[dict[str, t.GeneralValueType]].ok(comprehensive_info)
         except Exception as e:
             return r[dict[str, t.GeneralValueType]].fail(
-                c.Cli.DebugErrorMessages.COMPREHENSIVE_DEBUG_INFO_FAILED.format(
+                FlextCliConstants.Cli.DebugErrorMessages.COMPREHENSIVE_DEBUG_INFO_FAILED.format(
                     error=e,
                 ),
             )
@@ -335,10 +336,10 @@ class FlextCliDebug(FlextCliServiceBase):
     # =========================================================================
 
     @staticmethod
-    def _get_system_info() -> m.Cli.SystemInfo:
+    def _get_system_info() -> SystemInfo:
         """Get basic system information as Pydantic model."""
         arch_tuple = platform.architecture()
-        return m.Cli.SystemInfo(
+        return SystemInfo(
             python_version=sys.version,
             platform=platform.platform(),
             architecture=list(arch_tuple),
@@ -347,17 +348,20 @@ class FlextCliDebug(FlextCliServiceBase):
         )
 
     @staticmethod
-    def _get_environment_info() -> m.Cli.EnvironmentInfo:
+    def _get_environment_info() -> EnvironmentInfo:
         """Get environment variables with sensitive data masked as Pydantic model."""
 
         # Use u.process to handle environment variables
         def process_env_item(k: str, v: str) -> str:
             """Process single environment variable."""
-            if any(sens in k.lower() for sens in c.Cli.DebugDefaults.SENSITIVE_KEYS):
-                return c.Cli.DebugDefaults.MASKED_SENSITIVE
+            if any(
+                sens in k.lower()
+                for sens in FlextCliConstants.Cli.DebugDefaults.SENSITIVE_KEYS
+            ):
+                return FlextCliConstants.Cli.DebugDefaults.MASKED_SENSITIVE
             return v
 
-        env_info_result = u.Cli.process(
+        env_info_result = u.process(
             dict(os.environ),
             processor=process_env_item,
             on_error="skip",
@@ -367,16 +371,16 @@ class FlextCliDebug(FlextCliServiceBase):
             dict(env_info_val) if isinstance(env_info_val, dict) else {}
         )
 
-        return m.Cli.EnvironmentInfo(variables=env_info)
+        return EnvironmentInfo(variables=env_info)
 
     @staticmethod
-    def _get_path_info() -> list[m.Cli.PathInfo]:
+    def _get_path_info() -> list[PathInfo]:
         """Get system path information as list of Pydantic models."""
-        paths: list[m.Cli.PathInfo] = []
+        paths: list[PathInfo] = []
         for i, path in enumerate(sys.path):
             path_obj = pathlib.Path(path)
             paths.append(
-                m.Cli.PathInfo(
+                PathInfo(
                     index=i,
                     path=path,
                     exists=path_obj.exists(),
@@ -404,20 +408,20 @@ class FlextCliDebug(FlextCliServiceBase):
             try:
                 with pathlib.Path(test_file).open(
                     "w",
-                    encoding=c.Utilities.DEFAULT_ENCODING,
+                    encoding=FlextCliConstants.Cli.Utilities.DEFAULT_ENCODING,
                 ) as f:
                     f.write("test")
                 pathlib.Path(test_file).unlink()
             except OSError as e:
                 errors.append(
-                    c.Cli.ErrorMessages.CANNOT_WRITE_CURRENT_DIR.format(
+                    FlextCliConstants.Cli.ErrorMessages.CANNOT_WRITE_CURRENT_DIR.format(
                         error=e,
                     ),
                 )
 
         except Exception as e:
             errors.append(
-                c.Cli.ErrorMessages.FILESYSTEM_VALIDATION_FAILED.format(
+                FlextCliConstants.Cli.ErrorMessages.FILESYSTEM_VALIDATION_FAILED.format(
                     error=e,
                 ),
             )

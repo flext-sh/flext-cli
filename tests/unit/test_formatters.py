@@ -14,7 +14,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import cast
 
 import pytest
 from flext_core import t
@@ -355,48 +354,46 @@ class TestsCliFormatters:
             """
 
             def call_print(fmt: FlextCliFormatters) -> r[object]:
-                return cast("r[object]", fmt.print("Test"))
+                return fmt.print("Test")
 
             def call_create_table(fmt: FlextCliFormatters) -> r[object]:
-                return cast("r[object]", fmt.create_table(title="Test"))
+                return fmt.create_table(title="Test")
 
             def call_render_table(fmt: FlextCliFormatters) -> r[object]:
-                table_result: r[object] = cast("r[object]", fmt.create_table())
+                table_result: r[object] = fmt.create_table()
                 if table_result.is_success:
-                    table = cast("RichTable", table_result.value)
-                    return cast(
-                        "r[object]",
-                        fmt.render_table_to_string(table),
+                    table = table_result.value
+                    return fmt.render_table_to_string(
+                        table,
                     )
                 return table_result
 
             def call_create_progress(fmt: FlextCliFormatters) -> r[object]:
-                return cast("r[object]", fmt.create_progress())
+                return fmt.create_progress()
 
             def call_create_tree(fmt: FlextCliFormatters) -> r[object]:
-                return cast("r[object]", fmt.create_tree("Root"))
+                return fmt.create_tree("Root")
 
             def call_render_tree(fmt: FlextCliFormatters) -> r[object]:
-                tree_result: r[object] = cast("r[object]", fmt.create_tree("Root"))
+                tree_result: r[object] = fmt.create_tree("Root")
                 if tree_result.is_success:
-                    tree = cast("RichTree", tree_result.value)
-                    return cast(
-                        "r[object]",
-                        fmt.render_tree_to_string(tree),
+                    tree = tree_result.value
+                    return fmt.render_tree_to_string(
+                        tree,
                     )
                 return tree_result
 
             def call_create_status(fmt: FlextCliFormatters) -> r[object]:
-                return cast("r[object]", fmt.create_status("Loading..."))
+                return fmt.create_status("Loading...")
 
             def call_create_live(fmt: FlextCliFormatters) -> r[object]:
-                return cast("r[object]", fmt.create_live())
+                return fmt.create_live()
 
             def call_create_layout(fmt: FlextCliFormatters) -> r[object]:
-                return cast("r[object]", fmt.create_layout())
+                return fmt.create_layout()
 
             def call_create_panel(fmt: FlextCliFormatters) -> r[object]:
-                return cast("r[object]", fmt.create_panel("Content"))
+                return fmt.create_panel("Content")
 
             return [
                 ("print", call_print),

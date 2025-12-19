@@ -53,7 +53,7 @@ class FlextCliUtilities(FlextUtilities):
     1. All utility methods MUST be static (no instance state)
     2. All operations MUST return r[T] for error handling
     3. Field validation MUST enforce business rules (trace requires debug)
-    4. Type normalization MUST preserve type safety (no Any types)
+    4. Type normalization MUST preserve type safety (no object  # TODO(@marlonsc): Replace Any with proper type types) - See type-system-architecture.md
     5. Common patterns MUST be consolidated here (DRY principle)
     6. CLI-specific helpers MUST extend flext-core u
     7. All validators MUST use Pydantic validators when applicable
@@ -710,7 +710,7 @@ class FlextCliUtilities(FlextUtilities):
                     r[bool]: True if in list, failure with error message otherwise
 
                 Example:
-                    >>> result = u.CliValidation.validate_field_in_list(
+                    >>> result = u.Cli.CliValidation.validate_field_in_list(
                     ...     status,
                     ...     [
                     ...         c.Cli.CommandStatus.PENDING.value,
@@ -1235,7 +1235,7 @@ class FlextCliUtilities(FlextUtilities):
                 }
 
             @staticmethod
-            def get_config_info() -> dict[str, t.GeneralValueType]:
+            def get_config_info() -> Mapping[str, t.GeneralValueType]:
                 """Get FLEXT CLI configuration information.
 
                 Delegates to info() for consistency.
@@ -2228,6 +2228,18 @@ class FlextCliUtilities(FlextUtilities):
                     )
                     # Return Annotated type with validator
                     return Annotated[enum_cls, BeforeValidator(validator)]
+
+    # Aliases for direct access to Cli methods and classes
+    convert = Cli.convert
+    filter = Cli.filter
+    process = Cli.process
+    build = Cli.build
+    parse = Cli.parse
+    CliValidation = Cli.CliValidation
+    TypeNormalizer = Cli.TypeNormalizer
+    Environment = Cli.Environment
+    ConfigOps = Cli.ConfigOps
+    FileOps = Cli.FileOps
 
 
 u = FlextCliUtilities

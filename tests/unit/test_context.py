@@ -15,15 +15,15 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import uuid
-from typing import TypeVar, cast
+from typing import TypeVar
 
 import pytest
-from flext_core import t, u
+from flext_core import t
 from flext_tests import tm
 
-from flext_cli import FlextCliContext, r
+from flext_cli import FlextCliContext, r, u
 
-from .._helpers import FlextCliTestHelpers
+from ..helpers import FlextCliTestHelpers
 
 # from ..fixtures.constants import TestContext  # Fixtures removed - use conftest.py and flext_tests
 
@@ -56,7 +56,7 @@ class TestsCliContext:
             # Use FlextTestsUtilities.GenericHelpers.to_json_dict for JSON conversion
             json_env_vars: dict[str, t.GeneralValueType] | None = None
             if env_vars:
-                env_vars_converted = cast("dict[str, t.GeneralValueType]", env_vars)
+                env_vars_converted = env_vars
                 transform_result = u.transform(env_vars_converted, to_json=True)
                 json_env_vars = (
                     transform_result.value
@@ -181,9 +181,7 @@ class TestsCliContext:
         command: str | None = command_raw if isinstance(command_raw, str) else None
         arguments_raw = test_case.get("arguments")
         arguments: list[str] | None = (
-            cast("list[str]", arguments_raw)
-            if isinstance(arguments_raw, list)
-            else None
+            arguments_raw if isinstance(arguments_raw, list) else None
         )
         env_vars_raw = test_case.get("env_vars")
         env_vars: dict[str, object] | None = (
@@ -385,14 +383,8 @@ class TestsCliContext:
         context = FlextCliContext()
 
         # Use t.GeneralValueType directly - set_metadata accepts t.GeneralValueType
-        # Convert dict to ensure compatibility
-        if isinstance(value, dict):
-            json_value: t.GeneralValueType = cast(
-                "dict[str, t.GeneralValueType]",
-                value,
-            )
-        else:
-            json_value = cast("t.GeneralValueType", value)
+        # Dict is already compatible with GeneralValueType via Mapping[str, GeneralValueType]
+        json_value: t.GeneralValueType = value
         set_result = context.set_metadata(key, json_value)
         tm.ok(set_result)
 

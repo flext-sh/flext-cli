@@ -15,7 +15,8 @@ from __future__ import annotations
 
 import time
 
-from flext_cli import FlextCliCommands, c, r
+from flext_cli import FlextCliCommands, r
+from flext_cli.constants import c
 
 # from ..fixtures.constants import TestCommands  # Fixtures removed - use conftest.py and flext_tests
 from ..helpers import CommandsFactory

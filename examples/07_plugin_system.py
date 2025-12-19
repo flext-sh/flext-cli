@@ -66,7 +66,9 @@ class DataExportPlugin:
         """Execute plugin logic in YOUR application."""
         if output_format == "json":
             output = json.dumps(data, indent=2)
-            cli.print(f"✅ Exported data as JSON ({len(output)} chars)", style="green")
+            _ = cli.print(
+                f"✅ Exported data as JSON ({len(output)} chars)", style="green"
+            )
             return r[str].ok(output)
         return r[str].fail(f"Unsupported format: {output_format}")
 
@@ -93,7 +95,7 @@ class ReportGeneratorPlugin:
             )
 
         report = table_result.value
-        cli.print(f"✅ Generated report ({len(report)} chars)", style="green")
+        _ = cli.print(f"✅ Generated report ({len(report)} chars)", style="green")
         return r[str].ok(report)
 
 
@@ -114,7 +116,7 @@ class MyAppPluginManager:
         """Register plugin in YOUR CLI."""
         plugin_name = getattr(plugin, "name", plugin.__class__.__name__)
         self.plugins[plugin_name] = plugin
-        cli.print(f"🔌 Registered plugin: {plugin_name}", style="cyan")
+        _ = cli.print(f"🔌 Registered plugin: {plugin_name}", style="cyan")
 
     def execute_plugin(
         self,
@@ -141,19 +143,14 @@ class MyAppPluginManager:
             result = execute_method(**kwargs)
             # Result is dynamically typed, convert to JsonValue using u
             # Type narrowing: ensure result is JsonValue compatible
+            json_result: t.JsonValue = str(result)  # Default fallback
             if isinstance(result, (str, int, float, bool, type(None))):
-                json_result: t.JsonValue = result
-            elif isinstance(result, dict) and all(isinstance(k, str) for k in result):
+                json_result = result
+            elif isinstance(result, dict):
                 # Type narrowing: dict[str, JsonValue] is JsonValue compatible
-                if u.transform(result, to_json=True).is_success:
-                    transformed = u.transform(result, to_json=True).value
-                    json_result: t.JsonValue = (  # type: ignore[no-redef]
-                        transformed
-                        if isinstance(
-                            transformed, (dict, list, str, int, float, bool, type(None))
-                        )
-                        else str(transformed)
-                    )
+                transform_result = u.transform(result, to_json=True)
+                if transform_result.is_success:
+                    json_result = transform_result.value
                 else:
                     # dict[str, str] is JsonValue compatible via type narrowing
                     json_result = result
@@ -171,15 +168,15 @@ class MyAppPluginManager:
     def list_plugins(self) -> None:
         """List all registered plugins in YOUR CLI."""
         if not self.plugins:
-            cli.print("⚠️  No plugins registered", style="yellow")
+            _ = cli.print("⚠️  No plugins registered", style="yellow")
             return
 
-        # Use u.process to create plugin data dict
+        # Use u.Cli.process to create plugin data dict
         def get_plugin_version(_name: str, plugin: object) -> str:
             """Get plugin version."""
             return getattr(plugin, "version", "1.0.0")
 
-        process_result = u.process(  # type: ignore[attr-defined]
+        process_result = u.Cli.process(
             self.plugins,
             processor=get_plugin_version,
             on_error="skip",
@@ -198,7 +195,7 @@ class MyAppPluginManager:
         )
 
         if table_result.is_success:
-            cli.print_table(table_result.value)
+            _ = cli.print_table(table_result.value)
 
 
 # ============================================================================
@@ -210,10 +207,10 @@ def load_plugins_from_directory(plugin_dir: Path) -> MyAppPluginManager:
     """Load plugins from directory in YOUR CLI."""
     manager = MyAppPluginManager()
 
-    cli.print(f"🔍 Scanning for plugins in: {plugin_dir}", style="cyan")
+    _ = cli.print(f"🔍 Scanning for plugins in: {plugin_dir}", style="cyan")
 
     if not plugin_dir.exists():
-        cli.print(f"⚠️  Plugin directory not found: {plugin_dir}", style="yellow")
+        _ = cli.print(f"⚠️  Plugin directory not found: {plugin_dir}", style="yellow")
         return manager
 
     # In real usage, you would:
@@ -226,7 +223,7 @@ def load_plugins_from_directory(plugin_dir: Path) -> MyAppPluginManager:
     manager.register_plugin(DataExportPlugin())
     manager.register_plugin(ReportGeneratorPlugin())
 
-    cli.print(f"✅ Loaded {len(manager.plugins)} plugins", style="green")
+    _ = cli.print(f"✅ Loaded {len(manager.plugins)} plugins", style="green")
     return manager
 
 
@@ -246,7 +243,7 @@ class ConfigurablePlugin:
 
     def execute(self) -> r[t.JsonDict]:
         """Execute with configuration in YOUR CLI."""
-        cli.print(f"🔧 Plugin config: {self.config}", style="cyan")
+        _ = cli.print(f"🔧 Plugin config: {self.config}", style="cyan")
 
         # Your plugin logic using config
         result_data: t.JsonDict = {
@@ -275,7 +272,7 @@ class LifecyclePlugin:
 
     def initialize(self) -> r[bool]:
         """Initialize plugin resources."""
-        cli.print(f"🚀 Initializing {self.name}...", style="cyan")
+        _ = cli.print(f"🚀 Initializing {self.name}...", style="cyan")
         # Your initialization logic
         self.initialized = True
         return r[bool].ok(True)
@@ -286,12 +283,12 @@ class LifecyclePlugin:
             return r[str].fail("Plugin not initialized")
 
         processed = data.upper()  # Your processing logic
-        cli.print(f"✅ Processed: {processed}", style="green")
+        _ = cli.print(f"✅ Processed: {processed}", style="green")
         return r[str].ok(processed)
 
     def cleanup(self) -> r[bool]:
         """Cleanup plugin resources."""
-        cli.print(f"🧹 Cleaning up {self.name}...", style="cyan")
+        _ = cli.print(f"🧹 Cleaning up {self.name}...", style="cyan")
         # Your cleanup logic
         self.initialized = False
         return r[bool].ok(True)
@@ -304,22 +301,22 @@ class LifecyclePlugin:
 
 def main() -> None:
     """Examples of using plugin system in YOUR code."""
-    cli.print("=" * 70, style="bold blue")
-    cli.print("  Plugin System Library Usage", style="bold white")
-    cli.print("=" * 70, style="bold blue")
+    _ = cli.print("=" * 70, style="bold blue")
+    _ = cli.print("  Plugin System Library Usage", style="bold white")
+    _ = cli.print("=" * 70, style="bold blue")
 
     # Example 1: Simple plugin registration
-    cli.print("\n1. Plugin Registration (basic):", style="bold cyan")
+    _ = cli.print("\n1. Plugin Registration (basic):", style="bold cyan")
     manager = MyAppPluginManager()
-    manager.register_plugin(DataExportPlugin())
-    manager.register_plugin(ReportGeneratorPlugin())
+    _ = manager.register_plugin(DataExportPlugin())
+    _ = manager.register_plugin(ReportGeneratorPlugin())
 
     # Example 2: List plugins
-    cli.print("\n2. List Plugins (inventory):", style="bold cyan")
-    manager.list_plugins()
+    _ = cli.print("\n2. List Plugins (inventory):", style="bold cyan")
+    _ = manager.list_plugins()
 
     # Example 3: Execute plugin
-    cli.print("\n3. Execute Plugin (data export):", style="bold cyan")
+    _ = cli.print("\n3. Execute Plugin (data export):", style="bold cyan")
     test_data: t.JsonDict = {
         "id": 1,
         "name": "Test",
@@ -329,46 +326,50 @@ def main() -> None:
     if export_result.is_success:
         result_value = export_result.value
         output_preview = str(result_value)[:100] if result_value else ""
-        cli.print(f"   Output: {output_preview}...", style="white")
+        _ = cli.print(f"   Output: {output_preview}...", style="white")
 
     # Example 4: Report plugin
-    cli.print("\n4. Report Plugin (table generation):", style="bold cyan")
+    _ = cli.print("\n4. Report Plugin (table generation):", style="bold cyan")
     report_data: list[t.JsonDict] = [
         {"metric": "Users", "value": "1,234"},
         {"metric": "Orders", "value": "567"},
     ]
-    manager.execute_plugin("report-generator", data=report_data)
+    _ = manager.execute_plugin("report-generator", data=report_data)
 
     # Example 5: Plugin with config
-    cli.print("\n5. Configurable Plugin:", style="bold cyan")
+    _ = cli.print("\n5. Configurable Plugin:", style="bold cyan")
     config: t.JsonDict = {"theme": "dark", "verbose": True}
     config_plugin = ConfigurablePlugin(config)
     config_result = config_plugin.execute()
     if config_result.is_success:
-        cli.print(f"   Result: {config_result.value}", style="green")
+        _ = cli.print(f"   Result: {config_result.value}", style="green")
 
     # Example 6: Lifecycle management
-    cli.print("\n6. Plugin Lifecycle (init/execute/cleanup):", style="bold cyan")
+    _ = cli.print("\n6. Plugin Lifecycle (init/execute/cleanup):", style="bold cyan")
     lifecycle_plugin = LifecyclePlugin()
-    lifecycle_plugin.initialize()
-    lifecycle_plugin.execute("hello world")
-    lifecycle_plugin.cleanup()
+    _ = lifecycle_plugin.initialize()
+    _ = lifecycle_plugin.execute("hello world")
+    _ = lifecycle_plugin.cleanup()
 
     # Example 7: Load from directory
-    cli.print("\n7. Load from Directory (dynamic discovery):", style="bold cyan")
+    _ = cli.print("\n7. Load from Directory (dynamic discovery):", style="bold cyan")
     plugin_dir = Path.home() / ".myapp" / "plugins"
-    load_plugins_from_directory(plugin_dir)
+    _ = load_plugins_from_directory(plugin_dir)
 
-    cli.print("\n" + "=" * 70, style="bold blue")
-    cli.print("  ✅ Plugin Examples Complete", style="bold green")
-    cli.print("=" * 70, style="bold blue")
+    _ = cli.print("\n" + "=" * 70, style="bold blue")
+    _ = cli.print("  ✅ Plugin Examples Complete", style="bold green")
+    _ = cli.print("=" * 70, style="bold blue")
 
     # Integration guide
-    cli.print("\n💡 Integration Tips:", style="bold cyan")
-    cli.print("  • Create plugin classes with execute() method", style="white")
-    cli.print("  • Use plugin manager to register and execute plugins", style="white")
-    cli.print("  • Add lifecycle hooks (initialize, cleanup) as needed", style="white")
-    cli.print("  • Use FlextResult for plugin error handling", style="white")
+    _ = cli.print("\n💡 Integration Tips:", style="bold cyan")
+    _ = cli.print("  • Create plugin classes with execute() method", style="white")
+    _ = cli.print(
+        "  • Use plugin manager to register and execute plugins", style="white"
+    )
+    _ = cli.print(
+        "  • Add lifecycle hooks (initialize, cleanup) as needed", style="white"
+    )
+    _ = cli.print("  • Use FlextResult for plugin error handling", style="white")
 
 
 if __name__ == "__main__":

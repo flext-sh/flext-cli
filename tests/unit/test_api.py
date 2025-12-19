@@ -152,19 +152,25 @@ class ApiTestFactory:
         """Create authentication test scenarios."""
         return {
             "valid_credentials": AuthScenario(
-                factory=AuthHelpers.create_credentials,
+                factory=lambda: r.ok(AuthHelpers.create_test_credentials()),
                 expected_success=True,
             ),
             "empty_credentials": AuthScenario(
-                factory=lambda: AuthHelpers.create_credentials("", ""),
+                factory=lambda: r.ok(
+                    AuthHelpers.create_test_credentials(username="", password="")
+                ),
                 expected_success=False,
             ),
             "short_username": AuthScenario(
-                factory=lambda: AuthHelpers.create_credentials("ab"),
+                factory=lambda: r.ok(
+                    AuthHelpers.create_test_credentials(username="ab")
+                ),
                 expected_success=False,
             ),
             "short_password": AuthScenario(
-                factory=lambda: AuthHelpers.create_credentials(password="short"),
+                factory=lambda: r.ok(
+                    AuthHelpers.create_test_credentials(password="short")
+                ),
                 expected_success=False,
             ),
         }

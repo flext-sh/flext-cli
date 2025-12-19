@@ -18,7 +18,6 @@ from __future__ import annotations
 import logging
 import traceback
 from collections.abc import Callable
-from typing import cast
 
 from flext_cli import FlextCli, c, r, t
 
@@ -39,10 +38,10 @@ class FlextCliDebugE2E:
 
         # Define test operations using collections.abc.Mapping for O(1) lookup
         self.operations: dict[tuple[str, str], Callable[[FlextCli], r[object]]] = {
-            ("config", "show"): lambda cli: cast("r[object]", cli.cmd.show_config_paths()),
-            ("config", "validate"): lambda cli: cast("r[object]", cli.cmd.validate_config()),
+            ("config", "show"): lambda cli: cli.cmd.show_config_paths(),
+            ("config", "validate"): lambda cli: cli.cmd.validate_config(),
             ("auth", "status"): self._execute_auth_status,
-            ("debug", "check"): lambda cli: cast("r[object]", cli.execute()),
+            ("debug", "check"): lambda cli: cli.execute(),
         }
 
     def run_debug_tests(self) -> None:
@@ -78,9 +77,11 @@ class FlextCliDebugE2E:
 
     def _execute_operation(self, cli: FlextCli, operation: list[str]) -> r[object]:
         """Execute the specified operation using flext-cli API."""
-        operation_key = cast("tuple[str, str]", tuple(operation))
-        if operation_key in self.operations:
-            return self.operations[operation_key](cli)
+        # Convert list to tuple - type: ignore because list[str] -> tuple[str, ...]
+        # but self.operations expects tuple[str, str]
+        operation_key: tuple[str, ...] = tuple(operation)
+        if operation_key in self.operations:  # type: ignore[operator]
+            return self.operations[operation_key](cli)  # type: ignore[index]
         return r[object].fail(f"Unknown operation: {operation}")
 
     def _execute_auth_status(self, cli: FlextCli) -> r[object]:
