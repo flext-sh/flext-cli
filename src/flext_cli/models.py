@@ -649,8 +649,8 @@ class FlextCliModels(FlextModels):
                 description="Execution duration in seconds",
             )
 
-            @property
             @computed_field
+            @property
             def success(self) -> bool:
                 """Check if command succeeded.
 
@@ -658,8 +658,8 @@ class FlextCliModels(FlextModels):
                 """
                 return self.exit_code == 0
 
-            @property
             @computed_field
+            @property
             def has_output(self) -> bool:
                 """Check if command produced output.
 

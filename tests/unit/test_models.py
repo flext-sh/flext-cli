@@ -442,8 +442,8 @@ class TestsCliModels:
         assert result2.is_success
         session = result2.value
 
-        commands_by_status = session.commands_by_status
-        assert isinstance(commands_by_status, dict)
+        commands_by_status = session.commands_by_status()
+        assert isinstance(commands_by_status, Mapping)
         assert (
             c.Cli.CommandStatus.PENDING.value in commands_by_status
             or c.Cli.CommandStatus.COMPLETED.value in commands_by_status

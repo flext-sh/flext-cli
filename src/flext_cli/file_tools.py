@@ -644,55 +644,20 @@ class FlextCliFileTools:
     @staticmethod
     def detect_file_format(file_path: str | Path) -> r[str]:
         """Detect file format from extension."""
-
-        # Convert Mapping to dict for _detect_format_from_extension compatibility
-        # FILE_FORMATS is Mapping[str, Mapping[str, str | tuple[str, ...]]]
-        # Use u.process to convert FILE_FORMATS
-        def convert_format_value(
-            _k: str,
-            v: t.GeneralValueType,
-        ) -> dict[str, list[str]]:
-            """Convert single format value."""
-            if isinstance(v, Mapping):
-                # Convert Mapping values: tuple[str, ...] -> list[str], str -> [str]
-                def convert_extension(_ek: str, ev: t.GeneralValueType) -> list[str]:
-                    """Convert single extension value."""
-                    if isinstance(ev, tuple):
-                        # Type narrowing: tuple[str, ...] -> list[str]
-                        # Convert tuple to list, ensuring all items are str
-                        return [str(item) for item in ev]
-                    if isinstance(ev, str):
-                        return [ev]
-                    return []
-
-                # Process extensions directly
-                ext_dict: dict[str, list[str]] = {}
-                if isinstance(v, dict):
-                    for key, val in v.items():
-                        converted = convert_extension(key, val)
-                        if isinstance(converted, dict):
-                            ext_dict.update(converted)
-                return ext_dict
-            return {}
-
-        # Convert FILE_FORMATS to dict[str, t.GeneralValueType] for type compatibility
-        # FILE_FORMATS is Mapping[str, FileFormatConfig] where FileFormatConfig is TypedDict
-        # TypedDict needs explicit conversion to plain dict for mypy compatibility
-        file_formats_dict: dict[str, t.GeneralValueType] = {}
-        for k, v in FlextCliConstants.Cli.FILE_FORMATS.items():
-            # Convert TypedDict to plain dict with t.GeneralValueType values
-            format_dict: dict[str, t.GeneralValueType] = {
-                "extensions": v["extensions"],
-                "mime_type": v["mime_type"],
+        # Convert FILE_FORMATS to the expected dict[str, dict[str, list[str]]] format
+        # FILE_FORMATS is Mapping[str, FileFormatConfig] where FileFormatConfig has:
+        #   - extensions: tuple[str, ...] -> needs conversion to list[str]
+        #   - mime_type: str
+        formats_dict: dict[str, dict[str, list[str]]] = {}
+        for format_name, format_config in FlextCliConstants.Cli.FILE_FORMATS.items():
+            # Convert tuple to list for extensions
+            extensions = format_config["extensions"]
+            extensions_list: list[str] = (
+                list(extensions) if isinstance(extensions, tuple) else [extensions]
+            )
+            formats_dict[format_name] = {
+                FlextCliConstants.Cli.FileIODefaults.FORMAT_EXTENSIONS_KEY: extensions_list,
             }
-            file_formats_dict[k] = format_dict
-        # Process formats directly
-        formats_dict = {}  # type: dict[str, dict[str, list[str]]]
-        for key, value in file_formats_dict.items():
-            converted = convert_format_value(key, value)
-            if isinstance(converted, dict):
-                # Cast to expected type
-                formats_dict.update(converted)  # type: ignore[arg-type]
         return FlextCliFileTools._detect_format_from_extension(
             file_path,
             formats_dict,
