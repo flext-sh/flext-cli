@@ -308,12 +308,12 @@ def main() -> None:
     # Example 1: Simple plugin registration
     _ = cli.print("\n1. Plugin Registration (basic):", style="bold cyan")
     manager = MyAppPluginManager()
-    _ = manager.register_plugin(DataExportPlugin())
-    _ = manager.register_plugin(ReportGeneratorPlugin())
+    manager.register_plugin(DataExportPlugin())
+    manager.register_plugin(ReportGeneratorPlugin())
 
     # Example 2: List plugins
     _ = cli.print("\n2. List Plugins (inventory):", style="bold cyan")
-    _ = manager.list_plugins()
+    manager.list_plugins()
 
     # Example 3: Execute plugin
     _ = cli.print("\n3. Execute Plugin (data export):", style="bold cyan")

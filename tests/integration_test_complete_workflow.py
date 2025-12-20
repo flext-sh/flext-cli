@@ -294,7 +294,9 @@ class TestCompleteWorkflowIntegration:
         active_users = []
 
         for user in users:
-            user_dict = cast("dict[str, t.GeneralValueType]", user)
+            if not isinstance(user, dict):
+                continue
+            user_dict = user
             if user_dict["active"]:
                 # Enrich active users
                 enriched_user = dict(user_dict)
@@ -318,22 +320,33 @@ class TestCompleteWorkflowIntegration:
         active_users = data["active_users"]
         total_users = data["total_users"]
 
+        # Type narrowing for calculations
+        if not isinstance(total_users, int):
+            return {**data, "error": "total_users must be int"}
+        if not isinstance(active_users, list):
+            return {**data, "error": "active_users must be list"}
+
+        active_count = len(active_users)
+        efficiency = active_count / total_users if total_users > 0 else 0
+
+        # Calculate name lengths safely
+        name_lengths = [
+            len(user["name"])
+            for user in active_users
+            if isinstance(user, dict) and isinstance(user.get("name"), str)
+        ]
+
+        avg_name_length = sum(name_lengths) / len(name_lengths) if name_lengths else 0
+
         return {
             **data,
-            "inactive_count": total_users - len(active_users),
-            "processing_efficiency": len(active_users) / total_users
-            if total_users > 0
-            else 0,
-            "average_name_length": sum(
-                len(cast("dict[str, object]", user["name"])) for user in active_users
-            )
-            / len(active_users)
-            if active_users
-            else 0,
+            "inactive_count": total_users - active_count,
+            "processing_efficiency": efficiency,
+            "average_name_length": avg_name_length,
         }
 
     def _create_pipeline_report(
-        self, data: dict[str, t.GeneralValueType]
+        self, data: Mapping[str, t.GeneralValueType]
     ) -> Mapping[str, t.GeneralValueType]:
         """Create comprehensive pipeline report."""
         data_dict = data
@@ -383,7 +396,7 @@ class TestCompleteWorkflowIntegration:
         data_file = temp_workspace / "sales_data.json"
         report_dir = temp_workspace / "reports"
 
-        sales_data = {
+        sales_data: dict[str, t.GeneralValueType] = {
             "sales": [
                 {
                     "product": "Widget A",
@@ -445,7 +458,7 @@ class TestCompleteWorkflowIntegration:
             # Step 4: Create report summary
             .map(
                 lambda reports: self._create_report_summary(
-                    reports,
+                    reports if isinstance(reports, list) else [],
                     config,
                     report_dir,
                 ),
@@ -457,6 +470,7 @@ class TestCompleteWorkflowIntegration:
             f"Report generation failed: {report_result.error}"
         )
         summary = report_result.value
+        assert isinstance(summary, dict)
 
         # Verify summary structure
         assert summary["total_reports"] == 3  # JSON, CSV, Table
@@ -470,6 +484,9 @@ class TestCompleteWorkflowIntegration:
 
     def _process_sales_with_config(self, config: object, data: object) -> object:
         """Process sales data using configuration settings."""
+        if not isinstance(data, dict):
+            msg = "Data must be a dict"
+            raise ValueError(msg)
         data_dict = data
         sales = data_dict.get("sales", [])
         if not isinstance(sales, list):
@@ -477,6 +494,9 @@ class TestCompleteWorkflowIntegration:
             raise ValueError(msg)
 
         # Apply configuration-based filtering
+        if not isinstance(config, FlextCliSettings):
+            msg = "Config must be FlextCliSettings"
+            raise ValueError(msg)
         config_obj = config
         if config_obj.environment == "production":
             # In production, only include Q1 data

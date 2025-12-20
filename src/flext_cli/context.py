@@ -17,9 +17,9 @@ from pydantic import Field
 
 from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import FlextCliConstants
-from flext_cli.models import FlextCliModels as m
+from flext_cli.models import m
 from flext_cli.typings import t
-from flext_cli.utilities import u
+from flext_cli.utilities import FlextCliUtilities
 
 
 class FlextCliContext(FlextCliServiceBase):
@@ -92,7 +92,7 @@ class FlextCliContext(FlextCliServiceBase):
         """
         # Generate id if not provided or empty
         if not data.get("id"):
-            data["id"] = u.generate("uuid")
+            data["id"] = FlextCliUtilities.generate("uuid")
 
         # Set all fields in data BEFORE calling super().__init__()
         # This avoids frozen model violations
@@ -107,7 +107,7 @@ class FlextCliContext(FlextCliServiceBase):
 
         # Set default values for optional fields
         if "created_at" not in data:
-            data["created_at"] = u.generate("timestamp")
+            data["created_at"] = FlextCliUtilities.generate("timestamp")
         if "is_active" not in data:
             data["is_active"] = False
 
@@ -134,8 +134,10 @@ class FlextCliContext(FlextCliServiceBase):
         Static method - no instance state needed.
         """
         try:
-            # Use runtime alias u.CliValidation.v_empty for non-empty validation
-            validation_result = u.CliValidation.v_empty(value, name=field_name)
+            # Use runtime alias FlextCliUtilities.CliValidation.v_empty for non-empty validation
+            validation_result = FlextCliUtilities.CliValidation.v_empty(
+                value, name=field_name
+            )
             if validation_result.is_failure:
                 raise ValueError(
                     validation_result.error or f"{field_name} cannot be empty",
@@ -503,9 +505,7 @@ class FlextCliContext(FlextCliServiceBase):
 
         return r[dict[str, t.JsonValue]].ok(summary)
 
-    def execute(
-        self, **_kwargs: dict[str, t.GeneralValueType]
-    ) -> r[dict[str, t.GeneralValueType]]:
+    def execute(self) -> r[dict[str, t.GeneralValueType]]:
         """Execute the CLI context.
 
         Returns:
@@ -527,11 +527,13 @@ class FlextCliContext(FlextCliServiceBase):
             context_executed=True,
             command=self.command or "",
             arguments_count=args_count,
-            timestamp=u.generate("timestamp"),
+            timestamp=FlextCliUtilities.generate("timestamp"),
         )
 
-        # Use u.transform for JSON conversion
-        transform_result = u.transform(result_model.model_dump(), to_json=True)
+        # Use FlextCliUtilities.transform for JSON conversion
+        transform_result = FlextCliUtilities.transform(
+            result_model.model_dump(), to_json=True
+        )
         # Use .value directly instead of deprecated .value
         result_dict = (
             transform_result.value

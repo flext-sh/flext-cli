@@ -18,10 +18,10 @@ from tabulate import tabulate
 
 from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import FlextCliConstants
-from flext_cli.models import FlextCliModels as m
+from flext_cli.models import m
 from flext_cli.protocols import p
 from flext_cli.typings import t
-from flext_cli.utilities import u
+from flext_cli.utilities import FlextCliUtilities
 
 
 class FlextCliTables(FlextCliServiceBase):
@@ -102,18 +102,8 @@ class FlextCliTables(FlextCliServiceBase):
         """Initialize Tabulate tables layer with Phase 1 context enrichment."""
         super().__init__()
 
-    def execute(
-        self, **_kwargs: dict[str, t.GeneralValueType]
-    ) -> r[dict[str, t.GeneralValueType]]:
-        """Execute the main domain service operation - required by FlextService.
-
-        Args:
-            **_kwargs: Additional execution parameters (unused, for FlextService compatibility)
-
-        Returns:
-            r[dict[str, t.GeneralValueType]]: Service execution result
-
-        """
+    def execute(self) -> r[dict[str, t.GeneralValueType]]:
+        """Execute the main domain service operation - required by FlextService."""
         return r[dict[str, t.GeneralValueType]].ok({})
 
     # =========================================================================
@@ -158,7 +148,7 @@ class FlextCliTables(FlextCliServiceBase):
         config_concrete: m.Cli.TableConfig | None = (
             config if isinstance(config, m.Cli.TableConfig) else None
         )
-        config_result = u.Configuration.build_options_from_kwargs(
+        config_result = FlextCliUtilities.Configuration.build_options_from_kwargs(
             model_class=m.Cli.TableConfig,
             explicit_options=config_concrete,
             default_factory=m.Cli.TableConfig,
@@ -603,7 +593,7 @@ class FlextCliTables(FlextCliServiceBase):
 
         """
         try:
-            # Use u.process to convert TABLE_FORMATS to list
+            # Use FlextCliUtilities.process to convert TABLE_FORMATS to list
             def convert_format(name: str, desc: str) -> dict[str, str]:
                 """Convert format to dict."""
                 return {"format": name, "description": desc}

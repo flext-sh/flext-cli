@@ -35,11 +35,11 @@ from typer.testing import CliRunner
 
 from flext_cli.cli_params import FlextCliCommonParams
 from flext_cli.constants import FlextCliConstants
-from flext_cli.models import m
+from flext_cli.models import ConfirmConfig, OptionConfig, m
 from flext_cli.protocols import p
 from flext_cli.settings import FlextCliSettings
 from flext_cli.typings import t
-from flext_cli.utilities import u
+from flext_cli.utilities import FlextCliUtilities
 
 
 class FlextCliCli:
@@ -217,13 +217,13 @@ class FlextCliCli:
         # Handle conversion based on type_name with proper type safety
         if type_name == "str":
             safe_default = default if default is not None else ""
-            built_val = u.convert(val, str, safe_default)
+            built_val = FlextCliUtilities.convert(val, str, safe_default)
         elif type_name == "bool":
             safe_default = default if default is not None else False
-            built_val = u.convert(val, bool, safe_default)
+            built_val = FlextCliUtilities.convert(val, bool, safe_default)
         else:  # dict
             safe_default = default if default is not None else {}
-            built_val = u.convert(val, dict, safe_default)
+            built_val = FlextCliUtilities.convert(val, dict, safe_default)
         result = (
             built_val
             if isinstance(
@@ -254,7 +254,7 @@ class FlextCliCli:
             "log_level",
             None,
         )
-        log_level_built = u.convert(
+        log_level_built = FlextCliUtilities.convert(
             log_level_attr.value if log_level_attr else None, str, "INFO"
         )
         log_level_name: str = (
@@ -292,9 +292,11 @@ class FlextCliCli:
         # Type narrowing: bool | str | None are compatible with t.GeneralValueType (ScalarValue)
         # No  needed - values are already compatible with t.GeneralValueType
         common_params_typed: dict[str, t.GeneralValueType] = dict(common_params.items())
-        active_params: dict[str, t.GeneralValueType] = u.mapper().filter_dict(
-            common_params_typed,
-            lambda _k, v: v is not None and v is not False,
+        active_params: dict[str, t.GeneralValueType] = (
+            FlextCliUtilities.mapper().filter_dict(
+                common_params_typed,
+                lambda _k, v: v is not None and v is not False,
+            )
         )
 
         if not active_params:
@@ -302,9 +304,11 @@ class FlextCliCli:
 
         config_fields: set[str] = set(type(config).model_fields.keys())
         # Use mapper to filter params by config fields
-        filtered_params: dict[str, t.GeneralValueType] = u.mapper().filter_dict(
-            active_params,
-            lambda k, _v: k in config_fields,
+        filtered_params: dict[str, t.GeneralValueType] = (
+            FlextCliUtilities.mapper().filter_dict(
+                active_params,
+                lambda k, _v: k in config_fields,
+            )
         )
 
         if not filtered_params:
@@ -312,13 +316,13 @@ class FlextCliCli:
 
         def get_bool(k: str) -> bool | None:
             """Extract bool value from filtered params."""
-            value = u.mapper().get(filtered_params, k)
+            value = FlextCliUtilities.mapper().get(filtered_params, k)
             result = self._extract_typed_value(value, "bool")
             return result if isinstance(result, (bool, type(None))) else None
 
         def get_str(k: str) -> str | None:
             """Extract str value from filtered params."""
-            value = u.mapper().get(filtered_params, k)
+            value = FlextCliUtilities.mapper().get(filtered_params, k)
             result = self._extract_typed_value(value, "str")
             return result if isinstance(result, (str, type(None))) else None
 
@@ -507,19 +511,19 @@ class FlextCliCli:
         default: bool = False,
     ) -> bool:
         """Extract and build bool value from kwargs."""
-        val = u.get(kwargs, key)
+        val = FlextCliUtilities.get(kwargs, key)
         if val is None:
             return default
-        return u.convert(val, bool, default)
+        return FlextCliUtilities.convert(val, bool, default)
 
     def _build_str_value(
         self, kwargs: dict[str, t.GeneralValueType], key: str, default: str = ""
     ) -> str:
         """Extract and build str value from kwargs."""
-        val = u.mapper().get(kwargs, key)
+        val = FlextCliUtilities.mapper().get(kwargs, key)
         if val is None:
             return default
-        build_result = u.build(
+        build_result = FlextCliUtilities.build(
             val,
             ops={"ensure": "str", "ensure_default": default},
             on_error="skip",
@@ -533,7 +537,7 @@ class FlextCliCli:
         self, type_hint_val: t.GeneralValueType | None
     ) -> t.GeneralValueType | None:
         """Normalize and validate type hint value."""
-        type_hint_build = u.build(
+        type_hint_build = FlextCliUtilities.build(
             type_hint_val,
             ops={"ensure_default": None},
             on_error="skip",
@@ -561,11 +565,13 @@ class FlextCliCli:
 
     def _build_option_config_from_kwargs(
         self, kwargs: dict[str, t.GeneralValueType]
-    ) -> m.Cli.OptionConfig:
+    ) -> OptionConfig:
         """Build OptionConfig from kwargs dict."""
-        return m.Cli.OptionConfig(
-            default=u.mapper().get(kwargs, "default"),
-            type_hint=self._normalize_type_hint(u.mapper().get(kwargs, "type_hint")),
+        return OptionConfig(
+            default=FlextCliUtilities.mapper().get(kwargs, "default"),
+            type_hint=self._normalize_type_hint(
+                FlextCliUtilities.mapper().get(kwargs, "type_hint")
+            ),
             required=self._build_bool_value(kwargs, "required"),
             help_text=self._build_str_value(kwargs, "help_text"),
             multiple=self._build_bool_value(kwargs, "multiple"),
@@ -719,7 +725,7 @@ class FlextCliCli:
 
         """
         # Use build() DSL for formats normalization
-        formats_build = u.build(
+        formats_build = FlextCliUtilities.build(
             formats,
             ops={
                 "ensure": "list",
@@ -890,7 +896,7 @@ class FlextCliCli:
             # Type narrowing: decorated is Callable[[click.Context], t.GeneralValueType]
             # Create wrapper that ensures type safety
 
-            def typed_decorated(_ctx: click.Context) -> t.GeneralValueType:
+            def typed_decorated(ctx: click.Context) -> t.GeneralValueType:
                 # click.pass_context returns a function that injects context automatically
                 # The decorated function signature is: (*args, **kwargs) -> result
                 # Context is injected by click, so we call decorated() without ctx
@@ -933,15 +939,15 @@ class FlextCliCli:
     @staticmethod
     def _build_confirm_config_from_kwargs(
         kwargs: Mapping[str, t.GeneralValueType],
-    ) -> m.Cli.ConfirmConfig:
+    ) -> ConfirmConfig:
         """Build ConfirmConfig from kwargs dict."""
 
         def get_bool_val(k: str, *, default: bool = False) -> bool:
             """Get bool value with default."""
-            val = u.mapper().get(kwargs, k)
+            val = FlextCliUtilities.mapper().get(kwargs, k)
             if val is None:
                 return default
-            build_result = u.build(
+            build_result = FlextCliUtilities.build(
                 val,
                 ops={"ensure": "bool", "ensure_default": default},
                 on_error="skip",
@@ -953,10 +959,10 @@ class FlextCliCli:
 
         def get_str_val(k: str, default: str = "") -> str:
             """Get str value with default."""
-            val = u.mapper().get(kwargs, k)
+            val = FlextCliUtilities.mapper().get(kwargs, k)
             if val is None:
                 return default
-            build_result = u.build(
+            build_result = FlextCliUtilities.build(
                 val,
                 ops={"ensure": "str", "ensure_default": default},
                 on_error="skip",
@@ -966,7 +972,7 @@ class FlextCliCli:
                 raise TypeError(msg)
             return build_result
 
-        return m.Cli.ConfirmConfig(
+        return ConfirmConfig(
             default=get_bool_val("default", default=False),
             abort=get_bool_val("abort", default=False),
             prompt_suffix=get_str_val(
@@ -1051,10 +1057,10 @@ class FlextCliCli:
 
         def get_bool_val(k: str, *, default: bool = False) -> bool:
             """Get bool value with default."""
-            val = u.mapper().get(kwargs, k)
+            val = FlextCliUtilities.mapper().get(kwargs, k)
             if val is None:
                 return default
-            build_result = u.build(
+            build_result = FlextCliUtilities.build(
                 val,
                 ops={"ensure": "bool", "ensure_default": default},
                 on_error="skip",
@@ -1066,10 +1072,10 @@ class FlextCliCli:
 
         def get_str_val(k: str, default: str = "") -> str:
             """Get str value with default."""
-            val = u.mapper().get(kwargs, k)
+            val = FlextCliUtilities.mapper().get(kwargs, k)
             if val is None:
                 return default
-            build_result = u.build(
+            build_result = FlextCliUtilities.build(
                 val,
                 ops={"ensure": "str", "ensure_default": default},
                 on_error="skip",
@@ -1079,10 +1085,10 @@ class FlextCliCli:
                 raise TypeError(msg)
             return build_result
 
-        value_proc_val = u.mapper().get(kwargs, "value_proc")
+        value_proc_val = FlextCliUtilities.mapper().get(kwargs, "value_proc")
         return m.Cli.PromptConfig(
-            default=u.mapper().get(kwargs, "default"),
-            type_hint=u.mapper().get(kwargs, "type_hint"),
+            default=FlextCliUtilities.mapper().get(kwargs, "default"),
+            type_hint=FlextCliUtilities.mapper().get(kwargs, "type_hint"),
             value_proc=value_proc_val if callable(value_proc_val) else None,
             prompt_suffix=get_str_val(
                 "prompt_suffix",
@@ -1159,9 +1165,9 @@ class FlextCliCli:
                 show_choices=config.show_choices,
             )
             # Convert result to t.GeneralValueType - typer.prompt returns various types
-            # Use u.build with JSON transformation for dict conversion
+            # Use FlextCliUtilities.build with JSON transformation for dict conversion
             json_value = (
-                u.build(
+                FlextCliUtilities.build(
                     result,
                     ops={"ensure": "dict", "transform": {"to_json": True}},
                 )

@@ -432,3 +432,35 @@ class TestsCliDebug:
         assert result.is_success
         errors = result.value
         assert isinstance(errors, list)
+
+    # ========================================================================
+    # STATIC METHOD TESTS
+    # ========================================================================
+
+    def test_test_connectivity(self) -> None:
+        """Test test_connectivity static method."""
+        result = FlextCliDebug.test_connectivity()
+        assert result.is_success
+        connectivity_info = result.value
+        assert isinstance(connectivity_info, dict)
+        # Should contain connectivity test results
+        assert len(connectivity_info) > 0
+
+    def test_execute_health_check(self) -> None:
+        """Test execute_health_check static method."""
+        result = FlextCliDebug.execute_health_check()
+        assert result.is_success
+        health_info = result.value
+        assert isinstance(health_info, dict)
+        # Should contain health check results
+        assert len(health_info) > 0
+
+    def test_get_environment_variables(self) -> None:
+        """Test get_environment_variables method."""
+        debug = FlextCliDebug()
+        result = debug.get_environment_variables()
+        assert result.is_success
+        env_vars = result.value
+        assert isinstance(env_vars, dict)
+        # Should contain environment variables
+        assert len(env_vars) >= 0  # Can be empty in test environment

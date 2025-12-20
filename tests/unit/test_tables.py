@@ -21,7 +21,7 @@ import pytest
 from flext_tests import tm
 
 from flext_cli import FlextCliTables, r
-from flext_cli.models import FlextCliModels as m
+from flext_cli.models import m
 from flext_cli.typings import t
 from flext_cli.utilities import u
 

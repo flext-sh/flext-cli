@@ -2,8 +2,8 @@
 
 from tests._helpers import create_test_cli_command
 
-from flext_cli.constants import FlextCliConstants as c
-from flext_cli.models import FlextCliModels as m
+from flext_cli.constants import c
+from flext_cli.models import m
 
 
 class TestsCliWorkflowIntegration:

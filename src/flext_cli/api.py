@@ -34,16 +34,16 @@ from flext_cli.debug import FlextCliDebug
 from flext_cli.file_tools import FlextCliFileTools
 from flext_cli.formatters import FlextCliFormatters
 from flext_cli.mixins import FlextCliMixins
-from flext_cli.models import m
-from flext_cli.protocols import p
+from flext_cli.models import PasswordAuth, TokenData
+from flext_cli.protocols import FlextCliProtocols
 from flext_cli.services.cmd import FlextCliCmd
 from flext_cli.services.core import FlextCliCore
 from flext_cli.services.output import FlextCliOutput
 from flext_cli.services.prompts import FlextCliPrompts
 from flext_cli.services.tables import FlextCliTables
 from flext_cli.settings import FlextCliSettings
-from flext_cli.typings import t
-from flext_cli.utilities import u
+from flext_cli.typings import FlextCliTypes
+from flext_cli.utilities import FlextCliUtilities
 
 
 class FlextCli:
@@ -175,15 +175,17 @@ class FlextCli:
         self.prompts = FlextCliPrompts()
 
         self._cli = FlextCliCli()
-        self._commands: dict[str, p.Cli.CliRegisteredCommand] = {}
-        self._groups: dict[str, p.Cli.CliRegisteredCommand] = {}
-        self._plugin_commands: dict[str, p.Cli.CliRegisteredCommand] = {}
+        self._commands: dict[str, FlextCliProtocols.Cli.CliRegisteredCommand] = {}
+        self._groups: dict[str, FlextCliProtocols.Cli.CliRegisteredCommand] = {}
+        self._plugin_commands: dict[
+            str, FlextCliProtocols.Cli.CliRegisteredCommand
+        ] = {}
 
         self.config = FlextCliServiceBase.get_cli_config()
         self._valid_tokens: set[str] = set()
         self._valid_sessions: set[str] = set()
         self._session_permissions: dict[str, set[str]] = {}
-        self._users: dict[str, dict[str, t.GeneralValueType]] = {}
+        self._users: dict[str, dict[str, FlextCliTypes.GeneralValueType]] = {}
         self._deleted_users: set[str] = set()
 
     @classmethod
@@ -203,10 +205,12 @@ class FlextCli:
     def _validate_token_string(token: str) -> r[bool]:
         """Generalized token validation helper."""
         # Business Rule: Token validation MUST use FlextUtilities validation DSL
-        # Architecture: Use u.validate_required_string for token validation
+        # Architecture: Use FlextCliUtilities.validate_required_string for token validation
         # Audit Implication: Token validation ensures security and data integrity
         try:
-            u.CliValidation.validate_required_string(token, context="Token")
+            FlextCliUtilities.Cli.CliValidation.validate_required_string(
+                token, context="Token"
+            )
             return r[bool].ok(True)
         except ValueError as e:
             return r[bool].fail(str(e))
@@ -256,7 +260,7 @@ class FlextCli:
     ) -> r[str]:
         """Authenticate using Pydantic 2 validation."""
         try:
-            m.Cli.PasswordAuth.model_validate(credentials)
+            PasswordAuth.model_validate(credentials)
         except Exception as e:
             return r[str].fail(str(e))
 
@@ -270,7 +274,7 @@ class FlextCli:
     def validate_credentials(username: str, password: str) -> r[bool]:
         """Validate credentials using Pydantic 2."""
         try:
-            m.Cli.PasswordAuth(username=username, password=password)
+            PasswordAuth(username=username, password=password)
             return r[bool].ok(True)
         except Exception as e:
             return r[bool].fail(str(e))
@@ -282,14 +286,14 @@ class FlextCli:
             return validation
 
         token_path = self.config.token_file
-        # Create dict with t.GeneralValueType for Mapper compatibility
-        token_data: dict[str, t.GeneralValueType] = {
-            # str is subtype of t.GeneralValueType
+        # Create dict with FlextCliTypes.GeneralValueType for Mapper compatibility
+        token_data: dict[str, FlextCliTypes.GeneralValueType] = {
+            # str is subtype of FlextCliTypes.GeneralValueType
             FlextCliConstants.Cli.DictKeys.TOKEN: token,
         }
 
-        # Use u.transform for type-safe JSON conversion
-        transform_result = u.transform(token_data, to_json=True)
+        # Use FlextCliUtilities.transform for type-safe JSON conversion
+        transform_result = FlextCliUtilities.transform(token_data, to_json=True)
         json_data = (
             transform_result.value if transform_result.is_success else token_data
         )
@@ -305,7 +309,7 @@ class FlextCli:
         return r[bool].ok(True)
 
     def _get_token_error_message(self, error_str: str) -> str:
-        """Get error message based on exception content."""
+        """Get error message based on exception contenFlextCliTypes."""
         error_keywords = {
             "dict": FlextCliConstants.Cli.APIDefaults.TOKEN_DATA_TYPE_ERROR,
             "mapping": FlextCliConstants.Cli.APIDefaults.TOKEN_DATA_TYPE_ERROR,
@@ -315,8 +319,8 @@ class FlextCli:
         }
         # Type narrowing: error_keywords.keys() are all str, error_str is str
         keyword_list: list[str] = list(error_keywords.keys())
-        # Find returns t.GeneralValueType | None, but we know keywords are str
-        found_keyword_raw = u.Collection.find(
+        # Find returns FlextCliTypes.GeneralValueType | None, but we know keywords are str
+        found_keyword_raw = FlextCliUtilities.Collection.find(
             keyword_list,
             predicate=lambda kw: isinstance(kw, str) and kw in error_str,
         )
@@ -332,7 +336,7 @@ class FlextCli:
 
     def _handle_token_file_error(self, error_str: str) -> r[str]:
         """Handle file read error during token loading."""
-        if u.FileOps.is_file_not_found_error(error_str):
+        if FlextCliUtilities.Cli.FileOps.is_file_not_found_error(error_str):
             return r[str].fail(FlextCliConstants.Cli.ErrorMessages.TOKEN_FILE_NOT_FOUND)
         return r[str].fail(
             FlextCliConstants.Cli.ErrorMessages.TOKEN_LOAD_FAILED.format(
@@ -352,7 +356,7 @@ class FlextCli:
             return r[str].fail(FlextCliConstants.Cli.ErrorMessages.TOKEN_FILE_EMPTY)
 
         # Try direct extraction
-        token_result = u.extract(
+        token_result = FlextCliUtilities.extract(
             data,
             FlextCliConstants.Cli.DictKeys.TOKEN,
             required=True,
@@ -364,7 +368,7 @@ class FlextCli:
 
         # Fallback to model validation
         try:
-            token_data = m.Cli.TokenData.model_validate(data)
+            token_data = TokenData.model_validate(data)
             return r[str].ok(token_data.token)
         except Exception as e:
             return r[str].fail(self._get_token_error_message(str(e).lower()))
@@ -426,8 +430,8 @@ class FlextCli:
         entity_type: FlextCliConstants.Cli.EntityTypeLiteral
         | FlextCliConstants.Cli.EntityType,
         name: str | None,
-        func: p.Cli.CliCommandFunction,
-    ) -> p.Cli.CliRegisteredCommand:
+        func: FlextCliProtocols.Cli.CliCommandFunction,
+    ) -> FlextCliProtocols.Cli.CliRegisteredCommand:
         """Register a CLI entity (command or group) with framework abstraction."""
         # Get function name safely - protocols may not have __name__
         entity_name = name if name is not None else getattr(func, "__name__", "unknown")
@@ -463,14 +467,16 @@ class FlextCli:
         return result
 
     @staticmethod
-    def _is_registered_command(obj: object) -> TypeGuard[p.Cli.CliRegisteredCommand]:
+    def _is_registered_command(
+        obj: object,
+    ) -> TypeGuard[FlextCliProtocols.Cli.CliRegisteredCommand]:
         """Type guard to check if object implements CliRegisteredCommand protocol."""
         return hasattr(obj, "name") and callable(obj) and hasattr(obj, "callback")
 
     @staticmethod
     def _is_rich_tree_protocol(
         obj: object,
-    ) -> TypeGuard[p.Cli.Display.RichTreeProtocol]:
+    ) -> TypeGuard[FlextCliProtocols.Cli.Display.RichTreeProtocol]:
         """Type guard to check if object implements RichTreeProtocol."""
         return (
             hasattr(obj, "add")
@@ -481,7 +487,7 @@ class FlextCli:
     def _narrow_to_registered_command(
         self,
         decorated_func: object,
-    ) -> p.Cli.CliRegisteredCommand:
+    ) -> FlextCliProtocols.Cli.CliRegisteredCommand:
         """Narrow type to CliRegisteredCommand using structural protocol check.
 
         Click Command/Group structurally implements CliRegisteredCommand protocol.
@@ -498,14 +504,14 @@ class FlextCli:
         self,
         name: str | None = None,
     ) -> Callable[
-        [p.Cli.CliCommandFunction],
-        p.Cli.CliRegisteredCommand,
+        [FlextCliProtocols.Cli.CliCommandFunction],
+        FlextCliProtocols.Cli.CliRegisteredCommand,
     ]:
         """Register a command using CLI framework abstraction."""
 
         def decorator(
-            func: p.Cli.CliCommandFunction,
-        ) -> p.Cli.CliRegisteredCommand:
+            func: FlextCliProtocols.Cli.CliCommandFunction,
+        ) -> FlextCliProtocols.Cli.CliRegisteredCommand:
             return self._register_cli_entity(
                 FlextCliConstants.Cli.EntityType.COMMAND, name, func
             )
@@ -516,14 +522,14 @@ class FlextCli:
         self,
         name: str | None = None,
     ) -> Callable[
-        [p.Cli.CliCommandFunction],
-        p.Cli.CliRegisteredCommand,
+        [FlextCliProtocols.Cli.CliCommandFunction],
+        FlextCliProtocols.Cli.CliRegisteredCommand,
     ]:
         """Register a command group using CLI framework abstraction."""
 
         def decorator(
-            func: p.Cli.CliCommandFunction,
-        ) -> p.Cli.CliRegisteredCommand:
+            func: FlextCliProtocols.Cli.CliCommandFunction,
+        ) -> FlextCliProtocols.Cli.CliRegisteredCommand:
             return self._register_cli_entity(
                 FlextCliConstants.Cli.EntityType.GROUP, name, func
             )
@@ -539,15 +545,15 @@ class FlextCli:
     # EXECUTION
     # =========================================================================
 
-    def execute(self) -> r[Mapping[str, t.GeneralValueType]]:
+    def execute(self) -> r[Mapping[str, FlextCliTypes.GeneralValueType]]:
         """Execute CLI service with railway pattern."""
         # Build JsonDict - convert version to string, components as dict
-        result_dict: dict[str, t.GeneralValueType] = {
+        result_dict: dict[str, FlextCliTypes.GeneralValueType] = {
             FlextCliConstants.Cli.DictKeys.STATUS: (
                 FlextCliConstants.Cli.ServiceStatus.OPERATIONAL.value
             ),
             FlextCliConstants.Cli.DictKeys.SERVICE: FlextCliConstants.Cli.FLEXT_CLI,
-            "timestamp": u.generate("timestamp"),
+            "timestamp": FlextCliUtilities.generate("timestamp"),
             "version": str(__version__),
             "components": {
                 "config": "available",
@@ -557,7 +563,7 @@ class FlextCli:
             },
         }
 
-        return r[dict[str, t.GeneralValueType]].ok(result_dict)
+        return r[dict[str, FlextCliTypes.GeneralValueType]].ok(result_dict)
 
     # =========================================================================
     # CONVENIENCE METHODS - Delegate to service instances
@@ -573,8 +579,8 @@ class FlextCli:
 
     def create_table(
         self,
-        data: Sequence[Mapping[str, t.GeneralValueType]]
-        | Mapping[str, t.GeneralValueType]
+        data: Sequence[Mapping[str, FlextCliTypes.GeneralValueType]]
+        | Mapping[str, FlextCliTypes.GeneralValueType]
         | None = None,
         headers: list[str] | None = None,
         title: str | None = None,
@@ -586,23 +592,25 @@ class FlextCli:
             )
 
         # Convert data using Mapper for type-safe conversion
-        table_data: t.GeneralValueType
+        table_data: FlextCliTypes.GeneralValueType
         if isinstance(data, dict):
-            # Use u.transform for JSON conversion
-            transform_result = u.transform(data, to_json=True)
+            # Use FlextCliUtilities.transform for JSON conversion
+            transform_result = FlextCliUtilities.transform(data, to_json=True)
             table_data = transform_result.value if transform_result.is_success else data
         else:
-            # Handle all Sequence types - use u.map to convert items
-            data_list: list[t.GeneralValueType] = list(data)
-            mapped_result = u.Collection.map(
+            # Handle all Sequence types - use FlextCliUtilities.map to convert items
+            data_list: list[FlextCliTypes.GeneralValueType] = list(data)
+            mapped_result = FlextCliUtilities.Collection.map(
                 data_list,
                 mapper=lambda item: (
-                    u.transform({"_": item}, to_json=True).value.get("_", item)
+                    FlextCliUtilities.transform({"_": item}, to_json=True).value.get(
+                        "_", item
+                    )
                     if isinstance(item, dict)
                     else item
                 ),
             )
-            converted_list: list[t.GeneralValueType] = (
+            converted_list: list[FlextCliTypes.GeneralValueType] = (
                 list(mapped_result) if isinstance(mapped_result, (list, tuple)) else []
             )
             table_data = converted_list
@@ -624,7 +632,7 @@ class FlextCli:
     def create_tree(
         self,
         label: str,
-    ) -> r[p.Cli.Display.RichTreeProtocol]:
+    ) -> r[FlextCliProtocols.Cli.Display.RichTreeProtocol]:
         """Create tree visualization (convenience method for formatters.create_tree)."""
         # formatters.create_tree returns RichTree which implements RichTreeProtocol
         result = self.formatters.create_tree(label)
@@ -636,9 +644,9 @@ class FlextCli:
                 msg = "tree_value must implement RichTreeProtocol"
                 raise TypeError(msg)
             # Type guard confirms compatibility - return as protocol type
-            return r[p.Cli.Display.RichTreeProtocol].ok(tree_value)
+            return r[FlextCliProtocols.Cli.Display.RichTreeProtocol].ok(tree_value)
         # Return failure as r[RichTreeProtocol]
-        return r[p.Cli.Display.RichTreeProtocol].fail(result.error)
+        return r[FlextCliProtocols.Cli.Display.RichTreeProtocol].fail(result.error)
 
 
 __all__ = [

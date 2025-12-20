@@ -32,8 +32,8 @@ from pydantic import (
 from pydantic_settings import SettingsConfigDict
 
 from flext_cli.constants import FlextCliConstants
-from flext_cli.typings import FlextCliTypes as t
-from flext_cli.utilities import FlextCliUtilities as u
+from flext_cli.typings import t
+from flext_cli.utilities import FlextCliUtilities
 
 logger = l_core(__name__)
 
@@ -284,8 +284,10 @@ class FlextCliSettings(FlextSettings):
             if context is None:
                 return r.fail("FlextContext not available")
             # Convert config object to t.GeneralValueType-compatible dict for context
-            # Use u.transform for JSON conversion
-            transform_result = u.transform(self.model_dump(), to_json=True)
+            # Use FlextCliUtilities.transform for JSON conversion
+            transform_result = FlextCliUtilities.transform(
+                self.model_dump(), to_json=True
+            )
             config_dict = (
                 transform_result.value
                 if transform_result.is_success
@@ -331,7 +333,7 @@ class FlextCliSettings(FlextSettings):
     @classmethod
     def parse_bool_env_vars(cls, v: t.GeneralValueType) -> bool:
         """Parse boolean environment variables correctly from strings."""
-        # Use u.parse for type-safe boolean conversion
+        # Use FlextCliUtilities.parse for type-safe boolean conversion
         if isinstance(v, bool):
             return v
         # Simple boolean parsing for environment variables
@@ -457,9 +459,9 @@ class FlextCliSettings(FlextSettings):
         """
 
         # Functional verbosity determination using pattern matching
-        def determine_verbosity() -> str:
-            """Determine verbosity level based on configuration."""
-            match (self.verbose, self.quiet):
+        def determine_verbosity(*, verbose: bool = False, quiet: bool = False) -> str:
+            """Determine verbosity level based on flags."""
+            match (verbose, quiet):
                 case (True, _):  # Verbose takes precedence
                     return FlextCliConstants.Cli.CliGlobalDefaults.DEFAULT_VERBOSITY
                 case (_, True):  # Quiet overrides normal
@@ -467,12 +469,9 @@ class FlextCliSettings(FlextSettings):
                 case _:  # Default case
                     return FlextCliConstants.Cli.CliGlobalDefaults.NORMAL_VERBOSITY
 
-        # Railway pattern: validate and determine verbosity
-        def map_to_verbosity(_: tuple[bool, bool]) -> str:
-            """Map tuple to verbosity level."""
-            return determine_verbosity()
-
-        result = r.ok((self.verbose, self.quiet)).map(map_to_verbosity)
+        result = r.ok((self.verbose, self.quiet)).map(
+            lambda flags: determine_verbosity(verbose=flags[0], quiet=flags[1])
+        )
         if result.is_success:
             # map_to_verbosity returns str
             return result.value
@@ -594,15 +593,15 @@ class FlextCliSettings(FlextSettings):
         # Convert to JSON-compatible dict using model_dump() and Mapper
         # Handles Path→str, primitives as-is, nested dicts/lists, and other types via str()
         config_dict_raw = self.model_dump()
-        # Use u.transform for JSON conversion
-        transform_result = u.transform(config_dict_raw, to_json=True)
+        # Use FlextCliUtilities.transform for JSON conversion
+        transform_result = FlextCliUtilities.transform(config_dict_raw, to_json=True)
         config_dict = (
             transform_result.value if transform_result.is_success else config_dict_raw
         )
         result_dict: dict[str, t.GeneralValueType] = {
             "status": FlextCliConstants.Cli.ServiceStatus.OPERATIONAL.value,
             "service": FlextCliConstants.Cli.CliGlobalDefaults.DEFAULT_SERVICE_NAME,
-            "timestamp": u.generate("timestamp"),
+            "timestamp": FlextCliUtilities.generate("timestamp"),
             "version": FlextCliConstants.Cli.CliGlobalDefaults.DEFAULT_VERSION_STRING,
             "config": config_dict,
         }
@@ -642,20 +641,22 @@ class FlextCliSettings(FlextSettings):
             }
             # Get model fields (not computed fields) from Pydantic model_fields (class attribute)
             model_fields = set(type(self).model_fields.keys())
-            # Filter dict items using dict comprehension (u.filter only works with lists/tuples)
+            # Filter dict items using dict comprehension (FlextCliUtilities.filter only works with lists/tuples)
             valid_updates: dict[str, t.GeneralValueType] = {
                 k: v
                 for k, v in kwargs.items()
                 if k in model_fields and k not in computed_fields
             }
 
-            # Apply updates using u.process
+            # Apply updates using FlextCliUtilities.process
             def apply_update(k: str, v: t.GeneralValueType) -> None:
                 """Apply single update."""
                 if k not in computed_fields:
                     setattr(self, k, v)
 
-            _ = u.process(valid_updates, processor=apply_update, on_error="skip")
+            _ = FlextCliUtilities.process(
+                valid_updates, processor=apply_update, on_error="skip"
+            )
 
             # Re-validate entire model to ensure consistency
             # Exclude computed fields from dump to avoid validation issues
@@ -697,12 +698,12 @@ class FlextCliSettings(FlextSettings):
         try:
             # Use mutable dict for building, then convert to JsonDict for return
             # Use t.GeneralValueType for compatibility (JsonValue is subset)
-            # Filter dict items using dict comprehension (u.filter only works with lists/tuples)
+            # Filter dict items using dict comprehension (FlextCliUtilities.filter only works with lists/tuples)
             valid_overrides: dict[str, t.GeneralValueType] = {
                 k: v for k, v in overrides.items() if hasattr(self, k)
             }
 
-            # Validate each override value using u.process
+            # Validate each override value using FlextCliUtilities.process
             errors: list[str] = []
 
             def validate_value(k: str, v: t.GeneralValueType) -> None:
@@ -716,7 +717,7 @@ class FlextCliSettings(FlextSettings):
                     _ = test_config.model_validate(test_config.model_dump())
                     # Convert value to t.GeneralValueType for type safety
                     if isinstance(v, dict):
-                        transform_result = u.transform(v, to_json=True)
+                        transform_result = FlextCliUtilities.transform(v, to_json=True)
                         json_value: t.GeneralValueType = (
                             transform_result.value if transform_result.is_success else v
                         )
@@ -731,7 +732,9 @@ class FlextCliSettings(FlextSettings):
                         ),
                     )
 
-            u.process(overrides, processor=validate_value, on_error="collect")
+            FlextCliUtilities.process(
+                overrides, processor=validate_value, on_error="collect"
+            )
 
             if errors:
                 return r[dict[str, t.GeneralValueType]].fail(
@@ -758,10 +761,12 @@ class FlextCliSettings(FlextSettings):
         """
         try:
             # Convert model to dictionary format using model_dump()
-            # u.Mapper handles all type conversions automatically
+            # FlextCliUtilities.Mapper handles all type conversions automatically
             config_dict_raw = self.model_dump()
-            # Use u.transform for JSON conversion
-            transform_result = u.transform(config_dict_raw, to_json=True)
+            # Use FlextCliUtilities.transform for JSON conversion
+            transform_result = FlextCliUtilities.transform(
+                config_dict_raw, to_json=True
+            )
             config_dict = (
                 transform_result.value
                 if transform_result.is_success
@@ -789,13 +794,13 @@ class FlextCliSettings(FlextSettings):
 
         """
         try:
-            # Update model fields with provided config data using u.process
+            # Update model fields with provided config data using FlextCliUtilities.process
             def apply_config(k: str, v: t.GeneralValueType) -> None:
                 """Apply single config value."""
                 if hasattr(self, k):
                     setattr(self, k, v)
 
-            u.process(config, processor=apply_config, on_error="skip")
+            FlextCliUtilities.process(config, processor=apply_config, on_error="skip")
 
             # Validate the updated configuration
             _ = self.model_validate(self.model_dump())

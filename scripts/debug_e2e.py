@@ -37,7 +37,7 @@ class FlextCliDebugE2E:
         self.logger = logging.getLogger(__name__)
 
         # Define test operations using collections.abc.Mapping for O(1) lookup
-        self.operations: dict[tuple[str, str], Callable[[FlextCli], r[object]]] = {
+        self.operations: dict[tuple[str, str], Callable[[FlextCli], r[list[str] | bool | Mapping[str, str]]]] = {
             ("config", "show"): lambda cli: cli.cmd.show_config_paths(),
             ("config", "validate"): lambda cli: cli.cmd.validate_config(),
             ("auth", "status"): self._execute_auth_status,
@@ -77,11 +77,12 @@ class FlextCliDebugE2E:
 
     def _execute_operation(self, cli: FlextCli, operation: list[str]) -> r[object]:
         """Execute the specified operation using flext-cli API."""
-        # Convert list to tuple - type: ignore because list[str] -> tuple[str, ...]
-        # but self.operations expects tuple[str, str]
-        operation_key: tuple[str, ...] = tuple(operation)
-        if operation_key in self.operations:  # type: ignore[operator]
-            return self.operations[operation_key](cli)  # type: ignore[index]
+        # Convert list to tuple of exactly 2 elements
+        if len(operation) != 2:
+            return r[object].fail(f"Operation must have exactly 2 parts: {operation}")
+        operation_key: tuple[str, str] = (operation[0], operation[1])
+        if operation_key in self.operations:
+            return self.operations[operation_key](cli)
         return r[object].fail(f"Unknown operation: {operation}")
 
     def _execute_auth_status(self, cli: FlextCli) -> r[object]:

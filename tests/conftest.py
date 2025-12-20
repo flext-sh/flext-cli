@@ -991,7 +991,7 @@ def input_simulator() -> Iterator[Callable[[list[str]], None]]:
             return input_queue.popleft()
         return ""
 
-    builtins.input = simulated_input  # type: ignore[assignment]
+    setattr(builtins, "input", simulated_input)
     yield queue_inputs
     builtins.input = original_input
 
@@ -1049,7 +1049,7 @@ def input_exception_simulator() -> Iterator[Callable[[type[Exception]], None]]:
             raise exception_to_raise()
         return ""
 
-    builtins.input = simulated_input  # type: ignore[assignment]
+    setattr(builtins, "input", simulated_input)
     yield set_exception
     builtins.input = original_input
 

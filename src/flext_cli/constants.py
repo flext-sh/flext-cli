@@ -41,8 +41,8 @@ class FlextCliConstants(FlextConstants):
     - OutputFormats: Access to c.Cli.OutputFormats enum
     - CommandStatus: Access to c.Cli.CommandStatus enum
     - OutputFormatLiteral: Access to c.Cli.OutputFormatLiteral type
-    - get_valid_output_formats: Access to u.Cli.CliValidation.get_valid_output_formats method
-    - get_valid_command_statuses: Access to u.Cli.CliValidation.get_valid_command_statuses method
+    - get_valid_output_formats: Access to FlextCliUtilities.Cli.CliValidation.get_valid_output_formats method
+    - get_valid_command_statuses: Access to FlextCliUtilities.Cli.CliValidation.get_valid_command_statuses method
 
     Business Rules:
     ---------------
@@ -2666,6 +2666,8 @@ class FlextCliConstants(FlextConstants):
 
 
 # Convenience alias for common usage pattern
+c = FlextCliConstants
+
 c = FlextCliConstants
 
 __all__ = [

@@ -19,9 +19,9 @@ from flext_core import r, t
 from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import FlextCliConstants
 from flext_cli.file_tools import FlextCliFileTools
-from flext_cli.models import FlextCliModels as m
+from flext_cli.models import m
 from flext_cli.services.output import FlextCliOutput
-from flext_cli.utilities import u
+from flext_cli.utilities import FlextCliUtilities
 
 
 class FlextCliCmd(FlextCliServiceBase):
@@ -35,14 +35,14 @@ class FlextCliCmd(FlextCliServiceBase):
     4. Configuration values MUST be persisted to config files
     5. All operations MUST use r[T] for error handling
     6. File operations MUST use FlextCliFileTools for consistency
-    7. Config operations MUST delegate to u.ConfigOps
+    7. Config operations MUST delegate to FlextCliUtilities.ConfigOps
     8. Command execution MUST log all operations for audit trail
 
     Architecture Implications:
     ───────────────────────────
     - Extends FlextCliServiceBase for consistent logging and container access
     - Delegates file operations to FlextCliFileTools (SRP)
-    - Delegates config operations to u.ConfigOps (SRP)
+    - Delegates config operations to FlextCliUtilities.ConfigOps (SRP)
     - Railway-Oriented Programming via FlextResult for composable error handling
     - Static methods for stateless operations
 
@@ -56,7 +56,7 @@ class FlextCliCmd(FlextCliServiceBase):
 
     # Attributes initialized in __init__ (inherit types from FlextService)
     # Logger is provided by FlextMixins mixin
-    # All config utilities moved to u.ConfigOps
+    # All config utilities moved to FlextCliUtilities.ConfigOps
     """
 
     @override
@@ -66,9 +66,7 @@ class FlextCliCmd(FlextCliServiceBase):
         # Logger is automatically provided by FlextMixins mixin
         self._file_tools = FlextCliFileTools()
 
-    def execute(
-        self, **_kwargs: dict[str, t.GeneralValueType]
-    ) -> r[dict[str, t.GeneralValueType]]:
+    def execute(self) -> r[dict[str, t.GeneralValueType]]:
         """Report operational status required by `FlextService`."""
         return r[dict[str, t.GeneralValueType]].ok({
             FlextCliConstants.Cli.DictKeys.STATUS: FlextCliConstants.Cli.ServiceStatus.OPERATIONAL.value,
@@ -79,7 +77,7 @@ class FlextCliCmd(FlextCliServiceBase):
     def show_config_paths() -> r[list[str]]:
         """Show configuration paths using FlextCliUtilities directly."""
         try:
-            paths = u.ConfigOps.get_config_paths()
+            paths = FlextCliUtilities.ConfigOps.get_config_paths()
             return r[list[str]].ok(paths)
         except Exception as e:
             return r[list[str]].fail(
@@ -94,7 +92,7 @@ class FlextCliCmd(FlextCliServiceBase):
 
         """
         try:
-            results = u.ConfigOps.validate_config_structure()
+            results = FlextCliUtilities.ConfigOps.validate_config_structure()
             if results:
                 self.logger.info(
                     FlextCliConstants.Cli.LogMessages.CONFIG_VALIDATION_RESULTS.format(
@@ -113,7 +111,7 @@ class FlextCliCmd(FlextCliServiceBase):
     def get_config_info() -> r[Mapping[str, t.GeneralValueType]]:
         """Get configuration information using FlextCliUtilities directly."""
         try:
-            info = u.ConfigOps.get_config_info()
+            info = FlextCliUtilities.ConfigOps.get_config_info()
             return r[dict[str, t.GeneralValueType]].ok(info)
         except Exception as e:
             return r[dict[str, t.GeneralValueType]].fail(
@@ -188,11 +186,13 @@ class FlextCliCmd(FlextCliServiceBase):
                 )
 
             value = config_data[key]
-            # Use u.transform for JSON conversion
+            # Use FlextCliUtilities.transform for JSON conversion
             raw_data = {
                 FlextCliConstants.Cli.DictKeys.KEY: key,
                 FlextCliConstants.Cli.DictKeys.VALUE: value,
-                FlextCliConstants.Cli.DictKeys.TIMESTAMP: u.generate("timestamp"),
+                FlextCliConstants.Cli.DictKeys.TIMESTAMP: FlextCliUtilities.generate(
+                    "timestamp"
+                ),
             }
             # Python 3.13: to_dict_json() always returns dict, cast_if and isinstance are unnecessary
             # Reuse to_dict_json helper from output module

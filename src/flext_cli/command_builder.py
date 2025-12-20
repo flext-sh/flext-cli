@@ -217,7 +217,7 @@ class FlextCommandBuilder:
         # Store handler separately if needed - for now return command as protocol
         # Command implements Command protocol structurally at runtime
         # Type narrowing: CliCommand implements Command protocol
-        if not self._is_command_protocol(command):
+        if not FlextCommandBuilder._is_command_protocol(command):
             msg = "command must implement Command protocol"
             raise TypeError(msg)
         # Type guard confirms command implements Command protocol

@@ -301,7 +301,7 @@ class TestsCliConstants(FlextTestsConstants):
             ("markdown", "markdown", ["|", "-"]),
             ("html", "html", ["<table>", "<tr>", "<td>"]),
             ("latex", "latex", ["\\begin{tabular}", "\\hline"]),
-            ("rst", "rst", ["name", "role"]),
+            ("rst", "rst", ["=", "name", "role"]),
         ]
 
     class Authentication:

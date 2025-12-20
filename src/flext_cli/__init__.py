@@ -11,6 +11,7 @@ SPDX-License-Identifier: MIT
 
 # Import core aliases for convenience
 from flext_core import d, e, h, r
+from flext_core.mixins import FlextMixins as x
 
 from flext_cli.__version__ import __version__, __version_info__
 from flext_cli.api import FlextCli
@@ -20,6 +21,8 @@ from flext_cli.cli import FlextCliCli
 from flext_cli.cli_params import FlextCliCommonParams
 from flext_cli.command_builder import FlextCommandBuilder
 from flext_cli.commands import FlextCliCommands
+
+# Import foundational modules first to avoid circular imports
 from flext_cli.constants import FlextCliConstants
 from flext_cli.context import FlextCliContext
 from flext_cli.debug import FlextCliDebug
@@ -45,12 +48,19 @@ from flext_cli.settings import FlextCliSettings
 from flext_cli.typings import FlextCliTypes
 from flext_cli.utilities import FlextCliUtilities
 
-# Short aliases exported in root namespace - defined at end to avoid circular imports
+# Short aliases exported in root namespace - defined after imports to avoid circular imports
 # u extends FlextUtilities from flext-core via FlextCliUtilities
 # t extends FlextTypes from flext-core via FlextCliTypes
-# s is imported from base.py (which imports from flext_core) - unified runtime alias
+# s is imported from base.py (re-exports flext-core FlextService) - unified runtime alias
 # d, e, h, r are imported from flext_core (line 13)
 # x is domain-specific mixins (not from flext_core to avoid conflict)
+
+c = FlextCliConstants  # Domain-specific constants extending FlextConstants
+m = FlextCliModels
+p = FlextCliProtocols  # Domain-specific protocols extending FlextProtocols
+t = FlextCliTypes  # Domain-specific types extending FlextTypes
+u = FlextCliUtilities  # Domain-specific utilities extending FlextUtilities
+# x is imported from flext_core.mixins as x
 
 
 __all__ = [
@@ -99,12 +109,3 @@ __all__ = [
     "u",
     "x",
 ]
-
-# Define aliases after all imports to avoid circular dependencies
-u = FlextCliUtilities  # Domain-specific utilities extending FlextUtilities
-t = FlextCliTypes  # Domain-specific types extending FlextTypes
-c = FlextCliConstants  # Domain-specific constants extending FlextConstants
-m = FlextCliModels  # Domain-specific models extending FlextModels
-p = FlextCliProtocols  # Domain-specific protocols extending FlextProtocols
-# s is imported from base.py (re-exports flext-core FlextService) - unified runtime alias
-x = FlextCliMixins  # Domain-specific mixins extending FlextMixins

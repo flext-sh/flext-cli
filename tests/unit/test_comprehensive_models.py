@@ -5,7 +5,7 @@ from typing import Any
 
 import pytest
 
-from flext_cli.constants import FlextCliConstants as c
+from flext_cli.constants import c
 from tests._helpers import (
     create_real_cli_command,
     create_real_cli_session,
@@ -75,7 +75,7 @@ class TestsCliComprehensiveModels:
         cmd1 = create_real_cli_command(name="cmd1", status=c.Cli.CommandStatus.PENDING)
         cmd2 = create_real_cli_command(name="cmd2", status=c.Cli.CommandStatus.COMPLETED)
 
-        from flext_cli.models import FlextCliModels as m
+        from flext_cli.models import m
 
         session = m.Cli.CliSession.model_construct(
             session_id="test-session",
@@ -97,7 +97,7 @@ class TestsCliComprehensiveModels:
     @pytest.mark.parametrize("commands_count", [1, 5, 10, 50])
     def test_session_with_multiple_commands(self, commands_count: int) -> None:
         """Test session creation with multiple commands."""
-        from flext_cli.models import FlextCliModels as m
+        from flext_cli.models import m
 
         commands = [
             create_real_cli_command(name=f"cmd{i}")
@@ -130,7 +130,7 @@ class TestsCliModelValidation:
 
     def test_session_validation_rules(self) -> None:
         """Test session validation business rules."""
-        from flext_cli.models import FlextCliModels as m
+        from flext_cli.models import m
         from pydantic import ValidationError
 
         # Valid session
@@ -150,7 +150,7 @@ class TestsCliModelSerialization:
 
     def test_command_serialization(self) -> None:
         """Test command JSON serialization with real data."""
-        from flext_cli.models import FlextCliModels as m
+        from flext_cli.models import m
 
         cmd = create_real_cli_command()
         json_data = cmd.model_dump()
@@ -167,7 +167,7 @@ class TestsCliModelSerialization:
 
     def test_session_serialization(self) -> None:
         """Test session JSON serialization with real data."""
-        from flext_cli.models import FlextCliModels as m
+        from flext_cli.models import m
 
         session = create_real_cli_session()
         json_data = session.model_dump()

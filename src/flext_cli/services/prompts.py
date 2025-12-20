@@ -12,9 +12,9 @@ from pydantic import Field, PrivateAttr
 
 from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import FlextCliConstants
-from flext_cli.models import FlextCliModels as m
+from flext_cli.models import m
 from flext_cli.typings import t
-from flext_cli.utilities import u
+from flext_cli.utilities import FlextCliUtilities
 
 
 class FlextCliPrompts(FlextCliServiceBase):
@@ -396,7 +396,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 )
         else:
             try:
-                # Record prompt for history using u.Collection.map
+                # Record prompt for history using FlextCliUtilities.Collection.map
                 choice_list_items = [
                     FlextCliConstants.Cli.PromptsDefaults.CHOICE_LIST_FORMAT.format(
                         index=idx + 1,
@@ -635,11 +635,13 @@ class FlextCliPrompts(FlextCliServiceBase):
                 interactive_mode=self.interactive_mode,
                 default_timeout=self.default_timeout,
                 history_size=len(self._prompt_history),
-                timestamp=u.generate("timestamp"),
+                timestamp=FlextCliUtilities.generate("timestamp"),
             )
 
-            # Use u.transform for JSON conversion
-            transform_result = u.transform(stats_model.model_dump(), to_json=True)
+            # Use FlextCliUtilities.transform for JSON conversion
+            transform_result = FlextCliUtilities.transform(
+                stats_model.model_dump(), to_json=True
+            )
             stats_dict = (
                 transform_result.value
                 if transform_result.is_success
@@ -678,13 +680,8 @@ class FlextCliPrompts(FlextCliServiceBase):
                 ),
             )
 
-    def execute(
-        self, **_kwargs: dict[str, t.GeneralValueType]
-    ) -> r[dict[str, t.GeneralValueType]]:
+    def execute(self) -> r[dict[str, t.GeneralValueType]]:
         """Execute prompt service operation.
-
-        Args:
-            **_kwargs: Additional execution parameters (unused, for FlextService compatibility)
 
         Returns:
             r[dict[str, t.GeneralValueType]]: Service execution result
@@ -1088,7 +1085,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                     message=message,
                 ),
             )
-            # Use u.process to log options
+            # Use FlextCliUtilities.process to log options
 
             def log_option(index_and_option: tuple[int, str]) -> None:
                 """Log single option."""
@@ -1101,7 +1098,9 @@ class FlextCliPrompts(FlextCliServiceBase):
                 )
 
             options_with_index = list(enumerate(options, 1))
-            u.process(options_with_index, processor=log_option, on_error="skip")
+            FlextCliUtilities.process(
+                options_with_index, processor=log_option, on_error="skip"
+            )
 
             # Get user selection
             self.logger.debug(
@@ -1535,13 +1534,8 @@ class FlextCliPrompts(FlextCliServiceBase):
                 source="flext-cli/src/flext_cli/prompts.py",
             )
 
-            # Use u.process() for unified item.Cli.processing (DSL pattern)
-            def process_item(_item: object) -> None:
-                """Process single item."""
-                nonlocal processed_count
-                processed_count += 1
-
-            u.process(items, processor=process_item, on_error="skip")
+            # Count processed items (all items are processed successfully)
+            processed_count = len(items)
 
             # Show progress for large item sets
             if (

@@ -26,7 +26,7 @@ import pytest
 from pydantic import BaseModel, Field, ValidationError, field_validator
 
 from flext_cli import FlextCliCli
-from flext_cli.models import FlextCliModels as m
+from flext_cli.models import m
 
 
 class TestsCliModelCommandComprehensive:

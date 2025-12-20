@@ -16,7 +16,7 @@ from flext_core import FlextRuntime
 from typer.testing import CliRunner
 
 from flext_cli import FlextCliCli, FlextCliSettings
-from flext_cli.models import FlextCliModels as m
+from flext_cli.models import m
 
 
 class TestsCliCliExtended:

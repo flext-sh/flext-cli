@@ -27,7 +27,7 @@ from pydantic.fields import FieldInfo as PydanticFieldInfo
 
 from flext_cli import r
 from flext_cli.constants import c
-from flext_cli.models import FlextCliModels as m
+from flext_cli.models import m
 from flext_cli.typings import t
 
 

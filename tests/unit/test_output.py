@@ -33,7 +33,7 @@ from pydantic import BaseModel
 
 from flext_cli import FlextCliOutput, r
 from flext_cli.constants import c
-from flext_cli.models import FlextCliModels as m
+from flext_cli.models import m
 from flext_cli.services.tables import FlextCliTables
 from flext_cli.typings import t
 from flext_cli.utilities import u

@@ -19,7 +19,7 @@ from flext_core import (
 
 from flext_cli.protocols import p
 from flext_cli.typings import t
-from flext_cli.utilities import u
+from flext_cli.utilities import FlextCliUtilities
 
 
 class FlextCliMixins(FlextMixins):
@@ -27,7 +27,7 @@ class FlextCliMixins(FlextMixins):
 
     Business Rules:
     ───────────────
-    1. BusinessRulesMixin delegates to u.Validation (SRP)
+    1. BusinessRulesMixin delegates to FlextCliUtilities.Validation (SRP)
     2. CliCommandMixin composes flext-core decorators for command execution
     3. Command execution MUST use railway pattern for error handling
     4. Context management MUST include correlation ID and operation logging
@@ -61,14 +61,14 @@ class FlextCliMixins(FlextMixins):
     # =========================================================================
 
     # =========================================================================
-    # BUSINESS RULES MIXIN - Delegating facade to u.Validation
+    # BUSINESS RULES MIXIN - Delegating facade to FlextCliUtilities.Validation
     # =========================================================================
 
     class BusinessRulesMixin:
         """Mixin providing common business rule validation patterns for CLI classes.
 
         NOTE: This is a delegating facade. The actual implementation has been
-        consolidated into u.Validation to follow SRP principles.
+        consolidated into FlextCliUtilities.Validation to follow SRP principles.
         This class is maintained for backward compatibility with existing code.
         """
 
@@ -79,7 +79,7 @@ class FlextCliMixins(FlextMixins):
             operation: str,
         ) -> r[bool]:
             """Validate command execution state for operations (delegates to utilities)."""
-            return u.CliValidation.v_state(
+            return FlextCliUtilities.CliValidation.v_state(
                 current_status,
                 required=required_status,
                 name=operation,
@@ -91,14 +91,16 @@ class FlextCliMixins(FlextMixins):
             valid_states: list[str],
         ) -> r[bool]:
             """Validate session state (delegates to utilities)."""
-            return u.CliValidation.v_session(current_status, valid=valid_states)
+            return FlextCliUtilities.CliValidation.v_session(
+                current_status, valid=valid_states
+            )
 
         @staticmethod
         def validate_pipeline_step(
             step: dict[str, t.GeneralValueType] | None,
         ) -> r[bool]:
             """Validate pipeline step configuration (delegates to utilities)."""
-            return u.CliValidation.v_step(step)
+            return FlextCliUtilities.CliValidation.v_step(step)
 
         @staticmethod
         def validate_configuration_consistency(
@@ -106,7 +108,9 @@ class FlextCliMixins(FlextMixins):
             required_fields: list[str],
         ) -> r[bool]:
             """Validate configuration consistency (delegates to utilities)."""
-            return u.CliValidation.v_config(config_data, fields=required_fields)
+            return FlextCliUtilities.CliValidation.v_config(
+                config_data, fields=required_fields
+            )
 
     class CliCommandMixin:
         """Mixin providing CLI command execution patterns with flext-core decorators.

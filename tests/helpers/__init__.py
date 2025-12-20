@@ -350,7 +350,7 @@ class FlextCliTestHelpers:
             # Check consistency between string and info
             # Handle semver with pre-release/metadata: "1.2.3-alpha.1+build.123"
             # Split by + to separate metadata (ignored)
-            version_without_metadata = version_string.split("+")[0]
+            version_without_metadata = version_string.split("+", maxsplit=1)[0]
             # Split by - to separate base version and pre-release
             version_base_and_prerelease = version_without_metadata.split("-")
             base_parts = version_base_and_prerelease[0].split(".")
@@ -378,17 +378,14 @@ class FlextCliTestHelpers:
                 info_part = info_parts[i]
 
                 # Check type compatibility
-                if isinstance(info_part, int) and isinstance(version_part, int):
+                if (isinstance(info_part, int) and isinstance(version_part, int)) or (
+                    isinstance(info_part, str) and isinstance(version_part, str)
+                ):
                     if version_part != info_part:
                         return r.fail(
                             f"Mismatch at position {i}: {version_part} != {info_part}",
                         )
-                elif isinstance(info_part, str) and isinstance(version_part, str):
-                    if version_part != info_part:
-                        return r.fail(
-                            f"Mismatch at position {i}: {version_part} != {info_part}",
-                        )
-                elif type(info_part) != type(version_part):
+                elif type(info_part) is not type(version_part):
                     return r.fail(
                         f"Type mismatch at position {i}: {type(version_part).__name__} != {type(info_part).__name__}",
                     )

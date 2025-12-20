@@ -99,7 +99,7 @@ def load_user_preferences(config_dir: Path) -> dict[str, object] | None:
         return None
     cli.print(f"✅ Loaded preferences from {config_file.name}", style="green")
     # Cast to expected type (runtime type is compatible)
-    return preferences  # type: ignore[return-value]  # type: ignore[return-value]
+    return preferences
 
 
 # ============================================================================

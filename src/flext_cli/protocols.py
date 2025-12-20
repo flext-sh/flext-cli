@@ -852,11 +852,7 @@ class FlextCliProtocols(FlextProtocols):
     # TOP-LEVEL ALIASES for backward compatibility
     # ═══════════════════════════════════════════════════════════════════════
 
-    # These aliases allow access like FlextCliProtocols.CliPlugin instead of
-    # FlextCliProtocols.Cli.CliPlugin
-    CliPlugin = Cli.CliPlugin
-    CliCommandHandler = Cli.CliCommandHandler
-    Command = Cli.Command
+    # No aliases - use full namespace access: FlextCliProtocols.Cli.CliPlugin
 
 
 # Direct access: use FlextCliProtocols directly
@@ -869,5 +865,4 @@ __all__ = [
 ]
 
 
-# Short alias for namespace access
-fcli = FlextCliProtocols
+# No additional aliases - use p for runtime access

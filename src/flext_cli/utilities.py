@@ -1943,7 +1943,7 @@ class FlextCliUtilities(FlextUtilities):
                 def validated_with_auto_result[**P, R](
                     func: Callable[P, R | r[R]],
                 ) -> Callable[P, r[R]]:
-                    """ValidationError -> r.fail() with auto-wrap.
+                    """ValidationError -> r.fail() with auto-wrapping.
 
                     Extended version that accepts functions returning R or r[R]
                     and always returns r[R] for railway pattern compatibility.

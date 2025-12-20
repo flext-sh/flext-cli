@@ -36,7 +36,7 @@ from flext_cli.protocols import p
 from flext_cli.services.output import FlextCliOutput
 from flext_cli.settings import FlextCliSettings
 from flext_cli.typings import t
-from flext_cli.utilities import u
+from flext_cli.utilities import FlextCliUtilities
 
 
 class FlextCliCore(FlextCliServiceBase):
@@ -107,7 +107,7 @@ class FlextCliCore(FlextCliServiceBase):
             """Calculate cache hit rate."""
             total = self.cache_hits + self.cache_misses
             # Use conditional expression to avoid division by zero
-            # u.when() evaluates both values, so we can't use it here
+            # FlextCliUtilities.when() evaluates both values, so we can't use it here
             return self.cache_hits / total if total > 0 else 0.0
 
     # Logger is provided by FlextMixins mixin
@@ -131,14 +131,12 @@ class FlextCliCore(FlextCliServiceBase):
     def __init__(
         self,
         config: Mapping[str, t.GeneralValueType] | None = None,
-        **_data: t.GeneralValueType,
     ) -> None:
         """Initialize CLI core with optional configuration seed values.
 
         Args:
             config: Optional configuration dictionary for CLI-specific settings
                 (stored separately, not passed to parent FlextService.__init__)
-            **_data: Additional keyword arguments (currently unused, for future extensibility)
 
         """
         # FlextService.__init__ accepts **data: t.GeneralValueType
@@ -432,7 +430,7 @@ class FlextCliCore(FlextCliServiceBase):
         if FlextRuntime.is_list_like(context):
             # Use build() DSL: process → normalize → ensure JSON-compatible
             # Reuse helpers from output module to avoid duplication
-            process_result = u.process(
+            process_result = FlextCliUtilities.process(
                 list(context),
                 processor=lambda _k, item: FlextCliOutput.norm_json(item),
                 on_error="skip",
@@ -487,7 +485,7 @@ class FlextCliCore(FlextCliServiceBase):
             result_dict: dict[str, t.GeneralValueType] = {
                 c.Cli.DictKeys.COMMAND: name,
                 c.Cli.DictKeys.STATUS: True,
-                c.Cli.DictKeys.TIMESTAMP: u.generate("timestamp"),
+                c.Cli.DictKeys.TIMESTAMP: FlextCliUtilities.generate("timestamp"),
                 c.Cli.DictKeys.TIMEOUT: timeout,
                 c.Cli.DictKeys.CONTEXT: dict(execution_context),
             }
@@ -673,8 +671,8 @@ class FlextCliCore(FlextCliServiceBase):
             # Use build() DSL: ensure dict → transform to JSON
             # Reuse to_dict_json helper from output module
             transformed_config = FlextCliOutput.to_dict_json(valid_config)
-            # Use u.merge for intelligent deep merge
-            merge_result = u.merge(
+            # Use FlextCliUtilities.merge for intelligent deep merge
+            merge_result = FlextCliUtilities.merge(
                 existing_config,
                 transformed_config,
                 strategy="deep",  # Deep merge preserves nested structures
@@ -689,7 +687,7 @@ class FlextCliCore(FlextCliServiceBase):
             # Architecture: Pydantic frozen models require object.__setattr__() for attribute mutation
             # Python 3.13: Direct attribute access - unwrap() provides safe access
             merged_config: dict[str, t.GeneralValueType] = merge_result.value or {}
-            # merged_config is guaranteed to be not None by u.val default
+            # merged_config is guaranteed to be not None by FlextCliUtilities.val default
             object.__setattr__(self, "_cli_config", merged_config)
 
             self.logger.debug(
@@ -780,7 +778,7 @@ class FlextCliCore(FlextCliServiceBase):
         merged_config_val: dict[str, t.GeneralValueType] = dict(
             config_result.value or {}
         )
-        # merged_config_val is guaranteed to be not None by u.val default
+        # merged_config_val is guaranteed to be not None by FlextCliUtilities.val default
         return self._merge_configurations(merged_config_val)
 
     def get_configuration(
@@ -896,12 +894,12 @@ class FlextCliCore(FlextCliServiceBase):
             # Ensure config is mutable dict
             config: dict[str, t.GeneralValueType] = dict(self._cli_config)
 
-            # Use u.extract to safely get profiles section with default
-            # u.extract returns RuntimeResult, convert to FlextResult
+            # Use FlextCliUtilities.extract to safely get profiles section with default
+            # FlextCliUtilities.extract returns RuntimeResult, convert to FlextResult
             # Type annotation: default={} makes T = dict[str, t.GeneralValueType]
             # Call extract method - type is inferred from default parameter
             default_dict: dict[str, t.GeneralValueType] = {}
-            profiles_result_raw = u.extract(
+            profiles_result_raw = FlextCliUtilities.extract(
                 config,
                 c.Cli.DictKeys.PROFILES,  # path parameter
                 default=default_dict,
@@ -1133,7 +1131,7 @@ class FlextCliCore(FlextCliServiceBase):
                     else c.Cli.ServiceStatus.AVAILABLE.value
                 ),
                 c.Cli.CoreServiceDictKeys.SERVICE_READY: commands_count > 0,
-                c.Cli.DictKeys.TIMESTAMP: u.generate("timestamp"),
+                c.Cli.DictKeys.TIMESTAMP: FlextCliUtilities.generate("timestamp"),
             }
 
             # Return Mapping[str, FlexibleValue] to match base class signature
@@ -1254,13 +1252,8 @@ class FlextCliCore(FlextCliServiceBase):
     @override
     @FlextDecorators.log_operation("cli_core_health_check")
     @FlextDecorators.track_performance()
-    def execute(
-        self, **_kwargs: dict[str, t.GeneralValueType]
-    ) -> r[dict[str, t.GeneralValueType]]:
+    def execute(self) -> r[dict[str, t.GeneralValueType]]:
         """Execute CLI service operations.
-
-        Args:
-            **kwargs: Additional execution parameters (for FlextService compatibility)
 
         FlextDecorators automatically:
         - Log operation start/completion/failure
@@ -1290,8 +1283,7 @@ class FlextCliCore(FlextCliServiceBase):
             # Business Rule: Dict keys MUST be extracted using list() constructor (Python 3.13+)
             # Architecture: Direct list() conversion is type-safe and efficient
             # Audit Implication: Key extraction is deterministic and safe
-            # Python 3.13: _kwargs from **kwargs is already dict, isinstance check is unnecessary
-            kwargs_keys=list(_kwargs.keys()),
+            # No additional parameters
             source="flext-cli/src/flext_cli/core.py",
         )
 
@@ -1315,7 +1307,7 @@ class FlextCliCore(FlextCliServiceBase):
                 service_executed=True,
                 commands_count=len(self._commands),
                 session_active=self._session_active,
-                execution_timestamp=u.generate("timestamp"),
+                execution_timestamp=FlextCliUtilities.generate("timestamp"),
                 service_ready=True,
             )
 
@@ -1424,7 +1416,7 @@ class FlextCliCore(FlextCliServiceBase):
             context={
                 **dict(context_data),  # Convert kwargs to dict
                 "user_id": effective_user_id,
-                "timestamp": u.generate("timestamp"),
+                "timestamp": FlextCliUtilities.generate("timestamp"),
             },
         )
 
@@ -1446,7 +1438,7 @@ class FlextCliCore(FlextCliServiceBase):
                     self._commands,
                 ),
                 c.Cli.CoreServiceDictKeys.SESSION_ACTIVE: self._session_active,
-                c.Cli.DictKeys.TIMESTAMP: u.generate("timestamp"),
+                c.Cli.DictKeys.TIMESTAMP: FlextCliUtilities.generate("timestamp"),
             })
         except Exception as e:
             return r[dict[str, t.GeneralValueType]].fail(
@@ -1670,11 +1662,11 @@ class FlextCliCore(FlextCliServiceBase):
             )
 
     @staticmethod
-    def validate_configuration(_config: FlextCliSettings) -> r[bool]:
+    def validate_configuration(config: FlextCliSettings) -> r[bool]:
         """Validate configuration using FlextCliSettings Pydantic model.
 
         Args:
-            _config: FlextCliSettings model instance (validation automatic via Pydantic)
+            config: FlextCliSettings model instance (validation automatic via Pydantic)
 
         Returns:
             r[bool]: True if configuration is valid, failure on error
@@ -1686,7 +1678,9 @@ class FlextCliCore(FlextCliServiceBase):
 
         """
         # Validation already performed by Pydantic during instantiation
-        # If we reach here, config is valid
+        # If we reach here, config is valid - perform basic validation check
+        if not isinstance(config, FlextCliSettings):
+            return r[bool].fail("Configuration must be FlextCliSettings instance")
         return r[bool].ok(True)
 
     # ==========================================================================
@@ -1843,7 +1837,7 @@ class FlextCliCore(FlextCliServiceBase):
     # PLUGIN SYSTEM - Integrated into core service
     # ==========================================================================
 
-    def register_plugin(self, _plugin: p.Cli.CliPlugin) -> r[bool]:
+    def register_plugin(self, plugin: p.Cli.CliPlugin) -> r[bool]:
         """Register a plugin with the plugin manager.
 
         Returns:
@@ -1851,11 +1845,11 @@ class FlextCliCore(FlextCliServiceBase):
 
         """
         try:
-            plugin_name = self._plugin_manager.register(_plugin)
+            plugin_name = self._plugin_manager.register(plugin)
             if plugin_name:
                 # Protocol check validates all required attributes at runtime
-                # Type narrowing: _plugin is already CliPlugin from parameter type
-                self._plugins[plugin_name] = _plugin
+                # Type narrowing: plugin is already CliPlugin from parameter type
+                self._plugins[plugin_name] = plugin
             return r[bool].ok(True)
         except Exception as e:
             return r[bool].fail(str(e))
@@ -1888,7 +1882,7 @@ class FlextCliCore(FlextCliServiceBase):
 
         Returns list of discovered plugin names.
         """
-        entry_points_result = u.process(
+        entry_points_result = FlextCliUtilities.process(
             list(dist.entry_points),
             processor=self._load_plugin_entry_point,
             on_error="skip",
@@ -1897,7 +1891,9 @@ class FlextCliCore(FlextCliServiceBase):
             return []
         entry_points_value = entry_points_result.value
         if isinstance(entry_points_value, list):
-            filtered = u.filter(entry_points_value, predicate=lambda x: x is not None)
+            filtered = FlextCliUtilities.filter(
+                entry_points_value, predicate=lambda x: x is not None
+            )
             # Type narrowing: filtered contains only non-None values, all should be str
             filtered_list: list[str] = [
                 str(item) for item in filtered if isinstance(item, str)
@@ -1919,7 +1915,7 @@ class FlextCliCore(FlextCliServiceBase):
     def discover_plugins(self) -> r[list[str]]:
         """Discover and register plugins via entry points."""
         try:
-            distributions_result = u.process(
+            distributions_result = FlextCliUtilities.process(
                 list(metadata.distributions()),
                 processor=self._process_distribution_entry_points,
                 on_error="skip",
@@ -1969,7 +1965,7 @@ class FlextCliCore(FlextCliServiceBase):
             mapped_results = [
                 FlextCliOutput.to_json(result) for result in list(results)
             ]
-            # Type narrowing: u.Collection.map returns list, ensure it's list[t.GeneralValueType]
+            # Type narrowing: FlextCliUtilities.Collection.map returns list, ensure it's list[t.GeneralValueType]
             results_list: list[t.GeneralValueType] = (
                 list(mapped_results) if isinstance(mapped_results, list) else []
             )
@@ -1984,7 +1980,7 @@ class FlextCliCore(FlextCliServiceBase):
     # and output formatting are now accessed directly through their respective
     # services via the FlextCli facade:
     #   - File operations: Use cli.file_tools.* directly
-    #   - Validation: Use u.validate() with u.Validation.V.* validators
+    #   - Validation: Use FlextCliUtilities.validate() with FlextCliUtilities.Validation.V.* validators
     #   - HTTP: Use flext-api domain library
     #   - Output: Use cli.output.* directly
     # ==========================================================================

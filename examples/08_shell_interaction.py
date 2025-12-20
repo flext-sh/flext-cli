@@ -155,7 +155,7 @@ class InteractiveShell:
                     # Type narrowing: result is r[T] for some T
                     # r is covariant, so r[T] is compatible with r[object]
                     # Return with explicit type annotation to satisfy type checker
-                    return_val: r[object] = result  # type: ignore[assignment]
+                    return_val: r[object] = result
                     return return_val
                 # Wrap non-r in r
                 return r[object].ok(result)

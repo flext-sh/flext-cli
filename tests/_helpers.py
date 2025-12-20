@@ -10,7 +10,7 @@ from flext_core.result import FlextResult as r
 from flext_cli import FlextCliCommands
 
 # Direct imports to avoid forward reference issues
-from flext_cli.models import FlextCliModels as m
+from flext_cli.models import m
 
 
 # Factory functions using direct model instantiation (no forward refs)
@@ -329,11 +329,19 @@ def generate_edge_case_data() -> list[dict[str, Any]]:
         {"name": "测试命令", "description": "Chinese characters"},
         {"name": "café", "description": "Accented characters"},
         # Command line variations
-        {"name": "test", "command_line": "test --verbose --debug", "description": "With flags"},
+        {
+            "name": "test",
+            "command_line": "test --verbose --debug",
+            "description": "With flags",
+        },
         {"name": "test", "command_line": "", "description": "Empty command line"},
         # Args variations
         {"name": "test", "args": [], "description": "Empty args"},
-        {"name": "test", "args": ["--verbose", "--debug"], "description": "Multiple args"},
+        {
+            "name": "test",
+            "args": ["--verbose", "--debug"],
+            "description": "Multiple args",
+        },
         # Status variations
         {"name": "test", "status": "pending", "description": "Pending status"},
         {"name": "test", "status": "running", "description": "Running status"},

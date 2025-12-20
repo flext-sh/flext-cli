@@ -346,3 +346,44 @@ class TestsCliMixins:
         assert isinstance(data, dict)
         for key, value in extra_params.items():
             assert data.get(key) == value
+
+    def test_cli_command_mixin_double_wrapped_result(self) -> None:
+        """Test CLI command mixin with double-wrapped FlextResult (lines 181-184)."""
+
+        def double_wrapped_handler() -> r[r[str]]:
+            # Return a double-wrapped result: r[r[str]]
+            inner_result = r[str].ok("inner value")
+            return r[r[str]].ok(inner_result)
+
+        result = FlextCliMixins.CliCommandMixin.execute_with_cli_context(
+            operation="double_wrapped_test",
+            handler=double_wrapped_handler,
+        )
+
+        # Should unwrap the double-wrapped result and return the inner one
+        tm.ok(result)
+        assert result.value == "inner value"
+
+    def test_cli_command_mixin_custom_object_conversion(self) -> None:
+        """Test CLI command mixin with custom object requiring str() conversion (line 195)."""
+
+        class CustomObject:
+            def __init__(self, value: str) -> None:
+                self.value = value
+
+            def __str__(self) -> str:
+                return f"CustomObject({self.value})"
+
+        def custom_object_handler() -> r[CustomObject]:
+            # Return success with custom object that requires str() conversion
+            return r[CustomObject].ok(CustomObject("test_value"))
+
+        result = FlextCliMixins.CliCommandMixin.execute_with_cli_context(
+            operation="custom_object_test",
+            handler=custom_object_handler,
+        )
+
+        # Should convert custom object to string and return
+        tm.ok(result)
+        assert isinstance(result.value, str)
+        assert result.value == "CustomObject(test_value)"

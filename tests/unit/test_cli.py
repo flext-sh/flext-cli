@@ -21,7 +21,7 @@ from click.testing import CliRunner
 from flext_tests import tm
 
 from flext_cli import FlextCliCli, r
-from flext_cli.models import FlextCliModels as m
+from flext_cli.models import m
 
 # from ..fixtures.constants import TestCli  # Fixtures removed - use conftest.py and flext_tests
 from ..helpers import FlextCliTestHelpers
@@ -337,3 +337,294 @@ class TestsCliCli:
             cli = FlextCliCli()
             decorator = cli.create_pass_context_decorator()
             assert callable(decorator)
+
+    # ========================================================================
+    # PROTOCOL VALIDATION TESTS (Python 3.13 TypeIs)
+    # ========================================================================
+
+    def test_is_option_config_protocol(self) -> None:
+        """Test _is_option_config_protocol type guard."""
+        # Test valid option config
+        valid_config = type(
+            "MockConfig",
+            (),
+            {
+                "default": "test",
+                "type_hint": str,
+                "required": False,
+                "help_text": "Test help",
+            },
+        )()
+
+        assert FlextCliCli._is_option_config_protocol(valid_config)
+
+        # Test invalid option config - missing attribute
+        invalid_config = type(
+            "MockConfig",
+            (),
+            {
+                "default": "test",
+                "type_hint": str,
+                "required": False,
+                # Missing help_text
+            },
+        )()
+
+        assert not FlextCliCli._is_option_config_protocol(invalid_config)
+
+        # Test invalid object
+        assert not FlextCliCli._is_option_config_protocol("not a config")
+
+    def test_is_prompt_config_protocol(self) -> None:
+        """Test _is_prompt_config_protocol type guard."""
+        # Test valid prompt config - only needs the basic attributes
+        valid_config = type(
+            "MockPrompt",
+            (),
+            {"default": "test", "type_hint": str, "prompt_suffix": "?"},
+        )()
+
+        assert FlextCliCli._is_prompt_config_protocol(valid_config)
+
+        # Test invalid prompt config - missing attribute
+        invalid_config = type(
+            "MockPrompt",
+            (),
+            {
+                "default": "test",
+                "type_hint": str,
+                # Missing prompt_suffix
+            },
+        )()
+
+        assert not FlextCliCli._is_prompt_config_protocol(invalid_config)
+
+        # Test invalid object
+        assert not FlextCliCli._is_prompt_config_protocol("not a prompt")
+
+    # ========================================================================
+    # UTILITY METHODS TESTS
+    # ========================================================================
+
+    def test_get_terminal_size(self) -> None:
+        """Test get_terminal_size method."""
+        cli = FlextCliCli()
+        width, height = cli.get_terminal_size()
+        assert isinstance(width, int)
+        assert isinstance(height, int)
+        assert width > 0
+        assert height > 0
+
+    def test_clear_screen(self) -> None:
+        """Test clear_screen method."""
+        cli = FlextCliCli()
+        result = cli.clear_screen()
+        assert result.is_success
+        assert result.value is True
+
+    def test_get_current_context_none(self) -> None:
+        """Test get_current_context when not in command."""
+        cli = FlextCliCli()
+        ctx = cli.get_current_context()
+        assert ctx is None
+
+    def test_get_bool_type(self) -> None:
+        """Test get_bool_type method."""
+        cli = FlextCliCli()
+        bool_type = cli.get_bool_type()
+        assert bool_type is bool
+
+    def test_get_string_type(self) -> None:
+        """Test get_string_type method."""
+        cli = FlextCliCli()
+        string_type = cli.get_string_type()
+        assert string_type is str
+
+    def test_get_int_type(self) -> None:
+        """Test get_int_type method."""
+        cli = FlextCliCli()
+        int_type = cli.get_int_type()
+        assert int_type is int
+
+    def test_get_float_type(self) -> None:
+        """Test get_float_type method."""
+        cli = FlextCliCli()
+        float_type = cli.get_float_type()
+        assert float_type is float
+
+    def test_get_uuid_type(self) -> None:
+        """Test get_uuid_type method."""
+        cli = FlextCliCli()
+        uuid_type = cli.get_uuid_type()
+        # Should return a click ParamType
+        assert hasattr(uuid_type, "name")
+
+    def test_get_datetime_type(self) -> None:
+        """Test get_datetime_type method."""
+        cli = FlextCliCli()
+        datetime_type = cli.get_datetime_type()
+        # Should return a click ParamType
+        assert hasattr(datetime_type, "name")
+
+    def test_get_tuple_type(self) -> None:
+        """Test get_tuple_type method."""
+        cli = FlextCliCli()
+        tuple_type = cli.get_tuple_type([str, int])
+        # Should return a click ParamType
+        assert hasattr(tuple_type, "name")
+
+    def test_format_filename(self) -> None:
+        """Test format_filename method."""
+        cli = FlextCliCli()
+        result = cli.format_filename("test.py")
+        assert isinstance(result, str)
+        assert "test.py" in result
+
+    def test_pause(self) -> None:
+        """Test pause method."""
+        cli = FlextCliCli()
+        # Test with default message
+        result = cli.pause()
+        assert result.is_success
+
+        # Test with custom message
+        result = cli.pause("Press Enter to continue...")
+        assert result.is_success
+
+    def test_echo(self) -> None:
+        """Test echo method."""
+        cli = FlextCliCli()
+        # Test basic echo
+        result = cli.echo("test message")
+        assert result.is_success
+
+        # Test echo with color
+        result = cli.echo("colored message", color=True)
+        assert result.is_success
+
+    def test_execute_method(self) -> None:
+        """Test execute method returns valid result."""
+        cli = FlextCliCli()
+        result = cli.execute()
+        assert result.is_success
+        data = result.value
+        assert isinstance(data, dict)
+
+    def test_create_pass_context_decorator(self) -> None:
+        """Test create_pass_context_decorator method."""
+        cli = FlextCliCli()
+        decorator = cli.create_pass_context_decorator()
+        assert callable(decorator)
+
+    def test_create_cli_runner(self) -> None:
+        """Test create_cli_runner method."""
+        cli = FlextCliCli()
+        result = cli.create_cli_runner()
+        assert result.is_success
+        runner = result.value
+        assert hasattr(runner, "invoke")
+
+    # ========================================================================
+    # ADDITIONAL CLI METHODS TESTS
+    # ========================================================================
+
+    def test_format_filename_method(self) -> None:
+        """Test format_filename method."""
+        cli = FlextCliCli()
+        result = cli.format_filename("test.py")
+        assert isinstance(result, str)
+        assert "test.py" in result
+
+    def test_create_command_decorator(self) -> None:
+        """Test create_command_decorator method."""
+        cli = FlextCliCli()
+        decorator = cli.create_command_decorator("test_cmd")
+        assert callable(decorator)
+
+    def test_create_option_decorator(self) -> None:
+        """Test create_option_decorator method."""
+        cli = FlextCliCli()
+        decorator = cli.create_option_decorator("--test-option")
+        assert callable(decorator)
+
+    def test_create_argument_decorator(self) -> None:
+        """Test create_argument_decorator method."""
+        cli = FlextCliCli()
+        decorator = cli.create_argument_decorator("test_arg")
+        assert callable(decorator)
+
+    # ========================================================================
+    # VALIDATION AND UTILITY METHODS TESTS
+    # ========================================================================
+
+    def test_build_bool_value(self) -> None:
+        """Test _build_bool_value method."""
+        cli = FlextCliCli()
+        bool_value = cli._build_bool_value({"test": True}, "test", default=False)
+        assert isinstance(bool_value, bool)
+        assert bool_value is True
+
+    def test_build_str_value(self) -> None:
+        """Test _build_str_value method."""
+        cli = FlextCliCli()
+        str_value = cli._build_str_value({"test": "value"}, "test", default="default")
+        assert isinstance(str_value, str)
+        assert str_value == "value"
+
+    def test_get_console_enabled(self) -> None:
+        """Test _get_console_enabled method."""
+        from flext_cli.settings import FlextCliSettings
+
+        cli = FlextCliCli()
+        config = FlextCliSettings()
+        config.no_color = False
+        console_enabled = cli._get_console_enabled(config)
+        assert isinstance(console_enabled, bool)
+
+    # ========================================================================
+    # ADDITIONAL VALIDATION METHODS TESTS
+    # ========================================================================
+
+    def test_apply_common_params_to_config(self) -> None:
+        """Test _apply_common_params_to_config method."""
+        from flext_cli.settings import FlextCliSettings
+
+        cli = FlextCliCli()
+        config = FlextCliSettings()
+        # Call method with keyword arguments
+        cli._apply_common_params_to_config(config, verbose=True, debug=True)
+        # Verify that config was updated
+        assert config.verbose is True
+        assert config.debug is True
+
+    # ========================================================================
+    # ADDITIONAL UTILITY METHODS TESTS
+    # ========================================================================
+
+    def test_clear_screen(self) -> None:
+        """Test clear_screen method."""
+        cli = FlextCliCli()
+        result = cli.clear_screen()
+        assert result.is_success
+
+    def test_pause(self) -> None:
+        """Test pause method."""
+        cli = FlextCliCli()
+        # Test with default message
+        result = cli.pause()
+        assert result.is_success
+
+    def test_get_current_context_none(self) -> None:
+        """Test get_current_context when not in command."""
+        cli = FlextCliCli()
+        ctx = cli.get_current_context()
+        assert ctx is None
+
+    def test_get_terminal_size(self) -> None:
+        """Test get_terminal_size method."""
+        cli = FlextCliCli()
+        width, height = cli.get_terminal_size()
+        assert isinstance(width, int)
+        assert isinstance(height, int)
+        assert width > 0
+        assert height > 0

@@ -148,12 +148,11 @@ class RetryMiddleware:
 
         # Retry loop (starts from attempt 1 since we already tried once)
         for attempt in range(1, self._max_retries):
+            delay = self._backoff * attempt
+            time.sleep(delay)
             result = next_(ctx)
             if result.is_success:
                 return result
-            if attempt < self._max_retries - 1:
-                delay = self._backoff * (attempt + 1)
-                time.sleep(delay)
         return result
 
 

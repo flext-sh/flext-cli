@@ -766,7 +766,7 @@ class FlextCliCommands(FlextCliServiceBase):
         """
         # Return copy of commands dict - convert dict to Mapping for return type
         # _commands is typed as dict[str, dict[...]], so v is guaranteed to be dict
-        # Use u.process to create copy
+        # Use FlextCliUtilities.process to create copy
         return {k: dict(v) for k, v in self._commands.items()}
 
     def clear_commands(self) -> r[int]:
