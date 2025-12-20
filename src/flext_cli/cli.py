@@ -896,7 +896,7 @@ class FlextCliCli:
             # Type narrowing: decorated is Callable[[click.Context], t.GeneralValueType]
             # Create wrapper that ensures type safety
 
-            def typed_decorated(ctx: click.Context) -> t.GeneralValueType:
+            def typed_decorated(_ctx: click.Context) -> t.GeneralValueType:
                 # click.pass_context returns a function that injects context automatically
                 # The decorated function signature is: (*args, **kwargs) -> result
                 # Context is injected by click, so we call decorated() without ctx

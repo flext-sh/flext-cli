@@ -16,15 +16,21 @@ from typing import (
     override,
 )
 
+# DomainEvent references removed - not available in current flext-core
 import typer
 from flext_core import (
     FlextModels,
     FlextRuntime,
     r,
 )
-
-# DomainEvent references removed - not available in current flext-core
-from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
+from flext_core._models.entity import FlextModelsEntity
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    computed_field,
+    field_validator,
+)
 from pydantic.fields import FieldInfo
 
 from flext_cli.constants import FlextCliConstants as c
@@ -89,7 +95,7 @@ class FlextCliModels(FlextModels):
         # === Pydantic v2 Forward Reference Resolution ===
         # CliCommand and CliSession extend Entity which has domain_events: list["DomainEvent"]
         # Pydantic needs DomainEvent resolvable in parent namespace during model_rebuild()
-        # DomainEvent = FlextModelsEntity.DomainEvent  # Not available in current flext-core
+        DomainEvent = FlextModelsEntity.DomainEvent
 
         # Metodo estatico para compatibilidade
         @staticmethod
@@ -339,17 +345,13 @@ class FlextCliModels(FlextModels):
                 # Real implementations should override this method
                 return r[FlextCliTypes.GeneralValueType].ok(None)
 
-            def with_status(
-                self, status: str | "CommandStatus"
-            ) -> Self:
+            def with_status(self, status: str | c.Cli.CommandStatus) -> Self:
                 """Return copy with new status.
 
                 Accepts both str and CommandStatus" for protocol compatibility.
                 """
                 status_value = (
-                    status.value
-                    if isinstance(status, "CommandStatus")
-                    else status
+                    status.value if isinstance(status, c.Cli.CommandStatus) else status
                 )
                 return self._copy_with_update(status=status_value)
 
@@ -529,7 +531,7 @@ class FlextCliModels(FlextModels):
                     return result.get(status, [])
                 return result
 
-            def add_command(self, command: Command) -> r[Self]:
+            def add_command(self, command: CliCommand) -> r[Self]:
                 """Add command to session."""
                 try:
                     updated_commands = list(self.commands) + [command]
@@ -2018,9 +2020,7 @@ class FlextCliModels(FlextModels):
                     if not hasattr(model_cls, "model_fields"):
                         # Type narrowing: get class name safely for error message
                         class_name = getattr(model_cls, "__name__", str(model_cls))
-                        return r[
-                            list[p.Cli.CliParameterSpecProtocol]
-                        ].fail(
+                        return r[list[p.Cli.CliParameterSpecProtocol]].fail(
                             f"{class_name} is not a Pydantic model",
                         )
                     # models.py cannot use utilities - use direct iteration instead
@@ -2066,19 +2066,13 @@ class FlextCliModels(FlextModels):
                             for field_name, field_info in model_cls.model_fields.items()
                         }
                         params_list = list(params_dict.values())
-                        return r[
-                            list[p.Cli.CliParameterSpecProtocol]
-                        ].ok(params_list)
+                        return r[list[p.Cli.CliParameterSpecProtocol]].ok(params_list)
                     except Exception as e:
-                        return r[
-                            list[p.Cli.CliParameterSpecProtocol]
-                        ].fail(
+                        return r[list[p.Cli.CliParameterSpecProtocol]].fail(
                             f"Conversion failed: {e}",
                         )
                 except Exception as e:
-                    return r[
-                        list[p.Cli.CliParameterSpecProtocol]
-                    ].fail(
+                    return r[list[p.Cli.CliParameterSpecProtocol]].fail(
                         f"Conversion failed: {e}",
                     )
 
@@ -2753,11 +2747,11 @@ EnvironmentInfo = FlextCliModels.Cli.EnvironmentInfo
 PathInfo = FlextCliModels.Cli.PathInfo
 ContextExecutionResult = FlextCliModels.Cli.ContextExecutionResult
 DebugInfo = FlextCliModels.Cli.DebugInfo
-CommandStatistics = FlextCliModels.CommandStatistics
+CommandStatistics = FlextCliModels.Cli.CommandStatistics
 SessionStatistics = FlextCliModels.Cli.SessionStatistics
 PromptStatistics = FlextCliModels.Cli.PromptStatistics
 ServiceExecutionResult = FlextCliModels.Cli.ServiceExecutionResult
-CommandExecutionContextResult = FlextCliModels.CommandExecutionContextResult
+CommandExecutionContextResult = FlextCliModels.Cli.CommandExecutionContextResult
 # Additional Cli class aliases for backward compatibility
 CliCommand = FlextCliModels.Cli.CliCommand
 CliConfig = FlextCliModels.Cli.CliConfig
@@ -2766,7 +2760,7 @@ CliSession = FlextCliModels.Cli.CliSession
 CliSessionData = FlextCliModels.Cli.CliSessionData
 CliContext = FlextCliModels.Cli.CliContext
 CliOutput = FlextCliModels.Cli.CliOutput
-CommandResult = FlextCliModels.CommandResult
+CommandResult = FlextCliModels.Cli.CommandResult
 CliParamsConfig = FlextCliModels.Cli.CliParamsConfig
 OptionConfig = FlextCliModels.Cli.OptionConfig
 ConfirmConfig = FlextCliModels.Cli.ConfirmConfig
@@ -2786,27 +2780,29 @@ WorkflowStepResult = FlextCliModels.Cli.WorkflowStepResult
 WorkflowProgress = FlextCliModels.Cli.WorkflowProgress
 
 # Pydantic forward reference resolution
-# DomainEvent not available in current flext-core - removed
+# DomainEvent is available in current flext-core
 
 # Ensure forward references can be resolved by making types available in module globals
 # This is required because FlextModels.Entity has fields that reference DomainEvent
 globals()["Entity"] = FlextCliModels.Cli.Entity
-
-m = FlextCliModels
+globals()["DomainEvent"] = FlextModelsEntity.DomainEvent
 
 __all__ = [
     "CommandExecutionContextResult",
-    CommandStatistics",
+    "CommandStatistics",
     "ContextExecutionResult",
     "DebugInfo",
-    # "DomainEvent",  # Not available in current flext-core
+    "DomainEvent",
     "EnvironmentInfo",
-    "FlextCliModels","m",
+    "FlextCliModels",
     "PathInfo",
     "PromptStatistics",
     "ServiceExecutionResult",
     "SessionStatistics",
     "SystemInfo",
+    "m",
 ]
 
-# Pydantic v2 handles forward references automatically
+# Pydantic v2 requires model_rebuild() for complex forward references
+FlextCliModels.Cli.CliCommand.model_rebuild()
+FlextCliModels.Cli.CliSession.model_rebuild()

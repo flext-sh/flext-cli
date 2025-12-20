@@ -115,37 +115,32 @@ def pytest_configure(config: pytest.Config) -> None:
     """
     global ALICE, VALID_FIELD_NAME, FIELD_NAME, WHITESPACE_FIELD_NAME, VALID_STRING, STRING, WHITESPACE_STRING, NONE_VALUE, CUSTOM, TWO, PASSWORD, LONG, SPECIAL, UNICODE, PERFORMANCE_THRESHOLD, INFO, WARNING, ALL, NAME_HEADER, GRID, FANCY_GRID, INVALID, ExpectedALL, PYTEST_CURRENT_TEST, PYTEST_BINARY, CI_VALUE, SpecializedCASES, Borders, Data, Config, OutputFormats, Statuses, FileOps, Password, Progress  # noqa: PLW0603
 
-    # Test data constants - access from TestsCliConstants directly
-    # Constants at class level (not in TestData subclass)
-    ALICE = builtins.ALICE = c.ALICE
-    VALID_FIELD_NAME = builtins.VALID_FIELD_NAME = c.VALID_FIELD_NAME
-    FIELD_NAME = builtins.FIELD_NAME = c.FIELD_NAME
-    WHITESPACE_FIELD_NAME = builtins.WHITESPACE_FIELD_NAME = c.WHITESPACE_FIELD_NAME
-    VALID_STRING = builtins.VALID_STRING = c.VALID_STRING
-    STRING = builtins.STRING = c.STRING
-    WHITESPACE_STRING = builtins.WHITESPACE_STRING = c.WHITESPACE_STRING
-    NONE_VALUE = builtins.NONE_VALUE = c.NONE_VALUE
-    # Constants in TestData subclass (have different values than class-level ones)
-    test_data = c.TestData
-    CUSTOM = builtins.CUSTOM = test_data.CUSTOM
-    TWO = builtins.TWO = test_data.TWO
-    PASSWORD = builtins.PASSWORD = test_data.PASSWORD
-    LONG = builtins.LONG = test_data.LONG
-    SPECIAL = builtins.SPECIAL = test_data.SPECIAL
-    UNICODE = builtins.UNICODE = test_data.UNICODE
-    PERFORMANCE_THRESHOLD = builtins.PERFORMANCE_THRESHOLD = (
-        test_data.PERFORMANCE_THRESHOLD
-    )
-    # Status constants - accessed directly from TestsCliConstants
-    INFO = builtins.INFO = c.INFO
-    WARNING = builtins.WARNING = c.WARNING
-    ALL = builtins.ALL = c.ALL
-    # Format constants - accessed directly from TestsCliConstants
-    NAME_HEADER = builtins.NAME_HEADER = c.NAME_HEADER
-    GRID = builtins.GRID = c.GRID
-    FANCY_GRID = builtins.FANCY_GRID = c.FANCY_GRID
-    INVALID = builtins.INVALID = c.INVALID
-    ExpectedALL = builtins.ExpectedALL = c.EXPECTED_ALL
+    # Test data constants - access from c.Cli
+    ALICE = builtins.ALICE = c.Cli.ALICE
+    VALID_FIELD_NAME = builtins.VALID_FIELD_NAME = c.Cli.VALID_FIELD_NAME
+    FIELD_NAME = builtins.FIELD_NAME = c.Cli.FIELD_NAME
+    WHITESPACE_FIELD_NAME = builtins.WHITESPACE_FIELD_NAME = c.Cli.WHITESPACE_FIELD_NAME
+    VALID_STRING = builtins.VALID_STRING = c.Cli.VALID_STRING
+    STRING = builtins.STRING = c.Cli.STRING
+    WHITESPACE_STRING = builtins.WHITESPACE_STRING = c.Cli.WHITESPACE_STRING
+    NONE_VALUE = builtins.NONE_VALUE = c.Cli.NONE_VALUE
+    CUSTOM = builtins.CUSTOM = c.Cli.CUSTOM
+    TWO = builtins.TWO = c.Cli.TWO
+    PASSWORD = builtins.PASSWORD = c.Cli.PASSWORD
+    LONG = builtins.LONG = c.Cli.LONG
+    SPECIAL = builtins.SPECIAL = c.Cli.SPECIAL
+    UNICODE = builtins.UNICODE = c.Cli.UNICODE
+    PERFORMANCE_THRESHOLD = builtins.PERFORMANCE_THRESHOLD = c.Cli.PERFORMANCE_THRESHOLD
+    # Status constants - accessed from Cli
+    INFO = builtins.INFO = c.Cli.INFO
+    WARNING = builtins.WARNING = c.Cli.WARNING
+    ALL = builtins.ALL = c.Cli.ALL
+    # Format constants - accessed from Cli
+    NAME_HEADER = builtins.NAME_HEADER = c.Cli.NAME_HEADER
+    GRID = builtins.GRID = c.Cli.GRID
+    FANCY_GRID = builtins.FANCY_GRID = c.Cli.FANCY_GRID
+    INVALID = builtins.INVALID = c.Cli.INVALID
+    ExpectedALL = builtins.ExpectedALL = c.Cli.EXPECTED_ALL
     # Environment constants
     PYTEST_CURRENT_TEST = builtins.PYTEST_CURRENT_TEST = (
         c.Environment.PYTEST_CURRENT_TEST

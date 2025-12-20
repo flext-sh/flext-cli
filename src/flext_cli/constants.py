@@ -2603,6 +2603,33 @@ class FlextCliConstants(FlextConstants):
                 "~/.flext/cli.log",
             ]
 
+        # Test data constants
+        ALICE: str = "Alice"
+        VALID_FIELD_NAME: str = "valid_field"
+        FIELD_NAME: str = "field"
+        WHITESPACE_FIELD_NAME: str = "  whitespace  "
+        VALID_STRING: str = "valid_string"
+        STRING: str = "string"
+        WHITESPACE_STRING: str = "  whitespace  "
+        NONE_VALUE: None = None
+        CUSTOM: str = "custom"
+        TWO: int = 2
+        PASSWORD: str = "password123"
+        LONG: str = "This is a very long message that tests how the system handles extended text input"
+        SPECIAL: str = "!@#$%^&*()"
+        UNICODE: str = "你好世界🌍"
+        PERFORMANCE_THRESHOLD: float = 1.0
+
+        # Additional test constants
+        INFO: str = "INFO"
+        WARNING: str = "WARNING"
+        ALL: str = "all"
+        NAME_HEADER: str = "name"
+        GRID: str = "grid"
+        FANCY_GRID: str = "fancy_grid"
+        INVALID: str = "invalid"
+        EXPECTED_ALL: str = "expected_all"
+
         class CliGlobalDefaults:
             """Default values for CLI operations."""
 
@@ -2666,8 +2693,6 @@ class FlextCliConstants(FlextConstants):
 
 
 # Convenience alias for common usage pattern
-c = FlextCliConstants
-
 c = FlextCliConstants
 
 __all__ = [

@@ -42,7 +42,7 @@ from pydantic import (
 
 from flext_cli.constants import c
 from flext_cli.protocols import p
-from flext_cli.typings import t
+from flext_cli.typings import CliExecutionMetadata, CliValidationResult, t
 
 
 class FlextCliUtilities(FlextUtilities):
@@ -2245,6 +2245,8 @@ class FlextCliUtilities(FlextUtilities):
 u = FlextCliUtilities
 
 __all__ = [
+    "CliExecutionMetadata",
+    "CliValidationResult",
     "FlextCliUtilities",
     "u",
 ]

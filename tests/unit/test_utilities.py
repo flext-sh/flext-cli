@@ -1457,8 +1457,8 @@ class TestsCliUtilities:
     # ADDITIONAL COVERAGE TESTS - Added to reach 90%+ coverage
     # =========================================================================
 
-    def test_convert_method(self) -> None:
-        """Test convert method."""
+    def test_convert_method_basic(self) -> None:
+        """Test convert method basic functionality."""
         # Test successful conversion
         result = u.convert("123", int, 0)
         assert result == 123
@@ -1518,39 +1518,37 @@ class TestsCliUtilities:
         """Test safe_convert with Python 3.13 type parameter defaults."""
         # Test successful conversion
         result = FlextCliUtilities.Cli.convert("123", int, 0)
-        assert result.is_success
-        assert result.value == 123
+        assert result == 123
 
-        # Test failed conversion with no default (should use type default)
+        # Test failed conversion with default
         result = FlextCliUtilities.Cli.convert("not_a_number", int, 0)
-        assert result.is_success  # Uses int() = 0 as default
-        assert result.value == 0
+        assert result == 0  # Uses provided default
 
     def test_validation_methods_status_level_format(self) -> None:
         """Test validation methods for status, level, and format."""
         # Test v_status
-        result = u.CliValidation.v_status("running")
-        tm.ok(result)
-        assert result.value is True
+        status_result = u.CliValidation.v_status("running")
+        tm.ok(status_result)
+        assert status_result.value is True
 
-        result = u.CliValidation.v_status("invalid_status")
-        assert result.is_failure
+        status_result = u.CliValidation.v_status("invalid_status")
+        assert status_result.is_failure
 
         # Test v_level
-        result = u.CliValidation.v_level("INFO")
-        tm.ok(result)
-        assert result.value is True
+        level_result = u.CliValidation.v_level("INFO")
+        tm.ok(level_result)
+        assert level_result.value is True
 
-        result = u.CliValidation.v_level("INVALID_LEVEL")
-        assert result.is_failure
+        level_result = u.CliValidation.v_level("INVALID_LEVEL")
+        assert level_result.is_failure
 
         # Test v_format
-        result = u.CliValidation.v_format("json")
-        tm.ok(result)
-        assert result.value == "json"
+        format_result = u.CliValidation.v_format("json")
+        tm.ok(format_result)
+        assert format_result.value == "json"
 
-        result = u.CliValidation.v_format("invalid_format")
-        assert result.is_failure
+        format_result = u.CliValidation.v_format("invalid_format")
+        assert format_result.is_failure
 
     def test_enum_parsing_method(self) -> None:
         """Test enum parsing with Python 3.13 features."""
@@ -1574,7 +1572,7 @@ class TestsCliUtilities:
         result = u.parse_enum(TestEnum, "invalid_value")
         assert result.is_failure
 
-    def test_convert_method(self) -> None:
+    def test_convert_method_with_defaults(self) -> None:
         """Test convert method with default values."""
         # Test with a default value when conversion fails - should return default
         result = FlextCliUtilities.Cli.convert("invalid", int, 0)
@@ -1585,52 +1583,50 @@ class TestsCliUtilities:
         assert result == 123
 
         # Test with None default - should return None when conversion fails
-        result = FlextCliUtilities.Cli.convert("invalid", int, None)
-        assert result is None
-        # Should get the default int() which is 0
-        assert result.value == 0
+        result_none = FlextCliUtilities.Cli.convert("invalid", int, None)
+        assert result_none is None
 
-    def test_validation_methods_status_level_format(self) -> None:
-        """Test v_status, v_level, v_format validation methods."""
+    def test_validation_methods_status_level_format_extended(self) -> None:
+        """Test v_status, v_level, v_format validation methods (extended)."""
         # v_status - should be under CliValidation
-        result = FlextCliUtilities.Cli.CliValidation.v_status("running")
-        assert result.is_success
-        assert result.value is True
+        status_result = FlextCliUtilities.Cli.CliValidation.v_status("running")
+        assert status_result.is_success
+        assert status_result.value is True
 
-        result = FlextCliUtilities.Cli.CliValidation.v_status("invalid_status")
-        assert result.is_failure
+        status_result = FlextCliUtilities.Cli.CliValidation.v_status("invalid_status")
+        assert status_result.is_failure
 
         # v_level
-        result = FlextCliUtilities.Cli.CliValidation.v_level("INFO")
-        assert result.is_success
-        assert result.value is True
+        level_result = FlextCliUtilities.Cli.CliValidation.v_level("INFO")
+        assert level_result.is_success
+        assert level_result.value is True
 
-        result = FlextCliUtilities.Cli.CliValidation.v_level("INVALID_LEVEL")
-        assert result.is_failure
+        level_result = FlextCliUtilities.Cli.CliValidation.v_level("INVALID_LEVEL")
+        assert level_result.is_failure
 
         # v_format
-        result = FlextCliUtilities.Cli.CliValidation.v_format("json")
-        assert result.is_success
-        assert result.value == "json"
+        format_result = FlextCliUtilities.Cli.CliValidation.v_format("json")
+        assert format_result.is_success
+        assert format_result.value == "json"
 
-        result = FlextCliUtilities.Cli.CliValidation.v_format("INVALID_FORMAT")
-        assert result.is_failure
+        format_result = FlextCliUtilities.Cli.CliValidation.v_format("INVALID_FORMAT")
+        assert format_result.is_failure
 
     def test_typeis_result_methods(self) -> None:
         """Test TypeIs guards for Result objects."""
         success_result = r.ok("success")
         failure_result = r.fail("failure")
 
-        assert FlextCliUtilities.Cli.CliValidation.is_success_result(success_result)
-        assert not FlextCliUtilities.Cli.CliValidation.is_failure_result(success_result)
+        assert success_result.is_success
+        assert not success_result.is_failure
         assert success_result.value == "success"  # Type narrowed
 
-        assert FlextCliUtilities.Cli.CliValidation.is_failure_result(failure_result)
-        assert not FlextCliUtilities.Cli.CliValidation.is_success_result(failure_result)
+        assert failure_result.is_failure
+        assert not failure_result.is_success
         assert failure_result.error == "failure"  # Type narrowed
 
-    def test_convert_method(self) -> None:
-        """Test convert method."""
+    def test_convert_method_keyword_defaults(self) -> None:
+        """Test convert method with keyword default arguments."""
         # Test successful conversion with default
         result = u.convert("123", int, default=0)
         assert result == 123

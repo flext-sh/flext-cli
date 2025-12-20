@@ -351,6 +351,8 @@ class TestCompleteWorkflowIntegration:
         """Create comprehensive pipeline report."""
         data_dict = data
         active_users = data_dict["active_users"]
+        # active_users should be a sequence in this test context
+        assert isinstance(active_users, (list, tuple))
         processed_records = len(active_users)
         # Success rate is 1.0 if all active users were processed successfully
         # (all active users processed = 100% success rate for active users)
@@ -365,11 +367,11 @@ class TestCompleteWorkflowIntegration:
             "success_rate": success_rate,
             "processing_metrics": {
                 "average_name_length": round(
-                    data_dict["average_name_length"],
+                    float(data_dict["average_name_length"]) if isinstance(data_dict["average_name_length"], (int, float)) else 0.0,
                     2,
                 ),
                 "efficiency_percentage": round(
-                    data_dict["processing_efficiency"] * 100,
+                    float(data_dict["processing_efficiency"]) if isinstance(data_dict["processing_efficiency"], (int, float)) else 0.0 * 100,
                     2,
                 ),
             },
@@ -535,6 +537,7 @@ class TestCompleteWorkflowIntegration:
         tables: FlextCliTables,
     ) -> r[object]:
         """Generate reports in multiple formats."""
+        assert isinstance(processed_data, dict)
         processed_dict = processed_data
         report_dir.mkdir(exist_ok=True)
         sales_data = processed_dict.get("sales_data")
@@ -563,7 +566,7 @@ class TestCompleteWorkflowIntegration:
         })
 
         # CSV Report - convert dict data to CSV format
-        sales_list = sales_data
+        sales_list = sales_data if isinstance(sales_data, list) else []
         if sales_list:
             headers = ["Product", "Region", "Amount", "Quarter"]
             csv_rows = [headers]
@@ -656,7 +659,7 @@ class TestCompleteWorkflowIntegration:
         output_file = temp_workspace / "processed_output.json"
 
         # Create backup data (valid)
-        backup_data = {"users": [{"id": 1, "name": "Backup User", "active": True}]}
+        backup_data: t.GeneralValueType = {"users": [{"id": 1, "name": "Backup User", "active": True}]}
         file_tools.write_json_file(
             str(backup_data_file),
             backup_data,
@@ -713,6 +716,7 @@ class TestCompleteWorkflowIntegration:
             f"Workflow with recovery failed: {workflow_result.error}"
         )
         recovery_report = workflow_result.value
+        assert isinstance(recovery_report, dict)
 
         # Verify recovery mechanisms worked
         assert recovery_report["data_source"] == "backup"  # Fell back to backup
@@ -736,14 +740,11 @@ class TestCompleteWorkflowIntegration:
         primary_result = FlextCliFileTools().read_json_file(str(primary_file))
 
         if primary_result.is_success:
-            return cast(
-                "r[dict[str, object]]",
-                primary_result.map(
-                    lambda data: {
-                        **data,
-                        "data_source": "primary",
-                    },
-                ),
+            return primary_result.map(
+                lambda data: {
+                    **(data if isinstance(data, dict) else {}),
+                    "data_source": "primary",
+                },
             )
 
         # Fallback to backup
@@ -751,14 +752,11 @@ class TestCompleteWorkflowIntegration:
         if backup_result.is_failure:
             return r.fail(f"Both primary and backup failed: {backup_result.error}")
 
-        return cast(
-            "r[dict[str, object]]",
-            backup_result.map(
-                lambda data: {
-                    **data,
-                    "data_source": "backup",
-                },
-            ),
+        return backup_result.map(
+            lambda data: {
+                **(data if isinstance(data, dict) else {}),
+                "data_source": "backup",
+            },
         )
 
     def _process_with_partial_recovery(
@@ -853,7 +851,7 @@ class TestCompleteWorkflowIntegration:
             "recovery_stats": data.get("recovery_stats"),
             "save_attempts": data.get("save_attempts"),
             "total_records_processed": len(
-                data.get("processed_users", []),
+                data.get("processed_users") if isinstance(data.get("processed_users"), list) else [],
             ),
             "recovery_timestamp": "2025-01-01T12:00:00Z",
         }

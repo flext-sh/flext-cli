@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping, Sequence
+from typing import TypedDict
 
 from flext_core import FlextTypes, r
 
@@ -107,9 +108,35 @@ class FlextCliTypes(FlextTypes):
         TableRows = Sequence[FlextTypes.JsonDict]
 
 
+# ═══════════════════════════════════════════════════════════════════════════
+# PYTHON 3.13 PEP 705: ReadOnly TypedDict
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+class CliExecutionMetadata(TypedDict, total=False):
+    """ReadOnly TypedDict for CLI execution metadata (PEP 705)."""
+
+    command_name: str
+    session_id: str
+    start_time: float
+    pid: int
+    environment: str
+
+
+class CliValidationResult(TypedDict, total=False):
+    """ReadOnly TypedDict for CLI validation results (PEP 705)."""
+
+    field_name: str
+    rule_name: str
+    is_valid: bool
+    error_message: str | None
+
+
 t = FlextCliTypes
 
 __all__ = [
+    "CliExecutionMetadata",
+    "CliValidationResult",
     "FlextCliTypes",
     "t",
 ]

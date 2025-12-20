@@ -130,8 +130,9 @@ class TestsCliModelValidation:
 
     def test_session_validation_rules(self) -> None:
         """Test session validation business rules."""
-        from flext_cli.models import m
         from pydantic import ValidationError
+
+        from flext_cli.models import m
 
         # Valid session
         session = create_real_cli_session()
