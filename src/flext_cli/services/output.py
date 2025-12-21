@@ -900,8 +900,8 @@ class FlextCliOutput(FlextCliServiceBase):
             )
         # Type narrowing: result has __dict__ attribute
         raw_dict: dict[str, t.GeneralValueType] = getattr(result, "__dict__", {})
-        # Use build() DSL: process → to_json → filter → ensure dict
-        json_dict_result = FlextCliUtilities.process(
+        # Use build() DSL: process_mapping → to_json → filter → ensure dict
+        json_dict_result = FlextCliUtilities.process_mapping(
             raw_dict,
             processor=lambda _k, v: self.to_json(v),
             on_error="skip",
@@ -916,7 +916,7 @@ class FlextCliOutput(FlextCliServiceBase):
             json_dict,
             lambda _k, v: self.is_json(v),
         )
-        cli_json_dict_result = FlextCliUtilities.process(
+        cli_json_dict_result = FlextCliUtilities.process_mapping(
             filtered_json_dict,
             processor=lambda _k, v: v,
             on_error="skip",
@@ -1897,7 +1897,7 @@ class FlextCliOutput(FlextCliServiceBase):
                 FlextCliConstants.Cli.OutputFieldNames.VALUE: str(v),
             }
 
-        process_result = FlextCliUtilities.process(
+        process_result = FlextCliUtilities.process_mapping(
             data, processor=kv_pair, on_error="skip"
         )
         dict_result = FlextCliOutput.ensure_dict(
@@ -2087,7 +2087,7 @@ class FlextCliOutput(FlextCliServiceBase):
                         f"{k}{FlextCliConstants.Cli.OutputDefaults.TREE_VALUE_SEPARATOR}{v}"
                     )
 
-            FlextCliUtilities.process(
+            FlextCliUtilities.process_mapping(
                 data, processor=process_tree_item, on_error="skip"
             )
         elif isinstance(data, list):

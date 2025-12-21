@@ -611,9 +611,11 @@ class FlextCli:
                     else item
                 ),
             )
-            converted_list: list[FlextTypes.GeneralValueType] = (
-                list(mapped_result) if isinstance(mapped_result, (list, tuple)) else []
-            )
+            if isinstance(mapped_result, (list, tuple)):
+                converted_list: list[FlextTypes.GeneralValueType] = list(mapped_result)
+            else:
+                converted_list = []
+            converted_list
             table_data = converted_list
 
         return self.output.format_data(

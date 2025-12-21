@@ -378,7 +378,7 @@ class FlextCliDebug(FlextCliServiceBase):
                 return FlextCliConstants.Cli.DebugDefaults.MASKED_SENSITIVE
             return v
 
-        env_info_result = FlextCliUtilities.process(
+        env_info_result = FlextCliUtilities.process_mapping(
             dict(os.environ),
             processor=process_env_item,
             on_error="skip",

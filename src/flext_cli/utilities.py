@@ -158,58 +158,117 @@ class FlextCliUtilities(FlextUtilities):
             items: list[T] | tuple[T, ...],
             predicate: Callable[[T], bool],
         ) -> list[T]:
-            """Filter items using flext-core Collection.filter.
+            """Filter items matching predicate.
 
-            Wrapper for FlextUtilities.Collection.filter() to maintain compatibility.
-            Simplified to list/tuple only for type safety.
+            Direct implementation for type safety (no cast/type:ignore needed).
             """
-            # Type narrowing: predicate needs Callable[..., bool] for flext-core
             if not callable(predicate):
                 msg = "predicate must be callable"
                 raise TypeError(msg)
-            # Convert to list for flext-core filter which accepts Sequence
-            items_sequence = list(items) if isinstance(items, tuple) else items
-            result = FlextUtilities.Collection.filter(items_sequence, predicate)
-            # Type narrowing: for list/tuple inputs, result should be list[T]
-            if isinstance(result, list):
-                return result
-            # Fallback for unexpected types
-            return list(result) if hasattr(result, "__iter__") else []
+            # Direct list comprehension preserves T type
+            return [item for item in items if predicate(item)]
+
+        @staticmethod
+        def process_list[T, R](
+            items: list[T] | tuple[T, ...],
+            processor: Callable[[T], R],
+        ) -> r[list[R]]:
+            """Process sequence items with single-arg processor.
+
+            Type-safe implementation without cast.
+            """
+            try:
+                processed: list[R] = [processor(item) for item in items]
+                return r[list[R]].ok(processed)
+            except Exception as e:
+                return r[list[R]].fail(f"Processing failed: {e}")
+
+        @staticmethod
+        def process_dict[T, R](
+            items: dict[str, T] | Mapping[str, T],
+            processor: Callable[[str, T], R],
+        ) -> r[dict[str, R]]:
+            """Process dict items with (key, value) processor.
+
+            Type-safe implementation without cast.
+            """
+            try:
+                processed_dict: dict[str, R] = {
+                    k: processor(k, v) for k, v in items.items()
+                }
+                return r[dict[str, R]].ok(processed_dict)
+            except Exception as e:
+                return r[dict[str, R]].fail(f"Processing failed: {e}")
 
         @staticmethod
         def process[T, R](
-            items: T | list[T] | tuple[T, ...] | dict[str, T] | Mapping[str, T],
-            processor: Callable[[T], R] | Callable[[str, T], R],
-            *,
-            on_error: str = "skip",  # noqa: ARG004
-        ) -> r[list[R] | dict[str, R]]:
-            """Process items using flext-core Collection.map.
+            items: list[T] | tuple[T, ...],
+            processor: Callable[[T], R],
+            on_error: str = "fail",
+        ) -> r[list[R]]:
+            """Process sequence items with error handling modes.
 
-            Wrapper for FlextUtilities.Collection.map() to maintain compatibility.
-            Returns r[list[R] | dict[str, R]] as per flext-core signature.
+            Args:
+                items: Sequence to process
+                processor: Callback with single item argument
+                on_error: Error handling mode:
+                    - "fail": Stop on first error (default)
+                    - "skip": Skip errors and continue
+                    - "collect": Collect all errors
+
+            Returns:
+                r[list[R]] with processed results or error
+
             """
-            try:
-                # Process items directly for type safety
-                if isinstance(items, (list, tuple)):
-                    # For sequences, map each item
-                    if callable(processor):
-                        processed = [processor(item) for item in items]
-                        return r[list[R] | dict[str, R]].ok(processed)
-                elif isinstance(items, dict):
-                    # For dicts, map values
-                    if callable(processor):
-                        processed = {k: processor(k, v) for k, v in items.items()}
-                        return r[list[R] | dict[str, R]].ok(processed)
-                # For single items, apply processor directly
-                elif callable(processor):
-                    result = processor(items)
-                    return r[list[R] | dict[str, R]].ok([result])
+            errors: list[str] = []
+            results: list[R] = []
+            for idx, item in enumerate(items):
+                try:
+                    results.append(processor(item))
+                except Exception as e:
+                    if on_error == "fail":
+                        return r[list[R]].fail(f"Error at index {idx}: {e}")
+                    if on_error == "collect":
+                        errors.append(f"[{idx}]: {e}")
+                    # "skip" mode: just continue
+            if errors:
+                return r[list[R]].fail("; ".join(errors))
+            return r[list[R]].ok(results)
 
-                return r[list[R] | dict[str, R]].fail(
-                    "Unsupported item type for processing"
-                )
-            except Exception as e:
-                return r[list[R] | dict[str, R]].fail(f"Processing failed: {e}")
+        @staticmethod
+        def process_mapping[T, R](
+            items: dict[str, T] | Mapping[str, T],
+            processor: Callable[[str, T], R],
+            on_error: str = "fail",
+        ) -> r[dict[str, R]]:
+            """Process mapping items with error handling modes.
+
+            Args:
+                items: Dict or Mapping to process
+                processor: Callback with (key, value) signature
+                on_error: Error handling mode:
+                    - "fail": Stop on first error (default)
+                    - "skip": Skip errors and continue
+                    - "collect": Collect all errors
+
+            Returns:
+                r[dict[str, R]] with processed results or error
+
+            """
+            errors: list[str] = []
+            results_dict: dict[str, R] = {}
+            for k, v in items.items():
+                try:
+                    results_dict[k] = processor(k, v)
+                except Exception as e:
+                    if on_error == "fail":
+                        return r[dict[str, R]].fail(f"Error processing {k}: {e}")
+                    if on_error == "collect":
+                        errors.append(f"{k}: {e}")
+                    # "skip" mode: just continue
+            if errors:
+                return r[dict[str, R]].fail("; ".join(errors))
+            return r[dict[str, R]].ok(results_dict)
 
         @overload
         @staticmethod
@@ -277,18 +336,18 @@ class FlextCliUtilities(FlextUtilities):
             items: list[T] | tuple[T, ...],
             predicate: Callable[[T], bool],
         ) -> T | None:
-            """Find first item matching predicate using flext-core Collection.find.
+            """Find first item matching predicate.
 
-            Wrapper for FlextUtilities.Collection.find() to maintain compatibility.
+            Direct implementation for type safety (no cast needed).
             """
             if not callable(predicate):
                 msg = "predicate must be callable"
                 raise TypeError(msg)
-            # Use predicate directly - items is list[T] | tuple[T, ...], so items are T
-            # predicate accepts T, so direct call is type-safe
-            result = FlextUtilities.Collection.find(items, predicate)
-            # Type narrowing: result should be T | None for list/tuple inputs
-            return result if result is not None else None
+            # Direct iteration preserves T type
+            for item in items:
+                if predicate(item):
+                    return item
+            return None
 
         @staticmethod
         def validate_required_string(
@@ -1752,13 +1811,18 @@ class FlextCliUtilities(FlextUtilities):
                             statuses: tuple[Status, ...] = result.value
 
                     """
-                    result = u.Collection.parse_sequence(enum_cls, values)
+                    # Ensure values is a Sequence for parse_sequence
+                    values_seq: list[str | E] = list(values)
+                    result = u.Collection.parse_sequence(enum_cls, values_seq)
                     # Convert RuntimeResult to r (r[tuple[E, ...]])
-                    return (
-                        r[tuple[E, ...]].ok(result.value)
-                        if result.is_success
-                        else r[tuple[E, ...]].fail(result.error or "")
-                    )
+                    if result.is_success:
+                        # Re-validate through enum_cls to get properly typed tuple[E, ...]
+                        # (parse_sequence returns tuple[StrEnum, ...] which needs narrowing)
+                        typed_tuple: tuple[E, ...] = tuple(
+                            enum_cls(str(v)) for v in result.value
+                        )
+                        return r[tuple[E, ...]].ok(typed_tuple)
+                    return r[tuple[E, ...]].fail(result.error or "")
 
                 @staticmethod
                 def coerce_list_validator[E: StrEnum](
@@ -1810,7 +1874,7 @@ class FlextCliUtilities(FlextUtilities):
                 ) -> r[dict[str, E]]:
                     """Parse mapping to dict with StrEnum values (mnemonic: 'parse_mapping').
 
-                    Delegates to u.Collection.parse_mapping() for consistency.
+                    Parses string values to StrEnum, preserving enum values.
 
                     Example:
                         result = u.Collection.parse_mapping(
@@ -1818,13 +1882,22 @@ class FlextCliUtilities(FlextUtilities):
                         )
 
                     """
-                    result = u.Collection.parse_mapping(enum_cls, mapping)
-                    # Convert RuntimeResult to r (r[dict[str, E]])
-                    return (
-                        r[dict[str, E]].ok(result.value)
-                        if result.is_success
-                        else r[dict[str, E]].fail(result.error or "")
-                    )
+                    try:
+                        parsed_dict: dict[str, E] = {}
+                        for key, value in mapping.items():
+                            if isinstance(value, enum_cls):
+                                parsed_dict[key] = value
+                            else:
+                                # Parse string to enum
+                                enum_result = u.Enum.parse(enum_cls, value)
+                                if enum_result.is_failure:
+                                    enum_name = getattr(enum_cls, "__name__", "Enum")
+                                    msg = f"Invalid {enum_name}: {value!r}"
+                                    return r[dict[str, E]].fail(msg)
+                                parsed_dict[key] = enum_result.value
+                        return r[dict[str, E]].ok(parsed_dict)
+                    except Exception as e:
+                        return r[dict[str, E]].fail(f"Mapping parse failed: {e}")
 
                 @staticmethod
                 def coerce_dict_validator[E: StrEnum](
@@ -2243,6 +2316,9 @@ class FlextCliUtilities(FlextUtilities):
     convert = Cli.convert
     filter = Cli.filter
     process = Cli.process
+    process_mapping = Cli.process_mapping
+    process_list = Cli.process_list
+    process_dict = Cli.process_dict
     build = Cli.build
     parse = Cli.parse
     CliValidation = Cli.CliValidation

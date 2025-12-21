@@ -432,7 +432,7 @@ class FlextCliCore(FlextCliServiceBase):
             # Reuse helpers from output module to avoid duplication
             process_result = FlextCliUtilities.process(
                 list(context),
-                processor=lambda _k, item: FlextCliOutput.norm_json(item),
+                processor=FlextCliOutput.norm_json,
                 on_error="skip",
             )
             # Python 3.13: Direct attribute access - unwrap() provides safe access

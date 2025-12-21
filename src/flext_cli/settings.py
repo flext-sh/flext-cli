@@ -312,7 +312,10 @@ class FlextCliSettings(FlextSettings):
         try:
             container = FlextContainer()
             if not container.has_service("flext_cli_config"):
-                _ = container.with_service("flext_cli_config", self)
+                # FlextCliSettings extends FlextSettings (BaseModel)
+                # Use model_dump() to get dict representation for container
+                config_dict = self.model_dump()
+                _ = container.with_service("flext_cli_config", config_dict)
             return r[bool].ok(True)
         except Exception as e:
             logger.debug(
@@ -654,7 +657,7 @@ class FlextCliSettings(FlextSettings):
                 if k not in computed_fields:
                     setattr(self, k, v)
 
-            _ = FlextCliUtilities.process(
+            _ = FlextCliUtilities.process_mapping(
                 valid_updates, processor=apply_update, on_error="skip"
             )
 
@@ -732,7 +735,7 @@ class FlextCliSettings(FlextSettings):
                         ),
                     )
 
-            FlextCliUtilities.process(
+            FlextCliUtilities.process_mapping(
                 overrides, processor=validate_value, on_error="collect"
             )
 
@@ -800,7 +803,9 @@ class FlextCliSettings(FlextSettings):
                 if hasattr(self, k):
                     setattr(self, k, v)
 
-            FlextCliUtilities.process(config, processor=apply_config, on_error="skip")
+            FlextCliUtilities.process_mapping(
+                config, processor=apply_config, on_error="skip"
+            )
 
             # Validate the updated configuration
             _ = self.model_validate(self.model_dump())
