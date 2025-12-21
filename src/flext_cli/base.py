@@ -13,7 +13,7 @@ from __future__ import annotations
 from flext_core import s
 
 from flext_cli.settings import FlextCliSettings
-from flext_cli.typings import t
+from flext_cli.typings import FlextCliTypes as t
 
 
 class FlextCliServiceBase(s[dict[str, t.GeneralValueType]]):

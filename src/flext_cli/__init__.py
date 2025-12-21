@@ -9,7 +9,6 @@ Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
-# Import core aliases for convenience
 from flext_core import d, e, h, r
 from flext_core.mixins import FlextMixins as x
 
@@ -21,8 +20,6 @@ from flext_cli.cli import FlextCliCli
 from flext_cli.cli_params import FlextCliCommonParams
 from flext_cli.command_builder import FlextCommandBuilder
 from flext_cli.commands import FlextCliCommands
-
-# Import foundational modules first to avoid circular imports
 from flext_cli.constants import FlextCliConstants
 from flext_cli.context import FlextCliContext
 from flext_cli.debug import FlextCliDebug
@@ -47,13 +44,6 @@ from flext_cli.services.tables import FlextCliTables
 from flext_cli.settings import FlextCliSettings
 from flext_cli.typings import FlextCliTypes
 from flext_cli.utilities import FlextCliUtilities
-
-# Short aliases exported in root namespace - defined after imports to avoid circular imports
-# u extends FlextUtilities from flext-core via FlextCliUtilities
-# t extends FlextTypes from flext-core via FlextCliTypes
-# s is imported from base.py (re-exports flext-core FlextService) - unified runtime alias
-# d, e, h, r are imported from flext_core (line 13)
-# x is domain-specific mixins (not from flext_core to avoid conflict)
 
 c = FlextCliConstants  # Domain-specific constants extending FlextConstants
 m = FlextCliModels

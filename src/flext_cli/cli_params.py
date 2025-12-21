@@ -19,12 +19,12 @@ from typing import ClassVar
 from flext_core import r
 from typer.models import OptionInfo
 
-from flext_cli.constants import FlextCliConstants
-from flext_cli.models import m
-from flext_cli.protocols import p
+from flext_cli.constants import FlextCliConstants as c
+from flext_cli.models import FlextCliModels as m
+from flext_cli.protocols import FlextCliProtocols as p
 from flext_cli.settings import FlextCliSettings
-from flext_cli.typings import t
-from flext_cli.utilities import FlextCliUtilities
+from flext_cli.typings import FlextCliTypes as t
+from flext_cli.utilities import FlextCliUtilities as u
 
 
 class FlextCliCommonParams:
@@ -36,7 +36,7 @@ class FlextCliCommonParams:
     2. Parameters MUST be enabled by default (cannot be disabled without error)
     3. Parameter metadata MUST come from Field() descriptions and defaults
     4. Parameter types MUST match FlextCliSettings field types
-    5. Short flags MUST be unique and follow CLI conventions (-v, -d, -q, etFlextCliConstants.Cli.)
+    5. Short flags MUST be unique and follow CLI conventions (-v, -d, -q, etc.Cli.)
     6. Parameter priority MUST determine order in help output
     7. Choices MUST be validated against allowed values
     8. Boolean parameters automatically become Typer flags (no is_flag needed)
@@ -80,54 +80,54 @@ class FlextCliCommonParams:
 
     # CLI Parameter Metadata registry
     # Maps field names to CLI-specific metadata (short flags, choices, priority)
-    # Use FlextCliConstants.Cli.CliParamsRegistry, FlextCliConstants.Cli.CliParamDefaults, FlextCliConstants.Cli.CliParamsDefaults directly
+    # Use c.Cli.CliParamsRegistry, c.Cli.CliParamDefaults, c.Cli.CliParamsDefaults directly
 
     # Registry allows list[str] for choices
     CLI_PARAM_REGISTRY: ClassVar[dict[str, dict[str, str | int | bool | list[str]]]] = {
         "verbose": {
-            FlextCliConstants.Cli.CliParamsRegistry.KEY_SHORT: FlextCliConstants.Cli.CliParamsRegistry.SHORT_FLAG_VERBOSE,
-            FlextCliConstants.Cli.CliParamsRegistry.KEY_PRIORITY: FlextCliConstants.Cli.CliParamsRegistry.PRIORITY_VERBOSE,
+            c.Cli.CliParamsRegistry.KEY_SHORT: c.Cli.CliParamsRegistry.SHORT_FLAG_VERBOSE,
+            c.Cli.CliParamsRegistry.KEY_PRIORITY: c.Cli.CliParamsRegistry.PRIORITY_VERBOSE,
         },
         "quiet": {
-            FlextCliConstants.Cli.CliParamsRegistry.KEY_SHORT: FlextCliConstants.Cli.CliParamsRegistry.SHORT_FLAG_QUIET,
-            FlextCliConstants.Cli.CliParamsRegistry.KEY_PRIORITY: FlextCliConstants.Cli.CliParamsRegistry.PRIORITY_QUIET,
+            c.Cli.CliParamsRegistry.KEY_SHORT: c.Cli.CliParamsRegistry.SHORT_FLAG_QUIET,
+            c.Cli.CliParamsRegistry.KEY_PRIORITY: c.Cli.CliParamsRegistry.PRIORITY_QUIET,
         },
         "debug": {
-            FlextCliConstants.Cli.CliParamsRegistry.KEY_SHORT: FlextCliConstants.Cli.CliParamsRegistry.SHORT_FLAG_DEBUG,
-            FlextCliConstants.Cli.CliParamsRegistry.KEY_PRIORITY: FlextCliConstants.Cli.CliParamsRegistry.PRIORITY_DEBUG,
+            c.Cli.CliParamsRegistry.KEY_SHORT: c.Cli.CliParamsRegistry.SHORT_FLAG_DEBUG,
+            c.Cli.CliParamsRegistry.KEY_PRIORITY: c.Cli.CliParamsRegistry.PRIORITY_DEBUG,
         },
         "trace": {
-            FlextCliConstants.Cli.CliParamsRegistry.KEY_SHORT: FlextCliConstants.Cli.CliParamsRegistry.SHORT_FLAG_TRACE,
-            FlextCliConstants.Cli.CliParamsRegistry.KEY_PRIORITY: FlextCliConstants.Cli.CliParamsRegistry.PRIORITY_TRACE,
+            c.Cli.CliParamsRegistry.KEY_SHORT: c.Cli.CliParamsRegistry.SHORT_FLAG_TRACE,
+            c.Cli.CliParamsRegistry.KEY_PRIORITY: c.Cli.CliParamsRegistry.PRIORITY_TRACE,
         },
         "cli_log_level": {
-            FlextCliConstants.Cli.CliParamsRegistry.KEY_SHORT: FlextCliConstants.Cli.CliParamsRegistry.SHORT_FLAG_LOG_LEVEL,
-            FlextCliConstants.Cli.CliParamsRegistry.KEY_PRIORITY: FlextCliConstants.Cli.CliParamsRegistry.PRIORITY_LOG_LEVEL,
-            FlextCliConstants.Cli.CliParamsRegistry.KEY_CHOICES: FlextCliConstants.Cli.Lists.LOG_LEVELS_LIST,
-            FlextCliConstants.Cli.CliParamsRegistry.KEY_CASE_SENSITIVE: FlextCliConstants.Cli.CliParamsRegistry.CASE_INSENSITIVE,
+            c.Cli.CliParamsRegistry.KEY_SHORT: c.Cli.CliParamsRegistry.SHORT_FLAG_LOG_LEVEL,
+            c.Cli.CliParamsRegistry.KEY_PRIORITY: c.Cli.CliParamsRegistry.PRIORITY_LOG_LEVEL,
+            c.Cli.CliParamsRegistry.KEY_CHOICES: c.Cli.Lists.LOG_LEVELS_LIST,
+            c.Cli.CliParamsRegistry.KEY_CASE_SENSITIVE: c.Cli.CliParamsRegistry.CASE_INSENSITIVE,
             # CLI param name is --log-level, maps to cli_log_level field
-            FlextCliConstants.Cli.CliParamsRegistry.KEY_FIELD_NAME_OVERRIDE: "log_level",
+            c.Cli.CliParamsRegistry.KEY_FIELD_NAME_OVERRIDE: "log_level",
         },
         "log_verbosity": {
-            FlextCliConstants.Cli.CliParamsRegistry.KEY_PRIORITY: FlextCliConstants.Cli.CliParamsRegistry.PRIORITY_LOG_FORMAT,
-            FlextCliConstants.Cli.CliParamsRegistry.KEY_CHOICES: FlextCliConstants.Cli.Lists.LOG_LEVELS_LIST,
-            FlextCliConstants.Cli.CliParamsRegistry.KEY_CASE_SENSITIVE: FlextCliConstants.Cli.CliParamsRegistry.CASE_INSENSITIVE,
-            FlextCliConstants.Cli.CliParamsRegistry.KEY_FIELD_NAME_OVERRIDE: FlextCliConstants.Cli.CliParamsRegistry.LOG_FORMAT_OVERRIDE,
+            c.Cli.CliParamsRegistry.KEY_PRIORITY: c.Cli.CliParamsRegistry.PRIORITY_LOG_FORMAT,
+            c.Cli.CliParamsRegistry.KEY_CHOICES: c.Cli.Lists.LOG_LEVELS_LIST,
+            c.Cli.CliParamsRegistry.KEY_CASE_SENSITIVE: c.Cli.CliParamsRegistry.CASE_INSENSITIVE,
+            c.Cli.CliParamsRegistry.KEY_FIELD_NAME_OVERRIDE: c.Cli.CliParamsRegistry.LOG_FORMAT_OVERRIDE,
         },
         "output_format": {
-            FlextCliConstants.Cli.CliParamsRegistry.KEY_SHORT: FlextCliConstants.Cli.CliParamsRegistry.SHORT_FLAG_OUTPUT_FORMAT,
-            FlextCliConstants.Cli.CliParamsRegistry.KEY_PRIORITY: FlextCliConstants.Cli.CliParamsRegistry.PRIORITY_OUTPUT_FORMAT,
-            FlextCliConstants.Cli.CliParamsRegistry.KEY_CHOICES: list(
-                FlextCliConstants.Cli.ValidationLists.OUTPUT_FORMATS
+            c.Cli.CliParamsRegistry.KEY_SHORT: c.Cli.CliParamsRegistry.SHORT_FLAG_OUTPUT_FORMAT,
+            c.Cli.CliParamsRegistry.KEY_PRIORITY: c.Cli.CliParamsRegistry.PRIORITY_OUTPUT_FORMAT,
+            c.Cli.CliParamsRegistry.KEY_CHOICES: list(
+                c.Cli.ValidationLists.OUTPUT_FORMATS
             ),
-            FlextCliConstants.Cli.CliParamsRegistry.KEY_CASE_SENSITIVE: FlextCliConstants.Cli.CliParamsRegistry.CASE_INSENSITIVE,
+            c.Cli.CliParamsRegistry.KEY_CASE_SENSITIVE: c.Cli.CliParamsRegistry.CASE_INSENSITIVE,
         },
         "no_color": {
-            FlextCliConstants.Cli.CliParamsRegistry.KEY_PRIORITY: FlextCliConstants.Cli.CliParamsRegistry.PRIORITY_NO_COLOR,
+            c.Cli.CliParamsRegistry.KEY_PRIORITY: c.Cli.CliParamsRegistry.PRIORITY_NO_COLOR,
         },
         "config_file": {
-            FlextCliConstants.Cli.CliParamsRegistry.KEY_SHORT: FlextCliConstants.Cli.CliParamsRegistry.SHORT_FLAG_CONFIG_FILE,
-            FlextCliConstants.Cli.CliParamsRegistry.KEY_PRIORITY: FlextCliConstants.Cli.CliParamsRegistry.PRIORITY_CONFIG_FILE,
+            c.Cli.CliParamsRegistry.KEY_SHORT: c.Cli.CliParamsRegistry.SHORT_FLAG_CONFIG_FILE,
+            c.Cli.CliParamsRegistry.KEY_PRIORITY: c.Cli.CliParamsRegistry.PRIORITY_CONFIG_FILE,
         },
     }
 
@@ -161,9 +161,7 @@ class FlextCliCommonParams:
 
         """
         if not cls._params_enabled and cls._enforcement_mode:
-            return r[bool].fail(
-                FlextCliConstants.Cli.CliParamsErrorMessages.PARAMS_MANDATORY
-            )
+            return r[bool].fail(c.Cli.CliParamsErrorMessages.PARAMS_MANDATORY)
         return r[bool].ok(True)
 
     @classmethod
@@ -213,13 +211,13 @@ class FlextCliCommonParams:
             >>> params["verbose"]  # typer.Option(False, "--verbose", "-v", help="...")
 
         """
-        default_priority = FlextCliConstants.Cli.CliDefaults.DEFAULT_PRIORITY
+        default_priority = c.Cli.CliDefaults.DEFAULT_PRIORITY
         param_fields = sorted(
             cls.CLI_PARAM_REGISTRY.items(),
             key=lambda x: int(
                 str(
                     x[1].get(
-                        FlextCliConstants.Cli.CliParamsRegistry.KEY_PRIORITY,
+                        c.Cli.CliParamsRegistry.KEY_PRIORITY,
                         default_priority,
                     )
                 )
@@ -391,10 +389,10 @@ class FlextCliCommonParams:
 
         normalized = params.log_level.upper()
         try:
-            config.cli_log_level = FlextCliConstants.Cli.Settings.LogLevel(normalized)
+            config.cli_log_level = c.Cli.Settings.LogLevel(normalized)
             return r[FlextCliSettings].ok(config)
         except ValueError:
-            valid = FlextCliConstants.Cli.Lists.LOG_LEVELS_LIST
+            valid = c.Cli.Lists.LOG_LEVELS_LIST
             return r[FlextCliSettings].fail(
                 (
                     f"invalid log level: {params.log_level}. "
@@ -411,11 +409,8 @@ class FlextCliCommonParams:
         """Set log_format and output_format with validation."""
         # log_format maps to log_verbosity
         if params.log_format is not None:
-            if (
-                params.log_format
-                not in FlextCliConstants.Cli.CliParamsDefaults.VALID_LOG_FORMATS
-            ):
-                valid = FlextCliConstants.Cli.CliParamsDefaults.VALID_LOG_FORMATS
+            if params.log_format not in c.Cli.CliParamsDefaults.VALID_LOG_FORMATS:
+                valid = c.Cli.CliParamsDefaults.VALID_LOG_FORMATS
                 valid_str = ", ".join(valid)
                 return r[FlextCliSettings].fail(
                     f"invalid log format: {params.log_format}. valid: {valid_str}",
@@ -424,11 +419,9 @@ class FlextCliCommonParams:
 
         # output_format - use validator that returns proper Literal type
         if params.output_format is not None:
-            validated_result = FlextCliUtilities.Cli.CliValidation.v_format(
-                params.output_format
-            )
+            validated_result = u.Cli.CliValidation.v_format(params.output_format)
             if validated_result.is_failure:
-                valid = FlextCliConstants.Cli.CliParamsDefaults.VALID_OUTPUT_FORMATS
+                valid = c.Cli.CliParamsDefaults.VALID_OUTPUT_FORMATS
                 valid_str = ", ".join(valid)
                 return r[FlextCliSettings].fail(
                     f"invalid output format: {params.output_format}. valid: {valid_str}",
@@ -464,10 +457,10 @@ class FlextCliCommonParams:
                 return r[bool].fail("cli_log_level is not set")
             log_level_upper = config.cli_log_level.upper()
 
-            if log_level_upper not in FlextCliConstants.Cli.Lists.LOG_LEVELS_LIST:
-                valid = ", ".join(FlextCliConstants.Cli.Lists.LOG_LEVELS_LIST)
+            if log_level_upper not in c.Cli.Lists.LOG_LEVELS_LIST:
+                valid = ", ".join(c.Cli.Lists.LOG_LEVELS_LIST)
                 return r[bool].fail(
-                    FlextCliConstants.Cli.CliParamsErrorMessages.INVALID_LOG_LEVEL.format(
+                    c.Cli.CliParamsErrorMessages.INVALID_LOG_LEVEL.format(
                         log_level=log_level_upper,
                         valid=valid,
                     ),
@@ -478,9 +471,7 @@ class FlextCliCommonParams:
 
         except Exception as e:
             return r[bool].fail(
-                FlextCliConstants.Cli.CliParamsErrorMessages.CONFIGURE_LOGGER_FAILED.format(
-                    error=e
-                )
+                c.Cli.CliParamsErrorMessages.CONFIGURE_LOGGER_FAILED.format(error=e)
             )
 
     @classmethod
@@ -539,7 +530,7 @@ class FlextCliCommonParams:
             validation = cls.validate_enabled()
             if validation.is_failure and cls._enforcement_mode:
                 # In enforcement mode, any attempt to disable params is an error
-                sys.exit(FlextCliConstants.Cli.ExitCodes.FAILURE)
+                sys.exit(c.Cli.ExitCodes.FAILURE)
 
             # For Typer, parameters are defined in function signature
             # This decorator validates enforcement only

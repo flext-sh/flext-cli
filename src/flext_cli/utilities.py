@@ -463,7 +463,8 @@ class FlextCliUtilities(FlextUtilities):
                 msg = "mapper for sequences must accept 1 parameter"
                 raise TypeError(msg)
             if isinstance(items, (list, tuple)):
-                return [mapper(item) for item in items]
+                # Type inference issue with generic mapper - use explicit list construction
+                return list(map(mapper, items))
             if isinstance(items, (set, frozenset)):
                 return {mapper(item) for item in items}
             # Single value case - apply mapper directly
