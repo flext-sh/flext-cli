@@ -2569,10 +2569,7 @@ class FlextCliModels(FlextModels):
                     Callable[
                         [FlextCliTypes.GeneralValueType], FlextCliTypes.GeneralValueType
                     ]
-                ] = []
-                for item in field_info:
-                    if is_validator(item):
-                        result.append(item)  # noqa: PERF401
+                ] = [item for item in field_info if is_validator(item)]
                 return result
 
         class CliModelDecorators:
@@ -2792,7 +2789,6 @@ __all__ = [
     "CommandStatistics",
     "ContextExecutionResult",
     "DebugInfo",
-    "DomainEvent",
     "EnvironmentInfo",
     "FlextCliModels",
     "PathInfo",

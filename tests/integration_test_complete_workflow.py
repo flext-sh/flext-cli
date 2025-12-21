@@ -367,11 +367,15 @@ class TestCompleteWorkflowIntegration:
             "success_rate": success_rate,
             "processing_metrics": {
                 "average_name_length": round(
-                    float(data_dict["average_name_length"]) if isinstance(data_dict["average_name_length"], (int, float)) else 0.0,
+                    float(data_dict["average_name_length"])
+                    if isinstance(data_dict["average_name_length"], (int, float))
+                    else 0.0,
                     2,
                 ),
                 "efficiency_percentage": round(
-                    float(data_dict["processing_efficiency"]) if isinstance(data_dict["processing_efficiency"], (int, float)) else 0.0 * 100,
+                    float(data_dict["processing_efficiency"])
+                    if isinstance(data_dict["processing_efficiency"], (int, float))
+                    else 0.0 * 100,
                     2,
                 ),
             },
@@ -659,7 +663,9 @@ class TestCompleteWorkflowIntegration:
         output_file = temp_workspace / "processed_output.json"
 
         # Create backup data (valid)
-        backup_data: t.GeneralValueType = {"users": [{"id": 1, "name": "Backup User", "active": True}]}
+        backup_data: t.GeneralValueType = {
+            "users": [{"id": 1, "name": "Backup User", "active": True}]
+        }
         file_tools.write_json_file(
             str(backup_data_file),
             backup_data,
@@ -851,7 +857,9 @@ class TestCompleteWorkflowIntegration:
             "recovery_stats": data.get("recovery_stats"),
             "save_attempts": data.get("save_attempts"),
             "total_records_processed": len(
-                data.get("processed_users") if isinstance(data.get("processed_users"), list) else [],
+                data.get("processed_users")
+                if isinstance(data.get("processed_users"), list)
+                else [],
             ),
             "recovery_timestamp": "2025-01-01T12:00:00Z",
         }

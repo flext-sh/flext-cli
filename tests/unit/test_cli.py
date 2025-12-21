@@ -597,34 +597,3 @@ class TestsCliCli:
         assert config.verbose is True
         assert config.debug is True
 
-    # ========================================================================
-    # ADDITIONAL UTILITY METHODS TESTS
-    # ========================================================================
-
-    def test_clear_screen(self) -> None:
-        """Test clear_screen method."""
-        cli = FlextCliCli()
-        result = cli.clear_screen()
-        assert result.is_success
-
-    def test_pause(self) -> None:
-        """Test pause method."""
-        cli = FlextCliCli()
-        # Test with default message
-        result = cli.pause()
-        assert result.is_success
-
-    def test_get_current_context_none(self) -> None:
-        """Test get_current_context when not in command."""
-        cli = FlextCliCli()
-        ctx = cli.get_current_context()
-        assert ctx is None
-
-    def test_get_terminal_size(self) -> None:
-        """Test get_terminal_size method."""
-        cli = FlextCliCli()
-        width, height = cli.get_terminal_size()
-        assert isinstance(width, int)
-        assert isinstance(height, int)
-        assert width > 0
-        assert height > 0

@@ -113,7 +113,42 @@ def pytest_configure(config: pytest.Config) -> None:
     2. Built-in namespace for direct access in test files
     3. Module-level globals for type checking
     """
-    global ALICE, VALID_FIELD_NAME, FIELD_NAME, WHITESPACE_FIELD_NAME, VALID_STRING, STRING, WHITESPACE_STRING, NONE_VALUE, CUSTOM, TWO, PASSWORD, LONG, SPECIAL, UNICODE, PERFORMANCE_THRESHOLD, INFO, WARNING, ALL, NAME_HEADER, GRID, FANCY_GRID, INVALID, ExpectedALL, PYTEST_CURRENT_TEST, PYTEST_BINARY, CI_VALUE, SpecializedCASES, Borders, Data, Config, OutputFormats, Statuses, FileOps, Password, Progress  # noqa: PLW0603
+    global \
+        ALICE, \
+        VALID_FIELD_NAME, \
+        FIELD_NAME, \
+        WHITESPACE_FIELD_NAME, \
+        VALID_STRING, \
+        STRING, \
+        WHITESPACE_STRING, \
+        NONE_VALUE, \
+        CUSTOM, \
+        TWO, \
+        PASSWORD, \
+        LONG, \
+        SPECIAL, \
+        UNICODE, \
+        PERFORMANCE_THRESHOLD, \
+        INFO, \
+        WARNING, \
+        ALL, \
+        NAME_HEADER, \
+        GRID, \
+        FANCY_GRID, \
+        INVALID, \
+        ExpectedALL, \
+        PYTEST_CURRENT_TEST, \
+        PYTEST_BINARY, \
+        CI_VALUE, \
+        SpecializedCASES, \
+        Borders, \
+        Data, \
+        Config, \
+        OutputFormats, \
+        Statuses, \
+        FileOps, \
+        Password, \
+        Progress  # noqa: PLW0603
 
     # Test data constants - access from c.Cli
     ALICE = builtins.ALICE = c.Cli.ALICE

@@ -19,6 +19,7 @@ from flext_core import (
     FlextContainer,
     FlextLogger,
     FlextRuntime,
+    FlextTypes,
     r,
 )
 
@@ -42,7 +43,6 @@ from flext_cli.services.output import FlextCliOutput
 from flext_cli.services.prompts import FlextCliPrompts
 from flext_cli.services.tables import FlextCliTables
 from flext_cli.settings import FlextCliSettings
-from flext_cli.typings import FlextCliTypes
 from flext_cli.utilities import FlextCliUtilities
 
 
@@ -185,7 +185,7 @@ class FlextCli:
         self._valid_tokens: set[str] = set()
         self._valid_sessions: set[str] = set()
         self._session_permissions: dict[str, set[str]] = {}
-        self._users: dict[str, dict[str, FlextCliTypes.GeneralValueType]] = {}
+        self._users: dict[str, dict[str, FlextTypes.GeneralValueType]] = {}
         self._deleted_users: set[str] = set()
 
     @classmethod
@@ -287,7 +287,7 @@ class FlextCli:
 
         token_path = self.config.token_file
         # Create dict with FlextCliTypes.GeneralValueType for Mapper compatibility
-        token_data: dict[str, FlextCliTypes.GeneralValueType] = {
+        token_data: dict[str, FlextTypes.GeneralValueType] = {
             # str is subtype of FlextCliTypes.GeneralValueType
             FlextCliConstants.Cli.DictKeys.TOKEN: token,
         }
@@ -375,7 +375,8 @@ class FlextCli:
 
     def is_authenticated(self) -> bool:
         """Check if user is authenticated."""
-        return self.get_auth_token().is_success
+        auth_result = self.get_auth_token()
+        return auth_result.is_success if hasattr(auth_result, "is_success") else False
 
     def clear_auth_tokens(self) -> r[bool]:
         """Clear authentication tokens using file tools domain library."""
@@ -545,10 +546,10 @@ class FlextCli:
     # EXECUTION
     # =========================================================================
 
-    def execute(self) -> r[Mapping[str, FlextCliTypes.GeneralValueType]]:
+    def execute(self) -> r[Mapping[str, FlextTypes.GeneralValueType]]:
         """Execute CLI service with railway pattern."""
         # Build JsonDict - convert version to string, components as dict
-        result_dict: dict[str, FlextCliTypes.GeneralValueType] = {
+        result_dict: dict[str, FlextTypes.GeneralValueType] = {
             FlextCliConstants.Cli.DictKeys.STATUS: (
                 FlextCliConstants.Cli.ServiceStatus.OPERATIONAL.value
             ),
@@ -563,7 +564,7 @@ class FlextCli:
             },
         }
 
-        return r[dict[str, FlextCliTypes.GeneralValueType]].ok(result_dict)
+        return r[dict[str, FlextTypes.GeneralValueType]].ok(result_dict)
 
     # =========================================================================
     # CONVENIENCE METHODS - Delegate to service instances
@@ -579,8 +580,8 @@ class FlextCli:
 
     def create_table(
         self,
-        data: Sequence[Mapping[str, FlextCliTypes.GeneralValueType]]
-        | Mapping[str, FlextCliTypes.GeneralValueType]
+        data: Sequence[Mapping[str, FlextTypes.GeneralValueType]]
+        | Mapping[str, FlextTypes.GeneralValueType]
         | None = None,
         headers: list[str] | None = None,
         title: str | None = None,
@@ -592,14 +593,14 @@ class FlextCli:
             )
 
         # Convert data using Mapper for type-safe conversion
-        table_data: FlextCliTypes.GeneralValueType
+        table_data: FlextTypes.GeneralValueType
         if isinstance(data, dict):
             # Use FlextCliUtilities.transform for JSON conversion
             transform_result = FlextCliUtilities.transform(data, to_json=True)
             table_data = transform_result.value if transform_result.is_success else data
         else:
             # Handle all Sequence types - use FlextCliUtilities.map to convert items
-            data_list: list[FlextCliTypes.GeneralValueType] = list(data)
+            data_list: list[FlextTypes.GeneralValueType] = list(data)
             mapped_result = FlextCliUtilities.Collection.map(
                 data_list,
                 mapper=lambda item: (
@@ -610,7 +611,7 @@ class FlextCli:
                     else item
                 ),
             )
-            converted_list: list[FlextCliTypes.GeneralValueType] = (
+            converted_list: list[FlextTypes.GeneralValueType] = (
                 list(mapped_result) if isinstance(mapped_result, (list, tuple)) else []
             )
             table_data = converted_list

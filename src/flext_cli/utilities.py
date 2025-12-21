@@ -167,32 +167,49 @@ class FlextCliUtilities(FlextUtilities):
             if not callable(predicate):
                 msg = "predicate must be callable"
                 raise TypeError(msg)
-            # Use predicate directly - items is list[T] | tuple[T, ...], so items are T
-            # predicate accepts T, so direct call is type-safe
-            # No wrapper needed - use predicate directly with proper type narrowing
-            return FlextUtilities.Collection.filter(items, predicate)
+            # Convert to list for flext-core filter which accepts Sequence
+            items_sequence = list(items) if isinstance(items, tuple) else items
+            result = FlextUtilities.Collection.filter(items_sequence, predicate)
+            # Type narrowing: for list/tuple inputs, result should be list[T]
+            if isinstance(result, list):
+                return result
+            # Fallback for unexpected types
+            return list(result) if hasattr(result, "__iter__") else []
 
         @staticmethod
         def process[T, R](
             items: T | list[T] | tuple[T, ...] | dict[str, T] | Mapping[str, T],
             processor: Callable[[T], R] | Callable[[str, T], R],
             *,
-            on_error: str = "skip",
+            on_error: str = "skip",  # noqa: ARG004
         ) -> r[list[R] | dict[str, R]]:
-            """Process items using flext-core Collection.process.
+            """Process items using flext-core Collection.map.
 
-            Wrapper for FlextUtilities.Collection.process() to maintain compatibility.
+            Wrapper for FlextUtilities.Collection.map() to maintain compatibility.
             Returns r[list[R] | dict[str, R]] as per flext-core signature.
             """
-            result = FlextUtilities.Collection.process(
-                items, processor, on_error=on_error
-            )
-            # Convert RuntimeResult to r (r[T])
-            return (
-                r[list[R] | dict[str, R]].ok(result.value)
-                if result.is_success
-                else r[list[R] | dict[str, R]].fail(result.error or "")
-            )
+            try:
+                # Process items directly for type safety
+                if isinstance(items, (list, tuple)):
+                    # For sequences, map each item
+                    if callable(processor):
+                        processed = [processor(item) for item in items]
+                        return r[list[R] | dict[str, R]].ok(processed)
+                elif isinstance(items, dict):
+                    # For dicts, map values
+                    if callable(processor):
+                        processed = {k: processor(k, v) for k, v in items.items()}
+                        return r[list[R] | dict[str, R]].ok(processed)
+                # For single items, apply processor directly
+                elif callable(processor):
+                    result = processor(items)
+                    return r[list[R] | dict[str, R]].ok([result])
+
+                return r[list[R] | dict[str, R]].fail(
+                    "Unsupported item type for processing"
+                )
+            except Exception as e:
+                return r[list[R] | dict[str, R]].fail(f"Processing failed: {e}")
 
         @overload
         @staticmethod
@@ -269,8 +286,9 @@ class FlextCliUtilities(FlextUtilities):
                 raise TypeError(msg)
             # Use predicate directly - items is list[T] | tuple[T, ...], so items are T
             # predicate accepts T, so direct call is type-safe
-            # No wrapper needed - use predicate directly with proper type narrowing
-            return FlextUtilities.Collection.find(items, predicate)
+            result = FlextUtilities.Collection.find(items, predicate)
+            # Type narrowing: result should be T | None for list/tuple inputs
+            return result if result is not None else None
 
         @staticmethod
         def validate_required_string(
@@ -332,7 +350,7 @@ class FlextCliUtilities(FlextUtilities):
             | r[T],
             mapper: Callable[[T], R] | Callable[[str, T], R],
             *,
-            default_error: str = "Operation failed",
+            default_error: str = "Operation failed",  # noqa: ARG004
         ) -> list[R] | set[R] | frozenset[R] | dict[str, R] | r[R]:
             """Map items using flext-core Collection.map.
 
@@ -364,42 +382,34 @@ class FlextCliUtilities(FlextUtilities):
                 return param_count == dict_param_count
 
             # Type narrowing based on items type and mapper signature
-            # Dispatch to appropriate FlextUtilities.Collection.map overload based on items type
             if isinstance(items, r):
                 # For r[T], mapper must be Callable[[T], R] with 1 parameter
                 if not is_single_param_mapper(mapper):
                     msg = "mapper for r[T] must accept 1 parameter"
                     raise TypeError(msg)
-                # Type guard confirms mapper is Callable[[T], R]
-                result = FlextUtilities.Collection.map(
-                    items,
-                    mapper,
-                    default_error=default_error,
-                )
-                # Convert RuntimeResult to r (r[R])
-                return (
-                    r[R].ok(result.value)
-                    if result.is_success
-                    else r[R].fail(result.error or "")
-                )
+                # For r[T], apply mapper to the value
+                if hasattr(items, "value"):
+                    mapped_value = mapper(items.value)
+                    return r[R].ok(mapped_value)
+                return r[R].fail("Invalid r[T] object")
             if isinstance(items, (dict, Mapping)):
                 # For dict, mapper must be Callable[[str, T], R] with 2 parameters
                 if not is_dict_mapper(mapper):
                     msg = "mapper for dict must accept 2 parameters (str, T)"
                     raise TypeError(msg)
-                # Type guard confirms mapper is Callable[[str, T], R]
-                return FlextUtilities.Collection.map(items, mapper)
-            # For list, tuple, set, frozenset - mapper must be Callable[[T], R] with 1 parameter
+                # For dict, map each key-value pair
+                return {k: mapper(k, v) for k, v in items.items()}
+            # For sequences - mapper must be Callable[[T], R] with 1 parameter
             if not is_single_param_mapper(mapper):
                 msg = "mapper for sequences must accept 1 parameter"
                 raise TypeError(msg)
-            # Type guard confirms mapper is Callable[[T], R]
             if isinstance(items, (list, tuple)):
-                return FlextUtilities.Collection.map(items, mapper)
+                return [mapper(item) for item in items]
             if isinstance(items, (set, frozenset)):
-                return FlextUtilities.Collection.map(items, mapper)
-            # Single value case - wrap in list
-            return FlextUtilities.Collection.map([items], mapper)
+                return {mapper(item) for item in items}
+            # Single value case - apply mapper directly
+            mapped_value = mapper(items)
+            return [mapped_value]
 
         @staticmethod
         def build(
