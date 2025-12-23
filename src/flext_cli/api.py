@@ -595,9 +595,7 @@ class FlextCli:
                 ),
             )
             # Since we pass a list to Collection.map, result is list[object]
-            raw_list = (
-                mapped_result if isinstance(mapped_result, list) else []
-            )
+            raw_list = mapped_result if isinstance(mapped_result, list) else []
             converted_list: list[FlextTypes.GeneralValueType] = raw_list
             table_data = converted_list
 
