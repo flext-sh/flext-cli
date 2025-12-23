@@ -423,7 +423,9 @@ class FlextCliDebug(FlextCliServiceBase):
             current_dir = pathlib.Path.cwd()
             test_file = current_dir / "test_write.tmp"
             try:
-                pathlib.Path(test_file).write_text("test", encoding=FlextCliConstants.Cli.Utilities.DEFAULT_ENCODING)
+                pathlib.Path(test_file).write_text(
+                    "test", encoding=FlextCliConstants.Cli.Utilities.DEFAULT_ENCODING
+                )
                 pathlib.Path(test_file).unlink()
             except OSError as e:
                 errors.append(
