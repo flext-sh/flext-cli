@@ -15,7 +15,13 @@ import secrets
 from collections.abc import Callable, Mapping
 from typing import TypeGuard
 
-from flext_core import FlextContainer, FlextLogger, FlextRuntime, FlextTypes, r
+from flext_core import (
+    FlextContainer as container,
+    FlextLogger as logger_core,
+    FlextResult as r,
+    FlextRuntime as runtime,
+    FlextTypes as t,
+)
 
 from flext_cli.__version__ import __version__
 from flext_cli.app_base import FlextCliAppBase
@@ -127,7 +133,7 @@ class FlextCli:
     _lock = __import__("threading").Lock()
 
     # Public service instances
-    logger: FlextLogger
+    logger: logger_core
     config: FlextCliSettings
     formatters: FlextCliFormatters
     file_tools: FlextCliFileTools
@@ -142,8 +148,8 @@ class FlextCli:
         self._version = c.Cli.CLI_VERSION
         self._description = f"{self._name}{c.Cli.APIDefaults.APP_DESCRIPTION_SUFFIX}"
 
-        self.logger = FlextLogger(__name__)
-        self._container = FlextContainer()
+        self.logger = logger_core(__name__)
+        self._container = container()
         if not self._container.has_service(
             c.Cli.APIDefaults.CONTAINER_REGISTRATION_KEY,
         ):
@@ -175,7 +181,7 @@ class FlextCli:
         self._valid_tokens: set[str] = set()
         self._valid_sessions: set[str] = set()
         self._session_permissions: dict[str, set[str]] = {}
-        self._users: dict[str, dict[str, FlextTypes.GeneralValueType]] = {}
+        self._users: dict[str, dict[str, t.GeneralValueType]] = {}
         self._deleted_users: set[str] = set()
 
     @classmethod
@@ -275,7 +281,7 @@ class FlextCli:
 
         token_path = self.config.token_file
         # Create dict with FlextCliTypes.GeneralValueType for Mapper compatibility
-        token_data: dict[str, FlextTypes.GeneralValueType] = {
+        token_data: dict[str, t.GeneralValueType] = {
             # str is subtype of FlextCliTypes.GeneralValueType
             c.Cli.DictKeys.TOKEN: token,
         }
@@ -338,7 +344,7 @@ class FlextCli:
             return self._handle_token_file_error(str(result.error))
 
         data = result.value
-        if not data or (FlextRuntime.is_dict_like(data) and not data):
+        if not data or (runtime.is_dict_like(data) and not data):
             return r[str].fail(c.Cli.ErrorMessages.TOKEN_FILE_EMPTY)
 
         # Try direct extraction
@@ -527,10 +533,10 @@ class FlextCli:
     # EXECUTION
     # =========================================================================
 
-    def execute(self) -> r[Mapping[str, FlextTypes.GeneralValueType]]:
+    def execute(self) -> r[Mapping[str, t.GeneralValueType]]:
         """Execute CLI service with railway pattern."""
         # Build JsonDict - convert version to string, components as dict
-        result_dict: dict[str, FlextTypes.GeneralValueType] = {
+        result_dict: dict[str, t.GeneralValueType] = {
             c.Cli.DictKeys.STATUS: (c.Cli.ServiceStatus.OPERATIONAL.value),
             c.Cli.DictKeys.SERVICE: c.Cli.FLEXT_CLI,
             "timestamp": u.generate("timestamp"),
@@ -543,7 +549,7 @@ class FlextCli:
             },
         }
 
-        return r[dict[str, FlextTypes.GeneralValueType]].ok(result_dict)
+        return r[dict[str, t.GeneralValueType]].ok(result_dict)
 
     # =========================================================================
     # CONVENIENCE METHODS - Delegate to service instances

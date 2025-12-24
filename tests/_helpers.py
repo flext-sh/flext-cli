@@ -11,6 +11,7 @@ from flext_cli import FlextCliCommands
 
 # Direct imports to avoid forward reference issues
 from flext_cli.models import m
+from flext_cli.typings import FlextCliTypes as t
 
 
 # Factory functions using direct model instantiation (no forward refs)
@@ -280,7 +281,7 @@ class CommandsFactory:
     ) -> r[bool]:
         """Register a command that accepts arguments."""
 
-        def handler(*args: str, **kwargs: Any) -> str:
+        def handler(*args: str, **kwargs: t.GeneralValueType) -> str:
             # Return formatted string with args count (expected by test)
             return f"args: {len(args)}"
 

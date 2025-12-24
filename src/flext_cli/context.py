@@ -12,7 +12,10 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
-from flext_core import FlextModels, r
+from flext_core import (
+    FlextModels as m_core,
+    FlextResult as r,
+)
 from pydantic import ConfigDict, Field
 
 from flext_cli.constants import FlextCliConstants
@@ -21,7 +24,7 @@ from flext_cli.typings import t
 from flext_cli.utilities import FlextCliUtilities
 
 
-class FlextCliContext(FlextModels.Value):
+class FlextCliContext(m_core.Value):
     """CLI execution context with type-safe operations and FlextResult patterns.
 
     Business Rules:

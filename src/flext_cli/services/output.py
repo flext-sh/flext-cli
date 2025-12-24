@@ -25,6 +25,7 @@ from flext_cli.constants import FlextCliConstants
 from flext_cli.formatters import FlextCliFormatters
 from flext_cli.models import m
 from flext_cli.protocols import p
+from flext_cli.services.tables import FlextCliTables
 from flext_cli.utilities import FlextCliUtilities
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -73,19 +74,6 @@ class FlextCliOutput(FlextCliServiceBase, FlextMixins):
     - FlextCliTables: Tabulate-based ASCII tables (performance, plain text)
     - Built-in: JSON, YAML, CSV formatting
 
-    # Logger is provided by FlextMixins mixin
-    logger: l_core
-
-    # Private attributes for internal state management
-    # Direct attributes (FlextService pattern - no PrivateAttr needed)
-    # Initialized in __init__ via object.__setattr__, so type checkers need assertions
-    _formatters: FlextCliFormatters
-    _tables: FlextCliTables
-    _result_formatters: dict[
-        type,
-        Callable[[t.GeneralValueType | r[t.GeneralValueType], str], None],
-    ]
-
     Examples:
         >>> output = FlextCliOutput()
         >>>
@@ -114,6 +102,13 @@ class FlextCliOutput(FlextCliServiceBase, FlextMixins):
         abstraction layers internally. NO Rich imports are present here.
 
     """
+
+    # Logger is provided by FlextMixins mixin
+    # Private attributes for internal state management
+    # Direct attributes (FlextService pattern - no PrivateAttr needed)
+    # Initialized in __init__ via object.__setattr__, so type checkers need assertions
+    _formatters: FlextCliFormatters
+    _tables: FlextCliTables
 
     # ═══════════════════════════════════════════════════════════════════════════
     # STATIC HELPER METHODS - General purpose utilities for output operations
@@ -2082,6 +2077,22 @@ class FlextCliOutput(FlextCliServiceBase, FlextMixins):
             msg = "concrete_console must implement RichConsoleProtocol"
             raise TypeError(msg)
         return concrete_console
+
+    def execute(self) -> r[dict[str, t.GeneralValueType]]:
+        """Execute service - required by FlextService abstract method.
+
+        Returns:
+            r[dict]: Service status and operation information
+
+        Note:
+            FlextCliOutput is a utility service that formats and displays data.
+            The execute() method returns service operational status.
+
+        """
+        return r[dict[str, t.GeneralValueType]].ok({
+            FlextCliConstants.Cli.DictKeys.STATUS: FlextCliConstants.Cli.ServiceStatus.OPERATIONAL.value,
+            FlextCliConstants.Cli.DictKeys.SERVICE: FlextCliConstants.Cli.Services.OUTPUT,
+        })
 
 
 __all__ = ["FlextCliOutput"]
