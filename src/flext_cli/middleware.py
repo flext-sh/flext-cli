@@ -14,9 +14,9 @@ import time
 from collections.abc import Callable
 from typing import Protocol
 
+from flext_core import r
 from pydantic import BaseModel
 
-from flext import r
 from flext_cli.protocols import p
 
 

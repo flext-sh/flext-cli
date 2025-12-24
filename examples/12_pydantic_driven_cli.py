@@ -29,9 +29,9 @@ from __future__ import annotations
 import time
 
 from example_utils import display_config_table, display_success_summary
+from flext_core import FlextResult
 from pydantic import BaseModel, Field, field_validator
 
-from flext import FlextResult
 from flext_cli import FlextCli, m, r, t, u
 
 cli = FlextCli()

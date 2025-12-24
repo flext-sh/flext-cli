@@ -45,6 +45,7 @@ from flext_cli import (
     r,
     t,
     u,
+)
 
 cli = FlextCli()
 tables = FlextCliTables()

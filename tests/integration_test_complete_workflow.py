@@ -23,7 +23,7 @@ from typing import TypedDict, cast
 
 import pytest
 
-from flext import t
+from flext_core import t
 from flext_cli import (
     FlextCli,
     FlextCliFileTools,
@@ -34,6 +34,7 @@ from flext_cli import (
     c,
     r,
     u,
+)
 
 
 class FlextCliIntegrationTestTypes(FlextCliTypes):

@@ -22,7 +22,7 @@ from flext_tests.typings import (
     TTestModel,
     TTestResult,
     TTestService,
-
+)
 from flext_cli.typings import t as cli_t
 
 

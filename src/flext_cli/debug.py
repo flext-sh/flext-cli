@@ -18,7 +18,8 @@ import tempfile
 from collections.abc import Mapping
 from typing import override
 
-from flext import r
+from flext_core import r
+
 from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import FlextCliModels

@@ -37,7 +37,8 @@ import pathlib
 import time
 from pathlib import Path
 
-from flext import FlextResult
+from flext_core import FlextResult
+
 from flext_cli import (
     FlextCli,
     FlextCliTables,

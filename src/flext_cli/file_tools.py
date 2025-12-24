@@ -22,9 +22,10 @@ from collections.abc import Callable
 from pathlib import Path
 
 import yaml
-from flext import (
+from flext_core import (
     FlextRuntime,
-    r
+    r,
+)
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.typings import FlextCliTypes
