@@ -19,20 +19,15 @@ import logging
 import shutil
 from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
-from typing import IO, Annotated, TypeGuard
+from typing import IO, Annotated, TypeGuard, cast
 
 import click
 import typer
 from click.exceptions import UsageError
-from flext_core import (
-    FlextContainer,
-    FlextLogger,
-    FlextRuntime,
-    r,
-)
 from pydantic import BaseModel
 from typer.testing import CliRunner
 
+from flext_core import FlextContainer, FlextLogger, FlextRuntime, r
 from flext_cli.cli_params import FlextCliCommonParams
 from flext_cli.constants import FlextCliConstants as c
 from flext_cli.models import ConfirmConfig, OptionConfig, m
@@ -214,13 +209,13 @@ class FlextCliCli:
         # Handle conversion based on type_name with proper type safety
         if type_name == "str":
             str_default = "" if not isinstance(default, str) else default
-            built_val: t.GeneralValueType = u.convert(val, str, str_default)
+            built_val: t.GeneralValueType = u.Cli.convert(val, str, str_default)
         elif type_name == "bool":
             bool_default = False if not isinstance(default, bool) else default
-            built_val = u.convert(val, bool, bool_default)
+            built_val = u.Cli.convert(val, bool, bool_default)
         else:  # dict
             dict_default = {} if not isinstance(default, dict) else default
-            built_val = u.convert(val, dict, dict_default)
+            built_val = u.Cli.convert(val, dict, dict_default)
         result = (
             built_val
             if isinstance(
@@ -251,8 +246,10 @@ class FlextCliCli:
             "log_level",
             None,
         )
-        log_level_built = u.convert(
-            log_level_attr.value if log_level_attr else None, str, "INFO"
+        log_level_built = u.Cli.convert(
+            log_level_attr.value if log_level_attr else None,
+            str,
+            "INFO",
         )
         log_level_name: str = (
             str(log_level_built) if log_level_built is not None else "INFO"
@@ -507,10 +504,13 @@ class FlextCliCli:
         val = u.get(kwargs, key)
         if val is None:
             return default
-        return u.convert(val, bool, default)
+        return u.Cli.convert(val, bool, default)
 
     def _build_str_value(
-        self, kwargs: dict[str, t.GeneralValueType], key: str, default: str = ""
+        self,
+        kwargs: dict[str, t.GeneralValueType],
+        key: str,
+        default: str = "",
     ) -> str:
         """Extract and build str value from kwargs."""
         val = u.mapper().get(kwargs, key)
@@ -519,7 +519,6 @@ class FlextCliCli:
         build_result = u.build(
             val,
             ops={"ensure": "str", "ensure_default": default},
-            on_error="skip",
         )
         if not isinstance(build_result, str):
             msg = "build_result must be str"
@@ -527,13 +526,13 @@ class FlextCliCli:
         return build_result
 
     def _normalize_type_hint(
-        self, type_hint_val: t.GeneralValueType | None
+        self,
+        type_hint_val: t.GeneralValueType | None,
     ) -> t.GeneralValueType | None:
         """Normalize and validate type hint value."""
         type_hint_build = u.build(
             type_hint_val,
             ops={"ensure_default": None},
-            on_error="skip",
         )
         # Type narrowing: build returns t.GeneralValueType | None
         if type_hint_build is None:
@@ -557,7 +556,8 @@ class FlextCliCli:
         return str(type_hint_build)
 
     def _build_option_config_from_kwargs(
-        self, kwargs: dict[str, t.GeneralValueType]
+        self,
+        kwargs: dict[str, t.GeneralValueType],
     ) -> OptionConfig:
         """Build OptionConfig from kwargs dict."""
         return OptionConfig(
@@ -722,7 +722,6 @@ class FlextCliCli:
                 "ensure": "list",
                 "ensure_default": c.Cli.FileDefaults.DEFAULT_DATETIME_FORMATS,
             },
-            on_error="skip",
         )
         if not isinstance(formats_build, list):
             msg = "formats_build must be list"
@@ -941,7 +940,6 @@ class FlextCliCli:
             build_result = u.build(
                 val,
                 ops={"ensure": "bool", "ensure_default": default},
-                on_error="skip",
             )
             if not isinstance(build_result, bool):
                 msg = "build_result must be bool"
@@ -956,7 +954,6 @@ class FlextCliCli:
             build_result = u.build(
                 val,
                 ops={"ensure": "str", "ensure_default": default},
-                on_error="skip",
             )
             if not isinstance(build_result, str):
                 msg = "build_result must be str"
@@ -1012,7 +1009,8 @@ class FlextCliCli:
             config_instance = FlextCliCli._build_confirm_config_from_kwargs(kwargs)
             # Type narrowing: config_instance implements ConfirmConfigProtocol
             if not hasattr(config_instance, "default") or not hasattr(
-                config_instance, "abort"
+                config_instance,
+                "abort",
             ):
                 msg = "config_instance must have 'default' and 'abort' attributes"
                 raise TypeError(msg)
@@ -1054,7 +1052,6 @@ class FlextCliCli:
             build_result = u.build(
                 val,
                 ops={"ensure": "bool", "ensure_default": default},
-                on_error="skip",
             )
             if not isinstance(build_result, bool):
                 msg = "build_result must be bool"
@@ -1069,7 +1066,6 @@ class FlextCliCli:
             build_result = u.build(
                 val,
                 ops={"ensure": "str", "ensure_default": default},
-                on_error="skip",
             )
             if not isinstance(build_result, str):
                 msg = "build_result must be str"
@@ -1165,7 +1161,7 @@ class FlextCliCli:
                 if isinstance(result, dict)
                 else result
             )
-            return r[t.GeneralValueType].ok(json_value)
+            return r[t.GeneralValueType].ok(cast("t.GeneralValueType", json_value))
         except typer.Abort as e:
             return r[t.GeneralValueType].fail(
                 c.Cli.ErrorMessages.USER_ABORTED_PROMPT.format(error=e),

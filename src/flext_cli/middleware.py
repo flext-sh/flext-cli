@@ -31,8 +31,11 @@ class FlextMiddleware(Protocol):
 
     def __call__(
         self,
+)
         ctx: p.Cli.CliContextProtocol,
+)
         next_: Callable[[p.Cli.CliContextProtocol], r[object]],
+)
     ) -> r[object]:
         """Process and pass to next middleware.
 
@@ -52,8 +55,11 @@ class LoggingMiddleware:
 
     def __call__(
         self,
+)
         ctx: p.Cli.CliContextProtocol,
+)
         next_: Callable[[p.Cli.CliContextProtocol], r[object]],
+)
     ) -> r[object]:
         """Log command execution.
 
@@ -87,8 +93,11 @@ class ValidationMiddleware:
 
     def __call__(
         self,
+)
         ctx: p.Cli.CliContextProtocol,
+)
         next_: Callable[[p.Cli.CliContextProtocol], r[object]],
+)
     ) -> r[object]:
         """Validate command inputs.
 
@@ -128,8 +137,11 @@ class RetryMiddleware:
 
     def __call__(
         self,
+)
         ctx: p.Cli.CliContextProtocol,
+)
         next_: Callable[[p.Cli.CliContextProtocol], r[object]],
+)
     ) -> r[object]:
         """Retry failed commands.
 
@@ -158,7 +170,9 @@ class RetryMiddleware:
 
 def compose_middleware(
     middlewares: list[FlextMiddleware],
+)
     handler: Callable[[p.Cli.CliContextProtocol], r[object]],
+)
 ) -> Callable[[p.Cli.CliContextProtocol], r[object]]:
     """Compose middleware into single callable.
 

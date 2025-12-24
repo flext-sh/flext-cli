@@ -22,8 +22,8 @@ from pathlib import Path
 from typing import TypedDict, cast
 
 import pytest
-from flext_core import t
 
+from flext import t
 from flext_cli import (
     FlextCli,
     FlextCliFileTools,
@@ -155,11 +155,14 @@ class TestCompleteWorkflowIntegration:
             "r[dict[str, t.GeneralValueType]]",
             (
                 # Step 1: Load raw data
-                file_tools.read_json_file(str(input_file))
+                file_tools
+                .read_json_file(str(input_file))
                 .flat_map(
-                    lambda data: r.ok(data)
-                    if isinstance(data, dict)
-                    else r.fail("Data must be dict"),
+                    lambda data: (
+                        r.ok(data)
+                        if isinstance(data, dict)
+                        else r.fail("Data must be dict")
+                    ),
                 )
                 .map(
                     lambda data: (cli.output.print_message("✅ Raw data loaded"), data)[
@@ -286,7 +289,8 @@ class TestCompleteWorkflowIntegration:
         return result
 
     def _transform_pipeline_data(
-        self, data: dict[str, t.GeneralValueType]
+        self,
+        data: dict[str, t.GeneralValueType],
     ) -> dict[str, t.GeneralValueType]:
         """Transform pipeline data: filter active users and enrich."""
         data_dict = data
@@ -314,7 +318,8 @@ class TestCompleteWorkflowIntegration:
         }
 
     def _generate_pipeline_stats(
-        self, data: dict[str, t.GeneralValueType]
+        self,
+        data: dict[str, t.GeneralValueType],
     ) -> Mapping[str, t.GeneralValueType]:
         """Generate processing statistics."""
         active_users = data["active_users"]
@@ -346,7 +351,8 @@ class TestCompleteWorkflowIntegration:
         }
 
     def _create_pipeline_report(
-        self, data: Mapping[str, t.GeneralValueType]
+        self,
+        data: Mapping[str, t.GeneralValueType],
     ) -> Mapping[str, t.GeneralValueType]:
         """Create comprehensive pipeline report."""
         data_dict = data
@@ -440,11 +446,14 @@ class TestCompleteWorkflowIntegration:
         # Execute report generation pipeline
         report_result = (
             # Step 1: Load configuration and data
-            file_tools.read_json_file(str(data_file))
+            file_tools
+            .read_json_file(str(data_file))
             .flat_map(
-                lambda data: r.ok((config, data))
-                if isinstance(data, dict)
-                else r.fail("Loaded data must be a dictionary"),
+                lambda data: (
+                    r.ok((config, data))
+                    if isinstance(data, dict)
+                    else r.fail("Loaded data must be a dictionary")
+                ),
             )
             # Step 2: Process sales data with config
             .map(
@@ -664,7 +673,7 @@ class TestCompleteWorkflowIntegration:
 
         # Create backup data (valid)
         backup_data: t.GeneralValueType = {
-            "users": [{"id": 1, "name": "Backup User", "active": True}]
+            "users": [{"id": 1, "name": "Backup User", "active": True}],
         }
         file_tools.write_json_file(
             str(backup_data_file),
@@ -674,7 +683,8 @@ class TestCompleteWorkflowIntegration:
         # Execute workflow with fallback mechanisms
         workflow_result = (
             # Step 1: Try primary data source (will fail)
-            self._load_data_with_fallback(primary_data_file, backup_data_file)
+            self
+            ._load_data_with_fallback(primary_data_file, backup_data_file)
             .map(
                 lambda data: (
                     cli.output.print_message("✅ Data loaded (with fallback)"),
@@ -711,9 +721,11 @@ class TestCompleteWorkflowIntegration:
             )
             # Step 4: Generate recovery report
             .map(
-                lambda data: self._generate_recovery_report(data)
-                if isinstance(data, dict)
-                else {},
+                lambda data: (
+                    self._generate_recovery_report(data)
+                    if isinstance(data, dict)
+                    else {}
+                ),
             )
         )
 
@@ -847,7 +859,8 @@ class TestCompleteWorkflowIntegration:
         return r.fail(f"Save failed after {max_retries} attempts: {last_error}")
 
     def _generate_recovery_report(
-        self, data: dict[str, object]
+        self,
+        data: dict[str, object],
     ) -> Mapping[str, object]:
         """Generate comprehensive recovery report."""
         return {

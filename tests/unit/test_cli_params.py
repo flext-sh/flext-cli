@@ -15,7 +15,7 @@ from enum import StrEnum
 from pathlib import Path
 
 import typer
-from flext_core import r
+from flext import r
 from flext_tests import tm
 from typer.testing import CliRunner
 

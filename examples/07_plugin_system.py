@@ -67,7 +67,8 @@ class DataExportPlugin:
         if output_format == "json":
             output = json.dumps(data, indent=2)
             _ = cli.print(
-                f"✅ Exported data as JSON ({len(output)} chars)", style="green"
+                f"✅ Exported data as JSON ({len(output)} chars)",
+                style="green",
             )
             return r[str].ok(output)
         return r[str].fail(f"Unsupported format: {output_format}")
@@ -364,10 +365,12 @@ def main() -> None:
     _ = cli.print("\n💡 Integration Tips:", style="bold cyan")
     _ = cli.print("  • Create plugin classes with execute() method", style="white")
     _ = cli.print(
-        "  • Use plugin manager to register and execute plugins", style="white"
+        "  • Use plugin manager to register and execute plugins",
+        style="white",
     )
     _ = cli.print(
-        "  • Add lifecycle hooks (initialize, cleanup) as needed", style="white"
+        "  • Add lifecycle hooks (initialize, cleanup) as needed",
+        style="white",
     )
     _ = cli.print("  • Use FlextResult for plugin error handling", style="white")
 

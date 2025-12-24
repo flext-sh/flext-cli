@@ -10,7 +10,7 @@
 ## Table of Contents
 
 1. [Executive Summary](#executive-summary)
-2. [Current State Analysis](#current-state-analysis)
+2. [Current State Analysis](#current-state-analysis-v090)
 3. [Target Architecture](#target-architecture)
 4. [Detailed Changes](#detailed-changes)
 5. [Implementation Plan](#implementation-plan)

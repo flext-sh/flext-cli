@@ -10,13 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import (
-    FlextDecorators,
-    FlextMixins,
-    FlextResult,
-    r,
-)
-
+from flext_core import FlextDecorators, FlextMixins, FlextResult, r
 from flext_cli.protocols import p
 from flext_cli.typings import t
 from flext_cli.utilities import FlextCliUtilities
@@ -79,7 +73,7 @@ class FlextCliMixins(FlextMixins):
             operation: str,
         ) -> r[bool]:
             """Validate command execution state for operations (delegates to utilities)."""
-            return FlextCliUtilities.CliValidation.v_state(
+            return FlextCliUtilities.Cli.CliValidation.v_state(
                 current_status,
                 required=required_status,
                 name=operation,
@@ -91,8 +85,9 @@ class FlextCliMixins(FlextMixins):
             valid_states: list[str],
         ) -> r[bool]:
             """Validate session state (delegates to utilities)."""
-            return FlextCliUtilities.CliValidation.v_session(
-                current_status, valid=valid_states
+            return FlextCliUtilities.Cli.CliValidation.v_session(
+                current_status,
+                valid=valid_states,
             )
 
         @staticmethod
@@ -100,7 +95,7 @@ class FlextCliMixins(FlextMixins):
             step: dict[str, t.GeneralValueType] | None,
         ) -> r[bool]:
             """Validate pipeline step configuration (delegates to utilities)."""
-            return FlextCliUtilities.CliValidation.v_step(step)
+            return FlextCliUtilities.Cli.CliValidation.v_step(step)
 
         @staticmethod
         def validate_configuration_consistency(
@@ -108,8 +103,9 @@ class FlextCliMixins(FlextMixins):
             required_fields: list[str],
         ) -> r[bool]:
             """Validate configuration consistency (delegates to utilities)."""
-            return FlextCliUtilities.CliValidation.v_config(
-                config_data, fields=required_fields
+            return FlextCliUtilities.Cli.CliValidation.v_config(
+                config_data,
+                fields=required_fields,
             )
 
     class CliCommandMixin:

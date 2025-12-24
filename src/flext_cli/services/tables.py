@@ -13,10 +13,9 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from itertools import starmap
 
-from flext_core import FlextRuntime, r
 from tabulate import tabulate
 
-from flext_cli.base import FlextCliServiceBase
+from flext_core import FlextRuntime
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import m
 from flext_cli.protocols import p
@@ -24,7 +23,7 @@ from flext_cli.typings import t
 from flext_cli.utilities import FlextCliUtilities
 
 
-class FlextCliTables(FlextCliServiceBase):
+class FlextCliTables:
     """Tabulate integration for lightweight ASCII tables.
 
     Business Rules:
@@ -98,20 +97,12 @@ class FlextCliTables(FlextCliServiceBase):
 
     """
 
-    def __init__(self) -> None:
-        """Initialize Tabulate tables layer with Phase 1 context enrichment."""
-        super().__init__()
-
-    def execute(self) -> r[dict[str, t.GeneralValueType]]:
-        """Execute the main domain service operation - required by FlextService."""
-        return r[dict[str, t.GeneralValueType]].ok({})
-
     # =========================================================================
     # TABLE CREATION
     # =========================================================================
 
+    @staticmethod
     def create_table(
-        self,
         data: t.Cli.TableData,
         config: p.Cli.TableConfigProtocol | None = None,
         **config_kwargs: t.GeneralValueType,
@@ -270,7 +261,8 @@ class FlextCliTables(FlextCliServiceBase):
             ):
                 first_row = data[0]
                 if isinstance(first_row, (Mapping, Sequence)) and not isinstance(
-                    first_row, str
+                    first_row,
+                    str,
                 ):
                     return len(first_row)
 
@@ -366,8 +358,8 @@ class FlextCliTables(FlextCliServiceBase):
             headers=validated_headers,
         )
 
+    @staticmethod
     def create_simple_table(
-        self,
         data: t.Cli.TableData,
         headers: Sequence[str] | None = None,
     ) -> r[str]:
@@ -585,7 +577,8 @@ class FlextCliTables(FlextCliServiceBase):
 
         return r[str].ok(FlextCliConstants.Cli.TABLE_FORMATS[format_name])
 
-    def print_available_formats(self) -> r[bool]:
+    @staticmethod
+    def print_available_formats() -> r[bool]:
         """Print all available table formats with descriptions.
 
         Returns:
@@ -600,7 +593,7 @@ class FlextCliTables(FlextCliServiceBase):
 
             # Convert TABLE_FORMATS dict to list of format dicts
             formats_data: list[dict[str, str]] = list(
-                starmap(convert_format, FlextCliConstants.Cli.TABLE_FORMATS.items())
+                starmap(convert_format, FlextCliConstants.Cli.TABLE_FORMATS.items()),
             )
 
             # Use tabulate directly to create the formats table

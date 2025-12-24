@@ -33,61 +33,77 @@ class TestsCliTypes(FlextTestsTypes):
     Architecture: Extends FlextTestsTypes with flext-cli-specific type definitions.
     All generic types from FlextTestsTypes are available through inheritance.
 
+    Hierarchy:
+    - FlextTestsTypes.Tests.* (generic test types from flext_tests)
+    - FlextCliTypes.Cli.* (source types from flext_cli)
+    - TestsCliTypes.Tests.* (flext-cli-specific test types)
+
     Rules:
     - NEVER redeclare types from FlextTestsTypes
     - Only flext-cli-specific types allowed (not generic for other projects)
     - All generic types come from FlextTestsTypes
     """
 
-    class Cli(FlextTestsTypes.Core):
-        """Flext-cli-specific type definitions for testing.
+    class Tests:
+        """flext-cli-specific test type definitions namespace.
 
-        Uses composition of cli_t and core_t for type safety and consistency.
-        Only defines types that are truly flext-cli-specific.
+        Use tt.Tests.* for flext-cli-specific test types.
+        Use t.Tests.* for generic test types from FlextTestsTypes.
         """
 
-        # Import types from FlextCliTypes.Cli for test access
-        CliDataDict = cli_t.Cli.CliDataDict
-        CliAuthData = cli_t.Cli.CliAuthData
-        CliFormatData = cli_t.Cli.CliFormatData
-        CliConfigData = cli_t.Cli.CliConfigData
-        CliJsonDict = cli_t.Cli.CliJsonDict
-        CliTokenData = cli_t.Cli.CliTokenData
-        ResultFormatter = cli_t.Cli.ResultFormatter
+        class Cli(FlextTestsTypes.Core):
+            """Flext-cli-specific type definitions for testing.
 
-        type CliConfigMapping = Mapping[
-            str,
-            core_t.GeneralValueType | Sequence[str] | Mapping[str, str | int] | None,
-        ]
-        """CLI configuration mapping specific to flext-cli."""
+            Uses composition of cli_t and core_t for type safety and consistency.
+            Only defines types that are truly flext-cli-specific.
+            """
 
-        type CommandArgsMapping = Mapping[
-            str,
-            core_t.GeneralValueType | cli_t.GeneralValueType,
-        ]
-        """Command arguments mapping for CLI operations."""
+            # Import types from FlextCliTypes.Cli for test access
+            CliDataDict = cli_t.Cli.CliDataDict
+            CliAuthData = cli_t.Cli.CliAuthData
+            CliFormatData = cli_t.Cli.CliFormatData
+            CliConfigData = cli_t.Cli.CliConfigData
+            CliJsonDict = cli_t.Cli.CliJsonDict
+            CliTokenData = cli_t.Cli.CliTokenData
+            ResultFormatter = cli_t.Cli.ResultFormatter
 
-    class Fixtures:
-        """TypedDict definitions for test fixtures."""
+            type CliConfigMapping = Mapping[
+                str,
+                core_t.GeneralValueType
+                | Sequence[str]
+                | Mapping[str, str | int]
+                | None,
+            ]
+            """CLI configuration mapping specific to flext-cli."""
 
-        class CliCommandDict(TypedDict, total=False):
-            """CLI command test data."""
+            type CommandArgsMapping = Mapping[
+                str,
+                core_t.GeneralValueType | cli_t.GeneralValueType,
+            ]
+            """Command arguments mapping for CLI operations."""
 
-            name: str
-            args: list[str]
-            format: str
-            status: str
+        class Fixtures:
+            """TypedDict definitions for test fixtures."""
 
-        class CliOutputDict(TypedDict, total=False):
-            """CLI output test data."""
+            class CliCommandDict(TypedDict, total=False):
+                """CLI command test data."""
 
-            format: str
-            data: dict[str, str | int | bool]
-            success: bool
+                name: str
+                args: list[str]
+                format: str
+                status: str
+
+            class CliOutputDict(TypedDict, total=False):
+                """CLI output test data."""
+
+                format: str
+                data: dict[str, str | int | bool]
+                success: bool
 
 
-# Short alias per FLEXT convention
+# Short aliases
 t = TestsCliTypes
+tt = TestsCliTypes
 
 __all__ = [
     "T",
@@ -98,4 +114,5 @@ __all__ = [
     "T_contra",
     "TestsCliTypes",
     "t",
+    "tt",
 ]

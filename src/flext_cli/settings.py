@@ -20,7 +20,6 @@ from pathlib import Path
 from typing import Annotated, ClassVar, Self
 
 import yaml
-from flext_core import FlextContainer, FlextLogger as l_core, FlextSettings, r
 from pydantic import (
     Field,
     SecretStr,
@@ -31,6 +30,7 @@ from pydantic import (
 )
 from pydantic_settings import SettingsConfigDict
 
+from flext_core import FlextContainer, FlextLogger as l_core, FlextSettings, r
 from flext_cli.constants import FlextCliConstants
 from flext_cli.typings import t
 from flext_cli.utilities import FlextCliUtilities
@@ -136,8 +136,9 @@ class FlextCliSettings(FlextSettings):
     )
 
     config_dir: Path = Field(
-        default_factory=lambda: Path.home()
-        / FlextCliConstants.Cli.Paths.FLEXT_DIR_NAME,
+        default_factory=lambda: (
+            Path.home() / FlextCliConstants.Cli.Paths.FLEXT_DIR_NAME
+        ),
         description="Configuration directory path",
     )
 
@@ -158,16 +159,20 @@ class FlextCliSettings(FlextSettings):
     )
 
     token_file: Path = Field(
-        default_factory=lambda: Path.home()
-        / FlextCliConstants.Cli.Paths.FLEXT_DIR_NAME
-        / FlextCliConstants.Cli.Paths.TOKEN_FILE_NAME,
+        default_factory=lambda: (
+            Path.home()
+            / FlextCliConstants.Cli.Paths.FLEXT_DIR_NAME
+            / FlextCliConstants.Cli.Paths.TOKEN_FILE_NAME
+        ),
         description="Path to authentication token file",
     )
 
     refresh_token_file: Path = Field(
-        default_factory=lambda: Path.home()
-        / FlextCliConstants.Cli.Paths.FLEXT_DIR_NAME
-        / FlextCliConstants.Cli.Paths.REFRESH_TOKEN_FILE_NAME,
+        default_factory=lambda: (
+            Path.home()
+            / FlextCliConstants.Cli.Paths.FLEXT_DIR_NAME
+            / FlextCliConstants.Cli.Paths.REFRESH_TOKEN_FILE_NAME
+        ),
         description="Path to refresh token file",
     )
 
@@ -286,7 +291,8 @@ class FlextCliSettings(FlextSettings):
             # Convert config object to t.GeneralValueType-compatible dict for context
             # Use FlextCliUtilities.transform for JSON conversion
             transform_result = FlextCliUtilities.transform(
-                self.model_dump(), to_json=True
+                self.model_dump(),
+                to_json=True,
             )
             config_dict = (
                 transform_result.value
@@ -336,7 +342,7 @@ class FlextCliSettings(FlextSettings):
     @classmethod
     def parse_bool_env_vars(cls, v: t.GeneralValueType) -> bool:
         """Parse boolean environment variables correctly from strings."""
-        # Use FlextCliUtilities.parse for type-safe boolean conversion
+        # Use FlextCliUtilities.Cli.parse for type-safe boolean conversion
         if isinstance(v, bool):
             return v
         # Simple boolean parsing for environment variables
@@ -349,7 +355,8 @@ class FlextCliSettings(FlextSettings):
     def validate_configuration(self) -> Self:
         """Validate configuration using functional composition and railway pattern."""
         validation_result = (
-            self._ensure_config_directory()
+            self
+            ._ensure_config_directory()
             .flat_map(lambda _: self._propagate_to_context())
             .flat_map(lambda _: self._register_in_container())
         )
@@ -473,7 +480,7 @@ class FlextCliSettings(FlextSettings):
                     return FlextCliConstants.Cli.CliGlobalDefaults.NORMAL_VERBOSITY
 
         result = r.ok((self.verbose, self.quiet)).map(
-            lambda flags: determine_verbosity(verbose=flags[0], quiet=flags[1])
+            lambda flags: determine_verbosity(verbose=flags[0], quiet=flags[1]),
         )
         if result.is_success:
             # map_to_verbosity returns str
@@ -538,7 +545,7 @@ class FlextCliSettings(FlextSettings):
         if value in valid_formats:
             return r.ok(value)
         return r.fail(
-            f"Invalid format '{value}'. Valid formats: {', '.join(valid_formats)}"
+            f"Invalid format '{value}'. Valid formats: {', '.join(valid_formats)}",
         )
 
     @classmethod
@@ -657,8 +664,10 @@ class FlextCliSettings(FlextSettings):
                 if k not in computed_fields:
                     setattr(self, k, v)
 
-            _ = FlextCliUtilities.process_mapping(
-                valid_updates, processor=apply_update, on_error="skip"
+            _ = FlextCliUtilities.Cli.process_mapping(
+                valid_updates,
+                processor=apply_update,
+                on_error="skip",
             )
 
             # Re-validate entire model to ensure consistency
@@ -671,7 +680,7 @@ class FlextCliSettings(FlextSettings):
         except Exception as e:
             return r[bool].fail(
                 FlextCliConstants.Cli.ErrorMessages.CLI_ARGS_UPDATE_FAILED.format(
-                    error=e
+                    error=e,
                 ),
             )
 
@@ -735,8 +744,10 @@ class FlextCliSettings(FlextSettings):
                         ),
                     )
 
-            FlextCliUtilities.process_mapping(
-                overrides, processor=validate_value, on_error="collect"
+            FlextCliUtilities.Cli.process_mapping(
+                overrides,
+                processor=validate_value,
+                on_error="collect",
             )
 
             if errors:
@@ -768,7 +779,8 @@ class FlextCliSettings(FlextSettings):
             config_dict_raw = self.model_dump()
             # Use FlextCliUtilities.transform for JSON conversion
             transform_result = FlextCliUtilities.transform(
-                config_dict_raw, to_json=True
+                config_dict_raw,
+                to_json=True,
             )
             config_dict = (
                 transform_result.value
@@ -779,7 +791,7 @@ class FlextCliSettings(FlextSettings):
         except Exception as e:
             return r[dict[str, t.GeneralValueType]].fail(
                 FlextCliConstants.Cli.ErrorMessages.CONFIG_LOAD_FAILED_MSG.format(
-                    error=e
+                    error=e,
                 ),
             )
 
@@ -803,8 +815,10 @@ class FlextCliSettings(FlextSettings):
                 if hasattr(self, k):
                     setattr(self, k, v)
 
-            FlextCliUtilities.process_mapping(
-                config, processor=apply_config, on_error="skip"
+            FlextCliUtilities.Cli.process_mapping(
+                config,
+                processor=apply_config,
+                on_error="skip",
             )
 
             # Validate the updated configuration
@@ -813,7 +827,7 @@ class FlextCliSettings(FlextSettings):
         except Exception as e:
             return r[bool].fail(
                 FlextCliConstants.Cli.ErrorMessages.CONFIG_SAVE_FAILED_MSG.format(
-                    error=e
+                    error=e,
                 ),
             )
 

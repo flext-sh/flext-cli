@@ -145,7 +145,9 @@ class FlextCliUtilities(FlextUtilities):
 
         @staticmethod
         def convert[T](
-            value: t.GeneralValueType, target_type: type[T], default: T
+            value: t.GeneralValueType,
+            target_type: type[T],
+            default: T,
         ) -> T:
             """Convert value using flext-core Parser.convert.
 
@@ -282,13 +284,19 @@ class FlextCliUtilities(FlextUtilities):
         @overload
         @staticmethod
         def get[T](
-            data: t.GeneralValueType, key: str, *, default: list[T]
+            data: t.GeneralValueType,
+            key: str,
+            *,
+            default: list[T],
         ) -> list[T]: ...
 
         @overload
         @staticmethod
         def get[T](
-            data: t.GeneralValueType, key: str, *, default: T | None = ...
+            data: t.GeneralValueType,
+            key: str,
+            *,
+            default: T | None = ...,
         ) -> T | None: ...
 
         @staticmethod
@@ -345,8 +353,12 @@ class FlextCliUtilities(FlextUtilities):
                 raise TypeError(msg)
             # Direct iteration preserves T type
             for item in items:
-                if predicate(item):
-                    return item
+                # Call predicate with proper type
+                try:
+                    if predicate(item):
+                        return item
+                except TypeError:
+                    continue
             return None
 
         @staticmethod
@@ -409,7 +421,7 @@ class FlextCliUtilities(FlextUtilities):
             | r[T],
             mapper: Callable[[T], R] | Callable[[str, T], R],
             *,
-            default_error: str = "Operation failed",  # noqa: ARG004
+            default_error: str = "Operation failed",
         ) -> list[R] | set[R] | frozenset[R] | dict[str, R] | r[R]:
             """Map items using flext-core Collection.map.
 
@@ -487,7 +499,8 @@ class FlextCliUtilities(FlextUtilities):
             # Type narrowing: build() returns T | object, but we know T is t.GeneralValueType
             # Verify result is t.GeneralValueType compatible
             if isinstance(
-                result, (str, int, float, bool, type(None), dict, list, tuple)
+                result,
+                (str, int, float, bool, type(None), dict, list, tuple),
             ):
                 return result
             # Fallback: convert to string if not t.GeneralValueType compatible
@@ -554,7 +567,8 @@ class FlextCliUtilities(FlextUtilities):
 
                 Example:
                     >>> result = (
-                    ...     CliValidation.VBuilder(val)
+                    ...     CliValidation
+                    ...     .VBuilder(val)
                     ...     .name("status")
                     ...     .non_empty()
                     ...     .in_(["a", "b"])
@@ -750,7 +764,8 @@ class FlextCliUtilities(FlextUtilities):
                         ),
                     )
                 if FlextUtilities.Guards.is_type(
-                    val, str
+                    val,
+                    str,
                 ) and not FlextUtilities.Guards.is_string_non_empty(val):
                     return r[bool].fail(
                         c.Cli.MixinsValidationMessages.FIELD_CANNOT_BE_EMPTY.format(
@@ -880,7 +895,9 @@ class FlextCliUtilities(FlextUtilities):
 
                 """
                 return FlextCliUtilities.Cli.CliValidation.v_in(
-                    val, valid=choices, name=name
+                    val,
+                    valid=choices,
+                    name=name,
                 )
 
             @staticmethod
@@ -960,7 +977,8 @@ class FlextCliUtilities(FlextUtilities):
 
                 step_name = step[field_name]
                 return (
-                    FlextCliUtilities.Cli.CliValidation.VBuilder(step_name)
+                    FlextCliUtilities.Cli.CliValidation
+                    .VBuilder(step_name)
                     .name("Pipeline step name")
                     .non_empty()
                     .msg(c.Cli.MixinsValidationMessages.PIPELINE_STEP_NAME_EMPTY)
@@ -992,7 +1010,8 @@ class FlextCliUtilities(FlextUtilities):
                         ),
                     )
                 missing = FlextUtilities.Collection.filter(
-                    fields, lambda f: f not in data
+                    fields,
+                    lambda f: f not in data,
                 )
                 if missing:
                     return r[bool].fail(
@@ -1443,13 +1462,13 @@ class FlextCliUtilities(FlextUtilities):
                 # Python 3.10+ union type using | operator
                 if sys.version_info >= (3, 10) and origin is types.UnionType:
                     return FlextCliUtilities.Cli.TypeNormalizer.normalize_union_type(
-                        annotation
+                        annotation,
                     )
 
                 # typing.Union type (traditional typing.Union[X, Y])
                 if origin is Union:
                     return FlextCliUtilities.Cli.TypeNormalizer.normalize_union_type(
-                        annotation
+                        annotation,
                     )
 
                 # For generic types, recursively normalize inner types
@@ -1458,7 +1477,7 @@ class FlextCliUtilities(FlextUtilities):
                     if args:
                         normalized_args = tuple(
                             FlextCliUtilities.Cli.TypeNormalizer.normalize_annotation(
-                                arg
+                                arg,
                             )
                             for arg in args
                         )
@@ -1509,7 +1528,7 @@ class FlextCliUtilities(FlextUtilities):
                     inner_type = non_none_args[0]
                     normalized_inner = (
                         FlextCliUtilities.Cli.TypeNormalizer.normalize_annotation(
-                            inner_type
+                            inner_type,
                         )
                     )
                     if normalized_inner is None:
@@ -1530,7 +1549,7 @@ class FlextCliUtilities(FlextUtilities):
                         if (
                             normalized
                             := FlextCliUtilities.Cli.TypeNormalizer.normalize_annotation(
-                                arg
+                                arg,
                             )
                         )
                         is not None
@@ -1718,8 +1737,8 @@ class FlextCliUtilities(FlextUtilities):
                         ]
 
                     """
-                    return (
-                        lambda v: FlextCliUtilities.Cli.TypeNormalizer.Enum.coerce_impl(
+                    return lambda v: (
+                        FlextCliUtilities.Cli.TypeNormalizer.Enum.coerce_impl(
                             enum_cls,
                             v,
                             by_name=False,
@@ -1735,8 +1754,8 @@ class FlextCliUtilities(FlextUtilities):
                     Accepts: "ACTIVE" (name), "active" (value), Status.ACTIVE (member).
 
                     """
-                    return (
-                        lambda v: FlextCliUtilities.Cli.TypeNormalizer.Enum.coerce_impl(
+                    return lambda v: (
+                        FlextCliUtilities.Cli.TypeNormalizer.Enum.coerce_impl(
                             enum_cls,
                             v,
                             by_name=True,
@@ -2145,12 +2164,14 @@ class FlextCliUtilities(FlextUtilities):
                                 # Type narrowing: validated dict is dict[str, ScalarValue] = Mapping[str, ScalarValue] = FlexibleValue
                                 # Create validated dict with explicit type annotation for type narrowing
                                 validated_dict: dict[
-                                    str, str | int | float | bool | None
+                                    str,
+                                    str | int | float | bool | None,
                                 ] = {
                                     key: val
                                     for key, val in transformed_value.items()
                                     if isinstance(
-                                        val, (str, int, float, bool, type(None))
+                                        val,
+                                        (str, int, float, bool, type(None)),
                                     )
                                 }
                                 # Type narrowing: validated_dict is dict[str, ScalarValue] = Mapping[str, ScalarValue] = FlexibleValue
@@ -2184,7 +2205,7 @@ class FlextCliUtilities(FlextUtilities):
 
                 @staticmethod
                 def get_enum_params(
-                    func: FlextUtilities.Args._CallableWithHints,
+                    func: Callable[..., object],
                 ) -> dict[str, type[StrEnum]]:
                     """Extract StrEnum parameters from function signature."""
                     try:
@@ -2235,7 +2256,9 @@ class FlextCliUtilities(FlextUtilities):
                     - Strict mode enforces exact type matching (no coercion)
                     """
                     result = FlextUtilities.Model.from_dict(
-                        model_cls, data, strict=strict
+                        model_cls,
+                        data,
+                        strict=strict,
                     )
                     # Convert RuntimeResult to r (r[M])
                     return (
@@ -2307,26 +2330,18 @@ class FlextCliUtilities(FlextUtilities):
                     """
                     validator = (
                         FlextCliUtilities.Cli.TypeNormalizer.Enum.coerce_validator(
-                            enum_cls
+                            enum_cls,
                         )
                     )
                     # Return Annotated type with validator
                     return Annotated[enum_cls, BeforeValidator(validator)]
 
-    # Aliases for direct access to Cli methods and classes
-    convert = Cli.convert
-    filter = Cli.filter
-    process = Cli.process
-    process_mapping = Cli.process_mapping
-    process_list = Cli.process_list
-    process_dict = Cli.process_dict
-    build = Cli.build
-    parse = Cli.parse
-    CliValidation = Cli.CliValidation
-    TypeNormalizer = Cli.TypeNormalizer
-    Environment = Cli.Environment
-    ConfigOps = Cli.ConfigOps
-    FileOps = Cli.FileOps
+    # CLI-specific utilities accessible via u.Cli.* namespace
+    # NOTE: Do NOT override parent FlextUtilities methods with different signatures
+    # The following are available via u.Cli.* (not as root aliases to avoid bad-override):
+    # - u.Cli.convert, u.Cli.filter, u.Cli.process, u.Cli.build, u.Cli.parse
+    # - u.Cli.CliValidation, u.Cli.TypeNormalizer, u.Cli.Environment
+    # - u.Cli.ConfigOps, u.Cli.FileOps, u.Cli.process_mapping, etc.
 
 
 u = FlextCliUtilities

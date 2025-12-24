@@ -15,13 +15,12 @@ from typing import (
     get_origin,
     override,
 )
-
 # DomainEvent references removed - not available in current flext-core
 import typer
 from flext_core import (
     FlextModels,
     FlextRuntime,
-    r,
+    r
 )
 from flext_core._models.entity import FlextModelsEntity
 from pydantic import (
@@ -30,7 +29,6 @@ from pydantic import (
     Field,
     computed_field,
     field_validator,
-)
 from pydantic.fields import FieldInfo
 
 from flext_cli.constants import FlextCliConstants as c
@@ -330,7 +328,8 @@ class FlextCliModels(FlextModels):
             )
 
             def execute(
-                self, _args: Sequence[str]
+                self,
+                _args: Sequence[str],
             ) -> r[FlextCliTypes.GeneralValueType]:
                 """Execute command with arguments - required by Command.
 
@@ -466,7 +465,8 @@ class FlextCliModels(FlextModels):
                 description="Commands in session",
             )
             start_time: str | None = Field(
-                default=None, description="Session start time"
+                default=None,
+                description="Session start time",
             )
             end_time: str | None = Field(default=None, description="Session end time")
             last_activity: str | None = Field(
@@ -780,7 +780,8 @@ class FlextCliModels(FlextModels):
             """
 
             verbose: bool | None = Field(
-                default=None, description="Enable verbose output"
+                default=None,
+                description="Enable verbose output",
             )
             quiet: bool | None = Field(
                 default=None,
@@ -843,10 +844,12 @@ class FlextCliModels(FlextModels):
                 description="Parameter type (Click type or Python type)",
             )
             required: bool = Field(
-                default=False, description="Whether option is required"
+                default=False,
+                description="Whether option is required",
             )
             help_text: str | None = Field(
-                default=None, description="Help text for option"
+                default=None,
+                description="Help text for option",
             )
             is_flag: bool = Field(
                 default=False,
@@ -859,7 +862,8 @@ class FlextCliModels(FlextModels):
             multiple: bool = Field(default=False, description="Allow multiple values")
             count: bool = Field(default=False, description="Count occurrences")
             show_default: bool = Field(
-                default=False, description="Show default in help"
+                default=False,
+                description="Show default in help",
             )
 
         class ConfirmConfig(Value):
@@ -876,7 +880,8 @@ class FlextCliModels(FlextModels):
                 description="Suffix after prompt",
             )
             show_default: bool = Field(
-                default=True, description="Show default in prompt"
+                default=True,
+                description="Show default in prompt",
             )
             err: bool = Field(default=False, description="Write to stderr")
 
@@ -914,11 +919,13 @@ class FlextCliModels(FlextModels):
                 description="Ask for confirmation",
             )
             show_default: bool = Field(
-                default=True, description="Show default in prompt"
+                default=True,
+                description="Show default in prompt",
             )
             err: bool = Field(default=False, description="Write to stderr")
             show_choices: bool = Field(
-                default=True, description="Show available choices"
+                default=True,
+                description="Show available choices",
             )
 
         class PathInfo(Value):
@@ -967,7 +974,7 @@ class FlextCliModels(FlextModels):
             success: bool = Field(default=True)
             context_id: str = Field(default="")
             metadata: dict[str, FlextCliTypes.GeneralValueType] = Field(
-                default_factory=dict
+                default_factory=dict,
             )
             context_executed: bool = Field(
                 default=False,
@@ -1218,7 +1225,8 @@ class FlextCliModels(FlextModels):
                 description="Number of commands executed",
             )
             errors_count: int = Field(
-                default=0, description="Number of errors encountered"
+                default=0,
+                description="Number of errors encountered",
             )
             session_duration_seconds: float = Field(
                 default=0.0,
@@ -1232,7 +1240,8 @@ class FlextCliModels(FlextModels):
             """
 
             prompts_executed: int = Field(
-                default=0, description="Total prompts executed"
+                default=0,
+                description="Total prompts executed",
             )
             history_size: int = Field(default=0, description="Current history size")
             prompts_answered: int = Field(
@@ -1276,7 +1285,7 @@ class FlextCliModels(FlextModels):
             exit_code: int = Field(default=0)
             output: str = Field(default="")
             context: dict[str, FlextCliTypes.GeneralValueType] = Field(
-                default_factory=dict
+                default_factory=dict,
             )
 
         class WorkflowStepResult(Value):
@@ -1709,7 +1718,9 @@ class FlextCliModels(FlextModels):
                 self,
                 model_fields: dict[str, FlextCliTypes.GeneralValueType],
             ) -> tuple[
-                dict[str, type], dict[str, FlextCliTypes.GeneralValueType], set[str]
+                dict[str, type],
+                dict[str, FlextCliTypes.GeneralValueType],
+                set[str],
             ]:
                 """Collect annotations, defaults and factory fields from model fields.
 
@@ -1737,7 +1748,8 @@ class FlextCliModels(FlextModels):
                 # Process model fields using dict comprehension for type safety
                 # models.py cannot use utilities - use direct iteration instead
                 processed_dict: dict[
-                    str, tuple[type, FlextCliTypes.GeneralValueType | None, bool]
+                    str,
+                    tuple[type, FlextCliTypes.GeneralValueType | None, bool],
                 ] = {
                     field_name: process_field(field_name, field_info)
                     for field_name, field_info in model_fields.items()
@@ -1791,7 +1803,8 @@ class FlextCliModels(FlextModels):
                         name in defaults,
                     )
                     param_str, is_no_default = self._build_param_signature(
-                        name, type_info
+                        name,
+                        type_info,
                     )
                     return param_str, is_no_default
 
@@ -1997,7 +2010,7 @@ class FlextCliModels(FlextModels):
                     # Type narrowing: model_cls is BaseModel subclass (checked by caller)
                     # Convert Mapping to dict for model_validate
                     cli_args_dict: dict[str, FlextCliTypes.GeneralValueType] = dict(
-                        cli_args
+                        cli_args,
                     )
                     # Type narrowing: model_cls is BaseModel subclass, model_validate exists
                     # Use getattr to access model_validate to satisfy type checker
@@ -2248,12 +2261,12 @@ class FlextCliModels(FlextModels):
                 # Handle Optional/Union types - Python 3.10+ union types
                 if isinstance(pydantic_type, types.UnionType):
                     return FlextCliModels.Cli.CliModelConverter.handle_union_type(
-                        pydantic_type
+                        pydantic_type,
                     )
                 # Handle generic types like list[str], dict[str, str]
                 generic_result = (
                     FlextCliModels.Cli.CliModelConverter.handle_generic_type(
-                        pydantic_type
+                        pydantic_type,
                     )
                 )
                 if generic_result is not None:
@@ -2380,7 +2393,7 @@ class FlextCliModels(FlextModels):
                     props["metadata"] = {}
                 # Use FlextRuntime.is_dict_like for type checking
                 if FlextRuntime.is_dict_like(
-                    metadata_raw
+                    metadata_raw,
                 ) and FlextRuntime.is_dict_like(
                     json_schema_extra,
                 ):
@@ -2432,7 +2445,7 @@ class FlextCliModels(FlextModels):
                     return r[dict[str, FlextCliTypes.GeneralValueType]].ok(props)
                 except Exception as e:
                     return r[dict[str, FlextCliTypes.GeneralValueType]].fail(
-                        f"Extraction failed: {e}"
+                        f"Extraction failed: {e}",
                     )
 
             # Field validation rules: (field_key, expected_type, type_check_func)
@@ -2497,7 +2510,7 @@ class FlextCliModels(FlextModels):
                     )
                 field_value = field_data.get(field_name, None)
                 return FlextCliModels.Cli.CliModelConverter.convert_field_value(
-                    field_value
+                    field_value,
                 )
 
             @staticmethod
@@ -2526,11 +2539,11 @@ class FlextCliModels(FlextModels):
                             )
                         return r[FlextCliTypes.GeneralValueType].ok(data[field_name])
                     return r[FlextCliTypes.GeneralValueType].fail(
-                        "No data provided for validation"
+                        "No data provided for validation",
                     )
                 except Exception as e:
                     return r[FlextCliTypes.GeneralValueType].fail(
-                        f"Validation failed: {e}"
+                        f"Validation failed: {e}",
                     )
 
             @staticmethod
@@ -2547,7 +2560,8 @@ class FlextCliModels(FlextModels):
                 ),
             ) -> list[
                 Callable[
-                    [FlextCliTypes.GeneralValueType], FlextCliTypes.GeneralValueType
+                    [FlextCliTypes.GeneralValueType],
+                    FlextCliTypes.GeneralValueType,
                 ]
             ]:
                 """Process validators from field info, filtering only callable validators."""
@@ -2556,7 +2570,8 @@ class FlextCliModels(FlextModels):
                     item: object,
                 ) -> TypeGuard[
                     Callable[
-                        [FlextCliTypes.GeneralValueType], FlextCliTypes.GeneralValueType
+                        [FlextCliTypes.GeneralValueType],
+                        FlextCliTypes.GeneralValueType,
                     ]
                 ]:
                     """TypeGuard to check if item is a validator callable."""
@@ -2567,7 +2582,8 @@ class FlextCliModels(FlextModels):
                 # Build result list explicitly for proper type narrowing
                 result: list[
                     Callable[
-                        [FlextCliTypes.GeneralValueType], FlextCliTypes.GeneralValueType
+                        [FlextCliTypes.GeneralValueType],
+                        FlextCliTypes.GeneralValueType,
                     ]
                 ] = [item for item in field_info if is_validator(item)]
                 return result

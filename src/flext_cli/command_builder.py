@@ -24,6 +24,7 @@ class FlextCommandBuilder:
     """Fluent DSL for building CLI commands.
 
     Provides a builder pattern for creating CLI commands with options,
+)
     arguments, middleware, and handlers. Integrates with flext-cli's
     existing command infrastructure.
 
@@ -56,9 +57,13 @@ class FlextCommandBuilder:
     @staticmethod
     def _create_option_info(
         default: object = None,
+)
         param_decls: list[str] | None = None,
+)
         help_text: str = "",
+)
         **kwargs: object,
+)
     ) -> OptionInfo:
         """Create OptionInfo with validated kwargs.
 
@@ -85,8 +90,11 @@ class FlextCommandBuilder:
         # Use explicit parameter passing to satisfy type checker
         option_info = OptionInfo(
             default=validated_default,
+)
             param_decls=validated_param_decls_list,
+)
             help=validated_help,
+)
         )
         # Set additional kwargs via attribute assignment (typer validates at runtime)
         excluded_keys = {"default", "param_decls", "help"}
@@ -97,10 +105,15 @@ class FlextCommandBuilder:
 
     def with_option(
         self,
+)
         name: str,
+)
         default: object = None,
+)
         help_: str = "",
+)
         **kwargs: object,
+)
     ) -> Self:
         """Add command option.
 
@@ -125,19 +138,28 @@ class FlextCommandBuilder:
         # Create OptionInfo with validated kwargs using helper function
         option_info = self._create_option_info(
             default=default,
+)
             param_decls=param_decls,
+)
             help_text=help_,
+)
             **kwargs,
+)
         )
         self._options.append(option_info)
         return self
 
     def with_argument(
         self,
+)
         name: str,
+)
         type_: type = str,
+)
         *,
+)
         required: bool = True,
+)
     ) -> Self:
         """Add command argument.
 
@@ -168,7 +190,9 @@ class FlextCommandBuilder:
 
     def with_middleware(
         self,
+)
         middleware: Callable[[p.Cli.CliContextProtocol], r[object]],
+)
     ) -> Self:
         """Add middleware (logging, auth, validation).
 
@@ -212,7 +236,9 @@ class FlextCommandBuilder:
         # CliCommand doesn't have handler parameter, it's stored separately
         command = m.Cli.CliCommand(
             name=self._name,
+)
             description="",
+)
         )
         # Store handler separately if needed - for now return command as protocol
         # Command implements Command protocol structurally at runtime

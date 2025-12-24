@@ -15,7 +15,6 @@ from pathlib import Path
 from typing import override
 
 from flext_core import r, t
-
 from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import FlextCliConstants
 from flext_cli.file_tools import FlextCliFileTools
@@ -35,14 +34,14 @@ class FlextCliCmd(FlextCliServiceBase):
     4. Configuration values MUST be persisted to config files
     5. All operations MUST use r[T] for error handling
     6. File operations MUST use FlextCliFileTools for consistency
-    7. Config operations MUST delegate to FlextCliUtilities.ConfigOps
+    7. Config operations MUST delegate to FlextCliUtilities.Cli.ConfigOps
     8. Command execution MUST log all operations for audit trail
 
     Architecture Implications:
     ───────────────────────────
     - Extends FlextCliServiceBase for consistent logging and container access
     - Delegates file operations to FlextCliFileTools (SRP)
-    - Delegates config operations to FlextCliUtilities.ConfigOps (SRP)
+    - Delegates config operations to FlextCliUtilities.Cli.ConfigOps (SRP)
     - Railway-Oriented Programming via FlextResult for composable error handling
     - Static methods for stateless operations
 
@@ -56,7 +55,7 @@ class FlextCliCmd(FlextCliServiceBase):
 
     # Attributes initialized in __init__ (inherit types from FlextService)
     # Logger is provided by FlextMixins mixin
-    # All config utilities moved to FlextCliUtilities.ConfigOps
+    # All config utilities moved to FlextCliUtilities.Cli.ConfigOps
     """
 
     @override
@@ -77,7 +76,7 @@ class FlextCliCmd(FlextCliServiceBase):
     def show_config_paths() -> r[list[str]]:
         """Show configuration paths using FlextCliUtilities directly."""
         try:
-            paths = FlextCliUtilities.ConfigOps.get_config_paths()
+            paths = FlextCliUtilities.Cli.ConfigOps.get_config_paths()
             return r[list[str]].ok(paths)
         except Exception as e:
             return r[list[str]].fail(
@@ -92,7 +91,7 @@ class FlextCliCmd(FlextCliServiceBase):
 
         """
         try:
-            results = FlextCliUtilities.ConfigOps.validate_config_structure()
+            results = FlextCliUtilities.Cli.ConfigOps.validate_config_structure()
             if results:
                 self.logger.info(
                     FlextCliConstants.Cli.LogMessages.CONFIG_VALIDATION_RESULTS.format(
@@ -111,7 +110,7 @@ class FlextCliCmd(FlextCliServiceBase):
     def get_config_info() -> r[Mapping[str, t.GeneralValueType]]:
         """Get configuration information using FlextCliUtilities directly."""
         try:
-            info = FlextCliUtilities.ConfigOps.get_config_info()
+            info = FlextCliUtilities.Cli.ConfigOps.get_config_info()
             return r[dict[str, t.GeneralValueType]].ok(info)
         except Exception as e:
             return r[dict[str, t.GeneralValueType]].fail(
@@ -140,7 +139,8 @@ class FlextCliCmd(FlextCliServiceBase):
 
             self.logger.info(
                 FlextCliConstants.Cli.CmdMessages.CONFIG_SAVED.format(
-                    key=key, value=value
+                    key=key,
+                    value=value,
                 ),
             )
             return r[bool].ok(True)
@@ -191,19 +191,19 @@ class FlextCliCmd(FlextCliServiceBase):
                 FlextCliConstants.Cli.DictKeys.KEY: key,
                 FlextCliConstants.Cli.DictKeys.VALUE: value,
                 FlextCliConstants.Cli.DictKeys.TIMESTAMP: FlextCliUtilities.generate(
-                    "timestamp"
+                    "timestamp",
                 ),
             }
             # Python 3.13: to_dict_json() always returns dict, cast_if and isinstance are unnecessary
             # Reuse to_dict_json helper from output module
             result_data: dict[str, t.GeneralValueType] = FlextCliOutput.to_dict_json(
-                raw_data
+                raw_data,
             )
             return r[dict[str, t.GeneralValueType]].ok(result_data)
         except Exception as e:
             return r[dict[str, t.GeneralValueType]].fail(
                 FlextCliConstants.Cli.CmdErrorMessages.GET_CONFIG_FAILED.format(
-                    error=e
+                    error=e,
                 ),
             )
 
@@ -231,7 +231,7 @@ class FlextCliCmd(FlextCliServiceBase):
         except Exception as e:
             return r[bool].fail(
                 FlextCliConstants.Cli.CmdErrorMessages.SHOW_CONFIG_FAILED.format(
-                    error=e
+                    error=e,
                 ),
             )
 

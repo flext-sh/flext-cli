@@ -638,7 +638,7 @@ class FlextCliConstants(FlextConstants):
         DEBUG_LEVELS_LIST: Final[list[str]] = ValidationLists.DEBUG_LEVELS
         CRITICAL_DEBUG_LEVELS: Final[list[str]] = ValidationLists.CRITICAL_DEBUG_LEVELS
         CRITICAL_DEBUG_LEVELS_SET: Final[set[str]] = set(
-            ValidationLists.CRITICAL_DEBUG_LEVELS_SET
+            ValidationLists.CRITICAL_DEBUG_LEVELS_SET,
         )
         SERVICE_STATUSES_LIST: Final[list[str]] = ValidationLists.SERVICE_STATUSES
         ERROR_CODES_LIST: Final[list[str]] = ValidationLists.ERROR_CODES

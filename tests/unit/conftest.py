@@ -5,8 +5,8 @@ from __future__ import annotations
 from collections.abc import Generator
 
 import pytest
-from flext_core import FlextSettings
 
+from flext import FlextSettings
 from flext_cli import FlextCliSettings
 
 

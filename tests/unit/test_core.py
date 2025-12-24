@@ -24,7 +24,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-from flext_core import t
+from flext import t
 from pydantic import ValidationError
 
 from flext_cli import (

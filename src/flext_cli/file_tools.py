@@ -24,7 +24,7 @@ from pathlib import Path
 import yaml
 from flext_core import (
     FlextRuntime,
-    r,
+    r
 )
 
 from flext_cli.constants import FlextCliConstants
@@ -73,8 +73,11 @@ class FlextCliFileTools:
     @staticmethod
     def _execute_file_operation[T](
         operation_func: Callable[[], T],
+)
         error_template: str,
+)
         **format_kwargs: object,
+)
     ) -> r[T]:
         """Generalized file operation helper with error handling."""
         try:
@@ -99,7 +102,9 @@ class FlextCliFileTools:
     @staticmethod
     def _read_file_with_encoding(
         file_path: Path,
+)
         encoding: str = FlextCliConstants.Cli.Utilities.DEFAULT_ENCODING,
+)
     ) -> str:
         """Generalized text file reader."""
         return file_path.read_text(encoding=encoding)
@@ -107,8 +112,11 @@ class FlextCliFileTools:
     @staticmethod
     def _write_file_with_encoding(
         file_path: Path,
+)
         content: str,
+)
         encoding: str = FlextCliConstants.Cli.Utilities.DEFAULT_ENCODING,
+)
     ) -> None:
         """Generalized text file writer."""
         file_path.write_text(content, encoding=encoding)
@@ -122,22 +130,25 @@ class FlextCliFileTools:
     def _open_file_for_writing(file_path: Path) -> io.TextIOWrapper:
         """Generalized file opener for writing."""
         return file_path.open(
-            mode="w", encoding=FlextCliConstants.Cli.Utilities.DEFAULT_ENCODING
+            mode="w",
+)
+            encoding=FlextCliConstants.Cli.Utilities.DEFAULT_ENCODING,
+)
         )
 
     @staticmethod
     def _get_file_stat_attr(file_path: Path, attr: str) -> float | None:
         """Generalized file stat attribute getter."""
         value = getattr(file_path.stat(), attr)
-        # Use FlextCliUtilities.parse for conversion (returns r[T], need to unwrap)
+        # Use FlextCliUtilities.Cli.parse for conversion (returns r[T], need to unwrap)
         if isinstance(value, (int, float)):
             return float(value)
         # Try parsing as int first, then float
-        int_result = FlextCliUtilities.parse(value, int, default=0)
+        int_result = FlextCliUtilities.Cli.parse(value, int, default=0)
         if int_result.is_success and int_result.value is not None:
             return float(int_result.value)
         # Fallback to float
-        float_result = FlextCliUtilities.parse(value, float, default=0.0)
+        float_result = FlextCliUtilities.Cli.parse(value, float, default=0.0)
         if float_result.is_success and float_result.value is not None:
             return float_result.value
         return 0.0
@@ -145,12 +156,15 @@ class FlextCliFileTools:
     @staticmethod
     def _detect_format_from_extension(
         file_path: str | Path,
+)
         supported_formats: dict[str, dict[str, list[str]]],
+)
     ) -> r[str]:
         """Detect file format from extension."""
         path = Path(file_path)
         extension = path.suffix.lower().lstrip(
-            FlextCliConstants.Cli.FileToolsDefaults.EXTENSION_PREFIX
+            FlextCliConstants.Cli.FileToolsDefaults.EXTENSION_PREFIX,
+)
         )
 
         for format_name, format_info in supported_formats.items():
@@ -167,8 +181,10 @@ class FlextCliFileTools:
 
         return r[str].fail(
             FlextCliConstants.Cli.FileErrorMessages.UNSUPPORTED_FORMAT_GENERIC.format(
-                extension=extension
+                extension=extension,
+)
             ),
+)
         )
 
     @staticmethod
@@ -181,7 +197,9 @@ class FlextCliFileTools:
             if isinstance(raw_data, dict):
                 transform_result = FlextCliUtilities.transform(
                     raw_data,
+)
                     to_json=True,
+)
                 )
                 unwrapped = (
                     transform_result.value if transform_result.is_success else raw_data
@@ -189,7 +207,10 @@ class FlextCliFileTools:
                 # Type narrowing: ensure return type is FlextCliTypes.GeneralValueType
                 # unwrapped is object from unwrap(), convert to FlextCliTypes.GeneralValueType
                 if isinstance(
-                    unwrapped, (str, int, float, bool, type(None), dict, list)
+                    unwrapped,
+)
+                    (str, int, float, bool, type(None), dict, list),
+)
                 ):
                     return unwrapped
                 return str(unwrapped)
@@ -208,7 +229,9 @@ class FlextCliFileTools:
             if isinstance(raw_data, dict):
                 transform_result = FlextCliUtilities.transform(
                     raw_data,
+)
                     to_json=True,
+)
                 )
                 unwrapped = (
                     transform_result.value if transform_result.is_success else raw_data
@@ -216,7 +239,10 @@ class FlextCliFileTools:
                 # Type narrowing: ensure return type is FlextCliTypes.GeneralValueType
                 # unwrapped is object from unwrap(), convert to FlextCliTypes.GeneralValueType
                 if isinstance(
-                    unwrapped, (str, int, float, bool, type(None), dict, list)
+                    unwrapped,
+)
+                    (str, int, float, bool, type(None), dict, list),
+)
                 ):
                     return unwrapped
                 return str(unwrapped)
@@ -228,7 +254,9 @@ class FlextCliFileTools:
     @staticmethod
     def _save_file_by_extension(
         file_path: str | Path,
+)
         data: FlextCliTypes.GeneralValueType,
+)
     ) -> r[bool]:
         """Save data to file based on extension."""
         path = Path(file_path)
@@ -242,8 +270,10 @@ class FlextCliFileTools:
 
         return r[bool].fail(
             FlextCliConstants.Cli.FileErrorMessages.UNSUPPORTED_FORMAT_EXTENSION.format(
-                extension=extension
+                extension=extension,
+)
             ),
+)
         )
 
     # ==========================================================================
@@ -256,14 +286,19 @@ class FlextCliFileTools:
         path = FlextCliFileTools._normalize_path(file_path)
         return FlextCliFileTools._execute_file_operation(
             lambda: FlextCliFileTools._read_file_with_encoding(path),
+)
             FlextCliConstants.Cli.ErrorMessages.TEXT_FILE_READ_FAILED,
+)
         )
 
     @staticmethod
     def write_text_file(
         file_path: str | Path,
+)
         content: str,
+)
         encoding: str | int = FlextCliConstants.Cli.Utilities.DEFAULT_ENCODING,
+)
     ) -> r[bool]:
         """Write text content to file."""
         path = FlextCliFileTools._normalize_path(file_path)
@@ -271,15 +306,20 @@ class FlextCliFileTools:
         try:
             FlextCliFileTools._write_file_with_encoding(
                 path,
+)
                 content,
+)
                 validated_encoding,
+)
             )
             return r[bool].ok(True)
         except Exception as e:
             return r[bool].fail(
                 FlextCliConstants.Cli.ErrorMessages.TEXT_FILE_WRITE_FAILED.format(
-                    error=e
-                )
+                    error=e,
+)
+                ),
+)
             )
 
     # ==========================================================================
@@ -292,13 +332,17 @@ class FlextCliFileTools:
         path = FlextCliFileTools._normalize_path(file_path)
         return FlextCliFileTools._execute_file_operation(
             path.read_bytes,
+)
             FlextCliConstants.Cli.FileErrorMessages.BINARY_READ_FAILED,
+)
         )
 
     @staticmethod
     def write_binary_file(
         file_path: str | Path,
+)
         content: bytes,
+)
     ) -> r[bool]:
         """Write binary content to file."""
         path = FlextCliFileTools._normalize_path(file_path)
@@ -308,8 +352,10 @@ class FlextCliFileTools:
         except Exception as e:
             return r[bool].fail(
                 FlextCliConstants.Cli.FileErrorMessages.BINARY_WRITE_FAILED.format(
-                    error=e
-                )
+                    error=e,
+)
+                ),
+)
             )
 
     # ==========================================================================
@@ -319,41 +365,60 @@ class FlextCliFileTools:
     @staticmethod
     def read_json_file(
         file_path: str | Path,
+)
     ) -> r[FlextCliTypes.GeneralValueType]:
         """Read JSON file."""
         return FlextCliFileTools._execute_file_operation(
             lambda: FlextCliFileTools._load_json_file(str(file_path)),
+)
             FlextCliConstants.Cli.FileErrorMessages.JSON_LOAD_FAILED,
+)
         )
 
     @staticmethod
     def write_json_file(
         file_path: str | Path,
+)
         data: FlextCliTypes.GeneralValueType,
+)
         indent: int = 2,
+)
         *,
+)
         sort_keys: bool = False,
+)
         ensure_ascii: bool = True,
+)
     ) -> r[bool]:
         """Write data to JSON file."""
         path = FlextCliFileTools._normalize_path(file_path)
 
         def _write_json() -> bool:
             with path.open(
-                mode="w", encoding=FlextCliConstants.Cli.Utilities.DEFAULT_ENCODING
+                mode="w",
+)
+                encoding=FlextCliConstants.Cli.Utilities.DEFAULT_ENCODING,
+)
             ) as f:
                 json.dump(
                     data,
+)
                     f,
+)
                     indent=indent,
+)
                     sort_keys=sort_keys,
+)
                     ensure_ascii=ensure_ascii,
+)
                 )
             return True
 
         return FlextCliFileTools._execute_file_operation(
             _write_json,
+)
             FlextCliConstants.Cli.ErrorMessages.JSON_WRITE_FAILED,
+)
         )
 
     # ==========================================================================
@@ -363,41 +428,60 @@ class FlextCliFileTools:
     @staticmethod
     def read_yaml_file(
         file_path: str | Path,
+)
     ) -> r[FlextCliTypes.GeneralValueType]:
         """Read YAML file."""
         return FlextCliFileTools._execute_file_operation(
             lambda: FlextCliFileTools._load_yaml_file(str(file_path)),
+)
             FlextCliConstants.Cli.FileErrorMessages.YAML_LOAD_FAILED,
+)
         )
 
     @staticmethod
     def write_yaml_file(
         file_path: str | Path,
+)
         data: FlextCliTypes.GeneralValueType,
+)
         *,
+)
         default_flow_style: bool | None = None,
+)
         sort_keys: bool = False,
+)
         allow_unicode: bool = True,
+)
     ) -> r[bool]:
         """Write data to YAML file."""
         path = FlextCliFileTools._normalize_path(file_path)
 
         def _write_yaml() -> bool:
             with path.open(
-                mode="w", encoding=FlextCliConstants.Cli.Utilities.DEFAULT_ENCODING
+                mode="w",
+)
+                encoding=FlextCliConstants.Cli.Utilities.DEFAULT_ENCODING,
+)
             ) as f:
                 yaml.safe_dump(
                     data,
+)
                     f,
+)
                     default_flow_style=default_flow_style,
+)
                     sort_keys=sort_keys,
+)
                     allow_unicode=allow_unicode,
+)
                 )
             return True
 
         return FlextCliFileTools._execute_file_operation(
             _write_yaml,
+)
             FlextCliConstants.Cli.ErrorMessages.YAML_WRITE_FAILED,
+)
         )
 
     # ==========================================================================
@@ -424,38 +508,51 @@ class FlextCliFileTools:
         def _read_csv() -> list[list[str]]:
             with path.open(
                 encoding=FlextCliConstants.Cli.Utilities.DEFAULT_ENCODING,
+)
                 newline="",
+)
             ) as f:
                 return list(csv.reader(f))
 
         return FlextCliFileTools._execute_file_operation(
             _read_csv,
+)
             FlextCliConstants.Cli.FileErrorMessages.CSV_READ_FAILED,
+)
         )
 
     @staticmethod
     def write_csv_file(
         file_path: str | Path,
+)
         data: list[list[str]],
+)
     ) -> r[bool]:
         """Write CSV file content."""
         path = FlextCliFileTools._normalize_path(file_path)
         try:
             with path.open(
                 mode="w",
+)
                 encoding=FlextCliConstants.Cli.Utilities.DEFAULT_ENCODING,
+)
                 newline="",
+)
             ) as f:
                 csv.writer(f).writerows(data)
             return r[bool].ok(True)
         except Exception as e:
             return r[bool].fail(
-                FlextCliConstants.Cli.FileErrorMessages.CSV_WRITE_FAILED.format(error=e)
+                FlextCliConstants.Cli.FileErrorMessages.CSV_WRITE_FAILED.format(
+                    error=e
+                ),
+)
             )
 
     @staticmethod
     def read_csv_file_with_headers(
         file_path: str | Path,
+)
     ) -> r[list[dict[str, str]]]:
         """Read CSV file with headers as dictionaries.
 
@@ -475,13 +572,17 @@ class FlextCliFileTools:
         def _read_csv_dict() -> list[dict[str, str]]:
             with path.open(
                 encoding=FlextCliConstants.Cli.Utilities.DEFAULT_ENCODING,
+)
                 newline="",
+)
             ) as f:
                 return list(csv.DictReader(f))
 
         return FlextCliFileTools._execute_file_operation(
             _read_csv_dict,
+)
             FlextCliConstants.Cli.FileErrorMessages.CSV_READ_FAILED,
+)
         )
 
     # ==========================================================================
@@ -494,13 +595,17 @@ class FlextCliFileTools:
         path = FlextCliFileTools._normalize_path(file_path)
         return FlextCliFileTools._execute_file_operation(
             path.exists,
+)
             FlextCliConstants.Cli.FileErrorMessages.FILE_EXISTENCE_CHECK_FAILED,
+)
         )
 
     @staticmethod
     def copy_file(
         source_path: str | Path,
+)
         destination_path: str | Path,
+)
     ) -> r[bool]:
         """Copy file from source to destination."""
 
@@ -510,7 +615,9 @@ class FlextCliFileTools:
 
         return FlextCliFileTools._execute_file_operation(
             _copy,
+)
             FlextCliConstants.Cli.ErrorMessages.FILE_COPY_FAILED,
+)
         )
 
     @staticmethod
@@ -524,13 +631,17 @@ class FlextCliFileTools:
 
         return FlextCliFileTools._execute_file_operation(
             _delete,
+)
             FlextCliConstants.Cli.FileErrorMessages.FILE_DELETION_FAILED,
+)
         )
 
     @staticmethod
     def move_file(
         source: str | Path,
+)
         destination: str | Path,
+)
     ) -> r[bool]:
         """Move file to new location."""
 
@@ -540,7 +651,9 @@ class FlextCliFileTools:
 
         return FlextCliFileTools._execute_file_operation(
             _move,
+)
             FlextCliConstants.Cli.FileErrorMessages.FILE_MOVE_FAILED,
+)
         )
 
     @staticmethod
@@ -549,8 +662,11 @@ class FlextCliFileTools:
         path = FlextCliFileTools._normalize_path(file_path)
         return FlextCliFileTools._execute_file_operation(
             lambda: int(path.stat().st_size),
+)
             "Failed to get file size for {file_path}: {error}",
+)
             file_path=str(path),
+)
         )
 
     @staticmethod
@@ -559,8 +675,11 @@ class FlextCliFileTools:
         path = FlextCliFileTools._normalize_path(file_path)
         return FlextCliFileTools._execute_file_operation(
             lambda: FlextCliFileTools._get_file_stat_attr(path, "st_mtime"),
+)
             "Failed to get modification time for {file_path}: {error}",
+)
             file_path=str(path),
+)
         )
 
     @staticmethod
@@ -569,8 +688,11 @@ class FlextCliFileTools:
         path = FlextCliFileTools._normalize_path(file_path)
         return FlextCliFileTools._execute_file_operation(
             lambda: path.stat().st_mode & 0o777,
+)
             "Failed to get permissions for {file_path}: {error}",
+)
             file_path=str(path),
+)
         )
 
     @staticmethod
@@ -584,8 +706,11 @@ class FlextCliFileTools:
 
         return FlextCliFileTools._execute_file_operation(
             _chmod,
+)
             "Failed to set permissions for {file_path}: {error}",
+)
             file_path=str(path),
+)
         )
 
     # ==========================================================================
@@ -603,7 +728,9 @@ class FlextCliFileTools:
 
         return FlextCliFileTools._execute_file_operation(
             _mkdir,
+)
             FlextCliConstants.Cli.FileErrorMessages.DIRECTORY_CREATION_FAILED,
+)
         )
 
     @staticmethod
@@ -612,7 +739,9 @@ class FlextCliFileTools:
         path = FlextCliFileTools._normalize_path(dir_path)
         return FlextCliFileTools._execute_file_operation(
             path.is_dir,
+)
             FlextCliConstants.Cli.FileErrorMessages.DIRECTORY_CHECK_FAILED,
+)
         )
 
     @staticmethod
@@ -625,7 +754,9 @@ class FlextCliFileTools:
 
         return FlextCliFileTools._execute_file_operation(
             _rmtree,
+)
             FlextCliConstants.Cli.FileErrorMessages.DIRECTORY_DELETION_FAILED,
+)
         )
 
     @staticmethod
@@ -634,7 +765,9 @@ class FlextCliFileTools:
         path = FlextCliFileTools._normalize_path(dir_path)
         return FlextCliFileTools._execute_file_operation(
             lambda: [str(p.name) for p in path.iterdir()],
+)
             FlextCliConstants.Cli.FileErrorMessages.DIRECTORY_LISTING_FAILED,
+)
         )
 
     # ==========================================================================
@@ -657,15 +790,19 @@ class FlextCliFileTools:
             )
             formats_dict[format_name] = {
                 FlextCliConstants.Cli.FileIODefaults.FORMAT_EXTENSIONS_KEY: extensions_list,
+)
             }
         return FlextCliFileTools._detect_format_from_extension(
             file_path,
+)
             formats_dict,
+)
         )
 
     @staticmethod
     def load_file_auto_detect(
         file_path: str | Path,
+)
     ) -> r[FlextCliTypes.GeneralValueType]:
         """Load file with automatic format detection."""
         format_result = FlextCliFileTools.detect_file_format(file_path)
@@ -673,16 +810,25 @@ class FlextCliFileTools:
             return r[FlextCliTypes.GeneralValueType].fail(
                 format_result.error
                 or FlextCliConstants.Cli.ErrorMessages.FORMAT_DETECTION_FAILED,
+)
             )
 
         file_format = format_result.value
         format_loaders: dict[str, Callable[[], r[FlextCliTypes.GeneralValueType]]] = {
-            FlextCliConstants.Cli.FileSupportedFormats.JSON: lambda: FlextCliFileTools.read_json_file(
-                file_path,
+            FlextCliConstants.Cli.FileSupportedFormats.JSON: lambda: (
+                FlextCliFileTools.read_json_file(
+                    file_path,
+)
+                )
             ),
-            FlextCliConstants.Cli.FileSupportedFormats.YAML: lambda: FlextCliFileTools.read_yaml_file(
-                file_path,
+)
+            FlextCliConstants.Cli.FileSupportedFormats.YAML: lambda: (
+                FlextCliFileTools.read_yaml_file(
+                    file_path,
+)
+                )
             ),
+)
         }
 
         loader = format_loaders.get(file_format)
@@ -691,14 +837,18 @@ class FlextCliFileTools:
 
         return r[FlextCliTypes.GeneralValueType].fail(
             FlextCliConstants.Cli.ErrorMessages.UNSUPPORTED_FORMAT.format(
-                format=file_format
+                format=file_format,
+)
             ),
+)
         )
 
     @staticmethod
     def save_file(
         file_path: str | Path,
+)
         data: FlextCliTypes.GeneralValueType,
+)
     ) -> r[bool]:
         """Save data to file with automatic format detection."""
         return FlextCliFileTools._save_file_by_extension(file_path, data)
@@ -710,7 +860,9 @@ class FlextCliFileTools:
     @staticmethod
     def calculate_file_hash(
         file_path: str | Path,
+)
         algorithm: str = "sha256",
+)
     ) -> r[str]:
         """Calculate file hash."""
         path = FlextCliFileTools._normalize_path(file_path)
@@ -719,22 +871,29 @@ class FlextCliFileTools:
             with path.open("rb") as f:
                 for chunk in iter(
                     lambda: f.read(FlextCliConstants.Cli.FileToolsDefaults.CHUNK_SIZE),
+)
                     b"",
+)
                 ):
                     hash_obj.update(chunk)
             return r[str].ok(hash_obj.hexdigest())
         except Exception as e:
             return r[str].fail(
                 FlextCliConstants.Cli.FileErrorMessages.HASH_CALCULATION_FAILED.format(
-                    error=e
+                    error=e,
+)
                 ),
+)
             )
 
     @staticmethod
     def verify_file_hash(
         file_path: str | Path,
+)
         expected_hash: str,
+)
         algorithm: str = "sha256",
+)
     ) -> r[bool]:
         """Verify file hash."""
         hash_result = FlextCliFileTools.calculate_file_hash(file_path, algorithm)
@@ -742,6 +901,7 @@ class FlextCliFileTools:
             return r[bool].fail(
                 hash_result.error
                 or FlextCliConstants.Cli.FileErrorMessages.HASH_CALCULATION_FAILED_NO_ERROR,
+)
             )
 
         return r[bool].ok(hash_result.value == expected_hash)
@@ -760,8 +920,10 @@ class FlextCliFileTools:
         except Exception as e:  # pragma: no cover
             return r[str].fail(
                 FlextCliConstants.Cli.FileErrorMessages.TEMP_FILE_CREATION_FAILED.format(
-                    error=e
+                    error=e,
+)
                 ),
+)
             )
 
     @staticmethod
@@ -769,7 +931,9 @@ class FlextCliFileTools:
         """Create temporary directory."""
         return FlextCliFileTools._execute_file_operation(
             tempfile.mkdtemp,
+)
             FlextCliConstants.Cli.FileErrorMessages.TEMP_DIR_CREATION_FAILED,
+)
         )
 
     # ==========================================================================
@@ -779,13 +943,17 @@ class FlextCliFileTools:
     @staticmethod
     def create_zip_archive(
         archive_path: str | Path,
+)
         files: list[str],
+)
     ) -> r[bool]:
         """Create zip archive."""
         try:
             with zipfile.ZipFile(
                 archive_path,
+)
                 FlextCliConstants.Cli.FileIODefaults.ZIP_WRITE_MODE,
+)
             ) as zipf:
                 for file in files:
                     zipf.write(file, Path(file).name)
@@ -793,28 +961,36 @@ class FlextCliFileTools:
         except Exception as e:
             return r[bool].fail(
                 FlextCliConstants.Cli.FileErrorMessages.ZIP_CREATION_FAILED.format(
-                    error=e
-                )
+                    error=e,
+)
+                ),
+)
             )
 
     @staticmethod
     def extract_zip_archive(
         archive_path: str | Path,
+)
         extract_to: str | Path,
+)
     ) -> r[bool]:
         """Extract zip archive."""
         try:
             with zipfile.ZipFile(
                 archive_path,
+)
                 FlextCliConstants.Cli.FileIODefaults.ZIP_READ_MODE,
+)
             ) as zipf:
                 zipf.extractall(extract_to)
             return r[bool].ok(True)
         except Exception as e:
             return r[bool].fail(
                 FlextCliConstants.Cli.FileErrorMessages.ZIP_EXTRACTION_FAILED.format(
-                    error=e
+                    error=e,
+)
                 ),
+)
             )
 
     # ==========================================================================
@@ -824,19 +1000,25 @@ class FlextCliFileTools:
     @staticmethod
     def find_files_by_pattern(
         directory: str | Path,
+)
         pattern: str,
+)
     ) -> r[list[str]]:
         """Find files by glob pattern."""
         path = FlextCliFileTools._normalize_path(directory)
         return FlextCliFileTools._execute_file_operation(
             lambda: [str(p) for p in path.glob(pattern)],
+)
             FlextCliConstants.Cli.FileErrorMessages.FILE_SEARCH_FAILED,
+)
         )
 
     @staticmethod
     def find_files_by_name(
         directory: str | Path,
+)
         name: str,
+)
     ) -> r[list[str]]:
         """Find files by name."""
         path = FlextCliFileTools._normalize_path(directory)
@@ -844,17 +1026,22 @@ class FlextCliFileTools:
             lambda: [
                 str(p)
                 for p in path.rglob(
-                    FlextCliConstants.Cli.FileIODefaults.GLOB_PATTERN_ALL
+                    FlextCliConstants.Cli.FileIODefaults.GLOB_PATTERN_ALL,
+)
                 )
                 if p.name == name
             ],
+)
             FlextCliConstants.Cli.FileErrorMessages.FILE_SEARCH_FAILED,
+)
         )
 
     @staticmethod
     def find_files_by_content(
         directory: str | Path,
+)
         content: str,
+)
     ) -> r[list[str]]:
         """Find files containing specific contenFlextCliTypes."""
         path = FlextCliFileTools._normalize_path(directory)
@@ -864,7 +1051,8 @@ class FlextCliFileTools:
                 if file_path.is_file():
                     try:
                         text = file_path.read_text(
-                            encoding=FlextCliConstants.Cli.Utilities.DEFAULT_ENCODING
+                            encoding=FlextCliConstants.Cli.Utilities.DEFAULT_ENCODING,
+)
                         )
                         if content in text:
                             matches.append(str(file_path))
@@ -874,8 +1062,10 @@ class FlextCliFileTools:
         except Exception as e:  # pragma: no cover
             return r[list[str]].fail(
                 FlextCliConstants.Cli.FileErrorMessages.CONTENT_SEARCH_FAILED.format(
-                    error=e
+                    error=e,
+)
                 ),
+)
             )
 
     # ==========================================================================
@@ -886,7 +1076,8 @@ class FlextCliFileTools:
     def get_supported_formats() -> r[list[str]]:
         """Get list of supported file formats."""
         return r[list[str]].ok(
-            FlextCliConstants.Cli.FileSupportedFormats.SUPPORTED_FORMATS
+            FlextCliConstants.Cli.FileSupportedFormats.SUPPORTED_FORMATS,
+)
         )
 
 

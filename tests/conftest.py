@@ -10,11 +10,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-# ============================================================================
-# TEST CONSTANTS - Available in all tests via TestsCliConstants (c)
-# ============================================================================
-# All constants are in tests/constants.py (TestsCliConstants)
-# Test files import directly from conftest or use c.ClassName.CONSTANT pattern
 import builtins
 import getpass
 import json
@@ -54,14 +49,11 @@ from flext_cli import (
     FlextCliSettings,
     m,
 )
-
-# Import from correct locations - use TestsCli structure
 from flext_cli.typings import t
-from tests import (  # TestsCliConstants, TestsCliModels, TestsCliTypes, TestsCliUtilities
-    c,
-    u,
-)
-from tests.utilities import TestsCliUtilities
+from tests.constants import c
+from tests.models import m
+from tests.typings import t
+from tests.utilities import u
 
 # ============================================================================
 # RUNTIME GLOBALS - Declared for type checking
@@ -113,7 +105,42 @@ def pytest_configure(config: pytest.Config) -> None:
     2. Built-in namespace for direct access in test files
     3. Module-level globals for type checking
     """
-    global ALICE, VALID_FIELD_NAME, FIELD_NAME, WHITESPACE_FIELD_NAME, VALID_STRING, STRING, WHITESPACE_STRING, NONE_VALUE, CUSTOM, TWO, PASSWORD, LONG, SPECIAL, UNICODE, PERFORMANCE_THRESHOLD, INFO, WARNING, ALL, NAME_HEADER, GRID, FANCY_GRID, INVALID, ExpectedALL, PYTEST_CURRENT_TEST, PYTEST_BINARY, CI_VALUE, SpecializedCASES, Borders, Data, Config, OutputFormats, Statuses, FileOps, Password, Progress  # noqa: PLW0603
+    global \
+        ALICE, \
+        VALID_FIELD_NAME, \
+        FIELD_NAME, \
+        WHITESPACE_FIELD_NAME, \
+        VALID_STRING, \
+        STRING, \
+        WHITESPACE_STRING, \
+        NONE_VALUE, \
+        CUSTOM, \
+        TWO, \
+        PASSWORD, \
+        LONG, \
+        SPECIAL, \
+        UNICODE, \
+        PERFORMANCE_THRESHOLD, \
+        INFO, \
+        WARNING, \
+        ALL, \
+        NAME_HEADER, \
+        GRID, \
+        FANCY_GRID, \
+        INVALID, \
+        ExpectedALL, \
+        PYTEST_CURRENT_TEST, \
+        PYTEST_BINARY, \
+        CI_VALUE, \
+        SpecializedCASES, \
+        Borders, \
+        Data, \
+        Config, \
+        OutputFormats, \
+        Statuses, \
+        FileOps, \
+        Password, \
+        Progress
 
     # Test data constants - access from c.Cli
     ALICE = builtins.ALICE = c.Cli.ALICE

@@ -22,7 +22,7 @@ from pathlib import Path
 from typing import Union
 
 import pytest
-from flext_core import r
+from flext import r
 from flext_tests import tm
 from pydantic import BaseModel
 

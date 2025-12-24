@@ -12,9 +12,9 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
-from flext_core import FlextSettings, r, s
 from pydantic import Field
 
+from flext_core import FlextSettings, r, s
 from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import m
@@ -134,9 +134,10 @@ class FlextCliContext(FlextCliServiceBase):
         Static method - no instance state needed.
         """
         try:
-            # Use runtime alias FlextCliUtilities.CliValidation.v_empty for non-empty validation
-            validation_result = FlextCliUtilities.CliValidation.v_empty(
-                value, name=field_name
+            # Use runtime alias FlextCliUtilities.Cli.CliValidation.v_empty for non-empty validation
+            validation_result = FlextCliUtilities.Cli.CliValidation.v_empty(
+                value,
+                name=field_name,
             )
             if validation_result.is_failure:
                 raise ValueError(
@@ -186,7 +187,7 @@ class FlextCliContext(FlextCliServiceBase):
         default_errors = {
             "not_initialized": FlextCliConstants.Cli.ContextErrorMessages.ENV_VARS_NOT_INITIALIZED,
             "not_found": FlextCliConstants.Cli.ContextErrorMessages.ENV_VAR_NOT_FOUND.format(
-                name=key
+                name=key,
             ),
             "failed": FlextCliConstants.Cli.ErrorMessages.CLI_EXECUTION_ERROR.format(
                 error="Operation failed",
@@ -299,7 +300,7 @@ class FlextCliContext(FlextCliServiceBase):
         """Activate CLI context for execution."""
         if self.is_active:
             return r[bool].fail(
-                FlextCliConstants.Cli.ContextErrorMessages.CONTEXT_ALREADY_ACTIVE
+                FlextCliConstants.Cli.ContextErrorMessages.CONTEXT_ALREADY_ACTIVE,
             )
         # Business Rule: Model is frozen, must use object.__setattr__
         # Architecture: Frozen model prevents direct assignment
@@ -311,7 +312,7 @@ class FlextCliContext(FlextCliServiceBase):
         """Deactivate CLI context."""
         if not self.is_active:
             return r[bool].fail(
-                FlextCliConstants.Cli.ContextErrorMessages.CONTEXT_NOT_CURRENTLY_ACTIVE
+                FlextCliConstants.Cli.ContextErrorMessages.CONTEXT_NOT_CURRENTLY_ACTIVE,
             )
         # Business Rule: Model is frozen, must use setattr
         # Architecture: Frozen model prevents direct assignment
@@ -340,7 +341,7 @@ class FlextCliContext(FlextCliServiceBase):
             error_messages={
                 "not_initialized": FlextCliConstants.Cli.ContextErrorMessages.ENV_VARS_NOT_INITIALIZED,
                 "not_found": FlextCliConstants.Cli.ContextErrorMessages.ENV_VAR_NOT_FOUND.format(
-                    name=name
+                    name=name,
                 ),
                 "exception": FlextCliConstants.Cli.ContextErrorMessages.ENV_VAR_RETRIEVAL_FAILED.format(
                     error="{error}",
@@ -449,7 +450,7 @@ class FlextCliContext(FlextCliServiceBase):
         except Exception as e:
             return r[bool].fail(
                 FlextCliConstants.Cli.ContextErrorMessages.METADATA_SETTING_FAILED.format(
-                    error=e
+                    error=e,
                 ),
             )
 
@@ -467,7 +468,7 @@ class FlextCliContext(FlextCliServiceBase):
             return r[t.GeneralValueType].ok(self.context_metadata[key])
         return r[t.GeneralValueType].fail(
             FlextCliConstants.Cli.ContextErrorMessages.METADATA_KEY_NOT_FOUND.format(
-                key=key
+                key=key,
             ),
         )
 
@@ -490,16 +491,16 @@ class FlextCliContext(FlextCliServiceBase):
             FlextCliConstants.Cli.ContextDictKeys.ARGUMENTS_COUNT: len(arguments_list),
             FlextCliConstants.Cli.ContextDictKeys.ARGUMENTS: list(arguments_list),
             FlextCliConstants.Cli.ContextDictKeys.ENVIRONMENT_VARIABLES_COUNT: len(
-                env_vars_dict
+                env_vars_dict,
             ),
             FlextCliConstants.Cli.ContextDictKeys.WORKING_DIRECTORY: self.working_directory,
             FlextCliConstants.Cli.ContextDictKeys.IS_ACTIVE: self.is_active,
             FlextCliConstants.Cli.ContextDictKeys.CREATED_AT: self.created_at,
             FlextCliConstants.Cli.ContextDictKeys.METADATA_KEYS: list(
-                self.context_metadata.keys()
+                self.context_metadata.keys(),
             ),
             FlextCliConstants.Cli.ContextDictKeys.METADATA_COUNT: len(
-                self.context_metadata
+                self.context_metadata,
             ),
         }
 
@@ -532,7 +533,8 @@ class FlextCliContext(FlextCliServiceBase):
 
         # Use FlextCliUtilities.transform for JSON conversion
         transform_result = FlextCliUtilities.transform(
-            result_model.model_dump(), to_json=True
+            result_model.model_dump(),
+            to_json=True,
         )
         # Use .value directly instead of deprecated .value
         result_dict = (
@@ -567,7 +569,7 @@ class FlextCliContext(FlextCliServiceBase):
             if self.arguments
             else [],
             FlextCliConstants.Cli.ContextDictKeys.ENVIRONMENT_VARIABLES: dict(
-                self.environment_variables
+                self.environment_variables,
             )
             if self.environment_variables
             else {},

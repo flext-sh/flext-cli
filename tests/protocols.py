@@ -19,33 +19,37 @@ from flext_cli.protocols import FlextCliProtocols
 
 
 class TestsCliProtocols(FlextTestsProtocols, FlextCliProtocols):
-    """Protocol definitions for flext-cli tests - extends FlextTestsProtocols and FlextCliProtocols.
+    """Protocol definitions for flext-cli tests.
 
-    Architecture: Extends both FlextTestsProtocols and FlextCliProtocols with flext-cli-specific protocol
-    definitions. All generic protocols from both are available through inheritance.
+    Extends both FlextTestsProtocols and FlextCliProtocols with flext-cli-specific
+    protocol definitions.
+
+    Provides access to:
+    - tp.Tests.Docker.* (from FlextTestsProtocols)
+    - tp.Tests.Factory.* (from FlextTestsProtocols)
+    - tp.Cli.* (from FlextCliProtocols)
 
     Rules:
-    - NEVER redeclare protocols from FlextTestsProtocols or FlextCliProtocols
+    - NEVER redeclare protocols from parent classes
     - Only flext-cli-specific test protocols allowed
-    - All generic protocols come from FlextTestsProtocols and FlextCliProtocols
     """
 
-    # NOTE: FlextTestsProtocols already extends FlextProtocols.
-    # FlextCliProtocols extends FlextProtocols.
-    # All protocols are accessible through TestsCliProtocols via inheritance.
-    #
-    # Available protocols include:
-    # - Foundation: ResultProtocol, ResultLike, ModelProtocol
-    # - CLI: Display, Interactive, Command, etc.
-    # - Test: All test-specific protocols
-    #
-    # Flext-cli-specific test protocols can be added here if needed.
+    class Tests:
+        """Project-specific test protocols.
+
+        Extends FlextTestsProtocols.Tests with flext-cli-specific protocols.
+        """
+
+        class Cli:
+            """Flext-cli-specific test protocols."""
 
 
-# Runtime alias for simplified usage
+# Runtime aliases
 p = TestsCliProtocols
+tp = TestsCliProtocols
 
 __all__ = [
     "TestsCliProtocols",
     "p",
+    "tp",
 ]

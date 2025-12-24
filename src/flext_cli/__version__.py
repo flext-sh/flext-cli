@@ -13,8 +13,7 @@ _metadata = metadata("flext_cli")
 
 __version__ = _metadata["Version"]
 __version_info__ = tuple(
-    int(part) if part.isdigit() else part for part in __version__.split(".")
-)
+    int(part) if part.isdigit() else part for part in __version__.split("."))
 __title__ = _metadata["Name"]
 __description__ = _metadata["Summary"]
 __author__ = _metadata["Author"]

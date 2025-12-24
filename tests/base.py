@@ -26,7 +26,7 @@ from flext_core import (
 from flext_core.typings import T
 from flext_tests.base import FlextTestsServiceBase
 
-from tests.constants import TestsCliConstants
+from tests.constants import TestsFlextCliConstants
 
 
 class TestsCliServiceBase(FlextTestsServiceBase[T]):
@@ -196,7 +196,7 @@ class TestsCliServiceBase(FlextTestsServiceBase[T]):
         def create_simple_handler(
             handler_id: str,
             result_value: FlextTypes.GeneralValueType = (
-                TestsCliConstants.Strings.BASIC_WORD
+                TestsFlextCliConstants.Strings.BASIC_WORD
             ),
         ) -> FlextHandlers[FlextTypes.GeneralValueType, FlextTypes.GeneralValueType]:
             """Create a simple handler that always returns the same value.
@@ -227,7 +227,7 @@ class TestsCliServiceBase(FlextTestsServiceBase[T]):
         @staticmethod
         def create_failing_handler(
             handler_id: str,
-            error_message: str = TestsCliConstants.TestErrors.PROCESSING_ERROR,
+            error_message: str = TestsFlextCliConstants.TestErrors.PROCESSING_ERROR,
         ) -> FlextHandlers[FlextTypes.GeneralValueType, FlextTypes.GeneralValueType]:
             """Create a handler that always fails.
 
@@ -244,7 +244,7 @@ class TestsCliServiceBase(FlextTestsServiceBase[T]):
                 raise ValueError(msg)
 
             if not error_message:
-                error_message = TestsCliConstants.TestErrors.PROCESSING_ERROR
+                error_message = TestsFlextCliConstants.TestErrors.PROCESSING_ERROR
 
             def always_fail(
                 _msg: FlextTypes.GeneralValueType,

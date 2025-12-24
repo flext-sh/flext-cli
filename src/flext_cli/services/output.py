@@ -12,23 +12,16 @@ import json
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from datetime import datetime
 from io import StringIO
-from typing import TypeGuard, override
+from typing import TypeGuard
 
 import yaml
-from flext_core import (
-    FlextRuntime,
-    r,
-    t,
-)
 from pydantic import BaseModel
 from rich.tree import Tree as RichTree
 
-from flext_cli.base import FlextCliServiceBase
+from flext_core import FlextRuntime, r, t
 from flext_cli.constants import FlextCliConstants
-from flext_cli.formatters import FlextCliFormatters
 from flext_cli.models import m
 from flext_cli.protocols import p
-from flext_cli.services.tables import FlextCliTables
 from flext_cli.utilities import FlextCliUtilities
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -38,7 +31,7 @@ from flext_cli.utilities import FlextCliUtilities
 # to follow "one class per module" pattern
 
 
-class FlextCliOutput(FlextCliServiceBase):
+class FlextCliOutput:
     """Comprehensive CLI output tools for the flext ecosystem.
 
     Business Rules:
@@ -118,76 +111,6 @@ class FlextCliOutput(FlextCliServiceBase):
         abstraction layers internally. NO Rich imports are present here.
 
     """
-
-    @override
-    def __init__(self) -> None:
-        """Initialize CLI output with direct formatter and table instances."""
-        super().__init__()
-        # Logger and container inherited from FlextService via FlextMixins
-
-        # Domain library components - direct initialization (no properties)
-        # Use object.__setattr__ for private attributes (FlextService pattern)
-        object.__setattr__(self, "_formatters", FlextCliFormatters())
-        object.__setattr__(self, "_tables", FlextCliTables())
-        object.__setattr__(self, "_result_formatters", {})
-
-    def _get_formatters(self) -> FlextCliFormatters:
-        """Get formatters instance."""
-        # Attribute is set in __init__ via object.__setattr__
-        # Type narrowing: _formatters is initialized in __init__
-        formatters = getattr(self, "_formatters", None)
-        if formatters is None:
-            # This should never happen as _formatters is set in __init__
-            # Use type narrowing for type checker
-            error_msg = "_formatters must be initialized in __init__"
-            raise RuntimeError(error_msg)
-        # Type narrowing: formatters is not None
-        if formatters is None:
-            msg = "formatters must not be None"
-            raise RuntimeError(msg)
-        if not isinstance(formatters, FlextCliFormatters):
-            msg = "formatters must be FlextCliFormatters"
-            raise TypeError(msg)
-        return formatters
-
-    def _get_tables(self) -> FlextCliTables:
-        """Get tables instance."""
-        # Attribute is set in __init__ via object.__setattr__
-        # Type narrowing: _tables is initialized in __init__
-        tables = getattr(self, "_tables", None)
-        if tables is None:
-            # This should never happen as _tables is set in __init__
-            # Use type narrowing for type checker
-            error_msg = "_tables must be initialized in __init__"
-            raise RuntimeError(error_msg)
-        # Type narrowing: tables is not None
-        if tables is None:
-            msg = "tables must not be None"
-            raise RuntimeError(msg)
-        if not isinstance(tables, FlextCliTables):
-            msg = "tables must be FlextCliTables"
-            raise TypeError(msg)
-        return tables
-
-    def _get_result_formatters(
-        self,
-    ) -> dict[
-        type,
-        Callable[[t.GeneralValueType | r[t.GeneralValueType], str], None],
-    ]:
-        """Get result formatters dict with type narrowing."""
-        # Python 3.13: _result_formatters is already typed as dict, isinstance check is unnecessary
-        return self._result_formatters
-
-    @override
-    def execute(self) -> r[dict[str, t.GeneralValueType]]:
-        """Execute the main domain service operation - required by FlextService."""
-        return r[dict[str, t.GeneralValueType]].ok({
-            FlextCliConstants.Cli.DictKeys.STATUS: (
-                FlextCliConstants.Cli.ServiceStatus.OPERATIONAL.value
-            ),
-            FlextCliConstants.Cli.DictKeys.SERVICE: FlextCliConstants.Cli.FLEXT_CLI,
-        })
 
     # ═══════════════════════════════════════════════════════════════════════════
     # STATIC HELPER METHODS - General purpose utilities for output operations
@@ -475,7 +398,7 @@ class FlextCliOutput(FlextCliServiceBase):
         """
         # Railway pattern: validate format → dispatch to handler
         # Convert to string and validate choice using generalized helpers
-        parse_result = FlextCliUtilities.parse(format_type, str, default="")
+        parse_result = FlextCliUtilities.Cli.parse(format_type, str, default="")
         format_str = self.ensure_str(
             parse_result.unwrap_or(str(format_type)),
             "",
@@ -507,10 +430,12 @@ class FlextCliOutput(FlextCliServiceBase):
             FlextCliConstants.Cli.OutputFormats.YAML.value: lambda: self.format_yaml(
                 data
             ),
-            FlextCliConstants.Cli.OutputFormats.TABLE.value: lambda: self._format_table_data(
-                data,
-                title,
-                headers,
+            FlextCliConstants.Cli.OutputFormats.TABLE.value: lambda: (
+                self._format_table_data(
+                    data,
+                    title,
+                    headers,
+                )
             ),
             FlextCliConstants.Cli.OutputFormats.CSV.value: lambda: self.format_csv(
                 data
@@ -571,7 +496,7 @@ class FlextCliOutput(FlextCliServiceBase):
             filtered_data = [
                 item for item in data_list if FlextRuntime.is_dict_like(item)
             ]
-            json_list_result = FlextCliUtilities.process(
+            json_list_result = FlextCliUtilities.Cli.process(
                 filtered_data,
                 processor=self.norm_json,
                 on_error="skip",
@@ -591,7 +516,8 @@ class FlextCliOutput(FlextCliServiceBase):
             FlextCliConstants.Cli.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT
         )
 
-    def create_formatter(self, format_type: str) -> r[FlextCliOutput]:
+    @staticmethod
+    def create_formatter(format_type: str) -> r[FlextCliOutput]:
         """Create a formatter instance for the specified format type.
 
         Uses FlextCliUtilities.convert() and direct validation for format checking.
@@ -605,7 +531,7 @@ class FlextCliOutput(FlextCliServiceBase):
         """
         try:
             # Use build() DSL: parse → ensure str → normalize → validate
-            parse_result = FlextCliUtilities.parse(format_type, str, default="")
+            parse_result = FlextCliUtilities.Cli.parse(format_type, str, default="")
             format_str = self.ensure_str(
                 parse_result.unwrap_or(str(format_type)),
                 "",
@@ -901,7 +827,7 @@ class FlextCliOutput(FlextCliServiceBase):
         # Type narrowing: result has __dict__ attribute
         raw_dict: dict[str, t.GeneralValueType] = getattr(result, "__dict__", {})
         # Use build() DSL: process_mapping → to_json → filter → ensure dict
-        json_dict_result = FlextCliUtilities.process_mapping(
+        json_dict_result = FlextCliUtilities.Cli.process_mapping(
             raw_dict,
             processor=lambda _k, v: self.to_json(v),
             on_error="skip",
@@ -916,7 +842,7 @@ class FlextCliOutput(FlextCliServiceBase):
             json_dict,
             lambda _k, v: self.is_json(v),
         )
-        cli_json_dict_result = FlextCliUtilities.process_mapping(
+        cli_json_dict_result = FlextCliUtilities.Cli.process_mapping(
             filtered_json_dict,
             processor=lambda _k, v: v,
             on_error="skip",
@@ -949,7 +875,7 @@ class FlextCliOutput(FlextCliServiceBase):
             """Extract keys from dict row."""
             return set(row.keys())
 
-        all_keys = FlextCliUtilities.process(
+        all_keys = FlextCliUtilities.Cli.process(
             data,
             processor=_extract_keys,
             on_error="skip",
@@ -974,11 +900,11 @@ class FlextCliOutput(FlextCliServiceBase):
 
         def build_row(row_data: dict[str, t.GeneralValueType]) -> list[str]:
             """Build row values using u utilities."""
-            values = FlextCliUtilities.process(
+            values = FlextCliUtilities.Cli.process(
                 headers,
-                processor=lambda h: str(FlextCliUtilities.get(row_data, h))
-                if h in row_data
-                else None,
+                processor=lambda h: (
+                    str(FlextCliUtilities.get(row_data, h)) if h in row_data else None
+                ),
                 on_error="skip",
             )
             if values.is_failure:
@@ -996,7 +922,7 @@ class FlextCliOutput(FlextCliServiceBase):
             ]
             return filtered_list
 
-        rows_result = FlextCliUtilities.process(
+        rows_result = FlextCliUtilities.Cli.process(
             data, processor=build_row, on_error="fail"
         )
         if rows_result.is_failure:
@@ -1077,7 +1003,7 @@ class FlextCliOutput(FlextCliServiceBase):
         Uses RichTableProtocol from lower layer instead of object for better type safety.
         """
         # Add columns
-        FlextCliUtilities.process(
+        FlextCliUtilities.Cli.process(
             headers,
             processor=lambda h: table.add_column(str(h)),
             on_error="skip",
@@ -1321,7 +1247,8 @@ class FlextCliOutput(FlextCliServiceBase):
         )
         return self._get_formatters().print(message, style=validated_style)
 
-    def print_error(self, message: str) -> r[bool]:
+    @staticmethod
+    def print_error(message: str) -> r[bool]:
         """Print an error message with red styling.
 
         Args:
@@ -1340,7 +1267,8 @@ class FlextCliOutput(FlextCliServiceBase):
             style=FlextCliConstants.Cli.Styles.BOLD_RED,
         )
 
-    def print_success(self, message: str) -> r[bool]:
+    @staticmethod
+    def print_success(message: str) -> r[bool]:
         """Print a success message with green styling.
 
         Args:
@@ -1359,7 +1287,8 @@ class FlextCliOutput(FlextCliServiceBase):
             style=FlextCliConstants.Cli.Styles.BOLD_GREEN,
         )
 
-    def print_warning(self, message: str) -> r[bool]:
+    @staticmethod
+    def print_warning(message: str) -> r[bool]:
         """Print a warning message with yellow styling.
 
         Args:
@@ -1517,7 +1446,8 @@ class FlextCliOutput(FlextCliServiceBase):
     # DATA FORMAT METHODS (Built-in)
     # =========================================================================
 
-    def format_json(self, data: t.GeneralValueType) -> r[str]:
+    @staticmethod
+    def format_json(data: t.GeneralValueType) -> r[str]:
         """Format data as JSON.
 
         Args:
@@ -1548,7 +1478,8 @@ class FlextCliOutput(FlextCliServiceBase):
             self.logger.exception(error_msg)
             return r[str].fail(error_msg)
 
-    def format_yaml(self, data: t.GeneralValueType) -> r[str]:
+    @staticmethod
+    def format_yaml(data: t.GeneralValueType) -> r[str]:
         """Format data as YAML.
 
         Args:
@@ -1578,7 +1509,8 @@ class FlextCliOutput(FlextCliServiceBase):
             self.logger.exception(error_msg)
             return r[str].fail(error_msg)
 
-    def format_csv(self, data: t.GeneralValueType) -> r[str]:
+    @staticmethod
+    def format_csv(data: t.GeneralValueType) -> r[str]:
         """Format data as CSV.
 
         Args:
@@ -1855,7 +1787,7 @@ class FlextCliOutput(FlextCliServiceBase):
             # For lists, processor takes only item, not (key, item)
             # Filter first, then process (FlextCliUtilities.process doesn't accept predicate)
             filtered_data = [item for item in data if FlextRuntime.is_dict_like(item)]
-            process_result = FlextCliUtilities.process(
+            process_result = FlextCliUtilities.Cli.process(
                 filtered_data,
                 processor=self.norm_json,
                 on_error="skip",
@@ -1897,7 +1829,7 @@ class FlextCliOutput(FlextCliServiceBase):
                 FlextCliConstants.Cli.OutputFieldNames.VALUE: str(v),
             }
 
-        process_result = FlextCliUtilities.process_mapping(
+        process_result = FlextCliUtilities.Cli.process_mapping(
             data, processor=kv_pair, on_error="skip"
         )
         dict_result = FlextCliOutput.ensure_dict(
@@ -2079,7 +2011,7 @@ class FlextCliOutput(FlextCliServiceBase):
                         self._build_tree(branch, item)
 
                     if isinstance(v, list):
-                        FlextCliUtilities.process(
+                        FlextCliUtilities.Cli.process(
                             v, processor=process_list_item, on_error="skip"
                         )
                 else:
@@ -2087,7 +2019,7 @@ class FlextCliOutput(FlextCliServiceBase):
                         f"{k}{FlextCliConstants.Cli.OutputDefaults.TREE_VALUE_SEPARATOR}{v}"
                     )
 
-            FlextCliUtilities.process_mapping(
+            FlextCliUtilities.Cli.process_mapping(
                 data, processor=process_tree_item, on_error="skip"
             )
         elif isinstance(data, list):
@@ -2096,7 +2028,7 @@ class FlextCliOutput(FlextCliServiceBase):
                 """Process list item."""
                 self._build_tree(tree, item)
 
-            FlextCliUtilities.process(
+            FlextCliUtilities.Cli.process(
                 data, processor=process_list_item, on_error="skip"
             )
         else:

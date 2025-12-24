@@ -9,23 +9,27 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from tests.base import TestsCliServiceBase, s
-from tests.constants import TestsCliConstants, c
-from tests.models import TestsCliModels, m
-from tests.protocols import TestsCliProtocols, p
-from tests.typings import TestsCliTypes, t
+from tests.constants import TestsFlextCliConstants, c, tc
+from tests.models import TestsFlextCliModels, m, tm
+from tests.protocols import TestsCliProtocols, p, tp
+from tests.typings import TestsCliTypes, t, tt
 from tests.utilities import TestsCliUtilities, u
 
 __all__ = [
-    "TestsCliConstants",
-    "TestsCliModels",
     "TestsCliProtocols",
     "TestsCliServiceBase",
     "TestsCliTypes",
     "TestsCliUtilities",
+    "TestsFlextCliConstants",
+    "TestsFlextCliModels",
     "c",
     "m",
     "p",
     "s",
     "t",
+    "tc",
+    "tm",
+    "tp",
+    "tt",
     "u",
 ]

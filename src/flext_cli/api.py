@@ -15,13 +15,7 @@ import secrets
 from collections.abc import Callable, Mapping, Sequence
 from typing import TypeGuard
 
-from flext_core import (
-    FlextContainer,
-    FlextLogger,
-    FlextRuntime,
-    FlextTypes,
-    r,
-)
+from flext_core import FlextContainer, FlextLogger, FlextRuntime, FlextTypes, r
 
 from flext_cli.__version__ import __version__
 from flext_cli.app_base import FlextCliAppBase
@@ -333,7 +327,7 @@ class FlextCli:
         if u.Cli.FileOps.is_file_not_found_error(error_str):
             return r[str].fail(c.Cli.ErrorMessages.TOKEN_FILE_NOT_FOUND)
         return r[str].fail(
-            c.Cli.ErrorMessages.TOKEN_LOAD_FAILED.format(error=error_str)
+            c.Cli.ErrorMessages.TOKEN_LOAD_FAILED.format(error=error_str),
         )
 
     def get_auth_token(self) -> r[str]:

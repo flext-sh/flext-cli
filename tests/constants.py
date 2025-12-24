@@ -1,11 +1,11 @@
 """Constants for flext-cli tests.
 
-Provides TestsCliConstants, extending FlextTestsConstants with flext-cli-specific
-constants. All generic test constants come from flext_tests.
+Provides TestsFlextCliConstants, extending FlextTestsConstants with flext-cli-specific
+constants using COMPOSITION INHERITANCE.
 
-Architecture:
-- FlextTestsConstants (flext_tests) = Generic constants for all FLEXT projects
-- TestsCliConstants (tests/) = flext-cli-specific constants extending FlextTestsConstants
+Inheritance hierarchy:
+- FlextTestsConstants (flext_tests) - Provides .Tests.* namespace
+- FlextCliConstants (production) - Provides .Cli.* namespace
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -21,20 +21,26 @@ from flext_tests.constants import FlextTestsConstants
 from flext_cli.constants import FlextCliConstants
 
 
-class TestsCliConstants(FlextTestsConstants):
-    """Constants for flext-cli tests - extends FlextTestsConstants.
+class TestsFlextCliConstants(FlextTestsConstants, FlextCliConstants):
+    """Constants for flext-cli tests using COMPOSITION INHERITANCE.
 
-    Architecture: Extends FlextTestsConstants with flext-cli-specific constants.
-    All generic constants from FlextTestsConstants are available through inheritance.
+    MANDATORY: Inherits from BOTH:
+    1. FlextTestsConstants - for test infrastructure (.Tests.*)
+    2. FlextCliConstants - for domain constants (.Cli.*)
+
+    Access patterns:
+    - tc.Tests.Docker.* (container testing)
+    - tc.Tests.Matcher.* (assertion messages)
+    - tc.Tests.Factory.* (test data generation)
+    - tc.Cli.* (domain constants from production)
+    - tc.TestData.* (project-specific test data)
 
     Rules:
-    - NEVER duplicate constants from FlextTestsConstants
+    - NEVER duplicate constants from FlextTestsConstants or FlextCliConstants
     - Only flext-cli-specific constants allowed (not generic for other projects)
     - All generic constants come from FlextTestsConstants
+    - All production constants come from FlextCliConstants
     """
-
-    # Import Cli from FlextCliConstants for test access
-    Cli = FlextCliConstants.Cli
 
     # =========================================================================
     # TEST DATA CONSTANTS
@@ -326,10 +332,12 @@ class TestsCliConstants(FlextTestsConstants):
         }
 
 
-# Short alias per FLEXT convention
-c = TestsCliConstants
+# Short aliases per FLEXT convention
+tc = TestsFlextCliConstants  # Primary test constants alias
+c = TestsFlextCliConstants  # Alternative alias for compatibility
 
 __all__ = [
-    "TestsCliConstants",
+    "TestsFlextCliConstants",
     "c",
+    "tc",
 ]

@@ -1,12 +1,8 @@
-"""Models for flext-cli tests.
+"""Test model definitions extending src models for centralized test objects.
 
-Provides TestsCliModels using composition with FlextTestsModels and FlextCliModels.
-All generic test models come from flext_tests.
-
-Architecture:
-- FlextTestsModels (flext_tests) = Generic models for all FLEXT projects
-- FlextCliModels (flext_cli) = CLI-specific models
-- TestsCliModels (tests/) = flext-cli-specific models using composition
+This module provides test-specific model extensions that inherit from
+src/flext_cli/models.py classes. This centralizes test objects without
+duplicating parent class functionality.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -14,80 +10,94 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping
-from dataclasses import field
-
-from flext_core import FlextModels, FlextProtocols, FlextTypes
 from flext_tests.models import FlextTestsModels
 
 from flext_cli.models import FlextCliModels
 
 
-class TestsCliModels:
-    """Models for flext-cli tests - uses composition with FlextTestsModels.
+class TestsFlextCliModels(FlextTestsModels, FlextCliModels):
+    """Test models - composição de FlextTestsModels + FlextCliModels.
 
-    Architecture: Uses composition (not inheritance) with FlextTestsModels and FlextCliModels
-    for flext-cli-specific model definitions.
+    Hierarquia:
+    - FlextTestsModels: Utilitários de teste genéricos
+    - FlextCliModels: Models de domínio do projeto
+    - TestsFlextCliModels: Composição + namespace .Tests
 
     Access patterns:
-    - TestsCliModels.Tests.* = flext_tests test models (via composition)
-    - TestsCliModels.Cli.* = flext-cli-specific test models
-    - TestsCliModels.Entity, .Value, etc. = FlextModels domain models (via composition)
-
-    Rules:
-    - Use composition, not inheritance (FlextTestsModels deprecates subclassing)
-    - flext-cli-specific models go in Cli namespace
-    - Generic models accessed via Tests namespace
+    - tm.Tests.* - Test fixtures (Entity, Value, Command, etc.)
+    - m.Cli.* - Production domain models
     """
 
-    # Composition: expose FlextTestsModels namespaces
-    Tests = FlextTestsModels.Tests
+    class Tests:
+        """Test fixture models namespace.
 
-    # Composition: expose FlextModels domain model classes
-    Entity = FlextModels.Entity
-    Value = FlextModels.Value
-    AggregateRoot = FlextModels.AggregateRoot
-    DomainEvent = FlextModels.DomainEvent
-    Collections = FlextModels.Collections
+        Convenience aliases for test-only shortcuts.
+        Production code should use m.Cli.* pattern.
+        """
 
-    # Composition: expose FlextCliModels CLI-specific classes (direct access)
-    Cli = FlextCliModels
+        # Entity models for testing
+        Entity = FlextCliModels.Cli.Entity
+        Entry = FlextCliModels.Cli.Entry
+        Value = FlextCliModels.Cli.Value
 
-    # Type aliases for domain test input
-    type DomainInputValue = (
-        FlextTypes.GeneralValueType | FlextProtocols.HasModelDump | object
-    )
-    type DomainInputMapping = Mapping[str, DomainInputValue]
-    type DomainExpectedResult = (
-        FlextTypes.GeneralValueType | type[FlextTypes.GeneralValueType]
-    )
+        # Command models for testing
+        CliCommand = FlextCliModels.Cli.CliCommand
+        CliSession = FlextCliModels.Cli.CliSession
+        CliSessionData = FlextCliModels.Cli.CliSessionData
 
-    class Core:
-        """flext-cli-specific test models namespace."""
+        # Config models for testing
+        TableConfig = FlextCliModels.Cli.TableConfig
+        LoggingConfig = FlextCliModels.Cli.LoggingConfig
+        CliConfig = FlextCliModels.Cli.CliConfig
+        CliParamsConfig = FlextCliModels.Cli.CliParamsConfig
+        OptionConfig = FlextCliModels.Cli.OptionConfig
+        ConfirmConfig = FlextCliModels.Cli.ConfirmConfig
+        PromptConfig = FlextCliModels.Cli.PromptConfig
+        CmdConfig = FlextCliModels.Cli.CmdConfig
 
-        class CliTestEntity(FlextCliModels.Cli.Entity):
-            """Test entity for CLI tests."""
+        # Context and output models for testing
+        CliContext = FlextCliModels.Cli.CliContext
+        CliOutput = FlextCliModels.Cli.CliOutput
 
-            name: str
-            value: int
+        # Result models for testing
+        CommandResult = FlextCliModels.Cli.CommandResult
+        ServiceExecutionResult = FlextCliModels.Cli.ServiceExecutionResult
+        ContextExecutionResult = FlextCliModels.Cli.ContextExecutionResult
+        WorkflowResult = FlextCliModels.Cli.WorkflowResult
+        WorkflowStepResult = FlextCliModels.Cli.WorkflowStepResult
+        WorkflowProgress = FlextCliModels.Cli.WorkflowProgress
+        CommandExecutionContextResult = FlextCliModels.Cli.CommandExecutionContextResult
 
-        class CliTestValue(FlextCliModels.Cli.Value):
-            """Test value object for CLI tests."""
+        # Info models for testing
+        PathInfo = FlextCliModels.Cli.PathInfo
+        EnvironmentInfo = FlextCliModels.Cli.EnvironmentInfo
+        SystemInfo = FlextCliModels.Cli.SystemInfo
+        DebugInfo = FlextCliModels.Cli.DebugInfo
+        CliDebugData = FlextCliModels.Cli.CliDebugData
 
-            data: str
-            count: int
+        # Statistics models for testing
+        SessionStatistics = FlextCliModels.Cli.SessionStatistics
+        PromptStatistics = FlextCliModels.Cli.PromptStatistics
+        CommandStatistics = FlextCliModels.Cli.CommandStatistics
 
-        class CommandTestEntity(FlextCliModels.Cli.CliCommand):
-            """Test command for CLI tests."""
+        # Auth models for testing
+        PasswordAuth = FlextCliModels.Cli.PasswordAuth
+        TokenData = FlextCliModels.Cli.TokenData
 
-            command_name: str = "test-command"
-            command_args: list[str] = field(default_factory=list)
+        # Builder classes for testing
+        OptionBuilder = FlextCliModels.Cli.OptionBuilder
+        ModelCommandBuilder = FlextCliModels.Cli.ModelCommandBuilder
+        CliParameterSpec = FlextCliModels.Cli.CliParameterSpec
+        CliModelConverter = FlextCliModels.Cli.CliModelConverter
+        CliModelDecorators = FlextCliModels.Cli.CliModelDecorators
 
 
-# Short alias per FLEXT convention
-m = TestsCliModels
+# Short aliases for tests
+tm = TestsFlextCliModels
+m = TestsFlextCliModels
 
 __all__ = [
-    "TestsCliModels",
+    "TestsFlextCliModels",
     "m",
+    "tm",
 ]
