@@ -24,10 +24,11 @@ from pathlib import Path
 from typing import TypedDict
 
 import pytest
-from flext import t
 from flext_tests import tm
 
-from flext_cli import (
+from flext import t
+
+
     FlextCli,
     FlextCliAppBase,
     c,

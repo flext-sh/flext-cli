@@ -1333,7 +1333,7 @@ class FlextCliModels(FlextModels):
             ───────────────────
             - Dynamic code generation MUST validate model_class is BaseModel subclass
             - Function creation MUST use exec() safely (no user input in code string)
-            - Type conversion MUST preserve type safety (no object  # TODO(@marlonsc): Replace Any with proper type types) - See type-system-architecture.md
+            - Type conversion MUST preserve type safety (no object types) - See type-system-architecture.md
             - Field validation MUST use Pydantic validators (not bypassed)
             - Sensitive fields (SecretStr) MUST be handled securely in CLI args
             - Command execution MUST log all parameters (except sensitive fields)

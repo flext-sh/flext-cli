@@ -19,7 +19,8 @@ import threading
 import time
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import (
+
+
     Generic,
     Protocol,
     TypedDict,
@@ -28,6 +29,7 @@ from typing import (
     get_origin,
     get_type_hints,
     runtime_checkable,
+)
 
 import pytest
 from flext_tests import tm

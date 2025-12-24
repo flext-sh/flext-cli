@@ -53,7 +53,7 @@ class FlextCliUtilities(FlextUtilities):
     1. All utility methods MUST be static (no instance state)
     2. All operations MUST return r[T] for error handling
     3. Field validation MUST enforce business rules (trace requires debug)
-    4. Type normalization MUST preserve type safety (no object  # TODO(@marlonsc): Replace Any with proper type types) - See type-system-architecture.md
+    4. Type normalization MUST preserve type safety (no object types) - See type-system-architecture.md
     5. Common patterns MUST be consolidated here (DRY principle)
     6. CLI-specific helpers MUST extend flext-core u
     7. All validators MUST use Pydantic validators when applicable
@@ -355,7 +355,8 @@ class FlextCliUtilities(FlextUtilities):
             for item in items:
                 # Call predicate with proper type
                 try:
-                    if predicate(item):
+                    result: bool = predicate(item)
+                    if result:
                         return item
                 except TypeError:
                     continue
@@ -420,8 +421,6 @@ class FlextCliUtilities(FlextUtilities):
             | Mapping[str, T]
             | r[T],
             mapper: Callable[[T], R] | Callable[[str, T], R],
-            *,
-            default_error: str = "Operation failed",
         ) -> list[R] | set[R] | frozenset[R] | dict[str, R] | r[R]:
             """Map items using flext-core Collection.map.
 

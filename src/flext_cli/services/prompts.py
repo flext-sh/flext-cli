@@ -10,13 +10,14 @@ from collections.abc import Mapping
 from flext_core import r, s
 from pydantic import Field, PrivateAttr
 
+from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import m
 from flext_cli.typings import t
 from flext_cli.utilities import FlextCliUtilities
 
 
-class FlextCliPrompts:
+class FlextCliPrompts(FlextCliServiceBase):
     """CLI prompts and interactive input service using domain-specific types.
 
     Business Rules:

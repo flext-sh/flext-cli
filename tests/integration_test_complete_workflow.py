@@ -22,8 +22,8 @@ from pathlib import Path
 from typing import TypedDict, cast
 
 import pytest
-
 from flext_core import t
+
 from flext_cli import (
     FlextCli,
     FlextCliFileTools,

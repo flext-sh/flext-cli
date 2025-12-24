@@ -16,10 +16,13 @@ from typing import TypeGuard
 
 import yaml
 from flext_core import FlextRuntime, r, t
+from flext_core.mixins import FlextMixins
 from pydantic import BaseModel
 from rich.tree import Tree as RichTree
 
+from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import FlextCliConstants
+from flext_cli.formatters import FlextCliFormatters
 from flext_cli.models import m
 from flext_cli.protocols import p
 from flext_cli.utilities import FlextCliUtilities
@@ -31,7 +34,7 @@ from flext_cli.utilities import FlextCliUtilities
 # to follow "one class per module" pattern
 
 
-class FlextCliOutput:
+class FlextCliOutput(FlextCliServiceBase, FlextMixins):
     """Comprehensive CLI output tools for the flext ecosystem.
 
     Business Rules:
@@ -340,6 +343,31 @@ class FlextCliOutput:
         """Type guard to check if object implements RichConsoleProtocol."""
         return hasattr(obj, "print") and hasattr(obj, "rule")
 
+    def _get_formatters(self) -> FlextCliFormatters:
+        """Get or create FlextCliFormatters instance (lazy initialization).
+
+        Returns:
+            FlextCliFormatters instance for Rich-based output
+
+        Note:
+            Uses lazy initialization pattern: creates instance on first access
+            and caches it for subsequent calls.
+
+        """
+        # Lazy initialization: create instance if not exists
+        if not hasattr(self, "_formatters") or not isinstance(
+            getattr(self, "_formatters", None), FlextCliFormatters
+        ):
+            # Set the formatters instance using object.__setattr__ to bypass validation
+            object.__setattr__(self, "_formatters", FlextCliFormatters())
+
+        # Type-safe access: we know _formatters exists and is FlextCliFormatters
+        formatters = object.__getattribute__(self, "_formatters")
+        if not isinstance(formatters, FlextCliFormatters):
+            msg = f"_formatters must be FlextCliFormatters, got {type(formatters)}"
+            raise TypeError(msg)
+        return formatters
+
     @staticmethod
     def to_dict_json(v: t.GeneralValueType) -> dict[str, t.GeneralValueType]:
         """Convert value to dict with JSON transform using build DSL."""
@@ -516,8 +544,7 @@ class FlextCliOutput:
             FlextCliConstants.Cli.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT
         )
 
-    @staticmethod
-    def create_formatter(format_type: str) -> r[FlextCliOutput]:
+    def create_formatter(self, format_type: str) -> r[FlextCliOutput]:
         """Create a formatter instance for the specified format type.
 
         Uses FlextCliUtilities.convert() and direct validation for format checking.
@@ -1247,8 +1274,7 @@ class FlextCliOutput:
         )
         return self._get_formatters().print(message, style=validated_style)
 
-    @staticmethod
-    def print_error(message: str) -> r[bool]:
+    def print_error(self, message: str) -> r[bool]:
         """Print an error message with red styling.
 
         Args:
@@ -1267,8 +1293,7 @@ class FlextCliOutput:
             style=FlextCliConstants.Cli.Styles.BOLD_RED,
         )
 
-    @staticmethod
-    def print_success(message: str) -> r[bool]:
+    def print_success(self, message: str) -> r[bool]:
         """Print a success message with green styling.
 
         Args:
@@ -1287,8 +1312,7 @@ class FlextCliOutput:
             style=FlextCliConstants.Cli.Styles.BOLD_GREEN,
         )
 
-    @staticmethod
-    def print_warning(message: str) -> r[bool]:
+    def print_warning(self, message: str) -> r[bool]:
         """Print a warning message with yellow styling.
 
         Args:
@@ -1446,8 +1470,7 @@ class FlextCliOutput:
     # DATA FORMAT METHODS (Built-in)
     # =========================================================================
 
-    @staticmethod
-    def format_json(data: t.GeneralValueType) -> r[str]:
+    def format_json(self, data: t.GeneralValueType) -> r[str]:
         """Format data as JSON.
 
         Args:
@@ -1478,8 +1501,7 @@ class FlextCliOutput:
             self.logger.exception(error_msg)
             return r[str].fail(error_msg)
 
-    @staticmethod
-    def format_yaml(data: t.GeneralValueType) -> r[str]:
+    def format_yaml(self, data: t.GeneralValueType) -> r[str]:
         """Format data as YAML.
 
         Args:
@@ -1509,8 +1531,7 @@ class FlextCliOutput:
             self.logger.exception(error_msg)
             return r[str].fail(error_msg)
 
-    @staticmethod
-    def format_csv(data: t.GeneralValueType) -> r[str]:
+    def format_csv(self, data: t.GeneralValueType) -> r[str]:
         """Format data as CSV.
 
         Args:

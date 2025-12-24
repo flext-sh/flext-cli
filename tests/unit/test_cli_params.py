@@ -19,9 +19,11 @@ from flext import r
 from flext_tests import tm
 from typer.testing import CliRunner
 
-from flext_cli import (
+
+
     FlextCliCommonParams,
     FlextCliSettings,
+)
 
 
 class ConfigParam(StrEnum):
@@ -142,7 +144,7 @@ class TestsCliCommonParams:
         updated_config = result.value
         assert updated_config.verbose is True
         assert updated_config.debug is True
-        assert updated_config.cli_log_level.value == "DEBUG"
+        assert updated_config.cli_log_level == "DEBUG"
 
     def test_apply_to_config_trace_requires_debug(self) -> None:
         """Test trace requires debug - Railway pattern validation."""

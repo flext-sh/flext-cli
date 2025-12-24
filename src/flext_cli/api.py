@@ -12,7 +12,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import secrets
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable, Mapping
 from typing import TypeGuard
 
 from flext_core import FlextContainer, FlextLogger, FlextRuntime, FlextTypes, r
@@ -548,83 +548,6 @@ class FlextCli:
     # =========================================================================
     # CONVENIENCE METHODS - Delegate to service instances
     # =========================================================================
-
-    def print(
-        self,
-        message: str,
-        style: str | None = None,
-    ) -> r[bool]:
-        """Print formatted message (convenience method for formatters.print)."""
-        return self.formatters.print(message, style)
-
-    def create_table(
-        self,
-        data: Sequence[Mapping[str, FlextTypes.GeneralValueType]]
-        | Mapping[str, FlextTypes.GeneralValueType]
-        | None = None,
-        headers: list[str] | None = None,
-        title: str | None = None,
-    ) -> r[str]:
-        """Create table from data (convenience method)."""
-        if data is None:
-            return r[str].fail(
-                c.Cli.ErrorMessages.NO_DATA_PROVIDED,
-            )
-
-        # Convert data using Mapper for type-safe conversion
-        table_data: FlextTypes.GeneralValueType
-        if isinstance(data, dict):
-            # Use u.transform for JSON conversion
-            transform_result = u.transform(data, to_json=True)
-            table_data = transform_result.value if transform_result.is_success else data
-        else:
-            # Handle all Sequence types - use u.map to convert items
-            data_list: list[FlextTypes.GeneralValueType] = list(data)
-            mapped_result = u.Collection.map(
-                data_list,
-                mapper=lambda item: (
-                    u.transform({"_": item}, to_json=True).value.get("_", item)
-                    if isinstance(item, dict)
-                    else item
-                ),
-            )
-            # Since we pass a list to Collection.map, result is list[object]
-            raw_list = mapped_result if isinstance(mapped_result, list) else []
-            converted_list: list[FlextTypes.GeneralValueType] = raw_list
-            table_data = converted_list
-
-        return self.output.format_data(
-            data=table_data,
-            format_type=c.Cli.OutputFormats.TABLE.value,
-            title=title,
-            headers=headers,
-        )
-
-    def print_table(
-        self,
-        table: str,
-    ) -> r[bool]:
-        """Print table string (convenience method)."""
-        return self.formatters.print(table)
-
-    def create_tree(
-        self,
-        label: str,
-    ) -> r[p.Cli.Display.RichTreeProtocol]:
-        """Create tree visualization (convenience method for formatters.create_tree)."""
-        # formatters.create_tree returns RichTree which implements RichTreeProtocol
-        result = self.formatters.create_tree(label)
-        if result.is_success:
-            # RichTree (concrete type) implements RichTreeProtocol structurally at runtime
-            # Protocol is structural, so tree_value is compatible
-            tree_value = result.value
-            if not self._is_rich_tree_protocol(tree_value):
-                msg = "tree_value must implement RichTreeProtocol"
-                raise TypeError(msg)
-            # Type guard confirms compatibility - return as protocol type
-            return r[p.Cli.Display.RichTreeProtocol].ok(tree_value)
-        # Return failure as r[RichTreeProtocol]
-        return r[p.Cli.Display.RichTreeProtocol].fail(result.error)
 
 
 __all__ = [

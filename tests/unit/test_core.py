@@ -27,12 +27,14 @@ import pytest
 from flext import t
 from pydantic import ValidationError
 
-from flext_cli import (
+
+
     FlextCliCore,
     FlextCliSettings,
     c,
     m,
     r,
+)
 
 
 class TestsCliCore:

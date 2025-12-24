@@ -10,6 +10,11 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+# ============================================================================
+# TEST CONSTANTS - Available in all tests via TestsCliConstants (c)
+# ============================================================================
+# All constants are in tests/constants.py (TestsCliConstants)
+# Test files import directly from conftest or use c.ClassName.CONSTANT pattern
 import builtins
 import getpass
 import json
@@ -49,11 +54,14 @@ from flext_cli import (
     FlextCliSettings,
     m,
 )
+
+# Import from correct locations - use TestsCli structure
 from flext_cli.typings import t
-from tests.constants import c
-from tests.models import m
-from tests.typings import t
-from tests.utilities import u
+from tests import (
+    c,
+    u,
+)
+from tests.utilities import TestsCliUtilities
 
 # ============================================================================
 # RUNTIME GLOBALS - Declared for type checking
@@ -140,7 +148,7 @@ def pytest_configure(config: pytest.Config) -> None:
         Statuses, \
         FileOps, \
         Password, \
-        Progress
+        Progress  # noqa: PLW0603
 
     # Test data constants - access from c.Cli
     ALICE = builtins.ALICE = c.Cli.ALICE

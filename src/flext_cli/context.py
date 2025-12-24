@@ -12,17 +12,16 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
-from flext_core import FlextSettings, r, s
-from pydantic import Field
+from flext_core import FlextModels, r
+from pydantic import ConfigDict, Field
 
-from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import m
 from flext_cli.typings import t
 from flext_cli.utilities import FlextCliUtilities
 
 
-class FlextCliContext(FlextCliServiceBase):
+class FlextCliContext(FlextModels.Value):
     """CLI execution context with type-safe operations and FlextResult patterns.
 
     Business Rules:
@@ -57,6 +56,8 @@ class FlextCliContext(FlextCliServiceBase):
     All operations use FlextResult railway pattern for error handling.
     """
 
+    model_config = ConfigDict(frozen=True)
+
     # Direct attributes - no properties needed
     id: str = ""
     command: str | None = None
@@ -71,54 +72,6 @@ class FlextCliContext(FlextCliServiceBase):
     is_active: bool = False
     created_at: str = ""
     timeout_seconds: int = Field(default=30)
-
-    def __init__(
-        self,
-        command: str | None = None,
-        arguments: list[str] | None = None,
-        environment_variables: dict[str, t.GeneralValueType] | None = None,
-        working_directory: str | None = None,
-        **data: t.GeneralValueType,
-    ) -> None:
-        """Initialize CLI context with enhanced type safety.
-
-        Args:
-            command: Command being executed
-            arguments: Command line arguments
-            environment_variables: Environment variables using CLI-specific types
-            working_directory: Current working directory
-            **data: Additional entity initialization data
-
-        """
-        # Generate id if not provided or empty
-        if not data.get("id"):
-            data["id"] = FlextCliUtilities.generate("uuid")
-
-        # Set all fields in data BEFORE calling super().__init__()
-        # This avoids frozen model violations
-        if command is not None:
-            data["command"] = command
-        if arguments is not None:
-            data["arguments"] = arguments
-        if environment_variables is not None:
-            data["environment_variables"] = environment_variables
-        if working_directory is not None:
-            data["working_directory"] = working_directory
-
-        # Set default values for optional fields
-        if "created_at" not in data:
-            data["created_at"] = FlextCliUtilities.generate("timestamp")
-        if "is_active" not in data:
-            data["is_active"] = False
-
-        # Set timeout from global config if not provided
-        if "timeout_seconds" not in data:
-            global_config = FlextSettings.get_global_instance()
-            data["timeout_seconds"] = int(global_config.timeout_seconds)
-
-        # Convert data for super().__init__()
-        # FlextService.__init__ accepts **data: t.GeneralValueType
-        s[dict[str, t.GeneralValueType]].__init__(self, **data)
 
     # ==========================================================================
     # PRIVATE HELPERS - Generalize common patterns
@@ -295,30 +248,6 @@ class FlextCliContext(FlextCliServiceBase):
     # ==========================================================================
     # CONTEXT STATE MANAGEMENT
     # ==========================================================================
-
-    def activate(self) -> r[bool]:
-        """Activate CLI context for execution."""
-        if self.is_active:
-            return r[bool].fail(
-                FlextCliConstants.Cli.ContextErrorMessages.CONTEXT_ALREADY_ACTIVE,
-            )
-        # Business Rule: Model is frozen, must use object.__setattr__
-        # Architecture: Frozen model prevents direct assignment
-        # Audit Implication: Attribute changes are tracked and validated by Pydantic
-        self.is_active = True
-        return r[bool].ok(True)
-
-    def deactivate(self) -> r[bool]:
-        """Deactivate CLI context."""
-        if not self.is_active:
-            return r[bool].fail(
-                FlextCliConstants.Cli.ContextErrorMessages.CONTEXT_NOT_CURRENTLY_ACTIVE,
-            )
-        # Business Rule: Model is frozen, must use setattr
-        # Architecture: Frozen model prevents direct assignment
-        # Audit Implication: Attribute changes are tracked and validated by Pydantic
-        self.is_active = False
-        return r[bool].ok(True)
 
     # ==========================================================================
     # ENVIRONMENT VARIABLES
