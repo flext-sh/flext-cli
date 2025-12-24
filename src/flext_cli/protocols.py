@@ -6,8 +6,7 @@ from collections.abc import Callable, Mapping, Sequence
 from datetime import datetime
 from typing import Protocol, Self, runtime_checkable
 
-from flext_core import FlextProtocols
-
+from flext import FlextProtocols
 from flext_cli.typings import t
 
 
@@ -160,9 +159,7 @@ class FlextCliProtocols(FlextProtocols):
 
             def execute(
                 self,
-)
                 args: Sequence[str],
-)
             ) -> FlextProtocols.Result[t.GeneralValueType]:
                 """Execute command with arguments."""
                 ...
@@ -259,16 +256,13 @@ class FlextCliProtocols(FlextProtocols):
             @property
             def commands_by_status(
                 self,
-)
             ) -> Mapping[str, Sequence[FlextCliProtocols.Cli.Command]]:
                 """Group commands by status."""
                 ...
 
             def add_command(
                 self,
-)
                 command: FlextCliProtocols.Cli.Command,
-)
             ) -> FlextProtocols.Result[Self]:
                 """Add command to session."""
                 ...
@@ -611,11 +605,8 @@ class FlextCliProtocols(FlextProtocols):
 
             def format_data(
                 self,
-)
                 data: t.GeneralValueType,
-)
                 **options: t.GeneralValueType,
-)
             ) -> FlextProtocols.Result[str]:
                 """Format data."""
                 ...
@@ -626,16 +617,13 @@ class FlextCliProtocols(FlextProtocols):
 
             def load_config(
                 self,
-)
             ) -> FlextProtocols.Result[Mapping[str, t.GeneralValueType]]:
                 """Load configuration."""
                 ...
 
             def save_config(
                 self,
-)
                 config: Mapping[str, t.GeneralValueType],
-)
             ) -> FlextProtocols.Result[bool]:
                 """Save configuration."""
                 ...
@@ -646,11 +634,8 @@ class FlextCliProtocols(FlextProtocols):
 
             def authenticate(
                 self,
-)
                 username: str,
-)
                 password: str,
-)
             ) -> FlextProtocols.Result[str]:
                 """Authenticate user with credentials."""
                 ...
@@ -665,7 +650,6 @@ class FlextCliProtocols(FlextProtocols):
 
             def get_debug_info(
                 self,
-)
             ) -> FlextProtocols.Result[Mapping[str, t.GeneralValueType]]:
                 """Get debug information."""
                 ...
@@ -682,11 +666,8 @@ class FlextCliProtocols(FlextProtocols):
 
             def handle(
                 self,
-)
                 model: t.GeneralValueType,
-)
                 **kwargs: t.GeneralValueType,
-)
             ) -> FlextProtocols.Result[t.GeneralValueType]:
                 """Handle model command."""
                 ...
@@ -756,9 +737,7 @@ class FlextCliProtocols(FlextProtocols):
 
             def initialize(
                 self,
-)
                 context: FlextCliProtocols.Cli.CliContextProtocol,
-)
             ) -> FlextProtocols.Result[bool]:
                 """Initialize service with context."""
                 ...
@@ -777,25 +756,20 @@ class FlextCliProtocols(FlextProtocols):
 
             def register_command(
                 self,
-)
                 command: FlextCliProtocols.Cli.Command,
-)
             ) -> FlextProtocols.Result[bool]:
                 """Register a command."""
                 ...
 
             def get_command(
                 self,
-)
                 name: str,
-)
             ) -> FlextProtocols.Result[FlextCliProtocols.Cli.Command]:
                 """Get command by name."""
                 ...
 
             def list_commands(
                 self,
-)
             ) -> FlextProtocols.Result[Sequence[FlextCliProtocols.Cli.Command]]:
                 """List all registered commands."""
                 ...
@@ -806,29 +780,22 @@ class FlextCliProtocols(FlextProtocols):
 
             def format_table(
                 self,
-)
                 headers: Sequence[str],
-)
                 rows: Sequence[Sequence[str]],
-)
             ) -> FlextProtocols.Result[str]:
                 """Format data as table."""
                 ...
 
             def format_json(
                 self,
-)
                 data: t.GeneralValueType,
-)
             ) -> FlextProtocols.Result[str]:
                 """Format data as JSON."""
                 ...
 
             def format_yaml(
                 self,
-)
                 data: t.GeneralValueType,
-)
             ) -> FlextProtocols.Result[str]:
                 """Format data as YAML."""
                 ...
@@ -847,13 +814,9 @@ class FlextCliProtocols(FlextProtocols):
 
             def handle(
                 self,
-)
                 args: Sequence[str],
-)
                 context: FlextCliProtocols.Cli.CliContextProtocol,
-)
                 output: FlextCliProtocols.Cli.CliOutputProtocol,
-)
             ) -> FlextProtocols.Result[int]:
                 """Handle CLI request."""
                 ...
@@ -904,16 +867,11 @@ class FlextCliProtocols(FlextProtocols):
 
             def __call__(
                 self,
-)
                 ctx: FlextCliProtocols.Cli.CliContextProtocol,
-)
                 next_: Callable[
                     [FlextCliProtocols.Cli.CliContextProtocol],
-)
                     FlextProtocols.Result[object],
-)
                 ],
-)
             ) -> FlextProtocols.Result[object]:
                 """Process and pass to next middleware.
 
@@ -940,9 +898,7 @@ p = FlextCliProtocols
 
 __all__ = [
     "FlextCliProtocols",
-)
     "p",
-)
 ]
 
 

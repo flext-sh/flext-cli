@@ -7,9 +7,9 @@ import os
 import re
 from collections.abc import Mapping
 
+from flext_core import r, s
 from pydantic import Field, PrivateAttr
 
-from flext_core import r, s
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import m
 from flext_cli.typings import t
@@ -67,6 +67,61 @@ class FlextCliPrompts:
         description="Default timeout for prompt operations in seconds",
     )
     # Private attribute for internal storage (not part of model schema)
+    _prompt_history: list[str] = PrivateAttr(default_factory=list)
+
+    def __init__(
+        self,
+        default_timeout: int = FlextCliConstants.Cli.TIMEOUTS.DEFAULT,
+        *,
+        interactive_mode: bool = True,
+        quiet: bool = False,
+        **data: t.GeneralValueType,
+    ) -> None:
+        """Initialize CLI prompts service.
+
+        Args:
+            default_timeout: Default timeout for prompt operations in seconds
+            interactive_mode: Enable interactive prompt features
+            quiet: Enable quiet mode (non-interactive)
+            **data: Additional service initialization data
+
+        """
+        # If quiet mode is enabled, disable interactive mode
+        final_interactive = interactive_mode and not quiet
+
+        # Direct assignment - no type conversions needed
+        data["interactive_mode"] = final_interactive
+        data["quiet"] = quiet
+        data["default_timeout"] = default_timeout
+
+        # Convert data for super().__init__()
+        # FlextService.__init__ accepts **data: t.GeneralValueType
+        # Note: mypy has generic type inference issue with FlextService[JsonDict].__init__
+        # but runtime accepts dict[str, t.GeneralValueType] as **kwargs: t.GeneralValueType
+        if not isinstance(data, dict):
+            msg = "data must be dict"
+            raise TypeError(msg)
+        # Pass data directly - FlextService base class accepts **kwargs: t.GeneralValueType
+        s[dict[str, t.GeneralValueType]].__init__(self, **data)
+
+        self.logger.debug(
+            "Initialized CLI prompts service",
+            operation="__init__",
+            interactive_mode=final_interactive,
+            quiet=quiet,
+            default_timeout=default_timeout,
+            source="flext-cli/src/flext_cli/prompts.py",
+        )
+
+    @property
+    def prompt_history(self) -> list[str]:
+        """Get prompt history (returns copy for immutability).
+
+        Returns:
+            list[str]: Copy of prompt history list
+
+        """
+        return self._prompt_history.copy()
 
     def prompt_text(
         self,
@@ -85,34 +140,50 @@ class FlextCliPrompts:
             r[str]: User input or error
 
         """
-        # Simplified static method - assume interactive mode
-        if False:  # Non-interactive mode disabled for static method
+        self.logger.debug(
+            "Prompting user for text input",
+            operation="prompt_text",
+            prompt_message=message,
+            has_default=bool(default),
+            has_validation_pattern=validation_pattern is not None,
+            interactive_mode=self.interactive_mode,
+            source="flext-cli/src/flext_cli/prompts.py",
+        )
+
+        if not self.interactive_mode:
             if default:
                 # Validate default value if pattern provided
                 if validation_pattern and not re.match(validation_pattern, default):
-                    # Simplified logging removed - would log here in full implementation
-                    return r[str].fail(
-                        FlextCliConstants.Cli.ErrorMessages.DEFAULT_PATTERN_MISMATCH.format(
-                            pattern=validation_pattern,
-                        ),
-                    )
+                    # Simplified logging removed for static method
                     return r[str].fail(
                         FlextCliConstants.Cli.ErrorMessages.DEFAULT_PATTERN_MISMATCH.format(
                             pattern=validation_pattern,
                         ),
                     )
 
-                # Simplified logging removed - would log here in full implementation
+                self.logger.debug(
+                    "Returning default value in non-interactive mode",
+                    operation="prompt_text",
+                    prompt_message=message,
+                    default=default,
+                    source="flext-cli/src/flext_cli/prompts.py",
+                )
                 return r[str].ok(default)
 
-            # Simplified logging removed - would log here in full implementation
+            self.logger.warning(
+                "Interactive mode disabled and no default provided",
+                operation="prompt_text",
+                prompt_message=message,
+                consequence="Prompt will fail",
+                source="flext-cli/src/flext_cli/prompts.py",
+            )
             return r[str].fail(
                 FlextCliConstants.Cli.ErrorMessages.INTERACTIVE_MODE_DISABLED,
             )
 
         try:
             # Record prompt for history
-            # History tracking removed for static method
+            self._prompt_history.append(message)
 
             # Use default directly - type guarantees it's a string (no fallback needed)
             user_input = default
@@ -123,14 +194,22 @@ class FlextCliPrompts:
                 and user_input
                 and not re.match(validation_pattern, user_input)
             ):
-                # Simplified logging removed for static method
+                self.logger.warning(
+                    "User input does not match validation pattern",
+                    operation="prompt_text",
+                    prompt_message=message,
+                    pattern=validation_pattern,
+                    input_value=user_input,
+                    consequence="Prompt will fail",
+                    source="flext-cli/src/flext_cli/prompts.py",
+                )
                 return r[str].fail(
                     FlextCliConstants.Cli.ErrorMessages.INPUT_PATTERN_MISMATCH.format(
                         pattern=validation_pattern,
                     ),
                 )
 
-            # Simplified logging removed
+            self.logger.debug(
                 "Text prompt completed successfully",
                 operation="prompt_text",
                 prompt_message=message,
@@ -141,7 +220,7 @@ class FlextCliPrompts:
             return r[str].ok(user_input)
 
         except Exception as e:  # pragma: no cover
-            # Simplified logging removed  # pragma: no cover
+            self.logger.exception(  # pragma: no cover
                 "FATAL ERROR during text prompt - prompt aborted",
                 operation="prompt_text",
                 prompt_message=message,
@@ -171,17 +250,17 @@ class FlextCliPrompts:
             r[bool]: User confirmation or error
 
         """
-        # Simplified logging removed
+        self.logger.debug(
             "Prompting user for confirmation",
             operation="prompt_confirmation",
             prompt_prompt_message=message,
             default=default,
-            # Interactive mode simplified
+            interactive_mode=self.interactive_mode,
             source="flext-cli/src/flext_cli/prompts.py",
         )
 
-        # Assume interactive mode for static method
-            # Simplified logging removed
+        if not self.interactive_mode:
+            self.logger.debug(
                 "Returning default value in non-interactive mode",
                 operation="prompt_confirmation",
                 prompt_message=message,
@@ -203,7 +282,7 @@ class FlextCliPrompts:
 
             result = response.lower() in FlextCliConstants.Cli.YesNo.YES_VALUES
 
-            # Simplified logging removed
+            self.logger.debug(
                 "Confirmation prompt completed successfully",
                 operation="prompt_confirmation",
                 prompt_message=message,
@@ -214,7 +293,7 @@ class FlextCliPrompts:
             return r[bool].ok(result)
 
         except Exception as e:
-            # Simplified logging removed
+            self.logger.exception(
                 "FATAL ERROR during confirmation prompt - prompt aborted",
                 operation="prompt_confirmation",
                 prompt_message=message,
@@ -258,14 +337,14 @@ class FlextCliPrompts:
             r[str]: Selected choice or error
 
         """
-        # Simplified logging removed
+        self.logger.debug(
             "Prompting user for choice",
             operation="prompt_choice",
             prompt_message=message,
             choices_count=len(choices),
             has_default=default is not None,
             default=default,
-            # Interactive mode simplified
+            interactive_mode=self.interactive_mode,
             source="flext-cli/src/flext_cli/prompts.py",
         )
 
@@ -273,7 +352,7 @@ class FlextCliPrompts:
         result: r[str]
 
         if not choices:
-            # Simplified logging removed
+            self.logger.warning(
                 "No choices provided for prompt",
                 operation="prompt_choice",
                 prompt_message=message,
@@ -285,7 +364,7 @@ class FlextCliPrompts:
             )
         elif not self.interactive_mode:
             if default and default in choices:
-                # Simplified logging removed
+                self.logger.debug(
                     "Returning default choice in non-interactive mode",
                     operation="prompt_choice",
                     prompt_message=message,
@@ -294,7 +373,7 @@ class FlextCliPrompts:
                 )
                 result = r[str].ok(default)
             else:
-                # Simplified logging removed
+                self.logger.warning(
                     "Interactive mode disabled and no valid default provided",
                     operation="prompt_choice",
                     prompt_message=message,
@@ -332,7 +411,7 @@ class FlextCliPrompts:
                 # Get real user selection - no fallback to fake data
                 if default:
                     if default not in choices:
-                        # Simplified logging removed
+                        self.logger.warning(
                             "Default choice is not in available choices",
                             operation="prompt_choice",
                             prompt_message=message,
@@ -348,7 +427,7 @@ class FlextCliPrompts:
                         )
                     else:
                         selected = default
-                        # Simplified logging removed
+                        self.logger.debug(
                             "Choice prompt completed successfully",
                             operation="prompt_choice",
                             prompt_message=message,
@@ -358,7 +437,7 @@ class FlextCliPrompts:
                         result = r[str].ok(selected)
                 else:
                     # No default provided - require explicit choice
-                    # Simplified logging removed
+                    self.logger.warning(
                         "No default choice provided and interactive mode requires explicit choice",
                         operation="prompt_choice",
                         prompt_message=message,
@@ -373,7 +452,7 @@ class FlextCliPrompts:
                     )
 
             except Exception as e:
-                # Simplified logging removed
+                self.logger.exception(
                     "FATAL ERROR during choice prompt - prompt aborted",
                     operation="prompt_choice",
                     prompt_message=message,
@@ -406,17 +485,17 @@ class FlextCliPrompts:
             r[str]: Password input or error
 
         """
-        # Simplified logging removed
+        self.logger.debug(
             "Prompting user for password",
             operation="prompt_password",
             prompt_message=message,
             min_length=min_length,
-            # Interactive mode simplified
+            interactive_mode=self.interactive_mode,
             source="flext-cli/src/flext_cli/prompts.py",
         )
 
-        # Assume interactive mode for static method
-            # Simplified logging removed
+        if not self.interactive_mode:
+            self.logger.warning(
                 "Interactive mode disabled for password prompt",
                 operation="prompt_password",
                 prompt_message=message,
@@ -438,7 +517,7 @@ class FlextCliPrompts:
             )
 
             if len(password) < min_length:
-                # Simplified logging removed
+                self.logger.warning(
                     "Password does not meet minimum length requirement",
                     operation="prompt_password",
                     prompt_message=message,
@@ -453,7 +532,7 @@ class FlextCliPrompts:
                     ),
                 )
 
-            # Simplified logging removed  # pragma: no cover
+            self.logger.debug(  # pragma: no cover
                 "Password prompt completed successfully",
                 operation="prompt_password",
                 prompt_message=message,
@@ -465,7 +544,7 @@ class FlextCliPrompts:
             return r[str].ok(password)  # pragma: no cover
 
         except Exception as e:
-            # Simplified logging removed
+            self.logger.exception(
                 "FATAL ERROR during password prompt - prompt aborted",
                 operation="prompt_password",
                 prompt_message=message,
@@ -481,9 +560,160 @@ class FlextCliPrompts:
                 ),
             )
 
+    def clear_prompt_history(self) -> r[bool]:
+        """Clear prompt history.
 
-    @staticmethod
-    def prompt(message: str, default: str = "") -> r[str]:
+        Returns:
+            r[bool]: True if history cleared successfully, failure on error
+
+        """
+        self.logger.debug(
+            "Clearing prompt history",
+            operation="clear_prompt_history",
+            history_size=len(self._prompt_history),
+            source="flext-cli/src/flext_cli/prompts.py",
+        )
+
+        try:
+            self._prompt_history.clear()
+
+            self.logger.debug(
+                "Prompt history cleared successfully",
+                operation="clear_prompt_history",
+                source="flext-cli/src/flext_cli/prompts.py",
+            )
+
+            return r[bool].ok(True)
+        except Exception as e:
+            self.logger.exception(
+                "FAILED to clear prompt history - operation aborted",
+                operation="clear_prompt_history",
+                error=str(e),
+                error_type=type(e).__name__,
+                consequence="History may still contain entries",
+                source="flext-cli/src/flext_cli/prompts.py",
+            )
+            return r[bool].fail(
+                FlextCliConstants.Cli.ErrorMessages.HISTORY_CLEAR_FAILED.format(
+                    error=e,
+                ),
+            )
+
+    def get_prompt_statistics(self) -> r[Mapping[str, t.GeneralValueType]]:
+        """Get prompt usage statistics.
+
+        Returns:
+            r[dict[str, t.GeneralValueType]]: Statistics data
+
+        Pydantic 2 Modernization:
+            - Uses PromptStatistics model internally
+            - Serializes to dict for API compatibility
+            - Type-safe with automatic validation
+
+        """
+        self.logger.debug(
+            "Collecting prompt statistics",
+            operation="get_prompt_statistics",
+            history_size=len(self._prompt_history),
+            interactive_mode=self.interactive_mode,
+            source="flext-cli/src/flext_cli/prompts.py",
+        )
+
+        try:
+            # Create Pydantic model with type-safe fields
+            stats_model = m.Cli.PromptStatistics(
+                prompts_executed=len(self._prompt_history),
+                interactive_mode=self.interactive_mode,
+                default_timeout=self.default_timeout,
+                history_size=len(self._prompt_history),
+                timestamp=FlextCliUtilities.generate("timestamp"),
+            )
+
+            # Use FlextCliUtilities.transform for JSON conversion
+            transform_result = FlextCliUtilities.transform(
+                stats_model.model_dump(),
+                to_json=True,
+            )
+            stats_dict = (
+                transform_result.value
+                if transform_result.is_success
+                else stats_model.model_dump()
+            )
+
+            self.logger.debug(
+                "Prompt statistics collected successfully",
+                operation="get_prompt_statistics",
+                prompts_executed=stats_model.prompts_executed,
+                history_size=stats_model.history_size,
+                source="flext-cli/src/flext_cli/prompts.py",
+            )
+
+            self.logger.info(
+                "Prompt statistics retrieved",
+                operation="get_prompt_statistics",
+                total_prompts=stats_model.prompts_executed,
+                source="flext-cli/src/flext_cli/prompts.py",
+            )
+
+            return r[dict[str, t.GeneralValueType]].ok(stats_dict)
+
+        except Exception as e:  # pragma: no cover
+            self.logger.exception(  # pragma: no cover
+                "FAILED to collect prompt statistics - operation aborted",
+                operation="get_prompt_statistics",
+                error=str(e),
+                error_type=type(e).__name__,
+                consequence="Statistics unavailable",
+                source="flext-cli/src/flext_cli/prompts.py",
+            )
+            return r[dict[str, t.GeneralValueType]].fail(  # pragma: no cover
+                FlextCliConstants.Cli.PromptsErrorMessages.STATISTICS_COLLECTION_FAILED.format(
+                    error=e,
+                ),
+            )
+
+    def execute(self) -> r[dict[str, t.GeneralValueType]]:
+        """Execute prompt service operation.
+
+        Returns:
+            r[dict[str, t.GeneralValueType]]: Service execution result
+
+        """
+        self.logger.info(
+            "Executing prompt service",
+            operation="execute",
+            interactive_mode=self.interactive_mode,
+            quiet=self.quiet,
+            prompt_history_size=len(self._prompt_history),
+            source="flext-cli/src/flext_cli/prompts.py",
+        )
+
+        try:
+            # Simple execution that returns empty dict[str, t.GeneralValueType] as expected by tests
+            self.logger.debug(
+                "Prompt service execution completed",
+                operation="execute",
+                source="flext-cli/src/flext_cli/prompts.py",
+            )
+            return r[dict[str, t.GeneralValueType]].ok({})
+
+        except Exception as e:
+            self.logger.exception(
+                "FATAL ERROR during prompt service execution - execution aborted",
+                operation="execute",
+                error=str(e),
+                error_type=type(e).__name__,
+                consequence="Prompt service execution failed completely",
+                severity="critical",
+                source="flext-cli/src/flext_cli/prompts.py",
+            )
+            return r[dict[str, t.GeneralValueType]].fail(
+                FlextCliConstants.Cli.PromptsErrorMessages.PROMPT_SERVICE_EXECUTION_FAILED.format(
+                    error=e,
+                ),
+            )
+
+    def prompt(self, message: str, default: str = "") -> r[str]:
         """Prompt user for text input.
 
         Args:
@@ -494,23 +724,23 @@ class FlextCliPrompts:
             r[str]: User input or error
 
         """
-        # Simplified logging removed
+        self.logger.debug(
             "Prompting user for text input",
             operation="prompt",
             prompt_message=message,
             has_default=bool(default),
             quiet=self.quiet,
-            # Interactive mode simplified
+            interactive_mode=self.interactive_mode,
             source="flext-cli/src/flext_cli/prompts.py",
         )
 
         try:
             # Store prompt for history
-            # History tracking removed for static method
+            self._prompt_history.append(message)
 
             # Handle quiet mode - return default (even if empty)
             if self.quiet:
-                # Simplified logging removed
+                self.logger.debug(
                     "Returning default in quiet mode",
                     operation="prompt",
                     prompt_message=message,
@@ -520,8 +750,8 @@ class FlextCliPrompts:
                 return r[str].ok(default)
 
             # Handle non-interactive mode - return default (even if empty)
-            # Assume interactive mode for static method
-                # Simplified logging removed
+            if not self.interactive_mode:
+                self.logger.debug(
                     "Returning default in non-interactive mode",
                     operation="prompt",
                     prompt_message=message,
@@ -537,7 +767,7 @@ class FlextCliPrompts:
                 else message
             )
 
-            # Simplified logging removed
+            self.logger.debug(
                 "Reading user input",
                 operation="prompt",
                 prompt_message=message,
@@ -552,7 +782,7 @@ class FlextCliPrompts:
             # Handle empty input - use default (even if empty)
             if not user_input:
                 user_input = default
-                # Simplified logging removed
+                self.logger.debug(
                     "Empty input received, using default",
                     operation="prompt",
                     prompt_message=message,
@@ -577,7 +807,7 @@ class FlextCliPrompts:
                     ),
                 )
 
-            # Simplified logging removed
+            self.logger.debug(
                 "Prompt completed successfully",
                 operation="prompt",
                 prompt_message=message,
@@ -587,7 +817,7 @@ class FlextCliPrompts:
 
             return r[str].ok(user_input)
         except Exception as e:  # pragma: no cover
-            # Simplified logging removed  # pragma: no cover
+            self.logger.exception(  # pragma: no cover
                 "FATAL ERROR during prompt - prompt aborted",
                 operation="prompt",
                 prompt_message=message,
@@ -629,7 +859,7 @@ class FlextCliPrompts:
             user_input = input(prompt_text).strip().lower()
 
             if not user_input:  # Empty input uses default
-                # Simplified logging removed
+                self.logger.debug(
                     "Empty input received, using default",
                     operation="confirm",
                     prompt_message=message,
@@ -639,7 +869,7 @@ class FlextCliPrompts:
                 return r[bool].ok(default)
 
             if user_input in {"y", "yes"}:
-                # Simplified logging removed
+                self.logger.debug(
                     "User confirmed",
                     operation="confirm",
                     prompt_message=message,
@@ -649,7 +879,7 @@ class FlextCliPrompts:
                 return r[bool].ok(True)
 
             if user_input in {"n", "no"}:
-                # Simplified logging removed
+                self.logger.debug(
                     "User declined",
                     operation="confirm",
                     prompt_message=message,
@@ -658,7 +888,7 @@ class FlextCliPrompts:
                 )
                 return r[bool].ok(False)
 
-            # Simplified logging removed
+            self.logger.warning(
                 "Invalid confirmation input - please enter yes or no",
                 operation="confirm",
                 prompt_message=message,
@@ -667,8 +897,7 @@ class FlextCliPrompts:
                 source="flext-cli/src/flext_cli/prompts.py",
             )
 
-    @staticmethod
-    def confirm(message: str, *, default: bool = False) -> r[bool]:
+    def confirm(self, message: str, *, default: bool = False) -> r[bool]:
         """Prompt user for yes/no confirmation.
 
         Business Rule:
@@ -691,13 +920,13 @@ class FlextCliPrompts:
             r[bool]: User choice or error
 
         """
-        # Simplified logging removed
+        self.logger.debug(
             "Prompting user for confirmation",
             operation="confirm",
             prompt_message=message,
             default=default,
             quiet=self.quiet,
-            # Interactive mode simplified
+            interactive_mode=self.interactive_mode,
             source="flext-cli/src/flext_cli/prompts.py",
         )
 
@@ -707,7 +936,7 @@ class FlextCliPrompts:
         try:
             # Handle quiet mode - return default
             if self.quiet:
-                # Simplified logging removed
+                self.logger.debug(
                     "Returning default in quiet mode",
                     operation="confirm",
                     prompt_message=message,
@@ -717,7 +946,7 @@ class FlextCliPrompts:
                 result = r[bool].ok(default)
             elif not self.interactive_mode:
                 # Handle non-interactive mode - return default
-                # Simplified logging removed
+                self.logger.debug(
                     "Returning default in non-interactive mode",
                     operation="confirm",
                     prompt_message=message,
@@ -733,7 +962,7 @@ class FlextCliPrompts:
                     else f"{message}{FlextCliConstants.Cli.PromptsDefaults.CONFIRMATION_NO_PROMPT}"
                 )
 
-                # Simplified logging removed
+                self.logger.debug(
                     "Reading user confirmation input",
                     operation="confirm",
                     prompt_message=message,
@@ -748,7 +977,7 @@ class FlextCliPrompts:
                 )
 
         except KeyboardInterrupt:
-            # Simplified logging removed
+            self.logger.warning(
                 "User cancelled confirmation",
                 operation="confirm",
                 prompt_message=message,
@@ -759,7 +988,7 @@ class FlextCliPrompts:
                 FlextCliConstants.Cli.PromptsMessages.USER_CANCELLED_CONFIRMATION,
             )
         except EOFError:
-            # Simplified logging removed
+            self.logger.warning(
                 "Input stream ended during confirmation",
                 operation="confirm",
                 prompt_message=message,
@@ -770,7 +999,7 @@ class FlextCliPrompts:
                 FlextCliConstants.Cli.PromptsMessages.INPUT_STREAM_ENDED,
             )
         except Exception as e:
-            # Simplified logging removed
+            self.logger.exception(
                 "FATAL ERROR during confirmation - confirmation aborted",
                 operation="confirm",
                 prompt_message=message,
@@ -803,7 +1032,7 @@ class FlextCliPrompts:
             r[str]: Selected option or error
 
         """
-        # Simplified logging removed
+        self.logger.debug(
             "Prompting user to select from options",
             operation="select_from_options",
             prompt_message=message,
@@ -824,7 +1053,7 @@ class FlextCliPrompts:
 
             # Display options to user
             if not options:
-                # Simplified logging removed
+                self.logger.warning(
                     "No options provided for selection",
                     operation="select_from_options",
                     prompt_message=message,
@@ -865,7 +1094,7 @@ class FlextCliPrompts:
                 log_option((i, option))
 
             # Get user selection
-            # Simplified logging removed
+            self.logger.debug(
                 "Reading user selection",
                 operation="select_from_options",
                 prompt_message=message,
@@ -882,7 +1111,7 @@ class FlextCliPrompts:
                     ).strip()
 
                     if not choice:
-                        # Simplified logging removed
+                        self.logger.debug(
                             "Empty input received, prompting again",
                             operation="select_from_options",
                             prompt_message=message,
@@ -893,7 +1122,7 @@ class FlextCliPrompts:
                     choice_num = int(choice)
                     if 1 <= choice_num <= len(options):
                         selected_option = options[choice_num - 1]
-                        # Simplified logging removed
+                        self.logger.debug(
                             "User selected option",
                             operation="select_from_options",
                             prompt_message=message,
@@ -903,7 +1132,7 @@ class FlextCliPrompts:
                         )
                         break
 
-                    # Simplified logging removed
+                    self.logger.warning(
                         "Selection out of valid range",
                         operation="select_from_options",
                         prompt_message=message,
@@ -913,7 +1142,7 @@ class FlextCliPrompts:
                         source="flext-cli/src/flext_cli/prompts.py",
                     )
                 except ValueError:
-                    # Simplified logging removed
+                    self.logger.warning(
                         "Invalid number format for selection",
                         operation="select_from_options",
                         prompt_message=message,
@@ -926,7 +1155,7 @@ class FlextCliPrompts:
                         if isinstance(e, KeyboardInterrupt)
                         else "EOFError"
                     )
-                    # Simplified logging removed
+                    self.logger.warning(
                         "User cancelled selection (%s)",
                         error_type,
                         operation="select_from_options",
@@ -959,7 +1188,7 @@ class FlextCliPrompts:
             )
             return r[str].ok(selected_option)
         except Exception as e:
-            # Simplified logging removed
+            self.logger.exception(
                 "FATAL ERROR during selection - selection aborted",
                 operation="select_from_options",
                 prompt_message=message,
@@ -990,7 +1219,7 @@ class FlextCliPrompts:
             r[bool]: True if message printed successfully, failure on error
 
         """
-        # Simplified logging removed
+        self.logger.debug(
             "Printing status message",
             operation="print_status",
             prompt_message=message,
@@ -1019,7 +1248,7 @@ class FlextCliPrompts:
             self.logger.info(formatted_message)
             return r[bool].ok(True)
         except Exception as e:
-            # Simplified logging removed
+            self.logger.exception(
                 "FAILED to print status message - operation aborted",
                 operation="print_status",
                 prompt_message=message,
@@ -1054,7 +1283,7 @@ class FlextCliPrompts:
             r[bool]: True if message printed successfully, failure on error
 
         """
-        # Simplified logging removed
+        self.logger.debug(
             "Printing message using generic method",
             operation="_print_message",
             log_level=log_level,
@@ -1066,7 +1295,7 @@ class FlextCliPrompts:
             log_method = getattr(self.logger, log_level)
             formatted_msg = message_format.format(message=message)
 
-            # Simplified logging removed
+            self.logger.debug(
                 "Message formatted and ready to print",
                 operation="_print_message",
                 log_level=log_level,
@@ -1076,7 +1305,7 @@ class FlextCliPrompts:
 
             log_method(formatted_msg)
 
-            # Simplified logging removed
+            self.logger.debug(
                 "Message printed successfully",
                 operation="_print_message",
                 log_level=log_level,
@@ -1085,7 +1314,7 @@ class FlextCliPrompts:
 
             return r[bool].ok(True)
         except Exception as e:
-            # Simplified logging removed
+            self.logger.exception(
                 "FAILED to print message - operation aborted",
                 operation="_print_message",
                 log_level=log_level,
@@ -1097,8 +1326,7 @@ class FlextCliPrompts:
             )
             return r[bool].fail(error_message_template.format(error=e))
 
-    @staticmethod
-    def print_success(message: str) -> r[bool]:
+    def print_success(self, message: str) -> r[bool]:
         """Print success message.
 
         Args:
@@ -1115,8 +1343,7 @@ class FlextCliPrompts:
             FlextCliConstants.Cli.PromptsErrorMessages.PRINT_SUCCESS_FAILED,
         )
 
-    @staticmethod
-    def print_error(message: str) -> r[bool]:
+    def print_error(self, message: str) -> r[bool]:
         """Print error message.
 
         Args:
@@ -1133,8 +1360,7 @@ class FlextCliPrompts:
             FlextCliConstants.Cli.PromptsErrorMessages.PRINT_ERROR_FAILED,
         )
 
-    @staticmethod
-    def print_warning(message: str) -> r[bool]:
+    def print_warning(self, message: str) -> r[bool]:
         """Print warning message.
 
         Args:
@@ -1151,8 +1377,7 @@ class FlextCliPrompts:
             FlextCliConstants.Cli.PromptsErrorMessages.PRINT_WARNING_FAILED,
         )
 
-    @staticmethod
-    def print_info(message: str) -> r[bool]:
+    def print_info(self, message: str) -> r[bool]:
         """Print info message.
 
         Args:
@@ -1182,7 +1407,7 @@ class FlextCliPrompts:
             r[str]: Progress indicator description or error
 
         """
-        # Simplified logging removed
+        self.logger.debug(
             "Creating progress indicator",
             operation="create_progress",
             description=description,
@@ -1213,7 +1438,7 @@ class FlextCliPrompts:
                 ),
             )
 
-            # Simplified logging removed
+            self.logger.debug(
                 "Progress indicator created successfully",
                 operation="create_progress",
                 description=description,
@@ -1223,7 +1448,7 @@ class FlextCliPrompts:
             # Return the original description as expected by tests
             return r[str].ok(description)
         except Exception as e:
-            # Simplified logging removed
+            self.logger.exception(
                 "FAILED to create progress indicator - operation aborted",
                 operation="create_progress",
                 description=description,
@@ -1262,7 +1487,7 @@ class FlextCliPrompts:
                 source="flext-cli/src/flext_cli/prompts.py",
             )
 
-            # Simplified logging removed
+            self.logger.debug(
                 "Initializing progress processing",
                 operation="with_progress",
                 description=description,
@@ -1291,7 +1516,7 @@ class FlextCliPrompts:
                 FlextCliConstants.Cli.ProgressDefaults.REPORT_THRESHOLD
             )
 
-            # Simplified logging removed
+            self.logger.debug(
                 "Processing items with progress tracking",
                 operation="with_progress",
                 description=description,
@@ -1310,7 +1535,7 @@ class FlextCliPrompts:
                 == 0
             ):
                 progress = (processed_count / total_items) * 100
-                # Simplified logging removed
+                self.logger.debug(
                     "Progress update",
                     operation="with_progress",
                     description=description,
@@ -1352,7 +1577,7 @@ class FlextCliPrompts:
             # Return the original items as expected by tests
             return r[list[t.GeneralValueType]].ok(items)
         except Exception as e:
-            # Simplified logging removed
+            self.logger.exception(
                 "FATAL ERROR during progress operation - operation aborted",
                 operation="with_progress",
                 description=description,
