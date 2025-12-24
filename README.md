@@ -3,8 +3,8 @@
 **Simple, Powerful CLI Foundation for the FLEXT Ecosystem**
 
 [![Python 3.13+](https://img.shields.io/badge/python-3.13+-blue.svg)](https://www.python.org/downloads/)
-[![Version](https://img.shields.io/badge/version-0.10.0-green.svg)](#whats-new-in-v0100)
-[![Status](https://img.shields.io/badge/status-production--ready-brightgreen.svg)](#production-ready)
+[![Version](https://img.shields.io/badge/version-0.10.0-green.svg)](https://github.com/flext-sh/flext-cli)
+[![Status](https://img.shields.io/badge/status-production--ready-brightgreen.svg)](https://github.com/flext-sh/flext-cli)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![FLEXT Core](https://img.shields.io/badge/flext--core-v0.9.9+-blue.svg)](https://github.com/organization/flext/tree/main/flext-core/README.md)
 
@@ -58,20 +58,18 @@ flext-cli is the **CLI foundation library** for the FLEXT ecosystem, providing:
 
 ### **Complete Transformation (Phases 1-4)** ✅
 
-| Phase       | Status       | Deliverables                 | Impact                                    |
-| ----------- | ------------ | ---------------------------- | ----------------------------------------- |
-| **Phase 1** | ✅ Complete  | Architecture Foundation      | Click/Rich abstraction, ZERO TOLERANCE    |
-| **Phase 2** | ✅ Complete  | Documentation & Examples     | Complete guides, migration paths          |
-| **Phase 3** | ✅ Complete  | Core Features                | Auth, config, output, file operations     |
-| **Phase 4** | ✅ Complete  | Comprehensive QA             | Ruff, Pyrefly, Pyright, Pytest validation |
-| **Total**   | **Complete** | **24 modules, 14,226 lines** | **Production-ready CLI foundation**       |
+**Implementation Phases:**
 
-### **FLEXT-Core Integration**
+- **Phase 1**: Architecture Foundation - Click/Rich abstraction, ZERO TOLERANCE
+- **Phase 2**: Documentation & Examples - Complete guides, migration paths
+- **Phase 3**: Core Features - Auth, config, output, file operations
+- **Phase 4**: Comprehensive QA - Ruff, Pyrefly, Pyright, Pytest validation
+- **Total**: 24 modules, 14,226 lines - Production-ready CLI foundation
 
-| Pattern            | Status  | Implementation                   |
-| ------------------ | ------- | -------------------------------- |
-| **FlextResult<T>** | 🟢 100% | Railway pattern throughout       |
-| **FlextService**   | 🟢 100% | All services extend FlextService |
+**FLEXT-Core Integration:**
+
+- **FlextResult&lt;T&gt;**: Railway pattern throughout
+- **FlextService**: All services extend FlextService
 | **FlextContainer** | 🟢 100% | Complete dependency injection    |
 | **Type Safety**    | 🟢 100% | Comprehensive type hints         |
 
@@ -124,40 +122,36 @@ graph TB
 
 ### **Core Modules Status**
 
-| Module            | Lines | Status      | Key Functionality                   |
-| ----------------- | ----- | ----------- | ----------------------------------- |
-| **models.py**     | 1343  | ✅ Complete | Pydantic models for CLI data        |
-| **constants.py**  | 887   | ✅ Complete | All system constants                |
-| **core.py**       | 797   | ✅ Complete | Core service extending FlextService |
-| **output.py**     | 791   | ✅ Complete | Output management service           |
-| **cli.py**        | 788   | ✅ Complete | Click abstraction (ONLY Click file) |
-| **config.py**     | 700   | ✅ Complete | Configuration management            |
-| **file_tools.py** | 665   | ✅ Complete | JSON/YAML/CSV operations            |
-| **prompts.py**    | 658   | ✅ Complete | Interactive user input              |
-| **api.py**        | 425   | ✅ Complete | Main consolidated API               |
-| **exceptions.py** | 362   | ✅ Complete | Exception hierarchy                 |
-| **formatters.py** | 318   | ✅ Complete | Rich abstraction (ONLY Rich file)   |
-| **tables.py**     | 436   | ✅ Complete | Tabulate integration (22+ formats)  |
-| **cmd.py**        | 322   | ✅ Complete | Command execution service           |
-| **commands.py**   | 315   | ✅ Complete | Command registration system         |
-| **debug.py**      | 324   | ✅ Complete | Debug utilities                     |
-| **cli_params.py** | 488   | ✅ Complete | Reusable CLI parameters             |
-| **mixins.py**     | 306   | ✅ Complete | Reusable mixins                     |
-| **context.py**    | 236   | ✅ Complete | Execution context                   |
-| **typings.py**    | 333   | ✅ Complete | Type definitions                    |
-| **protocols.py**  | 120   | ✅ Complete | Protocol definitions                |
+- **models.py** (1343 lines) - Pydantic models for CLI data
+- **constants.py** (887 lines) - All system constants
+- **core.py** (797 lines) - Core service extending FlextService
+- **output.py** (791 lines) - Output management service
+- **cli.py** (788 lines) - Click abstraction (ONLY Click file)
+- **config.py** (700 lines) - Configuration management
+- **file_tools.py** (665 lines) - JSON/YAML/CSV operations
+- **prompts.py** (658 lines) - Interactive user input
+- **api.py** (425 lines) - Main consolidated API
+- **exceptions.py** (362 lines) - Exception hierarchy
+- **formatters.py** (318 lines) - Rich abstraction (ONLY Rich file)
+- **tables.py** (436 lines) - Tabulate integration (22+ formats)
+- **cmd.py** (322 lines) - Command execution service
+- **commands.py** (315 lines) - Command registration system
+- **debug.py** (324 lines) - Debug utilities
+- **cli_params.py** (488 lines) - Reusable CLI parameters
+- **mixins.py** (306 lines) - Reusable mixins
+- **context.py** (236 lines) - Execution context
+- **typings.py** (333 lines) - Type definitions
+- **protocols.py** (120 lines) - Protocol definitions
 
 ### **Feature Coverage**
 
-| Category                 | Status  | Achievement                     |
-| ------------------------ | ------- | ------------------------------- |
-| **Click Abstraction**    | ✅ 100% | Complete wrapper                |
-| **Rich Abstraction**     | ✅ 100% | Comprehensive output            |
-| **Tabulate Integration** | ✅ 100% | 22+ table formats               |
-| **Authentication**       | ✅ 100% | Complete auth system            |
-| **Configuration**        | ✅ 100% | Pydantic validation             |
-| **File Operations**      | ✅ 100% | JSON/YAML/CSV support           |
-| **Interactive Prompts**  | ✅ 100% | User input with validation      |
+- **Click Abstraction**: Complete wrapper
+- **Rich Abstraction**: Comprehensive output
+- **Tabulate Integration**: 22+ table formats
+- **Authentication**: Complete auth system
+- **Configuration**: Pydantic validation
+- **File Operations**: JSON/YAML/CSV support
+- **Interactive Prompts**: User input with validation
 | **Overall**              | ✅ 100% | **Production Ready Foundation** |
 
 ---
