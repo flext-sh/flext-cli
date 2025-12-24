@@ -219,8 +219,8 @@ class FlextCliCommonParams:
                     x[1].get(
                         c.Cli.CliParamsRegistry.KEY_PRIORITY,
                         default_priority,
-                    )
-                )
+                    ),
+                ),
             ),
         )
 
@@ -321,17 +321,13 @@ class FlextCliCommonParams:
         except Exception as e:
             return r[FlextCliSettings].fail(
                 f"Failed to apply CLI parameters: {e}",
-)
             )
 
     @classmethod
     def _set_bool_params(
         cls,
-)
         config: FlextCliSettings,
-)
         params: p.Cli.CliParamsConfigProtocol,
-)
     ) -> r[bool]:
         """Set boolean parameters with validation.
 
@@ -352,7 +348,6 @@ class FlextCliCommonParams:
             if not will_be_debug:
                 return r[bool].fail(
                     "Trace mode requires debug mode to be enabled",
-)
                 )
 
         # Update all attributes at once using model_copy to avoid
@@ -385,11 +380,8 @@ class FlextCliCommonParams:
     @classmethod
     def _set_log_level(
         cls,
-)
         config: FlextCliSettings,
-)
         params: p.Cli.CliParamsConfigProtocol,
-)
     ) -> r[FlextCliSettings]:
         """Set cli_log_level with enum conversion."""
         if params.log_level is None:
@@ -406,17 +398,13 @@ class FlextCliCommonParams:
                     f"invalid log level: {params.log_level}. "
                     f"valid options: {', '.join(valid)}"
                 ),
-)
             )
 
     @classmethod
     def _set_format_params(
         cls,
-)
         config: FlextCliSettings,
-)
         params: p.Cli.CliParamsConfigProtocol,
-)
     ) -> r[FlextCliSettings]:
         """Set log_format and output_format with validation."""
         # log_format maps to log_verbosity
@@ -426,7 +414,6 @@ class FlextCliCommonParams:
                 valid_str = ", ".join(valid)
                 return r[FlextCliSettings].fail(
                     f"invalid log format: {params.log_format}. valid: {valid_str}",
-)
                 )
             config.log_verbosity = params.log_format
 
@@ -438,7 +425,6 @@ class FlextCliCommonParams:
                 valid_str = ", ".join(valid)
                 return r[FlextCliSettings].fail(
                     f"invalid output format: {params.output_format}. valid: {valid_str}",
-)
                 )
             # Update config using model_copy to handle Literal type correctly
             validated_format = validated_result.value
@@ -449,9 +435,7 @@ class FlextCliCommonParams:
     @classmethod
     def configure_logger(
         cls,
-)
         config: FlextCliSettings,
-)
     ) -> r[bool]:
         """Configure FlextLogger based on config parameters.
 
@@ -478,11 +462,8 @@ class FlextCliCommonParams:
                 return r[bool].fail(
                     c.Cli.CliParamsErrorMessages.INVALID_LOG_LEVEL.format(
                         log_level=log_level_upper,
-)
                         valid=valid,
-)
                     ),
-)
                 )
 
             # FlextLogger configuration is done via FlextSettings at initialization
@@ -491,18 +472,14 @@ class FlextCliCommonParams:
         except Exception as e:
             return r[bool].fail(
                 c.Cli.CliParamsErrorMessages.CONFIGURE_LOGGER_FAILED.format(error=e),
-)
             )
 
     @classmethod
     def create_decorator(
         cls,
-)
     ) -> Callable[
         [p.Cli.CliCommandFunction],
-)
         p.Cli.CliCommandFunction,
-)
     ]:
         """Create decorator to validate common CLI parameters are used.
 
@@ -525,32 +502,22 @@ class FlextCliCommonParams:
             @FlextCliCommonParams.create_decorator()
             def my_command(
                 name: str,
-)
                 verbose: bool = FlextCliCommonParams.create_option("verbose"),
-)
                 debug: bool = FlextCliCommonParams.create_option("debug"),
-)
                 log_level: str = FlextCliCommonParams.create_option("cli_log_level"),
-)
                 output_format: str = FlextCliCommonParams.create_option(
                     "output_format"
                 ),
-)
                 # ... other common params using create_option() method
             ) -> None:
                 # Common parameters automatically available with full metadata
                 config = FlextCliServiceBase.get_cli_config()
                 FlextCliCommonParams.apply_to_config(
                     config,
-)
                     verbose=verbose,
-)
                     debug=debug,
-)
                     log_level=log_level,
-)
                     output_format=output_format,
-)
                 )
             ```
 
@@ -558,7 +525,6 @@ class FlextCliCommonParams:
 
         def decorator(
             func: p.Cli.CliCommandFunction,
-)
         ) -> p.Cli.CliCommandFunction:
             # Validate enforcement
             validation = cls.validate_enabled()
@@ -575,5 +541,4 @@ class FlextCliCommonParams:
 
 __all__ = [
     "FlextCliCommonParams",
-)
 ]

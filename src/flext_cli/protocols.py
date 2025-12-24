@@ -50,13 +50,9 @@ class FlextCliProtocols(FlextProtocols):
 
                 def print(
                     self,
-)
                     text: str,
-)
                     style: str | None = None,
-)
                     **kwargs: t.GeneralValueType,
-)
                 ) -> None:
                     """Print to console."""
                     ...
@@ -70,7 +66,6 @@ class FlextCliProtocols(FlextProtocols):
 
                 def __enter__(
                     self,
-)
                 ) -> Self:
                     """Context manager enter."""
                     ...

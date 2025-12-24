@@ -20,8 +20,8 @@ from typing import override
 
 import pluggy
 from cachetools import LRUCache, TTLCache
-
 from flext_core import FlextDecorators, FlextRuntime, FlextUtilities, r
+
 from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import c
 from flext_cli.models import (

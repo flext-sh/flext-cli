@@ -9,9 +9,9 @@ Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
+from flext_core import d, e, h, r
 from flext_core.mixins import FlextMixins as x
 
-from flext_core import d, e, h, r
 from flext_cli.__version__ import __version__, __version_info__
 from flext_cli.api import FlextCli
 from flext_cli.app_base import FlextCliAppBase

@@ -34,7 +34,6 @@ from flext_cli import (
     c,
     r,
     u,
-)
 
 
 class FlextCliIntegrationTestTypes(FlextCliTypes):

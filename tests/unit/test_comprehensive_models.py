@@ -11,7 +11,6 @@ from tests._helpers import (
     create_real_cli_session,
     create_test_cli_command,
     generate_edge_case_data,
-)
 
 
 class TestsCliComprehensiveModels:

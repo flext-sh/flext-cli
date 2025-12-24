@@ -13,6 +13,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from io import StringIO
 
+from flext_core import FlextRuntime, r
 from rich.console import Console
 from rich.layout import Layout as RichLayout
 from rich.live import Live as RichLive
@@ -22,7 +23,6 @@ from rich.status import Status as RichStatus
 from rich.table import Table as RichTable
 from rich.tree import Tree as RichTree
 
-from flext_core import FlextRuntime, r
 from flext_cli.constants import FlextCliConstants
 from flext_cli.typings import t
 

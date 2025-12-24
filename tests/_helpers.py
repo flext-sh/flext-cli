@@ -280,7 +280,7 @@ class CommandsFactory:
     ) -> r[bool]:
         """Register a command that accepts arguments."""
 
-        def handler(*args: str, **kwargs: Any) -> str:  # noqa: ANN401
+        def handler(*args: str, **kwargs: Any) -> str:
             # Return formatted string with args count (expected by test)
             return f"args: {len(args)}"
 

@@ -15,13 +15,9 @@ from typing import (
     get_origin,
     override,
 )
-# DomainEvent references removed - not available in current flext-core
+
 import typer
-from flext_core import (
-    FlextModels,
-    FlextRuntime,
-    r
-)
+from flext_core import FlextModels, FlextRuntime, r
 from flext_core._models.entity import FlextModelsEntity
 from pydantic import (
     BaseModel,
@@ -29,6 +25,7 @@ from pydantic import (
     Field,
     computed_field,
     field_validator,
+)
 from pydantic.fields import FieldInfo
 
 from flext_cli.constants import FlextCliConstants as c

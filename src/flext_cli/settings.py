@@ -20,6 +20,7 @@ from pathlib import Path
 from typing import Annotated, ClassVar, Self
 
 import yaml
+from flext_core import FlextContainer, FlextLogger as l_core, FlextSettings, r
 from pydantic import (
     Field,
     SecretStr,
@@ -30,7 +31,6 @@ from pydantic import (
 )
 from pydantic_settings import SettingsConfigDict
 
-from flext_core import FlextContainer, FlextLogger as l_core, FlextSettings, r
 from flext_cli.constants import FlextCliConstants
 from flext_cli.typings import t
 from flext_cli.utilities import FlextCliUtilities

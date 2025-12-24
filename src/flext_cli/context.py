@@ -12,9 +12,9 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
+from flext_core import FlextSettings, r, s
 from pydantic import Field
 
-from flext_core import FlextSettings, r, s
 from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import m

@@ -15,10 +15,10 @@ from io import StringIO
 from typing import TypeGuard
 
 import yaml
+from flext_core import FlextRuntime, r, t
 from pydantic import BaseModel
 from rich.tree import Tree as RichTree
 
-from flext_core import FlextRuntime, r, t
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import m
 from flext_cli.protocols import p

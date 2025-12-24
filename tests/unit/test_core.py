@@ -33,7 +33,6 @@ from flext_cli import (
     c,
     m,
     r,
-)
 
 
 class TestsCliCore:

@@ -43,40 +43,24 @@ class FlextOptionGroup:
         return [
             OptionInfo(
                 default="localhost",
-)
                 param_decls=["--host", "-h"],
-)
                 help="Hostname or IP address",
-)
             ),
-)
             OptionInfo(
                 default=8080,
-)
                 param_decls=["--port", "-p"],
-)
                 help="Port number",
-)
             ),
-)
             OptionInfo(
                 default=30,
-)
                 param_decls=["--timeout", "-t"],
-)
                 help="Timeout in seconds",
-)
             ),
-)
             OptionInfo(
                 default=False,
-)
                 param_decls=["--ssl/--no-ssl"],
-)
                 help="Enable SSL/TLS",
-)
             ),
-)
         ]
 
     @staticmethod
@@ -93,37 +77,22 @@ class FlextOptionGroup:
         return [
             OptionInfo(
                 default=None,
-)
                 param_decls=["--username", "-u"],
-)
                 envvar="FLEXT_USERNAME",
-)
                 help="Username for authentication",
-)
             ),
-)
             OptionInfo(
                 default=None,
-)
                 param_decls=["--password"],
-)
                 envvar="FLEXT_PASSWORD",
-)
                 help="Password for authentication (hidden input)",
-)
             ),
-)
             OptionInfo(
                 default=None,
-)
                 param_decls=["--token"],
-)
                 envvar="FLEXT_TOKEN",
-)
                 help="Authentication token",
-)
             ),
-)
         ]
 
     @staticmethod
@@ -140,29 +109,17 @@ class FlextOptionGroup:
         return [
             OptionInfo(
                 default="table",
-)
                 param_decls=["--format", "-f"],
-)
                 help="Output format (json, yaml, table)",
-)
             ),
-)
             OptionInfo(
                 default=None,
-)
                 param_decls=["--output", "-o"],
-)
                 help="Output file path",
-)
             ),
-)
             OptionInfo(
                 default=False,
-)
                 param_decls=["--quiet/--verbose"],
-)
                 help="Quiet or verbose output",
-)
             ),
-)
         ]

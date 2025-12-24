@@ -33,7 +33,6 @@ from flext_cli import (
     FlextCli,
     FlextCliSettings,
     m,
-)
 
 # ============================================================================
 # TYPE DEFINITIONS & MAPPINGS

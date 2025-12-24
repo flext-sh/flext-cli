@@ -31,7 +31,6 @@ from flext_cli import (
     c,
     r,
     u,
-)
 
 # ============================================================================
 # ENUMS FOR TEST ORGANIZATION

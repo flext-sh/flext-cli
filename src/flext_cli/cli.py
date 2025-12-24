@@ -24,10 +24,10 @@ from typing import IO, Annotated, TypeGuard, cast
 import click
 import typer
 from click.exceptions import UsageError
+from flext_core import FlextContainer, FlextLogger, FlextRuntime, r
 from pydantic import BaseModel
 from typer.testing import CliRunner
 
-from flext_core import FlextContainer, FlextLogger, FlextRuntime, r
 from flext_cli.cli_params import FlextCliCommonParams
 from flext_cli.constants import FlextCliConstants as c
 from flext_cli.models import ConfirmConfig, OptionConfig, m

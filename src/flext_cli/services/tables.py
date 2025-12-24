@@ -13,9 +13,9 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from itertools import starmap
 
+from flext_core import FlextRuntime, r
 from tabulate import tabulate
 
-from flext_core import FlextRuntime
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import m
 from flext_cli.protocols import p

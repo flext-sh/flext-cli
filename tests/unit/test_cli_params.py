@@ -22,7 +22,6 @@ from typer.testing import CliRunner
 from flext_cli import (
     FlextCliCommonParams,
     FlextCliSettings,
-)
 
 
 class ConfigParam(StrEnum):
