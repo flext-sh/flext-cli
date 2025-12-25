@@ -148,7 +148,7 @@ def pytest_configure(config: pytest.Config) -> None:
         Statuses, \
         FileOps, \
         Password, \
-        Progress  # noqa: PLW0603
+        Progress
 
     # Test data constants - access from c.Cli
     ALICE = builtins.ALICE = c.Cli.ALICE

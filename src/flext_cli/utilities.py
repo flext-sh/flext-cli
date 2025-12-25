@@ -385,8 +385,6 @@ class FlextCliUtilities(FlextUtilities):
         def map[T, R](
             items: r[T],
             mapper: Callable[[T], R],
-            *,
-            default_error: str = "Operation failed",
         ) -> r[R]: ...
 
         @overload
@@ -403,13 +401,6 @@ class FlextCliUtilities(FlextUtilities):
             mapper: Callable[[T], R],
         ) -> set[R] | frozenset[R]: ...
 
-        @overload
-        @staticmethod
-        def map[T, R](
-            items: dict[str, T] | Mapping[str, T],
-            mapper: Callable[[str, T], R],
-        ) -> dict[str, R]: ...
-
         @staticmethod
         def map[T, R](
             items: T
@@ -417,11 +408,9 @@ class FlextCliUtilities(FlextUtilities):
             | tuple[T, ...]
             | set[T]
             | frozenset[T]
-            | dict[str, T]
-            | Mapping[str, T]
             | r[T],
-            mapper: Callable[[T], R] | Callable[[str, T], R],
-        ) -> list[R] | set[R] | frozenset[R] | dict[str, R] | r[R]:
+            mapper: Callable[[T], R],
+        ) -> list[R] | set[R] | frozenset[R] | r[R]:
             """Map items using flext-core Collection.map.
 
             Wrapper for FlextUtilities.Collection.map() to maintain compatibility.
@@ -437,19 +426,12 @@ class FlextCliUtilities(FlextUtilities):
             # Type guards for mapper type narrowing
             # Constants for parameter count validation
             single_param_count = 1
-            dict_param_count = 2
 
             def is_single_param_mapper(
-                _m: Callable[[T], R] | Callable[[str, T], R],
+                _m: Callable[[T], R],
             ) -> TypeGuard[Callable[[T], R]]:
                 """Type guard: mapper accepts 1 parameter -> Callable[[T], R]."""
                 return param_count == single_param_count
-
-            def is_dict_mapper(
-                _m: Callable[[T], R] | Callable[[str, T], R],
-            ) -> TypeGuard[Callable[[str, T], R]]:
-                """Type guard: mapper accepts 2 parameters -> Callable[[str, T], R]."""
-                return param_count == dict_param_count
 
             # Type narrowing based on items type and mapper signature
             if isinstance(items, r):
@@ -462,13 +444,6 @@ class FlextCliUtilities(FlextUtilities):
                     mapped_value = mapper(items.value)
                     return r[R].ok(mapped_value)
                 return r[R].fail("Invalid r[T] object")
-            if isinstance(items, (dict, Mapping)):
-                # For dict, mapper must be Callable[[str, T], R] with 2 parameters
-                if not is_dict_mapper(mapper):
-                    msg = "mapper for dict must accept 2 parameters (str, T)"
-                    raise TypeError(msg)
-                # For dict, map each key-value pair
-                return {k: mapper(k, v) for k, v in items.items()}
             # For sequences - mapper must be Callable[[T], R] with 1 parameter
             if not is_single_param_mapper(mapper):
                 msg = "mapper for sequences must accept 1 parameter"
@@ -2204,7 +2179,7 @@ class FlextCliUtilities(FlextUtilities):
 
                 @staticmethod
                 def get_enum_params(
-                    func: Callable[..., object],
+                    func: Callable[..., t.GeneralValueType],
                 ) -> dict[str, type[StrEnum]]:
                     """Extract StrEnum parameters from function signature."""
                     try:

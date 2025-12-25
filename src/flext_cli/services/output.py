@@ -10,17 +10,14 @@ from __future__ import annotations
 import csv
 import json
 from collections.abc import Callable, Iterable, Mapping, Sequence
-from datetime import datetime
 from io import StringIO
 from typing import TypeGuard
 
 import yaml
 from flext_core import FlextRuntime, r, t
-from flext_core.mixins import FlextMixins
 from pydantic import BaseModel
 from rich.tree import Tree as RichTree
 
-from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import FlextCliConstants
 from flext_cli.formatters import FlextCliFormatters
 from flext_cli.models import m
@@ -35,7 +32,7 @@ from flext_cli.utilities import FlextCliUtilities
 # to follow "one class per module" pattern
 
 
-class FlextCliOutput(FlextCliServiceBase, FlextMixins):
+class FlextCliOutput:
     """Comprehensive CLI output tools for the flext ecosystem.
 
     Business Rules:
@@ -104,11 +101,6 @@ class FlextCliOutput(FlextCliServiceBase, FlextMixins):
     """
 
     # Logger is provided by FlextMixins mixin
-    # Private attributes for internal state management
-    # Direct attributes (FlextService pattern - no PrivateAttr needed)
-    # Initialized in __init__ via object.__setattr__, so type checkers need assertions
-    _formatters: FlextCliFormatters
-    _tables: FlextCliTables
 
     # ═══════════════════════════════════════════════════════════════════════════
     # STATIC HELPER METHODS - General purpose utilities for output operations
@@ -227,28 +219,23 @@ class FlextCliOutput(FlextCliServiceBase, FlextMixins):
         default: dict[str, t.GeneralValueType] | None = None,
     ) -> dict[str, t.GeneralValueType]:
         """Ensure value is dict with default using build DSL."""
-        built_result = FlextCliUtilities.build(
+        result = FlextCliUtilities.build(
             v,
             ops={"ensure": "dict", "ensure_default": default or {}},
             on_error="skip",
         )
-        # Type narrowing: FlextCliUtilities.build with ensure="dict" returns dict
-        if isinstance(built_result, dict):
-            return built_result
-        return default or {}
+        return result if isinstance(result, dict) else default or {}
 
     @staticmethod
     def ensure_bool(v: t.GeneralValueType | None, *, default: bool = False) -> bool:
         """Ensure value is bool with default using build DSL."""
-        built_result = FlextCliUtilities.build(
+        # Type narrowing: FlextCliUtilities.build with ensure="bool" returns bool
+        result = FlextCliUtilities.build(
             v,
             ops={"ensure": "bool", "ensure_default": default},
             on_error="skip",
         )
-        # Type narrowing: FlextCliUtilities.build with ensure="bool" returns bool
-        if isinstance(built_result, bool):
-            return built_result
-        return default
+        return bool(result) if result is not None else default
 
     @staticmethod
     def get_map_val(
@@ -274,12 +261,8 @@ class FlextCliOutput(FlextCliServiceBase, FlextMixins):
             compatible_value = dict_items
         else:
             compatible_value = str(value)
-        # Return compatible_value if it's valid; fallback to default
-        if isinstance(
-            compatible_value, (str, int, float, bool, type(None), dict, list)
-        ):
-            return compatible_value
-        return default
+        # compatible_value is already validated to be GeneralValueType compatible
+        return compatible_value
 
     @staticmethod
     def cast_if[T](v: object, t_type: type[T], default: T | object) -> T:
@@ -337,31 +320,6 @@ class FlextCliOutput(FlextCliServiceBase, FlextMixins):
     ) -> TypeGuard[p.Cli.Display.RichConsoleProtocol]:
         """Type guard to check if object implements RichConsoleProtocol."""
         return hasattr(obj, "print") and hasattr(obj, "rule")
-
-    def _get_formatters(self) -> FlextCliFormatters:
-        """Get or create FlextCliFormatters instance (lazy initialization).
-
-        Returns:
-            FlextCliFormatters instance for Rich-based output
-
-        Note:
-            Uses lazy initialization pattern: creates instance on first access
-            and caches it for subsequent calls.
-
-        """
-        # Lazy initialization: create instance if not exists
-        if not hasattr(self, "_formatters") or not isinstance(
-            getattr(self, "_formatters", None), FlextCliFormatters
-        ):
-            # Set the formatters instance using object.__setattr__ to bypass validation
-            object.__setattr__(self, "_formatters", FlextCliFormatters())
-
-        # Type-safe access: we know _formatters exists and is FlextCliFormatters
-        formatters = object.__getattribute__(self, "_formatters")
-        if not isinstance(formatters, FlextCliFormatters):
-            msg = f"_formatters must be FlextCliFormatters, got {type(formatters)}"
-            raise TypeError(msg)
-        return formatters
 
     @staticmethod
     def to_dict_json(v: t.GeneralValueType) -> dict[str, t.GeneralValueType]:
@@ -653,10 +611,6 @@ class FlextCliOutput(FlextCliServiceBase, FlextMixins):
             # Type narrowing: formatter accepts compatible types
             formatters_dict[result_type] = formatter
             self._result_formatters = formatters_dict
-            self.logger.debug(
-                "Registered result formatter",
-                extra={"formatter_type": result_type.__name__},
-            )
             return r[bool].ok(True)
 
         except Exception as e:
@@ -790,10 +744,6 @@ class FlextCliOutput(FlextCliServiceBase, FlextMixins):
                 "Cannot format None result - provide a valid result object",
             )
 
-        self.logger.info(
-            f"No registered formatter for {type(result).__name__}, using generic formatting",
-        )
-
         # Handle Pydantic models
         if isinstance(result, BaseModel):
             return self._format_pydantic_model(result, output_format)
@@ -876,9 +826,10 @@ class FlextCliOutput(FlextCliServiceBase, FlextMixins):
         )
         return self.format_data(cli_json_dict, output_format)
 
-    def _display_formatted_result(self, formatted: str) -> r[bool]:
+    @staticmethod
+    def _display_formatted_result(formatted: str) -> r[bool]:
         """Display formatted result string using Rich console."""
-        console = self._get_formatters().console
+        console = FlextCliFormatters().console
         console.print(formatted)
         return r[bool].ok(True)
 
@@ -929,12 +880,8 @@ class FlextCliOutput(FlextCliServiceBase, FlextMixins):
                 ),
                 on_error="skip",
             )
-            if values.is_failure:
-                return []
             # FlextCliUtilities.filter expects predicate as second positional arg
             values_list = values.value or []
-            if not isinstance(values_list, (list, tuple)):
-                return []
             filtered = FlextCliUtilities.filter(
                 values_list, predicate=lambda v: v is not None
             )
@@ -995,7 +942,7 @@ class FlextCliOutput(FlextCliServiceBase, FlextMixins):
 
         Uses RichTableProtocol from lower layer instead of object for better type safety.
         """
-        table_result = self._get_formatters().create_table(
+        table_result = FlextCliFormatters().create_table(
             data=None,
             headers=headers,
             title=title,
@@ -1112,7 +1059,6 @@ class FlextCliOutput(FlextCliServiceBase, FlextMixins):
                     error=e,
                 )
             )
-            self.logger.exception(error_msg)
             return r[p.Cli.Display.RichTableProtocol].fail(error_msg)
 
     def table_to_string(
@@ -1133,14 +1079,14 @@ class FlextCliOutput(FlextCliServiceBase, FlextMixins):
         # Delegate to formatters for rendering
         # table is RichTableProtocol (structural), formatters accepts RichTable | object
         # Both conform structurally, so passing protocol object directly is safe
-        return self._get_formatters().render_table_to_string(table, width)
+        return FlextCliFormatters().render_table_to_string(table, width)
 
     # =========================================================================
     # ASCII TABLE CREATION (Delegates to FlextCliTables)
     # =========================================================================
 
+    @staticmethod
     def create_ascii_table(
-        self,
         data: list[dict[str, t.GeneralValueType]],
         headers: list[str] | None = None,
         table_format: str = FlextCliConstants.Cli.TableFormats.SIMPLE,
@@ -1187,21 +1133,21 @@ class FlextCliOutput(FlextCliServiceBase, FlextMixins):
         """
         if config is not None:
             # Use provided config directly
-            return self._get_tables().create_table(data=data, config=config)
+            return FlextCliTables.create_table(data=data, config=config)
 
         # Use build() DSL for headers normalization
         # Type narrowing: ensure_list returns list[t.GeneralValueType], convert to list[str]
-        validated_headers_raw = self.ensure_list(
+        validated_headers_raw = FlextCliOutput.ensure_list(
             headers, [FlextCliConstants.Cli.TableFormats.KEYS]
         )
         validated_headers: list[str] = [str(h) for h in validated_headers_raw]
-        final_config = m.Cli.TableConfig(
-            headers=validated_headers,
-            table_format=table_format,
-        )
+        final_config = m.Cli.TableConfig.model_validate({
+            "headers": validated_headers,
+            "table_format": table_format,
+        })
         # Type narrowing: TableConfig implements TableConfigProtocol structurally
         config_protocol: p.Cli.TableConfigProtocol = final_config
-        return self._get_tables().create_table(data=data, config=config_protocol)
+        return FlextCliTables.create_table(data=data, config=config_protocol)
 
     # =========================================================================
     # PROGRESS BARS (Delegates to FlextCliFormatters)
@@ -1221,7 +1167,7 @@ class FlextCliOutput(FlextCliServiceBase, FlextMixins):
 
         """
         # create_progress returns r[Progress] which implements RichProgressProtocol
-        result = self._get_formatters().create_progress()
+        result = FlextCliFormatters().create_progress()
         if result.is_success:
             # Progress implements RichProgressProtocol structurally
             # Progress (concrete type) implements RichProgressProtocol structurally
@@ -1267,7 +1213,7 @@ class FlextCliOutput(FlextCliServiceBase, FlextMixins):
         validated_style = self.ensure_str(
             style, FlextCliConstants.Cli.OutputDefaults.EMPTY_STYLE
         )
-        return self._get_formatters().print(message, style=validated_style)
+        return FlextCliFormatters().print(message, style=validated_style)
 
     def print_error(self, message: str) -> r[bool]:
         """Print an error message with red styling.
@@ -1354,7 +1300,7 @@ class FlextCliOutput(FlextCliServiceBase, FlextMixins):
         validated_style = self.ensure_str(
             style, FlextCliConstants.Cli.OutputDefaults.EMPTY_STYLE
         )
-        return self._get_formatters().print(text, style=validated_style)
+        return FlextCliFormatters().print(text, style=validated_style)
 
     def display_message(
         self,
@@ -1493,7 +1439,7 @@ class FlextCliOutput(FlextCliServiceBase, FlextMixins):
                     error=e,
                 )
             )
-            self.logger.exception(error_msg)
+
             return r[str].fail(error_msg)
 
     def format_yaml(self, data: t.GeneralValueType) -> r[str]:
@@ -1523,7 +1469,7 @@ class FlextCliOutput(FlextCliServiceBase, FlextMixins):
                     error=e,
                 )
             )
-            self.logger.exception(error_msg)
+
             return r[str].fail(error_msg)
 
     def format_csv(self, data: t.GeneralValueType) -> r[str]:
@@ -1573,7 +1519,7 @@ class FlextCliOutput(FlextCliServiceBase, FlextMixins):
                     error=e,
                 )
             )
-            self.logger.exception(error_msg)
+
             return r.fail(error_msg)
 
     def _coerce_to_list(self, data: t.GeneralValueType) -> list[t.GeneralValueType]:
@@ -1590,12 +1536,7 @@ class FlextCliOutput(FlextCliServiceBase, FlextMixins):
         # Dict returns items
         if isinstance(data, dict):
             return list(data.items())
-        # Non-iterable types return empty list
-        if isinstance(data, (str, bytes, int, float, datetime, type(None))):
-            return []
-        # Check if iterable (has __iter__) but not Sequence
-        if not hasattr(data, "__iter__"):
-            return []
+        # Data is already a list, so it's iterable and sequence
         # Other iterables - convert with type narrowing
         # Type narrowing: data is iterable (has __iter__) and not a non-iterable type
         # Verify it's Sequence or other iterable before converting
@@ -1604,7 +1545,7 @@ class FlextCliOutput(FlextCliServiceBase, FlextMixins):
         # For other iterables, use helper method
         # Type narrowing: data has __iter__ and is not a non-iterable type, so it's Iterable
         # Use runtime check to verify it's iterable before converting
-        if hasattr(data, "__iter__") and callable(getattr(data, "__iter__", None)):
+        if hasattr(data, "__iter__") and callable(getattr(data, "__iter__", None)) and data is not None:
             # Runtime check: data is iterable, convert items to list
             # Use list comprehension with type narrowing for each item
             iterable_items: list[t.GeneralValueType] = []
@@ -1676,16 +1617,9 @@ class FlextCliOutput(FlextCliServiceBase, FlextMixins):
         ]
         csv_rows: list[dict[str, str | int | float | bool]] = []
         for row in dict_rows:
-            try:
-                processed_row = self._process_csv_row(row)
-                csv_rows.append(processed_row)
-            except Exception as e:
-                self.logger.debug(
-                    "Skipping row due to processing error",
-                    error=str(e),
-                    row_id=str(id(row)),
-                )
-                continue
+            # Process CSV row - operations are safe and shouldn't raise exceptions
+            processed_row = self._process_csv_row(row)
+            csv_rows.append(processed_row)
         writer.writerows(csv_rows)
         return r[str].ok(output_buffer.getvalue())
 
@@ -1783,7 +1717,7 @@ class FlextCliOutput(FlextCliServiceBase, FlextMixins):
                     error=e,
                 )
             )
-            self.logger.exception(error_msg)
+
             return r[tuple[list[dict[str, t.GeneralValueType]], str | list[str]]].fail(
                 error_msg,
             )
@@ -1916,13 +1850,13 @@ class FlextCliOutput(FlextCliServiceBase, FlextMixins):
     ) -> r[str]:
         """Create table string using FlextCliTables."""
         try:
-            config_instance = m.Cli.TableConfig(
-                headers=table_headers,
-                table_format=FlextCliConstants.Cli.TableFormats.GRID,
-            )
+            config_instance = m.Cli.TableConfig.model_validate({
+                "headers": table_headers,
+                "table_format": FlextCliConstants.Cli.TableFormats.GRID,
+            })
             # Type narrowing: TableConfig implements TableConfigProtocol structurally
             config: p.Cli.TableConfigProtocol = config_instance
-            table_result = self._get_tables().create_table(
+            table_result = FlextCliTables.create_table(
                 data=table_data, config=config
             )
 
@@ -1938,7 +1872,7 @@ class FlextCliOutput(FlextCliServiceBase, FlextMixins):
                     error=e,
                 )
             )
-            self.logger.exception(error_msg)
+
             return r[str].fail(error_msg)
 
     @staticmethod
@@ -1976,16 +1910,13 @@ class FlextCliOutput(FlextCliServiceBase, FlextMixins):
         )
 
         # Create tree through formatters
-        tree_result = self._get_formatters().create_tree(label=final_title)
+        tree_result = FlextCliFormatters().create_tree(label=final_title)
 
         if tree_result.is_failure:
             return r[str].fail(f"Failed to create tree: {tree_result.error}")
 
         # Use .value directly instead of deprecated .value
         # create_tree returns r[RichTree], so tree is RichTree (concrete type)
-        if not isinstance(tree_result.value, RichTree):
-            msg = "tree_result.value must be RichTree instance"
-            raise TypeError(msg)
         concrete_tree: RichTree = tree_result.value
 
         # Build tree structure - data is already t.GeneralValueType
@@ -1993,7 +1924,7 @@ class FlextCliOutput(FlextCliServiceBase, FlextMixins):
         self._build_tree(concrete_tree, data)
 
         # Render to string using formatters - use concrete tree type (RichTree)
-        return self._get_formatters().render_tree_to_string(
+        return FlextCliFormatters().render_tree_to_string(
             concrete_tree,
             width=FlextCliConstants.Cli.CliDefaults.DEFAULT_MAX_WIDTH,
         )
@@ -2069,7 +2000,7 @@ class FlextCliOutput(FlextCliServiceBase, FlextMixins):
         # Console (concrete type) implements RichConsoleProtocol structurally
         # Use cast for structural typing compatibility
 
-        concrete_console = self._get_formatters().console
+        concrete_console = FlextCliFormatters().console
         # Rich Console implements RichConsoleProtocol structurally at runtime
         # Protocol is structural, so concrete_console is compatible
         # Use type guard to narrow type for mypy

@@ -103,7 +103,7 @@ class FlextCliTables(FlextCliServiceBase):
 
     @staticmethod
     def create_table(
-        data: t.Cli.TableData,  # noqa: ARG004
+        data: t.Cli.TableData,
         config: p.Cli.TableConfigProtocol | None = None,
         **config_kwargs: t.GeneralValueType,
     ) -> r[str]:
@@ -150,8 +150,33 @@ class FlextCliTables(FlextCliServiceBase):
             return r[str].fail(
                 config_result.error or "Invalid table configuration",
             )
-        # Method implementation removed - returning placeholder failure
-        return r[str].fail("Method removed")
+        # Get concrete config from result
+        config_final = config_result.value
+
+        # Validate table data and format
+        validation_result = FlextCliTables._validate_table_data(
+            data, config_final.table_format
+        )
+        if validation_result.is_failure:
+            return r[str].fail(validation_result.error or "Table validation failed")
+
+        # Prepare headers
+        headers_result = FlextCliTables._prepare_headers(data, config_final.headers)
+        if headers_result.is_failure:
+            return r[str].fail(headers_result.error or "Header preparation failed")
+
+        # Format table using tabulate
+        try:
+            formatted_table = tabulate(
+                data,
+                headers=headers_result.value,
+                tablefmt=config_final.table_format,
+                numalign=config_final.numalign,
+                stralign=config_final.stralign,
+            )
+            return r[str].ok(formatted_table)
+        except Exception as e:
+            return r[str].fail(f"Table formatting failed: {e}")
 
     @staticmethod
     def _validate_table_data(

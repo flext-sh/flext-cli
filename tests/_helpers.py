@@ -15,7 +15,7 @@ from flext_cli.typings import FlextCliTypes as t
 
 
 # Factory functions using direct model instantiation (no forward refs)
-def create_test_cli_command(**overrides: dict[str, Any]) -> m.Cli.CliCommand:
+def create_test_cli_command(**overrides: dict[str, t.GeneralValueType]) -> m.Cli.CliCommand:
     """Factory for real CliCommand instances with sensible defaults."""
     now = datetime.now(UTC)
     defaults = {
@@ -33,7 +33,7 @@ def create_test_cli_command(**overrides: dict[str, Any]) -> m.Cli.CliCommand:
     return cmd
 
 
-def create_test_cli_session(**overrides: dict[str, Any]) -> m.Cli.CliSession:
+def create_test_cli_session(**overrides: dict[str, t.GeneralValueType]) -> m.Cli.CliSession:
     """Factory for real CliSession instances with sensible defaults."""
     now = datetime.now(UTC)
     defaults = {
@@ -61,7 +61,7 @@ class AuthHelpers:
         return f"test_token_{user_id}_{now.timestamp()}"
 
     @staticmethod
-    def create_test_credentials(**overrides: dict[str, Any]) -> dict[str, Any]:
+    def create_test_credentials(**overrides: dict[str, t.GeneralValueType]) -> dict[str, t.GeneralValueType]:
         """Create test credentials dict."""
         defaults = {
             "username": "test_user",

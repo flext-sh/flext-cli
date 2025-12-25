@@ -14,10 +14,9 @@ from datetime import UTC, datetime
 from typing import override
 
 from flext_core import (
+    FlextDecorators,
     FlextResult as r,
-    FlextUtilities,
-    decorators,
-    runtime,
+    FlextUtilities as u,
 )
 
 from flext_cli.base import FlextCliServiceBase
@@ -140,13 +139,13 @@ class FlextCliCore(FlextCliServiceBase):
         # Type-safe configuration initialization
         # Store CLI-specific config as dict (base class _config is FlextSettings | None)
         # Use mutable dict for CLI-specific configuration dictionary
-        # Use runtime.is_dict_like for type checking
+        # Use u.Guards.is_type(..., "mapping") for type checking
         # Use object.__setattr__ for private attributes in case parent is frozen
         object.__setattr__(
             self,
             "_cli_config",
             dict(config)
-            if config is not None and runtime.is_dict_like(config)
+                if config is not None and u.Guards.is_type(config, "mapping")
             else {},
         )
         object.__setattr__(self, "_commands", {})
@@ -168,7 +167,7 @@ class FlextCliCore(FlextCliServiceBase):
 
         # Type narrowing: is_dict_like ensures config is dict-like
         config_dict: Mapping[str, t.GeneralValueType] | None = (
-            config if runtime.is_dict_like(config) else None
+                config if u.Guards.is_type(config, "mapping") else None
         )
         self.logger.debug(
             "Initialized CLI core service",
@@ -335,7 +334,7 @@ class FlextCliCore(FlextCliServiceBase):
             )
 
         # Use mapper().get() to check command existence
-        command_check = FlextUtilities.mapper().get(self._commands, name)
+        command_check = u.mapper().get(self._commands, name)
         if command_check is None:
             self.logger.warning(
                 "Command not found in registry",
@@ -357,12 +356,12 @@ class FlextCliCore(FlextCliServiceBase):
                 operation="get_command",
                 command_name=name,
                 command_def_type=type(command_def).__name__,
-                is_dict=runtime.is_dict_like(command_def),
+                is_dict=u.Guards.is_type(command_def, "mapping"),
                 source="flext-cli/src/flext_cli/core.py",
             )
 
-            # Use runtime.is_dict_like for type checking
-            if runtime.is_dict_like(command_def):
+            # Use u.Guards.is_type(..., "mapping") for type checking
+            if u.Guards.is_type(command_def, "mapping"):
                 self.logger.debug(
                     "Command definition retrieved successfully",
                     operation="get_command",
@@ -412,7 +411,7 @@ class FlextCliCore(FlextCliServiceBase):
         """Build execution context from various input formats."""
         if context is None:
             return {}
-        if runtime.is_list_like(context):
+        if u.Guards.is_type(context, "sequence"):
             # Use build() DSL: process → normalize → ensure JSON-compatible
             # Reuse helpers from output module to avoid duplication
             process_result = FlextCliUtilities.process(
@@ -420,15 +419,14 @@ class FlextCliCore(FlextCliServiceBase):
                 processor=FlextCliOutput.norm_json,
                 on_error="skip",
             )
-            # Python 3.13: Direct attribute access - unwrap() provides safe access
-            context_list_raw = process_result.value or []
+            context_list_raw = process_result.value or []  # Direct attribute access - unwrap() provides safe access
             context_list: list[t.GeneralValueType] = (
                 context_list_raw if isinstance(context_list_raw, list) else []
             )
             return self._build_context_from_list(context_list)
-        # Use runtime.is_dict_like for type checking
+        # Use u.Guards.is_type(..., "mapping") for type checking
         # Type narrowing: is_dict_like ensures context is dict-like
-        if runtime.is_dict_like(context):
+        if u.Guards.is_type(context, "mapping"):
             # Context is already CliCommand.CommandContext compatible - direct assignment
             # Type assertion: is_dict_like ensures it's Mapping-like
             if isinstance(context, Mapping):
@@ -586,12 +584,12 @@ class FlextCliCore(FlextCliServiceBase):
             "Configuration input validated",
             operation="update_configuration",
             config_keys=list(config.keys())
-            if runtime.is_dict_like(config)
+            if u.Guards.is_type(config, "mapping")
             else None,
             source="flext-cli/src/flext_cli/core.py",
         )
         # Use build() DSL for JSON conversion
-        if not runtime.is_dict_like(config):
+        if not u.Guards.is_type(config, "mapping"):
             return r[dict[str, t.GeneralValueType]].fail(
                 c.Cli.ErrorMessages.CONFIG_NOT_DICT,
             )
@@ -622,7 +620,7 @@ class FlextCliCore(FlextCliServiceBase):
                 "Merging configurations",
                 operation="update_configuration",
                 new_config_keys=list(valid_config.keys())
-                if runtime.is_dict_like(valid_config)
+                    if u.Guards.is_type(valid_config, "mapping")
                 else None,
                 source="flext-cli/src/flext_cli/core.py",
             )
@@ -650,7 +648,7 @@ class FlextCliCore(FlextCliServiceBase):
             # Convert to mutable dict for merging
             existing_config: dict[str, t.GeneralValueType] = (
                 dict(existing_config_raw)
-                if runtime.is_dict_like(existing_config_raw)
+                    if u.Guards.is_type(existing_config_raw, "mapping")
                 else {}
             )
             # Use build() DSL: ensure dict → transform to JSON
@@ -679,7 +677,7 @@ class FlextCliCore(FlextCliServiceBase):
                 "Configuration merged successfully",
                 operation="update_configuration",
                 merged_keys=list(self._cli_config.keys())
-                if runtime.is_dict_like(self._cli_config)
+                if u.Guards.is_type(self._cli_config, "mapping")
                 else None,
                 source="flext-cli/src/flext_cli/core.py",
             )
@@ -726,10 +724,10 @@ class FlextCliCore(FlextCliServiceBase):
             "Updating CLI configuration",
             operation="update_configuration",
             config_keys=list(config.keys())
-            if runtime.is_dict_like(config)
+            if u.Guards.is_type(config, "mapping")
             else None,
             current_config_keys=list(self._cli_config.keys())
-            if runtime.is_dict_like(self._cli_config)
+            if u.Guards.is_type(self._cli_config, "mapping")
             else None,
             source="flext-cli/src/flext_cli/core.py",
         )
@@ -738,13 +736,13 @@ class FlextCliCore(FlextCliServiceBase):
             "Starting configuration update",
             operation="update_configuration",
             config_type=type(config).__name__,
-            config_is_dict=runtime.is_dict_like(config),
+            config_is_dict=u.Guards.is_type(config, "mapping"),
             source="flext-cli/src/flext_cli/core.py",
         )
 
         # Railway pattern: validate input then merge configurations
         # Use build() DSL: ensure dict → transform to JSON
-        if not runtime.is_dict_like(config):
+        if not u.Guards.is_type(config, "mapping"):
             return r[bool].fail(c.Cli.ErrorMessages.CONFIG_NOT_DICT)
         # Reuse to_dict_json helper from output module
         # Python 3.13: to_dict_json() always returns dict, isinstance check is unnecessary
@@ -787,18 +785,18 @@ class FlextCliCore(FlextCliServiceBase):
                     "Retrieving CLI configuration",
                     operation="get_configuration",
                     config_type=type(self._cli_config).__name__,
-                    config_is_dict=runtime.is_dict_like(self._cli_config),
+                    config_is_dict=u.Guards.is_type(self._cli_config, "mapping"),
                     config_keys=list(self._cli_config.keys())
-                    if runtime.is_dict_like(self._cli_config)
+                    if u.Guards.is_type(self._cli_config, "mapping")
                     else None,
                     source="flext-cli/src/flext_cli/core.py",
                 )
-                if runtime.is_dict_like(self._cli_config):
+                if u.Guards.is_type(self._cli_config, "mapping"):
                     self.logger.debug(
                         "Configuration retrieved successfully",
                         operation="get_configuration",
                         config_keys=list(self._cli_config.keys())
-                        if runtime.is_dict_like(self._cli_config)
+                        if u.Guards.is_type(self._cli_config, "mapping")
                         else None,
                         source="flext-cli/src/flext_cli/core.py",
                     )
@@ -869,7 +867,7 @@ class FlextCliCore(FlextCliServiceBase):
                 c.Cli.ErrorMessages.PROFILE_CONFIG_NOT_DICT,
             )
 
-        if not (runtime.is_dict_like(self._cli_config) and self._cli_config):
+        if not (u.Guards.is_type(self._cli_config, "mapping") and self._cli_config):
             return r[bool].fail(
                 c.Cli.ErrorMessages.CONFIG_NOT_INITIALIZED,
             )
@@ -904,7 +902,7 @@ class FlextCliCore(FlextCliServiceBase):
             # Python 3.13: profiles_section_raw is already dict, isinstance check is unnecessary
             profiles_section: dict[str, t.GeneralValueType] = (
                 profiles_section_raw
-                if runtime.is_dict_like(profiles_section_raw)
+                    if u.Guards.is_type(profiles_section_raw, "mapping")
                 else {}
             )
             profiles_section[name] = profile_config
@@ -1235,8 +1233,8 @@ class FlextCliCore(FlextCliServiceBase):
     # ==========================================================================
 
     @override
-    @decorators.log_operation("cli_core_health_check")
-    @decorators.track_performance()
+    @FlextDecorators.log_operation("cli_core_health_check")
+    @FlextDecorators.track_performance()
     def execute(self) -> r[dict[str, t.GeneralValueType]]:
         """Execute CLI service operations.
 

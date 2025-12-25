@@ -19,8 +19,7 @@ from flext import r
 from flext_tests import tm
 from typer.testing import CliRunner
 
-
-
+from flext import (
     FlextCliCommonParams,
     FlextCliSettings,
 )

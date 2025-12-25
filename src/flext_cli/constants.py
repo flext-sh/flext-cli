@@ -701,6 +701,7 @@ class FlextCliConstants(FlextConstants):
             FORMATTER: Final[str] = "formatter"
             FORMATTERS: Final[str] = "formatters"  # Plural form for consistency
             AUTH: Final[str] = "auth"
+            OUTPUT: Final[str] = "output"
 
         class Protocols:
             """CLI protocol constants."""

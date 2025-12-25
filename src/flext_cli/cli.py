@@ -19,7 +19,7 @@ import logging
 import shutil
 from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
-from typing import IO, Annotated, TypeGuard
+from typing import IO, Annotated, TypeGuard, cast
 
 import click
 import typer
@@ -1161,7 +1161,7 @@ class FlextCliCli:
                 if isinstance(result, dict)
                 else result
             )
-            return r[t.GeneralValueType].ok(json_value)  # type: ignore[arg-type]
+            return r[t.GeneralValueType].ok(cast("t.GeneralValueType", json_value))
         except typer.Abort as e:
             return r[t.GeneralValueType].fail(
                 c.Cli.ErrorMessages.USER_ABORTED_PROMPT.format(error=e),

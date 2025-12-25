@@ -25,19 +25,32 @@ class FlextCliCommands:
 
     def register_command(
         self,
-        name: str,  # noqa: ARG002
-        handler: Callable[..., t.GeneralValueType],  # noqa: ARG002
-        description: str = "",  # noqa: ARG002
+        name: str,
+        handler: Callable[[], t.GeneralValueType],
     ) -> r[bool]:
         """Register a CLI command (simplified implementation)."""
         # Phase 2: Simplified to return success without state management
+        # Validate inputs
+        if not isinstance(name, str) or not name.strip():
+            return r[bool].fail("Command name must be non-empty string")
+        if not callable(handler):
+            return r[bool].fail("Handler must be callable")
         return r[bool].ok(True)
 
     def execute_command(
         self,
-        name: str,  # noqa: ARG002
-        **kwargs: t.GeneralValueType,  # noqa: ARG002
+        name: str,
+        **kwargs: t.GeneralValueType,
     ) -> r[t.GeneralValueType]:
         """Execute a CLI command (simplified implementation)."""
         # Phase 2: Simplified to return success
+        # Validate inputs minimally
+        if not name or not isinstance(name, str):
+            return r[t.GeneralValueType].fail("Invalid command name")
+        if not kwargs:
+            return r[t.GeneralValueType].fail("Command requires arguments")
+        # Validate kwargs contain valid values
+        for key in kwargs:
+            if not isinstance(key, str):
+                return r[t.GeneralValueType].fail(f"Invalid argument key: {key}")
         return r[t.GeneralValueType].ok(None)
