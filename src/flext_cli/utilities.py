@@ -1624,7 +1624,9 @@ class FlextCliUtilities(FlextUtilities):
                             status: Status = result.value
 
                     """
-                    result = u.Enum.parse(enum_cls, value)
+                    # Call parent FlextUtilities.Enum directly to avoid recursion
+                    # (u.Enum points to Cli.TypeNormalizer.Enum which is self)
+                    result = FlextUtilities.Enum.parse(enum_cls, value)
                     # Convert RuntimeResult to r (r[E])
                     return (
                         r[E].ok(result.value)
@@ -1650,7 +1652,8 @@ class FlextCliUtilities(FlextUtilities):
                         )
 
                     """
-                    return u.Enum.parse_or_default(enum_cls, value, default)
+                    # Call parent FlextUtilities.Enum directly to avoid recursion
+                    return FlextUtilities.Enum.parse_or_default(enum_cls, value, default)
 
                 # -------------------------------------------------------------
                 # PYDANTIC VALIDATORS: BeforeValidator factories

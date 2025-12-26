@@ -579,14 +579,14 @@ class FlextCli:
             | None
         ),
         headers: list[str] | None = None,
-        title: str | None = None,
+        _title: str | None = None,
     ) -> r[str]:
         """Create a formatted ASCII table.
 
         Args:
             data: Table data (dict or list of dicts)
             headers: Optional column headers
-            title: Optional table title (currently not used by tabulate)
+            _title: Unused - reserved for future tabulate title support
 
         Returns:
             r[str]: Formatted table string or error

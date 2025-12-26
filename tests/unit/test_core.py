@@ -13,13 +13,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import cast
-
 import tempfile
 import threading
 from collections import UserDict
-from collections.abc import Generator
+from collections.abc import Generator, Mapping
 from pathlib import Path
+from typing import cast
 from unittest.mock import patch
 
 import pytest
@@ -444,7 +443,6 @@ class TestsCliCore:
             assert isinstance(result, r)
             assert result.is_failure
 
-
     # =========================================================================
     # NESTED CLASS: Plugin System
     # =========================================================================
@@ -460,7 +458,6 @@ class TestsCliCore:
 
             plugins = result.value
             assert isinstance(plugins, list)
-
 
         def test_plugin_registration(self, core_service: FlextCliCore) -> None:
             """Test plugin registration functionality."""
@@ -972,7 +969,6 @@ class TestsCliCore:
             data = stats.value
             assert isinstance(data, dict)
 
-
     # =========================================================================
     # NESTED CLASS: Executor Tests
     # =========================================================================
@@ -1139,13 +1135,13 @@ class TestsCliCore:
             core_service: FlextCliCore,
         ) -> None:
             """Test update_configuration with invalid input."""
-            result = core_service.update_configuration("invalid_string")
+            result = core_service.update_configuration(cast("Mapping[str, t.GeneralValueType]", "invalid_string"))
             assert result.is_failure
 
         def test_update_configuration_invalid(self, core_service: FlextCliCore) -> None:
             """Test update_configuration with invalid input."""
             # Pass None (cast to JsonDict)
-            result = core_service.update_configuration(None)
+            result = core_service.update_configuration(cast("Mapping[str, t.GeneralValueType]", None))
             assert result.is_failure
 
         """Helper and utility method tests."""
