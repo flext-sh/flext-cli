@@ -12,39 +12,14 @@ from __future__ import annotations
 
 import time
 from collections.abc import Callable
-from typing import Protocol
 
 from flext_core import r
 from pydantic import BaseModel
 
 from flext_cli.protocols import p
 
-
-class FlextMiddleware(Protocol):
-    """Middleware protocol for CLI commands.
-
-    Middleware functions process the CLI context and pass control to the next
-    middleware or handler in the chain. They can modify the context, log
-    execution, validate inputs, retry operations, etFlextCliConstants.Cli.
-
-    """
-
-    def __call__(
-        self,
-        ctx: p.Cli.CliContextProtocol,
-        next_: Callable[[p.Cli.CliContextProtocol], r[object]],
-    ) -> r[object]:
-        """Process and pass to next middleware.
-
-        Args:
-            ctx: CLI execution context.
-            next_: Next middleware or handler in the chain.
-
-        Returns:
-            r[object]: Result from next middleware or handler.
-
-        """
-        ...
+# Use existing Protocol from protocols.py (no duplicate definitions)
+FlextMiddleware = p.Cli.MiddlewareProtocol
 
 
 class LoggingMiddleware:

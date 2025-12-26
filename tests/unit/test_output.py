@@ -33,6 +33,7 @@ from pydantic import BaseModel
 
 from flext_cli import FlextCliOutput, r
 from flext_cli.constants import c
+from flext_cli.formatters import FlextCliFormatters
 from flext_cli.models import m
 from flext_cli.services.tables import FlextCliTables
 from flext_cli.typings import t
@@ -1736,7 +1737,7 @@ class TestsCliOutput:
         def mock_print(*args: object, **kwargs: object) -> None:
             raise RuntimeError(print_error_msg)
 
-        formatters = output._get_formatters()
+        formatters = FlextCliFormatters()
         original_print = formatters.console.print
         monkeypatch.setattr(formatters.console, "print", mock_print)
         # _display_formatted_result doesn't catch exceptions, so it will propagate
@@ -1781,7 +1782,7 @@ class TestsCliOutput:
         ) -> r[object]:
             raise RuntimeError(table_creation_error_msg)
 
-        formatters = output._get_formatters()
+        formatters = FlextCliFormatters()
         monkeypatch.setattr(formatters, "create_table", mock_create)
         result = output.create_rich_table([{"name": "Alice"}], title="Users")
         assert result.is_failure
@@ -1803,7 +1804,7 @@ class TestsCliOutput:
         def mock_render(table: object, width: int | None = None) -> r[str]:
             raise RuntimeError(string_conversion_error_msg)
 
-        formatters = output._get_formatters()
+        formatters = FlextCliFormatters()
         original_render = formatters.render_table_to_string
         monkeypatch.setattr(formatters, "render_table_to_string", mock_render)
         # Exception propagates - use pytest.raises to catch it
@@ -1995,7 +1996,7 @@ class TestsCliOutput:
 
     def test_build_tree_with_dict(self, output: FlextCliOutput) -> None:
         """Test _build_tree with dict data."""
-        formatters = output._get_formatters()
+        formatters = FlextCliFormatters()
         tree_result = formatters.create_tree("Root")
         tm.ok(tree_result)
         tree = tree_result.value
@@ -2007,7 +2008,7 @@ class TestsCliOutput:
 
     def test_build_tree_with_list(self, output: FlextCliOutput) -> None:
         """Test _build_tree with list data."""
-        formatters = output._get_formatters()
+        formatters = FlextCliFormatters()
         tree_result = formatters.create_tree("Root")
         tm.ok(tree_result)
         tree = tree_result.value
@@ -2019,7 +2020,7 @@ class TestsCliOutput:
 
     def test_build_tree_with_primitive(self, output: FlextCliOutput) -> None:
         """Test _build_tree with primitive value."""
-        formatters = output._get_formatters()
+        formatters = FlextCliFormatters()
         tree_result = formatters.create_tree("Root")
         tm.ok(tree_result)
         tree = tree_result.value
@@ -2041,7 +2042,7 @@ class TestsCliOutput:
         def mock_create() -> r[object]:
             raise RuntimeError(progress_creation_error_msg)
 
-        formatters = output._get_formatters()
+        formatters = FlextCliFormatters()
         original_create = formatters.create_progress
         monkeypatch.setattr(formatters, "create_progress", mock_create)
         # Exception propagates - use pytest.raises to catch it
@@ -2378,7 +2379,7 @@ class TestsCliOutput:
         def mock_create_table(*args: object, **kwargs: object) -> r[object]:
             return r[object].fail("Table creation failed")
 
-        formatters = output._get_formatters()
+        formatters = FlextCliFormatters()
         monkeypatch.setattr(formatters, "create_table", mock_create_table)
         result = output.create_rich_table([{"name": "Alice"}])
         assert result.is_failure
@@ -2524,7 +2525,7 @@ class TestsCliOutput:
         def mock_create_tree(*args: object, **kwargs: object) -> r[object]:
             return r[object].fail("Tree creation failed")
 
-        formatters = output._get_formatters()
+        formatters = FlextCliFormatters()
         monkeypatch.setattr(formatters, "create_tree", mock_create_tree)
         result = output.format_as_tree({"key": "value"})
         assert result.is_failure

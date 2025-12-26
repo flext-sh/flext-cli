@@ -13,6 +13,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import cast
+
 import tempfile
 import threading
 from collections import UserDict
@@ -243,7 +245,7 @@ class TestsCliCore:
                 "retries": "not_a_number",
             }
 
-            result = core_service.update_configuration(invalid_config)
+            result = core_service.update_configuration(cast("Mapping[str, t.GeneralValueType]", invalid_config))
             # Update should handle invalid config gracefully
             assert isinstance(result, r)
 
@@ -267,7 +269,7 @@ class TestsCliCore:
             """Test configuration update operations."""
             config_data = {"debug": True, "output_format": "json", "timeout": 60}
 
-            result = core_service.update_configuration(config_data)
+            result = core_service.update_configuration(cast("Mapping[str, t.GeneralValueType]", config_data))
             assert isinstance(result, r)
             assert result.is_success
 
@@ -304,12 +306,12 @@ class TestsCliCore:
         ) -> None:
             """Test configuration error handling."""
             # Test with invalid config
-            result = core_service.update_configuration("invalid_config")
+            result = core_service.update_configuration(cast("Mapping[str, t.GeneralValueType]", "invalid_config"))
             assert isinstance(result, r)
             assert result.is_failure
 
             # Test with None
-            config_result = core_service.update_configuration(None)
+            config_result = core_service.update_configuration(cast("Mapping[str, t.GeneralValueType]", None))
             assert isinstance(config_result, r)
             assert config_result.is_failure
 
@@ -419,7 +421,7 @@ class TestsCliCore:
             # Use helper method to set private field for testing
             TestsCliCore._set_commands(
                 core_service,
-                error_dict,
+                cast("dict[str, Mapping[str, t.GeneralValueType]]", error_dict),
             )
 
             # Cast to protocol type for type compatibility
@@ -438,7 +440,7 @@ class TestsCliCore:
         ) -> None:
             """Test update_configuration exception handler."""
             # Test with invalid config
-            result = core_service.update_configuration("invalid_string")
+            result = core_service.update_configuration(cast("Mapping[str, t.GeneralValueType]", "invalid_string"))
             assert isinstance(result, r)
             assert result.is_failure
 
@@ -553,7 +555,7 @@ class TestsCliCore:
             }
 
             # Update configuration
-            update_result = core_service.update_configuration(original_config)
+            update_result = core_service.update_configuration(cast("Mapping[str, t.GeneralValueType]", original_config))
             assert update_result.is_success
 
             # Get configuration
@@ -589,7 +591,7 @@ class TestsCliCore:
             # Cast to JsonDict for type compatibility
             # dict[str, str | int] is compatible with JsonDict
             result = core_service._build_execution_context(
-                context,
+                cast("dict[str, t.GeneralValueType] | list[str] | None", context),
             )
             assert result == context
 
@@ -649,7 +651,7 @@ class TestsCliCore:
             register_result = core_service.register_command(command_protocol)
             assert register_result.is_success
 
-            context = {"key": "value"}
+            context = cast("dict[str, t.GeneralValueType] | list[str] | None", {"key": "value"})
             # sample_command.name is str, no cast needed
             result = core_service.execute_command(sample_command.name, context=context)
             assert result.is_success
@@ -678,7 +680,7 @@ class TestsCliCore:
             # Cast to list[t.GeneralValueType] for type compatibility
             # str and int are compatible with t.GeneralValueType
             result = FlextCliCore._build_context_from_list(
-                args,
+                cast("list[t.GeneralValueType]", args),
             )
             assert c.Cli.DictKeys.ARGS in result
             assert result[c.Cli.DictKeys.ARGS] == args
@@ -1071,7 +1073,7 @@ class TestsCliCore:
 
             # Use BadDict that fails on keys() but works on len() (which is called by logger)
             class BadDict(UserDict[str, t.GeneralValueType]):
-                def keys(self) -> object:
+                def keys(self) -> object:  # type: ignore[override]
                     """Override keys to raise exception for testing."""
                     msg = "Keys failed"
                     raise RuntimeError(msg)
@@ -1079,7 +1081,7 @@ class TestsCliCore:
             # Use helper method to set private field for testing
             TestsCliCore._set_commands(
                 core_service,
-                BadDict(),
+                cast("dict[str, Mapping[str, t.GeneralValueType]]", BadDict()),
             )
             result = core_service.list_commands()
             assert result.is_failure
@@ -1121,7 +1123,7 @@ class TestsCliCore:
 
             TestsCliCore._set_commands(
                 core_service,
-                BadDict(),
+                cast("dict[str, Mapping[str, t.GeneralValueType]]", BadDict()),
             )
             result = core_service.health_check()
             assert result.is_failure

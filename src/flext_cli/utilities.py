@@ -2319,6 +2319,11 @@ class FlextCliUtilities(FlextUtilities):
     TypeNormalizer = Cli.TypeNormalizer
     Enum = Cli.TypeNormalizer.Enum
     Collection = Cli.TypeNormalizer.Collection
+    convert = Cli.convert
+    Environment = Cli.Environment
+    FileOps = Cli.FileOps
+    ConfigOps = Cli.ConfigOps
+    CliValidation = Cli.CliValidation
 
 
 u = FlextCliUtilities
