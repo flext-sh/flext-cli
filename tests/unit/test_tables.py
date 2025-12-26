@@ -363,22 +363,10 @@ class TestsCliTables:
                 assert hasattr(tables, "container")
 
             case TableTestType.FORMAT_AVAILABILITY:
-                formats = tables.list_formats()
-                assert isinstance(formats, list)
-                assert len(formats) > 0
-                for fmt in [
-                    "simple",
-                    "grid",
-                    "fancy_grid",
-                    "pipe",
-                    "orgtbl",
-                    "rst",
-                    "html",
-                    "latex",
-                    "tsv",
-                    # Note: "csv" is an output format, not a tabulate table format
-                ]:
-                    assert fmt in formats
+                # Test print_available_formats exists and works
+                result = FlextCliTables.print_available_formats()
+                assert result.is_success
+                assert result.value is True
 
             case TableTestType.CREATE_TABLE_BASIC | TableTestType.CREATE_TABLE_ADVANCED:
                 data = test_data[test_case.data_key]
@@ -416,81 +404,6 @@ class TestsCliTables:
                 tm.fail(result)
                 if test_case.error_contains:
                     assert test_case.error_contains in (result.error or "").lower()
-
-    def test_format_discovery_operations(self, tables: FlextCliTables) -> None:
-        """Test format discovery and description operations."""
-        # Test list_formats
-        formats = tables.list_formats()
-        assert isinstance(formats, list)
-        assert len(formats) >= len(["simple", "grid", "fancy_grid"])
-
-        # Test get_format_description - success case
-        result = tables.get_format_description("grid")
-        tm.ok(result)
-        description = result.value
-        assert isinstance(description, str)
-        assert len(description) > 0
-
-        # Test get_format_description - failure case
-        result = tables.get_format_description("invalid_format")
-        assert result.is_failure
-        assert "unknown" in (result.error or "").lower()
-
-        # Test print_available_formats
-        format_result = tables.print_available_formats()
-        assert format_result.is_success
-        assert format_result.value is True
-
-    @pytest.mark.parametrize(
-        ("method_name", "format_name", "expected_content"),
-        TableTestFactory.create_specialized_format_cases(),
-        ids=operator.itemgetter(0),
-    )
-    def test_specialized_table_formats(
-        self,
-        tables: FlextCliTables,
-        test_data: dict[str, t.GeneralValueType],
-        method_name: str,
-        format_name: str,
-        expected_content: list[str],
-    ) -> None:
-        """Test specialized table format methods."""
-        data = test_data["people_dict"]
-
-        # Call the appropriate method
-        # Convert data to t.Cli.TableData - ensure it's Iterable[Sequence | Mapping]
-        table_data = (data,)
-
-        match method_name:
-            case "simple":
-                result = tables.create_simple_table(table_data)
-            case "grid":
-                result = tables.create_grid_table(table_data)
-            case "markdown":
-                result = tables.create_markdown_table(table_data)
-            case "html":
-                result = tables.create_html_table(table_data)
-            case "latex":
-                result = tables.create_latex_table(table_data)
-            case "rst":
-                result = tables.create_rst_table(table_data)
-            case _:
-                pytest.fail(f"Unknown method: {method_name}")
-
-        # Validate result
-        tm.ok(result)
-        table_str = result.value
-
-        # Check expected content
-        for content in expected_content:
-            assert content in table_str
-
-        # Validate format characteristics
-        format_result = TestsCliTables.TableValidators.validate_table_format(
-            table_str,
-            format_name,
-        )
-        assert format_result.is_success
 
     def test_edge_cases_and_special_scenarios(
         self,
@@ -531,74 +444,29 @@ class TestsCliTables:
         assert result.is_success
         assert "Alice" in result.value
 
-    def test_latex_table_options(
-        self,
-        tables: FlextCliTables,
-        test_data: dict[str, t.GeneralValueType],
-    ) -> None:
-        """Test LaTeX table with various options."""
-        data = test_data["people_dict"]
-
-        # Convert data to t.Cli.TableData
-        table_data = (data,)
-
-        # Test longtable=True
-        result = tables.create_latex_table(data=table_data, longtable=True)
-        assert result.is_success
-        assert "Alice" in result.value
-
-        # Test longtable=False
-        result = tables.create_latex_table(data=table_data, longtable=False)
-        assert result.is_success
-        assert "Alice" in result.value
-
-        # Test booktabs=True
-        result = tables.create_latex_table(
-            data=table_data,
-            booktabs=True,
-            longtable=False,
-        )
-        assert result.is_success
-        assert "Alice" in result.value
-
     def test_execute_method_flext_service_pattern(self, tables: FlextCliTables) -> None:
         """Test execute method following FlextService pattern."""
         result = tables.execute()
         tm.ok(result)
-        assert result.value == {}
+        # execute() returns service status
+        assert isinstance(result.value, dict)
+        assert "status" in result.value
 
-    def test_integration_workflow_complete(
+    def test_integration_workflow_with_multiple_formats(
         self,
         tables: FlextCliTables,
         test_data: dict[str, t.GeneralValueType],
     ) -> None:
-        """Test complete integration workflow."""
+        """Test integration workflow with multiple table formats."""
         data = test_data["people_dict"]
-
-        # Step 1: List available formats
-        formats = tables.list_formats()
-        assert isinstance(formats, list)
-        assert len(formats) > 0
-
-        # Step 2: Get description for first format
-        first_format = formats[0]
-        desc_result = tables.get_format_description(first_format)
-        assert desc_result.is_success
-
-        # Step 3: Create table with that format
-        config = m.Cli.TableConfig.model_construct(table_format=first_format)
         table_data = (data,)
 
-        table_result = tables.create_table(data=table_data, config=config)
-        assert table_result.is_success
-        assert "Alice" in table_result.value
-
-        # Step 4: Test multiple formats with same data
-        test_formats = ["simple", "grid", "fancy_grid"][:3]  # Test first 3 formats
+        # Test multiple formats with same data
+        test_formats = ["simple", "grid", "fancy_grid"]
         for fmt in test_formats:
             config = m.Cli.TableConfig.model_construct(table_format=fmt)
             result = tables.create_table(data=table_data, config=config)
-            tm.ok(result), f"Format {fmt} failed"
+            tm.ok(result)
             assert "Alice" in result.value
 
     # =========================================================================

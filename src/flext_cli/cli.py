@@ -24,7 +24,7 @@ from typing import IO, Annotated, TypeGuard
 import click
 import typer
 from click.exceptions import UsageError
-from flext_core import FlextContainer, FlextLogger, FlextRuntime, r
+from flext_core import FlextContainer, FlextLogger, FlextRuntime, FlextUtilities, r
 from pydantic import BaseModel
 from typer.testing import CliRunner
 
@@ -207,15 +207,16 @@ class FlextCliCli:
         if val is None:
             return default
         # Handle conversion based on type_name with proper type safety
+        built_val: t.GeneralValueType
         if type_name == "str":
             str_default = "" if not isinstance(default, str) else default
-            built_val: t.GeneralValueType = u.Cli.convert(val, str, str_default)
+            built_val = FlextUtilities.Parser.convert(val, str, str_default)
         elif type_name == "bool":
             bool_default = False if not isinstance(default, bool) else default
-            built_val = u.Cli.convert(val, bool, bool_default)
-        else:  # dict
+            built_val = FlextUtilities.Parser.convert(val, bool, bool_default)
+        else:  # dict - no conversion needed, use value or default
             dict_default = {} if not isinstance(default, dict) else default
-            built_val = u.Cli.convert(val, dict, dict_default)
+            built_val = val if isinstance(val, dict) else dict_default
         result = (
             built_val
             if isinstance(
@@ -246,7 +247,7 @@ class FlextCliCli:
             "log_level",
             None,
         )
-        log_level_built = u.Cli.convert(
+        log_level_built = FlextUtilities.Parser.convert(
             log_level_attr.value if log_level_attr else None,
             str,
             "INFO",
@@ -504,7 +505,7 @@ class FlextCliCli:
         val = u.get(kwargs, key)
         if val is None:
             return default
-        return u.Cli.convert(val, bool, default)
+        return FlextUtilities.Parser.convert(val, bool, default)
 
     def _build_str_value(
         self,
@@ -1152,14 +1153,9 @@ class FlextCliCli:
                 show_choices=config.show_choices,
             )
             # Convert result to t.GeneralValueType - typer.prompt returns various types
-            # Use u.build with JSON transformation for dict conversion
+            # Use type narrowing - result is already GeneralValueType from typer
             json_value: t.GeneralValueType = (
-                u.build(
-                    result,
-                    ops={"ensure": "dict", "transform": {"to_json": True}},
-                )
-                if isinstance(result, dict)
-                else result
+                result if not isinstance(result, dict) else dict(result)
             )
             return r[t.GeneralValueType].ok(json_value)
         except typer.Abort as e:

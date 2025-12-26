@@ -147,18 +147,6 @@ class FlextCliUtilities(FlextUtilities):
             return r[T].fail(error)
 
         @staticmethod
-        def convert[T](
-            value: t.GeneralValueType,
-            target_type: type[T],
-            default: T,
-        ) -> T:
-            """Convert value using flext-core Parser.convert.
-
-            Wrapper for FlextUtilities.Parser.convert() to maintain compatibility.
-            """
-            return FlextUtilities.Parser.convert(value, target_type, default)
-
-        @staticmethod
         def filter[T](
             items: list[T] | tuple[T, ...],
             predicate: Callable[[T], bool],
@@ -317,7 +305,7 @@ class FlextCliUtilities(FlextUtilities):
 
         @staticmethod
         def extract[T](
-            data: object,
+            data: t.ConfigurationMapping | BaseModel,
             path: str,
             *,
             default: T | None = None,
@@ -539,8 +527,7 @@ class FlextCliUtilities(FlextUtilities):
 
                 Example:
                     >>> result = (
-                    ...     CliValidation
-                    ...     .VBuilder(val)
+                    ...     CliValidation.VBuilder(val)
                     ...     .name("status")
                     ...     .non_empty()
                     ...     .in_(["a", "b"])
@@ -647,7 +634,7 @@ class FlextCliUtilities(FlextUtilities):
                     )
                 # In-list check
                 if in_list is not None:
-                    val_str = FlextCliUtilities.Cli.convert(val, str, "")
+                    val_str = FlextUtilities.Parser.convert(val, str, "")
                     if val_str not in set(in_list):
                         # Use SESSION_STATUS_INVALID for session_status,
                         # INVALID_ENUM_VALUE for others
@@ -664,7 +651,7 @@ class FlextCliUtilities(FlextUtilities):
                         return r[bool].fail(msg or error_msg)
                 # Equality check
                 if eq is not None:
-                    val_str = FlextCliUtilities.Cli.convert(val, str, "")
+                    val_str = FlextUtilities.Parser.convert(val, str, "")
                     if val_str != eq:
                         return r[bool].fail(
                             msg
@@ -825,7 +812,7 @@ class FlextCliUtilities(FlextUtilities):
                     r[str]: Normalized lowercase format if valid
 
                 """
-                format_str = FlextCliUtilities.Cli.convert(format_type, str, "").lower()
+                format_str = FlextUtilities.Parser.convert(format_type, str, "").lower()
                 result = FlextCliUtilities.Cli.CliValidation.v_choice(
                     format_str,
                     choices=c.Cli.ValidationLists.OUTPUT_FORMATS,
@@ -949,8 +936,7 @@ class FlextCliUtilities(FlextUtilities):
 
                 step_name = step[field_name]
                 return (
-                    FlextCliUtilities.Cli.CliValidation
-                    .VBuilder(step_name)
+                    FlextCliUtilities.Cli.CliValidation.VBuilder(step_name)
                     .name("Pipeline step name")
                     .non_empty()
                     .msg(c.Cli.MixinsValidationMessages.PIPELINE_STEP_NAME_EMPTY)
@@ -1653,7 +1639,9 @@ class FlextCliUtilities(FlextUtilities):
 
                     """
                     # Call parent FlextUtilities.Enum directly to avoid recursion
-                    return FlextUtilities.Enum.parse_or_default(enum_cls, value, default)
+                    return FlextUtilities.Enum.parse_or_default(
+                        enum_cls, value, default
+                    )
 
                 # -------------------------------------------------------------
                 # PYDANTIC VALIDATORS: BeforeValidator factories
@@ -2319,10 +2307,10 @@ class FlextCliUtilities(FlextUtilities):
     # - u.Cli.ConfigOps, u.Cli.FileOps, u.Cli.process_mapping, etc.
 
     # Root-level aliases for convenience (tests and external usage expect these)
+    # NOTE: Enum and Collection are NOT aliased here to avoid bad-override
+    # (FlextUtilities already has Enum and Collection as nested classes)
+    # Use u.Cli.TypeNormalizer.Enum and u.Cli.TypeNormalizer.Collection instead
     TypeNormalizer = Cli.TypeNormalizer
-    Enum = Cli.TypeNormalizer.Enum
-    Collection = Cli.TypeNormalizer.Collection
-    convert = Cli.convert
     Environment = Cli.Environment
     FileOps = Cli.FileOps
     ConfigOps = Cli.ConfigOps

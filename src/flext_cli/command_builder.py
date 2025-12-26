@@ -18,6 +18,7 @@ from typer.models import OptionInfo
 
 from flext_cli.models import m
 from flext_cli.protocols import p
+from flext_cli.typings import t
 
 
 class FlextCommandBuilder:
@@ -55,10 +56,10 @@ class FlextCommandBuilder:
 
     @staticmethod
     def _create_option_info(
-        default: object = None,
+        default: t.GeneralValueType = None,
         param_decls: list[str] | None = None,
         help_text: str = "",
-        **kwargs: object,
+        **kwargs: t.GeneralValueType,
     ) -> OptionInfo:
         """Create OptionInfo with validated kwargs.
 
@@ -76,7 +77,7 @@ class FlextCommandBuilder:
         # Build validated kwargs with proper types for OptionInfo
         # OptionInfo constructor expects specific types for known parameters
         # Type narrowing: validate types match OptionInfo signature
-        validated_default: object | None = default
+        validated_default: t.GeneralValueType | None = default
         validated_param_decls_list: Sequence[str] = validated_param_decls
         validated_help: str | None = help_text or None
         # Create OptionInfo with validated parameters
@@ -98,9 +99,9 @@ class FlextCommandBuilder:
     def with_option(
         self,
         name: str,
-        default: object = None,
+        default: t.GeneralValueType = None,
         help_: str = "",
-        **kwargs: object,
+        **kwargs: t.GeneralValueType,
     ) -> Self:
         """Add command option.
 
@@ -224,7 +225,7 @@ class FlextCommandBuilder:
         return command
 
     @staticmethod
-    def _is_command_protocol(obj: object) -> bool:
+    def _is_command_protocol(obj: t.GeneralValueType) -> bool:
         """Type guard to check if object implements Command protocol."""
         return (
             hasattr(obj, "name")

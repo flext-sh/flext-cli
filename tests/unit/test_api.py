@@ -689,8 +689,8 @@ class TestsCli:
         result = flext_cli_api.create_table(None)
         assert result.is_failure
 
-    def test_create_table_with_title(self, flext_cli_api: FlextCli) -> None:
-        """Test create_table with title."""
+    def test_create_table_with_custom_headers(self, flext_cli_api: FlextCli) -> None:
+        """Test create_table with custom headers."""
         data = [{"name": "John", "age": 30}]
         # list[dict[str, int]] is compatible with Sequence[Mapping[str, t.GeneralValueType]]
         # Type narrowing: ensure data is list of dicts
@@ -702,7 +702,6 @@ class TestsCli:
         result = flext_cli_api.create_table(
             typed_data,
             headers=["name", "age"],  # Use lowercase to match dict keys
-            title="Users",
         )
         tm.ok(result)
 

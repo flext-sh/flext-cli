@@ -28,7 +28,7 @@ from flext_core import (
 )
 
 from flext_cli.constants import FlextCliConstants
-from flext_cli.typings import FlextCliTypes
+from flext_cli.typings import FlextCliTypes, t
 from flext_cli.utilities import FlextCliUtilities
 
 
@@ -74,7 +74,7 @@ class FlextCliFileTools:
     def _execute_file_operation[T](
         operation_func: Callable[[], T],
         error_template: str,
-        **format_kwargs: object,
+        **format_kwargs: t.GeneralValueType,
     ) -> r[T]:
         """Generalized file operation helper with error handling."""
         try:
@@ -177,7 +177,7 @@ class FlextCliFileTools:
         """Load JSON file content."""
         path = Path(file_path)
         with path.open(encoding=FlextCliConstants.Cli.Utilities.DEFAULT_ENCODING) as f:
-            raw_data: object = json.load(f)
+            raw_data: t.GeneralValueType = json.load(f)
             # Use ur JSON conversion
             if isinstance(raw_data, dict):
                 transform_result = FlextCliUtilities.transform(
@@ -203,7 +203,7 @@ class FlextCliFileTools:
         """Load YAML file content."""
         path = Path(file_path)
         with path.open(encoding=FlextCliConstants.Cli.Utilities.DEFAULT_ENCODING) as f:
-            raw_data: object = yaml.safe_load(f)
+            raw_data: t.GeneralValueType = yaml.safe_load(f)
             # Use ur JSON conversion
             if isinstance(raw_data, dict):
                 transform_result = FlextCliUtilities.transform(

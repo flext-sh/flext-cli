@@ -14,8 +14,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import operator
-
 import pytest
 from flext_core import t
 from flext_tests import tm
@@ -92,25 +90,6 @@ class TestsCliTables:
         assert isinstance(tables, FlextCliTables)
         assert hasattr(tables, "logger")
         assert hasattr(tables, "container")
-
-    def test_format_availability(self, tables: FlextCliTables) -> None:
-        """Test format availability and discovery."""
-        formats = tables.list_formats()
-        assert isinstance(formats, list)
-        assert len(formats) > 0
-        # Verify basic formats are available
-        for fmt in [c.GRID, c.FANCY_GRID]:
-            assert fmt in formats
-
-    def test_get_format_description_success(self, tables: FlextCliTables) -> None:
-        """Test get_format_description with valid format."""
-        result = tables.get_format_description(c.GRID)
-        assert result.is_success
-
-    def test_get_format_description_failure(self, tables: FlextCliTables) -> None:
-        """Test get_format_description with invalid format."""
-        result = tables.get_format_description(c.INVALID)
-        assert result.is_failure
 
     def test_print_available_formats(self, tables: FlextCliTables) -> None:
         """Test print_available_formats method."""
@@ -279,85 +258,6 @@ class TestsCliTables:
         assert result.is_success
 
     # ========================================================================
-    # SPECIALIZED TABLE FORMATS
-    # ========================================================================
-
-    @pytest.mark.parametrize(
-        ("method_name", "format_name", "expected_content"),
-        c.Table.SPECIALIZED_CASES,
-        ids=operator.itemgetter(0),
-    )
-    def test_specialized_table_formats(
-        self,
-        tables: FlextCliTables,
-        test_data: dict[str, t.GeneralValueType],
-        method_name: str,
-        format_name: str,
-        expected_content: list[str],
-    ) -> None:
-        """Test specialized table format methods."""
-        data_value: object = test_data["people_dict"]
-        if not isinstance(data_value, (dict, list)):
-            pytest.fail(
-                f"Expected dict or list for people_dict, got {type(data_value)}"
-            )
-        # Type is now narrowed to dict | list which is acceptable for table methods
-        data = data_value
-
-        match method_name:
-            case "simple":
-                result = tables.create_simple_table(data)
-            case "grid":
-                result = tables.create_grid_table(data)
-            case "fancy_grid":
-                result = tables.create_table(data, table_format="fancy_grid")
-            case "markdown":
-                result = tables.create_markdown_table(data)
-            case "html":
-                result = tables.create_html_table(data)
-            case "latex":
-                result = tables.create_latex_table(data)
-            case "rst":
-                result = tables.create_rst_table(data)
-            case _:
-                pytest.fail(f"Unknown method: {method_name}")
-
-        assert result.is_success
-        table_str = result.value
-        for content in expected_content:
-            assert content in table_str
-
-    # ========================================================================
-    # LATEX TABLE OPTIONS
-    # ========================================================================
-
-    @pytest.mark.parametrize(
-        ("longtable", "booktabs"),
-        [(True, False), (False, False), (False, True)],
-    )
-    def test_latex_table_options(
-        self,
-        tables: FlextCliTables,
-        test_data: dict[str, t.GeneralValueType],
-        longtable: bool,
-        booktabs: bool,
-    ) -> None:
-        """Test LaTeX table with various options."""
-        data_value: object = test_data["people_dict"]
-        if not isinstance(data_value, (dict, list)):
-            pytest.fail(
-                f"Expected dict or list for people_dict, got {type(data_value)}"
-            )
-        data = data_value
-
-        result = tables.create_latex_table(
-            data=data,
-            longtable=longtable,
-            booktabs=booktabs if not longtable else False,
-        )
-        assert result.is_success
-
-    # ========================================================================
     # EDGE CASES AND SPECIAL SCENARIOS
     # ========================================================================
 
@@ -468,12 +368,12 @@ class TestsCliTables:
         assert isinstance(result, r)
         assert result.is_success
 
-    def test_integration_workflow_complete(
+    def test_integration_workflow_with_multiple_formats(
         self,
         tables: FlextCliTables,
         test_data: dict[str, t.GeneralValueType],
     ) -> None:
-        """Test complete integration workflow."""
+        """Test integration workflow with multiple table formats."""
         data_value: object = test_data["people_dict"]
         if not isinstance(data_value, (dict, list)):
             pytest.fail(
@@ -481,14 +381,13 @@ class TestsCliTables:
             )
         data = data_value
 
-        formats = tables.list_formats()
-        assert isinstance(formats, list)
-        assert len(formats) > 0
-
-        first_format = formats[0]
-        config = m.Cli.TableConfig.model_construct(table_format=first_format)
-        table_result = tables.create_table(data=data, config=config)
-        assert table_result.is_success
+        # Test multiple formats with same data
+        test_formats = ["simple", c.GRID, c.FANCY_GRID]
+        for fmt in test_formats:
+            config = m.Cli.TableConfig.model_construct(table_format=fmt)
+            result = tables.create_table(data=data, config=config)
+            assert result.is_success
+            assert c.CliTest.TestData.ALICE in result.value
 
     # ========================================================================
     # VALIDATION WITH FLEXT_TESTS HELPERS

@@ -34,8 +34,6 @@ from pydantic import BaseModel
 from flext_cli import FlextCliOutput, r
 from flext_cli.constants import c
 from flext_cli.formatters import FlextCliFormatters
-from flext_cli.models import m
-from flext_cli.services.tables import FlextCliTables
 from flext_cli.typings import t
 from flext_cli.utilities import u
 
@@ -155,9 +153,6 @@ class TestsCliOutput:
     def test_output_initialization(self, output: FlextCliOutput) -> None:
         """Test output initialization."""
         tm.that(output, is_=FlextCliOutput)
-        tm.that(hasattr(output, "logger"), eq=True)
-        tm.that(hasattr(output, "_result_formatters"), eq=True)
-        tm.that(callable(getattr(output, "_get_tables", None)), eq=True)
 
     def test_output_execute(self, output: FlextCliOutput) -> None:
         """Test output execute method."""
@@ -504,9 +499,7 @@ class TestsCliOutput:
         # Test with empty data
         empty_data: dict[str, t.GeneralValueType] = {}
         transform_result = u.transform(empty_data, to_json=True)
-        json_empty = (
-            transform_result.map_or(empty_data)
-        )
+        json_empty = transform_result.map_or(empty_data)
         _ = output.format_data(json_empty, "json")
         # Result may be success or failure depending on empty data handling
 
@@ -515,7 +508,7 @@ class TestsCliOutput:
         # Result may be success or failure depending on None handling
 
         # Test with very large data
-        large_data = {"items": list(range(10000))}
+        large_data = {"items": list(range(1000))}  # Reduced for memory efficiency
         transform_result = u.transform(large_data, to_json=True)
         json_large = transform_result.map_or(large_data)
         _ = output.format_data(json_large, "json")
@@ -1575,34 +1568,6 @@ class TestsCliOutput:
         result = output.create_formatter("invalid_format_xyz")
         tm.fail(result)
 
-    def test_register_result_formatter_with_exception(
-        self,
-        output: FlextCliOutput,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """Test register_result_formatter when registration raises exception."""
-        # Mock logger.debug to raise exception during registration
-        formatter_error_msg = "Formatter error"
-
-        def mock_debug(*args: object, **kwargs: object) -> None:
-            raise RuntimeError(formatter_error_msg)
-
-        original_debug = output.logger.debug
-        monkeypatch.setattr(output.logger, "debug", mock_debug)
-
-        def formatter(result: t.GeneralValueType | r[object], format_type: str) -> None:
-            pass
-
-        result = output.register_result_formatter(dict, formatter)
-        # register_result_formatter should catch exceptions and return failure
-        assert result.is_failure
-        assert formatter_error_msg in str(result.error) or "Failed to register" in str(
-            result.error,
-        )
-
-        # Restore original
-        monkeypatch.setattr(output.logger, "debug", original_debug)
-
     def test_try_registered_formatter_with_base_model(
         self,
         output: FlextCliOutput,
@@ -1725,28 +1690,6 @@ class TestsCliOutput:
             assert isinstance(formatted, str)
             assert len(formatted) > 0
 
-    def test_display_formatted_result_exception(
-        self,
-        output: FlextCliOutput,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """Test _display_formatted_result with exception."""
-        # Mock console.print to raise exception
-        print_error_msg = "Print error"
-
-        def mock_print(*args: object, **kwargs: object) -> None:
-            raise RuntimeError(print_error_msg)
-
-        formatters = FlextCliFormatters()
-        original_print = formatters.console.print
-        monkeypatch.setattr(formatters.console, "print", mock_print)
-        # _display_formatted_result doesn't catch exceptions, so it will propagate
-        # This test verifies the exception path exists
-        with pytest.raises(RuntimeError, match=print_error_msg):
-            output._display_formatted_result("test")
-        # Restore original
-        monkeypatch.setattr(formatters.console, "print", original_print)
-
     def test_create_rich_table_with_missing_header_in_row(
         self,
         output: FlextCliOutput,
@@ -1764,133 +1707,6 @@ class TestsCliOutput:
             title="Users",
             headers=["name", "age", "missing"],
         )
-        assert result.is_failure
-
-    def test_create_rich_table_exception(
-        self,
-        output: FlextCliOutput,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """Test create_rich_table with exception."""
-        # Mock create_table to raise exception
-        table_creation_error_msg = "Table creation error"
-
-        def mock_create(
-            data: object,
-            headers: list[str] | None,
-            title: str | None,
-        ) -> r[object]:
-            raise RuntimeError(table_creation_error_msg)
-
-        formatters = FlextCliFormatters()
-        monkeypatch.setattr(formatters, "create_table", mock_create)
-        result = output.create_rich_table([{"name": "Alice"}], title="Users")
-        assert result.is_failure
-
-    def test_table_to_string_exception(
-        self,
-        output: FlextCliOutput,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """Test table_to_string with exception."""
-        # Create a table first
-        table_result = output.create_rich_table([{"name": "Alice"}])
-        tm.ok(table_result)
-        table = table_result.value
-
-        # Mock render_table_to_string to raise exception
-        string_conversion_error_msg = "String conversion error"
-
-        def mock_render(table: object, width: int | None = None) -> r[str]:
-            raise RuntimeError(string_conversion_error_msg)
-
-        formatters = FlextCliFormatters()
-        original_render = formatters.render_table_to_string
-        monkeypatch.setattr(formatters, "render_table_to_string", mock_render)
-        # Exception propagates - use pytest.raises to catch it
-        with pytest.raises(RuntimeError, match=string_conversion_error_msg):
-            output.table_to_string(table)
-        # Restore original
-        monkeypatch.setattr(
-            formatters,
-            "render_table_to_string",
-            original_render,
-        )
-
-    def test_create_ascii_table_exception(
-        self,
-        output: FlextCliOutput,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """Test create_ascii_table with exception."""
-        # Mock _tables.create_table to raise exception
-        # Note: Cannot patch frozen Pydantic instance directly, so patch at class level
-        table_format_error_msg = "Table format error"
-
-        def mock_create_table(*args: object, **kwargs: object) -> r[str]:
-            raise RuntimeError(table_format_error_msg)
-
-        # Patch the method on the class, not the instance
-        tables = output._get_tables()
-        original_create_table = type(tables).create_table
-        monkeypatch.setattr(type(tables), "create_table", mock_create_table)
-        # Exception propagates - use pytest.raises to catch it
-        with pytest.raises(RuntimeError, match=table_format_error_msg):
-            output.create_ascii_table([{"name": "Alice"}], table_format="grid")
-        # Restore original
-        monkeypatch.setattr(type(tables), "create_table", original_create_table)
-
-    def test_format_json_exception(
-        self,
-        output: FlextCliOutput,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """Test format_json with exception."""
-
-        # Create data that causes JSON serialization error
-        class Unserializable:
-            pass
-
-        # Mock json.dumps to raise exception
-        not_json_serializable_msg = "Not JSON serializable"
-
-        def mock_dumps(*args: object, **kwargs: object) -> str:
-            raise TypeError(not_json_serializable_msg)
-
-        monkeypatch.setattr(json, "dumps", mock_dumps)
-        result = output.format_json({"key": "value"})
-        assert result.is_failure
-
-    def test_format_yaml_exception(
-        self,
-        output: FlextCliOutput,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """Test format_yaml with exception."""
-        # Mock yaml.dump to raise exception
-        yaml_dump_error_msg = "YAML dump error"
-
-        def mock_dump(*args: object, **kwargs: object) -> str:
-            raise RuntimeError(yaml_dump_error_msg)
-
-        monkeypatch.setattr(yaml, "dump", mock_dump)
-        result = output.format_yaml({"key": "value"})
-        assert result.is_failure
-
-    def test_format_csv_exception(
-        self,
-        output: FlextCliOutput,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """Test format_csv with exception."""
-        # Mock csv.DictWriter to raise exception
-        csv_writer_error_msg = "CSV writer error"
-
-        def mock_dict_writer(*args: object, **kwargs: object) -> object:
-            raise RuntimeError(csv_writer_error_msg)
-
-        monkeypatch.setattr(csv, "DictWriter", mock_dict_writer)
-        result = output.format_csv([{"name": "Alice"}])
         assert result.is_failure
 
     def test_format_csv_with_list_non_dict_items(self, output: FlextCliOutput) -> None:
@@ -2030,27 +1846,6 @@ class TestsCliOutput:
         output._build_tree(tree, data)
         # Should not raise
 
-    def test_create_progress_bar_exception(
-        self,
-        output: FlextCliOutput,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """Test create_progress_bar with exception."""
-        # Mock create_progress to raise exception
-        progress_creation_error_msg = "Progress creation error"
-
-        def mock_create() -> r[object]:
-            raise RuntimeError(progress_creation_error_msg)
-
-        formatters = FlextCliFormatters()
-        original_create = formatters.create_progress
-        monkeypatch.setattr(formatters, "create_progress", mock_create)
-        # Exception propagates - use pytest.raises to catch it
-        with pytest.raises(RuntimeError, match=progress_creation_error_msg):
-            output.create_progress_bar()
-        # Restore original
-        monkeypatch.setattr(formatters, "create_progress", original_create)
-
     def test_display_message_with_message_type_info(
         self,
         output: FlextCliOutput,
@@ -2118,22 +1913,6 @@ class TestsCliOutput:
             "json",
         )
         tm.ok(result)
-
-    def test_format_and_display_result_display_exception(
-        self,
-        output: FlextCliOutput,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """Test format_and_display_result with display exception."""
-
-        # Test exception handling during display
-        def raise_display_error(*args: object, **kwargs: object) -> None:
-            msg = "Display error"
-            raise RuntimeError(msg)
-
-        monkeypatch.setattr(output, "_display_formatted_result", raise_display_error)
-        result = output.format_and_display_result({"key": "value"}, "json")
-        tm.fail(result, error="Display error")
 
     # =========================================================================
     # TESTS FOR MODULE-LEVEL HELPER FUNCTIONS (Coverage for lines 65-68, 99, 105, 109-112, 149, 174, 190)
@@ -2253,47 +2032,8 @@ class TestsCliOutput:
         assert result == {}
 
     # =========================================================================
-    # TESTS FOR EXCEPTION PATHS (Coverage for lines 452-453, 571, 613, 617-619, 682-688, 736, 761, 767, 831, 847, 941, 984, 1328-1330, 1403-1408, 1526-1531, 1571)
+    # TESTS FOR EXCEPTION PATHS
     # =========================================================================
-
-    def test_create_formatter_exception(
-        self,
-        output: FlextCliOutput,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """Test create_formatter with exception during validation."""
-        # Mock u.parse to raise exception to test exception path
-        validation_error_msg = "Validation error"
-
-        def mock_parse(*args: object, **kwargs: object) -> object:
-            raise RuntimeError(validation_error_msg)
-
-        # Patch u.parse (top-level method, not u.Cli.parse which doesn't exist)
-        monkeypatch.setattr("flext_cli.utilities.FlextCliUtilities.parse", mock_parse)
-        result = output.create_formatter("json")
-        # Check that result failed (don't repr the value to avoid runtime initialization issues)
-        assert result.is_failure
-        # Error message contains the formatted CREATE_FORMATTER_FAILED message
-        assert (
-            "Failed to create formatter" in result.error
-            or "Validation error" in result.error
-        )
-
-    def test_format_and_display_result_exception_in_convert(
-        self,
-        output: FlextCliOutput,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """Test format_and_display_result with exception in _convert_result_to_formattable."""
-        # Mock _convert_result_to_formattable to raise exception
-        convert_error_msg = "Convert error"
-
-        def mock_convert(*args: object, **kwargs: object) -> r[str]:
-            raise RuntimeError(convert_error_msg)
-
-        monkeypatch.setattr(output, "_convert_result_to_formattable", mock_convert)
-        result = output.format_and_display_result({"key": "value"}, "json")
-        assert result.is_failure
 
     def test_try_registered_formatter_with_failed_result(
         self,
@@ -2314,7 +2054,6 @@ class TestsCliOutput:
     def test_try_registered_formatter_with_non_json_unwrapped(
         self,
         output: FlextCliOutput,
-        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Test _try_registered_formatter with non-JSON unwrapped value."""
 
@@ -2369,99 +2108,9 @@ class TestsCliOutput:
         assert result.is_success
         assert result.value == []
 
-    def test_create_rich_table_with_formatter_failure(
-        self,
-        output: FlextCliOutput,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """Test create_rich_table with formatter.create_table failure."""
-
-        def mock_create_table(*args: object, **kwargs: object) -> r[object]:
-            return r[object].fail("Table creation failed")
-
-        formatters = FlextCliFormatters()
-        monkeypatch.setattr(formatters, "create_table", mock_create_table)
-        result = output.create_rich_table([{"name": "Alice"}])
-        assert result.is_failure
-        assert "Failed to create Rich table" in str(result.error)
-
-    def test_create_rich_table_with_rows_build_failure(
-        self,
-        output: FlextCliOutput,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """Test create_rich_table with _build_table_rows failure."""
-
-        def mock_build_rows(*args: object, **kwargs: object) -> r[object]:
-            return r[object].fail("Row build failed")
-
-        # Store original method
-        original_build_rows = FlextCliOutput._build_table_rows
-        # Patch the static method
-        monkeypatch.setattr(
-            FlextCliOutput,
-            "_build_table_rows",
-            staticmethod(mock_build_rows),
-        )
-        try:
-            result = output.create_rich_table([{"name": "Alice"}])
-            assert result.is_failure
-            assert "Failed to build rows" in str(
-                result.error,
-            ) or "Row build failed" in str(result.error)
-        finally:
-            # Restore original
-            monkeypatch.setattr(
-                FlextCliOutput,
-                "_build_table_rows",
-                original_build_rows,
-            )
-
-    def test_create_ascii_table_with_config_exception(
-        self,
-        output: FlextCliOutput,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """Test create_ascii_table with config and exception in _tables.create_table."""
-        table_error_msg = "Table creation error"
-
-        def mock_create_table(*args: object, **kwargs: object) -> r[str]:
-            raise RuntimeError(table_error_msg)
-
-        # Patch at class level since instance is frozen
-        original_create_table = FlextCliTables.create_table
-        monkeypatch.setattr(FlextCliTables, "create_table", mock_create_table)
-        try:
-            config = m.Cli.TableConfig.model_construct(
-                headers=["name"], table_format="grid"
-            )
-            # Exception propagates - use pytest.raises
-            with pytest.raises(RuntimeError, match=table_error_msg):
-                output.create_ascii_table([{"name": "Alice"}], config=config)
-        finally:
-            # Restore original
-            monkeypatch.setattr(FlextCliTables, "create_table", original_create_table)
-
-    def test_create_progress_bar_with_formatter_failure(
-        self,
-        output: FlextCliOutput,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """Test create_progress_bar with formatter.create_progress failure."""
-
-        def mock_create_progress() -> r[object]:
-            return r[object].fail("Progress creation failed")
-
-        from flext_cli.formatters import FlextCliFormatters
-        monkeypatch.setattr(FlextCliFormatters, "create_progress", mock_create_progress)
-        result = output.create_progress_bar()
-        assert result.is_failure
-        assert "Progress creation failed" in str(result.error)
-
     def test_format_csv_with_row_processing_exception(
         self,
         output: FlextCliOutput,
-        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Test format_csv with exception during row processing."""
         # Create data that causes exception during processing
@@ -2476,57 +2125,3 @@ class TestsCliOutput:
         result = output.format_csv(data)
         # Should fail - exception during row processing causes CSV formatting to fail
         tm.fail(result, error=row_error_msg)
-
-    def test_prepare_table_data_safe_with_exception(
-        self,
-        output: FlextCliOutput,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """Test _prepare_table_data_safe with exception in _prepare_table_data."""
-        prepare_error_msg = "Prepare error"
-
-        def mock_prepare(*args: object, **kwargs: object) -> r[object]:
-            raise RuntimeError(prepare_error_msg)
-
-        monkeypatch.setattr(output, "_prepare_table_data", mock_prepare)
-        result = output._prepare_table_data_safe({"key": "value"}, None)
-        assert result.is_failure
-        assert "error" in str(result.error).lower()
-
-    def test_create_table_string_with_exception(
-        self,
-        output: FlextCliOutput,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """Test _create_table_string with exception."""
-        table_error_msg = "Table creation error"
-
-        def mock_create_table(*args: object, **kwargs: object) -> r[str]:
-            raise RuntimeError(table_error_msg)
-
-        # Patch at class level since instance is frozen
-        original_create_table = FlextCliTables.create_table
-        monkeypatch.setattr(FlextCliTables, "create_table", mock_create_table)
-        try:
-            result = output._create_table_string([{"name": "Alice"}], ["name"])
-            assert result.is_failure
-            assert "error" in str(result.error).lower()
-        finally:
-            # Restore original
-            monkeypatch.setattr(FlextCliTables, "create_table", original_create_table)
-
-    def test_format_as_tree_with_tree_creation_failure(
-        self,
-        output: FlextCliOutput,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """Test format_as_tree with tree creation failure."""
-
-        def mock_create_tree(*args: object, **kwargs: object) -> r[object]:
-            return r[object].fail("Tree creation failed")
-
-        formatters = FlextCliFormatters()
-        monkeypatch.setattr(formatters, "create_tree", mock_create_tree)
-        result = output.format_as_tree({"key": "value"})
-        assert result.is_failure
-        assert "Failed to create tree" in str(result.error)

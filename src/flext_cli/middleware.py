@@ -133,8 +133,8 @@ class RetryMiddleware:
 
 def compose_middleware(
     middlewares: list[FlextMiddleware],
-    handler: Callable[[p.Cli.CliContextProtocol], r[object]],
-) -> Callable[[p.Cli.CliContextProtocol], r[object]]:
+    handler: Callable[[p.Cli.CliContextProtocol], p.Result[object]],
+) -> Callable[[p.Cli.CliContextProtocol], p.Result[object]]:
     """Compose middleware into single callable.
 
     Args:
@@ -152,8 +152,10 @@ def compose_middleware(
 
     """
 
-    def composed(ctx: p.Cli.CliContextProtocol) -> r[object]:
-        def build_chain(idx: int) -> Callable[[p.Cli.CliContextProtocol], r[object]]:
+    def composed(ctx: p.Cli.CliContextProtocol) -> p.Result[object]:
+        def build_chain(
+            idx: int,
+        ) -> Callable[[p.Cli.CliContextProtocol], p.Result[object]]:
             if idx >= len(middlewares):
                 return handler
             current_middleware = middlewares[idx]

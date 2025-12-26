@@ -30,7 +30,7 @@ from pydantic.fields import FieldInfo
 
 from flext_cli.constants import FlextCliConstants as c
 from flext_cli.protocols import FlextCliProtocols as p
-from flext_cli.typings import FlextCliTypes
+from flext_cli.typings import FlextCliTypes, t
 
 
 class _CliLoggingData(BaseModel):
@@ -67,7 +67,7 @@ class FlextCliModels(FlextModels):
     7. Self para metodos de transformacao
     """
 
-    def __init_subclass__(cls, **kwargs: object) -> None:
+    def __init_subclass__(cls, **kwargs: t.GeneralValueType) -> None:
         """Warn when FlextCliModels is subclassed directly."""
         super().__init_subclass__(**kwargs)
         # NOTE: Deprecation warning removed to comply with architecture rules
@@ -2100,7 +2100,7 @@ class FlextCliModels(FlextModels):
                     return r[list[FlextCliTypes.GeneralValueType]].fail(
                         params_result.error or "Conversion failed",
                     )
-                params_raw = params_result.map_or([])
+                params_raw: list[object] = params_result.map_or([])
                 # Type narrowing: params_result.value is list[p.Cli.CliParameterSpecProtocol]
                 if not isinstance(params_raw, list):
                     params: list[p.Cli.CliParameterSpecProtocol] = []

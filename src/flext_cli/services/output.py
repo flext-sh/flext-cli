@@ -264,7 +264,9 @@ class FlextCliOutput:
         return compatible_value
 
     @staticmethod
-    def cast_if[T](v: object, t_type: type[T], default: T | object) -> T:
+    def cast_if[T](
+        v: t.GeneralValueType, t_type: type[T], default: T | t.GeneralValueType
+    ) -> T:
         """Cast value if isinstance else return default.
 
         Note: default can be any type for flexibility, but return is always T.
@@ -285,7 +287,7 @@ class FlextCliOutput:
 
     @staticmethod
     def _is_rich_table_protocol(
-        obj: object,
+        obj: t.GeneralValueType,
     ) -> TypeGuard[p.Cli.Display.RichTableProtocol]:
         """Type guard to check if object implements RichTableProtocol."""
         return (
@@ -296,7 +298,7 @@ class FlextCliOutput:
 
     @staticmethod
     def _is_rich_progress_protocol(
-        obj: object,
+        obj: t.GeneralValueType,
     ) -> TypeGuard[p.Cli.Interactive.RichProgressProtocol]:
         """Type guard to check if object implements RichProgressProtocol."""
         return (
@@ -308,14 +310,14 @@ class FlextCliOutput:
 
     @staticmethod
     def _is_rich_tree_protocol(
-        obj: object,
+        obj: t.GeneralValueType,
     ) -> TypeGuard[p.Cli.Display.RichTreeProtocol]:
         """Type guard to check if object implements RichTreeProtocol."""
         return hasattr(obj, "add") and hasattr(obj, "label")
 
     @staticmethod
     def _is_rich_console_protocol(
-        obj: object,
+        obj: t.GeneralValueType,
     ) -> TypeGuard[p.Cli.Display.RichConsoleProtocol]:
         """Type guard to check if object implements RichConsoleProtocol."""
         return hasattr(obj, "print") and hasattr(obj, "rule")

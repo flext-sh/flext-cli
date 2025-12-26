@@ -459,14 +459,14 @@ class FlextCli:
 
     @staticmethod
     def _is_registered_command(
-        obj: object,
+        obj: t.GeneralValueType,
     ) -> TypeGuard[p.Cli.CliRegisteredCommand]:
         """Type guard to check if object implements CliRegisteredCommand protocol."""
         return hasattr(obj, "name") and callable(obj) and hasattr(obj, "callback")
 
     @staticmethod
     def _is_rich_tree_protocol(
-        obj: object,
+        obj: t.GeneralValueType,
     ) -> TypeGuard[p.Cli.Display.RichTreeProtocol]:
         """Type guard to check if object implements RichTreeProtocol."""
         return (
@@ -477,7 +477,7 @@ class FlextCli:
 
     def _narrow_to_registered_command(
         self,
-        decorated_func: object,
+        decorated_func: t.GeneralValueType,
     ) -> p.Cli.CliRegisteredCommand:
         """Narrow type to CliRegisteredCommand using structural protocol check.
 
