@@ -12,7 +12,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import secrets
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Mapping, Sequence
 from typing import TypeGuard
 
 from flext_core import (
@@ -22,6 +22,7 @@ from flext_core import (
     FlextRuntime as runtime,
     FlextTypes as t,
 )
+from rich.tree import Tree as RichTree
 
 from flext_cli.__version__ import __version__
 from flext_cli.app_base import FlextCliAppBase
@@ -288,9 +289,7 @@ class FlextCli:
 
         # Use u.transform for type-safe JSON conversion
         transform_result = u.transform(token_data, to_json=True)
-        json_data = (
-            transform_result.value if transform_result.is_success else token_data
-        )
+        json_data = transform_result.map_or(token_data)
         write_result = self.file_tools.write_json_file(str(token_path), json_data)
         if write_result.is_failure:
             return r[bool].fail(
@@ -554,6 +553,80 @@ class FlextCli:
     # =========================================================================
     # CONVENIENCE METHODS - Delegate to service instances
     # =========================================================================
+
+    def print(
+        self,
+        message: str,
+        style: str | None = None,
+    ) -> r[bool]:
+        """Print a message with optional style.
+
+        Args:
+            message: Message to print
+            style: Optional Rich style (e.g., "green", "bold red")
+
+        Returns:
+            r[bool]: True on success, error on failure
+
+        """
+        return FlextCliFormatters().print(message, style=style or "")
+
+    def create_table(
+        self,
+        data: (
+            Mapping[str, t.GeneralValueType]
+            | Sequence[Mapping[str, t.GeneralValueType]]
+            | None
+        ),
+        headers: list[str] | None = None,
+    ) -> r[str]:
+        """Create a formatted ASCII table.
+
+        Args:
+            data: Table data (dict or list of dicts)
+            headers: Optional column headers
+
+        Returns:
+            r[str]: Formatted table string or error
+
+        """
+        if data is None:
+            return r[str].fail("Table data cannot be None")
+
+        # Convert to list format expected by FlextCliTables
+        table_data: list[Mapping[str, t.GeneralValueType]] = (
+            [data] if isinstance(data, Mapping) else list(data)
+        )
+
+        return FlextCliTables.create_table(
+            table_data,
+            headers=headers or "keys",
+            table_format="simple",
+        )
+
+    def print_table(self, table_str: str) -> r[bool]:
+        """Print a formatted table string.
+
+        Args:
+            table_str: Table string to print
+
+        Returns:
+            r[bool]: True on success, error on failure
+
+        """
+        return FlextCliFormatters().print(table_str)
+
+    def create_tree(self, label: str) -> r[RichTree]:
+        """Create a Rich tree.
+
+        Args:
+            label: Tree root label
+
+        Returns:
+            r[RichTree]: Rich Tree instance or error
+
+        """
+        return FlextCliFormatters.create_tree(label)
 
 
 __all__ = [

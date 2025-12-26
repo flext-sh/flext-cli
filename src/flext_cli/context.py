@@ -10,13 +10,15 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import uuid
 from collections.abc import Mapping
+from datetime import UTC, datetime
 
 from flext_core import (
     FlextModels as m_core,
     FlextResult as r,
 )
-from pydantic import ConfigDict, Field
+from pydantic import ConfigDict, Field, field_validator
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import m
@@ -59,10 +61,10 @@ class FlextCliContext(m_core.Value):
     All operations use FlextResult railway pattern for error handling.
     """
 
-    model_config = ConfigDict(frozen=True)
+    model_config = ConfigDict(frozen=False, validate_assignment=True)
 
     # Direct attributes - no properties needed
-    id: str = ""
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     command: str | None = None
     arguments: list[str] | None = Field(default_factory=list)
     environment_variables: dict[str, t.GeneralValueType] | None = Field(
@@ -73,8 +75,62 @@ class FlextCliContext(m_core.Value):
 
     # Context state
     is_active: bool = False
-    created_at: str = ""
+    created_at: str = Field(
+        default_factory=lambda: datetime.now(UTC).isoformat(),
+    )
     timeout_seconds: int = Field(default=30)
+
+    @field_validator("id", mode="before")
+    @classmethod
+    def _ensure_id_generated(cls, v: str) -> str:
+        """Generate UUID if id is empty.
+
+        Business Rule:
+        ──────────────
+        Context ID MUST be unique (UUID-based generation).
+        If an empty string is passed, generate a new UUID.
+        """
+        if not v:
+            return str(uuid.uuid4())
+        return v
+
+    # ==========================================================================
+    # CONTEXT ACTIVATION / DEACTIVATION
+    # ==========================================================================
+
+    def activate(self) -> r[bool]:
+        """Activate the context for session management.
+
+        Business Rule:
+        ──────────────
+        Active context MUST be tracked for session management.
+        Cannot activate an already active context.
+
+        Returns:
+            r[bool]: Success if activated, failure if already active.
+
+        """
+        if self.is_active:
+            return r[bool].fail("Context is already active")
+        self.is_active = True
+        return r[bool].ok(True)
+
+    def deactivate(self) -> r[bool]:
+        """Deactivate the context.
+
+        Business Rule:
+        ──────────────
+        Context cleanup MUST happen after command completion.
+        Cannot deactivate an inactive context.
+
+        Returns:
+            r[bool]: Success if deactivated, failure if already inactive.
+
+        """
+        if not self.is_active:
+            return r[bool].fail("Context is not active")
+        self.is_active = False
+        return r[bool].ok(True)
 
     # ==========================================================================
     # PRIVATE HELPERS - Generalize common patterns

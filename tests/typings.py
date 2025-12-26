@@ -24,24 +24,25 @@ from flext_tests.typings import (
     TTestService,
 )
 
-from flext_cli.typings import t as cli_t
+from flext_cli.typings import FlextCliTypes, t as cli_t
 
 
-class TestsCliTypes(FlextTestsTypes):
-    """Type system foundation for flext-cli tests - extends FlextTestsTypes.
+class TestsCliTypes(FlextTestsTypes, FlextCliTypes):
+    """Type system foundation for flext-cli tests - extends FlextTestsTypes and FlextCliTypes.
 
-    Architecture: Extends FlextTestsTypes with flext-cli-specific type definitions.
-    All generic types from FlextTestsTypes are available through inheritance.
+    Architecture: Multiple inheritance provides both generic test types AND CLI-specific types.
+    All types from both FlextTestsTypes and FlextCliTypes are available through inheritance.
 
     Hierarchy:
     - FlextTestsTypes.Tests.* (generic test types from flext_tests)
-    - FlextCliTypes.Cli.* (source types from flext_cli)
+    - FlextCliTypes.Cli.* (source types from flext_cli - INHERITED)
     - TestsCliTypes.Tests.* (flext-cli-specific test types)
 
     Rules:
-    - NEVER redeclare types from FlextTestsTypes
+    - NEVER redeclare types from FlextTestsTypes or FlextCliTypes
     - Only flext-cli-specific types allowed (not generic for other projects)
     - All generic types come from FlextTestsTypes
+    - CLI types come from FlextCliTypes via inheritance
     """
 
     class Tests:

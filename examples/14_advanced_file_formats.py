@@ -262,9 +262,7 @@ def load_any_format_file(file_path: Path) -> t.JsonDict | None:
         data,
         to_json=True,
     )
-    display_data: t.JsonDict = (
-        transform_result.value if transform_result.is_success else data
-    )
+    display_data: t.JsonDict = transform_result.map_or(data)
     # Cast to dict[str, t.GeneralValueType] for create_table
     table_result = cli.create_table(
         data=display_data,
@@ -277,7 +275,7 @@ def load_any_format_file(file_path: Path) -> t.JsonDict | None:
     # Convert to JsonDict-compatible dict using u
     # Use u.transform for JSON conversion
     transform_result = u.transform(data, to_json=True)
-    return transform_result.value if transform_result.is_success else data
+    return transform_result.map_or(data)
 
 
 # ============================================================================

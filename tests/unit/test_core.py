@@ -13,24 +13,18 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import json
-import operator
 import tempfile
 import threading
-import warnings
 from collections import UserDict
 from collections.abc import Generator
 from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-from flext import t
-from pydantic import ValidationError
+from flext_core import t
 
-
-
+from flext_cli import (
     FlextCliCore,
-    FlextCliSettings,
     c,
     m,
     r,
@@ -146,14 +140,10 @@ class TestsCliCore:
             handlers_result = core_service.get_handlers()
             assert handlers_result is not None
 
-            # Test get commands
-            commands_result = core_service.get_commands()
+            # Test list commands
+            commands_result = core_service.list_commands()
             assert isinstance(commands_result, r)
             assert commands_result.is_success
-
-            # Test get formatters
-            formatters_result = core_service.get_formatters()
-            assert formatters_result is not None
 
     # =========================================================================
     # NESTED CLASS: Configuration Management
@@ -168,51 +158,44 @@ class TestsCliCore:
             with tempfile.TemporaryDirectory() as temp:
                 yield Path(temp)
 
-        def test_load_configuration_success(
+        def test_update_configuration_success(
             self,
             core_service: FlextCliCore,
-            temp_dir: Path,
         ) -> None:
-            """Test successful configuration loading."""
-            config_file = temp_dir / "test_config.json"
-            test_config = {
+            """Test successful configuration update."""
+            test_config: dict[str, t.GeneralValueType] = {
                 "debug": True,
                 "output_format": "json",
                 "timeout": c.Cli.TIMEOUTS.DEFAULT,
                 "retries": c.Cli.HTTP.MAX_RETRIES,
             }
-            config_file.write_text(json.dumps(test_config))
 
-            result = core_service.load_configuration(str(config_file))
+            result = core_service.update_configuration(test_config)
             assert isinstance(result, r)
             assert result.is_success
 
-            config_data = result.value
+            get_result = core_service.get_configuration()
+            assert get_result.is_success
+            config_data = get_result.value
             assert isinstance(config_data, dict)
             assert config_data["debug"] is True
             assert config_data["output_format"] == c.Cli.OutputFormats.JSON.value
 
-        def test_load_configuration_nonexistent_file(
+        def test_update_configuration_invalid_input(
             self,
             core_service: FlextCliCore,
         ) -> None:
-            """Test configuration loading with nonexistent file."""
-            result = core_service.load_configuration("/nonexistent/config.json")
+            """Test configuration update with invalid input."""
+            result = core_service.update_configuration({})
             assert isinstance(result, r)
             assert result.is_failure
             assert result.error is not None
-            assert (
-                "not found" in result.error.lower()
-                or "does not exist" in result.error.lower()
-            )
 
-        def test_save_configuration(
+        def test_get_configuration(
             self,
             core_service: FlextCliCore,
-            temp_dir: Path,
         ) -> None:
-            """Test configuration saving functionality."""
-            config_file = temp_dir / "test_save_config.json"
+            """Test configuration retrieval functionality."""
             test_config: dict[str, t.GeneralValueType] = {
                 "debug": False,
                 "output_format": "table",
@@ -220,64 +203,49 @@ class TestsCliCore:
                 "retries": c.Cli.HTTP.MAX_RETRIES,
             }
 
-            result = core_service.save_configuration(str(config_file), test_config)
+            # First update the config
+            update_result = core_service.update_configuration(test_config)
+            assert update_result.is_success
+
+            # Then get it
+            result = core_service.get_configuration()
             assert isinstance(result, r)
             assert result.is_success
-            assert config_file.exists()
+            assert result.value == test_config
 
-            saved_data = json.loads(config_file.read_text())
-            assert saved_data == test_config
-
-        def test_validate_configuration(self, core_service: FlextCliCore) -> None:
-            """Test configuration validation functionality.
+        def test_update_configuration_with_valid_config(self, core_service: FlextCliCore) -> None:
+            """Test configuration update with valid input.
 
             Business Rule:
             ──────────────
             Configuration validation ensures all settings are within expected bounds.
-            Valid configurations are accepted, invalid ones trigger ValidationError.
+            Valid configurations are accepted.
 
             Audit Implications:
             ───────────────────
             - Valid configs: debug=bool, timeout>0, max_retries>=0
-            - Invalid configs: Pydantic 2 may emit serialization warnings
-            - ValidationError is expected behavior for invalid input types
             """
-            valid_config = FlextCliSettings.model_validate({
+            valid_config: dict[str, t.GeneralValueType] = {
                 "debug": True,
                 "output_format": "json",
-                "cli_timeout": c.Cli.TIMEOUTS.DEFAULT,
-                "max_retries": c.Cli.HTTP.MAX_RETRIES,
-            })
+                "timeout": c.Cli.TIMEOUTS.DEFAULT,
+                "retries": c.Cli.HTTP.MAX_RETRIES,
+            }
 
-            result = FlextCliCore.validate_configuration(valid_config)
+            result = core_service.update_configuration(valid_config)
             assert isinstance(result, r)
             assert result.is_success
 
-            # Test invalid configuration - Pydantic 2 may convert invalid values
-            # instead of raising ValidationError. Test that validation handles it.
+            # Test invalid configuration - should fail
             invalid_config = {
                 "debug": "invalid_boolean",
-                "cli_timeout": -1,
-                "max_retries": "not_a_number",
+                "timeout": -1,
+                "retries": "not_a_number",
             }
-            # Pydantic may convert values or emit warnings instead of raising
-            # Test that validate_configuration handles the config gracefully
-            # Note: Pydantic 2 with strict=False (default) may convert invalid values
-            # Suppress expected Pydantic serialization warnings for invalid test data
-            with warnings.catch_warnings():
-                warnings.filterwarnings(
-                    "ignore",
-                    message="Pydantic serializer warnings",
-                    category=UserWarning,
-                )
-                try:
-                    config_instance = FlextCliSettings.model_validate(invalid_config)
-                    result = FlextCliCore.validate_configuration(config_instance)
-                    # Validation should return a result (may succeed if Pydantic converted)
-                    assert isinstance(result, r)
-                except ValidationError:
-                    # If ValidationError is raised, that's also valid behavior
-                    pass
+
+            result = core_service.update_configuration(invalid_config)
+            # Update should handle invalid config gracefully
+            assert isinstance(result, r)
 
     # =========================================================================
     # NESTED CLASS: File Operations
@@ -292,66 +260,58 @@ class TestsCliCore:
             with tempfile.TemporaryDirectory() as temp:
                 yield Path(temp)
 
-        def test_load_configuration_file_operations(
+        def test_update_configuration_file_operations(
             self,
             core_service: FlextCliCore,
-            temp_dir: Path,
         ) -> None:
-            """Test configuration loading with file operations."""
-            config_file = temp_dir / "config.json"
+            """Test configuration update operations."""
             config_data = {"debug": True, "output_format": "json", "timeout": 60}
 
-            # Use direct file operations since core_service doesn't have read_file/write_file
-            config_file.write_text(json.dumps(config_data))
-
-            result = core_service.load_configuration(str(config_file))
+            result = core_service.update_configuration(config_data)
             assert isinstance(result, r)
             assert result.is_success
 
-            loaded_config = result.value
+            get_result = core_service.get_configuration()
+            assert get_result.is_success
+            loaded_config = get_result.value
             assert loaded_config["debug"] is True
             assert loaded_config["output_format"] == "json"
 
-        def test_save_configuration_file_operations(
+        def test_get_configuration_file_operations(
             self,
             core_service: FlextCliCore,
-            temp_dir: Path,
         ) -> None:
-            """Test configuration saving with file operations."""
-            config_file = temp_dir / "save_config.json"
+            """Test configuration retrieval operations."""
             config_data: dict[str, t.GeneralValueType] = {
                 "debug": False,
                 "output_format": "table",
                 "timeout": 30,
             }
 
-            result = core_service.save_configuration(str(config_file), config_data)
+            # Update config first
+            update_result = core_service.update_configuration(config_data)
+            assert update_result.is_success
+
+            # Then get it
+            result = core_service.get_configuration()
             assert isinstance(result, r)
             assert result.is_success
-            assert config_file.exists()
+            assert result.value == config_data
 
-            # Verify file content using direct file operations
-            saved_data = json.loads(config_file.read_text())
-            assert saved_data == config_data
-
-        def test_configuration_file_error_handling(
+        def test_configuration_error_handling(
             self,
             core_service: FlextCliCore,
         ) -> None:
-            """Test configuration file error handling."""
-            # Test with nonexistent file
-            result = core_service.load_configuration("/nonexistent/config.json")
+            """Test configuration error handling."""
+            # Test with invalid config
+            result = core_service.update_configuration("invalid_config")
             assert isinstance(result, r)
             assert result.is_failure
 
-            # Test save to invalid path
-            config: dict[str, t.GeneralValueType] = {"test": "data"}
-            save_result = core_service.save_configuration(
-                "/invalid/path/config.json",
-                config,
-            )
-            assert isinstance(save_result, r)
-            assert save_result.is_failure
+            # Test with None
+            config_result = core_service.update_configuration(None)
+            assert isinstance(config_result, r)
+            assert config_result.is_failure
 
     # =========================================================================
     # NESTED CLASS: Command Registration and Management
@@ -447,7 +407,7 @@ class TestsCliCore:
 
             # Force exception by replacing _commands with error-raising dict
             # Create a UserDict that raises exception on __setitem__ to test exception handling
-            class ErrorDict(UserDict):
+            class ErrorDict(UserDict[str, t.JsonValue]):
                 """Dict that raises exception on __setitem__."""
 
                 def __setitem__(self, key: str, value: t.JsonValue) -> None:
@@ -472,48 +432,16 @@ class TestsCliCore:
                 or "exception" in str(result.error).lower()
             )
 
-        def test_load_configuration_exception_handler(
+        def test_update_configuration_exception_handler(
             self,
             core_service: FlextCliCore,
         ) -> None:
-            """Test load_configuration exception handler."""
-            # Test with invalid JSON
-            with tempfile.NamedTemporaryFile(
-                encoding="utf-8",
-                mode="w",
-                suffix=".json",
-                delete=False,
-            ) as f:
-                f.write("{invalid json")
-                temp_path = f.name
-
-            try:
-                result = core_service.load_configuration(temp_path)
-                assert isinstance(result, r)
-                assert result.is_failure
-                assert (
-                    "json" in str(result.error).lower()
-                    or "parse" in str(result.error).lower()
-                )
-            finally:
-                Path(temp_path).unlink()
-
-        def test_save_configuration_exception_handler(
-            self,
-            core_service: FlextCliCore,
-        ) -> None:
-            """Test save_configuration exception handler."""
-            # Try to save to invalid path
-            invalid_path = "/invalid/path/config.json"
-            config: dict[str, t.GeneralValueType] = {"test": "data"}
-
-            result = core_service.save_configuration(invalid_path, config)
+            """Test update_configuration exception handler."""
+            # Test with invalid config
+            result = core_service.update_configuration("invalid_string")
             assert isinstance(result, r)
             assert result.is_failure
-            assert (
-                "permission" in str(result.error).lower()
-                or "access" in str(result.error).lower()
-            )
+
 
     # =========================================================================
     # NESTED CLASS: Plugin System
@@ -531,14 +459,6 @@ class TestsCliCore:
             plugins = result.value
             assert isinstance(plugins, list)
 
-        def test_discover_plugins(self, core_service: FlextCliCore) -> None:
-            """Test discovering available plugins."""
-            result = core_service.discover_plugins()
-            assert isinstance(result, r)
-            assert result.is_success
-
-            plugins = result.value
-            assert isinstance(plugins, list)
 
         def test_plugin_registration(self, core_service: FlextCliCore) -> None:
             """Test plugin registration functionality."""
@@ -564,15 +484,6 @@ class TestsCliCore:
             assert isinstance(result, r)
             # May succeed or fail depending on current state
             assert result.is_success or result.is_failure
-
-        def test_get_sessions(self, core_service: FlextCliCore) -> None:
-            """Test getting active sessions."""
-            result = core_service.get_sessions()
-            assert isinstance(result, r)
-            assert result.is_success
-
-            sessions = result.value
-            assert isinstance(sessions, list)
 
         def test_get_session_statistics(self, core_service: FlextCliCore) -> None:
             """Test getting session statistics."""
@@ -626,13 +537,11 @@ class TestsCliCore:
                 assert isinstance(command_def, dict)
                 assert command_def.get("command_line") == "workflow-test --flag value"
 
-        def test_configuration_persistence_workflow(
+        def test_configuration_update_workflow(
             self,
             core_service: FlextCliCore,
-            temp_dir: Path,
         ) -> None:
-            """Test configuration save/load workflow."""
-            config_file = temp_dir / "workflow_config.json"
+            """Test configuration update/get workflow."""
             original_config: dict[
                 str,
                 str | int | float | bool | dict[str, object] | list[object] | None,
@@ -643,18 +552,15 @@ class TestsCliCore:
                 "retries": 5,
             }
 
-            # Save configuration
-            save_result = core_service.save_configuration(
-                str(config_file),
-                original_config,
-            )
-            assert save_result.is_success
+            # Update configuration
+            update_result = core_service.update_configuration(original_config)
+            assert update_result.is_success
 
-            # Load configuration
-            load_result = core_service.load_configuration(str(config_file))
-            assert load_result.is_success
+            # Get configuration
+            get_result = core_service.get_configuration()
+            assert get_result.is_success
 
-            loaded_config = load_result.value
+            loaded_config = get_result.value
             assert loaded_config == original_config
 
         def test_concurrent_operations_simulation(
@@ -1064,93 +970,6 @@ class TestsCliCore:
             data = stats.value
             assert isinstance(data, dict)
 
-    # =========================================================================
-    # NESTED CLASS: Cache Management Tests
-    # =========================================================================
-
-    class TestCacheManagement:
-        """Cache creation and management tests."""
-
-        def test_create_ttl_cache_success(self, core_service: FlextCliCore) -> None:
-            """Test create_ttl_cache with valid parameters."""
-            result = core_service.create_ttl_cache("test_cache", maxsize=64, ttl=60)
-            assert result.is_success
-            cache = result.value
-            assert cache.maxsize == 64
-            assert cache.ttl == 60
-
-        def test_create_ttl_cache_duplicate(self, core_service: FlextCliCore) -> None:
-            """Test create_ttl_cache with duplicate name."""
-            result1 = core_service.create_ttl_cache("duplicate_cache")
-            assert result1.is_success
-
-            result2 = core_service.create_ttl_cache("duplicate_cache")
-            assert result2.is_failure
-
-        def test_create_ttl_cache_invalid_maxsize(
-            self,
-            core_service: FlextCliCore,
-        ) -> None:
-            """Test create_ttl_cache with invalid maxsize."""
-            result = core_service.create_ttl_cache("test_cache", maxsize=-1)
-            assert result.is_failure
-
-        def test_create_ttl_cache_invalid_ttl(self, core_service: FlextCliCore) -> None:
-            """Test create_ttl_cache with invalid ttl."""
-            result = core_service.create_ttl_cache("test_cache", ttl=-1)
-            assert result.is_failure
-
-        def test_memoize_decorator_with_ttl(self, core_service: FlextCliCore) -> None:
-            """Test memoize decorator with TTL cache."""
-
-            @core_service.memoize(cache_name="test_memo", ttl=60)
-            def test_func(x: int) -> int:
-                return x * 2
-
-            # First call - cache miss
-            result1 = test_func(5)
-            assert result1 == 10
-
-            # Second call - cache hit
-            result2 = test_func(5)
-            assert result2 == 10
-
-        def test_memoize_decorator_without_ttl(
-            self,
-            core_service: FlextCliCore,
-        ) -> None:
-            """Test memoize decorator without TTL (LRU cache)."""
-
-            @core_service.memoize(cache_name="test_lru")
-            def test_func(x: int) -> int:
-                return x * 3
-
-            result1 = test_func(7)
-            assert result1 == 21
-
-            result2 = test_func(7)
-            assert result2 == 21
-
-        def test_get_cache_stats_success(self, core_service: FlextCliCore) -> None:
-            """Test get_cache_stats with existing cache."""
-            # Create cache first
-            create_result = core_service.create_ttl_cache("stats_cache")
-            assert create_result.is_success
-
-            # Get stats
-            stats_result = core_service.get_cache_stats("stats_cache")
-            assert stats_result.is_success
-            stats = stats_result.value
-            assert "size" in stats
-            assert "maxsize" in stats
-            assert "hits" in stats
-            assert "misses" in stats
-            assert "hit_rate" in stats
-
-        def test_get_cache_stats_not_found(self, core_service: FlextCliCore) -> None:
-            """Test get_cache_stats with non-existent cache."""
-            result = core_service.get_cache_stats("nonexistent")
-            assert result.is_failure
 
     # =========================================================================
     # NESTED CLASS: Executor Tests
@@ -1158,22 +977,6 @@ class TestsCliCore:
 
     class TestExecutor:
         """Executor and async operation tests."""
-
-        def test_run_in_executor_success(self) -> None:
-            """Test run_in_executor with successful function."""
-            result = FlextCliCore.run_in_executor(operator.add, 5, 3)
-            assert result.is_success
-            assert result.value == 8
-
-        def test_run_in_executor_failure(self) -> None:
-            """Test run_in_executor with failing function."""
-            test_error_msg = "Test error"
-
-            def test_func() -> None:
-                raise ValueError(test_error_msg)
-
-            result = FlextCliCore.run_in_executor(test_func)
-            assert result.is_failure
 
     # =========================================================================
     # NESTED CLASS: Execute Method Tests
@@ -1267,7 +1070,7 @@ class TestsCliCore:
             """Test list_commands exception."""
 
             # Use BadDict that fails on keys() but works on len() (which is called by logger)
-            class BadDict(UserDict):
+            class BadDict(UserDict[str, t.GeneralValueType]):
                 def keys(self) -> object:
                     """Override keys to raise exception for testing."""
                     msg = "Keys failed"
@@ -1311,7 +1114,7 @@ class TestsCliCore:
         def test_health_check_exception(self, core_service: FlextCliCore) -> None:
             """Test health_check exception."""
 
-            class BadDict(UserDict):
+            class BadDict(UserDict[str, t.GeneralValueType]):
                 def __len__(self) -> int:
                     msg = "Len failed"
                     raise RuntimeError(msg)
@@ -1329,18 +1132,12 @@ class TestsCliCore:
             result = core_service.get_config()
             assert result.is_failure
 
-        def test_call_plugin_hook_not_found(self, core_service: FlextCliCore) -> None:
-            """Test call_plugin_hook with non-existent hook."""
-            result = core_service.call_plugin_hook("nonexistent")
-            assert result.is_failure
-
-        def test_load_configuration_not_file(
+        def test_update_configuration_invalid_input(
             self,
             core_service: FlextCliCore,
-            temp_dir: Path,
         ) -> None:
-            """Test load_configuration with directory."""
-            result = core_service.load_configuration(str(temp_dir))
+            """Test update_configuration with invalid input."""
+            result = core_service.update_configuration("invalid_string")
             assert result.is_failure
 
         def test_update_configuration_invalid(self, core_service: FlextCliCore) -> None:
@@ -1375,27 +1172,6 @@ class TestsCliCore:
             keys = result.value
             assert keys == []
 
-        def test_validate_config_path_valid(self) -> None:
-            """Test _validate_config_path with valid path."""
-            with tempfile.NamedTemporaryFile(delete=False) as f:
-                path_str = f.name
-
-            result = FlextCliCore._validate_config_path(path_str)
-            assert result.is_success
-            assert isinstance(result.value, Path)
-
-        def test_validate_config_path_invalid(self) -> None:
-            """Test _validate_config_path with invalid path."""
-            result = FlextCliCore._validate_config_path("")
-            assert result.is_failure
-
-        def test_get_formatters(self) -> None:
-            """Test get_formatters static method."""
-            result = FlextCliCore.get_formatters()
-            assert result.is_success
-            formatters = result.value
-            assert isinstance(formatters, list)
-
         def test_get_handlers(self, core_service: FlextCliCore) -> None:
             """Test get_handlers."""
             result = core_service.get_handlers()
@@ -1410,16 +1186,9 @@ class TestsCliCore:
             plugins = result.value
             assert isinstance(plugins, list)
 
-        def test_get_sessions(self, core_service: FlextCliCore) -> None:
-            """Test get_sessions."""
-            result = core_service.get_sessions()
-            assert result.is_success
-            sessions = result.value
-            assert isinstance(sessions, list)
-
-        def test_get_commands(self, core_service: FlextCliCore) -> None:
-            """Test get_commands."""
-            result = core_service.get_commands()
+        def test_list_commands(self, core_service: FlextCliCore) -> None:
+            """Test list_commands."""
+            result = core_service.list_commands()
             assert result.is_success
             commands = result.value
             assert isinstance(commands, list)

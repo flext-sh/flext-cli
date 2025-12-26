@@ -12,7 +12,7 @@ from unittest.mock import MagicMock, patch
 
 import click
 import typer
-from flext import FlextRuntime
+from flext_core import FlextRuntime
 from typer.testing import CliRunner
 
 from flext_cli import FlextCliCli, FlextCliSettings

@@ -26,9 +26,9 @@ from typing import TypedDict
 import pytest
 from flext_tests import tm
 
-from flext import t
+from flext_core import t
 
-
+from flext_cli import (
     FlextCli,
     FlextCliAppBase,
     c,

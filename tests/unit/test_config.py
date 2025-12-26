@@ -26,11 +26,10 @@ from typing import Final, Literal
 
 import pytest
 import yaml
-from flext import t
+from flext_core import t
 from pydantic_settings import BaseSettings
 
-
-
+from flext_cli import (
     FlextCli,
     FlextCliSettings,
     m,

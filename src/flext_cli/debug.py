@@ -383,7 +383,7 @@ class FlextCliDebug(FlextCliServiceBase):
             processor=process_env_item,
             on_error="skip",
         )
-        env_info_val = env_info_result.value if env_info_result.is_success else {}
+        env_info_val = env_info_result.map_or({})
         env_info: dict[str, str] = (
             dict(env_info_val) if isinstance(env_info_val, dict) else {}
         )

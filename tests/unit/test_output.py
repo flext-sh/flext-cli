@@ -27,7 +27,7 @@ from typing import TypeVar
 
 import pytest
 import yaml
-from flext import FlextResult
+from flext_core import FlextResult
 from flext_tests import tm
 from pydantic import BaseModel
 
@@ -194,9 +194,7 @@ class TestsCliOutput:
         """Test format operations with parametrized cases."""
         # Convert to JsonValue-compatible format using u
         transform_result = u.transform(sample_data, to_json=True)
-        json_value = (
-            transform_result.value if transform_result.is_success else sample_data
-        )
+        json_value = transform_result.map_or(sample_data)
         if format_type == c.Cli.OutputFormats.JSON.value:
             result = output.format_json(json_value)
         elif format_type == c.Cli.OutputFormats.YAML.value:
@@ -249,9 +247,7 @@ class TestsCliOutput:
     ) -> None:
         """Test formatting data as JSON with validation."""
         transform_result = u.transform(sample_data, to_json=True)
-        json_value = (
-            transform_result.value if transform_result.is_success else sample_data
-        )
+        json_value = transform_result.map_or(sample_data)
         result = output.format_data(json_value, "json")
         tm.ok(result, is_=str)
         formatted = result.value
@@ -266,9 +262,7 @@ class TestsCliOutput:
     ) -> None:
         """Test formatting data as CSV with validation."""
         transform_result = u.transform(sample_data, to_json=True)
-        json_value = (
-            transform_result.value if transform_result.is_success else sample_data
-        )
+        json_value = transform_result.map_or(sample_data)
         result = output.format_data(json_value, "csv")
         tm.ok(result, is_=str, contains=",")
 
@@ -284,9 +278,7 @@ class TestsCliOutput:
         because validate_output_format (line 120) validates format before dispatch.
         """
         transform_result = u.transform(sample_data, to_json=True)
-        json_value = (
-            transform_result.value if transform_result.is_success else sample_data
-        )
+        json_value = transform_result.map_or(sample_data)
         result = output.format_data(json_value, "invalid_format")
         # Should fail at validation stage (before _dispatch_formatter)
         tm.fail(result, contains="format")
@@ -304,9 +296,7 @@ class TestsCliOutput:
         # Call _dispatch_formatter directly with unsupported format
         # This bypasses validate_output_format to test the defensive code at line 149
         transform_result = u.transform(sample_data, to_json=True)
-        json_value = (
-            transform_result.value if transform_result.is_success else sample_data
-        )
+        json_value = transform_result.map_or(sample_data)
         result = output._dispatch_formatter(
             "unsupported_format_type",
             json_value,
@@ -424,9 +414,7 @@ class TestsCliOutput:
         """Test complete output workflow."""
         # Step 1: Format data as JSON
         transform_result = u.transform(sample_data, to_json=True)
-        json_value = (
-            transform_result.value if transform_result.is_success else sample_data
-        )
+        json_value = transform_result.map_or(sample_data)
         format_data_result = output.format_data(json_value, "json")
         tm.ok(format_data_result)
         json_str = format_data_result.value
@@ -476,9 +464,7 @@ class TestsCliOutput:
 
         # Test JSON formatting
         transform_result = u.transform(real_data, to_json=True)
-        json_value = (
-            transform_result.value if transform_result.is_success else real_data
-        )
+        json_value = transform_result.map_or(real_data)
         json_result = output.format_json(json_value)
         tm.ok(json_result)
         json_str = json_result.value
@@ -518,7 +504,7 @@ class TestsCliOutput:
         empty_data: dict[str, t.GeneralValueType] = {}
         transform_result = u.transform(empty_data, to_json=True)
         json_empty = (
-            transform_result.value if transform_result.is_success else empty_data
+            transform_result.map_or(empty_data)
         )
         _ = output.format_data(json_empty, "json")
         # Result may be success or failure depending on empty data handling
@@ -530,9 +516,7 @@ class TestsCliOutput:
         # Test with very large data
         large_data = {"items": list(range(10000))}
         transform_result = u.transform(large_data, to_json=True)
-        json_large = (
-            transform_result.value if transform_result.is_success else large_data
-        )
+        json_large = transform_result.map_or(large_data)
         _ = output.format_data(json_large, "json")
         # Result may be success or failure depending on size limits
 
@@ -543,9 +527,7 @@ class TestsCliOutput:
             "newlines": "line1\nline2\rline3",
         }
         transform_result = u.transform(special_data, to_json=True)
-        json_special = (
-            transform_result.value if transform_result.is_success else special_data
-        )
+        json_special = transform_result.map_or(special_data)
         _ = output.format_data(json_special, "json")
         # Result may be success or failure depending on character handling
 
@@ -554,9 +536,7 @@ class TestsCliOutput:
         # Test formatting performance
         large_data = {"items": list(range(1000))}
         transform_result = u.transform(large_data, to_json=True)
-        json_large = (
-            transform_result.value if transform_result.is_success else large_data
-        )
+        json_large = transform_result.map_or(large_data)
         start_time = time.time()
         for _i in range(100):
             output.format_data(json_large, "json")
@@ -570,9 +550,7 @@ class TestsCliOutput:
         # Test with moderately large data (reduced for performance)
         moderate_data = {"items": list(range(1000))}
         transform_result = u.transform(moderate_data, to_json=True)
-        json_moderate = (
-            transform_result.value if transform_result.is_success else moderate_data
-        )
+        json_moderate = transform_result.map_or(moderate_data)
         result = output.format_data(json_moderate, "json")
         tm.ok(result)
 
@@ -589,9 +567,7 @@ class TestsCliOutput:
         """Test output with rich formatting."""
         # Test table formatting with rich
         transform_result = u.transform(sample_data, to_json=True)
-        json_value = (
-            transform_result.value if transform_result.is_success else sample_data
-        )
+        json_value = transform_result.map_or(sample_data)
         result = output.format_data(json_value, "table")
         assert isinstance(result, r)
         assert result.is_success
@@ -605,9 +581,7 @@ class TestsCliOutput:
         # Circular reference is valid JsonValue structure
         circular_data: dict[str, t.GeneralValueType] = {}
         transform_result = u.transform(circular_data, to_json=True)
-        json_circular = (
-            transform_result.value if transform_result.is_success else circular_data
-        )
+        json_circular = transform_result.map_or(circular_data)
         circular_data["self"] = json_circular
 
         result = output.format_data(json_circular, "json")
@@ -668,9 +642,7 @@ class TestsCliOutput:
         """Test custom format handling."""
         # Test with custom format
         transform_result = u.transform(sample_data, to_json=True)
-        json_value = (
-            transform_result.value if transform_result.is_success else sample_data
-        )
+        json_value = transform_result.map_or(sample_data)
         result = output.format_data(json_value, "custom")
         assert isinstance(result, r)
         # Should handle gracefully
@@ -1156,9 +1128,7 @@ class TestsCliOutput:
         """Test display_data with dictionary (lines 530-549)."""
         data: t.ConfigurationDict = {"name": "Alice", "age": 30}
         transform_result = u.transform(data, to_json=True)
-        json_value: t.GeneralValueType = (
-            transform_result.value if transform_result.is_success else data
-        )
+        json_value: t.GeneralValueType = transform_result.map_or(data)
         result = output.display_data(json_value, format_type="json")
         assert isinstance(result, r)
         assert result.is_success
@@ -1263,9 +1233,7 @@ class TestsCliOutput:
         """Test format_data with plain format (line 138)."""
         data: t.ConfigurationDict = {"test": "value"}
         transform_result = u.transform(data, to_json=True)
-        json_value: t.GeneralValueType = (
-            transform_result.value if transform_result.is_success else data
-        )
+        json_value: t.GeneralValueType = transform_result.map_or(data)
         result = output.format_data(json_value, format_type="plain")
         assert isinstance(result, r)
         assert result.is_success
@@ -1328,9 +1296,7 @@ class TestsCliOutput:
         """Test display_data when title is not string (lines 531-532)."""
         data: t.ConfigurationDict = {"key": "value"}
         transform_result = u.transform(data, to_json=True)
-        json_value: t.GeneralValueType = (
-            transform_result.value if transform_result.is_success else data
-        )
+        json_value: t.GeneralValueType = transform_result.map_or(data)
         result = output.display_data(
             json_value,
             format_type="json",
@@ -1365,9 +1331,7 @@ class TestsCliOutput:
         # Test with format that doesn't exist
         data: t.ConfigurationDict = {"key": "value"}
         transform_result = u.transform(data, to_json=True)
-        json_value: t.GeneralValueType = (
-            transform_result.value if transform_result.is_success else data
-        )
+        json_value: t.GeneralValueType = transform_result.map_or(data)
         result = output.display_data(json_value, format_type="invalid_format_xyz")
         # Should fail for invalid format
         assert result.is_failure
@@ -1381,9 +1345,7 @@ class TestsCliOutput:
             "list": [{"item": 1}, {"item": 2}],
         }
         transform_result = u.transform(data, to_json=True)
-        json_value: t.GeneralValueType = (
-            transform_result.value if transform_result.is_success else data
-        )
+        json_value: t.GeneralValueType = transform_result.map_or(data)
         result = output.format_yaml(json_value)
         # Should handle complex nested structures
         assert result.is_success
@@ -1420,9 +1382,7 @@ class TestsCliOutput:
         """Test format_csv with single dict[str, object] (lines 619-625)."""
         data: t.ConfigurationDict = {"name": "Alice", "age": 30}
         transform_result = u.transform(data, to_json=True)
-        json_value: t.GeneralValueType = (
-            transform_result.value if transform_result.is_success else data
-        )
+        json_value: t.GeneralValueType = transform_result.map_or(data)
         result = output.format_csv(json_value)
         assert result.is_success
         csv_str = result.value
@@ -2491,8 +2451,8 @@ class TestsCliOutput:
         def mock_create_progress() -> r[object]:
             return r[object].fail("Progress creation failed")
 
-        formatters = output._get_formatters()
-        monkeypatch.setattr(formatters, "create_progress", mock_create_progress)
+        from flext_cli.formatters import FlextCliFormatters
+        monkeypatch.setattr(FlextCliFormatters, "create_progress", mock_create_progress)
         result = output.create_progress_bar()
         assert result.is_failure
         assert "Progress creation failed" in str(result.error)

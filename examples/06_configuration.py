@@ -97,7 +97,7 @@ def load_environment_config() -> dict[str, str | int]:
         settings,
         to_json=True,
     )
-    settings_data = transform_result.value if transform_result.is_success else settings
+    settings_data = transform_result.map_or(settings)
     display_config_table(
         cli=cli,
         config_data=settings_data,
@@ -189,9 +189,7 @@ def show_config_locations() -> dict[str, str]:
         locations,
         to_json=True,
     )
-    locations_data = (
-        transform_result.value if transform_result.is_success else locations
-    )
+    locations_data = transform_result.map_or(locations)
     table_result = cli.create_table(
         data=locations_data,
         headers=["Location", "Path"],
@@ -522,9 +520,7 @@ def main() -> None:
             final_config,
             to_json=True,
         )
-        final_config_data = (
-            transform_result.value if transform_result.is_success else final_config
-        )
+        final_config_data = transform_result.map_or(final_config)
         display_config_table(
             cli=cli,
             config_data=final_config_data,

@@ -605,9 +605,7 @@ class FlextCliSettings(FlextSettings):
         config_dict_raw = self.model_dump()
         # Use FlextCliUtilities.transform for JSON conversion
         transform_result = FlextCliUtilities.transform(config_dict_raw, to_json=True)
-        config_dict = (
-            transform_result.value if transform_result.is_success else config_dict_raw
-        )
+        config_dict = transform_result.map_or(config_dict_raw)
         result_dict: dict[str, t.GeneralValueType] = {
             "status": FlextCliConstants.Cli.ServiceStatus.OPERATIONAL.value,
             "service": FlextCliConstants.Cli.CliGlobalDefaults.DEFAULT_SERVICE_NAME,
@@ -730,9 +728,7 @@ class FlextCliSettings(FlextSettings):
                     # Convert value to t.GeneralValueType for type safety
                     if isinstance(v, dict):
                         transform_result = FlextCliUtilities.transform(v, to_json=True)
-                        json_value: t.GeneralValueType = (
-                            transform_result.value if transform_result.is_success else v
-                        )
+                        json_value: t.GeneralValueType = transform_result.map_or(v)
                     else:
                         json_value = v
                     valid_overrides[k] = json_value

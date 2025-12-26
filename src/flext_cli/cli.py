@@ -19,7 +19,7 @@ import logging
 import shutil
 from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
-from typing import IO, Annotated, TypeGuard, cast
+from typing import IO, Annotated, TypeGuard
 
 import click
 import typer
@@ -1153,7 +1153,7 @@ class FlextCliCli:
             )
             # Convert result to t.GeneralValueType - typer.prompt returns various types
             # Use u.build with JSON transformation for dict conversion
-            json_value = (
+            json_value: t.GeneralValueType = (
                 u.build(
                     result,
                     ops={"ensure": "dict", "transform": {"to_json": True}},
@@ -1161,7 +1161,7 @@ class FlextCliCli:
                 if isinstance(result, dict)
                 else result
             )
-            return r[t.GeneralValueType].ok(cast("t.GeneralValueType", json_value))
+            return r[t.GeneralValueType].ok(json_value)
         except typer.Abort as e:
             return r[t.GeneralValueType].fail(
                 c.Cli.ErrorMessages.USER_ABORTED_PROMPT.format(error=e),

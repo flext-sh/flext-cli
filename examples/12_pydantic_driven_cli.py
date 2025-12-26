@@ -140,9 +140,7 @@ def execute_deploy_from_cli(cli_args: dict[str, str | int | bool]) -> None:
             cli_args,
             to_json=True,
         )
-        typed_args: t.JsonDict = (
-            transform_result.value if transform_result.is_success else cli_args
-        )
+        typed_args: t.JsonDict = transform_result.map_or(cli_args)
 
         # Pydantic automatically validates ALL constraints
         # DeployConfig constructor handles type conversion and validation
@@ -488,9 +486,7 @@ def main() -> None:
             invalid_args,
             to_json=True,
         )
-        typed_invalid_args: t.JsonDict = (
-            transform_result.value if transform_result.is_success else invalid_args
-        )
+        typed_invalid_args: t.JsonDict = transform_result.map_or(invalid_args)
 
         # DeployConfig constructor handles type conversion and validation
         # Cast JsonValue types to specific types expected by DeployConfig

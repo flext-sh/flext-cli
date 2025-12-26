@@ -17,7 +17,7 @@ from __future__ import annotations
 import operator
 
 import pytest
-from flext import t
+from flext_core import t
 from flext_tests import tm
 
 from flext_cli import FlextCliTables, r

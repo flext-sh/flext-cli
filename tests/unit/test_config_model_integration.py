@@ -18,7 +18,7 @@ import os
 from pathlib import Path
 
 import pytest
-from flext import t
+from flext_core import t
 from pydantic import BaseModel, Field, ValidationError
 from pydantic_settings import BaseSettings, SettingsConfigDict
 

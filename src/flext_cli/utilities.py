@@ -41,7 +41,6 @@ from pydantic import (
 )
 
 from flext_cli.constants import c
-from flext_cli.protocols import p
 from flext_cli.typings import CliExecutionMetadata, CliValidationResult, t
 
 
@@ -118,30 +117,34 @@ class FlextCliUtilities(FlextUtilities):
         @staticmethod
         def validate[T](
             value: T,
-            *validators: p.ValidatorSpec,  # ValidatorSpec from flext-core protocols
+            *validators: Callable[[T], bool],
             mode: str = "all",
-            fail_fast: bool = True,
-            collect_errors: bool = False,
-            field_name: str | None = None,
+            error: str = "Validation failed",
         ) -> r[T]:
-            """Validate value using flext-core Validation.validate.
+            """Validate value using predicate-based validation.
 
-            Wrapper for FlextUtilities.Validation.validate() to maintain compatibility.
+            Args:
+                value: Value to validate
+                *validators: Predicates that return True if valid
+                mode: "all" (default) - all must pass, "any" - at least one must pass
+                error: Error message if validation fails
+
+            Returns:
+                r[T]: Ok(value) if validation passes, Fail otherwise
+
             """
-            result = FlextUtilities.Validation.validate(
-                value,
-                *validators,
-                mode=mode,
-                fail_fast=fail_fast,
-                collect_errors=collect_errors,
-                field_name=field_name,
-            )
-            # Convert RuntimeResult to r (r[T])
-            return (
-                r[T].ok(result.value)
-                if result.is_success
-                else r[T].fail(result.error or "")
-            )
+            if not validators:
+                return r[T].ok(value)
+
+            if mode == "any":
+                # Any validator must pass
+                if any(v(value) for v in validators):
+                    return r[T].ok(value)
+                return r[T].fail(error)
+            # mode == "all" (default)
+            if all(v(value) for v in validators):
+                return r[T].ok(value)
+            return r[T].fail(error)
 
         @staticmethod
         def convert[T](
@@ -403,12 +406,7 @@ class FlextCliUtilities(FlextUtilities):
 
         @staticmethod
         def map[T, R](
-            items: T
-            | list[T]
-            | tuple[T, ...]
-            | set[T]
-            | frozenset[T]
-            | r[T],
+            items: T | list[T] | tuple[T, ...] | set[T] | frozenset[T] | r[T],
             mapper: Callable[[T], R],
         ) -> list[R] | set[R] | frozenset[R] | r[R]:
             """Map items using flext-core Collection.map.
@@ -529,8 +527,8 @@ class FlextCliUtilities(FlextUtilities):
             Provides V class inheriting from Validation.String for compatibility.
             """
 
-            # Inherit from Validation.String for compatibility with u.V.string.non_empty pattern
-            class V(FlextUtilities.Validation.String):
+            # Inherit from Validation for compatibility with validation patterns
+            class V(FlextUtilities.Validation):
                 """String validation utilities - inherits from FlextUtilities.Validation.String."""
 
             class VBuilder:
@@ -1612,7 +1610,7 @@ class FlextCliUtilities(FlextUtilities):
 
                     """
                     result = u.Enum.parse(enum_cls, value)
-                    return result.value if result.is_success else None
+                    return result.map_or(None)
 
                 @staticmethod
                 def parse[E: StrEnum](enum_cls: type[E], value: str | E) -> r[E]:
@@ -2316,6 +2314,11 @@ class FlextCliUtilities(FlextUtilities):
     # - u.Cli.convert, u.Cli.filter, u.Cli.process, u.Cli.build, u.Cli.parse
     # - u.Cli.CliValidation, u.Cli.TypeNormalizer, u.Cli.Environment
     # - u.Cli.ConfigOps, u.Cli.FileOps, u.Cli.process_mapping, etc.
+
+    # Root-level aliases for convenience (tests and external usage expect these)
+    TypeNormalizer = Cli.TypeNormalizer
+    Enum = Cli.TypeNormalizer.Enum
+    Collection = Cli.TypeNormalizer.Collection
 
 
 u = FlextCliUtilities

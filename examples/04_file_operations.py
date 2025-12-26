@@ -274,9 +274,7 @@ def validate_and_import_data(input_file: Path) -> t.JsonDict | None:
     # Convert to JsonDict-compatible dict using u
     # Use u.transform for JSON conversion
     transform_result = u.transform(data, to_json=True)
-    json_data: t.JsonDict = (
-        transform_result.value if transform_result.is_success else data
-    )
+    json_data: t.JsonDict = transform_result.map_or(data)
     validated = validate_structure(json_data)
 
     if validated.is_failure:
@@ -487,9 +485,7 @@ def load_config_auto_detect(config_file: Path) -> dict[str, t.GeneralValueType] 
         # Use u.transform for JSON conversion
         if isinstance(data, dict):
             transform_result = u.transform(data, to_json=True)
-            display_data: t.JsonDict = (
-                transform_result.value if transform_result.is_success else data
-            )
+            display_data: t.JsonDict = transform_result.map_or(data)
         else:
             display_data = data
         table_result = cli.create_table(

@@ -109,9 +109,7 @@ def test_file_operations() -> None:
         config_data,
         to_json=True,
     )
-    config: t.JsonDict = (
-        transform_result.value if transform_result.is_success else config_data
-    )
+    config: t.JsonDict = transform_result.map_or(config_data)
     result = save_config_command(config)
 
     if not result.is_success:
@@ -281,9 +279,7 @@ def full_workflow_command() -> r[t.JsonDict]:
     # Use u.transform for JSON conversion
     if isinstance(loaded, dict):
         transform_result = u.transform(loaded, to_json=True)
-        typed_data: t.JsonDict = (
-            transform_result.value if transform_result.is_success else loaded
-        )
+        typed_data: t.JsonDict = transform_result.map_or(loaded)
     else:
         typed_data = loaded
     return r[t.JsonDict].ok(typed_data)

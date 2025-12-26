@@ -2100,8 +2100,7 @@ class FlextCliModels(FlextModels):
                     return r[list[FlextCliTypes.GeneralValueType]].fail(
                         params_result.error or "Conversion failed",
                     )
-                # Extract value from result with default
-                params_raw = params_result.value if params_result.is_success else []
+                params_raw = params_result.map_or([])
                 # Type narrowing: params_result.value is list[p.Cli.CliParameterSpecProtocol]
                 if not isinstance(params_raw, list):
                     params: list[p.Cli.CliParameterSpecProtocol] = []

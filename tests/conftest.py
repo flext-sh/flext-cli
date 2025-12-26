@@ -57,145 +57,16 @@ from flext_cli import (
 
 # Import from correct locations - use TestsCli structure
 from flext_cli.typings import t
-from tests import (
+from tests.utilities import TestsCliUtilities
+
+from . import (
     c,
     u,
 )
-from tests.utilities import TestsCliUtilities
-
-# ============================================================================
-# RUNTIME GLOBALS - Declared for type checking
-# ============================================================================
-# These globals are set dynamically in pytest_configure for test convenience
-# Type stubs allow mypy to understand runtime-added attributes
-ALICE: str
-VALID_FIELD_NAME: str
-FIELD_NAME: str
-WHITESPACE_FIELD_NAME: str
-VALID_STRING: str
-STRING: str
-WHITESPACE_STRING: str
-NONE_VALUE: None
-CUSTOM: object
-TWO: list[str]
-PASSWORD: str
-LONG: str
-SPECIAL: str
-UNICODE: str
-PERFORMANCE_THRESHOLD: float
-INFO: str
-WARNING: str
-ALL: list[str]
-NAME_HEADER: str
-GRID: str
-FANCY_GRID: str
-INVALID: str
-ExpectedALL: str
-PYTEST_CURRENT_TEST: str
-PYTEST_BINARY: str
-CI_VALUE: str
-SpecializedCASES: object
-Borders: object
-Data: object
-Config: object
-OutputFormats: object
-Statuses: object
-FileOps: object
-Password: object
-Progress: object
 
 
 def pytest_configure(config: pytest.Config) -> None:
-    """Register test constants as pytest globals and configure markers.
-
-    Makes constants available via:
-    1. pytest namespace (pytest.ALICE, etc.)
-    2. Built-in namespace for direct access in test files
-    3. Module-level globals for type checking
-    """
-    global \
-        ALICE, \
-        VALID_FIELD_NAME, \
-        FIELD_NAME, \
-        WHITESPACE_FIELD_NAME, \
-        VALID_STRING, \
-        STRING, \
-        WHITESPACE_STRING, \
-        NONE_VALUE, \
-        CUSTOM, \
-        TWO, \
-        PASSWORD, \
-        LONG, \
-        SPECIAL, \
-        UNICODE, \
-        PERFORMANCE_THRESHOLD, \
-        INFO, \
-        WARNING, \
-        ALL, \
-        NAME_HEADER, \
-        GRID, \
-        FANCY_GRID, \
-        INVALID, \
-        ExpectedALL, \
-        PYTEST_CURRENT_TEST, \
-        PYTEST_BINARY, \
-        CI_VALUE, \
-        SpecializedCASES, \
-        Borders, \
-        Data, \
-        Config, \
-        OutputFormats, \
-        Statuses, \
-        FileOps, \
-        Password, \
-        Progress
-
-    # Test data constants - access from c.Cli
-    ALICE = builtins.ALICE = c.Cli.ALICE
-    VALID_FIELD_NAME = builtins.VALID_FIELD_NAME = c.Cli.VALID_FIELD_NAME
-    FIELD_NAME = builtins.FIELD_NAME = c.Cli.FIELD_NAME
-    WHITESPACE_FIELD_NAME = builtins.WHITESPACE_FIELD_NAME = c.Cli.WHITESPACE_FIELD_NAME
-    VALID_STRING = builtins.VALID_STRING = c.Cli.VALID_STRING
-    STRING = builtins.STRING = c.Cli.STRING
-    WHITESPACE_STRING = builtins.WHITESPACE_STRING = c.Cli.WHITESPACE_STRING
-    NONE_VALUE = builtins.NONE_VALUE = c.Cli.NONE_VALUE
-    CUSTOM = builtins.CUSTOM = c.Cli.CUSTOM
-    TWO = builtins.TWO = c.Cli.TWO
-    PASSWORD = builtins.PASSWORD = c.Cli.PASSWORD
-    LONG = builtins.LONG = c.Cli.LONG
-    SPECIAL = builtins.SPECIAL = c.Cli.SPECIAL
-    UNICODE = builtins.UNICODE = c.Cli.UNICODE
-    PERFORMANCE_THRESHOLD = builtins.PERFORMANCE_THRESHOLD = c.Cli.PERFORMANCE_THRESHOLD
-    # Status constants - accessed from Cli
-    INFO = builtins.INFO = c.Cli.INFO
-    WARNING = builtins.WARNING = c.Cli.WARNING
-    ALL = builtins.ALL = c.Cli.ALL
-    # Format constants - accessed from Cli
-    NAME_HEADER = builtins.NAME_HEADER = c.Cli.NAME_HEADER
-    GRID = builtins.GRID = c.Cli.GRID
-    FANCY_GRID = builtins.FANCY_GRID = c.Cli.FANCY_GRID
-    INVALID = builtins.INVALID = c.Cli.INVALID
-    ExpectedALL = builtins.ExpectedALL = c.Cli.EXPECTED_ALL
-    # Environment constants
-    PYTEST_CURRENT_TEST = builtins.PYTEST_CURRENT_TEST = (
-        c.Environment.PYTEST_CURRENT_TEST
-    )
-    PYTEST_BINARY = builtins.PYTEST_BINARY = c.Environment.PYTEST_BINARY
-    CI_VALUE = builtins.CI_VALUE = c.Environment.CI_VALUE
-    # Table and other constants
-    SpecializedCASES = builtins.SpecializedCASES = c.SPECIALIZED_CASES
-    Borders = builtins.Borders = c.Borders
-    Data = builtins.Data = c.Data
-    # Config constants
-    Config = builtins.Config = c.Config
-    # Nested class constants
-    OutputFormats = builtins.OutputFormats = c.OutputFormats
-    Statuses = builtins.Statuses = c.Statuses
-    FileOps = builtins.FileOps = c.FileOps
-    Password = builtins.Password = c.Password
-    Progress = builtins.Progress = c.Progress
-
-    # Configure pytest markers
+    """Configure pytest markers for the test suite."""
     config.addinivalue_line("markers", "integration: marks tests as integration tests")
     config.addinivalue_line("markers", "unit: marks tests as unit tests")
     config.addinivalue_line("markers", "slow: marks tests as slow running")

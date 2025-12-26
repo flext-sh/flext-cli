@@ -129,8 +129,7 @@ class FlextCliOutput:
                 and hasattr(result, "value")
                 and isinstance(result, r)
             ):
-                # Type narrowing: result is FlextResult
-                return result.value if result.is_success else v
+                return result.map_or(v)
             # If not FlextResult, assume it's the converted value
             # Type narrowing: result is already t.GeneralValueType from FlextCliUtilities.build
             # FlextCliUtilities.build returns object, but we know it's t.GeneralValueType compatible
@@ -1545,7 +1544,11 @@ class FlextCliOutput:
         # For other iterables, use helper method
         # Type narrowing: data has __iter__ and is not a non-iterable type, so it's Iterable
         # Use runtime check to verify it's iterable before converting
-        if hasattr(data, "__iter__") and callable(getattr(data, "__iter__", None)) and data is not None:
+        if (
+            hasattr(data, "__iter__")
+            and callable(getattr(data, "__iter__", None))
+            and data is not None
+        ):
             # Runtime check: data is iterable, convert items to list
             # Use list comprehension with type narrowing for each item
             iterable_items: list[t.GeneralValueType] = []
@@ -1856,9 +1859,7 @@ class FlextCliOutput:
             })
             # Type narrowing: TableConfig implements TableConfigProtocol structurally
             config: p.Cli.TableConfigProtocol = config_instance
-            table_result = FlextCliTables.create_table(
-                data=table_data, config=config
-            )
+            table_result = FlextCliTables.create_table(data=table_data, config=config)
 
             if table_result.is_failure:
                 return r[str].fail(

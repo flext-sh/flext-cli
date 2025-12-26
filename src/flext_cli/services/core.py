@@ -145,7 +145,7 @@ class FlextCliCore(FlextCliServiceBase):
             self,
             "_cli_config",
             dict(config)
-                if config is not None and u.Guards.is_type(config, "mapping")
+            if config is not None and u.Guards.is_type(config, "mapping")
             else {},
         )
         object.__setattr__(self, "_commands", {})
@@ -167,7 +167,7 @@ class FlextCliCore(FlextCliServiceBase):
 
         # Type narrowing: is_dict_like ensures config is dict-like
         config_dict: Mapping[str, t.GeneralValueType] | None = (
-                config if u.Guards.is_type(config, "mapping") else None
+            config if u.Guards.is_type(config, "mapping") else None
         )
         self.logger.debug(
             "Initialized CLI core service",
@@ -186,7 +186,7 @@ class FlextCliCore(FlextCliServiceBase):
 
     def register_command(
         self,
-        command: p.Cli.Command,
+        command: m.Cli.CliCommand,
     ) -> r[bool]:
         """Register CLI command using CliCommand model instance.
 
@@ -419,7 +419,9 @@ class FlextCliCore(FlextCliServiceBase):
                 processor=FlextCliOutput.norm_json,
                 on_error="skip",
             )
-            context_list_raw = process_result.value or []  # Direct attribute access - unwrap() provides safe access
+            context_list_raw = (
+                process_result.value or []
+            )  # Direct attribute access - unwrap() provides safe access
             context_list: list[t.GeneralValueType] = (
                 context_list_raw if isinstance(context_list_raw, list) else []
             )
@@ -620,7 +622,7 @@ class FlextCliCore(FlextCliServiceBase):
                 "Merging configurations",
                 operation="update_configuration",
                 new_config_keys=list(valid_config.keys())
-                    if u.Guards.is_type(valid_config, "mapping")
+                if u.Guards.is_type(valid_config, "mapping")
                 else None,
                 source="flext-cli/src/flext_cli/core.py",
             )
@@ -648,7 +650,7 @@ class FlextCliCore(FlextCliServiceBase):
             # Convert to mutable dict for merging
             existing_config: dict[str, t.GeneralValueType] = (
                 dict(existing_config_raw)
-                    if u.Guards.is_type(existing_config_raw, "mapping")
+                if u.Guards.is_type(existing_config_raw, "mapping")
                 else {}
             )
             # Use build() DSL: ensure dict → transform to JSON
@@ -902,7 +904,7 @@ class FlextCliCore(FlextCliServiceBase):
             # Python 3.13: profiles_section_raw is already dict, isinstance check is unnecessary
             profiles_section: dict[str, t.GeneralValueType] = (
                 profiles_section_raw
-                    if u.Guards.is_type(profiles_section_raw, "mapping")
+                if u.Guards.is_type(profiles_section_raw, "mapping")
                 else {}
             )
             profiles_section[name] = profile_config

@@ -19,8 +19,7 @@ import threading
 import time
 from dataclasses import dataclass
 from enum import StrEnum
-
-
+from typing import (
     Generic,
     Protocol,
     TypedDict,

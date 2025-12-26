@@ -60,9 +60,7 @@ def handle_status_command() -> r[t.JsonDict]:
         status,
         to_json=True,
     )
-    typed_status: t.JsonDict = (
-        transform_result.value if transform_result.is_success else status
-    )
+    typed_status: t.JsonDict = transform_result.map_or(status)
     return r[t.JsonDict].ok(typed_status)
 
 

@@ -1,11 +1,12 @@
 """Utilities for flext-cli tests.
 
-Provides TestsCliUtilities, extending FlextTestsUtilities with flext-cli-specific
-utilities. All generic test utilities come from flext_tests.
+Provides TestsCliUtilities, extending FlextCliUtilities with test-specific helpers.
+All source utilities come from FlextCliUtilities, test utilities from FlextTestsUtilities.
 
 Architecture:
-- FlextTestsUtilities (flext_tests) = Generic utilities for all FLEXT projects
-- TestsCliUtilities (tests/) = flext-cli-specific utilities extending FlextTestsUtilities
+- FlextCliUtilities (src/) = CLI-specific utilities
+- FlextTestsUtilities (flext_tests) = Generic test utilities for all FLEXT projects
+- TestsCliUtilities (tests/) = Combined utilities for flext-cli tests
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -15,31 +16,41 @@ from __future__ import annotations
 
 from flext_tests.utilities import FlextTestsUtilities
 
+from flext_cli.utilities import FlextCliUtilities
 
-class TestsCliUtilities(FlextTestsUtilities):
-    """Utilities for flext-cli tests - extends FlextTestsUtilities.
 
-    Architecture: Extends FlextTestsUtilities with flext-cli-specific utility
-    definitions. All generic utilities from FlextTestsUtilities are available
-    through inheritance.
+class TestsCliUtilities(FlextCliUtilities, FlextTestsUtilities):
+    """Utilities for flext-cli tests - extends both FlextCliUtilities and FlextTestsUtilities.
 
-    Rules:
-    - NEVER redeclare utilities from FlextTestsUtilities
-    - Only flext-cli-specific utilities allowed
-    - All generic utilities come from FlextTestsUtilities
+    Architecture: Multiple inheritance from both source utilities (FlextCliUtilities)
+    and test utilities (FlextTestsUtilities).
+
+    Inheritance Order:
+    - FlextCliUtilities: CLI-specific namespaces (Cli.CliValidation, Cli.TypeNormalizer, etc.)
+    - FlextTestsUtilities: Generic test utilities (Result, TestContext, Factory, etc.)
+
+    All utilities are available through inheritance.
     """
 
-    # NOTE: FlextTestsUtilities extends FlextUtilities and provides:
-    # - Result: assert_success, assert_failure, assert_success_with_value, etc.
+    # Exposes from FlextCliUtilities:
+    # - Cli.CliValidation: CLI-specific validation
+    # - Cli.TypeNormalizer: Type normalization for Typer
+    # - Cli.Environment: Environment detection
+    # - Cli.ConfigOps: Configuration operations
+    # - Cli.FileOps: File operations
+    #
+    # Exposes from FlextTestsUtilities:
+    # - Result: assert_success, assert_failure, etc.
     # - TestContext: temporary_attribute context manager
     # - Factory: create_result, create_test_data
     # - ModelTestHelpers, RegistryHelpers, ConfigHelpers
-    # - All FlextUtilities classes via inheritance
-    #
-    # These are available through inheritance.
 
-    # Expose u classes through composition
-    # No Cli subclass available in u
+    # Root-level aliases for convenience (matches test expectations)
+    TypeNormalizer = FlextCliUtilities.Cli.TypeNormalizer
+    CliValidation = FlextCliUtilities.Cli.CliValidation
+    Environment = FlextCliUtilities.Cli.Environment
+    ConfigOps = FlextCliUtilities.Cli.ConfigOps
+    FileOps = FlextCliUtilities.Cli.FileOps
 
 
 # Short alias per FLEXT convention

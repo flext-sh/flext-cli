@@ -16,16 +16,16 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass, field
 
-from flext_core.typings import T
-from flext_tests.base import FlextTestsServiceBase
-
-from flext import (
+from flext_core import (
     FlextConstants,
     FlextHandlers,
     FlextModels,
     FlextResult,
     FlextTypes,
 )
+from flext_core.typings import T
+from flext_tests.base import FlextTestsServiceBase
+
 from tests.constants import TestsFlextCliConstants
 
 

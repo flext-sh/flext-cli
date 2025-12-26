@@ -184,9 +184,7 @@ class FlextCliFileTools:
                     raw_data,
                     to_json=True,
                 )
-                unwrapped = (
-                    transform_result.value if transform_result.is_success else raw_data
-                )
+                unwrapped = transform_result.map_or(raw_data)
                 # Type narrowing: ensure return type is FlextCliTypes.GeneralValueType
                 # unwrapped is object from unwrap(), convert to FlextCliTypes.GeneralValueType
                 if isinstance(
@@ -212,9 +210,7 @@ class FlextCliFileTools:
                     raw_data,
                     to_json=True,
                 )
-                unwrapped = (
-                    transform_result.value if transform_result.is_success else raw_data
-                )
+                unwrapped = transform_result.map_or(raw_data)
                 # Type narrowing: ensure return type is FlextCliTypes.GeneralValueType
                 # unwrapped is object from unwrap(), convert to FlextCliTypes.GeneralValueType
                 if isinstance(
