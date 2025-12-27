@@ -1331,12 +1331,12 @@ class TestsCliFileTools:
         # Read Unicode content
         read_result = file_tools.read_json_file(str(unicode_file))
         assert read_result.is_success
-        # Type narrowing: unwrap() returns t.GeneralValueType, which includes dict[str, object]
+        # Type narrowing: unwrap() returns t.GeneralValueType, which includes dict[str, t.GeneralValueType]
         unwrapped = read_result.value
         if not isinstance(unwrapped, dict):
             msg = "read_data must be dict"
             raise TypeError(msg)
-        read_data: dict[str, object] = unwrapped
+        read_data: dict[str, t.GeneralValueType] = unwrapped
         assert read_data["message"] == "你好世界"
         assert read_data["data"] == [1, 2, "三"]
 
@@ -1380,7 +1380,7 @@ class TestsCliFileTools:
         if not isinstance(unwrapped, dict):
             msg = "read_data must be dict"
             raise TypeError(msg)
-        read_data: dict[str, object] = unwrapped
+        read_data: dict[str, t.GeneralValueType] = unwrapped
         items = read_data["items"]
         if not isinstance(items, list):
             msg = "items must be list"
@@ -1472,7 +1472,7 @@ class TestsCliFileTools:
         yaml_file = temp_dir / "complex_test.yaml"
 
         # Write complex YAML
-        # Type narrowing: dict[str, object] is compatible with t.GeneralValueType
+        # Type narrowing: dict[str, t.GeneralValueType] is compatible with t.GeneralValueType
         if not isinstance(
             complex_yaml, (dict, list, str, int, float, bool, type(None))
         ):
@@ -1492,24 +1492,24 @@ class TestsCliFileTools:
         if not isinstance(unwrapped, dict):
             msg = "read_data must be dict"
             raise TypeError(msg)
-        read_data: dict[str, object] = unwrapped
+        read_data: dict[str, t.GeneralValueType] = unwrapped
 
         app_raw = read_data["app"]
         if not isinstance(app_raw, dict):
             msg = "app_data must be dict"
             raise TypeError(msg)
-        app_data: dict[str, object] = app_raw
+        app_data: dict[str, t.GeneralValueType] = app_raw
         assert app_data["name"] == "test_app"
         config_raw = app_data["config"]
         if not isinstance(config_raw, dict):
             msg = "config_data must be dict"
             raise TypeError(msg)
-        config_data: dict[str, object] = config_raw
+        config_data: dict[str, t.GeneralValueType] = config_raw
         db_raw = config_data["database"]
         if not isinstance(db_raw, dict):
             msg = "db_config must be dict"
             raise TypeError(msg)
-        db_config: dict[str, object] = db_raw
+        db_config: dict[str, t.GeneralValueType] = db_raw
         assert db_config["port"] == 5432
         assert read_data["settings"] is None
         assert read_data["empty_list"] == []
@@ -1525,7 +1525,7 @@ class TestsCliFileTools:
         test_data = {"counter": 0, "thread_data": {}}
 
         # Write initial data
-        # Type narrowing: dict[str, object] is compatible with t.GeneralValueType
+        # Type narrowing: dict[str, t.GeneralValueType] is compatible with t.GeneralValueType
         if not isinstance(test_data, (dict, list, str, int, float, bool, type(None))):
             msg = "test_data must be t.GeneralValueType compatible"
             raise TypeError(msg)
@@ -1553,7 +1553,7 @@ class TestsCliFileTools:
                     if not isinstance(unwrapped, dict):
                         msg = "data must be dict"
                         raise TypeError(msg)
-                    data: dict[str, object] = unwrapped
+                    data: dict[str, t.GeneralValueType] = unwrapped
                     counter_raw = data.get("counter", 0)
                     if not isinstance(counter_raw, int):
                         msg = "counter must be int"
@@ -1570,7 +1570,7 @@ class TestsCliFileTools:
                     thread_data[f"thread_{thread_id}"] = f"modified_by_{thread_id}"
 
                     # Write back with synchronization
-                    # Type narrowing: dict[str, object] is compatible with t.GeneralValueType
+                    # Type narrowing: dict[str, t.GeneralValueType] is compatible with t.GeneralValueType
                     typed_data: t.GeneralValueType = data
                     write_result = file_tools.write_json_file(
                         str(test_file),
@@ -1606,7 +1606,7 @@ class TestsCliFileTools:
         if not isinstance(unwrapped, dict):
             msg = "final_data must be dict"
             raise TypeError(msg)
-        final_data: dict[str, object] = unwrapped
+        final_data: dict[str, t.GeneralValueType] = unwrapped
         assert "counter" in final_data
         assert "thread_data" in final_data
 
@@ -1656,8 +1656,7 @@ class TestsCliFileTools:
 
         # Start writing valid JSON but simulate interruption
         try:
-            with Path(corrupted_file).open("w", encoding="utf-8") as f:
-                f.write('{"valid": "json", "incomplete": ')  # Missing closing
+            Path(corrupted_file).write_text('{"valid": "json", "incomplete": ', encoding="utf-8")  # Missing closing
         except Exception:
             pass
 
@@ -1681,7 +1680,7 @@ class TestsCliFileTools:
         if not isinstance(unwrapped, dict):
             msg = "final_data must be dict"
             raise TypeError(msg)
-        final_data: dict[str, object] = unwrapped
+        final_data: dict[str, t.GeneralValueType] = unwrapped
         assert final_data["recovered"] is True
 
     def test_file_operations_cross_platform_paths(
@@ -1747,7 +1746,7 @@ class TestsCliFileTools:
             if not isinstance(unwrapped, dict):
                 msg = "read_data must be dict"
                 raise TypeError(msg)
-            read_data: dict[str, object] = unwrapped
+            read_data: dict[str, t.GeneralValueType] = unwrapped
 
             # Verify Unicode content is preserved
             assert read_data["greek"] == "Γειά σου κόσμε"
@@ -1799,7 +1798,7 @@ class TestsCliFileTools:
         if not isinstance(unwrapped, dict):
             msg = "final_data must be dict"
             raise TypeError(msg)
-        final_data: dict[str, object] = unwrapped
+        final_data: dict[str, t.GeneralValueType] = unwrapped
         assert final_data["version"] == 2
 
     def test_file_operations_directory_operations_comprehensive(

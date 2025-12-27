@@ -108,13 +108,20 @@ class FlextCliCmd(FlextCliServiceBase):
             )
 
     @staticmethod
-    def get_config_info() -> r[Mapping[str, t.GeneralValueType]]:
+    def get_config_info() -> r[m.Cli.ConfigSnapshot]:
         """Get configuration information using FlextCliUtilities directly."""
         try:
             info = FlextCliUtilities.Cli.ConfigOps.get_config_info()
-            return r[dict[str, t.GeneralValueType]].ok(info)
+            snapshot = m.Cli.ConfigSnapshot(
+                config_dir=str(info.get("config_dir", "")),
+                config_exists=bool(info.get("config_exists", False)),
+                config_readable=bool(info.get("config_readable", False)),
+                config_writable=bool(info.get("config_writable", False)),
+                timestamp=str(info.get("timestamp", "")),
+            )
+            return r[m.Cli.ConfigSnapshot].ok(snapshot)
         except Exception as e:
-            return r[dict[str, t.GeneralValueType]].fail(
+            return r[m.Cli.ConfigSnapshot].fail(
                 FlextCliConstants.Cli.ErrorMessages.CONFIG_INFO_FAILED.format(error=e),
             )
 
@@ -159,7 +166,7 @@ class FlextCliCmd(FlextCliServiceBase):
             )
 
             if not config_path.exists():
-                return r[dict[str, t.GeneralValueType]].fail(
+                return r[Mapping[str, t.GeneralValueType]].fail(
                     FlextCliConstants.Cli.CmdErrorMessages.CONFIG_FILE_NOT_FOUND.format(
                         path=config_path,
                     ),
@@ -167,7 +174,7 @@ class FlextCliCmd(FlextCliServiceBase):
 
             load_result = self._file_tools.read_json_file(str(config_path))
             if load_result.is_failure:
-                return r[dict[str, t.GeneralValueType]].fail(
+                return r[Mapping[str, t.GeneralValueType]].fail(
                     FlextCliConstants.Cli.CmdErrorMessages.CONFIG_LOAD_FAILED.format(
                         error=load_result.error,
                     ),
@@ -175,12 +182,12 @@ class FlextCliCmd(FlextCliServiceBase):
 
             config_data = load_result.value
             if not isinstance(config_data, dict):
-                return r[dict[str, t.GeneralValueType]].fail(
+                return r[Mapping[str, t.GeneralValueType]].fail(
                     FlextCliConstants.Cli.CmdErrorMessages.CONFIG_NOT_DICT,
                 )
 
             if key not in config_data:
-                return r[dict[str, t.GeneralValueType]].fail(
+                return r[Mapping[str, t.GeneralValueType]].fail(
                     FlextCliConstants.Cli.CmdErrorMessages.CONFIG_KEY_NOT_FOUND.format(
                         key=key,
                     ),
@@ -200,9 +207,9 @@ class FlextCliCmd(FlextCliServiceBase):
             result_data: dict[str, t.GeneralValueType] = FlextCliOutput.to_dict_json(
                 raw_data,
             )
-            return r[dict[str, t.GeneralValueType]].ok(result_data)
+            return r[Mapping[str, t.GeneralValueType]].ok(result_data)
         except Exception as e:
-            return r[dict[str, t.GeneralValueType]].fail(
+            return r[Mapping[str, t.GeneralValueType]].fail(
                 FlextCliConstants.Cli.CmdErrorMessages.GET_CONFIG_FAILED.format(
                     error=e,
                 ),

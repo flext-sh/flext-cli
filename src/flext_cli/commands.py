@@ -10,9 +10,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
-from typing import Self
+from typing import Protocol, Self, runtime_checkable
 
 from flext_core import r
 
@@ -20,8 +20,19 @@ from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import c
 from flext_cli.typings import t
 
-# Type alias for command handlers
-CommandHandler = Callable[..., t.GeneralValueType]
+
+@runtime_checkable
+class CommandHandler(Protocol):
+    """Protocol for command handler callables."""
+
+    def __call__(
+        self,
+        *args: t.GeneralValueType,
+        **kwargs: t.GeneralValueType,
+    ) -> t.GeneralValueType:
+        """Execute command with variable arguments."""
+        ...
+
 
 # Type alias for command entry dict
 CommandEntry = dict[str, str | CommandHandler]
@@ -88,22 +99,22 @@ class FlextCliCommands(FlextCliServiceBase):
         Business Rule:
         ──────────────
         Returns status information about the commands service including
-        registered commands list.
+        registered commands count.
 
         Returns:
-            r[dict]: Service status with commands list.
+            r[dict]: Service status with commands count.
 
         """
         return r[dict[str, t.GeneralValueType]].ok({
-            "status": c.Cli.ServiceStatus.OPERATIONAL.value,
-            "service": c.Cli.FLEXT_CLI,
-            "commands": list(self._commands.keys()),
+            "app_name": c.Cli.FLEXT_CLI,
+            "is_initialized": True,
+            "commands_count": len(self._commands),
         })
 
     def register_command(
         self,
         name: str,
-        handler: Callable[..., t.GeneralValueType],
+        handler: CommandHandler,
     ) -> r[bool]:
         """Register a CLI command.
 
@@ -117,8 +128,7 @@ class FlextCliCommands(FlextCliServiceBase):
         """
         if not isinstance(name, str) or not name.strip():
             return r[bool].fail("Command name must be non-empty string")
-        if not callable(handler):
-            return r[bool].fail("Handler must be callable")
+        # Type system ensures handler is callable via CommandHandler Protocol
 
         self._commands[name] = {
             "handler": handler,
@@ -294,9 +304,7 @@ class FlextCliCommands(FlextCliServiceBase):
         if commands is None:
             return r[CommandGroup].fail("Commands are required for group creation")
 
-        if not isinstance(commands, Mapping):
-            return r[CommandGroup].fail("Commands must be a mapping")
-
+        # Type system ensures commands is Mapping after None check
         group = CommandGroup(
             name=name,
             description=description,

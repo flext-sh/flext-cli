@@ -184,19 +184,8 @@ class FlextCliFileTools:
                     raw_data,
                     to_json=True,
                 )
-                unwrapped = transform_result.map_or(raw_data)
-                # Type narrowing: ensure return type is FlextCliTypes.GeneralValueType
-                # unwrapped is object from unwrap(), convert to FlextCliTypes.GeneralValueType
-                if isinstance(
-                    unwrapped,
-                    (str, int, float, bool, type(None), dict, list),
-                ):
-                    return unwrapped
-                return str(unwrapped)
-            # Type narrowing: raw_data is object, convert to FlextCliTypes.GeneralValueType
-            if isinstance(raw_data, (str, int, float, bool, type(None), dict, list)):
-                return raw_data
-            return str(raw_data)
+                return transform_result.map_or(raw_data)
+            return raw_data
 
     @staticmethod
     def _load_yaml_file(file_path: str) -> FlextCliTypes.GeneralValueType:
@@ -204,25 +193,13 @@ class FlextCliFileTools:
         path = Path(file_path)
         with path.open(encoding=FlextCliConstants.Cli.Utilities.DEFAULT_ENCODING) as f:
             raw_data: t.GeneralValueType = yaml.safe_load(f)
-            # Use ur JSON conversion
             if isinstance(raw_data, dict):
                 transform_result = FlextCliUtilities.transform(
                     raw_data,
                     to_json=True,
                 )
-                unwrapped = transform_result.map_or(raw_data)
-                # Type narrowing: ensure return type is FlextCliTypes.GeneralValueType
-                # unwrapped is object from unwrap(), convert to FlextCliTypes.GeneralValueType
-                if isinstance(
-                    unwrapped,
-                    (str, int, float, bool, type(None), dict, list),
-                ):
-                    return unwrapped
-                return str(unwrapped)
-            # Type narrowing: raw_data is object, convert to FlextCliTypes.GeneralValueType
-            if isinstance(raw_data, (str, int, float, bool, type(None), dict, list)):
-                return raw_data
-            return str(raw_data)
+                return transform_result.map_or(raw_data)
+            return raw_data
 
     @staticmethod
     def _save_file_by_extension(

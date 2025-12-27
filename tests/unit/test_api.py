@@ -24,9 +24,8 @@ from pathlib import Path
 from typing import TypedDict
 
 import pytest
-from flext_tests import tm
-
 from flext_core import t
+from flext_tests import tm
 
 from flext_cli import (
     FlextCli,
@@ -147,7 +146,7 @@ class ApiTestFactory:
     @staticmethod
     def create_auth_test_scenarios() -> dict[str, AuthScenario]:
         """Create authentication test scenarios."""
-        def create_creds(**overrides: dict[str, Any]) -> r[dict[str, Any]]:
+        def create_creds(**overrides: dict[str, t.GeneralValueType]) -> r[dict[str, t.GeneralValueType]]:
             """Create credentials without token field."""
             creds = AuthHelpers.create_test_credentials(**overrides)
             # Remove token field for credential-based auth testing

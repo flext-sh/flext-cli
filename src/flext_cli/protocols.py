@@ -658,8 +658,42 @@ class FlextCliProtocols(FlextProtocols):
         # PEP 695 type aliases - direct type references
         # Type for registered commands (decorated functions)
         type CliRegisteredCommand = FlextCliProtocols.Cli.Command
-        # Type for CLI command functions (undecorated callables for decorators)
-        CliCommandFunction = Callable[..., t.GeneralValueType | None]
+
+        @runtime_checkable
+        class CliCommandFunction(Protocol):
+            """Protocol for CLI command functions that may return None."""
+
+            def __call__(
+                self,
+                *args: t.GeneralValueType,
+                **kwargs: t.GeneralValueType,
+            ) -> t.GeneralValueType | None:
+                """Execute CLI command function."""
+                ...
+
+        @runtime_checkable
+        class CliCommandWrapper(Protocol):
+            """Protocol for dynamically-created CLI command wrapper functions."""
+
+            def __call__(
+                self,
+                *args: t.GeneralValueType,
+                **kwargs: t.GeneralValueType,
+            ) -> t.GeneralValueType:
+                """Execute CLI command with variadic arguments."""
+                ...
+
+        @runtime_checkable
+        class CommandHandlerCallable(Protocol):
+            """Protocol for command handlers returning FlextResult."""
+
+            def __call__(
+                self,
+                *args: t.GeneralValueType,
+                **kwargs: t.GeneralValueType,
+            ) -> FlextProtocols.Result[t.GeneralValueType]:
+                """Execute command handler."""
+                ...
 
         @runtime_checkable
         class ModelCommandHandler(Protocol):
@@ -834,9 +868,16 @@ class FlextCliProtocols(FlextProtocols):
                 """Get appropriate exit code for error."""
                 ...
 
-        # Simple command handler protocol - callable that returns a GeneralValueType
-        # (matches register_command signature: Callable[..., GeneralValueType])
-        CliCommandHandler = Callable[..., t.GeneralValueType]
+        @runtime_checkable
+        class CliCommandHandler(Protocol):
+            """Protocol for CLI command handlers."""
+
+            def __call__(
+                self,
+                **kwargs: t.GeneralValueType,
+            ) -> t.GeneralValueType:
+                """Execute CLI command handler."""
+                ...
 
         @runtime_checkable
         class TableStyleProtocol(Protocol):

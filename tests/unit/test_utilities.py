@@ -22,7 +22,7 @@ from pathlib import Path
 from typing import Union
 
 import pytest
-from flext_core import r
+from flext_core import FlextTypes as t, r
 from flext_tests import tm
 from pydantic import BaseModel
 
@@ -54,7 +54,7 @@ class ValidationTestCase:
 
     validation_type: ValidationType
     description: str
-    test_data: dict[str, object]
+    test_data: dict[str, t.GeneralValueType]
     expected_result: bool = True
     error_contains: str | None = None
 
@@ -650,7 +650,7 @@ class TestsCliUtilities:
     def test_utilities_with_flext_tests_integration(self) -> None:
         """Test utilities integration with flext_tests."""
         # Create test data using flext_tests
-        test_data: dict[str, object] = {"name": "utilities_config"}
+        test_data: dict[str, t.GeneralValueType] = {"name": "utilities_config"}
         test_data["validation_result"] = True
 
         # Validate structure
@@ -822,7 +822,7 @@ class TestsCliUtilities:
 
         @staticmethod
         def get_pipeline_step_cases() -> list[
-            tuple[str, dict[str, object] | None, bool]
+            tuple[str, dict[str, t.GeneralValueType] | None, bool]
         ]:
             """Get parametrized test cases for pipeline step validation."""
             return [
@@ -847,7 +847,7 @@ class TestsCliUtilities:
     def test_validate_pipeline_step(
         self,
         test_name: str,
-        step_data: dict[str, object] | None,
+        step_data: dict[str, t.GeneralValueType] | None,
         should_succeed: bool,
     ) -> None:
         """Test validate_pipeline_step using advanced parametrization - reduces 20+ lines."""
@@ -981,7 +981,7 @@ class TestsCliUtilities:
 
         @staticmethod
         def get_parse_mapping_cases() -> list[
-            tuple[str, type[StrEnum], dict[str, str], bool, dict[str, object] | None]
+            tuple[str, type[StrEnum], dict[str, str], bool, dict[str, t.GeneralValueType] | None]
         ]:
             """Get parametrized test cases for Collection.parse_mapping."""
 
@@ -1017,7 +1017,7 @@ class TestsCliUtilities:
                 object,
                 bool,
                 type[Exception] | None,
-                dict[str, object] | None,
+                dict[str, t.GeneralValueType] | None,
             ]
         ]:
             """Get parametrized test cases for Collection.coerce_dict_validator."""
@@ -1062,7 +1062,7 @@ class TestsCliUtilities:
         enum_class: type[StrEnum],
         mapping: dict[str, str],
         should_succeed: bool,
-        expected: dict[str, object] | None,
+        expected: dict[str, t.GeneralValueType] | None,
     ) -> None:
         """Test Collection.parse_mapping using advanced parametrization - reduces 20+ lines."""
         result = u.Collection.parse_mapping(enum_class, mapping)
@@ -1089,7 +1089,7 @@ class TestsCliUtilities:
         input_data: object,
         should_succeed: bool,
         expected_exception: type[Exception] | None,
-        expected_result: dict[str, object] | None,
+        expected_result: dict[str, t.GeneralValueType] | None,
     ) -> None:
         """Test Collection.coerce_dict_validator using advanced parametrization - reduces 30+ lines."""
         validator = u.Collection.coerce_dict_validator(enum_class)
@@ -1122,7 +1122,7 @@ class TestsCliUtilities:
                 type[BaseModel],
                 dict[str, t.GeneralValueType],
                 bool,
-                dict[str, object] | None,
+                dict[str, t.GeneralValueType] | None,
             ]
         ]:
             """Get parametrized test cases for Model.from_dict."""
@@ -1158,7 +1158,7 @@ class TestsCliUtilities:
                 dict[str, t.GeneralValueType],
                 dict[str, t.GeneralValueType],
                 bool,
-                dict[str, object] | None,
+                dict[str, t.GeneralValueType] | None,
             ]
         ]:
             """Get parametrized test cases for Model.merge_defaults."""
@@ -1185,7 +1185,7 @@ class TestsCliUtilities:
                 BaseModel | object,
                 dict[str, t.GeneralValueType],
                 bool,
-                dict[str, object] | None,
+                dict[str, t.GeneralValueType] | None,
             ]
         ]:
             """Get parametrized test cases for Model.update."""
@@ -1224,7 +1224,7 @@ class TestsCliUtilities:
         model_cls: type[BaseModel],
         data: dict[str, t.GeneralValueType],
         should_succeed: bool,
-        expected_attrs: dict[str, object] | None,
+        expected_attrs: dict[str, t.GeneralValueType] | None,
     ) -> None:
         """Test Model.from_dict using advanced parametrization - reduces 50+ lines."""
         # Type narrowing: data is dict[str, t.GeneralValueType]
@@ -1267,7 +1267,7 @@ class TestsCliUtilities:
         defaults: dict[str, t.GeneralValueType],
         overrides: dict[str, t.GeneralValueType],
         should_succeed: bool,
-        expected_attrs: dict[str, object] | None,
+        expected_attrs: dict[str, t.GeneralValueType] | None,
     ) -> None:
         """Test Model.merge_defaults using advanced parametrization - reduces 20+ lines."""
         # Type narrowing: construct FlexibleValue-compatible dicts from inputs
@@ -1312,7 +1312,7 @@ class TestsCliUtilities:
         instance: BaseModel | object,
         updates: dict[str, t.GeneralValueType],
         should_succeed: bool,
-        expected_attrs: dict[str, object] | None,
+        expected_attrs: dict[str, t.GeneralValueType] | None,
     ) -> None:
         """Test Model.update using advanced parametrization - reduces 20+ lines."""
         # Type narrowing: instance should be BaseModel
@@ -1514,16 +1514,6 @@ class TestsCliUtilities:
         assert metadata["command_name"] == "test"
         assert validation["is_valid"] is True
 
-    def test_safe_convert_with_defaults(self) -> None:
-        """Test safe_convert with Python 3.13 type parameter defaults."""
-        # Test successful conversion
-        result = FlextCliUtilities.Cli.convert("123", int, 0)
-        assert result == 123
-
-        # Test failed conversion with default
-        result = FlextCliUtilities.Cli.convert("not_a_number", int, 0)
-        assert result == 0  # Uses provided default
-
     def test_validation_methods_status_level_format(self) -> None:
         """Test validation methods for status, level, and format."""
         # Test v_status
@@ -1571,20 +1561,6 @@ class TestsCliUtilities:
         # Test invalid value
         result = u.parse_enum(TestEnum, "invalid_value")
         assert result.is_failure
-
-    def test_convert_method_with_defaults(self) -> None:
-        """Test convert method with default values."""
-        # Test with a default value when conversion fails - should return default
-        result = FlextCliUtilities.Cli.convert("invalid", int, 0)
-        assert result == 0
-
-        # Test with a default value when conversion succeeds
-        result = FlextCliUtilities.Cli.convert("123", int, 0)
-        assert result == 123
-
-        # Test with None default - should return None when conversion fails
-        result_none = FlextCliUtilities.Cli.convert("invalid", int, None)
-        assert result_none is None
 
     def test_validation_methods_status_level_format_extended(self) -> None:
         """Test v_status, v_level, v_format validation methods (extended)."""

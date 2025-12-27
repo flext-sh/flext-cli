@@ -19,7 +19,7 @@ import tempfile
 import time
 from collections.abc import Generator, Mapping
 from pathlib import Path
-from typing import TypedDict, cast
+from typing import TypedDict
 
 import pytest
 from flext_core import t
@@ -46,13 +46,13 @@ class FlextCliIntegrationTestTypes(FlextCliTypes):
     class Pipeline:
         """Pipeline data types for integration tests."""
 
-        type ConfigDataPair = tuple[FlextCliSettings, dict[str, object]]
+        type ConfigDataPair = tuple[FlextCliSettings, dict[str, t.GeneralValueType]]
         """Tuple of configuration and data for pipeline processing."""
 
-        type SalesData = dict[str, object]
+        type SalesData = dict[str, t.GeneralValueType]
         """Sales data structure with product, region, amount, quarter fields."""
 
-        type ProcessedData = dict[str, object]
+        type ProcessedData = dict[str, t.GeneralValueType]
         """Processed sales data with aggregates and statistics."""
 
         class RecoveryReport(TypedDict):
@@ -147,79 +147,75 @@ class TestCompleteWorkflowIntegration:
         # Pre-create input file
         file_tools.write_json_file(
             str(input_file),
-            cast("dict[str, t.GeneralValueType]", raw_data),
+            raw_data,
         )
 
         # Execute complete pipeline using Railway Pattern
-        pipeline_result = cast(
-            "r[dict[str, t.GeneralValueType]]",
-            (
-                # Step 1: Load raw data
-                file_tools.read_json_file(str(input_file))
-                .flat_map(
-                    lambda data: (
-                        r.ok(data)
-                        if isinstance(data, dict)
-                        else r.fail("Data must be dict")
-                    ),
-                )
-                .map(
-                    lambda data: (cli.output.print_message("✅ Raw data loaded"), data)[
-                        1
-                    ],
-                )
-                # Step 2: Validate data structure
-                .flat_map(self._validate_pipeline_data)
-                .map(
-                    lambda data: (
-                        cli.output.print_message("✅ Data validation passed"),
+        pipeline_result: r[dict[str, t.GeneralValueType]] = (
+            # Step 1: Load raw data
+            file_tools
+            .read_json_file(str(input_file))
+            .flat_map(
+                lambda data: (
+                    r.ok(data)
+                    if isinstance(data, dict)
+                    else r.fail("Data must be dict")
+                ),
+            )
+            .map(
+                lambda data: (cli.output.print_message("✅ Raw data loaded"), data)[1],
+            )
+            # Step 2: Validate data structure
+            .flat_map(self._validate_pipeline_data)
+            .map(
+                lambda data: (
+                    cli.output.print_message("✅ Data validation passed"),
+                    data,
+                )[1],
+            )
+            # Step 3: Transform data (filter active users, enrich)
+            .map(self._transform_pipeline_data)
+            .map(
+                lambda data: (
+                    cli.output.print_message("✅ Data transformation completed"),
+                    data,
+                )[1],
+            )
+            # Step 4: Generate processing statistics
+            .map(
+                self._generate_pipeline_stats,
+            )
+            .map(
+                lambda data: (
+                    cli.output.print_message("✅ Processing statistics generated"),
+                    data,
+                )[1],
+            )
+            # Step 5: Save transformed data
+            .flat_map(
+                lambda data: file_tools.write_json_file(
+                    str(output_file),
+                    data,
+                ).map(
+                    lambda _: (
+                        cli.output.print_message("✅ Processed data saved"),
                         data,
                     )[1],
-                )
-                # Step 3: Transform data (filter active users, enrich)
-                .map(self._transform_pipeline_data)
-                .map(
-                    lambda data: (
-                        cli.output.print_message("✅ Data transformation completed"),
-                        data,
-                    )[1],
-                )
-                # Step 4: Generate processing statistics
-                .map(
-                    self._generate_pipeline_stats,
-                )
-                .map(
-                    lambda data: (
-                        cli.output.print_message("✅ Processing statistics generated"),
-                        data,
-                    )[1],
-                )
-                # Step 5: Save transformed data
-                .flat_map(
-                    lambda data: file_tools.write_json_file(
-                        str(output_file),
-                        data,
-                    ).map(
-                        lambda _: (
-                            cli.output.print_message("✅ Processed data saved"),
-                            data,
-                        )[1],
-                    ),
-                )
-                # Step 6: Generate and save pipeline report
-                .map(self._create_pipeline_report)
-                .flat_map(
-                    lambda report: file_tools.write_json_file(
-                        str(report_file),
+                ),
+            )
+            # Step 6: Generate and save pipeline report
+            .map(self._create_pipeline_report)
+            .flat_map(
+                lambda report: file_tools.write_json_file(
+                    str(report_file),
+                    report,
+                ).map(
+                    lambda _: (
+                        cli.output.print_message("✅ Pipeline report saved"),
                         report,
-                    ).map(
-                        lambda _: (
-                            cli.output.print_message("✅ Pipeline report saved"),
-                            report,
-                        )[1],
-                    ),
-                )
-            ),
+                    )[1],
+                ),
+            )
         )
 
         # Comprehensive assertions
@@ -239,15 +235,10 @@ class TestCompleteWorkflowIntegration:
         # Verify processed data
         processed_result = file_tools.read_json_file(str(output_file))
         assert processed_result.is_success
-        processed_data = cast("dict[str, t.GeneralValueType]", processed_result.value)
+        processed_data = processed_result.value
 
-        assert (
-            len(cast("list[t.GeneralValueType]", processed_data["active_users"])) == 2
-        )
-        assert all(
-            cast("dict[str, t.GeneralValueType]", user)["is_premium"]
-            for user in cast("list[t.GeneralValueType]", processed_data["active_users"])
-        )
+        assert len(processed_data["active_users"]) == 2
+        assert all(user["is_premium"] for user in processed_data["active_users"])
 
     def _validate_pipeline_data(self, data: object) -> r[dict[str, t.GeneralValueType]]:
         """Validate pipeline input data structure.
@@ -293,7 +284,7 @@ class TestCompleteWorkflowIntegration:
     ) -> dict[str, t.GeneralValueType]:
         """Transform pipeline data: filter active users and enrich."""
         data_dict = data
-        users = cast("list[dict[str, t.GeneralValueType]]", data_dict["users"])
+        users = data_dict["users"]
         active_users = []
 
         for user in users:
@@ -445,7 +436,8 @@ class TestCompleteWorkflowIntegration:
         # Execute report generation pipeline
         report_result = (
             # Step 1: Load configuration and data
-            file_tools.read_json_file(str(data_file))
+            file_tools
+            .read_json_file(str(data_file))
             .flat_map(
                 lambda data: (
                     r.ok((config, data))
@@ -623,7 +615,7 @@ class TestCompleteWorkflowIntegration:
 
     def _create_report_summary(
         self,
-        reports: list[dict[str, object]],
+        reports: list[dict[str, t.GeneralValueType]],
         config: FlextCliSettings,
         report_dir: Path,
     ) -> Mapping[str, object]:
@@ -681,7 +673,8 @@ class TestCompleteWorkflowIntegration:
         # Execute workflow with fallback mechanisms
         workflow_result = (
             # Step 1: Try primary data source (will fail)
-            self._load_data_with_fallback(primary_data_file, backup_data_file)
+            self
+            ._load_data_with_fallback(primary_data_file, backup_data_file)
             .map(
                 lambda data: (
                     cli.output.print_message("✅ Data loaded (with fallback)"),
@@ -693,7 +686,7 @@ class TestCompleteWorkflowIntegration:
                 lambda data: (
                     self._process_with_partial_recovery(data)
                     if isinstance(data, dict)
-                    else r[dict[str, object]].fail("Invalid data type")
+                    else r[dict[str, t.GeneralValueType]].fail("Invalid data type")
                 ),
             )
             .map(
@@ -707,7 +700,7 @@ class TestCompleteWorkflowIntegration:
                 lambda data: (
                     self._save_with_retry(data, output_file, max_retries=3)
                     if isinstance(data, dict)
-                    else r[dict[str, object]].fail("Invalid data type")
+                    else r[dict[str, t.GeneralValueType]].fail("Invalid data type")
                 ),
             )
             .map(
@@ -749,7 +742,7 @@ class TestCompleteWorkflowIntegration:
         self,
         primary_file: Path,
         backup_file: Path,
-    ) -> r[dict[str, object]]:
+    ) -> r[dict[str, t.GeneralValueType]]:
         """Load data with fallback mechanism."""
         # Try primary first (will fail since file doesn't exist)
         primary_result = FlextCliFileTools().read_json_file(str(primary_file))
@@ -776,8 +769,8 @@ class TestCompleteWorkflowIntegration:
 
     def _process_with_partial_recovery(
         self,
-        data: dict[str, object],
-    ) -> r[dict[str, object]]:
+        data: dict[str, t.GeneralValueType],
+    ) -> r[dict[str, t.GeneralValueType]]:
         """Process data with partial recovery for corrupted records."""
         users = data.get("users", [])
         if not isinstance(users, list):
@@ -811,9 +804,11 @@ class TestCompleteWorkflowIntegration:
             "recovery_stats": recovery_info,
         })
 
-    def _process_single_user(self, user: dict[str, object]) -> Mapping[str, object]:
+    def _process_single_user(
+        self, user: dict[str, t.GeneralValueType]
+    ) -> Mapping[str, object]:
         """Process a single user record with validation."""
-        # Type checker ensures user is dict[str, object], so isinstance check is redundant
+        # Type checker ensures user is dict[str, t.GeneralValueType], so isinstance check is redundant
 
         required_fields = ["id", "name"]
         for field in required_fields:
@@ -829,10 +824,10 @@ class TestCompleteWorkflowIntegration:
 
     def _save_with_retry(
         self,
-        data: dict[str, object],
+        data: dict[str, t.GeneralValueType],
         output_file: Path,
         max_retries: int = 3,
-    ) -> r[dict[str, object]]:
+    ) -> r[dict[str, t.GeneralValueType]]:
         """Save data with retry mechanism."""
         attempts = 0
         last_error = None
@@ -857,7 +852,7 @@ class TestCompleteWorkflowIntegration:
 
     def _generate_recovery_report(
         self,
-        data: dict[str, object],
+        data: dict[str, t.GeneralValueType],
     ) -> Mapping[str, object]:
         """Generate comprehensive recovery report."""
         return {

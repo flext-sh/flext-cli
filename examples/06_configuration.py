@@ -29,6 +29,7 @@ import time
 from pathlib import Path
 
 from example_utils import display_config_table
+from flext_core import FlextTypes as t
 
 from flext_cli import FlextCli, FlextCliSettings, r, t, u
 
@@ -347,7 +348,7 @@ class AppConfig:
             os.getenv("TEMP_DIR", str(Path.home() / ".cache" / "myapp")),
         )
 
-    def validate(self) -> r[dict[str, object]]:
+    def validate(self) -> r[dict[str, t.GeneralValueType]]:
         """Validate configuration with comprehensive checks."""
         errors = []
 
@@ -382,10 +383,10 @@ class AppConfig:
             errors.append("TEMP_DIR must be a directory")
 
         if errors:
-            return r[dict[str, object]].fail("; ".join(errors))
+            return r[dict[str, t.GeneralValueType]].fail("; ".join(errors))
 
         # Return validated config as dict
-        return r[dict[str, object]].ok({
+        return r[dict[str, t.GeneralValueType]].ok({
             "database_url": self.database_url,
             "redis_url": self.redis_url,
             "api_key": "***" if self.api_key else "",
@@ -396,7 +397,7 @@ class AppConfig:
         })
 
 
-def load_application_config() -> r[dict[str, object]]:
+def load_application_config() -> r[dict[str, t.GeneralValueType]]:
     """Load and validate application configuration from environment."""
     cli.print("\n⚙️  Loading Application Configuration:", style="bold cyan")
 
@@ -420,7 +421,9 @@ def load_application_config() -> r[dict[str, object]]:
     final_data = initialize_services(overridden_data)
     cli.print("✅ Services initialized", style="green")
 
-    result: r[dict[str, object]] = r[dict[str, object]].ok(final_data)
+    result: r[dict[str, t.GeneralValueType]] = r[dict[str, t.GeneralValueType]].ok(
+        final_data
+    )
 
     if result.is_failure:
         cli.print(f"❌ Configuration failed: {result.error}", style="bold red")
@@ -430,7 +433,9 @@ def load_application_config() -> r[dict[str, object]]:
     return result
 
 
-def apply_environment_overrides(config: dict[str, object]) -> dict[str, object]:
+def apply_environment_overrides(
+    config: dict[str, t.GeneralValueType],
+) -> dict[str, t.GeneralValueType]:
     """Apply environment-specific configuration overrides."""
     env = os.getenv("ENVIRONMENT", "development")
 
@@ -453,7 +458,9 @@ def apply_environment_overrides(config: dict[str, object]) -> dict[str, object]:
     return config
 
 
-def initialize_services(config: dict[str, object]) -> dict[str, object]:
+def initialize_services(
+    config: dict[str, t.GeneralValueType],
+) -> dict[str, t.GeneralValueType]:
     """Initialize services based on configuration."""
     # In real code, this would initialize database connections, caches, etc.
     # For demo, just simulate initialization

@@ -269,7 +269,7 @@ def cli_command_factory() -> CliCommandFactory:
 
         # Override with CLI-specific data
         # Use object for kwargs since t.GeneralValueType may not be accessible via t
-        cli_data: dict[str, object]
+        cli_data: dict[str, t.GeneralValueType]
         cli_data = {
             "command_line": command_line,
             "args": [],  # Default empty args
@@ -292,21 +292,21 @@ def cli_command_factory() -> CliCommandFactory:
             msg = "raw_data must be dict"
             raise TypeError(msg)
         # ConfigurationDict = Mapping[str, t.GeneralValueType]
-        typed_data: t.ConfigurationDict = raw_data
+        typed_data: dict[str, t.GeneralValueType] = raw_data
         transform_result = u.transform(
             typed_data,
             to_json=True,
         )
         if transform_result.is_success:
-            # unwrap() returns t.GeneralValueType, narrow to dict[str, object]
+            # unwrap() returns t.GeneralValueType, narrow to dict[str, t.GeneralValueType]
             unwrapped = transform_result.value
             if isinstance(unwrapped, dict):
-                final_data: dict[str, object] = dict(unwrapped.items())
+                final_data: dict[str, t.GeneralValueType] = dict(unwrapped.items())
             else:
                 final_data = raw_data
         else:
             final_data = raw_data
-        # Use model_validate which accepts dict[str, Any] and validates at runtime
+        # Use model_validate which accepts dict[str, t.GeneralValueType] and validates at runtime
         return m.Cli.CliCommand.model_validate(final_data)
 
     return _create
@@ -328,7 +328,7 @@ def cli_session_factory() -> CliSessionFactory:
         # Add session-specific fields - only real fields that exist in CliSession
         # Include created_at and updated_at for frozen model compatibility
 
-        session_data: dict[str, object] = {
+        session_data: dict[str, t.GeneralValueType] = {
             "session_id": session_id,
             "status": status,
             "user_id": user_id,
@@ -349,7 +349,7 @@ def cli_session_factory() -> CliSessionFactory:
         if not isinstance(raw_data, dict):
             msg = "raw_data must be dict"
             raise TypeError(msg)
-        typed_data: t.ConfigurationDict = raw_data
+        typed_data: dict[str, t.GeneralValueType] = raw_data
         transform_result = u.transform(
             typed_data,
             to_json=True,
@@ -357,13 +357,13 @@ def cli_session_factory() -> CliSessionFactory:
         if transform_result.is_success:
             unwrapped = transform_result.value
             if isinstance(unwrapped, dict):
-                final_data: dict[str, object] = dict(unwrapped.items())
+                final_data: dict[str, t.GeneralValueType] = dict(unwrapped.items())
             else:
                 final_data = raw_data
         else:
             final_data = raw_data
         # Create instance - autouse fixture should have handled model_rebuild
-        # Use model_validate which accepts dict[str, Any] and validates at runtime
+        # Use model_validate which accepts dict[str, t.GeneralValueType] and validates at runtime
         return m.Cli.CliSession.model_validate(final_data)
 
     return _create
@@ -382,7 +382,7 @@ def debug_info_factory() -> DebugInfoFactory:
         # DebugInfo has strict validation (extra='forbid'), use compatible fields
 
         # Add debug-specific fields - only real fields that exist in DebugInfo
-        debug_data: dict[str, object] = {
+        debug_data: dict[str, t.GeneralValueType] = {
             "service": service,
             "level": level,
             "message": message or "",
@@ -408,7 +408,7 @@ def debug_info_factory() -> DebugInfoFactory:
         if not isinstance(raw_data, dict):
             msg = "raw_data must be dict"
             raise TypeError(msg)
-        typed_data: t.ConfigurationDict = raw_data
+        typed_data: dict[str, t.GeneralValueType] = raw_data
         transform_result = u.transform(
             typed_data,
             to_json=True,
@@ -416,12 +416,12 @@ def debug_info_factory() -> DebugInfoFactory:
         if transform_result.is_success:
             unwrapped = transform_result.value
             if isinstance(unwrapped, dict):
-                final_data: dict[str, object] = dict(unwrapped.items())
+                final_data: dict[str, t.GeneralValueType] = dict(unwrapped.items())
             else:
                 final_data = raw_data
         else:
             final_data = raw_data
-        # Use model_validate which accepts dict[str, Any] and validates at runtime
+        # Use model_validate which accepts dict[str, t.GeneralValueType] and validates at runtime
         return m.Cli.DebugInfo.model_validate(final_data)
 
     return _create
@@ -440,7 +440,7 @@ def logging_config_factory() -> LoggingConfigFactory:
         # Don't use FlextTestsFactories.create_config as it may have extra fields
 
         # Add logging-specific fields - only real fields that exist in LoggingConfig
-        logging_data: dict[str, object] = {
+        logging_data: dict[str, t.GeneralValueType] = {
             "log_level": log_level,
             "log_format": log_format,
             "console_output": True,
@@ -454,7 +454,7 @@ def logging_config_factory() -> LoggingConfigFactory:
         if not isinstance(raw_data, dict):
             msg = "raw_data must be dict"
             raise TypeError(msg)
-        typed_data: t.ConfigurationDict = raw_data
+        typed_data: dict[str, t.GeneralValueType] = raw_data
         transform_result = u.transform(
             typed_data,
             to_json=True,
@@ -462,12 +462,12 @@ def logging_config_factory() -> LoggingConfigFactory:
         if transform_result.is_success:
             unwrapped = transform_result.value
             if isinstance(unwrapped, dict):
-                final_data: dict[str, object] = dict(unwrapped.items())
+                final_data: dict[str, t.GeneralValueType] = dict(unwrapped.items())
             else:
                 final_data = raw_data
         else:
             final_data = raw_data
-        # Use model_validate which accepts dict[str, Any] and validates at runtime
+        # Use model_validate which accepts dict[str, t.GeneralValueType] and validates at runtime
         return m.Cli.LoggingConfig.model_validate(final_data)
 
     return _create
@@ -639,7 +639,7 @@ def flext_cli_utilities() -> type[TestsCliUtilities]:
 
 
 @pytest.fixture
-def sample_config_data() -> dict[str, object]:
+def sample_config_data() -> dict[str, t.GeneralValueType]:
     """Provide sample configuration data for tests."""
     return {
         "debug": True,
@@ -654,7 +654,7 @@ def sample_config_data() -> dict[str, object]:
 
 
 @pytest.fixture
-def sample_file_data(temp_dir: Path) -> dict[str, object]:
+def sample_file_data(temp_dir: Path) -> dict[str, t.GeneralValueType]:
     """Provide sample file data for tests."""
     return {
         "content": "This is test content for file operations",
@@ -669,7 +669,7 @@ def sample_file_data(temp_dir: Path) -> dict[str, object]:
 
 
 @pytest.fixture
-def sample_command_data() -> dict[str, object]:
+def sample_command_data() -> dict[str, t.GeneralValueType]:
     """Provide sample command data for tests."""
     return {
         "command": "test_command",
@@ -701,22 +701,26 @@ def fixture_data_csv() -> Path:
 
 
 @pytest.fixture
-def load_fixture_config() -> dict[str, object]:
+def load_fixture_config() -> dict[str, t.GeneralValueType]:
     """Load configuration data from fixtures directory."""
     fixture_path = Path("tests/fixtures/configs/test_config.json")
     with fixture_path.open(encoding="utf-8") as f:
         data = json.load(f)
-    adapter: TypeAdapter[dict[str, object]] = TypeAdapter(dict[str, object])
+    adapter: TypeAdapter[dict[str, t.GeneralValueType]] = TypeAdapter(
+        dict[str, t.GeneralValueType]
+    )
     return adapter.validate_python(data)
 
 
 @pytest.fixture
-def load_fixture_data() -> dict[str, object]:
+def load_fixture_data() -> dict[str, t.GeneralValueType]:
     """Load test data from fixtures directory."""
     fixture_path = Path("tests/fixtures/data/test_data.json")
     with fixture_path.open(encoding="utf-8") as f:
         data = json.load(f)
-    adapter: TypeAdapter[dict[str, object]] = TypeAdapter(dict[str, object])
+    adapter: TypeAdapter[dict[str, t.GeneralValueType]] = TypeAdapter(
+        dict[str, t.GeneralValueType]
+    )
     return adapter.validate_python(data)
 
 

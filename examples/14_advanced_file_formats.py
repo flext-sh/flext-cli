@@ -32,6 +32,8 @@ import shutil
 import tempfile
 from pathlib import Path
 
+from flext_core import FlextTypes as t
+
 from flext_cli import FlextCli, FlextCliTables, m, t, u
 
 cli = FlextCli()

@@ -21,7 +21,7 @@ import pytest
 from flext_core import t
 from flext_tests import tm
 
-from flext_cli import FlextCliContext, r, u
+from flext_cli import FlextCliContext, FlextCliModels as m, r, u
 
 from ..helpers import FlextCliTestHelpers
 
@@ -49,7 +49,7 @@ class TestsCliContext:
         def create_context(
             command: str | None = None,
             arguments: list[str] | None = None,
-            env_vars: dict[str, object] | None = None,
+            env_vars: dict[str, t.GeneralValueType] | None = None,
             working_dir: str | None = None,
         ) -> r[FlextCliContext]:
             """Create FlextCliContext instance."""
@@ -184,7 +184,7 @@ class TestsCliContext:
             arguments_raw if isinstance(arguments_raw, list) else None
         )
         env_vars_raw = test_case.get("env_vars")
-        env_vars: dict[str, object] | None = (
+        env_vars: dict[str, t.GeneralValueType] | None = (
             env_vars_raw if isinstance(env_vars_raw, dict) else None
         )
         working_dir_raw = test_case.get("working_dir")
@@ -222,7 +222,7 @@ class TestsCliContext:
 
         assert isinstance(result, r)
         tm.ok(result)
-        assert isinstance(result.value, dict)
+        assert isinstance(result.value, m.Cli.ContextExecutionResult)
 
     # =========================================================================
     # ACTIVATION AND DEACTIVATION TESTS

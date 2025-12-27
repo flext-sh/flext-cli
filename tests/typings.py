@@ -52,21 +52,18 @@ class TestsCliTypes(FlextTestsTypes, FlextCliTypes):
         Use t.Tests.* for generic test types from FlextTestsTypes.
         """
 
-        class Cli(FlextTestsTypes.Core):
+        class Cli:
             """Flext-cli-specific type definitions for testing.
 
             Uses composition of cli_t and core_t for type safety and consistency.
             Only defines types that are truly flext-cli-specific.
+            Dict type aliases were removed in Pydantic v2 migration - use models instead.
             """
 
-            # Import types from FlextCliTypes.Cli for test access
-            CliDataDict = cli_t.Cli.CliDataDict
-            CliAuthData = cli_t.Cli.CliAuthData
-            CliFormatData = cli_t.Cli.CliFormatData
-            CliConfigData = cli_t.Cli.CliConfigData
-            CliJsonDict = cli_t.Cli.CliJsonDict
-            CliTokenData = cli_t.Cli.CliTokenData
+            # Import remaining types from FlextCliTypes.Cli for test access
             ResultFormatter = cli_t.Cli.ResultFormatter
+            FormatableResult = cli_t.Cli.FormatableResult
+            TabularData = cli_t.Cli.TabularData
 
             type CliConfigMapping = Mapping[
                 str,

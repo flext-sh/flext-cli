@@ -16,9 +16,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Final
 
+from flext_core import FlextTypes as t
 from flext_tests.constants import FlextTestsConstants
 
 from flext_cli.constants import FlextCliConstants
+from flext_cli.typings import t
 
 
 class TestsFlextCliConstants(FlextTestsConstants, FlextCliConstants):
@@ -141,7 +143,7 @@ class TestsFlextCliConstants(FlextTestsConstants, FlextCliConstants):
     class Configuration:
         """Test configuration constants."""
 
-        BASIC_CONFIG: Final[dict[str, object]] = {
+        BASIC_CONFIG: Final[dict[str, t.GeneralValueType]] = {
             "app_name": "test_app",
             "debug": False,
             "log_level": "INFO",

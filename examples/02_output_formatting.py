@@ -88,7 +88,7 @@ def display_database_results(records: list[t.JsonDict]) -> None:
     first_record: t.JsonDict = records[0]
     list(first_record.keys())
 
-    # For dict[str, object] data, convert to table format
+    # For dict[str, t.GeneralValueType] data, convert to table format
     table_data: t.JsonDict = {
         f"Row {i}": " | ".join(str(v) for v in record.values())
         for i, record in enumerate(records[:10], 1)

@@ -20,7 +20,12 @@ from pathlib import Path
 from typing import Annotated, ClassVar, Self
 
 import yaml
-from flext_core import FlextContainer, FlextLogger as l_core, FlextSettings, r
+from flext_core import (
+    FlextContainer,
+    FlextLogger as l_core,
+    FlextSettings,
+    r,
+)
 from pydantic import (
     Field,
     SecretStr,
@@ -355,7 +360,8 @@ class FlextCliSettings(FlextSettings):
     def validate_configuration(self) -> Self:
         """Validate configuration using functional composition and railway pattern."""
         validation_result = (
-            self._ensure_config_directory()
+            self
+            ._ensure_config_directory()
             .flat_map(lambda _: self._propagate_to_context())
             .flat_map(lambda _: self._register_in_container())
         )
@@ -782,9 +788,9 @@ class FlextCliSettings(FlextSettings):
                 if transform_result.is_success
                 else config_dict_raw
             )
-            return r[dict[str, t.GeneralValueType]].ok(config_dict)
+            return r[Mapping[str, t.GeneralValueType]].ok(config_dict)
         except Exception as e:
-            return r[dict[str, t.GeneralValueType]].fail(
+            return r[Mapping[str, t.GeneralValueType]].fail(
                 FlextCliConstants.Cli.ErrorMessages.CONFIG_LOAD_FAILED_MSG.format(
                     error=e,
                 ),

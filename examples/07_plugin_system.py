@@ -32,6 +32,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from flext_core import FlextTypes as t
+
 from flext_cli import (
     FlextCli,
     FlextCliTables,
@@ -111,7 +113,7 @@ class MyAppPluginManager:
     def __init__(self) -> None:
         """Initialize plugin manager with empty plugin registry."""
         super().__init__()
-        self.plugins: dict[str, object] = {}
+        self.plugins: dict[str, t.GeneralValueType] = {}
 
     def register_plugin(self, plugin: object) -> None:
         """Register plugin in YOUR CLI."""

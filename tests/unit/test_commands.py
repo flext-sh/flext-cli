@@ -42,9 +42,8 @@ class TestsCliCommands:
 
         assert result.is_success
         assert result.value is not None
-        assert result.value["status"] == c.Cli.ServiceStatus.OPERATIONAL.value
-        assert result.value["service"] == c.Cli.FLEXT_CLI
-        assert "commands" in result.value
+        assert isinstance(result.value, dict)
+        assert result.value["app_name"] == c.Cli.FLEXT_CLI
 
     def test_commands_execute(self) -> None:
         """Test execute method (now sync, delegates to execute)."""
@@ -53,9 +52,8 @@ class TestsCliCommands:
 
         assert result.is_success
         assert result.value is not None
-        assert result.value["status"] == c.Cli.ServiceStatus.OPERATIONAL.value
-        assert result.value["service"] == c.Cli.FLEXT_CLI
-        assert "commands" in result.value
+        assert isinstance(result.value, dict)
+        assert result.value["app_name"] == c.Cli.FLEXT_CLI
 
     # ========================================================================
     # COMMAND LIST AND REGISTRATION
@@ -67,9 +65,8 @@ class TestsCliCommands:
         result = commands.execute()
 
         assert result.is_success
-        commands_list = result.value["commands"]
-        assert isinstance(commands_list, list)
-        assert len(commands_list) >= 0
+        assert isinstance(result.value, dict)
+        assert result.value["commands_count"] >= 0
 
     def test_commands_registration(self) -> None:
         """Test command registration functionality."""
@@ -79,8 +76,8 @@ class TestsCliCommands:
 
         exec_result = commands.execute()
         assert exec_result.is_success
-        commands_list = exec_result.value["commands"]
-        assert commands_list is not None
+        assert isinstance(exec_result.value, dict)
+        assert exec_result.value["commands_count"] >= 0
 
     # ========================================================================
     # COMMAND EXECUTION

@@ -1,9 +1,9 @@
 """Comprehensive parametrized unit tests for 100% coverage."""
 
 from datetime import datetime
-from typing import Any
 
 import pytest
+from flext_core import t
 
 from flext_cli.constants import c
 from tests._helpers import (
@@ -39,7 +39,7 @@ class TestsCliComprehensiveModels:
         assert cmd.is_failed == (status == c.Cli.CommandStatus.FAILED)
 
     @pytest.mark.parametrize("edge_case", generate_edge_case_data())
-    def test_command_edge_cases(self, edge_case: dict[str, Any]) -> None:
+    def test_command_edge_cases(self, edge_case: dict[str, t.GeneralValueType]) -> None:
         """Test command creation with comprehensive edge cases."""
         cmd = create_test_cli_command(**edge_case)
 

@@ -12,6 +12,7 @@ SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
+from flext_core import FlextTypes as t
 
 import json
 import operator
@@ -47,8 +48,8 @@ class FieldDataDict(TypedDict, total=False):
     click_type: str | int
     is_required: bool
     description: str
-    validators: list[object]
-    metadata: dict[str, object]
+    validators: list[t.GeneralValueType]
+    metadata: dict[str, t.GeneralValueType]
 
 
 class TestsCliModels:
@@ -1683,7 +1684,7 @@ class TestsCliModels:
         """Test _validate_field_data with invalid is_required - covers line 476."""
         # Create invalid data with non-bool is_required
         # Use dict literal and cast to allow invalid types for testing
-        invalid_data: dict[str, object] = {
+        invalid_data: dict[str, t.GeneralValueType] = {
             "python_type": str,
             "click_type": "STRING",
             "is_required": "yes",  # Should be a bool, not a string
@@ -1703,7 +1704,7 @@ class TestsCliModels:
         """Test _validate_field_data with invalid description - covers line 483."""
         # Create invalid data with non-string description
         # Use dict literal and cast to allow invalid types for testing
-        invalid_data: dict[str, object] = {
+        invalid_data: dict[str, t.GeneralValueType] = {
             "python_type": str,
             "click_type": "STRING",
             "is_required": True,
@@ -1723,7 +1724,7 @@ class TestsCliModels:
         """Test _validate_field_data with invalid validators - covers line 490."""
         # Create invalid data with non-list validators
         # Use dict literal and cast to allow invalid types for testing
-        invalid_data: dict[str, object] = {
+        invalid_data: dict[str, t.GeneralValueType] = {
             "python_type": str,
             "click_type": "STRING",
             "is_required": True,
@@ -1743,7 +1744,7 @@ class TestsCliModels:
         """Test _validate_field_data with invalid metadata - covers line 497."""
         # Create invalid data with non-dict metadata
         # Use dict literal and cast to allow invalid types for testing
-        invalid_data: dict[str, object] = {
+        invalid_data: dict[str, t.GeneralValueType] = {
             "python_type": str,
             "click_type": "STRING",
             "is_required": True,
@@ -1826,7 +1827,7 @@ class TestsCliModels:
         def identity_validator(x: object) -> object:
             return x
 
-        validators_raw: list[object] = [validator_func, identity_validator, str]
+        validators_raw: list[t.GeneralValueType] = [validator_func, identity_validator, str]
         validators = m.Cli.CliModelConverter._process_validators(
             validators_raw,
         )
@@ -1942,7 +1943,7 @@ class TestsCliModels:
         # Test with data that doesn't match model fields
         cli_args: dict[
             str,
-            str | int | float | bool | dict[str, object] | list[object] | None,
+            str | int | float | bool | dict[str, t.GeneralValueType] | list[t.GeneralValueType] | None,
         ] = {"name": "test", "age": "invalid_int"}
         # TestModel is a BaseModel subclass
         # Use helper method for proper type narrowing with PEP 695 generics
@@ -2013,7 +2014,7 @@ class TestsCliModels:
 
         cli_args: dict[
             str,
-            str | int | float | bool | dict[str, object] | list[object] | None,
+            str | int | float | bool | dict[str, t.GeneralValueType] | list[t.GeneralValueType] | None,
         ] = {"name": "test", "age": 25}
         # TestModel is a BaseModel subclass
         # Use helper method for proper type narrowing with PEP 695 generics

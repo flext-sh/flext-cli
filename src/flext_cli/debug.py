@@ -169,9 +169,9 @@ class FlextCliDebug(FlextCliServiceBase):
                 FlextCliConstants.Cli.DictKeys.SERVICE: str(FlextCliDebug),
                 FlextCliConstants.Cli.DebugDictKeys.CONNECTIVITY: FlextCliConstants.Cli.ServiceStatus.OPERATIONAL.value,
             }
-            return r[dict[str, str]].ok(connectivity_info)
+            return r[Mapping[str, str]].ok(connectivity_info)
         except Exception as e:
-            return r[dict[str, str]].fail(
+            return r[Mapping[str, str]].fail(
                 FlextCliConstants.Cli.DebugErrorMessages.CONNECTIVITY_TEST_FAILED.format(
                     error=e,
                 ),
@@ -192,9 +192,9 @@ class FlextCliDebug(FlextCliServiceBase):
                 ),
                 FlextCliConstants.Cli.DebugDictKeys.CHECKS_PASSED: True,
             }
-            return r[dict[str, FlextCliTypes.GeneralValueType]].ok(health_info)
+            return r[Mapping[str, FlextCliTypes.GeneralValueType]].ok(health_info)
         except Exception as e:
-            return r[dict[str, FlextCliTypes.GeneralValueType]].fail(
+            return r[Mapping[str, FlextCliTypes.GeneralValueType]].fail(
                 FlextCliConstants.Cli.DebugErrorMessages.HEALTH_CHECK_FAILED.format(
                     error=e,
                 ),
@@ -217,9 +217,9 @@ class FlextCliDebug(FlextCliServiceBase):
                     "id",
                 ),
             }
-            return r[dict[str, FlextCliTypes.GeneralValueType]].ok(trace_info)
+            return r[Mapping[str, FlextCliTypes.GeneralValueType]].ok(trace_info)
         except Exception as e:
-            return r[dict[str, FlextCliTypes.GeneralValueType]].fail(
+            return r[Mapping[str, FlextCliTypes.GeneralValueType]].fail(
                 FlextCliConstants.Cli.DebugErrorMessages.TRACE_EXECUTION_FAILED.format(
                     error=e,
                 ),
@@ -257,9 +257,9 @@ class FlextCliDebug(FlextCliServiceBase):
                 FlextCliConstants.Cli.DebugDictKeys.ENVIRONMENT_INFO: environment_info_json,
                 FlextCliConstants.Cli.DebugDictKeys.CONNECTIVITY_STATUS: FlextCliConstants.Cli.ServiceStatus.CONNECTED.value,
             }
-            return r[dict[str, FlextCliTypes.GeneralValueType]].ok(debug_info)
+            return r[Mapping[str, FlextCliTypes.GeneralValueType]].ok(debug_info)
         except Exception as e:
-            return r[dict[str, FlextCliTypes.GeneralValueType]].fail(
+            return r[Mapping[str, FlextCliTypes.GeneralValueType]].fail(
                 FlextCliConstants.Cli.DebugErrorMessages.DEBUG_INFO_COLLECTION_FAILED.format(
                     error=e,
                 ),
@@ -274,9 +274,9 @@ class FlextCliDebug(FlextCliServiceBase):
                     info_model,
                 )
             )
-            return r[dict[str, FlextCliTypes.GeneralValueType]].ok(info_dict)
+            return r[Mapping[str, FlextCliTypes.GeneralValueType]].ok(info_dict)
         except Exception as e:
-            return r[dict[str, FlextCliTypes.GeneralValueType]].fail(
+            return r[Mapping[str, FlextCliTypes.GeneralValueType]].fail(
                 FlextCliConstants.Cli.DebugErrorMessages.SYSTEM_INFO_COLLECTION_FAILED.format(
                     error=e,
                 ),
@@ -303,9 +303,9 @@ class FlextCliDebug(FlextCliServiceBase):
             paths_dict: dict[str, FlextCliTypes.GeneralValueType] = {
                 "paths": serialized_paths,
             }
-            return r[dict[str, FlextCliTypes.GeneralValueType]].ok(paths_dict)
+            return r[Mapping[str, FlextCliTypes.GeneralValueType]].ok(paths_dict)
         except Exception as e:
-            return r[dict[str, FlextCliTypes.GeneralValueType]].fail(
+            return r[Mapping[str, FlextCliTypes.GeneralValueType]].fail(
                 FlextCliConstants.Cli.DebugErrorMessages.SYSTEM_PATHS_COLLECTION_FAILED.format(
                     error=e,
                 ),

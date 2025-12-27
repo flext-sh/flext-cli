@@ -12,6 +12,7 @@ SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
+from flext_core import FlextTypes as t
 
 import tempfile
 from collections.abc import Generator

@@ -118,24 +118,11 @@ class FlextCliOutput:
     def to_json(v: t.GeneralValueType) -> t.GeneralValueType:
         """Convert value to JSON-compatible using build DSL."""
         if isinstance(v, dict):
-            result = FlextCliUtilities.build(
+            return FlextCliUtilities.build(
                 v,
                 ops={"ensure": "dict", "transform": {"to_json": True}},
                 on_error="skip",
             )
-            # Type narrowing: FlextCliUtilities.build returns object, need to check if it's FlextResult
-            if (
-                hasattr(result, "is_success")
-                and hasattr(result, "value")
-                and isinstance(result, r)
-            ):
-                return result.map_or(v)
-            # If not FlextResult, assume it's the converted value
-            # Type narrowing: result is already t.GeneralValueType from FlextCliUtilities.build
-            # FlextCliUtilities.build returns object, but we know it's t.GeneralValueType compatible
-            if isinstance(result, (str, int, float, bool, type(None), dict, list)):
-                return result
-            return str(result)
         return v
 
     @staticmethod
@@ -287,7 +274,7 @@ class FlextCliOutput:
 
     @staticmethod
     def _is_rich_table_protocol(
-        obj: t.GeneralValueType,
+        obj: object,
     ) -> TypeGuard[p.Cli.Display.RichTableProtocol]:
         """Type guard to check if object implements RichTableProtocol."""
         return (
@@ -298,7 +285,7 @@ class FlextCliOutput:
 
     @staticmethod
     def _is_rich_progress_protocol(
-        obj: t.GeneralValueType,
+        obj: object,
     ) -> TypeGuard[p.Cli.Interactive.RichProgressProtocol]:
         """Type guard to check if object implements RichProgressProtocol."""
         return (
@@ -310,14 +297,14 @@ class FlextCliOutput:
 
     @staticmethod
     def _is_rich_tree_protocol(
-        obj: t.GeneralValueType,
+        obj: object,
     ) -> TypeGuard[p.Cli.Display.RichTreeProtocol]:
         """Type guard to check if object implements RichTreeProtocol."""
         return hasattr(obj, "add") and hasattr(obj, "label")
 
     @staticmethod
     def _is_rich_console_protocol(
-        obj: t.GeneralValueType,
+        obj: object,
     ) -> TypeGuard[p.Cli.Display.RichConsoleProtocol]:
         """Type guard to check if object implements RichConsoleProtocol."""
         return hasattr(obj, "print") and hasattr(obj, "rule")
@@ -456,13 +443,10 @@ class FlextCliOutput:
                 return r[str].fail(FlextCliConstants.Cli.ErrorMessages.NO_DATA_PROVIDED)
             # Use build() DSL: filter → validate → process → ensure list
             # Type narrowing: is_list_like ensures data is Sequence-like
-            if isinstance(data, (list, tuple)):
-                data_list: list[t.GeneralValueType] = list(data)
-            elif isinstance(data, Sequence):
-                data_list = list(data)
-            else:
-                # Should not happen if is_list_like is correct, but type checker needs this
-                data_list = [data] if data is not None else []
+            # All Sequence-like types can be converted to list
+            data_list: list[t.GeneralValueType] = (
+                list(data) if isinstance(data, Sequence) else [data]
+            )
             dict_items = FlextCliUtilities.filter(
                 data_list, predicate=FlextRuntime.is_dict_like
             )
@@ -1531,18 +1515,12 @@ class FlextCliOutput:
         # Direct list return
         if isinstance(data, list):
             return data
-        # Sequence types (tuple, Sequence)
-        if isinstance(data, (tuple, Sequence)):
+        # Sequence types (tuple, Sequence) - includes str but handled as single value
+        if isinstance(data, (tuple, Sequence)) and not isinstance(data, str):
             return list(data)
         # Dict returns items
         if isinstance(data, dict):
             return list(data.items())
-        # Data is already a list, so it's iterable and sequence
-        # Other iterables - convert with type narrowing
-        # Type narrowing: data is iterable (has __iter__) and not a non-iterable type
-        # Verify it's Sequence or other iterable before converting
-        if isinstance(data, Sequence):
-            return list(data)
         # For other iterables, use helper method
         # Type narrowing: data has __iter__ and is not a non-iterable type, so it's Iterable
         # Use runtime check to verify it's iterable before converting

@@ -13,6 +13,7 @@ SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
+from flext_core import FlextTypes as t
 
 from typing import TypeVar
 
@@ -200,7 +201,7 @@ class TestsCliMixins:
         self,
         step: dict[
             str,
-            str | int | float | bool | dict[str, object] | list[object] | None,
+            str | int | float | bool | dict[str, t.GeneralValueType] | list[t.GeneralValueType] | None,
         ]
         | None,
     ) -> None:
@@ -228,7 +229,7 @@ class TestsCliMixins:
         self,
         step: dict[
             str,
-            str | int | float | bool | dict[str, object] | list[object] | None,
+            str | int | float | bool | dict[str, t.GeneralValueType] | list[t.GeneralValueType] | None,
         ],
     ) -> None:
         """Test pipeline step validation with invalid name."""

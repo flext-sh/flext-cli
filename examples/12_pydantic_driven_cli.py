@@ -29,7 +29,7 @@ from __future__ import annotations
 import time
 
 from example_utils import display_config_table, display_success_summary
-from flext_core import FlextResult
+from flext_core import FlextResult, FlextTypes as t
 from pydantic import BaseModel, Field, field_validator
 
 from flext_cli import FlextCli, m, r, t, u
@@ -312,7 +312,7 @@ def create_database_config_from_cli() -> r[AdvancedDatabaseConfig]:
     )
 
     # Simulate CLI argument collection (normally from Click decorators)
-    cli_args: dict[str, object] = {
+    cli_args: dict[str, t.GeneralValueType] = {
         "host": "db.example.com",
         "port": 5432,
         "name": "production_db",
@@ -346,7 +346,9 @@ def create_database_config_from_cli() -> r[AdvancedDatabaseConfig]:
     return r[AdvancedDatabaseConfig].ok(tested_config)
 
 
-def validate_required_fields(data: dict[str, object]) -> dict[str, object]:
+def validate_required_fields(
+    data: dict[str, t.GeneralValueType],
+) -> dict[str, t.GeneralValueType]:
     """Validate that all required fields are present."""
     required = ["host", "name", "username", "password"]
     missing = [field for field in required if field not in data or not data[field]]
@@ -359,11 +361,11 @@ def validate_required_fields(data: dict[str, object]) -> dict[str, object]:
 
 
 def convert_and_validate_with_pydantic(
-    data: dict[str, object],
+    data: dict[str, t.GeneralValueType],
 ) -> FlextResult[AdvancedDatabaseConfig]:
     """Convert raw data to validated Pydantic model."""
     try:
-        # Convert dict[str, object] to proper types for Pydantic
+        # Convert dict[str, t.GeneralValueType] to proper types for Pydantic
         # Pydantic will handle type conversion, but we need to ensure
         # types are compatible
         port_value = data.get("port", 5432)
@@ -377,7 +379,7 @@ def convert_and_validate_with_pydantic(
 
         # Build config dict with proper types - Pydantic will validate
         # Business Rule: Type conversion MUST use proper type annotations
-        # Architecture: Pydantic accepts dict[str, object] at runtime, but we ensure proper types
+        # Architecture: Pydantic accepts dict[str, t.GeneralValueType] at runtime, but we ensure proper types
         # Audit Implication: Type conversion is validated by Pydantic before model creation
         converted_data: dict[str, str | int | bool] = {
             "host": str(data.get("host", "localhost")),

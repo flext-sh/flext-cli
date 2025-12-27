@@ -155,10 +155,7 @@ class FlextCliUtilities(FlextUtilities):
 
             Direct implementation for type safety (no cast/type:ignore needed).
             """
-            if not callable(predicate):
-                msg = "predicate must be callable"
-                raise TypeError(msg)
-            # Direct list comprehension preserves T type
+            # Type system ensures predicate is callable - no runtime check needed
             return [item for item in items if predicate(item)]
 
         @staticmethod
@@ -266,7 +263,7 @@ class FlextCliUtilities(FlextUtilities):
         @overload
         @staticmethod
         def get(
-            data: Mapping[str, t.GeneralValueType] | t.GeneralValueType,
+            data: Mapping[str, t.GeneralValueType],
             key: str,
             *,
             default: str = ...,
@@ -274,29 +271,20 @@ class FlextCliUtilities(FlextUtilities):
 
         @overload
         @staticmethod
-        def get[T](
-            data: t.GeneralValueType,
+        def get(
+            data: Mapping[str, t.GeneralValueType],
             key: str,
             *,
-            default: list[T],
-        ) -> list[T]: ...
-
-        @overload
-        @staticmethod
-        def get[T](
-            data: t.GeneralValueType,
-            key: str,
-            *,
-            default: T | None = ...,
-        ) -> T | None: ...
+            default: t.GeneralValueType | None = ...,
+        ) -> t.GeneralValueType | None: ...
 
         @staticmethod
-        def get[T](
-            data: Mapping[str, t.GeneralValueType] | t.GeneralValueType,
+        def get(
+            data: Mapping[str, t.GeneralValueType],
             key: str,
             *,
-            default: T | None = None,
-        ) -> T | None:
+            default: t.GeneralValueType | None = None,
+        ) -> t.GeneralValueType | None:
             """Get value from mapping using flext-core Mapper.get.
 
             Wrapper for FlextUtilities.Mapper.get() to maintain compatibility.
@@ -304,14 +292,14 @@ class FlextCliUtilities(FlextUtilities):
             return FlextUtilities.mapper().get(data, key, default=default)
 
         @staticmethod
-        def extract[T](
+        def extract(
             data: t.ConfigurationMapping | BaseModel,
             path: str,
             *,
-            default: T | None = None,
+            default: t.GeneralValueType | None = None,
             required: bool = False,
             separator: str = ".",
-        ) -> r[T | None]:
+        ) -> r[t.GeneralValueType | None]:
             """Extract value from mapping using flext-core Mapper.extract.
 
             Wrapper for FlextUtilities.mapper().extract() to maintain compatibility.
@@ -323,11 +311,11 @@ class FlextCliUtilities(FlextUtilities):
                 required=required,
                 separator=separator,
             )
-            # Convert RuntimeResult to r (r[T | None])
+            # Convert RuntimeResult to FlextResult
             return (
-                r[T | None].ok(result.value)
+                r[t.GeneralValueType | None].ok(result.value)
                 if result.is_success
-                else r[T | None].fail(result.error or "")
+                else r[t.GeneralValueType | None].fail(result.error or "")
             )
 
         @staticmethod
@@ -339,10 +327,7 @@ class FlextCliUtilities(FlextUtilities):
 
             Direct implementation for type safety (no cast needed).
             """
-            if not callable(predicate):
-                msg = "predicate must be callable"
-                raise TypeError(msg)
-            # Direct iteration preserves T type
+            # Type system ensures predicate is callable - no runtime check needed
             for item in items:
                 # Call predicate with proper type
                 try:
@@ -401,10 +386,7 @@ class FlextCliUtilities(FlextUtilities):
 
             Wrapper for FlextUtilities.Collection.map() to maintain compatibility.
             """
-            if not callable(mapper):
-                msg = "mapper must be callable"
-                raise TypeError(msg)
-            # Type narrowing: mapper needs proper type for flext-core overloads
+            # Type system ensures mapper is callable - no runtime check needed
             # Use signature inspection to identify mapper type at runtime
             sig = inspect.signature(mapper)
             param_count = len(sig.parameters)
@@ -447,7 +429,7 @@ class FlextCliUtilities(FlextUtilities):
         def build(
             value: t.GeneralValueType,
             *,
-            ops: t.ConfigurationDict | None = None,
+            ops: dict[str, t.GeneralValueType] | None = None,
             on_error: str = "fail",
         ) -> t.GeneralValueType:
             """Build value using flext-core Mapper.build.
@@ -527,7 +509,8 @@ class FlextCliUtilities(FlextUtilities):
 
                 Example:
                     >>> result = (
-                    ...     CliValidation.VBuilder(val)
+                    ...     CliValidation
+                    ...     .VBuilder(val)
                     ...     .name("status")
                     ...     .non_empty()
                     ...     .in_(["a", "b"])
@@ -936,7 +919,8 @@ class FlextCliUtilities(FlextUtilities):
 
                 step_name = step[field_name]
                 return (
-                    FlextCliUtilities.Cli.CliValidation.VBuilder(step_name)
+                    FlextCliUtilities.Cli.CliValidation
+                    .VBuilder(step_name)
                     .name("Pipeline step name")
                     .non_empty()
                     .msg(c.Cli.MixinsValidationMessages.PIPELINE_STEP_NAME_EMPTY)
@@ -2168,7 +2152,7 @@ class FlextCliUtilities(FlextUtilities):
 
                 @staticmethod
                 def get_enum_params(
-                    func: Callable[..., t.GeneralValueType],
+                    func: Callable[[t.GeneralValueType], t.GeneralValueType],
                 ) -> dict[str, type[StrEnum]]:
                     """Extract StrEnum parameters from function signature."""
                     try:

@@ -27,7 +27,7 @@ from typing import TypeVar
 
 import pytest
 import yaml
-from flext_core import FlextResult
+from flext_core import FlextTypes as t, FlextResult
 from flext_tests import tm
 from pydantic import BaseModel
 
@@ -372,11 +372,11 @@ class TestsCliOutput:
     ) -> None:
         """Test formatting as tree."""
         # Convert dict to t.GeneralValueType for format_as_tree
-        # dict[str, JsonValue] needs to be converted to dict[str, object] first
+        # dict[str, JsonValue] needs to be converted to dict[str, t.GeneralValueType] first
         # Convert each value to ensure type compatibility
-        converted_data: dict[str, object] = {}
+        converted_data: dict[str, t.GeneralValueType] = {}
         for key, value in sample_data.items():
-            # Convert JsonValue to object for dict[str, object]
+            # Convert JsonValue to object for dict[str, t.GeneralValueType]
             if isinstance(value, (str, int, float, bool, type(None))):
                 converted_data[key] = value
             elif isinstance(value, dict):
@@ -385,8 +385,8 @@ class TestsCliOutput:
                 converted_data[key] = list(value)
             else:
                 converted_data[key] = str(value)
-        # dict[str, object] is part of t.GeneralValueType union
-        # Type narrowing: dict[str, object] is compatible with t.GeneralValueType
+        # dict[str, t.GeneralValueType] is part of t.GeneralValueType union
+        # Type narrowing: dict[str, t.GeneralValueType] is compatible with t.GeneralValueType
         if not isinstance(
             converted_data, (dict, list, str, int, float, bool, type(None))
         ):
@@ -681,8 +681,8 @@ class TestsCliOutput:
             | str
             | float
             | bool
-            | dict[str, object]
-            | list[object]
+            | dict[str, t.GeneralValueType]
+            | list[t.GeneralValueType]
             | None,
             format_type: str,
         ) -> None:
@@ -714,8 +714,8 @@ class TestsCliOutput:
             | str
             | float
             | bool
-            | dict[str, object]
-            | list[object]
+            | dict[str, t.GeneralValueType]
+            | list[t.GeneralValueType]
             | None,
             format_type: str,
         ) -> None:
@@ -759,8 +759,8 @@ class TestsCliOutput:
             | str
             | float
             | bool
-            | dict[str, object]
-            | list[object]
+            | dict[str, t.GeneralValueType]
+            | list[t.GeneralValueType]
             | None,
             fmt: str,
         ) -> None:
@@ -802,8 +802,8 @@ class TestsCliOutput:
             | str
             | float
             | bool
-            | dict[str, object]
-            | list[object]
+            | dict[str, t.GeneralValueType]
+            | list[t.GeneralValueType]
             | None,
             fmt: str,
         ) -> None:
@@ -905,8 +905,8 @@ class TestsCliOutput:
             | str
             | float
             | bool
-            | dict[str, object]
-            | list[object]
+            | dict[str, t.GeneralValueType]
+            | list[t.GeneralValueType]
             | None,
             format_type: str,
         ) -> None:
@@ -1120,7 +1120,7 @@ class TestsCliOutput:
 
     def test_display_data_dict(self, output: FlextCliOutput) -> None:
         """Test display_data with dictionary (lines 530-549)."""
-        data: t.ConfigurationDict = {"name": "Alice", "age": 30}
+        data: dict[str, t.GeneralValueType] = {"name": "Alice", "age": 30}
         transform_result = u.transform(data, to_json=True)
         json_value: t.GeneralValueType = transform_result.map_or(data)
         result = output.display_data(json_value, format_type="json")
@@ -1225,7 +1225,7 @@ class TestsCliOutput:
 
     def test_format_data_plain(self, output: FlextCliOutput) -> None:
         """Test format_data with plain format (line 138)."""
-        data: t.ConfigurationDict = {"test": "value"}
+        data: dict[str, t.GeneralValueType] = {"test": "value"}
         transform_result = u.transform(data, to_json=True)
         json_value: t.GeneralValueType = transform_result.map_or(data)
         result = output.format_data(json_value, format_type="plain")
@@ -1261,7 +1261,7 @@ class TestsCliOutput:
         """Test create_rich_table with invalid data types."""
         # Test with data that may cause issues
         # Type narrowing: list[dict[str, None | list]] is compatible with list[dict[str, t.GeneralValueType]]
-        raw_data: list[dict[str, list[object] | None]] = [{"key": None, "value": []}]
+        raw_data: list[dict[str, list[t.GeneralValueType] | None]] = [{"key": None, "value": []}]
         data: list[dict[str, t.GeneralValueType]] = []
         for d in raw_data:
             if isinstance(d, dict):
@@ -1288,7 +1288,7 @@ class TestsCliOutput:
 
     def test_display_data_title_not_string(self, output: FlextCliOutput) -> None:
         """Test display_data when title is not string (lines 531-532)."""
-        data: t.ConfigurationDict = {"key": "value"}
+        data: dict[str, t.GeneralValueType] = {"key": "value"}
         transform_result = u.transform(data, to_json=True)
         json_value: t.GeneralValueType = transform_result.map_or(data)
         result = output.display_data(
@@ -1323,7 +1323,7 @@ class TestsCliOutput:
     def test_display_data_with_invalid_format(self, output: FlextCliOutput) -> None:
         """Test display_data with invalid format type."""
         # Test with format that doesn't exist
-        data: t.ConfigurationDict = {"key": "value"}
+        data: dict[str, t.GeneralValueType] = {"key": "value"}
         transform_result = u.transform(data, to_json=True)
         json_value: t.GeneralValueType = transform_result.map_or(data)
         result = output.display_data(json_value, format_type="invalid_format_xyz")
@@ -1333,7 +1333,7 @@ class TestsCliOutput:
     def test_format_yaml_with_complex_data(self, output: FlextCliOutput) -> None:
         """Test format_yaml with complex nested data structures."""
         # Test with complex data that may cause issues
-        data: t.ConfigurationDict = {
+        data: dict[str, t.GeneralValueType] = {
             "key": "value",
             "nested": {"deep": {"very_deep": [1, 2, 3]}},
             "list": [{"item": 1}, {"item": 2}],
@@ -1373,8 +1373,8 @@ class TestsCliOutput:
         assert "Alice" in csv_str
 
     def test_format_csv_single_dict_success(self, output: FlextCliOutput) -> None:
-        """Test format_csv with single dict[str, object] (lines 619-625)."""
-        data: t.ConfigurationDict = {"name": "Alice", "age": 30}
+        """Test format_csv with single dict[str, t.GeneralValueType] (lines 619-625)."""
+        data: dict[str, t.GeneralValueType] = {"name": "Alice", "age": 30}
         transform_result = u.transform(data, to_json=True)
         json_value: t.GeneralValueType = transform_result.map_or(data)
         result = output.format_csv(json_value)
@@ -1674,7 +1674,7 @@ class TestsCliOutput:
 
         obj_dict = {"key": ComplexValue(), "normal": "value"}
         # _format_dict_object accepts t.GeneralValueType | r[t.GeneralValueType]
-        # dict[str, object] is compatible with t.GeneralValueType
+        # dict[str, t.GeneralValueType] is compatible with t.GeneralValueType
         if not isinstance(obj_dict, (dict, list, str, int, float, bool, type(None))):
             msg = "obj_dict must be t.GeneralValueType compatible"
             raise TypeError(msg)

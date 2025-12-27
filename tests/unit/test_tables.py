@@ -12,6 +12,7 @@ SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
+from flext_core import FlextTypes as t
 
 import operator
 from dataclasses import dataclass
@@ -372,7 +373,7 @@ class TestsCliTables:
                 data = test_data[test_case.data_key]
                 # Type narrowing: test_case.config is JsonDict
                 # Use model_validate for proper type conversion (Pydantic handles validation)
-                # Business Rule: Pydantic model_validate accepts dict[str, object] and validates types
+                # Business Rule: Pydantic model_validate accepts dict[str, t.GeneralValueType] and validates types
                 config = m.Cli.TableConfig.model_validate(test_case.config)
                 # Convert data to t.Cli.TableData - ensure it's Iterable[Sequence | Mapping]
                 table_data = (data,)
@@ -394,7 +395,7 @@ class TestsCliTables:
                 data = test_data[test_case.data_key]
                 # Type narrowing: test_case.config is JsonDict
                 # Use model_validate for proper type conversion (Pydantic handles validation)
-                # Business Rule: Pydantic model_validate accepts dict[str, object] and validates types
+                # Business Rule: Pydantic model_validate accepts dict[str, t.GeneralValueType] and validates types
                 config = m.Cli.TableConfig.model_validate(test_case.config)
                 # Convert data to t.Cli.TableData - ensure it's Iterable[Sequence | Mapping]
                 table_data = (data,)
@@ -448,9 +449,9 @@ class TestsCliTables:
         """Test execute method following FlextService pattern."""
         result = tables.execute()
         tm.ok(result)
-        # execute() returns service status
+        # execute() returns dict (base class constraint)
         assert isinstance(result.value, dict)
-        assert "status" in result.value
+        assert result.value["status"] == "table_service_ready"
 
     def test_integration_workflow_with_multiple_formats(
         self,

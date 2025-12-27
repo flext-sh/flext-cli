@@ -51,8 +51,10 @@ class FlextCommandBuilder:
         self._name = name
         self._options: list[OptionInfo] = []
         self._arguments: list[tuple[str, type, bool]] = []  # (name, type, required)
-        self._middleware: list[Callable[[p.Cli.CliContextProtocol], r[object]]] = []
-        self._handler: Callable[..., r[object]] | None = None
+        self._middleware: list[
+            Callable[[p.Cli.CliContextProtocol], r[t.GeneralValueType]]
+        ] = []
+        self._handler: p.Cli.CommandHandlerCallable | None = None
 
     @staticmethod
     def _create_option_info(
@@ -68,12 +70,6 @@ class FlextCommandBuilder:
         """
         # Validate required parameters
         validated_param_decls = param_decls if param_decls is not None else []
-        if not isinstance(validated_param_decls, list):
-            msg = "param_decls must be a list"
-            raise TypeError(msg)
-        if not isinstance(help_text, str):
-            msg = "help_text must be a string"
-            raise TypeError(msg)
         # Build validated kwargs with proper types for OptionInfo
         # OptionInfo constructor expects specific types for known parameters
         # Type narrowing: validate types match OptionInfo signature
@@ -169,7 +165,7 @@ class FlextCommandBuilder:
 
     def with_middleware(
         self,
-        middleware: Callable[[p.Cli.CliContextProtocol], r[object]],
+        middleware: Callable[[p.Cli.CliContextProtocol], r[t.GeneralValueType]],
     ) -> Self:
         """Add middleware (logging, auth, validation).
 
@@ -183,7 +179,7 @@ class FlextCommandBuilder:
         self._middleware.append(middleware)
         return self
 
-    def handler(self, func: Callable[..., r[object]]) -> Self:
+    def handler(self, func: p.Cli.CommandHandlerCallable) -> Self:
         """Set command handler.
 
         Args:

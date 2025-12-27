@@ -308,12 +308,20 @@ class FlextCliCli:
         def get_bool(k: str) -> bool | None:
             """Extract bool value from filtered params."""
             value = u.mapper().get(filtered_params, k)
+            # mapper returns "" for missing keys, so check for both None and ""
+            # Use isinstance check to avoid catching False as falsey
+            if value is None or (isinstance(value, str) and not value):
+                return None
             result = self._extract_typed_value(value, "bool")
             return result if isinstance(result, (bool, type(None))) else None
 
         def get_str(k: str) -> str | None:
             """Extract str value from filtered params."""
             value = u.mapper().get(filtered_params, k)
+            # mapper returns "" for missing keys, so check for both None and ""
+            # Use isinstance check to avoid catching False as falsey
+            if value is None or (isinstance(value, str) and not value):
+                return None
             result = self._extract_typed_value(value, "str")
             return result if isinstance(result, (str, type(None))) else None
 
@@ -473,12 +481,7 @@ class FlextCliCli:
         # Click group decorator returns compatible type with CliCommandFunction protocol
         # _create_cli_decorator returns Command | Group, but we know it's Group when entity_type is "group"
         decorator = self._create_cli_decorator("group", name, help_text)
-        # Type narrowing: decorator is Callable compatible with click.Group
-        if not callable(decorator):
-            msg = "decorator must be callable"
-            raise TypeError(msg)
-        # Type narrowing: when entity_type is "group", decorator returns click.Group
-        # Create wrapper that ensures return type is click.Group
+        # decorator is always callable, create wrapper that ensures return type is click.Group
 
         def group_decorator(func: p.Cli.CliCommandFunction) -> click.Group:
             result = decorator(func)
@@ -539,19 +542,19 @@ class FlextCliCli:
         if type_hint_build is None:
             return None
         # Check for t.GeneralValueType compatible types
+        # Empty string means no type hint was provided - return None
         if isinstance(type_hint_build, str):
+            if not type_hint_build:
+                return None
+            return type_hint_build
+        # Check bool before int (bool is subclass of int)
+        if isinstance(type_hint_build, bool):
             return type_hint_build
         if isinstance(type_hint_build, int):
             return type_hint_build
         if isinstance(type_hint_build, float):
             return type_hint_build
-        if isinstance(type_hint_build, bool):
-            return type_hint_build
-        if isinstance(type_hint_build, list):
-            return type_hint_build
-        if isinstance(type_hint_build, tuple):
-            return type_hint_build
-        if isinstance(type_hint_build, dict):
+        if isinstance(type_hint_build, (list, tuple, dict)):
             return type_hint_build
         # Convert other types (including type objects) to string
         return str(type_hint_build)
@@ -621,11 +624,7 @@ class FlextCliCli:
                 raise TypeError(msg)
             config = config_instance  # Type checked by _is_option_config_protocol above
 
-        # Type narrowing: config is not None after assignment
-        if config is None:
-            msg = "config cannot be None"
-            raise ValueError(msg)
-
+        # Type system ensures config is not None after assignment
         # Use Click directly (cli.py is ONLY file that may import Click)
         # Use safe attribute access since config may not have all attributes
         decorator = click.option(
@@ -866,26 +865,14 @@ class FlextCliCli:
         """
         # click.pass_context returns a decorator that satisfies
         # CliCommandFunction protocol
-        # Type narrowing: click.pass_context is a decorator function
-        if not callable(click.pass_context):
-            msg = "click.pass_context must be callable"
-            raise TypeError(msg)
-        # Create wrapper to ensure return type matches signature
+        # click.pass_context is always callable, create wrapper
 
         def pass_context_wrapper(
             func: Callable[[click.Context], t.GeneralValueType],
         ) -> Callable[[click.Context], t.GeneralValueType]:
             # click.pass_context wraps function to pass context as first argument
             decorated = click.pass_context(func)
-            # Runtime validation: decorated function should accept context
-            if not callable(decorated):
-                msg = "decorated function must be callable"
-                raise TypeError(msg)
-            # Type narrowing: decorated function matches signature
-            # click.pass_context returns a function that matches our signature
-            # Runtime validation confirms compatibility
-            # Type narrowing: decorated is Callable[[click.Context], t.GeneralValueType]
-            # Create wrapper that ensures type safety
+            # decorated is always callable, create wrapper for type safety
 
             def typed_decorated(_ctx: click.Context) -> t.GeneralValueType:
                 # click.pass_context returns a function that injects context automatically
@@ -936,7 +923,9 @@ class FlextCliCli:
         def get_bool_val(k: str, *, default: bool = False) -> bool:
             """Get bool value with default."""
             val = u.mapper().get(kwargs, k)
-            if val is None:
+            # mapper returns "" for missing keys, so check for both None and ""
+            # Use isinstance check to avoid catching False as falsey
+            if val is None or (isinstance(val, str) and not val):
                 return default
             build_result = u.build(
                 val,
@@ -950,7 +939,9 @@ class FlextCliCli:
         def get_str_val(k: str, default: str = "") -> str:
             """Get str value with default."""
             val = u.mapper().get(kwargs, k)
-            if val is None:
+            # mapper returns "" for missing keys, so check for both None and ""
+            # Use isinstance check to avoid catching False as falsey
+            if val is None or (isinstance(val, str) and not val):
                 return default
             build_result = u.build(
                 val,
@@ -1017,10 +1008,7 @@ class FlextCliCli:
                 raise TypeError(msg)
             config = config_instance
 
-        # Type narrowing: config is not None after assignment
-        if config is None:
-            msg = "config cannot be None"
-            raise ValueError(msg)
+        # Type system ensures config is not None after assignment
 
         try:
             result = typer.confirm(
@@ -1048,7 +1036,9 @@ class FlextCliCli:
         def get_bool_val(k: str, *, default: bool = False) -> bool:
             """Get bool value with default."""
             val = u.mapper().get(kwargs, k)
-            if val is None:
+            # mapper returns "" for missing keys, so check for both None and ""
+            # Use isinstance check to avoid catching False as falsey
+            if val is None or (isinstance(val, str) and not val):
                 return default
             build_result = u.build(
                 val,
@@ -1062,7 +1052,9 @@ class FlextCliCli:
         def get_str_val(k: str, default: str = "") -> str:
             """Get str value with default."""
             val = u.mapper().get(kwargs, k)
-            if val is None:
+            # mapper returns "" for missing keys, so check for both None and ""
+            # Use isinstance check to avoid catching False as falsey
+            if val is None or (isinstance(val, str) and not val):
                 return default
             build_result = u.build(
                 val,
@@ -1131,11 +1123,7 @@ class FlextCliCli:
                 raise TypeError(msg)
             config = config_instance
 
-        # Type narrowing: config is not None after assignment
-        if config is None:
-            msg = "config cannot be None"
-            raise ValueError(msg)
-
+        # Type system ensures config is not None after assignment
         # Note: config is already properly typed via _build_prompt_config_from_kwargs
         # and validated via _is_prompt_config_protocol above
 
@@ -1369,13 +1357,7 @@ class FlextCliCli:
             raise TypeError(msg)
 
         # Handler can return t.GeneralValueType or r[t.GeneralValueType]
-        # Validate model_class is a type and handler is callable
-        if not isinstance(model_class, type):
-            msg = "model_class must be a type"
-            raise TypeError(msg)
-        if not callable(handler):
-            msg = "handler must be callable"
-            raise TypeError(msg)
+        # Type system ensures model_class is type[BaseModel] and handler is callable
         # Create wrapper that normalizes return type
         # Handler accepts BaseModel, returns t.GeneralValueType or r[t.GeneralValueType]
 
@@ -1404,12 +1386,7 @@ class FlextCliCli:
             # Type narrowing: result is t.GeneralValueType (not r[t.GeneralValueType])
             return result
 
-        # Type narrowing: model_class is type[FlextCliModelT] which extends BaseModel
-        # Runtime validation: ensure model_class extends BaseModel (required for ModelCommandBuilder)
-        # FlextCliModelT is bound to BaseModel, so any BaseModel subclass is valid
-        if not issubclass(model_class, BaseModel):
-            msg = "model_class must be a BaseModel subclass"
-            raise TypeError(msg)
+        # Type system ensures model_class is type[BaseModel]
         builder = m.Cli.ModelCommandBuilder(
             model_class,
             normalized_handler,

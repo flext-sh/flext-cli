@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import FlextDecorators, FlextMixins, FlextResult, r
+from flext_core import FlextDecorators, FlextMixins, r
 
 from flext_cli.protocols import p
 from flext_cli.typings import t
@@ -157,47 +157,8 @@ class FlextCliMixins(FlextMixins):
 
             # Execute with composed decorators
             # Railway decorator ensures handler_result is always r[t.GeneralValueType]
-            handler_result = wrapped_handler(**context_data)
-
-            # Type narrowing: railway decorator ensures r return
-            # Handle both single and double-wrapped r cases
-            # Check if handler_result is not FlextResult first (fallback case)
-            if not isinstance(handler_result, FlextResult):  # pragma: no cover
-                # Fallback: wrap non-FlextResult returns (defensive coding)
-                # This path is unreachable if decorators work correctly but kept for runtime safety
-                # handler_result is not FlextResult at this point, convert to t.GeneralValueType
-                converted_handler_result: t.GeneralValueType
-                if isinstance(
-                    handler_result,
-                    (str, int, float, bool, type(None), dict, list),
-                ):
-                    converted_handler_result = handler_result
-                else:
-                    converted_handler_result = str(handler_result)
-                return r[t.GeneralValueType].ok(converted_handler_result)
-
-            # Check if it's a double-wrapped r[r[...]]
-            if handler_result.is_success:
-                inner_value = handler_result.value
-                if isinstance(inner_value, FlextResult):
-                    # Double-wrapped: unwrap inner FlextResult
-                    # Type narrowing: inner_value is r[t.GeneralValueType] after isinstance check
-                    return inner_value
-                # Single-wrapped with value: extract value and wrap in new FlextResult
-                # inner_value is not FlextResult at this point (after isinstance check)
-                # inner_value is object from unwrap - convert to t.GeneralValueType
-                converted_value: t.GeneralValueType  # pragma: no cover
-                if isinstance(
-                    inner_value,
-                    (str, int, float, bool, type(None), dict, list),
-                ):
-                    converted_value = inner_value
-                else:
-                    converted_value = str(inner_value)
-                return r[t.GeneralValueType].ok(converted_value)
-            # Failure case: unwrap and re-wrap to ensure correct type
-            error_msg = handler_result.error or "Unknown error"
-            return r[t.GeneralValueType].fail(error_msg)
+            # Return result directly (already correctly typed)
+            return wrapped_handler(**context_data)
 
 
 x = FlextCliMixins

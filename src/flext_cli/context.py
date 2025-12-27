@@ -14,11 +14,8 @@ import uuid
 from collections.abc import Mapping
 from datetime import UTC, datetime
 
-from flext_core import (
-    FlextModels as m_core,
-    FlextResult as r,
-)
-from pydantic import ConfigDict, Field, field_validator
+from flext_core import FlextResult as r
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import m
@@ -26,7 +23,7 @@ from flext_cli.typings import t
 from flext_cli.utilities import FlextCliUtilities
 
 
-class FlextCliContext(m_core.Value):
+class FlextCliContext(BaseModel):
     """CLI execution context with type-safe operations and FlextResult patterns.
 
     Business Rules:
@@ -494,11 +491,11 @@ class FlextCliContext(m_core.Value):
 
         return r[dict[str, t.JsonValue]].ok(summary)
 
-    def execute(self) -> r[dict[str, t.GeneralValueType]]:
+    def execute(self) -> r[m.Cli.ContextExecutionResult]:
         """Execute the CLI context.
 
         Returns:
-            FlextResult with ContextExecutionResult serialized as dict
+            FlextResult with ContextExecutionResult model
 
         """
         init_check = FlextCliContext._ensure_initialized(
@@ -506,7 +503,7 @@ class FlextCliContext(m_core.Value):
             FlextCliConstants.Cli.ContextErrorMessages.ARGUMENTS_NOT_INITIALIZED,
         )
         if init_check.is_failure:
-            return r[dict[str, t.GeneralValueType]].fail(init_check.error or "")
+            return r[m.Cli.ContextExecutionResult].fail(init_check.error or "")
 
         # Type narrowing: self.arguments is not None after _ensure_initialized check
         # Arguments are guaranteed to be not None after successful initialization check
@@ -519,18 +516,7 @@ class FlextCliContext(m_core.Value):
             timestamp=FlextCliUtilities.generate("timestamp"),
         )
 
-        # Use FlextCliUtilities.transform for JSON conversion
-        transform_result = FlextCliUtilities.transform(
-            result_model.model_dump(),
-            to_json=True,
-        )
-        # Use .value directly instead of deprecated .value
-        result_dict = (
-            transform_result.value
-            if transform_result.is_success
-            else result_model.model_dump()
-        )
-        return r[dict[str, t.GeneralValueType]].ok(result_dict)
+        return r[m.Cli.ContextExecutionResult].ok(result_model)
 
     def to_dict(self) -> r[Mapping[str, t.GeneralValueType]]:
         """Convert context to dictionary."""
@@ -547,7 +533,7 @@ class FlextCliContext(m_core.Value):
 
         for check in init_checks:
             if check.is_failure:
-                return r[dict[str, t.GeneralValueType]].fail(check.error or "")
+                return r[Mapping[str, t.GeneralValueType]].fail(check.error or "")
 
         # Convert all values to t.GeneralValueType for type safety
         result: dict[str, t.GeneralValueType] = {
@@ -566,7 +552,7 @@ class FlextCliContext(m_core.Value):
             FlextCliConstants.Cli.ContextDictKeys.TIMEOUT_SECONDS: self.timeout_seconds,
         }
 
-        return r[dict[str, t.GeneralValueType]].ok(result)
+        return r[Mapping[str, t.GeneralValueType]].ok(result)
 
 
 __all__ = ["FlextCliContext"]

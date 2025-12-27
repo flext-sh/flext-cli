@@ -16,7 +16,7 @@ from __future__ import annotations
 import time
 
 import pytest
-from flext_core import FlextResult
+from flext_core import FlextTypes as t, FlextResult
 
 from flext_cli import FlextCliDebug
 
@@ -67,7 +67,7 @@ class TestsCliDebug:
 
         assert isinstance(result, FlextResult)
         assert result.is_success
-        # get_system_paths() returns dict[str, object] with 'paths' key, not list
+        # get_system_paths() returns dict[str, t.GeneralValueType] with 'paths' key, not list
         paths_dict = result.value
         assert isinstance(paths_dict, dict)
         assert "paths" in paths_dict
@@ -140,7 +140,7 @@ class TestsCliDebug:
         result = debug.get_system_paths()
         assert result.is_success
 
-        # get_system_paths() returns dict[str, object] with 'paths' key, not list
+        # get_system_paths() returns dict[str, t.GeneralValueType] with 'paths' key, not list
         paths_dict = result.value
         assert isinstance(paths_dict, dict)
         assert "paths" in paths_dict

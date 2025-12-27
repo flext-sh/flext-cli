@@ -187,13 +187,8 @@ class FlextCliCommonParams:
         # Registry is dict[str, dict[str, str | int | bool | list[str]]]
         # OptionBuilder expects Mapping for type covariance
         builder = m.Cli.OptionBuilder(field_name, cls.CLI_PARAM_REGISTRY)
-        built_option = builder.build()
-        # OptionBuilder.build() returns object, cast to OptionInfo for type checker
-        if isinstance(built_option, OptionInfo):
-            return built_option
-        # Fallback: create OptionInfo if builder returns something else
-        # This branch is unreachable if OptionBuilder.build() works correctly
-        return OptionInfo(default=None)
+        # OptionBuilder.build() returns OptionInfo (mypy infers this correctly)
+        return builder.build()
 
     @classmethod
     def get_all_common_params(cls) -> Mapping[str, OptionInfo]:
@@ -293,12 +288,7 @@ class FlextCliCommonParams:
                 # params_instance implements CliParamsConfigProtocol structurally
                 params_to_use: p.Cli.CliParamsConfigProtocol = params_instance
             else:
-                # Use provided params parameter
-                # params is not None at this point (checked above), but mypy doesn't narrow
-                if params is None:
-                    return r[FlextCliSettings].fail(
-                        "params cannot be None when no kwargs provided",
-                    )
+                # Use provided params parameter (not None in this branch)
                 params_to_use = params
 
             # Apply all parameters - extracted helpers to reduce complexity
@@ -451,10 +441,7 @@ class FlextCliCommonParams:
 
         """
         try:
-            # Type narrowing: cli_log_level is LogLevel enum
-            # config.cli_log_level is validated above, but mypy doesn't narrow from validation
-            if config.cli_log_level is None:
-                return r[bool].fail("cli_log_level is not set")
+            # config.cli_log_level is str with default, never None
             log_level_upper = config.cli_log_level.upper()
 
             if log_level_upper not in c.Cli.Lists.LOG_LEVELS_LIST:

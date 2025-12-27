@@ -95,13 +95,7 @@ class FlextCliPrompts(FlextCliServiceBase):
         data["quiet"] = quiet
         data["default_timeout"] = default_timeout
 
-        # Convert data for super().__init__()
-        # FlextService.__init__ accepts **data: t.GeneralValueType
-        # Note: mypy has generic type inference issue with FlextService[JsonDict].__init__
-        # but runtime accepts dict[str, t.GeneralValueType] as **kwargs: t.GeneralValueType
-        if not isinstance(data, dict):
-            msg = "data must be dict"
-            raise TypeError(msg)
+        # Type system ensures **data is dict[str, t.GeneralValueType]
         # Pass data directly - FlextService base class accepts **kwargs: t.GeneralValueType
         s[dict[str, t.GeneralValueType]].__init__(self, **data)
 
@@ -667,7 +661,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 consequence="Statistics unavailable",
                 source="flext-cli/src/flext_cli/prompts.py",
             )
-            return r[dict[str, t.GeneralValueType]].fail(  # pragma: no cover
+            return r[Mapping[str, t.GeneralValueType]].fail(  # pragma: no cover
                 FlextCliConstants.Cli.PromptsErrorMessages.STATISTICS_COLLECTION_FAILED.format(
                     error=e,
                 ),

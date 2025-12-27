@@ -27,6 +27,8 @@ from __future__ import annotations
 import tempfile
 from pathlib import Path
 
+from flext_core import FlextTypes as t
+
 from flext_cli import FlextCli, FlextCliPrompts, r, t, u
 
 cli = FlextCli()
@@ -129,7 +131,7 @@ def test_file_operations() -> None:
         cli.output.print_message("   ❌ Config read should succeed", style="red")
         return
     loaded = read_result.value
-    # Type narrowing for dict[str, object] access
+    # Type narrowing for dict[str, t.GeneralValueType] access
     if isinstance(loaded, dict) and loaded.get("test") is not True:
         cli.output.print_message("   ❌ Config value mismatch", style="red")
         return

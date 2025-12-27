@@ -74,7 +74,7 @@ class ConfigFactory:
 
         # Create field annotations and defaults
         annotations: dict[str, type] = {}
-        class_dict: dict[str, object] = {
+        class_dict: dict[str, t.GeneralValueType] = {
             "model_config": SettingsConfigDict(env_prefix=prefix),
             "__annotations__": annotations,
         }
@@ -118,7 +118,7 @@ class ParamsFactory:
 
         # Create field annotations and defaults
         annotations: dict[str, type] = {}
-        class_dict: dict[str, object] = {
+        class_dict: dict[str, t.GeneralValueType] = {
             "model_config": {"populate_by_name": populate_by_name},
             "__annotations__": annotations,
         }
@@ -194,7 +194,7 @@ class ValidationHelper:
     def extract_config_values(
         config: BaseSettings,
         field_names: list[str],
-    ) -> dict[str, object]:
+    ) -> dict[str, t.GeneralValueType]:
         """Extract multiple field values from config.
 
         Args:
@@ -440,9 +440,9 @@ class FlextCliTestHelpers:
 
                     def __init__(self) -> None:
                         """Initialize config provider."""
-                        self.config: dict[str, object] = {}
+                        self.config: dict[str, t.GeneralValueType] = {}
 
-                    def load_config(self) -> r[dict[str, object]]:
+                    def load_config(self) -> r[dict[str, t.GeneralValueType]]:
                         """Load configuration."""
                         try:
                             return r.ok(self.config)
@@ -579,7 +579,7 @@ class FlextCliTestHelpers:
 
         @staticmethod
         def create_processing_test_data() -> r[
-            tuple[list[str], list[int], dict[str, object]]
+            tuple[list[str], list[int], dict[str, t.GeneralValueType]]
         ]:
             """Create test data for type processing scenarios.
 
@@ -590,7 +590,7 @@ class FlextCliTestHelpers:
             try:
                 string_list = ["hello", "world", "test"]
                 number_list = [1, 2, 3, 4, 5]
-                mixed_dict: dict[str, object] = {
+                mixed_dict: dict[str, t.GeneralValueType] = {
                     "key1": 123,
                     "key2": "value",
                     "key3": True,
@@ -601,7 +601,7 @@ class FlextCliTestHelpers:
                 return r.fail(f"Failed to create processing test data: {e!s}")
 
         @staticmethod
-        def create_typed_dict_data() -> r[dict[str, object]]:
+        def create_typed_dict_data() -> r[dict[str, t.GeneralValueType]]:
             """Create typed dict test data.
 
             Returns:
@@ -609,7 +609,7 @@ class FlextCliTestHelpers:
 
             """
             try:
-                user_data: dict[str, object] = {
+                user_data: dict[str, t.GeneralValueType] = {
                     "id": 1,
                     "name": "John Doe",
                     "email": "john@example.com",
@@ -620,7 +620,7 @@ class FlextCliTestHelpers:
                 return r.fail(f"Failed to create typed dict data: {e!s}")
 
         @staticmethod
-        def create_api_response_data() -> r[list[dict[str, object]]]:
+        def create_api_response_data() -> r[list[dict[str, t.GeneralValueType]]]:
             """Create API response test data.
 
             Returns:
@@ -628,7 +628,7 @@ class FlextCliTestHelpers:
 
             """
             try:
-                users_data: list[dict[str, object]] = [
+                users_data: list[dict[str, t.GeneralValueType]] = [
                     {
                         "id": 1,
                         "name": "Alice",

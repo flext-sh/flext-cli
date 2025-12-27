@@ -18,6 +18,7 @@ import click
 import pytest
 import typer
 from click.testing import CliRunner
+from flext_core import t
 from flext_tests import tm
 
 from flext_cli import FlextCliCli, r
@@ -136,7 +137,7 @@ class TestsCliCli:
     def test_click_type_creation(
         self,
         click_type_name: str,
-        data_dict: dict[str, object],
+        data_dict: dict[str, t.GeneralValueType],
     ) -> None:
         """Test Click type creation with various parameter types."""
         if click_type_name == "choice":
@@ -596,4 +597,3 @@ class TestsCliCli:
         # Verify that config was updated
         assert config.verbose is True
         assert config.debug is True
-

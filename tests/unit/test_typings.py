@@ -13,6 +13,7 @@ SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
+from flext_core import FlextTypes as t
 
 import math
 import threading
@@ -92,7 +93,7 @@ class TestsCliTypings:
             ]
 
         @staticmethod
-        def create_type_test_data() -> dict[str, object]:
+        def create_type_test_data() -> dict[str, t.GeneralValueType]:
             """Create test data for type operations."""
             return {
                 "config_data": {
@@ -132,8 +133,8 @@ class TestsCliTypings:
                     return r[bool].fail("Cli namespace is None")
 
                 # Test that Cli namespace has flattened type attributes
-                # (Data and Auth sub-namespaces were removed per architecture simplification)
-                required_attrs = ["CliDataDict", "CliAuthData", "ResultFormatter"]
+                # (Dict type aliases were removed in Pydantic v2 migration - use models instead)
+                required_attrs = ["FormatableResult", "ResultFormatter", "TabularData"]
                 for attr in required_attrs:
                     if not hasattr(cli_namespace, attr):
                         return r[bool].fail(f"Missing Cli attribute: {attr}")
@@ -143,7 +144,7 @@ class TestsCliTypings:
                 return r[bool].fail(str(e))
 
         @staticmethod
-        def validate_type_usage(data: dict[str, object], type_hint: str) -> r[bool]:
+        def validate_type_usage(data: dict[str, t.GeneralValueType], type_hint: str) -> r[bool]:
             """Validate type usage with actual data."""
             try:
                 match type_hint:
@@ -203,8 +204,8 @@ class TestsCliTypings:
         tm.ok(validation_result)
 
         # Test type aliases accessibility
-        # CliDataDict is an alias for JsonDict, use dict[str, object] for mypy compatibility
-        test_data: dict[str, object] = {"key": "value"}
+        # CliDataDict is an alias for JsonDict, use dict[str, t.GeneralValueType] for mypy compatibility
+        test_data: dict[str, t.GeneralValueType] = {"key": "value"}
         assert isinstance(test_data, dict)
 
     def _execute_basic_functionality_tests(self) -> None:
@@ -216,7 +217,7 @@ class TestsCliTypings:
         if not isinstance(config_data_obj, dict):
             error_msg = "config_data must be a dict"
             raise TypeError(error_msg)
-        config_dict: dict[str, object] = config_data_obj
+        config_dict: dict[str, t.GeneralValueType] = config_data_obj
         config_result = self.TypingValidators.validate_type_usage(
             config_dict,
             "CliConfigData",
@@ -227,7 +228,7 @@ class TestsCliTypings:
         if not isinstance(format_data_obj, dict):
             error_msg = "format_data must be a dict"
             raise TypeError(error_msg)
-        format_dict: dict[str, object] = format_data_obj
+        format_dict: dict[str, t.GeneralValueType] = format_data_obj
         format_result = self.TypingValidators.validate_type_usage(
             format_dict,
             "CliFormatData",
@@ -258,8 +259,8 @@ class TestsCliTypings:
         assert TestProtocol is not None
 
         # Test type aliases from constants
-        user_data: dict[str, object] = {"key": "value", "number": 42}
-        user_list: list[dict[str, object]] = [user_data]
+        user_data: dict[str, t.GeneralValueType] = {"key": "value", "number": 42}
+        user_list: list[dict[str, t.GeneralValueType]] = [user_data]
 
         assert isinstance(user_data, dict)
         assert isinstance(user_list, list)
@@ -372,14 +373,14 @@ class TestsCliTypings:
             age: int,
             *,
             active: bool = True,
-        ) -> dict[str, object]:
+        ) -> dict[str, t.GeneralValueType]:
             return {"name": name, "age": age, "active": active}
 
         hints = get_type_hints(typed_function)
         assert hints["name"] is str
         assert hints["age"] is int
         assert hints["active"] is bool
-        assert hints["return"] == dict[str, object]
+        assert hints["return"] == dict[str, t.GeneralValueType]
 
         # Test complex type analysis
         def complex_function(data: list[dict[str, str | int]]) -> str | None:
@@ -516,7 +517,7 @@ class TestsCliTypings:
         def process_list(data: list[str]) -> list[str]:
             return [item.upper() for item in data]
 
-        def process_dict(data: dict[str, object]) -> dict[str, str]:
+        def process_dict(data: dict[str, t.GeneralValueType]) -> dict[str, str]:
             return {key: str(value) for key, value in data.items()}
 
         # Test performance
@@ -633,11 +634,11 @@ class TestsCliTypings:
         # Test protocol with runtime checking
         @runtime_checkable
         class TestProtocol(Protocol):
-            def operation(self, data: list[str]) -> dict[str, object]: ...
+            def operation(self, data: list[str]) -> dict[str, t.GeneralValueType]: ...
 
         # Implement protocol
         class Implementation:
-            def operation(self, data: list[str]) -> dict[str, object]:
+            def operation(self, data: list[str]) -> dict[str, t.GeneralValueType]:
                 time.sleep(0.001)  # Simulate work
                 return {
                     "processed": [item.upper() for item in data],
@@ -661,6 +662,6 @@ class TestsCliTypings:
         # Test types class integration - use runtime alias pattern (t.Cli.*)
         assert t is not None
         assert hasattr(t, "Cli")
-        # Types are now flattened (no sub-namespaces like Data/Auth)
-        assert hasattr(t.Cli, "CliDataDict")
-        assert hasattr(t.Cli, "CliAuthData")
+        # Types are now flattened (dict type aliases removed in Pydantic v2 migration)
+        assert hasattr(t.Cli, "FormatableResult")
+        assert hasattr(t.Cli, "ResultFormatter")

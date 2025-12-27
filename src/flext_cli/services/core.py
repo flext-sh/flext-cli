@@ -139,14 +139,12 @@ class FlextCliCore(FlextCliServiceBase):
         # Type-safe configuration initialization
         # Store CLI-specific config as dict (base class _config is FlextSettings | None)
         # Use mutable dict for CLI-specific configuration dictionary
-        # Use u.Guards.is_type(..., "mapping") for type checking
+        # Use u.is_type(..., "mapping") for type checking
         # Use object.__setattr__ for private attributes in case parent is frozen
         object.__setattr__(
             self,
             "_cli_config",
-            dict(config)
-            if config is not None and u.Guards.is_type(config, "mapping")
-            else {},
+            dict(config) if config is not None and u.is_type(config, "mapping") else {},
         )
         object.__setattr__(self, "_commands", {})
         # Note: stores plugin objects implementing CliPlugin protocol
@@ -167,7 +165,7 @@ class FlextCliCore(FlextCliServiceBase):
 
         # Type narrowing: is_dict_like ensures config is dict-like
         config_dict: Mapping[str, t.GeneralValueType] | None = (
-            config if u.Guards.is_type(config, "mapping") else None
+            config if u.is_type(config, "mapping") else None
         )
         self.logger.debug(
             "Initialized CLI core service",
@@ -228,21 +226,7 @@ class FlextCliCore(FlextCliServiceBase):
             )
 
         try:
-            # Type narrowing: check if command is instance of CliCommand (not just protocol)
-            if not isinstance(command, m.Cli.CliCommand):
-                self.logger.error(
-                    "FAILED CLI command registration - command is not CliCommand instance",
-                    command_name=command.name,
-                    command_type=type(command).__name__,
-                    operation="register_command",
-                    source="flext-cli/src/flext_cli/core.py",
-                )
-                return r[bool].fail(
-                    c.Cli.ErrorMessages.COMMAND_REGISTRATION_FAILED.format(
-                        command=command.name,
-                        error="Command must be CliCommand instance",
-                    ),
-                )
+            # Type system ensures command is m.Cli.CliCommand
             # Build command_data dict without using model_dump() to avoid DomainEvent forward reference error
             # Extract model fields directly instead of calling model_dump() which triggers model_rebuild()
             command_data: dict[str, t.GeneralValueType] = {
@@ -356,12 +340,12 @@ class FlextCliCore(FlextCliServiceBase):
                 operation="get_command",
                 command_name=name,
                 command_def_type=type(command_def).__name__,
-                is_dict=u.Guards.is_type(command_def, "mapping"),
+                is_dict=u.is_type(command_def, "mapping"),
                 source="flext-cli/src/flext_cli/core.py",
             )
 
-            # Use u.Guards.is_type(..., "mapping") for type checking
-            if u.Guards.is_type(command_def, "mapping"):
+            # Use u.is_type(..., "mapping") for type checking
+            if u.is_type(command_def, "mapping"):
                 self.logger.debug(
                     "Command definition retrieved successfully",
                     operation="get_command",
@@ -411,7 +395,7 @@ class FlextCliCore(FlextCliServiceBase):
         """Build execution context from various input formats."""
         if context is None:
             return {}
-        if u.Guards.is_type(context, "sequence"):
+        if u.is_type(context, "sequence"):
             # Use build() DSL: process → normalize → ensure JSON-compatible
             # Reuse helpers from output module to avoid duplication
             process_result = FlextCliUtilities.process(
@@ -426,26 +410,11 @@ class FlextCliCore(FlextCliServiceBase):
                 context_list_raw if isinstance(context_list_raw, list) else []
             )
             return self._build_context_from_list(context_list)
-        # Use u.Guards.is_type(..., "mapping") for type checking
-        # Type narrowing: is_dict_like ensures context is dict-like
-        if u.Guards.is_type(context, "mapping"):
-            # Context is already CliCommand.CommandContext compatible - direct assignment
-            # Type assertion: is_dict_like ensures it's Mapping-like
-            if isinstance(context, Mapping):
-                return dict(context)
-            # If it's not a Mapping but is_dict_like returned True, it might be a dict-like object
-            # But if it's a list, we can't convert it to dict - return empty dict
-            if isinstance(context, list):
-                return {}
-            # Try to convert dict-like object to dict
-            if hasattr(context, "__iter__") and not isinstance(context, (str, bytes)):
-                try:
-                    # Only convert if it's actually dict-like (has items() method)
-                    if hasattr(context, "items"):
-                        return dict(context.items())
-                except (TypeError, ValueError):
-                    pass
-            return {}
+        # After None and list[str] handling, context is dict[str, t.GeneralValueType]
+        # Type system ensures context is Mapping at this point
+        if isinstance(context, Mapping):
+            return dict(context)
+        # Fallback for unexpected types (should not reach here with proper typing)
         return {}
 
     def execute_command(
@@ -585,13 +554,11 @@ class FlextCliCore(FlextCliServiceBase):
         self.logger.debug(
             "Configuration input validated",
             operation="update_configuration",
-            config_keys=list(config.keys())
-            if u.Guards.is_type(config, "mapping")
-            else None,
+            config_keys=list(config.keys()) if u.is_type(config, "mapping") else None,
             source="flext-cli/src/flext_cli/core.py",
         )
         # Use build() DSL for JSON conversion
-        if not u.Guards.is_type(config, "mapping"):
+        if not u.is_type(config, "mapping"):
             return r[dict[str, t.GeneralValueType]].fail(
                 c.Cli.ErrorMessages.CONFIG_NOT_DICT,
             )
@@ -622,7 +589,7 @@ class FlextCliCore(FlextCliServiceBase):
                 "Merging configurations",
                 operation="update_configuration",
                 new_config_keys=list(valid_config.keys())
-                if u.Guards.is_type(valid_config, "mapping")
+                if u.is_type(valid_config, "mapping")
                 else None,
                 source="flext-cli/src/flext_cli/core.py",
             )
@@ -650,7 +617,7 @@ class FlextCliCore(FlextCliServiceBase):
             # Convert to mutable dict for merging
             existing_config: dict[str, t.GeneralValueType] = (
                 dict(existing_config_raw)
-                if u.Guards.is_type(existing_config_raw, "mapping")
+                if u.is_type(existing_config_raw, "mapping")
                 else {}
             )
             # Use build() DSL: ensure dict → transform to JSON
@@ -679,7 +646,7 @@ class FlextCliCore(FlextCliServiceBase):
                 "Configuration merged successfully",
                 operation="update_configuration",
                 merged_keys=list(self._cli_config.keys())
-                if u.Guards.is_type(self._cli_config, "mapping")
+                if u.is_type(self._cli_config, "mapping")
                 else None,
                 source="flext-cli/src/flext_cli/core.py",
             )
@@ -725,11 +692,9 @@ class FlextCliCore(FlextCliServiceBase):
         self.logger.info(
             "Updating CLI configuration",
             operation="update_configuration",
-            config_keys=list(config.keys())
-            if u.Guards.is_type(config, "mapping")
-            else None,
+            config_keys=list(config.keys()) if u.is_type(config, "mapping") else None,
             current_config_keys=list(self._cli_config.keys())
-            if u.Guards.is_type(self._cli_config, "mapping")
+            if u.is_type(self._cli_config, "mapping")
             else None,
             source="flext-cli/src/flext_cli/core.py",
         )
@@ -738,13 +703,13 @@ class FlextCliCore(FlextCliServiceBase):
             "Starting configuration update",
             operation="update_configuration",
             config_type=type(config).__name__,
-            config_is_dict=u.Guards.is_type(config, "mapping"),
+            config_is_dict=u.is_type(config, "mapping"),
             source="flext-cli/src/flext_cli/core.py",
         )
 
         # Railway pattern: validate input then merge configurations
         # Use build() DSL: ensure dict → transform to JSON
-        if not u.Guards.is_type(config, "mapping"):
+        if not u.is_type(config, "mapping"):
             return r[bool].fail(c.Cli.ErrorMessages.CONFIG_NOT_DICT)
         # Reuse to_dict_json helper from output module
         # Python 3.13: to_dict_json() always returns dict, isinstance check is unnecessary
@@ -787,18 +752,18 @@ class FlextCliCore(FlextCliServiceBase):
                     "Retrieving CLI configuration",
                     operation="get_configuration",
                     config_type=type(self._cli_config).__name__,
-                    config_is_dict=u.Guards.is_type(self._cli_config, "mapping"),
+                    config_is_dict=u.is_type(self._cli_config, "mapping"),
                     config_keys=list(self._cli_config.keys())
-                    if u.Guards.is_type(self._cli_config, "mapping")
+                    if u.is_type(self._cli_config, "mapping")
                     else None,
                     source="flext-cli/src/flext_cli/core.py",
                 )
-                if u.Guards.is_type(self._cli_config, "mapping"):
+                if u.is_type(self._cli_config, "mapping"):
                     self.logger.debug(
                         "Configuration retrieved successfully",
                         operation="get_configuration",
                         config_keys=list(self._cli_config.keys())
-                        if u.Guards.is_type(self._cli_config, "mapping")
+                        if u.is_type(self._cli_config, "mapping")
                         else None,
                         source="flext-cli/src/flext_cli/core.py",
                     )
@@ -869,7 +834,7 @@ class FlextCliCore(FlextCliServiceBase):
                 c.Cli.ErrorMessages.PROFILE_CONFIG_NOT_DICT,
             )
 
-        if not (u.Guards.is_type(self._cli_config, "mapping") and self._cli_config):
+        if not (u.is_type(self._cli_config, "mapping") and self._cli_config):
             return r[bool].fail(
                 c.Cli.ErrorMessages.CONFIG_NOT_INITIALIZED,
             )
@@ -889,22 +854,21 @@ class FlextCliCore(FlextCliServiceBase):
                 c.Cli.DictKeys.PROFILES,  # path parameter
                 default=default_dict,
             )
-            # Convert RuntimeResult to FlextResult
-            profiles_result_typed: r[dict[str, t.GeneralValueType] | None] = (
-                r[dict[str, t.GeneralValueType] | None].ok(profiles_result_raw.value)
-                if profiles_result_raw.is_success
-                else r[dict[str, t.GeneralValueType] | None].fail(
-                    profiles_result_raw.error or "Failed to extract profiles",
+            # extract returns r[t.GeneralValueType | None]
+            if profiles_result_raw.is_failure:
+                return r[bool].fail(
+                    profiles_result_raw.error or "Failed to extract profiles"
                 )
-            )
+            # Type narrowing: value is t.GeneralValueType | None
+            profiles_value = profiles_result_raw.value
             # Python 3.13: Direct attribute access - unwrap() provides safe access
             profiles_section_raw: dict[str, t.GeneralValueType] = (
-                profiles_result_typed.value or {}
+                profiles_value if isinstance(profiles_value, dict) else {}
             )
             # Python 3.13: profiles_section_raw is already dict, isinstance check is unnecessary
             profiles_section: dict[str, t.GeneralValueType] = (
                 profiles_section_raw
-                if u.Guards.is_type(profiles_section_raw, "mapping")
+                if u.is_type(profiles_section_raw, "mapping")
                 else {}
             )
             profiles_section[name] = profile_config
@@ -1426,7 +1390,7 @@ class FlextCliCore(FlextCliServiceBase):
                 c.Cli.DictKeys.TIMESTAMP: FlextCliUtilities.generate("timestamp"),
             })
         except Exception as e:
-            return r[dict[str, t.GeneralValueType]].fail(
+            return r[Mapping[str, t.GeneralValueType]].fail(
                 c.Cli.ErrorMessages.CLI_EXECUTION_ERROR.format(error=e),
             )
 
@@ -1434,19 +1398,19 @@ class FlextCliCore(FlextCliServiceBase):
         """Get current service configuration.
 
         Returns:
-            r[dict[str, t.GeneralValueType]]: Configuration data
+            r[Mapping[str, t.GeneralValueType]]: Configuration data
 
         """
         try:
             # Type narrowing: self._cli_config is dict[str, t.GeneralValueType] - return as JsonDict
             # Fast-fail if config is empty - no fallback
             if not self._cli_config:
-                return r[dict[str, t.GeneralValueType]].fail(
+                return r[Mapping[str, t.GeneralValueType]].fail(
                     c.Cli.ErrorMessages.CONFIG_NOT_INITIALIZED,
                 )
-            return r[dict[str, t.GeneralValueType]].ok(self._cli_config)
+            return r[Mapping[str, t.GeneralValueType]].ok(self._cli_config)
         except Exception as e:
-            return r[dict[str, t.GeneralValueType]].fail(
+            return r[Mapping[str, t.GeneralValueType]].fail(
                 c.Cli.ErrorMessages.CONFIG_RETRIEVAL_FAILED.format(error=e),
             )
 

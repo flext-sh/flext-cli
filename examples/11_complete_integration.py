@@ -27,7 +27,8 @@ from __future__ import annotations
 import tempfile
 from collections.abc import Mapping
 from pathlib import Path
-from typing import cast
+
+from flext_core import FlextTypes as t
 
 from flext_cli import FlextCli, FlextCliPrompts, r, t, u
 
@@ -229,10 +230,7 @@ def process_with_railway_pattern(
     # Step 2: Transform
     step2_data: t.JsonDict = {**step1_data, "processed": True}
     # Step 3: Enrich
-    final_data: t.JsonDict = cast(
-        "t.JsonDict",
-        {**step2_data, "enriched": True},
-    )
+    final_data: t.JsonDict = {**step2_data, "enriched": True}
 
     result: r[t.JsonDict] = r[t.JsonDict].ok(final_data)
 

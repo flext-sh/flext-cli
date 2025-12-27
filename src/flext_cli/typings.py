@@ -78,16 +78,16 @@ class FlextCliTypes(FlextTypes):
         # ────────────────────────────────────────────────────────────────────
 
         # Basic data dict types
-        CliDataDict = dict[str, object]
-        CliFormatData = dict[str, object]
-        CliConfigData = dict[str, object]
+        CliDataDict = dict[str, FlextTypes.GeneralValueType]
+        CliFormatData = dict[str, FlextTypes.GeneralValueType]
+        CliConfigData = dict[str, FlextTypes.GeneralValueType]
         CliConfigMapping = dict[str, FlextTypes.GeneralValueType]
-        CliJsonDict = dict[str, object]
-        JsonDict = dict[str, object]
+        CliJsonDict = dict[str, FlextTypes.GeneralValueType]
+        JsonDict = dict[str, FlextTypes.GeneralValueType]
 
         # Auth data types
-        CliAuthData = dict[str, object]
-        CliTokenData = dict[str, object]
+        CliAuthData = dict[str, FlextTypes.GeneralValueType]
+        CliTokenData = dict[str, FlextTypes.GeneralValueType]
 
         # ────────────────────────────────────────────────────────────────────
         # TABLE AND SEQUENCE TYPES

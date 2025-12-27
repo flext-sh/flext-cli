@@ -26,6 +26,7 @@ from flext_tests import tm
 
 from flext_cli import (
     FlextCliCmd,
+    FlextCliModels as m,
     FlextCliServiceBase,
     FlextCliSettings,
     c,
@@ -195,6 +196,7 @@ class TestsCliCmd:
 
         tm.ok(result)
         data = result.value
+        assert isinstance(data, dict)
         assert data["status"] == "operational"
         assert data["service"] == "FlextCliCmd"
 
@@ -296,9 +298,8 @@ class TestsCliCmd:
         result = cmd.get_config_info()
 
         tm.ok(result)
-        assert isinstance(result.value, dict)
-        assert "config_dir" in result.value
-        assert "config_exists" in result.value
+        assert isinstance(result.value, m.Cli.ConfigSnapshot)
+        assert result.value.config_dir is not None
 
     def test_cmd_show_config(self) -> None:
         """Test show_config method."""
@@ -665,7 +666,7 @@ class TestsCliCmd:
         assert isinstance(result, r)
         if result.is_success:
             info = result.value
-            assert isinstance(info, dict)
+            assert isinstance(info, m.Cli.ConfigSnapshot)
 
     def test_cmd_set_config_value_exception(self) -> None:
         """Test set_config_value exception handler."""

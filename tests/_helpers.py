@@ -5,6 +5,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 import pytest
+from flext_core import FlextTypes as t
 from flext_core.result import FlextResult as r
 
 from flext_cli import FlextCliCommands
@@ -78,7 +79,7 @@ class AuthHelpers:
         return defaults
 
     @staticmethod
-    def create_auth_test_data() -> dict[str, Any]:
+    def create_auth_test_data() -> dict[str, t.GeneralValueType]:
         """Create authentication test data."""
         return {
             "valid_credentials": {
@@ -93,7 +94,7 @@ class AuthHelpers:
         }
 
     @staticmethod
-    def create_auth_operations_test_data() -> dict[str, Any]:
+    def create_auth_operations_test_data() -> dict[str, t.GeneralValueType]:
         """Create authentication operations test data."""
         return {
             "login_success": {
@@ -118,7 +119,7 @@ class CommandHelpers:
 
     @staticmethod
     def create_command_model(
-        **overrides: dict[str, Any],
+        **overrides: dict[str, t.GeneralValueType],
     ) -> "r[m.Cli.CliCommand]":
         """Create a command model wrapped in FlextResult.
 
@@ -133,7 +134,9 @@ class CommandHelpers:
         return r[m.Cli.CliCommand].ok(cmd)
 
     @staticmethod
-    def create_test_command_data(**overrides: dict[str, Any]) -> dict[str, Any]:
+    def create_test_command_data(
+        **overrides: dict[str, t.GeneralValueType],
+    ) -> dict[str, t.GeneralValueType]:
         """Create test command data."""
         defaults = {
             "name": "test_command",
@@ -145,7 +148,7 @@ class CommandHelpers:
         return defaults
 
     @staticmethod
-    def create_command_execution_test_data() -> dict[str, Any]:
+    def create_command_execution_test_data() -> dict[str, t.GeneralValueType]:
         """Create command execution test data."""
         return {
             "basic_command": {
@@ -166,7 +169,9 @@ class CommandHelpers:
         }
 
     @staticmethod
-    def simulate_command_execution(command_data: dict[str, Any]) -> dict[str, Any]:
+    def simulate_command_execution(
+        command_data: dict[str, t.GeneralValueType],
+    ) -> dict[str, t.GeneralValueType]:
         """Simulate command execution result."""
         return {
             "success": True,
@@ -180,7 +185,9 @@ class OutputHelpers:
     """Output formatting test helpers."""
 
     @staticmethod
-    def create_test_output_data(**overrides: dict[str, Any]) -> dict[str, Any]:
+    def create_test_output_data(
+        **overrides: dict[str, t.GeneralValueType],
+    ) -> dict[str, t.GeneralValueType]:
         """Create test output data."""
         defaults = {
             "format": "json",
@@ -192,7 +199,7 @@ class OutputHelpers:
         return defaults
 
     @staticmethod
-    def create_format_test_data() -> dict[str, Any]:
+    def create_format_test_data() -> dict[str, t.GeneralValueType]:
         """Create format test data for output formatting tests."""
         return {
             "json": {"test": "data", "number": 42},
@@ -201,7 +208,7 @@ class OutputHelpers:
         }
 
     @staticmethod
-    def create_table_test_data() -> dict[str, Any]:
+    def create_table_test_data() -> dict[str, t.GeneralValueType]:
         """Create table test data for output formatting tests."""
         return {
             "simple": {
@@ -219,7 +226,7 @@ class OutputHelpers:
         }
 
     @staticmethod
-    def format_test_output(data: dict[str, Any]) -> str:
+    def format_test_output(data: dict[str, t.GeneralValueType]) -> str:
         """Format test output."""
         if data.get("format") == "json":
             return json.dumps(data.get("data", {}))
@@ -230,7 +237,9 @@ class CommandsFactory:
     """Factory for creating test commands with high automation."""
 
     @staticmethod
-    def create_basic_command(**overrides: dict[str, Any]) -> m.Cli.CliCommand:
+    def create_basic_command(
+        **overrides: dict[str, t.GeneralValueType],
+    ) -> m.Cli.CliCommand:
         """Create basic test command."""
         return create_test_cli_command(**overrides)
 
@@ -308,17 +317,21 @@ class CommandsFactory:
 
 
 # Aliases for backward compatibility
-def create_real_cli_command(**overrides: dict[str, Any]) -> m.Cli.CliCommand:
+def create_real_cli_command(
+    **overrides: dict[str, t.GeneralValueType],
+) -> m.Cli.CliCommand:
     """Alias for create_test_cli_command - creates a real Pydantic model instance."""
     return create_test_cli_command(**overrides)
 
 
-def create_real_cli_session(**overrides: dict[str, Any]) -> m.Cli.CliSession:
+def create_real_cli_session(
+    **overrides: dict[str, t.GeneralValueType],
+) -> m.Cli.CliSession:
     """Alias for create_test_cli_session - creates a real Pydantic model instance."""
     return create_test_cli_session(**overrides)
 
 
-def generate_edge_case_data() -> list[dict[str, Any]]:
+def generate_edge_case_data() -> list[dict[str, t.GeneralValueType]]:
     """Generate comprehensive edge case test data for CliCommand.
 
     Only uses valid CliCommand fields: name, description, command_line, usage,

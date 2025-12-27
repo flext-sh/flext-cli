@@ -12,7 +12,7 @@ from unittest.mock import MagicMock, patch
 
 import click
 import typer
-from flext_core import FlextRuntime
+from flext_core import FlextTypes as t, FlextRuntime
 from typer.testing import CliRunner
 
 from flext_cli import FlextCliCli, FlextCliSettings
@@ -46,7 +46,7 @@ class TestsCliCliExtended:
                 self.cli_log_level = None
                 self.console_enabled = True
 
-            def model_copy(self, update: dict[str, object] | None = None) -> MockConfig:
+            def model_copy(self, update: dict[str, t.GeneralValueType] | None = None) -> MockConfig:
                 """Mock model_copy."""
                 if update:
                     for k, v in update.items():
@@ -114,7 +114,7 @@ class TestsCliCliExtended:
                 self.cli_log_level = None
                 self.console_enabled = True
 
-            def model_copy(self, update: dict[str, object] | None = None) -> MockConfig:
+            def model_copy(self, update: dict[str, t.GeneralValueType] | None = None) -> MockConfig:
                 """Mock model_copy."""
                 if update:
                     for k, v in update.items():
