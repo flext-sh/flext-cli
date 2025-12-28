@@ -32,8 +32,6 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from flext_core import FlextTypes as t
-
 from flext_cli import (
     FlextCli,
     FlextCliTables,
@@ -194,7 +192,6 @@ class MyAppPluginManager:
         table_result = cli.create_table(
             data=plugin_data,
             headers=["Plugin", "Version"],
-            title="Registered Plugins",
         )
 
         if table_result.is_success:

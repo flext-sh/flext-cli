@@ -7,14 +7,6 @@ from typing import TypedDict
 
 from flext_core import FlextTypes, r
 
-# ═══════════════════════════════════════════════════════════════════════════
-# TYPEVARS: Only object allowed outside the class
-# ═══════════════════════════════════════════════════════════════════════════
-# Reuse from FlextTypes when available
-# Centralize all TypeVars here for massive reuse
-# Use centralized TypeVars from flext-core
-# Import them for local use if needed
-
 
 # ═══════════════════════════════════════════════════════════════════════════
 # SINGLE CLASS WITH NESTED CLASSES

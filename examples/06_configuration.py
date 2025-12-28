@@ -29,7 +29,6 @@ import time
 from pathlib import Path
 
 from example_utils import display_config_table
-from flext_core import FlextTypes as t
 
 from flext_cli import FlextCli, FlextCliSettings, r, t, u
 
@@ -155,7 +154,7 @@ class MyAppConfig:
         table_result = cli.create_table(
             data=config_data,
             headers=["Setting", "Value"],
-            title="⚙️  Application Configuration",
+            _title="⚙️  Application Configuration",
         )
 
         if table_result.is_success:
@@ -194,7 +193,7 @@ def show_config_locations() -> dict[str, str]:
     table_result = cli.create_table(
         data=locations_data,
         headers=["Location", "Path"],
-        title="📂 Configuration Locations",
+        _title="📂 Configuration Locations",
     )
 
     if table_result.is_success:
@@ -275,7 +274,7 @@ def show_environment_variables() -> None:
         """Print single environment variable."""
         cli.print(f"   {k}={v}", style="cyan")
 
-    u.Cli.process(env_vars, processor=print_env, on_error="skip")
+    u.Cli.process_dict(env_vars, processor=print_env)
 
     # Show how to set them
     cli.print("\n💡 How to set environment variables:", style="bold cyan")

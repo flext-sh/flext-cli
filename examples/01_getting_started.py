@@ -15,7 +15,7 @@ from __future__ import annotations
 import tempfile
 from pathlib import Path
 
-from flext_cli import FlextCli, c, t
+from flext_cli import FlextCli, c, t, u
 
 
 class FlextCliGettingStarted:
@@ -135,7 +135,7 @@ class FlextCliGettingStarted:
         # Using collections.abc.Mapping for immutable configuration
 
         # Demonstrate discriminated union validation
-        valid_formats = c.Cli.get_valid_output_formats()
+        valid_formats = u.Cli.CliValidation.get_valid_output_formats()
         self.cli.print(f"Available formats: {', '.join(valid_formats)}")
 
         # Using advanced type aliases from typings

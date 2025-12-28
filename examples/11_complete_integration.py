@@ -28,8 +28,6 @@ import tempfile
 from collections.abc import Mapping
 from pathlib import Path
 
-from flext_core import FlextTypes as t
-
 from flext_cli import FlextCli, FlextCliPrompts, r, t, u
 
 cli = FlextCli()

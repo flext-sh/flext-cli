@@ -38,7 +38,7 @@ from pydantic_settings import SettingsConfigDict
 
 from flext_cli.constants import FlextCliConstants
 from flext_cli.typings import t
-from flext_cli.utilities import FlextCliUtilities
+from flext_cli.utilities import FlextCliUtilities, u
 
 logger = l_core(__name__)
 
@@ -546,7 +546,7 @@ class FlextCliSettings(FlextSettings):
 
         """
         # Validate output format
-        valid_formats = FlextCliConstants.Cli.get_valid_output_formats()
+        valid_formats = u.Cli.CliValidation.get_valid_output_formats()
         if value in valid_formats:
             return r.ok(value)
         return r.fail(

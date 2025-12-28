@@ -27,8 +27,6 @@ from __future__ import annotations
 import tempfile
 from pathlib import Path
 
-from flext_core import FlextTypes as t
-
 from flext_cli import FlextCli, FlextCliPrompts, r, t, u
 
 cli = FlextCli()

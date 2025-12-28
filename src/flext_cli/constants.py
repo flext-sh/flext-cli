@@ -41,8 +41,10 @@ class FlextCliConstants(FlextConstants):
     - OutputFormats: Access to c.Cli.OutputFormats enum
     - CommandStatus: Access to c.Cli.CommandStatus enum
     - OutputFormatLiteral: Access to c.Cli.OutputFormatLiteral type
-    - get_valid_output_formats: Access to FlextCliUtilities.Cli.CliValidation.get_valid_output_formats method
-    - get_valid_command_statuses: Access to FlextCliUtilities.Cli.CliValidation.get_valid_command_statuses method
+
+    NOTE: get_valid_output_formats() and get_valid_command_statuses() are in utilities.py:
+    - Use: u.Cli.CliValidation.get_valid_output_formats()
+    - Use: u.Cli.CliValidation.get_valid_command_statuses()
 
     Business Rules:
     ---------------
@@ -325,31 +327,10 @@ class FlextCliConstants(FlextConstants):
             TABLE = "table"  # Standard format
             PLAIN = "plain"  # CLI-specific format
 
-        @staticmethod
-        def get_valid_output_formats() -> list[str]:
-            """Get list of valid output format strings.
-
-            Returns:
-                List of valid output format names that can be used with CLI.
-
-            """
-            return [
-                fmt.value
-                for fmt in FlextCliConstants.Cli.OutputFormats.__members__.values()
-            ]
-
-        @staticmethod
-        def get_valid_command_statuses() -> list[str]:
-            """Get list of valid command status strings.
-
-            Returns:
-                List of valid command status names that can be used with CLI.
-
-            """
-            return [
-                status.value
-                for status in FlextCliConstants.Cli.CommandStatus.__members__.values()
-            ]
+        # NOTE: get_valid_output_formats() and get_valid_command_statuses() methods
+        # moved to FlextCliUtilities.Cli.CliValidation namespace
+        # Use: u.Cli.CliValidation.get_valid_output_formats()
+        # Use: u.Cli.CliValidation.get_valid_command_statuses()
 
         # Environment enum - already available via inheritance from FlextConstants.Settings.Environment
         # No need to redeclare - use c.Settings.Environment directly

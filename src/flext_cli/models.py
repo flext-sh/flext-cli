@@ -94,9 +94,9 @@ class FlextCliModels(FlextModels):
 
         # Metodo estatico para compatibilidade
         @staticmethod
-        def execute() -> r[Mapping[str, FlextCliTypes.GeneralValueType]]:
+        def execute() -> r[Mapping[str, t.GeneralValueType]]:
             """Execute models operation - returns empty dict for compatibility."""
-            return r[dict[str, FlextCliTypes.GeneralValueType]].ok({})
+            return r[dict[str, t.GeneralValueType]].ok({})
 
         # Classes base com heranca real - padrao global FlextModels.*
         class Entity(FlextModels.Entity):
@@ -249,7 +249,7 @@ class FlextCliModels(FlextModels):
                 """Helper method for model_copy with updates - reduces repetition.
 
                 Composition pattern: centralizes model_copy logic for reuse.
-                Uses object instead of FlextCliTypes.GeneralValueType to accept Protocol types.
+                Uses object instead of t.GeneralValueType to accept Protocol types.
                 """
                 return self.model_copy(update=updates)
 
@@ -314,12 +314,12 @@ class FlextCliModels(FlextModels):
                 description="Command execution time",
             )
 
-            result: FlextCliTypes.GeneralValueType | None = Field(
+            result: t.GeneralValueType | None = Field(
                 default=None,
                 description="Command result",
             )
 
-            kwargs: dict[str, FlextCliTypes.GeneralValueType] = Field(
+            kwargs: dict[str, t.GeneralValueType] = Field(
                 default_factory=dict,
                 description="Command keyword arguments",
             )
@@ -327,19 +327,19 @@ class FlextCliModels(FlextModels):
             def execute(
                 self,
                 _args: Sequence[str],
-            ) -> r[FlextCliTypes.GeneralValueType]:
+            ) -> r[t.GeneralValueType]:
                 """Execute command with arguments - required by Command.
 
                 Args:
                     _args: Command arguments (unused in default implementation)
 
                 Returns:
-                    r[FlextCliTypes.GeneralValueType]: Command execution result
+                    r[t.GeneralValueType]: Command execution result
 
                 """
                 # Default implementation - returns empty result
                 # Real implementations should override this method
-                return r[FlextCliTypes.GeneralValueType].ok(None)
+                return r[t.GeneralValueType].ok(None)
 
             def with_status(self, status: str | c.Cli.CommandStatus) -> Self:
                 """Return copy with new status.
@@ -416,8 +416,8 @@ class FlextCliModels(FlextModels):
                     if not isinstance(data, dict):
                         return r.fail("Input must be a dictionary")
                     # Type narrowing: data is dict after isinstance check
-                    # Use FlextCliTypes.GeneralValueType from lower layer instead of object
-                    data_dict: dict[str, FlextCliTypes.GeneralValueType] = data
+                    # Use t.GeneralValueType from lower layer instead of object
+                    data_dict: dict[str, t.GeneralValueType] = data
                     # Use model_validate for type-safe model creation from dict
                     command = cls.model_validate(data_dict)
                     return r.ok(command)
@@ -443,7 +443,7 @@ class FlextCliModels(FlextModels):
 
             @field_validator("status")
             @classmethod
-            def validate_status(cls, value: FlextCliTypes.GeneralValueType) -> str:
+            def validate_status(cls, value: t.GeneralValueType) -> str:
                 """Validate session status."""
                 if not isinstance(value, str):
                     msg = f"Status must be a string, got {type(value)}"
@@ -541,7 +541,7 @@ class FlextCliModels(FlextModels):
                 """Helper method for model_copy with updates - reduces repetition.
 
                 Composition pattern: centralizes model_copy logic for reuse.
-                Uses object instead of FlextCliTypes.GeneralValueType to accept Protocol types.
+                Uses object instead of t.GeneralValueType to accept Protocol types.
                 """
                 return self.model_copy(update=updates)
 
@@ -845,7 +845,7 @@ class FlextCliModels(FlextModels):
             Inherits frozen=True and extra="forbid" from FlextModels.Value.
             """
 
-            step_results: Sequence[dict[str, FlextCliTypes.GeneralValueType]] = Field(
+            step_results: Sequence[dict[str, t.GeneralValueType]] = Field(
                 default_factory=list,
                 description="Results for each workflow step",
             )
@@ -903,7 +903,7 @@ class FlextCliModels(FlextModels):
             )
 
             @property
-            def params(self) -> Mapping[str, FlextCliTypes.GeneralValueType]:
+            def params(self) -> Mapping[str, t.GeneralValueType]:
                 """Parameters mapping - required by CliParamsConfigProtocol."""
                 return {
                     "verbose": self.verbose,
@@ -928,7 +928,7 @@ class FlextCliModels(FlextModels):
                 arbitrary_types_allowed=True,
             )
 
-            default: FlextCliTypes.GeneralValueType | None = Field(
+            default: t.GeneralValueType | None = Field(
                 default=None,
                 description="Default value",
             )
@@ -948,7 +948,7 @@ class FlextCliModels(FlextModels):
                 default=False,
                 description="Whether this is a boolean flag",
             )
-            flag_value: FlextCliTypes.GeneralValueType | None = Field(
+            flag_value: t.GeneralValueType | None = Field(
                 default=None,
                 description="Value when flag is set",
             )
@@ -990,7 +990,7 @@ class FlextCliModels(FlextModels):
                 arbitrary_types_allowed=True,
             )
 
-            default: FlextCliTypes.GeneralValueType | None = Field(
+            default: t.GeneralValueType | None = Field(
                 default=None,
                 description="Default value",
             )
@@ -1066,7 +1066,7 @@ class FlextCliModels(FlextModels):
 
             success: bool = Field(default=True)
             context_id: str = Field(default="")
-            metadata: dict[str, FlextCliTypes.GeneralValueType] = Field(
+            metadata: dict[str, t.GeneralValueType] = Field(
                 default_factory=dict,
             )
             context_executed: bool = Field(
@@ -1086,18 +1086,18 @@ class FlextCliModels(FlextModels):
             service: str = Field(..., description="Service name")
             level: str = Field(..., description="Debug level")
             message: str = Field(..., description="Debug message")
-            system_info: dict[str, FlextCliTypes.GeneralValueType] = Field(
+            system_info: dict[str, t.GeneralValueType] = Field(
                 default_factory=dict,
                 description="System information",
             )
-            config_info: dict[str, FlextCliTypes.GeneralValueType] = Field(
+            config_info: dict[str, t.GeneralValueType] = Field(
                 default_factory=dict,
                 description="Configuration information",
             )
 
             @field_validator("level", mode="before")
             @classmethod
-            def normalize_level(cls, value: FlextCliTypes.GeneralValueType) -> str:
+            def normalize_level(cls, value: t.GeneralValueType) -> str:
                 """Normalize level to uppercase."""
                 # Type narrowing: ensure value is str before calling .upper()
                 if isinstance(value, str):
@@ -1113,7 +1113,7 @@ class FlextCliModels(FlextModels):
                     message=self.message,
                 )
 
-            def dump_masked(self) -> Mapping[str, FlextCliTypes.GeneralValueType]:
+            def dump_masked(self) -> Mapping[str, t.GeneralValueType]:
                 """Dump model with sensitive data masking.
 
                 Business Rule:
@@ -1137,14 +1137,14 @@ class FlextCliModels(FlextModels):
                 # models.py cannot use utilities - use direct dict access instead
                 # model_dump() always returns dict, so isinstance check is unnecessary
                 system_info = data.get("system_info")
-                system_dict: dict[str, FlextCliTypes.GeneralValueType]
+                system_dict: dict[str, t.GeneralValueType]
                 if system_info and FlextRuntime.is_dict_like(system_info):
                     # Type narrowing: system_info is dict-like, convert to dict
                     if isinstance(system_info, dict):
                         system_dict = system_info
                     elif isinstance(system_info, Mapping):
                         # Type narrowing: system_info is Mapping, convert to dict
-                        # Mapping values are FlextCliTypes.GeneralValueType compatible
+                        # Mapping values are t.GeneralValueType compatible
                         system_dict = {str(k): v for k, v in system_info.items()}
                     else:
                         system_dict = {}
@@ -1152,7 +1152,7 @@ class FlextCliModels(FlextModels):
                     system_dict = {}
 
                 # Apply masking to system_dict (regardless of how it was obtained)
-                masked_system_dict: dict[str, FlextCliTypes.GeneralValueType] = {
+                masked_system_dict: dict[str, t.GeneralValueType] = {
                     k: (
                         "***MASKED***"
                         if any(sensitive in k.lower() for sensitive in sensitive_keys)
@@ -1166,14 +1166,14 @@ class FlextCliModels(FlextModels):
                 # models.py cannot use utilities - use direct dict access instead
                 # model_dump() always returns dict, so isinstance check is unnecessary
                 config_info = data.get("config_info")
-                config_dict: dict[str, FlextCliTypes.GeneralValueType]
+                config_dict: dict[str, t.GeneralValueType]
                 if config_info and FlextRuntime.is_dict_like(config_info):
                     # Type narrowing: config_info is dict-like, convert to dict
                     if isinstance(config_info, dict):
                         config_dict = config_info
                     elif isinstance(config_info, Mapping):
                         # Type narrowing: config_info is Mapping, convert to dict
-                        # Mapping values are FlextCliTypes.GeneralValueType compatible
+                        # Mapping values are t.GeneralValueType compatible
                         config_dict = {str(k): v for k, v in config_info.items()}
                     else:
                         config_dict = {}
@@ -1181,7 +1181,7 @@ class FlextCliModels(FlextModels):
                     config_dict = {}
 
                 # Apply masking to config_dict (regardless of how it was obtained)
-                masked_config_dict: dict[str, FlextCliTypes.GeneralValueType] = {
+                masked_config_dict: dict[str, t.GeneralValueType] = {
                     k: (
                         "***MASKED***"
                         if any(sensitive in k.lower() for sensitive in sensitive_keys)
@@ -1203,7 +1203,7 @@ class FlextCliModels(FlextModels):
             def __init__(
                 self,
                 field_name: str,
-                registry: Mapping[str, Mapping[str, FlextCliTypes.GeneralValueType]],
+                registry: Mapping[str, Mapping[str, t.GeneralValueType]],
             ) -> None:
                 """Initialize builder with field name and registry.
 
@@ -1243,8 +1243,8 @@ class FlextCliModels(FlextModels):
                     msg = "field_meta_raw must be dict"
                     raise TypeError(msg)
                 # Type narrowing: field_meta_raw is dict after isinstance check
-                # Use FlextCliTypes.GeneralValueType from lower layer instead of object
-                field_meta: dict[str, FlextCliTypes.GeneralValueType] = field_meta_raw
+                # Use t.GeneralValueType from lower layer instead of object
+                field_meta: dict[str, t.GeneralValueType] = field_meta_raw
                 # Extract option metadata from registry using direct dict access
                 help_text = str(field_meta.get("help", ""))
                 short_flag = str(field_meta.get("short", ""))
@@ -1377,7 +1377,7 @@ class FlextCliModels(FlextModels):
             command_name: str = Field(...)
             exit_code: int = Field(default=0)
             output: str = Field(default="")
-            context: dict[str, FlextCliTypes.GeneralValueType] = Field(
+            context: dict[str, t.GeneralValueType] = Field(
                 default_factory=dict,
             )
 
@@ -1442,7 +1442,7 @@ class FlextCliModels(FlextModels):
             def __init__(
                 self,
                 model_class: type[BaseModel],
-                handler: Callable[[BaseModel], FlextCliTypes.GeneralValueType],
+                handler: Callable[[BaseModel], t.GeneralValueType],
                 config: object | None = None,
             ) -> None:
                 """Initialize builder with model class, handler, and optional config.
@@ -1611,14 +1611,14 @@ class FlextCliModels(FlextModels):
             def _process_field_metadata(
                 self,
                 field_name: str,
-                field_info: FieldInfo | FlextCliTypes.GeneralValueType,
-            ) -> tuple[type, FlextCliTypes.GeneralValueType, bool, bool]:
+                field_info: FieldInfo | t.GeneralValueType,
+            ) -> tuple[type, t.GeneralValueType, bool, bool]:
                 """Process field metadata and return type info.
 
                 Returns (field_type, default_value, is_required, has_factory).
                 """
-                default_value: FlextCliTypes.GeneralValueType = None
-                default_factory: FlextCliTypes.GeneralValueType = None
+                default_value: t.GeneralValueType = None
+                default_factory: t.GeneralValueType = None
                 is_required = True
 
                 # Type-safe attribute access with isinstance narrowing
@@ -1671,8 +1671,8 @@ class FlextCliModels(FlextModels):
             def _format_bool_param(
                 type_name: str,
                 inner_type: type,
-                default_val: FlextCliTypes.GeneralValueType,
-            ) -> tuple[str, FlextCliTypes.GeneralValueType]:
+                default_val: t.GeneralValueType,
+            ) -> tuple[str, t.GeneralValueType]:
                 """Format boolean parameter for Typer flag detection."""
                 # Python 3.13: Direct type comparison - more elegant
                 if inner_type is bool:
@@ -1682,7 +1682,7 @@ class FlextCliModels(FlextModels):
             def _build_param_signature(
                 self,
                 name: str,
-                type_info: tuple[str, type, FlextCliTypes.GeneralValueType, bool, bool],
+                type_info: tuple[str, type, t.GeneralValueType, bool, bool],
             ) -> tuple[str, bool]:
                 """Build parameter signature string.
 
@@ -1760,10 +1760,10 @@ class FlextCliModels(FlextModels):
 
             def _collect_field_data(
                 self,
-                model_fields: dict[str, FlextCliTypes.GeneralValueType],
+                model_fields: dict[str, t.GeneralValueType],
             ) -> tuple[
                 dict[str, type],
-                dict[str, FlextCliTypes.GeneralValueType],
+                dict[str, t.GeneralValueType],
                 set[str],
             ]:
                 """Collect annotations, defaults and factory fields from model fields.
@@ -1776,8 +1776,8 @@ class FlextCliModels(FlextModels):
                 # models.py cannot use utilities - use direct iteration instead
                 def process_field(
                     field_name: str,
-                    field_info: FlextCliTypes.GeneralValueType,
-                ) -> tuple[type, FlextCliTypes.GeneralValueType | None, bool]:
+                    field_info: t.GeneralValueType,
+                ) -> tuple[type, t.GeneralValueType | None, bool]:
                     """Process single field and return (type, default, has_factory)."""
                     field_type, default_val, _is_required, has_factory = (
                         self._process_field_metadata(field_name, field_info)
@@ -1793,14 +1793,14 @@ class FlextCliModels(FlextModels):
                 # models.py cannot use utilities - use direct iteration instead
                 processed_dict: dict[
                     str,
-                    tuple[type, FlextCliTypes.GeneralValueType | None, bool],
+                    tuple[type, t.GeneralValueType | None, bool],
                 ] = {
                     field_name: process_field(field_name, field_info)
                     for field_name, field_info in model_fields.items()
                 }
                 # Build annotations, defaults, and fields_with_factory from processed results
                 annotations: dict[str, type] = {}
-                defaults: dict[str, FlextCliTypes.GeneralValueType] = {}
+                defaults: dict[str, t.GeneralValueType] = {}
                 fields_with_factory: set[str] = set()
 
                 for field_name, (
@@ -1823,7 +1823,7 @@ class FlextCliModels(FlextModels):
             def _build_signature_parts(
                 self,
                 annotations: dict[str, type],
-                defaults: dict[str, FlextCliTypes.GeneralValueType],
+                defaults: dict[str, t.GeneralValueType],
                 fields_with_factory: set[str],
             ) -> str:
                 """Build function signature string from field data.
@@ -2006,7 +2006,7 @@ class FlextCliModels(FlextModels):
                 field_name: str,
                 param_type: type,
                 click_type: str,
-                default: FlextCliTypes.GeneralValueType | None = None,
+                default: t.GeneralValueType | None = None,
                 help_text: str = "",
             ) -> None:
                 """Initialize CLI parameter spec."""
@@ -2031,7 +2031,7 @@ class FlextCliModels(FlextModels):
             @staticmethod
             def cli_args_to_model(
                 model_cls: type[BaseModel],
-                cli_args: Mapping[str, FlextCliTypes.GeneralValueType],
+                cli_args: Mapping[str, t.GeneralValueType],
             ) -> r[BaseModel]:
                 """Convert CLI arguments dict to Pydantic model instance.
 
@@ -2041,10 +2041,10 @@ class FlextCliModels(FlextModels):
                 """
                 try:
                     # Use direct model_validate instead of from_dict to avoid type variable issues
-                    # cli_args is already FlextCliTypes.GeneralValueType compatible
+                    # cli_args is already t.GeneralValueType compatible
                     # Type narrowing: model_cls is BaseModel subclass (checked by caller)
                     # Convert Mapping to dict for model_validate
-                    cli_args_dict: dict[str, FlextCliTypes.GeneralValueType] = dict(
+                    cli_args_dict: dict[str, t.GeneralValueType] = dict(
                         cli_args,
                     )
                     # Type narrowing: model_cls is BaseModel subclass, model_validate exists
@@ -2075,7 +2075,7 @@ class FlextCliModels(FlextModels):
 
                     def convert_field(
                         field_name: str,
-                        field_info: FlextCliTypes.GeneralValueType,
+                        field_info: t.GeneralValueType,
                     ) -> p.Cli.CliParameterSpecProtocol:
                         """Convert single field to CliParameterSpec."""
                         field_type = getattr(field_info, "annotation", str)
@@ -2127,7 +2127,7 @@ class FlextCliModels(FlextModels):
             @staticmethod
             def model_to_click_options(
                 model_cls: type,
-            ) -> r[list[FlextCliTypes.GeneralValueType]]:
+            ) -> r[list[t.GeneralValueType]]:
                 """Convert Pydantic model to list of Click options."""
                 params_result = (
                     FlextCliModels.Cli.CliModelConverter.model_to_cli_params(
@@ -2135,29 +2135,29 @@ class FlextCliModels(FlextModels):
                     )
                 )
                 if params_result.is_failure:
-                    return r[list[FlextCliTypes.GeneralValueType]].fail(
+                    return r[list[t.GeneralValueType]].fail(
                         params_result.error or "Conversion failed",
                     )
                 # After is_failure check, params_result.value is guaranteed to be the value
                 params: list[p.Cli.CliParameterSpecProtocol] = params_result.value
                 # Create Click option-like objects with option_name and param_decls
                 # Use simple object with attributes for compatibility with tests
-                # Type cast: dynamically created objects are compatible with FlextCliTypes.GeneralValueType
-                options: list[FlextCliTypes.GeneralValueType] = []
+                # Type cast: dynamically created objects are compatible with t.GeneralValueType
+                options: list[t.GeneralValueType] = []
                 for param in params:
                     # Type narrowing: param is CliParameterSpecProtocol
                     # Create a simple object with option_name and param_decls attributes
                     option_name = f"--{param.field_name.replace('_', '-')}"
-                    # Type narrowing: param_decls list is compatible with FlextCliTypes.GeneralValueType (list is included)
-                    param_decls_list: FlextCliTypes.GeneralValueType = [option_name]
+                    # Type narrowing: param_decls list is compatible with t.GeneralValueType (list is included)
+                    param_decls_list: t.GeneralValueType = [option_name]
                     # Type narrowing: param_type (type) - store as string for dict compatibility
-                    # type is not in FlextCliTypes.GeneralValueType, so we use string representation
+                    # type is not in t.GeneralValueType, so we use string representation
                     param_type_name: str = (
                         getattr(param.param_type, "__name__", "str")
                         if isinstance(param.param_type, type)
                         else "str"
                     )
-                    option_obj_dict: dict[str, FlextCliTypes.GeneralValueType] = {
+                    option_obj_dict: dict[str, t.GeneralValueType] = {
                         "option_name": option_name,
                         "param_decls": param_decls_list,
                         "field_name": param.field_name,
@@ -2167,16 +2167,16 @@ class FlextCliModels(FlextModels):
                     }
                     # Append dict directly - it's already GeneralValueType compatible
                     options.append(option_obj_dict)
-                return r[list[FlextCliTypes.GeneralValueType]].ok(options)
+                return r[list[t.GeneralValueType]].ok(options)
 
             @staticmethod
             def field_to_cli_param(
                 field_name: str,
-                field_info: FieldInfo | FlextCliTypes.GeneralValueType,
+                field_info: FieldInfo | t.GeneralValueType,
             ) -> r[p.Cli.CliParameterSpecProtocol]:
                 """Convert Pydantic field to CLI parameter specification."""
                 try:
-                    # Handle both FieldInfo and FlextCliTypes.GeneralValueType
+                    # Handle both FieldInfo and t.GeneralValueType
                     if isinstance(field_info, FieldInfo):
                         annotation = field_info.annotation
                         default = (
@@ -2322,8 +2322,8 @@ class FlextCliModels(FlextModels):
             @staticmethod
             def extract_base_props(
                 field_name: str,
-                field_info: FieldInfo | FlextCliTypes.GeneralValueType,
-            ) -> dict[str, FlextCliTypes.GeneralValueType]:
+                field_info: FieldInfo | t.GeneralValueType,
+            ) -> dict[str, t.GeneralValueType]:
                 """Extract base properties from field info."""
                 annotation = getattr(field_info, "annotation", None)
                 return {
@@ -2335,26 +2335,26 @@ class FlextCliModels(FlextModels):
 
             @staticmethod
             def merge_types_into_props(
-                props: dict[str, FlextCliTypes.GeneralValueType],
+                props: dict[str, t.GeneralValueType],
                 types: Mapping[str, type | str],
             ) -> None:
                 """Merge types mapping into properties dict."""
                 if isinstance(types, dict):
                     # Use dict comprehension for type conversion - direct and type-safe
-                    transformed: dict[str, FlextCliTypes.GeneralValueType] = {
+                    transformed: dict[str, t.GeneralValueType] = {
                         k: str(v) for k, v in types.items()
                     }
                     props.update(transformed)
 
             @staticmethod
             def merge_field_info_dict(
-                props: dict[str, FlextCliTypes.GeneralValueType],
-                field_info: FieldInfo | FlextCliTypes.GeneralValueType,
+                props: dict[str, t.GeneralValueType],
+                field_info: FieldInfo | t.GeneralValueType,
             ) -> None:
                 """Merge field_info dict attributes into props."""
                 if isinstance(field_info, dict):
                     # Use dict comprehension to exclude "__dict__" for type safety
-                    filtered: dict[str, FlextCliTypes.GeneralValueType] = {
+                    filtered: dict[str, t.GeneralValueType] = {
                         k: v for k, v in dict(field_info).items() if k != "__dict__"
                     }
                     props.update(filtered)
@@ -2366,9 +2366,9 @@ class FlextCliModels(FlextModels):
             @staticmethod
             def process_metadata_list(
                 metadata_attr: list[t.GeneralValueType],
-            ) -> dict[str, FlextCliTypes.GeneralValueType]:
+            ) -> dict[str, t.GeneralValueType]:
                 """Process metadata list into dict."""
-                result: dict[str, FlextCliTypes.GeneralValueType] = {}
+                result: dict[str, t.GeneralValueType] = {}
                 for item in metadata_attr:
                     if hasattr(item, "__dict__"):
                         item_dict = getattr(item, "__dict__", {})
@@ -2380,8 +2380,8 @@ class FlextCliModels(FlextModels):
 
             @staticmethod
             def merge_metadata_attr(
-                props: dict[str, FlextCliTypes.GeneralValueType],
-                field_info: FieldInfo | FlextCliTypes.GeneralValueType,
+                props: dict[str, t.GeneralValueType],
+                field_info: FieldInfo | t.GeneralValueType,
             ) -> None:
                 """Merge metadata attribute into props."""
                 if not hasattr(field_info, "metadata"):
@@ -2400,8 +2400,8 @@ class FlextCliModels(FlextModels):
 
             @staticmethod
             def merge_json_schema_extra(
-                props: dict[str, FlextCliTypes.GeneralValueType],
-                field_info: FieldInfo | FlextCliTypes.GeneralValueType,
+                props: dict[str, t.GeneralValueType],
+                field_info: FieldInfo | t.GeneralValueType,
             ) -> None:
                 """Merge json_schema_extra into props metadata."""
                 if not hasattr(field_info, "json_schema_extra"):
@@ -2423,24 +2423,20 @@ class FlextCliModels(FlextModels):
                     if not isinstance(metadata_raw, dict):
                         msg = "metadata_raw must be dict"
                         raise TypeError(msg)
-                    dict_metadata: dict[str, FlextCliTypes.GeneralValueType] = (
-                        metadata_raw
-                    )
+                    dict_metadata: dict[str, t.GeneralValueType] = metadata_raw
                     if not isinstance(json_schema_extra, dict):
                         msg = "json_schema_extra must be dict"
                         raise TypeError(msg)
-                    dict_schema: dict[str, FlextCliTypes.GeneralValueType] = (
-                        json_schema_extra
-                    )
+                    dict_schema: dict[str, t.GeneralValueType] = json_schema_extra
                     dict_metadata.update(dict_schema)
                     props["metadata"] = dict_metadata
 
             @staticmethod
             def extract_field_properties(
                 field_name: str,
-                field_info: FieldInfo | FlextCliTypes.GeneralValueType,
+                field_info: FieldInfo | t.GeneralValueType,
                 types: Mapping[str, type | str] | None = None,
-            ) -> r[dict[str, FlextCliTypes.GeneralValueType]]:
+            ) -> r[dict[str, t.GeneralValueType]]:
                 """Extract properties from Pydantic field info."""
                 try:
                     props = FlextCliModels.Cli.CliModelConverter.extract_base_props(
@@ -2464,9 +2460,9 @@ class FlextCliModels(FlextModels):
                             props,
                             field_info,
                         )
-                    return r[dict[str, FlextCliTypes.GeneralValueType]].ok(props)
+                    return r[dict[str, t.GeneralValueType]].ok(props)
                 except Exception as e:
-                    return r[dict[str, FlextCliTypes.GeneralValueType]].fail(
+                    return r[dict[str, t.GeneralValueType]].fail(
                         f"Extraction failed: {e}",
                     )
 
@@ -2503,23 +2499,23 @@ class FlextCliModels(FlextModels):
             @staticmethod
             def convert_field_value(
                 field_value: object,
-            ) -> r[FlextCliTypes.GeneralValueType]:
-                """Convert field value to FlextCliTypes.GeneralValueType.
+            ) -> r[t.GeneralValueType]:
+                """Convert field value to t.GeneralValueType.
 
                 models.py cannot use utilities - use direct conversion instead.
-                Uses FlextCliTypes.GeneralValueType from lower layer for proper type safety.
+                Uses t.GeneralValueType from lower layer for proper type safety.
                 """
                 if field_value is None:
-                    return r[FlextCliTypes.GeneralValueType].ok(None)
+                    return r[t.GeneralValueType].ok(None)
                 if isinstance(field_value, (str, int, float, bool, dict, list)):
-                    return r[FlextCliTypes.GeneralValueType].ok(field_value)
-                return r[FlextCliTypes.GeneralValueType].ok(str(field_value))
+                    return r[t.GeneralValueType].ok(field_value)
+                return r[t.GeneralValueType].ok(str(field_value))
 
             @staticmethod
             def validate_dict_field_data(
                 field_name: str,
                 field_data: Mapping[str, object],
-            ) -> r[FlextCliTypes.GeneralValueType]:
+            ) -> r[t.GeneralValueType]:
                 """Validate field data when field_info is a dict/Mapping."""
                 schema_result = (
                     FlextCliModels.Cli.CliModelConverter.validate_field_schema(
@@ -2527,7 +2523,7 @@ class FlextCliModels(FlextModels):
                     )
                 )
                 if schema_result.is_failure:
-                    return r[FlextCliTypes.GeneralValueType].fail(
+                    return r[t.GeneralValueType].fail(
                         schema_result.error or "Schema validation failed",
                     )
                 field_value = field_data.get(field_name, None)
@@ -2540,20 +2536,20 @@ class FlextCliModels(FlextModels):
                 field_name: str,
                 field_info: (
                     FieldInfo
-                    | FlextCliTypes.GeneralValueType
-                    | Mapping[str, FlextCliTypes.GeneralValueType]
-                    | dict[str, FlextCliTypes.GeneralValueType]
+                    | t.GeneralValueType
+                    | Mapping[str, t.GeneralValueType]
+                    | dict[str, t.GeneralValueType]
                     | dict[
                         str,
                         type
                         | str
                         | bool
-                        | list[FlextCliTypes.GeneralValueType]
-                        | dict[str, FlextCliTypes.GeneralValueType],
+                        | list[t.GeneralValueType]
+                        | dict[str, t.GeneralValueType],
                     ]
                 ),
-                data: Mapping[str, FlextCliTypes.GeneralValueType] | None = None,
-            ) -> r[FlextCliTypes.GeneralValueType]:
+                data: Mapping[str, t.GeneralValueType] | None = None,
+            ) -> r[t.GeneralValueType]:
                 """Validate field data against field info."""
                 try:
                     if isinstance(field_info, (dict, Mapping)):
@@ -2563,15 +2559,15 @@ class FlextCliModels(FlextModels):
                         )
                     if data is not None:
                         if field_name not in data:
-                            return r[FlextCliTypes.GeneralValueType].fail(
+                            return r[t.GeneralValueType].fail(
                                 f"Field {field_name} not found",
                             )
-                        return r[FlextCliTypes.GeneralValueType].ok(data[field_name])
-                    return r[FlextCliTypes.GeneralValueType].fail(
+                        return r[t.GeneralValueType].ok(data[field_name])
+                    return r[t.GeneralValueType].fail(
                         "No data provided for validation",
                     )
                 except Exception as e:
-                    return r[FlextCliTypes.GeneralValueType].fail(
+                    return r[t.GeneralValueType].fail(
                         f"Validation failed: {e}",
                     )
 
@@ -2580,17 +2576,17 @@ class FlextCliModels(FlextModels):
                 field_info: (
                     Sequence[
                         Callable[
-                            [FlextCliTypes.GeneralValueType],
-                            FlextCliTypes.GeneralValueType,
+                            [t.GeneralValueType],
+                            t.GeneralValueType,
                         ]
                     ]
                     | Sequence[object]
-                    | FlextCliTypes.GeneralValueType
+                    | t.GeneralValueType
                 ),
             ) -> list[
                 Callable[
-                    [FlextCliTypes.GeneralValueType],
-                    FlextCliTypes.GeneralValueType,
+                    [t.GeneralValueType],
+                    t.GeneralValueType,
                 ]
             ]:
                 """Process validators from field info, filtering only callable validators."""
@@ -2599,8 +2595,8 @@ class FlextCliModels(FlextModels):
                     item: object,
                 ) -> TypeGuard[
                     Callable[
-                        [FlextCliTypes.GeneralValueType],
-                        FlextCliTypes.GeneralValueType,
+                        [t.GeneralValueType],
+                        t.GeneralValueType,
                     ]
                 ]:
                     """TypeGuard to check if item is a validator callable."""
@@ -2611,8 +2607,8 @@ class FlextCliModels(FlextModels):
                 # Build result list explicitly for proper type narrowing
                 result: list[
                     Callable[
-                        [FlextCliTypes.GeneralValueType],
-                        FlextCliTypes.GeneralValueType,
+                        [t.GeneralValueType],
+                        t.GeneralValueType,
                     ]
                 ] = [item for item in field_info if is_validator(item)]
                 return result
@@ -2627,9 +2623,7 @@ class FlextCliModels(FlextModels):
                 [
                     Callable[
                         [BaseModel],
-                        r[FlextCliTypes.GeneralValueType]
-                        | r[t.GeneralValueType]
-                        | FlextCliTypes.GeneralValueType,
+                        r[t.GeneralValueType] | t.GeneralValueType,
                     ],
                 ],
                 p.Cli.CliCommandWrapper,
@@ -2639,22 +2633,20 @@ class FlextCliModels(FlextModels):
                 def decorator(
                     func: Callable[
                         [BaseModel],
-                        r[FlextCliTypes.GeneralValueType]
-                        | r[t.GeneralValueType]
-                        | FlextCliTypes.GeneralValueType,
+                        r[t.GeneralValueType] | t.GeneralValueType,
                     ],
                 ) -> p.Cli.CliCommandWrapper:
                     def wrapper(
-                        *_args: FlextCliTypes.GeneralValueType,
-                        **kwargs: FlextCliTypes.GeneralValueType,
-                    ) -> FlextCliTypes.GeneralValueType:
+                        *_args: t.GeneralValueType,
+                        **kwargs: t.GeneralValueType,
+                    ) -> t.GeneralValueType:
                         try:
                             # Create model instance from kwargs
                             model_instance = model_class(**kwargs)
                             # Call original function with model
                             result = func(model_instance)
-                            # Convert result to FlextCliTypes.GeneralValueType if needed
-                            output: FlextCliTypes.GeneralValueType
+                            # Convert result to t.GeneralValueType if needed
+                            output: t.GeneralValueType
                             if isinstance(result, r):
                                 if result.is_success:
                                     # Type narrowing: result.value is object, convert
@@ -2698,9 +2690,9 @@ class FlextCliModels(FlextModels):
                     func: p.Cli.CliCommandWrapper,
                 ) -> p.Cli.CliCommandWrapper:
                     def wrapper(
-                        *_args: FlextCliTypes.GeneralValueType,
-                        **kwargs: FlextCliTypes.GeneralValueType,
-                    ) -> FlextCliTypes.GeneralValueType:
+                        *_args: t.GeneralValueType,
+                        **kwargs: t.GeneralValueType,
+                    ) -> t.GeneralValueType:
                         try:
                             # Create model instances from kwargs (simplified)
                             models = [

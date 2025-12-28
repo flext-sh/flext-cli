@@ -199,14 +199,11 @@ class FlextCliCommands(FlextCliServiceBase):
                 result = handler()
 
             # Unwrap if result is already a FlextResult
-            if (
-                result is not None
-                and hasattr(result, "is_success")
-                and hasattr(result, "value")
-            ):
+            if isinstance(result, r):
+                # result is r[...] (FlextResult)
                 if result.is_success:
                     return r[t.GeneralValueType].ok(result.value)
-                error_msg = getattr(result, "error", None) or "Command failed"
+                error_msg = result.error or "Command failed"
                 return r[t.GeneralValueType].fail(error_msg)
 
             # Handle None result

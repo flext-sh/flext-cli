@@ -45,6 +45,7 @@ from flext_cli import (
     c,
     m,
     t,
+    u,
 )
 
 cli = FlextCli()
@@ -98,7 +99,6 @@ def display_database_results(records: list[t.JsonDict]) -> None:
     table_result = cli.create_table(
         data=table_data,
         headers=["#", "Data"],
-        title=f"Query Results ({len(records)} total)",
     )
 
     if table_result.is_success:
@@ -397,14 +397,13 @@ def advanced_output_example() -> None:
     )
 
     # Demonstrate discriminated union validation
-    valid_formats = c.Cli.get_valid_output_formats()
+    valid_formats = u.Cli.CliValidation.get_valid_output_formats()
     cli.print(f"Supported formats: {', '.join(valid_formats)}", style="green")
 
     # Create table using advanced types
     table_result = cli.create_table(
         data=list(sample_data),
         headers=["Name", "Age", "Role"],
-        title="Team Members (Advanced Types)",
     )
 
     if table_result.is_success:

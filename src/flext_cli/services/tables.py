@@ -20,7 +20,7 @@ from flext_cli.constants import FlextCliConstants
 from flext_cli.models import m
 from flext_cli.protocols import p
 from flext_cli.typings import t
-from flext_cli.utilities import FlextCliUtilities
+from flext_cli.utilities import u
 
 
 class FlextCliTables(FlextCliServiceBase):
@@ -157,7 +157,7 @@ class FlextCliTables(FlextCliServiceBase):
         config_concrete: m.Cli.TableConfig | None = (
             config if isinstance(config, m.Cli.TableConfig) else None
         )
-        config_result = FlextCliUtilities.Configuration.build_options_from_kwargs(
+        config_result = u.Configuration.build_options_from_kwargs(
             model_class=m.Cli.TableConfig,
             explicit_options=config_concrete,
             default_factory=m.Cli.TableConfig,
@@ -339,7 +339,7 @@ class FlextCliTables(FlextCliServiceBase):
 
         """
         try:
-            # Use FlextCliUtilities.process to convert TABLE_FORMATS to list
+            # Use u.process to convert TABLE_FORMATS to list
             def convert_format(name: str, desc: str) -> dict[str, str]:
                 """Convert format to dict."""
                 return {"format": name, "description": desc}

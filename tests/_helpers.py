@@ -5,7 +5,6 @@ from datetime import UTC, datetime
 from typing import Any
 
 import pytest
-from flext_core import FlextTypes as t
 from flext_core.result import FlextResult as r
 
 from flext_cli import FlextCliCommands

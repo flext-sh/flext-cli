@@ -491,7 +491,6 @@ def load_config_auto_detect(config_file: Path) -> dict[str, t.GeneralValueType] 
         table_result = cli.create_table(
             data=display_data,
             headers=["Key", "Value"],
-            title=f"Config from {detected_format.upper()}",
         )
         if table_result.is_success:
             cli.print_table(table_result.value)

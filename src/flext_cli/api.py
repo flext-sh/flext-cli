@@ -281,9 +281,9 @@ class FlextCli:
             return validation
 
         token_path = self.config.token_file
-        # Create dict with FlextCliTypes.GeneralValueType for Mapper compatibility
+        # Create dict with t.GeneralValueType for Mapper compatibility
         token_data: dict[str, t.GeneralValueType] = {
-            # str is subtype of FlextCliTypes.GeneralValueType
+            # str is subtype of t.GeneralValueType
             c.Cli.DictKeys.TOKEN: token,
         }
 
@@ -312,7 +312,7 @@ class FlextCli:
         }
         # Type narrowing: error_keywords.keys() are all str, error_str is str
         keyword_list: list[str] = list(error_keywords.keys())
-        # Find returns FlextCliTypes.GeneralValueType | None, but we know keywords are str
+        # Find returns t.GeneralValueType | None, but we know keywords are str
         found_keyword_raw = u.Collection.find(
             keyword_list,
             predicate=lambda kw: isinstance(kw, str) and kw in error_str,

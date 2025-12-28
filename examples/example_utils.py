@@ -116,7 +116,6 @@ def display_config_table(
     table_result = cli.create_table(
         data=config_data,
         headers=headers,
-        title=title,
     )
 
     if table_result.is_success:

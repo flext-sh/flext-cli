@@ -15,6 +15,7 @@ from typing import override
 
 from flext_core import (
     FlextDecorators,
+    FlextLogger,
     FlextResult as r,
     FlextUtilities as u,
 )
@@ -167,7 +168,7 @@ class FlextCliCore(FlextCliServiceBase):
         config_dict: Mapping[str, t.GeneralValueType] | None = (
             config if u.is_type(config, "mapping") else None
         )
-        self.logger.debug(
+        FlextLogger(__name__).debug(
             "Initialized CLI core service",
             operation="__init__",
             has_config=config is not None,
@@ -196,7 +197,7 @@ class FlextCliCore(FlextCliServiceBase):
 
         """
         # Log detailed command registration initialization
-        self.logger.debug(
+        FlextLogger(__name__).debug(
             "Starting CLI command registration",
             command_name=command.name if command else None,
             command_type=type(command).__name__ if command else None,
@@ -204,7 +205,7 @@ class FlextCliCore(FlextCliServiceBase):
             source="flext-cli/src/flext_cli/core.py",
         )
 
-        self.logger.info(
+        FlextLogger(__name__).info(
             "STARTING CLI command registration",
             command_name=command.name if command else None,
             operation="register_command",
@@ -215,7 +216,7 @@ class FlextCliCore(FlextCliServiceBase):
         # Note: command parameter is non-optional, but we check for None defensively
         # to handle cases where caller passes None despite type hints
         if not command.name:
-            self.logger.error(
+            FlextLogger(__name__).error(
                 "FAILED CLI command registration - command name is empty",
                 command_name=command.name,
                 operation="register_command",
@@ -247,7 +248,7 @@ class FlextCliCore(FlextCliServiceBase):
             self._commands[command.name] = command_data
 
             # Log successful registration with detailed context
-            self.logger.debug(
+            FlextLogger(__name__).debug(
                 "Command registration completed successfully",
                 command_name=command.name,
                 # Business Rule: Dict keys MUST be extracted using list() constructor (Python 3.13+)
@@ -260,7 +261,7 @@ class FlextCliCore(FlextCliServiceBase):
                 source="flext-cli/src/flext_cli/core.py",
             )
 
-            self.logger.info(
+            FlextLogger(__name__).info(
                 "COMPLETED CLI command registration successfully",
                 command_name=command.name,
                 operation="register_command",
@@ -271,7 +272,7 @@ class FlextCliCore(FlextCliServiceBase):
 
         except Exception as e:
             # Log detailed registration error
-            self.logger.exception(
+            FlextLogger(__name__).exception(
                 "FAILED CLI command registration with exception",
                 command_name=command.name,
                 error_type=type(e).__name__,
@@ -298,7 +299,7 @@ class FlextCliCore(FlextCliServiceBase):
             r[dict[str, t.GeneralValueType]]: Command definition or error
 
         """
-        self.logger.debug(
+        FlextLogger(__name__).debug(
             "Retrieving command definition",
             operation="get_command",
             command_name=name,
@@ -307,7 +308,7 @@ class FlextCliCore(FlextCliServiceBase):
         )
 
         if not name:
-            self.logger.warning(
+            FlextLogger(__name__).warning(
                 "Command name is empty",
                 operation="get_command",
                 consequence="Command retrieval will fail",
@@ -320,7 +321,7 @@ class FlextCliCore(FlextCliServiceBase):
         # Use mapper().get() to check command existence
         command_check = u.mapper().get(self._commands, name)
         if command_check is None:
-            self.logger.warning(
+            FlextLogger(__name__).warning(
                 "Command not found in registry",
                 operation="get_command",
                 command_name=name,
@@ -335,7 +336,7 @@ class FlextCliCore(FlextCliServiceBase):
         try:
             command_def = self._commands[name]
 
-            self.logger.debug(
+            FlextLogger(__name__).debug(
                 "Retrieved command definition",
                 operation="get_command",
                 command_name=name,
@@ -346,7 +347,7 @@ class FlextCliCore(FlextCliServiceBase):
 
             # Use u.is_type(..., "mapping") for type checking
             if u.is_type(command_def, "mapping"):
-                self.logger.debug(
+                FlextLogger(__name__).debug(
                     "Command definition retrieved successfully",
                     operation="get_command",
                     command_name=name,
@@ -361,7 +362,7 @@ class FlextCliCore(FlextCliServiceBase):
                 # command_def is already JsonDict - no conversion needed
                 return r[dict[str, t.GeneralValueType]].ok(command_def)
 
-            self.logger.error(
+            FlextLogger(__name__).error(
                 "FAILED to retrieve command - invalid command type",
                 operation="get_command",
                 command_name=name,
@@ -373,7 +374,7 @@ class FlextCliCore(FlextCliServiceBase):
                 c.Cli.ErrorMessages.INVALID_COMMAND_TYPE.format(name=name),
             )
         except Exception as e:
-            self.logger.exception(
+            FlextLogger(__name__).exception(
                 "FAILED to retrieve command - operation aborted",
                 operation="get_command",
                 command_name=name,
@@ -424,11 +425,11 @@ class FlextCliCore(FlextCliServiceBase):
         timeout: float | None = None,
     ) -> r[dict[str, t.GeneralValueType]]:
         """Execute registered command with context."""
-        self.logger.info("STARTING CLI command execution", command_name=name)
+        FlextLogger(__name__).info("STARTING CLI command execution", command_name=name)
 
         command_result = self.get_command(name)
         if command_result.is_failure:
-            self.logger.error("FAILED - command not found", command_name=name)
+            FlextLogger(__name__).error("FAILED - command not found", command_name=name)
             # Python 3.13: Direct attribute access - more elegant and type-safe
             return r[dict[str, t.GeneralValueType]].fail(
                 command_result.error or "Command not found",
@@ -443,11 +444,15 @@ class FlextCliCore(FlextCliServiceBase):
                 c.Cli.DictKeys.TIMEOUT: timeout,
                 c.Cli.DictKeys.CONTEXT: dict(execution_context),
             }
-            self.logger.info("COMPLETED CLI command execution", command_name=name)
+            FlextLogger(__name__).info(
+                "COMPLETED CLI command execution", command_name=name
+            )
             return r[dict[str, t.GeneralValueType]].ok(result_dict)
 
         except Exception as e:
-            self.logger.exception("FAILED CLI command execution", command_name=name)
+            FlextLogger(__name__).exception(
+                "FAILED CLI command execution", command_name=name
+            )
             return r[dict[str, t.GeneralValueType]].fail(
                 c.Cli.ErrorMessages.COMMAND_EXECUTION_FAILED.format(error=e),
             )
@@ -462,7 +467,7 @@ class FlextCliCore(FlextCliServiceBase):
             r[list[str]]: List of command names or error with details
 
         """
-        self.logger.debug(
+        FlextLogger(__name__).debug(
             "Listing all registered commands",
             operation="list_commands",
             total_commands=len(self._commands),
@@ -475,7 +480,7 @@ class FlextCliCore(FlextCliServiceBase):
             try:
                 command_names = list(self._commands.keys())
 
-                self.logger.debug(
+                FlextLogger(__name__).debug(
                     "Command names extracted successfully",
                     operation="list_commands",
                     commands_count=len(command_names),
@@ -483,7 +488,7 @@ class FlextCliCore(FlextCliServiceBase):
                     source="flext-cli/src/flext_cli/core.py",
                 )
 
-                self.logger.info(
+                FlextLogger(__name__).info(
                     "Command listing completed",
                     operation="list_commands",
                     total_commands=len(command_names),
@@ -492,7 +497,7 @@ class FlextCliCore(FlextCliServiceBase):
 
                 return r[list[str]].ok(command_names)
             except Exception as e:
-                self.logger.exception(
+                FlextLogger(__name__).exception(
                     "FAILED to list commands - operation aborted",
                     operation="list_commands",
                     error=str(e),
@@ -533,7 +538,7 @@ class FlextCliCore(FlextCliServiceBase):
 
     def _log_config_update(self) -> None:
         """Log configuration update - direct logger usage."""
-        self.logger.info(c.Cli.LogMessages.CLI_CONFIG_UPDATED)
+        FlextLogger(__name__).info(c.Cli.LogMessages.CLI_CONFIG_UPDATED)
 
     def _validate_config_input(
         self,
@@ -541,7 +546,7 @@ class FlextCliCore(FlextCliServiceBase):
     ) -> r[dict[str, t.GeneralValueType]]:
         """Validate input configuration for update operations."""
         if not config:
-            self.logger.warning(
+            FlextLogger(__name__).warning(
                 "Configuration input is empty",
                 operation="update_configuration",
                 consequence="Configuration update will fail",
@@ -551,7 +556,7 @@ class FlextCliCore(FlextCliServiceBase):
                 c.Cli.ErrorMessages.CONFIG_NOT_DICT,
             )
 
-        self.logger.debug(
+        FlextLogger(__name__).debug(
             "Configuration input validated",
             operation="update_configuration",
             config_keys=list(config.keys()) if u.is_type(config, "mapping") else None,
@@ -585,7 +590,7 @@ class FlextCliCore(FlextCliServiceBase):
     ) -> r[bool]:
         """Merge new configuration with existing one."""
         try:
-            self.logger.debug(
+            FlextLogger(__name__).debug(
                 "Merging configurations",
                 operation="update_configuration",
                 new_config_keys=list(valid_config.keys())
@@ -598,7 +603,7 @@ class FlextCliCore(FlextCliServiceBase):
             if existing_config_result.is_failure:
                 # Python 3.13: Direct attribute access - more elegant and type-safe
                 error_msg = existing_config_result.error or ""
-                self.logger.warning(
+                FlextLogger(__name__).warning(
                     "Existing configuration validation failed",
                     operation="update_configuration",
                     error=error_msg,
@@ -642,7 +647,7 @@ class FlextCliCore(FlextCliServiceBase):
             # merged_config is guaranteed to be not None by FlextCliUtilities.val default
             object.__setattr__(self, "_cli_config", merged_config)
 
-            self.logger.debug(
+            FlextLogger(__name__).debug(
                 "Configuration merged successfully",
                 operation="update_configuration",
                 merged_keys=list(self._cli_config.keys())
@@ -652,7 +657,7 @@ class FlextCliCore(FlextCliServiceBase):
             )
 
             self._log_config_update()
-            self.logger.info(
+            FlextLogger(__name__).info(
                 "Configuration update completed successfully",
                 operation="update_configuration",
                 source="flext-cli/src/flext_cli/core.py",
@@ -661,7 +666,7 @@ class FlextCliCore(FlextCliServiceBase):
             return r[bool].ok(True)
 
         except Exception as e:
-            self.logger.exception(
+            FlextLogger(__name__).exception(
                 "FAILED to merge configurations - operation aborted",
                 operation="update_configuration",
                 error=str(e),
@@ -689,7 +694,7 @@ class FlextCliCore(FlextCliServiceBase):
             r[bool]: True if configuration updated successfully, failure on error
 
         """
-        self.logger.info(
+        FlextLogger(__name__).info(
             "Updating CLI configuration",
             operation="update_configuration",
             config_keys=list(config.keys()) if u.is_type(config, "mapping") else None,
@@ -699,7 +704,7 @@ class FlextCliCore(FlextCliServiceBase):
             source="flext-cli/src/flext_cli/core.py",
         )
 
-        self.logger.debug(
+        FlextLogger(__name__).debug(
             "Starting configuration update",
             operation="update_configuration",
             config_type=type(config).__name__,
@@ -748,7 +753,7 @@ class FlextCliCore(FlextCliServiceBase):
         def validate_config_state() -> r[dict[str, t.GeneralValueType]]:
             """Validate that configuration is properly initialized."""
             try:
-                self.logger.debug(
+                FlextLogger(__name__).debug(
                     "Retrieving CLI configuration",
                     operation="get_configuration",
                     config_type=type(self._cli_config).__name__,
@@ -759,7 +764,7 @@ class FlextCliCore(FlextCliServiceBase):
                     source="flext-cli/src/flext_cli/core.py",
                 )
                 if u.is_type(self._cli_config, "mapping"):
-                    self.logger.debug(
+                    FlextLogger(__name__).debug(
                         "Configuration retrieved successfully",
                         operation="get_configuration",
                         config_keys=list(self._cli_config.keys())
@@ -768,7 +773,7 @@ class FlextCliCore(FlextCliServiceBase):
                         source="flext-cli/src/flext_cli/core.py",
                     )
 
-                    self.logger.info(
+                    FlextLogger(__name__).info(
                         "Configuration retrieval completed",
                         operation="get_configuration",
                         source="flext-cli/src/flext_cli/core.py",
@@ -779,7 +784,7 @@ class FlextCliCore(FlextCliServiceBase):
                         self._cli_config,
                     )
 
-                self.logger.warning(
+                FlextLogger(__name__).warning(
                     "Configuration not initialized",
                     operation="get_configuration",
                     consequence="Configuration retrieval will fail",
@@ -789,7 +794,7 @@ class FlextCliCore(FlextCliServiceBase):
                     c.Cli.ErrorMessages.CONFIG_NOT_INITIALIZED,
                 )
             except Exception as e:
-                self.logger.exception(
+                FlextLogger(__name__).exception(
                     "FAILED to retrieve configuration - operation aborted",
                     operation="get_configuration",
                     error=str(e),
@@ -877,7 +882,7 @@ class FlextCliCore(FlextCliServiceBase):
             # Update internal _cli_config
             # Business Rule: Frozen model attributes MUST be set using object.__setattr__()
             object.__setattr__(self, "_cli_config", config)
-            self.logger.info(
+            FlextLogger(__name__).info(
                 c.Cli.LogMessages.PROFILE_CREATED.format(name=name),
             )
             return r[bool].ok(True)
@@ -926,7 +931,7 @@ class FlextCliCore(FlextCliServiceBase):
             )
 
             # Log session start - direct logger usage
-            self.logger.info(c.Cli.LogMessages.SESSION_STARTED)
+            FlextLogger(__name__).info(c.Cli.LogMessages.SESSION_STARTED)
 
             return r[bool].ok(True)
 
@@ -943,7 +948,7 @@ class FlextCliCore(FlextCliServiceBase):
 
         """
         try:
-            self.logger.info(
+            FlextLogger(__name__).info(
                 "Ending CLI session",
                 operation="end_session",
                 session_active=self._session_active,
@@ -951,14 +956,14 @@ class FlextCliCore(FlextCliServiceBase):
                 source="flext-cli/src/flext_cli/core.py",
             )
 
-            self.logger.debug(
+            FlextLogger(__name__).debug(
                 "Terminating session",
                 operation="end_session",
                 source="flext-cli/src/flext_cli/core.py",
             )
 
             if not self._session_active:
-                self.logger.warning(
+                FlextLogger(__name__).warning(
                     "No active session to end",
                     operation="end_session",
                     existing_sessions=list(self._sessions.keys()),
@@ -975,7 +980,7 @@ class FlextCliCore(FlextCliServiceBase):
             if hasattr(self, c.Cli.PrivateAttributes.SESSION_START_TIME):
                 delattr(self, c.Cli.PrivateAttributes.SESSION_START_TIME)
 
-            self.logger.debug(
+            FlextLogger(__name__).debug(
                 "Session terminated successfully",
                 operation="end_session",
                 total_sessions=len(self._sessions),
@@ -983,9 +988,9 @@ class FlextCliCore(FlextCliServiceBase):
             )
 
             # Log session end - direct logger usage
-            self.logger.info(c.Cli.LogMessages.SESSION_ENDED)
+            FlextLogger(__name__).info(c.Cli.LogMessages.SESSION_ENDED)
 
-            self.logger.info(
+            FlextLogger(__name__).info(
                 "CLI session ended",
                 operation="end_session",
                 source="flext-cli/src/flext_cli/core.py",
@@ -994,7 +999,7 @@ class FlextCliCore(FlextCliServiceBase):
             return r[bool].ok(True)
 
         except Exception as e:
-            self.logger.exception(
+            FlextLogger(__name__).exception(
                 "FAILED to end session - operation aborted",
                 operation="end_session",
                 error=str(e),
@@ -1087,7 +1092,7 @@ class FlextCliCore(FlextCliServiceBase):
             return info_data
 
         except Exception as e:
-            self.logger.exception(
+            FlextLogger(__name__).exception(
                 c.Cli.CoreServiceLogMessages.SERVICE_INFO_COLLECTION_FAILED,
             )
             return {c.Cli.DictKeys.MESSAGE: str(e)}
@@ -1106,7 +1111,7 @@ class FlextCliCore(FlextCliServiceBase):
             - Type-safe with field validation (non-negative duration)
 
         """
-        self.logger.debug(
+        FlextLogger(__name__).debug(
             "Collecting session statistics",
             operation="get_session_statistics",
             session_active=self._session_active,
@@ -1115,7 +1120,7 @@ class FlextCliCore(FlextCliServiceBase):
         )
 
         if not self._session_active:
-            self.logger.warning(
+            FlextLogger(__name__).warning(
                 "No active session for statistics collection",
                 operation="get_session_statistics",
                 existing_sessions=list(self._sessions.keys()),
@@ -1162,7 +1167,7 @@ class FlextCliCore(FlextCliServiceBase):
             # model_dump() already returns dict with JSON-compatible values
             stats_dict: dict[str, t.GeneralValueType] = stats_model.model_dump()
 
-            self.logger.debug(
+            FlextLogger(__name__).debug(
                 "Session statistics collected successfully",
                 operation="get_session_statistics",
                 session_duration=stats_model.session_duration_seconds,
@@ -1170,7 +1175,7 @@ class FlextCliCore(FlextCliServiceBase):
                 source="flext-cli/src/flext_cli/core.py",
             )
 
-            self.logger.info(
+            FlextLogger(__name__).info(
                 "Session statistics retrieved",
                 operation="get_session_statistics",
                 session_duration_seconds=stats_model.session_duration_seconds,
@@ -1180,7 +1185,7 @@ class FlextCliCore(FlextCliServiceBase):
             return r[dict[str, t.GeneralValueType]].ok(stats_dict)
 
         except Exception as e:
-            self.logger.exception(
+            FlextLogger(__name__).exception(
                 "FAILED to collect session statistics - operation aborted",
                 operation="get_session_statistics",
                 error=str(e),
@@ -1218,7 +1223,7 @@ class FlextCliCore(FlextCliServiceBase):
             - Type-safe with field validation
 
         """
-        self.logger.info(
+        FlextLogger(__name__).info(
             "Executing CLI core service",
             operation="execute",
             commands_count=len(self._commands),
@@ -1226,7 +1231,7 @@ class FlextCliCore(FlextCliServiceBase):
             source="flext-cli/src/flext_cli/core.py",
         )
 
-        self.logger.debug(
+        FlextLogger(__name__).debug(
             "Starting service execution",
             operation="execute",
             # Business Rule: Dict keys MUST be extracted using list() constructor (Python 3.13+)
@@ -1239,7 +1244,7 @@ class FlextCliCore(FlextCliServiceBase):
         try:
             # Validate service state before execution
             if not self._commands:
-                self.logger.warning(
+                FlextLogger(__name__).warning(
                     "No commands registered for service execution",
                     operation="execute",
                     consequence="Service execution will fail",
@@ -1263,7 +1268,7 @@ class FlextCliCore(FlextCliServiceBase):
             # model_dump() already returns dict with JSON-compatible values
             status_dict: dict[str, t.GeneralValueType] = result_model.model_dump()
 
-            self.logger.debug(
+            FlextLogger(__name__).debug(
                 "Service execution completed successfully",
                 operation="execute",
                 commands_count=result_model.commands_count,
@@ -1271,7 +1276,7 @@ class FlextCliCore(FlextCliServiceBase):
                 source="flext-cli/src/flext_cli/core.py",
             )
 
-            self.logger.info(
+            FlextLogger(__name__).info(
                 "CLI core service execution completed",
                 operation="execute",
                 commands_count=result_model.commands_count,
@@ -1281,7 +1286,7 @@ class FlextCliCore(FlextCliServiceBase):
             return r[dict[str, t.GeneralValueType]].ok(status_dict)
 
         except Exception as e:
-            self.logger.exception(
+            FlextLogger(__name__).exception(
                 "FATAL ERROR during service execution - execution aborted",
                 operation="execute",
                 error=str(e),
