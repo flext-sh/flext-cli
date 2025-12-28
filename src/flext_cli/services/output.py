@@ -1586,7 +1586,8 @@ class FlextCliOutput:
                         custom_item: t.GeneralValueType = (
                             item
                             if isinstance(
-                                item, (str, int, float, bool, type(None), dict, list, tuple)
+                                item,
+                                (str, int, float, bool, type(None), dict, list, tuple),
                             )
                             else str(item)
                         )

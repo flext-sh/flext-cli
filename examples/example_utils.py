@@ -99,7 +99,6 @@ def print_demo_error(
 def display_config_table(
     cli: FlextCli,
     config_data: t.JsonDict,
-    title: str = "Configuration",
     headers: list[str] | None = None,
 ) -> None:
     """Display configuration data as a formatted table using FlextCli.
@@ -107,7 +106,6 @@ def display_config_table(
     Args:
         cli: FlextCli instance
         config_data: Configuration data dictionary
-        title: Table title
         headers: Table headers (default: ["Setting", "Value"])
 
     """
