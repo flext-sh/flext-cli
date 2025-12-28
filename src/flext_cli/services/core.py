@@ -230,15 +230,17 @@ class FlextCliCore(FlextCliServiceBase):
             # Type system ensures command is m.Cli.CliCommand
             # Build command_data dict without using model_dump() to avoid DomainEvent forward reference error
             # Extract model fields directly instead of calling model_dump() which triggers model_rebuild()
+            # Status is already a str field in the model, created_at needs conversion
+            created_at_val: t.GeneralValueType = (
+                command.created_at.isoformat()
+                if hasattr(command.created_at, "isoformat")
+                else str(command.created_at)
+            )
             command_data: dict[str, t.GeneralValueType] = {
                 "name": command.name,
                 "unique_id": command.unique_id,
-                "status": command.status.value
-                if hasattr(command.status, "value")
-                else str(command.status),
-                "created_at": command.created_at.isoformat()
-                if hasattr(command.created_at, "isoformat")
-                else str(command.created_at),
+                "status": command.status,  # Already a str from model definition
+                "created_at": created_at_val,
                 "description": command.description or "",
                 "command_line": getattr(command, "command_line", ""),
                 "usage": getattr(command, "usage", ""),
@@ -568,9 +570,15 @@ class FlextCliCore(FlextCliServiceBase):
                 c.Cli.ErrorMessages.CONFIG_NOT_DICT,
             )
         # Reuse to_dict_json helper from output module
+        # to_dict_json returns dict[str, GeneralValueType] which is exactly what we need
         json_config = FlextCliOutput.to_dict_json(config)
-        return r[dict[str, t.GeneralValueType]].ok(
-            FlextCliOutput.cast_if(json_config, dict, config),
+        if isinstance(json_config, dict):
+            return r[dict[str, t.GeneralValueType]].ok(json_config)
+        # Fallback: treat config as dict if to_dict_json fails
+        if isinstance(config, dict):
+            return r[dict[str, t.GeneralValueType]].ok(config)
+        return r[dict[str, t.GeneralValueType]].fail(
+            c.Cli.ErrorMessages.CONFIG_NOT_DICT,
         )
 
     def _validate_existing_config(

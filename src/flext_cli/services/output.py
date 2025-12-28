@@ -166,6 +166,8 @@ class FlextCliOutput:
         if FlextRuntime.is_dict_like(item):
             return FlextCliOutput.to_dict_json(item)
         if FlextRuntime.is_list_like(item):
+            # item is narrowed to Sequence[object] by TypeGuard
+            # to_list_json accepts both t.GeneralValueType | Sequence[object]
             return FlextCliOutput.to_list_json(item)
         # Type narrowing: str(item) is already t.GeneralValueType compatible
         return str(item)
@@ -182,12 +184,14 @@ class FlextCliOutput:
 
     @staticmethod
     def ensure_list(
-        v: t.GeneralValueType | None,
+        v: t.GeneralValueType | Sequence[object] | None,
         default: list[t.GeneralValueType] | None = None,
     ) -> list[t.GeneralValueType]:
         """Ensure value is list with default using build DSL."""
+        # Normalize Sequence[object] to GeneralValueType using FlextRuntime
+        v_typed = FlextRuntime.normalize_to_general_value(v) if v is not None else None
         built_result = FlextCliUtilities.build(
-            v,
+            v_typed,
             ops={"ensure": "list", "ensure_default": default or []},
             on_error="skip",
         )
@@ -251,22 +255,22 @@ class FlextCliOutput:
         return compatible_value
 
     @staticmethod
-    def cast_if[T](
-        v: t.GeneralValueType, t_type: type[T], default: T | t.GeneralValueType
-    ) -> T:
+    def cast_if(
+        v: object,
+        t_type: type,  # Accept any type
+        default: object,
+    ) -> object:
         """Cast value if isinstance else return default.
 
-        Note: default can be any type for flexibility, but return is always T.
-        Caller must ensure default is T-compatible.
+        Pattern: Non-generic cast_if for runtime type checking.
+        Checks v against t_type, returns v if match, else returns default.
         """
         if isinstance(v, t_type):
             return v
-        # Type narrowing: check if default is instance of t_type
+        # Return default if v doesn't match type
         if isinstance(default, t_type):
             return default
-        # If default is not T, raise error - caller must ensure default is T
-        # This is safer than silently returning wrong type
-        # Use getattr for type name access - works around pyrefly PEP 695 limitation
+        # If default is not instance of t_type, raise error
         type_name = getattr(t_type, "__name__", str(t_type))
         default_type_name = getattr(type(default), "__name__", str(type(default)))
         msg = f"default must be instance of {type_name}, got {default_type_name}"
@@ -312,7 +316,7 @@ class FlextCliOutput:
     @staticmethod
     def to_dict_json(v: t.GeneralValueType) -> dict[str, t.GeneralValueType]:
         """Convert value to dict with JSON transform using build DSL."""
-        return FlextCliOutput.cast_if(
+        result = FlextCliOutput.cast_if(
             FlextCliUtilities.build(
                 v,
                 ops={"ensure": "dict", "transform": {"to_json": True}},
@@ -321,19 +325,33 @@ class FlextCliOutput:
             dict,
             {},
         )
+        # Type narrowing: cast_if ensures result is dict-like
+        if isinstance(result, dict):
+            return result
+        # Fallback to empty dict
+        return {}
 
     @staticmethod
-    def to_list_json(v: t.GeneralValueType) -> list[t.GeneralValueType]:
+    def to_list_json(
+        v: t.GeneralValueType | Sequence[object],
+    ) -> list[t.GeneralValueType]:
         """Convert value to list with JSON transform using build DSL."""
-        return FlextCliOutput.cast_if(
+        # Normalize Sequence[object] to GeneralValueType using FlextRuntime
+        v_typed = FlextRuntime.normalize_to_general_value(v)
+        result = FlextCliOutput.cast_if(
             FlextCliUtilities.build(
-                v,
+                v_typed,
                 ops={"ensure": "list", "transform": {"to_json": True}},
                 on_error="skip",
             ),
             list,
             [],
         )
+        # Type narrowing: cast_if ensures result is list-like
+        if isinstance(result, list):
+            return result
+        # Fallback to empty list
+        return []
 
     # =========================================================================
     # FORMAT DATA - UNIFIED API
@@ -443,10 +461,14 @@ class FlextCliOutput:
                 return r[str].fail(FlextCliConstants.Cli.ErrorMessages.NO_DATA_PROVIDED)
             # Use build() DSL: filter → validate → process → ensure list
             # Type narrowing: is_list_like ensures data is Sequence-like
-            # All Sequence-like types can be converted to list
-            data_list: list[t.GeneralValueType] = (
-                list(data) if isinstance(data, Sequence) else [data]
-            )
+            # Convert Sequence to list with proper type narrowing
+            if isinstance(data, Sequence):
+                # List comprehension ensures each item is GeneralValueType
+                data_list: list[t.GeneralValueType] = [
+                    FlextRuntime.normalize_to_general_value(item) for item in data
+                ]
+            else:
+                data_list = [data]
             dict_items = FlextCliUtilities.filter(
                 data_list, predicate=FlextRuntime.is_dict_like
             )
@@ -1472,25 +1494,17 @@ class FlextCliOutput:
 
         """
         try:
-            # Type narrowing: check if data is list-like and has dict items
+            # Format based on data type
             if FlextRuntime.is_list_like(data) and data:
-                # Type narrowing: data is list-like, check first item
-                if isinstance(data, (list, tuple, Sequence)) and len(data) > 0:
-                    # Type narrowing: data[0] is t.GeneralValueType, check if dict-like
-                    first_item: t.GeneralValueType = data[0]
-                    if FlextRuntime.is_dict_like(first_item):
-                        # Type narrowing: data is Sequence, convert to list
-                        if isinstance(data, list):
-                            return self._format_csv_list(data)
-                        if isinstance(data, (tuple, Sequence)):
-                            return self._format_csv_list(list(data))
-                # Type narrowing: data is Sequence, convert to list
-                if isinstance(data, list):
-                    return self._format_csv_list(data)
-                if isinstance(data, (tuple, Sequence)):
-                    return self._format_csv_list(list(data))
+                # Normalize data to GeneralValueType first (works with Sequence[object])
+                normalized_data = FlextRuntime.normalize_to_general_value(data)
+                # Coerce to list with type normalization
+                coerced_list = self._coerce_to_list(normalized_data)
+                if coerced_list and FlextRuntime.is_dict_like(coerced_list[0]):
+                    return self._format_csv_list(coerced_list)
             if FlextRuntime.is_dict_like(data):
                 return self._format_csv_dict(data)
+            # Fallback to JSON for non-dict/list data
             return r[str].ok(
                 json.dumps(
                     data,
@@ -1521,32 +1535,83 @@ class FlextCliOutput:
         # Dict returns items
         if isinstance(data, dict):
             return list(data.items())
-        # For other iterables, use helper method
-        # Type narrowing: data has __iter__ and is not a non-iterable type, so it's Iterable
-        # Use runtime check to verify it's iterable before converting
-        if (
-            hasattr(data, "__iter__")
-            and callable(getattr(data, "__iter__", None))
-            and data is not None
-        ):
-            # Runtime check: data is iterable, convert items to list
-            # Use list comprehension with type narrowing for each item
-            iterable_items: list[t.GeneralValueType] = []
-            try:
-                for item in data:
-                    # Type narrowing: each item from iterable is t.GeneralValueType compatible
+        # For other types, try to convert using _convert_iterable_to_list
+        # Data might be a custom iterable like BaseModel or other objects with __iter__
+        try:
+            if isinstance(data, str):
+                # str is iterable but we don't want to treat it as a sequence
+                return []
+            # Try to iterate by checking if iter() works
+            # Use a separate method to avoid type checker errors
+            result = self._try_iterate_items(data)
+            return result or []
+        except (TypeError, AttributeError):
+            # data is not iterable (int, float, bool, datetime, Path, etc.)
+            return []
+
+    def _try_iterate_items(self, data: object) -> list[t.GeneralValueType]:
+        """Try to iterate over data and return list of items.
+
+        Helper to avoid type checker issues with non-iterable types in GeneralValueType.
+        Uses duck typing: attempts iteration and catches TypeError if not iterable.
+        """
+        iterable_items: list[t.GeneralValueType] = []
+        try:
+            # Process known iterable types
+            if isinstance(data, list):
+                items_sequence = data
+            elif isinstance(data, tuple):
+                items_sequence = data
+            elif isinstance(data, dict):
+                # For dicts, iterate over items as tuples
+                for key, value in data.items():
                     item_general: t.GeneralValueType = (
-                        item
-                        if isinstance(
-                            item, (str, int, float, bool, type(None), dict, list, tuple)
-                        )
-                        else str(item)  # Fallback to string for other types
+                        (key, value)
+                        if isinstance((key, value), tuple)
+                        else str((key, value))
                     )
                     iterable_items.append(item_general)
                 return iterable_items
-            except (TypeError, ValueError):
-                return []
-        return []
+            elif isinstance(data, str):
+                # Treat strings as non-iterable for our purposes
+                return iterable_items
+            else:
+                # For other objects, attempt iteration (will raise if not iterable)
+                # This branch is only reached for custom iterables
+                # Use try/except to handle the iteration safely
+                try:
+                    iter_method = getattr(data, "__iter__", None)
+                    if iter_method is None:
+                        return iterable_items
+                    # Custom iterable - iterate and process
+                    for item in iter_method():
+                        item_general: t.GeneralValueType = (
+                            item
+                            if isinstance(
+                                item, (str, int, float, bool, type(None), dict, list, tuple)
+                            )
+                            else str(item)
+                        )
+                        iterable_items.append(item_general)
+                    return iterable_items
+                except TypeError:
+                    return iterable_items
+
+            # Process items for list/tuple
+            for item in items_sequence:
+                # Type narrowing: each item is normalized to GeneralValueType
+                item_general: t.GeneralValueType = (
+                    item
+                    if isinstance(
+                        item, (str, int, float, bool, type(None), dict, list, tuple)
+                    )
+                    else str(item)  # Fallback to string for other types
+                )
+                iterable_items.append(item_general)
+        except (TypeError, AttributeError):
+            # Fallback: not iterable, return empty
+            pass
+        return iterable_items
 
     def _convert_iterable_to_list(
         self, data: Iterable[t.GeneralValueType]
@@ -1804,8 +1869,11 @@ class FlextCliOutput:
             )
 
         # Ensure list and map to str
+        # headers is narrowed to Sequence[object] | None by TypeGuard check
+        # ensure_list now accepts Sequence[object] directly
         headers_list = FlextCliOutput.ensure_list(
-            headers, [FlextCliConstants.Cli.TableFormats.KEYS]
+            headers,
+            [FlextCliConstants.Cli.TableFormats.KEYS],
         )
         table_headers = [str(h) for h in headers_list]
 
