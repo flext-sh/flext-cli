@@ -284,7 +284,7 @@ class FlextCliFileTools:
 # ✅ FlextCliContext - Value Object
 from flext_core import FlextModels
 
-class FlextCliContext(FlextModels.Value):
+class FlextCliContext(m.Value):
     """Immutable execution context."""
     command: str | None = None
     arguments: list[str] = Field(default_factory=list)
@@ -458,7 +458,7 @@ class FlextCliContext(FlextService[CliDataDict]):
 ```python
 from flext_core import FlextModels
 
-class FlextCliContext(FlextModels.Value):
+class FlextCliContext(m.Value):
     """Immutable context value object."""
     command: str | None = None
     arguments: list[str] = Field(default_factory=list)
@@ -701,7 +701,7 @@ Commit after each: "refactor: convert FlextCliFileTools to simple class"
 
 #### Phase 4: Fix FlextCliContext
 
-1. Change inheritance: `FlextService` → `FlextModels.Value`
+1. Change inheritance: `FlextService` → `m.Value`
 2. Remove service methods: `activate()`, `deactivate()`
 3. Add `model_config = ConfigDict(frozen=True)`
 4. Update all usage sites

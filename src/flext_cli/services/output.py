@@ -184,11 +184,11 @@ class FlextCliOutput:
 
     @staticmethod
     def ensure_list(
-        v: t.GeneralValueType | Sequence[object] | None,
+        v: t.GeneralValueType | None,
         default: list[t.GeneralValueType] | None = None,
     ) -> list[t.GeneralValueType]:
         """Ensure value is list with default using build DSL."""
-        # Normalize Sequence[object] to GeneralValueType using FlextRuntime
+        # Normalize to GeneralValueType using FlextRuntime
         v_typed = FlextRuntime.normalize_to_general_value(v) if v is not None else None
         built_result = FlextCliUtilities.build(
             v_typed,
@@ -333,10 +333,10 @@ class FlextCliOutput:
 
     @staticmethod
     def to_list_json(
-        v: t.GeneralValueType | Sequence[object],
+        v: t.GeneralValueType,
     ) -> list[t.GeneralValueType]:
         """Convert value to list with JSON transform using build DSL."""
-        # Normalize Sequence[object] to GeneralValueType using FlextRuntime
+        # Normalize to GeneralValueType using FlextRuntime
         v_typed = FlextRuntime.normalize_to_general_value(v)
         result = FlextCliOutput.cast_if(
             FlextCliUtilities.build(

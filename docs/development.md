@@ -123,7 +123,7 @@ class FlextCliFileTools:
 from flext_core import FlextModels
 from pydantic import Field
 
-class FlextCliContext(FlextModels.Value):
+class FlextCliContext(m.Value):
     """Immutable execution context."""
     command: str | None = None
     arguments: list[str] = Field(default_factory=list)
