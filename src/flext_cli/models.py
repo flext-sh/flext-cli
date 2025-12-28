@@ -110,14 +110,14 @@ class FlextCliModels(FlextModels):
             Todos os metodos retornando self usam Self para inferencia correta.
             """
 
-        class Value(m.Value):
-            """Value model base - heranca real de m.Value."""
+        class Value(FlextModels.Value):
+            """Value model base - heranca real de FlextModels.Value."""
 
-        class TableConfig(m.Value):
+        class TableConfig(FlextModels.Value):
             """Table display configuration for tabulate extending Value via inheritance.
 
             Fields map directly to tabulate() parameters.
-            Inherits frozen=True and extra="forbid" from m.Value.
+            Inherits frozen=True and extra="forbid" from FlextModels.Value.
             """
 
             # Headers configuration
@@ -189,11 +189,11 @@ class FlextCliModels(FlextModels):
                 """Get effective column alignment, resolving None to default."""
                 return self.colalign
 
-        class LoggingConfig(m.Value):
+        class LoggingConfig(FlextModels.Value):
             """Logging configuration model extending Value via inheritance.
 
             Manages logging behavior for CLI applications with level, format, and output settings.
-            Inherits frozen=True and extra="forbid" from m.Value.
+            Inherits frozen=True and extra="forbid" from FlextModels.Value.
             """
 
             log_level: str = Field(
@@ -545,10 +545,10 @@ class FlextCliModels(FlextModels):
                 """
                 return self.model_copy(update=updates)
 
-        class CliSessionData(m.Value):
-            """CLI session summary data extending m.Value via inheritance.
+        class CliSessionData(FlextModels.Value):
+            """CLI session summary data extending FlextModels.Value via inheritance.
 
-            Inherits frozen=True and extra="forbid" from m.Value
+            Inherits frozen=True and extra="forbid" from FlextModels.Value
             (via FrozenStrictModel), no need to redefine.
             """
 
@@ -556,7 +556,7 @@ class FlextCliModels(FlextModels):
             status: str = Field(..., description="Session status")
             commands_count: int = Field(default=0, description="Number of commands")
 
-        class CliContext(m.Value):
+        class CliContext(FlextModels.Value):
             """CLI execution context model extending Value via inheritance."""
 
             model_config = ConfigDict(
@@ -585,7 +585,7 @@ class FlextCliModels(FlextModels):
                 description="Output format preference",
             )
 
-        class CliOutput(m.Value):
+        class CliOutput(FlextModels.Value):
             """CLI output configuration model extending Value via inheritance."""
 
             model_config = ConfigDict(
@@ -613,10 +613,10 @@ class FlextCliModels(FlextModels):
                 description="Whether to use colors",
             )
 
-        class CommandResult(m.Value):
+        class CommandResult(FlextModels.Value):
             """Result of command execution extending Value via inheritance.
 
-            Inherits frozen=True and extra="forbid" from m.Value.
+            Inherits frozen=True and extra="forbid" from FlextModels.Value.
             """
 
             command: str = Field(
@@ -662,7 +662,7 @@ class FlextCliModels(FlextModels):
                 """
                 return bool(self.stdout or self.stderr)
 
-        class ServiceExecutionResult(m.Value):
+        class ServiceExecutionResult(FlextModels.Value):
             """Result of service execution for status reporting extending Value via inheritance."""
 
             model_config = ConfigDict(
@@ -696,7 +696,7 @@ class FlextCliModels(FlextModels):
                 description="Whether service is ready",
             )
 
-        class CliStatus(m.Value):
+        class CliStatus(FlextModels.Value):
             """CLI application status."""
 
             model_config = ConfigDict(
@@ -731,7 +731,7 @@ class FlextCliModels(FlextModels):
                 description="Number of loaded plugins",
             )
 
-        class ConfigSnapshot(m.Value):
+        class ConfigSnapshot(FlextModels.Value):
             """Snapshot of current CLI configuration information."""
 
             model_config = ConfigDict(
@@ -764,7 +764,7 @@ class FlextCliModels(FlextModels):
                 description="Timestamp of snapshot",
             )
 
-        class ServiceStatus(m.Value):
+        class ServiceStatus(FlextModels.Value):
             """Generic service status response."""
 
             model_config = ConfigDict(
@@ -838,11 +838,11 @@ class FlextCliModels(FlextModels):
             # ADDITIONAL MODELS - Required by flext-cli modules
             # =========================================================================
 
-        class WorkflowResult(m.Value):
+        class WorkflowResult(FlextModels.Value):
             """Workflow execution result with step-by-step tracking.
 
             Tracks overall workflow success and individual step results.
-            Inherits frozen=True and extra="forbid" from m.Value.
+            Inherits frozen=True and extra="forbid" from FlextModels.Value.
             """
 
             step_results: Sequence[dict[str, t.GeneralValueType]] = Field(
@@ -864,12 +864,12 @@ class FlextCliModels(FlextModels):
                 description="Total workflow duration",
             )
 
-        class CliParamsConfig(m.Value):
+        class CliParamsConfig(FlextModels.Value):
             """CLI parameters configuration for command-line parsing.
 
             Maps directly to CLI flags: --verbose, --quiet, --debug, --trace, etc.
             All fields are optional (None) to allow partial updates.
-            Inherits frozen=True and extra="forbid" from m.Value.
+            Inherits frozen=True and extra="forbid" from FlextModels.Value.
             """
 
             verbose: bool | None = Field(
@@ -916,7 +916,7 @@ class FlextCliModels(FlextModels):
                     "no_color": self.no_color,
                 }
 
-        class OptionConfig(m.Value):
+        class OptionConfig(FlextModels.Value):
             """Configuration for CLI option decorators.
 
             Used with create_option_decorator to reduce argument counFlextCliTypes.
@@ -959,11 +959,11 @@ class FlextCliModels(FlextModels):
                 description="Show default in help",
             )
 
-        class ConfirmConfig(m.Value):
+        class ConfirmConfig(FlextModels.Value):
             """Configuration for confirm prompts.
 
             Used with confirm() method to reduce argument counFlextCliTypes.
-            Inherits frozen=True and extra="forbid" from m.Value.
+            Inherits frozen=True and extra="forbid" from FlextModels.Value.
             """
 
             default: bool = Field(default=False, description="Default value")
@@ -978,7 +978,7 @@ class FlextCliModels(FlextModels):
             )
             err: bool = Field(default=False, description="Write to stderr")
 
-        class PromptConfig(m.Value):
+        class PromptConfig(FlextModels.Value):
             """Configuration for input prompts.
 
             Used with prompt() method to reduce argument counFlextCliTypes.
@@ -1021,10 +1021,10 @@ class FlextCliModels(FlextModels):
                 description="Show available choices",
             )
 
-        class PathInfo(m.Value):
+        class PathInfo(FlextModels.Value):
             """Path information for debug outpuFlextCliTypes.
 
-            Inherits frozen=True and extra="forbid" from m.Value.
+            Inherits frozen=True and extra="forbid" from FlextModels.Value.
             """
 
             index: int = Field(default=0, description="Path index in sys.path")
@@ -1033,10 +1033,10 @@ class FlextCliModels(FlextModels):
             is_file: bool = Field(default=False)
             is_dir: bool = Field(default=False)
 
-        class EnvironmentInfo(m.Value):
+        class EnvironmentInfo(FlextModels.Value):
             """Environment information for debug outpuFlextCliTypes.
 
-            Inherits frozen=True and extra="forbid" from m.Value.
+            Inherits frozen=True and extra="forbid" from FlextModels.Value.
             """
 
             python_version: str = Field(default="")
@@ -1044,10 +1044,10 @@ class FlextCliModels(FlextModels):
             os_version: str = Field(default="")
             variables: Mapping[str, str] = Field(default_factory=dict)
 
-        class SystemInfo(m.Value):
+        class SystemInfo(FlextModels.Value):
             """System information for debug outpuFlextCliTypes.
 
-            Inherits frozen=True and extra="forbid" from m.Value.
+            Inherits frozen=True and extra="forbid" from FlextModels.Value.
             """
 
             python_version: str = Field(default="")
@@ -1058,10 +1058,10 @@ class FlextCliModels(FlextModels):
             memory_total: int = Field(default=0)
             cpu_count: int = Field(default=0)
 
-        class ContextExecutionResult(m.Value):
+        class ContextExecutionResult(FlextModels.Value):
             """Context execution result.
 
-            Inherits frozen=True and extra="forbid" from m.Value.
+            Inherits frozen=True and extra="forbid" from FlextModels.Value.
             """
 
             success: bool = Field(default=True)
@@ -1077,10 +1077,10 @@ class FlextCliModels(FlextModels):
             arguments_count: int = Field(default=0, description="Number of arguments")
             timestamp: str = Field(default="", description="Execution timestamp")
 
-        class DebugInfo(m.Value):
+        class DebugInfo(FlextModels.Value):
             """Debug information model with sensitive data masking.
 
-            Inherits frozen=True and extra="forbid" from m.Value.
+            Inherits frozen=True and extra="forbid" from FlextModels.Value.
             """
 
             service: str = Field(..., description="Service name")
@@ -1276,20 +1276,20 @@ class FlextCliModels(FlextModels):
                 )
                 return option
 
-        class PasswordAuth(m.Value):
+        class PasswordAuth(FlextModels.Value):
             """Password authentication data.
 
-            Inherits frozen=True and extra="forbid" from m.Value.
+            Inherits frozen=True and extra="forbid" from FlextModels.Value.
             """
 
             username: str = Field(..., min_length=3)
             password: str = Field(..., min_length=8)
             realm: str = Field(default="")
 
-        class CmdConfig(m.Value):
+        class CmdConfig(FlextModels.Value):
             """Command configuration.
 
-            Inherits frozen=True and extra="forbid" from m.Value.
+            Inherits frozen=True and extra="forbid" from FlextModels.Value.
             """
 
             name: str = Field(...)
@@ -1297,20 +1297,20 @@ class FlextCliModels(FlextModels):
             hidden: bool = Field(default=False)
             deprecated: bool = Field(default=False)
 
-        class TokenData(m.Value):
+        class TokenData(FlextModels.Value):
             """Authentication token data.
 
-            Inherits frozen=True and extra="forbid" from m.Value.
+            Inherits frozen=True and extra="forbid" from FlextModels.Value.
             """
 
             token: str = Field(...)
             expires_at: str = Field(default="")
             token_type: str = Field(default="Bearer")
 
-        class SessionStatistics(m.Value):
+        class SessionStatistics(FlextModels.Value):
             """Statistics for CLI session tracking.
 
-            Inherits frozen=True and extra="forbid" from m.Value.
+            Inherits frozen=True and extra="forbid" from FlextModels.Value.
             """
 
             commands_executed: int = Field(
@@ -1326,10 +1326,10 @@ class FlextCliModels(FlextModels):
                 description="Session duration in seconds",
             )
 
-        class PromptStatistics(m.Value):
+        class PromptStatistics(FlextModels.Value):
             """Statistics for prompt service usage tracking.
 
-            Inherits frozen=True and extra="forbid" from m.Value.
+            Inherits frozen=True and extra="forbid" from FlextModels.Value.
             """
 
             prompts_executed: int = Field(
@@ -1358,20 +1358,20 @@ class FlextCliModels(FlextModels):
                 description="Timestamp of statistics collection",
             )
 
-        class CommandStatistics(m.Value):
+        class CommandStatistics(FlextModels.Value):
             """Command statistics.
 
-            Inherits frozen=True and extra="forbid" from m.Value.
+            Inherits frozen=True and extra="forbid" from FlextModels.Value.
             """
 
             total_commands: int = Field(default=0)
             successful_commands: int = Field(default=0)
             failed_commands: int = Field(default=0)
 
-        class CommandExecutionContextResult(m.Value):
+        class CommandExecutionContextResult(FlextModels.Value):
             """Command execution context result.
 
-            Inherits frozen=True and extra="forbid" from m.Value.
+            Inherits frozen=True and extra="forbid" from FlextModels.Value.
             """
 
             command_name: str = Field(...)
@@ -1381,10 +1381,10 @@ class FlextCliModels(FlextModels):
                 default_factory=dict,
             )
 
-        class WorkflowStepResult(m.Value):
+        class WorkflowStepResult(FlextModels.Value):
             """Workflow step result.
 
-            Inherits frozen=True and extra="forbid" from m.Value.
+            Inherits frozen=True and extra="forbid" from FlextModels.Value.
             """
 
             step_name: str = Field(...)
@@ -1392,10 +1392,10 @@ class FlextCliModels(FlextModels):
             message: str = Field(default="")
             duration: float = Field(default=0.0)
 
-        class WorkflowProgress(m.Value):
+        class WorkflowProgress(FlextModels.Value):
             """Workflow progress information.
 
-            Inherits frozen=True and extra="forbid" from m.Value.
+            Inherits frozen=True and extra="forbid" from FlextModels.Value.
             """
 
             current_step: int = Field(default=0)
@@ -2706,10 +2706,10 @@ class FlextCliModels(FlextModels):
 
                 return decorator
 
-        class CliDebugData(m.Value):
+        class CliDebugData(FlextModels.Value):
             """CLI debug summary data.
 
-            Inherits frozen=True and extra="forbid" from m.Value.
+            Inherits frozen=True and extra="forbid" from FlextModels.Value.
             """
 
             service: str = Field(..., description="Service name")
