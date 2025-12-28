@@ -1558,19 +1558,17 @@ class FlextCliOutput:
         iterable_items: list[t.GeneralValueType] = []
         try:
             # Process known iterable types
-            if isinstance(data, list):
-                items_sequence = data
-            elif isinstance(data, tuple):
+            if isinstance(data, (list, tuple)):
                 items_sequence = data
             elif isinstance(data, dict):
                 # For dicts, iterate over items as tuples
                 for key, value in data.items():
-                    item_general: t.GeneralValueType = (
+                    dict_item: t.GeneralValueType = (
                         (key, value)
                         if isinstance((key, value), tuple)
                         else str((key, value))
                     )
-                    iterable_items.append(item_general)
+                    iterable_items.append(dict_item)
                 return iterable_items
             elif isinstance(data, str):
                 # Treat strings as non-iterable for our purposes
@@ -1585,14 +1583,14 @@ class FlextCliOutput:
                         return iterable_items
                     # Custom iterable - iterate and process
                     for item in iter_method():
-                        item_general: t.GeneralValueType = (
+                        custom_item: t.GeneralValueType = (
                             item
                             if isinstance(
                                 item, (str, int, float, bool, type(None), dict, list, tuple)
                             )
                             else str(item)
                         )
-                        iterable_items.append(item_general)
+                        iterable_items.append(custom_item)
                     return iterable_items
                 except TypeError:
                     return iterable_items
