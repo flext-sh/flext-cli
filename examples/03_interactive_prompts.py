@@ -196,7 +196,7 @@ def database_setup_wizard() -> r[dict[str, str | int | bool | float]]:
     table_result = cli.create_table(
         data=json_config,
         headers=["Setting", "Value"],
-        title="Database Configuration",
+        _title="Database Configuration",
     )
     if table_result.is_success:
         cli.print_table(table_result.value)
@@ -490,7 +490,7 @@ def flext_configuration_wizard() -> r[dict[str, str | int | bool | float]]:
     table_result = cli.create_table(
         data=json_config,
         headers=["Setting", "Value"],
-        title="Application Configuration",
+        _title="Application Configuration",
     )
 
     if table_result.is_success:

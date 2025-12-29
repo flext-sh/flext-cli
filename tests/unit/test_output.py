@@ -27,7 +27,7 @@ from typing import TypeVar
 
 import pytest
 import yaml
-from flext_core import FlextTypes as t, FlextResult
+from flext_core import FlextResult, FlextTypes as t
 from flext_tests import tm
 from pydantic import BaseModel
 

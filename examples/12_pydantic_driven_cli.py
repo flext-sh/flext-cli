@@ -160,7 +160,7 @@ def execute_deploy_from_cli(cli_args: dict[str, str | int | bool]) -> None:
         table_result = cli.create_table(
             data=config_dict,
             headers=["Parameter", "Value"],
-            title="Validated Deploy Config",
+            _title="Validated Deploy Config",
         )
 
         if table_result.is_success:

@@ -154,7 +154,7 @@ class MyAppConfig:
         table_result = cli.create_table(
             data=config_data,
             headers=["Setting", "Value"],
-            _title="⚙️  Application Configuration",
+            __title="⚙️  Application Configuration",
         )
 
         if table_result.is_success:
@@ -193,7 +193,7 @@ def show_config_locations() -> dict[str, str]:
     table_result = cli.create_table(
         data=locations_data,
         headers=["Location", "Path"],
-        _title="📂 Configuration Locations",
+        __title="📂 Configuration Locations",
     )
 
     if table_result.is_success:

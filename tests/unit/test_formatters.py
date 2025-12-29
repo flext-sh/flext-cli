@@ -127,7 +127,7 @@ class TestsCliFormatters:
     ) -> None:
         """Test create_table() with various configurations."""
         formatters = self.Factories.create_formatters()
-        result = formatters.create_table(data=data, headers=headers, title=title)
+        result = formatters.create_table(data=data, headers=headers, _title=title)
         tm.ok(result)
         table = result.value
         assert isinstance(table, RichTable)
@@ -136,7 +136,7 @@ class TestsCliFormatters:
     def test_render_table_to_string(self, width: int | None) -> None:
         """Test render_table_to_string() with various widths."""
         formatters = self.Factories.create_formatters()
-        table_result = formatters.create_table(title="Test")
+        table_result = formatters.create_table(_title="Test")
         tm.ok(table_result)
         table = table_result.value
 
@@ -214,7 +214,7 @@ class TestsCliFormatters:
         table_result = formatters.create_table(
             data=data,
             headers=["Key", "Value"],
-            title="User Info",
+            _title="User Info",
         )
         tm.ok(table_result)
 
@@ -357,7 +357,7 @@ class TestsCliFormatters:
                 return fmt.print("Test")
 
             def call_create_table(fmt: FlextCliFormatters) -> r[object]:
-                return fmt.create_table(title="Test")
+                return fmt.create_table(_title="Test")
 
             def call_render_table(fmt: FlextCliFormatters) -> r[object]:
                 table_result: r[object] = fmt.create_table()

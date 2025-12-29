@@ -115,7 +115,7 @@ class DataManagerCLI:
         table_result = self.cli.create_table(
             data=data,
             headers=["Field", "Value"],
-            title="📋 Current Data",
+            _title="📋 Current Data",
         )
 
         if table_result.is_success:

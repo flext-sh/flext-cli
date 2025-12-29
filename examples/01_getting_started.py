@@ -59,7 +59,7 @@ class FlextCliGettingStarted:
         table_result = self.cli.create_table(
             data=user,
             headers=["Field", "Value"],
-            title="User Information",
+            _title="User Information",
         )
 
         if table_result.is_success:

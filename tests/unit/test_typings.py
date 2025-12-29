@@ -13,7 +13,6 @@ SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
-from flext_core import FlextTypes as t
 
 import math
 import threading
@@ -32,6 +31,7 @@ from typing import (
 )
 
 import pytest
+from flext_core import FlextTypes as t
 from flext_tests import tm
 
 from flext_cli import r

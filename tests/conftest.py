@@ -19,7 +19,6 @@ import builtins
 import getpass
 import json
 import os
-import tempfile
 from collections import deque
 from collections.abc import Callable, Generator, Iterator
 from datetime import UTC, datetime
@@ -83,13 +82,6 @@ def cli_runner() -> CliRunner:
     return CliRunner()
 
 
-@pytest.fixture
-def temp_dir() -> Generator[Path]:
-    """Create temporary directory for tests."""
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        yield Path(tmp_dir)
-
-
 # Factory for creating temporary files with different formats
 def _create_temp_file(
     temp_dir: Path,
@@ -113,14 +105,11 @@ def _create_temp_file(
 
 
 @pytest.fixture
-def temp_file(temp_dir: Path) -> Path:
-    """Create temporary text file for tests."""
-    return _create_temp_file(temp_dir, "test_file.txt", "test content")
-
-
-@pytest.fixture
 def temp_json_file(temp_dir: Path) -> Path:
-    """Create temporary JSON file for tests."""
+    """Create temporary JSON file for tests using consolidated temp_dir fixture.
+
+    Uses the consolidated temp_dir fixture from flext-core/tests/conftest.py.
+    """
     test_data: dict[str, str | int | list[int]] = {
         "key": "value",
         "number": 42,
@@ -131,7 +120,10 @@ def temp_json_file(temp_dir: Path) -> Path:
 
 @pytest.fixture
 def temp_yaml_file(temp_dir: Path) -> Path:
-    """Create temporary YAML file for tests."""
+    """Create temporary YAML file for tests using consolidated temp_dir fixture.
+
+    Uses the consolidated temp_dir fixture from flext-core/tests/conftest.py.
+    """
     test_data: dict[str, str | int | list[int]] = {
         "key": "value",
         "number": 42,
@@ -142,7 +134,10 @@ def temp_yaml_file(temp_dir: Path) -> Path:
 
 @pytest.fixture
 def temp_csv_file(temp_dir: Path) -> Path:
-    """Create temporary CSV file for tests."""
+    """Create temporary CSV file for tests using consolidated temp_dir fixture.
+
+    Uses the consolidated temp_dir fixture from flext-core/tests/conftest.py.
+    """
     csv_content = "name,age,city\nJohn,30,New York\nJane,25,London\nBob,35,Paris"
     return _create_temp_file(temp_dir, "test_file.csv", csv_content)
 

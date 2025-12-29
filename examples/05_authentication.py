@@ -204,7 +204,7 @@ def show_session_info() -> None:
     table_result = cli.create_table(
         data=session_data,
         headers=["Property", "Value"],
-        title="🔐 Current Session",
+        _title="🔐 Current Session",
     )
 
     if table_result.is_success:

@@ -312,15 +312,12 @@ class FlextCli:
         }
         # Type narrowing: error_keywords.keys() are all str, error_str is str
         keyword_list: list[str] = list(error_keywords.keys())
-        # Find returns t.GeneralValueType | None, but we know keywords are str
-        found_keyword_raw = u.Collection.find(
-            keyword_list,
-            predicate=lambda kw: isinstance(kw, str) and kw in error_str,
-        )
-        # Type narrowing: found_keyword is str | None
-        found_keyword: str | None = (
-            found_keyword_raw if isinstance(found_keyword_raw, str) else None
-        )
+        # Find keyword in error_str - iterate to avoid predicate type inference issues
+        found_keyword: str | None = None
+        for kw in keyword_list:
+            if kw in error_str:
+                found_keyword = kw
+                break
         return (
             error_keywords[found_keyword]
             if found_keyword is not None

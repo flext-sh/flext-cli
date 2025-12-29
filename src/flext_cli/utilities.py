@@ -509,7 +509,8 @@ class FlextCliUtilities(FlextUtilities):
 
                 Example:
                     >>> result = (
-                    ...     CliValidation.VBuilder(val)
+                    ...     CliValidation
+                    ...     .VBuilder(val)
                     ...     .name("status")
                     ...     .non_empty()
                     ...     .in_(["a", "b"])
@@ -918,7 +919,8 @@ class FlextCliUtilities(FlextUtilities):
 
                 step_name = step[field_name]
                 return (
-                    FlextCliUtilities.Cli.CliValidation.VBuilder(step_name)
+                    FlextCliUtilities.Cli.CliValidation
+                    .VBuilder(step_name)
                     .name("Pipeline step name")
                     .non_empty()
                     .msg(c.Cli.MixinsValidationMessages.PIPELINE_STEP_NAME_EMPTY)
@@ -1372,13 +1374,13 @@ class FlextCliUtilities(FlextUtilities):
                 """Normalize type annotations for Typer compatibility.
 
                 Converts modern Python 3.10+ union syntax (Path | None) to typing-compatible
-                forms (Optional[Path] or Union[...]) that Typer can process.
+                forms (Path | None or Union[...]) that Typer can process.
 
                 Handles:
-                - Modern union syntax: Path | None -> Optional[Path]
-                - Complex unions: str | int | None -> Union[str, int, None]
-                - Nested generics: list[str] | None -> Optional[list[str]]
-                - Already-normalized types: Optional[Path] -> unchanged
+                - Modern union syntax: Path | None -> Path | None
+                - Complex unions: str | int | None -> str | int, None
+                - Nested generics: list[str] | None -> list[str | None]
+                - Already-normalized types: Path | None -> unchanged
                 - Non-union types: str -> unchanged
 
                 Args:
@@ -1390,7 +1392,7 @@ class FlextCliUtilities(FlextUtilities):
                 Example:
                     >>> from pathlib import Path
                     >>> normalized = u.TypeNormalizer.normalize_annotation(Path | None)
-                    >>> # Result: Optional[Path] (Typer-compatible)
+                    >>> # Result: Path | None (Typer-compatible)
 
                 """
                 if annotation is None:
@@ -1405,7 +1407,7 @@ class FlextCliUtilities(FlextUtilities):
                         annotation,
                     )
 
-                # typing.Union type (traditional typing.Union[X, Y])
+                # typing.Union type (traditional typing.X | Y)
                 if origin is Union:
                     return FlextCliUtilities.Cli.TypeNormalizer.normalize_union_type(
                         annotation,
@@ -1473,7 +1475,7 @@ class FlextCliUtilities(FlextUtilities):
                     )
                     if normalized_inner is None:
                         return None
-                    # If has None, create Optional[T], otherwise return normalized type
+                    # If has None, create T | None, otherwise return normalized type
                     return (
                         normalized_inner | types.NoneType
                         if has_none

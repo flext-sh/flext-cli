@@ -360,7 +360,8 @@ class FlextCliSettings(FlextSettings):
     def validate_configuration(self) -> Self:
         """Validate configuration using functional composition and railway pattern."""
         validation_result = (
-            self._ensure_config_directory()
+            self
+            ._ensure_config_directory()
             .flat_map(lambda _: self._propagate_to_context())
             .flat_map(lambda _: self._register_in_container())
         )

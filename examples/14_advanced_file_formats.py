@@ -267,7 +267,7 @@ def load_any_format_file(file_path: Path) -> t.JsonDict | None:
     table_result = cli.create_table(
         data=display_data,
         headers=["Key", "Value"],
-        title=f"Loaded from {detected_format.upper()}",
+        _title=f"Loaded from {detected_format.upper()}",
     )
     if table_result.is_success:
         cli.print_table(table_result.value)

@@ -16,7 +16,7 @@ from __future__ import annotations
 import time
 
 import pytest
-from flext_core import FlextTypes as t, FlextResult
+from flext_core import FlextResult
 
 from flext_cli import FlextCliDebug
 

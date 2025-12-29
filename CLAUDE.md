@@ -6,7 +6,7 @@
 
 ---
 
-## 🔒 FLOCK PROTOCOL - Multi-Agent File Coordination
+## 🔒 Multi-Agent Development Coordination
 
 ### Purpose
 
@@ -14,7 +14,7 @@ Prevent simultaneous file modifications that cause merge conflicts and corrupted
 
 ### Protocol Overview
 
-**Flock (File Lock)** establishes exclusive access to files during modification operations.
+**Exclusive Access** establishes exclusive access to files during modification operations.
 
 ### Establishing a Flock
 
@@ -40,11 +40,11 @@ RELEASE_[AGENT_NAME]_[TARGET_FILE]
 
 ### Critical Rules
 
-- **🔴 NEVER modify a file with active flock from another agent**
-- **🔄 ALWAYS re-read file after establishing your flock**
-- **⚡ RELEASE immediately after changes are complete and tested**
-- **🤝 COORDINATE with other agents if conflicts detected**
-- **📝 DOCUMENT your flock purpose in .token**
+- **🔴 NEVER modify files with active coordination from another agent**
+- **🔄 ALWAYS verify content after establishing coordination**
+- **⚡ RELEASE coordination immediately after validation**
+- **🤝 COORDINATE with team members if conflicts detected**
+- **📝 DOCUMENT coordination purpose in .token**
 
 ---
 

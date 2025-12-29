@@ -87,31 +87,15 @@ class FlextCliModels(FlextModels):
         # Pydantic from merging field definitions with LoggingConfig
         CliLoggingData: ClassVar = _CliLoggingData
 
-        # === Pydantic v2 Forward Reference Resolution ===
-        # CliCommand and CliSession extend Entity which has domain_events: list["DomainEvent"]
-        # Pydantic needs DomainEvent resolvable in parent namespace during model_rebuild()
-        DomainEvent = FlextModels.DomainEvent
-
         # Metodo estatico para compatibilidade
         @staticmethod
         def execute() -> r[Mapping[str, t.GeneralValueType]]:
             """Execute models operation - returns empty dict for compatibility."""
             return r[dict[str, t.GeneralValueType]].ok({})
 
-        # Classes base com heranca real - padrao global FlextModels.*
-        class Entity(FlextModels.Entity):
-            """Entity model base - heranca real de FlextModels.Entity."""
-
-        class Entry(Entity):
-            """Entry model base - compatibilidade com flext-ldif.
-
-            Esta classe estende Entity e pode ser herdada por FlextLdifModels.Entry
-            quando flext-ldif e usado. flext-cli NAO depende de flext-ldif.
-            Todos os metodos retornando self usam Self para inferencia correta.
-            """
-
-        class Value(FlextModels.Value):
-            """Value model base - heranca real de FlextModels.Value."""
+        # CRÍTICO: NÃO redeclarar classes base de flext-core (Entity, Value, AggregateRoot, etc.)
+        # Elas vêm automaticamente via herança: FlextCliModels(FlextModels)
+        # APENAS declarar modelos CLI-ESPECÍFICOS que estendem as bases
 
         class TableConfig(FlextModels.Value):
             """Table display configuration for tabulate extending Value via inheritance.
@@ -222,7 +206,7 @@ class FlextCliModels(FlextModels):
                     format=self.log_format,
                 )
 
-        class CliCommand(Entity):
+        class CliCommand(FlextModels.Entity):
             """CLI command model extending Entity via inheritance."""
 
             model_config = ConfigDict(
@@ -424,7 +408,7 @@ class FlextCliModels(FlextModels):
                 except Exception as e:
                     return r.fail(f"Validation failed: {e}")
 
-        class CliSession(Entity):
+        class CliSession(FlextModels.Entity):
             """CLI session model for tracking command execution sessions extending Entity via inheritance."""
 
             model_config = ConfigDict(
@@ -792,7 +776,7 @@ class FlextCliModels(FlextModels):
                 description="Service version",
             )
 
-        class CliConfig(Entity):
+        class CliConfig(FlextModels.Entity):
             """CLI configuration model extending Entity via inheritance."""
 
             model_config = ConfigDict(
@@ -1537,7 +1521,7 @@ class FlextCliModels(FlextModels):
                 args: tuple[type, ...],
                 builtin_types: set[str],
             ) -> tuple[str, type]:
-                """Handle Optional[T] pattern (Union with None)."""
+                """Handle T | None pattern (Union with None)."""
                 # Filter non-None types from args
                 non_none_types: list[type] = [
                     item
@@ -1547,13 +1531,13 @@ class FlextCliModels(FlextModels):
                 inner_type = non_none_types[0] if non_none_types else str
 
                 if get_origin(inner_type) is Literal:
-                    return "Optional[str]", inner_type
+                    return "str | None", inner_type
 
                 inner_name = FlextCliModels.Cli.ModelCommandBuilder.get_builtin_name(
                     inner_type,
                     builtin_types,
                 )
-                return f"Optional[{inner_name}]", inner_type
+                return f"{inner_name} | None", inner_type
 
             @staticmethod
             def handle_union_type(
@@ -2814,7 +2798,6 @@ WorkflowProgress = FlextCliModels.Cli.WorkflowProgress
 
 # Ensure forward references can be resolved by making types available in module globals
 # This is required because FlextModels.Entity has fields that reference DomainEvent
-globals()["Entity"] = FlextCliModels.Cli.Entity
 globals()["DomainEvent"] = FlextModels.DomainEvent
 
 __all__ = [

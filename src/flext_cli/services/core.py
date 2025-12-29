@@ -291,14 +291,14 @@ class FlextCliCore(FlextCliServiceBase):
     def get_command(
         self,
         name: str,
-    ) -> r[dict[str, t.GeneralValueType]]:
+    ) -> r[m.Configuration]:
         """Retrieve registered command definition.
 
         Args:
             name: Command identifier to retrieve
 
         Returns:
-            r[dict[str, t.GeneralValueType]]: Command definition or error
+            r[m.Configuration]: Command definition snapshot or error
 
         """
         FlextLogger(__name__).debug(
@@ -316,7 +316,7 @@ class FlextCliCore(FlextCliServiceBase):
                 consequence="Command retrieval will fail",
                 source="flext-cli/src/flext_cli/core.py",
             )
-            return r[dict[str, t.GeneralValueType]].fail(
+            return r[m.Configuration].fail(
                 c.Cli.ErrorMessages.COMMAND_NAME_EMPTY,
             )
 
@@ -331,7 +331,7 @@ class FlextCliCore(FlextCliServiceBase):
                 consequence="Command retrieval will fail",
                 source="flext-cli/src/flext_cli/core.py",
             )
-            return r[dict[str, t.GeneralValueType]].fail(
+            return r[m.Configuration].fail(
                 c.Cli.ErrorMessages.COMMAND_NOT_FOUND.format(name=name),
             )
 
@@ -361,8 +361,10 @@ class FlextCliCore(FlextCliServiceBase):
                     source="flext-cli/src/flext_cli/core.py",
                 )
 
-                # command_def is already JsonDict - no conversion needed
-                return r[dict[str, t.GeneralValueType]].ok(command_def)
+                # Create snapshot from command definition
+                return r[m.Configuration].ok(
+                    m.Configuration(config=command_def),
+                )
 
             FlextLogger(__name__).error(
                 "FAILED to retrieve command - invalid command type",
@@ -372,7 +374,7 @@ class FlextCliCore(FlextCliServiceBase):
                 consequence="Command retrieval aborted",
                 source="flext-cli/src/flext_cli/core.py",
             )
-            return r[dict[str, t.GeneralValueType]].fail(
+            return r[m.Configuration].fail(
                 c.Cli.ErrorMessages.INVALID_COMMAND_TYPE.format(name=name),
             )
         except Exception as e:
@@ -385,7 +387,7 @@ class FlextCliCore(FlextCliServiceBase):
                 consequence="Command retrieval failed completely",
                 source="flext-cli/src/flext_cli/core.py",
             )
-            return r[dict[str, t.GeneralValueType]].fail(
+            return r[m.Configuration].fail(
                 c.Cli.ErrorMessages.COMMAND_RETRIEVAL_FAILED.format(
                     error=e,
                 ),
