@@ -153,8 +153,7 @@ class TestCompleteWorkflowIntegration:
         # Execute complete pipeline using Railway Pattern
         pipeline_result: r[dict[str, t.GeneralValueType]] = (
             # Step 1: Load raw data
-            file_tools
-            .read_json_file(str(input_file))
+            file_tools.read_json_file(str(input_file))
             .flat_map(
                 lambda data: (
                     r.ok(data)
@@ -436,8 +435,7 @@ class TestCompleteWorkflowIntegration:
         # Execute report generation pipeline
         report_result = (
             # Step 1: Load configuration and data
-            file_tools
-            .read_json_file(str(data_file))
+            file_tools.read_json_file(str(data_file))
             .flat_map(
                 lambda data: (
                     r.ok((config, data))
@@ -673,8 +671,7 @@ class TestCompleteWorkflowIntegration:
         # Execute workflow with fallback mechanisms
         workflow_result = (
             # Step 1: Try primary data source (will fail)
-            self
-            ._load_data_with_fallback(primary_data_file, backup_data_file)
+            self._load_data_with_fallback(primary_data_file, backup_data_file)
             .map(
                 lambda data: (
                     cli.output.print_message("✅ Data loaded (with fallback)"),

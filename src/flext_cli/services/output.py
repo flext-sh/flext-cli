@@ -461,14 +461,10 @@ class FlextCliOutput:
                 return r[str].fail(FlextCliConstants.Cli.ErrorMessages.NO_DATA_PROVIDED)
             # Use build() DSL: filter → validate → process → ensure list
             # Type narrowing: is_list_like ensures data is Sequence-like
-            # Convert Sequence to list with proper type narrowing
-            if isinstance(data, Sequence):
-                # List comprehension ensures each item is GeneralValueType
-                data_list: list[t.GeneralValueType] = [
-                    FlextRuntime.normalize_to_general_value(item) for item in data
-                ]
-            else:
-                data_list = [data]
+            # Convert to list via iteration
+            data_list: list[t.GeneralValueType] = [
+                FlextRuntime.normalize_to_general_value(item) for item in data
+            ]
             dict_items = FlextCliUtilities.filter(
                 data_list, predicate=FlextRuntime.is_dict_like
             )

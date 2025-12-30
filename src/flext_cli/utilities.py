@@ -509,8 +509,7 @@ class FlextCliUtilities(FlextUtilities):
 
                 Example:
                     >>> result = (
-                    ...     CliValidation
-                    ...     .VBuilder(val)
+                    ...     CliValidation.VBuilder(val)
                     ...     .name("status")
                     ...     .non_empty()
                     ...     .in_(["a", "b"])
@@ -919,8 +918,7 @@ class FlextCliUtilities(FlextUtilities):
 
                 step_name = step[field_name]
                 return (
-                    FlextCliUtilities.Cli.CliValidation
-                    .VBuilder(step_name)
+                    FlextCliUtilities.Cli.CliValidation.VBuilder(step_name)
                     .name("Pipeline step name")
                     .non_empty()
                     .msg(c.Cli.MixinsValidationMessages.PIPELINE_STEP_NAME_EMPTY)

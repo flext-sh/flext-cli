@@ -182,34 +182,30 @@ class FlextCliCommands(FlextCliServiceBase):
             return r[t.GeneralValueType].fail(f"Handler not callable for: {name}")
 
         try:
-            # Execute handler - try without args first if no args provided
-            if args:
+            # Try to execute handler with provided arguments
+            result: t.GeneralValueType | None = None
+
+            # Attempt execution with various argument combinations
+            execution_attempted = False
+
+            # Try with both args and kwargs
+            if args or kwargs:
                 try:
-                    result = handler(*args, **kwargs)
+                    result = handler(*args, **kwargs) if args else handler(**kwargs)
+                    execution_attempted = True
                 except TypeError:
-                    # Handler doesn't accept args, call without them
-                    result = handler()
-            elif kwargs:
-                try:
-                    result = handler(**kwargs)
-                except TypeError:
-                    # Handler doesn't accept kwargs, call without them
-                    result = handler()
-            else:
+                    # Handler signature mismatch - try without arguments
+                    pass
+
+            # If no args/kwargs or execution failed, try with no arguments
+            if not execution_attempted:
                 result = handler()
 
-            # Unwrap if result is already a FlextResult
-            if isinstance(result, r):
-                # result is r[...] (FlextResult)
-                if result.is_success:
-                    return r[t.GeneralValueType].ok(result.value)
-                error_msg = result.error or "Command failed"
-                return r[t.GeneralValueType].fail(error_msg)
-
-            # Handle None result
+            # Handle result: None means success with default response
             if result is None:
                 return r[t.GeneralValueType].ok({"status": "success", "command": name})
 
+            # Return the handler's result wrapped in FlextResult
             return r[t.GeneralValueType].ok(result)
         except Exception as e:
             return r[t.GeneralValueType].fail(f"Command execution failed: {e}")

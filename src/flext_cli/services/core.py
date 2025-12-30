@@ -573,15 +573,9 @@ class FlextCliCore(FlextCliServiceBase):
             )
         # Reuse to_dict_json helper from output module
         # to_dict_json returns dict[str, GeneralValueType] which is exactly what we need
+        # to_dict_json is guaranteed to return a dict (doesn't return None or other types)
         json_config = FlextCliOutput.to_dict_json(config)
-        if isinstance(json_config, dict):
-            return r[dict[str, t.GeneralValueType]].ok(json_config)
-        # Fallback: treat config as dict if to_dict_json fails
-        if isinstance(config, dict):
-            return r[dict[str, t.GeneralValueType]].ok(config)
-        return r[dict[str, t.GeneralValueType]].fail(
-            c.Cli.ErrorMessages.CONFIG_NOT_DICT,
-        )
+        return r[dict[str, t.GeneralValueType]].ok(json_config)
 
     def _validate_existing_config(
         self,

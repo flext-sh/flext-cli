@@ -1602,17 +1602,16 @@ class FlextCliModels(FlextModels):
                 Returns (field_type, default_value, is_required, has_factory).
                 """
                 default_value: t.GeneralValueType = None
-                default_factory: t.GeneralValueType = None
                 is_required = True
+                has_factory = False
 
                 # Type-safe attribute access with isinstance narrowing
                 if isinstance(field_info, FieldInfo):
                     default_value = field_info.default
-                    default_factory = field_info.default_factory
+                    # default_factory may be PydanticUndefinedType, extract if callable
+                    has_factory = callable(field_info.default_factory)
                     # FieldInfo.is_required is always bool (Pydantic v2)
                     is_required = field_info.is_required()
-
-                has_factory = default_factory is not None
 
                 # Get config default if available
                 # models.py cannot use utilities - use hasattr() instead

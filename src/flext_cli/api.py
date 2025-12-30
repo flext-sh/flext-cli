@@ -433,9 +433,12 @@ class FlextCli:
                 msg = "decorated_func must have 'name' attribute and be callable"
                 raise TypeError(msg)
             # Type narrowing: Click Command structurally implements CliRegisteredCommand
-            # The protocol requires properties that Click Command provides at runtime
-            # We use a helper to narrow the type safely
-            result = self._narrow_to_registered_command(decorated_func)
+            # Verify at runtime using TypeGuard, then store as narrowed type
+            if not self._is_registered_command(decorated_func):
+                msg = "decorated_func must implement CliRegisteredCommand protocol"
+                raise TypeError(msg)
+            # After TypeGuard check, mypy understands decorated_func is CliRegisteredCommand
+            result = decorated_func
             self._commands[entity_name] = result
         else:  # group
             decorator = self._cli.create_group_decorator(name=entity_name)
@@ -446,9 +449,12 @@ class FlextCli:
                 msg = "decorated_func must have 'name' attribute and be callable"
                 raise TypeError(msg)
             # Type narrowing: Click Group structurally implements CliRegisteredCommand
-            # The protocol requires properties that Click Group provides at runtime
-            # We use a helper to narrow the type safely
-            group_result = self._narrow_to_registered_command(decorated_func)
+            # Verify at runtime using TypeGuard, then store as narrowed type
+            if not self._is_registered_command(decorated_func):
+                msg = "decorated_func must implement CliRegisteredCommand protocol"
+                raise TypeError(msg)
+            # After TypeGuard check, mypy understands decorated_func is CliRegisteredCommand
+            group_result = decorated_func
             self._groups[entity_name] = group_result
             result = group_result
 
@@ -456,7 +462,7 @@ class FlextCli:
 
     @staticmethod
     def _is_registered_command(
-        obj: t.GeneralValueType,
+        obj: t.GeneralValueType | Callable[..., t.GeneralValueType],
     ) -> TypeGuard[p.Cli.CliRegisteredCommand]:
         """Type guard to check if object implements CliRegisteredCommand protocol."""
         return hasattr(obj, "name") and callable(obj) and hasattr(obj, "callback")
@@ -471,22 +477,6 @@ class FlextCli:
             and callable(getattr(obj, "add", None))
             and hasattr(obj, "label")
         )
-
-    def _narrow_to_registered_command(
-        self,
-        decorated_func: t.GeneralValueType,
-    ) -> p.Cli.CliRegisteredCommand:
-        """Narrow type to CliRegisteredCommand using structural protocol check.
-
-        Click Command/Group structurally implements CliRegisteredCommand protocol.
-        This helper performs runtime checks to satisfy type checker.
-        """
-        # Runtime check: verify decorated_func has required protocol attributes
-        if not self._is_registered_command(decorated_func):
-            msg = "decorated_func must implement CliRegisteredCommand protocol"
-            raise TypeError(msg)
-        # Type guard confirms compatibility - return as protocol type
-        return decorated_func
 
     def command(
         self,
