@@ -23,7 +23,7 @@ from flext_cli.formatters import FlextCliFormatters
 from flext_cli.models import m
 from flext_cli.protocols import p
 from flext_cli.services.tables import FlextCliTables
-from flext_cli.utilities import FlextCliUtilities
+from flext_cli.utilities import FlextCliUtilities as u
 
 # ═══════════════════════════════════════════════════════════════════════════
 # GENERALIZED MNEMONIC HELPERS - Advanced DSL parametrization
@@ -118,7 +118,7 @@ class FlextCliOutput:
     def to_json(v: t.GeneralValueType) -> t.GeneralValueType:
         """Convert value to JSON-compatible using build DSL."""
         if isinstance(v, dict):
-            return FlextCliUtilities.build(
+            return u.build(
                 v,
                 ops={"ensure": "dict", "transform": {"to_json": True}},
                 on_error="skip",
@@ -139,7 +139,7 @@ class FlextCliOutput:
 
         Architecture Implications:
         ───────────────────────────
-        - Uses FlextUtilities.build() for type coercion and validation
+        - Uses u.build() for type coercion and validation
         - Returns empty list for non-dict inputs (safe fallback)
         - Type-safe conversion to list[str] using type narrowing
 
@@ -149,7 +149,7 @@ class FlextCliOutput:
         - Empty dict returns empty list (expected behavior)
         - Non-dict inputs are handled gracefully without errors
         """
-        d_dict = FlextCliUtilities.build(d, ops={"ensure": "dict"}, on_error="skip")
+        d_dict = u.build(d, ops={"ensure": "dict"}, on_error="skip")
         # Python 3.13: Use isinstance with Mapping for proper type narrowing
         # Business Rule: Dict keys MUST be extracted using list() constructor (Python 3.13+)
         # Architecture: Direct list() conversion is type-safe and efficient
@@ -190,7 +190,7 @@ class FlextCliOutput:
         """Ensure value is list with default using build DSL."""
         # Normalize to GeneralValueType using FlextRuntime
         v_typed = FlextRuntime.normalize_to_general_value(v) if v is not None else None
-        built_result = FlextCliUtilities.build(
+        built_result = u.build(
             v_typed,
             ops={"ensure": "list", "ensure_default": default or []},
             on_error="skip",
@@ -209,7 +209,7 @@ class FlextCliOutput:
         default: dict[str, t.GeneralValueType] | None = None,
     ) -> dict[str, t.GeneralValueType]:
         """Ensure value is dict with default using build DSL."""
-        result = FlextCliUtilities.build(
+        result = u.build(
             v,
             ops={"ensure": "dict", "ensure_default": default or {}},
             on_error="skip",
@@ -220,7 +220,7 @@ class FlextCliOutput:
     def ensure_bool(v: t.GeneralValueType | None, *, default: bool = False) -> bool:
         """Ensure value is bool with default using build DSL."""
         # Type narrowing: FlextCliUtilities.build with ensure="bool" returns bool
-        result = FlextCliUtilities.build(
+        result = u.build(
             v,
             ops={"ensure": "bool", "ensure_default": default},
             on_error="skip",
@@ -271,8 +271,12 @@ class FlextCliOutput:
         if isinstance(default, t_type):
             return default
         # If default is not instance of t_type, raise error
-        type_name = getattr(t_type, "__name__", str(t_type))
-        default_type_name = getattr(type(default), "__name__", str(type(default)))
+        type_name = t_type.__name__ if hasattr(t_type, "__name__") else str(t_type)
+        default_type_name = (
+            type(default).__name__
+            if hasattr(type(default), "__name__")
+            else str(type(default))
+        )
         msg = f"default must be instance of {type_name}, got {default_type_name}"
         raise TypeError(msg)
 
@@ -317,7 +321,7 @@ class FlextCliOutput:
     def to_dict_json(v: t.GeneralValueType) -> dict[str, t.GeneralValueType]:
         """Convert value to dict with JSON transform using build DSL."""
         result = FlextCliOutput.cast_if(
-            FlextCliUtilities.build(
+            u.build(
                 v,
                 ops={"ensure": "dict", "transform": {"to_json": True}},
                 on_error="skip",
@@ -339,7 +343,7 @@ class FlextCliOutput:
         # Normalize to GeneralValueType using FlextRuntime
         v_typed = FlextRuntime.normalize_to_general_value(v)
         result = FlextCliOutput.cast_if(
-            FlextCliUtilities.build(
+            u.build(
                 v_typed,
                 ops={"ensure": "list", "transform": {"to_json": True}},
                 on_error="skip",
@@ -385,7 +389,7 @@ class FlextCliOutput:
         """
         # Railway pattern: validate format → dispatch to handler
         # Convert to string and validate choice using generalized helpers
-        parse_result = FlextCliUtilities.Cli.parse(format_type, str, default="")
+        parse_result = u.Cli.parse(format_type, str, default="")
         format_str = self.ensure_str(
             parse_result.unwrap_or(str(format_type)),
             "",
@@ -465,9 +469,7 @@ class FlextCliOutput:
             data_list: list[t.GeneralValueType] = [
                 FlextRuntime.normalize_to_general_value(item) for item in data
             ]
-            dict_items = FlextCliUtilities.filter(
-                data_list, predicate=FlextRuntime.is_dict_like
-            )
+            dict_items = u.filter(data_list, predicate=FlextRuntime.is_dict_like)
             # Type narrowing: data_list is list after normalization
             if not isinstance(dict_items, list) or len(dict_items) != len(data_list):
                 return r[str].fail(
@@ -480,7 +482,7 @@ class FlextCliOutput:
             filtered_data = [
                 item for item in data_list if FlextRuntime.is_dict_like(item)
             ]
-            json_list_result = FlextCliUtilities.Cli.process(
+            json_list_result = u.Cli.process(
                 filtered_data,
                 processor=self.norm_json,
                 on_error="skip",
@@ -514,7 +516,7 @@ class FlextCliOutput:
         """
         try:
             # Use build() DSL: parse → ensure str → normalize → validate
-            parse_result = FlextCliUtilities.Cli.parse(format_type, str, default="")
+            parse_result = u.Cli.parse(format_type, str, default="")
             format_str = self.ensure_str(
                 parse_result.unwrap_or(str(format_type)),
                 "",
@@ -609,8 +611,12 @@ class FlextCliOutput:
         """
         try:
             # Type narrowing: formatter is compatible with expected signature
-            # Access _result_formatters via getattr for type checker compatibility
-            formatters_dict = getattr(self, "_result_formatters", {})
+            # Access _result_formatters directly
+            if not hasattr(self, "_result_formatters"):
+                self._result_formatters: dict[
+                    type, Callable[[t.GeneralValueType | r[object], str], None]
+                ] = {}
+            formatters_dict = self._result_formatters
             # Type narrowing: formatter accepts compatible types
             formatters_dict[result_type] = formatter
             self._result_formatters = formatters_dict
@@ -678,11 +684,11 @@ class FlextCliOutput:
         """
         result_type = type(result)
 
-        # Access _result_formatters via getattr for type checker compatibility
+        # Access _result_formatters directly
         formatters_dict: dict[
             type,
-            Callable[[t.GeneralValueType | r[t.GeneralValueType], str], None],
-        ] = getattr(self, "_result_formatters", {})
+            Callable[[t.GeneralValueType | r[object], str], None],
+        ] = self._result_formatters
         if result_type in formatters_dict:
             formatter = formatters_dict[result_type]
             # Type narrowing: formatter accepts t.GeneralValueType | r[object]
@@ -758,7 +764,7 @@ class FlextCliOutput:
         if hasattr(result, "__dict__"):
             # Use build() DSL: filter JSON-compatible → ensure dict
             # Use mapper to filter dict items
-            filtered_dict = FlextCliUtilities.mapper().filter_dict(
+            filtered_dict = u.mapper().filter_dict(
                 result.__dict__,
                 lambda _k, v: self.is_json(v),
             )
@@ -800,9 +806,9 @@ class FlextCliOutput:
                 f"Object {type(result).__name__} has no __dict__ attribute",
             )
         # Type narrowing: result has __dict__ attribute
-        raw_dict: dict[str, t.GeneralValueType] = getattr(result, "__dict__", {})
+        raw_dict: dict[str, t.GeneralValueType] = result.__dict__
         # Use build() DSL: process_mapping → to_json → filter → ensure dict
-        json_dict_result = FlextCliUtilities.Cli.process_mapping(
+        json_dict_result = u.Cli.process_mapping(
             raw_dict,
             processor=lambda _k, v: self.to_json(v),
             on_error="skip",
@@ -813,11 +819,11 @@ class FlextCliOutput:
             json_dict_raw if isinstance(json_dict_raw, dict) else {}
         )
         # Use mapper to filter dict items
-        filtered_json_dict = FlextCliUtilities.mapper().filter_dict(
+        filtered_json_dict = u.mapper().filter_dict(
             json_dict,
             lambda _k, v: self.is_json(v),
         )
-        cli_json_dict_result = FlextCliUtilities.Cli.process_mapping(
+        cli_json_dict_result = u.Cli.process_mapping(
             filtered_json_dict,
             processor=lambda _k, v: v,
             on_error="skip",
@@ -851,7 +857,7 @@ class FlextCliOutput:
             """Extract keys from dict row."""
             return set(row.keys())
 
-        all_keys = FlextCliUtilities.Cli.process(
+        all_keys = u.Cli.process(
             data,
             processor=_extract_keys,
             on_error="skip",
@@ -862,7 +868,7 @@ class FlextCliOutput:
         for key_set in all_keys.value or []:
             if isinstance(key_set, set):
                 combined_keys.update(key_set)
-        missing = FlextCliUtilities.filter(headers, lambda h: h not in combined_keys)
+        missing = u.filter(headers, lambda h: h not in combined_keys)
         if missing:
             return r.fail(f"Header(s) not found in data: {', '.join(missing)}")
         return r[bool].ok(True)
@@ -876,27 +882,21 @@ class FlextCliOutput:
 
         def build_row(row_data: dict[str, t.GeneralValueType]) -> list[str]:
             """Build row values using u utilities."""
-            values = FlextCliUtilities.Cli.process(
+            values = u.Cli.process(
                 headers,
-                processor=lambda h: (
-                    str(FlextCliUtilities.get(row_data, h)) if h in row_data else None
-                ),
+                processor=lambda h: str(u.get(row_data, h)) if h in row_data else None,
                 on_error="skip",
             )
             # FlextCliUtilities.filter expects predicate as second positional arg
             values_list = values.value or []
-            filtered = FlextCliUtilities.filter(
-                values_list, predicate=lambda v: v is not None
-            )
+            filtered = u.filter(values_list, predicate=lambda v: v is not None)
             # Type narrowing: filtered contains only non-None values, convert to str
             filtered_list: list[str] = [
                 str(item) for item in filtered if item is not None
             ]
             return filtered_list
 
-        rows_result = FlextCliUtilities.Cli.process(
-            data, processor=build_row, on_error="fail"
-        )
+        rows_result = u.Cli.process(data, processor=build_row, on_error="fail")
         if rows_result.is_failure:
             return r.fail(rows_result.error or "Failed to build rows")
         # Type narrowing: ensure_list returns list[t.GeneralValueType]
@@ -975,7 +975,7 @@ class FlextCliOutput:
         Uses RichTableProtocol from lower layer instead of object for better type safety.
         """
         # Add columns
-        FlextCliUtilities.Cli.process(
+        u.Cli.process(
             headers,
             processor=lambda h: table.add_column(str(h)),
             on_error="skip",
@@ -1574,19 +1574,28 @@ class FlextCliOutput:
                 # This branch is only reached for custom iterables
                 # Use try/except to handle the iteration safely
                 try:
-                    iter_method = getattr(data, "__iter__", None)
-                    if iter_method is None:
+                    if not hasattr(data, "__iter__"):
                         return iterable_items
                     # Custom iterable - iterate and process
-                    for item in iter_method():
-                        custom_item: t.GeneralValueType = (
-                            item
-                            if isinstance(
-                                item,
-                                (str, int, float, bool, type(None), dict, list, tuple),
+                    if hasattr(data, "__iter__"):
+                        for item in data:
+                            custom_item: t.GeneralValueType = (
+                                item
+                                if isinstance(
+                                    item,
+                                    (
+                                        str,
+                                        int,
+                                        float,
+                                        bool,
+                                        type(None),
+                                        dict,
+                                        list,
+                                        tuple,
+                                    ),
+                                )
+                                else str(item)
                             )
-                            else str(item)
-                        )
                         iterable_items.append(custom_item)
                     return iterable_items
                 except TypeError:
@@ -1647,9 +1656,7 @@ class FlextCliOutput:
         writer.writeheader()
 
         # Process rows
-        filtered_rows = FlextCliUtilities.filter(
-            data_list, predicate=FlextRuntime.is_dict_like
-        )
+        filtered_rows = u.filter(data_list, predicate=FlextRuntime.is_dict_like)
         dict_rows_raw = self.ensure_list(
             filtered_rows if isinstance(filtered_rows, list) else [],
             [],
@@ -1780,7 +1787,7 @@ class FlextCliOutput:
             # For lists, processor takes only item, not (key, item)
             # Filter first, then process (FlextCliUtilities.process doesn't accept predicate)
             filtered_data = [item for item in data if FlextRuntime.is_dict_like(item)]
-            process_result = FlextCliUtilities.Cli.process(
+            process_result = u.Cli.process(
                 filtered_data,
                 processor=self.norm_json,
                 on_error="skip",
@@ -1822,9 +1829,7 @@ class FlextCliOutput:
                 FlextCliConstants.Cli.OutputFieldNames.VALUE: str(v),
             }
 
-        process_result = FlextCliUtilities.Cli.process_mapping(
-            data, processor=kv_pair, on_error="skip"
-        )
+        process_result = u.Cli.process_mapping(data, processor=kv_pair, on_error="skip")
         dict_result = FlextCliOutput.ensure_dict(
             process_result.unwrap_or({}),
             {},
@@ -2002,26 +2007,20 @@ class FlextCliOutput:
                         self._build_tree(branch, item)
 
                     if isinstance(v, list):
-                        FlextCliUtilities.Cli.process(
-                            v, processor=process_list_item, on_error="skip"
-                        )
+                        u.Cli.process(v, processor=process_list_item, on_error="skip")
                 else:
                     tree.add(
                         f"{k}{FlextCliConstants.Cli.OutputDefaults.TREE_VALUE_SEPARATOR}{v}"
                     )
 
-            FlextCliUtilities.Cli.process_mapping(
-                data, processor=process_tree_item, on_error="skip"
-            )
+            u.Cli.process_mapping(data, processor=process_tree_item, on_error="skip")
         elif isinstance(data, list):
             # Use build() DSL: process each item
             def process_list_item(item: t.GeneralValueType) -> None:
                 """Process list item."""
                 self._build_tree(tree, item)
 
-            FlextCliUtilities.Cli.process(
-                data, processor=process_list_item, on_error="skip"
-            )
+            u.Cli.process(data, processor=process_list_item, on_error="skip")
         else:
             tree.add(str(data))
 

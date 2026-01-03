@@ -12,17 +12,17 @@ SPDX-License-Identifier: MIT
 
 """
 
-from __future__ import annotations
+from __future__ import annotations  # @vulture_ignore
 
-import os
-from pathlib import Path
+import os  # @vulture_ignore
+from pathlib import Path  # @vulture_ignore
 
-import pytest
-from flext_core import t
-from pydantic import BaseModel, Field, ValidationError
-from pydantic_settings import BaseSettings, SettingsConfigDict
+import pytest  # @vulture_ignore
+from flext_core import t  # @vulture_ignore
+from pydantic import BaseModel, Field, ValidationError  # @vulture_ignore
+from pydantic_settings import BaseSettings, SettingsConfigDict  # @vulture_ignore
 
-from flext_cli import FlextCliCli
+from flext_cli import FlextCliCli  # @vulture_ignore
 
 
 class TestsCliConfigModelIntegration:

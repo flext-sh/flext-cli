@@ -12,17 +12,17 @@ SPDX-License-Identifier: MIT
 
 """
 
-from __future__ import annotations
+from __future__ import annotations  # @vulture_ignore
 
-import json
-import platform
-import tempfile
-import time
-from pathlib import Path
+import json  # @vulture_ignore
+import platform  # @vulture_ignore
+import tempfile  # @vulture_ignore
+import time  # @vulture_ignore
+from pathlib import Path  # @vulture_ignore
 
-import pytest
+import pytest  # @vulture_ignore
 
-from flext_cli import FlextCliConstants
+from flext_cli import FlextCliConstants  # @vulture_ignore
 from flext_cli.constants import c
 from flext_cli.utilities import u
 

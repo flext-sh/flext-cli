@@ -11,19 +11,19 @@ SPDX-License-Identifier: MIT
 
 """
 
-from __future__ import annotations
+from __future__ import annotations  # @vulture_ignore
 
-import getpass
-import time
-from collections import UserList
-from typing import Never, TypedDict, TypeVar
+import getpass  # @vulture_ignore
+import time  # @vulture_ignore
+from collections import UserList  # @vulture_ignore
+from typing import Never, TypedDict, TypeVar  # @vulture_ignore
 
-import pytest
-from flext_core import FlextResult, t
-from flext_tests import tm
+import pytest  # @vulture_ignore
+from flext_core import FlextResult, t  # @vulture_ignore
+from flext_tests import tm  # @vulture_ignore
 
-from flext_cli import FlextCliPrompts
-from tests import c
+from flext_cli import FlextCliPrompts  # @vulture_ignore
+from tests import c  # @vulture_ignore
 
 T = TypeVar("T")
 

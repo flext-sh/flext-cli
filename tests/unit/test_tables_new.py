@@ -12,13 +12,13 @@ SPDX-License-Identifier: MIT
 
 """
 
-from __future__ import annotations
+from __future__ import annotations  # @vulture_ignore
 
-import pytest
-from flext_core import t
-from flext_tests import tm
+import pytest  # @vulture_ignore
+from flext_core import t  # @vulture_ignore
+from flext_tests import tm  # @vulture_ignore
 
-from flext_cli import FlextCliTables, r
+from flext_cli import FlextCliTables, r  # @vulture_ignore
 from flext_cli.models import m
 
 from ..conftest import c

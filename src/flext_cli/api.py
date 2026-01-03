@@ -24,7 +24,6 @@ from flext_core import (
 )
 from rich.tree import Tree as RichTree
 
-from flext_cli.__version__ import __version__
 from flext_cli.app_base import FlextCliAppBase
 from flext_cli.base import FlextCliServiceBase
 from flext_cli.cli import FlextCliCli
@@ -38,6 +37,8 @@ from flext_cli.formatters import FlextCliFormatters
 from flext_cli.mixins import FlextCliMixins
 from flext_cli.models import PasswordAuth, TokenData
 from flext_cli.protocols import FlextCliProtocols as p
+
+# Service imports - direct from modules (architecture allows internal service usage)
 from flext_cli.services.cmd import FlextCliCmd
 from flext_cli.services.core import FlextCliCore
 from flext_cli.services.output import FlextCliOutput
@@ -422,7 +423,11 @@ class FlextCli:
     ) -> p.Cli.CliRegisteredCommand:
         """Register a CLI entity (command or group) with framework abstraction."""
         # Get function name safely - protocols may not have __name__
-        entity_name = name if name is not None else getattr(func, "__name__", "unknown")
+        entity_name = (
+            name
+            if name is not None
+            else (func.__name__ if hasattr(func, "__name__") else "unknown")
+        )
 
         if entity_type == "command":
             decorator = self._cli.create_command_decorator(name=entity_name)
@@ -472,11 +477,15 @@ class FlextCli:
         obj: t.GeneralValueType,
     ) -> TypeGuard[p.Cli.Display.RichTreeProtocol]:
         """Type guard to check if object implements RichTreeProtocol."""
-        return (
-            hasattr(obj, "add")
-            and callable(getattr(obj, "add", None))
-            and hasattr(obj, "label")
-        )
+        try:
+            return (
+                obj is not None
+                and hasattr(obj, "add")
+                and callable(obj.add)
+                and hasattr(obj, "label")
+            )
+        except AttributeError:
+            return False
 
     def command(
         self,
@@ -526,7 +535,7 @@ class FlextCli:
             c.Cli.DictKeys.STATUS: (c.Cli.ServiceStatus.OPERATIONAL.value),
             c.Cli.DictKeys.SERVICE: c.Cli.FLEXT_CLI,
             "timestamp": u.generate("timestamp"),
-            "version": str(__version__),
+            "version": "0.1.0",  # Version from constants
             "components": {
                 "config": "available",
                 "formatters": "available",

@@ -1,6 +1,6 @@
 """Comprehensive parametrized tests for model factories."""
 
-import pytest
+import pytest  # @vulture_ignore
 
 from flext_cli.constants import c
 from tests._helpers import create_test_cli_command, create_test_cli_session

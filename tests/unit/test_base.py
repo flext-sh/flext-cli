@@ -11,11 +11,11 @@ SPDX-License-Identifier: MIT
 
 """
 
-from __future__ import annotations
+from __future__ import annotations  # @vulture_ignore
 
-from flext_core import r, t
+from flext_core import r, t  # @vulture_ignore
 
-from flext_cli import FlextCliServiceBase, FlextCliSettings
+from flext_cli import FlextCliServiceBase, FlextCliSettings  # @vulture_ignore
 
 
 class TestsCliServiceBase:

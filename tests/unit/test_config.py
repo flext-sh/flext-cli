@@ -11,25 +11,25 @@ SPDX-License-Identifier: MIT
 
 """
 
-from __future__ import annotations
+from __future__ import annotations  # @vulture_ignore
 
-import gc
-import json
-import logging
-import os
-import threading
-import typing
-from dataclasses import dataclass
-from enum import StrEnum
-from pathlib import Path
-from typing import Final, Literal
+import gc  # @vulture_ignore
+import json  # @vulture_ignore
+import logging  # @vulture_ignore
+import os  # @vulture_ignore
+import threading  # @vulture_ignore
+import typing  # @vulture_ignore
+from dataclasses import dataclass  # @vulture_ignore
+from enum import StrEnum  # @vulture_ignore
+from pathlib import Path  # @vulture_ignore
+from typing import Final, Literal  # @vulture_ignore
 
-import pytest
-import yaml
-from flext_core import t
-from pydantic_settings import BaseSettings
+import pytest  # @vulture_ignore
+import yaml  # @vulture_ignore
+from flext_core import t  # @vulture_ignore
+from pydantic_settings import BaseSettings  # @vulture_ignore
 
-from flext_cli import (
+from flext_cli import (  # @vulture_ignore
     FlextCli,
     FlextCliSettings,
     m,

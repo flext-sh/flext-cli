@@ -242,10 +242,10 @@ class FlextCliCore(FlextCliServiceBase):
                 "status": command.status,  # Already a str from model definition
                 "created_at": created_at_val,
                 "description": command.description or "",
-                "command_line": getattr(command, "command_line", ""),
-                "usage": getattr(command, "usage", ""),
-                "entry_point": getattr(command, "entry_point", ""),
-                "args": list(getattr(command, "args", [])),
+                "command_line": command.command_line,
+                "usage": command.usage,
+                "entry_point": command.entry_point,
+                "args": list(command.args),
             }
             self._commands[command.name] = command_data
 

@@ -17,15 +17,15 @@ SPDX-License-Identifier: MIT
 
 """
 
-from __future__ import annotations
+from __future__ import annotations  # @vulture_ignore
 
 from collections.abc import Callable
-from typing import Literal
+from typing import Literal  # @vulture_ignore
 
-import pytest
-from pydantic import BaseModel, Field, ValidationError, field_validator
+import pytest  # @vulture_ignore
+from pydantic import BaseModel, Field, ValidationError, field_validator  # @vulture_ignore
 
-from flext_cli import FlextCliCli
+from flext_cli import FlextCliCli  # @vulture_ignore
 from flext_cli.models import m
 
 

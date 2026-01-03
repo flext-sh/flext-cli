@@ -47,7 +47,7 @@ class FlextCliAppBase(ABC):
     _app: typer.Typer
     _config: FlextCliSettings
 
-    def __init__(self) -> None:  # pragma: no cover
+    def __init__(self) -> None:
         """Initialize CLI with FlextCli infrastructure."""
         super().__init__()
         self.logger = l_core(__name__)
@@ -77,7 +77,7 @@ class FlextCliAppBase(ABC):
     @abstractmethod
     def _register_commands(self) -> None:
         """Register CLI commands - implement in subclass."""
-        ...
+        ...  # INTERFACE
 
     @staticmethod
     def _handle_pathlib_annotation_error(ne: NameError) -> None:
@@ -102,7 +102,7 @@ class FlextCliAppBase(ABC):
             return sys.argv[1:] if len(sys.argv) > 1 else []
         return args
 
-    def execute_cli(self, args: list[str] | None = None) -> r[bool]:  # pragma: no cover
+    def execute_cli(self, args: list[str] | None = None) -> r[bool]:
         """Execute the CLI with Railway-pattern error handling."""
         try:
             # Ensure pathlib is available for Typer's annotation evaluation
