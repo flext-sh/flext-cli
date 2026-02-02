@@ -10,19 +10,28 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from abc import ABC
+from typing import override
+
 from flext_core import s
+from flext_core.protocols import p
 
 from flext_cli.settings import FlextCliSettings
 from flext_cli.typings import FlextCliTypes as t
 
 
-class FlextCliServiceBase(s[dict[str, t.GeneralValueType]]):
-    """Base class for flext-cli services with typed configuration access."""
+class FlextCliServiceBase(s[dict[str, t.GeneralValueType]], ABC):
+    """Base class for flext-cli services with typed configuration access.
 
+    Note: This is an abstract base class. Subclasses must implement the
+    `execute` method from FlextService.
+    """
+
+    @override
     @classmethod
     def _runtime_bootstrap_options(
         cls,
-    ) -> t.RuntimeBootstrapOptions:
+    ) -> p.RuntimeBootstrapOptions:
         """Return runtime bootstrap options for CLI services.
 
         Business Rule: This method provides runtime bootstrap configuration for

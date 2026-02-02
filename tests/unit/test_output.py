@@ -820,51 +820,46 @@ class TestsCliOutput:
                 )
                 raise RuntimeError(msg)
 
-        # Replace _result_formatters with error-raising dict
-        # Use helper method to set private field for testing
-        # Type narrowing: ErrorDict implements dict protocol but raises on access
+        # Save original class attribute and temporarily replace it
+        # The implementation accesses FlextCliOutput._result_formatters (class attribute)
+        # directly, so we must patch the class, not the instance
+        original_formatters = FlextCliOutput._result_formatters
         error_formatters: dict[
             type,
             Callable[[t.GeneralValueType | r[t.GeneralValueType], str], None],
         ] = ErrorDict()
-        TestsCliOutput._set_result_formatters(output, error_formatters)
 
-        # Now register_result_formatter should catch the exception
-        # Type narrowing: formatter is Callable compatible with expected signature
-        typed_formatter: Callable[[t.GeneralValueType | r[object], str], None] = (
-            formatter
-        )
-        result = output.register_result_formatter(
-            TestModel,
-            typed_formatter,
-        )
-        assert result.is_failure
-        assert (
-            "failed" in str(result.error).lower()
-            or "error" in str(result.error).lower()
-        )
+        try:
+            # Replace class-level attribute (implementation accesses this directly)
+            FlextCliOutput._result_formatters = error_formatters
+
+            # Now register_result_formatter should catch the exception
+            # Type narrowing: formatter is Callable compatible with expected signature
+            typed_formatter: Callable[[t.GeneralValueType | r[object], str], None] = (
+                formatter
+            )
+            result = output.register_result_formatter(
+                TestModel,
+                typed_formatter,
+            )
+            assert result.is_failure
+            assert (
+                "failed" in str(result.error).lower()
+                or "error" in str(result.error).lower()
+            )
+        finally:
+            # Restore original class attribute
+            FlextCliOutput._result_formatters = original_formatters
 
     def test_format_and_display_result_exception(self, output: FlextCliOutput) -> None:
-        """Test format_and_display_result exception handler (lines 326-327).
+        """Test format_and_display_result exception handler (lines 667-668).
 
         Real scenario: Tests exception handling in format_and_display_result.
-        To force an exception, we can make _convert_result_to_formattable raise.
+        The implementation accesses FlextCliOutput._result_formatters (class attribute)
+        directly, so we must temporarily replace the class attribute.
         """
-        # To force exception in format_and_display_result (lines 326-327),
-        # we need to make
-        # something in the try block raise an exception.
-        # We can make _convert_result_to_formattable raise by passing invalid data
-        # that causes an error during conversion.
 
-        # Actually, the try block calls _try_registered_formatter and _convert_result_to_formattable
-        # We can make _convert_result_to_formattable raise by making it access something that raises
-
-        # Better approach: Make the result object raise when type() is called
-        # Actually, __class__ is a descriptor, so we can't override it easily
-        # Let's make the result raise when accessed in _try_registered_formatter
-        # by making type(result) raise
-
-        # Real approach: Make _result_formatters raise when accessed
+        # ErrorFormatters raises on __contains__ check in _try_registered_formatter
         class ErrorFormatters(UserDict[type[object], object]):
             """Dict that raises exception on __contains__."""
 
@@ -872,22 +867,28 @@ class TestsCliOutput:
                 msg = "Forced exception for testing format_and_display_result exception handler"
                 raise RuntimeError(msg)
 
-        # Use helper method to set private field for testing
-        # Type narrowing: ErrorFormatters implements dict protocol but raises on access
+        # Save original class attribute and temporarily replace it
+        original_formatters = FlextCliOutput._result_formatters
         error_formatters: dict[
             type,
             Callable[[t.GeneralValueType | r[t.GeneralValueType], str], None],
         ] = ErrorFormatters()
-        TestsCliOutput._set_result_formatters(output, error_formatters)
 
-        # Now format_and_display_result should catch the exception
-        data = {"key": "value"}
-        result = output.format_and_display_result(data, "json")
-        assert result.is_failure
-        assert (
-            "failed" in str(result.error).lower()
-            or "error" in str(result.error).lower()
-        )
+        try:
+            # Replace class-level attribute (implementation accesses this directly)
+            FlextCliOutput._result_formatters = error_formatters
+
+            # Now format_and_display_result should catch the exception
+            data = {"key": "value"}
+            result = output.format_and_display_result(data, "json")
+            assert result.is_failure
+            assert (
+                "failed" in str(result.error).lower()
+                or "error" in str(result.error).lower()
+            )
+        finally:
+            # Restore original class attribute
+            FlextCliOutput._result_formatters = original_formatters
 
     def test_try_registered_formatter_found(self, output: FlextCliOutput) -> None:
         """Test _try_registered_formatter when formatter is found (line 345-348).

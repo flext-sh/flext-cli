@@ -79,7 +79,8 @@ class TestsCliFileTools:
 
         content = result.value
         assert isinstance(content, str)
-        assert content == "test content"
+        # temp_file fixture creates multi-line content
+        assert content == "test content\nline 2\nline 3"
 
     def test_read_text_file_nonexistent(self, file_tools: FlextCliFileTools) -> None:
         """Test reading nonexistent text file."""

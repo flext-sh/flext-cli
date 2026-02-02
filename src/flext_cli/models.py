@@ -1126,12 +1126,10 @@ class FlextCliModels(FlextModels):
                     # Type narrowing: system_info is dict-like, convert to dict
                     if isinstance(system_info, dict):
                         system_dict = system_info
-                    elif isinstance(system_info, Mapping):
-                        # Type narrowing: system_info is Mapping, convert to dict
+                    else:
+                        # system_info is Mapping (from is_dict_like check)
                         # Mapping values are t.GeneralValueType compatible
                         system_dict = {str(k): v for k, v in system_info.items()}
-                    else:
-                        system_dict = {}
                 else:
                     system_dict = {}
 
@@ -1155,12 +1153,10 @@ class FlextCliModels(FlextModels):
                     # Type narrowing: config_info is dict-like, convert to dict
                     if isinstance(config_info, dict):
                         config_dict = config_info
-                    elif isinstance(config_info, Mapping):
-                        # Type narrowing: config_info is Mapping, convert to dict
+                    else:
+                        # config_info is Mapping (from is_dict_like check)
                         # Mapping values are t.GeneralValueType compatible
                         config_dict = {str(k): v for k, v in config_info.items()}
-                    else:
-                        config_dict = {}
                 else:
                     config_dict = {}
 
@@ -1549,7 +1545,7 @@ class FlextCliModels(FlextModels):
                 non_none_types: list[type] = [
                     item
                     for item in args
-                    if item is not type(None) and isinstance(item, type)
+                    if item is not type(None)  # Exclude None type from Union
                 ]
                 if not non_none_types:
                     return "str", str
@@ -1623,11 +1619,9 @@ class FlextCliModels(FlextModels):
 
                 # Get and resolve field type
                 # Use getattr for FieldInfo access - field_info is an object, not always a Mapping
-                field_type_raw = (
-                    getattr(field_info, "annotation", None)
-                    if field_info is not None
-                    else None
-                )
+                field_type_raw: type | None = None
+                if isinstance(field_info, FieldInfo):
+                    field_type_raw = getattr(field_info, "annotation", None)
                 if field_type_raw is None:
                     # No annotation - infer from default value or use str
                     field_type = (

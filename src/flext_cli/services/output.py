@@ -11,7 +11,7 @@ import csv
 import json
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from io import StringIO
-from typing import TypeGuard
+from typing import ClassVar, TypeGuard
 
 import yaml
 from flext_core import FlextRuntime, r, t
@@ -101,6 +101,11 @@ class FlextCliOutput:
     """
 
     # Logger is provided by FlextMixins mixin
+
+    # Class-level attribute for result formatters (avoids reportUninitializedInstanceVariable)
+    _result_formatters: ClassVar[
+        dict[type, Callable[[t.GeneralValueType | r[object], str], None]]
+    ] = {}
 
     # ═══════════════════════════════════════════════════════════════════════════
     # STATIC HELPER METHODS - General purpose utilities for output operations
@@ -611,15 +616,8 @@ class FlextCliOutput:
         """
         try:
             # Type narrowing: formatter is compatible with expected signature
-            # Access _result_formatters directly
-            if not hasattr(self, "_result_formatters"):
-                self._result_formatters: dict[
-                    type, Callable[[t.GeneralValueType | r[object], str], None]
-                ] = {}
-            formatters_dict = self._result_formatters
-            # Type narrowing: formatter accepts compatible types
-            formatters_dict[result_type] = formatter
-            self._result_formatters = formatters_dict
+            # Access _result_formatters via class (ClassVar)
+            FlextCliOutput._result_formatters[result_type] = formatter
             return r[bool].ok(True)
 
         except Exception as e:
@@ -684,11 +682,11 @@ class FlextCliOutput:
         """
         result_type = type(result)
 
-        # Access _result_formatters directly
+        # Access _result_formatters directly via class (ClassVar)
         formatters_dict: dict[
             type,
             Callable[[t.GeneralValueType | r[object], str], None],
-        ] = self._result_formatters
+        ] = FlextCliOutput._result_formatters
         if result_type in formatters_dict:
             formatter = formatters_dict[result_type]
             # Type narrowing: formatter accepts t.GeneralValueType | r[object]
@@ -1574,28 +1572,28 @@ class FlextCliOutput:
                 # This branch is only reached for custom iterables
                 # Use try/except to handle the iteration safely
                 try:
-                    if not hasattr(data, "__iter__"):
+                    # Use isinstance for proper type narrowing (pyrefly/pyright compatible)
+                    if not isinstance(data, Iterable):
                         return iterable_items
-                    # Custom iterable - iterate and process
-                    if hasattr(data, "__iter__"):
-                        for item in data:
-                            custom_item: t.GeneralValueType = (
-                                item
-                                if isinstance(
-                                    item,
-                                    (
-                                        str,
-                                        int,
-                                        float,
-                                        bool,
-                                        type(None),
-                                        dict,
-                                        list,
-                                        tuple,
-                                    ),
-                                )
-                                else str(item)
+                    # Custom iterable - iterate and process (isinstance provides narrowing)
+                    for item in data:
+                        custom_item: t.GeneralValueType = (
+                            item
+                            if isinstance(
+                                item,
+                                (
+                                    str,
+                                    int,
+                                    float,
+                                    bool,
+                                    type(None),
+                                    dict,
+                                    list,
+                                    tuple,
+                                ),
                             )
+                            else str(item)
+                        )
                         iterable_items.append(custom_item)
                     return iterable_items
                 except TypeError:
@@ -1964,15 +1962,10 @@ class FlextCliOutput:
         if tree_result.is_failure:
             return r[str].fail(f"Failed to create tree: {tree_result.error}")
 
-        # Use .value directly instead of deprecated .value
-        # create_tree returns r[RichTree], so tree is RichTree (concrete type)
-        concrete_tree: RichTree = tree_result.value
+        concrete_tree = tree_result.value
 
-        # Build tree structure - data is already t.GeneralValueType
-        # Use concrete RichTree type (file already imports it for formatters)
         self._build_tree(concrete_tree, data)
 
-        # Render to string using formatters - use concrete tree type (RichTree)
         return FlextCliFormatters().render_tree_to_string(
             concrete_tree,
             width=FlextCliConstants.Cli.CliDefaults.DEFAULT_MAX_WIDTH,

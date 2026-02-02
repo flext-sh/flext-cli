@@ -38,7 +38,9 @@ class FlextCliProtocols(FlextProtocols):
             class RichTreeProtocol(Protocol):
                 """Protocol for Rich Tree objects."""
 
-                def add(self, label: str, **kwargs: t.GeneralValueType) -> Self:
+                def add(
+                    self, label: str, **kwargs: t.GeneralValueType
+                ) -> FlextCliProtocols.Cli.Display.RichTreeProtocol:
                     """Add tree node."""
                     ...
 

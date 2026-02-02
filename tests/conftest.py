@@ -82,6 +82,20 @@ def cli_runner() -> CliRunner:
     return CliRunner()
 
 
+# ============================================================================
+# TEMPORARY DIRECTORY AND FILE FIXTURES
+# ============================================================================
+
+
+@pytest.fixture
+def temp_dir(tmp_path: Path) -> Path:
+    """Provide temporary directory for tests.
+
+    Wraps pytest's tmp_path fixture to maintain naming consistency.
+    """
+    return tmp_path
+
+
 # Factory for creating temporary files with different formats
 def _create_temp_file(
     temp_dir: Path,
@@ -140,6 +154,15 @@ def temp_csv_file(temp_dir: Path) -> Path:
     """
     csv_content = "name,age,city\nJohn,30,New York\nJane,25,London\nBob,35,Paris"
     return _create_temp_file(temp_dir, "test_file.csv", csv_content)
+
+
+@pytest.fixture
+def temp_file(temp_dir: Path) -> Path:
+    """Create generic temporary text file for tests.
+
+    Creates a simple text file for file operation tests.
+    """
+    return _create_temp_file(temp_dir, "test_file.txt", "test content\nline 2\nline 3")
 
 
 # ============================================================================

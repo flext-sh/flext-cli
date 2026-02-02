@@ -205,6 +205,11 @@ class FlextCliCommands(FlextCliServiceBase):
             if result is None:
                 return r[t.GeneralValueType].ok({"status": "success", "command": name})
 
+            # If handler already returns FlextResult, passthrough without re-wrapping
+            if hasattr(result, "is_success") and hasattr(result, "value"):
+                # Result is already a FlextResult - return as-is
+                return result  # type: ignore[return-value]
+
             # Return the handler's result wrapped in FlextResult
             return r[t.GeneralValueType].ok(result)
         except Exception as e:

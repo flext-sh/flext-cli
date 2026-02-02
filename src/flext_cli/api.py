@@ -12,8 +12,10 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import secrets
+import threading
+from abc import ABC
 from collections.abc import Callable, Mapping, Sequence
-from typing import TypeGuard
+from typing import ClassVar, TypeGuard
 
 from flext_core import (
     FlextContainer as container,
@@ -128,13 +130,17 @@ class FlextCli:
     class Mixins(FlextCliMixins):
         """CLI mixins extending FlextCliMixins via inheritance."""
 
-    class AppBase(FlextCliAppBase):
-        """CLI app base extending FlextCliAppBase via inheritance."""
+    class AppBase(FlextCliAppBase, ABC):
+        """CLI app base extending FlextCliAppBase via inheritance.
 
-    _instance: FlextCli | None = None
-    _lock = __import__("threading").Lock()
+        Note: This is an abstract class. Subclasses must implement
+        the `_register_commands` method.
+        """
 
-    # Public service instances
+    _instance: ClassVar[FlextCli | None] = None
+    _lock: ClassVar[threading.Lock] = threading.Lock()
+
+    # Public service instances (declared with types)
     logger: logger_core
     config: FlextCliSettings
     formatters: FlextCliFormatters
@@ -143,6 +149,13 @@ class FlextCli:
     core: FlextCliCore
     cmd: FlextCliCmd
     prompts: FlextCliPrompts
+
+    # Private instance attributes (declared with types)
+    _name: str
+    _version: str
+    _description: str
+    _container: container
+    _cli: FlextCliCli
 
     def __init__(self) -> None:
         """Initialize consolidated CLI with all functionality integrated."""
@@ -423,10 +436,9 @@ class FlextCli:
     ) -> p.Cli.CliRegisteredCommand:
         """Register a CLI entity (command or group) with framework abstraction."""
         # Get function name safely - protocols may not have __name__
-        entity_name = (
-            name
-            if name is not None
-            else (func.__name__ if hasattr(func, "__name__") else "unknown")
+        # Use getattr with default for type safety
+        entity_name: str = (
+            name if name is not None else str(getattr(func, "__name__", "unknown"))
         )
 
         if entity_type == "command":
@@ -478,10 +490,12 @@ class FlextCli:
     ) -> TypeGuard[p.Cli.Display.RichTreeProtocol]:
         """Type guard to check if object implements RichTreeProtocol."""
         try:
+            # Use getattr for type-safe attribute access
+            add_method = getattr(obj, "add", None)
             return (
                 obj is not None
                 and hasattr(obj, "add")
-                and callable(obj.add)
+                and callable(add_method)
                 and hasattr(obj, "label")
             )
         except AttributeError:
@@ -621,7 +635,7 @@ class FlextCli:
             label: Tree root label
 
         Returns:
-            r[RichTree]: Rich Tree instance or error
+            r[RichTree]: Tree instance or error
 
         """
         return FlextCliFormatters.create_tree(label)

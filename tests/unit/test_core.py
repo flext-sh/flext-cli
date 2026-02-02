@@ -381,8 +381,11 @@ class TestsCliCore:
             assert isinstance(result, r)
             if result.is_success:
                 command_def = result.value
-                assert isinstance(command_def, dict)
-                assert command_def.get("command_line") == "test-cmd --option value"
+                # get_command returns m.Configuration, access .config for dict
+                assert hasattr(command_def, "config")
+                config_dict = command_def.config
+                assert isinstance(config_dict, dict)
+                assert config_dict.get("name") == "test-cmd"
 
         def test_get_command_info_nonexistent(self, core_service: FlextCliCore) -> None:
             """Test getting info for nonexistent command."""
@@ -537,8 +540,11 @@ class TestsCliCore:
             info_result = core_service.get_command("workflow-test")
             if info_result.is_success:
                 command_def = info_result.value
-                assert isinstance(command_def, dict)
-                assert command_def.get("command_line") == "workflow-test --flag value"
+                # get_command returns m.Configuration, access .config for dict
+                assert hasattr(command_def, "config")
+                config_dict = command_def.config
+                assert isinstance(config_dict, dict)
+                assert config_dict.get("command_line") == "workflow-test --flag value"
 
         def test_configuration_update_workflow(
             self,

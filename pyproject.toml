@@ -116,6 +116,47 @@
     [tool.deptry]
         known_first_party = [
             "flext_cli",
+            "flext_core",
+        ]
+        extend_exclude = [
+            "examples",
+        ]
+        pep621_dev_dependency_groups = [
+            "dev",
+            "security",
+            "test",
+            "typings",
+        ]
+
+    [tool.deptry.package_module_name_map]
+        pyyaml = "yaml"
+
+    [tool.deptry.per_rule_ignores]
+        DEP002 = [
+            # CLI tools
+            "bandit",
+            "deptry",
+            "mypy",
+            "pip-audit",
+            "pyrefly",
+            "pytest",
+            "pytest-cov",
+            "pytest-xdist",
+            "ruff",
+            # Type stubs
+            "types-pyyaml",
+            "types-requests",
+            "types-setuptools",
+            "types-tabulate",
+            "types-toml",
+            # Runtime deps used indirectly (pydantic-settings, flext-core, etc.)
+            "attrs",
+            "cachetools",
+            "faker",
+            "pluggy",
+            "prompt-toolkit",
+            "pydantic-core",
+            "pytest-randomly",
         ]
 
     [tool.poetry]

@@ -35,11 +35,6 @@ class TestsFlextCliModels(FlextTestsModels, FlextCliModels):
         Production code should use m.Cli.* pattern.
         """
 
-        # Entity models for testing
-        Entity = FlextCliModels.Cli.Entity
-        Entry = FlextCliModels.Cli.Entry
-        Value = FlextCliModels.Cli.Value
-
         # Command models for testing
         CliCommand = FlextCliModels.Cli.CliCommand
         CliSession = FlextCliModels.Cli.CliSession

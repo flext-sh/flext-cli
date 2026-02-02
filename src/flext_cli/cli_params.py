@@ -23,7 +23,6 @@ from flext_cli.constants import FlextCliConstants as c
 from flext_cli.models import FlextCliModels as m
 from flext_cli.protocols import FlextCliProtocols as p
 from flext_cli.settings import FlextCliSettings
-from flext_cli.typings import FlextCliTypes as t
 from flext_cli.utilities import FlextCliUtilities as u
 
 
@@ -344,8 +343,8 @@ class FlextCliCommonParams:
         # triggering validate_assignment for each individual field
         # (which would see intermediate states)
         # Then update the original config object's attributes
-        # Use mutable dict for building updates
-        update_data: dict[str, t.GeneralValueType] = {}
+        # All values are booleans - bool is a valid FlexibleValue subtype
+        update_data: dict[str, bool] = {}
         if params.verbose is not None:
             update_data["verbose"] = params.verbose
         if params.quiet is not None:
