@@ -19,16 +19,19 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from enum import StrEnum
-from typing import ClassVar, Final, Literal, TypedDict
+from typing import ClassVar, Final, Literal
 
 from flext_core import FlextConstants
+from pydantic import BaseModel, ConfigDict
 
 
-class FileFormatConfig(TypedDict):
+class FileFormatConfig(BaseModel):
     """File format configuration with type-safe structure.
 
-    Uses TypedDict to eliminate isinstance checks by providing proper typing.
+    Uses Pydantic BaseModel to eliminate isinstance checks by providing proper typing.
     """
+
+    model_config = ConfigDict(frozen=False, extra="forbid")
 
     extensions: tuple[str, ...]
     mime_type: str
@@ -797,15 +800,23 @@ class FlextCliConstants(FlextConstants):
         # =====================================================================
 
         # File formats configuration with advanced typing
-        # Uses TypedDict for type-safe structure eliminating isinstance checks
+        # Uses Pydantic BaseModel for type-safe structure eliminating isinstance checks
         # Python 3.13+ best practice for complex read-only configurations
         FILE_FORMATS: Final[Mapping[str, FileFormatConfig]] = {
-            "json": {"extensions": ("json",), "mime_type": "application/json"},
-            "yaml": {"extensions": ("yaml", "yml"), "mime_type": "application/x-yaml"},
-            "csv": {"extensions": ("csv",), "mime_type": "text/csv"},
-            "tsv": {"extensions": ("tsv",), "mime_type": "text/tab-separated-values"},
-            "toml": {"extensions": ("toml",), "mime_type": "application/toml"},
-            "xml": {"extensions": ("xml",), "mime_type": "application/xml"},
+            "json": FileFormatConfig(
+                extensions=("json",), mime_type="application/json"
+            ),
+            "yaml": FileFormatConfig(
+                extensions=("yaml", "yml"), mime_type="application/x-yaml"
+            ),
+            "csv": FileFormatConfig(extensions=("csv",), mime_type="text/csv"),
+            "tsv": FileFormatConfig(
+                extensions=("tsv",), mime_type="text/tab-separated-values"
+            ),
+            "toml": FileFormatConfig(
+                extensions=("toml",), mime_type="application/toml"
+            ),
+            "xml": FileFormatConfig(extensions=("xml",), mime_type="application/xml"),
         }
 
         # Immutable set of supported format names using frozenset
@@ -829,7 +840,7 @@ class FlextCliConstants(FlextConstants):
             """
             # Use direct dict access instead of u_core.mapper().get() to avoid utilities in constants.py
             format_config = cls.FILE_FORMATS.get(format_name)
-            return format_config.get("extensions") if format_config else None
+            return format_config.extensions if format_config else None
 
         @classmethod
         def get_mime_type(cls, format_name: str) -> str | None:
@@ -846,10 +857,10 @@ class FlextCliConstants(FlextConstants):
 
             """
             # Use direct dict access instead of u_core.mapper().get() to avoid utilities in constants.py
-            # TypedDict ensures mime_type is always str, eliminating isinstance check
+            # Pydantic model ensures mime_type is always str, eliminating isinstance check
             format_config = cls.FILE_FORMATS.get(format_name)
             if format_config:
-                return format_config["mime_type"]
+                return format_config.mime_type
             return None
 
         @classmethod

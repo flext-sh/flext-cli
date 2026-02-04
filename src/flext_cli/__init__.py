@@ -22,7 +22,7 @@ from flext_cli.cli import FlextCliCli
 from flext_cli.cli_params import FlextCliCommonParams
 from flext_cli.command_builder import FlextCommandBuilder
 from flext_cli.commands import FlextCliCommands
-from flext_cli.constants import FlextCliConstants
+from flext_cli.constants import FlextCliConstants, FlextCliConstants as c
 from flext_cli.context import FlextCliContext
 from flext_cli.debug import FlextCliDebug
 from flext_cli.file_tools import FlextCliFileTools
@@ -47,17 +47,11 @@ from flext_cli.services.prompts import FlextCliPrompts
 from flext_cli.services.tables import FlextCliTables
 from flext_cli.settings import FlextCliSettings
 from flext_cli.typings import FlextCliTypes
-from flext_cli.utilities import FlextCliUtilities
-
-# Short aliases following FLEXT conventions
-c = FlextCliConstants
-m = FlextCliModels
-u = FlextCliUtilities
+from flext_cli.utilities import FlextCliUtilities, FlextCliUtilities as u
 
 __all__ = [
     "FlextCli",
     "FlextCliAppBase",
-    "FlextCliCli",
     "FlextCliCli",
     "FlextCliCmd",
     "FlextCliCommands",
@@ -79,7 +73,6 @@ __all__ = [
     "FlextCliTypes",
     "FlextCliUtilities",
     "FlextCommandBuilder",
-    "FlextCommandBuilder",
     "FlextMiddleware",
     "FlextOptionGroup",
     "LoggingMiddleware",
@@ -87,11 +80,13 @@ __all__ = [
     "ValidationMiddleware",
     "__version__",
     "__version_info__",
+    "c",
     "compose_middleware",
     "d",
     "e",
     "h",
     "r",
     "s",
+    "u",
     "x",
 ]

@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping, Sequence
-from typing import TypedDict
 
 from flext_core import FlextTypes, r
+from pydantic import BaseModel, ConfigDict
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -101,27 +101,31 @@ class FlextCliTypes(FlextTypes):
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# PYTHON 3.13 PEP 705: ReadOnly TypedDict
+# PYDANTIC MODELS FOR CLI METADATA
 # ═══════════════════════════════════════════════════════════════════════════
 
 
-class CliExecutionMetadata(TypedDict, total=False):
-    """ReadOnly TypedDict for CLI execution metadata (PEP 705)."""
+class CliExecutionMetadata(BaseModel):
+    """Pydantic model for CLI execution metadata."""
 
-    command_name: str
-    session_id: str
-    start_time: float
-    pid: int
-    environment: str
+    model_config = ConfigDict(frozen=False, extra="forbid")
+
+    command_name: str | None = None
+    session_id: str | None = None
+    start_time: float | None = None
+    pid: int | None = None
+    environment: str | None = None
 
 
-class CliValidationResult(TypedDict, total=False):
-    """ReadOnly TypedDict for CLI validation results (PEP 705)."""
+class CliValidationResult(BaseModel):
+    """Pydantic model for CLI validation results."""
 
-    field_name: str
-    rule_name: str
-    is_valid: bool
-    error_message: str | None
+    model_config = ConfigDict(frozen=False, extra="forbid")
+
+    field_name: str | None = None
+    rule_name: str | None = None
+    is_valid: bool | None = None
+    error_message: str | None = None
 
 
 t = FlextCliTypes
