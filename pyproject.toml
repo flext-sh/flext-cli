@@ -44,7 +44,7 @@
     name = "flext-cli"
     readme = "README.md"
     requires-python = ">=3.13,<3.14"
-    version = "0.10.0"
+    version = "0.10.0-dev"
 
     [[project.authors]]
         email = "team@flext.sh"
