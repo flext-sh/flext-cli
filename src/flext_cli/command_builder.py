@@ -192,32 +192,24 @@ class FlextCommandBuilder:
         self._handler = func
         return self
 
-    def build(self) -> object:
+    def build(self) -> m.Cli.CliCommand:
         """Build the command.
 
         Returns:
-            p.Command: Command object ready for registration.
+            m.Cli.CliCommand: Command model ready for registration.
 
         Note:
             This is a simplified implementation. Full integration with
             flext-cli's command system would require more complex wiring.
 
         """
-        # Create a command model that satisfies p.Command protocol
-        # This is a placeholder - real implementation would integrate with
-        # FlextCliCommands registration system
-        # CliCommand doesn't have handler parameter, it's stored separately
         command = m.Cli.CliCommand(
             name=self._name,
             description="",
         )
-        # Store handler separately if needed - for now return command as protocol
-        # Command implements Command protocol structurally at runtime
-        # Type narrowing: CliCommand implements Command protocol
         if not FlextCommandBuilder._is_command_protocol(command):
             msg = "command must implement Command protocol"
             raise TypeError(msg)
-        # Type guard confirms command implements Command protocol
         return command
 
     @staticmethod

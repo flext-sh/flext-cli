@@ -46,7 +46,7 @@ class FlextCliServiceBase(s[dict[str, t.GeneralValueType]], ABC):
             Runtime bootstrap options with config_type set to FlextCliSettings
 
         """
-        return {"config_type": FlextCliSettings}
+        return p.RuntimeBootstrapOptions(config_type=FlextCliSettings)
 
     @property
     def cli_config(self) -> FlextCliSettings:

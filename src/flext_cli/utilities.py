@@ -450,7 +450,7 @@ class FlextCliUtilities(FlextUtilities):
 
         @staticmethod
         def parse[T](
-            value: object,
+            value: t.GeneralValueType,
             target: type[T],
             default: T | None = None,
             *,
@@ -992,7 +992,7 @@ class FlextCliUtilities(FlextUtilities):
 
             @staticmethod
             def v_conv(
-                val: object,
+                val: t.GeneralValueType,
             ) -> r[t.GeneralValueType]:
                 """Convert and validate (mnemonic: 'v_conv').
 
@@ -2072,7 +2072,73 @@ class FlextCliUtilities(FlextUtilities):
                     raise TypeError(msg)
 
                 @staticmethod
+                def _is_scalar_value(
+                    value: t.GeneralValueType,
+                ) -> bool:
+                    """Check whether a value is a ScalarValue."""
+                    return isinstance(value, (str, int, float, bool, type(None)))
+
+                @classmethod
+                def _normalize_nested_mapping(
+                    cls,
+                    value: t.FlexibleValue,
+                ) -> t.FlexibleValue:
+                    """Normalize nested mapping values using JSON-safe transform."""
+                    if not isinstance(value, dict):
+                        return value
+                    v_mapping: Mapping[str, t.GeneralValueType] = value
+                    t_result = u.transform(dict(v_mapping), to_json=True)
+                    if not t_result.is_success:
+                        return value
+
+                    transformed_value = t_result.value
+                    if not all(
+                        cls._is_scalar_value(item)
+                        for item in transformed_value.values()
+                    ):
+                        msg = "dict values must all be ScalarValue (str, int, float, bool, None)"
+                        raise TypeError(msg)
+
+                    validated_dict: dict[str, t.ScalarValue] = {
+                        key: val
+                        for key, val in transformed_value.items()
+                        if isinstance(val, (str, int, float, bool, type(None)))
+                    }
+                    return validated_dict
+
+                @classmethod
+                def _coerce_enum_fields[E: StrEnum](
+                    cls,
+                    parsed: dict[str, t.FlexibleValue],
+                    enum_fields: Mapping[str, type[E]],
+                ) -> list[str]:
+                    """Coerce configured enum fields from strings and collect errors."""
+                    errors: list[str] = []
+                    for key, enum_cls in enum_fields.items():
+                        if key not in parsed:
+                            continue
+
+                        parsed_val = parsed[key]
+                        if not isinstance(parsed_val, str):
+                            continue
+
+                        enum_result = u.Enum.parse(enum_cls, parsed_val)
+                        enum_val = enum_result.value if enum_result.is_success else None
+                        if enum_val is None:
+                            errors.append(f"{key}: '{parsed_val}'")
+                            continue
+
+                        parsed[key] = (
+                            enum_val.value
+                            if hasattr(enum_val, "value")
+                            else str(enum_val)
+                        )
+
+                    return errors
+
+                @classmethod
                 def parse_kwargs[E: StrEnum](
+                    cls,
                     kwargs: Mapping[str, t.FlexibleValue],
                     enum_fields: Mapping[str, type[E]],
                 ) -> r[dict[str, t.FlexibleValue]]:
@@ -2086,65 +2152,13 @@ class FlextCliUtilities(FlextUtilities):
                         FlextUtilities.mapper().to_dict(kwargs)
                     )
                     for k, v in parsed.items():
-                        if isinstance(v, dict):
-                            # Type cast: dict[str, FlexibleValue] is compatible with dict[str, t.GeneralValueType]
-                            # FlexibleValue is a subset of t.GeneralValueType
-                            v_mapping: Mapping[str, t.GeneralValueType] = (
-                                v  # Covariant, ScalarValue ⊆ t.GeneralValueType
-                            )
-                            t_result = u.transform(dict(v_mapping), to_json=True)
-                            if t_result.is_success:
-                                # Use .value directly instead of deprecated .value
-                                # Type narrowing: value is ConfigurationDict (dict[str, t.GeneralValueType])
-                                # transform returns ConfigurationDict, but FlexibleValue needs Mapping[str, ScalarValue]
-                                # ConfigurationDict is dict[str, t.GeneralValueType] which includes dict[str, JsonValue]
-                                # JsonValue is ScalarValue, so this is compatible at runtime
-                                # Type narrowing: validate that value is compatible with FlexibleValue
-                                transformed_value = t_result.value
-                                # This ensures dict[str, ScalarValue] which is Mapping[str, ScalarValue] = FlexibleValue
-                                if not all(
-                                    isinstance(v, (str, int, float, bool, type(None)))
-                                    for v in transformed_value.values()
-                                ):
-                                    msg = "dict values must all be ScalarValue (str, int, float, bool, None)"
-                                    raise TypeError(msg)
-                                # Type narrowing: validated dict is dict[str, ScalarValue] = Mapping[str, ScalarValue] = FlexibleValue
-                                # Create validated dict with explicit type annotation for type narrowing
-                                validated_dict: dict[
-                                    str,
-                                    str | int | float | bool | None,
-                                ] = {
-                                    key: val
-                                    for key, val in transformed_value.items()
-                                    if isinstance(
-                                        val,
-                                        (str, int, float, bool, type(None)),
-                                    )
-                                }
-                                # Type narrowing: validated_dict is dict[str, ScalarValue] = Mapping[str, ScalarValue] = FlexibleValue
-                                parsed[k] = validated_dict
+                        parsed[k] = cls._normalize_nested_mapping(v)
 
                     # Convert enum fields using try_parse
-                    errors: list[str] = []
-                    for k, enum_cls in enum_fields.items():
-                        if k in parsed:
-                            parsed_val = parsed[k]
-                            # Only parse if it's a string
-                            if isinstance(parsed_val, str):
-                                enum_result = u.Enum.parse(enum_cls, parsed_val)
-                                enum_val = (
-                                    enum_result.value
-                                    if enum_result.is_success
-                                    else None
-                                )
-                                if enum_val is not None:
-                                    parsed[k] = (
-                                        enum_val.value
-                                        if hasattr(enum_val, "value")
-                                        else str(enum_val)
-                                    )
-                                else:
-                                    errors.append(f"{k}: '{parsed_val}'")
+                    errors = cls._coerce_enum_fields(
+                        parsed,
+                        enum_fields,
+                    )
 
                     if errors:
                         return r.fail(f"Invalid: {errors}")
@@ -2270,7 +2284,7 @@ class FlextCliUtilities(FlextUtilities):
                 @staticmethod
                 def coerced_enum[E: StrEnum](
                     enum_cls: type[E],
-                ) -> object:
+                ) -> t.GeneralValueType:
                     """Create Annotated type for StrEnum coercion (mnemonic: 'coerced_enum').
 
                     Returns Annotated[E, BeforeValidator] wrapped type for Pydantic validation.

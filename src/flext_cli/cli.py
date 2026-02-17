@@ -24,17 +24,17 @@ from typing import IO, Annotated, TypeGuard
 import click
 import typer
 from click.exceptions import UsageError
-from flext_core import FlextContainer, FlextLogger, FlextRuntime, FlextUtilities, r
+from flext_core import FlextContainer, FlextLogger, FlextRuntime, r
 from pydantic import BaseModel
 from typer.testing import CliRunner
 
 from flext_cli.cli_params import FlextCliCommonParams
-from flext_cli.constants import FlextCliConstants as c
+from flext_cli.constants import c
 from flext_cli.models import ConfirmConfig, OptionConfig, m
 from flext_cli.protocols import p
 from flext_cli.settings import FlextCliSettings
 from flext_cli.typings import t
-from flext_cli.utilities import FlextCliUtilities as u
+from flext_cli.utilities import u
 
 
 class FlextCliCli:
@@ -103,7 +103,7 @@ class FlextCliCli:
 
     @staticmethod
     def _is_option_config_protocol(
-        obj: object,
+        obj: t.GeneralValueType,
     ) -> bool:
         """Type guard to check if object implements OptionConfigProtocol."""
         return (
@@ -115,7 +115,7 @@ class FlextCliCli:
 
     @staticmethod
     def _is_prompt_config_protocol(
-        obj: object,
+        obj: t.GeneralValueType,
     ) -> TypeGuard[p.Cli.PromptConfigProtocol]:
         """Type guard to check if object implements PromptConfigProtocol."""
         return (
@@ -206,25 +206,35 @@ class FlextCliCli:
         """Extract typed value using build DSL."""
         if val is None:
             return default
-        # Handle conversion based on type_name with proper type safety
-        built_val: t.GeneralValueType
-        if type_name == "str":
+
+        def _build_str_value() -> t.GeneralValueType:
             str_default = "" if not isinstance(default, str) else default
-            built_val = FlextUtilities.Parser.convert(val, str, str_default)
-        elif type_name == "bool":
+            return u.Parser.convert(val, str, str_default)
+
+        def _build_bool_value() -> t.GeneralValueType:
             bool_default = False if not isinstance(default, bool) else default
-            built_val = FlextUtilities.Parser.convert(val, bool, bool_default)
-        else:  # dict - no conversion needed, use value or default
+            return u.Parser.convert(val, bool, bool_default)
+
+        def _build_dict_value() -> t.GeneralValueType:
             dict_default = {} if not isinstance(default, dict) else default
-            built_val = val if isinstance(val, dict) else dict_default
-        result = (
-            built_val
-            if isinstance(
-                val,
-                (bool if type_name == "bool" else str if type_name == "str" else dict),
-            )
-            else default
-        )
+            return val if isinstance(val, dict) else dict_default
+
+        builders = {
+            "str": _build_str_value,
+            "bool": _build_bool_value,
+            "dict": _build_dict_value,
+        }
+        expected_types = {
+            "str": str,
+            "bool": bool,
+            "dict": dict,
+        }
+
+        builder = builders.get(type_name, _build_dict_value)
+        expected_type = expected_types.get(type_name, dict)
+        built_val = builder()
+        result = built_val if isinstance(val, expected_type) else default
+
         if result is None:
             return None
         if isinstance(result, (str, int, float, bool, list)):
@@ -247,7 +257,7 @@ class FlextCliCli:
             "log_level",
             None,
         )
-        log_level_built = FlextUtilities.Parser.convert(
+        log_level_built = u.Parser.convert(
             log_level_attr.value if log_level_attr else None,
             str,
             "INFO",
@@ -508,7 +518,7 @@ class FlextCliCli:
         val = u.get(kwargs, key)
         if val is None:
             return default
-        return FlextUtilities.Parser.convert(val, bool, default)
+        return u.Parser.convert(val, bool, default)
 
     def _build_str_value(
         self,
@@ -577,7 +587,7 @@ class FlextCliCli:
     def create_option_decorator(
         self,
         *param_decls: str,
-        config: object | None = None,
+        config: t.GeneralValueType | None = None,
         **kwargs: t.GeneralValueType,
     ) -> Callable[
         [p.Cli.CliCommandFunction],
@@ -1361,7 +1371,7 @@ class FlextCliCli:
         # Create wrapper that normalizes return type
         # Handler accepts BaseModel, returns t.GeneralValueType or r[t.GeneralValueType]
 
-        def normalized_handler(model: object) -> t.GeneralValueType:
+        def normalized_handler(model: t.GeneralValueType) -> t.GeneralValueType:
             # Type narrowing: validate model is BaseModel instance
             if not isinstance(model, BaseModel):
                 msg = "model must be a BaseModel instance"

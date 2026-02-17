@@ -22,7 +22,7 @@ from flext_cli.cli import FlextCliCli
 from flext_cli.cli_params import FlextCliCommonParams
 from flext_cli.command_builder import FlextCommandBuilder
 from flext_cli.commands import FlextCliCommands
-from flext_cli.constants import FlextCliConstants, FlextCliConstants as c
+from flext_cli.constants import FlextCliConstants, c
 from flext_cli.context import FlextCliContext
 from flext_cli.debug import FlextCliDebug
 from flext_cli.file_tools import FlextCliFileTools
@@ -35,7 +35,7 @@ from flext_cli.middleware import (
     compose_middleware,
 )
 from flext_cli.mixins import FlextCliMixins
-from flext_cli.models import FlextCliModels
+from flext_cli.models import FlextCliModels, m
 from flext_cli.option_groups import FlextOptionGroup
 from flext_cli.protocols import FlextCliProtocols
 
@@ -47,7 +47,7 @@ from flext_cli.services.prompts import FlextCliPrompts
 from flext_cli.services.tables import FlextCliTables
 from flext_cli.settings import FlextCliSettings
 from flext_cli.typings import FlextCliTypes
-from flext_cli.utilities import FlextCliUtilities, FlextCliUtilities as u
+from flext_cli.utilities import FlextCliUtilities, u
 
 __all__ = [
     "FlextCli",
@@ -85,6 +85,7 @@ __all__ = [
     "d",
     "e",
     "h",
+    "m",
     "r",
     "s",
     "u",
