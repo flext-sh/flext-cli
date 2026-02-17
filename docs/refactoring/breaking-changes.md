@@ -437,7 +437,7 @@ Use this checklist to ensure complete migration:
 1. **Check Error Message**: Most issues are import or attribute errors
 2. **Review This Document**: Find the specific breaking change
 3. **Use Migration Script**: Automated find-and-replace helps
-4. **Open Issue**: [GitHub Issues](https://github.com/flext/flext-cli/issues)
+4. **Open Issue**: [GitHub Issues](https://github.com/flext-sh/flext-cli/issues)
 
 ### Support Resources
 

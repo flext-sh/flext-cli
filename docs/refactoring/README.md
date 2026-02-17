@@ -49,7 +49,7 @@ This directory contains comprehensive documentation for the v0.10.0 refactoring,
 
 ### Support
 
-- **Issues**: [GitHub Issues](https://github.com/flext/flext-cli/issues)
+- **Issues**: [GitHub Issues](https://github.com/flext-sh/flext-cli/issues)
 - **Documentation**: [Main Docs](../)
 - **Examples**: [examples/](../../examples/)
 

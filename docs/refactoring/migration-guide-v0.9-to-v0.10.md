@@ -522,8 +522,8 @@ def run_command(command: str, args: list[str]):
 
 ### Support Channels
 
-- **GitHub Issues**: [Report issues](https://github.com/flext/flext-cli/issues)
-- **Discussions**: [Ask questions](https://github.com/flext/flext-cli/discussions)
+- **GitHub Issues**: [Report issues](https://github.com/flext-sh/flext-cli/issues)
+- **Discussions**: [Ask questions](https://github.com/flext-sh/flext-cli/discussions)
 - **Documentation**: [Full docs](../)
 
 ### Migration Assistance
@@ -567,4 +567,4 @@ We're confident you'll appreciate the simpler, cleaner API once migrated!
 
 **Document Version**: 1.0
 **Last Updated**: 2025-01-24
-**Questions?**: [Open an issue](https://github.com/flext/flext-cli/issues)
+**Questions?**: [Open an issue](https://github.com/flext-sh/flext-cli/issues)
