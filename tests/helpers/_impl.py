@@ -338,9 +338,9 @@ class FlextCliTestHelpers:
 
                     def validate_token(self, token: str) -> r[bool]:
                         if token.startswith("valid_"):
-                            return r[bool].ok(True)
+                            return r[bool].ok(value=True)
                         if token in {"valid_token_abc123", "valid_token", "test_token"}:
-                            return r[bool].ok(True)
+                            return r[bool].ok(value=True)
                         return r[bool].fail("Invalid token")
 
                 authenticator = TestAuthenticator()

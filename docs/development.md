@@ -48,10 +48,10 @@ class FlextCliCore(FlextService[CliDataDict]):
         self._sessions: dict[str, Session] = {}  # MUTABLE STATE
         self._config: FlextCliSettings = ...       # MANAGED STATE
 
-    def register_command(self, name: str, command: Command) -> FlextResult[None]:
+    def register_command(self, name: str, command: Command) -> FlextResult[bool]:
         """Register command - modifies internal state."""
         self._commands[name] = command
-        return FlextResult[None].ok(None)
+        return FlextResult[bool].| ok(value=True)
 ```
 
 **When NOT to use**:
@@ -90,14 +90,14 @@ class FlextCliFileTools:
             return FlextResult[dict].fail(str(e))
 
     @staticmethod
-    def write_json_file(path: str, data: dict) -> FlextResult[None]:
+    def write_json_file(path: str, data: dict) -> FlextResult[bool]:
         """Write JSON file - no state needed."""
         try:
             with open(path, 'w') as f:
                 json.dump(data, f, indent=2)
-            return FlextResult[None].ok(None)
+            return FlextResult[bool].| ok(value=True)
         except Exception as e:
-            return FlextResult[None].fail(str(e))
+            return FlextResult[bool].fail(str(e))
 ```
 
 **Benefits**:
@@ -533,10 +533,10 @@ from flext_cli import FlextCli
 class DataCommands(FlextService):
     """Data management commands."""
 
-    def handle_export(self, **kwargs) -> FlextResult[None]:
+    def handle_export(self, **kwargs) -> FlextResult[bool]:
         """Handle data export command."""
         # Implementation
-        return FlextResult[None].ok(None)
+        return FlextResult[bool].| ok(value=True)
 ```
 
 2. Register with CLI:

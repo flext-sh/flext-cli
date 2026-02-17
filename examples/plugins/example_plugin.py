@@ -118,7 +118,7 @@ class ExamplePlugin:
 
             self._initialized = True
 
-            return r[bool].ok(True)
+            return r[bool].ok(value=True)
 
         except Exception as e:
             return r[bool].fail(f"Plugin initialization failed: {e}")
@@ -193,7 +193,7 @@ class ExamplePlugin:
                 """Show plugin status."""
                 status()
 
-            return r[bool].ok(True)
+            return r[bool].ok(value=True)
 
         except Exception as e:
             return r[bool].fail(f"Command registration failed: {e}")
@@ -234,7 +234,7 @@ class DataProcessorPlugin:
                 "xml": lambda data: f"XML: {data}",
             }
 
-            return r[bool].ok(True)
+            return r[bool].ok(value=True)
 
         except Exception as e:
             return r[bool].fail(f"Initialization failed: {e}")
@@ -310,7 +310,7 @@ class DataProcessorPlugin:
                 formats_list = list_formats()
                 print(f"Available formats: {', '.join(formats_list)}")
 
-            return r[bool].ok(True)
+            return r[bool].ok(value=True)
 
         except Exception as e:
             return r[bool].fail(f"Command registration failed: {e}")

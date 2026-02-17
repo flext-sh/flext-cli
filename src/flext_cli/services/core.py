@@ -270,7 +270,7 @@ class FlextCliCore(FlextCliServiceBase):
                 source="flext-cli/src/flext_cli/core.py",
             )
 
-            return r[bool].ok(True)
+            return r[bool].ok(value=True)
 
         except Exception as e:
             # Log detailed registration error
@@ -667,7 +667,7 @@ class FlextCliCore(FlextCliServiceBase):
                 source="flext-cli/src/flext_cli/core.py",
             )
 
-            return r[bool].ok(True)
+            return r[bool].ok(value=True)
 
         except Exception as e:
             FlextLogger(__name__).exception(
@@ -889,7 +889,7 @@ class FlextCliCore(FlextCliServiceBase):
             FlextLogger(__name__).info(
                 c.Cli.LogMessages.PROFILE_CREATED.format(name=name),
             )
-            return r[bool].ok(True)
+            return r[bool].ok(value=True)
 
         except Exception as e:
             return r[bool].fail(
@@ -937,7 +937,7 @@ class FlextCliCore(FlextCliServiceBase):
             # Log session start - direct logger usage
             FlextLogger(__name__).info(c.Cli.LogMessages.SESSION_STARTED)
 
-            return r[bool].ok(True)
+            return r[bool].ok(value=True)
 
         except Exception as e:
             return r[bool].fail(
@@ -1000,7 +1000,7 @@ class FlextCliCore(FlextCliServiceBase):
                 source="flext-cli/src/flext_cli/core.py",
             )
 
-            return r[bool].ok(True)
+            return r[bool].ok(value=True)
 
         except Exception as e:
             FlextLogger(__name__).exception(

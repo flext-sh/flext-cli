@@ -275,7 +275,7 @@ class LifecyclePlugin:
         _ = cli.print(f"🚀 Initializing {self.name}...", style="cyan")
         # Your initialization logic
         self.initialized = True
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     def execute(self, data: str) -> r[str]:
         """Execute plugin logic."""
@@ -291,7 +291,7 @@ class LifecyclePlugin:
         _ = cli.print(f"🧹 Cleaning up {self.name}...", style="cyan")
         # Your cleanup logic
         self.initialized = False
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
 
 # ============================================================================

@@ -97,7 +97,7 @@ class FlextCliFormatters:
         """
         try:
             self.console.print(message, style=style)
-            return r[bool].ok(True)
+            return r[bool].ok(value=True)
         except Exception as e:  # pragma: no cover - Defensive: Catches unexpected errors during console print operation
             return r[bool].fail(
                 c.Cli.FormattersErrorMessages.PRINT_FAILED.format(

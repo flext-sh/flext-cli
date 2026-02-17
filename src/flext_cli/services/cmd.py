@@ -99,7 +99,7 @@ class FlextCliCmd(FlextCliServiceBase):
                         results=results,
                     ),
                 )
-            return r[bool].ok(True)
+            return r[bool].ok(value=True)
         except Exception as e:
             return r[bool].fail(
                 FlextCliConstants.Cli.ErrorMessages.CONFIG_VALIDATION_FAILED.format(
@@ -151,7 +151,7 @@ class FlextCliCmd(FlextCliServiceBase):
                     value=value,
                 ),
             )
-            return r[bool].ok(True)
+            return r[bool].ok(value=True)
         except Exception as e:
             return r[bool].fail(
                 FlextCliConstants.Cli.ErrorMessages.SET_CONFIG_FAILED.format(error=e),
@@ -235,7 +235,7 @@ class FlextCliCmd(FlextCliServiceBase):
                 FlextCliConstants.Cli.LogMessages.CONFIG_DISPLAYED,
                 config=info_result.value,
             )
-            return r[bool].ok(True)
+            return r[bool].ok(value=True)
         except Exception as e:
             return r[bool].fail(
                 FlextCliConstants.Cli.CmdErrorMessages.SHOW_CONFIG_FAILED.format(

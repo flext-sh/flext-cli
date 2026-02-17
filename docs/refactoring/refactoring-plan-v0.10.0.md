@@ -133,7 +133,7 @@ import pluggy  # Plugin system never used
 ```python
 # ❌ CURRENT: Unnecessary indirection
 class FlextCli:
-    def print(self, message: str, style: str | None = None) -> FlextResult[None]:
+    def print(self, message: str, style: str | None = None) -> FlextResult[bool]:
         return self.formatters.print(message, style)
 
     def create_table(self, data: object) -> FlextResult[str]:
@@ -159,8 +159,8 @@ class FlextCli:
 ```python
 # ❌ CURRENT: Context with service methods
 class FlextCliContext(FlextService[CliDataDict]):
-    def activate(self) -> FlextResult[None]: ...
-    def deactivate(self) -> FlextResult[None]: ...
+    def activate(self) -> FlextResult[bool]: ...
+    def deactivate(self) -> FlextResult[bool]: ...
 ```
 
 **Impact**:
@@ -449,8 +449,8 @@ class FlextCliFileTools:
 ```python
 class FlextCliContext(FlextService[CliDataDict]):
     """Context as service with methods."""
-    def activate(self) -> FlextResult[None]: ...
-    def deactivate(self) -> FlextResult[None]: ...
+    def activate(self) -> FlextResult[bool]: ...
+    def deactivate(self) -> FlextResult[bool]: ...
 ```
 
 **After**:
@@ -482,13 +482,13 @@ class FlextCliContext(m.Value):
 
 ```python
 # ❌ Remove these wrappers:
-def print(self, message, style) -> FlextResult[None]:
+def print(self, message, style) -> FlextResult[bool]:
     return self.formatters.print(message, style)
 
 def create_table(self, data, headers, title) -> FlextResult[str]:
     return self.output.format_data(...)
 
-def print_table(self, table) -> FlextResult[None]:
+def print_table(self, table) -> FlextResult[bool]:
     return self.formatters.print(table)
 
 def create_tree(self, label) -> FlextResult[Any]:
@@ -500,19 +500,19 @@ def format_output(self, data, format_type) -> FlextResult[str]:
 def read_json_file(self, path) -> FlextResult[dict]:
     return self.file_tools.read_json_file(path)
 
-def write_json_file(self, path, data) -> FlextResult[None]:
+def write_json_file(self, path, data) -> FlextResult[bool]:
     return self.file_tools.write_json_file(path, data)
 
 def read_yaml_file(self, path) -> FlextResult[dict]:
     return self.file_tools.read_yaml_file(path)
 
-def write_yaml_file(self, path, data) -> FlextResult[None]:
+def write_yaml_file(self, path, data) -> FlextResult[bool]:
     return self.file_tools.write_yaml_file(path, data)
 
 def read_csv_file(self, path) -> FlextResult[list]:
     return self.file_tools.read_csv_file(path)
 
-def write_csv_file(self, path, data) -> FlextResult[None]:
+def write_csv_file(self, path, data) -> FlextResult[bool]:
     return self.file_tools.write_csv_file(path, data)
 
 def prompt_user(self, message) -> FlextResult[str]:
@@ -545,7 +545,7 @@ def command(self, name, **kwargs):
 def group(self, name, **kwargs):
     """CLI group decorator."""
 
-def execute_cli(self) -> FlextResult[None]:
+def execute_cli(self) -> FlextResult[bool]:
     """Execute CLI application."""
 
 def execute(self) -> FlextResult[dict]:

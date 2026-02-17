@@ -94,7 +94,7 @@ class FlextCliCommonParams:
         """Validate that common parameters are enabled."""
         if not cls._params_enabled and cls._enforcement_mode:
             return r[bool].fail(c.Cli.CliParamsErrorMessages.PARAMS_MANDATORY)
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     @classmethod
     def create_option(cls, field_name: str) -> OptionInfo:
@@ -217,7 +217,7 @@ class FlextCliCommonParams:
             validated_config = config.model_copy(update=update_data)
             for key in update_data:
                 setattr(config, key, getattr(validated_config, key))
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     @classmethod
     def _set_log_level(
@@ -293,7 +293,7 @@ class FlextCliCommonParams:
                 )
 
             # FlextLogger configuration is done via FlextSettings at initialization
-            return r[bool].ok(True)
+            return r[bool].ok(value=True)
 
         except Exception as e:
             return r[bool].fail(

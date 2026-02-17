@@ -134,7 +134,7 @@ class FlextCliCommands(FlextCliServiceBase):
             "handler": handler,
             "name": name,
         }
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     def unregister_command(self, name: str) -> r[bool]:
         """Unregister a CLI command.
@@ -150,7 +150,7 @@ class FlextCliCommands(FlextCliServiceBase):
             return r[bool].fail(f"Command not found: {name}")
 
         del self._commands[name]
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     def execute_command(
         self,

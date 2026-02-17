@@ -252,7 +252,7 @@ make format                 # Auto-format with Ruff
 from flext_cli import FlextCli, FlextCliContext
 from flext_core import FlextResult
 
-def my_cli_application() -> FlextResult[None]:
+def my_cli_application() -> FlextResult[bool]:
     """Application using v0.10.0 patterns."""
     cli = FlextCli()
 
@@ -264,7 +264,7 @@ def my_cli_application() -> FlextResult[None]:
 
     if not config_result.is_success:
         cli.formatters.print(f"Error: {config_result.error}", style="red")
-        return FlextResult[None].fail(config_result.error)
+        return FlextResult[bool].fail(config_result.error)
 
     # User interaction
     confirm_result = cli.prompts.confirm("Continue?")
@@ -278,9 +278,9 @@ def my_cli_application() -> FlextResult[None]:
         )
 
         cli.formatters.print(f"Processing in {context.working_directory}...", style="green")
-        return FlextResult[None].ok(None)
+        return FlextResult[bool].| ok(value=True)
 
-    return FlextResult[None].fail("Operation cancelled")
+    return FlextResult[bool].fail("Operation cancelled")
 ```
 
 ### Testing Your CLI Code

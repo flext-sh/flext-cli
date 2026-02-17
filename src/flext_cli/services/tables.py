@@ -221,7 +221,7 @@ class FlextCliTables(FlextCliServiceBase):
                 ),
             )
 
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     @staticmethod
     def _prepare_headers(
@@ -345,7 +345,7 @@ class FlextCliTables(FlextCliServiceBase):
                 return {"format": name, "description": desc}
 
             # Note: Table formatting removed - return placeholder success
-            return r[bool].ok(True)
+            return r[bool].ok(value=True)
         except Exception as e:
             # Simplified error handling
             return r[bool].fail(str(e))

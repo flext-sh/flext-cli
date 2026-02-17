@@ -556,7 +556,7 @@ class FlextCliCli:
     ) -> r[bool]:
         """Echo message to stdout or stderr."""
         typer.echo(message=message, file=file, nl=nl, err=err, color=color)
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     @staticmethod
     def _build_config_getters(
@@ -745,13 +745,13 @@ class FlextCliCli:
     def clear_screen() -> r[bool]:
         """Clear the screen."""
         click.clear()
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     @staticmethod
     def pause(info: str = c.Cli.CmdMessages.DEFAULT_PAUSE_MESSAGE) -> r[bool]:
         """Pause execution."""
         click.pause(info=info)
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     @staticmethod
     def model_command(

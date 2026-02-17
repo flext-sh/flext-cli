@@ -122,13 +122,13 @@ class InteractiveShell:
         cli.formatters.print("\n📚 Available Commands:", style="bold cyan")
         for cmd in self.commands:
             cli.formatters.print(f"   • {cmd}", style="white")
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     def exit_shell(self) -> r[bool]:
         """Exit interactive shell."""
         cli.formatters.print("👋 Goodbye!", style="cyan")
         self.running = False
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     def execute_command(self, command_line: str) -> r[object]:
         """Execute command from user input."""

@@ -72,7 +72,7 @@ class DataManagerCLI:
             f"✅ Data saved to {self.data_file.name}",
             style="green",
         )
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     def load_data(self) -> r[dict[str, t.JsonValue]]:
         """Load data with error handling."""
@@ -208,7 +208,7 @@ class DataManagerCLI:
         # Cast to expected type for display function
         self.display_data(current_data)
 
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
 
 # ============================================================================

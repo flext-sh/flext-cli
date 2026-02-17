@@ -94,7 +94,7 @@ def save_config_command(
     if write_result.is_failure:
         return r[bool].fail(f"Save failed: {write_result.error}")
 
-    return r[bool].ok(True)
+    return r[bool].ok(value=True)
 
 
 def test_file_operations() -> None:

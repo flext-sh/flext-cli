@@ -114,7 +114,7 @@ class FlextCliAppBase(ABC):
             # Use standalone_mode=True to ensure Typer handles errors and output
             # When standalone_mode=False, Typer doesn't print errors automatically
             self._app(args=resolved_args, standalone_mode=True)
-            return r[bool].ok(True)
+            return r[bool].ok(value=True)
         except NameError as name_err:
             if "pathlib" in str(name_err):
                 error_msg = f"CLI annotation evaluation error: {name_err!s}"
@@ -123,7 +123,7 @@ class FlextCliAppBase(ABC):
             raise
         except SystemExit as sys_exit:
             if sys_exit.code == 0:
-                return r[bool].ok(True)
+                return r[bool].ok(value=True)
             # SystemExit with non-zero code means failure
             # Typer already printed the error in standalone_mode=True
             return r[bool].fail(f"CLI execution failed with code {sys_exit.code}")

@@ -136,7 +136,7 @@ class FlextCliUtilities(FlextUtilities):
                             )
                         )
                         return r[bool].fail(msg or err)
-                return r[bool].ok(True)
+                return r[bool].ok(value=True)
 
             @staticmethod
             def v_empty(
@@ -151,7 +151,7 @@ class FlextCliUtilities(FlextUtilities):
                             field_name=name
                         )
                     )
-                return r[bool].ok(True)
+                return r[bool].ok(value=True)
 
             @staticmethod
             def validate_field_in_list(
@@ -279,7 +279,7 @@ class FlextCliUtilities(FlextUtilities):
                     return r[bool].fail(
                         c.Cli.MixinsValidationMessages.PIPELINE_STEP_NAME_EMPTY
                     )
-                return r[bool].ok(True)
+                return r[bool].ok(value=True)
 
             @staticmethod
             def get_valid_output_formats() -> tuple[str, ...]:

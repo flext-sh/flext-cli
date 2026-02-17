@@ -140,13 +140,13 @@ class FlextCliSettings(FlextSettings):
             _ = context.set("cli_auto_color_support", bool(self.auto_color_support))
             _ = context.set("cli_auto_verbosity", str(self.auto_verbosity))
             _ = context.set("cli_optimal_table_format", str(self.optimal_table_format))
-            return r[bool].ok(True)
+            return r[bool].ok(value=True)
         except Exception as e:
             logger.debug(
                 "Context not available during config initialization",
                 error=str(e),
             )
-            return r[bool].ok(True)
+            return r[bool].ok(value=True)
 
     def _register_in_container(self) -> r[bool]:
         """Register configuration in FlextContainer for dependency injection."""
@@ -157,13 +157,13 @@ class FlextCliSettings(FlextSettings):
                 # Use model_dump() to get dict representation for container
                 config_dict = self.model_dump()
                 _ = container.with_service("flext_cli_config", config_dict)
-            return r[bool].ok(True)
+            return r[bool].ok(value=True)
         except Exception as e:
             logger.debug(
                 "Container not available during config initialization",
                 error=str(e),
             )
-            return r[bool].ok(True)
+            return r[bool].ok(value=True)
 
     # Pydantic 2 field validators for boolean environment variables
     @field_validator(
@@ -311,7 +311,7 @@ class FlextCliSettings(FlextSettings):
             for k, v in valid.items():
                 setattr(self, k, v)
             _ = self.model_validate(self.model_dump(exclude=self._COMPUTED))
-            return r[bool].ok(True)
+            return r[bool].ok(value=True)
         except Exception as e:
             return r[bool].fail(
                 c.Cli.ErrorMessages.CLI_ARGS_UPDATE_FAILED.format(error=e)
@@ -365,7 +365,7 @@ class FlextCliSettings(FlextSettings):
                 if hasattr(self, k):
                     setattr(self, k, v)
             _ = self.model_validate(self.model_dump())
-            return r[bool].ok(True)
+            return r[bool].ok(value=True)
         except Exception as e:
             return r[bool].fail(
                 c.Cli.ErrorMessages.CONFIG_SAVE_FAILED_MSG.format(error=e)

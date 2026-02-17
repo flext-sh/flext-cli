@@ -55,14 +55,14 @@ class FlextCliContext(BaseModel):
         if self.is_active:
             return r[bool].fail("Context is already active")
         self.is_active = True
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     def deactivate(self) -> r[bool]:
         """Deactivate the context."""
         if not self.is_active:
             return r[bool].fail("Context is not active")
         self.is_active = False
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     @staticmethod
     def _validate_string(value: str, field_name: str, error_template: str) -> r[bool]:
@@ -71,7 +71,7 @@ class FlextCliContext(BaseModel):
             result = u.Cli.CliValidation.v_empty(value, name=field_name)
             if result.is_failure:
                 raise ValueError(result.error or f"{field_name} cannot be empty")
-            return r[bool].ok(True)
+            return r[bool].ok(value=True)
         except ValueError as e:
             return r[bool].fail(str(e) or error_template)
 
@@ -82,7 +82,7 @@ class FlextCliContext(BaseModel):
         """Check that a value is not None."""
         if value is None:
             return r[bool].fail(error_message)
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     @staticmethod
     def _safe_dict_operation(
@@ -169,7 +169,7 @@ class FlextCliContext(BaseModel):
     def _perform_add(list_obj: list[str], value: str) -> r[bool]:
         """Perform add operation on initialized list."""
         list_obj.append(value)
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     @staticmethod
     def _perform_remove(
@@ -180,7 +180,7 @@ class FlextCliContext(BaseModel):
         """Perform remove operation on initialized list."""
         if value in list_obj:
             list_obj.remove(value)
-            return r[bool].ok(True)
+            return r[bool].ok(value=True)
         return r[bool].fail(not_found_error)
 
     def _validated_op(self, name: str, field: str, error: str) -> r[bool] | None:
@@ -237,7 +237,7 @@ class FlextCliContext(BaseModel):
             },
         )
         return (
-            r[bool].ok(True) if result.is_success else r[bool].fail(result.error or "")
+            r[bool].ok(value=True) if result.is_success else r[bool].fail(result.error or "")
         )
 
     def add_argument(self, argument: str) -> r[bool]:
@@ -284,7 +284,7 @@ class FlextCliContext(BaseModel):
             return fail
         try:
             self.context_metadata[key] = value
-            return r[bool].ok(True)
+            return r[bool].ok(value=True)
         except Exception as e:
             return r[bool].fail(
                 c.Cli.ContextErrorMessages.METADATA_SETTING_FAILED.format(error=e),

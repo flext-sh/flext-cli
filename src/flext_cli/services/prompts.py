@@ -192,7 +192,7 @@ class FlextCliPrompts(FlextCliServiceBase):
     def clear_prompt_history(self) -> r[bool]:
         try:
             self._prompt_history.clear()
-            return r[bool].ok(True)
+            return r[bool].ok(value=True)
         except Exception as exc:
             self.logger.exception(
                 "FAILED to clear prompt history - operation aborted",
@@ -287,7 +287,7 @@ class FlextCliPrompts(FlextCliServiceBase):
             if not text:
                 return r[bool].ok(default)
             if text in yes_values:
-                return r[bool].ok(True)
+                return r[bool].ok(value=True)
             if text in no_values:
                 return r[bool].ok(False)
             self.logger.warning(
@@ -373,7 +373,7 @@ class FlextCliPrompts(FlextCliServiceBase):
             self.logger.info(
                 PD.STATUS_FORMAT.format(status=status.upper(), message=message)
             )
-            return r[bool].ok(True)
+            return r[bool].ok(value=True)
         except Exception as exc:
             self.logger.exception(
                 "FAILED to print status message - operation aborted",
@@ -396,7 +396,7 @@ class FlextCliPrompts(FlextCliServiceBase):
     ) -> r[bool]:
         try:
             getattr(self.logger, log_level)(message_format.format(message=message))
-            return r[bool].ok(True)
+            return r[bool].ok(value=True)
         except Exception as exc:
             self.logger.exception(
                 "FAILED to print message - operation aborted",

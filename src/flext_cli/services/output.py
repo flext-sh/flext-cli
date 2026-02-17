@@ -602,7 +602,7 @@ class FlextCliOutput:
             # Type narrowing: formatter is compatible with expected signature
             # Access _result_formatters via class (ClassVar)
             FlextCliOutput._result_formatters[result_type] = formatter
-            return r[bool].ok(True)
+            return r[bool].ok(value=True)
 
         except Exception as e:
             return r[bool].fail(
@@ -707,7 +707,7 @@ class FlextCliOutput:
         """Format registered BaseModel result."""
         formattable_result: t.GeneralValueType = result.model_dump()
         formatter(formattable_result, output_format)
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     def _format_registered_result(
         self,
@@ -723,10 +723,10 @@ class FlextCliOutput:
         result_value_general = self._normalize_formatter_value(result_value)
         if self.is_json(result_value_general):
             formatter(result_value_general, output_format)
-            return r[bool].ok(True)
+            return r[bool].ok(value=True)
 
         formatter(str(result_value), output_format)
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     def _format_registered_generic(
         self,
@@ -736,7 +736,7 @@ class FlextCliOutput:
     ) -> r[bool]:
         """Format registered plain general value."""
         formatter(result, output_format)
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     @staticmethod
     def _normalize_formatter_value(value: t.GeneralValueType) -> t.GeneralValueType:
@@ -850,7 +850,7 @@ class FlextCliOutput:
         """Display formatted result string using Rich console."""
         console = FlextCliFormatters().console
         console.print(formatted)
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     # =========================================================================
     # RICH TABLE CREATION (Delegates to FlextCliFormatters)
@@ -881,7 +881,7 @@ class FlextCliOutput:
         missing = u.filter(headers, lambda h: h not in combined_keys)
         if missing:
             return r.fail(f"Header(s) not found in data: {', '.join(missing)}")
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     @staticmethod
     def _build_table_rows(
@@ -1002,7 +1002,7 @@ class FlextCliOutput:
                 if isinstance(row, list):
                     table.add_row(*row)
 
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     def create_rich_table(
         self,

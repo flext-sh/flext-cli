@@ -160,7 +160,7 @@ class FlextCli:
         """Validate token string using utilities validation DSL."""
         try:
             u.Cli.CliValidation.validate_required_string(token, context="Token")
-            return r[bool].ok(True)
+            return r[bool].ok(value=True)
         except ValueError as e:
             return r[bool].fail(str(e))
 
@@ -203,7 +203,7 @@ class FlextCli:
         """Validate credentials using Pydantic 2."""
         try:
             PasswordAuth(username=username, password=password)
-            return r[bool].ok(True)
+            return r[bool].ok(value=True)
         except Exception as e:
             return r[bool].fail(str(e))
 
@@ -222,7 +222,7 @@ class FlextCli:
                 c.Cli.ErrorMessages.TOKEN_SAVE_FAILED.format(error=write_result.error)
             )
         self._valid_tokens.add(token)
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     def _get_token_error_message(self, error_str: str) -> str:
         """Get error message based on exception content."""
@@ -301,7 +301,7 @@ class FlextCli:
                     )
                 )
         self._valid_tokens.clear()
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     def _register_cli_entity(
         self,
@@ -379,7 +379,7 @@ class FlextCli:
     @staticmethod
     def execute_cli() -> r[bool]:
         """Execute the CLI application."""
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     def execute(self) -> r[Mapping[str, t.GeneralValueType]]:
         """Execute CLI service with railway pattern."""

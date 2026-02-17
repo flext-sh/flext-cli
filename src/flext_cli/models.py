@@ -2865,7 +2865,3 @@ __all__ = [
     "SystemInfo",
     "m",
 ]
-
-# Pydantic v2 requires model_rebuild() for complex forward references
-FlextCliModels.Cli.CliCommand.model_rebuild()
-FlextCliModels.Cli.CliSession.model_rebuild()
