@@ -6,7 +6,9 @@
 
 **flext-cli** is the foundational command-line interface library for the FLEXT ecosystem. It provides robust CLI primitives, abstracting underlying libraries like Click and Rich to ensure consistent interaction patterns, strict type safety, and seamless integration with `flext-core`.
 
-Part of the [FLEXT](https://github.com/flext/flext) ecosystem.
+**Reviewed**: 2026-02-17 | **Version**: 0.10.0-dev
+
+Part of the [FLEXT](https://github.com/flext-sh/flext) ecosystem.
 
 ## 🚀 Key Features
 
