@@ -190,9 +190,11 @@ class FlextCliContext(BaseModel):
 
     def get_environment_variable(self, name: str) -> r[str]:
         """Get specific environment variable value."""
-        if fail := self._validated_op(
-            name, "Variable name", "Environment variable validation failed"
-        ):
+        if (
+            fail := self._validated_op(
+                name, "Variable name", "Environment variable validation failed"
+            )
+        ) is not None:
             return r[str].fail(fail.error or "")
         result = self._safe_dict_operation(
             "get",
@@ -216,9 +218,11 @@ class FlextCliContext(BaseModel):
 
     def set_environment_variable(self, name: str, value: str) -> r[bool]:
         """Set environment variable value."""
-        if fail := self._validated_op(
-            name, "Variable name", "Environment variable setting failed"
-        ):
+        if (
+            fail := self._validated_op(
+                name, "Variable name", "Environment variable setting failed"
+            )
+        ) is not None:
             return fail
         result = self._safe_dict_operation(
             "set",
@@ -238,7 +242,9 @@ class FlextCliContext(BaseModel):
 
     def add_argument(self, argument: str) -> r[bool]:
         """Add command line argument."""
-        if fail := self._validated_op(argument, "Argument", "Validation failed"):
+        if (
+            fail := self._validated_op(argument, "Argument", "Validation failed")
+        ) is not None:
             return fail
         return self._safe_list_operation(
             "add",
@@ -254,7 +260,9 @@ class FlextCliContext(BaseModel):
 
     def remove_argument(self, argument: str) -> r[bool]:
         """Remove command line argument."""
-        if fail := self._validated_op(argument, "Argument", "Validation failed"):
+        if (
+            fail := self._validated_op(argument, "Argument", "Validation failed")
+        ) is not None:
             return fail
         return self._safe_list_operation(
             "remove",
@@ -270,7 +278,9 @@ class FlextCliContext(BaseModel):
 
     def set_metadata(self, key: str, value: t.GeneralValueType) -> r[bool]:
         """Set context metadata using CLI-specific data types."""
-        if fail := self._validated_op(key, "Metadata key", "Validation failed"):
+        if (
+            fail := self._validated_op(key, "Metadata key", "Validation failed")
+        ) is not None:
             return fail
         try:
             self.context_metadata[key] = value
@@ -282,9 +292,11 @@ class FlextCliContext(BaseModel):
 
     def get_metadata(self, key: str) -> r[t.GeneralValueType]:
         """Get context metadata value."""
-        if fail := self._validated_op(
-            key, "Metadata key", "Metadata validation failed"
-        ):
+        if (
+            fail := self._validated_op(
+                key, "Metadata key", "Metadata validation failed"
+            )
+        ) is not None:
             return r[t.GeneralValueType].fail(fail.error or "")
         if key in self.context_metadata:
             return r[t.GeneralValueType].ok(self.context_metadata[key])

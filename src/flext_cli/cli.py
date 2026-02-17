@@ -10,7 +10,6 @@ it generates Click-compatible commands internally, ensuring backward compatibili
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
 """
 
 from __future__ import annotations
@@ -19,7 +18,7 @@ import logging
 import shutil
 from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
-from typing import IO, Annotated, TypeGuard
+from typing import IO, Annotated, Literal, TypeGuard
 
 import click
 import typer
@@ -38,74 +37,13 @@ from flext_cli.utilities import u
 
 
 class FlextCliCli:
-    """Complete CLI framework abstraction layer.
+    """Unified Typer/Click abstraction used by the FLEXT ecosystem."""
 
-    Business Rules:
-    ───────────────
-    1. This is the ONLY file allowed to import Typer/Click directly
-    2. All CLI framework functionality MUST go through this abstraction
-    3. Typer automatically detects boolean flags from type hints and defaults
-    4. Command decorators MUST validate command names (non-empty, valid identifiers)
-    5. Option decorators MUST validate parameter declarations (non-empty)
-    6. Boolean options automatically become flags (no is_flag parameter needed)
-    7. Type hints MUST be real Python types for Typer introspection
-    8. Command execution MUST handle exceptions gracefully
-
-    Architecture Implications:
-    ───────────────────────────
-    - Single abstraction point for all Typer/Click functionality
-    - Typer backend provides modern type-driven CLI development
-    - Click compatibility ensures backward compatibility
-    - Boolean flag detection automatic (no deprecated is_flag/flag_value)
-    - Function annotations updated with real types for Typer introspection
-    - CliRunner enables testing without subprocess execution
-
-    Audit Implications:
-    ───────────────────
-    - Command creation MUST be logged with command name and metadata
-    - Command execution MUST be logged with arguments (no sensitive data)
-    - Option creation MUST be logged with parameter names and types
-    - Error conditions MUST be logged with full context (no sensitive data)
-    - CLI framework violations (direct Typer/Click imports) MUST be detected
-
-    This class provides a unified CLI interface using Typer as the backend framework.
-    Since Typer is built on Click, it generates Click-compatible commands internally,
-    ensuring full backward compatibility while enabling modern type-driven development.
-
-    Provides direct APIs for:
-
-    - Command and group creation (Typer-based, Click-compatible)
-    - Decorators (option, argument, command)
-    - Parameter types (Choice, Path, File, IntRange, etc.Cli.)
-    - typer.Context management
-    - Command execution and testing
-
-    Examples:
-        >>> cli = FlextCliCli()
-        >>>
-        >>> # Create command decorator (Typer backend, Click-compatible output)
-        >>> command = cli.create_command_decorator(name="greet")
-        >>>
-        >>> # Create option decorator
-        >>> option = cli.create_option_decorator(
-        ...     "--count", "-c", default=1, help="Number of greetings"
-        ... )
-        >>>
-        >>> # Execute command with CliRunner
-        >>> runner = cli.create_cli_runner()
-        >>> result = runner.invoke(my_command, ["--count", "3"])
-
-    Note:
-        ALL CLI framework functionality MUST be accessed through this class.
-        Direct Typer or Click imports are FORBIDDEN in ecosystem projects.
-
-    """
+    container: FlextContainer
+    logger: FlextLogger
 
     @staticmethod
-    def _is_option_config_protocol(
-        obj: t.GeneralValueType,
-    ) -> bool:
-        """Type guard to check if object implements OptionConfigProtocol."""
+    def _is_option_config_protocol(obj: t.GeneralValueType) -> bool:
         return (
             hasattr(obj, "default")
             and hasattr(obj, "type_hint")
@@ -117,7 +55,6 @@ class FlextCliCli:
     def _is_prompt_config_protocol(
         obj: t.GeneralValueType,
     ) -> TypeGuard[p.Cli.PromptConfigProtocol]:
-        """Type guard to check if object implements PromptConfigProtocol."""
         return (
             hasattr(obj, "default")
             and hasattr(obj, "type_hint")
@@ -125,15 +62,9 @@ class FlextCliCli:
         )
 
     def __init__(self) -> None:
-        """Initialize CLI abstraction layer with Typer backend."""
         super().__init__()
-        # Direct initialization - no @property wrapper
         self.container = FlextContainer()
         self.logger = FlextLogger(__name__)
-
-    # =========================================================================
-    # COMMAND AND GROUP CREATION
-    # =========================================================================
 
     def _create_cli_decorator(
         self,
@@ -141,60 +72,24 @@ class FlextCliCli:
         name: str | None,
         help_text: str | None,
     ) -> Callable[[p.Cli.CliCommandFunction], click.Command | click.Group]:
-        """Create Click decorator (command or group) - DRY helper.
-
-        Args:
-            entity_type: Type of decorator to create
-            name: Entity name (optional, uses function name if None)
-            help_text: Help text
-
-        Returns:
-            Decorator function
-
-        """
-        # Use Click directly (cli.py is ONLY file that may import Click)
         if entity_type == "command":
-            decorator = click.command(name=name, help=help_text)
-            log_msg = "Created command decorator"
-            extra_key = "command_name"
-        else:  # group
-            decorator = click.group(name=name, help=help_text)
-            log_msg = "Created group decorator"
-            extra_key = "group_name"
-
+            decorator, log_msg, extra_key = (
+                click.command(name=name, help=help_text),
+                "Created command decorator",
+                "command_name",
+            )
+        else:
+            decorator, log_msg, extra_key = (
+                click.group(name=name, help=help_text),
+                "Created group decorator",
+                "group_name",
+            )
         self.logger.debug(log_msg, extra={extra_key: name, "help": help_text})
-        # Click decorators return types that implement CliCommandFunction
-        # protocol structurally
         return decorator
 
     def create_command_decorator(
-        self,
-        name: str | None = None,
-        help_text: str | None = None,
+        self, name: str | None = None, help_text: str | None = None
     ) -> Callable[[p.Cli.CliCommandFunction], click.Command]:
-        """Create Click command decorator.
-
-        Args:
-            name: Command name (optional, uses function name if None)
-            help_text: Help text for command
-
-        Returns:
-            Command decorator function
-
-        Note:
-            For advanced Click command options (context_settings, etc),
-            import Click directly in cli.py only.
-
-        Example:
-            >>> cli = FlextCliCli()
-            >>> decorator = cli.create_command_decorator(
-            ...     name="hello", help_text="Greet someone"
-            ... )
-            >>> @decorator
-            ... def hello():
-            ...     typer.echo("Hello!")
-
-        """
         return self._create_cli_decorator(c.Cli.EntityType.COMMAND, name, help_text)
 
     def _extract_typed_value(
@@ -203,76 +98,73 @@ class FlextCliCli:
         type_name: str,
         default: t.GeneralValueType | None = None,
     ) -> t.GeneralValueType | None:
-        """Extract typed value using build DSL."""
         if val is None:
             return default
 
         def _build_str_value() -> t.GeneralValueType:
-            str_default = "" if not isinstance(default, str) else default
-            return u.Parser.convert(val, str, str_default)
+            return u.Parser.convert(
+                val, str, "" if not isinstance(default, str) else default
+            )
 
         def _build_bool_value() -> t.GeneralValueType:
-            bool_default = False if not isinstance(default, bool) else default
-            return u.Parser.convert(val, bool, bool_default)
+            return u.Parser.convert(
+                val, bool, False if not isinstance(default, bool) else default
+            )
 
         def _build_dict_value() -> t.GeneralValueType:
             dict_default = {} if not isinstance(default, dict) else default
             return val if isinstance(val, dict) else dict_default
 
-        builders = {
+        builders: dict[str, Callable[[], t.GeneralValueType]] = {
             "str": _build_str_value,
             "bool": _build_bool_value,
             "dict": _build_dict_value,
         }
-        expected_types = {
+        expected_types: dict[str, type[t.GeneralValueType]] = {
             "str": str,
             "bool": bool,
             "dict": dict,
         }
-
-        builder = builders.get(type_name, _build_dict_value)
-        expected_type = expected_types.get(type_name, dict)
-        built_val = builder()
+        built_val, expected_type = (
+            builders.get(type_name, _build_dict_value)(),
+            expected_types.get(type_name, dict),
+        )
         result = built_val if isinstance(val, expected_type) else default
-
         if result is None:
             return None
         if isinstance(result, (str, int, float, bool, list)):
             return result
         if isinstance(result, dict):
-            # Ensure dict keys are strings for GeneralValueType compatibility
-            return {
-                str(k): v
-                for k, v in result.items()
-                if isinstance(v, (str, int, float, bool, list, dict, type(None)))
-            }
+            out: dict[str, t.GeneralValueType] = {}
+            for k, v in result.items():
+                if isinstance(v, (str, int, float, bool, list, dict, type(None))):
+                    out[str(k)] = v
+            return out
         return str(result)
 
     def _get_log_level_value(self, config: FlextCliSettings) -> int:
-        """Get log level value from config."""
         if config.debug or config.trace:
             return logging.DEBUG
         log_level_attr = getattr(config, "cli_log_level", None) or getattr(
-            config,
-            "log_level",
-            None,
+            config, "log_level", None
         )
-        log_level_built = u.Parser.convert(
-            log_level_attr.value if log_level_attr else None,
-            str,
-            "INFO",
+        return getattr(
+            logging,
+            str(
+                u.Parser.convert(
+                    log_level_attr.value if log_level_attr else None, str, "INFO"
+                )
+                or "INFO"
+            ),
+            logging.INFO,
         )
-        log_level_name: str = (
-            str(log_level_built) if log_level_built is not None else "INFO"
-        )
-        return getattr(logging, log_level_name, logging.INFO)
 
     def _get_console_enabled(self, config: FlextCliSettings) -> bool:
-        """Get console enabled value from config."""
-        console_enabled_val = getattr(config, "console_enabled", None)
-        if console_enabled_val is None:
-            return True
-        return bool(console_enabled_val)
+        return (
+            True
+            if getattr(config, "console_enabled", None) is None
+            else bool(getattr(config, "console_enabled", None))
+        )
 
     def _apply_common_params_to_config(
         self,
@@ -284,53 +176,35 @@ class FlextCliCli:
         quiet: bool = False,
         log_level: str | None = None,
     ) -> None:
-        """Apply common params to config and reconfigure logger."""
-        common_params = {
+        common_params: dict[str, t.GeneralValueType] = {
             "debug": debug,
             "trace": trace,
             "verbose": verbose,
             "quiet": quiet,
             "log_level": log_level,
         }
-
-        # Use mapper to filter out None and False values
-        # Type narrowing: bool | str | None are compatible with t.GeneralValueType (ScalarValue)
-        # No  needed - values are already compatible with t.GeneralValueType
-        common_params_typed: dict[str, t.GeneralValueType] = dict(common_params.items())
-        active_params: dict[str, t.GeneralValueType] = u.mapper().filter_dict(
-            common_params_typed,
-            lambda _k, v: v is not None and v is not False,
+        active_params = u.mapper().filter_dict(
+            common_params, lambda _k, v: v is not None and v is not False
         )
-
         if not active_params:
             return
-
-        config_fields: set[str] = set(type(config).model_fields.keys())
-        # Use mapper to filter params by config fields
-        filtered_params: dict[str, t.GeneralValueType] = u.mapper().filter_dict(
-            active_params,
-            lambda k, _v: k in config_fields,
+        config_fields = set(type(config).model_fields.keys())
+        filtered_params = u.mapper().filter_dict(
+            active_params, lambda k, _v: k in config_fields
         )
-
         if not filtered_params:
             return
 
         def get_bool(k: str) -> bool | None:
-            """Extract bool value from filtered params."""
             value = u.mapper().get(filtered_params, k)
-            # mapper returns "" for missing keys, so check for both None and ""
-            # Use isinstance check to avoid catching False as falsey
-            if value is None or (isinstance(value, str) and not value):
+            if value is None or (isinstance(value, str) and (not value)):
                 return None
             result = self._extract_typed_value(value, "bool")
             return result if isinstance(result, (bool, type(None))) else None
 
         def get_str(k: str) -> str | None:
-            """Extract str value from filtered params."""
             value = u.mapper().get(filtered_params, k)
-            # mapper returns "" for missing keys, so check for both None and ""
-            # Use isinstance check to avoid catching False as falsey
-            if value is None or (isinstance(value, str) and not value):
+            if value is None or (isinstance(value, str) and (not value)):
                 return None
             result = self._extract_typed_value(value, "str")
             return result if isinstance(result, (str, type(None))) else None
@@ -343,23 +217,16 @@ class FlextCliCli:
             trace=get_bool("trace"),
             log_level=get_str("log_level"),
         )
-
         if result.is_failure:
             FlextLogger.get_logger().warning(
-                f"Failed to apply CLI params: {result.error}",
+                f"Failed to apply CLI params: {result.error}"
             )
             return
-
-        log_level_value = self._get_log_level_value(config)
-        console_enabled = self._get_console_enabled(config)
-
-        # FlextRuntime.reconfigure_structlog may not be available in all contexts
-        # Use getattr to avoid pyright error about unknown attribute
         reconfigure_method = getattr(FlextRuntime, "reconfigure_structlog", None)
-        if reconfigure_method is not None and callable(reconfigure_method):
-            reconfigure_method(
-                log_level=log_level_value,
-                console_renderer=console_enabled,
+        if reconfigure_method is not None:
+            _ = reconfigure_method(
+                log_level=self._get_log_level_value(config),
+                console_renderer=self._get_console_enabled(config),
             )
 
     def create_app_with_common_params(
@@ -370,68 +237,22 @@ class FlextCliCli:
         *,
         add_completion: bool = True,
     ) -> typer.Typer:
-        """Create Typer app with automatic global common params.
-
-        Creates app with (--debug, --log-level, --trace).
-        This method creates a Typer app and automatically registers a global callback
-        with FlextCliCommonParams (--debug, --trace, --verbose, --quiet, --log-level).
-        These params are available at the app level (before subcommands) and will
-        reconfigure the logger automatically when provided.
-
-        Args:
-            name: Application name
-            help_text: Application help text
-            config: Optional FlextSettings instance for logger reconfiguration
-            add_completion: Whether to add shell completion support
-
-        Returns:
-            Configured Typer app with global common params
-
-        Example:
-            >>> cli = FlextCliCli()
-            >>> app = cli.create_app_with_common_params(
-            ...     name="my-app", help_text="My application", config=my_config
-            ... )
-            >>> # Now app has --debug, --log-level, etc.Cli. at global level
-            >>> # Usage: my-app --debug subcommand
-
-        """
-        app = typer.Typer(
-            name=name,
-            help=help_text,
-            add_completion=add_completion,
-        )
+        app = typer.Typer(name=name, help=help_text, add_completion=add_completion)
 
         @app.callback()
         def global_callback(
             *,
             debug: Annotated[
-                bool,
-                typer.Option(
-                    "--debug/--no-debug",
-                    help="Enable debug mode",
-                ),
+                bool, typer.Option("--debug/--no-debug", help="Enable debug mode")
             ] = False,
             trace: Annotated[
-                bool,
-                typer.Option(
-                    "--trace/--no-trace",
-                    help="Enable trace mode",
-                ),
+                bool, typer.Option("--trace/--no-trace", help="Enable trace mode")
             ] = False,
             verbose: Annotated[
-                bool,
-                typer.Option(
-                    "--verbose/--no-verbose",
-                    help="Enable verbose mode",
-                ),
+                bool, typer.Option("--verbose/--no-verbose", help="Enable verbose mode")
             ] = False,
             quiet: Annotated[
-                bool,
-                typer.Option(
-                    "--quiet/--no-quiet",
-                    help="Enable quiet mode",
-                ),
+                bool, typer.Option("--quiet/--no-quiet", help="Enable quiet mode")
             ] = False,
             log_level: Annotated[
                 str | None,
@@ -443,7 +264,6 @@ class FlextCliCli:
                 ),
             ] = None,
         ) -> None:
-            """Global options available for all commands."""
             if config:
                 self._apply_common_params_to_config(
                     config,
@@ -458,44 +278,16 @@ class FlextCliCli:
             "Created Typer app with global common params",
             extra={"app_name": name, "has_config": config is not None},
         )
-
+        _ = global_callback
         return app
 
     def create_group_decorator(
-        self,
-        name: str | None = None,
-        help_text: str | None = None,
+        self, name: str | None = None, help_text: str | None = None
     ) -> Callable[[p.Cli.CliCommandFunction], click.Group]:
-        """Create Click group decorator for command groups.
-
-        Args:
-            name: Group name (optional, uses function name if None)
-            help_text: Help text for group
-
-        Returns:
-            Group decorator function
-
-        Note:
-            For advanced Click group options, import Click directly in cli.py only.
-
-        Example:
-            >>> cli = FlextCliCli()
-            >>> group = cli.create_group_decorator(
-            ...     name="db", help_text="Database commands"
-            ... )
-            >>> @group
-            ... def db():
-            ...     pass
-
-        """
-        # Click group decorator returns compatible type with CliCommandFunction protocol
-        # _create_cli_decorator returns Command | Group, but we know it's Group when entity_type is "group"
         decorator = self._create_cli_decorator("group", name, help_text)
-        # decorator is always callable, create wrapper that ensures return type is click.Group
 
         def group_decorator(func: p.Cli.CliCommandFunction) -> click.Group:
             result = decorator(func)
-            # Runtime validation: result should be click.Group when entity_type is "group"
             if not isinstance(result, click.Group):
                 msg = "decorator must return click.Group for group entity type"
                 raise TypeError(msg)
@@ -503,85 +295,66 @@ class FlextCliCli:
 
         return group_decorator
 
-    # =========================================================================
-    # PARAMETER DECORATORS (OPTION, ARGUMENT)
-    # =========================================================================
-
     def _build_bool_value(
-        self,
-        kwargs: dict[str, t.GeneralValueType],
-        key: str,
-        *,
-        default: bool = False,
+        self, kwargs: dict[str, t.GeneralValueType], key: str, *, default: bool = False
     ) -> bool:
-        """Extract and build bool value from kwargs."""
-        val = u.get(kwargs, key)
-        if val is None:
-            return default
-        return u.Parser.convert(val, bool, default)
+        result = self._build_typed_value(kwargs, key, "bool", default)
+        return result if isinstance(result, bool) else default
 
     def _build_str_value(
-        self,
-        kwargs: dict[str, t.GeneralValueType],
-        key: str,
-        default: str = "",
+        self, kwargs: dict[str, t.GeneralValueType], key: str, default: str = ""
     ) -> str:
-        """Extract and build str value from kwargs."""
+        result = self._build_typed_value(kwargs, key, "str", default)
+        if not isinstance(result, str):
+            msg = "build_result must be str"
+            raise TypeError(msg)
+        return result
+
+    def _build_typed_value(
+        self,
+        kwargs: Mapping[str, t.GeneralValueType],
+        key: str,
+        type_name: Literal["bool", "str"],
+        default: t.GeneralValueType,
+    ) -> t.GeneralValueType:
         val = u.mapper().get(kwargs, key)
-        if val is None:
+        if val is None or (isinstance(val, str) and (not val)):
             return default
-        build_result = u.build(
-            val,
-            ops={"ensure": "str", "ensure_default": default},
-        )
+        if type_name == "bool":
+            return u.Parser.convert(
+                val, bool, bool(default) if isinstance(default, bool) else False
+            )
+        build_result = u.build(val, ops={"ensure": "str", "ensure_default": default})
         if not isinstance(build_result, str):
             msg = "build_result must be str"
             raise TypeError(msg)
         return build_result
 
     def _normalize_type_hint(
-        self,
-        type_hint_val: t.GeneralValueType | None,
+        self, type_hint_val: t.GeneralValueType | None
     ) -> t.GeneralValueType | None:
-        """Normalize and validate type hint value."""
-        type_hint_build = u.build(
-            type_hint_val,
-            ops={"ensure_default": None},
-        )
-        # Type narrowing: build returns t.GeneralValueType | None
+        type_hint_build = u.build(type_hint_val, ops={"ensure_default": None})
         if type_hint_build is None:
             return None
-        # Check for t.GeneralValueType compatible types
-        # Empty string means no type hint was provided - return None
         if isinstance(type_hint_build, str):
-            if not type_hint_build:
-                return None
+            return type_hint_build or None
+        if isinstance(type_hint_build, (bool, int, float, list, tuple, dict)):
             return type_hint_build
-        # Check bool before int (bool is subclass of int)
-        if isinstance(type_hint_build, bool):
-            return type_hint_build
-        if isinstance(type_hint_build, int):
-            return type_hint_build
-        if isinstance(type_hint_build, float):
-            return type_hint_build
-        if isinstance(type_hint_build, (list, tuple, dict)):
-            return type_hint_build
-        # Convert other types (including type objects) to string
         return str(type_hint_build)
 
     def _build_option_config_from_kwargs(
-        self,
-        kwargs: dict[str, t.GeneralValueType],
+        self, kwargs: dict[str, t.GeneralValueType]
     ) -> OptionConfig:
-        """Build OptionConfig from kwargs dict."""
         return OptionConfig(
             default=u.mapper().get(kwargs, "default"),
             type_hint=self._normalize_type_hint(u.mapper().get(kwargs, "type_hint")),
-            required=self._build_bool_value(kwargs, "required"),
-            help_text=self._build_str_value(kwargs, "help_text"),
-            multiple=self._build_bool_value(kwargs, "multiple"),
-            count=self._build_bool_value(kwargs, "count"),
-            show_default=self._build_bool_value(kwargs, "show_default"),
+            required=bool(self._build_typed_value(kwargs, "required", "bool", False)),
+            help_text=str(self._build_typed_value(kwargs, "help_text", "str", "")),
+            multiple=bool(self._build_typed_value(kwargs, "multiple", "bool", False)),
+            count=bool(self._build_typed_value(kwargs, "count", "bool", False)),
+            show_default=bool(
+                self._build_typed_value(kwargs, "show_default", "bool", False)
+            ),
         )
 
     def create_option_decorator(
@@ -589,54 +362,13 @@ class FlextCliCli:
         *param_decls: str,
         config: t.GeneralValueType | None = None,
         **kwargs: t.GeneralValueType,
-    ) -> Callable[
-        [p.Cli.CliCommandFunction],
-        p.Cli.CliCommandFunction,
-    ]:
-        """Create Click option decorator with explicit parameters.
-
-        Business Rule:
-        ──────────────
-        Creates Click option decorators for CLI commands. Uses Click directly
-        (cli.py is the ONLY file allowed to import Click). All parameters are
-        explicitly typed to avoid **kwargs type issues.
-
-        Audit Implication:
-        ───────────────────
-        CLI options are validated at command registration time. Invalid options
-        will cause command registration to fail, preventing runtime errors.
-
-        Args:
-            *param_decls: Parameter declarations (e.g., "--count", "-c")
-            config: Optional config object with all option settings (preferred)
-            **kwargs: Optional keyword args: default, type_hint, required (bool),
-                help_text (str), multiple (bool), count (bool), show_default (bool)
-
-        Returns:
-            Option decorator
-
-        Note:
-            For advanced Click options, import Click directly in cli.py only.
-
-        Example:
-            >>> cli = FlextCliCli()
-            >>> option = cli.create_option_decorator(
-            ...     "--verbose", "-v", help_text="Enable verbose output"
-            ... )
-
-        """
-        # Build config from explicit parameters if not provided
+    ) -> Callable[[p.Cli.CliCommandFunction], p.Cli.CliCommandFunction]:
         if config is None:
             config_instance = self._build_option_config_from_kwargs(kwargs)
-            # Type narrowing: config_instance implements OptionConfigProtocol
             if not self._is_option_config_protocol(config_instance):
                 msg = "config_instance must implement OptionConfigProtocol"
                 raise TypeError(msg)
-            config = config_instance  # Type checked by _is_option_config_protocol above
-
-        # Type system ensures config is not None after assignment
-        # Use Click directly (cli.py is ONLY file that may import Click)
-        # Use safe attribute access since config may not have all attributes
+            config = config_instance
         decorator = click.option(
             *param_decls,
             default=getattr(config, "default", None),
@@ -662,70 +394,18 @@ class FlextCliCli:
         type_hint: click.ParamType | type | None = None,
         required: bool = True,
         nargs: int = 1,
-    ) -> Callable[
-        [p.Cli.CliCommandFunction],
-        p.Cli.CliCommandFunction,
-    ]:
-        """Create Click argument decorator with explicit parameters.
-
-        Args:
-            *param_decls: Parameter declarations (e.g., "filename")
-            type_hint: Parameter type (Click type or Python type)
-            required: Whether argument is required
-            nargs: Number of arguments (1, -1 for unlimited)
-
-        Returns:
-            Argument decorator
-
-        Note:
-            For advanced Click arguments, import Click directly in cli.py only.
-
-        Example:
-            >>> import click
-            >>> cli = FlextCliCli()
-            >>> argument = cli.create_argument_decorator(
-            ...     "filename", type_hint=click.Path(exists=True)
-            ... )
-
-        """
-        # Use Click directly (cli.py is ONLY file that may import Click)
+    ) -> Callable[[p.Cli.CliCommandFunction], p.Cli.CliCommandFunction]:
         decorator = click.argument(
-            *param_decls,
-            type=type_hint,
-            required=required,
-            nargs=nargs,
+            *param_decls, type=type_hint, required=required, nargs=nargs
         )
         self.logger.debug(
             "Created argument decorator",
             extra={"param_decls": param_decls, "required": required},
         )
-        # Click argument decorator wraps function but preserves
-        # CliCommandFunction protocol
         return decorator
 
-    # =========================================================================
-    # PARAMETER TYPES
-    # =========================================================================
-
     @staticmethod
-    def get_datetime_type(
-        formats: Sequence[str] | None = None,
-    ) -> click.DateTime:
-        """Get Click DateTime parameter type.
-
-        Args:
-            formats: Accepted datetime formats (default:
-                ['%Y-%m-%d', '%Y-%m-%dT%H:%M:%S', '%Y-%m-%d %H:%M:%S'])
-
-        Returns:
-            Click DateTime type
-
-        Example:
-            >>> cli = FlextCliCli()
-            >>> dt_type = cli.get_datetime_type(formats=["%Y-%m-%d", "%d/%m/%Y"])
-
-        """
-        # Use build() DSL for formats normalization
+    def _datetime_type(formats: Sequence[str] | None = None) -> click.DateTime:
         formats_build = u.build(
             formats,
             ops={
@@ -736,122 +416,102 @@ class FlextCliCli:
         if not isinstance(formats_build, list):
             msg = "formats_build must be list"
             raise TypeError(msg)
-        # Convert t.GeneralValueType to str for datetime formats
-        formats_list: list[str] = [str(fmt) for fmt in formats_build]
-        return click.DateTime(formats=formats_list)
+        return click.DateTime(formats=[str(fmt) for fmt in formats_build])
 
-    @staticmethod
-    def get_uuid_type() -> click.ParamType:
-        """Get Click UUID parameter type.
+    @classmethod
+    def type_factory(
+        cls,
+        type_name: str,
+        *,
+        formats: Sequence[str] | None = None,
+        tuple_types: Sequence[click.ParamType | type] | None = None,
+    ) -> (
+        type[bool | str | int | float] | click.DateTime | click.ParamType | click.Tuple
+    ):
+        if type_name == "datetime":
+            return cls._datetime_type(formats)
+        if type_name == "tuple":
+            if tuple_types is None:
+                return click.Tuple([])
+            tuple_values: list[click.ParamType | type] = []
+            for tp in tuple_types:
+                tuple_values.append(tp)
+            return click.Tuple(tuple_values)
+        registry: dict[
+            str, Callable[[], type[bool | str | int | float] | click.ParamType]
+        ] = {
+            "uuid": lambda: click.UUID,
+            "bool": lambda: bool,
+            "string": lambda: str,
+            "int": lambda: int,
+            "float": lambda: float,
+        }
+        factory = registry.get(type_name)
+        if factory is None:
+            msg = f"Unsupported type factory: {type_name}"
+            raise ValueError(msg)
+        return factory()
 
-        Returns:
-            Click UUID parameter type instance
+    @classmethod
+    def get_datetime_type(cls, formats: Sequence[str] | None = None) -> click.DateTime:
+        result = cls.type_factory("datetime", formats=formats)
+        if not isinstance(result, click.DateTime):
+            msg = "result must be click.DateTime"
+            raise TypeError(msg)
+        return result
 
-        Example:
-            >>> cli = FlextCliCli()
-            >>> uuid_type = cli.get_uuid_type()
-            >>> # Use in option: type=uuid_type
+    @classmethod
+    def get_uuid_type(cls) -> click.ParamType:
+        result = cls.type_factory("uuid")
+        if not isinstance(result, click.ParamType):
+            msg = "result must be click.ParamType"
+            raise TypeError(msg)
+        return result
 
-        """
-        return click.UUID
-
-    @staticmethod
+    @classmethod
     def get_tuple_type(
-        types: Sequence[type[t.GeneralValueType] | click.ParamType],
+        cls, types: Sequence[type[t.GeneralValueType] | click.ParamType]
     ) -> click.Tuple:
-        """Get Click Tuple parameter type.
+        result = cls.type_factory("tuple", tuple_types=types)
+        if not isinstance(result, click.Tuple):
+            msg = "result must be click.Tuple"
+            raise TypeError(msg)
+        return result
 
-        Args:
-            types: Sequence of types for tuple elements
+    @classmethod
+    def get_bool_type(cls) -> type[bool]:
+        result = cls.type_factory("bool")
+        if result is not bool:
+            msg = "result must be bool"
+            raise TypeError(msg)
+        return result
 
-        Returns:
-            Click Tuple type
+    @classmethod
+    def get_string_type(cls) -> type[str]:
+        result = cls.type_factory("string")
+        if result is not str:
+            msg = "result must be str"
+            raise TypeError(msg)
+        return result
 
-        Example:
-            >>> cli = FlextCliCli()
-            >>> # Tuple of (int, int, int) for RGB values
-            >>> rgb_type = cli.get_tuple_type([int, int, int])
-            >>> # Tuple of (str, int) for name and age
-            >>> person_type = cli.get_tuple_type([str, int])
+    @classmethod
+    def get_int_type(cls) -> type[int]:
+        result = cls.type_factory("int")
+        if result is not int:
+            msg = "result must be int"
+            raise TypeError(msg)
+        return result
 
-        """
-        return click.Tuple(types)
-
-    @staticmethod
-    def get_bool_type() -> type[bool]:
-        """Get bool parameter type.
-
-        Returns:
-            bool type for Click parameters
-
-        Example:
-            >>> cli = FlextCliCli()
-            >>> bool_type = cli.get_bool_type()
-            >>> # Use in option: type=bool_type
-
-        """
-        return bool
-
-    @staticmethod
-    def get_string_type() -> type[str]:
-        """Get string parameter type.
-
-        Returns:
-            str type for Click parameters
-
-        Example:
-            >>> cli = FlextCliCli()
-            >>> str_type = cli.get_string_type()
-
-        """
-        return str
-
-    @staticmethod
-    def get_int_type() -> type[int]:
-        """Get integer parameter type.
-
-        Returns:
-            int type for Click parameters
-
-        Example:
-            >>> cli = FlextCliCli()
-            >>> int_type = cli.get_int_type()
-
-        """
-        return int
-
-    @staticmethod
-    def get_float_type() -> type[float]:
-        """Get float parameter type.
-
-        Returns:
-            float type for Click parameters
-
-        Example:
-            >>> cli = FlextCliCli()
-            >>> float_type = cli.get_float_type()
-
-        """
-        return float
-
-    # =========================================================================
-    # CONTEXT MANAGEMENT
-    # =========================================================================
+    @classmethod
+    def get_float_type(cls) -> type[float]:
+        result = cls.type_factory("float")
+        if result is not float:
+            msg = "result must be float"
+            raise TypeError(msg)
+        return result
 
     @staticmethod
     def get_current_context() -> click.Context | None:
-        """Get current CLI context.
-
-        Returns:
-            Current CLI context or None if not available
-
-        Example:
-            >>> cli = FlextCliCli()
-            >>> ctx = cli.get_current_context()
-            >>> if ctx:
-            ...     print(ctx.command.name)
-
-        """
         return click.get_current_context(silent=True)
 
     @staticmethod
@@ -859,45 +519,18 @@ class FlextCliCli:
         [Callable[[click.Context], t.GeneralValueType]],
         Callable[[click.Context], t.GeneralValueType],
     ]:
-        """Create pass_context decorator.
-
-        Returns:
-            pass_context decorator (click.pass_context)
-
-        Example:
-            >>> cli = FlextCliCli()
-            >>> pass_ctx = cli.create_pass_context_decorator()
-            >>>
-            >>> @pass_ctx
-            >>> def my_command(ctx):
-            ...     print(f"Command: {ctx.command.name}")
-
-        """
-        # click.pass_context returns a decorator that satisfies
-        # CliCommandFunction protocol
-        # click.pass_context is always callable, create wrapper
 
         def pass_context_wrapper(
             func: Callable[[click.Context], t.GeneralValueType],
         ) -> Callable[[click.Context], t.GeneralValueType]:
-            # click.pass_context wraps function to pass context as first argument
             decorated = click.pass_context(func)
-            # decorated is always callable, create wrapper for type safety
 
             def typed_decorated(_ctx: click.Context) -> t.GeneralValueType:
-                # click.pass_context returns a function that injects context automatically
-                # The decorated function signature is: (*args, **kwargs) -> result
-                # Context is injected by click, so we call decorated() without ctx
-                # click handles context injection internally
-                return decorated()  # click.pass_context handles context injection
+                return decorated()
 
             return typed_decorated
 
         return pass_context_wrapper
-
-    # =========================================================================
-    # COMMAND EXECUTION
-    # =========================================================================
 
     @staticmethod
     def echo(
@@ -908,38 +541,20 @@ class FlextCliCli:
         err: bool = False,
         color: bool | None = None,
     ) -> r[bool]:
-        """Output message using Typer.echo (Typer backend).
-
-        Args:
-            message: Message to output
-            file: File to write to (default: stdout)
-            nl: Add newline
-            err: Write to stderr
-            color: Force color on/off
-
-        Returns:
-            r[bool]: True if echo succeeded, failure on error
-
-        """
         typer.echo(message=message, file=file, nl=nl, err=err, color=color)
         return r[bool].ok(True)
 
     @staticmethod
-    def _build_confirm_config_from_kwargs(
+    def _build_config_getters(
         kwargs: Mapping[str, t.GeneralValueType],
-    ) -> ConfirmConfig:
-        """Build ConfirmConfig from kwargs dict."""
+    ) -> tuple[Callable[[str, bool], bool], Callable[[str, str], str]]:
 
-        def get_bool_val(k: str, *, default: bool = False) -> bool:
-            """Get bool value with default."""
+        def get_bool_val(k: str, default: bool = False) -> bool:
             val = u.mapper().get(kwargs, k)
-            # mapper returns "" for missing keys, so check for both None and ""
-            # Use isinstance check to avoid catching False as falsey
-            if val is None or (isinstance(val, str) and not val):
+            if val is None or (isinstance(val, str) and (not val)):
                 return default
             build_result = u.build(
-                val,
-                ops={"ensure": "bool", "ensure_default": default},
+                val, ops={"ensure": "bool", "ensure_default": default}
             )
             if not isinstance(build_result, bool):
                 msg = "build_result must be bool"
@@ -947,31 +562,58 @@ class FlextCliCli:
             return build_result
 
         def get_str_val(k: str, default: str = "") -> str:
-            """Get str value with default."""
             val = u.mapper().get(kwargs, k)
-            # mapper returns "" for missing keys, so check for both None and ""
-            # Use isinstance check to avoid catching False as falsey
-            if val is None or (isinstance(val, str) and not val):
+            if val is None or (isinstance(val, str) and (not val)):
                 return default
             build_result = u.build(
-                val,
-                ops={"ensure": "str", "ensure_default": default},
+                val, ops={"ensure": "str", "ensure_default": default}
             )
             if not isinstance(build_result, str):
                 msg = "build_result must be str"
                 raise TypeError(msg)
             return build_result
 
-        return ConfirmConfig(
-            default=get_bool_val("default", default=False),
-            abort=get_bool_val("abort", default=False),
+        return (get_bool_val, get_str_val)
+
+    @staticmethod
+    def _build_prompt_or_confirm_config(
+        kind: Literal["confirm", "prompt"], kwargs: Mapping[str, t.GeneralValueType]
+    ) -> ConfirmConfig | m.Cli.PromptConfig:
+        get_bool_val, get_str_val = FlextCliCli._build_config_getters(kwargs)
+        if kind == "confirm":
+            return ConfirmConfig(
+                default=get_bool_val("default", False),
+                abort=get_bool_val("abort", False),
+                prompt_suffix=get_str_val(
+                    "prompt_suffix", c.Cli.UIDefaults.DEFAULT_PROMPT_SUFFIX
+                ),
+                show_default=get_bool_val("show_default", True),
+                err=get_bool_val("err", False),
+            )
+        value_proc_val = u.mapper().get(kwargs, "value_proc")
+        return m.Cli.PromptConfig(
+            default=u.mapper().get(kwargs, "default"),
+            type_hint=u.mapper().get(kwargs, "type_hint"),
+            value_proc=value_proc_val if callable(value_proc_val) else None,
             prompt_suffix=get_str_val(
-                "prompt_suffix",
-                default=c.Cli.UIDefaults.DEFAULT_PROMPT_SUFFIX,
+                "prompt_suffix", c.Cli.UIDefaults.DEFAULT_PROMPT_SUFFIX
             ),
-            show_default=get_bool_val("show_default", default=True),
-            err=get_bool_val("err", default=False),
+            hide_input=get_bool_val("hide_input", False),
+            confirmation_prompt=get_bool_val("confirmation_prompt", False),
+            show_default=get_bool_val("show_default", True),
+            err=get_bool_val("err", False),
+            show_choices=get_bool_val("show_choices", True),
         )
+
+    @staticmethod
+    def _build_confirm_config_from_kwargs(
+        kwargs: Mapping[str, t.GeneralValueType],
+    ) -> ConfirmConfig:
+        result = FlextCliCli._build_prompt_or_confirm_config("confirm", kwargs)
+        if not isinstance(result, ConfirmConfig):
+            msg = "result must be ConfirmConfig"
+            raise TypeError(msg)
+        return result
 
     @staticmethod
     def confirm(
@@ -979,47 +621,14 @@ class FlextCliCli:
         config: p.Cli.ConfirmConfigProtocol | None = None,
         **kwargs: bool | str,
     ) -> r[bool]:
-        """Prompt for confirmation using Typer backend.
-
-        Business Rule:
-        ──────────────
-        Prompts user for yes/no confirmation. Uses Typer's confirm() function
-        which handles user input validation and error handling. If abort=True
-        and user declines, raises typer.Abort exception.
-
-        Audit Implication:
-        ───────────────────
-        User confirmations are logged for audit trail. Aborted confirmations
-        are tracked as user-initiated cancellations.
-
-        Args:
-            text: Prompt text
-            config: Optional config object with all confirmation settings (preferred)
-            **kwargs: Optional keyword args: default (bool), abort (bool),
-                prompt_suffix (str), show_default (bool), err (bool)
-
-        Returns:
-            r[bool]: Success with confirmation value or failure
-
-        Raises:
-            typer.Abort: If user aborts
-
-        """
-        # Build config from explicit parameters if not provided
         if config is None:
-            # Type narrowing: kwargs values are bool | str, which are t.GeneralValueType compatible
             config_instance = FlextCliCli._build_confirm_config_from_kwargs(kwargs)
-            # Type narrowing: config_instance implements ConfirmConfigProtocol
             if not hasattr(config_instance, "default") or not hasattr(
-                config_instance,
-                "abort",
+                config_instance, "abort"
             ):
                 msg = "config_instance must have 'default' and 'abort' attributes"
                 raise TypeError(msg)
             config = config_instance
-
-        # Type system ensures config is not None after assignment
-
         try:
             result = typer.confirm(
                 text=text,
@@ -1032,64 +641,18 @@ class FlextCliCli:
             return r[bool].ok(result)
         except typer.Abort as e:
             return r[bool].fail(
-                c.Cli.ErrorMessages.USER_ABORTED_CONFIRMATION.format(
-                    error=e,
-                ),
+                c.Cli.ErrorMessages.USER_ABORTED_CONFIRMATION.format(error=e)
             )
 
     @staticmethod
     def _build_prompt_config_from_kwargs(
         kwargs: Mapping[str, t.GeneralValueType],
     ) -> m.Cli.PromptConfig:
-        """Build PromptConfig from kwargs dict."""
-
-        def get_bool_val(k: str, *, default: bool = False) -> bool:
-            """Get bool value with default."""
-            val = u.mapper().get(kwargs, k)
-            # mapper returns "" for missing keys, so check for both None and ""
-            # Use isinstance check to avoid catching False as falsey
-            if val is None or (isinstance(val, str) and not val):
-                return default
-            build_result = u.build(
-                val,
-                ops={"ensure": "bool", "ensure_default": default},
-            )
-            if not isinstance(build_result, bool):
-                msg = "build_result must be bool"
-                raise TypeError(msg)
-            return build_result
-
-        def get_str_val(k: str, default: str = "") -> str:
-            """Get str value with default."""
-            val = u.mapper().get(kwargs, k)
-            # mapper returns "" for missing keys, so check for both None and ""
-            # Use isinstance check to avoid catching False as falsey
-            if val is None or (isinstance(val, str) and not val):
-                return default
-            build_result = u.build(
-                val,
-                ops={"ensure": "str", "ensure_default": default},
-            )
-            if not isinstance(build_result, str):
-                msg = "build_result must be str"
-                raise TypeError(msg)
-            return build_result
-
-        value_proc_val = u.mapper().get(kwargs, "value_proc")
-        return m.Cli.PromptConfig(
-            default=u.mapper().get(kwargs, "default"),
-            type_hint=u.mapper().get(kwargs, "type_hint"),
-            value_proc=value_proc_val if callable(value_proc_val) else None,
-            prompt_suffix=get_str_val(
-                "prompt_suffix",
-                c.Cli.UIDefaults.DEFAULT_PROMPT_SUFFIX,
-            ),
-            hide_input=get_bool_val("hide_input", default=False),
-            confirmation_prompt=get_bool_val("confirmation_prompt", default=False),
-            show_default=get_bool_val("show_default", default=True),
-            err=get_bool_val("err", default=False),
-            show_choices=get_bool_val("show_choices", default=True),
-        )
+        result = FlextCliCli._build_prompt_or_confirm_config("prompt", kwargs)
+        if not isinstance(result, m.Cli.PromptConfig):
+            msg = "result must be PromptConfig"
+            raise TypeError(msg)
+        return result
 
     @staticmethod
     def prompt(
@@ -1097,48 +660,14 @@ class FlextCliCli:
         config: p.Cli.PromptConfigProtocol | None = None,
         **kwargs: t.GeneralValueType,
     ) -> r[t.GeneralValueType]:
-        """Prompt for input using Typer backend.
-
-        Business Rule:
-        ──────────────
-        Prompts user for text input. Uses Typer's prompt() function which handles
-        input validation, type conversion, and error handling. Supports optional
-        confirmation prompts for sensitive inputs (passwords, etc.Cli.).
-
-        Audit Implication:
-        ───────────────────
-        User inputs are logged for audit trail. Sensitive inputs (passwords) should
-        use hide_input=True and confirmation_prompt=True, and are masked in logs.
-
-        Args:
-            text: Prompt text
-            config: Optional config object with all prompt settings (preferred)
-            **kwargs: Optional keyword args: default, type_hint, value_proc,
-                prompt_suffix (str), hide_input (bool), confirmation_prompt (bool),
-                show_default (bool), err (bool), show_choices (bool)
-
-        Returns:
-            r[t.GeneralValueType]: Success with input value or failure
-
-        Raises:
-            typer.Abort: If user aborts
-
-        """
-        # Build config from explicit parameters if not provided
         if config is None:
             config_instance = FlextCliCli._build_prompt_config_from_kwargs(kwargs)
-            # Type narrowing: config_instance implements PromptConfigProtocol
             if not FlextCliCli._is_prompt_config_protocol(config_instance):
                 msg = "config_instance must implement PromptConfigProtocol"
                 raise TypeError(msg)
             config = config_instance
-
-        # Type system ensures config is not None after assignment
-        # Note: config is already properly typed via _build_prompt_config_from_kwargs
-        # and validated via _is_prompt_config_protocol above
-
         try:
-            result = typer.prompt(
+            prompt_result = typer.prompt(
                 text=text,
                 default=config.default,
                 hide_input=config.hide_input,
@@ -1150,20 +679,21 @@ class FlextCliCli:
                 err=config.err,
                 show_choices=config.show_choices,
             )
-            # Convert result to t.GeneralValueType - typer.prompt returns various types
-            # Use type narrowing - result is already GeneralValueType from typer
-            json_value: t.GeneralValueType = (
-                result if not isinstance(result, dict) else dict(result)
-            )
+            if isinstance(prompt_result, dict):
+                json_dict: dict[str, t.GeneralValueType] = {}
+                for k, v in prompt_result.items():
+                    if isinstance(v, (str, int, float, bool, list, dict, type(None))):
+                        json_dict[str(k)] = v
+                json_value: t.GeneralValueType = json_dict
+            elif isinstance(prompt_result, (str, int, float, bool, list, type(None))):
+                json_value = prompt_result
+            else:
+                json_value = str(prompt_result)
             return r[t.GeneralValueType].ok(json_value)
         except typer.Abort as e:
             return r[t.GeneralValueType].fail(
-                c.Cli.ErrorMessages.USER_ABORTED_PROMPT.format(error=e),
+                c.Cli.ErrorMessages.USER_ABORTED_PROMPT.format(error=e)
             )
-
-    # =========================================================================
-    # TESTING SUPPORT
-    # =========================================================================
 
     def create_cli_runner(
         self,
@@ -1172,260 +702,67 @@ class FlextCliCli:
         *,
         echo_stdin: bool = False,
     ) -> r[CliRunner]:
-        """Create Click CliRunner for testing.
-
-        Args:
-            charset: Character encoding
-            env: Environment variables
-            echo_stdin: Echo stdin to output
-
-        Returns:
-            r[CliRunner]: Success with CliRunner instance or failure
-
-        Example:
-            >>> cli = FlextCliCli()
-            >>> result = cli.create_cli_runner()
-            >>> assert result.is_success
-            >>> runner = result.value
-            >>> test_result = runner.invoke(my_cli, ["--help"])
-            >>> assert test_result.exit_code == 0
-
-        """
-        runner = CliRunner(
-            charset=charset,
-            env=env,
-            echo_stdin=echo_stdin,
-        )
+        runner = CliRunner(charset=charset, env=env, echo_stdin=echo_stdin)
         self.logger.debug("Created CliRunner for testing")
         return r[CliRunner].ok(runner)
 
-    # =========================================================================
-    # UTILITIES
-    # =========================================================================
-
     @staticmethod
-    def format_filename(
-        filename: str | Path,
-        *,
-        shorten: bool = False,
-    ) -> str:
-        """Format filename for display.
-
-        Args:
-            filename: Filename to format
-            shorten: Shorten filename
-
-        Returns:
-            Formatted filename string
-
-        """
+    def format_filename(filename: str | Path, *, shorten: bool = False) -> str:
         return click.format_filename(filename, shorten=shorten)
 
     @staticmethod
     def get_terminal_size() -> tuple[int, int]:
-        """Get terminal size.
-
-        Returns:
-            Tuple of (width, height)
-
-        """
         size = shutil.get_terminal_size()
         return (size.columns, size.lines)
 
     @staticmethod
     def clear_screen() -> r[bool]:
-        """Clear terminal screen.
-
-        Returns:
-            r[bool]: True if screen cleared successfully, failure on error
-
-        """
         click.clear()
         return r[bool].ok(True)
 
     @staticmethod
-    def pause(
-        info: str = c.Cli.CmdMessages.DEFAULT_PAUSE_MESSAGE,
-    ) -> r[bool]:
-        """Pause execution until key press.
-
-        Args:
-            info: Information message to display
-
-        Returns:
-            r[bool]: True if pause succeeded, failure on error
-
-        """
+    def pause(info: str = c.Cli.CmdMessages.DEFAULT_PAUSE_MESSAGE) -> r[bool]:
         click.pause(info=info)
         return r[bool].ok(True)
 
     @staticmethod
     def model_command(
         model_class: type[BaseModel],
-        handler: Callable[
-            [BaseModel],
-            t.GeneralValueType | r[t.GeneralValueType],
-        ],
+        handler: Callable[[BaseModel], t.GeneralValueType | r[t.GeneralValueType]],
         config: FlextCliSettings | None = None,
     ) -> p.Cli.CliCommandFunction:
-        """Create Typer command from Pydantic model with automatic config integration.
-
-        Generic model-driven CLI automation using Field metadata introspection.
-        Delegates to existing Typer infrastructure for type conversion.
-
-        Handles optional parameters: Fields with defaults become optional CLI args
-        that don't require specification on command line.
-
-        Supports Pydantic v2 Field aliases: Field(alias="input-dir") generates
-        --input-dir CLI option (not --input_dir).
-
-        **AUTOMATIC CONFIG INTEGRATION** (NEW):
-        If config singleton is provided, FlextCli automatically:
-        1. Reads config field values as defaults for CLI parameters
-           (when no CLI value provided)
-        2. Updates config with CLI values using Pydantic v2's __dict__
-           (bypasses validators)
-        3. Passes fully-populated params model to handler
-           (no fallback logic needed)
-
-        This enables full configuration hierarchy - completely automatic:
-        - Constants (in config defaults)
-        - .env file (config reads via env_prefix)
-        - Environment variables (config reads via Pydantic Settings)
-        - CLI Arguments (override config if different, stored via __dict__
-          to bypass validation)
-
-        No custom code needed in application - framework handles it all!
-
-        Args:
-            model_class: Pydantic BaseModel subclass defining parameters
-            handler: Function receiving validated model instance
-            config: Optional config singleton (Pydantic Settings with env_prefix)
-                   - Provides defaults for CLI parameters
-                   - Gets updated with CLI values when they differ
-
-        Returns:
-            Typer command function with auto-generated parameters
-
-        Example:
-            ```python
-            from pydantic import BaseModel, Field
-            from pydantic_settings import BaseSettings, SettingsConfigDict
-
-            cli = FlextCliCli()
-
-
-            class MyConfig(BaseSettings):
-                model_config = SettingsConfigDict(
-                    env_prefix="MY_APP_",
-                )
-                input_dir: str = Field(default="data/input")
-                count: int = Field(default=10)
-
-
-            class MyParams(BaseModel):
-                input_dir: str = Field(alias="input-dir", description="Input path")
-                count: int = Field(default=10, description="Item count")
-                sync: bool = Field(default=True, description="Enable sync")
-
-
-            def handle(params: MyParams):
-                # params is fully populated: CLI args OR config defaults
-                # No fallback logic needed!
-                print(f"Processing {params.input_dir}, count={params.count}")
-
-
-            # Fully automatic - pass config reference
-            config = MyConfig()  # Reads from MY_APP_INPUT_DIR, MY_APP_COUNT env vars
-            command = cli.model_command(MyParams, handle, config=config)
-
-            # CLI usage - ALL automatic:
-            # my-command
-            #   → Uses defaults: input_dir from config (from env or default)
-            #   → Calls: handle(MyParams(input_dir=config.input_dir,
-            #                            count=10, sync=True))
-            #   → Updates: config.input_dir if CLI value different
-            #
-            # my-command --input-dir /path
-            #   → Overrides: input_dir from config with /path
-            #   → Calls: handle(MyParams(input_dir=/path, count=10, sync=True))
-            #   → Updates: config.input_dir = /path (different from original)
-            #
-            # my-command --input-dir /path --count 5
-            #   → Overrides: input_dir and count
-            #   → Calls: handle(MyParams(input_dir=/path, count=5, sync=True))
-            #   → Updates: config with both values
-            ```
-
-        """
-        # Delegate to ModelCommandBuilder for reduced
-        # complexity (SOLID/SRP)
         if not hasattr(model_class, "model_fields"):
-            # Type narrowing: get class name safely for error message
             class_name = getattr(model_class, "__name__", str(model_class))
             msg = f"{class_name} must be a Pydantic model (BaseModel or m subclass)"
             raise TypeError(msg)
 
-        # Handler can return t.GeneralValueType or r[t.GeneralValueType]
-        # Type system ensures model_class is type[BaseModel] and handler is callable
-        # Create wrapper that normalizes return type
-        # Handler accepts BaseModel, returns t.GeneralValueType or r[t.GeneralValueType]
-
         def normalized_handler(model: t.GeneralValueType) -> t.GeneralValueType:
-            # Type narrowing: validate model is BaseModel instance
             if not isinstance(model, BaseModel):
                 msg = "model must be a BaseModel instance"
                 raise TypeError(msg)
-            # Runtime validation: model must be instance of expected model_class
             if not isinstance(model, model_class):
                 class_name = getattr(model_class, "__name__", "UnknownClass")
                 msg = f"model must be instance of {class_name}"
                 raise TypeError(msg)
-            # Model is now validated to be an instance of model_class
-            # Handler accepts BaseModel, which model satisfies
             result = handler(model)
-            # Normalize return type: if result is r[t.GeneralValueType], unwrap it
             if isinstance(result, r):
                 if result.is_success:
-                    # Type narrowing: unwrapped is t.GeneralValueType
                     return result.value
-                # On failure, raise error
                 msg = f"Handler failed: {result.error}"
                 raise ValueError(msg)
-            # Result is already t.GeneralValueType
-            # Type narrowing: result is t.GeneralValueType (not r[t.GeneralValueType])
             return result
 
-        # Type system ensures model_class is type[BaseModel]
-        builder = m.Cli.ModelCommandBuilder(
-            model_class,
-            normalized_handler,
-            config,
-        )
-        # ModelCommandBuilder.build() returns a function implementing
-        # CliCommandFunction protocol
-        return builder.build()
+        return m.Cli.ModelCommandBuilder(
+            model_class, normalized_handler, config
+        ).build()
 
     @staticmethod
     def execute() -> r[Mapping[str, t.GeneralValueType]]:
-        """Execute Click abstraction layer operations.
-
-        Returns:
-            r[dict[str, t.GeneralValueType]]: Success with CLI status or
-            failure with error
-
-        """
         return r[dict[str, t.GeneralValueType]].ok({
             c.Cli.DictKeys.SERVICE: c.Cli.FLEXT_CLI,
-            c.Cli.DictKeys.STATUS: (c.Cli.ServiceStatus.OPERATIONAL.value),
+            c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.OPERATIONAL.value,
         })
 
 
-__all__ = [
-    "FlextCliCli",
-    "Typer",
-    "UsageError",
-]
-
-# Re-export Typer for API compatibility
+__all__ = ["FlextCliCli", "Typer", "UsageError"]
 Typer = typer.Typer

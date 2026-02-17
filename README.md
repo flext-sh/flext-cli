@@ -70,8 +70,8 @@ flext-cli is the **CLI foundation library** for the FLEXT ecosystem, providing:
 
 - **FlextResult&lt;T&gt;**: Railway pattern throughout
 - **FlextService**: All services extend FlextService
-| **FlextContainer** | 🟢 100% | Complete dependency injection    |
-| **Type Safety**    | 🟢 100% | Comprehensive type hints         |
+  | **FlextContainer** | 🟢 100% | Complete dependency injection |
+  | **Type Safety** | 🟢 100% | Comprehensive type hints |
 
 ### **Architecture Layers**
 
@@ -152,7 +152,7 @@ graph TB
 - **Configuration**: Pydantic validation
 - **File Operations**: JSON/YAML/CSV support
 - **Interactive Prompts**: User input with validation
-| **Overall**              | ✅ 100% | **Production Ready Foundation** |
+  | **Overall** | ✅ 100% | **Production Ready Foundation** |
 
 ---
 
@@ -492,14 +492,15 @@ assert "Hello, Alice" in result.output
 ---
 
 ## 🤝 Contributing
+
 ### Quality Standards
 
 All contributions must:
+
 - Maintain architectural layering and dependency rules
 - Preserve complete type safety
 - Follow established testing patterns
 - Pass automated quality validation
-
 
 ### **FLEXT-Core Compliance**
 
