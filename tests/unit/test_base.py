@@ -32,9 +32,9 @@ class TestsCliServiceBase:
     class _ConcreteService(FlextCliServiceBase):
         """Concrete implementation for testing abstract base class."""
 
-        def execute(self) -> r[t.JsonDict]:
+        def execute(self) -> r[dict[str, t.JsonValue]]:
             """Implement abstract method for testing."""
-            return r[t.JsonDict].ok({})
+            return r[dict[str, t.JsonValue]].ok({})
 
     # =========================================================================
     # INITIALIZATION TESTS

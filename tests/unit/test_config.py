@@ -57,7 +57,7 @@ class ConfigTestScenario:
 
     name: str
     test_type: ConfigTestType
-    data: t.JsonDict | None = None
+    data: dict[str, t.JsonValue] | None = None
     should_pass: bool = True
 
 
@@ -87,14 +87,14 @@ class ConfigTestFactory:
     ]
 
     # Test data
-    JSON_CONFIG_DATA: Final[t.JsonDict] = {
+    JSON_CONFIG_DATA: Final[dict[str, t.JsonValue]] = {
         "debug": True,
         "verbose": False,
         "profile": "test",
         "output_format": "json",
     }
 
-    YAML_CONFIG_DATA: Final[t.JsonDict] = {
+    YAML_CONFIG_DATA: Final[dict[str, t.JsonValue]] = {
         "debug": False,
         "verbose": True,
         "profile": "yaml_test",
@@ -544,6 +544,6 @@ class TestsCliConfigEdgeCases:
     def test_save_config(self) -> None:
         """Test save_config method."""
         config = FlextCliSettings()
-        new_config: t.JsonDict = {"debug": True}
+        new_config: dict[str, t.JsonValue] = {"debug": True}
         result = config.save_config(new_config)
         assert result.is_success or result.is_failure

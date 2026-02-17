@@ -42,7 +42,7 @@ def print_demo_completion(
 
 def handle_command_result(
     cli: FlextCli,
-    result: r[t.JsonDict],
+    result: r[dict[str, t.JsonValue]],
     action: str,
     success_fields: list[str] | None = None,
 ) -> None:
@@ -98,7 +98,7 @@ def print_demo_error(
 
 def display_config_table(
     cli: FlextCli,
-    config_data: t.JsonDict,
+    config_data: dict[str, t.JsonValue],
     headers: list[str] | None = None,
 ) -> None:
     """Display configuration data as a formatted table using FlextCli.

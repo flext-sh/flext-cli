@@ -140,7 +140,7 @@ def demonstrate_lazy_loading() -> None:
 
 
 def efficient_table_display(
-    large_dataset: list[t.JsonDict],
+    large_dataset: list[dict[str, t.JsonValue]],
 ) -> None:
     """Display large tables efficiently in YOUR CLI."""
     # ✅ Show only necessary rows
@@ -246,7 +246,7 @@ def main() -> None:
 
     # Example 4: Efficient tables
     output.print_message("\n4. Efficient Table Display:", style="bold cyan")
-    large_data: list[t.JsonDict] = [{"id": i, "name": f"Item {i}"} for i in range(1000)]
+    large_data: list[dict[str, t.JsonValue]] = [{"id": i, "name": f"Item {i}"} for i in range(1000)]
     efficient_table_display(large_data)
 
     # Example 5: Batch processing

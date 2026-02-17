@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping, Sequence
+from typing import ClassVar
 
-from flext_core import FlextTypes, r
+from flext_core import FlextTypes
 from pydantic import BaseModel, ConfigDict
 
 
@@ -39,65 +40,10 @@ class FlextCliTypes(FlextTypes):
         5. Type composition with Protocols for better type safety
         """
 
-        # ────────────────────────────────────────────────────────────────────
-        # CORE TYPE ALIASES
-        # ────────────────────────────────────────────────────────────────────
-
-        # Formattable result types for output operations
-        FormatableResult = (
-            dict[str, FlextTypes.JsonValue]
-            | list[FlextTypes.JsonValue]
-            | tuple[FlextTypes.JsonValue, ...]
-            | FlextTypes.JsonValue
-            | r[FlextTypes.GeneralValueType]
-        )
-
-        # Formatter function signature for result formatting
-        ResultFormatter = Callable[
-            [
-                dict[str, FlextTypes.JsonValue]
-                | list[FlextTypes.JsonValue]
-                | tuple[FlextTypes.JsonValue, ...]
-                | FlextTypes.JsonValue
-                | r[FlextTypes.GeneralValueType],
-                str,
-            ],
-            None,
-        ]
-
-        # ────────────────────────────────────────────────────────────────────
-        # DATA STRUCTURE TYPES (flattened from nested namespaces)
-        # ────────────────────────────────────────────────────────────────────
-
-        # Basic data dict types
-        CliDataDict = dict[str, FlextTypes.GeneralValueType]
-        CliFormatData = dict[str, FlextTypes.GeneralValueType]
-        CliConfigData = dict[str, FlextTypes.GeneralValueType]
-        CliConfigMapping = dict[str, FlextTypes.GeneralValueType]
-        CliJsonDict = dict[str, FlextTypes.GeneralValueType]
-        JsonDict = dict[str, FlextTypes.GeneralValueType]
-
-        # Auth data types
-        CliAuthData = dict[str, FlextTypes.GeneralValueType]
-        CliTokenData = dict[str, FlextTypes.GeneralValueType]
-
-        # ────────────────────────────────────────────────────────────────────
-        # TABLE AND SEQUENCE TYPES
-        # ────────────────────────────────────────────────────────────────────
-
-        # Tabular data types - for table output formatting
-        TabularData = Sequence[FlextTypes.JsonDict] | FlextTypes.JsonDict
-
-        # Table data with multiple format support
-        TableData = (
-            Sequence[FlextTypes.JsonDict]
-            | FlextTypes.JsonDict
-            | Sequence[Sequence[FlextTypes.GeneralValueType]]
-            | Mapping[str, FlextTypes.GeneralValueType]
-        )
-
-        # Table rows as sequence of dicts
-        TableRows = Sequence[FlextTypes.JsonDict]
+        # NO LEGACY ALIASES ALLOWED
+        FormatableResult = FlextTypes.GeneralValueType
+        ResultFormatter = Callable[[FormatableResult], str]
+        TabularData = Sequence[Mapping[str, FlextTypes.GeneralValueType]]
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -108,7 +54,7 @@ class FlextCliTypes(FlextTypes):
 class CliExecutionMetadata(BaseModel):
     """Pydantic model for CLI execution metadata."""
 
-    model_config = ConfigDict(frozen=False, extra="forbid")
+    model_config: ClassVar[ConfigDict] = ConfigDict(frozen=False, extra="forbid")
 
     command_name: str | None = None
     session_id: str | None = None
@@ -120,7 +66,7 @@ class CliExecutionMetadata(BaseModel):
 class CliValidationResult(BaseModel):
     """Pydantic model for CLI validation results."""
 
-    model_config = ConfigDict(frozen=False, extra="forbid")
+    model_config: ClassVar[ConfigDict] = ConfigDict(frozen=False, extra="forbid")
 
     field_name: str | None = None
     rule_name: str | None = None

@@ -116,7 +116,7 @@ class TestsCliProtocols:
             # Type narrowing using protocol check
             if isinstance(formatter, p.Cli.CliFormatter):
                 test_data_raw = {"key": "value"}  # Simple test data
-                # Cast to CliFormatData (which is t.JsonDict)
+                # Cast to CliFormatData (which is dict[str, t.JsonValue])
                 test_data = test_data_raw
                 format_result = formatter.format_data(test_data)
                 tm.ok(format_result)

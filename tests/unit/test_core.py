@@ -71,7 +71,7 @@ class TestsCliCore:
     @staticmethod
     def _set_commands(
         core_service: FlextCliCore,
-        commands: dict[str, t.JsonDict],
+        commands: dict[str, dict[str, t.JsonValue]],
     ) -> None:
         """Helper method to set _commands for testing.
 

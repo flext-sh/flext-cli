@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import operator
 import types
+import typing as pytyping
 from collections.abc import Callable, Mapping, Sequence
 from typing import (
     ClassVar,
@@ -17,7 +18,7 @@ from typing import (
 )
 
 import typer
-from flext_core import FlextModels, FlextRuntime, r
+from flext_core import FlextModels, FlextResult, FlextRuntime, r
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -86,12 +87,6 @@ class FlextCliModels(FlextModels):
         # CliLoggingData is defined at module level (_CliLoggingData) to prevent
         # Pydantic from merging field definitions with LoggingConfig
         CliLoggingData: ClassVar = _CliLoggingData
-
-        # Metodo estatico para compatibilidade
-        @staticmethod
-        def execute() -> r[Mapping[str, t.GeneralValueType]]:
-            """Execute models operation - returns empty dict for compatibility."""
-            return r[dict[str, t.GeneralValueType]].ok({})
 
         # CRÍTICO: NÃO redeclarar classes base de flext-core (Entity, Value, AggregateRoot, etc.)
         # Elas vêm automaticamente via herança: FlextCliModels(FlextModels)
@@ -368,9 +363,11 @@ class FlextCliModels(FlextModels):
                 """Start command execution - update status to running."""
                 try:
                     updated = self.model_copy(update={"status": "running"})
-                    return r.ok(updated)
+                    return pytyping.cast("r[Self]", r.ok(updated))
                 except Exception as e:
-                    return r.fail(f"Failed to start execution: {e}")
+                    return pytyping.cast(
+                        "r[Self]", r.fail(f"Failed to start execution: {e}")
+                    )
 
             def complete_execution(self, exit_code: int) -> r[Self]:
                 """Complete command execution with exit code."""
@@ -378,9 +375,11 @@ class FlextCliModels(FlextModels):
                     updated = self.model_copy(
                         update={"status": "completed", "exit_code": exit_code},
                     )
-                    return r.ok(updated)
+                    return pytyping.cast("r[Self]", r.ok(updated))
                 except Exception as e:
-                    return r.fail(f"Failed to complete execution: {e}")
+                    return pytyping.cast(
+                        "r[Self]", r.fail(f"Failed to complete execution: {e}")
+                    )
 
             def update_status(self, status: str) -> Self:
                 """Update command status."""
@@ -391,22 +390,26 @@ class FlextCliModels(FlextModels):
                 """Validate command input data."""
                 try:
                     if data is None:
-                        return r.fail("Input must be a dictionary")
+                        return pytyping.cast(
+                            "r[Self]", r.fail("Input must be a dictionary")
+                        )
                     # Check instance first - early return avoids unreachable code
                     if isinstance(data, cls):
-                        return r.ok(data)
+                        return pytyping.cast("r[Self]", r.ok(data))
                     # Type narrowing: data is not cls instance
                     # Check if dict for model_validate
                     if not isinstance(data, dict):
-                        return r.fail("Input must be a dictionary")
+                        return pytyping.cast(
+                            "r[Self]", r.fail("Input must be a dictionary")
+                        )
                     # Type narrowing: data is dict after isinstance check
                     # Use t.GeneralValueType from lower layer instead of object
                     data_dict: dict[str, t.GeneralValueType] = data
                     # Use model_validate for type-safe model creation from dict
                     command = cls.model_validate(data_dict)
-                    return r.ok(command)
+                    return pytyping.cast("r[Self]", r.ok(command))
                 except Exception as e:
-                    return r.fail(f"Validation failed: {e}")
+                    return pytyping.cast("r[Self]", r.fail(f"Validation failed: {e}"))
 
         class CliSession(FlextModels.Entity):
             """CLI session model for tracking command execution sessions extending Entity via inheritance."""
@@ -517,9 +520,11 @@ class FlextCliModels(FlextModels):
                 try:
                     updated_commands = list(self.commands) + [command]
                     updated_session = self._copy_with_update(commands=updated_commands)
-                    return r.ok(updated_session)
+                    return pytyping.cast("r[Self]", r.ok(updated_session))
                 except Exception as e:
-                    return r.fail(f"Failed to add command: {e}")
+                    return pytyping.cast(
+                        "r[Self]", r.fail(f"Failed to add command: {e}")
+                    )
 
             def _copy_with_update(self, **updates: object) -> Self:
                 """Helper method for model_copy with updates - reduces repetition.
@@ -2028,25 +2033,32 @@ class FlextCliModels(FlextModels):
                     # Use getattr to access model_validate to satisfy type checker
                     # BaseModel.model_validate exists but mypy needs explicit access
                     if not hasattr(model_cls, "model_validate"):
-                        return r.fail(f"{model_cls.__name__} is not a Pydantic model")
+                        return FlextResult.fail(
+                            f"{model_cls.__name__} is not a Pydantic model"
+                        )
                     model_validate_method = model_cls.model_validate
                     model_instance = model_validate_method(cli_args_dict)
-                    # model_instance is already BaseModel (or subclass) - no cast needed
-                    return r.ok(model_instance)
+                    return pytyping.cast(
+                        "FlextResult[BaseModel]", FlextResult.ok(model_instance)
+                    )
                 except Exception as e:
-                    return r.fail(f"Failed to create model instance: {e}")
+                    return pytyping.cast(
+                        "FlextResult[BaseModel]",
+                        FlextResult.fail(f"Failed to create model instance: {e}"),
+                    )
 
             @staticmethod
             def model_to_cli_params(
                 model_cls: type,
-            ) -> r[list[p.Cli.CliParameterSpecProtocol]]:
+            ) -> FlextResult[list[p.Cli.CliParameterSpecProtocol]]:
                 """Convert Pydantic model to list of CLI parameter specifications."""
                 try:
                     if not hasattr(model_cls, "model_fields"):
                         # Type narrowing: get class name safely for error message
                         class_name = getattr(model_cls, "__name__", str(model_cls))
-                        return r[list[p.Cli.CliParameterSpecProtocol]].fail(
-                            f"{class_name} is not a Pydantic model",
+                        return pytyping.cast(
+                            "FlextResult[list[p.Cli.CliParameterSpecProtocol]]",
+                            FlextResult.fail(f"{class_name} is not a Pydantic model"),
                         )
                     # models.py cannot use utilities - use direct iteration instead
 
@@ -2091,20 +2103,25 @@ class FlextCliModels(FlextModels):
                             for field_name, field_info in model_cls.model_fields.items()
                         }
                         params_list = list(params_dict.values())
-                        return r[list[p.Cli.CliParameterSpecProtocol]].ok(params_list)
+                        return pytyping.cast(
+                            "FlextResult[list[p.Cli.CliParameterSpecProtocol]]",
+                            FlextResult.ok(params_list),
+                        )
                     except Exception as e:
-                        return r[list[p.Cli.CliParameterSpecProtocol]].fail(
-                            f"Conversion failed: {e}",
+                        return pytyping.cast(
+                            "FlextResult[list[p.Cli.CliParameterSpecProtocol]]",
+                            FlextResult.fail(f"Conversion failed: {e}"),
                         )
                 except Exception as e:
-                    return r[list[p.Cli.CliParameterSpecProtocol]].fail(
-                        f"Conversion failed: {e}",
+                    return pytyping.cast(
+                        "FlextResult[list[p.Cli.CliParameterSpecProtocol]]",
+                        FlextResult.fail(f"Conversion failed: {e}"),
                     )
 
             @staticmethod
             def model_to_click_options(
                 model_cls: type,
-            ) -> r[list[t.GeneralValueType]]:
+            ) -> FlextResult[list[t.GeneralValueType]]:
                 """Convert Pydantic model to list of Click options."""
                 params_result = (
                     FlextCliModels.Cli.CliModelConverter.model_to_cli_params(
@@ -2112,8 +2129,9 @@ class FlextCliModels(FlextModels):
                     )
                 )
                 if params_result.is_failure:
-                    return r[list[t.GeneralValueType]].fail(
-                        params_result.error or "Conversion failed",
+                    return pytyping.cast(
+                        "FlextResult[list[t.GeneralValueType]]",
+                        FlextResult.fail(params_result.error or "Conversion failed"),
                     )
                 # After is_failure check, params_result.value is guaranteed to be the value
                 params: list[p.Cli.CliParameterSpecProtocol] = params_result.value
@@ -2144,13 +2162,15 @@ class FlextCliModels(FlextModels):
                     }
                     # Append dict directly - it's already GeneralValueType compatible
                     options.append(option_obj_dict)
-                return r[list[t.GeneralValueType]].ok(options)
+                return pytyping.cast(
+                    "FlextResult[list[t.GeneralValueType]]", FlextResult.ok(options)
+                )
 
             @staticmethod
             def field_to_cli_param(
                 field_name: str,
                 field_info: FieldInfo | t.GeneralValueType,
-            ) -> r[p.Cli.CliParameterSpecProtocol]:
+            ) -> FlextResult[p.Cli.CliParameterSpecProtocol]:
                 """Convert Pydantic field to CLI parameter specification."""
                 try:
                     # Handle both FieldInfo and t.GeneralValueType
@@ -2173,8 +2193,11 @@ class FlextCliModels(FlextModels):
                         default = getattr(field_info, "default", None)
                         help_text = str(getattr(field_info, "description", ""))
                     if annotation is None:
-                        return r[p.Cli.CliParameterSpecProtocol].fail(
-                            f"Field {field_name} has no type annotation",
+                        return pytyping.cast(
+                            "FlextResult[p.Cli.CliParameterSpecProtocol]",
+                            FlextResult.fail(
+                                f"Field {field_name} has no type annotation"
+                            ),
                         )
                     field_type = annotation
                     # Extract non-None type from Optional/Union
@@ -2193,18 +2216,21 @@ class FlextCliModels(FlextModels):
                         )
                     )
                     # Return concrete instance
-                    return r[p.Cli.CliParameterSpecProtocol].ok(
-                        FlextCliModels.Cli.CliParameterSpec(
-                            field_name=field_name,
-                            param_type=field_type,
-                            click_type=click_type_str,
-                            default=default,
-                            help_text=help_text,
-                        ),
+                    spec = FlextCliModels.Cli.CliParameterSpec(
+                        field_name=field_name,
+                        param_type=field_type,
+                        click_type=click_type_str,
+                        default=default,
+                        help_text=help_text,
+                    )
+                    return pytyping.cast(
+                        "FlextResult[p.Cli.CliParameterSpecProtocol]",
+                        FlextResult.ok(spec),
                     )
                 except Exception as e:
-                    return r[p.Cli.CliParameterSpecProtocol].fail(
-                        f"Field conversion failed: {e}",
+                    return pytyping.cast(
+                        "FlextResult[p.Cli.CliParameterSpecProtocol]",
+                        FlextResult.fail(f"Field conversion failed: {e}"),
                     )
 
             @staticmethod
@@ -2413,7 +2439,7 @@ class FlextCliModels(FlextModels):
                 field_name: str,
                 field_info: FieldInfo | t.GeneralValueType,
                 types: Mapping[str, type | str] | None = None,
-            ) -> r[dict[str, t.GeneralValueType]]:
+            ) -> FlextResult[dict[str, t.GeneralValueType]]:
                 """Extract properties from Pydantic field info."""
                 try:
                     props = FlextCliModels.Cli.CliModelConverter.extract_base_props(
@@ -2437,10 +2463,16 @@ class FlextCliModels(FlextModels):
                             props,
                             field_info,
                         )
-                    return r[dict[str, t.GeneralValueType]].ok(props)
+                    return pytyping.cast(
+                        "FlextResult[dict[str, t.GeneralValueType]]",
+                        FlextResult.ok(props),
+                    )
                 except Exception as e:
-                    return r[dict[str, t.GeneralValueType]].fail(
-                        f"Extraction failed: {e}",
+                    return pytyping.cast(
+                        "FlextResult[dict[str, t.GeneralValueType]]",
+                        FlextResult[dict[str, t.GeneralValueType]].fail(
+                            f"Extraction failed: {e}",
+                        ),
                     )
 
             # Field validation rules: (field_key, expected_type, type_check_func)
@@ -2458,7 +2490,7 @@ class FlextCliModels(FlextModels):
             @staticmethod
             def validate_field_schema(
                 field_data: Mapping[str, object],
-            ) -> r[bool]:
+            ) -> FlextResult[bool]:
                 """Validate field data schema against rules."""
                 for (
                     field_key,
@@ -2468,31 +2500,40 @@ class FlextCliModels(FlextModels):
                     if field_key in field_data:
                         value = field_data[field_key]
                         if not check_func(value):
-                            return r[bool].fail(
-                                f"Invalid {field_key}: {value} (expected {type_name})",
+                            return pytyping.cast(
+                                "FlextResult[bool]",
+                                FlextResult.fail(
+                                    f"Invalid {field_key}: {value} (expected {type_name})"
+                                ),
                             )
-                return r[bool].ok(True)
+                return pytyping.cast("FlextResult[bool]", FlextResult.ok(True))
 
             @staticmethod
             def convert_field_value(
                 field_value: object,
-            ) -> r[t.GeneralValueType]:
+            ) -> FlextResult[t.GeneralValueType]:
                 """Convert field value to t.GeneralValueType.
 
                 models.py cannot use utilities - use direct conversion instead.
                 Uses t.GeneralValueType from lower layer for proper type safety.
                 """
                 if field_value is None:
-                    return r[t.GeneralValueType].ok(None)
+                    return pytyping.cast(
+                        "FlextResult[t.GeneralValueType]", FlextResult.ok(None)
+                    )
                 if isinstance(field_value, (str, int, float, bool, dict, list)):
-                    return r[t.GeneralValueType].ok(field_value)
-                return r[t.GeneralValueType].ok(str(field_value))
+                    return pytyping.cast(
+                        "FlextResult[t.GeneralValueType]", FlextResult.ok(field_value)
+                    )
+                return pytyping.cast(
+                    "FlextResult[t.GeneralValueType]", FlextResult.ok(str(field_value))
+                )
 
             @staticmethod
             def validate_dict_field_data(
                 field_name: str,
                 field_data: Mapping[str, object],
-            ) -> r[t.GeneralValueType]:
+            ) -> FlextResult[t.GeneralValueType]:
                 """Validate field data when field_info is a dict/Mapping."""
                 schema_result = (
                     FlextCliModels.Cli.CliModelConverter.validate_field_schema(
@@ -2500,8 +2541,11 @@ class FlextCliModels(FlextModels):
                     )
                 )
                 if schema_result.is_failure:
-                    return r[t.GeneralValueType].fail(
-                        schema_result.error or "Schema validation failed",
+                    return pytyping.cast(
+                        "FlextResult[t.GeneralValueType]",
+                        FlextResult.fail(
+                            schema_result.error or "Schema validation failed"
+                        ),
                     )
                 field_value = field_data.get(field_name, None)
                 return FlextCliModels.Cli.CliModelConverter.convert_field_value(
@@ -2526,7 +2570,7 @@ class FlextCliModels(FlextModels):
                     ]
                 ),
                 data: Mapping[str, t.GeneralValueType] | None = None,
-            ) -> r[t.GeneralValueType]:
+            ) -> FlextResult[t.GeneralValueType]:
                 """Validate field data against field info."""
                 try:
                     if isinstance(field_info, (dict, Mapping)):
@@ -2536,16 +2580,26 @@ class FlextCliModels(FlextModels):
                         )
                     if data is not None:
                         if field_name not in data:
-                            return r[t.GeneralValueType].fail(
-                                f"Field {field_name} not found",
+                            return pytyping.cast(
+                                "FlextResult[t.GeneralValueType]",
+                                FlextResult.fail(f"Field {field_name} not found"),
                             )
-                        return r[t.GeneralValueType].ok(data[field_name])
-                    return r[t.GeneralValueType].fail(
-                        "No data provided for validation",
+                        return pytyping.cast(
+                            "FlextResult[t.GeneralValueType]",
+                            FlextResult.ok(data[field_name]),
+                        )
+                    return pytyping.cast(
+                        "FlextResult[t.GeneralValueType]",
+                        FlextResult[t.GeneralValueType].fail(
+                            "No data provided for validation",
+                        ),
                     )
                 except Exception as e:
-                    return r[t.GeneralValueType].fail(
-                        f"Validation failed: {e}",
+                    return pytyping.cast(
+                        "FlextResult[t.GeneralValueType]",
+                        FlextResult[t.GeneralValueType].fail(
+                            f"Validation failed: {e}",
+                        ),
                     )
 
             @staticmethod

@@ -3,8 +3,6 @@
 This is the ONLY file in the entire FLEXT ecosystem allowed to import Typer/Click.
 All CLI framework functionality is exposed through this unified interface.
 
-ZERO TOLERANCE ENFORCEMENT: No other file may import Typer or Click directly.
-
 Implementation: Uses Typer as the backend framework. Since Typer is built on Click,
 it generates Click-compatible commands internally, ensuring backward compatibility.
 
@@ -16,6 +14,7 @@ from __future__ import annotations
 
 import logging
 import shutil
+import typing as pytyping
 from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
 from typing import IO, Annotated, Literal, TypeGuard
@@ -62,8 +61,9 @@ class FlextCliCli:
         )
 
     def __init__(self) -> None:
+        """Initialize FlextCliCli."""
         super().__init__()
-        self.container = FlextContainer()
+        self.container = FlextContainer.get_global()
         self.logger = FlextLogger(__name__)
 
     def _create_cli_decorator(
@@ -90,6 +90,7 @@ class FlextCliCli:
     def create_command_decorator(
         self, name: str | None = None, help_text: str | None = None
     ) -> Callable[[p.Cli.CliCommandFunction], click.Command]:
+        """Create a command decorator."""
         return self._create_cli_decorator(c.Cli.EntityType.COMMAND, name, help_text)
 
     def _extract_typed_value(
@@ -237,6 +238,7 @@ class FlextCliCli:
         *,
         add_completion: bool = True,
     ) -> typer.Typer:
+        """Create a Typer app with common parameters."""
         app = typer.Typer(name=name, help=help_text, add_completion=add_completion)
 
         @app.callback()
@@ -284,6 +286,7 @@ class FlextCliCli:
     def create_group_decorator(
         self, name: str | None = None, help_text: str | None = None
     ) -> Callable[[p.Cli.CliCommandFunction], click.Group]:
+        """Create a group decorator."""
         decorator = self._create_cli_decorator("group", name, help_text)
 
         def group_decorator(func: p.Cli.CliCommandFunction) -> click.Group:
@@ -363,6 +366,7 @@ class FlextCliCli:
         config: t.GeneralValueType | None = None,
         **kwargs: t.GeneralValueType,
     ) -> Callable[[p.Cli.CliCommandFunction], p.Cli.CliCommandFunction]:
+        """Create an option decorator."""
         if config is None:
             config_instance = self._build_option_config_from_kwargs(kwargs)
             if not self._is_option_config_protocol(config_instance):
@@ -395,6 +399,7 @@ class FlextCliCli:
         required: bool = True,
         nargs: int = 1,
     ) -> Callable[[p.Cli.CliCommandFunction], p.Cli.CliCommandFunction]:
+        """Create an argument decorator."""
         decorator = click.argument(
             *param_decls, type=type_hint, required=required, nargs=nargs
         )
@@ -428,14 +433,13 @@ class FlextCliCli:
     ) -> (
         type[bool | str | int | float] | click.DateTime | click.ParamType | click.Tuple
     ):
+        """Create a click type from a string name."""
         if type_name == "datetime":
             return cls._datetime_type(formats)
         if type_name == "tuple":
             if tuple_types is None:
                 return click.Tuple([])
-            tuple_values: list[click.ParamType | type] = []
-            for tp in tuple_types:
-                tuple_values.append(tp)
+            tuple_values = list(tuple_types)
             return click.Tuple(tuple_values)
         registry: dict[
             str, Callable[[], type[bool | str | int | float] | click.ParamType]
@@ -454,6 +458,7 @@ class FlextCliCli:
 
     @classmethod
     def get_datetime_type(cls, formats: Sequence[str] | None = None) -> click.DateTime:
+        """Get datetime type."""
         result = cls.type_factory("datetime", formats=formats)
         if not isinstance(result, click.DateTime):
             msg = "result must be click.DateTime"
@@ -462,6 +467,7 @@ class FlextCliCli:
 
     @classmethod
     def get_uuid_type(cls) -> click.ParamType:
+        """Get UUID type."""
         result = cls.type_factory("uuid")
         if not isinstance(result, click.ParamType):
             msg = "result must be click.ParamType"
@@ -472,6 +478,7 @@ class FlextCliCli:
     def get_tuple_type(
         cls, types: Sequence[type[t.GeneralValueType] | click.ParamType]
     ) -> click.Tuple:
+        """Get tuple type."""
         result = cls.type_factory("tuple", tuple_types=types)
         if not isinstance(result, click.Tuple):
             msg = "result must be click.Tuple"
@@ -480,6 +487,7 @@ class FlextCliCli:
 
     @classmethod
     def get_bool_type(cls) -> type[bool]:
+        """Get boolean type."""
         result = cls.type_factory("bool")
         if result is not bool:
             msg = "result must be bool"
@@ -488,6 +496,7 @@ class FlextCliCli:
 
     @classmethod
     def get_string_type(cls) -> type[str]:
+        """Get string type."""
         result = cls.type_factory("string")
         if result is not str:
             msg = "result must be str"
@@ -496,6 +505,7 @@ class FlextCliCli:
 
     @classmethod
     def get_int_type(cls) -> type[int]:
+        """Get integer type."""
         result = cls.type_factory("int")
         if result is not int:
             msg = "result must be int"
@@ -504,6 +514,7 @@ class FlextCliCli:
 
     @classmethod
     def get_float_type(cls) -> type[float]:
+        """Get float type."""
         result = cls.type_factory("float")
         if result is not float:
             msg = "result must be float"
@@ -512,6 +523,7 @@ class FlextCliCli:
 
     @staticmethod
     def get_current_context() -> click.Context | None:
+        """Get current click context."""
         return click.get_current_context(silent=True)
 
     @staticmethod
@@ -519,6 +531,7 @@ class FlextCliCli:
         [Callable[[click.Context], t.GeneralValueType]],
         Callable[[click.Context], t.GeneralValueType],
     ]:
+        """Create pass context decorator."""
 
         def pass_context_wrapper(
             func: Callable[[click.Context], t.GeneralValueType],
@@ -541,6 +554,7 @@ class FlextCliCli:
         err: bool = False,
         color: bool | None = None,
     ) -> r[bool]:
+        """Echo message to stdout or stderr."""
         typer.echo(message=message, file=file, nl=nl, err=err, color=color)
         return r[bool].ok(True)
 
@@ -549,7 +563,7 @@ class FlextCliCli:
         kwargs: Mapping[str, t.GeneralValueType],
     ) -> tuple[Callable[[str, bool], bool], Callable[[str, str], str]]:
 
-        def get_bool_val(k: str, default: bool = False) -> bool:
+        def get_bool_val(k: str, default: bool = False) -> bool:  # noqa: FBT001, FBT002
             val = u.mapper().get(kwargs, k)
             if val is None or (isinstance(val, str) and (not val)):
                 return default
@@ -621,6 +635,7 @@ class FlextCliCli:
         config: p.Cli.ConfirmConfigProtocol | None = None,
         **kwargs: bool | str,
     ) -> r[bool]:
+        """Confirm action with user."""
         if config is None:
             config_instance = FlextCliCli._build_confirm_config_from_kwargs(kwargs)
             if not hasattr(config_instance, "default") or not hasattr(
@@ -640,8 +655,11 @@ class FlextCliCli:
             )
             return r[bool].ok(result)
         except typer.Abort as e:
-            return r[bool].fail(
-                c.Cli.ErrorMessages.USER_ABORTED_CONFIRMATION.format(error=e)
+            return pytyping.cast(
+                "r[bool]",
+                r[bool].fail(
+                    c.Cli.ErrorMessages.USER_ABORTED_CONFIRMATION.format(error=e)
+                ),
             )
 
     @staticmethod
@@ -660,6 +678,7 @@ class FlextCliCli:
         config: p.Cli.PromptConfigProtocol | None = None,
         **kwargs: t.GeneralValueType,
     ) -> r[t.GeneralValueType]:
+        """Prompt user for input."""
         if config is None:
             config_instance = FlextCliCli._build_prompt_config_from_kwargs(kwargs)
             if not FlextCliCli._is_prompt_config_protocol(config_instance):
@@ -689,10 +708,15 @@ class FlextCliCli:
                 json_value = prompt_result
             else:
                 json_value = str(prompt_result)
-            return r[t.GeneralValueType].ok(json_value)
+            return pytyping.cast(
+                "r[t.GeneralValueType]", r[t.GeneralValueType].ok(json_value)
+            )
         except typer.Abort as e:
-            return r[t.GeneralValueType].fail(
-                c.Cli.ErrorMessages.USER_ABORTED_PROMPT.format(error=e)
+            return pytyping.cast(
+                "r[t.GeneralValueType]",
+                r[t.GeneralValueType].fail(
+                    c.Cli.ErrorMessages.USER_ABORTED_PROMPT.format(error=e)
+                ),
             )
 
     def create_cli_runner(
@@ -702,26 +726,31 @@ class FlextCliCli:
         *,
         echo_stdin: bool = False,
     ) -> r[CliRunner]:
+        """Create a CLI runner."""
         runner = CliRunner(charset=charset, env=env, echo_stdin=echo_stdin)
         self.logger.debug("Created CliRunner for testing")
         return r[CliRunner].ok(runner)
 
     @staticmethod
     def format_filename(filename: str | Path, *, shorten: bool = False) -> str:
+        """Format filename."""
         return click.format_filename(filename, shorten=shorten)
 
     @staticmethod
     def get_terminal_size() -> tuple[int, int]:
+        """Get terminal size."""
         size = shutil.get_terminal_size()
         return (size.columns, size.lines)
 
     @staticmethod
     def clear_screen() -> r[bool]:
+        """Clear the screen."""
         click.clear()
         return r[bool].ok(True)
 
     @staticmethod
     def pause(info: str = c.Cli.CmdMessages.DEFAULT_PAUSE_MESSAGE) -> r[bool]:
+        """Pause execution."""
         click.pause(info=info)
         return r[bool].ok(True)
 
@@ -731,6 +760,7 @@ class FlextCliCli:
         handler: Callable[[BaseModel], t.GeneralValueType | r[t.GeneralValueType]],
         config: FlextCliSettings | None = None,
     ) -> p.Cli.CliCommandFunction:
+        """Create a command from a Pydantic model."""
         if not hasattr(model_class, "model_fields"):
             class_name = getattr(model_class, "__name__", str(model_class))
             msg = f"{class_name} must be a Pydantic model (BaseModel or m subclass)"
@@ -747,7 +777,7 @@ class FlextCliCli:
             result = handler(model)
             if isinstance(result, r):
                 if result.is_success:
-                    return result.value
+                    return pytyping.cast("t.GeneralValueType", result.value)
                 msg = f"Handler failed: {result.error}"
                 raise ValueError(msg)
             return result
@@ -758,6 +788,7 @@ class FlextCliCli:
 
     @staticmethod
     def execute() -> r[Mapping[str, t.GeneralValueType]]:
+        """Execute the CLI."""
         return r[dict[str, t.GeneralValueType]].ok({
             c.Cli.DictKeys.SERVICE: c.Cli.FLEXT_CLI,
             c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.OPERATIONAL.value,

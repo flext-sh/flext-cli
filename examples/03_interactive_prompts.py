@@ -192,7 +192,7 @@ def database_setup_wizard() -> r[dict[str, str | int | bool | float]]:
         display_config,
         to_json=True,
     )
-    json_config: t.JsonDict = transform_result.map_or(display_config)
+    json_config: dict[str, t.JsonValue] = transform_result.map_or(display_config)
     table_result = cli.create_table(
         data=json_config,
         headers=["Setting", "Value"],
@@ -486,7 +486,7 @@ def flext_configuration_wizard() -> r[dict[str, str | int | bool | float]]:
         config,
         to_json=True,
     )
-    json_config: t.JsonDict = transform_result.map_or(config)
+    json_config: dict[str, t.JsonValue] = transform_result.map_or(config)
     table_result = cli.create_table(
         data=json_config,
         headers=["Setting", "Value"],

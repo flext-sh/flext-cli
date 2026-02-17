@@ -85,7 +85,7 @@ def test_cli_command() -> None:
 
 
 def save_config_command(
-    config: t.JsonDict,
+    config: dict[str, t.JsonValue],
 ) -> r[bool]:
     """CLI command that saves config."""
     temp_file = Path(tempfile.gettempdir()) / "test_config.json"
@@ -109,7 +109,7 @@ def test_file_operations() -> None:
         config_data,
         to_json=True,
     )
-    config: t.JsonDict = transform_result.map_or(config_data)
+    config: dict[str, t.JsonValue] = transform_result.map_or(config_data)
     result = save_config_command(config)
 
     if not result.is_success:
@@ -238,17 +238,17 @@ def test_error_scenarios() -> None:
 # ============================================================================
 
 
-def full_workflow_command() -> r[t.JsonDict]:
+def full_workflow_command() -> r[dict[str, t.JsonValue]]:
     """Complete workflow to test."""
     # Step 1: Create data
-    data: t.JsonDict = {"status": "processing", "items": [1, 2, 3]}
+    data: dict[str, t.JsonValue] = {"status": "processing", "items": [1, 2, 3]}
 
     # Step 2: Save to file
     temp_file = Path(tempfile.gettempdir()) / "workflow_test.json"
     write_result = cli.file_tools.write_json_file(temp_file, data)
 
     if write_result.is_failure:
-        return r[t.JsonDict].fail(
+        return r[dict[str, t.JsonValue]].fail(
             f"Write failed: {write_result.error}",
         )
 
@@ -257,7 +257,7 @@ def full_workflow_command() -> r[t.JsonDict]:
 
     if read_result.is_failure:
         temp_file.unlink(missing_ok=True)
-        return r[t.JsonDict].fail(
+        return r[dict[str, t.JsonValue]].fail(
             f"Read failed: {read_result.error}",
         )
 
@@ -265,7 +265,7 @@ def full_workflow_command() -> r[t.JsonDict]:
     loaded = read_result.value
     if not isinstance(loaded, dict):
         temp_file.unlink(missing_ok=True)
-        return r[t.JsonDict].fail(
+        return r[dict[str, t.JsonValue]].fail(
             "Data is not a dictionary",
         )
 
@@ -279,10 +279,10 @@ def full_workflow_command() -> r[t.JsonDict]:
     # Use u.transform for JSON conversion
     if isinstance(loaded, dict):
         transform_result = u.transform(loaded, to_json=True)
-        typed_data: t.JsonDict = transform_result.map_or(loaded)
+        typed_data: dict[str, t.JsonValue] = transform_result.map_or(loaded)
     else:
         typed_data = loaded
-    return r[t.JsonDict].ok(typed_data)
+    return r[dict[str, t.JsonValue]].ok(typed_data)
 
 
 def test_integration() -> None:

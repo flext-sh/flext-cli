@@ -9,13 +9,25 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import re
 from importlib.metadata import metadata
 
 _metadata = metadata("flext_cli")
 
-__version__ = _metadata["Version"]
+
+def _normalize_version(raw_version: str) -> str:
+    """Normalize PEP 440-style version to semver-compatible format."""
+    normalized = re.sub(r"\.dev(\d+)$", r"-dev\1", raw_version)
+    return re.sub(r"(\d)(a|b|rc)(\d+)$", r"\1-\2\3", normalized)
+
+
+__version__ = _normalize_version(_metadata["Version"])
+_version_without_metadata = __version__.split("+", maxsplit=1)[0]
+_version_base, _has_prerelease, _prerelease = _version_without_metadata.partition("-")
+_base_parts = _version_base.split(".")
+_prerelease_parts = _prerelease.split(".") if _has_prerelease else []
 __version_info__ = tuple(
-    int(part) if part.isdigit() else part for part in __version__.split(".")
+    int(part) if part.isdigit() else part for part in (_base_parts + _prerelease_parts)
 )
 __title__ = _metadata["Name"]
 __description__ = _metadata["Summary"]

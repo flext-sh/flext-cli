@@ -43,7 +43,7 @@ cli = FlextCli()
 # ============================================================================
 
 
-def handle_status_command() -> r[t.JsonDict]:
+def handle_status_command() -> r[dict[str, t.JsonValue]]:
     """Status command in YOUR interactive CLI."""
     status = {
         "status": "running",
@@ -60,8 +60,8 @@ def handle_status_command() -> r[t.JsonDict]:
         status,
         to_json=True,
     )
-    typed_status: t.JsonDict = transform_result.map_or(status)
-    return r[t.JsonDict].ok(typed_status)
+    typed_status: dict[str, t.JsonValue] = transform_result.map_or(status)
+    return r[dict[str, t.JsonValue]].ok(typed_status)
 
 
 def handle_list_command(

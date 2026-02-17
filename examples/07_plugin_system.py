@@ -60,7 +60,7 @@ class DataExportPlugin:
 
     @staticmethod
     def execute(
-        data: t.JsonDict,
+        data: dict[str, t.JsonValue],
         output_format: str = "json",
     ) -> r[str]:
         """Execute plugin logic in YOUR application."""
@@ -84,7 +84,7 @@ class ReportGeneratorPlugin:
         self.version = "1.0.0"
 
     @staticmethod
-    def execute(data: list[t.JsonDict]) -> r[str]:
+    def execute(data: list[dict[str, t.JsonValue]]) -> r[str]:
         """Generate report from data in YOUR CLI."""
         tables = FlextCliTables()
         config = m.Cli.TableConfig(table_format="grid")
@@ -182,7 +182,7 @@ class MyAppPluginManager:
             processor=get_plugin_version,
             on_error="skip",
         )
-        plugin_data: t.JsonDict = (
+        plugin_data: dict[str, t.JsonValue] = (
             dict(process_result.value)
             if process_result.is_success and isinstance(process_result.value, dict)
             else {}
@@ -235,25 +235,25 @@ def load_plugins_from_directory(plugin_dir: Path) -> MyAppPluginManager:
 class ConfigurablePlugin:
     """Example of configurable plugin for YOUR CLI."""
 
-    def __init__(self, config: t.JsonDict) -> None:
+    def __init__(self, config: dict[str, t.JsonValue]) -> None:
         """Initialize configurable plugin with configuration dictionary."""
         super().__init__()
         self.name = "configurable-plugin"
-        self.config: t.JsonDict = config
+        self.config: dict[str, t.JsonValue] = config
 
-    def execute(self) -> r[t.JsonDict]:
+    def execute(self) -> r[dict[str, t.JsonValue]]:
         """Execute with configuration in YOUR CLI."""
         _ = cli.print(f"🔧 Plugin config: {self.config}", style="cyan")
 
         # Your plugin logic using config
-        result_data: t.JsonDict = {
+        result_data: dict[str, t.JsonValue] = {
             "plugin": self.name,
             "config_applied": True,
             **self.config,  # Unpack config dict instead of using update()
         }
 
         # Cast to expected type (runtime type is compatible)
-        return r[t.JsonDict].ok(result_data)
+        return r[dict[str, t.JsonValue]].ok(result_data)
 
 
 # ============================================================================
@@ -317,7 +317,7 @@ def main() -> None:
 
     # Example 3: Execute plugin
     _ = cli.print("\n3. Execute Plugin (data export):", style="bold cyan")
-    test_data: t.JsonDict = {
+    test_data: dict[str, t.JsonValue] = {
         "id": 1,
         "name": "Test",
         "status": "active",
@@ -330,7 +330,7 @@ def main() -> None:
 
     # Example 4: Report plugin
     _ = cli.print("\n4. Report Plugin (table generation):", style="bold cyan")
-    report_data: list[t.JsonDict] = [
+    report_data: list[dict[str, t.JsonValue]] = [
         {"metric": "Users", "value": "1,234"},
         {"metric": "Orders", "value": "567"},
     ]
@@ -338,7 +338,7 @@ def main() -> None:
 
     # Example 5: Plugin with config
     _ = cli.print("\n5. Configurable Plugin:", style="bold cyan")
-    config: t.JsonDict = {"theme": "dark", "verbose": True}
+    config: dict[str, t.JsonValue] = {"theme": "dark", "verbose": True}
     config_plugin = ConfigurablePlugin(config)
     config_result = config_plugin.execute()
     if config_result.is_success:

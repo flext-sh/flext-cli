@@ -142,7 +142,7 @@ class MyAppConfig:
 
     def display(self) -> None:
         """Display YOUR app configuration."""
-        config_data: t.JsonDict = {
+        config_data: dict[str, t.JsonValue] = {
             "App Name": self.app_name,
             "API Key": f"{self.api_key[:10]}..." if self.api_key else "Not set",
             "Max Workers": str(self.max_workers),
@@ -233,7 +233,7 @@ def load_profile_config(profile_name: str = "default") -> FlextCliSettings | Non
     cli.print(f"✅ Profile '{profile_name}' loaded successfully", style="green")
 
     # Display profile settings
-    profile_data: t.JsonDict = {
+    profile_data: dict[str, t.JsonValue] = {
         "Profile": profile_config.profile,
         "Debug": str(profile_config.debug),
         "Output": profile_config.output_format,

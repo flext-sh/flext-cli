@@ -96,7 +96,7 @@ class ExamplePlugin:
         """Initialize plugin."""
         super().__init__()
         self._initialized = False
-        self._config: t.JsonDict = {}
+        self._config: dict[str, t.JsonValue] = {}
 
     def initialize(self, _cli_main: object) -> r[bool]:
         """Initialize the plugin.

@@ -77,7 +77,7 @@ def your_cli_function() -> None:
 # ============================================================================
 
 
-def display_database_results(records: list[t.JsonDict]) -> None:
+def display_database_results(records: list[dict[str, t.JsonValue]]) -> None:
     """Display database query results as a table."""
     if not records:
         cli.print("No results found", style="yellow")
@@ -86,11 +86,11 @@ def display_database_results(records: list[t.JsonDict]) -> None:
     # Convert your data to table
     # Example: records from SQLAlchemy, MongoDB, etc.
     # first_record is already properly typed
-    first_record: t.JsonDict = records[0]
+    first_record: dict[str, t.JsonValue] = records[0]
     list(first_record.keys())
 
     # For dict[str, t.GeneralValueType] data, convert to table format
-    table_data: t.JsonDict = {
+    table_data: dict[str, t.JsonValue] = {
         f"Row {i}": " | ".join(str(v) for v in record.values())
         for i, record in enumerate(records[:10], 1)
     }
@@ -216,7 +216,7 @@ def monitor_live_metrics() -> None:
         requests = 150 + (i * 10)
 
         # Create metrics data as ASCII table using FlextCliTables
-        metrics_data: list[t.JsonDict] = [
+        metrics_data: list[dict[str, t.JsonValue]] = [
             {
                 "Metric": "CPU Usage",
                 "Value": f"{cpu}%",
@@ -250,7 +250,7 @@ def monitor_live_metrics() -> None:
 # ============================================================================
 
 
-def display_with_panels(data: t.JsonDict) -> None:
+def display_with_panels(data: dict[str, t.JsonValue]) -> None:
     """Display content in organized sections."""
     cli.print("\n📦 Organized Content Display:", style="cyan")
 
@@ -262,7 +262,7 @@ def display_with_panels(data: t.JsonDict) -> None:
     cli.print(f"  Pending: {data.get('pending', 0)}", style="yellow")
 
     # Section 2: Details table
-    details_data: list[t.JsonDict] = []
+    details_data: list[dict[str, t.JsonValue]] = []
     for key, value in data.items():
         if key not in {"total", "successful", "failed", "pending"}:
             details_data.append({"Property": key, "Value": str(value)})
@@ -296,7 +296,7 @@ def main() -> None:
 
     # Example 2: Rich tables
     cli.print("\n2. Rich Tables (display data):", style="bold cyan")
-    sample_data: list[t.JsonDict] = [
+    sample_data: list[dict[str, t.JsonValue]] = [
         {"id": 1, "name": "Alice", "status": "active"},
         {"id": 2, "name": "Bob", "status": "inactive"},
     ]
@@ -328,7 +328,7 @@ def main() -> None:
 
     # Example 8: Panels for organization
     cli.print("\n8. Panels (organized content):", style="bold cyan")
-    panel_data: t.JsonDict = {
+    panel_data: dict[str, t.JsonValue] = {
         "total": 1250,
         "successful": 1100,
         "failed": 50,

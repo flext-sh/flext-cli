@@ -57,7 +57,7 @@ tables = FlextCliTables()
 
 
 def save_user_preferences(
-    preferences: t.JsonDict,
+    preferences: dict[str, t.JsonValue],
     config_dir: Path,
 ) -> bool:
     """Save user preferences to JSON in YOUR app."""
@@ -108,7 +108,7 @@ def load_user_preferences(config_dir: Path) -> dict[str, t.GeneralValueType] | N
 
 
 def save_deployment_config(
-    config: t.JsonDict,
+    config: dict[str, t.JsonValue],
     config_file: Path,
 ) -> bool:
     """Save deployment config to YAML in YOUR tool."""
@@ -152,7 +152,7 @@ def load_deployment_config(config_file: Path) -> dict[str, t.GeneralValueType] |
 
 
 def export_database_report(
-    records: list[t.JsonDict],
+    records: list[dict[str, t.JsonValue]],
     output_file: Path,
     format_type: str = "grid",
 ) -> bool | None:
@@ -189,7 +189,7 @@ def list_project_files(project_dir: Path) -> None:
         return
 
     # Collect file metadata
-    files_data: list[t.JsonDict] = [
+    files_data: list[dict[str, t.JsonValue]] = [
         {
             "Name": item.name[:40],
             "Type": "📂 dir" if item.is_dir() else "📄 file",
@@ -201,7 +201,7 @@ def list_project_files(project_dir: Path) -> None:
     # Display as table
     if files_data:
         # files_data is already properly typed
-        sample_data: list[t.JsonDict] = files_data[:20]
+        sample_data: list[dict[str, t.JsonValue]] = files_data[:20]
         # Create table config for grid format
         config = m.Cli.TableConfig(table_format="grid")
         table_result = tables.create_table(sample_data, config=config)
@@ -242,7 +242,7 @@ def show_directory_tree(root_path: Path, max_items: int = 15) -> None:
 # ============================================================================
 
 
-def validate_and_import_data(input_file: Path) -> t.JsonDict | None:
+def validate_and_import_data(input_file: Path) -> dict[str, t.JsonValue] | None:
     """Validate and import data in YOUR ETL pipeline."""
     # Step 1: Read file
     read_result = cli.file_tools.read_json_file(input_file)
@@ -255,16 +255,16 @@ def validate_and_import_data(input_file: Path) -> t.JsonDict | None:
 
     # Step 2: Validate structure
     def validate_structure(
-        data: t.JsonDict,
-    ) -> r[t.JsonDict]:
+        data: dict[str, t.JsonValue],
+    ) -> r[dict[str, t.JsonValue]]:
         """Your validation logic."""
         required_fields = ["id", "name", "value"]
         for field in required_fields:
             if field not in data:
-                return r[t.JsonDict].fail(
+                return r[dict[str, t.JsonValue]].fail(
                     f"Missing required field: {field}",
                 )
-        return r[t.JsonDict].ok(data)
+        return r[dict[str, t.JsonValue]].ok(data)
 
     # Chain validation using FlextResult - type narrowing needed
     if not isinstance(data, dict):
@@ -274,7 +274,7 @@ def validate_and_import_data(input_file: Path) -> t.JsonDict | None:
     # Convert to JsonDict-compatible dict using u
     # Use u.transform for JSON conversion
     transform_result = u.transform(data, to_json=True)
-    json_data: t.JsonDict = transform_result.map_or(data)
+    json_data: dict[str, t.JsonValue] = transform_result.map_or(data)
     validated = validate_structure(json_data)
 
     if validated.is_failure:
@@ -337,7 +337,7 @@ def backup_config_files(source_dir: Path, backup_dir: Path) -> list[str]:
 
 
 def export_to_csv(
-    data: list[t.JsonDict],
+    data: list[dict[str, t.JsonValue]],
     output_file: Path,
 ) -> bool:
     """Export data to CSV with proper headers in YOUR reporting tool."""
@@ -485,7 +485,7 @@ def load_config_auto_detect(config_file: Path) -> dict[str, t.GeneralValueType] 
         # Use u.transform for JSON conversion
         if isinstance(data, dict):
             transform_result = u.transform(data, to_json=True)
-            display_data: t.JsonDict = transform_result.map_or(data)
+            display_data: dict[str, t.JsonValue] = transform_result.map_or(data)
         else:
             display_data = data
         table_result = cli.create_table(
@@ -506,9 +506,9 @@ def load_config_auto_detect(config_file: Path) -> dict[str, t.GeneralValueType] 
 
 
 def export_multi_format(
-    data: t.JsonDict | list[t.JsonDict],
+    data: dict[str, t.JsonValue] | list[dict[str, t.JsonValue]],
     base_path: Path,
-) -> t.JsonDict:
+) -> dict[str, t.JsonValue]:
     """Export same data to multiple formats (JSON, YAML, CSV)."""
     cli.print(f"💾 Multi-format export: {base_path.stem}", style="cyan")
 
@@ -726,7 +726,7 @@ def main() -> None:
 
     # Example 1: JSON preferences
     cli.print("\n1. JSON Config Files (user preferences):", style="bold cyan")
-    prefs: t.JsonDict = {
+    prefs: dict[str, t.JsonValue] = {
         "theme": "dark",
         "font_size": 14,
         "auto_save": True,
@@ -736,7 +736,7 @@ def main() -> None:
 
     # Example 2: YAML deployment config
     cli.print("\n2. YAML Configuration (deployment):", style="bold cyan")
-    deploy_config: t.JsonDict = {
+    deploy_config: dict[str, t.JsonValue] = {
         "environment": "staging",
         "host": "staging.example.com",
         "platform": platform.system(),
@@ -747,7 +747,7 @@ def main() -> None:
 
     # Example 3: Table export
     cli.print("\n3. Data Export (table format):", style="bold cyan")
-    sample_data: list[t.JsonDict] = [
+    sample_data: list[dict[str, t.JsonValue]] = [
         {"id": 1, "name": "Alice", "status": "active"},
         {"id": 2, "name": "Bob", "status": "inactive"},
     ]
@@ -764,14 +764,14 @@ def main() -> None:
 
     # Example 6: Data validation
     cli.print("\n6. Data Validation (ETL pipeline):", style="bold cyan")
-    test_data: t.JsonDict = {"id": 1, "name": "test", "value": 100}
+    test_data: dict[str, t.JsonValue] = {"id": 1, "name": "test", "value": 100}
     test_file = temp_dir / "test_data.json"
     cli.file_tools.write_json_file(test_file, test_data)
     validate_and_import_data(test_file)
 
     # Example 7: CSV export/import
     cli.print("\n7. CSV Export/Import (with headers):", style="bold cyan")
-    csv_data: list[t.JsonDict] = [
+    csv_data: list[dict[str, t.JsonValue]] = [
         {"employee_id": 101, "name": "Alice Smith", "department": "Engineering"},
         {"employee_id": 102, "name": "Bob Jones", "department": "Sales"},
         {"employee_id": 103, "name": "Carol White", "department": "Marketing"},
@@ -789,7 +789,7 @@ def main() -> None:
 
     # Example 9: Auto-format detection
     cli.print("\n9. Auto-Format Detection:", style="bold cyan")
-    auto_config: t.JsonDict = {
+    auto_config: dict[str, t.JsonValue] = {
         "app": "demo",
         "version": "1.0",
         "enabled": True,
@@ -803,7 +803,7 @@ def main() -> None:
 
     # Example 10: Multi-format export
     cli.print("\n10. Multi-Format Export:", style="bold cyan")
-    multi_data: list[t.JsonDict] = [
+    multi_data: list[dict[str, t.JsonValue]] = [
         {"metric": "CPU", "value": "75%", "status": "OK"},
         {"metric": "Memory", "value": "82%", "status": "Warning"},
     ]
@@ -811,7 +811,7 @@ def main() -> None:
 
     # Example 11: Railway Pattern Pipeline
     cli.print("\n11. Railway Pattern Pipeline (complete workflow):", style="bold cyan")
-    pipeline_input: t.JsonDict = {
+    pipeline_input: dict[str, t.JsonValue] = {
         "name": "pipeline_demo",
         "version": "1.0",
         "items": [

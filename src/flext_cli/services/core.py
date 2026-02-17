@@ -1064,7 +1064,7 @@ class FlextCliCore(FlextCliServiceBase):
         """Get comprehensive service information.
 
         Returns:
-            t.JsonDict: Service information (matches FlextService signature)
+            dict[str, t.JsonValue]: Service information (matches FlextService signature)
 
         """
         try:

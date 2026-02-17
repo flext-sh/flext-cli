@@ -52,7 +52,7 @@ class FlextCliGettingStarted:
     # PATTERN 2: Display data as tables
     # ============================================================================
 
-    def display_user_data(self, user: t.JsonDict) -> None:
+    def display_user_data(self, user: dict[str, t.JsonValue]) -> None:
         """Show how to display YOUR data as a table."""
         # Your data (from database, API, etc.)
         # Create table from user data
@@ -69,7 +69,7 @@ class FlextCliGettingStarted:
     # PATTERN 3: File I/O with error handling
     # ============================================================================
 
-    def save_config(self, config: t.JsonDict, filepath: str) -> bool:
+    def save_config(self, config: dict[str, t.JsonValue], filepath: str) -> bool:
         """Save YOUR config to JSON with proper error handling."""
         write_result = self.cli.file_tools.write_json_file(
             filepath,
