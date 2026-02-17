@@ -221,7 +221,7 @@ class TestsCliOutput:
                 parsed = yaml.safe_load(formatted)
                 tm.that(parsed, is_=(dict, list))
             elif format_type == c.Cli.OutputFormats.CSV.value:
-                tm.that(formatted, contains=",") or tm.that(formatted, empty=False)
+                tm.that(formatted, has=",") or tm.that(formatted, empty=False)
             elif format_type in {
                 c.Cli.OutputFormats.TABLE.value,
                 c.Cli.OutputFormats.PLAIN.value,
@@ -260,7 +260,7 @@ class TestsCliOutput:
         transform_result = u.transform(sample_data, to_json=True)
         json_value = transform_result.map_or(sample_data)
         result = output.format_data(json_value, "csv")
-        tm.ok(result, is_=str, contains=",")
+        tm.ok(result, is_=str, has=",")
 
     def test_output_format_data_invalid_format(
         self,
@@ -277,7 +277,7 @@ class TestsCliOutput:
         json_value = transform_result.map_or(sample_data)
         result = output.format_data(json_value, "invalid_format")
         # Should fail at validation stage (before _dispatch_formatter)
-        tm.fail(result, contains="format")
+        tm.fail(result, has="format")
 
     def test_dispatch_formatter_unsupported_format(
         self,
@@ -299,7 +299,7 @@ class TestsCliOutput:
             None,
             None,
         )
-        tm.fail(result, contains="format")
+        tm.fail(result, has="format")
 
     def test_format_table_data_empty_list(self, output: FlextCliOutput) -> None:
         """Test _format_table_data with empty list (line 178).
@@ -308,7 +308,7 @@ class TestsCliOutput:
         """
         # format_data with empty list should fail
         result = output.format_data([], "table")
-        tm.fail(result, contains="data")
+        tm.fail(result, has="data")
 
     def test_format_table_data_list_not_all_dicts(self, output: FlextCliOutput) -> None:
         """Test _format_table_data with list containing non-dict items (line 182).
@@ -323,7 +323,7 @@ class TestsCliOutput:
             {"another": "dict"},
         ]
         result = output.format_data(data, "table")
-        tm.fail(result, error="dict")
+        tm.fail(result, has="dict")
 
     def test_output_create_formatter(self, output: FlextCliOutput) -> None:
         """Test creating formatter."""
@@ -590,7 +590,7 @@ class TestsCliOutput:
         assert result.error is not None
         tm.that(
             result.error or "",
-            contains="Table format requires",
+            has="Table format requires",
             is_=str,
             none=False,
         )
@@ -626,7 +626,7 @@ class TestsCliOutput:
         assert result.is_failure
         assert result.error is not None
         assert isinstance(result.error, str)
-        tm.that(result.error or "", contains="Table format requires")
+        tm.that(result.error or "", has="Table format requires")
 
     def test_output_custom_format(
         self,
@@ -1262,7 +1262,9 @@ class TestsCliOutput:
         """Test create_rich_table with invalid data types."""
         # Test with data that may cause issues
         # Type narrowing: list[dict[str, None | list]] is compatible with list[dict[str, t.GeneralValueType]]
-        raw_data: list[dict[str, list[t.GeneralValueType] | None]] = [{"key": None, "value": []}]
+        raw_data: list[dict[str, list[t.GeneralValueType] | None]] = [
+            {"key": None, "value": []}
+        ]
         data: list[dict[str, t.GeneralValueType]] = []
         for d in raw_data:
             if isinstance(d, dict):
@@ -1432,7 +1434,7 @@ class TestsCliOutput:
         """Test format_table when data is not dict or list (line 668)."""
         # Pass a string which is neither dict nor list
         result = output.format_table("not a dict or list")
-        tm.fail(result, contains="Table format requires")
+        tm.fail(result, has="Table format requires")
 
     def test_format_table_with_empty_dict(self, output: FlextCliOutput) -> None:
         """Test format_table with empty dictionary."""
@@ -2125,4 +2127,4 @@ class TestsCliOutput:
         # Exception is caught and reported as failure
         result = output.format_csv(data)
         # Should fail - exception during row processing causes CSV formatting to fail
-        tm.fail(result, error=row_error_msg)
+        tm.fail(result, has=row_error_msg)

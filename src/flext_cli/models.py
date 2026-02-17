@@ -92,6 +92,10 @@ class FlextCliModels(FlextModels):
         # Elas vêm automaticamente via herança: FlextCliModels(FlextModels)
         # APENAS declarar modelos CLI-ESPECÍFICOS que estendem as bases
 
+        @staticmethod
+        def execute() -> r[dict[str, t.GeneralValueType]]:
+            return r[dict[str, t.GeneralValueType]].ok({})
+
         class TableConfig(FlextModels.Value):
             """Table display configuration for tabulate extending Value via inheritance.
 

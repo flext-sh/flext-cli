@@ -332,7 +332,9 @@ class TestsCliUtilities:
     @pytest.mark.parametrize(
         "test_case",
         ValidationTestFactory.create_cli_validation_cases(),
-        ids=lambda case: f"{case.validation_type.value}_{'success' if case.expected_result else 'failure'}",
+        ids=lambda case: (
+            f"{case.validation_type.value}_{'success' if case.expected_result else 'failure'}"
+        ),
     )
     def test_cli_validation_comprehensive(self, test_case: ValidationTestCase) -> None:
         """Test comprehensive CLI validation using parametrized cases."""
@@ -981,7 +983,13 @@ class TestsCliUtilities:
 
         @staticmethod
         def get_parse_mapping_cases() -> list[
-            tuple[str, type[StrEnum], dict[str, str], bool, dict[str, t.GeneralValueType] | None]
+            tuple[
+                str,
+                type[StrEnum],
+                dict[str, str],
+                bool,
+                dict[str, t.GeneralValueType] | None,
+            ]
         ]:
             """Get parametrized test cases for Collection.parse_mapping."""
 
@@ -1067,7 +1075,8 @@ class TestsCliUtilities:
         """Test Collection.parse_mapping using advanced parametrization - reduces 20+ lines."""
         result = u.Collection.parse_mapping(enum_class, mapping)
         if should_succeed:
-            tm.ok(result, eq=expected)
+            parsed_mapping = tm.ok(result)
+            assert parsed_mapping == expected
         else:
             tm.fail(result)
 

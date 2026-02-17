@@ -306,7 +306,7 @@ class TestsCliPrompts:
         prompts = self.Fixtures.create_quiet_prompts()
         result = prompts.prompt_text("simple")
         assert isinstance(result, FlextResult)
-        tm.fail(result, contains="no default provided")
+        tm.fail(result, has="no default provided")
 
     def test_prompt_text_interactive_mode(
         self,
@@ -387,7 +387,7 @@ class TestsCliPrompts:
             "choose",
             c.TWO,
         )
-        tm.fail(result, contains="Interactive mode disabled")
+        tm.fail(result, has="Interactive mode disabled")
 
     def test_prompt_choice_interactive_mode(
         self,
@@ -431,7 +431,7 @@ class TestsCliPrompts:
         """Test prompt_password in non-interactive mode fails."""
         prompts = self.Fixtures.create_quiet_prompts()
         result = prompts.prompt_password(c.TestData.PASSWORD)
-        tm.fail(result, contains="Interactive mode disabled")
+        tm.fail(result, has="Interactive mode disabled")
 
     def test_prompt_password_min_length(self) -> None:
         """Test prompt_password with min_length validation."""
@@ -495,7 +495,7 @@ class TestsCliPrompts:
             "choose",
         )
         assert isinstance(result, FlextResult)
-        tm.fail(result, contains="options")
+        tm.fail(result, has="options")
 
     def test_select_from_options_history_tracking(
         self,

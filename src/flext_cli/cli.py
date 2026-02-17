@@ -562,8 +562,7 @@ class FlextCliCli:
     def _build_config_getters(
         kwargs: Mapping[str, t.GeneralValueType],
     ) -> tuple[Callable[[str, bool], bool], Callable[[str, str], str]]:
-
-        def get_bool_val(k: str, default: bool = False) -> bool:  # noqa: FBT001, FBT002
+        def get_bool_val(k: str, default: bool = False) -> bool:
             val = u.mapper().get(kwargs, k)
             if val is None or (isinstance(val, str) and (not val)):
                 return default

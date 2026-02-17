@@ -488,7 +488,9 @@ def main() -> None:
             invalid_args,
             to_json=True,
         )
-        typed_invalid_args: dict[str, t.JsonValue] = transform_result.map_or(invalid_args)
+        typed_invalid_args: dict[str, t.JsonValue] = transform_result.map_or(
+            invalid_args
+        )
 
         # DeployConfig constructor handles type conversion and validation
         # Cast JsonValue types to specific types expected by DeployConfig
