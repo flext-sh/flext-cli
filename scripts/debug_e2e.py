@@ -37,7 +37,9 @@ class FlextCliDebugE2E:
         self.logger = logging.getLogger(__name__)
 
         # Define test operations using collections.abc.Mapping for O(1) lookup
-        self.operations: dict[tuple[str, str], Callable[[FlextCli], r[list[str] | bool | Mapping[str, str]]]] = {
+        self.operations: dict[
+            tuple[str, str], Callable[[FlextCli], r[list[str] | bool | dict[str, str]]]
+        ] = {
             ("config", "show"): lambda cli: cli.cmd.show_config_paths(),
             ("config", "validate"): lambda cli: cli.cmd.validate_config(),
             ("auth", "status"): self._execute_auth_status,

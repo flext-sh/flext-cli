@@ -213,7 +213,9 @@ class TestsCliCore:
             assert result.is_success
             assert result.value == test_config
 
-        def test_update_configuration_with_valid_config(self, core_service: FlextCliCore) -> None:
+        def test_update_configuration_with_valid_config(
+            self, core_service: FlextCliCore
+        ) -> None:
             """Test configuration update with valid input.
 
             Business Rule:
@@ -384,8 +386,9 @@ class TestsCliCore:
                 # get_command returns m.Configuration, access .config for dict
                 assert hasattr(command_def, "config")
                 config_dict = command_def.config
-                assert isinstance(config_dict, dict)
-                assert config_dict.get("name") == "test-cmd"
+                raw = config_dict.root if hasattr(config_dict, "root") else config_dict
+                assert isinstance(raw, dict)
+                assert raw.get("name") == "test-cmd"
 
         def test_get_command_info_nonexistent(self, core_service: FlextCliCore) -> None:
             """Test getting info for nonexistent command."""
@@ -543,8 +546,9 @@ class TestsCliCore:
                 # get_command returns m.Configuration, access .config for dict
                 assert hasattr(command_def, "config")
                 config_dict = command_def.config
-                assert isinstance(config_dict, dict)
-                assert config_dict.get("command_line") == "workflow-test --flag value"
+                raw = config_dict.root if hasattr(config_dict, "root") else config_dict
+                assert isinstance(raw, dict)
+                assert raw.get("command_line") == "workflow-test --flag value"
 
         def test_configuration_update_workflow(
             self,
@@ -553,7 +557,13 @@ class TestsCliCore:
             """Test configuration update/get workflow."""
             original_config: dict[
                 str,
-                str | int | float | bool | dict[str, t.GeneralValueType] | list[t.GeneralValueType] | None,
+                str
+                | int
+                | float
+                | bool
+                | dict[str, t.GeneralValueType]
+                | list[t.GeneralValueType]
+                | None,
             ] = {
                 "debug": True,
                 "output_format": "json",
@@ -1075,6 +1085,7 @@ class TestsCliCore:
 
         def test_list_commands_exception(self, core_service: FlextCliCore) -> None:
             """Test list_commands exception."""
+
             # Use BadDict that fails on keys() but works on len() (which is called by logger)
             class BadDict(UserDict[str, t.GeneralValueType]):
                 def keys(self) -> Never:

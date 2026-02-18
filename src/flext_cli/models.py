@@ -94,6 +94,7 @@ class FlextCliModels(FlextModels):
 
         @staticmethod
         def execute() -> r[dict[str, t.GeneralValueType]]:
+            """Execute a no-op command returning an empty result."""
             return r[dict[str, t.GeneralValueType]].ok({})
 
         class TableConfig(FlextModels.Value):
