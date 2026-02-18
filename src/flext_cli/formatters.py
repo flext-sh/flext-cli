@@ -10,7 +10,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping
 from io import StringIO
 
 from flext_core import FlextRuntime, r
@@ -66,7 +65,7 @@ class FlextCliFormatters:
         # Use Rich directly (formatters.py is ONE OF TWO files that may import Rich)
         self.console = Console()
 
-    def execute(self) -> r[Mapping[str, t.GeneralValueType]]:
+    def execute(self) -> r[dict[str, t.GeneralValueType]]:
         """Execute service - required by FlextService."""
         return r[dict[str, t.GeneralValueType]].ok({
             c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.OPERATIONAL.value,

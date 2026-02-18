@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import csv
 import json
-from collections.abc import Callable, Iterable, Mapping, Sequence
+from collections.abc import Callable, Iterable, Sequence
 from io import StringIO
 from typing import ClassVar, TypeGuard
 
@@ -132,7 +132,7 @@ class FlextCliOutput:
 
     @staticmethod
     def get_keys(
-        d: Mapping[str, t.GeneralValueType] | t.GeneralValueType,
+        d: dict[str, t.GeneralValueType] | t.GeneralValueType,
     ) -> list[str]:
         """Extract keys from dict using build DSL.
 
@@ -159,7 +159,7 @@ class FlextCliOutput:
         # Business Rule: Dict keys MUST be extracted using list() constructor (Python 3.13+)
         # Architecture: Direct list() conversion is type-safe and efficient
         # Audit Implication: Key extraction is deterministic and safe
-        if isinstance(d_dict, Mapping):
+        if isinstance(d_dict, dict):
             return list(d_dict.keys())
         return []
 
@@ -234,7 +234,7 @@ class FlextCliOutput:
 
     @staticmethod
     def get_map_val(
-        m: Mapping[str, t.GeneralValueType],
+        m: dict[str, t.GeneralValueType],
         k: str,
         default: t.GeneralValueType,
     ) -> t.GeneralValueType:
@@ -1825,7 +1825,7 @@ class FlextCliOutput:
             )
 
         # Use build() DSL: process → kv_pair → ensure dict → extract values → ensure list
-        def kv_pair(k: str, v: t.GeneralValueType) -> Mapping[str, t.GeneralValueType]:
+        def kv_pair(k: str, v: t.GeneralValueType) -> dict[str, t.GeneralValueType]:
             """Create key-value pair dict."""
             return {
                 c.Cli.OutputFieldNames.KEY: k,

@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from typing import Protocol, Self, runtime_checkable
 
@@ -284,7 +284,7 @@ class FlextCliCommands(FlextCliServiceBase):
         self,
         name: str,
         description: str = "",
-        commands: Mapping[str, CommandEntry] | None = None,
+        commands: dict[str, CommandEntry] | None = None,
     ) -> r[CommandGroup]:
         """Create a command group.
 

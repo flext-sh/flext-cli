@@ -15,7 +15,6 @@ import pathlib
 import platform
 import sys
 import tempfile
-from collections.abc import Mapping
 from typing import override
 
 from flext_core import r
@@ -158,7 +157,7 @@ class FlextCliDebug(FlextCliServiceBase):
             )
 
     @staticmethod
-    def test_connectivity() -> r[Mapping[str, str]]:
+    def test_connectivity() -> r[dict[str, str]]:
         """Test basic connectivity and service status."""
         try:
             connectivity_info = {
@@ -169,16 +168,16 @@ class FlextCliDebug(FlextCliServiceBase):
                 FlextCliConstants.Cli.DictKeys.SERVICE: str(FlextCliDebug),
                 FlextCliConstants.Cli.DebugDictKeys.CONNECTIVITY: FlextCliConstants.Cli.ServiceStatus.OPERATIONAL.value,
             }
-            return r[Mapping[str, str]].ok(connectivity_info)
+            return r[dict[str, str]].ok(connectivity_info)
         except Exception as e:
-            return r[Mapping[str, str]].fail(
+            return r[dict[str, str]].fail(
                 FlextCliConstants.Cli.DebugErrorMessages.CONNECTIVITY_TEST_FAILED.format(
                     error=e,
                 ),
             )
 
     @staticmethod
-    def execute_health_check() -> r[Mapping[str, t.GeneralValueType]]:
+    def execute_health_check() -> r[dict[str, t.GeneralValueType]]:
         """Execute comprehensive health check."""
         try:
             health_info: dict[str, t.GeneralValueType] = {
@@ -192,9 +191,9 @@ class FlextCliDebug(FlextCliServiceBase):
                 ),
                 FlextCliConstants.Cli.DebugDictKeys.CHECKS_PASSED: True,
             }
-            return r[Mapping[str, t.GeneralValueType]].ok(health_info)
+            return r[dict[str, t.GeneralValueType]].ok(health_info)
         except Exception as e:
-            return r[Mapping[str, t.GeneralValueType]].fail(
+            return r[dict[str, t.GeneralValueType]].fail(
                 FlextCliConstants.Cli.DebugErrorMessages.HEALTH_CHECK_FAILED.format(
                     error=e,
                 ),
@@ -203,7 +202,7 @@ class FlextCliDebug(FlextCliServiceBase):
     @staticmethod
     def execute_trace(
         args: list[str],
-    ) -> r[Mapping[str, t.GeneralValueType]]:
+    ) -> r[dict[str, t.GeneralValueType]]:
         """Execute trace operation with provided arguments."""
         try:
             trace_info: dict[str, t.GeneralValueType] = {
@@ -217,15 +216,15 @@ class FlextCliDebug(FlextCliServiceBase):
                     "id",
                 ),
             }
-            return r[Mapping[str, t.GeneralValueType]].ok(trace_info)
+            return r[dict[str, t.GeneralValueType]].ok(trace_info)
         except Exception as e:
-            return r[Mapping[str, t.GeneralValueType]].fail(
+            return r[dict[str, t.GeneralValueType]].fail(
                 FlextCliConstants.Cli.DebugErrorMessages.TRACE_EXECUTION_FAILED.format(
                     error=e,
                 ),
             )
 
-    def get_debug_info(self) -> r[Mapping[str, t.GeneralValueType]]:
+    def get_debug_info(self) -> r[dict[str, t.GeneralValueType]]:
         """Get comprehensive debug information."""
         try:
             system_info_model = self._get_system_info()
@@ -257,15 +256,15 @@ class FlextCliDebug(FlextCliServiceBase):
                 FlextCliConstants.Cli.DebugDictKeys.ENVIRONMENT_INFO: environment_info_json,
                 FlextCliConstants.Cli.DebugDictKeys.CONNECTIVITY_STATUS: FlextCliConstants.Cli.ServiceStatus.CONNECTED.value,
             }
-            return r[Mapping[str, t.GeneralValueType]].ok(debug_info)
+            return r[dict[str, t.GeneralValueType]].ok(debug_info)
         except Exception as e:
-            return r[Mapping[str, t.GeneralValueType]].fail(
+            return r[dict[str, t.GeneralValueType]].fail(
                 FlextCliConstants.Cli.DebugErrorMessages.DEBUG_INFO_COLLECTION_FAILED.format(
                     error=e,
                 ),
             )
 
-    def get_system_info(self) -> r[Mapping[str, t.GeneralValueType]]:
+    def get_system_info(self) -> r[dict[str, t.GeneralValueType]]:
         """Get system information - public API method."""
         try:
             info_model = self._get_system_info()
@@ -274,15 +273,15 @@ class FlextCliDebug(FlextCliServiceBase):
                     info_model,
                 )
             )
-            return r[Mapping[str, t.GeneralValueType]].ok(info_dict)
+            return r[dict[str, t.GeneralValueType]].ok(info_dict)
         except Exception as e:
-            return r[Mapping[str, t.GeneralValueType]].fail(
+            return r[dict[str, t.GeneralValueType]].fail(
                 FlextCliConstants.Cli.DebugErrorMessages.SYSTEM_INFO_COLLECTION_FAILED.format(
                     error=e,
                 ),
             )
 
-    def get_system_paths(self) -> r[Mapping[str, t.GeneralValueType]]:
+    def get_system_paths(self) -> r[dict[str, t.GeneralValueType]]:
         """Get system path information - public API method."""
         try:
             paths_data = self._get_path_info()
@@ -303,9 +302,9 @@ class FlextCliDebug(FlextCliServiceBase):
             paths_dict: dict[str, t.GeneralValueType] = {
                 "paths": serialized_paths,
             }
-            return r[Mapping[str, t.GeneralValueType]].ok(paths_dict)
+            return r[dict[str, t.GeneralValueType]].ok(paths_dict)
         except Exception as e:
-            return r[Mapping[str, t.GeneralValueType]].fail(
+            return r[dict[str, t.GeneralValueType]].fail(
                 FlextCliConstants.Cli.DebugErrorMessages.SYSTEM_PATHS_COLLECTION_FAILED.format(
                     error=e,
                 ),

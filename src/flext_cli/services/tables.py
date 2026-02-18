@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Sequence
 
 from flext_core import FlextResult as r
 from tabulate import tabulate
@@ -234,7 +234,7 @@ class FlextCliTables(FlextCliServiceBase):
         if isinstance(data, (list, tuple)):
             data_list: list[t.GeneralValueType] = list(data)
             data_as_general: t.GeneralValueType = data_list
-        elif isinstance(data, Mapping):
+        elif isinstance(data, dict):
             data_list = []
             data_as_general = data
         else:
@@ -244,7 +244,7 @@ class FlextCliTables(FlextCliServiceBase):
         if (
             isinstance(data_as_general, (list, tuple))
             and data_list
-            and isinstance(data_list[0], (dict, Mapping))
+            and isinstance(data_list[0], (dict, dict))
             and isinstance(
                 headers,
                 (list, tuple),
@@ -273,7 +273,7 @@ class FlextCliTables(FlextCliServiceBase):
 
         # If headers="keys", count from data
         if headers == "keys":
-            if isinstance(data, Mapping):
+            if isinstance(data, dict):
                 return len(data)
             # Check if data is sequence with at least one element
             if (
@@ -282,7 +282,7 @@ class FlextCliTables(FlextCliServiceBase):
                 and len(data) > 0
             ):
                 first_row = data[0]
-                if isinstance(first_row, (Mapping, Sequence)) and not isinstance(
+                if isinstance(first_row, (dict, Sequence)) and not isinstance(
                     first_row,
                     str,
                 ):

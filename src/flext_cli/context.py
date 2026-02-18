@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import uuid
-from collections.abc import Mapping
 from datetime import UTC, datetime
 
 from flext_core import FlextResult as r
@@ -344,7 +343,7 @@ class FlextCliContext(BaseModel):
             )
         )
 
-    def to_dict(self) -> r[Mapping[str, t.GeneralValueType]]:
+    def to_dict(self) -> r[dict[str, t.GeneralValueType]]:
         """Convert context to dictionary."""
         for field_val, err_msg in [
             (
@@ -358,7 +357,7 @@ class FlextCliContext(BaseModel):
         ]:
             check = FlextCliContext._ensure_initialized(field_val, err_msg)
             if check.is_failure:
-                return r[Mapping[str, t.GeneralValueType]].fail(check.error or "")
+                return r[dict[str, t.GeneralValueType]].fail(check.error or "")
         k = c.Cli.ContextDictKeys
         result: dict[str, t.GeneralValueType] = {
             k.ID: self.id,
@@ -371,7 +370,7 @@ class FlextCliContext(BaseModel):
             k.CREATED_AT: self.created_at,
             k.TIMEOUT_SECONDS: self.timeout_seconds,
         }
-        return r[Mapping[str, t.GeneralValueType]].ok(result)
+        return r[dict[str, t.GeneralValueType]].ok(result)
 
 
 __all__ = ["FlextCliContext"]

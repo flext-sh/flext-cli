@@ -10,7 +10,6 @@ import importlib
 import json
 import os
 import shutil
-from collections.abc import Mapping
 from pathlib import Path
 from typing import Annotated, ClassVar, Self
 
@@ -276,7 +275,7 @@ class FlextCliSettings(FlextSettings):
                 em.FAILED_LOAD_CONFIG_FROM_FILE.format(file=config_file, error=e)
             )
 
-    def execute_service(self) -> r[Mapping[str, t.GeneralValueType]]:
+    def execute_service(self) -> r[dict[str, t.GeneralValueType]]:
         """Execute config as service operation."""
         config_dict = u.transform(self.model_dump(), to_json=True).map_or(
             self.model_dump()
@@ -347,14 +346,14 @@ class FlextCliSettings(FlextSettings):
         except Exception as e:
             return r[dict[str, t.GeneralValueType]].fail(f"Validation failed: {e}")
 
-    def load_config(self) -> r[Mapping[str, t.GeneralValueType]]:
+    def load_config(self) -> r[dict[str, t.GeneralValueType]]:
         """Load CLI configuration — implements CliConfigProvider protocol."""
         try:
             raw = self.model_dump()
             config_dict = u.transform(raw, to_json=True).map_or(raw)
-            return r[Mapping[str, t.GeneralValueType]].ok(config_dict)
+            return r[dict[str, t.GeneralValueType]].ok(config_dict)
         except Exception as e:
-            return r[Mapping[str, t.GeneralValueType]].fail(
+            return r[dict[str, t.GeneralValueType]].fail(
                 c.Cli.ErrorMessages.CONFIG_LOAD_FAILED_MSG.format(error=e)
             )
 

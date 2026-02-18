@@ -15,7 +15,7 @@ from __future__ import annotations
 import logging
 import shutil
 import typing as pytyping
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import IO, Annotated, Literal, TypeGuard
 
@@ -315,7 +315,7 @@ class FlextCliCli:
 
     def _build_typed_value(
         self,
-        kwargs: Mapping[str, t.GeneralValueType],
+        kwargs: dict[str, t.GeneralValueType],
         key: str,
         type_name: Literal["bool", "str"],
         default: t.GeneralValueType,
@@ -560,7 +560,7 @@ class FlextCliCli:
 
     @staticmethod
     def _build_config_getters(
-        kwargs: Mapping[str, t.GeneralValueType],
+        kwargs: dict[str, t.GeneralValueType],
     ) -> tuple[Callable[[str, bool], bool], Callable[[str, str], str]]:
         def get_bool_val(k: str, default: bool = False) -> bool:  # noqa: FBT001, FBT002
             val = u.mapper().get(kwargs, k)
@@ -590,7 +590,7 @@ class FlextCliCli:
 
     @staticmethod
     def _build_prompt_or_confirm_config(
-        kind: Literal["confirm", "prompt"], kwargs: Mapping[str, t.GeneralValueType]
+        kind: Literal["confirm", "prompt"], kwargs: dict[str, t.GeneralValueType]
     ) -> ConfirmConfig | m.Cli.PromptConfig:
         get_bool_val, get_str_val = FlextCliCli._build_config_getters(kwargs)
         if kind == "confirm":
@@ -620,7 +620,7 @@ class FlextCliCli:
 
     @staticmethod
     def _build_confirm_config_from_kwargs(
-        kwargs: Mapping[str, t.GeneralValueType],
+        kwargs: dict[str, t.GeneralValueType],
     ) -> ConfirmConfig:
         result = FlextCliCli._build_prompt_or_confirm_config("confirm", kwargs)
         if not isinstance(result, ConfirmConfig):
@@ -663,7 +663,7 @@ class FlextCliCli:
 
     @staticmethod
     def _build_prompt_config_from_kwargs(
-        kwargs: Mapping[str, t.GeneralValueType],
+        kwargs: dict[str, t.GeneralValueType],
     ) -> m.Cli.PromptConfig:
         result = FlextCliCli._build_prompt_or_confirm_config("prompt", kwargs)
         if not isinstance(result, m.Cli.PromptConfig):
@@ -786,7 +786,7 @@ class FlextCliCli:
         ).build()
 
     @staticmethod
-    def execute() -> r[Mapping[str, t.GeneralValueType]]:
+    def execute() -> r[dict[str, t.GeneralValueType]]:
         """Execute the CLI."""
         return r[dict[str, t.GeneralValueType]].ok({
             c.Cli.DictKeys.SERVICE: c.Cli.FLEXT_CLI,

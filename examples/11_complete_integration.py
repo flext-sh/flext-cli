@@ -25,7 +25,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import tempfile
-from collections.abc import Mapping
 from pathlib import Path
 
 from flext_cli import FlextCli, FlextCliPrompts, r, t, u
@@ -106,7 +105,7 @@ class DataManagerCLI:
         )
         return r[dict[str, t.JsonValue]].ok(converted_data)
 
-    def display_data(self, data: Mapping[str, t.GeneralValueType]) -> None:
+    def display_data(self, data: dict[str, t.GeneralValueType]) -> None:
         """Display data as formatted table."""
         if not data:
             self.cli.output.print_message("⚠️  No data to display", style="yellow")

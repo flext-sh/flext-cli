@@ -9,7 +9,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping
 from datetime import UTC, datetime
 from typing import override
 
@@ -116,7 +115,7 @@ class FlextCliCore(FlextCliServiceBase):
 
     def __init__(
         self,
-        config: Mapping[str, t.GeneralValueType] | None = None,
+        config: dict[str, t.GeneralValueType] | None = None,
     ) -> None:
         """Initialize CLI core with optional configuration seed values.
 
@@ -165,7 +164,7 @@ class FlextCliCore(FlextCliServiceBase):
         object.__setattr__(self, "_cache_stats", self._CacheStats())
 
         # Type narrowing: is_dict_like ensures config is dict-like
-        config_dict: Mapping[str, t.GeneralValueType] | None = (
+        config_dict: dict[str, t.GeneralValueType] | None = (
             config if u.is_type(config, "mapping") else None
         )
         FlextLogger(__name__).debug(
@@ -417,7 +416,7 @@ class FlextCliCore(FlextCliServiceBase):
             return self._build_context_from_list(context_list)
         # After None and list[str] handling, context is dict[str, t.GeneralValueType]
         # Type system ensures context is Mapping at this point
-        if isinstance(context, Mapping):
+        if isinstance(context, dict):
             return dict(context)
         # Fallback for unexpected types (should not reach here with proper typing)
         return {}
@@ -546,7 +545,7 @@ class FlextCliCore(FlextCliServiceBase):
 
     def _validate_config_input(
         self,
-        config: Mapping[str, t.GeneralValueType],
+        config: dict[str, t.GeneralValueType],
     ) -> r[dict[str, t.GeneralValueType]]:
         """Validate input configuration for update operations."""
         if not config:
@@ -684,7 +683,7 @@ class FlextCliCore(FlextCliServiceBase):
 
     def update_configuration(
         self,
-        config: Mapping[str, t.GeneralValueType],
+        config: dict[str, t.GeneralValueType],
     ) -> r[bool]:
         """Update CLI configuration using railway pattern and functional composition.
 
@@ -1060,7 +1059,7 @@ class FlextCliCore(FlextCliServiceBase):
                 c.Cli.ErrorMessages.CLI_EXECUTION_ERROR.format(error=e),
             )
 
-    def get_service_info(self) -> Mapping[str, t.FlexibleValue]:
+    def get_service_info(self) -> dict[str, t.FlexibleValue]:
         """Get comprehensive service information.
 
         Returns:
@@ -1382,7 +1381,7 @@ class FlextCliCore(FlextCliServiceBase):
         result_dict: dict[str, t.GeneralValueType] = result_model.model_dump()
         return r[dict[str, t.GeneralValueType]].ok(result_dict)
 
-    def health_check(self) -> r[Mapping[str, t.GeneralValueType]]:
+    def health_check(self) -> r[dict[str, t.GeneralValueType]]:
         """Perform health check on the CLI service.
 
         Returns:
@@ -1399,11 +1398,11 @@ class FlextCliCore(FlextCliServiceBase):
                 c.Cli.DictKeys.TIMESTAMP: FlextCliUtilities.generate("timestamp"),
             })
         except Exception as e:
-            return r[Mapping[str, t.GeneralValueType]].fail(
+            return r[dict[str, t.GeneralValueType]].fail(
                 c.Cli.ErrorMessages.CLI_EXECUTION_ERROR.format(error=e),
             )
 
-    def get_config(self) -> r[Mapping[str, t.GeneralValueType]]:
+    def get_config(self) -> r[dict[str, t.GeneralValueType]]:
         """Get current service configuration.
 
         Returns:
@@ -1414,18 +1413,18 @@ class FlextCliCore(FlextCliServiceBase):
             # Type narrowing: self._cli_config is dict[str, t.GeneralValueType] - return as JsonDict
             # Fast-fail if config is empty - no fallback
             if not self._cli_config:
-                return r[Mapping[str, t.GeneralValueType]].fail(
+                return r[dict[str, t.GeneralValueType]].fail(
                     c.Cli.ErrorMessages.CONFIG_NOT_INITIALIZED,
                 )
-            return r[Mapping[str, t.GeneralValueType]].ok(self._cli_config)
+            return r[dict[str, t.GeneralValueType]].ok(self._cli_config)
         except Exception as e:
-            return r[Mapping[str, t.GeneralValueType]].fail(
+            return r[dict[str, t.GeneralValueType]].fail(
                 c.Cli.ErrorMessages.CONFIG_RETRIEVAL_FAILED.format(error=e),
             )
 
     @staticmethod
     def _get_dict_keys(
-        data_dict: Mapping[str, t.GeneralValueType] | None,
+        data_dict: dict[str, t.GeneralValueType] | None,
         error_message: str,
     ) -> r[list[str]]:
         """Generic method to safely get keys from a dictionary.

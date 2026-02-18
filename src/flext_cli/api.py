@@ -9,7 +9,7 @@ from __future__ import annotations
 import secrets
 import threading
 from abc import ABC
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable, Sequence
 from typing import ClassVar, TypeGuard
 
 from flext_core import (
@@ -164,7 +164,7 @@ class FlextCli:
         except ValueError as e:
             return r[bool].fail(str(e))
 
-    def authenticate(self, credentials: Mapping[str, str]) -> r[str]:
+    def authenticate(self, credentials: dict[str, str]) -> r[str]:
         """Authenticate user with provided credentials."""
         if c.Cli.DictKeys.TOKEN in credentials:
             return self._authenticate_with_token(credentials)
@@ -175,7 +175,7 @@ class FlextCli:
             return self._authenticate_with_credentials(credentials)
         return r[str].fail(c.Cli.ErrorMessages.INVALID_CREDENTIALS)
 
-    def _authenticate_with_token(self, credentials: Mapping[str, str]) -> r[str]:
+    def _authenticate_with_token(self, credentials: dict[str, str]) -> r[str]:
         """Authenticate using token."""
         token = str(credentials[c.Cli.DictKeys.TOKEN])
         validation = FlextCli._validate_token_string(token)
@@ -188,7 +188,7 @@ class FlextCli:
             )
         return r[str].ok(token)
 
-    def _authenticate_with_credentials(self, credentials: Mapping[str, str]) -> r[str]:
+    def _authenticate_with_credentials(self, credentials: dict[str, str]) -> r[str]:
         """Authenticate using Pydantic 2 validation."""
         try:
             PasswordAuth.model_validate(credentials)
@@ -381,7 +381,7 @@ class FlextCli:
         """Execute the CLI application."""
         return r[bool].ok(value=True)
 
-    def execute(self) -> r[Mapping[str, t.GeneralValueType]]:
+    def execute(self) -> r[dict[str, t.GeneralValueType]]:
         """Execute CLI service with railway pattern."""
         result_dict: dict[str, t.GeneralValueType] = {
             c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.OPERATIONAL.value,
@@ -403,8 +403,8 @@ class FlextCli:
 
     def create_table(
         self,
-        data: Mapping[str, t.GeneralValueType]
-        | Sequence[Mapping[str, t.GeneralValueType]]
+        data: dict[str, t.GeneralValueType]
+        | Sequence[dict[str, t.GeneralValueType]]
         | None,
         headers: list[str] | None = None,
         _title: str | None = None,
@@ -412,8 +412,8 @@ class FlextCli:
         """Create a formatted ASCII table."""
         if data is None:
             return r[str].fail("Table data cannot be None")
-        table_data: list[Mapping[str, t.GeneralValueType]] = (
-            [data] if isinstance(data, Mapping) else list(data)
+        table_data: list[dict[str, t.GeneralValueType]] = (
+            [data] if isinstance(data, dict) else list(data)
         )
         return FlextCliTables.create_table(
             table_data, headers=headers or "keys", table_format="simple"
