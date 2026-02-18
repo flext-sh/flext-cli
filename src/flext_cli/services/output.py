@@ -287,7 +287,7 @@ class FlextCliOutput:
 
     @staticmethod
     def _is_rich_table_protocol(
-        obj: t.GeneralValueType,
+        obj: object,
     ) -> TypeGuard[p.Cli.Display.RichTableProtocol]:
         """Type guard to check if object implements RichTableProtocol."""
         return (
@@ -298,7 +298,7 @@ class FlextCliOutput:
 
     @staticmethod
     def _is_rich_progress_protocol(
-        obj: t.GeneralValueType,
+        obj: object,
     ) -> TypeGuard[p.Cli.Interactive.RichProgressProtocol]:
         """Type guard to check if object implements RichProgressProtocol."""
         return (
@@ -310,14 +310,14 @@ class FlextCliOutput:
 
     @staticmethod
     def _is_rich_tree_protocol(
-        obj: t.GeneralValueType,
+        obj: object,
     ) -> TypeGuard[p.Cli.Display.RichTreeProtocol]:
         """Type guard to check if object implements RichTreeProtocol."""
         return hasattr(obj, "add") and hasattr(obj, "label")
 
     @staticmethod
     def _is_rich_console_protocol(
-        obj: t.GeneralValueType,
+        obj: object,
     ) -> TypeGuard[p.Cli.Display.RichConsoleProtocol]:
         """Type guard to check if object implements RichConsoleProtocol."""
         return hasattr(obj, "print") and hasattr(obj, "rule")
@@ -1520,8 +1520,8 @@ class FlextCliOutput:
         if isinstance(data, list):
             return data
         # Sequence types (tuple, Sequence) - includes str but handled as single value
-        if isinstance(data, (tuple, Sequence)) and not isinstance(data, str):
-            return list(data)
+        if isinstance(data, tuple):
+            return [self._normalize_iterable_item(item) for item in data]
         # Dict returns items
         if isinstance(data, dict):
             return list(data.items())
@@ -1617,7 +1617,7 @@ class FlextCliOutput:
         return [self._normalize_iterable_item(item) for item in data]
 
     @staticmethod
-    def _normalize_iterable_item(item: t.GeneralValueType) -> t.GeneralValueType:
+    def _normalize_iterable_item(item: object) -> t.GeneralValueType:
         """Normalize iterable items to general value type."""
         return (
             item

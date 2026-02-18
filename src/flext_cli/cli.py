@@ -219,7 +219,8 @@ class FlextCliCli:
             log_level=get_str("log_level"),
         )
         if result.is_failure:
-            FlextLogger.get_logger().warning(
+            logger = FlextLogger.create_module_logger("flext_cli.cli")
+            logger.warning(
                 f"Failed to apply CLI params: {result.error}"
             )
             return
@@ -636,7 +637,10 @@ class FlextCliCli:
     ) -> r[bool]:
         """Confirm action with user."""
         if config is None:
-            config_instance = FlextCliCli._build_confirm_config_from_kwargs(kwargs)
+            kwargs_typed: dict[str, t.GeneralValueType] = dict(kwargs)
+            config_instance = FlextCliCli._build_confirm_config_from_kwargs(
+                kwargs_typed,
+            )
             if not hasattr(config_instance, "default") or not hasattr(
                 config_instance, "abort"
             ):
@@ -776,7 +780,7 @@ class FlextCliCli:
             result = handler(model)
             if isinstance(result, r):
                 if result.is_success:
-                    return pytyping.cast("t.GeneralValueType", result.value)
+                    return result.value
                 msg = f"Handler failed: {result.error}"
                 raise ValueError(msg)
             return result

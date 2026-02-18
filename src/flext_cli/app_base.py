@@ -19,7 +19,7 @@ from abc import ABC, abstractmethod
 from typing import ClassVar
 
 import typer
-from flext_core import FlextLogger as l_core, e, r
+from flext_core import FlextLogger, e, r
 
 from flext_cli.cli import FlextCliCli, UsageError as ClickUsageError
 from flext_cli.services.output import FlextCliOutput
@@ -40,7 +40,7 @@ class FlextCliAppBase(ABC):
     config_class: ClassVar[type[FlextCliSettings]]
 
     # Instance attributes
-    logger: l_core
+    logger: FlextLogger
     _output: FlextCliOutput
     _cli: FlextCliCli
     _app: typer.Typer
@@ -49,7 +49,7 @@ class FlextCliAppBase(ABC):
     def __init__(self) -> None:
         """Initialize CLI with FlextCli infrastructure."""
         super().__init__()
-        self.logger = l_core(__name__)
+        self.logger = FlextLogger(__name__)
         self._output = FlextCliOutput()
         self._cli = FlextCliCli()
         self._config = self.config_class.get_instance()
@@ -82,7 +82,8 @@ class FlextCliAppBase(ABC):
     def _handle_pathlib_annotation_error(ne: NameError) -> None:
         """Handle Typer annotation issues with pathlib.Path in Python <3.10."""
         if "pathlib" in str(ne):
-            l_core.get_logger().warning(
+            logger = FlextLogger.create_module_logger("flext_cli.app_base")
+            logger.warning(
                 "Pathlib annotation issue detected during command registration",
                 error=str(ne),
                 python_version_note=(
@@ -118,7 +119,7 @@ class FlextCliAppBase(ABC):
         except NameError as name_err:
             if "pathlib" in str(name_err):
                 error_msg = f"CLI annotation evaluation error: {name_err!s}"
-                self._output.print_error(error_msg)
+                _ = self._output.print_error(error_msg)
                 return r[bool].fail(error_msg)
             raise
         except SystemExit as sys_exit:
@@ -130,7 +131,7 @@ class FlextCliAppBase(ABC):
         except Exception as exc:
             if isinstance(exc, ClickUsageError):
                 error_msg = f"CLI execution error: {exc!s}"
-                self._output.print_error(error_msg)
+                _ = self._output.print_error(error_msg)
                 return r[bool].fail(error_msg)
             # Business Rule: Exception handling MUST catch all FlextExceptions.BaseError types
             # Architecture: Use FlextExceptions.BaseError for flext-specific exceptions
@@ -149,6 +150,6 @@ class FlextCliAppBase(ABC):
             ):
                 tb = traceback.format_exc()
                 error_msg = f"CLI execution error: {exc!s}\nTraceback:\n{tb}"
-                self._output.print_error(error_msg)
+                _ = self._output.print_error(error_msg)
                 return r[bool].fail(f"CLI execution error: {exc!s}")
             raise

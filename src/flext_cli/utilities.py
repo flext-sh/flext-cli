@@ -196,7 +196,7 @@ class FlextCliUtilities(FlextUtilities):
                     in_list=c.Cli.ValidationLists.OUTPUT_FORMATS,
                 )
                 if valid.is_success:
-                    return cast("r[str]", r.ok(fmt))
+                    return r.ok(fmt)
                 return cast(
                     "r[str]",
                     r.fail(
@@ -245,7 +245,7 @@ class FlextCliUtilities(FlextUtilities):
                     )
                 missing = [name for name in fields if name not in data]
                 if not missing:
-                    return cast("r[bool]", r.ok(True))
+                    return r.ok(True)
                 return cast(
                     "r[bool]",
                     r.fail(

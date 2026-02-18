@@ -368,7 +368,7 @@ class FlextCliModels(FlextModels):
                 """Start command execution - update status to running."""
                 try:
                     updated = self.model_copy(update={"status": "running"})
-                    return pytyping.cast("r[Self]", r.ok(updated))
+                    return r.ok(updated)
                 except Exception as e:
                     return pytyping.cast(
                         "r[Self]", r.fail(f"Failed to start execution: {e}")
@@ -380,7 +380,7 @@ class FlextCliModels(FlextModels):
                     updated = self.model_copy(
                         update={"status": "completed", "exit_code": exit_code},
                     )
-                    return pytyping.cast("r[Self]", r.ok(updated))
+                    return r.ok(updated)
                 except Exception as e:
                     return pytyping.cast(
                         "r[Self]", r.fail(f"Failed to complete execution: {e}")
@@ -400,7 +400,7 @@ class FlextCliModels(FlextModels):
                         )
                     # Check instance first - early return avoids unreachable code
                     if isinstance(data, cls):
-                        return pytyping.cast("r[Self]", r.ok(data))
+                        return r.ok(data)
                     # Type narrowing: data is not cls instance
                     # Check if dict for model_validate
                     if not isinstance(data, dict):
@@ -412,7 +412,7 @@ class FlextCliModels(FlextModels):
                     data_dict: dict[str, t.GeneralValueType] = data
                     # Use model_validate for type-safe model creation from dict
                     command = cls.model_validate(data_dict)
-                    return pytyping.cast("r[Self]", r.ok(command))
+                    return r.ok(command)
                 except Exception as e:
                     return pytyping.cast("r[Self]", r.fail(f"Validation failed: {e}"))
 
@@ -525,7 +525,7 @@ class FlextCliModels(FlextModels):
                 try:
                     updated_commands = list(self.commands) + [command]
                     updated_session = self._copy_with_update(commands=updated_commands)
-                    return pytyping.cast("r[Self]", r.ok(updated_session))
+                    return r.ok(updated_session)
                 except Exception as e:
                     return pytyping.cast(
                         "r[Self]", r.fail(f"Failed to add command: {e}")
@@ -2043,9 +2043,7 @@ class FlextCliModels(FlextModels):
                         )
                     model_validate_method = model_cls.model_validate
                     model_instance = model_validate_method(cli_args_dict)
-                    return pytyping.cast(
-                        "FlextResult[BaseModel]", FlextResult.ok(model_instance)
-                    )
+                    return FlextResult.ok(model_instance)
                 except Exception as e:
                     return pytyping.cast(
                         "FlextResult[BaseModel]",
@@ -2108,10 +2106,7 @@ class FlextCliModels(FlextModels):
                             for field_name, field_info in model_cls.model_fields.items()
                         }
                         params_list = list(params_dict.values())
-                        return pytyping.cast(
-                            "FlextResult[list[p.Cli.CliParameterSpecProtocol]]",
-                            FlextResult.ok(params_list),
-                        )
+                        return FlextResult.ok(params_list)
                     except Exception as e:
                         return pytyping.cast(
                             "FlextResult[list[p.Cli.CliParameterSpecProtocol]]",
@@ -2167,9 +2162,7 @@ class FlextCliModels(FlextModels):
                     }
                     # Append dict directly - it's already GeneralValueType compatible
                     options.append(option_obj_dict)
-                return pytyping.cast(
-                    "FlextResult[list[t.GeneralValueType]]", FlextResult.ok(options)
-                )
+                return FlextResult.ok(options)
 
             @staticmethod
             def field_to_cli_param(
@@ -2468,10 +2461,7 @@ class FlextCliModels(FlextModels):
                             props,
                             field_info,
                         )
-                    return pytyping.cast(
-                        "FlextResult[dict[str, t.GeneralValueType]]",
-                        FlextResult.ok(props),
-                    )
+                    return FlextResult.ok(props)
                 except Exception as e:
                     return pytyping.cast(
                         "FlextResult[dict[str, t.GeneralValueType]]",
@@ -2511,7 +2501,7 @@ class FlextCliModels(FlextModels):
                                     f"Invalid {field_key}: {value} (expected {type_name})"
                                 ),
                             )
-                return pytyping.cast("FlextResult[bool]", FlextResult.ok(True))
+                return FlextResult.ok(True)
 
             @staticmethod
             def convert_field_value(
@@ -2589,10 +2579,7 @@ class FlextCliModels(FlextModels):
                                 "FlextResult[t.GeneralValueType]",
                                 FlextResult.fail(f"Field {field_name} not found"),
                             )
-                        return pytyping.cast(
-                            "FlextResult[t.GeneralValueType]",
-                            FlextResult.ok(data[field_name]),
-                        )
+                        return FlextResult.ok(data[field_name])
                     return pytyping.cast(
                         "FlextResult[t.GeneralValueType]",
                         FlextResult[t.GeneralValueType].fail(

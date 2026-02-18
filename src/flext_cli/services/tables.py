@@ -121,7 +121,7 @@ class FlextCliTables(FlextCliServiceBase):
 
     @staticmethod
     def create_table(
-        data: t.Cli.TableData,
+        data: t.Cli.TabularData,
         config: p.Cli.TableConfigProtocol | None = None,
         **config_kwargs: t.GeneralValueType,
     ) -> r[str]:
@@ -198,7 +198,7 @@ class FlextCliTables(FlextCliServiceBase):
 
     @staticmethod
     def _validate_table_data(
-        data: t.Cli.TableData,
+        data: t.Cli.TabularData,
         table_format: str,
     ) -> r[bool]:
         """Validate table data and format.
@@ -225,14 +225,16 @@ class FlextCliTables(FlextCliServiceBase):
 
     @staticmethod
     def _prepare_headers(
-        data: t.Cli.TableData,
+        data: t.Cli.TabularData,
         headers: str | Sequence[str],
     ) -> r[str | Sequence[str]]:
         """Prepare headers based on data type."""
         # For list of dicts with sequence headers, use "keys"
         # Type narrowing: data is Iterable, convert to list for is_list_like check
         if isinstance(data, (list, tuple)):
-            data_list: list[t.GeneralValueType] = list(data)
+            data_list: list[t.GeneralValueType] = [
+                u.Cast.to_general_value_type(row) for row in data
+            ]
             data_as_general: t.GeneralValueType = data_list
         elif isinstance(data, dict):
             data_list = []
@@ -258,7 +260,7 @@ class FlextCliTables(FlextCliServiceBase):
 
     def _calculate_column_count(
         self,
-        data: t.Cli.TableData,
+        data: t.Cli.TabularData,
         headers: str | Sequence[str],
     ) -> int:
         """Calculate number of columns based on headers and data type.
@@ -292,7 +294,7 @@ class FlextCliTables(FlextCliServiceBase):
 
     def _create_table_string(
         self,
-        data: t.Cli.TableData,
+        data: t.Cli.TabularData,
         cfg: m.Cli.TableConfig,
         headers: str | Sequence[str],
     ) -> r[str]:

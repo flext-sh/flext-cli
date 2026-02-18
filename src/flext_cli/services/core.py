@@ -9,6 +9,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from datetime import UTC, datetime
 from typing import override
 
@@ -1424,7 +1425,7 @@ class FlextCliCore(FlextCliServiceBase):
 
     @staticmethod
     def _get_dict_keys(
-        data_dict: dict[str, t.GeneralValueType] | None,
+        data_dict: Mapping[str, t.GeneralValueType] | None,
         error_message: str,
     ) -> r[list[str]]:
         """Generic method to safely get keys from a dictionary.
