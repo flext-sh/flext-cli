@@ -237,7 +237,9 @@ class FlextCliContext(BaseModel):
             },
         )
         return (
-            r[bool].ok(value=True) if result.is_success else r[bool].fail(result.error or "")
+            r[bool].ok(value=True)
+            if result.is_success
+            else r[bool].fail(result.error or "")
         )
 
     def add_argument(self, argument: str) -> r[bool]:
