@@ -1,5 +1,51 @@
 # Development Guide - flext-cli
 
+
+<!-- TOC START -->
+- [📌 Quick Navigation](#-quick-navigation)
+- [v0.10.0 Development Guidelines (Current)](#v0100-development-guidelines-current)
+  - [Overview](#overview)
+- [When to Use Each Pattern](#when-to-use-each-pattern)
+  - [Use FlextService When](#use-flextservice-when)
+  - [Use Simple Class When](#use-simple-class-when)
+  - [Use Value Object (Pydantic) When](#use-value-object-pydantic-when)
+- [Architecture Decision Flowchart](#architecture-decision-flowchart)
+- [Code Organization Guidelines](#code-organization-guidelines)
+  - [Module Structure](#module-structure)
+  - [Direct Access Pattern](#direct-access-pattern)
+- [Testing Guidelines (v0.10.0)](#testing-guidelines-v0100)
+  - [Test Organization](#test-organization)
+  - [Testing Simple Classes](#testing-simple-classes)
+  - [Testing Value Objects](#testing-value-objects)
+- [Contributing to v0.10.0](#contributing-to-v0100)
+  - [Implementation Checklist](#implementation-checklist)
+  - [Pull Request Guidelines](#pull-request-guidelines)
+- [v0.9.0 Development Guidelines (Historical Reference)](#v090-development-guidelines-historical-reference)
+- [Development Setup](#development-setup)
+  - [Prerequisites](#prerequisites)
+  - [Initial Setup](#initial-setup)
+- [Development Workflow](#development-workflow)
+  - [Essential Commands](#essential-commands)
+  - [Code Quality Standards](#code-quality-standards)
+- [Architecture Guidelines](#architecture-guidelines)
+  - [FLEXT Ecosystem Integration](#flext-ecosystem-integration)
+  - [Code Organization](#code-organization)
+- [Testing Guidelines](#testing-guidelines)
+  - [Test Structure](#test-structure)
+  - [Testing Patterns](#testing-patterns)
+  - [Test Commands](#test-commands)
+- [Contributing Guidelines](#contributing-guidelines)
+  - [Code Style](#code-style)
+  - [Pull Request Process](#pull-request-process)
+  - [Commit Messages](#commit-messages)
+- [Extension Development](#extension-development)
+  - [Adding New Commands](#adding-new-commands)
+  - [Custom Formatters](#custom-formatters)
+- [Debug and Troubleshooting](#debug-and-troubleshooting)
+  - [Common Issues](#common-issues)
+  - [Debug Commands](#debug-commands)
+<!-- TOC END -->
+
 **Contributing guidelines and development workflow for flext-cli.**
 
 **Last Updated**: 2025-01-24 | **Version**: 0.10.0

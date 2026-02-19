@@ -1,5 +1,50 @@
 # FLEXT-CLI v0.10.0 Refactoring Plan
 
+
+<!-- TOC START -->
+- [Table of Contents](#table-of-contents)
+- [Executive Summary](#executive-summary)
+  - [Purpose](#purpose)
+  - [Key Metrics](#key-metrics)
+  - [Benefits](#benefits)
+- [Current State Analysis (v0.9.0)](#current-state-analysis-v090)
+  - [What Works Well](#what-works-well)
+  - [Over-Engineering Identified](#over-engineering-identified)
+- [Target Architecture (v0.10.0)](#target-architecture-v0100)
+  - [Design Principles](#design-principles)
+  - [Module Classification](#module-classification)
+  - [Direct Access Pattern](#direct-access-pattern)
+  - [Architecture Diagram](#architecture-diagram)
+- [Detailed Changes](#detailed-changes)
+  - [Phase 1: Remove Duplication](#phase-1-remove-duplication)
+  - [Phase 2: Convert Services to Simple Classes](#phase-2-convert-services-to-simple-classes)
+  - [Phase 3: Fix FlextCliContext](#phase-3-fix-flextclicontext)
+  - [Phase 4: Remove API Wrappers](#phase-4-remove-api-wrappers)
+  - [Phase 5: Remove Unused Infrastructure](#phase-5-remove-unused-infrastructure)
+  - [Phase 6: Reorganize Tests](#phase-6-reorganize-tests)
+- [Implementation Plan](#implementation-plan)
+  - [Timeline Overview](#timeline-overview)
+  - [Detailed Steps](#detailed-steps)
+- [Risk Assessment](#risk-assessment)
+  - [Low Risk (High Confidence)](#low-risk-high-confidence)
+  - [Medium Risk (Moderate Confidence)](#medium-risk-moderate-confidence)
+  - [High Risk (Careful Attention Required)](#high-risk-careful-attention-required)
+  - [Rollback Strategy](#rollback-strategy)
+- [Success Criteria](#success-criteria)
+  - [Code Quality](#code-quality)
+  - [Architecture](#architecture)
+  - [Documentation](#documentation)
+  - [Testing](#testing)
+  - [User Experience](#user-experience)
+  - [Ecosystem](#ecosystem)
+- [Timeline](#timeline)
+  - [Week 1: Documentation & Planning](#week-1-documentation-planning)
+  - [Week 2: Core Refactoring](#week-2-core-refactoring)
+  - [Week 3: Test Reorganization & Polish](#week-3-test-reorganization-polish)
+  - [Week 4: Release & Support](#week-4-release-support)
+- [Conclusion](#conclusion)
+<!-- TOC END -->
+
 **Version**: 0.10.0
 **Date**: 2025-01-24
 **Status**: 📝 Planning Phase

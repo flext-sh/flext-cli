@@ -1,5 +1,22 @@
 # FLEXT-CLI v0.10.0 Refactoring Documentation
 
+
+<!-- TOC START -->
+- [📚 Documentation Index](#-documentation-index)
+  - [Planning & Strategy](#planning-strategy)
+  - [Implementation Guides](#implementation-guides)
+  - [User Resources](#user-resources)
+- [🎯 Overview](#-overview)
+  - [What Changed in v0.10.0](#what-changed-in-v0100)
+  - [Migration Timeline](#migration-timeline)
+  - [Support](#support)
+- [📖 Reading Order](#-reading-order)
+  - [For Users Migrating](#for-users-migrating)
+  - [For Contributors](#for-contributors)
+  - [For Maintainers](#for-maintainers)
+- [🚀 Quick Links](#-quick-links)
+<!-- TOC END -->
+
 This directory contains comprehensive documentation for the v0.10.0 refactoring, which simplifies the architecture and removes over-engineering.
 
 ## 📚 Documentation Index

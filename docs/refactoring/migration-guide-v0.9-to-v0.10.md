@@ -1,5 +1,51 @@
 # Migration Guide: v0.9.0 → v0.10.0
 
+
+<!-- TOC START -->
+- [Table of Contents](#table-of-contents)
+- [Overview](#overview)
+  - [What Changed](#what-changed)
+  - [Why These Changes](#why-these-changes)
+  - [Compatibility](#compatibility)
+- [Breaking Changes](#breaking-changes)
+  - [1. API Method Removal (Most Common Impact)](#1-api-method-removal-most-common-impact)
+  - [2. FlextCliContext Changes](#2-flextclicontext-changes)
+  - [3. Service Class Instantiation](#3-service-class-instantiation)
+  - [4. Test Utilities Moved](#4-test-utilities-moved)
+  - [5. Removed Modules](#5-removed-modules)
+- [Step-by-Step Migration](#step-by-step-migration)
+  - [Step 1: Update Imports (5 minutes)](#step-1-update-imports-5-minutes)
+  - [Step 2: Replace API Wrapper Calls (15-30 minutes)](#step-2-replace-api-wrapper-calls-15-30-minutes)
+  - [Step 3: Update Context Usage (5 minutes)](#step-3-update-context-usage-5-minutes)
+  - [Step 4: Run Tests (5-15 minutes)](#step-4-run-tests-5-15-minutes)
+  - [Step 5: Update Type Hints (If Needed)](#step-5-update-type-hints-if-needed)
+- [Quick Reference](#quick-reference)
+  - [Complete Method Mapping](#complete-method-mapping)
+  - [Services Reference](#services-reference)
+- [FAQ](#faq)
+  - [Q: Why remove wrapper methods](#q-why-remove-wrapper-methods)
+  - [Q: Will this break my code](#q-will-this-break-my-code)
+  - [Q: Can I use both old and new patterns](#q-can-i-use-both-old-and-new-patterns)
+  - [Q: How long does migration take](#q-how-long-does-migration-take)
+  - [Q: Is the migration tool available](#q-is-the-migration-tool-available)
+  - [Q: What if I have a large codebase](#q-what-if-i-have-a-large-codebase)
+  - [Q: Will there be more breaking changes](#q-will-there-be-more-breaking-changes)
+  - [Q: Can I stay on v0.9.0](#q-can-i-stay-on-v090)
+  - [Q: What about performance](#q-what-about-performance)
+  - [Q: Are there new features](#q-are-there-new-features)
+  - [Q: Where's the full changelog](#q-wheres-the-full-changelog)
+- [Examples](#examples)
+  - [Example 1: Simple CLI Application](#example-1-simple-cli-application)
+  - [Example 2: Data Processing Script](#example-2-data-processing-script)
+  - [Example 3: Context Usage](#example-3-context-usage)
+- [Getting Help](#getting-help)
+  - [Documentation](#documentation)
+  - [Support Channels](#support-channels)
+  - [Migration Assistance](#migration-assistance)
+  - [Reporting Problems](#reporting-problems)
+- [Summary](#summary)
+<!-- TOC END -->
+
 **Estimated Migration Time**: 30-60 minutes for typical projects
 
 > **📘 Quick Summary**: v0.10.0 introduces a **direct access pattern** and removes API wrapper methods. Instead of `cli.print()`, you now use `cli.formatters.print()`. This makes ownership clearer and the API simpler.

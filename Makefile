@@ -1,6 +1,10 @@
 # flext-cli - CLI Framework
 PROJECT_NAME := flext-cli
+ifneq ("$(wildcard ../base.mk)", "")
 include ../base.mk
+else
+include base.mk
+endif
 
 # === PROJECT-SPECIFIC TARGETS ===
 .PHONY: cli-test cli-auth cli-config cli-debug test-unit test-integration

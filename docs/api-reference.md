@@ -1,5 +1,19 @@
 # FLEXT CLI API Reference
 
+
+<!-- TOC START -->
+- [Imports essenciais](#imports-essenciais)
+- [Facade `FlextCli`](#facade-flextcli)
+  - [Métodos principais](#mtodos-principais)
+- [Base para aplicativos Typer (`FlextCliAppBase`)](#base-para-aplicativos-typer-flextcliappbase)
+- [Serviço `FlextCliCore`](#servio-flextclicore)
+- [Serviço `FlextCliCmd`](#servio-flextclicmd)
+- [Saída e exibição](#sada-e-exibio)
+- [Prompts interativos (`FlextCliPrompts`)](#prompts-interativos-flextcliprompts)
+- [I/O de arquivos (`FlextCliFileTools`)](#io-de-arquivos-flextclifiletools)
+- [Related Documentation](#related-documentation)
+<!-- TOC END -->
+
 Referência alinhada ao código-fonte do **flext-cli** 0.10.0. Última revisão: 2025-02-06.
 
 - **Facade**: `FlextCli` expõe serviços e utilidades como atributos e mantém wrappers de conveniência (`print`, `create_table`, `create_tree`).

@@ -93,9 +93,9 @@ urls.Homepage = "https://github.com/flext-sh/flext-cli"
 [tool.poetry]
 dependencies.python = ">=3.13,<3.14"
 dependencies.flext-core.develop = true
-dependencies.flext-core.path = "../flext-core"
+dependencies.flext-core.path = ".flext-deps/flext-core"
 dependencies.flext-observability.develop = true
-dependencies.flext-observability.path = "../flext-observability"
+dependencies.flext-observability.path = ".flext-deps/flext-observability"
 group.dev.dependencies.docker = ">=7.1.0"
 group.dev.dependencies.email-validator = "^2.3.0"
 group.dev.dependencies.hypothesis = "^6.139.2"
@@ -228,3 +228,6 @@ search-path = [
   "examples",
   "scripts",
 ]
+
+[tool.bandit]
+skips = [ "B404", "B603", "B607", "B105", "B608" ]

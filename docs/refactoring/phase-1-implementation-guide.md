@@ -1,5 +1,35 @@
 # Phase 1 Implementation Guide
 
+
+<!-- TOC START -->
+- [v0.10.0 Refactoring - Remove Duplication & Dead Code](#v0100-refactoring-remove-duplication-dead-code)
+- [Overview](#overview)
+- [Step 4: Delete validator.py ✅](#step-4-delete-validatorpy-)
+  - [Verification](#verification)
+  - [Actions](#actions)
+  - [Validation](#validation)
+- [Step 5: Delete auth.py ✅](#step-5-delete-authpy-)
+  - [Verification](#verification)
+  - [Actions Required](#actions-required)
+  - [Modified **init**.py Structure](#modified-initpy-structure)
+  - [Validation](#validation)
+- [Step 6: Move testing.py to tests/fixtures/ ⏳](#step-6-move-testingpy-to-testsfixtures-)
+  - [Verification](#verification)
+  - [Actions Required](#actions-required)
+  - [Modified **init**.py After This Step](#modified-initpy-after-this-step)
+  - [Validation](#validation)
+- [Step 7: Remove Unused Imports from core.py ⏳](#step-7-remove-unused-imports-from-corepy-)
+  - [Verification](#verification)
+  - [Actions Required](#actions-required)
+  - [Validation](#validation)
+- [Phase 1 Completion Checklist](#phase-1-completion-checklist)
+  - [Final Validation](#final-validation)
+- [Rollback Plan (If Issues Occur)](#rollback-plan-if-issues-occur)
+  - [If you need to rollback](#if-you-need-to-rollback)
+- [Summary](#summary)
+- [Next Phase](#next-phase)
+<!-- TOC END -->
+
 ## v0.10.0 Refactoring - Remove Duplication & Dead Code
 
 **Status**: Ready for implementation

@@ -1,5 +1,37 @@
 # FLEXT-CLI Examples - Library Usage Guide
 
+
+<!-- TOC START -->
+- [📚 Overview](#-overview)
+- [🎯 What is flext-cli](#-what-is-flext-cli)
+- [📖 Examples](#-examples)
+  - [Getting Started](#getting-started)
+  - [Core Features](#core-features)
+  - [Advanced Features](#advanced-features)
+  - [Integration](#integration)
+- [🚀 Quick Start](#-quick-start)
+- [📦 Available Modules](#-available-modules)
+- [🏗️ Architecture](#-architecture)
+- [💡 Usage Patterns](#-usage-patterns)
+  - [Pattern 1: Direct FlextCli Usage](#pattern-1-direct-flextcli-usage)
+  - [Pattern 2: Service-Specific Import](#pattern-2-service-specific-import)
+  - [Pattern 3: With FlextResult](#pattern-3-with-flextresult)
+  - [Pattern 4: With Configuration](#pattern-4-with-configuration)
+- [🎓 Learning Path](#-learning-path)
+- [📝 Key Concepts](#-key-concepts)
+  - [1. FlextResult Railway Pattern](#1-flextresult-railway-pattern)
+  - [2. Property-Based Service Access](#2-property-based-service-access)
+  - [3. Configuration Management](#3-configuration-management)
+  - [4. Type Safety](#4-type-safety)
+- [🔧 Common Use Cases](#-common-use-cases)
+  - [CLI Application Development](#cli-application-development)
+  - [Data Processing Pipeline](#data-processing-pipeline)
+  - [Interactive Tool](#interactive-tool)
+- [📚 Additional Resources](#-additional-resources)
+- [🆘 Getting Help](#-getting-help)
+- [✅ Best Practices](#-best-practices)
+<!-- TOC END -->
+
 **IMPORTANT**: flext-cli is a **LIBRARY**, not a CLI application. Import `FlextCli` and use it in your Python applications.
 
 ## 📚 Overview

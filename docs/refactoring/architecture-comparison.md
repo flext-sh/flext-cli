@@ -1,5 +1,42 @@
 # Architecture Comparison: v0.9.0 vs v0.10.0
 
+
+<!-- TOC START -->
+- [Executive Summary](#executive-summary)
+- [Module Classification](#module-classification)
+  - [v0.9.0 (Current): Everything is a Service](#v090-current-everything-is-a-service)
+  - [v0.10.0 (Simplified): Services Only for State](#v0100-simplified-services-only-for-state)
+- [API Patterns](#api-patterns)
+  - [v0.9.0: Wrapper Methods (Confusing)](#v090-wrapper-methods-confusing)
+  - [v0.10.0: Direct Access (Clear)](#v0100-direct-access-clear)
+- [Code Examples](#code-examples)
+  - [Example 1: File Operations](#example-1-file-operations)
+  - [Example 2: Output Formatting](#example-2-output-formatting)
+  - [Example 3: Context Usage](#example-3-context-usage)
+- [Service Class Patterns](#service-class-patterns)
+  - [v0.9.0: Everything Extends FlextService](#v090-everything-extends-flextservice)
+  - [v0.10.0: Simple Classes for Utilities](#v0100-simple-classes-for-utilities)
+- [Test Organization](#test-organization)
+  - [v0.9.0: Flat Structure](#v090-flat-structure)
+  - [v0.10.0: Organized by Feature](#v0100-organized-by-feature)
+- [Complexity Removed](#complexity-removed)
+  - [v0.9.0: Unused Infrastructure](#v090-unused-infrastructure)
+  - [v0.10.0: Clean Imports](#v0100-clean-imports)
+- [Performance Comparison](#performance-comparison)
+  - [Method Call Overhead](#method-call-overhead)
+  - [Initialization Overhead](#initialization-overhead)
+- [Migration Complexity](#migration-complexity)
+  - [v0.9.0 → v0.10.0](#v090-v0100)
+- [Architectural Principles](#architectural-principles)
+  - [v0.9.0](#v090)
+  - [v0.10.0](#v0100)
+- [Code Metrics](#code-metrics)
+- [Summary](#summary)
+  - [What Improved](#what-improved)
+  - [Trade-offs](#trade-offs)
+  - [Overall Assessment](#overall-assessment)
+<!-- TOC END -->
+
 **Visual side-by-side comparison of the old and new architectures**
 
 ---

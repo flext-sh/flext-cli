@@ -1,5 +1,46 @@
 # Breaking Changes: v0.9.0 → v0.10.0
 
+
+<!-- TOC START -->
+- [Summary](#summary)
+- [1. API Wrapper Methods Removed](#1-api-wrapper-methods-removed)
+  - [Removed Methods](#removed-methods)
+  - [Migration](#migration)
+  - [Automated Migration Script](#automated-migration-script)
+- [2. Modules Removed/Moved](#2-modules-removedmoved)
+  - [2.1 `flext_cli.validator` - Deleted](#21-flextclivalidator-deleted)
+  - [2.2 `flext_cli.auth` - Deleted](#22-flextcliauth-deleted)
+  - [2.3 `flext_cli.testing` - Moved to tests/](#23-flextclitesting-moved-to-tests)
+- [3. FlextCliContext Changes](#3-flextclicontext-changes)
+  - [Removed Methods](#removed-methods)
+  - [Migration](#migration)
+  - [Why This Change](#why-this-change)
+- [4. Service Class Instantiation Changes](#4-service-class-instantiation-changes)
+  - [What Changed](#what-changed)
+  - [If You Instantiated Directly](#if-you-instantiated-directly)
+- [5. Async/Threading Removed](#5-asyncthreading-removed)
+  - [What Changed](#what-changed)
+  - [Migration](#migration)
+- [6. Test Structure Changes](#6-test-structure-changes)
+  - [What Changed](#what-changed)
+  - [Migration](#migration)
+- [7. Import Changes](#7-import-changes)
+  - [Removed from `__init__.py`](#removed-from-initpy)
+  - [Still Available](#still-available)
+- [Migration Checklist](#migration-checklist)
+  - [[ ] 1. Update API Calls](#-1-update-api-calls)
+  - [[ ] 2. Update Imports](#-2-update-imports)
+  - [[ ] 3. Update Context Usage](#-3-update-context-usage)
+  - [[ ] 4. Run Tests](#-4-run-tests)
+  - [[ ] 5. Update Type Hints (if applicable)](#-5-update-type-hints-if-applicable)
+- [Compatibility Table](#compatibility-table)
+- [Deprecation Timeline](#deprecation-timeline)
+- [Getting Help](#getting-help)
+  - [If Migration Fails](#if-migration-fails)
+  - [Support Resources](#support-resources)
+- [FAQ](#faq)
+<!-- TOC END -->
+
 **Complete list of all breaking changes with fixes**
 
 > ⚠️ **Important**: v0.10.0 contains multiple breaking changes. Review this document carefully before upgrading.
