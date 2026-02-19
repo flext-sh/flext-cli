@@ -220,9 +220,7 @@ class FlextCliCli:
         )
         if result.is_failure:
             logger = FlextLogger.create_module_logger("flext_cli.cli")
-            logger.warning(
-                f"Failed to apply CLI params: {result.error}"
-            )
+            logger.warning(f"Failed to apply CLI params: {result.error}")
             return
         reconfigure_method = getattr(FlextRuntime, "reconfigure_structlog", None)
         if reconfigure_method is not None:

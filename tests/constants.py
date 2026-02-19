@@ -16,10 +16,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Final
 
-from flext_tests.constants import FlextTestsConstants
-
 from flext_cli.constants import FlextCliConstants
 from flext_cli.typings import t
+from flext_tests.constants import FlextTestsConstants
 
 
 class TestsFlextCliConstants(FlextTestsConstants, FlextCliConstants):

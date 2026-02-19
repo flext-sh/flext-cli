@@ -1,293 +1,230 @@
 [build-system]
-    build-backend = "poetry.core.masonry.api"
-    requires = [
-        "poetry-core>=1.9.0",
-    ]
+build-backend = "poetry.core.masonry.api"
+requires = [
+  "poetry-core>=2",
+]
 
 [project]
-    classifiers = [
-        "Development Status :: 5 - Production/Stable",
-        "Intended Audience :: Developers",
-        "License :: OSI Approved :: MIT License",
-        "Operating System :: OS Independent",
-        "Programming Language :: Python :: 3 :: Only",
-        "Programming Language :: Python :: 3.13",
-        "Topic :: Software Development :: Libraries :: Python Modules",
-        "Typing :: Typed",
-    ]
-    dependencies = [
-        "cachetools>=5.3.0",
-        "click>=8.2.1",
-        "pluggy>=1.3.0",
-        "prompt-toolkit (>=3.0.52,<4.0.0)",
-        "pydantic-core (>=2.41.4)",
-        "pydantic-settings>=2.10.1",
-        "pydantic (>=2.12.3)",
-        "pyyaml>=6.0",
-        "rich (>=14.2.0,<15.0.0)",
-        "tabulate>=0.9.0",
-        "typer>=0.12.0",
-        "attrs (>=25.4.0,<26.0.0)",
-        "pytest-randomly (>=4.0.1,<5.0.0)",
-        "faker (>=40.1.0,<41.0.0)",
-        "pytest-cov (>=7.0.0,<8.0.0)",
-    ]
-    description = "FLEXT CLI - Developer Command Line Interface"
-    keywords = [
-        "cli",
-        "command-line",
-        "enterprise",
-        "flext",
-        "tools",
-        "typed",
-    ]
-    name = "flext-cli"
-    readme = "README.md"
-    requires-python = ">=3.13,<3.14"
-    version = "0.10.0-dev"
-
-    [[project.authors]]
-        email = "team@flext.sh"
-        name = "FLEXT Team"
-
-    [[project.maintainers]]
-        email = "team@flext.sh"
-        name = "FLEXT Team"
-
-    [project.license]
-        text = "MIT"
-
-    [project.urls]
-        Documentation = "https://github.com/flext-sh/flext-cli/blob/main/README.md"
-        Homepage = "https://github.com/flext-sh/flext-cli"
-        Repository = "https://github.com/flext-sh/flext-cli"
-
-    [project.optional-dependencies]
-        dev = [
-            "autoflake>=2.3.1",
-            "black>=25.1.0",
-            "codespell>=2.3.0",
-            "deptry>=0.23.0",
-            "isort>=6.0.1",
-            "pre-commit>=4.0.1",
-            "pylint>=3.3.0",
-            "pyupgrade>=3.19.0",
-            "radon>=6.0.1",
-            "ruff>=0.12.3",
-            "vulture>=2.13",
-        ]
-        security = [
-            "bandit>=1.8.0",
-            "pip-audit>=2.7.3",
-        ]
-        test = [
-            "factory-boy>=3.3.1",
-            "faker>=37.4.0",
-            "hypothesis>=6.125.0",
-            "psutil>=6.0.0",
-            "pytest-benchmark>=5.1.0",
-            "pytest-clarity>=1.0.1",
-            "pytest-cov>=6.2.0",
-            "pytest-deadfixtures>=2.2.1",
-            "pytest-env>=1.1.5",
-            "pytest-mock>=3.14.0",
-            "pytest-randomly>=3.16.0",
-            "pytest-sugar>=1.0.0",
-            "pytest-timeout>=2.4.0",
-            "pytest-xdist>=3.8.0",
-            "pytest>=8.4.0",
-        ]
-        typings = [
-            "django-stubs>=5.2.2",
-            "types-ldap3>=2.9.13.20250622",
-            "types-protobuf>=6.30.2.20250703",
-            "types-psutil>=7.0.0",
-            "types-psycopg2>=2.9.21.20250718",
-            "types-python-dateutil>=2.9.0",
-            "types-pyyaml>=6.0.12",
-            "types-redis>=4.6.0",
-            "types-requests>=2.32.4",
-            "types-setuptools>=80.9.0",
-            "types-tabulate>=0.9.0.20241207",
-            "types-toml>=0.10.8.20240310",
-        ]
+name = "flext-cli"
+version = "0.10.0-dev"
+description = "FLEXT CLI - Developer Command Line Interface"
+readme = "README.md"
+keywords = [
+  "cli",
+  "command-line",
+  "enterprise",
+  "flext",
+  "tools",
+  "typed",
+]
+license = "MIT"
+maintainers = [ { email = "team@flext.sh", name = "FLEXT Team" } ]
+authors = [ { email = "team@flext.sh", name = "FLEXT Team" } ]
+requires-python = ">=3.13,<3.14"
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Developers",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "Typing :: Typed",
+]
+dependencies = [
+  "attrs>=25.4,<26",
+  "cachetools>=5.3",
+  "click>=8.2.1",
+  "pluggy>=1.3",
+  "prompt-toolkit>=3.0.52,<4",
+  "pydantic>=2.12.3",
+  "pydantic-core>=2.41.4",
+  "pydantic-settings>=2.10.1",
+  "pyyaml>=6",
+  "rich>=14.2,<15",
+  "tabulate>=0.9",
+  "typer>=0.12"
+]
+optional-dependencies.dev = [
+  "autoflake>=2.3.1",
+  "bandit>=1.8",
+  "black>=25.1",
+  "codespell>=2.3",
+  "deptry>=0.23",
+  "django-stubs>=5.2.2",
+  "factory-boy>=3.3.1",
+  "faker>=37.4",
+  "hypothesis>=6.125",
+  "isort>=6.0.1",
+  "pip-audit>=2.7.3",
+  "pre-commit>=4.0.1",
+  "psutil>=6",
+  "pylint>=3.3",
+  "pytest>=8.4",
+  "pytest-benchmark>=5.1",
+  "pytest-clarity>=1.0.1",
+  "pytest-cov>=6.2",
+  "pytest-deadfixtures>=2.2.1",
+  "pytest-env>=1.1.5",
+  "pytest-mock>=3.14",
+  "pytest-randomly>=3.16",
+  "pytest-sugar>=1",
+  "pytest-timeout>=2.4",
+  "pytest-xdist>=3.8",
+  "pyupgrade>=3.19",
+  "radon>=6.0.1",
+  "ruff>=0.12.3",
+  "types-ldap3>=2.9.13.20250622",
+  "types-protobuf>=6.30.2.20250703",
+  "types-psutil>=7",
+  "types-psycopg2>=2.9.21.20250718",
+  "types-python-dateutil>=2.9",
+  "types-pyyaml>=6.0.12",
+  "types-redis>=4.6",
+  "types-requests>=2.32.4",
+  "types-setuptools>=80.9",
+  "types-tabulate>=0.9.0.20241207",
+  "types-toml>=0.10.8.20240310",
+  "vulture>=2.13",
+]
+urls.Documentation = "https://github.com/flext-sh/flext-cli/blob/main/README.md"
+urls.Homepage = "https://github.com/flext-sh/flext-cli"
 
 [tool]
-    [tool.deptry]
-        known_first_party = [
-            "flext_cli",
-            "flext_core",
-        ]
-        extend_exclude = [
-            "examples",
-        ]
-        pep621_dev_dependency_groups = [
-            "dev",
-            "security",
-            "test",
-            "typings",
-        ]
+[tool.poetry]
+dependencies.python = ">=3.13,<3.14"
+dependencies.flext-core.develop = true
+dependencies.flext-core.path = "../flext-core"
+dependencies.flext-observability.develop = true
+dependencies.flext-observability.path = "../flext-observability"
+group.dev.dependencies.docker = ">=7.1.0"
+group.dev.dependencies.email-validator = "^2.3.0"
+group.dev.dependencies.hypothesis = "^6.139.2"
+group.dev.dependencies.ldap3 = ">=2.9.1"
+group.dev.dependencies.numpy = "^2.4.0"
+group.dev.dependencies.psycopg2 = ">=2.9.10"
+group.dev.dependencies.pyrefly = "^0.46.3"
+group.dev.dependencies.pytest = "^9.0.2"
+group.dev.dependencies.pytest-cov = "^7.0.0"
+group.dev.dependencies.redis = ">=5.0.0"
+group.dev.dependencies.opentelemetry-api = ">=1.39.1"
+group.dev.dependencies.opentelemetry-sdk = ">=1.39.1"
+group.dev.dependencies.prompt-toolkit = ">=3.0.52"
+group.dev.dependencies.sqlparse = ">=0.5.5"
+group.dev.dependencies.django = ">=5.2.8"
+group.dev.dependencies.types-cachetools = "^6.2.0.20250827"
+group.dev.dependencies.types-defusedxml = "^0.7.0.20250822"
+group.dev.dependencies.types-lxml = "^2025.8.25"
+group.dev.dependencies.types-pyyaml = "^6.0.12.20250809"
+group.dev.dependencies.types-tabulate = "^0.9.0.20241207"
+group.dev.dependencies.types-toml = "^0.10.8.20240310"
+packages = [ { from = "src", include = "flext_cli" } ]
 
-    [tool.deptry.package_module_name_map]
-        pyyaml = "yaml"
+[tool.ruff]
+extend = "../ruff-shared.toml"
 
-    [tool.deptry.per_rule_ignores]
-        DEP002 = [
-            # CLI tools
-            "bandit",
-            "deptry",
-            "mypy",
-            "pip-audit",
-            "pyrefly",
-            "pytest",
-            "pytest-cov",
-            "pytest-xdist",
-            "ruff",
-            # Type stubs
-            "types-pyyaml",
-            "types-requests",
-            "types-setuptools",
-            "types-tabulate",
-            "types-toml",
-            # Runtime deps used indirectly (pydantic-settings, flext-core, etc.)
-            "attrs",
-            "cachetools",
-            "faker",
-            "pluggy",
-            "prompt-toolkit",
-            "pydantic-core",
-            "pytest-randomly",
-        ]
+[tool.deptry]
+known_first_party = [
+  "flext_cli",
+  "flext_core",
+]
+extend_exclude = [
+  "examples",
+]
+pep621_dev_dependency_groups = [
+  "dev",
+]
+package_module_name_map.pyyaml = "yaml"
+per_rule_ignores.DEP002 = [
+  # CLI tools
+  # Type stubs
+  # Runtime deps used indirectly (pydantic-settings, flext-core, etc.)
+  "bandit",
+  "deptry",
+  "mypy",
+  "pip-audit",
+  "pyrefly",
+  "pytest",
+  "pytest-xdist",
+  "ruff",
+  "types-pyyaml",
+  "types-requests",
+  "types-setuptools",
+  "types-tabulate",
+  "types-toml",
+  "attrs",
+  "cachetools",
+  "pluggy",
+  "prompt-toolkit",
+  "pydantic-core"
+]
 
-    [tool.poetry]
-        [[tool.poetry.packages]]
-            from = "src"
-            include = "flext_cli"
+[tool.pytest]
+ini_options.addopts = [ "--strict-config", "--strict-markers", "--tb=short", "-p no:sugar", "-q", "-ra" ]
+ini_options.markers = [
+  " marks tests as tests",
+  "auth: marks tests as authentication tests",
+  "benchmark: marks tests as benchmark tests",
+  "compatibility: marks tests as compatibility tests",
+  "concurrency: marks tests as concurrency tests",
+  "core: marks tests as core functionality tests",
+  "integration: marks tests as integration tests",
+  "io: marks tests as I/O tests",
+  "load: marks tests as load tests",
+  "memory: marks tests as memory tests",
+  "network: marks tests as network tests",
+  "performance: marks tests as performance tests",
+  "race_condition: marks tests as race condition tests",
+  "regression: marks tests as regression tests",
+  "security: marks tests as security tests",
+  "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+  "stress: marks tests as stress tests",
+  "unit: marks tests as unit tests",
+]
+ini_options.minversion = "8.0"
+ini_options.python_classes = [
+  "Test*",
+]
+ini_options.python_files = [
+  "*_test.py",
+  "test_*.py",
+]
+ini_options.python_functions = [
+  "test_*",
+]
+ini_options.testpaths = [
+  "tests",
+]
 
-        [tool.poetry.dependencies]
-            python = ">=3.13,<3.14"
+[tool.coverage]
+run.source = [ "src/flext_cli" ]
+report.fail_under = 100
+report.precision = 2
 
-            [tool.poetry.dependencies.flext-core]
-                develop = true
-                path = "../flext-core"
+[tool.mypy]
+check_untyped_defs = true
+disallow_incomplete_defs = true
+disallow_untyped_calls = false
+disallow_untyped_defs = false
+explicit_package_bases = true
+follow_imports = "normal"
+ignore_missing_imports = false
+incremental = false
+mypy_path = "src:$MYPYPATH:../typings"
+namespace_packages = true
+no_implicit_optional = true
+python_version = "3.13"
+warn_redundant_casts = true
+warn_return_any = true
+warn_unused_configs = true
+warn_unused_ignores = true
+overrides = [ { module = "flext_cli.services.cmd", ignore_errors = true } ]
 
-            [tool.poetry.dependencies.flext-observability]
-                develop = true
-                path = "../flext-observability"
-
-        [tool.poetry.group.dev.dependencies]
-            docker = ">=7.1.0"
-            email-validator = "^2.3.0"
-            hypothesis = "^6.139.2"
-            ldap3 = ">=2.9.1"
-            numpy = "^2.4.0"
-            psycopg2 = ">=2.9.10"
-            pyrefly = "^0.46.3"
-            pytest = "^9.0.2"
-            pytest-cov = "^7.0.0"
-            redis = ">=5.0.0"
-        opentelemetry-api = ">=1.39.1"
-        opentelemetry-sdk = ">=1.39.1"
-        prompt-toolkit = ">=3.0.52"
-        sqlparse = ">=0.5.5"
-
-        [tool.poetry.group.typings.dependencies]
-            types-cachetools = "^6.2.0.20250827"
-            types-defusedxml = "^0.7.0.20250822"
-            types-lxml = "^2025.8.25"
-            types-pyyaml = "^6.0.12.20250809"
-            types-toml = "^0.10.8.20240310"
-            django = ">=5.2.8"
-            types-tabulate = "^0.9.0.20241207"
-
-    [tool.coverage.run]
-        omit = [
-            "*/dependency_injector/*",
-            "*.pyx",
-        ]
-
-    [tool.pytest.ini_options]
-        addopts = [
-            "--cov-report=term-missing",
-            "--cov=src/",
-            "--strict-config",
-            "--strict-markers",
-            "--tb=short",
-            "-p no:sugar",
-            "-q",
-            "-ra",
-        ]
-        markers = [
-            " marks tests as tests",
-            "auth: marks tests as authentication tests",
-            "benchmark: marks tests as benchmark tests",
-            "compatibility: marks tests as compatibility tests",
-            "concurrency: marks tests as concurrency tests",
-            "core: marks tests as core functionality tests",
-            "integration: marks tests as integration tests",
-            "io: marks tests as I/O tests",
-            "load: marks tests as load tests",
-            "memory: marks tests as memory tests",
-            "network: marks tests as network tests",
-            "performance: marks tests as performance tests",
-            "race_condition: marks tests as race condition tests",
-            "regression: marks tests as regression tests",
-            "security: marks tests as security tests",
-            "slow: marks tests as slow (deselect with '-m \"not slow\"')",
-            "stress: marks tests as stress tests",
-            "unit: marks tests as unit tests",
-        ]
-        minversion = "8.0"
-        python_classes = [
-            "Test*",
-        ]
-        python_files = [
-            "*_test.py",
-            "test_*.py",
-        ]
-        python_functions = [
-            "test_*",
-        ]
-        testpaths = [
-            "tests",
-        ]
-
-    [tool.pyrefly]
-        search-path = [
-            "../typings",
-            "../typings/generated",
-            "src",
-            "tests",
-            "examples",
-            "scripts",
-        ]
-
-    [tool.mypy]
-        check_untyped_defs = true
-        disallow_incomplete_defs = true
-        disallow_untyped_calls = false
-        disallow_untyped_defs = false
-        explicit_package_bases = true
-        follow_imports = "normal"
-        ignore_missing_imports = false
-        incremental = false
-        mypy_path = "src:$MYPYPATH:../typings"
-        namespace_packages = true
-        no_implicit_optional = true
-        python_version = "3.13"
-        warn_redundant_casts = true
-        warn_return_any = true
-        warn_unused_configs = true
-        warn_unused_ignores = true
-
-        [[tool.mypy.overrides]]
-        module = "flext_cli.services.cmd"
-        ignore_errors = true
-
-    [tool.ruff]
-        extend = "../ruff-shared.toml"
-
-        [tool.ruff.lint.isort]
-            known-first-party = [
-                "flext_cli",
-            ]
+[tool.pyrefly]
+search-path = [
+  "../typings",
+  "../typings/generated",
+  "src",
+  "tests",
+  "examples",
+  "scripts",
+]

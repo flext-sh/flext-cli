@@ -1,8 +1,5 @@
 # flext-cli - CLI Framework
 PROJECT_NAME := flext-cli
-COV_DIR := flext_cli
-MIN_COVERAGE := 90
-
 include ../base.mk
 
 # === PROJECT-SPECIFIC TARGETS ===

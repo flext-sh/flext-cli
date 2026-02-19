@@ -29,7 +29,6 @@ import time
 from pathlib import Path
 
 from example_utils import display_config_table
-
 from flext_cli import FlextCli, FlextCliSettings, r, t, u
 
 cli = FlextCli()

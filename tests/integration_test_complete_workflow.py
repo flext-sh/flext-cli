@@ -15,6 +15,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import json
+import math
 import tempfile
 import time
 from collections.abc import Generator, Mapping
@@ -22,8 +23,6 @@ from pathlib import Path
 from typing import TypedDict
 
 import pytest
-from flext_core import t
-
 from flext_cli import (
     FlextCli,
     FlextCliFileTools,
@@ -35,6 +34,7 @@ from flext_cli import (
     r,
     u,
 )
+from flext_core import t
 
 
 class FlextCliIntegrationTestTypes(FlextCliTypes):
@@ -226,7 +226,7 @@ class TestCompleteWorkflowIntegration:
         assert final_report["pipeline_status"] == c.Cli.CommandStatus.COMPLETED.value
         assert final_report["input_records"] == 3
         assert final_report["processed_records"] == 2  # Only active users
-        assert final_report["success_rate"] == 1.0
+        assert math.isclose(final_report["success_rate"], 1.0)
 
         # Verify output files exist and contain correct data
         assert output_file.exists()
@@ -479,7 +479,7 @@ class TestCompleteWorkflowIntegration:
 
         # Verify summary structure
         assert summary["total_reports"] == 3  # JSON, CSV, Table
-        assert summary["total_sales"] == 6451.50
+        assert math.isclose(summary["total_sales"], 6451.50)
         assert summary["regions_covered"] == 3
 
         # Verify report files were created
