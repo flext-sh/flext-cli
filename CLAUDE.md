@@ -4,7 +4,7 @@
 **Parent**: [../CLAUDE.md](../CLAUDE.md) - Workspace standards
 **Last Update**: 2025-12-08
 
----
+______________________________________________________________________
 
 ## 🔒 Multi-Agent Development Coordination
 
@@ -19,11 +19,11 @@ Prevent simultaneous file modifications that cause merge conflicts and corrupted
 ### Establishing a Flock
 
 1. **Check .token** for existing locks on target file
-2. **Write lock** to .token: `FLOCK_[AGENT_NAME]_[TARGET_FILE]`
-3. **Re-read file** after lock is established (other agents may have modified)
-4. **Make changes** to the re-read content
-5. **Test changes** ensure they work
-6. **Release lock**: Update .token with `RELEASE_[AGENT_NAME]_[TARGET_FILE]`
+1. **Write lock** to .token: `FLOCK_[AGENT_NAME]_[TARGET_FILE]`
+1. **Re-read file** after lock is established (other agents may have modified)
+1. **Make changes** to the re-read content
+1. **Test changes** ensure they work
+1. **Release lock**: Update .token with `RELEASE_[AGENT_NAME]_[TARGET_FILE]`
 
 ### Lock Format
 
@@ -46,7 +46,7 @@ RELEASE_[AGENT_NAME]_[TARGET_FILE]
 - **🤝 COORDINATE with team members if conflicts detected**
 - **📝 DOCUMENT coordination purpose in .token**
 
----
+______________________________________________________________________
 
 ## ⚠️ CRITICAL: Architecture Layering (Zero Tolerance)
 
@@ -86,7 +86,7 @@ Tier 3 - Application (Top Layer):
   └── api.py          # FlextCli facade → All lower tiers
 ```
 
----
+______________________________________________________________________
 
 ### Architecture Violation Quick Check
 
@@ -104,7 +104,7 @@ grep -rEn "(from flext_.*\.(services|api) import)" \
 
 **See [Ecosystem Standards](../CLAUDE.md) for complete prohibited patterns and remediation examples.**
 
----
+______________________________________________________________________
 
 ## Rule 0 — Cross-Project Alignment
 
@@ -127,9 +127,9 @@ grep -rEn "(from flext_.*\.(services|api) import)" \
 
 **FLEXT-CLI** is the CLI foundation library for the FLEXT ecosystem, providing a unified command-line interface abstraction layer over Click and Rich. It serves 32+ projects with standardized CLI patterns, configuration management, and output formatting.
 
-**Version**: 0.10.0  
-**Status**: Production-ready  
-**Python**: 3.13+ exclusive with strict type safety  
+**Version**: 0.10.0\
+**Status**: Production-ready\
+**Python**: 3.13+ exclusive with strict type safety\
 **Standards**: FLEXT Advanced Standards, PEP+, Pydantic 2, SOLID, DRY
 
 **Key Architecture**:
@@ -139,7 +139,7 @@ grep -rEn "(from flext_.*\.(services|api) import)" \
 - Uses flext-core patterns: `FlextResult[T]` railway pattern, `FlextService`
 - Poetry-based dependency management
 
----
+______________________________________________________________________
 
 ## Architecture
 
@@ -277,13 +277,13 @@ cli.print("Success!", style="green")  # Rich abstraction
 table = cli.create_table(...)          # Table abstraction
 ```
 
----
+______________________________________________________________________
 
 ## Automated Fix Scripts
 
 For batch corrections (missing imports, undefined names), use `/tmp/fix_*.sh` scripts with 4 modes: `dry-run`, `backup`, `exec`, `rollback`. **See [../CLAUDE.md](../CLAUDE.md#automated-fix-scripts-batch-corrections)** for template and rules.
 
----
+______________________________________________________________________
 
 ## Essential Commands
 
@@ -319,7 +319,7 @@ make clean                   # Clean build artifacts
 make reset                   # Complete reset (clean + setup)
 ```
 
----
+______________________________________________________________________
 
 ## Critical Constraints
 
@@ -330,7 +330,7 @@ make reset                   # Complete reset (clean + setup)
 - ALL other code must use the abstraction layers
 - Breaking this constraint violates the foundation library's core purpose
 
----
+______________________________________________________________________
 
 ## 📦 Import and Namespace Guidelines (Critical Architecture)
 
@@ -529,19 +529,19 @@ Tier 3 - Application:
 
 ### 7. Module-Specific Import Rules
 
-| Source Module | Can Import From | Cannot Import From |
-|---------------|-----------------|-------------------|
-| constants.py | flext_core.constants | everything else |
-| typings.py | flext_core.typings | everything else |
-| protocols.py | flext_core.protocols, constants, typings | everything else |
-| models.py | flext_core.models, Tier 0 | services/, api.py |
-| utilities.py | flext_core.utilities, models, Tier 0 | services/, api.py |
-| cli.py | Click, Tier 0, Tier 1 | services/, api.py |
-| formatters.py | Rich, Tier 0, Tier 1 | services/, api.py |
-| services/*.py | ALL lower tiers | api.py |
-| api.py | ALL lower tiers | NOTHING prohibited |
+| Source Module  | Can Import From                          | Cannot Import From |
+| -------------- | ---------------------------------------- | ------------------ |
+| constants.py   | flext_core.constants                     | everything else    |
+| typings.py     | flext_core.typings                       | everything else    |
+| protocols.py   | flext_core.protocols, constants, typings | everything else    |
+| models.py      | flext_core.models, Tier 0                | services/, api.py  |
+| utilities.py   | flext_core.utilities, models, Tier 0     | services/, api.py  |
+| cli.py         | Click, Tier 0, Tier 1                    | services/, api.py  |
+| formatters.py  | Rich, Tier 0, Tier 1                     | services/, api.py  |
+| services/\*.py | ALL lower tiers                          | api.py             |
+| api.py         | ALL lower tiers                          | NOTHING prohibited |
 
----
+______________________________________________________________________
 
 ## Testing Strategy
 
@@ -587,31 +587,37 @@ tests/
 **CRITICAL**: All test modules follow the `TestsCli*` pattern:
 
 1. **TestsCliTypes** (`tests/typings.py`):
+
    - Extends `FlextTestsTypes` and `FlextCliTypes`
    - Provides short alias `t`
    - Centralizes all test-specific type definitions
 
-2. **TestsCliConstants** (`tests/constants.py`):
+1. **TestsCliConstants** (`tests/constants.py`):
+
    - Extends `FlextTestsConstants` and `FlextCliConstants`
    - Provides short alias `c`
    - Centralizes all test-specific constants
 
-3. **TestsCliProtocols** (`tests/protocols.py`):
+1. **TestsCliProtocols** (`tests/protocols.py`):
+
    - Extends `FlextTestsProtocols` and `FlextCliProtocols`
    - Provides short alias `p`
    - Centralizes all test-specific protocols
 
-4. **TestsCliModels** (`tests/models.py`):
+1. **TestsCliModels** (`tests/models.py`):
+
    - Extends `FlextTestsModels` and `FlextCliModels`
    - Provides short alias `m`
    - Centralizes all test-specific models
 
-5. **TestsCliUtilities** (`tests/utilities.py`):
+1. **TestsCliUtilities** (`tests/utilities.py`):
+
    - Extends `FlextTestsUtilities` and `FlextCliUtilities`
    - Provides short alias `u`
    - Centralizes all test-specific utilities
 
-6. **TestsCliServiceBase** (`tests/base.py`):
+1. **TestsCliServiceBase** (`tests/base.py`):
+
    - Extends `FlextTestsServiceBase` and `FlextCliServiceBase`
    - Provides short alias `s`
    - Base service for test infrastructure
@@ -659,7 +665,7 @@ Common fixtures available in all tests (from `conftest.py`):
 - **NO bad-override** - All `@override` must amplify scope or correctly override abstract methods
 - **TestsCli structure** - All test support classes must extend both `FlextTests*` and `FlextCli*` classes
 
----
+______________________________________________________________________
 
 ## Pydantic v2 Standards
 
@@ -710,7 +716,7 @@ CommandModel.model_validate_json(json)   # From JSON (FAST)
 - ❌ `.dict()`, `.json()`, `parse_obj()` → Use `.model_dump()`, `.model_dump_json()`, `.model_validate()`
 - ❌ `@validator`, `@root_validator` → Use `@field_validator`, `@model_validator`
 
----
+______________________________________________________________________
 
 ## Common Issues and Solutions
 
@@ -742,7 +748,7 @@ If you encounter circular imports:
 - Check the dependency chain
 - Move shared types to `typings.py`, shared constants to `constants.py`
 
----
+______________________________________________________________________
 
 ## Unified FLEXT Ecosystem Rules
 
@@ -751,17 +757,17 @@ If you encounter circular imports:
 ### Zero Tolerance Rules (Completely Prohibited)
 
 1. **TYPE_CHECKING**: ❌ PROHIBITED - Move code causing circular dependencies to appropriate module
-2. **# type: ignore**: ❌ PROHIBITED COMPLETELY - Zero tolerance, no exceptions
-3. **Metaclasses**: ❌ PROHIBITED COMPLETELY - All metaclasses are prohibited (including `__getattr__`)
-4. **Root Aliases**: ❌ PROHIBITED COMPLETELY - Always use complete namespace (c.Cli.OutputFormats, not c.OutputFormats)
-5. **Dynamic Assignments**: ❌ PROHIBITED COMPLETELY - Remove all, use only complete namespace
-6. **Functions in constants.py**: ❌ PROHIBITED - constants.py only constants, no functions/metaclasses/code
-7. **Namespace**: ✅ MANDATORY - Complete namespace always (u.Cli.process, not u.Cli.process)
+1. **# type: ignore**: ❌ PROHIBITED COMPLETELY - Zero tolerance, no exceptions
+1. **Metaclasses**: ❌ PROHIBITED COMPLETELY - All metaclasses are prohibited (including `__getattr__`)
+1. **Root Aliases**: ❌ PROHIBITED COMPLETELY - Always use complete namespace (c.Cli.OutputFormats, not c.OutputFormats)
+1. **Dynamic Assignments**: ❌ PROHIBITED COMPLETELY - Remove all, use only complete namespace
+1. **Functions in constants.py**: ❌ PROHIBITED - constants.py only constants, no functions/metaclasses/code
+1. **Namespace**: ✅ MANDATORY - Complete namespace always (u.Cli.process, not u.Cli.process)
 
 ### Replacement Rules
 
 8. **cast()**: ❌ REPLACE ALL - Replace with Models/Protocols/TypeGuards
-9. **Any**: ❌ REPLACE ALL - Replace with specific types (Models, Protocols, TypeVars, FlextTypes.GeneralValueType)
+1. **Any**: ❌ REPLACE ALL - Replace with specific types (Models, Protocols, TypeVars, FlextTypes.GeneralValueType)
 
 ### Examples
 
@@ -803,7 +809,7 @@ if isinstance(data, str):
 value = StringModel.model_validate(data)
 ```
 
----
+______________________________________________________________________
 
 ## Documentation References
 
@@ -829,7 +835,7 @@ Based on unified FLEXT ecosystem patterns:
 - **DI**: FlextService patterns, Container usage, Config auto-registration
 - **Func Tests**: Integration test patterns, real implementations only, no mocks policy
 
----
+______________________________________________________________________
 
 ## Integration with FLEXT Ecosystem
 
@@ -843,7 +849,7 @@ This project is part of the FLEXT monorepo workspace. Key integration points:
 
 See `../CLAUDE.md` for workspace-level standards and `README.md` for project overview.
 
----
+______________________________________________________________________
 
 ## 📚 Refactoring Lessons Learned (2025-12-08)
 
@@ -934,7 +940,7 @@ exec(func_code, func_globals)  # nosec B102
 - ✅ **Mypy**: Success - no issues in 28 source files (strict mode)
 - ✅ **Bandit**: Security scan passed (suppressed intentional exec usage)
 - ✅ **Tests**: All passing (100% of test cases)
-- ℹ️  **Coverage**: 86% (below 90% threshold due to untested utility functions)
+- ℹ️ **Coverage**: 86% (below 90% threshold due to untested utility functions)
 
 **Refactoring Summary**:
 
@@ -943,7 +949,7 @@ exec(func_code, func_globals)  # nosec B102
 - Achieved zero violations of core quality gates (ruff, mypy, tests)
 - Improved code maintainability through proper type narrowing and architecture
 
----
+______________________________________________________________________
 
 **See Also**:
 
