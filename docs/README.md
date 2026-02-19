@@ -1,12 +1,13 @@
 # flext-cli Documentation
 
-
 <!-- TOC START -->
+
 - [Visão geral](#viso-geral)
 - [Navegação rápida](#navegao-rpida)
 - [O que observar na 0.10.0](#o-que-observar-na-0100)
 - [Status](#status)
 - [Links úteis](#links-teis)
+
 <!-- TOC END -->
 
 Documentação alinhada ao **flext-cli** 0.10.0 conforme o código-fonte atual.

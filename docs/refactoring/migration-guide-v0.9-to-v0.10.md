@@ -1,7 +1,7 @@
 # Migration Guide: v0.9.0 → v0.10.0
 
-
 <!-- TOC START -->
+
 - [Table of Contents](#table-of-contents)
 - [Overview](#overview)
   - [What Changed](#what-changed)
@@ -44,24 +44,25 @@
   - [Migration Assistance](#migration-assistance)
   - [Reporting Problems](#reporting-problems)
 - [Summary](#summary)
+
 <!-- TOC END -->
 
 **Estimated Migration Time**: 30-60 minutes for typical projects
 
 > **📘 Quick Summary**: v0.10.0 introduces a **direct access pattern** and removes API wrapper methods. Instead of `cli.print()`, you now use `cli.formatters.print()`. This makes ownership clearer and the API simpler.
 
----
+______________________________________________________________________
 
 ## Table of Contents
 
 1. [Overview](#overview)
-2. [Breaking Changes](#breaking-changes)
-3. [Step-by-Step Migration](#step-by-step-migration)
-4. [Quick Reference](#quick-reference)
-5. [FAQ](#faq)
-6. [Getting Help](#getting-help)
+1. [Breaking Changes](#breaking-changes)
+1. [Step-by-Step Migration](#step-by-step-migration)
+1. [Quick Reference](#quick-reference)
+1. [FAQ](#faq)
+1. [Getting Help](#getting-help)
 
----
+______________________________________________________________________
 
 ## Overview
 
@@ -89,7 +90,7 @@ v0.10.0 simplifies FLEXT-CLI by:
 - ✅ **Railway Pattern**: FlextResult[T] still used throughout
 - ✅ **Type Safety**: Still 100% type-safe
 
----
+______________________________________________________________________
 
 ## Breaking Changes
 
@@ -240,7 +241,7 @@ cli = FlextCli()
 result = cli.authenticate({"token": "abc123"})
 ```
 
----
+______________________________________________________________________
 
 ## Step-by-Step Migration
 
@@ -294,8 +295,8 @@ find . -name "*.py" -exec sed -i 's/cli\.create_table(/cli.output.format_data(/g
 After automated replacement, manually check:
 
 1. Method signatures (some changed slightly)
-2. Error handling (still uses FlextResult[T])
-3. Type hints (may need updates)
+1. Error handling (still uses FlextResult[T])
+1. Type hints (may need updates)
 
 ### Step 3: Update Context Usage (5 minutes)
 
@@ -352,7 +353,7 @@ def process_cli(cli: FlextCli) -> None:
 
 Type hints for FlextCli don't change - only method calls do.
 
----
+______________________________________________________________________
 
 ## Quick Reference
 
@@ -388,7 +389,7 @@ Access these through FlextCli instance:
 | `cli.core`       | `execute_command()`, etc.                     | Command management       |
 | `cli.cmd`        | `execute()`                                   | Command execution        |
 
----
+______________________________________________________________________
 
 ## FAQ
 
@@ -417,8 +418,8 @@ Access these through FlextCli instance:
 **A**: Start with automated find-and-replace, then:
 
 1. Run tests to find issues
-2. Fix issues one module at a time
-3. Consider a staged rollout
+1. Fix issues one module at a time
+1. Consider a staged rollout
 
 ### Q: Will there be more breaking changes
 
@@ -440,7 +441,7 @@ Access these through FlextCli instance:
 
 **A**: See [CHANGELOG.md](../../CHANGELOG.md) for complete details.
 
----
+______________________________________________________________________
 
 ## Examples
 
@@ -555,7 +556,7 @@ def run_command(command: str, args: list[str]):
     # No activate/deactivate needed
 ```
 
----
+______________________________________________________________________
 
 ## Getting Help
 
@@ -577,21 +578,21 @@ def run_command(command: str, args: list[str]):
 If you need help migrating:
 
 1. Open a GitHub issue with "Migration Help" label
-2. Include code samples and specific questions
-3. We'll provide guidance
+1. Include code samples and specific questions
+1. We'll provide guidance
 
 ### Reporting Problems
 
 Found a bug after migrating?
 
 1. Check if it's a known issue
-2. Create a minimal reproduction
-3. Open a GitHub issue with:
+1. Create a minimal reproduction
+1. Open a GitHub issue with:
    - v0.9.0 code (before)
    - v0.10.0 code (after)
    - Error message and stack trace
 
----
+______________________________________________________________________
 
 ## Summary
 
@@ -609,7 +610,7 @@ v0.10.0 brings significant improvements through simplification:
 
 We're confident you'll appreciate the simpler, cleaner API once migrated!
 
----
+______________________________________________________________________
 
 **Document Version**: 1.0
 **Last Updated**: 2025-01-24

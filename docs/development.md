@@ -1,8 +1,8 @@
 # Development Guide - flext-cli
 
-
 <!-- TOC START -->
-- [📌 Quick Navigation](#-quick-navigation)
+
+- [📌 Quick Navigation](#quick-navigation)
 - [v0.10.0 Development Guidelines (Current)](#v0100-development-guidelines-current)
   - [Overview](#overview)
 - [When to Use Each Pattern](#when-to-use-each-pattern)
@@ -44,20 +44,21 @@
 - [Debug and Troubleshooting](#debug-and-troubleshooting)
   - [Common Issues](#common-issues)
   - [Debug Commands](#debug-commands)
+
 <!-- TOC END -->
 
 **Contributing guidelines and development workflow for flext-cli.**
 
 **Last Updated**: 2025-01-24 | **Version**: 0.10.0
 
----
+______________________________________________________________________
 
 ## 📌 Quick Navigation
 
 - [v0.10.0 Development Guidelines (Current)](#v0100-development-guidelines-current) ← **Start Here**
 - [v0.9.0 Development Guidelines (Historical Reference)](#v090-development-guidelines-historical-reference)
 
----
+______________________________________________________________________
 
 ## v0.10.0 Development Guidelines (Current)
 
@@ -67,7 +68,7 @@
 
 FLEXT-CLI v0.10.0 follows a simplified architecture with clear guidelines for when to use services vs simple classes. This guide helps you make the right architectural decisions.
 
----
+______________________________________________________________________
 
 ## When to Use Each Pattern
 
@@ -186,7 +187,7 @@ class FlextCliContext(m.Value):
 - Event data
 - Execution context
 
----
+______________________________________________________________________
 
 ## Architecture Decision Flowchart
 
@@ -206,7 +207,7 @@ Does the class manage mutable state?
                  Examples: FlextCliContext, FlextCliModels.*
 ```
 
----
+______________________________________________________________________
 
 ## Code Organization Guidelines
 
@@ -252,7 +253,7 @@ cli.prompts.confirm("Continue?")
 # cli.confirm("Continue?")           # REMOVED
 ```
 
----
+______________________________________________________________________
 
 ## Testing Guidelines (v0.10.0)
 
@@ -328,7 +329,7 @@ def test_context_immutability():
     assert updated.command == "new_command"
 ```
 
----
+______________________________________________________________________
 
 ## Contributing to v0.10.0
 
@@ -339,37 +340,40 @@ Before implementing new features, review:
 Key phases:
 
 1. Documentation (complete)
-2. Delete duplicates (validator.py, auth.py, testing.py)
-3. Convert services to simple classes
-4. Fix context (service → value object)
-5. Remove API wrappers
-6. Remove unused infrastructure
-7. Reorganize tests
-8. Quality gates
+1. Delete duplicates (validator.py, auth.py, testing.py)
+1. Convert services to simple classes
+1. Fix context (service → value object)
+1. Remove API wrappers
+1. Remove unused infrastructure
+1. Reorganize tests
+1. Quality gates
 
 ### Pull Request Guidelines
 
 1. **Follow the Architecture**:
+
    - Services only for state
    - Simple classes for utilities
    - Value objects for data
 
-2. **Use Direct Access**:
+1. **Use Direct Access**:
+
    - No wrapper methods
    - Clear ownership
 
-3. **Quality Gates (MANDATORY)**:
+1. **Quality Gates (MANDATORY)**:
 
    ```bash
    make validate  # Must pass 100%
    ```
 
-4. **Test Organization**:
+1. **Test Organization**:
+
    - Tests in appropriate directories
    - No file > 30K lines
    - Feature-based organization
 
----
+______________________________________________________________________
 
 ## v0.9.0 Development Guidelines (Historical Reference)
 
@@ -398,7 +402,7 @@ make setup
 poetry run pre-commit install
 ```
 
----
+______________________________________________________________________
 
 ## Development Workflow
 
@@ -421,7 +425,7 @@ make clean         # Clean build artifacts
 - **Testing**: Comprehensive test coverage
 - **Documentation**: All public APIs documented
 
----
+______________________________________________________________________
 
 ## Architecture Guidelines
 
@@ -430,9 +434,9 @@ make clean         # Clean build artifacts
 Follow these patterns when extending flext-cli:
 
 1. **CLI Patterns**: Use flext-cli abstractions
-2. **Integration**: Follow flext-core patterns (see flext-core documentation)
-3. **Type Safety**: Complete type annotations required
-4. **Testing**: Comprehensive test coverage
+1. **Integration**: Follow flext-core patterns (see flext-core documentation)
+1. **Type Safety**: Complete type annotations required
+1. **Testing**: Comprehensive test coverage
 
 ### Code Organization
 
@@ -459,7 +463,7 @@ class ProjectCliService:
 # import rich   # Use FlextCliOutput instead
 ```
 
----
+______________________________________________________________________
 
 ## Testing Guidelines
 
@@ -514,7 +518,7 @@ pytest tests/ --cov=src --cov-report=term-missing
 pytest tests/unit/test_api.py -v
 ```
 
----
+______________________________________________________________________
 
 ## Contributing Guidelines
 
@@ -528,11 +532,11 @@ pytest tests/unit/test_api.py -v
 ### Pull Request Process
 
 1. Create feature branch from main
-2. Implement changes with tests
-3. Run `make validate` to ensure quality
-4. Submit pull request with description
-5. Address review feedback
-6. Merge after approval
+1. Implement changes with tests
+1. Run `make validate` to ensure quality
+1. Submit pull request with description
+1. Address review feedback
+1. Merge after approval
 
 ### Commit Messages
 
@@ -545,7 +549,7 @@ docs: update API documentation
 test: add integration tests for config module
 ```
 
----
+______________________________________________________________________
 
 ## Extension Development
 
@@ -622,16 +626,16 @@ class ProjectFormatters(FlextCliOutput):
         return FlextResult[str].ok("formatted_output")
 ```
 
----
+______________________________________________________________________
 
 ## Debug and Troubleshooting
 
 ### Common Issues
 
 1. **Import Errors**: Ensure proper module structure
-2. **Type Errors**: Run `make type-check` for detailed analysis
-3. **Test Failures**: Use `pytest -v` for verbose output
-4. **Dependency Issues**: Try `poetry install --sync`
+1. **Type Errors**: Run `make type-check` for detailed analysis
+1. **Test Failures**: Use `pytest -v` for verbose output
+1. **Dependency Issues**: Try `poetry install --sync`
 
 ### Debug Commands
 
@@ -649,7 +653,7 @@ poetry show --tree
 flext debug info
 ```
 
----
+______________________________________________________________________
 
 For architectural details, see [architecture.md](architecture.md).
 For API usage, see [api-reference.md](api-reference.md).

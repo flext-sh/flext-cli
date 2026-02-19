@@ -1,8 +1,8 @@
 # Getting Started with flext-cli
 
-
 <!-- TOC START -->
-- [📌 Quick Navigation](#-quick-navigation)
+
+- [📌 Quick Navigation](#quick-navigation)
 - [v0.10.0 Getting Started (Current)](#v0100-getting-started-current)
   - [Overview](#overview)
 - [Prerequisites](#prerequisites)
@@ -12,11 +12,11 @@
   - [Development Setup](#development-setup)
   - [As a Dependency](#as-a-dependency)
 - [Quick Start (v0.10.0)](#quick-start-v0100)
-  - [🚀 Your First CLI Application](#-your-first-cli-application)
-  - [📊 Working with Tables](#-working-with-tables)
-  - [📁 File Operations](#-file-operations)
-  - [🔄 Railway-Oriented Programming](#-railway-oriented-programming)
-  - [📦 Immutable Context](#-immutable-context)
+  - [🚀 Your First CLI Application](#your-first-cli-application)
+  - [📊 Working with Tables](#working-with-tables)
+  - [📁 File Operations](#file-operations)
+  - [🔄 Railway-Oriented Programming](#railway-oriented-programming)
+  - [📦 Immutable Context](#immutable-context)
 - [Development Workflow (v0.10.0)](#development-workflow-v0100)
   - [Quality Gates](#quality-gates)
   - [Development Pattern (v0.10.0)](#development-pattern-v0100)
@@ -33,20 +33,21 @@
   - [Validation Commands](#validation-commands)
   - [Implementation Verification](#implementation-verification)
 - [Next Steps](#next-steps)
+
 <!-- TOC END -->
 
 **Installation and setup guide for the FLEXT ecosystem CLI foundation library.**
 
 **Last Updated**: 2025-01-24 | **Version**: 0.10.0
 
----
+______________________________________________________________________
 
 ## 📌 Quick Navigation
 
 - [v0.10.0 Getting Started (Current)](#v0100-getting-started-current) ← **Start Here**
 - [v0.9.0 Getting Started (Historical Reference)](#v090-getting-started-historical-reference)
 
----
+______________________________________________________________________
 
 ## v0.10.0 Getting Started (Current)
 
@@ -69,7 +70,7 @@ flext-cli v0.10.0 is a simplified, streamlined CLI foundation library for the FL
 - 50% fewer API methods (~30 → ~15)
 - Clearer architecture and better performance
 
----
+______________________________________________________________________
 
 ## Prerequisites
 
@@ -89,7 +90,7 @@ flext-cli integrates with:
 - **Rich 14.0+**: Terminal UI (abstracted)
 - **Pydantic 2.11+**: Data validation
 
----
+______________________________________________________________________
 
 ## Installation
 
@@ -125,7 +126,7 @@ poetry add flext-cli
 pip install flext-cli
 ```
 
----
+______________________________________________________________________
 
 ## Quick Start (v0.10.0)
 
@@ -261,7 +262,7 @@ updated_context = context.model_copy(
 )
 ```
 
----
+______________________________________________________________________
 
 ## Development Workflow (v0.10.0)
 
@@ -336,7 +337,7 @@ def test_my_cli_operation():
     assert "required_field" in config
 ```
 
----
+______________________________________________________________________
 
 ## Next Steps
 
@@ -383,7 +384,7 @@ Check `examples/` directory for complete application samples:
 - Table formatting
 - Configuration management
 
----
+______________________________________________________________________
 
 ## v0.9.0 Getting Started (Historical Reference)
 
@@ -435,7 +436,7 @@ config = FlextCliSettings(
 )
 ```
 
----
+______________________________________________________________________
 
 ## Quality Validation
 
@@ -460,7 +461,7 @@ find src/ -name "*.py" -exec wc -l {} + | tail -1
 python -c "from flext_cli import FlextCliService, FlextCliAuth, FlextCli; print('✅ All core services import successfully')"
 ```
 
----
+______________________________________________________________________
 
 ## Next Steps
 
@@ -477,6 +478,6 @@ python -c "from flext_cli import FlextCliService, FlextCliAuth, FlextCli; print(
 - Extension development (substantial foundation available)
 - Architecture evaluation (enterprise-grade patterns in place)
 
----
+______________________________________________________________________
 
 **Development Status**: Enterprise-grade foundation with targeted CLI execution fix required.

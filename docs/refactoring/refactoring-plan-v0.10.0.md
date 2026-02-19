@@ -1,7 +1,7 @@
 # FLEXT-CLI v0.10.0 Refactoring Plan
 
-
 <!-- TOC START -->
+
 - [Table of Contents](#table-of-contents)
 - [Executive Summary](#executive-summary)
   - [Purpose](#purpose)
@@ -43,6 +43,7 @@
   - [Week 3: Test Reorganization & Polish](#week-3-test-reorganization-polish)
   - [Week 4: Release & Support](#week-4-release-support)
 - [Conclusion](#conclusion)
+
 <!-- TOC END -->
 
 **Version**: 0.10.0
@@ -50,20 +51,20 @@
 **Status**: 📝 Planning Phase
 **Target Release**: Q1 2025
 
----
+______________________________________________________________________
 
 ## Table of Contents
 
 1. [Executive Summary](#executive-summary)
-2. [Current State Analysis](#current-state-analysis-v090)
-3. [Target Architecture](#target-architecture)
-4. [Detailed Changes](#detailed-changes)
-5. [Implementation Plan](#implementation-plan)
-6. [Risk Assessment](#risk-assessment)
-7. [Success Criteria](#success-criteria)
-8. [Timeline](#timeline)
+1. [Current State Analysis](#current-state-analysis-v090)
+1. [Target Architecture](#target-architecture)
+1. [Detailed Changes](#detailed-changes)
+1. [Implementation Plan](#implementation-plan)
+1. [Risk Assessment](#risk-assessment)
+1. [Success Criteria](#success-criteria)
+1. [Timeline](#timeline)
 
----
+______________________________________________________________________
 
 ## Executive Summary
 
@@ -105,17 +106,17 @@ This refactoring aims to simplify FLEXT-CLI's architecture by removing over-engi
 - ✅ Improved code quality
 - ✅ Lower maintenance burden
 
----
+______________________________________________________________________
 
 ## Current State Analysis (v0.9.0)
 
 ### What Works Well
 
 1. **Core Abstraction**: Click/Rich abstraction is solid
-2. **Type Safety**: Comprehensive type annotations
-3. **Railway Pattern**: FlextResult[T] used throughout
-4. **Test Coverage**: 95%+ test pass rate
-5. **FLEXT Integration**: Good flext-core patterns
+1. **Type Safety**: Comprehensive type annotations
+1. **Railway Pattern**: FlextResult[T] used throughout
+1. **Test Coverage**: 95%+ test pass rate
+1. **FLEXT Integration**: Good flext-core patterns
 
 ### Over-Engineering Identified
 
@@ -242,17 +243,17 @@ tests/unit/
 - Slow to run individual tests
 - Difficult to maintain
 
----
+______________________________________________________________________
 
 ## Target Architecture (v0.10.0)
 
 ### Design Principles
 
 1. **Services Only for State** - Use FlextService only when managing state
-2. **Simple Classes for Utilities** - Stateless operations use simple classes
-3. **Value Objects for Data** - Immutable data models using Pydantic
-4. **Direct Access Pattern** - No thin wrappers, direct property access
-5. **Zero Unused Infrastructure** - Remove async, threading, plugins
+1. **Simple Classes for Utilities** - Stateless operations use simple classes
+1. **Value Objects for Data** - Immutable data models using Pydantic
+1. **Direct Access Pattern** - No thin wrappers, direct property access
+1. **Zero Unused Infrastructure** - Remove async, threading, plugins
 
 ### Module Classification
 
@@ -279,8 +280,8 @@ class FlextCliCore(FlextService[CliDataDict]):
 **Services in v0.10.0**:
 
 1. **FlextCliCore** - Command/session management ✅
-2. **FlextCli** - Main API facade (evaluate if needed) ⚠️
-3. **FlextCliCmd** - Command execution (evaluate if needed) ⚠️
+1. **FlextCli** - Main API facade (evaluate if needed) ⚠️
+1. **FlextCliCmd** - Command execution (evaluate if needed) ⚠️
 
 #### Simple Classes (10+ utilities)
 
@@ -410,7 +411,7 @@ cli.file_tools.read_json_file("config.json")   # Direct
                 └──────────────────────────┘
 ```
 
----
+______________________________________________________________________
 
 ## Detailed Changes
 
@@ -421,17 +422,20 @@ cli.file_tools.read_json_file("config.json")   # Direct
 **Files to Delete**:
 
 1. **validator.py** (22 lines)
+
    - Status: Already empty stub
    - All validation moved to Pydantic v2
    - No imports to update
 
-2. **auth.py** (300 lines)
+1. **auth.py** (300 lines)
+
    - Duplicate of auth functionality in api.py
    - FlextCliAuthService duplicates FlextCli.authenticate()
    - Remove from `__init__.py` exports
    - No external usage found
 
-3. **testing.py** → Move to tests/fixtures/ (362 lines)
+1. **testing.py** → Move to tests/fixtures/ (362 lines)
+
    - FlextCliTesting, FlextCliTestRunner, FlextCliMockScenarios
    - Test utilities don't belong in production code
    - Move to `tests/fixtures/testing_utilities.py`
@@ -687,7 +691,7 @@ tests/
 - `auth/test_token_auth.py` (~300 lines)
 - `auth/test_credential_auth.py` (~200 lines)
 
----
+______________________________________________________________________
 
 ## Implementation Plan
 
@@ -714,84 +718,84 @@ See: [IMPLEMENTATION_CHECKLIST.md](IMPLEMENTATION_CHECKLIST.md)
 #### Phase 2: Delete Duplicates
 
 1. Delete `validator.py`
-2. Delete `auth.py`
-3. Move `testing.py` to `tests/fixtures/testing_utilities.py`
-4. Update `__init__.py` exports
-5. Update imports in tests
-6. Run: `make validate`
-7. Commit: "refactor: remove duplicate and empty modules"
+1. Delete `auth.py`
+1. Move `testing.py` to `tests/fixtures/testing_utilities.py`
+1. Update `__init__.py` exports
+1. Update imports in tests
+1. Run: `make validate`
+1. Commit: "refactor: remove duplicate and empty modules"
 
 #### Phase 3: Convert Services to Simple Classes
 
 For each utility class:
 
 1. Remove FlextService inheritance
-2. Remove `__init__` method
-3. Convert instance methods to static methods
-4. Remove `self` parameter
-5. Update all calls (no `.` needed before method)
-6. Update tests
-7. Run: `make validate` after each conversion
+1. Remove `__init__` method
+1. Convert instance methods to static methods
+1. Remove `self` parameter
+1. Update all calls (no `.` needed before method)
+1. Update tests
+1. Run: `make validate` after each conversion
 
 Order:
 
 1. FlextCliFileTools (simplest)
-2. FlextCliTables
-3. FlextCliOutput
-4. FlextCliPrompts
-5. FlextCliDebug
-6. FlextCliCommands (or replace with dict)
+1. FlextCliTables
+1. FlextCliOutput
+1. FlextCliPrompts
+1. FlextCliDebug
+1. FlextCliCommands (or replace with dict)
 
 Commit after each: "refactor: convert FlextCliFileTools to simple class"
 
 #### Phase 4: Fix FlextCliContext
 
 1. Change inheritance: `FlextService` → `m.Value`
-2. Remove service methods: `activate()`, `deactivate()`
-3. Add `model_config = ConfigDict(frozen=True)`
-4. Update all usage sites
-5. Update tests
-6. Run: `make validate`
-7. Commit: "refactor: convert context to value object"
+1. Remove service methods: `activate()`, `deactivate()`
+1. Add `model_config = ConfigDict(frozen=True)`
+1. Update all usage sites
+1. Update tests
+1. Run: `make validate`
+1. Commit: "refactor: convert context to value object"
 
 #### Phase 5: Remove API Wrappers
 
 1. Remove ~15 wrapper methods from `api.py`
-2. Update examples in docs/
-3. Update tests
-4. Run: `make validate`
-5. Commit: "refactor: remove API wrapper methods"
+1. Update examples in docs/
+1. Update tests
+1. Run: `make validate`
+1. Commit: "refactor: remove API wrapper methods"
 
 #### Phase 6: Remove Unused Infrastructure
 
 1. Remove asyncio imports
-2. Remove threading imports
-3. Remove pluggy imports
-4. Check cachetools usage
-5. Remove any unused code
-6. Run: `make validate`
-7. Commit: "refactor: remove unused infrastructure"
+1. Remove threading imports
+1. Remove pluggy imports
+1. Check cachetools usage
+1. Remove any unused code
+1. Run: `make validate`
+1. Commit: "refactor: remove unused infrastructure"
 
 #### Phase 7: Reorganize Tests
 
 1. Create new test directory structure
-2. Split large test files
-3. Move testing utilities
-4. Simplify conftest.py
-5. Run: `make test`
-6. Commit: "refactor: reorganize test structure"
+1. Split large test files
+1. Move testing utilities
+1. Simplify conftest.py
+1. Run: `make test`
+1. Commit: "refactor: reorganize test structure"
 
 #### Phase 8: Quality Gates
 
 1. Run: `make validate` (must pass 100%)
-2. Run: `make test` (must maintain 95%+ pass rate)
-3. Update `__version__.py` → `0.10.0`
-4. Update `CHANGELOG.md`
-5. Create PR for review
-6. Merge to main after approval
-7. Tag: `v0.10.0`
+1. Run: `make test` (must maintain 95%+ pass rate)
+1. Update `__version__.py` → `0.10.0`
+1. Update `CHANGELOG.md`
+1. Create PR for review
+1. Merge to main after approval
+1. Tag: `v0.10.0`
 
----
+______________________________________________________________________
 
 ## Risk Assessment
 
@@ -886,20 +890,20 @@ If issues arise:
    git revert <commit-hash>
    ```
 
-2. **Full Rollback**: Return to v0.9.0
+1. **Full Rollback**: Return to v0.9.0
 
    ```bash
    git checkout v0.9.0
    git checkout -b hotfix/rollback-v0.10
    ```
 
-3. **Partial Rollback**: Keep safe changes, revert risky ones
+1. **Partial Rollback**: Keep safe changes, revert risky ones
 
    ```bash
    git revert <risky-commit-1> <risky-commit-2>
    ```
 
----
+______________________________________________________________________
 
 ## Success Criteria
 
@@ -952,7 +956,7 @@ If issues arise:
 - ✅ Zero tolerance rules upheld
 - ✅ Production readiness maintained
 
----
+______________________________________________________________________
 
 ## Timeline
 
@@ -995,23 +999,23 @@ If issues arise:
 
 **Deliverables**: v0.10.0 released and stable
 
----
+______________________________________________________________________
 
 ## Conclusion
 
 This refactoring represents a significant improvement to FLEXT-CLI's architecture by:
 
 1. **Removing over-engineering** (18→3-4 services)
-2. **Simplifying the API** (no wrapper methods)
-3. **Following SOLID principles** (clear responsibilities)
-4. **Reducing code** (30-40% fewer lines)
-5. **Improving maintainability** (organized tests, clear docs)
+1. **Simplifying the API** (no wrapper methods)
+1. **Following SOLID principles** (clear responsibilities)
+1. **Reducing code** (30-40% fewer lines)
+1. **Improving maintainability** (organized tests, clear docs)
 
 While there are breaking changes, the migration path is clear and the benefits justify the effort. The documentation-first approach ensures all stakeholders understand the changes before implementation begins.
 
 **Status**: Ready for team review and approval to proceed
 
----
+______________________________________________________________________
 
 **Document Version**: 1.0
 **Last Updated**: 2025-01-24

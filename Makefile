@@ -8,7 +8,7 @@ endif
 
 # === PROJECT-SPECIFIC TARGETS ===
 .PHONY: cli-test cli-auth cli-config cli-debug test-unit test-integration
-.PHONY: build docs docs-serve shell
+.PHONY: build docs-serve shell
 
 cli-test: ## Test CLI commands
 	$(Q)PYTHONPATH=$(SRC_DIR) $(POETRY) run pytest $(TESTS_DIR)/unit/test_cli*.py -q
@@ -21,9 +21,6 @@ cli-config: ## Test CLI configuration
 
 cli-debug: ## Test CLI debug
 	$(Q)PYTHONPATH=$(SRC_DIR) $(POETRY) run pytest $(TESTS_DIR)/unit/test_debug*.py -q
-
-docs: ## Build documentation
-	$(Q)$(POETRY) run mkdocs build
 
 docs-serve: ## Serve documentation
 	$(Q)$(POETRY) run mkdocs serve

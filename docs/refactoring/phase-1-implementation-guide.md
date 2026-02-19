@@ -1,24 +1,24 @@
 # Phase 1 Implementation Guide
 
-
 <!-- TOC START -->
+
 - [v0.10.0 Refactoring - Remove Duplication & Dead Code](#v0100-refactoring-remove-duplication-dead-code)
 - [Overview](#overview)
-- [Step 4: Delete validator.py ✅](#step-4-delete-validatorpy-)
+- [Step 4: Delete validator.py ✅](#step-4-delete-validatorpy)
   - [Verification](#verification)
   - [Actions](#actions)
   - [Validation](#validation)
-- [Step 5: Delete auth.py ✅](#step-5-delete-authpy-)
+- [Step 5: Delete auth.py ✅](#step-5-delete-authpy)
   - [Verification](#verification)
   - [Actions Required](#actions-required)
   - [Modified **init**.py Structure](#modified-initpy-structure)
   - [Validation](#validation)
-- [Step 6: Move testing.py to tests/fixtures/ ⏳](#step-6-move-testingpy-to-testsfixtures-)
+- [Step 6: Move testing.py to tests/fixtures/ ⏳](#step-6-move-testingpy-to-testsfixtures)
   - [Verification](#verification)
   - [Actions Required](#actions-required)
   - [Modified **init**.py After This Step](#modified-initpy-after-this-step)
   - [Validation](#validation)
-- [Step 7: Remove Unused Imports from core.py ⏳](#step-7-remove-unused-imports-from-corepy-)
+- [Step 7: Remove Unused Imports from core.py ⏳](#step-7-remove-unused-imports-from-corepy)
   - [Verification](#verification)
   - [Actions Required](#actions-required)
   - [Validation](#validation)
@@ -28,6 +28,7 @@
   - [If you need to rollback](#if-you-need-to-rollback)
 - [Summary](#summary)
 - [Next Phase](#next-phase)
+
 <!-- TOC END -->
 
 ## v0.10.0 Refactoring - Remove Duplication & Dead Code
@@ -39,17 +40,17 @@
 **Files to Move**: 1 file
 **Files to Edit**: 1 file
 
----
+______________________________________________________________________
 
 ## Overview
 
 Phase 1 removes 3 files totaling ~700 lines of unnecessary code:
 
 1. **validator.py** - Empty stub (22 lines)
-2. **auth.py** - Duplicate functionality (300 lines)
-3. **testing.py** - Move to tests/fixtures/ (362 lines)
+1. **auth.py** - Duplicate functionality (300 lines)
+1. **testing.py** - Move to tests/fixtures/ (362 lines)
 
----
+______________________________________________________________________
 
 ## Step 4: Delete validator.py ✅
 
@@ -86,7 +87,7 @@ make type-check
 
 **Commit**: `refactor: remove empty validator.py stub`
 
----
+______________________________________________________________________
 
 ## Step 5: Delete auth.py ✅
 
@@ -179,7 +180,7 @@ make test  # Verify tests still pass
 
 **Commit**: `refactor: remove duplicate auth.py module`
 
----
+______________________________________________________________________
 
 ## Step 6: Move testing.py to tests/fixtures/ ⏳
 
@@ -322,7 +323,7 @@ python -c "from tests.fixtures.testing_utilities import FlextCliTesting; print('
 
 **Commit**: `refactor: move testing utilities to tests/fixtures/`
 
----
+______________________________________________________________________
 
 ## Step 7: Remove Unused Imports from core.py ⏳
 
@@ -361,7 +362,7 @@ make test
 
 **Commit**: `refactor: remove unused imports from core.py`
 
----
+______________________________________________________________________
 
 ## Phase 1 Completion Checklist
 
@@ -392,7 +393,7 @@ ls tests/fixtures/testing_utilities.py  # Should exist
 python -c "from flext_cli import FlextCli, FlextCliSettings; print('✓ Imports working')"
 ```
 
----
+______________________________________________________________________
 
 ## Rollback Plan (If Issues Occur)
 
@@ -413,7 +414,7 @@ find tests -name "*.py" -type f -exec sed -i \
   {} +
 ```
 
----
+______________________________________________________________________
 
 ## Summary
 
@@ -434,7 +435,7 @@ find tests -name "*.py" -type f -exec sed -i \
 
 **Impact**: Cleaner codebase, no breaking changes for external users (auth was duplicate, validator was empty, testing was test-only)
 
----
+______________________________________________________________________
 
 ## Next Phase
 

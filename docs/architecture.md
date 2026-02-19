@@ -1,7 +1,7 @@
 # CLI Architecture
 
-
 <!-- TOC START -->
+
 - [Princípios](#princpios)
 - [Mapa dos módulos](#mapa-dos-mdulos)
 - [Fluxo em tempo de execução](#fluxo-em-tempo-de-execuo)
@@ -9,6 +9,7 @@
 - [Exemplo mínimo](#exemplo-mnimo)
 - [Referências rápidas](#referncias-rpidas)
 - [Related Documentation](#related-documentation)
+
 <!-- TOC END -->
 
 Panorama da arquitetura implementada no **flext-cli** 0.10.0, conforme o código-fonte.
@@ -51,10 +52,10 @@ src/flext_cli/
 ## Fluxo em tempo de execução
 
 1. **Bootstrap**: `FlextCli` registra o identificador do CLI no `FlextContainer` e instancia os serviços e utilidades compartilhados.
-2. **Registro de comandos**: modelos em `commands.py` são validados em `FlextCliCore.register_command` antes de serem armazenados.
-3. **Execução**: `FlextCliCore.execute_command` resolve o comando registrado; `FlextCliCmd` fornece operações utilitárias ligadas à configuração persistida.
-4. **Entrada/Saída**: `prompts.py` coleta entrada; `output.py`, `formatters.py` e `tables.py` geram saídas em Rich/ASCII/JSON/YAML/CSV sem expor o Rich diretamente.
-5. **Configuração e contexto**: `config.py` gerencia configuração imutável; `context.py` acompanha execução e sessões armazenadas em `core`.
+1. **Registro de comandos**: modelos em `commands.py` são validados em `FlextCliCore.register_command` antes de serem armazenados.
+1. **Execução**: `FlextCliCore.execute_command` resolve o comando registrado; `FlextCliCmd` fornece operações utilitárias ligadas à configuração persistida.
+1. **Entrada/Saída**: `prompts.py` coleta entrada; `output.py`, `formatters.py` e `tables.py` geram saídas em Rich/ASCII/JSON/YAML/CSV sem expor o Rich diretamente.
+1. **Configuração e contexto**: `config.py` gerencia configuração imutável; `context.py` acompanha execução e sessões armazenadas em `core`.
 
 ## Integração com flext-core
 

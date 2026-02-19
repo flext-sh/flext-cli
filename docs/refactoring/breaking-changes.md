@@ -1,7 +1,7 @@
 # Breaking Changes: v0.9.0 → v0.10.0
 
-
 <!-- TOC START -->
+
 - [Summary](#summary)
 - [1. API Wrapper Methods Removed](#1-api-wrapper-methods-removed)
   - [Removed Methods](#removed-methods)
@@ -28,24 +28,25 @@
   - [Removed from `__init__.py`](#removed-from-initpy)
   - [Still Available](#still-available)
 - [Migration Checklist](#migration-checklist)
-  - [[ ] 1. Update API Calls](#-1-update-api-calls)
-  - [[ ] 2. Update Imports](#-2-update-imports)
-  - [[ ] 3. Update Context Usage](#-3-update-context-usage)
-  - [[ ] 4. Run Tests](#-4-run-tests)
-  - [[ ] 5. Update Type Hints (if applicable)](#-5-update-type-hints-if-applicable)
+  - [[ ] 1. Update API Calls](#1-update-api-calls)
+  - [[ ] 2. Update Imports](#2-update-imports)
+  - [[ ] 3. Update Context Usage](#3-update-context-usage)
+  - [[ ] 4. Run Tests](#4-run-tests)
+  - [[ ] 5. Update Type Hints (if applicable)](#5-update-type-hints-if-applicable)
 - [Compatibility Table](#compatibility-table)
 - [Deprecation Timeline](#deprecation-timeline)
 - [Getting Help](#getting-help)
   - [If Migration Fails](#if-migration-fails)
   - [Support Resources](#support-resources)
 - [FAQ](#faq)
+
 <!-- TOC END -->
 
 **Complete list of all breaking changes with fixes**
 
 > ⚠️ **Important**: v0.10.0 contains multiple breaking changes. Review this document carefully before upgrading.
 
----
+______________________________________________________________________
 
 ## Summary
 
@@ -59,7 +60,7 @@
 
 **Estimated Migration Time**: 30-60 minutes
 
----
+______________________________________________________________________
 
 ## 1. API Wrapper Methods Removed
 
@@ -158,7 +159,7 @@ find . -name "*.py" -type f -exec sed -i \
 echo "Migration complete! Review changes with: git diff"
 ```
 
----
+______________________________________________________________________
 
 ## 2. Modules Removed/Moved
 
@@ -209,7 +210,7 @@ from tests.fixtures.testing_utilities import (
 
 **Reason**: Test utilities don't belong in production library
 
----
+______________________________________________________________________
 
 ## 3. FlextCliContext Changes
 
@@ -256,7 +257,7 @@ new_context = FlextCliContext(
 - ✅ No lifecycle management needed
 - ✅ Thread-safe by default
 
----
+______________________________________________________________________
 
 ## 4. Service Class Instantiation Changes
 
@@ -291,7 +292,7 @@ result = cli.file_tools.read_json_file("config.json")
 
 **Note**: Most users access through `FlextCli` instance, so no changes needed
 
----
+______________________________________________________________________
 
 ## 5. Async/Threading Removed
 
@@ -320,7 +321,7 @@ await cli.some_async_method()  # Never existed
 result = cli.formatters.print("message")  # Sync
 ```
 
----
+______________________________________________________________________
 
 ## 6. Test Structure Changes
 
@@ -357,7 +358,7 @@ from tests.unit.test_config import SomeTestHelper
 from tests.unit.config.test_config_loading import SomeTestHelper
 ```
 
----
+______________________________________________________________________
 
 ## 7. Import Changes
 
@@ -402,7 +403,7 @@ from flext_cli import (
 )
 ```
 
----
+______________________________________________________________________
 
 ## Migration Checklist
 
@@ -440,7 +441,7 @@ Use this checklist to ensure complete migration:
 - [ ] Check any explicit type hints for removed methods
 - [ ] Update protocol implementations if needed
 
----
+______________________________________________________________________
 
 ## Compatibility Table
 
@@ -457,7 +458,7 @@ Use this checklist to ensure complete migration:
 | Testing in prod    | ✅          | ❌ Moved    | ❌ No           |
 | Async/Threading    | ⚠️ Imported | ❌ Removed  | ⚠️ N/A (unused) |
 
----
+______________________________________________________________________
 
 ## Deprecation Timeline
 
@@ -469,16 +470,16 @@ Use this checklist to ensure complete migration:
 
 **Recommendation**: Migrate to v0.10.0 within 3 months
 
----
+______________________________________________________________________
 
 ## Getting Help
 
 ### If Migration Fails
 
 1. **Check Error Message**: Most issues are import or attribute errors
-2. **Review This Document**: Find the specific breaking change
-3. **Use Migration Script**: Automated find-and-replace helps
-4. **Open Issue**: [GitHub Issues](https://github.com/flext-sh/flext-cli/issues)
+1. **Review This Document**: Find the specific breaking change
+1. **Use Migration Script**: Automated find-and-replace helps
+1. **Open Issue**: [GitHub Issues](https://github.com/flext-sh/flext-cli/issues)
 
 ### Support Resources
 
@@ -487,7 +488,7 @@ Use this checklist to ensure complete migration:
 - **[API Reference](../api-reference.md)** - Complete v0.10.0 API
 - **[Examples](../../examples/)** - Updated code examples
 
----
+______________________________________________________________________
 
 ## FAQ
 
@@ -506,7 +507,7 @@ A: Stay on v0.9.0 temporarily, but plan migration within 3 months.
 **Q: Can I stage the migration?**
 A: No, changes must be made together (imports, API calls, context usage).
 
----
+______________________________________________________________________
 
 **Document Version**: 1.0
 **Last Updated**: 2025-01-24

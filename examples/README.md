@@ -1,7 +1,7 @@
 # FLEXT-CLI Examples - Library Usage Guide
 
-
 <!-- TOC START -->
+
 - [📚 Overview](#-overview)
 - [🎯 What is flext-cli](#-what-is-flext-cli)
 - [📖 Examples](#-examples)
@@ -30,6 +30,7 @@
 - [📚 Additional Resources](#-additional-resources)
 - [🆘 Getting Help](#-getting-help)
 - [✅ Best Practices](#-best-practices)
+
 <!-- TOC END -->
 
 **IMPORTANT**: flext-cli is a **LIBRARY**, not a CLI application. Import `FlextCli` and use it in your Python applications.
@@ -56,18 +57,21 @@ flext-cli is a production-ready Python library that provides:
 ### Getting Started
 
 1. **[01_getting_started.py](01_getting_started.py)** - Start here!
+
    - Basic FlextCli initialization
    - Accessing domain services
    - FlextResult railway pattern
    - Core operations
 
-2. **[02_output_formatting.py](02_output_formatting.py)** - Rich output
+1. **[02_output_formatting.py](02_output_formatting.py)** - Rich output
+
    - Styled messages (success, error, warning, info)
    - Table display (Rich and Tabulate)
    - Data formatting (JSON, YAML)
    - Progress bars and spinners
 
-3. **[03_interactive_prompts.py](03_interactive_prompts.py)** - User interaction
+1. **[03_interactive_prompts.py](03_interactive_prompts.py)** - User interaction
+
    - Confirmation prompts
    - Text input
    - Choice selection
@@ -77,18 +81,21 @@ flext-cli is a production-ready Python library that provides:
 ### Core Features
 
 4. **[04_file_operations.py](04_file_operations.py)** - File handling
+
    - File reading/writing
    - Path validation
    - Directory operations
    - JSON/YAML file handling
 
-5. **[05_authentication.py](05_authentication.py)** - Auth patterns
+1. **[05_authentication.py](05_authentication.py)** - Auth patterns
+
    - Token management
    - Authorization headers
    - Session management
    - Protected operations
 
-6. **[06_configuration.py](06_configuration.py)** - Config management
+1. **[06_configuration.py](06_configuration.py)** - Config management
+
    - FlextCliSettings usage
    - Environment variables
    - Pydantic validation
@@ -97,24 +104,28 @@ flext-cli is a production-ready Python library that provides:
 ### Advanced Features
 
 7. **[07_plugin_system.py](07_plugin_system.py)** - Plugins
+
    - Plugin loading
    - Custom plugin development
    - Plugin lifecycle
 
-8. **[08_shell_interaction.py](08_shell_interaction.py)** - Interactive shell
+1. **[08_shell_interaction.py](08_shell_interaction.py)** - Interactive shell
+
    - REPL functionality
    - Command history
    - Custom commands
 
-9. **[09_performance_optimization.py](09_performance_optimization.py)** - Performance
+1. **[09_performance_optimization.py](09_performance_optimization.py)** - Performance
+
    - Caching strategies
    - Lazy loading
    - Performance measurement
 
-10. **[10_testing_utilities.py](10_testing_utilities.py)** - Testing
-    - Mock scenarios
-    - Output capture
-    - Test utilities
+1. **[10_testing_utilities.py](10_testing_utilities.py)** - Testing
+
+   - Mock scenarios
+   - Output capture
+   - Test utilities
 
 ### Integration
 
@@ -267,8 +278,8 @@ cli.output.info(f"Debug mode: {config.debug}")
 **Beginner** (Start here):
 
 1. 01_getting_started.py
-2. 02_output_formatting.py
-3. 03_interactive_prompts.py
+1. 02_output_formatting.py
+1. 03_interactive_prompts.py
 
 **Intermediate**: 4. 04_file_operations.py 5. 05_authentication.py 6. 06_configuration.py
 
@@ -446,21 +457,21 @@ def interactive_tool():
 ## 🆘 Getting Help
 
 1. Review the examples in order (01-11)
-2. Check the inline code documentation
-3. Refer to [../README.md](../README.md) for API reference
-4. See [../CLAUDE.md](../CLAUDE.md) for development guidelines
+1. Check the inline code documentation
+1. Refer to [../README.md](../README.md) for API reference
+1. See [../CLAUDE.md](../CLAUDE.md) for development guidelines
 
 ## ✅ Best Practices
 
 1. **Use FlextResult** for all operations
-2. **Initialize FlextCli once** and reuse
-3. **Access services via properties** (cli.output, cli.tables)
-4. **Handle errors explicitly** with FlextResult patterns
-5. **Use type hints** for better IDE support
-6. **Configure via FlextCliSettings** for environment-specific settings
-7. **Combine modules** for complete functionality
+1. **Initialize FlextCli once** and reuse
+1. **Access services via properties** (cli.output, cli.tables)
+1. **Handle errors explicitly** with FlextResult patterns
+1. **Use type hints** for better IDE support
+1. **Configure via FlextCliSettings** for environment-specific settings
+1. **Combine modules** for complete functionality
 
----
+______________________________________________________________________
 
 **Remember**: flext-cli is a **LIBRARY** - import and use it in your applications!
 

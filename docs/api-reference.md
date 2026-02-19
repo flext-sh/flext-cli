@@ -1,7 +1,7 @@
 # FLEXT CLI API Reference
 
-
 <!-- TOC START -->
+
 - [Imports essenciais](#imports-essenciais)
 - [Facade `FlextCli`](#facade-flextcli)
   - [Métodos principais](#mtodos-principais)
@@ -12,6 +12,7 @@
 - [Prompts interativos (`FlextCliPrompts`)](#prompts-interativos-flextcliprompts)
 - [I/O de arquivos (`FlextCliFileTools`)](#io-de-arquivos-flextclifiletools)
 - [Related Documentation](#related-documentation)
+
 <!-- TOC END -->
 
 Referência alinhada ao código-fonte do **flext-cli** 0.10.0. Última revisão: 2025-02-06.
