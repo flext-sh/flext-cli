@@ -1,36 +1,32 @@
 [build-system]
     build-backend = "poetry.core.masonry.api"
     requires = [
-        "poetry-core>=1.9.0",
+        "poetry-core>=2",
     ]
 
 [project]
     classifiers = [
-        "Development Status :: 5 - Production/Stable",
-        "Intended Audience :: Developers",
-        "License :: OSI Approved :: MIT License",
-        "Operating System :: OS Independent",
-        "Programming Language :: Python :: 3 :: Only",
-        "Programming Language :: Python :: 3.13",
-        "Topic :: Software Development :: Libraries :: Python Modules",
-        "Typing :: Typed",
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed"
     ]
     dependencies = [
-        "cachetools>=5.3.0",
-        "click>=8.2.1",
-        "pluggy>=1.3.0",
-        "prompt-toolkit (>=3.0.52,<4.0.0)",
-        "pydantic-core (>=2.41.4)",
-        "pydantic-settings>=2.10.1",
-        "pydantic (>=2.12.3)",
-        "pyyaml>=6.0",
-        "rich (>=14.2.0,<15.0.0)",
-        "tabulate>=0.9.0",
-        "typer>=0.12.0",
-        "attrs (>=25.4.0,<26.0.0)",
-        "pytest-randomly (>=4.0.1,<5.0.0)",
-        "faker (>=40.1.0,<41.0.0)",
-        "pytest-cov (>=7.0.0,<8.0.0)",
+    "cachetools>=5.3.0",
+    "click>=8.2.1",
+    "pluggy>=1.3.0",
+    "prompt-toolkit (>=3.0.52,<4.0.0)",
+    "pydantic-core (>=2.41.4)",
+    "pydantic-settings>=2.10.1",
+    "pydantic (>=2.12.3)",
+    "pyyaml>=6.0",
+    "rich (>=14.2.0,<15.0.0)",
+    "tabulate>=0.9.0",
+    "typer>=0.12.0",
+    "attrs (>=25.4.0,<26.0.0)"
     ]
     description = "FLEXT CLI - Developer Command Line Interface"
     keywords = [
@@ -45,6 +41,7 @@
     readme = "README.md"
     requires-python = ">=3.13,<3.14"
     version = "0.10.0-dev"
+    license = "MIT"
 
     [[project.authors]]
         email = "team@flext.sh"
@@ -53,9 +50,6 @@
     [[project.maintainers]]
         email = "team@flext.sh"
         name = "FLEXT Team"
-
-    [project.license]
-        text = "MIT"
 
     [project.urls]
         Documentation = "https://github.com/flext-sh/flext-cli/blob/main/README.md"
@@ -134,29 +128,26 @@
     [tool.deptry.per_rule_ignores]
         DEP002 = [
             # CLI tools
+            # Type stubs
+            # Runtime deps used indirectly (pydantic-settings, flext-core, etc.)
             "bandit",
             "deptry",
             "mypy",
             "pip-audit",
             "pyrefly",
             "pytest",
-            "pytest-cov",
             "pytest-xdist",
             "ruff",
-            # Type stubs
             "types-pyyaml",
             "types-requests",
             "types-setuptools",
             "types-tabulate",
             "types-toml",
-            # Runtime deps used indirectly (pydantic-settings, flext-core, etc.)
             "attrs",
             "cachetools",
-            "faker",
             "pluggy",
             "prompt-toolkit",
-            "pydantic-core",
-            "pytest-randomly",
+            "pydantic-core"
         ]
 
     [tool.poetry]
@@ -205,17 +196,19 @@
             "*/dependency_injector/*",
             "*.pyx",
         ]
+    source = ["src/flext_cli"]
 
+[tool.coverage.report]
+fail_under = 90
+precision = 2
     [tool.pytest.ini_options]
         addopts = [
-            "--cov-report=term-missing",
-            "--cov=src/",
-            "--strict-config",
-            "--strict-markers",
-            "--tb=short",
-            "-p no:sugar",
-            "-q",
-            "-ra",
+    "--strict-config",
+    "--strict-markers",
+    "--tb=short",
+    "-p no:sugar",
+    "-q",
+    "-ra"
         ]
         markers = [
             " marks tests as tests",
@@ -254,6 +247,8 @@
 
     [tool.pyrefly]
         search-path = [
+            "../typings",
+            "../typings/generated",
             "src",
             "tests",
             "examples",
@@ -289,3 +284,6 @@
             known-first-party = [
                 "flext_cli",
             ]
+
+[tool.bandit]
+skips = ["B404", "B603", "B607", "B105", "B608"]

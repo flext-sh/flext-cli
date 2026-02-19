@@ -975,9 +975,10 @@ doc = ["Sphinx", "sphinx-rtd-theme", "sphinxcontrib-spelling"]
 name = "faker"
 version = "40.1.0"
 description = "Faker is a Python package that generates fake data for you."
-optional = false
+optional = true
 python-versions = ">=3.10"
 groups = ["main"]
+markers = "extra == \"test\""
 files = [
     {file = "faker-40.1.0-py3-none-any.whl", hash = "sha256:a616d35818e2a2387c297de80e2288083bc915e24b7e39d2fb5bc66cce3a929f"},
     {file = "faker-40.1.0.tar.gz", hash = "sha256:c402212a981a8a28615fea9120d789e3f6062c0c259a82bfb8dff5d273e539d2"},
@@ -2172,9 +2173,10 @@ dev = ["pre-commit", "pytest-asyncio", "tox"]
 name = "pytest-randomly"
 version = "4.0.1"
 description = "Pytest plugin to randomly order tests and control random.seed."
-optional = false
+optional = true
 python-versions = ">=3.9"
 groups = ["main"]
+markers = "extra == \"test\""
 files = [
     {file = "pytest_randomly-4.0.1-py3-none-any.whl", hash = "sha256:e0dfad2fd4f35e07beff1e47c17fbafcf98f9bf4531fd369d9260e2f858bfcb7"},
     {file = "pytest_randomly-4.0.1.tar.gz", hash = "sha256:174e57bb12ac2c26f3578188490bd333f0e80620c3f47340158a86eca0593cd8"},
@@ -3055,7 +3057,7 @@ files = [
     {file = "tzdata-2025.3-py2.py3-none-any.whl", hash = "sha256:06a47e5700f3081aab02b2e513160914ff0694bce9947d6b76ebd6bf57cfc5d1"},
     {file = "tzdata-2025.3.tar.gz", hash = "sha256:de39c2ca5dc7b0344f2eba86f49d614019d29f060fc4ebc8a417896a620b56a7"},
 ]
-markers = {typings = "sys_platform == \"win32\""}
+markers = {main = "extra == \"test\" or sys_platform == \"win32\"", typings = "sys_platform == \"win32\""}
 
 [[package]]
 name = "urllib3"
@@ -3152,4 +3154,4 @@ typings = ["django-stubs", "types-ldap3", "types-protobuf", "types-psutil", "typ
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.13,<3.14"
-content-hash = "a0e22619abb282c562c3b981529e3c6d27ed54d7425a76f8d77eab66bfeb77d4"
+content-hash = "4f74e077e57773b3f9c6b95c81616e1f1928b139c3af83529b16fe93a099e1f4"

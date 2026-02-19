@@ -108,7 +108,7 @@ grep -rEn "(from flext_.*\.(services|api) import)" \
 
 ## Rule 0 — Cross-Project Alignment
 
-- This file mirrors the root `../CLAUDE.md` standards. Any rule change must be made in the root first and then propagated to this file and to `flext-core/`, `flext-ldap/`, `flext-ldif/`, and `client-a-oud-mig/` `CLAUDE.md` files.
+- This file mirrors the root `../CLAUDE.md` standards. Any rule change must be made in the root first and then propagated to this file and to `flext-core/`, `flext-ldap/`, `flext-ldif/`, and `flext-oud-mig/` `CLAUDE.md` files.
 - All agents accept cross-project changes and resolve conflicts in the root `CLAUDE.md` before coding.
 
 ## Critical Rules — Zero Tolerance
@@ -836,10 +836,10 @@ Based on unified FLEXT ecosystem patterns:
 This project is part of the FLEXT monorepo workspace. Key integration points:
 
 - **Depends on**: flext-core (foundation library)
-- **Used by**: client-a-oud-mig, client-b-meltano-native, flext-api, flext-observability, flext-meltano
+- **Used by**: flext-oud-mig, flext-meltano-native, flext-api, flext-observability, flext-meltano
 - **Architecture**: Follows workspace-level patterns defined in `../CLAUDE.md`
 - **Quality Gates**: Must pass workspace-level validation before commits
-- **Unified Rules**: Follows same rules as flext-core, flext-ldif, flext-ldap, client-a-oud-mig
+- **Unified Rules**: Follows same rules as flext-core, flext-ldif, flext-ldap, flext-oud-mig
 
 See `../CLAUDE.md` for workspace-level standards and `README.md` for project overview.
 
