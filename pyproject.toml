@@ -4,7 +4,7 @@ requires = [ "poetry-core>=2.0", "poetry-core>=2" ]
 
 [project]
 name = "flext-cli"
-version = "0.11.0"
+version = "0.12.0-dev"
 description = "FLEXT CLI - Developer Command Line Interface"
 readme = "README.md"
 keywords = [
