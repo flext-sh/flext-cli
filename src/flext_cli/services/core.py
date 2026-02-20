@@ -362,8 +362,11 @@ class FlextCliCore(FlextCliServiceBase):
                 )
 
                 # Create snapshot from command definition
+                snapshot_config: dict[str, t.GeneralValueType] = {
+                    str(key): value for key, value in command_def.items()
+                }
                 return r[m.Configuration].ok(
-                    m.Configuration(config=command_def),
+                    m.Configuration(config=m.Dict(root=snapshot_config)),
                 )
 
             FlextLogger(__name__).error(

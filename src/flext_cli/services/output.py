@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import csv
 import json
-from collections.abc import Callable, Iterable, Sequence
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from io import StringIO
 from typing import ClassVar, TypeGuard
 
@@ -260,11 +260,11 @@ class FlextCliOutput:
         return compatible_value
 
     @staticmethod
-    def cast_if(
+    def cast_if[T](
         v: t.GeneralValueType,
-        t_type: type,  # Accept any type
-        default: t.GeneralValueType,
-    ) -> t.GeneralValueType:
+        t_type: type[T],
+        default: T,
+    ) -> T:
         """Cast value if isinstance else return default.
 
         Pattern: Non-generic cast_if for runtime type checking.
@@ -272,18 +272,7 @@ class FlextCliOutput:
         """
         if isinstance(v, t_type):
             return v
-        # Return default if v doesn't match type
-        if isinstance(default, t_type):
-            return default
-        # If default is not instance of t_type, raise error
-        type_name = t_type.__name__ if hasattr(t_type, "__name__") else str(t_type)
-        default_type_name = (
-            type(default).__name__
-            if hasattr(type(default), "__name__")
-            else str(type(default))
-        )
-        msg = f"default must be instance of {type_name}, got {default_type_name}"
-        raise TypeError(msg)
+        return default
 
     @staticmethod
     def _is_rich_table_protocol(
@@ -774,8 +763,11 @@ class FlextCliOutput:
         if hasattr(result, "__dict__"):
             # Use build() DSL: filter JSON-compatible → ensure dict
             # Use mapper to filter dict items
+            object_dict = (
+                dict(result.__dict__) if isinstance(result.__dict__, Mapping) else {}
+            )
             filtered_dict = u.mapper().filter_dict(
-                result.__dict__,
+                object_dict,
                 lambda _k, v: self.is_json(v),
             )
             result_dict = self.ensure_dict(filtered_dict, {})
@@ -816,7 +808,10 @@ class FlextCliOutput:
                 f"Object {type(result).__name__} has no __dict__ attribute",
             )
         # Type narrowing: result has __dict__ attribute
-        raw_dict: dict[str, t.GeneralValueType] = result.__dict__
+        raw_source = result.__dict__
+        raw_dict: dict[str, t.GeneralValueType] = (
+            dict(raw_source) if isinstance(raw_source, Mapping) else {}
+        )
         # Use build() DSL: process_mapping → to_json → filter → ensure dict
         json_dict_result = u.Cli.process_mapping(
             raw_dict,

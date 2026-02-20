@@ -391,3 +391,5 @@ class FlextCliSettings(FlextSettings):
     @classmethod
     def _reset_instance(cls) -> None:
         """Reset singleton instance for testing."""
+        cls._instance = None
+        super()._reset_instance()

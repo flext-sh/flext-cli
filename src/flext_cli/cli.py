@@ -441,7 +441,11 @@ class FlextCliCli:
             tuple_values = list(tuple_types)
             return click.Tuple(tuple_values)
         registry: dict[
-            str, Callable[[], type[bool | str | int | float] | click.ParamType]
+            str,
+            Callable[
+                [],
+                type[bool | str | int | float] | click.ParamType,
+            ],
         ] = {
             "uuid": lambda: click.UUID,
             "bool": lambda: bool,
@@ -487,38 +491,22 @@ class FlextCliCli:
     @classmethod
     def get_bool_type(cls) -> type[bool]:
         """Get boolean type."""
-        result = cls.type_factory("bool")
-        if result is not bool:
-            msg = "result must be bool"
-            raise TypeError(msg)
-        return result
+        return bool
 
     @classmethod
     def get_string_type(cls) -> type[str]:
         """Get string type."""
-        result = cls.type_factory("string")
-        if result is not str:
-            msg = "result must be str"
-            raise TypeError(msg)
-        return result
+        return str
 
     @classmethod
     def get_int_type(cls) -> type[int]:
         """Get integer type."""
-        result = cls.type_factory("int")
-        if result is not int:
-            msg = "result must be int"
-            raise TypeError(msg)
-        return result
+        return int
 
     @classmethod
     def get_float_type(cls) -> type[float]:
         """Get float type."""
-        result = cls.type_factory("float")
-        if result is not float:
-            msg = "result must be float"
-            raise TypeError(msg)
-        return result
+        return float
 
     @staticmethod
     def get_current_context() -> click.Context | None:
