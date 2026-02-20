@@ -205,8 +205,10 @@ class FlextCliSettings(FlextSettings):
         fmt = c.Cli.OutputFormats
         try:
             is_interactive = os.isatty(1)
-            width = shutil.get_terminal_size().columns
         except Exception:
+            return fmt.JSON.value
+        width = self._try_terminal_width()
+        if width is None:
             return fmt.JSON.value
         if not is_interactive:
             return fmt.JSON.value
@@ -232,13 +234,20 @@ class FlextCliSettings(FlextSettings):
     @computed_field
     def optimal_table_format(self) -> str:
         """Determine optimal tabulate format based on terminal width."""
-        try:
-            width = shutil.get_terminal_size().columns
-        except Exception:
+        width = self._try_terminal_width()
+        if width is None:
             return c.Cli.TableFormats.SIMPLE
         if width < c.Cli.Terminal.WIDTH_NARROW:
             return "simple"
         return "github" if width < c.Cli.Terminal.WIDTH_MEDIUM else "grid"
+
+    @staticmethod
+    def _try_terminal_width() -> int | None:
+        """Read terminal width safely without leaking exceptions."""
+        try:
+            return shutil.get_terminal_size().columns
+        except Exception:
+            return None
 
     @staticmethod
     def validate_output_format_result(value: str) -> r[str]:

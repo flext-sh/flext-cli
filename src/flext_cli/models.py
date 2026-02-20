@@ -1124,13 +1124,17 @@ class FlextCliModels(FlextModels):
                     Dict with sensitive values masked as "***MASKED***".
 
                 """
-                data = self.model_dump()
                 sensitive_keys = ["password", "token", "secret", "key", "credential"]
+                data: dict[str, t.GeneralValueType] = {
+                    "service": self.service,
+                    "level": self.level,
+                    "message": self.message,
+                }
 
                 # Mask sensitive keys in system_info using direct dict access
                 # models.py cannot use utilities - use direct dict access instead
                 # model_dump() always returns dict, so isinstance check is unnecessary
-                system_info = data.get("system_info")
+                system_info = self.system_info
                 system_dict: dict[str, t.GeneralValueType]
                 if system_info and FlextRuntime.is_dict_like(system_info):
                     # Type narrowing: system_info is dict-like, convert to dict
@@ -1157,7 +1161,7 @@ class FlextCliModels(FlextModels):
                 # Mask sensitive keys in config_info using direct dict access
                 # models.py cannot use utilities - use direct dict access instead
                 # model_dump() always returns dict, so isinstance check is unnecessary
-                config_info = data.get("config_info")
+                config_info = self.config_info
                 config_dict: dict[str, t.GeneralValueType]
                 if config_info and FlextRuntime.is_dict_like(config_info):
                     # Type narrowing: config_info is dict-like, convert to dict

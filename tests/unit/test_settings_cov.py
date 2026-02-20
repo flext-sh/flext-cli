@@ -76,21 +76,18 @@ def test_computed_fields_error_and_branches(monkeypatch) -> None:
 
     monkeypatch.setattr("flext_cli.settings.os.isatty", lambda _fd: True)
     monkeypatch.setattr(
-        "flext_cli.settings.shutil.get_terminal_size",
-        lambda: type("S", (), {"columns": 50})(),
+        "flext_cli.settings.FlextCliSettings._try_terminal_width", lambda: 50
     )
     assert settings.auto_output_format == "plain"
     assert settings.optimal_table_format == c.Cli.TableFormats.SIMPLE
 
     monkeypatch.setattr(
-        "flext_cli.settings.shutil.get_terminal_size",
-        lambda: type("S", (), {"columns": 100})(),
+        "flext_cli.settings.FlextCliSettings._try_terminal_width", lambda: 100
     )
     assert settings.optimal_table_format == "github"
 
     monkeypatch.setattr(
-        "flext_cli.settings.shutil.get_terminal_size",
-        lambda: (_ for _ in ()).throw(RuntimeError("size")),
+        "flext_cli.settings.FlextCliSettings._try_terminal_width", lambda: None
     )
     assert settings.optimal_table_format == "simple"
 
@@ -176,8 +173,7 @@ def test_auto_output_format_wide_tty_table_branch(monkeypatch) -> None:
 
     monkeypatch.setattr("flext_cli.settings.os.isatty", lambda _fd: True)
     monkeypatch.setattr(
-        "flext_cli.settings.shutil.get_terminal_size",
-        lambda: type("S", (), {"columns": 200})(),
+        "flext_cli.settings.FlextCliSettings._try_terminal_width", lambda: 200
     )
 
     assert settings.auto_output_format == c.Cli.OutputFormats.TABLE.value
@@ -202,8 +198,7 @@ def test_auto_output_format_wide_tty_no_color_returns_json(monkeypatch) -> None:
 
     monkeypatch.setattr("flext_cli.settings.os.isatty", lambda _fd: True)
     monkeypatch.setattr(
-        "flext_cli.settings.shutil.get_terminal_size",
-        lambda: type("S", (), {"columns": 200})(),
+        "flext_cli.settings.FlextCliSettings._try_terminal_width", lambda: 200
     )
 
     assert settings.auto_output_format == c.Cli.OutputFormats.JSON.value

@@ -33,7 +33,8 @@ __title__ = _metadata["Name"]
 __description__ = _metadata["Summary"]
 __author__ = _metadata["Author"]
 __author_email__ = _metadata["Author-Email"]
-__license__ = _metadata["License"]
+_license_value = _metadata.get("License")
+__license__ = _license_value if _license_value is not None else ""
 # Validate URL explicitly - no fallback to empty string
 _home_page = _metadata.get("Home-Page")
 __url__ = _home_page if _home_page is not None else ""
