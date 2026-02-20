@@ -1,12 +1,10 @@
 [build-system]
 build-backend = "poetry.core.masonry.api"
-requires = [
-  "poetry-core>=2",
-]
+requires = [ "poetry-core>=2.0", "poetry-core>=2" ]
 
 [project]
 name = "flext-cli"
-version = "0.10.0-dev"
+version = "0.10.0"
 description = "FLEXT CLI - Developer Command Line Interface"
 readme = "README.md"
 keywords = [
@@ -18,17 +16,18 @@ keywords = [
   "typed",
 ]
 license = "MIT"
-maintainers = [ { email = "team@flext.sh", name = "FLEXT Team" } ]
-authors = [ { email = "team@flext.sh", name = "FLEXT Team" } ]
+maintainers = [ {email = "team@flext.sh", name = "FLEXT Team"} ]
+authors = [ {email = "team@flext.sh", name = "FLEXT Team"} ]
 requires-python = ">=3.13,<3.14"
 classifiers = [
-  "Development Status :: 5 - Production/Stable",
+  "Development Status :: 4 - Beta",
   "Intended Audience :: Developers",
   "Operating System :: OS Independent",
   "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3.13",
   "Topic :: Software Development :: Libraries :: Python Modules",
   "Typing :: Typed",
+  "Development Status :: 5 - Production/Stable",
 ]
 dependencies = [
   "attrs>=25.4,<26",
@@ -42,7 +41,7 @@ dependencies = [
   "pyyaml>=6",
   "rich>=14.2,<15",
   "tabulate>=0.9",
-  "typer>=0.12"
+  "typer>=0.12",
 ]
 optional-dependencies.dev = [
   "autoflake>=2.3.1",
@@ -117,23 +116,23 @@ group.dev.dependencies.types-lxml = "^2025.8.25"
 group.dev.dependencies.types-pyyaml = "^6.0.12.20250809"
 group.dev.dependencies.types-tabulate = "^0.9.0.20241207"
 group.dev.dependencies.types-toml = "^0.10.8.20240310"
-packages = [ { from = "src", include = "flext_cli" } ]
+packages = [ {from = "src", include = "flext_cli"} ]
 
 [tool.ruff]
 extend = "../ruff-shared.toml"
 
 [tool.deptry]
+extend_exclude = [
+  "examples",
+]
 known_first_party = [
   "flext_cli",
   "flext_core",
 ]
-extend_exclude = [
-  "examples",
-]
+package_module_name_map.pyyaml = "yaml"
 pep621_dev_dependency_groups = [
   "dev",
 ]
-package_module_name_map.pyyaml = "yaml"
 per_rule_ignores.DEP002 = [
   # CLI tools
   # Type stubs
@@ -155,7 +154,7 @@ per_rule_ignores.DEP002 = [
   "cachetools",
   "pluggy",
   "prompt-toolkit",
-  "pydantic-core"
+  "pydantic-core",
 ]
 
 [tool.pytest]
@@ -206,9 +205,9 @@ ini_options.testpaths = [
 ]
 
 [tool.coverage]
-run.source = [ "src/flext_cli" ]
 report.fail_under = 100
 report.precision = 2
+run.source = [ "src/flext_cli" ]
 
 [tool.mypy]
 check_untyped_defs = true
@@ -222,14 +221,15 @@ incremental = false
 mypy_path = "src:$MYPYPATH:../typings"
 namespace_packages = true
 no_implicit_optional = true
+overrides = [ {module = "flext_cli.services.cmd", ignore_errors = true} ]
 python_version = "3.13"
 warn_redundant_casts = true
 warn_return_any = true
 warn_unused_configs = true
 warn_unused_ignores = true
-overrides = [ { module = "flext_cli.services.cmd", ignore_errors = true } ]
 
 [tool.pyrefly]
+project-excludes = [ "**/*_pb2*.py", "**/*_pb2_grpc*.py" ]
 search-path = [
   "../typings",
   "../typings/generated",
