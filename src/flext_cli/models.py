@@ -68,12 +68,6 @@ class FlextCliModels(FlextModels):
     7. Self para metodos de transformacao
     """
 
-    def __init_subclass__(cls, **kwargs: t.GeneralValueType) -> None:
-        """Warn when FlextCliModels is subclassed directly."""
-        super().__init_subclass__(**kwargs)
-        # NOTE: Deprecation warning removed to comply with architecture rules
-        # (models.py cannot import utilities)
-
     class Cli:
         """CLI project namespace - PADRAO HIERARQUICO.
 
