@@ -32,9 +32,9 @@ from flext_cli import (
     FlextCliTypes,
     c,
     r,
+    t,
     u,
 )
-from flext_cli import t
 
 
 class FlextCliIntegrationTestTypes(FlextCliTypes):
