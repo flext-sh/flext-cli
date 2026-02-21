@@ -520,7 +520,7 @@ class FlextCliModels(FlextModels):
                     return result.get(status, [])
                 return result
 
-            def add_command(self, command: CliCommand) -> r[Self]:
+            def add_command(self, command: FlextCliModels.Cli.CliCommand) -> r[Self]:
                 """Add command to session."""
                 try:
                     updated_commands = list(self.commands) + [command]
@@ -2787,73 +2787,12 @@ class FlextCliModels(FlextModels):
     # End of FlextCliModels class
 
 
-# =========================================================================
-# NAMESPACE HIERARCHY - PADRAO CORRETO PARA FLEXT-CLI
-# =========================================================================
-# Use namespace hierarquico completo: FlextCliModels.Cli.Entity, FlextCliModels.Cli.Value, FlextCliModels.Cli.CliCommand
-# SEM duplicacao de declaracoes ou aliases de raiz
-# SEM quebra de codigo - mantem compatibilidade backward
-# =========================================================================
-
-
 m = FlextCliModels
-
-# Export classes for convenience - accessed from FlextCliModels.Cli
-SystemInfo = FlextCliModels.Cli.SystemInfo
-EnvironmentInfo = FlextCliModels.Cli.EnvironmentInfo
-PathInfo = FlextCliModels.Cli.PathInfo
-ContextExecutionResult = FlextCliModels.Cli.ContextExecutionResult
-DebugInfo = FlextCliModels.Cli.DebugInfo
-CommandStatistics = FlextCliModels.Cli.CommandStatistics
-SessionStatistics = FlextCliModels.Cli.SessionStatistics
-PromptStatistics = FlextCliModels.Cli.PromptStatistics
-ServiceExecutionResult = FlextCliModels.Cli.ServiceExecutionResult
-CommandExecutionContextResult = FlextCliModels.Cli.CommandExecutionContextResult
-# Additional Cli class aliases for backward compatibility
-CliCommand = FlextCliModels.Cli.CliCommand
-CliConfig = FlextCliModels.Cli.CliConfig
-TableConfig = FlextCliModels.Cli.TableConfig
-CliSession = FlextCliModels.Cli.CliSession
-CliSessionData = FlextCliModels.Cli.CliSessionData
-CliContext = FlextCliModels.Cli.CliContext
-CliOutput = FlextCliModels.Cli.CliOutput
-CommandResult = FlextCliModels.Cli.CommandResult
-CliParamsConfig = FlextCliModels.Cli.CliParamsConfig
-OptionConfig = FlextCliModels.Cli.OptionConfig
-ConfirmConfig = FlextCliModels.Cli.ConfirmConfig
-PromptConfig = FlextCliModels.Cli.PromptConfig
-PasswordAuth = FlextCliModels.Cli.PasswordAuth
-TokenData = FlextCliModels.Cli.TokenData
-CmdConfig = FlextCliModels.Cli.CmdConfig
-OptionBuilder = FlextCliModels.Cli.OptionBuilder
-ModelCommandBuilder = FlextCliModels.Cli.ModelCommandBuilder
-CliParameterSpec = FlextCliModels.Cli.CliParameterSpec
-CliModelConverter = FlextCliModels.Cli.CliModelConverter
-CliModelDecorators = FlextCliModels.Cli.CliModelDecorators
-CliDebugData = FlextCliModels.Cli.CliDebugData
-CliLoggingData = FlextCliModels.Cli.CliLoggingData
-WorkflowResult = FlextCliModels.Cli.WorkflowResult
-WorkflowStepResult = FlextCliModels.Cli.WorkflowStepResult
-WorkflowProgress = FlextCliModels.Cli.WorkflowProgress
 
 # Pydantic forward reference resolution
 # DomainEvent is available in current flext-core
-
 # Ensure forward references can be resolved by making types available in module globals
 # This is required because FlextModels.Entity has fields that reference DomainEvent
 globals()["DomainEvent"] = FlextModels.DomainEvent
 
-__all__ = [
-    "CommandExecutionContextResult",
-    "CommandStatistics",
-    "ContextExecutionResult",
-    "DebugInfo",
-    "EnvironmentInfo",
-    "FlextCliModels",
-    "PathInfo",
-    "PromptStatistics",
-    "ServiceExecutionResult",
-    "SessionStatistics",
-    "SystemInfo",
-    "m",
-]
+__all__ = ["FlextCliModels", "m"]

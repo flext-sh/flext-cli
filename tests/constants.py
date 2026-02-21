@@ -29,11 +29,11 @@ class TestsFlextCliConstants(FlextTestsConstants, FlextCliConstants):
     2. FlextCliConstants - for domain constants (.Cli.*)
 
     Access patterns:
-    - tc.Tests.Docker.* (container testing)
-    - tc.Tests.Matcher.* (assertion messages)
-    - tc.Tests.Factory.* (test data generation)
-    - tc.Cli.* (domain constants from production)
-    - tc.TestData.* (project-specific test data)
+    - c.Tests.Docker.* (container testing)
+    - c.Tests.Matcher.* (assertion messages)
+    - c.Tests.Factory.* (test data generation)
+    - c.Cli.* (domain constants from production)
+    - c.TestData.* (project-specific test data)
 
     Rules:
     - NEVER duplicate constants from FlextTestsConstants or FlextCliConstants
