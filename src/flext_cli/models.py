@@ -1200,6 +1200,7 @@ class FlextCliModels(FlextModels):
                     registry: CLI parameter registry mapping field names to option metadata
 
                 """
+                super().__init__()
                 self.field_name = field_name
                 self.registry = registry
 
@@ -1441,6 +1442,7 @@ class FlextCliModels(FlextModels):
                     config: Optional config singleton for defaults
 
                 """
+                super().__init__()
                 self.model_class = model_class
                 self.handler = handler
                 self.config = config
@@ -1528,9 +1530,7 @@ class FlextCliModels(FlextModels):
                 """Handle T | None pattern (Union with None)."""
                 # Filter non-None types from args
                 non_none_types: list[type] = [
-                    item
-                    for item in args
-                    if item is not type(None) and isinstance(item, type)
+                    item for item in args if item is not type(None)
                 ]
                 inner_type = non_none_types[0] if non_none_types else str
 
@@ -1647,9 +1647,7 @@ class FlextCliModels(FlextModels):
                         field_type, _ = self._extract_optional_inner_type(field_type)
 
                 # Type narrowing: ensure field_type is a type
-                field_type_typed: type = (
-                    field_type if isinstance(field_type, type) else str
-                )
+                field_type_typed: type = field_type
                 return field_type_typed, default_value, is_required, has_factory
 
             @staticmethod
@@ -1866,16 +1864,8 @@ class FlextCliModels(FlextModels):
                 params_with_default_list = [
                     item for item in signatures_values_typed if has_default(item)
                 ]
-                params_no_default = (
-                    list(params_no_default_list)
-                    if isinstance(params_no_default_list, list)
-                    else []
-                )
-                params_with_default = (
-                    list(params_with_default_list)
-                    if isinstance(params_with_default_list, list)
-                    else []
-                )
+                params_no_default = list(params_no_default_list)
+                params_with_default = list(params_with_default_list)
                 # models.py cannot use utilities - use list comprehension instead
                 # Extract param strings using list comprehension with operator.itemgetter
                 params_no_default_strs = [
@@ -1995,6 +1985,7 @@ class FlextCliModels(FlextModels):
                 help_text: str = "",
             ) -> None:
                 """Initialize CLI parameter spec."""
+                super().__init__()
                 self.field_name = field_name
                 self.param_type = param_type
                 self.click_type = click_type
@@ -2145,11 +2136,7 @@ class FlextCliModels(FlextModels):
                     param_decls_list: t.GeneralValueType = [option_name]
                     # Type narrowing: param_type (type) - store as string for dict compatibility
                     # type is not in t.GeneralValueType, so we use string representation
-                    param_type_name: str = (
-                        getattr(param.param_type, "__name__", "str")
-                        if isinstance(param.param_type, type)
-                        else "str"
-                    )
+                    param_type_name: str = (getattr(param.param_type, "__name__", "str"))
                     option_obj_dict: dict[str, t.GeneralValueType] = {
                         "option_name": option_name,
                         "param_decls": param_decls_list,

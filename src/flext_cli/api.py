@@ -32,7 +32,7 @@ from flext_cli.debug import FlextCliDebug
 from flext_cli.file_tools import FlextCliFileTools
 from flext_cli.formatters import FlextCliFormatters
 from flext_cli.mixins import FlextCliMixins
-from flext_cli.models import PasswordAuth, TokenData
+from flext_cli.models import m
 from flext_cli.protocols import p
 from flext_cli.services.cmd import FlextCliCmd
 from flext_cli.services.core import FlextCliCore
@@ -191,7 +191,7 @@ class FlextCli:
     def _authenticate_with_credentials(self, credentials: dict[str, str]) -> r[str]:
         """Authenticate using Pydantic 2 validation."""
         try:
-            PasswordAuth.model_validate(credentials)
+            m.Cli.PasswordAuth.model_validate(credentials)
         except Exception as e:
             return r[str].fail(str(e))
         token = secrets.token_urlsafe(c.Cli.APIDefaults.TOKEN_GENERATION_BYTES)
@@ -202,7 +202,7 @@ class FlextCli:
     def validate_credentials(username: str, password: str) -> r[bool]:
         """Validate credentials using Pydantic 2."""
         try:
-            PasswordAuth(username=username, password=password)
+            m.Cli.PasswordAuth(username=username, password=password)
             return r[bool].ok(value=True)
         except Exception as e:
             return r[bool].fail(str(e))
@@ -270,7 +270,7 @@ class FlextCli:
 
         # Fallback to model validation
         try:
-            token_data = TokenData.model_validate(data)
+            token_data = m.Cli.TokenData.model_validate(data)
             return r[str].ok(token_data.token)
         except Exception as e:
             return r[str].fail(self._get_token_error_message(str(e).lower()))

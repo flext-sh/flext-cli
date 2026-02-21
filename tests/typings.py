@@ -17,7 +17,7 @@ from collections.abc import Mapping, Sequence
 from typing import TypedDict
 
 from flext_cli.typings import FlextCliTypes, t as cli_t
-from flext_core.typings import T, T_co, T_contra, t
+from flext_core.typings import T, T_co, T_contra, t as core_t
 from flext_tests.typings import (
     FlextTestsTypes,
     TTestModel,
@@ -44,7 +44,7 @@ class TestsCliTypes(FlextTestsTypes, FlextCliTypes):
     - CLI types come from FlextCliTypes via inheritance
     """
 
-    class Tests:
+    class Tests(FlextTestsTypes.Tests):
         """flext-cli-specific test type definitions namespace.
 
         Use tt.Tests.* for flext-cli-specific test types.
@@ -66,13 +66,16 @@ class TestsCliTypes(FlextTestsTypes, FlextCliTypes):
 
             type CliConfigMapping = Mapping[
                 str,
-                t.GeneralValueType | Sequence[str] | Mapping[str, str | int] | None,
+                core_t.GeneralValueType
+                | Sequence[str]
+                | Mapping[str, str | int]
+                | None,
             ]
             """CLI configuration mapping specific to flext-cli."""
 
             type CommandArgsMapping = Mapping[
                 str,
-                t.GeneralValueType | cli_t.GeneralValueType,
+                core_t.GeneralValueType | cli_t.GeneralValueType,
             ]
             """Command arguments mapping for CLI operations."""
 

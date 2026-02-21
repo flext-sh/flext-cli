@@ -28,7 +28,7 @@ from typer.testing import CliRunner
 
 from flext_cli.cli_params import FlextCliCommonParams
 from flext_cli.constants import c
-from flext_cli.models import ConfirmConfig, OptionConfig, m
+from flext_cli.models import m
 from flext_cli.protocols import p
 from flext_cli.settings import FlextCliSettings
 from flext_cli.typings import t
@@ -346,8 +346,8 @@ class FlextCliCli:
 
     def _build_option_config_from_kwargs(
         self, kwargs: dict[str, t.GeneralValueType]
-    ) -> OptionConfig:
-        return OptionConfig(
+    ) -> m.Cli.OptionConfig:
+        return m.Cli.OptionConfig(
             default=u.mapper().get(kwargs, "default"),
             type_hint=self._normalize_type_hint(u.mapper().get(kwargs, "type_hint")),
             required=bool(self._build_typed_value(kwargs, "required", "bool", False)),
@@ -578,10 +578,10 @@ class FlextCliCli:
     @staticmethod
     def _build_prompt_or_confirm_config(
         kind: Literal["confirm", "prompt"], kwargs: dict[str, t.GeneralValueType]
-    ) -> ConfirmConfig | m.Cli.PromptConfig:
+    ) -> m.Cli.ConfirmConfig | m.Cli.PromptConfig:
         get_bool_val, get_str_val = FlextCliCli._build_config_getters(kwargs)
         if kind == "confirm":
-            return ConfirmConfig(
+            return m.Cli.ConfirmConfig(
                 default=get_bool_val("default", False),
                 abort=get_bool_val("abort", False),
                 prompt_suffix=get_str_val(
@@ -608,9 +608,9 @@ class FlextCliCli:
     @staticmethod
     def _build_confirm_config_from_kwargs(
         kwargs: dict[str, t.GeneralValueType],
-    ) -> ConfirmConfig:
+    ) -> m.Cli.ConfirmConfig:
         result = FlextCliCli._build_prompt_or_confirm_config("confirm", kwargs)
-        if not isinstance(result, ConfirmConfig):
+        if not isinstance(result, m.Cli.ConfirmConfig):
             msg = "result must be ConfirmConfig"
             raise TypeError(msg)
         return result
