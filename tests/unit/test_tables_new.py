@@ -15,7 +15,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations  # @vulture_ignore
 
 import pytest  # @vulture_ignore
-from flext_core import t  # @vulture_ignore
+from flext_cli import t  # @vulture_ignore
 from flext_tests import tm  # @vulture_ignore
 
 from flext_cli import FlextCliTables, r  # @vulture_ignore

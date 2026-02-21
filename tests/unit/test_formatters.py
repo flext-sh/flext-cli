@@ -16,7 +16,7 @@ from __future__ import annotations
 from collections.abc import Callable
 
 import pytest
-from flext_core import t
+from flext_cli import t
 from flext_tests import tm
 from pytest_mock import MockFixture
 from rich.console import Console

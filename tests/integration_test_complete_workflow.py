@@ -34,7 +34,7 @@ from flext_cli import (
     r,
     u,
 )
-from flext_core import t
+from flext_cli import t
 
 
 class FlextCliIntegrationTestTypes(FlextCliTypes):

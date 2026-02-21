@@ -46,7 +46,7 @@ from flext_cli.services.output import FlextCliOutput
 from flext_cli.services.prompts import FlextCliPrompts
 from flext_cli.services.tables import FlextCliTables
 from flext_cli.settings import FlextCliSettings
-from flext_cli.typings import FlextCliTypes
+from flext_cli.typings import FlextCliTypes, t
 from flext_cli.utilities import FlextCliUtilities, u
 
 __all__ = [
@@ -88,6 +88,7 @@ __all__ = [
     "m",
     "r",
     "s",
+    "t",
     "u",
     "x",
 ]

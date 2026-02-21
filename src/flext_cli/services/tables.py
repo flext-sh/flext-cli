@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-from flext_core import FlextResult as r
+from flext_core import r
 from tabulate import tabulate
 
 from flext_cli.base import FlextCliServiceBase

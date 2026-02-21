@@ -16,8 +16,8 @@ from typing import override
 from flext_core import (
     FlextDecorators,
     FlextLogger,
-    FlextResult as r,
-    FlextUtilities as u,
+    r,
+    u,
 )
 
 from flext_cli.base import FlextCliServiceBase

@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import Never
 
 import pytest
-from flext_core import t
+from flext_cli import t
 
 from flext_cli import (
     FlextCliCore,

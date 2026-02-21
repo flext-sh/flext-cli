@@ -22,7 +22,8 @@ from pathlib import Path
 from typing import Union
 
 import pytest
-from flext_core import FlextTypes as t, r
+from flext_cli import t
+from flext_core import r
 from flext_tests import tm
 from pydantic import BaseModel
 

@@ -17,7 +17,7 @@ from collections.abc import Mapping, Sequence
 from typing import TypedDict
 
 from flext_cli.typings import FlextCliTypes, t as cli_t
-from flext_core.typings import T, T_co, T_contra, t as core_t
+from flext_core.typings import T, T_co, T_contra, t
 from flext_tests.typings import (
     FlextTestsTypes,
     TTestModel,
@@ -54,7 +54,7 @@ class TestsCliTypes(FlextTestsTypes, FlextCliTypes):
         class Cli:
             """Flext-cli-specific type definitions for testing.
 
-            Uses composition of cli_t and core_t for type safety and consistency.
+            Uses composition of cli_t and t for type safety and consistency.
             Only defines types that are truly flext-cli-specific.
             Dict type aliases were removed in Pydantic v2 migration - use models instead.
             """
@@ -66,7 +66,7 @@ class TestsCliTypes(FlextTestsTypes, FlextCliTypes):
 
             type CliConfigMapping = Mapping[
                 str,
-                core_t.GeneralValueType
+                t.GeneralValueType
                 | Sequence[str]
                 | Mapping[str, str | int]
                 | None,
@@ -75,7 +75,7 @@ class TestsCliTypes(FlextTestsTypes, FlextCliTypes):
 
             type CommandArgsMapping = Mapping[
                 str,
-                core_t.GeneralValueType | cli_t.GeneralValueType,
+                t.GeneralValueType | cli_t.GeneralValueType,
             ]
             """Command arguments mapping for CLI operations."""
 

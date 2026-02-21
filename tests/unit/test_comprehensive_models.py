@@ -3,7 +3,7 @@
 from datetime import datetime
 
 import pytest
-from flext_core import t
+from flext_cli import t
 
 from flext_cli.constants import c
 from tests._helpers import (

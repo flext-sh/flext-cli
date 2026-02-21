@@ -10,7 +10,7 @@ from flext_cli import FlextCliCommands
 # Direct imports to avoid forward reference issues
 from flext_cli.models import m
 from flext_cli.typings import FlextCliTypes as t
-from flext_core.result import FlextResult as r
+from flext_core.result import r
 
 
 # Factory functions using direct model instantiation (no forward refs)

@@ -15,9 +15,9 @@ from typing import ClassVar, TypeGuard
 from flext_core import (
     FlextContainer as container,
     FlextLogger as logger_core,
-    FlextResult as r,
     FlextRuntime as runtime,
-    FlextTypes as t,
+    r,
+    t,
 )
 from rich.tree import Tree as RichTree
 

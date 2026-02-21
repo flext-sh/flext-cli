@@ -18,7 +18,7 @@ import os  # @vulture_ignore
 from pathlib import Path  # @vulture_ignore
 
 import pytest  # @vulture_ignore
-from flext_core import t  # @vulture_ignore
+from flext_cli import t  # @vulture_ignore
 from pydantic import BaseModel, Field, ValidationError  # @vulture_ignore
 from pydantic_settings import BaseSettings, SettingsConfigDict  # @vulture_ignore
 

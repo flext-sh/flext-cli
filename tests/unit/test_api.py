@@ -24,7 +24,7 @@ from pathlib import Path
 from typing import TypedDict
 
 import pytest
-from flext_core import t
+from flext_cli import t
 from flext_tests import tm
 
 from flext_cli import (

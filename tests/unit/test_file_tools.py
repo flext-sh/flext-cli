@@ -26,7 +26,7 @@ from pathlib import Path
 import psutil
 import pytest
 import yaml
-from flext_core import t
+from flext_cli import t
 
 from flext_cli import FlextCliFileTools, r
 from flext_cli.constants import c

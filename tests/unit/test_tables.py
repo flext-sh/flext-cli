@@ -17,7 +17,7 @@ from dataclasses import dataclass
 from enum import StrEnum
 
 import pytest
-from flext_core import FlextTypes as t
+from flext_cli import t
 from flext_tests import tm
 
 from flext_cli import FlextCliTables, r

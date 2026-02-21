@@ -17,7 +17,7 @@ from __future__ import annotations
 from typing import TypeVar
 
 import pytest
-from flext_core import FlextTypes as t
+from flext_cli import t
 from flext_tests import tm
 
 from flext_cli import FlextCliMixins, r

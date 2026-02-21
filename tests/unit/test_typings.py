@@ -31,7 +31,7 @@ from typing import (
 )
 
 import pytest
-from flext_core import FlextTypes as t
+from flext_cli import t
 from flext_tests import tm
 
 from flext_cli import r

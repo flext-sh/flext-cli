@@ -18,7 +18,7 @@ import uuid
 from typing import TypeVar
 
 import pytest
-from flext_core import t
+from flext_cli import t
 from flext_tests import tm
 
 from flext_cli import FlextCliContext, FlextCliModels as m, r, u

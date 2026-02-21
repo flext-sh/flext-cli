@@ -22,7 +22,7 @@ from collections.abc import Callable, Mapping
 from typing import TypedDict
 
 import pytest
-from flext_core import FlextTypes as t
+from flext_cli import t
 from pydantic import BaseModel, Field, ValidationError
 from pydantic.fields import FieldInfo as PydanticFieldInfo
 

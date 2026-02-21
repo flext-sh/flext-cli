@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from datetime import UTC, datetime
 
-from flext_core import FlextResult as r
+from flext_core import r
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from flext_cli.constants import c
