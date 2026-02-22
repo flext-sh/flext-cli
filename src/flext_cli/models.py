@@ -2136,7 +2136,7 @@ class FlextCliModels(FlextModels):
                     param_decls_list: t.GeneralValueType = [option_name]
                     # Type narrowing: param_type (type) - store as string for dict compatibility
                     # type is not in t.GeneralValueType, so we use string representation
-                    param_type_name: str = (getattr(param.param_type, "__name__", "str"))
+                    param_type_name: str = getattr(param.param_type, "__name__", "str")
                     option_obj_dict: dict[str, t.GeneralValueType] = {
                         "option_name": option_name,
                         "param_decls": param_decls_list,

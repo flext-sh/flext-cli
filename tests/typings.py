@@ -16,7 +16,6 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from typing import TypedDict
 
-from flext_cli.typings import FlextCliTypes, t as cli_t
 from flext_core.typings import T, T_co, T_contra, t as core_t
 from flext_tests.typings import (
     FlextTestsTypes,
@@ -24,6 +23,8 @@ from flext_tests.typings import (
     TTestResult,
     TTestService,
 )
+
+from flext_cli.typings import FlextCliTypes, t as cli_t
 
 
 class TestsCliTypes(FlextTestsTypes, FlextCliTypes):

@@ -120,18 +120,31 @@ packages = [ { from = "src", include = "flext_cli" } ]
 
 [tool.ruff]
 extend = "../ruff-shared.toml"
+lint.isort.known-first-party = [ "flext_cli" ]
+
+[tool.codespell]
+ignore-words-list = "dn,cn,ou,uid,sn,aci,acl,ldif,flext,FLEXT,dbt,oic,wms,grpc,meltano,protobuf,creds,assertIn"
+skip = """\
+  .git,*.lock,*.egg-info,dist,build,.venv,__pycache__,.mypy_cache,.pytest_cache,.ruff_cache,node_modules,vendor,*.pb2*.\
+  py\
+  """
 
 [tool.deptry]
 extend_exclude = [
-  "examples",
+  "flexcore/",
+  "flext-.*/",
 ]
 known_first_party = [
-  "flext_cli",
-  "flext_core",
+  "flext",
+  "flext_quality",
 ]
 package_module_name_map.pyyaml = "yaml"
 pep621_dev_dependency_groups = [
   "dev",
+  "docs",
+  "security",
+  "test",
+  "typings",
 ]
 per_rule_ignores.DEP002 = [
   # CLI tools
@@ -156,6 +169,25 @@ per_rule_ignores.DEP002 = [
   "prompt-toolkit",
   "pydantic-core",
 ]
+exclude = [
+  ".archive",
+  ".git",
+  ".meltano",
+  ".mypy_cache",
+  ".pytest_cache",
+  ".ruff_cache",
+  ".venv",
+  "__pycache__",
+  "build",
+  "dist",
+  "htmlcov",
+  "node_modules",
+  "reports",
+  "scripts",
+  "tests",
+  "vendor",
+  "venv",
+]
 
 [tool.pytest]
 ini_options.addopts = [
@@ -169,25 +201,25 @@ ini_options.addopts = [
   "--timeout-method=signal",
   "--durations=0",
 ]
+ini_options.filterwarnings = [
+  "ignore::DeprecationWarning:pyasn1(.*|$)",
+]
+ini_options.pythonpath = [
+  ".",
+  "src",
+]
 ini_options.markers = [
-  " marks tests as tests",
-  "auth: marks tests as authentication tests",
-  "benchmark: marks tests as benchmark tests",
-  "compatibility: marks tests as compatibility tests",
-  "concurrency: marks tests as concurrency tests",
-  "core: marks tests as core functionality tests",
-  "integration: marks tests as integration tests",
-  "io: marks tests as I/O tests",
-  "load: marks tests as load tests",
-  "memory: marks tests as memory tests",
-  "network: marks tests as network tests",
-  "performance: marks tests as performance tests",
-  "race_condition: marks tests as race condition tests",
-  "regression: marks tests as regression tests",
-  "security: marks tests as security tests",
-  "slow: marks tests as slow (deselect with '-m \"not slow\"')",
-  "stress: marks tests as stress tests",
-  "unit: marks tests as unit tests",
+  "docker: marca testes que requerem Docker",
+  "e2e: marca testes como testes de integração end-to-end",
+  "edge_cases: marca testes de casos extremos",
+  "integration: marca testes como testes de integração",
+  "integrity: marca testes de integridade",
+  "oracle: marca testes específicos do Oracle",
+  "performance: marca testes de performance",
+  "resilience: marca testes de resiliência",
+  "slow: marca testes como execução lenta",
+  "stress: marca testes de stress",
+  "unit: marca testes como testes unitários",
 ]
 ini_options.minversion = "8.0"
 ini_options.python_classes = [
@@ -195,19 +227,46 @@ ini_options.python_classes = [
 ]
 ini_options.python_files = [
   "*_test.py",
+  "*_tests.py",
   "test_*.py",
 ]
 ini_options.python_functions = [
   "test_*",
 ]
 ini_options.testpaths = [
-  "tests",
+  "tests/",
 ]
 
 [tool.coverage]
+run.branch = true
+run.omit = [
+  "*/__pycache__/*",
+  "*/_pb2*.py",
+  "*/conftest.py",
+  "*/tests/*",
+]
+run.relative_files = true
 run.source = [ "src/flext_cli" ]
+report.exclude_lines = [
+  "@abstractmethod",
+  "^\\s*\\.\\.\\.\\s*$",
+  "def __repr__",
+  "def __str__",
+  'if __name__ == "__main__":',
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+  "pragma: no cover",
+  "raise NotImplementedError",
+]
 report.fail_under = 100
+report.partial_branches = [
+  "pragma: no branch",
+]
 report.precision = 2
+report.show_missing = true
+report.skip_empty = true
+html.directory = "htmlcov"
+xml.output = "coverage.xml"
 
 [tool.mypy]
 check_untyped_defs = true
@@ -218,7 +277,7 @@ explicit_package_bases = true
 follow_imports = "normal"
 ignore_missing_imports = false
 incremental = false
-mypy_path = "src:$MYPYPATH:../typings"
+mypy_path = ["..", "../typings", "../typings/generated", "src", ".flext-deps/flext-core/src", ".flext-deps/flext-observability/src"]
 namespace_packages = true
 no_implicit_optional = true
 overrides = [ { module = "flext_cli.services.cmd", ignore_errors = true } ]
@@ -230,14 +289,136 @@ warn_unused_ignores = true
 
 [tool.pyrefly]
 project-excludes = [ "**/*_pb2*.py", "**/*_pb2_grpc*.py" ]
-search-path = [
-  "../typings",
-  "../typings/generated",
-  "src",
-  "tests",
-  "examples",
-  "scripts",
+search-path = ["..", "../typings", "../typings/generated", "src", "tests", "examples", "scripts"]
+
+[tool.pyright]
+enableTypeIgnoreComments = false
+extraPaths = ["..", "src", "tests", "examples", "scripts", "../typings", "../typings/generated", ".flext-deps/flext-core/src", ".flext-deps/flext-observability/src"]
+include = [ "src", "scripts", "tests", "examples" ]
+exclude = [
+  "**/*.pb2.py",
+  "**/*.pb2_grpc.py",
+  ".git/",
+  ".meltano/",
+  ".mypy_cache/",
+  ".pytest_cache/",
+  ".ruff_cache/",
+  "__pycache__/",
+  "build/",
+  "dist/",
+  "node_modules/",
+  "target/",
 ]
+pythonPlatform = "Linux"
+pythonVersion = "3.13"
+reportAssertAlwaysTrue = false
+reportCallInDefaultInitializer = "error"
+reportCallIssue = "error"
+reportConstantRedefinition = "error"
+reportDuplicateImport = "error"
+reportFunctionMemberAccess = "error"
+reportGeneralTypeIssues = "error"
+reportImplicitRelativeImport = false
+reportImplicitStringConcatenation = "warning"
+reportImportCycles = "error"
+reportIncompatibleMethodOverride = "error"
+reportIncompatibleVariableOverride = "error"
+reportIncompleteStub = "warning"
+reportInconsistentConstructor = "error"
+reportInvalidStringEscapeSequence = "error"
+reportInvalidStubStatement = "error"
+reportInvalidTypeForm = false
+reportInvalidTypeVarUse = "error"
+reportMatchNotExhaustive = "warning"
+reportMissingImports = "error"
+reportMissingModuleSource = "error"
+reportMissingParameterType = "error"
+reportMissingSuperCall = "warning"
+reportMissingTypeArgument = "error"
+reportMissingTypeStubs = "warning"
+reportOptionalCall = "error"
+reportOptionalContextManager = "error"
+reportOptionalIterable = "error"
+reportOptionalMemberAccess = "error"
+reportOptionalOperand = "error"
+reportOptionalSubscript = "error"
+reportPrivateUsage = false
+reportPropertyTypeMismatch = "error"
+reportSelfClsParameterName = "error"
+reportTypedDictNotRequiredAccess = "error"
+reportUnboundVariable = "error"
+typeCheckingMode = "strict"
+reportUninitializedInstanceVariable = "warning"
+reportUnknownArgumentType = false
+reportUnknownLambdaType = "error"
+reportUnknownMemberType = false
+reportUnknownParameterType = false
+reportUnknownVariableType = false
+reportUnnecessaryCast = "warning"
+reportUnnecessaryComparison = "warning"
+reportUnnecessaryIsInstance = "warning"
+reportUnnecessaryTypeIgnoreComment = "warning"
+reportUnsupportedDunderAll = "error"
+reportUntypedBaseClass = "error"
+reportUntypedClassDecorator = "error"
+reportUntypedFunctionDecorator = "error"
+reportUntypedNamedTuple = "error"
+reportUnusedCallResult = "warning"
+reportUnusedClass = "warning"
+reportUnusedCoroutine = "error"
+reportUnusedExpression = "warning"
+reportUnusedFunction = "warning"
+reportUnusedImport = "error"
+reportUnusedVariable = "error"
+reportWildcardImportFromLibrary = "error"
+strictDictionaryInference = true
+strictListInference = true
+strictParameterNoneValue = true
+strictSetInference = true
+useLibraryCodeForTypes = true
 
 [tool.bandit]
 skips = [ "B404", "B603", "B607", "B105", "B608" ]
+exclude_dirs = [
+  ".git",
+  ".mypy_cache",
+  ".pytest_cache",
+  ".ruff_cache",
+  ".venv",
+  "__pycache__",
+  "build",
+  "dist",
+  "node_modules",
+  "tests",
+  "vendor",
+]
+
+[tool.complexipy]
+max_complexity = 15
+output_format = "plain"
+
+[tool.vulture]
+exclude = [
+  ".*/examples/",
+  ".*/scripts/",
+  ".*/tests/",
+  ".coverage.*",
+  ".git/",
+  ".mypy_cache/",
+  ".pytest_cache/",
+  ".ruff_cache/",
+  ".venv/",
+  "__pycache__/",
+  "build/",
+  "dist/",
+  "node_modules/",
+  "tests/",
+  "vendor/",
+]
+min_confidence = 80
+paths = [
+  "**/src",
+  "src",
+]
+sort_by_size = true
+verbose = false

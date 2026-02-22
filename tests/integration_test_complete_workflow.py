@@ -23,6 +23,7 @@ from pathlib import Path
 from typing import TypedDict
 
 import pytest
+
 from flext_cli import (
     FlextCli,
     FlextCliFileTools,

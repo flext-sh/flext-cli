@@ -11,13 +11,13 @@ import re
 from typing import Final, TypeVar
 
 import click
-from flext_cli import r
-from flext_cli.constants import FlextCliConstants
-from flext_cli.context import FlextCliContext
 from pydantic import BaseModel, Field
 from pydantic.fields import FieldInfo
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from flext_cli import r
+from flext_cli.constants import FlextCliConstants
+from flext_cli.context import FlextCliContext
 from tests import t
 
 T = TypeVar("T")
