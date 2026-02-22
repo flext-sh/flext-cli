@@ -92,9 +92,9 @@ urls.Homepage = "https://github.com/flext-sh/flext-cli"
 [tool.poetry]
 dependencies.python = ">=3.13,<3.14"
 dependencies.flext-core.develop = true
-dependencies.flext-core.path = ".flext-deps/flext-core"
+dependencies.flext-core.path = "../flext-core"
 dependencies.flext-observability.develop = true
-dependencies.flext-observability.path = ".flext-deps/flext-observability"
+dependencies.flext-observability.path = "../flext-observability"
 group.dev.dependencies.docker = ">=7.1.0"
 group.dev.dependencies.email-validator = "^2.3.0"
 group.dev.dependencies.hypothesis = "^6.139.2"
@@ -271,29 +271,89 @@ xml.output = "coverage.xml"
 [tool.mypy]
 check_untyped_defs = true
 disallow_incomplete_defs = true
-disallow_untyped_calls = false
-disallow_untyped_defs = false
-explicit_package_bases = true
-follow_imports = "normal"
-ignore_missing_imports = false
-incremental = false
-mypy_path = ["..", "../typings", "../typings/generated", "src", ".flext-deps/flext-core/src", ".flext-deps/flext-observability/src"]
+disallow_untyped_calls = true
+disallow_untyped_defs = true
+follow_imports = "silent"
+incremental = true
+mypy_path = [ "..", "../typings", "../typings/generated", "src", "../flext-core/src", "../flext-observability/src" ]
 namespace_packages = true
 no_implicit_optional = true
-overrides = [ { module = "flext_cli.services.cmd", ignore_errors = true } ]
 python_version = "3.13"
 warn_redundant_casts = true
 warn_return_any = true
 warn_unused_configs = true
-warn_unused_ignores = true
+warn_unused_ignores = false
+cache_dir = ".mypy_cache"
+color_output = true
+disallow_any_decorated = false
+disallow_any_explicit = true
+disallow_any_expr = false
+disallow_any_generics = true
+disallow_any_unimported = true
+disallow_subclassing_any = true
+disallow_untyped_decorators = false
+error_summary = true
+exclude = [
+  ".*/generate_config.py",
+  ".*/manage.py",
+  ".*_pb2\\.py$",
+  ".*_pb2_grpc\\.py$",
+  ".coverage.*",
+  ".git/",
+  ".mypy_cache/",
+  ".pytest_cache/",
+  ".ruff_cache/",
+  ".venv/",
+  "__pycache__/",
+  "build/",
+  "dist/",
+  "node_modules/",
+  "vendor/",
+]
+extra_checks = true
+follow_imports_for_stubs = true
+local_partial_types = true
+no_implicit_reexport = true
+platform = "linux"
+pretty = true
+show_column_numbers = true
+show_error_codes = true
+show_error_context = true
+show_traceback = true
+strict = true
+strict_equality = true
+strict_optional = true
+warn_incomplete_stub = true
+warn_no_return = true
+warn_unreachable = true
 
 [tool.pyrefly]
 project-excludes = [ "**/*_pb2*.py", "**/*_pb2_grpc*.py" ]
-search-path = ["..", "../typings", "../typings/generated", "src", "tests", "examples", "scripts"]
+search-path = [
+  "..",
+  "../flext-core/src",
+  "../flext-observability/src",
+  "../typings",
+  "../typings/generated",
+  "src",
+  "tests",
+  "examples",
+  "scripts",
+]
 
 [tool.pyright]
 enableTypeIgnoreComments = false
-extraPaths = ["..", "src", "tests", "examples", "scripts", "../typings", "../typings/generated", ".flext-deps/flext-core/src", ".flext-deps/flext-observability/src"]
+extraPaths = [
+  "..",
+  "src",
+  "tests",
+  "examples",
+  "scripts",
+  "../typings",
+  "../typings/generated",
+  "../flext-core/src",
+  "../flext-observability/src",
+]
 include = [ "src", "scripts", "tests", "examples" ]
 exclude = [
   "**/*.pb2.py",
