@@ -28,13 +28,6 @@ from typing import Protocol
 import pytest
 import yaml
 from click.testing import CliRunner
-from flext_core import (
-    FlextContainer,
-    FlextSettings,
-)
-from flext_tests.docker import FlextTestsDocker
-from pydantic import TypeAdapter
-
 from flext_cli import (
     FlextCli,
     FlextCliCmd,
@@ -56,6 +49,13 @@ from flext_cli import (
 
 # Import from correct locations - use TestsCli structure
 from flext_cli.typings import t
+from flext_core import (
+    FlextContainer,
+    FlextSettings,
+)
+from flext_tests.docker import FlextTestsDocker
+from pydantic import TypeAdapter
+
 from tests.utilities import TestsCliUtilities
 
 from . import (
