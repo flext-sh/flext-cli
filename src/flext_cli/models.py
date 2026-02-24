@@ -17,7 +17,7 @@ from typing import (
 )
 
 import typer
-from flext_core import FlextModels, FlextResult, FlextRuntime, r, u
+from flext_core import FlextModels, FlextResult, r, u
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -31,7 +31,7 @@ from typer.models import OptionInfo
 
 from flext_cli.constants import FlextCliConstants as c
 from flext_cli.protocols import FlextCliProtocols as p
-from flext_cli.typings import FlextCliTypes, t
+from flext_cli.typings import t
 
 
 class _CliLoggingData(BaseModel):

@@ -11,11 +11,11 @@ from functools import wraps
 from pathlib import Path
 from typing import ClassVar, get_args, get_origin, override
 
-from flext_core import FlextTypes, FlextUtilities, r
+from flext_core import FlextUtilities, r
 from pydantic import BaseModel, ConfigDict, ValidationError, validate_call
 
 from flext_cli.constants import c
-from flext_cli.typings import CliExecutionMetadata, CliValidationResult, t
+from flext_cli.typings import CliExecutionMetadata, CliValidationResult
 
 type CliValue = (
     str

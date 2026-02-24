@@ -81,11 +81,7 @@ class FlextCliDebug(FlextCliServiceBase):
         # Use build() DSL for JSON conversion
         # Reuse to_dict_json helper from output module (imported at top)
         # Use m for concrete models when we need model_dump()
-        raw_dict = model.model_dump()
-        json_dict = (
-            raw_dict  # Simplified for now - use proper output utilities when available
-        )
-        return raw_dict
+        return model.model_dump()
 
     @staticmethod
     def _convert_result_to_json_value(

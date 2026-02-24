@@ -24,9 +24,9 @@ class TestsCliProtocols(FlextTestsProtocols, FlextCliProtocols):
     protocol definitions.
 
     Provides access to:
-    - tp.Tests.Docker.* (from FlextTestsProtocols)
-    - tp.Tests.Factory.* (from FlextTestsProtocols)
-    - tp.Cli.* (from FlextCliProtocols)
+    - p.Tests.Docker.* (from FlextTestsProtocols)
+    - p.Tests.Factory.* (from FlextTestsProtocols)
+    - p.Cli.* (from FlextCliProtocols)
 
     Rules:
     - NEVER redeclare protocols from parent classes
@@ -45,10 +45,10 @@ class TestsCliProtocols(FlextTestsProtocols, FlextCliProtocols):
 
 # Runtime aliases
 p = TestsCliProtocols
-tp = TestsCliProtocols
+p = TestsCliProtocols
 
 __all__ = [
     "TestsCliProtocols",
     "p",
-    "tp",
+    "p",
 ]

@@ -333,11 +333,11 @@ class TestsFlextCliConstants(FlextTestsConstants, FlextCliConstants):
 
 
 # Short aliases per FLEXT convention
-tc = TestsFlextCliConstants  # Primary test constants alias
+c = TestsFlextCliConstants  # Primary test constants alias
 c = TestsFlextCliConstants  # Alternative alias for compatibility
 
 __all__ = [
     "TestsFlextCliConstants",
     "c",
-    "tc",
+    "c",
 ]

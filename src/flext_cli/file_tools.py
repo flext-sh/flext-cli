@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import TextIO
 
 import yaml
-from flext_core import FlextRuntime, r
+from flext_core import r
 
 from flext_cli.constants import c
 from flext_cli.typings import t
