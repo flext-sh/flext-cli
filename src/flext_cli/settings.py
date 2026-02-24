@@ -17,6 +17,7 @@ import yaml
 from flext_core import (
     FlextContainer,
     FlextLogger,
+    FlextRuntime,
     FlextSettings,
     r,
 )
@@ -122,7 +123,7 @@ class FlextCliSettings(FlextSettings):
             context = context_cls() if context_cls is not None else None
             if context is None:
                 return r.fail("FlextContext not available")
-            # Convert config object to t.GeneralValueType-compatible dict for context
+            # Convert config object to t.JsonValue-compatible dict for context
             # Use u.transform for JSON conversion
             transform_result = u.transform(
                 self.model_dump(),
@@ -134,7 +135,7 @@ class FlextCliSettings(FlextSettings):
                 else self.model_dump()
             )
             _ = context.set("cli_config", config_dict)
-            # Computed fields return values directly - convert to t.GeneralValueType
+            # Computed fields return values directly - convert to t.JsonValue
             _ = context.set("cli_auto_output_format", str(self.auto_output_format))
             _ = context.set("cli_auto_color_support", bool(self.auto_color_support))
             _ = context.set("cli_auto_verbosity", str(self.auto_verbosity))
@@ -174,14 +175,15 @@ class FlextCliSettings(FlextSettings):
         mode="before",
     )
     @classmethod
-    def parse_bool_env_vars(cls, v: t.GeneralValueType) -> bool:
+    def parse_bool_env_vars(cls, v: bool | str | int | float | None) -> bool:
         """Parse boolean environment variables correctly from strings."""
-        # Use u.Cli.parse for type-safe boolean conversion
-        if isinstance(v, bool):
-            return v
-        # Simple boolean parsing for environment variables
-        if isinstance(v, str):
-            return v.lower() in {"true", "1", "yes", "on"}
+        if v in (True, False):
+            return bool(v)
+        normalized = str(v).strip().lower()
+        if normalized in {"true", "1", "yes", "on"}:
+            return True
+        if normalized in {"false", "0", "no", "off", "none", ""}:
+            return False
         return bool(v)
 
     # Pydantic 2.11 model validator (runs after all field validators)
@@ -284,19 +286,19 @@ class FlextCliSettings(FlextSettings):
                 em.FAILED_LOAD_CONFIG_FROM_FILE.format(file=config_file, error=e)
             )
 
-    def execute_service(self) -> r[dict[str, t.GeneralValueType]]:
+    def execute_service(self) -> r[dict[str, t.JsonValue]]:
         """Execute config as service operation."""
         config_dict = u.transform(self.model_dump(), to_json=True).map_or(
             self.model_dump()
         )
-        result_dict: dict[str, t.GeneralValueType] = {
+        result_dict: dict[str, t.JsonValue] = {
             "status": c.Cli.ServiceStatus.OPERATIONAL.value,
             "service": c.Cli.CliGlobalDefaults.DEFAULT_SERVICE_NAME,
             "timestamp": u.generate("timestamp"),
             "version": c.Cli.CliGlobalDefaults.DEFAULT_VERSION_STRING,
             "config": config_dict,
         }
-        return r[dict[str, t.GeneralValueType]].ok(result_dict)
+        return r[dict[str, t.JsonValue]].ok(result_dict)
 
     _COMPUTED: ClassVar[set[str]] = {
         "auto_output_format",
@@ -307,7 +309,7 @@ class FlextCliSettings(FlextSettings):
         "optimal_table_format",
     }
 
-    def update_from_cli_args(self, **kwargs: t.GeneralValueType) -> r[bool]:
+    def update_from_cli_args(self, **kwargs: t.JsonValue) -> r[bool]:
         """Update configuration from CLI arguments with validation."""
         try:
             model_fields = set(type(self).model_fields.keys())
@@ -326,13 +328,14 @@ class FlextCliSettings(FlextSettings):
             )
 
     def validate_cli_overrides(
-        self, **overrides: t.GeneralValueType
-    ) -> r[dict[str, t.GeneralValueType]]:
+        self, **overrides: t.JsonValue
+    ) -> r[dict[str, t.JsonValue]]:
         """Validate CLI overrides without applying them."""
         em = c.Cli.ErrorMessages
         try:
-            valid: dict[str, t.GeneralValueType] = {
-                k: v for k, v in overrides.items() if hasattr(self, k)
+            model_fields = set(type(self).model_fields.keys())
+            valid: dict[str, t.JsonValue] = {
+                k: v for k, v in overrides.items() if k in model_fields
             }
             errors: list[str] = []
             for k, v in valid.items():
@@ -342,35 +345,36 @@ class FlextCliSettings(FlextSettings):
                     _ = test_cfg.model_validate(test_cfg.model_dump())
                     valid[k] = (
                         u.transform(v, to_json=True).map_or(v)
-                        if isinstance(v, dict)
+                        if FlextRuntime.is_dict_like(v)
                         else v
                     )
                 except Exception as e:
                     errors.append(em.INVALID_VALUE_FOR_FIELD.format(field=k, error=e))
             if errors:
-                return r[dict[str, t.GeneralValueType]].fail(
+                return r[dict[str, t.JsonValue]].fail(
                     em.VALIDATION_ERRORS.format(errors="; ".join(errors))
                 )
-            return r[dict[str, t.GeneralValueType]].ok(dict(valid))
+            return r[dict[str, t.JsonValue]].ok(dict(valid))
         except Exception as e:
-            return r[dict[str, t.GeneralValueType]].fail(f"Validation failed: {e}")
+            return r[dict[str, t.JsonValue]].fail(f"Validation failed: {e}")
 
-    def load_config(self) -> r[dict[str, t.GeneralValueType]]:
+    def load_config(self) -> r[dict[str, t.JsonValue]]:
         """Load CLI configuration — implements CliConfigProvider protocol."""
         try:
             raw = self.model_dump()
             config_dict = u.transform(raw, to_json=True).map_or(raw)
-            return r[dict[str, t.GeneralValueType]].ok(config_dict)
+            return r[dict[str, t.JsonValue]].ok(config_dict)
         except Exception as e:
-            return r[dict[str, t.GeneralValueType]].fail(
+            return r[dict[str, t.JsonValue]].fail(
                 c.Cli.ErrorMessages.CONFIG_LOAD_FAILED_MSG.format(error=e)
             )
 
-    def save_config(self, config: dict[str, t.GeneralValueType]) -> r[bool]:
+    def save_config(self, config: dict[str, t.JsonValue]) -> r[bool]:
         """Save CLI configuration — implements CliConfigProvider protocol."""
         try:
+            model_fields = set(type(self).model_fields.keys())
             for k, v in config.items():
-                if hasattr(self, k):
+                if k in model_fields:
                     setattr(self, k, v)
             _ = self.model_validate(self.model_dump())
             return r[bool].ok(value=True)

@@ -93,14 +93,14 @@ class FlextCliMixins(FlextMixins):
 
         @staticmethod
         def validate_pipeline_step(
-            step: dict[str, t.GeneralValueType] | None,
+            step: dict[str, t.JsonValue] | None,
         ) -> r[bool]:
             """Validate pipeline step configuration (delegates to utilities)."""
             return FlextCliUtilities.Cli.CliValidation.v_step(step)
 
         @staticmethod
         def validate_configuration_consistency(
-            config_data: dict[str, t.GeneralValueType] | None,
+            config_data: dict[str, t.JsonValue] | None,
             required_fields: list[str],
         ) -> r[bool]:
             """Validate configuration consistency (delegates to utilities)."""
@@ -123,8 +123,8 @@ class FlextCliMixins(FlextMixins):
         def execute_with_cli_context(
             operation: str,
             handler: p.Cli.CliCommandHandler,
-            **context_data: t.GeneralValueType,
-        ) -> r[t.GeneralValueType]:
+            **context_data: t.JsonValue,
+        ) -> r[t.JsonValue]:
             """Execute handler with automatic CLI context management.
 
             Composes flext-core decorators to provide complete context setup:
@@ -156,7 +156,7 @@ class FlextCliMixins(FlextMixins):
             )
 
             # Execute with composed decorators
-            # Railway decorator ensures handler_result is always r[t.GeneralValueType]
+            # Railway decorator ensures handler_result is always r[t.JsonValue]
             # Return result directly (already correctly typed)
             return wrapped_handler(**context_data)
 

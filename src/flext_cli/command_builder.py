@@ -52,16 +52,16 @@ class FlextCommandBuilder:
         self._options: list[OptionInfo] = []
         self._arguments: list[tuple[str, type, bool]] = []  # (name, type, required)
         self._middleware: list[
-            Callable[[p.Cli.CliContextProtocol], r[t.GeneralValueType]]
+            Callable[[p.Cli.CliContextProtocol], r[t.JsonValue]]
         ] = []
         self._handler: p.Cli.CommandHandlerCallable | None = None
 
     @staticmethod
     def _create_option_info(
-        default: t.GeneralValueType = None,
+        default: t.JsonValue = None,
         param_decls: list[str] | None = None,
         help_text: str = "",
-        **kwargs: t.GeneralValueType,
+        **kwargs: t.JsonValue,
     ) -> OptionInfo:
         """Create OptionInfo with validated kwargs.
 
@@ -73,7 +73,7 @@ class FlextCommandBuilder:
         # Build validated kwargs with proper types for OptionInfo
         # OptionInfo constructor expects specific types for known parameters
         # Type narrowing: validate types match OptionInfo signature
-        validated_default: t.GeneralValueType | None = default
+        validated_default: t.JsonValue | None = default
         validated_param_decls_list: Sequence[str] = validated_param_decls
         validated_help: str | None = help_text or None
         # Create OptionInfo with validated parameters
@@ -95,9 +95,9 @@ class FlextCommandBuilder:
     def with_option(
         self,
         name: str,
-        default: t.GeneralValueType = None,
+        default: t.JsonValue = None,
         help_: str = "",
-        **kwargs: t.GeneralValueType,
+        **kwargs: t.JsonValue,
     ) -> Self:
         """Add command option.
 
@@ -165,7 +165,7 @@ class FlextCommandBuilder:
 
     def with_middleware(
         self,
-        middleware: Callable[[p.Cli.CliContextProtocol], r[t.GeneralValueType]],
+        middleware: Callable[[p.Cli.CliContextProtocol], r[t.JsonValue]],
     ) -> Self:
         """Add middleware (logging, auth, validation).
 
@@ -207,17 +207,4 @@ class FlextCommandBuilder:
             name=self._name,
             description="",
         )
-        if not FlextCommandBuilder._is_command_protocol(command):
-            msg = "command must implement Command protocol"
-            raise TypeError(msg)
         return command
-
-    @staticmethod
-    def _is_command_protocol(obj: t.GeneralValueType) -> bool:
-        """Type guard to check if object implements Command protocol."""
-        return (
-            hasattr(obj, "name")
-            and hasattr(obj, "description")
-            and isinstance(getattr(obj, "name", None), str)
-            and isinstance(getattr(obj, "description", None), str)
-        )

@@ -20,7 +20,7 @@ from flext_cli.settings import FlextCliSettings
 from flext_cli.typings import FlextCliTypes as t
 
 
-class FlextCliServiceBase(s[dict[str, t.GeneralValueType]], ABC):
+class FlextCliServiceBase(s[dict[str, t.JsonValue]], ABC):
     """Base class for flext-cli services with typed configuration access.
 
     Note: This is an abstract base class. Subclasses must implement the

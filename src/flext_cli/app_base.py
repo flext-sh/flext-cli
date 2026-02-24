@@ -128,28 +128,23 @@ class FlextCliAppBase(ABC):
             # SystemExit with non-zero code means failure
             # Typer already printed the error in standalone_mode=True
             return r[bool].fail(f"CLI execution failed with code {sys_exit.code}")
-        except Exception as exc:
-            if isinstance(exc, ClickUsageError):
-                error_msg = f"CLI execution error: {exc!s}"
-                _ = self._output.print_error(error_msg)
-                return r[bool].fail(error_msg)
-            # Business Rule: Exception handling MUST catch all FlextExceptions.BaseError types
-            # Architecture: Use FlextExceptions.BaseError for flext-specific exceptions
-            # Audit Implication: Proper exception handling ensures error logging and recovery
-            if isinstance(
-                exc,
-                (
-                    ValueError,
-                    KeyError,
-                    AttributeError,
-                    TypeError,
-                    OSError,
-                    RuntimeError,
-                    e.BaseError,
-                ),
-            ):
-                tb = traceback.format_exc()
-                error_msg = f"CLI execution error: {exc!s}\nTraceback:\n{tb}"
-                _ = self._output.print_error(error_msg)
-                return r[bool].fail(f"CLI execution error: {exc!s}")
-            raise
+        except ClickUsageError as exc:
+            error_msg = f"CLI execution error: {exc!s}"
+            _ = self._output.print_error(error_msg)
+            return r[bool].fail(error_msg)
+        # Business Rule: Exception handling MUST catch all FlextExceptions.BaseError types
+        # Architecture: Use FlextExceptions.BaseError for flext-specific exceptions
+        # Audit Implication: Proper exception handling ensures error logging and recovery
+        except (
+            ValueError,
+            KeyError,
+            AttributeError,
+            TypeError,
+            OSError,
+            RuntimeError,
+            e.BaseError,
+        ) as exc:
+            tb = traceback.format_exc()
+            error_msg = f"CLI execution error: {exc!s}\nTraceback:\n{tb}"
+            _ = self._output.print_error(error_msg)
+            return r[bool].fail(f"CLI execution error: {exc!s}")

@@ -29,8 +29,8 @@ class LoggingMiddleware:
     def __call__(
         self,
         ctx: p.Cli.CliContextProtocol,
-        next_: Callable[[p.Cli.CliContextProtocol], r[t.GeneralValueType]],
-    ) -> r[t.GeneralValueType]:
+        next_: Callable[[p.Cli.CliContextProtocol], r[t.JsonValue]],
+    ) -> r[t.JsonValue]:
         """Log command execution.
 
         Args:
@@ -38,7 +38,7 @@ class LoggingMiddleware:
             next_: Next middleware or handler.
 
         Returns:
-            r[t.GeneralValueType]: Result from next middleware or handler.
+            r[t.JsonValue]: Result from next middleware or handler.
 
         """
         # Extract command name from context
@@ -64,8 +64,8 @@ class ValidationMiddleware:
     def __call__(
         self,
         ctx: p.Cli.CliContextProtocol,
-        next_: Callable[[p.Cli.CliContextProtocol], r[t.GeneralValueType]],
-    ) -> r[t.GeneralValueType]:
+        next_: Callable[[p.Cli.CliContextProtocol], r[t.JsonValue]],
+    ) -> r[t.JsonValue]:
         """Validate command inputs.
 
         Args:
@@ -73,7 +73,7 @@ class ValidationMiddleware:
             next_: Next middleware or handler.
 
         Returns:
-            r[t.GeneralValueType]: Result from next middleware or handler, or failure
+            r[t.JsonValue]: Result from next middleware or handler, or failure
                 if validation fails.
 
         """
@@ -85,7 +85,7 @@ class ValidationMiddleware:
             ctx.params = validated.model_dump()
             return next_(ctx)
         except Exception as e:
-            return r[t.GeneralValueType].fail(f"Validation failed: {e}")
+            return r[t.JsonValue].fail(f"Validation failed: {e}")
 
 
 class RetryMiddleware:
@@ -105,8 +105,8 @@ class RetryMiddleware:
     def __call__(
         self,
         ctx: p.Cli.CliContextProtocol,
-        next_: Callable[[p.Cli.CliContextProtocol], r[t.GeneralValueType]],
-    ) -> r[t.GeneralValueType]:
+        next_: Callable[[p.Cli.CliContextProtocol], r[t.JsonValue]],
+    ) -> r[t.JsonValue]:
         """Retry failed commands.
 
         Args:
@@ -114,7 +114,7 @@ class RetryMiddleware:
             next_: Next middleware or handler.
 
         Returns:
-            r[t.GeneralValueType]: Result from next middleware or handler after retries.
+            r[t.JsonValue]: Result from next middleware or handler after retries.
 
         """
         # Initialize result to satisfy type checker (loop always executes at least once)
@@ -134,8 +134,8 @@ class RetryMiddleware:
 
 def compose_middleware(
     middlewares: list[FlextMiddleware],
-    handler: Callable[[p.Cli.CliContextProtocol], p.Result[t.GeneralValueType]],
-) -> Callable[[p.Cli.CliContextProtocol], p.Result[t.GeneralValueType]]:
+    handler: Callable[[p.Cli.CliContextProtocol], p.Result[t.JsonValue]],
+) -> Callable[[p.Cli.CliContextProtocol], p.Result[t.JsonValue]]:
     """Compose middleware into single callable.
 
     Args:
@@ -153,10 +153,10 @@ def compose_middleware(
 
     """
 
-    def composed(ctx: p.Cli.CliContextProtocol) -> p.Result[t.GeneralValueType]:
+    def composed(ctx: p.Cli.CliContextProtocol) -> p.Result[t.JsonValue]:
         def build_chain(
             idx: int,
-        ) -> Callable[[p.Cli.CliContextProtocol], p.Result[t.GeneralValueType]]:
+        ) -> Callable[[p.Cli.CliContextProtocol], p.Result[t.JsonValue]]:
             if idx >= len(middlewares):
                 return handler
             current_middleware = middlewares[idx]

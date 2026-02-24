@@ -43,12 +43,12 @@ class FlextCliPrompts(FlextCliServiceBase):
         *,
         interactive_mode: bool = True,
         quiet: bool = False,
-        **data: t.GeneralValueType,
+        **data: t.JsonValue,
     ) -> None:
         data["interactive_mode"] = interactive_mode and not quiet
         data["quiet"] = quiet
         data["default_timeout"] = default_timeout
-        s[dict[str, t.GeneralValueType]].__init__(self, **data)
+        s[dict[str, t.JsonValue]].__init__(self, **data)
         self.logger.debug(
             "Initialized CLI prompts service",
             operation="__init__",
@@ -204,7 +204,7 @@ class FlextCliPrompts(FlextCliServiceBase):
             )
             return r[bool].fail(EM.HISTORY_CLEAR_FAILED.format(error=exc))
 
-    def get_prompt_statistics(self) -> r[Mapping[str, t.GeneralValueType]]:
+    def get_prompt_statistics(self) -> r[Mapping[str, t.JsonValue]]:
         try:
             size = len(self._prompt_history)
             stats_model = m.Cli.PromptStatistics(
@@ -222,7 +222,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 if transform_result.is_success
                 else stats_model.model_dump()
             )
-            return r[dict[str, t.GeneralValueType]].ok(stats)
+            return r[dict[str, t.JsonValue]].ok(stats)
         except Exception as exc:  # pragma: no cover
             self.logger.exception(
                 "FAILED to collect prompt statistics - operation aborted",
@@ -232,23 +232,23 @@ class FlextCliPrompts(FlextCliServiceBase):
                 consequence="Statistics unavailable",
                 source=SOURCE_PATH,
             )
-            return r[Mapping[str, t.GeneralValueType]].fail(
+            return r[Mapping[str, t.JsonValue]].fail(
                 PEM.STATISTICS_COLLECTION_FAILED.format(error=exc),
             )
 
-    def execute(self) -> r[dict[str, t.GeneralValueType]]:
+    def execute(self) -> r[dict[str, t.JsonValue]]:
         try:
             self.logger.debug(
                 "Prompt service execution completed",
                 operation="execute",
                 source=SOURCE_PATH,
             )
-            return r[dict[str, t.GeneralValueType]].ok({})
+            return r[dict[str, t.JsonValue]].ok({})
         except Exception as exc:
             self._fatal(
                 "execute", "execute", exc, "Prompt service execution failed completely"
             )
-            return r[dict[str, t.GeneralValueType]].fail(
+            return r[dict[str, t.JsonValue]].fail(
                 PEM.PROMPT_SERVICE_EXECUTION_FAILED.format(error=exc),
             )
 
@@ -453,9 +453,9 @@ class FlextCliPrompts(FlextCliServiceBase):
 
     def with_progress(
         self,
-        items: list[t.GeneralValueType],
+        items: list[t.JsonValue],
         description: str = PD.DEFAULT_PROCESSING_DESCRIPTION,
-    ) -> r[list[t.GeneralValueType]]:
+    ) -> r[list[t.JsonValue]]:
         try:
             total = len(items)
             self.logger.info("Starting progress operation with items")
@@ -481,7 +481,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                     description=description, processed=total
                 )
             )
-            return r[list[t.GeneralValueType]].ok(items)
+            return r[list[t.JsonValue]].ok(items)
         except Exception as exc:
             self._fatal(
                 "with_progress",
@@ -489,7 +489,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 exc,
                 "Progress operation failed completely",
             )
-            return r[list[t.GeneralValueType]].fail(
+            return r[list[t.JsonValue]].fail(
                 PEM.PROGRESS_PROCESSING_FAILED.format(error=exc)
             )
 

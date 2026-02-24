@@ -27,9 +27,9 @@ class CommandHandler(Protocol):
 
     def __call__(
         self,
-        *args: t.GeneralValueType,
-        **kwargs: t.GeneralValueType,
-    ) -> t.GeneralValueType:
+        *args: t.JsonValue,
+        **kwargs: t.JsonValue,
+    ) -> r[t.JsonValue]:
         """Execute command with variable arguments."""
         ...
 
@@ -93,7 +93,7 @@ class FlextCliCommands(FlextCliServiceBase):
         """Return CLI description."""
         return self._description
 
-    def execute(self) -> r[dict[str, t.GeneralValueType]]:
+    def execute(self) -> r[dict[str, t.JsonValue]]:
         """Execute commands service - returns service status.
 
         Business Rule:
@@ -105,7 +105,7 @@ class FlextCliCommands(FlextCliServiceBase):
             r[dict]: Service status with commands count.
 
         """
-        return r[dict[str, t.GeneralValueType]].ok({
+        return r[dict[str, t.JsonValue]].ok({
             "app_name": c.Cli.FLEXT_CLI,
             "is_initialized": True,
             "commands_count": len(self._commands),
@@ -126,7 +126,7 @@ class FlextCliCommands(FlextCliServiceBase):
             r[bool]: Success if registered, failure otherwise.
 
         """
-        if not isinstance(name, str) or not name.strip():
+        if not name.strip():
             return r[bool].fail("Command name must be non-empty string")
         # Type system ensures handler is callable via CommandHandler Protocol
 
@@ -156,8 +156,8 @@ class FlextCliCommands(FlextCliServiceBase):
         self,
         name: str,
         args: Sequence[str] | None = None,
-        **kwargs: t.GeneralValueType,
-    ) -> r[t.GeneralValueType]:
+        **kwargs: t.JsonValue,
+    ) -> r[t.JsonValue]:
         """Execute a registered CLI command.
 
         Args:
@@ -166,24 +166,24 @@ class FlextCliCommands(FlextCliServiceBase):
             **kwargs: Keyword arguments for the command.
 
         Returns:
-            r[t.GeneralValueType]: Command execution result.
+            r[t.JsonValue]: Command execution result.
 
         """
-        if not name or not isinstance(name, str):
-            return r[t.GeneralValueType].fail("Invalid command name")
+        if not name.strip():
+            return r[t.JsonValue].fail("Invalid command name")
 
         if name not in self._commands:
-            return r[t.GeneralValueType].fail(f"Command not found: {name}")
+            return r[t.JsonValue].fail(f"Command not found: {name}")
 
         cmd_info = self._commands[name]
         handler = cmd_info.get("handler")
 
         if not callable(handler):
-            return r[t.GeneralValueType].fail(f"Handler not callable for: {name}")
+            return r[t.JsonValue].fail(f"Handler not callable for: {name}")
 
         try:
             # Try to execute handler with provided arguments
-            result: t.GeneralValueType | None = None
+            result: r[t.JsonValue] | None = None
 
             # Attempt execution with various argument combinations
             execution_attempted = False
@@ -201,20 +201,24 @@ class FlextCliCommands(FlextCliServiceBase):
             if not execution_attempted:
                 result = handler()
 
-            # Handle result: None means success with default response
-            if result is None:
-                return r[t.GeneralValueType].ok({"status": "success", "command": name})
-
-            # If handler already returns FlextResult, extract and re-wrap
-            if isinstance(result, r):
-                if result.is_success:
-                    return r[t.GeneralValueType].ok(result.value)
-                return r[t.GeneralValueType].fail(result.error or "Command failed")
-
-            # Return the handler's result wrapped in FlextResult
-            return r[t.GeneralValueType].ok(result)
+            return self._normalize_handler_result(result, name)
         except Exception as e:
-            return r[t.GeneralValueType].fail(f"Command execution failed: {e}")
+            return r[t.JsonValue].fail(f"Command execution failed: {e}")
+
+    @staticmethod
+    def _normalize_handler_result(
+        result: r[t.JsonValue] | None,
+        command_name: str,
+    ) -> r[t.JsonValue]:
+        """Normalize handler output to FlextResult."""
+        if result is None:
+            return r[t.JsonValue].ok({"status": "success", "command": command_name})
+        if result.is_success:
+            return r[t.JsonValue].ok(result.value)
+        error_value = result.error
+        return r[t.JsonValue].fail(
+            str(error_value) if error_value else "Command failed"
+        )
 
     def get_commands(self) -> dict[str, CommandEntry]:
         """Get all registered commands.
@@ -249,34 +253,34 @@ class FlextCliCommands(FlextCliServiceBase):
     def run_cli(
         self,
         args: Sequence[str] | None = None,
-    ) -> r[t.GeneralValueType]:
+    ) -> r[t.JsonValue]:
         """Run CLI with given arguments.
 
         Args:
             args: CLI arguments to process.
 
         Returns:
-            r[t.GeneralValueType]: Execution result.
+            r[t.JsonValue]: Execution result.
 
         """
         if not args:
-            return r[t.GeneralValueType].ok({"status": "success", "message": "No args"})
+            return r[t.JsonValue].ok({"status": "success", "message": "No args"})
 
         cmd_name = args[0] if args else ""
         cmd_args = list(args[1:]) if len(args) > 1 else []
 
         # Handle special options
         if cmd_name in {"--help", "-h"}:
-            return r[t.GeneralValueType].ok({
+            return r[t.JsonValue].ok({
                 "status": "help",
                 "commands": list(self._commands.keys()),
             })
 
         if cmd_name in {"--version", "-v"}:
-            return r[t.GeneralValueType].ok({"status": "version", "name": self._name})
+            return r[t.JsonValue].ok({"status": "version", "name": self._name})
 
         if cmd_name not in self._commands:
-            return r[t.GeneralValueType].fail(f"Command not found: {cmd_name}")
+            return r[t.JsonValue].fail(f"Command not found: {cmd_name}")
 
         return self.execute_command(cmd_name, args=cmd_args)
 
@@ -297,7 +301,7 @@ class FlextCliCommands(FlextCliServiceBase):
             r[CommandGroup]: Command group, or failure.
 
         """
-        if not isinstance(name, str) or not name.strip():
+        if not name.strip():
             return r[CommandGroup].fail("Group name must be non-empty string")
 
         if commands is None:

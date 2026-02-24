@@ -239,11 +239,7 @@ class FlextCliCore(FlextCliServiceBase):
             # Build command_data dict without using model_dump() to avoid DomainEvent forward reference error
             # Extract model fields directly instead of calling model_dump() which triggers model_rebuild()
             # Status is already a str field in the model, created_at needs conversion
-            created_at_val: t.JsonValue = (
-                command.created_at.isoformat()
-                if hasattr(command.created_at, "isoformat")
-                else str(command.created_at)
-            )
+            created_at_val: t.JsonValue = command.created_at.isoformat()
             command_data: dict[str, t.JsonValue] = {
                 "name": command.name,
                 "unique_id": command.unique_id,
@@ -736,8 +732,8 @@ class FlextCliCore(FlextCliServiceBase):
             return r[bool].fail(c.Cli.ErrorMessages.CONFIG_NOT_DICT)
         # Reuse to_dict_json helper from output module
         # Python 3.13: to_dict_json() always returns dict, isinstance check is unnecessary
-        validated_config_input: dict[str, t.JsonValue] = (
-            FlextCliOutput.to_dict_json(config)
+        validated_config_input: dict[str, t.JsonValue] = FlextCliOutput.to_dict_json(
+            config
         )
         config_result = self._validate_config_input(validated_config_input)
         if config_result.is_failure:
@@ -996,10 +992,8 @@ class FlextCliCore(FlextCliServiceBase):
                 )
             # Business Rule: Frozen model attributes MUST be set using setattr()
             setattr(self, "_session_active", False)
-            if hasattr(self, c.Cli.PrivateAttributes.SESSION_CONFIG):
-                delattr(self, c.Cli.PrivateAttributes.SESSION_CONFIG)
-            if hasattr(self, c.Cli.PrivateAttributes.SESSION_START_TIME):
-                delattr(self, c.Cli.PrivateAttributes.SESSION_START_TIME)
+            delattr(self, c.Cli.PrivateAttributes.SESSION_CONFIG)
+            delattr(self, c.Cli.PrivateAttributes.SESSION_START_TIME)
 
             FlextLogger(__name__).debug(
                 "Session terminated successfully",
@@ -1155,10 +1149,7 @@ class FlextCliCore(FlextCliServiceBase):
         try:
             # Calculate session duration if session is active
             session_duration = c.Cli.CoreServiceDefaults.SESSION_DURATION_INIT
-            if (
-                hasattr(self, c.Cli.PrivateAttributes.SESSION_START_TIME)
-                and self._session_start_time
-            ):
+            if self._session_start_time:
                 # Use UTC directly for current time
                 current_time = datetime.now(UTC)
                 # Parse ISO format string - strip trailing timezone info

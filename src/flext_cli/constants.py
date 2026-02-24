@@ -307,7 +307,7 @@ class FlextCliConstants(FlextConstants):
             )
             NO_DATA_PROVIDED = "No data provided for table"
             TABLE_FORMAT_REQUIRED_DICT = (
-                "Table format requires dict[str, t.GeneralValueType] or list of dicts"
+                "Table format requires dict[str, t.JsonValue] or list of dicts"
             )
             TABLE_HEADERS_MUST_BE_LIST = (
                 "Table headers must be a list for list of dicts data"

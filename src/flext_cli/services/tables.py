@@ -12,13 +12,13 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-from flext_core import r
+from flext_core import FlextRuntime, r
 from tabulate import tabulate
 
 from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import m
-from flext_cli.protocols import p
+
 from flext_cli.typings import t
 from flext_cli.utilities import u
 
@@ -101,7 +101,7 @@ class FlextCliTables(FlextCliServiceBase):
     # SERVICE EXECUTION (Required by FlextService)
     # =========================================================================
 
-    def execute(self) -> r[dict[str, t.GeneralValueType]]:
+    def execute(self) -> r[dict[str, t.JsonValue]]:
         """Execute table service - returns success indicator.
 
         Business Rule:
@@ -110,10 +110,10 @@ class FlextCliTables(FlextCliServiceBase):
         print_available_formats). Execute provides a default success response.
 
         Returns:
-            r[dict[str, t.GeneralValueType]]: Success result.
+            r[dict[str, t.JsonValue]]: Success result.
 
         """
-        return r[dict[str, t.GeneralValueType]].ok({"status": "table_service_ready"})
+        return r[dict[str, t.JsonValue]].ok({"status": "table_service_ready"})
 
     # =========================================================================
     # TABLE CREATION
@@ -122,8 +122,8 @@ class FlextCliTables(FlextCliServiceBase):
     @staticmethod
     def create_table(
         data: t.Cli.TabularData,
-        config: p.Cli.TableConfigProtocol | None = None,
-        **config_kwargs: t.GeneralValueType,
+        config: m.Cli.TableConfig | None = None,
+        **config_kwargs: t.JsonValue,
     ) -> r[str]:
         """Create formatted ASCII table using tabulate with Pydantic config.
 
@@ -152,14 +152,9 @@ class FlextCliTables(FlextCliServiceBase):
             >>> result = tables.create_table(data)
 
         """
-        # Use Configuration.build_options_from_kwargs pattern for automatic conversion
-        # Type narrowing: check if config is instance of TableConfig (not just protocol)
-        config_concrete: m.Cli.TableConfig | None = (
-            config if isinstance(config, m.Cli.TableConfig) else None
-        )
         config_result = u.Configuration.build_options_from_kwargs(
             model_class=m.Cli.TableConfig,
-            explicit_options=config_concrete,
+            explicit_options=config,
             default_factory=m.Cli.TableConfig,
             **config_kwargs,
         )
@@ -229,29 +224,8 @@ class FlextCliTables(FlextCliServiceBase):
         headers: str | Sequence[str],
     ) -> r[str | Sequence[str]]:
         """Prepare headers based on data type."""
-        # For list of dicts with sequence headers, use "keys"
-        # Type narrowing: data is Iterable, convert to list for is_list_like check
-        if isinstance(data, (list, tuple)):
-            data_list: list[t.GeneralValueType] = [
-                u.Cast.to_general_value_type(row) for row in data
-            ]
-            data_as_general: t.GeneralValueType = data_list
-        elif isinstance(data, dict):
-            data_list = []
-            data_as_general = data
-        else:
-            data_list = []
-            data_as_general = data
-
-        if (
-            isinstance(data_as_general, (list, tuple))
-            and data_list
-            and isinstance(data_list[0], (dict, dict))
-            and isinstance(
-                headers,
-                (list, tuple),
-            )  # tuple check is specific, not dict/list
-        ):
+        data_list = list(data)
+        if data_list and FlextRuntime.is_list_like(headers):
             return r[str | Sequence[str]].ok(
                 FlextCliConstants.Cli.TableFormats.KEYS,
             )
@@ -261,35 +235,14 @@ class FlextCliTables(FlextCliServiceBase):
     def _calculate_column_count(
         self,
         data: t.Cli.TabularData,
-        headers: str | Sequence[str],
+        headers: Sequence[str],
     ) -> int:
-        """Calculate number of columns based on headers and data type.
-
-        Returns:
-            Number of columns, or 0 if unable to determine.
-
-        """
-        # If headers is a sequence, count directly
-        if isinstance(headers, Sequence) and not isinstance(headers, str):
+        """Calculate number of columns based on headers and data type."""
+        if headers:
             return len(headers)
-
-        # If headers="keys", count from data
-        if headers == "keys":
-            if isinstance(data, dict):
-                return len(data)
-            # Check if data is sequence with at least one element
-            if (
-                isinstance(data, Sequence)
-                and not isinstance(data, str)
-                and len(data) > 0
-            ):
-                first_row = data[0]
-                if isinstance(first_row, (dict, Sequence)) and not isinstance(
-                    first_row,
-                    str,
-                ):
-                    return len(first_row)
-
+        data_list = list(data)
+        if data_list:
+            return len(data_list[0])
         return 0
 
     def _create_table_string(

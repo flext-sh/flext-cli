@@ -34,11 +34,11 @@ class FlextCliContext(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     command: str | None = None
     arguments: list[str] | None = Field(default_factory=list)
-    environment_variables: dict[str, t.GeneralValueType] | None = Field(
+    environment_variables: dict[str, t.JsonValue] | None = Field(
         default_factory=dict
     )
     working_directory: str | None = None
-    context_metadata: dict[str, t.GeneralValueType] = Field(default_factory=dict)
+    context_metadata: dict[str, t.JsonValue] = Field(default_factory=dict)
     is_active: bool = False
     created_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
     timeout_seconds: int = Field(default=30)
@@ -76,7 +76,7 @@ class FlextCliContext(BaseModel):
 
     @staticmethod
     def _ensure_initialized(
-        value: t.GeneralValueType | None, error_message: str
+        value: t.JsonValue | None, error_message: str
     ) -> r[bool]:
         """Check that a value is not None."""
         if value is None:
@@ -86,11 +86,11 @@ class FlextCliContext(BaseModel):
     @staticmethod
     def _safe_dict_operation(
         operation: str,
-        dict_obj: dict[str, t.GeneralValueType] | None,
+        dict_obj: dict[str, t.JsonValue] | None,
         key: str,
-        value: t.GeneralValueType | None = None,
+        value: t.JsonValue | None = None,
         error_messages: dict[str, str] | None = None,
-    ) -> r[t.GeneralValueType | bool]:
+    ) -> r[t.JsonValue | bool]:
         """Perform dict get/set with consistent error handling."""
         errors = {
             "not_initialized": c.Cli.ContextErrorMessages.ENV_VARS_NOT_INITIALIZED,
@@ -101,18 +101,18 @@ class FlextCliContext(BaseModel):
             **(error_messages or {}),
         }
         if dict_obj is None:
-            return r[t.GeneralValueType | bool].fail(errors["not_initialized"])
+            return r[t.JsonValue | bool].fail(errors["not_initialized"])
         try:
             if operation == "get":
                 if key in dict_obj:
-                    return r[t.GeneralValueType | bool].ok(dict_obj[key])
-                return r[t.GeneralValueType | bool].fail(errors["not_found"])
+                    return r[t.JsonValue | bool].ok(dict_obj[key])
+                return r[t.JsonValue | bool].fail(errors["not_found"])
             if operation == "set" and value is not None:
                 dict_obj[key] = value
-                return r[t.GeneralValueType | bool].ok(True)
-            return r[t.GeneralValueType | bool].fail(errors["failed"])
+                return r[t.JsonValue | bool].ok(True)
+            return r[t.JsonValue | bool].fail(errors["failed"])
         except Exception as e:
-            return r[t.GeneralValueType | bool].fail(
+            return r[t.JsonValue | bool].fail(
                 errors.get("exception", str(e)) or errors["failed"]
             )
 
@@ -277,7 +277,7 @@ class FlextCliContext(BaseModel):
             },
         )
 
-    def set_metadata(self, key: str, value: t.GeneralValueType) -> r[bool]:
+    def set_metadata(self, key: str, value: t.JsonValue) -> r[bool]:
         """Set context metadata using CLI-specific data types."""
         if (
             fail := self._validated_op(key, "Metadata key", "Validation failed")
@@ -291,17 +291,17 @@ class FlextCliContext(BaseModel):
                 c.Cli.ContextErrorMessages.METADATA_SETTING_FAILED.format(error=e),
             )
 
-    def get_metadata(self, key: str) -> r[t.GeneralValueType]:
+    def get_metadata(self, key: str) -> r[t.JsonValue]:
         """Get context metadata value."""
         if (
             fail := self._validated_op(
                 key, "Metadata key", "Metadata validation failed"
             )
         ) is not None:
-            return r[t.GeneralValueType].fail(fail.error or "")
+            return r[t.JsonValue].fail(fail.error or "")
         if key in self.context_metadata:
-            return r[t.GeneralValueType].ok(self.context_metadata[key])
-        return r[t.GeneralValueType].fail(
+            return r[t.JsonValue].ok(self.context_metadata[key])
+        return r[t.JsonValue].fail(
             c.Cli.ContextErrorMessages.METADATA_KEY_NOT_FOUND.format(key=key),
         )
 
@@ -343,7 +343,7 @@ class FlextCliContext(BaseModel):
             )
         )
 
-    def to_dict(self) -> r[dict[str, t.GeneralValueType]]:
+    def to_dict(self) -> r[dict[str, t.JsonValue]]:
         """Convert context to dictionary."""
         for field_val, err_msg in [
             (
@@ -357,9 +357,9 @@ class FlextCliContext(BaseModel):
         ]:
             check = FlextCliContext._ensure_initialized(field_val, err_msg)
             if check.is_failure:
-                return r[dict[str, t.GeneralValueType]].fail(check.error or "")
+                return r[dict[str, t.JsonValue]].fail(check.error or "")
         k = c.Cli.ContextDictKeys
-        result: dict[str, t.GeneralValueType] = {
+        result: dict[str, t.JsonValue] = {
             k.ID: self.id,
             k.COMMAND: self.command,
             k.ARGUMENTS: list(self.arguments) if self.arguments else [],
@@ -370,7 +370,7 @@ class FlextCliContext(BaseModel):
             k.CREATED_AT: self.created_at,
             k.TIMEOUT_SECONDS: self.timeout_seconds,
         }
-        return r[dict[str, t.GeneralValueType]].ok(result)
+        return r[dict[str, t.JsonValue]].ok(result)
 
 
 __all__ = ["FlextCliContext"]

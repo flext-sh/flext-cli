@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import d, e, h, r
+from flext_core import FlextRuntime, d, e, h, r
 from flext_core.mixins import FlextMixins as x
 
 from flext_cli.__version__ import __version__, __version_info__
@@ -48,6 +48,21 @@ from flext_cli.services.tables import FlextCliTables
 from flext_cli.settings import FlextCliSettings
 from flext_cli.typings import FlextCliTypes, t
 from flext_cli.utilities import FlextCliUtilities, u
+
+# MRO registry: subproject namespace; access via c, m, t, u from this package
+FlextRuntime.register_aliases(
+    constants=FlextCliConstants,
+    models=FlextCliModels,
+    typings=FlextCliTypes,
+    protocols=FlextCliProtocols,
+    utilities=FlextCliUtilities,
+    result=r,
+    decorators=d,
+    exceptions=e,
+    handlers=h,
+    service_base=FlextCliServiceBase,
+    mixins=FlextCliMixins,
+)
 
 __all__ = [
     "FlextCli",

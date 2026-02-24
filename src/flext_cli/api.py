@@ -143,7 +143,7 @@ class FlextCli:
         self._valid_tokens: set[str] = set()
         self._valid_sessions: set[str] = set()
         self._session_permissions: dict[str, set[str]] = {}
-        self._users: dict[str, dict[str, t.GeneralValueType]] = {}
+        self._users: dict[str, dict[str, t.JsonValue]] = {}
         self._deleted_users: set[str] = set()
 
     @classmethod
@@ -212,7 +212,7 @@ class FlextCli:
         validation = FlextCli._validate_token_string(token)
         if validation.is_failure:
             return validation
-        token_data: dict[str, t.GeneralValueType] = {c.Cli.DictKeys.TOKEN: token}
+        token_data: dict[str, t.JsonValue] = {c.Cli.DictKeys.TOKEN: token}
         json_data = u.transform(token_data, to_json=True).map_or(token_data)
         write_result = self.file_tools.write_json_file(
             str(self.config.token_file), json_data
@@ -265,8 +265,9 @@ class FlextCli:
         )
         if token_result.is_success:
             token_value = token_result.value
-            if isinstance(token_value, str) and token_value:
-                return r[str].ok(token_value)
+            extracted_token = u.Parser.convert(token_value, str, "")
+            if extracted_token:
+                return r[str].ok(extracted_token)
 
         # Fallback to model validation
         try:
@@ -278,7 +279,7 @@ class FlextCli:
     def is_authenticated(self) -> bool:
         """Check if user is authenticated."""
         auth_result = self.get_auth_token()
-        return auth_result.is_success if hasattr(auth_result, "is_success") else False
+        return auth_result.is_success
 
     @staticmethod
     def _is_ignorable_delete(result: r[bool]) -> bool:
@@ -320,9 +321,6 @@ class FlextCli:
             else self._cli.create_group_decorator
         )
         decorated_func = factory(name=entity_name)(func)
-        if not hasattr(decorated_func, "name") or not callable(decorated_func):
-            msg = "decorated_func must have 'name' attribute and be callable"
-            raise TypeError(msg)
         if not self._is_registered_command(decorated_func):
             msg = "decorated_func must implement CliRegisteredCommand protocol"
             raise TypeError(msg)
@@ -333,22 +331,26 @@ class FlextCli:
 
     @staticmethod
     def _is_registered_command(
-        obj: t.GeneralValueType | Callable[..., t.GeneralValueType],
+        obj: t.JsonValue | Callable[..., t.JsonValue],
     ) -> TypeGuard[p.Cli.CliRegisteredCommand]:
         """Type guard to check if object implements CliRegisteredCommand protocol."""
-        return hasattr(obj, "name") and callable(obj) and hasattr(obj, "callback")
+        if not callable(obj):
+            return False
+        try:
+            _ = obj.name
+            _ = obj.callback
+        except AttributeError:
+            return False
+        return True
 
     @staticmethod
     def _is_rich_tree_protocol(
-        obj: t.GeneralValueType,
+        obj: t.JsonValue,
     ) -> TypeGuard[p.Cli.Display.RichTreeProtocol]:
         """Type guard for RichTreeProtocol."""
         try:
-            return (
-                obj is not None
-                and callable(getattr(obj, "add", None))
-                and hasattr(obj, "label")
-            )
+            _ = obj.label
+            return obj is not None and callable(getattr(obj, "add", None))
         except AttributeError:
             return False
 
@@ -381,9 +383,9 @@ class FlextCli:
         """Execute the CLI application."""
         return r[bool].ok(value=True)
 
-    def execute(self) -> r[dict[str, t.GeneralValueType]]:
+    def execute(self) -> r[dict[str, t.JsonValue]]:
         """Execute CLI service with railway pattern."""
-        result_dict: dict[str, t.GeneralValueType] = {
+        result_dict: dict[str, t.JsonValue] = {
             c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.OPERATIONAL.value,
             c.Cli.DictKeys.SERVICE: c.Cli.FLEXT_CLI,
             "timestamp": u.generate("timestamp"),
@@ -395,7 +397,7 @@ class FlextCli:
                 "prompts": "available",
             },
         }
-        return r[dict[str, t.GeneralValueType]].ok(result_dict)
+        return r[dict[str, t.JsonValue]].ok(result_dict)
 
     def print(self, message: str, style: str | None = None) -> r[bool]:
         """Print a message with optional style."""
@@ -403,17 +405,15 @@ class FlextCli:
 
     def create_table(
         self,
-        data: dict[str, t.GeneralValueType]
-        | Sequence[dict[str, t.GeneralValueType]]
-        | None,
+        data: dict[str, t.JsonValue] | Sequence[dict[str, t.JsonValue]] | None,
         headers: list[str] | None = None,
         _title: str | None = None,
     ) -> r[str]:
         """Create a formatted ASCII table."""
         if data is None:
             return r[str].fail("Table data cannot be None")
-        table_data: list[dict[str, t.GeneralValueType]] = (
-            [data] if isinstance(data, dict) else list(data)
+        table_data: list[dict[str, t.JsonValue]] = (
+            [dict(data)] if runtime.is_dict_like(data) else list(data)
         )
         return FlextCliTables.create_table(
             table_data, headers=headers or "keys", table_format="simple"

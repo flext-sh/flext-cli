@@ -27,7 +27,7 @@ class FlextCliFileTools:
     def _execute_file_operation[T](
         operation_func: Callable[[], T],
         error_template: str,
-        **format_kwargs: t.GeneralValueType,
+        **format_kwargs: t.JsonValue,
     ) -> r[T]:
         try:
             return r[T].ok(operation_func())
@@ -38,7 +38,7 @@ class FlextCliFileTools:
     def _run_bool_operation(
         operation_func: Callable[[], object],
         error_template: str,
-        **format_kwargs: t.GeneralValueType,
+        **format_kwargs: t.JsonValue,
     ) -> r[bool]:
         def _run() -> bool:
             _ = operation_func()
@@ -51,10 +51,8 @@ class FlextCliFileTools:
         )
 
     @staticmethod
-    def _get_encoding(encoding: str | int | None) -> str:
-        return (
-            encoding if isinstance(encoding, str) else c.Cli.Utilities.DEFAULT_ENCODING
-        )
+    def _get_encoding(encoding: str | None) -> str:
+        return encoding or c.Cli.Utilities.DEFAULT_ENCODING
 
     @staticmethod
     def _detect_format_from_extension(
@@ -81,22 +79,17 @@ class FlextCliFileTools:
     @staticmethod
     def _load_structured_file(
         file_path: str,
-        loader: Callable[[TextIO], t.GeneralValueType],
-    ) -> t.GeneralValueType:
+        loader: Callable[[TextIO], t.JsonValue],
+    ) -> t.JsonValue:
         with Path(file_path).open(encoding=c.Cli.Utilities.DEFAULT_ENCODING) as f:
-            loaded = loader(f)
-        if isinstance(loaded, dict | list | str | int | float | bool) or loaded is None:
-            raw_data: t.GeneralValueType = loaded
-        else:
-            raw_data = None
-        if isinstance(raw_data, dict):
-            return u.transform(raw_data, to_json=True).map_or(raw_data)
-        return raw_data
+            loaded: t.JsonValue = loader(f)
+        if FlextRuntime.is_dict_like(loaded):
+            loaded_dict: dict[str, t.JsonValue] = dict(loaded)
+            return u.transform(loaded_dict, to_json=True).map_or(loaded_dict)
+        return loaded
 
     @staticmethod
-    def _save_file_by_extension(
-        file_path: str | Path, data: t.GeneralValueType
-    ) -> r[bool]:
+    def _save_file_by_extension(file_path: str | Path, data: t.JsonValue) -> r[bool]:
         ext = Path(file_path).suffix.lower()
         if ext == c.Cli.FileExtensions.JSON:
             return FlextCliFileTools.write_json_file(file_path, data)
@@ -143,7 +136,7 @@ class FlextCliFileTools:
     def write_text_file(
         file_path: str | Path,
         content: str,
-        encoding: str | int = c.Cli.Utilities.DEFAULT_ENCODING,
+        encoding: str | None = c.Cli.Utilities.DEFAULT_ENCODING,
     ) -> r[bool]:
         p = Path(file_path)
         return FlextCliFileTools._run_bool_operation(
@@ -168,7 +161,7 @@ class FlextCliFileTools:
         )
 
     @staticmethod
-    def read_json_file(file_path: str | Path) -> r[t.GeneralValueType]:
+    def read_json_file(file_path: str | Path) -> r[t.JsonValue]:
         return FlextCliFileTools._execute_file_operation(
             lambda: FlextCliFileTools._load_structured_file(str(file_path), json.load),
             c.Cli.FileErrorMessages.JSON_LOAD_FAILED,
@@ -177,7 +170,7 @@ class FlextCliFileTools:
     @staticmethod
     def write_json_file(
         file_path: str | Path,
-        data: t.GeneralValueType,
+        data: t.JsonValue,
         indent: int = 2,
         *,
         sort_keys: bool = False,
@@ -192,7 +185,7 @@ class FlextCliFileTools:
         )
 
     @staticmethod
-    def read_yaml_file(file_path: str | Path) -> r[t.GeneralValueType]:
+    def read_yaml_file(file_path: str | Path) -> r[t.JsonValue]:
         return FlextCliFileTools._execute_file_operation(
             lambda: FlextCliFileTools._load_structured_file(
                 str(file_path),
@@ -204,7 +197,7 @@ class FlextCliFileTools:
     @staticmethod
     def write_yaml_file(
         file_path: str | Path,
-        data: t.GeneralValueType,
+        data: t.JsonValue,
         *,
         default_flow_style: bool | None = None,
         sort_keys: bool = False,
@@ -358,10 +351,10 @@ class FlextCliFileTools:
         return FlextCliFileTools._detect_format_from_extension(file_path, fmts)
 
     @staticmethod
-    def load_file_auto_detect(file_path: str | Path) -> r[t.GeneralValueType]:
+    def load_file_auto_detect(file_path: str | Path) -> r[t.JsonValue]:
         format_result = FlextCliFileTools.detect_file_format(file_path)
         if format_result.is_failure:
-            return r[t.GeneralValueType].fail(
+            return r[t.JsonValue].fail(
                 format_result.error or c.Cli.ErrorMessages.FORMAT_DETECTION_FAILED
             )
         fmt = format_result.value
@@ -369,12 +362,12 @@ class FlextCliFileTools:
             return FlextCliFileTools.read_json_file(file_path)
         if fmt == c.Cli.FileSupportedFormats.YAML:
             return FlextCliFileTools.read_yaml_file(file_path)
-        return r[t.GeneralValueType].fail(
+        return r[t.JsonValue].fail(
             c.Cli.ErrorMessages.UNSUPPORTED_FORMAT.format(format=fmt)
         )
 
     @staticmethod
-    def save_file(file_path: str | Path, data: t.GeneralValueType) -> r[bool]:
+    def save_file(file_path: str | Path, data: t.JsonValue) -> r[bool]:
         return FlextCliFileTools._save_file_by_extension(file_path, data)
 
     @staticmethod
