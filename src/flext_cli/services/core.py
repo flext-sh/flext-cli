@@ -106,12 +106,12 @@ class FlextCliCore(FlextCliServiceBase):
 
     # Private attributes for internal state management
     # These are set during __init__ setup
-    _cli_config: dict[str, t.JsonValue]
-    _commands: dict[str, dict[str, t.JsonValue]]
+    _cli_config: dict[str, t.GeneralValueType]
+    _commands: dict[str, dict[str, t.GeneralValueType]]
     _plugins: dict[str, p.Cli.CliPlugin]
-    _sessions: dict[str, t.JsonValue]
+    _sessions: dict[str, t.GeneralValueType]
     _session_active: bool
-    _session_config: dict[str, t.JsonValue]
+    _session_config: dict[str, t.GeneralValueType]
     _session_start_time: str
 
     type CliValue = (
@@ -126,7 +126,7 @@ class FlextCliCore(FlextCliServiceBase):
 
     def __init__(
         self,
-        config: dict[str, t.JsonValue] | None = None,
+        config: dict[str, t.GeneralValueType] | None = None,
     ) -> None:
         """Initialize CLI core with optional configuration seed values.
 
@@ -136,7 +136,7 @@ class FlextCliCore(FlextCliServiceBase):
 
         """
         # FlextService.__init__ accepts typed JSON-compatible values
-        # FlextCliServiceBase extends FlextService[dict[str, t.JsonValue]]
+        # FlextCliServiceBase extends FlextService[dict[str, t.GeneralValueType]]
         # The generic type parameter TDomainResult doesn't affect __init__ signature
         # Note: config is CLI-specific and stored separately, not passed to parent
         # because FlextService uses Pydantic with extra="forbid"
@@ -156,24 +156,24 @@ class FlextCliCore(FlextCliServiceBase):
             "_cli_config",
             dict(config) if config is not None and u.is_type(config, "mapping") else {},
         )
-        setattr(self, "_commands", {})
+        object.__setattr__(self, "_commands", {})
         # Note: stores plugin objects implementing CliPlugin protocol
-        setattr(self, "_plugins", {})
-        setattr(self, "_sessions", {})
-        setattr(self, "_session_active", False)
+        object.__setattr__(self, "_plugins", {})
+        object.__setattr__(self, "_sessions", {})
+        object.__setattr__(self, "_session_active", False)
 
         # Performance and async integration
         # Note: stores cache objects (TTLCache/LRUCache), not JsonValue
         # Cache types are from external library, using generic types
-        setattr(
+        object.__setattr__(
             self,
             "_caches",
             {},
         )
-        setattr(self, "_cache_stats", self._CacheStats())
+        object.__setattr__(self, "_cache_stats", self._CacheStats())
 
         # Type narrowing: is_dict_like ensures config is dict-like
-        config_dict: dict[str, t.JsonValue] | None = (
+        config_dict: dict[str, t.GeneralValueType] | None = (
             config if u.is_type(config, "mapping") else None
         )
         FlextLogger(__name__).debug(
@@ -586,7 +586,7 @@ class FlextCliCore(FlextCliServiceBase):
                 c.Cli.ErrorMessages.CONFIG_NOT_DICT,
             )
         # Reuse to_dict_json helper from output module
-        # to_dict_json returns dict[str, GeneralValueType] which is exactly what we need
+        # to_dict_json returns dict[str, JsonValue] which is exactly what we need
         # to_dict_json is guaranteed to return a dict (doesn't return None or other types)
         json_config = FlextCliOutput.to_dict_json(config)
         return r[dict[str, t.GeneralValueType]].ok(json_config)
@@ -658,8 +658,8 @@ class FlextCliCore(FlextCliServiceBase):
                     merge_result.error or "Failed to merge config",
                 )
             # Update internal _cli_config with merged result
-            # Business Rule: Frozen model attributes MUST be set using object.__setattr__()
-            # Architecture: Pydantic frozen models require object.__setattr__() for attribute mutation
+            # Business Rule: Frozen model attributes MUST be set using setattr()
+            # Architecture: Pydantic frozen models require setattr() for attribute mutation
             # Python 3.13: Direct attribute access - unwrap() provides safe access
             merged_config: dict[str, t.GeneralValueType] = merge_result.value or {}
             # merged_config is guaranteed to be not None by FlextCliUtilities.val default
@@ -901,7 +901,7 @@ class FlextCliCore(FlextCliServiceBase):
             # Update config with modified profiles section
             config[c.Cli.DictKeys.PROFILES] = profiles_section
             # Update internal _cli_config
-            # Business Rule: Frozen model attributes MUST be set using object.__setattr__()
+            # Business Rule: Frozen model attributes MUST be set using setattr()
             object.__setattr__(self, "_cli_config", config)
             FlextLogger(__name__).info(
                 c.Cli.LogMessages.PROFILE_CREATED.format(name=name),
@@ -938,14 +938,14 @@ class FlextCliCore(FlextCliServiceBase):
         try:
             # Initialize session with CLI-specific configuration
             # Validate explicitly - no fallback to empty dict
-            # Business Rule: Frozen model attributes MUST be set using object.__setattr__()
+            # Business Rule: Frozen model attributes MUST be set using setattr()
             if session_config is not None:
-                object.__setattr__(self, "_session_config", session_config)
+                setattr(self, "_session_config", session_config)
             else:
-                object.__setattr__(self, "_session_config", {})
+                setattr(self, "_session_config", {})
             object.__setattr__(self, "_session_active", True)
             # Generate ISO format timestamp for session tracking
-            object.__setattr__(
+            setattr(
                 self,
                 "_session_start_time",
                 datetime.now(UTC).isoformat(),
@@ -994,7 +994,7 @@ class FlextCliCore(FlextCliServiceBase):
                 return r[bool].fail(
                     c.Cli.ErrorMessages.NO_ACTIVE_SESSION,
                 )
-            # Business Rule: Frozen model attributes MUST be set using object.__setattr__()
+            # Business Rule: Frozen model attributes MUST be set using setattr()
             object.__setattr__(self, "_session_active", False)
             if hasattr(self, c.Cli.PrivateAttributes.SESSION_CONFIG):
                 delattr(self, c.Cli.PrivateAttributes.SESSION_CONFIG)
@@ -1077,11 +1077,11 @@ class FlextCliCore(FlextCliServiceBase):
                 c.Cli.ErrorMessages.CLI_EXECUTION_ERROR.format(error=e),
             )
 
-    def get_service_info(self) -> dict[str, CliValue]:
+    def get_service_info(self) -> dict[str, FlextCliCore.CliValue]:
         """Get comprehensive service information.
 
         Returns:
-            dict[str, t.JsonValue]: Service information (matches FlextService signature)
+            dict[str, t.GeneralValueType]: Service information (matches FlextService signature)
 
         """
         try:
@@ -1096,7 +1096,7 @@ class FlextCliCore(FlextCliServiceBase):
             # Convert config_keys to concrete sequence values
             config_keys_list: list[str] = list(config_keys) if config_keys else []
 
-            info_data: dict[str, CliValue] = {
+            info_data: dict[str, FlextCliCore.CliValue] = {
                 c.Cli.DictKeys.SERVICE: c.Cli.FLEXT_CLI,
                 c.Cli.CoreServiceDictKeys.COMMANDS_REGISTERED: commands_count,
                 c.Cli.CoreServiceDictKeys.CONFIGURATION_SECTIONS: config_keys_list,

@@ -24,6 +24,8 @@ class FlextCliTypes(FlextTypes):
     5. Inheritance from FlextTypes, no duplication
     """
 
+    type GeneralValueType = FlextTypes.JsonValue
+
     class Cli:
         """CLI types namespace for cross-project access.
 
@@ -41,6 +43,7 @@ class FlextCliTypes(FlextTypes):
         """
 
         # NO LEGACY ALIASES ALLOWED
+        type GeneralValueType = FlextTypes.JsonValue
         type FormatableResult = FlextTypes.JsonValue
         ResultFormatter = Callable[[FlextTypes.JsonValue], str]
         TabularData = Sequence[Mapping[str, FlextTypes.JsonValue]]
