@@ -14,7 +14,7 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import override
 
-from flext_core import FlextRuntime, r, t
+from flext_core import r, t
 
 from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import FlextCliConstants
@@ -181,7 +181,7 @@ class FlextCliCmd(FlextCliServiceBase):
                 )
 
             config_data = load_result.value
-            if not FlextRuntime.is_dict_like(config_data):
+            if not FlextCliUtilities.is_dict_like(config_data):
                 return r[Mapping[str, t.JsonValue]].fail(
                     FlextCliConstants.Cli.CmdErrorMessages.CONFIG_NOT_DICT,
                 )

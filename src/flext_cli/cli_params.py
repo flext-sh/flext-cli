@@ -28,7 +28,9 @@ class FlextCliCommonParams:
     5. Boolean parameters automatically become Typer flags
     """
 
-    CLI_PARAM_REGISTRY: ClassVar[dict[str, dict[str, str | int | bool | list[str]]]] = {
+    CLI_PARAM_REGISTRY: ClassVar[
+        Mapping[str, Mapping[str, str | int | bool | list[str]]]
+    ] = {
         "verbose": {
             c.Cli.CliParamsRegistry.KEY_SHORT: c.Cli.CliParamsRegistry.SHORT_FLAG_VERBOSE,
             c.Cli.CliParamsRegistry.KEY_PRIORITY: c.Cli.CliParamsRegistry.PRIORITY_VERBOSE,

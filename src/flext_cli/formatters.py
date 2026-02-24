@@ -13,7 +13,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from io import StringIO
 
-from flext_core import FlextRuntime, r
+from flext_core import r, u
 from rich.console import Console
 from rich.layout import Layout as RichLayout
 from rich.live import Live as RichLive
@@ -135,7 +135,7 @@ class FlextCliFormatters:
                     table.add_column(header)
 
             # Add rows if data provided
-            if data and FlextRuntime.is_dict_like(data):
+            if data and u.is_dict_like(data):
                 # Simple dict[str, t.JsonValue] to table conversion - key-value pairs for 2-column tables
                 for k, v in data.items():
                     if (
