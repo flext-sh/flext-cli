@@ -74,12 +74,8 @@ class FlextCliDebug(FlextCliServiceBase):
     @staticmethod
     def _convert_model_to_dict(
         model: m.Cli.SystemInfo | m.Cli.EnvironmentInfo | m.Cli.PathInfo,
-    ) -> Mapping[str, t.JsonValue]:
-        """Generalized model to dict conversion helper."""
-        # Use build() DSL for JSON conversion
-        # Reuse to_dict_json helper from output module (imported at top)
-        # Use m for concrete models when we need model_dump()
-        return model.model_dump()
+    ) -> m.Cli.SystemInfo | m.Cli.EnvironmentInfo | m.Cli.PathInfo:
+        return model
 
     @staticmethod
     def _convert_result_to_json_value(
@@ -222,7 +218,9 @@ class FlextCliDebug(FlextCliServiceBase):
         """Get comprehensive debug information."""
         try:
             system_info_model = self._get_system_info()
-            system_info_dict = FlextCliDebug._convert_model_to_dict(system_info_model)
+            system_info_dict = FlextCliDebug._convert_model_to_dict(
+                system_info_model,
+            ).model_dump()
             # model_dump() always returns dict[str, ...] — keys are always str
             system_info_json: dict[str, t.JsonValue] = dict(system_info_dict)
 
@@ -230,7 +228,7 @@ class FlextCliDebug(FlextCliServiceBase):
             environment_info_model = self._get_environment_info()
             environment_info_dict = FlextCliDebug._convert_model_to_dict(
                 environment_info_model,
-            )
+            ).model_dump()
             environment_info_json: dict[str, t.JsonValue] = dict(environment_info_dict)
 
             debug_info: dict[str, t.JsonValue] = {
@@ -260,7 +258,7 @@ class FlextCliDebug(FlextCliServiceBase):
             info_dict: dict[str, t.JsonValue] = dict(
                 FlextCliDebug._convert_model_to_dict(
                     info_model,
-                )
+                ).model_dump()
             )
             return r[Mapping[str, t.JsonValue]].ok(info_dict)
         except Exception as e:
@@ -277,7 +275,7 @@ class FlextCliDebug(FlextCliServiceBase):
             # Convert each PathInfo model to dict
             serialized_paths: list[t.JsonValue] = []
             for path_info in paths_data:
-                path_dict = FlextCliDebug._convert_model_to_dict(path_info)
+                path_dict = FlextCliDebug._convert_model_to_dict(path_info).model_dump()
                 path_json_dict: dict[str, t.JsonValue] = dict(path_dict)
                 # dict[str, t.JsonValue] is part of t.JsonValue union
                 serialized_paths.append(path_json_dict)

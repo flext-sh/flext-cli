@@ -640,8 +640,8 @@ class FlextCliProtocols(FlextProtocols):
             """Protocol for CLI command functions that may return None."""
 
             def __call__(
-                self, *args: t.JsonValue, **kwargs: t.JsonValue
-            ) -> t.JsonValue | None:
+                self, *args: t.GeneralValueType, **kwargs: t.GeneralValueType
+            ) -> t.GeneralValueType | None:
                 """Execute the function."""
                 ...
 
@@ -650,8 +650,8 @@ class FlextCliProtocols(FlextProtocols):
             """Protocol for dynamically-created CLI command wrapper functions."""
 
             def __call__(
-                self, *args: t.JsonValue, **kwargs: t.JsonValue
-            ) -> t.JsonValue:
+                self, *args: t.GeneralValueType, **kwargs: t.GeneralValueType
+            ) -> t.GeneralValueType:
                 """Execute the wrapper."""
                 ...
 
@@ -660,8 +660,8 @@ class FlextCliProtocols(FlextProtocols):
             """Protocol for command handlers returning FlextResult."""
 
             def __call__(
-                self, *args: t.JsonValue, **kwargs: t.JsonValue
-            ) -> FlextProtocols.Result[t.JsonValue]:
+                self, *args: t.GeneralValueType, **kwargs: t.GeneralValueType
+            ) -> FlextProtocols.Result[t.GeneralValueType]:
                 """Execute the handler."""
                 ...
 

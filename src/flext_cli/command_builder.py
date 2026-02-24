@@ -13,7 +13,7 @@ from __future__ import annotations
 from collections.abc import Callable, Sequence
 from typing import Self
 
-from flext_core import r, u
+from flext_core import r
 from typer.models import OptionInfo
 
 from flext_cli.models import m
@@ -217,6 +217,6 @@ class FlextCliCommandBuilder:
         """Check if object matches minimal command protocol shape."""
         name_value = getattr(obj, "name", None)
         description_value = getattr(obj, "description", None)
-        has_name = u.is_type(name_value, str)
-        description_ok = description_value is None or u.is_type(description_value, str)
+        has_name = isinstance(name_value, str)
+        description_ok = description_value is None or isinstance(description_value, str)
         return bool(has_name and description_ok)

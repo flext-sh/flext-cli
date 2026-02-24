@@ -105,7 +105,6 @@ class FlextCliCli:
         self,
         val: t.JsonValue | None,
         type_name: Literal["dict"],
-        *,
         default: t.JsonValue | None = None,
     ) -> t.JsonValue | None: ...
 
@@ -113,7 +112,6 @@ class FlextCliCli:
         self,
         val: t.JsonValue | None,
         type_name: str,
-        *,
         default: t.JsonValue | None = None,
     ) -> t.JsonValue | None:
         if val is None:
@@ -305,7 +303,7 @@ class FlextCliCli:
             func: p.Cli.CliCommandFunction,
         ) -> click.Command | click.Group:
             command_obj = raw_decorator(func)
-            if not u.is_type(command_obj, click.Group):
+            if not isinstance(command_obj, click.Group):
                 msg = "Group decorator must return a click.Group"
                 raise TypeError(msg)
             return strict_group_decorator(func)
@@ -513,7 +511,7 @@ class FlextCliCli:
     def get_datetime_type(cls, formats: Sequence[str] | None = None) -> click.DateTime:
         """Get datetime type."""
         result: object = cls.type_factory("datetime", formats=formats)
-        if not u.is_type(result, click.DateTime):
+        if not isinstance(result, click.DateTime):
             msg = "datetime type factory returned invalid type"
             raise TypeError(msg)
         return cls._datetime_type(formats)
@@ -522,7 +520,7 @@ class FlextCliCli:
     def get_uuid_type(cls) -> click.ParamType:
         """Get UUID type."""
         result: object = cls.type_factory("uuid")
-        if not u.is_type(result, click.ParamType):
+        if not isinstance(result, click.ParamType):
             msg = "uuid type factory returned invalid type"
             raise TypeError(msg)
         return click.UUID
@@ -533,7 +531,7 @@ class FlextCliCli:
     ) -> click.Tuple:
         """Get tuple type."""
         result: object = cls.type_factory("tuple", tuple_types=types)
-        if not u.is_type(result, click.Tuple):
+        if not isinstance(result, click.Tuple):
             msg = "tuple type factory returned invalid type"
             raise TypeError(msg)
         return cls._tuple_type(types)
@@ -598,7 +596,7 @@ class FlextCliCli:
     @staticmethod
     def _build_config_getters(
         kwargs: Mapping[str, t.JsonValue],
-    ) -> tuple[Callable[[str, bool], bool], Callable[[str, str], str]]:
+    ) -> tuple[Callable[..., bool], Callable[..., str]]:
         def get_bool_val(k: str, *, default: bool = False) -> bool:
             val = u.get(kwargs, k)
             if val is None or not val:
@@ -628,20 +626,28 @@ class FlextCliCli:
         return (get_bool_val, get_str_val)
 
     @staticmethod
-    def _build_confirm_config(kwargs: Mapping[str, t.JsonValue]) -> m.Cli.ConfirmConfig:
+    def _build_confirm_config(
+        kwargs: Mapping[str, t.JsonValue] | m.Cli.ConfirmConfig,
+    ) -> m.Cli.ConfirmConfig:
+        if isinstance(kwargs, m.Cli.ConfirmConfig):
+            return kwargs
         get_bool_val, get_str_val = FlextCliCli._build_config_getters(kwargs)
         return m.Cli.ConfirmConfig(
-            default=get_bool_val("default", False),
-            abort=get_bool_val("abort", False),
+            default=get_bool_val("default", default=False),
+            abort=get_bool_val("abort", default=False),
             prompt_suffix=get_str_val(
                 "prompt_suffix", c.Cli.UIDefaults.DEFAULT_PROMPT_SUFFIX
             ),
-            show_default=get_bool_val("show_default", True),
-            err=get_bool_val("err", False),
+            show_default=get_bool_val("show_default", default=True),
+            err=get_bool_val("err", default=False),
         )
 
     @staticmethod
-    def _build_prompt_config(kwargs: Mapping[str, t.JsonValue]) -> m.Cli.PromptConfig:
+    def _build_prompt_config(
+        kwargs: Mapping[str, t.JsonValue] | m.Cli.PromptConfig,
+    ) -> m.Cli.PromptConfig:
+        if isinstance(kwargs, m.Cli.PromptConfig):
+            return kwargs
         get_bool_val, get_str_val = FlextCliCli._build_config_getters(kwargs)
         value_proc_val = u.get(kwargs, "value_proc")
         default_raw = u.get(kwargs, "default")
@@ -661,11 +667,11 @@ class FlextCliCli:
             prompt_suffix=get_str_val(
                 "prompt_suffix", c.Cli.UIDefaults.DEFAULT_PROMPT_SUFFIX
             ),
-            hide_input=get_bool_val("hide_input", False),
-            confirmation_prompt=get_bool_val("confirmation_prompt", False),
-            show_default=get_bool_val("show_default", True),
-            err=get_bool_val("err", False),
-            show_choices=get_bool_val("show_choices", True),
+            hide_input=get_bool_val("hide_input", default=False),
+            confirmation_prompt=get_bool_val("confirmation_prompt", default=False),
+            show_default=get_bool_val("show_default", default=True),
+            err=get_bool_val("err", default=False),
+            show_choices=get_bool_val("show_choices", default=True),
         )
 
     @staticmethod
@@ -696,11 +702,8 @@ class FlextCliCli:
         """Confirm action with user."""
         if config is None:
             kwargs_typed: dict[str, t.JsonValue] = dict(kwargs)
-            config_instance = FlextCliCli._build_confirm_config_from_kwargs(
-                kwargs_typed,
-            )
-            config = config_instance
-        if config is None or not hasattr(config, "default"):
+            config = FlextCliCli._build_confirm_config_from_kwargs(kwargs_typed)
+        if not hasattr(config, "default"):
             msg = "confirm config must implement ConfirmConfigProtocol"
             raise TypeError(msg)
         try:
@@ -736,9 +739,8 @@ class FlextCliCli:
     ) -> r[t.JsonValue]:
         """Prompt user for input."""
         if config is None:
-            config_instance = FlextCliCli._build_prompt_config_from_kwargs(kwargs)
-            config = config_instance
-        if config is None or not hasattr(config, "type_hint"):
+            config = FlextCliCli._build_prompt_config_from_kwargs(kwargs)
+        if not hasattr(config, "type_hint"):
             msg = "prompt config must implement PromptConfig"
             raise TypeError(msg)
         try:

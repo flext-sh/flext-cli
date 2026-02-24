@@ -17,7 +17,7 @@ from typing import (
 )
 
 import typer
-from flext_core import FlextLogger, FlextModels, FlextResult, r, u
+from flext_core import FlextLogger, FlextModels, FlextResult, r
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -408,9 +408,7 @@ class FlextCliModels(FlextModels):
                 data: Mapping[str, t.JsonValue] | Self,
             ) -> r[Self]:
                 """Validate command input data."""
-                if data is None:
-                    return r.fail("Input must be a dictionary")
-                if not u.is_type(data, "mapping") and not u.is_type(data, cls):
+                if not isinstance(data, Mapping) and not isinstance(data, cls):
                     return r.fail("Input must be a dictionary")
                 try:
                     command = cls.model_validate(data)
@@ -437,9 +435,9 @@ class FlextCliModels(FlextModels):
 
             @field_validator("status")
             @classmethod
-            def validate_status(cls, value: str) -> str:
+            def validate_status(cls, value: object) -> str:
                 """Validate session status."""
-                if not u.is_type(value, str):
+                if not isinstance(value, str):
                     msg = "session_status must be a string"
                     raise TypeError(msg)
                 # Validate value is in allowed statuses
@@ -2463,17 +2461,17 @@ class FlextCliModels(FlextModels):
             FIELD_VALIDATION_RULES: ClassVar[
                 list[tuple[str, str, Callable[[object], bool]]]
             ] = [
-                ("python_type", "type", lambda v: u.is_type(v, type)),
+                ("python_type", "type", lambda v: isinstance(v, type)),
                 (
                     "click_type",
                     "str",
-                    lambda v: u.is_type(v, str),
+                    lambda v: isinstance(v, str),
                 ),
                 ("is_required", "bool", lambda v: v in {True, False}),
                 (
                     "description",
                     "str",
-                    lambda v: u.is_type(v, str),
+                    lambda v: isinstance(v, str),
                 ),
                 (
                     "validators",
@@ -2692,15 +2690,11 @@ class FlextCliModels(FlextModels):
                         **kwargs: t.JsonValue,
                     ) -> t.JsonValue:
                         try:
-                            models: list[BaseModel] = []
+                            model_instances: list[BaseModel] = []
                             for model_cls in model_classes:
-                                built_model = model_cls(**kwargs)
-                                try:
-                                    rebuilt_model = model_cls(**dict(built_model))
-                                    models.append(rebuilt_model)
-                                except Exception:
-                                    models.append(built_model)
-                            return func(*(m.model_dump() for m in models))
+                                validated_model = model_cls(**kwargs)
+                                model_instances.append(validated_model)
+                            return func(*(m_inst.model_dump() for m_inst in model_instances))
                         except Exception as e:
                             return f"Validation failed: {e}"
 

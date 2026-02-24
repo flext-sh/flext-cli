@@ -184,14 +184,15 @@ class FlextCliTables(FlextCliServiceBase):
 
         # Format table using tabulate
         try:
-            normalized_data = (
-                [data] if u.is_dict_like(data) else list(data)
-            )
+            if u.is_dict_like(data):
+                normalized_data: Sequence[t.GeneralValueType] = [data]
+            else:
+                normalized_data = data
 
             headers_value = headers_result.value
             if (
                 normalized_data
-                and not u.is_type(headers_value, str)
+                and not isinstance(headers_value, str)
                 and u.is_dict_like(normalized_data[0])
             ):
                 table_rows = [
@@ -281,7 +282,7 @@ class FlextCliTables(FlextCliServiceBase):
         if not data_list:
             return r[str | Sequence[str]].ok(headers)
 
-        if u.is_type(headers, str):
+        if isinstance(headers, str):
             return r[str | Sequence[str]].ok(headers)
 
         first_row = data_list[0]
@@ -293,32 +294,36 @@ class FlextCliTables(FlextCliServiceBase):
     def _calculate_column_count(
         self,
         data: t.Cli.TabularData,
-        headers: Sequence[str],
+        headers: str | Sequence[str],
     ) -> int:
         """Calculate number of columns based on headers and data type."""
-        if u.is_type(headers, str):
-            if headers == FlextCliConstants.Cli.TableFormats.KEYS and u.is_dict_like(
-                data
+        if isinstance(headers, str):
+            if headers == FlextCliConstants.Cli.TableFormats.KEYS and isinstance(
+                data, Mapping
             ):
-                keys_getter = getattr(data, "keys", None)
-                if callable(keys_getter):
-                    return len(list(keys_getter()))
-            data_list = list(data)
-            if data_list and u.is_list_like(data_list[0]):
+                return len(data)
+            if not isinstance(data, Sequence):
+                return 0
+            seq: t.Cli.TabularData = data
+            data_list = list(seq)
+            if data_list and isinstance(data_list[0], Sequence):
                 return len(data_list[0])
             return 0
         if headers:
             return len(headers)
-        if u.is_dict_like(data):
-            keys_getter = getattr(data, "keys", None)
-            if callable(keys_getter):
-                return len(list(keys_getter()))
-        data_list = list(data)
+        if isinstance(data, Mapping):
+            return len(data)
+        if not isinstance(data, Sequence):
+            return 0
+        seq = data
+        data_list = list(seq)
         if data_list:
             first_row = data_list[0]
             if u.is_dict_like(first_row):
                 return len(list(first_row.keys()))
-            return len(first_row)
+            if isinstance(first_row, Sequence):
+                return len(first_row)
+            return 0
         return 0
 
     def _create_table_string(

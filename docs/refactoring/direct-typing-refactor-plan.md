@@ -57,6 +57,7 @@ ______________________________________________________________________
 - **Tests**: No remaining cast/type: ignore/except pass; isinstance only in assertions or TypeGuards; no type(x) is T narrowing; dict contracts aligned with plan.
 - **Src**: file_tools `_load_structured_file`, cli `_to_json_value`/prompt normalization, models `convert_field_value`, cmd `edit_config`, utilities `process`/`process_mapping` skip path — all have debug logging where they fall back or skip; no silent swallow.
 - **Boundaries**: Optional — prefer existing `m.Cli.*` / `FlextCliSettings` at API boundaries (e.g. authenticate, save_config) where shape matches; no new models.
+- **Done**: settings.save_config accepts `FlextCliSettings | Mapping`, uses `to_save` from model_dump() or config; api.get_auth_token uses TokenData.model_validate(data) as primary path, extract only on ValidationError; protocol save_config left as Mapping to avoid circular import (protocols → settings → utilities → models → protocols).
 
 ______________________________________________________________________
 

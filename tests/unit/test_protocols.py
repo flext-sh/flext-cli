@@ -81,9 +81,7 @@ class TestsCliProtocols:
         """Test duck typing - class satisfies protocol without inheritance."""
 
         class DuckFormatter:
-            def format_data(
-                self, data: t.JsonValue, **options: t.JsonValue
-            ) -> r[str]:
+            def format_data(self, data: t.JsonValue, **options: t.JsonValue) -> r[str]:
                 return r[str].ok("formatted")
 
         duck = DuckFormatter()
@@ -166,14 +164,10 @@ class TestsCliProtocols:
                 test_config_raw = c.Configuration.BASIC_CONFIG
                 test_config = test_config_raw
                 save_result = provider.save_config(test_config)
-                assert save_result.is_success, (
-                    save_result.error or "save_config failed"
-                )
+                assert save_result.is_success, save_result.error or "save_config failed"
 
                 load_result = provider.load_config()
-                assert load_result.is_success, (
-                    load_result.error or "load_config failed"
-                )
+                assert load_result.is_success, load_result.error or "load_config failed"
 
     # ========================================================================
     # CLI AUTHENTICATOR PROTOCOL
@@ -332,7 +326,7 @@ class TestsCliProtocols:
         result = self._execute_protocol_test(test_type)
         # All test cases are expected to succeed; should_succeed is always True
         assert should_succeed is True
-        assert result.is_success, (result.error or "protocol test failed")
+        assert result.is_success, result.error or "protocol test failed"
 
     # ========================================================================
     # VALIDATION HELPERS
@@ -374,6 +368,10 @@ class TestsCliProtocols:
                 case "init":
                     self.test_protocol_class_has_required_attributes()
                     success = True
+                case "command":
+                    success = hasattr(p.Cli, "CliCommandFunction")
+                case "group":
+                    success = hasattr(p.Cli, "CliCommandWrapper")
                 case "structural_typing":
                     self.test_structural_typing_enabled()
                     success = True

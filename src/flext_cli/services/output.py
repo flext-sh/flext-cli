@@ -105,7 +105,7 @@ class FlextCliOutput:
 
     # Class-level attribute for result formatters (avoids reportUninitializedInstanceVariable)
     _result_formatters: ClassVar[
-        dict[type, Callable[[t.JsonValue | r[t.JsonValue], str], None]]
+        dict[type, Callable[[BaseModel | t.JsonValue | r[t.JsonValue], str], None]]
     ] = {}
 
     # ═══════════════════════════════════════════════════════════════════════════
@@ -276,6 +276,11 @@ class FlextCliOutput:
         return bool(result) if result is not None else default
 
     @staticmethod
+    def cast_if(value: object, expected_type: type[object], default: object) -> object:
+        """Return value when it matches expected type, else default."""
+        return value if isinstance(value, expected_type) else default
+
+    @staticmethod
     def get_map_val(
         m: Mapping[str, t.JsonValue],
         k: str,
@@ -296,29 +301,20 @@ class FlextCliOutput:
         return str(value)
 
     @staticmethod
-    def cast_if(
-        value: t.ConfigMapValue,
-        expected_type: type,
-        default: t.JsonValue,
-    ) -> t.ConfigMapValue:
-        """Return value when it matches expected_type, else default."""
-        if u.is_type(value, expected_type):
-            return value
-        return default
-
-    @staticmethod
     def to_dict_json(v: t.ConfigMapValue) -> Mapping[str, t.JsonValue]:
-        """Convert value to dict with JSON transform using build DSL."""
+        """Convert value to dict with JSON transform using TypeAdapter only."""
         root_value = getattr(v, "root", None)
         source_value = root_value if root_value is not None else v
-        source_value = FlextCliOutput.cast_if(source_value, dict, {})
         dict_adapter: TypeAdapter[dict[str, t.JsonValue]] = TypeAdapter(
             dict[str, t.JsonValue]
         )
         try:
             parsed_dict = dict_adapter.validate_python(source_value)
+            casted_dict = FlextCliOutput.cast_if(parsed_dict, dict, {})
+            if not isinstance(casted_dict, dict):
+                return {}
             return {
-                str(k): FlextCliOutput.norm_json(vv) for k, vv in parsed_dict.items()
+                str(k): FlextCliOutput.norm_json(vv) for k, vv in casted_dict.items()
             }
         except ValidationError as exc:
             logging.getLogger(__name__).debug(
@@ -332,14 +328,16 @@ class FlextCliOutput:
     def to_list_json(
         v: t.ConfigMapValue,
     ) -> list[t.JsonValue]:
-        """Convert value to list with JSON transform using build DSL."""
+        """Convert value to list with JSON transform using TypeAdapter only."""
         root_value = getattr(v, "root", None)
         source_value = root_value if root_value is not None else v
-        source_value = FlextCliOutput.cast_if(source_value, list, [])
         list_adapter: TypeAdapter[list[t.JsonValue]] = TypeAdapter(list[t.JsonValue])
         try:
             parsed_list = list_adapter.validate_python(source_value)
-            return [FlextCliOutput.norm_json(item) for item in parsed_list]
+            casted_list = FlextCliOutput.cast_if(parsed_list, list, [])
+            if not isinstance(casted_list, list):
+                return []
+            return [FlextCliOutput.norm_json(item) for item in casted_list]
         except ValidationError as exc:
             logging.getLogger(__name__).debug(
                 "to_list_json validation fallback: %s",
@@ -354,7 +352,7 @@ class FlextCliOutput:
 
     def format_data(
         self,
-        data: t.JsonValue,
+        data: BaseModel | t.JsonValue,
         format_type: str = c.Cli.OutputFormats.TABLE.value,
         title: str | None = None,
         headers: list[str] | None = None,
@@ -392,7 +390,14 @@ class FlextCliOutput:
                     format=format_type,
                 ),
             )
-        return self._dispatch_formatter(format_str, data, title, headers)
+        normalized_data = self._normalize_format_input(data)
+        return self._dispatch_formatter(format_str, normalized_data, title, headers)
+
+    @staticmethod
+    def _normalize_format_input(data: BaseModel | t.JsonValue) -> t.JsonValue:
+        if isinstance(data, BaseModel):
+            return data.model_dump()
+        return data
 
     # Format validation uses FlextCliUtilities.convert() and direct validation
 
@@ -454,7 +459,7 @@ class FlextCliOutput:
             else:
                 return r[str].fail(c.Cli.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT)
             dict_items = u.filter(data_list, predicate=u.is_dict_like)
-            if not (isinstance(dict_items, list) and len(dict_items) == len(data_list)):
+            if len(dict_items) != len(data_list):
                 return r[str].fail(c.Cli.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT)
             # Use generalized norm_json helper
             # For lists, processor takes only item, not (key, item)
@@ -520,7 +525,7 @@ class FlextCliOutput:
     def register_result_formatter(
         self,
         result_type: type,
-        formatter: Callable[[t.JsonValue | r[t.JsonValue], str], None],
+        formatter: Callable[[BaseModel | t.JsonValue | r[t.JsonValue], str], None],
     ) -> r[bool]:
         r"""Register custom formatter for domain-specific result types.
 
@@ -533,7 +538,7 @@ class FlextCliOutput:
         Args:
             result_type: Type of result to format (e.g., OperationResult)
             formatter: Callable that formats and displays the result
-                Signature: (result: t.JsonValue | r[t.JsonValue], output_format: str) -> None
+                Signature: (result: BaseModel | t.JsonValue | r[t.JsonValue], output_format: str) -> None
 
         Returns:
             r[bool]: True on success, False on failure
@@ -665,18 +670,18 @@ class FlextCliOutput:
     def _get_registered_formatter(
         self,
         result_type: type,
-    ) -> Callable[[t.JsonValue | r[t.JsonValue], str], None] | None:
+    ) -> Callable[[BaseModel | t.JsonValue | r[t.JsonValue], str], None] | None:
         """Get registered formatter for a concrete result type."""
         formatters_dict: dict[
             type,
-            Callable[[t.JsonValue | r[t.JsonValue], str], None],
+            Callable[[BaseModel | t.JsonValue | r[t.JsonValue], str], None],
         ] = FlextCliOutput._result_formatters
         return formatters_dict.get(result_type)
 
     def _dispatch_registered_formatter(
         self,
         result: BaseModel | t.JsonValue | r[t.JsonValue],
-        formatter: Callable[[t.JsonValue | r[t.JsonValue], str], None],
+        formatter: Callable[[BaseModel | t.JsonValue | r[t.JsonValue], str], None],
         output_format: str,
     ) -> r[bool]:
         """Dispatch registered formatter by result strategy."""
@@ -697,18 +702,17 @@ class FlextCliOutput:
     def _format_registered_basemodel(
         self,
         result: BaseModel,
-        formatter: Callable[[t.JsonValue | r[t.JsonValue], str], None],
+        formatter: Callable[[BaseModel | t.JsonValue | r[t.JsonValue], str], None],
         output_format: str,
     ) -> r[bool]:
         """Format registered BaseModel result."""
-        formattable_result: t.JsonValue = result.model_dump()
-        formatter(formattable_result, output_format)
+        formatter(result, output_format)
         return r[bool].ok(value=True)
 
     def _format_registered_result(
         self,
         result: r[t.JsonValue],
-        formatter: Callable[[t.JsonValue | r[t.JsonValue], str], None],
+        formatter: Callable[[BaseModel | t.JsonValue | r[t.JsonValue], str], None],
         output_format: str,
     ) -> r[bool]:
         """Format registered railway result payload."""
@@ -727,7 +731,7 @@ class FlextCliOutput:
     def _format_registered_generic(
         self,
         result: t.JsonValue,
-        formatter: Callable[[t.JsonValue | r[t.JsonValue], str], None],
+        formatter: Callable[[BaseModel | t.JsonValue | r[t.JsonValue], str], None],
         output_format: str,
     ) -> r[bool]:
         """Format registered plain general value."""
@@ -771,9 +775,7 @@ class FlextCliOutput:
         # Handle objects with __dict__
         if hasattr(result, "__dict__"):
             raw_source = getattr(result, "__dict__")
-            object_dict = (
-                dict(raw_source) if isinstance(raw_source, Mapping) else {}
-            )
+            object_dict = dict(raw_source) if isinstance(raw_source, Mapping) else {}
             filtered_dict = u.Mapper.filter_dict(
                 object_dict,
                 lambda _k, v: self.is_json(v),
@@ -790,9 +792,7 @@ class FlextCliOutput:
         output_format: str,
     ) -> r[str]:
         """Format Pydantic model to string."""
-        # Use model_dump() directly - dict is compatible with t.JsonValue
-        result_dict = result.model_dump()
-        return self.format_data(result_dict, output_format)
+        return self.format_data(result, output_format)
 
     def _format_dict_object(
         self,

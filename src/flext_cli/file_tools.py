@@ -38,7 +38,7 @@ class FlextCliFileTools:
     ) -> r[T]:
         try:
             return r[T].ok(operation_func())
-        except (OSError, ValueError, TypeError, ValidationError) as e:
+        except (OSError, ValueError, TypeError, ValidationError, yaml.YAMLError) as e:
             return r[T].fail(error_template.format(error=e, **format_kwargs))
 
     @staticmethod
@@ -59,7 +59,7 @@ class FlextCliFileTools:
 
     @staticmethod
     def _get_encoding(encoding: str | None) -> str:
-        if u.is_type(encoding, str) and encoding:
+        if isinstance(encoding, str) and encoding:
             return encoding
         return c.Cli.Utilities.DEFAULT_ENCODING
 

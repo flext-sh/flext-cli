@@ -64,7 +64,6 @@ class FlextCliPrompts(FlextCliServiceBase):
             interactive_mode=self.interactive_mode,
             quiet=self.quiet,
             default_timeout=self.default_timeout,
-            source=SOURCE_PATH,
         )
 
     @property
@@ -93,7 +92,6 @@ class FlextCliPrompts(FlextCliServiceBase):
             error_type=type(exc).__name__,
             consequence=consequence,
             severity="critical",
-            source=SOURCE_PATH,
         )
 
     def prompt_text(
@@ -209,7 +207,6 @@ class FlextCliPrompts(FlextCliServiceBase):
                 error=str(exc),
                 error_type=type(exc).__name__,
                 consequence="History may still contain entries",
-                source=SOURCE_PATH,
             )
             return r[bool].fail(EM.HISTORY_CLEAR_FAILED.format(error=exc))
 
@@ -223,17 +220,8 @@ class FlextCliPrompts(FlextCliServiceBase):
                 history_size=size,
                 timestamp=FlextCliUtilities.generate("timestamp"),
             )
-            transform_result = FlextCliUtilities.transform(
-                stats_model.model_dump(), to_json=True
-            )
-            stats = (
-                transform_result.value
-                if transform_result.is_success
-                else stats_model.model_dump()
-            )
-            return r[Mapping[str, t.JsonValue]].ok(
-                stats if isinstance(stats, dict) else {}
-            )
+            stats_dict: Mapping[str, t.JsonValue] = stats_model.model_dump(mode="json")
+            return r[Mapping[str, t.JsonValue]].ok(stats_dict)
         except Exception as exc:  # pragma: no cover
             self.logger.exception(
                 "FAILED to collect prompt statistics - operation aborted",
@@ -241,7 +229,6 @@ class FlextCliPrompts(FlextCliServiceBase):
                 error=str(exc),
                 error_type=type(exc).__name__,
                 consequence="Statistics unavailable",
-                source=SOURCE_PATH,
             )
             return r[Mapping[str, t.JsonValue]].fail(
                 PEM.STATISTICS_COLLECTION_FAILED.format(error=exc),
@@ -252,9 +239,9 @@ class FlextCliPrompts(FlextCliServiceBase):
             self.logger.debug(
                 "Prompt service execution completed",
                 operation="execute",
-                source=SOURCE_PATH,
             )
-            return r[Mapping[str, t.JsonValue]].ok({})
+            empty_result: dict[str, t.JsonValue] = {}
+            return r[Mapping[str, t.JsonValue]].ok(empty_result)
         except Exception as exc:
             self._fatal(
                 "execute", "execute", exc, "Prompt service execution failed completely"
@@ -307,7 +294,6 @@ class FlextCliPrompts(FlextCliServiceBase):
                 prompt_message=message,
                 user_input=text,
                 consequence="Prompting again",
-                source=SOURCE_PATH,
             )
 
     def confirm(self, message: str, *, default: bool = False) -> r[bool]:
@@ -394,7 +380,6 @@ class FlextCliPrompts(FlextCliServiceBase):
                 error=str(exc),
                 error_type=type(exc).__name__,
                 consequence="Status message not displayed",
-                source=SOURCE_PATH,
             )
             return r[bool].fail(PEM.PRINT_STATUS_FAILED.format(error=exc))
 
@@ -417,7 +402,6 @@ class FlextCliPrompts(FlextCliServiceBase):
                 error=str(exc),
                 error_type=type(exc).__name__,
                 consequence="Message not displayed",
-                source=SOURCE_PATH,
             )
             return r[bool].fail(error_message_template.format(error=exc))
 
@@ -458,7 +442,6 @@ class FlextCliPrompts(FlextCliServiceBase):
                 error=str(exc),
                 error_type=type(exc).__name__,
                 consequence="Progress indicator not created",
-                source=SOURCE_PATH,
             )
             return r[str].fail(PEM.PROGRESS_CREATION_FAILED.format(error=exc))
 

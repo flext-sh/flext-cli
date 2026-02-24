@@ -19,6 +19,7 @@ from flext_core import (
     r,
     t,
 )
+from pydantic import ValidationError
 from rich.tree import Tree as RichTree
 
 from flext_cli.app_base import FlextCliAppBase
@@ -167,20 +168,36 @@ class FlextCli:
         except ValueError as e:
             return r[bool].fail(str(e))
 
-    def authenticate(self, credentials: Mapping[str, str]) -> r[str]:
-        """Authenticate user with provided credentials."""
-        if c.Cli.DictKeys.TOKEN in credentials:
+    def authenticate(
+        self,
+        credentials: m.Cli.PasswordAuth | m.Cli.TokenData | Mapping[str, str],
+    ) -> r[str]:
+        """Authenticate user with provided credentials (model or mapping)."""
+        if isinstance(credentials, m.Cli.TokenData):
             return self._authenticate_with_token(credentials)
+        if isinstance(credentials, m.Cli.PasswordAuth):
+            return self._authenticate_with_credentials(credentials)
+        # credentials is Mapping[str, str] at this point
+        if c.Cli.DictKeys.TOKEN in credentials:
+            try:
+                token_data = m.Cli.TokenData.model_validate(dict(credentials))
+            except (ValidationError, ValueError) as e:
+                return r[str].fail(str(e))
+            return self._authenticate_with_token(token_data)
         if (
             c.Cli.DictKeys.USERNAME in credentials
             and c.Cli.DictKeys.PASSWORD in credentials
         ):
-            return self._authenticate_with_credentials(credentials)
+            try:
+                password_auth = m.Cli.PasswordAuth.model_validate(dict(credentials))
+            except (ValidationError, ValueError) as e:
+                return r[str].fail(str(e))
+            return self._authenticate_with_credentials(password_auth)
         return r[str].fail(c.Cli.ErrorMessages.INVALID_CREDENTIALS)
 
-    def _authenticate_with_token(self, credentials: Mapping[str, str]) -> r[str]:
-        """Authenticate using token."""
-        token = str(credentials[c.Cli.DictKeys.TOKEN])
+    def _authenticate_with_token(self, credentials: m.Cli.TokenData) -> r[str]:
+        """Authenticate using token (TokenData model)."""
+        token = credentials.token
         validation = FlextCli._validate_token_string(token)
         if validation.is_failure:
             return r[str].fail(validation.error or "")
@@ -191,12 +208,12 @@ class FlextCli:
             )
         return r[str].ok(token)
 
-    def _authenticate_with_credentials(self, credentials: Mapping[str, str]) -> r[str]:
-        """Authenticate using Pydantic 2 validation."""
-        try:
-            m.Cli.PasswordAuth.model_validate(credentials)
-        except Exception as e:
-            return r[str].fail(str(e))
+    def _authenticate_with_credentials(self, credentials: m.Cli.PasswordAuth) -> r[str]:
+        """Authenticate using PasswordAuth model (credentials already validated)."""
+        logger_core(__name__).debug(
+            "Authenticating with password auth",
+            username=credentials.username,
+        )
         token = secrets.token_urlsafe(c.Cli.APIDefaults.TOKEN_GENERATION_BYTES)
         self._valid_tokens.add(token)
         return r[str].ok(token)
@@ -207,7 +224,7 @@ class FlextCli:
         try:
             m.Cli.PasswordAuth(username=username, password=password)
             return r[bool].ok(value=True)
-        except Exception as e:
+        except (ValidationError, ValueError) as e:
             return r[bool].fail(str(e))
 
     def save_auth_token(self, token: str) -> r[bool]:
@@ -260,28 +277,25 @@ class FlextCli:
         if not data or (runtime.is_dict_like(data) and not data):
             return r[str].fail(c.Cli.ErrorMessages.TOKEN_FILE_EMPTY)
 
-        # Try direct extraction
-        token_result = u.extract(
-            data,
-            c.Cli.DictKeys.TOKEN,
-            required=True,
-        )
-        if token_result.is_success:
-            token_value = token_result.value
-            if u.is_dict_like(token_value):
-                return r[str].fail(c.Cli.APIDefaults.TOKEN_DATA_TYPE_ERROR)
-            if not u.is_type(token_value, str):
-                return r[str].fail(c.Cli.APIDefaults.TOKEN_VALUE_TYPE_ERROR)
-            extracted_token = str(token_value).strip()
-            if extracted_token:
-                return r[str].ok(extracted_token)
-
-        # Fallback to model validation
         try:
             token_data = m.Cli.TokenData.model_validate(data)
             return r[str].ok(token_data.token)
-        except Exception as e:
-            return r[str].fail(self._get_token_error_message(str(e).lower()))
+        except ValidationError:
+            token_result = u.extract(
+                data,
+                c.Cli.DictKeys.TOKEN,
+                required=True,
+            )
+            if token_result.is_success:
+                token_value = token_result.value
+                if u.is_dict_like(token_value):
+                    return r[str].fail(c.Cli.APIDefaults.TOKEN_DATA_TYPE_ERROR)
+                if not isinstance(token_value, str):
+                    return r[str].fail(c.Cli.APIDefaults.TOKEN_VALUE_TYPE_ERROR)
+                extracted_token = str(token_value).strip()
+                if extracted_token:
+                    return r[str].ok(extracted_token)
+            return r[str].fail(c.Cli.ErrorMessages.TOKEN_FILE_EMPTY)
 
     def is_authenticated(self) -> bool:
         """Check if user is authenticated."""

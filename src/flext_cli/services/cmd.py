@@ -79,7 +79,7 @@ class FlextCliCmd(FlextCliServiceBase):
         try:
             paths = FlextCliUtilities.Cli.ConfigOps.get_config_paths()
             return r[list[str]].ok(paths)
-        except (OSError, ValueError, TypeError) as e:
+        except (OSError, ValueError, TypeError, RuntimeError) as e:
             return r[list[str]].fail(
                 FlextCliConstants.Cli.ErrorMessages.CONFIG_PATHS_FAILED.format(error=e),
             )
@@ -100,7 +100,7 @@ class FlextCliCmd(FlextCliServiceBase):
                     ),
                 )
             return r[bool].ok(value=True)
-        except (OSError, ValueError, TypeError) as e:
+        except (OSError, ValueError, TypeError, RuntimeError) as e:
             return r[bool].fail(
                 FlextCliConstants.Cli.ErrorMessages.CONFIG_VALIDATION_FAILED.format(
                     error=e,
@@ -120,7 +120,7 @@ class FlextCliCmd(FlextCliServiceBase):
                 timestamp=str(info.get("timestamp", "")),
             )
             return r[m.Cli.ConfigSnapshot].ok(snapshot)
-        except (OSError, ValueError, TypeError, KeyError) as e:
+        except (OSError, ValueError, TypeError, RuntimeError, KeyError) as e:
             return r[m.Cli.ConfigSnapshot].fail(
                 FlextCliConstants.Cli.ErrorMessages.CONFIG_INFO_FAILED.format(error=e),
             )
@@ -268,6 +268,7 @@ class FlextCliCmd(FlextCliServiceBase):
                 default_config_model = m.Cli.CmdConfig(name="default")
                 save_result = self._file_tools.write_json_file(
                     file_path=str(path),
+                    # JSON file write boundary requires raw JSON-compatible data.
                     data=default_config_model.model_dump(),
                 )
                 if save_result.is_failure:
@@ -304,10 +305,9 @@ class FlextCliCmd(FlextCliServiceBase):
                     FlextCliConstants.Cli.CmdErrorMessages.CONFIG_NOT_DICT,
                 )
 
-            config_data = config_model.model_dump()
             config_info_str = str({
                 FlextCliConstants.Cli.DictKeys.CONFIG_FILE: str(path),
-                FlextCliConstants.Cli.DictKeys.CONFIG_DATA: config_data,
+                FlextCliConstants.Cli.DictKeys.CONFIG_DATA: config_model,
                 FlextCliConstants.Cli.DictKeys.MESSAGE: FlextCliConstants.Cli.ServiceMessages.CONFIG_LOADED_SUCCESSFULLY,
             })
 
