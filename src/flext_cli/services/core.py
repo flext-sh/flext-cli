@@ -105,18 +105,28 @@ class FlextCliCore(FlextCliServiceBase):
     # Logger is provided by FlextMixins mixin
 
     # Private attributes for internal state management
-    # These are set via object.__setattr__ in __init__ to support frozen parent models
-    _cli_config: dict[str, t.GeneralValueType]
-    _commands: dict[str, dict[str, t.GeneralValueType]]
+    # These are set during __init__ setup
+    _cli_config: dict[str, t.JsonValue]
+    _commands: dict[str, dict[str, t.JsonValue]]
     _plugins: dict[str, p.Cli.CliPlugin]
-    _sessions: dict[str, t.GeneralValueType]
+    _sessions: dict[str, t.JsonValue]
     _session_active: bool
-    _session_config: dict[str, t.GeneralValueType]
+    _session_config: dict[str, t.JsonValue]
     _session_start_time: str
+
+    type CliValue = (
+        str
+        | int
+        | float
+        | bool
+        | list[str]
+        | dict[str, str | int | float | bool | list[str]]
+        | None
+    )
 
     def __init__(
         self,
-        config: dict[str, t.GeneralValueType] | None = None,
+        config: dict[str, t.JsonValue] | None = None,
     ) -> None:
         """Initialize CLI core with optional configuration seed values.
 
@@ -125,8 +135,8 @@ class FlextCliCore(FlextCliServiceBase):
                 (stored separately, not passed to parent FlextService.__init__)
 
         """
-        # FlextService.__init__ accepts **data: t.GeneralValueType
-        # FlextCliServiceBase extends FlextService[dict[str, t.GeneralValueType]]
+        # FlextService.__init__ accepts typed JSON-compatible values
+        # FlextCliServiceBase extends FlextService[dict[str, t.JsonValue]]
         # The generic type parameter TDomainResult doesn't affect __init__ signature
         # Note: config is CLI-specific and stored separately, not passed to parent
         # because FlextService uses Pydantic with extra="forbid"
@@ -141,31 +151,29 @@ class FlextCliCore(FlextCliServiceBase):
         # Store CLI-specific config as dict (base class _config is FlextSettings | None)
         # Use mutable dict for CLI-specific configuration dictionary
         # Use u.is_type(..., "mapping") for type checking
-        # Use object.__setattr__ for private attributes in case parent is frozen
-        object.__setattr__(
+        setattr(
             self,
             "_cli_config",
             dict(config) if config is not None and u.is_type(config, "mapping") else {},
         )
-        object.__setattr__(self, "_commands", {})
+        setattr(self, "_commands", {})
         # Note: stores plugin objects implementing CliPlugin protocol
-        object.__setattr__(self, "_plugins", {})
-        object.__setattr__(self, "_sessions", {})
-        object.__setattr__(self, "_session_active", False)
+        setattr(self, "_plugins", {})
+        setattr(self, "_sessions", {})
+        setattr(self, "_session_active", False)
 
         # Performance and async integration
         # Note: stores cache objects (TTLCache/LRUCache), not JsonValue
         # Cache types are from external library, using generic types
-        # Use object.__setattr__ for private attributes in case parent is frozen
-        object.__setattr__(
+        setattr(
             self,
             "_caches",
             {},
         )
-        object.__setattr__(self, "_cache_stats", self._CacheStats())
+        setattr(self, "_cache_stats", self._CacheStats())
 
         # Type narrowing: is_dict_like ensures config is dict-like
-        config_dict: dict[str, t.GeneralValueType] | None = (
+        config_dict: dict[str, t.JsonValue] | None = (
             config if u.is_type(config, "mapping") else None
         )
         FlextLogger(__name__).debug(
@@ -414,14 +422,17 @@ class FlextCliCore(FlextCliServiceBase):
             context_list_raw = (
                 process_result.value or []
             )  # Direct attribute access - unwrap() provides safe access
-            context_list: list[t.GeneralValueType] = (
-                context_list_raw if isinstance(context_list_raw, list) else []
-            )
+            context_list: list[t.GeneralValueType] = []
+            if u.is_type(context_list_raw, "sequence"):
+                context_list = list(context_list_raw)
             return self._build_context_from_list(context_list)
         # After None and list[str] handling, context is dict[str, t.GeneralValueType]
         # Type system ensures context is Mapping at this point
-        if isinstance(context, dict):
-            return dict(context)
+        match context:
+            case dict() as context_dict:
+                return dict(context_dict)
+            case _:
+                return {}
         # Fallback for unexpected types (should not reach here with proper typing)
         return {}
 
@@ -874,9 +885,12 @@ class FlextCliCore(FlextCliServiceBase):
             # Type narrowing: value is t.GeneralValueType | None
             profiles_value = profiles_result_raw.value
             # Python 3.13: Direct attribute access - unwrap() provides safe access
-            profiles_section_raw: dict[str, t.GeneralValueType] = (
-                profiles_value if isinstance(profiles_value, dict) else {}
-            )
+            profiles_section_raw: dict[str, t.GeneralValueType]
+            match profiles_value:
+                case dict() as profiles_dict:
+                    profiles_section_raw = profiles_dict
+                case _:
+                    profiles_section_raw = {}
             # Python 3.13: profiles_section_raw is already dict, isinstance check is unnecessary
             profiles_section: dict[str, t.GeneralValueType] = (
                 profiles_section_raw
@@ -1063,7 +1077,7 @@ class FlextCliCore(FlextCliServiceBase):
                 c.Cli.ErrorMessages.CLI_EXECUTION_ERROR.format(error=e),
             )
 
-    def get_service_info(self) -> dict[str, t.FlexibleValue]:
+    def get_service_info(self) -> dict[str, CliValue]:
         """Get comprehensive service information.
 
         Returns:
@@ -1079,10 +1093,10 @@ class FlextCliCore(FlextCliServiceBase):
             # Python 3.13: _cli_config is already typed as dict, isinstance check is unnecessary
             config_keys = list(self._cli_config.keys())
 
-            # Convert config_keys to Sequence[str] for FlexibleValue compatibility
+            # Convert config_keys to concrete sequence values
             config_keys_list: list[str] = list(config_keys) if config_keys else []
 
-            info_data: dict[str, t.FlexibleValue] = {
+            info_data: dict[str, CliValue] = {
                 c.Cli.DictKeys.SERVICE: c.Cli.FLEXT_CLI,
                 c.Cli.CoreServiceDictKeys.COMMANDS_REGISTERED: commands_count,
                 c.Cli.CoreServiceDictKeys.CONFIGURATION_SECTIONS: config_keys_list,
@@ -1095,7 +1109,7 @@ class FlextCliCore(FlextCliServiceBase):
                 c.Cli.DictKeys.TIMESTAMP: FlextCliUtilities.generate("timestamp"),
             }
 
-            # Return Mapping[str, FlexibleValue] to match base class signature
+            # Return concrete service metadata mapping
             return info_data
 
         except Exception as e:

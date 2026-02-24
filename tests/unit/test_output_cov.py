@@ -25,8 +25,8 @@ def test_basic_helper_error_and_fallback_branches(monkeypatch) -> None:
     assert isinstance(dict_val, dict)
     assert output.get_map_val({"k": object()}, "k", "d")
 
-    with pytest.raises(TypeError):
-        output.cast_if("x", int, "not-int")
+    # cast_if returns default when type doesn't match (no TypeError raised)
+    assert output.cast_if("x", int, "not-int") == "not-int"
 
     assert output._is_rich_tree_protocol(object()) is False
 

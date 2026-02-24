@@ -41,9 +41,9 @@ class FlextCliTypes(FlextTypes):
         """
 
         # NO LEGACY ALIASES ALLOWED
-        type FormatableResult = FlextTypes.GeneralValueType
-        ResultFormatter = Callable[[FlextTypes.GeneralValueType], str]
-        TabularData = Sequence[Mapping[str, FlextTypes.GeneralValueType]]
+        type FormatableResult = FlextTypes.JsonValue
+        ResultFormatter = Callable[[FlextTypes.JsonValue], str]
+        TabularData = Sequence[Mapping[str, FlextTypes.JsonValue]]
 
 
 # ═══════════════════════════════════════════════════════════════════════════

@@ -110,14 +110,12 @@ def test_type_getters_error_paths(monkeypatch) -> None:
         FlextCliCli.get_uuid_type()
     with pytest.raises(TypeError):
         FlextCliCli.get_tuple_type([str])
-    with pytest.raises(TypeError):
-        FlextCliCli.get_bool_type()
-    with pytest.raises(TypeError):
-        FlextCliCli.get_string_type()
-    with pytest.raises(TypeError):
-        FlextCliCli.get_int_type()
-    with pytest.raises(TypeError):
-        FlextCliCli.get_float_type()
+    # get_bool/string/int/float_type return primitive types directly
+    # without calling type_factory, so monkeypatching has no effect.
+    assert FlextCliCli.get_bool_type() is bool
+    assert FlextCliCli.get_string_type() is str
+    assert FlextCliCli.get_int_type() is int
+    assert FlextCliCli.get_float_type() is float
 
 
 def test_pass_context_and_config_getter_error_paths(monkeypatch) -> None:

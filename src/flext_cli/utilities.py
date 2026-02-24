@@ -9,13 +9,23 @@ from datetime import UTC, datetime
 from enum import StrEnum
 from functools import wraps
 from pathlib import Path
-from typing import ClassVar, cast, get_args, get_origin, override
+from typing import ClassVar, get_args, get_origin, override
 
-from flext_core import FlextUtilities, r
+from flext_core import FlextTypes, FlextUtilities, r
 from pydantic import BaseModel, ConfigDict, ValidationError, validate_call
 
 from flext_cli.constants import c
 from flext_cli.typings import CliExecutionMetadata, CliValidationResult, t
+
+type CliValue = (
+    str
+    | int
+    | float
+    | bool
+    | list[str]
+    | dict[str, str | int | float | bool | list[str]]
+    | None
+)
 
 
 class FlextCliUtilities(FlextUtilities):
@@ -87,19 +97,19 @@ class FlextCliUtilities(FlextUtilities):
             """CLI-specific validation utilities."""
 
             @staticmethod
-            def to_str(value: t.GeneralValueType | None) -> str:
+            def to_str(value: CliValue) -> str:
                 """Convert a value to a string safely."""
-                return (
-                    value
-                    if isinstance(value, str)
-                    else ""
-                    if value is None
-                    else str(value)
-                )
+                match value:
+                    case str() as text:
+                        return text
+                    case None:
+                        return ""
+                    case _:
+                        return str(value)
 
             @staticmethod
             def v(
-                val: t.GeneralValueType | None,
+                val: CliValue,
                 *,
                 name: str = "field",
                 empty: bool = True,
@@ -139,19 +149,23 @@ class FlextCliUtilities(FlextUtilities):
                 return r[bool].ok(value=True)
 
             @staticmethod
-            def v_empty(
-                val: t.GeneralValueType | None, *, name: str = "field"
-            ) -> r[bool]:
+            def v_empty(val: CliValue, *, name: str = "field") -> r[bool]:
                 """Validate that a value is not empty."""
-                if val is None or (
-                    isinstance(val, str) and not FlextUtilities.is_string_non_empty(val)
-                ):
-                    return r[bool].fail(
-                        c.Cli.MixinsValidationMessages.FIELD_CANNOT_BE_EMPTY.format(
-                            field_name=name
+                match val:
+                    case None:
+                        return r[bool].fail(
+                            c.Cli.MixinsValidationMessages.FIELD_CANNOT_BE_EMPTY.format(
+                                field_name=name
+                            )
                         )
-                    )
-                return r[bool].ok(value=True)
+                    case str() as text if not FlextUtilities.is_string_non_empty(text):
+                        return r[bool].fail(
+                            c.Cli.MixinsValidationMessages.FIELD_CANNOT_BE_EMPTY.format(
+                                field_name=name
+                            )
+                        )
+                    case _:
+                        return r[bool].ok(value=True)
 
             @staticmethod
             def validate_field_in_list(
@@ -197,12 +211,9 @@ class FlextCliUtilities(FlextUtilities):
                 )
                 if valid.is_success:
                     return r.ok(fmt)
-                return cast(
-                    "r[str]",
-                    r.fail(
-                        c.Cli.ErrorMessages.INVALID_OUTPUT_FORMAT.format(
-                            format=format_type
-                        )
+                return r[str].fail(
+                    c.Cli.ErrorMessages.INVALID_OUTPUT_FORMAT.format(
+                        format=format_type
                     ),
                 )
 
@@ -234,7 +245,9 @@ class FlextCliUtilities(FlextUtilities):
 
             @staticmethod
             def v_req(
-                data: dict[str, t.GeneralValueType] | None, *, fields: list[str]
+                data: dict[str, CliValue] | None,
+                *,
+                fields: list[str],
             ) -> r[bool]:
                 """Validate that required fields are present in a dictionary."""
                 if data is None:
@@ -246,24 +259,25 @@ class FlextCliUtilities(FlextUtilities):
                 missing = [name for name in fields if name not in data]
                 if not missing:
                     return r.ok(True)
-                return cast(
-                    "r[bool]",
-                    r.fail(
-                        c.Cli.MixinsValidationMessages.CONFIG_MISSING_FIELDS.format(
-                            missing_fields=missing
-                        )
+                return r[bool].fail(
+                    c.Cli.MixinsValidationMessages.CONFIG_MISSING_FIELDS.format(
+                        missing_fields=missing
                     ),
                 )
 
             @staticmethod
             def v_config(
-                config: dict[str, t.GeneralValueType] | None, *, fields: list[str]
+                config: dict[str, CliValue] | None,
+                *,
+                fields: list[str],
             ) -> r[bool]:
                 """Validate configuration fields."""
                 return FlextCliUtilities.Cli.CliValidation.v_req(config, fields=fields)
 
             @staticmethod
-            def v_step(step: dict[str, t.GeneralValueType] | None) -> r[bool]:
+            def v_step(
+                step: dict[str, CliValue] | None,
+            ) -> r[bool]:
                 """Validate a pipeline step."""
                 if step is None:
                     return r[bool].fail(
@@ -275,10 +289,15 @@ class FlextCliUtilities(FlextUtilities):
                         c.Cli.MixinsValidationMessages.PIPELINE_STEP_NO_NAME
                     )
                 value = step[key]
-                if value is None or (isinstance(value, str) and not value.strip()):
-                    return r[bool].fail(
-                        c.Cli.MixinsValidationMessages.PIPELINE_STEP_NAME_EMPTY
-                    )
+                match value:
+                    case None:
+                        return r[bool].fail(
+                            c.Cli.MixinsValidationMessages.PIPELINE_STEP_NAME_EMPTY
+                        )
+                    case str() as text if not text.strip():
+                        return r[bool].fail(
+                            c.Cli.MixinsValidationMessages.PIPELINE_STEP_NAME_EMPTY
+                        )
                 return r[bool].ok(value=True)
 
             @staticmethod
@@ -347,7 +366,7 @@ class FlextCliUtilities(FlextUtilities):
                 return lines
 
             @staticmethod
-            def get_config_info() -> Mapping[str, t.GeneralValueType]:
+            def get_config_info() -> Mapping[str, CliValue]:
                 """Get configuration information."""
                 path = Path.home() / c.Cli.Paths.FLEXT_DIR_NAME
                 exists = path.exists()
@@ -393,7 +412,7 @@ class FlextCliUtilities(FlextUtilities):
                 """Normalize type annotation."""
                 if annotation is None:
                     return None
-                origin_obj: object = get_origin(annotation)
+                origin_obj = get_origin(annotation)
                 if origin_obj is types.UnionType or str(origin_obj) == "typing.Union":
                     return FlextCliUtilities.Cli.TypeNormalizer.normalize_union_type(
                         annotation
@@ -405,16 +424,19 @@ class FlextCliUtilities(FlextUtilities):
                 annotation: type | types.UnionType,
             ) -> type | types.UnionType | None:
                 """Normalize union type."""
-                raw_args: tuple[object, ...] = get_args(annotation)
+                raw_args = get_args(annotation)
                 if not raw_args:
                     return annotation
-                if not all(
-                    isinstance(arg, (type, types.UnionType)) for arg in raw_args
-                ):
-                    return annotation
-                args: tuple[type | types.UnionType, ...] = tuple(
-                    arg for arg in raw_args if isinstance(arg, (type, types.UnionType))
-                )
+                args_list: list[type | types.UnionType] = []
+                for arg in raw_args:
+                    match arg:
+                        case type() as arg_type:
+                            args_list.append(arg_type)
+                        case types.UnionType() as union_type:
+                            args_list.append(union_type)
+                        case _:
+                            return annotation
+                args: tuple[type | types.UnionType, ...] = tuple(args_list)
                 has_none = types.NoneType in args
                 non_none = [arg for arg in args if arg is not types.NoneType]
                 if len(non_none) == 1:
@@ -480,9 +502,9 @@ class FlextCliUtilities(FlextUtilities):
 
                 @staticmethod
                 def parse_kwargs[E: StrEnum](
-                    kwargs: Mapping[str, t.FlexibleValue],
+                    kwargs: Mapping[str, CliValue],
                     enum_fields: Mapping[str, type[E]],
-                ) -> r[dict[str, t.FlexibleValue]]:
+                ) -> r[dict[str, CliValue]]:
                     """Parse keyword arguments."""
                     parsed = FlextUtilities.mapper().to_dict(kwargs)
                     errors: list[str] = []
@@ -490,16 +512,19 @@ class FlextCliUtilities(FlextUtilities):
                         if key not in parsed:
                             continue
                         value = parsed[key]
-                        if isinstance(value, str):
-                            parsed_enum = FlextUtilities.Enum.parse(enum_cls, value)
-                            if parsed_enum.is_success:
-                                parsed[key] = parsed_enum.value.value
-                            else:
-                                errors.append(f"{key}: '{value}'")
+                        match value:
+                            case str() as text:
+                                parsed_enum = FlextUtilities.Enum.parse(enum_cls, text)
+                                if parsed_enum.is_success:
+                                    parsed[key] = parsed_enum.value.value
+                                else:
+                                    errors.append(f"{key}: '{text}'")
+                            case _:
+                                continue
                     return (
-                        r[dict[str, t.FlexibleValue]].fail(f"Invalid: {errors}")
+                        r[dict[str, CliValue]].fail(f"Invalid: {errors}")
                         if errors
-                        else r[dict[str, t.FlexibleValue]].ok(parsed)
+                        else r[dict[str, CliValue]].ok(parsed)
                     )
 
             class Model:
@@ -508,7 +533,7 @@ class FlextCliUtilities(FlextUtilities):
                 @staticmethod
                 def from_dict[M: BaseModel](
                     model_cls: type[M],
-                    data: Mapping[str, t.FlexibleValue],
+                    data: Mapping[str, CliValue],
                     *,
                     strict: bool = False,
                 ) -> r[M]:
@@ -525,8 +550,8 @@ class FlextCliUtilities(FlextUtilities):
                 @staticmethod
                 def merge_defaults[M: BaseModel](
                     model_cls: type[M],
-                    defaults: Mapping[str, t.FlexibleValue],
-                    overrides: Mapping[str, t.FlexibleValue],
+                    defaults: Mapping[str, CliValue],
+                    overrides: Mapping[str, CliValue],
                 ) -> r[M]:
                     """Merge default values with overrides."""
                     result = FlextUtilities.Model.merge_defaults(
@@ -539,9 +564,7 @@ class FlextCliUtilities(FlextUtilities):
                     )
 
                 @staticmethod
-                def update[M: BaseModel](
-                    instance: M, **updates: t.FlexibleValue
-                ) -> r[M]:
+                def update[M: BaseModel](instance: M, **updates: CliValue) -> r[M]:
                     """Update model instance."""
                     result = FlextUtilities.Model.update(instance, **updates)
                     return (
