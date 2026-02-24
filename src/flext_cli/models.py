@@ -109,7 +109,7 @@ class _FlextCliContext(BaseModel):
     def _validate_string(value: str, field_name: str, error_template: str) -> r[bool]:
         """Validate non-empty string (inlined from u.Cli.CliValidation.v_empty)."""
         if not value or not value.strip():
-            return r[bool].fail(f"{field_name} cannot be empty")
+            return r[bool].fail(error_template or f"{field_name} cannot be empty")
         return r[bool].ok(value=True)
 
     @staticmethod
