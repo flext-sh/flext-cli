@@ -106,12 +106,12 @@ class FlextCliCore(FlextCliServiceBase):
 
     # Private attributes for internal state management
     # These are set during __init__ setup
-    _cli_config: dict[str, t.JsonValue]
-    _commands: dict[str, dict[str, t.JsonValue]]
-    _plugins: dict[str, p.Cli.CliPlugin]
-    _sessions: dict[str, t.JsonValue]
+    _cli_config: Mapping[str, t.JsonValue]
+    _commands: Mapping[str, Mapping[str, t.JsonValue]]
+    _plugins: Mapping[str, p.Cli.CliPlugin]
+    _sessions: Mapping[str, t.JsonValue]
     _session_active: bool
-    _session_config: dict[str, t.JsonValue]
+    _session_config: Mapping[str, t.JsonValue]
     _session_start_time: str
 
     type CliValue = (
@@ -120,13 +120,13 @@ class FlextCliCore(FlextCliServiceBase):
         | float
         | bool
         | list[str]
-        | dict[str, str | int | float | bool | list[str]]
+        | Mapping[str, str | int | float | bool | list[str]]
         | None
     )
 
     def __init__(
         self,
-        config: dict[str, t.JsonValue] | None = None,
+        config: Mapping[str, t.JsonValue] | None = None,
     ) -> None:
         """Initialize CLI core with optional configuration seed values.
 
@@ -402,8 +402,8 @@ class FlextCliCore(FlextCliServiceBase):
 
     def _build_execution_context(
         self,
-        context: dict[str, t.JsonValue] | list[str] | None,
-    ) -> dict[str, t.JsonValue]:
+        context: Mapping[str, t.JsonValue] | list[str] | None,
+    ) -> Mapping[str, t.JsonValue]:
         """Build execution context from various input formats."""
         if context is None:
             return {}
@@ -435,9 +435,9 @@ class FlextCliCore(FlextCliServiceBase):
     def execute_command(
         self,
         name: str,
-        context: dict[str, t.JsonValue] | list[str] | None = None,
+        context: Mapping[str, t.JsonValue] | list[str] | None = None,
         timeout: float | None = None,
-    ) -> r[dict[str, t.JsonValue]]:
+    ) -> r[Mapping[str, t.JsonValue]]:
         """Execute registered command with context."""
         FlextLogger(__name__).info("STARTING CLI command execution", command_name=name)
 
@@ -445,7 +445,7 @@ class FlextCliCore(FlextCliServiceBase):
         if command_result.is_failure:
             FlextLogger(__name__).error("FAILED - command not found", command_name=name)
             # Python 3.13: Direct attribute access - more elegant and type-safe
-            return r[dict[str, t.JsonValue]].fail(
+            return r[Mapping[str, t.JsonValue]].fail(
                 command_result.error or "Command not found",
             )
 
@@ -461,13 +461,13 @@ class FlextCliCore(FlextCliServiceBase):
             FlextLogger(__name__).info(
                 "COMPLETED CLI command execution", command_name=name
             )
-            return r[dict[str, t.JsonValue]].ok(result_dict)
+            return r[Mapping[str, t.JsonValue]].ok(result_dict)
 
         except Exception as e:
             FlextLogger(__name__).exception(
                 "FAILED CLI command execution", command_name=name
             )
-            return r[dict[str, t.JsonValue]].fail(
+            return r[Mapping[str, t.JsonValue]].fail(
                 c.Cli.ErrorMessages.COMMAND_EXECUTION_FAILED.format(error=e),
             )
 
@@ -535,7 +535,7 @@ class FlextCliCore(FlextCliServiceBase):
     @staticmethod
     def _build_context_from_list(
         args: list[t.JsonValue],
-    ) -> dict[str, t.JsonValue]:
+    ) -> Mapping[str, t.JsonValue]:
         """Build command context from list of arguments.
 
         Business Rule:
@@ -556,8 +556,8 @@ class FlextCliCore(FlextCliServiceBase):
 
     def _validate_config_input(
         self,
-        config: dict[str, t.JsonValue],
-    ) -> r[dict[str, t.JsonValue]]:
+        config: Mapping[str, t.JsonValue],
+    ) -> r[Mapping[str, t.JsonValue]]:
         """Validate input configuration for update operations."""
         if not config:
             FlextLogger(__name__).warning(
@@ -566,7 +566,7 @@ class FlextCliCore(FlextCliServiceBase):
                 consequence="Configuration update will fail",
                 source="flext-cli/src/flext_cli/core.py",
             )
-            return r[dict[str, t.JsonValue]].fail(
+            return r[Mapping[str, t.JsonValue]].fail(
                 c.Cli.ErrorMessages.CONFIG_NOT_DICT,
             )
 
@@ -578,29 +578,29 @@ class FlextCliCore(FlextCliServiceBase):
         )
         # Use build() DSL for JSON conversion
         if not u.is_type(config, "mapping"):
-            return r[dict[str, t.JsonValue]].fail(
+            return r[Mapping[str, t.JsonValue]].fail(
                 c.Cli.ErrorMessages.CONFIG_NOT_DICT,
             )
         # Reuse to_dict_json helper from output module
         # to_dict_json returns dict[str, JsonValue] which is exactly what we need
         # to_dict_json is guaranteed to return a dict (doesn't return None or other types)
         json_config = FlextCliOutput.to_dict_json(config)
-        return r[dict[str, t.JsonValue]].ok(json_config)
+        return r[Mapping[str, t.JsonValue]].ok(json_config)
 
     def _validate_existing_config(
         self,
-    ) -> r[dict[str, t.JsonValue]]:
+    ) -> r[Mapping[str, t.JsonValue]]:
         """Validate existing configuration state."""
         # self._cli_config is dict[str, t.JsonValue] - return as JsonDict
         if self._cli_config:
-            return r[dict[str, t.JsonValue]].ok(self._cli_config)
-        return r[dict[str, t.JsonValue]].fail(
+            return r[Mapping[str, t.JsonValue]].ok(self._cli_config)
+        return r[Mapping[str, t.JsonValue]].fail(
             c.Cli.ErrorMessages.CONFIG_NOT_INITIALIZED,
         )
 
     def _merge_configurations(
         self,
-        valid_config: dict[str, t.JsonValue],
+        valid_config: Mapping[str, t.JsonValue],
     ) -> r[bool]:
         """Merge new configuration with existing one."""
         try:
@@ -694,7 +694,7 @@ class FlextCliCore(FlextCliServiceBase):
 
     def update_configuration(
         self,
-        config: dict[str, t.JsonValue],
+        config: Mapping[str, t.JsonValue],
     ) -> r[bool]:
         """Update CLI configuration using railway pattern and functional composition.
 
@@ -752,7 +752,7 @@ class FlextCliCore(FlextCliServiceBase):
 
     def get_configuration(
         self,
-    ) -> r[dict[str, t.JsonValue]]:
+    ) -> r[Mapping[str, t.JsonValue]]:
         """Get current CLI configuration using functional composition.
 
         Retrieves configuration with validation and error handling.
@@ -764,7 +764,7 @@ class FlextCliCore(FlextCliServiceBase):
         """
 
         # Functional configuration retrieval with railway pattern
-        def validate_config_state() -> r[dict[str, t.JsonValue]]:
+        def validate_config_state() -> r[Mapping[str, t.JsonValue]]:
             """Validate that configuration is properly initialized."""
             try:
                 FlextLogger(__name__).debug(
@@ -794,7 +794,7 @@ class FlextCliCore(FlextCliServiceBase):
                     )
 
                     # self._cli_config is dict[str, t.JsonValue] - return as JsonDict
-                    return r[dict[str, t.JsonValue]].ok(
+                    return r[Mapping[str, t.JsonValue]].ok(
                         self._cli_config,
                     )
 
@@ -804,7 +804,7 @@ class FlextCliCore(FlextCliServiceBase):
                     consequence="Configuration retrieval will fail",
                     source="flext-cli/src/flext_cli/core.py",
                 )
-                return r[dict[str, t.JsonValue]].fail(
+                return r[Mapping[str, t.JsonValue]].fail(
                     c.Cli.ErrorMessages.CONFIG_NOT_INITIALIZED,
                 )
             except Exception as e:
@@ -816,7 +816,7 @@ class FlextCliCore(FlextCliServiceBase):
                     consequence="Configuration retrieval failed completely",
                     source="flext-cli/src/flext_cli/core.py",
                 )
-                return r[dict[str, t.JsonValue]].fail(
+                return r[Mapping[str, t.JsonValue]].fail(
                     c.Cli.ErrorMessages.CONFIG_RETRIEVAL_FAILED.format(
                         error=e,
                     ),
@@ -828,7 +828,7 @@ class FlextCliCore(FlextCliServiceBase):
     def create_profile(
         self,
         name: str,
-        profile_config: dict[str, t.JsonValue],
+        profile_config: Mapping[str, t.JsonValue],
     ) -> r[bool]:
         """Create CLI configuration profile using railway pattern.
 
@@ -915,7 +915,7 @@ class FlextCliCore(FlextCliServiceBase):
 
     def start_session(
         self,
-        session_config: dict[str, t.JsonValue] | None = None,
+        session_config: Mapping[str, t.JsonValue] | None = None,
     ) -> r[bool]:
         """Start CLI session with configuration.
 
@@ -1041,7 +1041,7 @@ class FlextCliCore(FlextCliServiceBase):
 
     def get_command_statistics(
         self,
-    ) -> r[dict[str, t.JsonValue]]:
+    ) -> r[Mapping[str, t.JsonValue]]:
         """Get command usage statistics using CLI-specific data types.
 
         Returns:
@@ -1065,13 +1065,13 @@ class FlextCliCore(FlextCliServiceBase):
             # model_dump() already returns dict with JSON-compatible values
             # Direct assignment if model fields are already t.JsonValue compatible
             stats_dict: dict[str, t.JsonValue] = stats_model.model_dump()
-            return r[dict[str, t.JsonValue]].ok(stats_dict)
+            return r[Mapping[str, t.JsonValue]].ok(stats_dict)
         except Exception as e:
-            return r[dict[str, t.JsonValue]].fail(
+            return r[Mapping[str, t.JsonValue]].fail(
                 c.Cli.ErrorMessages.CLI_EXECUTION_ERROR.format(error=e),
             )
 
-    def get_service_info(self) -> dict[str, FlextCliCore.CliValue]:
+    def get_service_info(self) -> Mapping[str, FlextCliCore.CliValue]:
         """Get comprehensive service information.
 
         Returns:
@@ -1114,7 +1114,7 @@ class FlextCliCore(FlextCliServiceBase):
 
     def get_session_statistics(
         self,
-    ) -> r[dict[str, t.JsonValue]]:
+    ) -> r[Mapping[str, t.JsonValue]]:
         """Get session-specific statistics using CLI data types.
 
         Returns:
@@ -1142,7 +1142,7 @@ class FlextCliCore(FlextCliServiceBase):
                 consequence="Statistics collection will fail",
                 source="flext-cli/src/flext_cli/core.py",
             )
-            return r[dict[str, t.JsonValue]].fail(
+            return r[Mapping[str, t.JsonValue]].fail(
                 c.Cli.ErrorMessages.NO_ACTIVE_SESSION,
             )
 
@@ -1194,7 +1194,7 @@ class FlextCliCore(FlextCliServiceBase):
                 source="flext-cli/src/flext_cli/core.py",
             )
 
-            return r[dict[str, t.JsonValue]].ok(stats_dict)
+            return r[Mapping[str, t.JsonValue]].ok(stats_dict)
 
         except Exception as e:
             FlextLogger(__name__).exception(
@@ -1205,7 +1205,7 @@ class FlextCliCore(FlextCliServiceBase):
                 consequence="Statistics unavailable",
                 source="flext-cli/src/flext_cli/core.py",
             )
-            return r[dict[str, t.JsonValue]].fail(
+            return r[Mapping[str, t.JsonValue]].fail(
                 c.Cli.CoreServiceLogMessages.SESSION_STATS_COLLECTION_FAILED.format(
                     error=e,
                 ),
@@ -1218,7 +1218,7 @@ class FlextCliCore(FlextCliServiceBase):
     @override
     @FlextDecorators.log_operation("cli_core_health_check")
     @FlextDecorators.track_performance()
-    def execute(self) -> r[dict[str, t.JsonValue]]:
+    def execute(self) -> r[Mapping[str, t.JsonValue]]:
         """Execute CLI service operations.
 
         decorators automatically:
@@ -1262,7 +1262,7 @@ class FlextCliCore(FlextCliServiceBase):
                     consequence="Service execution will fail",
                     source="flext-cli/src/flext_cli/core.py",
                 )
-                return r[dict[str, t.JsonValue]].fail(
+                return r[Mapping[str, t.JsonValue]].fail(
                     c.Cli.ErrorMessages.COMMAND_LISTING_FAILED.format(
                         error="No commands registered",
                     ),
@@ -1295,7 +1295,7 @@ class FlextCliCore(FlextCliServiceBase):
                 source="flext-cli/src/flext_cli/core.py",
             )
 
-            return r[dict[str, t.JsonValue]].ok(status_dict)
+            return r[Mapping[str, t.JsonValue]].ok(status_dict)
 
         except Exception as e:
             FlextLogger(__name__).exception(
@@ -1307,7 +1307,7 @@ class FlextCliCore(FlextCliServiceBase):
                 severity="critical",
                 source="flext-cli/src/flext_cli/core.py",
             )
-            return r[dict[str, t.JsonValue]].fail(
+            return r[Mapping[str, t.JsonValue]].fail(
                 c.Cli.CoreServiceLogMessages.SERVICE_EXECUTION_FAILED.format(
                     error=e,
                 ),
@@ -1318,7 +1318,7 @@ class FlextCliCore(FlextCliServiceBase):
         command_name: str,
         user_id: str | None = None,
         **context_data: t.JsonValue,
-    ) -> r[dict[str, t.JsonValue]]:
+    ) -> r[Mapping[str, t.JsonValue]]:
         """Execute CLI command with automatic context enrichment (Phase 1 pattern).
 
         Demonstrates the new execute_with_context_enrichment() pattern from flext-core
@@ -1388,9 +1388,9 @@ class FlextCliCore(FlextCliServiceBase):
 
         # model_dump() already returns dict with JSON-compatible values
         result_dict: dict[str, t.JsonValue] = result_model.model_dump()
-        return r[dict[str, t.JsonValue]].ok(result_dict)
+        return r[Mapping[str, t.JsonValue]].ok(result_dict)
 
-    def health_check(self) -> r[dict[str, t.JsonValue]]:
+    def health_check(self) -> r[Mapping[str, t.JsonValue]]:
         """Perform health check on the CLI service.
 
         Returns:
@@ -1398,7 +1398,7 @@ class FlextCliCore(FlextCliServiceBase):
 
         """
         try:
-            return r[dict[str, t.JsonValue]].ok({
+            return r[Mapping[str, t.JsonValue]].ok({
                 c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.HEALTHY.value,
                 c.Cli.CoreServiceDictKeys.COMMANDS_COUNT: len(
                     self._commands,
@@ -1407,11 +1407,11 @@ class FlextCliCore(FlextCliServiceBase):
                 c.Cli.DictKeys.TIMESTAMP: FlextCliUtilities.generate("timestamp"),
             })
         except Exception as e:
-            return r[dict[str, t.JsonValue]].fail(
+            return r[Mapping[str, t.JsonValue]].fail(
                 c.Cli.ErrorMessages.CLI_EXECUTION_ERROR.format(error=e),
             )
 
-    def get_config(self) -> r[dict[str, t.JsonValue]]:
+    def get_config(self) -> r[Mapping[str, t.JsonValue]]:
         """Get current service configuration.
 
         Returns:
@@ -1422,12 +1422,12 @@ class FlextCliCore(FlextCliServiceBase):
             # Type narrowing: self._cli_config is dict[str, t.JsonValue] - return as JsonDict
             # Fast-fail if config is empty - no fallback
             if not self._cli_config:
-                return r[dict[str, t.JsonValue]].fail(
+                return r[Mapping[str, t.JsonValue]].fail(
                     c.Cli.ErrorMessages.CONFIG_NOT_INITIALIZED,
                 )
-            return r[dict[str, t.JsonValue]].ok(self._cli_config)
+            return r[Mapping[str, t.JsonValue]].ok(self._cli_config)
         except Exception as e:
-            return r[dict[str, t.JsonValue]].fail(
+            return r[Mapping[str, t.JsonValue]].fail(
                 c.Cli.ErrorMessages.CONFIG_RETRIEVAL_FAILED.format(error=e),
             )
 

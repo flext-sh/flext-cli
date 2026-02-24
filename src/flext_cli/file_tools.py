@@ -10,7 +10,7 @@ import os
 import shutil
 import tempfile
 import zipfile
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from pathlib import Path
 from typing import TextIO
 
@@ -57,7 +57,7 @@ class FlextCliFileTools:
     @staticmethod
     def _detect_format_from_extension(
         file_path: str | Path,
-        supported_formats: dict[str, dict[str, list[str]]],
+        supported_formats: Mapping[str, Mapping[str, list[str]]],
     ) -> r[str]:
         ext = (
             Path(file_path)
@@ -66,11 +66,11 @@ class FlextCliFileTools:
         )
         for fmt_name, fmt_info in supported_formats.items():
             if (
-                FlextRuntime.is_dict_like(fmt_info)
+                u.is_dict_like(fmt_info)
                 and c.Cli.FileIODefaults.FORMAT_EXTENSIONS_KEY in fmt_info
             ):
                 exts = fmt_info[c.Cli.FileIODefaults.FORMAT_EXTENSIONS_KEY]
-                if FlextRuntime.is_list_like(exts) and ext in exts:
+                if u.is_list_like(exts) and ext in exts:
                     return r[str].ok(fmt_name)
         return r[str].fail(
             c.Cli.FileErrorMessages.UNSUPPORTED_FORMAT_GENERIC.format(extension=ext)
@@ -83,7 +83,7 @@ class FlextCliFileTools:
     ) -> t.JsonValue:
         with Path(file_path).open(encoding=c.Cli.Utilities.DEFAULT_ENCODING) as f:
             loaded: t.JsonValue = loader(f)
-        if FlextRuntime.is_dict_like(loaded):
+        if u.is_dict_like(loaded):
             loaded_dict: dict[str, t.JsonValue] = dict(loaded)
             return u.transform(loaded_dict, to_json=True).map_or(loaded_dict)
         return loaded
@@ -120,7 +120,7 @@ class FlextCliFileTools:
             return list(csv.reader(f))
 
     @staticmethod
-    def _read_csv_dict_rows(file_path: Path) -> list[dict[str, str]]:
+    def _read_csv_dict_rows(file_path: Path) -> list[Mapping[str, str]]:
         with file_path.open(encoding=c.Cli.Utilities.DEFAULT_ENCODING, newline="") as f:
             return list(csv.DictReader(f))
 
@@ -238,7 +238,7 @@ class FlextCliFileTools:
         )
 
     @staticmethod
-    def read_csv_file_with_headers(file_path: str | Path) -> r[list[dict[str, str]]]:
+    def read_csv_file_with_headers(file_path: str | Path) -> r[list[Mapping[str, str]]]:
         path = Path(file_path)
         return FlextCliFileTools._execute_file_operation(
             lambda: FlextCliFileTools._read_csv_dict_rows(path),

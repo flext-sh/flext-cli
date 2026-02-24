@@ -6,6 +6,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Mapping
+
 import importlib
 import json
 import os
@@ -15,6 +17,7 @@ from typing import Annotated, ClassVar, Self
 
 import yaml
 from flext_core import (
+    u,
     FlextContainer,
     FlextLogger,
     FlextRuntime,
@@ -286,7 +289,7 @@ class FlextCliSettings(FlextSettings):
                 em.FAILED_LOAD_CONFIG_FROM_FILE.format(file=config_file, error=e)
             )
 
-    def execute_service(self) -> r[dict[str, t.JsonValue]]:
+    def execute_service(self) -> r[Mapping[str, t.JsonValue]]:
         """Execute config as service operation."""
         config_dict = u.transform(self.model_dump(), to_json=True).map_or(
             self.model_dump()
@@ -298,7 +301,7 @@ class FlextCliSettings(FlextSettings):
             "version": c.Cli.CliGlobalDefaults.DEFAULT_VERSION_STRING,
             "config": config_dict,
         }
-        return r[dict[str, t.JsonValue]].ok(result_dict)
+        return r[Mapping[str, t.JsonValue]].ok(result_dict)
 
     _COMPUTED: ClassVar[set[str]] = {
         "auto_output_format",
@@ -329,7 +332,7 @@ class FlextCliSettings(FlextSettings):
 
     def validate_cli_overrides(
         self, **overrides: t.JsonValue
-    ) -> r[dict[str, t.JsonValue]]:
+    ) -> r[Mapping[str, t.JsonValue]]:
         """Validate CLI overrides without applying them."""
         em = c.Cli.ErrorMessages
         try:
@@ -345,31 +348,31 @@ class FlextCliSettings(FlextSettings):
                     _ = test_cfg.model_validate(test_cfg.model_dump())
                     valid[k] = (
                         u.transform(v, to_json=True).map_or(v)
-                        if FlextRuntime.is_dict_like(v)
+                        if u.is_dict_like(v)
                         else v
                     )
                 except Exception as e:
                     errors.append(em.INVALID_VALUE_FOR_FIELD.format(field=k, error=e))
             if errors:
-                return r[dict[str, t.JsonValue]].fail(
+                return r[Mapping[str, t.JsonValue]].fail(
                     em.VALIDATION_ERRORS.format(errors="; ".join(errors))
                 )
-            return r[dict[str, t.JsonValue]].ok(dict(valid))
+            return r[Mapping[str, t.JsonValue]].ok(dict(valid))
         except Exception as e:
-            return r[dict[str, t.JsonValue]].fail(f"Validation failed: {e}")
+            return r[Mapping[str, t.JsonValue]].fail(f"Validation failed: {e}")
 
-    def load_config(self) -> r[dict[str, t.JsonValue]]:
+    def load_config(self) -> r[Mapping[str, t.JsonValue]]:
         """Load CLI configuration — implements CliConfigProvider protocol."""
         try:
             raw = self.model_dump()
             config_dict = u.transform(raw, to_json=True).map_or(raw)
-            return r[dict[str, t.JsonValue]].ok(config_dict)
+            return r[Mapping[str, t.JsonValue]].ok(config_dict)
         except Exception as e:
-            return r[dict[str, t.JsonValue]].fail(
+            return r[Mapping[str, t.JsonValue]].fail(
                 c.Cli.ErrorMessages.CONFIG_LOAD_FAILED_MSG.format(error=e)
             )
 
-    def save_config(self, config: dict[str, t.JsonValue]) -> r[bool]:
+    def save_config(self, config: Mapping[str, t.JsonValue]) -> r[bool]:
         """Save CLI configuration — implements CliConfigProvider protocol."""
         try:
             model_fields = set(type(self).model_fields.keys())

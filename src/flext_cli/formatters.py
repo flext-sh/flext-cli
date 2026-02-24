@@ -10,6 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from io import StringIO
 
 from flext_core import FlextRuntime, r
@@ -65,9 +66,9 @@ class FlextCliFormatters:
         # Use Rich directly (formatters.py is ONE OF TWO files that may import Rich)
         self.console = Console()
 
-    def execute(self) -> r[dict[str, t.JsonValue]]:
+    def execute(self) -> r[Mapping[str, t.JsonValue]]:
         """Execute service - required by FlextService."""
-        return r[dict[str, t.JsonValue]].ok({
+        return r[Mapping[str, t.JsonValue]].ok({
             c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.OPERATIONAL.value,
             c.Cli.DictKeys.SERVICE: c.Cli.Services.FORMATTERS,
         })
@@ -106,7 +107,7 @@ class FlextCliFormatters:
 
     @staticmethod
     def create_table(
-        data: dict[str, t.JsonValue] | None = None,
+        data: Mapping[str, t.JsonValue] | None = None,
         headers: list[str] | None = None,
         title: str | None = None,
     ) -> r[RichTable]:

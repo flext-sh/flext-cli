@@ -102,9 +102,9 @@ class FlextCliModels(FlextModels):
         # APENAS declarar modelos CLI-ESPECÍFICOS que estendem as bases
 
         @staticmethod
-        def execute() -> r[dict[str, t.JsonValue]]:
+        def execute() -> r[Mapping[str, t.JsonValue]]:
             """Execute a no-op command returning an empty result."""
-            return r[dict[str, t.JsonValue]].ok({})
+            return r[Mapping[str, t.JsonValue]].ok({})
 
         class TableConfig(FlextModels.Value):
             """Table display configuration for tabulate extending Value via inheritance.
@@ -548,7 +548,7 @@ class FlextCliModels(FlextModels):
                 description="Current working directory",
             )
 
-            env: Mapping[str, str] = Field(
+            env: dict[str, str] = Field(
                 default_factory=dict,
                 description="Environment variables",
             )
@@ -1020,7 +1020,7 @@ class FlextCliModels(FlextModels):
             python_version: str = Field(default="")
             os_name: str = Field(default="")
             os_version: str = Field(default="")
-            variables: Mapping[str, str] = Field(default_factory=dict)
+            variables: dict[str, str] = Field(default_factory=dict)
 
         class SystemInfo(FlextModels.Value):
             """System information for debug outpuFlextCliTypes.
@@ -1648,8 +1648,8 @@ class FlextCliModels(FlextModels):
 
             @staticmethod
             def _create_real_annotations(
-                annotations: dict[str, type],
-            ) -> dict[str, type]:
+                annotations: Mapping[str, type],
+            ) -> Mapping[str, type]:
                 """Create real type annotations for Typer flag detection."""
 
                 # models.py cannot use utilities - use direct iteration instead
@@ -1695,10 +1695,10 @@ class FlextCliModels(FlextModels):
 
             def _collect_field_data(
                 self,
-                model_fields: dict[str, t.JsonValue],
+                model_fields: Mapping[str, t.JsonValue],
             ) -> tuple[
-                dict[str, type],
-                dict[str, t.JsonValue],
+                Mapping[str, type],
+                Mapping[str, t.JsonValue],
                 set[str],
             ]:
                 """Collect annotations, defaults and factory fields from model fields.
@@ -1757,8 +1757,8 @@ class FlextCliModels(FlextModels):
 
             def _build_signature_parts(
                 self,
-                annotations: dict[str, type],
-                defaults: dict[str, t.JsonValue],
+                annotations: Mapping[str, type],
+                defaults: Mapping[str, t.JsonValue],
                 fields_with_factory: set[str],
             ) -> str:
                 """Build function signature string from field data.
@@ -1832,7 +1832,7 @@ class FlextCliModels(FlextModels):
             def _execute_command_wrapper(
                 self,
                 sig_parts: str,
-                annotations: dict[str, type],
+                annotations: Mapping[str, type],
             ) -> p.Cli.CliCommandWrapper:
                 """Execute dynamic function creation and return command wrapper.
 
@@ -2228,7 +2228,7 @@ class FlextCliModels(FlextModels):
             def extract_base_props(
                 field_name: str,
                 field_info: FieldInfo | t.JsonValue,
-            ) -> dict[str, t.JsonValue]:
+            ) -> Mapping[str, t.JsonValue]:
                 """Extract base properties from field info."""
                 annotation = getattr(field_info, "annotation", None)
                 return {
@@ -2240,7 +2240,7 @@ class FlextCliModels(FlextModels):
 
             @staticmethod
             def merge_types_into_props(
-                props: dict[str, t.JsonValue],
+                props: Mapping[str, t.JsonValue],
                 types: Mapping[str, type | str],
             ) -> None:
                 """Merge types mapping into properties dict."""
@@ -2261,7 +2261,7 @@ class FlextCliModels(FlextModels):
 
             @staticmethod
             def merge_field_info_dict(
-                props: dict[str, t.JsonValue],
+                props: Mapping[str, t.JsonValue],
                 field_info: FieldInfo | t.JsonValue,
             ) -> None:
                 """Merge field_info dict attributes into props."""
@@ -2284,7 +2284,7 @@ class FlextCliModels(FlextModels):
             @staticmethod
             def process_metadata_list(
                 metadata_attr: Sequence[object],
-            ) -> dict[str, t.JsonValue]:
+            ) -> Mapping[str, t.JsonValue]:
                 """Process metadata list into dict."""
                 result: dict[str, t.JsonValue] = {}
                 for item in metadata_attr:
@@ -2315,7 +2315,7 @@ class FlextCliModels(FlextModels):
 
             @staticmethod
             def merge_metadata_attr(
-                props: dict[str, t.JsonValue],
+                props: Mapping[str, t.JsonValue],
                 field_info: FieldInfo | t.JsonValue,
             ) -> None:
                 """Merge metadata attribute into props."""
@@ -2338,7 +2338,7 @@ class FlextCliModels(FlextModels):
 
             @staticmethod
             def merge_json_schema_extra(
-                props: dict[str, t.JsonValue],
+                props: Mapping[str, t.JsonValue],
                 field_info: FieldInfo | t.JsonValue,
             ) -> None:
                 """Merge json_schema_extra into props metadata."""
@@ -2369,7 +2369,7 @@ class FlextCliModels(FlextModels):
                 field_name: str,
                 field_info: FieldInfo | t.JsonValue,
                 types: Mapping[str, type | str] | None = None,
-            ) -> FlextResult[dict[str, t.JsonValue]]:
+            ) -> FlextResult[Mapping[str, t.JsonValue]]:
                 """Extract properties from Pydantic field info."""
                 try:
                     props = FlextCliModels.Cli.CliModelConverter.extract_base_props(
@@ -2395,7 +2395,7 @@ class FlextCliModels(FlextModels):
                         )
                     return FlextResult.ok(props)
                 except Exception as e:
-                    return FlextResult[dict[str, t.JsonValue]].fail(
+                    return FlextResult[Mapping[str, t.JsonValue]].fail(
                         f"Extraction failed: {e}",
                     )
 
@@ -2495,10 +2495,10 @@ class FlextCliModels(FlextModels):
                     FieldInfo
                     | t.JsonValue
                     | Mapping[str, t.JsonValue]
-                    | dict[str, t.JsonValue]
-                    | dict[
+                    | Mapping[str, t.JsonValue]
+                    | Mapping[
                         str,
-                        type | str | bool | list[t.JsonValue] | dict[str, t.JsonValue],
+                        type | str | bool | list[t.JsonValue] | Mapping[str, t.JsonValue],
                     ]
                 ),
                 data: Mapping[str, t.JsonValue] | None = None,
@@ -2506,7 +2506,7 @@ class FlextCliModels(FlextModels):
                 """Validate field data against field info."""
                 try:
                     if _has_items(field_info):
-                        field_data: Mapping[str, object] = {
+                        field_data: dict[str, object] = {
                             str(k): v for k, v in field_info.items()
                         }
                         return FlextCliModels.Cli.CliModelConverter.validate_dict_field_data(

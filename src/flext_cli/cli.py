@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import logging
 import shutil
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
 from typing import IO, Annotated, ClassVar, Literal, overload
 
@@ -250,7 +250,7 @@ class FlextCliCli:
         return self._create_group_cli_decorator(name, help_text)
 
     def _build_bool_value(
-        self, kwargs: dict[str, t.JsonValue], key: str, *, default: bool = False
+        self, kwargs: Mapping[str, t.JsonValue], key: str, *, default: bool = False
     ) -> bool:
         val = u.mapper().get(kwargs, key)
         if val is None or val == "":
@@ -258,7 +258,7 @@ class FlextCliCli:
         return u.Parser.convert(val, bool, default)
 
     def _build_str_value(
-        self, kwargs: dict[str, t.JsonValue], key: str, default: str = ""
+        self, kwargs: Mapping[str, t.JsonValue], key: str, default: str = ""
     ) -> str:
         val = u.mapper().get(kwargs, key)
         if val is None or val == "":
@@ -267,7 +267,7 @@ class FlextCliCli:
 
     def _build_typed_value(
         self,
-        kwargs: dict[str, t.JsonValue],
+        kwargs: Mapping[str, t.JsonValue],
         key: str,
         type_name: Literal["bool", "str"],
         default: t.JsonValue,
@@ -296,7 +296,7 @@ class FlextCliCli:
         return self._to_json_value(type_hint_build)
 
     def _build_option_config_from_kwargs(
-        self, kwargs: dict[str, t.JsonValue]
+        self, kwargs: Mapping[str, t.JsonValue]
     ) -> m.Cli.OptionConfig:
         return m.Cli.OptionConfig(
             default=u.mapper().get(kwargs, "default"),
@@ -488,7 +488,7 @@ class FlextCliCli:
 
     @staticmethod
     def _build_config_getters(
-        kwargs: dict[str, t.JsonValue],
+        kwargs: Mapping[str, t.JsonValue],
     ) -> tuple[Callable[[str, bool], bool], Callable[[str, str], str]]:
         def get_bool_val(k: str, default: bool = False) -> bool:  # noqa: FBT001, FBT002
             val = u.mapper().get(kwargs, k)
@@ -505,7 +505,7 @@ class FlextCliCli:
         return (get_bool_val, get_str_val)
 
     @staticmethod
-    def _build_confirm_config(kwargs: dict[str, t.JsonValue]) -> m.Cli.ConfirmConfig:
+    def _build_confirm_config(kwargs: Mapping[str, t.JsonValue]) -> m.Cli.ConfirmConfig:
         get_bool_val, get_str_val = FlextCliCli._build_config_getters(kwargs)
         return m.Cli.ConfirmConfig(
             default=get_bool_val("default", False),
@@ -518,7 +518,7 @@ class FlextCliCli:
         )
 
     @staticmethod
-    def _build_prompt_config(kwargs: dict[str, t.JsonValue]) -> m.Cli.PromptConfig:
+    def _build_prompt_config(kwargs: Mapping[str, t.JsonValue]) -> m.Cli.PromptConfig:
         get_bool_val, get_str_val = FlextCliCli._build_config_getters(kwargs)
         value_proc_val = u.mapper().get(kwargs, "value_proc")
         return m.Cli.PromptConfig(
@@ -537,7 +537,7 @@ class FlextCliCli:
 
     @staticmethod
     def _build_confirm_config_from_kwargs(
-        kwargs: dict[str, t.JsonValue],
+        kwargs: Mapping[str, t.JsonValue],
     ) -> m.Cli.ConfirmConfig:
         return FlextCliCli._build_confirm_config(kwargs)
 
@@ -571,7 +571,7 @@ class FlextCliCli:
 
     @staticmethod
     def _build_prompt_config_from_kwargs(
-        kwargs: dict[str, t.JsonValue],
+        kwargs: Mapping[str, t.JsonValue],
     ) -> m.Cli.PromptConfig:
         return FlextCliCli._build_prompt_config(kwargs)
 
@@ -608,7 +608,7 @@ class FlextCliCli:
     def create_cli_runner(
         self,
         charset: str = c.Cli.Utilities.DEFAULT_ENCODING,
-        env: dict[str, str] | None = None,
+        env: Mapping[str, str] | None = None,
         *,
         echo_stdin: bool = False,
     ) -> r[CliRunner]:
@@ -663,9 +663,9 @@ class FlextCliCli:
         ).build()
 
     @staticmethod
-    def execute() -> r[dict[str, t.JsonValue]]:
+    def execute() -> r[Mapping[str, t.JsonValue]]:
         """Execute the CLI."""
-        return r[dict[str, t.JsonValue]].ok({
+        return r[Mapping[str, t.JsonValue]].ok({
             c.Cli.DictKeys.SERVICE: c.Cli.FLEXT_CLI,
             c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.OPERATIONAL.value,
         })

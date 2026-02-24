@@ -23,7 +23,7 @@ type CliValue = (
     | float
     | bool
     | list[str]
-    | dict[str, str | int | float | bool | list[str]]
+    | Mapping[str, str | int | float | bool | list[str]]
     | None
 )
 
@@ -68,7 +68,7 @@ class FlextCliUtilities(FlextUtilities):
             items: Mapping[str, T],
             processor: Callable[[str, T], U],
             on_error: str = "fail",
-        ) -> r[dict[str, U]]:
+        ) -> r[Mapping[str, U]]:
             """Process a mapping of items with error handling."""
             errors: list[str] = []
             values: dict[str, U] = {}
@@ -77,13 +77,13 @@ class FlextCliUtilities(FlextUtilities):
                     values[key] = processor(key, value)
                 except Exception as exc:
                     if on_error == "fail":
-                        return r[dict[str, U]].fail(f"Error processing {key}: {exc}")
+                        return r[Mapping[str, U]].fail(f"Error processing {key}: {exc}")
                     if on_error == "collect":
                         errors.append(f"{key}: {exc}")
             return (
-                r[dict[str, U]].fail("; ".join(errors))
+                r[Mapping[str, U]].fail("; ".join(errors))
                 if errors
-                else r[dict[str, U]].ok(values)
+                else r[Mapping[str, U]].ok(values)
             )
 
         @staticmethod
@@ -245,7 +245,7 @@ class FlextCliUtilities(FlextUtilities):
 
             @staticmethod
             def v_req(
-                data: dict[str, CliValue] | None,
+                data: Mapping[str, CliValue] | None,
                 *,
                 fields: list[str],
             ) -> r[bool]:
@@ -267,7 +267,7 @@ class FlextCliUtilities(FlextUtilities):
 
             @staticmethod
             def v_config(
-                config: dict[str, CliValue] | None,
+                config: Mapping[str, CliValue] | None,
                 *,
                 fields: list[str],
             ) -> r[bool]:
@@ -276,7 +276,7 @@ class FlextCliUtilities(FlextUtilities):
 
             @staticmethod
             def v_step(
-                step: dict[str, CliValue] | None,
+                step: Mapping[str, CliValue] | None,
             ) -> r[bool]:
                 """Validate a pipeline step."""
                 if step is None:
@@ -504,7 +504,7 @@ class FlextCliUtilities(FlextUtilities):
                 def parse_kwargs[E: StrEnum](
                     kwargs: Mapping[str, CliValue],
                     enum_fields: Mapping[str, type[E]],
-                ) -> r[dict[str, CliValue]]:
+                ) -> r[Mapping[str, CliValue]]:
                     """Parse keyword arguments."""
                     parsed = FlextUtilities.mapper().to_dict(kwargs)
                     errors: list[str] = []
@@ -522,9 +522,9 @@ class FlextCliUtilities(FlextUtilities):
                             case _:
                                 continue
                     return (
-                        r[dict[str, CliValue]].fail(f"Invalid: {errors}")
+                        r[Mapping[str, CliValue]].fail(f"Invalid: {errors}")
                         if errors
-                        else r[dict[str, CliValue]].ok(parsed)
+                        else r[Mapping[str, CliValue]].ok(parsed)
                     )
 
             class Model:

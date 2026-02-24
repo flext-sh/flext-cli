@@ -10,6 +10,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Mapping
+
 from flext_core import FlextDecorators, FlextMixins, r
 
 from flext_cli.protocols import p
@@ -93,14 +95,14 @@ class FlextCliMixins(FlextMixins):
 
         @staticmethod
         def validate_pipeline_step(
-            step: dict[str, t.JsonValue] | None,
+            step: Mapping[str, t.JsonValue] | None,
         ) -> r[bool]:
             """Validate pipeline step configuration (delegates to utilities)."""
             return FlextCliUtilities.Cli.CliValidation.v_step(step)
 
         @staticmethod
         def validate_configuration_consistency(
-            config_data: dict[str, t.JsonValue] | None,
+            config_data: Mapping[str, t.JsonValue] | None,
             required_fields: list[str],
         ) -> r[bool]:
             """Validate configuration consistency (delegates to utilities)."""

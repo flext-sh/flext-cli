@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import Protocol, Self, runtime_checkable
 
@@ -35,7 +35,7 @@ class CommandHandler(Protocol):
 
 
 # Type alias for command entry dict
-CommandEntry = dict[str, str | CommandHandler]
+CommandEntry = Mapping[str, str | CommandHandler]
 
 
 @dataclass
@@ -44,7 +44,7 @@ class CommandGroup:
 
     name: str
     description: str = ""
-    commands: dict[str, CommandEntry] = field(default_factory=dict)
+    commands: Mapping[str, CommandEntry] = field(default_factory=dict)
 
 
 class FlextCliCommands(FlextCliServiceBase):
@@ -93,7 +93,7 @@ class FlextCliCommands(FlextCliServiceBase):
         """Return CLI description."""
         return self._description
 
-    def execute(self) -> r[dict[str, t.JsonValue]]:
+    def execute(self) -> r[Mapping[str, t.JsonValue]]:
         """Execute commands service - returns service status.
 
         Business Rule:
@@ -105,7 +105,7 @@ class FlextCliCommands(FlextCliServiceBase):
             r[dict]: Service status with commands count.
 
         """
-        return r[dict[str, t.JsonValue]].ok({
+        return r[Mapping[str, t.JsonValue]].ok({
             "app_name": c.Cli.FLEXT_CLI,
             "is_initialized": True,
             "commands_count": len(self._commands),
@@ -220,7 +220,7 @@ class FlextCliCommands(FlextCliServiceBase):
             str(error_value) if error_value else "Command failed"
         )
 
-    def get_commands(self) -> dict[str, CommandEntry]:
+    def get_commands(self) -> Mapping[str, CommandEntry]:
         """Get all registered commands.
 
         Returns:
@@ -288,7 +288,7 @@ class FlextCliCommands(FlextCliServiceBase):
         self,
         name: str,
         description: str = "",
-        commands: dict[str, CommandEntry] | None = None,
+        commands: Mapping[str, CommandEntry] | None = None,
     ) -> r[CommandGroup]:
         """Create a command group.
 

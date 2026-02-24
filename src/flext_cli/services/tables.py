@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 
 from flext_core import FlextRuntime, r
 from tabulate import tabulate
@@ -101,7 +101,7 @@ class FlextCliTables(FlextCliServiceBase):
     # SERVICE EXECUTION (Required by FlextService)
     # =========================================================================
 
-    def execute(self) -> r[dict[str, t.JsonValue]]:
+    def execute(self) -> r[Mapping[str, t.JsonValue]]:
         """Execute table service - returns success indicator.
 
         Business Rule:
@@ -113,7 +113,7 @@ class FlextCliTables(FlextCliServiceBase):
             r[dict[str, t.JsonValue]]: Success result.
 
         """
-        return r[dict[str, t.JsonValue]].ok({"status": "table_service_ready"})
+        return r[Mapping[str, t.JsonValue]].ok({"status": "table_service_ready"})
 
     # =========================================================================
     # TABLE CREATION
@@ -225,7 +225,7 @@ class FlextCliTables(FlextCliServiceBase):
     ) -> r[str | Sequence[str]]:
         """Prepare headers based on data type."""
         data_list = list(data)
-        if data_list and FlextRuntime.is_list_like(headers):
+        if data_list and u.is_list_like(headers):
             return r[str | Sequence[str]].ok(
                 FlextCliConstants.Cli.TableFormats.KEYS,
             )
@@ -295,7 +295,7 @@ class FlextCliTables(FlextCliServiceBase):
         """
         try:
             # Use u.process to convert TABLE_FORMATS to list
-            def convert_format(name: str, desc: str) -> dict[str, str]:
+            def convert_format(name: str, desc: str) -> Mapping[str, str]:
                 """Convert format to dict."""
                 return {"format": name, "description": desc}
 

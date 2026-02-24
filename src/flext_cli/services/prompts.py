@@ -48,7 +48,7 @@ class FlextCliPrompts(FlextCliServiceBase):
         data["interactive_mode"] = interactive_mode and not quiet
         data["quiet"] = quiet
         data["default_timeout"] = default_timeout
-        s[dict[str, t.JsonValue]].__init__(self, **data)
+        s[Mapping[str, t.JsonValue]].__init__(self, **data)
         self.logger.debug(
             "Initialized CLI prompts service",
             operation="__init__",
@@ -222,7 +222,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 if transform_result.is_success
                 else stats_model.model_dump()
             )
-            return r[dict[str, t.JsonValue]].ok(stats)
+            return r[Mapping[str, t.JsonValue]].ok(stats)
         except Exception as exc:  # pragma: no cover
             self.logger.exception(
                 "FAILED to collect prompt statistics - operation aborted",
@@ -236,19 +236,19 @@ class FlextCliPrompts(FlextCliServiceBase):
                 PEM.STATISTICS_COLLECTION_FAILED.format(error=exc),
             )
 
-    def execute(self) -> r[dict[str, t.JsonValue]]:
+    def execute(self) -> r[Mapping[str, t.JsonValue]]:
         try:
             self.logger.debug(
                 "Prompt service execution completed",
                 operation="execute",
                 source=SOURCE_PATH,
             )
-            return r[dict[str, t.JsonValue]].ok({})
+            return r[Mapping[str, t.JsonValue]].ok({})
         except Exception as exc:
             self._fatal(
                 "execute", "execute", exc, "Prompt service execution failed completely"
             )
-            return r[dict[str, t.JsonValue]].fail(
+            return r[Mapping[str, t.JsonValue]].fail(
                 PEM.PROMPT_SERVICE_EXECUTION_FAILED.format(error=exc),
             )
 

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
+
 import uuid
 from datetime import UTC, datetime
 
@@ -34,9 +36,7 @@ class FlextCliContext(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     command: str | None = None
     arguments: list[str] | None = Field(default_factory=list)
-    environment_variables: dict[str, t.JsonValue] | None = Field(
-        default_factory=dict
-    )
+    environment_variables: dict[str, t.JsonValue] | None = Field(default_factory=dict)
     working_directory: str | None = None
     context_metadata: dict[str, t.JsonValue] = Field(default_factory=dict)
     is_active: bool = False
@@ -75,9 +75,7 @@ class FlextCliContext(BaseModel):
             return r[bool].fail(str(e) or error_template)
 
     @staticmethod
-    def _ensure_initialized(
-        value: t.JsonValue | None, error_message: str
-    ) -> r[bool]:
+    def _ensure_initialized(value: t.JsonValue | None, error_message: str) -> r[bool]:
         """Check that a value is not None."""
         if value is None:
             return r[bool].fail(error_message)
@@ -86,10 +84,10 @@ class FlextCliContext(BaseModel):
     @staticmethod
     def _safe_dict_operation(
         operation: str,
-        dict_obj: dict[str, t.JsonValue] | None,
+        dict_obj: Mapping[str, t.JsonValue] | None,
         key: str,
         value: t.JsonValue | None = None,
-        error_messages: dict[str, str] | None = None,
+        error_messages: Mapping[str, str] | None = None,
     ) -> r[t.JsonValue | bool]:
         """Perform dict get/set with consistent error handling."""
         errors = {
@@ -121,7 +119,7 @@ class FlextCliContext(BaseModel):
         operation: str,
         list_obj: list[str] | None,
         value: str,
-        error_messages: dict[str, str] | None = None,
+        error_messages: Mapping[str, str] | None = None,
     ) -> r[bool]:
         """Perform list add/remove with consistent error handling."""
         errors = {
@@ -305,7 +303,7 @@ class FlextCliContext(BaseModel):
             c.Cli.ContextErrorMessages.METADATA_KEY_NOT_FOUND.format(key=key),
         )
 
-    def get_context_summary(self) -> r[dict[str, t.JsonValue]]:
+    def get_context_summary(self) -> r[Mapping[str, t.JsonValue]]:
         """Get comprehensive context summary."""
         args = self.arguments or []
         env = self.environment_variables or {}
@@ -322,7 +320,7 @@ class FlextCliContext(BaseModel):
             k.METADATA_KEYS: list(self.context_metadata.keys()),
             k.METADATA_COUNT: len(self.context_metadata),
         }
-        return r[dict[str, t.JsonValue]].ok(summary)
+        return r[Mapping[str, t.JsonValue]].ok(summary)
 
     def execute(self) -> r[m.Cli.ContextExecutionResult]:
         """Execute the CLI context."""
@@ -343,7 +341,7 @@ class FlextCliContext(BaseModel):
             )
         )
 
-    def to_dict(self) -> r[dict[str, t.JsonValue]]:
+    def to_dict(self) -> r[Mapping[str, t.JsonValue]]:
         """Convert context to dictionary."""
         for field_val, err_msg in [
             (
@@ -357,7 +355,7 @@ class FlextCliContext(BaseModel):
         ]:
             check = FlextCliContext._ensure_initialized(field_val, err_msg)
             if check.is_failure:
-                return r[dict[str, t.JsonValue]].fail(check.error or "")
+                return r[Mapping[str, t.JsonValue]].fail(check.error or "")
         k = c.Cli.ContextDictKeys
         result: dict[str, t.JsonValue] = {
             k.ID: self.id,
@@ -370,7 +368,7 @@ class FlextCliContext(BaseModel):
             k.CREATED_AT: self.created_at,
             k.TIMEOUT_SECONDS: self.timeout_seconds,
         }
-        return r[dict[str, t.JsonValue]].ok(result)
+        return r[Mapping[str, t.JsonValue]].ok(result)
 
 
 __all__ = ["FlextCliContext"]
