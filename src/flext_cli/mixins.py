@@ -12,11 +12,11 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
-from flext_core import FlextDecorators, FlextMixins, r
+from flext_core import FlextDecorators, FlextMixins, FlextResult, r
 
 from flext_cli.protocols import p
 from flext_cli.typings import t
-from flext_cli.utilities import FlextCliUtilities
+from flext_cli.utilities import u
 
 
 class FlextCliMixins(FlextMixins):
@@ -24,7 +24,7 @@ class FlextCliMixins(FlextMixins):
 
     Business Rules:
     ───────────────
-    1. BusinessRulesMixin delegates to FlextCliUtilities.Validation (SRP)
+    1. BusinessRulesMixin delegates to u.Validation (SRP)
     2. CliCommandMixin composes flext-core decorators for command execution
     3. Command execution MUST use railway pattern for error handling
     4. Context management MUST include correlation ID and operation logging
@@ -58,14 +58,14 @@ class FlextCliMixins(FlextMixins):
     # =========================================================================
 
     # =========================================================================
-    # BUSINESS RULES MIXIN - Delegating facade to FlextCliUtilities.Validation
+    # BUSINESS RULES MIXIN - Delegating facade to u.Validation
     # =========================================================================
 
     class BusinessRulesMixin:
         """Mixin providing common business rule validation patterns for CLI classes.
 
         NOTE: This is a delegating facade. The actual implementation has been
-        consolidated into FlextCliUtilities.Validation to follow SRP principles.
+        consolidated into u.Validation to follow SRP principles.
         This class is maintained for backward compatibility with existing code.
         """
 
@@ -76,7 +76,7 @@ class FlextCliMixins(FlextMixins):
             operation: str,
         ) -> r[bool]:
             """Validate command execution state for operations (delegates to utilities)."""
-            return FlextCliUtilities.Cli.CliValidation.v_state(
+            return u.Cli.CliValidation.v_state(
                 current_status,
                 required=required_status,
                 name=operation,
@@ -88,7 +88,7 @@ class FlextCliMixins(FlextMixins):
             valid_states: list[str],
         ) -> r[bool]:
             """Validate session state (delegates to utilities)."""
-            return FlextCliUtilities.Cli.CliValidation.v_session(
+            return u.Cli.CliValidation.v_session(
                 current_status,
                 valid=valid_states,
             )
@@ -98,7 +98,7 @@ class FlextCliMixins(FlextMixins):
             step: Mapping[str, t.JsonValue] | None,
         ) -> r[bool]:
             """Validate pipeline step configuration (delegates to utilities)."""
-            return FlextCliUtilities.Cli.CliValidation.v_step(step)
+            return u.Cli.CliValidation.v_step(step)
 
         @staticmethod
         def validate_configuration_consistency(
@@ -106,7 +106,7 @@ class FlextCliMixins(FlextMixins):
             required_fields: list[str],
         ) -> r[bool]:
             """Validate configuration consistency (delegates to utilities)."""
-            return FlextCliUtilities.Cli.CliValidation.v_config(
+            return u.Cli.CliValidation.v_config(
                 config_data,
                 fields=required_fields,
             )
@@ -147,20 +147,18 @@ class FlextCliMixins(FlextMixins):
             # Compose decorators in correct order (outermost to innermost)
             # log_operation already handles correlation internally via track_perf=True
             # Access decorators as static methods
-            railway_decorator = FlextDecorators.railway()
             track_perf_decorator = FlextDecorators.track_performance()
             log_op_decorator = FlextDecorators.log_operation(operation, track_perf=True)
 
-            wrapped_handler = railway_decorator(
-                track_perf_decorator(
-                    log_op_decorator(handler),
-                ),
+            wrapped_handler = track_perf_decorator(
+                log_op_decorator(handler),
             )
 
-            # Execute with composed decorators
-            # Railway decorator ensures handler_result is always r[t.JsonValue]
-            # Return result directly (already correctly typed)
-            return wrapped_handler(**context_data)
+            # Execute with composed decorators and preserve original result contract
+            raw_result = wrapped_handler(**context_data)
+            if isinstance(raw_result, FlextResult):
+                return raw_result
+            return r[t.JsonValue].ok(raw_result)
 
 
 x = FlextCliMixins

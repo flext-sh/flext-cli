@@ -23,7 +23,6 @@ from flext_cli.cli_params import FlextCliCommonParams
 from flext_cli.command_builder import FlextCliCommandBuilder as FlextCommandBuilder
 from flext_cli.commands import FlextCliCommands
 from flext_cli.constants import FlextCliConstants, c
-from flext_cli.context import FlextCliContext
 from flext_cli.debug import FlextCliDebug
 from flext_cli.file_tools import FlextCliFileTools
 from flext_cli.formatters import FlextCliFormatters
@@ -56,7 +55,6 @@ __all__ = [
     "FlextCliCommands",
     "FlextCliCommonParams",
     "FlextCliConstants",
-    "FlextCliContext",
     "FlextCliCore",
     "FlextCliDebug",
     "FlextCliFileTools",

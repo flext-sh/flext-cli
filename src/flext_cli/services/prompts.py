@@ -8,8 +8,9 @@ import getpass
 import os
 import re
 from collections.abc import Mapping
+from typing import cast
 
-from flext_core import r, s
+from flext_core import r
 from pydantic import Field, PrivateAttr
 
 from flext_cli.base import FlextCliServiceBase
@@ -48,7 +49,16 @@ class FlextCliPrompts(FlextCliServiceBase):
         data["interactive_mode"] = interactive_mode and not quiet
         data["quiet"] = quiet
         data["default_timeout"] = default_timeout
-        s[Mapping[str, t.JsonValue]].__init__(self, **data)
+        super().__init__()
+        self.interactive_mode = bool(data.get("interactive_mode", True))
+        self.quiet = bool(data.get("quiet"))
+        timeout_raw = data.get("default_timeout")
+        if isinstance(timeout_raw, int):
+            self.default_timeout = timeout_raw
+        elif isinstance(timeout_raw, str) and timeout_raw.isdigit():
+            self.default_timeout = int(timeout_raw)
+        else:
+            self.default_timeout = default_timeout
         self.logger.debug(
             "Initialized CLI prompts service",
             operation="__init__",
@@ -222,7 +232,9 @@ class FlextCliPrompts(FlextCliServiceBase):
                 if transform_result.is_success
                 else stats_model.model_dump()
             )
-            return r[Mapping[str, t.JsonValue]].ok(stats)
+            return r[Mapping[str, t.JsonValue]].ok(
+                stats if isinstance(stats, dict) else {}
+            )
         except Exception as exc:  # pragma: no cover
             self.logger.exception(
                 "FAILED to collect prompt statistics - operation aborted",

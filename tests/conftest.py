@@ -10,11 +10,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-# ============================================================================
-# TEST CONSTANTS - Available in all tests via TestsCliConstants (c)
-# ============================================================================
-# All constants are in tests/constants.py (TestsCliConstants)
-# Test files import directly from conftest or use c.ClassName.CONSTANT pattern
 import builtins
 import getpass
 import json
@@ -32,23 +27,15 @@ from flext_cli import (
     FlextCli,
     FlextCliCmd,
     FlextCliCommands,
-    FlextCliConstants,
-    FlextCliContext,
     FlextCliCore,
     FlextCliDebug,
     FlextCliFileTools,
     FlextCliMixins,
-    FlextCliModels,
     FlextCliOutput,
     FlextCliPrompts,
-    FlextCliProtocols,
     FlextCliServiceBase,
     FlextCliSettings,
-    m,
 )
-
-# Import from correct locations - use TestsCli structure
-from flext_cli.typings import t
 from flext_core import (
     FlextContainer,
     FlextSettings,
@@ -56,12 +43,8 @@ from flext_core import (
 from flext_tests.docker import FlextTestsDocker
 from pydantic import TypeAdapter
 
-from tests.utilities import TestsCliUtilities
-
-from . import (
-    c,
-    u,
-)
+from . import c, m, p, t, u
+from .models import ScalarConfigRestore
 
 
 def pytest_configure(config: pytest.Config) -> None:
@@ -114,7 +97,7 @@ def _create_temp_file(
 
     """
     file_path = temp_dir / filename
-    file_path.write_text(content)
+    _ = file_path.write_text(content)
     return file_path
 
 
@@ -225,7 +208,7 @@ class CliCommandFactory(Protocol):
         command_line: str = ...,
         description: str = ...,
         status: str = ...,
-        **kwargs: object,
+        **kwargs: t.GeneralValueType,
     ) -> m.Cli.CliCommand:
         """Create CliCommand instance."""
         ...
@@ -239,7 +222,7 @@ class CliSessionFactory(Protocol):
         session_id: str = ...,
         user_id: str = ...,
         status: str = ...,
-        **kwargs: object,
+        **kwargs: t.GeneralValueType,
     ) -> m.Cli.CliSession:
         """Create CliSession instance."""
         ...
@@ -253,7 +236,7 @@ class DebugInfoFactory(Protocol):
         service: str = ...,
         level: str = ...,
         message: str = ...,
-        **kwargs: object,
+        **kwargs: t.GeneralValueType,
     ) -> m.Cli.DebugInfo:
         """Create DebugInfo instance."""
         ...
@@ -266,7 +249,7 @@ class LoggingConfigFactory(Protocol):
         self,
         log_level: str = ...,
         log_format: str = ...,
-        **kwargs: object,
+        **kwargs: t.GeneralValueType,
     ) -> m.Cli.LoggingConfig:
         """Create LoggingConfig instance."""
         ...
@@ -281,12 +264,11 @@ def cli_command_factory() -> CliCommandFactory:
         command_line: str = "flext test",
         description: str = "Test command",
         status: str = "pending",
-        **kwargs: object,
+        **kwargs: t.GeneralValueType,
     ) -> m.Cli.CliCommand:
         # No base data needed since CliCommand has extra="forbid"
 
         # Override with CLI-specific data
-        # Use object for kwargs since t.GeneralValueType may not be accessible via t
         cli_data: dict[str, t.GeneralValueType]
         cli_data = {
             "command_line": command_line,
@@ -303,28 +285,23 @@ def cli_command_factory() -> CliCommandFactory:
         }
 
         # Merge kwargs
-        raw_data = {**cli_data, **kwargs}
+        raw_data: dict[str, t.GeneralValueType] = {**cli_data, **kwargs}
         # Use u.transform for JSON conversion (from flext-core)
-        # Type narrowing: raw_data is dict, compatible with ConfigurationDict
-        if not isinstance(raw_data, dict):
-            msg = "raw_data must be dict"
-            raise TypeError(msg)
-        # ConfigurationDict = Mapping[str, t.GeneralValueType]
         typed_data: dict[str, t.GeneralValueType] = raw_data
         transform_result = u.transform(
             typed_data,
             to_json=True,
         )
         if transform_result.is_success:
-            # unwrap() returns t.GeneralValueType, narrow to dict[str, t.GeneralValueType]
+            # unwrap() returns t.GeneralValueType, narrow to dict
             unwrapped = transform_result.value
             if isinstance(unwrapped, dict):
-                final_data: dict[str, t.GeneralValueType] = dict(unwrapped.items())
+                final_data = dict(unwrapped.items())
             else:
                 final_data = raw_data
         else:
             final_data = raw_data
-        # Use model_validate which accepts dict[str, t.GeneralValueType] and validates at runtime
+        # Use model_validate which accepts dict and validates at runtime
         return m.Cli.CliCommand.model_validate(final_data)
 
     return _create
@@ -338,14 +315,13 @@ def cli_session_factory() -> CliSessionFactory:
         session_id: str = "test-session",
         user_id: str = "test_user",
         status: str = "active",
-        **kwargs: object,
+        **kwargs: t.GeneralValueType,
     ) -> m.Cli.CliSession:
         # CliSession has extra="forbid", so no extra fields allowed
         # Pydantic v2 with 'from __future__ import annotations' resolves forward refs
 
         # Add session-specific fields - only real fields that exist in CliSession
         # Include created_at and updated_at for frozen model compatibility
-
         session_data: dict[str, t.GeneralValueType] = {
             "session_id": session_id,
             "status": status,
@@ -356,18 +332,14 @@ def cli_session_factory() -> CliSessionFactory:
             "last_activity": None,
             "internal_duration_seconds": 0.0,
             "commands_executed": 0,
-            "created_at": datetime.now(UTC),
+            "created_at": datetime.now(UTC).isoformat(),
             "updated_at": None,
         }
 
         # Merge session data with kwargs
-        raw_data = {**session_data, **kwargs}
+        raw_data: dict[str, t.GeneralValueType] = {**session_data, **kwargs}
         # Use u.transform for JSON conversion
-        # Type narrowing: raw_data is dict, compatible with ConfigurationDict
-        if not isinstance(raw_data, dict):
-            msg = "raw_data must be dict"
-            raise TypeError(msg)
-        typed_data: dict[str, t.GeneralValueType] = raw_data
+        typed_data = raw_data
         transform_result = u.transform(
             typed_data,
             to_json=True,
@@ -375,13 +347,12 @@ def cli_session_factory() -> CliSessionFactory:
         if transform_result.is_success:
             unwrapped = transform_result.value
             if isinstance(unwrapped, dict):
-                final_data: dict[str, t.GeneralValueType] = dict(unwrapped.items())
+                final_data = dict(unwrapped.items())
             else:
                 final_data = raw_data
         else:
             final_data = raw_data
         # Create instance - autouse fixture should have handled model_rebuild
-        # Use model_validate which accepts dict[str, t.GeneralValueType] and validates at runtime
         return m.Cli.CliSession.model_validate(final_data)
 
     return _create
@@ -395,7 +366,7 @@ def debug_info_factory() -> DebugInfoFactory:
         service: str = "TestService",
         level: str = "INFO",
         message: str = "",
-        **kwargs: object,
+        **kwargs: t.GeneralValueType,
     ) -> m.Cli.DebugInfo:
         # DebugInfo has strict validation (extra='forbid'), use compatible fields
 
@@ -420,13 +391,8 @@ def debug_info_factory() -> DebugInfoFactory:
         filtered_kwargs = {k: v for k, v in kwargs.items() if k in valid_fields}
 
         # Merge data
-        raw_data = {**debug_data, **filtered_kwargs}
-        # Use u.transform for JSON conversion
-        # Type narrowing: raw_data is dict, compatible with ConfigurationDict
-        if not isinstance(raw_data, dict):
-            msg = "raw_data must be dict"
-            raise TypeError(msg)
-        typed_data: dict[str, t.GeneralValueType] = raw_data
+        raw_data: dict[str, t.GeneralValueType] = {**debug_data, **filtered_kwargs}
+        typed_data = raw_data
         transform_result = u.transform(
             typed_data,
             to_json=True,
@@ -434,12 +400,12 @@ def debug_info_factory() -> DebugInfoFactory:
         if transform_result.is_success:
             unwrapped = transform_result.value
             if isinstance(unwrapped, dict):
-                final_data: dict[str, t.GeneralValueType] = dict(unwrapped.items())
+                final_data = dict(unwrapped.items())
             else:
                 final_data = raw_data
         else:
             final_data = raw_data
-        # Use model_validate which accepts dict[str, t.GeneralValueType] and validates at runtime
+        # Use model_validate which accepts dict and validates at runtime
         return m.Cli.DebugInfo.model_validate(final_data)
 
     return _create
@@ -452,7 +418,7 @@ def logging_config_factory() -> LoggingConfigFactory:
     def _create(
         log_level: str = "INFO",
         log_format: str = "%(asctime)s - %(message)s",
-        **kwargs: object,
+        **kwargs: t.GeneralValueType,
     ) -> m.Cli.LoggingConfig:
         # LoggingConfig has strict validation (extra='forbid'), use compatible fields
         # Don't use FlextTestsFactories.create_config as it may have extra fields
@@ -466,13 +432,8 @@ def logging_config_factory() -> LoggingConfigFactory:
         }
 
         # Merge with kwargs
-        raw_data = {**logging_data, **kwargs}
-        # Use u.transform for JSON conversion
-        # Type narrowing: raw_data is dict, compatible with ConfigurationDict
-        if not isinstance(raw_data, dict):
-            msg = "raw_data must be dict"
-            raise TypeError(msg)
-        typed_data: dict[str, t.GeneralValueType] = raw_data
+        raw_data: dict[str, t.GeneralValueType] = {**logging_data, **kwargs}
+        typed_data = raw_data
         transform_result = u.transform(
             typed_data,
             to_json=True,
@@ -480,12 +441,12 @@ def logging_config_factory() -> LoggingConfigFactory:
         if transform_result.is_success:
             unwrapped = transform_result.value
             if isinstance(unwrapped, dict):
-                final_data: dict[str, t.GeneralValueType] = dict(unwrapped.items())
+                final_data = dict(unwrapped.items())
             else:
                 final_data = raw_data
         else:
             final_data = raw_data
-        # Use model_validate which accepts dict[str, t.GeneralValueType] and validates at runtime
+        # Use model_validate which accepts dict and validates at runtime
         return m.Cli.LoggingConfig.model_validate(final_data)
 
     return _create
@@ -519,16 +480,15 @@ _SERVICE_CLASSES: dict[str, type] = {
     "cmd": FlextCliCmd,
     "commands": FlextCliCommands,
     "config": FlextCliSettings,
-    "constants": FlextCliConstants,
-    "context": FlextCliContext,
+    "constants": c,
     "core": FlextCliCore,
     "debug": FlextCliDebug,
     "file_tools": FlextCliFileTools,
     "mixins": FlextCliMixins,
-    "models": FlextCliModels,
+    "models": m,
     "output": FlextCliOutput,
     "prompts": FlextCliPrompts,
-    "protocols": FlextCliProtocols,
+    "protocols": p,
 }
 
 
@@ -558,18 +518,18 @@ def flext_cli_config() -> FlextCliSettings:
 
 
 @pytest.fixture
-def flext_cli_constants() -> FlextCliConstants:
-    """Create FlextCliConstants instance for testing."""
-    instance = _create_service_instance(FlextCliConstants)
-    assert isinstance(instance, FlextCliConstants)
+def flext_cli_constants() -> c:
+    """Create c instance for testing."""
+    instance = _create_service_instance(c)
+    assert isinstance(instance, c)
     return instance
 
 
 @pytest.fixture
-def flext_cli_context() -> FlextCliContext:
-    """Create FlextCliContext instance for testing."""
-    instance = _create_service_instance(FlextCliContext)
-    assert isinstance(instance, FlextCliContext)
+def flext_cli_context() -> c:
+    """Create c instance for testing."""
+    instance = _create_service_instance(c)
+    assert isinstance(instance, c)
     return instance
 
 
@@ -606,10 +566,10 @@ def flext_cli_mixins() -> FlextCliMixins:
 
 
 @pytest.fixture
-def flext_cli_models() -> FlextCliModels:
-    """Create FlextCliModels instance for testing."""
-    instance = _create_service_instance(FlextCliModels)
-    assert isinstance(instance, FlextCliModels)
+def flext_cli_models() -> m:
+    """Create m instance for testing."""
+    instance = _create_service_instance(m)
+    assert isinstance(instance, m)
     return instance
 
 
@@ -630,17 +590,17 @@ def flext_cli_prompts() -> FlextCliPrompts:
 
 
 @pytest.fixture
-def flext_cli_protocols() -> FlextCliProtocols:
-    """Create FlextCliProtocols instance for testing."""
-    instance = _create_service_instance(FlextCliProtocols)
-    assert isinstance(instance, FlextCliProtocols)
+def flext_cli_protocols() -> p:
+    """Create p instance for testing."""
+    instance = _create_service_instance(p)
+    assert isinstance(instance, p)
     return instance
 
 
 @pytest.fixture
-def flext_cli_utilities() -> type[TestsCliUtilities]:
-    """Provide TestsCliUtilities class for testing."""
-    return TestsCliUtilities
+def flext_cli_utilities() -> type[u]:
+    """Provide u class for testing."""
+    return u
 
 
 # ============================================================================
@@ -763,10 +723,13 @@ def flext_test_docker(
 
     # Clean up any existing test containers at start
     try:
-        docker_manager.cleanup_dirty_containers()
-    except Exception:
-        # Ignore cleanup errors at startup
-        pass
+        _ = docker_manager.cleanup_dirty_containers()
+    except Exception as startup_err:
+        # Best-effort cleanup; log and continue so test run is not blocked
+        import logging
+        logging.getLogger(__name__).debug(
+            "Docker cleanup at startup skipped: %s", startup_err
+        )
 
     return docker_manager
 
@@ -791,7 +754,7 @@ FLEXT_CLI_PROFILE=test
 FLEXT_CLI_TIMEOUT=30
 FLEXT_CLI_RETRIES=3
 """
-    env_file.write_text(env_content)
+    _ = env_file.write_text(env_content)
 
     # Store which env vars were originally set (only track existing ones)
     original_env: dict[str, str] = {}
@@ -804,7 +767,7 @@ FLEXT_CLI_RETRIES=3
         "FLEXT_CLI_RETRIES": "3",
     }
 
-    # Use u.process to set environment variables
+    # Use u.Cli.process_mapping to set environment variables (dict + (k,v) processor)
     def set_env_var(k: str, v: str) -> None:
         """Set single environment variable."""
         # Only store if the variable was already set
@@ -812,11 +775,11 @@ FLEXT_CLI_RETRIES=3
             original_env[k] = os.environ[k]
         os.environ[k] = v
 
-    u.process(env_vars, processor=set_env_var, on_error="skip")
+    _ = u.Cli.process_mapping(env_vars, set_env_var, on_error="skip")
 
     yield env_vars
 
-    # Restore original environment using u.process
+    # Restore original environment using u.Cli.process_mapping
     def restore_env_var(k: str, _v: str) -> None:
         """Restore single environment variable."""
         if k in original_env:
@@ -824,9 +787,9 @@ FLEXT_CLI_RETRIES=3
             os.environ[k] = original_env[k]
         else:
             # Variable was not set before, remove it
-            os.environ.pop(k, None)
+            _ = os.environ.pop(k, None)
 
-    u.process(env_vars, processor=restore_env_var, on_error="skip")
+    _ = u.Cli.process_mapping(env_vars, restore_env_var, on_error="skip")
 
 
 @pytest.fixture(autouse=True)
@@ -850,16 +813,17 @@ def clean_flext_container() -> Generator[None]:
     # Get or create container instance (singleton pattern)
     container = FlextContainer()
 
-    # Store original configuration
+    # Store original configuration (ConfigMap from get_config)
     original_config = container.get_config()
 
-    # Reset container configuration
+    # Reset container configuration (configure accepts Mapping[str, ScalarValue])
     container.configure({})
 
     yield
 
-    # Restore original configuration
-    container.configure(original_config)
+    # Restore: configure() accepts Mapping[str, ScalarValue]. Use Pydantic to keep only scalar entries.
+    restore = ScalarConfigRestore.from_config_items(original_config.root)
+    container.configure(restore.root)
 
 
 # ============================================================================

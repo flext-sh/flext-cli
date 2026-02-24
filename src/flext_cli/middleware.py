@@ -14,13 +14,12 @@ from __future__ import annotations
 import time
 from collections.abc import Callable
 
-from flext_core import r
+from flext_core import p as p_core, r
 from pydantic import BaseModel
 
 from flext_cli.protocols import p
 from flext_cli.typings import t
 
-# Protocol alias for type hints (p.Cli.MiddlewareProtocol)
 FlextCliMiddlewareProtocol = p.Cli.MiddlewareProtocol
 
 
@@ -137,8 +136,8 @@ class FlextCliMiddleware:
     @staticmethod
     def compose(
         middlewares: list[FlextCliMiddlewareProtocol],
-        handler: Callable[[p.Cli.CliContextProtocol], r[t.JsonValue]],
-    ) -> Callable[[p.Cli.CliContextProtocol], r[t.JsonValue]]:
+        handler: Callable[[p.Cli.CliContextProtocol], p_core.Result[t.JsonValue]],
+    ) -> Callable[[p.Cli.CliContextProtocol], p_core.Result[t.JsonValue]]:
         """Compose middleware into single callable.
 
         Args:
@@ -160,10 +159,10 @@ class FlextCliMiddleware:
 
         """
 
-        def composed(ctx: p.Cli.CliContextProtocol) -> r[t.JsonValue]:
+        def composed(ctx: p.Cli.CliContextProtocol) -> p_core.Result[t.JsonValue]:
             def build_chain(
                 idx: int,
-            ) -> Callable[[p.Cli.CliContextProtocol], r[t.JsonValue]]:
+            ) -> Callable[[p.Cli.CliContextProtocol], p_core.Result[t.JsonValue]]:
                 if idx >= len(middlewares):
                     return handler
                 current_middleware = middlewares[idx]

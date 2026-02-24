@@ -10,8 +10,37 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Mapping
+from datetime import datetime
+
+from pydantic import RootModel, TypeAdapter, ValidationError
+
 from flext_cli.models import FlextCliModels
 from flext_tests.models import FlextTestsModels
+
+# Type for container configure() restore: only scalar values (no isinstance filter).
+type ScalarValue = str | int | float | bool | datetime | None
+
+_ScalarValueAdapter: TypeAdapter[ScalarValue] = TypeAdapter(ScalarValue)
+
+
+class ScalarConfigRestore(RootModel[dict[str, ScalarValue]]):
+    """Restore config for FlextContainer.configure(): only scalar entries.
+
+    Built from ConfigMap by validating each value with Pydantic; non-scalar
+    entries are skipped (no isinstance). Use from_config_items() to build.
+    """
+
+    @classmethod
+    def from_config_items(cls, config: Mapping[str, object]) -> ScalarConfigRestore:
+        """Build from ConfigMap or any mapping; keep only scalar values (Pydantic-validated)."""
+        result: dict[str, ScalarValue] = {}
+        for k, v in config.items():
+            try:
+                result[str(k)] = _ScalarValueAdapter.validate_python(v)
+            except ValidationError:
+                continue
+        return cls(root=result)
 
 
 class TestsFlextCliModels(FlextTestsModels, FlextCliModels):
@@ -27,8 +56,8 @@ class TestsFlextCliModels(FlextTestsModels, FlextCliModels):
     - m.Cli.* - Production domain models
     """
 
-    class Tests:
-        """Test fixture models namespace.
+    class Tests(FlextTestsModels.Tests):
+        """Test fixture models namespace (extends base Tests with CLI shortcuts).
 
         Convenience aliases for test-only shortcuts.
         Production code should use m.Cli.* pattern.
@@ -49,8 +78,7 @@ class TestsFlextCliModels(FlextTestsModels, FlextCliModels):
         PromptConfig = FlextCliModels.Cli.PromptConfig
         CmdConfig = FlextCliModels.Cli.CmdConfig
 
-        # Context and output models for testing
-        CliContext = FlextCliModels.Cli.CliContext
+        # Output models for testing
         CliOutput = FlextCliModels.Cli.CliOutput
 
         # Result models for testing
@@ -91,6 +119,8 @@ tm = TestsFlextCliModels
 m = TestsFlextCliModels
 
 __all__ = [
+    "ScalarConfigRestore",
+    "ScalarValue",
     "TestsFlextCliModels",
     "m",
     "tm",

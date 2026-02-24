@@ -17,16 +17,15 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 
 from flext_core import (
-    FlextConstants,
     FlextHandlers,
-    FlextModels,
-    FlextResult,
-    FlextTypes,
+    T,
+    m,
+    r,
+    t,
 )
-from flext_core.typings import T
 from flext_tests.base import FlextTestsServiceBase
 
-from tests.constants import TestsFlextCliConstants
+from tests.constants import c
 
 
 class TestsCliServiceBase(FlextTestsServiceBase[T]):
@@ -55,10 +54,8 @@ class TestsCliServiceBase(FlextTestsServiceBase[T]):
 
         handler_id: str
         handler_name: str | None = None
-        handler_type: FlextConstants.Cqrs.HandlerType = (
-            FlextConstants.Cqrs.HandlerType.COMMAND
-        )
-        expected_result: FlextTypes.GeneralValueType | None = None
+        handler_type: c.Cqrs.HandlerType = c.Cqrs.HandlerType.COMMAND
+        expected_result: t.GeneralValueType | None = None
         should_fail: bool = False
         error_message: str | None = None
         description: str = field(default="", compare=False)
@@ -66,11 +63,11 @@ class TestsCliServiceBase(FlextTestsServiceBase[T]):
         def create_handler(
             self,
             process_fn: Callable[
-                [FlextTypes.GeneralValueType],
-                FlextResult[FlextTypes.GeneralValueType],
+                [t.GeneralValueType],
+                r[t.GeneralValueType],
             ]
             | None = None,
-        ) -> FlextHandlers[FlextTypes.GeneralValueType, FlextTypes.GeneralValueType]:
+        ) -> FlextHandlers[t.GeneralValueType, t.GeneralValueType]:
             """Create handler instance for this test case."""
             return TestsCliServiceBase.Handlers.create_test_handler(
                 handler_id=self.handler_id,
@@ -88,19 +85,19 @@ class TestsCliServiceBase(FlextTestsServiceBase[T]):
             return [
                 TestsCliServiceBase.HandlerTestCase(
                     handler_id="success_command",
-                    handler_type=FlextConstants.Cqrs.HandlerType.COMMAND,
+                    handler_type=c.Cqrs.HandlerType.COMMAND,
                     expected_result="Handled: test",
                     description="Command handler success",
                 ),
                 TestsCliServiceBase.HandlerTestCase(
                     handler_id="success_query",
-                    handler_type=FlextConstants.Cqrs.HandlerType.QUERY,
+                    handler_type=c.Cqrs.HandlerType.QUERY,
                     expected_result="Handled: query",
                     description="Query handler success",
                 ),
                 TestsCliServiceBase.HandlerTestCase(
                     handler_id="success_event",
-                    handler_type=FlextConstants.Cqrs.HandlerType.EVENT,
+                    handler_type=c.Cqrs.HandlerType.EVENT,
                     expected_result="Handled: event",
                     description="Event handler success",
                 ),
@@ -112,14 +109,14 @@ class TestsCliServiceBase(FlextTestsServiceBase[T]):
             return [
                 TestsCliServiceBase.HandlerTestCase(
                     handler_id="fail_command",
-                    handler_type=FlextConstants.Cqrs.HandlerType.COMMAND,
+                    handler_type=c.Cqrs.HandlerType.COMMAND,
                     should_fail=True,
                     error_message="Command failed",
                     description="Command handler failure",
                 ),
                 TestsCliServiceBase.HandlerTestCase(
                     handler_id="fail_query",
-                    handler_type=FlextConstants.Cqrs.HandlerType.QUERY,
+                    handler_type=c.Cqrs.HandlerType.QUERY,
                     should_fail=True,
                     error_message="Query failed",
                     description="Query handler failure",
@@ -133,15 +130,13 @@ class TestsCliServiceBase(FlextTestsServiceBase[T]):
         def create_test_handler(
             handler_id: str,
             handler_name: str | None = None,
-            handler_type: FlextConstants.Cqrs.HandlerType = (
-                FlextConstants.Cqrs.HandlerType.COMMAND
-            ),
+            handler_type: c.Cqrs.HandlerType = (c.Cqrs.HandlerType.COMMAND),
             process_fn: Callable[
-                [FlextTypes.GeneralValueType],
-                FlextResult[FlextTypes.GeneralValueType],
+                [t.GeneralValueType],
+                r[t.GeneralValueType],
             ]
             | None = None,
-        ) -> FlextHandlers[FlextTypes.GeneralValueType, FlextTypes.GeneralValueType]:
+        ) -> FlextHandlers[t.GeneralValueType, t.GeneralValueType]:
             """Factory for creating test handlers - reduces massive boilerplate.
 
             Args:
@@ -156,7 +151,7 @@ class TestsCliServiceBase(FlextTestsServiceBase[T]):
             """
 
             class DynamicTestHandler(
-                FlextHandlers[FlextTypes.GeneralValueType, FlextTypes.GeneralValueType],
+                FlextHandlers[t.GeneralValueType, t.GeneralValueType],
             ):
                 """Dynamic test handler implementation."""
 
@@ -165,7 +160,7 @@ class TestsCliServiceBase(FlextTestsServiceBase[T]):
                         msg = "Handler ID cannot be empty"
                         raise ValueError(msg)
 
-                    config = FlextModels.Handler(
+                    config = m.Handler(
                         handler_id=handler_id,
                         handler_name=handler_name
                         or handler_id.replace("_", " ").title(),
@@ -176,17 +171,17 @@ class TestsCliServiceBase(FlextTestsServiceBase[T]):
 
                 def handle(
                     self,
-                    message: FlextTypes.GeneralValueType,
-                ) -> FlextResult[FlextTypes.GeneralValueType]:
+                    message: t.GeneralValueType,
+                ) -> r[t.GeneralValueType]:
                     """Handle message with proper error handling."""
                     try:
                         if process_fn:
                             return process_fn(message)
-                        return FlextResult[FlextTypes.GeneralValueType].ok(
+                        return r[t.GeneralValueType].ok(
                             f"Handled: {message}",
                         )
                     except Exception as e:
-                        return FlextResult[FlextTypes.GeneralValueType].fail(
+                        return r[t.GeneralValueType].fail(
                             f"Handler error: {e}",
                         )
 
@@ -195,10 +190,8 @@ class TestsCliServiceBase(FlextTestsServiceBase[T]):
         @staticmethod
         def create_simple_handler(
             handler_id: str,
-            result_value: FlextTypes.GeneralValueType = (
-                TestsFlextCliConstants.Strings.BASIC_WORD
-            ),
-        ) -> FlextHandlers[FlextTypes.GeneralValueType, FlextTypes.GeneralValueType]:
+            result_value: t.GeneralValueType = (c.Strings.BASIC_WORD),
+        ) -> FlextHandlers[t.GeneralValueType, t.GeneralValueType]:
             """Create a simple handler that always returns the same value.
 
             Args:
@@ -214,10 +207,10 @@ class TestsCliServiceBase(FlextTestsServiceBase[T]):
                 raise ValueError(msg)
 
             def always_succeed(
-                _msg: FlextTypes.GeneralValueType,
-            ) -> FlextResult[FlextTypes.GeneralValueType]:
+                _msg: t.GeneralValueType,
+            ) -> r[t.GeneralValueType]:
                 """Always return success with configured value."""
-                return FlextResult[FlextTypes.GeneralValueType].ok(result_value)
+                return r[t.GeneralValueType].ok(result_value)
 
             return TestsCliServiceBase.Handlers.create_test_handler(
                 handler_id,
@@ -227,8 +220,8 @@ class TestsCliServiceBase(FlextTestsServiceBase[T]):
         @staticmethod
         def create_failing_handler(
             handler_id: str,
-            error_message: str = TestsFlextCliConstants.TestErrors.PROCESSING_ERROR,
-        ) -> FlextHandlers[FlextTypes.GeneralValueType, FlextTypes.GeneralValueType]:
+            error_message: str = c.TestErrors.PROCESSING_ERROR,
+        ) -> FlextHandlers[t.GeneralValueType, t.GeneralValueType]:
             """Create a handler that always fails.
 
             Args:
@@ -244,13 +237,13 @@ class TestsCliServiceBase(FlextTestsServiceBase[T]):
                 raise ValueError(msg)
 
             if not error_message:
-                error_message = TestsFlextCliConstants.TestErrors.PROCESSING_ERROR
+                error_message = c.TestErrors.PROCESSING_ERROR
 
             def always_fail(
-                _msg: FlextTypes.GeneralValueType,
-            ) -> FlextResult[FlextTypes.GeneralValueType]:
+                _msg: t.GeneralValueType,
+            ) -> r[t.GeneralValueType]:
                 """Always return failure with configured error."""
-                return FlextResult[FlextTypes.GeneralValueType].fail(error_message)
+                return r[t.GeneralValueType].fail(error_message)
 
             return TestsCliServiceBase.Handlers.create_test_handler(
                 handler_id,
@@ -261,10 +254,10 @@ class TestsCliServiceBase(FlextTestsServiceBase[T]):
         def create_transform_handler(
             handler_id: str,
             transform_fn: Callable[
-                [FlextTypes.GeneralValueType],
-                FlextTypes.GeneralValueType,
+                [t.GeneralValueType],
+                t.GeneralValueType,
             ],
-        ) -> FlextHandlers[FlextTypes.GeneralValueType, FlextTypes.GeneralValueType]:
+        ) -> FlextHandlers[t.GeneralValueType, t.GeneralValueType]:
             """Create a handler that transforms messages.
 
             Args:
@@ -280,14 +273,14 @@ class TestsCliServiceBase(FlextTestsServiceBase[T]):
                 raise ValueError(msg)
 
             def transform(
-                msg: FlextTypes.GeneralValueType,
-            ) -> FlextResult[FlextTypes.GeneralValueType]:
+                msg: t.GeneralValueType,
+            ) -> r[t.GeneralValueType]:
                 """Transform message with proper error handling."""
                 try:
                     result = transform_fn(msg)
-                    return FlextResult[FlextTypes.GeneralValueType].ok(result)
+                    return r[t.GeneralValueType].ok(result)
                 except Exception as e:
-                    return FlextResult[FlextTypes.GeneralValueType].fail(
+                    return r[t.GeneralValueType].fail(
                         f"Transformation failed: {e}",
                     )
 

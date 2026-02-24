@@ -31,26 +31,6 @@ class TestsCliUtilities(FlextCliUtilities, FlextTestsUtilities):
     All utilities are available through inheritance.
     """
 
-    # Exposes from FlextCliUtilities:
-    # - Cli.CliValidation: CLI-specific validation
-    # - Cli.TypeNormalizer: Type normalization for Typer
-    # - Cli.Environment: Environment detection
-    # - Cli.ConfigOps: Configuration operations
-    # - Cli.FileOps: File operations
-    #
-    # Exposes from FlextTestsUtilities:
-    # - Result: assert_success, assert_failure, etc.
-    # - TestContext: temporary_attribute context manager
-    # - Factory: create_result, create_test_data
-    # - ModelTestHelpers, RegistryHelpers, ConfigHelpers
-
-    # Root-level aliases for convenience (matches test expectations)
-    TypeNormalizer = FlextCliUtilities.Cli.TypeNormalizer
-    CliValidation = FlextCliUtilities.Cli.CliValidation
-    Environment = FlextCliUtilities.Cli.Environment
-    ConfigOps = FlextCliUtilities.Cli.ConfigOps
-    FileOps = FlextCliUtilities.Cli.FileOps
-
 
 # Short alias per FLEXT convention
 u = TestsCliUtilities

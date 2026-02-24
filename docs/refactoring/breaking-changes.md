@@ -11,7 +11,7 @@
   - [2.1 `flext_cli.validator` - Deleted](#21-flextclivalidator-deleted)
   - [2.2 `flext_cli.auth` - Deleted](#22-flextcliauth-deleted)
   - [2.3 `flext_cli.testing` - Moved to tests/](#23-flextclitesting-moved-to-tests)
-- [3. FlextCliContext Changes](#3-flextclicontext-changes)
+- [3. FlextCliContext Removed](#3-flextclicontext-removed)
   - [Removed Methods](#removed-methods)
   - [Migration](#migration)
   - [Why This Change](#why-this-change)
@@ -212,50 +212,11 @@ from tests.fixtures.testing_utilities import (
 
 ______________________________________________________________________
 
-## 3. FlextCliContext Changes
+## 3. FlextCliContext Removed
 
-**Impact**: MEDIUM - If you used activate/deactivate
+**Impact**: MEDIUM - If you used FlextCliContext or CLI execution context
 
-### Removed Methods
-
-```python
-# ❌ REMOVED - These methods no longer exist
-context = FlextCliContext(command="test")
-context.activate()  # AttributeError: no attribute 'activate'
-context.deactivate()  # AttributeError: no attribute 'deactivate'
-context.is_active = True  # ValidationError: frozen model
-```
-
-### Migration
-
-Context is now an immutable value object:
-
-```python
-# ✅ NEW - Immutable data model
-from flext_cli import FlextCliContext
-
-context = FlextCliContext(
-    command="test",
-    arguments=["arg1", "arg2"],
-    environment_variables={"ENV": "prod"},
-    working_directory="/app"
-)
-
-# No activate/deactivate needed
-# Context is just data - create new instance to "change" it
-new_context = FlextCliContext(
-    command="test2",
-    arguments=context.arguments,  # Copy what you want
-    environment_variables=context.environment_variables
-)
-```
-
-### Why This Change
-
-- ✅ Immutability prevents bugs
-- ✅ Value object pattern is correct for context data
-- ✅ No lifecycle management needed
-- ✅ Thread-safe by default
+`FlextCliContext` was removed from the library. Remove any imports and usages. Use `m.Cli.CliContext` (Pydantic Value with `cwd`, `env`, `args`, `output_format`) if you need a simple context data model, or pass command/arguments directly where needed.
 
 ______________________________________________________________________
 
@@ -391,7 +352,6 @@ from flext_cli import (
     FlextCliPrompts,  # User input
     FlextCliCmd,  # Command execution
     FlextCliCommands,  # Command management
-    FlextCliContext,  # Context (now Value Object)
     FlextCliDebug,  # Debug utilities
     FlextCliModels,  # Data models
     FlextCliTypes,  # Type definitions

@@ -9,7 +9,7 @@
   - [Compatibility](#compatibility)
 - [Breaking Changes](#breaking-changes)
   - [1. API Method Removal (Most Common Impact)](#1-api-method-removal-most-common-impact)
-  - [2. FlextCliContext Changes](#2-flextclicontext-changes)
+  - [2. FlextCliContext Removed](#2-flextclicontext-removed)
   - [3. Service Class Instantiation](#3-service-class-instantiation)
   - [4. Test Utilities Moved](#4-test-utilities-moved)
   - [5. Removed Modules](#5-removed-modules)
@@ -73,7 +73,7 @@ v0.10.0 simplifies FLEXT-CLI by:
 - ✅ **Direct Access Pattern**: Call methods on specific services (e.g., `cli.formatters.print()`)
 - ✅ **Removed Wrappers**: No more thin wrapper methods in FlextCli
 - ✅ **Simplified Services**: Only 3-4 service classes (down from 18)
-- ✅ **Context as Value Object**: FlextCliContext is now immutable data
+- ✅ **FlextCliContext removed**: Use `m.Cli.CliContext` for simple context data or pass args directly
 - ✅ **Removed Complexity**: No unused async/threading/plugin code
 
 ### Why These Changes
@@ -170,30 +170,9 @@ yaml_str = cli.output.format_data(data, format_type="yaml")
 table_str = cli.output.format_data(data, format_type="table")
 ```
 
-### 2. FlextCliContext Changes
+### 2. FlextCliContext Removed
 
-Context is now an immutable value object (no longer a service).
-
-```python
-# ❌ v0.9.0 (OLD)
-context = FlextCliContext(command="test")
-context.activate()  # Method no longer exists
-context.is_active = True  # Can't modify
-context.deactivate()  # Method no longer exists
-
-# ✅ v0.10.0 (NEW)
-context = FlextCliContext(
-    command="test",
-    arguments=["arg1", "arg2"],
-    environment_variables={"ENV": "prod"}
-)
-# Context is immutable - create new one to "change" it
-new_context = FlextCliContext(
-    command="test2",
-    arguments=context.arguments,  # Copy what you want
-    environment_variables=context.environment_variables
-)
-```
+`FlextCliContext` was removed. Remove any imports and usages. For simple context data (cwd, env, args, output_format) use `m.Cli.CliContext` from `flext_cli.models`.
 
 ### 3. Service Class Instantiation
 
@@ -307,18 +286,13 @@ grep -r "context\.activate()" .
 grep -r "context\.deactivate()" .
 ```
 
-**Fix**: Remove these calls or rethink the logic.
+**Fix**: Remove these calls. `FlextCliContext` was removed; use `m.Cli.CliContext` or pass command/arguments directly.
 
 ```python
-# ❌ OLD
-context = FlextCliContext(command="test")
-context.activate()
-# ... use context
-context.deactivate()
-
-# ✅ NEW - Context is just data
-context = FlextCliContext(command="test")
-# ... use context (no activate/deactivate needed)
+# ✅ Use simple context data if needed
+from flext_cli.models import m
+ctx = m.Cli.CliContext(cwd="/app", env={}, args=["--verbose"])
+# Or pass command/args directly to your logic
 ```
 
 ### Step 4: Run Tests (5-15 minutes)
@@ -531,30 +505,7 @@ def process_data():
 
 ### Example 3: Context Usage
 
-```python
-# ❌ v0.9.0
-from flext_cli import FlextCliContext
-
-def run_command(command: str, args: list[str]):
-    context = FlextCliContext(command=command, arguments=args)
-    context.activate()
-
-    try:
-        # ... execute command with context
-        pass
-    finally:
-        context.deactivate()
-
-# ✅ v0.10.0
-from flext_cli import FlextCliContext
-
-def run_command(command: str, args: list[str]):
-    # Context is just immutable data
-    context = FlextCliContext(command=command, arguments=args)
-
-    # ... execute command with context
-    # No activate/deactivate needed
-```
+`FlextCliContext` was removed. Use `m.Cli.CliContext` (cwd, env, args, output_format) from `flext_cli.models` for context data, or pass command/arguments directly.
 
 ______________________________________________________________________
 

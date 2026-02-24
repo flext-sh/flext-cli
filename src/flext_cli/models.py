@@ -4,9 +4,7 @@ from __future__ import annotations
 
 import operator
 import types
-import uuid
 from collections.abc import Callable, Mapping, MutableMapping, Sequence
-from datetime import UTC, datetime
 from typing import (
     ClassVar,
     Literal,
@@ -24,6 +22,7 @@ from pydantic import (
     ConfigDict,
     Field,
     TypeAdapter,
+    ValidationError,
     computed_field,
     field_validator,
 )
@@ -55,360 +54,6 @@ class _CliLoggingData(BaseModel):
     )
 
 
-class _FlextCliContext(BaseModel):
-    """CLI execution context with type-safe operations and FlextResult patterns.
-
-    Business Rules:
-    ───────────────
-    1. Context MUST be created for each CLI command execution
-    2. Context ID MUST be unique (UUID-based generation)
-    3. Context MUST track command, arguments, and environment variables
-    4. Context timeout MUST be enforced (default 30 seconds, configurable)
-    5. Context metadata MUST be immutable after creation (frozen model)
-    6. Active context MUST be tracked for session management
-    7. Context cleanup MUST happen after command completion
-    8. Environment variables MUST be validated before use
-
-    Defined at module level (like _CliLoggingData) to allow self-references
-    in static methods. Aliased into FlextCliModels.Cli.FlextCliContext.
-    """
-
-    model_config = ConfigDict(frozen=False, validate_assignment=True)
-
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    command: str | None = None
-    arguments: list[str] | None = Field(default_factory=list)
-    environment_variables: dict[str, t.JsonValue] | None = Field(default_factory=dict)
-    working_directory: str | None = None
-    context_metadata: dict[str, t.JsonValue] = Field(default_factory=dict)
-    is_active: bool = False
-    created_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
-    timeout_seconds: int = Field(default=30)
-
-    @field_validator("id", mode="before")
-    @classmethod
-    def _ensure_id_generated(cls, v: str) -> str:
-        """Generate UUID if id is empty."""
-        return v or str(uuid.uuid4())
-
-    def activate(self) -> r[bool]:
-        """Activate the context for session management."""
-        if self.is_active:
-            return r[bool].fail("Context is already active")
-        self.is_active = True
-        return r[bool].ok(value=True)
-
-    def deactivate(self) -> r[bool]:
-        """Deactivate the context."""
-        if not self.is_active:
-            return r[bool].fail("Context is not active")
-        self.is_active = False
-        return r[bool].ok(value=True)
-
-    @staticmethod
-    def _validate_string(value: str, field_name: str, error_template: str) -> r[bool]:
-        """Validate non-empty string (inlined from u.Cli.CliValidation.v_empty)."""
-        if not value or not value.strip():
-            return r[bool].fail(error_template or f"{field_name} cannot be empty")
-        return r[bool].ok(value=True)
-
-    @staticmethod
-    def _ensure_initialized(value: t.JsonValue | None, error_message: str) -> r[bool]:
-        """Check that a value is not None."""
-        if value is None:
-            return r[bool].fail(error_message)
-        return r[bool].ok(value=True)
-
-    @staticmethod
-    def _safe_dict_operation(
-        operation: str,
-        dict_obj: MutableMapping[str, t.JsonValue] | None,
-        key: str,
-        value: t.JsonValue | None = None,
-        error_messages: Mapping[str, str] | None = None,
-    ) -> r[t.JsonValue | bool]:
-        """Perform dict get/set with consistent error handling."""
-        errors = {
-            "not_initialized": c.Cli.ContextErrorMessages.ENV_VARS_NOT_INITIALIZED,
-            "not_found": c.Cli.ContextErrorMessages.ENV_VAR_NOT_FOUND.format(name=key),
-            "failed": c.Cli.ErrorMessages.CLI_EXECUTION_ERROR.format(
-                error="Operation failed"
-            ),
-            **(error_messages or {}),
-        }
-        if dict_obj is None:
-            return r[t.JsonValue | bool].fail(errors["not_initialized"])
-        try:
-            if operation == "get":
-                if key in dict_obj:
-                    return r[t.JsonValue | bool].ok(dict_obj[key])
-                return r[t.JsonValue | bool].fail(errors["not_found"])
-            if operation == "set" and value is not None:
-                dict_obj[key] = value
-                return r[t.JsonValue | bool].ok(True)
-            return r[t.JsonValue | bool].fail(errors["failed"])
-        except Exception as e:
-            return r[t.JsonValue | bool].fail(
-                errors.get("exception", str(e)) or errors["failed"]
-            )
-
-    @staticmethod
-    def _safe_list_operation(
-        operation: str,
-        list_obj: list[str] | None,
-        value: str,
-        error_messages: Mapping[str, str] | None = None,
-    ) -> r[bool]:
-        """Perform list add/remove with consistent error handling."""
-        errors = {
-            "not_initialized": c.Cli.ContextErrorMessages.ARGUMENTS_NOT_INITIALIZED,
-            "not_found": c.Cli.ContextErrorMessages.ARGUMENT_NOT_FOUND.format(
-                argument=value
-            ),
-            "failed": c.Cli.ErrorMessages.CLI_EXECUTION_ERROR.format(
-                error="Operation failed"
-            ),
-            **(error_messages or {}),
-        }
-
-        init_check = _FlextCliContext._ensure_initialized(
-            list_obj,
-            errors["not_initialized"],
-        )
-        if init_check.is_failure:
-            return r[bool].fail(init_check.error or errors["not_initialized"])
-
-        if list_obj is None:
-            return r[bool].fail(errors["not_initialized"])
-
-        try:
-            if operation == "add":
-                return _FlextCliContext._perform_add(list_obj, value)
-
-            if operation == "remove":
-                return _FlextCliContext._perform_remove(
-                    list_obj, value, errors["not_found"]
-                )
-
-            return r[bool].fail(errors["failed"])
-        except Exception as e:
-            tmpl = errors.get("exception", "")
-            msg = (
-                tmpl.format(error=str(e))
-                if tmpl and "{error}" in tmpl
-                else (str(e) if tmpl else errors["failed"])
-            )
-            return r[bool].fail(msg)
-
-    @staticmethod
-    def _perform_add(list_obj: list[str], value: str) -> r[bool]:
-        """Perform add operation on initialized list."""
-        list_obj.append(value)
-        return r[bool].ok(value=True)
-
-    @staticmethod
-    def _perform_remove(
-        list_obj: list[str],
-        value: str,
-        not_found_error: str,
-    ) -> r[bool]:
-        """Perform remove operation on initialized list."""
-        if value in list_obj:
-            list_obj.remove(value)
-            return r[bool].ok(value=True)
-        return r[bool].fail(not_found_error)
-
-    def _validated_op(self, name: str, field: str, error: str) -> r[bool] | None:
-        """Validate string and return failure or None to continue."""
-        v = _FlextCliContext._validate_string(name, field, error)
-        return r[bool].fail(v.error or "") if v.is_failure else None
-
-    def get_environment_variable(self, name: str) -> r[str]:
-        """Get specific environment variable value."""
-        if (
-            fail := self._validated_op(
-                name, "Variable name", "Environment variable validation failed"
-            )
-        ) is not None:
-            return r[str].fail(fail.error or "")
-        result = self._safe_dict_operation(
-            "get",
-            self.environment_variables,
-            name,
-            error_messages={
-                "not_initialized": c.Cli.ContextErrorMessages.ENV_VARS_NOT_INITIALIZED,
-                "not_found": c.Cli.ContextErrorMessages.ENV_VAR_NOT_FOUND.format(
-                    name=name
-                ),
-                "exception": c.Cli.ContextErrorMessages.ENV_VAR_RETRIEVAL_FAILED.format(
-                    error="{error}"
-                ),
-            },
-        )
-        return (
-            r[str].ok(str(result.value))
-            if result.is_success
-            else r[str].fail(result.error or "")
-        )
-
-    def set_environment_variable(self, name: str, value: str) -> r[bool]:
-        """Set environment variable value."""
-        if (
-            fail := self._validated_op(
-                name, "Variable name", "Environment variable setting failed"
-            )
-        ) is not None:
-            return fail
-        result = self._safe_dict_operation(
-            "set",
-            self.environment_variables,
-            name,
-            value,
-            error_messages={
-                "not_initialized": c.Cli.ContextErrorMessages.ENV_VARS_NOT_INITIALIZED,
-                "exception": c.Cli.ContextErrorMessages.ENV_VAR_SETTING_FAILED.format(
-                    error="{error}"
-                ),
-            },
-        )
-        return (
-            r[bool].ok(value=True)
-            if result.is_success
-            else r[bool].fail(result.error or "")
-        )
-
-    def add_argument(self, argument: str) -> r[bool]:
-        """Add command line argument."""
-        if (
-            fail := self._validated_op(argument, "Argument", "Validation failed")
-        ) is not None:
-            return fail
-        return self._safe_list_operation(
-            "add",
-            self.arguments,
-            argument,
-            error_messages={
-                "not_initialized": c.Cli.ContextErrorMessages.ARGUMENTS_NOT_INITIALIZED,
-                "exception": c.Cli.ContextErrorMessages.ARGUMENT_ADDITION_FAILED.format(
-                    error="{error}"
-                ),
-            },
-        )
-
-    def remove_argument(self, argument: str) -> r[bool]:
-        """Remove command line argument."""
-        if (
-            fail := self._validated_op(argument, "Argument", "Validation failed")
-        ) is not None:
-            return fail
-        return self._safe_list_operation(
-            "remove",
-            self.arguments,
-            argument,
-            error_messages={
-                "not_initialized": c.Cli.ContextErrorMessages.ARGUMENTS_NOT_INITIALIZED,
-                "exception": c.Cli.ContextErrorMessages.ARGUMENT_REMOVAL_FAILED.format(
-                    error="{error}"
-                ),
-            },
-        )
-
-    def set_metadata(self, key: str, value: t.JsonValue) -> r[bool]:
-        """Set context metadata using CLI-specific data types."""
-        if (
-            fail := self._validated_op(key, "Metadata key", "Validation failed")
-        ) is not None:
-            return fail
-        try:
-            self.context_metadata[key] = value
-            return r[bool].ok(value=True)
-        except Exception as e:
-            return r[bool].fail(
-                c.Cli.ContextErrorMessages.METADATA_SETTING_FAILED.format(error=e),
-            )
-
-    def get_metadata(self, key: str) -> r[t.JsonValue]:
-        """Get context metadata value."""
-        if (
-            fail := self._validated_op(
-                key, "Metadata key", "Metadata validation failed"
-            )
-        ) is not None:
-            return r[t.JsonValue].fail(fail.error or "")
-        if key in self.context_metadata:
-            return r[t.JsonValue].ok(self.context_metadata[key])
-        return r[t.JsonValue].fail(
-            c.Cli.ContextErrorMessages.METADATA_KEY_NOT_FOUND.format(key=key),
-        )
-
-    def get_context_summary(self) -> r[Mapping[str, t.JsonValue]]:
-        """Get comprehensive context summary."""
-        args = self.arguments or []
-        env = self.environment_variables or {}
-        k = c.Cli.ContextDictKeys
-        summary: dict[str, t.JsonValue] = {
-            k.CONTEXT_ID: self.id,
-            k.COMMAND: self.command,
-            k.ARGUMENTS_COUNT: len(args),
-            k.ARGUMENTS: list(args),
-            k.ENVIRONMENT_VARIABLES_COUNT: len(env),
-            k.WORKING_DIRECTORY: self.working_directory,
-            k.IS_ACTIVE: self.is_active,
-            k.CREATED_AT: self.created_at,
-            k.METADATA_KEYS: list(self.context_metadata.keys()),
-            k.METADATA_COUNT: len(self.context_metadata),
-        }
-        return r[Mapping[str, t.JsonValue]].ok(summary)
-
-    def execute(self) -> r[m.Cli.ContextExecutionResult]:
-        """Execute the CLI context."""
-        init_check = _FlextCliContext._ensure_initialized(
-            self.arguments,
-            c.Cli.ContextErrorMessages.ARGUMENTS_NOT_INITIALIZED,
-        )
-        if init_check.is_failure:
-            return r[m.Cli.ContextExecutionResult].fail(init_check.error or "")
-        return r[m.Cli.ContextExecutionResult].ok(
-            m.Cli.ContextExecutionResult(
-                context_executed=True,
-                command=self.command or "",
-                arguments_count=len(self.arguments)
-                if self.arguments is not None
-                else 0,
-                timestamp=datetime.now(UTC).isoformat(),
-            )
-        )
-
-    def to_dict(self) -> r[Mapping[str, t.JsonValue]]:
-        """Convert context to dictionary."""
-        for field_val, err_msg in [
-            (
-                self.arguments,
-                c.Cli.ContextErrorMessages.ARGUMENTS_NOT_INITIALIZED,
-            ),
-            (
-                self.environment_variables,
-                c.Cli.ContextErrorMessages.ENV_VARS_NOT_INITIALIZED,
-            ),
-        ]:
-            check = _FlextCliContext._ensure_initialized(field_val, err_msg)
-            if check.is_failure:
-                return r[Mapping[str, t.JsonValue]].fail(check.error or "")
-        k = c.Cli.ContextDictKeys
-        result: dict[str, t.JsonValue] = {
-            k.ID: self.id,
-            k.COMMAND: self.command,
-            k.ARGUMENTS: list(self.arguments) if self.arguments else [],
-            k.ENVIRONMENT_VARIABLES: dict(self.environment_variables)
-            if self.environment_variables
-            else {},
-            k.WORKING_DIRECTORY: self.working_directory,
-            k.CREATED_AT: self.created_at,
-            k.TIMEOUT_SECONDS: self.timeout_seconds,
-        }
-        return r[Mapping[str, t.JsonValue]].ok(result)
-
-
 class FlextCliModels(FlextModels):
     """FlextCli models extending FlextModels.
 
@@ -436,6 +81,23 @@ class FlextCliModels(FlextModels):
         # CliLoggingData is defined at module level (_CliLoggingData) to prevent
         # Pydantic from merging field definitions with LoggingConfig
         CliLoggingData: ClassVar = _CliLoggingData
+
+        class CliExecutionMetadata(FlextModels.Value):
+            """CLI execution metadata model."""
+
+            command_name: str | None = None
+            session_id: str | None = None
+            start_time: float | None = None
+            pid: int | None = None
+            environment: str | None = None
+
+        class CliValidationResult(FlextModels.Value):
+            """CLI validation result model."""
+
+            field_name: str | None = None
+            rule_name: str | None = None
+            is_valid: bool | None = None
+            error_message: str | None = None
 
         # CRÍTICO: NÃO redeclarar classes base de flext-core (Entity, Value, AggregateRoot, etc.)
         # Elas vêm automaticamente via herança: FlextCliModels(FlextModels)
@@ -765,6 +427,9 @@ class FlextCliModels(FlextModels):
             @classmethod
             def validate_status(cls, value: str) -> str:
                 """Validate session status."""
+                if not u.is_type(value, str):
+                    msg = "session_status must be a string"
+                    raise TypeError(msg)
                 # Validate value is in allowed statuses
                 valid_statuses = c.Cli.ValidationLists.SESSION_STATUSES
                 if value not in valid_statuses:
@@ -1417,7 +1082,7 @@ class FlextCliModels(FlextModels):
             @classmethod
             def normalize_level(cls, value: str) -> str:
                 """Normalize level to uppercase."""
-                return value.upper()
+                return str(value).upper()
 
             @property
             def debug_summary(self) -> FlextCliModels.Cli.CliDebugData:
@@ -1452,8 +1117,14 @@ class FlextCliModels(FlextModels):
                     "message": self.message,
                 }
 
-                # Mask sensitive keys in system_info using direct dict access
-                system_dict = self.system_info
+                system_dict: dict[str, t.JsonValue] = {}
+                system_adapter: TypeAdapter[dict[str, t.JsonValue]] = TypeAdapter(
+                    dict[str, t.JsonValue]
+                )
+                try:
+                    system_dict = system_adapter.validate_python(self.system_info)
+                except Exception:
+                    pass
 
                 # Apply masking to system_dict (regardless of how it was obtained)
                 masked_system_dict: dict[str, t.JsonValue] = {
@@ -1466,8 +1137,14 @@ class FlextCliModels(FlextModels):
                 }
                 data["system_info"] = masked_system_dict
 
-                # Mask sensitive keys in config_info using direct dict access
-                config_dict = self.config_info
+                config_dict: dict[str, t.JsonValue] = {}
+                config_adapter: TypeAdapter[dict[str, t.JsonValue]] = TypeAdapter(
+                    dict[str, t.JsonValue]
+                )
+                try:
+                    config_dict = config_adapter.validate_python(self.config_info)
+                except Exception:
+                    pass
 
                 # Apply masking to config_dict (regardless of how it was obtained)
                 masked_config_dict: dict[str, t.JsonValue] = {
@@ -1528,15 +1205,19 @@ class FlextCliModels(FlextModels):
                 # models.py cannot use utilities - use direct dict access instead
                 # Extract field metadata from registry using direct dict access
                 field_meta = self.registry.get(self.field_name, {})
+                field_meta_getter = getattr(field_meta, "get", None)
+                if not callable(field_meta_getter):
+                    msg = "Option registry metadata must support key lookup"
+                    raise TypeError(msg)
                 # Extract option metadata from registry using direct dict access
-                help_text = str(field_meta.get("help", ""))
-                short_flag = str(field_meta.get("short", ""))
-                default_value = field_meta.get("default")
+                help_text = str(field_meta_getter("help", ""))
+                short_flag = str(field_meta_getter("short", ""))
+                default_value = field_meta_getter("default")
                 # Note: is_flag is deprecated in Typer - boolean defaults auto-enable flag behavior
 
                 # Use field_name_override if available, otherwise use field_name
                 # Registry uses KEY_FIELD_NAME_OVERRIDE to map CLI param name to field name
-                field_name_override = field_meta.get(
+                field_name_override = field_meta_getter(
                     c.Cli.CliParamsRegistry.KEY_FIELD_NAME_OVERRIDE,
                 )
                 cli_param_name: str = (
@@ -1811,10 +1492,21 @@ class FlextCliModels(FlextModels):
 
             @staticmethod
             def get_builtin_name(t: type, builtin_types: set[str]) -> str:
-                """Get builtin type name or 'str' as fallback."""
-                type_name = t.__name__
-                if type_name in builtin_types:
-                    return type_name
+                """Get configured alias name or 'str' fallback."""
+                if len(builtin_types) == 1:
+                    custom_name = next(iter(builtin_types))
+                    if custom_name not in {
+                        "str",
+                        "int",
+                        "float",
+                        "bool",
+                        "list",
+                        "dict",
+                        "tuple",
+                        "set",
+                        "bytes",
+                    }:
+                        return custom_name
                 return "str"
 
             @staticmethod
@@ -1928,10 +1620,8 @@ class FlextCliModels(FlextModels):
                         type(default_value) if default_value is not None else str
                     )
                 elif field_type_raw is object:
-                    # object type - infer from default value or use str
-                    field_type = (
-                        type(default_value) if default_value is not None else str
-                    )
+                    # object annotations are converted to str for CLI compatibility
+                    field_type = str
                 else:
                     # Has annotation - resolve type alias
                     field_type, origin = self._resolve_type_alias(field_type_raw)
@@ -2188,18 +1878,18 @@ class FlextCliModels(FlextModels):
 
                 """
                 func_body = f"""
-            kwargs = {{{", ".join(f'"{n}": {n}' for n in annotations)}}}
-            model_instance = builder_model_class(**kwargs)
-                    if builder_config is not None:
-                        for fn, v in kwargs.items():
-                            try:
-                                object.__setattr__(builder_config, fn, v)
-                            except Exception:
-                                pass
-            if callable(builder_handler):
-                return builder_handler(model_instance)
-            raise RuntimeError("builder_handler is not callable")
-        """
+    kwargs = {{{", ".join(f'"{n}": {n}' for n in annotations)}}}
+    model_instance = builder_model_class(**kwargs)
+    if builder_config is not None:
+        for fn, v in kwargs.items():
+            try:
+                object.__setattr__(builder_config, fn, v)
+            except Exception:
+                pass
+    if callable(builder_handler):
+        return builder_handler(model_instance)
+    raise RuntimeError("builder_handler is not callable")
+"""
                 func_globals = {
                     "builder_model_class": self.model_class,
                     "builder_config": self.config,
@@ -2685,19 +2375,34 @@ class FlextCliModels(FlextModels):
                     return
                 # Use dict.get() for safe metadata access
                 metadata_raw = props.get("metadata", {})
-                if not isinstance(json_schema_extra, Mapping):
-                    return
-                dict_metadata: dict[str, t.JsonValue] = (
-                    {
-                        str(k): FlextCliModels.Cli.CliModelConverter.to_json_value(v)
-                        for k, v in metadata_raw.items()
-                    }
-                    if isinstance(metadata_raw, Mapping)
-                    else {}
+                dict_adapter: TypeAdapter[dict[str, t.JsonValue]] = TypeAdapter(
+                    dict[str, t.JsonValue]
                 )
+
+                try:
+                    metadata_dict = dict_adapter.validate_python(
+                        metadata_raw, strict=True
+                    )
+                except ValidationError as exc:
+                    msg = "metadata must be Mapping"
+                    raise TypeError(msg) from exc
+
+                try:
+                    schema_dict = dict_adapter.validate_python(
+                        json_schema_extra,
+                        strict=True,
+                    )
+                except ValidationError as exc:
+                    msg = "json_schema_extra must be Mapping"
+                    raise TypeError(msg) from exc
+
+                dict_metadata: dict[str, t.JsonValue] = {
+                    str(k): FlextCliModels.Cli.CliModelConverter.to_json_value(v)
+                    for k, v in metadata_dict.items()
+                }
                 dict_schema: dict[str, t.JsonValue] = {
                     str(k): FlextCliModels.Cli.CliModelConverter.to_json_value(v)
-                    for k, v in json_schema_extra.items()
+                    for k, v in schema_dict.items()
                 }
                 dict_metadata.update(dict_schema)
                 props["metadata"] = dict_metadata
@@ -2757,12 +2462,15 @@ class FlextCliModels(FlextModels):
                     "validators",
                     "list/tuple",
                     lambda v: (
-                        (u.is_type(v, list) or u.is_type(v, tuple))
-                        and not u.is_mapping(v)
-                        and not u.is_type(v, bytes)
+                        isinstance(v, list | tuple)
+                        and not isinstance(v, Mapping | bytes)
                     ),
                 ),
-                ("metadata", "dict", lambda v: u.is_mapping(v)),
+                (
+                    "metadata",
+                    "dict",
+                    lambda v: isinstance(v, Mapping),
+                ),
             ]
 
             JSON_VALUE_ADAPTER: ClassVar[TypeAdapter[t.JsonValue]] = TypeAdapter(
@@ -2869,31 +2577,14 @@ class FlextCliModels(FlextModels):
             @staticmethod
             def _process_validators(
                 field_info: (
-                    Sequence[
-                        Callable[
-                            [t.JsonValue],
-                            t.JsonValue,
-                        ]
-                    ]
-                    | Sequence[object]
-                    | t.JsonValue
+                    Sequence[Callable[..., object]] | Sequence[object] | t.JsonValue
                 ),
-            ) -> list[
-                Callable[
-                    [t.JsonValue],
-                    t.JsonValue,
-                ]
-            ]:
+            ) -> list[Callable[..., object]]:
                 """Process validators from field info, filtering only callable validators."""
                 if not isinstance(field_info, (list, tuple, range)):
                     return []
                 # Build result list explicitly for proper type narrowing
-                result: list[
-                    Callable[
-                        [t.JsonValue],
-                        t.JsonValue,
-                    ]
-                ] = []
+                result: list[Callable[..., object]] = []
                 for item in field_info:
                     if callable(item) and not isinstance(item, type):
                         result.append(item)  # noqa: PERF401
@@ -3050,6 +2741,8 @@ class FlextCliModels(FlextModels):
 
 
 m = FlextCliModels
+CliExecutionMetadata = FlextCliModels.Cli.CliExecutionMetadata
+CliValidationResult = FlextCliModels.Cli.CliValidationResult
 
 # Pydantic forward reference resolution
 # DomainEvent is available in current flext-core
@@ -3057,4 +2750,9 @@ m = FlextCliModels
 # This is required because FlextModels.Entity has fields that reference DomainEvent
 globals()["DomainEvent"] = FlextModels.DomainEvent
 
-__all__ = ["FlextCliModels", "m"]
+__all__ = [
+    "CliExecutionMetadata",
+    "CliValidationResult",
+    "FlextCliModels",
+    "m",
+]

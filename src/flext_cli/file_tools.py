@@ -12,7 +12,7 @@ import tempfile
 import zipfile
 from collections.abc import Callable, Mapping
 from pathlib import Path
-from typing import TextIO, cast
+from typing import TextIO, TypeGuard
 
 import yaml
 from flext_core import r
@@ -20,6 +20,11 @@ from flext_core import r
 from flext_cli.constants import c
 from flext_cli.typings import t
 from flext_cli.utilities import u
+
+
+def _is_json_mapping(value: t.JsonValue) -> TypeGuard[Mapping[str, t.JsonValue]]:
+    """Narrow JsonValue to mapping for structured file load."""
+    return isinstance(value, Mapping)
 
 
 class FlextCliFileTools:
@@ -83,9 +88,8 @@ class FlextCliFileTools:
     ) -> t.JsonValue:
         with Path(file_path).open(encoding=c.Cli.Utilities.DEFAULT_ENCODING) as f:
             loaded: t.JsonValue = loader(f)
-        if isinstance(loaded, Mapping):
-            m = cast("Mapping[str, t.JsonValue]", loaded)
-            loaded_dict: dict[str, t.JsonValue] = {k: m[k] for k in m}
+        if _is_json_mapping(loaded):
+            loaded_dict: dict[str, t.JsonValue] = dict(loaded)
             return u.transform(loaded_dict, to_json=True).map_or(loaded_dict)
         return loaded
 

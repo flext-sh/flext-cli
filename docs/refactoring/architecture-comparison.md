@@ -75,7 +75,7 @@ Services (Unnecessary):
 ❌ FlextCliPrompts - Just user input (stateless)
 ❌ FlextCliDebug - Just utilities (stateless)
 ❌ FlextCliCommands - Just dict wrapper
-❌ FlextCliContext - Should be data model!
+❌ FlextCliContext - Removed (was data model)
 ❌ FlextCliTesting - Test utilities
 ... and 9 more unnecessary services
 ```
@@ -100,8 +100,7 @@ Simple Classes (Utilities - 10+):
 ✅ FlextCliCommands - Command registry
 
 Data Models (Pydantic):
-✅ FlextCliContext - Execution context
-✅ FlextCliModels.* - All data models
+✅ FlextCliModels.* - All data models (including m.Cli.CliContext for cwd/env/args)
 ✅ FlextCliSettings - Configuration
 ```
 
@@ -205,38 +204,6 @@ cli.formatters.print(table.unwrap())
 
 # Explicit, clear ownership
 ```
-
-### Example 3: Context Usage
-
-#### v0.9.0 (Old)
-
-```python
-# Context as service (mutable, with methods)
-from flext_cli import FlextCliContext
-
-context = FlextCliContext(command="test")
-context.activate()  # Service method
-context.is_active = True  # Mutable state
-# ... use context
-context.deactivate()  # Service method
-```
-
-#### v0.10.0 (New)
-
-```python
-# Context as value object (immutable, just data)
-from flext_cli import FlextCliContext
-
-context = FlextCliContext(
-    command="test",
-    arguments=["arg1"],
-    environment_variables={"ENV": "prod"}
-)
-# Immutable - no activate/deactivate needed
-# Just data, no behavior
-```
-
-______________________________________________________________________
 
 ## Service Class Patterns
 

@@ -8,17 +8,15 @@ from __future__ import annotations
 
 import inspect
 import re
+from collections.abc import Mapping
 from typing import Final, TypeVar
 
 import click
-from flext_cli import r
+from flext_cli import r, t
 from flext_cli.constants import FlextCliConstants
-from flext_cli.context import FlextCliContext
 from pydantic import BaseModel, Field
 from pydantic.fields import FieldInfo
 from pydantic_settings import BaseSettings, SettingsConfigDict
-
-from tests import t
 
 T = TypeVar("T")
 type FieldDefault = str | int | float | bool | None
@@ -26,7 +24,11 @@ type FieldKwargs = dict[str, str | int | float | bool | None]
 
 
 class ConfigFactory:
-    """Factory for creating BaseSettings configuration classes."""
+    """Factory for creating BaseSettings configuration classes.
+
+    Prefer FlextCliSettings or m.Cli.CliConfig when the structure is known;
+    use this only for dynamic or parametrized config classes in tests.
+    """
 
     @staticmethod
     def create_config(
@@ -52,7 +54,11 @@ class ConfigFactory:
 
 
 class ParamsFactory:
-    """Factory for creating BaseModel parameter classes."""
+    """Factory for creating BaseModel parameter classes.
+
+    Prefer m.Cli.CliParamsConfig or existing Pydantic models when the structure
+    is known; use this only for dynamic parametrized param classes in tests.
+    """
 
     @staticmethod
     def create_params(
@@ -121,7 +127,7 @@ class ValidationHelper:
     def extract_config_values(
         config: BaseSettings,
         field_names: list[str],
-    ) -> dict[str, t.GeneralValueType]:
+    ) -> Mapping[str, t.GeneralValueType]:
         """Extract multiple field values from config."""
         return {name: getattr(config, name) for name in field_names}
 
@@ -252,7 +258,7 @@ class FlextCliTestHelpers:
                         return r.fail(
                             f"Mismatch at position {i}: {version_part} != {info_part}",
                         )
-                elif type(info_part) is not type(version_part):
+                else:
                     return r.fail(
                         f"Type mismatch at position {i}: {type(version_part).__name__} != {type(info_part).__name__}",
                     )
@@ -290,6 +296,7 @@ class FlextCliTestHelpers:
 
                 class TestConfigProvider:
                     def __init__(self) -> None:
+                        super().__init__()
                         self.config: dict[str, t.GeneralValueType] = {}
 
                     def load_config(self) -> r[dict[str, t.GeneralValueType]]:
@@ -298,12 +305,13 @@ class FlextCliTestHelpers:
                         except Exception as e:
                             return r.fail(str(e))
 
-                    def save_config(self, config: object) -> r[bool]:
+                    def save_config(
+                        self,
+                        config: Mapping[str, t.GeneralValueType],
+                    ) -> r[bool]:
                         try:
-                            if isinstance(config, dict):
-                                self.config = config
-                                return r.ok(True)
-                            return r.fail("Config must be a dict")
+                            self.config = dict(config.items())
+                            return r.ok(True)
                         except Exception as e:
                             return r.fail(str(e))
 
@@ -328,6 +336,7 @@ class FlextCliTestHelpers:
 
                 class TestAuthenticator:
                     def __init__(self) -> None:
+                        super().__init__()
                         self.token: str | None = None
 
                     def authenticate(self, username: str, password: str) -> r[str]:
@@ -428,28 +437,6 @@ class FlextCliTestHelpers:
         def get_constants() -> type[FlextCliConstants]:
             """Get FlextCliConstants instance for testing."""
             return FlextCliConstants
-
-    class ContextFactory:
-        """Factory for creating CLI context test fixtures."""
-
-        @staticmethod
-        def create_context(
-            command: str | None = None,
-            arguments: list[str] | None = None,
-            environment_variables: dict[str, t.GeneralValueType] | None = None,
-            working_directory: str | None = None,
-        ) -> r[object]:
-            """Create a FlextCliContext instance for testing."""
-            try:
-                ctx = FlextCliContext(
-                    command=command,
-                    arguments=arguments or [],
-                    environment_variables=environment_variables or {},
-                    working_directory=working_directory,
-                )
-                return r.ok(ctx)
-            except Exception as e:
-                return r.fail(f"Failed to create context: {e!s}")
 
     class CliHelpers:
         """Helper methods for CLI testing."""

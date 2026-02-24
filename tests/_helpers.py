@@ -1,54 +1,60 @@
 """Enhanced test helpers for 100% coverage with real automated tests."""
 
+from __future__ import annotations
+
 import json
+from collections.abc import Mapping
 from datetime import UTC, datetime
-from typing import Any
 
 import pytest
 from flext_cli import FlextCliCommands
-
-# Direct imports to avoid forward reference issues
 from flext_cli.models import m
-from flext_cli.typings import FlextCliTypes as t
+from flext_cli.typings import t
 from flext_core.result import r
 
 
 # Factory functions using direct model instantiation (no forward refs)
 def create_test_cli_command(
-    **overrides: dict[str, t.GeneralValueType],
+    **overrides: t.GeneralValueType,
 ) -> m.Cli.CliCommand:
     """Factory for real CliCommand instances with sensible defaults."""
     now = datetime.now(UTC)
-    defaults = {
+    defaults: dict[str, object] = {
         "unique_id": f"test-cmd-{now.timestamp()}",
         "name": "test_command",
         "description": "Test command description",
         "status": "pending",
         "created_at": now,
     }
-    defaults.update(overrides)
-    # Use model_construct to avoid DomainEvent forward reference issue during model_rebuild
-    cmd = m.Cli.CliCommand.model_construct(**defaults)
+    # Normalize test-only keys to model fields
+    if "command_id" in overrides:
+        defaults["unique_id"] = overrides["command_id"]
+    if "arguments" in overrides:
+        defaults["args"] = overrides["arguments"]
+    merged: dict[str, object] = {**defaults, **overrides}
+    # Remove aliases so model_construct does not receive unknown fields
+    _ = merged.pop("command_id", None)
+    _ = merged.pop("arguments", None)
+    cmd = m.Cli.CliCommand.model_construct(_fields_set=None, **merged)
     # Add command_id as an alias to unique_id for backward compatibility with tests
     object.__setattr__(cmd, "command_id", cmd.unique_id)
     return cmd
 
 
 def create_test_cli_session(
-    **overrides: dict[str, t.GeneralValueType],
+    **overrides: t.GeneralValueType,
 ) -> m.Cli.CliSession:
     """Factory for real CliSession instances with sensible defaults."""
     now = datetime.now(UTC)
-    defaults = {
+    defaults: dict[str, object] = {
         "session_id": f"test-session-{now.timestamp()}",
         "status": "active",
         "created_at": now,
     }
-    defaults.update(overrides)
-    # Use model_construct to avoid DomainEvent forward reference issue during model_rebuild
-    session = m.Cli.CliSession.model_construct(**defaults)
+    merged = {**defaults, **overrides}
+    session = m.Cli.CliSession.model_construct(_fields_set=None, **merged)
     # Add environment as an alias for backward compatibility with tests
-    if not hasattr(session, "environment") or session.environment is None:
+    if getattr(session, "environment", None) is None:
         object.__setattr__(session, "environment", overrides.get("environment", "test"))
     return session
 
@@ -65,16 +71,15 @@ class AuthHelpers:
 
     @staticmethod
     def create_test_credentials(
-        **overrides: dict[str, t.GeneralValueType],
-    ) -> dict[str, t.GeneralValueType]:
+        **overrides: t.GeneralValueType,
+    ) -> Mapping[str, t.GeneralValueType]:
         """Create test credentials dict."""
-        defaults = {
+        defaults: dict[str, t.GeneralValueType] = {
             "username": "test_user",
             "password": "test_pass",
             "token": AuthHelpers.create_test_token(),
         }
-        defaults.update(overrides)
-        return defaults
+        return {**defaults, **overrides}
 
     @staticmethod
     def create_auth_test_data() -> dict[str, t.GeneralValueType]:
@@ -117,8 +122,8 @@ class CommandHelpers:
 
     @staticmethod
     def create_command_model(
-        **overrides: dict[str, t.GeneralValueType],
-    ) -> "r[m.Cli.CliCommand]":
+        **overrides: t.GeneralValueType,
+    ) -> r[m.Cli.CliCommand]:
         """Create a command model wrapped in FlextResult.
 
         Args:
@@ -133,17 +138,16 @@ class CommandHelpers:
 
     @staticmethod
     def create_test_command_data(
-        **overrides: dict[str, t.GeneralValueType],
-    ) -> dict[str, t.GeneralValueType]:
+        **overrides: t.GeneralValueType,
+    ) -> Mapping[str, t.GeneralValueType]:
         """Create test command data."""
-        defaults = {
+        defaults: dict[str, t.GeneralValueType] = {
             "name": "test_command",
             "args": ["--test"],
             "timeout": 30.0,
             "working_dir": "/tmp",
         }
-        defaults.update(overrides)
-        return defaults
+        return {**defaults, **overrides}
 
     @staticmethod
     def create_command_execution_test_data() -> dict[str, t.GeneralValueType]:
@@ -169,7 +173,7 @@ class CommandHelpers:
     @staticmethod
     def simulate_command_execution(
         command_data: dict[str, t.GeneralValueType],
-    ) -> dict[str, t.GeneralValueType]:
+    ) -> Mapping[str, t.GeneralValueType]:
         """Simulate command execution result."""
         return {
             "success": True,
@@ -184,17 +188,16 @@ class OutputHelpers:
 
     @staticmethod
     def create_test_output_data(
-        **overrides: dict[str, t.GeneralValueType],
-    ) -> dict[str, t.GeneralValueType]:
+        **overrides: t.GeneralValueType,
+    ) -> Mapping[str, t.GeneralValueType]:
         """Create test output data."""
-        defaults = {
+        defaults: dict[str, t.GeneralValueType] = {
             "format": "json",
             "data": {"test": "data"},
             "headers": ["col1", "col2"],
             "rows": [["val1", "val2"]],
         }
-        defaults.update(overrides)
-        return defaults
+        return {**defaults, **overrides}
 
     @staticmethod
     def create_format_test_data() -> dict[str, t.GeneralValueType]:
@@ -236,7 +239,7 @@ class CommandsFactory:
 
     @staticmethod
     def create_basic_command(
-        **overrides: dict[str, t.GeneralValueType],
+        **overrides: t.GeneralValueType,
     ) -> m.Cli.CliCommand:
         """Create basic test command."""
         return create_test_cli_command(**overrides)
@@ -282,7 +285,10 @@ class CommandsFactory:
     ) -> r[bool]:
         """Register a simple test command that returns a fixed value."""
 
-        def handler() -> r[str]:
+        def handler(
+            *args: t.JsonValue,
+            **kwargs: t.JsonValue,
+        ) -> r[t.JsonValue]:
             return r.ok(result_value)
 
         return commands.register_command(command_name, handler)
@@ -294,9 +300,11 @@ class CommandsFactory:
     ) -> r[bool]:
         """Register a command that accepts arguments."""
 
-        def handler(*args: str, **kwargs: t.GeneralValueType) -> str:
-            # Return formatted string with args count (expected by test)
-            return f"args: {len(args)}"
+        def handler(
+            *args: t.JsonValue,
+            **kwargs: t.JsonValue,
+        ) -> r[t.JsonValue]:
+            return r.ok(f"args: {len(args)}")
 
         return commands.register_command(command_name, handler)
 
@@ -308,22 +316,25 @@ class CommandsFactory:
     ) -> r[bool]:
         """Register a command that fails with a specific error."""
 
-        def handler() -> r[Any]:
-            return r.error(error_message)
+        def handler(
+            *args: t.JsonValue,
+            **kwargs: t.JsonValue,
+        ) -> r[t.JsonValue]:
+            return r.fail(error_message)
 
         return commands.register_command(command_name, handler)
 
 
 # Aliases for backward compatibility
 def create_real_cli_command(
-    **overrides: dict[str, t.GeneralValueType],
+    **overrides: t.GeneralValueType,
 ) -> m.Cli.CliCommand:
     """Alias for create_test_cli_command - creates a real Pydantic model instance."""
     return create_test_cli_command(**overrides)
 
 
 def create_real_cli_session(
-    **overrides: dict[str, t.GeneralValueType],
+    **overrides: t.GeneralValueType,
 ) -> m.Cli.CliSession:
     """Alias for create_test_cli_session - creates a real Pydantic model instance."""
     return create_test_cli_session(**overrides)

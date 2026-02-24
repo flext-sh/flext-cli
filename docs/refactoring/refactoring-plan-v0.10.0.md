@@ -493,6 +493,8 @@ class FlextCliFileTools:
 
 ### Phase 3: Fix FlextCliContext
 
+**Note**: FlextCliContext was later removed from the library. Use `m.Cli.CliContext` for context data where needed. The following is kept for historical reference.
+
 **Before**:
 
 ```python

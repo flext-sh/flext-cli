@@ -11,6 +11,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
+from typing import cast
 
 from flext_core import r
 from tabulate import tabulate
@@ -122,7 +123,7 @@ class FlextCliTables(FlextCliServiceBase):
     def create_table(
         data: t.Cli.TabularData,
         config: m.Cli.TableConfig | None = None,
-        **config_kwargs: t.JsonValue,
+        **config_kwargs: t.ScalarValue,
     ) -> r[str]:
         """Create formatted ASCII table using tabulate with Pydantic config.
 
@@ -155,7 +156,11 @@ class FlextCliTables(FlextCliServiceBase):
             model_class=m.Cli.TableConfig,
             explicit_options=config,
             default_factory=m.Cli.TableConfig,
-            **config_kwargs,
+            **{
+                k: v
+                for k, v in config_kwargs.items()
+                if isinstance(v, (str, int, float, bool, type(None)))
+            },
         )
         if config_result.is_failure:
             # Python 3.13: Direct attribute access - more elegant and type-safe
@@ -179,9 +184,31 @@ class FlextCliTables(FlextCliServiceBase):
 
         # Format table using tabulate
         try:
+            normalized_data: list[t.GeneralValueType]
+            if u.is_dict_like(data):
+                normalized_data = [data]
+            else:
+                normalized_data = list(data)
+
+            headers_value = headers_result.value
+            if (
+                normalized_data
+                and not u.is_type(headers_value, str)
+                and u.is_dict_like(normalized_data[0])
+            ):
+                table_rows = [list(row.values()) for row in normalized_data]
+                formatted_table = tabulate(
+                    table_rows,
+                    headers=list(headers_value),
+                    tablefmt=config_final.table_format,
+                    numalign=config_final.numalign,
+                    stralign=config_final.stralign,
+                )
+                return r[str].ok(formatted_table)
+
             formatted_table = tabulate(
-                data,
-                headers=headers_result.value,
+                normalized_data,
+                headers=headers_value,
                 tablefmt=config_final.table_format,
                 numalign=config_final.numalign,
                 stralign=config_final.stralign,
@@ -224,10 +251,15 @@ class FlextCliTables(FlextCliServiceBase):
     ) -> r[str | Sequence[str]]:
         """Prepare headers based on data type."""
         data_list = list(data)
-        if data_list and u.is_list_like(headers):
-            return r[str | Sequence[str]].ok(
-                FlextCliConstants.Cli.TableFormats.KEYS,
-            )
+        if not data_list:
+            return r[str | Sequence[str]].ok(headers)
+
+        if u.is_type(headers, str):
+            return r[str | Sequence[str]].ok(headers)
+
+        first_row = data_list[0]
+        if u.is_dict_like(first_row):
+            return r[str | Sequence[str]].ok(list(headers))
 
         return r[str | Sequence[str]].ok(headers)
 
@@ -237,11 +269,29 @@ class FlextCliTables(FlextCliServiceBase):
         headers: Sequence[str],
     ) -> int:
         """Calculate number of columns based on headers and data type."""
+        if u.is_type(headers, str):
+            if headers == FlextCliConstants.Cli.TableFormats.KEYS and u.is_dict_like(
+                data
+            ):
+                keys_getter = getattr(data, "keys", None)
+                if callable(keys_getter):
+                    return len(list(keys_getter()))
+            data_list = list(data)
+            if data_list and u.is_list_like(data_list[0]):
+                return len(data_list[0])
+            return 0
         if headers:
             return len(headers)
+        if u.is_dict_like(data):
+            keys_getter = getattr(data, "keys", None)
+            if callable(keys_getter):
+                return len(list(keys_getter()))
         data_list = list(data)
         if data_list:
-            return len(data_list[0])
+            first_row = data_list[0]
+            if u.is_dict_like(first_row):
+                return len(list(first_row.keys()))
+            return len(first_row)
         return 0
 
     def _create_table_string(

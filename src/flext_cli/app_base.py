@@ -16,7 +16,7 @@ import pathlib
 import sys
 import traceback
 from abc import ABC, abstractmethod
-from typing import ClassVar
+from typing import ClassVar, TypeVar, cast
 
 import typer
 from flext_core import FlextLogger, e, r
@@ -25,8 +25,10 @@ from flext_cli.cli import FlextCliCli, UsageError as ClickUsageError
 from flext_cli.services.output import FlextCliOutput
 from flext_cli.settings import FlextCliSettings
 
+SettingsT = TypeVar("SettingsT", bound=FlextCliSettings)
 
-class FlextCliAppBase(ABC):
+
+class FlextCliAppBase[SettingsT: FlextCliSettings](ABC):
     """Base class for CLI applications using the FLEXT pattern.
 
     Fornece inicialização, execução e tratamento de erros consistentes para CLIs
@@ -37,14 +39,14 @@ class FlextCliAppBase(ABC):
     # ClassVars to override in subclass
     app_name: ClassVar[str]
     app_help: ClassVar[str]
-    config_class: ClassVar[type[FlextCliSettings]]
+    config_class: type[SettingsT]
 
     # Instance attributes
     logger: FlextLogger
     _output: FlextCliOutput
     _cli: FlextCliCli
     _app: typer.Typer
-    _config: FlextCliSettings
+    _config: SettingsT
 
     def __init__(self) -> None:
         """Initialize CLI with FlextCli infrastructure."""
@@ -52,7 +54,7 @@ class FlextCliAppBase(ABC):
         self.logger = FlextLogger(__name__)
         self._output = FlextCliOutput()
         self._cli = FlextCliCli()
-        self._config = self.config_class.get_instance()
+        self._config = cast(SettingsT, self.config_class.get_instance())
 
         self.logger.debug(
             "CLI configuration loaded",

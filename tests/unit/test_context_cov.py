@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from flext_core import r
 
-from flext_cli.context import FlextCliContext
+from flext_cli.models import FlextCliContext
 
 
 def test_safe_dict_operation_returns_failure_on_exception() -> None:

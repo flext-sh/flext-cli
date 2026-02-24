@@ -10,7 +10,7 @@ import secrets
 import threading
 from abc import ABC
 from collections.abc import Callable, Mapping, Sequence
-from typing import ClassVar
+from typing import ClassVar, cast
 
 from flext_core import (
     FlextContainer as container,
@@ -27,7 +27,6 @@ from flext_cli.cli import FlextCliCli
 from flext_cli.cli_params import FlextCliCommonParams
 from flext_cli.commands import FlextCliCommands
 from flext_cli.constants import c
-from flext_cli.context import FlextCliContext
 from flext_cli.debug import FlextCliDebug
 from flext_cli.file_tools import FlextCliFileTools
 from flext_cli.formatters import FlextCliFormatters
@@ -80,9 +79,6 @@ class FlextCli:
 
     class Config(FlextCliSettings):
         """CLI config."""
-
-    class Context(FlextCliContext):
-        """CLI context."""
 
     class Core(FlextCliCore):
         """CLI core."""
@@ -330,8 +326,9 @@ class FlextCli:
             raise TypeError(msg)
         # Store in appropriate registry
         registry = self._commands if entity_type == "command" else self._groups
-        registry[entity_name] = decorated_func
-        return decorated_func
+        registered_command: p.Cli.CliRegisteredCommand = cast("p.Cli.CliRegisteredCommand", decorated_func)
+        registry[entity_name] = registered_command
+        return registered_command
 
     def _entity_decorator(
         self,
@@ -391,12 +388,17 @@ class FlextCli:
         """Create a formatted ASCII table."""
         if data is None:
             return r[str].fail("Table data cannot be None")
-        table_data: list[dict[str, t.JsonValue]] = (
-            [dict(data)] if runtime.is_dict_like(data) else list(data)
+        if runtime.is_dict_like(data):
+            table_data: list[Mapping[str, t.JsonValue]] = [
+                dict(data) if isinstance(data, dict) else {}
+            ]
+        else:
+            table_data = list(data) if isinstance(data, (list, tuple)) else []
+        table_config = m.Cli.TableConfig(
+            headers=headers or "keys",
+            table_format="simple",
         )
-        return FlextCliTables.create_table(
-            table_data, headers=headers or "keys", table_format="simple"
-        )
+        return FlextCliTables.create_table(table_data, config=table_config)
 
     def print_table(self, table_str: str) -> r[bool]:
         """Print a formatted table string."""

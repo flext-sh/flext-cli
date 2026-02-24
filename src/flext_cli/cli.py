@@ -16,7 +16,7 @@ import logging
 import shutil
 from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
-from typing import IO, Annotated, ClassVar, Literal, cast, overload
+from typing import IO, Annotated, Any, ClassVar, Literal, overload
 
 import click
 import typer
@@ -78,7 +78,6 @@ class FlextCliCli:
         self,
         val: t.JsonValue | None,
         type_name: Literal["str"],
-        *,
         default: str | None = None,
     ) -> str | None: ...
 
@@ -87,25 +86,50 @@ class FlextCliCli:
         self,
         val: t.JsonValue | None,
         type_name: Literal["bool"],
-        *,
         default: bool | None = None,
     ) -> bool | None: ...
+
+    @overload
+    def _extract_typed_value(
+        self,
+        val: t.JsonValue | None,
+        type_name: Literal["dict"],
+        default: t.JsonValue | None = None,
+    ) -> t.JsonValue | None: ...
 
     def _extract_typed_value(
         self,
         val: t.JsonValue | None,
-        type_name: Literal["str", "bool"],
-        *,
+        type_name: str,
         default: t.JsonValue | None = None,
     ) -> t.JsonValue | None:
         if val is None:
             return default
         if type_name == "str":
-            default_value = u.Parser.convert(default, str, "")
-            converted = u.Parser.convert(val, str, default_value)
+            str_default_value = u.Parser.convert(default, str, "")
+            converted = u.Parser.convert(val, str, str_default_value)
             return converted or (default if default is not None else None)
-        default_value = u.Parser.convert(default, bool, False)
-        return u.Parser.convert(val, bool, default_value)
+        if type_name == "bool":
+            bool_default_value = u.Parser.convert(default, bool, False)
+            return u.Parser.convert(val, bool, bool_default_value)
+        if type_name == "dict":
+            dict_adapter: TypeAdapter[dict[str, t.JsonValue]] = TypeAdapter(
+                dict[str, t.JsonValue]
+            )
+            try:
+                dict_val = dict_adapter.validate_python(val)
+                return {str(k): self._to_json_value(v) for k, v in dict_val.items()}
+            except ValidationError:
+                pass
+            try:
+                dict_default = dict_adapter.validate_python(default)
+                return {str(k): self._to_json_value(v) for k, v in dict_default.items()}
+            except ValidationError:
+                pass
+            if default is None:
+                return {}
+            return u.Parser.convert(default, str, "")
+        return default
 
     def _get_log_level_value(self, config: FlextCliSettings) -> int:
         if config.debug or config.trace:
@@ -160,17 +184,21 @@ class FlextCliCli:
 
         def get_bool(k: str) -> bool | None:
             value = u.get(filtered_params, k)
-            match value:
-                case None | "":
-                    return None
-            return self._extract_typed_value(cast("t.JsonValue | None", value), "bool")
+            if value is None or value == "":
+                return None
+            typed_value = self._extract_typed_value(str(value), "bool")
+            if typed_value is None:
+                return None
+            return bool(typed_value)
 
         def get_str(k: str) -> str | None:
             value = u.get(filtered_params, k)
-            match value:
-                case None | "":
-                    return None
-            return self._extract_typed_value(cast("t.JsonValue | None", value), "str")
+            if value is None or value == "":
+                return None
+            typed_value = self._extract_typed_value(str(value), "str")
+            if typed_value is None:
+                return None
+            return str(typed_value)
 
         result = FlextCliCommonParams.apply_to_config(
             config,
@@ -302,15 +330,17 @@ class FlextCliCli:
     def _build_option_config_from_kwargs(
         self, kwargs: Mapping[str, t.JsonValue]
     ) -> m.Cli.OptionConfig:
+        default_raw = u.get(kwargs, "default")
+        default_value = (
+            self._to_json_value(default_raw) if default_raw is not None else None
+        )
+        type_hint_raw = u.get(kwargs, "type_hint")
+        type_hint_value = (
+            self._to_json_value(type_hint_raw) if type_hint_raw is not None else None
+        )
         return m.Cli.OptionConfig(
-            default=u.get(kwargs, "default")
-            if u.get(kwargs, "default") is not None
-            else None,
-            type_hint=self._normalize_type_hint(
-                u.get(kwargs, "type_hint")
-                if u.get(kwargs, "type_hint") is not None
-                else None
-            ),
+            default=default_value,
+            type_hint=self._normalize_type_hint(type_hint_value),
             required=bool(self._build_typed_value(kwargs, "required", "bool", False)),
             help_text=str(self._build_typed_value(kwargs, "help_text", "str", "")),
             multiple=bool(self._build_typed_value(kwargs, "multiple", "bool", False)),
@@ -375,7 +405,15 @@ class FlextCliCli:
                 "ensure_default": c.Cli.FileDefaults.DEFAULT_DATETIME_FORMATS,
             },
         )
-        return click.DateTime(formats=[str(fmt) for fmt in formats_values])
+        match formats_values:
+            case Sequence() as sequence_values:
+                return click.DateTime(formats=[str(fmt) for fmt in sequence_values])
+            case _:
+                return click.DateTime(
+                    formats=[
+                        str(fmt) for fmt in c.Cli.FileDefaults.DEFAULT_DATETIME_FORMATS
+                    ]
+                )
 
     @classmethod
     def _tuple_type(
@@ -533,9 +571,19 @@ class FlextCliCli:
     def _build_prompt_config(kwargs: Mapping[str, t.JsonValue]) -> m.Cli.PromptConfig:
         get_bool_val, get_str_val = FlextCliCli._build_config_getters(kwargs)
         value_proc_val = u.get(kwargs, "value_proc")
+        default_raw = u.get(kwargs, "default")
+        type_hint_raw = u.get(kwargs, "type_hint")
+        default_value = (
+            FlextCliCli._to_json_value(default_raw) if default_raw is not None else None
+        )
+        type_hint_value = (
+            FlextCliCli._to_json_value(type_hint_raw)
+            if type_hint_raw is not None
+            else None
+        )
         return m.Cli.PromptConfig(
-            default=u.get(kwargs, "default"),
-            type_hint=u.get(kwargs, "type_hint"),
+            default=default_value,
+            type_hint=type_hint_value,
             value_proc=value_proc_val if callable(value_proc_val) else None,
             prompt_suffix=get_str_val(
                 "prompt_suffix", c.Cli.UIDefaults.DEFAULT_PROMPT_SUFFIX
@@ -590,13 +638,15 @@ class FlextCliCli:
     @staticmethod
     def prompt(
         text: str,
-        config: p.Cli.PromptConfigProtocol | None = None,
+        config: m.Cli.PromptConfig | None = None,
         **kwargs: t.JsonValue,
     ) -> r[t.JsonValue]:
         """Prompt user for input."""
         if config is None:
             config_instance = FlextCliCli._build_prompt_config_from_kwargs(kwargs)
             config = config_instance
+        if config is None:
+            return r[t.JsonValue].fail("Prompt config could not be created")
         try:
             prompt_result = typer.prompt(
                 text=text,
@@ -604,7 +654,7 @@ class FlextCliCli:
                 hide_input=config.hide_input,
                 confirmation_prompt=config.confirmation_prompt,
                 type=config.type_hint,
-                value_proc=config.value_proc,
+                value_proc=config.value_proc if callable(config.value_proc) else None,
                 prompt_suffix=config.prompt_suffix,
                 show_default=config.show_default,
                 err=config.err,
@@ -659,6 +709,15 @@ class FlextCliCli:
         config: FlextCliSettings | None = None,
     ) -> p.Cli.CliCommandFunction:
         """Create a command from a Pydantic model."""
+
+        try:
+            is_valid_model = issubclass(model_class, BaseModel)
+        except TypeError as exc:
+            msg = f"model_class must be a BaseModel subclass: {exc}"
+            raise TypeError(msg) from exc
+        if not is_valid_model:
+            msg = "model_class must be a BaseModel subclass"
+            raise TypeError(msg)
 
         def normalized_handler(model: BaseModel) -> t.JsonValue:
             result = handler(model)

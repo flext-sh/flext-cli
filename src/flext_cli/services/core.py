@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from datetime import UTC, datetime
-from typing import override
+from typing import TypeGuard, override
 
 from flext_core import (
     FlextDecorators,
@@ -29,6 +29,11 @@ from flext_cli.protocols import p
 from flext_cli.services.output import FlextCliOutput
 from flext_cli.typings import t
 from flext_cli.utilities import FlextCliUtilities
+
+
+def _is_json_dict(val: t.JsonValue) -> TypeGuard[dict[str, t.JsonValue]]:
+    """Narrow JsonValue to dict for config merge result."""
+    return isinstance(val, dict)
 
 
 class FlextCliCore(FlextCliServiceBase):
@@ -106,12 +111,12 @@ class FlextCliCore(FlextCliServiceBase):
 
     # Private attributes for internal state management
     # These are set during __init__ setup
-    _cli_config: Mapping[str, t.JsonValue]
-    _commands: Mapping[str, Mapping[str, t.JsonValue]]
-    _plugins: Mapping[str, p.Cli.CliPlugin]
-    _sessions: Mapping[str, t.JsonValue]
+    _cli_config: dict[str, t.JsonValue]
+    _commands: dict[str, Mapping[str, t.JsonValue]]
+    _plugins: dict[str, p.Cli.CliPlugin]
+    _sessions: dict[str, t.JsonValue]
     _session_active: bool
-    _session_config: Mapping[str, t.JsonValue]
+    _session_config: dict[str, t.JsonValue]
     _session_start_time: str
 
     type CliValue = (
@@ -173,7 +178,7 @@ class FlextCliCore(FlextCliServiceBase):
         setattr(self, "_cache_stats", self._CacheStats())
 
         # Type narrowing: is_dict_like ensures config is dict-like
-        config_dict: dict[str, t.JsonValue] | None = (
+        config_dict: Mapping[str, t.JsonValue] | None = (
             config if u.is_type(config, "mapping") else None
         )
         FlextLogger(__name__).debug(
@@ -325,7 +330,7 @@ class FlextCliCore(FlextCliServiceBase):
             )
 
         # Use mapper().get() to check command existence
-        command_check = u.mapper().get(self._commands, name)
+        command_check = u.Mapper.get(self._commands, name)
         if command_check is None:
             FlextLogger(__name__).warning(
                 "Command not found in registry",
@@ -366,11 +371,13 @@ class FlextCliCore(FlextCliServiceBase):
                 )
 
                 # Create snapshot from command definition
-                snapshot_config: dict[str, t.JsonValue] = {
+                snapshot_config: dict[str, t.ConfigMapValue] = {
                     str(key): value for key, value in command_def.items()
                 }
                 return r[m.Configuration].ok(
-                    m.Configuration(config=m.Dict(root=snapshot_config)),
+                    m.Configuration(
+                        config=m.Dict(root=snapshot_config),
+                    ),
                 )
 
             FlextLogger(__name__).error(
@@ -642,10 +649,16 @@ class FlextCliCore(FlextCliServiceBase):
             # Use build() DSL: ensure dict → transform to JSON
             # Reuse to_dict_json helper from output module
             transformed_config = FlextCliOutput.to_dict_json(valid_config)
+            existing_config_guard: dict[str, t.GuardInputValue] = {
+                str(k): v for k, v in existing_config.items()
+            }
+            transformed_config_guard: dict[str, t.GuardInputValue] = {
+                str(k): v for k, v in transformed_config.items()
+            }
             # Use FlextCliUtilities.merge for intelligent deep merge
             merge_result = FlextCliUtilities.merge(
-                existing_config,
-                transformed_config,
+                existing_config_guard,
+                transformed_config_guard,
                 strategy="deep",  # Deep merge preserves nested structures
             )
             if merge_result.is_failure:
@@ -657,7 +670,9 @@ class FlextCliCore(FlextCliServiceBase):
             # Business Rule: Frozen model attributes MUST be set using setattr()
             # Architecture: Pydantic frozen models require setattr() for attribute mutation
             # Python 3.13: Direct attribute access - unwrap() provides safe access
-            merged_config: dict[str, t.JsonValue] = merge_result.value or {}
+            merged_config: dict[str, t.JsonValue] = (
+                merge_result.value if _is_json_dict(merge_result.value) else {}
+            )
             # merged_config is guaranteed to be not None by FlextCliUtilities.val default
             setattr(self, "_cli_config", merged_config)
 
@@ -732,8 +747,8 @@ class FlextCliCore(FlextCliServiceBase):
             return r[bool].fail(c.Cli.ErrorMessages.CONFIG_NOT_DICT)
         # Reuse to_dict_json helper from output module
         # Python 3.13: to_dict_json() always returns dict, isinstance check is unnecessary
-        validated_config_input: dict[str, t.JsonValue] = FlextCliOutput.to_dict_json(
-            config
+        validated_config_input: dict[str, t.JsonValue] = dict(
+            FlextCliOutput.to_dict_json(config)
         )
         config_result = self._validate_config_input(validated_config_input)
         if config_result.is_failure:
@@ -884,7 +899,10 @@ class FlextCliCore(FlextCliServiceBase):
             profiles_section_raw: dict[str, t.JsonValue]
             match profiles_value:
                 case dict() as profiles_dict:
-                    profiles_section_raw = profiles_dict
+                    profiles_section_raw = {
+                        str(key): FlextCliOutput.norm_json(value)
+                        for key, value in profiles_dict.items()
+                    }
                 case _:
                     profiles_section_raw = {}
             # Python 3.13: profiles_section_raw is already dict, isinstance check is unnecessary
@@ -1071,7 +1089,9 @@ class FlextCliCore(FlextCliServiceBase):
                 c.Cli.ErrorMessages.CLI_EXECUTION_ERROR.format(error=e),
             )
 
-    def get_service_info(self) -> Mapping[str, FlextCliCore.CliValue]:
+    def get_service_info(
+        self,
+    ) -> Mapping[str, str | int | float | bool | datetime | None]:
         """Get comprehensive service information.
 
         Returns:
@@ -1090,10 +1110,12 @@ class FlextCliCore(FlextCliServiceBase):
             # Convert config_keys to concrete sequence values
             config_keys_list: list[str] = list(config_keys) if config_keys else []
 
-            info_data: dict[str, FlextCliCore.CliValue] = {
+            info_data: dict[str, str | int | float | bool | datetime | None] = {
                 c.Cli.DictKeys.SERVICE: c.Cli.FLEXT_CLI,
                 c.Cli.CoreServiceDictKeys.COMMANDS_REGISTERED: commands_count,
-                c.Cli.CoreServiceDictKeys.CONFIGURATION_SECTIONS: config_keys_list,
+                c.Cli.CoreServiceDictKeys.CONFIGURATION_SECTIONS: ",".join(
+                    config_keys_list
+                ),
                 c.Cli.DictKeys.STATUS: (
                     c.Cli.ServiceStatus.OPERATIONAL.value
                     if self._session_active

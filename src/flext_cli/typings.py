@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping, Sequence
-from typing import ClassVar, TypeAlias
+from typing import TypeAlias
 
 from flext_core import FlextTypes
-from pydantic import BaseModel, ConfigDict
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -49,39 +48,9 @@ class FlextCliTypes(FlextTypes):
         TabularData = Sequence[Mapping[str, FlextTypes.JsonValue]]
 
 
-# ═══════════════════════════════════════════════════════════════════════════
-# PYDANTIC MODELS FOR CLI METADATA
-# ═══════════════════════════════════════════════════════════════════════════
-
-
-class CliExecutionMetadata(BaseModel):
-    """Pydantic model for CLI execution metadata."""
-
-    model_config: ClassVar[ConfigDict] = ConfigDict(frozen=False, extra="forbid")
-
-    command_name: str | None = None
-    session_id: str | None = None
-    start_time: float | None = None
-    pid: int | None = None
-    environment: str | None = None
-
-
-class CliValidationResult(BaseModel):
-    """Pydantic model for CLI validation results."""
-
-    model_config: ClassVar[ConfigDict] = ConfigDict(frozen=False, extra="forbid")
-
-    field_name: str | None = None
-    rule_name: str | None = None
-    is_valid: bool | None = None
-    error_message: str | None = None
-
-
 t = FlextCliTypes
 
 __all__ = [
-    "CliExecutionMetadata",
-    "CliValidationResult",
     "FlextCliTypes",
     "t",
 ]

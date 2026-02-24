@@ -185,7 +185,14 @@ class FlextCliCmd(FlextCliServiceBase):
                 return r[Mapping[str, t.JsonValue]].fail(
                     FlextCliConstants.Cli.CmdErrorMessages.CONFIG_NOT_DICT,
                 )
-            config_data_dict: dict[str, t.JsonValue] = dict(config_data)
+            match config_data:
+                case Mapping() as config_mapping:
+                    config_data_dict: dict[str, t.JsonValue] = {
+                        str(key): FlextCliOutput.norm_json(value)
+                        for key, value in config_mapping.items()
+                    }
+                case _:
+                    config_data_dict = {}
 
             if key not in config_data_dict:
                 return r[Mapping[str, t.JsonValue]].fail(
@@ -205,8 +212,8 @@ class FlextCliCmd(FlextCliServiceBase):
             }
             # Python 3.13: to_dict_json() always returns dict, cast_if and isinstance are unnecessary
             # Reuse to_dict_json helper from output module
-            result_data: dict[str, t.JsonValue] = FlextCliOutput.to_dict_json(
-                raw_data,
+            result_data: dict[str, t.JsonValue] = dict(
+                FlextCliOutput.to_dict_json(raw_data)
             )
             return r[Mapping[str, t.JsonValue]].ok(result_data)
         except Exception as e:

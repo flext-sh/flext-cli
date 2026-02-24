@@ -158,7 +158,6 @@ src/flext_cli/
 ├── commands.py          # FlextCliCommands - command registration (ONE class)
 ├── config.py            # FlextCliConfig - singleton configuration (ONE class)
 ├── constants.py         # FlextCliConstants - all constants (ONE class, extends FlextConstants, alias: c)
-├── context.py           # FlextCliContext - execution context (ONE class)
 ├── debug.py             # FlextCliDebug - debug utilities (ONE class)
 ├── file_tools.py        # FlextCliFileTools - JSON/YAML/CSV operations (ONE class)
 ├── formatters.py        # FlextCliFormatters - Rich abstraction (ONE class, ONLY Rich import)
@@ -209,7 +208,6 @@ from flext_cli import (
     FlextCliCmd,           # Command execution
     FlextCliDebug,         # Debug utilities
     FlextCliCommands,      # Command management
-    FlextCliContext,       # Execution context
     FlextCliModels,        # Pydantic models
     FlextCliTypes,         # Type definitions
     FlextCliProtocols,    # Protocols

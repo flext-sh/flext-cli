@@ -16,7 +16,6 @@
   - [📊 Working with Tables](#working-with-tables)
   - [📁 File Operations](#file-operations)
   - [🔄 Railway-Oriented Programming](#railway-oriented-programming)
-  - [📦 Immutable Context](#immutable-context)
 - [Development Workflow (v0.10.0)](#development-workflow-v0100)
   - [Quality Gates](#quality-gates)
   - [Development Pattern (v0.10.0)](#development-pattern-v0100)
@@ -239,29 +238,6 @@ if not result.is_success:
     cli.formatters.print(f"Error: {result.error}", style="red")
 ```
 
-### 📦 Immutable Context
-
-```python
-from flext_cli import FlextCliContext
-
-# Create immutable execution context (value object)
-context = FlextCliContext(
-    command="deploy",
-    arguments=["production", "--force"],
-    environment_variables={"ENV": "prod"},
-    working_directory="/app"
-)
-
-# Access data (immutable)
-print(f"Command: {context.command}")
-print(f"Args: {context.arguments}")
-
-# Create modified copy (immutability)
-updated_context = context.model_copy(
-    update={"working_directory": "/app/new"}
-)
-```
-
 ______________________________________________________________________
 
 ## Development Workflow (v0.10.0)
@@ -285,7 +261,7 @@ make format                 # Auto-format with Ruff
 ### Development Pattern (v0.10.0)
 
 ```python
-from flext_cli import FlextCli, FlextCliContext
+from flext_cli import FlextCli
 from flext_core import FlextResult
 
 def my_cli_application() -> FlextResult[bool]:
@@ -304,18 +280,9 @@ def my_cli_application() -> FlextResult[bool]:
 
     # User interaction
     confirm_result = cli.prompts.confirm("Continue?")
-
     if confirm_result.is_success and confirm_result.unwrap():
-        # Create immutable context
-        context = FlextCliContext(
-            command="process",
-            arguments=["--verbose"],
-            working_directory="/app"
-        )
-
-        cli.formatters.print(f"Processing in {context.working_directory}...", style="green")
-        return FlextResult[bool].| ok(value=True)
-
+        cli.formatters.print("Processing...", style="green")
+        return FlextResult[bool].ok(value=True)
     return FlextResult[bool].fail("Operation cancelled")
 ```
 

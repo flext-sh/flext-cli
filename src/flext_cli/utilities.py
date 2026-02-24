@@ -15,7 +15,8 @@ from flext_core import FlextUtilities, r
 from pydantic import BaseModel, ConfigDict, ValidationError, validate_call
 
 from flext_cli.constants import c
-from flext_cli.typings import CliExecutionMetadata, CliValidationResult, t
+from flext_cli.models import CliExecutionMetadata, CliValidationResult
+from flext_cli.typings import t
 
 type CliValue = (
     str

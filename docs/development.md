@@ -164,29 +164,6 @@ class FlextCliFileTools:
 - ✅ Just data **validation and structure**
 - ✅ Configuration or context data
 
-**Example - FlextCliContext (Value Object)**:
-
-```python
-from flext_core import FlextModels
-from pydantic import Field
-
-class FlextCliContext(m.Value):
-    """Immutable execution context."""
-    command: str | None = None
-    arguments: list[str] = Field(default_factory=list)
-    environment_variables: dict[str, object] = Field(default_factory=dict)
-    working_directory: str | None = None
-
-    # No methods - just validated, immutable data
-```
-
-**When to use**:
-
-- Configuration data
-- Request/response models
-- Event data
-- Execution context
-
 ______________________________________________________________________
 
 ## Architecture Decision Flowchart
@@ -204,7 +181,7 @@ Does the class manage mutable state?
     │
     └─ NO → Is it just data with validation?
         └─ YES → Use Value Object (Pydantic)
-                 Examples: FlextCliContext, FlextCliModels.*
+                 Examples: FlextCliModels.*
 ```
 
 ______________________________________________________________________
@@ -231,7 +208,6 @@ src/flext_cli/
 │   └── debug.py             # Debug utilities
 │
 └── Data Models (value objects)
-    ├── context.py           # FlextCliContext
     ├── models.py            # All Pydantic models
     └── config.py            # FlextCliSettings
 ```
@@ -301,32 +277,6 @@ def test_read_json_file():
     assert isinstance(data, dict)
 
 # No initialization needed - static methods
-```
-
-### Testing Value Objects
-
-```python
-import pytest
-from flext_cli import FlextCliContext
-
-def test_context_immutability():
-    """Test context is immutable."""
-    context = FlextCliContext(
-        command="test",
-        arguments=["arg1"]
-    )
-
-    # Cannot modify (immutable)
-    with pytest.raises(Exception):
-        context.command = "modified"
-
-    # Create new instance for changes
-    updated = context.model_copy(
-        update={"command": "new_command"}
-    )
-
-    assert context.command == "test"
-    assert updated.command == "new_command"
 ```
 
 ______________________________________________________________________

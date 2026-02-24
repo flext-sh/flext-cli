@@ -12,7 +12,7 @@ import os
 import shutil
 from collections.abc import Mapping
 from pathlib import Path
-from typing import Annotated, ClassVar, Self, cast
+from typing import Annotated, ClassVar, Self
 
 import yaml
 from flext_core import (
@@ -39,7 +39,7 @@ logger = FlextLogger(__name__)
 
 
 @FlextSettings.auto_register("cli")
-class FlextCliSettings(FlextSettings):  # type: ignore[explicit-any]
+class FlextCliSettings(FlextSettings):
     """Flat Pydantic 2 settings with AutoConfig pattern.
 
     Singleton, env var overrides (FLEXT_CLI_*), SecretStr for sensitive data.
@@ -345,7 +345,7 @@ class FlextCliSettings(FlextSettings):  # type: ignore[explicit-any]
                     _ = test_cfg.model_validate(test_cfg.model_dump())
                     valid[k] = (
                         u.transform(
-                            cast("Mapping[str, t.JsonValue]", v), to_json=True
+                            v if isinstance(v, dict) else {}, to_json=True
                         ).map_or(v)
                         if u.is_dict_like(v)
                         else v
@@ -365,10 +365,10 @@ class FlextCliSettings(FlextSettings):  # type: ignore[explicit-any]
         try:
             raw = self.model_dump()
             config_dict = u.transform(
-                cast("Mapping[str, t.JsonValue]", raw), to_json=True
+                raw if isinstance(raw, dict) else {}, to_json=True
             ).map_or(raw)
             return r[Mapping[str, t.JsonValue]].ok(
-                cast("Mapping[str, t.JsonValue]", config_dict)
+                config_dict if isinstance(config_dict, dict) else {}
             )
         except Exception as e:
             return r[Mapping[str, t.JsonValue]].fail(

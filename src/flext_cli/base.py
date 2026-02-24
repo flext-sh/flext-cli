@@ -18,7 +18,7 @@ from flext_core import s
 from flext_core.protocols import p
 
 from flext_cli.settings import FlextCliSettings
-from flext_cli.typings import FlextCliTypes as t
+from flext_cli.typings import t
 
 
 class FlextCliServiceBase(s[Mapping[str, t.JsonValue]], ABC):

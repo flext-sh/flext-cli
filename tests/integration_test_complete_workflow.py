@@ -29,7 +29,6 @@ from flext_cli import (
     FlextCliOutput,
     FlextCliSettings,
     FlextCliTables,
-    FlextCliTypes,
     c,
     r,
     t,
@@ -37,7 +36,7 @@ from flext_cli import (
 )
 
 
-class FlextCliIntegrationTestTypes(FlextCliTypes):
+class FlextCliIntegrationTestTypes(t):
     """Integration test specific types following FLEXT standards.
 
     Provides typed data structures for integration test workflows.
@@ -145,35 +144,18 @@ class TestCompleteWorkflowIntegration:
         }
 
         # Pre-create input file
-        file_tools.write_json_file(
+        _ = file_tools.write_json_file(
             str(input_file),
             raw_data,
         )
 
-        # Execute complete pipeline using Railway Pattern
-        pipeline_result: r[dict[str, t.GeneralValueType]] = (
-            # Step 1: Load raw data
-            file_tools
-            .read_json_file(str(input_file))
-            .flat_map(
-                lambda data: (
-                    r.ok(data)
-                    if isinstance(data, dict)
-                    else r.fail("Data must be dict")
-                ),
-            )
+        # Execute complete pipeline using Railway Pattern (direct typing via models)
+        pipeline_result: r[PipelineReport] = (
+            file_tools.read_json_file(str(input_file))
+            .flat_map(lambda data: r.from_validation(data, PipelineInput))
             .map(
                 lambda data: (cli.output.print_message("✅ Raw data loaded"), data)[1],
             )
-            # Step 2: Validate data structure
-            .flat_map(self._validate_pipeline_data)
-            .map(
-                lambda data: (
-                    cli.output.print_message("✅ Data validation passed"),
-                    data,
-                )[1],
-            )
-            # Step 3: Transform data (filter active users, enrich)
             .map(self._transform_pipeline_data)
             .map(
                 lambda data: (
@@ -181,21 +163,17 @@ class TestCompleteWorkflowIntegration:
                     data,
                 )[1],
             )
-            # Step 4: Generate processing statistics
-            .map(
-                self._generate_pipeline_stats,
-            )
+            .map(self._generate_pipeline_stats)
             .map(
                 lambda data: (
                     cli.output.print_message("✅ Processing statistics generated"),
                     data,
                 )[1],
             )
-            # Step 5: Save transformed data
             .flat_map(
                 lambda data: file_tools.write_json_file(
                     str(output_file),
-                    data,
+                    data.model_dump(),
                 ).map(
                     lambda _: (
                         cli.output.print_message("✅ Processed data saved"),
@@ -203,12 +181,11 @@ class TestCompleteWorkflowIntegration:
                     )[1],
                 ),
             )
-            # Step 6: Generate and save pipeline report
             .map(self._create_pipeline_report)
             .flat_map(
                 lambda report: file_tools.write_json_file(
                     str(report_file),
-                    report,
+                    report.model_dump(),
                 ).map(
                     lambda _: (
                         cli.output.print_message("✅ Pipeline report saved"),
@@ -218,164 +195,90 @@ class TestCompleteWorkflowIntegration:
             )
         )
 
-        # Comprehensive assertions
+        # Assertions (direct attribute access; no dict/isinstance)
         assert pipeline_result.is_success, f"Pipeline failed: {pipeline_result.error}"
         final_report = pipeline_result.value
 
-        # Verify report structure
-        assert final_report["pipeline_status"] == c.Cli.CommandStatus.COMPLETED.value
-        assert final_report["input_records"] == 3
-        assert final_report["processed_records"] == 2  # Only active users
-        assert math.isclose(final_report["success_rate"], 1.0)
+        assert final_report.pipeline_status == c.Cli.CommandStatus.COMPLETED.value
+        assert final_report.input_records == 3
+        assert final_report.processed_records == 2
+        assert math.isclose(final_report.success_rate, 1.0)
 
-        # Verify output files exist and contain correct data
         assert output_file.exists()
         assert report_file.exists()
 
-        # Verify processed data
-        processed_result = file_tools.read_json_file(str(output_file))
-        assert processed_result.is_success
-        processed_data = processed_result.value
+        # Verify processed data via model validation (existing API)
+        loaded = file_tools.read_json_file(str(output_file))
+        assert loaded.is_success
+        processed_data = ProcessedPipelineData.model_validate(loaded.value)
+        assert len(processed_data.active_users) == 2
+        for user in processed_data.active_users:
+            assert user.is_premium is True
 
-        assert len(processed_data["active_users"]) == 2
-        assert all(user["is_premium"] for user in processed_data["active_users"])
-
-    def _validate_pipeline_data(self, data: object) -> r[dict[str, t.GeneralValueType]]:
-        """Validate pipeline input data structure.
-
-        Uses single return point pattern for reduced complexity.
-        """
-        result: r[dict[str, t.GeneralValueType]]
-
-        if not isinstance(data, dict):
-            result = r.fail("Data must be a dictionary")
-        elif "users" not in data:
-            result = r.fail("Missing 'users' field")
-        else:
-            users = data.get("users")
-            if not isinstance(users, list):
-                result = r.fail("'users' must be a list")
-            elif not u.Guards.is_list_non_empty(users):
-                result = r.fail("Users list cannot be empty")
-            else:
-                # Validate each user
-                validation_error: str | None = None
-                for i, user in enumerate(users):
-                    if not isinstance(user, dict):
-                        validation_error = f"User {i} must be a dictionary"
-                        break
-                    required_fields = ["id", "name", "email", "active"]
-                    for field in required_fields:
-                        if field not in user:
-                            validation_error = (
-                                f"User {i} missing required field: {field}"
-                            )
-                            break
-                    if validation_error:
-                        break
-
-                result = r.fail(validation_error) if validation_error else r.ok(data)
-
-        return result
-
-    def _transform_pipeline_data(
-        self,
-        data: dict[str, t.GeneralValueType],
-    ) -> dict[str, t.GeneralValueType]:
-        """Transform pipeline data: filter active users and enrich."""
-        data_dict = data
-        users = data_dict["users"]
-        active_users = []
-
-        for user in users:
-            if not isinstance(user, dict):
-                continue
-            user_dict = user
-            if user_dict["active"]:
-                # Enrich active users
-                enriched_user = dict(user_dict)
-                enriched_user["is_premium"] = True
-                enriched_user["last_login"] = "2025-01-01"
-                enriched_user["account_status"] = "active"
-                active_users.append(enriched_user)
-
-        return {
-            "active_users": active_users,
-            "total_users": len(users),
-            "active_count": len(active_users),
-            "processed_at": "2025-01-01T12:00:00Z",
-            "pipeline_version": "2.0",
-        }
+    def _transform_pipeline_data(self, data: PipelineInput) -> ProcessedPipelineData:
+        """Transform pipeline data: filter active users and enrich (typed; no dict)."""
+        active: list[PipelineEnrichedUser] = []
+        for user in data.users:
+            if user.active:
+                active.append(
+                    PipelineEnrichedUser(
+                        id=user.id,
+                        name=user.name,
+                        email=user.email,
+                        active=user.active,
+                        is_premium=True,
+                        last_login="2025-01-01",
+                        account_status="active",
+                    )
+                )
+        return ProcessedPipelineData(
+            active_users=active,
+            total_users=len(data.users),
+            active_count=len(active),
+            processed_at="2025-01-01T12:00:00Z",
+            pipeline_version="2.0",
+        )
 
     def _generate_pipeline_stats(
-        self,
-        data: dict[str, t.GeneralValueType],
-    ) -> Mapping[str, t.GeneralValueType]:
-        """Generate processing statistics."""
-        active_users = data["active_users"]
-        total_users = data["total_users"]
-
-        # Type narrowing for calculations
-        if not isinstance(total_users, int):
-            return {**data, "error": "total_users must be int"}
-        if not isinstance(active_users, list):
-            return {**data, "error": "active_users must be list"}
-
-        active_count = len(active_users)
-        efficiency = active_count / total_users if total_users > 0 else 0
-
-        # Calculate name lengths safely
-        name_lengths = [
-            len(user["name"])
-            for user in active_users
-            if isinstance(user, dict) and isinstance(user.get("name"), str)
-        ]
-
-        avg_name_length = sum(name_lengths) / len(name_lengths) if name_lengths else 0
-
-        return {
-            **data,
-            "inactive_count": total_users - active_count,
-            "processing_efficiency": efficiency,
-            "average_name_length": avg_name_length,
-        }
+        self, data: ProcessedPipelineData
+    ) -> ProcessedPipelineData:
+        """Add processing statistics (typed)."""
+        total = data.total_users
+        active_count = len(data.active_users)
+        efficiency = active_count / total if total > 0 else 0.0
+        name_lengths = [len(u.name) for u in data.active_users]
+        avg_name = (
+            sum(name_lengths) / len(name_lengths) if name_lengths else 0.0
+        )
+        return data.model_copy(
+            update={
+                "inactive_count": total - active_count,
+                "processing_efficiency": efficiency,
+                "average_name_length": avg_name,
+            }
+        )
 
     def _create_pipeline_report(
-        self,
-        data: Mapping[str, t.GeneralValueType],
-    ) -> Mapping[str, t.GeneralValueType]:
-        """Create comprehensive pipeline report."""
-        data_dict = data
-        active_users = data_dict["active_users"]
-        # active_users should be a sequence in this test context
-        assert isinstance(active_users, (list, tuple))
-        processed_records = len(active_users)
-        # Success rate is 1.0 if all active users were processed successfully
-        # (all active users processed = 100% success rate for active users)
+        self, data: ProcessedPipelineData
+    ) -> PipelineReport:
+        """Build pipeline report from processed data (typed)."""
+        processed_records = len(data.active_users)
         success_rate = 1.0 if processed_records > 0 else 0.0
-        return {
-            "pipeline_status": c.Cli.CommandStatus.COMPLETED.value,
-            "timestamp": data_dict["processed_at"],
-            "pipeline_version": data_dict["pipeline_version"],
-            "input_records": data_dict["total_users"],
-            "processed_records": processed_records,
-            "filtered_records": data_dict["inactive_count"],
-            "success_rate": success_rate,
-            "processing_metrics": {
-                "average_name_length": round(
-                    float(data_dict["average_name_length"])
-                    if isinstance(data_dict["average_name_length"], (int, float))
-                    else 0.0,
-                    2,
-                ),
-                "efficiency_percentage": round(
-                    float(data_dict["processing_efficiency"])
-                    if isinstance(data_dict["processing_efficiency"], (int, float))
-                    else 0.0 * 100,
-                    2,
-                ),
-            },
-        }
+        avg_len = data.average_name_length if data.average_name_length is not None else 0.0
+        eff = data.processing_efficiency if data.processing_efficiency is not None else 0.0
+        return PipelineReport(
+            pipeline_status=c.Cli.CommandStatus.COMPLETED.value,
+            timestamp=data.processed_at,
+            pipeline_version=data.pipeline_version,
+            input_records=data.total_users,
+            processed_records=processed_records,
+            filtered_records=data.inactive_count,
+            success_rate=success_rate,
+            processing_metrics=ProcessingMetrics(
+                average_name_length=round(avg_len, 2),
+                efficiency_percentage=round(eff * 100.0, 2),
+            ),
+        )
 
     # =========================================================================
     # INTEGRATION TEST 2: Configuration-Driven Report Generation
@@ -428,7 +331,7 @@ class TestCompleteWorkflowIntegration:
         }
 
         # Create input data
-        file_tools.write_json_file(
+        _ = file_tools.write_json_file(
             str(data_file),
             sales_data,
         )
@@ -479,7 +382,9 @@ class TestCompleteWorkflowIntegration:
 
         # Verify summary structure
         assert summary["total_reports"] == 3  # JSON, CSV, Table
-        assert math.isclose(summary["total_sales"], 6451.50)
+        total_sales_val = summary.get("total_sales")
+        assert isinstance(total_sales_val, (int, float))
+        assert math.isclose(float(total_sales_val), 6451.50)
         assert summary["regions_covered"] == 3
 
         # Verify report files were created
@@ -602,7 +507,7 @@ class TestCompleteWorkflowIntegration:
         )
         if table_result.is_success:
             table_content = table_result.value
-            (report_dir / "sales_report.txt").write_text(table_content)
+            _ = (report_dir / "sales_report.txt").write_text(table_content)
             reports.append({
                 "format": "table",
                 "file": "sales_report.txt",
@@ -627,17 +532,21 @@ class TestCompleteWorkflowIntegration:
             aggregates = json_data.get("summary", {})
         else:
             aggregates = {}
+        if not isinstance(aggregates, dict):
+            aggregates = {}
+        regions_val = aggregates.get("regions", [])
+        regions_len = len(regions_val) if isinstance(regions_val, (list, tuple)) else 0
 
         return {
             "report_generation_status": c.Cli.CommandStatus.COMPLETED.value,
             "total_reports": len(reports),
-            "formats_generated": [r["format"] for r in reports],
+            "formats_generated": [item["format"] for item in reports],
             "config_used": {
                 "environment": config.environment,
                 "debug": config.debug,
             },
             "total_sales": aggregates.get("total_amount", 0),
-            "regions_covered": len(aggregates.get("regions", [])),
+            "regions_covered": regions_len,
             "generated_at": "2025-01-01T12:00:00Z",
         }
 
@@ -665,7 +574,7 @@ class TestCompleteWorkflowIntegration:
         backup_data: t.GeneralValueType = {
             "users": [{"id": 1, "name": "Backup User", "active": True}],
         }
-        file_tools.write_json_file(
+        _ = file_tools.write_json_file(
             str(backup_data_file),
             backup_data,
         )
@@ -682,13 +591,7 @@ class TestCompleteWorkflowIntegration:
                 )[1],
             )
             # Step 2: Process data (may have partial failures)
-            .flat_map(
-                lambda data: (
-                    self._process_with_partial_recovery(data)
-                    if isinstance(data, dict)
-                    else r[dict[str, t.GeneralValueType]].fail("Invalid data type")
-                ),
-            )
+            .flat_map(self._process_with_partial_recovery)
             .map(
                 lambda data: (
                     cli.output.print_message("✅ Data processed (with recovery)"),
@@ -696,13 +599,7 @@ class TestCompleteWorkflowIntegration:
                 )[1],
             )
             # Step 3: Save results (with retry mechanism)
-            .flat_map(
-                lambda data: (
-                    self._save_with_retry(data, output_file, max_retries=3)
-                    if isinstance(data, dict)
-                    else r[dict[str, t.GeneralValueType]].fail("Invalid data type")
-                ),
-            )
+            .flat_map(lambda data: self._save_with_retry(data, output_file, max_retries=3))
             .map(
                 lambda data: (
                     cli.output.print_message("✅ Results saved (with retry)"),
@@ -710,13 +607,7 @@ class TestCompleteWorkflowIntegration:
                 )[1],
             )
             # Step 4: Generate recovery report
-            .map(
-                lambda data: (
-                    self._generate_recovery_report(data)
-                    if isinstance(data, dict)
-                    else {}
-                ),
-            )
+            .map(self._generate_recovery_report)
         )
 
         # Assertions
@@ -731,8 +622,9 @@ class TestCompleteWorkflowIntegration:
         assert (
             recovery_report["processing_recovered"] is True
         )  # Partial recovery worked
-        save_attempts = recovery_report["save_attempts"]
-        assert save_attempts >= 1  # At least one save attempt
+        save_attempts_val = recovery_report.get("save_attempts")
+        assert isinstance(save_attempts_val, (int, float))
+        assert save_attempts_val >= 1  # At least one save attempt
         assert recovery_report["final_status"] == "completed_with_recovery"
 
         # Verify output file exists
@@ -742,44 +634,51 @@ class TestCompleteWorkflowIntegration:
         self,
         primary_file: Path,
         backup_file: Path,
-    ) -> r[dict[str, t.GeneralValueType]]:
+    ) -> r[Mapping[str, t.GeneralValueType]]:
         """Load data with fallback mechanism."""
         # Try primary first (will fail since file doesn't exist)
         primary_result = FlextCliFileTools().read_json_file(str(primary_file))
 
         if primary_result.is_success:
-            return primary_result.map(
-                lambda data: {
-                    **(data if isinstance(data, dict) else {}),
-                    "data_source": "primary",
-                },
-            )
+            def _merge_primary(data: t.GeneralValueType) -> Mapping[str, t.GeneralValueType]:
+                base = data if isinstance(data, dict) else {}
+                return {**base, "data_source": "primary"}
+
+            return primary_result.map(_merge_primary)
 
         # Fallback to backup
         backup_result = FlextCliFileTools().read_json_file(str(backup_file))
         if backup_result.is_failure:
             return r.fail(f"Both primary and backup failed: {backup_result.error}")
 
-        return backup_result.map(
-            lambda data: {
-                **(data if isinstance(data, dict) else {}),
-                "data_source": "backup",
-            },
-        )
+        def _merge_backup(data: t.GeneralValueType) -> Mapping[str, t.GeneralValueType]:
+            base = data if isinstance(data, dict) else {}
+            return {**base, "data_source": "backup"}
+
+        return backup_result.map(_merge_backup)
 
     def _process_with_partial_recovery(
         self,
-        data: dict[str, t.GeneralValueType],
+        data: Mapping[str, t.GeneralValueType],
     ) -> r[dict[str, t.GeneralValueType]]:
         """Process data with partial recovery for corrupted records."""
         users = data.get("users", [])
         if not isinstance(users, list):
             return r.fail("Users data must be a list")
 
-        processed_users = []
+        processed_users: list[dict[str, t.GeneralValueType]] = []
         recovery_info = {"recovered": 0, "failed": 0}
 
         for i, user in enumerate(users):
+            if not isinstance(user, dict):
+                recovery_info["recovered"] += 1
+                processed_users.append({
+                    "id": f"recovered_{i}",
+                    "name": f"Recovered User {i}",
+                    "active": False,
+                    "recovered": True,
+                })
+                continue
             try:
                 processed_user = self._process_single_user(user)
                 processed_users.append(processed_user)
@@ -805,22 +704,21 @@ class TestCompleteWorkflowIntegration:
         })
 
     def _process_single_user(
-        self, user: dict[str, t.GeneralValueType]
-    ) -> Mapping[str, object]:
+        self, user: Mapping[str, t.GeneralValueType]
+    ) -> dict[str, t.GeneralValueType]:
         """Process a single user record with validation."""
-        # Type checker ensures user is dict[str, t.GeneralValueType], so isinstance check is redundant
-
         required_fields = ["id", "name"]
         for field in required_fields:
             if field not in user:
                 raise ValueError(f"Missing required field: {field}")
 
-        # Add processing metadata
-        return {
-            **user,
-            "processed": True,
-            "processed_at": "2025-01-01T12:00:00Z",
-        }
+        # Add processing metadata (new dict so return type is explicit)
+        result: dict[str, t.GeneralValueType] = {}
+        for k, v in user.items():
+            result[k] = v
+        result["processed"] = True
+        result["processed_at"] = "2025-01-01T12:00:00Z"
+        return result
 
     def _save_with_retry(
         self,
@@ -855,16 +753,40 @@ class TestCompleteWorkflowIntegration:
         data: dict[str, t.GeneralValueType],
     ) -> Mapping[str, object]:
         """Generate comprehensive recovery report."""
+        processed_users_val = data.get("processed_users")
+        count = len(processed_users_val) if isinstance(processed_users_val, list) else 0
         return {
             "final_status": "completed_with_recovery",
             "data_source": data.get("data_source"),
             "processing_recovered": data.get("processing_recovered"),
             "recovery_stats": data.get("recovery_stats"),
             "save_attempts": data.get("save_attempts"),
-            "total_records_processed": len(
-                data.get("processed_users")
-                if isinstance(data.get("processed_users"), list)
-                else [],
-            ),
+            "total_records_processed": count,
+            "recovery_timestamp": "2025-01-01T12:00:00Z",
+        }
+ return r.ok({**data, "save_attempts": attempts})
+
+            last_error = result.error
+
+            # Simulate transient failure recovery
+            if attempts < max_retries:
+                time.sleep(0.01)  # Brief delay before retry
+
+        return r.fail(f"Save failed after {max_retries} attempts: {last_error}")
+
+    def _generate_recovery_report(
+        self,
+        data: dict[str, t.GeneralValueType],
+    ) -> Mapping[str, object]:
+        """Generate comprehensive recovery report."""
+        processed_users_val = data.get("processed_users")
+        count = len(processed_users_val) if isinstance(processed_users_val, list) else 0
+        return {
+            "final_status": "completed_with_recovery",
+            "data_source": data.get("data_source"),
+            "processing_recovered": data.get("processing_recovered"),
+            "recovery_stats": data.get("recovery_stats"),
+            "save_attempts": data.get("save_attempts"),
+            "total_records_processed": count,
             "recovery_timestamp": "2025-01-01T12:00:00Z",
         }
