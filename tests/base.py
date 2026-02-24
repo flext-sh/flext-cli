@@ -24,6 +24,7 @@ from flext_core import (
     t,
 )
 from flext_tests.base import FlextTestsServiceBase
+from pydantic import ValidationError
 
 from tests.constants import c
 
@@ -180,7 +181,7 @@ class TestsCliServiceBase(FlextTestsServiceBase[T]):
                         return r[t.GeneralValueType].ok(
                             f"Handled: {message}",
                         )
-                    except Exception as e:
+                    except (ValueError, TypeError, ValidationError) as e:
                         return r[t.GeneralValueType].fail(
                             f"Handler error: {e}",
                         )
@@ -279,7 +280,7 @@ class TestsCliServiceBase(FlextTestsServiceBase[T]):
                 try:
                     result = transform_fn(msg)
                     return r[t.GeneralValueType].ok(result)
-                except Exception as e:
+                except (ValueError, TypeError, ValidationError) as e:
                     return r[t.GeneralValueType].fail(
                         f"Transformation failed: {e}",
                     )

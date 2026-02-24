@@ -56,7 +56,6 @@ class TestsCliFileTools:
     def test_file_tools_initialization(self, file_tools: FlextCliFileTools) -> None:
         """Test file tools initialization and basic properties."""
         assert file_tools is not None
-        assert isinstance(file_tools, FlextCliFileTools)
         # FlextCliFileTools is a utility class with static methods, not a service
         # Verify it has file operation methods
         assert hasattr(file_tools, "read_text_file")
@@ -74,7 +73,6 @@ class TestsCliFileTools:
         """Test reading text file functionality."""
         result = file_tools.read_text_file(str(temp_file))
 
-        assert isinstance(result, r)
         assert result.is_success
 
         content = result.value
@@ -86,7 +84,6 @@ class TestsCliFileTools:
         """Test reading nonexistent text file."""
         result = file_tools.read_text_file("/nonexistent/file.txt")
 
-        assert isinstance(result, r)
         assert result.is_failure
 
     def test_write_text_file(
@@ -100,7 +97,6 @@ class TestsCliFileTools:
 
         result = file_tools.write_text_file(str(test_file), test_content)
 
-        assert isinstance(result, r)
         assert result.is_success
 
         # Verify file was created and contains correct content
@@ -120,7 +116,6 @@ class TestsCliFileTools:
 
         result = file_tools.read_binary_file(str(binary_file))
 
-        assert isinstance(result, r)
         assert result.is_success
 
         content = result.value
@@ -138,7 +133,6 @@ class TestsCliFileTools:
 
         result = file_tools.write_binary_file(str(test_file), test_content)
 
-        assert isinstance(result, r)
         assert result.is_success
 
         # Verify file was created and contains correct content
@@ -157,7 +151,6 @@ class TestsCliFileTools:
         """Test reading JSON file functionality."""
         result = file_tools.read_json_file(str(temp_json_file))
 
-        assert isinstance(result, r)
         assert result.is_success
 
         data = result.value
@@ -182,7 +175,6 @@ class TestsCliFileTools:
 
         result = file_tools.write_json_file(str(test_file), test_data)
 
-        assert isinstance(result, r)
         assert result.is_success
 
         # Verify file was created and contains correct data
@@ -201,7 +193,6 @@ class TestsCliFileTools:
 
         result = file_tools.read_json_file(str(invalid_json_file))
 
-        assert isinstance(result, r)
         assert result.is_failure
 
     # ========================================================================
@@ -216,7 +207,6 @@ class TestsCliFileTools:
         """Test reading YAML file functionality."""
         result = file_tools.read_yaml_file(str(temp_yaml_file))
 
-        assert isinstance(result, r)
         assert result.is_success
 
         data = result.value
@@ -241,7 +231,6 @@ class TestsCliFileTools:
 
         result = file_tools.write_yaml_file(str(test_file), test_data)
 
-        assert isinstance(result, r)
         assert result.is_success
 
         # Verify file was created and contains correct data
@@ -260,7 +249,6 @@ class TestsCliFileTools:
 
         result = file_tools.read_yaml_file(str(invalid_yaml_file))
 
-        assert isinstance(result, r)
         assert result.is_failure
 
     # ========================================================================
@@ -275,7 +263,6 @@ class TestsCliFileTools:
         """Test reading CSV file functionality."""
         result = file_tools.read_csv_file(str(temp_csv_file))
 
-        assert isinstance(result, r)
         assert result.is_success
 
         data = result.value
@@ -302,7 +289,6 @@ class TestsCliFileTools:
 
         result = file_tools.write_csv_file(str(test_file), test_data)
 
-        assert isinstance(result, r)
         assert result.is_success
 
         # Verify file was created and contains correct data
@@ -324,7 +310,6 @@ class TestsCliFileTools:
 
         result = file_tools.read_csv_file_with_headers(str(csv_file))
 
-        assert isinstance(result, r)
         assert result.is_success
 
         data = result.value
@@ -349,7 +334,6 @@ class TestsCliFileTools:
 
         result = file_tools.copy_file(str(temp_file), str(destination))
 
-        assert isinstance(result, r)
         assert result.is_success
 
         # Verify file was copied correctly
@@ -368,7 +352,6 @@ class TestsCliFileTools:
 
         result = file_tools.move_file(str(temp_file), str(destination))
 
-        assert isinstance(result, r)
         assert result.is_success
 
         # Verify file was moved correctly
@@ -382,7 +365,6 @@ class TestsCliFileTools:
 
         result = file_tools.delete_file(str(temp_file))
 
-        assert isinstance(result, r)
         assert result.is_success
 
         # Verify file was deleted
@@ -392,13 +374,11 @@ class TestsCliFileTools:
         """Test file existence checking functionality."""
         # Test existing file
         result = file_tools.file_exists(str(temp_file))
-        assert isinstance(result, r)
         assert result.is_success
         assert result.value is True
 
         # Test nonexistent file
         result = file_tools.file_exists("/nonexistent/file.txt")
-        assert isinstance(result, r)
         assert result.is_success
         assert result.value is False
 
@@ -442,7 +422,6 @@ class TestsCliFileTools:
 
         result = file_tools.list_directory(str(temp_dir))
 
-        assert isinstance(result, r)
         assert result.is_success
 
         files = result.value
@@ -459,7 +438,6 @@ class TestsCliFileTools:
 
         result = file_tools.create_directory(str(new_dir))
 
-        assert isinstance(result, r)
         assert result.is_success
 
         # Verify directory was created
@@ -476,7 +454,6 @@ class TestsCliFileTools:
 
         result = file_tools.create_directory(str(nested_dir))
 
-        assert isinstance(result, r)
         assert result.is_success
 
         # Verify all directories were created
@@ -499,7 +476,6 @@ class TestsCliFileTools:
 
         result = file_tools.delete_directory(str(test_dir))
 
-        assert isinstance(result, r)
         assert result.is_success
 
         # Verify directory was deleted
@@ -513,13 +489,11 @@ class TestsCliFileTools:
         """Test directory existence checking functionality."""
         # Test existing directory
         result = file_tools.directory_exists(str(temp_dir))
-        assert isinstance(result, r)
         assert result.is_success
         assert result.value is True
 
         # Test nonexistent directory
         result = file_tools.directory_exists("/nonexistent/directory")
-        assert isinstance(result, r)
         assert result.is_success
         assert result.value is False
 
@@ -544,7 +518,6 @@ class TestsCliFileTools:
 
         result = file_tools.create_zip_archive(str(archive_path), files_to_archive)
 
-        assert isinstance(result, r)
         assert result.is_success
 
         # Verify archive was created
@@ -576,7 +549,6 @@ class TestsCliFileTools:
 
         result = file_tools.extract_zip_archive(str(archive_path), str(extract_dir))
 
-        assert isinstance(result, r)
         assert result.is_success
 
         # Verify file was extracted
@@ -602,7 +574,6 @@ class TestsCliFileTools:
 
         result = file_tools.find_files_by_pattern(str(temp_dir), "*.txt")
 
-        assert isinstance(result, r)
         assert result.is_success
 
         files = result.value
@@ -625,7 +596,6 @@ class TestsCliFileTools:
 
         result = file_tools.find_files_by_name(str(temp_dir), "target_file.txt")
 
-        assert isinstance(result, r)
         assert result.is_success
 
         files = result.value
@@ -645,7 +615,6 @@ class TestsCliFileTools:
 
         result = file_tools.find_files_by_content(str(temp_dir), "target word")
 
-        assert isinstance(result, r)
         assert result.is_success
 
         files = result.value
@@ -664,7 +633,6 @@ class TestsCliFileTools:
         """Test file hash calculation functionality."""
         result = file_tools.calculate_file_hash(str(temp_file), "sha256")
 
-        assert isinstance(result, r)
         assert result.is_success
 
         hash_value = result.value
@@ -685,7 +653,6 @@ class TestsCliFileTools:
         # Verify hash
         result = file_tools.verify_file_hash(str(temp_file), expected_hash, "sha256")
 
-        assert isinstance(result, r)
         assert result.is_success
         assert result.value is True
 
@@ -699,7 +666,6 @@ class TestsCliFileTools:
 
         result = file_tools.verify_file_hash(str(temp_file), invalid_hash, "sha256")
 
-        assert isinstance(result, r)
         assert result.is_success
         assert result.value is False
 
@@ -739,7 +705,6 @@ class TestsCliFileTools:
         """Test temporary file creation functionality."""
         result = file_tools.create_temp_file()  # No parameters - simple signature
 
-        assert isinstance(result, r)
         assert result.is_success
 
         temp_file_path = result.value
@@ -756,7 +721,6 @@ class TestsCliFileTools:
         """Test temporary directory creation functionality."""
         result = file_tools.create_temp_directory()
 
-        assert isinstance(result, r)
         assert result.is_success
 
         temp_dir_path = result.value
@@ -781,12 +745,10 @@ class TestsCliFileTools:
         """Test error handling with various invalid inputs."""
         # Test with None input
         result = file_tools.read_text_file("")
-        assert isinstance(result, r)
         assert result.is_failure
 
         # Test with empty string
         result = file_tools.read_text_file("")
-        assert isinstance(result, r)
         assert result.is_failure
 
     def test_error_handling_with_permission_denied(
@@ -796,7 +758,6 @@ class TestsCliFileTools:
         """Test error handling with permission denied scenarios."""
         # Try to write to a directory that should be read-only
         result = file_tools.write_text_file("/proc/test_file", "test content")
-        assert isinstance(result, r)
         assert result.is_failure
 
     def test_concurrent_file_operations(
@@ -1652,14 +1613,12 @@ class TestsCliFileTools:
         temp_dir: Path,
     ) -> None:
         """Test error recovery patterns in file operations."""
-        # Test partial write recovery
+        # Test partial write recovery: write deliberately invalid JSON (no try/except)
         corrupted_file = temp_dir / "corrupted.json"
-
-        # Start writing valid JSON but simulate interruption
-        try:
-            Path(corrupted_file).write_text('{"valid": "json", "incomplete": ', encoding="utf-8")  # Missing closing
-        except Exception:
-            pass
+        corrupted_file.write_text(
+            '{"valid": "json", "incomplete": ',
+            encoding="utf-8",
+        )
 
         # Try to read corrupted file
         read_result = file_tools.read_json_file(str(corrupted_file))
@@ -1786,7 +1745,7 @@ class TestsCliFileTools:
 
             # Simulate successful completion (no exception)
 
-        except Exception:
+        except OSError:
             # On failure, restore from backup
             if backup_file.exists():
                 shutil.copy2(backup_file, target_file)

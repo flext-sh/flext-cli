@@ -16,7 +16,7 @@ import logging
 import shutil
 from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
-from typing import IO, Annotated, Any, ClassVar, Literal, overload
+from typing import IO, Annotated, ClassVar, Literal, overload
 
 import click
 import typer
@@ -67,6 +67,16 @@ class FlextCliCli:
         )
         return decorator
 
+    def _create_cli_decorator(
+        self,
+        kind: Literal["command", "group"],
+        name: str | None,
+        help_text: str | None,
+    ) -> Callable[[p.Cli.CliCommandFunction], click.Command | click.Group]:
+        if kind == "group":
+            return self._create_group_cli_decorator(name, help_text)
+        return self._create_command_cli_decorator(name, help_text)
+
     def create_command_decorator(
         self, name: str | None = None, help_text: str | None = None
     ) -> Callable[[p.Cli.CliCommandFunction], click.Command]:
@@ -86,6 +96,7 @@ class FlextCliCli:
         self,
         val: t.JsonValue | None,
         type_name: Literal["bool"],
+        *,
         default: bool | None = None,
     ) -> bool | None: ...
 
@@ -94,6 +105,7 @@ class FlextCliCli:
         self,
         val: t.JsonValue | None,
         type_name: Literal["dict"],
+        *,
         default: t.JsonValue | None = None,
     ) -> t.JsonValue | None: ...
 
@@ -101,6 +113,7 @@ class FlextCliCli:
         self,
         val: t.JsonValue | None,
         type_name: str,
+        *,
         default: t.JsonValue | None = None,
     ) -> t.JsonValue | None:
         if val is None:
@@ -113,6 +126,9 @@ class FlextCliCli:
             bool_default_value = u.Parser.convert(default, bool, False)
             return u.Parser.convert(val, bool, bool_default_value)
         if type_name == "dict":
+            if isinstance(val, Mapping):
+                input_dict = dict(val)
+                return {str(k): self._to_json_value(vv) for k, vv in input_dict.items()}
             dict_adapter: TypeAdapter[dict[str, t.JsonValue]] = TypeAdapter(
                 dict[str, t.JsonValue]
             )
@@ -120,12 +136,18 @@ class FlextCliCli:
                 dict_val = dict_adapter.validate_python(val)
                 return {str(k): self._to_json_value(v) for k, v in dict_val.items()}
             except ValidationError:
-                pass
+                logging.getLogger(__name__).debug(
+                    "Dict validation failed for val, using fallback",
+                    exc_info=False,
+                )
             try:
                 dict_default = dict_adapter.validate_python(default)
                 return {str(k): self._to_json_value(v) for k, v in dict_default.items()}
             except ValidationError:
-                pass
+                logging.getLogger(__name__).debug(
+                    "Dict validation failed for default, using fallback",
+                    exc_info=False,
+                )
             if default is None:
                 return {}
             return u.Parser.convert(default, str, "")
@@ -184,7 +206,7 @@ class FlextCliCli:
 
         def get_bool(k: str) -> bool | None:
             value = u.get(filtered_params, k)
-            if value is None or value == "":
+            if value is None or not value:
                 return None
             typed_value = self._extract_typed_value(str(value), "bool")
             if typed_value is None:
@@ -193,7 +215,7 @@ class FlextCliCli:
 
         def get_str(k: str) -> str | None:
             value = u.get(filtered_params, k)
-            if value is None or value == "":
+            if value is None or not value:
                 return None
             typed_value = self._extract_typed_value(str(value), "str")
             if typed_value is None:
@@ -274,27 +296,39 @@ class FlextCliCli:
 
     def create_group_decorator(
         self, name: str | None = None, help_text: str | None = None
-    ) -> Callable[[p.Cli.CliCommandFunction], click.Group]:
+    ) -> Callable[[p.Cli.CliCommandFunction], click.Command | click.Group]:
         """Create a group decorator."""
-        return self._create_group_cli_decorator(name, help_text)
+        raw_decorator = self._create_cli_decorator("group", name, help_text)
+        strict_group_decorator = self._create_group_cli_decorator(name, help_text)
+
+        def typed_group_decorator(
+            func: p.Cli.CliCommandFunction,
+        ) -> click.Command | click.Group:
+            command_obj = raw_decorator(func)
+            if not u.is_type(command_obj, click.Group):
+                msg = "Group decorator must return a click.Group"
+                raise TypeError(msg)
+            return strict_group_decorator(func)
+
+        return typed_group_decorator
 
     def _build_bool_value(
         self, kwargs: Mapping[str, t.JsonValue], key: str, *, default: bool = False
     ) -> bool:
-        val = u.get(kwargs, key)
-        match val:
-            case None | "":
-                return default
-        return u.Parser.convert(val, bool, default)
+        result = self._build_typed_value(kwargs, key, "bool", default)
+        if not isinstance(result, bool):
+            msg = f"{key} must resolve to bool"
+            raise TypeError(msg)
+        return result
 
     def _build_str_value(
         self, kwargs: Mapping[str, t.JsonValue], key: str, default: str = ""
     ) -> str:
-        val = u.get(kwargs, key)
-        match val:
-            case None | "":
-                return default
-        return u.Parser.convert(val, str, default)
+        result = self._build_typed_value(kwargs, key, "str", default)
+        if not isinstance(result, str):
+            msg = f"{key} must resolve to str"
+            raise TypeError(msg)
+        return result
 
     def _build_typed_value(
         self,
@@ -303,19 +337,39 @@ class FlextCliCli:
         type_name: Literal["bool", "str"],
         default: t.JsonValue,
     ) -> t.JsonValue:
+        val = u.get(kwargs, key)
+        if val is None or not val:
+            return default
         if type_name == "bool":
-            return self._build_bool_value(
-                kwargs, key, default=u.Parser.convert(default, bool, False)
+            bool_default = u.Parser.convert(default, bool, False)
+            built_bool = u.build(
+                val,
+                ops={"ensure": "bool", "ensure_default": bool_default},
             )
-        return self._build_str_value(
-            kwargs, key, default=u.Parser.convert(default, str, "")
+            if isinstance(built_bool, bool):
+                return built_bool
+            msg = f"{key} must resolve to bool"
+            raise TypeError(msg)
+        str_default = u.Parser.convert(default, str, "")
+        built_str = u.build(
+            val,
+            ops={"ensure": "str", "ensure_default": str_default},
         )
+        if isinstance(built_str, str):
+            return built_str
+        msg = f"{key} must resolve to str"
+        raise TypeError(msg)
 
     @classmethod
     def _to_json_value(cls, value: object) -> t.JsonValue:
         try:
             return cls._json_value_adapter.validate_python(value)
-        except ValidationError:
+        except ValidationError as exc:
+            logging.getLogger(__name__).debug(
+                "_to_json_value validation fallback: %s",
+                exc,
+                exc_info=False,
+            )
             return str(value)
 
     def _normalize_type_hint(
@@ -405,15 +459,10 @@ class FlextCliCli:
                 "ensure_default": c.Cli.FileDefaults.DEFAULT_DATETIME_FORMATS,
             },
         )
-        match formats_values:
-            case Sequence() as sequence_values:
-                return click.DateTime(formats=[str(fmt) for fmt in sequence_values])
-            case _:
-                return click.DateTime(
-                    formats=[
-                        str(fmt) for fmt in c.Cli.FileDefaults.DEFAULT_DATETIME_FORMATS
-                    ]
-                )
+        if not isinstance(formats_values, Sequence) or isinstance(formats_values, str):
+            msg = "datetime formats must resolve to a sequence"
+            raise TypeError(msg)
+        return click.DateTime(formats=[str(fmt) for fmt in formats_values])
 
     @classmethod
     def _tuple_type(
@@ -463,11 +512,19 @@ class FlextCliCli:
     @classmethod
     def get_datetime_type(cls, formats: Sequence[str] | None = None) -> click.DateTime:
         """Get datetime type."""
+        result: object = cls.type_factory("datetime", formats=formats)
+        if not u.is_type(result, click.DateTime):
+            msg = "datetime type factory returned invalid type"
+            raise TypeError(msg)
         return cls._datetime_type(formats)
 
     @classmethod
     def get_uuid_type(cls) -> click.ParamType:
         """Get UUID type."""
+        result: object = cls.type_factory("uuid")
+        if not u.is_type(result, click.ParamType):
+            msg = "uuid type factory returned invalid type"
+            raise TypeError(msg)
         return click.UUID
 
     @classmethod
@@ -475,6 +532,10 @@ class FlextCliCli:
         cls, types: Sequence[type[t.JsonValue] | click.ParamType]
     ) -> click.Tuple:
         """Get tuple type."""
+        result: object = cls.type_factory("tuple", tuple_types=types)
+        if not u.is_type(result, click.Tuple):
+            msg = "tuple type factory returned invalid type"
+            raise TypeError(msg)
         return cls._tuple_type(types)
 
     @classmethod
@@ -538,19 +599,31 @@ class FlextCliCli:
     def _build_config_getters(
         kwargs: Mapping[str, t.JsonValue],
     ) -> tuple[Callable[[str, bool], bool], Callable[[str, str], str]]:
-        def get_bool_val(k: str, default: bool = False) -> bool:  # noqa: FBT001, FBT002
+        def get_bool_val(k: str, *, default: bool = False) -> bool:
             val = u.get(kwargs, k)
-            match val:
-                case None | "":
-                    return default
-            return u.Parser.convert(val, bool, default)
+            if val is None or not val:
+                return default
+            built = u.build(
+                val,
+                ops={"ensure": "bool", "ensure_default": default},
+            )
+            if not isinstance(built, bool):
+                msg = f"{k} must resolve to bool"
+                raise TypeError(msg)
+            return built
 
         def get_str_val(k: str, default: str = "") -> str:
             val = u.get(kwargs, k)
-            match val:
-                case None | "":
-                    return default
-            return u.Parser.convert(val, str, default)
+            if val is None or not val:
+                return default
+            built = u.build(
+                val,
+                ops={"ensure": "str", "ensure_default": default},
+            )
+            if not isinstance(built, str):
+                msg = f"{k} must resolve to str"
+                raise TypeError(msg)
+            return built
 
         return (get_bool_val, get_str_val)
 
@@ -599,7 +672,20 @@ class FlextCliCli:
     def _build_confirm_config_from_kwargs(
         kwargs: Mapping[str, t.JsonValue],
     ) -> m.Cli.ConfirmConfig:
-        return FlextCliCli._build_confirm_config(kwargs)
+        config = FlextCliCli._build_prompt_or_confirm_config("confirm", kwargs)
+        if not isinstance(config, m.Cli.ConfirmConfig):
+            msg = "confirm config builder returned invalid type"
+            raise TypeError(msg)
+        return config
+
+    @staticmethod
+    def _build_prompt_or_confirm_config(
+        kind: Literal["confirm", "prompt"],
+        kwargs: Mapping[str, t.JsonValue],
+    ) -> m.Cli.ConfirmConfig | m.Cli.PromptConfig:
+        if kind == "confirm":
+            return FlextCliCli._build_confirm_config(kwargs)
+        return FlextCliCli._build_prompt_config(kwargs)
 
     @staticmethod
     def confirm(
@@ -614,6 +700,9 @@ class FlextCliCli:
                 kwargs_typed,
             )
             config = config_instance
+        if config is None or not hasattr(config, "default"):
+            msg = "confirm config must implement ConfirmConfigProtocol"
+            raise TypeError(msg)
         try:
             result = typer.confirm(
                 text=text,
@@ -633,7 +722,11 @@ class FlextCliCli:
     def _build_prompt_config_from_kwargs(
         kwargs: Mapping[str, t.JsonValue],
     ) -> m.Cli.PromptConfig:
-        return FlextCliCli._build_prompt_config(kwargs)
+        config = FlextCliCli._build_prompt_or_confirm_config("prompt", kwargs)
+        if not isinstance(config, m.Cli.PromptConfig):
+            msg = "prompt config builder returned invalid type"
+            raise TypeError(msg)
+        return config
 
     @staticmethod
     def prompt(
@@ -645,8 +738,9 @@ class FlextCliCli:
         if config is None:
             config_instance = FlextCliCli._build_prompt_config_from_kwargs(kwargs)
             config = config_instance
-        if config is None:
-            return r[t.JsonValue].fail("Prompt config could not be created")
+        if config is None or not hasattr(config, "type_hint"):
+            msg = "prompt config must implement PromptConfig"
+            raise TypeError(msg)
         try:
             prompt_result = typer.prompt(
                 text=text,
@@ -660,6 +754,32 @@ class FlextCliCli:
                 err=config.err,
                 show_choices=config.show_choices,
             )
+            try:
+                prompt_result_map = dict(prompt_result)
+            except Exception as exc:
+                logging.getLogger(__name__).debug(
+                    "prompt result to dict fallback: %s",
+                    exc,
+                    exc_info=False,
+                )
+                prompt_result_map = None
+            if prompt_result_map is not None:
+                normalized_map: dict[str, t.JsonValue] = {}
+                for key, value in prompt_result_map.items():
+                    try:
+                        normalized_value = (
+                            FlextCliCli._json_value_adapter.validate_python(value)
+                        )
+                        normalized_map[str(key)] = normalized_value
+                    except ValidationError as exc:
+                        logging.getLogger(__name__).debug(
+                            "prompt normalized value skip key %s: %s",
+                            key,
+                            exc,
+                            exc_info=False,
+                        )
+                        continue
+                return r[t.JsonValue].ok(normalized_map)
             json_value = FlextCliCli._to_json_value(prompt_result)
             return r[t.JsonValue].ok(json_value)
         except typer.Abort as e:
@@ -709,7 +829,6 @@ class FlextCliCli:
         config: FlextCliSettings | None = None,
     ) -> p.Cli.CliCommandFunction:
         """Create a command from a Pydantic model."""
-
         try:
             is_valid_model = issubclass(model_class, BaseModel)
         except TypeError as exc:
@@ -720,6 +839,9 @@ class FlextCliCli:
             raise TypeError(msg)
 
         def normalized_handler(model: BaseModel) -> t.JsonValue:
+            if getattr(model, "__class__", None) is not model_class:
+                msg = "model argument must be an instance of the declared model class"
+                raise TypeError(msg)
             result = handler(model)
             is_success = getattr(result, "is_success", None)
             if is_success is True:

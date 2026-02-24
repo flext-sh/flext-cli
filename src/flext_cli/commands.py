@@ -10,6 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import logging
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import Protocol, Self, runtime_checkable
@@ -193,9 +194,13 @@ class FlextCliCommands(FlextCliServiceBase):
                 try:
                     result = handler(*args, **kwargs) if args else handler(**kwargs)
                     execution_attempted = True
-                except TypeError:
-                    # Handler signature mismatch - try without arguments
-                    pass
+                except TypeError as exc:
+                    logging.getLogger(__name__).debug(
+                        "Handler signature mismatch for %s, trying no-args: %s",
+                        name,
+                        exc,
+                        exc_info=False,
+                    )
 
             # If no args/kwargs or execution failed, try with no arguments
             if not execution_attempted:

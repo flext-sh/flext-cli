@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from pathlib import Path
 
 import yaml
@@ -67,6 +68,9 @@ def test_validate_configuration_raises_when_chain_fails(monkeypatch) -> None:
     try:
         settings.validate_configuration()
     except ValueError:
+        logging.getLogger(__name__).debug(
+            "expected ValueError from validate_configuration"
+        )
         raised = True
     assert raised
 

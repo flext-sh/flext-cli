@@ -309,11 +309,8 @@ class TestsCliCli:
         def test_model_command_validation(self) -> None:
             """Test model_command input validation."""
             cli = FlextCliCli()
-            # Test with invalid type (not a BaseModel subclass)
-            # This should raise TypeError at runtime
-            # dict is not a BaseModel subclass, so this should fail
-            # Using cast to bypass type checking for this negative test case
-            invalid_model = dict
+            # Intentional negative test: pass a type that is not BaseModel subclass
+            invalid_model: type = dict
             handler = (lambda x: x,)
 
             with pytest.raises((TypeError, ValueError)):

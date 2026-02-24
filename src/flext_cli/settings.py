@@ -25,6 +25,7 @@ from pydantic import (
     Field,
     SecretStr,
     StringConstraints,
+    ValidationError,
     computed_field,
     field_validator,
     model_validator,
@@ -141,7 +142,7 @@ class FlextCliSettings(FlextSettings):
             _ = context.set("cli_auto_verbosity", str(self.auto_verbosity))
             _ = context.set("cli_optimal_table_format", str(self.optimal_table_format))
             return r[bool].ok(value=True)
-        except Exception as e:
+        except (AttributeError, TypeError) as e:
             logger.debug(
                 "Context not available during config initialization",
                 error=str(e),
@@ -158,7 +159,7 @@ class FlextCliSettings(FlextSettings):
                 config_dict = self.model_dump()
                 _ = container.with_service("flext_cli_config", config_dict)
             return r[bool].ok(value=True)
-        except Exception as e:
+        except (AttributeError, TypeError) as e:
             logger.debug(
                 "Container not available during config initialization",
                 error=str(e),
@@ -207,7 +208,8 @@ class FlextCliSettings(FlextSettings):
         fmt = c.Cli.OutputFormats
         try:
             is_interactive = os.isatty(1)
-        except Exception:
+        except OSError as e:
+            logger.debug("isatty(1) failed, defaulting to JSON output: %s", e)
             return fmt.JSON.value
         width = self._try_terminal_width()
         if width is None:
@@ -248,7 +250,8 @@ class FlextCliSettings(FlextSettings):
         """Read terminal width safely without leaking exceptions."""
         try:
             return shutil.get_terminal_size().columns
-        except Exception:
+        except OSError as e:
+            logger.debug("get_terminal_size failed: %s", e)
             return None
 
     @staticmethod
@@ -281,7 +284,7 @@ class FlextCliSettings(FlextSettings):
                         em.UNSUPPORTED_CONFIG_FORMAT.format(suffix=suffix)
                     )
             return r[FlextCliSettings].ok(cls(**data))
-        except Exception as e:
+        except (OSError, ValueError, ValidationError, yaml.YAMLError) as e:
             return r[FlextCliSettings].fail(
                 em.FAILED_LOAD_CONFIG_FROM_FILE.format(file=config_file, error=e)
             )
@@ -322,7 +325,7 @@ class FlextCliSettings(FlextSettings):
                 setattr(self, k, v)
             _ = self.model_validate(self.model_dump(exclude=self._COMPUTED))
             return r[bool].ok(value=True)
-        except Exception as e:
+        except (ValidationError, TypeError, AttributeError) as e:
             return r[bool].fail(
                 c.Cli.ErrorMessages.CLI_ARGS_UPDATE_FAILED.format(error=e)
             )
@@ -340,24 +343,24 @@ class FlextCliSettings(FlextSettings):
             errors: list[str] = []
             for k, v in valid.items():
                 try:
+                    if not hasattr(self, k):
+                        msg = f"Unknown field: {k}"
+                        raise ValueError(msg)
                     test_cfg = self.model_copy()
                     setattr(test_cfg, k, v)
                     _ = test_cfg.model_validate(test_cfg.model_dump())
-                    valid[k] = (
-                        u.transform(
-                            v if isinstance(v, dict) else {}, to_json=True
-                        ).map_or(v)
-                        if u.is_dict_like(v)
-                        else v
-                    )
-                except Exception as e:
+                    if isinstance(v, Mapping):
+                        valid[k] = u.transform(v, to_json=True).map_or(v)
+                    else:
+                        valid[k] = v
+                except (ValidationError, TypeError, AttributeError) as e:
                     errors.append(em.INVALID_VALUE_FOR_FIELD.format(field=k, error=e))
             if errors:
                 return r[Mapping[str, t.JsonValue]].fail(
                     em.VALIDATION_ERRORS.format(errors="; ".join(errors))
                 )
             return r[Mapping[str, t.JsonValue]].ok(dict(valid))
-        except Exception as e:
+        except (ValidationError, TypeError) as e:
             return r[Mapping[str, t.JsonValue]].fail(f"Validation failed: {e}")
 
     def load_config(self) -> r[Mapping[str, t.JsonValue]]:
@@ -370,7 +373,7 @@ class FlextCliSettings(FlextSettings):
             return r[Mapping[str, t.JsonValue]].ok(
                 config_dict if isinstance(config_dict, dict) else {}
             )
-        except Exception as e:
+        except (ValidationError, TypeError) as e:
             return r[Mapping[str, t.JsonValue]].fail(
                 c.Cli.ErrorMessages.CONFIG_LOAD_FAILED_MSG.format(error=e)
             )
@@ -384,7 +387,7 @@ class FlextCliSettings(FlextSettings):
                     setattr(self, k, v)
             _ = self.model_validate(self.model_dump())
             return r[bool].ok(value=True)
-        except Exception as e:
+        except (ValidationError, TypeError, AttributeError) as e:
             return r[bool].fail(
                 c.Cli.ErrorMessages.CONFIG_SAVE_FAILED_MSG.format(error=e)
             )

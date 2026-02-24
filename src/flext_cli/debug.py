@@ -24,7 +24,7 @@ from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import c
 from flext_cli.models import m
 from flext_cli.typings import t
-from flext_cli.utilities import u
+from flext_cli.utilities import FlextCliUtilities, u
 
 
 class FlextCliDebug(FlextCliServiceBase):
@@ -156,7 +156,7 @@ class FlextCliDebug(FlextCliServiceBase):
         try:
             connectivity_info = {
                 c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.CONNECTED.value,
-                c.Cli.DictKeys.TIMESTAMP: u.generate(
+                c.Cli.DictKeys.TIMESTAMP: FlextCliUtilities.generate(
                     "timestamp",
                 ),
                 c.Cli.DictKeys.SERVICE: str(FlextCliDebug),
@@ -176,11 +176,11 @@ class FlextCliDebug(FlextCliServiceBase):
         try:
             health_info: dict[str, t.JsonValue] = {
                 c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.HEALTHY.value,
-                c.Cli.DictKeys.TIMESTAMP: u.generate(
+                c.Cli.DictKeys.TIMESTAMP: FlextCliUtilities.generate(
                     "timestamp",
                 ),
                 c.Cli.DictKeys.SERVICE: c.Cli.DebugDefaults.SERVICE_NAME,
-                c.Cli.DebugDictKeys.CHECK_ID: u.generate(
+                c.Cli.DebugDictKeys.CHECK_ID: FlextCliUtilities.generate(
                     "id",
                 ),
                 c.Cli.DebugDictKeys.CHECKS_PASSED: True,
@@ -203,10 +203,10 @@ class FlextCliDebug(FlextCliServiceBase):
                 c.Cli.DebugDictKeys.OPERATION: c.Cli.TRACE,
                 c.Cli.DictKeys.ARGS: list(args),
                 c.Cli.DebugDictKeys.ARGS_COUNT: len(args),
-                c.Cli.DictKeys.TIMESTAMP: u.generate(
+                c.Cli.DictKeys.TIMESTAMP: FlextCliUtilities.generate(
                     "timestamp",
                 ),
-                c.Cli.DebugDictKeys.TRACE_ID: u.generate(
+                c.Cli.DebugDictKeys.TRACE_ID: FlextCliUtilities.generate(
                     "id",
                 ),
             }
@@ -422,4 +422,4 @@ class FlextCliDebug(FlextCliServiceBase):
         return errors
 
 
-__all__ = ["FlextCliDebug"]
+__all__ = ["FlextCliDebug", "FlextCliUtilities"]

@@ -9,6 +9,7 @@ from typing import (
     ClassVar,
     Literal,
     Self,
+    TypeGuard,
     Union,
     get_args,
     get_origin,
@@ -16,7 +17,7 @@ from typing import (
 )
 
 import typer
-from flext_core import FlextModels, FlextResult, r, u
+from flext_core import FlextLogger, FlextModels, FlextResult, r, u
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -32,6 +33,13 @@ from typer.models import OptionInfo
 from flext_cli.constants import FlextCliConstants as c
 from flext_cli.protocols import FlextCliProtocols as p
 from flext_cli.typings import t
+
+_logger = FlextLogger(__name__)
+
+
+def _is_mapping_like(obj: object) -> TypeGuard[Mapping[str, object]]:
+    """Narrow object to Mapping for metadata processing."""
+    return isinstance(obj, Mapping)
 
 
 class _CliLoggingData(BaseModel):
@@ -400,6 +408,10 @@ class FlextCliModels(FlextModels):
                 data: Mapping[str, t.JsonValue] | Self,
             ) -> r[Self]:
                 """Validate command input data."""
+                if data is None:
+                    return r.fail("Input must be a dictionary")
+                if not u.is_type(data, "mapping") and not u.is_type(data, cls):
+                    return r.fail("Input must be a dictionary")
                 try:
                     command = cls.model_validate(data)
                     return r.ok(command)
@@ -1123,10 +1135,10 @@ class FlextCliModels(FlextModels):
                 )
                 try:
                     system_dict = system_adapter.validate_python(self.system_info)
-                except Exception:
-                    pass
+                except ValidationError as e:
+                    _logger.debug("system_info not valid as dict, using empty: %s", e)
 
-                # Apply masking to system_dict (regardless of how it was obtained)
+                # Apply masking to system_dict
                 masked_system_dict: dict[str, t.JsonValue] = {
                     k: (
                         "***MASKED***"
@@ -1143,10 +1155,10 @@ class FlextCliModels(FlextModels):
                 )
                 try:
                     config_dict = config_adapter.validate_python(self.config_info)
-                except Exception:
-                    pass
+                except ValidationError as e:
+                    _logger.debug("config_info not valid as dict, using empty: %s", e)
 
-                # Apply masking to config_dict (regardless of how it was obtained)
+                # Apply masking to config_dict
                 masked_config_dict: dict[str, t.JsonValue] = {
                     k: (
                         "***MASKED***"
@@ -1491,7 +1503,7 @@ class FlextCliModels(FlextModels):
                 return result_type, is_optional
 
             @staticmethod
-            def get_builtin_name(t: type, builtin_types: set[str]) -> str:
+            def get_builtin_name(_t: type, builtin_types: set[str]) -> str:
                 """Get configured alias name or 'str' fallback."""
                 if len(builtin_types) == 1:
                     custom_name = next(iter(builtin_types))
@@ -1884,8 +1896,10 @@ class FlextCliModels(FlextModels):
         for fn, v in kwargs.items():
             try:
                 object.__setattr__(builder_config, fn, v)
-            except Exception:
-                pass
+            except (AttributeError, TypeError) as e:
+                _logger.debug(
+                    "Could not set builder_config.%s: %s", fn, e
+                )
     if callable(builder_handler):
         return builder_handler(model_instance)
     raise RuntimeError("builder_handler is not callable")
@@ -1903,29 +1917,35 @@ class FlextCliModels(FlextModels):
                     msg = "Failed to create command wrapper"
                     raise RuntimeError(msg)
 
+                def _is_callable_object(
+                    obj: object,
+                ) -> TypeGuard[Callable[..., object]]:
+                    return callable(obj)
+
+                if not _is_callable_object(command_wrapper):
+                    msg = "exec() failed to create valid function"
+                    raise TypeError(msg)
+
                 # Type narrowing: _create_real_annotations returns dict[str, type]
                 real_annotations = self._create_real_annotations(annotations)
                 command_wrapper.__annotations__ = dict(real_annotations)
 
-                # Type assertion: FunctionType satisfies CliCommandWrapper Protocol
-                if not callable(command_wrapper):
-                    msg = "exec() failed to create valid function"
-                    raise TypeError(msg)
-                raw_wrapper = command_wrapper
-
+                # TypeGuard narrows command_wrapper to Callable[..., object] for dynamic exec result
                 def typed_wrapper(
                     *args: t.JsonValue,
                     **kwargs: t.JsonValue,
                 ) -> t.JsonValue:
-                    result = raw_wrapper(*args, **kwargs)
+                    args_obj: tuple[object, ...] = args
+                    kwargs_obj: dict[str, object] = dict(kwargs)
+                    raw_result: object = command_wrapper(*args_obj, **kwargs_obj)
                     normalized = (
                         FlextCliModels.Cli.CliModelConverter.convert_field_value(
-                            result,
+                            raw_result,
                         )
                     )
                     if normalized.is_success:
                         return normalized.value
-                    return str(result)
+                    return str(raw_result)
 
                 typed_wrapper.__annotations__ = dict(real_annotations)
                 return typed_wrapper
@@ -2318,27 +2338,24 @@ class FlextCliModels(FlextModels):
                 """Process metadata list into dict."""
                 result: dict[str, t.JsonValue] = {}
                 for item in metadata_attr:
-                    match item:
-                        case object(__dict__=item_dict) if isinstance(
-                            item_dict, Mapping
-                        ):
-                            dict_item: dict[str, t.JsonValue] = {
+                    if _is_mapping_like(item):
+                        dict_item = {
+                            str(k): FlextCliModels.Cli.CliModelConverter.to_json_value(
+                                v
+                            )
+                            for k, v in item.items()
+                        }
+                        result.update(dict_item)
+                    elif hasattr(item, "__dict__"):
+                        item_dict = getattr(item, "__dict__")
+                        if _is_mapping_like(item_dict):
+                            dict_item = {
                                 str(
                                     k
                                 ): FlextCliModels.Cli.CliModelConverter.to_json_value(v)
                                 for k, v in item_dict.items()
                             }
                             result.update(dict_item)
-                        case _ if isinstance(item, Mapping):
-                            dict_item = {
-                                str(
-                                    k
-                                ): FlextCliModels.Cli.CliModelConverter.to_json_value(v)
-                                for k, v in item.items()
-                            }
-                            result.update(dict_item)
-                        case _:
-                            pass
                 return result
 
             @staticmethod
@@ -2511,7 +2528,12 @@ class FlextCliModels(FlextModels):
                         field_value,
                     )
                     return FlextResult.ok(json_value)
-                except Exception:
+                except ValidationError as exc:
+                    _logger.debug(
+                        "convert_field_value validation fallback: %s",
+                        exc,
+                        exc_info=False,
+                    )
                     return FlextResult.ok(str(field_value))
 
             @staticmethod
@@ -2583,12 +2605,11 @@ class FlextCliModels(FlextModels):
                 """Process validators from field info, filtering only callable validators."""
                 if not isinstance(field_info, (list, tuple, range)):
                     return []
-                # Build result list explicitly for proper type narrowing
-                result: list[Callable[..., object]] = []
-                for item in field_info:
-                    if callable(item) and not isinstance(item, type):
-                        result.append(item)  # noqa: PERF401
-                return result
+                return [
+                    item
+                    for item in field_info
+                    if callable(item) and not isinstance(item, type)
+                ]
 
         class CliModelDecorators:
             """Decorators for creating CLI commands from Pydantic models."""
@@ -2634,17 +2655,17 @@ class FlextCliModels(FlextModels):
                             result = func(model_instance)
                             # Convert result to t.JsonValue if needed
                             output: t.JsonValue
-                            match result:
-                                case r() as result_obj if result_obj.is_success:
+                            if isinstance(result, FlextResult):
+                                if result.is_success:
                                     output = FlextCliModels.Cli.CliModelDecorators.normalize_output(
-                                        result_obj.value,
+                                        result.value,
                                     )
-                                case r() as result_obj:
-                                    output = str(result_obj.error or "Unknown error")
-                                case _:
-                                    output = FlextCliModels.Cli.CliModelDecorators.normalize_output(
-                                        result,
-                                    )
+                                else:
+                                    output = str(result.error or "Unknown error")
+                            else:
+                                output = FlextCliModels.Cli.CliModelDecorators.normalize_output(
+                                    result,
+                                )
                         except Exception as e:
                             # Return error string on failure (decorator pattern)
                             output = f"Validation failed: {e}"
@@ -2671,14 +2692,15 @@ class FlextCliModels(FlextModels):
                         **kwargs: t.JsonValue,
                     ) -> t.JsonValue:
                         try:
-                            # Create model instances from kwargs (simplified)
-                            models = [
-                                model_cls(**kwargs) for model_cls in model_classes
-                            ]
-                            model_payloads: list[t.JsonValue] = [
-                                model.model_dump() for model in models
-                            ]
-                            return func(*model_payloads)
+                            models: list[BaseModel] = []
+                            for model_cls in model_classes:
+                                built_model = model_cls(**kwargs)
+                                try:
+                                    rebuilt_model = model_cls(**dict(built_model))
+                                    models.append(rebuilt_model)
+                                except Exception:
+                                    models.append(built_model)
+                            return func(*(m.model_dump() for m in models))
                         except Exception as e:
                             return f"Validation failed: {e}"
 

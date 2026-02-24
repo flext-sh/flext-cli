@@ -272,13 +272,11 @@ class TestsCliTypings:
         # Test union types
         def process_value(value: str | int) -> str:
             """Process value and return string."""
-            match value:
-                case str():
-                    return value.upper()
-                case int():
-                    return str(value)
-                case _:
-                    return str(value)
+            if isinstance(value, str):
+                return value.upper()
+            if isinstance(value, int):
+                return str(value)
+            return str(value)
 
         def process_optional(value: str | None) -> str:
             return value or "default"
@@ -348,13 +346,11 @@ class TestsCliTypings:
         # Test type narrowing
         def process_union(value: str | int) -> str:
             """Process union value and return string."""
-            match value:
-                case str():
-                    return value.upper()
-                case int():
-                    return str(value)
-                case _:
-                    return str(value)
+            if isinstance(value, str):
+                return value.upper()
+            if isinstance(value, int):
+                return str(value)
+            return str(value)
 
         def process_optional(value: str | None) -> str:
             return value.upper() if value else "default"
@@ -549,15 +545,13 @@ class TestsCliTypings:
 
         # Test edge cases with types
         def handle_edge_cases(value: object) -> str:
-            match value:
-                case None:
-                    return "None"
-                case str() if not value:
-                    return "Empty"
-                case str() | int() | float():
-                    return str(value)
-                case _:
-                    return "Unknown"
+            if value is None:
+                return "None"
+            if isinstance(value, str) and not value:
+                return "Empty"
+            if isinstance(value, (str, int, float)):
+                return str(value)
+            return "Unknown"
 
         # Test edge cases
         assert handle_edge_cases(None) == "None"

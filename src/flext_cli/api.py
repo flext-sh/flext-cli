@@ -10,7 +10,7 @@ import secrets
 import threading
 from abc import ABC
 from collections.abc import Callable, Mapping, Sequence
-from typing import ClassVar, cast
+from typing import ClassVar, TypeGuard
 
 from flext_core import (
     FlextContainer as container,
@@ -40,6 +40,13 @@ from flext_cli.services.prompts import FlextCliPrompts
 from flext_cli.services.tables import FlextCliTables
 from flext_cli.settings import FlextCliSettings
 from flext_cli.utilities import u
+
+
+def _is_registered_command(
+    obj: object,
+) -> TypeGuard[p.Cli.CliRegisteredCommand]:
+    """Narrow to CliRegisteredCommand when protocol attributes are present."""
+    return callable(obj) and hasattr(obj, "name") and hasattr(obj, "callback")
 
 
 class FlextCli:
@@ -261,7 +268,11 @@ class FlextCli:
         )
         if token_result.is_success:
             token_value = token_result.value
-            extracted_token = u.Parser.convert(token_value, str, "")
+            if u.is_dict_like(token_value):
+                return r[str].fail(c.Cli.APIDefaults.TOKEN_DATA_TYPE_ERROR)
+            if not u.is_type(token_value, str):
+                return r[str].fail(c.Cli.APIDefaults.TOKEN_VALUE_TYPE_ERROR)
+            extracted_token = str(token_value).strip()
             if extracted_token:
                 return r[str].ok(extracted_token)
 
@@ -317,16 +328,11 @@ class FlextCli:
             else self._cli.create_group_decorator
         )
         decorated_func = factory(name=entity_name)(func)
-        if (
-            not callable(decorated_func)
-            or not hasattr(decorated_func, "name")
-            or not hasattr(decorated_func, "callback")
-        ):
+        if not _is_registered_command(decorated_func):
             msg = "decorated_func must implement CliRegisteredCommand protocol"
             raise TypeError(msg)
-        # Store in appropriate registry
         registry = self._commands if entity_type == "command" else self._groups
-        registered_command: p.Cli.CliRegisteredCommand = cast("p.Cli.CliRegisteredCommand", decorated_func)
+        registered_command: p.Cli.CliRegisteredCommand = decorated_func
         registry[entity_name] = registered_command
         return registered_command
 

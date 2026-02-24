@@ -9,12 +9,13 @@ from __future__ import annotations
 
 import csv
 import json
+import logging
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from io import StringIO
-from typing import ClassVar, cast
+from typing import ClassVar, TypeGuard
 
 import yaml
-from flext_core import FlextRuntime, r, t
+from flext_core import FlextResult, FlextRuntime, r, t
 from pydantic import BaseModel, TypeAdapter, ValidationError
 from rich.tree import Tree as RichTree
 
@@ -117,23 +118,20 @@ class FlextCliOutput:
 
         Uses t.JsonValue from lower layer instead of object for better type safety.
         """
-        match v:
-            case str() | int() | float() | bool() | None | dict() | list():
-                return True
-            case _:
-                return False
+        return isinstance(
+            v,
+            (str, int, float, bool, type(None), dict, list),
+        )
 
     @staticmethod
     def to_json(v: t.ConfigMapValue) -> t.JsonValue:
         """Convert value to JSON-compatible using build DSL."""
-        match v:
-            case dict() as mapping:
-                normalized: dict[str, t.JsonValue] = {}
-                for key, value in mapping.items():
-                    normalized[str(key)] = FlextCliOutput.norm_json(value)
-                return normalized
-            case _:
-                return FlextCliOutput.norm_json(v)
+        if isinstance(v, dict):
+            normalized: dict[str, t.JsonValue] = {}
+            for key, value in v.items():
+                normalized[str(key)] = FlextCliOutput.norm_json(value)
+            return normalized
+        return FlextCliOutput.norm_json(v)
 
     @staticmethod
     def get_keys(
@@ -161,30 +159,54 @@ class FlextCliOutput:
         """
         d_dict = u.build(d, ops={"ensure": "dict"}, on_error="skip")
         # Python 3.13: Use isinstance with Mapping for proper type narrowing
-        # Business Rule: Dict keys MUST be extracted using list() constructor (Python 3.13+)
-        # Architecture: Direct list() conversion is type-safe and efficient
-        # Audit Implication: Key extraction is deterministic and safe
-        match d_dict:
-            case dict() as mapping:
-                return list(mapping.keys())
-            case _:
-                return []
+        if isinstance(d_dict, dict):
+            return list(d_dict.keys())
+        return []
+
+    # TypeGuard helpers for Rich protocols (structural checks, no cast)
+
+    @staticmethod
+    def _is_rich_table_protocol(
+        obj: object,
+    ) -> TypeGuard[p.Cli.Display.RichTableProtocol]:
+        """Narrow to RichTableProtocol using structural checks (add_column, add_row)."""
+        return (
+            hasattr(obj, "add_column")
+            and hasattr(obj, "add_row")
+            and callable(getattr(obj, "add_column", None))
+            and callable(getattr(obj, "add_row", None))
+        )
+
+    @staticmethod
+    def _is_rich_progress_protocol(
+        obj: object,
+    ) -> TypeGuard[p.Cli.Interactive.RichProgressProtocol]:
+        """Narrow to RichProgressProtocol using structural checks (context manager + task methods)."""
+        return (
+            hasattr(obj, "__enter__")
+            and hasattr(obj, "__exit__")
+            and hasattr(obj, "add_task")
+            and hasattr(obj, "update")
+            and callable(getattr(obj, "add_task", None))
+            and callable(getattr(obj, "update", None))
+        )
+
+    @staticmethod
+    def _is_rich_console_protocol(
+        obj: object,
+    ) -> TypeGuard[p.Cli.Display.RichConsoleProtocol]:
+        """Narrow to RichConsoleProtocol using structural check (print)."""
+        return hasattr(obj, "print") and callable(getattr(obj, "print", None))
 
     @staticmethod
     def norm_json(item: t.ConfigMapValue) -> t.JsonValue:
         """Normalize item to JSON-compatible using build DSL."""
-        match item:
-            case str() | int() | float() | bool() | None:
-                return item
-            case _:
-                pass
+        if isinstance(item, (str, int, float, bool, type(None))):
+            return item
         if u.is_dict_like(item):
             return FlextCliOutput.to_dict_json(item)
         if u.is_list_like(item):
-            # item is narrowed to Sequence[t.JsonValue] by isinstance check
-            # to_list_json accepts both t.JsonValue | Sequence[t.JsonValue]
             return FlextCliOutput.to_list_json(item)
-        # Type narrowing: str(item) is already t.JsonValue compatible
         return str(item)
 
     @staticmethod
@@ -194,7 +216,12 @@ class FlextCliOutput:
             return default
         try:
             return str(v)
-        except Exception:
+        except Exception as exc:
+            logging.getLogger(__name__).debug(
+                "ensure_str fallback: %s",
+                exc,
+                exc_info=False,
+            )
             return default
 
     @staticmethod
@@ -211,7 +238,12 @@ class FlextCliOutput:
         try:
             sequence_result = list_adapter.validate_python(source_value)
             return [FlextCliOutput.norm_json(item) for item in sequence_result]
-        except ValidationError:
+        except ValidationError as exc:
+            logging.getLogger(__name__).debug(
+                "ensure_list validation fallback: %s",
+                exc,
+                exc_info=False,
+            )
             return default or []
 
     @staticmethod
@@ -225,14 +257,12 @@ class FlextCliOutput:
             ops={"ensure": "dict", "ensure_default": default or {}},
             on_error="skip",
         )
-        match result:
-            case dict() as mapping:
-                normalized: dict[str, t.JsonValue] = {}
-                for key, value in mapping.items():
-                    normalized[str(key)] = FlextCliOutput.norm_json(value)
-                return normalized
-            case _:
-                return default or {}
+        if isinstance(result, dict):
+            normalized: dict[str, t.JsonValue] = {}
+            for key, value in result.items():
+                normalized[str(key)] = FlextCliOutput.norm_json(value)
+            return normalized
+        return default or {}
 
     @staticmethod
     def ensure_bool(v: t.JsonValue | None, *, default: bool = False) -> bool:
@@ -253,38 +283,27 @@ class FlextCliOutput:
     ) -> t.JsonValue:
         """Get value from map with default using build DSL."""
         value = m.get(k, default)
-        # Ensure value is compatible with JsonValue
-        compatible_value: t.JsonValue
-        match value:
-            case str() | int() | float() | bool() | None | list():
-                compatible_value = value
-            case dict() as mapping:
-                dict_items: dict[str, t.JsonValue] = {}
-                for kk, vv in mapping.items():
-                    match vv:
-                        case str() | int() | float() | bool() | None | list() | dict():
-                            dict_items[str(kk)] = vv
-                        case _:
-                            dict_items[str(kk)] = str(vv)
-                compatible_value = dict_items
-            case _:
-                compatible_value = str(value)
-        # compatible_value is already validated as JsonValue-compatible
-        return compatible_value
+        if value is None or isinstance(value, (str, int, float, bool, list)):
+            return value
+        if isinstance(value, dict):
+            dict_items: dict[str, t.JsonValue] = {}
+            for kk, vv in value.items():
+                if isinstance(vv, (str, int, float, bool, type(None), list, dict)):
+                    dict_items[str(kk)] = vv
+                else:
+                    dict_items[str(kk)] = str(vv)
+            return dict_items
+        return str(value)
 
     @staticmethod
-    def cast_if[T](
-        v: t.ConfigMapValue,
-        t_type: type[T],
-        default: T,
-    ) -> T:
-        """Cast value if isinstance else return default.
-
-        Pattern: Non-generic cast_if for runtime type checking.
-        Checks v against t_type, returns v if match, else returns default.
-        """
-        if isinstance(v, t_type):
-            return v
+    def cast_if(
+        value: t.ConfigMapValue,
+        expected_type: type,
+        default: t.JsonValue,
+    ) -> t.ConfigMapValue:
+        """Return value when it matches expected_type, else default."""
+        if u.is_type(value, expected_type):
+            return value
         return default
 
     @staticmethod
@@ -292,17 +311,21 @@ class FlextCliOutput:
         """Convert value to dict with JSON transform using build DSL."""
         root_value = getattr(v, "root", None)
         source_value = root_value if root_value is not None else v
+        source_value = FlextCliOutput.cast_if(source_value, dict, {})
         dict_adapter: TypeAdapter[dict[str, t.JsonValue]] = TypeAdapter(
             dict[str, t.JsonValue]
         )
         try:
             parsed_dict = dict_adapter.validate_python(source_value)
-            coerced_dict = FlextCliOutput.cast_if(parsed_dict, dict, {})
-            items_getter = getattr(coerced_dict, "items", None)
-            if not callable(items_getter):
-                return {}
-            return {str(k): FlextCliOutput.norm_json(vv) for k, vv in items_getter()}
-        except ValidationError:
+            return {
+                str(k): FlextCliOutput.norm_json(vv) for k, vv in parsed_dict.items()
+            }
+        except ValidationError as exc:
+            logging.getLogger(__name__).debug(
+                "to_dict_json validation fallback: %s",
+                exc,
+                exc_info=False,
+            )
             return {}
 
     @staticmethod
@@ -312,16 +335,17 @@ class FlextCliOutput:
         """Convert value to list with JSON transform using build DSL."""
         root_value = getattr(v, "root", None)
         source_value = root_value if root_value is not None else v
+        source_value = FlextCliOutput.cast_if(source_value, list, [])
         list_adapter: TypeAdapter[list[t.JsonValue]] = TypeAdapter(list[t.JsonValue])
         try:
             parsed_list = list_adapter.validate_python(source_value)
-            coerced_list = FlextCliOutput.cast_if(parsed_list, list, [])
-            try:
-                normalized_list = list_adapter.validate_python(coerced_list)
-            except ValidationError:
-                return []
-            return [FlextCliOutput.norm_json(item) for item in normalized_list]
-        except ValidationError:
+            return [FlextCliOutput.norm_json(item) for item in parsed_list]
+        except ValidationError as exc:
+            logging.getLogger(__name__).debug(
+                "to_list_json validation fallback: %s",
+                exc,
+                exc_info=False,
+            )
             return []
 
     # =========================================================================
@@ -423,21 +447,15 @@ class FlextCliOutput:
             # Use build() DSL: filter → validate → process → ensure list
             # Type narrowing: is_list_like ensures data is Sequence-like
             # Convert to list via iteration
-            match data:
-                case Sequence() as sequence_data:
-                    data_list: list[t.ConfigMapValue] = [
-                        FlextRuntime.normalize_to_general_value(item)
-                        for item in sequence_data
-                    ]
-                case _:
-                    return r[str].fail(c.Cli.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT)
+            if isinstance(data, Sequence):
+                data_list = [
+                    FlextRuntime.normalize_to_general_value(item) for item in data
+                ]
+            else:
+                return r[str].fail(c.Cli.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT)
             dict_items = u.filter(data_list, predicate=u.is_dict_like)
-            # Type narrowing: data_list is list after normalization
-            match dict_items:
-                case list() as items if len(items) == len(data_list):
-                    pass
-                case _:
-                    return r[str].fail(c.Cli.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT)
+            if not (isinstance(dict_items, list) and len(dict_items) == len(data_list)):
+                return r[str].fail(c.Cli.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT)
             # Use generalized norm_json helper
             # For lists, processor takes only item, not (key, item)
             # Filter first, then process (FlextCliUtilities.process doesn't accept predicate)
@@ -662,21 +680,19 @@ class FlextCliOutput:
         output_format: str,
     ) -> r[bool]:
         """Dispatch registered formatter by result strategy."""
-        match result:
-            case BaseModel() as model_result:
-                return self._format_registered_basemodel(
-                    model_result,
-                    formatter,
-                    output_format,
-                )
-            case r() as railway_result:
-                return self._format_registered_result(
-                    railway_result,
-                    formatter,
-                    output_format,
-                )
-            case _:
-                return self._format_registered_generic(result, formatter, output_format)
+        if isinstance(result, FlextResult):
+            return self._format_registered_result(
+                result,
+                formatter,
+                output_format,
+            )
+        if isinstance(result, BaseModel):
+            return self._format_registered_basemodel(
+                result,
+                formatter,
+                output_format,
+            )
+        return self._format_registered_generic(result, formatter, output_format)
 
     def _format_registered_basemodel(
         self,
@@ -721,11 +737,12 @@ class FlextCliOutput:
     @staticmethod
     def _normalize_formatter_value(value: t.JsonValue) -> t.JsonValue:
         """Normalize formatter input to a JSON-compatible general value."""
-        match value:
-            case str() | int() | float() | bool() | None | dict() | list() | tuple():
-                return value
-            case _:
-                return str(value)
+        if isinstance(
+            value,
+            (str, int, float, bool, type(None), dict, list, tuple),
+        ):
+            return value
+        return str(value)
 
     def _convert_result_to_formattable(
         self,
@@ -744,34 +761,25 @@ class FlextCliOutput:
             )
 
         # Handle Pydantic models
-        match result:
-            case BaseModel() as model_result:
-                return self._format_pydantic_model(model_result, output_format)
-            case _:
-                pass
+        if isinstance(result, BaseModel):
+            return self._format_pydantic_model(result, output_format)
 
         # Handle dict objects directly
-        # Type narrowing: result is t.JsonValue, check if it's a dict
-        match result:
-            case dict() as dict_result:
-                return self.format_data(dict_result, output_format)
-            case _:
-                pass
-        match result:
-            case object(__dict__=raw_source):
-                match raw_source:
-                    case Mapping() as source_mapping:
-                        object_dict = dict(source_mapping)
-                    case _:
-                        object_dict = {}
-                filtered_dict = u.Mapper.filter_dict(
-                    object_dict,
-                    lambda _k, v: self.is_json(v),
-                )
-                result_dict = self.ensure_dict(filtered_dict, {})
-                return self.format_data(result_dict, output_format)
-            case _:
-                pass
+        if isinstance(result, dict):
+            return self.format_data(result, output_format)
+
+        # Handle objects with __dict__
+        if hasattr(result, "__dict__"):
+            raw_source = getattr(result, "__dict__")
+            object_dict = (
+                dict(raw_source) if isinstance(raw_source, Mapping) else {}
+            )
+            filtered_dict = u.Mapper.filter_dict(
+                object_dict,
+                lambda _k, v: self.is_json(v),
+            )
+            result_dict = self.ensure_dict(filtered_dict, {})
+            return self.format_data(result_dict, output_format)
 
         # Use string representation (not a fallback - valid conversion)
         return r[str].ok(str(result))
@@ -792,34 +800,19 @@ class FlextCliOutput:
         output_format: str,
     ) -> r[str]:
         """Format object with __dict__ to string."""
-        # Type narrowing: result must have __dict__ attribute
-        match result:
-            case r() as railway_result:
-                # Extract value from r
-                if railway_result.is_failure:
-                    return r[str].fail(
-                        f"Cannot format failed result: {railway_result.error}"
-                    )
-                # Use .value directly instead of deprecated .value
-                # Type narrowing: .value returns t.JsonValue
-                # Note: Cannot use isinstance with TypeAliasType (t.JsonValue)
-                # result_value is already t.JsonValue from .value
-                result = railway_result.value
-            case _:
-                pass
-        # Now result is t.JsonValue - check if it has __dict__
-        match result:
-            case object(__dict__=raw_source):
-                pass
-            case _:
-                return r[str].fail(
-                    f"Object {type(result).__name__} has no __dict__ attribute",
-                )
-        match raw_source:
-            case Mapping() as mapping_source:
-                raw_dict: dict[str, t.JsonValue] = dict(mapping_source)
-            case _:
-                raw_dict = {}
+        if isinstance(result, FlextResult):
+            if result.is_failure:
+                return r[str].fail(f"Cannot format failed result: {result.error}")
+            result = result.value
+        if not hasattr(result, "__dict__"):
+            return r[str].fail(
+                f"Object {type(result).__name__} has no __dict__ attribute",
+            )
+        raw_source = getattr(result, "__dict__")
+        if isinstance(raw_source, Mapping):
+            raw_dict: dict[str, t.JsonValue] = dict(raw_source)
+        else:
+            raw_dict = {}
         # Use build() DSL: process_mapping → to_json → filter → ensure dict
         json_dict_result = u.Cli.process_mapping(
             raw_dict,
@@ -828,11 +821,7 @@ class FlextCliOutput:
         )
         # Type narrowing: unwrap_or returns dict or empty dict
         json_dict_raw = json_dict_result.unwrap_or({})
-        match json_dict_raw:
-            case dict() as mapping_result:
-                json_dict: dict[str, t.JsonValue] = mapping_result
-            case _:
-                json_dict = {}
+        json_dict = json_dict_raw if isinstance(json_dict_raw, dict) else {}
         # Use mapper to filter dict items
         filtered_json_dict = u.Mapper.filter_dict(
             json_dict,
@@ -845,11 +834,11 @@ class FlextCliOutput:
         )
         # Type narrowing: unwrap_or returns dict or empty dict
         cli_json_dict_raw = cli_json_dict_result.unwrap_or({})
-        match cli_json_dict_raw:
-            case dict() as mapping_result:
-                cli_json_dict = self.to_dict_json(mapping_result)
-            case _:
-                cli_json_dict = {}
+        cli_json_dict = (
+            self.to_dict_json(cli_json_dict_raw)
+            if isinstance(cli_json_dict_raw, dict)
+            else {}
+        )
         return self.format_data(cli_json_dict, output_format)
 
     @staticmethod
@@ -974,7 +963,11 @@ class FlextCliOutput:
             return r[p.Cli.Display.RichTableProtocol].fail(
                 "Failed to create Rich table: invalid table protocol",
             )
-        return r[p.Cli.Display.RichTableProtocol].ok(table_value)
+        if FlextCliOutput._is_rich_table_protocol(table_value):
+            return r[p.Cli.Display.RichTableProtocol].ok(table_value)
+        return r[p.Cli.Display.RichTableProtocol].fail(
+            "Failed to create Rich table: invalid table protocol",
+        )
 
     def _populate_table_rows(
         self,
@@ -1200,7 +1193,11 @@ class FlextCliOutput:
             ):
                 msg = "Progress object must implement RichProgress protocol"
                 raise TypeError(msg)
-            return r[p.Cli.Interactive.RichProgressProtocol].ok(progress_value)
+            if FlextCliOutput._is_rich_progress_protocol(progress_value):
+                return r[p.Cli.Interactive.RichProgressProtocol].ok(progress_value)
+            return r[p.Cli.Interactive.RichProgressProtocol].fail(
+                "Progress object does not implement RichProgress protocol",
+            )
         return r[p.Cli.Interactive.RichProgressProtocol].fail(result.error or "")
 
     # =========================================================================
@@ -1526,39 +1523,23 @@ class FlextCliOutput:
 
         Uses types from lower layer (t.JsonValue) for proper type safety.
         """
-        # Direct list return
-        match data:
-            case list() as list_data:
-                return [self.norm_json(item) for item in list_data]
-            case _:
-                pass
-        # Sequence types (tuple, Sequence) - includes str but handled as single value
-        match data:
-            case tuple() as tuple_data:
-                return [self._normalize_iterable_item(item) for item in tuple_data]
-            case _:
-                pass
-        # Dict returns items
-        match data:
-            case dict() as dict_data:
-                return list(dict_data.items())
-            case _:
-                pass
-        # For other types, try to convert using _convert_iterable_to_list
-        # Data might be a custom iterable like BaseModel or other objects with __iter__
+        if isinstance(data, list):
+            return [self.norm_json(item) for item in data]
+        if isinstance(data, tuple):
+            return [self._normalize_iterable_item(item) for item in data]
+        if isinstance(data, dict):
+            return list(data.items())
         try:
-            match data:
-                case str():
-                    # str is iterable but we don't want to treat it as a sequence
-                    return []
-                case _:
-                    pass
-            # Try to iterate by checking if iter() works
-            # Use a separate method to avoid type checker errors
+            if isinstance(data, str):
+                return []
             result = self._try_iterate_items(data)
             return result or []
-        except (TypeError, AttributeError):
-            # data is not iterable (int, float, bool, datetime, Path, etc.)
+        except (TypeError, AttributeError) as exc:
+            logging.getLogger(__name__).debug(
+                "_coerce_to_list fallback (not iterable): %s",
+                exc,
+                exc_info=False,
+            )
             return []
 
     def _try_iterate_items(self, data: t.ConfigMapValue) -> list[t.JsonValue]:
@@ -1572,8 +1553,12 @@ class FlextCliOutput:
             if strategy is None:
                 return []
             return strategy(data)
-        except (TypeError, AttributeError):
-            # Fallback: not iterable, return empty
+        except (TypeError, AttributeError) as exc:
+            logging.getLogger(__name__).debug(
+                "_try_iterate_items fallback: %s",
+                exc,
+                exc_info=False,
+            )
             return []
 
     def _resolve_iteration_strategy(
@@ -1600,74 +1585,52 @@ class FlextCliOutput:
     @staticmethod
     def _is_mapping_value(data: t.ConfigMapValue) -> bool:
         """Check if value should use mapping iteration strategy."""
-        match data:
-            case dict():
-                return True
-            case _:
-                return False
+        return isinstance(data, dict)
 
     @staticmethod
     def _is_sequence_value(data: t.ConfigMapValue) -> bool:
         """Check if value should use sequence iteration strategy."""
-        match data:
-            case list() | tuple():
-                return True
-            case _:
-                return False
+        return isinstance(data, (list, tuple))
 
     @staticmethod
     def _is_custom_iterable_value(data: t.ConfigMapValue) -> bool:
         """Check if value should use custom iterable strategy."""
-        match data:
-            case str() | list() | tuple() | dict():
-                return False
-            case Iterable():
-                return True
-            case _:
-                return False
+        if isinstance(data, (str, list, tuple, dict)):
+            return False
+        return isinstance(data, Iterable)
 
     def _iterate_mapping(self, data: t.ConfigMapValue) -> list[t.JsonValue]:
         """Iterate dictionary values as tuple items."""
-        match data:
-            case dict() as mapping_data:
-                pass
-            case _:
-                return []
+        if not isinstance(data, dict):
+            return []
         iterable_items: list[t.JsonValue] = []
-        for key, value in mapping_data.items():
+        for key, value in data.items():
             key_value = (key, value)
-            match key_value:
-                case tuple() as tuple_value:
-                    dict_item: t.JsonValue = tuple_value
-                case _:
-                    dict_item = str(key_value)
+            dict_item = key_value if isinstance(key_value, tuple) else str(key_value)
             iterable_items.append(dict_item)
         return iterable_items
 
     def _iterate_sequence(self, data: t.ConfigMapValue) -> list[t.JsonValue]:
         """Iterate list/tuple values with normalization."""
-        match data:
-            case list() | tuple() as sequence_data:
-                return [self._normalize_iterable_item(item) for item in sequence_data]
-            case _:
-                return []
+        if isinstance(data, (list, tuple)):
+            return [self._normalize_iterable_item(item) for item in data]
+        return []
 
     def _iterate_model(self, data: t.ConfigMapValue) -> list[t.JsonValue]:
         """Iterate custom iterable values with normalization."""
-        match data:
-            case Iterable() as iterable_data:
-                return [self._normalize_iterable_item(item) for item in iterable_data]
-            case _:
-                return []
+        if isinstance(data, Iterable):
+            return [self._normalize_iterable_item(item) for item in data]
+        return []
 
     @staticmethod
     def _normalize_iterable_item(item: object) -> t.JsonValue:
         """Normalize iterable items to general value type."""
-        match item:
-            case str() | int() | float() | bool() | None | dict() | list() | tuple():
-                return item
-            case _:
-                return str(item)
+        if isinstance(
+            item,
+            (str, int, float, bool, type(None), dict, list, tuple),
+        ):
+            return item
+        return str(item)
 
     def _convert_iterable_to_list(
         self, data: Iterable[t.JsonValue]
@@ -1678,33 +1641,25 @@ class FlextCliOutput:
         Uses Iterable from lower layer for proper type safety.
         """
         try:
-            match data:
-                case Sequence() as sequence_data:
-                    return list(sequence_data)
-                case _:
-                    pass
-            # For other iterables, convert using list comprehension
-            # Each item is narrowed to t.JsonValue from lower layer
+            if isinstance(data, Sequence):
+                return list(data)
             iterable_items: list[t.JsonValue] = []
             for item in data:
-                # Type narrowing: item from iterable is t.JsonValue compatible
-                match item:
-                    case (
-                        str()
-                        | int()
-                        | float()
-                        | bool()
-                        | None
-                        | dict()
-                        | list()
-                        | tuple()
-                    ) as supported_item:
-                        item_general: t.JsonValue = supported_item
-                    case _:
-                        item_general = str(item)  # Fallback to string for other types
+                if isinstance(
+                    item,
+                    (str, int, float, bool, type(None), dict, list, tuple),
+                ):
+                    item_general = item
+                else:
+                    item_general = str(item)
                 iterable_items.append(item_general)
             return iterable_items
-        except (TypeError, ValueError):
+        except (TypeError, ValueError) as exc:
+            logging.getLogger(__name__).debug(
+                "_iterate_sequence fallback: %s",
+                exc,
+                exc_info=False,
+            )
             return []
 
     def _format_csv_list(self, data: t.JsonValue) -> r[str]:
@@ -1744,14 +1699,10 @@ class FlextCliOutput:
         writer = csv.DictWriter(output_buffer, fieldnames=fieldnames)
         writer.writeheader()
         # Type narrowing: data is dict-like from format_csv check
-        # Use t.JsonValue from lower layer instead of object
-        match data:
-            case dict() as mapping_data:
-                data_dict: dict[str, t.JsonValue] = {}
-                for key, value in mapping_data.items():
-                    data_dict[str(key)] = self.norm_json(value)
-            case _:
-                data_dict = {}
+        if isinstance(data, dict):
+            data_dict = {str(key): self.norm_json(value) for key, value in data.items()}
+        else:
+            data_dict = {}
         writer.writerow(data_dict)
         return r[str].ok(output_buffer.getvalue())
 
@@ -1773,11 +1724,8 @@ class FlextCliOutput:
         """Replace None with empty string for CSV."""
         if v is None:
             return ""
-        match v:
-            case str() | int() | float() | bool() as scalar_value:
-                return scalar_value
-            case _:
-                pass
+        if isinstance(v, (str, int, float, bool)):
+            return v
         return str(v)
 
     def format_table(
@@ -2110,10 +2058,11 @@ class FlextCliOutput:
 
         """
         # Console (concrete type) implements RichConsoleProtocol structurally
-        # Use cast for structural typing compatibility
-
         concrete_console = FlextCliFormatters().console
-        return concrete_console
+        if FlextCliOutput._is_rich_console_protocol(concrete_console):
+            return concrete_console
+        msg = "Console does not implement RichConsoleProtocol"
+        raise TypeError(msg)
 
     def execute(self) -> r[Mapping[str, t.JsonValue]]:
         """Execute service - required by FlextService abstract method.

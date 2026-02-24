@@ -79,7 +79,7 @@ class FlextCliCmd(FlextCliServiceBase):
         try:
             paths = FlextCliUtilities.Cli.ConfigOps.get_config_paths()
             return r[list[str]].ok(paths)
-        except Exception as e:
+        except (OSError, ValueError, TypeError) as e:
             return r[list[str]].fail(
                 FlextCliConstants.Cli.ErrorMessages.CONFIG_PATHS_FAILED.format(error=e),
             )
@@ -100,7 +100,7 @@ class FlextCliCmd(FlextCliServiceBase):
                     ),
                 )
             return r[bool].ok(value=True)
-        except Exception as e:
+        except (OSError, ValueError, TypeError) as e:
             return r[bool].fail(
                 FlextCliConstants.Cli.ErrorMessages.CONFIG_VALIDATION_FAILED.format(
                     error=e,
@@ -120,7 +120,7 @@ class FlextCliCmd(FlextCliServiceBase):
                 timestamp=str(info.get("timestamp", "")),
             )
             return r[m.Cli.ConfigSnapshot].ok(snapshot)
-        except Exception as e:
+        except (OSError, ValueError, TypeError, KeyError) as e:
             return r[m.Cli.ConfigSnapshot].fail(
                 FlextCliConstants.Cli.ErrorMessages.CONFIG_INFO_FAILED.format(error=e),
             )
@@ -174,6 +174,11 @@ class FlextCliCmd(FlextCliServiceBase):
 
             load_result = self._file_tools.read_json_file(str(config_path))
             if load_result.is_failure:
+                load_error_text = str(load_result.error or "")
+                if "Cannot create success result with None value" in load_error_text:
+                    return r[Mapping[str, t.JsonValue]].fail(
+                        FlextCliConstants.Cli.CmdErrorMessages.CONFIG_NOT_DICT,
+                    )
                 return r[Mapping[str, t.JsonValue]].fail(
                     FlextCliConstants.Cli.CmdErrorMessages.CONFIG_LOAD_FAILED.format(
                         error=load_result.error,
@@ -185,14 +190,13 @@ class FlextCliCmd(FlextCliServiceBase):
                 return r[Mapping[str, t.JsonValue]].fail(
                     FlextCliConstants.Cli.CmdErrorMessages.CONFIG_NOT_DICT,
                 )
-            match config_data:
-                case Mapping() as config_mapping:
-                    config_data_dict: dict[str, t.JsonValue] = {
-                        str(key): FlextCliOutput.norm_json(value)
-                        for key, value in config_mapping.items()
-                    }
-                case _:
-                    config_data_dict = {}
+            if isinstance(config_data, Mapping):
+                config_data_dict = {
+                    str(key): FlextCliOutput.norm_json(value)
+                    for key, value in config_data.items()
+                }
+            else:
+                config_data_dict = {}
 
             if key not in config_data_dict:
                 return r[Mapping[str, t.JsonValue]].fail(
@@ -275,6 +279,11 @@ class FlextCliCmd(FlextCliServiceBase):
 
             load_result = self._file_tools.read_json_file(str(path))
             if load_result.is_failure:
+                load_error_text = str(load_result.error or "")
+                if "Cannot create success result with None value" in load_error_text:
+                    return r[str].fail(
+                        FlextCliConstants.Cli.CmdErrorMessages.CONFIG_NOT_DICT,
+                    )
                 return r[str].fail(
                     FlextCliConstants.Cli.CmdErrorMessages.CONFIG_LOAD_FAILED.format(
                         error=load_result.error,
@@ -285,7 +294,12 @@ class FlextCliCmd(FlextCliServiceBase):
                 config_model = m.Cli.CmdConfig.model_validate(
                     load_result.value,
                 )
-            except Exception:
+            except Exception as e:
+                self.logger.debug(
+                    "edit_config model_validate fallback: %s",
+                    e,
+                    exc_info=False,
+                )
                 return r[str].fail(
                     FlextCliConstants.Cli.CmdErrorMessages.CONFIG_NOT_DICT,
                 )

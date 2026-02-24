@@ -24,6 +24,8 @@ from tests.helpers._impl import (
     ParamsFactory,
     TestScenario,
     ValidationHelper,
+    _is_json_dict,
+    _is_json_list,
 )
 
 __all__ = [
@@ -33,6 +35,8 @@ __all__ = [
     "ParamsFactory",
     "TestScenario",
     "ValidationHelper",
+    "_is_json_dict",
+    "_is_json_list",
     "c",
     "m",
     "p",

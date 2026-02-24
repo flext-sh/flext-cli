@@ -8,7 +8,6 @@ import getpass
 import os
 import re
 from collections.abc import Mapping
-from typing import cast
 
 from flext_core import r
 from pydantic import Field, PrivateAttr

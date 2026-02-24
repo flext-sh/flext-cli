@@ -16,7 +16,7 @@ import pathlib
 import sys
 import traceback
 from abc import ABC, abstractmethod
-from typing import ClassVar, TypeVar, cast
+from typing import ClassVar, TypeVar
 
 import typer
 from flext_core import FlextLogger, e, r
@@ -54,7 +54,7 @@ class FlextCliAppBase[SettingsT: FlextCliSettings](ABC):
         self.logger = FlextLogger(__name__)
         self._output = FlextCliOutput()
         self._cli = FlextCliCli()
-        self._config = cast(SettingsT, self.config_class.get_instance())
+        self._config = self.config_class.get_global_instance()
 
         self.logger.debug(
             "CLI configuration loaded",

@@ -13,6 +13,7 @@ from __future__ import annotations
 import builtins
 import getpass
 import json
+import logging
 import os
 from collections import deque
 from collections.abc import Callable, Generator, Iterator
@@ -44,6 +45,7 @@ from flext_tests.docker import FlextTestsDocker
 from pydantic import TypeAdapter
 
 from . import c, m, p, t, u
+from .helpers._impl import _is_json_dict
 from .models import ScalarConfigRestore
 
 
@@ -295,7 +297,7 @@ def cli_command_factory() -> CliCommandFactory:
         if transform_result.is_success:
             # unwrap() returns t.GeneralValueType, narrow to dict
             unwrapped = transform_result.value
-            if isinstance(unwrapped, dict):
+            if _is_json_dict(unwrapped):
                 final_data = dict(unwrapped.items())
             else:
                 final_data = raw_data
@@ -346,7 +348,7 @@ def cli_session_factory() -> CliSessionFactory:
         )
         if transform_result.is_success:
             unwrapped = transform_result.value
-            if isinstance(unwrapped, dict):
+            if _is_json_dict(unwrapped):
                 final_data = dict(unwrapped.items())
             else:
                 final_data = raw_data
@@ -399,7 +401,7 @@ def debug_info_factory() -> DebugInfoFactory:
         )
         if transform_result.is_success:
             unwrapped = transform_result.value
-            if isinstance(unwrapped, dict):
+            if _is_json_dict(unwrapped):
                 final_data = dict(unwrapped.items())
             else:
                 final_data = raw_data
@@ -440,7 +442,7 @@ def logging_config_factory() -> LoggingConfigFactory:
         )
         if transform_result.is_success:
             unwrapped = transform_result.value
-            if isinstance(unwrapped, dict):
+            if _is_json_dict(unwrapped):
                 final_data = dict(unwrapped.items())
             else:
                 final_data = raw_data
@@ -724,9 +726,8 @@ def flext_test_docker(
     # Clean up any existing test containers at start
     try:
         _ = docker_manager.cleanup_dirty_containers()
-    except Exception as startup_err:
+    except OSError as startup_err:
         # Best-effort cleanup; log and continue so test run is not blocked
-        import logging
         logging.getLogger(__name__).debug(
             "Docker cleanup at startup skipped: %s", startup_err
         )

@@ -10,13 +10,13 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import logging
 from collections.abc import Mapping
 from datetime import datetime
 
-from pydantic import RootModel, TypeAdapter, ValidationError
-
 from flext_cli.models import FlextCliModels
 from flext_tests.models import FlextTestsModels
+from pydantic import RootModel, TypeAdapter, ValidationError
 
 # Type for container configure() restore: only scalar values (no isinstance filter).
 type ScalarValue = str | int | float | bool | datetime | None
@@ -39,6 +39,9 @@ class ScalarConfigRestore(RootModel[dict[str, ScalarValue]]):
             try:
                 result[str(k)] = _ScalarValueAdapter.validate_python(v)
             except ValidationError:
+                logging.getLogger(__name__).debug(
+                    "skip non-scalar config key %s", k, exc_info=True
+                )
                 continue
         return cls(root=result)
 

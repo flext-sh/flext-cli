@@ -15,6 +15,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations  # @vulture_ignore
 
 import json  # @vulture_ignore
+import logging  # @vulture_ignore
 import platform  # @vulture_ignore
 import tempfile  # @vulture_ignore
 import time  # @vulture_ignore
@@ -409,7 +410,9 @@ class TestsCliConstants:
             ascii_encoded = constants.Cli.Project.NAME.encode("ascii")
             assert isinstance(ascii_encoded, bytes)
         except UnicodeEncodeError:
-            pass
+            logging.getLogger(__name__).debug(
+                "constant not encodable as ascii, skip assert"
+            )
 
     # =========================================================================
     # CONSTANT VALIDATION METHODS TESTS

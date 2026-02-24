@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from typing import cast
+from typing import TypeGuard
 
 from flext_core import r
 from tabulate import tabulate
@@ -184,11 +184,9 @@ class FlextCliTables(FlextCliServiceBase):
 
         # Format table using tabulate
         try:
-            normalized_data: list[t.GeneralValueType]
-            if u.is_dict_like(data):
-                normalized_data = [data]
-            else:
-                normalized_data = list(data)
+            normalized_data = (
+                [data] if u.is_dict_like(data) else list(data)
+            )
 
             headers_value = headers_result.value
             if (
@@ -196,7 +194,11 @@ class FlextCliTables(FlextCliServiceBase):
                 and not u.is_type(headers_value, str)
                 and u.is_dict_like(normalized_data[0])
             ):
-                table_rows = [list(row.values()) for row in normalized_data]
+                table_rows = [
+                    list(row.values())
+                    for row in normalized_data
+                    if isinstance(row, Mapping)
+                ]
                 formatted_table = tabulate(
                     table_rows,
                     headers=list(headers_value),
@@ -206,14 +208,39 @@ class FlextCliTables(FlextCliServiceBase):
                 )
                 return r[str].ok(formatted_table)
 
-            formatted_table = tabulate(
-                normalized_data,
-                headers=headers_value,
-                tablefmt=config_final.table_format,
-                numalign=config_final.numalign,
-                stralign=config_final.stralign,
+            def _is_tabulate_data(
+                val: Sequence[t.GeneralValueType],
+            ) -> TypeGuard[
+                Sequence[Mapping[str, t.GeneralValueType]]
+                | Sequence[Sequence[t.GeneralValueType]]
+            ]:
+                """Narrow to tabulate-acceptable rows (sequence of mappings or sequences)."""
+                if not val:
+                    return True
+                first = val[0]
+                if isinstance(first, str):
+                    return False
+                if isinstance(first, Mapping):
+                    return all(isinstance(row, Mapping) for row in val)
+                if isinstance(first, Sequence):
+                    return all(
+                        isinstance(row, Sequence) and not isinstance(row, str)
+                        for row in val
+                    )
+                return False
+
+            if _is_tabulate_data(normalized_data):
+                formatted_table = tabulate(
+                    normalized_data,
+                    headers=headers_value,
+                    tablefmt=config_final.table_format,
+                    numalign=config_final.numalign,
+                    stralign=config_final.stralign,
+                )
+                return r[str].ok(formatted_table)
+            return r[str].fail(
+                "Table data must be a sequence of mappings or a sequence of sequences"
             )
-            return r[str].ok(formatted_table)
         except Exception as e:
             return r[str].fail(f"Table formatting failed: {e}")
 

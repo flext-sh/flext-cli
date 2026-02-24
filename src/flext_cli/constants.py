@@ -1047,6 +1047,25 @@ class FlextCliConstants(FlextConstants):
                 "CRITICAL",
             ]
 
+    class Configuration:
+        """Shared protocol test configuration constants."""
+
+        BASIC_CONFIG: typing.ClassVar[dict[str, str | bool]] = {
+            "app_name": "test_app",
+            "debug": False,
+            "log_level": "INFO",
+            "output_format": "json",
+        }
+
+    class Authentication:
+        """Shared protocol test authentication constants."""
+
+        VALID_CREDS: typing.ClassVar[dict[str, str]] = {
+            "username": "testuser",
+            "password": "testpass",
+        }
+        VALID_TOKEN: typing.ClassVar[str] = "valid_token"
+
 
 c = FlextCliConstants
 __all__ = ["FlextCliConstants", "c"]

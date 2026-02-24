@@ -1,15 +1,15 @@
 """Pytest configuration and fixtures for unit tests."""
 
-from __future__ import annotations  # @vulture_ignore
+from __future__ import annotations
 
-from collections.abc import Generator  # @vulture_ignore - used in fixture return type
+from collections.abc import Generator
 
-import pytest  # @vulture_ignore - pytest is used by pytest decorators
-from flext_cli import FlextCliSettings  # @vulture_ignore - used in fixture
-from flext_core import FlextSettings  # @vulture_ignore - used in fixture
+import pytest
+from flext_cli import FlextCliSettings
+from flext_core import FlextSettings
 
 
-@pytest.fixture(autouse=True)  # @vulture_ignore - pytest fixture
+@pytest.fixture(autouse=True)
 def reset_config_singleton(request: pytest.FixtureRequest) -> Generator[None]:
     """Reset FlextCliSettings singleton before and after each test.
 

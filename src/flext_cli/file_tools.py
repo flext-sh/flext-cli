@@ -6,6 +6,7 @@ from __future__ import annotations
 import csv
 import hashlib
 import json
+import logging
 import os
 import shutil
 import tempfile
@@ -16,6 +17,7 @@ from typing import TextIO, TypeGuard
 
 import yaml
 from flext_core import r
+from pydantic import TypeAdapter, ValidationError
 
 from flext_cli.constants import c
 from flext_cli.typings import t
@@ -36,7 +38,7 @@ class FlextCliFileTools:
     ) -> r[T]:
         try:
             return r[T].ok(operation_func())
-        except Exception as e:
+        except (OSError, ValueError, TypeError, ValidationError) as e:
             return r[T].fail(error_template.format(error=e, **format_kwargs))
 
     @staticmethod
@@ -57,7 +59,9 @@ class FlextCliFileTools:
 
     @staticmethod
     def _get_encoding(encoding: str | None) -> str:
-        return encoding or c.Cli.Utilities.DEFAULT_ENCODING
+        if u.is_type(encoding, str) and encoding:
+            return encoding
+        return c.Cli.Utilities.DEFAULT_ENCODING
 
     @staticmethod
     def _detect_format_from_extension(
@@ -85,13 +89,22 @@ class FlextCliFileTools:
     def _load_structured_file(
         file_path: str,
         loader: Callable[[TextIO], t.JsonValue],
-    ) -> t.JsonValue:
+    ) -> t.JsonValue | None:
         with Path(file_path).open(encoding=c.Cli.Utilities.DEFAULT_ENCODING) as f:
             loaded: t.JsonValue = loader(f)
         if _is_json_mapping(loaded):
             loaded_dict: dict[str, t.JsonValue] = dict(loaded)
             return u.transform(loaded_dict, to_json=True).map_or(loaded_dict)
-        return loaded
+        json_adapter: TypeAdapter[t.JsonValue] = TypeAdapter(t.JsonValue)
+        try:
+            return json_adapter.validate_python(loaded)
+        except ValidationError as exc:
+            logging.getLogger(__name__).debug(
+                "_load_structured_file validation fallback: %s",
+                exc,
+                exc_info=False,
+            )
+            return None
 
     @staticmethod
     def _save_file_by_extension(file_path: str | Path, data: t.JsonValue) -> r[bool]:
@@ -482,7 +495,13 @@ class FlextCliFileTools:
                         encoding=c.Cli.Utilities.DEFAULT_ENCODING
                     ):
                         matches.append(str(fp))
-                except (UnicodeDecodeError, PermissionError):
+                except (UnicodeDecodeError, PermissionError) as read_exc:
+                    logging.getLogger(__name__).debug(
+                        "find_files_by_content skip file %s: %s",
+                        fp,
+                        read_exc,
+                        exc_info=False,
+                    )
                     continue
             return matches
 

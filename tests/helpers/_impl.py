@@ -7,20 +7,31 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import inspect
+import logging
 import re
 from collections.abc import Mapping
-from typing import Final, TypeVar
+from typing import Final, TypeGuard, TypeVar
 
 import click
 from flext_cli import r, t
 from flext_cli.constants import FlextCliConstants
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 from pydantic.fields import FieldInfo
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 T = TypeVar("T")
 type FieldDefault = str | int | float | bool | None
 type FieldKwargs = dict[str, str | int | float | bool | None]
+
+
+def _is_json_dict(value: object) -> TypeGuard[dict[str, t.JsonValue]]:
+    """TypeGuard: narrow object to dict for JSON object shape (e.g. read_json_file return)."""
+    return isinstance(value, dict)
+
+
+def _is_json_list(value: object) -> TypeGuard[list[t.JsonValue]]:
+    """TypeGuard: narrow object to list for JSON array shape."""
+    return isinstance(value, list)
 
 
 class ConfigFactory:
@@ -128,7 +139,12 @@ class ValidationHelper:
         config: BaseSettings,
         field_names: list[str],
     ) -> Mapping[str, t.GeneralValueType]:
-        """Extract multiple field values from config."""
+        """Extract multiple field values from config as a read-only Mapping.
+
+        When the config structure is known, callers should use FlextCliSettings
+        or m.Cli (FlextCliModels) for typed access; this helper returns a generic
+        Mapping for dynamic or parametrized config tests only.
+        """
         return {name: getattr(config, name) for name in field_names}
 
 
@@ -242,6 +258,9 @@ class FlextCliTestHelpers:
                 try:
                     version_parts.append(int(part))
                 except ValueError:
+                    logging.getLogger(__name__).debug(
+                        "version part non-int, keep as str: %s", part
+                    )
                     version_parts.append(part)
 
             info_parts = list(version_info)
@@ -277,7 +296,7 @@ class FlextCliTestHelpers:
                     def format_data(self, data: object, **options: object) -> r[str]:
                         try:
                             return r.ok(str(data))
-                        except Exception as e:
+                        except (ValueError, TypeError, ValidationError) as e:
                             return r.fail(str(e))
 
                 formatter = TestFormatter()
@@ -286,7 +305,7 @@ class FlextCliTestHelpers:
                 ):
                     return r.ok(formatter)
                 return r.fail("Formatter does not satisfy CliFormatter protocol")
-            except Exception as e:
+            except (ValueError, TypeError, ValidationError) as e:
                 return r.fail(f"Failed to create formatter: {e!s}")
 
         @staticmethod
@@ -300,9 +319,10 @@ class FlextCliTestHelpers:
                         self.config: dict[str, t.GeneralValueType] = {}
 
                     def load_config(self) -> r[dict[str, t.GeneralValueType]]:
+                        """Return config dict; treat as Mapping when contract is read-only."""
                         try:
                             return r.ok(self.config)
-                        except Exception as e:
+                        except (ValueError, TypeError, ValidationError) as e:
                             return r.fail(str(e))
 
                     def save_config(
@@ -312,7 +332,7 @@ class FlextCliTestHelpers:
                         try:
                             self.config = dict(config.items())
                             return r.ok(True)
-                        except Exception as e:
+                        except (ValueError, TypeError, ValidationError) as e:
                             return r.fail(str(e))
 
                 provider = TestConfigProvider()
@@ -326,7 +346,7 @@ class FlextCliTestHelpers:
                 return r.fail(
                     "Config provider does not satisfy CliConfigProvider protocol",
                 )
-            except Exception as e:
+            except (ValueError, TypeError, ValidationError) as e:
                 return r.fail(f"Failed to create config provider: {e!s}")
 
         @staticmethod
@@ -370,7 +390,7 @@ class FlextCliTestHelpers:
                 return r.fail(
                     "Authenticator does not satisfy CliAuthenticator protocol",
                 )
-            except Exception as e:
+            except (ValueError, TypeError, ValidationError) as e:
                 return r.fail(f"Failed to create authenticator: {e!s}")
 
     class TypingHelpers:
@@ -380,7 +400,11 @@ class FlextCliTestHelpers:
         def create_processing_test_data() -> r[
             tuple[list[str], list[int], dict[str, t.GeneralValueType]]
         ]:
-            """Create test data for type processing scenarios."""
+            """Create test data for type processing scenarios.
+
+            Returns (string list, number list, config-like dict). The third element
+            is a Mapping-shaped dict; use as Mapping when the contract is read-only.
+            """
             try:
                 string_list = ["hello", "world", "test"]
                 number_list = [1, 2, 3, 4, 5]
@@ -391,12 +415,15 @@ class FlextCliTestHelpers:
                     "key4": [1, 2, 3],
                 }
                 return r.ok((string_list, number_list, mixed_dict))
-            except Exception as e:
+            except (ValueError, TypeError, ValidationError) as e:
                 return r.fail(f"Failed to create processing test data: {e!s}")
 
         @staticmethod
         def create_typed_dict_data() -> r[dict[str, t.GeneralValueType]]:
-            """Create typed dict test data."""
+            """Create typed dict test data.
+
+            Returns a dict; treat as Mapping[str, t.GeneralValueType] when the contract is read-only.
+            """
             try:
                 user_data: dict[str, t.GeneralValueType] = {
                     "id": 1,
@@ -405,12 +432,15 @@ class FlextCliTestHelpers:
                     "active": True,
                 }
                 return r.ok(user_data)
-            except Exception as e:
+            except (ValueError, TypeError, ValidationError) as e:
                 return r.fail(f"Failed to create typed dict data: {e!s}")
 
         @staticmethod
         def create_api_response_data() -> r[list[dict[str, t.GeneralValueType]]]:
-            """Create API response test data."""
+            """Create API response test data.
+
+            Returns a list of dicts; treat each item as Mapping[str, t.GeneralValueType] when read-only.
+            """
             try:
                 users_data: list[dict[str, t.GeneralValueType]] = [
                     {
@@ -427,7 +457,7 @@ class FlextCliTestHelpers:
                     },
                 ]
                 return r.ok(users_data)
-            except Exception as e:
+            except (ValueError, TypeError, ValidationError) as e:
                 return r.fail(f"Failed to create API response data: {e!s}")
 
     class ConstantsFactory:
@@ -451,7 +481,7 @@ class FlextCliTestHelpers:
                     click.echo("test")
 
                 return r.ok(test_cmd)
-            except Exception as e:
+            except (ValueError, TypeError, ValidationError) as e:
                 return r.fail(f"Failed to create command: {e!s}")
 
         @staticmethod
@@ -464,7 +494,7 @@ class FlextCliTestHelpers:
                     pass
 
                 return r.ok(test_grp)
-            except Exception as e:
+            except (ValueError, TypeError, ValidationError) as e:
                 return r.fail(f"Failed to create group: {e!s}")
 
         @staticmethod
@@ -483,5 +513,5 @@ class FlextCliTestHelpers:
                     pass
 
                 return r.ok(cmd_with_opt)
-            except Exception as e:
+            except (ValueError, TypeError, ValidationError) as e:
                 return r.fail(f"Failed to create command with options: {e!s}")

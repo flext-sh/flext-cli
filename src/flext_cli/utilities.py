@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import os
 import types
 from collections.abc import Callable, Mapping, Sequence
@@ -60,6 +61,13 @@ class FlextCliUtilities(FlextUtilities):
                         return r[list[U]].fail(f"Error at index {idx}: {exc}")
                     if on_error == "collect":
                         errors.append(f"[{idx}]: {exc}")
+                    else:
+                        logging.getLogger(__name__).debug(
+                            "process skip index %s: %s",
+                            idx,
+                            exc,
+                            exc_info=False,
+                        )
             return (
                 r[list[U]].fail("; ".join(errors)) if errors else r[list[U]].ok(values)
             )
@@ -81,6 +89,13 @@ class FlextCliUtilities(FlextUtilities):
                         return r[Mapping[str, U]].fail(f"Error processing {key}: {exc}")
                     if on_error == "collect":
                         errors.append(f"{key}: {exc}")
+                    else:
+                        logging.getLogger(__name__).debug(
+                            "process_mapping skip key %s: %s",
+                            key,
+                            exc,
+                            exc_info=False,
+                        )
             return (
                 r[Mapping[str, U]].fail("; ".join(errors))
                 if errors
@@ -100,13 +115,11 @@ class FlextCliUtilities(FlextUtilities):
             @staticmethod
             def to_str(value: CliValue) -> str:
                 """Convert a value to a string safely."""
-                match value:
-                    case str() as text:
-                        return text
-                    case None:
-                        return ""
-                    case _:
-                        return str(value)
+                if value is None:
+                    return ""
+                if isinstance(value, str):
+                    return value
+                return str(value)
 
             @staticmethod
             def v(
@@ -152,21 +165,19 @@ class FlextCliUtilities(FlextUtilities):
             @staticmethod
             def v_empty(val: CliValue, *, name: str = "field") -> r[bool]:
                 """Validate that a value is not empty."""
-                match val:
-                    case None:
-                        return r[bool].fail(
-                            c.Cli.MixinsValidationMessages.FIELD_CANNOT_BE_EMPTY.format(
-                                field_name=name
-                            )
+                if val is None:
+                    return r[bool].fail(
+                        c.Cli.MixinsValidationMessages.FIELD_CANNOT_BE_EMPTY.format(
+                            field_name=name
                         )
-                    case str() as text if not FlextUtilities.is_string_non_empty(text):
-                        return r[bool].fail(
-                            c.Cli.MixinsValidationMessages.FIELD_CANNOT_BE_EMPTY.format(
-                                field_name=name
-                            )
+                    )
+                if isinstance(val, str) and not FlextUtilities.is_string_non_empty(val):
+                    return r[bool].fail(
+                        c.Cli.MixinsValidationMessages.FIELD_CANNOT_BE_EMPTY.format(
+                            field_name=name
                         )
-                    case _:
-                        return r[bool].ok(value=True)
+                    )
+                return r[bool].ok(value=True)
 
             @staticmethod
             def validate_field_in_list(
@@ -290,15 +301,14 @@ class FlextCliUtilities(FlextUtilities):
                         c.Cli.MixinsValidationMessages.PIPELINE_STEP_NO_NAME
                     )
                 value = step[key]
-                match value:
-                    case None:
-                        return r[bool].fail(
-                            c.Cli.MixinsValidationMessages.PIPELINE_STEP_NAME_EMPTY
-                        )
-                    case str() as text if not text.strip():
-                        return r[bool].fail(
-                            c.Cli.MixinsValidationMessages.PIPELINE_STEP_NAME_EMPTY
-                        )
+                if value is None:
+                    return r[bool].fail(
+                        c.Cli.MixinsValidationMessages.PIPELINE_STEP_NAME_EMPTY
+                    )
+                if isinstance(value, str) and not value.strip():
+                    return r[bool].fail(
+                        c.Cli.MixinsValidationMessages.PIPELINE_STEP_NAME_EMPTY
+                    )
                 return r[bool].ok(value=True)
 
             @staticmethod
@@ -430,13 +440,10 @@ class FlextCliUtilities(FlextUtilities):
                     return annotation
                 args_list: list[type | types.UnionType] = []
                 for arg in raw_args:
-                    match arg:
-                        case type() as arg_type:
-                            args_list.append(arg_type)
-                        case types.UnionType() as union_type:
-                            args_list.append(union_type)
-                        case _:
-                            return annotation
+                    if isinstance(arg, (type, types.UnionType)):
+                        args_list.append(arg)
+                    else:
+                        return annotation
                 args: tuple[type | types.UnionType, ...] = tuple(args_list)
                 has_none = types.NoneType in args
                 non_none = [arg for arg in args if arg is not types.NoneType]
@@ -513,15 +520,14 @@ class FlextCliUtilities(FlextUtilities):
                         if key not in parsed:
                             continue
                         value = parsed[key]
-                        match value:
-                            case str() as text:
-                                parsed_enum = FlextUtilities.Enum.parse(enum_cls, text)
-                                if parsed_enum.is_success:
-                                    parsed[key] = parsed_enum.value.value
-                                else:
-                                    errors.append(f"{key}: '{text}'")
-                            case _:
-                                continue
+                        if isinstance(value, str):
+                            parsed_enum = FlextUtilities.Enum.parse(enum_cls, value)
+                            if parsed_enum.is_success:
+                                parsed[key] = parsed_enum.value.value
+                            else:
+                                errors.append(f"{key}: '{value}'")
+                        else:
+                            continue
                     return (
                         r[Mapping[str, CliValue]].fail(f"Invalid: {errors}")
                         if errors

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 
 from flext_core import r
@@ -58,6 +59,9 @@ def test_register_cli_entity_rejects_missing_name_or_callback(
     try:
         flext_cli_api._register_cli_entity("command", "bad", lambda: None)
     except TypeError:
+        logging.getLogger(__name__).debug(
+            "expected TypeError from _register_cli_entity (missing name/callback)"
+        )
         with_exception = True
 
     assert with_exception
@@ -79,6 +83,9 @@ def test_register_cli_entity_rejects_missing_name_or_callback(
     try:
         flext_cli_api._register_cli_entity("command", "bad2", lambda: None)
     except TypeError:
+        logging.getLogger(__name__).debug(
+            "expected TypeError from _register_cli_entity (no callback)"
+        )
         with_exception = True
 
     assert with_exception
