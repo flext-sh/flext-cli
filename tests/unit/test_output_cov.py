@@ -28,8 +28,6 @@ def test_basic_helper_error_and_fallback_branches(monkeypatch) -> None:
     # cast_if returns default when type doesn't match (no TypeError raised)
     assert output.cast_if("x", int, "not-int") == "not-int"
 
-    assert output._is_rich_tree_protocol(object()) is False
-
     monkeypatch.setattr(FlextCliOutput, "cast_if", staticmethod(lambda *_a, **_k: "x"))
     assert FlextCliOutput.to_dict_json({"a": 1}) == {}
     assert FlextCliOutput.to_list_json([1, 2]) == []
@@ -163,11 +161,6 @@ def test_create_rich_table_error_paths(monkeypatch) -> None:
     )
     populate_fail = output.create_rich_table([{"a": 1}])
     assert populate_fail.is_failure
-
-    monkeypatch.setattr(output, "_populate_table_rows", lambda *_a, **_k: r.ok(True))
-    monkeypatch.setattr(output, "_is_rich_table_protocol", lambda *_a, **_k: False)
-    type_fail = output.create_rich_table([{"a": 1}])
-    assert type_fail.is_failure
 
     monkeypatch.setattr(
         output,
@@ -352,9 +345,3 @@ def test_table_and_tree_remaining_error_paths(monkeypatch) -> None:
     )
     tree_fail = output.format_as_tree({"a": 1})
     assert tree_fail.is_failure
-
-    monkeypatch.setattr(
-        FlextCliOutput, "_is_rich_console_protocol", staticmethod(lambda _obj: False)
-    )
-    with pytest.raises(TypeError):
-        _ = output.console

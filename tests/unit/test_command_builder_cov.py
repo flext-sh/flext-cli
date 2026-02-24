@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 from typer.models import OptionInfo
 
-from flext_cli.command_builder import FlextCommandBuilder
+from flext_cli.command_builder import FlextCliCommandBuilder as FlextCommandBuilder
 
 
 def test_builder_collects_options_arguments_groups_and_middleware() -> None:

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from flext_cli.option_groups import FlextOptionGroup
+from flext_cli.option_groups import FlextCliOptionGroup as FlextOptionGroup
 
 
 def test_connection_options_defaults_are_exposed() -> None:

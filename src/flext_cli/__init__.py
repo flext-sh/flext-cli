@@ -20,7 +20,7 @@ from flext_cli.app_base import FlextCliAppBase
 from flext_cli.base import FlextCliServiceBase, s
 from flext_cli.cli import FlextCliCli
 from flext_cli.cli_params import FlextCliCommonParams
-from flext_cli.command_builder import FlextCommandBuilder
+from flext_cli.command_builder import FlextCliCommandBuilder as FlextCommandBuilder
 from flext_cli.commands import FlextCliCommands
 from flext_cli.constants import FlextCliConstants, c
 from flext_cli.context import FlextCliContext
@@ -28,16 +28,15 @@ from flext_cli.debug import FlextCliDebug
 from flext_cli.file_tools import FlextCliFileTools
 from flext_cli.formatters import FlextCliFormatters
 from flext_cli.middleware import (
-    FlextMiddleware,
-    LoggingMiddleware,
-    RetryMiddleware,
-    ValidationMiddleware,
-    compose_middleware,
+    FlextCliLoggingMiddleware as LoggingMiddleware,
+    FlextCliMiddleware as FlextMiddleware,
+    FlextCliRetryMiddleware as RetryMiddleware,
+    FlextCliValidationMiddleware as ValidationMiddleware,
 )
 from flext_cli.mixins import FlextCliMixins
 from flext_cli.models import FlextCliModels, m
-from flext_cli.option_groups import FlextOptionGroup
-from flext_cli.protocols import FlextCliProtocols
+from flext_cli.option_groups import FlextCliOptionGroup as FlextOptionGroup
+from flext_cli.protocols import FlextCliProtocols, p
 
 # Service exports (used by tests)
 from flext_cli.services.cmd import FlextCliCmd
@@ -81,11 +80,11 @@ __all__ = [
     "__version__",
     "__version_info__",
     "c",
-    "compose_middleware",
     "d",
     "e",
     "h",
     "m",
+    "p",
     "r",
     "s",
     "t",

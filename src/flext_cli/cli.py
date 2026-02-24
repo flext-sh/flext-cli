@@ -16,7 +16,7 @@ import logging
 import shutil
 from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
-from typing import IO, Annotated, ClassVar, Literal, TypeGuard, overload
+from typing import IO, Annotated, ClassVar, Literal, cast, overload
 
 import click
 import typer
@@ -72,25 +72,6 @@ class FlextCliCli:
     ) -> Callable[[p.Cli.CliCommandFunction], click.Command]:
         """Create a command decorator."""
         return self._create_command_cli_decorator(name, help_text)
-
-    @staticmethod
-    def _is_option_config_protocol(obj: object) -> TypeGuard[object]:
-        """Type guard for option config objects (default, type_hint, required, help_text)."""
-        return (
-            hasattr(obj, "default")
-            and hasattr(obj, "type_hint")
-            and hasattr(obj, "required")
-            and hasattr(obj, "help_text")
-        )
-
-    @staticmethod
-    def _is_prompt_config_protocol(obj: object) -> TypeGuard[object]:
-        """Type guard for prompt config objects (default, type_hint, prompt_suffix)."""
-        return (
-            hasattr(obj, "default")
-            and hasattr(obj, "type_hint")
-            and hasattr(obj, "prompt_suffix")
-        )
 
     @overload
     def _extract_typed_value(
@@ -182,14 +163,14 @@ class FlextCliCli:
             match value:
                 case None | "":
                     return None
-            return self._extract_typed_value(value, "bool")
+            return self._extract_typed_value(cast("t.JsonValue | None", value), "bool")
 
         def get_str(k: str) -> str | None:
             value = u.get(filtered_params, k)
             match value:
                 case None | "":
                     return None
-            return self._extract_typed_value(value, "str")
+            return self._extract_typed_value(cast("t.JsonValue | None", value), "str")
 
         result = FlextCliCommonParams.apply_to_config(
             config,
@@ -322,8 +303,14 @@ class FlextCliCli:
         self, kwargs: Mapping[str, t.JsonValue]
     ) -> m.Cli.OptionConfig:
         return m.Cli.OptionConfig(
-            default=u.get(kwargs, "default"),
-            type_hint=self._normalize_type_hint(u.get(kwargs, "type_hint")),
+            default=u.get(kwargs, "default")
+            if u.get(kwargs, "default") is not None
+            else None,
+            type_hint=self._normalize_type_hint(
+                u.get(kwargs, "type_hint")
+                if u.get(kwargs, "type_hint") is not None
+                else None
+            ),
             required=bool(self._build_typed_value(kwargs, "required", "bool", False)),
             help_text=str(self._build_typed_value(kwargs, "help_text", "str", "")),
             multiple=bool(self._build_typed_value(kwargs, "multiple", "bool", False)),

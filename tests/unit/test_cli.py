@@ -342,68 +342,6 @@ class TestsCliCli:
     # ========================================================================
     # PROTOCOL VALIDATION TESTS (Python 3.13 TypeIs)
     # ========================================================================
-
-    def test_is_option_config_protocol(self) -> None:
-        """Test _is_option_config_protocol type guard."""
-        # Test valid option config
-        valid_config = type(
-            "MockConfig",
-            (),
-            {
-                "default": "test",
-                "type_hint": str,
-                "required": False,
-                "help_text": "Test help",
-            },
-        )()
-
-        assert FlextCliCli._is_option_config_protocol(valid_config)
-
-        # Test invalid option config - missing attribute
-        invalid_config = type(
-            "MockConfig",
-            (),
-            {
-                "default": "test",
-                "type_hint": str,
-                "required": False,
-                # Missing help_text
-            },
-        )()
-
-        assert not FlextCliCli._is_option_config_protocol(invalid_config)
-
-        # Test invalid object
-        assert not FlextCliCli._is_option_config_protocol("not a config")
-
-    def test_is_prompt_config_protocol(self) -> None:
-        """Test _is_prompt_config_protocol type guard."""
-        # Test valid prompt config - only needs the basic attributes
-        valid_config = type(
-            "MockPrompt",
-            (),
-            {"default": "test", "type_hint": str, "prompt_suffix": "?"},
-        )()
-
-        assert FlextCliCli._is_prompt_config_protocol(valid_config)
-
-        # Test invalid prompt config - missing attribute
-        invalid_config = type(
-            "MockPrompt",
-            (),
-            {
-                "default": "test",
-                "type_hint": str,
-                # Missing prompt_suffix
-            },
-        )()
-
-        assert not FlextCliCli._is_prompt_config_protocol(invalid_config)
-
-        # Test invalid object
-        assert not FlextCliCli._is_prompt_config_protocol("not a prompt")
-
-    # ========================================================================
     # UTILITY METHODS TESTS
     # ========================================================================
 

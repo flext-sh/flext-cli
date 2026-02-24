@@ -10,10 +10,10 @@ from flext_cli.protocols import p
 from flext_cli.typings import t
 
 from flext_cli.middleware import (
-    LoggingMiddleware,
-    RetryMiddleware,
-    ValidationMiddleware,
-    compose_middleware,
+    FlextCliLoggingMiddleware as LoggingMiddleware,
+    FlextCliMiddleware,
+    FlextCliRetryMiddleware as RetryMiddleware,
+    FlextCliValidationMiddleware as ValidationMiddleware,
 )
 
 
@@ -29,7 +29,7 @@ class Ctx(p.Cli.CliContextProtocol):
         return self._params
 
     @params.setter
-    def params(self, value: Mapping[str, t.JsonValue] | dict[str, t.JsonValue]) -> None:
+    def params(self, value: Mapping[str, t.JsonValue] | dict[str, t.JsonValue] | None) -> None:
         self._params = dict(value)
 
     @property
@@ -125,7 +125,7 @@ def test_compose_middleware_chains_in_order() -> None:
         events.append("handler")
         return r[t.JsonValue].ok("ok")
 
-    composed = compose_middleware([m1, m2], handler)
+    composed = FlextCliMiddleware.compose([m1, m2], handler)
     result = composed(Ctx())
 
     assert result.is_success

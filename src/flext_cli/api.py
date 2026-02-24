@@ -10,7 +10,7 @@ import secrets
 import threading
 from abc import ABC
 from collections.abc import Callable, Mapping, Sequence
-from typing import ClassVar, TypeGuard
+from typing import ClassVar
 
 from flext_core import (
     FlextContainer as container,
@@ -321,38 +321,17 @@ class FlextCli:
             else self._cli.create_group_decorator
         )
         decorated_func = factory(name=entity_name)(func)
-        if not self._is_registered_command(decorated_func):
+        if (
+            not callable(decorated_func)
+            or not hasattr(decorated_func, "name")
+            or not hasattr(decorated_func, "callback")
+        ):
             msg = "decorated_func must implement CliRegisteredCommand protocol"
             raise TypeError(msg)
         # Store in appropriate registry
         registry = self._commands if entity_type == "command" else self._groups
         registry[entity_name] = decorated_func
         return decorated_func
-
-    @staticmethod
-    def _is_registered_command(
-        obj: t.JsonValue | Callable[..., t.JsonValue],
-    ) -> TypeGuard[p.Cli.CliRegisteredCommand]:
-        """Type guard to check if object implements CliRegisteredCommand protocol."""
-        if not callable(obj):
-            return False
-        try:
-            _ = obj.name
-            _ = obj.callback
-        except AttributeError:
-            return False
-        return True
-
-    @staticmethod
-    def _is_rich_tree_protocol(
-        obj: t.JsonValue,
-    ) -> TypeGuard[p.Cli.Display.RichTreeProtocol]:
-        """Type guard for RichTreeProtocol."""
-        try:
-            _ = obj.label
-            return obj is not None and callable(getattr(obj, "add", None))
-        except AttributeError:
-            return False
 
     def _entity_decorator(
         self,

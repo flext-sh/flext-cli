@@ -11,7 +11,7 @@ import csv
 import json
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from io import StringIO
-from typing import ClassVar, TypeGuard
+from typing import ClassVar
 
 import yaml
 from flext_core import FlextRuntime, r, t
@@ -182,7 +182,7 @@ class FlextCliOutput:
         if u.is_dict_like(item):
             return FlextCliOutput.to_dict_json(item)
         if u.is_list_like(item):
-            # item is narrowed to Sequence[t.JsonValue] by TypeGuard
+            # item is narrowed to Sequence[t.JsonValue] by isinstance check
             # to_list_json accepts both t.JsonValue | Sequence[t.JsonValue]
             return FlextCliOutput.to_list_json(item)
         # Type narrowing: str(item) is already t.JsonValue compatible
@@ -290,34 +290,6 @@ class FlextCliOutput:
                 return v
             case _:
                 return default
-
-    @staticmethod
-    def _is_rich_table_protocol(
-        obj: object,
-    ) -> TypeGuard[p.Cli.Display.RichTableProtocol]:
-        """Type guard to check if object implements RichTableProtocol."""
-        return u.is_type(obj, p.Cli.Display.RichTableProtocol)
-
-    @staticmethod
-    def _is_rich_progress_protocol(
-        obj: object,
-    ) -> TypeGuard[p.Cli.Interactive.RichProgressProtocol]:
-        """Type guard to check if object implements RichProgressProtocol."""
-        return u.is_type(obj, p.Cli.Interactive.RichProgressProtocol)
-
-    @staticmethod
-    def _is_rich_tree_protocol(
-        obj: object,
-    ) -> TypeGuard[p.Cli.Display.RichTreeProtocol]:
-        """Type guard to check if object implements RichTreeProtocol."""
-        return u.is_type(obj, p.Cli.Display.RichTreeProtocol)
-
-    @staticmethod
-    def _is_rich_console_protocol(
-        obj: object,
-    ) -> TypeGuard[p.Cli.Display.RichConsoleProtocol]:
-        """Type guard to check if object implements RichConsoleProtocol."""
-        return u.is_type(obj, p.Cli.Display.RichConsoleProtocol)
 
     @staticmethod
     def to_dict_json(v: t.JsonValue) -> Mapping[str, t.JsonValue]:
@@ -1011,7 +983,7 @@ class FlextCliOutput:
         # Type narrowing: table_result.value is RichTableProtocol compatible
         # Use type guard to verify it implements the protocol
         table_value = table_result.value
-        if self._is_rich_table_protocol(table_value):
+        if isinstance(table_value, p.Cli.Display.RichTableProtocol):
             return r[p.Cli.Display.RichTableProtocol].ok(table_value)
         # Fallback: convert to string representation if not RichTableProtocol
         return r[p.Cli.Display.RichTableProtocol].fail(
@@ -1111,7 +1083,7 @@ class FlextCliOutput:
                 )
 
             # Return protocol-compatible table
-            if not self._is_rich_table_protocol(table):
+            if not isinstance(table, p.Cli.Display.RichTableProtocol):
                 msg = "table must implement RichTableProtocol"
                 raise TypeError(msg)
             return r[p.Cli.Display.RichTableProtocol].ok(table)
@@ -1237,7 +1209,7 @@ class FlextCliOutput:
             progress_value = result.value
             # Rich Progress implements RichProgressProtocol structurally at runtime
             # Use type guard to narrow type for mypy
-            if not self._is_rich_progress_protocol(progress_value):
+            if not isinstance(progress_value, p.Cli.Interactive.RichProgressProtocol):
                 msg = "progress_value must implement RichProgressProtocol"
                 raise TypeError(msg)
             return r[p.Cli.Interactive.RichProgressProtocol].ok(progress_value)
@@ -1971,7 +1943,7 @@ class FlextCliOutput:
             )
 
         # Ensure list and map to str
-        # headers is narrowed to Sequence[t.JsonValue] | None by TypeGuard check
+        # headers is narrowed to Sequence[t.JsonValue] | None by isinstance check
         # ensure_list now accepts Sequence[t.JsonValue] directly
         headers_list = FlextCliOutput.ensure_list(
             headers,
@@ -2149,7 +2121,7 @@ class FlextCliOutput:
         # Rich Console implements RichConsoleProtocol structurally at runtime
         # Protocol is structural, so concrete_console is compatible
         # Use type guard to narrow type for mypy
-        if not self._is_rich_console_protocol(concrete_console):
+        if not isinstance(concrete_console, p.Cli.Display.RichConsoleProtocol):
             msg = "concrete_console must implement RichConsoleProtocol"
             raise TypeError(msg)
         return concrete_console

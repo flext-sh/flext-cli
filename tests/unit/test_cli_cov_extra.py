@@ -82,13 +82,6 @@ def test_create_group_and_build_helpers_error_paths(monkeypatch) -> None:
 def test_option_datetime_and_type_factory_errors(monkeypatch) -> None:
     cli = FlextCliCli()
 
-    monkeypatch.setattr(
-        cli, "_build_option_config_from_kwargs", lambda _kwargs: object()
-    )
-    monkeypatch.setattr(cli, "_is_option_config_protocol", lambda _obj: False)
-    with pytest.raises(TypeError):
-        cli.create_option_decorator("--x")
-
     monkeypatch.setattr("flext_cli.cli.u.build", lambda *_args, **_kwargs: "bad")
     with pytest.raises(TypeError):
         FlextCliCli._datetime_type()

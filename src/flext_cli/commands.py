@@ -288,8 +288,8 @@ class FlextCliCommands(FlextCliServiceBase):
         self,
         name: str,
         description: str = "",
-        commands: Mapping[str, CommandEntry] | None = None,
-    ) -> r[CommandGroup]:
+        commands: Mapping[str, FlextCliCommandEntry] | None = None,
+    ) -> r[FlextCliCommandGroup]:
         """Create a command group.
 
         Args:
@@ -298,36 +298,38 @@ class FlextCliCommands(FlextCliServiceBase):
             commands: Dict of command name to handler info.
 
         Returns:
-            r[CommandGroup]: Command group, or failure.
+            r[FlextCliCommandGroup]: Command group, or failure.
 
         """
         if not name.strip():
-            return r[CommandGroup].fail("Group name must be non-empty string")
+            return r[FlextCliCommandGroup].fail("Group name must be non-empty string")
 
         if commands is None:
-            return r[CommandGroup].fail("Commands are required for group creation")
+            return r[FlextCliCommandGroup].fail(
+                "Commands are required for group creation"
+            )
 
         # Type system ensures commands is Mapping after None check
-        group = CommandGroup(
+        group = FlextCliCommandGroup(
             name=name,
             description=description,
             commands=dict(commands),
         )
         self._groups[name] = group
-        return r[CommandGroup].ok(group)
+        return r[FlextCliCommandGroup].ok(group)
 
-    def get_click_group(self) -> CommandGroup:
+    def get_click_group(self) -> FlextCliCommandGroup:
         """Get Click group representation.
 
         Returns:
-            CommandGroup: Click group info with name and commands.
+            FlextCliCommandGroup: Click group info with name and commands.
 
         Note:
-            This returns a CommandGroup object, not actual Click objects.
+            This returns a FlextCliCommandGroup object, not actual Click objects.
             Use FlextCliCli for actual Click integration.
 
         """
-        return CommandGroup(
+        return FlextCliCommandGroup(
             name=self._name,
             description=self._description,
             commands=dict(self._commands.items()),
