@@ -193,7 +193,7 @@ class FlextCliOutput:
         default: list[t.JsonValue] | None = None,
     ) -> list[t.JsonValue]:
         """Ensure value is list with default using build DSL."""
-        # Normalize to GeneralValueType using FlextRuntime
+        # Normalize to JsonValue using FlextRuntime
         v_typed = FlextRuntime.normalize_to_general_value(v) if v is not None else None
         built_result = u.build(
             v_typed,
@@ -240,7 +240,7 @@ class FlextCliOutput:
     ) -> t.JsonValue:
         """Get value from map with default using build DSL."""
         value = m.get(k, default)
-        # Ensure value is compatible with GeneralValueType
+        # Ensure value is compatible with JsonValue
         compatible_value: t.JsonValue
         if isinstance(value, (str, int, float, bool, type(None), list)):
             compatible_value = value
@@ -256,7 +256,7 @@ class FlextCliOutput:
             compatible_value = dict_items
         else:
             compatible_value = str(value)
-        # compatible_value is already validated to be GeneralValueType compatible
+        # compatible_value is already validated as JsonValue-compatible
         return compatible_value
 
     @staticmethod
@@ -334,7 +334,7 @@ class FlextCliOutput:
         v: t.JsonValue,
     ) -> list[t.JsonValue]:
         """Convert value to list with JSON transform using build DSL."""
-        # Normalize to GeneralValueType using FlextRuntime
+        # Normalize to JsonValue using FlextRuntime
         v_typed = FlextRuntime.normalize_to_general_value(v)
         result = FlextCliOutput.cast_if(
             u.build(
@@ -1483,7 +1483,7 @@ class FlextCliOutput:
         try:
             # Format based on data type
             if FlextRuntime.is_list_like(data) and data:
-                # Normalize data to GeneralValueType first (works with Sequence[t.JsonValue])
+                # Normalize data to JsonValue first (works with Sequence[t.JsonValue])
                 normalized_data = FlextRuntime.normalize_to_general_value(data)
                 # Coerce to list with type normalization
                 coerced_list = self._coerce_to_list(normalized_data)
@@ -1537,7 +1537,7 @@ class FlextCliOutput:
     def _try_iterate_items(self, data: t.JsonValue) -> list[t.JsonValue]:
         """Try to iterate over data and return list of items.
 
-        Helper to avoid type checker issues with non-iterable types in GeneralValueType.
+        Helper to avoid type checker issues with non-iterable JsonValue types.
         Uses duck typing: attempts iteration and catches TypeError if not iterable.
         """
         try:
@@ -1684,9 +1684,7 @@ class FlextCliOutput:
         writer.writeheader()
         # Type narrowing: data is dict-like from format_csv check
         # Use t.JsonValue from lower layer instead of object
-        data_dict: dict[str, t.JsonValue] = (
-            dict(data) if isinstance(data, dict) else {}
-        )
+        data_dict: dict[str, t.JsonValue] = dict(data) if isinstance(data, dict) else {}
         writer.writerow(data_dict)
         return r[str].ok(output_buffer.getvalue())
 
@@ -1704,9 +1702,7 @@ class FlextCliOutput:
         return processed
 
     @staticmethod
-    def _replace_none_for_csv(
-        _k: str, v: t.JsonValue
-    ) -> str | int | float | bool:
+    def _replace_none_for_csv(_k: str, v: t.JsonValue) -> str | int | float | bool:
         """Replace None with empty string for CSV."""
         if v is None:
             return ""
@@ -1879,9 +1875,7 @@ class FlextCliOutput:
         if headers is not None and table_headers != [c.Cli.TableFormats.KEYS]:
             validation_result = FlextCliOutput._validate_headers(table_headers, data)
             if validation_result.is_failure:
-                return r[
-                    tuple[list[dict[str, t.JsonValue]], str | list[str]]
-                ].fail(
+                return r[tuple[list[dict[str, t.JsonValue]], str | list[str]]].fail(
                     validation_result.error or "Header validation failed",
                 )
 
