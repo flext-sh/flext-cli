@@ -779,15 +779,11 @@ class FlextCliProtocols(FlextProtocols):
                 """Format data as a table."""
                 ...
 
-            def format_json(
-                self, data: t.JsonValue
-            ) -> FlextProtocols.Result[str]:
+            def format_json(self, data: t.JsonValue) -> FlextProtocols.Result[str]:
                 """Format data as JSON."""
                 ...
 
-            def format_yaml(
-                self, data: t.JsonValue
-            ) -> FlextProtocols.Result[str]:
+            def format_yaml(self, data: t.JsonValue) -> FlextProtocols.Result[str]:
                 """Format data as YAML."""
                 ...
 

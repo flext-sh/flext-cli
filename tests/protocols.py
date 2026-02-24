@@ -43,12 +43,10 @@ class TestsCliProtocols(FlextTestsProtocols, FlextCliProtocols):
             """Flext-cli-specific test protocols."""
 
 
-# Runtime aliases
-p = TestsCliProtocols
+# Runtime alias
 p = TestsCliProtocols
 
 __all__ = [
     "TestsCliProtocols",
-    "p",
     "p",
 ]

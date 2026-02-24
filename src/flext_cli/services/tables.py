@@ -18,7 +18,6 @@ from tabulate import tabulate
 from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import FlextCliConstants
 from flext_cli.models import m
-
 from flext_cli.typings import t
 from flext_cli.utilities import u
 

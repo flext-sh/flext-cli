@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping, Sequence
-from typing import ClassVar
+from typing import ClassVar, TypeAlias
 
 from flext_core import FlextTypes
 from pydantic import BaseModel, ConfigDict
@@ -24,6 +24,9 @@ class FlextCliTypes(FlextTypes):
     5. Inheritance from FlextTypes, no duplication
     """
 
+    # General value type for CLI config/args (alias to JsonValue for compatibility)
+    GeneralValueType: TypeAlias = FlextTypes.JsonValue
+
     class Cli:
         """CLI types namespace for cross-project access.
 
@@ -42,6 +45,7 @@ class FlextCliTypes(FlextTypes):
 
         # Runtime namespace only
         ResultFormatter = Callable[[FlextTypes.JsonValue], str]
+        FormatableResult: TypeAlias = str
         TabularData = Sequence[Mapping[str, FlextTypes.JsonValue]]
 
 

@@ -1,8 +1,13 @@
 from __future__ import annotations
 
+from collections.abc import Callable, Mapping, Sequence
+
+import pytest
 from pydantic import BaseModel
 
 from flext_core import r
+from flext_cli.protocols import p
+from flext_cli.typings import t
 
 from flext_cli.middleware import (
     LoggingMiddleware,
@@ -12,10 +17,32 @@ from flext_cli.middleware import (
 )
 
 
-class Ctx:
+class Ctx(p.Cli.CliContextProtocol):
+    """Minimal context for middleware tests implementing CliContextProtocol."""
+
     def __init__(self) -> None:
         self.command = "cmd"
-        self.params: dict[str, object] = {}
+        self._params: dict[str, t.JsonValue] = {}
+
+    @property
+    def params(self) -> Mapping[str, t.JsonValue]:
+        return self._params
+
+    @params.setter
+    def params(self, value: Mapping[str, t.JsonValue] | dict[str, t.JsonValue]) -> None:
+        self._params = dict(value)
+
+    @property
+    def cwd(self) -> str:
+        return "."
+
+    @property
+    def env(self) -> Mapping[str, str]:
+        return {}
+
+    @property
+    def args(self) -> Sequence[str]:
+        return []
 
 
 class Schema(BaseModel):
@@ -47,8 +74,11 @@ def test_validation_middleware_success_and_failure_paths() -> None:
     assert bad_result.is_failure
 
 
-def test_retry_middleware_paths(monkeypatch) -> None:
-    monkeypatch.setattr("flext_cli.middleware.time.sleep", lambda _delay: None)
+def test_retry_middleware_paths(monkeypatch: pytest.MonkeyPatch) -> None:
+    def _no_sleep(_delay: float) -> None:
+        return None
+
+    monkeypatch.setattr("flext_cli.middleware.time.sleep", _no_sleep)
     middleware = RetryMiddleware(max_retries=3, backoff=0.0)
     ctx = Ctx()
 
@@ -57,11 +87,13 @@ def test_retry_middleware_paths(monkeypatch) -> None:
 
     attempts = {"count": 0}
 
-    def eventually(_ctx: Ctx):
+    def eventually(
+        _ctx: p.Cli.CliContextProtocol,
+    ) -> r[t.JsonValue]:
         attempts["count"] += 1
         if attempts["count"] < 2:
-            return r.fail("fail")
-        return r.ok("done")
+            return r[t.JsonValue].fail("fail")
+        return r[t.JsonValue].ok("done")
 
     retried = middleware(ctx, eventually)
     assert retried.is_success
@@ -75,17 +107,23 @@ def test_retry_middleware_paths(monkeypatch) -> None:
 def test_compose_middleware_chains_in_order() -> None:
     events: list[str] = []
 
-    def m1(ctx: Ctx, next_):
+    def m1(
+        ctx: p.Cli.CliContextProtocol,
+        next_: Callable[[p.Cli.CliContextProtocol], r[t.JsonValue]],
+    ) -> r[t.JsonValue]:
         events.append("m1")
         return next_(ctx)
 
-    def m2(ctx: Ctx, next_):
+    def m2(
+        ctx: p.Cli.CliContextProtocol,
+        next_: Callable[[p.Cli.CliContextProtocol], r[t.JsonValue]],
+    ) -> r[t.JsonValue]:
         events.append("m2")
         return next_(ctx)
 
-    def handler(_ctx: Ctx):
+    def handler(_ctx: p.Cli.CliContextProtocol) -> r[t.JsonValue]:
         events.append("handler")
-        return r.ok("ok")
+        return r[t.JsonValue].ok("ok")
 
     composed = compose_middleware([m1, m2], handler)
     result = composed(Ctx())

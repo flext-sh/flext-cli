@@ -147,4 +147,8 @@ markers = [
     "resilience: resilience tests",
 ]
 
+# [CUSTOM] pyrefly - include project root so tests.* imports resolve
+[tool.pyrefly]
+search-path = ["src", "."]
+
 # [MANAGED] ruff

@@ -1,8 +1,9 @@
 """Middleware chain pattern for CLI commands.
 
-FlextMiddleware provides a protocol and implementations for middleware chains
+FlextCliMiddleware provides a protocol and implementations for middleware chains
 that can process CLI command execution with logging, validation, retry, and
-other cross-cutting concerns.
+other cross-cutting concerns. All classes use FlextCli prefix; compose is
+FlextCliMiddleware.compose (no loose functions).
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -19,11 +20,11 @@ from pydantic import BaseModel
 from flext_cli.protocols import p
 from flext_cli.typings import t
 
-# Use existing Protocol from protocols.py (no duplicate definitions)
-FlextMiddleware = p.Cli.MiddlewareProtocol
+# Protocol alias for type hints (p.Cli.MiddlewareProtocol)
+FlextCliMiddlewareProtocol = p.Cli.MiddlewareProtocol
 
 
-class LoggingMiddleware:
+class FlextCliLoggingMiddleware:
     """Log command execution with timing information."""
 
     def __call__(
@@ -41,7 +42,6 @@ class LoggingMiddleware:
             r[t.JsonValue]: Result from next middleware or handler.
 
         """
-        # Extract command name from context
         getattr(ctx, "command", "unknown")
         start = time.perf_counter()
         result = next_(ctx)
@@ -49,7 +49,7 @@ class LoggingMiddleware:
         return result
 
 
-class ValidationMiddleware:
+class FlextCliValidationMiddleware:
     """Validate command inputs using Pydantic schema."""
 
     def __init__(self, schema: type[BaseModel]) -> None:
@@ -77,18 +77,16 @@ class ValidationMiddleware:
                 if validation fails.
 
         """
-        # Extract parameters from context
         params = getattr(ctx, "params", {})
         try:
             validated = self._schema.model_validate(params)
-            # Update context with validated params
             ctx.params = validated.model_dump()
             return next_(ctx)
         except Exception as e:
             return r[t.JsonValue].fail(f"Validation failed: {e}")
 
 
-class RetryMiddleware:
+class FlextCliRetryMiddleware:
     """Retry failed commands with exponential backoff."""
 
     def __init__(self, max_retries: int = 3, backoff: float = 1.0) -> None:
@@ -117,12 +115,10 @@ class RetryMiddleware:
             r[t.JsonValue]: Result from next middleware or handler after retries.
 
         """
-        # Initialize result to satisfy type checker (loop always executes at least once)
         result = next_(ctx)
         if result.is_success:
             return result
 
-        # Retry loop (starts from attempt 1 since we already tried once)
         for attempt in range(1, self._max_retries):
             delay = self._backoff * attempt
             time.sleep(delay)
@@ -132,36 +128,43 @@ class RetryMiddleware:
         return result
 
 
-def compose_middleware(
-    middlewares: list[FlextMiddleware],
-    handler: Callable[[p.Cli.CliContextProtocol], p.Result[t.JsonValue]],
-) -> Callable[[p.Cli.CliContextProtocol], p.Result[t.JsonValue]]:
-    """Compose middleware into single callable.
+class FlextCliMiddleware:
+    """Middleware namespace: protocol type and compose static method."""
 
-    Args:
-        middlewares: List of middleware functions to compose.
-        handler: Final command handler.
+    # Alias for type hints (same as p.Cli.MiddlewareProtocol)
+    Protocol = p.Cli.MiddlewareProtocol
 
-    Returns:
-        Composed callable that executes all middleware in order.
+    @staticmethod
+    def compose(
+        middlewares: list[FlextCliMiddlewareProtocol],
+        handler: Callable[[p.Cli.CliContextProtocol], r[t.JsonValue]],
+    ) -> Callable[[p.Cli.CliContextProtocol], r[t.JsonValue]]:
+        """Compose middleware into single callable.
 
-    Example:
-        >>> composed = compose_middleware(
-        ...     [LoggingMiddleware(), ValidationMiddleware(MySchema)], my_handler
-        ... )
-        >>> result = composed(context)
+        Args:
+            middlewares: List of middleware instances to compose.
+            handler: Final command handler.
 
-    """
+        Returns:
+            Composed callable that executes all middleware in order.
 
-    def composed(ctx: p.Cli.CliContextProtocol) -> p.Result[t.JsonValue]:
-        def build_chain(
-            idx: int,
-        ) -> Callable[[p.Cli.CliContextProtocol], p.Result[t.JsonValue]]:
-            if idx >= len(middlewares):
-                return handler
-            current_middleware = middlewares[idx]
-            return lambda c: current_middleware(c, build_chain(idx + 1))
+        Example:
+            >>> composed = FlextCliMiddleware.compose(
+            ...     [FlextCliLoggingMiddleware(), FlextCliValidationMiddleware(MySchema)],
+            ...     my_handler,
+            ... )
+            >>> result = composed(context)
 
-        return build_chain(0)(ctx)
+        """
+        def composed(ctx: p.Cli.CliContextProtocol) -> r[t.JsonValue]:
+            def build_chain(
+                idx: int,
+            ) -> Callable[[p.Cli.CliContextProtocol], r[t.JsonValue]]:
+                if idx >= len(middlewares):
+                    return handler
+                current_middleware = middlewares[idx]
+                return lambda c: current_middleware(c, build_chain(idx + 1))
 
-    return composed
+            return build_chain(0)(ctx)
+
+        return composed

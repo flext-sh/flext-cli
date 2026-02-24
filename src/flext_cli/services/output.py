@@ -476,9 +476,7 @@ class FlextCliOutput:
             # For lists, processor takes only item, not (key, item)
             # Filter first, then process (FlextCliUtilities.process doesn't accept predicate)
             # Type narrowing: data_list is list, so it's iterable
-            filtered_data = [
-                item for item in data_list if u.is_dict_like(item)
-            ]
+            filtered_data = [item for item in data_list if u.is_dict_like(item)]
             json_list_result = u.Cli.process(
                 filtered_data,
                 processor=self.norm_json,

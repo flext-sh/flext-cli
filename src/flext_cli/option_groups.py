@@ -1,6 +1,6 @@
 """Reusable option group definitions for flext-cli.
 
-FlextOptionGroup provides pre-defined option groups for common CLI patterns
+FlextCliOptionGroup provides pre-defined option groups for common CLI patterns
 (connection, authentication, output formatting) that can be reused across
 multiple commands.
 
@@ -13,12 +13,12 @@ from __future__ import annotations
 from typer.models import OptionInfo
 
 
-class FlextOptionGroup:
+class FlextCliOptionGroup:
     """Reusable option group definitions.
 
     Provides static methods that return lists of typer.Option objects for
     common CLI patterns. These can be used with command decorators or
-    FlextCommandBuilder to reduce boilerplate.
+    FlextCliCommandBuilder to reduce boilerplate.
 
     Example:
         >>> @command("sync")

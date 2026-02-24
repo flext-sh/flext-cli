@@ -6,18 +6,16 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping
-
 import importlib
 import json
 import os
 import shutil
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Annotated, ClassVar, Self
+from typing import Annotated, ClassVar, Self, cast
 
 import yaml
 from flext_core import (
-    u,
     FlextContainer,
     FlextLogger,
     FlextSettings,
@@ -41,7 +39,7 @@ logger = FlextLogger(__name__)
 
 
 @FlextSettings.auto_register("cli")
-class FlextCliSettings(FlextSettings):
+class FlextCliSettings(FlextSettings):  # type: ignore[explicit-any]
     """Flat Pydantic 2 settings with AutoConfig pattern.
 
     Singleton, env var overrides (FLEXT_CLI_*), SecretStr for sensitive data.
@@ -177,9 +175,9 @@ class FlextCliSettings(FlextSettings):
         mode="before",
     )
     @classmethod
-    def parse_bool_env_vars(cls, v: bool | str | int | float | None) -> bool:
+    def parse_bool_env_vars(cls, v: object) -> bool:
         """Parse boolean environment variables correctly from strings."""
-        if v in (True, False):
+        if v is True or v is False:
             return bool(v)
         normalized = str(v).strip().lower()
         if normalized in {"true", "1", "yes", "on"}:
@@ -346,7 +344,9 @@ class FlextCliSettings(FlextSettings):
                     setattr(test_cfg, k, v)
                     _ = test_cfg.model_validate(test_cfg.model_dump())
                     valid[k] = (
-                        u.transform(v, to_json=True).map_or(v)
+                        u.transform(
+                            cast("Mapping[str, t.JsonValue]", v), to_json=True
+                        ).map_or(v)
                         if u.is_dict_like(v)
                         else v
                     )
@@ -364,8 +364,12 @@ class FlextCliSettings(FlextSettings):
         """Load CLI configuration — implements CliConfigProvider protocol."""
         try:
             raw = self.model_dump()
-            config_dict = u.transform(raw, to_json=True).map_or(raw)
-            return r[Mapping[str, t.JsonValue]].ok(config_dict)
+            config_dict = u.transform(
+                cast("Mapping[str, t.JsonValue]", raw), to_json=True
+            ).map_or(raw)
+            return r[Mapping[str, t.JsonValue]].ok(
+                cast("Mapping[str, t.JsonValue]", config_dict)
+            )
         except Exception as e:
             return r[Mapping[str, t.JsonValue]].fail(
                 c.Cli.ErrorMessages.CONFIG_LOAD_FAILED_MSG.format(error=e)

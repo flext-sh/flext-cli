@@ -14,11 +14,14 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations  # @vulture_ignore
 
+from typing import cast
+
 import pytest  # @vulture_ignore
 from flext_tests import tm  # @vulture_ignore
 
 from flext_cli import FlextCliProtocols, r  # @vulture_ignore
 from flext_cli.protocols import p
+from flext_cli.typings import t
 
 # Import test constants from tests module (TestsCli structure)
 from tests import c  # @vulture_ignore
@@ -82,11 +85,13 @@ class TestsCliProtocols:
         """Test duck typing - class satisfies protocol without inheritance."""
 
         class DuckFormatter:
-            def format_data(self, data: object, **options: object) -> r[str]:
+            def format_data(
+                self, data: t.JsonValue, **options: t.JsonValue
+            ) -> r[str]:
                 return r[str].ok("formatted")
 
         duck = DuckFormatter()
-        assert isinstance(duck, p.Cli.CliFormatter)
+        assert isinstance(duck, p.Cli.CliFormatter)  # type: ignore[unreachable]
 
     # ========================================================================
     # CLI FORMATTER PROTOCOL
@@ -119,7 +124,7 @@ class TestsCliProtocols:
                 # Cast to CliFormatData (which is dict[str, t.JsonValue])
                 test_data = test_data_raw
                 format_result = formatter.format_data(test_data)
-                tm.ok(format_result)
+                tm.ok(cast(r[str], format_result))
 
     # ========================================================================
     # CLI CONFIG PROVIDER PROTOCOL
@@ -152,10 +157,10 @@ class TestsCliProtocols:
                 # Cast to CliConfigData
                 test_config = test_config_raw
                 save_result = provider.save_config(test_config)
-                tm.ok(save_result)
+                tm.ok(cast(r[bool], save_result))
 
                 load_result = provider.load_config()
-                tm.ok(load_result)
+                tm.ok(cast(r[dict[str, t.JsonValue]], load_result))
 
     # ========================================================================
     # CLI AUTHENTICATOR PROTOCOL
@@ -231,7 +236,7 @@ class TestsCliProtocols:
                 validation_result = authenticator.validate_token(token)
                 # The method should succeed for tokens starting with "valid_"
                 # If it fails, there may be a bug in the implementation or test setup
-                tm.ok(validation_result)
+                tm.ok(cast(r[bool], validation_result))
 
     # ========================================================================
     # CLI DEBUG PROVIDER PROTOCOL

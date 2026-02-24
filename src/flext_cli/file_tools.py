@@ -12,7 +12,7 @@ import tempfile
 import zipfile
 from collections.abc import Callable, Mapping
 from pathlib import Path
-from typing import TextIO
+from typing import TextIO, cast
 
 import yaml
 from flext_core import r
@@ -83,8 +83,9 @@ class FlextCliFileTools:
     ) -> t.JsonValue:
         with Path(file_path).open(encoding=c.Cli.Utilities.DEFAULT_ENCODING) as f:
             loaded: t.JsonValue = loader(f)
-        if u.is_dict_like(loaded):
-            loaded_dict: dict[str, t.JsonValue] = dict(loaded)
+        if isinstance(loaded, Mapping):
+            m = cast("Mapping[str, t.JsonValue]", loaded)
+            loaded_dict: dict[str, t.JsonValue] = {k: m[k] for k in m}
             return u.transform(loaded_dict, to_json=True).map_or(loaded_dict)
         return loaded
 

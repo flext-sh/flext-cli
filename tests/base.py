@@ -279,10 +279,6 @@ class TestsCliServiceBase(FlextTestsServiceBase[T]):
                 msg = "Handler ID cannot be empty"
                 raise ValueError(msg)
 
-            if not callable(transform_fn):
-                msg = "Transform function must be callable"
-                raise ValueError(msg)
-
             def transform(
                 msg: FlextTypes.GeneralValueType,
             ) -> FlextResult[FlextTypes.GeneralValueType]:

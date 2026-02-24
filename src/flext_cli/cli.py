@@ -16,7 +16,7 @@ import logging
 import shutil
 from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
-from typing import IO, Annotated, ClassVar, Literal, overload
+from typing import IO, Annotated, ClassVar, Literal, TypeGuard, overload
 
 import click
 import typer
@@ -73,11 +73,31 @@ class FlextCliCli:
         """Create a command decorator."""
         return self._create_command_cli_decorator(name, help_text)
 
+    @staticmethod
+    def _is_option_config_protocol(obj: object) -> TypeGuard[object]:
+        """Type guard for option config objects (default, type_hint, required, help_text)."""
+        return (
+            hasattr(obj, "default")
+            and hasattr(obj, "type_hint")
+            and hasattr(obj, "required")
+            and hasattr(obj, "help_text")
+        )
+
+    @staticmethod
+    def _is_prompt_config_protocol(obj: object) -> TypeGuard[object]:
+        """Type guard for prompt config objects (default, type_hint, prompt_suffix)."""
+        return (
+            hasattr(obj, "default")
+            and hasattr(obj, "type_hint")
+            and hasattr(obj, "prompt_suffix")
+        )
+
     @overload
     def _extract_typed_value(
         self,
         val: t.JsonValue | None,
         type_name: Literal["str"],
+        *,
         default: str | None = None,
     ) -> str | None: ...
 
@@ -86,6 +106,7 @@ class FlextCliCli:
         self,
         val: t.JsonValue | None,
         type_name: Literal["bool"],
+        *,
         default: bool | None = None,
     ) -> bool | None: ...
 
@@ -93,6 +114,7 @@ class FlextCliCli:
         self,
         val: t.JsonValue | None,
         type_name: Literal["str", "bool"],
+        *,
         default: t.JsonValue | None = None,
     ) -> t.JsonValue | None:
         if val is None:
@@ -100,9 +122,7 @@ class FlextCliCli:
         if type_name == "str":
             default_value = u.Parser.convert(default, str, "")
             converted = u.Parser.convert(val, str, default_value)
-            return (
-                converted if converted else (default if default is not None else None)
-            )
+            return converted or (default if default is not None else None)
         default_value = u.Parser.convert(default, bool, False)
         return u.Parser.convert(val, bool, default_value)
 
@@ -147,28 +167,28 @@ class FlextCliCli:
             "quiet": quiet,
             "log_level": log_level,
         }
-        active_params = u.mapper().filter_dict(
+        active_params = u.filter_dict(
             common_params, lambda _k, v: v is not None and v is not False
         )
         if not active_params:
             return
         config_fields = set(type(config).model_fields.keys())
-        filtered_params = u.mapper().filter_dict(
-            active_params, lambda k, _v: k in config_fields
-        )
+        filtered_params = u.filter_dict(active_params, lambda k, _v: k in config_fields)
         if not filtered_params:
             return
 
         def get_bool(k: str) -> bool | None:
-            value = u.mapper().get(filtered_params, k)
-            if value is None or value == "":
-                return None
+            value = u.get(filtered_params, k)
+            match value:
+                case None | "":
+                    return None
             return self._extract_typed_value(value, "bool")
 
         def get_str(k: str) -> str | None:
-            value = u.mapper().get(filtered_params, k)
-            if value is None or value == "":
-                return None
+            value = u.get(filtered_params, k)
+            match value:
+                case None | "":
+                    return None
             return self._extract_typed_value(value, "str")
 
         result = FlextCliCommonParams.apply_to_config(
@@ -252,17 +272,19 @@ class FlextCliCli:
     def _build_bool_value(
         self, kwargs: Mapping[str, t.JsonValue], key: str, *, default: bool = False
     ) -> bool:
-        val = u.mapper().get(kwargs, key)
-        if val is None or val == "":
-            return default
+        val = u.get(kwargs, key)
+        match val:
+            case None | "":
+                return default
         return u.Parser.convert(val, bool, default)
 
     def _build_str_value(
         self, kwargs: Mapping[str, t.JsonValue], key: str, default: str = ""
     ) -> str:
-        val = u.mapper().get(kwargs, key)
-        if val is None or val == "":
-            return default
+        val = u.get(kwargs, key)
+        match val:
+            case None | "":
+                return default
         return u.Parser.convert(val, str, default)
 
     def _build_typed_value(
@@ -291,16 +313,17 @@ class FlextCliCli:
         self, type_hint_val: t.JsonValue | None
     ) -> t.JsonValue | None:
         type_hint_build = u.build(type_hint_val, ops={"ensure_default": None})
-        if type_hint_build is None or type_hint_build == "":
-            return None
+        match type_hint_build:
+            case None | "":
+                return None
         return self._to_json_value(type_hint_build)
 
     def _build_option_config_from_kwargs(
         self, kwargs: Mapping[str, t.JsonValue]
     ) -> m.Cli.OptionConfig:
         return m.Cli.OptionConfig(
-            default=u.mapper().get(kwargs, "default"),
-            type_hint=self._normalize_type_hint(u.mapper().get(kwargs, "type_hint")),
+            default=u.get(kwargs, "default"),
+            type_hint=self._normalize_type_hint(u.get(kwargs, "type_hint")),
             required=bool(self._build_typed_value(kwargs, "required", "bool", False)),
             help_text=str(self._build_typed_value(kwargs, "help_text", "str", "")),
             multiple=bool(self._build_typed_value(kwargs, "multiple", "bool", False)),
@@ -491,15 +514,17 @@ class FlextCliCli:
         kwargs: Mapping[str, t.JsonValue],
     ) -> tuple[Callable[[str, bool], bool], Callable[[str, str], str]]:
         def get_bool_val(k: str, default: bool = False) -> bool:  # noqa: FBT001, FBT002
-            val = u.mapper().get(kwargs, k)
-            if val is None or val == "":
-                return default
+            val = u.get(kwargs, k)
+            match val:
+                case None | "":
+                    return default
             return u.Parser.convert(val, bool, default)
 
         def get_str_val(k: str, default: str = "") -> str:
-            val = u.mapper().get(kwargs, k)
-            if val is None or val == "":
-                return default
+            val = u.get(kwargs, k)
+            match val:
+                case None | "":
+                    return default
             return u.Parser.convert(val, str, default)
 
         return (get_bool_val, get_str_val)
@@ -520,10 +545,10 @@ class FlextCliCli:
     @staticmethod
     def _build_prompt_config(kwargs: Mapping[str, t.JsonValue]) -> m.Cli.PromptConfig:
         get_bool_val, get_str_val = FlextCliCli._build_config_getters(kwargs)
-        value_proc_val = u.mapper().get(kwargs, "value_proc")
+        value_proc_val = u.get(kwargs, "value_proc")
         return m.Cli.PromptConfig(
-            default=u.mapper().get(kwargs, "default"),
-            type_hint=u.mapper().get(kwargs, "type_hint"),
+            default=u.get(kwargs, "default"),
+            type_hint=u.get(kwargs, "type_hint"),
             value_proc=value_proc_val if callable(value_proc_val) else None,
             prompt_suffix=get_str_val(
                 "prompt_suffix", c.Cli.UIDefaults.DEFAULT_PROMPT_SUFFIX

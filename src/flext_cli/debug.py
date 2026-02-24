@@ -368,7 +368,7 @@ class FlextCliDebug(FlextCliServiceBase):
             processor=process_env_item,
             on_error="skip",
         )
-        env_info: dict[str, str] = env_info_result.map_or({})
+        env_info = dict(env_info_result.map_or({}))
 
         return FlextCliModels.Cli.EnvironmentInfo(variables=env_info)
 

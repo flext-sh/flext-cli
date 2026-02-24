@@ -22,7 +22,7 @@ from flext_cli.typings import t
 
 
 @runtime_checkable
-class CommandHandler(Protocol):
+class FlextCliCommandHandler(Protocol):
     """Protocol for command handler callables."""
 
     def __call__(
@@ -35,16 +35,16 @@ class CommandHandler(Protocol):
 
 
 # Type alias for command entry dict
-CommandEntry = Mapping[str, str | CommandHandler]
+FlextCliCommandEntry = Mapping[str, str | FlextCliCommandHandler]
 
 
 @dataclass
-class CommandGroup:
+class FlextCliCommandGroup:
     """Represents a command group with name, description, and commands."""
 
     name: str
     description: str = ""
-    commands: Mapping[str, CommandEntry] = field(default_factory=dict)
+    commands: Mapping[str, FlextCliCommandEntry] = field(default_factory=dict)
 
 
 class FlextCliCommands(FlextCliServiceBase):
@@ -80,8 +80,8 @@ class FlextCliCommands(FlextCliServiceBase):
         super().__init__()
         self._name = name
         self._description = description
-        self._commands: dict[str, CommandEntry] = {}
-        self._groups: dict[str, CommandGroup] = {}
+        self._commands: dict[str, FlextCliCommandEntry] = {}
+        self._groups: dict[str, FlextCliCommandGroup] = {}
 
     @property
     def name(self) -> str:
@@ -114,7 +114,7 @@ class FlextCliCommands(FlextCliServiceBase):
     def register_command(
         self,
         name: str,
-        handler: CommandHandler,
+        handler: FlextCliCommandHandler,
     ) -> r[bool]:
         """Register a CLI command.
 
@@ -220,7 +220,7 @@ class FlextCliCommands(FlextCliServiceBase):
             str(error_value) if error_value else "Command failed"
         )
 
-    def get_commands(self) -> Mapping[str, CommandEntry]:
+    def get_commands(self) -> Mapping[str, FlextCliCommandEntry]:
         """Get all registered commands.
 
         Returns:

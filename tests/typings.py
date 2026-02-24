@@ -18,12 +18,7 @@ from typing import TypedDict
 
 from flext_cli.typings import FlextCliTypes, t as cli_t
 from flext_core.typings import T, T_co, T_contra, t as core_t
-from flext_tests.typings import (
-    FlextTestsTypes,
-    TTestModel,
-    TTestResult,
-    TTestService,
-)
+from flext_tests.typings import FlextTestsTypes
 
 
 class TestsCliTypes(FlextTestsTypes, FlextCliTypes):
@@ -66,17 +61,11 @@ class TestsCliTypes(FlextTestsTypes, FlextCliTypes):
 
             type CliConfigMapping = Mapping[
                 str,
-                core_t.GeneralValueType
-                | Sequence[str]
-                | Mapping[str, str | int]
-                | None,
+                core_t.JsonValue | Sequence[str] | Mapping[str, str | int] | None,
             ]
             """CLI configuration mapping specific to flext-cli."""
 
-            type CommandArgsMapping = Mapping[
-                str,
-                core_t.GeneralValueType | cli_t.GeneralValueType,
-            ]
+            type CommandArgsMapping = Mapping[str, cli_t.GeneralValueType]
             """Command arguments mapping for CLI operations."""
 
         class Fixtures:

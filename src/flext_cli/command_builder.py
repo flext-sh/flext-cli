@@ -17,11 +17,12 @@ from flext_core import r
 from typer.models import OptionInfo
 
 from flext_cli.models import m
+from flext_cli.option_groups import FlextCliOptionGroup
 from flext_cli.protocols import p
 from flext_cli.typings import t
 
 
-class FlextCommandBuilder:
+class FlextCliCommandBuilder:
     """Fluent DSL for building CLI commands.
 
     Provides a builder pattern for creating CLI commands with options,
@@ -30,8 +31,8 @@ class FlextCommandBuilder:
 
     Example:
         >>> sync_command = (
-        ...     FlextCommandBuilder("sync")
-        ...     .with_option_group(FlextOptionGroup.connection_options())
+        ...     FlextCliCommandBuilder("sync")
+        ...     .with_option_group(FlextCliOptionGroup.connection_options())
         ...     .with_option("--dry-run", type_=bool, default=False)
         ...     .with_middleware(logging_middleware)
         ...     .with_middleware(auth_middleware)
@@ -203,8 +204,7 @@ class FlextCommandBuilder:
             flext-cli's command system would require more complex wiring.
 
         """
-        command = m.Cli.CliCommand(
+        return m.Cli.CliCommand(
             name=self._name,
             description="",
         )
-        return command

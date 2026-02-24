@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
-
 import uuid
+from collections.abc import Mapping, MutableMapping
 from datetime import UTC, datetime
 
 from flext_core import r
@@ -84,7 +83,7 @@ class FlextCliContext(BaseModel):
     @staticmethod
     def _safe_dict_operation(
         operation: str,
-        dict_obj: Mapping[str, t.JsonValue] | None,
+        dict_obj: MutableMapping[str, t.JsonValue] | None,
         key: str,
         value: t.JsonValue | None = None,
         error_messages: Mapping[str, str] | None = None,

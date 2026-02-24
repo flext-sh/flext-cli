@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import operator
 import types
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable, Mapping, MutableMapping, Sequence
 from typing import (
     ClassVar,
     Literal,
@@ -61,12 +61,12 @@ def _is_runtime_type(value: object) -> TypeGuard[type]:
 
 def _has_items(value: object) -> TypeGuard[Mapping[object, object]]:
     """Check whether a value exposes mapping-style items()."""
-    return u._is_mapping(value)
+    return u.is_mapping(value)
 
 
 def _is_iterable(value: object) -> TypeGuard[Sequence[t.JsonValue]]:
     """Check whether a value is iterable."""
-    return u._is_sequence(value)
+    return u.is_type(value, list) or u.is_type(value, tuple) or u.is_type(value, range)
 
 
 class FlextCliModels(FlextModels):
@@ -1875,7 +1875,7 @@ class FlextCliModels(FlextModels):
 
                 # Type narrowing: _create_real_annotations returns dict[str, type]
                 real_annotations = self._create_real_annotations(annotations)
-                command_wrapper.__annotations__ = real_annotations
+                command_wrapper.__annotations__ = dict(real_annotations)
 
                 # Type assertion: FunctionType satisfies CliCommandWrapper Protocol
                 if not callable(command_wrapper):
@@ -1897,7 +1897,7 @@ class FlextCliModels(FlextModels):
                         return normalized.value
                     return str(result)
 
-                typed_wrapper.__annotations__ = real_annotations
+                typed_wrapper.__annotations__ = dict(real_annotations)
                 return typed_wrapper
 
             def build(self) -> p.Cli.CliCommandWrapper:
@@ -2011,7 +2011,7 @@ class FlextCliModels(FlextModels):
 
                     def convert_field(
                         field_name: str,
-                        field_info: t.JsonValue,
+                        field_info: FieldInfo | t.JsonValue,
                     ) -> p.Cli.CliParameterSpecProtocol:
                         """Convert single field to CliParameterSpec."""
                         field_type = getattr(field_info, "annotation", str)
@@ -2228,7 +2228,7 @@ class FlextCliModels(FlextModels):
             def extract_base_props(
                 field_name: str,
                 field_info: FieldInfo | t.JsonValue,
-            ) -> Mapping[str, t.JsonValue]:
+            ) -> dict[str, t.JsonValue]:
                 """Extract base properties from field info."""
                 annotation = getattr(field_info, "annotation", None)
                 return {
@@ -2240,7 +2240,7 @@ class FlextCliModels(FlextModels):
 
             @staticmethod
             def merge_types_into_props(
-                props: Mapping[str, t.JsonValue],
+                props: MutableMapping[str, t.JsonValue],
                 types: Mapping[str, type | str],
             ) -> None:
                 """Merge types mapping into properties dict."""
@@ -2250,7 +2250,7 @@ class FlextCliModels(FlextModels):
                 props.update(transformed)
 
             @staticmethod
-            def _to_json_value(value: object) -> t.JsonValue:
+            def to_json_value(value: object) -> t.JsonValue:
                 """Convert arbitrary value into JsonValue."""
                 converted = FlextCliModels.Cli.CliModelConverter.convert_field_value(
                     value
@@ -2261,13 +2261,13 @@ class FlextCliModels(FlextModels):
 
             @staticmethod
             def merge_field_info_dict(
-                props: Mapping[str, t.JsonValue],
+                props: MutableMapping[str, t.JsonValue],
                 field_info: FieldInfo | t.JsonValue,
             ) -> None:
                 """Merge field_info dict attributes into props."""
                 if _has_items(field_info):
                     filtered: dict[str, t.JsonValue] = {
-                        str(k): FlextCliModels.Cli.CliModelConverter._to_json_value(v)
+                        str(k): FlextCliModels.Cli.CliModelConverter.to_json_value(v)
                         for k, v in field_info.items()
                         if str(k) != "__dict__"
                     }
@@ -2276,7 +2276,7 @@ class FlextCliModels(FlextModels):
                 metadata_dict = getattr(field_info, "__dict__", None)
                 if metadata_dict is not None and _has_items(metadata_dict):
                     dict_metadata: dict[str, t.JsonValue] = {
-                        str(k): FlextCliModels.Cli.CliModelConverter._to_json_value(v)
+                        str(k): FlextCliModels.Cli.CliModelConverter.to_json_value(v)
                         for k, v in metadata_dict.items()
                     }
                     props.update(dict_metadata)
@@ -2293,9 +2293,7 @@ class FlextCliModels(FlextModels):
                             dict_item: dict[str, t.JsonValue] = {
                                 str(
                                     k
-                                ): FlextCliModels.Cli.CliModelConverter._to_json_value(
-                                    v
-                                )
+                                ): FlextCliModels.Cli.CliModelConverter.to_json_value(v)
                                 for k, v in item_dict.items()
                             }
                             result.update(dict_item)
@@ -2303,9 +2301,7 @@ class FlextCliModels(FlextModels):
                             dict_item = {
                                 str(
                                     k
-                                ): FlextCliModels.Cli.CliModelConverter._to_json_value(
-                                    v
-                                )
+                                ): FlextCliModels.Cli.CliModelConverter.to_json_value(v)
                                 for k, v in item.items()
                             }
                             result.update(dict_item)
@@ -2315,7 +2311,7 @@ class FlextCliModels(FlextModels):
 
             @staticmethod
             def merge_metadata_attr(
-                props: Mapping[str, t.JsonValue],
+                props: MutableMapping[str, t.JsonValue],
                 field_info: FieldInfo | t.JsonValue,
             ) -> None:
                 """Merge metadata attribute into props."""
@@ -2324,12 +2320,12 @@ class FlextCliModels(FlextModels):
                     return
                 if _has_items(metadata_attr):
                     props["metadata"] = {
-                        str(k): FlextCliModels.Cli.CliModelConverter._to_json_value(v)
+                        str(k): FlextCliModels.Cli.CliModelConverter.to_json_value(v)
                         for k, v in metadata_attr.items()
                     }
                     return
                 if _is_iterable(metadata_attr):
-                    metadata_values: list[object] = [item for item in metadata_attr]
+                    metadata_values = list(metadata_attr)
                     props["metadata"] = (
                         FlextCliModels.Cli.CliModelConverter.process_metadata_list(
                             metadata_values,
@@ -2338,7 +2334,7 @@ class FlextCliModels(FlextModels):
 
             @staticmethod
             def merge_json_schema_extra(
-                props: Mapping[str, t.JsonValue],
+                props: MutableMapping[str, t.JsonValue],
                 field_info: FieldInfo | t.JsonValue,
             ) -> None:
                 """Merge json_schema_extra into props metadata."""
@@ -2351,14 +2347,14 @@ class FlextCliModels(FlextModels):
                     return
                 dict_metadata: dict[str, t.JsonValue] = (
                     {
-                        str(k): FlextCliModels.Cli.CliModelConverter._to_json_value(v)
+                        str(k): FlextCliModels.Cli.CliModelConverter.to_json_value(v)
                         for k, v in metadata_raw.items()
                     }
                     if _has_items(metadata_raw)
                     else {}
                 )
                 dict_schema: dict[str, t.JsonValue] = {
-                    str(k): FlextCliModels.Cli.CliModelConverter._to_json_value(v)
+                    str(k): FlextCliModels.Cli.CliModelConverter.to_json_value(v)
                     for k, v in json_schema_extra.items()
                 }
                 dict_metadata.update(dict_schema)
@@ -2407,27 +2403,27 @@ class FlextCliModels(FlextModels):
                 (
                     "click_type",
                     "str",
-                    lambda v: u._is_str(v),
+                    lambda v: u.is_type(v, str),
                 ),
                 ("is_required", "bool", lambda v: v in {True, False}),
                 (
                     "description",
                     "str",
-                    lambda v: u._is_str(v),
+                    lambda v: u.is_type(v, str),
                 ),
                 (
                     "validators",
                     "list/tuple",
                     lambda v: (
-                        u._is_sequence_not_str(v)
-                        and not u._is_mapping(v)
-                        and not u._is_bytes(v)
+                        (u.is_type(v, list) or u.is_type(v, tuple))
+                        and not u.is_mapping(v)
+                        and not u.is_type(v, bytes)
                     ),
                 ),
-                ("metadata", "dict", lambda v: u._is_mapping(v)),
+                ("metadata", "dict", lambda v: u.is_mapping(v)),
             ]
 
-            _JSON_VALUE_ADAPTER: ClassVar[TypeAdapter[t.JsonValue]] = TypeAdapter(
+            JSON_VALUE_ADAPTER: ClassVar[TypeAdapter[t.JsonValue]] = TypeAdapter(
                 t.JsonValue,
             )
 
@@ -2461,7 +2457,7 @@ class FlextCliModels(FlextModels):
                 if field_value is None:
                     return FlextResult.ok(None)
                 try:
-                    json_value = FlextCliModels.Cli.CliModelConverter._JSON_VALUE_ADAPTER.validate_python(
+                    json_value = FlextCliModels.Cli.CliModelConverter.JSON_VALUE_ADAPTER.validate_python(
                         field_value,
                     )
                     return FlextResult.ok(json_value)
@@ -2495,10 +2491,13 @@ class FlextCliModels(FlextModels):
                     FieldInfo
                     | t.JsonValue
                     | Mapping[str, t.JsonValue]
-                    | Mapping[str, t.JsonValue]
                     | Mapping[
                         str,
-                        type | str | bool | list[t.JsonValue] | Mapping[str, t.JsonValue],
+                        type
+                        | str
+                        | bool
+                        | list[t.JsonValue]
+                        | Mapping[str, t.JsonValue],
                     ]
                 ),
                 data: Mapping[str, t.JsonValue] | None = None,
@@ -2559,7 +2558,7 @@ class FlextCliModels(FlextModels):
                 if not _is_iterable(field_info):
                     return []
                 # Build result list explicitly for proper type narrowing
-                validator_items = [item for item in field_info]
+                validator_items = list(field_info)
                 result: list[
                     Callable[
                         [t.JsonValue],
@@ -2572,7 +2571,7 @@ class FlextCliModels(FlextModels):
             """Decorators for creating CLI commands from Pydantic models."""
 
             @staticmethod
-            def _normalize_output(value: object) -> t.JsonValue:
+            def normalize_output(value: object) -> t.JsonValue:
                 """Normalize any value to JsonValue."""
                 normalized: FlextResult[t.JsonValue] = (
                     FlextCliModels.Cli.CliModelConverter.convert_field_value(value)
@@ -2614,13 +2613,13 @@ class FlextCliModels(FlextModels):
                             output: t.JsonValue
                             match result:
                                 case r() as result_obj if result_obj.is_success:
-                                    output = FlextCliModels.Cli.CliModelDecorators._normalize_output(
+                                    output = FlextCliModels.Cli.CliModelDecorators.normalize_output(
                                         result_obj.value,
                                     )
                                 case r() as result_obj:
                                     output = str(result_obj.error or "Unknown error")
                                 case _:
-                                    output = FlextCliModels.Cli.CliModelDecorators._normalize_output(
+                                    output = FlextCliModels.Cli.CliModelDecorators.normalize_output(
                                         result,
                                     )
                         except Exception as e:

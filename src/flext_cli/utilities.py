@@ -15,7 +15,7 @@ from flext_core import FlextUtilities, r
 from pydantic import BaseModel, ConfigDict, ValidationError, validate_call
 
 from flext_cli.constants import c
-from flext_cli.typings import CliExecutionMetadata, CliValidationResult
+from flext_cli.typings import CliExecutionMetadata, CliValidationResult, t
 
 type CliValue = (
     str
@@ -245,7 +245,7 @@ class FlextCliUtilities(FlextUtilities):
 
             @staticmethod
             def v_req(
-                data: Mapping[str, CliValue] | None,
+                data: Mapping[str, CliValue] | Mapping[str, t.JsonValue] | None,
                 *,
                 fields: list[str],
             ) -> r[bool]:
@@ -267,7 +267,7 @@ class FlextCliUtilities(FlextUtilities):
 
             @staticmethod
             def v_config(
-                config: Mapping[str, CliValue] | None,
+                config: Mapping[str, CliValue] | Mapping[str, t.JsonValue] | None,
                 *,
                 fields: list[str],
             ) -> r[bool]:
@@ -276,7 +276,7 @@ class FlextCliUtilities(FlextUtilities):
 
             @staticmethod
             def v_step(
-                step: Mapping[str, CliValue] | None,
+                step: Mapping[str, CliValue] | Mapping[str, t.JsonValue] | None,
             ) -> r[bool]:
                 """Validate a pipeline step."""
                 if step is None:
@@ -506,7 +506,7 @@ class FlextCliUtilities(FlextUtilities):
                     enum_fields: Mapping[str, type[E]],
                 ) -> r[Mapping[str, CliValue]]:
                     """Parse keyword arguments."""
-                    parsed = FlextUtilities.mapper().to_dict(kwargs)
+                    parsed = dict(kwargs)
                     errors: list[str] = []
                     for key, enum_cls in enum_fields.items():
                         if key not in parsed:
