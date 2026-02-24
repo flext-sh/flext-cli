@@ -150,12 +150,16 @@ class FlextCliMiddleware:
 
         Example:
             >>> composed = FlextCliMiddleware.compose(
-            ...     [FlextCliLoggingMiddleware(), FlextCliValidationMiddleware(MySchema)],
+            ...     [
+            ...         FlextCliLoggingMiddleware(),
+            ...         FlextCliValidationMiddleware(MySchema),
+            ...     ],
             ...     my_handler,
             ... )
             >>> result = composed(context)
 
         """
+
         def composed(ctx: p.Cli.CliContextProtocol) -> r[t.JsonValue]:
             def build_chain(
                 idx: int,
