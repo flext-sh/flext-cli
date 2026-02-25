@@ -70,8 +70,11 @@ class _CliNormalizedJson(RootModel[t.JsonValue]):
 
     @model_validator(mode="wrap")
     @classmethod
-    def _normalize(cls, data: object) -> _CliNormalizedJson:
-        return cls(root=_normalize_to_json_value(data))
+    def _normalize(
+        cls, data: object, handler: Callable[[t.JsonValue], _CliNormalizedJson]
+    ) -> _CliNormalizedJson:
+        normalized = _normalize_to_json_value(data)
+        return handler(normalized)
 
 
 class _JsonNormalizeInput(BaseModel):
@@ -405,7 +408,9 @@ def _default_for_type_kind(
         return default if isinstance(default, str) else None
     if type_kind == "bool":
         return default if isinstance(default, bool) else False
-    return default if isinstance(default, Mapping) else {}
+    if isinstance(default, Mapping):
+        return dict(default)
+    return {}
 
 
 class _LogLevelResolved(BaseModel):
@@ -470,6 +475,7 @@ class FlextCliModels(FlextModels):
         ExecutionContextInput: ClassVar = _ExecutionContextInput
         TypedExtract: ClassVar = _TypedExtract
         LogLevelResolved: ClassVar = _LogLevelResolved
+        PromptTimeoutResolved: ClassVar = _PromptTimeoutResolved
         JsonNormalizeInput: ClassVar = _JsonNormalizeInput
         NormalizedJsonList: ClassVar = _NormalizedJsonList
         NormalizedJsonDict: ClassVar = _NormalizedJsonDict
@@ -610,83 +616,6 @@ class FlextCliModels(FlextModels):
                     level=self.log_level,
                     format=self.log_format,
                 )
-
-        class EnsureTypeRequest(FlextModels.Value):
-            """Single contract for ensure str/bool from JsonValue. Replaces polymorphic ensure_str/ensure_bool branches."""
-
-            kind: Literal["str", "bool"] = Field(
-                ...,
-                description="Target type for coercion",
-            )
-            value: t.JsonValue | None = Field(
-                default=None,
-                description="Value to coerce",
-            )
-            default: t.JsonValue | None = Field(
-                default=None,
-                description="Fallback when coercion fails",
-            )
-
-            def result(self) -> str | bool:
-                """Return value coerced to kind, or default on failure."""
-                if self.value is None:
-                    return self._default_result()
-                if self.kind == "str":
-                    try:
-                        s = str(self.value).strip()
-                        return s or (
-                            self.default if isinstance(self.default, str) else ""
-                        )
-                    except (TypeError, ValueError):
-                        return self.default if isinstance(self.default, str) else ""
-                if self.kind == "bool":
-                    bool_adapter: TypeAdapter[bool] = TypeAdapter(bool)
-                    try:
-                        return bool_adapter.validate_python(self.value)
-                    except ValidationError:
-                        pass
-                    try:
-                        return bool_adapter.validate_python(self.default)
-                    except ValidationError:
-                        pass
-                    return bool(self.default) if self.default is not None else False
-                return self._default_result()
-
-            def _default_result(self) -> str | bool:
-                if self.kind == "str":
-                    return self.default if isinstance(self.default, str) else ""
-                return self.default if isinstance(self.default, bool) else False
-
-        class MapGetValue(FlextModels.Value):
-            """Single contract for getting a key from a mapping with JSON normalization. Replaces get_map_val branches."""
-
-            map_: Mapping[str, t.JsonValue] = Field(
-                ...,
-                description="Mapping to read from",
-                alias="map",
-            )
-            key: str = Field(..., description="Key to look up")
-            default: t.JsonValue = Field(
-                default=None,
-                description="Default when key missing",
-            )
-
-            def result(self) -> t.JsonValue:
-                """Return value at key, with dict values normalized to JSON-compatible."""
-                val = self.map_.get(self.key, self.default)
-                if val is None or isinstance(val, (str, int, float, bool, list)):
-                    return val
-                if isinstance(val, dict):
-                    out: dict[str, t.JsonValue] = {}
-                    for kk, vv in val.items():
-                        if isinstance(
-                            vv, (str, int, float, bool, type(None), list, dict)
-                        ):
-                            out[str(kk)] = vv
-                        else:
-                            out[str(kk)] = str(vv)
-                    return out
-                return str(val)
 
         class CliCommand(FlextModels.Entity):
             """CLI command model extending Entity via inheritance."""

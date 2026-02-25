@@ -29,6 +29,8 @@ def _is_json_mapping(value: t.JsonValue) -> TypeGuard[Mapping[str, t.JsonValue]]
 
 
 class FlextCliFileTools:
+    """File operations for JSON, YAML, CSV, and text with FlextResult."""
+
     @staticmethod
     def _execute_file_operation[T](
         operation_func: Callable[[], T],

@@ -46,6 +46,8 @@ class FlextCliTypes(FlextTypes):
         ResultFormatter = Callable[[FlextTypes.JsonValue], str]
         FormatableResult: TypeAlias = str
         TabularData = Sequence[Mapping[str, FlextTypes.JsonValue]]
+        TableRows: TypeAlias = Sequence[Mapping[str, FlextTypes.JsonValue]]
+        JsonDict: TypeAlias = dict[str, FlextTypes.JsonValue]
 
 
 t = FlextCliTypes

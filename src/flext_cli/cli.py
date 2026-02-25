@@ -24,6 +24,7 @@ from click.exceptions import UsageError
 from flext_core import FlextContainer, FlextLogger, FlextRuntime, r
 from pydantic import BaseModel, TypeAdapter, ValidationError
 from rich.errors import ConsoleError, LiveError, StyleError
+from typer import Typer
 from typer.testing import CliRunner
 
 from flext_cli.cli_params import FlextCliCommonParams
@@ -117,12 +118,15 @@ class FlextCliCli:
     ) -> t.JsonValue | None:
         if type_name not in {"str", "bool", "dict"}:
             return default
-        req = m.Cli.TypedExtract(
-            type_kind=cast(Literal["str", "bool", "dict"], type_name),
-            value=val,
-            default=default,
-        )
-        return req.result()
+        if type_name == "str":
+            return m.Cli.TypedExtract(
+                type_kind="str", value=val, default=default
+            ).resolved
+        if type_name == "bool":
+            return m.Cli.TypedExtract(
+                type_kind="bool", value=val, default=default
+            ).resolved
+        return m.Cli.TypedExtract(type_kind="dict", value=val, default=default).resolved
 
     def _get_log_level_value(self, config: FlextCliSettings) -> int:
         if config.debug or config.trace:

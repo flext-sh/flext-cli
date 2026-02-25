@@ -314,7 +314,7 @@ class TestsCliCli:
             handler = (lambda x: x,)
 
             with pytest.raises((TypeError, ValueError)):
-                cli.model_command(invalid_model, handler)  # type: ignore[arg-type]
+                cli.model_command(invalid_model, handler)
 
         def test_create_cli_runner(self) -> None:
             """Test create_cli_runner."""
