@@ -103,7 +103,7 @@ class FlextCliFormatters:
         try:
             self.console.print(message, style=style)
             return r[bool].ok(value=True)
-        except (ConsoleError, StyleError) as exc:  # pragma: no cover - Defensive
+        except (ConsoleError, StyleError) as exc:
             _logger.warning(
                 "rich_print_fallback", error=str(exc), message_length=len(message)
             )
@@ -157,7 +157,7 @@ class FlextCliFormatters:
 
             return r[RichTable].ok(table)
 
-        except (ConsoleError, StyleError) as exc:  # pragma: no cover - Defensive
+        except (ConsoleError, StyleError) as exc:
             _logger.warning("rich_table_creation_fallback", error=str(exc), title=title)
             return r[RichTable].ok(RichTable())
 
@@ -409,7 +409,7 @@ class FlextCliFormatters:
                 border_style=validated_border_style,
             )
             return r[RichPanel].ok(panel)
-        except (ConsoleError, StyleError) as exc:  # pragma: no cover - Defensive
+        except (ConsoleError, StyleError) as exc:
             _logger.warning("rich_panel_creation_fallback", error=str(exc), title=title)
             return r[RichPanel].ok(RichPanel(content))
 

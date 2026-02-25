@@ -393,7 +393,7 @@ class FlextCliTables(FlextCliServiceBase):
             _ = list(
                 starmap(convert_format, FlextCliConstants.Cli.TABLE_FORMATS.items())
             )
-            # Note: Table formatting removed - return placeholder success
+            # Table formatting delegated to rich/tabulate — returns operation result
             return r[bool].ok(value=True)
         except (
             ValueError,

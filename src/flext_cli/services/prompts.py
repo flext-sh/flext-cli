@@ -124,7 +124,7 @@ class FlextCliPrompts(FlextCliServiceBase):
             ConsoleError,
             StyleError,
             LiveError,
-        ) as exc:  # pragma: no cover
+        ) as exc:
             self._fatal("prompt_text", message, exc, "Text prompt failed completely")
             return r[str].fail(EM.TEXT_PROMPT_FAILED.format(error=exc))
 
@@ -262,7 +262,7 @@ class FlextCliPrompts(FlextCliServiceBase):
             ConsoleError,
             StyleError,
             LiveError,
-        ) as exc:  # pragma: no cover
+        ) as exc:
             self.logger.exception(
                 "FAILED to collect prompt statistics - operation aborted",
                 operation="get_prompt_statistics",
@@ -321,7 +321,7 @@ class FlextCliPrompts(FlextCliServiceBase):
             ConsoleError,
             StyleError,
             LiveError,
-        ) as exc:  # pragma: no cover
+        ) as exc:
             self._fatal("prompt", message, exc, "Prompt failed completely")
             return r[str].fail(PEM.PROMPT_FAILED.format(error=exc))
 
