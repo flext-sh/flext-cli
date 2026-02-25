@@ -51,13 +51,10 @@ class FlextCliPrompts(FlextCliServiceBase):
         super().__init__()
         self.interactive_mode = bool(data.get("interactive_mode", True))
         self.quiet = bool(data.get("quiet"))
-        timeout_raw = data.get("default_timeout")
-        if isinstance(timeout_raw, int):
-            self.default_timeout = timeout_raw
-        elif isinstance(timeout_raw, str) and timeout_raw.isdigit():
-            self.default_timeout = int(timeout_raw)
-        else:
-            self.default_timeout = default_timeout
+        self.default_timeout = m.Cli.PromptTimeoutResolved(
+            raw=data.get("default_timeout"),
+            default=default_timeout,
+        ).resolved
         self.logger.debug(
             "Initialized CLI prompts service",
             operation="__init__",

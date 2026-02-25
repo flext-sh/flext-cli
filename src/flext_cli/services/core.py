@@ -378,26 +378,18 @@ class FlextCliCore(FlextCliServiceBase):
         self,
         context: Mapping[str, t.JsonValue] | list[str] | None,
     ) -> Mapping[str, t.JsonValue]:
-        """Build execution context from various input formats."""
-        if context is None:
-            return {}
-        if isinstance(context, Sequence):
-            # Use build() DSL: process → normalize → ensure JSON-compatible
-            # Reuse helpers from output module to avoid duplication
+        """Build execution context via ExecutionContextInput model (single Pydantic contract)."""
+        ctx_input = m.Cli.ExecutionContextInput.model_validate(context)
+
+        def list_processor(seq: Sequence[str]) -> list[t.JsonValue]:
             process_result = FlextCliUtilities.process(
-                list(context),
+                list(seq),
                 processor=FlextCliOutput.norm_json,
                 on_error="skip",
             )
-            context_list_raw = (
-                process_result.value or []
-            )  # Direct attribute access - unwrap() provides safe access
-            context_list: list[t.JsonValue] = list(context_list_raw)
-            return self._build_context_from_list(context_list)
-        # After None and list[str] handling, context is dict[str, t.JsonValue]
-        if isinstance(context, dict):
-            return dict(context)
-        return {}
+            return list(process_result.value or [])
+
+        return ctx_input.to_mapping(list_processor=list_processor)
 
     def execute_command(
         self,
@@ -492,24 +484,6 @@ class FlextCliCore(FlextCliServiceBase):
         return extract_command_names()
 
     # ==========================================================================
-    # PRIVATE HELPERS - Direct logger usage (no fallbacks)
-    # ==========================================================================
-
-    @staticmethod
-    def _build_context_from_list(
-        args: list[t.JsonValue],
-    ) -> Mapping[str, t.JsonValue]:
-        """Build command context from list of arguments.
-
-        Business Rule:
-        ──────────────
-        Static method - converts argument list to JSON-compatible dict.
-        No instance state needed.
-        """
-        # All values in args are already t.JsonValue compatible - direct assignment
-        return {c.Cli.DictKeys.ARGS: args}
-
-    # ==========================================================================
     # CLI CONFIGURATION MANAGEMENT - Using t.Configuration types
     # ==========================================================================
 
@@ -519,7 +493,7 @@ class FlextCliCore(FlextCliServiceBase):
 
     def _validate_config_input(
         self,
-        config: Mapping[str, t.JsonValue],
+        config: object,
     ) -> r[Mapping[str, t.JsonValue]]:
         """Validate input configuration for update operations."""
         if not isinstance(config, Mapping):
@@ -641,7 +615,7 @@ class FlextCliCore(FlextCliServiceBase):
 
     def update_configuration(
         self,
-        config: Mapping[str, t.JsonValue],
+        config: object,
     ) -> r[bool]:
         """Update CLI configuration using railway pattern and functional composition.
 

@@ -58,6 +58,8 @@ ______________________________________________________________________
 - **Src**: file_tools `_load_structured_file`, cli `_to_json_value`/prompt normalization, models `convert_field_value`, cmd `edit_config`, utilities `process`/`process_mapping` skip path — all have debug logging where they fall back or skip; no silent swallow.
 - **Boundaries**: Optional — prefer existing `m.Cli.*` / `FlextCliSettings` at API boundaries (e.g. authenticate, save_config) where shape matches; no new models.
 - **Done**: settings.save_config accepts `FlextCliSettings | Mapping`, uses `to_save` from model_dump() or config; api.get_auth_token uses TokenData.model_validate(data) as primary path, extract only on ValidationError; protocol save_config left as Mapping to avoid circular import (protocols → settings → utilities → models → protocols).
+- **Done (polymorphic → Pydantic)**: cli.\_extract_typed_value delegates to m.Cli.TypedExtract(type_kind, value, default).result(); dict result normalized with \_to_json_value in cli. core.\_build_execution_context uses m.Cli.ExecutionContextInput(raw=context).to_mapping(list_processor=...). Removed polymorphic branches from cli and core in favor of centralized models.
+- **Done (output ensure\_\* / get_map_val)**: models.Cli.EnsureTypeRequest(kind=str|bool, value, default).result() and MapGetValue(map, key, default).result(). output.ensure_str, ensure_bool delegate to EnsureTypeRequest; output.get_map_val delegates to MapGetValue. norm_json kept as isinstance/u.is_dict_like/u.is_list_like (no JsonNormalizeInput to avoid circular deps).
 
 ______________________________________________________________________
 

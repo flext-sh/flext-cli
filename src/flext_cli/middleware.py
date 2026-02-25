@@ -41,7 +41,7 @@ class FlextCliLoggingMiddleware:
             r[t.JsonValue]: Result from next middleware or handler.
 
         """
-        getattr(ctx, "command", "unknown")
+        _ = getattr(ctx, "command", "unknown")
         start = time.perf_counter()
         result = next_(ctx)
         _elapsed = time.perf_counter() - start
@@ -58,6 +58,7 @@ class FlextCliValidationMiddleware:
             schema: Pydantic model class for validation.
 
         """
+        super().__init__()
         self._schema = schema
 
     def __call__(
@@ -96,6 +97,7 @@ class FlextCliRetryMiddleware:
             backoff: Base backoff delay in seconds (default: 1.0).
 
         """
+        super().__init__()
         self._max_retries = max_retries
         self._backoff = backoff
 

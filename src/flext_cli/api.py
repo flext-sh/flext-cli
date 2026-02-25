@@ -97,7 +97,7 @@ class FlextCli:
     class Mixins(FlextCliMixins):
         """CLI mixins."""
 
-    class AppBase(FlextCliAppBase, ABC):
+    class AppBase(FlextCliAppBase[FlextCliSettings], ABC):
         """CLI app base (abstract). Subclasses must implement _register_commands."""
 
     _instance: ClassVar[FlextCli | None] = None
@@ -122,6 +122,7 @@ class FlextCli:
 
     def __init__(self) -> None:
         """Initialize consolidated CLI with all functionality integrated."""
+        super().__init__()
         self._name = c.Cli.CliDefaults.DEFAULT_APP_NAME
         self._version = c.Cli.CLI_VERSION
         self._description = f"{self._name}{c.Cli.APIDefaults.APP_DESCRIPTION_SUFFIX}"
@@ -163,7 +164,7 @@ class FlextCli:
     def _validate_token_string(token: str) -> r[bool]:
         """Validate token string using utilities validation DSL."""
         try:
-            u.Cli.CliValidation.validate_required_string(token, context="Token")
+            _ = u.Cli.CliValidation.validate_required_string(token, context="Token")
             return r[bool].ok(value=True)
         except ValueError as e:
             return r[bool].fail(str(e))
@@ -222,7 +223,7 @@ class FlextCli:
     def validate_credentials(username: str, password: str) -> r[bool]:
         """Validate credentials using Pydantic 2."""
         try:
-            m.Cli.PasswordAuth(username=username, password=password)
+            _ = m.Cli.PasswordAuth(username=username, password=password)
             return r[bool].ok(value=True)
         except (ValidationError, ValueError) as e:
             return r[bool].fail(str(e))
@@ -408,10 +409,8 @@ class FlextCli:
         """Create a formatted ASCII table."""
         if data is None:
             return r[str].fail("Table data cannot be None")
-        if runtime.is_dict_like(data):
-            table_data: list[Mapping[str, t.JsonValue]] = [
-                dict(data) if isinstance(data, dict) else {}
-            ]
+        if isinstance(data, Mapping):
+            table_data: list[Mapping[str, t.JsonValue]] = [dict(data)]
         else:
             table_data = list(data) if isinstance(data, (list, tuple)) else []
         table_config = m.Cli.TableConfig(

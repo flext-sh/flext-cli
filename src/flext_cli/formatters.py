@@ -10,11 +10,13 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import sys
 from collections.abc import Mapping
 from io import StringIO
 
-from flext_core import r, u
+from flext_core import FlextLogger, r, u
 from rich.console import Console
+from rich.errors import ConsoleError, LiveError, NotRenderableError, StyleError
 from rich.layout import Layout as RichLayout
 from rich.live import Live as RichLive
 from rich.panel import Panel as RichPanel
@@ -26,6 +28,8 @@ from rich.tree import Tree as RichTree
 from flext_cli.constants import c
 from flext_cli.protocols import p
 from flext_cli.typings import t
+
+_logger = FlextLogger(__name__)
 
 
 class FlextCliFormatters:
@@ -63,6 +67,7 @@ class FlextCliFormatters:
 
     def __init__(self) -> None:
         """Initialize Rich formatters with direct Rich imports."""
+        super().__init__()
         # Use Rich directly (formatters.py is ONE OF TWO files that may import Rich)
         self.console = Console()
 
@@ -98,12 +103,13 @@ class FlextCliFormatters:
         try:
             self.console.print(message, style=style)
             return r[bool].ok(value=True)
-        except Exception as e:  # pragma: no cover - Defensive: Catches unexpected errors during console print operation
-            return r[bool].fail(
-                c.Cli.FormattersErrorMessages.PRINT_FAILED.format(
-                    error=e,
-                ),
+        except (ConsoleError, StyleError) as exc:  # pragma: no cover - Defensive
+            _logger.warning(
+                "rich_print_fallback", error=str(exc), message_length=len(message)
             )
+            _ = sys.stdout.write(f"{message}\n")
+            _ = sys.stdout.flush()
+            return r[bool].ok(value=True)
 
     @staticmethod
     def create_table(
@@ -151,12 +157,9 @@ class FlextCliFormatters:
 
             return r[RichTable].ok(table)
 
-        except Exception as e:  # pragma: no cover - Defensive: Catches unexpected errors during table creation
-            return r[RichTable].fail(
-                c.Cli.FormattersErrorMessages.TABLE_CREATION_FAILED.format(
-                    error=e,
-                ),
-            )
+        except (ConsoleError, StyleError) as exc:  # pragma: no cover - Defensive
+            _logger.warning("rich_table_creation_fallback", error=str(exc), title=title)
+            return r[RichTable].ok(RichTable())
 
     def render_table_to_string(
         self,
@@ -187,12 +190,9 @@ class FlextCliFormatters:
 
             return r[str].ok(output)
 
-        except Exception as e:
-            return r[str].fail(
-                c.Cli.FormattersErrorMessages.TABLE_RENDERING_FAILED.format(
-                    error=e,
-                ),
-            )
+        except (ConsoleError, NotRenderableError) as exc:
+            _logger.warning("rich_table_render_fallback", error=str(exc))
+            return r[str].ok(str(table))
 
     @staticmethod
     def create_progress() -> r[Progress]:
@@ -209,10 +209,11 @@ class FlextCliFormatters:
         try:
             progress = Progress()
             return r[Progress].ok(progress)
-        except Exception as e:
+        except ConsoleError as exc:
+            _logger.warning("rich_progress_creation_failed", error=str(exc))
             return r[Progress].fail(
                 c.Cli.FormattersErrorMessages.PROGRESS_CREATION_FAILED.format(
-                    error=e,
+                    error=exc,
                 ),
             )
 
@@ -233,10 +234,11 @@ class FlextCliFormatters:
         try:
             tree = RichTree(label)
             return r[RichTree].ok(tree)
-        except Exception as e:
+        except ConsoleError as exc:
+            _logger.warning("rich_tree_creation_failed", error=str(exc), label=label)
             return r[RichTree].fail(
                 c.Cli.FormattersErrorMessages.TREE_CREATION_FAILED.format(
-                    error=e,
+                    error=exc,
                 ),
             )
 
@@ -265,12 +267,9 @@ class FlextCliFormatters:
 
             return r[str].ok(output)
 
-        except Exception as e:
-            return r[str].fail(
-                c.Cli.FormattersErrorMessages.TREE_RENDERING_FAILED.format(
-                    error=e,
-                ),
-            )
+        except (ConsoleError, NotRenderableError) as exc:
+            _logger.warning("rich_tree_render_fallback", error=str(exc))
+            return r[str].ok(str(tree))
 
     # =========================================================================
     # ADVANCED RICH WRAPPERS - Status, Live, Layout, Panel
@@ -307,10 +306,13 @@ class FlextCliFormatters:
                 console=self.console,
             )
             return r[RichStatus].ok(status)
-        except Exception as e:
+        except (ConsoleError, StyleError) as exc:
+            _logger.warning(
+                "rich_status_creation_failed", error=str(exc), message=message
+            )
             return r[RichStatus].fail(
                 c.Cli.FormattersErrorMessages.STATUS_CREATION_FAILED.format(
-                    error=e,
+                    error=exc,
                 ),
             )
 
@@ -342,10 +344,11 @@ class FlextCliFormatters:
                 console=self.console,
             )
             return r[RichLive].ok(live)
-        except Exception as e:
+        except (ConsoleError, LiveError) as exc:
+            _logger.warning("rich_live_creation_failed", error=str(exc))
             return r[RichLive].fail(
                 c.Cli.FormattersErrorMessages.LIVE_CREATION_FAILED.format(
-                    error=e,
+                    error=exc,
                 ),
             )
 
@@ -364,10 +367,11 @@ class FlextCliFormatters:
         try:
             layout = RichLayout()
             return r[RichLayout].ok(layout)
-        except Exception as e:
+        except ConsoleError as exc:
+            _logger.warning("rich_layout_creation_failed", error=str(exc))
             return r[RichLayout].fail(
                 c.Cli.FormattersErrorMessages.LAYOUT_CREATION_FAILED.format(
-                    error=e,
+                    error=exc,
                 ),
             )
 
@@ -405,12 +409,9 @@ class FlextCliFormatters:
                 border_style=validated_border_style,
             )
             return r[RichPanel].ok(panel)
-        except Exception as e:
-            return r[RichPanel].fail(
-                c.Cli.FormattersErrorMessages.PANEL_CREATION_FAILED.format(
-                    error=e,
-                ),
-            )
+        except (ConsoleError, StyleError) as exc:  # pragma: no cover - Defensive
+            _logger.warning("rich_panel_creation_fallback", error=str(exc), title=title)
+            return r[RichPanel].ok(RichPanel(content))
 
 
 __all__ = [

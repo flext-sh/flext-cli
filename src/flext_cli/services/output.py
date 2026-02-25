@@ -16,7 +16,7 @@ from typing import ClassVar, TypeGuard
 
 import yaml
 from flext_core import FlextResult, FlextRuntime, r, t
-from pydantic import BaseModel, TypeAdapter, ValidationError
+from pydantic import BaseModel, ValidationError
 from rich.tree import Tree as RichTree
 
 from flext_cli.constants import c
@@ -211,140 +211,63 @@ class FlextCliOutput:
 
     @staticmethod
     def ensure_str(v: t.JsonValue | None, default: str = "") -> str:
-        """Ensure value is str with default."""
-        if v is None:
-            return default
-        try:
-            return str(v)
-        except Exception as exc:
-            logging.getLogger(__name__).debug(
-                "ensure_str fallback: %s",
-                exc,
-                exc_info=False,
-            )
-            return default
+        """Ensure value is str with default. Delegates to m.Cli.EnsureTypeRequest."""
+        req = m.Cli.EnsureTypeRequest(kind="str", value=v, default=default)
+        result = req.result()
+        return result if isinstance(result, str) else default
 
     @staticmethod
     def ensure_list(
         v: t.JsonValue | None,
         default: list[t.JsonValue] | None = None,
     ) -> list[t.JsonValue]:
-        """Ensure value is list with default using build DSL."""
-        if v is None:
-            return default or []
-        root_value = getattr(v, "root", None)
-        source_value = root_value if root_value is not None else v
-        list_adapter: TypeAdapter[list[t.JsonValue]] = TypeAdapter(list[t.JsonValue])
-        try:
-            sequence_result = list_adapter.validate_python(source_value)
-            return [FlextCliOutput.norm_json(item) for item in sequence_result]
-        except ValidationError as exc:
-            logging.getLogger(__name__).debug(
-                "ensure_list validation fallback: %s",
-                exc,
-                exc_info=False,
-            )
-            return default or []
+        """Ensure value is list with default via NormalizedJsonList model."""
+        return m.Cli.NormalizedJsonList(
+            value=v, default=default if default is not None else []
+        ).resolved
 
     @staticmethod
     def ensure_dict(
         v: t.JsonValue | None,
         default: Mapping[str, t.JsonValue] | None = None,
     ) -> Mapping[str, t.JsonValue]:
-        """Ensure value is dict with default using build DSL."""
-        result = u.build(
-            v,
-            ops={"ensure": "dict", "ensure_default": default or {}},
-            on_error="skip",
-        )
-        if isinstance(result, dict):
-            normalized: dict[str, t.JsonValue] = {}
-            for key, value in result.items():
-                normalized[str(key)] = FlextCliOutput.norm_json(value)
-            return normalized
-        return default or {}
+        """Ensure value is dict with default via NormalizedJsonDict model."""
+        return m.Cli.NormalizedJsonDict(
+            value=v, default=dict(default) if default is not None else {}
+        ).resolved
 
     @staticmethod
     def ensure_bool(v: t.JsonValue | None, *, default: bool = False) -> bool:
-        """Ensure value is bool with default using build DSL."""
-        # Type narrowing: FlextCliUtilities.build with ensure="bool" returns bool
-        result = u.build(
-            v,
-            ops={"ensure": "bool", "ensure_default": default},
-            on_error="skip",
-        )
-        return bool(result) if result is not None else default
-
-    @staticmethod
-    def cast_if(value: object, expected_type: type[object], default: object) -> object:
-        """Return value when it matches expected type, else default."""
-        return value if isinstance(value, expected_type) else default
+        """Ensure value is bool with default. Delegates to m.Cli.EnsureTypeRequest."""
+        req = m.Cli.EnsureTypeRequest(kind="bool", value=v, default=default)
+        out = req.result()
+        return out if isinstance(out, bool) else default
 
     @staticmethod
     def get_map_val(
-        m: Mapping[str, t.JsonValue],
+        mapping: Mapping[str, t.JsonValue],
         k: str,
         default: t.JsonValue,
     ) -> t.JsonValue:
-        """Get value from map with default using build DSL."""
-        value = m.get(k, default)
-        if value is None or isinstance(value, (str, int, float, bool, list)):
-            return value
-        if isinstance(value, dict):
-            dict_items: dict[str, t.JsonValue] = {}
-            for kk, vv in value.items():
-                if isinstance(vv, (str, int, float, bool, type(None), list, dict)):
-                    dict_items[str(kk)] = vv
-                else:
-                    dict_items[str(kk)] = str(vv)
-            return dict_items
-        return str(value)
+        """Get value from map with default. Delegates to m.Cli.MapGetValue."""
+        req = m.Cli.MapGetValue(map=mapping, key=k, default=default)
+        return req.result()
 
     @staticmethod
     def to_dict_json(v: t.ConfigMapValue) -> Mapping[str, t.JsonValue]:
-        """Convert value to dict with JSON transform using TypeAdapter only."""
-        root_value = getattr(v, "root", None)
-        source_value = root_value if root_value is not None else v
-        dict_adapter: TypeAdapter[dict[str, t.JsonValue]] = TypeAdapter(
-            dict[str, t.JsonValue]
-        )
-        try:
-            parsed_dict = dict_adapter.validate_python(source_value)
-            casted_dict = FlextCliOutput.cast_if(parsed_dict, dict, {})
-            if not isinstance(casted_dict, dict):
-                return {}
-            return {
-                str(k): FlextCliOutput.norm_json(vv) for k, vv in casted_dict.items()
-            }
-        except ValidationError as exc:
-            logging.getLogger(__name__).debug(
-                "to_dict_json validation fallback: %s",
-                exc,
-                exc_info=False,
-            )
-            return {}
+        """Convert value to dict via JsonNormalizeInput model."""
+        out = m.Cli.JsonNormalizeInput(value=v).normalized
+        if isinstance(out, Mapping):
+            return dict(out)
+        return {}
 
     @staticmethod
-    def to_list_json(
-        v: t.ConfigMapValue,
-    ) -> list[t.JsonValue]:
-        """Convert value to list with JSON transform using TypeAdapter only."""
-        root_value = getattr(v, "root", None)
-        source_value = root_value if root_value is not None else v
-        list_adapter: TypeAdapter[list[t.JsonValue]] = TypeAdapter(list[t.JsonValue])
-        try:
-            parsed_list = list_adapter.validate_python(source_value)
-            casted_list = FlextCliOutput.cast_if(parsed_list, list, [])
-            if not isinstance(casted_list, list):
-                return []
-            return [FlextCliOutput.norm_json(item) for item in casted_list]
-        except ValidationError as exc:
-            logging.getLogger(__name__).debug(
-                "to_list_json validation fallback: %s",
-                exc,
-                exc_info=False,
-            )
-            return []
+    def to_list_json(v: t.ConfigMapValue) -> list[t.JsonValue]:
+        """Convert value to list via JsonNormalizeInput model."""
+        out = m.Cli.JsonNormalizeInput(value=v).normalized
+        if isinstance(out, Sequence) and not isinstance(out, str):
+            return list(out)
+        return []
 
     # =========================================================================
     # FORMAT DATA - UNIFIED API
@@ -390,14 +313,13 @@ class FlextCliOutput:
                     format=format_type,
                 ),
             )
-        normalized_data = self._normalize_format_input(data)
-        return self._dispatch_formatter(format_str, normalized_data, title, headers)
-
-    @staticmethod
-    def _normalize_format_input(data: BaseModel | t.JsonValue) -> t.JsonValue:
-        if isinstance(data, BaseModel):
-            return data.model_dump()
-        return data
+        normalized_input = data.model_dump() if isinstance(data, BaseModel) else data
+        return self._dispatch_formatter(
+            format_str,
+            FlextCliOutput.norm_json(normalized_input),
+            title,
+            headers,
+        )
 
     # Format validation uses FlextCliUtilities.convert() and direct validation
 
@@ -513,7 +435,7 @@ class FlextCliOutput:
                     ),
                 )
             return r[FlextCliOutput].ok(self)
-        except Exception as e:
+        except (ValueError, TypeError, ValidationError) as e:
             return r[FlextCliOutput].fail(
                 c.Cli.ErrorMessages.CREATE_FORMATTER_FAILED.format(error=e),
             )
@@ -980,7 +902,7 @@ class FlextCliOutput:
         Uses RichTableProtocol from lower layer instead of object for better type safety.
         """
         # Add columns
-        u.Cli.process(
+        _ = u.Cli.process(
             headers,
             processor=lambda h: table.add_column(str(h)),
             on_error="skip",
@@ -1606,8 +1528,7 @@ class FlextCliOutput:
         iterable_items: list[t.JsonValue] = []
         for key, value in data.items():
             key_value = (key, value)
-            dict_item = key_value if isinstance(key_value, tuple) else str(key_value)
-            iterable_items.append(dict_item)
+            iterable_items.append(key_value)
         return iterable_items
 
     def _iterate_sequence(self, data: t.ConfigMapValue) -> list[t.JsonValue]:
@@ -2014,7 +1935,7 @@ class FlextCliOutput:
 
                             match list_value:
                                 case list() as ensured_list:
-                                    u.Cli.process(
+                                    _ = u.Cli.process(
                                         ensured_list,
                                         processor=process_list_item,
                                         on_error="skip",
@@ -2022,11 +1943,11 @@ class FlextCliOutput:
                                 case _:
                                     pass
                         case _:
-                            tree.add(
+                            _ = tree.add(
                                 f"{k}{c.Cli.OutputDefaults.TREE_VALUE_SEPARATOR}{v}"
                             )
 
-                u.Cli.process_mapping(
+                _ = u.Cli.process_mapping(
                     dict_data,
                     processor=process_tree_item,
                     on_error="skip",
@@ -2037,9 +1958,13 @@ class FlextCliOutput:
                     """Process list item."""
                     self._build_tree(tree, item)
 
-                u.Cli.process(list_data, processor=process_list_item, on_error="skip")
+                _ = u.Cli.process(
+                    list_data,
+                    processor=process_list_item,
+                    on_error="skip",
+                )
             case _:
-                tree.add(str(data))
+                _ = tree.add(str(data))
 
     # =========================================================================
     # CONSOLE ACCESS (Delegates to FlextCliFormatters)

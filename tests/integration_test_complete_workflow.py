@@ -153,7 +153,8 @@ class TestCompleteWorkflowIntegration:
 
         # Execute complete pipeline using Railway Pattern
         pipeline_result = (
-            file_tools.read_json_file(str(input_file))
+            file_tools
+            .read_json_file(str(input_file))
             .flat_map(self._validate_pipeline_data)
             .map(self._transform_pipeline_data)
             .map(self._generate_pipeline_stats)
@@ -199,9 +200,7 @@ class TestCompleteWorkflowIntegration:
             if _is_json_dict(user):
                 assert user.get("is_premium") is True
 
-    def _validate_pipeline_data(
-        self, data: object
-    ) -> r[dict[str, t.GeneralValueType]]:
+    def _validate_pipeline_data(self, data: object) -> r[dict[str, t.GeneralValueType]]:
         """Validate pipeline input; use TypeGuard for dict/list, no Pydantic models."""
         if not _is_json_dict(data):
             return r.fail("Data must be a dictionary")
@@ -266,13 +265,9 @@ class TestCompleteWorkflowIntegration:
             return {**data, "error": "total_users must be int"}
         active_count = len(active_raw)
         name_lengths = [
-            len(str(u.get("name", "")))
-            for u in active_raw
-            if _is_json_dict(u)
+            len(str(u.get("name", ""))) for u in active_raw if _is_json_dict(u)
         ]
-        avg_name = (
-            sum(name_lengths) / len(name_lengths) if name_lengths else 0.0
-        )
+        avg_name = sum(name_lengths) / len(name_lengths) if name_lengths else 0.0
         return {
             **data,
             "inactive_count": total - active_count,
@@ -286,11 +281,7 @@ class TestCompleteWorkflowIntegration:
     ) -> dict[str, t.GeneralValueType]:
         """Build pipeline report dict from processed data."""
         active_raw = data.get("active_users", [])
-        processed_records = (
-            len(active_raw)
-            if _is_json_list(active_raw)
-            else 0
-        )
+        processed_records = len(active_raw) if _is_json_list(active_raw) else 0
         total = data.get("total_users", 0)
         return {
             "pipeline_status": c.Cli.CommandStatus.COMPLETED.value,
@@ -636,7 +627,9 @@ class TestCompleteWorkflowIntegration:
                 )[1],
             )
             # Step 3: Save results (with retry mechanism)
-            .flat_map(lambda data: self._save_with_retry(data, output_file, max_retries=3))
+            .flat_map(
+                lambda data: self._save_with_retry(data, output_file, max_retries=3)
+            )
             .map(
                 lambda data: (
                     cli.output.print_message("✅ Results saved (with retry)"),
@@ -677,7 +670,10 @@ class TestCompleteWorkflowIntegration:
         primary_result = FlextCliFileTools().read_json_file(str(primary_file))
 
         if primary_result.is_success:
-            def _merge_primary(data: t.GeneralValueType) -> dict[str, t.GeneralValueType]:
+
+            def _merge_primary(
+                data: t.GeneralValueType,
+            ) -> dict[str, t.GeneralValueType]:
                 base: dict[str, t.GeneralValueType] = (
                     data if _is_json_dict(data) else {}
                 )
@@ -691,9 +687,7 @@ class TestCompleteWorkflowIntegration:
             return r.fail(f"Both primary and backup failed: {backup_result.error}")
 
         def _merge_backup(data: t.GeneralValueType) -> dict[str, t.GeneralValueType]:
-            base: dict[str, t.GeneralValueType] = (
-                data if _is_json_dict(data) else {}
-            )
+            base: dict[str, t.GeneralValueType] = data if _is_json_dict(data) else {}
             return {**base, "data_source": "backup"}
 
         return backup_result.map(_merge_backup)

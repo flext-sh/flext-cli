@@ -114,42 +114,14 @@ class FlextCliCli:
         type_name: str,
         default: t.JsonValue | None = None,
     ) -> t.JsonValue | None:
-        if val is None:
+        if type_name not in {"str", "bool", "dict"}:
             return default
-        if type_name == "str":
-            str_default_value = u.Parser.convert(default, str, "")
-            converted = u.Parser.convert(val, str, str_default_value)
-            return converted or (default if default is not None else None)
-        if type_name == "bool":
-            bool_default_value = u.Parser.convert(default, bool, False)
-            return u.Parser.convert(val, bool, bool_default_value)
-        if type_name == "dict":
-            if isinstance(val, Mapping):
-                input_dict = dict(val)
-                return {str(k): self._to_json_value(vv) for k, vv in input_dict.items()}
-            dict_adapter: TypeAdapter[dict[str, t.JsonValue]] = TypeAdapter(
-                dict[str, t.JsonValue]
-            )
-            try:
-                dict_val = dict_adapter.validate_python(val)
-                return {str(k): self._to_json_value(v) for k, v in dict_val.items()}
-            except ValidationError:
-                logging.getLogger(__name__).debug(
-                    "Dict validation failed for val, using fallback",
-                    exc_info=False,
-                )
-            try:
-                dict_default = dict_adapter.validate_python(default)
-                return {str(k): self._to_json_value(v) for k, v in dict_default.items()}
-            except ValidationError:
-                logging.getLogger(__name__).debug(
-                    "Dict validation failed for default, using fallback",
-                    exc_info=False,
-                )
-            if default is None:
-                return {}
-            return u.Parser.convert(default, str, "")
-        return default
+        req = m.Cli.TypedExtract(
+            type_kind=cast(Literal["str", "bool", "dict"], type_name),
+            value=val,
+            default=default,
+        )
+        return req.result()
 
     def _get_log_level_value(self, config: FlextCliSettings) -> int:
         if config.debug or config.trace:
@@ -157,16 +129,10 @@ class FlextCliCli:
         log_level_attr = getattr(config, "cli_log_level", None) or getattr(
             config, "log_level", None
         )
-        return getattr(
-            logging,
-            str(
-                u.Parser.convert(
-                    log_level_attr.value if log_level_attr else None, str, "INFO"
-                )
-                or "INFO"
-            ),
-            logging.INFO,
-        )
+        level_str = m.Cli.LogLevelResolved(
+            raw=log_level_attr.value if log_level_attr else None,
+        ).resolved
+        return getattr(logging, level_str, logging.INFO)
 
     def _get_console_enabled(self, config: FlextCliSettings) -> bool:
         return (
@@ -377,7 +343,8 @@ class FlextCliCli:
         match type_hint_build:
             case None | "":
                 return None
-        return self._to_json_value(type_hint_build)
+            case _:
+                return self._to_json_value(type_hint_build)
 
     def _build_option_config_from_kwargs(
         self, kwargs: Mapping[str, t.JsonValue]
@@ -740,7 +707,18 @@ class FlextCliCli:
         """Prompt user for input."""
         if config is None:
             config = FlextCliCli._build_prompt_config_from_kwargs(kwargs)
-        if not hasattr(config, "type_hint"):
+        required_attrs = (
+            "default",
+            "hide_input",
+            "confirmation_prompt",
+            "type_hint",
+            "value_proc",
+            "prompt_suffix",
+            "show_default",
+            "err",
+            "show_choices",
+        )
+        if any(not hasattr(config, attr) for attr in required_attrs):
             msg = "prompt config must implement PromptConfig"
             raise TypeError(msg)
         try:
@@ -826,7 +804,7 @@ class FlextCliCli:
 
     @staticmethod
     def model_command(
-        model_class: type[BaseModel],
+        model_class: type[object],
         handler: Callable[[BaseModel], t.JsonValue | r[t.JsonValue]],
         config: FlextCliSettings | None = None,
     ) -> p.Cli.CliCommandFunction:
@@ -867,4 +845,3 @@ class FlextCliCli:
 
 
 __all__ = ["FlextCliCli", "Typer", "UsageError"]
-Typer = typer.Typer

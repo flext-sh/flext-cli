@@ -5,6 +5,8 @@ from __future__ import annotations
 import operator
 import types
 from collections.abc import Callable, Mapping, MutableMapping, Sequence
+from datetime import datetime
+from pathlib import Path
 from typing import (
     ClassVar,
     Literal,
@@ -22,10 +24,12 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
+    RootModel,
     TypeAdapter,
     ValidationError,
     computed_field,
     field_validator,
+    model_validator,
 )
 from pydantic.fields import FieldInfo
 from typer.models import OptionInfo
@@ -40,6 +44,380 @@ _logger = FlextLogger(__name__)
 def _is_mapping_like(obj: object) -> TypeGuard[Mapping[str, object]]:
     """Narrow object to Mapping for metadata processing."""
     return isinstance(obj, Mapping)
+
+
+def _normalize_to_json_value(item: object) -> t.JsonValue:
+    """Recursively normalize any value to JSON-serializable (t.JsonValue)."""
+    if item is None or isinstance(item, (str, int, float, bool)):
+        return item
+    if isinstance(item, BaseModel):
+        raw = item.model_dump(mode="json")
+        return _normalize_to_json_value(raw)
+    if isinstance(item, Path):
+        return str(item)
+    if isinstance(item, datetime):
+        return item.isoformat()
+    if isinstance(item, Mapping):
+        return {str(k): _normalize_to_json_value(vv) for k, vv in item.items()}
+    if isinstance(item, Sequence) and not isinstance(item, str):
+        return [_normalize_to_json_value(x) for x in item]
+    return str(item)
+
+
+class _CliNormalizedJson(RootModel[t.JsonValue]):
+    """Single contract: any value normalized to JSON (t.JsonValue)."""
+
+    @model_validator(mode="wrap")
+    @classmethod
+    def _normalize(cls, data: object) -> _CliNormalizedJson:
+        return cls(root=_normalize_to_json_value(data))
+
+
+class _JsonNormalizeInput(BaseModel):
+    """Single contract for norm_json: value -> normalized JsonValue."""
+
+    model_config = ConfigDict(extra="forbid")
+    value: t.ConfigMapValue = Field(description="Value to normalize")
+
+    @computed_field
+    @property
+    def normalized(self) -> t.JsonValue:
+        return _CliNormalizedJson.model_validate(self.value).root
+
+
+class _EnsureTypeRequest(BaseModel):
+    """Single contract for ensure_str/ensure_bool. Delegates to TypedExtract."""
+
+    model_config = ConfigDict(extra="forbid")
+    kind: Literal["str", "bool"] = Field(description="Requested type")
+    value: t.JsonValue | None = Field(default=None)
+    default: str | bool = Field(description="Default value")
+
+    def result(self) -> str | bool:
+        out = _TypedExtract(
+            type_kind=self.kind,
+            value=self.value,
+            default=self.default,
+        ).resolved
+        if self.kind == "bool":
+            return bool(out) if out is not None else bool(self.default)
+        return str(out) if out is not None else str(self.default)
+
+
+class _MapGetValue(BaseModel):
+    """Single contract for get_map_val: map + key + default -> value (normalized)."""
+
+    model_config = ConfigDict(extra="forbid")
+    map_: Mapping[str, t.JsonValue] = Field(alias="map", description="Source mapping")
+    key: str = Field(description="Key to look up")
+    default: t.JsonValue = Field(description="Default if key missing")
+
+    def result(self) -> t.JsonValue:
+        val = self.map_.get(self.key, self.default)
+        if val is None or isinstance(val, (str, int, float, bool, list)):
+            return val
+        if isinstance(val, dict):
+            return {str(k): _normalize_to_json_value(vv) for k, vv in val.items()}
+        return _normalize_to_json_value(val)
+
+
+class _DictKeysExtract(BaseModel):
+    """Single contract for get_keys: input -> list of keys (empty if not dict)."""
+
+    model_config = ConfigDict(extra="forbid")
+    input_: t.JsonValue | Mapping[str, t.JsonValue] = Field(
+        alias="input", description="Value to extract keys from"
+    )
+
+    @computed_field
+    @property
+    def resolved(self) -> list[str]:
+        if isinstance(self.input_, Mapping):
+            return list(self.input_.keys())
+        root = getattr(self.input_, "root", None)
+        if isinstance(root, Mapping):
+            return list(root.keys())
+        return []
+
+
+class _EnsureDictInput(BaseModel):
+    """Single contract for ensure_dict: value + default -> Mapping[str, JsonValue]."""
+
+    model_config = ConfigDict(extra="forbid")
+    value: t.JsonValue | None = Field(default=None)
+    default: dict[str, t.JsonValue] = Field(default_factory=dict)
+
+    @computed_field
+    @property
+    def resolved(self) -> Mapping[str, t.JsonValue]:
+        if self.value is None:
+            return self.default
+        root_val = getattr(self.value, "root", None)
+        source = root_val if root_val is not None else self.value
+        if isinstance(source, Mapping):
+            return {str(k): _normalize_to_json_value(vv) for k, vv in source.items()}
+        adapter: TypeAdapter[dict[str, t.JsonValue]] = TypeAdapter(
+            dict[str, t.JsonValue]
+        )
+        try:
+            parsed = adapter.validate_python(source)
+            return {str(k): _normalize_to_json_value(vv) for k, vv in parsed.items()}
+        except ValidationError:
+            return self.default
+
+
+class _EnsureListInput(BaseModel):
+    """Single contract for ensure_list: value + default -> list[JsonValue]."""
+
+    model_config = ConfigDict(extra="forbid")
+    value: t.JsonValue | None = Field(default=None)
+    default: list[t.JsonValue] = Field(default_factory=list)
+
+    @computed_field
+    @property
+    def resolved(self) -> list[t.JsonValue]:
+        if self.value is None:
+            return list(self.default)
+        root_val = getattr(self.value, "root", None)
+        source = root_val if root_val is not None else self.value
+        adapter: TypeAdapter[list[t.JsonValue]] = TypeAdapter(list[t.JsonValue])
+        try:
+            seq = adapter.validate_python(source)
+            return [_normalize_to_json_value(x) for x in seq]
+        except ValidationError:
+            return list(self.default)
+
+
+class _PromptTimeoutResolved(BaseModel):
+    """Single contract: raw (int | str | None) + default → int. Replaces isinstance(timeout_raw, int/str) branching."""
+
+    model_config = ConfigDict(extra="forbid")
+    raw: int | str | None = Field(default=None)
+    default: int = Field(default=30, description="Default timeout in seconds")
+
+    @computed_field
+    @property
+    def resolved(self) -> int:
+        if self.raw is None:
+            return self.default
+        if isinstance(self.raw, int):
+            return self.raw
+        if isinstance(self.raw, str) and self.raw.isdigit():
+            return int(self.raw)
+        return self.default
+
+
+class _ExecutionContextInput(
+    RootModel[Sequence[str] | Mapping[str, t.JsonValue] | None],
+):
+    """Execution context: None, list of args, or mapping. Single Pydantic contract. Use model_validate(context) then .to_mapping() or .root."""
+
+    def to_mapping(
+        self,
+        list_processor: Callable[[Sequence[str]], list[t.JsonValue]] | None = None,
+    ) -> dict[str, t.JsonValue]:
+        raw = self.root
+        if raw is None:
+            return {}
+        if isinstance(raw, Sequence) and not isinstance(raw, (str, bytes)):
+            lst = list(raw)
+            processed = list_processor(lst) if list_processor else lst
+            return {c.Cli.DictKeys.ARGS: processed}
+        if isinstance(raw, Mapping):
+            return dict(raw)
+        return {}
+
+
+class _JsonNormalizeInput(BaseModel):
+    """Single contract: normalize ConfigMapValue to JsonValue. Replaces norm_json branching."""
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    value: t.ConfigMapValue = Field(..., description="Value to normalize")
+
+    @computed_field
+    @property
+    def normalized(self) -> t.JsonValue:
+        return _normalize_json_value(self.value)
+
+
+def _normalize_json_value(item: t.ConfigMapValue) -> t.JsonValue:
+    if isinstance(item, (str, int, float, bool, type(None))):
+        return item
+    root = getattr(item, "root", None)
+    source = root if root is not None else item
+    if isinstance(source, Mapping):
+        return {str(k): _normalize_json_value(v) for k, v in source.items()}
+    if isinstance(source, Sequence) and not isinstance(source, (str, bytes)):
+        return [_normalize_json_value(i) for i in source]
+    return str(item)
+
+
+class _EnsureTypeRequest(BaseModel):
+    """Single contract: coerce value to str or bool with default. Replaces ensure_str/ensure_bool branching."""
+
+    model_config = ConfigDict(extra="forbid")
+    kind: Literal["str", "bool"] = Field(description="Target type")
+    value: t.JsonValue | None = Field(default=None)
+    default: str | bool = Field(default="")  # type: ignore[assignment]
+
+    def result(self) -> str | bool:
+        if self.kind == "str":
+            default_str = self.default if isinstance(self.default, str) else ""
+            if self.value is None:
+                return default_str
+            try:
+                s = str(self.value)
+                return s or default_str
+            except (TypeError, ValueError):
+                return default_str
+        # bool
+        default_bool = self.default if isinstance(self.default, bool) else False
+        if self.value is None:
+            return default_bool
+        try:
+            return bool(self.value)
+        except (TypeError, ValueError):
+            return default_bool
+
+
+class _MapGetValue(BaseModel):
+    """Single contract: get key from mapping and normalize value. Replaces get_map_val branching."""
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    map_: Mapping[str, t.JsonValue] = Field(..., alias="map_", description="Mapping")
+    key: str = Field(..., description="Key")
+    default: t.JsonValue = Field(default=None, description="Default")
+
+    def result(self) -> t.JsonValue:
+        value = self.map_.get(self.key, self.default)
+        if value is None or isinstance(value, (str, int, float, bool, list)):
+            return value
+        if isinstance(value, dict):
+            out: dict[str, t.JsonValue] = {}
+            for kk, vv in value.items():
+                if isinstance(
+                    vv, (str, int, float, bool, type(None), list, dict),
+                ):
+                    out[str(kk)] = vv
+                else:
+                    out[str(kk)] = str(vv)
+            return out
+        return str(value)
+
+
+class _NormalizedJsonList(BaseModel):
+    """Single contract: ensure value is list of JsonValue with default. Replaces ensure_list branching."""
+
+    model_config = ConfigDict(extra="forbid")
+    value: t.JsonValue | None = Field(default=None, description="Value to coerce")
+    default: list[t.JsonValue] = Field(
+        default_factory=list,
+        description="Default when value is None or invalid",
+    )
+
+    @computed_field
+    @property
+    def resolved(self) -> list[t.JsonValue]:
+        if self.value is None:
+            return list(self.default)
+        root = getattr(self.value, "root", None)
+        source = root if root is not None else self.value
+        try:
+            adapter: TypeAdapter[list[t.JsonValue]] = TypeAdapter(list[t.JsonValue])
+            raw_list = adapter.validate_python(source)
+            return [_normalize_json_value(i) for i in raw_list]
+        except ValidationError:
+            return list(self.default)
+
+
+class _NormalizedJsonDict(BaseModel):
+    """Single contract: ensure value is dict[str, JsonValue] with default. Replaces ensure_dict branching."""
+
+    model_config = ConfigDict(extra="forbid")
+    value: t.JsonValue | None = Field(default=None, description="Value to coerce")
+    default: dict[str, t.JsonValue] = Field(
+        default_factory=dict,
+        description="Default when value is None or invalid",
+    )
+
+    @computed_field
+    @property
+    def resolved(self) -> dict[str, t.JsonValue]:
+        if self.value is None:
+            return dict(self.default)
+        root = getattr(self.value, "root", None)
+        source = root if root is not None else self.value
+        try:
+            adapter: TypeAdapter[dict[str, t.JsonValue]] = TypeAdapter(
+                dict[str, t.JsonValue]
+            )
+            raw_dict = adapter.validate_python(source)
+            return {str(k): _normalize_json_value(v) for k, v in raw_dict.items()}
+        except ValidationError:
+            return dict(self.default)
+
+
+class _TypedExtract(BaseModel):
+    """Single contract for typed value extraction (str | bool | dict). Replaces polymorphic _extract_typed_value."""
+
+    model_config = ConfigDict(extra="forbid")
+    type_kind: Literal["str", "bool", "dict"] = Field(description="Requested type")
+    value: t.JsonValue | None = Field(default=None)
+    default: t.JsonValue | None = Field(default=None)
+
+    @computed_field
+    @property
+    def resolved(self) -> str | bool | dict[str, t.JsonValue] | None:
+        """Value coerced to type_kind, or default. Single Pydantic contract (no polymorphic methods)."""
+        if self.value is None:
+            return _default_for_type_kind(self.type_kind, self.default)
+        if self.type_kind == "str":
+            s = str(self.value).strip() if self.value else ""
+            return s or (self.default if isinstance(self.default, str) else None)
+        if self.type_kind == "bool":
+            return (
+                bool(self.value)
+                if self.value is not None
+                else (self.default if isinstance(self.default, bool) else False)
+            )
+        if self.type_kind == "dict":
+            if isinstance(self.value, Mapping):
+                return {
+                    str(k): _normalize_to_json_value(vv) for k, vv in self.value.items()
+                }
+            if isinstance(self.default, Mapping):
+                return {
+                    str(k): _normalize_to_json_value(vv)
+                    for k, vv in self.default.items()
+                }
+            return {}
+        return _default_for_type_kind(self.type_kind, self.default)
+
+
+def _default_for_type_kind(
+    type_kind: Literal["str", "bool", "dict"],
+    default: t.JsonValue | None,
+) -> str | bool | dict[str, t.JsonValue] | None:
+    """Default value for type_kind. Centralized (no polymorphic branches at call sites)."""
+    if type_kind == "str":
+        return default if isinstance(default, str) else None
+    if type_kind == "bool":
+        return default if isinstance(default, bool) else False
+    return default if isinstance(default, Mapping) else {}
+
+
+class _LogLevelResolved(BaseModel):
+    """Single contract for log level string (replaces u.Parser.convert for log level)."""
+
+    model_config = ConfigDict(extra="forbid")
+    raw: str | None = Field(default=None)
+    default: str = Field(default="INFO")
+
+    @computed_field
+    @property
+    def resolved(self) -> str:
+        s = (self.raw or self.default).strip().upper()
+        return s or self.default
 
 
 class _CliLoggingData(BaseModel):
@@ -86,9 +464,15 @@ class FlextCliModels(FlextModels):
         """
 
         # Module-level Pydantic model aliased to avoid field inheritance issues
-        # CliLoggingData is defined at module level (_CliLoggingData) to prevent
-        # Pydantic from merging field definitions with LoggingConfig
         CliLoggingData: ClassVar = _CliLoggingData
+        ExecutionContextInput: ClassVar = _ExecutionContextInput
+        TypedExtract: ClassVar = _TypedExtract
+        LogLevelResolved: ClassVar = _LogLevelResolved
+        JsonNormalizeInput: ClassVar = _JsonNormalizeInput
+        NormalizedJsonList: ClassVar = _NormalizedJsonList
+        NormalizedJsonDict: ClassVar = _NormalizedJsonDict
+        EnsureTypeRequest: ClassVar = _EnsureTypeRequest
+        MapGetValue: ClassVar = _MapGetValue
 
         class CliExecutionMetadata(FlextModels.Value):
             """CLI execution metadata model."""
@@ -224,6 +608,83 @@ class FlextCliModels(FlextModels):
                     level=self.log_level,
                     format=self.log_format,
                 )
+
+        class EnsureTypeRequest(FlextModels.Value):
+            """Single contract for ensure str/bool from JsonValue. Replaces polymorphic ensure_str/ensure_bool branches."""
+
+            kind: Literal["str", "bool"] = Field(
+                ...,
+                description="Target type for coercion",
+            )
+            value: t.JsonValue | None = Field(
+                default=None,
+                description="Value to coerce",
+            )
+            default: t.JsonValue | None = Field(
+                default=None,
+                description="Fallback when coercion fails",
+            )
+
+            def result(self) -> str | bool:
+                """Return value coerced to kind, or default on failure."""
+                if self.value is None:
+                    return self._default_result()
+                if self.kind == "str":
+                    try:
+                        s = str(self.value).strip()
+                        return s or (
+                            self.default if isinstance(self.default, str) else ""
+                        )
+                    except (TypeError, ValueError):
+                        return self.default if isinstance(self.default, str) else ""
+                if self.kind == "bool":
+                    bool_adapter: TypeAdapter[bool] = TypeAdapter(bool)
+                    try:
+                        return bool_adapter.validate_python(self.value)
+                    except ValidationError:
+                        pass
+                    try:
+                        return bool_adapter.validate_python(self.default)
+                    except ValidationError:
+                        pass
+                    return bool(self.default) if self.default is not None else False
+                return self._default_result()
+
+            def _default_result(self) -> str | bool:
+                if self.kind == "str":
+                    return self.default if isinstance(self.default, str) else ""
+                return self.default if isinstance(self.default, bool) else False
+
+        class MapGetValue(FlextModels.Value):
+            """Single contract for getting a key from a mapping with JSON normalization. Replaces get_map_val branches."""
+
+            map_: Mapping[str, t.JsonValue] = Field(
+                ...,
+                description="Mapping to read from",
+                alias="map",
+            )
+            key: str = Field(..., description="Key to look up")
+            default: t.JsonValue = Field(
+                default=None,
+                description="Default when key missing",
+            )
+
+            def result(self) -> t.JsonValue:
+                """Return value at key, with dict values normalized to JSON-compatible."""
+                val = self.map_.get(self.key, self.default)
+                if val is None or isinstance(val, (str, int, float, bool, list)):
+                    return val
+                if isinstance(val, dict):
+                    out: dict[str, t.JsonValue] = {}
+                    for kk, vv in val.items():
+                        if isinstance(
+                            vv, (str, int, float, bool, type(None), list, dict)
+                        ):
+                            out[str(kk)] = vv
+                        else:
+                            out[str(kk)] = str(vv)
+                    return out
+                return str(val)
 
         class CliCommand(FlextModels.Entity):
             """CLI command model extending Entity via inheritance."""
@@ -1280,6 +1741,22 @@ class FlextCliModels(FlextModels):
             token: str = Field(...)
             expires_at: str = Field(default="")
             token_type: str = Field(default="Bearer")
+
+        class FormatInputData(FlextModels.Value):
+            """Single contract for format input: BaseModel or JsonValue. Normalizes to JsonValue."""
+
+            data: BaseModel | t.JsonValue = Field(
+                ...,
+                description="Data to format (model or raw JSON)",
+            )
+
+            @computed_field
+            @property
+            def normalized(self) -> t.JsonValue:
+                """JSON-compatible value for formatting."""
+                if isinstance(self.data, BaseModel):
+                    return self.data.model_dump()
+                return self.data
 
         class SessionStatistics(FlextModels.Value):
             """Statistics for CLI session tracking.
@@ -2694,7 +3171,9 @@ class FlextCliModels(FlextModels):
                             for model_cls in model_classes:
                                 validated_model = model_cls(**kwargs)
                                 model_instances.append(validated_model)
-                            return func(*(m_inst.model_dump() for m_inst in model_instances))
+                            return func(
+                                *(m_inst.model_dump() for m_inst in model_instances)
+                            )
                         except Exception as e:
                             return f"Validation failed: {e}"
 

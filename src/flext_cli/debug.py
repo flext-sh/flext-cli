@@ -391,14 +391,14 @@ class FlextCliDebug(FlextCliServiceBase):
         try:
             # Test temp directory access
             with tempfile.NamedTemporaryFile(delete=True) as tmp:
-                tmp.write(b"test")
+                _ = tmp.write(b"test")
                 tmp.flush()
 
             # Test current directory access
             current_dir = pathlib.Path.cwd()
             test_file = current_dir / "test_write.tmp"
             try:
-                pathlib.Path(test_file).write_text(
+                _ = pathlib.Path(test_file).write_text(
                     "test",
                     encoding=c.Cli.Utilities.DEFAULT_ENCODING,
                 )

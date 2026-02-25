@@ -48,6 +48,7 @@ class FlextCliCommandBuilder:
             name: Command name.
 
         """
+        super().__init__()
         self._name = name
         self._options: list[OptionInfo] = []
         self._arguments: list[tuple[str, type, bool]] = []  # (name, type, required)

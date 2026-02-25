@@ -11,6 +11,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
+from itertools import starmap
 from typing import TypeGuard
 
 from flext_core import r
@@ -302,10 +303,7 @@ class FlextCliTables(FlextCliServiceBase):
                 data, Mapping
             ):
                 return len(data)
-            if not isinstance(data, Sequence):
-                return 0
-            seq: t.Cli.TabularData = data
-            data_list = list(seq)
+            data_list = list(data)
             if data_list and isinstance(data_list[0], Sequence):
                 return len(data_list[0])
             return 0
@@ -313,10 +311,7 @@ class FlextCliTables(FlextCliServiceBase):
             return len(headers)
         if isinstance(data, Mapping):
             return len(data)
-        if not isinstance(data, Sequence):
-            return 0
-        seq = data
-        data_list = list(seq)
+        data_list = list(data)
         if data_list:
             first_row = data_list[0]
             if u.is_dict_like(first_row):
@@ -375,11 +370,14 @@ class FlextCliTables(FlextCliServiceBase):
 
         """
         try:
-            # Use u.process to convert TABLE_FORMATS to list
+
             def convert_format(name: str, desc: str) -> Mapping[str, str]:
-                """Convert format to dict."""
+                """Convert format to a display dictionary."""
                 return {"format": name, "description": desc}
 
+            _ = list(
+                starmap(convert_format, FlextCliConstants.Cli.TABLE_FORMATS.items())
+            )
             # Note: Table formatting removed - return placeholder success
             return r[bool].ok(value=True)
         except Exception as e:

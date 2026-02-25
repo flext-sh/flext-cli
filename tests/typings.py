@@ -61,7 +61,10 @@ class TestsCliTypes(FlextTestsTypes):
 
             type CliConfigMapping = Mapping[
                 str,
-                FlextCliTypes.JsonValue | Sequence[str] | Mapping[str, str | int] | None,
+                FlextCliTypes.JsonValue
+                | Sequence[str]
+                | Mapping[str, str | int]
+                | None,
             ]
             """CLI configuration mapping specific to flext-cli."""
 
