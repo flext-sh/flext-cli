@@ -16,6 +16,7 @@ from collections.abc import Callable
 
 from flext_core import p as p_core, r
 from pydantic import BaseModel
+from rich.errors import ConsoleError, LiveError, StyleError
 
 from flext_cli.protocols import p
 from flext_cli.typings import t
@@ -82,7 +83,14 @@ class FlextCliValidationMiddleware:
             validated = self._schema.model_validate(params)
             ctx.params = validated.model_dump()
             return next_(ctx)
-        except Exception as e:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
             return r[t.JsonValue].fail(f"Validation failed: {e}")
 
 

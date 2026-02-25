@@ -11,6 +11,7 @@ from collections.abc import Mapping
 
 from flext_core import r
 from pydantic import Field, PrivateAttr
+from rich.errors import ConsoleError, LiveError, StyleError
 
 from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import FlextCliConstants
@@ -116,7 +117,14 @@ class FlextCliPrompts(FlextCliServiceBase):
                     EM.INPUT_PATTERN_MISMATCH.format(pattern=validation_pattern)
                 )
             return r[str].ok(default)
-        except Exception as exc:  # pragma: no cover
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as exc:  # pragma: no cover
             self._fatal("prompt_text", message, exc, "Text prompt failed completely")
             return r[str].fail(EM.TEXT_PROMPT_FAILED.format(error=exc))
 
@@ -126,7 +134,14 @@ class FlextCliPrompts(FlextCliServiceBase):
         try:
             self._record(f"{message}{PD.CONFIRMATION_SUFFIX}")
             return r[bool].ok(default)
-        except Exception as exc:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as exc:
             self._fatal(
                 "prompt_confirmation",
                 message,
@@ -166,7 +181,14 @@ class FlextCliPrompts(FlextCliServiceBase):
             if default not in choices:
                 return r[str].fail(EM.INVALID_CHOICE.format(selected=default))
             return r[str].ok(default)
-        except Exception as exc:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as exc:
             self._fatal(
                 "prompt_choice", message, exc, "Choice prompt failed completely"
             )
@@ -187,7 +209,14 @@ class FlextCliPrompts(FlextCliServiceBase):
                     EM.PASSWORD_TOO_SHORT_MIN.format(min_length=min_length)
                 )
             return r[str].ok(password)
-        except Exception as exc:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as exc:
             self._fatal(
                 "prompt_password", message, exc, "Password prompt failed completely"
             )
@@ -197,7 +226,14 @@ class FlextCliPrompts(FlextCliServiceBase):
         try:
             self._prompt_history.clear()
             return r[bool].ok(value=True)
-        except Exception as exc:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as exc:
             self.logger.exception(
                 "FAILED to clear prompt history - operation aborted",
                 operation="clear_prompt_history",
@@ -219,7 +255,14 @@ class FlextCliPrompts(FlextCliServiceBase):
             )
             stats_dict: Mapping[str, t.JsonValue] = stats_model.model_dump(mode="json")
             return r[Mapping[str, t.JsonValue]].ok(stats_dict)
-        except Exception as exc:  # pragma: no cover
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as exc:  # pragma: no cover
             self.logger.exception(
                 "FAILED to collect prompt statistics - operation aborted",
                 operation="get_prompt_statistics",
@@ -239,7 +282,14 @@ class FlextCliPrompts(FlextCliServiceBase):
             )
             empty_result: dict[str, t.JsonValue] = {}
             return r[Mapping[str, t.JsonValue]].ok(empty_result)
-        except Exception as exc:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as exc:
             self._fatal(
                 "execute", "execute", exc, "Prompt service execution failed completely"
             )
@@ -264,7 +314,14 @@ class FlextCliPrompts(FlextCliServiceBase):
                     PD.PROMPT_LOG_FORMAT.format(message=message, input=value)
                 )
             return r[str].ok(value)
-        except Exception as exc:  # pragma: no cover
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as exc:  # pragma: no cover
             self._fatal("prompt", message, exc, "Prompt failed completely")
             return r[str].fail(PEM.PROMPT_FAILED.format(error=exc))
 
@@ -307,7 +364,14 @@ class FlextCliPrompts(FlextCliServiceBase):
             return r[bool].fail(PM.USER_CANCELLED_CONFIRMATION)
         except EOFError:
             return r[bool].fail(PM.INPUT_STREAM_ENDED)
-        except Exception as exc:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as exc:
             self._fatal("confirm", message, exc, "Confirmation failed completely")
             return r[bool].fail(PEM.CONFIRMATION_FAILED.format(error=exc))
 
@@ -354,7 +418,14 @@ class FlextCliPrompts(FlextCliServiceBase):
                     PM.USER_SELECTION_LOG.format(message=message, choice=result.value)
                 )
             return result
-        except Exception as exc:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as exc:
             self._fatal(
                 "select_from_options", message, exc, "Selection failed completely"
             )
@@ -368,7 +439,14 @@ class FlextCliPrompts(FlextCliServiceBase):
                 PD.STATUS_FORMAT.format(status=status.upper(), message=message)
             )
             return r[bool].ok(value=True)
-        except Exception as exc:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as exc:
             self.logger.exception(
                 "FAILED to print status message - operation aborted",
                 operation="print_status",
@@ -390,7 +468,14 @@ class FlextCliPrompts(FlextCliServiceBase):
         try:
             getattr(self.logger, log_level)(message_format.format(message=message))
             return r[bool].ok(value=True)
-        except Exception as exc:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as exc:
             self.logger.exception(
                 "FAILED to print message - operation aborted",
                 operation="_print_message",
@@ -431,7 +516,14 @@ class FlextCliPrompts(FlextCliServiceBase):
             self.logger.info(PM.STARTING_PROGRESS.format(description=description))
             self.logger.info(PM.CREATED_PROGRESS.format(description=description))
             return r[str].ok(description)
-        except Exception as exc:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as exc:
             self.logger.exception(
                 "FAILED to create progress indicator - operation aborted",
                 operation="create_progress",
@@ -473,7 +565,14 @@ class FlextCliPrompts(FlextCliServiceBase):
                 )
             )
             return r[list[t.JsonValue]].ok(items)
-        except Exception as exc:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as exc:
             self._fatal(
                 "with_progress",
                 description,

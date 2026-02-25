@@ -17,6 +17,7 @@ from typing import ClassVar, TypeGuard
 import yaml
 from flext_core import FlextResult, FlextRuntime, r, t
 from pydantic import BaseModel, ValidationError
+from rich.errors import ConsoleError, LiveError, StyleError
 from rich.tree import Tree as RichTree
 
 from flext_cli.constants import c
@@ -519,7 +520,14 @@ class FlextCliOutput:
             FlextCliOutput._result_formatters[result_type] = formatter
             return r[bool].ok(value=True)
 
-        except Exception as e:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
             return r[bool].fail(
                 f"Failed to register formatter for {result_type.__name__}: {e}",
             )
@@ -564,7 +572,14 @@ class FlextCliOutput:
             formattable = formattable_result.value
             return self._display_formatted_result(formattable)
 
-        except Exception as e:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
             return r[bool].fail(f"Failed to format and display result: {e}")
 
     def _try_registered_formatter(
@@ -985,7 +1000,14 @@ class FlextCliOutput:
 
             return r[p.Cli.Display.RichTableProtocol].ok(table)
 
-        except Exception as e:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
             error_msg = c.Cli.ErrorMessages.CREATE_RICH_TABLE_FAILED.format(
                 error=e,
             )
@@ -1365,7 +1387,14 @@ class FlextCliOutput:
                     indent=c.Cli.OutputDefaults.JSON_INDENT,
                 ),
             )
-        except Exception as e:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
             error_msg = c.Cli.OutputLogMessages.JSON_FORMAT_FAILED.format(
                 error=e,
             )
@@ -1393,7 +1422,14 @@ class FlextCliOutput:
                     default_flow_style=c.Cli.OutputDefaults.YAML_DEFAULT_FLOW_STYLE,
                 ),
             )
-        except Exception as e:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
             error_msg = c.Cli.OutputLogMessages.YAML_FORMAT_FAILED.format(
                 error=e,
             )
@@ -1433,7 +1469,14 @@ class FlextCliOutput:
                     indent=c.Cli.OutputDefaults.JSON_INDENT,
                 ),
             )
-        except Exception as e:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
             error_msg = c.Cli.OutputLogMessages.CSV_FORMAT_FAILED.format(
                 error=e,
             )
@@ -1699,7 +1742,14 @@ class FlextCliOutput:
         """Safely prepare table data with exception handling."""
         try:
             return self._prepare_table_data(data, headers)
-        except Exception as e:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
             error_msg = c.Cli.OutputLogMessages.TABLE_FORMAT_FAILED.format(
                 error=e,
             )
@@ -1849,7 +1899,14 @@ class FlextCliOutput:
                 )
 
             return table_result
-        except Exception as e:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
             error_msg = c.Cli.OutputLogMessages.TABLE_FORMAT_FAILED.format(
                 error=e,
             )

@@ -16,6 +16,7 @@ from dataclasses import dataclass, field
 from typing import Protocol, Self, runtime_checkable
 
 from flext_core import r
+from rich.errors import ConsoleError, LiveError, StyleError
 
 from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import c
@@ -207,7 +208,14 @@ class FlextCliCommands(FlextCliServiceBase):
                 result = handler()
 
             return self._normalize_handler_result(result, name)
-        except Exception as e:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
             return r[t.JsonValue].fail(f"Command execution failed: {e}")
 
     @staticmethod

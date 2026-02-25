@@ -23,6 +23,7 @@ import typer
 from click.exceptions import UsageError
 from flext_core import FlextContainer, FlextLogger, FlextRuntime, r
 from pydantic import BaseModel, TypeAdapter, ValidationError
+from rich.errors import ConsoleError, LiveError, StyleError
 from typer.testing import CliRunner
 
 from flext_cli.cli_params import FlextCliCommonParams
@@ -736,7 +737,14 @@ class FlextCliCli:
             )
             try:
                 prompt_result_map = dict(prompt_result)
-            except Exception as exc:
+            except (
+                ValueError,
+                TypeError,
+                KeyError,
+                ConsoleError,
+                StyleError,
+                LiveError,
+            ) as exc:
                 logging.getLogger(__name__).debug(
                     "prompt result to dict fallback: %s",
                     exc,

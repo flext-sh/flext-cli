@@ -7,6 +7,7 @@ from collections.abc import Callable, Mapping
 from typing import ClassVar
 
 from flext_core import r
+from rich.errors import ConsoleError, LiveError, StyleError
 from typer.models import OptionInfo
 
 from flext_cli.constants import c
@@ -196,7 +197,14 @@ class FlextCliCommonParams:
         try:
             params_to_use = cls._resolve_params(params, kwargs)
             return cls._apply_param_setters(config, params_to_use)
-        except Exception as e:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
             return r[FlextCliSettings].fail(f"Failed to apply CLI parameters: {e}")
 
     @classmethod
@@ -297,7 +305,14 @@ class FlextCliCommonParams:
             # FlextLogger configuration is done via FlextSettings at initialization
             return r[bool].ok(value=True)
 
-        except Exception as e:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
             return r[bool].fail(
                 c.Cli.CliParamsErrorMessages.CONFIGURE_LOGGER_FAILED.format(error=e),
             )

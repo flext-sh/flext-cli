@@ -32,6 +32,7 @@ from pydantic import (
     model_validator,
 )
 from pydantic.fields import FieldInfo
+from rich.errors import ConsoleError, LiveError, StyleError
 from typer.models import OptionInfo
 
 from flext_cli.constants import FlextCliConstants as c
@@ -296,7 +297,8 @@ class _MapGetValue(BaseModel):
             out: dict[str, t.JsonValue] = {}
             for kk, vv in value.items():
                 if isinstance(
-                    vv, (str, int, float, bool, type(None), list, dict),
+                    vv,
+                    (str, int, float, bool, type(None), list, dict),
                 ):
                     out[str(kk)] = vv
                 else:
@@ -846,7 +848,14 @@ class FlextCliModels(FlextModels):
                 try:
                     updated = self.model_copy(update={"status": "running"})
                     return r.ok(updated)
-                except Exception as e:
+                except (
+                    ValueError,
+                    TypeError,
+                    KeyError,
+                    ConsoleError,
+                    StyleError,
+                    LiveError,
+                ) as e:
                     return r.fail(f"Failed to start execution: {e}")
 
             def complete_execution(self, exit_code: int) -> r[Self]:
@@ -856,7 +865,14 @@ class FlextCliModels(FlextModels):
                         update={"status": "completed", "exit_code": exit_code},
                     )
                     return r.ok(updated)
-                except Exception as e:
+                except (
+                    ValueError,
+                    TypeError,
+                    KeyError,
+                    ConsoleError,
+                    StyleError,
+                    LiveError,
+                ) as e:
                     return r.fail(f"Failed to complete execution: {e}")
 
             def update_status(self, status: str) -> Self:
@@ -874,7 +890,14 @@ class FlextCliModels(FlextModels):
                 try:
                     command = cls.model_validate(data)
                     return r.ok(command)
-                except Exception as e:
+                except (
+                    ValueError,
+                    TypeError,
+                    KeyError,
+                    ConsoleError,
+                    StyleError,
+                    LiveError,
+                ) as e:
                     return r.fail(f"Validation failed: {e}")
 
         class CliSession(FlextModels.Entity):
@@ -988,7 +1011,14 @@ class FlextCliModels(FlextModels):
                     updated_commands = list(self.commands) + [command]
                     updated_session = self._copy_with_update(commands=updated_commands)
                     return r.ok(updated_session)
-                except Exception as e:
+                except (
+                    ValueError,
+                    TypeError,
+                    KeyError,
+                    ConsoleError,
+                    StyleError,
+                    LiveError,
+                ) as e:
                     return r.fail(f"Failed to add command: {e}")
 
             def _copy_with_update(self, **updates: object) -> Self:
@@ -2524,7 +2554,14 @@ class FlextCliModels(FlextModels):
                     model_validate_method = model_cls.model_validate
                     model_instance = model_validate_method(cli_args_dict)
                     return FlextResult.ok(model_instance)
-                except Exception as e:
+                except (
+                    ValueError,
+                    TypeError,
+                    KeyError,
+                    ConsoleError,
+                    StyleError,
+                    LiveError,
+                ) as e:
                     return FlextResult.fail(f"Failed to create model instance: {e}")
 
             @staticmethod
@@ -2576,9 +2613,23 @@ class FlextCliModels(FlextModels):
                         }
                         params_list = list(params_dict.values())
                         return FlextResult.ok(params_list)
-                    except Exception as e:
+                    except (
+                        ValueError,
+                        TypeError,
+                        KeyError,
+                        ConsoleError,
+                        StyleError,
+                        LiveError,
+                    ) as e:
                         return FlextResult.fail(f"Conversion failed: {e}")
-                except Exception as e:
+                except (
+                    ValueError,
+                    TypeError,
+                    KeyError,
+                    ConsoleError,
+                    StyleError,
+                    LiveError,
+                ) as e:
                     return FlextResult.fail(f"Conversion failed: {e}")
 
             @staticmethod
@@ -2659,7 +2710,14 @@ class FlextCliModels(FlextModels):
                         help_text=help_text,
                     )
                     return FlextResult.ok(spec)
-                except Exception as e:
+                except (
+                    ValueError,
+                    TypeError,
+                    KeyError,
+                    ConsoleError,
+                    StyleError,
+                    LiveError,
+                ) as e:
                     return FlextResult.fail(f"Field conversion failed: {e}")
 
             @staticmethod
@@ -2929,7 +2987,14 @@ class FlextCliModels(FlextModels):
                             field_info,
                         )
                     return FlextResult.ok(props)
-                except Exception as e:
+                except (
+                    ValueError,
+                    TypeError,
+                    KeyError,
+                    ConsoleError,
+                    StyleError,
+                    LiveError,
+                ) as e:
                     return FlextResult[Mapping[str, t.JsonValue]].fail(
                         f"Extraction failed: {e}",
                     )
@@ -3066,7 +3131,14 @@ class FlextCliModels(FlextModels):
                     return FlextResult[t.JsonValue].fail(
                         "No data provided for validation",
                     )
-                except Exception as e:
+                except (
+                    ValueError,
+                    TypeError,
+                    KeyError,
+                    ConsoleError,
+                    StyleError,
+                    LiveError,
+                ) as e:
                     return FlextResult[t.JsonValue].fail(
                         f"Validation failed: {e}",
                     )
@@ -3141,7 +3213,14 @@ class FlextCliModels(FlextModels):
                                 output = FlextCliModels.Cli.CliModelDecorators.normalize_output(
                                     result,
                                 )
-                        except Exception as e:
+                        except (
+                            ValueError,
+                            TypeError,
+                            KeyError,
+                            ConsoleError,
+                            StyleError,
+                            LiveError,
+                        ) as e:
                             # Return error string on failure (decorator pattern)
                             output = f"Validation failed: {e}"
                         return output
@@ -3174,7 +3253,14 @@ class FlextCliModels(FlextModels):
                             return func(
                                 *(m_inst.model_dump() for m_inst in model_instances)
                             )
-                        except Exception as e:
+                        except (
+                            ValueError,
+                            TypeError,
+                            KeyError,
+                            ConsoleError,
+                            StyleError,
+                            LiveError,
+                        ) as e:
                             return f"Validation failed: {e}"
 
                     return wrapper

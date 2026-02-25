@@ -19,6 +19,7 @@ from collections.abc import Mapping, MutableMapping
 from typing import override
 
 from flext_core import r
+from rich.errors import ConsoleError, LiveError, StyleError
 
 from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import c
@@ -125,7 +126,14 @@ class FlextCliDebug(FlextCliServiceBase):
                 env_info.variables.items(),
             )
             return r[Mapping[str, t.JsonValue]].ok(typed_env_info)
-        except Exception as e:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
             return r[Mapping[str, t.JsonValue]].fail(
                 c.Cli.DebugErrorMessages.ENVIRONMENT_INFO_FAILED.format(
                     error=e,
@@ -139,7 +147,14 @@ class FlextCliDebug(FlextCliServiceBase):
         try:
             results = self._validate_filesystem_permissions()
             return r[list[str]].ok(results)
-        except Exception as e:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
             return r[list[str]].fail(
                 c.Cli.DebugErrorMessages.ENVIRONMENT_VALIDATION_FAILED.format(
                     error=e,
@@ -159,7 +174,14 @@ class FlextCliDebug(FlextCliServiceBase):
                 c.Cli.DebugDictKeys.CONNECTIVITY: c.Cli.ServiceStatus.OPERATIONAL.value,
             }
             return r[Mapping[str, str]].ok(connectivity_info)
-        except Exception as e:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
             return r[Mapping[str, str]].fail(
                 c.Cli.DebugErrorMessages.CONNECTIVITY_TEST_FAILED.format(
                     error=e,
@@ -182,7 +204,14 @@ class FlextCliDebug(FlextCliServiceBase):
                 c.Cli.DebugDictKeys.CHECKS_PASSED: True,
             }
             return r[Mapping[str, t.JsonValue]].ok(health_info)
-        except Exception as e:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
             return r[Mapping[str, t.JsonValue]].fail(
                 c.Cli.DebugErrorMessages.HEALTH_CHECK_FAILED.format(
                     error=e,
@@ -207,7 +236,14 @@ class FlextCliDebug(FlextCliServiceBase):
                 ),
             }
             return r[Mapping[str, t.JsonValue]].ok(trace_info)
-        except Exception as e:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
             return r[Mapping[str, t.JsonValue]].fail(
                 c.Cli.DebugErrorMessages.TRACE_EXECUTION_FAILED.format(
                     error=e,
@@ -244,7 +280,14 @@ class FlextCliDebug(FlextCliServiceBase):
                 c.Cli.DebugDictKeys.CONNECTIVITY_STATUS: c.Cli.ServiceStatus.CONNECTED.value,
             }
             return r[Mapping[str, t.JsonValue]].ok(debug_info)
-        except Exception as e:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
             return r[Mapping[str, t.JsonValue]].fail(
                 c.Cli.DebugErrorMessages.DEBUG_INFO_COLLECTION_FAILED.format(
                     error=e,
@@ -261,7 +304,14 @@ class FlextCliDebug(FlextCliServiceBase):
                 ).model_dump()
             )
             return r[Mapping[str, t.JsonValue]].ok(info_dict)
-        except Exception as e:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
             return r[Mapping[str, t.JsonValue]].fail(
                 c.Cli.DebugErrorMessages.SYSTEM_INFO_COLLECTION_FAILED.format(
                     error=e,
@@ -285,7 +335,14 @@ class FlextCliDebug(FlextCliServiceBase):
                 "paths": serialized_paths,
             }
             return r[Mapping[str, t.JsonValue]].ok(paths_dict)
-        except Exception as e:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
             return r[Mapping[str, t.JsonValue]].fail(
                 c.Cli.DebugErrorMessages.SYSTEM_PATHS_COLLECTION_FAILED.format(
                     error=e,
@@ -322,7 +379,14 @@ class FlextCliDebug(FlextCliServiceBase):
             )
 
             return r[Mapping[str, t.JsonValue]].ok(comprehensive_info)
-        except Exception as e:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
             return r[Mapping[str, t.JsonValue]].fail(
                 c.Cli.DebugErrorMessages.COMPREHENSIVE_DEBUG_INFO_FAILED.format(
                     error=e,
@@ -410,7 +474,14 @@ class FlextCliDebug(FlextCliServiceBase):
                     ),
                 )
 
-        except Exception as e:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
             errors.append(
                 c.Cli.ErrorMessages.FILESYSTEM_VALIDATION_FAILED.format(
                     error=e,

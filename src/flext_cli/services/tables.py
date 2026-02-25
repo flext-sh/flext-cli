@@ -15,6 +15,7 @@ from itertools import starmap
 from typing import TypeGuard
 
 from flext_core import r
+from rich.errors import ConsoleError, LiveError, StyleError
 from tabulate import tabulate
 
 from flext_cli.base import FlextCliServiceBase
@@ -243,7 +244,14 @@ class FlextCliTables(FlextCliServiceBase):
             return r[str].fail(
                 "Table data must be a sequence of mappings or a sequence of sequences"
             )
-        except Exception as e:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
             return r[str].fail(f"Table formatting failed: {e}")
 
     @staticmethod
@@ -354,7 +362,14 @@ class FlextCliTables(FlextCliServiceBase):
 
             return r[str].ok(table_str)
 
-        except Exception as e:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
             return r[str].fail(
                 FlextCliConstants.Cli.TablesErrorMessages.TABLE_CREATION_FAILED.format(
                     error=e,
@@ -380,6 +395,13 @@ class FlextCliTables(FlextCliServiceBase):
             )
             # Note: Table formatting removed - return placeholder success
             return r[bool].ok(value=True)
-        except Exception as e:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
             # Simplified error handling
             return r[bool].fail(str(e))

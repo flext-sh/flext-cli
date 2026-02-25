@@ -14,6 +14,7 @@ from typing import ClassVar, get_args, get_origin, override
 
 from flext_core import FlextUtilities, r
 from pydantic import BaseModel, ConfigDict, ValidationError, validate_call
+from rich.errors import ConsoleError, LiveError, StyleError
 
 from flext_cli.constants import c
 from flext_cli.models import CliExecutionMetadata, CliValidationResult
@@ -56,7 +57,14 @@ class FlextCliUtilities(FlextUtilities):
                     continue
                 try:
                     values.append(processor(item))
-                except Exception as exc:
+                except (
+                    ValueError,
+                    TypeError,
+                    KeyError,
+                    ConsoleError,
+                    StyleError,
+                    LiveError,
+                ) as exc:
                     if on_error == "fail":
                         return r[list[U]].fail(f"Error at index {idx}: {exc}")
                     if on_error == "collect":
@@ -84,7 +92,14 @@ class FlextCliUtilities(FlextUtilities):
             for key, value in items.items():
                 try:
                     values[key] = processor(key, value)
-                except Exception as exc:
+                except (
+                    ValueError,
+                    TypeError,
+                    KeyError,
+                    ConsoleError,
+                    StyleError,
+                    LiveError,
+                ) as exc:
                     if on_error == "fail":
                         return r[Mapping[str, U]].fail(f"Error processing {key}: {exc}")
                     if on_error == "collect":

@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import override
 
 from flext_core import r, t
+from rich.errors import ConsoleError, LiveError, StyleError
 
 from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import FlextCliConstants
@@ -152,7 +153,14 @@ class FlextCliCmd(FlextCliServiceBase):
                 ),
             )
             return r[bool].ok(value=True)
-        except Exception as e:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
             return r[bool].fail(
                 FlextCliConstants.Cli.ErrorMessages.SET_CONFIG_FAILED.format(error=e),
             )
@@ -220,7 +228,14 @@ class FlextCliCmd(FlextCliServiceBase):
                 FlextCliOutput.to_dict_json(raw_data)
             )
             return r[Mapping[str, t.JsonValue]].ok(result_data)
-        except Exception as e:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
             return r[Mapping[str, t.JsonValue]].fail(
                 FlextCliConstants.Cli.CmdErrorMessages.GET_CONFIG_FAILED.format(
                     error=e,
@@ -248,7 +263,14 @@ class FlextCliCmd(FlextCliServiceBase):
                 config=info_result.value,
             )
             return r[bool].ok(value=True)
-        except Exception as e:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
             return r[bool].fail(
                 FlextCliConstants.Cli.CmdErrorMessages.SHOW_CONFIG_FAILED.format(
                     error=e,
@@ -295,7 +317,14 @@ class FlextCliCmd(FlextCliServiceBase):
                 config_model = m.Cli.CmdConfig.model_validate(
                     load_result.value,
                 )
-            except Exception as e:
+            except (
+                ValueError,
+                TypeError,
+                KeyError,
+                ConsoleError,
+                StyleError,
+                LiveError,
+            ) as e:
                 self.logger.debug(
                     "edit_config model_validate fallback: %s",
                     e,
@@ -319,7 +348,14 @@ class FlextCliCmd(FlextCliServiceBase):
             return r[str].ok(
                 FlextCliConstants.Cli.LogMessages.CONFIG_EDIT_COMPLETED,
             )
-        except Exception as e:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
             return r[str].fail(
                 FlextCliConstants.Cli.ErrorMessages.EDIT_CONFIG_FAILED.format(error=e),
             )

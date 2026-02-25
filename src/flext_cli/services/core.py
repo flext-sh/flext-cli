@@ -19,6 +19,7 @@ from flext_core import (
     r,
     u,
 )
+from rich.errors import ConsoleError, LiveError, StyleError
 
 from flext_cli.base import FlextCliServiceBase
 from flext_cli.constants import c
@@ -359,7 +360,14 @@ class FlextCliCore(FlextCliServiceBase):
                     config=m.Dict(root=snapshot_config),
                 ),
             )
-        except Exception as e:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
             FlextLogger(__name__).exception(
                 "FAILED to retrieve command - operation aborted",
                 operation="get_command",
@@ -422,7 +430,14 @@ class FlextCliCore(FlextCliServiceBase):
             )
             return r[Mapping[str, t.JsonValue]].ok(result_dict)
 
-        except Exception as e:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
             FlextLogger(__name__).exception(
                 "FAILED CLI command execution", command_name=name
             )
@@ -466,7 +481,14 @@ class FlextCliCore(FlextCliServiceBase):
                 )
 
                 return r[list[str]].ok(command_names)
-            except Exception as e:
+            except (
+                ValueError,
+                TypeError,
+                KeyError,
+                ConsoleError,
+                StyleError,
+                LiveError,
+            ) as e:
                 FlextLogger(__name__).exception(
                     "FAILED to list commands - operation aborted",
                     operation="list_commands",
@@ -601,7 +623,14 @@ class FlextCliCore(FlextCliServiceBase):
 
             return r[bool].ok(value=True)
 
-        except Exception as e:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
             FlextLogger(__name__).exception(
                 "FAILED to merge configurations - operation aborted",
                 operation="update_configuration",
@@ -714,7 +743,14 @@ class FlextCliCore(FlextCliServiceBase):
                 return r[Mapping[str, t.JsonValue]].ok(
                     self._cli_config,
                 )
-            except Exception as e:
+            except (
+                ValueError,
+                TypeError,
+                KeyError,
+                ConsoleError,
+                StyleError,
+                LiveError,
+            ) as e:
                 FlextLogger(__name__).exception(
                     "FAILED to retrieve configuration - operation aborted",
                     operation="get_configuration",
@@ -854,7 +890,14 @@ class FlextCliCore(FlextCliServiceBase):
 
             return r[bool].ok(value=True)
 
-        except Exception as e:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
             return r[bool].fail(
                 c.Cli.ErrorMessages.SESSION_START_FAILED.format(error=e),
             )
@@ -910,7 +953,14 @@ class FlextCliCore(FlextCliServiceBase):
 
             return r[bool].ok(value=True)
 
-        except Exception as e:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
             FlextLogger(__name__).exception(
                 "FAILED to end session - operation aborted",
                 operation="end_session",
@@ -959,7 +1009,14 @@ class FlextCliCore(FlextCliServiceBase):
                 failed_commands=0,
             )
             return r[Mapping[str, t.JsonValue]].ok(stats_model.model_dump(mode="json"))
-        except Exception as e:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
             return r[Mapping[str, t.JsonValue]].fail(
                 c.Cli.ErrorMessages.CLI_EXECUTION_ERROR.format(error=e),
             )
@@ -1003,7 +1060,14 @@ class FlextCliCore(FlextCliServiceBase):
             # Return concrete service metadata mapping
             return info_data
 
-        except Exception as e:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
             FlextLogger(__name__).exception(
                 c.Cli.CoreServiceLogMessages.SERVICE_INFO_COLLECTION_FAILED,
             )
@@ -1086,7 +1150,14 @@ class FlextCliCore(FlextCliServiceBase):
 
             return r[Mapping[str, t.JsonValue]].ok(stats_model.model_dump(mode="json"))
 
-        except Exception as e:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
             FlextLogger(__name__).exception(
                 "FAILED to collect session statistics - operation aborted",
                 operation="get_session_statistics",
@@ -1178,7 +1249,14 @@ class FlextCliCore(FlextCliServiceBase):
 
             return r[Mapping[str, t.JsonValue]].ok(result_model.model_dump())
 
-        except Exception as e:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
             FlextLogger(__name__).exception(
                 "FATAL ERROR during service execution - execution aborted",
                 operation="execute",
@@ -1284,7 +1362,14 @@ class FlextCliCore(FlextCliServiceBase):
                 c.Cli.CoreServiceDictKeys.SESSION_ACTIVE: self._session_active,
                 c.Cli.DictKeys.TIMESTAMP: FlextCliUtilities.generate("timestamp"),
             })
-        except Exception as e:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
             return r[Mapping[str, t.JsonValue]].fail(
                 c.Cli.ErrorMessages.CLI_EXECUTION_ERROR.format(error=e),
             )
@@ -1304,7 +1389,14 @@ class FlextCliCore(FlextCliServiceBase):
                     c.Cli.ErrorMessages.CONFIG_NOT_INITIALIZED,
                 )
             return r[Mapping[str, t.JsonValue]].ok(self._cli_config)
-        except Exception as e:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
             return r[Mapping[str, t.JsonValue]].fail(
                 c.Cli.ErrorMessages.CONFIG_RETRIEVAL_FAILED.format(error=e),
             )
@@ -1334,7 +1426,14 @@ class FlextCliCore(FlextCliServiceBase):
             return r[list[str]].ok(
                 list(data_dict.keys()) if data_dict is not None else [],
             )
-        except Exception as e:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
             return r[list[str]].fail(error_message.format(error=e))
 
     def get_handlers(self) -> r[list[str]]:
