@@ -1,6 +1,4 @@
 """User interaction tools for CLI applications."""
-# ruff: noqa: D102, D107
-# pyright: reportMissingImports=false, reportImplicitOverride=false
 
 from __future__ import annotations
 

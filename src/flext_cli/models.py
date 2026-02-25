@@ -259,7 +259,7 @@ class _EnsureTypeRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     kind: Literal["str", "bool"] = Field(description="Target type")
     value: t.JsonValue | None = Field(default=None)
-    default: str | bool = Field(default="")  # type: ignore[assignment]
+    default: str | bool = Field(default="")
 
     def result(self) -> str | bool:
         if self.kind == "str":

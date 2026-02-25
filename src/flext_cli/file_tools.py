@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-# ruff: noqa: D101, D102
 import csv
 import hashlib
 import json
