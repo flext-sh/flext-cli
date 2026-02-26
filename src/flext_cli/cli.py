@@ -119,17 +119,14 @@ class FlextCliCli:
         if type_name not in {"str", "bool", "dict"}:
             return default
         if type_name == "str":
-            resolved: t.JsonValue | None = m.Cli.TypedExtract(
+            return m.Cli.TypedExtract(
                 type_kind="str", value=val, default=default
-            ).resolved
-            return resolved
+            ).resolve()
         if type_name == "bool":
-            resolved = m.Cli.TypedExtract(
+            return m.Cli.TypedExtract(
                 type_kind="bool", value=val, default=default
-            ).resolved
-            return resolved
-        resolved = m.Cli.TypedExtract(type_kind="dict", value=val, default=default).resolved
-        return resolved
+            ).resolve()
+        return m.Cli.TypedExtract(type_kind="dict", value=val, default=default).resolve()
 
     def _get_log_level_value(self, config: FlextCliSettings) -> int:
         if config.debug or config.trace:
@@ -139,7 +136,7 @@ class FlextCliCli:
         )
         level_str: str = str(m.Cli.LogLevelResolved(
             raw=log_level_attr.value if log_level_attr and hasattr(log_level_attr, 'value') else str(log_level_attr) if log_level_attr else None,
-        ).resolved)
+        ).resolve())
         return getattr(logging, level_str, logging.INFO)
 
     def _get_console_enabled(self, config: FlextCliSettings) -> bool:

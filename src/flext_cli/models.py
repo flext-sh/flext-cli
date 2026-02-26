@@ -112,7 +112,7 @@ class _EnsureTypeRequest(BaseModel):
             type_kind=self.kind,
             value=self.value,
             default=self.default,
-        ).resolved
+        ).resolve()
         if self.kind == "bool":
             return bool(out) if out is not None else bool(self.default)
         return str(out) if out is not None else str(self.default)

@@ -401,7 +401,9 @@ class FlextCliSettings(FlextSettings):
         if cls._instance is None:
             cls._instance = cls()
         instance = cls._instance
-        assert instance is not None
+        if instance is None:
+            msg = "FlextCliSettings instance was not initialized"
+            raise RuntimeError(msg)
         return instance
 
     @classmethod
