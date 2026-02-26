@@ -207,9 +207,8 @@ class _PromptTimeoutResolved(BaseModel):
     raw: int | str | None = Field(default=None)
     default: int = Field(default=30, description="Default timeout in seconds")
 
-    @computed_field
-    @property
-    def resolved(self) -> int:
+    def resolve(self) -> int:
+        """Type-safe accessor (bypasses pyrefly computed_field limitation)."""
         if self.raw is None:
             return self.default
         if isinstance(self.raw, int):
@@ -217,6 +216,11 @@ class _PromptTimeoutResolved(BaseModel):
         if isinstance(self.raw, str) and self.raw.isdigit():
             return int(self.raw)
         return self.default
+
+    @computed_field
+    @property
+    def resolved(self) -> int:
+        return self.resolve()
 
 
 class _ExecutionContextInput(
@@ -261,9 +265,8 @@ class _NormalizedJsonList(BaseModel):
         description="Default when value is None or invalid",
     )
 
-    @computed_field
-    @property
-    def resolved(self) -> list[t.JsonValue]:
+    def resolve(self) -> list[t.JsonValue]:
+        """Type-safe accessor (bypasses pyrefly computed_field limitation)."""
         if self.value is None:
             return list(self.default)
         source = _unwrap_root_value(self.value)
@@ -273,6 +276,11 @@ class _NormalizedJsonList(BaseModel):
             return [_normalize_json_value(i) for i in raw_list]
         except ValidationError:
             return list(self.default)
+
+    @computed_field
+    @property
+    def resolved(self) -> list[t.JsonValue]:
+        return self.resolve()
 
 
 class _NormalizedJsonDict(BaseModel):
@@ -285,9 +293,8 @@ class _NormalizedJsonDict(BaseModel):
         description="Default when value is None or invalid",
     )
 
-    @computed_field
-    @property
-    def resolved(self) -> dict[str, t.JsonValue]:
+    def resolve(self) -> dict[str, t.JsonValue]:
+        """Type-safe accessor (bypasses pyrefly computed_field limitation)."""
         if self.value is None:
             return dict(self.default)
         source = _unwrap_root_value(self.value)
@@ -300,6 +307,11 @@ class _NormalizedJsonDict(BaseModel):
         except ValidationError:
             return dict(self.default)
 
+    @computed_field
+    @property
+    def resolved(self) -> dict[str, t.JsonValue]:
+        return self.resolve()
+
 
 class _TypedExtract(BaseModel):
     """Single contract for typed value extraction (str | bool | dict). Replaces polymorphic _extract_typed_value."""
@@ -309,10 +321,8 @@ class _TypedExtract(BaseModel):
     value: t.JsonValue | None = Field(default=None)
     default: t.JsonValue | None = Field(default=None)
 
-    @computed_field
-    @property
-    def resolved(self) -> str | bool | dict[str, t.JsonValue] | None:
-        """Value coerced to type_kind, or default. Single Pydantic contract (no polymorphic methods)."""
+    def resolve(self) -> str | bool | dict[str, t.JsonValue] | None:
+        """Type-safe accessor (bypasses pyrefly computed_field limitation)."""
         if self.value is None:
             return _default_for_type_kind(self.type_kind, self.default)
         if self.type_kind == "str":
@@ -337,6 +347,12 @@ class _TypedExtract(BaseModel):
             return {}
         return _default_for_type_kind(self.type_kind, self.default)
 
+    @computed_field
+    @property
+    def resolved(self) -> str | bool | dict[str, t.JsonValue] | None:
+        """Value coerced to type_kind, or default. Single Pydantic contract (no polymorphic methods)."""
+        return self.resolve()
+
 
 def _default_for_type_kind(
     type_kind: Literal["str", "bool", "dict"],
@@ -359,11 +375,15 @@ class _LogLevelResolved(BaseModel):
     raw: str | None = Field(default=None)
     default: str = Field(default="INFO")
 
+    def resolve(self) -> str:
+        """Type-safe accessor (bypasses pyrefly computed_field limitation)."""
+        s = (self.raw or self.default).strip().upper()
+        return s or self.default
+
     @computed_field
     @property
     def resolved(self) -> str:
-        s = (self.raw or self.default).strip().upper()
-        return s or self.default
+        return self.resolve()
 
 
 class _CliLoggingData(BaseModel):
