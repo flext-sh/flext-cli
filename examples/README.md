@@ -57,18 +57,21 @@ flext-cli is a production-ready Python library that provides:
 ### Getting Started
 
 1. **[01_getting_started.py](01_getting_started.py)** - Start here!
+
    - Basic FlextCli initialization
    - Accessing domain services
    - FlextResult railway pattern
    - Core operations
 
 1. **[02_output_formatting.py](02_output_formatting.py)** - Rich output
+
    - Styled messages (success, error, warning, info)
    - Table display (Rich and Tabulate)
    - Data formatting (JSON, YAML)
    - Progress bars and spinners
 
 1. **[03_interactive_prompts.py](03_interactive_prompts.py)** - User interaction
+
    - Confirmation prompts
    - Text input
    - Choice selection
@@ -78,18 +81,21 @@ flext-cli is a production-ready Python library that provides:
 ### Core Features
 
 4. **[04_file_operations.py](04_file_operations.py)** - File handling
+
    - File reading/writing
    - Path validation
    - Directory operations
    - JSON/YAML file handling
 
 1. **[05_authentication.py](05_authentication.py)** - Auth patterns
+
    - Token management
    - Authorization headers
    - Session management
    - Protected operations
 
 1. **[06_configuration.py](06_configuration.py)** - Config management
+
    - FlextCliSettings usage
    - Environment variables
    - Pydantic validation
@@ -98,21 +104,25 @@ flext-cli is a production-ready Python library that provides:
 ### Advanced Features
 
 7. **[07_plugin_system.py](07_plugin_system.py)** - Plugins
+
    - Plugin loading
    - Custom plugin development
    - Plugin lifecycle
 
 1. **[08_shell_interaction.py](08_shell_interaction.py)** - Interactive shell
+
    - REPL functionality
    - Command history
    - Custom commands
 
 1. **[09_performance_optimization.py](09_performance_optimization.py)** - Performance
+
    - Caching strategies
    - Lazy loading
    - Performance measurement
 
 1. **[10_testing_utilities.py](10_testing_utilities.py)** - Testing
+
    - Mock scenarios
    - Output capture
    - Test utilities
@@ -461,7 +471,7 @@ def interactive_tool():
 1. **Configure via FlextCliSettings** for environment-specific settings
 1. **Combine modules** for complete functionality
 
----
+______________________________________________________________________
 
 **Remember**: flext-cli is a **LIBRARY** - import and use it in your applications!
 

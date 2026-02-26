@@ -51,14 +51,14 @@
 
 **Last Updated**: 2025-01-24 | **Version**: 0.10.0
 
----
+______________________________________________________________________
 
 ## 📌 Quick Navigation
 
 - [v0.10.0 Development Guidelines (Current)](#v0100-development-guidelines-current) ← **Start Here**
 - [v0.9.0 Development Guidelines (Historical Reference)](#v090-development-guidelines-historical-reference)
 
----
+______________________________________________________________________
 
 ## v0.10.0 Development Guidelines (Current)
 
@@ -68,7 +68,7 @@
 
 FLEXT-CLI v0.10.0 follows a simplified architecture with clear guidelines for when to use services vs simple classes. This guide helps you make the right architectural decisions.
 
----
+______________________________________________________________________
 
 ## When to Use Each Pattern
 
@@ -164,7 +164,7 @@ class FlextCliFileTools:
 - ✅ Just data **validation and structure**
 - ✅ Configuration or context data
 
----
+______________________________________________________________________
 
 ## Architecture Decision Flowchart
 
@@ -184,7 +184,7 @@ Does the class manage mutable state?
                  Examples: FlextCliModels.*
 ```
 
----
+______________________________________________________________________
 
 ## Code Organization Guidelines
 
@@ -229,7 +229,7 @@ cli.prompts.confirm("Continue?")
 # cli.confirm("Continue?")           # REMOVED
 ```
 
----
+______________________________________________________________________
 
 ## Testing Guidelines (v0.10.0)
 
@@ -279,7 +279,7 @@ def test_read_json_file():
 # No initialization needed - static methods
 ```
 
----
+______________________________________________________________________
 
 ## Contributing to v0.10.0
 
@@ -301,11 +301,13 @@ Key phases:
 ### Pull Request Guidelines
 
 1. **Follow the Architecture**:
+
    - Services only for state
    - Simple classes for utilities
    - Value objects for data
 
 1. **Use Direct Access**:
+
    - No wrapper methods
    - Clear ownership
 
@@ -316,11 +318,12 @@ Key phases:
    ```
 
 1. **Test Organization**:
+
    - Tests in appropriate directories
    - No file > 30K lines
    - Feature-based organization
 
----
+______________________________________________________________________
 
 ## v0.9.0 Development Guidelines (Historical Reference)
 
@@ -349,7 +352,7 @@ make setup
 poetry run pre-commit install
 ```
 
----
+______________________________________________________________________
 
 ## Development Workflow
 
@@ -372,7 +375,7 @@ make clean         # Clean build artifacts
 - **Testing**: Comprehensive test coverage
 - **Documentation**: All public APIs documented
 
----
+______________________________________________________________________
 
 ## Architecture Guidelines
 
@@ -410,7 +413,7 @@ class ProjectCliService:
 # import rich   # Use FlextCliOutput instead
 ```
 
----
+______________________________________________________________________
 
 ## Testing Guidelines
 
@@ -465,7 +468,7 @@ pytest tests/ --cov=src --cov-report=term-missing
 pytest tests/unit/test_api.py -v
 ```
 
----
+______________________________________________________________________
 
 ## Contributing Guidelines
 
@@ -496,7 +499,7 @@ docs: update API documentation
 test: add integration tests for config module
 ```
 
----
+______________________________________________________________________
 
 ## Extension Development
 
@@ -573,7 +576,7 @@ class ProjectFormatters(FlextCliOutput):
         return FlextResult[str].ok("formatted_output")
 ```
 
----
+______________________________________________________________________
 
 ## Debug and Troubleshooting
 
@@ -600,7 +603,7 @@ poetry show --tree
 flext debug info
 ```
 
----
+______________________________________________________________________
 
 For architectural details, see [architecture.md](architecture.md).
 For API usage, see [api-reference.md](api-reference.md).

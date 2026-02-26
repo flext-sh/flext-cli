@@ -136,8 +136,3 @@ ignore_missing_imports = true
 python_version = "3.13"
 
 # [CUSTOM] pyrefly - include project root and examples so tests.* and example_utils resolve
-[tool.pyrefly]
-search-path = [ "src", "examples", "." ]
-
-project-excludes = [ "**/*_pb2*.py", "**/*_pb2_grpc*.py" ]
-# [MANAGED] ruff

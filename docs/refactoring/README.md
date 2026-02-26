@@ -100,7 +100,7 @@ This directory contains comprehensive documentation for the v0.10.0 refactoring,
 - [Development Guide](../development.md)
 - [Changelog](../../CHANGELOG.md)
 
----
+______________________________________________________________________
 
 **Last Updated**: 2025-01-24
 **Version**: 0.10.0

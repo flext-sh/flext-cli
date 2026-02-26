@@ -51,7 +51,7 @@
 
 > **📘 Quick Summary**: v0.10.0 introduces a **direct access pattern** and removes API wrapper methods. Instead of `cli.print()`, you now use `cli.formatters.print()`. This makes ownership clearer and the API simpler.
 
----
+______________________________________________________________________
 
 ## Table of Contents
 
@@ -62,7 +62,7 @@
 1. [FAQ](#faq)
 1. [Getting Help](#getting-help)
 
----
+______________________________________________________________________
 
 ## Overview
 
@@ -90,7 +90,7 @@ v0.10.0 simplifies FLEXT-CLI by:
 - ✅ **Railway Pattern**: FlextResult[T] still used throughout
 - ✅ **Type Safety**: Still 100% type-safe
 
----
+______________________________________________________________________
 
 ## Breaking Changes
 
@@ -220,7 +220,7 @@ cli = FlextCli()
 result = cli.authenticate({"token": "abc123"})
 ```
 
----
+______________________________________________________________________
 
 ## Step-by-Step Migration
 
@@ -327,7 +327,7 @@ def process_cli(cli: FlextCli) -> None:
 
 Type hints for FlextCli don't change - only method calls do.
 
----
+______________________________________________________________________
 
 ## Quick Reference
 
@@ -363,7 +363,7 @@ Access these through FlextCli instance:
 | `cli.core`       | `execute_command()`, etc.                     | Command management       |
 | `cli.cmd`        | `execute()`                                   | Command execution        |
 
----
+______________________________________________________________________
 
 ## FAQ
 
@@ -415,7 +415,7 @@ Access these through FlextCli instance:
 
 **A**: See [CHANGELOG.md](../../CHANGELOG.md) for complete details.
 
----
+______________________________________________________________________
 
 ## Examples
 
@@ -507,7 +507,7 @@ def process_data():
 
 `FlextCliContext` was removed. Use `m.Cli.CliContext` (cwd, env, args, output_format) from `flext_cli.models` for context data, or pass command/arguments directly.
 
----
+______________________________________________________________________
 
 ## Getting Help
 
@@ -543,7 +543,7 @@ Found a bug after migrating?
    - v0.10.0 code (after)
    - Error message and stack trace
 
----
+______________________________________________________________________
 
 ## Summary
 
@@ -561,7 +561,7 @@ v0.10.0 brings significant improvements through simplification:
 
 We're confident you'll appreciate the simpler, cleaner API once migrated!
 
----
+______________________________________________________________________
 
 **Document Version**: 1.0
 **Last Updated**: 2025-01-24

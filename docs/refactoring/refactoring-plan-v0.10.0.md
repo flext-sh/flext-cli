@@ -51,7 +51,7 @@
 **Status**: 📝 Planning Phase
 **Target Release**: Q1 2025
 
----
+______________________________________________________________________
 
 ## Table of Contents
 
@@ -64,7 +64,7 @@
 1. [Success Criteria](#success-criteria)
 1. [Timeline](#timeline)
 
----
+______________________________________________________________________
 
 ## Executive Summary
 
@@ -106,7 +106,7 @@ This refactoring aims to simplify FLEXT-CLI's architecture by removing over-engi
 - ✅ Improved code quality
 - ✅ Lower maintenance burden
 
----
+______________________________________________________________________
 
 ## Current State Analysis (v0.9.0)
 
@@ -243,7 +243,7 @@ tests/unit/
 - Slow to run individual tests
 - Difficult to maintain
 
----
+______________________________________________________________________
 
 ## Target Architecture (v0.10.0)
 
@@ -411,7 +411,7 @@ cli.file_tools.read_json_file("config.json")   # Direct
                 └──────────────────────────┘
 ```
 
----
+______________________________________________________________________
 
 ## Detailed Changes
 
@@ -422,17 +422,20 @@ cli.file_tools.read_json_file("config.json")   # Direct
 **Files to Delete**:
 
 1. **validator.py** (22 lines)
+
    - Status: Already empty stub
    - All validation moved to Pydantic v2
    - No imports to update
 
 1. **auth.py** (300 lines)
+
    - Duplicate of auth functionality in api.py
    - FlextCliAuthService duplicates FlextCli.authenticate()
    - Remove from `__init__.py` exports
    - No external usage found
 
 1. **testing.py** → Move to tests/fixtures/ (362 lines)
+
    - FlextCliTesting, FlextCliTestRunner, FlextCliMockScenarios
    - Test utilities don't belong in production code
    - Move to `tests/fixtures/testing_utilities.py`
@@ -690,7 +693,7 @@ tests/
 - `auth/test_token_auth.py` (~300 lines)
 - `auth/test_credential_auth.py` (~200 lines)
 
----
+______________________________________________________________________
 
 ## Implementation Plan
 
@@ -794,7 +797,7 @@ Commit after each: "refactor: convert FlextCliFileTools to simple class"
 1. Merge to main after approval
 1. Tag: `v0.10.0`
 
----
+______________________________________________________________________
 
 ## Risk Assessment
 
@@ -902,7 +905,7 @@ If issues arise:
    git revert <risky-commit-1> <risky-commit-2>
    ```
 
----
+______________________________________________________________________
 
 ## Success Criteria
 
@@ -955,7 +958,7 @@ If issues arise:
 - ✅ Zero tolerance rules upheld
 - ✅ Production readiness maintained
 
----
+______________________________________________________________________
 
 ## Timeline
 
@@ -998,7 +1001,7 @@ If issues arise:
 
 **Deliverables**: v0.10.0 released and stable
 
----
+______________________________________________________________________
 
 ## Conclusion
 
@@ -1014,7 +1017,7 @@ While there are breaking changes, the migration path is clear and the benefits j
 
 **Status**: Ready for team review and approval to proceed
 
----
+______________________________________________________________________
 
 **Document Version**: 1.0
 **Last Updated**: 2025-01-24
