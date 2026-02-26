@@ -7,16 +7,14 @@ Focuses on global callbacks, helper functions, and edge cases.
 from __future__ import annotations
 
 import logging
-from typing import ClassVar
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import click
 import typer
-from flext_core import FlextRuntime, t
-from typer.testing import CliRunner
-
 from flext_cli import FlextCliCli, FlextCliSettings
 from flext_cli.models import m
+from flext_core import FlextRuntime, t
+from typer.testing import CliRunner
 
 
 class TestsCliCliExtended:
@@ -26,28 +24,7 @@ class TestsCliCliExtended:
         """Test global callback logic in create_app_with_common_params."""
         cli = FlextCliCli()
 
-        class MockConfig:
-            model_fields: ClassVar[dict[str, MagicMock]] = {
-                "debug": MagicMock(),
-                "trace": MagicMock(),
-                "verbose": MagicMock(),
-                "quiet": MagicMock(),
-                "log_level": MagicMock(),
-                "cli_log_level": MagicMock(),
-                "console_enabled": MagicMock(),
-            }
-
-            def __init__(self) -> None:
-                self.debug = False
-                self.trace = False
-                self.verbose = False
-                self.quiet = False
-                self.log_level = None
-                self.cli_log_level = None
-                self.console_enabled = True
-
-
-        mock_config_instance = MockConfig()
+        mock_config_instance = FlextCliSettings.get_global_instance()
 
         # Create a mock app with a command to invoke
         # Explicitly pass config so it's used in callback
@@ -88,28 +65,7 @@ class TestsCliCliExtended:
         """Test global callback with quiet flag."""
         cli = FlextCliCli()
 
-        class MockConfig:
-            model_fields: ClassVar[dict[str, MagicMock]] = {
-                "debug": MagicMock(),
-                "trace": MagicMock(),
-                "verbose": MagicMock(),
-                "quiet": MagicMock(),
-                "log_level": MagicMock(),
-                "cli_log_level": MagicMock(),
-                "console_enabled": MagicMock(),
-            }
-
-            def __init__(self) -> None:
-                self.debug = False
-                self.trace = False
-                self.verbose = False
-                self.quiet = False
-                self.log_level = None
-                self.cli_log_level = None
-                self.console_enabled = True
-
-
-        mock_config_instance = MockConfig()
+        mock_config_instance = FlextCliSettings.get_global_instance()
 
         app = cli.create_app_with_common_params(
             "test_app",
@@ -235,8 +191,9 @@ class TestsCliCliExtended:
             help_text="A flag",
         )
 
-        def cmd_impl(flag: bool) -> None:
-            pass
+        def cmd_impl(*args: t.GeneralValueType, **kwargs: t.GeneralValueType) -> str:
+            _ = args, kwargs
+            return "ok"
 
         # Cast to CliCommandFunction for type compatibility
         cmd = deco(cmd_impl)
@@ -244,9 +201,8 @@ class TestsCliCliExtended:
         # Inspect click info
         # The decorator adds __click_params__ attribute to the function
         # Use getattr with hasattr check for type safety
-        if hasattr(cmd, "__click_params__"):
-            click_params = cmd.__click_params__
-            assert isinstance(click_params, list)
+        click_params = getattr(cmd, "__click_params__", None)
+        if isinstance(click_params, list):
             assert len(click_params) > 0
             click_info = click_params[0]
             assert click_info.required is True

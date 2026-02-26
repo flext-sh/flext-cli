@@ -54,10 +54,11 @@ class FlextCliPrompts(FlextCliServiceBase):
         resolved_timeout_raw = (
             timeout_raw if isinstance(timeout_raw, int | str) else None
         )
-        self.default_timeout = m.Cli.PromptTimeoutResolved(
+        resolved_timeout: int = m.Cli.PromptTimeoutResolved(
             raw=resolved_timeout_raw,
             default=default_timeout,
         ).resolved
+        self.default_timeout = resolved_timeout
         self.logger.debug(
             "Initialized CLI prompts service",
             operation="__init__",

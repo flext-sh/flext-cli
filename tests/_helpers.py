@@ -25,6 +25,7 @@ def create_test_cli_command(
         "description": "Test command description",
         "status": "pending",
         "created_at": now,
+        "command_line": "test_command",
     }
     # Normalize test-only keys to model fields
     if "command_id" in overrides:

@@ -98,14 +98,25 @@ class DataManagerCLI:
             )
         self.cli.output.print_message("✅ Data loaded successfully", style="green")
         # Convert to JsonDict-compatible dict using u
-        converted_data: dict[str, t.JsonValue] = (
-            u.transform(data, to_json=True).value
-            if isinstance(data, dict) and u.transform(data, to_json=True).is_success
-            else data
-        )
+        transform_result = u.transform(data, to_json=True)
+        if transform_result.is_success and isinstance(transform_result.value, dict):
+            converted_data: dict[str, t.JsonValue] = {}
+            for key, value in transform_result.value.items():
+                if (
+                    isinstance(value, str | int | float | bool)
+                    or value is None
+                    or isinstance(value, list | dict)
+                ):
+                    converted_data[key] = value
+                else:
+                    converted_data[key] = str(value)
+        else:
+            return r[dict[str, t.JsonValue]].fail(
+                "Loaded data contains non-JSON values"
+            )
         return r[dict[str, t.JsonValue]].ok(converted_data)
 
-    def display_data(self, data: dict[str, t.GeneralValueType]) -> None:
+    def display_data(self, data: dict[str, t.JsonValue]) -> None:
         """Display data as formatted table."""
         if not data:
             self.cli.output.print_message("⚠️  No data to display", style="yellow")
@@ -142,23 +153,11 @@ class DataManagerCLI:
 
         value = value_result.value
 
-        entry = {key: value}
         self.cli.output.print_message(
             f"✅ Created entry: {key} = {value}",
             style="green",
         )
-        # Convert to JsonDict-compatible dict using u
-        converted_entry: dict[str, t.JsonValue] = (
-            u.transform(
-                entry,
-                to_json=True,
-            ).value
-            if u.transform(
-                entry,
-                to_json=True,
-            ).is_success
-            else entry
-        )
+        converted_entry: dict[str, t.JsonValue] = {key: value}
         return r[dict[str, t.JsonValue]].ok(converted_entry)
 
     def run_workflow(self) -> r[bool]:
@@ -169,7 +168,7 @@ class DataManagerCLI:
         # Step 2: Load existing data (or create new)
         self.cli.output.print_message("\n📂 Loading existing data...", style="cyan")
         load_result = self.load_data()
-        current_data: dict[str, t.GeneralValueType] = {}
+        current_data: dict[str, t.JsonValue] = {}
 
         if load_result.is_success:
             # Load existing data for update operations
@@ -274,14 +273,7 @@ def main() -> None:
         "\n2. Railway Pattern (chained operations):",
         style="bold cyan",
     )
-    test_data_raw: dict[str, t.GeneralValueType] = {"id": 1, "name": "test"}
-    # Convert to JsonDict-compatible dict using u
-    test_data: dict[str, t.JsonValue] = (
-        u.transform(test_data_raw, to_json=True).value
-        if isinstance(test_data_raw, dict)
-        and u.transform(test_data_raw, to_json=True).is_success
-        else test_data_raw
-    )
+    test_data: dict[str, t.JsonValue] = {"id": 1, "name": "test"}
     pipeline_result = process_with_railway_pattern(test_data)
 
     if pipeline_result.is_success:

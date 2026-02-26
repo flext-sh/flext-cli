@@ -119,14 +119,17 @@ class FlextCliCli:
         if type_name not in {"str", "bool", "dict"}:
             return default
         if type_name == "str":
-            return m.Cli.TypedExtract(
+            resolved: t.JsonValue | None = m.Cli.TypedExtract(
                 type_kind="str", value=val, default=default
             ).resolved
+            return resolved
         if type_name == "bool":
-            return m.Cli.TypedExtract(
+            resolved = m.Cli.TypedExtract(
                 type_kind="bool", value=val, default=default
             ).resolved
-        return m.Cli.TypedExtract(type_kind="dict", value=val, default=default).resolved
+            return resolved
+        resolved = m.Cli.TypedExtract(type_kind="dict", value=val, default=default).resolved
+        return resolved
 
     def _get_log_level_value(self, config: FlextCliSettings) -> int:
         if config.debug or config.trace:
@@ -134,9 +137,9 @@ class FlextCliCli:
         log_level_attr = getattr(config, "cli_log_level", None) or getattr(
             config, "log_level", None
         )
-        level_str = m.Cli.LogLevelResolved(
-            raw=log_level_attr.value if log_level_attr else None,
-        ).resolved
+        level_str: str = str(m.Cli.LogLevelResolved(
+            raw=log_level_attr.value if log_level_attr and hasattr(log_level_attr, 'value') else str(log_level_attr) if log_level_attr else None,
+        ).resolved)
         return getattr(logging, level_str, logging.INFO)
 
     def _get_console_enabled(self, config: FlextCliSettings) -> bool:
@@ -816,7 +819,7 @@ class FlextCliCli:
 
     @staticmethod
     def model_command(
-        model_class: type[object],
+        model_class: type[BaseModel],
         handler: Callable[[BaseModel], t.JsonValue | r[t.JsonValue]],
         config: FlextCliSettings | None = None,
     ) -> p.Cli.CliCommandFunction:

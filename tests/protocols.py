@@ -33,15 +33,6 @@ class TestsCliProtocols(FlextTestsProtocols, FlextCliProtocols):
     - Only flext-cli-specific test protocols allowed
     """
 
-    class Tests:
-        """Project-specific test protocols.
-
-        Extends FlextTestsProtocols.Tests with flext-cli-specific protocols.
-        """
-
-        class Cli:
-            """Flext-cli-specific test protocols."""
-
 
 # Runtime alias
 p = TestsCliProtocols

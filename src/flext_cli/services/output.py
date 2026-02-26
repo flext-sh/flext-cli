@@ -214,9 +214,10 @@ class FlextCliOutput:
         default: list[t.JsonValue] | None = None,
     ) -> list[t.JsonValue]:
         """Ensure value is list with default via NormalizedJsonList model."""
-        return m.Cli.NormalizedJsonList(
+        resolved: list[t.JsonValue] = m.Cli.NormalizedJsonList(
             value=v, default=default if default is not None else []
         ).resolved
+        return resolved
 
     @staticmethod
     def ensure_dict(
@@ -224,9 +225,10 @@ class FlextCliOutput:
         default: Mapping[str, t.JsonValue] | None = None,
     ) -> Mapping[str, t.JsonValue]:
         """Ensure value is dict with default via NormalizedJsonDict model."""
-        return m.Cli.NormalizedJsonDict(
+        resolved: Mapping[str, t.JsonValue] = m.Cli.NormalizedJsonDict(
             value=v, default=dict(default) if default is not None else {}
         ).resolved
+        return resolved
 
     @staticmethod
     def ensure_bool(v: t.JsonValue | None, *, default: bool = False) -> bool:

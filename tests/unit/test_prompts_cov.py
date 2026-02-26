@@ -10,7 +10,7 @@ def test_prompt_confirmation_handles_exception_from_record(monkeypatch) -> None:
     monkeypatch.setattr(
         prompts,
         "_record",
-        lambda _value: (_ for _ in ()).throw(RuntimeError("record boom")),
+        lambda _value: (_ for _ in ()).throw(ValueError("record boom")),
     )
 
     result = prompts.prompt_confirmation("continue?")
@@ -27,7 +27,7 @@ def test_prompt_choice_covers_required_default_and_exception(monkeypatch) -> Non
     monkeypatch.setattr(
         prompts,
         "_record",
-        lambda _value: (_ for _ in ()).throw(RuntimeError("choice boom")),
+        lambda _value: (_ for _ in ()).throw(ValueError("choice boom")),
     )
     exploded = prompts.prompt_choice("pick", ["a"], default="a")
     assert exploded.is_failure
@@ -121,7 +121,7 @@ def test_print_status_exception_path(monkeypatch) -> None:
     monkeypatch.setattr(
         prompts.logger,
         "info",
-        lambda _msg: (_ for _ in ()).throw(RuntimeError("log boom")),
+        lambda _msg: (_ for _ in ()).throw(ValueError("log boom")),
     )
     monkeypatch.setattr(prompts.logger, "exception", lambda *args, **kwargs: None)
 

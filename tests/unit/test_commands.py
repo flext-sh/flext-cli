@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import time
 
-from flext_cli import FlextCliCommands, r
+from flext_cli import FlextCliCommands, r, t
 from flext_cli.constants import c
 
 # from ..fixtures.constants import TestCommands  # Fixtures removed - use conftest.py and flext_tests
@@ -66,7 +66,9 @@ class TestsCliCommands:
 
         assert result.is_success
         assert isinstance(result.value, dict)
-        assert result.value["commands_count"] >= 0
+        commands_count = result.value["commands_count"]
+        assert isinstance(commands_count, int)
+        assert commands_count >= 0
 
     def test_commands_registration(self) -> None:
         """Test command registration functionality."""
@@ -77,7 +79,9 @@ class TestsCliCommands:
         exec_result = commands.execute()
         assert exec_result.is_success
         assert isinstance(exec_result.value, dict)
-        assert exec_result.value["commands_count"] >= 0
+        commands_count = exec_result.value["commands_count"]
+        assert isinstance(commands_count, int)
+        assert commands_count >= 0
 
     # ========================================================================
     # COMMAND EXECUTION
@@ -356,12 +360,19 @@ class TestsCliCommands:
         """Test create_command_group method."""
         commands = CommandsFactory.create_commands()
 
+        def grouped_handler(
+            *args: t.JsonValue,
+            **kwargs: t.JsonValue,
+        ) -> r[t.JsonValue]:
+            _ = args, kwargs
+            return r[t.JsonValue].ok("result1")
+
         result = commands.create_command_group(
             "test_group",
             description="Test group description",
             commands={
                 "cmd1": {
-                    "handler": lambda *args: "result1" if not args else args[0],
+                    "handler": grouped_handler,
                 },
             },
         )

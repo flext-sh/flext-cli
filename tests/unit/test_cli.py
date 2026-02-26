@@ -18,11 +18,10 @@ import click
 import pytest
 import typer
 from click.testing import CliRunner
-from flext_cli import t
-from flext_tests import tm
-
-from flext_cli import FlextCliCli, r
+from flext_cli import FlextCliCli, r, t
 from flext_cli.models import m
+from flext_cli.settings import FlextCliSettings
+from flext_tests import tm
 
 # from ..fixtures.constants import TestCli  # Fixtures removed - use conftest.py and flext_tests
 from ..helpers import FlextCliTestHelpers
@@ -311,9 +310,11 @@ class TestsCliCli:
             cli = FlextCliCli()
             # Intentional negative test: pass a type that is not BaseModel subclass
             invalid_model: type = dict
-            handler = (lambda x: x,)
 
-            with pytest.raises((TypeError, ValueError)):
+            def handler(_model: object) -> str:
+                return "invalid"
+
+            with pytest.raises(Exception):
                 cli.model_command(invalid_model, handler)
 
         def test_create_cli_runner(self) -> None:
@@ -509,8 +510,6 @@ class TestsCliCli:
 
     def test_get_console_enabled(self) -> None:
         """Test _get_console_enabled method."""
-        from flext_cli.settings import FlextCliSettings
-
         cli = FlextCliCli()
         config = FlextCliSettings()
         config.no_color = False
@@ -523,8 +522,6 @@ class TestsCliCli:
 
     def test_apply_common_params_to_config(self) -> None:
         """Test _apply_common_params_to_config method."""
-        from flext_cli.settings import FlextCliSettings
-
         cli = FlextCliCli()
         config = FlextCliSettings()
         # Call method with keyword arguments

@@ -2126,7 +2126,7 @@ class FlextCliModels(FlextModels):
 
             def _collect_field_data(
                 self,
-                model_fields: Mapping[str, FieldInfo | t.JsonValue],
+                model_fields: Mapping[str, FieldInfo],
             ) -> tuple[
                 Mapping[str, type],
                 Mapping[str, t.JsonValue],
@@ -2456,7 +2456,7 @@ class FlextCliModels(FlextModels):
 
                     def convert_field(
                         field_name: str,
-                        field_info: FieldInfo | t.JsonValue,
+                        field_info: FieldInfo,
                     ) -> p.Cli.CliParameterSpecProtocol:
                         """Convert single field to CliParameterSpec."""
                         field_type = (

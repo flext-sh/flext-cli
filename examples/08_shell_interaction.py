@@ -33,7 +33,7 @@ from __future__ import annotations
 import os
 import time
 
-from flext_cli import FlextCli, r, t, u
+from flext_cli import FlextCli, r, t
 
 cli = FlextCli()
 
@@ -56,11 +56,7 @@ def handle_status_command() -> r[dict[str, t.JsonValue]]:
     cli.formatters.print(f"   Time: {status['timestamp']}", style="cyan")
 
     # Use u.transform for JSON conversion
-    transform_result = u.transform(
-        status,
-        to_json=True,
-    )
-    typed_status: dict[str, t.JsonValue] = transform_result.map_or(status)
+    typed_status: dict[str, t.JsonValue] = dict(status)
     return r[dict[str, t.JsonValue]].ok(typed_status)
 
 
@@ -130,17 +126,17 @@ class InteractiveShell:
         self.running = False
         return r[bool].ok(value=True)
 
-    def execute_command(self, command_line: str) -> r[object]:
+    def execute_command(self, command_line: str) -> r[t.JsonValue]:
         """Execute command from user input."""
         parts = command_line.strip().split()
         if not parts:
-            return r[object].fail("Empty command")
+            return r[t.JsonValue].fail("Empty command")
 
         cmd_name = parts[0]
         args = parts[1:] if len(parts) > 1 else []
 
         if cmd_name not in self.commands:
-            return r[object].fail(f"Unknown command: {cmd_name}")
+            return r[t.JsonValue].fail(f"Unknown command: {cmd_name}")
 
         handler = self.commands[cmd_name]
 
@@ -150,16 +146,28 @@ class InteractiveShell:
                 result = handler(*args) if args else handler()
                 # Type narrowing: ensure r
                 if isinstance(result, r):
-                    # Type narrowing: result is r[T] for some T
-                    # r is covariant, so r[T] is compatible with r[object]
-                    # Return with explicit type annotation to satisfy type checker
-                    return_val: r[object] = result
-                    return return_val
+                    if result.is_failure:
+                        return r[t.JsonValue].fail(
+                            result.error or "Unknown command error"
+                        )
+                    result_value = result.value
+                    if (
+                        isinstance(result_value, str | int | float | bool)
+                        or result_value is None
+                    ):
+                        return r[t.JsonValue].ok(result_value)
+                    if isinstance(result_value, list | dict):
+                        return r[t.JsonValue].ok(result_value)
+                    return r[t.JsonValue].ok(str(result_value))
                 # Wrap non-r in r
-                return r[object].ok(result)
-            return r[object].fail("Handler is not callable")
+                if isinstance(result, str | int | float | bool) or result is None:
+                    return r[t.JsonValue].ok(result)
+                if isinstance(result, list | dict):
+                    return r[t.JsonValue].ok(result)
+                return r[t.JsonValue].ok(str(result))
+            return r[t.JsonValue].fail("Handler is not callable")
         except Exception as e:
-            return r[object].fail(f"Command error: {e}")
+            return r[t.JsonValue].fail(f"Command error: {e}")
 
 
 # ============================================================================

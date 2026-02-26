@@ -15,7 +15,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import pytest
-
 from flext_cli import FlextCliProtocols, r
 from flext_cli.protocols import p
 from flext_cli.typings import t
@@ -161,8 +160,13 @@ class TestsCliProtocols:
             provider = provider_result.value
             # Type narrowing using protocol check
             if isinstance(provider, p.Cli.CliConfigProvider):
-                test_config_raw = c.Configuration.BASIC_CONFIG
-                test_config = test_config_raw
+                test_config_raw = c.TestConfiguration.BASIC_CONFIG
+                test_config: dict[str, t.JsonValue] = {}
+                for key, value in test_config_raw.items():
+                    if isinstance(value, str | int | float | bool) or value is None:
+                        test_config[key] = value
+                    else:
+                        test_config[key] = str(value)
                 save_result = provider.save_config(test_config)
                 assert save_result.is_success, save_result.error or "save_config failed"
 

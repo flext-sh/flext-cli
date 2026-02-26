@@ -32,7 +32,7 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from flext_cli import FlextCli, FlextCliTables, m, t, u
+from flext_cli import FlextCli, FlextCliTables, m, t
 
 cli = FlextCli()
 tables = FlextCliTables()
@@ -103,26 +103,17 @@ def import_from_csv(input_file: Path) -> list[dict[str, t.JsonValue]] | None:
     # Display sample rows
     if rows:
         cli.output.print_message("\n📋 Sample Data:", style="yellow")
-        # Convert to JsonDict-compatible format using u
         sample_rows_raw = rows[:5]
-        # Use u.map to convert list items to JSON
-        sample_rows: list[dict[str, t.JsonValue]] = list(
-            u.Cli.map(
-                sample_rows_raw,
-                mapper=lambda row: (
-                    u.transform(
-                        row,
-                        to_json=True,
-                    ).value
-                    if isinstance(row, dict)
-                    and u.transform(
-                        row,
-                        to_json=True,
-                    ).is_success
-                    else row
-                ),
-            ),
-        )
+        sample_rows: list[dict[str, t.JsonValue]] = []
+        for row in sample_rows_raw:
+            if isinstance(row, dict):
+                normalized_row: dict[str, t.JsonValue] = {}
+                for key, value in row.items():
+                    if isinstance(value, str | int | float | bool) or value is None:
+                        normalized_row[key] = value
+                    else:
+                        normalized_row[key] = str(value)
+                sample_rows.append(normalized_row)
         # Cast to expected type for table creation - t.Cli.TableData is Sequence[JsonDict] | JsonDict | Sequence[Sequence[t.GeneralValueType]]
         config = m.Cli.TableConfig(table_format="grid")
         # sample_rows is already Sequence[dict[str, t.GeneralValueType]] which is compatible with t.Cli.TableData
@@ -134,25 +125,16 @@ def import_from_csv(input_file: Path) -> list[dict[str, t.JsonValue]] | None:
         if table_result.is_success:
             pass
 
-    # Convert to JsonDict-compatible format using u
-    # Use u.map to convert list items to JSON
-    converted_rows: list[dict[str, t.JsonValue]] = list(
-        u.Cli.map(
-            rows,
-            mapper=lambda row: (
-                u.transform(
-                    row,
-                    to_json=True,
-                ).value
-                if isinstance(row, dict)
-                and u.transform(
-                    row,
-                    to_json=True,
-                ).is_success
-                else row
-            ),
-        ),
-    )
+    converted_rows: list[dict[str, t.JsonValue]] = []
+    for row in rows:
+        if isinstance(row, dict):
+            normalized_row: dict[str, t.JsonValue] = {}
+            for key, value in row.items():
+                if isinstance(value, str | int | float | bool) or value is None:
+                    normalized_row[key] = value
+                else:
+                    normalized_row[key] = str(value)
+            converted_rows.append(normalized_row)
     return converted_rows
 
 
@@ -258,11 +240,12 @@ def load_any_format_file(file_path: Path) -> dict[str, t.JsonValue] | None:
 
     # Display loaded data
     # Use u.transform for JSON conversion
-    transform_result = u.transform(
-        data,
-        to_json=True,
-    )
-    display_data: dict[str, t.JsonValue] = transform_result.map_or(data)
+    display_data: dict[str, t.JsonValue] = {}
+    for key, value in data.items():
+        if isinstance(value, str | int | float | bool) or value is None or isinstance(value, list | dict):
+            display_data[key] = value
+        else:
+            display_data[key] = str(value)
     # Cast to dict[str, t.GeneralValueType] for create_table
     table_result = cli.create_table(
         data=display_data,
@@ -274,8 +257,7 @@ def load_any_format_file(file_path: Path) -> dict[str, t.JsonValue] | None:
 
     # Convert to JsonDict-compatible dict using u
     # Use u.transform for JSON conversion
-    transform_result = u.transform(data, to_json=True)
-    return transform_result.map_or(data)
+    return display_data
 
 
 # ============================================================================
@@ -462,25 +444,15 @@ def main() -> None:
     ]
 
     csv_file = temp_dir / "employees.csv"
-    # Convert to JsonDict-compatible format using u
-    # Use u.map to convert list items to JSON
-    typed_sample_data: list[dict[str, t.JsonValue]] = list(
-        u.Cli.map(
-            sample_data,
-            mapper=lambda row: (
-                u.transform(
-                    row,
-                    to_json=True,
-                ).value
-                if isinstance(row, dict)
-                and u.transform(
-                    row,
-                    to_json=True,
-                ).is_success
-                else row
-            ),
-        ),
-    )
+    typed_sample_data: list[dict[str, t.JsonValue]] = []
+    for row in sample_data:
+        normalized_row: dict[str, t.JsonValue] = {}
+        for key, value in row.items():
+            if isinstance(value, str | int | float | bool) or value is None:
+                normalized_row[key] = value
+            else:
+                normalized_row[key] = str(value)
+        typed_sample_data.append(normalized_row)
     export_to_csv(typed_sample_data, csv_file)
     import_from_csv(csv_file)
 

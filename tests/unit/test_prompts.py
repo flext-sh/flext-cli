@@ -414,7 +414,7 @@ class TestsCliPrompts:
 
             def append(self, item: str) -> Never:
                 msg = "Forced exception for testing prompt_choice exception handler"
-                raise RuntimeError(msg)
+                raise ValueError(msg)
 
         error_list = ErrorList()
         # Use helper method to set private field for testing
@@ -613,7 +613,7 @@ class TestsCliPrompts:
 
             def clear(self) -> None:
                 msg = "Clear failed"
-                raise RuntimeError(msg)
+                raise ValueError(msg)
 
         # Replace _prompt_history with BadList that raises exception
         # Use setattr to bypass Pydantic's PrivateAttr validation for testing
@@ -872,7 +872,7 @@ class TestsCliPrompts:
         test_error_msg = "Test error"
 
         def mock_input(_: str) -> str:
-            raise RuntimeError(test_error_msg)
+            raise ValueError(test_error_msg)
 
         monkeypatch.setattr("builtins.input", mock_input)
         result = interactive_prompts.confirm("Continue?", default=False)
@@ -958,7 +958,7 @@ class TestsCliPrompts:
         password_input_error_msg = "Password input error"
 
         def mock_getpass(_: str) -> str:
-            raise RuntimeError(password_input_error_msg)
+            raise ValueError(password_input_error_msg)
 
         monkeypatch.setattr(getpass, "getpass", mock_getpass)
         interactive_prompts = self.Fixtures.create_interactive_prompts()
@@ -1020,7 +1020,7 @@ class TestsCliPrompts:
         input_error_msg = "Input error"
 
         def mock_input(_: str) -> str:
-            raise RuntimeError(input_error_msg)
+            raise ValueError(input_error_msg)
 
         monkeypatch.setattr("builtins.input", mock_input)
         interactive_prompts = self.Fixtures.create_interactive_prompts()
@@ -1052,7 +1052,7 @@ class TestsCliPrompts:
         selection_error_msg = "Selection error"
 
         def mock_input(_: str) -> str:
-            raise RuntimeError(selection_error_msg)
+            raise TypeError(selection_error_msg)
 
         monkeypatch.setattr("builtins.input", mock_input)
         interactive_prompts = self.Fixtures.create_interactive_prompts()
@@ -1083,7 +1083,7 @@ class TestsCliPrompts:
         logger_error_msg = "Logger error"
 
         def mock_info(*args: object, **kwargs: object) -> None:
-            raise RuntimeError(logger_error_msg)
+            raise ValueError(logger_error_msg)
 
         monkeypatch.setattr(prompts.logger, "info", mock_info)
         result = prompts._print_message(
@@ -1122,7 +1122,7 @@ class TestsCliPrompts:
 
         def mock_info(message: str, *args: object, **kwargs: object) -> None:
             if "Starting progress" in str(message):
-                raise RuntimeError(progress_error_msg)
+                raise ValueError(progress_error_msg)
             # Call original with message only to avoid overload issues
             # logger.info accepts message as first positional argument
             original_info(str(message))
@@ -1144,7 +1144,7 @@ class TestsCliPrompts:
 
         def mock_info(message: str, *args: object, **kwargs: object) -> None:
             if "Starting progress operation" in str(message):
-                raise RuntimeError(progress_error_msg)
+                raise ValueError(progress_error_msg)
             # Call original with message only to avoid overload issues
             # logger.info accepts message as first positional argument
             original_info(str(message))
@@ -1246,7 +1246,7 @@ class TestsCliPrompts:
 
         def mock_debug(message: str, *args: object, **kwargs: object) -> None:
             if "Prompt service execution completed" in str(message):
-                raise RuntimeError(execute_error_msg)
+                raise ValueError(execute_error_msg)
             # Call original with message only to avoid overload issues
             # logger.debug accepts message as first positional argument
             original_debug(str(message))

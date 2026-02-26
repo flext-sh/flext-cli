@@ -147,6 +147,11 @@ markers = [
     "resilience: resilience tests",
 ]
 
+[tool.mypy]
+python_version = "3.13"
+ignore_missing_imports = true
+disable_error_code = ["prop-decorator"]
+
 # [CUSTOM] pyrefly - include project root and examples so tests.* and example_utils resolve
 [tool.pyrefly]
 search-path = ["src", "examples", "."]

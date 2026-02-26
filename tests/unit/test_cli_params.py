@@ -14,15 +14,15 @@ from collections.abc import Callable
 from enum import StrEnum  # @vulture_ignore
 from pathlib import Path  # @vulture_ignore
 
+import pytest
 import typer  # @vulture_ignore
-from flext_core import r  # @vulture_ignore
-from flext_tests import tm  # @vulture_ignore
-from typer.testing import CliRunner
-
 from flext_cli import (  # @vulture_ignore
     FlextCliCommonParams,
     FlextCliSettings,
 )
+from flext_core import r  # @vulture_ignore
+from flext_tests import tm  # @vulture_ignore
+from typer.testing import CliRunner
 
 
 class ConfigParam(StrEnum):
@@ -267,7 +267,7 @@ class TestsCliCommonParams:
         assert FlextCliCommonParams._enforcement_mode is True
 
         FlextCliCommonParams.disable_enforcement()
-        assert FlextCliCommonParams._enforcement_mode is False
+        assert not FlextCliCommonParams._enforcement_mode
 
         # Restore enforcement
         FlextCliCommonParams.enable_enforcement()
@@ -298,7 +298,7 @@ class TestsCliCommonParams:
         # Direct call - Railway pattern handles exceptions properly
         try:
             FlextCliCommonParams.create_option("nonexistent_field")
-            assert False, "Expected ValueError to be raised"
+            pytest.fail("Expected ValueError to be raised")
         except ValueError as e:
             error_msg = str(e).lower()
             assert "not found" in error_msg

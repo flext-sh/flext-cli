@@ -674,7 +674,15 @@ def generate_output_files(
     # CSV output (if data contains list)
     if "items" in data and isinstance(data["items"], list):
         csv_file = output_dir / f"{base_name}.csv"
-        csv_result = cli.file_tools.write_csv_file(csv_file, data["items"])
+        csv_rows: list[list[str]] = []
+        for item in data["items"]:
+            if isinstance(item, dict):
+                csv_rows.append([str(value) for value in item.values()])
+            elif isinstance(item, (list, tuple)):
+                csv_rows.append([str(value) for value in item])
+            else:
+                csv_rows.append([str(item)])
+        csv_result = cli.file_tools.write_csv_file(csv_file, csv_rows)
         if csv_result.is_failure:
             return r[dict[str, Path]].fail(f"CSV export failed: {csv_result.error}")
         results["csv"] = csv_file

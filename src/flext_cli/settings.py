@@ -400,7 +400,9 @@ class FlextCliSettings(FlextSettings):
         """Get singleton instance of FlextCliSettings."""
         if cls._instance is None:
             cls._instance = cls()
-        return cls._instance
+        instance = cls._instance
+        assert instance is not None
+        return instance
 
     @classmethod
     def _reset_instance(cls) -> None:

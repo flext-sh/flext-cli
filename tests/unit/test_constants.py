@@ -22,7 +22,6 @@ import time  # @vulture_ignore
 from pathlib import Path  # @vulture_ignore
 
 import pytest  # @vulture_ignore
-
 from flext_cli import FlextCliConstants  # @vulture_ignore
 from flext_cli.constants import c
 from flext_cli.utilities import u
@@ -48,7 +47,7 @@ class TestsCliConstants:
         """Factory for creating constants instances for testing."""
 
         @staticmethod
-        def get_constants() -> FlextCliConstants:
+        def get_constants() -> type[FlextCliConstants]:
             """Get FlextCliConstants instance."""
             return FlextCliTestHelpers.ConstantsFactory.get_constants()
 
@@ -100,7 +99,7 @@ class TestsCliConstants:
 
         @staticmethod
         def _get_constant_value(
-            constants: FlextCliConstants,
+            constants: type[FlextCliConstants],
             constant_name: str,
         ) -> str:
             """Get constant value from correct namespace."""
@@ -118,7 +117,7 @@ class TestsCliConstants:
 
         @staticmethod
         def assert_constant_exists(
-            constants: FlextCliConstants,
+            constants: type[FlextCliConstants],
             constant_name: str,
         ) -> None:
             """Assert constant exists and has value."""
@@ -132,7 +131,7 @@ class TestsCliConstants:
 
         @staticmethod
         def assert_constant_value(
-            constants: FlextCliConstants,
+            constants: type[FlextCliConstants],
             constant_name: str,
             expected_value: str,
         ) -> None:
@@ -146,7 +145,7 @@ class TestsCliConstants:
 
         @staticmethod
         def assert_file_name_format(
-            constants: FlextCliConstants,
+            constants: type[FlextCliConstants],
             constant_name: str,
         ) -> None:
             """Assert file name constant follows format."""

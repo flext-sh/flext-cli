@@ -331,7 +331,9 @@ class FlextCli:
         func: p.Cli.CliCommandFunction,
     ) -> p.Cli.CliRegisteredCommand:
         """Register a CLI entity (command or group) with framework abstraction."""
-        entity_name: str = name if name is not None else str(func.__name__)
+        entity_name: str = (
+            name if name is not None else str(getattr(func, "__name__", str(func)))
+        )
         # Select decorator factory based on entity type
         factory = (
             self._cli.create_command_decorator

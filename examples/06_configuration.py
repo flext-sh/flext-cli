@@ -90,17 +90,11 @@ def load_environment_config() -> dict[str, str | int]:
         "Environment": environment,
     }
 
-    # Display config - convert to CliDataDict using u directly
-    # Use u.transform for JSON conversion
-    transform_result = u.transform(
-        settings,
-        to_json=True,
-    )
-    settings_data = transform_result.map_or(settings)
+    settings_data: dict[str, t.JsonValue] = dict(settings)
+    cli.print(f"🌍 {environment.capitalize()} Configuration", style="bold cyan")
     display_config_table(
         cli=cli,
         config_data=settings_data,
-        title=f"🌍 {environment.capitalize()} Configuration",
     )
 
     return settings
@@ -243,7 +237,6 @@ def load_profile_config(profile_name: str = "default") -> FlextCliSettings | Non
     display_config_table(
         cli=cli,
         config_data=profile_data,
-        title=f"🎯 Profile: {profile_name}",
     )
 
     return profile_config
@@ -520,17 +513,16 @@ def main() -> None:
 
     if config_result.is_success:
         final_config = config_result.value
-        # Display final config - convert to CliDataDict
-        # Use u.transform for JSON conversion
-        transform_result = u.transform(
-            final_config,
-            to_json=True,
-        )
-        final_config_data = transform_result.map_or(final_config)
+        final_config_data: dict[str, t.JsonValue] = {}
+        for key, value in final_config.items():
+            if isinstance(value, str | int | float | bool) or value is None:
+                final_config_data[key] = value
+            else:
+                final_config_data[key] = str(value)
+        cli.print("Final Application Configuration", style="bold cyan")
         display_config_table(
             cli=cli,
             config_data=final_config_data,
-            title="Final Application Configuration",
         )
 
     cli.print("\n" + "=" * 70, style="bold blue")

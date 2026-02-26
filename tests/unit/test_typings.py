@@ -17,6 +17,7 @@ from __future__ import annotations
 import math
 import threading
 import time
+from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import StrEnum
 from typing import (
@@ -31,11 +32,10 @@ from typing import (
 )
 
 import pytest
-from flext_cli import t
+from flext_cli import r, t
 from flext_tests import tm
 
-from flext_cli import r
-from tests.helpers import c, t
+from tests.helpers import c
 
 # from ..fixtures.constants import TestTypings  # Fixtures removed - use conftest.py and flext_tests
 from ..helpers import FlextCliTestHelpers
@@ -144,7 +144,9 @@ class TestsCliTypings:
                 return r[bool].fail(str(e))
 
         @staticmethod
-        def validate_type_usage(data: dict[str, t.GeneralValueType], type_hint: str) -> r[bool]:
+        def validate_type_usage(
+            data: dict[str, t.GeneralValueType], type_hint: str
+        ) -> r[bool]:
             """Validate type usage with actual data."""
             try:
                 match type_hint:
@@ -242,7 +244,7 @@ class TestsCliTypings:
     def _execute_type_definition_tests(self) -> None:
         """Execute type definition tests."""
         # Test TypeVar creation
-        t = TypeVar("t")
+        t_var = TypeVar("t_var")
 
         # Test Generic type
         @dataclass
@@ -254,7 +256,7 @@ class TestsCliTypings:
             def method(self) -> str: ...
 
         # Validate type definitions
-        assert t is not None
+        assert t_var is not None
         assert GenericType is not None
         assert TestProtocol is not None
 
@@ -513,7 +515,7 @@ class TestsCliTypings:
         def process_list(data: list[str]) -> list[str]:
             return [item.upper() for item in data]
 
-        def process_dict(data: dict[str, t.GeneralValueType]) -> dict[str, str]:
+        def process_dict(data: Mapping[str, t.GeneralValueType]) -> dict[str, str]:
             return {key: str(value) for key, value in data.items()}
 
         # Test performance

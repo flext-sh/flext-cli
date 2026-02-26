@@ -138,7 +138,7 @@ class TestsFlextCliConstants(FlextTestsConstants, FlextCliConstants):
         SMALL_DATASET_SIZE: Final[int] = 5
         LARGE_DATASET_SIZE: Final[int] = 100
 
-    class Configuration:
+    class TestConfiguration:
         """Test configuration constants."""
 
         BASIC_CONFIG: Final[dict[str, t.GeneralValueType]] = {
@@ -310,7 +310,7 @@ class TestsFlextCliConstants(FlextTestsConstants, FlextCliConstants):
             ("rst", "rst", ["=", "name", "role"]),
         ]
 
-    class Authentication:
+    class TestAuthentication:
         """Authentication test constants for protocol testing."""
 
         VALID_TOKEN: Final[str] = "valid_token"

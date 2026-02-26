@@ -17,7 +17,7 @@ from pydantic import BaseModel, ConfigDict, ValidationError, validate_call
 from rich.errors import ConsoleError, LiveError, StyleError
 
 from flext_cli.constants import c
-from flext_cli.models import CliExecutionMetadata, CliValidationResult
+from flext_cli.models import m
 from flext_cli.typings import t
 
 type CliValue = (
@@ -124,7 +124,7 @@ class FlextCliUtilities(FlextUtilities):
             if checked.is_failure:
                 raise ValueError(checked.error or f"{context} cannot be empty")
 
-        class CliValidation(FlextUtilities.Validation):
+        class CliValidation:
             """CLI-specific validation utilities."""
 
             @staticmethod
@@ -617,6 +617,9 @@ class FlextCliUtilities(FlextUtilities):
         Cli.CliValidation,
     )
 
+
+CliExecutionMetadata = m.Cli.CliExecutionMetadata
+CliValidationResult = m.Cli.CliValidationResult
 
 u = FlextCliUtilities
 __all__ = ["CliExecutionMetadata", "CliValidationResult", "FlextCliUtilities", "u"]

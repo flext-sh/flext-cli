@@ -4,8 +4,10 @@ from datetime import datetime
 
 import pytest
 from flext_cli import t
-
 from flext_cli.constants import c
+from flext_cli.models import m
+from pydantic import ValidationError
+
 from tests._helpers import (
     create_real_cli_command,
     create_real_cli_session,
@@ -49,7 +51,7 @@ class TestsCliComprehensiveModels:
                 assert getattr(cmd, key) == value
 
         # Verify command is valid and functional
-        assert "cmd-" in cmd.command_id  # command_id contains "cmd-" somewhere
+        assert "test" in (cmd.command_line or cmd.name)
         assert isinstance(cmd.created_at, datetime)
 
     @pytest.mark.parametrize(
@@ -73,9 +75,9 @@ class TestsCliComprehensiveModels:
         """Test session command filtering by status."""
         # Create session with commands using model_construct to pass commands list
         cmd1 = create_real_cli_command(name="cmd1", status=c.Cli.CommandStatus.PENDING)
-        cmd2 = create_real_cli_command(name="cmd2", status=c.Cli.CommandStatus.COMPLETED)
-
-        from flext_cli.models import m
+        cmd2 = create_real_cli_command(
+            name="cmd2", status=c.Cli.CommandStatus.COMPLETED
+        )
 
         session = m.Cli.CliSession.model_construct(
             session_id="test-session",
@@ -97,11 +99,8 @@ class TestsCliComprehensiveModels:
     @pytest.mark.parametrize("commands_count", [1, 5, 10, 50])
     def test_session_with_multiple_commands(self, commands_count: int) -> None:
         """Test session creation with multiple commands."""
-        from flext_cli.models import m
-
         commands = [
-            create_real_cli_command(name=f"cmd{i}")
-            for i in range(commands_count)
+            create_real_cli_command(name=f"cmd{i}") for i in range(commands_count)
         ]
 
         session = m.Cli.CliSession.model_construct(
@@ -130,10 +129,6 @@ class TestsCliModelValidation:
 
     def test_session_validation_rules(self) -> None:
         """Test session validation business rules."""
-        from pydantic import ValidationError
-
-        from flext_cli.models import m
-
         # Valid session
         session = create_real_cli_session()
         assert session.status == "active"
@@ -151,8 +146,6 @@ class TestsCliModelSerialization:
 
     def test_command_serialization(self) -> None:
         """Test command JSON serialization with real data."""
-        from flext_cli.models import m
-
         cmd = create_real_cli_command()
         json_data = cmd.model_dump()
 
@@ -168,8 +161,6 @@ class TestsCliModelSerialization:
 
     def test_session_serialization(self) -> None:
         """Test session JSON serialization with real data."""
-        from flext_cli.models import m
-
         session = create_real_cli_session()
         json_data = session.model_dump()
 

@@ -111,7 +111,7 @@ class MyAppPluginManager:
     def __init__(self) -> None:
         """Initialize plugin manager with empty plugin registry."""
         super().__init__()
-        self.plugins: dict[str, t.GeneralValueType] = {}
+        self.plugins: dict[str, object] = {}
 
     def register_plugin(self, plugin: object) -> None:
         """Register plugin in YOUR CLI."""
@@ -177,7 +177,7 @@ class MyAppPluginManager:
             """Get plugin version."""
             return getattr(plugin, "version", "1.0.0")
 
-        process_result = u.Cli.process(
+        process_result = u.Cli.process_mapping(
             self.plugins,
             processor=get_plugin_version,
             on_error="skip",

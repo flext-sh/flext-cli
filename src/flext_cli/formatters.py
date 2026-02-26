@@ -69,7 +69,7 @@ class FlextCliFormatters:
         """Initialize Rich formatters with direct Rich imports."""
         super().__init__()
         # Use Rich directly (formatters.py is ONE OF TWO files that may import Rich)
-        self.console = Console()
+        self.console: Console = Console()
 
     def execute(self) -> r[Mapping[str, t.JsonValue]]:
         """Execute service - required by FlextService."""

@@ -18,11 +18,13 @@ import os  # @vulture_ignore
 from pathlib import Path  # @vulture_ignore
 
 import pytest  # @vulture_ignore
-from flext_cli import t  # @vulture_ignore
+from flext_cli import (  # @vulture_ignore
+    FlextCliCli,
+    FlextCliSettings,
+    t,  # @vulture_ignore
+)
 from pydantic import BaseModel, Field, ValidationError  # @vulture_ignore
 from pydantic_settings import BaseSettings, SettingsConfigDict  # @vulture_ignore
-
-from flext_cli import FlextCliCli  # @vulture_ignore
 
 
 class TestsCliConfigModelIntegration:
@@ -287,7 +289,7 @@ class TestsCliConfigModelIntegration:
         cli: FlextCliCli,
     ) -> None:
         """Test model_command applies config defaults to Typer parameters."""
-        config = self.AppConfig()
+        config = FlextCliSettings.get_global_instance()
 
         def handler(_params: BaseModel) -> None:
             pass

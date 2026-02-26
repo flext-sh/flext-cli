@@ -52,7 +52,7 @@ class ConfigFactory:
             fields = {"test_field": (str, Field(default="test"))}
 
         annotations: dict[str, type] = {}
-        class_dict: dict[str, t.GeneralValueType] = {
+        class_dict: dict[str, object] = {
             "model_config": SettingsConfigDict(env_prefix=prefix),
             "__annotations__": annotations,
         }
@@ -86,7 +86,7 @@ class ParamsFactory:
             fields = {"test_field": (str, default_field, empty_kwargs)}
 
         annotations: dict[str, type] = {}
-        class_dict: dict[str, t.GeneralValueType] = {
+        class_dict: dict[str, object] = {
             "model_config": {"populate_by_name": populate_by_name},
             "__annotations__": annotations,
         }
@@ -253,7 +253,7 @@ class FlextCliTestHelpers:
             )
             version_parts_raw = base_parts + prerelease_parts
 
-            version_parts = []
+            version_parts: list[int | str] = []
             for part in version_parts_raw:
                 try:
                     version_parts.append(int(part))

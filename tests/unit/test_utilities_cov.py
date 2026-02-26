@@ -11,10 +11,10 @@ from flext_cli.utilities import FlextCliUtilities as u
 def test_process_fail_and_collect_paths() -> None:
     values = [1, 0]
 
-    fail_result = u.Cli.process(values, lambda x: 10 // x, on_error="fail")
+    fail_result = u.Cli.process(values, lambda x: (_ for _ in ()).throw(ValueError("div zero")) if x == 0 else 10 // x, on_error="fail")
     assert fail_result.is_failure
 
-    collect_result = u.Cli.process(values, lambda x: 10 // x, on_error="collect")
+    collect_result = u.Cli.process(values, lambda x: (_ for _ in ()).throw(ValueError("div zero")) if x == 0 else 10 // x, on_error="collect")
     assert collect_result.is_failure
     assert "[1]" in (collect_result.error or "")
 
@@ -25,11 +25,11 @@ def test_process_fail_and_collect_paths() -> None:
 def test_process_mapping_fail_and_collect_paths() -> None:
     data = {"ok": 2, "bad": 0}
 
-    fail_result = u.Cli.process_mapping(data, lambda _k, v: 10 // v, on_error="fail")
+    fail_result = u.Cli.process_mapping(data, lambda _k, v: (_ for _ in ()).throw(ValueError("div zero")) if v == 0 else 10 // v, on_error="fail")
     assert fail_result.is_failure
 
     collect_result = u.Cli.process_mapping(
-        data, lambda _k, v: 10 // v, on_error="collect"
+        data, lambda _k, v: (_ for _ in ()).throw(ValueError("div zero")) if v == 0 else 10 // v, on_error="collect"
     )
     assert collect_result.is_failure
     assert "bad" in (collect_result.error or "")

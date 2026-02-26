@@ -1,9 +1,8 @@
 """Integration tests for complete CLI workflows."""
 
-from tests._helpers import create_test_cli_command
-
 from flext_cli.constants import c
 from flext_cli.models import m
+from tests._helpers import create_test_cli_command
 
 
 class TestsCliWorkflowIntegration:
@@ -23,7 +22,7 @@ class TestsCliWorkflowIntegration:
 
         # Verify command is in session
         assert len(session.commands) == 1
-        assert session.commands[0].command_id == cmd.command_id
+        assert session.commands[0].command_line == cmd.command_line
 
     def test_session_command_filtering_by_status(self) -> None:
         """Test filtering commands by status in session."""

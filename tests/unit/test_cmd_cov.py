@@ -59,7 +59,7 @@ def test_set_config_value_outer_exception_path(monkeypatch) -> None:
     monkeypatch.setattr(
         cmd._file_tools,
         "write_json_file",
-        lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("write exception")),
+        lambda *args, **kwargs: (_ for _ in ()).throw(ValueError("write exception")),
     )
 
     result = cmd.set_config_value("k", "v")
@@ -85,7 +85,7 @@ def test_get_config_value_outer_exception_path(monkeypatch, tmp_path: Path) -> N
     monkeypatch.setattr(
         cmd._file_tools,
         "read_json_file",
-        lambda _path: (_ for _ in ()).throw(RuntimeError("read exception")),
+        lambda _path: (_ for _ in ()).throw(ValueError("read exception")),
     )
 
     result = cmd.get_config_value("x")
@@ -111,7 +111,7 @@ def test_show_config_outer_exception_path(monkeypatch) -> None:
     monkeypatch.setattr(
         FlextCliCmd,
         "get_config_info",
-        staticmethod(lambda: (_ for _ in ()).throw(RuntimeError("show error"))),
+        staticmethod(lambda: (_ for _ in ()).throw(ValueError("show error"))),
     )
 
     result = cmd.show_config()
@@ -127,7 +127,7 @@ def test_edit_config_outer_exception_path(monkeypatch) -> None:
         cmd_module.FlextCliServiceBase,
         "get_cli_config",
         staticmethod(
-            lambda: (_ for _ in ()).throw(RuntimeError("config access error"))
+            lambda: (_ for _ in ()).throw(ValueError("config access error"))
         ),
     )
 

@@ -13,9 +13,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations  # @vulture_ignore
 
-from flext_core import r, t  # @vulture_ignore
-
 from flext_cli import FlextCliServiceBase, FlextCliSettings  # @vulture_ignore
+from flext_core import r, t  # @vulture_ignore
 
 
 class TestsCliServiceBase:
@@ -32,9 +31,9 @@ class TestsCliServiceBase:
     class _ConcreteService(FlextCliServiceBase):
         """Concrete implementation for testing abstract base class."""
 
-        def execute(self) -> r[dict[str, t.JsonValue]]:
+        def execute(self) -> r[t.JsonDict]:
             """Implement abstract method for testing."""
-            return r[dict[str, t.JsonValue]].ok({})
+            return r[t.JsonDict].ok({})
 
     # =========================================================================
     # INITIALIZATION TESTS

@@ -29,7 +29,7 @@ from __future__ import annotations
 import time
 
 from example_utils import display_config_table, display_success_summary
-from flext_cli import FlextCli, m, r, t, u
+from flext_cli import FlextCli, m, r, t
 from flext_core import FlextResult
 from pydantic import BaseModel, Field, field_validator
 
@@ -135,11 +135,7 @@ def execute_deploy_from_cli(cli_args: dict[str, str | int | bool]) -> None:
         # Business Rule: Type conversion MUST use proper type annotations
         # Architecture: Use FlextTypes.GeneralValueType for type-safe conversions
         # Audit Implication: Type conversion ensures data integrity
-        transform_result = u.transform(
-            cli_args,
-            to_json=True,
-        )
-        typed_args: dict[str, t.JsonValue] = transform_result.map_or(cli_args)
+        typed_args: dict[str, t.JsonValue] = dict(cli_args)
 
         # Pydantic automatically validates ALL constraints
         # DeployConfig constructor handles type conversion and validation
@@ -483,13 +479,7 @@ def main() -> None:
     try:
         # Convert to JsonDict-compatible dict using u
         # Use u.transform for JSON conversion
-        transform_result = u.transform(
-            invalid_args,
-            to_json=True,
-        )
-        typed_invalid_args: dict[str, t.JsonValue] = transform_result.map_or(
-            invalid_args
-        )
+        typed_invalid_args: dict[str, t.JsonValue] = dict(invalid_args)
 
         # DeployConfig constructor handles type conversion and validation
         # Cast JsonValue types to specific types expected by DeployConfig
@@ -516,7 +506,6 @@ def main() -> None:
         display_config_table(
             cli=cli,
             config_data=config_data,
-            title="Final Database Configuration",
         )
 
     cli.output.print_message("\n" + "=" * 70, style="bold blue")
