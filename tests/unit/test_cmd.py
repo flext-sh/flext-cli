@@ -616,12 +616,12 @@ class TestsCliCmd:
     def test_cmd_config_helper_get_config_info(self) -> None:
         """Test u.Cli.ConfigOps.get_config_info() directly."""
         info = u.Cli.ConfigOps.get_config_info()
-        assert isinstance(info, dict)
-        assert "config_dir" in info
-        assert "config_exists" in info
-        assert "config_readable" in info
-        assert "config_writable" in info
-        assert "timestamp" in info
+        assert isinstance(info, m.Cli.ConfigSnapshot)
+        assert isinstance(info.config_dir, str)
+        assert isinstance(info.config_exists, bool)
+        assert isinstance(info.config_readable, bool)
+        assert isinstance(info.config_writable, bool)
+        assert isinstance(info.timestamp, str)
 
     def test_cmd_validate_config_structure_missing_dir(self) -> None:
         """Test validate_config_structure when main config directory is missing."""
