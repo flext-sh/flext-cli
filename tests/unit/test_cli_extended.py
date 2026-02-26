@@ -46,12 +46,6 @@ class TestsCliCliExtended:
                 self.cli_log_level = None
                 self.console_enabled = True
 
-            def model_copy(self, update: dict[str, t.GeneralValueType] | None = None) -> MockConfig:
-                """Mock model_copy."""
-                if update:
-                    for k, v in update.items():
-                        setattr(self, k, v)
-                return self
 
         mock_config_instance = MockConfig()
 
@@ -114,12 +108,6 @@ class TestsCliCliExtended:
                 self.cli_log_level = None
                 self.console_enabled = True
 
-            def model_copy(self, update: dict[str, t.GeneralValueType] | None = None) -> MockConfig:
-                """Mock model_copy."""
-                if update:
-                    for k, v in update.items():
-                        setattr(self, k, v)
-                return self
 
         mock_config_instance = MockConfig()
 

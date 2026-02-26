@@ -91,10 +91,10 @@ class FlextCliGettingStarted:
             self.cli.output.print_message(f"Failed to load: {read_result.error}")
             return None
 
-        # Type narrowing: ensure we return a dict
+        # Type narrowing: ensure we return a dict normalized to JsonValue
         data = read_result.value
         if isinstance(data, dict):
-            return data
+            return dict(self.cli.output.to_dict_json(data))
         return None
 
     # ============================================================================

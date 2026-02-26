@@ -147,9 +147,9 @@ markers = [
     "resilience: resilience tests",
 ]
 
-# [CUSTOM] pyrefly - include project root so tests.* imports resolve
+# [CUSTOM] pyrefly - include project root and examples so tests.* and example_utils resolve
 [tool.pyrefly]
-search-path = ["src", "."]
+search-path = ["src", "examples", "."]
 
 project-excludes = ["**/*_pb2*.py", "**/*_pb2_grpc*.py"]
 # [MANAGED] ruff

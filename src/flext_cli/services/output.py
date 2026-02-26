@@ -16,7 +16,7 @@ from typing import ClassVar, TypeGuard
 
 import yaml
 from flext_core import FlextResult, FlextRuntime, r, t
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, TypeAdapter, ValidationError
 from rich.errors import ConsoleError, LiveError, StyleError
 from rich.tree import Tree as RichTree
 
@@ -128,9 +128,12 @@ class FlextCliOutput:
     def to_json(v: t.ConfigMapValue) -> t.JsonValue:
         """Convert value to JSON-compatible using build DSL."""
         if isinstance(v, dict):
-            normalized: dict[str, t.JsonValue] = {}
+            normalized: Mapping[str, t.JsonValue] = {}
             for key, value in v.items():
-                normalized[str(key)] = FlextCliOutput.norm_json(value)
+                normalized = {
+                    **normalized,
+                    str(key): FlextCliOutput.norm_json(value),
+                }
             return normalized
         return FlextCliOutput.norm_json(v)
 
@@ -171,33 +174,21 @@ class FlextCliOutput:
         obj: object,
     ) -> TypeGuard[p.Cli.Display.RichTableProtocol]:
         """Narrow to RichTableProtocol using structural checks (add_column, add_row)."""
-        return (
-            hasattr(obj, "add_column")
-            and hasattr(obj, "add_row")
-            and callable(getattr(obj, "add_column", None))
-            and callable(getattr(obj, "add_row", None))
-        )
+        return isinstance(obj, p.Cli.Display.RichTableProtocol)
 
     @staticmethod
     def _is_rich_progress_protocol(
         obj: object,
     ) -> TypeGuard[p.Cli.Interactive.RichProgressProtocol]:
         """Narrow to RichProgressProtocol using structural checks (context manager + task methods)."""
-        return (
-            hasattr(obj, "__enter__")
-            and hasattr(obj, "__exit__")
-            and hasattr(obj, "add_task")
-            and hasattr(obj, "update")
-            and callable(getattr(obj, "add_task", None))
-            and callable(getattr(obj, "update", None))
-        )
+        return isinstance(obj, p.Cli.Interactive.RichProgressProtocol)
 
     @staticmethod
     def _is_rich_console_protocol(
         obj: object,
     ) -> TypeGuard[p.Cli.Display.RichConsoleProtocol]:
         """Narrow to RichConsoleProtocol using structural check (print)."""
-        return hasattr(obj, "print") and callable(getattr(obj, "print", None))
+        return isinstance(obj, p.Cli.Display.RichConsoleProtocol)
 
     @staticmethod
     def norm_json(item: t.ConfigMapValue) -> t.JsonValue:
@@ -251,7 +242,11 @@ class FlextCliOutput:
         default: t.JsonValue,
     ) -> t.JsonValue:
         """Get value from map with default. Delegates to m.Cli.MapGetValue."""
-        req = m.Cli.MapGetValue(map=mapping, key=k, default=default)
+        req = m.Cli.MapGetValue.model_validate({
+            "map": mapping,
+            "key": k,
+            "default": default,
+        })
         return req.result()
 
     @staticmethod
@@ -259,7 +254,12 @@ class FlextCliOutput:
         """Convert value to dict via JsonNormalizeInput model."""
         out = m.Cli.JsonNormalizeInput(value=v).normalized
         if isinstance(out, Mapping):
-            return dict(out)
+            dict_adapter: TypeAdapter[Mapping[str, t.JsonValue]] = TypeAdapter(
+                Mapping[str, t.JsonValue]
+            )
+            return dict_adapter.validate_python({
+                str(k): FlextCliOutput.norm_json(value) for k, value in out.items()
+            })
         return {}
 
     @staticmethod
@@ -267,7 +267,8 @@ class FlextCliOutput:
         """Convert value to list via JsonNormalizeInput model."""
         out = m.Cli.JsonNormalizeInput(value=v).normalized
         if isinstance(out, Sequence) and not isinstance(out, str):
-            return list(out)
+            adapter: TypeAdapter[list[t.JsonValue]] = TypeAdapter(list[t.JsonValue])
+            return adapter.validate_python(list(out))
         return []
 
     # =========================================================================
@@ -333,7 +334,7 @@ class FlextCliOutput:
     ) -> r[str]:
         """Dispatch to appropriate formatter based on format type."""
         # Format dispatcher using dict mapping
-        formatters: dict[str, Callable[[], r[str]]] = {
+        formatters: Mapping[str, Callable[[], r[str]]] = {
             c.Cli.OutputFormats.JSON.value: lambda: self.format_json(data),
             c.Cli.OutputFormats.YAML.value: lambda: self.format_yaml(data),
             c.Cli.OutputFormats.TABLE.value: lambda: self._format_table_data(
@@ -747,7 +748,7 @@ class FlextCliOutput:
             )
         raw_source = getattr(result, "__dict__")
         if isinstance(raw_source, Mapping):
-            raw_dict: dict[str, t.JsonValue] = dict(raw_source)
+            raw_dict: Mapping[str, t.JsonValue] = dict(raw_source)
         else:
             raw_dict = {}
         # Use build() DSL: process_mapping → to_json → filter → ensure dict
@@ -894,12 +895,6 @@ class FlextCliOutput:
                 f"Failed to create Rich table: {table_result.error}"
             )
         table_value = table_result.value
-        add_column_method = getattr(table_value, "add_column", None)
-        add_row_method = getattr(table_value, "add_row", None)
-        if not callable(add_column_method) or not callable(add_row_method):
-            return r[p.Cli.Display.RichTableProtocol].fail(
-                "Failed to create Rich table: invalid table protocol",
-            )
         if FlextCliOutput._is_rich_table_protocol(table_value):
             return r[p.Cli.Display.RichTableProtocol].ok(table_value)
         return r[p.Cli.Display.RichTableProtocol].fail(
@@ -1125,18 +1120,6 @@ class FlextCliOutput:
             # Type narrowing: progress_value implements RichProgressProtocol structurally
             # Use .value directly instead of deprecated .value
             progress_value = result.value
-            add_task_method = getattr(progress_value, "add_task", None)
-            update_method = getattr(progress_value, "update", None)
-            start_method = getattr(progress_value, "start", None)
-            stop_method = getattr(progress_value, "stop", None)
-            if (
-                not callable(add_task_method)
-                or not callable(update_method)
-                or not callable(start_method)
-                or not callable(stop_method)
-            ):
-                msg = "Progress object must implement RichProgress protocol"
-                raise TypeError(msg)
             if FlextCliOutput._is_rich_progress_protocol(progress_value):
                 return r[p.Cli.Interactive.RichProgressProtocol].ok(progress_value)
             return r[p.Cli.Interactive.RichProgressProtocol].fail(
@@ -1299,8 +1282,8 @@ class FlextCliOutput:
             c.Cli.MessageTypes.WARNING.value: c.Cli.Emojis.WARNING,
         }
         # Type narrowing: style_map and emoji_map are dict[str, str], convert to t.JsonValue
-        style_map_general: dict[str, t.JsonValue] = dict(style_map)
-        emoji_map_general: dict[str, t.JsonValue] = dict(emoji_map)
+        style_map_general: Mapping[str, t.JsonValue] = dict(style_map)
+        emoji_map_general: Mapping[str, t.JsonValue] = dict(emoji_map)
         style = self.ensure_str(
             self.get_map_val(style_map_general, final_message_type, c.Cli.Styles.BLUE),
         )
@@ -1460,7 +1443,9 @@ class FlextCliOutput:
                 if coerced_list and u.is_dict_like(coerced_list[0]):
                     return self._format_csv_list(coerced_list)
             if u.is_dict_like(data):
-                return self._format_csv_dict(data)
+                if isinstance(data, Mapping):
+                    return self._format_csv_dict(data)
+                return self._format_csv_dict({})
             # Fallback to JSON for non-dict/list data
             return r[str].ok(
                 json.dumps(
@@ -1632,7 +1617,7 @@ class FlextCliOutput:
         data_list = self._coerce_to_list(data)
         if not data_list or not u.is_dict_like(data_list[0]):
             return r[str].fail("CSV list format requires list of dicts")
-        fieldnames = self.get_keys(data_list[0])
+        fieldnames = self.get_keys(self.to_dict_json(data_list[0]))
         writer = csv.DictWriter(output_buffer, fieldnames=fieldnames)
         writer.writeheader()
 
@@ -1678,9 +1663,9 @@ class FlextCliOutput:
 
         Uses t.JsonValue from lower layer instead of object for better type safety.
         """
-        processed: dict[str, str | int | float | bool] = {}
+        processed: Mapping[str, str | int | float | bool] = {}
         for k, v in row.items():
-            processed[k] = self._replace_none_for_csv(k, v)
+            processed = {**processed, k: self._replace_none_for_csv(k, v)}
         return processed
 
     @staticmethod

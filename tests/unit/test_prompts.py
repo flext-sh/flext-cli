@@ -63,7 +63,10 @@ class TestsCliPrompts:
     """
 
     @staticmethod
-    def _set_prompt_history(prompts: FlextCliPrompts, history: list[str]) -> None:
+    def _set_prompt_history(
+        prompts: FlextCliPrompts,
+        history: list[str] | UserList[str],
+    ) -> None:
         """Helper method to set _prompt_history for testing.
 
         This method uses object.__setattr__ to bypass read-only protection
@@ -483,7 +486,7 @@ class TestsCliPrompts:
     def test_select_from_options_valid(self, prompts: FlextCliPrompts) -> None:
         """Test select_from_options with valid options."""
         result = prompts.select_from_options(
-            "simple",
+            ["simple"],
             "choose",
         )
         assert isinstance(result, FlextResult)
@@ -491,7 +494,7 @@ class TestsCliPrompts:
     def test_select_from_options_empty(self, prompts: FlextCliPrompts) -> None:
         """Test select_from_options with empty options."""
         result = prompts.select_from_options(
-            "",
+            [],
             "choose",
         )
         assert isinstance(result, FlextResult)
@@ -561,7 +564,7 @@ class TestsCliPrompts:
 
     def test_with_progress_small_dataset(self, prompts: FlextCliPrompts) -> None:
         """Test with_progress with small dataset."""
-        items: list[t.GeneralValueType] = list(
+        items: list[t.JsonValue] = list(
             range(c.ProgressDefaults.SMALL_DATASET_SIZE),
         )
         result = prompts.with_progress(items, "simple")
@@ -570,7 +573,7 @@ class TestsCliPrompts:
 
     def test_with_progress_large_dataset(self, prompts: FlextCliPrompts) -> None:
         """Test with_progress with large dataset."""
-        items: list[t.GeneralValueType] = list(
+        items: list[t.JsonValue] = list(
             range(c.ProgressDefaults.LARGE_DATASET_SIZE),
         )
         result = prompts.with_progress(items, "simple")
@@ -579,7 +582,7 @@ class TestsCliPrompts:
 
     def test_with_progress_empty(self, prompts: FlextCliPrompts) -> None:
         """Test with_progress with empty list."""
-        items: list[t.GeneralValueType] = []
+        items: list[t.JsonValue] = []
         result = prompts.with_progress(items, "simple")
         tm.ok(result)
         assert result.value == items

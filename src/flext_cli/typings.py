@@ -23,8 +23,7 @@ class FlextCliTypes(FlextTypes):
     5. Inheritance from FlextTypes, no duplication
     """
 
-    # General value type for CLI config/args (alias to JsonValue for compatibility)
-    GeneralValueType: TypeAlias = FlextTypes.JsonValue
+    GeneralValueType: TypeAlias = FlextTypes.GeneralValueType
 
     class Cli:
         """CLI types namespace for cross-project access.
@@ -47,7 +46,7 @@ class FlextCliTypes(FlextTypes):
         FormatableResult: TypeAlias = str
         TabularData = Sequence[Mapping[str, FlextTypes.JsonValue]]
         TableRows: TypeAlias = Sequence[Mapping[str, FlextTypes.JsonValue]]
-        JsonDict: TypeAlias = dict[str, FlextTypes.JsonValue]
+        JsonDict: TypeAlias = Mapping[str, FlextTypes.JsonValue]
 
 
 t = FlextCliTypes

@@ -187,7 +187,9 @@ class FlextCliTables(FlextCliServiceBase):
         # Format table using tabulate
         try:
             if u.is_dict_like(data):
-                normalized_data: Sequence[t.GeneralValueType] = [data]
+                normalized_data: Sequence[Mapping[str, t.JsonValue]] = (
+                    [data] if isinstance(data, Mapping) else []
+                )
             else:
                 normalized_data = data
 

@@ -274,7 +274,8 @@ def validate_and_import_data(input_file: Path) -> dict[str, t.JsonValue] | None:
     # Convert to JsonDict-compatible dict using u
     # Use u.transform for JSON conversion
     transform_result = u.transform(data, to_json=True)
-    json_data: dict[str, t.JsonValue] = transform_result.map_or(data)
+    raw_data = transform_result.value if transform_result.is_success else data
+    json_data: dict[str, t.JsonValue] = dict(cli.output.to_dict_json(raw_data))
     validated = validate_structure(json_data)
 
     if validated.is_failure:
@@ -382,30 +383,19 @@ def import_from_csv(input_file: Path) -> list[dict[str, str]] | None:
 
     # Display sample
     if rows:
-        sample_rows: list[dict[str, str]] = rows[:5]
+        sample_rows: list[dict[str, str]] = [dict(r) for r in rows[:5]]
         # Create table config for grid format
         config = m.Cli.TableConfig(table_format="grid")
-        # Convert to JsonDict-compatible format using u
-        tabular_data: t.Cli.TabularData = (
-            # Use u.Collection.map to convert list items to JSON
-            list(
-                u.Collection.map(
-                    sample_rows,
-                    mapper=lambda row: (
-                        u.transform(row, to_json=True).value
-                        if isinstance(row, dict)
-                        and u.transform(row, to_json=True).is_success
-                        else row
-                    ),
-                ),
-            )
-        )
+        # Convert to JsonDict-compatible format using output
+        tabular_data: t.Cli.TabularData = [
+            dict(cli.output.to_dict_json(row)) for row in sample_rows
+        ]
         table_result = tables.create_table(tabular_data, config=config)
         if table_result.is_success:
             cli.print("\n📋 Sample Data:", style="yellow")
 
     # Cast to expected type (runtime type is compatible)
-    return rows
+    return [dict(r) for r in rows] if rows else None
 
 
 # ============================================================================
@@ -482,19 +472,15 @@ def load_config_auto_detect(config_file: Path) -> dict[str, t.GeneralValueType] 
 
     # Display loaded data
     if isinstance(data, dict):
-        # Use u.transform for JSON conversion
-        if isinstance(data, dict):
-            transform_result = u.transform(data, to_json=True)
-            display_data: dict[str, t.JsonValue] = transform_result.map_or(data)
-        else:
-            display_data = data
+        transform_result = u.transform(data, to_json=True)
+        raw_data = transform_result.value if transform_result.is_success else data
+        display_data: dict[str, t.JsonValue] = dict(cli.output.to_dict_json(raw_data))
         table_result = cli.create_table(
             data=display_data,
             headers=["Key", "Value"],
         )
         if table_result.is_success:
             cli.print_table(table_result.value)
-        # Cast to expected type (runtime type is compatible)
         return data
 
     return None
@@ -508,7 +494,7 @@ def load_config_auto_detect(config_file: Path) -> dict[str, t.GeneralValueType] 
 def export_multi_format(
     data: dict[str, t.JsonValue] | list[dict[str, t.JsonValue]],
     base_path: Path,
-) -> dict[str, t.JsonValue]:
+) -> dict[str, str]:
     """Export same data to multiple formats (JSON, YAML, CSV)."""
     cli.print(f"💾 Multi-format export: {base_path.stem}", style="cyan")
 

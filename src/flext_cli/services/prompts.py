@@ -50,8 +50,12 @@ class FlextCliPrompts(FlextCliServiceBase):
         super().__init__()
         self.interactive_mode = bool(data.get("interactive_mode", True))
         self.quiet = bool(data.get("quiet"))
+        timeout_raw = data.get("default_timeout")
+        resolved_timeout_raw = (
+            timeout_raw if isinstance(timeout_raw, int | str) else None
+        )
         self.default_timeout = m.Cli.PromptTimeoutResolved(
-            raw=data.get("default_timeout"),
+            raw=resolved_timeout_raw,
             default=default_timeout,
         ).resolved
         self.logger.debug(
@@ -278,7 +282,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 "Prompt service execution completed",
                 operation="execute",
             )
-            empty_result: dict[str, t.JsonValue] = {}
+            empty_result: Mapping[str, t.JsonValue] = {}
             return r[Mapping[str, t.JsonValue]].ok(empty_result)
         except (
             ValueError,
@@ -464,7 +468,14 @@ class FlextCliPrompts(FlextCliServiceBase):
         error_message_template: str,
     ) -> r[bool]:
         try:
-            getattr(self.logger, log_level)(message_format.format(message=message))
+            formatted_message = message_format.format(message=message)
+            match log_level:
+                case "error":
+                    self.logger.error(formatted_message)
+                case "warning":
+                    self.logger.warning(formatted_message)
+                case _:
+                    self.logger.info(formatted_message)
             return r[bool].ok(value=True)
         except (
             ValueError,

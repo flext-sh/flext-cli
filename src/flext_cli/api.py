@@ -9,7 +9,7 @@ from __future__ import annotations
 import secrets
 import threading
 from abc import ABC
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable, Mapping, MutableMapping, Sequence
 from typing import ClassVar, TypeGuard
 
 from flext_core import (
@@ -141,14 +141,14 @@ class FlextCli:
             FlextCliPrompts(),
         )
         self._cli = FlextCliCli()
-        self._commands: dict[str, p.Cli.CliRegisteredCommand] = {}
-        self._groups: dict[str, p.Cli.CliRegisteredCommand] = {}
-        self._plugin_commands: dict[str, p.Cli.CliRegisteredCommand] = {}
+        self._commands: MutableMapping[str, p.Cli.CliRegisteredCommand] = {}
+        self._groups: MutableMapping[str, p.Cli.CliRegisteredCommand] = {}
+        self._plugin_commands: MutableMapping[str, p.Cli.CliRegisteredCommand] = {}
         self.config = FlextCliServiceBase.get_cli_config()
         self._valid_tokens: set[str] = set()
         self._valid_sessions: set[str] = set()
-        self._session_permissions: dict[str, set[str]] = {}
-        self._users: dict[str, dict[str, t.JsonValue]] = {}
+        self._session_permissions: MutableMapping[str, set[str]] = {}
+        self._users: MutableMapping[str, Mapping[str, t.JsonValue]] = {}
         self._deleted_users: set[str] = set()
 
     @classmethod
@@ -162,12 +162,10 @@ class FlextCli:
 
     @staticmethod
     def _validate_token_string(token: str) -> r[bool]:
-        """Validate token string using utilities validation DSL."""
-        try:
-            _ = u.Cli.CliValidation.validate_required_string(token, context="Token")
-            return r[bool].ok(value=True)
-        except ValueError as e:
-            return r[bool].fail(str(e))
+        """Validate token string; raises ValueError if empty."""
+        if not token or not token.strip():
+            return r[bool].fail("Token cannot be empty")
+        return r[bool].ok(value=True)
 
     def authenticate(
         self,
@@ -233,7 +231,7 @@ class FlextCli:
         validation = FlextCli._validate_token_string(token)
         if validation.is_failure:
             return validation
-        token_data: dict[str, t.JsonValue] = {c.Cli.DictKeys.TOKEN: token}
+        token_data: Mapping[str, t.JsonValue] = {c.Cli.DictKeys.TOKEN: token}
         json_data = u.transform(token_data, to_json=True).map_or(token_data)
         write_result = self.file_tools.write_json_file(
             str(self.config.token_file), json_data
@@ -247,7 +245,7 @@ class FlextCli:
 
     def _get_token_error_message(self, error_str: str) -> str:
         """Get error message based on exception content."""
-        kw_map: dict[str, str] = {
+        kw_map: Mapping[str, str] = {
             "dict": c.Cli.APIDefaults.TOKEN_DATA_TYPE_ERROR,
             "mapping": c.Cli.APIDefaults.TOKEN_DATA_TYPE_ERROR,
             "object": c.Cli.APIDefaults.TOKEN_DATA_TYPE_ERROR,
@@ -333,9 +331,7 @@ class FlextCli:
         func: p.Cli.CliCommandFunction,
     ) -> p.Cli.CliRegisteredCommand:
         """Register a CLI entity (command or group) with framework abstraction."""
-        entity_name: str = (
-            name if name is not None else str(getattr(func, "__name__", "unknown"))
-        )
+        entity_name: str = name if name is not None else str(func.__name__)
         # Select decorator factory based on entity type
         factory = (
             self._cli.create_command_decorator
@@ -382,7 +378,7 @@ class FlextCli:
 
     def execute(self) -> r[Mapping[str, t.JsonValue]]:
         """Execute CLI service with railway pattern."""
-        result_dict: dict[str, t.JsonValue] = {
+        result_dict: Mapping[str, t.JsonValue] = {
             c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.OPERATIONAL.value,
             c.Cli.DictKeys.SERVICE: c.Cli.FLEXT_CLI,
             "timestamp": u.generate("timestamp"),
@@ -411,8 +407,10 @@ class FlextCli:
             return r[str].fail("Table data cannot be None")
         if isinstance(data, Mapping):
             table_data: list[Mapping[str, t.JsonValue]] = [dict(data)]
+        elif isinstance(data, (list, tuple)):
+            table_data = [x for x in data if isinstance(x, Mapping)]
         else:
-            table_data = list(data) if isinstance(data, (list, tuple)) else []
+            table_data = []
         table_config = m.Cli.TableConfig(
             headers=headers or "keys",
             table_format="simple",

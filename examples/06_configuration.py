@@ -182,13 +182,14 @@ def show_config_locations() -> dict[str, str]:
         "Token Exists": "Yes" if token_file.exists() else "No",
     }
 
-    # Display as table - convert to CliDataDict using u directly
-    # Use u.transform for JSON conversion
     transform_result = u.transform(
         locations,
         to_json=True,
     )
-    locations_data = transform_result.map_or(locations)
+    raw_locations = transform_result.value if transform_result.is_success else locations
+    locations_data: dict[str, t.JsonValue] = dict(
+        cli.output.to_dict_json(raw_locations)
+    )
     table_result = cli.create_table(
         data=locations_data,
         headers=["Location", "Path"],
@@ -273,7 +274,7 @@ def show_environment_variables() -> None:
         """Print single environment variable."""
         cli.print(f"   {k}={v}", style="cyan")
 
-    u.Cli.process_dict(env_vars, processor=print_env)
+    u.Cli.process_mapping(env_vars, processor=print_env)
 
     # Show how to set them
     cli.print("\n💡 How to set environment variables:", style="bold cyan")
