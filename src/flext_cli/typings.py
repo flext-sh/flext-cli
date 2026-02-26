@@ -23,8 +23,6 @@ class FlextCliTypes(FlextTypes):
     5. Inheritance from FlextTypes, no duplication
     """
 
-    GeneralValueType: TypeAlias = FlextTypes.GeneralValueType
-
     class Cli:
         """CLI types namespace for cross-project access.
 

@@ -1512,7 +1512,7 @@ class FlextCliModels(FlextModels):
                 try:
                     system_dict = system_adapter.validate_python(self.system_info)
                 except ValidationError as e:
-                    _logger.debug("system_info not valid as dict, using empty: %s", e)
+                    _logger.debug("system_info mask failed: %s", e)
 
                 # Apply masking to system_dict
                 masked_system_dict: dict[str, t.JsonValue] = {
@@ -3025,7 +3025,7 @@ class FlextCliModels(FlextModels):
                 Uses t.JsonValue from lower layer for proper type safety.
                 """
                 if field_value is None:
-                    return FlextResult.ok(None)
+                    return r[t.JsonValue].ok(value=None)
                 try:
                     json_value = FlextCliModels.Cli.CliModelConverter.JSON_VALUE_ADAPTER.validate_python(
                         field_value,

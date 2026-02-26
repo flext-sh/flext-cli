@@ -40,7 +40,7 @@
 **Files to Move**: 1 file
 **Files to Edit**: 1 file
 
-______________________________________________________________________
+---
 
 ## Overview
 
@@ -50,7 +50,7 @@ Phase 1 removes 3 files totaling ~700 lines of unnecessary code:
 1. **auth.py** - Duplicate functionality (300 lines)
 1. **testing.py** - Move to tests/fixtures/ (362 lines)
 
-______________________________________________________________________
+---
 
 ## Step 4: Delete validator.py ✅
 
@@ -87,7 +87,7 @@ make type-check
 
 **Commit**: `refactor: remove empty validator.py stub`
 
-______________________________________________________________________
+---
 
 ## Step 5: Delete auth.py ✅
 
@@ -180,7 +180,7 @@ make test  # Verify tests still pass
 
 **Commit**: `refactor: remove duplicate auth.py module`
 
-______________________________________________________________________
+---
 
 ## Step 6: Move testing.py to tests/fixtures/ ⏳
 
@@ -323,7 +323,7 @@ python -c "from tests.fixtures.testing_utilities import FlextCliTesting; print('
 
 **Commit**: `refactor: move testing utilities to tests/fixtures/`
 
-______________________________________________________________________
+---
 
 ## Step 7: Remove Unused Imports from core.py ⏳
 
@@ -362,7 +362,7 @@ make test
 
 **Commit**: `refactor: remove unused imports from core.py`
 
-______________________________________________________________________
+---
 
 ## Phase 1 Completion Checklist
 
@@ -393,7 +393,7 @@ ls tests/fixtures/testing_utilities.py  # Should exist
 python -c "from flext_cli import FlextCli, FlextCliSettings; print('✓ Imports working')"
 ```
 
-______________________________________________________________________
+---
 
 ## Rollback Plan (If Issues Occur)
 
@@ -414,7 +414,7 @@ find tests -name "*.py" -type f -exec sed -i \
   {} +
 ```
 
-______________________________________________________________________
+---
 
 ## Summary
 
@@ -435,7 +435,7 @@ ______________________________________________________________________
 
 **Impact**: Cleaner codebase, no breaking changes for external users (auth was duplicate, validator was empty, testing was test-only)
 
-______________________________________________________________________
+---
 
 ## Next Phase
 

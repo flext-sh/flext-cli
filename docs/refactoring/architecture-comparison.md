@@ -40,7 +40,7 @@
 
 **Visual side-by-side comparison of the old and new architectures**
 
-______________________________________________________________________
+---
 
 ## Executive Summary
 
@@ -53,7 +53,7 @@ ______________________________________________________________________
 | **Test Structure**  | Flat              | Organized       | **Better**  |
 | **Async Code**      | Imported (unused) | Removed         | **Simpler** |
 
-______________________________________________________________________
+---
 
 ## Module Classification
 
@@ -104,7 +104,7 @@ Data Models (Pydantic):
 ✅ FlextCliSettings - Configuration
 ```
 
-______________________________________________________________________
+---
 
 ## API Patterns
 
@@ -139,7 +139,7 @@ cli.prompts.confirm("Continue?")
 
 **Benefit**: Clear ownership, no confusion
 
-______________________________________________________________________
+---
 
 ## Code Examples
 
@@ -241,7 +241,7 @@ class FlextCliFileTools:
 
 **Benefit**: No initialization overhead, clear that it's stateless
 
-______________________________________________________________________
+---
 
 ## Test Organization
 
@@ -298,7 +298,7 @@ tests/
 - No file > 30K lines
 - Fast to load and navigate
 
-______________________________________________________________________
+---
 
 ## Complexity Removed
 
@@ -325,7 +325,7 @@ from flext_core import FlextResult, FlextService
 
 **Benefit**: Clear dependencies, no confusion
 
-______________________________________________________________________
+---
 
 ## Performance Comparison
 
@@ -372,7 +372,7 @@ FlextCliFileTools.read_json_file(path)
 
 **Estimated Performance Gain**: 10-20% for common operations
 
-______________________________________________________________________
+---
 
 ## Migration Complexity
 
@@ -391,7 +391,7 @@ cli.confirm(        → cli.prompts.confirm(
 
 **See**: [migration-guide-v0.9-to-v0.10.md](migration-guide-v0.9-to-v0.10.md)
 
-______________________________________________________________________
+---
 
 ## Architectural Principles
 
@@ -411,7 +411,7 @@ ______________________________________________________________________
 - ✅ Simple classes for utilities (right tool)
 - ✅ Full SOLID compliance (clean architecture)
 
-______________________________________________________________________
+---
 
 ## Code Metrics
 
@@ -423,7 +423,7 @@ ______________________________________________________________________
 | **Maintainability Index** | Good   | Excellent | Easier to maintain     |
 | **Test Coverage**         | 95%+   | 95%+      | Maintained             |
 
-______________________________________________________________________
+---
 
 ## Summary
 
@@ -445,7 +445,7 @@ ______________________________________________________________________
 
 ✅ **Strongly Recommended**: Benefits far outweigh migration cost
 
-______________________________________________________________________
+---
 
 **Document Version**: 1.0
 **Last Updated**: 2025-01-24

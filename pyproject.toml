@@ -13,17 +13,10 @@ name = "flext-cli"
 version = "0.12.0-dev"
 description = "FLEXT CLI - Developer Command Line Interface"
 readme = "README.md"
-keywords = [
-  "cli",
-  "command-line",
-  "enterprise",
-  "flext",
-  "tools",
-  "typed",
-]
+keywords = [ "cli", "command-line", "enterprise", "flext", "tools", "typed" ]
 license = "MIT"
-maintainers = [ { email = "team@flext.sh", name = "FLEXT Team" } ]
-authors = [ { email = "team@flext.sh", name = "FLEXT Team" } ]
+maintainers = [ {email = "team@flext.sh", name = "FLEXT Team"} ]
+authors = [ {email = "team@flext.sh", name = "FLEXT Team"} ]
 requires-python = ">=3.13,<3.14"
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -114,47 +107,37 @@ optional-dependencies.dev = [
   "types-toml>=0.10.8.20240310",
   "vulture>=2.13",
 ]
-urls = { Documentation = "https://github.com/flext-sh/flext-cli/blob/main/README.md", Homepage = "https://github.com/flext-sh/flext-cli" }
+urls = {Documentation = "https://github.com/flext-sh/flext-cli/blob/main/README.md", Homepage = "https://github.com/flext-sh/flext-cli"}
 
 # [MANAGED] deptry
 [tool.deptry]
-pep621_dev_dependency_groups = [
-  "dev",
-]
+pep621_dev_dependency_groups = [ "dev" ]
 
 [tool.pytest.ini_options]
 minversion = "8.0"
-python_classes = [
-    "Test*",
-]
-python_files = [
-    "*_test.py",
-    "*_tests.py",
-    "test_*.py",
-]
-addopts = [
-    "--strict-markers",
-]
+python_classes = [ "Test*" ]
+python_files = [ "*_test.py", "*_tests.py", "test_*.py" ]
+addopts = [ "--strict-markers" ]
 markers = [
-    "unit: unit tests",
-    "integration: integration tests",
-    "performance: performance and benchmark tests",
-    "slow: slow-running tests",
-    "docker: tests requiring Docker",
-    "e2e: end-to-end integration tests",
-    "edge_cases: edge case tests",
-    "stress: stress tests",
-    "resilience: resilience tests",
+  "unit: unit tests",
+  "integration: integration tests",
+  "performance: performance and benchmark tests",
+  "slow: slow-running tests",
+  "docker: tests requiring Docker",
+  "e2e: end-to-end integration tests",
+  "edge_cases: edge case tests",
+  "stress: stress tests",
+  "resilience: resilience tests",
 ]
 
 [tool.mypy]
-python_version = "3.13"
+disable_error_code = [ "prop-decorator" ]
 ignore_missing_imports = true
-disable_error_code = ["prop-decorator"]
+python_version = "3.13"
 
 # [CUSTOM] pyrefly - include project root and examples so tests.* and example_utils resolve
 [tool.pyrefly]
-search-path = ["src", "examples", "."]
+search-path = [ "src", "examples", "." ]
 
-project-excludes = ["**/*_pb2*.py", "**/*_pb2_grpc*.py"]
+project-excludes = [ "**/*_pb2*.py", "**/*_pb2_grpc*.py" ]
 # [MANAGED] ruff

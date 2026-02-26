@@ -823,7 +823,7 @@ def clean_flext_container() -> Generator[None]:
     yield
 
     # Restore: configure() accepts Mapping[str, ScalarValue]. Use Pydantic to keep only scalar entries.
-    restore = ScalarConfigRestore.from_config_items(original_config.root)
+    restore = ScalarConfigRestore.from_config_items(original_config)
     container.configure(restore.root)
 
 
