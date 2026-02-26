@@ -19,10 +19,10 @@ from collections import UserList  # @vulture_ignore
 from typing import Never, TypedDict, TypeVar  # @vulture_ignore
 
 import pytest  # @vulture_ignore
+from flext_cli import FlextCliPrompts  # @vulture_ignore
 from flext_core import FlextResult, t  # @vulture_ignore
 from flext_tests import tm  # @vulture_ignore
 
-from flext_cli import FlextCliPrompts  # @vulture_ignore
 from tests import c  # @vulture_ignore
 
 T = TypeVar("T")

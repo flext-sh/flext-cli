@@ -1,11 +1,16 @@
+"""Tests for Prompts."""
+
 from __future__ import annotations
 
 import builtins
 
+import pytest
 from flext_cli.services.prompts import FlextCliPrompts
 
 
-def test_prompt_confirmation_handles_exception_from_record(monkeypatch) -> None:
+def test_prompt_confirmation_handles_exception_from_record(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     prompts = FlextCliPrompts(interactive_mode=True)
     monkeypatch.setattr(
         prompts,
@@ -18,7 +23,9 @@ def test_prompt_confirmation_handles_exception_from_record(monkeypatch) -> None:
     assert result.is_failure
 
 
-def test_prompt_choice_covers_required_default_and_exception(monkeypatch) -> None:
+def test_prompt_choice_covers_required_default_and_exception(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     prompts = FlextCliPrompts(interactive_mode=True)
 
     missing_default = prompts.prompt_choice("pick", ["a", "b"], default=None)
@@ -33,7 +40,7 @@ def test_prompt_choice_covers_required_default_and_exception(monkeypatch) -> Non
     assert exploded.is_failure
 
 
-def test_prompt_logs_input_when_not_test_env(monkeypatch) -> None:
+def test_prompt_logs_input_when_not_test_env(monkeypatch: pytest.MonkeyPatch) -> None:
     prompts = FlextCliPrompts(interactive_mode=True, quiet=False)
     captured: list[str] = []
 
@@ -49,7 +56,7 @@ def test_prompt_logs_input_when_not_test_env(monkeypatch) -> None:
     assert captured
 
 
-def test_read_confirmation_input_paths(monkeypatch) -> None:
+def test_read_confirmation_input_paths(monkeypatch: pytest.MonkeyPatch) -> None:
     prompts = FlextCliPrompts(interactive_mode=True)
     warnings: list[str] = []
     monkeypatch.setattr(
@@ -71,7 +78,7 @@ def test_read_confirmation_input_paths(monkeypatch) -> None:
     assert warnings
 
 
-def test_read_selection_paths(monkeypatch) -> None:
+def test_read_selection_paths(monkeypatch: pytest.MonkeyPatch) -> None:
     prompts = FlextCliPrompts(interactive_mode=True)
 
     entries_empty = iter(["", "1"])
@@ -100,7 +107,9 @@ def test_read_selection_paths(monkeypatch) -> None:
     assert prompts._read_selection(["a"]).is_failure
 
 
-def test_select_from_options_logs_successful_selection(monkeypatch) -> None:
+def test_select_from_options_logs_successful_selection(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     prompts = FlextCliPrompts(interactive_mode=True, quiet=False)
     logs: list[str] = []
     monkeypatch.setattr(prompts.logger, "info", lambda msg: logs.append(str(msg)))
@@ -116,7 +125,7 @@ def test_select_from_options_logs_successful_selection(monkeypatch) -> None:
     assert logs
 
 
-def test_print_status_exception_path(monkeypatch) -> None:
+def test_print_status_exception_path(monkeypatch: pytest.MonkeyPatch) -> None:
     prompts = FlextCliPrompts(interactive_mode=True)
     monkeypatch.setattr(
         prompts.logger,

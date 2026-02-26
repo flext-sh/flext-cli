@@ -23,10 +23,14 @@ from collections.abc import Callable
 from typing import Literal  # @vulture_ignore
 
 import pytest  # @vulture_ignore
-from pydantic import BaseModel, Field, ValidationError, field_validator  # @vulture_ignore
-
 from flext_cli import FlextCliCli  # @vulture_ignore
 from flext_cli.models import m
+from pydantic import (
+    BaseModel,
+    Field,
+    ValidationError,
+    field_validator,
+)  # @vulture_ignore
 
 
 class TestsCliModelCommandComprehensive:

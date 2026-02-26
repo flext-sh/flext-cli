@@ -32,7 +32,7 @@ dependencies = [
   "attrs>=25.4,<26",
   "cachetools>=5.3",
   "click>=8.2.1",
-  "flext-core @ ../flext-core",
+  "flext-core  @ file:../flext-core",
   "pluggy>=1.3",
   "prompt-toolkit>=3.0.52,<4",
   "pydantic>=2.12.3",
@@ -130,9 +130,38 @@ markers = [
   "resilience: resilience tests",
 ]
 
+# [MANAGED] mypy
 [tool.mypy]
 disable_error_code = [ "prop-decorator" ]
 ignore_missing_imports = true
 python_version = "3.13"
 
 # [CUSTOM] pyrefly - include project root and examples so tests.* and example_utils resolve
+
+# [CUSTOM] poetry dev extensions
+# [MANAGED] pyrefly
+[tool.pyrefly]
+ignore-errors-in-generated-code = true
+project-excludes = [
+  "**/_pb2.py",
+  "**/_pb2_grpc.py",
+]
+python-version = "3.13"
+search-path = [
+  ".",
+]
+
+[tool.pyrefly.errors]
+deprecated = true
+implicit-abstract-class = true
+implicit-any = true
+implicitly-defined-attribute = true
+missing-override-decorator = true
+missing-source = true
+not-required-key-access = true
+open-unpacking = true
+protocol-implicitly-defined-attribute = true
+redundant-cast = true
+unannotated-attribute = true
+unannotated-parameter = true
+unannotated-return = true

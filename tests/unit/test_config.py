@@ -26,14 +26,13 @@ from typing import Final, Literal  # @vulture_ignore
 
 import pytest  # @vulture_ignore
 import yaml  # @vulture_ignore
-from flext_cli import t  # @vulture_ignore
-from pydantic_settings import BaseSettings  # @vulture_ignore
-
 from flext_cli import (  # @vulture_ignore
     FlextCli,
     FlextCliSettings,
     m,
+    t,  # @vulture_ignore
 )
+from pydantic_settings import BaseSettings  # @vulture_ignore
 
 # ============================================================================
 # TYPE DEFINITIONS & MAPPINGS

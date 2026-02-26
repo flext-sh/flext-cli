@@ -1,14 +1,18 @@
+"""Command coverage tests."""
+
 from __future__ import annotations
 
 from pathlib import Path
 
+import flext_cli.services.cmd as cmd_module
+import pytest
+from flext_cli.services.cmd import FlextCliCmd
 from flext_core import r
 
-from flext_cli.services.cmd import FlextCliCmd
 
-
-def test_show_config_paths_failure_on_exception(monkeypatch) -> None:
-    import flext_cli.services.cmd as cmd_module
+def test_show_config_paths_failure_on_exception(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
 
     monkeypatch.setattr(
         cmd_module.FlextCliUtilities.Cli.ConfigOps,
@@ -22,8 +26,7 @@ def test_show_config_paths_failure_on_exception(monkeypatch) -> None:
     assert "paths error" in (result.error or "")
 
 
-def test_validate_config_failure_on_exception(monkeypatch) -> None:
-    import flext_cli.services.cmd as cmd_module
+def test_validate_config_failure_on_exception(monkeypatch: pytest.MonkeyPatch) -> None:
 
     cmd = FlextCliCmd()
     monkeypatch.setattr(
@@ -38,8 +41,7 @@ def test_validate_config_failure_on_exception(monkeypatch) -> None:
     assert "validate error" in (result.error or "")
 
 
-def test_get_config_info_failure_on_exception(monkeypatch) -> None:
-    import flext_cli.services.cmd as cmd_module
+def test_get_config_info_failure_on_exception(monkeypatch: pytest.MonkeyPatch) -> None:
 
     monkeypatch.setattr(
         cmd_module.FlextCliUtilities.Cli.ConfigOps,
@@ -53,7 +55,7 @@ def test_get_config_info_failure_on_exception(monkeypatch) -> None:
     assert "info error" in (result.error or "")
 
 
-def test_set_config_value_outer_exception_path(monkeypatch) -> None:
+def test_set_config_value_outer_exception_path(monkeypatch: pytest.MonkeyPatch) -> None:
     cmd = FlextCliCmd()
 
     monkeypatch.setattr(
@@ -68,8 +70,9 @@ def test_set_config_value_outer_exception_path(monkeypatch) -> None:
     assert "write exception" in (result.error or "")
 
 
-def test_get_config_value_outer_exception_path(monkeypatch, tmp_path: Path) -> None:
-    import flext_cli.services.cmd as cmd_module
+def test_get_config_value_outer_exception_path(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
 
     class FakeConfig:
         config_dir = tmp_path
@@ -94,7 +97,9 @@ def test_get_config_value_outer_exception_path(monkeypatch, tmp_path: Path) -> N
     assert "read exception" in (result.error or "")
 
 
-def test_show_config_failure_when_info_result_is_failure(monkeypatch) -> None:
+def test_show_config_failure_when_info_result_is_failure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     cmd = FlextCliCmd()
     monkeypatch.setattr(
         FlextCliCmd, "get_config_info", staticmethod(lambda: r.fail("bad info"))
@@ -106,7 +111,7 @@ def test_show_config_failure_when_info_result_is_failure(monkeypatch) -> None:
     assert "bad info" in (result.error or "")
 
 
-def test_show_config_outer_exception_path(monkeypatch) -> None:
+def test_show_config_outer_exception_path(monkeypatch: pytest.MonkeyPatch) -> None:
     cmd = FlextCliCmd()
     monkeypatch.setattr(
         FlextCliCmd,
@@ -120,15 +125,12 @@ def test_show_config_outer_exception_path(monkeypatch) -> None:
     assert "show error" in (result.error or "")
 
 
-def test_edit_config_outer_exception_path(monkeypatch) -> None:
-    import flext_cli.services.cmd as cmd_module
+def test_edit_config_outer_exception_path(monkeypatch: pytest.MonkeyPatch) -> None:
 
     monkeypatch.setattr(
         cmd_module.FlextCliServiceBase,
         "get_cli_config",
-        staticmethod(
-            lambda: (_ for _ in ()).throw(ValueError("config access error"))
-        ),
+        staticmethod(lambda: (_ for _ in ()).throw(ValueError("config access error"))),
     )
 
     result = FlextCliCmd().edit_config()
@@ -137,8 +139,9 @@ def test_edit_config_outer_exception_path(monkeypatch) -> None:
     assert "config access error" in (result.error or "")
 
 
-def test_edit_config_success_logs_and_returns_ok(monkeypatch, tmp_path: Path) -> None:
-    import flext_cli.services.cmd as cmd_module
+def test_edit_config_success_logs_and_returns_ok(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
 
     class FakeConfig:
         config_dir = tmp_path

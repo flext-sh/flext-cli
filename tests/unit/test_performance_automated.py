@@ -6,9 +6,9 @@ from datetime import UTC, datetime  # @vulture_ignore
 
 import psutil  # @vulture_ignore
 import pytest  # @vulture_ignore
-
 from flext_cli.constants import c
 from flext_cli.models import m
+
 from tests._helpers import create_test_cli_command
 
 

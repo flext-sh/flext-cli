@@ -16,9 +16,8 @@ from __future__ import annotations
 import time
 
 import pytest
-from flext_core import FlextResult
-
 from flext_cli import FlextCliDebug
+from flext_core import FlextResult
 
 
 class TestsCliDebug:
@@ -455,7 +454,7 @@ class TestsCliDebug:
         # Should contain health check results
         assert len(health_info) > 0
 
-    def test_get_environment_variables(self) -> None:
+    def test_get_environment_variables_static(self) -> None:
         """Test get_environment_variables method."""
         debug = FlextCliDebug()
         result = debug.get_environment_variables()

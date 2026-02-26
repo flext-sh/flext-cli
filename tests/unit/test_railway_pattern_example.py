@@ -18,8 +18,6 @@ from collections.abc import Generator
 from pathlib import Path
 
 import pytest
-from flext_cli import t
-
 from flext_cli import FlextCliFileTools
 from flext_cli.typings import t
 

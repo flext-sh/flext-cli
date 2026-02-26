@@ -22,8 +22,6 @@ from enum import StrEnum
 from pathlib import Path
 
 import pytest
-from flext_tests import tm
-
 from flext_cli import (
     FlextCliCmd,
     FlextCliModels as m,
@@ -33,6 +31,7 @@ from flext_cli import (
     r,
     u,
 )
+from flext_tests import tm
 
 # ============================================================================
 # ENUMS FOR TEST ORGANIZATION

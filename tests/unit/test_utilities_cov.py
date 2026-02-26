@@ -1,20 +1,30 @@
+"""Tests for CLI Utilities."""
+
 from __future__ import annotations
 
-from enum import StrEnum
 import types
+from enum import StrEnum
 
-from flext_core import r
-
+import pytest
 from flext_cli.utilities import FlextCliUtilities as u
+from flext_core import r
 
 
 def test_process_fail_and_collect_paths() -> None:
     values = [1, 0]
 
-    fail_result = u.Cli.process(values, lambda x: (_ for _ in ()).throw(ValueError("div zero")) if x == 0 else 10 // x, on_error="fail")
+    fail_result = u.Cli.process(
+        values,
+        lambda x: (_ for _ in ()).throw(ValueError("div zero")) if x == 0 else 10 // x,
+        on_error="fail",
+    )
     assert fail_result.is_failure
 
-    collect_result = u.Cli.process(values, lambda x: (_ for _ in ()).throw(ValueError("div zero")) if x == 0 else 10 // x, on_error="collect")
+    collect_result = u.Cli.process(
+        values,
+        lambda x: (_ for _ in ()).throw(ValueError("div zero")) if x == 0 else 10 // x,
+        on_error="collect",
+    )
     assert collect_result.is_failure
     assert "[1]" in (collect_result.error or "")
 
@@ -25,11 +35,21 @@ def test_process_fail_and_collect_paths() -> None:
 def test_process_mapping_fail_and_collect_paths() -> None:
     data = {"ok": 2, "bad": 0}
 
-    fail_result = u.Cli.process_mapping(data, lambda _k, v: (_ for _ in ()).throw(ValueError("div zero")) if v == 0 else 10 // v, on_error="fail")
+    fail_result = u.Cli.process_mapping(
+        data,
+        lambda _k, v: (
+            (_ for _ in ()).throw(ValueError("div zero")) if v == 0 else 10 // v
+        ),
+        on_error="fail",
+    )
     assert fail_result.is_failure
 
     collect_result = u.Cli.process_mapping(
-        data, lambda _k, v: (_ for _ in ()).throw(ValueError("div zero")) if v == 0 else 10 // v, on_error="collect"
+        data,
+        lambda _k, v: (
+            (_ for _ in ()).throw(ValueError("div zero")) if v == 0 else 10 // v
+        ),
+        on_error="collect",
     )
     assert collect_result.is_failure
     assert "bad" in (collect_result.error or "")
@@ -58,11 +78,13 @@ def test_validation_state_requires_criteria() -> None:
     assert "no validation criteria" in (result.error or "")
 
 
-def test_normalize_union_type_returns_none_when_inner_is_none(monkeypatch) -> None:
+def test_normalize_union_type_returns_none_when_inner_is_none(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     union_type = str | None
     original = u.TypeNormalizer.normalize_annotation
 
-    def fake(annotation):
+    def fake(annotation: object) -> type | None:
         if annotation is str:
             return None
         return original(annotation)
@@ -75,7 +97,7 @@ def test_normalize_union_type_returns_none_when_inner_is_none(monkeypatch) -> No
 
 
 def test_normalize_union_type_returns_none_for_empty_normalized_list(
-    monkeypatch,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     union_type = str | int
     monkeypatch.setattr(
@@ -90,7 +112,7 @@ def test_normalize_union_type_returns_none_for_empty_normalized_list(
 
 
 def test_normalize_union_type_returns_annotation_for_none_only_args(
-    monkeypatch,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(
         "flext_cli.utilities.get_args", lambda _annotation: (types.NoneType,)
@@ -107,7 +129,7 @@ def test_validated_with_result_returns_failure_on_validation_error() -> None:
     def parse_int(value: int):
         return r.ok(value)
 
-    result = getattr(parse_int, "__call__")("not-int")
+    result = parse_int(value="not-int")
 
     assert result.is_failure
     assert "validation" in (result.error or "").lower()
