@@ -242,7 +242,11 @@ def load_any_format_file(file_path: Path) -> dict[str, t.JsonValue] | None:
     # Use u.transform for JSON conversion
     display_data: dict[str, t.JsonValue] = {}
     for key, value in data.items():
-        if isinstance(value, str | int | float | bool) or value is None or isinstance(value, list | dict):
+        if (
+            isinstance(value, str | int | float | bool)
+            or value is None
+            or isinstance(value, list | dict)
+        ):
             display_data[key] = value
         else:
             display_data[key] = str(value)

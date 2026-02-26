@@ -392,17 +392,17 @@ class FlextCliUtilities(FlextUtilities):
                 return lines
 
             @staticmethod
-            def get_config_info() -> Mapping[str, CliValue]:
+            def get_config_info() -> m.Cli.ConfigSnapshot:
                 """Get configuration information."""
                 path = Path.home() / c.Cli.Paths.FLEXT_DIR_NAME
                 exists = path.exists()
-                return {
-                    c.Cli.DictKeys.CONFIG_DIR: str(path),
-                    c.Cli.DictKeys.CONFIG_EXISTS: exists,
-                    c.Cli.DictKeys.CONFIG_READABLE: exists and os.access(path, os.R_OK),
-                    c.Cli.DictKeys.CONFIG_WRITABLE: exists and os.access(path, os.W_OK),
-                    c.Cli.DictKeys.TIMESTAMP: datetime.now(UTC).isoformat(),
-                }
+                return m.Cli.ConfigSnapshot(
+                    config_dir=str(path),
+                    config_exists=exists,
+                    config_readable=exists and os.access(path, os.R_OK),
+                    config_writable=exists and os.access(path, os.W_OK),
+                    timestamp=datetime.now(UTC).isoformat(),
+                )
 
         class FileOps:
             """File operations."""

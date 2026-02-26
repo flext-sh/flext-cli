@@ -112,14 +112,7 @@ class FlextCliCmd(FlextCliServiceBase):
     def get_config_info() -> r[m.Cli.ConfigSnapshot]:
         """Get configuration information using FlextCliUtilities directly."""
         try:
-            info = FlextCliUtilities.Cli.ConfigOps.get_config_info()
-            snapshot = m.Cli.ConfigSnapshot(
-                config_dir=str(info.get("config_dir", "")),
-                config_exists=bool(info.get("config_exists", False)),
-                config_readable=bool(info.get("config_readable", False)),
-                config_writable=bool(info.get("config_writable", False)),
-                timestamp=str(info.get("timestamp", "")),
-            )
+            snapshot = FlextCliUtilities.Cli.ConfigOps.get_config_info()
             return r[m.Cli.ConfigSnapshot].ok(snapshot)
         except (OSError, ValueError, TypeError, RuntimeError, KeyError) as e:
             return r[m.Cli.ConfigSnapshot].fail(

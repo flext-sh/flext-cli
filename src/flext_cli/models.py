@@ -2390,9 +2390,13 @@ class FlextCliModels(FlextModels):
                     Typer command function with auto-generated parameters
 
                 """
-                model_fields = self.model_class.model_fields
+                narrowed_fields: dict[str, FieldInfo] = {
+                    k: v
+                    for k, v in self.model_class.model_fields.items()
+                    if isinstance(v, FieldInfo)
+                }
                 annotations, defaults, fields_with_factory = self._collect_field_data(
-                    model_fields,
+                    narrowed_fields,
                 )
                 sig_parts = self._build_signature_parts(
                     annotations,
@@ -2530,6 +2534,7 @@ class FlextCliModels(FlextModels):
                         ] = {
                             field_name: convert_field(field_name, field_info)
                             for field_name, field_info in model_cls.model_fields.items()
+                            if isinstance(field_info, FieldInfo)
                         }
                         params_list = list(params_dict.values())
                         return FlextResult.ok(params_list)
@@ -2657,7 +2662,7 @@ class FlextCliModels(FlextModels):
                     return FlextResult.fail(f"Field conversion failed: {e}")
 
             @staticmethod
-            def handle_union_type(pydantic_type: object) -> type:
+            def handle_union_type(pydantic_type: type | types.UnionType) -> type:
                 """Handle UnionType (e.g., int | None) and extract non-None type."""
                 args = get_args(pydantic_type)
                 # models.py cannot use utilities - use list comprehension instead
@@ -2669,7 +2674,9 @@ class FlextCliModels(FlextModels):
                 return str  # Fallback
 
             @staticmethod
-            def handle_generic_type(pydantic_type: object) -> type | None:
+            def handle_generic_type(
+                pydantic_type: type | types.UnionType,
+            ) -> type | None:
                 """Handle generic types like list of str, dict of str to str. Returns None if not handled."""
                 origin = get_origin(pydantic_type)
                 if origin is None:
@@ -2703,7 +2710,7 @@ class FlextCliModels(FlextModels):
 
             @staticmethod
             def pydantic_type_to_python_type(
-                pydantic_type: type | object,
+                pydantic_type: type | types.UnionType,
             ) -> type:
                 """Convert Pydantic type annotation to Python type."""
                 # Handle Optional/Union types - Python 3.10+ union types
@@ -2992,7 +2999,7 @@ class FlextCliModels(FlextModels):
 
             @staticmethod
             def validate_field_schema(
-                field_data: Mapping[str, object],
+                field_data: Mapping[str, t.GeneralValueType],
             ) -> FlextResult[bool]:
                 """Validate field data schema against rules."""
                 for (
@@ -3035,7 +3042,7 @@ class FlextCliModels(FlextModels):
             @staticmethod
             def validate_dict_field_data(
                 field_name: str,
-                field_data: Mapping[str, object],
+                field_data: Mapping[str, t.GeneralValueType],
             ) -> FlextResult[t.JsonValue]:
                 """Validate field data when field_info is a dict/Mapping."""
                 schema_result = (
@@ -3059,21 +3066,14 @@ class FlextCliModels(FlextModels):
                     FieldInfo
                     | t.JsonValue
                     | Mapping[str, t.JsonValue]
-                    | Mapping[
-                        str,
-                        type
-                        | str
-                        | bool
-                        | list[t.JsonValue]
-                        | Mapping[str, t.JsonValue],
-                    ]
+                    | Mapping[str, t.GeneralValueType]
                 ),
                 data: Mapping[str, t.JsonValue] | None = None,
             ) -> FlextResult[t.JsonValue]:
                 """Validate field data against field info."""
                 try:
                     if isinstance(field_info, Mapping):
-                        field_data: dict[str, object] = {
+                        field_data: dict[str, t.GeneralValueType] = {
                             str(k): v for k, v in field_info.items()
                         }
                         return FlextCliModels.Cli.CliModelConverter.validate_dict_field_data(

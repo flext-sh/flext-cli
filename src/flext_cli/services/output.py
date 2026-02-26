@@ -1572,7 +1572,7 @@ class FlextCliOutput:
         return []
 
     @staticmethod
-    def _normalize_iterable_item(item: object) -> t.JsonValue:
+    def _normalize_iterable_item(item: t.ConfigMapValue) -> t.JsonValue:
         """Normalize iterable items to general value type."""
         if isinstance(
             item,

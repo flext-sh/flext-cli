@@ -44,7 +44,7 @@ class FlextCliFileTools:
 
     @staticmethod
     def _run_bool_operation(
-        operation_func: Callable[[], object],
+        operation_func: Callable[[], t.GeneralValueType],
         error_template: str,
         **format_kwargs: t.JsonValue,
     ) -> r[bool]:

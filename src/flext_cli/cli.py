@@ -126,7 +126,9 @@ class FlextCliCli:
             return m.Cli.TypedExtract(
                 type_kind="bool", value=val, default=default
             ).resolve()
-        return m.Cli.TypedExtract(type_kind="dict", value=val, default=default).resolve()
+        return m.Cli.TypedExtract(
+            type_kind="dict", value=val, default=default
+        ).resolve()
 
     def _get_log_level_value(self, config: FlextCliSettings) -> int:
         if config.debug or config.trace:
@@ -134,9 +136,15 @@ class FlextCliCli:
         log_level_attr = getattr(config, "cli_log_level", None) or getattr(
             config, "log_level", None
         )
-        level_str: str = str(m.Cli.LogLevelResolved(
-            raw=log_level_attr.value if log_level_attr and hasattr(log_level_attr, 'value') else str(log_level_attr) if log_level_attr else None,
-        ).resolve())
+        level_str: str = str(
+            m.Cli.LogLevelResolved(
+                raw=log_level_attr.value
+                if log_level_attr and hasattr(log_level_attr, "value")
+                else str(log_level_attr)
+                if log_level_attr
+                else None,
+            ).resolve()
+        )
         return getattr(logging, level_str, logging.INFO)
 
     def _get_console_enabled(self, config: FlextCliSettings) -> bool:
@@ -377,7 +385,7 @@ class FlextCliCli:
     def create_option_decorator(
         self,
         *param_decls: str,
-        config: object | None = None,
+        config: m.Cli.OptionConfig | None = None,
         **kwargs: t.JsonValue,
     ) -> Callable[[p.Cli.CliCommandFunction], p.Cli.CliCommandFunction]:
         """Create an option decorator."""
@@ -482,7 +490,12 @@ class FlextCliCli:
     @classmethod
     def get_datetime_type(cls, formats: Sequence[str] | None = None) -> click.DateTime:
         """Get datetime type."""
-        result: object = cls.type_factory("datetime", formats=formats)
+        result: (
+            type[bool | str | int | float]
+            | click.DateTime
+            | click.ParamType
+            | click.Tuple
+        ) = cls.type_factory("datetime", formats=formats)
         if not isinstance(result, click.DateTime):
             msg = "datetime type factory returned invalid type"
             raise TypeError(msg)
@@ -491,7 +504,12 @@ class FlextCliCli:
     @classmethod
     def get_uuid_type(cls) -> click.ParamType:
         """Get UUID type."""
-        result: object = cls.type_factory("uuid")
+        result: (
+            type[bool | str | int | float]
+            | click.DateTime
+            | click.ParamType
+            | click.Tuple
+        ) = cls.type_factory("uuid")
         if not isinstance(result, click.ParamType):
             msg = "uuid type factory returned invalid type"
             raise TypeError(msg)
@@ -502,7 +520,12 @@ class FlextCliCli:
         cls, types: Sequence[type[t.JsonValue] | click.ParamType]
     ) -> click.Tuple:
         """Get tuple type."""
-        result: object = cls.type_factory("tuple", tuple_types=types)
+        result: (
+            type[bool | str | int | float]
+            | click.DateTime
+            | click.ParamType
+            | click.Tuple
+        ) = cls.type_factory("tuple", tuple_types=types)
         if not isinstance(result, click.Tuple):
             msg = "tuple type factory returned invalid type"
             raise TypeError(msg)

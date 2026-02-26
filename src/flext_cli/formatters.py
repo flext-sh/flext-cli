@@ -303,7 +303,6 @@ class FlextCliFormatters:
             status = RichStatus(
                 message,
                 spinner=validated_spinner,
-                console=self.console,
             )
             return r[RichStatus].ok(status)
         except (ConsoleError, StyleError) as exc:
@@ -341,7 +340,6 @@ class FlextCliFormatters:
             )
             live = RichLive(
                 refresh_per_second=validated_refresh_rate,
-                console=self.console,
             )
             return r[RichLive].ok(live)
         except (ConsoleError, LiveError) as exc:
