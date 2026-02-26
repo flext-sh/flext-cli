@@ -12,10 +12,10 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass, field
 from typing import Protocol, Self, runtime_checkable
 
 from flext_core import r
+from pydantic import BaseModel, ConfigDict, Field
 from rich.errors import ConsoleError, LiveError, StyleError
 
 from flext_cli.base import FlextCliServiceBase
@@ -40,13 +40,17 @@ class FlextCliCommandHandler(Protocol):
 FlextCliCommandEntry = Mapping[str, str | FlextCliCommandHandler]
 
 
-@dataclass
-class FlextCliCommandGroup:
+class FlextCliCommandGroup(BaseModel):
     """Represents a command group with name, description, and commands."""
 
-    name: str
-    description: str = ""
-    commands: Mapping[str, FlextCliCommandEntry] = field(default_factory=dict)
+    model_config = ConfigDict(extra="forbid")
+
+    name: str = Field(..., description="Command group name")
+    description: str = Field(default="", description="Command group description")
+    commands: Mapping[str, FlextCliCommandEntry] = Field(
+        default_factory=dict,
+        description="Mapping of command names to command entries",
+    )
 
 
 class FlextCliCommands(FlextCliServiceBase):

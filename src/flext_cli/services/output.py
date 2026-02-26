@@ -242,11 +242,11 @@ class FlextCliOutput:
         default: t.JsonValue,
     ) -> t.JsonValue:
         """Get value from map with default. Delegates to m.Cli.MapGetValue."""
-        req = m.Cli.MapGetValue.model_validate({
-            "map": mapping,
-            "key": k,
-            "default": default,
-        })
+        req = m.Cli.MapGetValue(
+            map=mapping,
+            key=k,
+            default=default,
+        )
         return req.result()
 
     @staticmethod
@@ -1088,10 +1088,10 @@ class FlextCliOutput:
             headers, [c.Cli.TableFormats.KEYS]
         )
         validated_headers: list[str] = [str(h) for h in validated_headers_raw]
-        final_config = m.Cli.TableConfig.model_validate({
-            "headers": validated_headers,
-            "table_format": table_format,
-        })
+        final_config = m.Cli.TableConfig(
+            headers=validated_headers,
+            table_format=table_format,
+        )
         # Type narrowing: TableConfig implements TableConfigProtocol structurally
         return FlextCliTables.create_table(data=data, config=final_config)
 
@@ -1869,10 +1869,10 @@ class FlextCliOutput:
     ) -> r[str]:
         """Create table string using FlextCliTables."""
         try:
-            config_instance = m.Cli.TableConfig.model_validate({
-                "headers": table_headers,
-                "table_format": c.Cli.TableFormats.GRID,
-            })
+            config_instance = m.Cli.TableConfig(
+                headers=table_headers,
+                table_format=c.Cli.TableFormats.GRID,
+            )
             # Type narrowing: TableConfig implements TableConfigProtocol structurally
             table_result = FlextCliTables.create_table(
                 data=table_data, config=config_instance
