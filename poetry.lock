@@ -4481,4 +4481,4 @@ dev = ["autoflake", "bandit", "black", "codespell", "deptry", "django-stubs", "f
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.13,<3.14"
-content-hash = "7af3b4ec087a9e129642a22460aa0c51b2877e4123d658ba23a61785287d7d03"
+content-hash = "2e4f8d4555a09dc4bacdcea1736806aced5f2e4b277d37f6625d665e5b4fc6e8"
