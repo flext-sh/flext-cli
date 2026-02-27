@@ -1,11 +1,11 @@
 """Automated performance tests with real workloads."""
 
-import os  # @vulture_ignore
-import time  # @vulture_ignore
-from datetime import UTC, datetime  # @vulture_ignore
+import os
+import time
+from datetime import UTC, datetime
 
-import psutil  # @vulture_ignore
-import pytest  # @vulture_ignore
+import psutil
+import pytest
 from flext_cli.constants import c
 from flext_cli.models import m
 

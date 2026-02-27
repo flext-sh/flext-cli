@@ -8,20 +8,20 @@ Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
-from __future__ import annotations  # @vulture_ignore
+from __future__ import annotations
 
 from collections.abc import Callable
-from enum import StrEnum  # @vulture_ignore
-from pathlib import Path  # @vulture_ignore
+from enum import StrEnum
+from pathlib import Path
 
 import pytest
-import typer  # @vulture_ignore
-from flext_cli import (  # @vulture_ignore
+import typer
+from flext_cli import (
     FlextCliCommonParams,
     FlextCliSettings,
 )
-from flext_core import r  # @vulture_ignore
-from flext_tests import tm  # @vulture_ignore
+from flext_core import r
+from flext_tests import tm
 from typer.testing import CliRunner
 
 

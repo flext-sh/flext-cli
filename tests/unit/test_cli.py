@@ -23,7 +23,6 @@ from flext_cli.models import m
 from flext_cli.settings import FlextCliSettings
 from flext_tests import tm
 
-# from ..fixtures.constants import TestCli  # Fixtures removed - use conftest.py and flext_tests
 from ..helpers import FlextCliTestHelpers
 
 

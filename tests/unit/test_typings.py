@@ -37,7 +37,6 @@ from flext_tests import tm
 
 from tests.helpers import c
 
-# from ..fixtures.constants import TestTypings  # Fixtures removed - use conftest.py and flext_tests
 from ..helpers import FlextCliTestHelpers
 
 

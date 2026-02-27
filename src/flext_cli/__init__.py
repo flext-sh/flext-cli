@@ -36,8 +36,6 @@ from flext_cli.mixins import FlextCliMixins
 from flext_cli.models import FlextCliModels, m
 from flext_cli.option_groups import FlextCliOptionGroup as FlextOptionGroup
 from flext_cli.protocols import FlextCliProtocols, p
-
-# Service exports (used by tests)
 from flext_cli.services.cmd import FlextCliCmd
 from flext_cli.services.core import FlextCliCore
 from flext_cli.services.output import FlextCliOutput
