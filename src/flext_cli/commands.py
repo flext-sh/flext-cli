@@ -43,7 +43,7 @@ FlextCliCommandEntry = Mapping[str, str | FlextCliCommandHandler]
 class FlextCliCommandGroup(BaseModel):
     """Represents a command group with name, description, and commands."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
 
     name: str = Field(..., description="Command group name")
     description: str = Field(default="", description="Command group description")
