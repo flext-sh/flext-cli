@@ -131,6 +131,7 @@ markers = [
 ]
 
 # [MANAGED] mypy
+enable_assertion_pass_hook = true
 [tool.mypy]
 disable_error_code = [ "prop-decorator" ]
 ignore_missing_imports = true
