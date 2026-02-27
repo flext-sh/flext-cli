@@ -113,13 +113,14 @@ ______________________________________________________________________
 
 ## Critical Rules — Zero Tolerance
 
-- ❌ No `TYPE_CHECKING`; fix architecture instead.
+- ❌ **Hacks**: `model_rebuild()`, `eval()`, `exec()`, `try-except ImportError`, and inline/lazy imports are TOTALLY FORBIDDEN.
+- ❌ `TYPE_CHECKING` is restricted to ONLY cyclic type hints without Pydantic.
 - ❌ No `# type: ignore`; resolve typing issues.
 - ❌ No `cast()`; use Models/Protocols/TypeGuards with correct typing.
 - ❌ No `Any`; use concrete types everywhere (code, docs, comments).
-- ❌ No metaclasses/`__getattr__` delegation or dynamic assignments; full namespaces only.
+- ❌ No metaclasses or dynamic assignments; full namespaces only via MRO. (Exception: `__getattr__` for module-level lazy load in `__init__.py` is MANDATORY).
 - ❌ No functions/logic in `constants.py` (StrEnum/Final/Literal only).
-- ❌ No root aliases or lazy imports/ImportError fallbacks; imports at top.
+- ❌ No root aliases or try/except ImportError fallbacks; imports at top.
 - ✅ Architecture layering enforced; lower tiers never import higher tiers.
 - ✅ Testing: real implementations (no mocks/monkeypatch), real fixtures/data, 100% coverage expectation, no functionality loss.
 
@@ -497,9 +498,10 @@ from tests import tm, tf  # TestsFlextCliMatchers, TestsFlextCliFixtures
 def cli_client() -> FlextCli:
     return FlextCli()
 
-# ❌ FORBIDDEN - Don't use TYPE_CHECKING in tests
+# ❌ FORBIDDEN - Don't use TYPE_CHECKING in tests unnecessarily
+# Tests usually don't have cyclic dependencies so you shouldn't need it.
 from typing import TYPE_CHECKING
-if TYPE_CHECKING:  # FORBIDDEN even in tests
+if TYPE_CHECKING:
     from flext_cli import FlextCli
 ```
 
@@ -754,23 +756,33 @@ ______________________________________________________________________
 
 ### Zero Tolerance Rules (Completely Prohibited)
 
-1. **TYPE_CHECKING**: ❌ PROHIBITED - Move code causing circular dependencies to appropriate module
-1. **# type: ignore**: ❌ PROHIBITED COMPLETELY - Zero tolerance, no exceptions
-1. **Metaclasses**: ❌ PROHIBITED COMPLETELY - All metaclasses are prohibited (including `__getattr__`)
-1. **Root Aliases**: ❌ PROHIBITED COMPLETELY - Always use complete namespace (c.Cli.OutputFormats, not c.OutputFormats)
-1. **Dynamic Assignments**: ❌ PROHIBITED COMPLETELY - Remove all, use only complete namespace
-1. **Functions in constants.py**: ❌ PROHIBITED - constants.py only constants, no functions/metaclasses/code
-1. **Namespace**: ✅ MANDATORY - Complete namespace always (u.Cli.process, not u.Cli.process)
+1. **Hacks**: ❌ PROHIBITED - `model_rebuild()`, `eval()`, `exec()`, and architectural `getattr()`.
+2. **Inline/Lazy Imports**: ❌ PROHIBITED - No imports inside functions or `.try / except ImportError:`.
+3. **# type: ignore**: ❌ PROHIBITED COMPLETELY - Zero tolerance, no exceptions
+4. **Metaclasses**: ❌ PROHIBITED COMPLETELY - Except for `__getattr__` in `__init__.py` for lazy loading
+5. **Root Aliases**: ❌ PROHIBITED COMPLETELY - Always use complete namespace (c.Cli.OutputFormats, not c.OutputFormats)
+6. **Dynamic Assignments**: ❌ PROHIBITED COMPLETELY - Remove all, use only complete namespace
+7. **Functions in constants.py**: ❌ PROHIBITED - constants.py only constants, no functions/metaclasses/code
+8. **Namespace**: ✅ MANDATORY - Complete namespace always (u.Cli.process, not u.Cli.process)
 
 ### Replacement Rules
 
-8. **cast()**: ❌ REPLACE ALL - Replace with Models/Protocols/TypeGuards
-1. **Any**: ❌ REPLACE ALL - Replace with specific types (Models, Protocols, TypeVars, FlextTypes.GeneralValueType)
+9. **cast()**: ❌ REPLACE ALL - Replace with Models/Protocols/TypeGuards
+10. **Any**: ❌ REPLACE ALL - Replace with specific types (Models, Protocols, TypeVars, FlextTypes.GeneralValueType)
 
 ### Examples
 
 ```python
-# ❌ PROHIBITED - TYPE_CHECKING
+# ❌ PROHIBITED - Inline / Try-Except Imports
+def my_func():
+    from flext_cli import p  # NO INLINE IMPORTS
+
+try:
+    import pandas   # NO IMPORT HACKS
+except ImportError:
+    pass
+
+# ✅ CORRECT - Module-level TYPE_CHECKING for circular types (non-Pydantic)
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from flext_cli.protocols import p

@@ -24,7 +24,7 @@ from pathlib import Path
 import pytest
 from flext_cli import (
     FlextCliCmd,
-    FlextCliModels as m,
+    m,
     FlextCliServiceBase,
     FlextCliSettings,
     c,

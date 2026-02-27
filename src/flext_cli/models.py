@@ -35,7 +35,7 @@ from pydantic.fields import FieldInfo
 from rich.errors import ConsoleError, LiveError, StyleError
 from typer.models import OptionInfo
 
-from flext_cli.constants import FlextCliConstants as c
+from flext_cli.constants import c
 from flext_cli.protocols import FlextCliProtocols as p
 from flext_cli.typings import t
 
