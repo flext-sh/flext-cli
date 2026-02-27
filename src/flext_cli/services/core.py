@@ -110,7 +110,6 @@ class FlextCliCore(FlextCliServiceBase):
     # These are set during __init__ setup
     _cli_config: dict[str, t.JsonValue]
     _commands: dict[str, Mapping[str, t.JsonValue]]
-    _plugins: dict[str, p.Cli.CliPlugin]
     _sessions: dict[str, t.JsonValue]
     _session_active: bool
     _session_config: dict[str, t.JsonValue]
@@ -159,7 +158,8 @@ class FlextCliCore(FlextCliServiceBase):
         )
         object.__setattr__(self, "_commands", {})
         # Note: stores plugin objects implementing CliPlugin protocol
-        object.__setattr__(self, "_plugins", {})
+        # Plugin system via FlextRegistry
+        object.__setattr__(self, "_registry", FlextRegistry(dispatcher=None))
         object.__setattr__(self, "_sessions", {})
         object.__setattr__(self, "_session_active", False)
 
@@ -1456,5 +1456,7 @@ class FlextCliCore(FlextCliServiceBase):
             r[list[str]]: List of plugin names
 
         """
-        # Simplified: no plugin system
-        return r[list[str]].ok([])
+        result = self._registry.list_plugins("cli_plugins")
+        if result.is_failure:
+            return r[list[str]].ok([])
+        return r[list[str]].ok(result.value if result.value else [])
