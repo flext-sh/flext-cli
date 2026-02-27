@@ -27,7 +27,6 @@ from flext_cli.constants import c
 from flext_cli.models import (
     m,
 )
-from flext_cli.protocols import p
 from flext_cli.services.output import FlextCliOutput
 from flext_cli.typings import t
 from flext_cli.utilities import FlextCliUtilities
@@ -113,6 +112,7 @@ class FlextCliCore(FlextCliServiceBase):
     _commands: dict[str, Mapping[str, t.JsonValue]]
     _sessions: dict[str, t.JsonValue]
     _session_active: bool
+    _registry: FlextRegistry
     _session_config: dict[str, t.JsonValue]
     _session_start_time: str
 
@@ -1460,4 +1460,4 @@ class FlextCliCore(FlextCliServiceBase):
         result = self._registry.list_plugins("cli_plugins")
         if result.is_failure:
             return r[list[str]].ok([])
-        return r[list[str]].ok(result.value if result.value else [])
+        return r[list[str]].ok(result.value or [])
