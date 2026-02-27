@@ -16,6 +16,7 @@ from typing import override
 from flext_core import (
     FlextDecorators,
     FlextLogger,
+    FlextRegistry,
     r,
     u,
 )
