@@ -44,7 +44,8 @@ class TestsCliCliExtended:
         with patch.object(FlextRuntime, "reconfigure_structlog") as mock_reconfigure:
             # Also mock FlextCliSettings.get_global_instance to return a mock config we can inspect
             with patch.object(
-                FlextCliSettings, "get_global_instance"
+                FlextCliSettings,
+                "get_global_instance",
             ) as mock_get_config:
                 mock_get_config.return_value = mock_config_instance
 

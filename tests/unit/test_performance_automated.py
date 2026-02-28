@@ -26,7 +26,8 @@ class TestsCliPerformanceAutomated:
             cmd = create_test_cli_command(
                 name=f"cmd{i}",
                 created_at=datetime.fromtimestamp(
-                    base_time + i * 0.001, UTC
+                    base_time + i * 0.001,
+                    UTC,
                 ),  # Microsecond increments
             )
             commands.append(cmd)

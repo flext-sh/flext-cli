@@ -550,7 +550,8 @@ def export_multi_format(
 
 
 def process_file_pipeline(
-    input_file: Path, output_dir: Path
+    input_file: Path,
+    output_dir: Path,
 ) -> r[dict[str, t.GeneralValueType]]:
     """Complete file processing pipeline using Railway Pattern.
 
@@ -576,7 +577,7 @@ def process_file_pipeline(
         read_result = cli.file_tools.read_json_file(input_file)
         if read_result.is_failure:
             result = r[dict[str, t.GeneralValueType]].fail(
-                f"File read failed: {read_result.error}"
+                f"File read failed: {read_result.error}",
             )
         else:
             data = read_result.value
@@ -614,7 +615,7 @@ def process_file_pipeline(
                         result = r[dict[str, t.GeneralValueType]].ok(summary)
             except Exception as e:
                 result = r[dict[str, t.GeneralValueType]].fail(
-                    f"Data validation failed: {e}"
+                    f"Data validation failed: {e}",
                 )
 
     if result.is_failure:

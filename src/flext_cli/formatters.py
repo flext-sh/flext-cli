@@ -103,7 +103,9 @@ class FlextCliFormatters:
             return r[bool].ok(value=True)
         except (ConsoleError, StyleError) as exc:
             _logger.warning(
-                "rich_print_fallback", error=str(exc), message_length=len(message)
+                "rich_print_fallback",
+                error=str(exc),
+                message_length=len(message),
             )
             _ = sys.stdout.write(f"{message}\n")
             _ = sys.stdout.flush()
@@ -305,7 +307,9 @@ class FlextCliFormatters:
             return r[RichStatus].ok(status)
         except (ConsoleError, StyleError) as exc:
             _logger.warning(
-                "rich_status_creation_failed", error=str(exc), message=message
+                "rich_status_creation_failed",
+                error=str(exc),
+                message=message,
             )
             return r[RichStatus].fail(
                 c.Cli.FormattersErrorMessages.STATUS_CREATION_FAILED.format(

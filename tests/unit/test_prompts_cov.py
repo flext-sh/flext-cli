@@ -46,7 +46,9 @@ def test_prompt_logs_input_when_not_test_env(monkeypatch: pytest.MonkeyPatch) ->
 
     monkeypatch.setattr(prompts, "_is_test_env", lambda: False)
     monkeypatch.setattr(
-        prompts.logger, "info", lambda message: captured.append(str(message))
+        prompts.logger,
+        "info",
+        lambda message: captured.append(str(message)),
     )
     monkeypatch.setattr(builtins, "input", lambda _msg="": "typed")
 
@@ -60,7 +62,9 @@ def test_read_confirmation_input_paths(monkeypatch: pytest.MonkeyPatch) -> None:
     prompts = FlextCliPrompts(interactive_mode=True)
     warnings: list[str] = []
     monkeypatch.setattr(
-        prompts.logger, "warning", lambda *args, **kwargs: warnings.append("warn")
+        prompts.logger,
+        "warning",
+        lambda *args, **kwargs: warnings.append("warn"),
     )
 
     monkeypatch.setattr(builtins, "input", lambda _msg="": "")

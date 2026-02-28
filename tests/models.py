@@ -40,7 +40,9 @@ class ScalarConfigRestore(RootModel[dict[str, ScalarValue]]):
                 result[str(k)] = _ScalarValueAdapter.validate_python(v)
             except ValidationError:
                 logging.getLogger(__name__).debug(
-                    "skip non-scalar config key %s", k, exc_info=True
+                    "skip non-scalar config key %s",
+                    k,
+                    exc_info=True,
                 )
                 continue
         return cls(root=result)

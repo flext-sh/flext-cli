@@ -115,7 +115,8 @@ def test_normalize_union_type_returns_annotation_for_none_only_args(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(
-        "flext_cli.utilities.get_args", lambda _annotation: (types.NoneType,)
+        "flext_cli.utilities.get_args",
+        lambda _annotation: (types.NoneType,),
     )
 
     union_type = str | int

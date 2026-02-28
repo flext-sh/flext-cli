@@ -36,7 +36,9 @@ class FlextCliProtocols(FlextProtocols):
                 """Protocol for Rich Tree objects."""
 
                 def add(
-                    self, label: str, **kwargs: t.JsonValue
+                    self,
+                    label: str,
+                    **kwargs: t.JsonValue,
                 ) -> FlextCliProtocols.Cli.Display.RichTreeProtocol:
                     """Add a branch to the tree."""
                     ...
@@ -159,7 +161,8 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
             def execute(
-                self, args: Sequence[str]
+                self,
+                args: Sequence[str],
             ) -> FlextProtocols.Result[t.JsonValue]:
                 """Execute the command."""
                 ...
@@ -261,7 +264,8 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
             def add_command(
-                self, command: FlextCliProtocols.Cli.Command
+                self,
+                command: FlextCliProtocols.Cli.Command,
             ) -> FlextProtocols.Result[Self]:
                 """Add a command to the session."""
                 ...
@@ -594,7 +598,9 @@ class FlextCliProtocols(FlextProtocols):
             """Protocol for CLI formatters."""
 
             def format_data(
-                self, data: t.JsonValue, **options: t.JsonValue
+                self,
+                data: t.JsonValue,
+                **options: t.JsonValue,
             ) -> FlextProtocols.Result[str]:
                 """Format data."""
                 ...
@@ -610,7 +616,8 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
             def save_config(
-                self, config: Mapping[str, t.JsonValue]
+                self,
+                config: Mapping[str, t.JsonValue],
             ) -> FlextProtocols.Result[bool]:
                 """Save configuration."""
                 ...
@@ -620,7 +627,9 @@ class FlextCliProtocols(FlextProtocols):
             """Protocol for CLI authentication."""
 
             def authenticate(
-                self, username: str, password: str
+                self,
+                username: str,
+                password: str,
             ) -> FlextProtocols.Result[str]:
                 """Authenticate user."""
                 ...
@@ -646,7 +655,9 @@ class FlextCliProtocols(FlextProtocols):
             """Protocol for CLI command functions that may return None."""
 
             def __call__(
-                self, *args: t.GeneralValueType, **kwargs: t.GeneralValueType
+                self,
+                *args: t.GeneralValueType,
+                **kwargs: t.GeneralValueType,
             ) -> t.GeneralValueType | None:
                 """Execute the function."""
                 ...
@@ -656,7 +667,9 @@ class FlextCliProtocols(FlextProtocols):
             """Protocol for dynamically-created CLI command wrapper functions."""
 
             def __call__(
-                self, *args: t.GeneralValueType, **kwargs: t.GeneralValueType
+                self,
+                *args: t.GeneralValueType,
+                **kwargs: t.GeneralValueType,
             ) -> t.GeneralValueType:
                 """Execute the wrapper."""
                 ...
@@ -666,7 +679,9 @@ class FlextCliProtocols(FlextProtocols):
             """Protocol for command handlers returning FlextResult."""
 
             def __call__(
-                self, *args: t.GeneralValueType, **kwargs: t.GeneralValueType
+                self,
+                *args: t.GeneralValueType,
+                **kwargs: t.GeneralValueType,
             ) -> FlextProtocols.Result[t.GeneralValueType]:
                 """Execute the handler."""
                 ...
@@ -676,7 +691,9 @@ class FlextCliProtocols(FlextProtocols):
             """Protocol for model command handlers."""
 
             def handle(
-                self, model: t.JsonValue, **kwargs: t.JsonValue
+                self,
+                model: t.JsonValue,
+                **kwargs: t.JsonValue,
             ) -> FlextProtocols.Result[t.JsonValue]:
                 """Handle the model command."""
                 ...
@@ -740,7 +757,8 @@ class FlextCliProtocols(FlextProtocols):
             """Protocol for CLI services."""
 
             def initialize(
-                self, context: FlextCliProtocols.Cli.CliContextProtocol
+                self,
+                context: FlextCliProtocols.Cli.CliContextProtocol,
             ) -> FlextProtocols.Result[bool]:
                 """Initialize the service."""
                 ...
@@ -758,13 +776,15 @@ class FlextCliProtocols(FlextProtocols):
             """Protocol for command processing services."""
 
             def register_command(
-                self, command: FlextCliProtocols.Cli.Command
+                self,
+                command: FlextCliProtocols.Cli.Command,
             ) -> FlextProtocols.Result[bool]:
                 """Register a command."""
                 ...
 
             def get_command(
-                self, name: str
+                self,
+                name: str,
             ) -> FlextProtocols.Result[FlextCliProtocols.Cli.Command]:
                 """Get a command by name."""
                 ...
@@ -780,7 +800,9 @@ class FlextCliProtocols(FlextProtocols):
             """Protocol for output formatting services."""
 
             def format_table(
-                self, headers: Sequence[str], rows: Sequence[Sequence[str]]
+                self,
+                headers: Sequence[str],
+                rows: Sequence[Sequence[str]],
             ) -> FlextProtocols.Result[str]:
                 """Format data as a table."""
                 ...

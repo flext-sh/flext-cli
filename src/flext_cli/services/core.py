@@ -425,7 +425,8 @@ class FlextCliCore(FlextCliServiceBase):
                 c.Cli.DictKeys.CONTEXT: dict(execution_context),
             }
             FlextLogger(__name__).info(
-                "COMPLETED CLI command execution", command_name=name
+                "COMPLETED CLI command execution",
+                command_name=name,
             )
             return r[Mapping[str, t.JsonValue]].ok(result_dict)
 
@@ -438,7 +439,8 @@ class FlextCliCore(FlextCliServiceBase):
             LiveError,
         ) as e:
             FlextLogger(__name__).exception(
-                "FAILED CLI command execution", command_name=name
+                "FAILED CLI command execution",
+                command_name=name,
             )
             return r[Mapping[str, t.JsonValue]].fail(
                 c.Cli.ErrorMessages.COMMAND_EXECUTION_FAILED.format(error=e),
@@ -678,7 +680,7 @@ class FlextCliCore(FlextCliServiceBase):
         # Reuse to_dict_json helper from output module
         # Python 3.13: to_dict_json() always returns dict, isinstance check is unnecessary
         validated_config_input: dict[str, t.JsonValue] = dict(
-            FlextCliOutput.to_dict_json(config)
+            FlextCliOutput.to_dict_json(config),
         )
         config_result = self._validate_config_input(validated_config_input)
         if config_result.is_failure:
@@ -817,7 +819,7 @@ class FlextCliCore(FlextCliServiceBase):
             # extract returns r[t.JsonValue | None]
             if profiles_result_raw.is_failure:
                 return r[bool].fail(
-                    profiles_result_raw.error or "Failed to extract profiles"
+                    profiles_result_raw.error or "Failed to extract profiles",
                 )
             # Type narrowing: value is t.JsonValue | None
             profiles_value = profiles_result_raw.value
@@ -873,16 +875,12 @@ class FlextCliCore(FlextCliServiceBase):
             # Validate explicitly - no fallback to empty dict
             # Business Rule: Frozen model attributes MUST be set using setattr()
             if session_config is not None:
-                setattr(self, "_session_config", session_config)
+                self._session_config = session_config
             else:
-                setattr(self, "_session_config", {})
+                self._session_config = {}
             object.__setattr__(self, "_session_active", True)
             # Generate ISO format timestamp for session tracking
-            setattr(
-                self,
-                "_session_start_time",
-                datetime.now(UTC).isoformat(),
-            )
+            self._session_start_time = datetime.now(UTC).isoformat()
 
             # Log session start - direct logger usage
             FlextLogger(__name__).info(c.Cli.LogMessages.SESSION_STARTED)
@@ -1046,7 +1044,7 @@ class FlextCliCore(FlextCliServiceBase):
                 c.Cli.DictKeys.SERVICE: c.Cli.FLEXT_CLI,
                 c.Cli.CoreServiceDictKeys.COMMANDS_REGISTERED: commands_count,
                 c.Cli.CoreServiceDictKeys.CONFIGURATION_SECTIONS: ",".join(
-                    config_keys_list
+                    config_keys_list,
                 ),
                 c.Cli.DictKeys.STATUS: (
                     c.Cli.ServiceStatus.OPERATIONAL.value

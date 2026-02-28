@@ -182,7 +182,7 @@ def show_config_locations() -> dict[str, str]:
     )
     raw_locations = transform_result.value if transform_result.is_success else locations
     locations_data: dict[str, t.JsonValue] = dict(
-        cli.output.to_dict_json(raw_locations)
+        cli.output.to_dict_json(raw_locations),
     )
     table_result = cli.create_table(
         data=locations_data,
@@ -414,7 +414,7 @@ def load_application_config() -> r[dict[str, t.GeneralValueType]]:
     cli.print("✅ Services initialized", style="green")
 
     result: r[dict[str, t.GeneralValueType]] = r[dict[str, t.GeneralValueType]].ok(
-        final_data
+        final_data,
     )
 
     if result.is_failure:

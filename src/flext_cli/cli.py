@@ -44,7 +44,9 @@ class FlextCliCli:
         self.logger = FlextLogger(__name__)
 
     def _create_command_cli_decorator(
-        self, name: str | None, help_text: str | None
+        self,
+        name: str | None,
+        help_text: str | None,
     ) -> Callable[[p.Cli.CliCommandFunction], click.Command]:
         decorator = click.command(name=name, help=help_text)
         self.logger.debug(
@@ -54,7 +56,9 @@ class FlextCliCli:
         return decorator
 
     def _create_group_cli_decorator(
-        self, name: str | None, help_text: str | None
+        self,
+        name: str | None,
+        help_text: str | None,
     ) -> Callable[[p.Cli.CliCommandFunction], click.Group]:
         decorator = click.group(name=name, help=help_text)
         self.logger.debug(
@@ -74,7 +78,9 @@ class FlextCliCli:
         return self._create_command_cli_decorator(name, help_text)
 
     def create_command_decorator(
-        self, name: str | None = None, help_text: str | None = None
+        self,
+        name: str | None = None,
+        help_text: str | None = None,
     ) -> Callable[[p.Cli.CliCommandFunction], click.Command]:
         """Create a command decorator."""
         return self._create_command_cli_decorator(name, help_text)
@@ -114,21 +120,29 @@ class FlextCliCli:
             return default
         if type_name == "str":
             return m.Cli.TypedExtract(
-                type_kind="str", value=val, default=default
+                type_kind="str",
+                value=val,
+                default=default,
             ).resolve()
         if type_name == "bool":
             return m.Cli.TypedExtract(
-                type_kind="bool", value=val, default=default
+                type_kind="bool",
+                value=val,
+                default=default,
             ).resolve()
         return m.Cli.TypedExtract(
-            type_kind="dict", value=val, default=default
+            type_kind="dict",
+            value=val,
+            default=default,
         ).resolve()
 
     def _get_log_level_value(self, config: FlextCliSettings) -> int:
         if config.debug or config.trace:
             return logging.DEBUG
         log_level_attr = getattr(config, "cli_log_level", None) or getattr(
-            config, "log_level", None
+            config,
+            "log_level",
+            None,
         )
         level_str: str = str(
             m.Cli.LogLevelResolved(
@@ -137,7 +151,7 @@ class FlextCliCli:
                 else str(log_level_attr)
                 if log_level_attr
                 else None,
-            ).resolve()
+            ).resolve(),
         )
         return getattr(logging, level_str, logging.INFO)
 
@@ -166,7 +180,8 @@ class FlextCliCli:
             "log_level": log_level,
         }
         active_params = u.filter_dict(
-            common_params, lambda _k, v: v is not None and v is not False
+            common_params,
+            lambda _k, v: v is not None and v is not False,
         )
         if not active_params:
             return
@@ -227,16 +242,20 @@ class FlextCliCli:
         def global_callback(
             *,
             debug: Annotated[
-                bool, typer.Option("--debug/--no-debug", help="Enable debug mode")
+                bool,
+                typer.Option("--debug/--no-debug", help="Enable debug mode"),
             ] = False,
             trace: Annotated[
-                bool, typer.Option("--trace/--no-trace", help="Enable trace mode")
+                bool,
+                typer.Option("--trace/--no-trace", help="Enable trace mode"),
             ] = False,
             verbose: Annotated[
-                bool, typer.Option("--verbose/--no-verbose", help="Enable verbose mode")
+                bool,
+                typer.Option("--verbose/--no-verbose", help="Enable verbose mode"),
             ] = False,
             quiet: Annotated[
-                bool, typer.Option("--quiet/--no-quiet", help="Enable quiet mode")
+                bool,
+                typer.Option("--quiet/--no-quiet", help="Enable quiet mode"),
             ] = False,
             log_level: Annotated[
                 str | None,
@@ -266,7 +285,9 @@ class FlextCliCli:
         return app
 
     def create_group_decorator(
-        self, name: str | None = None, help_text: str | None = None
+        self,
+        name: str | None = None,
+        help_text: str | None = None,
     ) -> Callable[[p.Cli.CliCommandFunction], click.Command | click.Group]:
         """Create a group decorator."""
         raw_decorator = self._create_cli_decorator("group", name, help_text)
@@ -284,7 +305,11 @@ class FlextCliCli:
         return typed_group_decorator
 
     def _build_bool_value(
-        self, kwargs: Mapping[str, t.JsonValue], key: str, *, default: bool = False
+        self,
+        kwargs: Mapping[str, t.JsonValue],
+        key: str,
+        *,
+        default: bool = False,
     ) -> bool:
         result = self._build_typed_value(kwargs, key, "bool", default)
         if not isinstance(result, bool):
@@ -293,7 +318,10 @@ class FlextCliCli:
         return result
 
     def _build_str_value(
-        self, kwargs: Mapping[str, t.JsonValue], key: str, default: str = ""
+        self,
+        kwargs: Mapping[str, t.JsonValue],
+        key: str,
+        default: str = "",
     ) -> str:
         result = self._build_typed_value(kwargs, key, "str", default)
         if not isinstance(result, str):
@@ -344,7 +372,8 @@ class FlextCliCli:
             return str(value)
 
     def _normalize_type_hint(
-        self, type_hint_val: t.JsonValue | None
+        self,
+        type_hint_val: t.JsonValue | None,
     ) -> t.JsonValue | None:
         type_hint_build = u.build(type_hint_val, ops={"ensure_default": None})
         match type_hint_build:
@@ -354,7 +383,8 @@ class FlextCliCli:
                 return self._to_json_value(type_hint_build)
 
     def _build_option_config_from_kwargs(
-        self, kwargs: Mapping[str, t.JsonValue]
+        self,
+        kwargs: Mapping[str, t.JsonValue],
     ) -> m.Cli.OptionConfig:
         default_raw = u.get(kwargs, "default")
         default_value = (
@@ -372,7 +402,7 @@ class FlextCliCli:
             multiple=bool(self._build_typed_value(kwargs, "multiple", "bool", False)),
             count=bool(self._build_typed_value(kwargs, "count", "bool", False)),
             show_default=bool(
-                self._build_typed_value(kwargs, "show_default", "bool", False)
+                self._build_typed_value(kwargs, "show_default", "bool", False),
             ),
         )
 
@@ -414,7 +444,10 @@ class FlextCliCli:
     ) -> Callable[[p.Cli.CliCommandFunction], p.Cli.CliCommandFunction]:
         """Create an argument decorator."""
         decorator = click.argument(
-            *param_decls, type=type_hint, required=required, nargs=nargs
+            *param_decls,
+            type=type_hint,
+            required=required,
+            nargs=nargs,
         )
         self.logger.debug(
             "Created argument decorator",
@@ -438,7 +471,8 @@ class FlextCliCli:
 
     @classmethod
     def _tuple_type(
-        cls, tuple_types: Sequence[click.ParamType | type] | None = None
+        cls,
+        tuple_types: Sequence[click.ParamType | type] | None = None,
     ) -> click.Tuple:
         if tuple_types is None:
             return click.Tuple([])
@@ -511,7 +545,8 @@ class FlextCliCli:
 
     @classmethod
     def get_tuple_type(
-        cls, types: Sequence[type[t.JsonValue] | click.ParamType]
+        cls,
+        types: Sequence[type[t.JsonValue] | click.ParamType],
     ) -> click.Tuple:
         """Get tuple type."""
         result: (
@@ -625,7 +660,8 @@ class FlextCliCli:
             default=get_bool_val("default", default=False),
             abort=get_bool_val("abort", default=False),
             prompt_suffix=get_str_val(
-                "prompt_suffix", c.Cli.UIDefaults.DEFAULT_PROMPT_SUFFIX
+                "prompt_suffix",
+                c.Cli.UIDefaults.DEFAULT_PROMPT_SUFFIX,
             ),
             show_default=get_bool_val("show_default", default=True),
             err=get_bool_val("err", default=False),
@@ -654,7 +690,8 @@ class FlextCliCli:
             type_hint=type_hint_value,
             value_proc=value_proc_val if callable(value_proc_val) else None,
             prompt_suffix=get_str_val(
-                "prompt_suffix", c.Cli.UIDefaults.DEFAULT_PROMPT_SUFFIX
+                "prompt_suffix",
+                c.Cli.UIDefaults.DEFAULT_PROMPT_SUFFIX,
             ),
             hide_input=get_bool_val("hide_input", default=False),
             confirmation_prompt=get_bool_val("confirmation_prompt", default=False),
@@ -707,7 +744,7 @@ class FlextCliCli:
             return r[bool].ok(result)
         except typer.Abort as e:
             return r[bool].fail(
-                c.Cli.ErrorMessages.USER_ABORTED_CONFIRMATION.format(error=e)
+                c.Cli.ErrorMessages.USER_ABORTED_CONFIRMATION.format(error=e),
             )
 
     @staticmethod
@@ -793,7 +830,7 @@ class FlextCliCli:
             return r[t.JsonValue].ok(json_value)
         except typer.Abort as e:
             return r[t.JsonValue].fail(
-                c.Cli.ErrorMessages.USER_ABORTED_PROMPT.format(error=e)
+                c.Cli.ErrorMessages.USER_ABORTED_PROMPT.format(error=e),
             )
 
     def create_cli_runner(
@@ -861,7 +898,9 @@ class FlextCliCli:
             return FlextCliCli._to_json_value(result)
 
         return m.Cli.ModelCommandBuilder(
-            model_class, normalized_handler, config
+            model_class,
+            normalized_handler,
+            config,
         ).build()
 
     @staticmethod

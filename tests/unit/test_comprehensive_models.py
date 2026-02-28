@@ -73,7 +73,8 @@ class TestsCliComprehensiveModels:
         # Create session with commands using model_construct to pass commands list
         cmd1 = create_test_cli_command(name="cmd1", status=c.Cli.CommandStatus.PENDING)
         cmd2 = create_test_cli_command(
-            name="cmd2", status=c.Cli.CommandStatus.COMPLETED
+            name="cmd2",
+            status=c.Cli.CommandStatus.COMPLETED,
         )
 
         session = m.Cli.CliSession.model_construct(

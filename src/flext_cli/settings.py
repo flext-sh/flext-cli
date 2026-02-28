@@ -63,7 +63,7 @@ class FlextCliSettings(FlextSettings):
     output_format: c.Cli.OutputFormatLiteral = Field(default="table")
     no_color: bool = Field(default=c.Cli.CliDefaults.DEFAULT_NO_COLOR)
     config_dir: Path = Field(
-        default_factory=lambda: Path.home() / c.Cli.Paths.FLEXT_DIR_NAME
+        default_factory=lambda: Path.home() / c.Cli.Paths.FLEXT_DIR_NAME,
     )
     project_name: str = Field(default="flext-cli")
     api_url: str = Field(default="http://localhost:8080/api")
@@ -71,14 +71,14 @@ class FlextCliSettings(FlextSettings):
     token_file: Path = Field(
         default_factory=lambda: (
             Path.home() / c.Cli.Paths.FLEXT_DIR_NAME / c.Cli.Paths.TOKEN_FILE_NAME
-        )
+        ),
     )
     refresh_token_file: Path = Field(
         default_factory=lambda: (
             Path.home()
             / c.Cli.Paths.FLEXT_DIR_NAME
             / c.Cli.Paths.REFRESH_TOKEN_FILE_NAME
-        )
+        ),
     )
     auto_refresh: bool = Field(default=True)
     debug: bool = Field(default=False)
@@ -259,7 +259,7 @@ class FlextCliSettings(FlextSettings):
         if value in valid_formats:
             return r.ok(value)
         return r.fail(
-            f"Invalid format '{value}'. Valid formats: {', '.join(valid_formats)}"
+            f"Invalid format '{value}'. Valid formats: {', '.join(valid_formats)}",
         )
 
     @classmethod
@@ -269,7 +269,7 @@ class FlextCliSettings(FlextSettings):
         try:
             if not config_file.exists():
                 return r[FlextCliSettings].fail(
-                    em.CONFIG_FILE_NOT_FOUND.format(file=config_file)
+                    em.CONFIG_FILE_NOT_FOUND.format(file=config_file),
                 )
             suffix = config_file.suffix.lower()
             with config_file.open("r", encoding="utf-8") as f:
@@ -279,18 +279,18 @@ class FlextCliSettings(FlextSettings):
                     data = yaml.safe_load(f)
                 else:
                     return r[FlextCliSettings].fail(
-                        em.UNSUPPORTED_CONFIG_FORMAT.format(suffix=suffix)
+                        em.UNSUPPORTED_CONFIG_FORMAT.format(suffix=suffix),
                     )
             return r[FlextCliSettings].ok(cls(**data))
         except (OSError, ValueError, ValidationError, yaml.YAMLError) as e:
             return r[FlextCliSettings].fail(
-                em.FAILED_LOAD_CONFIG_FROM_FILE.format(file=config_file, error=e)
+                em.FAILED_LOAD_CONFIG_FROM_FILE.format(file=config_file, error=e),
             )
 
     def execute_service(self) -> r[Mapping[str, t.JsonValue]]:
         """Execute config as service operation."""
         config_dict = u.transform(self.model_dump(), to_json=True).map_or(
-            self.model_dump()
+            self.model_dump(),
         )
         result_dict: dict[str, t.JsonValue] = {
             "status": c.Cli.ServiceStatus.OPERATIONAL.value,
@@ -325,11 +325,12 @@ class FlextCliSettings(FlextSettings):
             return r[bool].ok(value=True)
         except (ValidationError, TypeError, AttributeError) as e:
             return r[bool].fail(
-                c.Cli.ErrorMessages.CLI_ARGS_UPDATE_FAILED.format(error=e)
+                c.Cli.ErrorMessages.CLI_ARGS_UPDATE_FAILED.format(error=e),
             )
 
     def validate_cli_overrides(
-        self, **overrides: t.JsonValue
+        self,
+        **overrides: t.JsonValue,
     ) -> r[Mapping[str, t.JsonValue]]:
         """Validate CLI overrides without applying them."""
         em = c.Cli.ErrorMessages
@@ -355,7 +356,7 @@ class FlextCliSettings(FlextSettings):
                     errors.append(em.INVALID_VALUE_FOR_FIELD.format(field=k, error=e))
             if errors:
                 return r[Mapping[str, t.JsonValue]].fail(
-                    em.VALIDATION_ERRORS.format(errors="; ".join(errors))
+                    em.VALIDATION_ERRORS.format(errors="; ".join(errors)),
                 )
             return r[Mapping[str, t.JsonValue]].ok(valid)
         except (ValidationError, TypeError, RuntimeError) as e:
@@ -368,7 +369,7 @@ class FlextCliSettings(FlextSettings):
             return r[Mapping[str, t.JsonValue]].ok(raw)
         except (ValidationError, TypeError, RuntimeError) as e:
             return r[Mapping[str, t.JsonValue]].fail(
-                c.Cli.ErrorMessages.CONFIG_LOAD_FAILED_MSG.format(error=e)
+                c.Cli.ErrorMessages.CONFIG_LOAD_FAILED_MSG.format(error=e),
             )
 
     def save_config(
@@ -388,7 +389,7 @@ class FlextCliSettings(FlextSettings):
             return r[bool].ok(value=True)
         except (ValidationError, TypeError, AttributeError) as e:
             return r[bool].fail(
-                c.Cli.ErrorMessages.CONFIG_SAVE_FAILED_MSG.format(error=e)
+                c.Cli.ErrorMessages.CONFIG_SAVE_FAILED_MSG.format(error=e),
             )
 
     _instance: ClassVar[FlextCliSettings | None] = None

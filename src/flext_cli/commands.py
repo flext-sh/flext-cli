@@ -233,7 +233,7 @@ class FlextCliCommands(FlextCliServiceBase):
             return r[t.JsonValue].ok(result.value)
         error_value = result.error
         return r[t.JsonValue].fail(
-            str(error_value) if error_value else "Command failed"
+            str(error_value) if error_value else "Command failed",
         )
 
     def get_commands(self) -> Mapping[str, FlextCliCommandEntry]:
@@ -322,7 +322,7 @@ class FlextCliCommands(FlextCliServiceBase):
 
         if commands is None:
             return r[FlextCliCommandGroup].fail(
-                "Commands are required for group creation"
+                "Commands are required for group creation",
             )
 
         # Type system ensures commands is Mapping after None check

@@ -120,7 +120,8 @@ class TestsCliConstants:
         ) -> None:
             """Assert constant exists and has value."""
             value = TestsCliConstants.Assertions._get_constant_value(
-                constants, constant_name
+                constants,
+                constant_name,
             )
             assert value is not None
             assert isinstance(value, str)
@@ -135,7 +136,8 @@ class TestsCliConstants:
         ) -> None:
             """Assert constant has expected value."""
             actual_value = TestsCliConstants.Assertions._get_constant_value(
-                constants, constant_name
+                constants,
+                constant_name,
             )
             assert actual_value == expected_value
             assert isinstance(actual_value, str)
@@ -148,7 +150,8 @@ class TestsCliConstants:
         ) -> None:
             """Assert file name constant follows format."""
             value = TestsCliConstants.Assertions._get_constant_value(
-                constants, constant_name
+                constants,
+                constant_name,
             )
             assert value.endswith(".json")
             assert not value.startswith(".")
@@ -324,7 +327,7 @@ class TestsCliConstants:
         assert str(flext_dir).endswith(constants.Cli.Paths.FLEXT_DIR_NAME)
         assert str(token_file).endswith(constants.Cli.Paths.TOKEN_FILE_NAME)
         assert str(refresh_token_file).endswith(
-            constants.Cli.Paths.REFRESH_TOKEN_FILE_NAME
+            constants.Cli.Paths.REFRESH_TOKEN_FILE_NAME,
         )
 
         assert Path(flext_dir).name == constants.Cli.Paths.FLEXT_DIR_NAME
@@ -408,7 +411,7 @@ class TestsCliConstants:
             assert isinstance(ascii_encoded, bytes)
         except UnicodeEncodeError:
             logging.getLogger(__name__).debug(
-                "constant not encodable as ascii, skip assert"
+                "constant not encodable as ascii, skip assert",
             )
 
     # =========================================================================
@@ -542,7 +545,7 @@ class TestsCliConstants:
                 json.dumps({
                     "access_token": "test_token",
                     "token_type": "Bearer",
-                })
+                }),
             )
             refresh_token_file.write_text(
                 json.dumps({"refresh_token": "test_refresh_token"}),

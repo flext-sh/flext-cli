@@ -69,21 +69,31 @@ def create_cli_app() -> r[typer.Typer]:
 
 
 def create_decorated_command(
-    app: typer.Typer, command_name: str = "test"
+    app: typer.Typer,
+    command_name: str = "test",
 ) -> r[Callable[..., object]]:
     """Create decorated command using Railway pattern - no mocks or manipulation."""
 
     @app.command(name=command_name)
     def typer_command(
         verbose: bool = typer.Option(
-            False, "--verbose", "-v", help="Enable verbose output"
+            False,
+            "--verbose",
+            "-v",
+            help="Enable verbose output",
         ),
         debug: bool = typer.Option(False, "--debug", "-d", help="Enable debug mode"),
         log_level: str = typer.Option(
-            "INFO", "--log-level", "-L", help="Set logging level"
+            "INFO",
+            "--log-level",
+            "-L",
+            help="Set logging level",
         ),
         output_format: str = typer.Option(
-            "table", "--output-format", "-o", help="Set output format"
+            "table",
+            "--output-format",
+            "-o",
+            help="Set output format",
         ),
     ) -> None:
         """Test command with Railway-oriented parameter handling."""
@@ -136,7 +146,10 @@ class TestsCliCommonParams:
         # Apply parameters using Railway pattern
         config = config_result.value
         result = FlextCliCommonParams.apply_to_config(
-            config, verbose=True, debug=True, log_level="DEBUG"
+            config,
+            verbose=True,
+            debug=True,
+            log_level="DEBUG",
         )
 
         tm.ok(result)
@@ -242,7 +255,8 @@ class TestsCliCommonParams:
 
         runner = CliRunner()
         result = runner.invoke(
-            app, ["--log-level", "WARNING", "--output-format", "json"]
+            app,
+            ["--log-level", "WARNING", "--output-format", "json"],
         )
 
         assert result.exit_code == 0

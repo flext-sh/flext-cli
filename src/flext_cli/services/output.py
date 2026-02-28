@@ -508,7 +508,7 @@ class FlextCliOutput:
             if format_str not in valid_formats:
                 return r[FlextCliOutput].fail(
                     c.Cli.ErrorMessages.INVALID_OUTPUT_FORMAT.format(
-                        format=format_type
+                        format=format_type,
                     ),
                 )
             return r[FlextCliOutput].ok(self)
@@ -927,7 +927,7 @@ class FlextCliOutput:
             )
             if validation_result.is_failure:
                 return r[list[str]].fail(
-                    validation_result.error or "Header validation failed"
+                    validation_result.error or "Header validation failed",
                 )
 
         return r[list[str]].ok(table_headers)
@@ -948,7 +948,7 @@ class FlextCliOutput:
         )
         if table_result.is_failure:
             return r[p.Cli.Display.RichTableProtocol].fail(
-                f"Failed to create Rich table: {table_result.error}"
+                f"Failed to create Rich table: {table_result.error}",
             )
         # Use type guard to verify it implements the protocol
         table_value = table_result.value
@@ -956,7 +956,7 @@ class FlextCliOutput:
             return r[p.Cli.Display.RichTableProtocol].ok(table_value)
         # Fallback: convert to string representation if not RichTableProtocol
         return r[p.Cli.Display.RichTableProtocol].fail(
-            "Table value is not RichTableProtocol compatible"
+            "Table value is not RichTableProtocol compatible",
         )
 
     def _populate_table_rows(
@@ -1026,7 +1026,7 @@ class FlextCliOutput:
             headers_result = self._prepare_table_headers(data, headers)
             if headers_result.is_failure:
                 return r[p.Cli.Display.RichTableProtocol].fail(
-                    headers_result.error or "Failed to prepare headers"
+                    headers_result.error or "Failed to prepare headers",
                 )
             table_headers = headers_result.value
 
@@ -1034,7 +1034,7 @@ class FlextCliOutput:
             table_result = self._initialize_rich_table(table_headers, title)
             if table_result.is_failure:
                 return r[p.Cli.Display.RichTableProtocol].fail(
-                    table_result.error or "Failed to initialize table"
+                    table_result.error or "Failed to initialize table",
                 )
             table = table_result.value
 
@@ -1042,7 +1042,7 @@ class FlextCliOutput:
             populate_result = self._populate_table_rows(table, data, table_headers)
             if populate_result.is_failure:
                 return r[p.Cli.Display.RichTableProtocol].fail(
-                    populate_result.error or "Failed to populate table"
+                    populate_result.error or "Failed to populate table",
                 )
 
             if not self._is_rich_table_protocol(table):
@@ -1133,7 +1133,8 @@ class FlextCliOutput:
         # Use build() DSL for headers normalization
         # Type narrowing: ensure_list returns list[t.GeneralValueType], convert to list[str]
         validated_headers_raw = FlextCliOutput.ensure_list(
-            headers, [c.Cli.TableFormats.KEYS]
+            headers,
+            [c.Cli.TableFormats.KEYS],
         )
         validated_headers: list[str] = [str(h) for h in validated_headers_raw]
         final_config = m.Cli.TableConfig.model_validate({
@@ -1571,7 +1572,8 @@ class FlextCliOutput:
     def _is_custom_iterable_value(data: t.GeneralValueType) -> bool:
         """Check if value should use custom iterable strategy."""
         return isinstance(data, Iterable) and not isinstance(
-            data, (str, list, tuple, dict)
+            data,
+            (str, list, tuple, dict),
         )
 
     def _iterate_mapping(self, data: t.GeneralValueType) -> list[t.GeneralValueType]:
@@ -1608,7 +1610,8 @@ class FlextCliOutput:
         )
 
     def _convert_iterable_to_list(
-        self, data: Iterable[t.GeneralValueType]
+        self,
+        data: Iterable[t.GeneralValueType],
     ) -> list[t.GeneralValueType]:
         """Convert iterable to list with type narrowing.
 
@@ -1625,7 +1628,8 @@ class FlextCliOutput:
                 item_general: t.GeneralValueType = (
                     item
                     if isinstance(
-                        item, (str, int, float, bool, type(None), dict, list, tuple)
+                        item,
+                        (str, int, float, bool, type(None), dict, list, tuple),
                     )
                     else str(item)  # Fallback to string for other types
                 )
@@ -1691,7 +1695,8 @@ class FlextCliOutput:
 
     @staticmethod
     def _replace_none_for_csv(
-        _k: str, v: t.GeneralValueType
+        _k: str,
+        v: t.GeneralValueType,
     ) -> str | int | float | bool:
         """Replace None with empty string for CSV."""
         if v is None:
@@ -1825,7 +1830,8 @@ class FlextCliOutput:
         # Use build() DSL: ensure list → ensure default
         # Type narrowing: ensure_list returns list[t.GeneralValueType], convert to list[str]
         table_headers_raw = FlextCliOutput.ensure_list(
-            headers, [c.Cli.TableFormats.KEYS]
+            headers,
+            [c.Cli.TableFormats.KEYS],
         )
         table_headers: list[str] = [str(h) for h in table_headers_raw]
         return r[tuple[list[dict[str, t.GeneralValueType]], str | list[str]]].ok((
@@ -1970,7 +1976,7 @@ class FlextCliOutput:
                     self._build_tree(branch, v)
                 elif isinstance(v, list):
                     branch = tree.add(
-                        f"{k}{c.Cli.OutputDefaults.TREE_BRANCH_LIST_SUFFIX}"
+                        f"{k}{c.Cli.OutputDefaults.TREE_BRANCH_LIST_SUFFIX}",
                     )
 
                     def process_list_item(item: t.GeneralValueType) -> None:

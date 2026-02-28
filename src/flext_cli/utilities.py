@@ -154,11 +154,13 @@ class FlextCliUtilities(FlextUtilities):
                     if val_str not in set(in_list):
                         err = (
                             c.Cli.MixinsValidationMessages.SESSION_STATUS_INVALID.format(
-                                current_status=val_str, valid_states=in_list
+                                current_status=val_str,
+                                valid_states=in_list,
                             )
                             if name == "session_status"
                             else c.Cli.MixinsValidationMessages.INVALID_ENUM_VALUE.format(
-                                field_name=name, valid_values=in_list
+                                field_name=name,
+                                valid_values=in_list,
                             )
                         )
                         return r[bool].fail(msg or err)
@@ -181,14 +183,14 @@ class FlextCliUtilities(FlextUtilities):
                 if val is None:
                     return r[bool].fail(
                         c.Cli.MixinsValidationMessages.FIELD_CANNOT_BE_EMPTY.format(
-                            field_name=name
-                        )
+                            field_name=name,
+                        ),
                     )
                 if isinstance(val, str) and not FlextUtilities.is_string_non_empty(val):
                     return r[bool].fail(
                         c.Cli.MixinsValidationMessages.FIELD_CANNOT_BE_EMPTY.format(
-                            field_name=name
-                        )
+                            field_name=name,
+                        ),
                     )
                 return r[bool].ok(value=True)
 
@@ -201,7 +203,10 @@ class FlextCliUtilities(FlextUtilities):
             ) -> r[bool]:
                 """Validate that a field value is in a list of valid values."""
                 return FlextCliUtilities.Cli.CliValidation.v(
-                    field_value, name=field_name, empty=False, in_list=valid_values
+                    field_value,
+                    name=field_name,
+                    empty=False,
+                    in_list=valid_values,
                 )
 
             @staticmethod
@@ -238,7 +243,7 @@ class FlextCliUtilities(FlextUtilities):
                     return r.ok(fmt)
                 return r[str].fail(
                     c.Cli.ErrorMessages.INVALID_OUTPUT_FORMAT.format(
-                        format=format_type
+                        format=format_type,
                     ),
                 )
 
@@ -253,11 +258,16 @@ class FlextCliUtilities(FlextUtilities):
                 """Validate a state value."""
                 if required is not None:
                     return FlextCliUtilities.Cli.CliValidation.v(
-                        current, name=name, eq=required
+                        current,
+                        name=name,
+                        eq=required,
                     )
                 if valid is not None:
                     return FlextCliUtilities.Cli.CliValidation.v(
-                        current, name=name, in_list=valid, empty=False
+                        current,
+                        name=name,
+                        in_list=valid,
+                        empty=False,
                     )
                 return r[bool].fail(f"{name}: no validation criteria provided")
 
@@ -265,7 +275,9 @@ class FlextCliUtilities(FlextUtilities):
             def v_session(current: str, *, valid: list[str]) -> r[bool]:
                 """Validate a session status."""
                 return FlextCliUtilities.Cli.CliValidation.v_state(
-                    current, valid=valid, name="session_status"
+                    current,
+                    valid=valid,
+                    name="session_status",
                 )
 
             @staticmethod
@@ -278,15 +290,15 @@ class FlextCliUtilities(FlextUtilities):
                 if data is None:
                     return r[bool].fail(
                         c.Cli.MixinsValidationMessages.CONFIG_MISSING_FIELDS.format(
-                            missing_fields=fields
-                        )
+                            missing_fields=fields,
+                        ),
                     )
                 missing = [name for name in fields if name not in data]
                 if not missing:
                     return r.ok(True)
                 return r[bool].fail(
                     c.Cli.MixinsValidationMessages.CONFIG_MISSING_FIELDS.format(
-                        missing_fields=missing
+                        missing_fields=missing,
                     ),
                 )
 
@@ -306,21 +318,21 @@ class FlextCliUtilities(FlextUtilities):
                 """Validate a pipeline step."""
                 if step is None:
                     return r[bool].fail(
-                        c.Cli.MixinsValidationMessages.PIPELINE_STEP_EMPTY
+                        c.Cli.MixinsValidationMessages.PIPELINE_STEP_EMPTY,
                     )
                 key = c.Cli.MixinsFieldNames.PIPELINE_STEP_NAME
                 if key not in step:
                     return r[bool].fail(
-                        c.Cli.MixinsValidationMessages.PIPELINE_STEP_NO_NAME
+                        c.Cli.MixinsValidationMessages.PIPELINE_STEP_NO_NAME,
                     )
                 value = step[key]
                 if value is None:
                     return r[bool].fail(
-                        c.Cli.MixinsValidationMessages.PIPELINE_STEP_NAME_EMPTY
+                        c.Cli.MixinsValidationMessages.PIPELINE_STEP_NAME_EMPTY,
                     )
                 if isinstance(value, str) and not value.strip():
                     return r[bool].fail(
-                        c.Cli.MixinsValidationMessages.PIPELINE_STEP_NAME_EMPTY
+                        c.Cli.MixinsValidationMessages.PIPELINE_STEP_NAME_EMPTY,
                     )
                 return r[bool].ok(value=True)
 
@@ -341,7 +353,8 @@ class FlextCliUtilities(FlextUtilities):
             def is_test_environment() -> bool:
                 """Check if running in a test environment."""
                 pytest_test = FlextUtilities.get(
-                    os.environ, c.Cli.EnvironmentConstants.PYTEST_CURRENT_TEST
+                    os.environ,
+                    c.Cli.EnvironmentConstants.PYTEST_CURRENT_TEST,
                 )
                 underscore = os.environ.get(c.Cli.EnvironmentConstants.UNDERSCORE, "")
                 ci = os.environ.get(c.Cli.EnvironmentConstants.CI)
@@ -376,7 +389,7 @@ class FlextCliUtilities(FlextUtilities):
                 lines = [
                     f"{ok} Configuration directory exists"
                     if base.exists()
-                    else f"{fail} Configuration directory missing"
+                    else f"{fail} Configuration directory missing",
                 ]
                 for subdir in c.Cli.Subdirectories.STANDARD_SUBDIRS:
                     path = base / subdir
@@ -384,8 +397,9 @@ class FlextCliUtilities(FlextUtilities):
                         c.Cli.CmdMessages.SUBDIR_EXISTS.format(symbol=ok, subdir=subdir)
                         if path.exists()
                         else c.Cli.CmdMessages.SUBDIR_MISSING.format(
-                            symbol=fail, subdir=subdir
-                        )
+                            symbol=fail,
+                            subdir=subdir,
+                        ),
                     )
                 return lines
 
@@ -423,7 +437,8 @@ class FlextCliUtilities(FlextUtilities):
             def is_file_not_found_error(error_msg: str) -> bool:
                 """Check if error message indicates file not found."""
                 return FlextCliUtilities.Cli.FileOps.matches(
-                    error_msg, *FlextCliUtilities.Cli.FileOps.FILE_NOT_FOUND_PATTERNS
+                    error_msg,
+                    *FlextCliUtilities.Cli.FileOps.FILE_NOT_FOUND_PATTERNS,
                 )
 
         class TypeNormalizer:
@@ -439,7 +454,7 @@ class FlextCliUtilities(FlextUtilities):
                 origin_obj = get_origin(annotation)
                 if origin_obj is types.UnionType or str(origin_obj) == "typing.Union":
                     return FlextCliUtilities.Cli.TypeNormalizer.normalize_union_type(
-                        annotation
+                        annotation,
                     )
                 return annotation
 
@@ -462,7 +477,7 @@ class FlextCliUtilities(FlextUtilities):
                 non_none = [arg for arg in args if arg is not types.NoneType]
                 if len(non_none) == 1:
                     inner = FlextCliUtilities.Cli.TypeNormalizer.normalize_annotation(
-                        non_none[0]
+                        non_none[0],
                     )
                     if inner is None:
                         return None
@@ -472,7 +487,7 @@ class FlextCliUtilities(FlextUtilities):
                         item
                         for item in (
                             FlextCliUtilities.Cli.TypeNormalizer.normalize_annotation(
-                                arg
+                                arg,
                             )
                             for arg in non_none
                         )
@@ -482,14 +497,17 @@ class FlextCliUtilities(FlextUtilities):
                         return None
                     return (
                         FlextCliUtilities.Cli.TypeNormalizer.combine_types_with_union(
-                            normalized, include_none=has_none
+                            normalized,
+                            include_none=has_none,
                         )
                     )
                 return annotation
 
             @staticmethod
             def combine_types_with_union(
-                types_list: list[type | types.UnionType], *, include_none: bool = False
+                types_list: list[type | types.UnionType],
+                *,
+                include_none: bool = False,
             ) -> type | types.UnionType:
                 """Combine types using union."""
                 result: type | types.UnionType = types_list[0]
@@ -559,7 +577,9 @@ class FlextCliUtilities(FlextUtilities):
                 ) -> r[M]:
                     """Create model instance from dictionary."""
                     result = FlextUtilities.Model.from_dict(
-                        model_cls, data, strict=strict
+                        model_cls,
+                        data,
+                        strict=strict,
                     )
                     return (
                         r[M].ok(result.value)
@@ -575,7 +595,9 @@ class FlextCliUtilities(FlextUtilities):
                 ) -> r[M]:
                     """Merge default values with overrides."""
                     result = FlextUtilities.Model.merge_defaults(
-                        model_cls, defaults, overrides
+                        model_cls,
+                        defaults,
+                        overrides,
                     )
                     return (
                         r[M].ok(result.value)

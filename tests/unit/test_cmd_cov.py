@@ -71,7 +71,8 @@ def test_set_config_value_outer_exception_path(monkeypatch: pytest.MonkeyPatch) 
 
 
 def test_get_config_value_outer_exception_path(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
 ) -> None:
 
     class FakeConfig:
@@ -102,7 +103,9 @@ def test_show_config_failure_when_info_result_is_failure(
 ) -> None:
     cmd = FlextCliCmd()
     monkeypatch.setattr(
-        FlextCliCmd, "get_config_info", staticmethod(lambda: r.fail("bad info"))
+        FlextCliCmd,
+        "get_config_info",
+        staticmethod(lambda: r.fail("bad info")),
     )
 
     result = cmd.show_config()
@@ -140,7 +143,8 @@ def test_edit_config_outer_exception_path(monkeypatch: pytest.MonkeyPatch) -> No
 
 
 def test_edit_config_success_logs_and_returns_ok(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
 ) -> None:
 
     class FakeConfig:
@@ -158,7 +162,9 @@ def test_edit_config_success_logs_and_returns_ok(
         staticmethod(lambda: FakeConfig()),
     )
     monkeypatch.setattr(
-        cmd._file_tools, "read_json_file", lambda _path: r.ok({"name": "ok"})
+        cmd._file_tools,
+        "read_json_file",
+        lambda _path: r.ok({"name": "ok"}),
     )
     monkeypatch.setattr(
         cmd.logger,

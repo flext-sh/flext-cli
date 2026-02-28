@@ -687,7 +687,7 @@ def load_fixture_config() -> dict[str, t.GeneralValueType]:
     with fixture_path.open(encoding="utf-8") as f:
         data = json.load(f)
     adapter: TypeAdapter[dict[str, t.GeneralValueType]] = TypeAdapter(
-        dict[str, t.GeneralValueType]
+        dict[str, t.GeneralValueType],
     )
     return adapter.validate_python(data)
 
@@ -699,7 +699,7 @@ def load_fixture_data() -> dict[str, t.GeneralValueType]:
     with fixture_path.open(encoding="utf-8") as f:
         data = json.load(f)
     adapter: TypeAdapter[dict[str, t.GeneralValueType]] = TypeAdapter(
-        dict[str, t.GeneralValueType]
+        dict[str, t.GeneralValueType],
     )
     return adapter.validate_python(data)
 
@@ -729,7 +729,8 @@ def flext_test_docker(
     except OSError as startup_err:
         # Best-effort cleanup; log and continue so test run is not blocked
         logging.getLogger(__name__).debug(
-            "Docker cleanup at startup skipped: %s", startup_err
+            "Docker cleanup at startup skipped: %s",
+            startup_err,
         )
 
     return docker_manager

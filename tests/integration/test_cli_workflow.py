@@ -28,10 +28,12 @@ class TestsCliWorkflowIntegration:
         # Create commands with different statuses
         pending_cmd = create_test_cli_command(status=c.Cli.CommandStatus.PENDING)
         running_cmd = create_test_cli_command(
-            name="running-cmd", status=c.Cli.CommandStatus.RUNNING
+            name="running-cmd",
+            status=c.Cli.CommandStatus.RUNNING,
         )
         completed_cmd = create_test_cli_command(
-            name="completed-cmd", status=c.Cli.CommandStatus.COMPLETED
+            name="completed-cmd",
+            status=c.Cli.CommandStatus.COMPLETED,
         )
 
         # Create session with all commands

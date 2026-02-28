@@ -171,7 +171,8 @@ class FlextCliTables(FlextCliServiceBase):
 
         # Validate table data and format
         validation_result = FlextCliTables._validate_table_data(
-            data, config_final.table_format
+            data,
+            config_final.table_format,
         )
         if validation_result.is_failure:
             return r[str].fail(validation_result.error or "Table validation failed")
@@ -241,7 +242,7 @@ class FlextCliTables(FlextCliServiceBase):
                 )
                 return r[str].ok(formatted_table)
             return r[str].fail(
-                "Table data must be a sequence of mappings or a sequence of sequences"
+                "Table data must be a sequence of mappings or a sequence of sequences",
             )
         except (
             ValueError,
@@ -307,7 +308,8 @@ class FlextCliTables(FlextCliServiceBase):
         """Calculate number of columns based on headers and data type."""
         if isinstance(headers, str):
             if headers == FlextCliConstants.Cli.TableFormats.KEYS and isinstance(
-                data, Mapping
+                data,
+                Mapping,
             ):
                 return len(data)
             data_list = list(data)
@@ -372,7 +374,7 @@ class FlextCliTables(FlextCliServiceBase):
             return r[str].fail(
                 FlextCliConstants.Cli.TablesErrorMessages.TABLE_CREATION_FAILED.format(
                     error=e,
-                )
+                ),
             )
 
     @staticmethod
@@ -390,7 +392,7 @@ class FlextCliTables(FlextCliServiceBase):
                 return {"format": name, "description": desc}
 
             _ = list(
-                starmap(convert_format, FlextCliConstants.Cli.TABLE_FORMATS.items())
+                starmap(convert_format, FlextCliConstants.Cli.TABLE_FORMATS.items()),
             )
             # Table formatting delegated to rich/tabulate — returns operation result
             return r[bool].ok(value=True)

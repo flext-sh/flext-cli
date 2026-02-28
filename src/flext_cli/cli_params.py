@@ -110,7 +110,7 @@ class FlextCliCommonParams:
         param_fields = sorted(
             cls.CLI_PARAM_REGISTRY.items(),
             key=lambda x: int(
-                str(x[1].get(c.Cli.CliParamsRegistry.KEY_PRIORITY, default_priority))
+                str(x[1].get(c.Cli.CliParamsRegistry.KEY_PRIORITY, default_priority)),
             ),
         )
         return {name: cls.create_option(name) for name, _ in param_fields}
@@ -165,7 +165,7 @@ class FlextCliCommonParams:
         bool_result = cls._set_bool_params(config, params)
         if bool_result.is_failure:
             return r[FlextCliSettings].fail(
-                bool_result.error or "Boolean parameter setting failed"
+                bool_result.error or "Boolean parameter setting failed",
             )
 
         log_level_result = cls._set_log_level(config, params)
@@ -240,7 +240,7 @@ class FlextCliCommonParams:
         except ValueError:
             valid = ", ".join(c.Cli.Lists.LOG_LEVELS_LIST)
             return r[FlextCliSettings].fail(
-                f"invalid log level: {params.log_level}. valid options: {valid}"
+                f"invalid log level: {params.log_level}. valid options: {valid}",
             )
 
     @classmethod
@@ -254,7 +254,7 @@ class FlextCliCommonParams:
             if params.log_format not in c.Cli.CliParamsDefaults.VALID_LOG_FORMATS:
                 valid = ", ".join(c.Cli.CliParamsDefaults.VALID_LOG_FORMATS)
                 return r[FlextCliSettings].fail(
-                    f"invalid log format: {params.log_format}. valid: {valid}"
+                    f"invalid log format: {params.log_format}. valid: {valid}",
                 )
             config.log_verbosity = params.log_format
         if params.output_format is not None:
@@ -262,7 +262,7 @@ class FlextCliCommonParams:
             if validated_result.is_failure:
                 valid = ", ".join(c.Cli.CliParamsDefaults.VALID_OUTPUT_FORMATS)
                 return r[FlextCliSettings].fail(
-                    f"invalid output format: {params.output_format}. valid: {valid}"
+                    f"invalid output format: {params.output_format}. valid: {valid}",
                 )
             config = config.model_copy(update={"output_format": validated_result.value})
         return r[FlextCliSettings].ok(config)

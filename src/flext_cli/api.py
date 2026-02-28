@@ -205,7 +205,7 @@ class FlextCli:
         save_result = self.save_auth_token(token)
         if save_result.is_failure:
             return r[str].fail(
-                c.Cli.ErrorMessages.TOKEN_SAVE_FAILED.format(error=save_result.error)
+                c.Cli.ErrorMessages.TOKEN_SAVE_FAILED.format(error=save_result.error),
             )
         return r[str].ok(token)
 
@@ -236,11 +236,12 @@ class FlextCli:
         token_data: Mapping[str, t.JsonValue] = {c.Cli.DictKeys.TOKEN: token}
         json_data = u.transform(token_data, to_json=True).map_or(token_data)
         write_result = self.file_tools.write_json_file(
-            str(self.config.token_file), json_data
+            str(self.config.token_file),
+            json_data,
         )
         if write_result.is_failure:
             return r[bool].fail(
-                c.Cli.ErrorMessages.TOKEN_SAVE_FAILED.format(error=write_result.error)
+                c.Cli.ErrorMessages.TOKEN_SAVE_FAILED.format(error=write_result.error),
             )
         self._valid_tokens.add(token)
         return r[bool].ok(value=True)
@@ -320,8 +321,8 @@ class FlextCli:
             if not self._is_ignorable_delete(del_result):
                 return r[bool].fail(
                     c.Cli.ErrorMessages.FAILED_CLEAR_CREDENTIALS.format(
-                        error=del_result.error
-                    )
+                        error=del_result.error,
+                    ),
                 )
         self._valid_tokens.clear()
         return r[bool].ok(value=True)
@@ -364,13 +365,15 @@ class FlextCli:
         return decorator
 
     def command(
-        self, name: str | None = None
+        self,
+        name: str | None = None,
     ) -> Callable[[p.Cli.CliCommandFunction], p.Cli.CliRegisteredCommand]:
         """Register a command using CLI framework abstraction."""
         return self._entity_decorator(c.Cli.EntityType.COMMAND, name)
 
     def group(
-        self, name: str | None = None
+        self,
+        name: str | None = None,
     ) -> Callable[[p.Cli.CliCommandFunction], p.Cli.CliRegisteredCommand]:
         """Register a command group using CLI framework abstraction."""
         return self._entity_decorator(c.Cli.EntityType.GROUP, name)

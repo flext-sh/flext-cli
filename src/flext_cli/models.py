@@ -142,7 +142,8 @@ class _DictKeysExtract(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
     input_: t.JsonValue | Mapping[str, t.JsonValue] = Field(
-        alias="input", description="Value to extract keys from"
+        alias="input",
+        description="Value to extract keys from",
     )
 
     @computed_field
@@ -172,7 +173,7 @@ class _EnsureDictInput(BaseModel):
         if isinstance(source, Mapping):
             return {str(k): _normalize_to_json_value(vv) for k, vv in source.items()}
         adapter: TypeAdapter[dict[str, t.JsonValue]] = TypeAdapter(
-            dict[str, t.JsonValue]
+            dict[str, t.JsonValue],
         )
         try:
             parsed = adapter.validate_python(source)
@@ -302,7 +303,7 @@ class _NormalizedJsonDict(BaseModel):
         source = _unwrap_root_value(self.value)
         try:
             adapter: TypeAdapter[dict[str, t.JsonValue]] = TypeAdapter(
-                dict[str, t.JsonValue]
+                dict[str, t.JsonValue],
             )
             raw_dict = adapter.validate_python(source)
             return {str(k): _normalize_json_value(v) for k, v in raw_dict.items()}
@@ -1509,7 +1510,7 @@ class FlextCliModels(FlextModels):
 
                 system_dict: dict[str, t.JsonValue] = {}
                 system_adapter: TypeAdapter[dict[str, t.JsonValue]] = TypeAdapter(
-                    dict[str, t.JsonValue]
+                    dict[str, t.JsonValue],
                 )
                 try:
                     system_dict = system_adapter.validate_python(self.system_info)
@@ -1529,7 +1530,7 @@ class FlextCliModels(FlextModels):
 
                 config_dict: dict[str, t.JsonValue] = {}
                 config_adapter: TypeAdapter[dict[str, t.JsonValue]] = TypeAdapter(
-                    dict[str, t.JsonValue]
+                    dict[str, t.JsonValue],
                 )
                 try:
                     config_dict = config_adapter.validate_python(self.config_info)
@@ -2616,7 +2617,7 @@ class FlextCliModels(FlextModels):
                     )
                     if annotation is None:
                         return FlextResult.fail(
-                            f"Field {field_name} has no type annotation"
+                            f"Field {field_name} has no type annotation",
                         )
                     field_type = annotation
                     # Extract non-None type from Optional/Union
@@ -2720,7 +2721,8 @@ class FlextCliModels(FlextModels):
                     return generic_result
                 # Check if it's a known simple type
                 if isinstance(
-                    pydantic_type, type
+                    pydantic_type,
+                    type,
                 ) and FlextCliModels.Cli.CliModelConverter.is_simple_type(
                     pydantic_type,
                 ):
@@ -2783,7 +2785,7 @@ class FlextCliModels(FlextModels):
             def to_json_value(value: t.GeneralValueType) -> t.JsonValue:
                 """Convert arbitrary value into JsonValue."""
                 converted = FlextCliModels.Cli.CliModelConverter.convert_field_value(
-                    value
+                    value,
                 )
                 if converted.is_success:
                     return converted.value
@@ -2823,7 +2825,7 @@ class FlextCliModels(FlextModels):
                     if _is_mapping_like(item):
                         dict_item = {
                             str(k): FlextCliModels.Cli.CliModelConverter.to_json_value(
-                                v
+                                v,
                             )
                             for k, v in item.items()
                         }
@@ -2833,7 +2835,7 @@ class FlextCliModels(FlextModels):
                         if _is_mapping_like(item_dict):
                             dict_item = {
                                 str(
-                                    k
+                                    k,
                                 ): FlextCliModels.Cli.CliModelConverter.to_json_value(v)
                                 for k, v in item_dict.items()
                             }
@@ -2881,12 +2883,13 @@ class FlextCliModels(FlextModels):
                 # Use dict.get() for safe metadata access
                 metadata_raw = props.get("metadata", {})
                 dict_adapter: TypeAdapter[dict[str, t.JsonValue]] = TypeAdapter(
-                    dict[str, t.JsonValue]
+                    dict[str, t.JsonValue],
                 )
 
                 try:
                     metadata_dict = dict_adapter.validate_python(
-                        metadata_raw, strict=True
+                        metadata_raw,
+                        strict=True,
                     )
                 except ValidationError as exc:
                     msg = "metadata must be Mapping"
@@ -3003,7 +3006,7 @@ class FlextCliModels(FlextModels):
                         value = field_data[field_key]
                         if not check_func(value):
                             return FlextResult.fail(
-                                f"Invalid {field_key}: {value} (expected {type_name})"
+                                f"Invalid {field_key}: {value} (expected {type_name})",
                             )
                 return FlextResult.ok(True)
 
@@ -3044,7 +3047,7 @@ class FlextCliModels(FlextModels):
                 )
                 if schema_result.is_failure:
                     return FlextResult.fail(
-                        schema_result.error or "Schema validation failed"
+                        schema_result.error or "Schema validation failed",
                     )
                 field_value = field_data.get(field_name, None)
                 return FlextCliModels.Cli.CliModelConverter.convert_field_value(
@@ -3199,7 +3202,7 @@ class FlextCliModels(FlextModels):
                                 validated_model = model_cls(**kwargs)
                                 model_instances.append(validated_model)
                             result: t.GeneralValueType = func(
-                                *(m_inst.model_dump() for m_inst in model_instances)
+                                *(m_inst.model_dump() for m_inst in model_instances),
                             )
                             return result
                         except (

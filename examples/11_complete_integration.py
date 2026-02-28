@@ -112,7 +112,7 @@ class DataManagerCLI:
                     converted_data[key] = str(value)
         else:
             return r[dict[str, t.JsonValue]].fail(
-                "Loaded data contains non-JSON values"
+                "Loaded data contains non-JSON values",
             )
         return r[dict[str, t.JsonValue]].ok(converted_data)
 

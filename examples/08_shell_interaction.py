@@ -148,7 +148,7 @@ class InteractiveShell:
                 if isinstance(result, r):
                     if result.is_failure:
                         return r[t.JsonValue].fail(
-                            result.error or "Unknown command error"
+                            result.error or "Unknown command error",
                         )
                     result_value = result.value
                     if (

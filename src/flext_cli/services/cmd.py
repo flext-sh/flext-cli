@@ -221,7 +221,7 @@ class FlextCliCmd(FlextCliServiceBase):
             # Python 3.13: to_dict_json() always returns dict, cast_if and isinstance are unnecessary
             # Reuse to_dict_json helper from output module
             result_data: dict[str, t.JsonValue] = dict(
-                FlextCliOutput.to_dict_json(raw_data)
+                FlextCliOutput.to_dict_json(raw_data),
             )
             return r[Mapping[str, t.JsonValue]].ok(result_data)
         except (

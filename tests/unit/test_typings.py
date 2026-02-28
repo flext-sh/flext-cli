@@ -144,7 +144,8 @@ class TestsCliTypings:
 
         @staticmethod
         def validate_type_usage(
-            data: dict[str, t.GeneralValueType], type_hint: str
+            data: dict[str, t.GeneralValueType],
+            type_hint: str,
         ) -> r[bool]:
             """Validate type usage with actual data."""
             try:

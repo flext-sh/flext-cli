@@ -24,7 +24,8 @@ class FlextCliPrompts(FlextCliServiceBase):
     """CLI prompts service with validation, history, and non-interactive fallbacks."""
 
     interactive_mode: bool = Field(
-        default=True, description="Enable interactive prompts"
+        default=True,
+        description="Enable interactive prompts",
     )
     quiet: bool = Field(default=False, description="Enable quiet mode")
     default_timeout: int = Field(
@@ -79,10 +80,15 @@ class FlextCliPrompts(FlextCliServiceBase):
         )
 
     def _fatal(
-        self, operation: str, message: str, exc: Exception, consequence: str
+        self,
+        operation: str,
+        message: str,
+        exc: Exception,
+        consequence: str,
     ) -> None:
         self.logger.error(
-            f"FATAL ERROR during {operation} - operation aborted",
+            "FATAL ERROR during %s - operation aborted",
+            operation,
             operation=operation,
             prompt_message=message,
             error=str(exc),
@@ -113,7 +119,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 and not re.match(validation_pattern, default)
             ):
                 return r[str].fail(
-                    EM.INPUT_PATTERN_MISMATCH.format(pattern=validation_pattern)
+                    EM.INPUT_PATTERN_MISMATCH.format(pattern=validation_pattern),
                 )
             return r[str].ok(default)
         except (
@@ -175,7 +181,7 @@ class FlextCliPrompts(FlextCliServiceBase):
             )
             if default is None:
                 return r[str].fail(
-                    PEM.CHOICE_REQUIRED.format(choices=", ".join(choices))
+                    PEM.CHOICE_REQUIRED.format(choices=", ".join(choices)),
                 )
             if default not in choices:
                 return r[str].fail(EM.INVALID_CHOICE.format(selected=default))
@@ -189,7 +195,10 @@ class FlextCliPrompts(FlextCliServiceBase):
             LiveError,
         ) as exc:
             self._fatal(
-                "prompt_choice", message, exc, "Choice prompt failed completely"
+                "prompt_choice",
+                message,
+                exc,
+                "Choice prompt failed completely",
             )
             return r[str].fail(EM.CHOICE_PROMPT_FAILED.format(error=exc))
 
@@ -205,7 +214,7 @@ class FlextCliPrompts(FlextCliServiceBase):
             password = getpass.getpass(prompt=f"{message}{PD.PROMPT_SPACE_SUFFIX}")
             if len(password) < min_length:
                 return r[str].fail(
-                    EM.PASSWORD_TOO_SHORT_MIN.format(min_length=min_length)
+                    EM.PASSWORD_TOO_SHORT_MIN.format(min_length=min_length),
                 )
             return r[str].ok(password)
         except (
@@ -217,7 +226,10 @@ class FlextCliPrompts(FlextCliServiceBase):
             LiveError,
         ) as exc:
             self._fatal(
-                "prompt_password", message, exc, "Password prompt failed completely"
+                "prompt_password",
+                message,
+                exc,
+                "Password prompt failed completely",
             )
             return r[str].fail(EM.PASSWORD_PROMPT_FAILED.format(error=exc))
 
@@ -291,7 +303,10 @@ class FlextCliPrompts(FlextCliServiceBase):
             LiveError,
         ) as exc:
             self._fatal(
-                "execute", "execute", exc, "Prompt service execution failed completely"
+                "execute",
+                "execute",
+                exc,
+                "Prompt service execution failed completely",
             )
             return r[Mapping[str, t.JsonValue]].fail(
                 PEM.PROMPT_SERVICE_EXECUTION_FAILED.format(error=exc),
@@ -311,7 +326,7 @@ class FlextCliPrompts(FlextCliServiceBase):
             value = raw or default
             if not self._is_test_env():
                 self.logger.info(
-                    PD.PROMPT_LOG_FORMAT.format(message=message, input=value)
+                    PD.PROMPT_LOG_FORMAT.format(message=message, input=value),
                 )
             return r[str].ok(value)
         except (
@@ -393,7 +408,9 @@ class FlextCliPrompts(FlextCliServiceBase):
                 return r[str].fail(PM.INPUT_STREAM_ENDED)
 
     def select_from_options(
-        self, options: list[str], message: str = PD.DEFAULT_CHOICE_MESSAGE
+        self,
+        options: list[str],
+        message: str = PD.DEFAULT_CHOICE_MESSAGE,
     ) -> r[str]:
         try:
             values = [str(option) for option in options]
@@ -415,7 +432,7 @@ class FlextCliPrompts(FlextCliServiceBase):
             result = self._read_selection(values)
             if result.is_success:
                 self.logger.info(
-                    PM.USER_SELECTION_LOG.format(message=message, choice=result.value)
+                    PM.USER_SELECTION_LOG.format(message=message, choice=result.value),
                 )
             return result
         except (
@@ -427,16 +444,21 @@ class FlextCliPrompts(FlextCliServiceBase):
             LiveError,
         ) as exc:
             self._fatal(
-                "select_from_options", message, exc, "Selection failed completely"
+                "select_from_options",
+                message,
+                exc,
+                "Selection failed completely",
             )
             return r[str].fail(PEM.SELECTION_FAILED.format(error=exc))
 
     def print_status(
-        self, message: str, status: str = CLI.MessageTypes.INFO.value
+        self,
+        message: str,
+        status: str = CLI.MessageTypes.INFO.value,
     ) -> r[bool]:
         try:
             self.logger.info(
-                PD.STATUS_FORMAT.format(status=status.upper(), message=message)
+                PD.STATUS_FORMAT.format(status=status.upper(), message=message),
             )
             return r[bool].ok(value=True)
         except (
@@ -496,26 +518,39 @@ class FlextCliPrompts(FlextCliServiceBase):
 
     def print_success(self, message: str) -> r[bool]:
         return self._print_message(
-            message, "info", PD.SUCCESS_FORMAT, PEM.PRINT_SUCCESS_FAILED
+            message,
+            "info",
+            PD.SUCCESS_FORMAT,
+            PEM.PRINT_SUCCESS_FAILED,
         )
 
     def print_error(self, message: str) -> r[bool]:
         return self._print_message(
-            message, "error", PD.ERROR_FORMAT, PEM.PRINT_ERROR_FAILED
+            message,
+            "error",
+            PD.ERROR_FORMAT,
+            PEM.PRINT_ERROR_FAILED,
         )
 
     def print_warning(self, message: str) -> r[bool]:
         return self._print_message(
-            message, "warning", PD.WARNING_FORMAT, PEM.PRINT_WARNING_FAILED
+            message,
+            "warning",
+            PD.WARNING_FORMAT,
+            PEM.PRINT_WARNING_FAILED,
         )
 
     def print_info(self, message: str) -> r[bool]:
         return self._print_message(
-            message, "info", PD.INFO_FORMAT, PEM.PRINT_INFO_FAILED
+            message,
+            "info",
+            PD.INFO_FORMAT,
+            PEM.PRINT_INFO_FAILED,
         )
 
     def create_progress(
-        self, description: str = PD.DEFAULT_PROCESSING_DESCRIPTION
+        self,
+        description: str = PD.DEFAULT_PROCESSING_DESCRIPTION,
     ) -> r[str]:
         try:
             self._record(f"Progress: {description}")
@@ -550,7 +585,7 @@ class FlextCliPrompts(FlextCliServiceBase):
             total = len(items)
             self.logger.info("Starting progress operation with items")
             self._record(
-                PM.PROGRESS_OPERATION.format(description=description, count=total)
+                PM.PROGRESS_OPERATION.format(description=description, count=total),
             )
             self.logger.info(PM.PROCESSING.format(description=description, count=total))
 
@@ -561,15 +596,18 @@ class FlextCliPrompts(FlextCliServiceBase):
                     progress = (total / total) * 100
                     self.logger.info(
                         PD.PROGRESS_FORMAT.format(
-                            progress=progress, current=total, total=total
+                            progress=progress,
+                            current=total,
+                            total=total,
                         ),
                     )
 
             self.logger.info(PM.PROGRESS_COMPLETED.format(description=description))
             self.logger.info(
                 PM.PROGRESS_COMPLETED_LOG.format(
-                    description=description, processed=total
-                )
+                    description=description,
+                    processed=total,
+                ),
             )
             return r[list[t.JsonValue]].ok(items)
         except (
@@ -587,7 +625,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 "Progress operation failed completely",
             )
             return r[list[t.JsonValue]].fail(
-                PEM.PROGRESS_PROCESSING_FAILED.format(error=exc)
+                PEM.PROGRESS_PROCESSING_FAILED.format(error=exc),
             )
 
 

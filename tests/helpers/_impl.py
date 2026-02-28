@@ -258,7 +258,8 @@ class FlextCliTestHelpers:
                     version_parts.append(int(part))
                 except ValueError:
                     logging.getLogger(__name__).debug(
-                        "version part non-int, keep as str: %s", part
+                        "version part non-int, keep as str: %s",
+                        part,
                     )
                     version_parts.append(part)
 

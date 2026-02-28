@@ -17,7 +17,9 @@ _metadata = metadata("flext_cli")
 
 _raw_version = _metadata["Version"]
 __version__ = re.sub(
-    r"(\d)(a|b|rc)(\d+)$", r"\1-\2\3", re.sub(r"\.dev(\d+)$", r"-dev\1", _raw_version)
+    r"(\d)(a|b|rc)(\d+)$",
+    r"\1-\2\3",
+    re.sub(r"\.dev(\d+)$", r"-dev\1", _raw_version),
 )
 _version_without_metadata = __version__.split("+", maxsplit=1)[0]
 _version_base, _has_prerelease, _prerelease = _version_without_metadata.partition("-")

@@ -298,7 +298,7 @@ class FlextCliDebug(FlextCliServiceBase):
             info_dict: dict[str, t.JsonValue] = dict(
                 FlextCliDebug._convert_model_to_dict(
                     info_model,
-                ).model_dump()
+                ).model_dump(),
             )
             return r[Mapping[str, t.JsonValue]].ok(info_dict)
         except (
