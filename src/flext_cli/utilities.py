@@ -18,16 +18,6 @@ from rich.errors import ConsoleError, LiveError, StyleError
 
 from flext_cli import c, m, t
 
-type CliValue = (
-    str
-    | int
-    | float
-    | bool
-    | list[str]
-    | Mapping[str, str | int | float | bool | list[str]]
-    | None
-)
-
 
 class FlextCliUtilities(FlextUtilities):
     """Main utilities class for the Flext CLI."""
@@ -126,7 +116,7 @@ class FlextCliUtilities(FlextUtilities):
             """CLI-specific validation utilities."""
 
             @staticmethod
-            def to_str(value: CliValue) -> str:
+            def to_str(value: t.Cli.CliValue) -> str:
                 """Convert a value to a string safely."""
                 if value is None:
                     return ""
@@ -136,7 +126,7 @@ class FlextCliUtilities(FlextUtilities):
 
             @staticmethod
             def v(
-                val: CliValue,
+                val: t.Cli.CliValue,
                 *,
                 name: str = "field",
                 empty: bool = True,
@@ -178,7 +168,7 @@ class FlextCliUtilities(FlextUtilities):
                 return r[bool].ok(value=True)
 
             @staticmethod
-            def v_empty(val: CliValue, *, name: str = "field") -> r[bool]:
+            def v_empty(val: t.Cli.CliValue, *, name: str = "field") -> r[bool]:
                 """Validate that a value is not empty."""
                 if val is None:
                     return r[bool].fail(
@@ -282,7 +272,7 @@ class FlextCliUtilities(FlextUtilities):
 
             @staticmethod
             def v_req(
-                data: Mapping[str, CliValue] | Mapping[str, t.JsonValue] | None,
+                data: Mapping[str, t.Cli.CliValue] | Mapping[str, t.JsonValue] | None,
                 *,
                 fields: list[str],
             ) -> r[bool]:
@@ -304,7 +294,7 @@ class FlextCliUtilities(FlextUtilities):
 
             @staticmethod
             def v_config(
-                config: Mapping[str, CliValue] | Mapping[str, t.JsonValue] | None,
+                config: Mapping[str, t.Cli.CliValue] | Mapping[str, t.JsonValue] | None,
                 *,
                 fields: list[str],
             ) -> r[bool]:
@@ -313,7 +303,7 @@ class FlextCliUtilities(FlextUtilities):
 
             @staticmethod
             def v_step(
-                step: Mapping[str, CliValue] | Mapping[str, t.JsonValue] | None,
+                step: Mapping[str, t.Cli.CliValue] | Mapping[str, t.JsonValue] | None,
             ) -> r[bool]:
                 """Validate a pipeline step."""
                 if step is None:
@@ -541,9 +531,9 @@ class FlextCliUtilities(FlextUtilities):
 
                 @staticmethod
                 def parse_kwargs[E: StrEnum](
-                    kwargs: Mapping[str, CliValue],
+                    kwargs: Mapping[str, t.Cli.CliValue],
                     enum_fields: Mapping[str, type[E]],
-                ) -> r[Mapping[str, CliValue]]:
+                ) -> r[Mapping[str, t.Cli.CliValue]]:
                     """Parse keyword arguments."""
                     parsed = dict(kwargs)
                     errors: list[str] = []
@@ -560,9 +550,9 @@ class FlextCliUtilities(FlextUtilities):
                         else:
                             continue
                     return (
-                        r[Mapping[str, CliValue]].fail(f"Invalid: {errors}")
+                        r[Mapping[str, t.Cli.CliValue]].fail(f"Invalid: {errors}")
                         if errors
-                        else r[Mapping[str, CliValue]].ok(parsed)
+                        else r[Mapping[str, t.Cli.CliValue]].ok(parsed)
                     )
 
             class Model:
@@ -571,7 +561,7 @@ class FlextCliUtilities(FlextUtilities):
                 @staticmethod
                 def from_dict[M: BaseModel](
                     model_cls: type[M],
-                    data: Mapping[str, CliValue],
+                    data: Mapping[str, t.Cli.CliValue],
                     *,
                     strict: bool = False,
                 ) -> r[M]:
@@ -590,8 +580,8 @@ class FlextCliUtilities(FlextUtilities):
                 @staticmethod
                 def merge_defaults[M: BaseModel](
                     model_cls: type[M],
-                    defaults: Mapping[str, CliValue],
-                    overrides: Mapping[str, CliValue],
+                    defaults: Mapping[str, t.Cli.CliValue],
+                    overrides: Mapping[str, t.Cli.CliValue],
                 ) -> r[M]:
                     """Merge default values with overrides."""
                     result = FlextUtilities.Model.merge_defaults(
@@ -606,7 +596,9 @@ class FlextCliUtilities(FlextUtilities):
                     )
 
                 @staticmethod
-                def update[M: BaseModel](instance: M, **updates: CliValue) -> r[M]:
+                def update[M: BaseModel](
+                    instance: M, **updates: t.Cli.CliValue
+                ) -> r[M]:
                     """Update model instance."""
                     result = FlextUtilities.Model.update(instance, **updates)
                     return (
@@ -623,23 +615,13 @@ class FlextCliUtilities(FlextUtilities):
                     """Create a forced enum with validation."""
                     return enum_cls
 
-    TypeNormalizer: ClassVar[type[Cli.TypeNormalizer]]
-    Environment: ClassVar[type[Cli.Environment]]
-    FileOps: ClassVar[type[Cli.FileOps]]
-    ConfigOps: ClassVar[type[Cli.ConfigOps]]
-    CliValidation: ClassVar[type[Cli.CliValidation]]
+        TypeNormalizer: ClassVar[type] = TypeNormalizer
+        Environment: ClassVar[type] = Environment
+        FileOps: ClassVar[type] = FileOps
+        ConfigOps: ClassVar[type] = ConfigOps
+        CliValidation: ClassVar[type] = CliValidation
 
-    TypeNormalizer, Environment, FileOps, ConfigOps, CliValidation = (
-        Cli.TypeNormalizer,
-        Cli.Environment,
-        Cli.FileOps,
-        Cli.ConfigOps,
-        Cli.CliValidation,
-    )
-
-
-CliExecutionMetadata = m.Cli.CliExecutionMetadata
-CliValidationResult = m.Cli.CliValidationResult
 
 u = FlextCliUtilities
-__all__ = ["CliExecutionMetadata", "CliValidationResult", "FlextCliUtilities", "u"]
+
+__all__ = ["FlextCliUtilities", "u"]

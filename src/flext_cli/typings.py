@@ -46,6 +46,16 @@ class FlextCliTypes(FlextTypes):
         TableRows: TypeAlias = Sequence[Mapping[str, FlextTypes.JsonValue]]
         JsonDict: TypeAlias = Mapping[str, FlextTypes.JsonValue]
 
+        CliValue = (
+            str
+            | int
+            | float
+            | bool
+            | list[str]
+            | Mapping[str, str | int | float | bool | list[str]]
+            | None
+        )
+
 
 t = FlextCliTypes
 
