@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Mapping, Sequence
-from typing import Protocol, Self, override, runtime_checkable
+from typing import Protocol, Self, runtime_checkable
 
 from flext_core import r
 from pydantic import BaseModel, ConfigDict, Field
@@ -97,7 +97,6 @@ class FlextCliCommands(FlextCliServiceBase):
         """Return CLI description."""
         return self._description
 
-    @override
     def execute(self) -> r[Mapping[str, t.JsonValue]]:
         """Execute commands service - returns service status.
 
