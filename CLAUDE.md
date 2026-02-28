@@ -114,7 +114,7 @@ ______________________________________________________________________
 ## Critical Rules — Zero Tolerance
 
 - ❌ **Hacks**: `model_rebuild()`, `eval()`, `exec()`, `try-except ImportError`, and inline/lazy imports are TOTALLY FORBIDDEN.
-- ❌ `TYPE_CHECKING` is restricted to ONLY cyclic type hints without Pydantic.
+- ❌ `TYPE_CHECKING` is allowed for non-Pydantic, type-only imports to avoid circular dependencies. NEVER use TYPE_CHECKING with Pydantic models.
 - ❌ No `# type: ignore`; resolve typing issues.
 - ❌ No `cast()`; use Models/Protocols/TypeGuards with correct typing.
 - ❌ No `Any`; use concrete types everywhere (code, docs, comments).
