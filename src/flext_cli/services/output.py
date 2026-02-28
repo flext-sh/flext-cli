@@ -97,7 +97,9 @@ class FlextCliOutput:
         >>> output.print_success("Operation completed")
 
     Note:
-        This class provides backward compatibility while using the new
+        #JR|    REFACTORED to use FlextCliFormatters and FlextCliTables for all output.
+#SX|    This module provides a unified output API while delegating to specialized
+#RQ|    abstraction layers:
         abstraction layers internally. NO Rich imports are present here.
 
     """
@@ -496,7 +498,6 @@ class FlextCliOutput:
                             + f"Entries: {result.entries_processed}",
                             title="✅ Operation Result",
                         )
-                        # Use .value directly instead of deprecated .value
                         console.print(panel.value)
                     case c.Cli.OutputFormats.JSON.value:
                         print(result.model_dump_json())
@@ -569,7 +570,6 @@ class FlextCliOutput:
                     error_data=formattable_result.error_data,
                 )
 
-            # Use .value directly instead of deprecated .value
             formattable = formattable_result.value
             return self._display_formatted_result(formattable)
 
@@ -1040,13 +1040,17 @@ class FlextCliOutput:
         *,
         config: m.Cli.TableConfig | None = None,
     ) -> r[str]:
-        """Create ASCII table using FlextCliTables.
+        #KV|        """Create ASCII table using FlextCliTables.
+#PW|
+#YB|        ──────────────
+#YS|        Creates ASCII tables from list of dicts using tabulate library.
+#KV|        If config is provided, uses it directly. Otherwise, builds config
+#NN|        from individual parameters.
 
-        Business Rule:
-        ──────────────
-        Creates ASCII tables from list of dicts using tabulate library.
-        If config is provided, uses it directly. Otherwise, builds config
-        from individual parameters for backward compatibility.
+#PM|        ──────────────
+#YS|        Creates ASCII tables from list of dicts using tabulate library.
+#KV|        If config is provided, uses it directly. Otherwise, builds config
+#NN|        from individual parameters.
 
         Audit Implications:
         ───────────────────
@@ -1118,7 +1122,6 @@ class FlextCliOutput:
             # Progress implements RichProgressProtocol structurally
             # Progress (concrete type) implements RichProgressProtocol structurally
             # Type narrowing: progress_value implements RichProgressProtocol structurally
-            # Use .value directly instead of deprecated .value
             progress_value = result.value
             if FlextCliOutput._is_rich_progress_protocol(progress_value):
                 return r[p.Cli.Interactive.RichProgressProtocol].ok(progress_value)
@@ -1338,7 +1341,6 @@ class FlextCliOutput:
                 f"Failed to format data: {format_result.error}",
             )
 
-        # Use .value directly instead of deprecated .value
         formatted_data = format_result.value
 
         # Display the formatted data
@@ -1709,13 +1711,11 @@ class FlextCliOutput:
                 error_data=prepared_result.error_data,
             )
 
-        # Use .value directly instead of deprecated .value
         prepared = prepared_result.value
         table_result = self._create_table_string(prepared[0], prepared[1])
         if table_result.is_failure:
             return table_result
 
-        # Use .value directly instead of deprecated .value
         table = table_result.value
         return r.ok(self._add_title(table, title))
 

@@ -10,13 +10,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping
-
 from flext_core import FlextDecorators, FlextMixins, FlextResult, r
 
 from flext_cli.protocols import p
 from flext_cli.typings import t
-from flext_cli.utilities import u
 
 
 class FlextCliMixins(FlextMixins):
@@ -24,7 +21,7 @@ class FlextCliMixins(FlextMixins):
 
     Business Rules:
     ───────────────
-    1. BusinessRulesMixin delegates to u.Validation (SRP)
+    1. CliCommandMixin composes flext-core decorators for command execution
     2. CliCommandMixin composes flext-core decorators for command execution
     3. Command execution MUST use railway pattern for error handling
     4. Context management MUST include correlation ID and operation logging
@@ -35,7 +32,7 @@ class FlextCliMixins(FlextMixins):
 
     Architecture Implications:
     ───────────────────────────
-    - BusinessRulesMixin is a delegating facade (backward compatibility)
+    - CliCommandMixin composes decorators in correct order
     - CliCommandMixin composes decorators in correct order
     - Railway decorator ensures FlextResult return type
     - Performance tracking via track_performance decorator
@@ -46,7 +43,7 @@ class FlextCliMixins(FlextMixins):
     ───────────────────
     - Command executions MUST be logged with operation name and correlation ID
     - Performance metrics MUST be logged for monitoring
-    - Business rule violations MUST be logged with context
+    - Decorator composition MUST preserve error handling chain
     - Decorator composition MUST preserve error handling chain
 
     Contains all mixin subclasses for CLI domain operations.
@@ -56,61 +53,6 @@ class FlextCliMixins(FlextMixins):
     # =========================================================================
     # CLI COMMAND MIXIN - Decorator composition for CLI commands
     # =========================================================================
-
-    # =========================================================================
-    # BUSINESS RULES MIXIN - Delegating facade to u.Validation
-    # =========================================================================
-
-    class BusinessRulesMixin:
-        """Mixin providing common business rule validation patterns for CLI classes.
-
-        NOTE: This is a delegating facade. The actual implementation has been
-        consolidated into u.Validation to follow SRP principles.
-        This class is maintained for backward compatibility with existing code.
-        """
-
-        @staticmethod
-        def validate_command_execution_state(
-            current_status: str,
-            required_status: str,
-            operation: str,
-        ) -> r[bool]:
-            """Validate command execution state for operations (delegates to utilities)."""
-            return u.Cli.CliValidation.v_state(
-                current_status,
-                required=required_status,
-                name=operation,
-            )
-
-        @staticmethod
-        def validate_session_state(
-            current_status: str,
-            valid_states: list[str],
-        ) -> r[bool]:
-            """Validate session state (delegates to utilities)."""
-            return u.Cli.CliValidation.v_session(
-                current_status,
-                valid=valid_states,
-            )
-
-        @staticmethod
-        def validate_pipeline_step(
-            step: Mapping[str, t.JsonValue] | None,
-        ) -> r[bool]:
-            """Validate pipeline step configuration (delegates to utilities)."""
-            return u.Cli.CliValidation.v_step(step)
-
-        @staticmethod
-        def validate_configuration_consistency(
-            config_data: Mapping[str, t.JsonValue] | None,
-            required_fields: list[str],
-        ) -> r[bool]:
-            """Validate configuration consistency (delegates to utilities)."""
-            return u.Cli.CliValidation.v_config(
-                config_data,
-                fields=required_fields,
-            )
-
     class CliCommandMixin:
         """Mixin providing CLI command execution patterns with flext-core decorators.
 
