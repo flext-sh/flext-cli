@@ -2789,7 +2789,7 @@ class FlextCliModels(FlextModels):
                 props.update(transformed)
 
             @staticmethod
-            def to_json_value(value: object) -> t.JsonValue:
+            def to_json_value(value: t.GeneralValueType) -> t.JsonValue:
                 """Convert arbitrary value into JsonValue."""
                 converted = FlextCliModels.Cli.CliModelConverter.convert_field_value(
                     value
@@ -3018,7 +3018,7 @@ class FlextCliModels(FlextModels):
 
             @staticmethod
             def convert_field_value(
-                field_value: object,
+                field_value: t.GeneralValueType,
             ) -> FlextResult[t.JsonValue]:
                 """Convert field value to t.JsonValue.
 
@@ -3119,7 +3119,7 @@ class FlextCliModels(FlextModels):
             """Decorators for creating CLI commands from Pydantic models."""
 
             @staticmethod
-            def normalize_output(value: object) -> t.JsonValue:
+            def normalize_output(value: t.GeneralValueType) -> t.JsonValue:
                 """Normalize any value to JsonValue."""
                 normalized: FlextResult[t.JsonValue] = (
                     FlextCliModels.Cli.CliModelConverter.convert_field_value(value)
