@@ -757,18 +757,18 @@ ______________________________________________________________________
 ### Zero Tolerance Rules (Completely Prohibited)
 
 1. **Hacks**: ❌ PROHIBITED - `model_rebuild()`, `eval()`, `exec()`, and architectural `getattr()`.
-2. **Inline/Lazy Imports**: ❌ PROHIBITED - No imports inside functions or `.try / except ImportError:`.
-3. **# type: ignore**: ❌ PROHIBITED COMPLETELY - Zero tolerance, no exceptions
-4. **Metaclasses**: ❌ PROHIBITED COMPLETELY - Except for `__getattr__` in `__init__.py` for lazy loading
-5. **Root Aliases**: ❌ PROHIBITED COMPLETELY - Always use complete namespace (c.Cli.OutputFormats, not c.OutputFormats)
-6. **Dynamic Assignments**: ❌ PROHIBITED COMPLETELY - Remove all, use only complete namespace
-7. **Functions in constants.py**: ❌ PROHIBITED - constants.py only constants, no functions/metaclasses/code
-8. **Namespace**: ✅ MANDATORY - Complete namespace always (u.Cli.process, not u.Cli.process)
+1. **Inline/Lazy Imports**: ❌ PROHIBITED - No imports inside functions or `.try / except ImportError:`.
+1. **# type: ignore**: ❌ PROHIBITED COMPLETELY - Zero tolerance, no exceptions
+1. **Metaclasses**: ❌ PROHIBITED COMPLETELY - Except for `__getattr__` in `__init__.py` for lazy loading
+1. **Root Aliases**: ❌ PROHIBITED COMPLETELY - Always use complete namespace (c.Cli.OutputFormats, not c.OutputFormats)
+1. **Dynamic Assignments**: ❌ PROHIBITED COMPLETELY - Remove all, use only complete namespace
+1. **Functions in constants.py**: ❌ PROHIBITED - constants.py only constants, no functions/metaclasses/code
+1. **Namespace**: ✅ MANDATORY - Complete namespace always (u.Cli.process, not u.Cli.process)
 
 ### Replacement Rules
 
 9. **cast()**: ❌ REPLACE ALL - Replace with Models/Protocols/TypeGuards
-10. **Any**: ❌ REPLACE ALL - Replace with specific types (Models, Protocols, TypeVars, FlextTypes.GeneralValueType)
+1. **Any**: ❌ REPLACE ALL - Replace with specific types (Models, Protocols, TypeVars, FlextTypes.GeneralValueType)
 
 ### Examples
 

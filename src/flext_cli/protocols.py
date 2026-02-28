@@ -6,7 +6,8 @@ from collections.abc import Callable, Mapping, Sequence
 from datetime import datetime
 from typing import Protocol, Self, runtime_checkable
 
-from flext_core import FlextProtocols, t
+from flext_core import t
+from flext_core.protocols import FlextProtocols
 
 
 class FlextCliProtocols(FlextProtocols):
