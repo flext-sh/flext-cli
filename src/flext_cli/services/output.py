@@ -748,7 +748,7 @@ class FlextCliOutput:
             )
         raw_source = getattr(result, "__dict__")
         if isinstance(raw_source, Mapping):
-            raw_dict: Mapping[str, t.JsonValue] = dict(raw_source)
+            raw_dict: Mapping[str, t.JsonValue] = dict(raw_source.items())
         else:
             raw_dict = {}
         # Use build() DSL: process_mapping → to_json → filter → ensure dict
@@ -1282,8 +1282,8 @@ class FlextCliOutput:
             c.Cli.MessageTypes.WARNING.value: c.Cli.Emojis.WARNING,
         }
         # Type narrowing: style_map and emoji_map are dict[str, str], convert to t.JsonValue
-        style_map_general: Mapping[str, t.JsonValue] = dict(style_map)
-        emoji_map_general: Mapping[str, t.JsonValue] = dict(emoji_map)
+        style_map_general: Mapping[str, t.JsonValue] = style_map
+        emoji_map_general: Mapping[str, t.JsonValue] = emoji_map
         style = self.ensure_str(
             self.get_map_val(style_map_general, final_message_type, c.Cli.Styles.BLUE),
         )

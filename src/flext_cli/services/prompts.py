@@ -6,6 +6,7 @@ import getpass
 import os
 import re
 from collections.abc import Mapping
+from typing import override
 
 from flext_core import r
 from pydantic import Field, PrivateAttr
@@ -276,6 +277,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 PEM.STATISTICS_COLLECTION_FAILED.format(error=exc),
             )
 
+    @override
     def execute(self) -> r[Mapping[str, t.JsonValue]]:
         try:
             self.logger.debug(

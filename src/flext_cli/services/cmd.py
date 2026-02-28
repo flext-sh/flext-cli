@@ -67,6 +67,7 @@ class FlextCliCmd(FlextCliServiceBase):
         # Logger is automatically provided by FlextMixins mixin
         self._file_tools = FlextCliFileTools()
 
+    @override
     def execute(self) -> r[Mapping[str, t.JsonValue]]:
         """Report operational status required by `FlextService`."""
         return r[Mapping[str, t.JsonValue]].ok({

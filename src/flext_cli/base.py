@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from abc import ABC
 from collections.abc import Mapping
+from typing import override
 
 from flext_core import p, s
 
@@ -26,6 +27,7 @@ class FlextCliServiceBase(s[Mapping[str, t.JsonValue]], ABC):
     `execute` method from FlextService.
     """
 
+    @override
     @classmethod
     def _runtime_bootstrap_options(
         cls,

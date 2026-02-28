@@ -12,7 +12,7 @@ import os
 import shutil
 from collections.abc import Mapping
 from pathlib import Path
-from typing import Annotated, ClassVar, Self
+from typing import Annotated, ClassVar, Self, override
 
 import yaml
 from flext_core import (
@@ -188,6 +188,7 @@ class FlextCliSettings(FlextSettings):
         return bool(v)
 
     # Pydantic 2.11 model validator (runs after all field validators)
+    @override
     @model_validator(mode="after")
     def validate_configuration(self) -> Self:
         """Validate configuration using functional composition and railway pattern."""
@@ -359,7 +360,7 @@ class FlextCliSettings(FlextSettings):
                 return r[Mapping[str, t.JsonValue]].fail(
                     em.VALIDATION_ERRORS.format(errors="; ".join(errors))
                 )
-            return r[Mapping[str, t.JsonValue]].ok(dict(valid))
+            return r[Mapping[str, t.JsonValue]].ok(valid)
         except (ValidationError, TypeError, RuntimeError) as e:
             return r[Mapping[str, t.JsonValue]].fail(f"Validation failed: {e}")
 
@@ -406,6 +407,7 @@ class FlextCliSettings(FlextSettings):
             raise RuntimeError(msg)
         return instance
 
+    @override
     @classmethod
     def _reset_instance(cls) -> None:
         """Reset singleton instance for testing."""

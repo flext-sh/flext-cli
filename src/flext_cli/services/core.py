@@ -1022,6 +1022,7 @@ class FlextCliCore(FlextCliServiceBase):
                 c.Cli.ErrorMessages.CLI_EXECUTION_ERROR.format(error=e),
             )
 
+    @override
     def get_service_info(
         self,
     ) -> Mapping[str, str | int | float | bool | datetime | None]:

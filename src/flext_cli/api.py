@@ -408,7 +408,7 @@ class FlextCli:
         if data is None:
             return r[str].fail("Table data cannot be None")
         if isinstance(data, Mapping):
-            table_data: list[Mapping[str, t.JsonValue]] = [dict(data)]
+            table_data: list[Mapping[str, t.JsonValue]] = [dict(data.items())]
         elif isinstance(data, (list, tuple)):
             table_data = [x for x in data if isinstance(x, Mapping)]
         else:

@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from itertools import starmap
-from typing import TypeGuard
+from typing import TypeGuard, override
 
 from flext_core import r
 from rich.errors import ConsoleError, LiveError, StyleError
@@ -103,6 +103,7 @@ class FlextCliTables(FlextCliServiceBase):
     # SERVICE EXECUTION (Required by FlextService)
     # =========================================================================
 
+    @override
     def execute(self) -> r[Mapping[str, t.JsonValue]]:
         """Execute table service - returns success indicator.
 

@@ -109,6 +109,7 @@ class FlextCliDebug(FlextCliServiceBase):
     # PUBLIC API METHODS
     # =========================================================================
 
+    @override
     def execute(self) -> r[Mapping[str, t.JsonValue]]:
         """Execute debug service - required by FlextService."""
         return r[Mapping[str, t.JsonValue]].ok({
