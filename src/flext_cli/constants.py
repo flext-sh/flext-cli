@@ -46,6 +46,14 @@ class FlextCliConstants(FlextConstants):
                 "cancelled",
             })
 
+        SENSITIVE_KEYS: typing.Final[frozenset[str]] = frozenset({
+            "password",
+            "token",
+            "secret",
+            "key",
+            "credential",
+        })
+
         class ValidationLists:
             """Validation lists."""
 

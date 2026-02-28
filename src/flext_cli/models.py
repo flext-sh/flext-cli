@@ -1498,7 +1498,7 @@ class FlextCliModels(FlextModels):
                     Dict with sensitive values masked as "***MASKED***".
 
                 """
-                sensitive_keys = ["password", "token", "secret", "key", "credential"]
+                sensitive_keys = c.Cli.SENSITIVE_KEYS
                 data: dict[str, t.JsonValue] = {
                     "service": self.service,
                     "level": self.level,
@@ -3256,35 +3256,9 @@ class FlextCliModels(FlextModels):
             # Reference protocol types (FlextCliModels.Cli.Interactive.*)
             type Progress = p.Cli.Interactive.RichProgressProtocol
 
-            # ═════════════════════════════════════════════════════════════════════
-            # VALUE CLASS ALIASES - FORWARD COMPATIBILITY
-            # ═════════════════════════════════════════════════════════════════════
-            # These aliases allow FlextCliModels.SystemInfo instead of FlextCliModels.Cli.Value.SystemInfo
-            # Maintains backward compatibility while supporting namespace hierarchy
-            # ═════════════════════════════════════════════════════════════════════
-
-            # Expose nested Value classes at Cli level for compatibility
-            # Note: Some classes may not exist yet - commented out to avoid import errors
-            # SystemInfo = Value.SystemInfo
-            # EnvironmentInfo = Value.EnvironmentInfo
-            # PathInfo = Value.PathInfo
-            # CommandStatistics = Value.CommandStatistics
-            # SessionStatistics = Value.SessionStatistics
-            # ServiceExecutionResult = Value.ServiceExecutionResult
-            # CommandExecutionContextResult = Value.CommandExecutionContextResult
-
-        # End of Cli class
-
-    # End of FlextCliModels class
-
 
 m = FlextCliModels
 
-# Pydantic forward reference resolution
-# DomainEvent is available in current flext-core
-# Ensure forward references can be resolved by making types available in module globals
-# This is required because FlextModels.Entity has fields that reference DomainEvent
-globals()["DomainEvent"] = FlextModels.DomainEvent
 
 __all__ = [
     "FlextCliModels",
