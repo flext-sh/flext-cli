@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from flext_cli.__version__ import __version__, __version_info__
     from flext_cli.api import FlextCli
     from flext_cli.app_base import FlextCliAppBase
-    from flext_cli.base import FlextCliServiceBase, s
+    from flext_cli.base import FlextCliServiceBase
     from flext_cli.cli import FlextCliCli
     from flext_cli.cli_params import FlextCliCommonParams
     from flext_cli.command_builder import FlextCliCommandBuilder as FlextCommandBuilder
@@ -87,7 +87,6 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "m": ("flext_cli.models", "FlextCliModels"),
     "p": ("flext_cli.protocols", "FlextCliProtocols"),
     "r": ("flext_core", "r"),
-    "s": ("flext_cli.base", "s"),
     "t": ("flext_cli.typings", "FlextCliTypes"),
     "u": ("flext_cli.utilities", "FlextCliUtilities"),
     "x": ("flext_core", "x"),
@@ -130,7 +129,6 @@ __all__ = [
     "m",
     "p",
     "r",
-    "s",
     "t",
     "u",
     "x",

@@ -326,21 +326,6 @@ class CommandsFactory:
         return commands.register_command(command_name, handler)
 
 
-# Aliases for backward compatibility
-def create_real_cli_command(
-    **overrides: t.GeneralValueType,
-) -> m.Cli.CliCommand:
-    """Alias for create_test_cli_command - creates a real Pydantic model instance."""
-    return create_test_cli_command(**overrides)
-
-
-def create_real_cli_session(
-    **overrides: t.GeneralValueType,
-) -> m.Cli.CliSession:
-    """Alias for create_test_cli_session - creates a real Pydantic model instance."""
-    return create_test_cli_session(**overrides)
-
-
 def generate_edge_case_data() -> list[dict[str, t.GeneralValueType]]:
     """Generate comprehensive edge case test data for CliCommand.
 

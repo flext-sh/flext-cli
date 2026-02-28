@@ -150,10 +150,10 @@ ______________________________________________________________________
 
 ```
 src/flext_cli/
-├── __init__.py          # Public API exports with short aliases (t, c, p, m, u, s, r, e, d, x)
+├── __init__.py          # Public API exports with short aliases (t, c, p, m, u, r, e, d, x)
 ├── api.py               # FlextCli - main facade API (ONE class)
 ├── app_base.py          # FlextCliAppBase - base class for CLI apps (ONE class)
-├── base.py              # FlextCliServiceBase - service base (ONE class, alias: s)
+├── base.py              # FlextCliServiceBase - service base (ONE class)
 ├── cli.py               # FlextCliCli - Click abstraction (ONE class, ONLY Click import)
 ├── cli_params.py        # FlextCliCommonParams - reusable CLI parameters (ONE class)
 ├── commands.py          # FlextCliCommands - command registration (ONE class)
@@ -556,8 +556,8 @@ tests/
 ├── protocols.py          # TestsCliProtocols - extends FlextTestsProtocols and FlextCliProtocols (alias: p)
 ├── models.py             # TestsCliModels - extends FlextTestsModels and FlextCliModels (alias: m)
 ├── utilities.py          # TestsCliUtilities - extends FlextTestsUtilities and FlextCliUtilities (alias: u)
-├── base.py               # TestsCliServiceBase - extends FlextTestsServiceBase and FlextCliServiceBase (alias: s)
-├── __init__.py           # Exports all TestsCli classes and short aliases (t, c, p, m, u, s)
+├── base.py               # TestsCliServiceBase - extends FlextTestsServiceBase and FlextCliServiceBase
+├── __init__.py           # Exports all TestsCli classes and short aliases (t, c, p, m, u)
 ├── conftest.py           # Centralized pytest configuration and fixtures (ONLY pytest config, no test helpers)
 ├── helpers/              # Domain-specific helpers ONLY (uses conftest, flext_tests, base classes)
 │   └── __init__.py       # Only flext-cli specific helpers (NO duplicates from conftest or flext_tests)
@@ -627,7 +627,7 @@ tests/
 **Each test module must have ONE class prefixed with `TestsCli*`**:
 
 ```python
-from tests import c, m, t, u, p, s  # TestsCli structure
+from tests import c, m, t, u, p  # TestsCli structure
 from flext_cli import r, e, d, x  # Direct from flext-core
 
 class TestsCliOutput:

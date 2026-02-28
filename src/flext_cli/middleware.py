@@ -140,9 +140,6 @@ class FlextCliRetryMiddleware:
 class FlextCliMiddleware:
     """Middleware namespace: protocol type and compose static method."""
 
-    # Alias for type hints (same as p.Cli.MiddlewareProtocol)
-    Protocol = p.Cli.MiddlewareProtocol
-
     @staticmethod
     def compose(
         middlewares: list[FlextCliMiddlewareProtocol],

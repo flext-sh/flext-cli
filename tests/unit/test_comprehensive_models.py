@@ -9,9 +9,8 @@ from flext_cli.models import m
 from pydantic import ValidationError
 
 from tests._helpers import (
-    create_real_cli_command,
-    create_real_cli_session,
     create_test_cli_command,
+    create_test_cli_session,
     generate_edge_case_data,
 )
 
@@ -31,7 +30,7 @@ class TestsCliComprehensiveModels:
     )
     def test_command_status_transitions(self, status: c.Cli.CommandStatus) -> None:
         """Test all possible command status transitions with real data."""
-        cmd = create_real_cli_command(status=status)
+        cmd = create_test_cli_command(status=status)
         assert cmd.status == status
 
         # Test computed fields work with real data
@@ -64,7 +63,7 @@ class TestsCliComprehensiveModels:
     )
     def test_session_statuses(self, status: c.Cli.SessionStatus) -> None:
         """Test session creation with different statuses."""
-        session = create_real_cli_session(status=status)
+        session = create_test_cli_session(status=status)
         assert session.status == status
 
         # Test session has expected attributes
@@ -74,8 +73,8 @@ class TestsCliComprehensiveModels:
     def test_session_command_filtering(self) -> None:
         """Test session command filtering by status."""
         # Create session with commands using model_construct to pass commands list
-        cmd1 = create_real_cli_command(name="cmd1", status=c.Cli.CommandStatus.PENDING)
-        cmd2 = create_real_cli_command(
+        cmd1 = create_test_cli_command(name="cmd1", status=c.Cli.CommandStatus.PENDING)
+        cmd2 = create_test_cli_command(
             name="cmd2", status=c.Cli.CommandStatus.COMPLETED
         )
 
@@ -100,7 +99,7 @@ class TestsCliComprehensiveModels:
     def test_session_with_multiple_commands(self, commands_count: int) -> None:
         """Test session creation with multiple commands."""
         commands = [
-            create_real_cli_command(name=f"cmd{i}") for i in range(commands_count)
+            create_test_cli_command(name=f"cmd{i}") for i in range(commands_count)
         ]
 
         session = m.Cli.CliSession.model_construct(
@@ -118,19 +117,19 @@ class TestsCliModelValidation:
     def test_command_validation_rules(self) -> None:
         """Test command validation business rules."""
         # Valid command creation
-        cmd = create_real_cli_command()
+        cmd = create_test_cli_command()
         assert cmd.name == "test_command"
         assert cmd.status == "pending"
 
         # Test that model_construct bypasses validation (expected behavior)
-        cmd_custom = create_real_cli_command(name="custom", status="running")
+        cmd_custom = create_test_cli_command(name="custom", status="running")
         assert cmd_custom.name == "custom"
         assert cmd_custom.status == "running"
 
     def test_session_validation_rules(self) -> None:
         """Test session validation business rules."""
         # Valid session
-        session = create_real_cli_session()
+        session = create_test_cli_session()
         assert session.status == "active"
 
         # Test invalid status raises error when using full validation
@@ -146,7 +145,7 @@ class TestsCliModelSerialization:
 
     def test_command_serialization(self) -> None:
         """Test command JSON serialization with real data."""
-        cmd = create_real_cli_command()
+        cmd = create_test_cli_command()
         json_data = cmd.model_dump()
 
         # Verify all expected fields are present
@@ -161,7 +160,7 @@ class TestsCliModelSerialization:
 
     def test_session_serialization(self) -> None:
         """Test session JSON serialization with real data."""
-        session = create_real_cli_session()
+        session = create_test_cli_session()
         json_data = session.model_dump()
 
         assert "session_id" in json_data

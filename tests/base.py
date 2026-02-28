@@ -291,10 +291,6 @@ class TestsCliServiceBase(FlextTestsServiceBase[T]):
             )
 
 
-# Alias for convenience
-s = TestsCliServiceBase
-
 __all__ = [
     "TestsCliServiceBase",
-    "s",
 ]
