@@ -116,7 +116,7 @@ class FlextCliCore(FlextCliServiceBase):
     _session_config: dict[str, t.JsonValue]
     _session_start_time: str
 
-    typet.Cli.CliValue = (
+    type CliValue = (
         str
         | int
         | float
