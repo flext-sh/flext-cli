@@ -132,6 +132,8 @@ except ImportError as e:
     print(f"Failed: {e}")
 ```
 
+If fail you need to use .venv of flext.
+
 ### 2. Type Checking Errors
 
 #### Problem: MyPy errors
