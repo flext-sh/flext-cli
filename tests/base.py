@@ -294,3 +294,5 @@ class TestsCliServiceBase(FlextTestsServiceBase[T]):
 __all__ = [
     "TestsCliServiceBase",
 ]
+
+s = TestsCliServiceBase

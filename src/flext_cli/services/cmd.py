@@ -284,7 +284,6 @@ class FlextCliCmd(FlextCliServiceBase):
                 default_config_model = m.Cli.CmdConfig(name="default")
                 save_result = self._file_tools.write_json_file(
                     file_path=str(path),
-                    # JSON file write boundary requires raw JSON-compatible data.
                     data=default_config_model.model_dump(),
                 )
                 if save_result.is_failure:

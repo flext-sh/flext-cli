@@ -124,7 +124,6 @@ class FlextCliSettings(FlextSettings):
             context = context_cls() if context_cls is not None else None
             if context is None:
                 return r.fail("FlextContext not available")
-            # Convert config object to t.JsonValue-compatible dict for context
             # Use u.transform for JSON conversion
             transform_result = u.transform(
                 self.model_dump(),

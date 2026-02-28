@@ -508,7 +508,6 @@ class FlextCliModels(FlextModels):
                 description="String alignment (left, center, right)",
             )
 
-            # General alignment (alias for stralign/numalign compatibility)
             align: str = Field(
                 default="left",
                 description="General alignment (left, center, right, decimal)",
@@ -1601,7 +1600,6 @@ class FlextCliModels(FlextModels):
                 help_text = str(field_meta.get("help", ""))
                 short_flag = str(field_meta.get("short", ""))
                 default_value = field_meta.get("default")
-                # Note: is_flag is deprecated in Typer - boolean defaults auto-enable flag behavior
 
                 # Use field_name_override if available, otherwise use field_name
                 # Registry uses KEY_FIELD_NAME_OVERRIDE to map CLI param name to field name
@@ -1620,7 +1618,6 @@ class FlextCliModels(FlextModels):
                     option_args.append(f"-{short_flag}")
 
                 # typer.Option returns OptionInfo for type safety
-                # Do NOT pass is_flag or flag_value - deprecated in Typer
                 option: OptionInfo = typer.Option(
                     default_value,
                     *option_args,
@@ -2042,7 +2039,6 @@ class FlextCliModels(FlextModels):
                         type(default_value) if default_value is not None else str
                     )
                 elif field_type_raw is object:
-                    # object annotations are converted to str for CLI compatibility
                     field_type = str
                 else:
                     # Has annotation - resolve type alias
@@ -2132,7 +2128,6 @@ class FlextCliModels(FlextModels):
                 }
                 return processed_annotations
 
-            # Typer-compatible built-in types (class constant)
             _BUILTIN_TYPES: ClassVar[set[str]] = {
                 "str",
                 "int",
@@ -2450,7 +2445,6 @@ class FlextCliModels(FlextModels):
                 """
                 try:
                     # Use direct model_validate instead of from_dict to avoid type variable issues
-                    # cli_args is already t.JsonValue compatible
                     # Type narrowing: model_cls is BaseModel subclass (checked by caller)
                     # Convert Mapping to dict for model_validate
                     cli_args_dict: dict[str, t.JsonValue] = dict(
@@ -2573,16 +2567,12 @@ class FlextCliModels(FlextModels):
                 # After is_failure check, params_result.value is guaranteed to be the value
                 params: list[p.Cli.CliParameterSpecProtocol] = params_result.value
                 # Create Click option-like objects with option_name and param_decls
-                # Use simple object with attributes for compatibility with tests
-                # Type cast: dynamically created objects are compatible with t.JsonValue
                 options: list[t.JsonValue] = []
                 for param in params:
                     # Type narrowing: param is CliParameterSpecProtocol
                     # Create a simple object with option_name and param_decls attributes
                     option_name = f"--{param.field_name.replace('_', '-')}"
-                    # Type narrowing: param_decls list is compatible with t.JsonValue (list is included)
                     param_decls_list: t.JsonValue = [option_name]
-                    # Type narrowing: param_type (type) - store as string for dict compatibility
                     # type is not in t.JsonValue, so we use string representation
                     param_type_name: str = (
                         param.param_type.__name__
@@ -2597,7 +2587,6 @@ class FlextCliModels(FlextModels):
                         "default": param.default,
                         "help": param.help,  # CliParameterSpec stores as .help, not .help_text
                     }
-                    # Append dict directly - it's already GeneralValueType compatible
                     options.append(option_obj_dict)
                 return FlextResult.ok(options)
 

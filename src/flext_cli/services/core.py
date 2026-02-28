@@ -137,12 +137,10 @@ class FlextCliCore(FlextCliServiceBase):
                 (stored separately, not passed to parent FlextService.__init__)
 
         """
-        # FlextService.__init__ accepts typed JSON-compatible values
         # FlextCliServiceBase extends FlextService[dict[str, t.JsonValue]]
         # The generic type parameter TDomainResult doesn't affect __init__ signature
         # Note: config is CLI-specific and stored separately, not passed to parent
         # because FlextService uses Pydantic with extra="forbid"
-        # _data is unused but kept for API compatibility
         super().__init__()
 
         # Phase 1 Enhancement: Context enrichment happens automatically in FlextService.__init__
@@ -1445,7 +1443,6 @@ class FlextCliCore(FlextCliServiceBase):
             r[list[str]]: List of handler names
 
         """
-        # Type cast: JsonDict is compatible with Mapping[str, JsonValue]
         return self._get_dict_keys(
             self._commands,
             c.Cli.ErrorMessages.COMMAND_LISTING_FAILED,

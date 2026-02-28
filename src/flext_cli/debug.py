@@ -331,7 +331,6 @@ class FlextCliDebug(FlextCliServiceBase):
                 # dict[str, t.JsonValue] is part of t.JsonValue union
                 serialized_paths.append(path_json_dict)
 
-            # list[t.JsonValue] is compatible with t.JsonValue (list is part of union)
             paths_dict: dict[str, t.JsonValue] = {
                 "paths": serialized_paths,
             }
