@@ -13,8 +13,7 @@ from __future__ import annotations
 from abc import ABC
 from collections.abc import Mapping
 
-from flext_core import s
-from flext_core.protocols import p
+from flext_core import p, s
 
 from flext_cli.settings import FlextCliSettings
 from flext_cli.typings import t

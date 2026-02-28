@@ -24,10 +24,10 @@ from pathlib import Path
 import pytest
 from flext_cli import (
     FlextCliCmd,
-    m,
     FlextCliServiceBase,
     FlextCliSettings,
     c,
+    m,
     r,
     u,
 )

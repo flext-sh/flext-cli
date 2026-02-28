@@ -348,10 +348,10 @@ from flext_cli.protocols import p    # FlextCliProtocols
 from flext_cli.utilities import u    # FlextCliUtilities
 
 # flext_core aliases (also available)
-from flext_core.result import r      # FlextResult
-from flext_core.exceptions import e  # FlextExceptions
-from flext_core.decorators import d  # FlextDecorators
-from flext_core.mixins import mx     # FlextMixins
+from flext_core import r      # FlextResult
+from flext_core import e  # FlextExceptions
+from flext_core import d  # FlextDecorators
+from flext_core import mx     # FlextMixins
 
 # Usage with full namespace (MANDATORY)
 result: r[str] = r[str].ok("value")
@@ -373,7 +373,7 @@ session: m.Session       # WRONG - must use m.Cli.Session
 # =========================================================
 # models.py (Facade) - Extends FlextModels from flext-core
 # =========================================================
-from flext_core.models import FlextModels
+from flext_core import FlextModels
 
 class FlextCliModels(FlextModels):
     """Facade extending core models with CLI-specific classes."""
@@ -417,7 +417,7 @@ class FlextCliService:
 
 ```python
 # protocols.py (Tier 0 - no internal imports except flext_core)
-from flext_core.protocols import FlextProtocols
+from flext_core import FlextProtocols
 
 class FlextCliProtocols(FlextProtocols):
     class Cli:

@@ -11,8 +11,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import d, e, h, r
-from flext_core.mixins import x
+from flext_core import d, e, h, r, x
 
 from flext_cli.__version__ import __version__, __version_info__
 from flext_cli.api import FlextCli
