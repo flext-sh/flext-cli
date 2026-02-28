@@ -22,9 +22,7 @@ import time
 from pathlib import Path
 
 import pytest
-from flext_cli import FlextCliConstants
-from flext_cli.constants import c
-from flext_cli.utilities import u
+from flext_cli import FlextCliConstants, c, u
 
 from ..helpers import FlextCliTestHelpers
 

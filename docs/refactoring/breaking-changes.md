@@ -170,7 +170,7 @@ ______________________________________________________________________
 ```python
 # ❌ REMOVED
 from flext_cli import FlextCliValidator
-from flext_cli.validator import *
+from flext_cli import *
 
 # ✅ FIX: Validation is now in Pydantic models
 from flext_cli import FlextCliModels
@@ -184,7 +184,7 @@ from pydantic import Field, field_validator
 ```python
 # ❌ REMOVED
 from flext_cli import FlextCliAuthService
-from flext_cli.auth import FlextCliAuthService
+from flext_cli import FlextCliAuthService
 
 # ✅ FIX: Use FlextCli.authenticate()
 from flext_cli import FlextCli

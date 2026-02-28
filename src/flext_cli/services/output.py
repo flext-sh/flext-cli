@@ -18,12 +18,7 @@ from flext_core import FlextRuntime, r, t
 from pydantic import BaseModel
 from rich.tree import Tree as RichTree
 
-from flext_cli.constants import c
-from flext_cli.formatters import FlextCliFormatters
-from flext_cli.models import m
-from flext_cli.protocols import p
-from flext_cli.services.tables import FlextCliTables
-from flext_cli.utilities import u
+from flext_cli import FlextCliFormatters, FlextCliTables, c, m, p, u
 
 # ═══════════════════════════════════════════════════════════════════════════
 # GENERALIZED MNEMONIC HELPERS - Advanced DSL parametrization
@@ -550,7 +545,7 @@ class FlextCliOutput:
         Example:
             ```python
             from flext_cli import FlextCliOutput
-        from flext_cli.constants import c
+        from flext_cli import c
             from pydantic import BaseModel
 
 

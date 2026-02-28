@@ -16,8 +16,7 @@ from typing import override
 
 from flext_core import p, s
 
-from flext_cli.settings import FlextCliSettings
-from flext_cli.typings import t
+from flext_cli import FlextCliSettings, t
 
 
 class FlextCliServiceBase(s[Mapping[str, t.JsonValue]], ABC):

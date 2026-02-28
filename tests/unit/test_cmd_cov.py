@@ -6,7 +6,7 @@ from pathlib import Path
 
 import flext_cli.services.cmd as cmd_module
 import pytest
-from flext_cli.services.cmd import FlextCliCmd
+from flext_cli import FlextCliCmd
 from flext_core import r
 
 

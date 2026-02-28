@@ -15,8 +15,7 @@ from __future__ import annotations
 
 import time
 
-from flext_cli import FlextCliCommands, r, t
-from flext_cli.constants import c
+from flext_cli import FlextCliCommands, c, r, t
 
 from ..helpers import CommandsFactory
 

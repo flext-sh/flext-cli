@@ -14,8 +14,8 @@ import logging
 from collections.abc import Mapping
 from datetime import datetime
 
-from flext_cli.models import FlextCliModels
-from flext_tests.models import FlextTestsModels
+from flext_cli import FlextCliModels
+from flext_tests import FlextTestsModels
 from pydantic import RootModel, TypeAdapter, ValidationError
 
 # Type for container configure() restore: only scalar values (no isinstance filter).

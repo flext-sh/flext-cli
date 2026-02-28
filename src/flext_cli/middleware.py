@@ -18,8 +18,7 @@ from flext_core import p as p_core, r
 from pydantic import BaseModel
 from rich.errors import ConsoleError, LiveError, StyleError
 
-from flext_cli.protocols import p
-from flext_cli.typings import t
+from flext_cli import p, t
 
 FlextCliMiddlewareProtocol = p.Cli.MiddlewareProtocol
 

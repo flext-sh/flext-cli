@@ -35,14 +35,14 @@ from pydantic.fields import FieldInfo
 from rich.errors import ConsoleError, LiveError, StyleError
 from typer.models import OptionInfo
 
-from flext_cli.constants import c
-from flext_cli.protocols import FlextCliProtocols as p
-from flext_cli.typings import t
+from flext_cli import FlextCliProtocols as p, c, t
 
 _logger = FlextLogger(__name__)
 
 
-def _is_mapping_like(obj: t.GeneralValueType) -> TypeGuard[Mapping[str, t.GeneralValueType]]:
+def _is_mapping_like(
+    obj: t.GeneralValueType,
+) -> TypeGuard[Mapping[str, t.GeneralValueType]]:
     """Narrow object to Mapping for metadata processing."""
     return isinstance(obj, Mapping)
 
@@ -81,7 +81,9 @@ class _CliNormalizedJson(RootModel[t.JsonValue]):
     @model_validator(mode="wrap")
     @classmethod
     def _normalize(
-        cls, data: t.GeneralValueType, handler: Callable[[t.JsonValue], _CliNormalizedJson]
+        cls,
+        data: t.GeneralValueType,
+        handler: Callable[[t.JsonValue], _CliNormalizedJson],
     ) -> _CliNormalizedJson:
         normalized = _normalize_to_json_value(data)
         return handler(normalized)

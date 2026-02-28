@@ -126,7 +126,7 @@ rm src/flext_cli/auth.py
 **Line 170**: Remove entire line
 
 ```python
-from flext_cli.auth import FlextCliAuthService
+from flext_cli import FlextCliAuthService
 ```
 
 **Line 195**: Remove entire line from `__all__` list
@@ -141,9 +141,9 @@ from flext_cli.auth import FlextCliAuthService
 
 ```python
 # Phase 2: Advanced Features - Production Ready
-# from flext_cli.async_support import FlextCliAsync  # Module not yet implemented
-from flext_cli.auth import FlextCliAuthService
-from flext_cli.cli import FlextCliCli
+# from flext_cli import FlextCliAsync  # Module not yet implemented
+from flext_cli import FlextCliAuthService
+from flext_cli import FlextCliCli
 ...
 __all__ = [
     # Core API (alphabetically sorted per FLEXT standards)
@@ -157,8 +157,8 @@ __all__ = [
 
 ```python
 # Phase 2: Advanced Features - Production Ready
-# from flext_cli.async_support import FlextCliAsync  # Module not yet implemented
-from flext_cli.cli import FlextCliCli
+# from flext_cli import FlextCliAsync  # Module not yet implemented
+from flext_cli import FlextCliCli
 ...
 __all__ = [
     # Core API (alphabetically sorted per FLEXT standards)
@@ -228,7 +228,7 @@ find tests -name "*.py" -type f -exec grep -l "from flext_cli import.*Test\|from
 ```python
 from flext_cli import FlextCliTesting, FlextCliTestRunner, FlextCliMockScenarios
 # or
-from flext_cli.testing import FlextCliTesting
+from flext_cli import FlextCliTesting
 ```
 
 **NEW**:
@@ -258,7 +258,7 @@ find tests -name "*.py" -type f -exec sed -i \
   {} +
 
 find tests -name "*.py" -type f -exec sed -i \
-  's/from flext_cli.testing import/from tests.fixtures.testing_utilities import/g' \
+  's/from flext_cli import/from tests.fixtures.testing_utilities import/g' \
   {} +
 ```
 
@@ -267,7 +267,7 @@ find tests -name "*.py" -type f -exec sed -i \
 **Remove line 188**:
 
 ```python
-from flext_cli.testing import FlextCliMockScenarios, FlextCliTesting, FlextCliTestRunner
+from flext_cli import FlextCliMockScenarios, FlextCliTesting, FlextCliTestRunner
 ```
 
 **Remove from `__all__` (lines 208, 214, 215)**:
@@ -284,7 +284,7 @@ from flext_cli.testing import FlextCliMockScenarios, FlextCliTesting, FlextCliTe
 **BEFORE**:
 
 ```python
-from flext_cli.testing import FlextCliMockScenarios, FlextCliTesting, FlextCliTestRunner
+from flext_cli import FlextCliMockScenarios, FlextCliTesting, FlextCliTestRunner
 ...
 __all__ = [
     ...
@@ -410,7 +410,7 @@ mv tests/fixtures/testing_utilities.py src/flext_cli/testing.py
 
 # Restore test imports
 find tests -name "*.py" -type f -exec sed -i \
-  's/from tests.fixtures.testing_utilities import/from flext_cli.testing import/g' \
+  's/from tests.fixtures.testing_utilities import/from flext_cli import/g' \
   {} +
 ```
 

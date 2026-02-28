@@ -290,7 +290,7 @@ grep -r "context\.deactivate()" .
 
 ```python
 # ✅ Use simple context data if needed
-from flext_cli.models import m
+from flext_cli import m
 ctx = m.Cli.CliContext(cwd="/app", env={}, args=["--verbose"])
 # Or pass command/args directly to your logic
 ```

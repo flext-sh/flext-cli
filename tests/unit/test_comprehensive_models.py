@@ -3,9 +3,7 @@
 from datetime import datetime
 
 import pytest
-from flext_cli import t
-from flext_cli.constants import c
-from flext_cli.models import m
+from flext_cli import c, m, t
 from pydantic import ValidationError
 
 from tests._helpers import (

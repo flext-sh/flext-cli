@@ -18,9 +18,7 @@ from flext_core import r
 from pydantic import BaseModel, ConfigDict, Field
 from rich.errors import ConsoleError, LiveError, StyleError
 
-from flext_cli.base import FlextCliServiceBase
-from flext_cli.constants import c
-from flext_cli.typings import t
+from flext_cli import FlextCliServiceBase, c, t
 
 
 @runtime_checkable
@@ -350,7 +348,10 @@ class FlextCliCommands(FlextCliServiceBase):
         return FlextCliCommandGroup(
             name=self._name,
             description=self._description,
-            commands={k: dict(v) if isinstance(v, Mapping) else v for k, v in self._commands.items()},
+            commands={
+                k: dict(v) if isinstance(v, Mapping) else v
+                for k, v in self._commands.items()
+            },
         )
 
     def create_main_cli(self) -> Self:

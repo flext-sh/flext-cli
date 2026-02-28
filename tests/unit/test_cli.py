@@ -18,9 +18,7 @@ import click
 import pytest
 import typer
 from click.testing import CliRunner
-from flext_cli import FlextCliCli, r, t
-from flext_cli.models import m
-from flext_cli.settings import FlextCliSettings
+from flext_cli import FlextCliCli, FlextCliSettings, m, r, t
 from flext_tests import tm
 
 from ..helpers import FlextCliTestHelpers

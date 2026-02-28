@@ -6,7 +6,7 @@ import types
 from enum import StrEnum
 
 import pytest
-from flext_cli.utilities import u
+from flext_cli import u
 from flext_core import r
 
 

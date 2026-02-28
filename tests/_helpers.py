@@ -7,9 +7,7 @@ from collections.abc import Mapping
 from datetime import UTC, datetime
 
 import pytest
-from flext_cli import FlextCliCommands
-from flext_cli.models import m
-from flext_cli.typings import t
+from flext_cli import FlextCliCommands, m, t
 from flext_core import r
 
 

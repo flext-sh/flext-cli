@@ -5,7 +5,7 @@ from __future__ import annotations
 import builtins
 
 import pytest
-from flext_cli.services.prompts import FlextCliPrompts
+from flext_cli import FlextCliPrompts
 
 
 def test_prompt_confirmation_handles_exception_from_record(

@@ -23,8 +23,7 @@ from collections.abc import Callable
 from typing import Literal
 
 import pytest
-from flext_cli import FlextCliCli
-from flext_cli.models import m
+from flext_cli import FlextCliCli, m
 from pydantic import (
     BaseModel,
     Field,

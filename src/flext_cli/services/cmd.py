@@ -17,12 +17,14 @@ from typing import override
 from flext_core import r, t
 from rich.errors import ConsoleError, LiveError, StyleError
 
-from flext_cli.base import FlextCliServiceBase
-from flext_cli.constants import FlextCliConstants
-from flext_cli.file_tools import FlextCliFileTools
-from flext_cli.models import m
-from flext_cli.services.output import FlextCliOutput
-from flext_cli.utilities import FlextCliUtilities
+from flext_cli import (
+    FlextCliConstants,
+    FlextCliFileTools,
+    FlextCliOutput,
+    FlextCliServiceBase,
+    FlextCliUtilities,
+    m,
+)
 
 
 class FlextCliCmd(FlextCliServiceBase):

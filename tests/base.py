@@ -23,7 +23,7 @@ from flext_core import (
     r,
     t,
 )
-from flext_tests.base import FlextTestsServiceBase
+from flext_tests import FlextTestsServiceBase
 from pydantic import ValidationError
 
 from tests.constants import c

@@ -19,10 +19,11 @@ from abc import ABC, abstractmethod
 from typing import ClassVar, TypeVar
 
 import typer
+from click.exceptions import UsageError as ClickUsageError
 from flext_core import FlextLogger, e, r
 
-from flext_cli.cli import FlextCliCli, UsageError as ClickUsageError
-from flext_cli.services.output import FlextCliOutput
+from flext_cli import FlextCliOutput
+from flext_cli.cli import FlextCliCli
 from flext_cli.settings import FlextCliSettings
 
 SettingsT = TypeVar("SettingsT", bound=FlextCliSettings)

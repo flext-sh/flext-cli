@@ -21,11 +21,7 @@ from typing import override
 from flext_core import r
 from rich.errors import ConsoleError, LiveError, StyleError
 
-from flext_cli.base import FlextCliServiceBase
-from flext_cli.constants import c
-from flext_cli.models import m
-from flext_cli.typings import t
-from flext_cli.utilities import FlextCliUtilities, u
+from flext_cli import FlextCliServiceBase, FlextCliUtilities, c, m, t, u
 
 
 class FlextCliDebug(FlextCliServiceBase):

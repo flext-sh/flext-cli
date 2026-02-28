@@ -11,8 +11,7 @@ from unittest.mock import patch
 
 import click
 import typer
-from flext_cli import FlextCliCli, FlextCliSettings
-from flext_cli.models import m
+from flext_cli import FlextCliCli, FlextCliSettings, m
 from flext_core import FlextRuntime, t
 from typer.testing import CliRunner
 

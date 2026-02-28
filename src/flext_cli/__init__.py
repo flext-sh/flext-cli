@@ -13,41 +13,47 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
+from flext_core import cleanup_submodule_namespace, lazy_getattr
 
 if TYPE_CHECKING:
     from flext_core import d, e, h, r, x
 
-    from flext_cli.__version__ import __version__, __version_info__
-    from flext_cli.api import FlextCli
-    from flext_cli.app_base import FlextCliAppBase
-    from flext_cli.base import FlextCliServiceBase
-    from flext_cli.cli import FlextCliCli
-    from flext_cli.cli_params import FlextCliCommonParams
-    from flext_cli.command_builder import FlextCliCommandBuilder as FlextCommandBuilder
-    from flext_cli.commands import FlextCliCommands
-    from flext_cli.constants import FlextCliConstants, FlextCliConstants as c
-    from flext_cli.debug import FlextCliDebug
-    from flext_cli.file_tools import FlextCliFileTools
-    from flext_cli.formatters import FlextCliFormatters
-    from flext_cli.middleware import (
+    from flext_cli import (
+        FlextCli,
+        FlextCliAppBase,
+        FlextCliCli,
+        FlextCliCmd,
+        FlextCliCommandBuilder as FlextCommandBuilder,
+        FlextCliCommands,
+        FlextCliCommonParams,
+        FlextCliConstants,
+        FlextCliConstants as c,
+        FlextCliCore,
+        FlextCliDebug,
+        FlextCliFileTools,
+        FlextCliFormatters,
         FlextCliLoggingMiddleware as LoggingMiddleware,
         FlextCliMiddleware as FlextMiddleware,
+        FlextCliMixins,
+        FlextCliModels,
+        FlextCliModels as m,
+        FlextCliOptionGroup as FlextOptionGroup,
+        FlextCliOutput,
+        FlextCliPrompts,
+        FlextCliProtocols,
+        FlextCliProtocols as p,
         FlextCliRetryMiddleware as RetryMiddleware,
+        FlextCliServiceBase,
+        FlextCliSettings,
+        FlextCliTables,
+        FlextCliTypes,
+        FlextCliTypes as t,
+        FlextCliUtilities,
+        FlextCliUtilities as u,
         FlextCliValidationMiddleware as ValidationMiddleware,
+        __version__,
+        __version_info__,
     )
-    from flext_cli.mixins import FlextCliMixins
-    from flext_cli.models import FlextCliModels, FlextCliModels as m
-    from flext_cli.option_groups import FlextCliOptionGroup as FlextOptionGroup
-    from flext_cli.protocols import FlextCliProtocols, FlextCliProtocols as p
-    from flext_cli.services.cmd import FlextCliCmd
-    from flext_cli.services.core import FlextCliCore
-    from flext_cli.services.output import FlextCliOutput
-    from flext_cli.services.prompts import FlextCliPrompts
-    from flext_cli.services.tables import FlextCliTables
-    from flext_cli.settings import FlextCliSettings
-    from flext_cli.typings import FlextCliTypes, FlextCliTypes as t
-    from flext_cli.utilities import FlextCliUtilities, FlextCliUtilities as u
 
 # Lazy import mapping: export_name -> (module_path, attr_name)
 _LAZY_IMPORTS: dict[str, tuple[str, str]] = {

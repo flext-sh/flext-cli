@@ -7,8 +7,7 @@ from datetime import datetime
 from types import TracebackType
 from typing import Protocol, Self, runtime_checkable
 
-from flext_core import t
-from flext_core.protocols import FlextProtocols
+from flext_core import FlextProtocols, t
 
 
 class FlextCliProtocols(FlextProtocols):
@@ -66,7 +65,12 @@ class FlextCliProtocols(FlextProtocols):
                     """Enter the context manager."""
                     ...
 
-                def __exit__(self, exc_type: type[BaseException] | None, exc_val: BaseException | None, exc_tb: TracebackType | None) -> None:
+                def __exit__(
+                    self,
+                    exc_type: type[BaseException] | None,
+                    exc_val: BaseException | None,
+                    exc_tb: TracebackType | None,
+                ) -> None:
                     """Exit the context manager."""
                     ...
 

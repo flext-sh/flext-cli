@@ -1,7 +1,6 @@
 """Integration tests for complete CLI workflows."""
 
-from flext_cli.constants import c
-from flext_cli.models import m
+from flext_cli import c, m
 from tests._helpers import create_test_cli_command
 
 

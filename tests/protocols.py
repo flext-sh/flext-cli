@@ -13,8 +13,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli.protocols import FlextCliProtocols
-from flext_tests.protocols import FlextTestsProtocols
+from flext_cli import FlextCliProtocols
+from flext_tests import FlextTestsProtocols
 
 
 class TestsCliProtocols(FlextTestsProtocols, FlextCliProtocols):

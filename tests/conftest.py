@@ -41,7 +41,7 @@ from flext_core import (
     FlextContainer,
     FlextSettings,
 )
-from flext_tests.docker import FlextTestsDocker
+from flext_tests import FlextTestsDocker
 from pydantic import TypeAdapter
 
 from . import c, m, p, t, u

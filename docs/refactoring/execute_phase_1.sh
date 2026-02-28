@@ -79,7 +79,7 @@ if [ "$affected_files" -gt 0 ]; then
 
 	# Update direct module imports
 	find tests -name "*.py" -type f -exec sed -i \
-		's/from flext_cli.testing import/from tests.fixtures.testing_utilities import/g' \
+		's/from flext_cli import/from tests.fixtures.testing_utilities import/g' \
 		{} + 2>/dev/null || true
 
 	echo "✅ Test imports updated"

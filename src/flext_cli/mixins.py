@@ -12,8 +12,7 @@ from __future__ import annotations
 
 from flext_core import FlextDecorators, FlextMixins, FlextResult, r
 
-from flext_cli.protocols import p
-from flext_cli.typings import t
+from flext_cli import p, t
 
 
 class FlextCliMixins(FlextMixins):

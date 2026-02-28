@@ -11,14 +11,16 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
+from flext_core import cleanup_submodule_namespace, lazy_getattr
 
 if TYPE_CHECKING:
-    from flext_cli.services.cmd import FlextCliCmd
-    from flext_cli.services.core import FlextCliCore
-    from flext_cli.services.output import FlextCliOutput
-    from flext_cli.services.prompts import FlextCliPrompts
-    from flext_cli.services.tables import FlextCliTables
+    from flext_cli import (
+        FlextCliCmd,
+        FlextCliCore,
+        FlextCliOutput,
+        FlextCliPrompts,
+        FlextCliTables,
+    )
 
 # Lazy import mapping: export_name -> (module_path, attr_name)
 _LAZY_IMPORTS: dict[str, tuple[str, str]] = {

@@ -27,13 +27,7 @@ from rich.errors import ConsoleError, LiveError, StyleError
 from typer import Typer
 from typer.testing import CliRunner
 
-from flext_cli.cli_params import FlextCliCommonParams
-from flext_cli.constants import c
-from flext_cli.models import m
-from flext_cli.protocols import p
-from flext_cli.settings import FlextCliSettings
-from flext_cli.typings import t
-from flext_cli.utilities import u
+from flext_cli import FlextCliCommonParams, FlextCliSettings, c, m, p, t, u
 
 
 class FlextCliCli:

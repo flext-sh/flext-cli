@@ -25,9 +25,7 @@ from rich.status import Status as RichStatus
 from rich.table import Table as RichTable
 from rich.tree import Tree as RichTree
 
-from flext_cli.constants import c
-from flext_cli.protocols import p
-from flext_cli.typings import t
+from flext_cli import c, p, t
 
 _logger = FlextLogger(__name__)
 

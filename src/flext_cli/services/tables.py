@@ -18,11 +18,7 @@ from flext_core import r
 from rich.errors import ConsoleError, LiveError, StyleError
 from tabulate import tabulate
 
-from flext_cli.base import FlextCliServiceBase
-from flext_cli.constants import FlextCliConstants
-from flext_cli.models import m
-from flext_cli.typings import t
-from flext_cli.utilities import u
+from flext_cli import FlextCliConstants, FlextCliServiceBase, m, t, u
 
 
 class FlextCliTables(FlextCliServiceBase):

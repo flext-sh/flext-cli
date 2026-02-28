@@ -16,9 +16,7 @@ from typing import Self
 from flext_core import r
 from typer.models import OptionInfo
 
-from flext_cli.models import m
-from flext_cli.protocols import p
-from flext_cli.typings import t
+from flext_cli import m, p, t
 
 
 class FlextCliCommandBuilder:
