@@ -516,7 +516,7 @@ class FlextCliCore(FlextCliServiceBase):
 
     def _validate_config_input(
         self,
-        config: object,
+        config: t.GeneralValueType,
     ) -> r[Mapping[str, t.JsonValue]]:
         """Validate input configuration for update operations."""
         if not isinstance(config, Mapping):
@@ -645,7 +645,7 @@ class FlextCliCore(FlextCliServiceBase):
 
     def update_configuration(
         self,
-        config: object,
+        config: t.GeneralValueType,
     ) -> r[bool]:
         """Update CLI configuration using railway pattern and functional composition.
 

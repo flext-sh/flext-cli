@@ -42,12 +42,12 @@ from flext_cli.typings import t
 _logger = FlextLogger(__name__)
 
 
-def _is_mapping_like(obj: object) -> TypeGuard[Mapping[str, object]]:
+def _is_mapping_like(obj: t.GeneralValueType) -> TypeGuard[Mapping[str, t.GeneralValueType]]:
     """Narrow object to Mapping for metadata processing."""
     return isinstance(obj, Mapping)
 
 
-def _normalize_to_json_value(item: object) -> t.JsonValue:
+def _normalize_to_json_value(item: t.GeneralValueType) -> t.JsonValue:
     """Recursively normalize any value to JSON-serializable (t.JsonValue)."""
     if item is None or isinstance(item, (str, int, float, bool)):
         return item
@@ -65,7 +65,7 @@ def _normalize_to_json_value(item: object) -> t.JsonValue:
     return str(item)
 
 
-def _unwrap_root_value(value: object) -> object:
+def _unwrap_root_value(value: t.GeneralValueType) -> t.GeneralValueType:
     if hasattr(value, "__dict__"):
         model_dict = value.__dict__
         if isinstance(model_dict, Mapping) and "root" in model_dict:
@@ -81,7 +81,7 @@ class _CliNormalizedJson(RootModel[t.JsonValue]):
     @model_validator(mode="wrap")
     @classmethod
     def _normalize(
-        cls, data: object, handler: Callable[[t.JsonValue], _CliNormalizedJson]
+        cls, data: t.GeneralValueType, handler: Callable[[t.JsonValue], _CliNormalizedJson]
     ) -> _CliNormalizedJson:
         normalized = _normalize_to_json_value(data)
         return handler(normalized)
@@ -590,7 +590,8 @@ class FlextCliModels(FlextModels):
 
             # Inherit created_at and updated_at from Entity - frozen=True makes them read-only
             # Entity provides these fields, and frozen models inherit them correctly
-            def model_post_init(self, __context: object, /) -> None:
+            @override
+            def model_post_init(self, __context: t.GeneralValueType, /) -> None:
                 """Post-initialization hook for frozen model compatibility.
 
                 Uses standard Pydantic 2 signature for model_post_init.
@@ -598,7 +599,7 @@ class FlextCliModels(FlextModels):
                 """
                 # Entity handles timestamp initialization via its own model_post_init
 
-            def _copy_with_update(self, **updates: object) -> Self:
+            def _copy_with_update(self, **updates: t.GeneralValueType) -> Self:
                 """Helper method for model_copy with updates - reduces repetition.
 
                 Composition pattern: centralizes model_copy logic for reuse.
@@ -806,7 +807,7 @@ class FlextCliModels(FlextModels):
 
             @field_validator("status")
             @classmethod
-            def validate_status(cls, value: object) -> str:
+            def validate_status(cls, value: t.GeneralValueType) -> str:
                 """Validate session status."""
                 if not isinstance(value, str):
                     msg = "session_status must be a string"
@@ -846,7 +847,7 @@ class FlextCliModels(FlextModels):
             # Inherit created_at and updated_at from Entity - frozen=True makes them read-only
             # Entity provides these fields, and frozen models inherit them correctly
             @override
-            def model_post_init(self, __context: object, /) -> None:
+            def model_post_init(self, __context: t.GeneralValueType, /) -> None:
                 """Post-initialization hook for frozen model compatibility.
 
                 Entity's timestamp fields are inherited and work correctly with frozen=True.
@@ -908,7 +909,7 @@ class FlextCliModels(FlextModels):
                 ) as e:
                     return r.fail(f"Failed to add command: {e}")
 
-            def _copy_with_update(self, **updates: object) -> Self:
+            def _copy_with_update(self, **updates: t.GeneralValueType) -> Self:
                 """Helper method for model_copy with updates - reduces repetition.
 
                 Composition pattern: centralizes model_copy logic for reuse.
@@ -1303,7 +1304,7 @@ class FlextCliModels(FlextModels):
                 default=None,
                 description="Default value",
             )
-            type_hint: object = Field(
+            type_hint: t.GeneralValueType = Field(
                 default=None,
                 description="Parameter type (Click type or Python type)",
             )
@@ -1365,11 +1366,11 @@ class FlextCliModels(FlextModels):
                 default=None,
                 description="Default value",
             )
-            type_hint: object = Field(
+            type_hint: t.GeneralValueType = Field(
                 default=None,
                 description="Value type",
             )
-            value_proc: object = Field(
+            value_proc: t.GeneralValueType = Field(
                 default=None,
                 description="Value processor function",
             )
@@ -1810,7 +1811,7 @@ class FlextCliModels(FlextModels):
                 self,
                 model_class: type[BaseModel],
                 handler: Callable[[BaseModel], t.JsonValue],
-                config: object | None = None,
+                config: t.GeneralValueType | None = None,
             ) -> None:
                 """Initialize builder with model class, handler, and optional config.
 
@@ -2327,14 +2328,14 @@ class FlextCliModels(FlextModels):
                     raise RuntimeError(msg)
 
                 def _is_callable_object(
-                    obj: object,
-                ) -> TypeGuard[Callable[..., object]]:
+                    obj: t.GeneralValueType,
+                ) -> TypeGuard[Callable[..., t.GeneralValueType]]:
                     return callable(obj)
 
                 if not _is_callable_object(command_wrapper):
                     msg = "exec() failed to create valid function"
                     raise TypeError(msg)
-                command_callable: Callable[..., object] = command_wrapper
+                command_callable: Callable[..., t.GeneralValueType] = command_wrapper
 
                 # Type narrowing: _create_real_annotations returns dict[str, type]
                 real_annotations = self._create_real_annotations(annotations)
@@ -2345,7 +2346,7 @@ class FlextCliModels(FlextModels):
                     *args: t.GeneralValueType,
                     **kwargs: t.GeneralValueType,
                 ) -> t.GeneralValueType:
-                    raw_result: object = command_callable(*args, **kwargs)
+                    raw_result: t.GeneralValueType = command_callable(*args, **kwargs)
                     normalized = (
                         FlextCliModels.Cli.CliModelConverter.convert_field_value(
                             raw_result,
@@ -2982,8 +2983,8 @@ class FlextCliModels(FlextModels):
                     "validators",
                     "list/tuple",
                     lambda v: (
-                        isinstance(v, list | tuple)
-                        and not isinstance(v, Mapping | bytes)
+                        isinstance(v, (list, tuple))
+                        and not isinstance(v, (Mapping, bytes))
                     ),
                 ),
                 (

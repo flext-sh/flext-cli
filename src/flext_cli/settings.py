@@ -176,7 +176,7 @@ class FlextCliSettings(FlextSettings):
         mode="before",
     )
     @classmethod
-    def parse_bool_env_vars(cls, v: object) -> bool:
+    def parse_bool_env_vars(cls, v: t.GeneralValueType) -> bool:
         """Parse boolean environment variables correctly from strings."""
         if v is True or v is False:
             return bool(v)

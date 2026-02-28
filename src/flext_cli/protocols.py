@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Mapping, Sequence
 from datetime import datetime
+from types import TracebackType
 from typing import Protocol, Self, runtime_checkable
 
 from flext_core import t
@@ -65,7 +66,7 @@ class FlextCliProtocols(FlextProtocols):
                     """Enter the context manager."""
                     ...
 
-                def __exit__(self, *args: object) -> None:
+                def __exit__(self, exc_type: type[BaseException] | None, exc_val: BaseException | None, exc_tb: TracebackType | None) -> None:
                     """Exit the context manager."""
                     ...
 

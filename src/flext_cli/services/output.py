@@ -171,21 +171,21 @@ class FlextCliOutput:
 
     @staticmethod
     def _is_rich_table_protocol(
-        obj: object,
+        obj: t.GeneralValueType,
     ) -> TypeGuard[p.Cli.Display.RichTableProtocol]:
         """Narrow to RichTableProtocol using structural checks (add_column, add_row)."""
         return isinstance(obj, p.Cli.Display.RichTableProtocol)
 
     @staticmethod
     def _is_rich_progress_protocol(
-        obj: object,
+        obj: t.GeneralValueType,
     ) -> TypeGuard[p.Cli.Interactive.RichProgressProtocol]:
         """Narrow to RichProgressProtocol using structural checks (context manager + task methods)."""
         return isinstance(obj, p.Cli.Interactive.RichProgressProtocol)
 
     @staticmethod
     def _is_rich_console_protocol(
-        obj: object,
+        obj: t.GeneralValueType,
     ) -> TypeGuard[p.Cli.Display.RichConsoleProtocol]:
         """Narrow to RichConsoleProtocol using structural check (print)."""
         return isinstance(obj, p.Cli.Display.RichConsoleProtocol)
