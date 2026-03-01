@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import types
 from enum import StrEnum
+from typing import Annotated
 
 import pytest
 from flext_cli import u
 from flext_core import r
+from pydantic import Field
 
 
 def test_process_fail_and_collect_paths() -> None:
@@ -82,16 +84,18 @@ def test_normalize_union_type_returns_none_when_inner_is_none(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     union_type = str | None
-    original = u.TypeNormalizer.normalize_annotation
+    original = u.Cli.TypeNormalizer.normalize_annotation
 
     def fake(annotation: object) -> type | None:
         if annotation is str:
             return None
         return original(annotation)
 
-    monkeypatch.setattr(u.TypeNormalizer, "normalize_annotation", staticmethod(fake))
+    monkeypatch.setattr(
+        u.Cli.TypeNormalizer, "normalize_annotation", staticmethod(fake)
+    )
 
-    result = u.TypeNormalizer.normalize_union_type(union_type)
+    result = u.Cli.TypeNormalizer.normalize_union_type(union_type)
 
     assert result is None
 
@@ -101,12 +105,12 @@ def test_normalize_union_type_returns_none_for_empty_normalized_list(
 ) -> None:
     union_type = str | int
     monkeypatch.setattr(
-        u.TypeNormalizer,
+        u.Cli.TypeNormalizer,
         "normalize_annotation",
         staticmethod(lambda _annotation: None),
     )
 
-    result = u.TypeNormalizer.normalize_union_type(union_type)
+    result = u.Cli.TypeNormalizer.normalize_union_type(union_type)
 
     assert result is None
 
@@ -120,17 +124,17 @@ def test_normalize_union_type_returns_annotation_for_none_only_args(
     )
 
     union_type = str | int
-    result = u.TypeNormalizer.normalize_union_type(union_type)
+    result = u.Cli.TypeNormalizer.normalize_union_type(union_type)
 
     assert result == union_type
 
 
 def test_validated_with_result_returns_failure_on_validation_error() -> None:
-    @u.TypeNormalizer.Args.validated_with_result
-    def parse_int(value: int):
+    @u.Cli.TypeNormalizer.Args.validated_with_result
+    def parse_int(value: Annotated[int, Field(gt=0)]):
         return r.ok(value)
 
-    result = parse_int(value="not-int")
+    result = parse_int(value=-1)
 
     assert result.is_failure
     assert "validation" in (result.error or "").lower()
@@ -140,7 +144,7 @@ def test_parse_kwargs_skips_missing_enum_field_key() -> None:
     class Mode(StrEnum):
         FAST = "fast"
 
-    result = u.TypeNormalizer.Args.parse_kwargs({"other": "x"}, {"mode": Mode})
+    result = u.Cli.TypeNormalizer.Args.parse_kwargs({"other": "x"}, {"mode": Mode})
 
     assert result.is_success
     assert "other" in result.value

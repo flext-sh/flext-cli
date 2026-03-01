@@ -16,17 +16,39 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from tests import c, m, p, t, u
-from tests._helpers import CommandsFactory
-from tests.helpers._impl import (
-    ConfigFactory,
-    FlextCliTestHelpers,
-    ParamsFactory,
-    TestScenario,
-    ValidationHelper,
-    _is_json_dict,
-    _is_json_list,
-)
+from typing import TYPE_CHECKING, Any
+
+from flext_core._utilities.lazy import cleanup_submodule_namespace, lazy_getattr
+
+if TYPE_CHECKING:
+    from tests import c, m, p, t, u
+    from tests._helpers import CommandsFactory
+    from tests.helpers._impl import (
+        ConfigFactory,
+        FlextCliTestHelpers,
+        ParamsFactory,
+        TestScenario,
+        ValidationHelper,
+        _is_json_dict,
+        _is_json_list,
+    )
+
+# Lazy import mapping: export_name -> (module_path, attr_name)
+_LAZY_IMPORTS: dict[str, tuple[str, str]] = {
+    "CommandsFactory": ("tests._helpers", "CommandsFactory"),
+    "ConfigFactory": ("tests.helpers._impl", "ConfigFactory"),
+    "FlextCliTestHelpers": ("tests.helpers._impl", "FlextCliTestHelpers"),
+    "ParamsFactory": ("tests.helpers._impl", "ParamsFactory"),
+    "TestScenario": ("tests.helpers._impl", "TestScenario"),
+    "ValidationHelper": ("tests.helpers._impl", "ValidationHelper"),
+    "_is_json_dict": ("tests.helpers._impl", "_is_json_dict"),
+    "_is_json_list": ("tests.helpers._impl", "_is_json_list"),
+    "c": ("tests", "c"),
+    "m": ("tests", "m"),
+    "p": ("tests", "p"),
+    "t": ("tests", "t"),
+    "u": ("tests", "u"),
+}
 
 __all__ = [
     "CommandsFactory",
@@ -43,3 +65,16 @@ __all__ = [
     "t",
     "u",
 ]
+
+
+def __getattr__(name: str) -> Any:  # noqa: ANN401
+    """Lazy-load module attributes on first access (PEP 562)."""
+    return lazy_getattr(name, _LAZY_IMPORTS, globals(), __name__)
+
+
+def __dir__() -> list[str]:
+    """Return list of available attributes for dir() and autocomplete."""
+    return sorted(__all__)
+
+
+cleanup_submodule_namespace(__name__, _LAZY_IMPORTS)
