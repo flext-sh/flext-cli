@@ -64,35 +64,35 @@ class FlextCliModels(FlextModels):
         """
 
         @staticmethod
-        def _is_mapping_like(
+        def is_mapping_like(
             obj: t.GeneralValueType,
         ) -> TypeGuard[Mapping[str, t.GeneralValueType]]:
             """Narrow object to Mapping for metadata processing."""
             return isinstance(obj, Mapping)
 
         @staticmethod
-        def _normalize_to_json_value(item: t.GeneralValueType) -> t.JsonValue:
+        def normalize_to_json_value(item: t.GeneralValueType) -> t.JsonValue:
             """Recursively normalize any value to JSON-serializable (t.JsonValue)."""
             if item is None or isinstance(item, (str, int, float, bool)):
                 return item
             if isinstance(item, BaseModel):
                 raw = item.model_dump(mode="json")
-                return FlextCliModels.Cli._normalize_to_json_value(raw)
+                return FlextCliModels.Cli.normalize_to_json_value(raw)
             if isinstance(item, Path):
                 return str(item)
             if isinstance(item, datetime):
                 return item.isoformat()
             if isinstance(item, Mapping):
                 return {
-                    str(k): FlextCliModels.Cli._normalize_to_json_value(vv)
+                    str(k): FlextCliModels.Cli.normalize_to_json_value(vv)
                     for k, vv in item.items()
                 }
             if isinstance(item, Sequence) and not isinstance(item, str):
-                return [FlextCliModels.Cli._normalize_to_json_value(x) for x in item]
+                return [FlextCliModels.Cli.normalize_to_json_value(x) for x in item]
             return str(item)
 
         @staticmethod
-        def _unwrap_root_value(value: t.GeneralValueType) -> t.GeneralValueType:
+        def unwrap_root_value(value: t.GeneralValueType) -> t.GeneralValueType:
             if hasattr(value, "__dict__"):
                 model_dict = value.__dict__
                 if isinstance(model_dict, Mapping) and "root" in model_dict:
@@ -101,7 +101,7 @@ class FlextCliModels(FlextModels):
                         return root_value
             return value
 
-        class _CliNormalizedJson(RootModel[t.JsonValue]):
+        class CliNormalizedJson(RootModel[t.JsonValue]):
             """Single contract: any value normalized to JSON (t.JsonValue)."""
 
             @model_validator(mode="wrap")
@@ -109,9 +109,9 @@ class FlextCliModels(FlextModels):
             def _normalize(
                 cls,
                 data: t.GeneralValueType,
-                handler: Callable[[t.JsonValue], FlextCliModels.Cli._CliNormalizedJson],
-            ) -> FlextCliModels.Cli._CliNormalizedJson:
-                normalized = FlextCliModels.Cli._normalize_to_json_value(data)
+                handler: Callable[[t.JsonValue], FlextCliModels.Cli.CliNormalizedJson],
+            ) -> FlextCliModels.Cli.CliNormalizedJson:
+                normalized = FlextCliModels.Cli.normalize_to_json_value(data)
                 return handler(normalized)
 
         class _JsonNormalizeInput(BaseModel):
@@ -123,7 +123,7 @@ class FlextCliModels(FlextModels):
             @computed_field
             @property
             def normalized(self) -> t.JsonValue:
-                return FlextCliModels.Cli._CliNormalizedJson.model_validate(
+                return FlextCliModels.Cli.CliNormalizedJson.model_validate(
                     self.value
                 ).root
 
@@ -136,7 +136,7 @@ class FlextCliModels(FlextModels):
             default: str | bool = Field(description="Default value")
 
             def result(self) -> str | bool:
-                out = FlextCliModels.Cli._TypedExtract(
+                out = FlextCliModels.Cli.TypedExtract(
                     type_kind=self.kind,
                     value=self.value,
                     default=self.default,
@@ -161,10 +161,10 @@ class FlextCliModels(FlextModels):
                     return val
                 if isinstance(val, dict):
                     return {
-                        str(k): FlextCliModels.Cli._normalize_to_json_value(vv)
+                        str(k): FlextCliModels.Cli.normalize_to_json_value(vv)
                         for k, vv in val.items()
                     }
-                return FlextCliModels.Cli._normalize_to_json_value(val)
+                return FlextCliModels.Cli.normalize_to_json_value(val)
 
         class _DictKeysExtract(BaseModel):
             """Single contract for get_keys: input -> list of keys (empty if not dict)."""
@@ -180,7 +180,7 @@ class FlextCliModels(FlextModels):
             def resolved(self) -> list[str]:
                 if isinstance(self.input_, Mapping):
                     return list(self.input_.keys())
-                root = FlextCliModels.Cli._unwrap_root_value(self.input_)
+                root = FlextCliModels.Cli.unwrap_root_value(self.input_)
                 if isinstance(root, Mapping):
                     return list(root.keys())
                 return []
@@ -197,10 +197,10 @@ class FlextCliModels(FlextModels):
             def resolved(self) -> Mapping[str, t.JsonValue]:
                 if self.value is None:
                     return self.default
-                source = FlextCliModels.Cli._unwrap_root_value(self.value)
+                source = FlextCliModels.Cli.unwrap_root_value(self.value)
                 if isinstance(source, Mapping):
                     return {
-                        str(k): FlextCliModels.Cli._normalize_to_json_value(vv)
+                        str(k): FlextCliModels.Cli.normalize_to_json_value(vv)
                         for k, vv in source.items()
                     }
                 adapter: TypeAdapter[dict[str, t.JsonValue]] = TypeAdapter(
@@ -209,7 +209,7 @@ class FlextCliModels(FlextModels):
                 try:
                     parsed = adapter.validate_python(source)
                     return {
-                        str(k): FlextCliModels.Cli._normalize_to_json_value(vv)
+                        str(k): FlextCliModels.Cli.normalize_to_json_value(vv)
                         for k, vv in parsed.items()
                     }
                 except ValidationError:
@@ -227,11 +227,11 @@ class FlextCliModels(FlextModels):
             def resolved(self) -> list[t.JsonValue]:
                 if self.value is None:
                     return list(self.default)
-                source = FlextCliModels.Cli._unwrap_root_value(self.value)
+                source = FlextCliModels.Cli.unwrap_root_value(self.value)
                 adapter: TypeAdapter[list[t.JsonValue]] = TypeAdapter(list[t.JsonValue])
                 try:
                     seq = adapter.validate_python(source)
-                    return [FlextCliModels.Cli._normalize_to_json_value(x) for x in seq]
+                    return [FlextCliModels.Cli.normalize_to_json_value(x) for x in seq]
                 except ValidationError:
                     return list(self.default)
 
@@ -278,17 +278,17 @@ class FlextCliModels(FlextModels):
                     return dict(raw)
                 return {}
 
-        def _normalize_json_value(item: t.ConfigMapValue) -> t.JsonValue:
+        def normalize_json_value(item: t.ConfigMapValue) -> t.JsonValue:
             if isinstance(item, (str, int, float, bool, type(None))):
                 return item
-            source = FlextCliModels.Cli._unwrap_root_value(item)
+            source = FlextCliModels.Cli.unwrap_root_value(item)
             if isinstance(source, Mapping):
                 return {
-                    str(k): FlextCliModels.Cli._normalize_json_value(v)
+                    str(k): FlextCliModels.Cli.normalize_json_value(v)
                     for k, v in source.items()
                 }
             if isinstance(source, Sequence) and not isinstance(source, (str, bytes)):
-                return [FlextCliModels.Cli._normalize_json_value(i) for i in source]
+                return [FlextCliModels.Cli.normalize_json_value(i) for i in source]
             return str(item)
 
         class _NormalizedJsonList(BaseModel):
@@ -307,14 +307,14 @@ class FlextCliModels(FlextModels):
                 """Type-safe accessor (bypasses pyrefly computed_field limitation)."""
                 if self.value is None:
                     return list(self.default)
-                source = FlextCliModels.Cli._unwrap_root_value(self.value)
+                source = FlextCliModels.Cli.unwrap_root_value(self.value)
                 try:
                     adapter: TypeAdapter[list[t.JsonValue]] = TypeAdapter(
                         list[t.JsonValue]
                     )
                     raw_list = adapter.validate_python(source)
                     return [
-                        FlextCliModels.Cli._normalize_json_value(i) for i in raw_list
+                        FlextCliModels.Cli.normalize_json_value(i) for i in raw_list
                     ]
                 except ValidationError:
                     return list(self.default)
@@ -340,14 +340,14 @@ class FlextCliModels(FlextModels):
                 """Type-safe accessor (bypasses pyrefly computed_field limitation)."""
                 if self.value is None:
                     return dict(self.default)
-                source = FlextCliModels.Cli._unwrap_root_value(self.value)
+                source = FlextCliModels.Cli.unwrap_root_value(self.value)
                 try:
                     adapter: TypeAdapter[dict[str, t.JsonValue]] = TypeAdapter(
                         dict[str, t.JsonValue],
                     )
                     raw_dict = adapter.validate_python(source)
                     return {
-                        str(k): FlextCliModels.Cli._normalize_json_value(v)
+                        str(k): FlextCliModels.Cli.normalize_json_value(v)
                         for k, v in raw_dict.items()
                     }
                 except ValidationError:
@@ -358,7 +358,7 @@ class FlextCliModels(FlextModels):
             def resolved(self) -> dict[str, t.JsonValue]:
                 return self.resolve()
 
-        class _TypedExtract(BaseModel):
+        class TypedExtract(BaseModel):
             """Single contract for typed value extraction (str | bool | dict). Replaces polymorphic _extract_typed_value."""
 
             model_config = ConfigDict(extra="forbid")
@@ -371,7 +371,7 @@ class FlextCliModels(FlextModels):
             def resolve(self) -> str | bool | dict[str, t.JsonValue] | None:
                 """Type-safe accessor (bypasses pyrefly computed_field limitation)."""
                 if self.value is None:
-                    return FlextCliModels.Cli._default_for_type_kind(
+                    return FlextCliModels.Cli.default_for_type_kind(
                         self.type_kind, self.default
                     )
                 if self.type_kind == "str":
@@ -388,16 +388,16 @@ class FlextCliModels(FlextModels):
                 if self.type_kind == "dict":
                     if isinstance(self.value, Mapping):
                         return {
-                            str(k): FlextCliModels.Cli._normalize_to_json_value(vv)
+                            str(k): FlextCliModels.Cli.normalize_to_json_value(vv)
                             for k, vv in self.value.items()
                         }
                     if isinstance(self.default, Mapping):
                         return {
-                            str(k): FlextCliModels.Cli._normalize_to_json_value(vv)
+                            str(k): FlextCliModels.Cli.normalize_to_json_value(vv)
                             for k, vv in self.default.items()
                         }
                     return {}
-                return FlextCliModels.Cli._default_for_type_kind(
+                return FlextCliModels.Cli.default_for_type_kind(
                     self.type_kind, self.default
                 )
 
@@ -407,7 +407,7 @@ class FlextCliModels(FlextModels):
                 """Value coerced to type_kind, or default. Single Pydantic contract (no polymorphic methods)."""
                 return self.resolve()
 
-        def _default_for_type_kind(
+        def default_for_type_kind(
             type_kind: Literal["str", "bool", "dict"],
             default: t.JsonValue | None,
         ) -> str | bool | dict[str, t.JsonValue] | None:
@@ -418,7 +418,7 @@ class FlextCliModels(FlextModels):
                 return default if isinstance(default, bool) else False
             if isinstance(default, Mapping):
                 return {
-                    str(k): FlextCliModels.Cli._normalize_to_json_value(v)
+                    str(k): FlextCliModels.Cli.normalize_to_json_value(v)
                     for k, v in default.items()
                 }
             return {}
@@ -440,7 +440,7 @@ class FlextCliModels(FlextModels):
             def resolved(self) -> str:
                 return self.resolve()
 
-        class _CliLoggingData(BaseModel):
+        class CliLoggingData(BaseModel):
             """CLI logging data model - defined at module level to avoid Pydantic field inheritance issues.
 
             CRITICAL: Defined OUTSIDE nested classes to prevent Pydantic from merging fields.
@@ -459,9 +459,9 @@ class FlextCliModels(FlextModels):
                 description="Logging format",
             )
 
-        CliLoggingData = _CliLoggingData
+        CliLoggingData = CliLoggingData
         ExecutionContextInput = _ExecutionContextInput
-        TypedExtract = _TypedExtract
+        TypedExtract = TypedExtract
         LogLevelResolved = _LogLevelResolved
         PromptTimeoutResolved = _PromptTimeoutResolved
         JsonNormalizeInput = _JsonNormalizeInput
@@ -596,10 +596,10 @@ class FlextCliModels(FlextModels):
             )
 
             @computed_field
-            def logging_summary(self) -> FlextCliModels.Cli._CliLoggingData:
+            def logging_summary(self) -> FlextCliModels.Cli.CliLoggingData:
                 """Return logging summary as structured data."""
-                # Use model_construct with module-level _CliLoggingData
-                return FlextCliModels.Cli._CliLoggingData.model_construct(
+                # Use model_construct with module-level CliLoggingData
+                return FlextCliModels.Cli.CliLoggingData.model_construct(
                     level=self.log_level,
                     format=self.log_format,
                 )
@@ -2849,7 +2849,7 @@ class FlextCliModels(FlextModels):
                 """Process metadata list into dict."""
                 result: dict[str, t.JsonValue] = {}
                 for item in metadata_attr:
-                    if FlextCliModels.Cli._is_mapping_like(item):
+                    if FlextCliModels.Cli.is_mapping_like(item):
                         dict_item = {
                             str(k): FlextCliModels.Cli.CliModelConverter.to_json_value(
                                 v,
@@ -2859,7 +2859,7 @@ class FlextCliModels(FlextModels):
                         result.update(dict_item)
                     elif hasattr(item, "__dict__"):
                         item_dict = item.__dict__
-                        if FlextCliModels.Cli._is_mapping_like(item_dict):
+                        if FlextCliModels.Cli.is_mapping_like(item_dict):
                             dict_item = {
                                 str(
                                     k,
