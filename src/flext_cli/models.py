@@ -65,7 +65,7 @@ class FlextCliModels(FlextModels):
 
         @staticmethod
         def is_mapping_like(
-            obj: t.GeneralValueType,
+            obj: object,
         ) -> TypeGuard[Mapping[str, t.GeneralValueType]]:
             """Narrow object to Mapping for metadata processing."""
             return isinstance(obj, Mapping)
@@ -93,6 +93,7 @@ class FlextCliModels(FlextModels):
 
         @staticmethod
         def unwrap_root_value(value: t.GeneralValueType) -> t.GeneralValueType:
+            """Unwrap RootModel .root value if present, otherwise return as-is."""
             if hasattr(value, "__dict__"):
                 model_dict = value.__dict__
                 if isinstance(model_dict, Mapping) and "root" in model_dict:
@@ -279,6 +280,7 @@ class FlextCliModels(FlextModels):
                 return {}
 
         def normalize_json_value(item: t.ConfigMapValue) -> t.JsonValue:
+            """Normalize a ConfigMapValue to a JSON-serializable JsonValue."""
             if isinstance(item, (str, int, float, bool, type(None))):
                 return item
             source = FlextCliModels.Cli.unwrap_root_value(item)
@@ -2353,8 +2355,9 @@ class FlextCliModels(FlextModels):
                     raise RuntimeError(msg)
 
                 def _is_callable_object(
-                    obj: t.GeneralValueType,
+                    obj: object,
                 ) -> TypeGuard[Callable[..., t.GeneralValueType]]:
+                    """TypeGuard: narrow object to callable returning GeneralValueType."""
                     return callable(obj)
 
                 if not _is_callable_object(command_wrapper):
