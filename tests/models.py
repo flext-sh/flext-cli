@@ -12,12 +12,11 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Mapping
-from datetime import datetime
 
 from flext_tests import FlextTestsModels
 from pydantic import RootModel, TypeAdapter, ValidationError
 
-from flext_cli import FlextCliModels
+from flext_cli import FlextCliModels, t
 
 # Type for container configure() restore: only scalar values (no isinstance filter).
 type ScalarValue = t.ScalarValue | None

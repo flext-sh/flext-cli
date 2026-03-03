@@ -20,8 +20,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from flext_cli import FlextCliConstants, r, t
 
 T = TypeVar("T")
-type FieldDefault = t.JsonPrimitive | None
-type FieldKwargs = dict[str, t.JsonPrimitive | None]
+
+
 
 
 def _is_json_dict(value: object) -> TypeGuard[dict[str, t.JsonValue]]:
@@ -45,7 +45,7 @@ class ConfigFactory:
     def create_config(
         name: str,
         prefix: str = "TEST_",
-        fields: dict[str, tuple[type, FieldDefault | FieldInfo]] | None = None,
+        fields: dict[str, tuple[type, t.JsonPrimitive | FieldInfo]] | None = None,
     ) -> type[BaseSettings]:
         """Create a BaseSettings config class dynamically."""
         if fields is None:
@@ -74,7 +74,7 @@ class ParamsFactory:
     @staticmethod
     def create_params(
         name: str,
-        fields: dict[str, tuple[type, FieldDefault | FieldInfo, FieldKwargs]]
+        fields: dict[str, tuple[type, t.JsonPrimitive | FieldInfo, dict[str, t.JsonPrimitive]]]
         | None = None,
         *,
         populate_by_name: bool = True,
@@ -82,7 +82,7 @@ class ParamsFactory:
         """Create a BaseModel params class dynamically."""
         if fields is None:
             default_field = Field(default=None)
-            empty_kwargs: FieldKwargs = {}
+            empty_kwargs: dict[str, t.JsonPrimitive] = {}
             fields = {"test_field": (str, default_field, empty_kwargs)}
 
         annotations: dict[str, type] = {}
