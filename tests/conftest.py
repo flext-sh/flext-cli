@@ -688,7 +688,7 @@ def load_fixture_config() -> dict[str, t.ContainerValue]:
     with fixture_path.open(encoding="utf-8") as f:
         data = json.load(f)
     adapter: TypeAdapter[dict[str, t.ContainerValue]] = TypeAdapter(
-        dict[str, t.ContainerValue],
+        t.ConfigurationMapping,
     )
     return adapter.validate_python(data)
 
@@ -700,7 +700,7 @@ def load_fixture_data() -> dict[str, t.ContainerValue]:
     with fixture_path.open(encoding="utf-8") as f:
         data = json.load(f)
     adapter: TypeAdapter[dict[str, t.ContainerValue]] = TypeAdapter(
-        dict[str, t.ContainerValue],
+        t.ConfigurationMapping,
     )
     return adapter.validate_python(data)
 

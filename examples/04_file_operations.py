@@ -567,16 +567,16 @@ def process_file_pipeline(
 
     # Step 1: Validate input file exists and is readable
     if not input_file.exists():
-        result = r[dict[str, t.ContainerValue]].fail(f"File not found: {input_file}")
+        result = r[t.ConfigurationMapping].fail(f"File not found: {input_file}")
     elif not input_file.is_file():
-        result = r[dict[str, t.ContainerValue]].fail(f"Not a file: {input_file}")
+        result = r[t.ConfigurationMapping].fail(f"Not a file: {input_file}")
     else:
         cli.print("✅ Input validation passed", style="green")
 
         # Step 2: Read file content
         read_result = cli.file_tools.read_json_file(input_file)
         if read_result.is_failure:
-            result = r[dict[str, t.ContainerValue]].fail(
+            result = r[t.ConfigurationMapping].fail(
                 f"File read failed: {read_result.error}",
             )
         else:
@@ -586,7 +586,7 @@ def process_file_pipeline(
             # Step 3: Validate and transform data
             try:
                 if not isinstance(data, dict):
-                    result = r[dict[str, t.ContainerValue]].fail(
+                    result = r[t.ConfigurationMapping].fail(
                         "JSON file must contain a dictionary",
                     )
                 else:
@@ -598,7 +598,7 @@ def process_file_pipeline(
                     # Step 4: Generate multiple output formats
                     output_result = generate_output_files(transformed_data, output_dir)
                     if output_result.is_failure:
-                        result = r[dict[str, t.ContainerValue]].fail(
+                        result = r[t.ConfigurationMapping].fail(
                             output_result.error or "Unknown error",
                         )
                     else:
@@ -612,9 +612,9 @@ def process_file_pipeline(
                             "🎉 File processing pipeline completed successfully!",
                             style="bold green",
                         )
-                        result = r[dict[str, t.ContainerValue]].ok(summary)
+                        result = r[t.ConfigurationMapping].ok(summary)
             except Exception as e:
-                result = r[dict[str, t.ContainerValue]].fail(
+                result = r[t.ConfigurationMapping].fail(
                     f"Data validation failed: {e}",
                 )
 

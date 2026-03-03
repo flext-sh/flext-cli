@@ -376,10 +376,10 @@ class AppConfig:
             errors.append("TEMP_DIR must be a directory")
 
         if errors:
-            return r[dict[str, t.ContainerValue]].fail("; ".join(errors))
+            return r[t.ConfigurationMapping].fail("; ".join(errors))
 
         # Return validated config as dict
-        return r[dict[str, t.ContainerValue]].ok({
+        return r[t.ConfigurationMapping].ok({
             "database_url": self.database_url,
             "redis_url": self.redis_url,
             "api_key": "***" if self.api_key else "",
@@ -414,7 +414,7 @@ def load_application_config() -> r[dict[str, t.ContainerValue]]:
     final_data = initialize_services(overridden_data)
     cli.print("✅ Services initialized", style="green")
 
-    result: r[dict[str, t.ContainerValue]] = r[dict[str, t.ContainerValue]].ok(
+    result: r[dict[str, t.ContainerValue]] = r[t.ConfigurationMapping].ok(
         final_data,
     )
 

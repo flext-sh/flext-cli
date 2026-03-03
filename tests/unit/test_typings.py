@@ -378,7 +378,7 @@ class TestsCliTypings:
         assert hints["name"] is str
         assert hints["age"] is int
         assert hints["active"] is bool
-        assert hints["return"] == dict[str, t.ContainerValue]
+        assert hints["return"] == t.ConfigurationMapping
 
         # Test complex type analysis
         def complex_function(data: list[dict[str, str | int]]) -> str | None:
