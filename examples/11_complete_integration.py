@@ -103,7 +103,7 @@ class DataManagerCLI:
             converted_data: dict[str, t.JsonValue] = {}
             for key, value in transform_result.value.items():
                 if (
-                    isinstance(value, t.JsonPrimitive)
+                    isinstance(value, str | int | float | bool)
                     or value is None
                     or isinstance(value, list | dict)
                 ):

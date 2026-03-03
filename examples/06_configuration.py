@@ -516,7 +516,7 @@ def main() -> None:
         final_config = config_result.value
         final_config_data: dict[str, t.JsonValue] = {}
         for key, value in final_config.items():
-            if isinstance(value, t.JsonPrimitive) or value is None:
+            if isinstance(value, str | int | float | bool) or value is None:
                 final_config_data[key] = value
             else:
                 final_config_data[key] = str(value)

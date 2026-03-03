@@ -279,7 +279,7 @@ def full_workflow_command() -> r[dict[str, t.JsonValue]]:
             typed_data: dict[str, t.JsonValue] = {}
             for key, value in transform_result.value.items():
                 if (
-                    isinstance(value, t.JsonPrimitive)
+                    isinstance(value, str | int | float | bool)
                     or value is None
                     or isinstance(value, list | dict)
                 ):

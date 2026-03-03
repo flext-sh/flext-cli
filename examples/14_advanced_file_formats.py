@@ -109,7 +109,7 @@ def import_from_csv(input_file: Path) -> list[dict[str, t.JsonValue]] | None:
             if isinstance(row, dict):
                 normalized_row: dict[str, t.JsonValue] = {}
                 for key, value in row.items():
-                    if isinstance(value, t.JsonPrimitive) or value is None:
+                    if isinstance(value, str | int | float | bool) or value is None:
                         normalized_row[key] = value
                     else:
                         normalized_row[key] = str(value)
@@ -130,7 +130,7 @@ def import_from_csv(input_file: Path) -> list[dict[str, t.JsonValue]] | None:
         if isinstance(row, dict):
             normalized_row: dict[str, t.JsonValue] = {}
             for key, value in row.items():
-                if isinstance(value, t.JsonPrimitive) or value is None:
+                if isinstance(value, str | int | float | bool) or value is None:
                     normalized_row[key] = value
                 else:
                     normalized_row[key] = str(value)
@@ -243,7 +243,7 @@ def load_any_format_file(file_path: Path) -> dict[str, t.JsonValue] | None:
     display_data: dict[str, t.JsonValue] = {}
     for key, value in data.items():
         if (
-            isinstance(value, t.JsonPrimitive)
+            isinstance(value, str | int | float | bool)
             or value is None
             or isinstance(value, list | dict)
         ):
@@ -452,7 +452,7 @@ def main() -> None:
     for row in sample_data:
         normalized_row: dict[str, t.JsonValue] = {}
         for key, value in row.items():
-            if isinstance(value, t.JsonPrimitive) or value is None:
+            if isinstance(value, str | int | float | bool) or value is None:
                 normalized_row[key] = value
             else:
                 normalized_row[key] = str(value)
