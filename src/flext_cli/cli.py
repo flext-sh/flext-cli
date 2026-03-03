@@ -360,7 +360,7 @@ class FlextCliCli:
         raise TypeError(msg)
 
     @classmethod
-    def _to_json_value(cls, value: t.GeneralValueType) -> t.JsonValue:
+    def _to_json_value(cls, value: t.ContainerValue) -> t.JsonValue:
         try:
             return cls._json_value_adapter.validate_python(value)
         except ValidationError as exc:

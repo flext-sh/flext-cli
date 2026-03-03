@@ -80,7 +80,7 @@ class FlextCliDebug(FlextCliServiceBase):
     ) -> t.JsonValue:
         """Convert r[JsonDict] to t.JsonValue."""
         if result.is_success:
-            # JsonDict is dict[str, GeneralValueType] - return directly
+            # JsonDict is dict[str, ContainerValue] - return directly
             return result.value
         # Return error as string
         return result.error or "Unknown error"

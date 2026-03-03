@@ -66,12 +66,12 @@ class FlextCliModels(FlextModels):
         @staticmethod
         def is_mapping_like(
             obj: object,
-        ) -> TypeGuard[Mapping[str, t.GeneralValueType]]:
+        ) -> TypeGuard[Mapping[str, t.ContainerValue]]:
             """Narrow object to Mapping for metadata processing."""
             return isinstance(obj, Mapping)
 
         @staticmethod
-        def normalize_to_json_value(item: t.GeneralValueType) -> t.JsonValue:
+        def normalize_to_json_value(item: t.ContainerValue) -> t.JsonValue:
             """Recursively normalize any value to JSON-serializable (t.JsonValue)."""
             if item is None or isinstance(item, (str, int, float, bool)):
                 return item
@@ -92,7 +92,7 @@ class FlextCliModels(FlextModels):
             return str(item)
 
         @staticmethod
-        def unwrap_root_value(value: t.GeneralValueType) -> t.GeneralValueType:
+        def unwrap_root_value(value: t.ContainerValue) -> t.ContainerValue:
             """Unwrap RootModel .root value if present, otherwise return as-is."""
             if hasattr(value, "__dict__"):
                 model_dict = value.__dict__
@@ -109,7 +109,7 @@ class FlextCliModels(FlextModels):
             @classmethod
             def _normalize(
                 cls,
-                data: t.GeneralValueType,
+                data: t.ContainerValue,
                 handler: Callable[[t.JsonValue], FlextCliModels.Cli.CliNormalizedJson],
             ) -> FlextCliModels.Cli.CliNormalizedJson:
                 normalized = FlextCliModels.Cli.normalize_to_json_value(data)
@@ -119,7 +119,7 @@ class FlextCliModels(FlextModels):
             """Single contract for norm_json: value -> normalized JsonValue."""
 
             model_config = ConfigDict(extra="forbid")
-            value: t.ConfigMapValue = Field(description="Value to normalize")
+            value: t.ContainerValue = Field(description="Value to normalize")
 
             @computed_field
             @property
@@ -279,8 +279,8 @@ class FlextCliModels(FlextModels):
                     return dict(raw)
                 return {}
 
-        def normalize_json_value(item: t.ConfigMapValue) -> t.JsonValue:
-            """Normalize a ConfigMapValue to a JSON-serializable JsonValue."""
+        def normalize_json_value(item: t.ContainerValue) -> t.JsonValue:
+            """Normalize a ContainerValue to a JSON-serializable JsonValue."""
             if isinstance(item, (str, int, float, bool, type(None))):
                 return item
             source = FlextCliModels.Cli.unwrap_root_value(item)
@@ -622,7 +622,7 @@ class FlextCliModels(FlextModels):
             # Inherit created_at and updated_at from Entity - frozen=True makes them read-only
             # Entity provides these fields, and frozen models inherit them correctly
             @override
-            def model_post_init(self, __context: t.GeneralValueType, /) -> None:
+            def model_post_init(self, __context: t.ContainerValue, /) -> None:
                 """Post-initialization hook for frozen model compatibility.
 
                 Uses standard Pydantic 2 signature for model_post_init.
@@ -630,7 +630,7 @@ class FlextCliModels(FlextModels):
                 """
                 # Entity handles timestamp initialization via its own model_post_init
 
-            def _copy_with_update(self, **updates: t.GeneralValueType) -> Self:
+            def _copy_with_update(self, **updates: t.ContainerValue) -> Self:
                 """Helper method for model_copy with updates - reduces repetition.
 
                 Composition pattern: centralizes model_copy logic for reuse.
@@ -838,7 +838,7 @@ class FlextCliModels(FlextModels):
 
             @field_validator("status")
             @classmethod
-            def validate_status(cls, value: t.GeneralValueType) -> str:
+            def validate_status(cls, value: t.ContainerValue) -> str:
                 """Validate session status."""
                 if not isinstance(value, str):
                     msg = "session_status must be a string"
@@ -878,7 +878,7 @@ class FlextCliModels(FlextModels):
             # Inherit created_at and updated_at from Entity - frozen=True makes them read-only
             # Entity provides these fields, and frozen models inherit them correctly
             @override
-            def model_post_init(self, __context: t.GeneralValueType, /) -> None:
+            def model_post_init(self, __context: t.ContainerValue, /) -> None:
                 """Post-initialization hook for frozen model compatibility.
 
                 Entity's timestamp fields are inherited and work correctly with frozen=True.
@@ -940,7 +940,7 @@ class FlextCliModels(FlextModels):
                 ) as e:
                     return r.fail(f"Failed to add command: {e}")
 
-            def _copy_with_update(self, **updates: t.GeneralValueType) -> Self:
+            def _copy_with_update(self, **updates: t.ContainerValue) -> Self:
                 """Helper method for model_copy with updates - reduces repetition.
 
                 Composition pattern: centralizes model_copy logic for reuse.
@@ -1335,7 +1335,7 @@ class FlextCliModels(FlextModels):
                 default=None,
                 description="Default value",
             )
-            type_hint: t.GeneralValueType = Field(
+            type_hint: t.ContainerValue = Field(
                 default=None,
                 description="Parameter type (Click type or Python type)",
             )
@@ -1397,11 +1397,11 @@ class FlextCliModels(FlextModels):
                 default=None,
                 description="Default value",
             )
-            type_hint: t.GeneralValueType = Field(
+            type_hint: t.ContainerValue = Field(
                 default=None,
                 description="Value type",
             )
-            value_proc: t.GeneralValueType = Field(
+            value_proc: t.ContainerValue = Field(
                 default=None,
                 description="Value processor function",
             )
@@ -1840,7 +1840,7 @@ class FlextCliModels(FlextModels):
                 self,
                 model_class: type[BaseModel],
                 handler: Callable[[BaseModel], t.JsonValue],
-                config: t.GeneralValueType | None = None,
+                config: t.ContainerValue | None = None,
             ) -> None:
                 """Initialize builder with model class, handler, and optional config.
 
@@ -2356,14 +2356,14 @@ class FlextCliModels(FlextModels):
 
                 def _is_callable_object(
                     obj: object,
-                ) -> TypeGuard[Callable[..., t.GeneralValueType]]:
-                    """TypeGuard: narrow object to callable returning GeneralValueType."""
+                ) -> TypeGuard[Callable[..., t.ContainerValue]]:
+                    """TypeGuard: narrow object to callable returning ContainerValue."""
                     return callable(obj)
 
                 if not _is_callable_object(command_wrapper):
                     msg = "exec() failed to create valid function"
                     raise TypeError(msg)
-                command_callable: Callable[..., t.GeneralValueType] = command_wrapper
+                command_callable: Callable[..., t.ContainerValue] = command_wrapper
 
                 # Type narrowing: _create_real_annotations returns dict[str, type]
                 real_annotations = self._create_real_annotations(annotations)
@@ -2371,10 +2371,10 @@ class FlextCliModels(FlextModels):
 
                 # TypeGuard narrows command_wrapper to Callable[..., object] for dynamic exec result
                 def typed_wrapper(
-                    *args: t.GeneralValueType,
-                    **kwargs: t.GeneralValueType,
-                ) -> t.GeneralValueType:
-                    raw_result: t.GeneralValueType = command_callable(*args, **kwargs)
+                    *args: t.ContainerValue,
+                    **kwargs: t.ContainerValue,
+                ) -> t.ContainerValue:
+                    raw_result: t.ContainerValue = command_callable(*args, **kwargs)
                     normalized = (
                         FlextCliModels.Cli.CliModelConverter.convert_field_value(
                             raw_result,
@@ -2812,7 +2812,7 @@ class FlextCliModels(FlextModels):
                 props.update(transformed)
 
             @staticmethod
-            def to_json_value(value: t.GeneralValueType) -> t.JsonValue:
+            def to_json_value(value: t.ContainerValue) -> t.JsonValue:
                 """Convert arbitrary value into JsonValue."""
                 converted = FlextCliModels.Cli.CliModelConverter.convert_field_value(
                     value,
@@ -3024,7 +3024,7 @@ class FlextCliModels(FlextModels):
 
             @staticmethod
             def validate_field_schema(
-                field_data: Mapping[str, t.GeneralValueType],
+                field_data: Mapping[str, t.ContainerValue],
             ) -> FlextResult[bool]:
                 """Validate field data schema against rules."""
                 for (
@@ -3042,7 +3042,7 @@ class FlextCliModels(FlextModels):
 
             @staticmethod
             def convert_field_value(
-                field_value: t.GeneralValueType,
+                field_value: t.ContainerValue,
             ) -> FlextResult[t.JsonValue]:
                 """Convert field value to t.JsonValue.
 
@@ -3067,7 +3067,7 @@ class FlextCliModels(FlextModels):
             @staticmethod
             def validate_dict_field_data(
                 field_name: str,
-                field_data: Mapping[str, t.GeneralValueType],
+                field_data: Mapping[str, t.ContainerValue],
             ) -> FlextResult[t.JsonValue]:
                 """Validate field data when field_info is a dict/Mapping."""
                 schema_result = (
@@ -3091,14 +3091,14 @@ class FlextCliModels(FlextModels):
                     FieldInfo
                     | t.JsonValue
                     | Mapping[str, t.JsonValue]
-                    | Mapping[str, t.GeneralValueType]
+                    | t.ConfigurationMapping
                 ),
                 data: Mapping[str, t.JsonValue] | None = None,
             ) -> FlextResult[t.JsonValue]:
                 """Validate field data against field info."""
                 try:
                     if isinstance(field_info, Mapping):
-                        field_data: dict[str, t.GeneralValueType] = {
+                        field_data: dict[str, t.ContainerValue] = {
                             str(k): v for k, v in field_info.items()
                         }
                         return FlextCliModels.Cli.CliModelConverter.validate_dict_field_data(
@@ -3143,7 +3143,7 @@ class FlextCliModels(FlextModels):
             """Decorators for creating CLI commands from Pydantic models."""
 
             @staticmethod
-            def normalize_output(value: t.GeneralValueType) -> t.JsonValue:
+            def normalize_output(value: t.ContainerValue) -> t.JsonValue:
                 """Normalize any value to JsonValue."""
                 normalized: FlextResult[t.JsonValue] = (
                     FlextCliModels.Cli.CliModelConverter.convert_field_value(value)
@@ -3173,9 +3173,9 @@ class FlextCliModels(FlextModels):
                     ],
                 ) -> p.Cli.CliCommandWrapper:
                     def wrapper(
-                        *_args: t.GeneralValueType,
-                        **kwargs: t.GeneralValueType,
-                    ) -> t.GeneralValueType:
+                        *_args: t.ContainerValue,
+                        **kwargs: t.ContainerValue,
+                    ) -> t.ContainerValue:
                         try:
                             # Create model instance from kwargs
                             model_instance = model_class(**kwargs)
@@ -3223,15 +3223,15 @@ class FlextCliModels(FlextModels):
                     func: p.Cli.CliCommandWrapper,
                 ) -> p.Cli.CliCommandWrapper:
                     def wrapper(
-                        *_args: t.GeneralValueType,
-                        **kwargs: t.GeneralValueType,
-                    ) -> t.GeneralValueType:
+                        *_args: t.ContainerValue,
+                        **kwargs: t.ContainerValue,
+                    ) -> t.ContainerValue:
                         try:
                             model_instances: list[BaseModel] = []
                             for model_cls in model_classes:
                                 validated_model = model_cls(**kwargs)
                                 model_instances.append(validated_model)
-                            result: t.GeneralValueType = func(
+                            result: t.ContainerValue = func(
                                 *(m_inst.model_dump() for m_inst in model_instances),
                             )
                             return result

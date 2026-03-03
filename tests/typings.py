@@ -69,7 +69,7 @@ class TestsCliTypes(FlextTestsTypes):
             ]
             """CLI configuration mapping specific to flext-cli."""
 
-            type CommandArgsMapping = Mapping[str, FlextCliTypes.GeneralValueType]
+            type CommandArgsMapping = Mapping[str, FlextCliTypes.ContainerValue]
             """Command arguments mapping for CLI operations."""
 
             class Fixtures:

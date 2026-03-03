@@ -109,15 +109,15 @@ def import_from_csv(input_file: Path) -> list[dict[str, t.JsonValue]] | None:
             if isinstance(row, dict):
                 normalized_row: dict[str, t.JsonValue] = {}
                 for key, value in row.items():
-                    if isinstance(value, str | int | float | bool) or value is None:
+                    if isinstance(value, t.JsonPrimitive) or value is None:
                         normalized_row[key] = value
                     else:
                         normalized_row[key] = str(value)
                 sample_rows.append(normalized_row)
-        # Cast to expected type for table creation - t.Cli.TableData is Sequence[JsonDict] | JsonDict | Sequence[Sequence[t.GeneralValueType]]
+        # Cast to expected type for table creation - t.Cli.TableData is Sequence[JsonDict] | JsonDict | Sequence[Sequence[t.ContainerValue]]
         config = m.Cli.TableConfig(table_format="grid")
-        # sample_rows is already Sequence[dict[str, t.GeneralValueType]] which is compatible with t.Cli.TableData
-        # t.Cli.TableData accepts Sequence[JsonDict] which is compatible with Sequence[dict[str, t.GeneralValueType]]
+        # sample_rows is already Sequence[dict[str, t.ContainerValue]] which is compatible with t.Cli.TableData
+        # t.Cli.TableData accepts Sequence[JsonDict] which is compatible with Sequence[dict[str, t.ContainerValue]]
         table_result = tables.create_table(
             sample_rows,
             config=config,
@@ -130,7 +130,7 @@ def import_from_csv(input_file: Path) -> list[dict[str, t.JsonValue]] | None:
         if isinstance(row, dict):
             normalized_row: dict[str, t.JsonValue] = {}
             for key, value in row.items():
-                if isinstance(value, str | int | float | bool) or value is None:
+                if isinstance(value, t.JsonPrimitive) or value is None:
                     normalized_row[key] = value
                 else:
                     normalized_row[key] = str(value)
@@ -243,14 +243,14 @@ def load_any_format_file(file_path: Path) -> dict[str, t.JsonValue] | None:
     display_data: dict[str, t.JsonValue] = {}
     for key, value in data.items():
         if (
-            isinstance(value, str | int | float | bool)
+            isinstance(value, t.JsonPrimitive)
             or value is None
             or isinstance(value, list | dict)
         ):
             display_data[key] = value
         else:
             display_data[key] = str(value)
-    # Cast to dict[str, t.GeneralValueType] for create_table
+    # Cast to dict[str, t.ContainerValue] for create_table
     table_result = cli.create_table(
         data=display_data,
         headers=["Key", "Value"],
@@ -452,7 +452,7 @@ def main() -> None:
     for row in sample_data:
         normalized_row: dict[str, t.JsonValue] = {}
         for key, value in row.items():
-            if isinstance(value, str | int | float | bool) or value is None:
+            if isinstance(value, t.JsonPrimitive) or value is None:
                 normalized_row[key] = value
             else:
                 normalized_row[key] = str(value)

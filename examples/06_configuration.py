@@ -341,7 +341,7 @@ class AppConfig:
             os.getenv("TEMP_DIR", str(Path.home() / ".cache" / "myapp")),
         )
 
-    def validate(self) -> r[dict[str, t.GeneralValueType]]:
+    def validate(self) -> r[dict[str, t.ContainerValue]]:
         """Validate configuration with comprehensive checks."""
         errors = []
 
@@ -376,10 +376,10 @@ class AppConfig:
             errors.append("TEMP_DIR must be a directory")
 
         if errors:
-            return r[dict[str, t.GeneralValueType]].fail("; ".join(errors))
+            return r[dict[str, t.ContainerValue]].fail("; ".join(errors))
 
         # Return validated config as dict
-        return r[dict[str, t.GeneralValueType]].ok({
+        return r[dict[str, t.ContainerValue]].ok({
             "database_url": self.database_url,
             "redis_url": self.redis_url,
             "api_key": "***" if self.api_key else "",
@@ -390,7 +390,7 @@ class AppConfig:
         })
 
 
-def load_application_config() -> r[dict[str, t.GeneralValueType]]:
+def load_application_config() -> r[dict[str, t.ContainerValue]]:
     """Load and validate application configuration from environment."""
     cli.print("\n⚙️  Loading Application Configuration:", style="bold cyan")
 
@@ -414,7 +414,7 @@ def load_application_config() -> r[dict[str, t.GeneralValueType]]:
     final_data = initialize_services(overridden_data)
     cli.print("✅ Services initialized", style="green")
 
-    result: r[dict[str, t.GeneralValueType]] = r[dict[str, t.GeneralValueType]].ok(
+    result: r[dict[str, t.ContainerValue]] = r[dict[str, t.ContainerValue]].ok(
         final_data,
     )
 
@@ -427,8 +427,8 @@ def load_application_config() -> r[dict[str, t.GeneralValueType]]:
 
 
 def apply_environment_overrides(
-    config: dict[str, t.GeneralValueType],
-) -> dict[str, t.GeneralValueType]:
+    config: dict[str, t.ContainerValue],
+) -> dict[str, t.ContainerValue]:
     """Apply environment-specific configuration overrides."""
     env = os.getenv("ENVIRONMENT", "development")
 
@@ -452,8 +452,8 @@ def apply_environment_overrides(
 
 
 def initialize_services(
-    config: dict[str, t.GeneralValueType],
-) -> dict[str, t.GeneralValueType]:
+    config: dict[str, t.ContainerValue],
+) -> dict[str, t.ContainerValue]:
     """Initialize services based on configuration."""
     # In real code, this would initialize database connections, caches, etc.
     # For demo, just simulate initialization
@@ -516,7 +516,7 @@ def main() -> None:
         final_config = config_result.value
         final_config_data: dict[str, t.JsonValue] = {}
         for key, value in final_config.items():
-            if isinstance(value, str | int | float | bool) or value is None:
+            if isinstance(value, t.JsonPrimitive) or value is None:
                 final_config_data[key] = value
             else:
                 final_config_data[key] = str(value)

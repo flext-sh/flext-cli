@@ -134,7 +134,7 @@ class TestsCliCli:
     def test_click_type_creation(
         self,
         click_type_name: str,
-        data_dict: dict[str, t.GeneralValueType],
+        data_dict: dict[str, t.ContainerValue],
     ) -> None:
         """Test Click type creation with various parameter types."""
         if click_type_name == "choice":

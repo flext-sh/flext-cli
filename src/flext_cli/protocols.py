@@ -656,9 +656,9 @@ class FlextCliProtocols(FlextProtocols):
 
             def __call__(
                 self,
-                *args: t.GeneralValueType,
-                **kwargs: t.GeneralValueType,
-            ) -> t.GeneralValueType | None:
+                *args: t.ContainerValue,
+                **kwargs: t.ContainerValue,
+            ) -> t.ContainerValue | None:
                 """Execute the function."""
                 ...
 
@@ -668,9 +668,9 @@ class FlextCliProtocols(FlextProtocols):
 
             def __call__(
                 self,
-                *args: t.GeneralValueType,
-                **kwargs: t.GeneralValueType,
-            ) -> t.GeneralValueType:
+                *args: t.ContainerValue,
+                **kwargs: t.ContainerValue,
+            ) -> t.ContainerValue:
                 """Execute the wrapper."""
                 ...
 
@@ -680,9 +680,9 @@ class FlextCliProtocols(FlextProtocols):
 
             def __call__(
                 self,
-                *args: t.GeneralValueType,
-                **kwargs: t.GeneralValueType,
-            ) -> FlextProtocols.Result[t.GeneralValueType]:
+                *args: t.ContainerValue,
+                **kwargs: t.ContainerValue,
+            ) -> FlextProtocols.Result[t.ContainerValue]:
                 """Execute the handler."""
                 ...
 

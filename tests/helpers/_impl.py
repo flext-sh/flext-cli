@@ -20,8 +20,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from flext_cli import FlextCliConstants, r, t
 
 T = TypeVar("T")
-type FieldDefault = str | int | float | bool | None
-type FieldKwargs = dict[str, str | int | float | bool | None]
+type FieldDefault = t.JsonPrimitive | None
+type FieldKwargs = dict[str, t.JsonPrimitive | None]
 
 
 def _is_json_dict(value: object) -> TypeGuard[dict[str, t.JsonValue]]:
@@ -138,7 +138,7 @@ class ValidationHelper:
     def extract_config_values(
         config: BaseSettings,
         field_names: list[str],
-    ) -> Mapping[str, t.GeneralValueType]:
+    ) -> Mapping[str, t.ContainerValue]:
         """Extract multiple field values from config as a read-only Mapping.
 
         When the config structure is known, callers should use FlextCliSettings
@@ -317,9 +317,9 @@ class FlextCliTestHelpers:
                 class TestConfigProvider:
                     def __init__(self) -> None:
                         super().__init__()
-                        self.config: dict[str, t.GeneralValueType] = {}
+                        self.config: dict[str, t.ContainerValue] = {}
 
-                    def load_config(self) -> r[dict[str, t.GeneralValueType]]:
+                    def load_config(self) -> r[dict[str, t.ContainerValue]]:
                         """Return config dict; treat as Mapping when contract is read-only."""
                         try:
                             return r.ok(self.config)
@@ -328,7 +328,7 @@ class FlextCliTestHelpers:
 
                     def save_config(
                         self,
-                        config: Mapping[str, t.GeneralValueType],
+                        config: Mapping[str, t.ContainerValue],
                     ) -> r[bool]:
                         try:
                             self.config = dict(config.items())
@@ -399,7 +399,7 @@ class FlextCliTestHelpers:
 
         @staticmethod
         def create_processing_test_data() -> r[
-            tuple[list[str], list[int], dict[str, t.GeneralValueType]]
+            tuple[list[str], list[int], dict[str, t.ContainerValue]]
         ]:
             """Create test data for type processing scenarios.
 
@@ -409,7 +409,7 @@ class FlextCliTestHelpers:
             try:
                 string_list = ["hello", "world", "test"]
                 number_list = [1, 2, 3, 4, 5]
-                mixed_dict: dict[str, t.GeneralValueType] = {
+                mixed_dict: dict[str, t.ContainerValue] = {
                     "key1": 123,
                     "key2": "value",
                     "key3": True,
@@ -420,13 +420,13 @@ class FlextCliTestHelpers:
                 return r.fail(f"Failed to create processing test data: {e!s}")
 
         @staticmethod
-        def create_typed_dict_data() -> r[dict[str, t.GeneralValueType]]:
+        def create_typed_dict_data() -> r[dict[str, t.ContainerValue]]:
             """Create typed dict test data.
 
-            Returns a dict; treat as Mapping[str, t.GeneralValueType] when the contract is read-only.
+            Returns a dict; treat as Mapping[str, t.ContainerValue] when the contract is read-only.
             """
             try:
-                user_data: dict[str, t.GeneralValueType] = {
+                user_data: dict[str, t.ContainerValue] = {
                     "id": 1,
                     "name": "John Doe",
                     "email": "john@example.com",
@@ -437,13 +437,13 @@ class FlextCliTestHelpers:
                 return r.fail(f"Failed to create typed dict data: {e!s}")
 
         @staticmethod
-        def create_api_response_data() -> r[list[dict[str, t.GeneralValueType]]]:
+        def create_api_response_data() -> r[list[dict[str, t.ContainerValue]]]:
             """Create API response test data.
 
-            Returns a list of dicts; treat each item as Mapping[str, t.GeneralValueType] when read-only.
+            Returns a list of dicts; treat each item as Mapping[str, t.ContainerValue] when read-only.
             """
             try:
-                users_data: list[dict[str, t.GeneralValueType]] = [
+                users_data: list[dict[str, t.ContainerValue]] = [
                     {
                         "id": 1,
                         "name": "Alice",

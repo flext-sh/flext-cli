@@ -141,7 +141,7 @@ class TestsFlextCliConstants(FlextTestsConstants, FlextCliConstants):
     class TestConfiguration:
         """Test configuration constants."""
 
-        BASIC_CONFIG: Final[dict[str, t.GeneralValueType]] = {
+        BASIC_CONFIG: Final[dict[str, t.ContainerValue]] = {
             "app_name": "test_app",
             "debug": False,
             "log_level": "INFO",

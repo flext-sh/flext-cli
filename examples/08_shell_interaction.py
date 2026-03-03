@@ -152,7 +152,7 @@ class InteractiveShell:
                         )
                     result_value = result.value
                     if (
-                        isinstance(result_value, str | int | float | bool)
+                        isinstance(result_value, t.JsonPrimitive)
                         or result_value is None
                     ):
                         return r[t.JsonValue].ok(result_value)
@@ -160,7 +160,7 @@ class InteractiveShell:
                         return r[t.JsonValue].ok(result_value)
                     return r[t.JsonValue].ok(str(result_value))
                 # Wrap non-r in r
-                if isinstance(result, str | int | float | bool) or result is None:
+                if isinstance(result, t.JsonPrimitive) or result is None:
                     return r[t.JsonValue].ok(result)
                 if isinstance(result, list | dict):
                     return r[t.JsonValue].ok(result)

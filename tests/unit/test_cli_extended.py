@@ -192,7 +192,7 @@ class TestsCliCliExtended:
             help_text="A flag",
         )
 
-        def cmd_impl(*args: t.GeneralValueType, **kwargs: t.GeneralValueType) -> str:
+        def cmd_impl(*args: t.ContainerValue, **kwargs: t.ContainerValue) -> str:
             _ = args, kwargs
             return "ok"
 

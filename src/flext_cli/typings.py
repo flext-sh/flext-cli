@@ -47,12 +47,9 @@ class FlextCliTypes(FlextTypes):
         JsonDict: TypeAlias = Mapping[str, FlextTypes.JsonValue]
 
         CliValue = (
-            str
-            | int
-            | float
-            | bool
+            t.JsonPrimitive
             | list[str]
-            | Mapping[str, str | int | float | bool | list[str]]
+            | Mapping[str, t.JsonPrimitive | list[str]]
             | None
         )
 

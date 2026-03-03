@@ -46,7 +46,7 @@ from flext_cli import (
 
 
 def _is_registered_command(
-    obj: t.GeneralValueType,
+    obj: t.ContainerValue,
 ) -> TypeGuard[p.Cli.CliRegisteredCommand]:
     """Narrow to CliRegisteredCommand when protocol attributes are present."""
     return callable(obj) and hasattr(obj, "name") and hasattr(obj, "callback")

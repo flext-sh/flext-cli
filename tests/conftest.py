@@ -211,7 +211,7 @@ class CliCommandFactory(Protocol):
         command_line: str = ...,
         description: str = ...,
         status: str = ...,
-        **kwargs: t.GeneralValueType,
+        **kwargs: t.ContainerValue,
     ) -> m.Cli.CliCommand:
         """Create CliCommand instance."""
         ...
@@ -225,7 +225,7 @@ class CliSessionFactory(Protocol):
         session_id: str = ...,
         user_id: str = ...,
         status: str = ...,
-        **kwargs: t.GeneralValueType,
+        **kwargs: t.ContainerValue,
     ) -> m.Cli.CliSession:
         """Create CliSession instance."""
         ...
@@ -239,7 +239,7 @@ class DebugInfoFactory(Protocol):
         service: str = ...,
         level: str = ...,
         message: str = ...,
-        **kwargs: t.GeneralValueType,
+        **kwargs: t.ContainerValue,
     ) -> m.Cli.DebugInfo:
         """Create DebugInfo instance."""
         ...
@@ -252,7 +252,7 @@ class LoggingConfigFactory(Protocol):
         self,
         log_level: str = ...,
         log_format: str = ...,
-        **kwargs: t.GeneralValueType,
+        **kwargs: t.ContainerValue,
     ) -> m.Cli.LoggingConfig:
         """Create LoggingConfig instance."""
         ...
@@ -267,12 +267,12 @@ def cli_command_factory() -> CliCommandFactory:
         command_line: str = "flext test",
         description: str = "Test command",
         status: str = "pending",
-        **kwargs: t.GeneralValueType,
+        **kwargs: t.ContainerValue,
     ) -> m.Cli.CliCommand:
         # No base data needed since CliCommand has extra="forbid"
 
         # Override with CLI-specific data
-        cli_data: dict[str, t.GeneralValueType]
+        cli_data: dict[str, t.ContainerValue]
         cli_data = {
             "command_line": command_line,
             "args": [],  # Default empty args
@@ -288,15 +288,15 @@ def cli_command_factory() -> CliCommandFactory:
         }
 
         # Merge kwargs
-        raw_data: dict[str, t.GeneralValueType] = {**cli_data, **kwargs}
+        raw_data: dict[str, t.ContainerValue] = {**cli_data, **kwargs}
         # Use u.transform for JSON conversion (from flext-core)
-        typed_data: dict[str, t.GeneralValueType] = raw_data
+        typed_data: dict[str, t.ContainerValue] = raw_data
         transform_result = u.transform(
             typed_data,
             to_json=True,
         )
         if transform_result.is_success:
-            # unwrap() returns t.GeneralValueType, narrow to dict
+            # unwrap() returns t.ContainerValue, narrow to dict
             unwrapped = transform_result.value
             if _is_json_dict(unwrapped):
                 final_data = dict(unwrapped.items())
@@ -318,14 +318,14 @@ def cli_session_factory() -> CliSessionFactory:
         session_id: str = "test-session",
         user_id: str = "test_user",
         status: str = "active",
-        **kwargs: t.GeneralValueType,
+        **kwargs: t.ContainerValue,
     ) -> m.Cli.CliSession:
         # CliSession has extra="forbid", so no extra fields allowed
         # Pydantic v2 with 'from __future__ import annotations' resolves forward refs
 
         # Add session-specific fields - only real fields that exist in CliSession
         # Include created_at and updated_at for frozen model compatibility
-        session_data: dict[str, t.GeneralValueType] = {
+        session_data: dict[str, t.ContainerValue] = {
             "session_id": session_id,
             "status": status,
             "user_id": user_id,
@@ -340,7 +340,7 @@ def cli_session_factory() -> CliSessionFactory:
         }
 
         # Merge session data with kwargs
-        raw_data: dict[str, t.GeneralValueType] = {**session_data, **kwargs}
+        raw_data: dict[str, t.ContainerValue] = {**session_data, **kwargs}
         # Use u.transform for JSON conversion
         typed_data = raw_data
         transform_result = u.transform(
@@ -369,12 +369,12 @@ def debug_info_factory() -> DebugInfoFactory:
         service: str = "TestService",
         level: str = "INFO",
         message: str = "",
-        **kwargs: t.GeneralValueType,
+        **kwargs: t.ContainerValue,
     ) -> m.Cli.DebugInfo:
         # DebugInfo has strict validation (extra='forbid'), use compatible fields
 
         # Add debug-specific fields - only real fields that exist in DebugInfo
-        debug_data: dict[str, t.GeneralValueType] = {
+        debug_data: dict[str, t.ContainerValue] = {
             "service": service,
             "level": level,
             "message": message or "",
@@ -394,7 +394,7 @@ def debug_info_factory() -> DebugInfoFactory:
         filtered_kwargs = {k: v for k, v in kwargs.items() if k in valid_fields}
 
         # Merge data
-        raw_data: dict[str, t.GeneralValueType] = {**debug_data, **filtered_kwargs}
+        raw_data: dict[str, t.ContainerValue] = {**debug_data, **filtered_kwargs}
         typed_data = raw_data
         transform_result = u.transform(
             typed_data,
@@ -421,13 +421,13 @@ def logging_config_factory() -> LoggingConfigFactory:
     def _create(
         log_level: str = "INFO",
         log_format: str = "%(asctime)s - %(message)s",
-        **kwargs: t.GeneralValueType,
+        **kwargs: t.ContainerValue,
     ) -> m.Cli.LoggingConfig:
         # LoggingConfig has strict validation (extra='forbid'), use compatible fields
         # Don't use FlextTestsFactories.create_config as it may have extra fields
 
         # Add logging-specific fields - only real fields that exist in LoggingConfig
-        logging_data: dict[str, t.GeneralValueType] = {
+        logging_data: dict[str, t.ContainerValue] = {
             "log_level": log_level,
             "log_format": log_format,
             "console_output": True,
@@ -435,7 +435,7 @@ def logging_config_factory() -> LoggingConfigFactory:
         }
 
         # Merge with kwargs
-        raw_data: dict[str, t.GeneralValueType] = {**logging_data, **kwargs}
+        raw_data: dict[str, t.ContainerValue] = {**logging_data, **kwargs}
         typed_data = raw_data
         transform_result = u.transform(
             typed_data,
@@ -620,7 +620,7 @@ def flext_cli_utilities() -> type[u]:
 
 
 @pytest.fixture
-def sample_config_data() -> dict[str, t.GeneralValueType]:
+def sample_config_data() -> dict[str, t.ContainerValue]:
     """Provide sample configuration data for tests."""
     return {
         "debug": True,
@@ -635,7 +635,7 @@ def sample_config_data() -> dict[str, t.GeneralValueType]:
 
 
 @pytest.fixture
-def sample_file_data(temp_dir: Path) -> dict[str, t.GeneralValueType]:
+def sample_file_data(temp_dir: Path) -> dict[str, t.ContainerValue]:
     """Provide sample file data for tests."""
     return {
         "content": "This is test content for file operations",
@@ -650,7 +650,7 @@ def sample_file_data(temp_dir: Path) -> dict[str, t.GeneralValueType]:
 
 
 @pytest.fixture
-def sample_command_data() -> dict[str, t.GeneralValueType]:
+def sample_command_data() -> dict[str, t.ContainerValue]:
     """Provide sample command data for tests."""
     return {
         "command": "test_command",
@@ -682,25 +682,25 @@ def fixture_data_csv() -> Path:
 
 
 @pytest.fixture
-def load_fixture_config() -> dict[str, t.GeneralValueType]:
+def load_fixture_config() -> dict[str, t.ContainerValue]:
     """Load configuration data from fixtures directory."""
     fixture_path = Path("tests/fixtures/configs/test_config.json")
     with fixture_path.open(encoding="utf-8") as f:
         data = json.load(f)
-    adapter: TypeAdapter[dict[str, t.GeneralValueType]] = TypeAdapter(
-        dict[str, t.GeneralValueType],
+    adapter: TypeAdapter[dict[str, t.ContainerValue]] = TypeAdapter(
+        dict[str, t.ContainerValue],
     )
     return adapter.validate_python(data)
 
 
 @pytest.fixture
-def load_fixture_data() -> dict[str, t.GeneralValueType]:
+def load_fixture_data() -> dict[str, t.ContainerValue]:
     """Load test data from fixtures directory."""
     fixture_path = Path("tests/fixtures/data/test_data.json")
     with fixture_path.open(encoding="utf-8") as f:
         data = json.load(f)
-    adapter: TypeAdapter[dict[str, t.GeneralValueType]] = TypeAdapter(
-        dict[str, t.GeneralValueType],
+    adapter: TypeAdapter[dict[str, t.ContainerValue]] = TypeAdapter(
+        dict[str, t.ContainerValue],
     )
     return adapter.validate_python(data)
 

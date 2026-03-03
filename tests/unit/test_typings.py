@@ -92,7 +92,7 @@ class TestsCliTypings:
             ]
 
         @staticmethod
-        def create_type_test_data() -> dict[str, t.GeneralValueType]:
+        def create_type_test_data() -> dict[str, t.ContainerValue]:
             """Create test data for type operations."""
             return {
                 "config_data": {
@@ -144,7 +144,7 @@ class TestsCliTypings:
 
         @staticmethod
         def validate_type_usage(
-            data: dict[str, t.GeneralValueType],
+            data: dict[str, t.ContainerValue],
             type_hint: str,
         ) -> r[bool]:
             """Validate type usage with actual data."""
@@ -206,8 +206,8 @@ class TestsCliTypings:
         tm.ok(validation_result)
 
         # Test type aliases accessibility
-        # CliDataDict is an alias for JsonDict, use dict[str, t.GeneralValueType] for mypy compatibility
-        test_data: dict[str, t.GeneralValueType] = {"key": "value"}
+        # CliDataDict is an alias for JsonDict, use dict[str, t.ContainerValue] for mypy compatibility
+        test_data: dict[str, t.ContainerValue] = {"key": "value"}
         assert isinstance(test_data, dict)
 
     def _execute_basic_functionality_tests(self) -> None:
@@ -219,7 +219,7 @@ class TestsCliTypings:
         if not isinstance(config_data_obj, dict):
             error_msg = "config_data must be a dict"
             raise TypeError(error_msg)
-        config_dict: dict[str, t.GeneralValueType] = config_data_obj
+        config_dict: dict[str, t.ContainerValue] = config_data_obj
         config_result = self.TypingValidators.validate_type_usage(
             config_dict,
             "CliConfigData",
@@ -230,7 +230,7 @@ class TestsCliTypings:
         if not isinstance(format_data_obj, dict):
             error_msg = "format_data must be a dict"
             raise TypeError(error_msg)
-        format_dict: dict[str, t.GeneralValueType] = format_data_obj
+        format_dict: dict[str, t.ContainerValue] = format_data_obj
         format_result = self.TypingValidators.validate_type_usage(
             format_dict,
             "CliFormatData",
@@ -261,8 +261,8 @@ class TestsCliTypings:
         assert TestProtocol is not None
 
         # Test type aliases from constants
-        user_data: dict[str, t.GeneralValueType] = {"key": "value", "number": 42}
-        user_list: list[dict[str, t.GeneralValueType]] = [user_data]
+        user_data: dict[str, t.ContainerValue] = {"key": "value", "number": 42}
+        user_list: list[dict[str, t.ContainerValue]] = [user_data]
 
         assert isinstance(user_data, dict)
         assert isinstance(user_list, list)
@@ -371,14 +371,14 @@ class TestsCliTypings:
             age: int,
             *,
             active: bool = True,
-        ) -> dict[str, t.GeneralValueType]:
+        ) -> dict[str, t.ContainerValue]:
             return {"name": name, "age": age, "active": active}
 
         hints = get_type_hints(typed_function)
         assert hints["name"] is str
         assert hints["age"] is int
         assert hints["active"] is bool
-        assert hints["return"] == dict[str, t.GeneralValueType]
+        assert hints["return"] == dict[str, t.ContainerValue]
 
         # Test complex type analysis
         def complex_function(data: list[dict[str, str | int]]) -> str | None:
@@ -515,7 +515,7 @@ class TestsCliTypings:
         def process_list(data: list[str]) -> list[str]:
             return [item.upper() for item in data]
 
-        def process_dict(data: Mapping[str, t.GeneralValueType]) -> dict[str, str]:
+        def process_dict(data: Mapping[str, t.ContainerValue]) -> dict[str, str]:
             return {key: str(value) for key, value in data.items()}
 
         # Test performance
@@ -630,11 +630,11 @@ class TestsCliTypings:
         # Test protocol with runtime checking
         @runtime_checkable
         class TestProtocol(Protocol):
-            def operation(self, data: list[str]) -> dict[str, t.GeneralValueType]: ...
+            def operation(self, data: list[str]) -> dict[str, t.ContainerValue]: ...
 
         # Implement protocol
         class Implementation:
-            def operation(self, data: list[str]) -> dict[str, t.GeneralValueType]:
+            def operation(self, data: list[str]) -> dict[str, t.ContainerValue]:
                 time.sleep(0.001)  # Simulate work
                 return {
                     "processed": [item.upper() for item in data],

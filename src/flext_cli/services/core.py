@@ -117,12 +117,9 @@ class FlextCliCore(FlextCliServiceBase):
     _session_start_time: str
 
     type CliValue = (
-        str
-        | int
-        | float
-        | bool
+        t.JsonPrimitive
         | list[str]
-        | Mapping[str, str | int | float | bool | list[str]]
+        | Mapping[str, t.JsonPrimitive | list[str]]
         | None
     )
 
@@ -351,7 +348,7 @@ class FlextCliCore(FlextCliServiceBase):
             )
 
             # Create snapshot from command definition
-            snapshot_config: dict[str, t.ConfigMapValue] = {
+            snapshot_config: dict[str, t.ContainerValue] = {
                 str(key): value for key, value in command_def.items()
             }
             return r[m.Configuration].ok(
@@ -516,7 +513,7 @@ class FlextCliCore(FlextCliServiceBase):
 
     def _validate_config_input(
         self,
-        config: t.GeneralValueType,
+        config: t.ContainerValue,
     ) -> r[Mapping[str, t.JsonValue]]:
         """Validate input configuration for update operations."""
         if not isinstance(config, Mapping):
@@ -591,10 +588,10 @@ class FlextCliCore(FlextCliServiceBase):
             # Use build() DSL: ensure dict → transform to JSON
             # Reuse to_dict_json helper from output module
             transformed_config = FlextCliOutput.to_dict_json(valid_config)
-            existing_config_guard: dict[str, t.GuardInputValue] = {
+            existing_config_guard: dict[str, t.ContainerValue] = {
                 str(k): v for k, v in existing_config.items()
             }
-            transformed_config_guard: dict[str, t.GuardInputValue] = {
+            transformed_config_guard: dict[str, t.ContainerValue] = {
                 str(k): v for k, v in transformed_config.items()
             }
             merge_result = FlextCliUtilities.merge(
@@ -645,7 +642,7 @@ class FlextCliCore(FlextCliServiceBase):
 
     def update_configuration(
         self,
-        config: t.GeneralValueType,
+        config: t.ContainerValue,
     ) -> r[bool]:
         """Update CLI configuration using railway pattern and functional composition.
 
@@ -1021,7 +1018,7 @@ class FlextCliCore(FlextCliServiceBase):
     @override
     def get_service_info(
         self,
-    ) -> Mapping[str, str | int | float | bool | datetime | None]:
+    ) -> Mapping[str, t.ScalarValue | None]:
         """Get comprehensive service information.
 
         Returns:
@@ -1040,7 +1037,7 @@ class FlextCliCore(FlextCliServiceBase):
             # Convert config_keys to concrete sequence values
             config_keys_list: list[str] = list(config_keys) if config_keys else []
 
-            info_data: dict[str, str | int | float | bool | datetime | None] = {
+            info_data: dict[str, t.ScalarValue | None] = {
                 c.Cli.DictKeys.SERVICE: c.Cli.FLEXT_CLI,
                 c.Cli.CoreServiceDictKeys.COMMANDS_REGISTERED: commands_count,
                 c.Cli.CoreServiceDictKeys.CONFIGURATION_SECTIONS: ",".join(

@@ -212,10 +212,10 @@ class FlextCliTables(FlextCliServiceBase):
                 return r[str].ok(formatted_table)
 
             def _is_tabulate_data(
-                val: Sequence[t.GeneralValueType],
+                val: Sequence[t.ContainerValue],
             ) -> TypeGuard[
-                Sequence[Mapping[str, t.GeneralValueType]]
-                | Sequence[Sequence[t.GeneralValueType]]
+                Sequence[Mapping[str, t.ContainerValue]]
+                | Sequence[Sequence[t.ContainerValue]]
             ]:
                 """Narrow to tabulate-acceptable rows (sequence of mappings or sequences)."""
                 if not val:

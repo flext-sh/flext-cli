@@ -67,7 +67,7 @@ class TestsCliDebug:
 
         assert isinstance(result, FlextResult)
         assert result.is_success
-        # get_system_paths() returns dict[str, t.GeneralValueType] with 'paths' key, not list
+        # get_system_paths() returns dict[str, t.ContainerValue] with 'paths' key, not list
         paths_dict = result.value
         assert isinstance(paths_dict, dict)
         assert "paths" in paths_dict
@@ -140,7 +140,7 @@ class TestsCliDebug:
         result = debug.get_system_paths()
         assert result.is_success
 
-        # get_system_paths() returns dict[str, t.GeneralValueType] with 'paths' key, not list
+        # get_system_paths() returns dict[str, t.ContainerValue] with 'paths' key, not list
         paths_dict = result.value
         assert isinstance(paths_dict, dict)
         assert "paths" in paths_dict

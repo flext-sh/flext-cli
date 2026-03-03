@@ -209,7 +209,7 @@ class TestsCliConfigModelIntegration:
         self,
         config_class: type[BaseSettings],
         expected_fields: list[str],
-        expected_values: dict[str, t.GeneralValueType],
+        expected_values: dict[str, t.ContainerValue],
     ) -> None:
         """Test config initialization with various field types."""
         config = config_class()
@@ -261,8 +261,8 @@ class TestsCliConfigModelIntegration:
     )
     def test_params_validation(
         self,
-        input_data: dict[str, t.GeneralValueType],
-        expected_data: dict[str, t.GeneralValueType],
+        input_data: dict[str, t.ContainerValue],
+        expected_data: dict[str, t.ContainerValue],
     ) -> None:
         """Test parameter model validation with aliases."""
         params = self.AliasedParams.model_validate(input_data)

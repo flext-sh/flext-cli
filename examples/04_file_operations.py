@@ -80,7 +80,7 @@ def save_user_preferences(
     return True
 
 
-def load_user_preferences(config_dir: Path) -> dict[str, t.GeneralValueType] | None:
+def load_user_preferences(config_dir: Path) -> dict[str, t.ContainerValue] | None:
     """Load user preferences from JSON in YOUR app."""
     config_file = config_dir / "preferences.json"
 
@@ -130,7 +130,7 @@ def save_deployment_config(
     return True
 
 
-def load_deployment_config(config_file: Path) -> dict[str, t.GeneralValueType] | None:
+def load_deployment_config(config_file: Path) -> dict[str, t.ContainerValue] | None:
     """Load deployment config from YAML in YOUR tool."""
     read_result = cli.file_tools.read_yaml_file(config_file)
 
@@ -443,7 +443,7 @@ def process_binary_file(input_file: Path, output_file: Path) -> bool:
 # ============================================================================
 
 
-def load_config_auto_detect(config_file: Path) -> dict[str, t.GeneralValueType] | None:
+def load_config_auto_detect(config_file: Path) -> dict[str, t.ContainerValue] | None:
     """Load config from ANY format with auto-detection."""
     cli.print(f"🔍 Auto-detecting format: {config_file.name}", style="cyan")
 
@@ -552,7 +552,7 @@ def export_multi_format(
 def process_file_pipeline(
     input_file: Path,
     output_dir: Path,
-) -> r[dict[str, t.GeneralValueType]]:
+) -> r[dict[str, t.ContainerValue]]:
     """Complete file processing pipeline using Railway Pattern.
 
     Demonstrates chaining multiple file operations with proper error handling.
@@ -561,22 +561,22 @@ def process_file_pipeline(
     cli.print(f"\n🔄 Processing file pipeline: {input_file.name}", style="cyan")
 
     # Initialize result
-    result: r[dict[str, t.GeneralValueType]]
+    result: r[dict[str, t.ContainerValue]]
 
     # Railway pattern: Chain operations with automatic error propagation
 
     # Step 1: Validate input file exists and is readable
     if not input_file.exists():
-        result = r[dict[str, t.GeneralValueType]].fail(f"File not found: {input_file}")
+        result = r[dict[str, t.ContainerValue]].fail(f"File not found: {input_file}")
     elif not input_file.is_file():
-        result = r[dict[str, t.GeneralValueType]].fail(f"Not a file: {input_file}")
+        result = r[dict[str, t.ContainerValue]].fail(f"Not a file: {input_file}")
     else:
         cli.print("✅ Input validation passed", style="green")
 
         # Step 2: Read file content
         read_result = cli.file_tools.read_json_file(input_file)
         if read_result.is_failure:
-            result = r[dict[str, t.GeneralValueType]].fail(
+            result = r[dict[str, t.ContainerValue]].fail(
                 f"File read failed: {read_result.error}",
             )
         else:
@@ -586,7 +586,7 @@ def process_file_pipeline(
             # Step 3: Validate and transform data
             try:
                 if not isinstance(data, dict):
-                    result = r[dict[str, t.GeneralValueType]].fail(
+                    result = r[dict[str, t.ContainerValue]].fail(
                         "JSON file must contain a dictionary",
                     )
                 else:
@@ -598,7 +598,7 @@ def process_file_pipeline(
                     # Step 4: Generate multiple output formats
                     output_result = generate_output_files(transformed_data, output_dir)
                     if output_result.is_failure:
-                        result = r[dict[str, t.GeneralValueType]].fail(
+                        result = r[dict[str, t.ContainerValue]].fail(
                             output_result.error or "Unknown error",
                         )
                     else:
@@ -612,9 +612,9 @@ def process_file_pipeline(
                             "🎉 File processing pipeline completed successfully!",
                             style="bold green",
                         )
-                        result = r[dict[str, t.GeneralValueType]].ok(summary)
+                        result = r[dict[str, t.ContainerValue]].ok(summary)
             except Exception as e:
-                result = r[dict[str, t.GeneralValueType]].fail(
+                result = r[dict[str, t.ContainerValue]].fail(
                     f"Data validation failed: {e}",
                 )
 
@@ -625,8 +625,8 @@ def process_file_pipeline(
 
 
 def validate_and_transform_data(
-    data: dict[str, t.GeneralValueType],
-) -> dict[str, t.GeneralValueType]:
+    data: dict[str, t.ContainerValue],
+) -> dict[str, t.ContainerValue]:
     """Validate and transform input data."""
     # Ensure required fields exist
     if not isinstance(data, dict):
@@ -643,7 +643,7 @@ def validate_and_transform_data(
 
 
 def generate_output_files(
-    data: dict[str, t.GeneralValueType],
+    data: dict[str, t.ContainerValue],
     output_dir: Path,
 ) -> r[dict[str, Path]]:
     """Generate multiple output file formats."""
@@ -693,7 +693,7 @@ def generate_output_files(
 
 def create_processing_summary(
     results: dict[str, Path],
-) -> dict[str, t.GeneralValueType]:
+) -> dict[str, t.ContainerValue]:
     """Create a summary of the processing pipeline."""
     return {
         "pipeline_completed": True,

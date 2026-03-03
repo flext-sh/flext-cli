@@ -71,7 +71,7 @@ class TestsCliRailwayPatternExample:
         self,
         file_tools: FlextCliFileTools,
         temp_dir: Path,
-        test_data: dict[str, t.GeneralValueType],
+        test_data: dict[str, t.ContainerValue],
         filename: str,
         verify_keys: list[str],
     ) -> None:
@@ -123,7 +123,7 @@ class TestsCliRailwayPatternExample:
         self,
         file_tools: FlextCliFileTools,
         invalid_path: str,
-        test_data: dict[str, t.GeneralValueType],
+        test_data: dict[str, t.ContainerValue],
         scenario: str,
     ) -> None:
         """Test Railway Pattern error handling and propagation.

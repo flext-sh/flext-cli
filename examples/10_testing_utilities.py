@@ -125,7 +125,7 @@ def test_file_operations() -> None:
         cli.output.print_message("   ❌ Config read should succeed", style="red")
         return
     loaded = read_result.value
-    # Type narrowing for dict[str, t.GeneralValueType] access
+    # Type narrowing for dict[str, t.ContainerValue] access
     if isinstance(loaded, dict) and loaded.get("test") is not True:
         cli.output.print_message("   ❌ Config value mismatch", style="red")
         return
@@ -279,7 +279,7 @@ def full_workflow_command() -> r[dict[str, t.JsonValue]]:
             typed_data: dict[str, t.JsonValue] = {}
             for key, value in transform_result.value.items():
                 if (
-                    isinstance(value, str | int | float | bool)
+                    isinstance(value, t.JsonPrimitive)
                     or value is None
                     or isinstance(value, list | dict)
                 ):
