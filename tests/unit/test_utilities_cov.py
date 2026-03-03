@@ -7,9 +7,10 @@ from enum import StrEnum
 from typing import Annotated
 
 import pytest
-from flext_cli import u
 from flext_core import r
 from pydantic import Field
+
+from flext_cli import u
 
 
 def test_process_fail_and_collect_paths() -> None:

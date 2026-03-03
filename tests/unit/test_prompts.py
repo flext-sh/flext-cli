@@ -19,10 +19,10 @@ from collections import UserList
 from typing import Never, TypedDict, TypeVar
 
 import pytest
-from flext_cli import FlextCliPrompts
 from flext_core import FlextResult, t
 from flext_tests import tm
 
+from flext_cli import FlextCliPrompts
 from tests import c
 
 T = TypeVar("T")

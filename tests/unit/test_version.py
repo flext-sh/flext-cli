@@ -20,8 +20,9 @@ from enum import StrEnum
 from typing import Final, TypeVar
 
 import pytest
-from flext_cli import __version__, __version_info__
 from flext_tests import tm
+
+from flext_cli import __version__, __version_info__
 
 from ..conftest import Examples, InfoTuples
 from ..helpers import FlextCliTestHelpers

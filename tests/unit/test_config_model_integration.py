@@ -18,13 +18,14 @@ import os
 from pathlib import Path
 
 import pytest
+from pydantic import BaseModel, Field, ValidationError
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
 from flext_cli import (
     FlextCliCli,
     FlextCliSettings,
     t,
 )
-from pydantic import BaseModel, Field, ValidationError
-from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class TestsCliConfigModelIntegration:

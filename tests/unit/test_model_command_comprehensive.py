@@ -23,13 +23,14 @@ from collections.abc import Callable
 from typing import Literal
 
 import pytest
-from flext_cli import FlextCliCli, m
 from pydantic import (
     BaseModel,
     Field,
     ValidationError,
     field_validator,
 )
+
+from flext_cli import FlextCliCli, m
 
 
 class TestsCliModelCommandComprehensive:

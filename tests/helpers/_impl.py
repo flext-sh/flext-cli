@@ -13,10 +13,11 @@ from collections.abc import Mapping
 from typing import Final, TypeGuard, TypeVar
 
 import click
-from flext_cli import FlextCliConstants, r, t
 from pydantic import BaseModel, Field, ValidationError
 from pydantic.fields import FieldInfo
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from flext_cli import FlextCliConstants, r, t
 
 T = TypeVar("T")
 type FieldDefault = str | int | float | bool | None

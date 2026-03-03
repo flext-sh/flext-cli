@@ -16,9 +16,10 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from typing import TypedDict
 
-from flext_cli import FlextCliTypes
 from flext_core import T, T_co, T_contra
 from flext_tests import FlextTestsTypes
+
+from flext_cli import FlextCliTypes
 
 
 class TestsCliTypes(FlextTestsTypes):

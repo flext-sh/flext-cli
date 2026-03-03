@@ -16,13 +16,14 @@ from pathlib import Path
 
 import pytest
 import typer
+from flext_core import r
+from flext_tests import tm
+from typer.testing import CliRunner
+
 from flext_cli import (
     FlextCliCommonParams,
     FlextCliSettings,
 )
-from flext_core import r
-from flext_tests import tm
-from typer.testing import CliRunner
 
 
 class ConfigParam(StrEnum):

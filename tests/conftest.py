@@ -24,6 +24,13 @@ from typing import Protocol
 import pytest
 import yaml
 from click.testing import CliRunner
+from flext_core import (
+    FlextContainer,
+    FlextSettings,
+)
+from flext_tests import FlextTestsDocker
+from pydantic import TypeAdapter
+
 from flext_cli import (
     FlextCli,
     FlextCliCmd,
@@ -37,12 +44,6 @@ from flext_cli import (
     FlextCliServiceBase,
     FlextCliSettings,
 )
-from flext_core import (
-    FlextContainer,
-    FlextSettings,
-)
-from flext_tests import FlextTestsDocker
-from pydantic import TypeAdapter
 
 from . import c, m, p, t, u
 from .helpers._impl import _is_json_dict

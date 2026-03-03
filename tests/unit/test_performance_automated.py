@@ -6,8 +6,8 @@ from datetime import UTC, datetime
 
 import psutil
 import pytest
-from flext_cli import c, m
 
+from flext_cli import c, m
 from tests._helpers import create_test_cli_command
 
 

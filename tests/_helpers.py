@@ -7,8 +7,9 @@ from collections.abc import Mapping
 from datetime import UTC, datetime
 
 import pytest
-from flext_cli import FlextCliCommands, m, t
 from flext_core import r
+
+from flext_cli import FlextCliCommands, m, t
 
 
 # Factory functions using direct model instantiation (no forward refs)

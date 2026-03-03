@@ -26,13 +26,14 @@ from typing import Final, Literal
 
 import pytest
 import yaml
+from pydantic_settings import BaseSettings
+
 from flext_cli import (
     FlextCli,
     FlextCliSettings,
     m,
     t,
 )
-from pydantic_settings import BaseSettings
 
 # ============================================================================
 # TYPE DEFINITIONS & MAPPINGS

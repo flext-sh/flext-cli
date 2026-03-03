@@ -32,9 +32,9 @@ from typing import (
 )
 
 import pytest
-from flext_cli import r, t
 from flext_tests import tm
 
+from flext_cli import r, t
 from tests.helpers import c
 
 from ..helpers import FlextCliTestHelpers

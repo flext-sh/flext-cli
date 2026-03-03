@@ -18,6 +18,7 @@ from collections.abc import Generator
 from pathlib import Path
 
 import pytest
+
 from flext_cli import FlextCliFileTools, t
 
 # from ..fixtures.constants import RailwayPatternExample as Railway  # Fixtures removed - use conftest.py and flext_tests

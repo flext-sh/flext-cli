@@ -3,9 +3,9 @@
 from datetime import datetime
 
 import pytest
-from flext_cli import c, m, t
 from pydantic import ValidationError
 
+from flext_cli import c, m, t
 from tests._helpers import (
     create_test_cli_command,
     create_test_cli_session,
