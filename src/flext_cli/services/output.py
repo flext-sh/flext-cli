@@ -1658,7 +1658,7 @@ class FlextCliOutput:
         dict_rows: list[dict[str, t.ContainerValue]] = [
             item for item in dict_rows_raw if isinstance(item, dict)
         ]
-        csv_rows: list[dict[str, t.JsonPrimitive]] = []
+        csv_rows: list[dict[str, t.Scalar]] = []
         for row in dict_rows:
             # Process CSV row - operations are safe and shouldn't raise exceptions
             processed_row = self._process_csv_row(row)
@@ -1683,12 +1683,12 @@ class FlextCliOutput:
     def _process_csv_row(
         self,
         row: dict[str, t.ContainerValue],
-    ) -> dict[str, t.JsonPrimitive]:
+    ) -> dict[str, t.Scalar]:
         """Process CSV row with None replacement.
 
         Uses t.ContainerValue from lower layer instead of object for better type safety.
         """
-        processed: dict[str, t.JsonPrimitive] = {}
+        processed: dict[str, t.Scalar] = {}
         for k, v in row.items():
             processed[k] = self._replace_none_for_csv(k, v)
         return processed
@@ -1697,7 +1697,7 @@ class FlextCliOutput:
     def _replace_none_for_csv(
         _k: str,
         v: t.ContainerValue,
-    ) -> t.JsonPrimitive:
+    ) -> t.Scalar:
         """Replace None with empty string for CSV."""
         if v is None:
             return ""

@@ -43,7 +43,7 @@ class ConfigFactory:
     def create_config(
         name: str,
         prefix: str = "TEST_",
-        fields: dict[str, tuple[type, t.JsonPrimitive | FieldInfo]] | None = None,
+        fields: dict[str, tuple[type, t.Scalar | FieldInfo]] | None = None,
     ) -> type[BaseSettings]:
         """Create a BaseSettings config class dynamically."""
         if fields is None:
@@ -72,9 +72,7 @@ class ParamsFactory:
     @staticmethod
     def create_params(
         name: str,
-        fields: dict[
-            str, tuple[type, t.JsonPrimitive | FieldInfo, dict[str, t.JsonPrimitive]]
-        ]
+        fields: dict[str, tuple[type, t.Scalar | FieldInfo, dict[str, t.Scalar]]]
         | None = None,
         *,
         populate_by_name: bool = True,
@@ -82,7 +80,7 @@ class ParamsFactory:
         """Create a BaseModel params class dynamically."""
         if fields is None:
             default_field = Field(default=None)
-            empty_kwargs: dict[str, t.JsonPrimitive] = {}
+            empty_kwargs: dict[str, t.Scalar] = {}
             fields = {"test_field": (str, default_field, empty_kwargs)}
 
         annotations: dict[str, type] = {}
