@@ -116,8 +116,6 @@ class FlextCliCore(FlextCliServiceBase):
     _session_config: dict[str, t.JsonValue]
     _session_start_time: str
 
-    
-
     def __init__(
         self,
         config: Mapping[str, t.JsonValue] | None = None,

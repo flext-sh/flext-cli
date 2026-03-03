@@ -1869,9 +1869,7 @@ class FlextCliOutput:
         if headers is not None and table_headers != [c.Cli.TableFormats.KEYS]:
             validation_result = FlextCliOutput._validate_headers(table_headers, data)
             if validation_result.is_failure:
-                return r[
-                    tuple[list[t.ConfigurationMapping], str | list[str]]
-                ].fail(
+                return r[tuple[list[t.ConfigurationMapping], str | list[str]]].fail(
                     validation_result.error or "Header validation failed",
                 )
 

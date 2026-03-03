@@ -22,8 +22,6 @@ from flext_cli import FlextCliConstants, r, t
 T = TypeVar("T")
 
 
-
-
 def _is_json_dict(value: object) -> TypeGuard[dict[str, t.JsonValue]]:
     """TypeGuard: narrow object to dict for JSON object shape (e.g. read_json_file return)."""
     return isinstance(value, dict)
@@ -74,7 +72,9 @@ class ParamsFactory:
     @staticmethod
     def create_params(
         name: str,
-        fields: dict[str, tuple[type, t.JsonPrimitive | FieldInfo, dict[str, t.JsonPrimitive]]]
+        fields: dict[
+            str, tuple[type, t.JsonPrimitive | FieldInfo, dict[str, t.JsonPrimitive]]
+        ]
         | None = None,
         *,
         populate_by_name: bool = True,
