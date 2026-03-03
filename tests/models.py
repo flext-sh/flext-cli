@@ -19,7 +19,7 @@ from pydantic import RootModel, TypeAdapter, ValidationError
 from flext_cli import FlextCliModels, t
 
 # Type for container configure() restore: only scalar values (no isinstance filter).
-type ScalarValue = t.ScalarValue | None
+type ScalarValue = t.Scalar | None
 
 _ScalarValueAdapter: TypeAdapter[ScalarValue] = TypeAdapter(ScalarValue)
 

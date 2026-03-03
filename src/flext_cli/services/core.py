@@ -1011,7 +1011,7 @@ class FlextCliCore(FlextCliServiceBase):
     @override
     def get_service_info(
         self,
-    ) -> Mapping[str, t.ScalarValue | None]:
+    ) -> Mapping[str, t.Scalar | None]:
         """Get comprehensive service information.
 
         Returns:
@@ -1030,7 +1030,7 @@ class FlextCliCore(FlextCliServiceBase):
             # Convert config_keys to concrete sequence values
             config_keys_list: list[str] = list(config_keys) if config_keys else []
 
-            info_data: dict[str, t.ScalarValue | None] = {
+            info_data: dict[str, t.Scalar | None] = {
                 c.Cli.DictKeys.SERVICE: c.Cli.FLEXT_CLI,
                 c.Cli.CoreServiceDictKeys.COMMANDS_REGISTERED: commands_count,
                 c.Cli.CoreServiceDictKeys.CONFIGURATION_SECTIONS: ",".join(

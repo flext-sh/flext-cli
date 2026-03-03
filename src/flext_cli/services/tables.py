@@ -122,7 +122,7 @@ class FlextCliTables(FlextCliServiceBase):
     def create_table(
         data: t.Cli.TabularData,
         config: m.Cli.TableConfig | None = None,
-        **config_kwargs: t.ScalarValue,
+        **config_kwargs: t.Scalar,
     ) -> r[str]:
         """Create formatted ASCII table using tabulate with Pydantic config.
 
