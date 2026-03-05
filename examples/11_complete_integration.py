@@ -46,6 +46,50 @@ class DataManagerCLI:
         self.cli = FlextCli()
         self.data_file = Path(tempfile.gettempdir()) / "app_data.json"
 
+    def add_entry(self) -> r[dict[str, t.JsonValue]]:
+        """Add new entry with user prompts."""
+        prompts = FlextCliPrompts(interactive_mode=False)
+
+        # Get key
+        key_result = prompts.prompt("Enter key:", default="sample_key")
+        if key_result.is_failure:
+            return r[dict[str, t.JsonValue]].fail(
+                f"Prompt failed: {key_result.error}",
+            )
+
+        key = key_result.value
+
+        # Get value
+        value_result = prompts.prompt("Enter value:", default="sample_value")
+        if value_result.is_failure:
+            return r[dict[str, t.JsonValue]].fail(
+                f"Prompt failed: {value_result.error}",
+            )
+
+        value = value_result.value
+
+        self.cli.output.print_message(
+            f"✅ Created entry: {key} = {value}",
+            style="green",
+        )
+        converted_entry: dict[str, t.JsonValue] = {key: value}
+        return r[dict[str, t.JsonValue]].ok(converted_entry)
+
+    def display_data(self, data: dict[str, t.JsonValue]) -> None:
+        """Display data as formatted table."""
+        if not data:
+            self.cli.output.print_message("⚠️  No data to display", style="yellow")
+            return
+
+        table_result = self.cli.create_table(
+            data=data,
+            headers=["Field", "Value"],
+            _title="📋 Current Data",
+        )
+
+        if table_result.is_success:
+            self.cli.print_table(table_result.value)
+
     def display_welcome(self) -> None:
         """Show welcome message with styled output."""
         self.cli.output.print_message("=" * 70, style="bold blue")
@@ -54,24 +98,6 @@ class DataManagerCLI:
             style="bold white on blue",
         )
         self.cli.output.print_message("=" * 70, style="bold blue")
-
-    def save_data(self, data: dict[str, t.JsonValue]) -> r[bool]:
-        """Save data with proper error handling."""
-        write_result = self.cli.file_tools.write_json_file(self.data_file, data)
-
-        if write_result.is_failure:
-            error_msg = write_result.error or "Unknown error"
-            self.cli.output.print_message(
-                f"❌ Save failed: {error_msg}",
-                style="bold red",
-            )
-            return r[bool].fail(error_msg)
-
-        self.cli.output.print_message(
-            f"✅ Data saved to {self.data_file.name}",
-            style="green",
-        )
-        return r[bool].ok(value=True)
 
     def load_data(self) -> r[dict[str, t.JsonValue]]:
         """Load data with error handling."""
@@ -115,50 +141,6 @@ class DataManagerCLI:
                 "Loaded data contains non-JSON values",
             )
         return r[dict[str, t.JsonValue]].ok(converted_data)
-
-    def display_data(self, data: dict[str, t.JsonValue]) -> None:
-        """Display data as formatted table."""
-        if not data:
-            self.cli.output.print_message("⚠️  No data to display", style="yellow")
-            return
-
-        table_result = self.cli.create_table(
-            data=data,
-            headers=["Field", "Value"],
-            _title="📋 Current Data",
-        )
-
-        if table_result.is_success:
-            self.cli.print_table(table_result.value)
-
-    def add_entry(self) -> r[dict[str, t.JsonValue]]:
-        """Add new entry with user prompts."""
-        prompts = FlextCliPrompts(interactive_mode=False)
-
-        # Get key
-        key_result = prompts.prompt("Enter key:", default="sample_key")
-        if key_result.is_failure:
-            return r[dict[str, t.JsonValue]].fail(
-                f"Prompt failed: {key_result.error}",
-            )
-
-        key = key_result.value
-
-        # Get value
-        value_result = prompts.prompt("Enter value:", default="sample_value")
-        if value_result.is_failure:
-            return r[dict[str, t.JsonValue]].fail(
-                f"Prompt failed: {value_result.error}",
-            )
-
-        value = value_result.value
-
-        self.cli.output.print_message(
-            f"✅ Created entry: {key} = {value}",
-            style="green",
-        )
-        converted_entry: dict[str, t.JsonValue] = {key: value}
-        return r[dict[str, t.JsonValue]].ok(converted_entry)
 
     def run_workflow(self) -> r[bool]:
         """Complete workflow integrating all features."""
@@ -206,6 +188,24 @@ class DataManagerCLI:
         # Cast to expected type for display function
         self.display_data(current_data)
 
+        return r[bool].ok(value=True)
+
+    def save_data(self, data: dict[str, t.JsonValue]) -> r[bool]:
+        """Save data with proper error handling."""
+        write_result = self.cli.file_tools.write_json_file(self.data_file, data)
+
+        if write_result.is_failure:
+            error_msg = write_result.error or "Unknown error"
+            self.cli.output.print_message(
+                f"❌ Save failed: {error_msg}",
+                style="bold red",
+            )
+            return r[bool].fail(error_msg)
+
+        self.cli.output.print_message(
+            f"✅ Data saved to {self.data_file.name}",
+            style="green",
+        )
         return r[bool].ok(value=True)
 
 

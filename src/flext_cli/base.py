@@ -26,6 +26,11 @@ class FlextCliServiceBase(s[Mapping[str, t.JsonValue]], ABC):
     `execute` method from FlextService.
     """
 
+    @property
+    def cli_config(self) -> FlextCliSettings:
+        """Return the shared `FlextCliSettings` singleton with full type support."""
+        return FlextCliSettings.get_instance()
+
     @override
     @classmethod
     def _runtime_bootstrap_options(
@@ -51,11 +56,6 @@ class FlextCliServiceBase(s[Mapping[str, t.JsonValue]], ABC):
             return model_copy(update={"config_type": FlextCliSettings})
         options.config_type = FlextCliSettings
         return options
-
-    @property
-    def cli_config(self) -> FlextCliSettings:
-        """Return the shared `FlextCliSettings` singleton with full type support."""
-        return FlextCliSettings.get_instance()
 
     @staticmethod
     def get_cli_config() -> FlextCliSettings:

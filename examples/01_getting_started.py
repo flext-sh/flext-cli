@@ -37,16 +37,36 @@ class FlextCliGettingStarted:
         self.cli = FlextCli()
 
     # ============================================================================
-    # PATTERN 1: Replace print() with styled output
+    # ADVANCED PATTERNS: Using Python 3.13+ types and constants
     # ============================================================================
 
-    def your_function_before(self) -> None:
-        """Your old code using print()."""
+    def advanced_types_example(self) -> None:
+        """Demonstrate advanced Python 3.13+ typing patterns with flext-cli.
 
-    def your_function_after(self) -> None:
-        """Your new code using flext-cli."""
-        self.cli.print("Operation completed", style="green")
-        self.cli.print("ERROR: Something failed", style="bold red")
+        Shows how to use:
+        - StrEnum for runtime validation
+        - collections.abc.Mapping for immutable data
+        - PEP 695 type aliases
+        - Advanced Literal unions
+        """
+        # Using StrEnum from constants for runtime validation
+        output_format = c.Cli.OutputFormats.JSON
+        self.cli.print(f"Selected format: {output_format.value}", style="blue")
+
+        # Using collections.abc.Mapping for immutable configuration
+
+        # Demonstrate discriminated union validation
+        valid_formats = u.Cli.CliValidation.get_valid_output_formats()
+        self.cli.print(f"Available formats: {', '.join(valid_formats)}")
+
+        # Using advanced type aliases from typings
+        sample_data: t.Cli.JsonDict = {
+            "status": c.Cli.CommandStatus.COMPLETED.value,
+            "data": [1, 2, 3],
+            "metadata": {"version": "1.0"},
+        }
+
+        self.cli.print(f"Sample data: {sample_data}", style="green")
 
     # ============================================================================
     # PATTERN 2: Display data as tables
@@ -64,24 +84,6 @@ class FlextCliGettingStarted:
 
         if table_result.is_success:
             self.cli.print_table(table_result.value)
-
-    # ============================================================================
-    # PATTERN 3: File I/O with error handling
-    # ============================================================================
-
-    def save_config(self, config: dict[str, t.JsonValue], filepath: str) -> bool:
-        """Save YOUR config to JSON with proper error handling."""
-        write_result = self.cli.file_tools.write_json_file(
-            filepath,
-            config,
-        )
-
-        if write_result.is_failure:
-            self.cli.output.print_message(f"Failed to save: {write_result.error}")
-            return False
-
-        self.cli.output.print_message(f"✅ Saved to {filepath}")
-        return True
 
     def load_config(self, filepath: str) -> t.Cli.JsonDict | None:
         """Load YOUR config from JSON with error handling."""
@@ -115,38 +117,6 @@ class FlextCliGettingStarted:
             self.cli.print(f"Error: {result.error}", style="yellow")
             # Continue execution - no crash!
 
-    # ============================================================================
-    # ADVANCED PATTERNS: Using Python 3.13+ types and constants
-    # ============================================================================
-
-    def advanced_types_example(self) -> None:
-        """Demonstrate advanced Python 3.13+ typing patterns with flext-cli.
-
-        Shows how to use:
-        - StrEnum for runtime validation
-        - collections.abc.Mapping for immutable data
-        - PEP 695 type aliases
-        - Advanced Literal unions
-        """
-        # Using StrEnum from constants for runtime validation
-        output_format = c.Cli.OutputFormats.JSON
-        self.cli.print(f"Selected format: {output_format.value}", style="blue")
-
-        # Using collections.abc.Mapping for immutable configuration
-
-        # Demonstrate discriminated union validation
-        valid_formats = u.Cli.CliValidation.get_valid_output_formats()
-        self.cli.print(f"Available formats: {', '.join(valid_formats)}")
-
-        # Using advanced type aliases from typings
-        sample_data: t.Cli.JsonDict = {
-            "status": c.Cli.CommandStatus.COMPLETED.value,
-            "data": [1, 2, 3],
-            "metadata": {"version": "1.0"},
-        }
-
-        self.cli.print(f"Sample data: {sample_data}", style="green")
-
     def run_examples(self) -> None:
         """Run all getting started examples."""
         self.cli.print("=== Flext CLI Getting Started Examples ===", style="bold blue")
@@ -157,6 +127,36 @@ class FlextCliGettingStarted:
         self.cli.print("\n3. Advanced Types Examples:", style="bold")
         self.advanced_types_example()
         self.cli.print("\n✅ All examples completed!", style="bold green")
+
+    # ============================================================================
+    # PATTERN 3: File I/O with error handling
+    # ============================================================================
+
+    def save_config(self, config: dict[str, t.JsonValue], filepath: str) -> bool:
+        """Save YOUR config to JSON with proper error handling."""
+        write_result = self.cli.file_tools.write_json_file(
+            filepath,
+            config,
+        )
+
+        if write_result.is_failure:
+            self.cli.output.print_message(f"Failed to save: {write_result.error}")
+            return False
+
+        self.cli.output.print_message(f"✅ Saved to {filepath}")
+        return True
+
+    def your_function_after(self) -> None:
+        """Your new code using flext-cli."""
+        self.cli.print("Operation completed", style="green")
+        self.cli.print("ERROR: Something failed", style="bold red")
+
+    # ============================================================================
+    # PATTERN 1: Replace print() with styled output
+    # ============================================================================
+
+    def your_function_before(self) -> None:
+        """Your old code using print()."""
 
 
 # ============================================================================

@@ -85,92 +85,87 @@ class FlextCliDebug(FlextCliServiceBase):
         # Return error as string
         return result.error or "Unknown error"
 
-    def _collect_info_safely(
-        self,
-        method_name: str,
-        error_key: str,
-        info_dict: MutableMapping[str, t.JsonValue],
-    ) -> None:
-        """Generalized info collection helper with error handling."""
-        method = getattr(self, method_name)
-        result = method()
-        if result.is_success:
-            info_dict[error_key.replace("_ERROR", "")] = (
-                FlextCliDebug._convert_result_to_json_value(result)
-            )
-        else:
-            info_dict[error_key] = result.error or "Unknown error"
+    @staticmethod
+    def _get_environment_info() -> m.Cli.EnvironmentInfo:
+        """Get environment variables with sensitive data masked as Pydantic model."""
 
-    # =========================================================================
-    # PUBLIC API METHODS
-    # =========================================================================
+        # Use u.process to handle environment variables
+        def process_env_item(k: str, v: str) -> str:
+            """Process single environment variable."""
+            if any(sens in k.lower() for sens in c.Cli.DebugDefaults.SENSITIVE_KEYS):
+                return c.Cli.DebugDefaults.MASKED_SENSITIVE
+            return v
 
-    @override
-    def execute(self) -> r[Mapping[str, t.JsonValue]]:
-        """Execute debug service - required by FlextService."""
-        return r[Mapping[str, t.JsonValue]].ok({
-            "status": "operational",
-            "message": c.Cli.ServiceMessages.FLEXT_CLI_DEBUG_OPERATIONAL,
-        })
+        env_info_result = u.Cli.process_mapping(
+            dict(os.environ),
+            processor=process_env_item,
+            on_error="skip",
+        )
+        env_info = dict(env_info_result.map_or({}))
 
-    def get_environment_variables(
-        self,
-    ) -> r[Mapping[str, t.JsonValue]]:
-        """Get environment variables with sensitive data masked."""
-        try:
-            env_info = self._get_environment_info()
-            typed_env_info: dict[str, t.JsonValue] = dict(
-                env_info.variables.items(),
-            )
-            return r[Mapping[str, t.JsonValue]].ok(typed_env_info)
-        except (
-            ValueError,
-            TypeError,
-            KeyError,
-            ConsoleError,
-            StyleError,
-            LiveError,
-        ) as e:
-            return r[Mapping[str, t.JsonValue]].fail(
-                c.Cli.DebugErrorMessages.ENVIRONMENT_INFO_FAILED.format(
-                    error=e,
-                ),
-            )
-
-    def validate_environment_setup(
-        self,
-    ) -> r[list[str]]:
-        """Validate environment setup and dependencies."""
-        try:
-            results = self._validate_filesystem_permissions()
-            return r[list[str]].ok(results)
-        except (
-            ValueError,
-            TypeError,
-            KeyError,
-            ConsoleError,
-            StyleError,
-            LiveError,
-        ) as e:
-            return r[list[str]].fail(
-                c.Cli.DebugErrorMessages.ENVIRONMENT_VALIDATION_FAILED.format(
-                    error=e,
-                ),
-            )
+        return m.Cli.EnvironmentInfo(variables=env_info)
 
     @staticmethod
-    def test_connectivity() -> r[Mapping[str, str]]:
-        """Test basic connectivity and service status."""
-        try:
-            connectivity_info = {
-                c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.CONNECTED.value,
-                c.Cli.DictKeys.TIMESTAMP: FlextCliUtilities.generate(
-                    "timestamp",
+    def _get_path_info() -> list[m.Cli.PathInfo]:
+        """Get system path information as list of Pydantic models."""
+        paths: list[m.Cli.PathInfo] = []
+        for i, path in enumerate(sys.path):
+            path_obj = pathlib.Path(path)
+            paths.append(
+                m.Cli.PathInfo(
+                    index=i,
+                    path=path,
+                    exists=path_obj.exists(),
+                    is_file=path_obj.is_file() if path_obj.exists() else False,
+                    is_dir=path_obj.is_dir() if path_obj.exists() else False,
                 ),
-                c.Cli.DictKeys.SERVICE: str(FlextCliDebug),
-                c.Cli.DebugDictKeys.CONNECTIVITY: c.Cli.ServiceStatus.OPERATIONAL.value,
-            }
-            return r[Mapping[str, str]].ok(connectivity_info)
+            )
+
+        return paths
+
+    # =========================================================================
+    # PRIVATE HELPER METHODS - Implementation details
+    # =========================================================================
+
+    @staticmethod
+    def _get_system_info() -> m.Cli.SystemInfo:
+        """Get basic system information as Pydantic model."""
+        arch_tuple = platform.architecture()
+        return m.Cli.SystemInfo(
+            python_version=sys.version,
+            platform=platform.platform(),
+            architecture=list(arch_tuple),
+            processor=platform.processor(),
+            hostname=platform.node(),
+        )
+
+    @staticmethod
+    def _validate_filesystem_permissions() -> list[str]:
+        """Validate filesystem permissions and setup."""
+        errors: list[str] = []
+
+        try:
+            # Test temp directory access
+            with tempfile.NamedTemporaryFile(delete=True) as tmp:
+                _ = tmp.write(b"test")
+                tmp.flush()
+
+            # Test current directory access
+            current_dir = pathlib.Path.cwd()
+            test_file = current_dir / "test_write.tmp"
+            try:
+                _ = pathlib.Path(test_file).write_text(
+                    "test",
+                    encoding=c.Cli.Utilities.DEFAULT_ENCODING,
+                )
+                pathlib.Path(test_file).unlink()
+            except OSError as e:
+                errors.append(
+                    c.Cli.ErrorMessages.CANNOT_WRITE_CURRENT_DIR.format(
+                        error=e,
+                    ),
+                )
+
         except (
             ValueError,
             TypeError,
@@ -179,11 +174,13 @@ class FlextCliDebug(FlextCliServiceBase):
             StyleError,
             LiveError,
         ) as e:
-            return r[Mapping[str, str]].fail(
-                c.Cli.DebugErrorMessages.CONNECTIVITY_TEST_FAILED.format(
+            errors.append(
+                c.Cli.ErrorMessages.FILESYSTEM_VALIDATION_FAILED.format(
                     error=e,
                 ),
             )
+
+        return errors
 
     @staticmethod
     def execute_health_check() -> r[Mapping[str, t.JsonValue]]:
@@ -247,6 +244,89 @@ class FlextCliDebug(FlextCliServiceBase):
                 ),
             )
 
+    @staticmethod
+    def test_connectivity() -> r[Mapping[str, str]]:
+        """Test basic connectivity and service status."""
+        try:
+            connectivity_info = {
+                c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.CONNECTED.value,
+                c.Cli.DictKeys.TIMESTAMP: FlextCliUtilities.generate(
+                    "timestamp",
+                ),
+                c.Cli.DictKeys.SERVICE: str(FlextCliDebug),
+                c.Cli.DebugDictKeys.CONNECTIVITY: c.Cli.ServiceStatus.OPERATIONAL.value,
+            }
+            return r[Mapping[str, str]].ok(connectivity_info)
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
+            return r[Mapping[str, str]].fail(
+                c.Cli.DebugErrorMessages.CONNECTIVITY_TEST_FAILED.format(
+                    error=e,
+                ),
+            )
+
+    # =========================================================================
+    # PUBLIC API METHODS
+    # =========================================================================
+
+    @override
+    def execute(self) -> r[Mapping[str, t.JsonValue]]:
+        """Execute debug service - required by FlextService."""
+        return r[Mapping[str, t.JsonValue]].ok({
+            "status": "operational",
+            "message": c.Cli.ServiceMessages.FLEXT_CLI_DEBUG_OPERATIONAL,
+        })
+
+    def get_comprehensive_debug_info(
+        self,
+    ) -> r[Mapping[str, t.JsonValue]]:
+        """Get comprehensive debug information combining all debug methods."""
+        try:
+            comprehensive_info: dict[str, t.JsonValue] = {}
+
+            # Collect all info using generalized helper
+            self._collect_info_safely(
+                "get_system_info",
+                c.Cli.DebugDictKeys.SYSTEM_ERROR,
+                comprehensive_info,
+            )
+            self._collect_info_safely(
+                "get_environment_variables",
+                c.Cli.DebugDictKeys.ENVIRONMENT_ERROR,
+                comprehensive_info,
+            )
+            self._collect_info_safely(
+                "get_system_paths",
+                c.Cli.DebugDictKeys.PATHS_ERROR,
+                comprehensive_info,
+            )
+            self._collect_info_safely(
+                "get_debug_info",
+                c.Cli.DebugDictKeys.DEBUG_ERROR,
+                comprehensive_info,
+            )
+
+            return r[Mapping[str, t.JsonValue]].ok(comprehensive_info)
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
+            return r[Mapping[str, t.JsonValue]].fail(
+                c.Cli.DebugErrorMessages.COMPREHENSIVE_DEBUG_INFO_FAILED.format(
+                    error=e,
+                ),
+            )
+
     def get_debug_info(self) -> r[Mapping[str, t.JsonValue]]:
         """Get comprehensive debug information."""
         try:
@@ -287,6 +367,30 @@ class FlextCliDebug(FlextCliServiceBase):
         ) as e:
             return r[Mapping[str, t.JsonValue]].fail(
                 c.Cli.DebugErrorMessages.DEBUG_INFO_COLLECTION_FAILED.format(
+                    error=e,
+                ),
+            )
+
+    def get_environment_variables(
+        self,
+    ) -> r[Mapping[str, t.JsonValue]]:
+        """Get environment variables with sensitive data masked."""
+        try:
+            env_info = self._get_environment_info()
+            typed_env_info: dict[str, t.JsonValue] = dict(
+                env_info.variables.items(),
+            )
+            return r[Mapping[str, t.JsonValue]].ok(typed_env_info)
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
+            return r[Mapping[str, t.JsonValue]].fail(
+                c.Cli.DebugErrorMessages.ENVIRONMENT_INFO_FAILED.format(
                     error=e,
                 ),
             )
@@ -345,36 +449,13 @@ class FlextCliDebug(FlextCliServiceBase):
                 ),
             )
 
-    def get_comprehensive_debug_info(
+    def validate_environment_setup(
         self,
-    ) -> r[Mapping[str, t.JsonValue]]:
-        """Get comprehensive debug information combining all debug methods."""
+    ) -> r[list[str]]:
+        """Validate environment setup and dependencies."""
         try:
-            comprehensive_info: dict[str, t.JsonValue] = {}
-
-            # Collect all info using generalized helper
-            self._collect_info_safely(
-                "get_system_info",
-                c.Cli.DebugDictKeys.SYSTEM_ERROR,
-                comprehensive_info,
-            )
-            self._collect_info_safely(
-                "get_environment_variables",
-                c.Cli.DebugDictKeys.ENVIRONMENT_ERROR,
-                comprehensive_info,
-            )
-            self._collect_info_safely(
-                "get_system_paths",
-                c.Cli.DebugDictKeys.PATHS_ERROR,
-                comprehensive_info,
-            )
-            self._collect_info_safely(
-                "get_debug_info",
-                c.Cli.DebugDictKeys.DEBUG_ERROR,
-                comprehensive_info,
-            )
-
-            return r[Mapping[str, t.JsonValue]].ok(comprehensive_info)
+            results = self._validate_filesystem_permissions()
+            return r[list[str]].ok(results)
         except (
             ValueError,
             TypeError,
@@ -383,108 +464,27 @@ class FlextCliDebug(FlextCliServiceBase):
             StyleError,
             LiveError,
         ) as e:
-            return r[Mapping[str, t.JsonValue]].fail(
-                c.Cli.DebugErrorMessages.COMPREHENSIVE_DEBUG_INFO_FAILED.format(
+            return r[list[str]].fail(
+                c.Cli.DebugErrorMessages.ENVIRONMENT_VALIDATION_FAILED.format(
                     error=e,
                 ),
             )
 
-    # =========================================================================
-    # PRIVATE HELPER METHODS - Implementation details
-    # =========================================================================
-
-    @staticmethod
-    def _get_system_info() -> m.Cli.SystemInfo:
-        """Get basic system information as Pydantic model."""
-        arch_tuple = platform.architecture()
-        return m.Cli.SystemInfo(
-            python_version=sys.version,
-            platform=platform.platform(),
-            architecture=list(arch_tuple),
-            processor=platform.processor(),
-            hostname=platform.node(),
-        )
-
-    @staticmethod
-    def _get_environment_info() -> m.Cli.EnvironmentInfo:
-        """Get environment variables with sensitive data masked as Pydantic model."""
-
-        # Use u.process to handle environment variables
-        def process_env_item(k: str, v: str) -> str:
-            """Process single environment variable."""
-            if any(sens in k.lower() for sens in c.Cli.DebugDefaults.SENSITIVE_KEYS):
-                return c.Cli.DebugDefaults.MASKED_SENSITIVE
-            return v
-
-        env_info_result = u.Cli.process_mapping(
-            dict(os.environ),
-            processor=process_env_item,
-            on_error="skip",
-        )
-        env_info = dict(env_info_result.map_or({}))
-
-        return m.Cli.EnvironmentInfo(variables=env_info)
-
-    @staticmethod
-    def _get_path_info() -> list[m.Cli.PathInfo]:
-        """Get system path information as list of Pydantic models."""
-        paths: list[m.Cli.PathInfo] = []
-        for i, path in enumerate(sys.path):
-            path_obj = pathlib.Path(path)
-            paths.append(
-                m.Cli.PathInfo(
-                    index=i,
-                    path=path,
-                    exists=path_obj.exists(),
-                    is_file=path_obj.is_file() if path_obj.exists() else False,
-                    is_dir=path_obj.is_dir() if path_obj.exists() else False,
-                ),
+    def _collect_info_safely(
+        self,
+        method_name: str,
+        error_key: str,
+        info_dict: MutableMapping[str, t.JsonValue],
+    ) -> None:
+        """Generalized info collection helper with error handling."""
+        method = getattr(self, method_name)
+        result = method()
+        if result.is_success:
+            info_dict[error_key.replace("_ERROR", "")] = (
+                FlextCliDebug._convert_result_to_json_value(result)
             )
-
-        return paths
-
-    @staticmethod
-    def _validate_filesystem_permissions() -> list[str]:
-        """Validate filesystem permissions and setup."""
-        errors: list[str] = []
-
-        try:
-            # Test temp directory access
-            with tempfile.NamedTemporaryFile(delete=True) as tmp:
-                _ = tmp.write(b"test")
-                tmp.flush()
-
-            # Test current directory access
-            current_dir = pathlib.Path.cwd()
-            test_file = current_dir / "test_write.tmp"
-            try:
-                _ = pathlib.Path(test_file).write_text(
-                    "test",
-                    encoding=c.Cli.Utilities.DEFAULT_ENCODING,
-                )
-                pathlib.Path(test_file).unlink()
-            except OSError as e:
-                errors.append(
-                    c.Cli.ErrorMessages.CANNOT_WRITE_CURRENT_DIR.format(
-                        error=e,
-                    ),
-                )
-
-        except (
-            ValueError,
-            TypeError,
-            KeyError,
-            ConsoleError,
-            StyleError,
-            LiveError,
-        ) as e:
-            errors.append(
-                c.Cli.ErrorMessages.FILESYSTEM_VALIDATION_FAILED.format(
-                    error=e,
-                ),
-            )
-
-        return errors
+        else:
+            info_dict[error_key] = result.error or "Unknown error"
 
 
 __all__ = ["FlextCliDebug", "FlextCliUtilities"]

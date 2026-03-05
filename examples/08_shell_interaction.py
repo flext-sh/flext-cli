@@ -113,19 +113,6 @@ class InteractiveShell:
         }
         self.running = False
 
-    def show_help(self) -> r[bool]:
-        """Show available commands."""
-        cli.formatters.print("\n📚 Available Commands:", style="bold cyan")
-        for cmd in self.commands:
-            cli.formatters.print(f"   • {cmd}", style="white")
-        return r[bool].ok(value=True)
-
-    def exit_shell(self) -> r[bool]:
-        """Exit interactive shell."""
-        cli.formatters.print("👋 Goodbye!", style="cyan")
-        self.running = False
-        return r[bool].ok(value=True)
-
     def execute_command(self, command_line: str) -> r[t.JsonValue]:
         """Execute command from user input."""
         parts = command_line.strip().split()
@@ -169,6 +156,19 @@ class InteractiveShell:
         except Exception as e:
             return r[t.JsonValue].fail(f"Command error: {e}")
 
+    def exit_shell(self) -> r[bool]:
+        """Exit interactive shell."""
+        cli.formatters.print("👋 Goodbye!", style="cyan")
+        self.running = False
+        return r[bool].ok(value=True)
+
+    def show_help(self) -> r[bool]:
+        """Show available commands."""
+        cli.formatters.print("\n📚 Available Commands:", style="bold cyan")
+        for cmd in self.commands:
+            cli.formatters.print(f"   • {cmd}", style="white")
+        return r[bool].ok(value=True)
+
 
 # ============================================================================
 # PATTERN 3: Multi-line input support
@@ -203,10 +203,6 @@ class CommandHistory:
         if len(self.history) > self.max_size:
             self.history.pop(0)
 
-    def get_recent(self, count: int = 10) -> list[str]:
-        """Get recent commands."""
-        return self.history[-count:]
-
     def display_history(self) -> None:
         """Display command history."""
         if not self.history:
@@ -216,6 +212,10 @@ class CommandHistory:
         cli.formatters.print("\n📜 Recent Commands (last 10):", style="bold cyan")
         for i, cmd in enumerate(self.get_recent(), 1):
             cli.formatters.print(f"   {i}. {cmd}", style="white")
+
+    def get_recent(self, count: int = 10) -> list[str]:
+        """Get recent commands."""
+        return self.history[-count:]
 
 
 # ============================================================================

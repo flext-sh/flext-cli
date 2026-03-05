@@ -88,14 +88,84 @@ class FlextCliCommands(FlextCliServiceBase):
         self._groups: dict[str, FlextCliCommandGroup] = {}
 
     @property
+    def description(self) -> str:
+        """Return CLI description."""
+        return self._description
+
+    @property
     def name(self) -> str:
         """Return CLI name."""
         return self._name
 
-    @property
-    def description(self) -> str:
-        """Return CLI description."""
-        return self._description
+    @staticmethod
+    def _normalize_handler_result(
+        result: r[t.JsonValue] | None,
+        command_name: str,
+    ) -> r[t.JsonValue]:
+        """Normalize handler output to FlextResult."""
+        if result is None:
+            return r[t.JsonValue].ok({"status": "success", "command": command_name})
+        if result.is_success:
+            return r[t.JsonValue].ok(result.value)
+        error_value = result.error
+        return r[t.JsonValue].fail(
+            str(error_value) if error_value else "Command failed",
+        )
+
+    def clear_commands(self) -> r[int]:
+        """Clear all registered commands.
+
+        Returns:
+            r[int]: Number of commands cleared.
+
+        """
+        count = len(self._commands)
+        self._commands.clear()
+        self._groups.clear()
+        return r[int].ok(count)
+
+    def create_command_group(
+        self,
+        name: str,
+        description: str = "",
+        commands: Mapping[str, FlextCliCommandEntry] | None = None,
+    ) -> r[FlextCliCommandGroup]:
+        """Create a command group.
+
+        Args:
+            name: Group name.
+            description: Group description.
+            commands: Dict of command name to handler info.
+
+        Returns:
+            r[FlextCliCommandGroup]: Command group, or failure.
+
+        """
+        if not name.strip():
+            return r[FlextCliCommandGroup].fail("Group name must be non-empty string")
+
+        if commands is None:
+            return r[FlextCliCommandGroup].fail(
+                "Commands are required for group creation",
+            )
+
+        # Type system ensures commands is Mapping after None check
+        group = FlextCliCommandGroup(
+            name=name,
+            description=description,
+            commands=dict(commands),
+        )
+        self._groups[name] = group
+        return r[FlextCliCommandGroup].ok(group)
+
+    def create_main_cli(self) -> Self:
+        """Create the main CLI instance.
+
+        Returns:
+            Self: This commands instance configured as main CLI.
+
+        """
+        return self
 
     def execute(self) -> r[Mapping[str, t.JsonValue]]:
         """Execute commands service - returns service status.
@@ -114,47 +184,6 @@ class FlextCliCommands(FlextCliServiceBase):
             "is_initialized": True,
             "commands_count": len(self._commands),
         })
-
-    def register_command(
-        self,
-        name: str,
-        handler: FlextCliCommandHandler,
-    ) -> r[bool]:
-        """Register a CLI command.
-
-        Args:
-            name: Command name.
-            handler: Command handler callable.
-
-        Returns:
-            r[bool]: Success if registered, failure otherwise.
-
-        """
-        if not name.strip():
-            return r[bool].fail("Command name must be non-empty string")
-        # Type system ensures handler is callable via CommandHandler Protocol
-
-        self._commands[name] = {
-            "handler": handler,
-            "name": name,
-        }
-        return r[bool].ok(value=True)
-
-    def unregister_command(self, name: str) -> r[bool]:
-        """Unregister a CLI command.
-
-        Args:
-            name: Command name to unregister.
-
-        Returns:
-            r[bool]: Success if unregistered, failure if not found.
-
-        """
-        if name not in self._commands:
-            return r[bool].fail(f"Command not found: {name}")
-
-        del self._commands[name]
-        return r[bool].ok(value=True)
 
     def execute_command(
         self,
@@ -220,19 +249,24 @@ class FlextCliCommands(FlextCliServiceBase):
         ) as e:
             return r[t.JsonValue].fail(f"Command execution failed: {e}")
 
-    @staticmethod
-    def _normalize_handler_result(
-        result: r[t.JsonValue] | None,
-        command_name: str,
-    ) -> r[t.JsonValue]:
-        """Normalize handler output to FlextResult."""
-        if result is None:
-            return r[t.JsonValue].ok({"status": "success", "command": command_name})
-        if result.is_success:
-            return r[t.JsonValue].ok(result.value)
-        error_value = result.error
-        return r[t.JsonValue].fail(
-            str(error_value) if error_value else "Command failed",
+    def get_click_group(self) -> FlextCliCommandGroup:
+        """Get Click group representation.
+
+        Returns:
+            FlextCliCommandGroup: Click group info with name and commands.
+
+        Note:
+            This returns a FlextCliCommandGroup object, not actual Click objects.
+            Use FlextCliCli for actual Click integration.
+
+        """
+        return FlextCliCommandGroup(
+            name=self._name,
+            description=self._description,
+            commands={
+                k: dict(v) if isinstance(v, Mapping) else v
+                for k, v in self._commands.items()
+            },
         )
 
     def get_commands(self) -> Mapping[str, FlextCliCommandEntry]:
@@ -253,17 +287,30 @@ class FlextCliCommands(FlextCliServiceBase):
         """
         return r[list[str]].ok(list(self._commands.keys()))
 
-    def clear_commands(self) -> r[int]:
-        """Clear all registered commands.
+    def register_command(
+        self,
+        name: str,
+        handler: FlextCliCommandHandler,
+    ) -> r[bool]:
+        """Register a CLI command.
+
+        Args:
+            name: Command name.
+            handler: Command handler callable.
 
         Returns:
-            r[int]: Number of commands cleared.
+            r[bool]: Success if registered, failure otherwise.
 
         """
-        count = len(self._commands)
-        self._commands.clear()
-        self._groups.clear()
-        return r[int].ok(count)
+        if not name.strip():
+            return r[bool].fail("Command name must be non-empty string")
+        # Type system ensures handler is callable via CommandHandler Protocol
+
+        self._commands[name] = {
+            "handler": handler,
+            "name": name,
+        }
+        return r[bool].ok(value=True)
 
     def run_cli(
         self,
@@ -299,65 +346,18 @@ class FlextCliCommands(FlextCliServiceBase):
 
         return self.execute_command(cmd_name, args=cmd_args)
 
-    def create_command_group(
-        self,
-        name: str,
-        description: str = "",
-        commands: Mapping[str, FlextCliCommandEntry] | None = None,
-    ) -> r[FlextCliCommandGroup]:
-        """Create a command group.
+    def unregister_command(self, name: str) -> r[bool]:
+        """Unregister a CLI command.
 
         Args:
-            name: Group name.
-            description: Group description.
-            commands: Dict of command name to handler info.
+            name: Command name to unregister.
 
         Returns:
-            r[FlextCliCommandGroup]: Command group, or failure.
+            r[bool]: Success if unregistered, failure if not found.
 
         """
-        if not name.strip():
-            return r[FlextCliCommandGroup].fail("Group name must be non-empty string")
+        if name not in self._commands:
+            return r[bool].fail(f"Command not found: {name}")
 
-        if commands is None:
-            return r[FlextCliCommandGroup].fail(
-                "Commands are required for group creation",
-            )
-
-        # Type system ensures commands is Mapping after None check
-        group = FlextCliCommandGroup(
-            name=name,
-            description=description,
-            commands=dict(commands),
-        )
-        self._groups[name] = group
-        return r[FlextCliCommandGroup].ok(group)
-
-    def get_click_group(self) -> FlextCliCommandGroup:
-        """Get Click group representation.
-
-        Returns:
-            FlextCliCommandGroup: Click group info with name and commands.
-
-        Note:
-            This returns a FlextCliCommandGroup object, not actual Click objects.
-            Use FlextCliCli for actual Click integration.
-
-        """
-        return FlextCliCommandGroup(
-            name=self._name,
-            description=self._description,
-            commands={
-                k: dict(v) if isinstance(v, Mapping) else v
-                for k, v in self._commands.items()
-            },
-        )
-
-    def create_main_cli(self) -> Self:
-        """Create the main CLI instance.
-
-        Returns:
-            Self: This commands instance configured as main CLI.
-
-        """
-        return self
+        del self._commands[name]
+        return r[bool].ok(value=True)

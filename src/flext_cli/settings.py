@@ -104,6 +104,144 @@ class FlextCliSettings(FlextSettings):
     log_file: str | None = Field(default=None)
     console_enabled: bool = Field(default=c.Cli.Logging.CONSOLE_ENABLED)
 
+    @computed_field
+    def auto_color_support(self) -> bool:
+        """Auto-detect if terminal supports colors."""
+        return not self.no_color
+
+    @computed_field
+    def auto_output_format(self) -> str:
+        """Auto-detect optimal output format based on terminal capabilities."""
+        fmt = c.Cli.OutputFormats
+        try:
+            is_interactive = os.isatty(1)
+        except (OSError, RuntimeError) as e:
+            logger.debug("isatty(1) failed, defaulting to JSON output: %s", e)
+            return fmt.JSON.value
+        width = self._try_terminal_width()
+        if width is None:
+            return fmt.JSON.value
+        if not is_interactive:
+            return fmt.JSON.value
+        if width < c.Cli.Terminal.WIDTH_NARROW:
+            return fmt.PLAIN.value
+        return fmt.TABLE.value if not self.no_color else fmt.JSON.value
+
+    @computed_field
+    def auto_verbosity(self) -> str:
+        """Auto-detect verbosity level (verbose > quiet > normal)."""
+        gd = c.Cli.CliGlobalDefaults
+        if self.verbose:
+            return gd.DEFAULT_VERBOSITY
+        if self.quiet:
+            return gd.QUIET_VERBOSITY
+        return gd.NORMAL_VERBOSITY
+
+    @computed_field
+    def optimal_table_format(self) -> str:
+        """Determine optimal tabulate format based on terminal width."""
+        width = self._try_terminal_width()
+        if width is None:
+            return c.Cli.TableFormats.SIMPLE
+        if width < c.Cli.Terminal.WIDTH_NARROW:
+            return "simple"
+        return "github" if width < c.Cli.Terminal.WIDTH_MEDIUM else "grid"
+
+    @classmethod
+    def load_from_config_file(cls, config_file: Path) -> r[FlextCliSettings]:
+        """Load configuration from JSON/YAML file."""
+        em = c.Cli.ErrorMessages
+        try:
+            if not config_file.exists():
+                return r[FlextCliSettings].fail(
+                    em.CONFIG_FILE_NOT_FOUND.format(file=config_file),
+                )
+            suffix = config_file.suffix.lower()
+            with config_file.open("r", encoding="utf-8") as f:
+                if suffix == ".json":
+                    data = json.load(f)
+                elif suffix in {".yaml", ".yml"}:
+                    data = yaml.safe_load(f)
+                else:
+                    return r[FlextCliSettings].fail(
+                        em.UNSUPPORTED_CONFIG_FORMAT.format(suffix=suffix),
+                    )
+            return r[FlextCliSettings].ok(cls(**data))
+        except (OSError, ValueError, ValidationError, yaml.YAMLError) as e:
+            return r[FlextCliSettings].fail(
+                em.FAILED_LOAD_CONFIG_FROM_FILE.format(file=config_file, error=e),
+            )
+
+    # Pydantic 2 field validators for boolean environment variables
+    @field_validator(
+        "debug",
+        "verbose",
+        "quiet",
+        "interactive",
+        "console_enabled",
+        mode="before",
+    )
+    @classmethod
+    def parse_bool_env_vars(cls, v: t.ContainerValue) -> bool:
+        """Parse boolean environment variables correctly from strings."""
+        if v is True or v is False:
+            return bool(v)
+        normalized = str(v).strip().lower()
+        if normalized in {"true", "1", "yes", "on"}:
+            return True
+        if normalized in {"false", "0", "no", "off", "none", ""}:
+            return False
+        return bool(v)
+
+    @staticmethod
+    def _try_terminal_width() -> int | None:
+        """Read terminal width safely without leaking exceptions."""
+        try:
+            return shutil.get_terminal_size().columns
+        except OSError as e:
+            logger.debug("get_terminal_size failed: %s", e)
+            return None
+
+    @staticmethod
+    def validate_output_format_result(value: str) -> r[str]:
+        """Validate output format."""
+        valid_formats = u.Cli.CliValidation.get_valid_output_formats()
+        if value in valid_formats:
+            return r.ok(value)
+        return r.fail(
+            f"Invalid format '{value}'. Valid formats: {', '.join(valid_formats)}",
+        )
+
+    def execute_service(self) -> r[Mapping[str, t.JsonValue]]:
+        """Execute config as service operation."""
+        config_dict = u.transform(self.model_dump(), to_json=True).map_or(
+            self.model_dump(),
+        )
+        result_dict: dict[str, t.JsonValue] = {
+            "status": c.Cli.ServiceStatus.OPERATIONAL.value,
+            "service": c.Cli.CliGlobalDefaults.DEFAULT_SERVICE_NAME,
+            "timestamp": u.generate("timestamp"),
+            "version": c.Cli.CliGlobalDefaults.DEFAULT_VERSION_STRING,
+            "config": config_dict,
+        }
+        return r[Mapping[str, t.JsonValue]].ok(result_dict)
+
+    # Pydantic 2.11 model validator (runs after all field validators)
+    @override
+    @model_validator(mode="after")
+    def validate_configuration(self) -> Self:
+        """Validate configuration using functional composition and railway pattern."""
+        validation_result = (
+            self
+            ._ensure_config_directory()
+            .flat_map(lambda _: self._propagate_to_context())
+            .flat_map(lambda _: self._register_in_container())
+        )
+        if validation_result.is_failure:
+            msg = f"Configuration validation failed: {validation_result.error}"
+            raise ValueError(msg)
+        return self
+
     def _ensure_config_directory(self) -> r[Path]:
         """Ensure config directory exists with proper error handling."""
         try:
@@ -165,144 +303,6 @@ class FlextCliSettings(FlextSettings):
             )
             return r[bool].ok(value=True)
 
-    # Pydantic 2 field validators for boolean environment variables
-    @field_validator(
-        "debug",
-        "verbose",
-        "quiet",
-        "interactive",
-        "console_enabled",
-        mode="before",
-    )
-    @classmethod
-    def parse_bool_env_vars(cls, v: t.ContainerValue) -> bool:
-        """Parse boolean environment variables correctly from strings."""
-        if v is True or v is False:
-            return bool(v)
-        normalized = str(v).strip().lower()
-        if normalized in {"true", "1", "yes", "on"}:
-            return True
-        if normalized in {"false", "0", "no", "off", "none", ""}:
-            return False
-        return bool(v)
-
-    # Pydantic 2.11 model validator (runs after all field validators)
-    @override
-    @model_validator(mode="after")
-    def validate_configuration(self) -> Self:
-        """Validate configuration using functional composition and railway pattern."""
-        validation_result = (
-            self
-            ._ensure_config_directory()
-            .flat_map(lambda _: self._propagate_to_context())
-            .flat_map(lambda _: self._register_in_container())
-        )
-        if validation_result.is_failure:
-            msg = f"Configuration validation failed: {validation_result.error}"
-            raise ValueError(msg)
-        return self
-
-    @computed_field
-    def auto_output_format(self) -> str:
-        """Auto-detect optimal output format based on terminal capabilities."""
-        fmt = c.Cli.OutputFormats
-        try:
-            is_interactive = os.isatty(1)
-        except (OSError, RuntimeError) as e:
-            logger.debug("isatty(1) failed, defaulting to JSON output: %s", e)
-            return fmt.JSON.value
-        width = self._try_terminal_width()
-        if width is None:
-            return fmt.JSON.value
-        if not is_interactive:
-            return fmt.JSON.value
-        if width < c.Cli.Terminal.WIDTH_NARROW:
-            return fmt.PLAIN.value
-        return fmt.TABLE.value if not self.no_color else fmt.JSON.value
-
-    @computed_field
-    def auto_color_support(self) -> bool:
-        """Auto-detect if terminal supports colors."""
-        return not self.no_color
-
-    @computed_field
-    def auto_verbosity(self) -> str:
-        """Auto-detect verbosity level (verbose > quiet > normal)."""
-        gd = c.Cli.CliGlobalDefaults
-        if self.verbose:
-            return gd.DEFAULT_VERBOSITY
-        if self.quiet:
-            return gd.QUIET_VERBOSITY
-        return gd.NORMAL_VERBOSITY
-
-    @computed_field
-    def optimal_table_format(self) -> str:
-        """Determine optimal tabulate format based on terminal width."""
-        width = self._try_terminal_width()
-        if width is None:
-            return c.Cli.TableFormats.SIMPLE
-        if width < c.Cli.Terminal.WIDTH_NARROW:
-            return "simple"
-        return "github" if width < c.Cli.Terminal.WIDTH_MEDIUM else "grid"
-
-    @staticmethod
-    def _try_terminal_width() -> int | None:
-        """Read terminal width safely without leaking exceptions."""
-        try:
-            return shutil.get_terminal_size().columns
-        except OSError as e:
-            logger.debug("get_terminal_size failed: %s", e)
-            return None
-
-    @staticmethod
-    def validate_output_format_result(value: str) -> r[str]:
-        """Validate output format."""
-        valid_formats = u.Cli.CliValidation.get_valid_output_formats()
-        if value in valid_formats:
-            return r.ok(value)
-        return r.fail(
-            f"Invalid format '{value}'. Valid formats: {', '.join(valid_formats)}",
-        )
-
-    @classmethod
-    def load_from_config_file(cls, config_file: Path) -> r[FlextCliSettings]:
-        """Load configuration from JSON/YAML file."""
-        em = c.Cli.ErrorMessages
-        try:
-            if not config_file.exists():
-                return r[FlextCliSettings].fail(
-                    em.CONFIG_FILE_NOT_FOUND.format(file=config_file),
-                )
-            suffix = config_file.suffix.lower()
-            with config_file.open("r", encoding="utf-8") as f:
-                if suffix == ".json":
-                    data = json.load(f)
-                elif suffix in {".yaml", ".yml"}:
-                    data = yaml.safe_load(f)
-                else:
-                    return r[FlextCliSettings].fail(
-                        em.UNSUPPORTED_CONFIG_FORMAT.format(suffix=suffix),
-                    )
-            return r[FlextCliSettings].ok(cls(**data))
-        except (OSError, ValueError, ValidationError, yaml.YAMLError) as e:
-            return r[FlextCliSettings].fail(
-                em.FAILED_LOAD_CONFIG_FROM_FILE.format(file=config_file, error=e),
-            )
-
-    def execute_service(self) -> r[Mapping[str, t.JsonValue]]:
-        """Execute config as service operation."""
-        config_dict = u.transform(self.model_dump(), to_json=True).map_or(
-            self.model_dump(),
-        )
-        result_dict: dict[str, t.JsonValue] = {
-            "status": c.Cli.ServiceStatus.OPERATIONAL.value,
-            "service": c.Cli.CliGlobalDefaults.DEFAULT_SERVICE_NAME,
-            "timestamp": u.generate("timestamp"),
-            "version": c.Cli.CliGlobalDefaults.DEFAULT_VERSION_STRING,
-            "config": config_dict,
-        }
-        return r[Mapping[str, t.JsonValue]].ok(result_dict)
-
     _COMPUTED: ClassVar[set[str]] = {
         "auto_output_format",
         "auto_table_format",
@@ -311,6 +311,36 @@ class FlextCliSettings(FlextSettings):
         "effective_log_level",
         "optimal_table_format",
     }
+
+    def load_config(self) -> r[Mapping[str, t.JsonValue]]:
+        """Load CLI configuration — implements CliConfigProvider protocol."""
+        try:
+            raw: dict[str, t.JsonValue] = dict(self.model_dump(mode="json"))
+            return r[Mapping[str, t.JsonValue]].ok(raw)
+        except (ValidationError, TypeError, RuntimeError) as e:
+            return r[Mapping[str, t.JsonValue]].fail(
+                c.Cli.ErrorMessages.CONFIG_LOAD_FAILED_MSG.format(error=e),
+            )
+
+    def save_config(
+        self,
+        config: FlextCliSettings | Mapping[str, t.JsonValue],
+    ) -> r[bool]:
+        """Save CLI configuration — implements CliConfigProvider protocol."""
+        try:
+            to_save = (
+                config.model_dump() if isinstance(config, FlextCliSettings) else config
+            )
+            model_fields = set(type(self).model_fields.keys())
+            for k, v in to_save.items():
+                if k in model_fields:
+                    setattr(self, k, v)
+            _ = self.model_validate(self.model_dump())
+            return r[bool].ok(value=True)
+        except (ValidationError, TypeError, AttributeError) as e:
+            return r[bool].fail(
+                c.Cli.ErrorMessages.CONFIG_SAVE_FAILED_MSG.format(error=e),
+            )
 
     def update_from_cli_args(self, **kwargs: t.JsonValue) -> r[bool]:
         """Update configuration from CLI arguments with validation."""
@@ -364,37 +394,14 @@ class FlextCliSettings(FlextSettings):
         except (ValidationError, TypeError, RuntimeError) as e:
             return r[Mapping[str, t.JsonValue]].fail(f"Validation failed: {e}")
 
-    def load_config(self) -> r[Mapping[str, t.JsonValue]]:
-        """Load CLI configuration — implements CliConfigProvider protocol."""
-        try:
-            raw: dict[str, t.JsonValue] = dict(self.model_dump(mode="json"))
-            return r[Mapping[str, t.JsonValue]].ok(raw)
-        except (ValidationError, TypeError, RuntimeError) as e:
-            return r[Mapping[str, t.JsonValue]].fail(
-                c.Cli.ErrorMessages.CONFIG_LOAD_FAILED_MSG.format(error=e),
-            )
-
-    def save_config(
-        self,
-        config: FlextCliSettings | Mapping[str, t.JsonValue],
-    ) -> r[bool]:
-        """Save CLI configuration — implements CliConfigProvider protocol."""
-        try:
-            to_save = (
-                config.model_dump() if isinstance(config, FlextCliSettings) else config
-            )
-            model_fields = set(type(self).model_fields.keys())
-            for k, v in to_save.items():
-                if k in model_fields:
-                    setattr(self, k, v)
-            _ = self.model_validate(self.model_dump())
-            return r[bool].ok(value=True)
-        except (ValidationError, TypeError, AttributeError) as e:
-            return r[bool].fail(
-                c.Cli.ErrorMessages.CONFIG_SAVE_FAILED_MSG.format(error=e),
-            )
-
     _instance: ClassVar[FlextCliSettings | None] = None
+
+    @override
+    @classmethod
+    def _reset_instance(cls) -> None:
+        """Reset singleton instance for testing."""
+        cls._instance = None
+        super()._reset_instance()
 
     @classmethod
     def get_instance(cls) -> FlextCliSettings:
@@ -406,10 +413,3 @@ class FlextCliSettings(FlextSettings):
             msg = "FlextCliSettings instance was not initialized"
             raise RuntimeError(msg)
         return instance
-
-    @override
-    @classmethod
-    def _reset_instance(cls) -> None:
-        """Reset singleton instance for testing."""
-        cls._instance = None
-        super()._reset_instance()

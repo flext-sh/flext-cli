@@ -95,24 +95,51 @@ class FlextCliTables(FlextCliServiceBase):
 
     """
 
-    # =========================================================================
-    # SERVICE EXECUTION (Required by FlextService)
-    # =========================================================================
+    @staticmethod
+    def _prepare_headers(
+        data: t.Cli.TabularData,
+        headers: str | Sequence[str],
+    ) -> r[str | Sequence[str]]:
+        """Prepare headers based on data type."""
+        data_list = list(data)
+        if not data_list:
+            return r[str | Sequence[str]].ok(headers)
 
-    @override
-    def execute(self) -> r[Mapping[str, t.JsonValue]]:
-        """Execute table service - returns success indicator.
+        if isinstance(headers, str):
+            return r[str | Sequence[str]].ok(headers)
 
-        Business Rule:
-        ──────────────
-        The table service is primarily used for its static methods (create_table,
-        print_available_formats). Execute provides a default success response.
+        first_row = data_list[0]
+        if u.is_dict_like(first_row):
+            return r[str | Sequence[str]].ok(list(headers))
+
+        return r[str | Sequence[str]].ok(headers)
+
+    @staticmethod
+    def _validate_table_data(
+        data: t.Cli.TabularData,
+        table_format: str,
+    ) -> r[bool]:
+        """Validate table data and format.
 
         Returns:
-            r[dict[str, t.JsonValue]]: Success result.
+            r[bool]: True if validation passed, failure on error
 
         """
-        return r[Mapping[str, t.JsonValue]].ok({"status": "table_service_ready"})
+        if not data:
+            return r[bool].fail(
+                FlextCliConstants.Cli.TablesErrorMessages.TABLE_DATA_EMPTY,
+            )
+
+        if table_format not in FlextCliConstants.Cli.TABLE_FORMATS:
+            available_formats_list = list(FlextCliConstants.Cli.TABLE_FORMATS.keys())
+            return r[bool].fail(
+                FlextCliConstants.Cli.TablesErrorMessages.INVALID_TABLE_FORMAT.format(
+                    table_format=table_format,
+                    available_formats=", ".join(available_formats_list),
+                ),
+            )
+
+        return r[bool].ok(value=True)
 
     # =========================================================================
     # TABLE CREATION
@@ -255,50 +282,53 @@ class FlextCliTables(FlextCliServiceBase):
             return r[str].fail(f"Table formatting failed: {e}")
 
     @staticmethod
-    def _validate_table_data(
-        data: t.Cli.TabularData,
-        table_format: str,
-    ) -> r[bool]:
-        """Validate table data and format.
+    def print_available_formats() -> r[bool]:
+        """Print all available table formats with descriptions.
 
         Returns:
-            r[bool]: True if validation passed, failure on error
+            r[bool]: True if formats printed successfully, failure on error
 
         """
-        if not data:
-            return r[bool].fail(
-                FlextCliConstants.Cli.TablesErrorMessages.TABLE_DATA_EMPTY,
+        try:
+
+            def convert_format(name: str, desc: str) -> Mapping[str, str]:
+                """Convert format to a display dictionary."""
+                return {"format": name, "description": desc}
+
+            _ = list(
+                starmap(convert_format, FlextCliConstants.Cli.TABLE_FORMATS.items()),
             )
+            # Table formatting delegated to rich/tabulate — returns operation result
+            return r[bool].ok(value=True)
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
+            # Simplified error handling
+            return r[bool].fail(str(e))
 
-        if table_format not in FlextCliConstants.Cli.TABLE_FORMATS:
-            available_formats_list = list(FlextCliConstants.Cli.TABLE_FORMATS.keys())
-            return r[bool].fail(
-                FlextCliConstants.Cli.TablesErrorMessages.INVALID_TABLE_FORMAT.format(
-                    table_format=table_format,
-                    available_formats=", ".join(available_formats_list),
-                ),
-            )
+    # =========================================================================
+    # SERVICE EXECUTION (Required by FlextService)
+    # =========================================================================
 
-        return r[bool].ok(value=True)
+    @override
+    def execute(self) -> r[Mapping[str, t.JsonValue]]:
+        """Execute table service - returns success indicator.
 
-    @staticmethod
-    def _prepare_headers(
-        data: t.Cli.TabularData,
-        headers: str | Sequence[str],
-    ) -> r[str | Sequence[str]]:
-        """Prepare headers based on data type."""
-        data_list = list(data)
-        if not data_list:
-            return r[str | Sequence[str]].ok(headers)
+        Business Rule:
+        ──────────────
+        The table service is primarily used for its static methods (create_table,
+        print_available_formats). Execute provides a default success response.
 
-        if isinstance(headers, str):
-            return r[str | Sequence[str]].ok(headers)
+        Returns:
+            r[dict[str, t.JsonValue]]: Success result.
 
-        first_row = data_list[0]
-        if u.is_dict_like(first_row):
-            return r[str | Sequence[str]].ok(list(headers))
-
-        return r[str | Sequence[str]].ok(headers)
+        """
+        return r[Mapping[str, t.JsonValue]].ok({"status": "table_service_ready"})
 
     def _calculate_column_count(
         self,
@@ -376,33 +406,3 @@ class FlextCliTables(FlextCliServiceBase):
                     error=e,
                 ),
             )
-
-    @staticmethod
-    def print_available_formats() -> r[bool]:
-        """Print all available table formats with descriptions.
-
-        Returns:
-            r[bool]: True if formats printed successfully, failure on error
-
-        """
-        try:
-
-            def convert_format(name: str, desc: str) -> Mapping[str, str]:
-                """Convert format to a display dictionary."""
-                return {"format": name, "description": desc}
-
-            _ = list(
-                starmap(convert_format, FlextCliConstants.Cli.TABLE_FORMATS.items()),
-            )
-            # Table formatting delegated to rich/tabulate — returns operation result
-            return r[bool].ok(value=True)
-        except (
-            ValueError,
-            TypeError,
-            KeyError,
-            ConsoleError,
-            StyleError,
-            LiveError,
-        ) as e:
-            # Simplified error handling
-            return r[bool].fail(str(e))

@@ -113,12 +113,6 @@ class MyAppPluginManager:
         super().__init__()
         self.plugins: dict[str, object] = {}
 
-    def register_plugin(self, plugin: object) -> None:
-        """Register plugin in YOUR CLI."""
-        plugin_name = getattr(plugin, "name", plugin.__class__.__name__)
-        self.plugins[plugin_name] = plugin
-        _ = cli.print(f"🔌 Registered plugin: {plugin_name}", style="cyan")
-
     def execute_plugin(
         self,
         plugin_name: str,
@@ -197,6 +191,12 @@ class MyAppPluginManager:
         if table_result.is_success:
             _ = cli.print_table(table_result.value)
 
+    def register_plugin(self, plugin: object) -> None:
+        """Register plugin in YOUR CLI."""
+        plugin_name = getattr(plugin, "name", plugin.__class__.__name__)
+        self.plugins[plugin_name] = plugin
+        _ = cli.print(f"🔌 Registered plugin: {plugin_name}", style="cyan")
+
 
 # ============================================================================
 # PATTERN 3: Dynamic plugin loading from directory
@@ -270,11 +270,11 @@ class LifecyclePlugin:
         self.name = "lifecycle-plugin"
         self.initialized = False
 
-    def initialize(self) -> r[bool]:
-        """Initialize plugin resources."""
-        _ = cli.print(f"🚀 Initializing {self.name}...", style="cyan")
-        # Your initialization logic
-        self.initialized = True
+    def cleanup(self) -> r[bool]:
+        """Cleanup plugin resources."""
+        _ = cli.print(f"🧹 Cleaning up {self.name}...", style="cyan")
+        # Your cleanup logic
+        self.initialized = False
         return r[bool].ok(value=True)
 
     def execute(self, data: str) -> r[str]:
@@ -286,11 +286,11 @@ class LifecyclePlugin:
         _ = cli.print(f"✅ Processed: {processed}", style="green")
         return r[str].ok(processed)
 
-    def cleanup(self) -> r[bool]:
-        """Cleanup plugin resources."""
-        _ = cli.print(f"🧹 Cleaning up {self.name}...", style="cyan")
-        # Your cleanup logic
-        self.initialized = False
+    def initialize(self) -> r[bool]:
+        """Initialize plugin resources."""
+        _ = cli.print(f"🚀 Initializing {self.name}...", style="cyan")
+        # Your initialization logic
+        self.initialized = True
         return r[bool].ok(value=True)
 
 

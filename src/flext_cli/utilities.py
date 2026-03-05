@@ -116,6 +116,16 @@ class FlextCliUtilities(FlextUtilities):
             """CLI-specific validation utilities."""
 
             @staticmethod
+            def get_valid_command_statuses() -> tuple[str, ...]:
+                """Get valid command statuses."""
+                return tuple(sorted(c.Cli.ValidationMappings.COMMAND_STATUS_SET))
+
+            @staticmethod
+            def get_valid_output_formats() -> tuple[str, ...]:
+                """Get valid output formats."""
+                return tuple(sorted(c.Cli.ValidationMappings.OUTPUT_FORMAT_SET))
+
+            @staticmethod
             def to_str(value: t.Cli.CliValue) -> str:
                 """Convert a value to a string safely."""
                 if value is None:
@@ -168,6 +178,15 @@ class FlextCliUtilities(FlextUtilities):
                 return r[bool].ok(value=True)
 
             @staticmethod
+            def v_config(
+                config: Mapping[str, t.Cli.CliValue] | Mapping[str, t.JsonValue] | None,
+                *,
+                fields: list[str],
+            ) -> r[bool]:
+                """Validate configuration fields."""
+                return FlextCliUtilities.Cli.CliValidation.v_req(config, fields=fields)
+
+            @staticmethod
             def v_empty(val: t.Cli.CliValue, *, name: str = "field") -> r[bool]:
                 """Validate that a value is not empty."""
                 if val is None:
@@ -185,41 +204,6 @@ class FlextCliUtilities(FlextUtilities):
                 return r[bool].ok(value=True)
 
             @staticmethod
-            def validate_field_in_list(
-                field_value: str | float | None,
-                *,
-                valid_values: list[str],
-                field_name: str,
-            ) -> r[bool]:
-                """Validate that a field value is in a list of valid values."""
-                return FlextCliUtilities.Cli.CliValidation.v(
-                    field_value,
-                    name=field_name,
-                    empty=False,
-                    in_list=valid_values,
-                )
-
-            @staticmethod
-            def v_status(status: str) -> r[bool]:
-                """Validate a command status."""
-                return FlextCliUtilities.Cli.CliValidation.v(
-                    status,
-                    name="status",
-                    empty=False,
-                    in_list=c.Cli.ValidationLists.COMMAND_STATUSES,
-                )
-
-            @staticmethod
-            def v_level(level: str) -> r[bool]:
-                """Validate a debug level."""
-                return FlextCliUtilities.Cli.CliValidation.v(
-                    level,
-                    name="level",
-                    empty=False,
-                    in_list=c.Cli.ValidationLists.DEBUG_LEVELS,
-                )
-
-            @staticmethod
             def v_format(format_type: str) -> r[str]:
                 """Validate an output format."""
                 fmt = str(format_type).lower()
@@ -235,6 +219,47 @@ class FlextCliUtilities(FlextUtilities):
                     c.Cli.ErrorMessages.INVALID_OUTPUT_FORMAT.format(
                         format=format_type,
                     ),
+                )
+
+            @staticmethod
+            def v_level(level: str) -> r[bool]:
+                """Validate a debug level."""
+                return FlextCliUtilities.Cli.CliValidation.v(
+                    level,
+                    name="level",
+                    empty=False,
+                    in_list=c.Cli.ValidationLists.DEBUG_LEVELS,
+                )
+
+            @staticmethod
+            def v_req(
+                data: Mapping[str, t.Cli.CliValue] | Mapping[str, t.JsonValue] | None,
+                *,
+                fields: list[str],
+            ) -> r[bool]:
+                """Validate that required fields are present in a dictionary."""
+                if data is None:
+                    return r[bool].fail(
+                        c.Cli.MixinsValidationMessages.CONFIG_MISSING_FIELDS.format(
+                            missing_fields=fields,
+                        ),
+                    )
+                missing = [name for name in fields if name not in data]
+                if not missing:
+                    return r.ok(True)
+                return r[bool].fail(
+                    c.Cli.MixinsValidationMessages.CONFIG_MISSING_FIELDS.format(
+                        missing_fields=missing,
+                    ),
+                )
+
+            @staticmethod
+            def v_session(current: str, *, valid: list[str]) -> r[bool]:
+                """Validate a session status."""
+                return FlextCliUtilities.Cli.CliValidation.v_state(
+                    current,
+                    valid=valid,
+                    name="session_status",
                 )
 
             @staticmethod
@@ -262,44 +287,14 @@ class FlextCliUtilities(FlextUtilities):
                 return r[bool].fail(f"{name}: no validation criteria provided")
 
             @staticmethod
-            def v_session(current: str, *, valid: list[str]) -> r[bool]:
-                """Validate a session status."""
-                return FlextCliUtilities.Cli.CliValidation.v_state(
-                    current,
-                    valid=valid,
-                    name="session_status",
+            def v_status(status: str) -> r[bool]:
+                """Validate a command status."""
+                return FlextCliUtilities.Cli.CliValidation.v(
+                    status,
+                    name="status",
+                    empty=False,
+                    in_list=c.Cli.ValidationLists.COMMAND_STATUSES,
                 )
-
-            @staticmethod
-            def v_req(
-                data: Mapping[str, t.Cli.CliValue] | Mapping[str, t.JsonValue] | None,
-                *,
-                fields: list[str],
-            ) -> r[bool]:
-                """Validate that required fields are present in a dictionary."""
-                if data is None:
-                    return r[bool].fail(
-                        c.Cli.MixinsValidationMessages.CONFIG_MISSING_FIELDS.format(
-                            missing_fields=fields,
-                        ),
-                    )
-                missing = [name for name in fields if name not in data]
-                if not missing:
-                    return r.ok(True)
-                return r[bool].fail(
-                    c.Cli.MixinsValidationMessages.CONFIG_MISSING_FIELDS.format(
-                        missing_fields=missing,
-                    ),
-                )
-
-            @staticmethod
-            def v_config(
-                config: Mapping[str, t.Cli.CliValue] | Mapping[str, t.JsonValue] | None,
-                *,
-                fields: list[str],
-            ) -> r[bool]:
-                """Validate configuration fields."""
-                return FlextCliUtilities.Cli.CliValidation.v_req(config, fields=fields)
 
             @staticmethod
             def v_step(
@@ -327,14 +322,19 @@ class FlextCliUtilities(FlextUtilities):
                 return r[bool].ok(value=True)
 
             @staticmethod
-            def get_valid_output_formats() -> tuple[str, ...]:
-                """Get valid output formats."""
-                return tuple(sorted(c.Cli.ValidationMappings.OUTPUT_FORMAT_SET))
-
-            @staticmethod
-            def get_valid_command_statuses() -> tuple[str, ...]:
-                """Get valid command statuses."""
-                return tuple(sorted(c.Cli.ValidationMappings.COMMAND_STATUS_SET))
+            def validate_field_in_list(
+                field_value: str | float | None,
+                *,
+                valid_values: list[str],
+                field_name: str,
+            ) -> r[bool]:
+                """Validate that a field value is in a list of valid values."""
+                return FlextCliUtilities.Cli.CliValidation.v(
+                    field_value,
+                    name=field_name,
+                    empty=False,
+                    in_list=valid_values,
+                )
 
         class Environment:
             """CLI environment utilities."""
@@ -356,6 +356,19 @@ class FlextCliUtilities(FlextUtilities):
 
         class ConfigOps:
             """Configuration operations."""
+
+            @staticmethod
+            def get_config_info() -> m.Cli.ConfigSnapshot:
+                """Get configuration information."""
+                path = Path.home() / c.Cli.Paths.FLEXT_DIR_NAME
+                exists = path.exists()
+                return m.Cli.ConfigSnapshot(
+                    config_dir=str(path),
+                    config_exists=exists,
+                    config_readable=exists and os.access(path, os.R_OK),
+                    config_writable=exists and os.access(path, os.W_OK),
+                    timestamp=datetime.now(UTC).isoformat(),
+                )
 
             @staticmethod
             def get_config_paths() -> list[str]:
@@ -393,19 +406,6 @@ class FlextCliUtilities(FlextUtilities):
                     )
                 return lines
 
-            @staticmethod
-            def get_config_info() -> m.Cli.ConfigSnapshot:
-                """Get configuration information."""
-                path = Path.home() / c.Cli.Paths.FLEXT_DIR_NAME
-                exists = path.exists()
-                return m.Cli.ConfigSnapshot(
-                    config_dir=str(path),
-                    config_exists=exists,
-                    config_readable=exists and os.access(path, os.R_OK),
-                    config_writable=exists and os.access(path, os.W_OK),
-                    timestamp=datetime.now(UTC).isoformat(),
-                )
-
         class FileOps:
             """File operations."""
 
@@ -418,12 +418,6 @@ class FlextCliUtilities(FlextUtilities):
             )
 
             @staticmethod
-            def matches(msg: str, *patterns: str) -> bool:
-                """Check if message matches any pattern."""
-                text = msg.lower()
-                return any(pattern.lower() in text for pattern in patterns)
-
-            @staticmethod
             def is_file_not_found_error(error_msg: str) -> bool:
                 """Check if error message indicates file not found."""
                 return FlextCliUtilities.Cli.FileOps.matches(
@@ -431,8 +425,28 @@ class FlextCliUtilities(FlextUtilities):
                     *FlextCliUtilities.Cli.FileOps.FILE_NOT_FOUND_PATTERNS,
                 )
 
+            @staticmethod
+            def matches(msg: str, *patterns: str) -> bool:
+                """Check if message matches any pattern."""
+                text = msg.lower()
+                return any(pattern.lower() in text for pattern in patterns)
+
         class TypeNormalizer:
             """Type normalization utilities."""
+
+            @staticmethod
+            def combine_types_with_union(
+                types_list: list[type | types.UnionType],
+                *,
+                include_none: bool = False,
+            ) -> type | types.UnionType:
+                """Combine types using union."""
+                result: type | types.UnionType = types_list[0]
+                for item in types_list[1:]:
+                    result |= item
+                if include_none:
+                    result |= types.NoneType
+                return result
 
             @staticmethod
             def normalize_annotation(
@@ -493,41 +507,8 @@ class FlextCliUtilities(FlextUtilities):
                     )
                 return annotation
 
-            @staticmethod
-            def combine_types_with_union(
-                types_list: list[type | types.UnionType],
-                *,
-                include_none: bool = False,
-            ) -> type | types.UnionType:
-                """Combine types using union."""
-                result: type | types.UnionType = types_list[0]
-                for item in types_list[1:]:
-                    result |= item
-                if include_none:
-                    result |= types.NoneType
-                return result
-
             class Args:
                 """Function arguments normalization."""
-
-                @staticmethod
-                def validated_with_result[**P, U](
-                    func: Callable[P, r[U]],
-                ) -> Callable[P, r[U]]:
-                    """Validate arguments and return result."""
-                    wrapped = validate_call(
-                        config=ConfigDict(arbitrary_types_allowed=True),
-                        validate_return=False,
-                    )(func)
-
-                    @wraps(func)
-                    def call(*args: P.args, **kwargs: P.kwargs) -> r[U]:
-                        try:
-                            return wrapped(*args, **kwargs)
-                        except ValidationError as exc:
-                            return r[U].fail(str(exc))
-
-                    return call
 
                 @staticmethod
                 def parse_kwargs[E: StrEnum](
@@ -554,6 +535,25 @@ class FlextCliUtilities(FlextUtilities):
                         if errors
                         else r[Mapping[str, t.Cli.CliValue]].ok(parsed)
                     )
+
+                @staticmethod
+                def validated_with_result[**P, U](
+                    func: Callable[P, r[U]],
+                ) -> Callable[P, r[U]]:
+                    """Validate arguments and return result."""
+                    wrapped = validate_call(
+                        config=ConfigDict(arbitrary_types_allowed=True),
+                        validate_return=False,
+                    )(func)
+
+                    @wraps(func)
+                    def call(*args: P.args, **kwargs: P.kwargs) -> r[U]:
+                        try:
+                            return wrapped(*args, **kwargs)
+                        except ValidationError as exc:
+                            return r[U].fail(str(exc))
+
+                    return call
 
             class Model:
                 """Pydantic model normalization."""

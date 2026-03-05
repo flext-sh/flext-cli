@@ -79,53 +79,27 @@ class FlextCliCommonParams:
     _enforcement_mode: bool = True
 
     @classmethod
-    def disable_enforcement(cls) -> None:
-        """Disable enforcement mode (for testing only)."""
-        cls._enforcement_mode = False
+    def _apply_param_setters(
+        cls,
+        config: FlextCliSettings,
+        params: p.Cli.CliParamsConfigProtocol,
+    ) -> r[FlextCliSettings]:
+        """Apply all parameter setter stages to config."""
+        bool_result = cls._set_bool_params(config, params)
+        if bool_result.is_failure:
+            return r[FlextCliSettings].fail(
+                bool_result.error or "Boolean parameter setting failed",
+            )
 
-    @classmethod
-    def enable_enforcement(cls) -> None:
-        """Enable enforcement mode (default)."""
-        cls._enforcement_mode = True
+        log_level_result = cls._set_log_level(config, params)
+        if log_level_result.is_failure:
+            return log_level_result
 
-    @classmethod
-    def validate_enabled(cls) -> r[bool]:
-        """Validate that common parameters are enabled."""
-        if not cls._params_enabled and cls._enforcement_mode:
-            return r[bool].fail(c.Cli.CliParamsErrorMessages.PARAMS_MANDATORY)
-        return r[bool].ok(value=True)
+        format_result = cls._set_format_params(config, params)
+        if format_result.is_failure:
+            return format_result
 
-    @classmethod
-    def create_option(cls, field_name: str) -> OptionInfo:
-        """Create typer.Option() from FlextCliSettings field metadata."""
-        if field_name not in cls.CLI_PARAM_REGISTRY:
-            msg = f"Field '{field_name}' not found in CLI parameter registry"
-            raise ValueError(msg)
-        return m.Cli.OptionBuilder(field_name, cls.CLI_PARAM_REGISTRY).build()
-
-    @classmethod
-    def get_all_common_params(cls) -> Mapping[str, OptionInfo]:
-        """Get all common CLI parameters sorted by priority."""
-        default_priority = c.Cli.CliDefaults.DEFAULT_PRIORITY
-        param_fields = sorted(
-            cls.CLI_PARAM_REGISTRY.items(),
-            key=lambda x: int(
-                str(x[1].get(c.Cli.CliParamsRegistry.KEY_PRIORITY, default_priority)),
-            ),
-        )
-        return {name: cls.create_option(name) for name, _ in param_fields}
-
-    @staticmethod
-    def _opt_bool(kwargs: Mapping[str, bool | str | None], key: str) -> bool | None:
-        """Extract optional bool from kwargs."""
-        v = kwargs.get(key)
-        return bool(v) if v is not None else None
-
-    @staticmethod
-    def _opt_str(kwargs: Mapping[str, bool | str | None], key: str) -> str | None:
-        """Extract optional str from kwargs."""
-        v = kwargs.get(key)
-        return str(v) if v is not None else None
+        return r[FlextCliSettings].ok(config)
 
     @classmethod
     def _build_params_from_kwargs(
@@ -156,27 +130,68 @@ class FlextCliCommonParams:
         return cls._build_params_from_kwargs(kwargs)
 
     @classmethod
-    def _apply_param_setters(
+    def _set_bool_params(
+        cls,
+        config: FlextCliSettings,
+        params: p.Cli.CliParamsConfigProtocol,
+    ) -> r[bool]:
+        """Set boolean parameters with validation via model_copy."""
+        if params.trace is not None and params.trace:
+            will_be_debug = params.debug if params.debug is not None else config.debug
+            if not will_be_debug:
+                return r[bool].fail("Trace mode requires debug mode to be enabled")
+        update_data: dict[str, bool] = {}
+        for field in ("verbose", "quiet", "debug", "trace", "no_color"):
+            val = getattr(params, field, None)
+            if val is not None:
+                update_data[field] = val
+        if update_data:
+            validated_config = config.model_copy(update=update_data)
+            for key in update_data:
+                setattr(config, key, getattr(validated_config, key))
+        return r[bool].ok(value=True)
+
+    @classmethod
+    def _set_format_params(
         cls,
         config: FlextCliSettings,
         params: p.Cli.CliParamsConfigProtocol,
     ) -> r[FlextCliSettings]:
-        """Apply all parameter setter stages to config."""
-        bool_result = cls._set_bool_params(config, params)
-        if bool_result.is_failure:
-            return r[FlextCliSettings].fail(
-                bool_result.error or "Boolean parameter setting failed",
-            )
-
-        log_level_result = cls._set_log_level(config, params)
-        if log_level_result.is_failure:
-            return log_level_result
-
-        format_result = cls._set_format_params(config, params)
-        if format_result.is_failure:
-            return format_result
-
+        """Set log_format and output_format with validation."""
+        if params.log_format is not None:
+            if params.log_format not in c.Cli.CliParamsDefaults.VALID_LOG_FORMATS:
+                valid = ", ".join(c.Cli.CliParamsDefaults.VALID_LOG_FORMATS)
+                return r[FlextCliSettings].fail(
+                    f"invalid log format: {params.log_format}. valid: {valid}",
+                )
+            config.log_verbosity = params.log_format
+        if params.output_format is not None:
+            validated_result = u.Cli.CliValidation.v_format(params.output_format)
+            if validated_result.is_failure:
+                valid = ", ".join(c.Cli.CliParamsDefaults.VALID_OUTPUT_FORMATS)
+                return r[FlextCliSettings].fail(
+                    f"invalid output format: {params.output_format}. valid: {valid}",
+                )
+            config = config.model_copy(update={"output_format": validated_result.value})
         return r[FlextCliSettings].ok(config)
+
+    @classmethod
+    def _set_log_level(
+        cls,
+        config: FlextCliSettings,
+        params: p.Cli.CliParamsConfigProtocol,
+    ) -> r[FlextCliSettings]:
+        """Set cli_log_level with enum conversion."""
+        if params.log_level is None:
+            return r[FlextCliSettings].ok(config)
+        try:
+            config.cli_log_level = c.Cli.Settings.LogLevel(params.log_level.upper())
+            return r[FlextCliSettings].ok(config)
+        except ValueError:
+            valid = ", ".join(c.Cli.Lists.LOG_LEVELS_LIST)
+            return r[FlextCliSettings].fail(
+                f"invalid log level: {params.log_level}. valid options: {valid}",
+            )
 
     @classmethod
     def apply_to_config(
@@ -202,70 +217,6 @@ class FlextCliCommonParams:
             LiveError,
         ) as e:
             return r[FlextCliSettings].fail(f"Failed to apply CLI parameters: {e}")
-
-    @classmethod
-    def _set_bool_params(
-        cls,
-        config: FlextCliSettings,
-        params: p.Cli.CliParamsConfigProtocol,
-    ) -> r[bool]:
-        """Set boolean parameters with validation via model_copy."""
-        if params.trace is not None and params.trace:
-            will_be_debug = params.debug if params.debug is not None else config.debug
-            if not will_be_debug:
-                return r[bool].fail("Trace mode requires debug mode to be enabled")
-        update_data: dict[str, bool] = {}
-        for field in ("verbose", "quiet", "debug", "trace", "no_color"):
-            val = getattr(params, field, None)
-            if val is not None:
-                update_data[field] = val
-        if update_data:
-            validated_config = config.model_copy(update=update_data)
-            for key in update_data:
-                setattr(config, key, getattr(validated_config, key))
-        return r[bool].ok(value=True)
-
-    @classmethod
-    def _set_log_level(
-        cls,
-        config: FlextCliSettings,
-        params: p.Cli.CliParamsConfigProtocol,
-    ) -> r[FlextCliSettings]:
-        """Set cli_log_level with enum conversion."""
-        if params.log_level is None:
-            return r[FlextCliSettings].ok(config)
-        try:
-            config.cli_log_level = c.Cli.Settings.LogLevel(params.log_level.upper())
-            return r[FlextCliSettings].ok(config)
-        except ValueError:
-            valid = ", ".join(c.Cli.Lists.LOG_LEVELS_LIST)
-            return r[FlextCliSettings].fail(
-                f"invalid log level: {params.log_level}. valid options: {valid}",
-            )
-
-    @classmethod
-    def _set_format_params(
-        cls,
-        config: FlextCliSettings,
-        params: p.Cli.CliParamsConfigProtocol,
-    ) -> r[FlextCliSettings]:
-        """Set log_format and output_format with validation."""
-        if params.log_format is not None:
-            if params.log_format not in c.Cli.CliParamsDefaults.VALID_LOG_FORMATS:
-                valid = ", ".join(c.Cli.CliParamsDefaults.VALID_LOG_FORMATS)
-                return r[FlextCliSettings].fail(
-                    f"invalid log format: {params.log_format}. valid: {valid}",
-                )
-            config.log_verbosity = params.log_format
-        if params.output_format is not None:
-            validated_result = u.Cli.CliValidation.v_format(params.output_format)
-            if validated_result.is_failure:
-                valid = ", ".join(c.Cli.CliParamsDefaults.VALID_OUTPUT_FORMATS)
-                return r[FlextCliSettings].fail(
-                    f"invalid output format: {params.output_format}. valid: {valid}",
-                )
-            config = config.model_copy(update={"output_format": validated_result.value})
-        return r[FlextCliSettings].ok(config)
 
     @classmethod
     def configure_logger(
@@ -376,6 +327,55 @@ class FlextCliCommonParams:
             return func
 
         return decorator
+
+    @classmethod
+    def create_option(cls, field_name: str) -> OptionInfo:
+        """Create typer.Option() from FlextCliSettings field metadata."""
+        if field_name not in cls.CLI_PARAM_REGISTRY:
+            msg = f"Field '{field_name}' not found in CLI parameter registry"
+            raise ValueError(msg)
+        return m.Cli.OptionBuilder(field_name, cls.CLI_PARAM_REGISTRY).build()
+
+    @classmethod
+    def disable_enforcement(cls) -> None:
+        """Disable enforcement mode (for testing only)."""
+        cls._enforcement_mode = False
+
+    @classmethod
+    def enable_enforcement(cls) -> None:
+        """Enable enforcement mode (default)."""
+        cls._enforcement_mode = True
+
+    @classmethod
+    def get_all_common_params(cls) -> Mapping[str, OptionInfo]:
+        """Get all common CLI parameters sorted by priority."""
+        default_priority = c.Cli.CliDefaults.DEFAULT_PRIORITY
+        param_fields = sorted(
+            cls.CLI_PARAM_REGISTRY.items(),
+            key=lambda x: int(
+                str(x[1].get(c.Cli.CliParamsRegistry.KEY_PRIORITY, default_priority)),
+            ),
+        )
+        return {name: cls.create_option(name) for name, _ in param_fields}
+
+    @classmethod
+    def validate_enabled(cls) -> r[bool]:
+        """Validate that common parameters are enabled."""
+        if not cls._params_enabled and cls._enforcement_mode:
+            return r[bool].fail(c.Cli.CliParamsErrorMessages.PARAMS_MANDATORY)
+        return r[bool].ok(value=True)
+
+    @staticmethod
+    def _opt_bool(kwargs: Mapping[str, bool | str | None], key: str) -> bool | None:
+        """Extract optional bool from kwargs."""
+        v = kwargs.get(key)
+        return bool(v) if v is not None else None
+
+    @staticmethod
+    def _opt_str(kwargs: Mapping[str, bool | str | None], key: str) -> str | None:
+        """Extract optional str from kwargs."""
+        v = kwargs.get(key)
+        return str(v) if v is not None else None
 
 
 __all__ = [

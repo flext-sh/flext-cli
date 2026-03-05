@@ -29,6 +29,38 @@ class FlextCliOptionGroup:
     """
 
     @staticmethod
+    def auth_options() -> list[OptionInfo]:
+        """Common authentication options.
+
+        Returns:
+            List of typer.Option objects for authentication parameters:
+            - --username, -u: Username (from FLEXT_USERNAME env var)
+            - --password: Password (from FLEXT_PASSWORD env var, hidden input)
+            - --token: Authentication token (from FLEXT_TOKEN env var)
+
+        """
+        return [
+            OptionInfo(
+                default=None,
+                param_decls=["--username", "-u"],
+                envvar="FLEXT_USERNAME",
+                help="Username for authentication",
+            ),
+            OptionInfo(
+                default=None,
+                param_decls=["--password"],
+                envvar="FLEXT_PASSWORD",
+                help="Password for authentication (hidden input)",
+            ),
+            OptionInfo(
+                default=None,
+                param_decls=["--token"],
+                envvar="FLEXT_TOKEN",
+                help="Authentication token",
+            ),
+        ]
+
+    @staticmethod
     def connection_options() -> list[OptionInfo]:
         """Common connection options for any service.
 
@@ -60,38 +92,6 @@ class FlextCliOptionGroup:
                 default=False,
                 param_decls=["--ssl/--no-ssl"],
                 help="Enable SSL/TLS",
-            ),
-        ]
-
-    @staticmethod
-    def auth_options() -> list[OptionInfo]:
-        """Common authentication options.
-
-        Returns:
-            List of typer.Option objects for authentication parameters:
-            - --username, -u: Username (from FLEXT_USERNAME env var)
-            - --password: Password (from FLEXT_PASSWORD env var, hidden input)
-            - --token: Authentication token (from FLEXT_TOKEN env var)
-
-        """
-        return [
-            OptionInfo(
-                default=None,
-                param_decls=["--username", "-u"],
-                envvar="FLEXT_USERNAME",
-                help="Username for authentication",
-            ),
-            OptionInfo(
-                default=None,
-                param_decls=["--password"],
-                envvar="FLEXT_PASSWORD",
-                help="Password for authentication (hidden input)",
-            ),
-            OptionInfo(
-                default=None,
-                param_decls=["--token"],
-                envvar="FLEXT_TOKEN",
-                help="Authentication token",
             ),
         ]
 

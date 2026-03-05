@@ -159,11 +159,35 @@ class FlextCli:
         return cls._instance
 
     @staticmethod
+    def _is_ignorable_delete(result: r[bool]) -> bool:
+        """Check if delete failure is file-not-found (ignorable)."""
+        if result.is_success:
+            return True
+        err = str(result.error).lower()
+        return any(
+            p in err for p in ("not found", "no such file", "does not exist", "errno 2")
+        )
+
+    @staticmethod
     def _validate_token_string(token: str) -> r[bool]:
         """Validate token string; raises ValueError if empty."""
         if not token or not token.strip():
             return r[bool].fail("Token cannot be empty")
         return r[bool].ok(value=True)
+
+    @staticmethod
+    def execute_cli() -> r[bool]:
+        """Execute the CLI application."""
+        return r[bool].ok(value=True)
+
+    @staticmethod
+    def validate_credentials(username: str, password: str) -> r[bool]:
+        """Validate credentials using Pydantic 2."""
+        try:
+            _ = m.Cli.PasswordAuth(username=username, password=password)
+            return r[bool].ok(value=True)
+        except (ValidationError, ValueError) as e:
+            return r[bool].fail(str(e))
 
     def authenticate(
         self,
@@ -192,77 +216,66 @@ class FlextCli:
             return self._authenticate_with_credentials(password_auth)
         return r[str].fail(c.Cli.ErrorMessages.INVALID_CREDENTIALS)
 
-    def _authenticate_with_token(self, credentials: m.Cli.TokenData) -> r[str]:
-        """Authenticate using token (TokenData model)."""
-        token = credentials.token
-        validation = FlextCli._validate_token_string(token)
-        if validation.is_failure:
-            return r[str].fail(validation.error or "")
-        save_result = self.save_auth_token(token)
-        if save_result.is_failure:
-            return r[str].fail(
-                c.Cli.ErrorMessages.TOKEN_SAVE_FAILED.format(error=save_result.error),
-            )
-        return r[str].ok(token)
-
-    def _authenticate_with_credentials(self, credentials: m.Cli.PasswordAuth) -> r[str]:
-        """Authenticate using PasswordAuth model (credentials already validated)."""
-        logger_core(__name__).debug(
-            "Authenticating with password auth",
-            username=credentials.username,
-        )
-        token = secrets.token_urlsafe(c.Cli.APIDefaults.TOKEN_GENERATION_BYTES)
-        self._valid_tokens.add(token)
-        return r[str].ok(token)
-
-    @staticmethod
-    def validate_credentials(username: str, password: str) -> r[bool]:
-        """Validate credentials using Pydantic 2."""
-        try:
-            _ = m.Cli.PasswordAuth(username=username, password=password)
-            return r[bool].ok(value=True)
-        except (ValidationError, ValueError) as e:
-            return r[bool].fail(str(e))
-
-    def save_auth_token(self, token: str) -> r[bool]:
-        """Save authentication token using file tools domain library."""
-        validation = FlextCli._validate_token_string(token)
-        if validation.is_failure:
-            return validation
-        token_data: Mapping[str, t.JsonValue] = {c.Cli.DictKeys.TOKEN: token}
-        json_data = u.transform(token_data, to_json=True).map_or(token_data)
-        write_result = self.file_tools.write_json_file(
-            str(self.config.token_file),
-            json_data,
-        )
-        if write_result.is_failure:
-            return r[bool].fail(
-                c.Cli.ErrorMessages.TOKEN_SAVE_FAILED.format(error=write_result.error),
-            )
-        self._valid_tokens.add(token)
+    def clear_auth_tokens(self) -> r[bool]:
+        """Clear authentication tokens using file tools domain library."""
+        for path in (self.config.token_file, self.config.refresh_token_file):
+            del_result = self.file_tools.delete_file(str(path))
+            if not self._is_ignorable_delete(del_result):
+                return r[bool].fail(
+                    c.Cli.ErrorMessages.FAILED_CLEAR_CREDENTIALS.format(
+                        error=del_result.error,
+                    ),
+                )
+        self._valid_tokens.clear()
         return r[bool].ok(value=True)
 
-    def _get_token_error_message(self, error_str: str) -> str:
-        """Get error message based on exception content."""
-        kw_map: Mapping[str, str] = {
-            "dict": c.Cli.APIDefaults.TOKEN_DATA_TYPE_ERROR,
-            "mapping": c.Cli.APIDefaults.TOKEN_DATA_TYPE_ERROR,
-            "object": c.Cli.APIDefaults.TOKEN_DATA_TYPE_ERROR,
-            "string": c.Cli.APIDefaults.TOKEN_VALUE_TYPE_ERROR,
-            "str": c.Cli.APIDefaults.TOKEN_VALUE_TYPE_ERROR,
-        }
-        for kw, msg in kw_map.items():
-            if kw in error_str:
-                return msg
-        return c.Cli.ErrorMessages.TOKEN_FILE_EMPTY
+    def command(
+        self,
+        name: str | None = None,
+    ) -> Callable[[p.Cli.CliCommandFunction], p.Cli.CliRegisteredCommand]:
+        """Register a command using CLI framework abstraction."""
+        return self._entity_decorator(c.Cli.EntityType.COMMAND, name)
 
-    def _handle_token_file_error(self, error_str: str) -> r[str]:
-        """Handle file read error during token loading."""
-        if u.Cli.FileOps.is_file_not_found_error(error_str):
-            return r[str].fail(c.Cli.ErrorMessages.TOKEN_FILE_NOT_FOUND)
-        return r[str].fail(
-            c.Cli.ErrorMessages.TOKEN_LOAD_FAILED.format(error=error_str),
+    def create_table(
+        self,
+        data: Mapping[str, t.JsonValue] | Sequence[Mapping[str, t.JsonValue]] | None,
+        headers: list[str] | None = None,
+        _title: str | None = None,
+    ) -> r[str]:
+        """Create a formatted ASCII table."""
+        if data is None:
+            return r[str].fail("Table data cannot be None")
+        if isinstance(data, Mapping):
+            table_data: list[Mapping[str, t.JsonValue]] = [dict(data.items())]
+        elif isinstance(data, (list, tuple)):
+            table_data = [x for x in data if isinstance(x, Mapping)]
+        else:
+            table_data = []
+        table_config = m.Cli.TableConfig(
+            headers=headers or "keys",
+            table_format="simple",
         )
+        return FlextCliTables.create_table(table_data, config=table_config)
+
+    def create_tree(self, label: str) -> r[RichTree]:
+        """Create a Rich tree."""
+        return FlextCliFormatters.create_tree(label)
+
+    def execute(self) -> r[Mapping[str, t.JsonValue]]:
+        """Execute CLI service with railway pattern."""
+        result_dict: Mapping[str, t.JsonValue] = {
+            c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.OPERATIONAL.value,
+            c.Cli.DictKeys.SERVICE: c.Cli.FLEXT_CLI,
+            "timestamp": u.generate("timestamp"),
+            "version": "0.1.0",
+            "components": {
+                "config": "available",
+                "formatters": "available",
+                "core": "available",
+                "prompts": "available",
+            },
+        }
+        return r[Mapping[str, t.JsonValue]].ok(result_dict)
 
     def get_auth_token(self) -> r[str]:
         """Get authentication token using Pydantic 2 validation."""
@@ -295,33 +308,100 @@ class FlextCli:
                     return r[str].ok(extracted_token)
             return r[str].fail(c.Cli.ErrorMessages.TOKEN_FILE_EMPTY)
 
+    def group(
+        self,
+        name: str | None = None,
+    ) -> Callable[[p.Cli.CliCommandFunction], p.Cli.CliRegisteredCommand]:
+        """Register a command group using CLI framework abstraction."""
+        return self._entity_decorator(c.Cli.EntityType.GROUP, name)
+
     def is_authenticated(self) -> bool:
         """Check if user is authenticated."""
         auth_result = self.get_auth_token()
         return auth_result.is_success
 
-    @staticmethod
-    def _is_ignorable_delete(result: r[bool]) -> bool:
-        """Check if delete failure is file-not-found (ignorable)."""
-        if result.is_success:
-            return True
-        err = str(result.error).lower()
-        return any(
-            p in err for p in ("not found", "no such file", "does not exist", "errno 2")
-        )
+    def print(self, message: str, style: str | None = None) -> r[bool]:
+        """Print a message with optional style."""
+        return FlextCliFormatters().print(message, style=style or "")
 
-    def clear_auth_tokens(self) -> r[bool]:
-        """Clear authentication tokens using file tools domain library."""
-        for path in (self.config.token_file, self.config.refresh_token_file):
-            del_result = self.file_tools.delete_file(str(path))
-            if not self._is_ignorable_delete(del_result):
-                return r[bool].fail(
-                    c.Cli.ErrorMessages.FAILED_CLEAR_CREDENTIALS.format(
-                        error=del_result.error,
-                    ),
-                )
-        self._valid_tokens.clear()
+    def print_table(self, table_str: str) -> r[bool]:
+        """Print a formatted table string."""
+        return FlextCliFormatters().print(table_str)
+
+    def save_auth_token(self, token: str) -> r[bool]:
+        """Save authentication token using file tools domain library."""
+        validation = FlextCli._validate_token_string(token)
+        if validation.is_failure:
+            return validation
+        token_data: Mapping[str, t.JsonValue] = {c.Cli.DictKeys.TOKEN: token}
+        json_data = u.transform(token_data, to_json=True).map_or(token_data)
+        write_result = self.file_tools.write_json_file(
+            str(self.config.token_file),
+            json_data,
+        )
+        if write_result.is_failure:
+            return r[bool].fail(
+                c.Cli.ErrorMessages.TOKEN_SAVE_FAILED.format(error=write_result.error),
+            )
+        self._valid_tokens.add(token)
         return r[bool].ok(value=True)
+
+    def _authenticate_with_credentials(self, credentials: m.Cli.PasswordAuth) -> r[str]:
+        """Authenticate using PasswordAuth model (credentials already validated)."""
+        logger_core(__name__).debug(
+            "Authenticating with password auth",
+            username=credentials.username,
+        )
+        token = secrets.token_urlsafe(c.Cli.APIDefaults.TOKEN_GENERATION_BYTES)
+        self._valid_tokens.add(token)
+        return r[str].ok(token)
+
+    def _authenticate_with_token(self, credentials: m.Cli.TokenData) -> r[str]:
+        """Authenticate using token (TokenData model)."""
+        token = credentials.token
+        validation = FlextCli._validate_token_string(token)
+        if validation.is_failure:
+            return r[str].fail(validation.error or "")
+        save_result = self.save_auth_token(token)
+        if save_result.is_failure:
+            return r[str].fail(
+                c.Cli.ErrorMessages.TOKEN_SAVE_FAILED.format(error=save_result.error),
+            )
+        return r[str].ok(token)
+
+    def _entity_decorator(
+        self,
+        entity_type: c.Cli.EntityTypeLiteral | c.Cli.EntityType,
+        name: str | None = None,
+    ) -> Callable[[p.Cli.CliCommandFunction], p.Cli.CliRegisteredCommand]:
+        """Return decorator that registers a CLI entity."""
+
+        def decorator(func: p.Cli.CliCommandFunction) -> p.Cli.CliRegisteredCommand:
+            return self._register_cli_entity(entity_type, name, func)
+
+        return decorator
+
+    def _get_token_error_message(self, error_str: str) -> str:
+        """Get error message based on exception content."""
+        kw_map: Mapping[str, str] = {
+            "dict": c.Cli.APIDefaults.TOKEN_DATA_TYPE_ERROR,
+            "mapping": c.Cli.APIDefaults.TOKEN_DATA_TYPE_ERROR,
+            "object": c.Cli.APIDefaults.TOKEN_DATA_TYPE_ERROR,
+            "string": c.Cli.APIDefaults.TOKEN_VALUE_TYPE_ERROR,
+            "str": c.Cli.APIDefaults.TOKEN_VALUE_TYPE_ERROR,
+        }
+        for kw, msg in kw_map.items():
+            if kw in error_str:
+                return msg
+        return c.Cli.ErrorMessages.TOKEN_FILE_EMPTY
+
+    def _handle_token_file_error(self, error_str: str) -> r[str]:
+        """Handle file read error during token loading."""
+        if u.Cli.FileOps.is_file_not_found_error(error_str):
+            return r[str].fail(c.Cli.ErrorMessages.TOKEN_FILE_NOT_FOUND)
+        return r[str].fail(
+            c.Cli.ErrorMessages.TOKEN_LOAD_FAILED.format(error=error_str),
+        )
 
     def _register_cli_entity(
         self,
@@ -347,86 +427,6 @@ class FlextCli:
         registered_command: p.Cli.CliRegisteredCommand = decorated_func
         registry[entity_name] = registered_command
         return registered_command
-
-    def _entity_decorator(
-        self,
-        entity_type: c.Cli.EntityTypeLiteral | c.Cli.EntityType,
-        name: str | None = None,
-    ) -> Callable[[p.Cli.CliCommandFunction], p.Cli.CliRegisteredCommand]:
-        """Return decorator that registers a CLI entity."""
-
-        def decorator(func: p.Cli.CliCommandFunction) -> p.Cli.CliRegisteredCommand:
-            return self._register_cli_entity(entity_type, name, func)
-
-        return decorator
-
-    def command(
-        self,
-        name: str | None = None,
-    ) -> Callable[[p.Cli.CliCommandFunction], p.Cli.CliRegisteredCommand]:
-        """Register a command using CLI framework abstraction."""
-        return self._entity_decorator(c.Cli.EntityType.COMMAND, name)
-
-    def group(
-        self,
-        name: str | None = None,
-    ) -> Callable[[p.Cli.CliCommandFunction], p.Cli.CliRegisteredCommand]:
-        """Register a command group using CLI framework abstraction."""
-        return self._entity_decorator(c.Cli.EntityType.GROUP, name)
-
-    @staticmethod
-    def execute_cli() -> r[bool]:
-        """Execute the CLI application."""
-        return r[bool].ok(value=True)
-
-    def execute(self) -> r[Mapping[str, t.JsonValue]]:
-        """Execute CLI service with railway pattern."""
-        result_dict: Mapping[str, t.JsonValue] = {
-            c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.OPERATIONAL.value,
-            c.Cli.DictKeys.SERVICE: c.Cli.FLEXT_CLI,
-            "timestamp": u.generate("timestamp"),
-            "version": "0.1.0",
-            "components": {
-                "config": "available",
-                "formatters": "available",
-                "core": "available",
-                "prompts": "available",
-            },
-        }
-        return r[Mapping[str, t.JsonValue]].ok(result_dict)
-
-    def print(self, message: str, style: str | None = None) -> r[bool]:
-        """Print a message with optional style."""
-        return FlextCliFormatters().print(message, style=style or "")
-
-    def create_table(
-        self,
-        data: Mapping[str, t.JsonValue] | Sequence[Mapping[str, t.JsonValue]] | None,
-        headers: list[str] | None = None,
-        _title: str | None = None,
-    ) -> r[str]:
-        """Create a formatted ASCII table."""
-        if data is None:
-            return r[str].fail("Table data cannot be None")
-        if isinstance(data, Mapping):
-            table_data: list[Mapping[str, t.JsonValue]] = [dict(data.items())]
-        elif isinstance(data, (list, tuple)):
-            table_data = [x for x in data if isinstance(x, Mapping)]
-        else:
-            table_data = []
-        table_config = m.Cli.TableConfig(
-            headers=headers or "keys",
-            table_format="simple",
-        )
-        return FlextCliTables.create_table(table_data, config=table_config)
-
-    def print_table(self, table_str: str) -> r[bool]:
-        """Print a formatted table string."""
-        return FlextCliFormatters().print(table_str)
-
-    def create_tree(self, label: str) -> r[RichTree]:
-        """Create a Rich tree."""
-        return FlextCliFormatters.create_tree(label)
 
 
 __all__ = [

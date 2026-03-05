@@ -69,48 +69,6 @@ class FlextCliCmd(FlextCliServiceBase):
         # Logger is automatically provided by FlextMixins mixin
         self._file_tools = FlextCliFileTools()
 
-    @override
-    def execute(self) -> r[Mapping[str, t.JsonValue]]:
-        """Report operational status required by `FlextService`."""
-        return r[Mapping[str, t.JsonValue]].ok({
-            FlextCliConstants.Cli.DictKeys.STATUS: FlextCliConstants.Cli.ServiceStatus.OPERATIONAL.value,
-            FlextCliConstants.Cli.DictKeys.SERVICE: FlextCliConstants.Cli.CmdDefaults.SERVICE_NAME,
-        })
-
-    @staticmethod
-    def show_config_paths() -> r[list[str]]:
-        """Show configuration paths using FlextCliUtilities directly."""
-        try:
-            paths = FlextCliUtilities.Cli.ConfigOps.get_config_paths()
-            return r[list[str]].ok(paths)
-        except (OSError, ValueError, TypeError, RuntimeError) as e:
-            return r[list[str]].fail(
-                FlextCliConstants.Cli.ErrorMessages.CONFIG_PATHS_FAILED.format(error=e),
-            )
-
-    def validate_config(self) -> r[bool]:
-        """Validate configuration structure using FlextCliUtilities directly.
-
-        Returns:
-            r[bool]: True if validation passed, or error
-
-        """
-        try:
-            results = FlextCliUtilities.Cli.ConfigOps.validate_config_structure()
-            if results:
-                self.logger.info(
-                    FlextCliConstants.Cli.LogMessages.CONFIG_VALIDATION_RESULTS.format(
-                        results=results,
-                    ),
-                )
-            return r[bool].ok(value=True)
-        except (OSError, ValueError, TypeError, RuntimeError) as e:
-            return r[bool].fail(
-                FlextCliConstants.Cli.ErrorMessages.CONFIG_VALIDATION_FAILED.format(
-                    error=e,
-                ),
-            )
-
     @staticmethod
     def get_config_info() -> r[m.Cli.ConfigSnapshot]:
         """Get configuration information using FlextCliUtilities directly."""
@@ -122,155 +80,15 @@ class FlextCliCmd(FlextCliServiceBase):
                 FlextCliConstants.Cli.ErrorMessages.CONFIG_INFO_FAILED.format(error=e),
             )
 
-    def set_config_value(self, key: str, value: str) -> r[bool]:
-        """Set configuration value with real persistence using flext-core."""
+    @staticmethod
+    def show_config_paths() -> r[list[str]]:
+        """Show configuration paths using FlextCliUtilities directly."""
         try:
-            config_path = (
-                FlextCliServiceBase.get_cli_config().config_dir
-                / FlextCliConstants.Cli.ConfigFiles.CLI_CONFIG_JSON
-            )
-            config_data: t.JsonValue = {key: value}
-            save_result = self._file_tools.write_json_file(
-                file_path=str(config_path),
-                data=config_data,
-            )
-
-            if save_result.is_failure:
-                return r[bool].fail(
-                    FlextCliConstants.Cli.CmdErrorMessages.CONFIG_SAVE_FAILED.format(
-                        error=save_result.error,
-                    ),
-                )
-
-            self.logger.info(
-                FlextCliConstants.Cli.CmdMessages.CONFIG_SAVED.format(
-                    key=key,
-                    value=value,
-                ),
-            )
-            return r[bool].ok(value=True)
-        except (
-            ValueError,
-            TypeError,
-            KeyError,
-            ConsoleError,
-            StyleError,
-            LiveError,
-        ) as e:
-            return r[bool].fail(
-                FlextCliConstants.Cli.ErrorMessages.SET_CONFIG_FAILED.format(error=e),
-            )
-
-    def get_config_value(self, key: str) -> r[Mapping[str, t.JsonValue]]:
-        """Get configuration value with real persistence using flext-core."""
-        try:
-            config_path = (
-                FlextCliServiceBase.get_cli_config().config_dir
-                / FlextCliConstants.Cli.ConfigFiles.CLI_CONFIG_JSON
-            )
-
-            if not config_path.exists():
-                return r[Mapping[str, t.JsonValue]].fail(
-                    FlextCliConstants.Cli.CmdErrorMessages.CONFIG_FILE_NOT_FOUND.format(
-                        path=config_path,
-                    ),
-                )
-
-            load_result = self._file_tools.read_json_file(str(config_path))
-            if load_result.is_failure:
-                load_error_text = str(load_result.error or "")
-                if "Cannot create success result with None value" in load_error_text:
-                    return r[Mapping[str, t.JsonValue]].fail(
-                        FlextCliConstants.Cli.CmdErrorMessages.CONFIG_NOT_DICT,
-                    )
-                return r[Mapping[str, t.JsonValue]].fail(
-                    FlextCliConstants.Cli.CmdErrorMessages.CONFIG_LOAD_FAILED.format(
-                        error=load_result.error,
-                    ),
-                )
-
-            config_data = load_result.value
-            if not FlextCliUtilities.is_dict_like(config_data):
-                return r[Mapping[str, t.JsonValue]].fail(
-                    FlextCliConstants.Cli.CmdErrorMessages.CONFIG_NOT_DICT,
-                )
-            if isinstance(config_data, Mapping):
-                config_data_dict = {
-                    str(key): FlextCliOutput.norm_json(value)
-                    for key, value in config_data.items()
-                }
-            else:
-                config_data_dict = {}
-
-            if key not in config_data_dict:
-                return r[Mapping[str, t.JsonValue]].fail(
-                    FlextCliConstants.Cli.CmdErrorMessages.CONFIG_KEY_NOT_FOUND.format(
-                        key=key,
-                    ),
-                )
-
-            value = config_data_dict[key]
-            # Use FlextCliUtilities.transform for JSON conversion
-            raw_data = {
-                FlextCliConstants.Cli.DictKeys.KEY: key,
-                FlextCliConstants.Cli.DictKeys.VALUE: value,
-                FlextCliConstants.Cli.DictKeys.TIMESTAMP: FlextCliUtilities.generate(
-                    "timestamp",
-                ),
-            }
-            # Python 3.13: to_dict_json() always returns dict, cast_if and isinstance are unnecessary
-            # Reuse to_dict_json helper from output module
-            result_data: dict[str, t.JsonValue] = dict(
-                FlextCliOutput.to_dict_json(raw_data),
-            )
-            return r[Mapping[str, t.JsonValue]].ok(result_data)
-        except (
-            ValueError,
-            TypeError,
-            KeyError,
-            ConsoleError,
-            StyleError,
-            LiveError,
-        ) as e:
-            return r[Mapping[str, t.JsonValue]].fail(
-                FlextCliConstants.Cli.CmdErrorMessages.GET_CONFIG_FAILED.format(
-                    error=e,
-                ),
-            )
-
-    def show_config(self) -> r[bool]:
-        """Show current configuration.
-
-        Returns:
-            r[bool]: True if displayed successfully, or error
-
-        """
-        try:
-            info_result = self.get_config_info()
-            if info_result.is_failure:
-                return r[bool].fail(
-                    FlextCliConstants.Cli.CmdErrorMessages.SHOW_CONFIG_FAILED.format(
-                        error=info_result.error,
-                    ),
-                )
-
-            self.logger.info(
-                FlextCliConstants.Cli.LogMessages.CONFIG_DISPLAYED,
-                config=info_result.value,
-            )
-            return r[bool].ok(value=True)
-        except (
-            ValueError,
-            TypeError,
-            KeyError,
-            ConsoleError,
-            StyleError,
-            LiveError,
-        ) as e:
-            return r[bool].fail(
-                FlextCliConstants.Cli.CmdErrorMessages.SHOW_CONFIG_FAILED.format(
-                    error=e,
-                ),
+            paths = FlextCliUtilities.Cli.ConfigOps.get_config_paths()
+            return r[list[str]].ok(paths)
+        except (OSError, ValueError, TypeError, RuntimeError) as e:
+            return r[list[str]].fail(
+                FlextCliConstants.Cli.ErrorMessages.CONFIG_PATHS_FAILED.format(error=e),
             )
 
     def edit_config(self) -> r[str]:
@@ -353,6 +171,188 @@ class FlextCliCmd(FlextCliServiceBase):
         ) as e:
             return r[str].fail(
                 FlextCliConstants.Cli.ErrorMessages.EDIT_CONFIG_FAILED.format(error=e),
+            )
+
+    @override
+    def execute(self) -> r[Mapping[str, t.JsonValue]]:
+        """Report operational status required by `FlextService`."""
+        return r[Mapping[str, t.JsonValue]].ok({
+            FlextCliConstants.Cli.DictKeys.STATUS: FlextCliConstants.Cli.ServiceStatus.OPERATIONAL.value,
+            FlextCliConstants.Cli.DictKeys.SERVICE: FlextCliConstants.Cli.CmdDefaults.SERVICE_NAME,
+        })
+
+    def get_config_value(self, key: str) -> r[Mapping[str, t.JsonValue]]:
+        """Get configuration value with real persistence using flext-core."""
+        try:
+            config_path = (
+                FlextCliServiceBase.get_cli_config().config_dir
+                / FlextCliConstants.Cli.ConfigFiles.CLI_CONFIG_JSON
+            )
+
+            if not config_path.exists():
+                return r[Mapping[str, t.JsonValue]].fail(
+                    FlextCliConstants.Cli.CmdErrorMessages.CONFIG_FILE_NOT_FOUND.format(
+                        path=config_path,
+                    ),
+                )
+
+            load_result = self._file_tools.read_json_file(str(config_path))
+            if load_result.is_failure:
+                load_error_text = str(load_result.error or "")
+                if "Cannot create success result with None value" in load_error_text:
+                    return r[Mapping[str, t.JsonValue]].fail(
+                        FlextCliConstants.Cli.CmdErrorMessages.CONFIG_NOT_DICT,
+                    )
+                return r[Mapping[str, t.JsonValue]].fail(
+                    FlextCliConstants.Cli.CmdErrorMessages.CONFIG_LOAD_FAILED.format(
+                        error=load_result.error,
+                    ),
+                )
+
+            config_data = load_result.value
+            if not FlextCliUtilities.is_dict_like(config_data):
+                return r[Mapping[str, t.JsonValue]].fail(
+                    FlextCliConstants.Cli.CmdErrorMessages.CONFIG_NOT_DICT,
+                )
+            if isinstance(config_data, Mapping):
+                config_data_dict = {
+                    str(key): FlextCliOutput.norm_json(value)
+                    for key, value in config_data.items()
+                }
+            else:
+                config_data_dict = {}
+
+            if key not in config_data_dict:
+                return r[Mapping[str, t.JsonValue]].fail(
+                    FlextCliConstants.Cli.CmdErrorMessages.CONFIG_KEY_NOT_FOUND.format(
+                        key=key,
+                    ),
+                )
+
+            value = config_data_dict[key]
+            # Use FlextCliUtilities.transform for JSON conversion
+            raw_data = {
+                FlextCliConstants.Cli.DictKeys.KEY: key,
+                FlextCliConstants.Cli.DictKeys.VALUE: value,
+                FlextCliConstants.Cli.DictKeys.TIMESTAMP: FlextCliUtilities.generate(
+                    "timestamp",
+                ),
+            }
+            # Python 3.13: to_dict_json() always returns dict, cast_if and isinstance are unnecessary
+            # Reuse to_dict_json helper from output module
+            result_data: dict[str, t.JsonValue] = dict(
+                FlextCliOutput.to_dict_json(raw_data),
+            )
+            return r[Mapping[str, t.JsonValue]].ok(result_data)
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
+            return r[Mapping[str, t.JsonValue]].fail(
+                FlextCliConstants.Cli.CmdErrorMessages.GET_CONFIG_FAILED.format(
+                    error=e,
+                ),
+            )
+
+    def set_config_value(self, key: str, value: str) -> r[bool]:
+        """Set configuration value with real persistence using flext-core."""
+        try:
+            config_path = (
+                FlextCliServiceBase.get_cli_config().config_dir
+                / FlextCliConstants.Cli.ConfigFiles.CLI_CONFIG_JSON
+            )
+            config_data: t.JsonValue = {key: value}
+            save_result = self._file_tools.write_json_file(
+                file_path=str(config_path),
+                data=config_data,
+            )
+
+            if save_result.is_failure:
+                return r[bool].fail(
+                    FlextCliConstants.Cli.CmdErrorMessages.CONFIG_SAVE_FAILED.format(
+                        error=save_result.error,
+                    ),
+                )
+
+            self.logger.info(
+                FlextCliConstants.Cli.CmdMessages.CONFIG_SAVED.format(
+                    key=key,
+                    value=value,
+                ),
+            )
+            return r[bool].ok(value=True)
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
+            return r[bool].fail(
+                FlextCliConstants.Cli.ErrorMessages.SET_CONFIG_FAILED.format(error=e),
+            )
+
+    def show_config(self) -> r[bool]:
+        """Show current configuration.
+
+        Returns:
+            r[bool]: True if displayed successfully, or error
+
+        """
+        try:
+            info_result = self.get_config_info()
+            if info_result.is_failure:
+                return r[bool].fail(
+                    FlextCliConstants.Cli.CmdErrorMessages.SHOW_CONFIG_FAILED.format(
+                        error=info_result.error,
+                    ),
+                )
+
+            self.logger.info(
+                FlextCliConstants.Cli.LogMessages.CONFIG_DISPLAYED,
+                config=info_result.value,
+            )
+            return r[bool].ok(value=True)
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
+            return r[bool].fail(
+                FlextCliConstants.Cli.CmdErrorMessages.SHOW_CONFIG_FAILED.format(
+                    error=e,
+                ),
+            )
+
+    def validate_config(self) -> r[bool]:
+        """Validate configuration structure using FlextCliUtilities directly.
+
+        Returns:
+            r[bool]: True if validation passed, or error
+
+        """
+        try:
+            results = FlextCliUtilities.Cli.ConfigOps.validate_config_structure()
+            if results:
+                self.logger.info(
+                    FlextCliConstants.Cli.LogMessages.CONFIG_VALIDATION_RESULTS.format(
+                        results=results,
+                    ),
+                )
+            return r[bool].ok(value=True)
+        except (OSError, ValueError, TypeError, RuntimeError) as e:
+            return r[bool].fail(
+                FlextCliConstants.Cli.ErrorMessages.CONFIG_VALIDATION_FAILED.format(
+                    error=e,
+                ),
             )
 
 

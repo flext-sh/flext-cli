@@ -91,6 +91,85 @@ class FlextCliCommandBuilder:
                 setattr(option_info, key, value)
         return option_info
 
+    @staticmethod
+    def _is_command_protocol(obj: t.ContainerValue) -> bool:
+        """Check if object matches minimal command protocol shape."""
+        name_value = getattr(obj, "name", None)
+        description_value = getattr(obj, "description", None)
+        has_name = isinstance(name_value, str)
+        description_ok = description_value is None or isinstance(description_value, str)
+        return bool(has_name and description_ok)
+
+    def build(self) -> m.Cli.CliCommand:
+        """Build the command.
+
+        Returns:
+            m.Cli.CliCommand: Command model ready for registration.
+
+        Note:
+            This is a simplified implementation. Full integration with
+            flext-cli's command system would require more complex wiring.
+
+        """
+        command = m.Cli.CliCommand(
+            name=self._name,
+            description="",
+        )
+        if not self._is_command_protocol(command):
+            msg = "Built command does not satisfy command protocol"
+            raise TypeError(msg)
+        return command
+
+    def handler(self, func: p.Cli.CommandHandlerCallable) -> Self:
+        """Set command handler.
+
+        Args:
+            func: Command handler function.
+
+        Returns:
+            Self: Builder instance for chaining.
+
+        """
+        self._handler = func
+        return self
+
+    def with_argument(
+        self,
+        name: str,
+        type_: type = str,
+        *,
+        required: bool = True,
+    ) -> Self:
+        """Add command argument.
+
+        Args:
+            name: Argument name.
+            type_: Argument type (default: str).
+            required: Whether argument is required (default: True).
+
+        Returns:
+            Self: Builder instance for chaining.
+
+        """
+        self._arguments.append((name, type_, required))
+        return self
+
+    def with_middleware(
+        self,
+        middleware: Callable[[p.Cli.CliContextProtocol], r[t.JsonValue]],
+    ) -> Self:
+        """Add middleware (logging, auth, validation).
+
+        Args:
+            middleware: Middleware function that processes context and calls next.
+
+        Returns:
+            Self: Builder instance for chaining.
+
+        """
+        self._middleware.append(middleware)
+        return self
+
     def with_option(
         self,
         name: str,
@@ -128,27 +207,6 @@ class FlextCliCommandBuilder:
         self._options.append(option_info)
         return self
 
-    def with_argument(
-        self,
-        name: str,
-        type_: type = str,
-        *,
-        required: bool = True,
-    ) -> Self:
-        """Add command argument.
-
-        Args:
-            name: Argument name.
-            type_: Argument type (default: str).
-            required: Whether argument is required (default: True).
-
-        Returns:
-            Self: Builder instance for chaining.
-
-        """
-        self._arguments.append((name, type_, required))
-        return self
-
     def with_option_group(self, group: list[OptionInfo]) -> Self:
         """Add predefined option group.
 
@@ -161,61 +219,3 @@ class FlextCliCommandBuilder:
         """
         self._options.extend(group)
         return self
-
-    def with_middleware(
-        self,
-        middleware: Callable[[p.Cli.CliContextProtocol], r[t.JsonValue]],
-    ) -> Self:
-        """Add middleware (logging, auth, validation).
-
-        Args:
-            middleware: Middleware function that processes context and calls next.
-
-        Returns:
-            Self: Builder instance for chaining.
-
-        """
-        self._middleware.append(middleware)
-        return self
-
-    def handler(self, func: p.Cli.CommandHandlerCallable) -> Self:
-        """Set command handler.
-
-        Args:
-            func: Command handler function.
-
-        Returns:
-            Self: Builder instance for chaining.
-
-        """
-        self._handler = func
-        return self
-
-    def build(self) -> m.Cli.CliCommand:
-        """Build the command.
-
-        Returns:
-            m.Cli.CliCommand: Command model ready for registration.
-
-        Note:
-            This is a simplified implementation. Full integration with
-            flext-cli's command system would require more complex wiring.
-
-        """
-        command = m.Cli.CliCommand(
-            name=self._name,
-            description="",
-        )
-        if not self._is_command_protocol(command):
-            msg = "Built command does not satisfy command protocol"
-            raise TypeError(msg)
-        return command
-
-    @staticmethod
-    def _is_command_protocol(obj: t.ContainerValue) -> bool:
-        """Check if object matches minimal command protocol shape."""
-        name_value = getattr(obj, "name", None)
-        description_value = getattr(obj, "description", None)
-        has_name = isinstance(name_value, str)
-        description_ok = description_value is None or isinstance(description_value, str)
-        return bool(has_name and description_ok)

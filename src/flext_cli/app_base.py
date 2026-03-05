@@ -76,11 +76,6 @@ class FlextCliAppBase[SettingsT: FlextCliSettings](ABC):
         except NameError as ne:
             self._handle_pathlib_annotation_error(ne)
 
-    @abstractmethod
-    def _register_commands(self) -> None:
-        """Register CLI commands - implement in subclass."""
-        ...  # INTERFACE
-
     @staticmethod
     def _handle_pathlib_annotation_error(ne: NameError) -> None:
         """Handle Typer annotation issues with pathlib.Path in Python <3.10."""
@@ -151,3 +146,8 @@ class FlextCliAppBase[SettingsT: FlextCliSettings](ABC):
             error_msg = f"CLI execution error: {exc!s}\nTraceback:\n{tb}"
             _ = self._output.print_error(error_msg)
             return r[bool].fail(f"CLI execution error: {exc!s}")
+
+    @abstractmethod
+    def _register_commands(self) -> None:
+        """Register CLI commands - implement in subclass."""
+        ...  # INTERFACE

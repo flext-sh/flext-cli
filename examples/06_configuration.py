@@ -121,19 +121,6 @@ class MyAppConfig:
         self.max_workers = int(os.getenv("MAX_WORKERS", "4"))
         self.timeout = int(os.getenv("TIMEOUT", "30"))
 
-    def validate(self) -> bool:
-        """Validate YOUR app configuration."""
-        if not self.api_key:
-            cli.print("❌ API_KEY not configured", style="bold red")
-            return False
-
-        if self.max_workers < 1:
-            cli.print("❌ MAX_WORKERS must be >= 1", style="bold red")
-            return False
-
-        cli.print("✅ Configuration valid", style="green")
-        return True
-
     def display(self) -> None:
         """Display YOUR app configuration."""
         config_data: dict[str, t.JsonValue] = {
@@ -154,6 +141,19 @@ class MyAppConfig:
         if table_result.is_success:
             # cli.create_table returns Rich Table, use print_table
             cli.print_table(table_result.value)
+
+    def validate(self) -> bool:
+        """Validate YOUR app configuration."""
+        if not self.api_key:
+            cli.print("❌ API_KEY not configured", style="bold red")
+            return False
+
+        if self.max_workers < 1:
+            cli.print("❌ MAX_WORKERS must be >= 1", style="bold red")
+            return False
+
+        cli.print("✅ Configuration valid", style="green")
+        return True
 
 
 # ============================================================================

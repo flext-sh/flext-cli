@@ -81,13 +81,8 @@ class FlextCliProtocols(FlextProtocols):
             """Protocol for CLI commands."""
 
             @property
-            def name(self) -> str:
-                """Get command name."""
-                ...
-
-            @property
-            def description(self) -> str:
-                """Get command description."""
+            def args(self) -> Sequence[str]:
+                """Get command arguments."""
                 ...
 
             @property
@@ -96,38 +91,23 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
             @property
-            def usage(self) -> str:
-                """Get command usage."""
+            def command_summary(self) -> Mapping[str, str]:
+                """Get command summary."""
+                ...
+
+            @property
+            def created_at(self) -> datetime:
+                """Get creation timestamp."""
+                ...
+
+            @property
+            def description(self) -> str:
+                """Get command description."""
                 ...
 
             @property
             def entry_point(self) -> str:
                 """Get command entry point."""
-                ...
-
-            @property
-            def plugin_version(self) -> str:
-                """Get plugin version."""
-                ...
-
-            @property
-            def args(self) -> Sequence[str]:
-                """Get command arguments."""
-                ...
-
-            @property
-            def status(self) -> str:
-                """Get command status."""
-                ...
-
-            @property
-            def exit_code(self) -> int | None:
-                """Get command exit code."""
-                ...
-
-            @property
-            def output(self) -> str:
-                """Get command output."""
                 ...
 
             @property
@@ -141,8 +121,8 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
             @property
-            def result(self) -> t.JsonValue | None:
-                """Get command result."""
+            def exit_code(self) -> int | None:
+                """Get command exit code."""
                 ...
 
             @property
@@ -151,13 +131,42 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
             @property
-            def created_at(self) -> datetime:
-                """Get creation timestamp."""
+            def name(self) -> str:
+                """Get command name."""
+                ...
+
+            @property
+            def output(self) -> str:
+                """Get command output."""
+                ...
+
+            @property
+            def plugin_version(self) -> str:
+                """Get plugin version."""
+                ...
+
+            @property
+            def result(self) -> t.JsonValue | None:
+                """Get command result."""
+                ...
+
+            @property
+            def status(self) -> str:
+                """Get command status."""
                 ...
 
             @property
             def updated_at(self) -> datetime | None:
                 """Get update timestamp."""
+                ...
+
+            @property
+            def usage(self) -> str:
+                """Get command usage."""
+                ...
+
+            def complete_execution(self, exit_code: int) -> FlextProtocols.Result[Self]:
+                """Complete command execution."""
                 ...
 
             def execute(
@@ -167,29 +176,20 @@ class FlextCliProtocols(FlextProtocols):
                 """Execute the command."""
                 ...
 
-            def with_status(self, status: str) -> Self:
-                """Return a copy with updated status."""
+            def start_execution(self) -> FlextProtocols.Result[Self]:
+                """Start command execution."""
+                ...
+
+            def update_status(self, status: str) -> Self:
+                """Update command status."""
                 ...
 
             def with_args(self, args: Sequence[str]) -> Self:
                 """Return a copy with updated arguments."""
                 ...
 
-            @property
-            def command_summary(self) -> Mapping[str, str]:
-                """Get command summary."""
-                ...
-
-            def start_execution(self) -> FlextProtocols.Result[Self]:
-                """Start command execution."""
-                ...
-
-            def complete_execution(self, exit_code: int) -> FlextProtocols.Result[Self]:
-                """Complete command execution."""
-                ...
-
-            def update_status(self, status: str) -> Self:
-                """Update command status."""
+            def with_status(self, status: str) -> Self:
+                """Return a copy with updated status."""
                 ...
 
         @runtime_checkable
@@ -197,43 +197,15 @@ class FlextCliProtocols(FlextProtocols):
             """Protocol for CLI session models."""
 
             @property
-            def session_id(self) -> str:
-                """Get session ID."""
-                ...
-
-            @property
-            def user_id(self) -> str:
-                """Get user ID."""
-                ...
-
-            @property
-            def status(self) -> str:
-                """Get session status."""
-                ...
-
-            @property
             def commands(self) -> Sequence[FlextCliProtocols.Cli.Command]:
                 """Get session commands."""
                 ...
 
             @property
-            def start_time(self) -> str | None:
-                """Get session start time."""
-                ...
-
-            @property
-            def end_time(self) -> str | None:
-                """Get session end time."""
-                ...
-
-            @property
-            def last_activity(self) -> str | None:
-                """Get last activity timestamp."""
-                ...
-
-            @property
-            def internal_duration_seconds(self) -> float:
-                """Get internal duration in seconds."""
+            def commands_by_status(
+                self,
+            ) -> Mapping[str, Sequence[FlextCliProtocols.Cli.Command]]:
+                """Get commands grouped by status."""
                 ...
 
             @property
@@ -247,8 +219,23 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
             @property
-            def updated_at(self) -> datetime | None:
-                """Get update timestamp."""
+            def end_time(self) -> str | None:
+                """Get session end time."""
+                ...
+
+            @property
+            def internal_duration_seconds(self) -> float:
+                """Get internal duration in seconds."""
+                ...
+
+            @property
+            def last_activity(self) -> str | None:
+                """Get last activity timestamp."""
+                ...
+
+            @property
+            def session_id(self) -> str:
+                """Get session ID."""
                 ...
 
             @property
@@ -257,10 +244,23 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
             @property
-            def commands_by_status(
-                self,
-            ) -> Mapping[str, Sequence[FlextCliProtocols.Cli.Command]]:
-                """Get commands grouped by status."""
+            def start_time(self) -> str | None:
+                """Get session start time."""
+                ...
+
+            @property
+            def status(self) -> str:
+                """Get session status."""
+                ...
+
+            @property
+            def updated_at(self) -> datetime | None:
+                """Get update timestamp."""
+                ...
+
+            @property
+            def user_id(self) -> str:
+                """Get user ID."""
                 ...
 
             def add_command(
@@ -275,6 +275,11 @@ class FlextCliProtocols(FlextProtocols):
             """Protocol for CLI session summary data."""
 
             @property
+            def commands_count(self) -> int:
+                """Get number of commands."""
+                ...
+
+            @property
             def session_id(self) -> str:
                 """Get session ID."""
                 ...
@@ -284,19 +289,9 @@ class FlextCliProtocols(FlextProtocols):
                 """Get session status."""
                 ...
 
-            @property
-            def commands_count(self) -> int:
-                """Get number of commands."""
-                ...
-
         @runtime_checkable
         class DebugData(Protocol):
             """Protocol for CLI debug summary data."""
-
-            @property
-            def service(self) -> str:
-                """Get service name."""
-                ...
 
             @property
             def level(self) -> str:
@@ -308,38 +303,28 @@ class FlextCliProtocols(FlextProtocols):
                 """Get debug message."""
                 ...
 
+            @property
+            def service(self) -> str:
+                """Get service name."""
+                ...
+
         @runtime_checkable
         class CliLoggingDataProtocol(Protocol):
             """Protocol for CLI logging summary data matching m.Cli.CliLoggingData."""
-
-            @property
-            def level(self) -> str:
-                """Get logging level."""
-                ...
 
             @property
             def console_enabled(self) -> bool:
                 """Check if console logging is enabled."""
                 ...
 
+            @property
+            def level(self) -> str:
+                """Get logging level."""
+                ...
+
         @runtime_checkable
         class CliParameterSpecProtocol(Protocol):
             """Protocol for CLI parameter specification matching m.Cli.CliParameterSpec."""
-
-            @property
-            def field_name(self) -> str:
-                """Get field name."""
-                ...
-
-            @property
-            def name(self) -> str:
-                """Get parameter name."""
-                ...
-
-            @property
-            def param_type(self) -> type:
-                """Get parameter type."""
-                ...
 
             @property
             def click_type(self) -> str:
@@ -352,8 +337,23 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
             @property
+            def field_name(self) -> str:
+                """Get field name."""
+                ...
+
+            @property
             def help(self) -> str:
                 """Get help text."""
+                ...
+
+            @property
+            def name(self) -> str:
+                """Get parameter name."""
+                ...
+
+            @property
+            def param_type(self) -> type:
+                """Get parameter type."""
                 ...
 
         @runtime_checkable
@@ -361,8 +361,8 @@ class FlextCliProtocols(FlextProtocols):
             """Protocol for CLI option configuration matching m.Cli.OptionConfig."""
 
             @property
-            def help_text(self) -> str | None:
-                """Get help text."""
+            def count(self) -> bool:
+                """Check if option is a counter."""
                 ...
 
             @property
@@ -371,13 +371,13 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
             @property
-            def type_hint(self) -> t.JsonValue | None:
-                """Get type hint."""
+            def flag_value(self) -> t.JsonValue | None:
+                """Get flag value."""
                 ...
 
             @property
-            def required(self) -> bool:
-                """Check if option is required."""
+            def help_text(self) -> str | None:
+                """Get help text."""
                 ...
 
             @property
@@ -386,18 +386,13 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
             @property
-            def flag_value(self) -> t.JsonValue | None:
-                """Get flag value."""
-                ...
-
-            @property
             def multiple(self) -> bool:
                 """Check if multiple values are allowed."""
                 ...
 
             @property
-            def count(self) -> bool:
-                """Check if option is a counter."""
+            def required(self) -> bool:
+                """Check if option is required."""
                 ...
 
             @property
@@ -405,9 +400,19 @@ class FlextCliProtocols(FlextProtocols):
                 """Check if default value should be shown."""
                 ...
 
+            @property
+            def type_hint(self) -> t.JsonValue | None:
+                """Get type hint."""
+                ...
+
         @runtime_checkable
         class ConfirmConfigProtocol(Protocol):
             """Protocol for CLI confirmation configuration."""
+
+            @property
+            def abort(self) -> bool:
+                """Check if should abort on negative confirmation."""
+                ...
 
             @property
             def default(self) -> bool:
@@ -415,8 +420,8 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
             @property
-            def abort(self) -> bool:
-                """Check if should abort on negative confirmation."""
+            def err(self) -> bool:
+                """Check if output should go to stderr."""
                 ...
 
             @property
@@ -429,18 +434,43 @@ class FlextCliProtocols(FlextProtocols):
                 """Check if default value should be shown."""
                 ...
 
-            @property
-            def err(self) -> bool:
-                """Check if output should go to stderr."""
-                ...
-
         @runtime_checkable
         class PromptConfigProtocol(Protocol):
             """Protocol for CLI prompt configuration."""
 
             @property
+            def confirmation_prompt(self) -> bool:
+                """Check if confirmation prompt is enabled."""
+                ...
+
+            @property
             def default(self) -> t.JsonValue | None:
                 """Get default value."""
+                ...
+
+            @property
+            def err(self) -> bool:
+                """Check if output should go to stderr."""
+                ...
+
+            @property
+            def hide_input(self) -> bool:
+                """Check if input should be hidden."""
+                ...
+
+            @property
+            def prompt_suffix(self) -> str:
+                """Get prompt suffix."""
+                ...
+
+            @property
+            def show_choices(self) -> bool:
+                """Check if choices should be shown."""
+                ...
+
+            @property
+            def show_default(self) -> bool:
+                """Check if default value should be shown."""
                 ...
 
             @property
@@ -451,36 +481,6 @@ class FlextCliProtocols(FlextProtocols):
             @property
             def value_proc(self) -> Callable[[str], t.JsonValue] | None:
                 """Get value processor."""
-                ...
-
-            @property
-            def prompt_suffix(self) -> str:
-                """Get prompt suffix."""
-                ...
-
-            @property
-            def hide_input(self) -> bool:
-                """Check if input should be hidden."""
-                ...
-
-            @property
-            def confirmation_prompt(self) -> bool:
-                """Check if confirmation prompt is enabled."""
-                ...
-
-            @property
-            def show_default(self) -> bool:
-                """Check if default value should be shown."""
-                ...
-
-            @property
-            def err(self) -> bool:
-                """Check if output should go to stderr."""
-                ...
-
-            @property
-            def show_choices(self) -> bool:
-                """Check if choices should be shown."""
                 ...
 
         @runtime_checkable
@@ -502,28 +502,8 @@ class FlextCliProtocols(FlextProtocols):
             """Protocol for CLI parameters configuration."""
 
             @property
-            def verbose(self) -> bool | None:
-                """Check if verbose mode is enabled."""
-                ...
-
-            @property
-            def quiet(self) -> bool | None:
-                """Check if quiet mode is enabled."""
-                ...
-
-            @property
             def debug(self) -> bool | None:
                 """Check if debug mode is enabled."""
-                ...
-
-            @property
-            def trace(self) -> bool | None:
-                """Check if trace mode is enabled."""
-                ...
-
-            @property
-            def log_level(self) -> str | None:
-                """Get log level."""
                 ...
 
             @property
@@ -532,8 +512,8 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
             @property
-            def output_format(self) -> str | None:
-                """Get output format."""
+            def log_level(self) -> str | None:
+                """Get log level."""
                 ...
 
             @property
@@ -542,8 +522,28 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
             @property
+            def output_format(self) -> str | None:
+                """Get output format."""
+                ...
+
+            @property
             def params(self) -> Mapping[str, t.JsonValue]:
                 """Get configuration parameters."""
+                ...
+
+            @property
+            def quiet(self) -> bool | None:
+                """Check if quiet mode is enabled."""
+                ...
+
+            @property
+            def trace(self) -> bool | None:
+                """Check if trace mode is enabled."""
+                ...
+
+            @property
+            def verbose(self) -> bool | None:
+                """Check if verbose mode is enabled."""
                 ...
 
         @runtime_checkable
@@ -551,8 +551,13 @@ class FlextCliProtocols(FlextProtocols):
             """Protocol for system information models."""
 
             @property
-            def python_version(self) -> str:
-                """Get Python version."""
+            def architecture(self) -> Sequence[str]:
+                """Get architecture information."""
+                ...
+
+            @property
+            def hostname(self) -> str:
+                """Get hostname."""
                 ...
 
             @property
@@ -561,18 +566,13 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
             @property
-            def architecture(self) -> Sequence[str]:
-                """Get architecture information."""
-                ...
-
-            @property
             def processor(self) -> str:
                 """Get processor information."""
                 ...
 
             @property
-            def hostname(self) -> str:
-                """Get hostname."""
+            def python_version(self) -> str:
+                """Get Python version."""
                 ...
 
         @runtime_checkable
@@ -703,6 +703,11 @@ class FlextCliProtocols(FlextProtocols):
             """Protocol for CLI execution context."""
 
             @property
+            def args(self) -> Sequence[str]:
+                """Get command arguments."""
+                ...
+
+            @property
             def cwd(self) -> str:
                 """Get current working directory."""
                 ...
@@ -710,11 +715,6 @@ class FlextCliProtocols(FlextProtocols):
             @property
             def env(self) -> Mapping[str, str]:
                 """Get environment variables."""
-                ...
-
-            @property
-            def args(self) -> Sequence[str]:
-                """Get command arguments."""
                 ...
 
             params: Mapping[str, t.JsonValue]
@@ -763,24 +763,17 @@ class FlextCliProtocols(FlextProtocols):
                 """Initialize the service."""
                 ...
 
-            def shutdown(self) -> FlextProtocols.Result[bool]:
-                """Shutdown the service."""
-                ...
-
             def is_healthy(self) -> bool:
                 """Check service health."""
+                ...
+
+            def shutdown(self) -> FlextProtocols.Result[bool]:
+                """Shutdown the service."""
                 ...
 
         @runtime_checkable
         class CommandServiceProtocol(Protocol):
             """Protocol for command processing services."""
-
-            def register_command(
-                self,
-                command: FlextCliProtocols.Cli.Command,
-            ) -> FlextProtocols.Result[bool]:
-                """Register a command."""
-                ...
 
             def get_command(
                 self,
@@ -795,9 +788,20 @@ class FlextCliProtocols(FlextProtocols):
                 """List all commands."""
                 ...
 
+            def register_command(
+                self,
+                command: FlextCliProtocols.Cli.Command,
+            ) -> FlextProtocols.Result[bool]:
+                """Register a command."""
+                ...
+
         @runtime_checkable
         class OutputServiceProtocol(Protocol):
             """Protocol for output formatting services."""
+
+            def format_json(self, data: t.JsonValue) -> FlextProtocols.Result[str]:
+                """Format data as JSON."""
+                ...
 
             def format_table(
                 self,
@@ -805,10 +809,6 @@ class FlextCliProtocols(FlextProtocols):
                 rows: Sequence[Sequence[str]],
             ) -> FlextProtocols.Result[str]:
                 """Format data as a table."""
-                ...
-
-            def format_json(self, data: t.JsonValue) -> FlextProtocols.Result[str]:
-                """Format data as JSON."""
                 ...
 
             def format_yaml(self, data: t.JsonValue) -> FlextProtocols.Result[str]:
@@ -836,12 +836,12 @@ class FlextCliProtocols(FlextProtocols):
         class ErrorHandlerProtocol(Protocol):
             """Protocol for error handling."""
 
-            def handle_error(self, error: Exception) -> FlextProtocols.Result[str]:
-                """Handle an exception."""
-                ...
-
             def get_exit_code(self, error: Exception) -> int:
                 """Get exit code for exception."""
+                ...
+
+            def handle_error(self, error: Exception) -> FlextProtocols.Result[str]:
+                """Handle an exception."""
                 ...
 
         @runtime_checkable
@@ -857,11 +857,6 @@ class FlextCliProtocols(FlextProtocols):
             """Protocol for table style configuration."""
 
             @property
-            def style(self) -> str | None:
-                """Get table style."""
-                ...
-
-            @property
             def show_header(self) -> bool | None:
                 """Check if header should be shown."""
                 ...
@@ -869,6 +864,11 @@ class FlextCliProtocols(FlextProtocols):
             @property
             def show_lines(self) -> bool | None:
                 """Check if lines should be shown."""
+                ...
+
+            @property
+            def style(self) -> str | None:
+                """Get table style."""
                 ...
 
         @runtime_checkable

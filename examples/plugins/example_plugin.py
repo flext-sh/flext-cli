@@ -31,20 +31,20 @@ class CliMainWithGroups(Protocol):
     - Runtime protocol checks ensure compatibility without direct Typer imports
     """
 
-    def group(
-        self,
-        *args: object,
-        **kwargs: object,
-    ) -> Callable[[Callable[..., object]], object]:
-        """Create a command group decorator."""
-        ...
-
     def command(
         self,
         *args: object,
         **kwargs: object,
     ) -> Callable[[Callable[..., object]], object]:
         """Create a command decorator."""
+        ...
+
+    def group(
+        self,
+        *args: object,
+        **kwargs: object,
+    ) -> Callable[[Callable[..., object]], object]:
+        """Create a command group decorator."""
         ...
 
 
