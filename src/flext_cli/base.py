@@ -11,13 +11,10 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from abc import ABC
-from collections.abc import Mapping, Sequence
-from types import ModuleType
+from collections.abc import Mapping
 from typing import override
 
-from pydantic_settings import BaseSettings
-
-from flext_core import p, s, t as core_t
+from flext_core import p, s
 
 from flext_cli import FlextCliSettings, t
 
@@ -48,8 +45,11 @@ class FlextCliServiceBase(s[Mapping[str, t.JsonValue]], ABC):
             Runtime bootstrap options with config_type set to FlextCliSettings
 
         """
-        del cls
-        options = _RuntimeBootstrapOptions(config_type=FlextCliSettings)
+        options = super()._runtime_bootstrap_options()
+        model_copy = getattr(options, "model_copy", None)
+        if model_copy:
+            return model_copy(update={"config_type": FlextCliSettings})
+        options.config_type = FlextCliSettings
         return options
 
     @property
@@ -67,24 +67,3 @@ __all__ = [
     "FlextCliServiceBase",
     "s",
 ]
-
-
-class _RuntimeBootstrapOptions:
-    """Concrete runtime bootstrap options compatible with core protocol."""
-
-    def __init__(
-        self,
-        *,
-        config_type: type[BaseSettings] | None = None,
-    ) -> None:
-        self.config_type: type[BaseSettings] | None = config_type
-        self.config_overrides: Mapping[str, core_t.Scalar] | None = None
-        self.context: p.Context | None = None
-        self.subproject: str | None = None
-        self.services: Mapping[str, core_t.RegisterableService] | None = None
-        self.factories: Mapping[str, core_t.FactoryCallable] | None = None
-        self.resources: Mapping[str, core_t.ResourceCallable] | None = None
-        self.container_overrides: Mapping[str, core_t.Scalar] | None = None
-        self.wire_modules: Sequence[ModuleType] | None = None
-        self.wire_packages: Sequence[str] | None = None
-        self.wire_classes: Sequence[type] | None = None
