@@ -17,32 +17,30 @@ from flext_core import (
     FlextLogger as logger_core,
     FlextRuntime as runtime,
     r,
-    t,
 )
 from pydantic import ValidationError
 from rich.tree import Tree as RichTree
 
-from flext_cli import (
-    FlextCliAppBase,
-    FlextCliCli,
-    FlextCliCmd,
-    FlextCliCommands,
-    FlextCliCommonParams,
-    FlextCliCore,
-    FlextCliDebug,
-    FlextCliFileTools,
-    FlextCliFormatters,
-    FlextCliMixins,
-    FlextCliOutput,
-    FlextCliPrompts,
-    FlextCliServiceBase,
-    FlextCliSettings,
-    FlextCliTables,
-    c,
-    m,
-    p,
-    u,
-)
+from flext_cli.app_base import FlextCliAppBase
+from flext_cli.base import FlextCliServiceBase
+from flext_cli.cli import FlextCliCli
+from flext_cli.cli_params import FlextCliCommonParams
+from flext_cli.commands import FlextCliCommands
+from flext_cli.constants import FlextCliConstants as c
+from flext_cli.debug import FlextCliDebug
+from flext_cli.file_tools import FlextCliFileTools
+from flext_cli.formatters import FlextCliFormatters
+from flext_cli.mixins import FlextCliMixins
+from flext_cli.models import FlextCliModels as m
+from flext_cli.protocols import FlextCliProtocols as p
+from flext_cli.services.cmd import FlextCliCmd
+from flext_cli.services.core import FlextCliCore
+from flext_cli.services.output import FlextCliOutput
+from flext_cli.services.prompts import FlextCliPrompts
+from flext_cli.services.tables import FlextCliTables
+from flext_cli.settings import FlextCliSettings
+from flext_cli.typings import FlextCliTypes as t
+from flext_cli.utilities import FlextCliUtilities as u
 
 
 def _is_registered_command(
@@ -132,9 +130,7 @@ class FlextCli:
         self._container = container()
         key = c.Cli.APIDefaults.CONTAINER_REGISTRATION_KEY
         if not self._container.has_service(key):
-            reg = self._container.register(key, key)
-            if reg.is_failure:
-                self.logger.warning(f"Failed to register CLI service: {reg.error}")
+            self._container.register(key, key)
         self.formatters, self.file_tools = FlextCliFormatters(), FlextCliFileTools()
         self.output, self.core, self.cmd, self.prompts = (
             FlextCliOutput(),

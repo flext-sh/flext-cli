@@ -1164,8 +1164,7 @@ class FlextCliCore(FlextCliServiceBase):
     # ==========================================================================
 
     @override
-    @FlextDecorators.log_operation("cli_core_health_check")
-    @FlextDecorators.track_performance()
+    @FlextDecorators.log_operation("cli_core_health_check", track_perf=True)
     def execute(self) -> r[Mapping[str, t.JsonValue]]:
         """Execute CLI service operations.
 

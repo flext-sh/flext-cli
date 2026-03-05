@@ -371,7 +371,7 @@ class TestsCliTypings:
             age: int,
             *,
             active: bool = True,
-        ) -> dict[str, t.ContainerValue]:
+        ) -> t.ConfigurationMapping:
             return {"name": name, "age": age, "active": active}
 
         hints = get_type_hints(typed_function)
