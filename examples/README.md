@@ -452,14 +452,14 @@ def interactive_tool():
 - **Source Code**: [../src/flext_cli/](../src/flext_cli/)
 - **Tests**: [../tests/](../tests/)
 - **Main Documentation**: [../README.md](../README.md)
-- **Development Guide**: [../CLAUDE.md](../CLAUDE.md)
+- **Development Guide**: [../AGENTS.md](../AGENTS.md)
 
 ## 🆘 Getting Help
 
 1. Review the examples in order (01-11)
 1. Check the inline code documentation
 1. Refer to [../README.md](../README.md) for API reference
-1. See [../CLAUDE.md](../CLAUDE.md) for development guidelines
+1. See [../AGENTS.md](../AGENTS.md) for development guidelines
 
 ## ✅ Best Practices
 

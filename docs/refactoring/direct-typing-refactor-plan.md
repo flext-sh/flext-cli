@@ -4,7 +4,7 @@
 
 **Constraint**: Do not recreate things that only exist in tests — use existing functionality (e.g. `m.Cli.`\*, `FlextCliSettings`) or remove.
 
-**Scope**: flext-cli (tests + src). Align with CLAUDE.md §3, flext-strict-typing, flext-patterns.
+**Scope**: flext-cli (tests + src). Align with AGENTS.md §3, flext-strict-typing, flext-patterns.
 
 ______________________________________________________________________
 
