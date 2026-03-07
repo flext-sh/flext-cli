@@ -16,7 +16,6 @@
 - [Testing Guidelines (v0.10.0)](#testing-guidelines-v0100)
   - [Test Organization](#test-organization)
   - [Testing Simple Classes](#testing-simple-classes)
-  - [Testing Value Objects](#testing-value-objects)
 - [Contributing to v0.10.0](#contributing-to-v0100)
   - [Implementation Checklist](#implementation-checklist)
   - [Pull Request Guidelines](#pull-request-guidelines)

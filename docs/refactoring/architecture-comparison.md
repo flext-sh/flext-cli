@@ -12,7 +12,6 @@
 - [Code Examples](#code-examples)
   - [Example 1: File Operations](#example-1-file-operations)
   - [Example 2: Output Formatting](#example-2-output-formatting)
-  - [Example 3: Context Usage](#example-3-context-usage)
 - [Service Class Patterns](#service-class-patterns)
   - [v0.9.0: Everything Extends FlextService](#v090-everything-extends-flextservice)
   - [v0.10.0: Simple Classes for Utilities](#v0100-simple-classes-for-utilities)
