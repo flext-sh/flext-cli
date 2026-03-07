@@ -1,7 +1,7 @@
 # flext-cli - FLEXT CLI Foundation
 
 **Hierarchy**: PROJECT
-**Parent**: [../CLAUDE.md](../CLAUDE.md) - Workspace standards
+**Parent**: [../AGENTS.md](../AGENTS.md) - Workspace standards
 **Last Update**: 2025-12-08
 
 ______________________________________________________________________
@@ -102,14 +102,14 @@ grep -rEn "(from flext_.*\.(services|api) import)" \
 # If violations found: Do NOT commit, fix architecture first
 ```
 
-**See [Ecosystem Standards](../CLAUDE.md) for complete prohibited patterns and remediation examples.**
+**See [Ecosystem Standards](../AGENTS.md) for complete prohibited patterns and remediation examples.**
 
 ______________________________________________________________________
 
 ## Rule 0 — Cross-Project Alignment
 
-- This file mirrors the root `../CLAUDE.md` standards. Any rule change must be made in the root first and then propagated to this file and to `flext-core/`, `flext-ldap/`, `flext-ldif/`, and `flext-oud-mig/` `CLAUDE.md` files.
-- All agents accept cross-project changes and resolve conflicts in the root `CLAUDE.md` before coding.
+- This file mirrors the root `../AGENTS.md` standards. Any rule change must be made in the root first and then propagated to this file and to `flext-core/`, `flext-ldap/`, `flext-ldif/`, and `flext-oud-mig/` `AGENTS.md` files.
+- All agents accept cross-project changes and resolve conflicts in the root `AGENTS.md` before coding.
 
 ## Critical Rules — Zero Tolerance
 
@@ -280,7 +280,7 @@ ______________________________________________________________________
 
 ## Automated Fix Scripts
 
-For batch corrections (missing imports, undefined names), use `/tmp/fix_*.sh` scripts with 4 modes: `dry-run`, `backup`, `exec`, `rollback`. **See [../CLAUDE.md](../CLAUDE.md#automated-fix-scripts-batch-corrections)** for template and rules.
+For batch corrections (missing imports, undefined names), use `/tmp/fix_*.sh` scripts with 4 modes: `dry-run`, `backup`, `exec`, `rollback`. **See [../AGENTS.md](../AGENTS.md#automated-fix-scripts-batch-corrections)** for template and rules.
 
 ______________________________________________________________________
 
@@ -853,11 +853,11 @@ This project is part of the FLEXT monorepo workspace. Key integration points:
 
 - **Depends on**: flext-core (foundation library)
 - **Used by**: flext-oud-mig, flext-meltano-native, flext-api, flext-observability, flext-meltano
-- **Architecture**: Follows workspace-level patterns defined in `../CLAUDE.md`
+- **Architecture**: Follows workspace-level patterns defined in `../AGENTS.md`
 - **Quality Gates**: Must pass workspace-level validation before commits
 - **Unified Rules**: Follows same rules as flext-core, flext-ldif, flext-ldap, flext-oud-mig
 
-See `../CLAUDE.md` for workspace-level standards and `README.md` for project overview.
+See `../AGENTS.md` for workspace-level standards and `README.md` for project overview.
 
 ______________________________________________________________________
 
@@ -963,6 +963,6 @@ ______________________________________________________________________
 
 **See Also**:
 
-- [Workspace Standards](../CLAUDE.md)
-- [flext-core Patterns](../flext-core/CLAUDE.md)
-- [flext-api Patterns](../flext-api/CLAUDE.md)
+- [Workspace Standards](../AGENTS.md)
+- [flext-core Patterns](../flext-core/AGENTS.md)
+- [flext-api Patterns](../flext-api/AGENTS.md)
