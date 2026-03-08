@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Mapping, Sequence
-from typing import Protocol, Self, runtime_checkable
+from typing import Protocol, Self, override, runtime_checkable
 
 from flext_core import r
 from pydantic import BaseModel, ConfigDict, Field
@@ -150,10 +150,11 @@ class FlextCliCommands(FlextCliServiceBase):
             )
 
         # Type system ensures commands is Mapping after None check
+        # Use comprehension for pyrefly (dict() has no matching overload for this Mapping type)
         group = FlextCliCommandGroup(
             name=name,
             description=description,
-            commands=dict(commands),
+            commands={k: v for k, v in commands.items()},  # noqa: C416
         )
         self._groups[name] = group
         return r[FlextCliCommandGroup].ok(group)
@@ -167,6 +168,7 @@ class FlextCliCommands(FlextCliServiceBase):
         """
         return self
 
+    @override
     def execute(self) -> r[Mapping[str, t.JsonValue]]:
         """Execute commands service - returns service status.
 
@@ -260,11 +262,12 @@ class FlextCliCommands(FlextCliServiceBase):
             Use FlextCliCli for actual Click integration.
 
         """
+        # Use comprehensions for pyrefly (dict() has no matching overload for this Mapping type)
         return FlextCliCommandGroup(
             name=self._name,
             description=self._description,
             commands={
-                k: dict(v) if isinstance(v, Mapping) else v
+                k: {k2: v2 for k2, v2 in v.items()} if isinstance(v, Mapping) else v
                 for k, v in self._commands.items()
             },
         )

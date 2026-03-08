@@ -314,7 +314,7 @@ class FlextCliCli:
         try:
             result = typer.confirm(
                 text=text,
-                default=getattr(config, "default", None),
+                default=getattr(config, "default", True),
                 abort=getattr(config, "abort", False),
                 prompt_suffix=getattr(config, "prompt_suffix", ""),
                 show_default=getattr(config, "show_default", True),
@@ -338,8 +338,8 @@ class FlextCliCli:
         ) -> Callable[[click.Context], t.JsonValue]:
             decorated = click.pass_context(func)
 
-            def typed_decorated(_ctx: click.Context) -> t.JsonValue:
-                return decorated()
+            def typed_decorated(ctx: click.Context) -> t.JsonValue:
+                return decorated(ctx)
 
             return typed_decorated
 
@@ -369,7 +369,7 @@ class FlextCliCli:
     @staticmethod
     def format_filename(filename: str | Path, *, shorten: bool = False) -> str:
         """Format filename."""
-        return click.format_filename(filename, shorten=shorten)
+        return click.format_filename(str(filename), shorten=shorten)
 
     @staticmethod
     def get_current_context() -> click.Context | None:

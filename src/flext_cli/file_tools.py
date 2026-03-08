@@ -370,6 +370,19 @@ class FlextCliFileTools:
         )
 
     @staticmethod
+    def load_file_auto_dict(file_path: str | Path) -> r[dict[str, t.JsonValue]]:
+        """Load JSON or YAML file and return as dict. Fails if root is not an object."""
+        result = FlextCliFileTools.load_file_auto_detect(file_path)
+        if result.is_failure:
+            return r[dict[str, t.JsonValue]].fail(result.error or "Load failed")
+        value = result.value
+        if not _is_json_mapping(value):
+            return r[dict[str, t.JsonValue]].fail(
+                "File root is not an object; use load_file_auto_detect for other types",
+            )
+        return r[dict[str, t.JsonValue]].ok(dict(value))
+
+    @staticmethod
     def move_file(source: str | Path, destination: str | Path) -> r[bool]:
         return FlextCliFileTools._run_bool_operation(
             lambda: shutil.move(str(source), str(destination)),
@@ -406,6 +419,19 @@ class FlextCliFileTools:
             lambda: FlextCliFileTools._load_structured_file(str(file_path), json.load),
             c.Cli.FileErrorMessages.JSON_LOAD_FAILED,
         )
+
+    @staticmethod
+    def read_json_dict(file_path: str | Path) -> r[dict[str, t.JsonValue]]:
+        """Read a JSON file whose root is an object. Returns typed dict; no narrowing needed."""
+        result = FlextCliFileTools.read_json_file(file_path)
+        if result.is_failure:
+            return r[dict[str, t.JsonValue]].fail(result.error or "JSON load failed")
+        value = result.value
+        if not _is_json_mapping(value):
+            return r[dict[str, t.JsonValue]].fail(
+                "JSON root is not an object; use read_json_file for other types",
+            )
+        return r[dict[str, t.JsonValue]].ok(dict(value))
 
     @staticmethod
     def read_text_file(file_path: str | Path) -> r[str]:

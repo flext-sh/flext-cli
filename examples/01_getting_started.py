@@ -15,7 +15,7 @@ from __future__ import annotations
 import tempfile
 from pathlib import Path
 
-from flext_cli import FlextCli, c, t, u
+from flext_cli import FlextCli, c, t
 
 
 class FlextCliGettingStarted:
@@ -34,6 +34,7 @@ class FlextCliGettingStarted:
 
     def __init__(self) -> None:
         """Initialize with flext-cli instance."""
+        super().__init__()
         self.cli = FlextCli()
 
     # ============================================================================
@@ -55,8 +56,10 @@ class FlextCliGettingStarted:
 
         # Using collections.abc.Mapping for immutable configuration
 
-        # Demonstrate discriminated union validation
-        valid_formats = u.Cli.CliValidation.get_valid_output_formats()
+        # Demonstrate discriminated union validation (use constants for known type)
+        valid_formats: tuple[str, ...] = tuple(
+            sorted(c.Cli.ValidationLists.OUTPUT_FORMATS)
+        )
         self.cli.print(f"Available formats: {', '.join(valid_formats)}")
 
         # Using advanced type aliases from typings
@@ -74,30 +77,19 @@ class FlextCliGettingStarted:
 
     def display_user_data(self, user: dict[str, t.JsonValue]) -> None:
         """Show how to display YOUR data as a table."""
-        # Your data (from database, API, etc.)
-        # Create table from user data
-        table_result = self.cli.create_table(
-            data=user,
+        self.cli.show_table(
+            user,
             headers=["Field", "Value"],
-            _title="User Information",
+            title="User Information",
         )
 
-        if table_result.is_success:
-            self.cli.print_table(table_result.value)
-
-    def load_config(self, filepath: str) -> t.Cli.JsonDict | None:
-        """Load YOUR config from JSON with error handling."""
-        read_result = self.cli.file_tools.read_json_file(filepath)
-
+    def load_config(self, filepath: str) -> dict[str, t.JsonValue] | None:
+        """Load YOUR config from JSON. Returns dict or None on failure; no narrowing."""
+        read_result = self.cli.file_tools.read_json_dict(filepath)
         if read_result.is_failure:
-            self.cli.output.print_message(f"Failed to load: {read_result.error}")
+            self.cli.print(f"Failed to load: {read_result.error}", style="red")
             return None
-
-        # Type narrowing: ensure we return a dict normalized to JsonValue
-        data = read_result.value
-        if isinstance(data, dict):
-            return dict(self.cli.output.to_dict_json(data))
-        return None
+        return read_result.value
 
     # ============================================================================
     # PATTERN 4: Error handling without exceptions
@@ -105,17 +97,13 @@ class FlextCliGettingStarted:
 
     def process_data_with_flext_result(self) -> None:
         """Use FlextResult pattern in YOUR code - no try/except needed."""
-        # This won't throw an exception even if file doesn't exist
         nonexistent_file = str(Path(tempfile.gettempdir()) / "nonexistent.json")
-        result = self.cli.file_tools.read_json_file(nonexistent_file)
+        result = self.cli.file_tools.read_json_dict(nonexistent_file)
 
         if result.is_success:
-            # Process your data - result.value contains the loaded data
             self.cli.print("Data loaded successfully", style="green")
         else:
-            # Handle error gracefully
             self.cli.print(f"Error: {result.error}", style="yellow")
-            # Continue execution - no crash!
 
     def run_examples(self) -> None:
         """Run all getting started examples."""
@@ -140,10 +128,9 @@ class FlextCliGettingStarted:
         )
 
         if write_result.is_failure:
-            self.cli.output.print_message(f"Failed to save: {write_result.error}")
+            self.cli.print(f"Failed to save: {write_result.error}", style="red")
             return False
-
-        self.cli.output.print_message(f"✅ Saved to {filepath}")
+        self.cli.print(f"✅ Saved to {filepath}", style="green")
         return True
 
     def your_function_after(self) -> None:

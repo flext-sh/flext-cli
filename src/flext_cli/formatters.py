@@ -13,6 +13,7 @@ from __future__ import annotations
 import sys
 from collections.abc import Mapping
 from io import StringIO
+from typing import Literal, Self, overload, override
 
 from flext_core import FlextLogger, r, u
 from rich.console import Console
@@ -62,6 +63,41 @@ class FlextCliFormatters:
     ZERO TOLERANCE: Use Rich directly, minimal wrapper only for CLI abstraction.
     Removed 24 unused methods - keep ONLY what output.py actually uses.
     """
+
+    class Tree:
+        """Wrapper around Rich Tree; add() returns None by default (optional return via overload).
+
+        Use add(label) for side-effect only; add(label, return_child=True) to chain.
+        """
+
+        def __init__(self, tree: RichTree) -> None:
+            """Wrap a Rich Tree instance for side-effect-safe usage."""
+            self._tree: RichTree = tree
+
+        @overload
+        def add(self, label: str) -> None: ...
+
+        @overload
+        def add(self, label: str, *, return_child: Literal[True]) -> Self: ...
+
+        def add(
+            self,
+            label: str,
+            *,
+            return_child: bool = False,
+        ) -> FlextCliFormatters.Tree | None:
+            """Add a child node; return the wrapped child only when *return_child* is set."""
+            child = self._tree.add(label)
+            return FlextCliFormatters.Tree(child) if return_child else None
+
+        @override
+        def __str__(self) -> str:
+            return str(self._tree)
+
+        @property
+        def tree(self) -> RichTree:
+            """Expose inner Rich Tree for rendering or advanced use."""
+            return self._tree
 
     def __init__(self) -> None:
         """Initialize Rich formatters with direct Rich imports."""
@@ -204,25 +240,25 @@ class FlextCliFormatters:
             return r[RichTable].ok(RichTable())
 
     @staticmethod
-    def create_tree(label: str) -> r[RichTree]:
-        """Create Rich tree with default settings.
+    def create_tree(label: str) -> r[FlextCliFormatters.Tree]:
+        """Create Rich tree wrapped for optional return use (add() returns None by default).
 
         Args:
             label: Tree root label
 
         Returns:
-            r[RichTree]: Rich Tree instance or error
+            r[FlextCliFormatters.Tree]: Wrapper instance or error
 
         Note:
-            For custom tree styling, create Tree objects directly using Rich.
+            Use tree.add(label) for side-effect; tree.add(label, return_child=True) to chain.
 
         """
         try:
             tree = RichTree(label)
-            return r[RichTree].ok(tree)
+            return r[FlextCliFormatters.Tree].ok(FlextCliFormatters.Tree(tree))
         except ConsoleError as exc:
             _logger.warning("rich_tree_creation_failed", error=str(exc), label=label)
-            return r[RichTree].fail(
+            return r[FlextCliFormatters.Tree].fail(
                 c.Cli.FormattersErrorMessages.TREE_CREATION_FAILED.format(
                     error=exc,
                 ),
@@ -324,15 +360,12 @@ class FlextCliFormatters:
         self,
         message: str,
         style: str | None = None,
-    ) -> r[bool]:
+    ) -> None:
         """Print formatted message using Rich.
 
         Args:
             message: Message to print
             style: Rich style string (e.g., "bold red")
-
-        Returns:
-            r[bool]: True on success, False on failure
 
         Note:
             For advanced Rich features, access self.console directly.
@@ -340,7 +373,6 @@ class FlextCliFormatters:
         """
         try:
             self.console.print(message, style=style)
-            return r[bool].ok(value=True)
         except (ConsoleError, StyleError) as exc:
             _logger.warning(
                 "rich_print_fallback",
@@ -349,7 +381,6 @@ class FlextCliFormatters:
             )
             _ = sys.stdout.write(f"{message}\n")
             _ = sys.stdout.flush()
-            return r[bool].ok(value=True)
 
     def render_table_to_string(
         self,
@@ -386,32 +417,33 @@ class FlextCliFormatters:
 
     def render_tree_to_string(
         self,
-        tree: RichTree,
+        tree: RichTree | FlextCliFormatters.Tree,
         width: int | None = None,
     ) -> r[str]:
         """Render Rich tree to string.
 
         Args:
-            tree: Rich Tree instance
+            tree: Rich Tree or FlextCliFormatters.Tree instance
             width: Optional console width
 
         Returns:
             r[str]: Rendered tree string or error
 
         """
+        inner = tree.tree if isinstance(tree, FlextCliFormatters.Tree) else tree
         try:
             buffer = StringIO()
             # Validate width explicitly - no fallback
             validated_width = width if width is not None else self.console.width
             temp_console = Console(file=buffer, width=validated_width)
-            temp_console.print(tree)
+            temp_console.print(inner)
             output = buffer.getvalue()
 
             return r[str].ok(output)
 
         except (ConsoleError, NotRenderableError) as exc:
             _logger.warning("rich_tree_render_fallback", error=str(exc))
-            return r[str].ok(str(tree))
+            return r[str].ok(str(inner))
 
 
 __all__ = [

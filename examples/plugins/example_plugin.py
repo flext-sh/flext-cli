@@ -193,7 +193,7 @@ class ExamplePlugin:
                 """Show plugin status."""
                 status()
 
-            return r[bool].ok(value=True)
+            return r[bool].ok(value=len((hello_cmd, info_cmd, status_cmd)) == 3)
 
         except Exception as e:
             return r[bool].fail(f"Command registration failed: {e}")
@@ -310,7 +310,7 @@ class DataProcessorPlugin:
                 formats_list = list_formats()
                 print(f"Available formats: {', '.join(formats_list)}")
 
-            return r[bool].ok(value=True)
+            return r[bool].ok(value=len((process_cmd, formats_cmd)) == 2)
 
         except Exception as e:
             return r[bool].fail(f"Command registration failed: {e}")

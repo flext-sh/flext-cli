@@ -566,16 +566,11 @@ class FlextCliUtilities(FlextUtilities):
                     strict: bool = False,
                 ) -> r[M]:
                     """Create model instance from dictionary."""
-                    result = FlextUtilities.Model.from_dict(
-                        model_cls,
-                        data,
-                        strict=strict,
-                    )
-                    return (
-                        r[M].ok(result.value)
-                        if result.is_success
-                        else r[M].fail(result.error or "")
-                    )
+                    try:
+                        instance = model_cls.model_validate(data, strict=strict)
+                        return r[M].ok(instance)
+                    except ValidationError as exc:
+                        return r[M].fail(f"Model validation failed: {exc}")
 
                 @staticmethod
                 def merge_defaults[M: BaseModel](

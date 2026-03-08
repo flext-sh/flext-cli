@@ -78,18 +78,20 @@ class ParamsFactory:
         populate_by_name: bool = True,
     ) -> type[BaseModel]:
         """Create a BaseModel params class dynamically."""
-        if fields is None:
-            default_field = Field(default=None)
-            empty_kwargs: dict[str, t.Scalar] = {}
-            fields = {"test_field": (str, default_field, empty_kwargs)}
-
+        default_field = Field(default=None)
+        empty_kwargs: dict[str, t.Scalar] = {}
+        resolved_fields: dict[str, tuple[type, t.Scalar | FieldInfo, dict[str, t.Scalar]]] = (
+            fields
+            if fields is not None
+            else {"test_field": (str, default_field, empty_kwargs)}
+        )
         annotations: dict[str, type] = {}
         class_dict: dict[str, object] = {
             "model_config": {"populate_by_name": populate_by_name},
             "__annotations__": annotations,
         }
 
-        for field_name, (field_type, default, kwargs) in fields.items():
+        for field_name, (field_type, default, kwargs) in resolved_fields.items():
             annotations[field_name] = field_type
             if isinstance(default, FieldInfo):
                 class_dict[field_name] = default

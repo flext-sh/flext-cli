@@ -10,9 +10,9 @@ WHEN TO USE THIS:
 - Want bordered content panels
 
 FLEXT-CLI PROVIDES:
-- cli.output.print_message() - Styled text output (uses Rich)
-- cli.create_table() - Rich tables with borders/colors
-- FlextCliTables - ASCII tables for plain text (uses Tabulate)
+- cli.print() - Styled text output (uses Rich)
+- cli.show_table() - Create and print tables in one call (no branching)
+- FlextCliTables - ASCII tables for plain text (create_table for strings, export_report pattern)
 - Progress bars and spinners
 - Tree structures for hierarchical data
 - Rich Status - Spinning status indicators
@@ -21,7 +21,7 @@ FLEXT-CLI PROVIDES:
 
 HOW TO USE IN YOUR CLI:
 Replace print() with cli.print() for styled output
-Use cli.create_table() to display your data
+Use cli.show_table() to display data (one call, no result handling)
 Use Status() for operation spinners
 Use Live() for auto-updating displays
 Use Panel() for organized content
@@ -45,7 +45,6 @@ from flext_cli import (
     c,
     m,
     t,
-    u,
 )
 
 cli = FlextCli()
@@ -83,26 +82,11 @@ def display_database_results(records: list[dict[str, t.JsonValue]]) -> None:
         cli.print("No results found", style="yellow")
         return
 
-    # Convert your data to table
-    # Example: records from SQLAlchemy, MongoDB, etc.
-    # first_record is already properly typed
-    first_record: dict[str, t.JsonValue] = records[0]
-    list(first_record.keys())
-
-    # For dict[str, t.ContainerValue] data, convert to table format
     table_data: dict[str, t.JsonValue] = {
         f"Row {i}": " | ".join(str(v) for v in record.values())
         for i, record in enumerate(records[:10], 1)
     }
-
-    # Create table from data
-    table_result = cli.create_table(
-        data=table_data,
-        headers=["#", "Data"],
-    )
-
-    if table_result.is_success:
-        cli.print_table(table_result.value)
+    cli.show_table(table_data, headers=["#", "Data"])
 
 
 # ============================================================================
@@ -230,15 +214,11 @@ def monitor_live_metrics() -> None:
             {"Metric": "Requests/sec", "Value": f"{requests}", "Status": "🟢 Active"},
         ]
 
-        # Display using ASCII table (FlextCliTables handles list[dict])
-        # Create table config for grid format
-        config = m.Cli.TableConfig(table_format="grid")
-        table_result = tables.create_table(list(metrics_data), config=config)
-
-        if table_result.is_success:
-            cli.print(f"\n{table_result.value}", style="white")
-        else:
-            cli.print(f"Failed to create table: {table_result.error}", style="red")
+        # Display using one-call API (no branching)
+        cli.show_table(
+            metrics_data,
+            headers=["Metric", "Value", "Status"],
+        )
 
         time.sleep(1.0)
 
@@ -269,10 +249,7 @@ def display_with_panels(data: dict[str, t.JsonValue]) -> None:
 
     if details_data:
         cli.print("\n📋 Details:", style="bold green")
-        # Use FlextCliTables for list[dict] data
-        table_result = tables.create_table(list(details_data))
-        if table_result.is_success:
-            cli.print(f"\n{table_result.value}", style="white")
+        cli.show_table(details_data, headers=["Property", "Value"])
 
     # Section 3: Status message
     cli.print("\n💡 Status:", style="bold yellow")
@@ -307,7 +284,7 @@ def main() -> None:
     cli.print("\n3. ASCII Tables (for logs/reports):", style="bold cyan")
     ascii_result = export_report(sample_data, "table")
     if ascii_result.is_success:
-        pass  # This is plain text - can save to file (ascii_result.value)
+        cli.print(ascii_result.value, style="white")
 
     # Example 4: Progress bars
     cli.print("\n4. Progress Bars (long operations):", style="bold cyan")
@@ -346,7 +323,7 @@ def main() -> None:
     # Integration guide
     cli.print("\n💡 Integration Tips:", style="bold cyan")
     cli.print(
-        "  • Rich tables: Use cli.create_table() for terminal display",
+        "  • Rich tables: Use cli.show_table() for terminal display",
         style="white",
     )
     cli.print("  • ASCII tables: Use FlextCliTables for logs/files", style="white")
@@ -356,7 +333,7 @@ def main() -> None:
     )
     cli.print("  • Status: Use cli.print() with status messages", style="white")
     cli.print(
-        "  • Tables: Use cli.create_table() for auto-refreshing data",
+        "  • Tables: Use cli.show_table() for auto-refreshing data",
         style="white",
     )
     cli.print("  • Organization: Use cli.print() with sections", style="white")
@@ -397,17 +374,13 @@ def advanced_output_example() -> None:
     )
 
     # Demonstrate discriminated union validation
-    valid_formats = u.Cli.CliValidation.get_valid_output_formats()
+    valid_formats: tuple[str, ...] = tuple(
+        sorted(c.Cli.ValidationLists.OUTPUT_FORMATS)
+    )
     cli.print(f"Supported formats: {', '.join(valid_formats)}", style="green")
 
-    # Create table using advanced types
-    table_result = cli.create_table(
-        data=list(sample_data),
-        headers=["Name", "Age", "Role"],
-    )
-
-    if table_result.is_success:
-        cli.print_table(table_result.value)
+    # Create table using ergonomic API (one call, no branching)
+    cli.show_table(list(sample_data), headers=["Name", "Age", "Role"])
 
 
 if __name__ == "__main__":

@@ -19,7 +19,6 @@ from flext_core import (
     r,
 )
 from pydantic import ValidationError
-from rich.tree import Tree as RichTree
 
 from flext_cli.app_base import FlextCliAppBase
 from flext_cli.base import FlextCliServiceBase
@@ -236,13 +235,13 @@ class FlextCli:
         """Register a command using CLI framework abstraction."""
         return self._entity_decorator(c.Cli.EntityType.COMMAND, name)
 
-    def create_table(
+    def _create_table(
         self,
         data: Mapping[str, t.JsonValue] | Sequence[Mapping[str, t.JsonValue]] | None,
         headers: list[str] | None = None,
         _title: str | None = None,
     ) -> r[str]:
-        """Create a formatted ASCII table."""
+        """Create a formatted ASCII table (internal; use show_table for display)."""
         if data is None:
             return r[str].fail("Table data cannot be None")
         if isinstance(data, Mapping):
@@ -257,8 +256,8 @@ class FlextCli:
         )
         return FlextCliTables.create_table(table_data, config=table_config)
 
-    def create_tree(self, label: str) -> r[RichTree]:
-        """Create a Rich tree."""
+    def create_tree(self, label: str) -> r[FlextCliFormatters.Tree]:
+        """Create a Rich tree (FlextCliFormatters.Tree; add() returns None by default)."""
         return FlextCliFormatters.create_tree(label)
 
     def execute(self) -> r[Mapping[str, t.JsonValue]]:
@@ -320,13 +319,29 @@ class FlextCli:
         auth_result = self.get_auth_token()
         return auth_result.is_success
 
-    def print(self, message: str, style: str | None = None) -> r[bool]:
+    def print(self, message: str, style: str | None = None) -> None:
         """Print a message with optional style."""
-        return FlextCliFormatters().print(message, style=style or "")
+        FlextCliFormatters().print(message, style=style or "")
 
-    def print_table(self, table_str: str) -> r[bool]:
-        """Print a formatted table string."""
-        return FlextCliFormatters().print(table_str)
+    def _print_table(self, table_str: str) -> None:
+        """Print a formatted table string (internal; use show_table for display)."""
+        FlextCliFormatters().print(table_str)
+
+    def show_table(
+        self,
+        data: Mapping[str, t.JsonValue] | Sequence[Mapping[str, t.JsonValue]],
+        headers: list[str] | None = None,
+        title: str | None = None,
+    ) -> None:
+        """Create and print a table in one call. No result to capture; no branching."""
+        table_result = self._create_table(data=data, headers=headers, _title=title)
+        if table_result.is_success:
+            self._print_table(table_result.value)
+        else:
+            self.print(
+                f"Table error: {table_result.error}",
+                style="red",
+            )
 
     def save_auth_token(self, token: str) -> r[bool]:
         """Save authentication token using file tools domain library."""

@@ -51,13 +51,9 @@ def handle_status_command() -> r[dict[str, t.JsonValue]]:
         "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
     }
 
-    cli.formatters.print(f"✅ Status: {status['status']}", style="green")
-    cli.formatters.print(f"   User: {status['user']}", style="cyan")
-    cli.formatters.print(f"   Time: {status['timestamp']}", style="cyan")
-
-    # Use u.transform for JSON conversion
-    typed_status: dict[str, t.JsonValue] = dict(status)
-    return r[dict[str, t.JsonValue]].ok(typed_status)
+    cli.print(f"✅ Status: {status['status']}", style="green")
+    cli.print(f"   User: {status['user']}", style="cyan")
+    return r[dict[str, t.JsonValue]].ok(dict(status))
 
 
 def handle_list_command(
@@ -68,14 +64,14 @@ def handle_list_command(
 
     if filter_text:
         filtered = [item for item in items if filter_text in item]
-        cli.formatters.print(
+        cli.print(
             f"📋 Found {len(filtered)} items matching '{filter_text}'",
             style="cyan",
         )
         # Cast to expected type (runtime type is compatible)
         return r[list[str]].ok(filtered)
 
-    cli.formatters.print(f"📋 Total items: {len(items)}", style="cyan")
+    cli.print(f"📋 Total items: {len(items)}", style="cyan")
     # Cast to expected type (runtime type is compatible)
     return r[list[str]].ok(items)
 
@@ -83,13 +79,13 @@ def handle_list_command(
 def handle_config_command(key: str = "", value: str = "") -> r[str]:
     """Config management in YOUR interactive CLI."""
     if key and value:
-        cli.formatters.print(f"✅ Set {key}={value}", style="green")
+        cli.print(f"✅ Set {key}={value}", style="green")
         return r[str].ok(f"Set {key}={value}")
     if key:
         # Get config value
-        cli.formatters.print(f"📖 Reading {key}...", style="cyan")
+        cli.print(f"📖 Reading {key}...", style="cyan")
         return r[str].ok("value")
-    cli.formatters.print("⚠️  Usage: config <key> [value]", style="yellow")
+    cli.print("⚠️  Usage: config <key> [value]", style="yellow")
     return r[str].fail("Missing key")
 
 
@@ -120,7 +116,7 @@ class InteractiveShell:
             return r[t.JsonValue].fail("Empty command")
 
         cmd_name = parts[0]
-        args = parts[1:] if len(parts) > 1 else []
+        args: list[str] = parts[1:] if len(parts) > 1 else []
 
         if cmd_name not in self.commands:
             return r[t.JsonValue].fail(f"Unknown command: {cmd_name}")
@@ -128,45 +124,32 @@ class InteractiveShell:
         handler = self.commands[cmd_name]
 
         try:
-            # Call handler with args - type narrowing
             if callable(handler):
                 result = handler(*args) if args else handler()
-                # Type narrowing: ensure r
-                if isinstance(result, r):
+                if hasattr(result, "is_failure") and hasattr(result, "value"):
                     if result.is_failure:
                         return r[t.JsonValue].fail(
                             result.error or "Unknown command error",
                         )
-                    result_value = result.value
-                    if (
-                        isinstance(result_value, str | int | float | bool)
-                        or result_value is None
-                    ):
-                        return r[t.JsonValue].ok(result_value)
-                    if isinstance(result_value, list | dict):
-                        return r[t.JsonValue].ok(result_value)
-                    return r[t.JsonValue].ok(str(result_value))
-                # Wrap non-r in r
-                if isinstance(result, str | int | float | bool) or result is None:
-                    return r[t.JsonValue].ok(result)
-                if isinstance(result, list | dict):
-                    return r[t.JsonValue].ok(result)
-                return r[t.JsonValue].ok(str(result))
+                    payload: t.JsonValue = result.value
+                else:
+                    payload = result
+                return r[t.JsonValue].ok(payload)
             return r[t.JsonValue].fail("Handler is not callable")
         except Exception as e:
             return r[t.JsonValue].fail(f"Command error: {e}")
 
     def exit_shell(self) -> r[bool]:
         """Exit interactive shell."""
-        cli.formatters.print("👋 Goodbye!", style="cyan")
+        cli.print("👋 Goodbye!", style="cyan")
         self.running = False
         return r[bool].ok(value=True)
 
     def show_help(self) -> r[bool]:
         """Show available commands."""
-        cli.formatters.print("\n📚 Available Commands:", style="bold cyan")
+        cli.print("\n📚 Available Commands:", style="bold cyan")
         for cmd in self.commands:
-            cli.formatters.print(f"   • {cmd}", style="white")
+            cli.print(f"   • {cmd}", style="white")
         return r[bool].ok(value=True)
 
 
@@ -178,8 +161,8 @@ class InteractiveShell:
 def handle_multiline_input(lines: list[str]) -> str:
     """Process multi-line input in YOUR interactive CLI."""
     combined = "\n".join(lines)
-    cli.formatters.print(f"📝 Processing {len(lines)} lines...", style="cyan")
-    cli.formatters.print(f"   Total chars: {len(combined)}", style="white")
+    cli.print(f"📝 Processing {len(lines)} lines...", style="cyan")
+    cli.print(f"   Total chars: {len(combined)}", style="white")
     return combined
 
 
@@ -206,12 +189,12 @@ class CommandHistory:
     def display_history(self) -> None:
         """Display command history."""
         if not self.history:
-            cli.formatters.print("📜 No command history", style="yellow")
+            cli.print("📜 No command history", style="yellow")
             return
 
-        cli.formatters.print("\n📜 Recent Commands (last 10):", style="bold cyan")
+        cli.print("\n📜 Recent Commands (last 10):", style="bold cyan")
         for i, cmd in enumerate(self.get_recent(), 1):
-            cli.formatters.print(f"   {i}. {cmd}", style="white")
+            cli.print(f"   {i}. {cmd}", style="white")
 
     def get_recent(self, count: int = 10) -> list[str]:
         """Get recent commands."""
@@ -225,12 +208,12 @@ class CommandHistory:
 
 def main() -> None:
     """Examples of shell interaction in YOUR code."""
-    cli.formatters.print("=" * 70, style="bold blue")
-    cli.formatters.print("  Interactive Shell Library Usage", style="bold white")
-    cli.formatters.print("=" * 70, style="bold blue")
+    cli.print("=" * 70, style="bold blue")
+    cli.print("  Interactive Shell Library Usage", style="bold white")
+    cli.print("=" * 70, style="bold blue")
 
     # Example 1: Command handlers
-    cli.formatters.print(
+    cli.print(
         "\n1. Command Handlers (status, list, config):",
         style="bold cyan",
     )
@@ -239,7 +222,7 @@ def main() -> None:
     handle_config_command(key="theme", value="dark")
 
     # Example 2: Interactive shell
-    cli.formatters.print(
+    cli.print(
         "\n2. Interactive Shell (command dispatcher):",
         style="bold cyan",
     )
@@ -247,44 +230,45 @@ def main() -> None:
     shell.show_help()
 
     # Simulate command execution
-    cli.formatters.print("\n   Simulating: status", style="yellow")
+    cli.print("\n   Simulating: status", style="yellow")
     shell.execute_command("status")
 
-    cli.formatters.print("\n   Simulating: list test", style="yellow")
+    cli.print("\n   Simulating: list test", style="yellow")
     shell.execute_command("list test")
 
     # Example 3: Multi-line input
-    cli.formatters.print(
+    cli.print(
         "\n3. Multi-Line Input (combined processing):",
         style="bold cyan",
     )
     lines = ["SELECT * FROM users", "WHERE active = true", "ORDER BY created_at DESC"]
-    handle_multiline_input(lines)
+    combined = handle_multiline_input(lines)
+    cli.print(f"   First 50 chars: {combined[:50]}...", style="white")
 
     # Example 4: Command history
-    cli.formatters.print("\n4. Command History (tracking):", style="bold cyan")
+    cli.print("\n4. Command History (tracking):", style="bold cyan")
     history = CommandHistory()
     history.add("status")
     history.add("list test")
     history.add("config theme dark")
     history.display_history()
 
-    cli.formatters.print("\n" + "=" * 70, style="bold blue")
-    cli.formatters.print("  ✅ Shell Interaction Examples Complete", style="bold green")
-    cli.formatters.print("=" * 70, style="bold blue")
+    cli.print("\n" + "=" * 70, style="bold blue")
+    cli.print("  ✅ Shell Interaction Examples Complete", style="bold green")
+    cli.print("=" * 70, style="bold blue")
 
     # Integration guide
-    cli.formatters.print("\n💡 Integration Tips:", style="bold cyan")
-    cli.formatters.print(
+    cli.print("\n💡 Integration Tips:", style="bold cyan")
+    cli.print(
         "  • Create command handlers with FlextResult returns",
         style="white",
     )
-    cli.formatters.print(
+    cli.print(
         "  • Build command dispatcher to route user input",
         style="white",
     )
-    cli.formatters.print("  • Add command history for better UX", style="white")
-    cli.formatters.print(
+    cli.print("  • Add command history for better UX", style="white")
+    cli.print(
         "  • Support multi-line input for complex commands",
         style="white",
     )

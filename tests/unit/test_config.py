@@ -469,8 +469,8 @@ class TestsCliConfigConcurrency:
 
     def test_concurrent_access(self) -> None:
         """Test concurrent config access is safe."""
-        results = []
-        errors = []
+        results: list[tuple[int, bool, str]] = []
+        errors: list[tuple[int, str]] = []
 
         def worker(worker_id: int) -> None:
             try:

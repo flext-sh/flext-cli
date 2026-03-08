@@ -16,7 +16,7 @@ from __future__ import annotations
 import getpass
 import time
 from collections import UserList
-from typing import Never, TypedDict, TypeVar
+from typing import Never, TypedDict, TypeVar, override
 
 import pytest
 from flext_core import FlextResult, t
@@ -412,6 +412,7 @@ class TestsCliPrompts:
         class ErrorList(UserList[str]):
             """List that raises exception on append."""
 
+            @override
             def append(self, item: str) -> Never:
                 msg = "Forced exception for testing prompt_choice exception handler"
                 raise ValueError(msg)
@@ -611,6 +612,7 @@ class TestsCliPrompts:
         class BadList(UserList[str]):
             """List that raises exception on clear."""
 
+            @override
             def clear(self) -> None:
                 msg = "Clear failed"
                 raise ValueError(msg)

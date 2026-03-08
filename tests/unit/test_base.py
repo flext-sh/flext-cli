@@ -13,6 +13,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import override
+
 from flext_core import r, t
 
 from flext_cli import FlextCliServiceBase, FlextCliSettings
@@ -32,6 +34,7 @@ class TestsCliServiceBase:
     class _ConcreteService(FlextCliServiceBase):
         """Concrete implementation for testing abstract base class."""
 
+        @override
         def execute(self) -> r[t.JsonDict]:
             """Implement abstract method for testing."""
             return r[t.JsonDict].ok({})

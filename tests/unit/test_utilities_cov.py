@@ -132,7 +132,7 @@ def test_normalize_union_type_returns_annotation_for_none_only_args(
 
 def test_validated_with_result_returns_failure_on_validation_error() -> None:
     @u.Cli.TypeNormalizer.Args.validated_with_result
-    def parse_int(value: Annotated[int, Field(gt=0)]):
+    def parse_int(value: Annotated[int, Field(gt=0)]) -> r[int]:
         return r.ok(value)
 
     result = parse_int(value=-1)

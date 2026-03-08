@@ -32,10 +32,9 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from flext_cli import FlextCli, FlextCliTables, m, t
+from flext_cli import FlextCli, t
 
 cli = FlextCli()
-tables = FlextCliTables()
 
 
 # ============================================================================
@@ -49,10 +48,10 @@ def export_to_csv(
 ) -> None:
     """Export data to CSV with proper headers."""
     if not data:
-        cli.output.print_message("⚠️  No data to export", style="yellow")
+        cli.print("⚠️  No data to export", style="yellow")
         return
 
-    cli.output.print_message(
+    cli.print(
         f"\n📊 Exporting to CSV: {output_file.name}",
         style="bold cyan",
     )
@@ -69,12 +68,12 @@ def export_to_csv(
 
     if write_result.is_success:
         size = output_file.stat().st_size
-        cli.output.print_message(
+        cli.print(
             f"✅ Exported {len(data)} rows to CSV ({size} bytes)",
             style="green",
         )
     else:
-        cli.output.print_message(
+        cli.print(
             f"❌ Export failed: {write_result.error}",
             style="bold red",
         )
@@ -82,60 +81,29 @@ def export_to_csv(
 
 def import_from_csv(input_file: Path) -> list[dict[str, t.JsonValue]] | None:
     """Import data from CSV with headers."""
-    cli.output.print_message(
+    cli.print(
         f"\n📥 Importing from CSV: {input_file.name}",
         style="bold cyan",
     )
 
-    # Read CSV with headers
     read_result = cli.file_tools.read_csv_file_with_headers(input_file)
 
     if read_result.is_failure:
-        cli.output.print_message(
+        cli.print(
             f"❌ Import failed: {read_result.error}",
             style="bold red",
         )
         return []
 
     rows = read_result.value
-    cli.output.print_message(f"✅ Imported {len(rows)} rows from CSV", style="green")
+    cli.print(f"✅ Imported {len(rows)} rows from CSV", style="green")
 
-    # Display sample rows
     if rows:
-        cli.output.print_message("\n📋 Sample Data:", style="yellow")
-        sample_rows_raw = rows[:5]
-        sample_rows: list[dict[str, t.JsonValue]] = []
-        for row in sample_rows_raw:
-            if isinstance(row, dict):
-                normalized_row: dict[str, t.JsonValue] = {}
-                for key, value in row.items():
-                    if isinstance(value, str | int | float | bool) or value is None:
-                        normalized_row[key] = value
-                    else:
-                        normalized_row[key] = str(value)
-                sample_rows.append(normalized_row)
-        # Cast to expected type for table creation - t.Cli.TableData is Sequence[JsonDict] | JsonDict | Sequence[Sequence[t.ContainerValue]]
-        config = m.Cli.TableConfig(table_format="grid")
-        # sample_rows is already Sequence[dict[str, t.ContainerValue]] which is compatible with t.Cli.TableData
-        # t.Cli.TableData accepts Sequence[JsonDict] which is compatible with Sequence[dict[str, t.ContainerValue]]
-        table_result = tables.create_table(
-            sample_rows,
-            config=config,
-        )
-        if table_result.is_success:
-            pass
+        sample_rows = [dict(r) for r in rows[:5]]
+        if sample_rows:
+            cli.show_table(sample_rows, title="📋 Sample Data")
 
-    converted_rows: list[dict[str, t.JsonValue]] = []
-    for row in rows:
-        if isinstance(row, dict):
-            normalized_row: dict[str, t.JsonValue] = {}
-            for key, value in row.items():
-                if isinstance(value, str | int | float | bool) or value is None:
-                    normalized_row[key] = value
-                else:
-                    normalized_row[key] = str(value)
-            converted_rows.append(normalized_row)
-    return converted_rows
+    return [dict(r) for r in rows]
 
 
 # ============================================================================
@@ -145,7 +113,7 @@ def import_from_csv(input_file: Path) -> list[dict[str, t.JsonValue]] | None:
 
 def process_binary_file(input_file: Path, output_file: Path) -> None:
     """Read, process, and write binary files."""
-    cli.output.print_message(
+    cli.print(
         f"\n🔧 Processing Binary File: {input_file.name}",
         style="bold cyan",
     )
@@ -154,18 +122,18 @@ def process_binary_file(input_file: Path, output_file: Path) -> None:
     read_result = cli.file_tools.read_binary_file(input_file)
 
     if read_result.is_failure:
-        cli.output.print_message(
+        cli.print(
             f"❌ Read failed: {read_result.error}",
             style="bold red",
         )
         return
 
     data = read_result.value
-    cli.output.print_message(f"✅ Read {len(data)} bytes", style="green")
+    cli.print(f"✅ Read {len(data)} bytes", style="green")
 
     # Calculate checksum
     checksum = hashlib.sha256(data).hexdigest()
-    cli.output.print_message(f"   MD5 checksum: {checksum}", style="cyan")
+    cli.print(f"   MD5 checksum: {checksum}", style="cyan")
 
     # Process data (example: simple transformation)
     # In real usage: compress, encrypt, resize image, etc.
@@ -175,12 +143,12 @@ def process_binary_file(input_file: Path, output_file: Path) -> None:
     write_result = cli.file_tools.write_binary_file(output_file, processed_data)
 
     if write_result.is_success:
-        cli.output.print_message(
+        cli.print(
             f"✅ Wrote {len(processed_data)} bytes to {output_file.name}",
             style="green",
         )
     else:
-        cli.output.print_message(
+        cli.print(
             f"❌ Write failed: {write_result.error}",
             style="bold red",
         )
@@ -193,7 +161,7 @@ def process_binary_file(input_file: Path, output_file: Path) -> None:
 
 def load_any_format_file(file_path: Path) -> dict[str, t.JsonValue] | None:
     """Load config from ANY format - automatically detected."""
-    cli.output.print_message(
+    cli.print(
         f"\n🔍 Auto-Detecting Format: {file_path.name}",
         style="bold cyan",
     )
@@ -202,66 +170,38 @@ def load_any_format_file(file_path: Path) -> dict[str, t.JsonValue] | None:
     format_result = cli.file_tools.detect_file_format(file_path)
 
     if format_result.is_failure:
-        cli.output.print_message(
+        cli.print(
             f"❌ Format detection failed: {format_result.error}",
             style="bold red",
         )
         return None
 
     detected_format = format_result.value
-    cli.output.print_message(
+    cli.print(
         f"✅ Detected format: {detected_format.upper()}",
         style="green",
     )
 
-    # Load with auto-detection
-    load_result = cli.file_tools.load_file_auto_detect(file_path)
+    # Load with auto-detection (dict-only, no narrowing)
+    load_result = cli.file_tools.load_file_auto_dict(file_path)
 
     if load_result.is_failure:
-        cli.output.print_message(
+        cli.print(
             f"❌ Load failed: {load_result.error}",
             style="bold red",
         )
         return None
 
     data = load_result.value
-    cli.output.print_message("✅ Loaded data successfully", style="green")
+    cli.print("✅ Loaded data successfully", style="green")
 
-    # Type narrowing: ensure we have a dict
-    if not isinstance(data, dict):
-        cli.output.print_message(
-            (
-                f"⚠️  Loaded data is not a dict[str, t.JsonValue] "
-                f"(type: {type(data).__name__})"
-            ),
-            style="yellow",
-        )
-        return None
-
-    # Display loaded data
-    # Use u.transform for JSON conversion
-    display_data: dict[str, t.JsonValue] = {}
-    for key, value in data.items():
-        if (
-            isinstance(value, str | int | float | bool)
-            or value is None
-            or isinstance(value, list | dict)
-        ):
-            display_data[key] = value
-        else:
-            display_data[key] = str(value)
-    # Cast to dict[str, t.ContainerValue] for create_table
-    table_result = cli.create_table(
-        data=display_data,
+    display_rows = [{"Key": k, "Value": str(v)} for k, v in data.items()]
+    cli.show_table(
+        display_rows,
         headers=["Key", "Value"],
-        _title=f"Loaded from {detected_format.upper()}",
+        title=f"Loaded from {detected_format.upper()}",
     )
-    if table_result.is_success:
-        cli.print_table(table_result.value)
-
-    # Convert to JsonDict-compatible dict using u
-    # Use u.transform for JSON conversion
-    return display_data
+    return data
 
 
 # ============================================================================
@@ -274,12 +214,12 @@ def export_data_multi_format(
     base_path: Path,
 ) -> dict[str, str]:
     """Export same data to multiple formats (JSON, YAML, CSV)."""
-    cli.output.print_message(
+    cli.print(
         f"\n💾 Multi-Format Export: {base_path.stem}",
         style="bold cyan",
     )
 
-    export_results = {}
+    export_results: dict[str, str] = {}
 
     # Export to JSON
     json_path = base_path.with_suffix(".json")
@@ -289,7 +229,7 @@ def export_data_multi_format(
     if json_result.is_success:
         size = json_path.stat().st_size
         export_results["JSON"] = f"{size} bytes"
-        cli.output.print_message(
+        cli.print(
             f"✅ JSON: {json_path.name} ({size} bytes)",
             style="green",
         )
@@ -302,13 +242,13 @@ def export_data_multi_format(
     if yaml_result.is_success:
         size = yaml_path.stat().st_size
         export_results["YAML"] = f"{size} bytes"
-        cli.output.print_message(
+        cli.print(
             f"✅ YAML: {yaml_path.name} ({size} bytes)",
             style="green",
         )
 
     # Export to CSV (if data is list of dicts)
-    if isinstance(data, list) and data and isinstance(data[0], dict):
+    if isinstance(data, list) and data:
         csv_path = base_path.with_suffix(".csv")
         headers = list(data[0].keys())
         # Prepend headers as first row
@@ -319,13 +259,13 @@ def export_data_multi_format(
         if csv_result.is_success:
             size = csv_path.stat().st_size
             export_results["CSV"] = f"{size} bytes"
-            cli.output.print_message(
+            cli.print(
                 f"✅ CSV: {csv_path.name} ({size} bytes)",
                 style="green",
             )
 
     # Summary
-    cli.output.print_message(
+    cli.print(
         f"\n📊 Exported to {len(export_results)} formats",
         style="bold green",
     )
@@ -339,7 +279,7 @@ def export_data_multi_format(
 
 def process_text_file(input_file: Path, output_file: Path) -> None:
     """Read and write text files with proper encoding."""
-    cli.output.print_message(
+    cli.print(
         f"\n📝 Processing Text File: {input_file.name}",
         style="bold cyan",
     )
@@ -348,16 +288,16 @@ def process_text_file(input_file: Path, output_file: Path) -> None:
     read_result = cli.file_tools.read_text_file(input_file)
 
     if read_result.is_failure:
-        cli.output.print_message(
+        cli.print(
             f"❌ Read failed: {read_result.error}",
             style="bold red",
         )
         return
 
     content = read_result.value
-    cli.output.print_message(f"✅ Read {len(content)} characters", style="green")
-    cli.output.print_message(f"   Lines: {content.count(chr(10)) + 1}", style="cyan")
-    cli.output.print_message(f"   Words: {len(content.split())}", style="cyan")
+    cli.print(f"✅ Read {len(content)} characters", style="green")
+    cli.print(f"   Lines: {content.count(chr(10)) + 1}", style="cyan")
+    cli.print(f"   Words: {len(content.split())}", style="cyan")
 
     # Process content (example: uppercase)
     processed = content.upper()
@@ -366,7 +306,7 @@ def process_text_file(input_file: Path, output_file: Path) -> None:
     write_result = cli.file_tools.write_text_file(output_file, processed)
 
     if write_result.is_success:
-        cli.output.print_message(
+        cli.print(
             f"✅ Wrote {len(processed)} characters to {output_file.name}",
             style="green",
         )
@@ -379,7 +319,7 @@ def process_text_file(input_file: Path, output_file: Path) -> None:
 
 def copy_file_with_verification(source: Path, destination: Path) -> bool:
     """Copy file and verify integrity."""
-    cli.output.print_message(
+    cli.print(
         f"\n📋 Copying File: {source.name} → {destination.name}",
         style="bold cyan",
     )
@@ -387,32 +327,32 @@ def copy_file_with_verification(source: Path, destination: Path) -> bool:
     # Calculate source checksum
     source_data = source.read_bytes()
     source_hash = hashlib.sha256(source_data).hexdigest()
-    cli.output.print_message(f"   Source MD5: {source_hash}", style="cyan")
+    cli.print(f"   Source MD5: {source_hash}", style="cyan")
 
     # Copy file
     copy_result = cli.file_tools.copy_file(source, destination)
 
     if copy_result.is_failure:
-        cli.output.print_message(
+        cli.print(
             f"❌ Copy failed: {copy_result.error}",
             style="bold red",
         )
         return False
 
-    cli.output.print_message("✅ File copied successfully", style="green")
+    cli.print("✅ File copied successfully", style="green")
 
     # Verify copy
     dest_data = destination.read_bytes()
     dest_hash = hashlib.sha256(dest_data).hexdigest()
-    cli.output.print_message(f"   Dest MD5: {dest_hash}", style="cyan")
+    cli.print(f"   Dest MD5: {dest_hash}", style="cyan")
 
     if source_hash == dest_hash:
-        cli.output.print_message(
+        cli.print(
             "✅ Integrity verified - checksums match!",
             style="bold green",
         )
         return True
-    cli.output.print_message(
+    cli.print(
         "❌ Integrity check failed - checksums differ!",
         style="bold red",
     )
@@ -426,43 +366,35 @@ def copy_file_with_verification(source: Path, destination: Path) -> bool:
 
 def main() -> None:
     """Examples of advanced file format operations in YOUR code."""
-    cli.output.print_message("=" * 70, style="bold blue")
-    cli.output.print_message(
+    cli.print("=" * 70, style="bold blue")
+    cli.print(
         "  Advanced File Formats Library Usage",
         style="bold white",
     )
-    cli.output.print_message("=" * 70, style="bold blue")
+    cli.print("=" * 70, style="bold blue")
 
     # Setup temp directory
     temp_dir = Path(tempfile.gettempdir()) / "flext_advanced_files"
     temp_dir.mkdir(exist_ok=True)
 
     # Example 1: CSV operations
-    cli.output.print_message("\n" + "=" * 70, style="bold blue")
-    cli.output.print_message("1. CSV Export/Import:", style="bold cyan")
+    cli.print("\n" + "=" * 70, style="bold blue")
+    cli.print("1. CSV Export/Import:", style="bold cyan")
 
-    sample_data = [
+    sample_data: list[dict[str, t.JsonValue]] = [
         {"id": 1, "name": "Alice", "department": "Engineering", "salary": "100000"},
         {"id": 2, "name": "Bob", "department": "Sales", "salary": "80000"},
         {"id": 3, "name": "Charlie", "department": "Marketing", "salary": "90000"},
     ]
 
     csv_file = temp_dir / "employees.csv"
-    typed_sample_data: list[dict[str, t.JsonValue]] = []
-    for row in sample_data:
-        normalized_row: dict[str, t.JsonValue] = {}
-        for key, value in row.items():
-            if isinstance(value, str | int | float | bool) or value is None:
-                normalized_row[key] = value
-            else:
-                normalized_row[key] = str(value)
-        typed_sample_data.append(normalized_row)
+    typed_sample_data: list[dict[str, t.JsonValue]] = [dict(row) for row in sample_data]
     export_to_csv(typed_sample_data, csv_file)
     import_from_csv(csv_file)
 
     # Example 2: Binary files
-    cli.output.print_message("\n" + "=" * 70, style="bold blue")
-    cli.output.print_message("2. Binary File Processing:", style="bold cyan")
+    cli.print("\n" + "=" * 70, style="bold blue")
+    cli.print("2. Binary File Processing:", style="bold cyan")
 
     # Create a sample binary file
     binary_input = temp_dir / "input.bin"
@@ -472,8 +404,8 @@ def main() -> None:
     process_binary_file(binary_input, binary_output)
 
     # Example 3: Auto-format detection
-    cli.output.print_message("\n" + "=" * 70, style="bold blue")
-    cli.output.print_message("3. Auto-Format Detection:", style="bold cyan")
+    cli.print("\n" + "=" * 70, style="bold blue")
+    cli.print("3. Auto-Format Detection:", style="bold cyan")
 
     # Create test files in different formats
     test_config: dict[str, t.JsonValue] = {
@@ -492,8 +424,8 @@ def main() -> None:
     load_any_format_file(yaml_file)
 
     # Example 4: Multi-format export
-    cli.output.print_message("\n" + "=" * 70, style="bold blue")
-    cli.output.print_message("4. Multi-Format Export:", style="bold cyan")
+    cli.print("\n" + "=" * 70, style="bold blue")
+    cli.print("4. Multi-Format Export:", style="bold cyan")
 
     multi_data: list[dict[str, t.JsonValue]] = [
         {"metric": "CPU", "value": "75%", "status": "OK"},
@@ -505,8 +437,8 @@ def main() -> None:
     export_data_multi_format(multi_data, temp_dir / "metrics")
 
     # Example 5: Text file processing
-    cli.output.print_message("\n" + "=" * 70, style="bold blue")
-    cli.output.print_message("5. Text File Processing:", style="bold cyan")
+    cli.print("\n" + "=" * 70, style="bold blue")
+    cli.print("5. Text File Processing:", style="bold cyan")
 
     text_input = temp_dir / "input.txt"
     text_output = temp_dir / "output.txt"
@@ -515,8 +447,8 @@ def main() -> None:
     process_text_file(text_input, text_output)
 
     # Example 6: File copy with verification
-    cli.output.print_message("\n" + "=" * 70, style="bold blue")
-    cli.output.print_message("6. File Copy with Verification:", style="bold cyan")
+    cli.print("\n" + "=" * 70, style="bold blue")
+    cli.print("6. File Copy with Verification:", style="bold cyan")
 
     # Recreate json_file for copy verification demo
     demo_config: dict[str, t.JsonValue] = {
@@ -533,32 +465,32 @@ def main() -> None:
 
     shutil.rmtree(temp_dir, ignore_errors=True)
 
-    cli.output.print_message("\n" + "=" * 70, style="bold blue")
-    cli.output.print_message(
+    cli.print("\n" + "=" * 70, style="bold blue")
+    cli.print(
         "  ✅ Advanced File Format Examples Complete",
         style="bold green",
     )
-    cli.output.print_message("=" * 70, style="bold blue")
+    cli.print("=" * 70, style="bold blue")
 
     # Integration guide
-    cli.output.print_message("\n💡 Integration Tips:", style="bold cyan")
-    cli.output.print_message(
+    cli.print("\n💡 Integration Tips:", style="bold cyan")
+    cli.print(
         "  • CSV: Use read_csv_file_with_headers() for structured data",
         style="white",
     )
-    cli.output.print_message(
+    cli.print(
         "  • Binary: Use read_binary_file() for images, PDFs, etc.",
         style="white",
     )
-    cli.output.print_message(
+    cli.print(
         "  • Auto-detect: Use load_file_auto() for flexible input",
         style="white",
     )
-    cli.output.print_message(
+    cli.print(
         "  • Multi-format: Export to JSON, YAML, CSV simultaneously",
         style="white",
     )
-    cli.output.print_message(
+    cli.print(
         "  • Verification: Calculate checksums for integrity checks",
         style="white",
     )

@@ -85,15 +85,10 @@ class FlextCliMixins(FlextMixins):
                 FlextResult from handler execution
 
             """
-            # Compose decorators in correct order (outermost to innermost)
-            # log_operation already handles correlation internally via track_perf=True
-            # Access decorators as static methods
-            track_perf_decorator = FlextDecorators.track_performance()
+            # Compose decorators: log_operation with track_perf for performance
             log_op_decorator = FlextDecorators.log_operation(operation, track_perf=True)
 
-            wrapped_handler = track_perf_decorator(
-                log_op_decorator(handler),
-            )
+            wrapped_handler = log_op_decorator(handler)
 
             # Execute with composed decorators and preserve original result contract
             raw_result = wrapped_handler(**context_data)

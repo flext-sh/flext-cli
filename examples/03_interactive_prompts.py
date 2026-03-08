@@ -30,7 +30,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import FlextCli, FlextCliPrompts, r, t, u
+from flext_cli import FlextCli, FlextCliPrompts, r
 
 cli = FlextCli()
 prompts = FlextCliPrompts()
@@ -186,23 +186,12 @@ def database_setup_wizard() -> r[dict[str, str | int | bool | float]]:
     display_config = {k: v for k, v in config.items() if k != "password"}
     display_config["password"] = "********"
 
-    # Create table from config data - convert using u
-    # Use u.transform for JSON conversion
-    transform_result = u.transform(
-        display_config,
-        to_json=True,
-    )
-    raw_config = (
-        transform_result.value if transform_result.is_success else display_config
-    )
-    json_config: dict[str, t.JsonValue] = dict(cli.output.to_dict_json(raw_config))
-    table_result = cli.create_table(
-        data=json_config,
+    display_rows = [{"Setting": k, "Value": str(v)} for k, v in display_config.items()]
+    cli.show_table(
+        display_rows,
         headers=["Setting", "Value"],
-        _title="Database Configuration",
+        title="Database Configuration",
     )
-    if table_result.is_success:
-        cli.print_table(table_result.value)
 
     confirm = prompts.confirm("Save this configuration?", default=True)
     if confirm.is_success and confirm.value:
@@ -483,22 +472,12 @@ def flext_configuration_wizard() -> r[dict[str, str | int | bool | float]]:
     # Display configuration
     cli.print("\n📋 Configuration Summary:", style="yellow")
 
-    # Create table from config data - convert using u
-    # Use u.transform for JSON conversion
-    transform_result = u.transform(
-        config,
-        to_json=True,
-    )
-    raw_config = transform_result.value if transform_result.is_success else config
-    json_config: dict[str, t.JsonValue] = dict(cli.output.to_dict_json(raw_config))
-    table_result = cli.create_table(
-        data=json_config,
+    display_rows = [{"Setting": k, "Value": str(v)} for k, v in config.items()]
+    cli.show_table(
+        display_rows,
         headers=["Setting", "Value"],
-        _title="Application Configuration",
+        title="Application Configuration",
     )
-
-    if table_result.is_success:
-        cli.print_table(table_result.value)
 
     # Final confirmation
     save_result = prompts.confirm("Save this configuration?", default=True)

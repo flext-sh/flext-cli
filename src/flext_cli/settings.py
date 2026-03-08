@@ -294,7 +294,7 @@ class FlextCliSettings(FlextSettings):
                 # FlextCliSettings extends FlextSettings (BaseModel)
                 # Use model_dump() to get dict representation for container
                 config_dict = self.model_dump()
-                _ = container.with_service("flext_cli_config", config_dict)
+                _ = container.register("flext_cli_config", config_dict, kind="service")
             return r[bool].ok(value=True)
         except (AttributeError, TypeError, RuntimeError) as e:
             logger.debug(
@@ -404,6 +404,7 @@ class FlextCliSettings(FlextSettings):
         super()._reset_instance()
 
     @classmethod
+    @override
     def get_instance(cls) -> FlextCliSettings:
         """Get singleton instance of FlextCliSettings."""
         if cls._instance is None:

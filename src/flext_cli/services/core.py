@@ -272,7 +272,7 @@ class FlextCliCore(FlextCliServiceBase):
                     for key, value in profiles_value.items()
                 }
             else:
-                profiles_section_raw = {}
+                profiles_section_raw: dict[str, t.JsonValue] = {}
             # Python 3.13: profiles_section_raw is dict from above branches
             profiles_section: dict[str, t.JsonValue] = profiles_section_raw
             profiles_section[name] = profile_config
@@ -1215,9 +1215,13 @@ class FlextCliCore(FlextCliServiceBase):
             # Validate explicitly - no fallback to empty dict
             # Business Rule: Frozen model attributes MUST be set using setattr()
             if session_config is not None:
-                self._session_config = session_config
+                object.__setattr__(
+                    self,
+                    "_session_config",
+                    dict(session_config) if isinstance(session_config, Mapping) else {},
+                )
             else:
-                self._session_config = {}
+                object.__setattr__(self, "_session_config", {})
             object.__setattr__(self, "_session_active", True)
             # Generate ISO format timestamp for session tracking
             self._session_start_time = datetime.now(UTC).isoformat()

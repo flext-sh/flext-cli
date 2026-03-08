@@ -15,6 +15,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from typing import override
 
 from flext_core import (
     FlextHandlers,
@@ -170,6 +171,7 @@ class TestsCliServiceBase(FlextTestsServiceBase[T]):
                     )
                     super().__init__(config=config)
 
+                @override
                 def handle(
                     self,
                     message: t.ContainerValue,

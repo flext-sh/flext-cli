@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import os
 import time
+from collections.abc import Mapping
 from pathlib import Path
 
 from example_utils import display_config_table
@@ -132,15 +133,11 @@ class MyAppConfig:
             "Profile": self.base_config.profile,
         }
 
-        table_result = cli.create_table(
-            data=config_data,
+        cli.show_table(
+            config_data,
             headers=["Setting", "Value"],
-            _title="⚙️  Application Configuration",
+            title="⚙️  Application Configuration",
         )
-
-        if table_result.is_success:
-            # cli.create_table returns Rich Table, use print_table
-            cli.print_table(table_result.value)
 
     def validate(self) -> bool:
         """Validate YOUR app configuration."""
@@ -177,22 +174,11 @@ def show_config_locations() -> dict[str, str]:
         "Token Exists": "Yes" if token_file.exists() else "No",
     }
 
-    transform_result = u.transform(
+    cli.show_table(
         locations,
-        to_json=True,
-    )
-    raw_locations = transform_result.value if transform_result.is_success else locations
-    locations_data: dict[str, t.JsonValue] = dict(
-        cli.output.to_dict_json(raw_locations),
-    )
-    table_result = cli.create_table(
-        data=locations_data,
         headers=["Location", "Path"],
-        _title="📂 Configuration Locations",
+        title="📂 Configuration Locations",
     )
-
-    if table_result.is_success:
-        cli.print_table(table_result.value)
 
     return locations
 
@@ -328,6 +314,7 @@ class AppConfig:
 
     def __init__(self) -> None:
         """Initialize configuration with environment variables and defaults."""
+        super().__init__()
         self.database_url = os.getenv(
             "DATABASE_URL",
             "postgresql://localhost:5432/myapp",
@@ -341,9 +328,9 @@ class AppConfig:
             os.getenv("TEMP_DIR", str(Path.home() / ".cache" / "myapp")),
         )
 
-    def validate(self) -> r[dict[str, t.ContainerValue]]:
+    def validate(self) -> r[t.ConfigurationMapping]:
         """Validate configuration with comprehensive checks."""
-        errors = []
+        errors: list[str] = []
 
         # Validate database URL
         if not self.database_url.startswith(("postgresql://", "mysql://")):
@@ -390,7 +377,7 @@ class AppConfig:
         })
 
 
-def load_application_config() -> r[dict[str, t.ContainerValue]]:
+def load_application_config() -> r[t.ConfigurationMapping]:
     """Load and validate application configuration from environment."""
     cli.print("\n⚙️  Loading Application Configuration:", style="bold cyan")
 
@@ -414,7 +401,7 @@ def load_application_config() -> r[dict[str, t.ContainerValue]]:
     final_data = initialize_services(overridden_data)
     cli.print("✅ Services initialized", style="green")
 
-    result: r[dict[str, t.ContainerValue]] = r[t.ConfigurationMapping].ok(
+    result: r[t.ConfigurationMapping] = r[t.ConfigurationMapping].ok(
         final_data,
     )
 
@@ -427,28 +414,24 @@ def load_application_config() -> r[dict[str, t.ContainerValue]]:
 
 
 def apply_environment_overrides(
-    config: dict[str, t.ContainerValue],
+    config: Mapping[str, t.ContainerValue],
 ) -> dict[str, t.ContainerValue]:
     """Apply environment-specific configuration overrides."""
+    result: dict[str, t.ContainerValue] = dict(config)
     env = os.getenv("ENVIRONMENT", "development")
 
     if env == "production":
-        # Production overrides
-        max_workers_value = config.get("max_workers", 4)
-        # Type narrowing: ensure int before conversion
-        if isinstance(max_workers_value, int):
-            config["max_workers"] = min(max_workers_value, 20)  # Limit workers in prod
-        elif isinstance(max_workers_value, str):
-            config["max_workers"] = min(int(max_workers_value), 20)
-        else:
-            config["max_workers"] = 4
-        config["enable_metrics"] = True  # Always enable metrics in prod
+        max_workers_value = result.get("max_workers", 4)
+        try:
+            result["max_workers"] = min(int(str(max_workers_value)), 20)
+        except (TypeError, ValueError):
+            result["max_workers"] = 4
+        result["enable_metrics"] = True
     elif env == "testing":
-        # Testing overrides
-        config["max_workers"] = 1  # Single worker for tests
-        config["enable_metrics"] = False  # Disable metrics during tests
+        result["max_workers"] = 1
+        result["enable_metrics"] = False
 
-    return config
+    return result
 
 
 def initialize_services(
@@ -514,12 +497,9 @@ def main() -> None:
 
     if config_result.is_success:
         final_config = config_result.value
-        final_config_data: dict[str, t.JsonValue] = {}
-        for key, value in final_config.items():
-            if isinstance(value, str | int | float | bool) or value is None:
-                final_config_data[key] = value
-            else:
-                final_config_data[key] = str(value)
+        final_config_data: dict[str, t.JsonValue] = {
+            k: str(v) for k, v in final_config.items()
+        }
         cli.print("Final Application Configuration", style="bold cyan")
         display_config_table(
             cli=cli,

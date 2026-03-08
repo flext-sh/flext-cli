@@ -220,7 +220,7 @@ class FlextCliCmd(FlextCliServiceBase):
                     for key, value in config_data.items()
                 }
             else:
-                config_data_dict = {}
+                config_data_dict: dict[str, t.JsonValue] = {}
 
             if key not in config_data_dict:
                 return r[Mapping[str, t.JsonValue]].fail(

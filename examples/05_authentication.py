@@ -201,14 +201,11 @@ def show_session_info() -> None:
     }
 
     # Display as table
-    table_result = cli.create_table(
-        data=session_data,
+    cli.show_table(
+        session_data,
         headers=["Property", "Value"],
-        _title="🔐 Current Session",
+        title="🔐 Current Session",
     )
-
-    if table_result.is_success:
-        cli.print_table(table_result.value)
 
 
 def logout() -> None:
@@ -285,21 +282,27 @@ def main() -> None:
     cli.print("\n1. Login Flow (save token):", style="bold cyan")
     username = os.getenv("USER", "demo_user")
     password = secrets.token_urlsafe(16)
-    login_to_service(username, password)
+    login_ok = login_to_service(username, password)
+    cli.print(f"   Login result: {'OK' if login_ok else 'Failed'}", style="green" if login_ok else "red")
 
     # Example 2: Get saved token
     cli.print("\n2. Token Retrieval (for API calls):", style="bold cyan")
     token = get_saved_token()
     if token:
         cli.print(f"   Retrieved token: {token[:30]}...", style="green")
+    else:
+        cli.print("   No token available", style="yellow")
 
     # Example 3: API call with token
     cli.print("\n3. Authenticated API Call:", style="bold cyan")
-    call_authenticated_api("https://api.example.com/data")
+    api_result = call_authenticated_api("https://api.example.com/data")
+    if api_result:
+        cli.print(f"   API returned: {api_result}", style="green")
 
     # Example 4: Token validation
     cli.print("\n4. Token Validation:", style="bold cyan")
-    validate_current_token()
+    valid = validate_current_token()
+    cli.print(f"   Token valid: {valid}", style="green" if valid else "yellow")
 
     # Example 5: Session info
     cli.print("\n5. Session Information:", style="bold cyan")
@@ -307,7 +310,8 @@ def main() -> None:
 
     # Example 6: Complete workflow
     cli.print("\n6. Complete Auth Workflow:", style="bold cyan")
-    complete_auth_workflow()
+    workflow_ok = complete_auth_workflow()
+    cli.print(f"   Workflow result: {'OK' if workflow_ok else 'Failed'}", style="green" if workflow_ok else "red")
 
     # Example 7: Logout
     cli.print("\n7. Logout (clear token):", style="bold cyan")
