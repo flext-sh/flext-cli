@@ -97,8 +97,8 @@ class FlextCliCommonParams:
     @classmethod
     def _build_params_from_kwargs(
         cls, kwargs: Mapping[str, bool | str | None]
-    ) -> p.Cli.CliParamsConfigProtocol:
-        """Build CLI params protocol instance from keyword arguments."""
+    ) -> m.Cli.CliParamsConfig:
+        """Build CLI params from keyword arguments (Pydantic model)."""
         return m.Cli.CliParamsConfig(
             verbose=cls._opt_bool(kwargs, "verbose"),
             quiet=cls._opt_bool(kwargs, "quiet"),
@@ -115,10 +115,10 @@ class FlextCliCommonParams:
         cls,
         params: p.Cli.CliParamsConfigProtocol | None,
         kwargs: Mapping[str, bool | str | None],
-    ) -> p.Cli.CliParamsConfigProtocol:
-        """Resolve explicit params or build from kwargs."""
+    ) -> m.Cli.CliParamsConfig:
+        """Resolve explicit params or build from kwargs (returns Pydantic model)."""
         if params is not None:
-            return params
+            return params if isinstance(params, m.Cli.CliParamsConfig) else cls._build_params_from_kwargs(kwargs)
         return cls._build_params_from_kwargs(kwargs)
 
     @classmethod
