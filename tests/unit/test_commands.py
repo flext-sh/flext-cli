@@ -72,7 +72,7 @@ class TestsCliCommands:
     def test_commands_execution(self) -> None:
         """Test command execution functionality."""
         commands = CommandsFactory.create_commands()
-        CommandsFactory.register_simple_command(commands, "test_execution", "executed")
+        _ = CommandsFactory.register_simple_command(commands, "test_execution", "executed")
         result = commands.execute_command("test_execution")
         assert result.is_success
         assert result.value == "executed"
@@ -80,7 +80,7 @@ class TestsCliCommands:
     def test_execute_command_with_args(self) -> None:
         """Test execute_command with args parameter."""
         commands = CommandsFactory.create_commands()
-        CommandsFactory.register_command_with_args(commands, "test_with_args")
+        _ = CommandsFactory.register_command_with_args(commands, "test_with_args")
         result = commands.execute_command("test_with_args", args=["arg1", "arg2"])
         assert result.is_success
         result_value = str(result.value)
@@ -90,7 +90,7 @@ class TestsCliCommands:
     def test_execute_command_handler_without_args(self) -> None:
         """Test execute_command with handler that doesn't accept args."""
         commands = CommandsFactory.create_commands()
-        CommandsFactory.register_simple_command(
+        _ = CommandsFactory.register_simple_command(
             commands, "test_no_args", "no_args_result"
         )
         result = commands.execute_command("test_no_args", args=["arg1", "arg2"])
@@ -100,7 +100,7 @@ class TestsCliCommands:
     def test_execute_command_with_timeout(self) -> None:
         """Test execute_command with timeout parameter."""
         commands = CommandsFactory.create_commands()
-        CommandsFactory.register_simple_command(commands, "timed", "timed_result")
+        _ = CommandsFactory.register_simple_command(commands, "timed", "timed_result")
         result = commands.execute_command("timed", timeout=10)
         assert result.is_success
         assert result.value == "timed_result"
@@ -127,7 +127,7 @@ class TestsCliCommands:
     def test_execute_command_execution_exception(self) -> None:
         """Test execute_command when handler raises exception."""
         commands = CommandsFactory.create_commands()
-        CommandsFactory.register_failing_command(commands, "failing")
+        _ = CommandsFactory.register_failing_command(commands, "failing")
         result = commands.execute_command("failing")
         assert result.is_failure
         assert result.error is not None
@@ -166,7 +166,7 @@ class TestsCliCommands:
         commands = CommandsFactory.create_commands()
         result = commands.execute()
         assert result.is_success
-        CommandsFactory.register_simple_command(
+        _ = CommandsFactory.register_simple_command(
             commands, "integration_test", "integration_ok"
         )
         exec_result = commands.execute_command("integration_test")
@@ -190,8 +190,8 @@ class TestsCliCommands:
     def test_commands_concurrent_execution(self) -> None:
         """Test commands concurrent execution."""
         commands = CommandsFactory.create_commands()
-        CommandsFactory.register_simple_command(commands, "cmd1", "result1")
-        CommandsFactory.register_simple_command(commands, "cmd2", "result2")
+        _ = CommandsFactory.register_simple_command(commands, "cmd1", "result1")
+        _ = CommandsFactory.register_simple_command(commands, "cmd2", "result2")
         result1 = commands.execute_command("cmd1")
         result2 = commands.execute_command("cmd2")
         assert result1.is_success
@@ -202,7 +202,7 @@ class TestsCliCommands:
     def test_commands_command_validation(self) -> None:
         """Test command validation functionality."""
         commands = CommandsFactory.create_commands()
-        CommandsFactory.register_simple_command(commands, "valid", "test_result")
+        _ = CommandsFactory.register_simple_command(commands, "valid", "test_result")
         result = commands.execute_command("valid")
         assert result.is_success
         invalid_result = commands.execute_command("invalid_cmd")
@@ -219,7 +219,7 @@ class TestsCliCommands:
     def test_unregister_command_success(self) -> None:
         """Test successful command unregistration."""
         commands = CommandsFactory.create_commands()
-        CommandsFactory.register_simple_command(commands, "temp_cmd")
+        _ = CommandsFactory.register_simple_command(commands, "temp_cmd")
         result = commands.unregister_command("temp_cmd")
         assert result.is_success
         exec_result = commands.execute_command("temp_cmd")
@@ -228,8 +228,8 @@ class TestsCliCommands:
     def test_get_commands(self) -> None:
         """Test get_commands method."""
         commands = CommandsFactory.create_commands()
-        CommandsFactory.register_simple_command(commands, "cmd1")
-        CommandsFactory.register_simple_command(commands, "cmd2")
+        _ = CommandsFactory.register_simple_command(commands, "cmd1")
+        _ = CommandsFactory.register_simple_command(commands, "cmd2")
         cmds = commands.get_commands()
         assert isinstance(cmds, dict)
         assert len(cmds) == 2
@@ -239,8 +239,8 @@ class TestsCliCommands:
     def test_clear_commands(self) -> None:
         """Test clear_commands method."""
         commands = CommandsFactory.create_commands()
-        CommandsFactory.register_simple_command(commands, "cmd1")
-        CommandsFactory.register_simple_command(commands, "cmd2")
+        _ = CommandsFactory.register_simple_command(commands, "cmd1")
+        _ = CommandsFactory.register_simple_command(commands, "cmd2")
         result = commands.clear_commands()
         assert result.is_success
         assert result.value == 2
@@ -250,8 +250,8 @@ class TestsCliCommands:
     def test_list_commands(self) -> None:
         """Test list_commands method."""
         commands = CommandsFactory.create_commands()
-        CommandsFactory.register_simple_command(commands, "alpha")
-        CommandsFactory.register_simple_command(commands, "beta")
+        _ = CommandsFactory.register_simple_command(commands, "alpha")
+        _ = CommandsFactory.register_simple_command(commands, "beta")
         result = commands.list_commands()
         assert result.is_success
         cmd_list = result.value
@@ -293,7 +293,7 @@ class TestsCliCommands:
     def test_run_cli_success(self) -> None:
         """Test run_cli successful execution."""
         commands = CommandsFactory.create_commands()
-        CommandsFactory.register_simple_command(commands, "test_command")
+        _ = CommandsFactory.register_simple_command(commands, "test_command")
         result = commands.run_cli(["test_command"])
         assert result.is_success
 
@@ -306,7 +306,7 @@ class TestsCliCommands:
     def test_run_cli_with_invalid_command(self) -> None:
         """Test run_cli with invalid command in args."""
         commands = CommandsFactory.create_commands()
-        CommandsFactory.register_simple_command(commands, "valid")
+        _ = CommandsFactory.register_simple_command(commands, "valid")
         result = commands.run_cli(["invalid_cmd"])
         assert result.is_failure
         assert result.error is not None
@@ -340,15 +340,15 @@ class TestsCliCommands:
     def test_run_cli_success_with_empty_args(self) -> None:
         """Test run_cli with successful execution and empty args."""
         commands = CommandsFactory.create_commands()
-        CommandsFactory.register_simple_command(commands, "test_command")
+        _ = CommandsFactory.register_simple_command(commands, "test_command")
         result = commands.run_cli()
         assert isinstance(result, r)
 
     def test_clear_commands_success_with_multiple(self) -> None:
         """Test clear_commands with real commands."""
         commands = CommandsFactory.create_commands()
-        CommandsFactory.register_simple_command(commands, "cmd1")
-        CommandsFactory.register_simple_command(commands, "cmd2")
+        _ = CommandsFactory.register_simple_command(commands, "cmd1")
+        _ = CommandsFactory.register_simple_command(commands, "cmd2")
         result = commands.clear_commands()
         assert result.is_success
         list_result = commands.list_commands()
@@ -358,8 +358,8 @@ class TestsCliCommands:
     def test_list_commands_success_with_registered(self) -> None:
         """Test list_commands with real registered commands."""
         commands = CommandsFactory.create_commands()
-        CommandsFactory.register_simple_command(commands, "cmd1")
-        CommandsFactory.register_simple_command(commands, "cmd2")
+        _ = CommandsFactory.register_simple_command(commands, "cmd1")
+        _ = CommandsFactory.register_simple_command(commands, "cmd2")
         result = commands.list_commands()
         assert result.is_success
         commands_list = result.value
