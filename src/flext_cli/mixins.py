@@ -49,9 +49,6 @@ class FlextCliMixins(FlextMixins):
     Follows FLEXT pattern: one class per module with nested subclasses.
     """
 
-    # =========================================================================
-    # CLI COMMAND MIXIN - Decorator composition for CLI commands
-    # =========================================================================
     class CliCommandMixin:
         """Mixin providing CLI command execution patterns with flext-core decorators.
 
@@ -85,12 +82,8 @@ class FlextCliMixins(FlextMixins):
                 FlextResult from handler execution
 
             """
-            # Compose decorators: log_operation with track_perf for performance
             log_op_decorator = FlextDecorators.log_operation(operation, track_perf=True)
-
             wrapped_handler = log_op_decorator(handler)
-
-            # Execute with composed decorators and preserve original result contract
             raw_result = wrapped_handler(**context_data)
             if isinstance(raw_result, FlextResult):
                 return raw_result
@@ -98,5 +91,4 @@ class FlextCliMixins(FlextMixins):
 
 
 x = FlextCliMixins
-
 __all__ = ["FlextCliMixins", "x"]

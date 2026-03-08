@@ -42,11 +42,6 @@ class TestsFlextCliConstants(FlextTestsConstants, FlextCliConstants):
     - All production constants come from FlextCliConstants
     """
 
-    # =========================================================================
-    # TEST DATA CONSTANTS
-    # =========================================================================
-    # Constantes de dados de teste - valores simples para usar em testes
-
     ALICE: Final[str] = "Alice"
     VALID_FIELD_NAME: Final[str] = "validField"
     FIELD_NAME: Final[str] = "field"
@@ -61,20 +56,15 @@ class TestsFlextCliConstants(FlextTestsConstants, FlextCliConstants):
     SPECIAL: Final[str] = "!@#$%^&*()"
     UNICODE: Final[str] = "测试字符串"
     PERFORMANCE_THRESHOLD: Final[float] = 0.1
-
-    # Status constants
     INFO: Final[str] = "INFO"
     WARNING: Final[str] = "WARNING"
     ALL: Final[list[str]] = ["ALL"]
-
-    # Format constants
     NAME_HEADER: Final[str] = "Name"
     GRID: Final[str] = "grid"
     FANCY_GRID: Final[str] = "fancy_grid"
     INVALID: Final[str] = "invalid"
     EXPECTED_ALL: Final[str] = "expected_all"
 
-    # Environment constants
     class Environment:
         """Test environment constants."""
 
@@ -82,7 +72,6 @@ class TestsFlextCliConstants(FlextTestsConstants, FlextCliConstants):
         PYTEST_BINARY: Final[str] = "pytest"
         CI_VALUE: Final[str] = "true"
 
-    # Table constants
     SPECIALIZED_CASES: Final[str] = "specialized_cases"
 
     class Borders:
@@ -91,8 +80,6 @@ class TestsFlextCliConstants(FlextTestsConstants, FlextCliConstants):
         PLUS: Final[str] = "plus"
 
     Data: Final[str] = "data"
-
-    # Config and OutputFormats
     Config: Final[str] = "config"
 
     class OutputFormats:
@@ -147,7 +134,7 @@ class TestsFlextCliConstants(FlextTestsConstants, FlextCliConstants):
             "log_level": "INFO",
             "output_format": "json",
         }
-        """Basic configuration for testing config provider operations."""
+        "Basic configuration for testing config provider operations."
 
     class TestData:
         """Test data constants for test modules."""
@@ -315,27 +302,16 @@ class TestsFlextCliConstants(FlextTestsConstants, FlextCliConstants):
 
         VALID_TOKEN: Final[str] = "valid_token"
         INVALID_TOKEN: Final[str] = "invalid_token_xyz"
-
         VALID_CREDS: Final[dict[str, str]] = {
             "username": "testuser",
             "password": "testpass",
         }
-
         INVALID_CREDS: Final[dict[str, str]] = {
             "username": "invalid",
             "password": "wrong",
         }
-
-        EMPTY_CREDS: Final[dict[str, str]] = {
-            "username": "",
-            "password": "",
-        }
+        EMPTY_CREDS: Final[dict[str, str]] = {"username": "", "password": ""}
 
 
-# Short alias per FLEXT convention
 c = TestsFlextCliConstants
-
-__all__ = [
-    "TestsFlextCliConstants",
-    "c",
-]
+__all__ = ["TestsFlextCliConstants", "c"]

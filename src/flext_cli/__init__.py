@@ -51,8 +51,6 @@ if TYPE_CHECKING:
     from flext_cli.settings import FlextCliSettings
     from flext_cli.typings import FlextCliTypes, FlextCliTypes as t
     from flext_cli.utilities import FlextCliUtilities, FlextCliUtilities as u
-
-# Lazy import mapping: export_name -> (module_path, attr_name)
 _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "FlextCli": ("flext_cli.api", "FlextCli"),
     "FlextCliAppBase": ("flext_cli.app_base", "FlextCliAppBase"),
@@ -95,7 +93,6 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "u": ("flext_cli.utilities", "FlextCliUtilities"),
     "x": ("flext_core", "x"),
 }
-
 __all__ = [
     "FlextCli",
     "FlextCliAppBase",
@@ -140,7 +137,7 @@ __all__ = [
 ]
 
 
-def __getattr__(name: str) -> Any:  # noqa: ANN401
+def __getattr__(name: str) -> Any:
     """Lazy-load module attributes on first access (PEP 562)."""
     return lazy_getattr(name, _LAZY_IMPORTS, globals(), __name__)
 

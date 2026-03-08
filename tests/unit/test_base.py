@@ -27,10 +27,6 @@ class TestsCliServiceBase:
     Tests cover all base service methods and properties with 100% coverage.
     """
 
-    # =========================================================================
-    # CONCRETE TEST CLASS
-    # =========================================================================
-
     class _ConcreteService(FlextCliServiceBase):
         """Concrete implementation for testing abstract base class."""
 
@@ -39,46 +35,28 @@ class TestsCliServiceBase:
             """Implement abstract method for testing."""
             return r[t.JsonDict].ok({})
 
-    # =========================================================================
-    # INITIALIZATION TESTS
-    # =========================================================================
-
     def test_service_base_initialization(self) -> None:
         """Test FlextCliServiceBase can be instantiated via concrete class."""
-        # Create instance using concrete implementation
         service = self._ConcreteService()
         assert service is not None
         assert isinstance(service, FlextCliServiceBase)
 
-    # =========================================================================
-    # CONFIGURATION ACCESS TESTS
-    # =========================================================================
-
     def test_cli_config_property(self) -> None:
         """Test cli_config property returns FlextCliSettings singleton."""
         service = self._ConcreteService()
-
-        # Test property access
         config = service.cli_config
         assert config is not None
         assert isinstance(config, FlextCliSettings)
-
-        # Verify singleton pattern - same instance
         config2 = service.cli_config
         assert config is config2
 
     def test_get_cli_config_static_method(self) -> None:
         """Test get_cli_config static method returns FlextCliSettings singleton."""
-        # Test static method without instance
         config = FlextCliServiceBase.get_cli_config()
         assert config is not None
         assert isinstance(config, FlextCliSettings)
-
-        # Verify singleton pattern - same instance
         config2 = FlextCliServiceBase.get_cli_config()
         assert config is config2
-
-        # Verify same instance as property access
         service = self._ConcreteService()
         assert config is service.cli_config
 
@@ -86,8 +64,6 @@ class TestsCliServiceBase:
         """Test that property and static method return same singleton."""
         service1 = self._ConcreteService()
         service2 = self._ConcreteService()
-
-        # All access methods return same instance
         assert service1.cli_config is service2.cli_config
         assert service1.cli_config is FlextCliServiceBase.get_cli_config()
         assert service2.cli_config is FlextCliServiceBase.get_cli_config()

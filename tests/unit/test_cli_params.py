@@ -12,7 +12,6 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from enum import StrEnum
-from pathlib import Path
 
 import pytest
 import typer
@@ -24,6 +23,7 @@ from flext_cli import (
     FlextCliCommonParams,
     FlextCliSettings,
 )
+from tests.unit._models import CliTestConfig
 
 
 class ConfigParam(StrEnum):
@@ -43,7 +43,6 @@ class ConfigParam(StrEnum):
 # ============================================================================
 
 # Python 3.13 advanced type features for test data
-type CliTestConfig = dict[str, bool | str | Path | None]
 type CliTestResult = r[CliTestConfig]
 
 # ============================================================================

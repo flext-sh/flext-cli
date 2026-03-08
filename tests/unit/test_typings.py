@@ -35,6 +35,7 @@ from flext_tests import tm
 
 from flext_cli import r, t
 from tests.helpers import c
+from tests.models import ApiResponse, UserData
 
 from ..helpers import FlextCliTestHelpers
 
@@ -78,8 +79,7 @@ class TestsCliTypings:
             return [
                 TypingTestCase(TypingTestType.INITIALIZATION, "Types initialization"),
                 TypingTestCase(
-                    TypingTestType.BASIC_FUNCTIONALITY,
-                    "Basic type functionality",
+                    TypingTestType.BASIC_FUNCTIONALITY, "Basic type functionality"
                 ),
                 TypingTestCase(TypingTestType.TYPE_DEFINITIONS, "Type definitions"),
                 TypingTestCase(TypingTestType.TYPE_VALIDATION, "Type validation"),
@@ -117,34 +117,25 @@ class TestsCliTypings:
         """Validators for typing test assertions."""
 
         @staticmethod
-        def validate_type_initialization(
-            types_class: object,  # Accept any type class
-        ) -> r[bool]:
+        def validate_type_initialization(types_class: object) -> r[bool]:
             """Validate type class initialization."""
             try:
-                # Test that types class has Cli namespace (runtime alias pattern)
                 if not hasattr(types_class, "Cli"):
                     return r[bool].fail("Missing Cli namespace")
-
                 cli_namespace = getattr(types_class, "Cli", None)
                 if cli_namespace is None:
                     return r[bool].fail("Cli namespace is None")
-
-                # Test that Cli namespace has flattened type attributes
-                # (Dict type aliases were removed in Pydantic v2 migration - use models instead)
                 required_attrs = ["FormatableResult", "ResultFormatter", "TabularData"]
                 for attr in required_attrs:
                     if not hasattr(cli_namespace, attr):
                         return r[bool].fail(f"Missing Cli attribute: {attr}")
-
                 return r[bool].ok(True)
             except Exception as e:
                 return r[bool].fail(str(e))
 
         @staticmethod
         def validate_type_usage(
-            data: dict[str, t.ContainerValue],
-            type_hint: str,
+            data: dict[str, t.ContainerValue], type_hint: str
         ) -> r[bool]:
             """Validate type usage with actual data."""
             try:
@@ -160,18 +151,13 @@ class TestsCliTypings:
             except Exception as e:
                 return r[bool].fail(str(e))
 
-    # ========================================================================
-    # DYNAMIC TEST EXECUTION
-    # ========================================================================
-
     @pytest.mark.parametrize(
         "test_case",
         TypingTestFactory.create_comprehensive_test_cases(),
         ids=lambda x: f"{x.test_type.value}_{x.description.lower().replace(' ', '_')}",
     )
     def test_typing_comprehensive_functionality(
-        self,
-        test_case: TypingTestCase,
+        self, test_case: TypingTestCase
     ) -> None:
         """Comprehensive typing functionality tests using dynamic execution."""
         match test_case.test_type:
@@ -194,72 +180,50 @@ class TestsCliTypings:
             case TypingTestType.TYPE_EDGES:
                 self._execute_type_edge_tests()
 
-    # ========================================================================
-    # TEST EXECUTION HELPERS
-    # ========================================================================
-
     def _execute_initialization_tests(self) -> None:
         """Execute initialization-related tests."""
-        # Test types class structure
         validation_result = self.TypingValidators.validate_type_initialization(t)
         tm.ok(validation_result)
-
-        # Test type aliases accessibility
-        # CliDataDict is an alias for JsonDict, use dict[str, t.ContainerValue] for mypy compatibility
         test_data: dict[str, t.ContainerValue] = {"key": "value"}
         assert isinstance(test_data, dict)
 
     def _execute_basic_functionality_tests(self) -> None:
         """Execute basic functionality tests."""
         test_data = self.TypingTestFactory.create_type_test_data()
-
-        # Test different type usages
         config_data_obj = test_data["config_data"]
         if not isinstance(config_data_obj, dict):
             error_msg = "config_data must be a dict"
             raise TypeError(error_msg)
         config_dict: dict[str, t.ContainerValue] = config_data_obj
         config_result = self.TypingValidators.validate_type_usage(
-            config_dict,
-            "CliConfigData",
+            config_dict, "CliConfigData"
         )
         tm.ok(config_result)
-
         format_data_obj = test_data["format_data"]
         if not isinstance(format_data_obj, dict):
             error_msg = "format_data must be a dict"
             raise TypeError(error_msg)
         format_dict: dict[str, t.ContainerValue] = format_data_obj
         format_result = self.TypingValidators.validate_type_usage(
-            format_dict,
-            "CliFormatData",
+            format_dict, "CliFormatData"
         )
         tm.ok(format_result)
-
-        # Test real data operations (type narrowing for test validation)
         assert config_dict["output_format"] == c.Cli.OutputFormats.JSON.value
         assert config_dict["debug"] is True
 
     def _execute_type_definition_tests(self) -> None:
         """Execute type definition tests."""
-        # Test TypeVar creation
         t_var = TypeVar("t_var")
+        generic_type = Generic
 
-        # Test Generic type
-
-        # Test Protocol type
         class TestProtocol(Protocol):
             def method(self) -> str: ...
 
-        # Validate type definitions
         assert t_var is not None
-        assert GenericType is not None
+        assert generic_type is not None
         assert TestProtocol is not None
-
-        # Test type aliases from constants
         user_data: dict[str, t.ContainerValue] = {"key": "value", "number": 42}
         user_list: list[dict[str, t.ContainerValue]] = [user_data]
-
         assert isinstance(user_data, dict)
         assert isinstance(user_list, list)
         assert len(user_list) == 1
@@ -267,7 +231,6 @@ class TestsCliTypings:
     def _execute_type_validation_tests(self) -> None:
         """Execute type validation tests."""
 
-        # Test union types
         def process_value(value: str | int) -> str:
             """Process value and return string."""
             if isinstance(value, str):
@@ -279,13 +242,10 @@ class TestsCliTypings:
         def process_optional(value: str | None) -> str:
             return value or "default"
 
-        # Test functionality
         assert process_value("hello") == "HELLO"
         assert process_value(42) == "42"
         assert process_optional("test") == "test"
         assert process_optional(None) == "default"
-
-        # Test generic types
         T_local = TypeVar("T_local")
         K_local = TypeVar("K_local")
         V_local = TypeVar("V_local")
@@ -307,18 +267,13 @@ class TestsCliTypings:
             def get(self, key: K_local) -> V_local | None:
                 return self._store.get(key)
 
-        # Test containers
         string_container = Container("test")
         int_container = Container(42)
-
         assert string_container.get_value() == "test"
         assert int_container.get_value() == 42
-
-        # Test key-value store
         kv_store = KeyValueStore[str, int]()
         kv_store.set("key1", 100)
         kv_store.set("key2", 200)
-
         assert kv_store.get("key1") == 100
         assert kv_store.get("key2") == 200
         assert kv_store.get("key3") is None
@@ -326,7 +281,6 @@ class TestsCliTypings:
     def _execute_type_conversion_tests(self) -> None:
         """Execute type conversion tests."""
 
-        # Test type narrowing
         def process_data(data: object) -> str:
             if not isinstance(data, str):
                 error_msg = "data must be a str"
@@ -336,12 +290,10 @@ class TestsCliTypings:
         def process_data_safe(data: object) -> str:
             return str(data).upper()
 
-        # Test conversion
         assert process_data("hello") == "HELLO"
         assert process_data_safe("hello") == "HELLO"
         assert process_data_safe(123) == "123"
 
-        # Test type narrowing
         def process_union(value: str | int) -> str:
             """Process union value and return string."""
             if isinstance(value, str):
@@ -361,12 +313,8 @@ class TestsCliTypings:
     def _execute_type_utilities_tests(self) -> None:
         """Execute type utilities tests."""
 
-        # Test type hints extraction
         def typed_function(
-            name: str,
-            age: int,
-            *,
-            active: bool = True,
+            name: str, age: int, *, active: bool = True
         ) -> t.ConfigurationMapping:
             return {"name": name, "age": age, "active": active}
 
@@ -376,7 +324,6 @@ class TestsCliTypings:
         assert hints["active"] is bool
         assert hints["return"] == t.ConfigurationMapping
 
-        # Test complex type analysis
         def complex_function(data: list[dict[str, str | int]]) -> str | None:
             return "result" if data else None
 
@@ -384,7 +331,6 @@ class TestsCliTypings:
         assert complex_hints["data"] == list[dict[str, str | int]]
         assert complex_hints["return"] == str | None
 
-        # Test runtime type checking
         class TypedClass:
             def __init__(self, name: str, value: int) -> None:
                 self.name = name
@@ -393,66 +339,53 @@ class TestsCliTypings:
             def process(self, data: list[str]) -> dict[str, int]:
                 return {item: len(item) for item in data}
 
-        # Test type hints
         init_hints = get_type_hints(TypedClass.__init__)
         assert init_hints["name"] is str
         assert init_hints["value"] is int
-
         process_hints = get_type_hints(TypedClass.process)
         assert process_hints["data"] == list[str]
         assert process_hints["return"] == dict[str, int]
-
-        # Test type creation and usage
         instance = TypedClass("test", 42)
         result = instance.process(["str1", "str2"])
-        # Result should match input data length (2 items -> 2 keys with value 5 each)
-        # Based on implementation: returns dict with keys from data and value 5
         assert len(result) == 2
         assert "str1" in result or "STR1" in result
         assert "str2" in result or "STR2" in result
-        # Check that values are integers (implementation returns 5 for each)
         values = list(result.values())
         assert all(isinstance(v, int) for v in values)
 
     def _execute_type_scenario_tests(self) -> None:
         """Execute type scenario tests."""
-        # Test API response scenario
 
-        # Test type usage
         def create_user_response(user: UserData) -> ApiResponse:
-            return {
-                "status": "success",
-                "data": user,
-                "message": "User created successfully",
-                "error": None,
-            }
+            return ApiResponse(
+                status="success",
+                data=user.model_dump(),
+                message="User created successfully",
+                error=None,
+            )
 
         def create_users_response(users: list[UserData]) -> ApiResponse:
-            return {
-                "status": "success",
-                "data": users,
-                "message": f"Retrieved {len(users)} users",
-                "error": None,
-            }
+            return ApiResponse(
+                status="success",
+                data=[u.model_dump() for u in users],
+                message=f"Retrieved {len(users)} users",
+                error=None,
+            )
 
-        # Test functionality using helper data
         user_dict = {
             "id": 1,
             "name": "test_user",
             "email": "test@example.com",
             "active": True,
         }
-        # Type narrowing: extract and validate fields for UserData
         user_id = user_dict.get("id")
         user_name = user_dict.get("name")
         user_email = user_dict.get("email")
         user_active = user_dict.get("active")
-
         error_id = "user id must be int"
         error_name = "user name must be str"
         error_email = "user email must be str"
         error_active = "user active must be bool"
-
         if not isinstance(user_id, int):
             raise TypeError(error_id)
         if not isinstance(user_name, str):
@@ -461,31 +394,23 @@ class TestsCliTypings:
             raise TypeError(error_email)
         if not isinstance(user_active, bool):
             raise TypeError(error_active)
-
-        # Create UserData with properly narrowed types
-        user_data: UserData = {
-            "id": user_id,
-            "name": user_name,
-            "email": user_email,
-            "active": user_active,
-        }
+        user_data = UserData(
+            id=user_id, name=user_name, email=user_email, active=user_active
+        )
         user_response = create_user_response(user_data)
-        assert isinstance(user_response, dict)
-        assert user_response.get("status") == "success"
-        assert user_response.get("message") == "User created successfully"
-
+        assert isinstance(user_response, ApiResponse)
+        assert user_response.status == "success"
+        assert user_response.message == "User created successfully"
         users_response = create_users_response([user_data])
-        assert isinstance(users_response, dict)
-        assert users_response.get("status") == "success"
-        users_data = users_response.get("data", [])
+        assert isinstance(users_response, ApiResponse)
+        assert users_response.status == "success"
+        users_data = users_response.data
+        assert isinstance(users_data, list)
         assert len(users_data) == 1
-
-        # Test data processing scenario using helpers
         processing_result = (
             FlextCliTestHelpers.TypingHelpers.create_processing_test_data()
         )
         tm.ok(processing_result)
-
         if processing_result.is_success and processing_result.value:
             string_list, number_list, mixed_dict = processing_result.value
             assert len(string_list) == 3
@@ -495,113 +420,84 @@ class TestsCliTypings:
     def _execute_type_performance_tests(self) -> None:
         """Execute type performance tests."""
 
-        # Test type checking performance
         def process_list(data: list[str]) -> list[str]:
             return [item.upper() for item in data]
 
         def process_dict(data: Mapping[str, t.ContainerValue]) -> dict[str, str]:
             return {key: str(value) for key, value in data.items()}
 
-        # Test performance
         test_list = ["hello", "world", "test"]
         test_dict = {"key1": 123, "key2": "value"}
-
-        # Initialize variables
         result_list: list[str] = []
         result_dict: dict[str, str] = {}
-
-        # Performance test
         start_time = time.time()
         for _ in range(1000):
             result_list = process_list(test_list)
             result_dict = process_dict(test_dict)
         end_time = time.time()
-
         processing_time = end_time - start_time
         assert processing_time < 0.1, (
             f"Type processing too slow: {processing_time:.4f}s"
         )
-
-        # Verify results
         assert result_list == ["HELLO", "WORLD", "TEST"]
         assert result_dict["key1"] == "123"
 
     def _execute_type_edge_tests(self) -> None:
         """Execute type edge case tests."""
 
-        # Test edge cases with types
         def handle_edge_cases(value: object) -> str:
             if value is None:
                 return "None"
-            if isinstance(value, str) and not value:
+            if isinstance(value, str) and (not value):
                 return "Empty"
             if isinstance(value, (str, int, float)):
                 return str(value)
             return "Unknown"
 
-        # Test edge cases
         assert handle_edge_cases(None) == "None"
         assert handle_edge_cases("") == "Empty"
         assert handle_edge_cases("hello") == "hello"
         assert handle_edge_cases(42) == "42"
         result = handle_edge_cases(math.pi)
         assert result.startswith("3.14")
-        assert handle_edge_cases([]) == "Unknown"  # Empty list is falsy but not matched
-        assert handle_edge_cases({}) == "Unknown"  # Empty dict
+        assert handle_edge_cases([]) == "Unknown"
+        assert handle_edge_cases({}) == "Unknown"
 
-        # Test concurrent access
         def thread_safe_operation(data: list[str], results: list[str]) -> None:
             processed = [item.upper() for item in data]
             results.extend(processed)
 
         test_data = ["str1", "str2"]
         results: list[str] = []
-
         threads = []
         for _ in range(5):
             thread = threading.Thread(
-                target=thread_safe_operation,
-                args=(test_data, results),
+                target=thread_safe_operation, args=(test_data, results)
             )
             threads.append(thread)
             thread.start()
-
         for thread in threads:
             thread.join()
-
-        # Verify results - 5 threads * 2 items = 10 results
-        assert len(results) == 10  # 5 threads * 2 items
+        assert len(results) == 10
         assert all(item in {"STR1", "STR2"} for item in results)
-
-    # ========================================================================
-    # INTEGRATION TESTS
-    # ========================================================================
 
     def test_full_type_workflow_integration(self) -> None:
         """Test complete type workflow integration."""
-        # Test helper integration
         typed_data_result = FlextCliTestHelpers.TypingHelpers.create_typed_dict_data()
         tm.ok(typed_data_result)
-
         api_data_result = FlextCliTestHelpers.TypingHelpers.create_api_response_data()
         tm.ok(api_data_result)
-
-        # Test type inspection
         complex_type = list[dict[str, str | int]]
         optional_type = list[str] | None
         union_type = str | int | bool
-
         assert get_origin(complex_type) is list
         complex_args = get_args(complex_type)
         assert len(complex_args) == 1
         assert get_origin(complex_args[0]) is dict
-
-        # Test union type inspection
         assert get_origin(optional_type) is not None
         optional_args = get_args(optional_type)
         assert type(None) in optional_args
         assert list[str] in optional_args
-
         assert get_origin(union_type) is not None
         union_args = get_args(union_type)
         assert str in union_args
@@ -611,37 +507,27 @@ class TestsCliTypings:
     def test_type_workflow_integration(self) -> None:
         """Test type workflow integration with helpers."""
 
-        # Test protocol with runtime checking
         @runtime_checkable
         class TestProtocol(Protocol):
             def operation(self, data: list[str]) -> dict[str, t.ContainerValue]: ...
 
-        # Implement protocol
         class Implementation:
             def operation(self, data: list[str]) -> dict[str, t.ContainerValue]:
-                time.sleep(0.001)  # Simulate work
+                time.sleep(0.001)
                 return {
                     "processed": [item.upper() for item in data],
                     "count": len(data),
                     "timestamp": "2025-01-01T00:00:00Z",
                 }
 
-        # Test protocol
         impl = Implementation()
         assert isinstance(impl, TestProtocol)
-
-        # Use helper data
         test_data = ["str1", "str2"]
         result = impl.operation(test_data)
-
-        # Result should match input data uppercased
         assert result["processed"] == ["STR1", "STR2"]
         assert result["count"] == 2
         assert "timestamp" in result
-
-        # Test types class integration - use runtime alias pattern (t.Cli.*)
         assert t is not None
         assert hasattr(t, "Cli")
-        # Types are now flattened (dict type aliases removed in Pydantic v2 migration)
         assert hasattr(t.Cli, "FormatableResult")
         assert hasattr(t.Cli, "ResultFormatter")

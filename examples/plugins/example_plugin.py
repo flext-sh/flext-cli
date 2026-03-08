@@ -32,17 +32,13 @@ class CliMainWithGroups(Protocol):
     """
 
     def command(
-        self,
-        *args: object,
-        **kwargs: object,
+        self, *args: object, **kwargs: object
     ) -> Callable[[Callable[..., object]], object]:
         """Create a command decorator."""
         ...
 
     def group(
-        self,
-        *args: object,
-        **kwargs: object,
+        self, *args: object, **kwargs: object
     ) -> Callable[[Callable[..., object]], object]:
         """Create a command group decorator."""
         ...
@@ -64,9 +60,7 @@ class GroupWithCommands(Protocol):
     """
 
     def command(
-        self,
-        *args: object,
-        **kwargs: object,
+        self, *args: object, **kwargs: object
     ) -> Callable[[Callable[..., object]], object]:
         """Create a command decorator."""
         ...
@@ -87,7 +81,6 @@ class ExamplePlugin:
 
     """
 
-    # Plugin metadata (required)
     name = "example-plugin"
     version = "1.0.0"
     description = "Example plugin demonstrating flext-cli plugin system"
@@ -109,17 +102,9 @@ class ExamplePlugin:
 
         """
         try:
-            # Plugin initialization logic
-            self._config = {
-                "enabled": True,
-                "debug": False,
-                "max_items": 100,
-            }
-
+            self._config = {"enabled": True, "debug": False, "max_items": 100}
             self._initialized = True
-
             return r[bool].ok(value=True)
-
         except Exception as e:
             return r[bool].fail(f"Plugin initialization failed: {e}")
 
@@ -134,21 +119,16 @@ class ExamplePlugin:
 
         """
         try:
-            # Type narrowing: ensure cli_main has group method
             if not isinstance(cli_main, CliMainWithGroups):
                 return r[bool].fail(
-                    "cli_main does not implement CliMainWithGroups protocol",
+                    "cli_main does not implement CliMainWithGroups protocol"
                 )
-
-            # Type cast for pyright: isinstance check ensures compatibility
             cli_with_group = cli_main
 
-            # Register command group
             @cli_with_group.group()
             def example() -> None:
                 """Example plugin commands."""
 
-            # Store command functions for later use
             def hello(name: str = "World") -> None:
                 """Say hello from the plugin.
 
@@ -166,16 +146,15 @@ class ExamplePlugin:
 
             def status() -> None:
                 """Show plugin status."""
-                print(f"Plugin status: {'Active' if self._initialized else 'Inactive'}")
+                print(
+                    f"Plugin status: {('Active' if self._initialized else 'Inactive')}"
+                )
                 print(f"Configuration: {self._config}")
 
-            # Register commands under group
-            # Type narrowing: example group has command method (from group decorator)
             if not isinstance(example, GroupWithCommands):
                 return r[bool].fail(
-                    "example group does not implement GroupWithCommands protocol",
+                    "example group does not implement GroupWithCommands protocol"
                 )
-
             example_group = example
 
             @example_group.command()
@@ -194,12 +173,10 @@ class ExamplePlugin:
                 status()
 
             return r[bool].ok(value=len((hello_cmd, info_cmd, status_cmd)) == 3)
-
         except Exception as e:
             return r[bool].fail(f"Command registration failed: {e}")
 
 
-# Another example plugin - data processing
 class DataProcessorPlugin:
     """Data processor plugin example.
 
@@ -227,15 +204,12 @@ class DataProcessorPlugin:
 
         """
         try:
-            # Setup.Cli.processors
             self._processors = {
                 "csv": lambda data: f"CSV: {data}",
                 "json": lambda data: f"JSON: {data}",
                 "xml": lambda data: f"XML: {data}",
             }
-
             return r[bool].ok(value=True)
-
         except Exception as e:
             return r[bool].fail(f"Initialization failed: {e}")
 
@@ -250,20 +224,16 @@ class DataProcessorPlugin:
 
         """
         try:
-            # Type narrowing: ensure cli_main has group method
             if not isinstance(cli_main, CliMainWithGroups):
                 return r[bool].fail(
-                    "cli_main does not implement CliMainWithGroups protocol",
+                    "cli_main does not implement CliMainWithGroups protocol"
                 )
-
-            # Type cast for pyright: isinstance check ensures compatibility
             cli_with_group = cli_main
 
             @cli_with_group.group()
             def data() -> None:
                 """Data processing commands."""
 
-            # Store command functions for later use
             def process_data(input_data: str, format_type: str = "json") -> str:
                 """Process data in specified format.
 
@@ -276,7 +246,6 @@ class DataProcessorPlugin:
 
                 """
                 if format_type in self._processors:
-                    # Processor is already properly typed
                     processor: DataProcessor = self._processors[format_type]
                     return processor(input_data)
                 return f"Unsupported format: {format_type}"
@@ -290,12 +259,10 @@ class DataProcessorPlugin:
                 """
                 return list(self._processors.keys())
 
-            # Type narrowing: data group has command method (from group decorator)
             if not isinstance(data, GroupWithCommands):
                 return r[bool].fail(
-                    "data group does not implement GroupWithCommands protocol",
+                    "data group does not implement GroupWithCommands protocol"
                 )
-
             data_group = data
 
             @data_group.command()
@@ -311,14 +278,8 @@ class DataProcessorPlugin:
                 print(f"Available formats: {', '.join(formats_list)}")
 
             return r[bool].ok(value=len((process_cmd, formats_cmd)) == 2)
-
         except Exception as e:
             return r[bool].fail(f"Command registration failed: {e}")
-
-
-# ============================================================================
-# DEMONSTRATION SECTION - Example usage of the plugin commands
-# ============================================================================
 
 
 def demonstrate_plugin_commands() -> None:
@@ -341,7 +302,6 @@ def demonstrate_plugin_commands() -> None:
     print("  flext example status")
     print("  flext data process 'input data'")
     print("  flext data formats")
-
     print("\n--- Plugin Commands Successfully Registered ---")
     print("✅ Commands are now available through the CLI plugin system:")
     print("   • hello: Say hello from the plugin")
@@ -353,5 +313,4 @@ def demonstrate_plugin_commands() -> None:
 
 
 if __name__ == "__main__":
-    # This would normally be handled by the plugin system
     demonstrate_plugin_commands()

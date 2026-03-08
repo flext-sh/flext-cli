@@ -8,9 +8,6 @@ from typing import TypeAlias
 from flext_core import FlextTypes
 
 
-# ═══════════════════════════════════════════════════════════════════════════
-# SINGLE CLASS WITH NESTED CLASSES
-# ═══════════════════════════════════════════════════════════════════════════
 class FlextCliTypes(FlextTypes):
     """FlextCli type definitions extending FlextTypes via inheritance.
 
@@ -39,13 +36,11 @@ class FlextCliTypes(FlextTypes):
         5. Type composition with Protocols for better type safety
         """
 
-        # Runtime namespace only
         ResultFormatter = Callable[[FlextTypes.JsonValue], str]
         FormatableResult: TypeAlias = str
         TabularData = Sequence[Mapping[str, FlextTypes.JsonValue]]
         TableRows: TypeAlias = Sequence[Mapping[str, FlextTypes.JsonValue]]
         JsonDict: TypeAlias = Mapping[str, FlextTypes.JsonValue]
-
         CliValue = (
             FlextTypes.Scalar
             | list[str]
@@ -55,8 +50,4 @@ class FlextCliTypes(FlextTypes):
 
 
 t = FlextCliTypes
-
-__all__ = [
-    "FlextCliTypes",
-    "t",
-]
+__all__ = ["FlextCliTypes", "t"]

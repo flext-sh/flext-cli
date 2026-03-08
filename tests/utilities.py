@@ -33,10 +33,5 @@ class TestsCliUtilities(FlextCliUtilities, FlextTestsUtilities):
     """
 
 
-# Short alias per FLEXT convention
 u = TestsCliUtilities
-
-__all__ = [
-    "TestsCliUtilities",
-    "u",
-]
+__all__ = ["TestsCliUtilities", "u"]

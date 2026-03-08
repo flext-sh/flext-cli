@@ -32,8 +32,6 @@ if TYPE_CHECKING:
         _is_json_dict,
         _is_json_list,
     )
-
-# Lazy import mapping: export_name -> (module_path, attr_name)
 _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "CommandsFactory": ("tests._helpers", "CommandsFactory"),
     "ConfigFactory": ("tests.helpers._impl", "ConfigFactory"),
@@ -49,7 +47,6 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "t": ("tests", "t"),
     "u": ("tests", "u"),
 }
-
 __all__ = [
     "CommandsFactory",
     "ConfigFactory",
@@ -67,7 +64,7 @@ __all__ = [
 ]
 
 
-def __getattr__(name: str) -> Any:  # noqa: ANN401
+def __getattr__(name: str) -> Any:
     """Lazy-load module attributes on first access (PEP 562)."""
     return lazy_getattr(name, _LAZY_IMPORTS, globals(), __name__)
 

@@ -48,17 +48,14 @@ class ConfigFactory:
         """Create a BaseSettings config class dynamically."""
         if fields is None:
             fields = {"test_field": (str, Field(default="test"))}
-
         annotations: dict[str, type] = {}
         class_dict: dict[str, object] = {
             "model_config": SettingsConfigDict(env_prefix=prefix),
             "__annotations__": annotations,
         }
-
         for field_name, (field_type, default) in fields.items():
             annotations[field_name] = field_type
             class_dict[field_name] = default
-
         return type(name, (BaseSettings,), class_dict)
 
 
@@ -83,9 +80,7 @@ class ParamsFactory:
         empty_kwargs: dict[str, t.Scalar] = {}
         default_fields: dict[
             str, tuple[type, t.Scalar | FieldInfo, dict[str, t.Scalar]]
-        ] = {
-            "test_field": (str, default_field, empty_kwargs),
-        }
+        ] = {"test_field": (str, default_field, empty_kwargs)}
         resolved_fields: dict[
             str, tuple[type, t.Scalar | FieldInfo, dict[str, t.Scalar]]
         ] = fields if fields is not None else default_fields
@@ -94,7 +89,6 @@ class ParamsFactory:
             "model_config": {"populate_by_name": populate_by_name},
             "__annotations__": annotations,
         }
-
         for field_name, (field_type, default, kwargs) in resolved_fields.items():
             annotations[field_name] = field_type
             if isinstance(default, FieldInfo):
@@ -105,7 +99,6 @@ class ParamsFactory:
                     class_dict[field_name] = field_instance
                 else:
                     class_dict[field_name] = Field(default=default)
-
         return type(name, (BaseModel,), class_dict)
 
 
@@ -114,34 +107,27 @@ class ValidationHelper:
 
     @staticmethod
     def assert_field_value(
-        obj: object,
-        field_name: str,
-        expected_value: object,
-        message: str | None = None,
+        obj: object, field_name: str, expected_value: object, message: str | None = None
     ) -> None:
         """Assert that an object field has expected value."""
         actual = getattr(obj, field_name)
-        assert actual == expected_value, message or (
-            f"{field_name}={actual}, expected {expected_value}"
+        assert actual == expected_value, (
+            message or f"{field_name}={actual}, expected {expected_value}"
         )
 
     @staticmethod
     def assert_field_type(
-        obj: object,
-        field_name: str,
-        expected_type: type | tuple[type, ...],
+        obj: object, field_name: str, expected_type: type | tuple[type, ...]
     ) -> None:
         """Assert that an object field has expected type."""
         value = getattr(obj, field_name)
-        assert isinstance(
-            value,
-            expected_type,
-        ), f"{field_name}={type(value)}, expected {expected_type}"
+        assert isinstance(value, expected_type), (
+            f"{field_name}={type(value)}, expected {expected_type}"
+        )
 
     @staticmethod
     def extract_config_values(
-        config: BaseSettings,
-        field_names: list[str],
+        config: BaseSettings, field_names: list[str]
     ) -> Mapping[str, t.ContainerValue]:
         """Extract multiple field values from config as a read-only Mapping.
 
@@ -204,11 +190,9 @@ class FlextCliTestHelpers:
             """Validate version string against semver pattern."""
             if not version:
                 return r.fail("Version must be non-empty string")
-
-            pattern: str = r"^\d+\.\d+\.\d+(?:-[\w\.]+)?(?:\+[\w\.]+)?$"
+            pattern: str = "^\\d+\\.\\d+\\.\\d+(?:-[\\w\\.]+)?(?:\\+[\\w\\.]+)?$"
             if not re.match(pattern, version):
                 return r.fail(f"Version '{version}' does not match semver pattern")
-
             return r.ok(version)
 
         @staticmethod
@@ -218,35 +202,30 @@ class FlextCliTestHelpers:
             """Validate version info tuple structure."""
             if len(version_info) < 3:
                 return r.fail("Version info must have at least 3 parts")
-
             for i, part in enumerate(version_info):
                 if isinstance(part, int) and part < 0:
                     return r.fail(f"Version part {i} must be non-negative int")
-                if isinstance(part, str) and not part:
+                if isinstance(part, str) and (not part):
                     return r.fail(f"Version part {i} must be non-empty string")
-
             return r.ok(version_info)
 
         @staticmethod
         def validate_consistency(
-            version_string: str,
-            version_info: tuple[int | str, ...],
+            version_string: str, version_info: tuple[int | str, ...]
         ) -> r[tuple[str, tuple[int | str, ...]]]:
             """Validate consistency between version string and info tuple."""
             string_result = (
                 FlextCliTestHelpers.VersionTestFactory.validate_version_string(
-                    version_string,
+                    version_string
                 )
             )
             if string_result.is_failure:
                 return r.fail(f"Invalid version string: {string_result.error}")
-
             info_result = FlextCliTestHelpers.VersionTestFactory.validate_version_info(
-                version_info,
+                version_info
             )
             if info_result.is_failure:
                 return r.fail(f"Invalid version info: {info_result.error}")
-
             version_without_metadata = version_string.split("+", maxsplit=1)[0]
             version_base_and_prerelease = version_without_metadata.split("-")
             base_parts = version_base_and_prerelease[0].split(".")
@@ -256,37 +235,31 @@ class FlextCliTestHelpers:
                 else []
             )
             version_parts_raw = base_parts + prerelease_parts
-
             version_parts: list[int | str] = []
             for part in version_parts_raw:
                 try:
                     version_parts.append(int(part))
                 except ValueError:
                     logging.getLogger(__name__).debug(
-                        "version part non-int, keep as str: %s",
-                        part,
+                        "version part non-int, keep as str: %s", part
                     )
                     version_parts.append(part)
-
             info_parts = list(version_info)
-
             min_length = min(len(version_parts), len(info_parts))
             for i in range(min_length):
                 version_part = version_parts[i]
                 info_part = info_parts[i]
-
                 if (isinstance(info_part, int) and isinstance(version_part, int)) or (
                     isinstance(info_part, str) and isinstance(version_part, str)
                 ):
                     if version_part != info_part:
                         return r.fail(
-                            f"Mismatch at position {i}: {version_part} != {info_part}",
+                            f"Mismatch at position {i}: {version_part} != {info_part}"
                         )
                 else:
                     return r.fail(
-                        f"Type mismatch at position {i}: {type(version_part).__name__} != {type(info_part).__name__}",
+                        f"Type mismatch at position {i}: {type(version_part).__name__} != {type(info_part).__name__}"
                     )
-
             return r.ok((version_string, version_info))
 
     class ProtocolHelpers:
@@ -306,7 +279,7 @@ class FlextCliTestHelpers:
 
                 formatter = TestFormatter()
                 if hasattr(formatter, "format_data") and callable(
-                    getattr(formatter, "format_data", None),
+                    getattr(formatter, "format_data", None)
                 ):
                     return r.ok(formatter)
                 return r.fail("Formatter does not satisfy CliFormatter protocol")
@@ -331,8 +304,7 @@ class FlextCliTestHelpers:
                             return r.fail(str(e))
 
                     def save_config(
-                        self,
-                        config: Mapping[str, t.ContainerValue],
+                        self, config: Mapping[str, t.ContainerValue]
                     ) -> r[bool]:
                         try:
                             self.config = dict(config.items())
@@ -349,7 +321,7 @@ class FlextCliTestHelpers:
                 ):
                     return r.ok(provider)
                 return r.fail(
-                    "Config provider does not satisfy CliConfigProvider protocol",
+                    "Config provider does not satisfy CliConfigProvider protocol"
                 )
             except (ValueError, TypeError, ValidationError) as e:
                 return r.fail(f"Failed to create config provider: {e!s}")
@@ -379,11 +351,10 @@ class FlextCliTestHelpers:
 
                 authenticator = TestAuthenticator()
                 has_authenticate = hasattr(authenticator, "authenticate") and callable(
-                    getattr(authenticator, "authenticate", None),
+                    getattr(authenticator, "authenticate", None)
                 )
                 has_validate_token = hasattr(
-                    authenticator,
-                    "validate_token",
+                    authenticator, "validate_token"
                 ) and callable(getattr(authenticator, "validate_token", None))
                 if has_authenticate and has_validate_token:
                     auth_method = getattr(authenticator, "authenticate", None)
@@ -393,7 +364,7 @@ class FlextCliTestHelpers:
                         if len(params) >= 2:
                             return r.ok(authenticator)
                 return r.fail(
-                    "Authenticator does not satisfy CliAuthenticator protocol",
+                    "Authenticator does not satisfy CliAuthenticator protocol"
                 )
             except (ValueError, TypeError, ValidationError) as e:
                 return r.fail(f"Failed to create authenticator: {e!s}")
@@ -504,10 +475,7 @@ class FlextCliTestHelpers:
 
         @staticmethod
         def create_command_with_options(
-            cli_cli: object,
-            command_name: str,
-            option_name: str,
-            default: str,
+            cli_cli: object, command_name: str, option_name: str, default: str
         ) -> r[object]:
             """Create a command with options for CLI testing."""
             try:

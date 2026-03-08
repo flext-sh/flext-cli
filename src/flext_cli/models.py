@@ -11,6 +11,7 @@ from typing import (
     ClassVar,
     Literal,
     Self,
+    TypeAlias,
     TypeGuard,
     Union,
     get_args,
@@ -108,7 +109,7 @@ class FlextCliModels(FlextModels):
             """Key-value data for table/display — Pydantic v2 contract. Use m.Cli.DisplayData."""
 
             model_config = ConfigDict(extra="forbid", validate_assignment=True)
-            data: dict[str, t.JsonValue] = Field(
+            data: t.JsonDict = Field(
                 default_factory=dict,
                 description="Field-value pairs for display",
             )
@@ -117,7 +118,7 @@ class FlextCliModels(FlextModels):
             """Loaded configuration content — Pydantic v2 contract. Use m.Cli.LoadedConfig."""
 
             model_config = ConfigDict(extra="forbid", validate_assignment=True)
-            content: dict[str, t.JsonValue] = Field(
+            content: t.JsonDict = Field(
                 default_factory=dict,
                 description="Configuration key-value content",
             )
@@ -127,8 +128,22 @@ class FlextCliModels(FlextModels):
 
             pass
 
-        class CommandGroup(BaseModel):
-            """Command group with name, description, and command entries. Use m.Cli.CommandGroup."""
+        CommandEntry: TypeAlias = Mapping[str, str | Callable[..., r[t.JsonValue]]]
+
+        class CommandEntryModel(BaseModel):
+            """Single command entry: name + handler. Use m.Cli.CommandEntryModel."""
+
+            model_config = ConfigDict(
+                arbitrary_types_allowed=True,
+                extra="forbid",
+            )
+            name: str = Field(..., min_length=1, description="Command name")
+            handler: Callable[..., r[t.JsonValue]] = Field(
+                ..., description="Command handler callable"
+            )
+
+        class CliCommandGroup(BaseModel):
+            """Command group with name, description, and command entries. Use m.Cli.CliCommandGroup."""
 
             model_config = ConfigDict(
                 arbitrary_types_allowed=True,
@@ -136,8 +151,8 @@ class FlextCliModels(FlextModels):
             )
             name: str = Field(..., min_length=1, description="Group name")
             description: str = Field(default="", description="Group description")
-            commands: Mapping[str, Mapping[str, str | Callable[..., r[t.JsonValue]]]] = (
-                Field(default_factory=dict, description="Command name to entry mapping")
+            commands: Mapping[str, FlextCliModels.Cli.CommandEntryModel] = Field(
+                default_factory=dict, description="Command name to entry mapping"
             )
 
         class CliNormalizedJson(RootModel[t.JsonValue]):

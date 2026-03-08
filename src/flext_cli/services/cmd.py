@@ -66,7 +66,6 @@ class FlextCliCmd(FlextCliServiceBase):
     def __init__(self) -> None:
         """Initialize the command service and supporting file helpers."""
         super().__init__()
-        # Logger is automatically provided by FlextMixins mixin
         self._file_tools = FlextCliFileTools()
 
     @staticmethod
@@ -77,7 +76,7 @@ class FlextCliCmd(FlextCliServiceBase):
             return r[m.Cli.ConfigSnapshot].ok(snapshot)
         except (OSError, ValueError, TypeError, RuntimeError, KeyError) as e:
             return r[m.Cli.ConfigSnapshot].fail(
-                FlextCliConstants.Cli.ErrorMessages.CONFIG_INFO_FAILED.format(error=e),
+                FlextCliConstants.Cli.ErrorMessages.CONFIG_INFO_FAILED.format(error=e)
             )
 
     @staticmethod
@@ -88,7 +87,7 @@ class FlextCliCmd(FlextCliServiceBase):
             return r[list[str]].ok(paths)
         except (OSError, ValueError, TypeError, RuntimeError) as e:
             return r[list[str]].fail(
-                FlextCliConstants.Cli.ErrorMessages.CONFIG_PATHS_FAILED.format(error=e),
+                FlextCliConstants.Cli.ErrorMessages.CONFIG_PATHS_FAILED.format(error=e)
             )
 
     def edit_config(self) -> r[str]:
@@ -99,37 +98,31 @@ class FlextCliCmd(FlextCliServiceBase):
                 / FlextCliConstants.Cli.ConfigFiles.CLI_CONFIG_JSON
             )
             path = Path(str(config_path))
-
             if not path.exists():
                 default_config_model = m.Cli.CmdConfig(name="default")
                 save_result = self._file_tools.write_json_file(
-                    file_path=str(path),
-                    data=default_config_model.model_dump(),
+                    file_path=str(path), data=default_config_model.model_dump()
                 )
                 if save_result.is_failure:
                     return r[str].fail(
                         FlextCliConstants.Cli.CmdErrorMessages.CREATE_DEFAULT_CONFIG_FAILED.format(
-                            error=save_result.error,
-                        ),
+                            error=save_result.error
+                        )
                     )
-
             load_result = self._file_tools.read_json_file(str(path))
             if load_result.is_failure:
                 load_error_text = str(load_result.error or "")
                 if "Cannot create success result with None value" in load_error_text:
                     return r[str].fail(
-                        FlextCliConstants.Cli.CmdErrorMessages.CONFIG_NOT_DICT,
+                        FlextCliConstants.Cli.CmdErrorMessages.CONFIG_NOT_DICT
                     )
                 return r[str].fail(
                     FlextCliConstants.Cli.CmdErrorMessages.CONFIG_LOAD_FAILED.format(
-                        error=load_result.error,
-                    ),
+                        error=load_result.error
+                    )
                 )
-
             try:
-                config_model = m.Cli.CmdConfig.model_validate(
-                    load_result.value,
-                )
+                config_model = m.Cli.CmdConfig.model_validate(load_result.value)
             except (
                 ValueError,
                 TypeError,
@@ -139,28 +132,21 @@ class FlextCliCmd(FlextCliServiceBase):
                 LiveError,
             ) as e:
                 self.logger.debug(
-                    "edit_config model_validate fallback: %s",
-                    e,
-                    exc_info=False,
+                    "edit_config model_validate fallback: %s", e, exc_info=False
                 )
                 return r[str].fail(
-                    FlextCliConstants.Cli.CmdErrorMessages.CONFIG_NOT_DICT,
+                    FlextCliConstants.Cli.CmdErrorMessages.CONFIG_NOT_DICT
                 )
-
             config_info_str = str({
                 FlextCliConstants.Cli.DictKeys.CONFIG_FILE: str(path),
                 FlextCliConstants.Cli.DictKeys.CONFIG_DATA: config_model,
                 FlextCliConstants.Cli.DictKeys.MESSAGE: FlextCliConstants.Cli.ServiceMessages.CONFIG_LOADED_SUCCESSFULLY,
             })
-
             self.logger.info(
                 FlextCliConstants.Cli.CmdMessages.CONFIG_EDIT_COMPLETED_LOG,
                 config=config_info_str,
             )
-
-            return r[str].ok(
-                FlextCliConstants.Cli.LogMessages.CONFIG_EDIT_COMPLETED,
-            )
+            return r[str].ok(FlextCliConstants.Cli.LogMessages.CONFIG_EDIT_COMPLETED)
         except (
             ValueError,
             TypeError,
@@ -170,7 +156,7 @@ class FlextCliCmd(FlextCliServiceBase):
             LiveError,
         ) as e:
             return r[str].fail(
-                FlextCliConstants.Cli.ErrorMessages.EDIT_CONFIG_FAILED.format(error=e),
+                FlextCliConstants.Cli.ErrorMessages.EDIT_CONFIG_FAILED.format(error=e)
             )
 
     @override
@@ -188,60 +174,51 @@ class FlextCliCmd(FlextCliServiceBase):
                 FlextCliServiceBase.get_cli_config().config_dir
                 / FlextCliConstants.Cli.ConfigFiles.CLI_CONFIG_JSON
             )
-
             if not config_path.exists():
                 return r[Mapping[str, t.JsonValue]].fail(
                     FlextCliConstants.Cli.CmdErrorMessages.CONFIG_FILE_NOT_FOUND.format(
-                        path=config_path,
-                    ),
+                        path=config_path
+                    )
                 )
-
             load_result = self._file_tools.read_json_file(str(config_path))
             if load_result.is_failure:
                 load_error_text = str(load_result.error or "")
                 if "Cannot create success result with None value" in load_error_text:
                     return r[Mapping[str, t.JsonValue]].fail(
-                        FlextCliConstants.Cli.CmdErrorMessages.CONFIG_NOT_DICT,
+                        FlextCliConstants.Cli.CmdErrorMessages.CONFIG_NOT_DICT
                     )
                 return r[Mapping[str, t.JsonValue]].fail(
                     FlextCliConstants.Cli.CmdErrorMessages.CONFIG_LOAD_FAILED.format(
-                        error=load_result.error,
-                    ),
+                        error=load_result.error
+                    )
                 )
-
             config_data = load_result.value
             if not FlextCliUtilities.is_dict_like(config_data):
                 return r[Mapping[str, t.JsonValue]].fail(
-                    FlextCliConstants.Cli.CmdErrorMessages.CONFIG_NOT_DICT,
+                    FlextCliConstants.Cli.CmdErrorMessages.CONFIG_NOT_DICT
                 )
             if isinstance(config_data, Mapping):
-                config_data_dict = {
-                    str(key): FlextCliOutput.norm_json(value)
-                    for key, value in config_data.items()
+                normalized: dict[str, t.JsonValue] = {
+                    str(k): FlextCliOutput.norm_json(v) for k, v in config_data.items()
                 }
             else:
-                config_data_dict: dict[str, t.JsonValue] = {}
-
-            if key not in config_data_dict:
+                normalized = {}
+            if key not in normalized:
                 return r[Mapping[str, t.JsonValue]].fail(
                     FlextCliConstants.Cli.CmdErrorMessages.CONFIG_KEY_NOT_FOUND.format(
-                        key=key,
-                    ),
+                        key=key
+                    )
                 )
-
-            value = config_data_dict[key]
-            # Use FlextCliUtilities.transform for JSON conversion
+            value = normalized[key]
             raw_data = {
                 FlextCliConstants.Cli.DictKeys.KEY: key,
                 FlextCliConstants.Cli.DictKeys.VALUE: value,
                 FlextCliConstants.Cli.DictKeys.TIMESTAMP: FlextCliUtilities.generate(
-                    "timestamp",
+                    "timestamp"
                 ),
             }
-            # Python 3.13: to_dict_json() always returns dict, cast_if and isinstance are unnecessary
-            # Reuse to_dict_json helper from output module
             result_data: dict[str, t.JsonValue] = dict(
-                FlextCliOutput.to_dict_json(raw_data),
+                FlextCliOutput.to_dict_json(raw_data)
             )
             return r[Mapping[str, t.JsonValue]].ok(result_data)
         except (
@@ -253,9 +230,7 @@ class FlextCliCmd(FlextCliServiceBase):
             LiveError,
         ) as e:
             return r[Mapping[str, t.JsonValue]].fail(
-                FlextCliConstants.Cli.CmdErrorMessages.GET_CONFIG_FAILED.format(
-                    error=e,
-                ),
+                FlextCliConstants.Cli.CmdErrorMessages.GET_CONFIG_FAILED.format(error=e)
             )
 
     def set_config_value(self, key: str, value: str) -> r[bool]:
@@ -267,22 +242,18 @@ class FlextCliCmd(FlextCliServiceBase):
             )
             config_data: t.JsonValue = {key: value}
             save_result = self._file_tools.write_json_file(
-                file_path=str(config_path),
-                data=config_data,
+                file_path=str(config_path), data=config_data
             )
-
             if save_result.is_failure:
                 return r[bool].fail(
                     FlextCliConstants.Cli.CmdErrorMessages.CONFIG_SAVE_FAILED.format(
-                        error=save_result.error,
-                    ),
+                        error=save_result.error
+                    )
                 )
-
             self.logger.info(
                 FlextCliConstants.Cli.CmdMessages.CONFIG_SAVED.format(
-                    key=key,
-                    value=value,
-                ),
+                    key=key, value=value
+                )
             )
             return r[bool].ok(value=True)
         except (
@@ -294,7 +265,7 @@ class FlextCliCmd(FlextCliServiceBase):
             LiveError,
         ) as e:
             return r[bool].fail(
-                FlextCliConstants.Cli.ErrorMessages.SET_CONFIG_FAILED.format(error=e),
+                FlextCliConstants.Cli.ErrorMessages.SET_CONFIG_FAILED.format(error=e)
             )
 
     def show_config(self) -> r[bool]:
@@ -309,10 +280,9 @@ class FlextCliCmd(FlextCliServiceBase):
             if info_result.is_failure:
                 return r[bool].fail(
                     FlextCliConstants.Cli.CmdErrorMessages.SHOW_CONFIG_FAILED.format(
-                        error=info_result.error,
-                    ),
+                        error=info_result.error
+                    )
                 )
-
             self.logger.info(
                 FlextCliConstants.Cli.LogMessages.CONFIG_DISPLAYED,
                 config=info_result.value,
@@ -328,8 +298,8 @@ class FlextCliCmd(FlextCliServiceBase):
         ) as e:
             return r[bool].fail(
                 FlextCliConstants.Cli.CmdErrorMessages.SHOW_CONFIG_FAILED.format(
-                    error=e,
-                ),
+                    error=e
+                )
             )
 
     def validate_config(self) -> r[bool]:
@@ -344,18 +314,16 @@ class FlextCliCmd(FlextCliServiceBase):
             if results:
                 self.logger.info(
                     FlextCliConstants.Cli.LogMessages.CONFIG_VALIDATION_RESULTS.format(
-                        results=results,
-                    ),
+                        results=results
+                    )
                 )
             return r[bool].ok(value=True)
         except (OSError, ValueError, TypeError, RuntimeError) as e:
             return r[bool].fail(
                 FlextCliConstants.Cli.ErrorMessages.CONFIG_VALIDATION_FAILED.format(
-                    error=e,
-                ),
+                    error=e
+                )
             )
 
 
-__all__ = [
-    "FlextCliCmd",
-]
+__all__ = ["FlextCliCmd"]

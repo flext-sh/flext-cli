@@ -89,7 +89,9 @@ def load_user_preferences(config_dir: Path) -> r[m.Cli.LoadedConfig]:
         )
 
     cli.print(f"✅ Loaded preferences from {config_file.name}", style="green")
-    return r[m.Cli.LoadedConfig].ok(m.Cli.LoadedConfig(content=dict(read_result.value)))
+    return r[m.Cli.LoadedConfig].ok(
+        m.Cli.LoadedConfig.model_validate({"content": read_result.value})
+    )
 
 
 # ============================================================================
@@ -129,7 +131,9 @@ def load_deployment_config(config_file: Path) -> r[m.Cli.LoadedConfig]:
         return r[m.Cli.LoadedConfig].fail(load_result.error or "Config load failed")
 
     cli.print("✅ Loaded deployment config", style="green")
-    return r[m.Cli.LoadedConfig].ok(m.Cli.LoadedConfig(content=dict(load_result.value)))
+    return r[m.Cli.LoadedConfig].ok(
+        m.Cli.LoadedConfig.model_validate({"content": load_result.value}),
+    )
 
 
 # ============================================================================
@@ -238,7 +242,9 @@ def validate_and_import_data(input_file: Path) -> r[m.Cli.LoadedConfig]:
             return r.fail(f"Missing required field: {field}")
 
     cli.print("✅ Data validated successfully", style="green")
-    return r[m.Cli.LoadedConfig].ok(m.Cli.LoadedConfig(content=dict(data)))
+    return r[m.Cli.LoadedConfig].ok(
+        m.Cli.LoadedConfig.model_validate({"content": data}),
+    )
 
 
 # ============================================================================
@@ -404,7 +410,9 @@ def load_config_auto_detect(config_file: Path) -> r[m.Cli.LoadedConfig]:
 
     display_rows = [{"Key": k, "Value": str(v)} for k, v in data.items()]
     cli.show_table(display_rows, headers=["Key", "Value"], title="Loaded config")
-    return r[m.Cli.LoadedConfig].ok(m.Cli.LoadedConfig(content=dict(data)))
+    return r[m.Cli.LoadedConfig].ok(
+        m.Cli.LoadedConfig.model_validate({"content": data}),
+    )
 
 
 # ============================================================================
@@ -541,12 +549,14 @@ def validate_and_transform_data(
     data: Mapping[str, t.JsonValue],
 ) -> m.Cli.LoadedConfig:
     """Validate and transform input data."""
-    transformed: dict[str, t.JsonValue] = dict(data)
-    transformed["processed_at"] = "2025-11-23T10:00:00Z"
-    transformed["pipeline_version"] = "2.0"
-    transformed["validated"] = True
+    transformed: t.JsonDict = {
+        **data,
+        "processed_at": "2025-11-23T10:00:00Z",
+        "pipeline_version": "2.0",
+        "validated": True,
+    }
 
-    return m.Cli.LoadedConfig(content=transformed)
+    return m.Cli.LoadedConfig.model_validate({"content": transformed})
 
 
 def generate_output_files(

@@ -33,9 +33,7 @@ class TestsCliModelFactories:
 
     def test_model_rebuild_success(self) -> None:
         """Test that models can be rebuilt successfully."""
-        # This ensures forward references are resolved
         cmd = create_test_cli_command()
         assert cmd.name == "test_command"
-
         session = create_test_cli_session()
         assert getattr(session, "environment", "test") == "test"

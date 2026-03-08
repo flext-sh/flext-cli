@@ -126,7 +126,6 @@ class FlextCliRetryMiddleware:
         result = next_(ctx)
         if result.is_success:
             return result
-
         for attempt in range(1, self._max_retries):
             delay = self._backoff * attempt
             time.sleep(delay)
@@ -166,6 +165,7 @@ class FlextCliMiddleware:
         """
 
         def composed(ctx: p.Cli.CliContextProtocol) -> p_core.Result[t.JsonValue]:
+
             def build_chain(
                 idx: int,
             ) -> Callable[[p.Cli.CliContextProtocol], p_core.Result[t.JsonValue]]:

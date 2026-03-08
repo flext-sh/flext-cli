@@ -49,7 +49,7 @@ class FlextCliCommandBuilder:
         super().__init__()
         self._name = name
         self._options: list[OptionInfo] = []
-        self._arguments: list[tuple[str, type, bool]] = []  # (name, type, required)
+        self._arguments: list[tuple[str, type, bool]] = []
         self._middleware: list[
             Callable[[p.Cli.CliContextProtocol], r[t.JsonValue]]
         ] = []
@@ -67,24 +67,15 @@ class FlextCliCommandBuilder:
         Typer validates kwargs at runtime, but static type checkers can't infer
         all possible kwargs. This helper validates and constructs OptionInfo safely.
         """
-        # Validate required parameters
         validated_param_decls = param_decls if param_decls is not None else []
-        # Build validated kwargs with proper types for OptionInfo
-        # OptionInfo constructor expects specific types for known parameters
-        # Type narrowing: validate types match OptionInfo signature
         validated_default: t.JsonValue | None = default
         validated_param_decls_list: Sequence[str] = validated_param_decls
         validated_help: str | None = help_text or None
-        # Create OptionInfo with validated parameters
-        # Additional kwargs are validated by typer at runtime
-        # OptionInfo accepts various kwargs that typer validates at runtime
-        # Use explicit parameter passing to satisfy type checker
         option_info = OptionInfo(
             default=validated_default,
             param_decls=validated_param_decls_list,
             help=validated_help,
         )
-        # Set additional kwargs via attribute assignment (typer validates at runtime)
         excluded_keys = {"default", "param_decls", "help"}
         for key, value in kwargs.items():
             if key not in excluded_keys:
@@ -111,10 +102,7 @@ class FlextCliCommandBuilder:
             flext-cli's command system would require more complex wiring.
 
         """
-        command = m.Cli.CliCommand(
-            name=self._name,
-            description="",
-        )
+        command = m.Cli.CliCommand(name=self._name, description="")
         if not self._is_command_protocol(command):
             msg = "Built command does not satisfy command protocol"
             raise TypeError(msg)
@@ -134,11 +122,7 @@ class FlextCliCommandBuilder:
         return self
 
     def with_argument(
-        self,
-        name: str,
-        type_: type = str,
-        *,
-        required: bool = True,
+        self, name: str, type_: type = str, *, required: bool = True
     ) -> Self:
         """Add command argument.
 
@@ -155,8 +139,7 @@ class FlextCliCommandBuilder:
         return self
 
     def with_middleware(
-        self,
-        middleware: Callable[[p.Cli.CliContextProtocol], r[t.JsonValue]],
+        self, middleware: Callable[[p.Cli.CliContextProtocol], r[t.JsonValue]]
     ) -> Self:
         """Add middleware (logging, auth, validation).
 
@@ -191,18 +174,11 @@ class FlextCliCommandBuilder:
 
         """
         param_decls = [name]
-        # Extract short flag if provided (e.g., "--host/-h")
         if "/" in name:
             parts = name.split("/")
             param_decls = parts
-
-        # OptionInfo accepts various keyword arguments validated at runtime by typer
-        # Create OptionInfo with validated kwargs using helper function
         option_info = self._create_option_info(
-            default=default,
-            param_decls=param_decls,
-            help_text=help_,
-            **kwargs,
+            default=default, param_decls=param_decls, help_text=help_, **kwargs
         )
         self._options.append(option_info)
         return self

@@ -35,10 +35,5 @@ class TestsCliProtocols(FlextTestsProtocols, FlextCliProtocols):
     """
 
 
-# Runtime alias
 p = TestsCliProtocols
-
-__all__ = [
-    "TestsCliProtocols",
-    "p",
-]
+__all__ = ["TestsCliProtocols", "p"]

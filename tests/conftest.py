@@ -24,10 +24,7 @@ from typing import Protocol
 import pytest
 import yaml
 from click.testing import CliRunner
-from flext_core import (
-    FlextContainer,
-    FlextSettings,
-)
+from flext_core import FlextContainer, FlextSettings
 from flext_tests import FlextTestsDocker
 from pydantic import TypeAdapter
 
@@ -57,8 +54,7 @@ def pytest_configure(config: pytest.Config) -> None:
     config.addinivalue_line("markers", "slow: marks tests as slow running")
     config.addinivalue_line("markers", "docker: marks tests that require Docker")
     config.addinivalue_line(
-        "markers",
-        "real_functionality: marks tests that test real functionality",
+        "markers", "real_functionality: marks tests that test real functionality"
     )
 
 
@@ -66,11 +62,6 @@ def pytest_configure(config: pytest.Config) -> None:
 def cli_runner() -> CliRunner:
     """Create Click CLI runner for testing."""
     return CliRunner()
-
-
-# ============================================================================
-# TEMPORARY DIRECTORY AND FILE FIXTURES
-# ============================================================================
 
 
 @pytest.fixture
@@ -82,12 +73,7 @@ def temp_dir(tmp_path: Path) -> Path:
     return tmp_path
 
 
-# Factory for creating temporary files with different formats
-def _create_temp_file(
-    temp_dir: Path,
-    filename: str,
-    content: str,
-) -> Path:
+def _create_temp_file(temp_dir: Path, filename: str, content: str) -> Path:
     """Factory helper for creating temporary files with custom content.
 
     Args:
@@ -151,16 +137,9 @@ def temp_file(temp_dir: Path) -> Path:
     return _create_temp_file(temp_dir, "test_file.txt", "test content\nline 2\nline 3")
 
 
-# ============================================================================
-# FLEXT CLI SERVICE FIXTURES
-# ============================================================================
-
-
 @pytest.fixture
 def flext_cli_api(
-    tmp_path: Path,
-    request: pytest.FixtureRequest,
-    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path, request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch
 ) -> FlextCli:
     """Create isolated FlextCli instance with test-specific config.
 
@@ -168,38 +147,21 @@ def flext_cli_api(
     to a unique temporary directory, ensuring complete isolation between tests.
     Uses FlextCliSettings modern API: environment variables for configuration.
     """
-    # Create unique subdirectory for this specific test
-    # This ensures complete isolation even if pytest reuses tmp_path
     test_dir = tmp_path / f"test_{id(request)}"
     test_dir.mkdir(exist_ok=True)
-
-    # Reset singleton to ensure clean state
     FlextSettings.reset_global_instance()
     FlextCliSettings._reset_instance()
-
-    # Configure FlextCliSettings using modern API: environment variables
-    # FlextCliSettings uses pydantic_settings with env_prefix="FLEXT_CLI_"
     monkeypatch.setenv("FLEXT_CLI_CONFIG_DIR", str(test_dir))
     monkeypatch.setenv("FLEXT_CLI_TOKEN_FILE", str(test_dir / "token.json"))
     monkeypatch.setenv(
-        "FLEXT_CLI_REFRESH_TOKEN_FILE",
-        str(test_dir / "refresh_token.json"),
+        "FLEXT_CLI_REFRESH_TOKEN_FILE", str(test_dir / "refresh_token.json")
     )
     monkeypatch.setenv("FLEXT_CLI_PROFILE", "test")
     monkeypatch.setenv("FLEXT_CLI_OUTPUT_FORMAT", "json")
     monkeypatch.setenv("FLEXT_CLI_NO_COLOR", "true")
     monkeypatch.setenv("FLEXT_CLI_PROJECT_NAME", "test-cli")
     monkeypatch.setenv("FLEXT_CLI_API_URL", "http://localhost:8000")
-
-    # Create FlextCli instance - it will use the configured instance via env vars
     return FlextCli()
-
-
-# ============================================================================
-# MODEL FACTORY FIXTURES
-# ============================================================================
-# Consolidated model creation fixtures to reduce test code duplication
-# Tests receive these as parameters - no imports needed, follows pytest patterns
 
 
 class CliCommandFactory(Protocol):
@@ -249,10 +211,7 @@ class LoggingConfigFactory(Protocol):
     """Protocol for LoggingConfig factory function."""
 
     def __call__(
-        self,
-        log_level: str = ...,
-        log_format: str = ...,
-        **kwargs: t.ContainerValue,
+        self, log_level: str = ..., log_format: str = ..., **kwargs: t.ContainerValue
     ) -> m.Cli.LoggingConfig:
         """Create LoggingConfig instance."""
         ...
@@ -269,13 +228,10 @@ def cli_command_factory() -> CliCommandFactory:
         status: str = "pending",
         **kwargs: t.ContainerValue,
     ) -> m.Cli.CliCommand:
-        # No base data needed since CliCommand has extra="forbid"
-
-        # Override with CLI-specific data
         cli_data: dict[str, t.ContainerValue]
         cli_data = {
             "command_line": command_line,
-            "args": [],  # Default empty args
+            "args": [],
             "status": status,
             "exit_code": None,
             "output": "",
@@ -284,19 +240,12 @@ def cli_command_factory() -> CliCommandFactory:
             "result": None,
             "kwargs": {},
             "name": name,
-            "description": description,  # Add description field
+            "description": description,
         }
-
-        # Merge kwargs
         raw_data: dict[str, t.ContainerValue] = {**cli_data, **kwargs}
-        # Use u.transform for JSON conversion (from flext-core)
         typed_data: dict[str, t.ContainerValue] = raw_data
-        transform_result = u.transform(
-            typed_data,
-            to_json=True,
-        )
+        transform_result = u.transform(typed_data, to_json=True)
         if transform_result.is_success:
-            # unwrap() returns t.ContainerValue, narrow to dict
             unwrapped = transform_result.value
             if _is_json_dict(unwrapped):
                 final_data = dict(unwrapped.items())
@@ -304,7 +253,6 @@ def cli_command_factory() -> CliCommandFactory:
                 final_data = raw_data
         else:
             final_data = raw_data
-        # Use model_validate which accepts dict and validates at runtime
         return m.Cli.CliCommand.model_validate(final_data)
 
     return _create
@@ -320,11 +268,6 @@ def cli_session_factory() -> CliSessionFactory:
         status: str = "active",
         **kwargs: t.ContainerValue,
     ) -> m.Cli.CliSession:
-        # CliSession has extra="forbid", so no extra fields allowed
-        # Pydantic v2 with 'from __future__ import annotations' resolves forward refs
-
-        # Add session-specific fields - only real fields that exist in CliSession
-        # Include created_at and updated_at for frozen model compatibility
         session_data: dict[str, t.ContainerValue] = {
             "session_id": session_id,
             "status": status,
@@ -338,15 +281,9 @@ def cli_session_factory() -> CliSessionFactory:
             "created_at": datetime.now(UTC).isoformat(),
             "updated_at": None,
         }
-
-        # Merge session data with kwargs
         raw_data: dict[str, t.ContainerValue] = {**session_data, **kwargs}
-        # Use u.transform for JSON conversion
         typed_data = raw_data
-        transform_result = u.transform(
-            typed_data,
-            to_json=True,
-        )
+        transform_result = u.transform(typed_data, to_json=True)
         if transform_result.is_success:
             unwrapped = transform_result.value
             if _is_json_dict(unwrapped):
@@ -355,7 +292,6 @@ def cli_session_factory() -> CliSessionFactory:
                 final_data = raw_data
         else:
             final_data = raw_data
-        # Create instance - autouse fixture should have handled model_rebuild
         return m.Cli.CliSession.model_validate(final_data)
 
     return _create
@@ -371,9 +307,6 @@ def debug_info_factory() -> DebugInfoFactory:
         message: str = "",
         **kwargs: t.ContainerValue,
     ) -> m.Cli.DebugInfo:
-        # DebugInfo has strict validation (extra='forbid'), use compatible fields
-
-        # Add debug-specific fields - only real fields that exist in DebugInfo
         debug_data: dict[str, t.ContainerValue] = {
             "service": service,
             "level": level,
@@ -381,8 +314,6 @@ def debug_info_factory() -> DebugInfoFactory:
             "system_info": {},
             "config_info": {},
         }
-
-        # Filter kwargs to only include valid DebugInfo fields
         valid_fields = {
             "service",
             "timestamp",
@@ -392,14 +323,9 @@ def debug_info_factory() -> DebugInfoFactory:
             "message",
         }
         filtered_kwargs = {k: v for k, v in kwargs.items() if k in valid_fields}
-
-        # Merge data
         raw_data: dict[str, t.ContainerValue] = {**debug_data, **filtered_kwargs}
         typed_data = raw_data
-        transform_result = u.transform(
-            typed_data,
-            to_json=True,
-        )
+        transform_result = u.transform(typed_data, to_json=True)
         if transform_result.is_success:
             unwrapped = transform_result.value
             if _is_json_dict(unwrapped):
@@ -408,7 +334,6 @@ def debug_info_factory() -> DebugInfoFactory:
                 final_data = raw_data
         else:
             final_data = raw_data
-        # Use model_validate which accepts dict and validates at runtime
         return m.Cli.DebugInfo.model_validate(final_data)
 
     return _create
@@ -423,24 +348,15 @@ def logging_config_factory() -> LoggingConfigFactory:
         log_format: str = "%(asctime)s - %(message)s",
         **kwargs: t.ContainerValue,
     ) -> m.Cli.LoggingConfig:
-        # LoggingConfig has strict validation (extra='forbid'), use compatible fields
-        # Don't use FlextTestsFactories.create_config as it may have extra fields
-
-        # Add logging-specific fields - only real fields that exist in LoggingConfig
         logging_data: dict[str, t.ContainerValue] = {
             "log_level": log_level,
             "log_format": log_format,
             "console_output": True,
             "log_file": "",
         }
-
-        # Merge with kwargs
         raw_data: dict[str, t.ContainerValue] = {**logging_data, **kwargs}
         typed_data = raw_data
-        transform_result = u.transform(
-            typed_data,
-            to_json=True,
-        )
+        transform_result = u.transform(typed_data, to_json=True)
         if transform_result.is_success:
             unwrapped = transform_result.value
             if _is_json_dict(unwrapped):
@@ -449,16 +365,9 @@ def logging_config_factory() -> LoggingConfigFactory:
                 final_data = raw_data
         else:
             final_data = raw_data
-        # Use model_validate which accepts dict and validates at runtime
         return m.Cli.LoggingConfig.model_validate(final_data)
 
     return _create
-
-
-# ============================================================================
-# SERVICE FIXTURE FACTORY
-# ============================================================================
-# Consolidated service fixtures using factory pattern to reduce code duplication
 
 
 def _create_service_instance(service_class: type) -> object:
@@ -471,14 +380,11 @@ def _create_service_instance(service_class: type) -> object:
         New instance of the service class
 
     """
-    # Special handling for FlextCliSettings singleton
     if service_class is FlextCliSettings:
         return FlextCliServiceBase.get_cli_config()
-
     return service_class()
 
 
-# Mapping of service names to classes - consolidates 14 services
 _SERVICE_CLASSES: dict[str, type] = {
     "cmd": FlextCliCmd,
     "commands": FlextCliCommands,
@@ -495,7 +401,6 @@ _SERVICE_CLASSES: dict[str, type] = {
 }
 
 
-# Generate service fixtures from mapping - each fixture uses factory
 @pytest.fixture
 def flext_cli_cmd() -> FlextCliCmd:
     """Create FlextCliCmd instance for testing."""
@@ -606,19 +511,6 @@ def flext_cli_utilities() -> type[u]:
     return u
 
 
-# ============================================================================
-# TEST SUPPORT
-# ============================================================================
-
-# Note: pytest-provides automatic event_loop fixture
-# No custom event_loop fixture needed
-
-
-# ============================================================================
-# TEST DATA FIXTURES
-# ============================================================================
-
-
 @pytest.fixture
 def sample_config_data() -> dict[str, t.ContainerValue]:
     """Provide sample configuration data for tests."""
@@ -682,84 +574,54 @@ def fixture_data_csv() -> Path:
 
 
 @pytest.fixture
-def load_fixture_config() -> dict[str, t.ContainerValue]:
+def load_fixture_config() -> Mapping[str, t.ContainerValue]:
     """Load configuration data from fixtures directory."""
     fixture_path = Path("tests/fixtures/configs/test_config.json")
     with fixture_path.open(encoding="utf-8") as f:
         data = json.load(f)
     adapter: TypeAdapter[Mapping[str, t.ContainerValue]] = TypeAdapter(
-        t.ConfigurationMapping,
+        t.ConfigurationMapping
     )
     return adapter.validate_python(data)
 
 
 @pytest.fixture
-def load_fixture_data() -> dict[str, t.ContainerValue]:
+def load_fixture_data() -> Mapping[str, t.ContainerValue]:
     """Load test data from fixtures directory."""
     fixture_path = Path("tests/fixtures/data/test_data.json")
     with fixture_path.open(encoding="utf-8") as f:
         data = json.load(f)
     adapter: TypeAdapter[Mapping[str, t.ContainerValue]] = TypeAdapter(
-        t.ConfigurationMapping,
+        t.ConfigurationMapping
     )
     return adapter.validate_python(data)
 
 
-# ============================================================================
-# DOCKER TEST SUPPORT (CENTRALIZED FIXTURES)
-# ============================================================================
-
-
 @pytest.fixture(scope="session")
-def flext_test_docker(
-    tmp_path_factory: pytest.TempPathFactory,
-) -> FlextTestsDocker:
+def flext_test_docker(tmp_path_factory: pytest.TempPathFactory) -> FlextTestsDocker:
     """FlextTestsDocker instance for managing test containers.
 
     Container stays alive after tests for debugging, recreated on infra failures.
     Tests are idempotent with cleanup at start/end. Uses session scope to persist
     containers across tests but clean up at session end.
     """
-    # Use the flext-cli directory as workspace root
     workspace_root = Path(__file__).parent.parent
     docker_manager = FlextTestsDocker(workspace_root=workspace_root)
-
-    # Clean up any existing test containers at start
     try:
         _ = docker_manager.cleanup_dirty_containers()
     except OSError as startup_err:
-        # Best-effort cleanup; log and continue so test run is not blocked
         logging.getLogger(__name__).debug(
-            "Docker cleanup at startup skipped: %s",
-            startup_err,
+            "Docker cleanup at startup skipped: %s", startup_err
         )
-
     return docker_manager
-
-    # Keep containers alive after tests for debugging (don't clean up)
-    # Only clean up on explicit failures or when requested
-
-
-# ============================================================================
-# UTILITY FIXTURES
-# ============================================================================
 
 
 @pytest.fixture
 def mock_env_vars(tmp_path: Path) -> Generator[dict[str, str]]:
     """Set up environment variables for tests using real .env file."""
-    # Create .env file with test environment variables
     env_file = tmp_path / ".env"
-    env_content = """FLEXT_CLI_DEBUG=true
-FLEXT_CLI_OUTPUT_FORMAT=json
-FLEXT_CLI_NO_COLOR=false
-FLEXT_CLI_PROFILE=test
-FLEXT_CLI_TIMEOUT=30
-FLEXT_CLI_RETRIES=3
-"""
+    env_content = "FLEXT_CLI_DEBUG=true\nFLEXT_CLI_OUTPUT_FORMAT=json\nFLEXT_CLI_NO_COLOR=false\nFLEXT_CLI_PROFILE=test\nFLEXT_CLI_TIMEOUT=30\nFLEXT_CLI_RETRIES=3\n"
     _ = env_file.write_text(env_content)
-
-    # Store which env vars were originally set (only track existing ones)
     original_env: dict[str, str] = {}
     env_vars = {
         "FLEXT_CLI_DEBUG": "true",
@@ -770,26 +632,20 @@ FLEXT_CLI_RETRIES=3
         "FLEXT_CLI_RETRIES": "3",
     }
 
-    # Use u.Cli.process_mapping to set environment variables (dict + (k,v) processor)
     def set_env_var(k: str, v: str) -> None:
         """Set single environment variable."""
-        # Only store if the variable was already set
         if k in os.environ:
             original_env[k] = os.environ[k]
         os.environ[k] = v
 
     _ = u.Cli.process_mapping(env_vars, set_env_var, on_error="skip")
-
     yield env_vars
 
-    # Restore original environment using u.Cli.process_mapping
     def restore_env_var(k: str, _v: str) -> None:
         """Restore single environment variable."""
         if k in original_env:
-            # Restore the original value
             os.environ[k] = original_env[k]
         else:
-            # Variable was not set before, remove it
             _ = os.environ.pop(k, None)
 
     _ = u.Cli.process_mapping(env_vars, restore_env_var, on_error="skip")
@@ -802,36 +658,18 @@ def reset_singletons() -> None:
     CRITICAL: This fixture runs automatically before EACH test to ensure
     no state leaks between tests regardless of pytest-randomly order.
     """
-    # Reset BEFORE test to ensure clean state
-    # For now, skip reset to focus on test functionality
-    # Pydantic v2 with 'from __future__ import annotations' resolves forward refs
-    # No manual model_rebuild() needed - annotations resolved at runtime
-    # Reset after test to clean up any state
     return
 
 
 @pytest.fixture
 def clean_flext_container() -> Generator[None]:
     """Ensure clean FlextContainer state for tests."""
-    # Get or create container instance (singleton pattern)
     container = FlextContainer()
-
-    # Store original configuration (ConfigMap from get_config)
     original_config = container.get_config()
-
-    # Reset container configuration (configure accepts Mapping[str, ScalarValue])
     _ = container.configure({})
-
     yield
-
-    # Restore: configure() accepts Mapping[str, ScalarValue]. Use Pydantic to keep only scalar entries.
     restore = ScalarConfigRestore.from_config_items(dict(original_config.root))
     _ = container.configure(restore.root)
-
-
-# ============================================================================
-# VERSION TEST FIXTURES AND CONSTANTS
-# ============================================================================
 
 
 class Examples:
@@ -850,11 +688,6 @@ class InfoTuples:
     VALID_COMPLEX_TUPLE: tuple[int | str, ...] = (1, 2, 3, "alpha", 1)
     SHORT_TUPLE: tuple[int, int] = (1, 2)
     EMPTY_TUPLE: tuple[()] = ()
-
-
-# ============================================================================
-# INPUT SIMULATION FIXTURES - For eliminating monkeypatch violations
-# ============================================================================
 
 
 @pytest.fixture
@@ -944,28 +777,16 @@ def input_exception_simulator() -> Iterator[Callable[[type[Exception]], None]]:
     builtins.input = original_input
 
 
-# ============================================================================
-# TEST MARKERS AND CONFIGURATION
-# ============================================================================
-# pytest_configure is already defined above with constants and markers
-
-
 def pytest_collection_modifyitems(
-    config: pytest.Config,
-    items: list[pytest.Item],
+    config: pytest.Config, items: list[pytest.Item]
 ) -> None:
     """Modify test collection to add markers based on test names."""
-    # Use config to avoid unused argument warning
-    _ = config  # Mark as used
+    _ = config
     for item in items:
-        # Add markers based on test file names
         if "integration" in str(item.fspath):
             item.add_marker(pytest.mark.integration)
         elif "unit" in str(item.fspath):
             item.add_marker(pytest.mark.unit)
-
-        # Add markers based on test names
-        # Note: pytest-auto-detects functions, no need to mark manually
         if "docker" in item.name:
             item.add_marker(pytest.mark.docker)
         if "slow" in item.name:

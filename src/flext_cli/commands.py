@@ -11,30 +11,16 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import logging
-from collections.abc import Mapping, Sequence
-from typing import Protocol, Self, override, runtime_checkable
+from collections.abc import Callable, Mapping, Sequence
+from typing import Self, override
 
 from flext_core import r
 from rich.errors import ConsoleError, LiveError, StyleError
 
-from flext_cli import FlextCliServiceBase, c, t
+from flext_cli import FlextCliServiceBase, c, m, t
 
-
-@runtime_checkable
-class FlextCliCommandHandler(Protocol):
-    """Protocol for command handler callables."""
-
-    def __call__(
-        self,
-        *args: t.JsonValue,
-        **kwargs: t.JsonValue,
-    ) -> r[t.JsonValue]:
-        """Execute command with variable arguments."""
-        ...
-
-
-# Type alias for command entry dict
-FlextCliCommandEntry = Mapping[str, str | FlextCliCommandHandler]
+FlextCliCommandGroup = m.Cli.CliCommandGroup
+FlextCliCommandEntryModel = m.Cli.CommandEntryModel
 
 
 class FlextCliCommands(FlextCliServiceBase):
@@ -55,11 +41,7 @@ class FlextCliCommands(FlextCliServiceBase):
 
     """
 
-    def __init__(
-        self,
-        name: str = "flext",
-        description: str = "FLEXT CLI",
-    ) -> None:
+    def __init__(self, name: str = "flext", description: str = "FLEXT CLI") -> None:
         """Initialize commands service.
 
         Args:
@@ -70,7 +52,7 @@ class FlextCliCommands(FlextCliServiceBase):
         super().__init__()
         self._name = name
         self._description = description
-        self._commands: dict[str, FlextCliCommandEntry] = {}
+        self._commands: dict[str, FlextCliCommandEntryModel] = {}
         self._groups: dict[str, FlextCliCommandGroup] = {}
 
     @property
@@ -85,8 +67,7 @@ class FlextCliCommands(FlextCliServiceBase):
 
     @staticmethod
     def _normalize_handler_result(
-        result: r[t.JsonValue] | None,
-        command_name: str,
+        result: r[t.JsonValue] | None, command_name: str
     ) -> r[t.JsonValue]:
         """Normalize handler output to FlextResult."""
         if result is None:
@@ -95,7 +76,7 @@ class FlextCliCommands(FlextCliServiceBase):
             return r[t.JsonValue].ok(result.value)
         error_value = result.error
         return r[t.JsonValue].fail(
-            str(error_value) if error_value else "Command failed",
+            str(error_value) if error_value else "Command failed"
         )
 
     def clear_commands(self) -> r[int]:
@@ -114,7 +95,7 @@ class FlextCliCommands(FlextCliServiceBase):
         self,
         name: str,
         description: str = "",
-        commands: Mapping[str, FlextCliCommandEntry] | None = None,
+        commands: Mapping[str, FlextCliCommandEntryModel] | None = None,
     ) -> r[FlextCliCommandGroup]:
         """Create a command group.
 
@@ -129,20 +110,15 @@ class FlextCliCommands(FlextCliServiceBase):
         """
         if not name.strip():
             return r[FlextCliCommandGroup].fail("Group name must be non-empty string")
-
         if commands is None:
             return r[FlextCliCommandGroup].fail(
-                "Commands are required for group creation",
+                "Commands are required for group creation"
             )
-
-        # Type system ensures commands is Mapping after None check
-        # Use comprehension for pyrefly (dict() has no matching overload for this Mapping type)
-        commands_arg: Mapping[str, FlextCliCommandEntry] = dict(commands.items())
-        group = FlextCliCommandGroup(
-            name=name,
-            description=description,
-            commands=commands_arg,  # pyrefly: ignore[bad-argument-type] Pydantic init expects generic Mapping; runtime type FlextCliCommandEntry is correct
-        )
+        group = FlextCliCommandGroup.model_validate({
+            "name": name,
+            "description": description,
+            "commands": commands,
+        })
         self._groups[name] = group
         return r[FlextCliCommandGroup].ok(group)
 
@@ -175,10 +151,7 @@ class FlextCliCommands(FlextCliServiceBase):
         })
 
     def execute_command(
-        self,
-        name: str,
-        args: Sequence[str] | None = None,
-        **kwargs: t.JsonValue,
+        self, name: str, args: Sequence[str] | None = None, **kwargs: t.JsonValue
     ) -> r[t.JsonValue]:
         """Execute a registered CLI command.
 
@@ -193,24 +166,15 @@ class FlextCliCommands(FlextCliServiceBase):
         """
         if not name.strip():
             return r[t.JsonValue].fail("Invalid command name")
-
         if name not in self._commands:
             return r[t.JsonValue].fail(f"Command not found: {name}")
-
         cmd_info = self._commands[name]
-        handler = cmd_info.get("handler")
-
+        handler = cmd_info.handler
         if not callable(handler):
             return r[t.JsonValue].fail(f"Handler not callable for: {name}")
-
         try:
-            # Try to execute handler with provided arguments
             result: r[t.JsonValue] | None = None
-
-            # Attempt execution with various argument combinations
             execution_attempted = False
-
-            # Try with both args and kwargs
             if args or kwargs:
                 try:
                     result = handler(*args, **kwargs) if args else handler(**kwargs)
@@ -222,11 +186,8 @@ class FlextCliCommands(FlextCliServiceBase):
                         exc,
                         exc_info=False,
                     )
-
-            # If no args/kwargs or execution failed, try with no arguments
             if not execution_attempted:
                 result = handler()
-
             return self._normalize_handler_result(result, name)
         except (
             ValueError,
@@ -249,17 +210,13 @@ class FlextCliCommands(FlextCliServiceBase):
             Use FlextCliCli for actual Click integration.
 
         """
-        # Use comprehensions for pyrefly (dict() has no matching overload for this Mapping type)
-        return FlextCliCommandGroup(
-            name=self._name,
-            description=self._description,
-            commands={
-                k: {k2: v2 for k2, v2 in v.items()} if isinstance(v, Mapping) else v  # noqa: C416
-                for k, v in self._commands.items()
-            },
-        )
+        return FlextCliCommandGroup.model_validate({
+            "name": self._name,
+            "description": self._description,
+            "commands": self._commands,
+        })
 
-    def get_commands(self) -> Mapping[str, FlextCliCommandEntry]:
+    def get_commands(self) -> Mapping[str, FlextCliCommandEntryModel]:
         """Get all registered commands.
 
         Returns:
@@ -278,9 +235,7 @@ class FlextCliCommands(FlextCliServiceBase):
         return r[list[str]].ok(list(self._commands.keys()))
 
     def register_command(
-        self,
-        name: str,
-        handler: FlextCliCommandHandler,
+        self, name: str, handler: Callable[..., r[t.JsonValue]]
     ) -> r[bool]:
         """Register a CLI command.
 
@@ -294,18 +249,10 @@ class FlextCliCommands(FlextCliServiceBase):
         """
         if not name.strip():
             return r[bool].fail("Command name must be non-empty string")
-        # Type system ensures handler is callable via CommandHandler Protocol
-
-        self._commands[name] = {
-            "handler": handler,
-            "name": name,
-        }
+        self._commands[name] = FlextCliCommandEntryModel(name=name, handler=handler)
         return r[bool].ok(value=True)
 
-    def run_cli(
-        self,
-        args: Sequence[str] | None = None,
-    ) -> r[t.JsonValue]:
+    def run_cli(self, args: Sequence[str] | None = None) -> r[t.JsonValue]:
         """Run CLI with given arguments.
 
         Args:
@@ -317,23 +264,17 @@ class FlextCliCommands(FlextCliServiceBase):
         """
         if not args:
             return r[t.JsonValue].ok({"status": "success", "message": "No args"})
-
         cmd_name = args[0] if args else ""
         cmd_args = list(args[1:]) if len(args) > 1 else []
-
-        # Handle special options
         if cmd_name in {"--help", "-h"}:
             return r[t.JsonValue].ok({
                 "status": "help",
                 "commands": list(self._commands.keys()),
             })
-
         if cmd_name in {"--version", "-v"}:
             return r[t.JsonValue].ok({"status": "version", "name": self._name})
-
         if cmd_name not in self._commands:
             return r[t.JsonValue].fail(f"Command not found: {cmd_name}")
-
         return self.execute_command(cmd_name, args=cmd_args)
 
     def unregister_command(self, name: str) -> r[bool]:
@@ -348,6 +289,5 @@ class FlextCliCommands(FlextCliServiceBase):
         """
         if name not in self._commands:
             return r[bool].fail(f"Command not found: {name}")
-
         del self._commands[name]
         return r[bool].ok(value=True)

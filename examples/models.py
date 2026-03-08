@@ -23,7 +23,9 @@ from pydantic import (
     model_validator,
 )
 
-from flext_cli import FlextCli, FlextCliSettings, r, t
+from flext_cli import FlextCli, FlextCliSettings, m, r, t
+
+_JsonDictAdapter: TypeAdapter[t.JsonDict] = TypeAdapter(t.JsonDict)
 
 # ---------------------------------------------------------------------------
 # Example 03 - Interactive Prompts
@@ -81,16 +83,14 @@ class MyAppConfig(BaseModel):
         if not isinstance(data, dict):
             return data
         try:
-            typed_data = TypeAdapter(dict[str, object]).validate_python(data)
+            typed_data = _JsonDictAdapter.validate_python(data)
         except ValidationError:
-            empty_myapp: dict[str, str | int] = {}
-            return empty_myapp
-        out: dict[str, str | int] = {
-            "app_name": os.getenv("APP_NAME", "my-cli-tool"),
-            "api_key": os.getenv("API_KEY", ""),
-            "max_workers": int(os.getenv("MAX_WORKERS", "4")),
-            "timeout": int(os.getenv("TIMEOUT", "30")),
-        }
+            return {
+                "app_name": "my-cli-tool",
+                "api_key": "",
+                "max_workers": 4,
+                "timeout": 30,
+            }
         str_keys: set[str] = {"app_name", "api_key"}
         int_keys: set[str] = {"max_workers", "timeout"}
         updates = {
@@ -99,22 +99,29 @@ class MyAppConfig(BaseModel):
             if (isinstance(val, str) and k in str_keys)
             or (isinstance(val, int) and k in int_keys)
         }
-        out.update(updates)
-        return out
+        return {
+            "app_name": os.getenv("APP_NAME", "my-cli-tool"),
+            "api_key": os.getenv("API_KEY", ""),
+            "max_workers": int(os.getenv("MAX_WORKERS", "4")),
+            "timeout": int(os.getenv("TIMEOUT", "30")),
+            **updates,
+        }
 
     def display(self, cli: FlextCli) -> None:
         """Display app configuration; uses cli for base settings."""
         base: FlextCliSettings = cli.config
-        config_data: dict[str, t.JsonValue] = {
-            "App Name": self.app_name,
-            "API Key": f"{self.api_key[:10]}..." if self.api_key else "Not set",
-            "Max Workers": str(self.max_workers),
-            "Timeout": f"{self.timeout}s",
-            "Debug": str(base.debug),
-            "Profile": base.profile,
-        }
+        payload = m.Cli.DisplayData(
+            data={
+                "App Name": self.app_name,
+                "API Key": f"{self.api_key[:10]}..." if self.api_key else "Not set",
+                "Max Workers": str(self.max_workers),
+                "Timeout": f"{self.timeout}s",
+                "Debug": str(base.debug),
+                "Profile": base.profile,
+            }
+        )
         cli.show_table(
-            config_data,
+            payload.data,
             headers=["Setting", "Value"],
             title="⚙️  Application Configuration",
         )
@@ -158,11 +165,18 @@ class AppConfigAdvanced(BaseModel):
         if not isinstance(data, dict):
             return data
         try:
-            typed_data = TypeAdapter(dict[str, object]).validate_python(data)
+            typed_data = _JsonDictAdapter.validate_python(data)
         except ValidationError:
-            empty_adv: dict[str, str | int | bool | Path] = {}
-            return empty_adv
-        out: dict[str, str | int | bool | Path] = {
+            return {
+                "database_url": "postgresql://localhost:5432/myapp",
+                "redis_url": "redis://localhost:6379",
+                "api_key": "",
+                "max_workers": 4,
+                "enable_metrics": True,
+                "log_level": "INFO",
+                "temp_dir": Path.home() / ".cache" / "myapp",
+            }
+        result = {
             "database_url": os.getenv(
                 "DATABASE_URL", "postgresql://localhost:5432/myapp"
             ),
@@ -175,20 +189,20 @@ class AppConfigAdvanced(BaseModel):
                 os.getenv("TEMP_DIR", str(Path.home() / ".cache" / "myapp"))
             ),
         }
-        for key in (
-            "database_url",
-            "redis_url",
-            "api_key",
-            "max_workers",
-            "enable_metrics",
-            "log_level",
-            "temp_dir",
-        ):
-            if key in typed_data:
-                val: object = typed_data[key]
-                if isinstance(val, (str, int, bool, Path)):
-                    out[key] = val
-        return out
+        updates = {
+            k: typed_data[k]
+            for k in (
+                "database_url",
+                "redis_url",
+                "api_key",
+                "max_workers",
+                "enable_metrics",
+                "log_level",
+                "temp_dir",
+            )
+            if k in typed_data and isinstance(typed_data[k], (str, int, bool, Path))
+        }
+        return {**result, **updates}
 
     @field_validator("database_url")
     @classmethod

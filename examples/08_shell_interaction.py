@@ -38,11 +38,6 @@ from flext_cli import FlextCli, r, t
 cli = FlextCli()
 
 
-# ============================================================================
-# PATTERN 1: Simple command handler for YOUR interactive CLI
-# ============================================================================
-
-
 def handle_status_command() -> r[dict[str, t.JsonValue]]:
     """Status command in YOUR interactive CLI."""
     status = {
@@ -50,29 +45,21 @@ def handle_status_command() -> r[dict[str, t.JsonValue]]:
         "user": os.getenv("USER", "unknown"),
         "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
     }
-
     cli.print(f"✅ Status: {status['status']}", style="green")
     cli.print(f"   User: {status['user']}", style="cyan")
     return r[dict[str, t.JsonValue]].ok(dict(status))
 
 
-def handle_list_command(
-    filter_text: str = "",
-) -> r[list[str]]:
+def handle_list_command(filter_text: str = "") -> r[list[str]]:
     """List command with filtering in YOUR CLI."""
     items = ["item1", "item2", "item3", "test_item"]
-
     if filter_text:
         filtered = [item for item in items if filter_text in item]
         cli.print(
-            f"📋 Found {len(filtered)} items matching '{filter_text}'",
-            style="cyan",
+            f"📋 Found {len(filtered)} items matching '{filter_text}'", style="cyan"
         )
-        # Cast to expected type (runtime type is compatible)
         return r[list[str]].ok(filtered)
-
     cli.print(f"📋 Total items: {len(items)}", style="cyan")
-    # Cast to expected type (runtime type is compatible)
     return r[list[str]].ok(items)
 
 
@@ -82,16 +69,10 @@ def handle_config_command(key: str = "", value: str = "") -> r[str]:
         cli.print(f"✅ Set {key}={value}", style="green")
         return r[str].ok(f"Set {key}={value}")
     if key:
-        # Get config value
         cli.print(f"📖 Reading {key}...", style="cyan")
         return r[str].ok("value")
     cli.print("⚠️  Usage: config <key> [value]", style="yellow")
     return r[str].fail("Missing key")
-
-
-# ============================================================================
-# PATTERN 2: Command dispatcher for YOUR shell
-# ============================================================================
 
 
 class InteractiveShell:
@@ -114,22 +95,18 @@ class InteractiveShell:
         parts = command_line.strip().split()
         if not parts:
             return r[t.JsonValue].fail("Empty command")
-
         cmd_name = parts[0]
         args: list[str] = parts[1:] if len(parts) > 1 else []
-
         if cmd_name not in self.commands:
             return r[t.JsonValue].fail(f"Unknown command: {cmd_name}")
-
         handler = self.commands[cmd_name]
-
         try:
             if callable(handler):
                 result = handler(*args) if args else handler()
                 if hasattr(result, "is_failure") and hasattr(result, "value"):
                     if result.is_failure:
                         return r[t.JsonValue].fail(
-                            result.error or "Unknown command error",
+                            result.error or "Unknown command error"
                         )
                     payload: t.JsonValue = result.value
                 else:
@@ -153,22 +130,12 @@ class InteractiveShell:
         return r[bool].ok(value=True)
 
 
-# ============================================================================
-# PATTERN 3: Multi-line input support
-# ============================================================================
-
-
 def handle_multiline_input(lines: list[str]) -> str:
     """Process multi-line input in YOUR interactive CLI."""
     combined = "\n".join(lines)
     cli.print(f"📝 Processing {len(lines)} lines...", style="cyan")
     cli.print(f"   Total chars: {len(combined)}", style="white")
     return combined
-
-
-# ============================================================================
-# PATTERN 4: Command history
-# ============================================================================
 
 
 class CommandHistory:
@@ -191,7 +158,6 @@ class CommandHistory:
         if not self.history:
             cli.print("📜 No command history", style="yellow")
             return
-
         cli.print("\n📜 Recent Commands (last 10):", style="bold cyan")
         for i, cmd in enumerate(self.get_recent(), 1):
             cli.print(f"   {i}. {cmd}", style="white")
@@ -201,77 +167,40 @@ class CommandHistory:
         return self.history[-count:]
 
 
-# ============================================================================
-# REAL USAGE EXAMPLES
-# ============================================================================
-
-
 def main() -> None:
     """Examples of shell interaction in YOUR code."""
     cli.print("=" * 70, style="bold blue")
     cli.print("  Interactive Shell Library Usage", style="bold white")
     cli.print("=" * 70, style="bold blue")
-
-    # Example 1: Command handlers
-    cli.print(
-        "\n1. Command Handlers (status, list, config):",
-        style="bold cyan",
-    )
+    cli.print("\n1. Command Handlers (status, list, config):", style="bold cyan")
     handle_status_command()
     handle_list_command(filter_text="test")
     handle_config_command(key="theme", value="dark")
-
-    # Example 2: Interactive shell
-    cli.print(
-        "\n2. Interactive Shell (command dispatcher):",
-        style="bold cyan",
-    )
+    cli.print("\n2. Interactive Shell (command dispatcher):", style="bold cyan")
     shell = InteractiveShell()
     shell.show_help()
-
-    # Simulate command execution
     cli.print("\n   Simulating: status", style="yellow")
     shell.execute_command("status")
-
     cli.print("\n   Simulating: list test", style="yellow")
     shell.execute_command("list test")
-
-    # Example 3: Multi-line input
-    cli.print(
-        "\n3. Multi-Line Input (combined processing):",
-        style="bold cyan",
-    )
+    cli.print("\n3. Multi-Line Input (combined processing):", style="bold cyan")
     lines = ["SELECT * FROM users", "WHERE active = true", "ORDER BY created_at DESC"]
     combined = handle_multiline_input(lines)
     cli.print(f"   First 50 chars: {combined[:50]}...", style="white")
-
-    # Example 4: Command history
     cli.print("\n4. Command History (tracking):", style="bold cyan")
     history = CommandHistory()
     history.add("status")
     history.add("list test")
     history.add("config theme dark")
     history.display_history()
-
     cli.print("\n" + "=" * 70, style="bold blue")
     cli.print("  ✅ Shell Interaction Examples Complete", style="bold green")
     cli.print("=" * 70, style="bold blue")
-
-    # Integration guide
     cli.print("\n💡 Integration Tips:", style="bold cyan")
-    cli.print(
-        "  • Create command handlers with FlextResult returns",
-        style="white",
-    )
-    cli.print(
-        "  • Build command dispatcher to route user input",
-        style="white",
-    )
+    cli.print("  • Create command handlers with FlextResult returns", style="white")
+    cli.print("  • Build command dispatcher to route user input", style="white")
     cli.print("  • Add command history for better UX", style="white")
-    cli.print(
-        "  • Support multi-line input for complex commands",
-        style="white",
-    )
+    cli.print("  • Support multi-line input for complex commands", style="white")
 
 
 if __name__ == "__main__":

@@ -81,10 +81,7 @@ class FlextCliFormatters:
         def add(self, label: str, *, return_child: Literal[True]) -> Self: ...
 
         def add(
-            self,
-            label: str,
-            *,
-            return_child: bool = False,
+            self, label: str, *, return_child: bool = False
         ) -> FlextCliFormatters.Tree | None:
             """Add a child node; return the wrapped child only when *return_child* is set."""
             child = self._tree.add(label)
@@ -102,7 +99,6 @@ class FlextCliFormatters:
     def __init__(self) -> None:
         """Initialize Rich formatters with direct Rich imports."""
         super().__init__()
-        # Use Rich directly (formatters.py is ONE OF TWO files that may import Rich)
         self.console: Console = Console()
 
     @staticmethod
@@ -123,16 +119,12 @@ class FlextCliFormatters:
         except ConsoleError as exc:
             _logger.warning("rich_layout_creation_failed", error=str(exc))
             return r[RichLayout].fail(
-                c.Cli.FormattersErrorMessages.LAYOUT_CREATION_FAILED.format(
-                    error=exc,
-                ),
+                c.Cli.FormattersErrorMessages.LAYOUT_CREATION_FAILED.format(error=exc)
             )
 
     @staticmethod
     def create_panel(
-        content: str,
-        title: str | None = None,
-        border_style: str | None = None,
+        content: str, title: str | None = None, border_style: str | None = None
     ) -> r[RichPanel]:
         """Create Rich panel with text content.
 
@@ -150,17 +142,12 @@ class FlextCliFormatters:
 
         """
         try:
-            # Validate border style explicitly - no fallback
             validated_border_style = (
                 border_style
                 if border_style is not None
                 else c.Cli.FormattersDefaults.DEFAULT_BORDER_STYLE
             )
-            panel = RichPanel(
-                content,
-                title=title,
-                border_style=validated_border_style,
-            )
+            panel = RichPanel(content, title=title, border_style=validated_border_style)
             return r[RichPanel].ok(panel)
         except (ConsoleError, StyleError) as exc:
             _logger.warning("rich_panel_creation_fallback", error=str(exc), title=title)
@@ -184,9 +171,7 @@ class FlextCliFormatters:
         except ConsoleError as exc:
             _logger.warning("rich_progress_creation_failed", error=str(exc))
             return r[Progress].fail(
-                c.Cli.FormattersErrorMessages.PROGRESS_CREATION_FAILED.format(
-                    error=exc,
-                ),
+                c.Cli.FormattersErrorMessages.PROGRESS_CREATION_FAILED.format(error=exc)
             )
 
     @staticmethod
@@ -212,29 +197,20 @@ class FlextCliFormatters:
         """
         try:
             table = RichTable(title=title)
-
-            # Add columns if headers provided
             if headers:
                 for header in headers:
                     table.add_column(header)
-
-            # Add rows if data provided
             if data and u.is_dict_like(data):
-                # Simple dict[str, t.JsonValue] to table conversion - key-value pairs for 2-column tables
                 for k, v in data.items():
                     if (
                         headers
                         and len(headers)
                         == c.Cli.FormattersDefaults.TABLE_KEY_VALUE_COLUMNS
                     ):
-                        # Key-value pairs
                         table.add_row(str(k), str(v))
                     else:
-                        # Single column with values
                         table.add_row(str(k), str(v))
-
             return r[RichTable].ok(table)
-
         except (ConsoleError, StyleError) as exc:
             _logger.warning("rich_table_creation_fallback", error=str(exc), title=title)
             return r[RichTable].ok(RichTable())
@@ -259,15 +235,10 @@ class FlextCliFormatters:
         except ConsoleError as exc:
             _logger.warning("rich_tree_creation_failed", error=str(exc), label=label)
             return r[FlextCliFormatters.Tree].fail(
-                c.Cli.FormattersErrorMessages.TREE_CREATION_FAILED.format(
-                    error=exc,
-                ),
+                c.Cli.FormattersErrorMessages.TREE_CREATION_FAILED.format(error=exc)
             )
 
-    def create_live(
-        self,
-        refresh_per_second: float | None = None,
-    ) -> r[RichLive]:
+    def create_live(self, refresh_per_second: float | None = None) -> r[RichLive]:
         """Create Rich live display.
 
         Args:
@@ -281,33 +252,20 @@ class FlextCliFormatters:
 
         """
         try:
-            # Validate refresh rate explicitly - no fallback
             validated_refresh_rate = (
                 refresh_per_second
                 if refresh_per_second is not None
                 else c.Cli.FormattersDefaults.DEFAULT_REFRESH_RATE
             )
-            live = RichLive(
-                refresh_per_second=validated_refresh_rate,
-            )
+            live = RichLive(refresh_per_second=validated_refresh_rate)
             return r[RichLive].ok(live)
         except (ConsoleError, LiveError) as exc:
             _logger.warning("rich_live_creation_failed", error=str(exc))
             return r[RichLive].fail(
-                c.Cli.FormattersErrorMessages.LIVE_CREATION_FAILED.format(
-                    error=exc,
-                ),
+                c.Cli.FormattersErrorMessages.LIVE_CREATION_FAILED.format(error=exc)
             )
 
-    # =========================================================================
-    # ADVANCED RICH WRAPPERS - Status, Live, Layout, Panel
-    # =========================================================================
-
-    def create_status(
-        self,
-        message: str,
-        spinner: str | None = None,
-    ) -> r[RichStatus]:
+    def create_status(self, message: str, spinner: str | None = None) -> r[RichStatus]:
         """Create Rich status spinner.
 
         Args:
@@ -322,27 +280,19 @@ class FlextCliFormatters:
 
         """
         try:
-            # Validate spinner explicitly - no fallback
             validated_spinner = (
                 spinner
                 if spinner is not None
                 else c.Cli.FormattersDefaults.DEFAULT_SPINNER
             )
-            status = RichStatus(
-                message,
-                spinner=validated_spinner,
-            )
+            status = RichStatus(message, spinner=validated_spinner)
             return r[RichStatus].ok(status)
         except (ConsoleError, StyleError) as exc:
             _logger.warning(
-                "rich_status_creation_failed",
-                error=str(exc),
-                message=message,
+                "rich_status_creation_failed", error=str(exc), message=message
             )
             return r[RichStatus].fail(
-                c.Cli.FormattersErrorMessages.STATUS_CREATION_FAILED.format(
-                    error=exc,
-                ),
+                c.Cli.FormattersErrorMessages.STATUS_CREATION_FAILED.format(error=exc)
             )
 
     def execute(self) -> r[Mapping[str, t.JsonValue]]:
@@ -352,15 +302,7 @@ class FlextCliFormatters:
             c.Cli.DictKeys.SERVICE: c.Cli.Services.FORMATTERS,
         })
 
-    # =========================================================================
-    # CORE METHODS - ACTUALLY USED BY output.py
-    # =========================================================================
-
-    def print(
-        self,
-        message: str,
-        style: str | None = None,
-    ) -> None:
+    def print(self, message: str, style: str | None = None) -> None:
         """Print formatted message using Rich.
 
         Args:
@@ -375,9 +317,7 @@ class FlextCliFormatters:
             self.console.print(message, style=style)
         except (ConsoleError, StyleError) as exc:
             _logger.warning(
-                "rich_print_fallback",
-                error=str(exc),
-                message_length=len(message),
+                "rich_print_fallback", error=str(exc), message_length=len(message)
             )
             _ = sys.stdout.write(f"{message}\n")
             _ = sys.stdout.flush()
@@ -398,27 +338,19 @@ class FlextCliFormatters:
 
         """
         try:
-            # Use Rich's built-in rendering
             console = Console(width=width) if width else self.console
-
-            # Capture console output
             buffer = StringIO()
-            # Validate width explicitly - no fallback
             validated_width = width if width is not None else console.width
             temp_console = Console(file=buffer, width=validated_width)
             temp_console.print(table)
             output = buffer.getvalue()
-
             return r[str].ok(output)
-
         except (ConsoleError, NotRenderableError) as exc:
             _logger.warning("rich_table_render_fallback", error=str(exc))
             return r[str].ok(str(table))
 
     def render_tree_to_string(
-        self,
-        tree: RichTree | FlextCliFormatters.Tree,
-        width: int | None = None,
+        self, tree: RichTree | FlextCliFormatters.Tree, width: int | None = None
     ) -> r[str]:
         """Render Rich tree to string.
 
@@ -433,19 +365,14 @@ class FlextCliFormatters:
         inner = tree.tree if isinstance(tree, FlextCliFormatters.Tree) else tree
         try:
             buffer = StringIO()
-            # Validate width explicitly - no fallback
             validated_width = width if width is not None else self.console.width
             temp_console = Console(file=buffer, width=validated_width)
             temp_console.print(inner)
             output = buffer.getvalue()
-
             return r[str].ok(output)
-
         except (ConsoleError, NotRenderableError) as exc:
             _logger.warning("rich_tree_render_fallback", error=str(exc))
             return r[str].ok(str(inner))
 
 
-__all__ = [
-    "FlextCliFormatters",
-]
+__all__ = ["FlextCliFormatters"]

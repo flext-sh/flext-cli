@@ -37,10 +37,6 @@ class FlextCliGettingStarted:
         super().__init__()
         self.cli = FlextCli()
 
-    # ============================================================================
-    # ADVANCED PATTERNS: Using Python 3.13+ types and constants
-    # ============================================================================
-
     def advanced_types_example(self) -> None:
         """Demonstrate advanced Python 3.13+ typing patterns with flext-cli.
 
@@ -50,37 +46,23 @@ class FlextCliGettingStarted:
         - PEP 695 type aliases
         - Advanced Literal unions
         """
-        # Using StrEnum from constants for runtime validation
         output_format = c.Cli.OutputFormats.JSON
         self.cli.print(f"Selected format: {output_format.value}", style="blue")
-
-        # Using collections.abc.Mapping for immutable configuration
-
-        # Demonstrate discriminated union validation (use constants for known type)
         valid_formats: tuple[str, ...] = tuple(
             sorted(c.Cli.ValidationLists.OUTPUT_FORMATS)
         )
         self.cli.print(f"Available formats: {', '.join(valid_formats)}")
-
-        # Using advanced type aliases from typings
         sample_data: t.Cli.JsonDict = {
             "status": c.Cli.CommandStatus.COMPLETED.value,
             "data": [1, 2, 3],
             "metadata": {"version": "1.0"},
         }
-
         self.cli.print(f"Sample data: {sample_data}", style="green")
-
-    # ============================================================================
-    # PATTERN 2: Display data as tables
-    # ============================================================================
 
     def display_user_data(self, user: m.Cli.DisplayData) -> None:
         """Show how to display YOUR data as a table."""
         self.cli.show_table(
-            dict(user.data),
-            headers=["Field", "Value"],
-            title="User Information",
+            dict(user.data), headers=["Field", "Value"], title="User Information"
         )
 
     def load_config(self, filepath: str) -> r[m.Cli.LoadedConfig]:
@@ -89,21 +71,16 @@ class FlextCliGettingStarted:
         if read_result.is_failure:
             self.cli.print(f"Failed to load: {read_result.error}", style="red")
             return r[m.Cli.LoadedConfig].fail(
-                read_result.error or "Failed to load config",
+                read_result.error or "Failed to load config"
             )
         return r[m.Cli.LoadedConfig].ok(
-            m.Cli.LoadedConfig(content=dict(read_result.value)),
+            m.Cli.LoadedConfig.model_validate({"content": read_result.value})
         )
-
-    # ============================================================================
-    # PATTERN 4: Error handling without exceptions
-    # ============================================================================
 
     def process_data_with_flext_result(self) -> None:
         """Use FlextResult pattern in YOUR code - no try/except needed."""
         nonexistent_file = str(Path(tempfile.gettempdir()) / "nonexistent.json")
         result = self.cli.file_tools.read_json_dict(nonexistent_file)
-
         if result.is_success:
             self.cli.print("Data loaded successfully", style="green")
         else:
@@ -120,15 +97,7 @@ class FlextCliGettingStarted:
         self.advanced_types_example()
         self.cli.print("\n✅ All examples completed!", style="bold green")
 
-    # ============================================================================
-    # PATTERN 3: File I/O with error handling
-    # ============================================================================
-
-    def save_config(
-        self,
-        config: m.Cli.LoadedConfig,
-        filepath: str,
-    ) -> bool:
+    def save_config(self, config: m.Cli.LoadedConfig, filepath: str) -> bool:
         """Save YOUR config to JSON with proper error handling."""
         write_result = self.cli.file_tools.write_json_file(filepath, config.content)
         if write_result.is_failure:
@@ -142,17 +111,8 @@ class FlextCliGettingStarted:
         self.cli.print("Operation completed", style="green")
         self.cli.print("ERROR: Something failed", style="bold red")
 
-    # ============================================================================
-    # PATTERN 1: Replace print() with styled output
-    # ============================================================================
-
     def your_function_before(self) -> None:
         """Your old code using print()."""
-
-
-# ============================================================================
-# REAL USAGE EXAMPLE
-# ============================================================================
 
 
 def main() -> None:

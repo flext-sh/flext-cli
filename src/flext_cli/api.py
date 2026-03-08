@@ -10,8 +10,9 @@ import secrets
 import threading
 from abc import ABC
 from collections.abc import Callable, Mapping, MutableMapping, Sequence
-from typing import ClassVar, TypeGuard
+from typing import ClassVar, Protocol, TypeGuard, runtime_checkable
 
+from click import Command
 from flext_core import (
     FlextContainer as container,
     FlextLogger as logger_core,
@@ -42,8 +43,19 @@ from flext_cli.typings import FlextCliTypes as t
 from flext_cli.utilities import FlextCliUtilities as u
 
 
+@runtime_checkable
+class _DecoratorCommandLike(Protocol):
+    """Structural type for typer/click Command-like objects (name + callback)."""
+
+    @property
+    def name(self) -> str: ...
+
+    @property
+    def callback(self) -> Callable[..., t.ContainerValue]: ...
+
+
 def _is_registered_command(
-    obj: t.ContainerValue,
+    obj: t.ContainerValue | _DecoratorCommandLike | Command,
 ) -> TypeGuard[p.Cli.CliRegisteredCommand]:
     """Narrow to CliRegisteredCommand when protocol attributes are present."""
     return callable(obj) and hasattr(obj, "name") and hasattr(obj, "callback")
@@ -56,7 +68,6 @@ class FlextCli:
     Thread-safe lazy initialization. All operations return r[T].
     """
 
-    # Nested classes - FLEXT pattern with real inheritance
     class Base(FlextCliCli):
         """CLI base."""
 
@@ -101,8 +112,6 @@ class FlextCli:
 
     _instance: ClassVar[FlextCli | None] = None
     _lock: ClassVar[threading.Lock] = threading.Lock()
-
-    # Public service instances (declared with types)
     logger: logger_core
     config: FlextCliSettings
     formatters: FlextCliFormatters
@@ -111,8 +120,6 @@ class FlextCli:
     core: FlextCliCore
     cmd: FlextCliCmd
     prompts: FlextCliPrompts
-
-    # Private instance attributes (declared with types)
     _name: str
     _version: str
     _description: str
@@ -130,7 +137,7 @@ class FlextCli:
         key = c.Cli.APIDefaults.CONTAINER_REGISTRATION_KEY
         if not self._container.has_service(key):
             self._container.register(key, key)
-        self.formatters, self.file_tools = FlextCliFormatters(), FlextCliFileTools()
+        self.formatters, self.file_tools = (FlextCliFormatters(), FlextCliFileTools())
         self.output, self.core, self.cmd, self.prompts = (
             FlextCliOutput(),
             FlextCliCore(),
@@ -189,15 +196,13 @@ class FlextCli:
             return r[bool].fail(str(e))
 
     def authenticate(
-        self,
-        credentials: m.Cli.PasswordAuth | m.Cli.TokenData | Mapping[str, str],
+        self, credentials: m.Cli.PasswordAuth | m.Cli.TokenData | Mapping[str, str]
     ) -> r[str]:
         """Authenticate user with provided credentials (model or mapping)."""
         if isinstance(credentials, m.Cli.TokenData):
             return self._authenticate_with_token(credentials)
         if isinstance(credentials, m.Cli.PasswordAuth):
             return self._authenticate_with_credentials(credentials)
-        # credentials is Mapping[str, str] at this point
         if c.Cli.DictKeys.TOKEN in credentials:
             try:
                 token_data = m.Cli.TokenData.model_validate(dict(credentials))
@@ -222,15 +227,14 @@ class FlextCli:
             if not self._is_ignorable_delete(del_result):
                 return r[bool].fail(
                     c.Cli.ErrorMessages.FAILED_CLEAR_CREDENTIALS.format(
-                        error=del_result.error,
-                    ),
+                        error=del_result.error
+                    )
                 )
         self._valid_tokens.clear()
         return r[bool].ok(value=True)
 
     def command(
-        self,
-        name: str | None = None,
+        self, name: str | None = None
     ) -> Callable[[p.Cli.CliCommandFunction], p.Cli.CliRegisteredCommand]:
         """Register a command using CLI framework abstraction."""
         return self._entity_decorator(c.Cli.EntityType.COMMAND, name)
@@ -251,8 +255,7 @@ class FlextCli:
         else:
             table_data = []
         table_config = m.Cli.TableConfig(
-            headers=headers or "keys",
-            table_format="simple",
+            headers=headers or "keys", table_format="simple"
         )
         return FlextCliTables.create_table(table_data, config=table_config)
 
@@ -278,24 +281,17 @@ class FlextCli:
 
     def get_auth_token(self) -> r[str]:
         """Get authentication token using Pydantic 2 validation."""
-        # Read token file
         result = self.file_tools.read_json_file(str(self.config.token_file))
         if result.is_failure:
             return self._handle_token_file_error(str(result.error))
-
         data = result.value
-        if not data or (runtime.is_dict_like(data) and not data):
+        if not data or (runtime.is_dict_like(data) and (not data)):
             return r[str].fail(c.Cli.ErrorMessages.TOKEN_FILE_EMPTY)
-
         try:
             token_data = m.Cli.TokenData.model_validate(data)
             return r[str].ok(token_data.token)
         except ValidationError:
-            token_result = u.extract(
-                data,
-                c.Cli.DictKeys.TOKEN,
-                required=True,
-            )
+            token_result = u.extract(data, c.Cli.DictKeys.TOKEN, required=True)
             if token_result.is_success:
                 token_value = token_result.value
                 if u.is_dict_like(token_value):
@@ -308,8 +304,7 @@ class FlextCli:
             return r[str].fail(c.Cli.ErrorMessages.TOKEN_FILE_EMPTY)
 
     def group(
-        self,
-        name: str | None = None,
+        self, name: str | None = None
     ) -> Callable[[p.Cli.CliCommandFunction], p.Cli.CliRegisteredCommand]:
         """Register a command group using CLI framework abstraction."""
         return self._entity_decorator(c.Cli.EntityType.GROUP, name)
@@ -338,25 +333,21 @@ class FlextCli:
         if table_result.is_success:
             self._print_table(table_result.value)
         else:
-            self.print(
-                f"Table error: {table_result.error}",
-                style="red",
-            )
+            self.print(f"Table error: {table_result.error}", style="red")
 
     def save_auth_token(self, token: str) -> r[bool]:
         """Save authentication token using file tools domain library."""
         validation = FlextCli._validate_token_string(token)
         if validation.is_failure:
             return validation
-        token_data: Mapping[str, t.JsonValue] = {c.Cli.DictKeys.TOKEN: token}
-        json_data = u.transform(token_data, to_json=True).map_or(token_data)
+        token_data: t.JsonDict = {c.Cli.DictKeys.TOKEN: token}
         write_result = self.file_tools.write_json_file(
             str(self.config.token_file),
-            json_data,
+            m.Cli.DisplayData.model_validate({"data": token_data}),
         )
         if write_result.is_failure:
             return r[bool].fail(
-                c.Cli.ErrorMessages.TOKEN_SAVE_FAILED.format(error=write_result.error),
+                c.Cli.ErrorMessages.TOKEN_SAVE_FAILED.format(error=write_result.error)
             )
         self._valid_tokens.add(token)
         return r[bool].ok(value=True)
@@ -364,8 +355,7 @@ class FlextCli:
     def _authenticate_with_credentials(self, credentials: m.Cli.PasswordAuth) -> r[str]:
         """Authenticate using PasswordAuth model (credentials already validated)."""
         logger_core(__name__).debug(
-            "Authenticating with password auth",
-            username=credentials.username,
+            "Authenticating with password auth", username=credentials.username
         )
         token = secrets.token_urlsafe(c.Cli.APIDefaults.TOKEN_GENERATION_BYTES)
         self._valid_tokens.add(token)
@@ -380,7 +370,7 @@ class FlextCli:
         save_result = self.save_auth_token(token)
         if save_result.is_failure:
             return r[str].fail(
-                c.Cli.ErrorMessages.TOKEN_SAVE_FAILED.format(error=save_result.error),
+                c.Cli.ErrorMessages.TOKEN_SAVE_FAILED.format(error=save_result.error)
             )
         return r[str].ok(token)
 
@@ -415,7 +405,7 @@ class FlextCli:
         if u.Cli.FileOps.is_file_not_found_error(error_str):
             return r[str].fail(c.Cli.ErrorMessages.TOKEN_FILE_NOT_FOUND)
         return r[str].fail(
-            c.Cli.ErrorMessages.TOKEN_LOAD_FAILED.format(error=error_str),
+            c.Cli.ErrorMessages.TOKEN_LOAD_FAILED.format(error=error_str)
         )
 
     def _register_cli_entity(
@@ -428,7 +418,6 @@ class FlextCli:
         entity_name: str = (
             name if name is not None else str(getattr(func, "__name__", str(func)))
         )
-        # Select decorator factory based on entity type
         factory = (
             self._cli.create_command_decorator
             if entity_type == "command"
@@ -444,7 +433,4 @@ class FlextCli:
         return registered_command
 
 
-__all__ = [
-    "FlextCli",
-    "FlextCliAppBase",
-]
+__all__ = ["FlextCli", "FlextCliAppBase"]

@@ -54,11 +54,9 @@ class TestsCliTypes(FlextTestsTypes):
             Use t.Tests.* for generic test types from FlextTestsTypes.
             """
 
-            # Import remaining types from FlextCliTypes.Cli for test access
             ResultFormatter = FlextCliTypes.Cli.ResultFormatter
             FormatableResult = FlextCliTypes.Cli.FormatableResult
             TabularData = FlextCliTypes.Cli.TabularData
-
             type CliConfigMapping = Mapping[
                 str,
                 FlextCliTypes.JsonValue
@@ -66,24 +64,14 @@ class TestsCliTypes(FlextTestsTypes):
                 | Mapping[str, str | int]
                 | None,
             ]
-            """CLI configuration mapping specific to flext-cli."""
-
+            "CLI configuration mapping specific to flext-cli."
             type CommandArgsMapping = Mapping[str, FlextCliTypes.ContainerValue]
-            """Command arguments mapping for CLI operations."""
+            "Command arguments mapping for CLI operations."
 
             class Fixtures:
                 """TypedDict definitions for test fixtures."""
 
 
-# Short aliases
 t = TestsCliTypes
 tt = TestsCliTypes
-
-__all__ = [
-    "T",
-    "T_co",
-    "T_contra",
-    "TestsCliTypes",
-    "t",
-    "tt",
-]
+__all__ = ["T", "T_co", "T_contra", "TestsCliTypes", "t", "tt"]

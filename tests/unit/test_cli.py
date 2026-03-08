@@ -28,10 +28,6 @@ from ..helpers import FlextCliTestHelpers
 class TestsCliCli:
     """Comprehensive test suite for flext_cli.FlextCliCli module."""
 
-    # ========================================================================
-    # CLI INITIALIZATION
-    # ========================================================================
-
     def test_cli_initialization(self) -> None:
         """Test CLI class initialization."""
         cli_cli = FlextCliCli()
@@ -44,49 +40,32 @@ class TestsCliCli:
         cli_cli = FlextCliCli()
         execute_result = cli_cli.execute()
         tm.ok(execute_result)
-
         data = execute_result.value
         assert isinstance(data, dict)
         assert data.get("service") == "flext-cli"
         assert data.get("status") == "operational"
 
-    # ========================================================================
-    # COMMAND DECORATORS
-    # ========================================================================
-
     def test_command_decorator_creation(self) -> None:
         """Test command decorator creation."""
         cli_cli = FlextCliCli()
         command_result = FlextCliTestHelpers.CliHelpers.create_test_command(
-            cli_cli,
-            "test_cmd",
+            cli_cli, "test_cmd"
         )
         assert command_result.is_success
-
         if command_result.is_success and command_result.value:
             assert isinstance(command_result.value, click.Command)
             assert command_result.value.name == "test_cmd"
-
-    # ========================================================================
-    # GROUP DECORATORS
-    # ========================================================================
 
     def test_group_decorator_creation(self) -> None:
         """Test group decorator creation."""
         cli_cli = FlextCliCli()
         group_result = FlextCliTestHelpers.CliHelpers.create_test_group(
-            cli_cli,
-            "test_group",
+            cli_cli, "test_group"
         )
         assert group_result.is_success
-
         if group_result.is_success and group_result.value:
             assert isinstance(group_result.value, click.Group)
             assert group_result.value.name == "test_group"
-
-    # ========================================================================
-    # OPTION AND ARGUMENT DECORATORS
-    # ========================================================================
 
     def test_option_decorator(self) -> None:
         """Test option decorator creation."""
@@ -94,9 +73,7 @@ class TestsCliCli:
         option_config_instance = m.Cli.OptionConfig.model_construct(default=1)
         option_config = option_config_instance
         option_decorator = cli_cli.create_option_decorator(
-            "--count",
-            "-c",
-            config=option_config,
+            "--count", "-c", config=option_config
         )
         assert callable(option_decorator)
 
@@ -110,16 +87,9 @@ class TestsCliCli:
         """Test command creation with options."""
         cli_cli = FlextCliCli()
         command_result = FlextCliTestHelpers.CliHelpers.create_command_with_options(
-            cli_cli,
-            "test_cmd",
-            "--value",
-            "default",
+            cli_cli, "test_cmd", "--value", "default"
         )
         assert command_result.is_success
-
-    # ========================================================================
-    # PARAMETER TYPES
-    # ========================================================================
 
     @pytest.mark.parametrize(
         ("click_type_name", "data_dict"),
@@ -132,9 +102,7 @@ class TestsCliCli:
         ],
     )
     def test_click_type_creation(
-        self,
-        click_type_name: str,
-        data_dict: dict[str, t.ContainerValue],
+        self, click_type_name: str, data_dict: dict[str, t.ContainerValue]
     ) -> None:
         """Test Click type creation with various parameter types."""
         if click_type_name == "choice":
@@ -164,9 +132,7 @@ class TestsCliCli:
         }.items(),
     )
     def test_primitive_type_getters(
-        self,
-        primitive_type: str,
-        getter_method: str,
+        self, primitive_type: str, getter_method: str
     ) -> None:
         """Test primitive type getter methods."""
         cli_cli = FlextCliCli()
@@ -185,10 +151,6 @@ class TestsCliCli:
         for fmt in ["%Y-%m-%d", "%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%S"]:
             assert fmt in datetime_type.formats
 
-    # ========================================================================
-    # CLI RUNNER
-    # ========================================================================
-
     def test_cli_runner_invocation(self) -> None:
         """Test CLI runner for command invocation."""
         runner = CliRunner()
@@ -202,10 +164,6 @@ class TestsCliCli:
         assert result.exit_code == 0
         assert "hello" in result.output
 
-    # ========================================================================
-    # COMPREHENSIVE CLI TESTS (PARAMETRIZED)
-    # ========================================================================
-
     @pytest.mark.parametrize(
         ("test_type", "description", "should_succeed"),
         [
@@ -215,19 +173,12 @@ class TestsCliCli:
         ],
     )
     def test_cli_comprehensive_scenarios(
-        self,
-        test_type: str,
-        description: str,
-        should_succeed: bool,
+        self, test_type: str, description: str, should_succeed: bool
     ) -> None:
         """Comprehensive CLI scenario tests using parametrization."""
         result = self._execute_cli_test(test_type)
         assert should_succeed is True
         tm.ok(result)
-
-    # ========================================================================
-    # TEST EXECUTION HELPERS
-    # ========================================================================
 
     def _execute_cli_test(self, test_type: str) -> r[bool]:
         """Execute specific CLI test by type."""
@@ -276,24 +227,18 @@ class TestsCliCli:
         except Exception as e:
             return r[bool].fail(str(e))
 
-    # ========================================================================
-    # EXTENDED COVERAGE TESTS
-    # ========================================================================
-
     class TestCoverageExtended:
         """Extended tests for 100% coverage."""
 
         def test_create_app_with_common_params(self) -> None:
             """Test create_app_with_common_params creation only."""
             cli = FlextCliCli()
-            # Just test creation, logic tested in test_cli_extended.py
             app = cli.create_app_with_common_params("test_app", "help")
             assert isinstance(app, typer.Typer)
 
         def test_echo(self) -> None:
             """Test echo."""
             cli = FlextCliCli()
-            # Capture stdout?
             result = cli.echo("message")
             assert result.is_success
 
@@ -306,7 +251,6 @@ class TestsCliCli:
         def test_model_command_validation(self) -> None:
             """Test model_command input validation."""
             cli = FlextCliCli()
-            # Intentional negative test: pass a type that is not BaseModel subclass
             invalid_model: type = dict
 
             def handler(_model: object) -> str:
@@ -325,7 +269,6 @@ class TestsCliCli:
         def test_get_current_context(self) -> None:
             """Test get_current_context."""
             cli = FlextCliCli()
-            # Should return None when not in command
             ctx = cli.get_current_context()
             assert ctx is None
 
@@ -334,12 +277,6 @@ class TestsCliCli:
             cli = FlextCliCli()
             decorator = cli.create_pass_context_decorator()
             assert callable(decorator)
-
-    # ========================================================================
-    # PROTOCOL VALIDATION TESTS (Python 3.13 TypeIs)
-    # ========================================================================
-    # UTILITY METHODS TESTS
-    # ========================================================================
 
     def test_get_terminal_size(self) -> None:
         """Test get_terminal_size method."""
@@ -391,21 +328,18 @@ class TestsCliCli:
         """Test get_uuid_type method."""
         cli = FlextCliCli()
         uuid_type = cli.get_uuid_type()
-        # Should return a click ParamType
         assert hasattr(uuid_type, "name")
 
     def test_get_datetime_type(self) -> None:
         """Test get_datetime_type method."""
         cli = FlextCliCli()
         datetime_type = cli.get_datetime_type()
-        # Should return a click ParamType
         assert hasattr(datetime_type, "name")
 
     def test_get_tuple_type(self) -> None:
         """Test get_tuple_type method."""
         cli = FlextCliCli()
         tuple_type = cli.get_tuple_type([str, int])
-        # Should return a click ParamType
         assert hasattr(tuple_type, "name")
 
     def test_format_filename(self) -> None:
@@ -418,22 +352,16 @@ class TestsCliCli:
     def test_pause(self) -> None:
         """Test pause method."""
         cli = FlextCliCli()
-        # Test with default message
         result = cli.pause()
         assert result.is_success
-
-        # Test with custom message
         result = cli.pause("Press Enter to continue...")
         assert result.is_success
 
     def test_echo(self) -> None:
         """Test echo method."""
         cli = FlextCliCli()
-        # Test basic echo
         result = cli.echo("test message")
         assert result.is_success
-
-        # Test echo with color
         result = cli.echo("colored message", color=True)
         assert result.is_success
 
@@ -458,10 +386,6 @@ class TestsCliCli:
         assert result.is_success
         runner = result.value
         assert hasattr(runner, "invoke")
-
-    # ========================================================================
-    # ADDITIONAL CLI METHODS TESTS
-    # ========================================================================
 
     def test_format_filename_method(self) -> None:
         """Test format_filename method."""
@@ -488,10 +412,6 @@ class TestsCliCli:
         decorator = cli.create_argument_decorator("test_arg")
         assert callable(decorator)
 
-    # ========================================================================
-    # VALIDATION AND UTILITY METHODS TESTS
-    # ========================================================================
-
     def test_build_bool_value(self) -> None:
         """Test _build_bool_value method."""
         cli = FlextCliCli()
@@ -514,16 +434,10 @@ class TestsCliCli:
         console_enabled = cli._get_console_enabled(config)
         assert isinstance(console_enabled, bool)
 
-    # ========================================================================
-    # ADDITIONAL VALIDATION METHODS TESTS
-    # ========================================================================
-
     def test_apply_common_params_to_config(self) -> None:
         """Test _apply_common_params_to_config method."""
         cli = FlextCliCli()
         config = FlextCliSettings()
-        # Call method with keyword arguments
         cli._apply_common_params_to_config(config, verbose=True, debug=True)
-        # Verify that config was updated
         assert config.verbose is True
         assert config.debug is True
