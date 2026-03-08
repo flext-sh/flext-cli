@@ -118,7 +118,11 @@ class FlextCliCommonParams:
     ) -> m.Cli.CliParamsConfig:
         """Resolve explicit params or build from kwargs (returns Pydantic model)."""
         if params is not None:
-            return params if isinstance(params, m.Cli.CliParamsConfig) else cls._build_params_from_kwargs(kwargs)
+            return (
+                params
+                if isinstance(params, m.Cli.CliParamsConfig)
+                else cls._build_params_from_kwargs(kwargs)
+            )
         return cls._build_params_from_kwargs(kwargs)
 
     @classmethod

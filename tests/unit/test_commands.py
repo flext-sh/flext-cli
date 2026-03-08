@@ -72,7 +72,9 @@ class TestsCliCommands:
     def test_commands_execution(self) -> None:
         """Test command execution functionality."""
         commands = CommandsFactory.create_commands()
-        _ = CommandsFactory.register_simple_command(commands, "test_execution", "executed")
+        _ = CommandsFactory.register_simple_command(
+            commands, "test_execution", "executed"
+        )
         result = commands.execute_command("test_execution")
         assert result.is_success
         assert result.value == "executed"
