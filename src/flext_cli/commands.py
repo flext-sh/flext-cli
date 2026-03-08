@@ -269,7 +269,7 @@ class FlextCliCommands(FlextCliServiceBase):
             commands={
                 k: {k2: v2 for k2, v2 in v.items()} if isinstance(v, Mapping) else v
                 for k, v in self._commands.items()
-            },
+            },  # noqa: C416
         )
 
     def get_commands(self) -> Mapping[str, FlextCliCommandEntry]:

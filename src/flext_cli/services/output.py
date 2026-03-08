@@ -261,7 +261,7 @@ class FlextCliOutput:
         """Prepare dict data for table display."""
         # Reject test invu
         if c.Cli.OutputDefaults.TEST_INVALID_KEY in data and len(data) == 1:
-            return r[tuple[list[t.ConfigurationMapping], str | list[str]]].fail(
+            return r[tuple[list[dict[str, t.ContainerValue]], str | list[str]]].fail(
                 c.Cli.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT,
             )
 
@@ -291,7 +291,7 @@ class FlextCliOutput:
             [c.Cli.TableFormats.KEYS],
         )
         table_headers: list[str] = [str(h) for h in table_headers_raw]
-        return r[tuple[list[t.ConfigurationMapping], str | list[str]]].ok((
+        return r[tuple[list[dict[str, t.ContainerValue]], str | list[str]]].ok((
             table_data,
             table_headers,
         ))
@@ -303,7 +303,7 @@ class FlextCliOutput:
     ) -> r[tuple[list[dict[str, t.ContainerValue]], str | list[str]]]:
         """Prepare list data for table display."""
         if not data:
-            return r[tuple[list[t.ConfigurationMapping], str | list[str]]].fail(
+            return r[tuple[list[dict[str, t.ContainerValue]], str | list[str]]].fail(
                 c.Cli.ErrorMessages.NO_DATA_PROVIDED,
             )
 
@@ -326,11 +326,11 @@ class FlextCliOutput:
         if headers is not None and table_headers != [c.Cli.TableFormats.KEYS]:
             validation_result = FlextCliOutput._validate_headers(table_headers, data)
             if validation_result.is_failure:
-                return r[tuple[list[t.ConfigurationMapping], str | list[str]]].fail(
+                return r[tuple[list[dict[str, t.ContainerValue]], str | list[str]]].fail(
                     validation_result.error or "Header validation failed",
                 )
 
-        return r[tuple[list[t.ConfigurationMapping], str | list[str]]].ok((
+        return r[tuple[list[dict[str, t.ContainerValue]], str | list[str]]].ok((
             data,
             table_headers,
         ))
@@ -455,12 +455,15 @@ class FlextCliOutput:
 
         """
         if config is not None:
-            config_concrete = (
-                m.Cli.TableConfig.model_validate(config.model_dump())
-                if hasattr(config, "model_dump")
-                else config
-            )
-            return FlextCliTables.create_table(data=data, config=config_concrete)
+            if hasattr(config, "model_dump"):
+                config_for_table: m.Cli.TableConfig = m.Cli.TableConfig.model_validate(
+                    config.model_dump()
+                )
+            elif isinstance(config, m.Cli.TableConfig):
+                config_for_table = config
+            else:
+                config_for_table = m.Cli.TableConfig.model_validate({})
+            return FlextCliTables.create_table(data=data, config=config_for_table)
 
         # Use build() DSL for headers normalization
         # Type narrowing: ensure_list returns list[t.ContainerValue], convert to list[str]
@@ -1159,7 +1162,10 @@ class FlextCliOutput:
             )
 
         prepared = prepared_result.value
-        table_result = self._create_table_string(prepared[0], prepared[1])
+        table_data_list: list[dict[str, t.ContainerValue]] = [
+            dict(row) for row in prepared[0]
+        ]
+        table_result = self._create_table_string(table_data_list, prepared[1])
         if table_result.is_failure:
             return table_result
 
@@ -1867,7 +1873,7 @@ class FlextCliOutput:
         self,
         data: dict[str, t.ContainerValue] | list[dict[str, t.ContainerValue]] | str,
         headers: list[str] | None,
-    ) -> r[tuple[list[Mapping[str, t.ContainerValue]], str | list[str]]]:
+    ) -> r[tuple[list[dict[str, t.ContainerValue]], str | list[str]]]:
         """Prepare and validate table data and headers."""
         if FlextRuntime.is_dict_like(data):
             # Use build() DSL: ensure dict → transform to JSON
@@ -1893,7 +1899,7 @@ class FlextCliOutput:
                 item for item in converted_list_raw if isinstance(item, dict)
             ]
             return self._prepare_list_data(converted_list, headers)
-        return r[tuple[list[t.ConfigurationMapping], str | list[str]]].fail(
+        return r[tuple[list[dict[str, t.ContainerValue]], str | list[str]]].fail(
             c.Cli.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT,
         )
 
@@ -1910,7 +1916,7 @@ class FlextCliOutput:
                 error=e,
             )
 
-            return r[tuple[list[t.ConfigurationMapping], str | list[str]]].fail(
+            return r[tuple[list[dict[str, t.ContainerValue]], str | list[str]]].fail(
                 error_msg,
             )
 
