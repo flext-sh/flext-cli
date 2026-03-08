@@ -18,7 +18,7 @@ import yaml
 from flext_core import r
 from pydantic import TypeAdapter, ValidationError
 
-from flext_cli import c, t, u
+from flext_cli import c, m, t, u
 
 
 def _is_json_mapping(value: t.JsonValue) -> TypeGuard[Mapping[str, t.JsonValue]]:
@@ -76,8 +76,11 @@ class FlextCliFileTools:
         with Path(file_path).open(encoding=c.Cli.Utilities.DEFAULT_ENCODING) as f:
             loaded: t.JsonValue = loader(f)
         if _is_json_mapping(loaded):
-            loaded_dict: dict[str, t.JsonValue] = dict(loaded)
-            return u.transform(loaded_dict, to_json=True).map_or(loaded_dict)
+            normalized: dict[str, t.JsonValue] = {}
+            for k, v in loaded.items():
+                nv = m.Cli.normalize_to_json_value(v)
+                normalized[str(k)] = nv if nv is not None else ""
+            return normalized
         json_adapter: TypeAdapter[t.JsonValue] = TypeAdapter(t.JsonValue)
         try:
             return json_adapter.validate_python(loaded)
@@ -415,8 +418,15 @@ class FlextCliFileTools:
 
     @staticmethod
     def read_json_file(file_path: str | Path) -> r[t.JsonValue]:
+        def _load() -> t.JsonValue:
+            out = FlextCliFileTools._load_structured_file(str(file_path), json.load)
+            if out is None:
+                msg = "JSON load returned None"
+                raise ValueError(msg)
+            return out
+
         return FlextCliFileTools._execute_file_operation(
-            lambda: FlextCliFileTools._load_structured_file(str(file_path), json.load),
+            _load,
             c.Cli.FileErrorMessages.JSON_LOAD_FAILED,
         )
 
@@ -443,11 +453,18 @@ class FlextCliFileTools:
 
     @staticmethod
     def read_yaml_file(file_path: str | Path) -> r[t.JsonValue]:
-        return FlextCliFileTools._execute_file_operation(
-            lambda: FlextCliFileTools._load_structured_file(
+        def _load() -> t.JsonValue:
+            out = FlextCliFileTools._load_structured_file(
                 str(file_path),
                 yaml.safe_load,
-            ),
+            )
+            if out is None:
+                msg = "YAML load returned None"
+                raise ValueError(msg)
+            return out
+
+        return FlextCliFileTools._execute_file_operation(
+            _load,
             c.Cli.FileErrorMessages.YAML_LOAD_FAILED,
         )
 

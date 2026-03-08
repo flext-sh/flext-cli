@@ -10,7 +10,7 @@ from datetime import UTC, datetime
 from enum import StrEnum
 from functools import wraps
 from pathlib import Path
-from typing import ClassVar, get_args, get_origin, override
+from typing import get_args, get_origin, override
 
 from flext_core import FlextUtilities, r
 from pydantic import BaseModel, ConfigDict, ValidationError, validate_call
@@ -575,8 +575,8 @@ class FlextCliUtilities(FlextUtilities):
                 @staticmethod
                 def merge_defaults[M: BaseModel](
                     model_cls: type[M],
-                    defaults: Mapping[str, t.Cli.CliValue],
-                    overrides: Mapping[str, t.Cli.CliValue],
+                    defaults: Mapping[str, t.JsonValue],
+                    overrides: Mapping[str, t.JsonValue],
                 ) -> r[M]:
                     """Merge default values with overrides."""
                     result = FlextUtilities.Model.merge_defaults(
@@ -591,9 +591,7 @@ class FlextCliUtilities(FlextUtilities):
                     )
 
                 @staticmethod
-                def update[M: BaseModel](
-                    instance: M, **updates: t.Cli.CliValue
-                ) -> r[M]:
+                def update[M: BaseModel](instance: M, **updates: t.JsonValue) -> r[M]:
                     """Update model instance."""
                     result = FlextUtilities.Model.update(instance, **updates)
                     return (
@@ -609,12 +607,6 @@ class FlextCliUtilities(FlextUtilities):
                 def coerced_enum[E: StrEnum](enum_cls: type[E]) -> type[E]:
                     """Create a forced enum with validation."""
                     return enum_cls
-
-        TypeNormalizer: ClassVar[type] = TypeNormalizer
-        Environment: ClassVar[type] = Environment
-        FileOps: ClassVar[type] = FileOps
-        ConfigOps: ClassVar[type] = ConfigOps
-        CliValidation: ClassVar[type] = CliValidation
 
 
 u = FlextCliUtilities

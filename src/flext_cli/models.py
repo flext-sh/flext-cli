@@ -73,7 +73,9 @@ class FlextCliModels(FlextModels):
         @staticmethod
         def normalize_to_json_value(item: t.ContainerValue) -> t.JsonValue:
             """Recursively normalize any value to JSON-serializable (t.JsonValue)."""
-            if item is None or isinstance(item, (str, int, float, bool)):
+            if item is None:
+                return ""
+            if isinstance(item, (str, int, float, bool)):
                 return item
             if isinstance(item, BaseModel):
                 raw = item.model_dump(mode="json")
@@ -101,6 +103,42 @@ class FlextCliModels(FlextModels):
                     if root_value is not None:
                         return root_value
             return value
+
+        class DisplayData(BaseModel):
+            """Key-value data for table/display — Pydantic v2 contract. Use m.Cli.DisplayData."""
+
+            model_config = ConfigDict(extra="forbid", validate_assignment=True)
+            data: dict[str, t.JsonValue] = Field(
+                default_factory=dict,
+                description="Field-value pairs for display",
+            )
+
+        class LoadedConfig(BaseModel):
+            """Loaded configuration content — Pydantic v2 contract. Use m.Cli.LoadedConfig."""
+
+            model_config = ConfigDict(extra="forbid", validate_assignment=True)
+            content: dict[str, t.JsonValue] = Field(
+                default_factory=dict,
+                description="Configuration key-value content",
+            )
+
+        class SuccessSummaryDetails(RootModel[dict[str, str]]):
+            """Key-value details for success summary — Pydantic v2 only. Use m.Cli.SuccessSummaryDetails."""
+
+            pass
+
+        class CommandGroup(BaseModel):
+            """Command group with name, description, and command entries. Use m.Cli.CommandGroup."""
+
+            model_config = ConfigDict(
+                arbitrary_types_allowed=True,
+                extra="forbid",
+            )
+            name: str = Field(..., min_length=1, description="Group name")
+            description: str = Field(default="", description="Group description")
+            commands: Mapping[str, Mapping[str, str | Callable[..., r[t.JsonValue]]]] = (
+                Field(default_factory=dict, description="Command name to entry mapping")
+            )
 
         class CliNormalizedJson(RootModel[t.JsonValue]):
             """Single contract: any value normalized to JSON (t.JsonValue)."""
@@ -279,10 +317,13 @@ class FlextCliModels(FlextModels):
                     return dict(raw)
                 return {}
 
+        @staticmethod
         def normalize_json_value(item: t.ContainerValue) -> t.JsonValue:
             """Normalize a ContainerValue to a JSON-serializable JsonValue."""
-            if isinstance(item, (str, int, float, bool, type(None))):
+            if isinstance(item, (str, int, float, bool)):
                 return item
+            if item is None:
+                return ""
             source = FlextCliModels.Cli.unwrap_root_value(item)
             if isinstance(source, Mapping):
                 return {
@@ -326,7 +367,7 @@ class FlextCliModels(FlextModels):
                 except ValidationError:
                     return list(self.default)
 
-        class _NormalizedJsonDict(BaseModel):
+        class NormalizedJsonDict(BaseModel):
             """Single contract: ensure value is dict[str, JsonValue] with default. Replaces ensure_dict branching."""
 
             model_config = ConfigDict(extra="forbid")
@@ -341,6 +382,7 @@ class FlextCliModels(FlextModels):
             @computed_field
             @property
             def resolved(self) -> dict[str, t.JsonValue]:
+                """Normalized dict[str, JsonValue]; uses resolve() for pyrefly."""
                 return self.resolve()
 
             def resolve(self) -> dict[str, t.JsonValue]:
@@ -409,6 +451,7 @@ class FlextCliModels(FlextModels):
                     self.type_kind, self.default
                 )
 
+        @staticmethod
         def default_for_type_kind(
             type_kind: Literal["str", "bool", "dict"],
             default: t.JsonValue | None,
@@ -461,14 +504,11 @@ class FlextCliModels(FlextModels):
                 description="Logging format",
             )
 
-        CliLoggingData = CliLoggingData
         ExecutionContextInput = _ExecutionContextInput
-        TypedExtract = TypedExtract
         LogLevelResolved = _LogLevelResolved
         PromptTimeoutResolved = _PromptTimeoutResolved
         JsonNormalizeInput = _JsonNormalizeInput
         NormalizedJsonList = _NormalizedJsonList
-        NormalizedJsonDict = _NormalizedJsonDict
         EnsureTypeRequest = _EnsureTypeRequest
         MapGetValue = _MapGetValue
 
@@ -787,7 +827,7 @@ class FlextCliModels(FlextModels):
                 """
                 # Default implementation - returns empty result
                 # Real implementations should override this method
-                return r[t.JsonValue].ok(None)
+                return r[t.JsonValue].ok({})
 
             def start_execution(self) -> r[Self]:
                 """Start command execution - update status to running."""
@@ -1306,7 +1346,7 @@ class FlextCliModels(FlextModels):
             )
 
             @property
-            def params(self) -> Mapping[str, t.JsonValue]:
+            def params(self) -> Mapping[str, t.JsonValue | None]:
                 """Parameters mapping - required by CliParamsConfigProtocol."""
                 return {
                     "verbose": self.verbose,
@@ -1936,8 +1976,8 @@ class FlextCliModels(FlextModels):
             def _format_bool_param(
                 type_name: str,
                 inner_type: type,
-                default_val: t.JsonValue,
-            ) -> tuple[str, t.JsonValue]:
+                default_val: t.JsonValue | None,
+            ) -> tuple[str, t.JsonValue | None]:
                 """Format boolean parameter for Typer flag detection."""
                 # Python 3.13: Direct type comparison - more elegant
                 if inner_type is bool:
@@ -2067,7 +2107,7 @@ class FlextCliModels(FlextModels):
             def _build_param_signature(
                 self,
                 name: str,
-                type_info: tuple[str, type, t.JsonValue, bool, bool],
+                type_info: tuple[str, type, t.JsonValue | None, bool, bool],
             ) -> tuple[str, bool]:
                 """Build parameter signature string.
 
@@ -2100,12 +2140,12 @@ class FlextCliModels(FlextModels):
                 self,
                 field_name: str,
                 field_info: FieldInfo | t.JsonValue,
-            ) -> tuple[type, t.JsonValue, bool, bool]:
+            ) -> tuple[type, t.JsonValue | None, bool, bool]:
                 """Process field metadata and return type info.
 
                 Returns (field_type, default_value, is_required, has_factory).
                 """
-                default_value: t.JsonValue = None
+                default_value: t.JsonValue | None = None
                 is_required = True
                 has_factory = False
 
@@ -2508,12 +2548,16 @@ class FlextCliModels(FlextModels):
                 annotation = (
                     field_info.annotation if isinstance(field_info, FieldInfo) else None
                 )
+                default_val: t.JsonValue = (
+                    field_info.default
+                    if isinstance(field_info, FieldInfo)
+                    and getattr(field_info, "default", None) is not None
+                    else ""
+                )
                 return {
                     "field_name": field_name,
                     "annotation": str(annotation) if annotation is not None else "str",
-                    "default": field_info.default
-                    if isinstance(field_info, FieldInfo)
-                    else None,
+                    "default": default_val,
                     "description": (
                         str(field_info.description)
                         if isinstance(field_info, FieldInfo)
@@ -2897,7 +2941,7 @@ class FlextCliModels(FlextModels):
                         "param_decls": param_decls_list,
                         "field_name": param.field_name,
                         "param_type": param_type_name,
-                        "default": param.default,
+                        "default": param.default if param.default is not None else "",
                         "help": param.help,  # CliParameterSpec stores as .help, not .help_text
                     }
                     options.append(option_obj_dict)
@@ -3087,7 +3131,7 @@ class FlextCliModels(FlextModels):
                 Uses t.JsonValue from lower layer for proper type safety.
                 """
                 if field_value is None:
-                    return r[t.JsonValue].ok(value=None)
+                    return r[t.JsonValue].ok("")
                 try:
                     json_value = FlextCliModels.Cli.CliModelConverter.JSON_VALUE_ADAPTER.validate_python(
                         field_value,

@@ -14,7 +14,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from typing import TypedDict
 
 from flext_core import T, T_co, T_contra
 from flext_tests import FlextTestsTypes
@@ -74,21 +73,6 @@ class TestsCliTypes(FlextTestsTypes):
 
             class Fixtures:
                 """TypedDict definitions for test fixtures."""
-
-                class CliCommandDict(TypedDict, total=False):
-                    """CLI command test data."""
-
-                    name: str
-                    args: list[str]
-                    format: str
-                    status: str
-
-                class CliOutputDict(TypedDict, total=False):
-                    """CLI output test data."""
-
-                    format: str
-                    data: dict[str, str | int | bool]
-                    success: bool
 
 
 # Short aliases

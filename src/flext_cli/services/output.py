@@ -16,6 +16,9 @@ from typing import ClassVar, TypeGuard
 import yaml
 from flext_core import FlextRuntime, r, t
 from pydantic import BaseModel
+from rich.console import Console
+from rich.progress import Progress
+from rich.table import Table as RichTable
 from rich.tree import Tree as RichTree
 
 from flext_cli import FlextCliFormatters, FlextCliTables, c, m, p, u
@@ -195,14 +198,14 @@ class FlextCliOutput:
 
     @staticmethod
     def _is_rich_console_protocol(
-        obj: t.ContainerValue,
+        obj: Console,
     ) -> TypeGuard[p.Cli.Display.RichConsoleProtocol]:
         """Type guard to check if object implements RichConsoleProtocol."""
         return hasattr(obj, "print") and hasattr(obj, "rule")
 
     @staticmethod
     def _is_rich_progress_protocol(
-        obj: t.ContainerValue,
+        obj: Progress,
     ) -> TypeGuard[p.Cli.Interactive.RichProgressProtocol]:
         """Type guard to check if object implements RichProgressProtocol."""
         return (
@@ -214,7 +217,7 @@ class FlextCliOutput:
 
     @staticmethod
     def _is_rich_table_protocol(
-        obj: t.ContainerValue,
+        obj: RichTable | p.Cli.Display.RichTableProtocol,
     ) -> TypeGuard[p.Cli.Display.RichTableProtocol]:
         """Type guard to check if object implements RichTableProtocol."""
         return (
@@ -383,7 +386,7 @@ class FlextCliOutput:
     @staticmethod
     def cast_if(
         v: t.ContainerValue,
-        t_type: type,  # Accept any type
+        t_type: type[t.ContainerValue],
         default: t.ContainerValue,
     ) -> t.ContainerValue:
         """Cast value if isinstance else return default.
@@ -393,10 +396,8 @@ class FlextCliOutput:
         """
         if isinstance(v, t_type):
             return v
-        # Return default if v doesn't match type
         if isinstance(default, t_type):
             return default
-        # If default is not instance of t_type, raise error
         type_name = t_type.__name__ if hasattr(t_type, "__name__") else str(t_type)
         default_type_name = (
             type(default).__name__
@@ -464,7 +465,11 @@ class FlextCliOutput:
                 config_for_table = config
             else:
                 config_for_table = m.Cli.TableConfig.model_validate({})
-            return FlextCliTables.create_table(data=data, config=config_for_table)
+            data_json: list[dict[str, t.JsonValue]] = [
+                {str(k): m.Cli.normalize_to_json_value(v) for k, v in row.items()}
+                for row in data
+            ]
+            return FlextCliTables.create_table(data=data_json, config=config_for_table)
 
         # Use build() DSL for headers normalization
         # Type narrowing: ensure_list returns list[t.ContainerValue], convert to list[str]
@@ -477,7 +482,11 @@ class FlextCliOutput:
             "headers": validated_headers,
             "table_format": table_format,
         })
-        return FlextCliTables.create_table(data=data, config=final_config)
+        data_json_final: list[dict[str, t.JsonValue]] = [
+            {str(k): m.Cli.normalize_to_json_value(v) for k, v in row.items()}
+            for row in data
+        ]
+        return FlextCliTables.create_table(data=data_json_final, config=final_config)
 
     @staticmethod
     def ensure_bool(v: t.ContainerValue | None, *, default: bool = False) -> bool:
@@ -1381,7 +1390,7 @@ class FlextCliOutput:
 
     def _build_tree(
         self,
-        tree: RichTree,
+        tree: RichTree | FlextCliFormatters.Tree,
         data: t.ContainerValue,
     ) -> None:
         """Build tree recursively (helper for format_as_tree).
@@ -1397,7 +1406,8 @@ class FlextCliOutput:
                 """Process single tree item."""
                 if isinstance(v, dict):
                     branch = tree.add(str(k))
-                    self._build_tree(branch, v)
+                    if branch is not None:
+                        self._build_tree(branch, v)
                 elif isinstance(v, list):
                     branch = tree.add(
                         f"{k}{c.Cli.OutputDefaults.TREE_BRANCH_LIST_SUFFIX}",
@@ -1405,7 +1415,8 @@ class FlextCliOutput:
 
                     def process_list_item(item: t.ContainerValue) -> None:
                         """Process list item."""
-                        self._build_tree(branch, item)
+                        if branch is not None:
+                            self._build_tree(branch, item)
 
                     if isinstance(v, list):
                         u.Cli.process(v, processor=process_list_item, on_error="skip")
@@ -1525,8 +1536,12 @@ class FlextCliOutput:
                 "headers": table_headers,
                 "table_format": c.Cli.TableFormats.GRID,
             })
+            data_json: list[dict[str, t.JsonValue]] = [
+                {str(k): m.Cli.normalize_to_json_value(v) for k, v in row.items()}
+                for row in table_data
+            ]
             table_result = FlextCliTables.create_table(
-                data=table_data, config=config_instance
+                data=data_json, config=config_instance
             )
 
             if table_result.is_failure:

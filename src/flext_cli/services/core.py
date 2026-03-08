@@ -266,15 +266,16 @@ class FlextCliCore(FlextCliServiceBase):
                 )
             # Type narrowing: value is t.JsonValue | None
             profiles_value = profiles_result_raw.value
+            profiles_section_raw: dict[str, t.JsonValue] = {}
             if isinstance(profiles_value, dict):
                 profiles_section_raw = {
                     str(key): FlextCliOutput.norm_json(value)
                     for key, value in profiles_value.items()
                 }
-            else:
-                profiles_section_raw: dict[str, t.JsonValue] = {}
             profiles_section_raw_typed: dict[str, t.JsonValue] = (
-                dict(profiles_section_raw) if isinstance(profiles_section_raw, dict) else {}
+                dict(profiles_section_raw)
+                if isinstance(profiles_section_raw, dict)
+                else {}
             )
             profiles_section_raw_typed[name] = profile_config
             # Update config with modified profiles section

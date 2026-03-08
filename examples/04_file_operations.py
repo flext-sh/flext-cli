@@ -39,13 +39,9 @@ import tempfile
 from collections.abc import Mapping
 from pathlib import Path
 
-from flext_cli import (
-    FlextCli,
-    FlextCliTables,
-    m,
-    r,
-    t,
-)
+from pydantic import TypeAdapter, ValidationError
+
+from flext_cli import FlextCli, FlextCliTables, m, r, t
 
 cli = FlextCli()
 tables = FlextCliTables()
@@ -80,18 +76,20 @@ def save_user_preferences(
     return True
 
 
-def load_user_preferences(config_dir: Path) -> dict[str, t.JsonValue] | None:
-    """Load user preferences from JSON in YOUR app."""
+def load_user_preferences(config_dir: Path) -> r[m.Cli.LoadedConfig]:
+    """Load user preferences from JSON in YOUR app. Returns r[LoadedConfig]; no None."""
     config_file = config_dir / "preferences.json"
 
     read_result = cli.file_tools.read_json_dict(config_file)
 
     if read_result.is_failure:
         cli.print(f"⚠️  Could not load: {read_result.error}", style="yellow")
-        return None
+        return r[m.Cli.LoadedConfig].fail(
+            read_result.error or "Could not load preferences"
+        )
 
     cli.print(f"✅ Loaded preferences from {config_file.name}", style="green")
-    return read_result.value
+    return r[m.Cli.LoadedConfig].ok(m.Cli.LoadedConfig(content=dict(read_result.value)))
 
 
 # ============================================================================
@@ -122,16 +120,16 @@ def save_deployment_config(
     return True
 
 
-def load_deployment_config(config_file: Path) -> dict[str, t.JsonValue] | None:
-    """Load deployment config from YAML in YOUR tool."""
+def load_deployment_config(config_file: Path) -> r[m.Cli.LoadedConfig]:
+    """Load deployment config from YAML in YOUR tool. Returns r[LoadedConfig]; no None."""
     load_result = cli.file_tools.load_file_auto_dict(config_file)
 
     if load_result.is_failure:
         cli.print(f"❌ Config load failed: {load_result.error}", style="bold red")
-        return None
+        return r[m.Cli.LoadedConfig].fail(load_result.error or "Config load failed")
 
     cli.print("✅ Loaded deployment config", style="green")
-    return load_result.value
+    return r[m.Cli.LoadedConfig].ok(m.Cli.LoadedConfig(content=dict(load_result.value)))
 
 
 # ============================================================================
@@ -224,38 +222,23 @@ def show_directory_tree(root_path: Path, max_items: int = 15) -> None:
 # ============================================================================
 
 
-def validate_and_import_data(input_file: Path) -> dict[str, t.JsonValue] | None:
-    """Validate and import data in YOUR ETL pipeline."""
-    # Step 1: Read file (dict-only API, no narrowing)
+def validate_and_import_data(input_file: Path) -> r[m.Cli.LoadedConfig]:
+    """Validate and import data in YOUR ETL pipeline. Returns r[LoadedConfig]; no None."""
     read_result = cli.file_tools.read_json_dict(input_file)
 
     if read_result.is_failure:
         cli.print(f"❌ Read failed: {read_result.error}", style="bold red")
-        return None
+        return r[m.Cli.LoadedConfig].fail(read_result.error or "Read failed")
 
     data = read_result.value
 
-    # Step 2: Validate structure
-    def validate_structure(
-        data: dict[str, t.JsonValue],
-    ) -> r[dict[str, t.JsonValue]]:
-        """Your validation logic."""
-        required_fields = ["id", "name", "value"]
-        for field in required_fields:
-            if field not in data:
-                return r[dict[str, t.JsonValue]].fail(
-                    f"Missing required field: {field}",
-                )
-        return r[dict[str, t.JsonValue]].ok(data)
-
-    validated = validate_structure(data)
-
-    if validated.is_failure:
-        cli.print(f"❌ Validation failed: {validated.error}", style="bold red")
-        return None
+    required_fields = ["id", "name", "value"]
+    for field in required_fields:
+        if field not in data:
+            return r.fail(f"Missing required field: {field}")
 
     cli.print("✅ Data validated successfully", style="green")
-    return validated.value
+    return r[m.Cli.LoadedConfig].ok(m.Cli.LoadedConfig(content=dict(data)))
 
 
 # ============================================================================
@@ -406,22 +389,22 @@ def process_binary_file(input_file: Path, output_file: Path) -> bool:
 # ============================================================================
 
 
-def load_config_auto_detect(config_file: Path) -> dict[str, t.JsonValue] | None:
-    """Load config from ANY format with auto-detection."""
+def load_config_auto_detect(config_file: Path) -> r[m.Cli.LoadedConfig]:
+    """Load config from ANY format with auto-detection. Returns r[LoadedConfig]; no None."""
     cli.print(f"🔍 Auto-detecting format: {config_file.name}", style="cyan")
 
     load_result = cli.file_tools.load_file_auto_dict(config_file)
 
     if load_result.is_failure:
         cli.print(f"❌ Load failed: {load_result.error}", style="bold red")
-        return None
+        return r[m.Cli.LoadedConfig].fail(load_result.error or "Load failed")
 
     data = load_result.value
     cli.print("✅ Config loaded successfully", style="green")
 
     display_rows = [{"Key": k, "Value": str(v)} for k, v in data.items()]
     cli.show_table(display_rows, headers=["Key", "Value"], title="Loaded config")
-    return data
+    return r[m.Cli.LoadedConfig].ok(m.Cli.LoadedConfig(content=dict(data)))
 
 
 # ============================================================================
@@ -464,13 +447,20 @@ def export_multi_format(
         export_results["YAML"] = f"{size} bytes"
         cli.print(f"✅ YAML: {yaml_path.name} ({size} bytes)", style="green")
 
-    # Export to CSV (if data is list of dicts)
-    if isinstance(data, list) and data:
+    rows_adapter = TypeAdapter(list[dict[str, t.JsonValue]])
+    csv_rows_data: list[dict[str, t.JsonValue]]
+    try:
+        csv_rows_data = rows_adapter.validate_python(data)
+    except ValidationError:
+        csv_rows_data = []
+
+    if csv_rows_data:
         csv_path = base_path.with_suffix(".csv")
-        headers = list(data[0].keys())
-        # Prepend headers as first row
+        headers = list(csv_rows_data[0].keys())
         rows = [headers]
-        rows.extend([[str(row.get(h, "")) for h in headers] for row in data])
+        rows.extend(
+            [[str(row.get(header, "")) for header in headers] for row in csv_rows_data],
+        )
 
         csv_result = cli.file_tools.write_csv_file(csv_path, rows)
         if csv_result.is_success:
@@ -521,33 +511,25 @@ def process_file_pipeline(
             data = read_result.value
             cli.print("✅ File read successfully", style="green")
 
-            # Step 3: Validate and transform data
-            try:
-                transformed_data = validate_and_transform_data(data)
-                cli.print("✅ Data validation/transform passed", style="green")
+            transformed_data = validate_and_transform_data(data)
+            cli.print("✅ Data validation/transform passed", style="green")
 
-                # Step 4: Generate multiple output formats
-                output_result = generate_output_files(transformed_data, output_dir)
-                if output_result.is_failure:
-                    result = r[t.ConfigurationMapping].fail(
-                        output_result.error or "Unknown error",
-                    )
-                else:
-                    results = output_result.value
-                    cli.print("✅ Output files generated", style="green")
-
-                    # Step 5: Create summary report
-                    summary = create_processing_summary(results)
-                    cli.print("✅ Processing summary created", style="green")
-                    cli.print(
-                        "🎉 File processing pipeline completed successfully!",
-                        style="bold green",
-                    )
-                    result = r[t.ConfigurationMapping].ok(summary)
-            except Exception as e:
+            output_result = generate_output_files(transformed_data, output_dir)
+            if output_result.is_failure:
                 result = r[t.ConfigurationMapping].fail(
-                    f"Data validation failed: {e}",
+                    output_result.error or "Unknown error",
                 )
+            else:
+                results = output_result.value
+                cli.print("✅ Output files generated", style="green")
+
+                summary = create_processing_summary(results)
+                cli.print("✅ Processing summary created", style="green")
+                cli.print(
+                    "🎉 File processing pipeline completed successfully!",
+                    style="bold green",
+                )
+                result = r[t.ConfigurationMapping].ok(summary)
 
     if result.is_failure:
         cli.print(f"❌ Pipeline failed: {result.error}", style="bold red")
@@ -557,18 +539,18 @@ def process_file_pipeline(
 
 def validate_and_transform_data(
     data: Mapping[str, t.JsonValue],
-) -> dict[str, t.JsonValue]:
+) -> m.Cli.LoadedConfig:
     """Validate and transform input data."""
     transformed: dict[str, t.JsonValue] = dict(data)
     transformed["processed_at"] = "2025-11-23T10:00:00Z"
     transformed["pipeline_version"] = "2.0"
     transformed["validated"] = True
 
-    return transformed
+    return m.Cli.LoadedConfig(content=transformed)
 
 
 def generate_output_files(
-    data: dict[str, t.JsonValue],
+    data: m.Cli.LoadedConfig,
     output_dir: Path,
 ) -> r[dict[str, Path]]:
     """Generate multiple output file formats."""
@@ -581,7 +563,7 @@ def generate_output_files(
     json_file = output_dir / f"{base_name}.json"
     json_result = cli.file_tools.write_json_file(
         json_file,
-        data,
+        data.content,
     )
     if json_result.is_failure:
         return r[dict[str, Path]].fail(f"JSON export failed: {json_result.error}")
@@ -591,23 +573,24 @@ def generate_output_files(
     yaml_file = output_dir / f"{base_name}.yaml"
     yaml_result = cli.file_tools.write_yaml_file(
         yaml_file,
-        data,
+        data.content,
     )
     if yaml_result.is_failure:
         return r[dict[str, Path]].fail(f"YAML export failed: {yaml_result.error}")
     results["yaml"] = yaml_file
 
-    # CSV output (if data contains list)
-    if "items" in data and isinstance(data["items"], list):
+    rows_adapter = TypeAdapter(list[dict[str, t.JsonValue]])
+    csv_rows_data: list[dict[str, t.JsonValue]]
+    try:
+        csv_rows_data = rows_adapter.validate_python(data.content.get("items", []))
+    except ValidationError:
+        csv_rows_data = []
+
+    if csv_rows_data:
         csv_file = output_dir / f"{base_name}.csv"
-        csv_rows: list[list[str]] = []
-        for item in data["items"]:
-            if isinstance(item, dict):
-                csv_rows.append([str(value) for value in item.values()])
-            elif isinstance(item, (list, tuple)):
-                csv_rows.append([str(value) for value in item])
-            else:
-                csv_rows.append([str(item)])
+        csv_rows: list[list[str]] = [
+            [str(value) for value in item.values()] for item in csv_rows_data
+        ]
         csv_result = cli.file_tools.write_csv_file(csv_file, csv_rows)
         if csv_result.is_failure:
             return r[dict[str, Path]].fail(f"CSV export failed: {csv_result.error}")
@@ -653,7 +636,9 @@ def main() -> None:
         "auto_save": True,
     }
     save_user_preferences(prefs, temp_dir)
-    load_user_preferences(temp_dir)
+    prefs_result = load_user_preferences(temp_dir)
+    if prefs_result.is_failure:
+        cli.print(f"   Load result: {prefs_result.error}", style="yellow")
 
     # Example 2: YAML deployment config
     cli.print("\n2. YAML Configuration (deployment):", style="bold cyan")
@@ -664,7 +649,9 @@ def main() -> None:
     }
     yaml_file = temp_dir / "deploy.yaml"
     save_deployment_config(deploy_config, yaml_file)
-    load_deployment_config(yaml_file)
+    deploy_result = load_deployment_config(yaml_file)
+    if deploy_result.is_failure:
+        cli.print(f"   Load result: {deploy_result.error}", style="yellow")
 
     # Example 3: Table export
     cli.print("\n3. Data Export (table format):", style="bold cyan")
@@ -688,7 +675,9 @@ def main() -> None:
     test_data: dict[str, t.JsonValue] = {"id": 1, "name": "test", "value": 100}
     test_file = temp_dir / "test_data.json"
     cli.file_tools.write_json_file(test_file, test_data)
-    validate_and_import_data(test_file)
+    valid_result = validate_and_import_data(test_file)
+    if valid_result.is_failure:
+        cli.print(f"   Validation: {valid_result.error}", style="yellow")
 
     # Example 7: CSV export/import
     cli.print("\n7. CSV Export/Import (with headers):", style="bold cyan")
@@ -719,8 +708,12 @@ def main() -> None:
     auto_yaml = temp_dir / "auto_config.yaml"
     cli.file_tools.write_json_file(auto_json, auto_config)
     cli.file_tools.write_yaml_file(auto_yaml, auto_config)
-    load_config_auto_detect(auto_json)
-    load_config_auto_detect(auto_yaml)
+    auto1_result = load_config_auto_detect(auto_json)
+    auto2_result = load_config_auto_detect(auto_yaml)
+    if auto1_result.is_failure:
+        cli.print(f"   Auto load JSON: {auto1_result.error}", style="yellow")
+    if auto2_result.is_failure:
+        cli.print(f"   Auto load YAML: {auto2_result.error}", style="yellow")
 
     # Example 10: Multi-format export
     cli.print("\n10. Multi-Format Export:", style="bold cyan")

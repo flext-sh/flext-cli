@@ -29,7 +29,7 @@ import secrets
 import time
 from pathlib import Path
 
-from flext_cli import FlextCli, t
+from flext_cli import FlextCli, m, r, t
 
 cli = FlextCli()
 
@@ -64,19 +64,15 @@ def login_to_service(username: str, password: str) -> bool:
     return True
 
 
-def get_saved_token() -> str | None:
-    """Retrieve saved auth token in YOUR CLI."""
-    # Instead of:
-    # with open(TOKEN_FILE) as f:
-    #     return f.read().strip()
-
+def get_saved_token() -> r[str]:
+    """Retrieve saved auth token in YOUR CLI. Returns r[str]; no None."""
     token_result = cli.get_auth_token()
 
     if token_result.is_failure:
         cli.print(f"⚠️  Not authenticated: {token_result.error}", style="yellow")
-        return None
+        return r[str].fail(token_result.error or "Not authenticated")
 
-    return token_result.value
+    return r[str].ok(token_result.value)
 
 
 # ============================================================================
@@ -84,30 +80,24 @@ def get_saved_token() -> str | None:
 # ============================================================================
 
 
-def call_authenticated_api(endpoint: str) -> dict[str, str] | None:
-    """Make authenticated API call in YOUR tool."""
-    # Get saved token
+def call_authenticated_api(endpoint: str) -> r[dict[str, str]]:
+    """Make authenticated API call in YOUR tool. Returns r[dict]; no None."""
     token_result = cli.get_auth_token()
 
     if token_result.is_failure:
         cli.print("❌ Authentication required. Please login first.", style="bold red")
-        return None
+        return r[dict[str, str]].fail("Authentication required")
 
     token = token_result.value
 
-    # Use token in your API calls
-    # Example with httpx (already in flext-cli):
-
     try:
-        # Your API call logic
         cli.print(f"📡 Calling {endpoint}...", style="cyan")
         cli.print(f"   Using token: {token[:20]}...", style="white")
-        # response = httpx.get(endpoint, headers=headers)
         cli.print("✅ API call successful", style="green")
-        return {"status": "success"}
+        return r[dict[str, str]].ok({"status": "success"})
     except Exception as e:
         cli.print(f"❌ API call failed: {e}", style="bold red")
-        return None
+        return r[dict[str, str]].fail(str(e))
 
 
 # ============================================================================
@@ -184,25 +174,28 @@ def show_session_info() -> None:
     token = token_result.value
     token_file = Path(cli.config.token_file)
 
-    # Gather session data
-    session_data: dict[str, t.JsonValue] = {
-        "User": os.getenv("USER", "unknown"),
-        "Token File": str(token_file),
-        "Token Length": f"{len(token)} chars",
-        "File Size": f"{token_file.stat().st_size} bytes"
-        if token_file.exists()
-        else "N/A",
-        "Modified": time.strftime(
-            "%Y-%m-%d %H:%M:%S",
-            time.localtime(token_file.stat().st_mtime),
-        )
-        if token_file.exists()
-        else "N/A",
-    }
+    # Gather session data as Pydantic-backed display
+    session_data = m.Cli.DisplayData(
+        data={
+            "User": os.getenv("USER", "unknown"),
+            "Token File": str(token_file),
+            "Token Length": f"{len(token)} chars",
+            "File Size": (
+                f"{token_file.stat().st_size} bytes" if token_file.exists() else "N/A"
+            ),
+            "Modified": (
+                time.strftime(
+                    "%Y-%m-%d %H:%M:%S",
+                    time.localtime(token_file.stat().st_mtime),
+                )
+                if token_file.exists()
+                else "N/A"
+            ),
+        },
+    )
 
-    # Display as table
     cli.show_table(
-        session_data,
+        session_data.data,
         headers=["Property", "Value"],
         title="🔐 Current Session",
     )
@@ -290,17 +283,17 @@ def main() -> None:
 
     # Example 2: Get saved token
     cli.print("\n2. Token Retrieval (for API calls):", style="bold cyan")
-    token = get_saved_token()
-    if token:
-        cli.print(f"   Retrieved token: {token[:30]}...", style="green")
+    token_result = get_saved_token()
+    if token_result.is_success:
+        cli.print(f"   Retrieved token: {token_result.value[:30]}...", style="green")
     else:
         cli.print("   No token available", style="yellow")
 
     # Example 3: API call with token
     cli.print("\n3. Authenticated API Call:", style="bold cyan")
     api_result = call_authenticated_api("https://api.example.com/data")
-    if api_result:
-        cli.print(f"   API returned: {api_result}", style="green")
+    if api_result.is_success:
+        cli.print(f"   API returned: {api_result.value}", style="green")
 
     # Example 4: Token validation
     cli.print("\n4. Token Validation:", style="bold cyan")

@@ -30,7 +30,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import json
-from collections.abc import Mapping, Sequence
 from pathlib import Path
 
 from flext_cli import (
@@ -145,24 +144,7 @@ class MyAppPluginManager:
             else:
                 result_value = raw
 
-            normalized: t.JsonValue
-            if result_value is None:
-                normalized = ""
-            elif isinstance(result_value, dict):
-                d_map: Mapping[str, t.ContainerValue] = result_value
-                normalized = {
-                    str(k): (v if isinstance(v, (str, int, float, bool)) else str(v))
-                    for k, v in d_map.items()
-                }
-            elif isinstance(result_value, list):
-                seq: Sequence[t.ContainerValue] = result_value
-                normalized = [
-                    x if isinstance(x, (str, int, float, bool)) else str(x) for x in seq
-                ]
-            elif isinstance(result_value, (str, int, float, bool)):
-                normalized = result_value
-            else:
-                normalized = str(result_value)
+            normalized = m.Cli.CliNormalizedJson.model_validate(result_value).root
             return r[t.JsonValue].ok(normalized)
         except Exception as e:
             return r[t.JsonValue].fail(

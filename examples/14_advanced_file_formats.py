@@ -32,6 +32,8 @@ import shutil
 import tempfile
 from pathlib import Path
 
+from pydantic import TypeAdapter, ValidationError
+
 from flext_cli import FlextCli, t
 
 cli = FlextCli()
@@ -247,13 +249,20 @@ def export_data_multi_format(
             style="green",
         )
 
-    # Export to CSV (if data is list of dicts)
-    if isinstance(data, list) and data:
+    rows_adapter = TypeAdapter(list[dict[str, t.JsonValue]])
+    csv_rows_data: list[dict[str, t.JsonValue]]
+    try:
+        csv_rows_data = rows_adapter.validate_python(data)
+    except ValidationError:
+        csv_rows_data = []
+
+    if csv_rows_data:
         csv_path = base_path.with_suffix(".csv")
-        headers = list(data[0].keys())
-        # Prepend headers as first row
+        headers = list(csv_rows_data[0].keys())
         rows = [headers]
-        rows.extend([[str(row.get(h, "")) for h in headers] for row in data])
+        rows.extend(
+            [[str(row.get(header, "")) for header in headers] for row in csv_rows_data],
+        )
 
         csv_result = cli.file_tools.write_csv_file(csv_path, rows)
         if csv_result.is_success:

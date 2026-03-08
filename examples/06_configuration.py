@@ -30,15 +30,11 @@ from collections.abc import Mapping
 from pathlib import Path
 
 from example_utils import display_config_table
+from models import AppConfigAdvanced, MyAppConfig
 
-from flext_cli import FlextCli, FlextCliSettings, r, t, u
+from flext_cli import FlextCli, FlextCliSettings, m, r, t, u
 
 cli = FlextCli()
-
-
-# ============================================================================
-# PATTERN 1: Access built-in config in YOUR CLI
-# ============================================================================
 
 
 def get_cli_settings() -> FlextCliSettings:
@@ -63,8 +59,8 @@ def get_cli_settings() -> FlextCliSettings:
 # ============================================================================
 
 
-def load_environment_config() -> dict[str, str | int]:
-    """Load environment-specific config in YOUR tool."""
+def load_environment_config() -> m.Cli.DisplayData:
+    """Load environment-specific config in YOUR tool. Returns DisplayData model."""
     config = cli.config
 
     # Check which environment we're in
@@ -86,101 +82,46 @@ def load_environment_config() -> dict[str, str | int]:
         api_url = "http://localhost:8000"
         max_retries = 1
 
-    settings: dict[str, str | int] = {
+    settings: dict[str, t.JsonValue] = {
         "API URL": api_url,
         "Max Retries": max_retries,
         "Environment": environment,
     }
 
-    settings_data: dict[str, t.JsonValue] = dict(settings)
     cli.print(f"🌍 {environment.capitalize()} Configuration", style="bold cyan")
-    display_config_table(
-        cli=cli,
-        config_data=settings_data,
-    )
+    display_payload = m.Cli.DisplayData(data=settings)
+    display_config_table(cli=cli, config_data=display_payload)
 
-    return settings
+    return display_payload
 
 
 # ============================================================================
-# PATTERN 3: Custom config class for YOUR application
+# PATTERN 1: Access built-in config in YOUR CLI
 # ============================================================================
 
 
-class MyAppConfig:
-    """Custom configuration for YOUR CLI application."""
-
-    def __init__(self) -> None:
-        """Initialize custom configuration with environment variables."""
-        super().__init__()
-        # Inherit from flext-cli config
-        self.base_config = cli.config
-
-        # Add your custom settings
-        self.app_name = os.getenv("APP_NAME", "my-cli-tool")
-        self.api_key = os.getenv("API_KEY", "")
-        self.max_workers = int(os.getenv("MAX_WORKERS", "4"))
-        self.timeout = int(os.getenv("TIMEOUT", "30"))
-
-    def display(self) -> None:
-        """Display YOUR app configuration."""
-        config_data: dict[str, t.JsonValue] = {
-            "App Name": self.app_name,
-            "API Key": f"{self.api_key[:10]}..." if self.api_key else "Not set",
-            "Max Workers": str(self.max_workers),
-            "Timeout": f"{self.timeout}s",
-            "Debug": str(self.base_config.debug),
-            "Profile": self.base_config.profile,
-        }
-
-        cli.show_table(
-            config_data,
-            headers=["Setting", "Value"],
-            title="⚙️  Application Configuration",
-        )
-
-    def validate(self) -> bool:
-        """Validate YOUR app configuration."""
-        if not self.api_key:
-            cli.print("❌ API_KEY not configured", style="bold red")
-            return False
-
-        if self.max_workers < 1:
-            cli.print("❌ MAX_WORKERS must be >= 1", style="bold red")
-            return False
-
-        cli.print("✅ Configuration valid", style="green")
-        return True
-
-
-# ============================================================================
-# PATTERN 4: Config file locations in YOUR tool
-# ============================================================================
-
-
-def show_config_locations() -> dict[str, str]:
-    """Display config file locations for YOUR application."""
+def show_config_locations() -> m.Cli.DisplayData:
+    """Display config file locations for YOUR application. Returns DisplayData model."""
     config = cli.config
 
-    # Get standard locations
     home_dir = Path.home()
     config_dir = home_dir / ".flext"
     token_file = Path(config.token_file)
 
-    locations = {
+    locations: dict[str, t.JsonValue] = {
         "Home Directory": str(home_dir),
         "Config Directory": str(config_dir),
         "Token File": str(token_file),
         "Token Exists": "Yes" if token_file.exists() else "No",
     }
 
-    cli.show_table(
-        locations,
+    display_payload = m.Cli.DisplayData(data=locations)
+    display_config_table(
+        cli=cli,
+        config_data=display_payload,
         headers=["Location", "Path"],
-        title="📂 Configuration Locations",
     )
-
-    return locations
+    return display_payload
 
 
 # ============================================================================
@@ -188,19 +129,16 @@ def show_config_locations() -> dict[str, str]:
 # ============================================================================
 
 
-def load_profile_config(profile_name: str = "default") -> FlextCliSettings | None:
-    """Load profile-specific config in YOUR tool."""
+def load_profile_config(profile_name: str = "default") -> r[FlextCliSettings]:
+    """Load profile-specific config in YOUR tool. Returns r[FlextCliSettings]; no None."""
     cli.print(f"📋 Loading profile: {profile_name}", style="bold cyan")
 
-    # You can create different FlextCliSettings instances for different profiles
     profile_config = FlextCliSettings(
         profile=profile_name,
         debug=profile_name == "development",
         output_format="json" if profile_name == "production" else "table",
     )
 
-    # Validate profile config (Pydantic validation happens automatically on init)
-    # validate_configuration is a model validator, not a callable method
     validate_result = profile_config.validate_output_format_result(
         profile_config.output_format,
     )
@@ -209,11 +147,12 @@ def load_profile_config(profile_name: str = "default") -> FlextCliSettings | Non
             f"❌ Profile validation failed: {validate_result.error}",
             style="bold red",
         )
-        return None
+        return r[FlextCliSettings].fail(
+            validate_result.error or "Profile validation failed"
+        )
 
     cli.print(f"✅ Profile '{profile_name}' loaded successfully", style="green")
 
-    # Display profile settings
     profile_data: dict[str, t.JsonValue] = {
         "Profile": profile_config.profile,
         "Debug": str(profile_config.debug),
@@ -223,10 +162,10 @@ def load_profile_config(profile_name: str = "default") -> FlextCliSettings | Non
 
     display_config_table(
         cli=cli,
-        config_data=profile_data,
+        config_data=m.Cli.DisplayData(data=profile_data),
     )
 
-    return profile_config
+    return r[FlextCliSettings].ok(profile_config)
 
 
 # ============================================================================
@@ -254,7 +193,7 @@ def show_environment_variables() -> None:
         """Print single environment variable."""
         cli.print(f"   {k}={v}", style="cyan")
 
-    u.Cli.process_mapping(env_vars, processor=print_env)
+    _ = u.Cli.process_mapping(env_vars, processor=print_env)
 
     # Show how to set them
     cli.print("\n💡 How to set environment variables:", style="bold cyan")
@@ -290,7 +229,7 @@ def validate_app_config() -> bool:
     cli.print("\n2. Validating custom settings...", style="cyan")
     app_config = MyAppConfig()
 
-    if not app_config.validate():
+    if not app_config.validate_config(cli):
         cli.print("   ❌ Custom config invalid", style="bold red")
         return False
 
@@ -298,83 +237,15 @@ def validate_app_config() -> bool:
 
     # Step 3: Display complete config
     cli.print("\n3. Configuration summary:", style="cyan")
-    app_config.display()
+    app_config.display(cli)
 
     cli.print("\n✅ All configuration validated successfully!", style="bold green")
     return True
 
 
 # ============================================================================
-# PATTERN 6: Advanced Config with Environment Variables and Validation
+# PATTERN 6: Advanced Config with Environment Variables and Validation (Pydantic v2)
 # ============================================================================
-
-
-class AppConfig:
-    """Advanced application configuration with env var integration."""
-
-    def __init__(self) -> None:
-        """Initialize configuration with environment variables and defaults."""
-        super().__init__()
-        self.database_url = os.getenv(
-            "DATABASE_URL",
-            "postgresql://localhost:5432/myapp",
-        )
-        self.redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
-        self.api_key = os.getenv("API_KEY", "")
-        self.max_workers = int(os.getenv("MAX_WORKERS", "4"))
-        self.enable_metrics = os.getenv("ENABLE_METRICS", "true").lower() == "true"
-        self.log_level = os.getenv("LOG_LEVEL", "INFO")
-        self.temp_dir = Path(
-            os.getenv("TEMP_DIR", str(Path.home() / ".cache" / "myapp")),
-        )
-
-    def validate(self) -> r[t.ConfigurationMapping]:
-        """Validate configuration with comprehensive checks."""
-        errors: list[str] = []
-
-        # Validate database URL
-        if not self.database_url.startswith(("postgresql://", "mysql://")):
-            errors.append("DATABASE_URL must be a valid database URL")
-
-        # Validate Redis URL
-        if not self.redis_url.startswith("redis://"):
-            errors.append("REDIS_URL must be a valid Redis URL")
-
-        # Validate API key
-        if not self.api_key and os.getenv("ENVIRONMENT") == "production":
-            errors.append("API_KEY is required in production")
-
-        # Validate workers
-        if not 1 <= self.max_workers <= 100:
-            errors.append("MAX_WORKERS must be between 1 and 100")
-
-        # Validate log level
-        valid_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
-        if self.log_level.upper() not in valid_levels:
-            errors.append(f"LOG_LEVEL must be one of: {', '.join(valid_levels)}")
-
-        # Validate temp directory
-        if not self.temp_dir.exists():
-            try:
-                self.temp_dir.mkdir(parents=True, exist_ok=True)
-            except Exception as e:
-                errors.append(f"Cannot create TEMP_DIR: {e}")
-        elif not self.temp_dir.is_dir():
-            errors.append("TEMP_DIR must be a directory")
-
-        if errors:
-            return r[t.ConfigurationMapping].fail("; ".join(errors))
-
-        # Return validated config as dict
-        return r[t.ConfigurationMapping].ok({
-            "database_url": self.database_url,
-            "redis_url": self.redis_url,
-            "api_key": "***" if self.api_key else "",
-            "max_workers": self.max_workers,
-            "enable_metrics": self.enable_metrics,
-            "log_level": self.log_level,
-            "temp_dir": str(self.temp_dir),
-        })
 
 
 def load_application_config() -> r[t.ConfigurationMapping]:
@@ -382,11 +253,11 @@ def load_application_config() -> r[t.ConfigurationMapping]:
     cli.print("\n⚙️  Loading Application Configuration:", style="bold cyan")
 
     # Railway Pattern for config loading
-    config_obj = AppConfig()
+    config_obj = AppConfigAdvanced()
     cli.print("✅ Config object created", style="green")
 
     # Step 2: Validate configuration
-    validate_result = config_obj.validate()
+    validate_result = config_obj.validate_to_mapping()
     if validate_result.is_failure:
         return validate_result
     cli.print("✅ Configuration validated", style="green")
@@ -401,9 +272,7 @@ def load_application_config() -> r[t.ConfigurationMapping]:
     final_data = initialize_services(overridden_data)
     cli.print("✅ Services initialized", style="green")
 
-    result: r[t.ConfigurationMapping] = r[t.ConfigurationMapping].ok(
-        final_data,
-    )
+    result: r[t.ConfigurationMapping] = r[t.ConfigurationMapping].ok(final_data)
 
     if result.is_failure:
         cli.print(f"❌ Configuration failed: {result.error}", style="bold red")
@@ -463,25 +332,25 @@ def main() -> None:
 
     # Example 1: Access built-in config
     cli.print("\n1. Built-in Configuration (access settings):", style="bold cyan")
-    get_cli_settings()
+    _ = get_cli_settings()
 
     # Example 2: Environment-based config
     cli.print("\n2. Environment Config (deployment settings):", style="bold cyan")
-    load_environment_config()
+    _ = load_environment_config()
 
     # Example 3: Custom config class
     cli.print("\n3. Custom Config Class (app-specific):", style="bold cyan")
     app_config = MyAppConfig()
-    app_config.validate()
-    app_config.display()
+    _ = app_config.validate_config(cli)
+    app_config.display(cli)
 
     # Example 4: Config locations
     cli.print("\n4. Config Locations (file paths):", style="bold cyan")
-    show_config_locations()
+    _ = show_config_locations()
 
     # Example 5: Profile-based config
     cli.print("\n5. Profile-Based Config (multi-environment):", style="bold cyan")
-    load_profile_config("production")
+    _ = load_profile_config("production")
 
     # Example 6: Environment variables
     cli.print("\n6. Environment Variables (configuration guide):", style="bold cyan")
@@ -489,7 +358,7 @@ def main() -> None:
 
     # Example 7: Config validation
     cli.print("\n7. Config Validation (startup check):", style="bold cyan")
-    validate_app_config()
+    _ = validate_app_config()
 
     # Example 8: Advanced config with env vars
     cli.print("\n8. Advanced Config with Environment Variables:", style="bold cyan")
@@ -503,7 +372,7 @@ def main() -> None:
         cli.print("Final Application Configuration", style="bold cyan")
         display_config_table(
             cli=cli,
-            config_data=final_config_data,
+            config_data=m.Cli.DisplayData(data=final_config_data),
         )
 
     cli.print("\n" + "=" * 70, style="bold blue")

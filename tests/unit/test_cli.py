@@ -61,7 +61,7 @@ class TestsCliCli:
             cli_cli,
             "test_cmd",
         )
-        tm.ok(command_result)
+        assert command_result.is_success
 
         if command_result.is_success and command_result.value:
             assert isinstance(command_result.value, click.Command)
@@ -78,7 +78,7 @@ class TestsCliCli:
             cli_cli,
             "test_group",
         )
-        tm.ok(group_result)
+        assert group_result.is_success
 
         if group_result.is_success and group_result.value:
             assert isinstance(group_result.value, click.Group)
@@ -115,7 +115,7 @@ class TestsCliCli:
             "--value",
             "default",
         )
-        tm.ok(command_result)
+        assert command_result.is_success
 
     # ========================================================================
     # PARAMETER TYPES

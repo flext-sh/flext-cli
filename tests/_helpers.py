@@ -10,15 +10,16 @@ import pytest
 from flext_core import r
 
 from flext_cli import FlextCliCommands, m, t
+from tests.models import CliCommandInput, CliSessionInput
 
 
-# Factory functions using direct model instantiation (no forward refs)
+# Factory functions using Pydantic test models only
 def create_test_cli_command(
     **overrides: t.ContainerValue,
 ) -> m.Cli.CliCommand:
     """Factory for real CliCommand instances with sensible defaults."""
     now = datetime.now(UTC)
-    defaults: dict[str, object] = {
+    payload: dict[str, t.JsonValue] = {
         "unique_id": f"test-cmd-{now.timestamp()}",
         "name": "test_command",
         "description": "Test command description",
@@ -26,16 +27,19 @@ def create_test_cli_command(
         "created_at": now,
         "command_line": "test_command",
     }
-    # Normalize test-only keys to model fields
-    if "command_id" in overrides:
-        defaults["unique_id"] = overrides["command_id"]
-    if "arguments" in overrides:
-        defaults["args"] = overrides["arguments"]
-    merged: dict[str, object] = {**defaults, **overrides}
-    # Remove aliases so model_construct does not receive unknown fields
+    if "command_id" in overrides and isinstance(overrides["command_id"], str):
+        payload["unique_id"] = overrides["command_id"]
+    if "arguments" in overrides and isinstance(overrides["arguments"], (list, tuple)):
+        args_val = overrides["arguments"]
+        payload["args"] = [str(x) for x in args_val if isinstance(x, str)]
+    merged = {**payload, **overrides}
     _ = merged.pop("command_id", None)
     _ = merged.pop("arguments", None)
-    cmd = m.Cli.CliCommand.model_construct(_fields_set=None, **merged)
+    filtered = {k: v for k, v in merged.items() if k in CliCommandInput.model_fields}
+    inp = CliCommandInput.model_validate(filtered)
+    cmd = m.Cli.CliCommand.model_construct(
+        _fields_set=None, **inp.model_dump(exclude_none=True)
+    )
     # Add command_id as an alias to unique_id for backward compatibility with tests
     object.__setattr__(cmd, "command_id", cmd.unique_id)
     return cmd
@@ -46,13 +50,20 @@ def create_test_cli_session(
 ) -> m.Cli.CliSession:
     """Factory for real CliSession instances with sensible defaults."""
     now = datetime.now(UTC)
-    defaults: dict[str, object] = {
+    payload: dict[str, t.JsonValue] = {
         "session_id": f"test-session-{now.timestamp()}",
         "status": "active",
         "created_at": now,
     }
-    merged = {**defaults, **overrides}
-    session = m.Cli.CliSession.model_construct(_fields_set=None, **merged)
+    filtered = {
+        k: v
+        for k, v in {**payload, **overrides}.items()
+        if k in CliSessionInput.model_fields
+    }
+    inp = CliSessionInput.model_validate(filtered)
+    session = m.Cli.CliSession.model_construct(
+        _fields_set=None, **inp.model_dump(exclude_none=True)
+    )
     # Add environment as an alias for backward compatibility with tests
     if getattr(session, "environment", None) is None:
         object.__setattr__(session, "environment", overrides.get("environment", "test"))
@@ -247,7 +258,7 @@ class CommandsFactory:
     @staticmethod
     def create_command_chain(count: int = 3) -> list[m.Cli.CliCommand]:
         """Create a chain of related commands."""
-        commands = []
+        commands: list[m.Cli.CliCommand] = []
         for i in range(count):
             cmd = create_test_cli_command(
                 command_id=f"chain_cmd_{i}",
@@ -289,7 +300,7 @@ class CommandsFactory:
             *args: t.JsonValue,
             **kwargs: t.JsonValue,
         ) -> r[t.JsonValue]:
-            return r.ok(result_value)
+            return r[t.JsonValue].ok(result_value)
 
         return commands.register_command(command_name, handler)
 
@@ -304,7 +315,7 @@ class CommandsFactory:
             *args: t.JsonValue,
             **kwargs: t.JsonValue,
         ) -> r[t.JsonValue]:
-            return r.ok(f"args: {len(args)}")
+            return r[t.JsonValue].ok(f"args: {len(args)}")
 
         return commands.register_command(command_name, handler)
 
@@ -320,12 +331,12 @@ class CommandsFactory:
             *args: t.JsonValue,
             **kwargs: t.JsonValue,
         ) -> r[t.JsonValue]:
-            return r.fail(error_message)
+            return r[t.JsonValue].fail(error_message)
 
         return commands.register_command(command_name, handler)
 
 
-def generate_edge_case_data() -> list[dict[str, t.ContainerValue]]:
+def generate_edge_case_data() -> list[dict[str, t.JsonValue]]:
     """Generate comprehensive edge case test data for CliCommand.
 
     Only uses valid CliCommand fields: name, description, command_line, usage,

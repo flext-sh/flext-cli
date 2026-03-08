@@ -15,7 +15,7 @@ from __future__ import annotations
 import tempfile
 from pathlib import Path
 
-from flext_cli import FlextCli, c, t
+from flext_cli import FlextCli, c, m, r, t
 
 
 class FlextCliGettingStarted:
@@ -75,21 +75,25 @@ class FlextCliGettingStarted:
     # PATTERN 2: Display data as tables
     # ============================================================================
 
-    def display_user_data(self, user: dict[str, t.JsonValue]) -> None:
+    def display_user_data(self, user: m.Cli.DisplayData) -> None:
         """Show how to display YOUR data as a table."""
         self.cli.show_table(
-            user,
+            dict(user.data),
             headers=["Field", "Value"],
             title="User Information",
         )
 
-    def load_config(self, filepath: str) -> dict[str, t.JsonValue] | None:
-        """Load YOUR config from JSON. Returns dict or None on failure; no narrowing."""
+    def load_config(self, filepath: str) -> r[m.Cli.LoadedConfig]:
+        """Load YOUR config from JSON. Returns r[LoadedConfig]; no None."""
         read_result = self.cli.file_tools.read_json_dict(filepath)
         if read_result.is_failure:
             self.cli.print(f"Failed to load: {read_result.error}", style="red")
-            return None
-        return read_result.value
+            return r[m.Cli.LoadedConfig].fail(
+                read_result.error or "Failed to load config",
+            )
+        return r[m.Cli.LoadedConfig].ok(
+            m.Cli.LoadedConfig(content=dict(read_result.value)),
+        )
 
     # ============================================================================
     # PATTERN 4: Error handling without exceptions
@@ -120,13 +124,13 @@ class FlextCliGettingStarted:
     # PATTERN 3: File I/O with error handling
     # ============================================================================
 
-    def save_config(self, config: dict[str, t.JsonValue], filepath: str) -> bool:
+    def save_config(
+        self,
+        config: m.Cli.LoadedConfig,
+        filepath: str,
+    ) -> bool:
         """Save YOUR config to JSON with proper error handling."""
-        write_result = self.cli.file_tools.write_json_file(
-            filepath,
-            config,
-        )
-
+        write_result = self.cli.file_tools.write_json_file(filepath, config.content)
         if write_result.is_failure:
             self.cli.print(f"Failed to save: {write_result.error}", style="red")
             return False

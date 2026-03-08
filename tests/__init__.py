@@ -13,9 +13,10 @@ from typing import TYPE_CHECKING, Any
 from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
 
 if TYPE_CHECKING:
+    from flext_cli.models import FlextCliModels as m
     from tests.base import TestsCliServiceBase, s
     from tests.constants import TestsFlextCliConstants, TestsFlextCliConstants as c
-    from tests.models import TestsFlextCliModels, TestsFlextCliModels as m, tm
+    from tests.models import TestsFlextCliModels, tm
     from tests.protocols import TestsCliProtocols, TestsCliProtocols as p
     from tests.typings import TestsCliTypes, TestsCliTypes as t, tt
     from tests.utilities import TestsCliUtilities, TestsCliUtilities as u
@@ -29,7 +30,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "TestsFlextCliConstants": ("tests.constants", "TestsFlextCliConstants"),
     "TestsFlextCliModels": ("tests.models", "TestsFlextCliModels"),
     "c": ("tests.constants", "TestsFlextCliConstants"),
-    "m": ("tests.models", "TestsFlextCliModels"),
+    "m": ("flext_cli", "m"),
     "p": ("tests.protocols", "TestsCliProtocols"),
     "s": ("tests.base", "s"),
     "t": ("tests.typings", "TestsCliTypes"),

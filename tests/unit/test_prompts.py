@@ -16,7 +16,7 @@ from __future__ import annotations
 import getpass
 import time
 from collections import UserList
-from typing import Never, TypedDict, TypeVar, override
+from typing import Never, TypeVar, override
 
 import pytest
 from flext_core import FlextResult, t
@@ -26,32 +26,6 @@ from flext_cli import FlextCliPrompts
 from tests import c
 
 T = TypeVar("T")
-
-
-class ConfirmTestCaseDict(TypedDict, total=False):
-    """Test case dictionary for confirm prompts."""
-
-    message: str
-    default: bool
-    expected_value: bool
-
-
-class ChoiceTestCaseDict(TypedDict, total=False):
-    """Test case dictionary for choice prompts."""
-
-    message: str
-    choices: list[str]
-    default: str | None
-    expected_success: bool
-
-
-class TextTestCaseDict(TypedDict, total=False):
-    """Test case dictionary for text prompts."""
-
-    message: str
-    default: str | None
-    validation_pattern: str | None
-    expected_success: bool
 
 
 class TestsCliPrompts:

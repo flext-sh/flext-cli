@@ -16,7 +16,7 @@ import json
 import logging
 import os
 from collections import deque
-from collections.abc import Callable, Generator, Iterator
+from collections.abc import Callable, Generator, Iterator, Mapping
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Protocol
@@ -687,7 +687,7 @@ def load_fixture_config() -> dict[str, t.ContainerValue]:
     fixture_path = Path("tests/fixtures/configs/test_config.json")
     with fixture_path.open(encoding="utf-8") as f:
         data = json.load(f)
-    adapter: TypeAdapter[dict[str, t.ContainerValue]] = TypeAdapter(
+    adapter: TypeAdapter[Mapping[str, t.ContainerValue]] = TypeAdapter(
         t.ConfigurationMapping,
     )
     return adapter.validate_python(data)
@@ -699,7 +699,7 @@ def load_fixture_data() -> dict[str, t.ContainerValue]:
     fixture_path = Path("tests/fixtures/data/test_data.json")
     with fixture_path.open(encoding="utf-8") as f:
         data = json.load(f)
-    adapter: TypeAdapter[dict[str, t.ContainerValue]] = TypeAdapter(
+    adapter: TypeAdapter[Mapping[str, t.ContainerValue]] = TypeAdapter(
         t.ConfigurationMapping,
     )
     return adapter.validate_python(data)
@@ -820,13 +820,13 @@ def clean_flext_container() -> Generator[None]:
     original_config = container.get_config()
 
     # Reset container configuration (configure accepts Mapping[str, ScalarValue])
-    container.configure({})
+    _ = container.configure({})
 
     yield
 
     # Restore: configure() accepts Mapping[str, ScalarValue]. Use Pydantic to keep only scalar entries.
     restore = ScalarConfigRestore.from_config_items(dict(original_config.root))
-    container.configure(restore.root)
+    _ = container.configure(restore.root)
 
 
 # ============================================================================

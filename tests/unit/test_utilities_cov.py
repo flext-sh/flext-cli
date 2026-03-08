@@ -87,7 +87,9 @@ def test_normalize_union_type_returns_none_when_inner_is_none(
     union_type = str | None
     original = u.Cli.TypeNormalizer.normalize_annotation
 
-    def fake(annotation: object) -> type | None:
+    def fake(
+        annotation: type | types.UnionType | None,
+    ) -> type | types.UnionType | None:
         if annotation is str:
             return None
         return original(annotation)

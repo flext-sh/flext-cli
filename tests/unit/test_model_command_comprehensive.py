@@ -20,14 +20,11 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Literal
 
 import pytest
 from pydantic import (
     BaseModel,
-    Field,
     ValidationError,
-    field_validator,
 )
 
 from flext_cli import FlextCliCli, m
@@ -38,145 +35,6 @@ class TestsCliModelCommandComprehensive:
 
     # =========================================================================
     # REAL-WORLD MODEL DEFINITIONS (Based on flext-db-oracle patterns)
-    # =========================================================================
-
-    class ConnectionConfig(BaseModel):
-        """Database connection configuration - real-world pattern."""
-
-        host: str = Field(default="localhost", description="Database host")
-        port: int = Field(
-            default=1521,
-            ge=1024,
-            le=65535,
-            description="Database port",
-        )
-        service_name: str = Field(
-            default="ORCL",
-            description="Oracle service name",
-        )
-        username: str = Field(description="Database username")
-        password: str | None = Field(default=None, description="Database password")
-        ssl_enabled: bool = Field(default=False, description="Enable SSL")
-        connection_timeout: int = Field(
-            default=30,
-            ge=1,
-            le=300,
-            description="Connection timeout in seconds",
-        )
-
-    class EnvironmentConfig(BaseModel):
-        """Environment configuration with Literal types."""
-
-        environment: Literal["development", "staging", "production"] = Field(
-            default="development",
-            description="Deployment environment",
-        )
-        region: Literal["us-east", "us-west", "eu-central", "asia-pacific"] = Field(
-            default="us-east",
-            description="Deployment region",
-        )
-        debug_mode: bool = Field(default=False, description="Enable debug mode")
-        verbose_logging: bool = Field(
-            default=False,
-            description="Enable verbose logging",
-        )
-
-    class OptionalLiteralConfig(BaseModel):
-        """Config with Optional Literal types."""
-
-        log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] | None = Field(
-            default=None,
-            description="Logging level",
-        )
-        output_format: Literal["json", "yaml", "table"] | None = Field(
-            default=None,
-            description="Output format",
-        )
-        enable_cache: bool = Field(default=True, description="Enable cache")
-
-    class AliasedConfig(BaseModel):
-        """Config with field aliases - real-world pattern."""
-
-        input_dir: str | None = Field(
-            default=None,
-            alias="input-dir",
-            description="Input directory",
-        )
-        output_dir: str | None = Field(
-            default=None,
-            alias="output-dir",
-            description="Output directory",
-        )
-        batch_size: int | None = Field(
-            default=None,
-            alias="batch-size",
-            description="Batch size",
-        )
-        max_workers: int = Field(
-            default=4,
-            alias="max-workers",
-            ge=1,
-            le=32,
-            description="Maximum worker processes",
-        )
-
-        model_config = {"populate_by_name": True}
-
-    class BooleanFlagsConfig(BaseModel):
-        """Config testing various boolean flag combinations."""
-
-        # Default True flags
-        enable_cache: bool = Field(default=True, description="Enable cache")
-        enable_ssl: bool = Field(default=True, description="Enable SSL")
-        enable_compression: bool = Field(default=True, description="Enable compression")
-
-        # Default False flags
-        verbose: bool = Field(default=False, description="Verbose output")
-        debug: bool = Field(default=False, description="Debug mode")
-        dry_run: bool = Field(default=False, description="Dry run mode")
-
-        # Optional booleans
-        force: bool | None = Field(default=None, description="Force operation")
-        skip_validation: bool | None = Field(
-            default=None,
-            description="Skip validation",
-        )
-
-    class NestedModelConfig(BaseModel):
-        """Config with nested models."""
-
-        app_name: str = Field(description="Application name")
-        version: str = Field(default="1.0.0", description="Version")
-
-        class DatabaseConfig(BaseModel):
-            """Nested database config."""
-
-            host: str = Field(default="localhost")
-            port: int = Field(default=5432)
-
-        database: DatabaseConfig = Field(
-            default_factory=DatabaseConfig,
-            description="Database configuration",
-        )
-
-    class ValidatedConfig(BaseModel):
-        """Config with custom validators."""
-
-        host: str = Field(description="Hostname or IP")
-        port: int = Field(default=5432, ge=1024, le=65535)
-        timeout: int = Field(default=30, ge=1, le=300)
-
-        @field_validator("host")
-        @classmethod
-        def validate_host(cls, v: str) -> str:
-            """Validate host format."""
-            if not v or ("." not in v and v != "localhost"):
-                msg = "Host must be valid hostname or IP"
-                raise ValueError(msg)
-            return v
-
-    # =========================================================================
-    # FIXTURES
     # =========================================================================
 
     @pytest.fixture

@@ -23,7 +23,6 @@ from enum import StrEnum
 from typing import (
     Generic,
     Protocol,
-    TypedDict,
     TypeVar,
     get_args,
     get_origin,
@@ -247,9 +246,6 @@ class TestsCliTypings:
         t_var = TypeVar("t_var")
 
         # Test Generic type
-        @dataclass
-        class GenericType:
-            value: object
 
         # Test Protocol type
         class TestProtocol(Protocol):
@@ -420,19 +416,7 @@ class TestsCliTypings:
 
     def _execute_type_scenario_tests(self) -> None:
         """Execute type scenario tests."""
-
         # Test API response scenario
-        class UserData(TypedDict):
-            id: int
-            name: str
-            email: str
-            active: bool
-
-        class ApiResponse(TypedDict):
-            status: str
-            data: UserData | list[UserData]
-            message: str | None
-            error: str | None
 
         # Test type usage
         def create_user_response(user: UserData) -> ApiResponse:

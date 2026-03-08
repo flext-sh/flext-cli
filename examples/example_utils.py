@@ -2,6 +2,7 @@
 
 Eliminates code duplication across example files by providing shared patterns
 and common functionality using ONLY FlextCli wrappers - NO direct Rich imports!
+All data transport uses Pydantic v2 models from flext_cli (m.Cli).
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -12,28 +13,18 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
-from flext_cli import FlextCli, r, t
+from pydantic import BaseModel
+
+from flext_cli import FlextCli, m, r, t
 
 
 def to_json_dict(
     data: Mapping[str, t.ContainerValue],
-) -> dict[str, t.JsonValue]:
-    """Normalize config/mapping to dict[str, JsonValue] for create_table/display_config_table.
-
-    Use when you have dict[str, ContainerValue] (e.g. from to_dict_json or
-    transform) and need to pass to APIs that expect Mapping[str, JsonValue].
-    """
-    out: dict[str, t.JsonValue] = {}
-    for k, v in data.items():
-        if v is None:
-            out[k] = ""
-        elif isinstance(v, (str, int, float, bool)):
-            out[k] = v
-        elif isinstance(v, (list, dict)):
-            out[k] = str(v)
-        else:
-            out[k] = str(v)
-    return out
+) -> m.Cli.DisplayData:
+    """Normalize config/mapping to DisplayData for create_table/display_config_table."""
+    normalized = m.Cli.CliNormalizedJson.model_validate(dict(data)).root
+    resolved = m.Cli.NormalizedJsonDict(value=normalized, default={}).resolved
+    return m.Cli.DisplayData(data=resolved)
 
 
 def print_demo_completion(
@@ -57,23 +48,16 @@ def print_demo_completion(
 
 def handle_command_result(
     cli: FlextCli,
-    result: r[dict[str, t.JsonValue]],
+    result: r[BaseModel],
     action: str,
     success_fields: list[str] | None = None,
 ) -> None:
-    """Generic handler for CQRS command results using FlextCli.
-
-    Args:
-        cli: FlextCli instance
-        result: FlextResult from command operation
-        action: Action being performed (e.g., "create project", "change status")
-        success_fields: Fields to display on success (defaults to ['id', 'status'])
-
-    """
+    """Generic handler for CQRS command results. Accepts r[BaseModel] only."""
     success_fields = success_fields or ["id", "status"]
 
     if result.is_success:
-        data = result.value
+        raw = result.value
+        data = raw.model_dump()
         cli.print(f"✅ {action.title()} successful", style="green")
         for field in success_fields:
             if field in data:
@@ -104,27 +88,32 @@ def print_demo_error(
 
 def display_config_table(
     cli: FlextCli,
-    config_data: dict[str, t.JsonValue],
+    config_data: BaseModel,
     headers: list[str] | None = None,
 ) -> None:
-    """Display configuration as a table. Uses show_table; no result to capture."""
+    """Display configuration as a table. Accepts Pydantic model only; uses show_table."""
     if headers is None:
         headers = ["Setting", "Value"]
-    cli.show_table(config_data, headers=headers)
+    payload = (
+        config_data.data
+        if isinstance(config_data, m.Cli.DisplayData)
+        else config_data.model_dump()
+    )
+    cli.show_table(payload, headers=headers)
 
 
 def display_success_summary(
     cli: FlextCli,
     operation: str,
-    details: dict[str, str] | None = None,
+    details: m.Cli.SuccessSummaryDetails | None = None,
 ) -> None:
     """Display a standardized success summary using FlextCli."""
     cli.print(
         f"✅ {operation} completed successfully!",
         style="bold green",
     )
-    if details:
-        for key, value in details.items():
+    if details is not None:
+        for key, value in details.root.items():
             cli.print(f"   {key}: {value}", style="cyan")
 
 

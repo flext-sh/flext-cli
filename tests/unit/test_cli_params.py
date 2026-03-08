@@ -209,16 +209,16 @@ class TestsCliCommonParams:
         updated_config = config_result.value
         result = FlextCliCommonParams.configure_logger(updated_config)
 
-        tm.ok(result)
+        assert result.is_success
 
     def test_decorator_adds_parameters(self) -> None:
         """Test decorator adds CLI parameters - Railway pattern."""
         app_result = create_cli_app()
-        tm.ok(app_result)
+        assert app_result.is_success
 
         app = app_result.value
         command_result = create_decorated_command(app, "test")
-        tm.ok(command_result)
+        assert command_result.is_success
 
         runner = CliRunner()
         result = runner.invoke(app, ["--help"])
@@ -232,11 +232,11 @@ class TestsCliCommonParams:
     def test_decorator_flags_work(self) -> None:
         """Test decorator flags work - Railway pattern."""
         app_result = create_cli_app()
-        tm.ok(app_result)
+        assert app_result.is_success
 
         app = app_result.value
         command_result = create_decorated_command(app, "test")
-        tm.ok(command_result)
+        assert command_result.is_success
 
         runner = CliRunner()
         result = runner.invoke(app, ["--verbose", "--debug"])
@@ -248,11 +248,11 @@ class TestsCliCommonParams:
     def test_decorator_parameters_work(self) -> None:
         """Test decorator parameters work - Railway pattern."""
         app_result = create_cli_app()
-        tm.ok(app_result)
+        assert app_result.is_success
 
         app = app_result.value
         command_result = create_decorated_command(app, "test")
-        tm.ok(command_result)
+        assert command_result.is_success
 
         runner = CliRunner()
         result = runner.invoke(

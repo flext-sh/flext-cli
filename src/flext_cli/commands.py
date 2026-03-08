@@ -15,7 +15,6 @@ from collections.abc import Mapping, Sequence
 from typing import Protocol, Self, override, runtime_checkable
 
 from flext_core import r
-from pydantic import BaseModel, ConfigDict, Field
 from rich.errors import ConsoleError, LiveError, StyleError
 
 from flext_cli import FlextCliServiceBase, c, t
@@ -36,19 +35,6 @@ class FlextCliCommandHandler(Protocol):
 
 # Type alias for command entry dict
 FlextCliCommandEntry = Mapping[str, str | FlextCliCommandHandler]
-
-
-class FlextCliCommandGroup(BaseModel):
-    """Represents a command group with name, description, and commands."""
-
-    model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
-
-    name: str = Field(..., description="Command group name")
-    description: str = Field(default="", description="Command group description")
-    commands: Mapping[str, FlextCliCommandEntry] = Field(
-        default_factory=dict,
-        description="Mapping of command names to command entries",
-    )
 
 
 class FlextCliCommands(FlextCliServiceBase):

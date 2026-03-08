@@ -37,15 +37,7 @@ import pathlib
 import time
 from pathlib import Path
 
-from flext_core import FlextResult
-
-from flext_cli import (
-    FlextCli,
-    FlextCliTables,
-    c,
-    m,
-    t,
-)
+from flext_cli import FlextCli, FlextCliTables, c, m, r, t
 
 cli = FlextCli()
 tables = FlextCliTables()
@@ -95,9 +87,9 @@ def display_database_results(records: list[dict[str, t.JsonValue]]) -> None:
 
 
 def export_report(
-    data: t.Cli.TableRows,
+    data: list[dict[str, t.JsonValue]],
     format_type: c.Cli.OutputFormatLiteral = "table",
-) -> FlextResult[str]:
+) -> r[str]:
     """Create ASCII tables for logs/reports in your app."""
     # Good for: log files, email reports, markdown docs
     # Create table config with specified format
@@ -106,8 +98,8 @@ def export_report(
 
     # Return FlextResult to avoid None types (railway pattern)
     if result.is_success:
-        return FlextResult[str].ok(result.value)
-    return FlextResult[str].fail(result.error or "Failed to create table")
+        return r[str].ok(result.value)
+    return r[str].fail(result.error or "Failed to create table")
 
 
 # ============================================================================

@@ -59,21 +59,6 @@ class TestsCliConfigModelIntegration:
         debug: bool = Field(default=False)
         optional_path: str | None = Field(default=None)
 
-    class AliasedParams(BaseModel):
-        """Parameter model with field aliases."""
-
-        input_dir: str | None = Field(default=None, alias="input-dir")
-        output_dir: str | None = Field(default=None, alias="output-dir")
-        batch_size: int | None = Field(default=None, alias="batch-size")
-
-        model_config = {"populate_by_name": True}
-
-    class SimpleParams(BaseModel):
-        """Simple parameter model."""
-
-        name: str = Field(default="test", description="Name")
-        count: int = Field(default=1, description="Count")
-
     class AppConfig(BaseSettings):
         """Application configuration."""
 
@@ -81,15 +66,6 @@ class TestsCliConfigModelIntegration:
         input_dir: str = Field(default="/config/input")
         output_dir: str = Field(default="/config/output")
         verbose: bool = Field(default=False)
-
-    class AppParams(BaseModel):
-        """Application parameters."""
-
-        input_dir: str | None = Field(default=None, alias="input-dir")
-        output_dir: str | None = Field(default=None, alias="output-dir")
-        verbose_mode: bool = Field(default=False, alias="verbose-mode")
-
-        model_config = {"populate_by_name": True}
 
     class FullAppConfig(BaseSettings):
         """Full application config."""
@@ -99,16 +75,6 @@ class TestsCliConfigModelIntegration:
         output_dir: str = Field(default="/app/output")
         batch_size: int = Field(default=1000)
         verbose: bool = Field(default=False)
-
-    class FullAppParams(BaseModel):
-        """Full application params."""
-
-        input_dir: str | None = Field(default=None, alias="input-dir")
-        output_dir: str | None = Field(default=None, alias="output-dir")
-        batch_size: int | None = Field(default=None, alias="batch-size")
-        verbose_mode: bool = Field(default=False, alias="verbose-mode")
-
-        model_config = {"populate_by_name": True}
 
     class StringConfig(BaseSettings):
         """String field config."""
@@ -137,27 +103,6 @@ class TestsCliConfigModelIntegration:
         model_config = SettingsConfigDict(env_prefix="APP_")
         optional_path: str | None = Field(default=None)
         required_path: str = Field(default="/default")
-
-    class RequiredFieldsParams(BaseModel):
-        """Parameter model with required fields."""
-
-        input_dir: str = Field(alias="input-dir")
-        output_dir: str | None = Field(default=None, alias="output-dir")
-
-        model_config = {"populate_by_name": True}
-
-    class StrictParams(BaseModel):
-        """Strict validation params."""
-
-        model_config = {"strict": True}
-        name: str
-        count: int = Field(default=1)
-
-    class ForbidExtraParams(BaseModel):
-        """Params forbidding extra fields."""
-
-        model_config = {"extra": "forbid"}
-        name: str = Field(default="default")
 
     # =========================================================================
     # FIXTURES

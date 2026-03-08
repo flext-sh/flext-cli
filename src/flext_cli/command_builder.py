@@ -57,7 +57,7 @@ class FlextCliCommandBuilder:
 
     @staticmethod
     def _create_option_info(
-        default: t.JsonValue = None,
+        default: t.JsonValue | None = None,
         param_decls: list[str] | None = None,
         help_text: str = "",
         **kwargs: t.JsonValue,
@@ -173,7 +173,7 @@ class FlextCliCommandBuilder:
     def with_option(
         self,
         name: str,
-        default: t.JsonValue = None,
+        default: t.JsonValue | None = None,
         help_: str = "",
         **kwargs: t.JsonValue,
     ) -> Self:
