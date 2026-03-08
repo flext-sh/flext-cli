@@ -157,8 +157,7 @@ class MyAppPluginManager:
             elif isinstance(result_value, list):
                 seq: Sequence[t.ContainerValue] = result_value
                 normalized = [
-                    x if isinstance(x, (str, int, float, bool)) else str(x)
-                    for x in seq
+                    x if isinstance(x, (str, int, float, bool)) else str(x) for x in seq
                 ]
             elif isinstance(result_value, (str, int, float, bool)):
                 normalized = result_value
@@ -334,7 +333,9 @@ def main() -> None:
     ]
     report_result = manager.execute_plugin("report-generator", data=report_data)
     if report_result.is_success:
-        cli.print(f"   Report length: {len(str(report_result.value))} chars", style="green")
+        cli.print(
+            f"   Report length: {len(str(report_result.value))} chars", style="green"
+        )
 
     # Example 5: Plugin with config
     cli.print("\n5. Configurable Plugin:", style="bold cyan")
@@ -360,7 +361,9 @@ def main() -> None:
     cli.print("\n7. Load from Directory (dynamic discovery):", style="bold cyan")
     plugin_dir = Path.home() / ".myapp" / "plugins"
     loaded_manager = load_plugins_from_directory(plugin_dir)
-    cli.print(f"   Plugins available: {list(loaded_manager.plugins.keys())}", style="white")
+    cli.print(
+        f"   Plugins available: {list(loaded_manager.plugins.keys())}", style="white"
+    )
 
     cli.print("\n" + "=" * 70, style="bold blue")
     cli.print("  ✅ Plugin Examples Complete", style="bold green")

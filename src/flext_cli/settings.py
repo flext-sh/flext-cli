@@ -229,7 +229,7 @@ class FlextCliSettings(FlextSettings):
     # Pydantic 2.11 model validator (runs after all field validators)
     @override
     @model_validator(mode="after")
-    def validate_configuration(self) -> Self:
+    def validate_configuration(self) -> Self:  # pyrefly: ignore[missing-override-decorator] @override on line above; checker does not see it with model_validator
         """Validate configuration using functional composition and railway pattern."""
         validation_result = (
             self

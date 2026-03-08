@@ -151,10 +151,11 @@ class FlextCliCommands(FlextCliServiceBase):
 
         # Type system ensures commands is Mapping after None check
         # Use comprehension for pyrefly (dict() has no matching overload for this Mapping type)
+        commands_arg: Mapping[str, FlextCliCommandEntry] = dict(commands.items())
         group = FlextCliCommandGroup(
             name=name,
             description=description,
-            commands={k: v for k, v in commands.items()},  # noqa: C416
+            commands=commands_arg,  # pyrefly: ignore[bad-argument-type] Pydantic init expects generic Mapping; runtime type FlextCliCommandEntry is correct
         )
         self._groups[name] = group
         return r[FlextCliCommandGroup].ok(group)
@@ -267,9 +268,9 @@ class FlextCliCommands(FlextCliServiceBase):
             name=self._name,
             description=self._description,
             commands={
-                k: {k2: v2 for k2, v2 in v.items()} if isinstance(v, Mapping) else v
+                k: {k2: v2 for k2, v2 in v.items()} if isinstance(v, Mapping) else v  # noqa: C416
                 for k, v in self._commands.items()
-            },  # noqa: C416
+            },
         )
 
     def get_commands(self) -> Mapping[str, FlextCliCommandEntry]:

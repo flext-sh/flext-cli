@@ -283,7 +283,10 @@ def main() -> None:
     username = os.getenv("USER", "demo_user")
     password = secrets.token_urlsafe(16)
     login_ok = login_to_service(username, password)
-    cli.print(f"   Login result: {'OK' if login_ok else 'Failed'}", style="green" if login_ok else "red")
+    cli.print(
+        f"   Login result: {'OK' if login_ok else 'Failed'}",
+        style="green" if login_ok else "red",
+    )
 
     # Example 2: Get saved token
     cli.print("\n2. Token Retrieval (for API calls):", style="bold cyan")
@@ -311,7 +314,10 @@ def main() -> None:
     # Example 6: Complete workflow
     cli.print("\n6. Complete Auth Workflow:", style="bold cyan")
     workflow_ok = complete_auth_workflow()
-    cli.print(f"   Workflow result: {'OK' if workflow_ok else 'Failed'}", style="green" if workflow_ok else "red")
+    cli.print(
+        f"   Workflow result: {'OK' if workflow_ok else 'Failed'}",
+        style="green" if workflow_ok else "red",
+    )
 
     # Example 7: Logout
     cli.print("\n7. Logout (clear token):", style="bold cyan")

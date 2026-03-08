@@ -84,8 +84,12 @@ def demonstrate_caching() -> None:
     result2 = expensive_calculation(1000000)
     time2 = time.time() - start
 
-    cli.print(f"   First call: {time1 * 1000:.2f}ms (result: {result1})", style="yellow")
-    cli.print(f"   Cached call: {time2 * 1000:.2f}ms (result: {result2})", style="green")
+    cli.print(
+        f"   First call: {time1 * 1000:.2f}ms (result: {result1})", style="yellow"
+    )
+    cli.print(
+        f"   Cached call: {time2 * 1000:.2f}ms (result: {result2})", style="green"
+    )
     cli.print(f"   Speedup: {time1 / time2:.0f}x faster", style="bold green")
 
 

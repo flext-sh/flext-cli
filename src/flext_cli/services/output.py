@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import csv
 import json
-from collections.abc import Callable, Iterable, Mapping, Sequence
+from collections.abc import Callable, Iterable, Sequence
 from io import StringIO
 from typing import ClassVar, TypeGuard
 
@@ -309,7 +309,7 @@ class FlextCliOutput:
 
         # Validate headers type
         if headers is not None and not FlextRuntime.is_list_like(headers):
-            return r[tuple[list[t.ConfigurationMapping], str | list[str]]].fail(
+            return r[tuple[list[dict[str, t.ContainerValue]], str | list[str]]].fail(
                 c.Cli.ErrorMessages.TABLE_HEADERS_MUST_BE_LIST,
             )
 
@@ -326,7 +326,9 @@ class FlextCliOutput:
         if headers is not None and table_headers != [c.Cli.TableFormats.KEYS]:
             validation_result = FlextCliOutput._validate_headers(table_headers, data)
             if validation_result.is_failure:
-                return r[tuple[list[dict[str, t.ContainerValue]], str | list[str]]].fail(
+                return r[
+                    tuple[list[dict[str, t.ContainerValue]], str | list[str]]
+                ].fail(
                     validation_result.error or "Header validation failed",
                 )
 
@@ -455,10 +457,9 @@ class FlextCliOutput:
 
         """
         if config is not None:
+            config_for_table: m.Cli.TableConfig
             if hasattr(config, "model_dump"):
-                config_for_table: m.Cli.TableConfig = m.Cli.TableConfig.model_validate(
-                    config.model_dump()
-                )
+                config_for_table = m.Cli.TableConfig.model_validate(config.model_dump())
             elif isinstance(config, m.Cli.TableConfig):
                 config_for_table = config
             else:
@@ -1524,7 +1525,9 @@ class FlextCliOutput:
                 "headers": table_headers,
                 "table_format": c.Cli.TableFormats.GRID,
             })
-            table_result = FlextCliTables.create_table(data=table_data, config=config_instance)
+            table_result = FlextCliTables.create_table(
+                data=table_data, config=config_instance
+            )
 
             if table_result.is_failure:
                 return r[str].fail(
@@ -1663,9 +1666,7 @@ class FlextCliOutput:
             json_dict_raw if isinstance(json_dict_raw, dict) else {}
         )
         # Use dict comprehension to keep only JSON-serializable values
-        filtered_json_dict = {
-            k: v for k, v in json_dict.items() if self.is_json(v)
-        }
+        filtered_json_dict = {k: v for k, v in json_dict.items() if self.is_json(v)}
         cli_json_dict_result = u.Cli.process_mapping(
             filtered_json_dict,
             processor=lambda _k, v: v,

@@ -273,11 +273,12 @@ class FlextCliCore(FlextCliServiceBase):
                 }
             else:
                 profiles_section_raw: dict[str, t.JsonValue] = {}
-            # Python 3.13: profiles_section_raw is dict from above branches
-            profiles_section: dict[str, t.JsonValue] = profiles_section_raw
-            profiles_section[name] = profile_config
+            profiles_section_raw_typed: dict[str, t.JsonValue] = (
+                dict(profiles_section_raw) if isinstance(profiles_section_raw, dict) else {}
+            )
+            profiles_section_raw_typed[name] = profile_config
             # Update config with modified profiles section
-            config[c.Cli.DictKeys.PROFILES] = profiles_section
+            config[c.Cli.DictKeys.PROFILES] = profiles_section_raw_typed
             # Update internal _cli_config
             # Business Rule: Frozen model attributes MUST be set using setattr()
             object.__setattr__(self, "_cli_config", config)

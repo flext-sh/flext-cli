@@ -374,9 +374,7 @@ def advanced_output_example() -> None:
     )
 
     # Demonstrate discriminated union validation
-    valid_formats: tuple[str, ...] = tuple(
-        sorted(c.Cli.ValidationLists.OUTPUT_FORMATS)
-    )
+    valid_formats: tuple[str, ...] = tuple(sorted(c.Cli.ValidationLists.OUTPUT_FORMATS))
     cli.print(f"Supported formats: {', '.join(valid_formats)}", style="green")
 
     # Create table using ergonomic API (one call, no branching)
