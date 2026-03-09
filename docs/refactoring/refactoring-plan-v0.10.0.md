@@ -270,6 +270,7 @@ ______________________________________________________________________
 # ✅ FlextCliCore - Stateful service
 class FlextCliCore(FlextService[CliDataDict]):
     """Manages commands, sessions, configuration lifecycle."""
+
     def __init__(self):
         super().__init__()
         self._commands: dict[str, Command] = {}  # STATE
@@ -330,8 +331,10 @@ class FlextCliFileTools:
 # ✅ FlextCliContext - Value Object
 from flext_core import FlextModels
 
+
 class FlextCliContext(m.Value):
     """Immutable execution context."""
+
     command: str | None = None
     arguments: list[str] = Field(default_factory=list)
     environment_variables: dict[str, object] = Field(default_factory=dict)
@@ -351,18 +354,18 @@ class FlextCliContext(m.Value):
 
 ```python
 cli = FlextCli()
-cli.print("Hello")                    # Wrapper method
-cli.create_table(data)                 # Wrapper method
-cli.read_json_file("config.json")      # Wrapper method
+cli.print("Hello")  # Wrapper method
+cli.create_table(data)  # Wrapper method
+cli.read_json_file("config.json")  # Wrapper method
 ```
 
 **New (v0.10.0)**: Direct access
 
 ```python
 cli = FlextCli()
-cli.formatters.print("Hello")                  # Direct
+cli.formatters.print("Hello")  # Direct
 cli.output.format_data(data, format_type="table")  # Direct
-cli.file_tools.read_json_file("config.json")   # Direct
+cli.file_tools.read_json_file("config.json")  # Direct
 ```
 
 **Benefits**:
@@ -500,6 +503,7 @@ class FlextCliFileTools:
 ```python
 class FlextCliContext(FlextService[CliDataDict]):
     """Context as service with methods."""
+
     def activate(self) -> FlextResult[bool]: ...
     def deactivate(self) -> FlextResult[bool]: ...
 ```
@@ -509,8 +513,10 @@ class FlextCliContext(FlextService[CliDataDict]):
 ```python
 from flext_core import FlextModels
 
+
 class FlextCliContext(m.Value):
     """Immutable context value object."""
+
     command: str | None = None
     arguments: list[str] = Field(default_factory=list)
     environment_variables: dict[str, object] = Field(default_factory=dict)
@@ -536,41 +542,54 @@ class FlextCliContext(m.Value):
 def print(self, message, style) -> FlextResult[bool]:
     return self.formatters.print(message, style)
 
+
 def create_table(self, data, headers, title) -> FlextResult[str]:
     return self.output.format_data(...)
+
 
 def print_table(self, table) -> FlextResult[bool]:
     return self.formatters.print(table)
 
+
 def create_tree(self, label) -> FlextResult[Any]:
     return self.formatters.create_tree(label)
+
 
 def format_output(self, data, format_type) -> FlextResult[str]:
     return self.output.format_data(data, format_type)
 
+
 def read_json_file(self, path) -> FlextResult[dict]:
     return self.file_tools.read_json_file(path)
+
 
 def write_json_file(self, path, data) -> FlextResult[bool]:
     return self.file_tools.write_json_file(path, data)
 
+
 def read_yaml_file(self, path) -> FlextResult[dict]:
     return self.file_tools.read_yaml_file(path)
+
 
 def write_yaml_file(self, path, data) -> FlextResult[bool]:
     return self.file_tools.write_yaml_file(path, data)
 
+
 def read_csv_file(self, path) -> FlextResult[list]:
     return self.file_tools.read_csv_file(path)
+
 
 def write_csv_file(self, path, data) -> FlextResult[bool]:
     return self.file_tools.write_csv_file(path, data)
 
+
 def prompt_user(self, message) -> FlextResult[str]:
     return self.prompts.prompt(message)
 
+
 def confirm(self, message) -> FlextResult[bool]:
     return self.prompts.confirm(message)
+
 
 def select(self, message, choices) -> FlextResult[str]:
     return self.prompts.select(message, choices)
@@ -583,21 +602,27 @@ def select(self, message, choices) -> FlextResult[str]:
 def __init__(self) -> None:
     """Initialize CLI with all services."""
 
+
 @classmethod
 def get_instance(cls) -> FlextCli:
     """Singleton pattern."""
 
+
 def authenticate(self, credentials) -> FlextResult[str]:
     """Orchestrates authentication (business logic)."""
+
 
 def command(self, name, **kwargs):
     """CLI command decorator."""
 
+
 def group(self, name, **kwargs):
     """CLI group decorator."""
 
+
 def execute_cli(self) -> FlextResult[bool]:
     """Execute CLI application."""
+
 
 def execute(self) -> FlextResult[dict]:
     """Execute command."""

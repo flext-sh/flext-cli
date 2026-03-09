@@ -266,6 +266,7 @@ tests/
 import pytest
 from flext_cli import FlextCliFileTools
 
+
 def test_read_json_file():
     """Test static method on simple class."""
     # Simple classes use static methods
@@ -274,6 +275,7 @@ def test_read_json_file():
     assert result.is_success
     data = result.unwrap()
     assert isinstance(data, dict)
+
 
 # No initialization needed - static methods
 ```
@@ -393,6 +395,7 @@ Follow these patterns when extending flext-cli:
 # ✅ Correct - Use flext-cli patterns
 from flext_cli import FlextCli
 
+
 class ProjectCliService:
     """Project CLI service following FLEXT patterns."""
 
@@ -406,6 +409,7 @@ class ProjectCliService:
 
         # Business logic
         return {"processed": True, "data": data}
+
 
 # ❌ Avoid - Direct framework imports
 # import click  # Use flext-cli abstractions instead
@@ -432,6 +436,7 @@ tests/
 import pytest
 from flext_cli import FlextCli
 
+
 def test_cli_api_operation():
     """Test CLI API operations."""
     api = FlextCli()
@@ -440,6 +445,7 @@ def test_cli_api_operation():
 
     assert result is not None
     assert "test" in str(result)
+
 
 def test_error_handling():
     """Test proper error handling."""
@@ -547,7 +553,7 @@ cli = FlextCliCommands()
 cli.register_command_group(
     name="data",
     commands={"export": data_handler.handle_export},
-    description="Data management"
+    description="Data management",
 )
 ```
 
@@ -565,6 +571,7 @@ def test_data_export_command():
 
 ```python
 from flext_cli import FlextCliOutput
+
 
 class ProjectFormatters(FlextCliOutput):
     """Project-specific output formatters."""

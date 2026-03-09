@@ -185,6 +185,7 @@ from flext_cli import FlextCliAuthService
 
 # ✅ FIX: Use FlextCli.authenticate()
 from flext_cli import FlextCli
+
 cli = FlextCli()
 result = cli.authenticate({"token": "abc123"})
 ```
@@ -201,7 +202,7 @@ from flext_cli import FlextCliTesting, FlextCliTestRunner, FlextCliMockScenarios
 from tests.fixtures.testing_utilities import (
     FlextCliTesting,
     FlextCliTestRunner,
-    FlextCliMockScenarios
+    FlextCliMockScenarios,
 )
 ```
 

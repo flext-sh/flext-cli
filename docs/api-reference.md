@@ -25,17 +25,17 @@ Referência alinhada ao código-fonte do **flext-cli** 0.10.0. Última revisão:
 
 ```python
 from flext_cli import (
-    FlextCli,                  # Facade principal
-    FlextCliCore,              # Serviço de registro/execução de comandos
-    FlextCliCmd,               # Operações auxiliares de configuração
-    FlextCliOutput,            # Formatação e exibição
-    FlextCliPrompts,           # Interação com usuário
-    FlextCliTables,            # Tabelas ASCII via Tabulate
-    FlextCliFileTools,         # I/O de arquivos
-    FlextCliFormatters,        # Saída Rich
-    FlextCliSettings,            # Configuração validada (singleton)
-    FlextCliModels,            # Modelos Pydantic
-    FlextCliConstants,         # Constantes compartilhadas
+    FlextCli,  # Facade principal
+    FlextCliCore,  # Serviço de registro/execução de comandos
+    FlextCliCmd,  # Operações auxiliares de configuração
+    FlextCliOutput,  # Formatação e exibição
+    FlextCliPrompts,  # Interação com usuário
+    FlextCliTables,  # Tabelas ASCII via Tabulate
+    FlextCliFileTools,  # I/O de arquivos
+    FlextCliFormatters,  # Saída Rich
+    FlextCliSettings,  # Configuração validada (singleton)
+    FlextCliModels,  # Modelos Pydantic
+    FlextCliConstants,  # Constantes compartilhadas
 )
 from flext_core import FlextResult
 ```

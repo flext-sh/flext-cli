@@ -166,17 +166,17 @@ Access all modules through the `FlextCli` facade:
 cli = FlextCli()
 
 # Domain services (accessed via properties)
-cli.core           # FlextCliCore - Core functionality
-cli.output         # FlextCliOutput - Styled messages
-cli.formatters     # FlextCliFormatters - Data formatting
-cli.tables         # FlextCliTables - Table display
-cli.prompts        # FlextCliPrompts - User input
-cli.file_tools     # FlextCliFileTools - File operations
-cli.auth           # FlextCliAuth - Authentication
-cli.plugins        # FlextCliPlugins - Plugin system
-cli.shell          # FlextCliShell - Interactive shell
-cli.performance    # FlextCliPerformance - Optimization
-cli.processors     # FlextCliProcessors - Data processing
+cli.core  # FlextCliCore - Core functionality
+cli.output  # FlextCliOutput - Styled messages
+cli.formatters  # FlextCliFormatters - Data formatting
+cli.tables  # FlextCliTables - Table display
+cli.prompts  # FlextCliPrompts - User input
+cli.file_tools  # FlextCliFileTools - File operations
+cli.auth  # FlextCliAuth - Authentication
+cli.plugins  # FlextCliPlugins - Plugin system
+cli.shell  # FlextCliShell - Interactive shell
+cli.performance  # FlextCliPerformance - Optimization
+cli.processors  # FlextCliProcessors - Data processing
 ```
 
 Or import modules directly:
@@ -247,6 +247,7 @@ from flext_core import FlextService
 from flext_core import t
 from flext_core import u
 
+
 def process_data(data: dict) -> FlextResult[dict]:
     cli = FlextCli()
 
@@ -308,7 +309,7 @@ Access domain services through properties:
 
 ```python
 cli = FlextCli()
-cli.output.success("Message")    # Not: cli.get_output().success()
+cli.output.success("Message")  # Not: cli.get_output().success()
 cli.tables.display_rich_table()  # Not: cli.get_tables().display()
 ```
 
@@ -350,6 +351,7 @@ from flext_core import FlextService
 from flext_core import t
 from flext_core import u
 
+
 def typed_operation(data: dict) -> FlextResult[dict]:
     cli = FlextCli()
     return cli.file_tools.write_json("output.json", data)
@@ -362,6 +364,7 @@ def typed_operation(data: dict) -> FlextResult[dict]:
 ```python
 from flext_cli import FlextCli
 
+
 def main():
     cli = FlextCli()
 
@@ -373,6 +376,7 @@ def main():
 
     # Show results
     cli.output.success("Project created!")
+
 
 if __name__ == "__main__":
     main()
@@ -403,6 +407,7 @@ from flext_core import FlextService
 from flext_core import t
 from flext_core import u
 
+
 def process_pipeline(input_file: str) -> FlextResult[dict]:
     cli = FlextCli()
 
@@ -429,13 +434,13 @@ def process_pipeline(input_file: str) -> FlextResult[dict]:
 ```python
 from flext_cli import FlextCli
 
+
 def interactive_tool():
     cli = FlextCli()
 
     while True:
         action = cli.prompts.select(
-            "Choose action:",
-            choices=["Process", "View", "Exit"]
+            "Choose action:", choices=["Process", "View", "Exit"]
         )
 
         if action == "Exit":

@@ -119,9 +119,7 @@ cli.print_table(table)
 
 # ✅ v0.10.0 (NEW)
 result = cli.output.format_data(
-    data=users,
-    format_type="table",
-    headers=["Name", "Age"]
+    data=users, format_type="table", headers=["Name", "Age"]
 )
 cli.formatters.print(result.unwrap())
 ```
@@ -197,10 +195,7 @@ result = cli.file_tools.read_json_file("config.json")
 from flext_cli import FlextCliTesting, FlextCliTestRunner
 
 # ✅ v0.10.0 (NEW)
-from tests.fixtures.testing_utilities import (
-    FlextCliTesting,
-    FlextCliTestRunner
-)
+from tests.fixtures.testing_utilities import FlextCliTesting, FlextCliTestRunner
 ```
 
 ### 5. Removed Modules
@@ -291,6 +286,7 @@ grep -r "context\.deactivate()" .
 ```python
 # ✅ Use simple context data if needed
 from flext_cli import m
+
 ctx = m.Cli.CliContext(cwd="/app", env={}, args=["--verbose"])
 # Or pass command/args directly to your logic
 ```
@@ -319,6 +315,7 @@ Common test failures:
 # ❌ OLD (if you had type hints)
 def process_cli(cli: FlextCli) -> None:
     cli.print("Processing...")
+
 
 # ✅ NEW (type hints still work)
 def process_cli(cli: FlextCli) -> None:
@@ -425,6 +422,7 @@ ______________________________________________________________________
 # ❌ v0.9.0
 from flext_cli import FlextCli
 
+
 def main():
     cli = FlextCli()
     cli.print("Welcome!", style="success")
@@ -437,8 +435,10 @@ def main():
         # ... process
         cli.print("Done!", style="success")
 
+
 # ✅ v0.10.0
 from flext_cli import FlextCli
+
 
 def main():
     cli = FlextCli()
@@ -459,6 +459,7 @@ def main():
 # ❌ v0.9.0
 from flext_cli import FlextCli
 
+
 def process_data():
     cli = FlextCli()
 
@@ -477,8 +478,10 @@ def process_data():
     cli.write_json_file("results.json", results)
     cli.print("Results saved!", style="success")
 
+
 # ✅ v0.10.0
 from flext_cli import FlextCli
+
 
 def process_data():
     cli = FlextCli()
@@ -492,9 +495,7 @@ def process_data():
 
     # Output
     table_result = cli.output.format_data(
-        results,
-        format_type="table",
-        headers=["ID", "Status"]
+        results, format_type="table", headers=["ID", "Status"]
     )
     cli.formatters.print(table_result.unwrap())
 

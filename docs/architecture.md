@@ -75,7 +75,9 @@ cli.core.register_command(command)
 cli.core.execute_command(command.name)
 
 # Wrappers permanecem para compatibilidade
-table = cli.create_table([{"name": "Alice", "age": 30}], headers=["name", "age"]).unwrap()
+table = cli.create_table(
+    [{"name": "Alice", "age": 30}], headers=["name", "age"]
+).unwrap()
 cli.print(table, style="green")
 ```
 

@@ -132,7 +132,7 @@ from flext_cli import FlextCliAuthService
 **Line 195**: Remove entire line from `__all__` list
 
 ```python
-    "FlextCliAuthService",
+("FlextCliAuthService",)
 ```
 
 ### Modified **init**.py Structure
@@ -227,6 +227,7 @@ find tests -name "*.py" -type f -exec grep -l "from flext_cli import.*Test\|from
 
 ```python
 from flext_cli import FlextCliTesting, FlextCliTestRunner, FlextCliMockScenarios
+
 # or
 from flext_cli import FlextCliTesting
 ```
@@ -273,10 +274,10 @@ from flext_cli import FlextCliMockScenarios, FlextCliTesting, FlextCliTestRunner
 **Remove from `__all__` (lines 208, 214, 215)**:
 
 ```python
-    "FlextCliMockScenarios",
-    ...
-    "FlextCliTestRunner",
-    "FlextCliTesting",
+("FlextCliMockScenarios",)
+...
+("FlextCliTestRunner",)
+("FlextCliTesting",)
 ```
 
 ### Modified **init**.py After This Step

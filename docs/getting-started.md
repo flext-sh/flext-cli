@@ -171,10 +171,7 @@ users = [
 ]
 
 # Format as table (direct access to output)
-table_result = cli.output.format_data(
-    data={"users": users},
-    format_type="table"
-)
+table_result = cli.output.format_data(data={"users": users}, format_type="table")
 
 # Display
 if table_result.is_success:
@@ -215,21 +212,25 @@ from flext_core import FlextResult
 
 cli = FlextCli()
 
+
 def validate_config(config: dict) -> FlextResult[dict]:
     """Validate configuration."""
     if "required_field" not in config:
         return FlextResult[dict].fail("Missing required_field")
     return FlextResult[dict].ok(config)
 
+
 def apply_defaults(config: dict) -> dict:
     """Apply default values."""
     return {**{"timeout": 30}, **config}
 
+
 # Chain operations
 result = (
-    cli.file_tools.read_json_file("config.json")
+    cli.file_tools
+    .read_json_file("config.json")
     .flat_map(validate_config)  # Validate
-    .map(apply_defaults)         # Transform
+    .map(apply_defaults)  # Transform
     .map(lambda cfg: cli.formatters.print(f"Final config: {cfg}"))
 )
 
@@ -264,6 +265,7 @@ make format                 # Auto-format with Ruff
 from flext_cli import FlextCli
 from flext_core import FlextResult
 
+
 def my_cli_application() -> FlextResult[bool]:
     """Application using v0.10.0 patterns."""
     cli = FlextCli()
@@ -291,6 +293,7 @@ def my_cli_application() -> FlextResult[bool]:
 ```python
 import pytest
 from flext_cli import FlextCli
+
 
 def test_my_cli_operation():
     """Test using v0.10.0 patterns."""
@@ -392,15 +395,11 @@ assert health.is_success
 
 # Authentication functionality
 auth = FlextCliAuth()
-methods = [m for m in dir(auth) if not m.startswith('_')]
+methods = [m for m in dir(auth) if not m.startswith("_")]
 print(f"Available auth methods: {len(methods)}")  # 35+ methods
 
 # Configuration management
-config = FlextCliSettings(
-    profile="development",
-    debug=True,
-    output_format="table"
-)
+config = FlextCliSettings(profile="development", debug=True, output_format="table")
 ```
 
 ______________________________________________________________________
