@@ -18,7 +18,6 @@ import math
 import threading
 import time
 from collections.abc import Mapping
-from dataclasses import dataclass
 from enum import StrEnum
 from typing import (
     Generic,
@@ -32,6 +31,7 @@ from typing import (
 
 import pytest
 from flext_tests import tm
+from pydantic import BaseModel, ConfigDict, Field
 
 from flext_cli import r, t
 from tests.helpers import c
@@ -54,13 +54,17 @@ class TypingTestType(StrEnum):
     TYPE_EDGES = "type_edges"
 
 
-@dataclass(frozen=True)
-class TypingTestCase:
+class TypingTestCase(BaseModel):
     """Test case data for typing tests."""
 
-    test_type: TypingTestType
-    description: str
-    expected_success: bool = True
+    model_config = ConfigDict(frozen=True)
+
+    test_type: TypingTestType = Field(description="Typing test category")
+    description: str = Field(description="Typing test case description")
+    expected_success: bool = Field(
+        default=True,
+        description="Whether test case is expected to succeed",
+    )
 
 
 class TestsCliTypings:
@@ -77,17 +81,42 @@ class TestsCliTypings:
         def create_comprehensive_test_cases() -> list[TypingTestCase]:
             """Create comprehensive test cases for all typing scenarios."""
             return [
-                TypingTestCase(TypingTestType.INITIALIZATION, "Types initialization"),
                 TypingTestCase(
-                    TypingTestType.BASIC_FUNCTIONALITY, "Basic type functionality"
+                    test_type=TypingTestType.INITIALIZATION,
+                    description="Types initialization",
                 ),
-                TypingTestCase(TypingTestType.TYPE_DEFINITIONS, "Type definitions"),
-                TypingTestCase(TypingTestType.TYPE_VALIDATION, "Type validation"),
-                TypingTestCase(TypingTestType.TYPE_CONVERSION, "Type conversion"),
-                TypingTestCase(TypingTestType.TYPE_UTILITIES, "Type utilities"),
-                TypingTestCase(TypingTestType.TYPE_SCENARIOS, "Type scenarios"),
-                TypingTestCase(TypingTestType.TYPE_PERFORMANCE, "Type performance"),
-                TypingTestCase(TypingTestType.TYPE_EDGES, "Type edge cases"),
+                TypingTestCase(
+                    test_type=TypingTestType.BASIC_FUNCTIONALITY,
+                    description="Basic type functionality",
+                ),
+                TypingTestCase(
+                    test_type=TypingTestType.TYPE_DEFINITIONS,
+                    description="Type definitions",
+                ),
+                TypingTestCase(
+                    test_type=TypingTestType.TYPE_VALIDATION,
+                    description="Type validation",
+                ),
+                TypingTestCase(
+                    test_type=TypingTestType.TYPE_CONVERSION,
+                    description="Type conversion",
+                ),
+                TypingTestCase(
+                    test_type=TypingTestType.TYPE_UTILITIES,
+                    description="Type utilities",
+                ),
+                TypingTestCase(
+                    test_type=TypingTestType.TYPE_SCENARIOS,
+                    description="Type scenarios",
+                ),
+                TypingTestCase(
+                    test_type=TypingTestType.TYPE_PERFORMANCE,
+                    description="Type performance",
+                ),
+                TypingTestCase(
+                    test_type=TypingTestType.TYPE_EDGES,
+                    description="Type edge cases",
+                ),
             ]
 
         @staticmethod
@@ -141,11 +170,11 @@ class TestsCliTypings:
             try:
                 match type_hint:
                     case "CliDataDict":
-                        return r[bool].ok(isinstance(data, dict))
+                        return r[bool].ok(True)
                     case "CliFormatData":
-                        return r[bool].ok(isinstance(data, dict) and "data" in data)
+                        return r[bool].ok("data" in data)
                     case "CliConfigData":
-                        return r[bool].ok(isinstance(data, dict) and "debug" in data)
+                        return r[bool].ok("debug" in data)
                     case _:
                         return r[bool].fail(f"Unknown type hint: {type_hint}")
             except Exception as e:
@@ -235,8 +264,6 @@ class TestsCliTypings:
             """Process value and return string."""
             if isinstance(value, str):
                 return value.upper()
-            if isinstance(value, int):
-                return str(value)
             return str(value)
 
         def process_optional(value: str | None) -> str:
@@ -298,8 +325,6 @@ class TestsCliTypings:
             """Process union value and return string."""
             if isinstance(value, str):
                 return value.upper()
-            if isinstance(value, int):
-                return str(value)
             return str(value)
 
         def process_optional(value: str | None) -> str:
@@ -410,7 +435,7 @@ class TestsCliTypings:
         processing_result = (
             FlextCliTestHelpers.TypingHelpers.create_processing_test_data()
         )
-        tm.ok(processing_result)
+        assert processing_result.is_success
         if processing_result.is_success and processing_result.value:
             string_list, number_list, mixed_dict = processing_result.value
             assert len(string_list) == 3
@@ -469,7 +494,7 @@ class TestsCliTypings:
 
         test_data = ["str1", "str2"]
         results: list[str] = []
-        threads = []
+        threads: list[threading.Thread] = []
         for _ in range(5):
             thread = threading.Thread(
                 target=thread_safe_operation, args=(test_data, results)
@@ -484,9 +509,9 @@ class TestsCliTypings:
     def test_full_type_workflow_integration(self) -> None:
         """Test complete type workflow integration."""
         typed_data_result = FlextCliTestHelpers.TypingHelpers.create_typed_dict_data()
-        tm.ok(typed_data_result)
+        assert typed_data_result.is_success
         api_data_result = FlextCliTestHelpers.TypingHelpers.create_api_response_data()
-        tm.ok(api_data_result)
+        assert api_data_result.is_success
         complex_type = list[dict[str, str | int]]
         optional_type = list[str] | None
         union_type = str | int | bool

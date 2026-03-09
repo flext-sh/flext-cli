@@ -15,12 +15,12 @@ from __future__ import annotations
 
 import re
 import sys
-from dataclasses import dataclass
 from enum import StrEnum
 from typing import Final, TypeVar
 
 import pytest
 from flext_tests import tm
+from pydantic import BaseModel, ConfigDict, Field
 
 from flext_cli import __version__, __version_info__
 
@@ -48,14 +48,21 @@ class TestsCliVersion:
     class TestScenario:
         """Version test scenario data class."""
 
-        @dataclass(frozen=True)
-        class Data:
+        class Data(BaseModel):
             """Version test scenario data."""
 
-            name: str
-            version_string: str | None = None
-            version_info: tuple[int | str, ...] | None = None
-            should_pass: bool = True
+            model_config = ConfigDict(frozen=True)
+
+            name: str = Field(description="Scenario name")
+            version_string: str | None = Field(
+                default=None, description="Version string under test"
+            )
+            version_info: tuple[int | str, ...] | None = Field(
+                default=None, description="Version info tuple under test"
+            )
+            should_pass: bool = Field(
+                default=True, description="Whether scenario should pass validation"
+            )
 
             @property
             def validation_type(self) -> TestsCliVersion.ValidationType:
@@ -75,26 +82,26 @@ class TestsCliVersion:
             data_class = cls.Data
             return [
                 data_class(
-                    "valid_semver",
+                    name="valid_semver",
                     version_string=Examples.VALID_SEMVER,
                     should_pass=True,
                 ),
                 data_class(
-                    "valid_complex",
+                    name="valid_complex",
                     version_string=Examples.VALID_SEMVER_COMPLEX,
                     should_pass=True,
                 ),
                 data_class(
-                    "invalid_no_dots",
+                    name="invalid_no_dots",
                     version_string=Examples.INVALID_NO_DOTS,
                     should_pass=False,
                 ),
                 data_class(
-                    "invalid_non_numeric",
+                    name="invalid_non_numeric",
                     version_string=Examples.INVALID_NON_NUMERIC,
                     should_pass=False,
                 ),
-                data_class("invalid_empty", version_string="", should_pass=False),
+                data_class(name="invalid_empty", version_string="", should_pass=False),
             ]
 
         @classmethod
@@ -103,20 +110,22 @@ class TestsCliVersion:
             data_class = cls.Data
             return [
                 data_class(
-                    "valid_tuple", version_info=InfoTuples.VALID_TUPLE, should_pass=True
+                    name="valid_tuple",
+                    version_info=InfoTuples.VALID_TUPLE,
+                    should_pass=True,
                 ),
                 data_class(
-                    "valid_complex_tuple",
+                    name="valid_complex_tuple",
                     version_info=InfoTuples.VALID_COMPLEX_TUPLE,
                     should_pass=True,
                 ),
                 data_class(
-                    "short_tuple",
+                    name="short_tuple",
                     version_info=InfoTuples.SHORT_TUPLE,
                     should_pass=False,
                 ),
                 data_class(
-                    "empty_tuple",
+                    name="empty_tuple",
                     version_info=InfoTuples.EMPTY_TUPLE,
                     should_pass=False,
                 ),
@@ -128,19 +137,19 @@ class TestsCliVersion:
             data_class = cls.Data
             return [
                 data_class(
-                    "valid_match",
+                    name="valid_match",
                     version_string=Examples.VALID_SEMVER,
                     version_info=InfoTuples.VALID_TUPLE,
                     should_pass=True,
                 ),
                 data_class(
-                    "valid_complex_match",
+                    name="valid_complex_match",
                     version_string=Examples.VALID_SEMVER_COMPLEX,
                     version_info=InfoTuples.VALID_COMPLEX_TUPLE,
                     should_pass=True,
                 ),
                 data_class(
-                    "invalid_mismatch",
+                    name="invalid_mismatch",
                     version_string=Examples.INVALID_NO_DOTS,
                     version_info=InfoTuples.SHORT_TUPLE,
                     should_pass=False,

@@ -19,13 +19,13 @@ import logging
 import os
 import threading
 import typing
-from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
 from typing import Final, Literal
 
 import pytest
 import yaml
+from pydantic import BaseModel, ConfigDict, Field
 from pydantic_settings import BaseSettings
 
 from flext_cli import FlextCli, FlextCliSettings, m, t
@@ -42,14 +42,21 @@ class ConfigTestType(StrEnum):
     EDGE_CASES = "edge_cases"
 
 
-@dataclass(frozen=True)
-class ConfigTestScenario:
+class ConfigTestScenario(BaseModel):
     """Test scenario with data."""
 
-    name: str
-    test_type: ConfigTestType
-    data: dict[str, t.JsonValue] | None = None
-    should_pass: bool = True
+    model_config = ConfigDict(frozen=True)
+
+    name: str = Field(description="Scenario name")
+    test_type: ConfigTestType = Field(description="Scenario test type")
+    data: dict[str, t.JsonValue] | None = Field(
+        default=None,
+        description="Scenario input data",
+    )
+    should_pass: bool = Field(
+        default=True,
+        description="Whether scenario is expected to pass",
+    )
 
 
 class ConfigTestFactory:
@@ -88,13 +95,20 @@ class ConfigTestFactory:
         """Generate all test scenarios using mapping."""
         return [
             ConfigTestScenario(
-                "json_config", ConfigTestType.FILE_OPERATIONS, cls.JSON_CONFIG_DATA
+                name="json_config",
+                test_type=ConfigTestType.FILE_OPERATIONS,
+                data=cls.JSON_CONFIG_DATA,
             ),
             ConfigTestScenario(
-                "yaml_config", ConfigTestType.FILE_OPERATIONS, cls.YAML_CONFIG_DATA
+                name="yaml_config",
+                test_type=ConfigTestType.FILE_OPERATIONS,
+                data=cls.YAML_CONFIG_DATA,
             ),
             ConfigTestScenario(
-                "invalid_json", ConfigTestType.FILE_OPERATIONS, None, False
+                name="invalid_json",
+                test_type=ConfigTestType.FILE_OPERATIONS,
+                data=None,
+                should_pass=False,
             ),
         ]
 
@@ -143,7 +157,7 @@ class TestsCliConfigService:
     def test_reset_instance(self) -> None:
         """Test reset_instance resets global state."""
         FlextCliSettings()
-        FlextCliSettings._reset_instance()
+        FlextCliSettings.reset_for_testing()
         new_config = FlextCliSettings()
         assert new_config is not None
 
@@ -172,11 +186,10 @@ class TestsCliLoggingConfig:
         )
         if level not in valid_levels:
             return
+        log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "DEBUG"
         match level:
             case "DEBUG":
-                log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = (
-                    "DEBUG"
-                )
+                log_level = "DEBUG"
             case "INFO":
                 log_level = "INFO"
             case "WARNING":
@@ -185,9 +198,6 @@ class TestsCliLoggingConfig:
                 log_level = "ERROR"
             case "CRITICAL":
                 log_level = "CRITICAL"
-            case _:
-                pytest.fail(f"Unexpected log level: {level}")
-                log_level = "DEBUG"
         config = m.Cli.LoggingConfig.model_construct(
             log_level=log_level, log_format="json"
         )
@@ -253,14 +263,14 @@ class TestsCliConfigIntegration:
         for key in list(os.environ.keys()):
             if key.startswith("FLEXT_"):
                 os.environ.pop(key, None)
-        FlextCliSettings._reset_instance()
+        FlextCliSettings.reset_for_testing()
         yield None
         for key in list(os.environ.keys()):
             if key.startswith("FLEXT_") and key not in saved_env:
                 os.environ.pop(key, None)
         for key, value in saved_env.items():
             os.environ[key] = value
-        FlextCliSettings._reset_instance()
+        FlextCliSettings.reset_for_testing()
 
     def test_flext_cli_integration(self) -> None:
         """Test FlextCli uses config."""
@@ -280,7 +290,7 @@ class TestsCliConfigIntegration:
         original_profile = os.environ.get("FLEXT_CLI_PROFILE")
         try:
             os.environ["FLEXT_CLI_PROFILE"] = "env_profile"
-            FlextCliSettings._reset_instance()
+            FlextCliSettings.reset_for_testing()
             config = FlextCliSettings()
             if config.profile != "env_profile":
                 assert os.environ.get("FLEXT_CLI_PROFILE") == "env_profile", (
@@ -295,7 +305,7 @@ class TestsCliConfigIntegration:
             os.environ.pop("FLEXT_CLI_PROFILE", None)
             if original_profile is not None:
                 os.environ["FLEXT_CLI_PROFILE"] = original_profile
-            FlextCliSettings._reset_instance()
+            FlextCliSettings.reset_for_testing()
 
 
 class TestsCliConfigValidation:
@@ -352,7 +362,7 @@ class TestsCliConfigComputedFields:
         """Test auto_verbosity computed field."""
         config = FlextCliSettings()
         verb_value = config.auto_verbosity
-        verb: str = verb_value if isinstance(verb_value, str) else str(verb_value)
+        verb: str = verb_value
         assert verb in {"normal", "quiet", "verbose"}
 
     def test_optimal_table_format(self) -> None:
@@ -425,7 +435,7 @@ class TestsCliConfigMemory:
 
     def test_state_persistence(self) -> None:
         """Test config state persistence using model_copy."""
-        FlextCliSettings._reset_instance()
+        FlextCliSettings.reset_for_testing()
         config1 = FlextCliSettings()
         original_debug = config1.debug
         config_modified = config1.model_copy(update={"debug": not original_debug})

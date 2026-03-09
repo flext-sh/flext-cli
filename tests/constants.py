@@ -13,10 +13,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import Final
 
 from flext_tests import FlextTestsConstants
+from pydantic import BaseModel, ConfigDict, Field
 
 from flext_cli import FlextCliConstants, t
 
@@ -229,55 +229,97 @@ class TestsFlextCliConstants(FlextTestsConstants, FlextCliConstants):
     class Fixtures:
         """Test fixture dataclasses for flext-cli tests."""
 
-        @dataclass(frozen=True, slots=True)
-        class Identifiers:
+        class Identifiers(BaseModel):
             """Test identifiers and IDs."""
 
-            user_id: str = "test_user_123"
-            session_id: str = "test_session_123"
-            service_name: str = "test_service"
-            operation_id: str = "test_operation"
-            request_id: str = "test-request-456"
-            correlation_id: str = "test-corr-123"
+            model_config = ConfigDict(frozen=True)
 
-        @dataclass(frozen=True, slots=True)
-        class Names:
+            user_id: str = Field(default="test_user_123", description="Test user id")
+            session_id: str = Field(
+                default="test_session_123", description="Test session id"
+            )
+            service_name: str = Field(
+                default="test_service", description="Test service name"
+            )
+            operation_id: str = Field(
+                default="test_operation", description="Test operation id"
+            )
+            request_id: str = Field(
+                default="test-request-456", description="Test request id"
+            )
+            correlation_id: str = Field(
+                default="test-corr-123", description="Test correlation id"
+            )
+
+        class Names(BaseModel):
             """Test module and component names."""
 
-            module_name: str = "test_module"
-            handler_name: str = "test_handler"
-            chain_name: str = "test_chain"
-            command_type: str = "test_command"
-            query_type: str = "test_query"
-            logger_name: str = "test_logger"
-            app_name: str = "test-app"
-            validation_app: str = "validation-test"
-            source_service: str = "test_service"
+            model_config = ConfigDict(frozen=True)
 
-        @dataclass(frozen=True, slots=True)
-        class ErrorData:
+            module_name: str = Field(
+                default="test_module", description="Test module name"
+            )
+            handler_name: str = Field(
+                default="test_handler", description="Test handler name"
+            )
+            chain_name: str = Field(default="test_chain", description="Test chain name")
+            command_type: str = Field(
+                default="test_command", description="Test command type"
+            )
+            query_type: str = Field(default="test_query", description="Test query type")
+            logger_name: str = Field(
+                default="test_logger", description="Test logger name"
+            )
+            app_name: str = Field(default="test-app", description="Test app name")
+            validation_app: str = Field(
+                default="validation-test", description="Validation app name"
+            )
+            source_service: str = Field(
+                default="test_service", description="Source service name"
+            )
+
+        class ErrorData(BaseModel):
             """Test error codes and messages."""
 
-            error_code: str = "TEST_ERROR_001"
-            validation_error: str = "test_error"
-            operation_error: str = "Op failed"
-            config_error: str = "Config failed"
-            timeout_error: str = "Operation timeout"
+            model_config = ConfigDict(frozen=True)
 
-        @dataclass(frozen=True, slots=True)
-        class Data:
+            error_code: str = Field(
+                default="TEST_ERROR_001", description="Test error code"
+            )
+            validation_error: str = Field(
+                default="test_error", description="Validation error text"
+            )
+            operation_error: str = Field(
+                default="Op failed", description="Operation error text"
+            )
+            config_error: str = Field(
+                default="Config failed", description="Config error text"
+            )
+            timeout_error: str = Field(
+                default="Operation timeout", description="Timeout error text"
+            )
+
+        class Data(BaseModel):
             """Test field names and data values."""
 
-            field_name: str = "test_field"
-            config_key: str = "test_key"
-            username: str = "test_user"
-            email: str = "test@example.com"
-            password: str = "test_pass"
-            string_value: str = "test_value"
-            input_data: str = "test_input"
-            request_data: str = "test_request"
-            result_data: str = "test_result"
-            message: str = "test_message"
+            model_config = ConfigDict(frozen=True)
+
+            field_name: str = Field(default="test_field", description="Test field name")
+            config_key: str = Field(default="test_key", description="Test config key")
+            username: str = Field(default="test_user", description="Test username")
+            email: str = Field(default="test@example.com", description="Test email")
+            password: str = Field(default="test_pass", description="Test password")
+            string_value: str = Field(
+                default="test_value", description="Test string value"
+            )
+            input_data: str = Field(default="test_input", description="Test input data")
+            request_data: str = Field(
+                default="test_request", description="Test request data"
+            )
+            result_data: str = Field(
+                default="test_result", description="Test result data"
+            )
+            message: str = Field(default="test_message", description="Test message")
 
     class Table:
         """Table-related test constants."""

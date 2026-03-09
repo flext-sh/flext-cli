@@ -14,12 +14,11 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Callable
-from dataclasses import dataclass, field
 from typing import override
 
 from flext_core import FlextHandlers, T, m, r, t
 from flext_tests import FlextTestsServiceBase
-from pydantic import ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from tests.constants import c
 
@@ -37,17 +36,34 @@ class TestsCliServiceBase(FlextTestsServiceBase[T]):
     - All generic service functionality comes from FlextTestsServiceBase
     """
 
-    @dataclass(frozen=True, slots=True)
-    class HandlerTestCase:
+    class HandlerTestCase(BaseModel):
         """Factory for handler test case configurations."""
 
-        handler_id: str
-        handler_name: str | None = None
-        handler_type: c.Cqrs.HandlerType = c.Cqrs.HandlerType.COMMAND
-        expected_result: t.ContainerValue | None = None
-        should_fail: bool = False
-        error_message: str | None = None
-        description: str = field(default="", compare=False)
+        model_config = ConfigDict(frozen=True)
+
+        handler_id: str = Field(description="Handler identifier")
+        handler_name: str | None = Field(
+            default=None, description="Optional handler name"
+        )
+        handler_type: c.Cqrs.HandlerType = Field(
+            default=c.Cqrs.HandlerType.COMMAND,
+            description="Handler type used for test case",
+        )
+        expected_result: t.ContainerValue | None = Field(
+            default=None,
+            description="Expected handler result value",
+        )
+        should_fail: bool = Field(
+            default=False,
+            description="Whether handler is expected to fail",
+        )
+        error_message: str | None = Field(
+            default=None,
+            description="Expected error message when failure occurs",
+        )
+        description: str = Field(
+            default="", description="Human readable scenario description"
+        )
 
         def create_handler(
             self,
