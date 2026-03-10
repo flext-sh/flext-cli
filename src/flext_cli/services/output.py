@@ -1109,7 +1109,8 @@ class FlextCliOutput:
                         )
                         console.print(panel.value)
                     case c.Cli.OutputFormats.JSON.value:
-                        print(result.model_dump_json())
+                        logger = FlextLogger(__name__)
+                        logger.info(result.model_dump_json())
 
 
             output.register_result_formatter(OperationResult, format_operation)

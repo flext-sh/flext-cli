@@ -18,7 +18,7 @@ def reset_config_singleton(request: pytest.FixtureRequest) -> Generator[None]:
     the state for other tests.
     """
     FlextCliSettings._reset_instance()
-    FlextSettings.reset_global_instance()
+    FlextSettings.reset_for_testing()
     yield
     FlextCliSettings._reset_instance()
-    FlextSettings.reset_global_instance()
+    FlextSettings.reset_for_testing()

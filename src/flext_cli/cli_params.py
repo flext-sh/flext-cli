@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import sys
 from collections.abc import Callable, Mapping
 from typing import ClassVar
 
@@ -294,7 +293,12 @@ class FlextCliCommonParams:
         def decorator(func: p.Cli.CliCommandFunction) -> p.Cli.CliCommandFunction:
             validation = cls.validate_enabled()
             if validation.is_failure and cls._enforcement_mode:
-                sys.exit(c.Cli.ExitCodes.FAILURE)
+                error_message = (
+                    str(validation.error)
+                    if validation.error is not None
+                    else c.Cli.CliParamsErrorMessages.PARAMS_MANDATORY
+                )
+                raise RuntimeError(error_message)
             return func
 
         return decorator

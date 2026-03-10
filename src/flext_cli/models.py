@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import inspect
 import operator
 import types
 from collections.abc import Callable, Mapping, MutableMapping, Sequence
@@ -1866,7 +1867,7 @@ class FlextCliModels(FlextModels):
             4. Literal types are converted to str for Typer compatibility
             5. Optional fields become optional CLI parameters with defaults
             6. Field descriptions become CLI help text automatically
-            7. Dynamic function creation uses exec() for runtime code generation
+            7. Command wrapper generation uses inspect.Signature for runtime binding
             8. Function annotations MUST be updated with real Python types for Typer introspection
 
             Architecture Implications:
@@ -1880,7 +1881,7 @@ class FlextCliModels(FlextModels):
             Audit Implications:
             ───────────────────
             - Dynamic code generation MUST validate model_class is BaseModel subclass
-            - Function creation MUST use exec() safely (no user input in code string)
+            - Wrapper creation MUST avoid dynamic code execution
             - Type conversion MUST preserve type safety (no object types) - See type-system-architecture.md
             - Field validation MUST use Pydantic validators (not bypassed)
             - Sensitive fields (SecretStr) MUST be handled securely in CLI args
@@ -2267,12 +2268,11 @@ class FlextCliModels(FlextModels):
                 annotations, defaults, fields_with_factory = self._collect_field_data(
                     narrowed_fields,
                 )
-                sig_parts = self._build_signature_parts(
+                return self._execute_command_wrapper(
                     annotations,
                     defaults,
                     fields_with_factory,
                 )
-                return self._execute_command_wrapper(sig_parts, annotations)
 
             def _build_signature_parts(
                 self,
@@ -2412,60 +2412,53 @@ class FlextCliModels(FlextModels):
 
             def _execute_command_wrapper(
                 self,
-                sig_parts: str,
                 annotations: Mapping[str, type],
+                defaults: Mapping[str, t.JsonValue],
+                fields_with_factory: set[str],
             ) -> p.Cli.CliCommandWrapper:
-                """Execute dynamic function creation and return command wrapper.
+                signature_parameters: list[inspect.Parameter] = []
+                for field_name, field_type in annotations.items():
+                    default_value = inspect.Parameter.empty
+                    has_default = (
+                        field_name in defaults and field_name not in fields_with_factory
+                    )
+                    if has_default:
+                        default_value = defaults[field_name]
+                    signature_parameters.append(
+                        inspect.Parameter(
+                            name=field_name,
+                            kind=inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                            default=default_value,
+                            annotation=field_type,
+                        )
+                    )
+                command_signature = inspect.Signature(parameters=signature_parameters)
 
-                Args:
-                    sig_parts: Function signature parameters string
-                    annotations: Type annotations dictionary
+                def command_wrapper(
+                    *args: t.ContainerValue,
+                    **kwargs: t.ContainerValue,
+                ) -> t.ContainerValue:
+                    try:
+                        bound_arguments = command_signature.bind(*args, **kwargs)
+                    except TypeError as ex:
+                        msg = f"Invalid command arguments: {ex}"
+                        raise RuntimeError(msg) from ex
 
-                Returns:
-                    The created command wrapper function
-
-                Raises:
-                    RuntimeError: If wrapper creation fails
-
-                """
-                func_body = f"""
-    kwargs = {{{", ".join(f'"{n}": {n}' for n in annotations)}}}
-    model_instance = builder_model_class(**kwargs)
-    if builder_config is not None:
-        for fn, v in kwargs.items():
-            try:
-                object.__setattr__(builder_config, fn, v)
-            except (AttributeError, TypeError) as e:
-                _logger.debug(
-                    "Could not set builder_config.%s: %s", fn, e
-                )
-    if callable(builder_handler):
-        return builder_handler(model_instance)
-    raise RuntimeError("builder_handler is not callable")
-"""
-                func_globals = {
-                    "builder_model_class": self.model_class,
-                    "builder_config": self.config,
-                    "builder_handler": self.handler,
-                    "__builtins__": __builtins__,
-                }
-                func_code = f"def command_wrapper({sig_parts}):{func_body}"
-                exec(func_code, func_globals)  # nosec B102
-                command_wrapper = func_globals.get("command_wrapper")
-                if command_wrapper is None:
-                    msg = "Failed to create command wrapper"
+                    model_instance = self.model_class.model_validate(
+                        dict(bound_arguments.arguments),
+                    )
+                    if self.config is not None:
+                        for fn, value in bound_arguments.arguments.items():
+                            try:
+                                object.__setattr__(self.config, fn, value)
+                            except (AttributeError, TypeError) as ex:
+                                _logger.debug(
+                                    "Could not set builder_config.%s: %s", fn, ex
+                                )
+                    if callable(self.handler):
+                        return self.handler(model_instance)
+                    msg = "builder_handler is not callable"
                     raise RuntimeError(msg)
-
-                def _is_callable_object(
-                    obj: object,
-                ) -> TypeGuard[Callable[..., t.ContainerValue]]:
-                    """TypeGuard: narrow object to callable returning ContainerValue."""
-                    return callable(obj)
-
-                if not _is_callable_object(command_wrapper):
-                    msg = "exec() failed to create valid function"
-                    raise TypeError(msg)
-                command_callable: Callable[..., t.ContainerValue] = command_wrapper
 
                 # Type narrowing: _create_real_annotations returns dict[str, type]
                 real_annotations = self._create_real_annotations(annotations)
@@ -2476,7 +2469,7 @@ class FlextCliModels(FlextModels):
                     *args: t.ContainerValue,
                     **kwargs: t.ContainerValue,
                 ) -> t.ContainerValue:
-                    raw_result: t.ContainerValue = command_callable(*args, **kwargs)
+                    raw_result = command_wrapper(*args, **kwargs)
                     normalized = (
                         FlextCliModels.Cli.CliModelConverter.convert_field_value(
                             raw_result,
@@ -2486,6 +2479,7 @@ class FlextCliModels(FlextModels):
                         return normalized.value
                     return str(raw_result)
 
+                setattr(typed_wrapper, "__signature__", command_signature)
                 typed_wrapper.__annotations__ = dict(real_annotations)
                 return typed_wrapper
 

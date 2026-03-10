@@ -23,7 +23,7 @@ class TestsCliCliExtended:
     def test_global_callback_logic(self) -> None:
         """Test global callback logic in create_app_with_common_params."""
         cli = FlextCliCli()
-        mock_config_instance = FlextCliSettings.get_global_instance()
+        mock_config_instance = FlextCliSettings.get_global()
         app = cli.create_app_with_common_params(
             "test_app", "Test App", config=mock_config_instance
         )
@@ -34,9 +34,7 @@ class TestsCliCliExtended:
 
         runner = CliRunner()
         with patch.object(FlextRuntime, "reconfigure_structlog") as mock_reconfigure:
-            with patch.object(
-                FlextCliSettings, "get_global_instance"
-            ) as mock_get_config:
+            with patch.object(FlextCliSettings, "get_global") as mock_get_config:
                 mock_get_config.return_value = mock_config_instance
                 result = runner.invoke(app, ["--debug", "hello"])
                 assert result.exit_code == 0
@@ -48,7 +46,7 @@ class TestsCliCliExtended:
     def test_global_callback_quiet(self) -> None:
         """Test global callback with quiet flag."""
         cli = FlextCliCli()
-        mock_config_instance = FlextCliSettings.get_global_instance()
+        mock_config_instance = FlextCliSettings.get_global()
         app = cli.create_app_with_common_params(
             "test_app", "Test App", config=mock_config_instance
         )

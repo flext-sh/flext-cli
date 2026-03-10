@@ -15,6 +15,7 @@ from datetime import datetime
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, RootModel, field_validator
+from flext_tests import FlextTestsModels
 
 from flext_cli import t
 
@@ -257,32 +258,57 @@ class ForbidExtraParams(BaseModel):
     name: str = Field(default="", description="Name")
 
 
-class TestsFlextCliModels:
+_CliCommandInputModel = CliCommandInput
+_CliSessionInputModel = CliSessionInput
+_ScalarConfigRestoreModel = ScalarConfigRestore
+_TextTestCaseDictModel = TextTestCaseDict
+_ConfirmTestCaseDictModel = ConfirmTestCaseDict
+_ChoiceTestCaseDictModel = ChoiceTestCaseDict
+_PrintStatusCaseModel = PrintStatusCase
+_UserDataModel = UserData
+_ApiResponseModel = ApiResponse
+_ConnectionConfigModel = ConnectionConfig
+_EnvironmentConfigModel = EnvironmentConfig
+_OptionalLiteralConfigModel = OptionalLiteralConfig
+_AliasedConfigModel = AliasedConfig
+_BooleanFlagsConfigModel = BooleanFlagsConfig
+_NestedModelConfigModel = NestedModelConfig
+_ValidatedConfigModel = ValidatedConfig
+_AliasedParamsModel = AliasedParams
+_RequiredFieldsParamsModel = RequiredFieldsParams
+_AppParamsModel = AppParams
+_SimpleParamsModel = SimpleParams
+_FullAppParamsModel = FullAppParams
+_StrictParamsModel = StrictParams
+_ForbidExtraParamsModel = ForbidExtraParams
+
+
+class TestsFlextCliModels(FlextTestsModels):
     """Test namespace facade for flext-cli models. Use tm alias; m is flext_cli.FlextCliModels."""
 
-    CliCommandInput = CliCommandInput
-    CliSessionInput = CliSessionInput
-    ScalarConfigRestore = ScalarConfigRestore
-    TextTestCaseDict = TextTestCaseDict
-    ConfirmTestCaseDict = ConfirmTestCaseDict
-    ChoiceTestCaseDict = ChoiceTestCaseDict
-    PrintStatusCase = PrintStatusCase
-    UserData = UserData
-    ApiResponse = ApiResponse
-    ConnectionConfig = ConnectionConfig
-    EnvironmentConfig = EnvironmentConfig
-    OptionalLiteralConfig = OptionalLiteralConfig
-    AliasedConfig = AliasedConfig
-    BooleanFlagsConfig = BooleanFlagsConfig
-    NestedModelConfig = NestedModelConfig
-    ValidatedConfig = ValidatedConfig
-    AliasedParams = AliasedParams
-    RequiredFieldsParams = RequiredFieldsParams
-    AppParams = AppParams
-    SimpleParams = SimpleParams
-    FullAppParams = FullAppParams
-    StrictParams = StrictParams
-    ForbidExtraParams = ForbidExtraParams
+    CliCommandInput = _CliCommandInputModel
+    CliSessionInput = _CliSessionInputModel
+    ScalarConfigRestore = _ScalarConfigRestoreModel
+    TextTestCaseDict = _TextTestCaseDictModel
+    ConfirmTestCaseDict = _ConfirmTestCaseDictModel
+    ChoiceTestCaseDict = _ChoiceTestCaseDictModel
+    PrintStatusCase = _PrintStatusCaseModel
+    UserData = _UserDataModel
+    ApiResponse = _ApiResponseModel
+    ConnectionConfig = _ConnectionConfigModel
+    EnvironmentConfig = _EnvironmentConfigModel
+    OptionalLiteralConfig = _OptionalLiteralConfigModel
+    AliasedConfig = _AliasedConfigModel
+    BooleanFlagsConfig = _BooleanFlagsConfigModel
+    NestedModelConfig = _NestedModelConfigModel
+    ValidatedConfig = _ValidatedConfigModel
+    AliasedParams = _AliasedParamsModel
+    RequiredFieldsParams = _RequiredFieldsParamsModel
+    AppParams = _AppParamsModel
+    SimpleParams = _SimpleParamsModel
+    FullAppParams = _FullAppParamsModel
+    StrictParams = _StrictParamsModel
+    ForbidExtraParams = _ForbidExtraParamsModel
 
 
 tm = TestsFlextCliModels

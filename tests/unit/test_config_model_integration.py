@@ -192,7 +192,7 @@ class TestsCliConfigModelIntegration:
 
     def test_model_command_with_config(self, cli: FlextCliCli) -> None:
         """Test model_command applies config defaults to Typer parameters."""
-        config = FlextCliSettings.get_global_instance()
+        config = FlextCliSettings.get_global()
 
         def handler(_params: BaseModel) -> None:
             pass

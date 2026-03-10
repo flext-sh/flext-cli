@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Self, override
 
 import yaml
 from flext_core import FlextLogger, FlextSettings, r
@@ -125,12 +124,6 @@ class FlextCliSettings(FlextSettings):
             if key not in self.__class__.model_fields:
                 return r[bool].fail(f"Unknown config key: {key}")
         return r[bool].ok(value=True)
-
-    @classmethod
-    @override
-    def get_global_instance(cls) -> Self:
-        """Return global settings instance (alias for get_global())."""
-        return cls.get_global()
 
     def validate_output_format_result(self, output_format: str) -> r[bool]:
         """Validate output_format against allowed values. Returns r[bool]."""

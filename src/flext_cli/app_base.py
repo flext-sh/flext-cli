@@ -51,7 +51,7 @@ class FlextCliAppBase[SettingsT: FlextCliSettings](ABC):
         self.logger = FlextLogger(__name__)
         self._output = FlextCliOutput()
         self._cli = FlextCliCli()
-        self._config = self.config_class.get_global_instance()
+        self._config = self.config_class.get_global()
         self.logger.debug("CLI configuration loaded", app_name=self.app_name)
         self._app = self._cli.create_app_with_common_params(
             name=self.app_name,

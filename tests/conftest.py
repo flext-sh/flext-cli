@@ -149,7 +149,7 @@ def flext_cli_api(
     """
     test_dir = tmp_path / f"test_{id(request)}"
     test_dir.mkdir(exist_ok=True)
-    FlextSettings.reset_global_instance()
+    FlextSettings.reset_for_testing()
     FlextCliSettings._reset_instance()
     monkeypatch.setenv("FLEXT_CLI_CONFIG_DIR", str(test_dir))
     monkeypatch.setenv("FLEXT_CLI_TOKEN_FILE", str(test_dir / "token.json"))
