@@ -29,7 +29,7 @@ class FlextCliServiceBase(s[Mapping[str, t.JsonValue]], ABC):
     @property
     def cli_config(self) -> FlextCliSettings:
         """Return the shared `FlextCliSettings` singleton with full type support."""
-        return FlextCliSettings.get_instance()
+        return FlextCliSettings.create_instance(FlextCliSettings)
 
     @override
     @classmethod
@@ -58,7 +58,7 @@ class FlextCliServiceBase(s[Mapping[str, t.JsonValue]], ABC):
     @staticmethod
     def get_cli_config() -> FlextCliSettings:
         """Return shared `FlextCliSettings` singleton without instantiating service."""
-        return FlextCliSettings.get_instance()
+        return FlextCliSettings.create_instance(FlextCliSettings)
 
 
 __all__ = ["FlextCliServiceBase", "s"]

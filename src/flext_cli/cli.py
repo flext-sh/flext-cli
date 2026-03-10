@@ -378,14 +378,6 @@ class FlextCliCli:
         config: FlextCliSettings | None = None,
     ) -> p.Cli.CliCommandFunction:
         """Create a command from a Pydantic model."""
-        try:
-            is_valid_model = issubclass(model_class, BaseModel)
-        except TypeError as exc:
-            msg = f"model_class must be a BaseModel subclass: {exc}"
-            raise TypeError(msg) from exc
-        if not is_valid_model:
-            msg = "model_class must be a BaseModel subclass"
-            raise TypeError(msg)
 
         def normalized_handler(model: BaseModel) -> t.JsonValue:
             if getattr(model, "__class__", None) is not model_class:

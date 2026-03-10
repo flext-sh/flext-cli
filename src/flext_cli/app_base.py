@@ -25,7 +25,6 @@ from flext_core import FlextLogger, e, r
 from flext_cli import FlextCliOutput
 from flext_cli.cli import FlextCliCli
 from flext_cli.settings import FlextCliSettings
-from flext_cli.typings import SettingsT
 
 
 class FlextCliAppBase[SettingsT: FlextCliSettings](ABC):

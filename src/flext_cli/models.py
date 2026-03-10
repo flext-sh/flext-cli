@@ -91,7 +91,7 @@ class FlextCliModels(FlextModels):
                     str(k): FlextCliModels.Cli.normalize_to_json_value(vv)
                     for k, vv in item.items()
                 }
-            if isinstance(item, Sequence) and not isinstance(item, str):
+            if not isinstance(item, str):
                 return [FlextCliModels.Cli.normalize_to_json_value(x) for x in item]
             return str(item)
 
@@ -100,7 +100,7 @@ class FlextCliModels(FlextModels):
             """Unwrap RootModel .root value if present, otherwise return as-is."""
             if hasattr(value, "__dict__"):
                 model_dict = value.__dict__
-                if isinstance(model_dict, Mapping) and "root" in model_dict:
+                if "root" in model_dict:
                     root_value = model_dict["root"]
                     if root_value is not None:
                         return root_value
@@ -212,7 +212,7 @@ class FlextCliModels(FlextModels):
 
             def result(self) -> t.JsonValue:
                 val = self.map_.get(self.key, self.default)
-                if val is None or isinstance(val, (str, int, float, bool, list)):
+                if isinstance(val, (str, int, float, bool, list)):
                     return val
                 if isinstance(val, dict):
                     return {
@@ -308,7 +308,7 @@ class FlextCliModels(FlextModels):
                     return self.default
                 if isinstance(self.raw, int):
                     return self.raw
-                if isinstance(self.raw, str) and self.raw.isdigit():
+                if self.raw.isdigit():
                     return int(self.raw)
                 return self.default
 
@@ -446,11 +446,7 @@ class FlextCliModels(FlextModels):
                         self.default if isinstance(self.default, str) else None
                     )
                 if self.type_kind == "bool":
-                    return (
-                        bool(self.value)
-                        if self.value is not None
-                        else (self.default if isinstance(self.default, bool) else False)
-                    )
+                    return bool(self.value)
                 if self.type_kind == "dict":
                     if isinstance(self.value, Mapping):
                         return {
@@ -797,7 +793,7 @@ class FlextCliModels(FlextModels):
             ) -> r[Self]:
                 """Validate command input data."""
                 if not isinstance(data, Mapping) and not isinstance(data, cls):
-                    return r.fail("Input must be a dictionary")
+                    return r[Self].fail("Input must be a dictionary")
                 try:
                     command = cls.model_validate(data)
                     return r.ok(command)
@@ -809,7 +805,7 @@ class FlextCliModels(FlextModels):
                     StyleError,
                     LiveError,
                 ) as e:
-                    return r.fail(f"Validation failed: {e}")
+                    return r[Self].fail(f"Validation failed: {e}")
 
             def complete_execution(self, exit_code: int) -> r[Self]:
                 """Complete command execution with exit code."""
@@ -1681,7 +1677,7 @@ class FlextCliModels(FlextModels):
                 # models.py cannot use utilities - use direct dict access instead
                 # Extract field metadata from registry using direct dict access
                 field_meta = self.registry.get(self.field_name, {})
-                if not isinstance(field_meta, Mapping):
+                if not field_meta:
                     msg = "Option registry metadata must support key lookup"
                     raise TypeError(msg)
                 # Extract option metadata from registry using direct dict access
@@ -2260,11 +2256,9 @@ class FlextCliModels(FlextModels):
                     Typer command function with auto-generated parameters
 
                 """
-                narrowed_fields: dict[str, FieldInfo] = {
-                    k: v
-                    for k, v in self.model_class.model_fields.items()
-                    if isinstance(v, FieldInfo)
-                }
+                narrowed_fields: dict[str, FieldInfo] = dict(
+                    self.model_class.model_fields
+                )
                 annotations, defaults, fields_with_factory = self._collect_field_data(
                     narrowed_fields,
                 )
@@ -2741,7 +2735,7 @@ class FlextCliModels(FlextModels):
                 metadata_dict = (
                     field_info.__dict__ if hasattr(field_info, "__dict__") else None
                 )
-                if metadata_dict is not None and isinstance(metadata_dict, Mapping):
+                if metadata_dict is not None:
                     dict_metadata: dict[str, t.JsonValue] = {
                         str(k): FlextCliModels.Cli.CliModelConverter.to_json_value(v)
                         for k, v in metadata_dict.items()
@@ -2813,13 +2807,12 @@ class FlextCliModels(FlextModels):
                         for k, v in metadata_attr.items()
                     }
                     return
-                if isinstance(metadata_attr, (list, tuple, range)):
-                    metadata_values = list(metadata_attr)
-                    props["metadata"] = (
-                        FlextCliModels.Cli.CliModelConverter.process_metadata_list(
-                            metadata_values,
-                        )
+                metadata_values = list(metadata_attr)
+                props["metadata"] = (
+                    FlextCliModels.Cli.CliModelConverter.process_metadata_list(
+                        metadata_values,
                     )
+                )
 
             @staticmethod
             def merge_types_into_props(
@@ -2844,11 +2837,7 @@ class FlextCliModels(FlextModels):
                         field_info: FieldInfo,
                     ) -> p.Cli.CliParameterSpecProtocol:
                         """Convert single field to CliParameterSpec."""
-                        field_type = (
-                            field_info.annotation
-                            if isinstance(field_info, FieldInfo)
-                            else str
-                        )
+                        field_type = field_info.annotation
                         # Extract non-None type from Optional/Union
                         origin = get_origin(field_type)
                         if origin is not None:
@@ -2862,16 +2851,8 @@ class FlextCliModels(FlextModels):
                                 field_type = non_none_types[0]
                         if not isinstance(field_type, type):
                             field_type = str
-                        default = (
-                            field_info.default
-                            if isinstance(field_info, FieldInfo)
-                            else None
-                        )
-                        help_text = (
-                            str(field_info.description)
-                            if isinstance(field_info, FieldInfo)
-                            else ""
-                        )
+                        default = field_info.default
+                        help_text = str(field_info.description or "")
                         param_type: type = (
                             field_type if isinstance(field_type, type) else str
                         )
