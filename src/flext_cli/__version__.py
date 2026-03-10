@@ -15,9 +15,9 @@ from importlib.metadata import metadata
 _metadata = metadata("flext_cli")
 _raw_version = _metadata["Version"]
 __version__ = re.sub(
-    "(\\d)(a|b|rc)(\\d+)$",
+    r"(\\d)(a|b|rc)(\\d+)$",
     "\\1-\\2\\3",
-    re.sub("\\.dev(\\d+)$", "-dev\\1", _raw_version),
+    re.sub(r"\\.dev(\\d+)$", "-dev\\1", _raw_version),
 )
 _version_without_metadata = __version__.split("+", maxsplit=1)[0]
 _version_base, _has_prerelease, _prerelease = _version_without_metadata.partition("-")

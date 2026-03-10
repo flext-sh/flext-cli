@@ -16,7 +16,7 @@ import pathlib
 import sys
 import traceback
 from abc import ABC, abstractmethod
-from typing import ClassVar, TypeVar
+from typing import ClassVar
 
 import typer
 from click.exceptions import UsageError as ClickUsageError
@@ -25,8 +25,7 @@ from flext_core import FlextLogger, e, r
 from flext_cli import FlextCliOutput
 from flext_cli.cli import FlextCliCli
 from flext_cli.settings import FlextCliSettings
-
-SettingsT = TypeVar("SettingsT", bound=FlextCliSettings)
+from flext_cli.typings import SettingsT
 
 
 class FlextCliAppBase[SettingsT: FlextCliSettings](ABC):
