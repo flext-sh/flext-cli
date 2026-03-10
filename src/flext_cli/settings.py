@@ -64,6 +64,7 @@ class FlextCliSettings(FlextSettings):
 
     @classmethod
     def get_instance(cls) -> FlextCliSettings:
+        """Return shared settings instance expected by CLI tests."""
         return cls.get_global()
 
     @computed_field
