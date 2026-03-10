@@ -77,7 +77,7 @@ class FlextCliFileTools:
             normalized: dict[str, t.JsonValue] = {}
             for k, v in loaded.items():
                 nv = m.Cli.normalize_to_json_value(v)
-                normalized[str(k)] = nv if nv is not None else ""
+                normalized[str(k)] = nv
             return normalized
         json_adapter: TypeAdapter[t.JsonValue] = TypeAdapter(t.JsonValue)
         try:
