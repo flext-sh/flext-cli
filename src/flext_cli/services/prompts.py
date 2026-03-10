@@ -20,6 +20,10 @@ PM, PEM = (CLI.PromptsMessages, CLI.PromptsErrorMessages)
 SOURCE_PATH = "flext-cli/src/flext_cli/prompts.py"
 
 
+def _empty_prompt_history() -> list[str]:
+    return []
+
+
 class FlextCliPrompts(FlextCliServiceBase):
     """CLI prompts service with validation, history, and non-interactive fallbacks."""
 
@@ -31,7 +35,7 @@ class FlextCliPrompts(FlextCliServiceBase):
         default=CLI.TIMEOUTS.DEFAULT,
         description="Default timeout for prompt operations in seconds",
     )
-    _prompt_history: list[str] = PrivateAttr(default_factory=list)
+    _prompt_history: list[str] = PrivateAttr(default_factory=_empty_prompt_history)
 
     def __init__(
         self,

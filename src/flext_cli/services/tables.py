@@ -194,16 +194,11 @@ class FlextCliTables(FlextCliServiceBase):
             else:
                 normalized_data = data
             headers_value = headers_result.value
-            if (
-                normalized_data
-                and (not isinstance(headers_value, str))
-                and u.is_dict_like(normalized_data[0])
-            ):
-                table_rows = [
-                    list(row.values())
-                    for row in normalized_data
-                    if isinstance(row, Mapping)
+            if normalized_data and (not isinstance(headers_value, str)):
+                mapping_rows: list[Mapping[str, t.JsonValue]] = [
+                    dict(row) for row in normalized_data
                 ]
+                table_rows = [list(row.values()) for row in mapping_rows]
                 formatted_table = tabulate(
                     table_rows,
                     headers=list(headers_value),

@@ -426,12 +426,32 @@ class FlextCliCli:
             msg = "prompt config must implement PromptConfig"
             raise TypeError(msg)
         try:
+            default_text = (
+                config.default
+                if isinstance(config.default, str)
+                else (str(config.default) if config.default is not None else None)
+            )
+            type_hint_value = config.type_hint
+            prompt_type: (
+                click.ParamType | type | tuple[type | click.ParamType, ...] | None
+            )
+            if isinstance(type_hint_value, click.ParamType | type):
+                prompt_type = type_hint_value
+            elif isinstance(type_hint_value, tuple):
+                tuple_type_hints = tuple(
+                    item
+                    for item in type_hint_value
+                    if isinstance(item, click.ParamType | type)
+                )
+                prompt_type = tuple_type_hints or None
+            else:
+                prompt_type = None
             prompt_result = typer.prompt(
                 text=text,
-                default=config.default,
+                default=default_text,
                 hide_input=config.hide_input,
                 confirmation_prompt=config.confirmation_prompt,
-                type=config.type_hint,
+                type=prompt_type,
                 value_proc=config.value_proc if callable(config.value_proc) else None,
                 prompt_suffix=config.prompt_suffix,
                 show_default=config.show_default,
@@ -491,25 +511,24 @@ class FlextCliCli:
         def global_callback(
             *,
             debug: Annotated[
-                bool, typer.Option("--debug/--no-debug", help="Enable debug mode")
+                bool,
+                FlextCliCommonParams.create_option("debug"),
             ] = False,
             trace: Annotated[
-                bool, typer.Option("--trace/--no-trace", help="Enable trace mode")
+                bool,
+                FlextCliCommonParams.create_option("trace"),
             ] = False,
             verbose: Annotated[
-                bool, typer.Option("--verbose/--no-verbose", help="Enable verbose mode")
+                bool,
+                FlextCliCommonParams.create_option("verbose"),
             ] = False,
             quiet: Annotated[
-                bool, typer.Option("--quiet/--no-quiet", help="Enable quiet mode")
+                bool,
+                FlextCliCommonParams.create_option("quiet"),
             ] = False,
             log_level: Annotated[
                 str | None,
-                typer.Option(
-                    "--log-level",
-                    "-L",
-                    help="Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)",
-                    case_sensitive=False,
-                ),
+                FlextCliCommonParams.create_option("cli_log_level"),
             ] = None,
         ) -> None:
             if config:
@@ -626,8 +645,9 @@ class FlextCliCli:
             "trace": trace,
             "verbose": verbose,
             "quiet": quiet,
-            "log_level": log_level,
         }
+        if log_level is not None:
+            common_params["log_level"] = log_level
         active_params = u.filter_dict(
             common_params, lambda _k, v: v is not None and v is not False
         )

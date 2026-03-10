@@ -14,8 +14,8 @@ from collections.abc import Mapping, Sequence
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, RootModel, field_validator
 from flext_tests import FlextTestsModels
+from pydantic import BaseModel, ConfigDict, Field, RootModel, field_validator
 
 from flext_cli import t
 

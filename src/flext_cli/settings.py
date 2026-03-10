@@ -13,7 +13,7 @@ from pathlib import Path
 
 import yaml
 from flext_core import FlextLogger, FlextSettings, r
-from pydantic import Field, computed_field
+from pydantic import Field, TypeAdapter, ValidationError, computed_field
 
 from flext_cli import c, t
 
@@ -112,9 +112,7 @@ class FlextCliSettings(FlextSettings):
     def update_from_cli_args(self, **kwargs: t.JsonValue) -> r[bool]:
         """Update config from CLI args."""
         data: t.JsonDict = {
-            k: v
-            for k, v in kwargs.items()
-            if k in self.__class__.model_fields and v is not None
+            k: v for k, v in kwargs.items() if k in self.__class__.model_fields
         }
         return self.save_config(data)
 
@@ -154,10 +152,19 @@ class FlextCliSettings(FlextSettings):
                 parsed = yaml.safe_load(raw)
             if not isinstance(parsed, dict):
                 return r[FlextCliSettings].fail(c.Cli.CmdErrorMessages.CONFIG_NOT_DICT)
-            data: t.ConfigurationMapping = {str(k): v for k, v in parsed.items()}
+            mapping_adapter: TypeAdapter[t.ConfigurationMapping] = TypeAdapter(
+                t.ConfigurationMapping
+            )
+            data: t.ConfigurationMapping = mapping_adapter.validate_python(parsed)
             instance = cls.model_validate(data)
             return r[FlextCliSettings].ok(instance)
-        except (json.JSONDecodeError, yaml.YAMLError, ValueError, TypeError) as e:
+        except (
+            json.JSONDecodeError,
+            yaml.YAMLError,
+            ValidationError,
+            ValueError,
+            TypeError,
+        ) as e:
             return r[FlextCliSettings].fail(
                 c.Cli.ErrorMessages.FAILED_LOAD_CONFIG_FROM_FILE.format(
                     file=str(path), error=e

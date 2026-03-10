@@ -143,12 +143,10 @@ class FlextCliOutput:
 
         rows_result = u.Cli.process(data, processor=build_row, on_error="fail")
         if rows_result.is_failure:
-            return r.fail(rows_result.error or "Failed to build rows")
+            return r[list[list[str]]].fail(rows_result.error or "Failed to build rows")
         rows_raw = FlextCliOutput.ensure_list(rows_result.unwrap_or([]), [])
         rows: list[list[str]] = [
-            [str(item) for item in row if isinstance(row, list)]
-            for row in rows_raw
-            if isinstance(row, list)
+            [str(item) for item in row] for row in rows_raw if isinstance(row, list)
         ]
         return r.ok(rows)
 
@@ -306,14 +304,13 @@ class FlextCliOutput:
 
         all_keys = u.Cli.process(data, processor=_extract_keys, on_error="skip")
         if all_keys.is_failure:
-            return r.fail("Failed to extract keys from data")
-        combined_keys = set()
+            return r[bool].fail("Failed to extract keys from data")
+        combined_keys: set[str] = set()
         for key_set in all_keys.value or []:
-            if isinstance(key_set, set):
-                combined_keys.update(key_set)
+            combined_keys.update(key_set)
         missing = u.filter(headers, lambda h: h not in combined_keys)
         if missing:
-            return r.fail(f"Header(s) not found in data: {', '.join(missing)}")
+            return r[bool].fail(f"Header(s) not found in data: {', '.join(missing)}")
         return r[bool].ok(value=True)
 
     @staticmethod
@@ -386,10 +383,15 @@ class FlextCliOutput:
         """
         if config is not None:
             config_for_table: m.Cli.TableConfig
-            if hasattr(config, "model_dump"):
-                config_for_table = m.Cli.TableConfig.model_validate(config.model_dump())
-            elif isinstance(config, m.Cli.TableConfig):
+            if isinstance(config, m.Cli.TableConfig):
                 config_for_table = config
+            elif hasattr(config, "model_dump"):
+                model_dump_method = getattr(config, "model_dump")
+                if callable(model_dump_method):
+                    config_dict = model_dump_method()
+                    config_for_table = m.Cli.TableConfig.model_validate(config_dict)
+                else:
+                    config_for_table = m.Cli.TableConfig.model_validate({})
             else:
                 config_for_table = m.Cli.TableConfig.model_validate({})
             data_json: list[dict[str, t.JsonValue]] = [
@@ -869,7 +871,7 @@ class FlextCliOutput:
             )
         except Exception as e:
             error_msg = c.Cli.OutputLogMessages.CSV_FORMAT_FAILED.format(error=e)
-            return r.fail(error_msg)
+            return r[str].fail(error_msg)
 
     def format_data(
         self,
@@ -1177,8 +1179,7 @@ class FlextCliOutput:
                         if branch is not None:
                             self._build_tree(branch, item)
 
-                    if isinstance(v, list):
-                        u.Cli.process(v, processor=process_list_item, on_error="skip")
+                    u.Cli.process(v, processor=process_list_item, on_error="skip")
                 else:
                     tree.add(f"{k}{c.Cli.OutputDefaults.TREE_VALUE_SEPARATOR}{v}")
 
@@ -1349,9 +1350,7 @@ class FlextCliOutput:
         writer = csv.DictWriter(output_buffer, fieldnames=fieldnames)
         writer.writeheader()
         filtered_rows = u.filter(data_list, predicate=FlextRuntime.is_dict_like)
-        dict_rows_raw = self.ensure_list(
-            filtered_rows if isinstance(filtered_rows, list) else [], []
-        )
+        dict_rows_raw = self.ensure_list(filtered_rows, [])
         dict_rows: list[dict[str, t.ContainerValue]] = [
             item for item in dict_rows_raw if isinstance(item, dict)
         ]
@@ -1374,7 +1373,10 @@ class FlextCliOutput:
             return r[str].fail(
                 f"Object {type(result).__name__} has no __dict__ attribute"
             )
-        raw_dict: dict[str, t.ContainerValue] = result.__dict__
+        raw_dict_raw = result.__dict__
+        raw_dict: dict[str, t.ContainerValue] = (
+            dict(raw_dict_raw) if isinstance(raw_dict_raw, dict) else {}
+        )
         json_dict_result = u.Cli.process_mapping(
             raw_dict, processor=lambda _k, v: self.to_json(v), on_error="skip"
         )
@@ -1449,7 +1451,7 @@ class FlextCliOutput:
                 FlextRuntime.normalize_to_general_value(item) for item in data
             ]
             dict_items = u.filter(data_list, predicate=FlextRuntime.is_dict_like)
-            if not isinstance(dict_items, list) or len(dict_items) != len(data_list):
+            if len(dict_items) != len(data_list):
                 return r[str].fail(c.Cli.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT)
             filtered_data = [
                 item for item in data_list if FlextRuntime.is_dict_like(item)
@@ -1500,9 +1502,7 @@ class FlextCliOutput:
             return []
         iterable_items: list[t.ContainerValue] = []
         for key, value in data.items():
-            dict_item: t.ContainerValue = (
-                (key, value) if isinstance((key, value), tuple) else str((key, value))
-            )
+            dict_item: t.ContainerValue = (key, value)
             iterable_items.append(dict_item)
         return iterable_items
 
@@ -1535,10 +1535,8 @@ class FlextCliOutput:
         if rows_result.is_failure:
             return r[bool].fail(rows_result.error or "Failed to build rows")
         rows_list = rows_result.value or []
-        if isinstance(rows_list, list):
-            for row in rows_list:
-                if isinstance(row, list):
-                    table.add_row(*row)
+        for row in rows_list:
+            table.add_row(*row)
         return r[bool].ok(value=True)
 
     def _prepare_table_data(

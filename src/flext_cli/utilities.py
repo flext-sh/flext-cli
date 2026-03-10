@@ -386,29 +386,27 @@ class FlextCliUtilities(FlextUtilities):
                     )
                 return lines
 
-        class FileOps:
-            """File operations."""
+        FILE_NOT_FOUND_PATTERNS: tuple[str, ...] = (
+            "not found",
+            "no such file",
+            "does not exist",
+            "errno 2",
+            "cannot open",
+        )
 
-            FILE_NOT_FOUND_PATTERNS: tuple[str, ...] = (
-                "not found",
-                "no such file",
-                "does not exist",
-                "errno 2",
-                "cannot open",
+        @staticmethod
+        def is_file_not_found_error(error_msg: str) -> bool:
+            """Check if error message indicates file not found."""
+            return FlextCliUtilities.Cli.matches(
+                error_msg,
+                *FlextCliUtilities.Cli.FILE_NOT_FOUND_PATTERNS,
             )
 
-            @staticmethod
-            def is_file_not_found_error(error_msg: str) -> bool:
-                """Check if error message indicates file not found."""
-                return FlextCliUtilities.Cli.FileOps.matches(
-                    error_msg, *FlextCliUtilities.Cli.FileOps.FILE_NOT_FOUND_PATTERNS
-                )
-
-            @staticmethod
-            def matches(msg: str, *patterns: str) -> bool:
-                """Check if message matches any pattern."""
-                text = msg.lower()
-                return any(pattern.lower() in text for pattern in patterns)
+        @staticmethod
+        def matches(msg: str, *patterns: str) -> bool:
+            """Check if message matches any pattern."""
+            text = msg.lower()
+            return any(pattern.lower() in text for pattern in patterns)
 
         class TypeNormalizer:
             """Type normalization utilities."""

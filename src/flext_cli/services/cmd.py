@@ -199,7 +199,8 @@ class FlextCliCmd(FlextCliServiceBase):
                 )
             if isinstance(config_data, Mapping):
                 normalized: dict[str, t.JsonValue] = {
-                    str(k): FlextCliOutput.norm_json(v) for k, v in config_data.items()
+                    str(k): m.Cli.normalize_to_json_value(v)
+                    for k, v in config_data.items()
                 }
             else:
                 normalized = {}
@@ -217,9 +218,10 @@ class FlextCliCmd(FlextCliServiceBase):
                     "timestamp"
                 ),
             }
-            result_data: dict[str, t.JsonValue] = dict(
-                FlextCliOutput.to_dict_json(raw_data)
-            )
+            result_data: dict[str, t.JsonValue] = {
+                str(k): m.Cli.normalize_to_json_value(v)
+                for k, v in FlextCliOutput.to_dict_json(raw_data).items()
+            }
             return r[Mapping[str, t.JsonValue]].ok(result_data)
         except (
             ValueError,

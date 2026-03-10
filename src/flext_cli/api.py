@@ -251,7 +251,7 @@ class FlextCli:
         if isinstance(data, Mapping):
             table_data: list[Mapping[str, t.JsonValue]] = [dict(data.items())]
         elif isinstance(data, (list, tuple)):
-            table_data = [x for x in data if isinstance(x, Mapping)]
+            table_data = list(data)
         else:
             table_data = []
         table_config = m.Cli.TableConfig(
@@ -402,7 +402,7 @@ class FlextCli:
 
     def _handle_token_file_error(self, error_str: str) -> r[str]:
         """Handle file read error during token loading."""
-        if u.Cli.FileOps.is_file_not_found_error(error_str):
+        if u.Cli.is_file_not_found_error(error_str):
             return r[str].fail(c.Cli.ErrorMessages.TOKEN_FILE_NOT_FOUND)
         return r[str].fail(
             c.Cli.ErrorMessages.TOKEN_LOAD_FAILED.format(error=error_str)

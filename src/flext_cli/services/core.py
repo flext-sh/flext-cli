@@ -192,13 +192,11 @@ class FlextCliCore(FlextCliServiceBase):
             profiles_section_raw: dict[str, t.JsonValue] = {}
             if isinstance(profiles_value, dict):
                 profiles_section_raw = {
-                    str(key): FlextCliOutput.norm_json(value)
+                    str(key): m.Cli.normalize_to_json_value(value)
                     for key, value in profiles_value.items()
                 }
-            profiles_section_raw_typed: dict[str, t.JsonValue] = (
-                dict(profiles_section_raw)
-                if isinstance(profiles_section_raw, dict)
-                else {}
+            profiles_section_raw_typed: dict[str, t.JsonValue] = dict(
+                profiles_section_raw
             )
             profiles_section_raw_typed[name] = profile_config
             config[c.Cli.DictKeys.PROFILES] = profiles_section_raw_typed
@@ -417,7 +415,7 @@ class FlextCliCore(FlextCliServiceBase):
                 c.Cli.DictKeys.COMMAND: name,
                 c.Cli.DictKeys.STATUS: True,
                 c.Cli.DictKeys.TIMESTAMP: FlextCliUtilities.generate("timestamp"),
-                c.Cli.DictKeys.TIMEOUT: timeout,
+                c.Cli.DictKeys.TIMEOUT: timeout if timeout is not None else 0.0,
                 c.Cli.DictKeys.CONTEXT: dict(execution_context),
             }
             FlextLogger(__name__).info(
@@ -653,7 +651,7 @@ class FlextCliCore(FlextCliServiceBase):
         return r[list[str]].ok(result.value or [])
 
     @override
-    def get_service_info(self) -> Mapping[str, t.Scalar | None]:
+    def get_service_info(self) -> Mapping[str, t.Scalar]:
         """Get comprehensive service information.
 
         Returns:
@@ -664,7 +662,7 @@ class FlextCliCore(FlextCliServiceBase):
             commands_count = len(self._commands)
             config_keys = list(self._cli_config.keys())
             config_keys_list: list[str] = list(config_keys) if config_keys else []
-            info_data: dict[str, t.Scalar | None] = {
+            info_data: dict[str, t.Scalar] = {
                 c.Cli.DictKeys.SERVICE: c.Cli.FLEXT_CLI,
                 c.Cli.CoreServiceDictKeys.COMMANDS_REGISTERED: commands_count,
                 c.Cli.CoreServiceDictKeys.CONFIGURATION_SECTIONS: ",".join(
@@ -942,7 +940,7 @@ class FlextCliCore(FlextCliServiceBase):
                 object.__setattr__(
                     self,
                     "_session_config",
-                    dict(session_config) if isinstance(session_config, Mapping) else {},
+                    dict(session_config),
                 )
             else:
                 object.__setattr__(self, "_session_config", {})
@@ -988,9 +986,10 @@ class FlextCliCore(FlextCliServiceBase):
             operation="update_configuration",
             config_type=type(config).__name__,
         )
-        validated_config_input: dict[str, t.JsonValue] = dict(
-            FlextCliOutput.to_dict_json(config)
-        )
+        validated_config_input: dict[str, t.JsonValue] = {
+            str(key): m.Cli.normalize_to_json_value(value)
+            for key, value in FlextCliOutput.to_dict_json(config).items()
+        }
         config_result = self._validate_config_input(validated_config_input)
         if config_result.is_failure:
             return r[bool].fail(
@@ -1007,7 +1006,9 @@ class FlextCliCore(FlextCliServiceBase):
 
         def list_processor(seq: Sequence[str]) -> list[t.JsonValue]:
             process_result = FlextCliUtilities.process(
-                list(seq), processor=FlextCliOutput.norm_json, on_error="skip"
+                list(seq),
+                processor=m.Cli.normalize_to_json_value,
+                on_error="skip",
             )
             return list(process_result.value or [])
 
@@ -1109,7 +1110,11 @@ class FlextCliCore(FlextCliServiceBase):
             config_keys=list(config.keys()),
         )
         json_config = FlextCliOutput.to_dict_json(config)
-        return r[Mapping[str, t.JsonValue]].ok(json_config)
+        normalized_json_config: dict[str, t.JsonValue] = {
+            str(key): m.Cli.normalize_to_json_value(value)
+            for key, value in json_config.items()
+        }
+        return r[Mapping[str, t.JsonValue]].ok(normalized_json_config)
 
     def _validate_existing_config(self) -> r[Mapping[str, t.JsonValue]]:
         """Validate existing configuration state."""
