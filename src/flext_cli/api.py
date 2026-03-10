@@ -189,11 +189,12 @@ class FlextCli:
     @staticmethod
     def validate_credentials(username: str, password: str) -> r[bool]:
         """Validate credentials using Pydantic 2."""
-        try:
-            _ = m.Cli.PasswordAuth(username=username, password=password)
-            return r[bool].ok(value=True)
-        except (ValidationError, ValueError) as e:
-            return r[bool].fail(str(e))
+        validation_result = u.try_(
+            lambda: m.Cli.PasswordAuth(username=username, password=password)
+        ).map_error(str)
+        if validation_result.is_failure:
+            return r[bool].fail(validation_result.error or "")
+        return r[bool].ok(value=True)
 
     def authenticate(
         self, credentials: m.Cli.PasswordAuth | m.Cli.TokenData | Mapping[str, str]
@@ -204,20 +205,22 @@ class FlextCli:
         if isinstance(credentials, m.Cli.PasswordAuth):
             return self._authenticate_with_credentials(credentials)
         if c.Cli.DictKeys.TOKEN in credentials:
-            try:
-                token_data = m.Cli.TokenData.model_validate(dict(credentials))
-            except (ValidationError, ValueError) as e:
-                return r[str].fail(str(e))
-            return self._authenticate_with_token(token_data)
+            token_data_result = u.try_(
+                lambda: m.Cli.TokenData.model_validate(dict(credentials))
+            ).map_error(str)
+            if token_data_result.is_failure:
+                return r[str].fail(token_data_result.error or "")
+            return self._authenticate_with_token(token_data_result.value)
         if (
             c.Cli.DictKeys.USERNAME in credentials
             and c.Cli.DictKeys.PASSWORD in credentials
         ):
-            try:
-                password_auth = m.Cli.PasswordAuth.model_validate(dict(credentials))
-            except (ValidationError, ValueError) as e:
-                return r[str].fail(str(e))
-            return self._authenticate_with_credentials(password_auth)
+            password_auth_result = u.try_(
+                lambda: m.Cli.PasswordAuth.model_validate(dict(credentials))
+            ).map_error(str)
+            if password_auth_result.is_failure:
+                return r[str].fail(password_auth_result.error or "")
+            return self._authenticate_with_credentials(password_auth_result.value)
         return r[str].fail(c.Cli.ErrorMessages.INVALID_CREDENTIALS)
 
     def clear_auth_tokens(self) -> r[bool]:
@@ -250,8 +253,12 @@ class FlextCli:
             return r[str].fail("Table data cannot be None")
         if isinstance(data, Mapping):
             table_data: list[Mapping[str, t.JsonValue]] = [dict(data.items())]
-        elif isinstance(data, (list, tuple)):
-            table_data = list(data)
+        elif isinstance(data, list):
+            table_data = data
+        elif isinstance(data, tuple):
+            table_data = []
+            for row in data:
+                table_data.append(row)
         else:
             table_data = []
         table_config = m.Cli.TableConfig(

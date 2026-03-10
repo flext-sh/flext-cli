@@ -71,24 +71,24 @@ class FlextCliCmd(FlextCliServiceBase):
     @staticmethod
     def get_config_info() -> r[m.Cli.ConfigSnapshot]:
         """Get configuration information using FlextCliUtilities directly."""
-        try:
-            snapshot = FlextCliUtilities.Cli.ConfigOps.get_config_info()
-            return r[m.Cli.ConfigSnapshot].ok(snapshot)
-        except (OSError, ValueError, TypeError, RuntimeError, KeyError) as e:
-            return r[m.Cli.ConfigSnapshot].fail(
-                FlextCliConstants.Cli.ErrorMessages.CONFIG_INFO_FAILED.format(error=e)
+        return FlextCliUtilities.try_(
+            FlextCliUtilities.Cli.ConfigOps.get_config_info
+        ).map_error(
+            lambda e: FlextCliConstants.Cli.ErrorMessages.CONFIG_INFO_FAILED.format(
+                error=e
             )
+        )
 
     @staticmethod
     def show_config_paths() -> r[list[str]]:
         """Show configuration paths using FlextCliUtilities directly."""
-        try:
-            paths = FlextCliUtilities.Cli.ConfigOps.get_config_paths()
-            return r[list[str]].ok(paths)
-        except (OSError, ValueError, TypeError, RuntimeError) as e:
-            return r[list[str]].fail(
-                FlextCliConstants.Cli.ErrorMessages.CONFIG_PATHS_FAILED.format(error=e)
+        return FlextCliUtilities.try_(
+            FlextCliUtilities.Cli.ConfigOps.get_config_paths
+        ).map_error(
+            lambda e: FlextCliConstants.Cli.ErrorMessages.CONFIG_PATHS_FAILED.format(
+                error=e
             )
+        )
 
     def edit_config(self) -> r[str]:
         """Edit configuration using Pydantic validation - no wrappers."""

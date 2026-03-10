@@ -3,13 +3,9 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping, Sequence
-from typing import TypeAlias, TypeVar
+from typing import TypeAlias
 
 from flext_core import FlextTypes
-
-from flext_cli.settings import FlextCliSettings
-
-SettingsT = TypeVar("SettingsT", bound=FlextCliSettings)
 
 
 class FlextCliTypes(FlextTypes):

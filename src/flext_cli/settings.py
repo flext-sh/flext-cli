@@ -12,7 +12,7 @@ import json
 from pathlib import Path
 
 import yaml
-from flext_core import FlextLogger, FlextSettings, r
+from flext_core import FlextLogger, FlextSettings, FlextUtilities, r
 from pydantic import Field, TypeAdapter, ValidationError, computed_field
 
 from flext_cli import c, t
@@ -62,6 +62,10 @@ class FlextCliSettings(FlextSettings):
     cli_timeout: float = Field(default=30.0, gt=0, description="CLI timeout seconds")
     max_width: int = Field(default=120, ge=40, le=200, description="Max output width")
 
+    @classmethod
+    def get_instance(cls) -> FlextCliSettings:
+        return cls.get_global()
+
     @computed_field
     @property
     def auto_output_format(self) -> str:
@@ -100,14 +104,15 @@ class FlextCliSettings(FlextSettings):
 
     def save_config(self, data: t.JsonDict) -> r[bool]:
         """Apply config updates from dict."""
-        try:
+
+        def _apply_updates() -> bool:
             updated = self.model_copy(update=data)
             for key in data:
                 if hasattr(self, key):
                     setattr(self, key, getattr(updated, key))
-            return r[bool].ok(value=True)
-        except (ValueError, TypeError) as e:
-            return r[bool].fail(str(e))
+            return True
+
+        return FlextUtilities.try_(_apply_updates).map_error(str)
 
     def update_from_cli_args(self, **kwargs: t.JsonValue) -> r[bool]:
         """Update config from CLI args."""
