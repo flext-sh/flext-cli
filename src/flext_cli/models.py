@@ -797,14 +797,16 @@ class FlextCliModels(FlextModels):
             @classmethod
             def validate_command_input(
                 cls,
-                data: Mapping[str, t.JsonValue] | Self,
-            ) -> r[Self]:
+                data: Mapping[str, t.JsonValue] | FlextCliModels.Cli.CliCommand,
+            ) -> r[FlextCliModels.Cli.CliCommand]:
                 """Validate command input data."""
                 if not isinstance(data, Mapping) and not isinstance(data, cls):
-                    return r[Self].fail("Input must be a dictionary")
+                    return r.fail("Input must be a dictionary").map(
+                        lambda _unused: cls.model_construct(name="invalid")
+                    )
                 try:
                     command = cls.model_validate(data)
-                    return r[Self].ok(command)
+                    return r.ok(command)
                 except (
                     ValueError,
                     TypeError,
@@ -813,7 +815,9 @@ class FlextCliModels(FlextModels):
                     StyleError,
                     LiveError,
                 ) as e:
-                    return r[Self].fail(f"Validation failed: {e}")
+                    return r.fail(f"Validation failed: {e}").map(
+                        lambda _unused: cls.model_construct(name="invalid")
+                    )
 
             def complete_execution(self, exit_code: int) -> r[Self]:
                 """Complete command execution with exit code."""
@@ -821,7 +825,7 @@ class FlextCliModels(FlextModels):
                     updated = self.model_copy(
                         update={"status": "completed", "exit_code": exit_code},
                     )
-                    return r[Self].ok(updated)
+                    return r.ok(updated)
                 except (
                     ValueError,
                     TypeError,
@@ -830,7 +834,9 @@ class FlextCliModels(FlextModels):
                     StyleError,
                     LiveError,
                 ) as e:
-                    return r[Self].fail(f"Failed to complete execution: {e}")
+                    return r.fail(f"Failed to complete execution: {e}").map(
+                        lambda _unused: self
+                    )
 
             def execute(
                 self,
@@ -853,7 +859,7 @@ class FlextCliModels(FlextModels):
                 """Start command execution - update status to running."""
                 try:
                     updated = self.model_copy(update={"status": "running"})
-                    return r[Self].ok(updated)
+                    return r.ok(updated)
                 except (
                     ValueError,
                     TypeError,
@@ -862,7 +868,9 @@ class FlextCliModels(FlextModels):
                     StyleError,
                     LiveError,
                 ) as e:
-                    return r[Self].fail(f"Failed to start execution: {e}")
+                    return r.fail(f"Failed to start execution: {e}").map(
+                        lambda _unused: self
+                    )
 
             def update_status(self, status: str) -> Self:
                 """Update command status."""
@@ -950,7 +958,7 @@ class FlextCliModels(FlextModels):
                 try:
                     updated_commands = list(self.commands) + [command]
                     updated_session = self._copy_with_update(commands=updated_commands)
-                    return r[Self].ok(updated_session)
+                    return r.ok(updated_session)
                 except (
                     ValueError,
                     TypeError,
@@ -959,7 +967,9 @@ class FlextCliModels(FlextModels):
                     StyleError,
                     LiveError,
                 ) as e:
-                    return r[Self].fail(f"Failed to add command: {e}")
+                    return r.fail(f"Failed to add command: {e}").map(
+                        lambda _unused: self
+                    )
 
             def commands_by_status(
                 self,
@@ -1695,7 +1705,7 @@ class FlextCliModels(FlextModels):
                 # Extract option metadata from registry using direct dict access
                 help_text = str(field_meta.get("help", ""))
                 short_flag = str(field_meta.get("short", ""))
-                default_value = field_meta.get("default")
+                default_value = field_meta.get("default", ...)
 
                 # Use field_name_override if available, otherwise use field_name
                 # Registry uses KEY_FIELD_NAME_OVERRIDE to map CLI param name to field name
@@ -2422,22 +2432,26 @@ class FlextCliModels(FlextModels):
                 defaults: Mapping[str, t.JsonValue],
                 fields_with_factory: set[str],
             ) -> p.Cli.CliCommandWrapper:
-                signature_parameters: list[inspect.Parameter] = []
+                required_parameters: list[inspect.Parameter] = []
+                defaulted_parameters: list[inspect.Parameter] = []
                 for field_name, field_type in annotations.items():
-                    default_value = inspect.Parameter.empty
                     has_default = (
                         field_name in defaults and field_name not in fields_with_factory
                     )
-                    if has_default:
-                        default_value = defaults[field_name]
-                    signature_parameters.append(
-                        inspect.Parameter(
-                            name=field_name,
-                            kind=inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                            default=default_value,
-                            annotation=field_type,
-                        )
+                    default_value = (
+                        defaults[field_name] if has_default else inspect.Parameter.empty
                     )
+                    parameter = inspect.Parameter(
+                        name=field_name,
+                        kind=inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                        default=default_value,
+                        annotation=field_type,
+                    )
+                    if has_default:
+                        defaulted_parameters.append(parameter)
+                    else:
+                        required_parameters.append(parameter)
+                signature_parameters = required_parameters + defaulted_parameters
                 command_signature = inspect.Signature(parameters=signature_parameters)
 
                 def command_wrapper(

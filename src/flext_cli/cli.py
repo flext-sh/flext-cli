@@ -385,7 +385,8 @@ class FlextCliCli:
                 raise TypeError(msg)
             result = handler(model)
             if result is None:
-                return {}
+                empty_result: t.JsonValue = {}
+                return empty_result
             is_success = getattr(result, "is_success", None)
             if is_success is True:
                 return FlextCliCli._to_json_value(getattr(result, "value", None))
@@ -435,13 +436,13 @@ class FlextCliCli:
             prompt_type: (
                 click.ParamType | type | tuple[type | click.ParamType, ...] | None
             )
-            if isinstance(type_hint_value, click.ParamType | type):
+            if isinstance(type_hint_value, (click.ParamType, type)):
                 prompt_type = type_hint_value
             elif isinstance(type_hint_value, tuple):
                 tuple_type_hints = tuple(
                     item
                     for item in type_hint_value
-                    if isinstance(item, click.ParamType | type)
+                    if isinstance(item, (click.ParamType, type))
                 )
                 prompt_type = tuple_type_hints or None
             else:
