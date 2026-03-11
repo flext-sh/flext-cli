@@ -21,7 +21,7 @@ from typing import (
 )
 
 import typer
-from flext_core import FlextLogger, FlextModels, FlextResult, r
+from flext_core import FlextLogger, FlextModels, r
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -2557,7 +2557,7 @@ class FlextCliModels(FlextModels):
                     # BaseModel.model_validate exists but mypy needs explicit access
                     model_validate_method = model_cls.model_validate
                     model_instance = model_validate_method(cli_args_dict)
-                    return FlextResult[BaseModel].ok(model_instance)
+                    return r[BaseModel].ok(model_instance)
                 except (
                     ValueError,
                     TypeError,
@@ -2566,9 +2566,7 @@ class FlextCliModels(FlextModels):
                     StyleError,
                     LiveError,
                 ) as e:
-                    return FlextResult[BaseModel].fail(
-                        f"Failed to create model instance: {e}"
-                    )
+                    return r[BaseModel].fail(f"Failed to create model instance: {e}")
 
             @staticmethod
             def extract_base_props(
@@ -2601,7 +2599,7 @@ class FlextCliModels(FlextModels):
                 field_name: str,
                 field_info: FieldInfo | t.JsonValue,
                 types: Mapping[str, type | str] | None = None,
-            ) -> FlextResult[Mapping[str, t.JsonValue]]:
+            ) -> r[Mapping[str, t.JsonValue]]:
                 """Extract properties from Pydantic field info."""
                 try:
                     props = FlextCliModels.Cli.CliModelConverter.extract_base_props(
@@ -2625,7 +2623,7 @@ class FlextCliModels(FlextModels):
                             props,
                             field_info,
                         )
-                    return FlextResult.ok(props)
+                    return r.ok(props)
                 except (
                     ValueError,
                     TypeError,
@@ -2634,7 +2632,7 @@ class FlextCliModels(FlextModels):
                     StyleError,
                     LiveError,
                 ) as e:
-                    return FlextResult[Mapping[str, t.JsonValue]].fail(
+                    return r[Mapping[str, t.JsonValue]].fail(
                         f"Extraction failed: {e}",
                     )
 
@@ -2642,7 +2640,7 @@ class FlextCliModels(FlextModels):
             def field_to_cli_param(
                 field_name: str,
                 field_info: FieldInfo | t.JsonValue,
-            ) -> FlextResult[p.Cli.CliParameterSpecProtocol]:
+            ) -> r[p.Cli.CliParameterSpecProtocol]:
                 """Convert Pydantic field to CLI parameter specification."""
                 try:
                     annotation = (
@@ -2661,7 +2659,7 @@ class FlextCliModels(FlextModels):
                         else ""
                     )
                     if annotation is None:
-                        return FlextResult[p.Cli.CliParameterSpecProtocol].fail(
+                        return r[p.Cli.CliParameterSpecProtocol].fail(
                             f"Field {field_name} has no type annotation",
                         )
                     field_type = annotation
@@ -2688,7 +2686,7 @@ class FlextCliModels(FlextModels):
                         default=default,
                         help_text=help_text,
                     )
-                    return FlextResult[p.Cli.CliParameterSpecProtocol].ok(spec)
+                    return r[p.Cli.CliParameterSpecProtocol].ok(spec)
                 except (
                     ValueError,
                     TypeError,
@@ -2697,7 +2695,7 @@ class FlextCliModels(FlextModels):
                     StyleError,
                     LiveError,
                 ) as e:
-                    return FlextResult[p.Cli.CliParameterSpecProtocol].fail(
+                    return r[p.Cli.CliParameterSpecProtocol].fail(
                         f"Field conversion failed: {e}"
                     )
 
@@ -2858,7 +2856,7 @@ class FlextCliModels(FlextModels):
             @staticmethod
             def model_to_cli_params(
                 model_cls: type[BaseModel],
-            ) -> FlextResult[list[p.Cli.CliParameterSpecProtocol]]:
+            ) -> r[list[p.Cli.CliParameterSpecProtocol]]:
                 """Convert Pydantic model to list of CLI parameter specifications."""
                 try:
 
@@ -2907,9 +2905,7 @@ class FlextCliModels(FlextModels):
                             for field_name, field_info in model_cls.model_fields.items()
                         }
                         params_list = list(params_dict.values())
-                        return FlextResult[list[p.Cli.CliParameterSpecProtocol]].ok(
-                            params_list
-                        )
+                        return r[list[p.Cli.CliParameterSpecProtocol]].ok(params_list)
                     except (
                         ValueError,
                         TypeError,
@@ -2918,7 +2914,7 @@ class FlextCliModels(FlextModels):
                         StyleError,
                         LiveError,
                     ) as e:
-                        return FlextResult[list[p.Cli.CliParameterSpecProtocol]].fail(
+                        return r[list[p.Cli.CliParameterSpecProtocol]].fail(
                             f"Conversion failed: {e}"
                         )
                 except (
@@ -2929,14 +2925,14 @@ class FlextCliModels(FlextModels):
                     StyleError,
                     LiveError,
                 ) as e:
-                    return FlextResult[list[p.Cli.CliParameterSpecProtocol]].fail(
+                    return r[list[p.Cli.CliParameterSpecProtocol]].fail(
                         f"Conversion failed: {e}"
                     )
 
             @staticmethod
             def model_to_click_options(
                 model_cls: type[BaseModel],
-            ) -> FlextResult[list[t.JsonValue]]:
+            ) -> r[list[t.JsonValue]]:
                 """Convert Pydantic model to list of Click options."""
                 params_result = (
                     FlextCliModels.Cli.CliModelConverter.model_to_cli_params(
@@ -2944,7 +2940,7 @@ class FlextCliModels(FlextModels):
                     )
                 )
                 if params_result.is_failure:
-                    return FlextResult[list[t.JsonValue]].fail(
+                    return r[list[t.JsonValue]].fail(
                         params_result.error or "Conversion failed"
                     )
                 # After is_failure check, params_result.value is guaranteed to be the value
@@ -2971,7 +2967,7 @@ class FlextCliModels(FlextModels):
                         "help": param.help,  # CliParameterSpec stores as .help, not .help_text
                     }
                     options.append(option_obj_dict)
-                return FlextResult[list[t.JsonValue]].ok(options)
+                return r[list[t.JsonValue]].ok(options)
 
             @staticmethod
             def process_metadata_list(
@@ -3117,7 +3113,7 @@ class FlextCliModels(FlextModels):
                     | t.ConfigurationMapping
                 ),
                 data: Mapping[str, t.JsonValue] | None = None,
-            ) -> FlextResult[t.JsonValue]:
+            ) -> r[t.JsonValue]:
                 """Validate field data against field info."""
                 try:
                     if isinstance(field_info, Mapping):
@@ -3130,11 +3126,9 @@ class FlextCliModels(FlextModels):
                         )
                     if data is not None:
                         if field_name not in data:
-                            return FlextResult[t.JsonValue].fail(
-                                f"Field {field_name} not found"
-                            )
-                        return FlextResult[t.JsonValue].ok(data[field_name])
-                    return FlextResult[t.JsonValue].fail(
+                            return r[t.JsonValue].fail(f"Field {field_name} not found")
+                        return r[t.JsonValue].ok(data[field_name])
+                    return r[t.JsonValue].fail(
                         "No data provided for validation",
                     )
                 except (
@@ -3145,14 +3139,14 @@ class FlextCliModels(FlextModels):
                     StyleError,
                     LiveError,
                 ) as e:
-                    return FlextResult[t.JsonValue].fail(
+                    return r[t.JsonValue].fail(
                         f"Validation failed: {e}",
                     )
 
             @staticmethod
             def convert_field_value(
                 field_value: t.ContainerValue,
-            ) -> FlextResult[t.JsonValue]:
+            ) -> r[t.JsonValue]:
                 """Convert field value to t.JsonValue.
 
                 models.py cannot use utilities - use direct conversion instead.
@@ -3164,20 +3158,20 @@ class FlextCliModels(FlextModels):
                     json_value = FlextCliModels.Cli.CliModelConverter.JSON_VALUE_ADAPTER.validate_python(
                         field_value,
                     )
-                    return FlextResult[t.JsonValue].ok(json_value)
+                    return r[t.JsonValue].ok(json_value)
                 except ValidationError as exc:
                     _logger.debug(
                         "convert_field_value validation fallback: %s",
                         exc,
                         exc_info=False,
                     )
-                    return FlextResult[t.JsonValue].ok(str(field_value))
+                    return r[t.JsonValue].ok(str(field_value))
 
             @staticmethod
             def validate_dict_field_data(
                 field_name: str,
                 field_data: Mapping[str, t.ContainerValue],
-            ) -> FlextResult[t.JsonValue]:
+            ) -> r[t.JsonValue]:
                 """Validate field data when field_info is a dict/Mapping."""
                 schema_result = (
                     FlextCliModels.Cli.CliModelConverter.validate_field_schema(
@@ -3185,7 +3179,7 @@ class FlextCliModels(FlextModels):
                     )
                 )
                 if schema_result.is_failure:
-                    return FlextResult[t.JsonValue].fail(
+                    return r[t.JsonValue].fail(
                         schema_result.error or "Schema validation failed",
                     )
                 field_value = field_data.get(field_name, None)
@@ -3196,7 +3190,7 @@ class FlextCliModels(FlextModels):
             @staticmethod
             def validate_field_schema(
                 field_data: Mapping[str, t.ContainerValue],
-            ) -> FlextResult[bool]:
+            ) -> r[bool]:
                 """Validate field data schema against rules."""
                 for (
                     field_key,
@@ -3206,10 +3200,10 @@ class FlextCliModels(FlextModels):
                     if field_key in field_data:
                         value = field_data[field_key]
                         if not check_func(value):
-                            return FlextResult[bool].fail(
+                            return r[bool].fail(
                                 f"Invalid {field_key}: {value} (expected {type_name})",
                             )
-                return FlextResult[bool].ok(True)
+                return r[bool].ok(True)
 
         class CliModelDecorators:
             """Decorators for creating CLI commands from Pydantic models."""
@@ -3245,7 +3239,7 @@ class FlextCliModels(FlextModels):
                             result = func(model_instance)
                             # Convert result to t.JsonValue if needed
                             output: t.JsonValue
-                            if isinstance(result, FlextResult):
+                            if isinstance(result, r):
                                 if result.is_success:
                                     output = FlextCliModels.Cli.CliModelDecorators.normalize_output(
                                         result.value,
@@ -3314,7 +3308,7 @@ class FlextCliModels(FlextModels):
             @staticmethod
             def normalize_output(value: t.ContainerValue) -> t.JsonValue:
                 """Normalize any value to JsonValue."""
-                normalized: FlextResult[t.JsonValue] = (
+                normalized: r[t.JsonValue] = (
                     FlextCliModels.Cli.CliModelConverter.convert_field_value(value)
                 )
                 if normalized.is_success:

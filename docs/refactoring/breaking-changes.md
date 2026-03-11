@@ -407,7 +407,7 @@ ______________________________________________________________________
 | ------------------ | ----------- | ----------- | --------------- |
 | Python 3.13+       | ✅ Required | ✅ Required | ✅ Yes          |
 | flext-core         | ✅ v0.9.x   | ✅ v0.9.x+  | ✅ Yes          |
-| FlextResult[T]     | ✅          | ✅          | ✅ Yes          |
+| r[T]     | ✅          | ✅          | ✅ Yes          |
 | Railway Pattern    | ✅          | ✅          | ✅ Yes          |
 | Type Safety        | ✅          | ✅          | ✅ Yes          |
 | API Wrappers       | ✅          | ❌ Removed  | ❌ No           |

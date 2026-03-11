@@ -25,7 +25,7 @@ class FlextCliGettingStarted:
     - Styled console output with Rich integration
     - Table formatting with tabulate and Rich
     - File I/O with JSON, YAML, CSV support
-    - Railway-oriented error handling (FlextResult)
+    - Railway-oriented error handling (r)
     - Configuration management patterns
     - Interactive user prompts
 
@@ -78,7 +78,7 @@ class FlextCliGettingStarted:
         )
 
     def process_data_with_flext_result(self) -> None:
-        """Use FlextResult pattern in YOUR code - no try/except needed."""
+        """Use r pattern in YOUR code - no try/except needed."""
         nonexistent_file = str(Path(tempfile.gettempdir()) / "nonexistent.json")
         result = self.cli.file_tools.read_json_dict(nonexistent_file)
         if result.is_success:

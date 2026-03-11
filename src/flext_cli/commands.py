@@ -69,7 +69,7 @@ class FlextCliCommands(FlextCliServiceBase):
     def _normalize_handler_result(
         result: r[t.JsonValue] | None, command_name: str
     ) -> r[t.JsonValue]:
-        """Normalize handler output to FlextResult."""
+        """Normalize handler output to r."""
         if result is None:
             return r[t.JsonValue].ok({"status": "success", "command": command_name})
         if result.is_success:

@@ -15,13 +15,13 @@ WHEN TO USE THIS PATTERN IN YOUR CLI:
 
 WHAT YOU CAN BUILD USING THIS PATTERN:
 - Custom interactive shell for YOUR application
-- Command dispatcher with FlextResult integration
+- Command dispatcher with r integration
 - Command history tracking
 - Multi-line input support
 - Auto-completion for YOUR commands
 
 HOW TO IMPLEMENT IN YOUR CLI:
-Use flext-cli foundation (FlextResult, FlextCli) + prompt_toolkit library
+Use flext-cli foundation (r, FlextCli) + prompt_toolkit library
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -197,7 +197,7 @@ def main() -> None:
     cli.print("  ✅ Shell Interaction Examples Complete", style="bold green")
     cli.print("=" * 70, style="bold blue")
     cli.print("\n💡 Integration Tips:", style="bold cyan")
-    cli.print("  • Create command handlers with FlextResult returns", style="white")
+    cli.print("  • Create command handlers with r returns", style="white")
     cli.print("  • Build command dispatcher to route user input", style="white")
     cli.print("  • Add command history for better UX", style="white")
     cli.print("  • Support multi-line input for complex commands", style="white")

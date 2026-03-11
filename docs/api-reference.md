@@ -18,7 +18,7 @@
 Referência alinhada ao código-fonte do **flext-cli** 0.10.0. Última revisão: 2025-02-06.
 
 - **Facade**: `FlextCli` expõe serviços e utilidades como atributos e mantém wrappers de conveniência (`print`, `create_table`, `create_tree`).
-- **Resultados**: todas as operações retornam `FlextResult[T]` para composições seguras.
+- **Resultados**: todas as operações retornam `r[T]` para composições seguras.
 - **Isolamento de frameworks**: Typer/Click apenas em `cli.py`; Rich/Tabulate restritos a `formatters.py` e `services/tables.py`.
 
 ## Imports essenciais
@@ -37,7 +37,7 @@ from flext_cli import (
     FlextCliModels,  # Modelos Pydantic
     FlextCliConstants,  # Constantes compartilhadas
 )
-from flext_core import FlextResult
+from flext_core import r
 ```
 
 ## Facade `FlextCli`
@@ -120,7 +120,7 @@ Use este arquivo em conjunto com `docs/architecture.md` para compreender as fron
 **Across Projects**:
 
 - [flext-core Foundation](https://github.com/organization/flext/tree/main/flext-core/docs/api-reference/foundation.md) - Core APIs and patterns
-- [flext-core Railway-Oriented Programming](https://github.com/organization/flext/tree/main/flext-core/docs/guides/railway-oriented-programming.md) - FlextResult patterns
+- [flext-core Railway-Oriented Programming](https://github.com/organization/flext/tree/main/flext-core/docs/guides/railway-oriented-programming.md) - r patterns
 
 **External Resources**:
 

@@ -536,6 +536,21 @@ extraPaths = [
 pythonPlatform = "Linux"
 pythonVersion = "3.13"
 typeCheckingMode = "strict"
+reportMissingImports = "error"
+reportMissingModuleSource = "error"
+reportMissingTypeStubs = "warning"
+reportUnusedImport = "error"
+reportUnusedVariable = "error"
+reportUnusedClass = "error"
+reportUnusedFunction = "error"
+reportConstantRedefinition = "error"
+reportIncompatibleMethodOverride = "error"
+reportIncompatibleVariableOverride = "error"
+reportInconsistentConstructor = "error"
+reportUnnecessaryIsInstance = "warning"
+reportUnnecessaryCast = "error"
+reportUnnecessaryComparison = "warning"
+reportPrivateUsage = "warning"
 
 [[tool.pyright.executionEnvironments]]
 reportPrivateUsage = "error"
@@ -564,6 +579,7 @@ preserve_quotes = true
 section_whitelines = 1
 whitelines = 1
 
+
 [tool.pytest.ini_options]
 addopts = [ "--strict-markers" ]
 markers = [
@@ -587,3 +603,10 @@ enable_assertion_pass_hook = true
 
 # [CUSTOM] poetry dev extensions
 # [MANAGED] pyrefly
+
+
+[tool.coverage.report]
+fail_under = 15
+show_missing = true
+skip_covered = false
+precision = 2

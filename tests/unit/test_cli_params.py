@@ -2,7 +2,7 @@
 
 Tests for FlextCliCommonParams using Railway-oriented programming patterns.
 Zero fallbacks, mocks, or state manipulation. Pure functional testing with
-FlextResult[T] patterns and Python 3.13 advanced features.
+r[T] patterns and Python 3.13 advanced features.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -118,7 +118,7 @@ def create_decorated_command(
 class TestsCliCommonParams:
     """Railway-oriented tests for FlextCliCommonParams - zero fallbacks or state manipulation.
 
-    Tests use pure functional patterns with FlextResult[T] for all operations.
+    Tests use pure functional patterns with r[T] for all operations.
     No mocks, no state manipulation, no environment variable changes.
     """
 

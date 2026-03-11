@@ -16,11 +16,11 @@ WHEN TO USE THIS PATTERN IN YOUR CLI:
 WHAT YOU CAN BUILD USING THIS PATTERN:
 - Custom plugin classes for YOUR application
 - Plugin manager for YOUR CLI
-- FlextResult integration for error handling
+- r integration for error handling
 - Lifecycle hooks (initialize, execute, cleanup)
 
 HOW TO IMPLEMENT IN YOUR CLI:
-Use flext-cli foundation (FlextResult, FlextCli) to build plugin architecture
+Use flext-cli foundation (r, FlextCli) to build plugin architecture
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -258,7 +258,7 @@ def main() -> None:
     cli.print("  • Create plugin classes with execute() method", style="white")
     cli.print("  • Use plugin manager to register and execute plugins", style="white")
     cli.print("  • Add lifecycle hooks (initialize, cleanup) as needed", style="white")
-    cli.print("  • Use FlextResult for plugin error handling", style="white")
+    cli.print("  • Use r for plugin error handling", style="white")
 
 
 if __name__ == "__main__":

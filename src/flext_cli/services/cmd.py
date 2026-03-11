@@ -1,7 +1,7 @@
 """Command execution and configuration bridge for flext-cli.
 
 Encapsulates the bridge between registered commands, file utilities, and configuration
-helpers using `FlextResult` for predictable success/failure handling.
+helpers using `r` for predictable success/failure handling.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -46,7 +46,7 @@ class FlextCliCmd(FlextCliServiceBase):
     - Extends FlextCliServiceBase for consistent logging and container access
     - Delegates file operations to FlextCliFileTools (SRP)
     - Delegates config operations to FlextCliUtilities.Cli.ConfigOps (SRP)
-    - Railway-Oriented Programming via FlextResult for composable error handling
+    - Railway-Oriented Programming via r for composable error handling
     - Static methods for stateless operations
 
     Audit Implications:

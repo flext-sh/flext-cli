@@ -114,7 +114,7 @@ ______________________________________________________________________
 
 1. **Core Abstraction**: Click/Rich abstraction is solid
 1. **Type Safety**: Comprehensive type annotations
-1. **Railway Pattern**: FlextResult[T] used throughout
+1. **Railway Pattern**: r[T] used throughout
 1. **Test Coverage**: 95%+ test pass rate
 1. **FLEXT Integration**: Good flext-core patterns
 
@@ -132,7 +132,7 @@ class FlextCliFileTools(FlextService[dict[str, object]]):
         super().__init__()  # Unnecessary overhead
         self.logger = FlextLogger(__name__)
 
-    def read_json_file(self, path: str) -> FlextResult[dict]:
+    def read_json_file(self, path: str) -> r[dict]:
         # Just reading a file - doesn't need service infrastructure
 ```
 
@@ -179,13 +179,13 @@ import pluggy  # Plugin system never used
 ```python
 # ❌ CURRENT: Unnecessary indirection
 class FlextCli:
-    def print(self, message: str, style: str | None = None) -> FlextResult[bool]:
+    def print(self, message: str, style: str | None = None) -> r[bool]:
         return self.formatters.print(message, style)
 
-    def create_table(self, data: object) -> FlextResult[str]:
+    def create_table(self, data: object) -> r[str]:
         return self.output.format_data(data, format_type="table")
 
-    def read_json_file(self, path: str) -> FlextResult[dict]:
+    def read_json_file(self, path: str) -> r[dict]:
         return self.file_tools.read_json_file(path)
 
     # ... 12 more similar wrappers
@@ -205,8 +205,8 @@ class FlextCli:
 ```python
 # ❌ CURRENT: Context with service methods
 class FlextCliContext(FlextService[CliDataDict]):
-    def activate(self) -> FlextResult[bool]: ...
-    def deactivate(self) -> FlextResult[bool]: ...
+    def activate(self) -> r[bool]: ...
+    def deactivate(self) -> r[bool]: ...
 ```
 
 **Impact**:
@@ -299,13 +299,13 @@ class FlextCliFileTools:
     """Stateless file operations."""
 
     @staticmethod
-    def read_json_file(path: str) -> FlextResult[dict]:
+    def read_json_file(path: str) -> r[dict]:
         """Read JSON file - no state needed."""
         try:
             with open(path) as f:
-                return FlextResult[dict].ok(json.load(f))
+                return r[dict].ok(json.load(f))
         except Exception as e:
-            return FlextResult[dict].fail(str(e))
+            return r[dict].fail(str(e))
 ```
 
 **Simple Classes in v0.10.0**:
@@ -458,7 +458,7 @@ class FlextCliFileTools(FlextService[dict[str, object]]):
         super().__init__()
         self.logger = FlextLogger(__name__)
 
-    def read_json_file(self, path: str) -> FlextResult[dict]:
+    def read_json_file(self, path: str) -> r[dict]:
         # Implementation
 ```
 
@@ -469,7 +469,7 @@ class FlextCliFileTools:
     """Stateless file operations utility."""
 
     @staticmethod
-    def read_json_file(path: str) -> FlextResult[dict]:
+    def read_json_file(path: str) -> r[dict]:
         """Read JSON file."""
         # Same implementation, now static
 ```
@@ -504,8 +504,8 @@ class FlextCliFileTools:
 class FlextCliContext(FlextService[CliDataDict]):
     """Context as service with methods."""
 
-    def activate(self) -> FlextResult[bool]: ...
-    def deactivate(self) -> FlextResult[bool]: ...
+    def activate(self) -> r[bool]: ...
+    def deactivate(self) -> r[bool]: ...
 ```
 
 **After**:
@@ -539,59 +539,59 @@ class FlextCliContext(m.Value):
 
 ```python
 # ❌ Remove these wrappers:
-def print(self, message, style) -> FlextResult[bool]:
+def print(self, message, style) -> r[bool]:
     return self.formatters.print(message, style)
 
 
-def create_table(self, data, headers, title) -> FlextResult[str]:
+def create_table(self, data, headers, title) -> r[str]:
     return self.output.format_data(...)
 
 
-def print_table(self, table) -> FlextResult[bool]:
+def print_table(self, table) -> r[bool]:
     return self.formatters.print(table)
 
 
-def create_tree(self, label) -> FlextResult[Any]:
+def create_tree(self, label) -> r[Any]:
     return self.formatters.create_tree(label)
 
 
-def format_output(self, data, format_type) -> FlextResult[str]:
+def format_output(self, data, format_type) -> r[str]:
     return self.output.format_data(data, format_type)
 
 
-def read_json_file(self, path) -> FlextResult[dict]:
+def read_json_file(self, path) -> r[dict]:
     return self.file_tools.read_json_file(path)
 
 
-def write_json_file(self, path, data) -> FlextResult[bool]:
+def write_json_file(self, path, data) -> r[bool]:
     return self.file_tools.write_json_file(path, data)
 
 
-def read_yaml_file(self, path) -> FlextResult[dict]:
+def read_yaml_file(self, path) -> r[dict]:
     return self.file_tools.read_yaml_file(path)
 
 
-def write_yaml_file(self, path, data) -> FlextResult[bool]:
+def write_yaml_file(self, path, data) -> r[bool]:
     return self.file_tools.write_yaml_file(path, data)
 
 
-def read_csv_file(self, path) -> FlextResult[list]:
+def read_csv_file(self, path) -> r[list]:
     return self.file_tools.read_csv_file(path)
 
 
-def write_csv_file(self, path, data) -> FlextResult[bool]:
+def write_csv_file(self, path, data) -> r[bool]:
     return self.file_tools.write_csv_file(path, data)
 
 
-def prompt_user(self, message) -> FlextResult[str]:
+def prompt_user(self, message) -> r[str]:
     return self.prompts.prompt(message)
 
 
-def confirm(self, message) -> FlextResult[bool]:
+def confirm(self, message) -> r[bool]:
     return self.prompts.confirm(message)
 
 
-def select(self, message, choices) -> FlextResult[str]:
+def select(self, message, choices) -> r[str]:
     return self.prompts.select(message, choices)
 ```
 
@@ -608,7 +608,7 @@ def get_instance(cls) -> FlextCli:
     """Singleton pattern."""
 
 
-def authenticate(self, credentials) -> FlextResult[str]:
+def authenticate(self, credentials) -> r[str]:
     """Orchestrates authentication (business logic)."""
 
 
@@ -620,11 +620,11 @@ def group(self, name, **kwargs):
     """CLI group decorator."""
 
 
-def execute_cli(self) -> FlextResult[bool]:
+def execute_cli(self) -> r[bool]:
     """Execute CLI application."""
 
 
-def execute(self) -> FlextResult[dict]:
+def execute(self) -> r[dict]:
     """Execute command."""
 ```
 

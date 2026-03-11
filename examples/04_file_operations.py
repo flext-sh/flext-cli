@@ -16,7 +16,7 @@ FLEXT-CLI PROVIDES:
 - file_tools.read_csv_file_with_headers() / write_csv_file() - CSV with headers
 - file_tools.read_binary_file() / write_binary_file() - Binary operations
 - file_tools.detect_file_format() / load_file_auto() - Auto-format detection
-- FlextResult error handling - No try/except needed
+- r error handling - No try/except needed
 - Automatic path handling with pathlib integration
 
 HOW TO USE IN YOUR CLI:
@@ -775,7 +775,7 @@ def main() -> None:
         style="white",
     )
     cli.print("  • Tables: Use FlextCliTables for ASCII table export", style="white")
-    cli.print("  • All methods return FlextResult for error handling", style="white")
+    cli.print("  • All methods return r for error handling", style="white")
 
 
 if __name__ == "__main__":

@@ -119,7 +119,7 @@ class CommandHelpers:
 
     @staticmethod
     def create_command_model(**overrides: t.ContainerValue) -> r[m.Cli.CliCommand]:
-        """Create a command model wrapped in FlextResult.
+        """Create a command model wrapped in r.
 
         Args:
             **overrides: Optional field overrides

@@ -162,7 +162,7 @@ class TestsCliConfigService:
         assert new_config is not None
 
     def test_execute_as_service(self) -> None:
-        """Test execute_service returns FlextResult."""
+        """Test execute_service returns r."""
         config: FlextCliSettings = FlextCliSettings()
         result = config.execute_service()
         assert result.is_success

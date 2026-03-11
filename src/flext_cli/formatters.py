@@ -43,14 +43,14 @@ class FlextCliFormatters:
     5. All operations MUST return r[T] for error handling
     6. Rich Console MUST be initialized once per instance (singleton pattern)
     7. Formatting operations MUST not modify input data (immutable)
-    8. Error handling MUST catch Rich exceptions and return FlextResult failures
+    8. Error handling MUST catch Rich exceptions and return r failures
 
     Architecture Implications:
     ───────────────────────────
     - Minimal wrapper over Rich library (zero-tolerance for reimplementation)
     - Direct Rich imports (one of two files allowed)
     - Console instance shared across operations
-    - Railway-Oriented Programming via FlextResult for error handling
+    - Railway-Oriented Programming via r for error handling
     - Static methods for table creation (no instance state needed)
 
     Audit Implications:

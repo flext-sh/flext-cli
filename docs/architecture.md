@@ -19,7 +19,7 @@ Panorama da arquitetura implementada no **flext-cli** 0.10.0, conforme o código
 - **Facade única**: `FlextCli` compõe serviços (`core`, `cmd`, `output`, `prompts`, `tables`) e utilidades (`formatters`, `file_tools`, `utilities`) e mantém wrappers legados.
 - **Fronteiras claras de framework**: Typer/Click ficam em `cli.py`; Rich/Tabulate são usados apenas em `formatters.py` e `services/tables.py`.
 - **Contratos explícitos**: `models.py` e `protocols.py` definem os tipos de entrada/saída validados com Pydantic v2.
-- **Retornos com `FlextResult[T]`**: erros e sucessos são encadeáveis em autenticação, orquestração e I/O.
+- **Retornos com `r[T]`**: erros e sucessos são encadeáveis em autenticação, orquestração e I/O.
 
 ## Mapa dos módulos
 
@@ -58,7 +58,7 @@ src/flext_cli/
 
 ## Integração com flext-core
 
-- `FlextResult`: envelope de sucesso/falha usado por todas as operações públicas.
+- `r`: envelope de sucesso/falha usado por todas as operações públicas.
 - `FlextService`: herdado em `FlextCliServiceBase` para logging, contexto e ciclo de vida.
 - `FlextContainer`: registro do identificador do CLI ao inicializar `FlextCli` ou `FlextCliCli`.
 

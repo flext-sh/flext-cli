@@ -137,7 +137,7 @@ ______________________________________________________________________
 
 - Single consolidated API class: `FlextCli`
 - Wraps Click (CLI framework) and Rich (terminal UI) internally
-- Uses flext-core patterns: `FlextResult[T]` railway pattern, `FlextService`
+- Uses flext-core patterns: `r[T]` railway pattern, `FlextService`
 - Poetry-based dependency management
 
 ______________________________________________________________________
@@ -179,7 +179,7 @@ src/flext_cli/
 
 - **ONE class per module** - Each module has exactly ONE class prefixed with `FlextCli*`
 - **Short aliases** - `t` (Types), `c` (Constants), `p` (Protocols), `m` (Models), `u` (Utilities), `s` (ServiceBase)
-- **Core aliases** - `r` (FlextResult), `e` (FlextExceptions), `d` (FlextDecorators), `x` (FlextMixins) from `flext_core`
+- **Core aliases** - `r` (r), `e` (FlextExceptions), `d` (FlextDecorators), `x` (FlextMixins) from `flext_core`
 - **Extension pattern** - All classes extend corresponding `Flext*` classes from `flext-core`
 - **NO bad-override** - `@override` only when amplifying scope or overriding abstract methods
 - **NO duplicate classes** - Each class has unique responsibility (SOLID)
@@ -220,15 +220,15 @@ from flext_cli import (
 ### Design Patterns
 
 **Railway-Oriented Programming**:
-All operations return `FlextResult[T]` for composable error handling:
+All operations return `r[T]` for composable error handling:
 
 ```python
 from flext_cli import FlextCli
-from flext_core import FlextResult
+from flext_core import r
 
 cli = FlextCli()
 
-# All operations return FlextResult
+# All operations return r
 result = cli.authenticate({"token": "abc123"})
 if result.is_success:
     token = result.unwrap()
@@ -349,7 +349,7 @@ from flext_cli.protocols import p  # FlextCliProtocols
 from flext_cli.utilities import u  # FlextCliUtilities
 
 # flext_core aliases (also available)
-from flext_core import r  # FlextResult
+from flext_core import r  # r
 from flext_core import e  # FlextExceptions
 from flext_core import d  # FlextDecorators
 from flext_core import mx  # FlextMixins
@@ -591,7 +591,7 @@ tests/
 **Short Aliases Usage**:
 
 - Use `t`, `c`, `m`, `p`, `u`, `s` from `tests` module for support (NOT for test declarations)
-- Use `r` (FlextResult), `e` (FlextExceptions), `d` (FlextDecorators), `x` (FlextMixins) directly from `flext_core`
+- Use `r` (r), `e` (FlextExceptions), `d` (FlextDecorators), `x` (FlextMixins) directly from `flext_core`
 - All aliases must work with class short names without lint complaints
 
 ### TestsCli Structure Pattern
@@ -667,7 +667,7 @@ Common fixtures available in all tests (from `conftest.py`):
 
 - **ONE class per module** - Prefix with `TestsCli*` (e.g., `TestsCliOutput`)
 - **Use short aliases** - `t`, `c`, `m`, `p`, `u`, `s` from `tests` module for support (NOT for test declarations)
-- **Use flext-core aliases** - `r` (FlextResult), `e` (FlextExceptions), `d` (FlextDecorators), `x` (FlextMixins) directly from `flext_core`
+- **Use flext-core aliases** - `r` (r), `e` (FlextExceptions), `d` (FlextDecorators), `x` (FlextMixins) directly from `flext_core`
 - **NO monkeypatch usage** - Use fixtures with data and behavior validation instead
 - **Test real functionality** - Use fixtures with actual data, not mocks
 - **Validate outputs** - Test behavior and output validation, not just coverage

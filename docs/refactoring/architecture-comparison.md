@@ -216,7 +216,7 @@ class FlextCliFileTools(FlextService[dict[str, object]]):
         self.logger = FlextLogger(__name__)
         self._state = {}  # No state actually needed!
 
-    def read_json_file(self, path: str) -> FlextResult[dict]:
+    def read_json_file(self, path: str) -> r[dict]:
         self.logger.info(f"Reading {path}")  # Logging overhead
         # Just read a file - doesn't need service
 ```
@@ -229,13 +229,13 @@ class FlextCliFileTools:
     """Stateless file operations."""
 
     @staticmethod
-    def read_json_file(path: str) -> FlextResult[dict]:
+    def read_json_file(path: str) -> r[dict]:
         """Read JSON file - no state, no overhead."""
         try:
             with open(path) as f:
-                return FlextResult[dict].ok(json.load(f))
+                return r[dict].ok(json.load(f))
         except Exception as e:
-            return FlextResult[dict].fail(str(e))
+            return r[dict].fail(str(e))
 ```
 
 **Benefit**: No initialization overhead, clear that it's stateless
@@ -319,7 +319,7 @@ from cachetools import LRUCache, TTLCache  # Evaluate usage
 # ✅ Only what's actually used
 import json
 from pathlib import Path
-from flext_core import FlextResult, FlextService
+from flext_core import r, FlextService
 ```
 
 **Benefit**: Clear dependencies, no confusion

@@ -214,7 +214,7 @@ def main() -> None:
         "  • Tables: Use cli.show_table() for auto-refreshing data", style="white"
     )
     cli.print("  • Organization: Use cli.print() with sections", style="white")
-    cli.print("  • All methods return FlextResult for error handling", style="white")
+    cli.print("  • All methods return r for error handling", style="white")
     cli.print(
         "  • NEVER import rich/click/tabulate directly - use FlextCli!", style="white"
     )

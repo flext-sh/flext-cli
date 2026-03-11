@@ -16,7 +16,7 @@ from __future__ import annotations
 import time
 
 import pytest
-from flext_core import FlextResult
+from flext_core import r
 
 from flext_cli import FlextCliDebug
 
@@ -42,14 +42,14 @@ class TestsCliDebug:
     def test_debug_execute(self, debug: FlextCliDebug) -> None:
         """Test debug execute method."""
         result = debug.execute()
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, r)
         assert result.is_success
         assert isinstance(result.value, dict)
 
     def test_debug_get_system_paths(self, debug: FlextCliDebug) -> None:
         """Test getting system paths."""
         result = debug.get_system_paths()
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, r)
         assert result.is_success
         paths_dict = result.value
         assert isinstance(paths_dict, dict)
@@ -58,35 +58,35 @@ class TestsCliDebug:
     def test_debug_validate_environment_setup(self, debug: FlextCliDebug) -> None:
         """Test validating environment setup."""
         result = debug.validate_environment_setup()
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, r)
         assert result.is_success
         assert isinstance(result.value, list)
 
     def test_debug_test_connectivity(self, debug: FlextCliDebug) -> None:
         """Test connectivity testing."""
         result = debug.test_connectivity()
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, r)
         assert result.is_success
         assert isinstance(result.value, dict)
 
     def test_debug_execute_health_check(self, debug: FlextCliDebug) -> None:
         """Test executing health check."""
         result = debug.execute_health_check()
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, r)
         assert result.is_success
         assert isinstance(result.value, dict)
 
     def test_debug_execute_trace(self, debug: FlextCliDebug) -> None:
         """Test executing trace."""
         result = debug.execute_trace(["test", "args"])
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, r)
         assert result.is_success
         assert isinstance(result.value, dict)
 
     def test_debug_get_debug_info(self, debug: FlextCliDebug) -> None:
         """Test getting debug information."""
         result = debug.get_debug_info()
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, r)
         assert result.is_success
         assert isinstance(result.value, dict)
 
@@ -118,15 +118,15 @@ class TestsCliDebug:
     def test_debug_edge_cases(self, debug: FlextCliDebug) -> None:
         """Test edge cases and error conditions."""
         result = debug.execute_trace([])
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, r)
         result = debug.execute_trace(["arg1", "arg2", "arg3"])
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, r)
         result = debug.execute_trace([
             "arg with spaces",
             "arg-with-dashes",
             "arg_with_underscores",
         ])
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, r)
 
     def test_debug_performance(self, debug: FlextCliDebug) -> None:
         """Test debug performance with multiple operations."""
@@ -142,17 +142,17 @@ class TestsCliDebug:
         """Test debug memory usage with repeated calls."""
         for _i in range(10):
             paths_result = debug.get_system_paths()
-            assert isinstance(paths_result, FlextResult)
+            assert isinstance(paths_result, r)
             assert paths_result.is_success
         for _i in range(5):
             info_result = debug.get_debug_info()
-            assert isinstance(info_result, FlextResult)
+            assert isinstance(info_result, r)
             assert info_result.is_success
 
     def test_get_comprehensive_debug_info(self, debug: FlextCliDebug) -> None:
         """Test get_comprehensive_debug_info method (lines 148-194)."""
         result = debug.get_comprehensive_debug_info()
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, r)
         assert result.is_success
         info = result.value
         assert isinstance(info, dict)
@@ -164,7 +164,7 @@ class TestsCliDebug:
     def test_get_system_info(self, debug: FlextCliDebug) -> None:
         """Test get_system_info method (lines 55-72)."""
         result = debug.get_system_info()
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, r)
         assert result.is_success
         info = result.value
         assert isinstance(info, dict)
@@ -173,7 +173,7 @@ class TestsCliDebug:
     def test_get_environment_variables(self, debug: FlextCliDebug) -> None:
         """Test get_environment_variables method (lines 74-88)."""
         result = debug.get_environment_variables()
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, r)
         assert result.is_success
         env = result.value
         assert isinstance(env, dict)

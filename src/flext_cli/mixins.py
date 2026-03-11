@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import FlextDecorators, FlextMixins, FlextResult, r
+from flext_core import FlextDecorators, FlextMixins, r
 
 from flext_cli import p, t
 
@@ -25,15 +25,15 @@ class FlextCliMixins(FlextMixins):
     3. Command execution MUST use railway pattern for error handling
     4. Context management MUST include correlation ID and operation logging
     5. Performance tracking MUST be enabled for all command executions
-    6. Double-wrapped FlextResult MUST be unwrapped correctly
-    7. Non-FlextResult returns MUST be wrapped in FlextResult
+    6. Double-wrapped r MUST be unwrapped correctly
+    7. Non-r returns MUST be wrapped in r
     8. All mixin methods MUST be static (no instance state)
 
     Architecture Implications:
     ───────────────────────────
     - CliCommandMixin composes decorators in correct order
     - CliCommandMixin composes decorators in correct order
-    - Railway decorator ensures FlextResult return type
+    - Railway decorator ensures r return type
     - Performance tracking via track_performance decorator
     - Operation logging via log_operation decorator
     - Extends x for base mixin functionality
@@ -79,13 +79,13 @@ class FlextCliMixins(FlextMixins):
                 **context_data: Additional context data for logging
 
             Returns:
-                FlextResult from handler execution
+                r from handler execution
 
             """
             log_op_decorator = FlextDecorators.log_operation(operation, track_perf=True)
             wrapped_handler = log_op_decorator(handler)
             raw_result = wrapped_handler(**context_data)
-            if isinstance(raw_result, FlextResult):
+            if isinstance(raw_result, r):
                 return raw_result
             return r[t.JsonValue].ok(raw_result)
 

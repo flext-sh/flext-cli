@@ -658,7 +658,7 @@ class FlextCliProtocols(FlextProtocols):
 
         @runtime_checkable
         class CommandHandlerCallable(Protocol):
-            """Protocol for command handlers returning FlextResult."""
+            """Protocol for command handlers returning r."""
 
             def __call__(
                 self, *args: t.ContainerValue, **kwargs: t.ContainerValue

@@ -41,7 +41,7 @@ class FlextCliTables(FlextCliServiceBase):
     - TableConfig model provides type-safe configuration
     - Format discovery uses tabulate's internal format list
     - Extends FlextCliServiceBase for consistent logging
-    - Railway-Oriented Programming via FlextResult for error handling
+    - Railway-Oriented Programming via r for error handling
 
     Audit Implications:
     ───────────────────
@@ -149,7 +149,7 @@ class FlextCliTables(FlextCliServiceBase):
             **config_kwargs: Individual config option overrides (snake_case field names)
 
         Returns:
-            FlextResult containing formatted table string
+            r containing formatted table string
 
         Example:
             >>> tables = FlextCliTables()

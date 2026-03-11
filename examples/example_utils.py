@@ -42,7 +42,7 @@ def print_demo_completion(
     for feature in features:
         cli.print(f"  • {feature}", style="white")
     cli.print(
-        "\nAll operations used FlextResult pattern for error handling!",
+        "\nAll operations used r pattern for error handling!",
         style="yellow",
     )
 
@@ -78,11 +78,11 @@ def print_demo_error(
     """Print standardized demo error message."""
     cli.print(f"❌ {demo_name} failed: {error}", style=f"bold {style}")
     cli.print(
-        "This failure demonstrates FlextResult error handling!",
+        "This failure demonstrates r error handling!",
         style="yellow",
     )
     cli.print(
-        "The error was caught and wrapped in a FlextResult for clean handling.",
+        "The error was caught and wrapped in a r for clean handling.",
         style="white",
     )
 

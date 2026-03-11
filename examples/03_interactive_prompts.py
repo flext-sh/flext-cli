@@ -17,7 +17,7 @@ FLEXT-CLI PROVIDES:
 - Rich Prompt.ask() - Advanced prompts with built-in validation
 - Rich Confirm.ask() - Boolean confirmations with defaults
 - Rich IntPrompt/FloatPrompt - Type-safe numeric input
-- FlextResult error handling - No try/except needed
+- r error handling - No try/except needed
 
 HOW TO USE IN YOUR CLI:
 Replace input() calls with FlextCliPrompts for better UX and error handling
@@ -189,7 +189,7 @@ def flext_prompt_with_validation() -> r[int]:
         return r[int].fail(env_result.error or "Environment choice failed")
 
     def validate_port(value: str) -> r[int]:
-        """Validate port number using FlextResult pattern."""
+        """Validate port number using r pattern."""
         try:
             port = int(value)
             if not 1024 <= port <= 65535:
@@ -392,10 +392,8 @@ def main() -> None:
     )
     cli.print("  • Add prompts.confirm() before destructive operations", style="white")
     cli.print("  • Use prompts.prompt_choice() for validated selections", style="white")
-    cli.print("  • Combine with FlextResult for robust validation", style="white")
-    cli.print(
-        "  • All methods return FlextResult - no try/except needed", style="white"
-    )
+    cli.print("  • Combine with r for robust validation", style="white")
+    cli.print("  • All methods return r - no try/except needed", style="white")
     cli.print(
         "  • NEVER import rich/click directly - use FlextCli wrappers!", style="white"
     )

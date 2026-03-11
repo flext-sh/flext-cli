@@ -60,7 +60,7 @@ flext-cli v0.10.0 is a simplified, streamlined CLI foundation library for the FL
 - **Services for State Only**: FlextService used only where needed (3-4 classes)
 - **Simple Utilities**: Stateless operations as simple classes
 - **Value Objects**: Immutable data models using Pydantic
-- **Railway Pattern**: All operations return `FlextResult[T]`
+- **Railway Pattern**: All operations return `r[T]`
 
 **Key Improvements in v0.10.0**:
 
@@ -84,7 +84,7 @@ ______________________________________________________________________
 
 flext-cli integrates with:
 
-- **[flext-core](https://github.com/organization/flext/tree/main/flext-core/README.md)**: Foundation patterns (FlextResult, FlextService, FlextModels)
+- **[flext-core](https://github.com/organization/flext/tree/main/flext-core/README.md)**: Foundation patterns (r, FlextService, FlextModels)
 - **Click 8.2+**: CLI framework (abstracted)
 - **Rich 14.0+**: Terminal UI (abstracted)
 - **Pydantic 2.11+**: Data validation
@@ -133,7 +133,7 @@ ______________________________________________________________________
 
 ```python
 from flext_cli import FlextCli
-from flext_core import FlextResult
+from flext_core import r
 
 # Initialize CLI (singleton pattern)
 cli = FlextCli()
@@ -204,20 +204,20 @@ if read_result.is_success:
 
 ### 🔄 Railway-Oriented Programming
 
-Chain operations with `FlextResult[T]`:
+Chain operations with `r[T]`:
 
 ```python
 from flext_cli import FlextCli
-from flext_core import FlextResult
+from flext_core import r
 
 cli = FlextCli()
 
 
-def validate_config(config: dict) -> FlextResult[dict]:
+def validate_config(config: dict) -> r[dict]:
     """Validate configuration."""
     if "required_field" not in config:
-        return FlextResult[dict].fail("Missing required_field")
-    return FlextResult[dict].ok(config)
+        return r[dict].fail("Missing required_field")
+    return r[dict].ok(config)
 
 
 def apply_defaults(config: dict) -> dict:
@@ -263,10 +263,10 @@ make format                 # Auto-format with Ruff
 
 ```python
 from flext_cli import FlextCli
-from flext_core import FlextResult
+from flext_core import r
 
 
-def my_cli_application() -> FlextResult[bool]:
+def my_cli_application() -> r[bool]:
     """Application using v0.10.0 patterns."""
     cli = FlextCli()
 
@@ -278,14 +278,14 @@ def my_cli_application() -> FlextResult[bool]:
 
     if not config_result.is_success:
         cli.formatters.print(f"Error: {config_result.error}", style="red")
-        return FlextResult[bool].fail(config_result.error)
+        return r[bool].fail(config_result.error)
 
     # User interaction
     confirm_result = cli.prompts.confirm("Continue?")
     if confirm_result.is_success and confirm_result.unwrap():
         cli.formatters.print("Processing...", style="green")
-        return FlextResult[bool].ok(value=True)
-    return FlextResult[bool].fail("Operation cancelled")
+        return r[bool].ok(value=True)
+    return r[bool].fail("Operation cancelled")
 ```
 
 ### Testing Your CLI Code
@@ -382,7 +382,7 @@ from flext_core import FlextModels
 from flext_core import FlextProcessors
 from flext_core import p
 from flext_core import FlextRegistry
-from flext_core import FlextResult
+from flext_core import r
 from flext_core import FlextRuntime
 from flext_core import FlextService
 from flext_core import t

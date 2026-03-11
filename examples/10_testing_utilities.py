@@ -8,7 +8,7 @@ WHEN TO USE THIS:
 - Building testable CLI tools
 
 FLEXT-CLI PROVIDES:
-- FlextResult pattern for testable code
+- r pattern for testable code
 - Output capture via formatters
 - Mockable prompt system
 - File operation testing utilities
@@ -209,7 +209,7 @@ def main() -> None:
     cli.print("  ✅ All Tests Passed!", style="bold green")
     cli.print("=" * 70, style="bold blue")
     cli.print("\n💡 Testing Tips:", style="bold cyan")
-    cli.print("  • Use FlextResult returns for testable commands", style="white")
+    cli.print("  • Use r returns for testable commands", style="white")
     cli.print("  • Test both success and failure cases", style="white")
     cli.print("  • Use non-interactive prompts in tests", style="white")
     cli.print("  • Clean up temp files after tests", style="white")

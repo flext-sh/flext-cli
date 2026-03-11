@@ -94,10 +94,10 @@ class FlextCliCore(FlextService[CliDataDict]):
         self._sessions: dict[str, Session] = {}  # MUTABLE STATE
         self._config: FlextCliSettings = ...       # MANAGED STATE
 
-    def register_command(self, name: str, command: Command) -> FlextResult[bool]:
+    def register_command(self, name: str, command: Command) -> r[bool]:
         """Register command - modifies internal state."""
         self._commands[name] = command
-        return FlextResult[bool].| ok(value=True)
+        return r[bool].| ok(value=True)
 ```
 
 **When NOT to use**:
@@ -120,30 +120,30 @@ class FlextCliCore(FlextService[CliDataDict]):
 **Example - FlextCliFileTools (Simple Utility Class)**:
 
 ```python
-from flext_core import FlextResult
+from flext_core import r
 import json
 
 class FlextCliFileTools:
     """Stateless file operations."""
 
     @staticmethod
-    def read_json_file(path: str) -> FlextResult[dict]:
+    def read_json_file(path: str) -> r[dict]:
         """Read JSON file - no state needed."""
         try:
             with open(path) as f:
-                return FlextResult[dict].ok(json.load(f))
+                return r[dict].ok(json.load(f))
         except Exception as e:
-            return FlextResult[dict].fail(str(e))
+            return r[dict].fail(str(e))
 
     @staticmethod
-    def write_json_file(path: str, data: dict) -> FlextResult[bool]:
+    def write_json_file(path: str, data: dict) -> r[bool]:
         """Write JSON file - no state needed."""
         try:
             with open(path, 'w') as f:
                 json.dump(data, f, indent=2)
-            return FlextResult[bool].| ok(value=True)
+            return r[bool].| ok(value=True)
         except Exception as e:
-            return FlextResult[bool].fail(str(e))
+            return r[bool].fail(str(e))
 ```
 
 **Benefits**:
@@ -528,7 +528,7 @@ from flext_core import FlextModels
 from flext_core import FlextProcessors
 from flext_core import p
 from flext_core import FlextRegistry
-from flext_core import FlextResult
+from flext_core import r
 from flext_core import FlextRuntime
 from flext_core import FlextService
 from flext_core import t
@@ -538,10 +538,10 @@ from flext_cli import FlextCli
 class DataCommands(FlextService):
     """Data management commands."""
 
-    def handle_export(self, **kwargs) -> FlextResult[bool]:
+    def handle_export(self, **kwargs) -> r[bool]:
         """Handle data export command."""
         # Implementation
-        return FlextResult[bool].| ok(value=True)
+        return r[bool].| ok(value=True)
 ```
 
 2. Register with CLI:
@@ -576,10 +576,10 @@ from flext_cli import FlextCliOutput
 class ProjectFormatters(FlextCliOutput):
     """Project-specific output formatters."""
 
-    def format_project_data(self, data: dict) -> FlextResult[str]:
+    def format_project_data(self, data: dict) -> r[str]:
         """Format project-specific data."""
         # Custom formatting logic
-        return FlextResult[str].ok("formatted_output")
+        return r[str].ok("formatted_output")
 ```
 
 ______________________________________________________________________

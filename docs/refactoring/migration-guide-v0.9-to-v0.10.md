@@ -87,7 +87,7 @@ v0.10.0 simplifies FLEXT-CLI by:
 
 - ✅ **Python 3.13+**: Still required
 - ✅ **flext-core**: Compatible with current version
-- ✅ **Railway Pattern**: FlextResult[T] still used throughout
+- ✅ **Railway Pattern**: r[T] still used throughout
 - ✅ **Type Safety**: Still 100% type-safe
 
 ______________________________________________________________________
@@ -269,7 +269,7 @@ find . -name "*.py" -exec sed -i 's/cli\.create_table(/cli.output.format_data(/g
 After automated replacement, manually check:
 
 1. Method signatures (some changed slightly)
-1. Error handling (still uses FlextResult[T])
+1. Error handling (still uses r[T])
 1. Type hints (may need updates)
 
 ### Step 3: Update Context Usage (5 minutes)

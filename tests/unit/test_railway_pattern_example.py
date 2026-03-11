@@ -1,9 +1,9 @@
 """FLEXT CLI Railway Pattern Example Tests - Comprehensive Railway Pattern Validation Testing.
 
-Tests for FlextResult Railway Pattern covering success chains, error handling, validation flows,
+Tests for r Railway Pattern covering success chains, error handling, validation flows,
 multi-step workflows, error recovery, and edge cases with 100% coverage.
 
-Modules tested: flext_cli.file_tools.FlextCliFileTools, flext_core.result.FlextResult
+Modules tested: flext_cli.file_tools.FlextCliFileTools, flext_core.result.r
 Scope: All railway pattern operations, success chains, error handling, validation flows
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
@@ -23,9 +23,9 @@ from flext_cli import FlextCliFileTools, t
 
 
 class TestsCliRailwayPatternExample:
-    """Railway Pattern testing with FlextResult paradigm.
+    """Railway Pattern testing with r paradigm.
 
-    Demonstrates proper usage of FlextResult for success/failure chains,
+    Demonstrates proper usage of r for success/failure chains,
     error handling, and multi-step workflow integration.
     """
 
@@ -64,7 +64,7 @@ class TestsCliRailwayPatternExample:
         """Test Railway Pattern success chain for write-read operations.
 
         Demonstrates:
-        - FlextResult.ok() creation
+        - r.ok() creation
         - Success chain with multiple operations
         - Data integrity verification
         """
@@ -137,7 +137,7 @@ class TestsCliRailwayPatternExample:
         """Test complete multi-step workflow using Railway Pattern.
 
         Demonstrates:
-        - Multi-step operations with FlextResult
+        - Multi-step operations with r
         - Error handling throughout workflow
         - File operation chaining
         - Result unwrapping and data composition
