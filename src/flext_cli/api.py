@@ -39,7 +39,7 @@ from flext_cli.services.output import FlextCliOutput
 from flext_cli.services.prompts import FlextCliPrompts
 from flext_cli.services.tables import FlextCliTables
 from flext_cli.settings import FlextCliSettings
-from flext_cli.typings import FlextCliTypes as t
+from flext_cli.typings import t
 from flext_cli.utilities import FlextCliUtilities as u
 
 
