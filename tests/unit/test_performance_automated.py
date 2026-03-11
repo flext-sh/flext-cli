@@ -1,16 +1,15 @@
 """Automated performance tests with real workloads."""
 
-from flext_cli import FlextCliModels
-from src.flext_cli.models import FlextCliModels
-from flext_cli.models import FlextCliModels
 import os
 import time
 from datetime import UTC, datetime
 
 import psutil
 import pytest
+from src.flext_cli.models import FlextCliModels
 
-from flext_cli import c, m
+from flext_cli import FlextCliModels, c, m
+from flext_cli.models import FlextCliModels
 from tests._helpers import create_test_cli_command
 
 
