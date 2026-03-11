@@ -8,7 +8,7 @@ import pytest
 from flext_core import r
 
 import flext_cli.services.cmd as cmd_module
-from flext_cli import FlextCliCmd
+from flext_cli import FlextCliCmd, m, t
 
 
 def test_show_config_paths_failure_on_exception(

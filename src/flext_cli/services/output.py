@@ -970,7 +970,7 @@ class FlextCliOutput:
         if table_result.is_failure:
             return table_result
         table = table_result.value
-        return r.ok(self._add_title(table, title))
+        return r[str].ok(self._add_title(table, title))
 
     def format_yaml(self, data: t.ContainerValue) -> r[str]:
         """Format data as YAML.
