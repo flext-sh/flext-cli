@@ -453,7 +453,7 @@ class FlextCliOutput:
             return default
         try:
             return str(v)
-        except Exception:
+        except (TypeError, ValueError):
             return default
 
     @staticmethod
