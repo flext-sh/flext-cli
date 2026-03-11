@@ -1,5 +1,8 @@
 """Automated performance tests with real workloads."""
 
+from flext_cli import FlextCliModels
+from src.flext_cli.models import FlextCliModels
+from flext_cli.models import FlextCliModels
 import os
 import time
 from datetime import UTC, datetime
@@ -17,7 +20,7 @@ class TestsCliPerformanceAutomated:
     @pytest.mark.parametrize("num_commands", [10, 50, 100, 500])
     def test_session_bulk_command_operations(self, num_commands: int) -> None:
         """Test bulk command operations performance."""
-        commands = []
+        commands: list[FlextCliModels.Cli.CliCommand] = []
         base_time = time.time()
         start_time = time.time()
         for i in range(num_commands):
@@ -56,7 +59,7 @@ class TestsCliPerformanceAutomated:
         """Test memory usage patterns with real object creation."""
         process = psutil.Process(os.getpid())
         initial_memory = process.memory_info().rss / 1024 / 1024
-        commands = []
+        commands: list[FlextCliModels.Cli.CliCommand] = []
         for i in range(1000):
             cmd = create_test_cli_command(
                 name=f"cmd{i}", args=[f"arg{j}" for j in range(10)]

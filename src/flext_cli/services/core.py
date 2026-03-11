@@ -143,19 +143,17 @@ class FlextCliCore(FlextCliServiceBase):
             r[list[str]] with list of keys or error
 
         """
-        try:
-            return r[list[str]].ok(
-                list(data_dict.keys()) if data_dict is not None else []
-            )
-        except (
-            ValueError,
-            TypeError,
-            KeyError,
-            ConsoleError,
-            StyleError,
-            LiveError,
-        ) as e:
-            return r[list[str]].fail(error_message.format(error=e))
+        return u.try_(
+            lambda: list(data_dict.keys()) if data_dict is not None else [],
+            catch=(
+                ValueError,
+                TypeError,
+                KeyError,
+                ConsoleError,
+                StyleError,
+                LiveError,
+            ),
+        ).map_error(lambda e: error_message.format(error=e))
 
     def create_profile(
         self, name: str, profile_config: Mapping[str, t.JsonValue]
