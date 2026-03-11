@@ -54,18 +54,18 @@ def create_test_config() -> r[FlextCliSettings]:
     """Create test config using Railway pattern - no fallbacks or state manipulation."""
     try:
         config = FlextCliSettings()
-        return r.ok(config)
+        return r[FlextCliSettings].ok(config)
     except Exception as e:
-        return r.fail(f"Failed to create test config: {e}")
+        return r[FlextCliSettings].fail(f"Failed to create test config: {e}")
 
 
 def create_cli_app() -> r[typer.Typer]:
     """Create CLI app using Railway pattern."""
     try:
         app = typer.Typer()
-        return r.ok(app)
+        return r[typer.Typer].ok(app)
     except Exception as e:
-        return r.fail(f"Failed to create CLI app: {e}")
+        return r[typer.Typer].fail(f"Failed to create CLI app: {e}")
 
 
 def create_decorated_command(
@@ -107,7 +107,7 @@ def create_decorated_command(
         typer.echo(f"Output format: {output_format}")
 
     # Return the command function directly - Railway pattern
-    return r.ok(typer_command)
+    return r[Callable[..., object]].ok(typer_command)
 
 
 # ============================================================================

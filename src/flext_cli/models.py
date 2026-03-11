@@ -801,12 +801,14 @@ class FlextCliModels(FlextModels):
             ) -> r[FlextCliModels.Cli.CliCommand]:
                 """Validate command input data."""
                 if not isinstance(data, Mapping) and not isinstance(data, cls):
-                    return r.fail("Input must be a dictionary").map(
-                        lambda _unused: cls.model_construct(name="invalid")
+                    return (
+                        r[FlextCliModels.Cli.CliCommand]
+                        .fail("Input must be a dictionary")
+                        .map(lambda _unused: cls.model_construct(name="invalid"))
                     )
                 try:
                     command = cls.model_validate(data)
-                    return r.ok(command)
+                    return r[FlextCliModels.Cli.CliCommand].ok(command)
                 except (
                     ValueError,
                     TypeError,
@@ -815,8 +817,10 @@ class FlextCliModels(FlextModels):
                     StyleError,
                     LiveError,
                 ) as e:
-                    return r.fail(f"Validation failed: {e}").map(
-                        lambda _unused: cls.model_construct(name="invalid")
+                    return (
+                        r[FlextCliModels.Cli.CliCommand]
+                        .fail(f"Validation failed: {e}")
+                        .map(lambda _unused: cls.model_construct(name="invalid"))
                     )
 
             def complete_execution(self, exit_code: int) -> r[Self]:
@@ -825,7 +829,7 @@ class FlextCliModels(FlextModels):
                     updated = self.model_copy(
                         update={"status": "completed", "exit_code": exit_code},
                     )
-                    return r.ok(updated)
+                    return r[Self].ok(updated)
                 except (
                     ValueError,
                     TypeError,
@@ -834,8 +838,10 @@ class FlextCliModels(FlextModels):
                     StyleError,
                     LiveError,
                 ) as e:
-                    return r.fail(f"Failed to complete execution: {e}").map(
-                        lambda _unused: self
+                    return (
+                        r[Self]
+                        .fail(f"Failed to complete execution: {e}")
+                        .map(lambda _unused: self)
                     )
 
             def execute(
@@ -859,7 +865,7 @@ class FlextCliModels(FlextModels):
                 """Start command execution - update status to running."""
                 try:
                     updated = self.model_copy(update={"status": "running"})
-                    return r.ok(updated)
+                    return r[Self].ok(updated)
                 except (
                     ValueError,
                     TypeError,
@@ -868,8 +874,10 @@ class FlextCliModels(FlextModels):
                     StyleError,
                     LiveError,
                 ) as e:
-                    return r.fail(f"Failed to start execution: {e}").map(
-                        lambda _unused: self
+                    return (
+                        r[Self]
+                        .fail(f"Failed to start execution: {e}")
+                        .map(lambda _unused: self)
                     )
 
             def update_status(self, status: str) -> Self:
@@ -958,7 +966,7 @@ class FlextCliModels(FlextModels):
                 try:
                     updated_commands = list(self.commands) + [command]
                     updated_session = self._copy_with_update(commands=updated_commands)
-                    return r.ok(updated_session)
+                    return r[Self].ok(updated_session)
                 except (
                     ValueError,
                     TypeError,
@@ -967,8 +975,10 @@ class FlextCliModels(FlextModels):
                     StyleError,
                     LiveError,
                 ) as e:
-                    return r.fail(f"Failed to add command: {e}").map(
-                        lambda _unused: self
+                    return (
+                        r[Self]
+                        .fail(f"Failed to add command: {e}")
+                        .map(lambda _unused: self)
                     )
 
             def commands_by_status(
@@ -2623,7 +2633,7 @@ class FlextCliModels(FlextModels):
                             props,
                             field_info,
                         )
-                    return r.ok(props)
+                    return r[Mapping[str, t.JsonValue]].ok(props)
                 except (
                     ValueError,
                     TypeError,

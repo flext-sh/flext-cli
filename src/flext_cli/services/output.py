@@ -148,7 +148,7 @@ class FlextCliOutput:
         rows: list[list[str]] = [
             [str(item) for item in row] for row in rows_raw if isinstance(row, list)
         ]
-        return r.ok(rows)
+        return r[list[list[str]]].ok(rows)
 
     @staticmethod
     def _display_formatted_result(formatted: str) -> None:

@@ -88,7 +88,9 @@ def test_show_config_failure_when_info_result_is_failure(
 ) -> None:
     cmd = FlextCliCmd()
     monkeypatch.setattr(
-        FlextCliCmd, "get_config_info", staticmethod(lambda: r.fail("bad info"))
+        FlextCliCmd,
+        "get_config_info",
+        staticmethod(lambda: r[m.Cli.ConfigSnapshot].fail("bad info")),
     )
     result = cmd.show_config()
     assert result.is_failure
@@ -135,7 +137,9 @@ def test_edit_config_success_logs_and_returns_ok(
         staticmethod(lambda: FakeConfig()),
     )
     monkeypatch.setattr(
-        cmd._file_tools, "read_json_file", lambda _path: r.ok({"name": "ok"})
+        cmd._file_tools,
+        "read_json_file",
+        lambda _path: r[t.JsonValue].ok({"name": "ok"}),
     )
     monkeypatch.setattr(
         cmd.logger,

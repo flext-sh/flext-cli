@@ -208,7 +208,7 @@ class FlextCliUtilities(FlextUtilities):
                     in_list=c.Cli.ValidationLists.OUTPUT_FORMATS,
                 )
                 if valid.is_success:
-                    return r.ok(fmt)
+                    return r[str].ok(fmt)
                 return r[str].fail(
                     c.Cli.ErrorMessages.INVALID_OUTPUT_FORMAT.format(format=format_type)
                 )
@@ -238,7 +238,7 @@ class FlextCliUtilities(FlextUtilities):
                     )
                 missing = [name for name in fields if name not in data]
                 if not missing:
-                    return r.ok(True)
+                    return r[bool].ok(True)
                 return r[bool].fail(
                     c.Cli.MixinsValidationMessages.CONFIG_MISSING_FIELDS.format(
                         missing_fields=missing
