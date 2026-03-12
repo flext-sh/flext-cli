@@ -343,7 +343,7 @@ class TestsCliTypings:
         assert hints["name"] is str
         assert hints["age"] is int
         assert hints["active"] is bool
-        assert hints["return"] == object
+        assert hints["return"] is object
 
         def complex_function(data: list[dict[str, str | int]]) -> str | None:
             return "result" if data else None
