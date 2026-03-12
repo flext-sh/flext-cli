@@ -897,7 +897,7 @@ result = [item for item in items if isinstance(item, CliCommand)]
 cli_commands: list[CliCommand] = []
 for cmd in items:
     if isinstance(cmd, CliCommand):
-        cli_commands.append(cmd)  # noqa: PERF401
+        cli_commands.append(cmd)
 ```
 
 **Dict Variance with Mapping**:
@@ -925,10 +925,10 @@ Always use specific error codes in `# type: ignore` comments rather than generic
 
 ```python
 # ❌ WRONG
-list_instance: list[str] = list_with_union  # type: ignore
+list_instance: list[str] = list_with_union
 
 # ✅ CORRECT
-list_instance: list[str] = list_with_union  # type: ignore[arg-type]
+list_instance: list[str] = list_with_union
 ```
 
 ### Testing Fixes
