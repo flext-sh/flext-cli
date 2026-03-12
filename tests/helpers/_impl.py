@@ -284,7 +284,7 @@ class FlextCliTestHelpers:
             try:
 
                 class TestFormatter:
-                    def format_data(self, data: object, **options: object) -> r[str]:
+                    def format_data(self, data: object, **options: t.Scalar) -> r[str]:
                         try:
                             return r[str].ok(str(data))
                         except (ValueError, TypeError, ValidationError) as e:

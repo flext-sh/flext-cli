@@ -27,7 +27,7 @@ from rich.errors import ConsoleError, LiveError, StyleError
 from typer import Typer
 from typer.testing import CliRunner
 
-from flext_cli import FlextCliCommonParams, FlextCliSettings, c, m, p, u
+from flext_cli import FlextCliCommonParams, FlextCliSettings, c, m, p, t, u
 
 
 class FlextCliCli:
@@ -405,7 +405,7 @@ class FlextCliCli:
 
     @staticmethod
     def prompt(
-        text: str, config: m.Cli.PromptConfig | None = None, **kwargs: object
+        text: str, config: m.Cli.PromptConfig | None = None, **kwargs: t.Scalar
     ) -> r[object]:
         """Prompt user for input."""
         if config is None:
@@ -604,7 +604,7 @@ class FlextCliCli:
         self,
         *param_decls: str,
         config: m.Cli.OptionConfig | None = None,
-        **kwargs: object,
+        **kwargs: t.Scalar,
     ) -> Callable[[p.Cli.CliCommandFunction], p.Cli.CliCommandFunction]:
         """Create an option decorator."""
         if config is None:

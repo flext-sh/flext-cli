@@ -15,7 +15,7 @@ import yaml
 from flext_core import FlextLogger, FlextSettings, FlextUtilities, r
 from pydantic import Field, TypeAdapter, ValidationError, computed_field
 
-from flext_cli import c
+from flext_cli import c, t
 
 logger = FlextLogger(__name__)
 
@@ -115,7 +115,7 @@ class FlextCliSettings(FlextSettings):
 
         return FlextUtilities.try_(_apply_updates).map_error(str)
 
-    def update_from_cli_args(self, **kwargs: object) -> r[bool]:
+    def update_from_cli_args(self, **kwargs: t.Scalar) -> r[bool]:
         """Update config from CLI args."""
         data: object = {
             k: v for k, v in kwargs.items() if k in self.__class__.model_fields

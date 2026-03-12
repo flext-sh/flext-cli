@@ -335,7 +335,7 @@ class FlextCliCore(FlextCliServiceBase):
             )
 
     def execute_cli_command_with_context(
-        self, command_name: str, user_id: str | None = None, **context_data: object
+        self, command_name: str, user_id: str | None = None, **context_data: t.Scalar
     ) -> r[Mapping[str, object]]:
         """Execute CLI command with automatic context enrichment (Phase 1 pattern).
 

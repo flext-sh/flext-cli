@@ -9,11 +9,11 @@ from datetime import UTC, datetime
 import pytest
 from flext_core import r
 
-from flext_cli import FlextCliCommands, m
+from flext_cli import FlextCliCommands, m, t
 from tests.models import CliCommandInput, CliSessionInput
 
 
-def create_test_cli_command(**overrides: object) -> m.Cli.CliCommand:
+def create_test_cli_command(**overrides: t.Scalar) -> m.Cli.CliCommand:
     """Factory for real CliCommand instances with sensible defaults."""
     now = datetime.now(UTC)
     payload: dict[str, object] = {
@@ -41,7 +41,7 @@ def create_test_cli_command(**overrides: object) -> m.Cli.CliCommand:
     return cmd
 
 
-def create_test_cli_session(**overrides: object) -> m.Cli.CliSession:
+def create_test_cli_session(**overrides: t.Scalar) -> m.Cli.CliSession:
     """Factory for real CliSession instances with sensible defaults."""
     now = datetime.now(UTC)
     payload: dict[str, object] = {
@@ -74,7 +74,7 @@ class AuthHelpers:
 
     @staticmethod
     def create_test_credentials(
-        **overrides: object,
+        **overrides: t.Scalar,
     ) -> Mapping[str, object]:
         """Create test credentials dict."""
         defaults: dict[str, object] = {
@@ -118,7 +118,7 @@ class CommandHelpers:
     """Command execution test helpers."""
 
     @staticmethod
-    def create_command_model(**overrides: object) -> r[m.Cli.CliCommand]:
+    def create_command_model(**overrides: t.Scalar) -> r[m.Cli.CliCommand]:
         """Create a command model wrapped in r.
 
         Args:
@@ -133,7 +133,7 @@ class CommandHelpers:
 
     @staticmethod
     def create_test_command_data(
-        **overrides: object,
+        **overrides: t.Scalar,
     ) -> Mapping[str, object]:
         """Create test command data."""
         defaults: dict[str, object] = {
@@ -176,7 +176,7 @@ class OutputHelpers:
 
     @staticmethod
     def create_test_output_data(
-        **overrides: object,
+        **overrides: t.Scalar,
     ) -> Mapping[str, object]:
         """Create test output data."""
         defaults: dict[str, object] = {
@@ -223,7 +223,7 @@ class CommandsFactory:
     """Factory for creating test commands with high automation."""
 
     @staticmethod
-    def create_basic_command(**overrides: object) -> m.Cli.CliCommand:
+    def create_basic_command(**overrides: t.Scalar) -> m.Cli.CliCommand:
         """Create basic test command."""
         return create_test_cli_command(**overrides)
 
@@ -264,7 +264,7 @@ class CommandsFactory:
     ) -> r[bool]:
         """Register a simple test command that returns a fixed value."""
 
-        def handler(*args: object, **kwargs: object) -> r[object]:
+        def handler(*args: object, **kwargs: t.Scalar) -> r[object]:
             return r[object].ok(result_value)
 
         return commands.register_command(command_name, handler)
@@ -275,7 +275,7 @@ class CommandsFactory:
     ) -> r[bool]:
         """Register a command that accepts arguments."""
 
-        def handler(*args: object, **kwargs: object) -> r[object]:
+        def handler(*args: object, **kwargs: t.Scalar) -> r[object]:
             return r[object].ok(f"args: {len(args)}")
 
         return commands.register_command(command_name, handler)
@@ -286,7 +286,7 @@ class CommandsFactory:
     ) -> r[bool]:
         """Register a command that fails with a specific error."""
 
-        def handler(*args: object, **kwargs: object) -> r[object]:
+        def handler(*args: object, **kwargs: t.Scalar) -> r[object]:
             return r[object].fail(error_message)
 
         return commands.register_command(command_name, handler)

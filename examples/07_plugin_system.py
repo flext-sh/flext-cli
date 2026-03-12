@@ -32,7 +32,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from flext_cli import FlextCli, FlextCliTables, m, r
+from flext_cli import FlextCli, FlextCliTables, m, r, t
 
 cli = FlextCli()
 
@@ -86,7 +86,7 @@ class MyAppPluginManager:
         super().__init__()
         self.plugins: dict[str, object] = {}
 
-    def execute_plugin(self, plugin_name: str, **kwargs: object) -> r[object]:
+    def execute_plugin(self, plugin_name: str, **kwargs: t.Container) -> r[object]:
         """Execute plugin by name in YOUR CLI."""
         if plugin_name not in self.plugins:
             return r[object].fail(f"Plugin not found: {plugin_name}")

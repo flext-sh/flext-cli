@@ -16,7 +16,7 @@ from typing import Self
 from flext_core import r
 from typer.models import OptionInfo
 
-from flext_cli import m, p
+from flext_cli import m, p, t
 
 
 class FlextCliCommandBuilder:
@@ -58,7 +58,7 @@ class FlextCliCommandBuilder:
         default: object | None = None,
         param_decls: list[str] | None = None,
         help_text: str = "",
-        **kwargs: object,
+        **kwargs: t.Scalar,
     ) -> OptionInfo:
         """Create OptionInfo with validated kwargs.
 
@@ -156,7 +156,7 @@ class FlextCliCommandBuilder:
         name: str,
         default: object | None = None,
         help_: str = "",
-        **kwargs: object,
+        **kwargs: t.Scalar,
     ) -> Self:
         """Add command option.
 

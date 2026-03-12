@@ -12,7 +12,7 @@ from flext_core import r
 from pydantic import Field, PrivateAttr
 from rich.errors import ConsoleError, LiveError, StyleError
 
-from flext_cli import FlextCliConstants, FlextCliServiceBase, FlextCliUtilities, m
+from flext_cli import FlextCliConstants, FlextCliServiceBase, FlextCliUtilities, m, t
 
 CLI = FlextCliConstants.Cli
 PD, EM = (CLI.PromptsDefaults, CLI.ErrorMessages)
@@ -43,7 +43,7 @@ class FlextCliPrompts(FlextCliServiceBase):
         *,
         interactive_mode: bool = True,
         quiet: bool = False,
-        **data: object,
+        **data: t.Scalar,
     ) -> None:
         data["interactive_mode"] = interactive_mode and (not quiet)
         data["quiet"] = quiet

@@ -18,7 +18,7 @@ import yaml
 from flext_core import r
 from pydantic import TypeAdapter, ValidationError
 
-from flext_cli import c, m, u
+from flext_cli import c, m, t, u
 
 
 def _is_json_mapping(value: object) -> TypeGuard[Mapping[str, object]]:
@@ -54,7 +54,7 @@ class FlextCliFileTools:
     def _execute_file_operation[T](
         operation_func: Callable[[], T],
         error_template: str,
-        **format_kwargs: object,
+        **format_kwargs: t.Scalar,
     ) -> r[T]:
         return u.try_(operation_func).map_error(
             lambda e: error_template.format(error=e, **format_kwargs)
@@ -101,7 +101,7 @@ class FlextCliFileTools:
     def _run_bool_operation(
         operation_func: Callable[[], object],
         error_template: str,
-        **format_kwargs: object,
+        **format_kwargs: t.Scalar,
     ) -> r[bool]:
 
         def _run() -> bool:

@@ -17,7 +17,7 @@ from typing import Self, override
 from flext_core import r
 from rich.errors import ConsoleError, LiveError, StyleError
 
-from flext_cli import FlextCliServiceBase, c, m
+from flext_cli import FlextCliServiceBase, c, m, t
 
 FlextCliCommandGroup = m.Cli.CliCommandGroup
 FlextCliCommandEntryModel = m.Cli.CommandEntryModel
@@ -149,7 +149,7 @@ class FlextCliCommands(FlextCliServiceBase):
         })
 
     def execute_command(
-        self, name: str, args: Sequence[str] | None = None, **kwargs: object
+        self, name: str, args: Sequence[str] | None = None, **kwargs: t.Scalar
     ) -> r[object]:
         """Execute a registered CLI command.
 

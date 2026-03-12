@@ -14,7 +14,7 @@ import typer
 from flext_core import FlextRuntime
 from typer.testing import CliRunner
 
-from flext_cli import FlextCliCli, FlextCliSettings, m
+from flext_cli import FlextCliCli, FlextCliSettings, m, t
 
 
 class TestsCliCliExtended:
@@ -127,7 +127,7 @@ class TestsCliCliExtended:
             "--flag", required=True, default=False, help_text="A flag"
         )
 
-        def cmd_impl(*args: object, **kwargs: object) -> str:
+        def cmd_impl(*args: object, **kwargs: t.Scalar) -> str:
             _ = (args, kwargs)
             return "ok"
 

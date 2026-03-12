@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from flext_core import FlextDecorators, FlextMixins, r
 
-from flext_cli import p
+from flext_cli import p, t
 
 
 class FlextCliMixins(FlextMixins):
@@ -63,7 +63,7 @@ class FlextCliMixins(FlextMixins):
         def execute_with_cli_context(
             operation: str,
             handler: p.Cli.CliCommandHandler,
-            **context_data: object,
+            **context_data: t.Scalar,
         ) -> r[object]:
             """Execute handler with automatic CLI context management.
 

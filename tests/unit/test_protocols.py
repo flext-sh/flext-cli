@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import pytest
 
-from flext_cli import FlextCliProtocols, p, r
+from flext_cli import FlextCliProtocols, p, r, t
 from tests.constants import c
 
 from ..helpers import FlextCliTestHelpers
@@ -70,7 +70,7 @@ class TestsCliProtocols:
         """Test duck typing - class satisfies protocol without inheritance."""
 
         class DuckFormatter:
-            def format_data(self, data: object, **options: object) -> r[str]:
+            def format_data(self, data: object, **options: t.Scalar) -> r[str]:
                 return r[str].ok("formatted")
 
         duck = DuckFormatter()

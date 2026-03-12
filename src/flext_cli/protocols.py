@@ -7,7 +7,7 @@ from datetime import datetime
 from types import TracebackType
 from typing import Protocol, Self, runtime_checkable
 
-from flext_core import FlextProtocols
+from flext_core import FlextProtocols, t
 
 
 class FlextCliProtocols(FlextProtocols):
@@ -23,11 +23,11 @@ class FlextCliProtocols(FlextProtocols):
             class RichTableProtocol(Protocol):
                 """Protocol for Rich Table objects."""
 
-                def add_column(self, header: str, **kwargs: object) -> None:
+                def add_column(self, header: str, **kwargs: t.Scalar) -> None:
                     """Add a column to the table."""
                     ...
 
-                def add_row(self, *cells: str, **kwargs: object) -> None:
+                def add_row(self, *cells: str, **kwargs: t.Scalar) -> None:
                     """Add a row to the table."""
                     ...
 
@@ -36,7 +36,7 @@ class FlextCliProtocols(FlextProtocols):
                 """Protocol for Rich Tree objects."""
 
                 def add(
-                    self, label: str, **kwargs: object
+                    self, label: str, **kwargs: t.Scalar
                 ) -> FlextCliProtocols.Cli.Display.RichTreeProtocol:
                     """Add a branch to the tree."""
                     ...
@@ -46,7 +46,7 @@ class FlextCliProtocols(FlextProtocols):
                 """Protocol for Rich Console objects."""
 
                 def print(
-                    self, text: str, style: str | None = None, **kwargs: object
+                    self, text: str, style: str | None = None, **kwargs: t.Scalar
                 ) -> None:
                     """Print text to the console."""
                     ...
@@ -589,7 +589,7 @@ class FlextCliProtocols(FlextProtocols):
             """Protocol for CLI formatters."""
 
             def format_data(
-                self, data: object, **options: object
+                self, data: object, **options: t.Scalar
             ) -> FlextProtocols.Result[str]:
                 """Format data."""
                 ...
@@ -638,7 +638,7 @@ class FlextCliProtocols(FlextProtocols):
         class CliCommandFunction(Protocol):
             """Protocol for CLI command functions that may return None."""
 
-            def __call__(self, *args: object, **kwargs: object) -> object | None:
+            def __call__(self, *args: object, **kwargs: t.Scalar) -> object | None:
                 """Execute the function."""
                 ...
 
@@ -646,7 +646,7 @@ class FlextCliProtocols(FlextProtocols):
         class CliCommandWrapper(Protocol):
             """Protocol for dynamically-created CLI command wrapper functions."""
 
-            def __call__(self, *args: object, **kwargs: object) -> object:
+            def __call__(self, *args: object, **kwargs: t.Scalar) -> object:
                 """Execute the wrapper."""
                 ...
 
@@ -655,7 +655,7 @@ class FlextCliProtocols(FlextProtocols):
             """Protocol for command handlers returning r."""
 
             def __call__(
-                self, *args: object, **kwargs: object
+                self, *args: object, **kwargs: t.Scalar
             ) -> FlextProtocols.Result[object]:
                 """Execute the handler."""
                 ...
@@ -665,7 +665,7 @@ class FlextCliProtocols(FlextProtocols):
             """Protocol for model command handlers."""
 
             def handle(
-                self, model: object, **kwargs: object
+                self, model: object, **kwargs: t.Scalar
             ) -> FlextProtocols.Result[object]:
                 """Handle the model command."""
                 ...
@@ -815,7 +815,7 @@ class FlextCliProtocols(FlextProtocols):
         class CliCommandHandler(Protocol):
             """Protocol for CLI command handlers."""
 
-            def __call__(self, **kwargs: object) -> object:
+            def __call__(self, **kwargs: t.Scalar) -> object:
                 """Execute the command handler."""
                 ...
 

@@ -683,7 +683,7 @@ class FlextCliModels(FlextModels):
                 """
                 # Entity handles timestamp initialization via its own model_post_init
 
-            def _copy_with_update(self, **updates: object) -> Self:
+            def _copy_with_update(self, **updates: t.Scalar) -> Self:
                 """Helper method for model_copy with updates - reduces repetition.
 
                 Composition pattern: centralizes model_copy logic for reuse.
@@ -1013,7 +1013,7 @@ class FlextCliModels(FlextModels):
                 """
                 # Entity handles timestamp initialization via its own model_post_init
 
-            def _copy_with_update(self, **updates: object) -> Self:
+            def _copy_with_update(self, **updates: t.Scalar) -> Self:
                 """Helper method for model_copy with updates - reduces repetition.
 
                 Composition pattern: centralizes model_copy logic for reuse.
@@ -2459,7 +2459,7 @@ class FlextCliModels(FlextModels):
 
                 def command_wrapper(
                     *args: object,
-                    **kwargs: object,
+                    **kwargs: t.Scalar,
                 ) -> object:
                     try:
                         bound_arguments = command_signature.bind(*args, **kwargs)
@@ -2490,7 +2490,7 @@ class FlextCliModels(FlextModels):
                 # TypeGuard narrows command_wrapper to Callable[..., object] for dynamic exec result
                 def typed_wrapper(
                     *args: object,
-                    **kwargs: object,
+                    **kwargs: t.Scalar,
                 ) -> object:
                     raw_result = command_wrapper(*args, **kwargs)
                     normalized = (
@@ -3226,7 +3226,7 @@ class FlextCliModels(FlextModels):
                 ) -> p.Cli.CliCommandWrapper:
                     def wrapper(
                         *_args: object,
-                        **kwargs: object,
+                        **kwargs: t.Scalar,
                     ) -> object:
                         try:
                             # Create model instance from kwargs
@@ -3276,7 +3276,7 @@ class FlextCliModels(FlextModels):
                 ) -> p.Cli.CliCommandWrapper:
                     def wrapper(
                         *_args: object,
-                        **kwargs: object,
+                        **kwargs: t.Scalar,
                     ) -> object:
                         try:
                             model_instances: list[BaseModel] = []
