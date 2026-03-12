@@ -95,15 +95,15 @@ class FlextCliSettings(FlextSettings):
         """Optimal table format for display (one of simple, grid, github, plain)."""
         return "simple"
 
-    def execute_service(self) -> r[t.JsonDict]:
+    def execute_service(self) -> r[object]:
         """Execute config as service; return status dict."""
-        return r[t.JsonDict].ok({"config": "loaded", "profile": self.profile})
+        return r[object].ok({"config": "loaded", "profile": self.profile})
 
-    def load_config(self) -> r[t.JsonDict]:
+    def load_config(self) -> r[object]:
         """Load current config as dict."""
-        return r[t.JsonDict].ok(self.model_dump(mode="json"))
+        return r[object].ok(self.model_dump(mode="json"))
 
-    def save_config(self, data: t.JsonDict) -> r[bool]:
+    def save_config(self, data: object) -> r[bool]:
         """Apply config updates from dict."""
 
         def _apply_updates() -> bool:
@@ -115,9 +115,9 @@ class FlextCliSettings(FlextSettings):
 
         return FlextUtilities.try_(_apply_updates).map_error(str)
 
-    def update_from_cli_args(self, **kwargs: t.JsonValue) -> r[bool]:
+    def update_from_cli_args(self, **kwargs: object) -> r[bool]:
         """Update config from CLI args."""
-        data: t.JsonDict = {
+        data: object = {
             k: v for k, v in kwargs.items() if k in self.__class__.model_fields
         }
         return self.save_config(data)
@@ -158,10 +158,10 @@ class FlextCliSettings(FlextSettings):
                 parsed = yaml.safe_load(raw)
             if not isinstance(parsed, dict):
                 return r[FlextCliSettings].fail(c.Cli.CmdErrorMessages.CONFIG_NOT_DICT)
-            mapping_adapter: TypeAdapter[t.ConfigurationMapping] = TypeAdapter(
-                t.ConfigurationMapping
+            mapping_adapter: TypeAdapter[object] = TypeAdapter(
+                object
             )
-            data: t.ConfigurationMapping = mapping_adapter.validate_python(parsed)
+            data: object = mapping_adapter.validate_python(parsed)
             instance = cls.model_validate(data)
             return r[FlextCliSettings].ok(instance)
         except (

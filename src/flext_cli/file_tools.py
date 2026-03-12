@@ -18,11 +18,11 @@ import yaml
 from flext_core import r
 from pydantic import TypeAdapter, ValidationError
 
-from flext_cli import c, m, t, u
+from flext_cli import c, m, u
 
 
-def _is_json_mapping(value: t.JsonValue) -> TypeGuard[Mapping[str, t.JsonValue]]:
-    """Narrow JsonValue to mapping for structured file load."""
+def _is_json_mapping(value: object) -> TypeGuard[Mapping[str, object]]:
+    """Narrow object to mapping for structured file load."""
     return isinstance(value, Mapping)
 
 
@@ -54,7 +54,7 @@ class FlextCliFileTools:
     def _execute_file_operation[T](
         operation_func: Callable[[], T],
         error_template: str,
-        **format_kwargs: t.JsonValue,
+        **format_kwargs: object,
     ) -> r[T]:
         return u.try_(operation_func).map_error(
             lambda e: error_template.format(error=e, **format_kwargs)
@@ -68,17 +68,17 @@ class FlextCliFileTools:
 
     @staticmethod
     def _load_structured_file(
-        file_path: str, loader: Callable[[TextIO], t.JsonValue]
-    ) -> t.JsonValue | None:
+        file_path: str, loader: Callable[[TextIO], object]
+    ) -> object | None:
         with Path(file_path).open(encoding=c.Cli.Utilities.DEFAULT_ENCODING) as f:
-            loaded: t.JsonValue = loader(f)
+            loaded: object = loader(f)
         if _is_json_mapping(loaded):
-            normalized: dict[str, t.JsonValue] = {}
+            normalized: dict[str, object] = {}
             for k, v in loaded.items():
                 nv = m.Cli.normalize_to_json_value(v)
                 normalized[str(k)] = nv
             return normalized
-        json_adapter: TypeAdapter[t.JsonValue] = TypeAdapter(t.JsonValue)
+        json_adapter: TypeAdapter[object] = TypeAdapter(object)
         try:
             return json_adapter.validate_python(loaded)
         except ValidationError as exc:
@@ -101,7 +101,7 @@ class FlextCliFileTools:
     def _run_bool_operation(
         operation_func: Callable[[], object],
         error_template: str,
-        **format_kwargs: t.JsonValue,
+        **format_kwargs: object,
     ) -> r[bool]:
 
         def _run() -> bool:
@@ -113,7 +113,7 @@ class FlextCliFileTools:
         )
 
     @staticmethod
-    def _save_file_by_extension(file_path: str | Path, data: t.JsonValue) -> r[bool]:
+    def _save_file_by_extension(file_path: str | Path, data: object) -> r[bool]:
         ext = Path(file_path).suffix.lower()
         if ext == c.Cli.FileExtensions.JSON:
             return FlextCliFileTools.write_json_file(file_path, data)
@@ -339,10 +339,10 @@ class FlextCliFileTools:
         )
 
     @staticmethod
-    def load_file_auto_detect(file_path: str | Path) -> r[t.JsonValue]:
+    def load_file_auto_detect(file_path: str | Path) -> r[object]:
         format_result = FlextCliFileTools.detect_file_format(file_path)
         if format_result.is_failure:
-            return r[t.JsonValue].fail(
+            return r[object].fail(
                 format_result.error or c.Cli.ErrorMessages.FORMAT_DETECTION_FAILED
             )
         fmt = format_result.value
@@ -350,22 +350,20 @@ class FlextCliFileTools:
             return FlextCliFileTools.read_json_file(file_path)
         if fmt == c.Cli.FileSupportedFormats.YAML:
             return FlextCliFileTools.read_yaml_file(file_path)
-        return r[t.JsonValue].fail(
-            c.Cli.ErrorMessages.UNSUPPORTED_FORMAT.format(format=fmt)
-        )
+        return r[object].fail(c.Cli.ErrorMessages.UNSUPPORTED_FORMAT.format(format=fmt))
 
     @staticmethod
-    def load_file_auto_dict(file_path: str | Path) -> r[dict[str, t.JsonValue]]:
+    def load_file_auto_dict(file_path: str | Path) -> r[dict[str, object]]:
         """Load JSON or YAML file and return as dict. Fails if root is not an object."""
         result = FlextCliFileTools.load_file_auto_detect(file_path)
         if result.is_failure:
-            return r[dict[str, t.JsonValue]].fail(result.error or "Load failed")
+            return r[dict[str, object]].fail(result.error or "Load failed")
         value = result.value
         if not _is_json_mapping(value):
-            return r[dict[str, t.JsonValue]].fail(
+            return r[dict[str, object]].fail(
                 "File root is not an object; use load_file_auto_detect for other types"
             )
-        return r[dict[str, t.JsonValue]].ok(dict(value))
+        return r[dict[str, object]].ok(dict(value))
 
     @staticmethod
     def move_file(source: str | Path, destination: str | Path) -> r[bool]:
@@ -398,9 +396,9 @@ class FlextCliFileTools:
         )
 
     @staticmethod
-    def read_json_file(file_path: str | Path) -> r[t.JsonValue]:
+    def read_json_file(file_path: str | Path) -> r[object]:
 
-        def _load() -> t.JsonValue:
+        def _load() -> object:
             out = FlextCliFileTools._load_structured_file(str(file_path), json.load)
             if out is None:
                 msg = "JSON load returned None"
@@ -412,17 +410,17 @@ class FlextCliFileTools:
         )
 
     @staticmethod
-    def read_json_dict(file_path: str | Path) -> r[dict[str, t.JsonValue]]:
+    def read_json_dict(file_path: str | Path) -> r[dict[str, object]]:
         """Read a JSON file whose root is an object. Returns typed dict; no narrowing needed."""
         result = FlextCliFileTools.read_json_file(file_path)
         if result.is_failure:
-            return r[dict[str, t.JsonValue]].fail(result.error or "JSON load failed")
+            return r[dict[str, object]].fail(result.error or "JSON load failed")
         value = result.value
         if not _is_json_mapping(value):
-            return r[dict[str, t.JsonValue]].fail(
+            return r[dict[str, object]].fail(
                 "JSON root is not an object; use read_json_file for other types"
             )
-        return r[dict[str, t.JsonValue]].ok(dict(value))
+        return r[dict[str, object]].ok(dict(value))
 
     @staticmethod
     def read_text_file(file_path: str | Path) -> r[str]:
@@ -433,9 +431,9 @@ class FlextCliFileTools:
         )
 
     @staticmethod
-    def read_yaml_file(file_path: str | Path) -> r[t.JsonValue]:
+    def read_yaml_file(file_path: str | Path) -> r[object]:
 
-        def _load() -> t.JsonValue:
+        def _load() -> object:
             out = FlextCliFileTools._load_structured_file(
                 str(file_path), yaml.safe_load
             )
@@ -449,7 +447,7 @@ class FlextCliFileTools:
         )
 
     @staticmethod
-    def save_file(file_path: str | Path, data: t.JsonValue) -> r[bool]:
+    def save_file(file_path: str | Path, data: object) -> r[bool]:
         return FlextCliFileTools._save_file_by_extension(file_path, data)
 
     @staticmethod
@@ -497,15 +495,13 @@ class FlextCliFileTools:
     @staticmethod
     def write_json_file(
         file_path: str | Path,
-        data: t.JsonValue | m.Cli.DisplayData,
+        data: object | m.Cli.DisplayData,
         indent: int = 2,
         *,
         sort_keys: bool = False,
         ensure_ascii: bool = True,
     ) -> r[bool]:
-        payload: t.JsonValue = (
-            data.data if isinstance(data, m.Cli.DisplayData) else data
-        )
+        payload: object = data.data if isinstance(data, m.Cli.DisplayData) else data
         return FlextCliFileTools._write_structured_file(
             file_path,
             lambda f: json.dump(
@@ -535,7 +531,7 @@ class FlextCliFileTools:
     @staticmethod
     def write_yaml_file(
         file_path: str | Path,
-        data: t.JsonValue,
+        data: object,
         *,
         default_flow_style: bool | None = None,
         sort_keys: bool = False,

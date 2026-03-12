@@ -36,11 +36,11 @@ class FlextCliTypes(FlextTypes):
         5. Type composition with Protocols for better type safety
         """
 
-        ResultFormatter = Callable[[FlextTypes.JsonValue], str]
+        ResultFormatter = Callable[[object], str]
         FormatableResult: TypeAlias = str
-        TabularData = Sequence[Mapping[str, FlextTypes.JsonValue]]
-        TableRows: TypeAlias = Sequence[Mapping[str, FlextTypes.JsonValue]]
-        JsonDict: TypeAlias = Mapping[str, FlextTypes.JsonValue]
+        TabularData = Sequence[Mapping[str, object]]
+        TableRows: TypeAlias = Sequence[Mapping[str, object]]
+        JsonDict: TypeAlias = Mapping[str, object]
         CliValue = (
             FlextTypes.Scalar
             | list[str]

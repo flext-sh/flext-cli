@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from typing import override
 
-from flext_core import r, t
+from flext_core import r
 
 from flext_cli import FlextCliServiceBase, FlextCliSettings
 
@@ -31,9 +31,9 @@ class TestsCliServiceBase:
         """Concrete implementation for testing abstract base class."""
 
         @override
-        def execute(self) -> r[t.JsonDict]:
+        def execute(self) -> r[object]:
             """Implement abstract method for testing."""
-            return r[t.JsonDict].ok({})
+            return r[object].ok({})
 
     def test_service_base_initialization(self) -> None:
         """Test FlextCliServiceBase can be instantiated via concrete class."""

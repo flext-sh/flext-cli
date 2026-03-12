@@ -18,7 +18,7 @@ from flext_core import p as p_core, r
 from pydantic import BaseModel
 from rich.errors import ConsoleError, LiveError, StyleError
 
-from flext_cli import p, t
+from flext_cli import p
 
 FlextCliMiddlewareProtocol = p.Cli.MiddlewareProtocol
 
@@ -29,8 +29,8 @@ class FlextCliLoggingMiddleware:
     def __call__(
         self,
         ctx: p.Cli.CliContextProtocol,
-        next_: Callable[[p.Cli.CliContextProtocol], r[t.JsonValue]],
-    ) -> r[t.JsonValue]:
+        next_: Callable[[p.Cli.CliContextProtocol], r[object]],
+    ) -> r[object]:
         """Log command execution.
 
         Args:
@@ -38,7 +38,7 @@ class FlextCliLoggingMiddleware:
             next_: Next middleware or handler.
 
         Returns:
-            r[t.JsonValue]: Result from next middleware or handler.
+            r[object]: Result from next middleware or handler.
 
         """
         _ = getattr(ctx, "command", "unknown")
@@ -64,8 +64,8 @@ class FlextCliValidationMiddleware:
     def __call__(
         self,
         ctx: p.Cli.CliContextProtocol,
-        next_: Callable[[p.Cli.CliContextProtocol], r[t.JsonValue]],
-    ) -> r[t.JsonValue]:
+        next_: Callable[[p.Cli.CliContextProtocol], r[object]],
+    ) -> r[object]:
         """Validate command inputs.
 
         Args:
@@ -73,7 +73,7 @@ class FlextCliValidationMiddleware:
             next_: Next middleware or handler.
 
         Returns:
-            r[t.JsonValue]: Result from next middleware or handler, or failure
+            r[object]: Result from next middleware or handler, or failure
                 if validation fails.
 
         """
@@ -90,7 +90,7 @@ class FlextCliValidationMiddleware:
             StyleError,
             LiveError,
         ) as e:
-            return r[t.JsonValue].fail(f"Validation failed: {e}")
+            return r[object].fail(f"Validation failed: {e}")
 
 
 class FlextCliRetryMiddleware:
@@ -111,8 +111,8 @@ class FlextCliRetryMiddleware:
     def __call__(
         self,
         ctx: p.Cli.CliContextProtocol,
-        next_: Callable[[p.Cli.CliContextProtocol], r[t.JsonValue]],
-    ) -> r[t.JsonValue]:
+        next_: Callable[[p.Cli.CliContextProtocol], r[object]],
+    ) -> r[object]:
         """Retry failed commands.
 
         Args:
@@ -120,7 +120,7 @@ class FlextCliRetryMiddleware:
             next_: Next middleware or handler.
 
         Returns:
-            r[t.JsonValue]: Result from next middleware or handler after retries.
+            r[object]: Result from next middleware or handler after retries.
 
         """
         result = next_(ctx)
@@ -141,8 +141,8 @@ class FlextCliMiddleware:
     @staticmethod
     def compose(
         middlewares: list[FlextCliMiddlewareProtocol],
-        handler: Callable[[p.Cli.CliContextProtocol], p_core.Result[t.JsonValue]],
-    ) -> Callable[[p.Cli.CliContextProtocol], p_core.Result[t.JsonValue]]:
+        handler: Callable[[p.Cli.CliContextProtocol], p_core.Result[object]],
+    ) -> Callable[[p.Cli.CliContextProtocol], p_core.Result[object]]:
         """Compose middleware into single callable.
 
         Args:
@@ -164,11 +164,11 @@ class FlextCliMiddleware:
 
         """
 
-        def composed(ctx: p.Cli.CliContextProtocol) -> p_core.Result[t.JsonValue]:
+        def composed(ctx: p.Cli.CliContextProtocol) -> p_core.Result[object]:
 
             def build_chain(
                 idx: int,
-            ) -> Callable[[p.Cli.CliContextProtocol], p_core.Result[t.JsonValue]]:
+            ) -> Callable[[p.Cli.CliContextProtocol], p_core.Result[object]]:
                 if idx >= len(middlewares):
                     return handler
                 current_middleware = middlewares[idx]

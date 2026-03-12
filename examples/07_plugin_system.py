@@ -32,7 +32,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from flext_cli import FlextCli, FlextCliTables, m, r, t
+from flext_cli import FlextCli, FlextCliTables, m, r
 
 cli = FlextCli()
 
@@ -47,7 +47,7 @@ class DataExportPlugin:
         self.version = "1.0.0"
 
     @staticmethod
-    def execute(data: dict[str, t.JsonValue], output_format: str = "json") -> r[str]:
+    def execute(data: dict[str, object], output_format: str = "json") -> r[str]:
         """Execute plugin logic in YOUR application."""
         if output_format == "json":
             output = json.dumps(data, indent=2)
@@ -66,7 +66,7 @@ class ReportGeneratorPlugin:
         self.version = "1.0.0"
 
     @staticmethod
-    def execute(data: list[dict[str, t.JsonValue]]) -> r[str]:
+    def execute(data: list[dict[str, object]]) -> r[str]:
         """Generate report from data in YOUR CLI."""
         tables = FlextCliTables()
         config = m.Cli.TableConfig(table_format="grid")
@@ -86,31 +86,29 @@ class MyAppPluginManager:
         super().__init__()
         self.plugins: dict[str, object] = {}
 
-    def execute_plugin(self, plugin_name: str, **kwargs: object) -> r[t.JsonValue]:
+    def execute_plugin(self, plugin_name: str, **kwargs: object) -> r[object]:
         """Execute plugin by name in YOUR CLI."""
         if plugin_name not in self.plugins:
-            return r[t.JsonValue].fail(f"Plugin not found: {plugin_name}")
+            return r[object].fail(f"Plugin not found: {plugin_name}")
         plugin = self.plugins[plugin_name]
         execute_attr = getattr(plugin, "execute", None)
         if not callable(execute_attr):
-            return r[t.JsonValue].fail(
-                f"Plugin {plugin_name} does not have execute method"
-            )
+            return r[object].fail(f"Plugin {plugin_name} does not have execute method")
         execute_method = execute_attr
         try:
             raw = execute_method(**kwargs)
             if hasattr(raw, "is_success") and hasattr(raw, "value"):
                 if getattr(raw, "is_failure", False):
-                    return r[t.JsonValue].fail(
+                    return r[object].fail(
                         getattr(raw, "error", "Unknown error") or "Unknown error"
                     )
                 result_value = getattr(raw, "value")
             else:
                 result_value = raw
             normalized = m.Cli.CliNormalizedJson.model_validate(result_value).root
-            return r[t.JsonValue].ok(normalized)
+            return r[object].ok(normalized)
         except Exception as e:
-            return r[t.JsonValue].fail(f"Plugin execution failed: {e}")
+            return r[object].fail(f"Plugin execution failed: {e}")
 
     def list_plugins(self) -> None:
         """List all registered plugins in YOUR CLI."""
@@ -126,7 +124,7 @@ class MyAppPluginManager:
             name: get_plugin_version(name, plugin)
             for name, plugin in self.plugins.items()
         }
-        rows: list[dict[str, t.JsonValue]] = [
+        rows: list[dict[str, object]] = [
             {"Plugin": name, "Version": ver} for name, ver in plugin_items.items()
         ]
         cli.show_table(rows, headers=["Plugin", "Version"])
@@ -154,21 +152,21 @@ def load_plugins_from_directory(plugin_dir: Path) -> MyAppPluginManager:
 class ConfigurablePlugin:
     """Example of configurable plugin for YOUR CLI."""
 
-    def __init__(self, config: dict[str, t.JsonValue]) -> None:
+    def __init__(self, config: dict[str, object]) -> None:
         """Initialize configurable plugin with configuration dictionary."""
         super().__init__()
         self.name = "configurable-plugin"
-        self.config: dict[str, t.JsonValue] = config
+        self.config: dict[str, object] = config
 
-    def execute(self) -> r[dict[str, t.JsonValue]]:
+    def execute(self) -> r[dict[str, object]]:
         """Execute with configuration in YOUR CLI."""
         cli.print(f"🔧 Plugin config: {self.config}", style="cyan")
-        result_data: dict[str, t.JsonValue] = {
+        result_data: dict[str, object] = {
             "plugin": self.name,
             "config_applied": True,
             **self.config,
         }
-        return r[dict[str, t.JsonValue]].ok(result_data)
+        return r[dict[str, object]].ok(result_data)
 
 
 class LifecyclePlugin:
@@ -213,14 +211,14 @@ def main() -> None:
     cli.print("\n2. List Plugins (inventory):", style="bold cyan")
     manager.list_plugins()
     cli.print("\n3. Execute Plugin (data export):", style="bold cyan")
-    test_data: dict[str, t.JsonValue] = {"id": 1, "name": "Test", "status": "active"}
+    test_data: dict[str, object] = {"id": 1, "name": "Test", "status": "active"}
     export_result = manager.execute_plugin("data-export", data=test_data, format="json")
     if export_result.is_success:
         result_value = export_result.value
         output_preview = str(result_value)[:100] if result_value else ""
         cli.print(f"   Output: {output_preview}...", style="white")
     cli.print("\n4. Report Plugin (table generation):", style="bold cyan")
-    report_data: list[dict[str, t.JsonValue]] = [
+    report_data: list[dict[str, object]] = [
         {"metric": "Users", "value": "1,234"},
         {"metric": "Orders", "value": "567"},
     ]
@@ -230,7 +228,7 @@ def main() -> None:
             f"   Report length: {len(str(report_result.value))} chars", style="green"
         )
     cli.print("\n5. Configurable Plugin:", style="bold cyan")
-    config: dict[str, t.JsonValue] = {"theme": "dark", "verbose": True}
+    config: dict[str, object] = {"theme": "dark", "verbose": True}
     config_plugin = ConfigurablePlugin(config)
     config_result = config_plugin.execute()
     if config_result.is_success:

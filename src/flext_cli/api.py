@@ -39,7 +39,6 @@ from flext_cli.services.output import FlextCliOutput
 from flext_cli.services.prompts import FlextCliPrompts
 from flext_cli.services.tables import FlextCliTables
 from flext_cli.settings import FlextCliSettings
-from flext_cli.typings import t
 from flext_cli.utilities import FlextCliUtilities as u
 
 
@@ -152,7 +151,7 @@ class FlextCli:
         self._valid_tokens: set[str] = set()
         self._valid_sessions: set[str] = set()
         self._session_permissions: MutableMapping[str, set[str]] = {}
-        self._users: MutableMapping[str, Mapping[str, t.JsonValue]] = {}
+        self._users: MutableMapping[str, Mapping[str, object]] = {}
         self._deleted_users: set[str] = set()
 
     @classmethod
@@ -244,7 +243,7 @@ class FlextCli:
 
     def _create_table(
         self,
-        data: Mapping[str, t.JsonValue] | Sequence[Mapping[str, t.JsonValue]] | None,
+        data: Mapping[str, object] | Sequence[Mapping[str, object]] | None,
         headers: list[str] | None = None,
         _title: str | None = None,
     ) -> r[str]:
@@ -252,7 +251,7 @@ class FlextCli:
         if data is None:
             return r[str].fail("Table data cannot be None")
         if isinstance(data, Mapping):
-            table_data: list[Mapping[str, t.JsonValue]] = [dict(data.items())]
+            table_data: list[Mapping[str, object]] = [dict(data.items())]
         elif isinstance(data, list):
             table_data = data
         elif isinstance(data, tuple):
@@ -270,9 +269,9 @@ class FlextCli:
         """Create a Rich tree (FlextCliFormatters.Tree; add() returns None by default)."""
         return FlextCliFormatters.create_tree(label)
 
-    def execute(self) -> r[Mapping[str, t.JsonValue]]:
+    def execute(self) -> r[Mapping[str, object]]:
         """Execute CLI service with railway pattern."""
-        result_dict: Mapping[str, t.JsonValue] = {
+        result_dict: Mapping[str, object] = {
             c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.OPERATIONAL.value,
             c.Cli.DictKeys.SERVICE: c.Cli.FLEXT_CLI,
             "timestamp": u.generate("timestamp"),
@@ -284,7 +283,7 @@ class FlextCli:
                 "prompts": "available",
             },
         }
-        return r[Mapping[str, t.JsonValue]].ok(result_dict)
+        return r[Mapping[str, object]].ok(result_dict)
 
     def get_auth_token(self) -> r[str]:
         """Get authentication token using Pydantic 2 validation."""
@@ -331,7 +330,7 @@ class FlextCli:
 
     def show_table(
         self,
-        data: Mapping[str, t.JsonValue] | Sequence[Mapping[str, t.JsonValue]],
+        data: Mapping[str, object] | Sequence[Mapping[str, object]],
         headers: list[str] | None = None,
         title: str | None = None,
     ) -> None:
@@ -347,7 +346,7 @@ class FlextCli:
         validation = FlextCli._validate_token_string(token)
         if validation.is_failure:
             return validation
-        token_data: t.JsonDict = {c.Cli.DictKeys.TOKEN: token}
+        token_data: object = {c.Cli.DictKeys.TOKEN: token}
         write_result = self.file_tools.write_json_file(
             str(self.config.token_file),
             m.Cli.DisplayData.model_validate({"data": token_data}),

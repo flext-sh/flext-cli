@@ -53,7 +53,7 @@ tables = FlextCliTables()
 
 
 def save_user_preferences(
-    preferences: dict[str, t.JsonValue],
+    preferences: dict[str, object],
     config_dir: Path,
 ) -> bool:
     """Save user preferences to JSON in YOUR app."""
@@ -100,7 +100,7 @@ def load_user_preferences(config_dir: Path) -> r[m.Cli.LoadedConfig]:
 
 
 def save_deployment_config(
-    config: dict[str, t.JsonValue],
+    config: dict[str, object],
     config_file: Path,
 ) -> bool:
     """Save deployment config to YAML in YOUR tool."""
@@ -108,7 +108,7 @@ def save_deployment_config(
     # with open(config_file, 'w') as f:
     #     yaml.dump(config, f)
 
-    # Cast dict to object (compatible with JsonValue)
+    # Cast dict to object (compatible with object)
     write_result = cli.file_tools.write_yaml_file(
         config_file,
         config,
@@ -142,7 +142,7 @@ def load_deployment_config(config_file: Path) -> r[m.Cli.LoadedConfig]:
 
 
 def export_database_report(
-    records: list[dict[str, t.JsonValue]],
+    records: list[dict[str, object]],
     output_file: Path,
     format_type: str = "grid",
 ) -> bool | None:
@@ -179,7 +179,7 @@ def list_project_files(project_dir: Path) -> None:
         return
 
     # Collect file metadata
-    files_data: list[dict[str, t.JsonValue]] = [
+    files_data: list[dict[str, object]] = [
         {
             "Name": item.name[:40],
             "Type": "📂 dir" if item.is_dir() else "📄 file",
@@ -299,7 +299,7 @@ def backup_config_files(source_dir: Path, backup_dir: Path) -> list[str]:
 
 
 def export_to_csv(
-    data: list[dict[str, t.JsonValue]],
+    data: list[dict[str, object]],
     output_file: Path,
 ) -> bool:
     """Export data to CSV with proper headers in YOUR reporting tool."""
@@ -345,7 +345,7 @@ def import_from_csv(input_file: Path) -> list[dict[str, str]] | None:
     # Display sample
     if rows:
         sample_rows = [dict(r) for r in rows[:5]]
-        tabular_data: list[dict[str, t.JsonValue]] = [dict(row) for row in sample_rows]
+        tabular_data: list[dict[str, object]] = [dict(row) for row in sample_rows]
         cli.show_table(tabular_data, title="📋 Sample Data")
     return [dict(r) for r in rows] if rows else None
 
@@ -421,7 +421,7 @@ def load_config_auto_detect(config_file: Path) -> r[m.Cli.LoadedConfig]:
 
 
 def export_multi_format(
-    data: dict[str, t.JsonValue] | list[dict[str, t.JsonValue]],
+    data: dict[str, object] | list[dict[str, object]],
     base_path: Path,
 ) -> dict[str, str]:
     """Export same data to multiple formats (JSON, YAML, CSV)."""
@@ -455,8 +455,8 @@ def export_multi_format(
         export_results["YAML"] = f"{size} bytes"
         cli.print(f"✅ YAML: {yaml_path.name} ({size} bytes)", style="green")
 
-    rows_adapter = TypeAdapter(list[dict[str, t.JsonValue]])
-    csv_rows_data: list[dict[str, t.JsonValue]]
+    rows_adapter = TypeAdapter(list[dict[str, object]])
+    csv_rows_data: list[dict[str, object]]
     try:
         csv_rows_data = rows_adapter.validate_python(data)
     except ValidationError:
@@ -488,7 +488,7 @@ def export_multi_format(
 def process_file_pipeline(
     input_file: Path,
     output_dir: Path,
-) -> r[t.ConfigurationMapping]:
+) -> r[object]:
     """Complete file processing pipeline using Railway Pattern.
 
     Demonstrates chaining multiple file operations with proper error handling.
@@ -497,22 +497,22 @@ def process_file_pipeline(
     cli.print(f"\n🔄 Processing file pipeline: {input_file.name}", style="cyan")
 
     # Initialize result
-    result: r[t.ConfigurationMapping]
+    result: r[object]
 
     # Railway pattern: Chain operations with automatic error propagation
 
     # Step 1: Validate input file exists and is readable
     if not input_file.exists():
-        result = r[t.ConfigurationMapping].fail(f"File not found: {input_file}")
+        result = r[object].fail(f"File not found: {input_file}")
     elif not input_file.is_file():
-        result = r[t.ConfigurationMapping].fail(f"Not a file: {input_file}")
+        result = r[object].fail(f"Not a file: {input_file}")
     else:
         cli.print("✅ Input validation passed", style="green")
 
         # Step 2: Read file content (dict-only, no narrowing)
         read_result = cli.file_tools.read_json_dict(input_file)
         if read_result.is_failure:
-            result = r[t.ConfigurationMapping].fail(
+            result = r[object].fail(
                 f"File read failed: {read_result.error}",
             )
         else:
@@ -524,7 +524,7 @@ def process_file_pipeline(
 
             output_result = generate_output_files(transformed_data, output_dir)
             if output_result.is_failure:
-                result = r[t.ConfigurationMapping].fail(
+                result = r[object].fail(
                     output_result.error or "Unknown error",
                 )
             else:
@@ -537,7 +537,7 @@ def process_file_pipeline(
                     "🎉 File processing pipeline completed successfully!",
                     style="bold green",
                 )
-                result = r[t.ConfigurationMapping].ok(summary)
+                result = r[object].ok(summary)
 
     if result.is_failure:
         cli.print(f"❌ Pipeline failed: {result.error}", style="bold red")
@@ -546,10 +546,10 @@ def process_file_pipeline(
 
 
 def validate_and_transform_data(
-    data: Mapping[str, t.JsonValue],
+    data: Mapping[str, object],
 ) -> m.Cli.LoadedConfig:
     """Validate and transform input data."""
-    transformed: t.JsonDict = {
+    transformed: object = {
         **data,
         "processed_at": "2025-11-23T10:00:00Z",
         "pipeline_version": "2.0",
@@ -589,8 +589,8 @@ def generate_output_files(
         return r[dict[str, Path]].fail(f"YAML export failed: {yaml_result.error}")
     results["yaml"] = yaml_file
 
-    rows_adapter = TypeAdapter(list[dict[str, t.JsonValue]])
-    csv_rows_data: list[dict[str, t.JsonValue]]
+    rows_adapter = TypeAdapter(list[dict[str, object]])
+    csv_rows_data: list[dict[str, object]]
     try:
         csv_rows_data = rows_adapter.validate_python(data.content.get("items", []))
     except ValidationError:
@@ -611,9 +611,9 @@ def generate_output_files(
 
 def create_processing_summary(
     results: dict[str, Path],
-) -> t.ConfigurationMapping:
+) -> object:
     """Create a summary of the processing pipeline."""
-    summary: t.ConfigurationMapping = {
+    summary: object = {
         "pipeline_completed": True,
         "timestamp": "2025-11-23T10:00:00Z",
         "output_files": [str(p) for p in results.values()],
@@ -640,7 +640,7 @@ def main() -> None:
 
     # Example 1: JSON preferences
     cli.print("\n1. JSON Config Files (user preferences):", style="bold cyan")
-    prefs: dict[str, t.JsonValue] = {
+    prefs: dict[str, object] = {
         "theme": "dark",
         "font_size": 14,
         "auto_save": True,
@@ -652,7 +652,7 @@ def main() -> None:
 
     # Example 2: YAML deployment config
     cli.print("\n2. YAML Configuration (deployment):", style="bold cyan")
-    deploy_config: dict[str, t.JsonValue] = {
+    deploy_config: dict[str, object] = {
         "environment": "staging",
         "host": "staging.example.com",
         "platform": platform.system(),
@@ -665,7 +665,7 @@ def main() -> None:
 
     # Example 3: Table export
     cli.print("\n3. Data Export (table format):", style="bold cyan")
-    sample_data: list[dict[str, t.JsonValue]] = [
+    sample_data: list[dict[str, object]] = [
         {"id": 1, "name": "Alice", "status": "active"},
         {"id": 2, "name": "Bob", "status": "inactive"},
     ]
@@ -682,7 +682,7 @@ def main() -> None:
 
     # Example 6: Data validation
     cli.print("\n6. Data Validation (ETL pipeline):", style="bold cyan")
-    test_data: dict[str, t.JsonValue] = {"id": 1, "name": "test", "value": 100}
+    test_data: dict[str, object] = {"id": 1, "name": "test", "value": 100}
     test_file = temp_dir / "test_data.json"
     cli.file_tools.write_json_file(test_file, test_data)
     valid_result = validate_and_import_data(test_file)
@@ -691,7 +691,7 @@ def main() -> None:
 
     # Example 7: CSV export/import
     cli.print("\n7. CSV Export/Import (with headers):", style="bold cyan")
-    csv_data: list[dict[str, t.JsonValue]] = [
+    csv_data: list[dict[str, object]] = [
         {"employee_id": 101, "name": "Alice Smith", "department": "Engineering"},
         {"employee_id": 102, "name": "Bob Jones", "department": "Sales"},
         {"employee_id": 103, "name": "Carol White", "department": "Marketing"},
@@ -709,7 +709,7 @@ def main() -> None:
 
     # Example 9: Auto-format detection
     cli.print("\n9. Auto-Format Detection:", style="bold cyan")
-    auto_config: dict[str, t.JsonValue] = {
+    auto_config: dict[str, object] = {
         "app": "demo",
         "version": "1.0",
         "enabled": True,
@@ -727,7 +727,7 @@ def main() -> None:
 
     # Example 10: Multi-format export
     cli.print("\n10. Multi-Format Export:", style="bold cyan")
-    multi_data: list[dict[str, t.JsonValue]] = [
+    multi_data: list[dict[str, object]] = [
         {"metric": "CPU", "value": "75%", "status": "OK"},
         {"metric": "Memory", "value": "82%", "status": "Warning"},
     ]
@@ -735,7 +735,7 @@ def main() -> None:
 
     # Example 11: Railway Pattern Pipeline
     cli.print("\n11. Railway Pattern Pipeline (complete workflow):", style="bold cyan")
-    pipeline_input: dict[str, t.JsonValue] = {
+    pipeline_input: dict[str, object] = {
         "name": "pipeline_demo",
         "version": "1.0",
         "items": [

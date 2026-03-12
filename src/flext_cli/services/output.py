@@ -390,7 +390,7 @@ class FlextCliOutput:
                     config_for_table = m.Cli.TableConfig.model_validate({})
             else:
                 config_for_table = m.Cli.TableConfig.model_validate({})
-            data_json: list[dict[str, t.JsonValue]] = [
+            data_json: list[dict[str, object]] = [
                 {str(k): m.Cli.normalize_to_json_value(v) for k, v in row.items()}
                 for row in data
             ]
@@ -403,7 +403,7 @@ class FlextCliOutput:
             "headers": validated_headers,
             "table_format": table_format,
         })
-        data_json_final: list[dict[str, t.JsonValue]] = [
+        data_json_final: list[dict[str, object]] = [
             {str(k): m.Cli.normalize_to_json_value(v) for k, v in row.items()}
             for row in data
         ]
@@ -771,7 +771,7 @@ class FlextCliOutput:
             The execute() method returns service operational status.
 
         """
-        return r[t.ConfigurationMapping].ok({
+        return r[object].ok({
             c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.OPERATIONAL.value,
             c.Cli.DictKeys.SERVICE: c.Cli.Services.OUTPUT,
         })
@@ -1263,7 +1263,7 @@ class FlextCliOutput:
                 "headers": table_headers,
                 "table_format": c.Cli.TableFormats.GRID,
             })
-            data_json: list[dict[str, t.JsonValue]] = [
+            data_json: list[dict[str, object]] = [
                 {str(k): m.Cli.normalize_to_json_value(v) for k, v in row.items()}
                 for row in table_data
             ]
@@ -1609,7 +1609,7 @@ class FlextCliOutput:
     def _try_iterate_items(self, data: object) -> list[object]:
         """Try to iterate over data and return list of items.
 
-        Helper to avoid type checker issues with non-iterable types in ContainerValue.
+        Helper to avoid type checker issues with non-iterable types in object.
         Uses duck typing: attempts iteration and catches TypeError if not iterable.
         """
         try:

@@ -7,7 +7,7 @@ from datetime import datetime
 from types import TracebackType
 from typing import Protocol, Self, runtime_checkable
 
-from flext_core import FlextProtocols, t
+from flext_core import FlextProtocols
 
 
 class FlextCliProtocols(FlextProtocols):
@@ -23,11 +23,11 @@ class FlextCliProtocols(FlextProtocols):
             class RichTableProtocol(Protocol):
                 """Protocol for Rich Table objects."""
 
-                def add_column(self, header: str, **kwargs: t.JsonValue) -> None:
+                def add_column(self, header: str, **kwargs: object) -> None:
                     """Add a column to the table."""
                     ...
 
-                def add_row(self, *cells: str, **kwargs: t.JsonValue) -> None:
+                def add_row(self, *cells: str, **kwargs: object) -> None:
                     """Add a row to the table."""
                     ...
 
@@ -36,7 +36,7 @@ class FlextCliProtocols(FlextProtocols):
                 """Protocol for Rich Tree objects."""
 
                 def add(
-                    self, label: str, **kwargs: t.JsonValue
+                    self, label: str, **kwargs: object
                 ) -> FlextCliProtocols.Cli.Display.RichTreeProtocol:
                     """Add a branch to the tree."""
                     ...
@@ -46,7 +46,7 @@ class FlextCliProtocols(FlextProtocols):
                 """Protocol for Rich Console objects."""
 
                 def print(
-                    self, text: str, style: str | None = None, **kwargs: t.JsonValue
+                    self, text: str, style: str | None = None, **kwargs: object
                 ) -> None:
                     """Print text to the console."""
                     ...
@@ -121,7 +121,7 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
             @property
-            def kwargs(self) -> Mapping[str, t.JsonValue]:
+            def kwargs(self) -> Mapping[str, object]:
                 """Get command keyword arguments."""
                 ...
 
@@ -141,7 +141,7 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
             @property
-            def result(self) -> t.JsonValue | None:
+            def result(self) -> object | None:
                 """Get command result."""
                 ...
 
@@ -164,9 +164,7 @@ class FlextCliProtocols(FlextProtocols):
                 """Complete command execution."""
                 ...
 
-            def execute(
-                self, args: Sequence[str]
-            ) -> FlextProtocols.Result[t.JsonValue]:
+            def execute(self, args: Sequence[str]) -> FlextProtocols.Result[object]:
                 """Execute the command."""
                 ...
 
@@ -325,7 +323,7 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
             @property
-            def default(self) -> t.JsonValue | None:
+            def default(self) -> object | None:
                 """Get default value."""
                 ...
 
@@ -359,12 +357,12 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
             @property
-            def default(self) -> t.JsonValue | None:
+            def default(self) -> object | None:
                 """Get default value."""
                 ...
 
             @property
-            def flag_value(self) -> t.JsonValue | None:
+            def flag_value(self) -> object | None:
                 """Get flag value."""
                 ...
 
@@ -394,7 +392,7 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
             @property
-            def type_hint(self) -> t.JsonValue | None:
+            def type_hint(self) -> object | None:
                 """Get type hint."""
                 ...
 
@@ -437,7 +435,7 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
             @property
-            def default(self) -> t.JsonValue | None:
+            def default(self) -> object | None:
                 """Get default value."""
                 ...
 
@@ -467,12 +465,12 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
             @property
-            def type_hint(self) -> t.JsonValue | None:
+            def type_hint(self) -> object | None:
                 """Get type hint."""
                 ...
 
             @property
-            def value_proc(self) -> Callable[[str], t.JsonValue] | None:
+            def value_proc(self) -> Callable[[str], object] | None:
                 """Get value processor."""
                 ...
 
@@ -520,7 +518,7 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
             @property
-            def params(self) -> Mapping[str, t.JsonValue]:
+            def params(self) -> Mapping[str, object]:
                 """Get configuration parameters."""
                 ...
 
@@ -591,7 +589,7 @@ class FlextCliProtocols(FlextProtocols):
             """Protocol for CLI formatters."""
 
             def format_data(
-                self, data: t.JsonValue, **options: t.JsonValue
+                self, data: object, **options: object
             ) -> FlextProtocols.Result[str]:
                 """Format data."""
                 ...
@@ -600,12 +598,12 @@ class FlextCliProtocols(FlextProtocols):
         class CliConfigProvider(Protocol):
             """Protocol for CLI configuration providers."""
 
-            def load_config(self) -> FlextProtocols.Result[Mapping[str, t.JsonValue]]:
+            def load_config(self) -> FlextProtocols.Result[Mapping[str, object]]:
                 """Load configuration."""
                 ...
 
             def save_config(
-                self, config: Mapping[str, t.JsonValue]
+                self, config: Mapping[str, object]
             ) -> FlextProtocols.Result[bool]:
                 """Save configuration."""
                 ...
@@ -630,7 +628,7 @@ class FlextCliProtocols(FlextProtocols):
 
             def get_debug_info(
                 self,
-            ) -> FlextProtocols.Result[Mapping[str, t.JsonValue]]:
+            ) -> FlextProtocols.Result[Mapping[str, object]]:
                 """Get debug information."""
                 ...
 
@@ -667,8 +665,8 @@ class FlextCliProtocols(FlextProtocols):
             """Protocol for model command handlers."""
 
             def handle(
-                self, model: t.JsonValue, **kwargs: t.JsonValue
-            ) -> FlextProtocols.Result[t.JsonValue]:
+                self, model: object, **kwargs: object
+            ) -> FlextProtocols.Result[object]:
                 """Handle the model command."""
                 ...
 
@@ -691,7 +689,7 @@ class FlextCliProtocols(FlextProtocols):
                 """Get environment variables."""
                 ...
 
-            params: Mapping[str, t.JsonValue]
+            params: Mapping[str, object]
 
         @runtime_checkable
         class CliOutputProtocol(Protocol):
@@ -770,7 +768,7 @@ class FlextCliProtocols(FlextProtocols):
         class OutputServiceProtocol(Protocol):
             """Protocol for output formatting services."""
 
-            def format_json(self, data: t.JsonValue) -> FlextProtocols.Result[str]:
+            def format_json(self, data: object) -> FlextProtocols.Result[str]:
                 """Format data as JSON."""
                 ...
 
@@ -780,7 +778,7 @@ class FlextCliProtocols(FlextProtocols):
                 """Format data as a table."""
                 ...
 
-            def format_yaml(self, data: t.JsonValue) -> FlextProtocols.Result[str]:
+            def format_yaml(self, data: object) -> FlextProtocols.Result[str]:
                 """Format data as YAML."""
                 ...
 
@@ -817,7 +815,7 @@ class FlextCliProtocols(FlextProtocols):
         class CliCommandHandler(Protocol):
             """Protocol for CLI command handlers."""
 
-            def __call__(self, **kwargs: t.JsonValue) -> t.JsonValue:
+            def __call__(self, **kwargs: object) -> object:
                 """Execute the command handler."""
                 ...
 
@@ -849,9 +847,9 @@ class FlextCliProtocols(FlextProtocols):
                 ctx: FlextCliProtocols.Cli.CliContextProtocol,
                 next_: Callable[
                     [FlextCliProtocols.Cli.CliContextProtocol],
-                    FlextProtocols.Result[t.JsonValue],
+                    FlextProtocols.Result[object],
                 ],
-            ) -> FlextProtocols.Result[t.JsonValue]:
+            ) -> FlextProtocols.Result[object]:
                 """Process and pass to next middleware."""
                 ...
 

@@ -28,7 +28,7 @@ import yaml
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic_settings import BaseSettings
 
-from flext_cli import FlextCli, FlextCliSettings, m, t
+from flext_cli import FlextCli, FlextCliSettings, m
 
 
 class ConfigTestType(StrEnum):
@@ -49,7 +49,7 @@ class ConfigTestScenario(BaseModel):
 
     name: str = Field(description="Scenario name")
     test_type: ConfigTestType = Field(description="Scenario test type")
-    data: dict[str, t.JsonValue] | None = Field(
+    data: dict[str, object] | None = Field(
         default=None,
         description="Scenario input data",
     )
@@ -77,13 +77,13 @@ class ConfigTestFactory:
         "ERROR",
         "CRITICAL",
     ]
-    JSON_CONFIG_DATA: Final[dict[str, t.JsonValue]] = {
+    JSON_CONFIG_DATA: Final[dict[str, object]] = {
         "debug": True,
         "verbose": False,
         "profile": "test",
         "output_format": "json",
     }
-    YAML_CONFIG_DATA: Final[dict[str, t.JsonValue]] = {
+    YAML_CONFIG_DATA: Final[dict[str, object]] = {
         "debug": False,
         "verbose": True,
         "profile": "yaml_test",
@@ -466,6 +466,6 @@ class TestsCliConfigEdgeCases:
     def test_save_config(self) -> None:
         """Test save_config method."""
         config: FlextCliSettings = FlextCliSettings()
-        new_config: dict[str, t.JsonValue] = {"debug": True}
+        new_config: dict[str, object] = {"debug": True}
         result = config.save_config(new_config)
         assert result.is_success or result.is_failure

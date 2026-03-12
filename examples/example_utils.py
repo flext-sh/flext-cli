@@ -15,7 +15,7 @@ from collections.abc import Mapping
 
 from pydantic import BaseModel
 
-from flext_cli import FlextCli, m, r, t
+from flext_cli import FlextCli, m, r
 
 
 def to_json_dict(
@@ -24,7 +24,7 @@ def to_json_dict(
     """Normalize config/mapping to DisplayData for create_table/display_config_table."""
     normalized = m.Cli.CliNormalizedJson.model_validate(dict(data)).root
     resolved = m.Cli.NormalizedJsonDict(value=normalized, default={}).resolved
-    result_dict: t.JsonDict = dict(resolved.items())
+    result_dict: object = dict(resolved.items())
     return m.Cli.DisplayData.model_validate({"data": result_dict})
 
 

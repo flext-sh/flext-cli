@@ -27,7 +27,7 @@ from rich.errors import ConsoleError, LiveError, StyleError
 from typer import Typer
 from typer.testing import CliRunner
 
-from flext_cli import FlextCliCommonParams, FlextCliSettings, c, m, p, t, u
+from flext_cli import FlextCliCommonParams, FlextCliSettings, c, m, p, u
 
 
 class FlextCliCli:
@@ -35,7 +35,7 @@ class FlextCliCli:
 
     container: FlextContainer
     logger: FlextLogger
-    _json_value_adapter: ClassVar[TypeAdapter[t.JsonValue]] = TypeAdapter(t.JsonValue)
+    _json_value_adapter: ClassVar[TypeAdapter[object]] = TypeAdapter(object)
 
     def __init__(self) -> None:
         """Initialize FlextCliCli."""
@@ -44,7 +44,7 @@ class FlextCliCli:
         self.logger = FlextLogger(__name__)
 
     @classmethod
-    def _to_json_value(cls, value: object | r[t.JsonValue] | None) -> t.JsonValue:
+    def _to_json_value(cls, value: object | r[object] | None) -> object:
         if value is None:
             return ""
         if getattr(value, "is_success", None) is True:
@@ -101,7 +101,7 @@ class FlextCliCli:
 
     @classmethod
     def get_tuple_type(
-        cls, types: Sequence[type[t.JsonValue] | click.ParamType]
+        cls, types: Sequence[type[object] | click.ParamType]
     ) -> click.Tuple:
         """Get tuple type."""
         result: (
@@ -164,7 +164,7 @@ class FlextCliCli:
 
     @staticmethod
     def _build_config_getters(
-        kwargs: Mapping[str, t.JsonValue],
+        kwargs: Mapping[str, object],
     ) -> tuple[Callable[..., bool], Callable[..., str]]:
 
         def get_bool_val(k: str, *, default: bool = False) -> bool:
@@ -191,7 +191,7 @@ class FlextCliCli:
 
     @staticmethod
     def _build_confirm_config(
-        kwargs: Mapping[str, t.JsonValue] | m.Cli.ConfirmConfig,
+        kwargs: Mapping[str, object] | m.Cli.ConfirmConfig,
     ) -> m.Cli.ConfirmConfig:
         if isinstance(kwargs, m.Cli.ConfirmConfig):
             return kwargs
@@ -208,7 +208,7 @@ class FlextCliCli:
 
     @staticmethod
     def _build_confirm_config_from_kwargs(
-        kwargs: Mapping[str, t.JsonValue],
+        kwargs: Mapping[str, object],
     ) -> m.Cli.ConfirmConfig:
         config = FlextCliCli._build_prompt_or_confirm_config("confirm", kwargs)
         if not isinstance(config, m.Cli.ConfirmConfig):
@@ -218,7 +218,7 @@ class FlextCliCli:
 
     @staticmethod
     def _build_prompt_config(
-        kwargs: Mapping[str, t.JsonValue] | m.Cli.PromptConfig,
+        kwargs: Mapping[str, object] | m.Cli.PromptConfig,
     ) -> m.Cli.PromptConfig:
         if isinstance(kwargs, m.Cli.PromptConfig):
             return kwargs
@@ -250,7 +250,7 @@ class FlextCliCli:
 
     @staticmethod
     def _build_prompt_config_from_kwargs(
-        kwargs: Mapping[str, t.JsonValue],
+        kwargs: Mapping[str, object],
     ) -> m.Cli.PromptConfig:
         config = FlextCliCli._build_prompt_or_confirm_config("prompt", kwargs)
         if not isinstance(config, m.Cli.PromptConfig):
@@ -260,7 +260,7 @@ class FlextCliCli:
 
     @staticmethod
     def _build_prompt_or_confirm_config(
-        kind: Literal["confirm", "prompt"], kwargs: Mapping[str, t.JsonValue]
+        kind: Literal["confirm", "prompt"], kwargs: Mapping[str, object]
     ) -> m.Cli.ConfirmConfig | m.Cli.PromptConfig:
         if kind == "confirm":
             return FlextCliCli._build_confirm_config(kwargs)
@@ -294,7 +294,7 @@ class FlextCliCli:
     ) -> r[bool]:
         """Confirm action with user."""
         if config is None:
-            kwargs_typed: dict[str, t.JsonValue] = dict(kwargs)
+            kwargs_typed: dict[str, object] = dict(kwargs)
             config = FlextCliCli._build_confirm_config_from_kwargs(kwargs_typed)
         if not hasattr(config, "default"):
             msg = "confirm config must implement ConfirmConfigProtocol"
@@ -316,16 +316,16 @@ class FlextCliCli:
 
     @staticmethod
     def create_pass_context_decorator() -> Callable[
-        [Callable[[click.Context], t.JsonValue]], Callable[[click.Context], t.JsonValue]
+        [Callable[[click.Context], object]], Callable[[click.Context], object]
     ]:
         """Create pass context decorator."""
 
         def pass_context_wrapper(
-            func: Callable[[click.Context], t.JsonValue],
-        ) -> Callable[[click.Context], t.JsonValue]:
+            func: Callable[[click.Context], object],
+        ) -> Callable[[click.Context], object]:
             decorated = click.pass_context(func)
 
-            def typed_decorated(ctx: click.Context) -> t.JsonValue:
+            def typed_decorated(ctx: click.Context) -> object:
                 return decorated(ctx)
 
             return typed_decorated
@@ -346,9 +346,9 @@ class FlextCliCli:
         return r[bool].ok(value=True)
 
     @staticmethod
-    def execute() -> r[Mapping[str, t.JsonValue]]:
+    def execute() -> r[Mapping[str, object]]:
         """Execute the CLI."""
-        return r[Mapping[str, t.JsonValue]].ok({
+        return r[Mapping[str, object]].ok({
             c.Cli.DictKeys.SERVICE: c.Cli.FLEXT_CLI,
             c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.OPERATIONAL.value,
         })
@@ -372,18 +372,18 @@ class FlextCliCli:
     @staticmethod
     def model_command(
         model_class: type[BaseModel],
-        handler: Callable[[BaseModel], t.JsonValue | r[t.JsonValue] | None],
+        handler: Callable[[BaseModel], object | r[object] | None],
         config: FlextCliSettings | None = None,
     ) -> p.Cli.CliCommandFunction:
         """Create a command from a Pydantic model."""
 
-        def normalized_handler(model: BaseModel) -> t.JsonValue:
+        def normalized_handler(model: BaseModel) -> object:
             if getattr(model, "__class__", None) is not model_class:
                 msg = "model argument must be an instance of the declared model class"
                 raise TypeError(msg)
             result = handler(model)
             if result is None:
-                empty_result: t.JsonValue = {}
+                empty_result: object = {}
                 return empty_result
             is_success = getattr(result, "is_success", None)
             if is_success is True:
@@ -405,8 +405,8 @@ class FlextCliCli:
 
     @staticmethod
     def prompt(
-        text: str, config: m.Cli.PromptConfig | None = None, **kwargs: t.JsonValue
-    ) -> r[t.JsonValue]:
+        text: str, config: m.Cli.PromptConfig | None = None, **kwargs: object
+    ) -> r[object]:
         """Prompt user for input."""
         if config is None:
             config = FlextCliCli._build_prompt_config_from_kwargs(kwargs)
@@ -472,7 +472,7 @@ class FlextCliCli:
                 )
                 prompt_result_map = None
             if prompt_result_map is not None:
-                normalized_map: dict[str, t.JsonValue] = {}
+                normalized_map: dict[str, object] = {}
                 for key, value in prompt_result_map.items():
                     try:
                         normalized_value = (
@@ -487,11 +487,11 @@ class FlextCliCli:
                             exc_info=False,
                         )
                         continue
-                return r[t.JsonValue].ok(normalized_map)
+                return r[object].ok(normalized_map)
             json_value = FlextCliCli._to_json_value(prompt_result)
-            return r[t.JsonValue].ok(json_value)
+            return r[object].ok(json_value)
         except typer.Abort as e:
-            return r[t.JsonValue].fail(
+            return r[object].fail(
                 c.Cli.ErrorMessages.USER_ABORTED_PROMPT.format(error=e)
             )
 
@@ -604,7 +604,7 @@ class FlextCliCli:
         self,
         *param_decls: str,
         config: m.Cli.OptionConfig | None = None,
-        **kwargs: t.JsonValue,
+        **kwargs: object,
     ) -> Callable[[p.Cli.CliCommandFunction], p.Cli.CliCommandFunction]:
         """Create an option decorator."""
         if config is None:
@@ -639,7 +639,7 @@ class FlextCliCli:
         quiet: bool = False,
         log_level: str | None = None,
     ) -> None:
-        common_params: dict[str, t.JsonValue] = {
+        common_params: dict[str, object] = {
             "debug": debug,
             "trace": trace,
             "verbose": verbose,
@@ -695,7 +695,7 @@ class FlextCliCli:
             )
 
     def _build_bool_value(
-        self, kwargs: Mapping[str, t.JsonValue], key: str, *, default: bool = False
+        self, kwargs: Mapping[str, object], key: str, *, default: bool = False
     ) -> bool:
         result = self._build_typed_value(kwargs, key, "bool", default)
         if not isinstance(result, bool):
@@ -704,7 +704,7 @@ class FlextCliCli:
         return result
 
     def _build_option_config_from_kwargs(
-        self, kwargs: Mapping[str, t.JsonValue]
+        self, kwargs: Mapping[str, object]
     ) -> m.Cli.OptionConfig:
         default_raw = u.get(kwargs, "default")
         default_value = (
@@ -727,7 +727,7 @@ class FlextCliCli:
         )
 
     def _build_str_value(
-        self, kwargs: Mapping[str, t.JsonValue], key: str, default: str = ""
+        self, kwargs: Mapping[str, object], key: str, default: str = ""
     ) -> str:
         result = self._build_typed_value(kwargs, key, "str", default)
         if not isinstance(result, str):
@@ -737,11 +737,11 @@ class FlextCliCli:
 
     def _build_typed_value(
         self,
-        kwargs: Mapping[str, t.JsonValue],
+        kwargs: Mapping[str, object],
         key: str,
         type_name: Literal["bool", "str"],
-        default: t.JsonValue,
-    ) -> t.JsonValue:
+        default: object,
+    ) -> object:
         val = u.get(kwargs, key)
         if val is None or not val:
             return default
@@ -789,7 +789,7 @@ class FlextCliCli:
     @overload
     def _extract_typed_value(
         self,
-        val: t.JsonValue | None,
+        val: object | None,
         type_name: Literal["str"],
         default: str | None = None,
     ) -> str | None: ...
@@ -797,7 +797,7 @@ class FlextCliCli:
     @overload
     def _extract_typed_value(
         self,
-        val: t.JsonValue | None,
+        val: object | None,
         type_name: Literal["bool"],
         *,
         default: bool | None = None,
@@ -806,17 +806,17 @@ class FlextCliCli:
     @overload
     def _extract_typed_value(
         self,
-        val: t.JsonValue | None,
+        val: object | None,
         type_name: Literal["dict"],
-        default: t.JsonValue | None = None,
-    ) -> t.JsonValue | None: ...
+        default: object | None = None,
+    ) -> object | None: ...
 
     def _extract_typed_value(
         self,
-        val: t.JsonValue | None,
+        val: object | None,
         type_name: str,
-        default: t.JsonValue | None = None,
-    ) -> t.JsonValue | None:
+        default: object | None = None,
+    ) -> object | None:
         if type_name not in {"str", "bool", "dict"}:
             return default
         if type_name == "str":
@@ -855,9 +855,7 @@ class FlextCliCli:
         )
         return getattr(logging, level_str, logging.INFO)
 
-    def _normalize_type_hint(
-        self, type_hint_val: t.JsonValue | None
-    ) -> t.JsonValue | None:
+    def _normalize_type_hint(self, type_hint_val: object | None) -> object | None:
         type_hint_build = u.build(type_hint_val, ops={"ensure_default": None})
         match type_hint_build:
             case None | "":

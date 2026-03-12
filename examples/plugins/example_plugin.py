@@ -13,7 +13,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Protocol, runtime_checkable
 
-from flext_cli import r, t
+from flext_cli import r
 
 
 @runtime_checkable
@@ -89,7 +89,7 @@ class ExamplePlugin:
         """Initialize plugin."""
         super().__init__()
         self._initialized = False
-        self._config: dict[str, t.JsonValue] = {}
+        self._config: dict[str, object] = {}
 
     def initialize(self, _cli_main: object) -> r[bool]:
         """Initialize the plugin.

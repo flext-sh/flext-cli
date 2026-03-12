@@ -59,13 +59,10 @@ class TestsCliTypes(FlextTestsTypes):
             TabularData = FlextCliTypes.Cli.TabularData
             type CliConfigMapping = Mapping[
                 str,
-                FlextCliTypes.JsonValue
-                | Sequence[str]
-                | Mapping[str, str | int]
-                | None,
+                FlextCliTypes.object | Sequence[str] | Mapping[str, str | int] | None,
             ]
             "CLI configuration mapping specific to flext-cli."
-            type CommandArgsMapping = Mapping[str, FlextCliTypes.ContainerValue]
+            type CommandArgsMapping = Mapping[str, FlextCliTypes.object]
             "Command arguments mapping for CLI operations."
 
             class Fixtures:

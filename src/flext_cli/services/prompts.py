@@ -12,7 +12,7 @@ from flext_core import r
 from pydantic import Field, PrivateAttr
 from rich.errors import ConsoleError, LiveError, StyleError
 
-from flext_cli import FlextCliConstants, FlextCliServiceBase, FlextCliUtilities, m, t
+from flext_cli import FlextCliConstants, FlextCliServiceBase, FlextCliUtilities, m
 
 CLI = FlextCliConstants.Cli
 PD, EM = (CLI.PromptsDefaults, CLI.ErrorMessages)
@@ -43,7 +43,7 @@ class FlextCliPrompts(FlextCliServiceBase):
         *,
         interactive_mode: bool = True,
         quiet: bool = False,
-        **data: t.JsonValue,
+        **data: object,
     ) -> None:
         data["interactive_mode"] = interactive_mode and (not quiet)
         data["quiet"] = quiet
@@ -144,11 +144,11 @@ class FlextCliPrompts(FlextCliServiceBase):
             return r[str].fail(PEM.PROGRESS_CREATION_FAILED.format(error=exc))
 
     @override
-    def execute(self) -> r[Mapping[str, t.JsonValue]]:
+    def execute(self) -> r[Mapping[str, object]]:
         try:
             self.logger.debug("Prompt service execution completed", operation="execute")
-            empty_result: Mapping[str, t.JsonValue] = {}
-            return r[Mapping[str, t.JsonValue]].ok(empty_result)
+            empty_result: Mapping[str, object] = {}
+            return r[Mapping[str, object]].ok(empty_result)
         except (
             ValueError,
             TypeError,
@@ -160,11 +160,11 @@ class FlextCliPrompts(FlextCliServiceBase):
             self._fatal(
                 "execute", "execute", exc, "Prompt service execution failed completely"
             )
-            return r[Mapping[str, t.JsonValue]].fail(
+            return r[Mapping[str, object]].fail(
                 PEM.PROMPT_SERVICE_EXECUTION_FAILED.format(error=exc)
             )
 
-    def get_prompt_statistics(self) -> r[Mapping[str, t.JsonValue]]:
+    def get_prompt_statistics(self) -> r[Mapping[str, object]]:
         try:
             size = len(self._prompt_history)
             stats_model = m.Cli.PromptStatistics(
@@ -174,8 +174,8 @@ class FlextCliPrompts(FlextCliServiceBase):
                 history_size=size,
                 timestamp=FlextCliUtilities.generate("timestamp"),
             )
-            stats_dict: Mapping[str, t.JsonValue] = stats_model.model_dump(mode="json")
-            return r[Mapping[str, t.JsonValue]].ok(stats_dict)
+            stats_dict: Mapping[str, object] = stats_model.model_dump(mode="json")
+            return r[Mapping[str, object]].ok(stats_dict)
         except (
             ValueError,
             TypeError,
@@ -191,7 +191,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 error_type=type(exc).__name__,
                 consequence="Statistics unavailable",
             )
-            return r[Mapping[str, t.JsonValue]].fail(
+            return r[Mapping[str, object]].fail(
                 PEM.STATISTICS_COLLECTION_FAILED.format(error=exc)
             )
 
@@ -434,9 +434,9 @@ class FlextCliPrompts(FlextCliServiceBase):
 
     def with_progress(
         self,
-        items: list[t.JsonValue],
+        items: list[object],
         description: str = PD.DEFAULT_PROCESSING_DESCRIPTION,
-    ) -> r[list[t.JsonValue]]:
+    ) -> r[list[object]]:
         try:
             total = len(items)
             self.logger.info("Starting progress operation with items")
@@ -460,7 +460,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                     description=description, processed=total
                 )
             )
-            return r[list[t.JsonValue]].ok(items)
+            return r[list[object]].ok(items)
         except (
             ValueError,
             TypeError,
@@ -475,7 +475,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 exc,
                 "Progress operation failed completely",
             )
-            return r[list[t.JsonValue]].fail(
+            return r[list[object]].fail(
                 PEM.PROGRESS_PROCESSING_FAILED.format(error=exc)
             )
 

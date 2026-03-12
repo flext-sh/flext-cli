@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import pytest
 
-from flext_cli import FlextCliProtocols, p, r, t
+from flext_cli import FlextCliProtocols, p, r
 from tests.constants import c
 
 from ..helpers import FlextCliTestHelpers
@@ -70,7 +70,7 @@ class TestsCliProtocols:
         """Test duck typing - class satisfies protocol without inheritance."""
 
         class DuckFormatter:
-            def format_data(self, data: t.JsonValue, **options: t.JsonValue) -> r[str]:
+            def format_data(self, data: object, **options: object) -> r[str]:
                 return r[str].ok("formatted")
 
         duck = DuckFormatter()
@@ -137,7 +137,7 @@ class TestsCliProtocols:
             provider = provider_result.value
             if isinstance(provider, p.Cli.CliConfigProvider):
                 test_config_raw = c.TestConfiguration.BASIC_CONFIG
-                test_config: dict[str, t.JsonValue] = {}
+                test_config: dict[str, object] = {}
                 for key, value in test_config_raw.items():
                     if isinstance(value, str | int | float | bool) or value is None:
                         test_config[key] = value

@@ -33,12 +33,12 @@ from __future__ import annotations
 import os
 import time
 
-from flext_cli import FlextCli, r, t
+from flext_cli import FlextCli, r
 
 cli = FlextCli()
 
 
-def handle_status_command() -> r[dict[str, t.JsonValue]]:
+def handle_status_command() -> r[dict[str, object]]:
     """Status command in YOUR interactive CLI."""
     status = {
         "status": "running",
@@ -47,7 +47,7 @@ def handle_status_command() -> r[dict[str, t.JsonValue]]:
     }
     cli.print(f"✅ Status: {status['status']}", style="green")
     cli.print(f"   User: {status['user']}", style="cyan")
-    return r[dict[str, t.JsonValue]].ok(dict(status))
+    return r[dict[str, object]].ok(dict(status))
 
 
 def handle_list_command(filter_text: str = "") -> r[list[str]]:
@@ -90,31 +90,29 @@ class InteractiveShell:
         }
         self.running = False
 
-    def execute_command(self, command_line: str) -> r[t.JsonValue]:
+    def execute_command(self, command_line: str) -> r[object]:
         """Execute command from user input."""
         parts = command_line.strip().split()
         if not parts:
-            return r[t.JsonValue].fail("Empty command")
+            return r[object].fail("Empty command")
         cmd_name = parts[0]
         args: list[str] = parts[1:] if len(parts) > 1 else []
         if cmd_name not in self.commands:
-            return r[t.JsonValue].fail(f"Unknown command: {cmd_name}")
+            return r[object].fail(f"Unknown command: {cmd_name}")
         handler = self.commands[cmd_name]
         try:
             if callable(handler):
                 result = handler(*args) if args else handler()
                 if hasattr(result, "is_failure") and hasattr(result, "value"):
                     if result.is_failure:
-                        return r[t.JsonValue].fail(
-                            result.error or "Unknown command error"
-                        )
-                    payload: t.JsonValue = result.value
+                        return r[object].fail(result.error or "Unknown command error")
+                    payload: object = result.value
                 else:
                     payload = result
-                return r[t.JsonValue].ok(payload)
-            return r[t.JsonValue].fail("Handler is not callable")
+                return r[object].ok(payload)
+            return r[object].fail("Handler is not callable")
         except Exception as e:
-            return r[t.JsonValue].fail(f"Command error: {e}")
+            return r[object].fail(f"Command error: {e}")
 
     def exit_shell(self) -> r[bool]:
         """Exit interactive shell."""

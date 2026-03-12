@@ -25,7 +25,7 @@ from pydantic import (
 
 from flext_cli import FlextCli, FlextCliSettings, m, r, t
 
-_JsonDictAdapter: TypeAdapter[t.JsonDict] = TypeAdapter(t.JsonDict)
+_JsonDictAdapter: TypeAdapter[object] = TypeAdapter(object)
 
 # ---------------------------------------------------------------------------
 # Example 03 - Interactive Prompts
@@ -229,7 +229,7 @@ class AppConfigAdvanced(BaseModel):
             raise ValueError(msg)
         return v.upper()
 
-    def validate_to_mapping(self) -> r[t.ConfigurationMapping]:
+    def validate_to_mapping(self) -> r[object]:
         """Validate configuration and return as mapping or failure."""
         errors: list[str] = []
         if not self.api_key and os.getenv("ENVIRONMENT") == "production":
@@ -242,8 +242,8 @@ class AppConfigAdvanced(BaseModel):
         elif not self.temp_dir.is_dir():
             errors.append("TEMP_DIR must be a directory")
         if errors:
-            return r[t.ConfigurationMapping].fail("; ".join(errors))
-        return r[t.ConfigurationMapping].ok({
+            return r[object].fail("; ".join(errors))
+        return r[object].ok({
             "database_url": self.database_url,
             "redis_url": self.redis_url,
             "api_key": "***" if self.api_key else "",

@@ -19,7 +19,7 @@ from collections import UserList
 from typing import Never, TypeVar, override
 
 import pytest
-from flext_core import r, t
+from flext_core import r
 from flext_tests import tm
 
 from flext_cli import FlextCliPrompts
@@ -393,21 +393,21 @@ class TestsCliPrompts:
 
     def test_with_progress_small_dataset(self, prompts: FlextCliPrompts) -> None:
         """Test with_progress with small dataset."""
-        items: list[t.JsonValue] = list(range(c.ProgressDefaults.SMALL_DATASET_SIZE))
+        items: list[object] = list(range(c.ProgressDefaults.SMALL_DATASET_SIZE))
         result = prompts.with_progress(items, "simple")
         tm.ok(result)
         assert result.value == items
 
     def test_with_progress_large_dataset(self, prompts: FlextCliPrompts) -> None:
         """Test with_progress with large dataset."""
-        items: list[t.JsonValue] = list(range(c.ProgressDefaults.LARGE_DATASET_SIZE))
+        items: list[object] = list(range(c.ProgressDefaults.LARGE_DATASET_SIZE))
         result = prompts.with_progress(items, "simple")
         tm.ok(result)
         assert result.value == items
 
     def test_with_progress_empty(self, prompts: FlextCliPrompts) -> None:
         """Test with_progress with empty list."""
-        items: list[t.JsonValue] = []
+        items: list[object] = []
         result = prompts.with_progress(items, "simple")
         tm.ok(result)
         assert result.value == items

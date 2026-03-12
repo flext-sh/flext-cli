@@ -17,8 +17,6 @@ from typing import Literal
 from flext_tests import FlextTestsModels
 from pydantic import BaseModel, ConfigDict, Field, RootModel, field_validator
 
-from flext_cli import t
-
 
 class CliCommandInput(BaseModel):
     """Test input for building CliCommand via model_construct. All optional with defaults."""
@@ -31,8 +29,8 @@ class CliCommandInput(BaseModel):
     created_at: datetime | None = Field(default=None)
     command_line: str = Field(default="test_command")
     args: Sequence[str] = Field(default_factory=list)
-    result: t.JsonValue | None = Field(default=None)
-    kwargs: dict[str, t.JsonValue] = Field(default_factory=dict)
+    result: object | None = Field(default=None)
+    kwargs: dict[str, object] = Field(default_factory=dict)
 
 
 class CliSessionInput(BaseModel):
@@ -113,7 +111,7 @@ class ApiResponse(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
     status: str = Field(description="Status")
-    data: t.JsonValue = Field(description="Payload")
+    data: object = Field(description="Payload")
     message: str = Field(description="Message")
     error: str | None = Field(default=None, description="Error")
 

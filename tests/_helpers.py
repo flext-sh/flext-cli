@@ -9,14 +9,14 @@ from datetime import UTC, datetime
 import pytest
 from flext_core import r
 
-from flext_cli import FlextCliCommands, m, t
+from flext_cli import FlextCliCommands, m
 from tests.models import CliCommandInput, CliSessionInput
 
 
 def create_test_cli_command(**overrides: object) -> m.Cli.CliCommand:
     """Factory for real CliCommand instances with sensible defaults."""
     now = datetime.now(UTC)
-    payload: dict[str, t.JsonValue] = {
+    payload: dict[str, object] = {
         "unique_id": f"test-cmd-{now.timestamp()}",
         "name": "test_command",
         "description": "Test command description",
@@ -44,7 +44,7 @@ def create_test_cli_command(**overrides: object) -> m.Cli.CliCommand:
 def create_test_cli_session(**overrides: object) -> m.Cli.CliSession:
     """Factory for real CliSession instances with sensible defaults."""
     now = datetime.now(UTC)
-    payload: dict[str, t.JsonValue] = {
+    payload: dict[str, object] = {
         "session_id": f"test-session-{now.timestamp()}",
         "status": "active",
         "created_at": now,
@@ -264,8 +264,8 @@ class CommandsFactory:
     ) -> r[bool]:
         """Register a simple test command that returns a fixed value."""
 
-        def handler(*args: t.JsonValue, **kwargs: t.JsonValue) -> r[t.JsonValue]:
-            return r[t.JsonValue].ok(result_value)
+        def handler(*args: object, **kwargs: object) -> r[object]:
+            return r[object].ok(result_value)
 
         return commands.register_command(command_name, handler)
 
@@ -275,8 +275,8 @@ class CommandsFactory:
     ) -> r[bool]:
         """Register a command that accepts arguments."""
 
-        def handler(*args: t.JsonValue, **kwargs: t.JsonValue) -> r[t.JsonValue]:
-            return r[t.JsonValue].ok(f"args: {len(args)}")
+        def handler(*args: object, **kwargs: object) -> r[object]:
+            return r[object].ok(f"args: {len(args)}")
 
         return commands.register_command(command_name, handler)
 
@@ -286,13 +286,13 @@ class CommandsFactory:
     ) -> r[bool]:
         """Register a command that fails with a specific error."""
 
-        def handler(*args: t.JsonValue, **kwargs: t.JsonValue) -> r[t.JsonValue]:
-            return r[t.JsonValue].fail(error_message)
+        def handler(*args: object, **kwargs: object) -> r[object]:
+            return r[object].fail(error_message)
 
         return commands.register_command(command_name, handler)
 
 
-def generate_edge_case_data() -> list[dict[str, t.JsonValue]]:
+def generate_edge_case_data() -> list[dict[str, object]]:
     """Generate comprehensive edge case test data for CliCommand.
 
     Only uses valid CliCommand fields: name, description, command_line, usage,

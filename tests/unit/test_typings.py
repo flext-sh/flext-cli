@@ -338,14 +338,14 @@ class TestsCliTypings:
 
         def typed_function(
             name: str, age: int, *, active: bool = True
-        ) -> t.ConfigurationMapping:
+        ) -> object:
             return {"name": name, "age": age, "active": active}
 
         hints = get_type_hints(typed_function)
         assert hints["name"] is str
         assert hints["age"] is int
         assert hints["active"] is bool
-        assert hints["return"] == t.ConfigurationMapping
+        assert hints["return"] == object
 
         def complex_function(data: list[dict[str, str | int]]) -> str | None:
             return "result" if data else None

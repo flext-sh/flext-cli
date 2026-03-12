@@ -22,12 +22,12 @@ from flext_cli import FlextCliConstants, r, t
 T = TypeVar("T")
 
 
-def _is_json_dict(value: object) -> TypeGuard[dict[str, t.JsonValue]]:
+def _is_json_dict(value: object) -> TypeGuard[dict[str, object]]:
     """TypeGuard: narrow object to dict for JSON object shape (e.g. read_json_file return)."""
     return isinstance(value, dict)
 
 
-def _is_json_list(value: object) -> TypeGuard[list[t.JsonValue]]:
+def _is_json_list(value: object) -> TypeGuard[list[object]]:
     """TypeGuard: narrow object to list for JSON array shape."""
     return isinstance(value, list)
 

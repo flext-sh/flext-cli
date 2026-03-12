@@ -35,7 +35,7 @@ ______________________________________________________________________
 ## Phase 3 — flext-cli src: model boundaries and conversions
 
 - Prefer Pydantic models at boundaries; remove unused `cast` import and `cast_if` helper (use TypeAdapter.validate_python result directly); no new cast(); reduce broad isinstance where a model or protocol can be used.
-- **Done**: Removed `cast_if`; `to_dict_json` / `to_list_json` use TypeAdapter.validate_python with ValidationError fallback only (no cast_if). `ensure_dict` uses `isinstance(result, dict)`; `get_map_val` uses `isinstance` for JsonValue compatibility.
+- **Done**: Removed `cast_if`; `to_dict_json` / `to_list_json` use TypeAdapter.validate_python with ValidationError fallback only (no cast_if). `ensure_dict` uses `isinstance(result, dict)`; `get_map_val` uses `isinstance` for object compatibility.
 - output.py: `convert_field_value` (models.py) catch only `ValidationError`, not bare Exception.
 
 ## Phase 4 — Bypasses and silent errors

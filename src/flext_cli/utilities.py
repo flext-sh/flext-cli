@@ -171,7 +171,7 @@ class FlextCliUtilities(FlextUtilities):
 
             @staticmethod
             def v_config(
-                config: Mapping[str, t.Cli.CliValue] | Mapping[str, t.JsonValue] | None,
+                config: Mapping[str, t.Cli.CliValue] | Mapping[str, object] | None,
                 *,
                 fields: list[str],
             ) -> r[bool]:
@@ -225,7 +225,7 @@ class FlextCliUtilities(FlextUtilities):
 
             @staticmethod
             def v_req(
-                data: Mapping[str, t.Cli.CliValue] | Mapping[str, t.JsonValue] | None,
+                data: Mapping[str, t.Cli.CliValue] | Mapping[str, object] | None,
                 *,
                 fields: list[str],
             ) -> r[bool]:
@@ -283,7 +283,7 @@ class FlextCliUtilities(FlextUtilities):
 
             @staticmethod
             def v_step(
-                step: Mapping[str, t.Cli.CliValue] | Mapping[str, t.JsonValue] | None,
+                step: Mapping[str, t.Cli.CliValue] | Mapping[str, object] | None,
             ) -> r[bool]:
                 """Validate a pipeline step."""
                 if step is None:
@@ -549,8 +549,8 @@ class FlextCliUtilities(FlextUtilities):
                 @staticmethod
                 def merge_defaults[M: BaseModel](
                     model_cls: type[M],
-                    defaults: Mapping[str, t.JsonValue],
-                    overrides: Mapping[str, t.JsonValue],
+                    defaults: Mapping[str, object],
+                    overrides: Mapping[str, object],
                 ) -> r[M]:
                     """Merge default values with overrides."""
                     result = FlextUtilities.Model.merge_defaults(
@@ -563,7 +563,7 @@ class FlextCliUtilities(FlextUtilities):
                     )
 
                 @staticmethod
-                def update[M: BaseModel](instance: M, **updates: t.JsonValue) -> r[M]:
+                def update[M: BaseModel](instance: M, **updates: object) -> r[M]:
                     """Update model instance."""
                     result = FlextUtilities.Model.update(instance, **updates)
                     return (

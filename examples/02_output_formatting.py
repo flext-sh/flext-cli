@@ -52,7 +52,7 @@ def your_cli_function() -> None:
     cli.print("ℹ️  Processing 100 records...", style="cyan")
 
 
-def display_database_results(records: Sequence[t.JsonDict]) -> None:
+def display_database_results(records: Sequence[object]) -> None:
     """Display database query results as a table."""
     if not records:
         cli.print("No results found", style="yellow")
@@ -67,7 +67,7 @@ def display_database_results(records: Sequence[t.JsonDict]) -> None:
 
 
 def export_report(
-    data: Sequence[t.JsonDict], format_type: c.Cli.OutputFormatLiteral = "table"
+    data: Sequence[object], format_type: c.Cli.OutputFormatLiteral = "table"
 ) -> r[str]:
     """Create ASCII tables for logs/reports in your app."""
     config = m.Cli.TableConfig(table_format=format_type)
@@ -126,7 +126,7 @@ def monitor_live_metrics() -> None:
         cpu = 45 + i % 40
         memory = 55 + i % 35
         requests = 150 + i * 10
-        metrics_data: list[dict[str, t.JsonValue]] = [
+        metrics_data: list[dict[str, object]] = [
             {
                 "Metric": "CPU Usage",
                 "Value": f"{cpu}%",
@@ -144,7 +144,7 @@ def monitor_live_metrics() -> None:
     cli.print("✅ Monitoring session complete", style="green")
 
 
-def display_with_panels(data: dict[str, t.JsonValue]) -> None:
+def display_with_panels(data: dict[str, object]) -> None:
     """Display content in organized sections."""
     cli.print("\n📦 Organized Content Display:", style="cyan")
     cli.print("\n📊 Summary:", style="bold blue")
@@ -152,7 +152,7 @@ def display_with_panels(data: dict[str, t.JsonValue]) -> None:
     cli.print(f"  Successful: {data.get('successful', 0)}", style="green")
     cli.print(f"  Failed: {data.get('failed', 0)}", style="red")
     cli.print(f"  Pending: {data.get('pending', 0)}", style="yellow")
-    details_data: list[dict[str, t.JsonValue]] = []
+    details_data: list[dict[str, object]] = []
     for key, value in data.items():
         if key not in {"total", "successful", "failed", "pending"}:
             details_data.append({"Property": key, "Value": str(value)})
@@ -171,7 +171,7 @@ def main() -> None:
     cli.print("\n1. Styled Messages (replace print):", style="bold cyan")
     your_cli_function()
     cli.print("\n2. Rich Tables (display data):", style="bold cyan")
-    sample_data: list[dict[str, t.JsonValue]] = [
+    sample_data: list[dict[str, object]] = [
         {"id": 1, "name": "Alice", "status": "active"},
         {"id": 2, "name": "Bob", "status": "inactive"},
     ]
@@ -190,7 +190,7 @@ def main() -> None:
     cli.print("\n7. Live Updates (real-time monitoring):", style="bold cyan")
     monitor_live_metrics()
     cli.print("\n8. Panels (organized content):", style="bold cyan")
-    panel_data: dict[str, t.JsonValue] = {
+    panel_data: dict[str, object] = {
         "total": 1250,
         "successful": 1100,
         "failed": 50,

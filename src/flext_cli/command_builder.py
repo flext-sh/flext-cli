@@ -16,7 +16,7 @@ from typing import Self
 from flext_core import r
 from typer.models import OptionInfo
 
-from flext_cli import m, p, t
+from flext_cli import m, p
 
 
 class FlextCliCommandBuilder:
@@ -50,17 +50,15 @@ class FlextCliCommandBuilder:
         self._name = name
         self._options: list[OptionInfo] = []
         self._arguments: list[tuple[str, type, bool]] = []
-        self._middleware: list[
-            Callable[[p.Cli.CliContextProtocol], r[t.JsonValue]]
-        ] = []
+        self._middleware: list[Callable[[p.Cli.CliContextProtocol], r[object]]] = []
         self._handler: p.Cli.CommandHandlerCallable | None = None
 
     @staticmethod
     def _create_option_info(
-        default: t.JsonValue | None = None,
+        default: object | None = None,
         param_decls: list[str] | None = None,
         help_text: str = "",
-        **kwargs: t.JsonValue,
+        **kwargs: object,
     ) -> OptionInfo:
         """Create OptionInfo with validated kwargs.
 
@@ -68,7 +66,7 @@ class FlextCliCommandBuilder:
         all possible kwargs. This helper validates and constructs OptionInfo safely.
         """
         validated_param_decls = param_decls if param_decls is not None else []
-        validated_default: t.JsonValue | None = default
+        validated_default: object | None = default
         validated_param_decls_list: Sequence[str] = validated_param_decls
         validated_help: str | None = help_text or None
         option_info = OptionInfo(
@@ -139,7 +137,7 @@ class FlextCliCommandBuilder:
         return self
 
     def with_middleware(
-        self, middleware: Callable[[p.Cli.CliContextProtocol], r[t.JsonValue]]
+        self, middleware: Callable[[p.Cli.CliContextProtocol], r[object]]
     ) -> Self:
         """Add middleware (logging, auth, validation).
 
@@ -156,9 +154,9 @@ class FlextCliCommandBuilder:
     def with_option(
         self,
         name: str,
-        default: t.JsonValue | None = None,
+        default: object | None = None,
         help_: str = "",
-        **kwargs: t.JsonValue,
+        **kwargs: object,
     ) -> Self:
         """Add command option.
 

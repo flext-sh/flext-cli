@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import time
 
-from flext_cli import FlextCliCommands, c, m, r, t
+from flext_cli import FlextCliCommands, c, m, r
 
 from ..helpers import CommandsFactory
 
@@ -266,11 +266,9 @@ class TestsCliCommands:
         """Test create_command_group method."""
         commands = CommandsFactory.create_commands()
 
-        def grouped_handler(
-            *args: t.JsonValue, **kwargs: t.JsonValue
-        ) -> r[t.JsonValue]:
+        def grouped_handler(*args: object, **kwargs: object) -> r[object]:
             _ = (args, kwargs)
-            return r[t.JsonValue].ok("result1")
+            return r[object].ok("result1")
 
         result = commands.create_command_group(
             "test_group",

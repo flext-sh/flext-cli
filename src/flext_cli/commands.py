@@ -17,7 +17,7 @@ from typing import Self, override
 from flext_core import r
 from rich.errors import ConsoleError, LiveError, StyleError
 
-from flext_cli import FlextCliServiceBase, c, m, t
+from flext_cli import FlextCliServiceBase, c, m
 
 FlextCliCommandGroup = m.Cli.CliCommandGroup
 FlextCliCommandEntryModel = m.Cli.CommandEntryModel
@@ -67,17 +67,15 @@ class FlextCliCommands(FlextCliServiceBase):
 
     @staticmethod
     def _normalize_handler_result(
-        result: r[t.JsonValue] | None, command_name: str
-    ) -> r[t.JsonValue]:
+        result: r[object] | None, command_name: str
+    ) -> r[object]:
         """Normalize handler output to r."""
         if result is None:
-            return r[t.JsonValue].ok({"status": "success", "command": command_name})
+            return r[object].ok({"status": "success", "command": command_name})
         if result.is_success:
-            return r[t.JsonValue].ok(result.value)
+            return r[object].ok(result.value)
         error_value = result.error
-        return r[t.JsonValue].fail(
-            str(error_value) if error_value else "Command failed"
-        )
+        return r[object].fail(str(error_value) if error_value else "Command failed")
 
     def clear_commands(self) -> r[int]:
         """Clear all registered commands.
@@ -132,7 +130,7 @@ class FlextCliCommands(FlextCliServiceBase):
         return self
 
     @override
-    def execute(self) -> r[Mapping[str, t.JsonValue]]:
+    def execute(self) -> r[Mapping[str, object]]:
         """Execute commands service - returns service status.
 
         Business Rule:
@@ -144,15 +142,15 @@ class FlextCliCommands(FlextCliServiceBase):
             r[dict]: Service status with commands count.
 
         """
-        return r[Mapping[str, t.JsonValue]].ok({
+        return r[Mapping[str, object]].ok({
             "app_name": c.Cli.FLEXT_CLI,
             "is_initialized": True,
             "commands_count": len(self._commands),
         })
 
     def execute_command(
-        self, name: str, args: Sequence[str] | None = None, **kwargs: t.JsonValue
-    ) -> r[t.JsonValue]:
+        self, name: str, args: Sequence[str] | None = None, **kwargs: object
+    ) -> r[object]:
         """Execute a registered CLI command.
 
         Args:
@@ -161,19 +159,19 @@ class FlextCliCommands(FlextCliServiceBase):
             **kwargs: Keyword arguments for the command.
 
         Returns:
-            r[t.JsonValue]: Command execution result.
+            r[object]: Command execution result.
 
         """
         if not name.strip():
-            return r[t.JsonValue].fail("Invalid command name")
+            return r[object].fail("Invalid command name")
         if name not in self._commands:
-            return r[t.JsonValue].fail(f"Command not found: {name}")
+            return r[object].fail(f"Command not found: {name}")
         cmd_info = self._commands[name]
         handler = cmd_info.handler
         if not callable(handler):
-            return r[t.JsonValue].fail(f"Handler not callable for: {name}")
+            return r[object].fail(f"Handler not callable for: {name}")
         try:
-            result: r[t.JsonValue] | None = None
+            result: r[object] | None = None
             execution_attempted = False
             if args or kwargs:
                 try:
@@ -197,7 +195,7 @@ class FlextCliCommands(FlextCliServiceBase):
             StyleError,
             LiveError,
         ) as e:
-            return r[t.JsonValue].fail(f"Command execution failed: {e}")
+            return r[object].fail(f"Command execution failed: {e}")
 
     def get_click_group(self) -> FlextCliCommandGroup:
         """Get Click group representation.
@@ -234,9 +232,7 @@ class FlextCliCommands(FlextCliServiceBase):
         """
         return r[list[str]].ok(list(self._commands.keys()))
 
-    def register_command(
-        self, name: str, handler: Callable[..., r[t.JsonValue]]
-    ) -> r[bool]:
+    def register_command(self, name: str, handler: Callable[..., r[object]]) -> r[bool]:
         """Register a CLI command.
 
         Args:
@@ -252,29 +248,29 @@ class FlextCliCommands(FlextCliServiceBase):
         self._commands[name] = FlextCliCommandEntryModel(name=name, handler=handler)
         return r[bool].ok(value=True)
 
-    def run_cli(self, args: Sequence[str] | None = None) -> r[t.JsonValue]:
+    def run_cli(self, args: Sequence[str] | None = None) -> r[object]:
         """Run CLI with given arguments.
 
         Args:
             args: CLI arguments to process.
 
         Returns:
-            r[t.JsonValue]: Execution result.
+            r[object]: Execution result.
 
         """
         if not args:
-            return r[t.JsonValue].ok({"status": "success", "message": "No args"})
+            return r[object].ok({"status": "success", "message": "No args"})
         cmd_name = args[0] if args else ""
         cmd_args = list(args[1:]) if len(args) > 1 else []
         if cmd_name in {"--help", "-h"}:
-            return r[t.JsonValue].ok({
+            return r[object].ok({
                 "status": "help",
                 "commands": list(self._commands.keys()),
             })
         if cmd_name in {"--version", "-v"}:
-            return r[t.JsonValue].ok({"status": "version", "name": self._name})
+            return r[object].ok({"status": "version", "name": self._name})
         if cmd_name not in self._commands:
-            return r[t.JsonValue].fail(f"Command not found: {cmd_name}")
+            return r[object].fail(f"Command not found: {cmd_name}")
         return self.execute_command(cmd_name, args=cmd_args)
 
     def unregister_command(self, name: str) -> r[bool]:

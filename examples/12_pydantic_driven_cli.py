@@ -31,7 +31,7 @@ import time
 from example_utils import display_config_table, display_success_summary
 from models import AdvancedDatabaseConfig, DatabaseConfig, DeployConfig
 
-from flext_cli import FlextCli, m, r, t
+from flext_cli import FlextCli, m, r
 
 cli = FlextCli()
 
@@ -85,7 +85,7 @@ def show_common_cli_params() -> None:
     cli.print(
         "These are AUTOMATICALLY available in ALL flext-cli commands:\n", style="yellow"
     )
-    common_params: dict[str, t.JsonValue] = {
+    common_params: dict[str, object] = {
         "verbose": "Enable verbose output (-v)",
         "quiet": "Suppress non-error output (-q)",
         "debug": "Enable debug mode (-d)",
@@ -230,7 +230,7 @@ def main() -> None:
     db_config_result = create_database_config_from_cli()
     if db_config_result.is_success:
         final_config = db_config_result.value
-        payload: t.JsonDict = final_config.model_dump(mode="json")
+        payload: object = final_config.model_dump(mode="json")
         display_config_table(
             cli=cli, config_data=m.Cli.DisplayData.model_validate({"data": payload})
         )

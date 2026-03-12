@@ -579,7 +579,7 @@ def load_fixture_config() -> Mapping[str, object]:
     fixture_path = Path("tests/fixtures/configs/test_config.json")
     with fixture_path.open(encoding="utf-8") as f:
         data = json.load(f)
-    adapter: TypeAdapter[Mapping[str, object]] = TypeAdapter(t.ConfigurationMapping)
+    adapter: TypeAdapter[Mapping[str, object]] = TypeAdapter(object)
     return adapter.validate_python(data)
 
 
@@ -589,7 +589,7 @@ def load_fixture_data() -> Mapping[str, object]:
     fixture_path = Path("tests/fixtures/data/test_data.json")
     with fixture_path.open(encoding="utf-8") as f:
         data = json.load(f)
-    adapter: TypeAdapter[Mapping[str, object]] = TypeAdapter(t.ConfigurationMapping)
+    adapter: TypeAdapter[Mapping[str, object]] = TypeAdapter(object)
     return adapter.validate_python(data)
 
 
