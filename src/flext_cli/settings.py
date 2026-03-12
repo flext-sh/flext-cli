@@ -15,7 +15,7 @@ import yaml
 from flext_core import FlextLogger, FlextSettings, FlextUtilities, r
 from pydantic import Field, TypeAdapter, ValidationError, computed_field
 
-from flext_cli import c, t
+from flext_cli import c
 
 logger = FlextLogger(__name__)
 
@@ -158,9 +158,7 @@ class FlextCliSettings(FlextSettings):
                 parsed = yaml.safe_load(raw)
             if not isinstance(parsed, dict):
                 return r[FlextCliSettings].fail(c.Cli.CmdErrorMessages.CONFIG_NOT_DICT)
-            mapping_adapter: TypeAdapter[object] = TypeAdapter(
-                object
-            )
+            mapping_adapter: TypeAdapter[object] = TypeAdapter(object)
             data: object = mapping_adapter.validate_python(parsed)
             instance = cls.model_validate(data)
             return r[FlextCliSettings].ok(instance)

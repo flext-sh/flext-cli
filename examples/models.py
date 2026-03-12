@@ -23,7 +23,7 @@ from pydantic import (
     model_validator,
 )
 
-from flext_cli import FlextCli, FlextCliSettings, m, r, t
+from flext_cli import FlextCli, FlextCliSettings, m, r
 
 _JsonDictAdapter: TypeAdapter[object] = TypeAdapter(object)
 

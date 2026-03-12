@@ -32,7 +32,7 @@ from pathlib import Path
 from example_utils import display_config_table
 from models import AppConfigAdvanced, MyAppConfig
 
-from flext_cli import FlextCli, FlextCliSettings, m, r, t, u
+from flext_cli import FlextCli, FlextCliSettings, m, r, u
 
 cli = FlextCli()
 

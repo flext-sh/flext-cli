@@ -336,9 +336,7 @@ class TestsCliTypings:
     def _execute_type_utilities_tests(self) -> None:
         """Execute type utilities tests."""
 
-        def typed_function(
-            name: str, age: int, *, active: bool = True
-        ) -> object:
+        def typed_function(name: str, age: int, *, active: bool = True) -> object:
             return {"name": name, "age": age, "active": active}
 
         hints = get_type_hints(typed_function)

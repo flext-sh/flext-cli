@@ -41,7 +41,7 @@ from pathlib import Path
 
 from pydantic import TypeAdapter, ValidationError
 
-from flext_cli import FlextCli, FlextCliTables, m, r, t
+from flext_cli import FlextCli, FlextCliTables, m, r
 
 cli = FlextCli()
 tables = FlextCliTables()

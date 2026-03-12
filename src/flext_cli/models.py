@@ -37,7 +37,7 @@ from pydantic.fields import FieldInfo
 from rich.errors import ConsoleError, LiveError, StyleError
 from typer.models import OptionInfo
 
-from flext_cli import c, p, t
+from flext_cli import c, p
 
 _logger = FlextLogger(__name__)
 
@@ -3107,9 +3107,7 @@ class FlextCliModels(FlextModels):
             @staticmethod
             def _validate_field_data(
                 field_name: str,
-                field_info: (
-                    FieldInfo | object | Mapping[str, object] | object
-                ),
+                field_info: (FieldInfo | object | Mapping[str, object]),
                 data: Mapping[str, object] | None = None,
             ) -> r[object]:
                 """Validate field data against field info."""
