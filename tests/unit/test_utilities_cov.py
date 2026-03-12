@@ -122,7 +122,7 @@ def test_validated_with_result_returns_failure_on_validation_error() -> None:
 
     @u.Cli.TypeNormalizer.Args.validated_with_result
     def parse_int(value: Annotated[int, Field(gt=0)]) -> r[int]:
-        return r.ok(value)
+        return r[int].ok(value)
 
     result = parse_int(value=-1)
     assert result.is_failure
