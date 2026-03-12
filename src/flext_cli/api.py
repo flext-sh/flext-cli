@@ -51,11 +51,11 @@ class _DecoratorCommandLike(Protocol):
     def name(self) -> str: ...
 
     @property
-    def callback(self) -> Callable[..., t.ContainerValue]: ...
+    def callback(self) -> Callable[..., object]: ...
 
 
 def _is_registered_command(
-    obj: t.ContainerValue | _DecoratorCommandLike | Command,
+    obj: object | _DecoratorCommandLike | Command,
 ) -> TypeGuard[p.Cli.CliRegisteredCommand]:
     """Narrow to CliRegisteredCommand when protocol attributes are present."""
     return callable(obj) and hasattr(obj, "name") and hasattr(obj, "callback")

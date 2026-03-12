@@ -120,7 +120,7 @@ class TestsCliTypings:
             ]
 
         @staticmethod
-        def create_type_test_data() -> dict[str, t.ContainerValue]:
+        def create_type_test_data() -> dict[str, object]:
             """Create test data for type operations."""
             return {
                 "config_data": {
@@ -163,9 +163,7 @@ class TestsCliTypings:
                 return r[bool].fail(str(e))
 
         @staticmethod
-        def validate_type_usage(
-            data: dict[str, t.ContainerValue], type_hint: str
-        ) -> r[bool]:
+        def validate_type_usage(data: dict[str, object], type_hint: str) -> r[bool]:
             """Validate type usage with actual data."""
             try:
                 match type_hint:
@@ -213,7 +211,7 @@ class TestsCliTypings:
         """Execute initialization-related tests."""
         validation_result = self.TypingValidators.validate_type_initialization(t)
         tm.ok(validation_result)
-        test_data: dict[str, t.ContainerValue] = {"key": "value"}
+        test_data: dict[str, object] = {"key": "value"}
         assert isinstance(test_data, dict)
 
     def _execute_basic_functionality_tests(self) -> None:
@@ -223,7 +221,7 @@ class TestsCliTypings:
         if not isinstance(config_data_obj, dict):
             error_msg = "config_data must be a dict"
             raise TypeError(error_msg)
-        config_dict: dict[str, t.ContainerValue] = config_data_obj
+        config_dict: dict[str, object] = config_data_obj
         config_result = self.TypingValidators.validate_type_usage(
             config_dict, "CliConfigData"
         )
@@ -232,7 +230,7 @@ class TestsCliTypings:
         if not isinstance(format_data_obj, dict):
             error_msg = "format_data must be a dict"
             raise TypeError(error_msg)
-        format_dict: dict[str, t.ContainerValue] = format_data_obj
+        format_dict: dict[str, object] = format_data_obj
         format_result = self.TypingValidators.validate_type_usage(
             format_dict, "CliFormatData"
         )
@@ -251,8 +249,8 @@ class TestsCliTypings:
         assert t_var is not None
         assert generic_type is not None
         assert TestProtocol is not None
-        user_data: dict[str, t.ContainerValue] = {"key": "value", "number": 42}
-        user_list: list[dict[str, t.ContainerValue]] = [user_data]
+        user_data: dict[str, object] = {"key": "value", "number": 42}
+        user_list: list[dict[str, object]] = [user_data]
         assert isinstance(user_data, dict)
         assert isinstance(user_list, list)
         assert len(user_list) == 1
@@ -448,7 +446,7 @@ class TestsCliTypings:
         def process_list(data: list[str]) -> list[str]:
             return [item.upper() for item in data]
 
-        def process_dict(data: Mapping[str, t.ContainerValue]) -> dict[str, str]:
+        def process_dict(data: Mapping[str, object]) -> dict[str, str]:
             return {key: str(value) for key, value in data.items()}
 
         test_list = ["hello", "world", "test"]
@@ -534,10 +532,10 @@ class TestsCliTypings:
 
         @runtime_checkable
         class TestProtocol(Protocol):
-            def operation(self, data: list[str]) -> dict[str, t.ContainerValue]: ...
+            def operation(self, data: list[str]) -> dict[str, object]: ...
 
         class Implementation:
-            def operation(self, data: list[str]) -> dict[str, t.ContainerValue]:
+            def operation(self, data: list[str]) -> dict[str, object]:
                 time.sleep(0.001)
                 return {
                     "processed": [item.upper() for item in data],

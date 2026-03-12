@@ -20,7 +20,7 @@ import typer
 from click.testing import CliRunner
 from flext_tests import tm
 
-from flext_cli import FlextCliCli, FlextCliSettings, m, r, t
+from flext_cli import FlextCliCli, FlextCliSettings, m, r
 
 from ..helpers import FlextCliTestHelpers
 
@@ -102,7 +102,7 @@ class TestsCliCli:
         ],
     )
     def test_click_type_creation(
-        self, click_type_name: str, data_dict: dict[str, t.ContainerValue]
+        self, click_type_name: str, data_dict: dict[str, object]
     ) -> None:
         """Test Click type creation with various parameter types."""
         if click_type_name == "choice":

@@ -44,9 +44,7 @@ class FlextCliCli:
         self.logger = FlextLogger(__name__)
 
     @classmethod
-    def _to_json_value(
-        cls, value: t.ContainerValue | r[t.JsonValue] | None
-    ) -> t.JsonValue:
+    def _to_json_value(cls, value: object | r[t.JsonValue] | None) -> t.JsonValue:
         if value is None:
             return ""
         if getattr(value, "is_success", None) is True:

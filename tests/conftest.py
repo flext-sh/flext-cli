@@ -173,7 +173,7 @@ class CliCommandFactory(Protocol):
         command_line: str = ...,
         description: str = ...,
         status: str = ...,
-        **kwargs: t.ContainerValue,
+        **kwargs: object,
     ) -> m.Cli.CliCommand:
         """Create CliCommand instance."""
         ...
@@ -187,7 +187,7 @@ class CliSessionFactory(Protocol):
         session_id: str = ...,
         user_id: str = ...,
         status: str = ...,
-        **kwargs: t.ContainerValue,
+        **kwargs: object,
     ) -> m.Cli.CliSession:
         """Create CliSession instance."""
         ...
@@ -201,7 +201,7 @@ class DebugInfoFactory(Protocol):
         service: str = ...,
         level: str = ...,
         message: str = ...,
-        **kwargs: t.ContainerValue,
+        **kwargs: object,
     ) -> m.Cli.DebugInfo:
         """Create DebugInfo instance."""
         ...
@@ -211,7 +211,7 @@ class LoggingConfigFactory(Protocol):
     """Protocol for LoggingConfig factory function."""
 
     def __call__(
-        self, log_level: str = ..., log_format: str = ..., **kwargs: t.ContainerValue
+        self, log_level: str = ..., log_format: str = ..., **kwargs: object
     ) -> m.Cli.LoggingConfig:
         """Create LoggingConfig instance."""
         ...
@@ -226,9 +226,9 @@ def cli_command_factory() -> CliCommandFactory:
         command_line: str = "flext test",
         description: str = "Test command",
         status: str = "pending",
-        **kwargs: t.ContainerValue,
+        **kwargs: object,
     ) -> m.Cli.CliCommand:
-        cli_data: dict[str, t.ContainerValue]
+        cli_data: dict[str, object]
         cli_data = {
             "command_line": command_line,
             "args": [],
@@ -242,8 +242,8 @@ def cli_command_factory() -> CliCommandFactory:
             "name": name,
             "description": description,
         }
-        raw_data: dict[str, t.ContainerValue] = {**cli_data, **kwargs}
-        typed_data: dict[str, t.ContainerValue] = raw_data
+        raw_data: dict[str, object] = {**cli_data, **kwargs}
+        typed_data: dict[str, object] = raw_data
         transform_result = u.transform(typed_data, to_json=True)
         if transform_result.is_success:
             unwrapped = transform_result.value
@@ -266,9 +266,9 @@ def cli_session_factory() -> CliSessionFactory:
         session_id: str = "test-session",
         user_id: str = "test_user",
         status: str = "active",
-        **kwargs: t.ContainerValue,
+        **kwargs: object,
     ) -> m.Cli.CliSession:
-        session_data: dict[str, t.ContainerValue] = {
+        session_data: dict[str, object] = {
             "session_id": session_id,
             "status": status,
             "user_id": user_id,
@@ -281,7 +281,7 @@ def cli_session_factory() -> CliSessionFactory:
             "created_at": datetime.now(UTC).isoformat(),
             "updated_at": None,
         }
-        raw_data: dict[str, t.ContainerValue] = {**session_data, **kwargs}
+        raw_data: dict[str, object] = {**session_data, **kwargs}
         typed_data = raw_data
         transform_result = u.transform(typed_data, to_json=True)
         if transform_result.is_success:
@@ -305,9 +305,9 @@ def debug_info_factory() -> DebugInfoFactory:
         service: str = "TestService",
         level: str = "INFO",
         message: str = "",
-        **kwargs: t.ContainerValue,
+        **kwargs: object,
     ) -> m.Cli.DebugInfo:
-        debug_data: dict[str, t.ContainerValue] = {
+        debug_data: dict[str, object] = {
             "service": service,
             "level": level,
             "message": message or "",
@@ -323,7 +323,7 @@ def debug_info_factory() -> DebugInfoFactory:
             "message",
         }
         filtered_kwargs = {k: v for k, v in kwargs.items() if k in valid_fields}
-        raw_data: dict[str, t.ContainerValue] = {**debug_data, **filtered_kwargs}
+        raw_data: dict[str, object] = {**debug_data, **filtered_kwargs}
         typed_data = raw_data
         transform_result = u.transform(typed_data, to_json=True)
         if transform_result.is_success:
@@ -346,15 +346,15 @@ def logging_config_factory() -> LoggingConfigFactory:
     def _create(
         log_level: str = "INFO",
         log_format: str = "%(asctime)s - %(message)s",
-        **kwargs: t.ContainerValue,
+        **kwargs: object,
     ) -> m.Cli.LoggingConfig:
-        logging_data: dict[str, t.ContainerValue] = {
+        logging_data: dict[str, object] = {
             "log_level": log_level,
             "log_format": log_format,
             "console_output": True,
             "log_file": "",
         }
-        raw_data: dict[str, t.ContainerValue] = {**logging_data, **kwargs}
+        raw_data: dict[str, object] = {**logging_data, **kwargs}
         typed_data = raw_data
         transform_result = u.transform(typed_data, to_json=True)
         if transform_result.is_success:
@@ -512,7 +512,7 @@ def flext_cli_utilities() -> type[u]:
 
 
 @pytest.fixture
-def sample_config_data() -> dict[str, t.ContainerValue]:
+def sample_config_data() -> dict[str, object]:
     """Provide sample configuration data for tests."""
     return {
         "debug": True,
@@ -527,7 +527,7 @@ def sample_config_data() -> dict[str, t.ContainerValue]:
 
 
 @pytest.fixture
-def sample_file_data(temp_dir: Path) -> dict[str, t.ContainerValue]:
+def sample_file_data(temp_dir: Path) -> dict[str, object]:
     """Provide sample file data for tests."""
     return {
         "content": "This is test content for file operations",
@@ -542,7 +542,7 @@ def sample_file_data(temp_dir: Path) -> dict[str, t.ContainerValue]:
 
 
 @pytest.fixture
-def sample_command_data() -> dict[str, t.ContainerValue]:
+def sample_command_data() -> dict[str, object]:
     """Provide sample command data for tests."""
     return {
         "command": "test_command",
@@ -574,26 +574,22 @@ def fixture_data_csv() -> Path:
 
 
 @pytest.fixture
-def load_fixture_config() -> Mapping[str, t.ContainerValue]:
+def load_fixture_config() -> Mapping[str, object]:
     """Load configuration data from fixtures directory."""
     fixture_path = Path("tests/fixtures/configs/test_config.json")
     with fixture_path.open(encoding="utf-8") as f:
         data = json.load(f)
-    adapter: TypeAdapter[Mapping[str, t.ContainerValue]] = TypeAdapter(
-        t.ConfigurationMapping
-    )
+    adapter: TypeAdapter[Mapping[str, object]] = TypeAdapter(t.ConfigurationMapping)
     return adapter.validate_python(data)
 
 
 @pytest.fixture
-def load_fixture_data() -> Mapping[str, t.ContainerValue]:
+def load_fixture_data() -> Mapping[str, object]:
     """Load test data from fixtures directory."""
     fixture_path = Path("tests/fixtures/data/test_data.json")
     with fixture_path.open(encoding="utf-8") as f:
         data = json.load(f)
-    adapter: TypeAdapter[Mapping[str, t.ContainerValue]] = TypeAdapter(
-        t.ConfigurationMapping
-    )
+    adapter: TypeAdapter[Mapping[str, object]] = TypeAdapter(t.ConfigurationMapping)
     return adapter.validate_python(data)
 
 

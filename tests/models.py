@@ -51,9 +51,7 @@ class ScalarConfigRestore(RootModel[dict[str, _ScalarOnly]]):
     """Holds scalar-only config for container restore in fixtures. Filters nested values out."""
 
     @classmethod
-    def from_config_items(
-        cls, items: Mapping[str, t.ContainerValue]
-    ) -> ScalarConfigRestore:
+    def from_config_items(cls, items: Mapping[str, object]) -> ScalarConfigRestore:
         """Build scalar-only dict from config items (drops nested dict/list/model)."""
         out: dict[str, _ScalarOnly] = {
             k: v

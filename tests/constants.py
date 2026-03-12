@@ -18,7 +18,7 @@ from typing import Final
 from flext_tests import FlextTestsConstants
 from pydantic import BaseModel, ConfigDict, Field
 
-from flext_cli import FlextCliConstants, t
+from flext_cli import FlextCliConstants
 
 
 class TestsFlextCliConstants(FlextTestsConstants, FlextCliConstants):
@@ -128,7 +128,7 @@ class TestsFlextCliConstants(FlextTestsConstants, FlextCliConstants):
     class TestConfiguration:
         """Test configuration constants."""
 
-        BASIC_CONFIG: Final[dict[str, t.ContainerValue]] = {
+        BASIC_CONFIG: Final[dict[str, object]] = {
             "app_name": "test_app",
             "debug": False,
             "log_level": "INFO",

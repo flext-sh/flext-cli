@@ -16,7 +16,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import override
 
-from flext_core import FlextHandlers, T, m, r, t
+from flext_core import FlextHandlers, T, m, r
 from flext_tests import FlextTestsServiceBase
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
@@ -49,7 +49,7 @@ class TestsCliServiceBase(FlextTestsServiceBase[T]):
             default=c.Cqrs.HandlerType.COMMAND,
             description="Handler type used for test case",
         )
-        expected_result: t.ContainerValue | None = Field(
+        expected_result: object | None = Field(
             default=None,
             description="Expected handler result value",
         )
@@ -67,8 +67,8 @@ class TestsCliServiceBase(FlextTestsServiceBase[T]):
 
         def create_handler(
             self,
-            process_fn: Callable[[t.ContainerValue], r[t.ContainerValue]] | None = None,
-        ) -> FlextHandlers[t.ContainerValue, t.ContainerValue]:
+            process_fn: Callable[[object], r[object]] | None = None,
+        ) -> FlextHandlers[object, object]:
             """Create handler instance for this test case."""
             return TestsCliServiceBase.Handlers.create_test_handler(
                 handler_id=self.handler_id,
@@ -132,8 +132,8 @@ class TestsCliServiceBase(FlextTestsServiceBase[T]):
             handler_id: str,
             handler_name: str | None = None,
             handler_type: c.Cqrs.HandlerType = c.Cqrs.HandlerType.COMMAND,
-            process_fn: Callable[[t.ContainerValue], r[t.ContainerValue]] | None = None,
-        ) -> FlextHandlers[t.ContainerValue, t.ContainerValue]:
+            process_fn: Callable[[object], r[object]] | None = None,
+        ) -> FlextHandlers[object, object]:
             """Factory for creating test handlers - reduces massive boilerplate.
 
             Args:
@@ -147,7 +147,7 @@ class TestsCliServiceBase(FlextTestsServiceBase[T]):
 
             """
 
-            class DynamicTestHandler(FlextHandlers[t.ContainerValue, t.ContainerValue]):
+            class DynamicTestHandler(FlextHandlers[object, object]):
                 """Dynamic test handler implementation."""
 
                 def __init__(self) -> None:
@@ -164,21 +164,21 @@ class TestsCliServiceBase(FlextTestsServiceBase[T]):
                     super().__init__(config=config)
 
                 @override
-                def handle(self, message: t.ContainerValue) -> r[t.ContainerValue]:
+                def handle(self, message: object) -> r[object]:
                     """Handle message with proper error handling."""
                     try:
                         if process_fn:
                             return process_fn(message)
-                        return r[t.ContainerValue].ok(f"Handled: {message}")
+                        return r[object].ok(f"Handled: {message}")
                     except (ValueError, TypeError, ValidationError) as e:
-                        return r[t.ContainerValue].fail(f"Handler error: {e}")
+                        return r[object].fail(f"Handler error: {e}")
 
             return DynamicTestHandler()
 
         @staticmethod
         def create_simple_handler(
-            handler_id: str, result_value: t.ContainerValue = c.Strings.BASIC_WORD
-        ) -> FlextHandlers[t.ContainerValue, t.ContainerValue]:
+            handler_id: str, result_value: object = c.Strings.BASIC_WORD
+        ) -> FlextHandlers[object, object]:
             """Create a simple handler that always returns the same value.
 
             Args:
@@ -193,9 +193,9 @@ class TestsCliServiceBase(FlextTestsServiceBase[T]):
                 msg = "Handler ID cannot be empty"
                 raise ValueError(msg)
 
-            def always_succeed(_msg: t.ContainerValue) -> r[t.ContainerValue]:
+            def always_succeed(_msg: object) -> r[object]:
                 """Always return success with configured value."""
-                return r[t.ContainerValue].ok(result_value)
+                return r[object].ok(result_value)
 
             return TestsCliServiceBase.Handlers.create_test_handler(
                 handler_id, process_fn=always_succeed
@@ -204,7 +204,7 @@ class TestsCliServiceBase(FlextTestsServiceBase[T]):
         @staticmethod
         def create_failing_handler(
             handler_id: str, error_message: str = c.TestErrors.PROCESSING_ERROR
-        ) -> FlextHandlers[t.ContainerValue, t.ContainerValue]:
+        ) -> FlextHandlers[object, object]:
             """Create a handler that always fails.
 
             Args:
@@ -221,9 +221,9 @@ class TestsCliServiceBase(FlextTestsServiceBase[T]):
             if not error_message:
                 error_message = c.TestErrors.PROCESSING_ERROR
 
-            def always_fail(_msg: t.ContainerValue) -> r[t.ContainerValue]:
+            def always_fail(_msg: object) -> r[object]:
                 """Always return failure with configured error."""
-                return r[t.ContainerValue].fail(error_message)
+                return r[object].fail(error_message)
 
             return TestsCliServiceBase.Handlers.create_test_handler(
                 handler_id, process_fn=always_fail
@@ -232,8 +232,8 @@ class TestsCliServiceBase(FlextTestsServiceBase[T]):
         @staticmethod
         def create_transform_handler(
             handler_id: str,
-            transform_fn: Callable[[t.ContainerValue], t.ContainerValue],
-        ) -> FlextHandlers[t.ContainerValue, t.ContainerValue]:
+            transform_fn: Callable[[object], object],
+        ) -> FlextHandlers[object, object]:
             """Create a handler that transforms messages.
 
             Args:
@@ -248,13 +248,13 @@ class TestsCliServiceBase(FlextTestsServiceBase[T]):
                 msg = "Handler ID cannot be empty"
                 raise ValueError(msg)
 
-            def transform(msg: t.ContainerValue) -> r[t.ContainerValue]:
+            def transform(msg: object) -> r[object]:
                 """Transform message with proper error handling."""
                 try:
                     result = transform_fn(msg)
-                    return r[t.ContainerValue].ok(result)
+                    return r[object].ok(result)
                 except (ValueError, TypeError, ValidationError) as e:
-                    return r[t.ContainerValue].fail(f"Transformation failed: {e}")
+                    return r[object].fail(f"Transformation failed: {e}")
 
             return TestsCliServiceBase.Handlers.create_test_handler(
                 handler_id, process_fn=transform

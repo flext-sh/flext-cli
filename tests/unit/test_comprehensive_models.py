@@ -5,7 +5,7 @@ from datetime import datetime
 import pytest
 from pydantic import ValidationError
 
-from flext_cli import c, m, t
+from flext_cli import c, m
 from tests._helpers import (
     create_test_cli_command,
     create_test_cli_session,
@@ -36,7 +36,7 @@ class TestsCliComprehensiveModels:
         assert cmd.is_failed == (status == c.Cli.CommandStatus.FAILED)
 
     @pytest.mark.parametrize("edge_case", generate_edge_case_data())
-    def test_command_edge_cases(self, edge_case: dict[str, t.ContainerValue]) -> None:
+    def test_command_edge_cases(self, edge_case: dict[str, object]) -> None:
         """Test command creation with comprehensive edge cases."""
         cmd = create_test_cli_command(**edge_case)
         for key, value in edge_case.items():

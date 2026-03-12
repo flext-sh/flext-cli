@@ -83,7 +83,7 @@ class FlextCliCommandBuilder:
         return option_info
 
     @staticmethod
-    def _is_command_protocol(obj: t.ContainerValue) -> bool:
+    def _is_command_protocol(obj: object) -> bool:
         """Check if object matches minimal command protocol shape."""
         name_value = getattr(obj, "name", None)
         description_value = getattr(obj, "description", None)

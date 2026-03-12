@@ -19,7 +19,7 @@ from pathlib import Path
 
 import pytest
 
-from flext_cli import FlextCliFileTools, t
+from flext_cli import FlextCliFileTools
 
 
 class TestsCliRailwayPatternExample:
@@ -57,7 +57,7 @@ class TestsCliRailwayPatternExample:
         self,
         file_tools: FlextCliFileTools,
         temp_dir: Path,
-        test_data: dict[str, t.ContainerValue],
+        test_data: dict[str, object],
         filename: str,
         verify_keys: list[str],
     ) -> None:
@@ -95,7 +95,7 @@ class TestsCliRailwayPatternExample:
         self,
         file_tools: FlextCliFileTools,
         invalid_path: str,
-        test_data: dict[str, t.ContainerValue],
+        test_data: dict[str, object],
         scenario: str,
     ) -> None:
         """Test Railway Pattern error handling and propagation.

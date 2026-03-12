@@ -484,7 +484,7 @@ class FlextCliCore(FlextCliServiceBase):
                 command_name=name,
                 definition_keys=list(command_def.keys()),
             )
-            snapshot_config: dict[str, t.ContainerValue] = {
+            snapshot_config: dict[str, object] = {
                 str(key): value for key, value in command_def.items()
             }
             return r[m.Configuration].ok(
@@ -958,7 +958,7 @@ class FlextCliCore(FlextCliServiceBase):
                 c.Cli.ErrorMessages.SESSION_START_FAILED.format(error=e)
             )
 
-    def update_configuration(self, config: t.ContainerValue) -> r[bool]:
+    def update_configuration(self, config: object) -> r[bool]:
         """Update CLI configuration using railway pattern and functional composition.
 
         Performs configuration update with comprehensive validation and error handling.
@@ -1041,10 +1041,10 @@ class FlextCliCore(FlextCliServiceBase):
             )
             existing_config: dict[str, t.JsonValue] = dict(existing_config_raw)
             transformed_config = FlextCliOutput.to_dict_json(valid_config)
-            existing_config_guard: dict[str, t.ContainerValue] = {
+            existing_config_guard: dict[str, object] = {
                 str(k): v for k, v in existing_config.items()
             }
-            transformed_config_guard: dict[str, t.ContainerValue] = {
+            transformed_config_guard: dict[str, object] = {
                 str(k): v for k, v in transformed_config.items()
             }
             merge_result = FlextCliUtilities.merge(
@@ -1085,9 +1085,7 @@ class FlextCliCore(FlextCliServiceBase):
                 c.Cli.ErrorMessages.CONFIG_UPDATE_FAILED.format(error=e)
             )
 
-    def _validate_config_input(
-        self, config: t.ContainerValue
-    ) -> r[Mapping[str, t.JsonValue]]:
+    def _validate_config_input(self, config: object) -> r[Mapping[str, t.JsonValue]]:
         """Validate input configuration for update operations."""
         if not isinstance(config, Mapping):
             return r[Mapping[str, t.JsonValue]].fail(

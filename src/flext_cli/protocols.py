@@ -640,9 +640,7 @@ class FlextCliProtocols(FlextProtocols):
         class CliCommandFunction(Protocol):
             """Protocol for CLI command functions that may return None."""
 
-            def __call__(
-                self, *args: t.ContainerValue, **kwargs: t.ContainerValue
-            ) -> t.ContainerValue | None:
+            def __call__(self, *args: object, **kwargs: object) -> object | None:
                 """Execute the function."""
                 ...
 
@@ -650,9 +648,7 @@ class FlextCliProtocols(FlextProtocols):
         class CliCommandWrapper(Protocol):
             """Protocol for dynamically-created CLI command wrapper functions."""
 
-            def __call__(
-                self, *args: t.ContainerValue, **kwargs: t.ContainerValue
-            ) -> t.ContainerValue:
+            def __call__(self, *args: object, **kwargs: object) -> object:
                 """Execute the wrapper."""
                 ...
 
@@ -661,8 +657,8 @@ class FlextCliProtocols(FlextProtocols):
             """Protocol for command handlers returning r."""
 
             def __call__(
-                self, *args: t.ContainerValue, **kwargs: t.ContainerValue
-            ) -> FlextProtocols.Result[t.ContainerValue]:
+                self, *args: object, **kwargs: object
+            ) -> FlextProtocols.Result[object]:
                 """Execute the handler."""
                 ...
 

@@ -118,7 +118,7 @@ def demonstrate_nested_models() -> None:
 def create_database_config_from_cli() -> r[AdvancedDatabaseConfig]:
     """Create validated DatabaseConfig using Railway Pattern with Pydantic."""
     cli.print("\n🗄️  Database Configuration with Railway Pattern:", style="bold cyan")
-    cli_args: dict[str, t.ContainerValue] = {
+    cli_args: dict[str, object] = {
         "host": "db.example.com",
         "port": 5432,
         "name": "production_db",
@@ -143,8 +143,8 @@ def create_database_config_from_cli() -> r[AdvancedDatabaseConfig]:
 
 
 def validate_required_fields(
-    data: dict[str, t.ContainerValue],
-) -> dict[str, t.ContainerValue]:
+    data: dict[str, object],
+) -> dict[str, object]:
     """Validate that all required fields are present."""
     required = ["host", "name", "username", "password"]
     missing = [field for field in required if field not in data or not data[field]]
@@ -155,7 +155,7 @@ def validate_required_fields(
 
 
 def convert_and_validate_with_pydantic(
-    data: dict[str, t.ContainerValue],
+    data: dict[str, object],
 ) -> r[AdvancedDatabaseConfig]:
     """Convert raw data to validated Pydantic model."""
     try:

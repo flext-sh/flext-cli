@@ -13,7 +13,7 @@ from flext_cli import FlextCliCommands, m, t
 from tests.models import CliCommandInput, CliSessionInput
 
 
-def create_test_cli_command(**overrides: t.ContainerValue) -> m.Cli.CliCommand:
+def create_test_cli_command(**overrides: object) -> m.Cli.CliCommand:
     """Factory for real CliCommand instances with sensible defaults."""
     now = datetime.now(UTC)
     payload: dict[str, t.JsonValue] = {
@@ -41,7 +41,7 @@ def create_test_cli_command(**overrides: t.ContainerValue) -> m.Cli.CliCommand:
     return cmd
 
 
-def create_test_cli_session(**overrides: t.ContainerValue) -> m.Cli.CliSession:
+def create_test_cli_session(**overrides: object) -> m.Cli.CliSession:
     """Factory for real CliSession instances with sensible defaults."""
     now = datetime.now(UTC)
     payload: dict[str, t.JsonValue] = {
@@ -74,10 +74,10 @@ class AuthHelpers:
 
     @staticmethod
     def create_test_credentials(
-        **overrides: t.ContainerValue,
-    ) -> Mapping[str, t.ContainerValue]:
+        **overrides: object,
+    ) -> Mapping[str, object]:
         """Create test credentials dict."""
-        defaults: dict[str, t.ContainerValue] = {
+        defaults: dict[str, object] = {
             "username": "test_user",
             "password": "test_pass",
             "token": AuthHelpers.create_test_token(),
@@ -85,7 +85,7 @@ class AuthHelpers:
         return {**defaults, **overrides}
 
     @staticmethod
-    def create_auth_test_data() -> dict[str, t.ContainerValue]:
+    def create_auth_test_data() -> dict[str, object]:
         """Create authentication test data."""
         return {
             "valid_credentials": {"username": "test_user", "password": "test_pass"},
@@ -94,7 +94,7 @@ class AuthHelpers:
         }
 
     @staticmethod
-    def create_auth_operations_test_data() -> dict[str, t.ContainerValue]:
+    def create_auth_operations_test_data() -> dict[str, object]:
         """Create authentication operations test data."""
         return {
             "login_success": {
@@ -118,7 +118,7 @@ class CommandHelpers:
     """Command execution test helpers."""
 
     @staticmethod
-    def create_command_model(**overrides: t.ContainerValue) -> r[m.Cli.CliCommand]:
+    def create_command_model(**overrides: object) -> r[m.Cli.CliCommand]:
         """Create a command model wrapped in r.
 
         Args:
@@ -133,10 +133,10 @@ class CommandHelpers:
 
     @staticmethod
     def create_test_command_data(
-        **overrides: t.ContainerValue,
-    ) -> Mapping[str, t.ContainerValue]:
+        **overrides: object,
+    ) -> Mapping[str, object]:
         """Create test command data."""
-        defaults: dict[str, t.ContainerValue] = {
+        defaults: dict[str, object] = {
             "name": "test_command",
             "args": ["--test"],
             "timeout": 30.0,
@@ -145,7 +145,7 @@ class CommandHelpers:
         return {**defaults, **overrides}
 
     @staticmethod
-    def create_command_execution_test_data() -> dict[str, t.ContainerValue]:
+    def create_command_execution_test_data() -> dict[str, object]:
         """Create command execution test data."""
         return {
             "basic_command": {"name": "echo", "args": ["hello world"], "timeout": 10.0},
@@ -160,8 +160,8 @@ class CommandHelpers:
 
     @staticmethod
     def simulate_command_execution(
-        command_data: dict[str, t.ContainerValue],
-    ) -> Mapping[str, t.ContainerValue]:
+        command_data: dict[str, object],
+    ) -> Mapping[str, object]:
         """Simulate command execution result."""
         return {
             "success": True,
@@ -176,10 +176,10 @@ class OutputHelpers:
 
     @staticmethod
     def create_test_output_data(
-        **overrides: t.ContainerValue,
-    ) -> Mapping[str, t.ContainerValue]:
+        **overrides: object,
+    ) -> Mapping[str, object]:
         """Create test output data."""
-        defaults: dict[str, t.ContainerValue] = {
+        defaults: dict[str, object] = {
             "format": "json",
             "data": {"test": "data"},
             "headers": ["col1", "col2"],
@@ -188,7 +188,7 @@ class OutputHelpers:
         return {**defaults, **overrides}
 
     @staticmethod
-    def create_format_test_data() -> dict[str, t.ContainerValue]:
+    def create_format_test_data() -> dict[str, object]:
         """Create format test data for output formatting tests."""
         return {
             "json": {"test": "data", "number": 42},
@@ -197,7 +197,7 @@ class OutputHelpers:
         }
 
     @staticmethod
-    def create_table_test_data() -> dict[str, t.ContainerValue]:
+    def create_table_test_data() -> dict[str, object]:
         """Create table test data for output formatting tests."""
         return {
             "simple": {
@@ -212,7 +212,7 @@ class OutputHelpers:
         }
 
     @staticmethod
-    def format_test_output(data: dict[str, t.ContainerValue]) -> str:
+    def format_test_output(data: dict[str, object]) -> str:
         """Format test output."""
         if data.get("format") == "json":
             return json.dumps(data.get("data", {}))
@@ -223,7 +223,7 @@ class CommandsFactory:
     """Factory for creating test commands with high automation."""
 
     @staticmethod
-    def create_basic_command(**overrides: t.ContainerValue) -> m.Cli.CliCommand:
+    def create_basic_command(**overrides: object) -> m.Cli.CliCommand:
         """Create basic test command."""
         return create_test_cli_command(**overrides)
 
