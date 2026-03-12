@@ -482,7 +482,7 @@ class FlextCliModels(FlextModels):
             return {}
 
         class _LogLevelResolved(BaseModel):
-            """Single contract for log level string (replaces u.Parser.convert for log level)."""
+            """Single contract for log level string (replaces u.convert for log level)."""
 
             model_config = ConfigDict(extra="forbid")
             raw: str | None = Field(default=None)

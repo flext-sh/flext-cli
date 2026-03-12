@@ -553,7 +553,7 @@ class FlextCliUtilities(FlextUtilities):
                     overrides: Mapping[str, object],
                 ) -> r[M]:
                     """Merge default values with overrides."""
-                    result = FlextUtilities.Model.merge_defaults(
+                    result = FlextUtilities.merge_defaults(
                         model_cls, defaults, overrides
                     )
                     return (
@@ -565,7 +565,7 @@ class FlextCliUtilities(FlextUtilities):
                 @staticmethod
                 def update[M: BaseModel](instance: M, **updates: t.Scalar) -> r[M]:
                     """Update model instance."""
-                    result = FlextUtilities.Model.update(instance, **updates)
+                    result = FlextUtilities.update(instance, **updates)
                     return (
                         r[M].ok(result.value)
                         if result.is_success

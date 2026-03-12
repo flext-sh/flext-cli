@@ -456,7 +456,7 @@ class FlextCliCore(FlextCliServiceBase):
                 consequence="Command retrieval will fail",
             )
             return r[m.Configuration].fail(c.Cli.ErrorMessages.COMMAND_NAME_EMPTY)
-        command_check = u.Mapper.get(self._commands, name)
+        command_check = u.get(self._commands, name)
         if command_check is None:
             FlextLogger(__name__).warning(
                 "Command not found in registry",

@@ -165,7 +165,7 @@ class FlextCliTables(FlextCliServiceBase):
             >>> result = tables.create_table(data)
 
         """
-        config_result = u.Configuration.build_options_from_kwargs(
+        config_result = u.build_options_from_kwargs(
             model_class=m.Cli.TableConfig,
             explicit_options=config,
             default_factory=m.Cli.TableConfig,

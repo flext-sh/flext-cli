@@ -746,7 +746,7 @@ class FlextCliCli:
         if val is None or not val:
             return default
         if type_name == "bool":
-            bool_default = u.Parser.convert(default, bool, False)
+            bool_default = u.convert(default, bool, False)
             built_bool = u.build(
                 val, ops={"ensure": "bool", "ensure_default": bool_default}
             )
@@ -754,7 +754,7 @@ class FlextCliCli:
                 return built_bool
             msg = f"{key} must resolve to bool"
             raise TypeError(msg)
-        str_default = u.Parser.convert(default, str, "")
+        str_default = u.convert(default, str, "")
         built_str = u.build(val, ops={"ensure": "str", "ensure_default": str_default})
         if isinstance(built_str, str):
             return built_str
