@@ -15,7 +15,6 @@ import os
 import pathlib
 import sys
 import traceback
-from abc import ABC, abstractmethod
 from typing import ClassVar
 
 import typer
@@ -27,7 +26,7 @@ from flext_cli.cli import FlextCliCli
 from flext_cli.settings import FlextCliSettings
 
 
-class FlextCliAppBase[SettingsT: FlextCliSettings](ABC):
+class FlextCliAppBase[SettingsT: FlextCliSettings]:
     """Base class for CLI applications using the FLEXT pattern.
 
     Fornece inicialização, execução e tratamento de erros consistentes para CLIs
@@ -123,7 +122,6 @@ class FlextCliAppBase[SettingsT: FlextCliSettings](ABC):
             self._output.print_error(error_msg)
             return r[bool].fail(f"CLI execution error: {exc!s}")
 
-    @abstractmethod
     def _register_commands(self) -> None:
         """Register CLI commands - implement in subclass."""
         ...
