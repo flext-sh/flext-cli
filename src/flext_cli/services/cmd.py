@@ -199,7 +199,7 @@ class FlextCliCmd(FlextCliServiceBase):
                 )
             if isinstance(config_data, Mapping):
                 normalized: dict[str, object] = {
-                    str(k): m.Cli.normalize_to_json_value(v)
+                    str(k): m.Cli.normalize_json_value(v)
                     for k, v in config_data.items()
                 }
             else:
@@ -219,7 +219,7 @@ class FlextCliCmd(FlextCliServiceBase):
                 ),
             }
             result_data: dict[str, object] = {
-                str(k): m.Cli.normalize_to_json_value(v)
+                str(k): m.Cli.normalize_json_value(v)
                 for k, v in FlextCliOutput.to_dict_json(raw_data).items()
             }
             return r[Mapping[str, object]].ok(result_data)

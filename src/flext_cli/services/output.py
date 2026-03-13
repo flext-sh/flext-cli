@@ -392,7 +392,7 @@ class FlextCliOutput:
             else:
                 config_for_table = m.Cli.TableConfig.model_validate({})
             data_json: list[dict[str, object]] = [
-                {str(k): m.Cli.normalize_to_json_value(v) for k, v in row.items()}
+                {str(k): m.Cli.normalize_json_value(v) for k, v in row.items()}
                 for row in data
             ]
             return FlextCliTables.create_table(data=data_json, config=config_for_table)
@@ -405,7 +405,7 @@ class FlextCliOutput:
             "table_format": table_format,
         })
         data_json_final: list[dict[str, object]] = [
-            {str(k): m.Cli.normalize_to_json_value(v) for k, v in row.items()}
+            {str(k): m.Cli.normalize_json_value(v) for k, v in row.items()}
             for row in data
         ]
         return FlextCliTables.create_table(data=data_json_final, config=final_config)
@@ -1269,7 +1269,7 @@ class FlextCliOutput:
                 "table_format": c.Cli.TableFormats.GRID,
             })
             data_json: list[dict[str, object]] = [
-                {str(k): m.Cli.normalize_to_json_value(v) for k, v in row.items()}
+                {str(k): m.Cli.normalize_json_value(v) for k, v in row.items()}
                 for row in table_data
             ]
             table_result = FlextCliTables.create_table(

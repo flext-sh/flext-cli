@@ -190,7 +190,7 @@ class FlextCliCore(FlextCliServiceBase):
             profiles_section_raw: dict[str, object] = {}
             if isinstance(profiles_value, dict):
                 profiles_section_raw = {
-                    str(key): m.Cli.normalize_to_json_value(value)
+                    str(key): m.Cli.normalize_json_value(value)
                     for key, value in profiles_value.items()
                 }
             profiles_section_raw_typed: dict[str, object] = dict(profiles_section_raw)
@@ -981,7 +981,7 @@ class FlextCliCore(FlextCliServiceBase):
             config_type=type(config).__name__,
         )
         validated_config_input: dict[str, object] = {
-            str(key): m.Cli.normalize_to_json_value(value)
+            str(key): m.Cli.normalize_json_value(value)
             for key, value in FlextCliOutput.to_dict_json(config).items()
         }
         config_result = self._validate_config_input(validated_config_input)
@@ -1001,7 +1001,7 @@ class FlextCliCore(FlextCliServiceBase):
         def list_processor(seq: Sequence[str]) -> list[object]:
             process_result = FlextCliUtilities.process(
                 list(seq),
-                processor=m.Cli.normalize_to_json_value,
+                processor=m.Cli.normalize_json_value,
                 on_error="skip",
             )
             return list(process_result.value or [])
@@ -1099,7 +1099,7 @@ class FlextCliCore(FlextCliServiceBase):
         )
         json_config = FlextCliOutput.to_dict_json(config)
         normalized_json_config: dict[str, object] = {
-            str(key): m.Cli.normalize_to_json_value(value)
+            str(key): m.Cli.normalize_json_value(value)
             for key, value in json_config.items()
         }
         return r[Mapping[str, object]].ok(normalized_json_config)
