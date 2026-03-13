@@ -2027,11 +2027,10 @@ class FlextCliModels(FlextModels):
                 data["system_info"] = masked_system_dict
 
                 config_dict: dict[str, object] = {}
-                config_adapter: TypeAdapter[dict[str, object]] = TypeAdapter(
-                    dict[str, object],
-                )
                 try:
-                    config_dict = config_adapter.validate_python(self.config_info)
+                    config_dict = _DICT_STR_OBJECT_ADAPTER.validate_python(
+                        self.config_info
+                    )
                 except ValidationError as e:
                     _logger.debug("config_info not valid as dict, using empty: %s", e)
 
@@ -3215,12 +3214,9 @@ class FlextCliModels(FlextModels):
                     return
                 # Use dict.get() for safe metadata access
                 metadata_raw = props.get("metadata", {})
-                dict_adapter: TypeAdapter[dict[str, object]] = TypeAdapter(
-                    dict[str, object],
-                )
 
                 try:
-                    metadata_dict = dict_adapter.validate_python(
+                    metadata_dict = _DICT_STR_OBJECT_ADAPTER.validate_python(
                         metadata_raw,
                         strict=True,
                     )
