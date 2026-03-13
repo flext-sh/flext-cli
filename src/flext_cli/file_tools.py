@@ -9,13 +9,14 @@ import os
 import shutil
 import tempfile
 import zipfile
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Mapping, Sequence
+from datetime import datetime
 from pathlib import Path
 from typing import TextIO, TypeGuard
 
 import yaml
 from flext_core import r
-from pydantic import TypeAdapter, ValidationError
+from pydantic import BaseModel, TypeAdapter, ValidationError
 
 _JSON_OBJECT_ADAPTER: TypeAdapter[object] = TypeAdapter(object)
 
@@ -25,6 +26,10 @@ from flext_cli import c, m, t, u
 def _is_json_mapping(value: object) -> TypeGuard[Mapping[str, object]]:
     """Narrow object to mapping for structured file load."""
     return isinstance(value, Mapping)
+
+
+def _is_sequence_object(value: object) -> TypeGuard[Sequence[object]]:
+    return isinstance(value, Sequence) and not isinstance(value, (str, bytes))
 
 
 class FlextCliFileTools:
@@ -71,12 +76,38 @@ class FlextCliFileTools:
     def _load_structured_file(
         file_path: str, loader: Callable[[TextIO], object]
     ) -> object | None:
+        def _normalize_to_json_value(item: object) -> object:
+            if item is None:
+                return ""
+            if isinstance(item, (str, int, float, bool)):
+                return item
+            if isinstance(item, BaseModel):
+                raw = item.model_dump(mode="json")
+                return _normalize_to_json_value(raw)
+            if isinstance(item, Path):
+                return str(item)
+            if isinstance(item, datetime):
+                return item.isoformat()
+            if _is_json_mapping(item):
+                item_map = TypeAdapter(dict[str, object]).validate_python(item)
+                normalized_map: dict[str, object] = {}
+                for map_key, map_value in item_map.items():
+                    normalized_map[map_key] = _normalize_to_json_value(map_value)
+                return normalized_map
+            if _is_sequence_object(item):
+                item_seq = TypeAdapter(list[object]).validate_python(item)
+                normalized_seq: list[object] = []
+                for seq_item in item_seq:
+                    normalized_seq.append(_normalize_to_json_value(seq_item))
+                return normalized_seq
+            return str(item)
+
         with Path(file_path).open(encoding=c.Cli.Utilities.DEFAULT_ENCODING) as f:
             loaded: object = loader(f)
         if _is_json_mapping(loaded):
             normalized: dict[str, object] = {}
             for k, v in loaded.items():
-                nv = m.Cli.normalize_to_json_value(v)
+                nv = _normalize_to_json_value(v)
                 normalized[str(k)] = nv
             return normalized
         json_adapter: TypeAdapter[object] = TypeAdapter(object)

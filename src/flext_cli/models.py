@@ -81,27 +81,10 @@ class FlextCliModels(FlextModels):
             return isinstance(obj, Mapping)
 
         @staticmethod
-        def normalize_to_json_value(item: object) -> object:
-            """Recursively normalize any value to JSON-serializable (object)."""
-            if item is None:
-                return ""
-            if isinstance(item, (str, int, float, bool)):
-                return item
-            if isinstance(item, BaseModel):
-                raw = item.model_dump(mode="json")
-                return FlextCliModels.Cli.normalize_to_json_value(raw)
-            if isinstance(item, Path):
-                return str(item)
-            if isinstance(item, datetime):
-                return item.isoformat()
-            if isinstance(item, Mapping):
-                return {
-                    str(k): FlextCliModels.Cli.normalize_to_json_value(vv)
-                    for k, vv in item.items()
-                }
-            if not isinstance(item, str):
-                return [FlextCliModels.Cli.normalize_to_json_value(x) for x in item]
-            return str(item)
+        def is_sequence_like(
+            obj: object,
+        ) -> TypeGuard[Sequence[object]]:
+            return isinstance(obj, Sequence) and not isinstance(obj, (str, bytes))
 
         @staticmethod
         def unwrap_root_value(value: object) -> object:
@@ -174,7 +157,33 @@ class FlextCliModels(FlextModels):
                 data: object,
                 handler: Callable[[object], FlextCliModels.Cli.CliNormalizedJson],
             ) -> FlextCliModels.Cli.CliNormalizedJson:
-                normalized = FlextCliModels.Cli.normalize_to_json_value(data)
+                def _normalize_to_json_value(item: object) -> object:
+                    if item is None:
+                        return ""
+                    if isinstance(item, (str, int, float, bool)):
+                        return item
+                    if isinstance(item, BaseModel):
+                        raw = item.model_dump(mode="json")
+                        return _normalize_to_json_value(raw)
+                    if isinstance(item, Path):
+                        return str(item)
+                    if isinstance(item, datetime):
+                        return item.isoformat()
+                    if FlextCliModels.Cli.is_mapping_like(item):
+                        normalized_map: dict[str, object] = {}
+                        for map_key, map_value in item.items():
+                            normalized_map[str(map_key)] = _normalize_to_json_value(
+                                map_value
+                            )
+                        return normalized_map
+                    if FlextCliModels.Cli.is_sequence_like(item):
+                        normalized_seq: list[object] = []
+                        for seq_item in item:
+                            normalized_seq.append(_normalize_to_json_value(seq_item))
+                        return normalized_seq
+                    return str(item)
+
+                normalized = _normalize_to_json_value(data)
                 return handler(normalized)
 
         class _JsonNormalizeInput(BaseModel):
@@ -219,15 +228,40 @@ class FlextCliModels(FlextModels):
             default: object = Field(description="Default if key missing")
 
             def result(self) -> object:
+                def _normalize_to_json_value(item: object) -> object:
+                    if item is None:
+                        return ""
+                    if isinstance(item, (str, int, float, bool)):
+                        return item
+                    if isinstance(item, BaseModel):
+                        raw = item.model_dump(mode="json")
+                        return _normalize_to_json_value(raw)
+                    if isinstance(item, Path):
+                        return str(item)
+                    if isinstance(item, datetime):
+                        return item.isoformat()
+                    if FlextCliModels.Cli.is_mapping_like(item):
+                        normalized_map: dict[str, object] = {}
+                        for map_key, map_value in item.items():
+                            normalized_map[str(map_key)] = _normalize_to_json_value(
+                                map_value
+                            )
+                        return normalized_map
+                    if FlextCliModels.Cli.is_sequence_like(item):
+                        normalized_seq: list[object] = []
+                        for seq_item in item:
+                            normalized_seq.append(_normalize_to_json_value(seq_item))
+                        return normalized_seq
+                    return str(item)
+
                 val = self.map_.get(self.key, self.default)
                 if isinstance(val, (str, int, float, bool, list)):
                     return val
                 if isinstance(val, dict):
                     return {
-                        str(k): FlextCliModels.Cli.normalize_to_json_value(vv)
-                        for k, vv in val.items()
+                        str(k): _normalize_to_json_value(vv) for k, vv in val.items()
                     }
-                return FlextCliModels.Cli.normalize_to_json_value(val)
+                return _normalize_to_json_value(val)
 
         class _DictKeysExtract(BaseModel):
             """Single contract for get_keys: input -> list of keys (empty if not dict)."""
@@ -258,13 +292,38 @@ class FlextCliModels(FlextModels):
             @computed_field
             @property
             def resolved(self) -> Mapping[str, object]:
+                def _normalize_to_json_value(item: object) -> object:
+                    if item is None:
+                        return ""
+                    if isinstance(item, (str, int, float, bool)):
+                        return item
+                    if isinstance(item, BaseModel):
+                        raw = item.model_dump(mode="json")
+                        return _normalize_to_json_value(raw)
+                    if isinstance(item, Path):
+                        return str(item)
+                    if isinstance(item, datetime):
+                        return item.isoformat()
+                    if FlextCliModels.Cli.is_mapping_like(item):
+                        normalized_map: dict[str, object] = {}
+                        for map_key, map_value in item.items():
+                            normalized_map[str(map_key)] = _normalize_to_json_value(
+                                map_value
+                            )
+                        return normalized_map
+                    if FlextCliModels.Cli.is_sequence_like(item):
+                        normalized_seq: list[object] = []
+                        for seq_item in item:
+                            normalized_seq.append(_normalize_to_json_value(seq_item))
+                        return normalized_seq
+                    return str(item)
+
                 if self.value is None:
                     return self.default
                 source = FlextCliModels.Cli.unwrap_root_value(self.value)
-                if isinstance(source, Mapping):
+                if FlextCliModels.Cli.is_mapping_like(source):
                     return {
-                        str(k): FlextCliModels.Cli.normalize_to_json_value(vv)
-                        for k, vv in source.items()
+                        str(k): _normalize_to_json_value(vv) for k, vv in source.items()
                     }
                 adapter: TypeAdapter[dict[str, object]] = TypeAdapter(
                     dict[str, object],
@@ -272,8 +331,7 @@ class FlextCliModels(FlextModels):
                 try:
                     parsed = adapter.validate_python(source)
                     return {
-                        str(k): FlextCliModels.Cli.normalize_to_json_value(vv)
-                        for k, vv in parsed.items()
+                        str(k): _normalize_to_json_value(vv) for k, vv in parsed.items()
                     }
                 except ValidationError:
                     return self.default
@@ -288,13 +346,39 @@ class FlextCliModels(FlextModels):
             @computed_field
             @property
             def resolved(self) -> list[object]:
+                def _normalize_to_json_value(item: object) -> object:
+                    if item is None:
+                        return ""
+                    if isinstance(item, (str, int, float, bool)):
+                        return item
+                    if isinstance(item, BaseModel):
+                        raw = item.model_dump(mode="json")
+                        return _normalize_to_json_value(raw)
+                    if isinstance(item, Path):
+                        return str(item)
+                    if isinstance(item, datetime):
+                        return item.isoformat()
+                    if FlextCliModels.Cli.is_mapping_like(item):
+                        normalized_map: dict[str, object] = {}
+                        for map_key, map_value in item.items():
+                            normalized_map[str(map_key)] = _normalize_to_json_value(
+                                map_value
+                            )
+                        return normalized_map
+                    if FlextCliModels.Cli.is_sequence_like(item):
+                        normalized_seq: list[object] = []
+                        for seq_item in item:
+                            normalized_seq.append(_normalize_to_json_value(seq_item))
+                        return normalized_seq
+                    return str(item)
+
                 if self.value is None:
                     return list(self.default)
                 source = FlextCliModels.Cli.unwrap_root_value(self.value)
                 adapter: TypeAdapter[list[object]] = TypeAdapter(list[object])
                 try:
                     seq = adapter.validate_python(source)
-                    return [FlextCliModels.Cli.normalize_to_json_value(x) for x in seq]
+                    return [_normalize_to_json_value(x) for x in seq]
                 except ValidationError:
                     return list(self.default)
 
@@ -348,7 +432,7 @@ class FlextCliModels(FlextModels):
             if item is None:
                 return ""
             source = FlextCliModels.Cli.unwrap_root_value(item)
-            if isinstance(source, Mapping):
+            if FlextCliModels.Cli.is_mapping_like(source):
                 return {
                     str(k): FlextCliModels.Cli.normalize_json_value(v)
                     for k, v in source.items()
@@ -437,6 +521,33 @@ class FlextCliModels(FlextModels):
 
             def resolve(self) -> str | bool | dict[str, object] | None:
                 """Type-safe accessor (bypasses pyrefly computed_field limitation)."""
+
+                def _normalize_to_json_value(item: object) -> object:
+                    if item is None:
+                        return ""
+                    if isinstance(item, (str, int, float, bool)):
+                        return item
+                    if isinstance(item, BaseModel):
+                        raw = item.model_dump(mode="json")
+                        return _normalize_to_json_value(raw)
+                    if isinstance(item, Path):
+                        return str(item)
+                    if isinstance(item, datetime):
+                        return item.isoformat()
+                    if FlextCliModels.Cli.is_mapping_like(item):
+                        normalized_map: dict[str, object] = {}
+                        for map_key, map_value in item.items():
+                            normalized_map[str(map_key)] = _normalize_to_json_value(
+                                map_value
+                            )
+                        return normalized_map
+                    if FlextCliModels.Cli.is_sequence_like(item):
+                        normalized_seq: list[object] = []
+                        for seq_item in item:
+                            normalized_seq.append(_normalize_to_json_value(seq_item))
+                        return normalized_seq
+                    return str(item)
+
                 if self.value is None:
                     return FlextCliModels.Cli.default_for_type_kind(
                         self.type_kind, self.default
@@ -451,12 +562,12 @@ class FlextCliModels(FlextModels):
                 if self.type_kind == "dict":
                     if isinstance(self.value, Mapping):
                         return {
-                            str(k): FlextCliModels.Cli.normalize_to_json_value(vv)
+                            str(k): _normalize_to_json_value(vv)
                             for k, vv in self.value.items()
                         }
                     if isinstance(self.default, Mapping):
                         return {
-                            str(k): FlextCliModels.Cli.normalize_to_json_value(vv)
+                            str(k): _normalize_to_json_value(vv)
                             for k, vv in self.default.items()
                         }
                     return {}
@@ -470,15 +581,39 @@ class FlextCliModels(FlextModels):
             default: object | None,
         ) -> str | bool | dict[str, object] | None:
             """Default value for type_kind. Centralized (no polymorphic branches at call sites)."""
+
+            def _normalize_to_json_value(item: object) -> object:
+                if item is None:
+                    return ""
+                if isinstance(item, (str, int, float, bool)):
+                    return item
+                if isinstance(item, BaseModel):
+                    raw = item.model_dump(mode="json")
+                    return _normalize_to_json_value(raw)
+                if isinstance(item, Path):
+                    return str(item)
+                if isinstance(item, datetime):
+                    return item.isoformat()
+                if FlextCliModels.Cli.is_mapping_like(item):
+                    normalized_map: dict[str, object] = {}
+                    for map_key, map_value in item.items():
+                        normalized_map[str(map_key)] = _normalize_to_json_value(
+                            map_value
+                        )
+                    return normalized_map
+                if FlextCliModels.Cli.is_sequence_like(item):
+                    normalized_seq: list[object] = []
+                    for seq_item in item:
+                        normalized_seq.append(_normalize_to_json_value(seq_item))
+                    return normalized_seq
+                return str(item)
+
             if type_kind == "str":
                 return default if isinstance(default, str) else None
             if type_kind == "bool":
                 return default if isinstance(default, bool) else False
             if isinstance(default, Mapping):
-                return {
-                    str(k): FlextCliModels.Cli.normalize_to_json_value(v)
-                    for k, v in default.items()
-                }
+                return {str(k): _normalize_to_json_value(v) for k, v in default.items()}
             return {}
 
         class _LogLevelResolved(BaseModel):
