@@ -14,9 +14,9 @@ import yaml
 from flext_core import FlextLogger, FlextSettings, FlextUtilities, r
 from pydantic import Field, TypeAdapter, ValidationError, computed_field
 
-_JSON_OBJECT_ADAPTER: TypeAdapter[object] = TypeAdapter(object)
-
 from flext_cli import c, t
+
+_JSON_OBJECT_ADAPTER: TypeAdapter[object] = TypeAdapter(object)
 
 logger = FlextLogger(__name__)
 

@@ -15,14 +15,14 @@ from typing import ClassVar, TypeGuard
 import yaml
 from flext_core import FlextRuntime, r, t
 from pydantic import BaseModel, TypeAdapter
-
-_JSON_VALUE_ADAPTER: TypeAdapter[object] = TypeAdapter(object)
 from rich.console import Console
 from rich.progress import Progress
 from rich.table import Table as RichTable
 from rich.tree import Tree as RichTree
 
 from flext_cli import FlextCliFormatters, FlextCliTables, c, m, p, u
+
+_JSON_VALUE_ADAPTER: TypeAdapter[object] = TypeAdapter(object)
 
 
 class FlextCliOutput:
