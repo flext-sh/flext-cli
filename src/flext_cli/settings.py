@@ -8,12 +8,13 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 import yaml
 from flext_core import FlextLogger, FlextSettings, FlextUtilities, r
 from pydantic import Field, TypeAdapter, ValidationError, computed_field
+
+_JSON_OBJECT_ADAPTER: TypeAdapter[object] = TypeAdapter(object)
 
 from flext_cli import c, t
 
@@ -153,17 +154,15 @@ class FlextCliSettings(FlextSettings):
         try:
             raw = path.read_text(encoding="utf-8")
             if suffix == ".json":
-                parsed: object = json.loads(raw)
+                parsed: object = _JSON_OBJECT_ADAPTER.validate_json(raw)
             else:
                 parsed = yaml.safe_load(raw)
             if not isinstance(parsed, dict):
                 return r[FlextCliSettings].fail(c.Cli.CmdErrorMessages.CONFIG_NOT_DICT)
-            mapping_adapter: TypeAdapter[object] = TypeAdapter(object)
-            data: object = mapping_adapter.validate_python(parsed)
+            data: object = _JSON_OBJECT_ADAPTER.validate_python(parsed)
             instance = cls.model_validate(data)
             return r[FlextCliSettings].ok(instance)
         except (
-            json.JSONDecodeError,
             yaml.YAMLError,
             ValidationError,
             ValueError,

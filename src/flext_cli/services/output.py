@@ -8,14 +8,15 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import csv
-import json
 from collections.abc import Callable, Iterable, Sequence
 from io import StringIO
 from typing import ClassVar, TypeGuard
 
 import yaml
 from flext_core import FlextRuntime, r, t
-from pydantic import BaseModel
+from pydantic import BaseModel, TypeAdapter
+
+_JSON_VALUE_ADAPTER: TypeAdapter[object] = TypeAdapter(object)
 from rich.console import Console
 from rich.progress import Progress
 from rich.table import Table as RichTable
@@ -859,7 +860,9 @@ class FlextCliOutput:
             if FlextRuntime.is_dict_like(data):
                 return self._format_csv_dict(data)
             return r[str].ok(
-                json.dumps(data, default=str, indent=c.Cli.OutputDefaults.JSON_INDENT)
+                _JSON_VALUE_ADAPTER.dump_json(
+                    data, indent=c.Cli.OutputDefaults.JSON_INDENT
+                ).decode("utf-8")
             )
         except Exception as e:
             error_msg = c.Cli.OutputLogMessages.CSV_FORMAT_FAILED.format(error=e)
@@ -918,7 +921,9 @@ class FlextCliOutput:
         """
         try:
             return r[str].ok(
-                json.dumps(data, default=str, indent=c.Cli.OutputDefaults.JSON_INDENT)
+                _JSON_VALUE_ADAPTER.dump_json(
+                    data, indent=c.Cli.OutputDefaults.JSON_INDENT
+                ).decode("utf-8")
             )
         except Exception as e:
             error_msg = c.Cli.OutputLogMessages.JSON_FORMAT_FAILED.format(error=e)

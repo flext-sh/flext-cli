@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import csv
 import hashlib
-import json
 import logging
 import os
 import shutil
@@ -17,6 +16,8 @@ from typing import TextIO, TypeGuard
 import yaml
 from flext_core import r
 from pydantic import TypeAdapter, ValidationError
+
+_JSON_OBJECT_ADAPTER: TypeAdapter[object] = TypeAdapter(object)
 
 from flext_cli import c, m, t, u
 
@@ -399,11 +400,12 @@ class FlextCliFileTools:
     def read_json_file(file_path: str | Path) -> r[object]:
 
         def _load() -> object:
-            out = FlextCliFileTools._load_structured_file(str(file_path), json.load)
-            if out is None:
+            raw = Path(file_path).read_text(encoding=c.Cli.Utilities.DEFAULT_ENCODING)
+            parsed = _JSON_OBJECT_ADAPTER.validate_json(raw)
+            if parsed is None:
                 msg = "JSON load returned None"
                 raise ValueError(msg)
-            return out
+            return parsed
 
         return FlextCliFileTools._execute_file_operation(
             _load, c.Cli.FileErrorMessages.JSON_LOAD_FAILED
@@ -504,12 +506,8 @@ class FlextCliFileTools:
         payload: object = data.data if isinstance(data, m.Cli.DisplayData) else data
         return FlextCliFileTools._write_structured_file(
             file_path,
-            lambda f: json.dump(
-                payload,
-                f,
-                indent=indent,
-                sort_keys=sort_keys,
-                ensure_ascii=ensure_ascii,
+            lambda f: f.write(
+                _JSON_OBJECT_ADAPTER.dump_json(payload, indent=indent).decode("utf-8")
             ),
             c.Cli.ErrorMessages.JSON_WRITE_FAILED,
         )
