@@ -44,20 +44,6 @@ class FlextCliCli:
         self.logger = FlextLogger(__name__)
 
     @classmethod
-    def _to_json_value(cls, value: object | r[object] | None) -> object:
-        if value is None:
-            return ""
-        if getattr(value, "is_success", None) is True:
-            return cls._to_json_value(getattr(value, "value", None))
-        try:
-            return cls._json_value_adapter.validate_python(value)
-        except ValidationError as exc:
-            logging.getLogger(__name__).debug(
-                "_to_json_value validation fallback: %s", exc, exc_info=False
-            )
-            return str(value)
-
-    @classmethod
     def _tuple_type(
         cls, tuple_types: Sequence[click.ParamType | type] | None = None
     ) -> click.Tuple:
@@ -226,14 +212,44 @@ class FlextCliCli:
         value_proc_val = u.get(kwargs, "value_proc")
         default_raw = u.get(kwargs, "default")
         type_hint_raw = u.get(kwargs, "type_hint")
-        default_value = (
-            FlextCliCli._to_json_value(default_raw) if default_raw is not None else None
-        )
-        type_hint_value = (
-            FlextCliCli._to_json_value(type_hint_raw)
-            if type_hint_raw is not None
-            else None
-        )
+        if default_raw is None:
+            default_value: object | None = None
+        else:
+            default_value_candidate: object = default_raw
+            while getattr(default_value_candidate, "is_success", None) is True:
+                default_value_candidate = getattr(
+                    default_value_candidate, "value", None
+                )
+            if default_value_candidate is None:
+                default_value = ""
+            else:
+                try:
+                    default_value = FlextCliCli._json_value_adapter.validate_python(
+                        default_value_candidate
+                    )
+                except ValidationError as exc:
+                    logging.getLogger(__name__).debug(
+                        "default value validation fallback: %s", exc, exc_info=False
+                    )
+                    default_value = str(default_value_candidate)
+        if type_hint_raw is None:
+            type_hint_value: object | None = None
+        else:
+            type_hint_candidate: object = type_hint_raw
+            while getattr(type_hint_candidate, "is_success", None) is True:
+                type_hint_candidate = getattr(type_hint_candidate, "value", None)
+            if type_hint_candidate is None:
+                type_hint_value = ""
+            else:
+                try:
+                    type_hint_value = FlextCliCli._json_value_adapter.validate_python(
+                        type_hint_candidate
+                    )
+                except ValidationError as exc:
+                    logging.getLogger(__name__).debug(
+                        "type hint validation fallback: %s", exc, exc_info=False
+                    )
+                    type_hint_value = str(type_hint_candidate)
         return m.Cli.PromptConfig(
             default=default_value,
             type_hint=type_hint_value,
@@ -387,11 +403,37 @@ class FlextCliCli:
                 return empty_result
             is_success = getattr(result, "is_success", None)
             if is_success is True:
-                return FlextCliCli._to_json_value(getattr(result, "value", None))
+                result_value: object = getattr(result, "value", None)
+                while getattr(result_value, "is_success", None) is True:
+                    result_value = getattr(result_value, "value", None)
+                if result_value is None:
+                    return ""
+                try:
+                    return FlextCliCli._json_value_adapter.validate_python(result_value)
+                except ValidationError as exc:
+                    logging.getLogger(__name__).debug(
+                        "model command success validation fallback: %s",
+                        exc,
+                        exc_info=False,
+                    )
+                    return str(result_value)
             if is_success is False:
                 msg = f"Handler failed: {getattr(result, 'error', '')}"
                 raise ValueError(msg)
-            return FlextCliCli._to_json_value(result)
+            result_value = result
+            while getattr(result_value, "is_success", None) is True:
+                result_value = getattr(result_value, "value", None)
+            if result_value is None:
+                return ""
+            try:
+                return FlextCliCli._json_value_adapter.validate_python(result_value)
+            except ValidationError as exc:
+                logging.getLogger(__name__).debug(
+                    "model command result validation fallback: %s",
+                    exc,
+                    exc_info=False,
+                )
+                return str(result_value)
 
         return m.Cli.ModelCommandBuilder(
             model_class, normalized_handler, config
@@ -488,7 +530,21 @@ class FlextCliCli:
                         )
                         continue
                 return r[object].ok(normalized_map)
-            json_value = FlextCliCli._to_json_value(prompt_result)
+            json_value_candidate: object = prompt_result
+            while getattr(json_value_candidate, "is_success", None) is True:
+                json_value_candidate = getattr(json_value_candidate, "value", None)
+            if json_value_candidate is None:
+                json_value: object = ""
+            else:
+                try:
+                    json_value = FlextCliCli._json_value_adapter.validate_python(
+                        json_value_candidate
+                    )
+                except ValidationError as exc:
+                    logging.getLogger(__name__).debug(
+                        "prompt result validation fallback: %s", exc, exc_info=False
+                    )
+                    json_value = str(json_value_candidate)
             return r[object].ok(json_value)
         except typer.Abort as e:
             return r[object].fail(
@@ -707,13 +763,45 @@ class FlextCliCli:
         self, kwargs: Mapping[str, object]
     ) -> m.Cli.OptionConfig:
         default_raw = u.get(kwargs, "default")
-        default_value = (
-            self._to_json_value(default_raw) if default_raw is not None else None
-        )
+        if default_raw is None:
+            default_value: object | None = None
+        else:
+            default_value_candidate: object = default_raw
+            while getattr(default_value_candidate, "is_success", None) is True:
+                default_value_candidate = getattr(
+                    default_value_candidate, "value", None
+                )
+            if default_value_candidate is None:
+                default_value = ""
+            else:
+                try:
+                    default_value = self._json_value_adapter.validate_python(
+                        default_value_candidate
+                    )
+                except ValidationError as exc:
+                    logging.getLogger(__name__).debug(
+                        "option default validation fallback: %s", exc, exc_info=False
+                    )
+                    default_value = str(default_value_candidate)
         type_hint_raw = u.get(kwargs, "type_hint")
-        type_hint_value = (
-            self._to_json_value(type_hint_raw) if type_hint_raw is not None else None
-        )
+        if type_hint_raw is None:
+            type_hint_value: object | None = None
+        else:
+            type_hint_candidate: object = type_hint_raw
+            while getattr(type_hint_candidate, "is_success", None) is True:
+                type_hint_candidate = getattr(type_hint_candidate, "value", None)
+            if type_hint_candidate is None:
+                type_hint_value = ""
+            else:
+                try:
+                    type_hint_value = self._json_value_adapter.validate_python(
+                        type_hint_candidate
+                    )
+                except ValidationError as exc:
+                    logging.getLogger(__name__).debug(
+                        "option type hint validation fallback: %s", exc, exc_info=False
+                    )
+                    type_hint_value = str(type_hint_candidate)
         return m.Cli.OptionConfig(
             default=default_value,
             type_hint=self._normalize_type_hint(type_hint_value),
@@ -861,7 +949,20 @@ class FlextCliCli:
             case None | "":
                 return None
             case _:
-                return self._to_json_value(type_hint_build)
+                type_hint_candidate: object = type_hint_build
+                while getattr(type_hint_candidate, "is_success", None) is True:
+                    type_hint_candidate = getattr(type_hint_candidate, "value", None)
+                if type_hint_candidate is None:
+                    return ""
+                try:
+                    return self._json_value_adapter.validate_python(type_hint_candidate)
+                except ValidationError as exc:
+                    logging.getLogger(__name__).debug(
+                        "normalize type hint validation fallback: %s",
+                        exc,
+                        exc_info=False,
+                    )
+                    return str(type_hint_candidate)
 
 
 __all__ = ["FlextCliCli", "Typer", "UsageError"]
