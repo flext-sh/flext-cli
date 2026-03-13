@@ -6,7 +6,7 @@ import getpass
 import os
 import re
 from collections.abc import Mapping
-from typing import override
+from typing import Annotated, override
 
 from flext_core import r
 from pydantic import Field, PrivateAttr
@@ -27,14 +27,17 @@ def _empty_prompt_history() -> list[str]:
 class FlextCliPrompts(FlextCliServiceBase):
     """CLI prompts service with validation, history, and non-interactive fallbacks."""
 
-    interactive_mode: bool = Field(
-        default=True, description="Enable interactive prompts"
-    )
-    quiet: bool = Field(default=False, description="Enable quiet mode")
-    default_timeout: int = Field(
-        default=CLI.TIMEOUTS.DEFAULT,
-        description="Default timeout for prompt operations in seconds",
-    )
+    interactive_mode: Annotated[
+        bool, Field(default=True, description="Enable interactive prompts")
+    ]
+    quiet: Annotated[bool, Field(default=False, description="Enable quiet mode")]
+    default_timeout: Annotated[
+        int,
+        Field(
+            default=CLI.TIMEOUTS.DEFAULT,
+            description="Default timeout for prompt operations in seconds",
+        ),
+    ]
     _prompt_history: list[str] = PrivateAttr(default_factory=_empty_prompt_history)
 
     def __init__(

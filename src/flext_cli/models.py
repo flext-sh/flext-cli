@@ -7,6 +7,7 @@ import operator
 import types
 from collections.abc import Callable, Mapping, MutableMapping, Sequence
 from typing import (
+    Annotated,
     ClassVar,
     Literal,
     Self,
@@ -40,6 +41,10 @@ from flext_cli import c, p
 _logger = FlextLogger(__name__)
 
 _JSON_NORMALIZE_ADAPTER: TypeAdapter[object] = TypeAdapter(object)
+_DICT_STR_OBJECT_ADAPTER: TypeAdapter[dict[str, object]] = TypeAdapter(
+    dict[str, object],
+)
+_LIST_OBJECT_ADAPTER: TypeAdapter[list[object]] = TypeAdapter(list[object])
 
 
 def _default_json_list() -> list[object]:
@@ -102,19 +107,25 @@ class FlextCliModels(FlextModels):
             """Key-value data for table/display — Pydantic v2 contract. Use m.Cli.DisplayData."""
 
             model_config = ConfigDict(extra="forbid", validate_assignment=True)
-            data: object = Field(
-                default_factory=dict,
-                description="Field-value pairs for display",
-            )
+            data: Annotated[
+                object,
+                Field(
+                    default_factory=dict,
+                    description="Field-value pairs for display",
+                ),
+            ]
 
         class LoadedConfig(BaseModel):
             """Loaded configuration content — Pydantic v2 contract. Use m.Cli.LoadedConfig."""
 
             model_config = ConfigDict(extra="forbid", validate_assignment=True)
-            content: object = Field(
-                default_factory=dict,
-                description="Configuration key-value content",
-            )
+            content: Annotated[
+                object,
+                Field(
+                    default_factory=dict,
+                    description="Configuration key-value content",
+                ),
+            ]
 
         class SuccessSummaryDetails(RootModel[dict[str, str]]):
             """Key-value details for success summary — Pydantic v2 only. Use m.Cli.SuccessSummaryDetails."""
@@ -130,10 +141,11 @@ class FlextCliModels(FlextModels):
                 arbitrary_types_allowed=True,
                 extra="forbid",
             )
-            name: str = Field(..., min_length=1, description="Command name")
-            handler: Callable[..., r[object]] = Field(
-                ..., description="Command handler callable"
-            )
+            name: Annotated[str, Field(..., min_length=1, description="Command name")]
+            handler: Annotated[
+                Callable[..., r[object]],
+                Field(..., description="Command handler callable"),
+            ]
 
         class CliCommandGroup(BaseModel):
             """Command group with name, description, and command entries. Use m.Cli.CliCommandGroup."""
@@ -142,11 +154,16 @@ class FlextCliModels(FlextModels):
                 arbitrary_types_allowed=True,
                 extra="forbid",
             )
-            name: str = Field(..., min_length=1, description="Group name")
-            description: str = Field(default="", description="Group description")
-            commands: Mapping[str, FlextCliModels.Cli.CommandEntryModel] = Field(
-                default_factory=dict, description="Command name to entry mapping"
-            )
+            name: Annotated[str, Field(..., min_length=1, description="Group name")]
+            description: Annotated[
+                str, Field(default="", description="Group description")
+            ]
+            commands: Annotated[
+                Mapping[str, FlextCliModels.Cli.CommandEntryModel],
+                Field(
+                    default_factory=dict, description="Command name to entry mapping"
+                ),
+            ]
 
         class CliNormalizedJson(RootModel[object]):
             """Single contract: any value normalized to JSON (object)."""
@@ -169,7 +186,7 @@ class FlextCliModels(FlextModels):
             """Single contract for norm_json: value -> normalized object."""
 
             model_config = ConfigDict(extra="forbid")
-            value: object = Field(description="Value to normalize")
+            value: Annotated[object, Field(description="Value to normalize")]
 
             @computed_field
             @property
@@ -182,9 +199,9 @@ class FlextCliModels(FlextModels):
             """Single contract for ensure_str/ensure_bool. Delegates to TypedExtract."""
 
             model_config = ConfigDict(extra="forbid")
-            kind: Literal["str", "bool"] = Field(description="Requested type")
-            value: object | None = Field(default=None)
-            default: str | bool = Field(description="Default value")
+            kind: Annotated[Literal["str", "bool"], Field(description="Requested type")]
+            value: Annotated[object | None, Field(default=None)]
+            default: Annotated[str | bool, Field(description="Default value")]
 
             def result(self) -> str | bool:
                 out = FlextCliModels.Cli.TypedExtract(
@@ -200,11 +217,11 @@ class FlextCliModels(FlextModels):
             """Single contract for get_map_val: map + key + default -> value (normalized)."""
 
             model_config = ConfigDict(extra="forbid")
-            map_: Mapping[str, object] = Field(
-                alias="map", description="Source mapping"
-            )
-            key: str = Field(description="Key to look up")
-            default: object = Field(description="Default if key missing")
+            map_: Annotated[
+                Mapping[str, object], Field(alias="map", description="Source mapping")
+            ]
+            key: Annotated[str, Field(description="Key to look up")]
+            default: Annotated[object, Field(description="Default if key missing")]
 
             def result(self) -> object:
                 val = self.map_.get(self.key, self.default)
@@ -229,10 +246,13 @@ class FlextCliModels(FlextModels):
             """Single contract for get_keys: input -> list of keys (empty if not dict)."""
 
             model_config = ConfigDict(extra="forbid")
-            input_: object | Mapping[str, object] = Field(
-                alias="input",
-                description="Value to extract keys from",
-            )
+            input_: Annotated[
+                object | Mapping[str, object],
+                Field(
+                    alias="input",
+                    description="Value to extract keys from",
+                ),
+            ]
 
             @computed_field
             @property
@@ -248,8 +268,8 @@ class FlextCliModels(FlextModels):
             """Single contract for ensure_dict: value + default -> Mapping[str, object]."""
 
             model_config = ConfigDict(extra="forbid")
-            value: object | None = Field(default=None)
-            default: dict[str, object] = Field(default_factory=dict)
+            value: Annotated[object | None, Field(default=None)]
+            default: Annotated[dict[str, object], Field(default_factory=dict)]
 
             @computed_field
             @property
@@ -266,11 +286,8 @@ class FlextCliModels(FlextModels):
                         )
                         for k, vv in source.items()
                     }
-                adapter: TypeAdapter[dict[str, object]] = TypeAdapter(
-                    dict[str, object],
-                )
                 try:
-                    parsed = adapter.validate_python(source)
+                    parsed = _DICT_STR_OBJECT_ADAPTER.validate_python(source)
                     return {
                         str(k): _JSON_NORMALIZE_ADAPTER.dump_python(
                             vv,
@@ -286,8 +303,8 @@ class FlextCliModels(FlextModels):
             """Single contract for ensure_list: value + default -> list[object]."""
 
             model_config = ConfigDict(extra="forbid")
-            value: object | None = Field(default=None)
-            default: list[object] = Field(default_factory=_default_json_list)
+            value: Annotated[object | None, Field(default=None)]
+            default: Annotated[list[object], Field(default_factory=_default_json_list)]
 
             @computed_field
             @property
@@ -295,9 +312,8 @@ class FlextCliModels(FlextModels):
                 if self.value is None:
                     return list(self.default)
                 source = FlextCliModels.Cli.unwrap_root_value(self.value)
-                adapter: TypeAdapter[list[object]] = TypeAdapter(list[object])
                 try:
-                    seq = adapter.validate_python(source)
+                    seq = _LIST_OBJECT_ADAPTER.validate_python(source)
                     return [
                         _JSON_NORMALIZE_ADAPTER.dump_python(
                             x,
@@ -313,8 +329,10 @@ class FlextCliModels(FlextModels):
             """Single contract: raw (int | str | None) + default → int. Replaces isinstance(timeout_raw, int/str) branching."""
 
             model_config = ConfigDict(extra="forbid")
-            raw: int | str | None = Field(default=None)
-            default: int = Field(default=30, description="Default timeout in seconds")
+            raw: Annotated[int | str | None, Field(default=None)]
+            default: Annotated[
+                int, Field(default=30, description="Default timeout in seconds")
+            ]
 
             @computed_field
             @property
@@ -372,11 +390,16 @@ class FlextCliModels(FlextModels):
             """Single contract: ensure value is list of object with default. Replaces ensure_list branching."""
 
             model_config = ConfigDict(extra="forbid")
-            value: object | None = Field(default=None, description="Value to coerce")
-            default: list[object] = Field(
-                default_factory=_default_json_list,
-                description="Default when value is None or invalid",
-            )
+            value: Annotated[
+                object | None, Field(default=None, description="Value to coerce")
+            ]
+            default: Annotated[
+                list[object],
+                Field(
+                    default_factory=_default_json_list,
+                    description="Default when value is None or invalid",
+                ),
+            ]
 
             @computed_field
             @property
@@ -389,8 +412,7 @@ class FlextCliModels(FlextModels):
                     return list(self.default)
                 source = FlextCliModels.Cli.unwrap_root_value(self.value)
                 try:
-                    adapter: TypeAdapter[list[object]] = TypeAdapter(list[object])
-                    raw_list = adapter.validate_python(source)
+                    raw_list = _LIST_OBJECT_ADAPTER.validate_python(source)
                     return [
                         FlextCliModels.Cli.normalize_json_value(i) for i in raw_list
                     ]
@@ -401,11 +423,16 @@ class FlextCliModels(FlextModels):
             """Single contract: ensure value is dict[str, object] with default. Replaces ensure_dict branching."""
 
             model_config = ConfigDict(extra="forbid")
-            value: object | None = Field(default=None, description="Value to coerce")
-            default: dict[str, object] = Field(
-                default_factory=dict,
-                description="Default when value is None or invalid",
-            )
+            value: Annotated[
+                object | None, Field(default=None, description="Value to coerce")
+            ]
+            default: Annotated[
+                dict[str, object],
+                Field(
+                    default_factory=dict,
+                    description="Default when value is None or invalid",
+                ),
+            ]
 
             @computed_field
             @property
@@ -419,10 +446,7 @@ class FlextCliModels(FlextModels):
                     return dict(self.default)
                 source = FlextCliModels.Cli.unwrap_root_value(self.value)
                 try:
-                    adapter: TypeAdapter[dict[str, object]] = TypeAdapter(
-                        dict[str, object],
-                    )
-                    raw_dict = adapter.validate_python(source)
+                    raw_dict = _DICT_STR_OBJECT_ADAPTER.validate_python(source)
                     return {
                         str(k): FlextCliModels.Cli.normalize_json_value(v)
                         for k, v in raw_dict.items()
@@ -434,11 +458,11 @@ class FlextCliModels(FlextModels):
             """Single contract for typed value extraction (str | bool | dict). Replaces polymorphic _extract_typed_value."""
 
             model_config = ConfigDict(extra="forbid")
-            type_kind: Literal["str", "bool", "dict"] = Field(
-                description="Requested type"
-            )
-            value: object | None = Field(default=None)
-            default: object | None = Field(default=None)
+            type_kind: Annotated[
+                Literal["str", "bool", "dict"], Field(description="Requested type")
+            ]
+            value: Annotated[object | None, Field(default=None)]
+            default: Annotated[object | None, Field(default=None)]
 
             @computed_field
             @property
@@ -508,8 +532,8 @@ class FlextCliModels(FlextModels):
             """Single contract for log level string (replaces u.convert for log level)."""
 
             model_config = ConfigDict(extra="forbid")
-            raw: str | None = Field(default=None)
-            default: str = Field(default="INFO")
+            raw: Annotated[str | None, Field(default=None)]
+            default: Annotated[str, Field(default="INFO")]
 
             @computed_field
             @property
@@ -531,14 +555,20 @@ class FlextCliModels(FlextModels):
 
             model_config = ConfigDict(frozen=True, extra="forbid")
 
-            level: str = Field(
-                default="INFO",
-                description="Logging level",
-            )
-            format: str = Field(
-                default="%(asctime)s - %(message)s",
-                description="Logging format",
-            )
+            level: Annotated[
+                str,
+                Field(
+                    default="INFO",
+                    description="Logging level",
+                ),
+            ]
+            format: Annotated[
+                str,
+                Field(
+                    default="%(asctime)s - %(message)s",
+                    description="Logging format",
+                ),
+            ]
 
         ExecutionContextInput = _ExecutionContextInput
         LogLevelResolved = _LogLevelResolved
@@ -582,68 +612,101 @@ class FlextCliModels(FlextModels):
             """
 
             # Headers configuration
-            headers: str | Sequence[str] = Field(
-                default="keys",
-                description=(
-                    "Table headers (string like 'keys', 'firstrow' "
-                    "or sequence of header names)"
+            headers: Annotated[
+                str | Sequence[str],
+                Field(
+                    default="keys",
+                    description=(
+                        "Table headers (string like 'keys', 'firstrow' "
+                        "or sequence of header names)"
+                    ),
                 ),
-            )
-            show_header: bool = Field(
-                default=True,
-                description="Whether to show table header",
-            )
+            ]
+            show_header: Annotated[
+                bool,
+                Field(
+                    default=True,
+                    description="Whether to show table header",
+                ),
+            ]
 
             # Format configuration
-            table_format: str = Field(
-                default="simple",
-                description="Table format (simple, grid, fancy_grid, pipe, orgtbl, etc.)",
-            )
+            table_format: Annotated[
+                str,
+                Field(
+                    default="simple",
+                    description="Table format (simple, grid, fancy_grid, pipe, orgtbl, etc.)",
+                ),
+            ]
 
             # Number formatting
-            floatfmt: str = Field(
-                default=".4g",
-                description="Float format string",
-            )
-            numalign: str = Field(
-                default="decimal",
-                description="Number alignment (right, center, left, decimal)",
-            )
+            floatfmt: Annotated[
+                str,
+                Field(
+                    default=".4g",
+                    description="Float format string",
+                ),
+            ]
+            numalign: Annotated[
+                str,
+                Field(
+                    default="decimal",
+                    description="Number alignment (right, center, left, decimal)",
+                ),
+            ]
 
             # String formatting
-            stralign: str = Field(
-                default="left",
-                description="String alignment (left, center, right)",
-            )
+            stralign: Annotated[
+                str,
+                Field(
+                    default="left",
+                    description="String alignment (left, center, right)",
+                ),
+            ]
 
-            align: str = Field(
-                default="left",
-                description="General alignment (left, center, right, decimal)",
-            )
+            align: Annotated[
+                str,
+                Field(
+                    default="left",
+                    description="General alignment (left, center, right, decimal)",
+                ),
+            ]
 
             # Missing values
-            missingval: str = Field(
-                default="",
-                description="String to use for missing values",
-            )
+            missingval: Annotated[
+                str,
+                Field(
+                    default="",
+                    description="String to use for missing values",
+                ),
+            ]
 
             # Index display
-            showindex: bool | str | Sequence[str | int] = Field(
-                default=False,
-                description="Whether to show row indices",
-            )
+            showindex: Annotated[
+                bool | str | Sequence[str | int],
+                Field(
+                    default=False,
+                    description="Whether to show row indices",
+                ),
+            ]
 
             # Column alignment
-            colalign: Sequence[str] | None = Field(
-                default=None,
-                description="Per-column alignment (left, center, right, decimal)",
-            )
+            colalign: Annotated[
+                Sequence[str] | None,
+                Field(
+                    default=None,
+                    description="Per-column alignment (left, center, right, decimal)",
+                ),
+            ]
 
             # Number parsing
-            disable_numparse: bool | Sequence[int] = Field(
-                default=False,
-                description="Disable number parsing (bool or list of column indices)",
-            )
+            disable_numparse: Annotated[
+                bool | Sequence[int],
+                Field(
+                    default=False,
+                    description="Disable number parsing (bool or list of column indices)",
+                ),
+            ]
 
             def get_effective_colalign(self) -> Sequence[str] | None:
                 """Get effective column alignment, resolving None to default."""
@@ -656,22 +719,34 @@ class FlextCliModels(FlextModels):
             Inherits frozen=True and extra="forbid" from FlextModels.Value.
             """
 
-            log_level: str = Field(
-                default="INFO",
-                description="Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)",
-            )
-            log_format: str = Field(
-                default="%(asctime)s - %(levelname)s - %(message)s",
-                description="Log message format string",
-            )
-            console_output: bool = Field(
-                default=True,
-                description="Whether to output logs to console",
-            )
-            log_file: str = Field(
-                default="",
-                description="Log file path (empty string means no file logging)",
-            )
+            log_level: Annotated[
+                str,
+                Field(
+                    default="INFO",
+                    description="Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)",
+                ),
+            ]
+            log_format: Annotated[
+                str,
+                Field(
+                    default="%(asctime)s - %(levelname)s - %(message)s",
+                    description="Log message format string",
+                ),
+            ]
+            console_output: Annotated[
+                bool,
+                Field(
+                    default=True,
+                    description="Whether to output logs to console",
+                ),
+            ]
+            log_file: Annotated[
+                str,
+                Field(
+                    default="",
+                    description="Log file path (empty string means no file logging)",
+                ),
+            ]
 
             @computed_field
             def logging_summary(self) -> FlextCliModels.Cli.CliLoggingData:
@@ -714,76 +789,118 @@ class FlextCliModels(FlextModels):
                 """
                 return self.model_copy(update=updates)
 
-            name: str = Field(
-                ...,
-                min_length=1,
-                description="Command name",
-            )
+            name: Annotated[
+                str,
+                Field(
+                    ...,
+                    min_length=1,
+                    description="Command name",
+                ),
+            ]
 
-            command_line: str = Field(
-                default="",
-                description="Full command line",
-            )
+            command_line: Annotated[
+                str,
+                Field(
+                    default="",
+                    description="Full command line",
+                ),
+            ]
 
-            description: str = Field(
-                default="",
-                description="Command description",
-            )
+            description: Annotated[
+                str,
+                Field(
+                    default="",
+                    description="Command description",
+                ),
+            ]
 
-            usage: str = Field(
-                default="",
-                description="Command usage information",
-            )
+            usage: Annotated[
+                str,
+                Field(
+                    default="",
+                    description="Command usage information",
+                ),
+            ]
 
-            entry_point: str = Field(
-                default="",
-                description="Command entry point",
-            )
+            entry_point: Annotated[
+                str,
+                Field(
+                    default="",
+                    description="Command entry point",
+                ),
+            ]
 
-            plugin_version: str = Field(
-                default="default",
-                description="Plugin version",
-            )
+            plugin_version: Annotated[
+                str,
+                Field(
+                    default="default",
+                    description="Plugin version",
+                ),
+            ]
 
-            args: Sequence[str] = Field(
-                default_factory=list,
-                description="Command arguments",
-            )
+            args: Annotated[
+                Sequence[str],
+                Field(
+                    default_factory=list,
+                    description="Command arguments",
+                ),
+            ]
 
-            status: str = Field(
-                default="pending",
-                description="Command execution status",
-            )
+            status: Annotated[
+                str,
+                Field(
+                    default="pending",
+                    description="Command execution status",
+                ),
+            ]
 
-            exit_code: int | None = Field(
-                default=None,
-                description="Command exit code",
-            )
+            exit_code: Annotated[
+                int | None,
+                Field(
+                    default=None,
+                    description="Command exit code",
+                ),
+            ]
 
-            output: str = Field(
-                default="",
-                description="Command output",
-            )
+            output: Annotated[
+                str,
+                Field(
+                    default="",
+                    description="Command output",
+                ),
+            ]
 
-            error_output: str = Field(
-                default="",
-                description="Command error output",
-            )
+            error_output: Annotated[
+                str,
+                Field(
+                    default="",
+                    description="Command error output",
+                ),
+            ]
 
-            execution_time: float | None = Field(
-                default=None,
-                description="Command execution time",
-            )
+            execution_time: Annotated[
+                float | None,
+                Field(
+                    default=None,
+                    description="Command execution time",
+                ),
+            ]
 
-            result: object | None = Field(
-                default=None,
-                description="Command result",
-            )
+            result: Annotated[
+                object | None,
+                Field(
+                    default=None,
+                    description="Command result",
+                ),
+            ]
 
-            kwargs: dict[str, object] = Field(
-                default_factory=dict,
-                description="Command keyword arguments",
-            )
+            kwargs: Annotated[
+                dict[str, object],
+                Field(
+                    default_factory=dict,
+                    description="Command keyword arguments",
+                ),
+            ]
 
             @property
             def command_summary(self) -> Mapping[str, str]:
@@ -921,12 +1038,17 @@ class FlextCliModels(FlextModels):
                 validate_default=True,
             )
 
-            session_id: str = Field(..., min_length=1, description="Session identifier")
-            user_id: str = Field(default="", description="User identifier")
-            status: str = Field(
-                ...,
-                description="Session status",
-            )
+            session_id: Annotated[
+                str, Field(..., min_length=1, description="Session identifier")
+            ]
+            user_id: Annotated[str, Field(default="", description="User identifier")]
+            status: Annotated[
+                str,
+                Field(
+                    ...,
+                    description="Session status",
+                ),
+            ]
 
             @field_validator("status")
             @classmethod
@@ -945,27 +1067,44 @@ class FlextCliModels(FlextModels):
                 return value
 
             # Use concrete type to avoid protocol typing issues
-            commands: tuple[FlextCliModels.Cli.CliCommand, ...] = Field(
-                default_factory=tuple,
-                description="Commands in session",
-            )
-            start_time: str | None = Field(
-                default=None,
-                description="Session start time",
-            )
-            end_time: str | None = Field(default=None, description="Session end time")
-            last_activity: str | None = Field(
-                default=None,
-                description="Last activity timestamp",
-            )
-            internal_duration_seconds: float = Field(
-                default=0.0,
-                description="Internal duration in seconds",
-            )
-            commands_executed: int = Field(
-                default=0,
-                description="Number of commands executed",
-            )
+            commands: Annotated[
+                tuple[FlextCliModels.Cli.CliCommand, ...],
+                Field(
+                    default_factory=tuple,
+                    description="Commands in session",
+                ),
+            ]
+            start_time: Annotated[
+                str | None,
+                Field(
+                    default=None,
+                    description="Session start time",
+                ),
+            ]
+            end_time: Annotated[
+                str | None, Field(default=None, description="Session end time")
+            ]
+            last_activity: Annotated[
+                str | None,
+                Field(
+                    default=None,
+                    description="Last activity timestamp",
+                ),
+            ]
+            internal_duration_seconds: Annotated[
+                float,
+                Field(
+                    default=0.0,
+                    description="Internal duration in seconds",
+                ),
+            ]
+            commands_executed: Annotated[
+                int,
+                Field(
+                    default=0,
+                    description="Number of commands executed",
+                ),
+            ]
 
             @property
             def session_summary(self) -> FlextCliModels.Cli.CliSessionData:
@@ -1051,9 +1190,11 @@ class FlextCliModels(FlextModels):
             (via FrozenStrictModel), no need to redefine.
             """
 
-            session_id: str = Field(..., description="Session identifier")
-            status: str = Field(..., description="Session status")
-            commands_count: int = Field(default=0, description="Number of commands")
+            session_id: Annotated[str, Field(..., description="Session identifier")]
+            status: Annotated[str, Field(..., description="Session status")]
+            commands_count: Annotated[
+                int, Field(default=0, description="Number of commands")
+            ]
 
         class CliContext(FlextModels.Value):
             """CLI execution context model extending Value via inheritance."""
@@ -1064,25 +1205,37 @@ class FlextCliModels(FlextModels):
                 use_enum_values=True,
             )
 
-            cwd: str = Field(
-                ...,
-                description="Current working directory",
-            )
+            cwd: Annotated[
+                str,
+                Field(
+                    ...,
+                    description="Current working directory",
+                ),
+            ]
 
-            env: dict[str, str] = Field(
-                default_factory=dict,
-                description="Environment variables",
-            )
+            env: Annotated[
+                dict[str, str],
+                Field(
+                    default_factory=dict,
+                    description="Environment variables",
+                ),
+            ]
 
-            args: Sequence[str] = Field(
-                default_factory=list,
-                description="Command line arguments",
-            )
+            args: Annotated[
+                Sequence[str],
+                Field(
+                    default_factory=list,
+                    description="Command line arguments",
+                ),
+            ]
 
-            output_format: c.Cli.OutputFormats = Field(
-                default=c.Cli.OutputFormats.TABLE,
-                description="Output format preference",
-            )
+            output_format: Annotated[
+                c.Cli.OutputFormats,
+                Field(
+                    default=c.Cli.OutputFormats.TABLE,
+                    description="Output format preference",
+                ),
+            ]
 
         class CliOutput(FlextModels.Value):
             """CLI output configuration model extending Value via inheritance."""
@@ -1092,25 +1245,37 @@ class FlextCliModels(FlextModels):
                 extra="forbid",
             )
 
-            format: c.Cli.OutputFormats = Field(
-                default=c.Cli.OutputFormats.TABLE,
-                description="Output format",
-            )
+            format: Annotated[
+                c.Cli.OutputFormats,
+                Field(
+                    default=c.Cli.OutputFormats.TABLE,
+                    description="Output format",
+                ),
+            ]
 
-            headers: Sequence[str] = Field(
-                default_factory=list,
-                description="Table headers",
-            )
+            headers: Annotated[
+                Sequence[str],
+                Field(
+                    default_factory=list,
+                    description="Table headers",
+                ),
+            ]
 
-            show_headers: bool = Field(
-                default=True,
-                description="Whether to show headers",
-            )
+            show_headers: Annotated[
+                bool,
+                Field(
+                    default=True,
+                    description="Whether to show headers",
+                ),
+            ]
 
-            color: bool = Field(
-                default=True,
-                description="Whether to use colors",
-            )
+            color: Annotated[
+                bool,
+                Field(
+                    default=True,
+                    description="Whether to use colors",
+                ),
+            ]
 
         class CommandResult(FlextModels.Value):
             """Result of command execution extending Value via inheritance.
@@ -1118,32 +1283,47 @@ class FlextCliModels(FlextModels):
             Inherits frozen=True and extra="forbid" from FlextModels.Value.
             """
 
-            command: str = Field(
-                ...,
-                description="Executed command",
-            )
+            command: Annotated[
+                str,
+                Field(
+                    ...,
+                    description="Executed command",
+                ),
+            ]
 
-            exit_code: int = Field(
-                default=0,
-                ge=0,
-                description="Exit code",
-            )
+            exit_code: Annotated[
+                int,
+                Field(
+                    default=0,
+                    ge=0,
+                    description="Exit code",
+                ),
+            ]
 
-            stdout: str = Field(
-                default="",
-                description="Standard output",
-            )
+            stdout: Annotated[
+                str,
+                Field(
+                    default="",
+                    description="Standard output",
+                ),
+            ]
 
-            stderr: str = Field(
-                default="",
-                description="Standard error",
-            )
+            stderr: Annotated[
+                str,
+                Field(
+                    default="",
+                    description="Standard error",
+                ),
+            ]
 
-            duration: float = Field(
-                default=0.0,
-                ge=0.0,
-                description="Execution duration in seconds",
-            )
+            duration: Annotated[
+                float,
+                Field(
+                    default=0.0,
+                    ge=0.0,
+                    description="Execution duration in seconds",
+                ),
+            ]
 
             @computed_field
             def has_output(self) -> bool:
@@ -1169,31 +1349,46 @@ class FlextCliModels(FlextModels):
                 extra="forbid",
             )
 
-            service_executed: bool = Field(
-                default=False,
-                description="Whether service was executed",
-            )
+            service_executed: Annotated[
+                bool,
+                Field(
+                    default=False,
+                    description="Whether service was executed",
+                ),
+            ]
 
-            commands_count: int = Field(
-                default=0,
-                ge=0,
-                description="Number of registered commands",
-            )
+            commands_count: Annotated[
+                int,
+                Field(
+                    default=0,
+                    ge=0,
+                    description="Number of registered commands",
+                ),
+            ]
 
-            session_active: bool = Field(
-                default=False,
-                description="Whether session is active",
-            )
+            session_active: Annotated[
+                bool,
+                Field(
+                    default=False,
+                    description="Whether session is active",
+                ),
+            ]
 
-            execution_timestamp: str = Field(
-                default="",
-                description="ISO timestamp of execution",
-            )
+            execution_timestamp: Annotated[
+                str,
+                Field(
+                    default="",
+                    description="ISO timestamp of execution",
+                ),
+            ]
 
-            service_ready: bool = Field(
-                default=False,
-                description="Whether service is ready",
-            )
+            service_ready: Annotated[
+                bool,
+                Field(
+                    default=False,
+                    description="Whether service is ready",
+                ),
+            ]
 
         class CliStatus(FlextModels.Value):
             """CLI application status."""
@@ -1203,32 +1398,47 @@ class FlextCliModels(FlextModels):
                 extra="forbid",
             )
 
-            app_name: str = Field(
-                default="",
-                description="Application name",
-            )
+            app_name: Annotated[
+                str,
+                Field(
+                    default="",
+                    description="Application name",
+                ),
+            ]
 
-            version: str = Field(
-                default="",
-                description="Application version",
-            )
+            version: Annotated[
+                str,
+                Field(
+                    default="",
+                    description="Application version",
+                ),
+            ]
 
-            is_initialized: bool = Field(
-                default=False,
-                description="Whether CLI is initialized",
-            )
+            is_initialized: Annotated[
+                bool,
+                Field(
+                    default=False,
+                    description="Whether CLI is initialized",
+                ),
+            ]
 
-            commands_count: int = Field(
-                default=0,
-                ge=0,
-                description="Number of registered commands",
-            )
+            commands_count: Annotated[
+                int,
+                Field(
+                    default=0,
+                    ge=0,
+                    description="Number of registered commands",
+                ),
+            ]
 
-            plugins_count: int = Field(
-                default=0,
-                ge=0,
-                description="Number of loaded plugins",
-            )
+            plugins_count: Annotated[
+                int,
+                Field(
+                    default=0,
+                    ge=0,
+                    description="Number of loaded plugins",
+                ),
+            ]
 
         class ConfigSnapshot(FlextModels.Value):
             """Snapshot of current CLI configuration information."""
@@ -1238,30 +1448,45 @@ class FlextCliModels(FlextModels):
                 extra="forbid",
             )
 
-            config_dir: str = Field(
-                default="",
-                description="Configuration directory path",
-            )
+            config_dir: Annotated[
+                str,
+                Field(
+                    default="",
+                    description="Configuration directory path",
+                ),
+            ]
 
-            config_exists: bool = Field(
-                default=False,
-                description="Whether config directory exists",
-            )
+            config_exists: Annotated[
+                bool,
+                Field(
+                    default=False,
+                    description="Whether config directory exists",
+                ),
+            ]
 
-            config_readable: bool = Field(
-                default=False,
-                description="Whether config directory is readable",
-            )
+            config_readable: Annotated[
+                bool,
+                Field(
+                    default=False,
+                    description="Whether config directory is readable",
+                ),
+            ]
 
-            config_writable: bool = Field(
-                default=False,
-                description="Whether config directory is writable",
-            )
+            config_writable: Annotated[
+                bool,
+                Field(
+                    default=False,
+                    description="Whether config directory is writable",
+                ),
+            ]
 
-            timestamp: str = Field(
-                default="",
-                description="Timestamp of snapshot",
-            )
+            timestamp: Annotated[
+                str,
+                Field(
+                    default="",
+                    description="Timestamp of snapshot",
+                ),
+            ]
 
         class ServiceStatus(FlextModels.Value):
             """Generic service status response."""
@@ -1271,25 +1496,37 @@ class FlextCliModels(FlextModels):
                 extra="forbid",
             )
 
-            status: str = Field(
-                default="",
-                description="Status message",
-            )
+            status: Annotated[
+                str,
+                Field(
+                    default="",
+                    description="Status message",
+                ),
+            ]
 
-            service: str = Field(
-                default="",
-                description="Service name",
-            )
+            service: Annotated[
+                str,
+                Field(
+                    default="",
+                    description="Service name",
+                ),
+            ]
 
-            timestamp: str = Field(
-                default="",
-                description="Status timestamp",
-            )
+            timestamp: Annotated[
+                str,
+                Field(
+                    default="",
+                    description="Status timestamp",
+                ),
+            ]
 
-            version: str = Field(
-                default="",
-                description="Service version",
-            )
+            version: Annotated[
+                str,
+                Field(
+                    default="",
+                    description="Service version",
+                ),
+            ]
 
         class CliConfig(FlextModels.Entity):
             """CLI configuration model extending Entity via inheritance."""
@@ -1301,37 +1538,55 @@ class FlextCliModels(FlextModels):
                 validate_default=True,
             )
 
-            server_type: c.Cli.ServerType = Field(
-                default=c.Cli.ServerType.RFC,
-                description="Server type",
-            )
+            server_type: Annotated[
+                c.Cli.ServerType,
+                Field(
+                    default=c.Cli.ServerType.RFC,
+                    description="Server type",
+                ),
+            ]
 
-            output_format: c.Cli.OutputFormats = Field(
-                default=c.Cli.OutputFormats.TABLE,
-                description="Default output format",
-            )
+            output_format: Annotated[
+                c.Cli.OutputFormats,
+                Field(
+                    default=c.Cli.OutputFormats.TABLE,
+                    description="Default output format",
+                ),
+            ]
 
-            verbosity: c.Cli.LogVerbosity = Field(
-                default=c.Cli.LogVerbosity.COMPACT,
-                description="Log verbosity level",
-            )
+            verbosity: Annotated[
+                c.Cli.LogVerbosity,
+                Field(
+                    default=c.Cli.LogVerbosity.COMPACT,
+                    description="Log verbosity level",
+                ),
+            ]
 
-            timeout: int = Field(
-                default=30,
-                ge=1,
-                le=300,
-                description="Default timeout in seconds",
-            )
+            timeout: Annotated[
+                int,
+                Field(
+                    default=30,
+                    ge=1,
+                    le=300,
+                    description="Default timeout in seconds",
+                ),
+            ]
 
-            color: bool = Field(
-                default=True,
-                description="Enable colored output",
-            )
+            color: Annotated[
+                bool,
+                Field(
+                    default=True,
+                    description="Enable colored output",
+                ),
+            ]
 
-            confirm_actions: bool = Field(
-                default=True,
-                description="Require confirmation for destructive actions",
-            )
+            confirm_actions: Annotated[
+                bool,
+                Field(
+                    default=True,
+                    description="Require confirmation for destructive actions",
+                ),
+            ]
 
             # =========================================================================
             # ADDITIONAL MODELS - Required by flext-cli modules
@@ -1344,24 +1599,40 @@ class FlextCliModels(FlextModels):
             Inherits frozen=True and extra="forbid" from FlextModels.Value.
             """
 
-            step_results: Sequence[dict[str, object]] = Field(
-                default_factory=_default_step_results,
-                description="Results for each workflow step",
-            )
-            total_steps: int = Field(default=0, description="Total number of steps")
-            successful_steps: int = Field(
-                default=0,
-                description="Number of successful steps",
-            )
-            failed_steps: int = Field(default=0, description="Number of failed steps")
-            overall_success: bool = Field(
-                default=True,
-                description="Whether workflow succeeded overall",
-            )
-            total_duration_seconds: float = Field(
-                default=0.0,
-                description="Total workflow duration",
-            )
+            step_results: Annotated[
+                Sequence[dict[str, object]],
+                Field(
+                    default_factory=_default_step_results,
+                    description="Results for each workflow step",
+                ),
+            ]
+            total_steps: Annotated[
+                int, Field(default=0, description="Total number of steps")
+            ]
+            successful_steps: Annotated[
+                int,
+                Field(
+                    default=0,
+                    description="Number of successful steps",
+                ),
+            ]
+            failed_steps: Annotated[
+                int, Field(default=0, description="Number of failed steps")
+            ]
+            overall_success: Annotated[
+                bool,
+                Field(
+                    default=True,
+                    description="Whether workflow succeeded overall",
+                ),
+            ]
+            total_duration_seconds: Annotated[
+                float,
+                Field(
+                    default=0.0,
+                    description="Total workflow duration",
+                ),
+            ]
 
         class CliParamsConfig(FlextModels.Value):
             """CLI parameters configuration for command-line parsing.
@@ -1371,35 +1642,58 @@ class FlextCliModels(FlextModels):
             Inherits frozen=True and extra="forbid" from FlextModels.Value.
             """
 
-            verbose: bool | None = Field(
-                default=None,
-                description="Enable verbose output",
-            )
-            quiet: bool | None = Field(
-                default=None,
-                description="Suppress non-essential output",
-            )
-            debug: bool | None = Field(default=None, description="Enable debug mode")
-            trace: bool | None = Field(
-                default=None,
-                description="Enable trace logging (requires debug)",
-            )
-            log_level: str | None = Field(
-                default=None,
-                description="Log level (DEBUG, INFO, WARNING, ERROR)",
-            )
-            log_format: str | None = Field(
-                default=None,
-                description="Log format (compact, detailed, full)",
-            )
-            output_format: str | None = Field(
-                default=None,
-                description="Output format (table, json, yaml, csv)",
-            )
-            no_color: bool | None = Field(
-                default=None,
-                description="Disable colored output",
-            )
+            verbose: Annotated[
+                bool | None,
+                Field(
+                    default=None,
+                    description="Enable verbose output",
+                ),
+            ]
+            quiet: Annotated[
+                bool | None,
+                Field(
+                    default=None,
+                    description="Suppress non-essential output",
+                ),
+            ]
+            debug: Annotated[
+                bool | None, Field(default=None, description="Enable debug mode")
+            ]
+            trace: Annotated[
+                bool | None,
+                Field(
+                    default=None,
+                    description="Enable trace logging (requires debug)",
+                ),
+            ]
+            log_level: Annotated[
+                str | None,
+                Field(
+                    default=None,
+                    description="Log level (DEBUG, INFO, WARNING, ERROR)",
+                ),
+            ]
+            log_format: Annotated[
+                str | None,
+                Field(
+                    default=None,
+                    description="Log format (compact, detailed, full)",
+                ),
+            ]
+            output_format: Annotated[
+                str | None,
+                Field(
+                    default=None,
+                    description="Output format (table, json, yaml, csv)",
+                ),
+            ]
+            no_color: Annotated[
+                bool | None,
+                Field(
+                    default=None,
+                    description="Disable colored output",
+                ),
+            ]
 
             @property
             def params(self) -> Mapping[str, object]:
@@ -1431,36 +1725,61 @@ class FlextCliModels(FlextModels):
                 arbitrary_types_allowed=True,
             )
 
-            default: object | None = Field(
-                default=None,
-                description="Default value",
-            )
-            type_hint: object = Field(
-                default=None,
-                description="Parameter type (Click type or Python type)",
-            )
-            required: bool = Field(
-                default=False,
-                description="Whether option is required",
-            )
-            help_text: str | None = Field(
-                default=None,
-                description="Help text for option",
-            )
-            is_flag: bool = Field(
-                default=False,
-                description="Whether this is a boolean flag",
-            )
-            flag_value: object | None = Field(
-                default=None,
-                description="Value when flag is set",
-            )
-            multiple: bool = Field(default=False, description="Allow multiple values")
-            count: bool = Field(default=False, description="Count occurrences")
-            show_default: bool = Field(
-                default=False,
-                description="Show default in help",
-            )
+            default: Annotated[
+                object | None,
+                Field(
+                    default=None,
+                    description="Default value",
+                ),
+            ]
+            type_hint: Annotated[
+                object,
+                Field(
+                    default=None,
+                    description="Parameter type (Click type or Python type)",
+                ),
+            ]
+            required: Annotated[
+                bool,
+                Field(
+                    default=False,
+                    description="Whether option is required",
+                ),
+            ]
+            help_text: Annotated[
+                str | None,
+                Field(
+                    default=None,
+                    description="Help text for option",
+                ),
+            ]
+            is_flag: Annotated[
+                bool,
+                Field(
+                    default=False,
+                    description="Whether this is a boolean flag",
+                ),
+            ]
+            flag_value: Annotated[
+                object | None,
+                Field(
+                    default=None,
+                    description="Value when flag is set",
+                ),
+            ]
+            multiple: Annotated[
+                bool, Field(default=False, description="Allow multiple values")
+            ]
+            count: Annotated[
+                bool, Field(default=False, description="Count occurrences")
+            ]
+            show_default: Annotated[
+                bool,
+                Field(
+                    default=False,
+                    description="Show default in help",
+                ),
+            ]
 
         class ConfirmConfig(FlextModels.Value):
             """Configuration for confirm prompts.
@@ -1469,17 +1788,25 @@ class FlextCliModels(FlextModels):
             Inherits frozen=True and extra="forbid" from FlextModels.Value.
             """
 
-            default: bool = Field(default=False, description="Default value")
-            abort: bool = Field(default=False, description="Abort if not confirmed")
-            prompt_suffix: str = Field(
-                default=c.Cli.UIDefaults.DEFAULT_PROMPT_SUFFIX,
-                description="Suffix after prompt",
-            )
-            show_default: bool = Field(
-                default=True,
-                description="Show default in prompt",
-            )
-            err: bool = Field(default=False, description="Write to stderr")
+            default: Annotated[bool, Field(default=False, description="Default value")]
+            abort: Annotated[
+                bool, Field(default=False, description="Abort if not confirmed")
+            ]
+            prompt_suffix: Annotated[
+                str,
+                Field(
+                    default=c.Cli.UIDefaults.DEFAULT_PROMPT_SUFFIX,
+                    description="Suffix after prompt",
+                ),
+            ]
+            show_default: Annotated[
+                bool,
+                Field(
+                    default=True,
+                    description="Show default in prompt",
+                ),
+            ]
+            err: Annotated[bool, Field(default=False, description="Write to stderr")]
 
         class PromptConfig(FlextModels.Value):
             """Configuration for input prompts.
@@ -1493,36 +1820,59 @@ class FlextCliModels(FlextModels):
                 arbitrary_types_allowed=True,
             )
 
-            default: object | None = Field(
-                default=None,
-                description="Default value",
-            )
-            type_hint: object = Field(
-                default=None,
-                description="Value type",
-            )
-            value_proc: object = Field(
-                default=None,
-                description="Value processor function",
-            )
-            prompt_suffix: str = Field(
-                default=c.Cli.UIDefaults.DEFAULT_PROMPT_SUFFIX,
-                description="Suffix after prompt",
-            )
-            hide_input: bool = Field(default=False, description="Hide user input")
-            confirmation_prompt: bool = Field(
-                default=False,
-                description="Ask for confirmation",
-            )
-            show_default: bool = Field(
-                default=True,
-                description="Show default in prompt",
-            )
-            err: bool = Field(default=False, description="Write to stderr")
-            show_choices: bool = Field(
-                default=True,
-                description="Show available choices",
-            )
+            default: Annotated[
+                object | None,
+                Field(
+                    default=None,
+                    description="Default value",
+                ),
+            ]
+            type_hint: Annotated[
+                object,
+                Field(
+                    default=None,
+                    description="Value type",
+                ),
+            ]
+            value_proc: Annotated[
+                object,
+                Field(
+                    default=None,
+                    description="Value processor function",
+                ),
+            ]
+            prompt_suffix: Annotated[
+                str,
+                Field(
+                    default=c.Cli.UIDefaults.DEFAULT_PROMPT_SUFFIX,
+                    description="Suffix after prompt",
+                ),
+            ]
+            hide_input: Annotated[
+                bool, Field(default=False, description="Hide user input")
+            ]
+            confirmation_prompt: Annotated[
+                bool,
+                Field(
+                    default=False,
+                    description="Ask for confirmation",
+                ),
+            ]
+            show_default: Annotated[
+                bool,
+                Field(
+                    default=True,
+                    description="Show default in prompt",
+                ),
+            ]
+            err: Annotated[bool, Field(default=False, description="Write to stderr")]
+            show_choices: Annotated[
+                bool,
+                Field(
+                    default=True,
+                    description="Show available choices",
+                ),
+            ]
 
         class PathInfo(FlextModels.Value):
             """Path information for debug outpuFlextCliTypes.
@@ -1530,11 +1880,13 @@ class FlextCliModels(FlextModels):
             Inherits frozen=True and extra="forbid" from FlextModels.Value.
             """
 
-            index: int = Field(default=0, description="Path index in sys.path")
-            path: str = Field(...)
-            exists: bool = Field(default=False)
-            is_file: bool = Field(default=False)
-            is_dir: bool = Field(default=False)
+            index: Annotated[
+                int, Field(default=0, description="Path index in sys.path")
+            ]
+            path: Annotated[str, Field(...)]
+            exists: Annotated[bool, Field(default=False)]
+            is_file: Annotated[bool, Field(default=False)]
+            is_dir: Annotated[bool, Field(default=False)]
 
         class EnvironmentInfo(FlextModels.Value):
             """Environment information for debug outpuFlextCliTypes.
@@ -1542,10 +1894,10 @@ class FlextCliModels(FlextModels):
             Inherits frozen=True and extra="forbid" from FlextModels.Value.
             """
 
-            python_version: str = Field(default="")
-            os_name: str = Field(default="")
-            os_version: str = Field(default="")
-            variables: dict[str, str] = Field(default_factory=dict)
+            python_version: Annotated[str, Field(default="")]
+            os_name: Annotated[str, Field(default="")]
+            os_version: Annotated[str, Field(default="")]
+            variables: Annotated[dict[str, str], Field(default_factory=dict)]
 
         class SystemInfo(FlextModels.Value):
             """System information for debug outpuFlextCliTypes.
@@ -1553,13 +1905,13 @@ class FlextCliModels(FlextModels):
             Inherits frozen=True and extra="forbid" from FlextModels.Value.
             """
 
-            python_version: str = Field(default="")
-            platform: str = Field(default="")
-            architecture: list[str] = Field(default_factory=list)
-            processor: str = Field(default="")
-            hostname: str = Field(default="")
-            memory_total: int = Field(default=0)
-            cpu_count: int = Field(default=0)
+            python_version: Annotated[str, Field(default="")]
+            platform: Annotated[str, Field(default="")]
+            architecture: Annotated[list[str], Field(default_factory=list)]
+            processor: Annotated[str, Field(default="")]
+            hostname: Annotated[str, Field(default="")]
+            memory_total: Annotated[int, Field(default=0)]
+            cpu_count: Annotated[int, Field(default=0)]
 
         class ContextExecutionResult(FlextModels.Value):
             """Context execution result.
@@ -1567,18 +1919,30 @@ class FlextCliModels(FlextModels):
             Inherits frozen=True and extra="forbid" from FlextModels.Value.
             """
 
-            success: bool = Field(default=True)
-            context_id: str = Field(default="")
-            metadata: dict[str, object] = Field(
-                default_factory=dict,
-            )
-            context_executed: bool = Field(
-                default=False,
-                description="Whether context was executed",
-            )
-            command: str = Field(default="", description="Command executed in context")
-            arguments_count: int = Field(default=0, description="Number of arguments")
-            timestamp: str = Field(default="", description="Execution timestamp")
+            success: Annotated[bool, Field(default=True)]
+            context_id: Annotated[str, Field(default="")]
+            metadata: Annotated[
+                dict[str, object],
+                Field(
+                    default_factory=dict,
+                ),
+            ]
+            context_executed: Annotated[
+                bool,
+                Field(
+                    default=False,
+                    description="Whether context was executed",
+                ),
+            ]
+            command: Annotated[
+                str, Field(default="", description="Command executed in context")
+            ]
+            arguments_count: Annotated[
+                int, Field(default=0, description="Number of arguments")
+            ]
+            timestamp: Annotated[
+                str, Field(default="", description="Execution timestamp")
+            ]
 
         class DebugInfo(FlextModels.Value):
             """Debug information model with sensitive data masking.
@@ -1586,17 +1950,23 @@ class FlextCliModels(FlextModels):
             Inherits frozen=True and extra="forbid" from FlextModels.Value.
             """
 
-            service: str = Field(..., description="Service name")
-            level: str = Field(..., description="Debug level")
-            message: str = Field(..., description="Debug message")
-            system_info: dict[str, object] = Field(
-                default_factory=dict,
-                description="System information",
-            )
-            config_info: dict[str, object] = Field(
-                default_factory=dict,
-                description="Configuration information",
-            )
+            service: Annotated[str, Field(..., description="Service name")]
+            level: Annotated[str, Field(..., description="Debug level")]
+            message: Annotated[str, Field(..., description="Debug message")]
+            system_info: Annotated[
+                dict[str, object],
+                Field(
+                    default_factory=dict,
+                    description="System information",
+                ),
+            ]
+            config_info: Annotated[
+                dict[str, object],
+                Field(
+                    default_factory=dict,
+                    description="Configuration information",
+                ),
+            ]
 
             @property
             def debug_summary(self) -> FlextCliModels.Cli.CliDebugData:
@@ -1638,11 +2008,10 @@ class FlextCliModels(FlextModels):
                 }
 
                 system_dict: dict[str, object] = {}
-                system_adapter: TypeAdapter[dict[str, object]] = TypeAdapter(
-                    dict[str, object],
-                )
                 try:
-                    system_dict = system_adapter.validate_python(self.system_info)
+                    system_dict = _DICT_STR_OBJECT_ADAPTER.validate_python(
+                        self.system_info
+                    )
                 except ValidationError as e:
                     _logger.debug("system_info mask failed: %s", e)
 
@@ -1763,9 +2132,9 @@ class FlextCliModels(FlextModels):
             Inherits frozen=True and extra="forbid" from FlextModels.Value.
             """
 
-            username: str = Field(..., min_length=3)
-            password: str = Field(..., min_length=8)
-            realm: str = Field(default="")
+            username: Annotated[str, Field(..., min_length=3)]
+            password: Annotated[str, Field(..., min_length=8)]
+            realm: Annotated[str, Field(default="")]
 
         class CmdConfig(FlextModels.Value):
             """Command configuration.
@@ -1773,10 +2142,10 @@ class FlextCliModels(FlextModels):
             Inherits frozen=True and extra="forbid" from FlextModels.Value.
             """
 
-            name: str = Field(...)
-            description: str = Field(default="")
-            hidden: bool = Field(default=False)
-            deprecated: bool = Field(default=False)
+            name: Annotated[str, Field(...)]
+            description: Annotated[str, Field(default="")]
+            hidden: Annotated[bool, Field(default=False)]
+            deprecated: Annotated[bool, Field(default=False)]
 
         class TokenData(FlextModels.Value):
             """Authentication token data.
@@ -1784,17 +2153,20 @@ class FlextCliModels(FlextModels):
             Inherits frozen=True and extra="forbid" from FlextModels.Value.
             """
 
-            token: str = Field(...)
-            expires_at: str = Field(default="")
-            token_type: str = Field(default="Bearer")
+            token: Annotated[str, Field(...)]
+            expires_at: Annotated[str, Field(default="")]
+            token_type: Annotated[str, Field(default="Bearer")]
 
         class FormatInputData(FlextModels.Value):
             """Single contract for format input: BaseModel or object. Normalizes to object."""
 
-            data: BaseModel | object = Field(
-                ...,
-                description="Data to format (model or raw JSON)",
-            )
+            data: Annotated[
+                BaseModel | object,
+                Field(
+                    ...,
+                    description="Data to format (model or raw JSON)",
+                ),
+            ]
 
             @computed_field
             @property
@@ -1810,18 +2182,27 @@ class FlextCliModels(FlextModels):
             Inherits frozen=True and extra="forbid" from FlextModels.Value.
             """
 
-            commands_executed: int = Field(
-                default=0,
-                description="Number of commands executed",
-            )
-            errors_count: int = Field(
-                default=0,
-                description="Number of errors encountered",
-            )
-            session_duration_seconds: float = Field(
-                default=0.0,
-                description="Session duration in seconds",
-            )
+            commands_executed: Annotated[
+                int,
+                Field(
+                    default=0,
+                    description="Number of commands executed",
+                ),
+            ]
+            errors_count: Annotated[
+                int,
+                Field(
+                    default=0,
+                    description="Number of errors encountered",
+                ),
+            ]
+            session_duration_seconds: Annotated[
+                float,
+                Field(
+                    default=0.0,
+                    description="Session duration in seconds",
+                ),
+            ]
 
         class PromptStatistics(FlextModels.Value):
             """Statistics for prompt service usage tracking.
@@ -1829,31 +2210,51 @@ class FlextCliModels(FlextModels):
             Inherits frozen=True and extra="forbid" from FlextModels.Value.
             """
 
-            prompts_executed: int = Field(
-                default=0,
-                description="Total prompts executed",
-            )
-            history_size: int = Field(default=0, description="Current history size")
-            prompts_answered: int = Field(
-                default=0,
-                description="Prompts that received answers",
-            )
-            prompts_cancelled: int = Field(
-                default=0,
-                description="Prompts that were cancelled",
-            )
-            interactive_mode: bool = Field(
-                default=False,
-                description="Interactive mode flag",
-            )
-            default_timeout: int = Field(
-                default=30,
-                description="Default timeout in seconds",
-            )
-            timestamp: str = Field(
-                default="",
-                description="Timestamp of statistics collection",
-            )
+            prompts_executed: Annotated[
+                int,
+                Field(
+                    default=0,
+                    description="Total prompts executed",
+                ),
+            ]
+            history_size: Annotated[
+                int, Field(default=0, description="Current history size")
+            ]
+            prompts_answered: Annotated[
+                int,
+                Field(
+                    default=0,
+                    description="Prompts that received answers",
+                ),
+            ]
+            prompts_cancelled: Annotated[
+                int,
+                Field(
+                    default=0,
+                    description="Prompts that were cancelled",
+                ),
+            ]
+            interactive_mode: Annotated[
+                bool,
+                Field(
+                    default=False,
+                    description="Interactive mode flag",
+                ),
+            ]
+            default_timeout: Annotated[
+                int,
+                Field(
+                    default=30,
+                    description="Default timeout in seconds",
+                ),
+            ]
+            timestamp: Annotated[
+                str,
+                Field(
+                    default="",
+                    description="Timestamp of statistics collection",
+                ),
+            ]
 
         class CommandStatistics(FlextModels.Value):
             """Command statistics.
@@ -1861,9 +2262,9 @@ class FlextCliModels(FlextModels):
             Inherits frozen=True and extra="forbid" from FlextModels.Value.
             """
 
-            total_commands: int = Field(default=0)
-            successful_commands: int = Field(default=0)
-            failed_commands: int = Field(default=0)
+            total_commands: Annotated[int, Field(default=0)]
+            successful_commands: Annotated[int, Field(default=0)]
+            failed_commands: Annotated[int, Field(default=0)]
 
         class CommandExecutionContextResult(FlextModels.Value):
             """Command execution context result.
@@ -1871,12 +2272,15 @@ class FlextCliModels(FlextModels):
             Inherits frozen=True and extra="forbid" from FlextModels.Value.
             """
 
-            command_name: str = Field(...)
-            exit_code: int = Field(default=0)
-            output: str = Field(default="")
-            context: dict[str, object] = Field(
-                default_factory=dict,
-            )
+            command_name: Annotated[str, Field(...)]
+            exit_code: Annotated[int, Field(default=0)]
+            output: Annotated[str, Field(default="")]
+            context: Annotated[
+                dict[str, object],
+                Field(
+                    default_factory=dict,
+                ),
+            ]
 
         class WorkflowStepResult(FlextModels.Value):
             """Workflow step result.
@@ -1884,10 +2288,10 @@ class FlextCliModels(FlextModels):
             Inherits frozen=True and extra="forbid" from FlextModels.Value.
             """
 
-            step_name: str = Field(...)
-            success: bool = Field(default=True)
-            message: str = Field(default="")
-            duration: float = Field(default=0.0)
+            step_name: Annotated[str, Field(...)]
+            success: Annotated[bool, Field(default=True)]
+            message: Annotated[str, Field(default="")]
+            duration: Annotated[float, Field(default=0.0)]
 
         class WorkflowProgress(FlextModels.Value):
             """Workflow progress information.
@@ -1895,10 +2299,10 @@ class FlextCliModels(FlextModels):
             Inherits frozen=True and extra="forbid" from FlextModels.Value.
             """
 
-            current_step: int = Field(default=0)
-            total_steps: int = Field(default=0)
-            current_step_name: str = Field(default="")
-            percentage: float = Field(default=0.0)
+            current_step: Annotated[int, Field(default=0)]
+            total_steps: Annotated[int, Field(default=0)]
+            current_step_name: Annotated[str, Field(default="")]
+            percentage: Annotated[float, Field(default=0.0)]
 
         class ModelCommandBuilder:
             """Builder for Typer commands from Pydantic models.
@@ -3340,9 +3744,9 @@ class FlextCliModels(FlextModels):
             Inherits frozen=True and extra="forbid" from FlextModels.Value.
             """
 
-            service: str = Field(..., description="Service name")
-            level: str = Field(..., description="Debug level")
-            message: str = Field(..., description="Debug message")
+            service: Annotated[str, Field(..., description="Service name")]
+            level: Annotated[str, Field(..., description="Debug level")]
+            message: Annotated[str, Field(..., description="Debug message")]
 
         class Display:
             """Rich display type aliases using Protocols.

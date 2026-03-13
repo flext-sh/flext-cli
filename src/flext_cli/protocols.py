@@ -853,6 +853,24 @@ class FlextCliProtocols(FlextProtocols):
                 """Process and pass to next middleware."""
                 ...
 
+        @runtime_checkable
+        class CliAppProtocol(Protocol):
+            """Protocol for CLI application base classes.
+
+            Structural interface extracted from FlextCliAppBase ABC.
+            Subclasses must implement _register_commands.
+            """
+
+            def execute_cli(
+                self, args: list[str] | None = None
+            ) -> FlextProtocols.Result[bool]:
+                """Execute the CLI with Railway-pattern error handling."""
+                ...
+
+            def _register_commands(self) -> None:
+                """Register CLI commands - implement in subclass."""
+                ...
+
 
 p = FlextCliProtocols
 __all__ = ["FlextCliProtocols", "p"]

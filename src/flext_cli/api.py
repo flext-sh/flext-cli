@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import secrets
 import threading
-from abc import ABC
 from collections.abc import Callable, Mapping, MutableMapping, Sequence
 from typing import ClassVar, Protocol, TypeGuard, runtime_checkable
 
@@ -106,7 +105,7 @@ class FlextCli:
     class Mixins(FlextCliMixins):
         """CLI mixins."""
 
-    class AppBase(FlextCliAppBase[FlextCliSettings], ABC):
+    class AppBase(FlextCliAppBase[FlextCliSettings]):
         """CLI app base (abstract). Subclasses must implement _register_commands."""
 
     _instance: ClassVar[FlextCli | None] = None

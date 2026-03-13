@@ -10,7 +10,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from abc import ABC
 from collections.abc import Mapping
 from typing import override
 
@@ -19,7 +18,7 @@ from flext_core import m, p, s
 from flext_cli import FlextCliSettings
 
 
-class FlextCliServiceBase(s[Mapping[str, object]], ABC):
+class FlextCliServiceBase(s[Mapping[str, object]]):
     """Base class for flext-cli services with typed configuration access.
 
     Note: This is an abstract base class. Subclasses must implement the

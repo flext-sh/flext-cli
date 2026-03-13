@@ -9,6 +9,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Annotated
 
 import yaml
 from flext_core import FlextLogger, FlextSettings, FlextUtilities, r
@@ -29,39 +30,63 @@ def _default_config_dir() -> Path:
 class FlextCliSettings(FlextSettings):
     """CLI-specific configuration; extends FlextSettings with profile and CLI fields."""
 
-    profile: str = Field(default="default", description="CLI profile name")
-    verbose: bool = Field(
-        default=c.Cli.CliDefaults.DEFAULT_VERBOSE, description="Verbose output"
-    )
-    quiet: bool = Field(
-        default=c.Cli.CliDefaults.DEFAULT_QUIET, description="Quiet output"
-    )
-    log_verbosity: str = Field(
-        default=c.Cli.LogVerbosity.COMPACT.value,
-        description="Log format (compact, detailed, full)",
-    )
-    cli_log_level: c.Cli.Settings.LogLevel = Field(
-        default=c.Cli.Settings.LogLevel.INFO, description="CLI log level"
-    )
-    no_color: bool = Field(
-        default=c.Cli.CliDefaults.DEFAULT_NO_COLOR, description="Disable colored output"
-    )
-    output_format: str = Field(
-        default=c.Cli.OutputDefaults.DEFAULT_FORMAT_TYPE,
-        description="Output format (table, json, yaml, csv, plain)",
-    )
-    config_file: str | None = Field(default=None, description="Path to config file")
-    config_dir: Path = Field(
-        default_factory=_default_config_dir, description="CLI config directory"
-    )
-    token_file: str | None = Field(default=None, description="Path to auth token file")
-    environment: str = Field(
-        default="development",
-        description="Environment name (development, staging, production)",
-    )
-    max_retries: int = Field(default=3, ge=0, description="Max retries")
-    cli_timeout: float = Field(default=30.0, gt=0, description="CLI timeout seconds")
-    max_width: int = Field(default=120, ge=40, le=200, description="Max output width")
+    profile: Annotated[str, Field(default="default", description="CLI profile name")]
+    verbose: Annotated[
+        bool,
+        Field(default=c.Cli.CliDefaults.DEFAULT_VERBOSE, description="Verbose output"),
+    ]
+    quiet: Annotated[
+        bool, Field(default=c.Cli.CliDefaults.DEFAULT_QUIET, description="Quiet output")
+    ]
+    log_verbosity: Annotated[
+        str,
+        Field(
+            default=c.Cli.LogVerbosity.COMPACT.value,
+            description="Log format (compact, detailed, full)",
+        ),
+    ]
+    cli_log_level: Annotated[
+        c.Cli.Settings.LogLevel,
+        Field(default=c.Cli.Settings.LogLevel.INFO, description="CLI log level"),
+    ]
+    no_color: Annotated[
+        bool,
+        Field(
+            default=c.Cli.CliDefaults.DEFAULT_NO_COLOR,
+            description="Disable colored output",
+        ),
+    ]
+    output_format: Annotated[
+        str,
+        Field(
+            default=c.Cli.OutputDefaults.DEFAULT_FORMAT_TYPE,
+            description="Output format (table, json, yaml, csv, plain)",
+        ),
+    ]
+    config_file: Annotated[
+        str | None, Field(default=None, description="Path to config file")
+    ]
+    config_dir: Annotated[
+        Path,
+        Field(default_factory=_default_config_dir, description="CLI config directory"),
+    ]
+    token_file: Annotated[
+        str | None, Field(default=None, description="Path to auth token file")
+    ]
+    environment: Annotated[
+        str,
+        Field(
+            default="development",
+            description="Environment name (development, staging, production)",
+        ),
+    ]
+    max_retries: Annotated[int, Field(default=3, ge=0, description="Max retries")]
+    cli_timeout: Annotated[
+        float, Field(default=30.0, gt=0, description="CLI timeout seconds")
+    ]
+    max_width: Annotated[
+        int, Field(default=120, ge=40, le=200, description="Max output width")
+    ]
 
     @classmethod
     def get_instance(cls) -> FlextCliSettings:
