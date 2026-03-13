@@ -244,7 +244,7 @@ def cli_command_factory() -> CliCommandFactory:
         }
         raw_data: dict[str, object] = {**cli_data, **kwargs}
         typed_data: dict[str, object] = raw_data
-        transform_result = u.transform(typed_data, to_json=True)
+        transform_result = u.transform(typed_data)
         if transform_result.is_success:
             unwrapped = transform_result.value
             if _is_json_dict(unwrapped):
@@ -283,7 +283,7 @@ def cli_session_factory() -> CliSessionFactory:
         }
         raw_data: dict[str, object] = {**session_data, **kwargs}
         typed_data = raw_data
-        transform_result = u.transform(typed_data, to_json=True)
+        transform_result = u.transform(typed_data)
         if transform_result.is_success:
             unwrapped = transform_result.value
             if _is_json_dict(unwrapped):
@@ -325,7 +325,7 @@ def debug_info_factory() -> DebugInfoFactory:
         filtered_kwargs = {k: v for k, v in kwargs.items() if k in valid_fields}
         raw_data: dict[str, object] = {**debug_data, **filtered_kwargs}
         typed_data = raw_data
-        transform_result = u.transform(typed_data, to_json=True)
+        transform_result = u.transform(typed_data)
         if transform_result.is_success:
             unwrapped = transform_result.value
             if _is_json_dict(unwrapped):
@@ -356,7 +356,7 @@ def logging_config_factory() -> LoggingConfigFactory:
         }
         raw_data: dict[str, object] = {**logging_data, **kwargs}
         typed_data = raw_data
-        transform_result = u.transform(typed_data, to_json=True)
+        transform_result = u.transform(typed_data)
         if transform_result.is_success:
             unwrapped = transform_result.value
             if _is_json_dict(unwrapped):
