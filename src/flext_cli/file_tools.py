@@ -494,11 +494,15 @@ class FlextCliFileTools:
         indent: int = 2,
     ) -> r[bool]:
         payload: object = data.data if isinstance(data, m.Cli.DisplayData) else data
+
+        def _writer(f: TextIO) -> None:
+            f.write(
+                _JSON_OBJECT_ADAPTER.dump_json(payload, indent=indent).decode("utf-8")
+            )
+
         return FlextCliFileTools._write_structured_file(
             file_path,
-            lambda f: f.write(
-                _JSON_OBJECT_ADAPTER.dump_json(payload, indent=indent).decode("utf-8")
-            ),
+            _writer,
             c.Cli.ErrorMessages.JSON_WRITE_FAILED,
         )
 
