@@ -8,6 +8,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from pathlib import Path
 from typing import Annotated
 
@@ -15,7 +16,7 @@ import yaml
 from flext_core import FlextLogger, FlextSettings, FlextUtilities, r
 from pydantic import Field, TypeAdapter, ValidationError, computed_field
 
-from flext_cli import c, t
+from flext_cli import c, m, t
 
 _JSON_OBJECT_ADAPTER: TypeAdapter[object] = TypeAdapter(object)
 
@@ -131,10 +132,16 @@ class FlextCliSettings(FlextSettings):
 
     def save_config(self, data: object) -> r[bool]:
         """Apply config updates from dict."""
+        if not isinstance(data, Mapping):
+            return r[bool].fail(c.Cli.CmdErrorMessages.CONFIG_NOT_DICT)
+
+        validated_data: dict[str, object] = {
+            str(key): m.Cli.normalize_json_value(value) for key, value in data.items()
+        }
 
         def _apply_updates() -> bool:
-            updated = self.model_copy(update=data)
-            for key in data:
+            updated = self.model_copy(update=validated_data)
+            for key in validated_data:
                 if hasattr(self, key):
                     setattr(self, key, getattr(updated, key))
             return True
@@ -143,7 +150,7 @@ class FlextCliSettings(FlextSettings):
 
     def update_from_cli_args(self, **kwargs: t.Scalar) -> r[bool]:
         """Update config from CLI args."""
-        data: object = {
+        data: dict[str, object] = {
             k: v for k, v in kwargs.items() if k in self.__class__.model_fields
         }
         return self.save_config(data)
@@ -184,8 +191,8 @@ class FlextCliSettings(FlextSettings):
                 parsed = yaml.safe_load(raw)
             if not isinstance(parsed, dict):
                 return r[FlextCliSettings].fail(c.Cli.CmdErrorMessages.CONFIG_NOT_DICT)
-            data: object = _JSON_OBJECT_ADAPTER.validate_python(parsed)
-            instance = cls(data)
+            data = _JSON_OBJECT_ADAPTER.validate_python(parsed)
+            instance = cls.model_validate(data)
             return r[FlextCliSettings].ok(instance)
         except (
             yaml.YAMLError,

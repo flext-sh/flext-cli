@@ -150,7 +150,9 @@ class FlextCliFormatters:
             panel = RichPanel(content, title=title, border_style=validated_border_style)
             return r[RichPanel].ok(panel)
         except (ConsoleError, StyleError) as exc:
-            _logger.warning("rich_panel_creation_fallback", error=str(exc), title=title)
+            _logger.warning(
+                "rich_panel_creation_fallback", error=str(exc), title=title or ""
+            )
             return r[RichPanel].ok(RichPanel(content))
 
     @staticmethod
@@ -212,7 +214,9 @@ class FlextCliFormatters:
                         table.add_row(str(k), str(v))
             return r[RichTable].ok(table)
         except (ConsoleError, StyleError) as exc:
-            _logger.warning("rich_table_creation_fallback", error=str(exc), title=title)
+            _logger.warning(
+                "rich_table_creation_fallback", error=str(exc), title=title or ""
+            )
             return r[RichTable].ok(RichTable())
 
     @staticmethod

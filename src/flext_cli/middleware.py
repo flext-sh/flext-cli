@@ -20,8 +20,6 @@ from rich.errors import ConsoleError, LiveError, StyleError
 
 from flext_cli import p
 
-FlextCliMiddleware = p.Cli.Middleware
-
 
 class FlextCliLoggingMiddleware:
     """Log command execution with timing information."""
@@ -79,7 +77,7 @@ class FlextCliValidationMiddleware:
         """
         params = getattr(ctx, "params", {})
         try:
-            validated = self._schema(params)
+            validated = self._schema.model_validate(params)
             ctx.params = validated.model_dump()
             return next_(ctx)
         except (
@@ -140,7 +138,7 @@ class FlextCliMiddleware:
 
     @staticmethod
     def compose(
-        middlewares: list[FlextCliMiddleware],
+        middlewares: list[p.Cli.Middleware],
         handler: Callable[[p.Cli.CliContext], p_core.Result[object]],
     ) -> Callable[[p.Cli.CliContext], p_core.Result[object]]:
         """Compose middleware into single callable.

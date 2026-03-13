@@ -386,11 +386,11 @@ class FlextCliOutput:
                 model_dump_method = getattr(config, "model_dump")
                 if callable(model_dump_method):
                     config_dict = model_dump_method()
-                    config_for_table = m.Cli.TableConfig(config_dict)
+                    config_for_table = m.Cli.TableConfig.model_validate(config_dict)
                 else:
-                    config_for_table = m.Cli.TableConfig({})
+                    config_for_table = m.Cli.TableConfig.model_validate({})
             else:
-                config_for_table = m.Cli.TableConfig({})
+                config_for_table = m.Cli.TableConfig.model_validate({})
             data_json: list[dict[str, object]] = [
                 {str(k): m.Cli.normalize_json_value(v) for k, v in row.items()}
                 for row in data
@@ -400,7 +400,7 @@ class FlextCliOutput:
             headers, [c.Cli.TableFormats.KEYS]
         )
         validated_headers: list[str] = [str(h) for h in validated_headers_raw]
-        final_config = m.Cli.TableConfig({
+        final_config = m.Cli.TableConfig.model_validate({
             "headers": validated_headers,
             "table_format": table_format,
         })
@@ -1262,9 +1262,9 @@ class FlextCliOutput:
     ) -> r[str]:
         """Create table string using FlextCliTables."""
         try:
-            config_instance = m.Cli.TableConfig({
+            config_instance = m.Cli.TableConfig.model_validate({
                 "headers": table_headers,
-                "table_format": c.Cli.TableForm(
+                "table_format": c.Cli.TableFormats.SIMPLE,
             })
             data_json: list[dict[str, object]] = [
                 {str(k): m.Cli.normalize_json_value(v) for k, v in row.items()}

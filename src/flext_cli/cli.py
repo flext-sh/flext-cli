@@ -598,7 +598,7 @@ class FlextCliCli:
 
         self.logger.debug(
             "Created Typer app with global common params",
-            extra={"app_name": name, "has_config": config is not None},
+            extra_info=str({"app_name": name, "has_config": config is not None}),
         )
         _ = global_callback
         return app
@@ -616,7 +616,7 @@ class FlextCliCli:
         )
         self.logger.debug(
             "Created argument decorator",
-            extra={"param_decls": param_decls, "required": required},
+            extra_info=str({"param_decls": param_decls, "required": required}),
         )
         return decorator
 
@@ -678,10 +678,10 @@ class FlextCliCli:
         )
         self.logger.debug(
             "Created option decorator",
-            extra={
+            extra_info=str({
                 "param_decls": param_decls,
                 "required": getattr(config, "required", False),
-            },
+            }),
         )
         return decorator
 
@@ -861,7 +861,8 @@ class FlextCliCli:
     ) -> Callable[[p.Cli.CliCommandFunction], click.Command]:
         decorator = click.command(name=name, help=help_text)
         self.logger.debug(
-            "Created command decorator", extra={"command_name": name, "help": help_text}
+            "Created command decorator",
+            extra_info=str({"command_name": name or "", "help": help_text or ""}),
         )
         return decorator
 
@@ -870,7 +871,8 @@ class FlextCliCli:
     ) -> Callable[[p.Cli.CliCommandFunction], click.Group]:
         decorator = click.group(name=name, help=help_text)
         self.logger.debug(
-            "Created group decorator", extra={"group_name": name, "help": help_text}
+            "Created group decorator",
+            extra_info=str({"group_name": name or "", "help": help_text or ""}),
         )
         return decorator
 

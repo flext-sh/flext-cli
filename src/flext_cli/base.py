@@ -10,15 +10,34 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from abc import ABC
+from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
+from types import ModuleType
 from typing import override
 
-from flext_core import m, p, s
+from flext_core import p, s, t
+from pydantic_settings import BaseSettings
 
 from flext_cli import FlextCliSettings
 
 
-class FlextCliServiceBase(s[Mapping[str, object]]):
+@dataclass
+class _CliRuntimeBootstrapOptions:
+    config_type: type[BaseSettings] | None = FlextCliSettings
+    config_overrides: Mapping[str, t.Scalar] | None = None
+    context: p.Context | None = None
+    subproject: str | None = None
+    services: Mapping[str, t.RegisterableService] | None = None
+    factories: Mapping[str, t.FactoryCallable] | None = None
+    resources: Mapping[str, t.ResourceCallable] | None = None
+    container_overrides: Mapping[str, t.Scalar] | None = None
+    wire_modules: Sequence[ModuleType] | None = None
+    wire_packages: Sequence[str] | None = None
+    wire_classes: Sequence[type] | None = None
+
+
+class FlextCliServiceBase(s[Mapping[str, object]], ABC):
     """Base class for flext-cli services with typed configuration access.
 
     Note: This is an abstract base class. Subclasses must implement the
@@ -32,7 +51,7 @@ class FlextCliServiceBase(s[Mapping[str, object]]):
 
     @override
     @classmethod
-    def _runtime_bootstrap_options(cls) -> p.RuntimeBootstrapOptions:
+    def _runtime_bootstrap_options(cls) -> p.RuntimeBootstrapOptions | None:
         """Return runtime bootstrap options for CLI services.
 
         Business Rule: This method provides runtime bootstrap configuration for
@@ -47,7 +66,7 @@ class FlextCliServiceBase(s[Mapping[str, object]]):
             Runtime bootstrap options with config_type set to FlextCliSettings
 
         """
-        return m.RuntimeBootstrapOptions(config_type=FlextCliSettings)
+        return _CliRuntimeBootstrapOptions()
 
     @staticmethod
     def get_cli_config() -> FlextCliSettings:

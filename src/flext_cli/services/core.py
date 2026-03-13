@@ -118,7 +118,7 @@ class FlextCliCore(FlextCliServiceBase):
             "Initialized CLI core service",
             operation="__init__",
             has_config=config is not None,
-            config_keys=list(config_dict.keys()) if config_dict else None,
+            config_keys=str(list(config_dict.keys()) if config_dict else []),
             commands_count=0,
             plugins_count=0,
             sessions_count=0,
@@ -225,7 +225,7 @@ class FlextCliCore(FlextCliServiceBase):
                 FlextLogger(__name__).warning(
                     "No active session to end",
                     operation="end_session",
-                    existing_sessions=list(self._sessions.keys()),
+                    existing_sessions=str(list(self._sessions.keys())),
                     consequence="Session end will fail",
                 )
                 return r[bool].fail(c.Cli.ErrorMessages.NO_ACTIVE_SESSION)
@@ -368,7 +368,7 @@ class FlextCliCore(FlextCliServiceBase):
         """
         self._with_operation_context(
             operation_name=f"{c.Cli.CoreServiceDefaults.CLI_COMMAND_PREFIX}{command_name}",
-            user_id=user_id,
+            user_id=user_id or "",
             **context_data,
         )
         self._enrich_context(
@@ -462,7 +462,7 @@ class FlextCliCore(FlextCliServiceBase):
                 "Command not found in registry",
                 operation="get_command",
                 command_name=name,
-                available_commands=list(self._commands.keys()),
+                available_commands=str(list(self._commands.keys())),
                 consequence="Command retrieval will fail",
             )
             return r[m.Configuration].fail(
@@ -480,7 +480,7 @@ class FlextCliCore(FlextCliServiceBase):
                 "Command definition retrieved successfully",
                 operation="get_command",
                 command_name=name,
-                definition_keys=list(command_def.keys()),
+                definition_keys=str(list(command_def.keys())),
             )
             snapshot_config: dict[str, object] = {
                 str(key): value for key, value in command_def.items()
@@ -582,7 +582,7 @@ class FlextCliCore(FlextCliServiceBase):
                     "Retrieving CLI configuration",
                     operation="get_configuration",
                     config_type=type(self._cli_config).__name__,
-                    config_keys=list(self._cli_config.keys()),
+                    config_keys=str(list(self._cli_config.keys())),
                 )
                 if not self._cli_config:
                     FlextLogger(__name__).warning(
@@ -596,7 +596,7 @@ class FlextCliCore(FlextCliServiceBase):
                 FlextLogger(__name__).debug(
                     "Configuration retrieved successfully",
                     operation="get_configuration",
-                    config_keys=list(self._cli_config.keys()),
+                    config_keys=str(list(self._cli_config.keys())),
                 )
                 FlextLogger(__name__).info(
                     "Configuration retrieval completed", operation="get_configuration"
@@ -706,7 +706,7 @@ class FlextCliCore(FlextCliServiceBase):
             FlextLogger(__name__).warning(
                 "No active session for statistics collection",
                 operation="get_session_statistics",
-                existing_sessions=list(self._sessions.keys()),
+                existing_sessions=str(list(self._sessions.keys())),
                 consequence="Statistics collection will fail",
             )
             return r[Mapping[str, object]].fail(c.Cli.ErrorMessages.NO_ACTIVE_SESSION)
@@ -818,7 +818,7 @@ class FlextCliCore(FlextCliServiceBase):
                     "Command names extracted successfully",
                     operation="list_commands",
                     commands_count=len(command_names),
-                    command_names=command_names,
+                    command_names=str(command_names),
                 )
                 FlextLogger(__name__).info(
                     "Command listing completed",
@@ -859,13 +859,13 @@ class FlextCliCore(FlextCliServiceBase):
         """
         FlextLogger(__name__).debug(
             "Starting CLI command registration",
-            command_name=command.name if command else None,
-            command_type=type(command).__name__ if command else None,
+            command_name=command.name,
+            command_type=type(command).__name__,
             operation="register_command",
         )
         FlextLogger(__name__).info(
             "STARTING CLI command registration",
-            command_name=command.name if command else None,
+            command_name=command.name,
             operation="register_command",
         )
         if not command.name:
@@ -892,7 +892,7 @@ class FlextCliCore(FlextCliServiceBase):
             FlextLogger(__name__).debug(
                 "Command registration completed successfully",
                 command_name=command.name,
-                command_data_keys=list(command_data.keys()),
+                command_data_keys=str(list(command_data.keys())),
                 registry_size=len(self._commands),
                 operation="register_command",
             )
@@ -972,8 +972,8 @@ class FlextCliCore(FlextCliServiceBase):
         FlextLogger(__name__).info(
             "Updating CLI configuration",
             operation="update_configuration",
-            config_keys=list(config.keys()),
-            current_config_keys=list(self._cli_config.keys()),
+            config_keys=str(list(config.keys())),
+            current_config_keys=str(list(self._cli_config.keys())),
         )
         FlextLogger(__name__).debug(
             "Starting configuration update",
@@ -996,7 +996,7 @@ class FlextCliCore(FlextCliServiceBase):
         self, context: Mapping[str, object] | list[str] | None
     ) -> Mapping[str, object]:
         """Build execution context via ExecutionContextInput model (single Pydantic contract)."""
-        ctx_input = m.Cli.ExecutionContextInput(context)
+        ctx_input = m.Cli.ExecutionContextInput.model_validate(context)
 
         def list_processor(seq: Sequence[str]) -> list[object]:
             process_result = FlextCliUtilities.process(
@@ -1018,7 +1018,7 @@ class FlextCliCore(FlextCliServiceBase):
             FlextLogger(__name__).debug(
                 "Merging configurations",
                 operation="update_configuration",
-                new_config_keys=list(valid_config.keys()),
+                new_config_keys=str(list(valid_config.keys())),
             )
             existing_config_result = self._validate_existing_config()
             if existing_config_result.is_failure:
@@ -1054,7 +1054,7 @@ class FlextCliCore(FlextCliServiceBase):
             FlextLogger(__name__).debug(
                 "Configuration merged successfully",
                 operation="update_configuration",
-                merged_keys=list(self._cli_config.keys()),
+                merged_keys=str(list(self._cli_config.keys())),
             )
             self._log_config_update()
             FlextLogger(__name__).info(
@@ -1095,7 +1095,7 @@ class FlextCliCore(FlextCliServiceBase):
         FlextLogger(__name__).debug(
             "Configuration input validated",
             operation="update_configuration",
-            config_keys=list(config.keys()),
+            config_keys=str(list(config.keys())),
         )
         json_config = FlextCliOutput.to_dict_json(config)
         normalized_json_config: dict[str, object] = {

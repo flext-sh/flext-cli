@@ -112,10 +112,11 @@ class FlextCliCommands(FlextCliServiceBase):
             return r[FlextCliCommandGroup].fail(
                 "Commands are required for group creation"
             )
-        group = FlextCliCommandGroup({
+        group_commands: dict[str, object] = dict(commands)
+        group = FlextCliCommandGroup.model_validate({
             "name": name,
             "description": description,
-            "commands": commands,
+            "commands": group_commands,
         })
         self._groups[name] = group
         return r[FlextCliCommandGroup].ok(group)
@@ -208,10 +209,11 @@ class FlextCliCommands(FlextCliServiceBase):
             Use FlextCliCli for actual Click integration.
 
         """
-        return FlextCliCommandGroup({
+        group_commands: dict[str, object] = dict(self._commands)
+        return FlextCliCommandGroup.model_validate({
             "name": self._name,
             "description": self._description,
-            "commands": self._commands,
+            "commands": group_commands,
         })
 
     def get_commands(self) -> Mapping[str, FlextCliCommandEntryModel]:

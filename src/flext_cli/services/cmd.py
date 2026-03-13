@@ -122,7 +122,7 @@ class FlextCliCmd(FlextCliServiceBase):
                     )
                 )
             try:
-                config_model = m.Cli.CmdConfig(load_result.value)
+                config_model = m.Cli.CmdConfig.model_validate(load_result.value)
             except (
                 ValueError,
                 TypeError,
@@ -132,7 +132,9 @@ class FlextCliCmd(FlextCliServiceBase):
                 LiveError,
             ) as e:
                 self.logger.debug(
-                    "edit_config model_validate fallback: %s", e, exc_info=False
+                    "edit_config model_validate fallback",
+                    error=e,
+                    exc_info=False,
                 )
                 return r[str].fail(
                     FlextCliConstants.Cli.CmdErrorMessages.CONFIG_NOT_DICT

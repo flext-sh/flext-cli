@@ -37,6 +37,7 @@ from rich.errors import ConsoleError, LiveError, StyleError
 from typer.models import OptionInfo
 
 from flext_cli import c, p
+from flext_cli.typings import FlextCliTypes
 
 _logger = FlextLogger(__name__)
 
@@ -779,7 +780,7 @@ class FlextCliModels(FlextModels):
                 """
                 # Entity handles timestamp initialization via its own model_post_init
 
-            def _copy_with_update(self, **updates: t.Scalar) -> Self:
+            def _copy_with_update(self, **updates: FlextCliTypes.Scalar) -> Self:
                 """Helper method for model_copy with updates - reduces repetition.
 
                 Composition pattern: centralizes model_copy logic for reuse.
@@ -938,7 +939,7 @@ class FlextCliModels(FlextModels):
                         .map(lambda _unused: cls.model_construct(name="invalid"))
                     )
                 try:
-                    command = cls(data)
+                    command = cls.model_validate(data)
                     return r[FlextCliModels.Cli.CliCommand].ok(command)
                 except (
                     ValueError,
@@ -1017,7 +1018,7 @@ class FlextCliModels(FlextModels):
 
             def with_args(self, args: Sequence[str]) -> Self:
                 """Return copy with new arguments."""
-                return self._copy_with_update(args=list(args))
+                return self.model_copy(update={"args": list(args)})
 
             def with_status(self, status: str) -> Self:
                 """Return copy with new status.
@@ -1118,7 +1119,9 @@ class FlextCliModels(FlextModels):
                 """Add command to session."""
                 try:
                     updated_commands = list(self.commands) + [command]
-                    updated_session = self._copy_with_update(commands=updated_commands)
+                    updated_session = self.model_copy(
+                        update={"commands": tuple(updated_commands)}
+                    )
                     return r[Self].ok(updated_session)
                 except (
                     ValueError,
@@ -1173,7 +1176,7 @@ class FlextCliModels(FlextModels):
                 """
                 # Entity handles timestamp initialization via its own model_post_init
 
-            def _copy_with_update(self, **updates: t.Scalar) -> Self:
+            def _copy_with_update(self, **updates: FlextCliTypes.Scalar) -> Self:
                 """Helper method for model_copy with updates - reduces repetition.
 
                 Composition pattern: centralizes model_copy logic for reuse.
@@ -2011,7 +2014,7 @@ class FlextCliModels(FlextModels):
                         self.system_info
                     )
                 except ValidationError as e:
-                    _logger.debug("system_info mask failed: %s", e)
+                    _logger.debug("system_info mask failed", error=e)
 
                 # Apply masking to system_dict
                 masked_system_dict: dict[str, object] = {
@@ -2030,7 +2033,7 @@ class FlextCliModels(FlextModels):
                         self.config_info
                     )
                 except ValidationError as e:
-                    _logger.debug("config_info not valid as dict, using empty: %s", e)
+                    _logger.debug("config_info not valid as dict, using empty", error=e)
 
                 # Apply masking to config_dict
                 masked_config_dict: dict[str, object] = {
@@ -2883,7 +2886,7 @@ class FlextCliModels(FlextModels):
 
                 def command_wrapper(
                     *args: object,
-                    **kwargs: t.Scalar,
+                    **kwargs: FlextCliTypes.Scalar,
                 ) -> object:
                     try:
                         bound_arguments = command_signature.bind(*args, **kwargs)
@@ -2891,7 +2894,7 @@ class FlextCliModels(FlextModels):
                         msg = f"Invalid command arguments: {ex}"
                         raise RuntimeError(msg) from ex
 
-                    model_instance = self.model_class(
+                    model_instance = self.model_class.model_validate(
                         dict(bound_arguments.arguments),
                     )
                     if self.config is not None:
@@ -2900,7 +2903,8 @@ class FlextCliModels(FlextModels):
                                 object.__setattr__(self.config, fn, value)
                             except (AttributeError, TypeError) as ex:
                                 _logger.debug(
-                                    "Could not set builder_config.%s: %s", fn, ex
+                                    f"Could not set builder_config.{fn}",
+                                    error=ex,
                                 )
                     if callable(self.handler):
                         return self.handler(model_instance)
@@ -2914,7 +2918,7 @@ class FlextCliModels(FlextModels):
                 # TypeGuard narrows command_wrapper to Callable[..., object] for dynamic exec result
                 def typed_wrapper(
                     *args: object,
-                    **kwargs: t.Scalar,
+                    **kwargs: FlextCliTypes.Scalar,
                 ) -> object:
                     raw_result = command_wrapper(*args, **kwargs)
                     normalized = (
@@ -3223,7 +3227,7 @@ class FlextCliModels(FlextModels):
                     raise TypeError(msg) from exc
 
                 try:
-                    schema_dict = dict_adapter.validate_python(
+                    schema_dict = _DICT_STR_OBJECT_ADAPTER.validate_python(
                         json_schema_extra,
                         strict=True,
                     )
@@ -3578,8 +3582,8 @@ class FlextCliModels(FlextModels):
                     return r[object].ok(json_value)
                 except ValidationError as exc:
                     _logger.debug(
-                        "convert_field_value validation fallback: %s",
-                        exc,
+                        "convert_field_value validation fallback",
+                        error=exc,
                         exc_info=False,
                     )
                     return r[object].ok(str(field_value))
@@ -3647,7 +3651,7 @@ class FlextCliModels(FlextModels):
                 ) -> p.Cli.CliCommandWrapper:
                     def wrapper(
                         *_args: object,
-                        **kwargs: t.Scalar,
+                        **kwargs: FlextCliTypes.Scalar,
                     ) -> object:
                         try:
                             # Create model instance from kwargs
@@ -3697,7 +3701,7 @@ class FlextCliModels(FlextModels):
                 ) -> p.Cli.CliCommandWrapper:
                     def wrapper(
                         *_args: object,
-                        **kwargs: t.Scalar,
+                        **kwargs: FlextCliTypes.Scalar,
                     ) -> object:
                         try:
                             model_instances: list[BaseModel] = []

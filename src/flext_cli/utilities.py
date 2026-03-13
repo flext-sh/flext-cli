@@ -497,10 +497,10 @@ class FlextCliUtilities(FlextUtilities):
                             continue
                         value = parsed[key]
                         if isinstance(value, str):
-                            parsed_enum = FlextUtilities.Enum.parse(enum_cls, value)
-                            if parsed_enum.is_success:
-                                parsed[key] = parsed_enum.value.value
-                            else:
+                            try:
+                                parsed_enum = enum_cls(value)
+                                parsed[key] = parsed_enum.value
+                            except ValueError:
                                 errors.append(f"{key}: '{value}'")
                         else:
                             continue
@@ -541,7 +541,7 @@ class FlextCliUtilities(FlextUtilities):
                 ) -> r[M]:
                     """Create model instance from dictionary."""
                     try:
-                        instance = model_cls(data, strict=strict)
+                        instance = model_cls.model_validate(data, strict=strict)
                         return r[M].ok(instance)
                     except ValidationError as exc:
                         return r[M].fail(f"Model validation failed: {exc}")
