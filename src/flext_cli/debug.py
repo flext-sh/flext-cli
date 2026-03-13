@@ -71,15 +71,6 @@ class FlextCliDebug(FlextCliServiceBase):
         return model
 
     @staticmethod
-    def _convert_result_to_json_value(
-        result: r[Mapping[str, object]],
-    ) -> object:
-        """Convert r[JsonDict] to object."""
-        if result.is_success:
-            return result.value
-        return result.error or "Unknown error"
-
-    @staticmethod
     def _get_environment_info() -> m.Cli.EnvironmentInfo:
         """Get environment variables with sensitive data masked as Pydantic model."""
 
@@ -388,9 +379,7 @@ class FlextCliDebug(FlextCliServiceBase):
         method = getattr(self, method_name)
         result = method()
         if result.is_success:
-            info_dict[error_key.replace("_ERROR", "")] = (
-                FlextCliDebug._convert_result_to_json_value(result)
-            )
+            info_dict[error_key.replace("_ERROR", "")] = result.value
         else:
             info_dict[error_key] = result.error or "Unknown error"
 
