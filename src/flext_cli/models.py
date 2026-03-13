@@ -84,6 +84,7 @@ class FlextCliModels(FlextModels):
         def is_sequence_like(
             obj: object,
         ) -> TypeGuard[Sequence[object]]:
+            """Narrow object to non-string Sequence for JSON normalization."""
             return isinstance(obj, Sequence) and not isinstance(obj, (str, bytes))
 
         @staticmethod

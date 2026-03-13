@@ -9,7 +9,7 @@ import os
 import shutil
 import tempfile
 import zipfile
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable, Mapping
 from pathlib import Path
 from typing import TextIO, TypeGuard
 
@@ -17,18 +17,14 @@ import yaml
 from flext_core import r
 from pydantic import TypeAdapter, ValidationError
 
-_JSON_OBJECT_ADAPTER: TypeAdapter[object] = TypeAdapter(object)
-
 from flext_cli import c, m, t, u
+
+_JSON_OBJECT_ADAPTER: TypeAdapter[object] = TypeAdapter(object)
 
 
 def _is_json_mapping(value: object) -> TypeGuard[Mapping[str, object]]:
     """Narrow object to mapping for structured file load."""
     return isinstance(value, Mapping)
-
-
-def _is_sequence_object(value: object) -> TypeGuard[Sequence[object]]:
-    return isinstance(value, Sequence) and not isinstance(value, (str, bytes))
 
 
 class FlextCliFileTools:
@@ -496,9 +492,6 @@ class FlextCliFileTools:
         file_path: str | Path,
         data: object | m.Cli.DisplayData,
         indent: int = 2,
-        *,
-        sort_keys: bool = False,
-        ensure_ascii: bool = True,
     ) -> r[bool]:
         payload: object = data.data if isinstance(data, m.Cli.DisplayData) else data
         return FlextCliFileTools._write_structured_file(
