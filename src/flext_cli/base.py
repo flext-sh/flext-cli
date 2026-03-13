@@ -14,7 +14,7 @@ from abc import ABC
 from collections.abc import Mapping
 from typing import override
 
-from flext_core import p, s
+from flext_core import m, p, s
 
 from flext_cli import FlextCliSettings
 
@@ -48,12 +48,7 @@ class FlextCliServiceBase(s[Mapping[str, object]], ABC):
             Runtime bootstrap options with config_type set to FlextCliSettings
 
         """
-        options = super()._runtime_bootstrap_options()
-        model_copy = getattr(options, "model_copy", None)
-        if model_copy:
-            return model_copy(update={"config_type": FlextCliSettings})
-        options.config_type = FlextCliSettings
-        return options
+        return m.RuntimeBootstrapOptions(config_type=FlextCliSettings)
 
     @staticmethod
     def get_cli_config() -> FlextCliSettings:
