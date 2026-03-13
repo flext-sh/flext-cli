@@ -243,12 +243,12 @@ class TestsCliTypings:
         t_var = TypeVar("t_var")
         generic_type = Generic
 
-        class TestProtocol(Protocol):
+        class Test(Protocol):
             def method(self) -> str: ...
 
         assert t_var is not None
         assert generic_type is not None
-        assert TestProtocol is not None
+        assert Test is not None
         user_data: dict[str, object] = {"key": "value", "number": 42}
         user_list: list[dict[str, object]] = [user_data]
         assert isinstance(user_data, dict)
@@ -529,7 +529,7 @@ class TestsCliTypings:
         """Test type workflow integration with helpers."""
 
         @runtime_checkable
-        class TestProtocol(Protocol):
+        class Test(Protocol):
             def operation(self, data: list[str]) -> dict[str, object]: ...
 
         class Implementation:
@@ -542,7 +542,7 @@ class TestsCliTypings:
                 }
 
         impl = Implementation()
-        assert isinstance(impl, TestProtocol)
+        assert isinstance(impl, Test)
         test_data = ["str1", "str2"]
         result = impl.operation(test_data)
         assert result["processed"] == ["STR1", "STR2"]

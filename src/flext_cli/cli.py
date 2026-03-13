@@ -305,7 +305,7 @@ class FlextCliCli:
     @staticmethod
     def confirm(
         text: str,
-        config: p.Cli.ConfirmConfigProtocol | None = None,
+        config: p.Cli.ConfirmConfig | None = None,
         **kwargs: bool | str,
     ) -> r[bool]:
         """Confirm action with user."""
@@ -313,7 +313,7 @@ class FlextCliCli:
             kwargs_typed: dict[str, object] = dict(kwargs)
             config = FlextCliCli._build_confirm_config_from_kwargs(kwargs_typed)
         if not hasattr(config, "default"):
-            msg = "confirm config must implement ConfirmConfigProtocol"
+            msg = "confirm config must implement ConfirmConfig"
             raise TypeError(msg)
         try:
             result = typer.confirm(

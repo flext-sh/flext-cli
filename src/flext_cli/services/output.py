@@ -98,7 +98,7 @@ class FlextCliOutput:
     ] = {}
 
     @property
-    def console(self) -> p.Cli.Display.RichConsoleProtocol:
+    def console(self) -> p.Cli.Display.RichConsole:
         """Get the console instance from FlextCliFormatters (property form).
 
         Returns:
@@ -111,7 +111,7 @@ class FlextCliOutput:
         """
         concrete_console = FlextCliFormatters().console
         if not self._is_rich_console_protocol(concrete_console):
-            msg = "concrete_console must implement RichConsoleProtocol"
+            msg = "concrete_console must implement RichConsole"
             raise TypeError(msg)
         return concrete_console
 
@@ -172,15 +172,15 @@ class FlextCliOutput:
     @staticmethod
     def _is_rich_console_protocol(
         obj: Console,
-    ) -> TypeGuard[p.Cli.Display.RichConsoleProtocol]:
-        """Type guard to check if object implements RichConsoleProtocol."""
+    ) -> TypeGuard[p.Cli.Display.RichConsole]:
+        """Type guard to check if object implements RichConsole."""
         return hasattr(obj, "print") and hasattr(obj, "rule")
 
     @staticmethod
     def _is_rich_progress_protocol(
         obj: Progress,
-    ) -> TypeGuard[p.Cli.Interactive.RichProgressProtocol]:
-        """Type guard to check if object implements RichProgressProtocol."""
+    ) -> TypeGuard[p.Cli.Interactive.RichProgress]:
+        """Type guard to check if object implements RichProgress."""
         return (
             hasattr(obj, "__enter__")
             and hasattr(obj, "__exit__")
@@ -190,9 +190,9 @@ class FlextCliOutput:
 
     @staticmethod
     def _is_rich_table_protocol(
-        obj: RichTable | p.Cli.Display.RichTableProtocol,
-    ) -> TypeGuard[p.Cli.Display.RichTableProtocol]:
-        """Type guard to check if object implements RichTableProtocol."""
+        obj: RichTable | p.Cli.Display.RichTable,
+    ) -> TypeGuard[p.Cli.Display.RichTable]:
+        """Type guard to check if object implements RichTable."""
         return (
             hasattr(obj, "add_column")
             and hasattr(obj, "add_row")
@@ -202,8 +202,8 @@ class FlextCliOutput:
     @staticmethod
     def _is_rich_tree_protocol(
         obj: object,
-    ) -> TypeGuard[p.Cli.Display.RichTreeProtocol]:
-        """Type guard to check if object implements RichTreeProtocol."""
+    ) -> TypeGuard[p.Cli.Display.RichTree]:
+        """Type guard to check if object implements RichTree."""
         return hasattr(obj, "add") and hasattr(obj, "label")
 
     @staticmethod
@@ -338,7 +338,7 @@ class FlextCliOutput:
         headers: list[str] | None = None,
         table_format: str = c.Cli.TableFormats.SIMPLE,
         *,
-        config: p.Cli.TableConfigProtocol | None = None,
+        config: p.Cli.TableConfig | None = None,
     ) -> r[str]:
         """Create ASCII table using FlextCliTables.
 
@@ -591,11 +591,11 @@ class FlextCliOutput:
                 c.Cli.ErrorMessages.CREATE_FORMATTER_FAILED.format(error=e)
             )
 
-    def create_progress_bar(self) -> r[p.Cli.Interactive.RichProgressProtocol]:
+    def create_progress_bar(self) -> r[p.Cli.Interactive.RichProgress]:
         """Create a Rich progress bar using FlextCliFormatters.
 
         Returns:
-            r[RichProgressProtocol]: Rich Progress wrapped in Result
+            r[RichProgress]: Rich Progress wrapped in Result
 
         Example:
             >>> output = FlextCliOutput()
@@ -606,17 +606,17 @@ class FlextCliOutput:
         if result.is_success:
             progress_value = result.value
             if not self._is_rich_progress_protocol(progress_value):
-                msg = "progress_value must implement RichProgressProtocol"
+                msg = "progress_value must implement RichProgress"
                 raise TypeError(msg)
-            return r[p.Cli.Interactive.RichProgressProtocol].ok(progress_value)
-        return r[p.Cli.Interactive.RichProgressProtocol].fail(result.error or "")
+            return r[p.Cli.Interactive.RichProgress].ok(progress_value)
+        return r[p.Cli.Interactive.RichProgress].fail(result.error or "")
 
     def create_rich_table(
         self,
         data: list[dict[str, object]],
         title: str | None = None,
         headers: list[str] | None = None,
-    ) -> r[p.Cli.Display.RichTableProtocol]:
+    ) -> r[p.Cli.Display.RichTable]:
         """Create a Rich table from data using FlextCliFormatters.
 
         Args:
@@ -639,34 +639,32 @@ class FlextCliOutput:
 
         """
         if not data:
-            return r[p.Cli.Display.RichTableProtocol].fail(
-                c.Cli.ErrorMessages.NO_DATA_PROVIDED
-            )
+            return r[p.Cli.Display.RichTable].fail(c.Cli.ErrorMessages.NO_DATA_PROVIDED)
         try:
             headers_result = self._prepare_table_headers(data, headers)
             if headers_result.is_failure:
-                return r[p.Cli.Display.RichTableProtocol].fail(
+                return r[p.Cli.Display.RichTable].fail(
                     headers_result.error or "Failed to prepare headers"
                 )
             table_headers = headers_result.value
             table_result = self._initialize_rich_table(table_headers, title)
             if table_result.is_failure:
-                return r[p.Cli.Display.RichTableProtocol].fail(
+                return r[p.Cli.Display.RichTable].fail(
                     table_result.error or "Failed to initialize table"
                 )
             table = table_result.value
             populate_result = self._populate_table_rows(table, data, table_headers)
             if populate_result.is_failure:
-                return r[p.Cli.Display.RichTableProtocol].fail(
+                return r[p.Cli.Display.RichTable].fail(
                     populate_result.error or "Failed to populate table"
                 )
             if not self._is_rich_table_protocol(table):
-                msg = "table must implement RichTableProtocol"
+                msg = "table must implement RichTable"
                 raise TypeError(msg)
-            return r[p.Cli.Display.RichTableProtocol].ok(table)
+            return r[p.Cli.Display.RichTable].ok(table)
         except Exception as e:
             error_msg = c.Cli.ErrorMessages.CREATE_RICH_TABLE_FAILED.format(error=e)
-            return r[p.Cli.Display.RichTableProtocol].fail(error_msg)
+            return r[p.Cli.Display.RichTable].fail(error_msg)
 
     def display_data(
         self,
@@ -1132,7 +1130,7 @@ class FlextCliOutput:
             )
 
     def table_to_string(
-        self, table: p.Cli.Display.RichTableProtocol, width: int | None = None
+        self, table: p.Cli.Display.RichTable, width: int | None = None
     ) -> r[str]:
         """Convert table to string using FlextCliFormatters.
 
@@ -1468,23 +1466,23 @@ class FlextCliOutput:
 
     def _initialize_rich_table(
         self, headers: list[str], title: str | None = None
-    ) -> r[p.Cli.Display.RichTableProtocol]:
+    ) -> r[p.Cli.Display.RichTable]:
         """Initialize a Rich table with headers.
 
-        Uses RichTableProtocol from lower layer instead of object for better type safety.
+        Uses RichTable from lower layer instead of object for better type safety.
         """
         table_result = FlextCliFormatters().create_table(
             data=None, headers=headers, title=title
         )
         if table_result.is_failure:
-            return r[p.Cli.Display.RichTableProtocol].fail(
+            return r[p.Cli.Display.RichTable].fail(
                 f"Failed to create Rich table: {table_result.error}"
             )
         table_value = table_result.value
         if self._is_rich_table_protocol(table_value):
-            return r[p.Cli.Display.RichTableProtocol].ok(table_value)
-        return r[p.Cli.Display.RichTableProtocol].fail(
-            "Table value is not RichTableProtocol compatible"
+            return r[p.Cli.Display.RichTable].ok(table_value)
+        return r[p.Cli.Display.RichTable].fail(
+            "Table value is not RichTable compatible"
         )
 
     def _iterate_mapping(self, data: object) -> list[object]:
@@ -1511,13 +1509,13 @@ class FlextCliOutput:
 
     def _populate_table_rows(
         self,
-        table: p.Cli.Display.RichTableProtocol,
+        table: p.Cli.Display.RichTable,
         data: list[dict[str, object]],
         headers: list[str],
     ) -> r[bool]:
         """Add columns and rows to table.
 
-        Uses RichTableProtocol from lower layer instead of object for better type safety.
+        Uses RichTable from lower layer instead of object for better type safety.
         """
         u.Cli.process(
             headers, processor=lambda h: table.add_column(str(h)), on_error="skip"

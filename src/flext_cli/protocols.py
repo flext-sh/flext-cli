@@ -20,7 +20,7 @@ class FlextCliProtocols(FlextProtocols):
             """Rich display abstraction protocols - NO IMPORTS of Rich classes."""
 
             @runtime_checkable
-            class RichTableProtocol(Protocol):
+            class RichTable(Protocol):
                 """Protocol for Rich Table objects."""
 
                 def add_column(self, header: str, **kwargs: t.Scalar) -> None:
@@ -32,17 +32,17 @@ class FlextCliProtocols(FlextProtocols):
                     ...
 
             @runtime_checkable
-            class RichTreeProtocol(Protocol):
+            class RichTree(Protocol):
                 """Protocol for Rich Tree objects."""
 
                 def add(
                     self, label: str, **kwargs: t.Scalar
-                ) -> FlextCliProtocols.Cli.Display.RichTreeProtocol:
+                ) -> FlextCliProtocols.Cli.Display.RichTree:
                     """Add a branch to the tree."""
                     ...
 
             @runtime_checkable
-            class RichConsoleProtocol(Protocol):
+            class RichConsole(Protocol):
                 """Protocol for Rich Console objects."""
 
                 def print(
@@ -55,7 +55,7 @@ class FlextCliProtocols(FlextProtocols):
             """Interactive display abstraction protocols."""
 
             @runtime_checkable
-            class RichProgressProtocol(Protocol):
+            class RichProgress(Protocol):
                 """Protocol for Rich Progress objects."""
 
                 def __enter__(self) -> Self:
@@ -185,7 +185,7 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
         @runtime_checkable
-        class CliSessionProtocol(Protocol):
+        class CliSession(Protocol):
             """Protocol for CLI session models."""
 
             @property
@@ -300,7 +300,7 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
         @runtime_checkable
-        class CliLoggingDataProtocol(Protocol):
+        class CliLoggingData(Protocol):
             """Protocol for CLI logging summary data matching m.Cli.CliLoggingData."""
 
             @property
@@ -314,7 +314,7 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
         @runtime_checkable
-        class CliParameterSpecProtocol(Protocol):
+        class CliParameterSpec(Protocol):
             """Protocol for CLI parameter specification matching m.Cli.CliParameterSpec."""
 
             @property
@@ -348,7 +348,7 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
         @runtime_checkable
-        class OptionConfigProtocol(Protocol):
+        class OptionConfig(Protocol):
             """Protocol for CLI option configuration matching m.Cli.OptionConfig."""
 
             @property
@@ -397,7 +397,7 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
         @runtime_checkable
-        class ConfirmConfigProtocol(Protocol):
+        class ConfirmConfig(Protocol):
             """Protocol for CLI confirmation configuration."""
 
             @property
@@ -426,7 +426,7 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
         @runtime_checkable
-        class PromptConfigProtocol(Protocol):
+        class PromptConfig(Protocol):
             """Protocol for CLI prompt configuration."""
 
             @property
@@ -475,7 +475,7 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
         @runtime_checkable
-        class TableConfigProtocol(Protocol):
+        class TableConfig(Protocol):
             """Protocol for CLI table configuration."""
 
             @property
@@ -489,7 +489,7 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
         @runtime_checkable
-        class CliParamsConfigProtocol(Protocol):
+        class CliParamsConfig(Protocol):
             """Protocol for CLI parameters configuration."""
 
             @property
@@ -538,7 +538,7 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
         @runtime_checkable
-        class SystemInfoProtocol(Protocol):
+        class SystemInfo(Protocol):
             """Protocol for system information models."""
 
             @property
@@ -567,7 +567,7 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
         @runtime_checkable
-        class EnvironmentInfoProtocol(Protocol):
+        class EnvironmentInfo(Protocol):
             """Protocol for environment information models."""
 
             @property
@@ -576,7 +576,7 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
         @runtime_checkable
-        class PathInfoProtocol(Protocol):
+        class PathInfo(Protocol):
             """Protocol for path information models."""
 
             @property
@@ -671,7 +671,7 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
         @runtime_checkable
-        class CliContextProtocol(Protocol):
+        class CliContext(Protocol):
             """Protocol for CLI execution context."""
 
             @property
@@ -692,7 +692,7 @@ class FlextCliProtocols(FlextProtocols):
             params: Mapping[str, object]
 
         @runtime_checkable
-        class CliOutputProtocol(Protocol):
+        class CliOutput(Protocol):
             """Protocol for CLI output handling."""
 
             def write(self, text: str) -> None:
@@ -725,11 +725,11 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
         @runtime_checkable
-        class CliServiceProtocol(Protocol):
+        class CliService(Protocol):
             """Protocol for CLI services."""
 
             def initialize(
-                self, context: FlextCliProtocols.Cli.CliContextProtocol
+                self, context: FlextCliProtocols.Cli.CliContext
             ) -> FlextProtocols.Result[bool]:
                 """Initialize the service."""
                 ...
@@ -743,7 +743,7 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
         @runtime_checkable
-        class CommandServiceProtocol(Protocol):
+        class CommandService(Protocol):
             """Protocol for command processing services."""
 
             def get_command(
@@ -765,7 +765,7 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
         @runtime_checkable
-        class OutputServiceProtocol(Protocol):
+        class OutputService(Protocol):
             """Protocol for output formatting services."""
 
             def format_json(self, data: object) -> FlextProtocols.Result[str]:
@@ -783,7 +783,7 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
         @runtime_checkable
-        class CliHandlerProtocol(Protocol):
+        class CliHandler(Protocol):
             """Protocol for CLI request handlers."""
 
             def can_handle(self, args: Sequence[str]) -> bool:
@@ -793,14 +793,14 @@ class FlextCliProtocols(FlextProtocols):
             def handle(
                 self,
                 args: Sequence[str],
-                context: FlextCliProtocols.Cli.CliContextProtocol,
-                output: FlextCliProtocols.Cli.CliOutputProtocol,
+                context: FlextCliProtocols.Cli.CliContext,
+                output: FlextCliProtocols.Cli.CliOutput,
             ) -> FlextProtocols.Result[int]:
                 """Handle the CLI request."""
                 ...
 
         @runtime_checkable
-        class ErrorHandlerProtocol(Protocol):
+        class ErrorHandler(Protocol):
             """Protocol for error handling."""
 
             def get_exit_code(self, error: Exception) -> int:
@@ -820,7 +820,7 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
         @runtime_checkable
-        class TableStyleProtocol(Protocol):
+        class TableStyle(Protocol):
             """Protocol for table style configuration."""
 
             @property
@@ -839,14 +839,14 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
         @runtime_checkable
-        class MiddlewareProtocol(Protocol):
+        class Middleware(Protocol):
             """Middleware protocol for CLI commands."""
 
             def __call__(
                 self,
-                ctx: FlextCliProtocols.Cli.CliContextProtocol,
+                ctx: FlextCliProtocols.Cli.CliContext,
                 next_: Callable[
-                    [FlextCliProtocols.Cli.CliContextProtocol],
+                    [FlextCliProtocols.Cli.CliContext],
                     FlextProtocols.Result[object],
                 ],
             ) -> FlextProtocols.Result[object]:
@@ -854,7 +854,7 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
         @runtime_checkable
-        class CliAppProtocol(Protocol):
+        class CliApp(Protocol):
             """Protocol for CLI application base classes.
 
             Structural interface extracted from FlextCliAppBase ABC.

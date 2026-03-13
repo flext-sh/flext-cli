@@ -77,7 +77,7 @@ class FlextCliCommonParams:
 
     @classmethod
     def _apply_param_setters(
-        cls, config: FlextCliSettings, params: p.Cli.CliParamsConfigProtocol
+        cls, config: FlextCliSettings, params: p.Cli.CliParamsConfig
     ) -> r[FlextCliSettings]:
         """Apply all parameter setter stages to config."""
         bool_result = cls._set_bool_params(config, params)
@@ -112,7 +112,7 @@ class FlextCliCommonParams:
     @classmethod
     def _resolve_params(
         cls,
-        params: p.Cli.CliParamsConfigProtocol | None,
+        params: p.Cli.CliParamsConfig | None,
         kwargs: Mapping[str, bool | str | None],
     ) -> m.Cli.CliParamsConfig:
         """Resolve explicit params or build from kwargs (returns Pydantic model)."""
@@ -126,7 +126,7 @@ class FlextCliCommonParams:
 
     @classmethod
     def _set_bool_params(
-        cls, config: FlextCliSettings, params: p.Cli.CliParamsConfigProtocol
+        cls, config: FlextCliSettings, params: p.Cli.CliParamsConfig
     ) -> r[bool]:
         """Set boolean parameters with validation via model_copy."""
         if params.trace is not None and params.trace:
@@ -146,7 +146,7 @@ class FlextCliCommonParams:
 
     @classmethod
     def _set_format_params(
-        cls, config: FlextCliSettings, params: p.Cli.CliParamsConfigProtocol
+        cls, config: FlextCliSettings, params: p.Cli.CliParamsConfig
     ) -> r[FlextCliSettings]:
         """Set log_format and output_format with validation."""
         if params.log_format is not None:
@@ -168,7 +168,7 @@ class FlextCliCommonParams:
 
     @classmethod
     def _set_log_level(
-        cls, config: FlextCliSettings, params: p.Cli.CliParamsConfigProtocol
+        cls, config: FlextCliSettings, params: p.Cli.CliParamsConfig
     ) -> r[FlextCliSettings]:
         """Set cli_log_level with enum conversion."""
         if params.log_level is None:
@@ -186,7 +186,7 @@ class FlextCliCommonParams:
     def apply_to_config(
         cls,
         config: FlextCliSettings,
-        params: p.Cli.CliParamsConfigProtocol | None = None,
+        params: p.Cli.CliParamsConfig | None = None,
         **kwargs: bool | str | None,
     ) -> r[FlextCliSettings]:
         """Apply CLI parameter values to FlextSettings using Pydantic validation.

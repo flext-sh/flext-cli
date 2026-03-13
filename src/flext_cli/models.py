@@ -1697,7 +1697,7 @@ class FlextCliModels(FlextModels):
 
             @property
             def params(self) -> Mapping[str, object]:
-                """Parameters mapping - required by CliParamsConfigProtocol."""
+                """Parameters mapping - required by CliParamsConfig."""
                 return {
                     "verbose": bool(self.verbose)
                     if self.verbose is not None
@@ -3069,7 +3069,7 @@ class FlextCliModels(FlextModels):
             def field_to_cli_param(
                 field_name: str,
                 field_info: FieldInfo | object,
-            ) -> r[p.Cli.CliParameterSpecProtocol]:
+            ) -> r[p.Cli.CliParameterSpec]:
                 """Convert Pydantic field to CLI parameter specification."""
                 try:
                     annotation = (
@@ -3088,7 +3088,7 @@ class FlextCliModels(FlextModels):
                         else ""
                     )
                     if annotation is None:
-                        return r[p.Cli.CliParameterSpecProtocol].fail(
+                        return r[p.Cli.CliParameterSpec].fail(
                             f"Field {field_name} has no type annotation",
                         )
                     field_type = annotation
@@ -3115,7 +3115,7 @@ class FlextCliModels(FlextModels):
                         default=default,
                         help_text=help_text,
                     )
-                    return r[p.Cli.CliParameterSpecProtocol].ok(spec)
+                    return r[p.Cli.CliParameterSpec].ok(spec)
                 except (
                     ValueError,
                     TypeError,
@@ -3124,7 +3124,7 @@ class FlextCliModels(FlextModels):
                     StyleError,
                     LiveError,
                 ) as e:
-                    return r[p.Cli.CliParameterSpecProtocol].fail(
+                    return r[p.Cli.CliParameterSpec].fail(
                         f"Field conversion failed: {e}"
                     )
 
@@ -3280,14 +3280,14 @@ class FlextCliModels(FlextModels):
             @staticmethod
             def model_to_cli_params(
                 model_cls: type[BaseModel],
-            ) -> r[list[p.Cli.CliParameterSpecProtocol]]:
+            ) -> r[list[p.Cli.CliParameterSpec]]:
                 """Convert Pydantic model to list of CLI parameter specifications."""
                 try:
 
                     def convert_field(
                         field_name: str,
                         field_info: FieldInfo,
-                    ) -> p.Cli.CliParameterSpecProtocol:
+                    ) -> p.Cli.CliParameterSpec:
                         """Convert single field to CliParameterSpec."""
                         field_type = field_info.annotation
                         # Extract non-None type from Optional/Union
@@ -3323,13 +3323,13 @@ class FlextCliModels(FlextModels):
                     try:
                         params_dict: dict[
                             str,
-                            p.Cli.CliParameterSpecProtocol,
+                            p.Cli.CliParameterSpec,
                         ] = {
                             field_name: convert_field(field_name, field_info)
                             for field_name, field_info in model_cls.model_fields.items()
                         }
                         params_list = list(params_dict.values())
-                        return r[list[p.Cli.CliParameterSpecProtocol]].ok(params_list)
+                        return r[list[p.Cli.CliParameterSpec]].ok(params_list)
                     except (
                         ValueError,
                         TypeError,
@@ -3338,7 +3338,7 @@ class FlextCliModels(FlextModels):
                         StyleError,
                         LiveError,
                     ) as e:
-                        return r[list[p.Cli.CliParameterSpecProtocol]].fail(
+                        return r[list[p.Cli.CliParameterSpec]].fail(
                             f"Conversion failed: {e}"
                         )
                 except (
@@ -3349,7 +3349,7 @@ class FlextCliModels(FlextModels):
                     StyleError,
                     LiveError,
                 ) as e:
-                    return r[list[p.Cli.CliParameterSpecProtocol]].fail(
+                    return r[list[p.Cli.CliParameterSpec]].fail(
                         f"Conversion failed: {e}"
                     )
 
@@ -3368,11 +3368,11 @@ class FlextCliModels(FlextModels):
                         params_result.error or "Conversion failed"
                     )
                 # After is_failure check, params_result.value is guaranteed to be the value
-                params: list[p.Cli.CliParameterSpecProtocol] = params_result.value
+                params: list[p.Cli.CliParameterSpec] = params_result.value
                 # Create Click option-like objects with option_name and param_decls
                 options: list[object] = []
                 for param in params:
-                    # Type narrowing: param is CliParameterSpecProtocol
+                    # Type narrowing: param is CliParameterSpec
                     # Create a simple object with option_name and param_decls attributes
                     option_name = f"--{param.field_name.replace('_', '-')}"
                     param_decls_list: object = [option_name]
@@ -3752,9 +3752,9 @@ class FlextCliModels(FlextModels):
             """
 
             # Reference protocol types (FlextCliModels.Cli.Display.*)
-            type RichTable = p.Cli.Display.RichTableProtocol
-            type RichTree = p.Cli.Display.RichTreeProtocol
-            type Console = p.Cli.Display.RichConsoleProtocol
+            type RichTable = p.Cli.Display.RichTable
+            type RichTree = p.Cli.Display.RichTree
+            type Console = p.Cli.Display.RichConsole
 
         class Interactive:
             """Interactive display type aliases using Protocols.
@@ -3764,7 +3764,7 @@ class FlextCliModels(FlextModels):
             """
 
             # Reference protocol types (FlextCliModels.Cli.Interactive.*)
-            type Progress = p.Cli.Interactive.RichProgressProtocol
+            type Progress = p.Cli.Interactive.RichProgress
 
 
 m = FlextCliModels

@@ -20,7 +20,7 @@ from rich.errors import ConsoleError, LiveError, StyleError
 
 from flext_cli import p
 
-FlextCliMiddlewareProtocol = p.Cli.MiddlewareProtocol
+FlextCliMiddleware = p.Cli.Middleware
 
 
 class FlextCliLoggingMiddleware:
@@ -28,8 +28,8 @@ class FlextCliLoggingMiddleware:
 
     def __call__(
         self,
-        ctx: p.Cli.CliContextProtocol,
-        next_: Callable[[p.Cli.CliContextProtocol], r[object]],
+        ctx: p.Cli.CliContext,
+        next_: Callable[[p.Cli.CliContext], r[object]],
     ) -> r[object]:
         """Log command execution.
 
@@ -63,8 +63,8 @@ class FlextCliValidationMiddleware:
 
     def __call__(
         self,
-        ctx: p.Cli.CliContextProtocol,
-        next_: Callable[[p.Cli.CliContextProtocol], r[object]],
+        ctx: p.Cli.CliContext,
+        next_: Callable[[p.Cli.CliContext], r[object]],
     ) -> r[object]:
         """Validate command inputs.
 
@@ -110,8 +110,8 @@ class FlextCliRetryMiddleware:
 
     def __call__(
         self,
-        ctx: p.Cli.CliContextProtocol,
-        next_: Callable[[p.Cli.CliContextProtocol], r[object]],
+        ctx: p.Cli.CliContext,
+        next_: Callable[[p.Cli.CliContext], r[object]],
     ) -> r[object]:
         """Retry failed commands.
 
@@ -140,9 +140,9 @@ class FlextCliMiddleware:
 
     @staticmethod
     def compose(
-        middlewares: list[FlextCliMiddlewareProtocol],
-        handler: Callable[[p.Cli.CliContextProtocol], p_core.Result[object]],
-    ) -> Callable[[p.Cli.CliContextProtocol], p_core.Result[object]]:
+        middlewares: list[FlextCliMiddleware],
+        handler: Callable[[p.Cli.CliContext], p_core.Result[object]],
+    ) -> Callable[[p.Cli.CliContext], p_core.Result[object]]:
         """Compose middleware into single callable.
 
         Args:
@@ -164,11 +164,11 @@ class FlextCliMiddleware:
 
         """
 
-        def composed(ctx: p.Cli.CliContextProtocol) -> p_core.Result[object]:
+        def composed(ctx: p.Cli.CliContext) -> p_core.Result[object]:
 
             def build_chain(
                 idx: int,
-            ) -> Callable[[p.Cli.CliContextProtocol], p_core.Result[object]]:
+            ) -> Callable[[p.Cli.CliContext], p_core.Result[object]]:
                 if idx >= len(middlewares):
                     return handler
                 current_middleware = middlewares[idx]
