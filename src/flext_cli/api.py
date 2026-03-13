@@ -204,7 +204,7 @@ class FlextCli:
             return self._authenticate_with_credentials(credentials)
         if c.Cli.DictKeys.TOKEN in credentials:
             token_data_result = u.try_(
-                lambda: m.Cli.TokenData.model_validate(dict(credentials))
+                lambda: m.Cli.TokenData(dict(credentials))
             ).map_error(str)
             if token_data_result.is_failure:
                 return r[str].fail(token_data_result.error or "")
@@ -214,7 +214,7 @@ class FlextCli:
             and c.Cli.DictKeys.PASSWORD in credentials
         ):
             password_auth_result = u.try_(
-                lambda: m.Cli.PasswordAuth.model_validate(dict(credentials))
+                lambda: m.Cli.PasswordAuth(dict(credentials))
             ).map_error(str)
             if password_auth_result.is_failure:
                 return r[str].fail(password_auth_result.error or "")
@@ -293,7 +293,7 @@ class FlextCli:
         if not data or (runtime.is_dict_like(data) and (not data)):
             return r[str].fail(c.Cli.ErrorMessages.TOKEN_FILE_EMPTY)
         try:
-            token_data = m.Cli.TokenData.model_validate(data)
+            token_data = m.Cli.TokenData(data)
             return r[str].ok(token_data.token)
         except ValidationError:
             token_result = u.extract(data, c.Cli.DictKeys.TOKEN, required=True)
@@ -348,7 +348,7 @@ class FlextCli:
         token_data: object = {c.Cli.DictKeys.TOKEN: token}
         write_result = self.file_tools.write_json_file(
             str(self.config.token_file),
-            m.Cli.DisplayData.model_validate({"data": token_data}),
+            m.Cli.DisplayData({"data": token_data}),
         )
         if write_result.is_failure:
             return r[bool].fail(

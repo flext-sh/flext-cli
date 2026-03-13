@@ -721,14 +721,14 @@ model.model_dump_json()  # JSON string (FASTEST)
 **Validation**:
 
 ```python
-CommandModel.model_validate(data)  # From dict
+CommandModel(data)  # From dict
 CommandModel.model_validate_json(json)  # From JSON (FAST)
 ```
 
 ### Forbidden Patterns
 
 - ❌ `class Config:` → Use `model_config = ConfigDict()`
-- ❌ `.dict()`, `.json()`, `parse_obj()` → Use `.model_dump()`, `.model_dump_json()`, `.model_validate()`
+- ❌ `.dict()`, `.json()`, `parse_obj()` → Use `.model_dump()`, `.model_dump_json()`, `()`
 - ❌ `@validator`, `@root_validator` → Use `@field_validator`, `@model_validator`
 
 ______________________________________________________________________
@@ -837,7 +837,7 @@ value = cast(str, data)
 if isinstance(data, str):
     value = data
 # or
-value = StringModel.model_validate(data)
+value = StringModel(data)
 ```
 
 ______________________________________________________________________

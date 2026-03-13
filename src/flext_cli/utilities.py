@@ -541,7 +541,7 @@ class FlextCliUtilities(FlextUtilities):
                 ) -> r[M]:
                     """Create model instance from dictionary."""
                     try:
-                        instance = model_cls.model_validate(data, strict=strict)
+                        instance = model_cls(data, strict=strict)
                         return r[M].ok(instance)
                     except ValidationError as exc:
                         return r[M].fail(f"Model validation failed: {exc}")

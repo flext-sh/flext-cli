@@ -105,7 +105,7 @@ class MyAppPluginManager:
                 result_value = getattr(raw, "value")
             else:
                 result_value = raw
-            normalized = m.Cli.CliNormalizedJson.model_validate(result_value).root
+            normalized = m.Cli.CliNormalizedJson(result_value).root
             return r[object].ok(normalized)
         except Exception as e:
             return r[object].fail(f"Plugin execution failed: {e}")

@@ -74,7 +74,7 @@ class FlextCliGettingStarted:
                 read_result.error or "Failed to load config"
             )
         return r[m.Cli.LoadedConfig].ok(
-            m.Cli.LoadedConfig.model_validate({"content": read_result.value})
+            m.Cli.LoadedConfig({"content": read_result.value})
         )
 
     def process_data_with_flext_result(self) -> None:

@@ -89,7 +89,7 @@ def show_config_locations() -> m.Cli.DisplayData:
         "Token File": str(token_file_path),
         "Token Exists": "Yes" if token_file_path.exists() else "No",
     }
-    display_payload = m.Cli.DisplayData.model_validate({"data": locations})
+    display_payload = m.Cli.DisplayData({"data": locations})
     display_config_table(
         cli=cli, config_data=display_payload, headers=["Location", "Path"]
     )
@@ -121,9 +121,7 @@ def load_profile_config(profile_name: str = "default") -> r[FlextCliSettings]:
         "Output": profile_config.output_format,
         "Environment": profile_config.environment,
     }
-    display_config_table(
-        cli=cli, config_data=m.Cli.DisplayData.model_validate({"data": profile_data})
-    )
+    display_config_table(cli=cli, config_data=m.Cli.DisplayData({"data": profile_data}))
     return r[FlextCliSettings].ok(profile_config)
 
 
@@ -254,7 +252,7 @@ def main() -> None:
         cli.print("Final Application Configuration", style="bold cyan")
         display_config_table(
             cli=cli,
-            config_data=m.Cli.DisplayData.model_validate({"data": final_config_data}),
+            config_data=m.Cli.DisplayData({"data": final_config_data}),
         )
     cli.print("\n" + "=" * 70, style="bold blue")
     cli.print("  ✅ Configuration Examples Complete", style="bold green")

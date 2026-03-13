@@ -22,10 +22,10 @@ def to_json_dict(
     data: Mapping[str, object],
 ) -> m.Cli.DisplayData:
     """Normalize config/mapping to DisplayData for create_table/display_config_table."""
-    normalized = m.Cli.CliNormalizedJson.model_validate(dict(data)).root
+    normalized = m.Cli.CliNormalizedJson(dict(data)).root
     resolved = m.Cli.NormalizedJsonDict(value=normalized, default={}).resolved
     result_dict: object = dict(resolved.items())
-    return m.Cli.DisplayData.model_validate({"data": result_dict})
+    return m.Cli.DisplayData({"data": result_dict})
 
 
 def print_demo_completion(

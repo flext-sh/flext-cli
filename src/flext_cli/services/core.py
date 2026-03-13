@@ -996,7 +996,7 @@ class FlextCliCore(FlextCliServiceBase):
         self, context: Mapping[str, object] | list[str] | None
     ) -> Mapping[str, object]:
         """Build execution context via ExecutionContextInput model (single Pydantic contract)."""
-        ctx_input = m.Cli.ExecutionContextInput.model_validate(context)
+        ctx_input = m.Cli.ExecutionContextInput(context)
 
         def list_processor(seq: Sequence[str]) -> list[object]:
             process_result = FlextCliUtilities.process(

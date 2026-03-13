@@ -89,9 +89,7 @@ def load_user_preferences(config_dir: Path) -> r[m.Cli.LoadedConfig]:
         )
 
     cli.print(f"✅ Loaded preferences from {config_file.name}", style="green")
-    return r[m.Cli.LoadedConfig].ok(
-        m.Cli.LoadedConfig.model_validate({"content": read_result.value})
-    )
+    return r[m.Cli.LoadedConfig].ok(m.Cli.LoadedConfig({"content": read_result.value}))
 
 
 # ============================================================================
@@ -132,7 +130,7 @@ def load_deployment_config(config_file: Path) -> r[m.Cli.LoadedConfig]:
 
     cli.print("✅ Loaded deployment config", style="green")
     return r[m.Cli.LoadedConfig].ok(
-        m.Cli.LoadedConfig.model_validate({"content": load_result.value}),
+        m.Cli.LoadedConfig({"content": load_result.value}),
     )
 
 
@@ -243,7 +241,7 @@ def validate_and_import_data(input_file: Path) -> r[m.Cli.LoadedConfig]:
 
     cli.print("✅ Data validated successfully", style="green")
     return r[m.Cli.LoadedConfig].ok(
-        m.Cli.LoadedConfig.model_validate({"content": data}),
+        m.Cli.LoadedConfig({"content": data}),
     )
 
 
@@ -411,7 +409,7 @@ def load_config_auto_detect(config_file: Path) -> r[m.Cli.LoadedConfig]:
     display_rows = [{"Key": k, "Value": str(v)} for k, v in data.items()]
     cli.show_table(display_rows, headers=["Key", "Value"], title="Loaded config")
     return r[m.Cli.LoadedConfig].ok(
-        m.Cli.LoadedConfig.model_validate({"content": data}),
+        m.Cli.LoadedConfig({"content": data}),
     )
 
 
@@ -556,7 +554,7 @@ def validate_and_transform_data(
         "validated": True,
     }
 
-    return m.Cli.LoadedConfig.model_validate({"content": transformed})
+    return m.Cli.LoadedConfig({"content": transformed})
 
 
 def generate_output_files(

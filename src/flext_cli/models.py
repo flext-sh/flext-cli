@@ -191,9 +191,7 @@ class FlextCliModels(FlextModels):
             @computed_field
             @property
             def normalized(self) -> object:
-                return FlextCliModels.Cli.CliNormalizedJson.model_validate(
-                    self.value
-                ).root
+                return FlextCliModels.Cli.CliNormalizedJson(self.value).root
 
         class _EnsureTypeRequest(BaseModel):
             """Single contract for ensure_str/ensure_bool. Delegates to TypedExtract."""
@@ -940,7 +938,7 @@ class FlextCliModels(FlextModels):
                         .map(lambda _unused: cls.model_construct(name="invalid"))
                     )
                 try:
-                    command = cls.model_validate(data)
+                    command = cls(data)
                     return r[FlextCliModels.Cli.CliCommand].ok(command)
                 except (
                     ValueError,
@@ -2893,7 +2891,7 @@ class FlextCliModels(FlextModels):
                         msg = f"Invalid command arguments: {ex}"
                         raise RuntimeError(msg) from ex
 
-                    model_instance = self.model_class.model_validate(
+                    model_instance = self.model_class(
                         dict(bound_arguments.arguments),
                     )
                     if self.config is not None:

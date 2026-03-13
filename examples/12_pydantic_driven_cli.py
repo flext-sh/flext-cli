@@ -168,7 +168,7 @@ def convert_and_validate_with_pydantic(
             "ssl_enabled": data.get("ssl_enabled", True),
             "connection_pool": data.get("connection_pool", 10),
         }
-        config = AdvancedDatabaseConfig.model_validate(raw)
+        config = AdvancedDatabaseConfig(raw)
         return r[AdvancedDatabaseConfig].ok(config)
     except Exception as e:
         return r[AdvancedDatabaseConfig].fail(f"Pydantic validation failed: {e}")
@@ -206,7 +206,7 @@ def main() -> None:
         "enable_cache": True,
         "timeout": 60,
     }
-    deploy_config = DeployConfig.model_validate(test_args)
+    deploy_config = DeployConfig(test_args)
     execute_deploy_from_cli(deploy_config)
     cli.print("\n" + "=" * 70, style="bold blue")
     show_common_cli_params()
@@ -221,7 +221,7 @@ def main() -> None:
         "timeout": 30,
     }
     try:
-        _ = DeployConfig.model_validate(invalid_args)
+        _ = DeployConfig(invalid_args)
     except Exception as e:
         cli.print(f"   Caught validation error: {e}", style="yellow")
     cli.print(
@@ -231,9 +231,7 @@ def main() -> None:
     if db_config_result.is_success:
         final_config = db_config_result.value
         payload: object = final_config.model_dump(mode="json")
-        display_config_table(
-            cli=cli, config_data=m.Cli.DisplayData.model_validate({"data": payload})
-        )
+        display_config_table(cli=cli, config_data=m.Cli.DisplayData({"data": payload}))
     cli.print("\n" + "=" * 70, style="bold blue")
     cli.print("  ✅ Pydantic CLI Examples Complete", style="bold green")
     cli.print("=" * 70, style="bold blue")

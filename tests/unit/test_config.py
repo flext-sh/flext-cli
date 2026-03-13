@@ -141,7 +141,7 @@ class TestsCliConfigBasics:
         assert isinstance(dumped, dict)
         assert "verbose" in dumped
         data = {"verbose": False, "profile": "test"}
-        validated = FlextCliSettings.model_validate(data)
+        validated = FlextCliSettings(data)
         assert validated.profile == "test"
 
     def test_singleton_pattern(self) -> None:
@@ -297,7 +297,7 @@ class TestsCliConfigIntegration:
                     "Environment variable not set"
                 )
                 config_data = {"profile": os.environ["FLEXT_CLI_PROFILE"]}
-                config = FlextCliSettings.model_validate(config_data)
+                config = FlextCliSettings(config_data)
             assert config.profile == "env_profile", (
                 f"Expected 'env_profile', got '{config.profile}'"
             )

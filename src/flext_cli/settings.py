@@ -185,7 +185,7 @@ class FlextCliSettings(FlextSettings):
             if not isinstance(parsed, dict):
                 return r[FlextCliSettings].fail(c.Cli.CmdErrorMessages.CONFIG_NOT_DICT)
             data: object = _JSON_OBJECT_ADAPTER.validate_python(parsed)
-            instance = cls.model_validate(data)
+            instance = cls(data)
             return r[FlextCliSettings].ok(instance)
         except (
             yaml.YAMLError,

@@ -253,7 +253,7 @@ def cli_command_factory() -> CliCommandFactory:
                 final_data = raw_data
         else:
             final_data = raw_data
-        return m.Cli.CliCommand.model_validate(final_data)
+        return m.Cli.CliCommand(final_data)
 
     return _create
 
@@ -292,7 +292,7 @@ def cli_session_factory() -> CliSessionFactory:
                 final_data = raw_data
         else:
             final_data = raw_data
-        return m.Cli.CliSession.model_validate(final_data)
+        return m.Cli.CliSession(final_data)
 
     return _create
 
@@ -334,7 +334,7 @@ def debug_info_factory() -> DebugInfoFactory:
                 final_data = raw_data
         else:
             final_data = raw_data
-        return m.Cli.DebugInfo.model_validate(final_data)
+        return m.Cli.DebugInfo(final_data)
 
     return _create
 
@@ -365,7 +365,7 @@ def logging_config_factory() -> LoggingConfigFactory:
                 final_data = raw_data
         else:
             final_data = raw_data
-        return m.Cli.LoggingConfig.model_validate(final_data)
+        return m.Cli.LoggingConfig(final_data)
 
     return _create
 

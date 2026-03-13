@@ -122,7 +122,7 @@ class FlextCliCmd(FlextCliServiceBase):
                     )
                 )
             try:
-                config_model = m.Cli.CmdConfig.model_validate(load_result.value)
+                config_model = m.Cli.CmdConfig(load_result.value)
             except (
                 ValueError,
                 TypeError,

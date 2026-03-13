@@ -171,27 +171,27 @@ class TestsCliModelCommandComprehensive:
 
     def test_populate_by_name_works(self) -> None:
         """Test that populate_by_name allows both alias and field name."""
-        config1 = tm.AliasedConfig.model_validate({"input-dir": "/test/input"})
+        config1 = tm.AliasedConfig({"input-dir": "/test/input"})
         assert config1.input_dir == "/test/input"
-        config2 = tm.AliasedConfig.model_validate({"input_dir": "/test/input2"})
+        config2 = tm.AliasedConfig({"input_dir": "/test/input2"})
         assert config2.input_dir == "/test/input2"
 
     def test_custom_validator_works(self) -> None:
         """Test that custom validators work in CLI context."""
-        config = tm.ValidatedConfig.model_validate({
+        config = tm.ValidatedConfig({
             "host": "example.com",
             "port": 5432,
         })
         assert config.host == "example.com"
         with pytest.raises(ValidationError):
-            tm.ValidatedConfig.model_validate({"host": "invalid", "port": 5432})
+            tm.ValidatedConfig({"host": "invalid", "port": 5432})
 
     def test_field_constraints_enforced(self) -> None:
         """Test that Field constraints (ge, le) are enforced."""
-        config = tm.ConnectionConfig.model_validate({"username": "user", "port": 5432})
+        config = tm.ConnectionConfig({"username": "user", "port": 5432})
         assert config.port == 5432
         with pytest.raises(ValidationError):
-            tm.ConnectionConfig.model_validate({"username": "user", "port": 100})
+            tm.ConnectionConfig({"username": "user", "port": 100})
 
     def test_model_command_execution_with_connection_config(
         self, cli: FlextCliCli

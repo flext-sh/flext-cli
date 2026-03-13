@@ -79,7 +79,7 @@ class FlextCliValidationMiddleware:
         """
         params = getattr(ctx, "params", {})
         try:
-            validated = self._schema.model_validate(params)
+            validated = self._schema(params)
             ctx.params = validated.model_dump()
             return next_(ctx)
         except (

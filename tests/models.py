@@ -56,7 +56,7 @@ class ScalarConfigRestore(RootModel[dict[str, _ScalarOnly]]):
             for k, v in items.items()
             if v is None or isinstance(v, (str, int, float, bool))
         }
-        return cls.model_validate(out)
+        return cls(out)
 
 
 class TextTestCaseDict(BaseModel):

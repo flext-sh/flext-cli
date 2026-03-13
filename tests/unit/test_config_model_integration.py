@@ -178,15 +178,15 @@ class TestsCliConfigModelIntegration:
         expected_data: dict[str, object],
     ) -> None:
         """Test parameter model validation with aliases."""
-        params = tm.AliasedParams.model_validate(input_data)
+        params = tm.AliasedParams(input_data)
         for field_name, expected_value in expected_data.items():
             assert getattr(params, field_name) == expected_value
 
     def test_params_model_with_required_fields(self) -> None:
         """Test parameter model with required fields."""
         with pytest.raises(ValidationError):
-            tm.RequiredFieldsParams.model_validate({})
-        params = tm.RequiredFieldsParams.model_validate({"input_dir": "/test/input"})
+            tm.RequiredFieldsParams({})
+        params = tm.RequiredFieldsParams({"input_dir": "/test/input"})
         assert params.input_dir == "/test/input"
         assert params.output_dir is None
 
@@ -243,7 +243,7 @@ class TestsCliConfigModelIntegration:
 
     def test_field_alias_in_params_model(self) -> None:
         """Test field aliases are properly handled in parameter models."""
-        params = tm.AliasedParams.model_validate({
+        params = tm.AliasedParams({
             "input-dir": "/input",
             "output-dir": "/output",
             "batch-size": 100,
@@ -251,7 +251,7 @@ class TestsCliConfigModelIntegration:
         assert params.input_dir == "/input"
         assert params.output_dir == "/output"
         assert params.batch_size == 100
-        params2 = tm.AliasedParams.model_validate({
+        params2 = tm.AliasedParams({
             "input_dir": "/input2",
             "output_dir": "/output2",
             "batch_size": 200,
@@ -268,7 +268,7 @@ class TestsCliConfigModelIntegration:
         params = tm.AppParams()
         assert params.input_dir is None
         assert params.output_dir is None
-        params_from_config = tm.AppParams.model_validate({
+        params_from_config = tm.AppParams({
             "input_dir": config.input_dir,
             "output_dir": config.output_dir,
         })
@@ -283,13 +283,13 @@ class TestsCliConfigModelIntegration:
 
     def test_params_validation_with_none_values(self) -> None:
         """Test parameter validation with None values."""
-        params = tm.AliasedParams.model_validate({})
+        params = tm.AliasedParams({})
         assert params.input_dir is None
         assert params.output_dir is None
 
     def test_params_validation_with_mixed_values(self) -> None:
         """Test parameter validation with mixed None and non-None values."""
-        params_mixed = tm.AliasedParams.model_validate({"input_dir": "/input"})
+        params_mixed = tm.AliasedParams({"input_dir": "/input"})
         assert params_mixed.input_dir == "/input"
         assert params_mixed.output_dir is None
 
@@ -302,7 +302,7 @@ class TestsCliConfigModelIntegration:
             "batch_size": config.batch_size,
             "verbose_mode": config.verbose,
         }
-        params = tm.FullAppParams.model_validate(cli_args)
+        params = tm.FullAppParams(cli_args)
         assert params.input_dir == "/app/input"
         assert params.output_dir == "/app/output"
         assert params.batch_size == 1000
@@ -311,22 +311,22 @@ class TestsCliConfigModelIntegration:
     def test_cli_parameter_override_config(self) -> None:
         """Test that CLI parameters override config defaults."""
         cli_override = {"input_dir": "/cli/input", "batch_size": 200}
-        params = tm.AliasedParams.model_validate(cli_override)
+        params = tm.AliasedParams(cli_override)
         assert params.input_dir == "/cli/input"
         assert params.batch_size == 200
 
     def test_params_validation_strict(self) -> None:
         """Test params validation with strict mode."""
-        params = tm.StrictParams.model_validate({"name": "test", "count": 5})
+        params = tm.StrictParams({"name": "test", "count": 5})
         assert params.name == "test"
         assert params.count == 5
 
     def test_params_forbid_extra_fields(self) -> None:
         """Test params model forbids extra fields."""
-        params = tm.ForbidExtraParams.model_validate({"name": "test"})
+        params = tm.ForbidExtraParams({"name": "test"})
         assert params.name == "test"
         with pytest.raises(ValidationError):
-            tm.ForbidExtraParams.model_validate({
+            tm.ForbidExtraParams({
                 "name": "test",
                 "extra_field": "value",
             })

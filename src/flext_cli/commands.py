@@ -112,7 +112,7 @@ class FlextCliCommands(FlextCliServiceBase):
             return r[FlextCliCommandGroup].fail(
                 "Commands are required for group creation"
             )
-        group = FlextCliCommandGroup.model_validate({
+        group = FlextCliCommandGroup({
             "name": name,
             "description": description,
             "commands": commands,
@@ -208,7 +208,7 @@ class FlextCliCommands(FlextCliServiceBase):
             Use FlextCliCli for actual Click integration.
 
         """
-        return FlextCliCommandGroup.model_validate({
+        return FlextCliCommandGroup({
             "name": self._name,
             "description": self._description,
             "commands": self._commands,
