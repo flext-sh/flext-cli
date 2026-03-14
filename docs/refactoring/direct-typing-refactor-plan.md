@@ -42,7 +42,7 @@ ______________________________________________________________________
 
 - Remove or replace `# type: ignore`; replace bare `except Exception` that swallow with explicit `ValidationError` or `r.fail`/re-raise; no silent `continue` for non-validation errors (e.g. `ScalarConfigRestore.from_config_items` catch only `ValidationError`).
 - **Done**: output.py — removed unused `cast` import; added debug logging at every fallback that returns a default (ensure_str, ensure_list, to_dict_json, to_list_json, \_coerce_to_list, \_try_iterate_items, \_iterate_sequence).
-- **Done**: test_protocols.py — removed all `cast()`; duck test uses `obj: object = duck` then `isinstance(obj, p.Cli.CliFormatter)` to avoid unreachable warning.
+- **Done**: test_protocols.py — removed all `cast()`; duck test uses `obj = duck` then `isinstance(obj, p.Cli.CliFormatter)` to avoid unreachable warning.
 - **Done**: test_cli.py — test_model_command_validation: comment clarified; kept single `# type: ignore[arg-type]` for intentional invalid-type negative test.
 - **Done**: test_models.py — decorator exception test catches only `(ValueError, ValidationError)`.
 - **Done**: test_file_tools.py — restore-on-failure test catches only `OSError` (then re-raises).

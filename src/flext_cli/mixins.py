@@ -64,7 +64,7 @@ class FlextCliMixins(FlextMixins):
             operation: str,
             handler: p.Cli.CliCommandHandler,
             **context_data: t.Scalar,
-        ) -> r[object]:
+        ) -> r:
             """Execute handler with automatic CLI context management.
 
             Composes flext-core decorators to provide complete context setup:
@@ -87,7 +87,7 @@ class FlextCliMixins(FlextMixins):
             raw_result = wrapped_handler(**context_data)
             if isinstance(raw_result, r):
                 return raw_result
-            return r[object].ok(raw_result)
+            return r.ok(raw_result)
 
 
 x = FlextCliMixins

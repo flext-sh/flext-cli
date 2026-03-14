@@ -83,7 +83,7 @@ def show_config_locations() -> m.Cli.DisplayData:
     config_dir = home_dir / ".flext"
     token_file_str = config.token_file or ""
     token_file_path = Path(token_file_str)
-    locations: object = {
+    locations = {
         "Home Directory": str(home_dir),
         "Config Directory": str(config_dir),
         "Token File": str(token_file_path),
@@ -115,7 +115,7 @@ def load_profile_config(profile_name: str = "default") -> r[FlextCliSettings]:
             validate_result.error or "Profile validation failed"
         )
     cli.print(f"✅ Profile '{profile_name}' loaded successfully", style="green")
-    profile_data: object = {
+    profile_data = {
         "Profile": profile_config.profile,
         "Debug": str(profile_config.debug),
         "Output": profile_config.output_format,
@@ -172,7 +172,7 @@ def validate_app_config() -> bool:
     return True
 
 
-def load_application_config() -> r[object]:
+def load_application_config() -> r:
     """Load and validate application configuration from environment."""
     cli.print("\n⚙️  Loading Application Configuration:", style="bold cyan")
     config_obj = AppConfigAdvanced()
@@ -186,7 +186,7 @@ def load_application_config() -> r[object]:
     cli.print("✅ Environment overrides applied", style="green")
     final_data = initialize_services(overridden_data)
     cli.print("✅ Services initialized", style="green")
-    result: r[object] = r[object].ok(final_data)
+    result: r = r.ok(final_data)
     if result.is_failure:
         cli.print(f"❌ Configuration failed: {result.error}", style="bold red")
         return result
@@ -248,7 +248,7 @@ def main() -> None:
     config_result = load_application_config()
     if config_result.is_success:
         final_config = config_result.value
-        final_config_data: object = {k: str(v) for k, v in final_config.items()}
+        final_config_data = {k: str(v) for k, v in final_config.items()}
         cli.print("Final Application Configuration", style="bold cyan")
         display_config_table(
             cli=cli,

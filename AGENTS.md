@@ -825,7 +825,7 @@ m.Cli.TableConfig
 
 # ❌ PROHIBITED - Metaclasses
 class _FlextCliConstantsMeta(type):
-    def __getattr__(cls, name: str) -> object: ...
+    def __getattr__(cls, name: str): ...
 
 
 # ✅ CORRECT - No metaclasses, use complete namespace

@@ -86,29 +86,29 @@ class MyAppPluginManager:
         super().__init__()
         self.plugins: dict[str, object] = {}
 
-    def execute_plugin(self, plugin_name: str, **kwargs: t.Container) -> r[object]:
+    def execute_plugin(self, plugin_name: str, **kwargs: t.Container) -> r:
         """Execute plugin by name in YOUR CLI."""
         if plugin_name not in self.plugins:
-            return r[object].fail(f"Plugin not found: {plugin_name}")
+            return r.fail(f"Plugin not found: {plugin_name}")
         plugin = self.plugins[plugin_name]
         execute_attr = getattr(plugin, "execute", None)
         if not callable(execute_attr):
-            return r[object].fail(f"Plugin {plugin_name} does not have execute method")
+            return r.fail(f"Plugin {plugin_name} does not have execute method")
         execute_method = execute_attr
         try:
             raw = execute_method(**kwargs)
             if hasattr(raw, "is_success") and hasattr(raw, "value"):
                 if getattr(raw, "is_failure", False):
-                    return r[object].fail(
+                    return r.fail(
                         getattr(raw, "error", "Unknown error") or "Unknown error"
                     )
                 result_value = getattr(raw, "value")
             else:
                 result_value = raw
             normalized = m.Cli.CliNormalizedJson(result_value).root
-            return r[object].ok(normalized)
+            return r.ok(normalized)
         except Exception as e:
-            return r[object].fail(f"Plugin execution failed: {e}")
+            return r.fail(f"Plugin execution failed: {e}")
 
     def list_plugins(self) -> None:
         """List all registered plugins in YOUR CLI."""
@@ -116,7 +116,7 @@ class MyAppPluginManager:
             cli.print("⚠️  No plugins registered", style="yellow")
             return
 
-        def get_plugin_version(_name: str, plugin: object) -> str:
+        def get_plugin_version(_name: str, plugin) -> str:
             """Get plugin version."""
             return getattr(plugin, "version", "1.0.0")
 
@@ -129,7 +129,7 @@ class MyAppPluginManager:
         ]
         cli.show_table(rows, headers=["Plugin", "Version"])
 
-    def register_plugin(self, plugin: object) -> None:
+    def register_plugin(self, plugin) -> None:
         """Register plugin in YOUR CLI."""
         plugin_name = getattr(plugin, "name", plugin.__class__.__name__)
         self.plugins[plugin_name] = plugin

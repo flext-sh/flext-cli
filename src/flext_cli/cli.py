@@ -36,7 +36,7 @@ class FlextCliCli:
 
     container: FlextContainer
     logger: FlextLogger
-    _json_value_adapter: ClassVar[TypeAdapter[object]] = TypeAdapter(object)
+    _json_value_adapter: ClassVar[TypeAdapter] = TypeAdapter(object)
 
     def __init__(self) -> None:
         """Initialize FlextCliCli."""
@@ -88,7 +88,7 @@ class FlextCliCli:
 
     @classmethod
     def get_tuple_type(
-        cls, types: Sequence[type[object] | click.ParamType]
+        cls, types: Sequence[type | click.ParamType]
     ) -> click.Tuple:
         """Get tuple type."""
         result: (
@@ -390,7 +390,7 @@ class FlextCliCli:
     @staticmethod
     def model_command(
         model_class: type[BaseModel],
-        handler: Callable[[BaseModel], FlextCliTypes.Cli.JsonValue | r[object] | None],
+        handler: Callable[[BaseModel], FlextCliTypes.Cli.JsonValue | r | None],
         config: FlextCliSettings | None = None,
     ) -> p.Cli.CliCommandFunction:
         """Create a command from a Pydantic model."""
@@ -452,7 +452,7 @@ class FlextCliCli:
     @staticmethod
     def prompt(
         text: str, config: m.Cli.PromptConfig | None = None, **kwargs: t.Scalar
-    ) -> r[object]:
+    ) -> r:
         """Prompt user for input."""
         if config is None:
             config = FlextCliCli._build_prompt_config_from_kwargs(kwargs)
@@ -533,7 +533,7 @@ class FlextCliCli:
                             exc_info=False,
                         )
                         continue
-                return r[object].ok(normalized_map)
+                return r.ok(normalized_map)
             json_value_candidate: FlextCliTypes.Cli.JsonValue = prompt_result
             while getattr(json_value_candidate, "is_success", None) is True:
                 json_value_candidate = getattr(json_value_candidate, "value", None)
@@ -549,9 +549,9 @@ class FlextCliCli:
                         "prompt result validation fallback: %s", exc, exc_info=False
                     )
                     json_value = str(json_value_candidate)
-            return r[object].ok(json_value)
+            return r.ok(json_value)
         except typer.Abort as e:
-            return r[object].fail(
+            return r.fail(
                 c.Cli.ErrorMessages.USER_ABORTED_PROMPT.format(error=e)
             )
 

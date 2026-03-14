@@ -139,7 +139,7 @@ def test_edit_config_success_logs_and_returns_ok(
     monkeypatch.setattr(
         cmd._file_tools,
         "read_json_file",
-        lambda _path: r[object].ok({"name": "ok"}),
+        lambda _path: r.ok({"name": "ok"}),
     )
     monkeypatch.setattr(
         cmd.logger,

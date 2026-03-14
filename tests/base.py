@@ -49,7 +49,7 @@ class TestsCliServiceBase(FlextTestsServiceBase[T]):
             default=c.Cqrs.HandlerType.COMMAND,
             description="Handler type used for test case",
         )
-        expected_result: object | None = Field(
+        expected_result = Field(
             default=None,
             description="Expected handler result value",
         )
@@ -67,7 +67,7 @@ class TestsCliServiceBase(FlextTestsServiceBase[T]):
 
         def create_handler(
             self,
-            process_fn: Callable[[object], r[object]] | None = None,
+            process_fn: Callable[, r] | None = None,
         ) -> FlextHandlers[object, object]:
             """Create handler instance for this test case."""
             return TestsCliServiceBase.Handlers.create_test_handler(
@@ -132,7 +132,7 @@ class TestsCliServiceBase(FlextTestsServiceBase[T]):
             handler_id: str,
             handler_name: str | None = None,
             handler_type: c.Cqrs.HandlerType = c.Cqrs.HandlerType.COMMAND,
-            process_fn: Callable[[object], r[object]] | None = None,
+            process_fn: Callable[, r] | None = None,
         ) -> FlextHandlers[object, object]:
             """Factory for creating test handlers - reduces massive boilerplate.
 
@@ -164,20 +164,20 @@ class TestsCliServiceBase(FlextTestsServiceBase[T]):
                     super().__init__(config=config)
 
                 @override
-                def handle(self, message: object) -> r[object]:
+                def handle(self, message) -> r:
                     """Handle message with proper error handling."""
                     try:
                         if process_fn:
                             return process_fn(message)
-                        return r[object].ok(f"Handled: {message}")
+                        return r.ok(f"Handled: {message}")
                     except (ValueError, TypeError, ValidationError) as e:
-                        return r[object].fail(f"Handler error: {e}")
+                        return r.fail(f"Handler error: {e}")
 
             return DynamicTestHandler()
 
         @staticmethod
         def create_simple_handler(
-            handler_id: str, result_value: object = c.Strings.BASIC_WORD
+            handler_id: str, result_value = c.Strings.BASIC_WORD
         ) -> FlextHandlers[object, object]:
             """Create a simple handler that always returns the same value.
 
@@ -193,9 +193,9 @@ class TestsCliServiceBase(FlextTestsServiceBase[T]):
                 msg = "Handler ID cannot be empty"
                 raise ValueError(msg)
 
-            def always_succeed(_msg: object) -> r[object]:
+            def always_succeed(_msg) -> r:
                 """Always return success with configured value."""
-                return r[object].ok(result_value)
+                return r.ok(result_value)
 
             return TestsCliServiceBase.Handlers.create_test_handler(
                 handler_id, process_fn=always_succeed
@@ -221,9 +221,9 @@ class TestsCliServiceBase(FlextTestsServiceBase[T]):
             if not error_message:
                 error_message = c.TestErrors.PROCESSING_ERROR
 
-            def always_fail(_msg: object) -> r[object]:
+            def always_fail(_msg) -> r:
                 """Always return failure with configured error."""
-                return r[object].fail(error_message)
+                return r.fail(error_message)
 
             return TestsCliServiceBase.Handlers.create_test_handler(
                 handler_id, process_fn=always_fail
@@ -232,7 +232,7 @@ class TestsCliServiceBase(FlextTestsServiceBase[T]):
         @staticmethod
         def create_transform_handler(
             handler_id: str,
-            transform_fn: Callable[[object], object],
+            transform_fn: Callable[, object],
         ) -> FlextHandlers[object, object]:
             """Create a handler that transforms messages.
 
@@ -248,13 +248,13 @@ class TestsCliServiceBase(FlextTestsServiceBase[T]):
                 msg = "Handler ID cannot be empty"
                 raise ValueError(msg)
 
-            def transform(msg: object) -> r[object]:
+            def transform(msg) -> r:
                 """Transform message with proper error handling."""
                 try:
                     result = transform_fn(msg)
-                    return r[object].ok(result)
+                    return r.ok(result)
                 except (ValueError, TypeError, ValidationError) as e:
-                    return r[object].fail(f"Transformation failed: {e}")
+                    return r.fail(f"Transformation failed: {e}")
 
             return TestsCliServiceBase.Handlers.create_test_handler(
                 handler_id, process_fn=transform

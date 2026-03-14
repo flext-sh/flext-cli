@@ -264,8 +264,8 @@ class CommandsFactory:
     ) -> r[bool]:
         """Register a simple test command that returns a fixed value."""
 
-        def handler(*args: object, **kwargs: t.Scalar) -> r[object]:
-            return r[object].ok(result_value)
+        def handler(*args, **kwargs: t.Scalar) -> r:
+            return r.ok(result_value)
 
         return commands.register_command(command_name, handler)
 
@@ -275,8 +275,8 @@ class CommandsFactory:
     ) -> r[bool]:
         """Register a command that accepts arguments."""
 
-        def handler(*args: object, **kwargs: t.Scalar) -> r[object]:
-            return r[object].ok(f"args: {len(args)}")
+        def handler(*args, **kwargs: t.Scalar) -> r:
+            return r.ok(f"args: {len(args)}")
 
         return commands.register_command(command_name, handler)
 
@@ -286,8 +286,8 @@ class CommandsFactory:
     ) -> r[bool]:
         """Register a command that fails with a specific error."""
 
-        def handler(*args: object, **kwargs: t.Scalar) -> r[object]:
-            return r[object].fail(error_message)
+        def handler(*args, **kwargs: t.Scalar) -> r:
+            return r.fail(error_message)
 
         return commands.register_command(command_name, handler)
 

@@ -27,8 +27,8 @@ class FlextCliLoggingMiddleware:
     def __call__(
         self,
         ctx: p.Cli.CliContext,
-        next_: Callable[[p.Cli.CliContext], r[object]],
-    ) -> r[object]:
+        next_: Callable[[p.Cli.CliContext], r],
+    ) -> r:
         """Log command execution.
 
         Args:
@@ -36,7 +36,7 @@ class FlextCliLoggingMiddleware:
             next_: Next middleware or handler.
 
         Returns:
-            r[object]: Result from next middleware or handler.
+            r: Result from next middleware or handler.
 
         """
         _ = getattr(ctx, "command", "unknown")
@@ -62,8 +62,8 @@ class FlextCliValidationMiddleware:
     def __call__(
         self,
         ctx: p.Cli.CliContext,
-        next_: Callable[[p.Cli.CliContext], r[object]],
-    ) -> r[object]:
+        next_: Callable[[p.Cli.CliContext], r],
+    ) -> r:
         """Validate command inputs.
 
         Args:
@@ -71,7 +71,7 @@ class FlextCliValidationMiddleware:
             next_: Next middleware or handler.
 
         Returns:
-            r[object]: Result from next middleware or handler, or failure
+            r: Result from next middleware or handler, or failure
                 if validation fails.
 
         """
@@ -88,7 +88,7 @@ class FlextCliValidationMiddleware:
             StyleError,
             LiveError,
         ) as e:
-            return r[object].fail(f"Validation failed: {e}")
+            return r.fail(f"Validation failed: {e}")
 
 
 class FlextCliRetryMiddleware:
@@ -109,8 +109,8 @@ class FlextCliRetryMiddleware:
     def __call__(
         self,
         ctx: p.Cli.CliContext,
-        next_: Callable[[p.Cli.CliContext], r[object]],
-    ) -> r[object]:
+        next_: Callable[[p.Cli.CliContext], r],
+    ) -> r:
         """Retry failed commands.
 
         Args:
@@ -118,7 +118,7 @@ class FlextCliRetryMiddleware:
             next_: Next middleware or handler.
 
         Returns:
-            r[object]: Result from next middleware or handler after retries.
+            r: Result from next middleware or handler after retries.
 
         """
         result = next_(ctx)
@@ -139,8 +139,8 @@ class FlextCliMiddleware:
     @staticmethod
     def compose(
         middlewares: list[p.Cli.Middleware],
-        handler: Callable[[p.Cli.CliContext], p_core.Result[object]],
-    ) -> Callable[[p.Cli.CliContext], p_core.Result[object]]:
+        handler: Callable[[p.Cli.CliContext], p_core.Result],
+    ) -> Callable[[p.Cli.CliContext], p_core.Result]:
         """Compose middleware into single callable.
 
         Args:
@@ -162,11 +162,11 @@ class FlextCliMiddleware:
 
         """
 
-        def composed(ctx: p.Cli.CliContext) -> p_core.Result[object]:
+        def composed(ctx: p.Cli.CliContext) -> p_core.Result:
 
             def build_chain(
                 idx: int,
-            ) -> Callable[[p.Cli.CliContext], p_core.Result[object]]:
+            ) -> Callable[[p.Cli.CliContext], p_core.Result]:
                 if idx >= len(middlewares):
                     return handler
                 current_middleware = middlewares[idx]

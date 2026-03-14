@@ -90,29 +90,29 @@ class InteractiveShell:
         }
         self.running = False
 
-    def execute_command(self, command_line: str) -> r[object]:
+    def execute_command(self, command_line: str) -> r:
         """Execute command from user input."""
         parts = command_line.strip().split()
         if not parts:
-            return r[object].fail("Empty command")
+            return r.fail("Empty command")
         cmd_name = parts[0]
         args: list[str] = parts[1:] if len(parts) > 1 else []
         if cmd_name not in self.commands:
-            return r[object].fail(f"Unknown command: {cmd_name}")
+            return r.fail(f"Unknown command: {cmd_name}")
         handler = self.commands[cmd_name]
         try:
             if callable(handler):
                 result = handler(*args) if args else handler()
                 if hasattr(result, "is_failure") and hasattr(result, "value"):
                     if result.is_failure:
-                        return r[object].fail(result.error or "Unknown command error")
-                    payload: object = result.value
+                        return r.fail(result.error or "Unknown command error")
+                    payload = result.value
                 else:
                     payload = result
-                return r[object].ok(payload)
-            return r[object].fail("Handler is not callable")
+                return r.ok(payload)
+            return r.fail("Handler is not callable")
         except Exception as e:
-            return r[object].fail(f"Command error: {e}")
+            return r.fail(f"Command error: {e}")
 
     def exit_shell(self) -> r[bool]:
         """Exit interactive shell."""

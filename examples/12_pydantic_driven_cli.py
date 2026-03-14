@@ -230,7 +230,7 @@ def main() -> None:
     db_config_result = create_database_config_from_cli()
     if db_config_result.is_success:
         final_config = db_config_result.value
-        payload: object = final_config.model_dump(mode="json")
+        payload = final_config.model_dump(mode="json")
         display_config_table(cli=cli, config_data=m.Cli.DisplayData({"data": payload}))
     cli.print("\n" + "=" * 70, style="bold blue")
     cli.print("  ✅ Pydantic CLI Examples Complete", style="bold green")

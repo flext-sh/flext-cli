@@ -23,7 +23,7 @@ from rich.tree import Tree as RichTree
 from flext_cli import FlextCliFormatters, FlextCliTables, c, m, p, u
 from flext_cli.typings import FlextCliTypes
 
-_JSON_VALUE_ADAPTER: TypeAdapter[object] = TypeAdapter(object)
+_JSON_VALUE_ADAPTER: TypeAdapter = TypeAdapter(object)
 
 
 class FlextCliOutput:
@@ -95,7 +95,7 @@ class FlextCliOutput:
     """
 
     _result_formatters: ClassVar[
-        dict[type, Callable[[FlextCliTypes.Cli.JsonValue | r[object], str], None]]
+        dict[type, Callable[[FlextCliTypes.Cli.JsonValue | r, str], None]]
     ] = {}
 
     @property
@@ -328,7 +328,7 @@ class FlextCliOutput:
     @staticmethod
     def cast_if(
         v: FlextCliTypes.Cli.JsonValue,
-        t_type: type[object],
+        t_type: type,
         default: FlextCliTypes.Cli.JsonValue,
     ) -> FlextCliTypes.Cli.JsonValue:
         """Cast value if isinstance else return default.
@@ -799,14 +799,14 @@ class FlextCliOutput:
             The execute() method returns service operational status.
 
         """
-        return r[object].ok({
+        return r.ok({
             c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.OPERATIONAL.value,
             c.Cli.DictKeys.SERVICE: c.Cli.Services.OUTPUT,
         })
 
     def format_and_display_result(
         self,
-        result: BaseModel | object | r[object],
+        result: BaseModel | object | r,
         output_format: str = c.Cli.OutputFormats.TABLE.value,
     ) -> None:
         """Auto-detect result type and apply registered formatter with extracted helpers.
@@ -1093,7 +1093,7 @@ class FlextCliOutput:
     def register_result_formatter(
         self,
         result_type: type,
-        formatter: Callable[[FlextCliTypes.Cli.JsonValue | r[object], str], None],
+        formatter: Callable[[FlextCliTypes.Cli.JsonValue | r, str], None],
     ) -> r[bool]:
         r"""Register custom formatter for domain-specific result types.
 
@@ -1106,7 +1106,7 @@ class FlextCliOutput:
         Args:
             result_type: Type of result to format (e.g., OperationResult)
             formatter: Callable that formats and displays the result
-                Signature: (result: FlextCliTypes.Cli.JsonValue | r[object], output_format: str) -> None
+                Signature: (result: FlextCliTypes.Cli.JsonValue | r, output_format: str) -> None
 
         Returns:
             r[bool]: True on success, False on failure
@@ -1246,7 +1246,7 @@ class FlextCliOutput:
             return []
 
     def _convert_iterable_to_list(
-        self, data: Iterable[object]
+        self, data: Iterable
     ) -> list[FlextCliTypes.Cli.JsonValue]:
         """Convert iterable to list with type narrowing.
 
@@ -1272,7 +1272,7 @@ class FlextCliOutput:
 
     def _convert_result_to_formattable(
         self,
-        result: BaseModel | object | r[object],
+        result: BaseModel | object | r,
         output_format: str,
     ) -> r[str]:
         """Convert result object to formattable string.
@@ -1349,8 +1349,8 @@ class FlextCliOutput:
 
     def _dispatch_registered_formatter(
         self,
-        result: BaseModel | object | r[object],
-        formatter: Callable[[FlextCliTypes.Cli.JsonValue | r[object], str], None],
+        result: BaseModel | object | r,
+        formatter: Callable[[FlextCliTypes.Cli.JsonValue | r, str], None],
         output_format: str,
     ) -> r[bool]:
         """Dispatch registered formatter by result strategy."""
@@ -1394,7 +1394,7 @@ class FlextCliOutput:
         return r[str].ok(output_buffer.getvalue())
 
     def _format_dict_object(
-        self, result: FlextCliTypes.Cli.JsonValue | r[object], output_format: str
+        self, result: FlextCliTypes.Cli.JsonValue | r, output_format: str
     ) -> r[str]:
         """Format object with __dict__ to string."""
         if isinstance(result, r):
@@ -1434,7 +1434,7 @@ class FlextCliOutput:
     def _format_registered_basemodel(
         self,
         result: BaseModel,
-        formatter: Callable[[FlextCliTypes.Cli.JsonValue | r[object], str], None],
+        formatter: Callable[[FlextCliTypes.Cli.JsonValue | r, str], None],
         output_format: str,
     ) -> r[bool]:
         """Format registered BaseModel result."""
@@ -1445,7 +1445,7 @@ class FlextCliOutput:
     def _format_registered_generic(
         self,
         result: FlextCliTypes.Cli.JsonValue,
-        formatter: Callable[[FlextCliTypes.Cli.JsonValue | r[object], str], None],
+        formatter: Callable[[FlextCliTypes.Cli.JsonValue | r, str], None],
         output_format: str,
     ) -> r[bool]:
         """Format registered plain general value."""
@@ -1454,8 +1454,8 @@ class FlextCliOutput:
 
     def _format_registered_result(
         self,
-        result: r[object],
-        formatter: Callable[[FlextCliTypes.Cli.JsonValue | r[object], str], None],
+        result: r,
+        formatter: Callable[[FlextCliTypes.Cli.JsonValue | r, str], None],
         output_format: str,
     ) -> r[bool]:
         """Format registered railway result payload."""
@@ -1503,10 +1503,10 @@ class FlextCliOutput:
 
     def _get_registered_formatter(
         self, result_type: type
-    ) -> Callable[[FlextCliTypes.Cli.JsonValue | r[object], str], None] | None:
+    ) -> Callable[[FlextCliTypes.Cli.JsonValue | r, str], None] | None:
         """Get registered formatter for a concrete result type."""
         formatters_dict: dict[
-            type, Callable[[FlextCliTypes.Cli.JsonValue | r[object], str], None]
+            type, Callable[[FlextCliTypes.Cli.JsonValue | r, str], None]
         ] = FlextCliOutput._result_formatters
         return formatters_dict.get(result_type)
 
@@ -1655,12 +1655,12 @@ class FlextCliOutput:
 
     def _resolve_iteration_strategy(
         self, data: FlextCliTypes.Cli.JsonValue
-    ) -> Callable[[object], list[FlextCliTypes.Cli.JsonValue]] | None:
+    ) -> Callable[, list[FlextCliTypes.Cli.JsonValue]] | None:
         """Resolve iterable strategy for general values."""
         strategies: tuple[
             tuple[
-                Callable[[object], bool],
-                Callable[[object], list[FlextCliTypes.Cli.JsonValue]],
+                Callable[, bool],
+                Callable[, list[FlextCliTypes.Cli.JsonValue]],
             ],
             ...,
         ] = (
@@ -1691,7 +1691,7 @@ class FlextCliOutput:
 
     def _try_registered_formatter(
         self,
-        result: BaseModel | object | r[object],
+        result: BaseModel | object | r,
         output_format: str,
     ) -> r[bool]:
         """Try to use registered formatter for result type.

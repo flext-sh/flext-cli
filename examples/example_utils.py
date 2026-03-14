@@ -24,7 +24,7 @@ def to_json_dict(
     """Normalize config/mapping to DisplayData for create_table/display_config_table."""
     normalized = m.Cli.CliNormalizedJson(dict(data)).root
     resolved = m.Cli.NormalizedJsonDict(value=normalized, default={}).resolved
-    result_dict: object = dict(resolved.items())
+    result_dict = dict(resolved.items())
     return m.Cli.DisplayData({"data": result_dict})
 
 

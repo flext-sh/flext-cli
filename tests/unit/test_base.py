@@ -31,9 +31,9 @@ class TestsCliServiceBase:
         """Concrete implementation for testing abstract base class."""
 
         @override
-        def execute(self) -> r[object]:
+        def execute(self) -> r:
             """Implement abstract method for testing."""
-            return r[object].ok({})
+            return r.ok({})
 
     def test_service_base_initialization(self) -> None:
         """Test FlextCliServiceBase can be instantiated via concrete class."""

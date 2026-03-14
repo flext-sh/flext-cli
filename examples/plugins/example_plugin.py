@@ -32,13 +32,13 @@ class CliMainWithGroups(Protocol):
     """
 
     def command(
-        self, *args: object, **kwargs: object
+        self, *args, **kwargs
     ) -> Callable[[Callable[..., object]], object]:
         """Create a command decorator."""
         ...
 
     def group(
-        self, *args: object, **kwargs: object
+        self, *args, **kwargs
     ) -> Callable[[Callable[..., object]], object]:
         """Create a command group decorator."""
         ...
@@ -60,7 +60,7 @@ class GroupWithCommands(Protocol):
     """
 
     def command(
-        self, *args: object, **kwargs: object
+        self, *args, **kwargs
     ) -> Callable[[Callable[..., object]], object]:
         """Create a command decorator."""
         ...
@@ -91,7 +91,7 @@ class ExamplePlugin:
         self._initialized = False
         self._config: dict[str, object] = {}
 
-    def initialize(self, _cli_main: object) -> r[bool]:
+    def initialize(self, _cli_main) -> r[bool]:
         """Initialize the plugin.
 
         Args:
@@ -108,7 +108,7 @@ class ExamplePlugin:
         except Exception as e:
             return r[bool].fail(f"Plugin initialization failed: {e}")
 
-    def register_commands(self, cli_main: object) -> r[bool]:
+    def register_commands(self, cli_main) -> r[bool]:
         """Register plugin commands.
 
         Args:
@@ -193,7 +193,7 @@ class DataProcessorPlugin:
         super().__init__()
         self._processors: ProcessorRegistry = {}
 
-    def initialize(self, _cli_main: object) -> r[bool]:
+    def initialize(self, _cli_main) -> r[bool]:
         """Initialize the plugin.
 
         Args:
@@ -213,7 +213,7 @@ class DataProcessorPlugin:
         except Exception as e:
             return r[bool].fail(f"Initialization failed: {e}")
 
-    def register_commands(self, cli_main: object) -> r[bool]:
+    def register_commands(self, cli_main) -> r[bool]:
         """Register data processing commands.
 
         Args:

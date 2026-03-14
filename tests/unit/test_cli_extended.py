@@ -127,7 +127,7 @@ class TestsCliCliExtended:
             "--flag", required=True, default=False, help_text="A flag"
         )
 
-        def cmd_impl(*args: object, **kwargs: t.Scalar) -> str:
+        def cmd_impl(*args, **kwargs: t.Scalar) -> str:
             _ = (args, kwargs)
             return "ok"
 

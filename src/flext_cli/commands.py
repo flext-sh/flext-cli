@@ -72,15 +72,15 @@ class FlextCliCommands(FlextCliServiceBase):
 
     @staticmethod
     def _normalize_handler_result(
-        result: r[object] | None, command_name: str
-    ) -> r[object]:
+        result: r | None, command_name: str
+    ) -> r:
         """Normalize handler output to r."""
         if result is None:
-            return r[object].ok({"status": "success", "command": command_name})
+            return r.ok({"status": "success", "command": command_name})
         if result.is_success:
-            return r[object].ok(result.value)
+            return r.ok(result.value)
         error_value = result.error
-        return r[object].fail(str(error_value) if error_value else "Command failed")
+        return r.fail(str(error_value) if error_value else "Command failed")
 
     def clear_commands(self) -> r[int]:
         """Clear all registered commands.
@@ -158,7 +158,7 @@ class FlextCliCommands(FlextCliServiceBase):
 
     def execute_command(
         self, name: str, args: Sequence[str] | None = None, **kwargs: t.Scalar
-    ) -> r[object]:
+    ) -> r:
         """Execute a registered CLI command.
 
         Args:
@@ -167,19 +167,19 @@ class FlextCliCommands(FlextCliServiceBase):
             **kwargs: Keyword arguments for the command.
 
         Returns:
-            r[object]: Command execution result.
+            r: Command execution result.
 
         """
         if not name.strip():
-            return r[object].fail("Invalid command name")
+            return r.fail("Invalid command name")
         if name not in self._commands:
-            return r[object].fail(f"Command not found: {name}")
+            return r.fail(f"Command not found: {name}")
         cmd_info = self._commands[name]
         handler = cmd_info.handler
         if not callable(handler):
-            return r[object].fail(f"Handler not callable for: {name}")
+            return r.fail(f"Handler not callable for: {name}")
         try:
-            result: r[object] | None = None
+            result: r | None = None
             execution_attempted = False
             if args or kwargs:
                 try:
@@ -203,7 +203,7 @@ class FlextCliCommands(FlextCliServiceBase):
             StyleError,
             LiveError,
         ) as e:
-            return r[object].fail(f"Command execution failed: {e}")
+            return r.fail(f"Command execution failed: {e}")
 
     def get_click_group(self) -> FlextCliCommandGroup:
         """Get Click group representation.
@@ -243,7 +243,7 @@ class FlextCliCommands(FlextCliServiceBase):
         """
         return r[list[str]].ok(list(self._commands.keys()))
 
-    def register_command(self, name: str, handler: Callable[..., r[object]]) -> r[bool]:
+    def register_command(self, name: str, handler: Callable[..., r]) -> r[bool]:
         """Register a CLI command.
 
         Args:
@@ -259,29 +259,29 @@ class FlextCliCommands(FlextCliServiceBase):
         self._commands[name] = FlextCliCommandEntryModel(name=name, handler=handler)
         return r[bool].ok(value=True)
 
-    def run_cli(self, args: Sequence[str] | None = None) -> r[object]:
+    def run_cli(self, args: Sequence[str] | None = None) -> r:
         """Run CLI with given arguments.
 
         Args:
             args: CLI arguments to process.
 
         Returns:
-            r[object]: Execution result.
+            r: Execution result.
 
         """
         if not args:
-            return r[object].ok({"status": "success", "message": "No args"})
+            return r.ok({"status": "success", "message": "No args"})
         cmd_name = args[0] if args else ""
         cmd_args = list(args[1:]) if len(args) > 1 else []
         if cmd_name in {"--help", "-h"}:
-            return r[object].ok({
+            return r.ok({
                 "status": "help",
                 "commands": list(self._commands.keys()),
             })
         if cmd_name in {"--version", "-v"}:
-            return r[object].ok({"status": "version", "name": self._name})
+            return r.ok({"status": "version", "name": self._name})
         if cmd_name not in self._commands:
-            return r[object].fail(f"Command not found: {cmd_name}")
+            return r.fail(f"Command not found: {cmd_name}")
         return self.execute_command(cmd_name, args=cmd_args)
 
     def unregister_command(self, name: str) -> r[bool]:

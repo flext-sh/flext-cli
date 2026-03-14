@@ -370,7 +370,7 @@ def logging_config_factory() -> LoggingConfigFactory:
     return _create
 
 
-def _create_service_instance(service_class: type) -> object:
+def _create_service_instance(service_class: type):
     """Factory helper for creating service instances.
 
     Args:
@@ -734,7 +734,7 @@ def password_simulator() -> Iterator[Callable[[str], None]]:
 
     original_getpass = getpass.getpass
 
-    def simulated_getpass(prompt: str = "", stream: object = None) -> str:
+    def simulated_getpass(prompt: str = "", stream = None) -> str:
         """Return the set password."""
         return password_value
 

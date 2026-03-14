@@ -393,21 +393,21 @@ class TestsCliPrompts:
 
     def test_with_progress_small_dataset(self, prompts: FlextCliPrompts) -> None:
         """Test with_progress with small dataset."""
-        items: list[object] = list(range(c.ProgressDefaults.SMALL_DATASET_SIZE))
+        items: list = list(range(c.ProgressDefaults.SMALL_DATASET_SIZE))
         result = prompts.with_progress(items, "simple")
         tm.ok(result)
         assert result.value == items
 
     def test_with_progress_large_dataset(self, prompts: FlextCliPrompts) -> None:
         """Test with_progress with large dataset."""
-        items: list[object] = list(range(c.ProgressDefaults.LARGE_DATASET_SIZE))
+        items: list = list(range(c.ProgressDefaults.LARGE_DATASET_SIZE))
         result = prompts.with_progress(items, "simple")
         tm.ok(result)
         assert result.value == items
 
     def test_with_progress_empty(self, prompts: FlextCliPrompts) -> None:
         """Test with_progress with empty list."""
-        items: list[object] = []
+        items: list = []
         result = prompts.with_progress(items, "simple")
         tm.ok(result)
         assert result.value == items
@@ -769,7 +769,7 @@ class TestsCliPrompts:
         """Test _print_message with exception."""
         logger_error_msg = "Logger error"
 
-        def mock_info(*args: object, **kwargs: t.Scalar) -> None:
+        def mock_info(*args, **kwargs: t.Scalar) -> None:
             raise ValueError(logger_error_msg)
 
         monkeypatch.setattr(prompts.logger, "info", mock_info)
@@ -796,7 +796,7 @@ class TestsCliPrompts:
         progress_error_msg = "Progress error"
         original_info = prompts.logger.info
 
-        def mock_info(message: str, *args: object, **kwargs: t.Scalar) -> None:
+        def mock_info(message: str, *args, **kwargs: t.Scalar) -> None:
             if "Starting progress" in str(message):
                 raise ValueError(progress_error_msg)
             original_info(str(message))
@@ -812,7 +812,7 @@ class TestsCliPrompts:
         progress_error_msg = "Progress error"
         original_info = prompts.logger.info
 
-        def mock_info(message: str, *args: object, **kwargs: t.Scalar) -> None:
+        def mock_info(message: str, *args, **kwargs: t.Scalar) -> None:
             if "Starting progress operation" in str(message):
                 raise ValueError(progress_error_msg)
             original_info(str(message))
@@ -884,7 +884,7 @@ class TestsCliPrompts:
         execute_error_msg = "Execute error"
         original_debug = prompts.logger.debug
 
-        def mock_debug(message: str, *args: object, **kwargs: t.Scalar) -> None:
+        def mock_debug(message: str, *args, **kwargs: t.Scalar) -> None:
             if "Prompt service execution completed" in str(message):
                 raise ValueError(execute_error_msg)
             original_debug(str(message))

@@ -20,7 +20,7 @@ from pydantic import TypeAdapter, ValidationError
 from flext_cli import c, m, t, u
 from flext_cli.typings import FlextCliTypes
 
-_JSON_OBJECT_ADAPTER: TypeAdapter[object] = TypeAdapter(object)
+_JSON_OBJECT_ADAPTER: TypeAdapter = TypeAdapter(object)
 
 
 def _is_json_mapping(
@@ -338,10 +338,10 @@ class FlextCliFileTools:
         )
 
     @staticmethod
-    def load_file_auto_detect(file_path: str | Path) -> r[object]:
+    def load_file_auto_detect(file_path: str | Path) -> r:
         format_result = FlextCliFileTools.detect_file_format(file_path)
         if format_result.is_failure:
-            return r[object].fail(
+            return r.fail(
                 format_result.error or c.Cli.ErrorMessages.FORMAT_DETECTION_FAILED
             )
         fmt = format_result.value
@@ -349,7 +349,7 @@ class FlextCliFileTools:
             return FlextCliFileTools.read_json_file(file_path)
         if fmt == c.Cli.FileSupportedFormats.YAML:
             return FlextCliFileTools.read_yaml_file(file_path)
-        return r[object].fail(c.Cli.ErrorMessages.UNSUPPORTED_FORMAT.format(format=fmt))
+        return r.fail(c.Cli.ErrorMessages.UNSUPPORTED_FORMAT.format(format=fmt))
 
     @staticmethod
     def load_file_auto_dict(
@@ -399,7 +399,7 @@ class FlextCliFileTools:
         )
 
     @staticmethod
-    def read_json_file(file_path: str | Path) -> r[object]:
+    def read_json_file(file_path: str | Path) -> r:
 
         def _load() -> FlextCliTypes.Cli.JsonValue:
             raw = Path(file_path).read_text(encoding=c.Cli.Utilities.DEFAULT_ENCODING)
@@ -439,7 +439,7 @@ class FlextCliFileTools:
         )
 
     @staticmethod
-    def read_yaml_file(file_path: str | Path) -> r[object]:
+    def read_yaml_file(file_path: str | Path) -> r:
 
         def _load() -> FlextCliTypes.Cli.JsonValue:
             out = FlextCliFileTools._load_structured_file(

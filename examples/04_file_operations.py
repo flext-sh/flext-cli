@@ -486,7 +486,7 @@ def export_multi_format(
 def process_file_pipeline(
     input_file: Path,
     output_dir: Path,
-) -> r[object]:
+) -> r:
     """Complete file processing pipeline using Railway Pattern.
 
     Demonstrates chaining multiple file operations with proper error handling.
@@ -495,22 +495,22 @@ def process_file_pipeline(
     cli.print(f"\n🔄 Processing file pipeline: {input_file.name}", style="cyan")
 
     # Initialize result
-    result: r[object]
+    result: r
 
     # Railway pattern: Chain operations with automatic error propagation
 
     # Step 1: Validate input file exists and is readable
     if not input_file.exists():
-        result = r[object].fail(f"File not found: {input_file}")
+        result = r.fail(f"File not found: {input_file}")
     elif not input_file.is_file():
-        result = r[object].fail(f"Not a file: {input_file}")
+        result = r.fail(f"Not a file: {input_file}")
     else:
         cli.print("✅ Input validation passed", style="green")
 
         # Step 2: Read file content (dict-only, no narrowing)
         read_result = cli.file_tools.read_json_dict(input_file)
         if read_result.is_failure:
-            result = r[object].fail(
+            result = r.fail(
                 f"File read failed: {read_result.error}",
             )
         else:
@@ -522,7 +522,7 @@ def process_file_pipeline(
 
             output_result = generate_output_files(transformed_data, output_dir)
             if output_result.is_failure:
-                result = r[object].fail(
+                result = r.fail(
                     output_result.error or "Unknown error",
                 )
             else:
@@ -535,7 +535,7 @@ def process_file_pipeline(
                     "🎉 File processing pipeline completed successfully!",
                     style="bold green",
                 )
-                result = r[object].ok(summary)
+                result = r.ok(summary)
 
     if result.is_failure:
         cli.print(f"❌ Pipeline failed: {result.error}", style="bold red")
@@ -547,7 +547,7 @@ def validate_and_transform_data(
     data: Mapping[str, object],
 ) -> m.Cli.LoadedConfig:
     """Validate and transform input data."""
-    transformed: object = {
+    transformed = {
         **data,
         "processed_at": "2025-11-23T10:00:00Z",
         "pipeline_version": "2.0",
@@ -609,9 +609,9 @@ def generate_output_files(
 
 def create_processing_summary(
     results: dict[str, Path],
-) -> object:
+):
     """Create a summary of the processing pipeline."""
-    summary: object = {
+    summary = {
         "pipeline_completed": True,
         "timestamp": "2025-11-23T10:00:00Z",
         "output_files": [str(p) for p in results.values()],

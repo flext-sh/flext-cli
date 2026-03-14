@@ -182,7 +182,7 @@ class FlextCli:
     def print(self, message: str, style: str | None = None) -> r[bool]:
         return self.formatters.print(message, style)
 
-    def create_table(self, data: object) -> r[str]:
+    def create_table(self, data) -> r[str]:
         return self.output.format_data(data, format_type="table")
 
     def read_json_file(self, path: str) -> r[dict]:

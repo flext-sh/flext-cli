@@ -22,12 +22,12 @@ from flext_cli import FlextCliConstants, r, t
 T = TypeVar("T")
 
 
-def _is_json_dict(value: object) -> TypeGuard[dict[str, object]]:
+def _is_json_dict(value) -> TypeGuard[dict[str, object]]:
     """TypeGuard: narrow object to dict for JSON object shape (e.g. read_json_file return)."""
     return isinstance(value, dict)
 
 
-def _is_json_list(value: object) -> TypeGuard[list[object]]:
+def _is_json_list(value) -> TypeGuard[list]:
     """TypeGuard: narrow object to list for JSON array shape."""
     return isinstance(value, list)
 
@@ -107,7 +107,7 @@ class ValidationHelper:
 
     @staticmethod
     def assert_field_value(
-        obj: object, field_name: str, expected_value: object, message: str | None = None
+        obj, field_name: str, expected_value, message: str | None = None
     ) -> None:
         """Assert that an object field has expected value."""
         actual = getattr(obj, field_name)
@@ -117,7 +117,7 @@ class ValidationHelper:
 
     @staticmethod
     def assert_field_type(
-        obj: object, field_name: str, expected_type: type | tuple[type, ...]
+        obj, field_name: str, expected_type: type | tuple[type, ...]
     ) -> None:
         """Assert that an object field has expected type."""
         value = getattr(obj, field_name)
@@ -279,12 +279,12 @@ class FlextCliTestHelpers:
         """Helper methods for protocol implementation tests."""
 
         @staticmethod
-        def create_formatter_implementation() -> r[object]:
+        def create_formatter_implementation() -> r:
             """Create a formatter implementation satisfying CliFormatter protocol."""
             try:
 
                 class TestFormatter:
-                    def format_data(self, data: object, **options: t.Scalar) -> r[str]:
+                    def format_data(self, data, **options: t.Scalar) -> r[str]:
                         try:
                             return r[str].ok(str(data))
                         except (ValueError, TypeError, ValidationError) as e:
@@ -294,15 +294,15 @@ class FlextCliTestHelpers:
                 if hasattr(formatter, "format_data") and callable(
                     getattr(formatter, "format_data", None)
                 ):
-                    return r[object].ok(formatter)
-                return r[object].fail(
+                    return r.ok(formatter)
+                return r.fail(
                     "Formatter does not satisfy CliFormatter protocol"
                 )
             except (ValueError, TypeError, ValidationError) as e:
-                return r[object].fail(f"Failed to create formatter: {e!s}")
+                return r.fail(f"Failed to create formatter: {e!s}")
 
         @staticmethod
-        def create_config_provider_implementation() -> r[object]:
+        def create_config_provider_implementation() -> r:
             """Create a config provider implementation satisfying CliConfigProvider protocol."""
             try:
 
@@ -332,15 +332,15 @@ class FlextCliTestHelpers:
                     and hasattr(provider, "save_config")
                     and callable(getattr(provider, "save_config", None))
                 ):
-                    return r[object].ok(provider)
-                return r[object].fail(
+                    return r.ok(provider)
+                return r.fail(
                     "Config provider does not satisfy CliConfigProvider protocol"
                 )
             except (ValueError, TypeError, ValidationError) as e:
-                return r[object].fail(f"Failed to create config provider: {e!s}")
+                return r.fail(f"Failed to create config provider: {e!s}")
 
         @staticmethod
-        def create_authenticator_implementation() -> r[object]:
+        def create_authenticator_implementation() -> r:
             """Create a CliAuthenticator protocol implementation."""
             try:
 
@@ -375,12 +375,12 @@ class FlextCliTestHelpers:
                         sig = inspect.signature(auth_method)
                         params = list(sig.parameters.keys())
                         if len(params) >= 2:
-                            return r[object].ok(authenticator)
-                return r[object].fail(
+                            return r.ok(authenticator)
+                return r.fail(
                     "Authenticator does not satisfy CliAuthenticator protocol"
                 )
             except (ValueError, TypeError, ValidationError) as e:
-                return r[object].fail(f"Failed to create authenticator: {e!s}")
+                return r.fail(f"Failed to create authenticator: {e!s}")
 
     class TypingHelpers:
         """Helper methods for type system tests."""
@@ -471,7 +471,7 @@ class FlextCliTestHelpers:
         """Helper methods for CLI testing."""
 
         @staticmethod
-        def create_test_command(cli_cli: object, command_name: str) -> r[object]:
+        def create_test_command(cli_cli, command_name: str) -> r:
             """Create a test command for CLI testing."""
             try:
 
@@ -479,12 +479,12 @@ class FlextCliTestHelpers:
                 def test_cmd() -> None:
                     click.echo("test")
 
-                return r[object].ok(test_cmd)
+                return r.ok(test_cmd)
             except (ValueError, TypeError, ValidationError) as e:
-                return r[object].fail(f"Failed to create command: {e!s}")
+                return r.fail(f"Failed to create command: {e!s}")
 
         @staticmethod
-        def create_test_group(cli_cli: object, group_name: str) -> r[object]:
+        def create_test_group(cli_cli, group_name: str) -> r:
             """Create a test group for CLI testing."""
             try:
 
@@ -492,14 +492,14 @@ class FlextCliTestHelpers:
                 def test_grp() -> None:
                     pass
 
-                return r[object].ok(test_grp)
+                return r.ok(test_grp)
             except (ValueError, TypeError, ValidationError) as e:
-                return r[object].fail(f"Failed to create group: {e!s}")
+                return r.fail(f"Failed to create group: {e!s}")
 
         @staticmethod
         def create_command_with_options(
-            cli_cli: object, command_name: str, option_name: str, default: str
-        ) -> r[object]:
+            cli_cli, command_name: str, option_name: str, default: str
+        ) -> r:
             """Create a command with options for CLI testing."""
             try:
 
@@ -508,6 +508,6 @@ class FlextCliTestHelpers:
                 def cmd_with_opt(config: str) -> None:
                     pass
 
-                return r[object].ok(cmd_with_opt)
+                return r.ok(cmd_with_opt)
             except (ValueError, TypeError, ValidationError) as e:
-                return r[object].fail(f"Failed to create command with options: {e!s}")
+                return r.fail(f"Failed to create command with options: {e!s}")

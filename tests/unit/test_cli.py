@@ -253,7 +253,7 @@ class TestsCliCli:
             cli = FlextCliCli()
             invalid_model: type = dict
 
-            def handler(_model: object) -> str:
+            def handler(_model) -> str:
                 return "invalid"
 
             with pytest.raises(Exception):

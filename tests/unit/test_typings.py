@@ -146,7 +146,7 @@ class TestsCliTypings:
         """Validators for typing test assertions."""
 
         @staticmethod
-        def validate_type_initialization(types_class: object) -> r[bool]:
+        def validate_type_initialization(types_class) -> r[bool]:
             """Validate type class initialization."""
             try:
                 if not hasattr(types_class, "Cli"):
@@ -306,13 +306,13 @@ class TestsCliTypings:
     def _execute_type_conversion_tests(self) -> None:
         """Execute type conversion tests."""
 
-        def process_data(data: object) -> str:
+        def process_data(data) -> str:
             if not isinstance(data, str):
                 error_msg = "data must be a str"
                 raise TypeError(error_msg)
             return data.upper()
 
-        def process_data_safe(data: object) -> str:
+        def process_data_safe(data) -> str:
             return str(data).upper()
 
         assert process_data("hello") == "HELLO"
@@ -336,7 +336,7 @@ class TestsCliTypings:
     def _execute_type_utilities_tests(self) -> None:
         """Execute type utilities tests."""
 
-        def typed_function(name: str, age: int, *, active: bool = True) -> object:
+        def typed_function(name: str, age: int, *, active: bool = True):
             return {"name": name, "age": age, "active": active}
 
         hints = get_type_hints(typed_function)
@@ -466,7 +466,7 @@ class TestsCliTypings:
     def _execute_type_edge_tests(self) -> None:
         """Execute type edge case tests."""
 
-        def handle_edge_cases(value: object) -> str:
+        def handle_edge_cases(value) -> str:
             if value is None:
                 return "None"
             if isinstance(value, str) and (not value):

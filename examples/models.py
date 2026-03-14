@@ -25,7 +25,7 @@ from pydantic import (
 
 from flext_cli import FlextCli, FlextCliSettings, m, r
 
-_JsonDictAdapter: TypeAdapter[object] = TypeAdapter(object)
+_JsonDictAdapter: TypeAdapter = TypeAdapter(object)
 
 # ---------------------------------------------------------------------------
 # Example 03 - Interactive Prompts
@@ -79,7 +79,7 @@ class MyAppConfig(BaseModel):
 
     @model_validator(mode="before")
     @classmethod
-    def _inject_env(cls, data: object) -> object:
+    def _inject_env(cls, data):
         if not isinstance(data, dict):
             return data
         try:
@@ -161,7 +161,7 @@ class AppConfigAdvanced(BaseModel):
 
     @model_validator(mode="before")
     @classmethod
-    def _inject_env(cls, data: object) -> object:
+    def _inject_env(cls, data):
         if not isinstance(data, dict):
             return data
         try:
@@ -229,7 +229,7 @@ class AppConfigAdvanced(BaseModel):
             raise ValueError(msg)
         return v.upper()
 
-    def validate_to_mapping(self) -> r[object]:
+    def validate_to_mapping(self) -> r:
         """Validate configuration and return as mapping or failure."""
         errors: list[str] = []
         if not self.api_key and os.getenv("ENVIRONMENT") == "production":
@@ -242,8 +242,8 @@ class AppConfigAdvanced(BaseModel):
         elif not self.temp_dir.is_dir():
             errors.append("TEMP_DIR must be a directory")
         if errors:
-            return r[object].fail("; ".join(errors))
-        return r[object].ok({
+            return r.fail("; ".join(errors))
+        return r.ok({
             "database_url": self.database_url,
             "redis_url": self.redis_url,
             "api_key": "***" if self.api_key else "",
