@@ -31,11 +31,15 @@ class CliMainWithGroups(Protocol):
     - Runtime protocol checks ensure compatibility without direct Typer imports
     """
 
-    def command(self, *args, **kwargs) -> Callable[[Callable[..., object]], object]:
+    def command(
+        self, *args: str, **kwargs: str
+    ) -> Callable[[Callable[..., None]], Callable[..., None]]:
         """Create a command decorator."""
         ...
 
-    def group(self, *args, **kwargs) -> Callable[[Callable[..., object]], object]:
+    def group(
+        self, *args: str, **kwargs: str
+    ) -> Callable[[Callable[..., None]], Callable[..., None]]:
         """Create a command group decorator."""
         ...
 
@@ -55,7 +59,9 @@ class GroupWithCommands(Protocol):
     - Commands are registered using command() decorator on groups
     """
 
-    def command(self, *args, **kwargs) -> Callable[[Callable[..., object]], object]:
+    def command(
+        self, *args: str, **kwargs: str
+    ) -> Callable[[Callable[..., None]], Callable[..., None]]:
         """Create a command decorator."""
         ...
 
@@ -83,7 +89,7 @@ class ExamplePlugin:
         """Initialize plugin."""
         super().__init__()
         self._initialized = False
-        self._config: dict[str, object] = {}
+        self._config: dict[str, bool | int] = {}
 
     def initialize(self, _cli_main: CliMainWithGroups) -> r[bool]:
         """Initialize the plugin.
