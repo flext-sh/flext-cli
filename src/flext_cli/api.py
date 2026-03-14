@@ -212,7 +212,7 @@ class FlextCli:
                 lambda: m.Cli.TokenData(
                     token=str(credentials[c.Cli.DictKeys.TOKEN]),
                     expires_at="",
-                    token_type="Bearer",
+                    token_type=str(credentials.get("token_type", "")),
                 )
             ).map_error(str)
             if token_data_result.is_failure:
