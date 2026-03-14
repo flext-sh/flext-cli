@@ -14,7 +14,6 @@ if TYPE_CHECKING:
 
     from tests.integration.test_cli_workflow import TestsCliWorkflowIntegration
 
-# Lazy import mapping: export_name -> (module_path, attr_name)
 _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "TestsCliWorkflowIntegration": (
         "tests.integration.test_cli_workflow",

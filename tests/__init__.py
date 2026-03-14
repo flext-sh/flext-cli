@@ -186,7 +186,6 @@ if TYPE_CHECKING:
     from tests.unit.test_version import TestsCliVersion
     from tests.utilities import TestsCliUtilities, u
 
-# Lazy import mapping: export_name -> (module_path, attr_name)
 _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "AliasedConfig": ("tests.models", "AliasedConfig"),
     "AliasedParams": ("tests.models", "AliasedParams"),

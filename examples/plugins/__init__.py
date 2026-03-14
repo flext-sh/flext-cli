@@ -20,7 +20,6 @@ if TYPE_CHECKING:
         demonstrate_plugin_commands,
     )
 
-# Lazy import mapping: export_name -> (module_path, attr_name)
 _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "CliMainWithGroups": ("examples.plugins.example_plugin", "CliMainWithGroups"),
     "DataProcessorPlugin": ("examples.plugins.example_plugin", "DataProcessorPlugin"),

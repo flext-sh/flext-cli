@@ -25,7 +25,6 @@ if TYPE_CHECKING:
     from flext_cli.services.prompts import FlextCliPrompts
     from flext_cli.services.tables import FlextCliTables
 
-# Lazy import mapping: export_name -> (module_path, attr_name)
 _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "FlextCliCmd": ("flext_cli.services.cmd", "FlextCliCmd"),
     "FlextCliCore": ("flext_cli.services.core", "FlextCliCore"),

@@ -112,7 +112,6 @@ if TYPE_CHECKING:
     )
     from tests.unit.test_version import T, TestsCliVersion
 
-# Lazy import mapping: export_name -> (module_path, attr_name)
 _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "CONFIG_FILE_NAME": ("tests.unit.test_cmd", "CONFIG_FILE_NAME"),
     "CONFIG_OPERATION_METHODS": ("tests.unit.test_cmd", "CONFIG_OPERATION_METHODS"),
