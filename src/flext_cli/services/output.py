@@ -1655,12 +1655,12 @@ class FlextCliOutput:
 
     def _resolve_iteration_strategy(
         self, data: FlextCliTypes.Cli.JsonValue
-    ) -> Callable[, list[FlextCliTypes.Cli.JsonValue]] | None:
+    ) -> Callable[..., list[FlextCliTypes.Cli.JsonValue]] | None:
         """Resolve iterable strategy for general values."""
         strategies: tuple[
             tuple[
-                Callable[, bool],
-                Callable[, list[FlextCliTypes.Cli.JsonValue]],
+                Callable[..., bool],
+                Callable[..., list[FlextCliTypes.Cli.JsonValue]],
             ],
             ...,
         ] = (

@@ -67,7 +67,7 @@ class TestsCliServiceBase(FlextTestsServiceBase[T]):
 
         def create_handler(
             self,
-            process_fn: Callable[, r] | None = None,
+            process_fn: Callable[..., r] | None = None,
         ) -> FlextHandlers[object, object]:
             """Create handler instance for this test case."""
             return TestsCliServiceBase.Handlers.create_test_handler(
@@ -132,7 +132,7 @@ class TestsCliServiceBase(FlextTestsServiceBase[T]):
             handler_id: str,
             handler_name: str | None = None,
             handler_type: c.Cqrs.HandlerType = c.Cqrs.HandlerType.COMMAND,
-            process_fn: Callable[, r] | None = None,
+            process_fn: Callable[..., r] | None = None,
         ) -> FlextHandlers[object, object]:
             """Factory for creating test handlers - reduces massive boilerplate.
 
@@ -232,7 +232,7 @@ class TestsCliServiceBase(FlextTestsServiceBase[T]):
         @staticmethod
         def create_transform_handler(
             handler_id: str,
-            transform_fn: Callable[, object],
+            transform_fn: Callable[..., object],
         ) -> FlextHandlers[object, object]:
             """Create a handler that transforms messages.
 

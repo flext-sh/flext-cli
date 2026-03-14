@@ -180,7 +180,7 @@ class FlextCliModels(FlextModels):
             def _normalize(
                 cls,
                 data: FlextCliTypes.Cli.JsonValue,
-                handler: Callable[, FlextCliModels.Cli.CliNormalizedJson],
+                handler: Callable[..., FlextCliModels.Cli.CliNormalizedJson],
             ) -> FlextCliModels.Cli.CliNormalizedJson:
                 normalized = _JSON_NORMALIZE_ADAPTER.dump_python(
                     data,
@@ -3517,7 +3517,7 @@ class FlextCliModels(FlextModels):
 
             # Field validation rules: (field_key, expected_type, type_check_func)
             FIELD_VALIDATION_RULES: ClassVar[
-                list[tuple[str, str, Callable[, bool]]]
+                list[tuple[str, str, Callable[..., bool]]]
             ] = [
                 ("python_type", "type", lambda v: isinstance(v, type)),
                 (

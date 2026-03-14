@@ -1,3 +1,6 @@
+# AUTO-GENERATED FILE — DO NOT EDIT MANUALLY.
+# Regenerate with: make codegen
+#
 """FLEXT CLI Services - FlextService-based implementations.
 
 This package contains all FlextService-based service classes.
@@ -16,7 +19,6 @@ from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
 if TYPE_CHECKING:
     from flext_cli.services.cmd import FlextCliCmd
     from flext_cli.services.core import FlextCliCore
-    from flext_cli.services.output import FlextCliOutput
     from flext_cli.services.prompts import FlextCliPrompts
     from flext_cli.services.tables import FlextCliTables
 
@@ -24,7 +26,6 @@ if TYPE_CHECKING:
 _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "FlextCliCmd": ("flext_cli.services.cmd", "FlextCliCmd"),
     "FlextCliCore": ("flext_cli.services.core", "FlextCliCore"),
-    "FlextCliOutput": ("flext_cli.services.output", "FlextCliOutput"),
     "FlextCliPrompts": ("flext_cli.services.prompts", "FlextCliPrompts"),
     "FlextCliTables": ("flext_cli.services.tables", "FlextCliTables"),
 }
@@ -32,15 +33,12 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
 __all__ = [
     "FlextCliCmd",
     "FlextCliCore",
-    "FlextCliOutput",
     "FlextCliPrompts",
     "FlextCliTables",
 ]
 
 
-def __getattr__(
-    name: str,
-):  # JUSTIFIED: Ruff (any-type) with PEP 562 dynamic module exports — https://docs.astral.sh/ruff/rules/any-type/
+def __getattr__(name: str) -> t.ModuleExport:
     """Lazy-load module attributes on first access (PEP 562)."""
     return lazy_getattr(name, _LAZY_IMPORTS, globals(), __name__)
 
