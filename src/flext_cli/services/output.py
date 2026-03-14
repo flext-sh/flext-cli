@@ -21,6 +21,7 @@ from rich.table import Table as RichTable
 from rich.tree import Tree as RichTree
 
 from flext_cli import FlextCliFormatters, FlextCliTables, c, m, p, u
+from flext_cli.typings import FlextCliTypes
 
 _JSON_VALUE_ADAPTER: TypeAdapter[object] = TypeAdapter(object)
 
@@ -94,7 +95,7 @@ class FlextCliOutput:
     """
 
     _result_formatters: ClassVar[
-        dict[type, Callable[[object | r[object], str], None]]
+        dict[type, Callable[[FlextCliTypes.Cli.JsonValue | r[object], str], None]]
     ] = {}
 
     @property
@@ -124,11 +125,11 @@ class FlextCliOutput:
 
     @staticmethod
     def _build_table_rows(
-        data: list[dict[str, object]], headers: list[str]
+        data: list[dict[str, FlextCliTypes.Cli.JsonValue]], headers: list[str]
     ) -> r[list[list[str]]]:
         """Build table rows from data."""
 
-        def build_row(row_data: dict[str, object]) -> list[str]:
+        def build_row(row_data: dict[str, FlextCliTypes.Cli.JsonValue]) -> list[str]:
             """Build row values using u utilities."""
             values = u.Cli.process(
                 headers,
@@ -158,14 +159,14 @@ class FlextCliOutput:
         console.print(formatted)
 
     @staticmethod
-    def _is_custom_iterable_value(data: object) -> bool:
+    def _is_custom_iterable_value(data: FlextCliTypes.Cli.JsonValue) -> bool:
         """Check if value should use custom iterable strategy."""
         return isinstance(data, Iterable) and (
             not isinstance(data, (str, list, tuple, dict))
         )
 
     @staticmethod
-    def _is_mapping_value(data: object) -> bool:
+    def _is_mapping_value(data: FlextCliTypes.Cli.JsonValue) -> bool:
         """Check if value should use mapping iteration strategy."""
         return isinstance(data, dict)
 
@@ -201,18 +202,20 @@ class FlextCliOutput:
 
     @staticmethod
     def _is_rich_tree_protocol(
-        obj: object,
+        obj: FlextCliTypes.Cli.JsonValue,
     ) -> TypeGuard[p.Cli.Display.RichTree]:
         """Type guard to check if object implements RichTree."""
         return hasattr(obj, "add") and hasattr(obj, "label")
 
     @staticmethod
-    def _is_sequence_value(data: object) -> bool:
+    def _is_sequence_value(data: FlextCliTypes.Cli.JsonValue) -> bool:
         """Check if value should use sequence iteration strategy."""
         return isinstance(data, (list, tuple))
 
     @staticmethod
-    def _normalize_formatter_value(value: object) -> object:
+    def _normalize_formatter_value(
+        value: FlextCliTypes.Cli.JsonValue,
+    ) -> FlextCliTypes.Cli.JsonValue:
         """Normalize formatter input to a JSON-compatible general value."""
         return (
             value
@@ -221,7 +224,9 @@ class FlextCliOutput:
         )
 
     @staticmethod
-    def _normalize_iterable_item(item: object) -> object:
+    def _normalize_iterable_item(
+        item: FlextCliTypes.Cli.JsonValue,
+    ) -> FlextCliTypes.Cli.JsonValue:
         """Normalize iterable items to general value type."""
         return (
             item
@@ -231,61 +236,67 @@ class FlextCliOutput:
 
     @staticmethod
     def _prepare_dict_data(
-        data: dict[str, object], headers: list[str] | None
-    ) -> r[tuple[list[dict[str, object]], str | list[str]]]:
+        data: dict[str, FlextCliTypes.Cli.JsonValue], headers: list[str] | None
+    ) -> r[tuple[list[dict[str, FlextCliTypes.Cli.JsonValue]], str | list[str]]]:
         """Prepare dict data for table display."""
         if c.Cli.OutputDefaults.TEST_INVALID_KEY in data and len(data) == 1:
-            return r[tuple[list[dict[str, object]], str | list[str]]].fail(
-                c.Cli.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT
-            )
+            return r[
+                tuple[list[dict[str, FlextCliTypes.Cli.JsonValue]], str | list[str]]
+            ].fail(c.Cli.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT)
 
-        def kv_pair(k: str, v: object) -> dict[str, object]:
+        def kv_pair(
+            k: str, v: FlextCliTypes.Cli.JsonValue
+        ) -> dict[str, FlextCliTypes.Cli.JsonValue]:
             """Create key-value pair dict."""
             return {c.Cli.OutputFieldNames.KEY: k, c.Cli.OutputFieldNames.VALUE: str(v)}
 
         process_result = u.Cli.process_mapping(data, processor=kv_pair, on_error="skip")
         dict_result = FlextCliOutput.ensure_dict(process_result.unwrap_or({}), {})
         table_data_raw = FlextCliOutput.ensure_list(list(dict_result.values()), [])
-        table_data: list[dict[str, object]] = [
+        table_data: list[dict[str, FlextCliTypes.Cli.JsonValue]] = [
             item for item in table_data_raw if isinstance(item, dict)
         ]
         table_headers_raw = FlextCliOutput.ensure_list(
             headers, [c.Cli.TableFormats.KEYS]
         )
         table_headers: list[str] = [str(h) for h in table_headers_raw]
-        return r[tuple[list[dict[str, object]], str | list[str]]].ok((
+        return r[
+            tuple[list[dict[str, FlextCliTypes.Cli.JsonValue]], str | list[str]]
+        ].ok((
             table_data,
             table_headers,
         ))
 
     @staticmethod
     def _prepare_list_data(
-        data: list[dict[str, object]], headers: list[str] | None
-    ) -> r[tuple[list[dict[str, object]], str | list[str]]]:
+        data: list[dict[str, FlextCliTypes.Cli.JsonValue]], headers: list[str] | None
+    ) -> r[tuple[list[dict[str, FlextCliTypes.Cli.JsonValue]], str | list[str]]]:
         """Prepare list data for table display."""
         if not data:
-            return r[tuple[list[dict[str, object]], str | list[str]]].fail(
-                c.Cli.ErrorMessages.NO_DATA_PROVIDED
-            )
+            return r[
+                tuple[list[dict[str, FlextCliTypes.Cli.JsonValue]], str | list[str]]
+            ].fail(c.Cli.ErrorMessages.NO_DATA_PROVIDED)
         if headers is not None and (not FlextRuntime.is_list_like(headers)):
-            return r[tuple[list[dict[str, object]], str | list[str]]].fail(
-                c.Cli.ErrorMessages.TABLE_HEADERS_MUST_BE_LIST
-            )
+            return r[
+                tuple[list[dict[str, FlextCliTypes.Cli.JsonValue]], str | list[str]]
+            ].fail(c.Cli.ErrorMessages.TABLE_HEADERS_MUST_BE_LIST)
         headers_list = FlextCliOutput.ensure_list(headers, [c.Cli.TableFormats.KEYS])
         table_headers = [str(h) for h in headers_list]
         if headers is not None and table_headers != [c.Cli.TableFormats.KEYS]:
             validation_result = FlextCliOutput._validate_headers(table_headers, data)
             if validation_result.is_failure:
-                return r[tuple[list[dict[str, object]], str | list[str]]].fail(
-                    validation_result.error or "Header validation failed"
-                )
-        return r[tuple[list[dict[str, object]], str | list[str]]].ok((
+                return r[
+                    tuple[list[dict[str, FlextCliTypes.Cli.JsonValue]], str | list[str]]
+                ].fail(validation_result.error or "Header validation failed")
+        return r[
+            tuple[list[dict[str, FlextCliTypes.Cli.JsonValue]], str | list[str]]
+        ].ok((
             data,
             table_headers,
         ))
 
     @staticmethod
-    def _replace_none_for_csv(_k: str, v: object) -> t.Scalar:
+    def _replace_none_for_csv(_k: str, v: FlextCliTypes.Cli.JsonValue) -> t.Scalar:
         """Replace None with empty string for CSV."""
         if v is None:
             return ""
@@ -294,10 +305,12 @@ class FlextCliOutput:
         return str(v)
 
     @staticmethod
-    def _validate_headers(headers: list[str], data: list[dict[str, object]]) -> r[bool]:
+    def _validate_headers(
+        headers: list[str], data: list[dict[str, FlextCliTypes.Cli.JsonValue]]
+    ) -> r[bool]:
         """Validate headers exist in data."""
 
-        def _extract_keys(row: dict[str, object]) -> set[str]:
+        def _extract_keys(row: dict[str, FlextCliTypes.Cli.JsonValue]) -> set[str]:
             """Extract keys from dict row."""
             return set(row.keys())
 
@@ -313,7 +326,11 @@ class FlextCliOutput:
         return r[bool].ok(value=True)
 
     @staticmethod
-    def cast_if(v: object, t_type: type[object], default: object) -> object:
+    def cast_if(
+        v: FlextCliTypes.Cli.JsonValue,
+        t_type: type[object],
+        default: FlextCliTypes.Cli.JsonValue,
+    ) -> FlextCliTypes.Cli.JsonValue:
         """Cast value if isinstance else return default.
 
         Pattern: Non-generic cast_if for runtime type checking.
@@ -334,7 +351,7 @@ class FlextCliOutput:
 
     @staticmethod
     def create_ascii_table(
-        data: list[dict[str, object]],
+        data: list[dict[str, FlextCliTypes.Cli.JsonValue]],
         headers: list[str] | None = None,
         table_format: str = c.Cli.TableFormats.SIMPLE,
         *,
@@ -391,7 +408,7 @@ class FlextCliOutput:
                     config_for_table = m.Cli.TableConfig.model_validate({})
             else:
                 config_for_table = m.Cli.TableConfig.model_validate({})
-            data_json: list[dict[str, object]] = [
+            data_json: list[dict[str, FlextCliTypes.Cli.JsonValue]] = [
                 {str(k): m.Cli.normalize_json_value(v) for k, v in row.items()}
                 for row in data
             ]
@@ -404,14 +421,16 @@ class FlextCliOutput:
             "headers": validated_headers,
             "table_format": table_format,
         })
-        data_json_final: list[dict[str, object]] = [
+        data_json_final: list[dict[str, FlextCliTypes.Cli.JsonValue]] = [
             {str(k): m.Cli.normalize_json_value(v) for k, v in row.items()}
             for row in data
         ]
         return FlextCliTables.create_table(data=data_json_final, config=final_config)
 
     @staticmethod
-    def ensure_bool(v: object | None, *, default: bool = False) -> bool:
+    def ensure_bool(
+        v: FlextCliTypes.Cli.JsonValue | None, *, default: bool = False
+    ) -> bool:
         """Ensure value is bool with default using build DSL."""
         result = u.build(
             v, ops={"ensure": "bool", "ensure_default": default}, on_error="skip"
@@ -420,8 +439,9 @@ class FlextCliOutput:
 
     @staticmethod
     def ensure_dict(
-        v: object | None, default: dict[str, object] | None = None
-    ) -> dict[str, object]:
+        v: FlextCliTypes.Cli.JsonValue | None,
+        default: dict[str, FlextCliTypes.Cli.JsonValue] | None = None,
+    ) -> dict[str, FlextCliTypes.Cli.JsonValue]:
         """Ensure value is dict with default using build DSL."""
         result = u.build(
             v, ops={"ensure": "dict", "ensure_default": default or {}}, on_error="skip"
@@ -430,8 +450,9 @@ class FlextCliOutput:
 
     @staticmethod
     def ensure_list(
-        v: object | None, default: list[object] | None = None
-    ) -> list[object]:
+        v: FlextCliTypes.Cli.JsonValue | None,
+        default: list[FlextCliTypes.Cli.JsonValue] | None = None,
+    ) -> list[FlextCliTypes.Cli.JsonValue]:
         """Ensure value is list with default using build DSL."""
         v_typed = FlextRuntime.normalize_to_general_value(v) if v is not None else None
         built_result = u.build(
@@ -444,7 +465,7 @@ class FlextCliOutput:
         )
 
     @staticmethod
-    def ensure_str(v: object | None, default: str = "") -> str:
+    def ensure_str(v: FlextCliTypes.Cli.JsonValue | None, default: str = "") -> str:
         """Ensure value is str with default."""
         if v is None:
             return default
@@ -454,7 +475,7 @@ class FlextCliOutput:
             return default
 
     @staticmethod
-    def get_keys(d: dict[str, object] | object) -> list[str]:
+    def get_keys(d: dict[str, FlextCliTypes.Cli.JsonValue] | object) -> list[str]:
         """Extract keys from dict using build DSL.
 
         Business Rules:
@@ -481,14 +502,18 @@ class FlextCliOutput:
         return []
 
     @staticmethod
-    def get_map_val(m: dict[str, object], k: str, default: object) -> object:
+    def get_map_val(
+        m: dict[str, FlextCliTypes.Cli.JsonValue],
+        k: str,
+        default: FlextCliTypes.Cli.JsonValue,
+    ) -> FlextCliTypes.Cli.JsonValue:
         """Get value from map with default using build DSL."""
         value = m.get(k, default)
-        compatible_value: object
+        compatible_value: FlextCliTypes.Cli.JsonValue
         if isinstance(value, (str, int, float, bool, type(None), list)):
             compatible_value = value
         elif isinstance(value, dict):
-            dict_items: dict[str, object] = {}
+            dict_items: dict[str, FlextCliTypes.Cli.JsonValue] = {}
             for kk, vv in value.items():
                 dict_items[str(kk)] = (
                     vv
@@ -501,7 +526,7 @@ class FlextCliOutput:
         return compatible_value
 
     @staticmethod
-    def is_json(v: object) -> bool:
+    def is_json(v: FlextCliTypes.Cli.JsonValue) -> bool:
         """Check if value is JSON-compatible type.
 
         Uses object from lower layer instead of object for better type safety.
@@ -509,7 +534,7 @@ class FlextCliOutput:
         return isinstance(v, (str, int, float, bool, type(None), dict, list))
 
     @staticmethod
-    def norm_json(item: object) -> object:
+    def norm_json(item: FlextCliTypes.Cli.JsonValue) -> FlextCliTypes.Cli.JsonValue:
         """Normalize item to JSON-compatible using build DSL."""
         if isinstance(item, (str, int, float, bool, type(None))):
             return item
@@ -520,7 +545,9 @@ class FlextCliOutput:
         return str(item)
 
     @staticmethod
-    def to_dict_json(v: object) -> dict[str, object]:
+    def to_dict_json(
+        v: FlextCliTypes.Cli.JsonValue,
+    ) -> dict[str, FlextCliTypes.Cli.JsonValue]:
         """Convert value to dict with JSON transform using build DSL."""
         result = FlextCliOutput.cast_if(
             u.build(
@@ -536,7 +563,7 @@ class FlextCliOutput:
         return {}
 
     @staticmethod
-    def to_json(v: object) -> object:
+    def to_json(v: FlextCliTypes.Cli.JsonValue) -> FlextCliTypes.Cli.JsonValue:
         """Convert value to JSON-compatible using build DSL."""
         if isinstance(v, dict):
             return u.build(
@@ -547,7 +574,9 @@ class FlextCliOutput:
         return v
 
     @staticmethod
-    def to_list_json(v: object) -> list[object]:
+    def to_list_json(
+        v: FlextCliTypes.Cli.JsonValue,
+    ) -> list[FlextCliTypes.Cli.JsonValue]:
         """Convert value to list with JSON transform using build DSL."""
         v_typed = FlextRuntime.normalize_to_general_value(v)
         result = FlextCliOutput.cast_if(
@@ -613,7 +642,7 @@ class FlextCliOutput:
 
     def create_rich_table(
         self,
-        data: list[dict[str, object]],
+        data: list[dict[str, FlextCliTypes.Cli.JsonValue]],
         title: str | None = None,
         headers: list[str] | None = None,
     ) -> r[p.Cli.Display.RichTable]:
@@ -668,7 +697,7 @@ class FlextCliOutput:
 
     def display_data(
         self,
-        data: object,
+        data: FlextCliTypes.Cli.JsonValue,
         format_type: str | None = None,
         *,
         title: str | None = None,
@@ -729,8 +758,8 @@ class FlextCliOutput:
             c.Cli.MessageTypes.ERROR.value: c.Cli.Emojis.ERROR,
             c.Cli.MessageTypes.WARNING.value: c.Cli.Emojis.WARNING,
         }
-        style_map_general: dict[str, object] = dict(style_map)
-        emoji_map_general: dict[str, object] = dict(emoji_map)
+        style_map_general: dict[str, FlextCliTypes.Cli.JsonValue] = dict(style_map)
+        emoji_map_general: dict[str, FlextCliTypes.Cli.JsonValue] = dict(emoji_map)
         style = self.ensure_str(
             self.get_map_val(style_map_general, final_message_type, c.Cli.Styles.BLUE)
         )
@@ -759,7 +788,7 @@ class FlextCliOutput:
         validated_style = self.ensure_str(style, c.Cli.OutputDefaults.EMPTY_STYLE)
         FlextCliFormatters().print(text, style=validated_style)
 
-    def execute(self) -> r[dict[str, object]]:
+    def execute(self) -> r[dict[str, FlextCliTypes.Cli.JsonValue]]:
         """Execute service - required by FlextService abstract method.
 
         Returns:
@@ -807,7 +836,9 @@ class FlextCliOutput:
         except Exception as e:
             self.print_error(f"Failed to format and display result: {e}")
 
-    def format_as_tree(self, data: object, title: str | None = None) -> r[str]:
+    def format_as_tree(
+        self, data: FlextCliTypes.Cli.JsonValue, title: str | None = None
+    ) -> r[str]:
         """Format hierarchical data as tree view using FlextCliFormatters.
 
         Args:
@@ -835,7 +866,7 @@ class FlextCliOutput:
             concrete_tree, width=c.Cli.CliDefaults.DEFAULT_MAX_WIDTH
         )
 
-    def format_csv(self, data: object) -> r[str]:
+    def format_csv(self, data: FlextCliTypes.Cli.JsonValue) -> r[str]:
         """Format data as CSV.
 
         Args:
@@ -868,7 +899,7 @@ class FlextCliOutput:
 
     def format_data(
         self,
-        data: object,
+        data: FlextCliTypes.Cli.JsonValue,
         format_type: str = c.Cli.OutputFormats.TABLE.value,
         title: str | None = None,
         headers: list[str] | None = None,
@@ -903,7 +934,7 @@ class FlextCliOutput:
             )
         return self._dispatch_formatter(format_str, data, title, headers)
 
-    def format_json(self, data: object) -> r[str]:
+    def format_json(self, data: FlextCliTypes.Cli.JsonValue) -> r[str]:
         """Format data as JSON.
 
         Args:
@@ -929,7 +960,9 @@ class FlextCliOutput:
 
     def format_table(
         self,
-        data: dict[str, object] | list[dict[str, object]] | str,
+        data: dict[str, FlextCliTypes.Cli.JsonValue]
+        | list[dict[str, FlextCliTypes.Cli.JsonValue]]
+        | str,
         title: str | None = None,
         headers: list[str] | None = None,
     ) -> r[str]:
@@ -958,14 +991,16 @@ class FlextCliOutput:
                 error_data=prepared_result.error_data,
             )
         prepared = prepared_result.value
-        table_data_list: list[dict[str, object]] = [dict(row) for row in prepared[0]]
+        table_data_list: list[dict[str, FlextCliTypes.Cli.JsonValue]] = [
+            dict(row) for row in prepared[0]
+        ]
         table_result = self._create_table_string(table_data_list, prepared[1])
         if table_result.is_failure:
             return table_result
         table = table_result.value
         return r[str].ok(self._add_title(table, title))
 
-    def format_yaml(self, data: object) -> r[str]:
+    def format_yaml(self, data: FlextCliTypes.Cli.JsonValue) -> r[str]:
         """Format data as YAML.
 
         Args:
@@ -1058,7 +1093,7 @@ class FlextCliOutput:
     def register_result_formatter(
         self,
         result_type: type,
-        formatter: Callable[[object | r[object], str], None],
+        formatter: Callable[[FlextCliTypes.Cli.JsonValue | r[object], str], None],
     ) -> r[bool]:
         r"""Register custom formatter for domain-specific result types.
 
@@ -1071,7 +1106,7 @@ class FlextCliOutput:
         Args:
             result_type: Type of result to format (e.g., OperationResult)
             formatter: Callable that formats and displays the result
-                Signature: (result: object | r[object], output_format: str) -> None
+                Signature: (result: FlextCliTypes.Cli.JsonValue | r[object], output_format: str) -> None
 
         Returns:
             r[bool]: True on success, False on failure
@@ -1145,7 +1180,9 @@ class FlextCliOutput:
         return FlextCliFormatters().render_table_to_string(table, width)
 
     def _build_tree(
-        self, tree: RichTree | FlextCliFormatters.Tree, data: object
+        self,
+        tree: RichTree | FlextCliFormatters.Tree,
+        data: FlextCliTypes.Cli.JsonValue,
     ) -> None:
         """Build tree recursively (helper for format_as_tree).
 
@@ -1156,7 +1193,7 @@ class FlextCliOutput:
         """
         if isinstance(data, dict):
 
-            def process_tree_item(k: str, v: object) -> None:
+            def process_tree_item(k: str, v: FlextCliTypes.Cli.JsonValue) -> None:
                 """Process single tree item."""
                 if isinstance(v, dict):
                     branch = tree.add(str(k))
@@ -1167,7 +1204,7 @@ class FlextCliOutput:
                         f"{k}{c.Cli.OutputDefaults.TREE_BRANCH_LIST_SUFFIX}"
                     )
 
-                    def process_list_item(item: object) -> None:
+                    def process_list_item(item: FlextCliTypes.Cli.JsonValue) -> None:
                         """Process list item."""
                         if branch is not None:
                             self._build_tree(branch, item)
@@ -1179,7 +1216,7 @@ class FlextCliOutput:
             u.Cli.process_mapping(data, processor=process_tree_item, on_error="skip")
         elif isinstance(data, list):
 
-            def process_list_item(item: object) -> None:
+            def process_list_item(item: FlextCliTypes.Cli.JsonValue) -> None:
                 """Process list item."""
                 self._build_tree(tree, item)
 
@@ -1187,7 +1224,9 @@ class FlextCliOutput:
         else:
             tree.add(str(data))
 
-    def _coerce_to_list(self, data: object) -> list[object]:
+    def _coerce_to_list(
+        self, data: FlextCliTypes.Cli.JsonValue
+    ) -> list[FlextCliTypes.Cli.JsonValue]:
         """Coerce data to list for CSV processing.
 
         Uses types from lower layer (object) for proper type safety.
@@ -1206,7 +1245,9 @@ class FlextCliOutput:
         except (TypeError, AttributeError):
             return []
 
-    def _convert_iterable_to_list(self, data: Iterable[object]) -> list[object]:
+    def _convert_iterable_to_list(
+        self, data: Iterable[object]
+    ) -> list[FlextCliTypes.Cli.JsonValue]:
         """Convert iterable to list with type narrowing.
 
         Helper method to reduce complexity of _coerce_to_list.
@@ -1215,9 +1256,9 @@ class FlextCliOutput:
         try:
             if isinstance(data, Sequence):
                 return list(data)
-            iterable_items: list[object] = []
+            iterable_items: list[FlextCliTypes.Cli.JsonValue] = []
             for item in data:
-                item_general: object = (
+                item_general: FlextCliTypes.Cli.JsonValue = (
                     item
                     if isinstance(
                         item, (str, int, float, bool, type(None), dict, list, tuple)
@@ -1257,7 +1298,7 @@ class FlextCliOutput:
 
     def _create_table_string(
         self,
-        table_data: list[dict[str, object]],
+        table_data: list[dict[str, FlextCliTypes.Cli.JsonValue]],
         table_headers: str | list[str],
     ) -> r[str]:
         """Create table string using FlextCliTables."""
@@ -1266,7 +1307,7 @@ class FlextCliOutput:
                 "headers": table_headers,
                 "table_format": c.Cli.TableFormats.SIMPLE,
             })
-            data_json: list[dict[str, object]] = [
+            data_json: list[dict[str, FlextCliTypes.Cli.JsonValue]] = [
                 {str(k): m.Cli.normalize_json_value(v) for k, v in row.items()}
                 for row in table_data
             ]
@@ -1283,7 +1324,7 @@ class FlextCliOutput:
     def _dispatch_formatter(
         self,
         format_type: str,
-        data: object,
+        data: FlextCliTypes.Cli.JsonValue,
         title: str | None,
         headers: list[str] | None,
     ) -> r[str]:
@@ -1309,7 +1350,7 @@ class FlextCliOutput:
     def _dispatch_registered_formatter(
         self,
         result: BaseModel | object | r[object],
-        formatter: Callable[[object | r[object], str], None],
+        formatter: Callable[[FlextCliTypes.Cli.JsonValue | r[object], str], None],
         output_format: str,
     ) -> r[bool]:
         """Dispatch registered formatter by result strategy."""
@@ -1319,17 +1360,19 @@ class FlextCliOutput:
             return self._format_registered_result(result, formatter, output_format)
         return self._format_registered_generic(result, formatter, output_format)
 
-    def _format_csv_dict(self, data: object) -> r[str]:
+    def _format_csv_dict(self, data: FlextCliTypes.Cli.JsonValue) -> r[str]:
         """Format single dict as CSV."""
         output_buffer = StringIO()
         fieldnames = self.get_keys(data)
         writer = csv.DictWriter(output_buffer, fieldnames=fieldnames)
         writer.writeheader()
-        data_dict: dict[str, object] = dict(data) if isinstance(data, dict) else {}
+        data_dict: dict[str, FlextCliTypes.Cli.JsonValue] = (
+            dict(data) if isinstance(data, dict) else {}
+        )
         writer.writerow(data_dict)
         return r[str].ok(output_buffer.getvalue())
 
-    def _format_csv_list(self, data: object) -> r[str]:
+    def _format_csv_list(self, data: FlextCliTypes.Cli.JsonValue) -> r[str]:
         """Format list of dicts as CSV."""
         output_buffer = StringIO()
         data_list = self._coerce_to_list(data)
@@ -1340,7 +1383,7 @@ class FlextCliOutput:
         writer.writeheader()
         filtered_rows = u.filter(data_list, predicate=FlextRuntime.is_dict_like)
         dict_rows_raw = self.ensure_list(filtered_rows, [])
-        dict_rows: list[dict[str, object]] = [
+        dict_rows: list[dict[str, FlextCliTypes.Cli.JsonValue]] = [
             item for item in dict_rows_raw if isinstance(item, dict)
         ]
         csv_rows: list[dict[str, t.Scalar]] = []
@@ -1351,7 +1394,7 @@ class FlextCliOutput:
         return r[str].ok(output_buffer.getvalue())
 
     def _format_dict_object(
-        self, result: object | r[object], output_format: str
+        self, result: FlextCliTypes.Cli.JsonValue | r[object], output_format: str
     ) -> r[str]:
         """Format object with __dict__ to string."""
         if isinstance(result, r):
@@ -1363,14 +1406,14 @@ class FlextCliOutput:
                 f"Object {type(result).__name__} has no __dict__ attribute"
             )
         raw_dict_raw = result.__dict__
-        raw_dict: dict[str, object] = (
+        raw_dict: dict[str, FlextCliTypes.Cli.JsonValue] = (
             dict(raw_dict_raw) if isinstance(raw_dict_raw, dict) else {}
         )
         json_dict_result = u.Cli.process_mapping(
             raw_dict, processor=lambda _k, v: self.to_json(v), on_error="skip"
         )
         json_dict_raw = json_dict_result.unwrap_or({})
-        json_dict: dict[str, object] = (
+        json_dict: dict[str, FlextCliTypes.Cli.JsonValue] = (
             json_dict_raw if isinstance(json_dict_raw, dict) else {}
         )
         filtered_json_dict = {k: v for k, v in json_dict.items() if self.is_json(v)}
@@ -1378,7 +1421,7 @@ class FlextCliOutput:
             filtered_json_dict, processor=lambda _k, v: v, on_error="skip"
         )
         cli_json_dict_raw = cli_json_dict_result.unwrap_or({})
-        cli_json_dict: dict[str, object] = (
+        cli_json_dict: dict[str, FlextCliTypes.Cli.JsonValue] = (
             cli_json_dict_raw if isinstance(cli_json_dict_raw, dict) else {}
         )
         return self.format_data(cli_json_dict, output_format)
@@ -1391,18 +1434,18 @@ class FlextCliOutput:
     def _format_registered_basemodel(
         self,
         result: BaseModel,
-        formatter: Callable[[object | r[object], str], None],
+        formatter: Callable[[FlextCliTypes.Cli.JsonValue | r[object], str], None],
         output_format: str,
     ) -> r[bool]:
         """Format registered BaseModel result."""
-        formattable_result: object = result.model_dump()
+        formattable_result: FlextCliTypes.Cli.JsonValue = result.model_dump()
         formatter(formattable_result, output_format)
         return r[bool].ok(value=True)
 
     def _format_registered_generic(
         self,
-        result: object,
-        formatter: Callable[[object | r[object], str], None],
+        result: FlextCliTypes.Cli.JsonValue,
+        formatter: Callable[[FlextCliTypes.Cli.JsonValue | r[object], str], None],
         output_format: str,
     ) -> r[bool]:
         """Format registered plain general value."""
@@ -1412,7 +1455,7 @@ class FlextCliOutput:
     def _format_registered_result(
         self,
         result: r[object],
-        formatter: Callable[[object | r[object], str], None],
+        formatter: Callable[[FlextCliTypes.Cli.JsonValue | r[object], str], None],
         output_format: str,
     ) -> r[bool]:
         """Format registered railway result payload."""
@@ -1427,7 +1470,10 @@ class FlextCliOutput:
         return r[bool].ok(value=True)
 
     def _format_table_data(
-        self, data: object, title: str | None, headers: list[str] | None
+        self,
+        data: FlextCliTypes.Cli.JsonValue,
+        title: str | None,
+        headers: list[str] | None,
     ) -> r[str]:
         """Format data as table with type validation."""
         if FlextRuntime.is_dict_like(data):
@@ -1436,7 +1482,7 @@ class FlextCliOutput:
         if FlextRuntime.is_list_like(data):
             if not data:
                 return r[str].fail(c.Cli.ErrorMessages.NO_DATA_PROVIDED)
-            data_list: list[object] = [
+            data_list: list[FlextCliTypes.Cli.JsonValue] = [
                 FlextRuntime.normalize_to_general_value(item) for item in data
             ]
             dict_items = u.filter(data_list, predicate=FlextRuntime.is_dict_like)
@@ -1449,7 +1495,7 @@ class FlextCliOutput:
                 filtered_data, processor=self.norm_json, on_error="skip"
             )
             converted_list_raw = self.ensure_list(json_list_result.unwrap_or([]), [])
-            converted_list: list[dict[str, object]] = [
+            converted_list: list[dict[str, FlextCliTypes.Cli.JsonValue]] = [
                 item for item in converted_list_raw if isinstance(item, dict)
             ]
             return self.format_table(converted_list, title=title, headers=headers)
@@ -1457,11 +1503,11 @@ class FlextCliOutput:
 
     def _get_registered_formatter(
         self, result_type: type
-    ) -> Callable[[object | r[object], str], None] | None:
+    ) -> Callable[[FlextCliTypes.Cli.JsonValue | r[object], str], None] | None:
         """Get registered formatter for a concrete result type."""
-        formatters_dict: dict[type, Callable[[object | r[object], str], None]] = (
-            FlextCliOutput._result_formatters
-        )
+        formatters_dict: dict[
+            type, Callable[[FlextCliTypes.Cli.JsonValue | r[object], str], None]
+        ] = FlextCliOutput._result_formatters
         return formatters_dict.get(result_type)
 
     def _initialize_rich_table(
@@ -1485,23 +1531,29 @@ class FlextCliOutput:
             "Table value is not RichTable compatible"
         )
 
-    def _iterate_mapping(self, data: object) -> list[object]:
+    def _iterate_mapping(
+        self, data: FlextCliTypes.Cli.JsonValue
+    ) -> list[FlextCliTypes.Cli.JsonValue]:
         """Iterate dictionary values as tuple items."""
         if not isinstance(data, dict):
             return []
-        iterable_items: list[object] = []
+        iterable_items: list[FlextCliTypes.Cli.JsonValue] = []
         for key, value in data.items():
-            dict_item: object = (key, value)
+            dict_item: FlextCliTypes.Cli.JsonValue = (key, value)
             iterable_items.append(dict_item)
         return iterable_items
 
-    def _iterate_model(self, data: object) -> list[object]:
+    def _iterate_model(
+        self, data: FlextCliTypes.Cli.JsonValue
+    ) -> list[FlextCliTypes.Cli.JsonValue]:
         """Iterate custom iterable values with normalization."""
         if not isinstance(data, Iterable):
             return []
         return [self._normalize_iterable_item(item) for item in data]
 
-    def _iterate_sequence(self, data: object) -> list[object]:
+    def _iterate_sequence(
+        self, data: FlextCliTypes.Cli.JsonValue
+    ) -> list[FlextCliTypes.Cli.JsonValue]:
         """Iterate list/tuple values with normalization."""
         if not isinstance(data, (list, tuple)):
             return []
@@ -1510,7 +1562,7 @@ class FlextCliOutput:
     def _populate_table_rows(
         self,
         table: p.Cli.Display.RichTable,
-        data: list[dict[str, object]],
+        data: list[dict[str, FlextCliTypes.Cli.JsonValue]],
         headers: list[str],
     ) -> r[bool]:
         """Add columns and rows to table.
@@ -1530,9 +1582,11 @@ class FlextCliOutput:
 
     def _prepare_table_data(
         self,
-        data: dict[str, object] | list[dict[str, object]] | str,
+        data: dict[str, FlextCliTypes.Cli.JsonValue]
+        | list[dict[str, FlextCliTypes.Cli.JsonValue]]
+        | str,
         headers: list[str] | None,
-    ) -> r[tuple[list[dict[str, object]], str | list[str]]]:
+    ) -> r[tuple[list[dict[str, FlextCliTypes.Cli.JsonValue]], str | list[str]]]:
         """Prepare and validate table data and headers."""
         if FlextRuntime.is_dict_like(data):
             json_data = self.to_dict_json(data)
@@ -1543,32 +1597,40 @@ class FlextCliOutput:
                 filtered_data, processor=self.norm_json, on_error="skip"
             )
             converted_list_raw = self.ensure_list(process_result.unwrap_or([]), [])
-            converted_list: list[dict[str, object]] = [
+            converted_list: list[dict[str, FlextCliTypes.Cli.JsonValue]] = [
                 item for item in converted_list_raw if isinstance(item, dict)
             ]
             return self._prepare_list_data(converted_list, headers)
-        return r[tuple[list[dict[str, object]], str | list[str]]].fail(
-            c.Cli.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT
-        )
+        return r[
+            tuple[list[dict[str, FlextCliTypes.Cli.JsonValue]], str | list[str]]
+        ].fail(c.Cli.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT)
 
     def _prepare_table_data_safe(
         self,
-        data: dict[str, object] | list[dict[str, object]] | str,
+        data: dict[str, FlextCliTypes.Cli.JsonValue]
+        | list[dict[str, FlextCliTypes.Cli.JsonValue]]
+        | str,
         headers: list[str] | None,
-    ) -> r[tuple[list[dict[str, object]], str | list[str]]]:
+    ) -> r[tuple[list[dict[str, FlextCliTypes.Cli.JsonValue]], str | list[str]]]:
         """Safely prepare table data with exception handling."""
         try:
             return self._prepare_table_data(data, headers)
         except Exception as e:
             error_msg = c.Cli.OutputLogMessages.TABLE_FORMAT_FAILED.format(error=e)
-            return r[tuple[list[dict[str, object]], str | list[str]]].fail(error_msg)
+            return r[
+                tuple[list[dict[str, FlextCliTypes.Cli.JsonValue]], str | list[str]]
+            ].fail(error_msg)
 
     def _prepare_table_headers(
-        self, data: list[dict[str, object]], headers: list[str] | None = None
+        self,
+        data: list[dict[str, FlextCliTypes.Cli.JsonValue]],
+        headers: list[str] | None = None,
     ) -> r[list[str]]:
         """Prepare and validate table headers."""
         default_headers = self.get_keys(data[0]) if data else []
-        default_headers_general: list[object] = list(default_headers)
+        default_headers_general: list[FlextCliTypes.Cli.JsonValue] = list(
+            default_headers
+        )
         table_headers_raw = self.ensure_list(headers, default_headers_general)
         table_headers: list[str] = [str(h) for h in table_headers_raw]
         if headers is not None:
@@ -1579,7 +1641,9 @@ class FlextCliOutput:
                 )
         return r[list[str]].ok(table_headers)
 
-    def _process_csv_row(self, row: dict[str, object]) -> dict[str, t.Scalar]:
+    def _process_csv_row(
+        self, row: dict[str, FlextCliTypes.Cli.JsonValue]
+    ) -> dict[str, t.Scalar]:
         """Process CSV row with None replacement.
 
         Uses object from lower layer instead of object for better type safety.
@@ -1590,13 +1654,13 @@ class FlextCliOutput:
         return processed
 
     def _resolve_iteration_strategy(
-        self, data: object
-    ) -> Callable[[object], list[object]] | None:
+        self, data: FlextCliTypes.Cli.JsonValue
+    ) -> Callable[[object], list[FlextCliTypes.Cli.JsonValue]] | None:
         """Resolve iterable strategy for general values."""
         strategies: tuple[
             tuple[
                 Callable[[object], bool],
-                Callable[[object], list[object]],
+                Callable[[object], list[FlextCliTypes.Cli.JsonValue]],
             ],
             ...,
         ] = (
@@ -1609,7 +1673,9 @@ class FlextCliOutput:
                 return strategy
         return None
 
-    def _try_iterate_items(self, data: object) -> list[object]:
+    def _try_iterate_items(
+        self, data: FlextCliTypes.Cli.JsonValue
+    ) -> list[FlextCliTypes.Cli.JsonValue]:
         """Try to iterate over data and return list of items.
 
         Helper to avoid type checker issues with non-iterable types in object.

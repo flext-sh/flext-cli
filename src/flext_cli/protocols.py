@@ -9,6 +9,8 @@ from typing import Protocol, Self, runtime_checkable
 
 from flext_core import FlextProtocols, t
 
+from flext_cli.typings import FlextCliTypes
+
 
 class FlextCliProtocols(FlextProtocols):
     """CLI protocol definitions extending FlextProtocols."""
@@ -121,7 +123,7 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
             @property
-            def kwargs(self) -> Mapping[str, object]:
+            def kwargs(self) -> Mapping[str, FlextCliTypes.Cli.JsonValue]:
                 """Get command keyword arguments."""
                 ...
 
@@ -141,7 +143,7 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
             @property
-            def result(self) -> object | None:
+            def result(self) -> FlextCliTypes.Cli.JsonValue | None:
                 """Get command result."""
                 ...
 
@@ -323,7 +325,7 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
             @property
-            def default(self) -> object | None:
+            def default(self) -> FlextCliTypes.Cli.JsonValue | None:
                 """Get default value."""
                 ...
 
@@ -357,12 +359,12 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
             @property
-            def default(self) -> object | None:
+            def default(self) -> FlextCliTypes.Cli.JsonValue | None:
                 """Get default value."""
                 ...
 
             @property
-            def flag_value(self) -> object | None:
+            def flag_value(self) -> FlextCliTypes.Cli.JsonValue | None:
                 """Get flag value."""
                 ...
 
@@ -392,7 +394,7 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
             @property
-            def type_hint(self) -> object | None:
+            def type_hint(self) -> FlextCliTypes.Cli.JsonValue | None:
                 """Get type hint."""
                 ...
 
@@ -435,7 +437,7 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
             @property
-            def default(self) -> object | None:
+            def default(self) -> FlextCliTypes.Cli.JsonValue | None:
                 """Get default value."""
                 ...
 
@@ -465,7 +467,7 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
             @property
-            def type_hint(self) -> object | None:
+            def type_hint(self) -> FlextCliTypes.Cli.JsonValue | None:
                 """Get type hint."""
                 ...
 
@@ -518,7 +520,7 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
             @property
-            def params(self) -> Mapping[str, object]:
+            def params(self) -> Mapping[str, FlextCliTypes.Cli.JsonValue]:
                 """Get configuration parameters."""
                 ...
 
@@ -589,7 +591,7 @@ class FlextCliProtocols(FlextProtocols):
             """Protocol for CLI formatters."""
 
             def format_data(
-                self, data: object, **options: t.Scalar
+                self, data: FlextCliTypes.Cli.JsonValue, **options: t.Scalar
             ) -> FlextProtocols.Result[str]:
                 """Format data."""
                 ...
@@ -598,12 +600,14 @@ class FlextCliProtocols(FlextProtocols):
         class CliConfigProvider(Protocol):
             """Protocol for CLI configuration providers."""
 
-            def load_config(self) -> FlextProtocols.Result[Mapping[str, object]]:
+            def load_config(
+                self,
+            ) -> FlextProtocols.Result[Mapping[str, FlextCliTypes.Cli.JsonValue]]:
                 """Load configuration."""
                 ...
 
             def save_config(
-                self, config: Mapping[str, object]
+                self, config: Mapping[str, FlextCliTypes.Cli.JsonValue]
             ) -> FlextProtocols.Result[bool]:
                 """Save configuration."""
                 ...
@@ -628,7 +632,7 @@ class FlextCliProtocols(FlextProtocols):
 
             def get_debug_info(
                 self,
-            ) -> FlextProtocols.Result[Mapping[str, object]]:
+            ) -> FlextProtocols.Result[Mapping[str, FlextCliTypes.Cli.JsonValue]]:
                 """Get debug information."""
                 ...
 
@@ -638,7 +642,9 @@ class FlextCliProtocols(FlextProtocols):
         class CliCommandFunction(Protocol):
             """Protocol for CLI command functions that may return None."""
 
-            def __call__(self, *args: object, **kwargs: t.Scalar) -> object | None:
+            def __call__(
+                self, *args: FlextCliTypes.Cli.JsonValue, **kwargs: t.Scalar
+            ) -> FlextCliTypes.Cli.JsonValue | None:
                 """Execute the function."""
                 ...
 
@@ -646,7 +652,9 @@ class FlextCliProtocols(FlextProtocols):
         class CliCommandWrapper(Protocol):
             """Protocol for dynamically-created CLI command wrapper functions."""
 
-            def __call__(self, *args: object, **kwargs: t.Scalar) -> object:
+            def __call__(
+                self, *args: FlextCliTypes.Cli.JsonValue, **kwargs: t.Scalar
+            ) -> FlextCliTypes.Cli.JsonValue:
                 """Execute the wrapper."""
                 ...
 
@@ -655,7 +663,7 @@ class FlextCliProtocols(FlextProtocols):
             """Protocol for command handlers returning r."""
 
             def __call__(
-                self, *args: object, **kwargs: t.Scalar
+                self, *args: FlextCliTypes.Cli.JsonValue, **kwargs: t.Scalar
             ) -> FlextProtocols.Result[object]:
                 """Execute the handler."""
                 ...
@@ -665,7 +673,7 @@ class FlextCliProtocols(FlextProtocols):
             """Protocol for model command handlers."""
 
             def handle(
-                self, model: object, **kwargs: t.Scalar
+                self, model: FlextCliTypes.Cli.JsonValue, **kwargs: t.Scalar
             ) -> FlextProtocols.Result[object]:
                 """Handle the model command."""
                 ...
@@ -689,7 +697,7 @@ class FlextCliProtocols(FlextProtocols):
                 """Get environment variables."""
                 ...
 
-            params: Mapping[str, object]
+            params: Mapping[str, FlextCliTypes.Cli.JsonValue]
 
         @runtime_checkable
         class CliOutput(Protocol):
@@ -768,7 +776,9 @@ class FlextCliProtocols(FlextProtocols):
         class OutputService(Protocol):
             """Protocol for output formatting services."""
 
-            def format_json(self, data: object) -> FlextProtocols.Result[str]:
+            def format_json(
+                self, data: FlextCliTypes.Cli.JsonValue
+            ) -> FlextProtocols.Result[str]:
                 """Format data as JSON."""
                 ...
 
@@ -778,7 +788,9 @@ class FlextCliProtocols(FlextProtocols):
                 """Format data as a table."""
                 ...
 
-            def format_yaml(self, data: object) -> FlextProtocols.Result[str]:
+            def format_yaml(
+                self, data: FlextCliTypes.Cli.JsonValue
+            ) -> FlextProtocols.Result[str]:
                 """Format data as YAML."""
                 ...
 
@@ -815,7 +827,7 @@ class FlextCliProtocols(FlextProtocols):
         class CliCommandHandler(Protocol):
             """Protocol for CLI command handlers."""
 
-            def __call__(self, **kwargs: t.Scalar) -> object:
+            def __call__(self, **kwargs: t.Scalar) -> FlextCliTypes.Cli.JsonValue:
                 """Execute the command handler."""
                 ...
 

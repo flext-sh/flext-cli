@@ -17,6 +17,7 @@ from flext_core import r
 from typer.models import OptionInfo
 
 from flext_cli import m, p, t
+from flext_cli.typings import FlextCliTypes
 
 
 class FlextCliCommandBuilder:
@@ -55,7 +56,7 @@ class FlextCliCommandBuilder:
 
     @staticmethod
     def _create_option_info(
-        default: object | None = None,
+        default: FlextCliTypes.Cli.JsonValue | None = None,
         param_decls: list[str] | None = None,
         help_text: str = "",
         **kwargs: t.Scalar,
@@ -66,7 +67,7 @@ class FlextCliCommandBuilder:
         all possible kwargs. This helper validates and constructs OptionInfo safely.
         """
         validated_param_decls = param_decls if param_decls is not None else []
-        validated_default: object | None = default
+        validated_default: FlextCliTypes.Cli.JsonValue | None = default
         validated_param_decls_list: Sequence[str] = validated_param_decls
         validated_help: str | None = help_text or None
         option_info = OptionInfo(
@@ -81,7 +82,7 @@ class FlextCliCommandBuilder:
         return option_info
 
     @staticmethod
-    def _is_command_protocol(obj: object) -> bool:
+    def _is_command_protocol(obj: FlextCliTypes.Cli.JsonValue) -> bool:
         """Check if object matches minimal command protocol shape."""
         name_value = getattr(obj, "name", None)
         description_value = getattr(obj, "description", None)
@@ -154,7 +155,7 @@ class FlextCliCommandBuilder:
     def with_option(
         self,
         name: str,
-        default: object | None = None,
+        default: FlextCliTypes.Cli.JsonValue | None = None,
         help_: str = "",
         **kwargs: t.Scalar,
     ) -> Self:

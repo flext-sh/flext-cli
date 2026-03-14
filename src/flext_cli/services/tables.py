@@ -19,6 +19,7 @@ from rich.errors import ConsoleError, LiveError, StyleError
 from tabulate import tabulate
 
 from flext_cli import FlextCliConstants, FlextCliServiceBase, m, t, u
+from flext_cli.typings import FlextCliTypes
 
 
 class FlextCliTables(FlextCliServiceBase):
@@ -188,19 +189,21 @@ class FlextCliTables(FlextCliServiceBase):
             return r[str].fail(headers_result.error or "Header preparation failed")
         try:
             if u.is_dict_like(data):
-                mapping_rows: list[Mapping[str, object]] = []
+                mapping_rows: list[Mapping[str, FlextCliTypes.Cli.JsonValue]] = []
                 if isinstance(data, Mapping):
-                    normalized_row: dict[str, object] = {
+                    normalized_row: dict[str, FlextCliTypes.Cli.JsonValue] = {
                         str(key): m.Cli.normalize_json_value(value)
                         for key, value in data.items()
                     }
                     mapping_rows.append(normalized_row)
-                normalized_data: Sequence[Mapping[str, object]] = mapping_rows
+                normalized_data: Sequence[Mapping[str, FlextCliTypes.Cli.JsonValue]] = (
+                    mapping_rows
+                )
             else:
                 normalized_data = data
             headers_value = headers_result.value
             if normalized_data and (not isinstance(headers_value, str)):
-                mapping_rows: list[Mapping[str, object]] = [
+                mapping_rows: list[Mapping[str, FlextCliTypes.Cli.JsonValue]] = [
                     dict(row) for row in normalized_data
                 ]
                 table_rows = [list(row.values()) for row in mapping_rows]
@@ -215,7 +218,10 @@ class FlextCliTables(FlextCliServiceBase):
 
             def _is_tabulate_data(
                 val: Sequence[object],
-            ) -> TypeGuard[Sequence[Mapping[str, object]] | Sequence[Sequence[object]]]:
+            ) -> TypeGuard[
+                Sequence[Mapping[str, FlextCliTypes.Cli.JsonValue]]
+                | Sequence[Sequence[object]]
+            ]:
                 """Narrow to tabulate-acceptable rows (sequence of mappings or sequences)."""
                 if not val:
                     return True
@@ -282,7 +288,7 @@ class FlextCliTables(FlextCliServiceBase):
             return r[bool].fail(str(e))
 
     @override
-    def execute(self) -> r[Mapping[str, object]]:
+    def execute(self) -> r[Mapping[str, FlextCliTypes.Cli.JsonValue]]:
         """Execute table service - returns success indicator.
 
         Business Rule:
@@ -291,10 +297,12 @@ class FlextCliTables(FlextCliServiceBase):
         print_available_formats). Execute provides a default success response.
 
         Returns:
-            r[dict[str, object]]: Success result.
+            r[dict[str, FlextCliTypes.Cli.JsonValue]]: Success result.
 
         """
-        return r[Mapping[str, object]].ok({"status": "table_service_ready"})
+        return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].ok({
+            "status": "table_service_ready"
+        })
 
     def _calculate_column_count(
         self, data: t.Cli.TabularData, headers: str | Sequence[str]

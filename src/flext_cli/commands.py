@@ -18,6 +18,7 @@ from flext_core import r
 from rich.errors import ConsoleError, LiveError, StyleError
 
 from flext_cli import FlextCliServiceBase, c, m, t
+from flext_cli.typings import FlextCliTypes
 
 FlextCliCommandGroup = m.Cli.CliCommandGroup
 FlextCliCommandEntryModel = m.Cli.CommandEntryModel
@@ -112,7 +113,7 @@ class FlextCliCommands(FlextCliServiceBase):
             return r[FlextCliCommandGroup].fail(
                 "Commands are required for group creation"
             )
-        group_commands: dict[str, object] = dict(commands)
+        group_commands: dict[str, FlextCliTypes.Cli.JsonValue] = dict(commands)
         group = FlextCliCommandGroup.model_validate({
             "name": name,
             "description": description,
@@ -131,7 +132,7 @@ class FlextCliCommands(FlextCliServiceBase):
         return self
 
     @override
-    def execute(self) -> r[Mapping[str, object]]:
+    def execute(self) -> r[Mapping[str, FlextCliTypes.Cli.JsonValue]]:
         """Execute commands service - returns service status.
 
         Business Rule:
@@ -143,7 +144,7 @@ class FlextCliCommands(FlextCliServiceBase):
             r[dict]: Service status with commands count.
 
         """
-        return r[Mapping[str, object]].ok({
+        return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].ok({
             "app_name": c.Cli.FLEXT_CLI,
             "is_initialized": True,
             "commands_count": len(self._commands),
@@ -209,7 +210,7 @@ class FlextCliCommands(FlextCliServiceBase):
             Use FlextCliCli for actual Click integration.
 
         """
-        group_commands: dict[str, object] = dict(self._commands)
+        group_commands: dict[str, FlextCliTypes.Cli.JsonValue] = dict(self._commands)
         return FlextCliCommandGroup.model_validate({
             "name": self._name,
             "description": self._description,

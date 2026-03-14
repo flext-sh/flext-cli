@@ -22,6 +22,7 @@ from flext_core import r
 from rich.errors import ConsoleError, LiveError, StyleError
 
 from flext_cli import FlextCliServiceBase, FlextCliUtilities, c, m, u
+from flext_cli.typings import FlextCliTypes
 
 
 class FlextCliDebug(FlextCliServiceBase):
@@ -148,17 +149,17 @@ class FlextCliDebug(FlextCliServiceBase):
         return errors
 
     @staticmethod
-    def execute_health_check() -> r[Mapping[str, object]]:
+    def execute_health_check() -> r[Mapping[str, FlextCliTypes.Cli.JsonValue]]:
         """Execute comprehensive health check."""
         try:
-            health_info: dict[str, object] = {
+            health_info: dict[str, FlextCliTypes.Cli.JsonValue] = {
                 c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.HEALTHY.value,
                 c.Cli.DictKeys.TIMESTAMP: FlextCliUtilities.generate("timestamp"),
                 c.Cli.DictKeys.SERVICE: c.Cli.DebugDefaults.SERVICE_NAME,
                 c.Cli.DebugDictKeys.CHECK_ID: FlextCliUtilities.generate("id"),
                 c.Cli.DebugDictKeys.CHECKS_PASSED: True,
             }
-            return r[Mapping[str, object]].ok(health_info)
+            return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].ok(health_info)
         except (
             ValueError,
             TypeError,
@@ -167,22 +168,22 @@ class FlextCliDebug(FlextCliServiceBase):
             StyleError,
             LiveError,
         ) as e:
-            return r[Mapping[str, object]].fail(
+            return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].fail(
                 c.Cli.DebugErrorMessages.HEALTH_CHECK_FAILED.format(error=e)
             )
 
     @staticmethod
-    def execute_trace(args: list[str]) -> r[Mapping[str, object]]:
+    def execute_trace(args: list[str]) -> r[Mapping[str, FlextCliTypes.Cli.JsonValue]]:
         """Execute trace operation with provided arguments."""
         try:
-            trace_info: dict[str, object] = {
+            trace_info: dict[str, FlextCliTypes.Cli.JsonValue] = {
                 c.Cli.DebugDictKeys.OPERATION: c.Cli.TRACE,
                 c.Cli.DictKeys.ARGS: list(args),
                 c.Cli.DebugDictKeys.ARGS_COUNT: len(args),
                 c.Cli.DictKeys.TIMESTAMP: FlextCliUtilities.generate("timestamp"),
                 c.Cli.DebugDictKeys.TRACE_ID: FlextCliUtilities.generate("id"),
             }
-            return r[Mapping[str, object]].ok(trace_info)
+            return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].ok(trace_info)
         except (
             ValueError,
             TypeError,
@@ -191,7 +192,7 @@ class FlextCliDebug(FlextCliServiceBase):
             StyleError,
             LiveError,
         ) as e:
-            return r[Mapping[str, object]].fail(
+            return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].fail(
                 c.Cli.DebugErrorMessages.TRACE_EXECUTION_FAILED.format(error=e)
             )
 
@@ -219,17 +220,19 @@ class FlextCliDebug(FlextCliServiceBase):
             )
 
     @override
-    def execute(self) -> r[Mapping[str, object]]:
+    def execute(self) -> r[Mapping[str, FlextCliTypes.Cli.JsonValue]]:
         """Execute debug service - required by FlextService."""
-        return r[Mapping[str, object]].ok({
+        return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].ok({
             "status": "operational",
             "message": c.Cli.ServiceMessages.FLEXT_CLI_DEBUG_OPERATIONAL,
         })
 
-    def get_comprehensive_debug_info(self) -> r[Mapping[str, object]]:
+    def get_comprehensive_debug_info(
+        self,
+    ) -> r[Mapping[str, FlextCliTypes.Cli.JsonValue]]:
         """Get comprehensive debug information combining all debug methods."""
         try:
-            comprehensive_info: dict[str, object] = {}
+            comprehensive_info: dict[str, FlextCliTypes.Cli.JsonValue] = {}
             self._collect_info_safely(
                 "get_system_info", c.Cli.DebugDictKeys.SYSTEM_ERROR, comprehensive_info
             )
@@ -244,7 +247,7 @@ class FlextCliDebug(FlextCliServiceBase):
             self._collect_info_safely(
                 "get_debug_info", c.Cli.DebugDictKeys.DEBUG_ERROR, comprehensive_info
             )
-            return r[Mapping[str, object]].ok(comprehensive_info)
+            return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].ok(comprehensive_info)
         except (
             ValueError,
             TypeError,
@@ -253,24 +256,28 @@ class FlextCliDebug(FlextCliServiceBase):
             StyleError,
             LiveError,
         ) as e:
-            return r[Mapping[str, object]].fail(
+            return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].fail(
                 c.Cli.DebugErrorMessages.COMPREHENSIVE_DEBUG_INFO_FAILED.format(error=e)
             )
 
-    def get_debug_info(self) -> r[Mapping[str, object]]:
+    def get_debug_info(self) -> r[Mapping[str, FlextCliTypes.Cli.JsonValue]]:
         """Get comprehensive debug information."""
         try:
             system_info_model = self._get_system_info()
             system_info_dict = FlextCliDebug._convert_model_to_dict(
                 system_info_model
             ).model_dump()
-            system_info_json: dict[str, object] = dict(system_info_dict)
+            system_info_json: dict[str, FlextCliTypes.Cli.JsonValue] = dict(
+                system_info_dict
+            )
             environment_info_model = self._get_environment_info()
             environment_info_dict = FlextCliDebug._convert_model_to_dict(
                 environment_info_model
             ).model_dump()
-            environment_info_json: dict[str, object] = dict(environment_info_dict)
-            debug_info: dict[str, object] = {
+            environment_info_json: dict[str, FlextCliTypes.Cli.JsonValue] = dict(
+                environment_info_dict
+            )
+            debug_info: dict[str, FlextCliTypes.Cli.JsonValue] = {
                 c.Cli.DictKeys.SERVICE: c.Cli.DebugDefaults.SERVICE_NAME,
                 c.Cli.DictKeys.TIMESTAMP: u.generate("timestamp"),
                 c.Cli.DebugDictKeys.DEBUG_ID: u.generate("id"),
@@ -278,7 +285,7 @@ class FlextCliDebug(FlextCliServiceBase):
                 c.Cli.DebugDictKeys.ENVIRONMENT_INFO: environment_info_json,
                 c.Cli.DebugDictKeys.CONNECTIVITY_STATUS: c.Cli.ServiceStatus.CONNECTED.value,
             }
-            return r[Mapping[str, object]].ok(debug_info)
+            return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].ok(debug_info)
         except (
             ValueError,
             TypeError,
@@ -287,16 +294,18 @@ class FlextCliDebug(FlextCliServiceBase):
             StyleError,
             LiveError,
         ) as e:
-            return r[Mapping[str, object]].fail(
+            return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].fail(
                 c.Cli.DebugErrorMessages.DEBUG_INFO_COLLECTION_FAILED.format(error=e)
             )
 
-    def get_environment_variables(self) -> r[Mapping[str, object]]:
+    def get_environment_variables(self) -> r[Mapping[str, FlextCliTypes.Cli.JsonValue]]:
         """Get environment variables with sensitive data masked."""
         try:
             env_info = self._get_environment_info()
-            typed_env_info: dict[str, object] = dict(env_info.variables.items())
-            return r[Mapping[str, object]].ok(typed_env_info)
+            typed_env_info: dict[str, FlextCliTypes.Cli.JsonValue] = dict(
+                env_info.variables.items()
+            )
+            return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].ok(typed_env_info)
         except (
             ValueError,
             TypeError,
@@ -305,18 +314,18 @@ class FlextCliDebug(FlextCliServiceBase):
             StyleError,
             LiveError,
         ) as e:
-            return r[Mapping[str, object]].fail(
+            return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].fail(
                 c.Cli.DebugErrorMessages.ENVIRONMENT_INFO_FAILED.format(error=e)
             )
 
-    def get_system_info(self) -> r[Mapping[str, object]]:
+    def get_system_info(self) -> r[Mapping[str, FlextCliTypes.Cli.JsonValue]]:
         """Get system information - public API method."""
         try:
             info_model = self._get_system_info()
-            info_dict: dict[str, object] = dict(
+            info_dict: dict[str, FlextCliTypes.Cli.JsonValue] = dict(
                 FlextCliDebug._convert_model_to_dict(info_model).model_dump()
             )
-            return r[Mapping[str, object]].ok(info_dict)
+            return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].ok(info_dict)
         except (
             ValueError,
             TypeError,
@@ -325,21 +334,23 @@ class FlextCliDebug(FlextCliServiceBase):
             StyleError,
             LiveError,
         ) as e:
-            return r[Mapping[str, object]].fail(
+            return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].fail(
                 c.Cli.DebugErrorMessages.SYSTEM_INFO_COLLECTION_FAILED.format(error=e)
             )
 
-    def get_system_paths(self) -> r[Mapping[str, object]]:
+    def get_system_paths(self) -> r[Mapping[str, FlextCliTypes.Cli.JsonValue]]:
         """Get system path information - public API method."""
         try:
             paths_data = self._get_path_info()
-            serialized_paths: list[object] = []
+            serialized_paths: list[FlextCliTypes.Cli.JsonValue] = []
             for path_info in paths_data:
                 path_dict = FlextCliDebug._convert_model_to_dict(path_info).model_dump()
-                path_json_dict: dict[str, object] = dict(path_dict)
+                path_json_dict: dict[str, FlextCliTypes.Cli.JsonValue] = dict(path_dict)
                 serialized_paths.append(path_json_dict)
-            paths_dict: dict[str, object] = {"paths": serialized_paths}
-            return r[Mapping[str, object]].ok(paths_dict)
+            paths_dict: dict[str, FlextCliTypes.Cli.JsonValue] = {
+                "paths": serialized_paths
+            }
+            return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].ok(paths_dict)
         except (
             ValueError,
             TypeError,
@@ -348,7 +359,7 @@ class FlextCliDebug(FlextCliServiceBase):
             StyleError,
             LiveError,
         ) as e:
-            return r[Mapping[str, object]].fail(
+            return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].fail(
                 c.Cli.DebugErrorMessages.SYSTEM_PATHS_COLLECTION_FAILED.format(error=e)
             )
 
@@ -373,7 +384,7 @@ class FlextCliDebug(FlextCliServiceBase):
         self,
         method_name: str,
         error_key: str,
-        info_dict: MutableMapping[str, object],
+        info_dict: MutableMapping[str, FlextCliTypes.Cli.JsonValue],
     ) -> None:
         """Generalized info collection helper with error handling."""
         method = getattr(self, method_name)
