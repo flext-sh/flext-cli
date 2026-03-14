@@ -13,7 +13,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Protocol, runtime_checkable
 
-from flext_cli import r
+from flext_core import r
 
 
 @runtime_checkable
@@ -85,7 +85,7 @@ class ExamplePlugin:
         self._initialized = False
         self._config: dict[str, object] = {}
 
-    def initialize(self, _cli_main) -> r[bool]:
+    def initialize(self, _cli_main: CliMainWithGroups) -> r[bool]:
         """Initialize the plugin.
 
         Args:
@@ -102,7 +102,7 @@ class ExamplePlugin:
         except Exception as e:
             return r[bool].fail(f"Plugin initialization failed: {e}")
 
-    def register_commands(self, cli_main) -> r[bool]:
+    def register_commands(self, cli_main: CliMainWithGroups) -> r[bool]:
         """Register plugin commands.
 
         Args:
@@ -187,7 +187,7 @@ class DataProcessorPlugin:
         super().__init__()
         self._processors: ProcessorRegistry = {}
 
-    def initialize(self, _cli_main) -> r[bool]:
+    def initialize(self, _cli_main: CliMainWithGroups) -> r[bool]:
         """Initialize the plugin.
 
         Args:
@@ -207,7 +207,7 @@ class DataProcessorPlugin:
         except Exception as e:
             return r[bool].fail(f"Initialization failed: {e}")
 
-    def register_commands(self, cli_main) -> r[bool]:
+    def register_commands(self, cli_main: CliMainWithGroups) -> r[bool]:
         """Register data processing commands.
 
         Args:
@@ -218,10 +218,6 @@ class DataProcessorPlugin:
 
         """
         try:
-            if not isinstance(cli_main, CliMainWithGroups):
-                return r[bool].fail(
-                    "cli_main does not implement CliMainWithGroups protocol"
-                )
             cli_with_group = cli_main
 
             @cli_with_group.group()
