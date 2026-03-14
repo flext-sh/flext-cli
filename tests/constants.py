@@ -13,12 +13,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import Final
 
-from flext_cli.constants import FlextCliConstants
-from flext_cli.typings import t
-from flext_tests.constants import FlextTestsConstants
+from flext_tests import FlextTestsConstants
+from pydantic import BaseModel, ConfigDict, Field
+
+from flext_cli import FlextCliConstants
 
 
 class TestsFlextCliConstants(FlextTestsConstants, FlextCliConstants):
@@ -29,11 +29,11 @@ class TestsFlextCliConstants(FlextTestsConstants, FlextCliConstants):
     2. FlextCliConstants - for domain constants (.Cli.*)
 
     Access patterns:
-    - tc.Tests.Docker.* (container testing)
-    - tc.Tests.Matcher.* (assertion messages)
-    - tc.Tests.Factory.* (test data generation)
-    - tc.Cli.* (domain constants from production)
-    - tc.TestData.* (project-specific test data)
+    - c.Tests.Docker.* (container testing)
+    - c.Tests.Matcher.* (assertion messages)
+    - c.Tests.Factory.* (test data generation)
+    - c.Cli.* (domain constants from production)
+    - c.TestData.* (project-specific test data)
 
     Rules:
     - NEVER duplicate constants from FlextTestsConstants or FlextCliConstants
@@ -41,11 +41,6 @@ class TestsFlextCliConstants(FlextTestsConstants, FlextCliConstants):
     - All generic constants come from FlextTestsConstants
     - All production constants come from FlextCliConstants
     """
-
-    # =========================================================================
-    # TEST DATA CONSTANTS
-    # =========================================================================
-    # Constantes de dados de teste - valores simples para usar em testes
 
     ALICE: Final[str] = "Alice"
     VALID_FIELD_NAME: Final[str] = "validField"
@@ -61,20 +56,15 @@ class TestsFlextCliConstants(FlextTestsConstants, FlextCliConstants):
     SPECIAL: Final[str] = "!@#$%^&*()"
     UNICODE: Final[str] = "测试字符串"
     PERFORMANCE_THRESHOLD: Final[float] = 0.1
-
-    # Status constants
     INFO: Final[str] = "INFO"
     WARNING: Final[str] = "WARNING"
     ALL: Final[list[str]] = ["ALL"]
-
-    # Format constants
     NAME_HEADER: Final[str] = "Name"
     GRID: Final[str] = "grid"
     FANCY_GRID: Final[str] = "fancy_grid"
     INVALID: Final[str] = "invalid"
     EXPECTED_ALL: Final[str] = "expected_all"
 
-    # Environment constants
     class Environment:
         """Test environment constants."""
 
@@ -82,7 +72,6 @@ class TestsFlextCliConstants(FlextTestsConstants, FlextCliConstants):
         PYTEST_BINARY: Final[str] = "pytest"
         CI_VALUE: Final[str] = "true"
 
-    # Table constants
     SPECIALIZED_CASES: Final[str] = "specialized_cases"
 
     class Borders:
@@ -91,8 +80,6 @@ class TestsFlextCliConstants(FlextTestsConstants, FlextCliConstants):
         PLUS: Final[str] = "plus"
 
     Data: Final[str] = "data"
-
-    # Config and OutputFormats
     Config: Final[str] = "config"
 
     class OutputFormats:
@@ -138,16 +125,16 @@ class TestsFlextCliConstants(FlextTestsConstants, FlextCliConstants):
         SMALL_DATASET_SIZE: Final[int] = 5
         LARGE_DATASET_SIZE: Final[int] = 100
 
-    class Configuration:
+    class TestConfiguration:
         """Test configuration constants."""
 
-        BASIC_CONFIG: Final[dict[str, t.GeneralValueType]] = {
+        BASIC_CONFIG: Final[dict[str, object]] = {
             "app_name": "test_app",
             "debug": False,
             "log_level": "INFO",
             "output_format": "json",
         }
-        """Basic configuration for testing config provider operations."""
+        "Basic configuration for testing config provider operations."
 
     class TestData:
         """Test data constants for test modules."""
@@ -242,55 +229,97 @@ class TestsFlextCliConstants(FlextTestsConstants, FlextCliConstants):
     class Fixtures:
         """Test fixture dataclasses for flext-cli tests."""
 
-        @dataclass(frozen=True, slots=True)
-        class Identifiers:
+        class Identifiers(BaseModel):
             """Test identifiers and IDs."""
 
-            user_id: str = "test_user_123"
-            session_id: str = "test_session_123"
-            service_name: str = "test_service"
-            operation_id: str = "test_operation"
-            request_id: str = "test-request-456"
-            correlation_id: str = "test-corr-123"
+            model_config = ConfigDict(frozen=True)
 
-        @dataclass(frozen=True, slots=True)
-        class Names:
+            user_id: str = Field(default="test_user_123", description="Test user id")
+            session_id: str = Field(
+                default="test_session_123", description="Test session id"
+            )
+            service_name: str = Field(
+                default="test_service", description="Test service name"
+            )
+            operation_id: str = Field(
+                default="test_operation", description="Test operation id"
+            )
+            request_id: str = Field(
+                default="test-request-456", description="Test request id"
+            )
+            correlation_id: str = Field(
+                default="test-corr-123", description="Test correlation id"
+            )
+
+        class Names(BaseModel):
             """Test module and component names."""
 
-            module_name: str = "test_module"
-            handler_name: str = "test_handler"
-            chain_name: str = "test_chain"
-            command_type: str = "test_command"
-            query_type: str = "test_query"
-            logger_name: str = "test_logger"
-            app_name: str = "test-app"
-            validation_app: str = "validation-test"
-            source_service: str = "test_service"
+            model_config = ConfigDict(frozen=True)
 
-        @dataclass(frozen=True, slots=True)
-        class ErrorData:
+            module_name: str = Field(
+                default="test_module", description="Test module name"
+            )
+            handler_name: str = Field(
+                default="test_handler", description="Test handler name"
+            )
+            chain_name: str = Field(default="test_chain", description="Test chain name")
+            command_type: str = Field(
+                default="test_command", description="Test command type"
+            )
+            query_type: str = Field(default="test_query", description="Test query type")
+            logger_name: str = Field(
+                default="test_logger", description="Test logger name"
+            )
+            app_name: str = Field(default="test-app", description="Test app name")
+            validation_app: str = Field(
+                default="validation-test", description="Validation app name"
+            )
+            source_service: str = Field(
+                default="test_service", description="Source service name"
+            )
+
+        class ErrorData(BaseModel):
             """Test error codes and messages."""
 
-            error_code: str = "TEST_ERROR_001"
-            validation_error: str = "test_error"
-            operation_error: str = "Op failed"
-            config_error: str = "Config failed"
-            timeout_error: str = "Operation timeout"
+            model_config = ConfigDict(frozen=True)
 
-        @dataclass(frozen=True, slots=True)
-        class Data:
+            error_code: str = Field(
+                default="TEST_ERROR_001", description="Test error code"
+            )
+            validation_error: str = Field(
+                default="test_error", description="Validation error text"
+            )
+            operation_error: str = Field(
+                default="Op failed", description="Operation error text"
+            )
+            config_error: str = Field(
+                default="Config failed", description="Config error text"
+            )
+            timeout_error: str = Field(
+                default="Operation timeout", description="Timeout error text"
+            )
+
+        class Data(BaseModel):
             """Test field names and data values."""
 
-            field_name: str = "test_field"
-            config_key: str = "test_key"
-            username: str = "test_user"
-            email: str = "test@example.com"
-            password: str = "test_pass"
-            string_value: str = "test_value"
-            input_data: str = "test_input"
-            request_data: str = "test_request"
-            result_data: str = "test_result"
-            message: str = "test_message"
+            model_config = ConfigDict(frozen=True)
+
+            field_name: str = Field(default="test_field", description="Test field name")
+            config_key: str = Field(default="test_key", description="Test config key")
+            username: str = Field(default="test_user", description="Test username")
+            email: str = Field(default="test@example.com", description="Test email")
+            password: str = Field(default="test_pass", description="Test password")
+            string_value: str = Field(
+                default="test_value", description="Test string value"
+            )
+            input_data: str = Field(default="test_input", description="Test input data")
+            request_data: str = Field(
+                default="test_request", description="Test request data"
+            )
+            result_data: str = Field(
+                default="test_result", description="Test result data"
+            )
+            message: str = Field(default="test_message", description="Test message")
 
     class Table:
         """Table-related test constants."""
@@ -310,34 +339,21 @@ class TestsFlextCliConstants(FlextTestsConstants, FlextCliConstants):
             ("rst", "rst", ["=", "name", "role"]),
         ]
 
-    class Authentication:
+    class TestAuthentication:
         """Authentication test constants for protocol testing."""
 
         VALID_TOKEN: Final[str] = "valid_token"
         INVALID_TOKEN: Final[str] = "invalid_token_xyz"
-
         VALID_CREDS: Final[dict[str, str]] = {
             "username": "testuser",
             "password": "testpass",
         }
-
         INVALID_CREDS: Final[dict[str, str]] = {
             "username": "invalid",
             "password": "wrong",
         }
-
-        EMPTY_CREDS: Final[dict[str, str]] = {
-            "username": "",
-            "password": "",
-        }
+        EMPTY_CREDS: Final[dict[str, str]] = {"username": "", "password": ""}
 
 
-# Short aliases per FLEXT convention
-tc = TestsFlextCliConstants  # Primary test constants alias
-c = TestsFlextCliConstants  # Alternative alias for compatibility
-
-__all__ = [
-    "TestsFlextCliConstants",
-    "c",
-    "tc",
-]
+c = TestsFlextCliConstants
+__all__ = ["TestsFlextCliConstants", "c"]

@@ -3,15 +3,11 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping, Sequence
-from typing import ClassVar
+from typing import TypeAlias
 
 from flext_core import FlextTypes
-from pydantic import BaseModel, ConfigDict
 
 
-# ═══════════════════════════════════════════════════════════════════════════
-# SINGLE CLASS WITH NESTED CLASSES
-# ═══════════════════════════════════════════════════════════════════════════
 class FlextCliTypes(FlextTypes):
     """FlextCli type definitions extending FlextTypes via inheritance.
 
@@ -28,57 +24,33 @@ class FlextCliTypes(FlextTypes):
         """CLI types namespace for cross-project access.
 
         Provides organized access to all CLI types for other FLEXT projects.
-        Usage: Other projects can reference `FlextCliTypes.Cli.*` via short alias `t.Cli.*`.
+        Usage: Other projects can reference `FlextCliTypes.Cli.*` via short alias `FlextTypes.Cli.*`.
         This enables consistent namespace patterns for cross-project type access.
 
         RULES (Architecture Layer Compliance):
         ─────────────────────────────────────
         1. Single class pattern - NO nested sub-namespaces (Data, Auth, etFlextCliConstants.Cli.)
-        2. Direct access via t.Cli.* - simple and clear
+        2. Direct access via FlextTypes.Cli.* - simple and clear
         3. Reuse from FlextTypes parent class (inheritance, no duplication)
         4. Complex types only - no simple wrappers
         5. Type composition with Protocols for better type safety
         """
 
-        # NO LEGACY ALIASES ALLOWED
-        FormatableResult = FlextTypes.GeneralValueType
-        ResultFormatter = Callable[[FormatableResult], str]
-        TabularData = Sequence[Mapping[str, FlextTypes.GeneralValueType]]
-
-
-# ═══════════════════════════════════════════════════════════════════════════
-# PYDANTIC MODELS FOR CLI METADATA
-# ═══════════════════════════════════════════════════════════════════════════
-
-
-class CliExecutionMetadata(BaseModel):
-    """Pydantic model for CLI execution metadata."""
-
-    model_config: ClassVar[ConfigDict] = ConfigDict(frozen=False, extra="forbid")
-
-    command_name: str | None = None
-    session_id: str | None = None
-    start_time: float | None = None
-    pid: int | None = None
-    environment: str | None = None
-
-
-class CliValidationResult(BaseModel):
-    """Pydantic model for CLI validation results."""
-
-    model_config: ClassVar[ConfigDict] = ConfigDict(frozen=False, extra="forbid")
-
-    field_name: str | None = None
-    rule_name: str | None = None
-    is_valid: bool | None = None
-    error_message: str | None = None
+        JsonScalar: TypeAlias = FlextTypes.Scalar | None
+        JsonValue: TypeAlias = FlextTypes.NormalizedValue
+        JsonDict: TypeAlias = Mapping[str, JsonValue]
+        TableRow: TypeAlias = Mapping[str, JsonValue]
+        ResultFormatter = Callable[[JsonValue], str]
+        FormatableResult: TypeAlias = str
+        TabularData = Sequence[TableRow]
+        TableRows: TypeAlias = Sequence[TableRow]
+        CliValue = (
+            FlextTypes.Scalar
+            | list[str]
+            | Mapping[str, FlextTypes.Scalar | list[str]]
+            | None
+        )
 
 
 t = FlextCliTypes
-
-__all__ = [
-    "CliExecutionMetadata",
-    "CliValidationResult",
-    "FlextCliTypes",
-    "t",
-]
+__all__ = ["FlextCliTypes", "t"]

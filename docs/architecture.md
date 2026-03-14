@@ -18,8 +18,8 @@ Panorama da arquitetura implementada no **flext-cli** 0.10.0, conforme o código
 
 - **Facade única**: `FlextCli` compõe serviços (`core`, `cmd`, `output`, `prompts`, `tables`) e utilidades (`formatters`, `file_tools`, `utilities`) e mantém wrappers legados.
 - **Fronteiras claras de framework**: Typer/Click ficam em `cli.py`; Rich/Tabulate são usados apenas em `formatters.py` e `services/tables.py`.
-- **Contratos explícitos**: `models.py`, `context.py` e `protocols.py` definem os tipos de entrada/saída validados com Pydantic v2.
-- **Retornos com `FlextResult[T]`**: erros e sucessos são encadeáveis em autenticação, orquestração e I/O.
+- **Contratos explícitos**: `models.py` e `protocols.py` definem os tipos de entrada/saída validados com Pydantic v2.
+- **Retornos com `r[T]`**: erros e sucessos são encadeáveis em autenticação, orquestração e I/O.
 
 ## Mapa dos módulos
 
@@ -32,7 +32,6 @@ src/flext_cli/
 ├── commands.py           # Registro e resolução de comandos estruturais
 ├── config.py             # Singleton de configuração validada
 ├── constants.py          # Constantes e mensagens compartilhadas
-├── context.py            # Contexto de execução imutável
 ├── debug.py              # Utilidades de depuração
 ├── file_tools.py         # I/O de arquivos (texto, JSON, YAML, CSV, zip)
 ├── formatters.py         # Saída Rich e helpers de layout
@@ -55,11 +54,11 @@ src/flext_cli/
 1. **Registro de comandos**: modelos em `commands.py` são validados em `FlextCliCore.register_command` antes de serem armazenados.
 1. **Execução**: `FlextCliCore.execute_command` resolve o comando registrado; `FlextCliCmd` fornece operações utilitárias ligadas à configuração persistida.
 1. **Entrada/Saída**: `prompts.py` coleta entrada; `output.py`, `formatters.py` e `tables.py` geram saídas em Rich/ASCII/JSON/YAML/CSV sem expor o Rich diretamente.
-1. **Configuração e contexto**: `config.py` gerencia configuração imutável; `context.py` acompanha execução e sessões armazenadas em `core`.
+1. **Configuração**: `config.py` gerencia configuração imutável; sessões são armazenadas em `core`.
 
 ## Integração com flext-core
 
-- `FlextResult`: envelope de sucesso/falha usado por todas as operações públicas.
+- `r`: envelope de sucesso/falha usado por todas as operações públicas.
 - `FlextService`: herdado em `FlextCliServiceBase` para logging, contexto e ciclo de vida.
 - `FlextContainer`: registro do identificador do CLI ao inicializar `FlextCli` ou `FlextCliCli`.
 
@@ -76,7 +75,9 @@ cli.core.register_command(command)
 cli.core.execute_command(command.name)
 
 # Wrappers permanecem para compatibilidade
-table = cli.create_table([{"name": "Alice", "age": 30}], headers=["name", "age"]).unwrap()
+table = cli.create_table(
+    [{"name": "Alice", "age": 30}], headers=["name", "age"]
+).unwrap()
 cli.print(table, style="green")
 ```
 

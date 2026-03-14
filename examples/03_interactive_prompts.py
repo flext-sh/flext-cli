@@ -17,7 +17,7 @@ FLEXT-CLI PROVIDES:
 - Rich Prompt.ask() - Advanced prompts with built-in validation
 - Rich Confirm.ask() - Boolean confirmations with defaults
 - Rich IntPrompt/FloatPrompt - Type-safe numeric input
-- FlextResult error handling - No try/except needed
+- r error handling - No try/except needed
 
 HOW TO USE IN YOUR CLI:
 Replace input() calls with FlextCliPrompts for better UX and error handling
@@ -30,24 +30,18 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import FlextCli, FlextCliPrompts, r, t, u
+from models import AppWizardConfig, DatabaseWizardConfig, NumericPromptResult
+
+from flext_cli import FlextCli, FlextCliPrompts, r
 
 cli = FlextCli()
 prompts = FlextCliPrompts()
 
 
-# ============================================================================
-# PATTERN 1: Text input in YOUR CLI application
-# ============================================================================
-
-
 def get_user_configuration() -> r[str]:
     """Collect configuration from user in YOUR app."""
     cli.print("Setting up your application...", style="cyan")
-
-    # Instead of: project_name = input("Project name: ")
     name_result = prompts.prompt("Project name:", default="my-project")
-
     if name_result.is_success:
         project_name = name_result.value
         cli.print(f"✅ Project: {project_name}", style="green")
@@ -56,163 +50,100 @@ def get_user_configuration() -> r[str]:
     return r[str].fail(name_result.error or "Failed to get configuration")
 
 
-# ============================================================================
-# PATTERN 2: Password input in YOUR authentication flow
-# ============================================================================
-
-
 def authenticate_user() -> bool:
     """Secure password collection in YOUR app."""
-    # Instead of: password = input("Password: ")  # Shows password in terminal!
     password_result = prompts.prompt_password("Enter password:")
-
     if password_result.is_failure:
         cli.print(f"Error: {password_result.error}", style="bold red")
         return False
-
     password = password_result.value
-
-    # Your validation logic
     if len(password) < 8:
         cli.print("❌ Password must be at least 8 characters", style="bold red")
         return False
-
     cli.print("✅ Password accepted", style="green")
     return True
 
 
-# ============================================================================
-# PATTERN 3: Confirmation prompts before destructive actions
-# ============================================================================
-
-
 def delete_database(database_name: str) -> None:
     """Confirm before destructive operations in YOUR app."""
-    # Instead of: confirm = input(f"Delete {database_name}? (y/n): ")
     confirm_result = prompts.confirm(
-        f"⚠️  Delete database '{database_name}'? This cannot be undone!",
-        default=False,  # Safe default
+        f"⚠️  Delete database '{database_name}'? This cannot be undone!", default=False
     )
-
     if confirm_result.is_failure:
         cli.print(f"Error: {confirm_result.error}", style="bold red")
         return
-
     if confirm_result.value:
         cli.print(f"🗑️  Deleting {database_name}...", style="yellow")
-        # Your deletion logic here
         cli.print("✅ Database deleted", style="green")
     else:
         cli.print("❌ Operation cancelled", style="cyan")
 
 
-# ============================================================================
-# PATTERN 4: Choice selection in YOUR menu system
-# ============================================================================
-
-
 def select_environment() -> r[str]:
     """Environment selection in YOUR deployment tool."""
     environments = ["development", "staging", "production"]
-
-    # Instead of: env = input("Select env (1-3): ")
     choice_result = prompts.prompt_choice(
-        "Select deployment environment:",
-        choices=environments,
+        "Select deployment environment:", choices=environments
     )
-
     if choice_result.is_failure:
         cli.print(f"Error: {choice_result.error}", style="bold red")
         return r[str].fail(choice_result.error or "Failed to select environment")
-
     selected = choice_result.value
     cli.print(f"🚀 Deploying to: {selected}", style="green")
-
-    # Show warning for production
     if selected == "production":
         confirm = prompts.confirm("⚠️  Deploy to production?", default=False)
         if confirm.is_success and confirm.value:
             return r[str].ok(selected)
         return r[str].fail("Production deployment cancelled by user")
-
     return r[str].ok(selected)
 
 
-# ============================================================================
-# PATTERN 5: Multi-step wizard in YOUR setup tool
-# ============================================================================
-
-
-def database_setup_wizard() -> r[dict[str, str | int | bool | float]]:
+def database_setup_wizard() -> r[DatabaseWizardConfig]:
     """Multi-step configuration wizard for YOUR application."""
     cli.print("📝 Database Setup Wizard", style="bold cyan")
-
-    config: dict[str, str | int | bool | float] = {}
-
-    # Step 1: Host
     host_result = prompts.prompt("Database host:", default="localhost")
     if host_result.is_failure:
-        return r[dict[str, str | int | bool | float]].fail(
-            host_result.error or "Failed to get host",
-        )
-    config["host"] = host_result.value
-
-    # Step 2: Port
+        return r[DatabaseWizardConfig].fail(host_result.error or "Failed to get host")
+    host = host_result.value
     port_result = prompts.prompt("Port:", default="5432")
     if port_result.is_failure:
-        return r[dict[str, str | int | bool | float]].fail(
-            port_result.error or "Failed to get port",
-        )
-    config["port"] = int(port_result.value)
-
-    # Step 3: Database name
+        return r[DatabaseWizardConfig].fail(port_result.error or "Failed to get port")
+    try:
+        port = int(port_result.value)
+    except ValueError:
+        return r[DatabaseWizardConfig].fail("Port must be a number")
     db_result = prompts.prompt("Database name:")
     if db_result.is_failure:
-        return r[dict[str, str | int | bool | float]].fail(
-            db_result.error or "Failed to get database name",
+        return r[DatabaseWizardConfig].fail(
+            db_result.error or "Failed to get database name"
         )
-    config["database"] = db_result.value
-
-    # Step 4: Password (masked)
+    database = db_result.value
     pwd_result = prompts.prompt_password("Database password:")
     if pwd_result.is_failure:
-        return r[dict[str, str | int | bool | float]].fail(
-            pwd_result.error or "Failed to get password",
+        return r[DatabaseWizardConfig].fail(
+            pwd_result.error or "Failed to get password"
         )
-    config["password"] = pwd_result.value
-
-    # Step 5: Confirm
+    password = pwd_result.value
     cli.print("\n📋 Review configuration:", style="yellow")
-    display_config = {k: v for k, v in config.items() if k != "password"}
-    display_config["password"] = "********"
-
-    # Create table from config data - convert using u
-    # Use u.transform for JSON conversion
-    transform_result = u.transform(
-        display_config,
-        to_json=True,
+    display_data = [
+        {"Setting": "host", "Value": host},
+        {"Setting": "port", "Value": str(port)},
+        {"Setting": "database", "Value": database},
+        {"Setting": "password", "Value": "********"},
+    ]
+    cli.show_table(
+        display_data, headers=["Setting", "Value"], title="Database Configuration"
     )
-    json_config: dict[str, t.JsonValue] = transform_result.map_or(display_config)
-    table_result = cli.create_table(
-        data=json_config,
-        headers=["Setting", "Value"],
-        _title="Database Configuration",
-    )
-    if table_result.is_success:
-        cli.print_table(table_result.value)
-
     confirm = prompts.confirm("Save this configuration?", default=True)
     if confirm.is_success and confirm.value:
         cli.print("✅ Configuration saved!", style="green")
-        return r[dict[str, str | int | bool | float]].ok(config)
-
+        return r[DatabaseWizardConfig].ok(
+            DatabaseWizardConfig(
+                host=host, port=port, database=database, password=password
+            )
+        )
     cli.print("❌ Setup cancelled", style="yellow")
-    return r[dict[str, str | int | bool | float]].fail("Setup cancelled by user")
-
-
-# ============================================================================
-# PATTERN 6: Input validation with FlextResult in YOUR CLI
-# ============================================================================
+    return r[DatabaseWizardConfig].fail("Setup cancelled by user")
 
 
 def validate_email_input() -> r[str]:
@@ -224,17 +155,12 @@ def validate_email_input() -> r[str]:
             return r[str].fail("Invalid email format")
         return r[str].ok(email)
 
-    # Get input and validate
     email_result = prompts.prompt("Enter email address:")
-
-    # Validate manually (FlextResult doesn't have and_then in flext-core)
     if email_result.is_failure:
         cli.print(f"❌ Prompt failed: {email_result.error}", style="bold red")
         return r[str].fail(email_result.error or "Prompt failed")
-
     email = email_result.value
     validated = is_valid_email(email)
-
     if validated.is_success:
         cli.print(f"✅ Valid email: {validated.value}", style="green")
         return validated
@@ -242,16 +168,9 @@ def validate_email_input() -> r[str]:
     return validated
 
 
-# ============================================================================
-# PATTERN 7: FlextCli prompts with custom validation
-# ============================================================================
-
-
 def flext_prompt_with_validation() -> r[int]:
     """Use FlextCli prompts with custom validation logic."""
     cli.print("\n📝 FlextCli Prompts with Custom Validation", style="cyan")
-
-    # Text prompt with default
     name_result = prompts.prompt("Enter your name", default="Anonymous")
     if name_result.is_success:
         name = name_result.value
@@ -259,12 +178,8 @@ def flext_prompt_with_validation() -> r[int]:
     else:
         cli.print(f"❌ Error: {name_result.error}", style="red")
         return r[int].fail(name_result.error or "Name prompt failed")
-
-    # Prompt with choices - automatic validation!
     env_result = prompts.prompt_choice(
-        "Select environment",
-        choices=["dev", "staging", "prod"],
-        default="dev",
+        "Select environment", choices=["dev", "staging", "prod"], default="dev"
     )
     if env_result.is_success:
         environment = env_result.value
@@ -273,9 +188,8 @@ def flext_prompt_with_validation() -> r[int]:
         cli.print(f"❌ Error: {env_result.error}", style="red")
         return r[int].fail(env_result.error or "Environment choice failed")
 
-    # Prompt with custom validation using FlextResult
     def validate_port(value: str) -> r[int]:
-        """Validate port number using FlextResult pattern."""
+        """Validate port number using r pattern."""
         try:
             port = int(value)
             if not 1024 <= port <= 65535:
@@ -298,29 +212,17 @@ def flext_prompt_with_validation() -> r[int]:
     return r[int].fail(port_result.error or "Port prompt failed")
 
 
-# ============================================================================
-# PATTERN 8: FlextCli confirmation prompts
-# ============================================================================
-
-
 def flext_confirm_prompts() -> bool:
     """Use FlextCli confirm() for boolean confirmations."""
     cli.print("\n🔘 Boolean Confirmations", style="cyan")
-
-    # Simple confirmation with default=True
     proceed_result = prompts.confirm("Would you like to proceed?", default=True)
-
     if proceed_result.is_success and proceed_result.value:
         cli.print("✅ Proceeding with operation", style="green")
     else:
         cli.print("❌ Operation cancelled", style="yellow")
-
-    # Confirmation for destructive action with default=False
     delete_result = prompts.confirm(
-        "⚠️  Delete all data? This cannot be undone!",
-        default=False,
+        "⚠️  Delete all data? This cannot be undone!", default=False
     )
-
     if delete_result.is_success and delete_result.value:
         cli.print("🗑️  Deleting all data...", style="red")
         return True
@@ -328,22 +230,13 @@ def flext_confirm_prompts() -> bool:
     return False
 
 
-# ============================================================================
-# PATTERN 9: FlextCli numeric input with validation
-# ============================================================================
-
-
-def flext_numeric_prompts() -> dict[str, int | float]:
+def flext_numeric_prompts() -> r[NumericPromptResult]:
     """Use FlextCli prompts with numeric validation."""
     cli.print("\n🔢 Type-Safe Numeric Input", style="cyan")
 
-    # Integer prompt with validation
     def validate_int(
-        value: str,
-        min_val: int | None = None,
-        max_val: int | None = None,
+        value: str, min_val: int | None = None, max_val: int | None = None
     ) -> r[int]:
-        """Validate and convert to integer."""
         try:
             num = int(value)
             if min_val is not None and num < min_val:
@@ -354,34 +247,23 @@ def flext_numeric_prompts() -> dict[str, int | float]:
         except ValueError:
             return r[int].fail("Value must be a valid integer")
 
-    # Initialize variables at function scope
-    workers = 4
-    cpu_limit = 2.5
-    percentage = 50
-
-    # Get worker count
-    workers_result = prompts.prompt("Number of worker processes", default="4")
-    if workers_result.is_success:
-        workers_validation = validate_int(
-            workers_result.value,
-            min_val=1,
-            max_val=32,
-        )
-        if workers_validation.is_success:
-            workers = workers_validation.value
-            cli.print(
-                f"✅ Workers: {workers} (type: {type(workers).__name__})",
-                style="green",
-            )
-
-    # Get CPU limit (float)
     def validate_float(value: str) -> r[float]:
-        """Validate and convert to float."""
         try:
             return r[float].ok(float(value))
         except ValueError:
             return r[float].fail("Value must be a valid number")
 
+    workers = 4
+    cpu_limit = 2.5
+    percentage = 50
+    workers_result = prompts.prompt("Number of worker processes", default="4")
+    if workers_result.is_success:
+        workers_validation = validate_int(workers_result.value, min_val=1, max_val=32)
+        if workers_validation.is_success:
+            workers = workers_validation.value
+            cli.print(
+                f"✅ Workers: {workers} (type: {type(workers).__name__})", style="green"
+            )
     cpu_result = prompts.prompt("CPU limit (cores)", default="2.5")
     if cpu_result.is_success:
         cpu_validation = validate_float(cpu_result.value)
@@ -391,59 +273,37 @@ def flext_numeric_prompts() -> dict[str, int | float]:
                 f"✅ CPU Limit: {cpu_limit} (type: {type(cpu_limit).__name__})",
                 style="green",
             )
-
-    # Percentage with range validation
     percentage_result = prompts.prompt("Enter percentage (0-100)", default="50")
     if percentage_result.is_success:
-        pct_validation = validate_int(
-            percentage_result.value,
-            min_val=0,
-            max_val=100,
-        )
+        pct_validation = validate_int(percentage_result.value, min_val=0, max_val=100)
         if pct_validation.is_success:
             percentage = pct_validation.value
             cli.print(f"✅ Percentage: {percentage}%", style="green")
-            return {
-                "workers": workers,
-                "cpu_limit": cpu_limit,
-                "percentage": percentage,
-            }
-
-    return {}
+    return r[NumericPromptResult].ok(
+        NumericPromptResult(workers=workers, cpu_limit=cpu_limit, percentage=percentage)
+    )
 
 
-# ============================================================================
-# PATTERN 10: Complete FlextCli configuration wizard
-# ============================================================================
-
-
-def flext_configuration_wizard() -> r[dict[str, str | int | bool | float]]:
+def flext_configuration_wizard() -> r[AppWizardConfig]:
     """Complete configuration wizard using FlextCli prompts."""
     cli.print("\n⚙️  Application Configuration Wizard", style="bold cyan")
-
-    config: dict[str, str | int | bool | float] = {}
-
-    # Application name
     name_result = prompts.prompt("Application name", default="my-app")
     if name_result.is_failure:
-        return r[dict[str, str | int | bool | float]].fail(
-            name_result.error or "Failed to get application name",
+        return r[AppWizardConfig].fail(
+            name_result.error or "Failed to get application name"
         )
-    config["app_name"] = name_result.value
-
-    # Environment with validation
+    app_name = name_result.value
     env_result = prompts.prompt_choice(
         "Environment",
         choices=["development", "staging", "production"],
         default="development",
     )
     if env_result.is_failure:
-        return r[dict[str, str | int | bool | float]].fail(
-            env_result.error or "Failed to select environment",
+        return r[AppWizardConfig].fail(
+            env_result.error or "Failed to select environment"
         )
-    config["environment"] = env_result.value
+    environment = env_result.value
 
-    # Port (type-safe integer)
     def validate_port(value: str) -> r[int]:
         try:
             port = int(value)
@@ -453,65 +313,48 @@ def flext_configuration_wizard() -> r[dict[str, str | int | bool | float]]:
         except ValueError:
             return r[int].fail("Port must be a number")
 
+    port = 8080
     port_result = prompts.prompt("Port number", default="8080")
     if port_result.is_success:
         port_validation = validate_port(port_result.value)
         if port_validation.is_success:
-            config["port"] = port_validation.value
-
-    # CPU limit (type-safe float)
+            port = port_validation.value
+    cpu_limit = 1.0
     cpu_result = prompts.prompt("CPU limit (cores)", default="1.0")
     if cpu_result.is_success:
         try:
-            config["cpu_limit"] = float(cpu_result.value)
+            cpu_limit = float(cpu_result.value)
         except ValueError:
             cli.print("Using default CPU limit: 1.0", style="yellow")
-            config["cpu_limit"] = 1.0
-
-    # Enable features (boolean)
+    enable_cache = True
     cache_result = prompts.confirm("Enable caching?", default=True)
     if cache_result.is_success:
-        config["enable_cache"] = cache_result.value
-
+        enable_cache = cache_result.value
+    enable_auth = True
     auth_result = prompts.confirm("Enable authentication?", default=True)
     if auth_result.is_success:
-        config["enable_auth"] = auth_result.value
-
-    # Display configuration
+        enable_auth = auth_result.value
     cli.print("\n📋 Configuration Summary:", style="yellow")
-
-    # Create table from config data - convert using u
-    # Use u.transform for JSON conversion
-    transform_result = u.transform(
-        config,
-        to_json=True,
+    summary = AppWizardConfig(
+        app_name=app_name,
+        environment=environment,
+        port=port,
+        cpu_limit=cpu_limit,
+        enable_cache=enable_cache,
+        enable_auth=enable_auth,
     )
-    json_config: dict[str, t.JsonValue] = transform_result.map_or(config)
-    table_result = cli.create_table(
-        data=json_config,
-        headers=["Setting", "Value"],
-        _title="Application Configuration",
+    display_rows = [
+        {"Setting": k, "Value": str(v)} for k, v in summary.model_dump().items()
+    ]
+    cli.show_table(
+        display_rows, headers=["Setting", "Value"], title="Application Configuration"
     )
-
-    if table_result.is_success:
-        cli.print_table(table_result.value)
-
-    # Final confirmation
     save_result = prompts.confirm("Save this configuration?", default=True)
-
     if save_result.is_success and save_result.value:
         cli.print("✅ Configuration saved!", style="bold green")
-        return r[dict[str, str | int | bool | float]].ok(config)
-
+        return r[AppWizardConfig].ok(summary)
     cli.print("❌ Configuration discarded", style="yellow")
-    return r[dict[str, str | int | bool | float]].fail(
-        "Configuration discarded by user",
-    )
-
-
-# ============================================================================
-# REAL USAGE EXAMPLES
-# ============================================================================
+    return r[AppWizardConfig].fail("Configuration discarded by user")
 
 
 def main() -> None:
@@ -519,68 +362,40 @@ def main() -> None:
     cli.print("=" * 70, style="bold blue")
     cli.print("  Interactive Prompts Library Usage", style="bold white")
     cli.print("=" * 70, style="bold blue")
-
-    # Example 1: Text input
     cli.print("\n1. Text Input (setup configuration):", style="bold cyan")
-    get_user_configuration()
-
-    # Example 2: Password input
+    _ = get_user_configuration()
     cli.print("\n2. Password Input (secure auth):", style="bold cyan")
-    authenticate_user()
-
-    # Example 3: Confirmation prompt
+    _ = authenticate_user()
     cli.print("\n3. Confirmation Prompt (destructive action):", style="bold cyan")
     delete_database("test_database")
-
-    # Example 4: Choice selection
     cli.print("\n4. Choice Selection (environment):", style="bold cyan")
-    select_environment()
-
-    # Example 5: Multi-step wizard
+    _ = select_environment()
     cli.print("\n5. Multi-Step Wizard (database setup):", style="bold cyan")
-    database_setup_wizard()
-
-    # Example 6: Input validation
+    _ = database_setup_wizard()
     cli.print("\n6. Input Validation (email):", style="bold cyan")
-    validate_email_input()
-
-    # Example 7: FlextCli prompts with validation
+    _ = validate_email_input()
     cli.print("\n7. FlextCli Prompts (custom validation):", style="bold cyan")
-    flext_prompt_with_validation()
-
-    # Example 8: FlextCli confirmations
+    _ = flext_prompt_with_validation()
     cli.print("\n8. FlextCli Confirm (boolean prompts):", style="bold cyan")
-    flext_confirm_prompts()
-
-    # Example 9: FlextCli numeric prompts
+    _ = flext_confirm_prompts()
     cli.print("\n9. FlextCli Numeric Prompts (type-safe):", style="bold cyan")
-    flext_numeric_prompts()
-
-    # Example 10: FlextCli configuration wizard
+    _ = flext_numeric_prompts()
     cli.print("\n10. FlextCli Configuration Wizard:", style="bold cyan")
-    flext_configuration_wizard()
-
+    _ = flext_configuration_wizard()
     cli.print("\n" + "=" * 70, style="bold blue")
     cli.print("  ✅ Prompt Examples Complete", style="bold green")
     cli.print("=" * 70, style="bold blue")
-
-    # Integration guide
     cli.print("\n💡 Integration Tips:", style="bold cyan")
     cli.print("  • Replace input() with prompts.prompt() for better UX", style="white")
     cli.print(
-        "  • Use prompts.prompt_password() for secrets (masked input)",
-        style="white",
+        "  • Use prompts.prompt_password() for secrets (masked input)", style="white"
     )
     cli.print("  • Add prompts.confirm() before destructive operations", style="white")
     cli.print("  • Use prompts.prompt_choice() for validated selections", style="white")
-    cli.print("  • Combine with FlextResult for robust validation", style="white")
+    cli.print("  • Combine with r for robust validation", style="white")
+    cli.print("  • All methods return r - no try/except needed", style="white")
     cli.print(
-        "  • All methods return FlextResult - no try/except needed",
-        style="white",
-    )
-    cli.print(
-        "  • NEVER import rich/click directly - use FlextCli wrappers!",
-        style="white",
+        "  • NEVER import rich/click directly - use FlextCli wrappers!", style="white"
     )
 
 

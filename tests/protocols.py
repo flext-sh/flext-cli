@@ -13,8 +13,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli.protocols import FlextCliProtocols
-from flext_tests.protocols import FlextTestsProtocols
+from flext_tests import FlextTestsProtocols
+
+from flext_cli import FlextCliProtocols
 
 
 class TestsCliProtocols(FlextTestsProtocols, FlextCliProtocols):
@@ -24,31 +25,15 @@ class TestsCliProtocols(FlextTestsProtocols, FlextCliProtocols):
     protocol definitions.
 
     Provides access to:
-    - tp.Tests.Docker.* (from FlextTestsProtocols)
-    - tp.Tests.Factory.* (from FlextTestsProtocols)
-    - tp.Cli.* (from FlextCliProtocols)
+    - p.Tests.Docker.* (from FlextTestsProtocols)
+    - p.Tests.Factory.* (from FlextTestsProtocols)
+    - p.Cli.* (from FlextCliProtocols)
 
     Rules:
     - NEVER redeclare protocols from parent classes
     - Only flext-cli-specific test protocols allowed
     """
 
-    class Tests:
-        """Project-specific test protocols.
 
-        Extends FlextTestsProtocols.Tests with flext-cli-specific protocols.
-        """
-
-        class Cli:
-            """Flext-cli-specific test protocols."""
-
-
-# Runtime aliases
 p = TestsCliProtocols
-tp = TestsCliProtocols
-
-__all__ = [
-    "TestsCliProtocols",
-    "p",
-    "tp",
-]
+__all__ = ["TestsCliProtocols", "p"]

@@ -2,6 +2,7 @@
 
 Eliminates code duplication across example files by providing shared patterns
 and common functionality using ONLY FlextCli wrappers - NO direct Rich imports!
+All data transport uses Pydantic v2 models from flext_cli (m.Cli).
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -10,7 +11,21 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import FlextCli, r, t
+from collections.abc import Mapping
+
+from pydantic import BaseModel
+
+from flext_cli import FlextCli, m, r
+
+
+def to_json_dict(
+    data: Mapping[str, object],
+) -> m.Cli.DisplayData:
+    """Normalize config/mapping to DisplayData for create_table/display_config_table."""
+    normalized = m.Cli.CliNormalizedJson(dict(data)).root
+    resolved = m.Cli.NormalizedJsonDict(value=normalized, default={}).resolved
+    result_dict: object = dict(resolved.items())
+    return m.Cli.DisplayData({"data": result_dict})
 
 
 def print_demo_completion(
@@ -20,53 +35,37 @@ def print_demo_completion(
     *,
     style: str = "green",
 ) -> None:
-    """Print standardized demo completion message using FlextCli.
-
-    Args:
-        cli: FlextCli instance
-        demo_name: Name of the completed demo
-        features: List of features demonstrated
-        style: Message style
-
-    """
-    cli.output.print_message(f"\n🎉 {demo_name} Complete", style=f"bold {style}")
-    cli.output.print_message(f"✅ {demo_name} Completed!", style=style)
-    cli.output.print_message("\nKey Features Demonstrated:", style="cyan")
+    """Print standardized demo completion message using FlextCli."""
+    cli.print(f"\n🎉 {demo_name} Complete", style=f"bold {style}")
+    cli.print(f"✅ {demo_name} Completed!", style=style)
+    cli.print("\nKey Features Demonstrated:", style="cyan")
     for feature in features:
-        cli.output.print_message(f"  • {feature}", style="white")
-    cli.output.print_message(
-        "\nAll operations used FlextResult pattern for error handling!",
+        cli.print(f"  • {feature}", style="white")
+    cli.print(
+        "\nAll operations used r pattern for error handling!",
         style="yellow",
     )
 
 
 def handle_command_result(
     cli: FlextCli,
-    result: r[dict[str, t.JsonValue]],
+    result: r[BaseModel],
     action: str,
     success_fields: list[str] | None = None,
 ) -> None:
-    """Generic handler for CQRS command results using FlextCli.
-
-    Args:
-        cli: FlextCli instance
-        result: FlextResult from command operation
-        action: Action being performed (e.g., "create project", "change status")
-        success_fields: Fields to display on success (defaults to ['id', 'status'])
-
-    """
+    """Generic handler for CQRS command results. Accepts r[BaseModel] only."""
     success_fields = success_fields or ["id", "status"]
 
     if result.is_success:
-        data = result.value
-        cli.output.print_message(f"✅ {action.title()} successful", style="green")
-
+        raw = result.value
+        data = raw.model_dump()
+        cli.print(f"✅ {action.title()} successful", style="green")
         for field in success_fields:
             if field in data:
                 display_name = field.replace("_", " ").title()
-                cli.output.print_message(f"{display_name}: {data[field]}")
+                cli.print(f"{display_name}: {data[field]}")
     else:
-        cli.output.print_message(f"❌ Failed to {action}: {result.error}", style="red")
+        cli.print(f"❌ Failed to {action}: {result.error}", style="red")
 
 
 def print_demo_error(
@@ -76,73 +75,47 @@ def print_demo_error(
     *,
     style: str = "red",
 ) -> None:
-    """Print standardized demo error message.
-
-    Args:
-        cli: FlextCli instance
-        demo_name: Name of the failed demo
-        error: Error message
-        style: Message style
-
-    """
-    cli.output.print_message(f"❌ {demo_name} failed: {error}", style=f"bold {style}")
-    cli.output.print_message(
-        "This failure demonstrates FlextResult error handling!",
+    """Print standardized demo error message."""
+    cli.print(f"❌ {demo_name} failed: {error}", style=f"bold {style}")
+    cli.print(
+        "This failure demonstrates r error handling!",
         style="yellow",
     )
-    cli.output.print_message(
-        "The error was caught and wrapped in a FlextResult for clean handling.",
+    cli.print(
+        "The error was caught and wrapped in a r for clean handling.",
         style="white",
     )
 
 
 def display_config_table(
     cli: FlextCli,
-    config_data: dict[str, t.JsonValue],
+    config_data: BaseModel,
     headers: list[str] | None = None,
 ) -> None:
-    """Display configuration data as a formatted table using FlextCli.
-
-    Args:
-        cli: FlextCli instance
-        config_data: Configuration data dictionary
-        headers: Table headers (default: ["Setting", "Value"])
-
-    """
+    """Display configuration as a table. Accepts Pydantic model only; uses show_table."""
     if headers is None:
         headers = ["Setting", "Value"]
-    table_result = cli.create_table(
-        data=config_data,
-        headers=headers,
+    payload = (
+        config_data.data
+        if isinstance(config_data, m.Cli.DisplayData)
+        else config_data.model_dump()
     )
-
-    if table_result.is_success:
-        cli.print_table(table_result.value)
-    else:
-        cli.print(f"❌ Failed to create table: {table_result.error}", style="red")
+    cli.show_table(payload, headers=headers)
 
 
 def display_success_summary(
     cli: FlextCli,
     operation: str,
-    details: dict[str, str] | None = None,
+    details: m.Cli.SuccessSummaryDetails | None = None,
 ) -> None:
-    """Display a standardized success summary using FlextCli.
-
-    Args:
-        cli: FlextCli instance
-        operation: Name of the operation that succeeded
-        details: Optional key-value details to display
-
-    """
-    cli.output.print_message(
+    """Display a standardized success summary using FlextCli."""
+    cli.print(
         f"✅ {operation} completed successfully!",
         style="bold green",
     )
-
-    if details:
-        for key, value in details.items():
-            cli.output.print_message(f"   {key}: {value}", style="cyan")
+    if details is not None:
+        for key, value in details.root.items():
+            cli.print(f"   {key}: {value}", style="cyan")
 
 
 def display_validation_errors(
@@ -150,21 +123,13 @@ def display_validation_errors(
     errors: list[str],
     context: str = "validation",
 ) -> None:
-    """Display validation errors in a consistent format using FlextCli.
-
-    Args:
-        cli: FlextCli instance
-        errors: List of error messages
-        context: Context for the errors (default: "validation")
-
-    """
-    cli.output.print_message(
+    """Display validation errors in a consistent format using FlextCli."""
+    cli.print(
         f"❌ {context.title()} failed with {len(errors)} error(s):",
         style="bold red",
     )
-
     for i, error in enumerate(errors, 1):
-        cli.output.print_message(f"   {i}. {error}", style="red")
+        cli.print(f"   {i}. {error}", style="red")
 
 
 __all__ = [
@@ -174,4 +139,5 @@ __all__ = [
     "handle_command_result",
     "print_demo_completion",
     "print_demo_error",
+    "to_json_dict",
 ]

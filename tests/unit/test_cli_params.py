@@ -2,27 +2,28 @@
 
 Tests for FlextCliCommonParams using Railway-oriented programming patterns.
 Zero fallbacks, mocks, or state manipulation. Pure functional testing with
-FlextResult[T] patterns and Python 3.13 advanced features.
+r[T] patterns and Python 3.13 advanced features.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
-from __future__ import annotations  # @vulture_ignore
+from __future__ import annotations
 
 from collections.abc import Callable
-from enum import StrEnum  # @vulture_ignore
-from pathlib import Path  # @vulture_ignore
+from enum import StrEnum
 
-import typer  # @vulture_ignore
-from flext_core import r  # @vulture_ignore
-from flext_tests import tm  # @vulture_ignore
+import pytest
+import typer
+from flext_core import r
+from flext_tests import tm
 from typer.testing import CliRunner
 
-from flext_cli import (  # @vulture_ignore
+from flext_cli import (
     FlextCliCommonParams,
     FlextCliSettings,
 )
+from tests.unit._models import CliTestConfig
 
 
 class ConfigParam(StrEnum):
@@ -42,7 +43,6 @@ class ConfigParam(StrEnum):
 # ============================================================================
 
 # Python 3.13 advanced type features for test data
-type CliTestConfig = dict[str, bool | str | Path | None]
 type CliTestResult = r[CliTestConfig]
 
 # ============================================================================
@@ -54,36 +54,46 @@ def create_test_config() -> r[FlextCliSettings]:
     """Create test config using Railway pattern - no fallbacks or state manipulation."""
     try:
         config = FlextCliSettings()
-        return r.ok(config)
+        return r[FlextCliSettings].ok(config)
     except Exception as e:
-        return r.fail(f"Failed to create test config: {e}")
+        return r[FlextCliSettings].fail(f"Failed to create test config: {e}")
 
 
 def create_cli_app() -> r[typer.Typer]:
     """Create CLI app using Railway pattern."""
     try:
         app = typer.Typer()
-        return r.ok(app)
+        return r[typer.Typer].ok(app)
     except Exception as e:
-        return r.fail(f"Failed to create CLI app: {e}")
+        return r[typer.Typer].fail(f"Failed to create CLI app: {e}")
 
 
 def create_decorated_command(
-    app: typer.Typer, command_name: str = "test"
+    app: typer.Typer,
+    command_name: str = "test",
 ) -> r[Callable[..., object]]:
     """Create decorated command using Railway pattern - no mocks or manipulation."""
 
     @app.command(name=command_name)
     def typer_command(
         verbose: bool = typer.Option(
-            False, "--verbose", "-v", help="Enable verbose output"
+            False,
+            "--verbose",
+            "-v",
+            help="Enable verbose output",
         ),
         debug: bool = typer.Option(False, "--debug", "-d", help="Enable debug mode"),
         log_level: str = typer.Option(
-            "INFO", "--log-level", "-L", help="Set logging level"
+            "INFO",
+            "--log-level",
+            "-L",
+            help="Set logging level",
         ),
         output_format: str = typer.Option(
-            "table", "--output-format", "-o", help="Set output format"
+            "table",
+            "--output-format",
+            "-o",
+            help="Set output format",
         ),
     ) -> None:
         """Test command with Railway-oriented parameter handling."""
@@ -97,7 +107,7 @@ def create_decorated_command(
         typer.echo(f"Output format: {output_format}")
 
     # Return the command function directly - Railway pattern
-    return r.ok(typer_command)
+    return r[Callable[..., object]].ok(typer_command)
 
 
 # ============================================================================
@@ -108,7 +118,7 @@ def create_decorated_command(
 class TestsCliCommonParams:
     """Railway-oriented tests for FlextCliCommonParams - zero fallbacks or state manipulation.
 
-    Tests use pure functional patterns with FlextResult[T] for all operations.
+    Tests use pure functional patterns with r[T] for all operations.
     No mocks, no state manipulation, no environment variable changes.
     """
 
@@ -136,7 +146,10 @@ class TestsCliCommonParams:
         # Apply parameters using Railway pattern
         config = config_result.value
         result = FlextCliCommonParams.apply_to_config(
-            config, verbose=True, debug=True, log_level="DEBUG"
+            config,
+            verbose=True,
+            debug=True,
+            log_level="DEBUG",
         )
 
         tm.ok(result)
@@ -195,16 +208,16 @@ class TestsCliCommonParams:
         updated_config = config_result.value
         result = FlextCliCommonParams.configure_logger(updated_config)
 
-        tm.ok(result)
+        assert result.is_success
 
     def test_decorator_adds_parameters(self) -> None:
         """Test decorator adds CLI parameters - Railway pattern."""
         app_result = create_cli_app()
-        tm.ok(app_result)
+        assert app_result.is_success
 
         app = app_result.value
         command_result = create_decorated_command(app, "test")
-        tm.ok(command_result)
+        assert command_result.is_success
 
         runner = CliRunner()
         result = runner.invoke(app, ["--help"])
@@ -218,11 +231,11 @@ class TestsCliCommonParams:
     def test_decorator_flags_work(self) -> None:
         """Test decorator flags work - Railway pattern."""
         app_result = create_cli_app()
-        tm.ok(app_result)
+        assert app_result.is_success
 
         app = app_result.value
         command_result = create_decorated_command(app, "test")
-        tm.ok(command_result)
+        assert command_result.is_success
 
         runner = CliRunner()
         result = runner.invoke(app, ["--verbose", "--debug"])
@@ -234,15 +247,16 @@ class TestsCliCommonParams:
     def test_decorator_parameters_work(self) -> None:
         """Test decorator parameters work - Railway pattern."""
         app_result = create_cli_app()
-        tm.ok(app_result)
+        assert app_result.is_success
 
         app = app_result.value
         command_result = create_decorated_command(app, "test")
-        tm.ok(command_result)
+        assert command_result.is_success
 
         runner = CliRunner()
         result = runner.invoke(
-            app, ["--log-level", "WARNING", "--output-format", "json"]
+            app,
+            ["--log-level", "WARNING", "--output-format", "json"],
         )
 
         assert result.exit_code == 0
@@ -267,7 +281,7 @@ class TestsCliCommonParams:
         assert FlextCliCommonParams._enforcement_mode is True
 
         FlextCliCommonParams.disable_enforcement()
-        assert FlextCliCommonParams._enforcement_mode is False
+        assert not FlextCliCommonParams._enforcement_mode
 
         # Restore enforcement
         FlextCliCommonParams.enable_enforcement()
@@ -298,7 +312,7 @@ class TestsCliCommonParams:
         # Direct call - Railway pattern handles exceptions properly
         try:
             FlextCliCommonParams.create_option("nonexistent_field")
-            assert False, "Expected ValueError to be raised"
+            pytest.fail("Expected ValueError to be raised")
         except ValueError as e:
             error_msg = str(e).lower()
             assert "not found" in error_msg

@@ -46,6 +46,14 @@ class FlextCliConstants(FlextConstants):
                 "cancelled",
             })
 
+        SENSITIVE_KEYS: typing.Final[frozenset[str]] = frozenset({
+            "password",
+            "token",
+            "secret",
+            "key",
+            "credential",
+        })
+
         class ValidationLists:
             """Validation lists."""
 
@@ -306,9 +314,7 @@ class FlextCliConstants(FlextConstants):
                 "Token file is empty",
             )
             NO_DATA_PROVIDED = "No data provided for table"
-            TABLE_FORMAT_REQUIRED_DICT = (
-                "Table format requires dict[str, t.GeneralValueType] or list of dicts"
-            )
+            TABLE_FORMAT_REQUIRED_DICT = "Table format requires dict[str, FlextCliTypes.Cli.JsonValue] or list of dicts"
             TABLE_HEADERS_MUST_BE_LIST = (
                 "Table headers must be a list for list of dicts data"
             )
@@ -1046,6 +1052,25 @@ class FlextCliConstants(FlextConstants):
                 "ERROR",
                 "CRITICAL",
             ]
+
+    class Configuration:
+        """Shared protocol test configuration constants."""
+
+        BASIC_CONFIG: typing.ClassVar[dict[str, str | bool]] = {
+            "app_name": "test_app",
+            "debug": False,
+            "log_level": "INFO",
+            "output_format": "json",
+        }
+
+    class Authentication:
+        """Shared protocol test authentication constants."""
+
+        VALID_CREDS: typing.ClassVar[dict[str, str]] = {
+            "username": "testuser",
+            "password": "testpass",
+        }
+        VALID_TOKEN: typing.ClassVar[str] = "valid_token"
 
 
 c = FlextCliConstants

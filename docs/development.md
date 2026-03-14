@@ -16,7 +16,6 @@
 - [Testing Guidelines (v0.10.0)](#testing-guidelines-v0100)
   - [Test Organization](#test-organization)
   - [Testing Simple Classes](#testing-simple-classes)
-  - [Testing Value Objects](#testing-value-objects)
 - [Contributing to v0.10.0](#contributing-to-v0100)
   - [Implementation Checklist](#implementation-checklist)
   - [Pull Request Guidelines](#pull-request-guidelines)
@@ -95,10 +94,10 @@ class FlextCliCore(FlextService[CliDataDict]):
         self._sessions: dict[str, Session] = {}  # MUTABLE STATE
         self._config: FlextCliSettings = ...       # MANAGED STATE
 
-    def register_command(self, name: str, command: Command) -> FlextResult[bool]:
+    def register_command(self, name: str, command: Command) -> r[bool]:
         """Register command - modifies internal state."""
         self._commands[name] = command
-        return FlextResult[bool].| ok(value=True)
+        return r[bool].| ok(value=True)
 ```
 
 **When NOT to use**:
@@ -121,30 +120,30 @@ class FlextCliCore(FlextService[CliDataDict]):
 **Example - FlextCliFileTools (Simple Utility Class)**:
 
 ```python
-from flext_core import FlextResult
+from flext_core import r
 import json
 
 class FlextCliFileTools:
     """Stateless file operations."""
 
     @staticmethod
-    def read_json_file(path: str) -> FlextResult[dict]:
+    def read_json_file(path: str) -> r[dict]:
         """Read JSON file - no state needed."""
         try:
             with open(path) as f:
-                return FlextResult[dict].ok(json.load(f))
+                return r[dict].ok(json.load(f))
         except Exception as e:
-            return FlextResult[dict].fail(str(e))
+            return r[dict].fail(str(e))
 
     @staticmethod
-    def write_json_file(path: str, data: dict) -> FlextResult[bool]:
+    def write_json_file(path: str, data: dict) -> r[bool]:
         """Write JSON file - no state needed."""
         try:
             with open(path, 'w') as f:
                 json.dump(data, f, indent=2)
-            return FlextResult[bool].| ok(value=True)
+            return r[bool].| ok(value=True)
         except Exception as e:
-            return FlextResult[bool].fail(str(e))
+            return r[bool].fail(str(e))
 ```
 
 **Benefits**:
@@ -164,29 +163,6 @@ class FlextCliFileTools:
 - ✅ Just data **validation and structure**
 - ✅ Configuration or context data
 
-**Example - FlextCliContext (Value Object)**:
-
-```python
-from flext_core import FlextModels
-from pydantic import Field
-
-class FlextCliContext(m.Value):
-    """Immutable execution context."""
-    command: str | None = None
-    arguments: list[str] = Field(default_factory=list)
-    environment_variables: dict[str, object] = Field(default_factory=dict)
-    working_directory: str | None = None
-
-    # No methods - just validated, immutable data
-```
-
-**When to use**:
-
-- Configuration data
-- Request/response models
-- Event data
-- Execution context
-
 ______________________________________________________________________
 
 ## Architecture Decision Flowchart
@@ -204,7 +180,7 @@ Does the class manage mutable state?
     │
     └─ NO → Is it just data with validation?
         └─ YES → Use Value Object (Pydantic)
-                 Examples: FlextCliContext, FlextCliModels.*
+                 Examples: FlextCliModels.*
 ```
 
 ______________________________________________________________________
@@ -231,7 +207,6 @@ src/flext_cli/
 │   └── debug.py             # Debug utilities
 │
 └── Data Models (value objects)
-    ├── context.py           # FlextCliContext
     ├── models.py            # All Pydantic models
     └── config.py            # FlextCliSettings
 ```
@@ -291,6 +266,7 @@ tests/
 import pytest
 from flext_cli import FlextCliFileTools
 
+
 def test_read_json_file():
     """Test static method on simple class."""
     # Simple classes use static methods
@@ -300,33 +276,8 @@ def test_read_json_file():
     data = result.unwrap()
     assert isinstance(data, dict)
 
+
 # No initialization needed - static methods
-```
-
-### Testing Value Objects
-
-```python
-import pytest
-from flext_cli import FlextCliContext
-
-def test_context_immutability():
-    """Test context is immutable."""
-    context = FlextCliContext(
-        command="test",
-        arguments=["arg1"]
-    )
-
-    # Cannot modify (immutable)
-    with pytest.raises(Exception):
-        context.command = "modified"
-
-    # Create new instance for changes
-    updated = context.model_copy(
-        update={"command": "new_command"}
-    )
-
-    assert context.command == "test"
-    assert updated.command == "new_command"
 ```
 
 ______________________________________________________________________
@@ -444,6 +395,7 @@ Follow these patterns when extending flext-cli:
 # ✅ Correct - Use flext-cli patterns
 from flext_cli import FlextCli
 
+
 class ProjectCliService:
     """Project CLI service following FLEXT patterns."""
 
@@ -457,6 +409,7 @@ class ProjectCliService:
 
         # Business logic
         return {"processed": True, "data": data}
+
 
 # ❌ Avoid - Direct framework imports
 # import click  # Use flext-cli abstractions instead
@@ -483,6 +436,7 @@ tests/
 import pytest
 from flext_cli import FlextCli
 
+
 def test_cli_api_operation():
     """Test CLI API operations."""
     api = FlextCli()
@@ -491,6 +445,7 @@ def test_cli_api_operation():
 
     assert result is not None
     assert "test" in str(result)
+
 
 def test_error_handling():
     """Test proper error handling."""
@@ -573,7 +528,7 @@ from flext_core import FlextModels
 from flext_core import FlextProcessors
 from flext_core import p
 from flext_core import FlextRegistry
-from flext_core import FlextResult
+from flext_core import r
 from flext_core import FlextRuntime
 from flext_core import FlextService
 from flext_core import t
@@ -583,10 +538,10 @@ from flext_cli import FlextCli
 class DataCommands(FlextService):
     """Data management commands."""
 
-    def handle_export(self, **kwargs) -> FlextResult[bool]:
+    def handle_export(self, **kwargs) -> r[bool]:
         """Handle data export command."""
         # Implementation
-        return FlextResult[bool].| ok(value=True)
+        return r[bool].| ok(value=True)
 ```
 
 2. Register with CLI:
@@ -598,7 +553,7 @@ cli = FlextCliCommands()
 cli.register_command_group(
     name="data",
     commands={"export": data_handler.handle_export},
-    description="Data management"
+    description="Data management",
 )
 ```
 
@@ -617,13 +572,14 @@ def test_data_export_command():
 ```python
 from flext_cli import FlextCliOutput
 
+
 class ProjectFormatters(FlextCliOutput):
     """Project-specific output formatters."""
 
-    def format_project_data(self, data: dict) -> FlextResult[str]:
+    def format_project_data(self, data: dict) -> r[str]:
         """Format project-specific data."""
         # Custom formatting logic
-        return FlextResult[str].ok("formatted_output")
+        return r[str].ok("formatted_output")
 ```
 
 ______________________________________________________________________

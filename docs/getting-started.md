@@ -16,7 +16,6 @@
   - [📊 Working with Tables](#working-with-tables)
   - [📁 File Operations](#file-operations)
   - [🔄 Railway-Oriented Programming](#railway-oriented-programming)
-  - [📦 Immutable Context](#immutable-context)
 - [Development Workflow (v0.10.0)](#development-workflow-v0100)
   - [Quality Gates](#quality-gates)
   - [Development Pattern (v0.10.0)](#development-pattern-v0100)
@@ -61,7 +60,7 @@ flext-cli v0.10.0 is a simplified, streamlined CLI foundation library for the FL
 - **Services for State Only**: FlextService used only where needed (3-4 classes)
 - **Simple Utilities**: Stateless operations as simple classes
 - **Value Objects**: Immutable data models using Pydantic
-- **Railway Pattern**: All operations return `FlextResult[T]`
+- **Railway Pattern**: All operations return `r[T]`
 
 **Key Improvements in v0.10.0**:
 
@@ -85,7 +84,7 @@ ______________________________________________________________________
 
 flext-cli integrates with:
 
-- **[flext-core](https://github.com/organization/flext/tree/main/flext-core/README.md)**: Foundation patterns (FlextResult, FlextService, FlextModels)
+- **[flext-core](https://github.com/organization/flext/tree/main/flext-core/README.md)**: Foundation patterns (r, FlextService, FlextModels)
 - **Click 8.2+**: CLI framework (abstracted)
 - **Rich 14.0+**: Terminal UI (abstracted)
 - **Pydantic 2.11+**: Data validation
@@ -134,7 +133,7 @@ ______________________________________________________________________
 
 ```python
 from flext_cli import FlextCli
-from flext_core import FlextResult
+from flext_core import r
 
 # Initialize CLI (singleton pattern)
 cli = FlextCli()
@@ -172,10 +171,7 @@ users = [
 ]
 
 # Format as table (direct access to output)
-table_result = cli.output.format_data(
-    data={"users": users},
-    format_type="table"
-)
+table_result = cli.output.format_data(data={"users": users}, format_type="table")
 
 # Display
 if table_result.is_success:
@@ -208,58 +204,39 @@ if read_result.is_success:
 
 ### 🔄 Railway-Oriented Programming
 
-Chain operations with `FlextResult[T]`:
+Chain operations with `r[T]`:
 
 ```python
 from flext_cli import FlextCli
-from flext_core import FlextResult
+from flext_core import r
 
 cli = FlextCli()
 
-def validate_config(config: dict) -> FlextResult[dict]:
+
+def validate_config(config: dict) -> r[dict]:
     """Validate configuration."""
     if "required_field" not in config:
-        return FlextResult[dict].fail("Missing required_field")
-    return FlextResult[dict].ok(config)
+        return r[dict].fail("Missing required_field")
+    return r[dict].ok(config)
+
 
 def apply_defaults(config: dict) -> dict:
     """Apply default values."""
     return {**{"timeout": 30}, **config}
 
+
 # Chain operations
 result = (
-    cli.file_tools.read_json_file("config.json")
+    cli.file_tools
+    .read_json_file("config.json")
     .flat_map(validate_config)  # Validate
-    .map(apply_defaults)         # Transform
+    .map(apply_defaults)  # Transform
     .map(lambda cfg: cli.formatters.print(f"Final config: {cfg}"))
 )
 
 # Handle result
 if not result.is_success:
     cli.formatters.print(f"Error: {result.error}", style="red")
-```
-
-### 📦 Immutable Context
-
-```python
-from flext_cli import FlextCliContext
-
-# Create immutable execution context (value object)
-context = FlextCliContext(
-    command="deploy",
-    arguments=["production", "--force"],
-    environment_variables={"ENV": "prod"},
-    working_directory="/app"
-)
-
-# Access data (immutable)
-print(f"Command: {context.command}")
-print(f"Args: {context.arguments}")
-
-# Create modified copy (immutability)
-updated_context = context.model_copy(
-    update={"working_directory": "/app/new"}
-)
 ```
 
 ______________________________________________________________________
@@ -285,10 +262,11 @@ make format                 # Auto-format with Ruff
 ### Development Pattern (v0.10.0)
 
 ```python
-from flext_cli import FlextCli, FlextCliContext
-from flext_core import FlextResult
+from flext_cli import FlextCli
+from flext_core import r
 
-def my_cli_application() -> FlextResult[bool]:
+
+def my_cli_application() -> r[bool]:
     """Application using v0.10.0 patterns."""
     cli = FlextCli()
 
@@ -300,23 +278,14 @@ def my_cli_application() -> FlextResult[bool]:
 
     if not config_result.is_success:
         cli.formatters.print(f"Error: {config_result.error}", style="red")
-        return FlextResult[bool].fail(config_result.error)
+        return r[bool].fail(config_result.error)
 
     # User interaction
     confirm_result = cli.prompts.confirm("Continue?")
-
     if confirm_result.is_success and confirm_result.unwrap():
-        # Create immutable context
-        context = FlextCliContext(
-            command="process",
-            arguments=["--verbose"],
-            working_directory="/app"
-        )
-
-        cli.formatters.print(f"Processing in {context.working_directory}...", style="green")
-        return FlextResult[bool].| ok(value=True)
-
-    return FlextResult[bool].fail("Operation cancelled")
+        cli.formatters.print("Processing...", style="green")
+        return r[bool].ok(value=True)
+    return r[bool].fail("Operation cancelled")
 ```
 
 ### Testing Your CLI Code
@@ -324,6 +293,7 @@ def my_cli_application() -> FlextResult[bool]:
 ```python
 import pytest
 from flext_cli import FlextCli
+
 
 def test_my_cli_operation():
     """Test using v0.10.0 patterns."""
@@ -412,7 +382,7 @@ from flext_core import FlextModels
 from flext_core import FlextProcessors
 from flext_core import p
 from flext_core import FlextRegistry
-from flext_core import FlextResult
+from flext_core import r
 from flext_core import FlextRuntime
 from flext_core import FlextService
 from flext_core import t
@@ -425,15 +395,11 @@ assert health.is_success
 
 # Authentication functionality
 auth = FlextCliAuth()
-methods = [m for m in dir(auth) if not m.startswith('_')]
+methods = [m for m in dir(auth) if not m.startswith("_")]
 print(f"Available auth methods: {len(methods)}")  # 35+ methods
 
 # Configuration management
-config = FlextCliSettings(
-    profile="development",
-    debug=True,
-    output_format="table"
-)
+config = FlextCliSettings(profile="development", debug=True, output_format="table")
 ```
 
 ______________________________________________________________________

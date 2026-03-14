@@ -10,17 +10,16 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
+from itertools import starmap
+from typing import TypeGuard, override
 
-from flext_core import FlextResult as r
+from flext_core import r
+from rich.errors import ConsoleError, LiveError, StyleError
 from tabulate import tabulate
 
-from flext_cli.base import FlextCliServiceBase
-from flext_cli.constants import FlextCliConstants
-from flext_cli.models import m
-from flext_cli.protocols import p
-from flext_cli.typings import t
-from flext_cli.utilities import u
+from flext_cli import FlextCliConstants, FlextCliServiceBase, m, t, u
+from flext_cli.typings import FlextCliTypes
 
 
 class FlextCliTables(FlextCliServiceBase):
@@ -43,7 +42,7 @@ class FlextCliTables(FlextCliServiceBase):
     - TableConfig model provides type-safe configuration
     - Format discovery uses tabulate's internal format list
     - Extends FlextCliServiceBase for consistent logging
-    - Railway-Oriented Programming via FlextResult for error handling
+    - Railway-Oriented Programming via r for error handling
 
     Audit Implications:
     ───────────────────
@@ -97,33 +96,48 @@ class FlextCliTables(FlextCliServiceBase):
 
     """
 
-    # =========================================================================
-    # SERVICE EXECUTION (Required by FlextService)
-    # =========================================================================
+    @staticmethod
+    def _prepare_headers(
+        data: t.Cli.TabularData, headers: str | Sequence[str]
+    ) -> r[str | Sequence[str]]:
+        """Prepare headers based on data type."""
+        data_list = list(data)
+        if not data_list:
+            return r[str | Sequence[str]].ok(headers)
+        if isinstance(headers, str):
+            return r[str | Sequence[str]].ok(headers)
+        first_row = data_list[0]
+        if u.is_dict_like(first_row):
+            return r[str | Sequence[str]].ok(list(headers))
+        return r[str | Sequence[str]].ok(headers)
 
-    def execute(self) -> r[dict[str, t.GeneralValueType]]:
-        """Execute table service - returns success indicator.
-
-        Business Rule:
-        ──────────────
-        The table service is primarily used for its static methods (create_table,
-        print_available_formats). Execute provides a default success response.
+    @staticmethod
+    def _validate_table_data(data: t.Cli.TabularData, table_format: str) -> r[bool]:
+        """Validate table data and format.
 
         Returns:
-            r[dict[str, t.GeneralValueType]]: Success result.
+            r[bool]: True if validation passed, failure on error
 
         """
-        return r[dict[str, t.GeneralValueType]].ok({"status": "table_service_ready"})
-
-    # =========================================================================
-    # TABLE CREATION
-    # =========================================================================
+        if not data:
+            return r[bool].fail(
+                FlextCliConstants.Cli.TablesErrorMessages.TABLE_DATA_EMPTY
+            )
+        if table_format not in FlextCliConstants.Cli.TABLE_FORMATS:
+            available_formats_list = list(FlextCliConstants.Cli.TABLE_FORMATS.keys())
+            return r[bool].fail(
+                FlextCliConstants.Cli.TablesErrorMessages.INVALID_TABLE_FORMAT.format(
+                    table_format=table_format,
+                    available_formats=", ".join(available_formats_list),
+                )
+            )
+        return r[bool].ok(value=True)
 
     @staticmethod
     def create_table(
         data: t.Cli.TabularData,
-        config: p.Cli.TableConfigProtocol | None = None,
-        **config_kwargs: t.GeneralValueType,
+        config: m.Cli.TableConfig | None = None,
+        **config_kwargs: t.Scalar,
     ) -> r[str]:
         """Create formatted ASCII table using tabulate with Pydantic config.
 
@@ -136,7 +150,7 @@ class FlextCliTables(FlextCliServiceBase):
             **config_kwargs: Individual config option overrides (snake_case field names)
 
         Returns:
-            FlextResult containing formatted table string
+            r containing formatted table string
 
         Example:
             >>> tables = FlextCliTables()
@@ -152,144 +166,167 @@ class FlextCliTables(FlextCliServiceBase):
             >>> result = tables.create_table(data)
 
         """
-        # Use Configuration.build_options_from_kwargs pattern for automatic conversion
-        # Type narrowing: check if config is instance of TableConfig (not just protocol)
-        config_concrete: m.Cli.TableConfig | None = (
-            config if isinstance(config, m.Cli.TableConfig) else None
-        )
-        config_result = u.Configuration.build_options_from_kwargs(
+        config_result = u.build_options_from_kwargs(
             model_class=m.Cli.TableConfig,
-            explicit_options=config_concrete,
-            default_factory=m.Cli.TableConfig,
-            **config_kwargs,
+            explicit_options=config,
+            default_factory=lambda: m.Cli.TableConfig(),
+            **{
+                k: v
+                for k, v in config_kwargs.items()
+                if isinstance(v, (str, int, float, bool, type(None)))
+            },
         )
         if config_result.is_failure:
-            # Python 3.13: Direct attribute access - more elegant and type-safe
-            return r[str].fail(
-                config_result.error or "Invalid table configuration",
-            )
-        # Get concrete config from result
+            return r[str].fail(config_result.error or "Invalid table configuration")
         config_final = config_result.value
-
-        # Validate table data and format
         validation_result = FlextCliTables._validate_table_data(
             data, config_final.table_format
         )
         if validation_result.is_failure:
             return r[str].fail(validation_result.error or "Table validation failed")
-
-        # Prepare headers
         headers_result = FlextCliTables._prepare_headers(data, config_final.headers)
         if headers_result.is_failure:
             return r[str].fail(headers_result.error or "Header preparation failed")
-
-        # Format table using tabulate
         try:
-            formatted_table = tabulate(
-                data,
-                headers=headers_result.value,
-                tablefmt=config_final.table_format,
-                numalign=config_final.numalign,
-                stralign=config_final.stralign,
+            if u.is_dict_like(data):
+                mapping_rows: list[Mapping[str, t.ContainerValue]] = []
+                if isinstance(data, Mapping):
+                    normalized_row: dict[str, t.ContainerValue] = {
+                        str(key): m.Cli.normalize_json_value(value)
+                        for key, value in data.items()
+                    }
+                    mapping_rows.append(normalized_row)
+                normalized_data: Sequence[Mapping[str, t.ContainerValue]] = mapping_rows
+            else:
+                normalized_data = data
+            headers_value = headers_result.value
+            if normalized_data and (not isinstance(headers_value, str)):
+                normalized_mapping_rows: list[Mapping[str, t.ContainerValue]] = [
+                    dict(row) for row in normalized_data
+                ]
+                table_rows = [list(row.values()) for row in normalized_mapping_rows]
+                formatted_table = tabulate(
+                    table_rows,
+                    headers=list(headers_value),
+                    tablefmt=config_final.table_format,
+                    numalign=config_final.numalign,
+                    stralign=config_final.stralign,
+                )
+                return r[str].ok(formatted_table)
+
+            def _is_tabulate_data(
+                val: Sequence[t.ContainerValue],
+            ) -> TypeGuard[
+                Sequence[Mapping[str, t.ContainerValue]]
+                | Sequence[Sequence[t.ContainerValue]]
+            ]:
+                """Narrow to tabulate-acceptable rows (sequence of mappings or sequences)."""
+                if not val:
+                    return True
+                first = val[0]
+                if isinstance(first, str):
+                    return False
+                if isinstance(first, Mapping):
+                    return all(isinstance(row, Mapping) for row in val)
+                if isinstance(first, Sequence):
+                    return all(
+                        isinstance(row, Sequence) and (not isinstance(row, str))
+                        for row in val
+                    )
+                return False
+
+            if _is_tabulate_data(normalized_data):
+                formatted_table = tabulate(
+                    normalized_data,
+                    headers=headers_value,
+                    tablefmt=config_final.table_format,
+                    numalign=config_final.numalign,
+                    stralign=config_final.stralign,
+                )
+                return r[str].ok(formatted_table)
+            return r[str].fail(
+                "Table data must be a sequence of mappings or a sequence of sequences"
             )
-            return r[str].ok(formatted_table)
-        except Exception as e:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
             return r[str].fail(f"Table formatting failed: {e}")
 
     @staticmethod
-    def _validate_table_data(
-        data: t.Cli.TabularData,
-        table_format: str,
-    ) -> r[bool]:
-        """Validate table data and format.
+    def print_available_formats() -> r[bool]:
+        """Print all available table formats with descriptions.
 
         Returns:
-            r[bool]: True if validation passed, failure on error
+            r[bool]: True if formats printed successfully, failure on error
 
         """
-        if not data:
-            return r[bool].fail(
-                FlextCliConstants.Cli.TablesErrorMessages.TABLE_DATA_EMPTY,
+        try:
+
+            def convert_format(name: str, desc: str) -> Mapping[str, str]:
+                """Convert format to a display dictionary."""
+                return {"format": name, "description": desc}
+
+            _ = list(
+                starmap(convert_format, FlextCliConstants.Cli.TABLE_FORMATS.items())
             )
+            return r[bool].ok(value=True)
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
+            return r[bool].fail(str(e))
 
-        if table_format not in FlextCliConstants.Cli.TABLE_FORMATS:
-            available_formats_list = list(FlextCliConstants.Cli.TABLE_FORMATS.keys())
-            return r[bool].fail(
-                FlextCliConstants.Cli.TablesErrorMessages.INVALID_TABLE_FORMAT.format(
-                    table_format=table_format,
-                    available_formats=", ".join(available_formats_list),
-                ),
-            )
+    @override
+    def execute(self) -> r[Mapping[str, FlextCliTypes.Cli.JsonValue]]:
+        """Execute table service - returns success indicator.
 
-        return r[bool].ok(value=True)
+        Business Rule:
+        ──────────────
+        The table service is primarily used for its static methods (create_table,
+        print_available_formats). Execute provides a default success response.
 
-    @staticmethod
-    def _prepare_headers(
-        data: t.Cli.TabularData,
-        headers: str | Sequence[str],
-    ) -> r[str | Sequence[str]]:
-        """Prepare headers based on data type."""
-        # For list of dicts with sequence headers, use "keys"
-        # Type narrowing: data is Iterable, convert to list for is_list_like check
-        if isinstance(data, (list, tuple)):
-            data_list: list[t.GeneralValueType] = [
-                u.Cast.to_general_value_type(row) for row in data
-            ]
-            data_as_general: t.GeneralValueType = data_list
-        elif isinstance(data, dict):
-            data_list = []
-            data_as_general = data
-        else:
-            data_list = []
-            data_as_general = data
+        Returns:
+            r[dict[str, FlextCliTypes.Cli.JsonValue]]: Success result.
 
-        if (
-            isinstance(data_as_general, (list, tuple))
-            and data_list
-            and isinstance(data_list[0], (dict, dict))
-            and isinstance(
-                headers,
-                (list, tuple),
-            )  # tuple check is specific, not dict/list
-        ):
-            return r[str | Sequence[str]].ok(
-                FlextCliConstants.Cli.TableFormats.KEYS,
-            )
-
-        return r[str | Sequence[str]].ok(headers)
+        """
+        return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].ok({
+            "status": "table_service_ready"
+        })
 
     def _calculate_column_count(
-        self,
-        data: t.Cli.TabularData,
-        headers: str | Sequence[str],
+        self, data: t.Cli.TabularData, headers: str | Sequence[str]
     ) -> int:
-        """Calculate number of columns based on headers and data type.
-
-        Returns:
-            Number of columns, or 0 if unable to determine.
-
-        """
-        # If headers is a sequence, count directly
-        if isinstance(headers, Sequence) and not isinstance(headers, str):
-            return len(headers)
-
-        # If headers="keys", count from data
-        if headers == "keys":
-            if isinstance(data, dict):
-                return len(data)
-            # Check if data is sequence with at least one element
-            if (
-                isinstance(data, Sequence)
-                and not isinstance(data, str)
-                and len(data) > 0
+        """Calculate number of columns based on headers and data type."""
+        if isinstance(headers, str):
+            if headers == FlextCliConstants.Cli.TableFormats.KEYS and isinstance(
+                data, Mapping
             ):
-                first_row = data[0]
-                if isinstance(first_row, (dict, Sequence)) and not isinstance(
-                    first_row,
-                    str,
-                ):
-                    return len(first_row)
-
+                return len(data)
+            data_list = list(data)
+            if data_list and isinstance(data_list[0], Sequence):
+                return len(data_list[0])
+            return 0
+        if headers:
+            return len(headers)
+        if isinstance(data, Mapping):
+            return len(data)
+        data_list = list(data)
+        if data_list:
+            first_row = data_list[0]
+            if u.is_dict_like(first_row):
+                return len(list(first_row.keys()))
+            if isinstance(first_row, Sequence):
+                return len(first_row)
+            return 0
         return 0
 
     def _create_table_string(
@@ -300,16 +337,10 @@ class FlextCliTables(FlextCliServiceBase):
     ) -> r[str]:
         """Create table string using tabulate with exception handling."""
         try:
-            # Get colalign and validate/truncate if necessary
             colalign = cfg.get_effective_colalign()
-
-            # Calculate number of columns for colalign validation
             num_cols = len(headers) if headers else 0
-
-            # Truncate colalign if needed
-            if colalign is not None and num_cols > 0 and len(colalign) > num_cols:
+            if colalign is not None and num_cols > 0 and (len(colalign) > num_cols):
                 colalign = colalign[:num_cols]
-
             table_str = tabulate(
                 data,
                 headers=headers,
@@ -322,32 +353,17 @@ class FlextCliTables(FlextCliServiceBase):
                 disable_numparse=cfg.disable_numparse,
                 colalign=colalign,
             )
-
             return r[str].ok(table_str)
-
-        except Exception as e:
+        except (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        ) as e:
             return r[str].fail(
                 FlextCliConstants.Cli.TablesErrorMessages.TABLE_CREATION_FAILED.format(
-                    error=e,
+                    error=e
                 )
             )
-
-    @staticmethod
-    def print_available_formats() -> r[bool]:
-        """Print all available table formats with descriptions.
-
-        Returns:
-            r[bool]: True if formats printed successfully, failure on error
-
-        """
-        try:
-            # Use u.process to convert TABLE_FORMATS to list
-            def convert_format(name: str, desc: str) -> dict[str, str]:
-                """Convert format to dict."""
-                return {"format": name, "description": desc}
-
-            # Note: Table formatting removed - return placeholder success
-            return r[bool].ok(value=True)
-        except Exception as e:
-            # Simplified error handling
-            return r[bool].fail(str(e))

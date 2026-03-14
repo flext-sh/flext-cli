@@ -1,6 +1,6 @@
 """Reusable option group definitions for flext-cli.
 
-FlextOptionGroup provides pre-defined option groups for common CLI patterns
+FlextCliOptionGroup provides pre-defined option groups for common CLI patterns
 (connection, authentication, output formatting) that can be reused across
 multiple commands.
 
@@ -13,12 +13,12 @@ from __future__ import annotations
 from typer.models import OptionInfo
 
 
-class FlextOptionGroup:
+class FlextCliOptionGroup:
     """Reusable option group definitions.
 
     Provides static methods that return lists of typer.Option objects for
     common CLI patterns. These can be used with command decorators or
-    FlextCommandBuilder to reduce boilerplate.
+    FlextCliCommandBuilder to reduce boilerplate.
 
     Example:
         >>> @command("sync")
@@ -27,41 +27,6 @@ class FlextOptionGroup:
         >>> def sync_command(host: str, port: int, username: str, **kwargs) -> None: ...
 
     """
-
-    @staticmethod
-    def connection_options() -> list[OptionInfo]:
-        """Common connection options for any service.
-
-        Returns:
-            List of typer.Option objects for connection parameters:
-            - --host, -h: Hostname or IP address (default: localhost)
-            - --port, -p: Port number (default: 8080)
-            - --timeout, -t: Timeout in seconds (default: 30)
-            - --ssl/--no-ssl: Enable/disable SSL (default: False)
-
-        """
-        return [
-            OptionInfo(
-                default="localhost",
-                param_decls=["--host", "-h"],
-                help="Hostname or IP address",
-            ),
-            OptionInfo(
-                default=8080,
-                param_decls=["--port", "-p"],
-                help="Port number",
-            ),
-            OptionInfo(
-                default=30,
-                param_decls=["--timeout", "-t"],
-                help="Timeout in seconds",
-            ),
-            OptionInfo(
-                default=False,
-                param_decls=["--ssl/--no-ssl"],
-                help="Enable SSL/TLS",
-            ),
-        ]
 
     @staticmethod
     def auth_options() -> list[OptionInfo]:
@@ -96,6 +61,33 @@ class FlextOptionGroup:
         ]
 
     @staticmethod
+    def connection_options() -> list[OptionInfo]:
+        """Common connection options for any service.
+
+        Returns:
+            List of typer.Option objects for connection parameters:
+            - --host, -h: Hostname or IP address (default: localhost)
+            - --port, -p: Port number (default: 8080)
+            - --timeout, -t: Timeout in seconds (default: 30)
+            - --ssl/--no-ssl: Enable/disable SSL (default: False)
+
+        """
+        return [
+            OptionInfo(
+                default="localhost",
+                param_decls=["--host", "-h"],
+                help="Hostname or IP address",
+            ),
+            OptionInfo(default=8080, param_decls=["--port", "-p"], help="Port number"),
+            OptionInfo(
+                default=30, param_decls=["--timeout", "-t"], help="Timeout in seconds"
+            ),
+            OptionInfo(
+                default=False, param_decls=["--ssl/--no-ssl"], help="Enable SSL/TLS"
+            ),
+        ]
+
+    @staticmethod
     def output_options() -> list[OptionInfo]:
         """Common output format options.
 
@@ -113,9 +105,7 @@ class FlextOptionGroup:
                 help="Output format (json, yaml, table)",
             ),
             OptionInfo(
-                default=None,
-                param_decls=["--output", "-o"],
-                help="Output file path",
+                default=None, param_decls=["--output", "-o"], help="Output file path"
             ),
             OptionInfo(
                 default=False,

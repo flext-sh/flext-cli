@@ -1,59 +1,68 @@
 """Enhanced test helpers for 100% coverage with real automated tests."""
 
+from __future__ import annotations
+
 import json
+from collections.abc import Mapping
 from datetime import UTC, datetime
-from typing import Any
 
 import pytest
-from flext_cli import FlextCliCommands
+from flext_core import r
 
-# Direct imports to avoid forward reference issues
-from flext_cli.models import m
-from flext_cli.typings import FlextCliTypes as t
-from flext_core.result import FlextResult as r
+from flext_cli import FlextCliCommands, m, t
+from tests.models import CliCommandInput, CliSessionInput
 
 
-# Factory functions using direct model instantiation (no forward refs)
-def create_test_cli_command(
-    **overrides: dict[str, t.GeneralValueType],
-) -> m.Cli.CliCommand:
+def create_test_cli_command(**overrides: t.Scalar) -> m.Cli.CliCommand:
     """Factory for real CliCommand instances with sensible defaults."""
     now = datetime.now(UTC)
-    defaults = {
+    payload: dict[str, object] = {
         "unique_id": f"test-cmd-{now.timestamp()}",
         "name": "test_command",
         "description": "Test command description",
         "status": "pending",
         "created_at": now,
+        "command_line": "test_command",
     }
-    defaults.update(overrides)
-    # Use model_construct to avoid DomainEvent forward reference issue during model_rebuild
-    cmd = m.Cli.CliCommand.model_construct(**defaults)
-    # Add command_id as an alias to unique_id for backward compatibility with tests
+    if "command_id" in overrides and isinstance(overrides["command_id"], str):
+        payload["unique_id"] = overrides["command_id"]
+    if "arguments" in overrides and isinstance(overrides["arguments"], (list, tuple)):
+        args_val = overrides["arguments"]
+        payload["args"] = [str(x) for x in args_val if isinstance(x, str)]
+    merged = {**payload, **overrides}
+    _ = merged.pop("command_id", None)
+    _ = merged.pop("arguments", None)
+    filtered = {k: v for k, v in merged.items() if k in CliCommandInput.model_fields}
+    inp = CliCommandInput(filtered)
+    cmd = m.Cli.CliCommand.model_construct(
+        _fields_set=None, **inp.model_dump(exclude_none=True)
+    )
     object.__setattr__(cmd, "command_id", cmd.unique_id)
     return cmd
 
 
-def create_test_cli_session(
-    **overrides: dict[str, t.GeneralValueType],
-) -> m.Cli.CliSession:
+def create_test_cli_session(**overrides: t.Scalar) -> m.Cli.CliSession:
     """Factory for real CliSession instances with sensible defaults."""
     now = datetime.now(UTC)
-    defaults = {
+    payload: dict[str, object] = {
         "session_id": f"test-session-{now.timestamp()}",
         "status": "active",
         "created_at": now,
     }
-    defaults.update(overrides)
-    # Use model_construct to avoid DomainEvent forward reference issue during model_rebuild
-    session = m.Cli.CliSession.model_construct(**defaults)
-    # Add environment as an alias for backward compatibility with tests
-    if not hasattr(session, "environment") or session.environment is None:
+    filtered = {
+        k: v
+        for k, v in {**payload, **overrides}.items()
+        if k in CliSessionInput.model_fields
+    }
+    inp = CliSessionInput(filtered)
+    session = m.Cli.CliSession.model_construct(
+        _fields_set=None, **inp.model_dump(exclude_none=True)
+    )
+    if getattr(session, "environment", None) is None:
         object.__setattr__(session, "environment", overrides.get("environment", "test"))
     return session
 
 
-# Test Helper Classes
 class AuthHelpers:
     """Authentication test helpers."""
 
@@ -65,34 +74,27 @@ class AuthHelpers:
 
     @staticmethod
     def create_test_credentials(
-        **overrides: dict[str, t.GeneralValueType],
-    ) -> dict[str, t.GeneralValueType]:
+        **overrides: t.Scalar,
+    ) -> Mapping[str, object]:
         """Create test credentials dict."""
-        defaults = {
+        defaults: dict[str, object] = {
             "username": "test_user",
             "password": "test_pass",
             "token": AuthHelpers.create_test_token(),
         }
-        defaults.update(overrides)
-        return defaults
+        return {**defaults, **overrides}
 
     @staticmethod
-    def create_auth_test_data() -> dict[str, t.GeneralValueType]:
+    def create_auth_test_data() -> dict[str, object]:
         """Create authentication test data."""
         return {
-            "valid_credentials": {
-                "username": "test_user",
-                "password": "test_pass",
-            },
-            "invalid_credentials": {
-                "username": "wrong_user",
-                "password": "wrong_pass",
-            },
+            "valid_credentials": {"username": "test_user", "password": "test_pass"},
+            "invalid_credentials": {"username": "wrong_user", "password": "wrong_pass"},
             "expected_token": "valid_token",
         }
 
     @staticmethod
-    def create_auth_operations_test_data() -> dict[str, t.GeneralValueType]:
+    def create_auth_operations_test_data() -> dict[str, object]:
         """Create authentication operations test data."""
         return {
             "login_success": {
@@ -116,10 +118,8 @@ class CommandHelpers:
     """Command execution test helpers."""
 
     @staticmethod
-    def create_command_model(
-        **overrides: dict[str, t.GeneralValueType],
-    ) -> "r[m.Cli.CliCommand]":
-        """Create a command model wrapped in FlextResult.
+    def create_command_model(**overrides: t.Scalar) -> r[m.Cli.CliCommand]:
+        """Create a command model wrapped in r.
 
         Args:
             **overrides: Optional field overrides
@@ -133,43 +133,35 @@ class CommandHelpers:
 
     @staticmethod
     def create_test_command_data(
-        **overrides: dict[str, t.GeneralValueType],
-    ) -> dict[str, t.GeneralValueType]:
+        **overrides: t.Scalar,
+    ) -> Mapping[str, object]:
         """Create test command data."""
-        defaults = {
+        defaults: dict[str, object] = {
             "name": "test_command",
             "args": ["--test"],
             "timeout": 30.0,
             "working_dir": "/tmp",
         }
-        defaults.update(overrides)
-        return defaults
+        return {**defaults, **overrides}
 
     @staticmethod
-    def create_command_execution_test_data() -> dict[str, t.GeneralValueType]:
+    def create_command_execution_test_data() -> dict[str, object]:
         """Create command execution test data."""
         return {
-            "basic_command": {
-                "name": "echo",
-                "args": ["hello world"],
-                "timeout": 10.0,
-            },
+            "basic_command": {"name": "echo", "args": ["hello world"], "timeout": 10.0},
             "complex_command": {
                 "name": "python",
                 "args": ["-c", "print('test')"],
                 "timeout": 30.0,
                 "working_dir": "/tmp",
             },
-            "expected_result": {
-                "success": True,
-                "exit_code": 0,
-            },
+            "expected_result": {"success": True, "exit_code": 0},
         }
 
     @staticmethod
     def simulate_command_execution(
-        command_data: dict[str, t.GeneralValueType],
-    ) -> dict[str, t.GeneralValueType]:
+        command_data: dict[str, object],
+    ) -> Mapping[str, object]:
         """Simulate command execution result."""
         return {
             "success": True,
@@ -184,20 +176,19 @@ class OutputHelpers:
 
     @staticmethod
     def create_test_output_data(
-        **overrides: dict[str, t.GeneralValueType],
-    ) -> dict[str, t.GeneralValueType]:
+        **overrides: t.Scalar,
+    ) -> Mapping[str, object]:
         """Create test output data."""
-        defaults = {
+        defaults: dict[str, object] = {
             "format": "json",
             "data": {"test": "data"},
             "headers": ["col1", "col2"],
             "rows": [["val1", "val2"]],
         }
-        defaults.update(overrides)
-        return defaults
+        return {**defaults, **overrides}
 
     @staticmethod
-    def create_format_test_data() -> dict[str, t.GeneralValueType]:
+    def create_format_test_data() -> dict[str, object]:
         """Create format test data for output formatting tests."""
         return {
             "json": {"test": "data", "number": 42},
@@ -206,7 +197,7 @@ class OutputHelpers:
         }
 
     @staticmethod
-    def create_table_test_data() -> dict[str, t.GeneralValueType]:
+    def create_table_test_data() -> dict[str, object]:
         """Create table test data for output formatting tests."""
         return {
             "simple": {
@@ -217,14 +208,11 @@ class OutputHelpers:
                 "headers": ["Name", "Age", "City"],
                 "rows": [["Alice", "25", None], ["Bob", None, "LA"]],
             },
-            "empty": {
-                "headers": [],
-                "rows": [],
-            },
+            "empty": {"headers": [], "rows": []},
         }
 
     @staticmethod
-    def format_test_output(data: dict[str, t.GeneralValueType]) -> str:
+    def format_test_output(data: dict[str, object]) -> str:
         """Format test output."""
         if data.get("format") == "json":
             return json.dumps(data.get("data", {}))
@@ -235,16 +223,14 @@ class CommandsFactory:
     """Factory for creating test commands with high automation."""
 
     @staticmethod
-    def create_basic_command(
-        **overrides: dict[str, t.GeneralValueType],
-    ) -> m.Cli.CliCommand:
+    def create_basic_command(**overrides: t.Scalar) -> m.Cli.CliCommand:
         """Create basic test command."""
         return create_test_cli_command(**overrides)
 
     @staticmethod
     def create_command_chain(count: int = 3) -> list[m.Cli.CliCommand]:
         """Create a chain of related commands."""
-        commands = []
+        commands: list[m.Cli.CliCommand] = []
         for i in range(count):
             cmd = create_test_cli_command(
                 command_id=f"chain_cmd_{i}",
@@ -258,9 +244,7 @@ class CommandsFactory:
     def create_commands_with_dependencies() -> list[m.Cli.CliCommand]:
         """Create commands with dependency relationships."""
         cmd1 = create_test_cli_command(
-            command_id="dep_cmd_1",
-            name="prepare_data",
-            arguments=["--prepare"],
+            command_id="dep_cmd_1", name="prepare_data", arguments=["--prepare"]
         )
         cmd2 = create_test_cli_command(
             command_id="dep_cmd_2",
@@ -276,98 +260,70 @@ class CommandsFactory:
 
     @staticmethod
     def register_simple_command(
-        commands: FlextCliCommands,
-        command_name: str,
-        result_value: str = "success",
+        commands: FlextCliCommands, command_name: str, result_value: str = "success"
     ) -> r[bool]:
         """Register a simple test command that returns a fixed value."""
 
-        def handler() -> r[str]:
-            return r.ok(result_value)
+        def handler(*args: object, **kwargs: t.Scalar) -> r[object]:
+            return r[object].ok(result_value)
 
         return commands.register_command(command_name, handler)
 
     @staticmethod
     def register_command_with_args(
-        commands: FlextCliCommands,
-        command_name: str,
+        commands: FlextCliCommands, command_name: str
     ) -> r[bool]:
         """Register a command that accepts arguments."""
 
-        def handler(*args: str, **kwargs: t.GeneralValueType) -> str:
-            # Return formatted string with args count (expected by test)
-            return f"args: {len(args)}"
+        def handler(*args: object, **kwargs: t.Scalar) -> r[object]:
+            return r[object].ok(f"args: {len(args)}")
 
         return commands.register_command(command_name, handler)
 
     @staticmethod
     def register_failing_command(
-        commands: FlextCliCommands,
-        command_name: str,
-        error_message: str = "Test error",
+        commands: FlextCliCommands, command_name: str, error_message: str = "Test error"
     ) -> r[bool]:
         """Register a command that fails with a specific error."""
 
-        def handler() -> r[Any]:
-            return r.error(error_message)
+        def handler(*args: object, **kwargs: t.Scalar) -> r[object]:
+            return r[object].fail(error_message)
 
         return commands.register_command(command_name, handler)
 
 
-# Aliases for backward compatibility
-def create_real_cli_command(
-    **overrides: dict[str, t.GeneralValueType],
-) -> m.Cli.CliCommand:
-    """Alias for create_test_cli_command - creates a real Pydantic model instance."""
-    return create_test_cli_command(**overrides)
-
-
-def create_real_cli_session(
-    **overrides: dict[str, t.GeneralValueType],
-) -> m.Cli.CliSession:
-    """Alias for create_test_cli_session - creates a real Pydantic model instance."""
-    return create_test_cli_session(**overrides)
-
-
-def generate_edge_case_data() -> list[dict[str, t.GeneralValueType]]:
+def generate_edge_case_data() -> list[dict[str, object]]:
     """Generate comprehensive edge case test data for CliCommand.
 
     Only uses valid CliCommand fields: name, description, command_line, usage,
     entry_point, plugin_version, args, status, exit_code, output.
     """
     return [
-        # Boundary name lengths
         {"name": "a", "description": "Minimum name length"},
         {"name": "a" * 100, "description": "Maximum name length"},
-        # Special characters in name
         {"name": "test_123", "description": "Underscores"},
         {"name": "test-123", "description": "Hyphens"},
         {"name": "test.123", "description": "Dots"},
-        # Unicode names
         {"name": "测试命令", "description": "Chinese characters"},
         {"name": "café", "description": "Accented characters"},
-        # Command line variations
         {
             "name": "test",
             "command_line": "test --verbose --debug",
             "description": "With flags",
         },
         {"name": "test", "command_line": "", "description": "Empty command line"},
-        # Args variations
         {"name": "test", "args": [], "description": "Empty args"},
         {
             "name": "test",
             "args": ["--verbose", "--debug"],
             "description": "Multiple args",
         },
-        # Status variations
         {"name": "test", "status": "pending", "description": "Pending status"},
         {"name": "test", "status": "running", "description": "Running status"},
         {"name": "test", "status": "completed", "description": "Completed status"},
     ]
 
 
-# Parametrized test data generators
 @pytest.fixture
 def test_cli_command() -> m.Cli.CliCommand:
     """Fixture providing test CliCommand instance."""

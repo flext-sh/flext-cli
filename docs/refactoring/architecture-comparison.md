@@ -12,7 +12,6 @@
 - [Code Examples](#code-examples)
   - [Example 1: File Operations](#example-1-file-operations)
   - [Example 2: Output Formatting](#example-2-output-formatting)
-  - [Example 3: Context Usage](#example-3-context-usage)
 - [Service Class Patterns](#service-class-patterns)
   - [v0.9.0: Everything Extends FlextService](#v090-everything-extends-flextservice)
   - [v0.10.0: Simple Classes for Utilities](#v0100-simple-classes-for-utilities)
@@ -75,7 +74,7 @@ Services (Unnecessary):
 ❌ FlextCliPrompts - Just user input (stateless)
 ❌ FlextCliDebug - Just utilities (stateless)
 ❌ FlextCliCommands - Just dict wrapper
-❌ FlextCliContext - Should be data model!
+❌ FlextCliContext - Removed (was data model)
 ❌ FlextCliTesting - Test utilities
 ... and 9 more unnecessary services
 ```
@@ -100,8 +99,7 @@ Simple Classes (Utilities - 10+):
 ✅ FlextCliCommands - Command registry
 
 Data Models (Pydantic):
-✅ FlextCliContext - Execution context
-✅ FlextCliModels.* - All data models
+✅ FlextCliModels.* - All data models (including m.Cli.CliContext for cwd/env/args)
 ✅ FlextCliSettings - Configuration
 ```
 
@@ -206,38 +204,6 @@ cli.formatters.print(table.unwrap())
 # Explicit, clear ownership
 ```
 
-### Example 3: Context Usage
-
-#### v0.9.0 (Old)
-
-```python
-# Context as service (mutable, with methods)
-from flext_cli import FlextCliContext
-
-context = FlextCliContext(command="test")
-context.activate()  # Service method
-context.is_active = True  # Mutable state
-# ... use context
-context.deactivate()  # Service method
-```
-
-#### v0.10.0 (New)
-
-```python
-# Context as value object (immutable, just data)
-from flext_cli import FlextCliContext
-
-context = FlextCliContext(
-    command="test",
-    arguments=["arg1"],
-    environment_variables={"ENV": "prod"}
-)
-# Immutable - no activate/deactivate needed
-# Just data, no behavior
-```
-
-______________________________________________________________________
-
 ## Service Class Patterns
 
 ### v0.9.0: Everything Extends FlextService
@@ -250,7 +216,7 @@ class FlextCliFileTools(FlextService[dict[str, object]]):
         self.logger = FlextLogger(__name__)
         self._state = {}  # No state actually needed!
 
-    def read_json_file(self, path: str) -> FlextResult[dict]:
+    def read_json_file(self, path: str) -> r[dict]:
         self.logger.info(f"Reading {path}")  # Logging overhead
         # Just read a file - doesn't need service
 ```
@@ -263,13 +229,13 @@ class FlextCliFileTools:
     """Stateless file operations."""
 
     @staticmethod
-    def read_json_file(path: str) -> FlextResult[dict]:
+    def read_json_file(path: str) -> r[dict]:
         """Read JSON file - no state, no overhead."""
         try:
             with open(path) as f:
-                return FlextResult[dict].ok(json.load(f))
+                return r[dict].ok(json.load(f))
         except Exception as e:
-            return FlextResult[dict].fail(str(e))
+            return r[dict].fail(str(e))
 ```
 
 **Benefit**: No initialization overhead, clear that it's stateless
@@ -353,7 +319,7 @@ from cachetools import LRUCache, TTLCache  # Evaluate usage
 # ✅ Only what's actually used
 import json
 from pathlib import Path
-from flext_core import FlextResult, FlextService
+from flext_core import r, FlextService
 ```
 
 **Benefit**: Clear dependencies, no confusion

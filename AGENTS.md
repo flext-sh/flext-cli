@@ -1,7 +1,7 @@
 # flext-cli - FLEXT CLI Foundation
 
 **Hierarchy**: PROJECT
-**Parent**: [../CLAUDE.md](../CLAUDE.md) - Workspace standards
+**Parent**: [../AGENTS.md](../AGENTS.md) - Workspace standards
 **Last Update**: 2025-12-08
 
 ______________________________________________________________________
@@ -102,24 +102,25 @@ grep -rEn "(from flext_.*\.(services|api) import)" \
 # If violations found: Do NOT commit, fix architecture first
 ```
 
-**See [Ecosystem Standards](../CLAUDE.md) for complete prohibited patterns and remediation examples.**
+**See [Ecosystem Standards](../AGENTS.md) for complete prohibited patterns and remediation examples.**
 
 ______________________________________________________________________
 
 ## Rule 0 — Cross-Project Alignment
 
-- This file mirrors the root `../CLAUDE.md` standards. Any rule change must be made in the root first and then propagated to this file and to `flext-core/`, `flext-ldap/`, `flext-ldif/`, and `flext-oud-mig/` `CLAUDE.md` files.
-- All agents accept cross-project changes and resolve conflicts in the root `CLAUDE.md` before coding.
+- This file mirrors the root `../AGENTS.md` standards. Any rule change must be made in the root first and then propagated to this file and to `flext-core/`, `flext-ldap/`, `flext-ldif/`, and `flext-oud-mig/` `AGENTS.md` files.
+- All agents accept cross-project changes and resolve conflicts in the root `AGENTS.md` before coding.
 
 ## Critical Rules — Zero Tolerance
 
-- ❌ No `TYPE_CHECKING`; fix architecture instead.
+- ❌ **Hacks**: `model_rebuild()`, `eval()`, `exec()`, `try-except ImportError`, and inline/lazy imports are TOTALLY FORBIDDEN.
+- ❌ `TYPE_CHECKING` is allowed for non-Pydantic, type-only imports to avoid circular dependencies. NEVER use TYPE_CHECKING with Pydantic models.
 - ❌ No `# type: ignore`; resolve typing issues.
 - ❌ No `cast()`; use Models/Protocols/TypeGuards with correct typing.
 - ❌ No `Any`; use concrete types everywhere (code, docs, comments).
-- ❌ No metaclasses/`__getattr__` delegation or dynamic assignments; full namespaces only.
+- ❌ No metaclasses or dynamic assignments; full namespaces only via MRO. (Exception: `__getattr__` for module-level lazy load in `__init__.py` is MANDATORY).
 - ❌ No functions/logic in `constants.py` (StrEnum/Final/Literal only).
-- ❌ No root aliases or lazy imports/ImportError fallbacks; imports at top.
+- ❌ No root aliases or try/except ImportError fallbacks; imports at top.
 - ✅ Architecture layering enforced; lower tiers never import higher tiers.
 - ✅ Testing: real implementations (no mocks/monkeypatch), real fixtures/data, 100% coverage expectation, no functionality loss.
 
@@ -136,7 +137,7 @@ ______________________________________________________________________
 
 - Single consolidated API class: `FlextCli`
 - Wraps Click (CLI framework) and Rich (terminal UI) internally
-- Uses flext-core patterns: `FlextResult[T]` railway pattern, `FlextService`
+- Uses flext-core patterns: `r[T]` railway pattern, `FlextService`
 - Poetry-based dependency management
 
 ______________________________________________________________________
@@ -149,16 +150,15 @@ ______________________________________________________________________
 
 ```
 src/flext_cli/
-├── __init__.py          # Public API exports with short aliases (t, c, p, m, u, s, r, e, d, x)
+├── __init__.py          # Public API exports with short aliases (t, c, p, m, u, r, e, d, x)
 ├── api.py               # FlextCli - main facade API (ONE class)
 ├── app_base.py          # FlextCliAppBase - base class for CLI apps (ONE class)
-├── base.py              # FlextCliServiceBase - service base (ONE class, alias: s)
+├── base.py              # FlextCliServiceBase - service base (ONE class)
 ├── cli.py               # FlextCliCli - Click abstraction (ONE class, ONLY Click import)
 ├── cli_params.py        # FlextCliCommonParams - reusable CLI parameters (ONE class)
 ├── commands.py          # FlextCliCommands - command registration (ONE class)
 ├── config.py            # FlextCliConfig - singleton configuration (ONE class)
 ├── constants.py         # FlextCliConstants - all constants (ONE class, extends FlextConstants, alias: c)
-├── context.py           # FlextCliContext - execution context (ONE class)
 ├── debug.py             # FlextCliDebug - debug utilities (ONE class)
 ├── file_tools.py        # FlextCliFileTools - JSON/YAML/CSV operations (ONE class)
 ├── formatters.py        # FlextCliFormatters - Rich abstraction (ONE class, ONLY Rich import)
@@ -179,7 +179,7 @@ src/flext_cli/
 
 - **ONE class per module** - Each module has exactly ONE class prefixed with `FlextCli*`
 - **Short aliases** - `t` (Types), `c` (Constants), `p` (Protocols), `m` (Models), `u` (Utilities), `s` (ServiceBase)
-- **Core aliases** - `r` (FlextResult), `e` (FlextExceptions), `d` (FlextDecorators), `x` (FlextMixins) from `flext_core`
+- **Core aliases** - `r` (r), `e` (FlextExceptions), `d` (FlextDecorators), `x` (FlextMixins) from `flext_core`
 - **Extension pattern** - All classes extend corresponding `Flext*` classes from `flext-core`
 - **NO bad-override** - `@override` only when amplifying scope or overriding abstract methods
 - **NO duplicate classes** - Each class has unique responsibility (SOLID)
@@ -197,39 +197,38 @@ src/flext_cli/
 
 ```python
 from flext_cli import (
-    FlextCli,              # Main consolidated API (NOT FlextCliApi)
-    FlextCliConfig,        # Configuration (NOT FlextCliConfigs)
-    FlextCliConstants,     # Constants
-    FlextCliFormatters,    # Rich formatting abstraction
-    FlextCliTables,        # Table formatting
-    FlextCliOutput,        # Output service
-    FlextCliPrompts,       # Interactive prompts
-    FlextCliFileTools,     # File operations
-    FlextCliCore,          # Core service
-    FlextCliCmd,           # Command execution
-    FlextCliDebug,         # Debug utilities
-    FlextCliCommands,      # Command management
-    FlextCliContext,       # Execution context
-    FlextCliModels,        # Pydantic models
-    FlextCliTypes,         # Type definitions
-    FlextCliProtocols,    # Protocols
-    FlextCliMixins,        # Mixins
-    FlextCliExceptions,    # Exceptions
+    FlextCli,  # Main consolidated API (NOT FlextCliApi)
+    FlextCliConfig,  # Configuration (NOT FlextCliConfigs)
+    FlextCliConstants,  # Constants
+    FlextCliFormatters,  # Rich formatting abstraction
+    FlextCliTables,  # Table formatting
+    FlextCliOutput,  # Output service
+    FlextCliPrompts,  # Interactive prompts
+    FlextCliFileTools,  # File operations
+    FlextCliCore,  # Core service
+    FlextCliCmd,  # Command execution
+    FlextCliDebug,  # Debug utilities
+    FlextCliCommands,  # Command management
+    FlextCliModels,  # Pydantic models
+    FlextCliTypes,  # Type definitions
+    FlextCliProtocols,  # Protocols
+    FlextCliMixins,  # Mixins
+    FlextCliExceptions,  # Exceptions
 )
 ```
 
 ### Design Patterns
 
 **Railway-Oriented Programming**:
-All operations return `FlextResult[T]` for composable error handling:
+All operations return `r[T]` for composable error handling:
 
 ```python
 from flext_cli import FlextCli
-from flext_core import FlextResult
+from flext_core import r
 
 cli = FlextCli()
 
-# All operations return FlextResult
+# All operations return r
 result = cli.authenticate({"token": "abc123"})
 if result.is_success:
     token = result.unwrap()
@@ -243,6 +242,7 @@ Each module follows the unified class pattern from flext-core:
 ```python
 class FlextCliFormatters:
     """Single class per module - domain library pattern."""
+
     # All formatting functionality consolidated here
 ```
 
@@ -256,9 +256,9 @@ from flext_cli import FlextCliConfig
 config = FlextCliConfig.get_global_instance()
 
 # All configuration is read-only properties
-debug = config.debug               # FLEXT_DEBUG env var
+debug = config.debug  # FLEXT_DEBUG env var
 output_format = config.output_format  # FLEXT_OUTPUT_FORMAT
-token_file = config.token_file     # ~/.flext/auth/token.json
+token_file = config.token_file  # ~/.flext/auth/token.json
 ```
 
 **Click/Rich Abstraction Pattern**:
@@ -274,14 +274,14 @@ from flext_cli import FlextCli, FlextCliFormatters, FlextCliTables
 
 cli = FlextCli()
 cli.print("Success!", style="green")  # Rich abstraction
-table = cli.create_table(...)          # Table abstraction
+table = cli.create_table(...)  # Table abstraction
 ```
 
 ______________________________________________________________________
 
 ## Automated Fix Scripts
 
-For batch corrections (missing imports, undefined names), use `/tmp/fix_*.sh` scripts with 4 modes: `dry-run`, `backup`, `exec`, `rollback`. **See [../CLAUDE.md](../CLAUDE.md#automated-fix-scripts-batch-corrections)** for template and rules.
+For batch corrections (missing imports, undefined names), use `/tmp/fix_*.sh` scripts with 4 modes: `dry-run`, `backup`, `exec`, `rollback`. **See [../AGENTS.md](../AGENTS.md#automated-fix-scripts-batch-corrections)** for template and rules.
 
 ______________________________________________________________________
 
@@ -342,17 +342,17 @@ This section defines **mandatory patterns** for imports, namespaces, and module 
 
 ```python
 # ✅ CORRECT - Runtime short aliases (src/ and tests/)
-from flext_cli.typings import t      # FlextCliTypes
-from flext_cli.constants import c    # FlextCliConstants
-from flext_cli.models import m       # FlextCliModels
-from flext_cli.protocols import p    # FlextCliProtocols
-from flext_cli.utilities import u    # FlextCliUtilities
+from flext_cli.typings import t  # FlextCliTypes
+from flext_cli.constants import c  # FlextCliConstants
+from flext_cli.models import m  # FlextCliModels
+from flext_cli.protocols import p  # FlextCliProtocols
+from flext_cli.utilities import u  # FlextCliUtilities
 
 # flext_core aliases (also available)
-from flext_core.result import r      # FlextResult
-from flext_core.exceptions import e  # FlextExceptions
-from flext_core.decorators import d  # FlextDecorators
-from flext_core.mixins import mx     # FlextMixins
+from flext_core import r  # r
+from flext_core import e  # FlextExceptions
+from flext_core import d  # FlextDecorators
+from flext_core import mx  # FlextMixins
 
 # Usage with full namespace (MANDATORY)
 result: r[str] = r[str].ok("value")
@@ -362,8 +362,8 @@ session: m.Cli.Session = m.Cli.Session()
 service: p.Cli.Service[str] = my_service
 
 # ❌ FORBIDDEN - Root aliases
-status: c.OutputFormat   # WRONG - must use c.Cli.OutputFormat
-session: m.Session       # WRONG - must use m.Cli.Session
+status: c.OutputFormat  # WRONG - must use c.Cli.OutputFormat
+session: m.Session  # WRONG - must use m.Cli.Session
 ```
 
 ### 2. Module Aggregation Rules (Facades)
@@ -374,7 +374,8 @@ session: m.Session       # WRONG - must use m.Cli.Session
 # =========================================================
 # models.py (Facade) - Extends FlextModels from flext-core
 # =========================================================
-from flext_core.models import FlextModels
+from flext_core import FlextModels
+
 
 class FlextCliModels(FlextModels):
     """Facade extending core models with CLI-specific classes."""
@@ -383,6 +384,7 @@ class FlextCliModels(FlextModels):
         Session = CliSession
         CommandConfig = CommandConfig
         # ... other CLI-specific models
+
 
 # Short alias for runtime access
 m = FlextCliModels
@@ -408,6 +410,7 @@ m = FlextCliModels
 from __future__ import annotations
 from typing import Self
 
+
 class FlextCliService:
     def clone(self) -> Self:
         """Self reference works with forward annotations."""
@@ -418,15 +421,18 @@ class FlextCliService:
 
 ```python
 # protocols.py (Tier 0 - no internal imports except flext_core)
-from flext_core.protocols import FlextProtocols
+from flext_core import FlextProtocols
+
 
 class FlextCliProtocols(FlextProtocols):
     class Cli:
         class Service(Protocol):
             def execute(self) -> bool: ...
 
+
 # services/cmd.py (Tier 3 - can import protocols)
 from flext_cli.protocols import p
+
 
 class FlextCliCmd:
     def process(self, service: p.Cli.Service) -> r[str]:
@@ -439,6 +445,7 @@ class FlextCliCmd:
 ```python
 # Instead of importing services directly, inject them
 from flext_core import FlextContainer
+
 
 class CommandHandler:
     def __init__(self, container: FlextContainer) -> None:
@@ -459,6 +466,7 @@ class CommandHandler:
 # ✅ ALLOWED - Same tier imports
 # utilities.py can import from models.py (both Tier 1)
 from flext_cli.models import m
+
 
 class FlextCliUtilities:
     def create_session(self) -> m.Cli.Session:
@@ -494,14 +502,18 @@ from flext_cli.constants import c
 # ✅ CORRECT - Import test helpers
 from tests import tm, tf  # TestsFlextCliMatchers, TestsFlextCliFixtures
 
+
 # ✅ CORRECT - Use pytest fixtures
 @pytest.fixture
 def cli_client() -> FlextCli:
     return FlextCli()
 
-# ❌ FORBIDDEN - Don't use TYPE_CHECKING in tests
+
+# ❌ FORBIDDEN - Don't use TYPE_CHECKING in tests unnecessarily
+# Tests usually don't have cyclic dependencies so you shouldn't need it.
 from typing import TYPE_CHECKING
-if TYPE_CHECKING:  # FORBIDDEN even in tests
+
+if TYPE_CHECKING:
     from flext_cli import FlextCli
 ```
 
@@ -556,8 +568,8 @@ tests/
 ├── protocols.py          # TestsCliProtocols - extends FlextTestsProtocols and FlextCliProtocols (alias: p)
 ├── models.py             # TestsCliModels - extends FlextTestsModels and FlextCliModels (alias: m)
 ├── utilities.py          # TestsCliUtilities - extends FlextTestsUtilities and FlextCliUtilities (alias: u)
-├── base.py               # TestsCliServiceBase - extends FlextTestsServiceBase and FlextCliServiceBase (alias: s)
-├── __init__.py           # Exports all TestsCli classes and short aliases (t, c, p, m, u, s)
+├── base.py               # TestsCliServiceBase - extends FlextTestsServiceBase and FlextCliServiceBase
+├── __init__.py           # Exports all TestsCli classes and short aliases (t, c, p, m, u)
 ├── conftest.py           # Centralized pytest configuration and fixtures (ONLY pytest config, no test helpers)
 ├── helpers/              # Domain-specific helpers ONLY (uses conftest, flext_tests, base classes)
 │   └── __init__.py       # Only flext-cli specific helpers (NO duplicates from conftest or flext_tests)
@@ -579,7 +591,7 @@ tests/
 **Short Aliases Usage**:
 
 - Use `t`, `c`, `m`, `p`, `u`, `s` from `tests` module for support (NOT for test declarations)
-- Use `r` (FlextResult), `e` (FlextExceptions), `d` (FlextDecorators), `x` (FlextMixins) directly from `flext_core`
+- Use `r` (r), `e` (FlextExceptions), `d` (FlextDecorators), `x` (FlextMixins) directly from `flext_core`
 - All aliases must work with class short names without lint complaints
 
 ### TestsCli Structure Pattern
@@ -627,12 +639,13 @@ tests/
 **Each test module must have ONE class prefixed with `TestsCli*`**:
 
 ```python
-from tests import c, m, t, u, p, s  # TestsCli structure
+from tests import c, m, t, u, p  # TestsCli structure
 from flext_cli import r, e, d, x  # Direct from flext-core
+
 
 class TestsCliOutput:
     """Comprehensive tests for FlextCliOutput functionality."""
-    
+
     def test_something(self, output: FlextCliOutput) -> None:
         """Test description."""
         result = output.format_data(c.TestData.SAMPLE, "json")
@@ -654,7 +667,7 @@ Common fixtures available in all tests (from `conftest.py`):
 
 - **ONE class per module** - Prefix with `TestsCli*` (e.g., `TestsCliOutput`)
 - **Use short aliases** - `t`, `c`, `m`, `p`, `u`, `s` from `tests` module for support (NOT for test declarations)
-- **Use flext-core aliases** - `r` (FlextResult), `e` (FlextExceptions), `d` (FlextDecorators), `x` (FlextMixins) directly from `flext_core`
+- **Use flext-core aliases** - `r` (r), `e` (FlextExceptions), `d` (FlextDecorators), `x` (FlextMixins) directly from `flext_core`
 - **NO monkeypatch usage** - Use fixtures with data and behavior validation instead
 - **Test real functionality** - Use fixtures with actual data, not mocks
 - **Validate outputs** - Test behavior and output validation, not just coverage
@@ -678,6 +691,7 @@ ______________________________________________________________________
 ```python
 from pydantic import BaseModel, ConfigDict
 
+
 class CommandExecutionConfig(BaseModel):
     model_config = ConfigDict(frozen=False, validate_assignment=True)
 ```
@@ -687,10 +701,11 @@ class CommandExecutionConfig(BaseModel):
 ```python
 from pydantic import field_validator
 
+
 class CommandModel(BaseModel):
     command_name: str
 
-    @field_validator('command_name')
+    @field_validator("command_name")
     @classmethod
     def validate_command_name(cls, v: str) -> str:
         return v.lower()
@@ -699,21 +714,21 @@ class CommandModel(BaseModel):
 **Serialization**:
 
 ```python
-model.model_dump()           # Python dict
-model.model_dump_json()      # JSON string (FASTEST)
+model.model_dump()  # Python dict
+model.model_dump_json()  # JSON string (FASTEST)
 ```
 
 **Validation**:
 
 ```python
-CommandModel.model_validate(data)        # From dict
-CommandModel.model_validate_json(json)   # From JSON (FAST)
+CommandModel(data)  # From dict
+CommandModel.model_validate_json(json)  # From JSON (FAST)
 ```
 
 ### Forbidden Patterns
 
 - ❌ `class Config:` → Use `model_config = ConfigDict()`
-- ❌ `.dict()`, `.json()`, `parse_obj()` → Use `.model_dump()`, `.model_dump_json()`, `.model_validate()`
+- ❌ `.dict()`, `.json()`, `parse_obj()` → Use `.model_dump()`, `.model_dump_json()`, `()`
 - ❌ `@validator`, `@root_validator` → Use `@field_validator`, `@model_validator`
 
 ______________________________________________________________________
@@ -756,9 +771,10 @@ ______________________________________________________________________
 
 ### Zero Tolerance Rules (Completely Prohibited)
 
-1. **TYPE_CHECKING**: ❌ PROHIBITED - Move code causing circular dependencies to appropriate module
+1. **Hacks**: ❌ PROHIBITED - `model_rebuild()`, `eval()`, `exec()`, and architectural `getattr()`.
+1. **Inline/Lazy Imports**: ❌ PROHIBITED - No imports inside functions or `.try / except ImportError:`.
 1. **# type: ignore**: ❌ PROHIBITED COMPLETELY - Zero tolerance, no exceptions
-1. **Metaclasses**: ❌ PROHIBITED COMPLETELY - All metaclasses are prohibited (including `__getattr__`)
+1. **Metaclasses**: ❌ PROHIBITED COMPLETELY - Except for `__getattr__` in `__init__.py` for lazy loading
 1. **Root Aliases**: ❌ PROHIBITED COMPLETELY - Always use complete namespace (c.Cli.OutputFormats, not c.OutputFormats)
 1. **Dynamic Assignments**: ❌ PROHIBITED COMPLETELY - Remove all, use only complete namespace
 1. **Functions in constants.py**: ❌ PROHIBITED - constants.py only constants, no functions/metaclasses/code
@@ -766,22 +782,35 @@ ______________________________________________________________________
 
 ### Replacement Rules
 
-8. **cast()**: ❌ REPLACE ALL - Replace with Models/Protocols/TypeGuards
-1. **Any**: ❌ REPLACE ALL - Replace with specific types (Models, Protocols, TypeVars, FlextTypes.GeneralValueType)
+9. **cast()**: ❌ REPLACE ALL - Replace with Models/Protocols/TypeGuards
+1. **Any**: ❌ REPLACE ALL - Replace with specific types (Models, Protocols, TypeVars, object)
 
 ### Examples
 
 ```python
-# ❌ PROHIBITED - TYPE_CHECKING
+# ❌ PROHIBITED - Inline / Try-Except Imports
+def my_func():
+    from flext_cli import p  # NO INLINE IMPORTS
+
+
+try:
+    import pandas  # NO IMPORT HACKS
+except ImportError:
+    pass
+
+# ✅ CORRECT - Module-level TYPE_CHECKING for circular types (non-Pydantic)
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from flext_cli.protocols import p
 
 # ✅ CORRECT - Forward references
 from __future__ import annotations
 
+
 def process(protocol: "p.Cli.Display") -> None:
     pass
+
 
 # ❌ PROHIBITED - Root aliases
 c.OutputFormats
@@ -793,9 +822,11 @@ c.Cli.OutputFormats
 u.Cli.process
 m.Cli.TableConfig
 
+
 # ❌ PROHIBITED - Metaclasses
 class _FlextCliConstantsMeta(type):
     def __getattr__(cls, name: str) -> object: ...
+
 
 # ✅ CORRECT - No metaclasses, use complete namespace
 
@@ -806,7 +837,7 @@ value = cast(str, data)
 if isinstance(data, str):
     value = data
 # or
-value = StringModel.model_validate(data)
+value = StringModel(data)
 ```
 
 ______________________________________________________________________
@@ -843,11 +874,11 @@ This project is part of the FLEXT monorepo workspace. Key integration points:
 
 - **Depends on**: flext-core (foundation library)
 - **Used by**: flext-oud-mig, flext-meltano-native, flext-api, flext-observability, flext-meltano
-- **Architecture**: Follows workspace-level patterns defined in `../CLAUDE.md`
+- **Architecture**: Follows workspace-level patterns defined in `../AGENTS.md`
 - **Quality Gates**: Must pass workspace-level validation before commits
 - **Unified Rules**: Follows same rules as flext-core, flext-ldif, flext-ldap, flext-oud-mig
 
-See `../CLAUDE.md` for workspace-level standards and `README.md` for project overview.
+See `../AGENTS.md` for workspace-level standards and `README.md` for project overview.
 
 ______________________________________________________________________
 
@@ -866,7 +897,7 @@ result = [item for item in items if isinstance(item, CliCommand)]
 cli_commands: list[CliCommand] = []
 for cmd in items:
     if isinstance(cmd, CliCommand):
-        cli_commands.append(cmd)  # noqa: PERF401
+        cli_commands.append(cmd)
 ```
 
 **Dict Variance with Mapping**:
@@ -874,16 +905,17 @@ When passing dict[str, SpecificType] to a parameter expecting dict[str, BaseType
 
 ```python
 # ❌ FAILS - dict is invariant
-def _process_config(config: dict[str, GeneralValueType]) -> None:
-    ...
+def _process_config(config: dict[str, object]) -> None: ...
+
 
 _process_config({"key": True, "value": "string"})  # Type error
 
 # ✅ CORRECT - Mapping is covariant
 from collections.abc import Mapping
 
-def _process_config(config: Mapping[str, GeneralValueType]) -> None:
-    ...
+
+def _process_config(config: Mapping[str, object]) -> None: ...
+
 
 _process_config({"key": True, "value": "string"})  # OK
 ```
@@ -893,10 +925,10 @@ Always use specific error codes in `# type: ignore` comments rather than generic
 
 ```python
 # ❌ WRONG
-list_instance: list[str] = list_with_union  # type: ignore
+list_instance: list[str] = list_with_union
 
 # ✅ CORRECT
-list_instance: list[str] = list_with_union  # type: ignore[arg-type]
+list_instance: list[str] = list_with_union
 ```
 
 ### Testing Fixes
@@ -953,6 +985,6 @@ ______________________________________________________________________
 
 **See Also**:
 
-- [Workspace Standards](../CLAUDE.md)
-- [flext-core Patterns](../flext-core/CLAUDE.md)
-- [flext-api Patterns](../flext-api/CLAUDE.md)
+- [Workspace Standards](../AGENTS.md)
+- [flext-core Patterns](../flext-core/AGENTS.md)
+- [flext-api Patterns](../flext-api/AGENTS.md)

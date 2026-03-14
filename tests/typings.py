@@ -14,19 +14,14 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from typing import TypedDict
 
-from flext_cli.typings import FlextCliTypes, t as cli_t
-from flext_core.typings import T, T_co, T_contra, t as core_t
-from flext_tests.typings import (
-    FlextTestsTypes,
-    TTestModel,
-    TTestResult,
-    TTestService,
-)
+from flext_core import T, T_co, T_contra
+from flext_tests import FlextTestsTypes
+
+from flext_cli import FlextCliTypes
 
 
-class TestsCliTypes(FlextTestsTypes, FlextCliTypes):
+class TestsCliTypes(FlextTestsTypes):
     """Type system foundation for flext-cli tests - extends FlextTestsTypes and FlextCliTypes.
 
     Architecture: Multiple inheritance provides both generic test types AND CLI-specific types.
@@ -44,72 +39,36 @@ class TestsCliTypes(FlextTestsTypes, FlextCliTypes):
     - CLI types come from FlextCliTypes via inheritance
     """
 
-    class Tests:
-        """flext-cli-specific test type definitions namespace.
+    class Cli(FlextCliTypes.Cli):
+        """Flext-cli-specific type definitions for testing.
 
-        Use tt.Tests.* for flext-cli-specific test types.
-        Use t.Tests.* for generic test types from FlextTestsTypes.
+        Uses composition of FlextCliTypes and t for type safety and consistency.
+        Only defines types that are truly flext-cli-specific.
+        Dict type aliases were removed in Pydantic v2 migration - use models instead.
         """
 
-        class Cli:
-            """Flext-cli-specific type definitions for testing.
+        class Tests:
+            """flext-cli-specific test type definitions namespace.
 
-            Uses composition of cli_t and core_t for type safety and consistency.
-            Only defines types that are truly flext-cli-specific.
-            Dict type aliases were removed in Pydantic v2 migration - use models instead.
+            Use tt.Tests.* for flext-cli-specific test types.
+            Use t.Tests.* for generic test types from FlextTestsTypes.
             """
 
-            # Import remaining types from FlextCliTypes.Cli for test access
-            ResultFormatter = cli_t.Cli.ResultFormatter
-            FormatableResult = cli_t.Cli.FormatableResult
-            TabularData = cli_t.Cli.TabularData
-
+            ResultFormatter = FlextCliTypes.Cli.ResultFormatter
+            FormatableResult = FlextCliTypes.Cli.FormatableResult
+            TabularData = FlextCliTypes.Cli.TabularData
             type CliConfigMapping = Mapping[
                 str,
-                core_t.GeneralValueType
-                | Sequence[str]
-                | Mapping[str, str | int]
-                | None,
+                FlextCliTypes.object | Sequence[str] | Mapping[str, str | int] | None,
             ]
-            """CLI configuration mapping specific to flext-cli."""
+            "CLI configuration mapping specific to flext-cli."
+            type CommandArgsMapping = Mapping[str, FlextCliTypes.object]
+            "Command arguments mapping for CLI operations."
 
-            type CommandArgsMapping = Mapping[
-                str,
-                core_t.GeneralValueType | cli_t.GeneralValueType,
-            ]
-            """Command arguments mapping for CLI operations."""
-
-        class Fixtures:
-            """TypedDict definitions for test fixtures."""
-
-            class CliCommandDict(TypedDict, total=False):
-                """CLI command test data."""
-
-                name: str
-                args: list[str]
-                format: str
-                status: str
-
-            class CliOutputDict(TypedDict, total=False):
-                """CLI output test data."""
-
-                format: str
-                data: dict[str, str | int | bool]
-                success: bool
+            class Fixtures:
+                """TypedDict definitions for test fixtures."""
 
 
-# Short aliases
 t = TestsCliTypes
 tt = TestsCliTypes
-
-__all__ = [
-    "T",
-    "TTestModel",
-    "TTestResult",
-    "TTestService",
-    "T_co",
-    "T_contra",
-    "TestsCliTypes",
-    "t",
-    "tt",
-]
+__all__ = ["T", "T_co", "T_contra", "TestsCliTypes", "t", "tt"]

@@ -12,26 +12,18 @@ SPDX-License-Identifier: MIT
 
 """
 
-from __future__ import annotations  # @vulture_ignore
+from __future__ import annotations
 
-import pytest  # @vulture_ignore
-from flext_tests import tm  # @vulture_ignore
+import pytest
 
-from flext_cli import FlextCliProtocols, r  # @vulture_ignore
-from flext_cli.protocols import p
-
-# Import test constants from tests module (TestsCli structure)
-from tests import c  # @vulture_ignore
+from flext_cli import FlextCliProtocols, p, r, t
+from tests.constants import c
 
 from ..helpers import FlextCliTestHelpers
 
 
 class TestsCliProtocols:
     """Comprehensive test suite for flext_cli.protocols.FlextCliProtocols module."""
-
-    # ========================================================================
-    # PROTOCOL STRUCTURE VALIDATION
-    # ========================================================================
 
     def test_protocol_class_has_required_attributes(self) -> None:
         """Test that FlextCliProtocols has all required protocol classes."""
@@ -68,10 +60,6 @@ class TestsCliProtocols:
             f"{protocol_name} is not runtime checkable"
         )
 
-    # ========================================================================
-    # STRUCTURAL TYPING (DUCK TYPING)
-    # ========================================================================
-
     def test_structural_typing_enabled(self) -> None:
         """Test that protocols support structural typing through runtime_checkable."""
         assert hasattr(p.Cli.CliFormatter, "_is_protocol")
@@ -82,136 +70,124 @@ class TestsCliProtocols:
         """Test duck typing - class satisfies protocol without inheritance."""
 
         class DuckFormatter:
-            def format_data(self, data: object, **options: object) -> r[str]:
+            def format_data(self, data: object, **options: t.Scalar) -> r[str]:
                 return r[str].ok("formatted")
 
         duck = DuckFormatter()
-        assert isinstance(duck, p.Cli.CliFormatter)
-
-    # ========================================================================
-    # CLI FORMATTER PROTOCOL
-    # ========================================================================
+        obj: object = duck
+        assert isinstance(obj, p.Cli.CliFormatter)
 
     def test_cli_formatter_implementation(self) -> None:
         """Test CLI formatter protocol implementation."""
         formatter_result = (
             FlextCliTestHelpers.ProtocolHelpers.create_formatter_implementation()
         )
-        tm.ok(formatter_result)
-
+        assert formatter_result.is_success, (
+            formatter_result.error or "create_formatter_implementation failed"
+        )
         if formatter_result.is_success and formatter_result.value:
             formatter = formatter_result.value
             validation_result = self._validate_formatter_instance(formatter)
-            tm.ok(validation_result)
+            assert validation_result.is_success, (
+                validation_result.error or "formatter validation failed"
+            )
 
     def test_formatter_format_data_method(self) -> None:
         """Test formatter's format_data method."""
         formatter_result = (
             FlextCliTestHelpers.ProtocolHelpers.create_formatter_implementation()
         )
-        tm.ok(formatter_result)
-
+        assert formatter_result.is_success, (
+            formatter_result.error or "create_formatter_implementation failed"
+        )
         if formatter_result.is_success and formatter_result.value:
             formatter = formatter_result.value
-            # Type narrowing using protocol check
             if isinstance(formatter, p.Cli.CliFormatter):
-                test_data_raw = {"key": "value"}  # Simple test data
-                # Cast to CliFormatData (which is dict[str, t.JsonValue])
+                test_data_raw = {"key": "value"}
                 test_data = test_data_raw
                 format_result = formatter.format_data(test_data)
-                tm.ok(format_result)
-
-    # ========================================================================
-    # CLI CONFIG PROVIDER PROTOCOL
-    # ========================================================================
+                assert format_result.is_success, (
+                    format_result.error or "format_data failed"
+                )
 
     def test_cli_config_provider_implementation(self) -> None:
         """Test CLI config provider protocol implementation."""
         provider_result = (
             FlextCliTestHelpers.ProtocolHelpers.create_config_provider_implementation()
         )
-        tm.ok(provider_result)
-
+        assert provider_result.is_success, (
+            provider_result.error or "create_config_provider_implementation failed"
+        )
         if provider_result.is_success and provider_result.value:
             provider = provider_result.value
             validation_result = self._validate_config_provider_instance(provider)
-            tm.ok(validation_result)
+            assert validation_result.is_success, (
+                validation_result.error or "config provider validation failed"
+            )
 
     def test_config_provider_load_save_methods(self) -> None:
         """Test config provider's load_config and save_config methods."""
         provider_result = (
             FlextCliTestHelpers.ProtocolHelpers.create_config_provider_implementation()
         )
-        tm.ok(provider_result)
-
+        assert provider_result.is_success, (
+            provider_result.error or "create_config_provider_implementation failed"
+        )
         if provider_result.is_success and provider_result.value:
             provider = provider_result.value
-            # Type narrowing using protocol check
             if isinstance(provider, p.Cli.CliConfigProvider):
-                test_config_raw = c.Configuration.BASIC_CONFIG
-                # Cast to CliConfigData
-                test_config = test_config_raw
+                test_config_raw = c.TestConfiguration.BASIC_CONFIG
+                test_config: dict[str, object] = {}
+                for key, value in test_config_raw.items():
+                    if isinstance(value, str | int | float | bool) or value is None:
+                        test_config[key] = value
+                    else:
+                        test_config[key] = str(value)
                 save_result = provider.save_config(test_config)
-                tm.ok(save_result)
-
+                assert save_result.is_success, save_result.error or "save_config failed"
                 load_result = provider.load_config()
-                tm.ok(load_result)
-
-    # ========================================================================
-    # CLI AUTHENTICATOR PROTOCOL
-    # ========================================================================
+                assert load_result.is_success, load_result.error or "load_config failed"
 
     def test_cli_authenticator_implementation(self) -> None:
         """Test CLI authenticator protocol implementation."""
-        auth_result = (
+        auth_result: r[object] = (
             FlextCliTestHelpers.ProtocolHelpers.create_authenticator_implementation()
         )
-        tm.ok(auth_result)
-
+        assert auth_result.is_success, (
+            auth_result.error or "create_authenticator_implementation failed"
+        )
         if auth_result.is_success and auth_result.value:
             authenticator = auth_result.value
             validation_result = self._validate_authenticator_instance(authenticator)
-            tm.ok(validation_result)
+            assert validation_result.is_success, (
+                validation_result.error or "authenticator validation failed"
+            )
 
     def test_authenticator_authenticate_method(self) -> None:
         """Test authenticator's authenticate method."""
         auth_result = (
             FlextCliTestHelpers.ProtocolHelpers.create_authenticator_implementation()
         )
-        tm.ok(auth_result)
-
+        assert auth_result.is_success, (
+            auth_result.error or "create_authenticator_implementation failed"
+        )
         if auth_result.is_success and auth_result.value:
             authenticator = auth_result.value
-            # Type narrowing using protocol check
-            # Business Rule: Protocol validation MUST use isinstance() for runtime type checking
-            # Architecture: @runtime_checkable enables isinstance() checks for structural typing
-            # Audit Implication: Protocol compliance verified at runtime before method calls
             if isinstance(authenticator, p.Cli.CliAuthenticator):
-                # Use test constants from tests module (c.Authentication.VALID_CREDS)
                 creds_raw = c.Authentication.VALID_CREDS
-                # Extract username and password from credentials dict
                 creds = creds_raw
                 username = creds.get("username", "test_user")
                 password = creds.get("password", "test_pass")
-                # Business Rule: authenticate() MUST be called as instance method (self bound)
-                # Architecture: Bound methods automatically receive self parameter
-                # Audit Implication: Method calls must match protocol signature exactly
-                # Ensure method is bound by accessing it directly from instance
-                # Business Rule: Method access MUST verify callability before invocation
-                # Architecture: getattr() retrieves bound method, callable() verifies it's callable
-                # Audit Implication: Runtime method validation prevents AttributeError at call site
                 auth_method = getattr(authenticator, "authenticate", None)
                 if auth_method and callable(auth_method):
-                    # Type narrowing: auth_method is callable and returns r[str]
-                    # Cast result to r[str] for type compatibility
                     auth_response = auth_method(username, password)
-                    # auth_response should be success with "valid_token"
-                    if auth_response.is_failure:
-                        pytest.fail(
-                            f"authenticate failed: {auth_response.error}. "
-                            f"Username: '{username}', Password: '{password}'"
-                        )
-                    tm.ok(auth_response)
+                    is_failure = getattr(auth_response, "is_failure", True)
+                    if is_failure:
+                        err_msg = f"authenticate failed: {getattr(auth_response, 'error', '')}. Username: '{username}', Password: '{password}'"
+                        pytest.fail(err_msg)
+                    assert getattr(auth_response, "is_success", False), (
+                        getattr(auth_response, "error", "") or "authenticate failed"
+                    )
                 else:
                     pytest.fail("authenticate method not found or not callable")
 
@@ -220,22 +196,17 @@ class TestsCliProtocols:
         auth_result = (
             FlextCliTestHelpers.ProtocolHelpers.create_authenticator_implementation()
         )
-        tm.ok(auth_result)
-
+        assert auth_result.is_success, (
+            auth_result.error or "create_authenticator_implementation failed"
+        )
         if auth_result.is_success and auth_result.value:
             authenticator = auth_result.value
-            # Type narrowing using protocol check
             if isinstance(authenticator, p.Cli.CliAuthenticator):
                 token = c.Authentication.VALID_TOKEN
-                # Call method directly - token should be validated correctly
                 validation_result = authenticator.validate_token(token)
-                # The method should succeed for tokens starting with "valid_"
-                # If it fails, there may be a bug in the implementation or test setup
-                tm.ok(validation_result)
-
-    # ========================================================================
-    # CLI DEBUG PROVIDER PROTOCOL
-    # ========================================================================
+                assert validation_result.is_success, (
+                    validation_result.error or "validate_token failed"
+                )
 
     def test_cli_debug_provider_exists(self) -> None:
         """Test that CLI debug provider protocol exists."""
@@ -245,10 +216,6 @@ class TestsCliProtocols:
         """Test that CLI debug provider is runtime checkable."""
         assert hasattr(p.Cli.CliDebugProvider, "_is_protocol")
 
-    # ========================================================================
-    # CLI PLUGIN PROTOCOL
-    # ========================================================================
-
     def test_cli_plugin_exists(self) -> None:
         """Test that CLI plugin protocol exists."""
         assert hasattr(p.Cli, "CliPlugin")
@@ -257,10 +224,6 @@ class TestsCliProtocols:
         """Test that CLI plugin is runtime checkable."""
         assert hasattr(p.Cli.CliPlugin, "_is_protocol")
 
-    # ========================================================================
-    # CLI COMMAND HANDLER PROTOCOL
-    # ========================================================================
-
     def test_cli_command_handler_exists(self) -> None:
         """Test that CLI command handler protocol exists."""
         assert hasattr(p.Cli, "ModelCommandHandler")
@@ -268,10 +231,6 @@ class TestsCliProtocols:
     def test_cli_command_handler_is_runtime_checkable(self) -> None:
         """Test that CLI command handler is runtime checkable."""
         assert hasattr(p.Cli.ModelCommandHandler, "_is_protocol")
-
-    # ========================================================================
-    # PROTOCOL INHERITANCE
-    # ========================================================================
 
     def test_protocol_inheritance_structure(self) -> None:
         """Test protocol inheritance from p."""
@@ -283,10 +242,6 @@ class TestsCliProtocols:
         assert hasattr(p.Cli, "CliFormatter")
         assert hasattr(p.Cli, "CliConfigProvider")
 
-    # ========================================================================
-    # COMPREHENSIVE PROTOCOL TESTS
-    # ========================================================================
-
     @pytest.mark.parametrize(
         ("test_type", "description", "should_succeed"),
         [
@@ -296,20 +251,12 @@ class TestsCliProtocols:
         ],
     )
     def test_protocol_comprehensive_scenarios(
-        self,
-        test_type: str,
-        description: str,
-        should_succeed: bool,
+        self, test_type: str, description: str, should_succeed: bool
     ) -> None:
         """Comprehensive protocol scenario tests using parametrization."""
         result = self._execute_protocol_test(test_type)
-        # All test cases are expected to succeed; should_succeed is always True
         assert should_succeed is True
-        tm.ok(result)
-
-    # ========================================================================
-    # VALIDATION HELPERS
-    # ========================================================================
+        assert result.is_success, result.error or "protocol test failed"
 
     def _validate_formatter_instance(self, instance: object) -> r[bool]:
         """Validate formatter instance against protocol."""
@@ -347,6 +294,10 @@ class TestsCliProtocols:
                 case "init":
                     self.test_protocol_class_has_required_attributes()
                     success = True
+                case "command":
+                    success = hasattr(p.Cli, "CliCommandFunction")
+                case "group":
+                    success = hasattr(p.Cli, "CliCommandWrapper")
                 case "structural_typing":
                     self.test_structural_typing_enabled()
                     success = True
@@ -374,7 +325,7 @@ class TestsCliProtocols:
                 case "runtime_checking":
                     self.test_duck_typing_with_formatter()
                     success = True
-                case "_":
+                case _:
                     return r[bool].fail(f"Unknown test type: {test_type}")
             return r[bool].ok(success)
         except Exception as e:

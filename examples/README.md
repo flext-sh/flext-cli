@@ -15,11 +15,11 @@
 - [💡 Usage Patterns](#-usage-patterns)
   - [Pattern 1: Direct FlextCli Usage](#pattern-1-direct-flextcli-usage)
   - [Pattern 2: Service-Specific Import](#pattern-2-service-specific-import)
-  - [Pattern 3: With FlextResult](#pattern-3-with-flextresult)
+  - [Pattern 3: With r](#pattern-3-with-flextresult)
   - [Pattern 4: With Configuration](#pattern-4-with-configuration)
 - [🎓 Learning Path](#-learning-path)
 - [📝 Key Concepts](#-key-concepts)
-  - [1. FlextResult Railway Pattern](#1-flextresult-railway-pattern)
+  - [1. r Railway Pattern](#1-flextresult-railway-pattern)
   - [2. Property-Based Service Access](#2-property-based-service-access)
   - [3. Configuration Management](#3-configuration-management)
   - [4. Type Safety](#4-type-safety)
@@ -60,7 +60,7 @@ flext-cli is a production-ready Python library that provides:
 
    - Basic FlextCli initialization
    - Accessing domain services
-   - FlextResult railway pattern
+   - r railway pattern
    - Core operations
 
 1. **[02_output_formatting.py](02_output_formatting.py)** - Rich output
@@ -166,17 +166,17 @@ Access all modules through the `FlextCli` facade:
 cli = FlextCli()
 
 # Domain services (accessed via properties)
-cli.core           # FlextCliCore - Core functionality
-cli.output         # FlextCliOutput - Styled messages
-cli.formatters     # FlextCliFormatters - Data formatting
-cli.tables         # FlextCliTables - Table display
-cli.prompts        # FlextCliPrompts - User input
-cli.file_tools     # FlextCliFileTools - File operations
-cli.auth           # FlextCliAuth - Authentication
-cli.plugins        # FlextCliPlugins - Plugin system
-cli.shell          # FlextCliShell - Interactive shell
-cli.performance    # FlextCliPerformance - Optimization
-cli.processors     # FlextCliProcessors - Data processing
+cli.core  # FlextCliCore - Core functionality
+cli.output  # FlextCliOutput - Styled messages
+cli.formatters  # FlextCliFormatters - Data formatting
+cli.tables  # FlextCliTables - Table display
+cli.prompts  # FlextCliPrompts - User input
+cli.file_tools  # FlextCliFileTools - File operations
+cli.auth  # FlextCliAuth - Authentication
+cli.plugins  # FlextCliPlugins - Plugin system
+cli.shell  # FlextCliShell - Interactive shell
+cli.performance  # FlextCliPerformance - Optimization
+cli.processors  # FlextCliProcessors - Data processing
 ```
 
 Or import modules directly:
@@ -198,7 +198,7 @@ flext-cli follows the FLEXT ecosystem architecture:
 
 - **FlextCli** - Main facade providing unified access
 - **Services** - Specialized modules (Output, Formatters, Tables, etc.)
-- **FlextResult** - Railway-oriented error handling (from flext-core)
+- **r** - Railway-oriented error handling (from flext-core)
 - **FlextSettings** - Pydantic-based configuration
 - **Type Safety** - Complete type hints throughout
 
@@ -222,7 +222,7 @@ output = FlextCliOutput()
 output.error("Something went wrong")
 ```
 
-### Pattern 3: With FlextResult
+### Pattern 3: With r
 
 ```python
 from flext_cli import FlextCli
@@ -241,22 +241,23 @@ from flext_core import FlextModels
 from flext_core import FlextProcessors
 from flext_core import p
 from flext_core import FlextRegistry
-from flext_core import FlextResult
+from flext_core import r
 from flext_core import FlextRuntime
 from flext_core import FlextService
 from flext_core import t
 from flext_core import u
 
-def process_data(data: dict) -> FlextResult[dict]:
+
+def process_data(data: dict) -> r[dict]:
     cli = FlextCli()
 
     if not data:
-        return FlextResult[dict].fail("Data is empty")
+        return r[dict].fail("Data is empty")
 
     cli.output.info("Processing...")
     # ... processing logic ...
 
-    return FlextResult[dict].ok(processed_data)
+    return r[dict].ok(processed_data)
 ```
 
 ### Pattern 4: With Configuration
@@ -289,9 +290,9 @@ cli.output.info(f"Debug mode: {config.debug}")
 
 ## 📝 Key Concepts
 
-### 1. FlextResult Railway Pattern
+### 1. r Railway Pattern
 
-All operations return `FlextResult` for type-safe error handling:
+All operations return `r` for type-safe error handling:
 
 ```python
 result = cli.file_tools.read_json("config.json")
@@ -308,7 +309,7 @@ Access domain services through properties:
 
 ```python
 cli = FlextCli()
-cli.output.success("Message")    # Not: cli.get_output().success()
+cli.output.success("Message")  # Not: cli.get_output().success()
 cli.tables.display_rich_table()  # Not: cli.get_tables().display()
 ```
 
@@ -344,13 +345,14 @@ from flext_core import FlextModels
 from flext_core import FlextProcessors
 from flext_core import p
 from flext_core import FlextRegistry
-from flext_core import FlextResult
+from flext_core import r
 from flext_core import FlextRuntime
 from flext_core import FlextService
 from flext_core import t
 from flext_core import u
 
-def typed_operation(data: dict) -> FlextResult[dict]:
+
+def typed_operation(data: dict) -> r[dict]:
     cli = FlextCli()
     return cli.file_tools.write_json("output.json", data)
 ```
@@ -361,6 +363,7 @@ def typed_operation(data: dict) -> FlextResult[dict]:
 
 ```python
 from flext_cli import FlextCli
+
 
 def main():
     cli = FlextCli()
@@ -373,6 +376,7 @@ def main():
 
     # Show results
     cli.output.success("Project created!")
+
 
 if __name__ == "__main__":
     main()
@@ -397,19 +401,20 @@ from flext_core import FlextModels
 from flext_core import FlextProcessors
 from flext_core import p
 from flext_core import FlextRegistry
-from flext_core import FlextResult
+from flext_core import r
 from flext_core import FlextRuntime
 from flext_core import FlextService
 from flext_core import t
 from flext_core import u
 
-def process_pipeline(input_file: str) -> FlextResult[dict]:
+
+def process_pipeline(input_file: str) -> r[dict]:
     cli = FlextCli()
 
     # Read input
     data_result = cli.file_tools.read_json(input_file)
     if data_result.is_failure:
-        return FlextResult[dict].fail(f"Read failed: {data_result.error}")
+        return r[dict].fail(f"Read failed: {data_result.error}")
 
     # Process
     cli.output.info("Processing data...")
@@ -418,10 +423,10 @@ def process_pipeline(input_file: str) -> FlextResult[dict]:
     # Write output
     write_result = cli.file_tools.write_json("output.json", processed)
     if write_result.is_failure:
-        return FlextResult[dict].fail(f"Write failed: {write_result.error}")
+        return r[dict].fail(f"Write failed: {write_result.error}")
 
     cli.output.success("Pipeline complete!")
-    return FlextResult[dict].ok(processed)
+    return r[dict].ok(processed)
 ```
 
 ### Interactive Tool
@@ -429,13 +434,13 @@ def process_pipeline(input_file: str) -> FlextResult[dict]:
 ```python
 from flext_cli import FlextCli
 
+
 def interactive_tool():
     cli = FlextCli()
 
     while True:
         action = cli.prompts.select(
-            "Choose action:",
-            choices=["Process", "View", "Exit"]
+            "Choose action:", choices=["Process", "View", "Exit"]
         )
 
         if action == "Exit":
@@ -452,21 +457,21 @@ def interactive_tool():
 - **Source Code**: [../src/flext_cli/](../src/flext_cli/)
 - **Tests**: [../tests/](../tests/)
 - **Main Documentation**: [../README.md](../README.md)
-- **Development Guide**: [../CLAUDE.md](../CLAUDE.md)
+- **Development Guide**: [../AGENTS.md](../AGENTS.md)
 
 ## 🆘 Getting Help
 
 1. Review the examples in order (01-11)
 1. Check the inline code documentation
 1. Refer to [../README.md](../README.md) for API reference
-1. See [../CLAUDE.md](../CLAUDE.md) for development guidelines
+1. See [../AGENTS.md](../AGENTS.md) for development guidelines
 
 ## ✅ Best Practices
 
-1. **Use FlextResult** for all operations
+1. **Use r** for all operations
 1. **Initialize FlextCli once** and reuse
 1. **Access services via properties** (cli.output, cli.tables)
-1. **Handle errors explicitly** with FlextResult patterns
+1. **Handle errors explicitly** with r patterns
 1. **Use type hints** for better IDE support
 1. **Configure via FlextCliSettings** for environment-specific settings
 1. **Combine modules** for complete functionality
