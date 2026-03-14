@@ -16,6 +16,9 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
 
 if TYPE_CHECKING:
+    from flext_core.typings import FlextTypes
+
+    from tests.base import TestsCliServiceBase
     from tests.conftest import (
         CliCommandFactory,
         CliSessionFactory,
@@ -98,7 +101,6 @@ if TYPE_CHECKING:
     from tests.protocols import TestsCliProtocols, p
     from tests.typings import T, T_co, T_contra, TestsCliTypes, t, tt
     from tests.unit.conftest import reset_config_singleton
-    from tests.unit.test_base import TestsCliServiceBase
     from tests.unit.test_cli import TestsCliCli
     from tests.unit.test_cli_extended import TestsCliCliExtended
     from tests.unit.test_cli_params import (
@@ -285,7 +287,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
         "tests.unit.test_railway_pattern_example",
         "TestsCliRailwayPatternExample",
     ),
-    "TestsCliServiceBase": ("tests.unit.test_base", "TestsCliServiceBase"),
+    "TestsCliServiceBase": ("tests.base", "TestsCliServiceBase"),
     "TestsCliTypes": ("tests.typings", "TestsCliTypes"),
     "TestsCliTypings": ("tests.unit.test_typings", "TestsCliTypings"),
     "TestsCliUtilities": ("tests.utilities", "TestsCliUtilities"),
@@ -642,7 +644,7 @@ __all__ = [
 ]
 
 
-def __getattr__(name: str) -> t.ModuleExport:
+def __getattr__(name: str) -> FlextTypes.ModuleExport:
     """Lazy-load module attributes on first access (PEP 562)."""
     return lazy_getattr(name, _LAZY_IMPORTS, globals(), __name__)
 

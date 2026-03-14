@@ -19,6 +19,8 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
 
 if TYPE_CHECKING:
+    from flext_core.typings import FlextTypes
+
     from flext_cli.__version__ import (
         __all__,
         __author__,
@@ -52,10 +54,12 @@ if TYPE_CHECKING:
         FlextCliValidationMiddleware,
     )
     from flext_cli.mixins import FlextCliMixins, x
+    from flext_cli.models import FlextCliModels, m
     from flext_cli.option_groups import FlextCliOptionGroup
     from flext_cli.protocols import FlextCliProtocols, p
     from flext_cli.services.cmd import FlextCliCmd
     from flext_cli.services.core import FlextCliCore
+    from flext_cli.services.output import FlextCliOutput
     from flext_cli.services.prompts import FlextCliPrompts
     from flext_cli.services.tables import FlextCliTables
     from flext_cli.settings import FlextCliSettings, logger
@@ -81,7 +85,9 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "FlextCliLoggingMiddleware": ("flext_cli.middleware", "FlextCliLoggingMiddleware"),
     "FlextCliMiddleware": ("flext_cli.middleware", "FlextCliMiddleware"),
     "FlextCliMixins": ("flext_cli.mixins", "FlextCliMixins"),
+    "FlextCliModels": ("flext_cli.models", "FlextCliModels"),
     "FlextCliOptionGroup": ("flext_cli.option_groups", "FlextCliOptionGroup"),
+    "FlextCliOutput": ("flext_cli.services.output", "FlextCliOutput"),
     "FlextCliPrompts": ("flext_cli.services.prompts", "FlextCliPrompts"),
     "FlextCliProtocols": ("flext_cli.protocols", "FlextCliProtocols"),
     "FlextCliRetryMiddleware": ("flext_cli.middleware", "FlextCliRetryMiddleware"),
@@ -107,6 +113,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "__version_info__": ("flext_cli.__version__", "__version_info__"),
     "c": ("flext_cli.constants", "c"),
     "logger": ("flext_cli.settings", "logger"),
+    "m": ("flext_cli.models", "m"),
     "p": ("flext_cli.protocols", "p"),
     "s": ("flext_cli.base", "s"),
     "t": ("flext_cli.typings", "t"),
@@ -132,7 +139,9 @@ __all__ = [
     "FlextCliLoggingMiddleware",
     "FlextCliMiddleware",
     "FlextCliMixins",
+    "FlextCliModels",
     "FlextCliOptionGroup",
+    "FlextCliOutput",
     "FlextCliPrompts",
     "FlextCliProtocols",
     "FlextCliRetryMiddleware",
@@ -155,6 +164,7 @@ __all__ = [
     "__version_info__",
     "c",
     "logger",
+    "m",
     "p",
     "s",
     "t",
@@ -163,7 +173,7 @@ __all__ = [
 ]
 
 
-def __getattr__(name: str) -> t.ModuleExport:
+def __getattr__(name: str) -> FlextTypes.ModuleExport:
     """Lazy-load module attributes on first access (PEP 562)."""
     return lazy_getattr(name, _LAZY_IMPORTS, globals(), __name__)
 
