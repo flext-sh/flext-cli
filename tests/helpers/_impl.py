@@ -22,7 +22,7 @@ from flext_cli import FlextCliConstants, r, t
 T = TypeVar("T")
 
 
-def _is_json_dict(value) -> TypeGuard[dict[str, object]]:
+def _is_json_dict(value: str) -> TypeGuard[dict[str, object]]:
     """TypeGuard: narrow object to dict for JSON object shape (e.g. read_json_file return)."""
     return isinstance(value, dict)
 
@@ -295,9 +295,7 @@ class FlextCliTestHelpers:
                     getattr(formatter, "format_data", None)
                 ):
                     return r.ok(formatter)
-                return r.fail(
-                    "Formatter does not satisfy CliFormatter protocol"
-                )
+                return r.fail("Formatter does not satisfy CliFormatter protocol")
             except (ValueError, TypeError, ValidationError) as e:
                 return r.fail(f"Failed to create formatter: {e!s}")
 

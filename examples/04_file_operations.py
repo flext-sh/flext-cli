@@ -609,16 +609,15 @@ def generate_output_files(
 
 def create_processing_summary(
     results: dict[str, Path],
-):
+) -> dict[str, bool | int | list[str] | str]:
     """Create a summary of the processing pipeline."""
-    summary = {
+    return {
         "pipeline_completed": True,
         "timestamp": "2025-11-23T10:00:00Z",
         "output_files": [str(p) for p in results.values()],
         "file_count": len(results),
         "formats": list(results.keys()),
     }
-    return summary
 
 
 # ============================================================================

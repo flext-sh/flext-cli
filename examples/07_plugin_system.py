@@ -116,7 +116,7 @@ class MyAppPluginManager:
             cli.print("⚠️  No plugins registered", style="yellow")
             return
 
-        def get_plugin_version(_name: str, plugin) -> str:
+        def get_plugin_version(_name: str, plugin: object) -> str:
             """Get plugin version."""
             return getattr(plugin, "version", "1.0.0")
 
@@ -129,7 +129,7 @@ class MyAppPluginManager:
         ]
         cli.show_table(rows, headers=["Plugin", "Version"])
 
-    def register_plugin(self, plugin) -> None:
+    def register_plugin(self, plugin: DataExportPlugin | ReportGeneratorPlugin) -> None:
         """Register plugin in YOUR CLI."""
         plugin_name = getattr(plugin, "name", plugin.__class__.__name__)
         self.plugins[plugin_name] = plugin

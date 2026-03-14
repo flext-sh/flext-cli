@@ -32,9 +32,14 @@ from typing import (
 import pytest
 from flext_tests import tm
 from pydantic import BaseModel, ConfigDict, Field
+from src.flext_cli.typings import FlextCliTypes
 
-from flext_cli import r, t
+from flext_cli import FlextCliTypes, r, t
+from flext_cli.typings import FlextCliTypes
+from tests import FlextCliTypes
 from tests.helpers import c
+from tests.integration import FlextCliTypes
+from tests.integration.test_refactor_policy_mro import FlextCliTypes
 from tests.models import ApiResponse, UserData
 
 from ..helpers import FlextCliTestHelpers
@@ -146,7 +151,7 @@ class TestsCliTypings:
         """Validators for typing test assertions."""
 
         @staticmethod
-        def validate_type_initialization(types_class) -> r[bool]:
+        def validate_type_initialization(types_class: type[FlextCliTypes]) -> r[bool]:
             """Validate type class initialization."""
             try:
                 if not hasattr(types_class, "Cli"):
@@ -306,13 +311,13 @@ class TestsCliTypings:
     def _execute_type_conversion_tests(self) -> None:
         """Execute type conversion tests."""
 
-        def process_data(data) -> str:
+        def process_data(data: str) -> str:
             if not isinstance(data, str):
                 error_msg = "data must be a str"
                 raise TypeError(error_msg)
             return data.upper()
 
-        def process_data_safe(data) -> str:
+        def process_data_safe(data: int | str) -> str:
             return str(data).upper()
 
         assert process_data("hello") == "HELLO"
@@ -336,7 +341,9 @@ class TestsCliTypings:
     def _execute_type_utilities_tests(self) -> None:
         """Execute type utilities tests."""
 
-        def typed_function(name: str, age: int, *, active: bool = True):
+        def typed_function(
+            name: str, age: int, *, active: bool = True
+        ) -> dict[str, bool | int | str]:
             return {"name": name, "age": age, "active": active}
 
         hints = get_type_hints(typed_function)

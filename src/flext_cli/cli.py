@@ -87,9 +87,7 @@ class FlextCliCli:
         return str
 
     @classmethod
-    def get_tuple_type(
-        cls, types: Sequence[type | click.ParamType]
-    ) -> click.Tuple:
+    def get_tuple_type(cls, types: Sequence[type | click.ParamType]) -> click.Tuple:
         """Get tuple type."""
         result: (
             type[bool | str | int | float]
@@ -551,9 +549,7 @@ class FlextCliCli:
                     json_value = str(json_value_candidate)
             return r.ok(json_value)
         except typer.Abort as e:
-            return r.fail(
-                c.Cli.ErrorMessages.USER_ABORTED_PROMPT.format(error=e)
-            )
+            return r.fail(c.Cli.ErrorMessages.USER_ABORTED_PROMPT.format(error=e))
 
     def create_app_with_common_params(
         self,

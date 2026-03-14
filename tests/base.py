@@ -177,7 +177,7 @@ class TestsCliServiceBase(FlextTestsServiceBase[T]):
 
         @staticmethod
         def create_simple_handler(
-            handler_id: str, result_value = c.Strings.BASIC_WORD
+            handler_id: str, result_value: str = c.Strings.BASIC_WORD
         ) -> FlextHandlers[object, object]:
             """Create a simple handler that always returns the same value.
 

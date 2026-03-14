@@ -734,7 +734,7 @@ def password_simulator() -> Iterator[Callable[[str], None]]:
 
     original_getpass = getpass.getpass
 
-    def simulated_getpass(prompt: str = "", stream = None) -> str:
+    def simulated_getpass(prompt: str = "", stream=None) -> str:
         """Return the set password."""
         return password_value
 

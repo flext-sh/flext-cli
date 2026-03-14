@@ -71,9 +71,7 @@ class FlextCliCommands(FlextCliServiceBase):
         return self._name
 
     @staticmethod
-    def _normalize_handler_result(
-        result: r | None, command_name: str
-    ) -> r:
+    def _normalize_handler_result(result: r | None, command_name: str) -> r:
         """Normalize handler output to r."""
         if result is None:
             return r.ok({"status": "success", "command": command_name})
