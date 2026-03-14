@@ -37,7 +37,7 @@ class FlextCliTypes(FlextTypes):
         """
 
         JsonScalar: TypeAlias = FlextTypes.Scalar | None
-        JsonValue: TypeAlias = FlextTypes.GeneralValueType
+        JsonValue: TypeAlias = FlextTypes.NormalizedValue
         JsonDict: TypeAlias = Mapping[str, JsonValue]
         TableRow: TypeAlias = Mapping[str, JsonValue]
         ResultFormatter = Callable[[JsonValue], str]

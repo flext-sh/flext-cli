@@ -63,7 +63,11 @@ class FlextCliDebug(FlextCliServiceBase):
     @override
     def __init__(self) -> None:
         """Initialize debug service with flext-core integration."""
-        super().__init__()
+        super().__init__(
+            config_type=None,
+            config_overrides=None,
+            initial_context=None,
+        )
 
     @staticmethod
     def _convert_model_to_dict(
@@ -85,7 +89,12 @@ class FlextCliDebug(FlextCliServiceBase):
             dict(os.environ), processor=process_env_item, on_error="skip"
         )
         env_info = dict(env_info_result.map_or({}))
-        return m.Cli.EnvironmentInfo(variables=env_info)
+        return m.Cli.EnvironmentInfo(
+            python_version=sys.version,
+            os_name=os.name,
+            os_version=platform.version(),
+            variables=env_info,
+        )
 
     @staticmethod
     def _get_path_info() -> list[m.Cli.PathInfo]:
@@ -114,6 +123,8 @@ class FlextCliDebug(FlextCliServiceBase):
             architecture=list(arch_tuple),
             processor=platform.processor(),
             hostname=platform.node(),
+            memory_total=0,
+            cpu_count=os.cpu_count() or 0,
         )
 
     @staticmethod

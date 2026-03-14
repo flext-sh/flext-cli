@@ -66,7 +66,11 @@ class FlextCliCmd(FlextCliServiceBase):
     @override
     def __init__(self) -> None:
         """Initialize the command service and supporting file helpers."""
-        super().__init__()
+        super().__init__(
+            config_type=None,
+            config_overrides=None,
+            initial_context=None,
+        )
         self._file_tools = FlextCliFileTools()
 
     @staticmethod
@@ -100,7 +104,12 @@ class FlextCliCmd(FlextCliServiceBase):
             )
             path = Path(str(config_path))
             if not path.exists():
-                default_config_model = m.Cli.CmdConfig(name="default")
+                default_config_model = m.Cli.CmdConfig(
+                    name="default",
+                    description="",
+                    hidden=False,
+                    deprecated=False,
+                )
                 save_result = self._file_tools.write_json_file(
                     file_path=str(path), data=default_config_model.model_dump()
                 )

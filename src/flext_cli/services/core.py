@@ -104,12 +104,16 @@ class FlextCliCore(FlextCliServiceBase):
                 (stored separately, not passed to parent FlextService.__init__)
 
         """
-        super().__init__()
+        super().__init__(
+            config_type=None,
+            config_overrides=None,
+            initial_context=None,
+        )
         object.__setattr__(
             self, "_cli_config", dict(config) if config is not None else {}
         )
         object.__setattr__(self, "_commands", {})
-        object.__setattr__(self, "_registry", FlextRegistry(dispatcher=None))
+        object.__setattr__(self, "_registry", FlextRegistry())
         object.__setattr__(self, "_sessions", {})
         object.__setattr__(self, "_session_active", False)
         object.__setattr__(self, "_caches", {})

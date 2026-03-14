@@ -52,7 +52,11 @@ class FlextCliPrompts(FlextCliServiceBase):
         data["interactive_mode"] = interactive_mode and (not quiet)
         data["quiet"] = quiet
         data["default_timeout"] = default_timeout
-        super().__init__()
+        super().__init__(
+            config_type=None,
+            config_overrides=None,
+            initial_context=None,
+        )
         self.interactive_mode = bool(data.get("interactive_mode", True))
         self.quiet = bool(data.get("quiet"))
         timeout_raw = data.get("default_timeout")
@@ -173,6 +177,8 @@ class FlextCliPrompts(FlextCliServiceBase):
             size = len(self._prompt_history)
             stats_model = m.Cli.PromptStatistics(
                 prompts_executed=size,
+                prompts_answered=size,
+                prompts_cancelled=0,
                 interactive_mode=self.interactive_mode,
                 default_timeout=self.default_timeout,
                 history_size=size,

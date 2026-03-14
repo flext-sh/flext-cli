@@ -189,7 +189,11 @@ class FlextCli:
     def validate_credentials(username: str, password: str) -> r[bool]:
         """Validate credentials using Pydantic 2."""
         validation_result = u.try_(
-            lambda: m.Cli.PasswordAuth(username=username, password=password)
+            lambda: m.Cli.PasswordAuth(
+                username=username,
+                password=password,
+                realm="",
+            )
         ).map_error(str)
         if validation_result.is_failure:
             return r[bool].fail(validation_result.error or "")
@@ -205,7 +209,11 @@ class FlextCli:
             return self._authenticate_with_credentials(credentials)
         if c.Cli.DictKeys.TOKEN in credentials:
             token_data_result = u.try_(
-                lambda: m.Cli.TokenData(token=str(credentials[c.Cli.DictKeys.TOKEN]))
+                lambda: m.Cli.TokenData(
+                    token=str(credentials[c.Cli.DictKeys.TOKEN]),
+                    expires_at="",
+                    token_type="Bearer",
+                )
             ).map_error(str)
             if token_data_result.is_failure:
                 return r[str].fail(token_data_result.error or "")
@@ -268,7 +276,17 @@ class FlextCli:
         else:
             table_data = []
         table_config = m.Cli.TableConfig(
-            headers=headers or "keys", table_format="simple"
+            headers=headers or "keys",
+            show_header=True,
+            table_format="simple",
+            floatfmt=".4g",
+            numalign="decimal",
+            stralign="left",
+            align="left",
+            missingval="",
+            showindex=False,
+            colalign=None,
+            disable_numparse=False,
         )
         return FlextCliTables.create_table(table_data, config=table_config)
 

@@ -169,7 +169,7 @@ class FlextCliTables(FlextCliServiceBase):
         config_result = u.build_options_from_kwargs(
             model_class=m.Cli.TableConfig,
             explicit_options=config,
-            default_factory=m.Cli.TableConfig,
+            default_factory=lambda: m.Cli.TableConfig(),
             **{
                 k: v
                 for k, v in config_kwargs.items()
@@ -189,24 +189,22 @@ class FlextCliTables(FlextCliServiceBase):
             return r[str].fail(headers_result.error or "Header preparation failed")
         try:
             if u.is_dict_like(data):
-                mapping_rows: list[Mapping[str, FlextCliTypes.Cli.JsonValue]] = []
+                mapping_rows: list[Mapping[str, t.ContainerValue]] = []
                 if isinstance(data, Mapping):
-                    normalized_row: dict[str, FlextCliTypes.Cli.JsonValue] = {
+                    normalized_row: dict[str, t.ContainerValue] = {
                         str(key): m.Cli.normalize_json_value(value)
                         for key, value in data.items()
                     }
                     mapping_rows.append(normalized_row)
-                normalized_data: Sequence[Mapping[str, FlextCliTypes.Cli.JsonValue]] = (
-                    mapping_rows
-                )
+                normalized_data: Sequence[Mapping[str, t.ContainerValue]] = mapping_rows
             else:
                 normalized_data = data
             headers_value = headers_result.value
             if normalized_data and (not isinstance(headers_value, str)):
-                mapping_rows: list[Mapping[str, FlextCliTypes.Cli.JsonValue]] = [
+                normalized_mapping_rows: list[Mapping[str, t.ContainerValue]] = [
                     dict(row) for row in normalized_data
                 ]
-                table_rows = [list(row.values()) for row in mapping_rows]
+                table_rows = [list(row.values()) for row in normalized_mapping_rows]
                 formatted_table = tabulate(
                     table_rows,
                     headers=list(headers_value),
@@ -217,10 +215,10 @@ class FlextCliTables(FlextCliServiceBase):
                 return r[str].ok(formatted_table)
 
             def _is_tabulate_data(
-                val: Sequence[object],
+                val: Sequence[t.ContainerValue],
             ) -> TypeGuard[
-                Sequence[Mapping[str, FlextCliTypes.Cli.JsonValue]]
-                | Sequence[Sequence[object]]
+                Sequence[Mapping[str, t.ContainerValue]]
+                | Sequence[Sequence[t.ContainerValue]]
             ]:
                 """Narrow to tabulate-acceptable rows (sequence of mappings or sequences)."""
                 if not val:

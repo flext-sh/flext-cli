@@ -149,6 +149,9 @@ unannotated-return = true
 disable_error_code = [
   "prop-decorator",
 ]
+mypy_path = [
+  "src",
+]
 plugins = [
   "pydantic.mypy",
 ]

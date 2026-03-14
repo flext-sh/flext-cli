@@ -50,7 +50,11 @@ class FlextCliCommands(FlextCliServiceBase):
             description: CLI application description.
 
         """
-        super().__init__()
+        super().__init__(
+            config_type=None,
+            config_overrides=None,
+            initial_context=None,
+        )
         self._name = name
         self._description = description
         self._commands: dict[str, FlextCliCommandEntryModel] = {}
@@ -113,7 +117,9 @@ class FlextCliCommands(FlextCliServiceBase):
             return r[FlextCliCommandGroup].fail(
                 "Commands are required for group creation"
             )
-        group_commands: dict[str, FlextCliTypes.Cli.JsonValue] = dict(commands)
+        group_commands: dict[str, FlextCliTypes.Cli.JsonValue] = {
+            key: value.model_dump(mode="json") for key, value in commands.items()
+        }
         group = FlextCliCommandGroup.model_validate({
             "name": name,
             "description": description,
@@ -210,7 +216,9 @@ class FlextCliCommands(FlextCliServiceBase):
             Use FlextCliCli for actual Click integration.
 
         """
-        group_commands: dict[str, FlextCliTypes.Cli.JsonValue] = dict(self._commands)
+        group_commands: dict[str, FlextCliTypes.Cli.JsonValue] = {
+            key: value.model_dump(mode="json") for key, value in self._commands.items()
+        }
         return FlextCliCommandGroup.model_validate({
             "name": self._name,
             "description": self._description,
