@@ -582,6 +582,11 @@ preserve_quotes = true
 section_whitelines = 1
 whitelines = 1
 
+[tool.coverage.report]
+fail_under = 15
+precision = 2
+show_missing = true
+skip_covered = false
 
 [tool.pytest.ini_options]
 addopts = [ "--strict-markers" ]
@@ -606,10 +611,3 @@ enable_assertion_pass_hook = true
 
 # [CUSTOM] poetry dev extensions
 # [MANAGED] pyrefly
-
-
-[tool.coverage.report]
-fail_under = 15
-precision = 2
-show_missing = true
-skip_covered = false
