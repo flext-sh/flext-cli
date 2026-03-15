@@ -1,16 +1,7 @@
 # AUTO-GENERATED FILE — DO NOT EDIT MANUALLY.
 # Regenerate with: make codegen
 #
-"""Public exports for flext-cli with enforced framework isolation.
-
-Expõe `FlextCli`, os serviços de domínio e utilidades respeitando a regra de
-isolamento: Typer/Click permanecem em `cli.py`, enquanto Rich/Tabulate ficam em
-`formatters.py` e `services/tables.py`. Utilize esses exports de alto nível
-para preservar o comportamento suportado pelo projeto.
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-"""
+"""Flext cli package."""
 
 from __future__ import annotations
 
@@ -21,6 +12,7 @@ from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
 if TYPE_CHECKING:
     from flext_core.typings import FlextTypes
 
+    from flext_cli import services
     from flext_cli.__version__ import (
         __all__,
         __author__,
@@ -115,6 +107,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "m": ("flext_cli.models", "m"),
     "p": ("flext_cli.protocols", "p"),
     "s": ("flext_cli.base", "s"),
+    "services": ("flext_cli.services", ""),
     "t": ("flext_cli.typings", "t"),
     "u": ("flext_cli.utilities", "u"),
     "x": ("flext_cli.mixins", "x"),
@@ -166,6 +159,7 @@ __all__ = [
     "m",
     "p",
     "s",
+    "services",
     "t",
     "u",
     "x",

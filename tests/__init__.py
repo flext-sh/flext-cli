@@ -1,13 +1,7 @@
 # AUTO-GENERATED FILE — DO NOT EDIT MANUALLY.
 # Regenerate with: make codegen
 #
-"""FLEXT CLI Tests - Test infrastructure and utilities.
-
-Provides TestsCli classes extending FlextTests and FlextCli for comprehensive testing.
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-"""
+"""Tests package."""
 
 from __future__ import annotations
 
@@ -18,6 +12,7 @@ from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
 if TYPE_CHECKING:
     from flext_core.typings import FlextTypes
 
+    from tests import integration, unit
     from tests.base import TestsCliServiceBase
     from tests.conftest import (
         CliCommandFactory,
@@ -335,6 +330,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "flext_test_docker": ("tests.conftest", "flext_test_docker"),
     "input_exception_simulator": ("tests.conftest", "input_exception_simulator"),
     "input_simulator": ("tests.conftest", "input_simulator"),
+    "integration": ("tests.integration", ""),
     "load_fixture_config": ("tests.conftest", "load_fixture_config"),
     "load_fixture_data": ("tests.conftest", "load_fixture_data"),
     "logging_config_factory": ("tests.conftest", "logging_config_factory"),
@@ -478,6 +474,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "tm": ("tests.models", "tm"),
     "tt": ("tests.typings", "tt"),
     "u": ("tests.utilities", "u"),
+    "unit": ("tests.unit", ""),
 }
 
 __all__ = [
@@ -587,6 +584,7 @@ __all__ = [
     "flext_test_docker",
     "input_exception_simulator",
     "input_simulator",
+    "integration",
     "load_fixture_config",
     "load_fixture_data",
     "logging_config_factory",
@@ -640,6 +638,7 @@ __all__ = [
     "tm",
     "tt",
     "u",
+    "unit",
 ]
 
 

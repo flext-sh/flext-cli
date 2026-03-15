@@ -12,6 +12,7 @@ from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
 if TYPE_CHECKING:
     from flext_core.typings import FlextTypes
 
+    from examples import plugins
     from examples.example_utils import (
         display_config_table,
         display_success_summary,
@@ -66,6 +67,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
         "display_validation_errors",
     ),
     "handle_command_result": ("examples.example_utils", "handle_command_result"),
+    "plugins": ("examples.plugins", ""),
     "print_demo_completion": ("examples.example_utils", "print_demo_completion"),
     "print_demo_error": ("examples.example_utils", "print_demo_error"),
     "r": ("examples.models", "NumericPromptResult"),
@@ -91,6 +93,7 @@ __all__ = [
     "display_success_summary",
     "display_validation_errors",
     "handle_command_result",
+    "plugins",
     "print_demo_completion",
     "print_demo_error",
     "r",
