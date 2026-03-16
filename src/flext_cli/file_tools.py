@@ -45,9 +45,8 @@ class FlextCliFileTools:
             .lstrip(c.Cli.FileToolsDefaults.EXTENSION_PREFIX)
         )
         for fmt_name, fmt_info in supported_formats.items():
-            if (
-                u.is_dict_like(fmt_info)
-                and c.Cli.FileIODefaults.FORMAT_EXTENSIONS_KEY in fmt_info
+            if isinstance(fmt_info, Mapping) and (
+                c.Cli.FileIODefaults.FORMAT_EXTENSIONS_KEY in fmt_info
             ):
                 exts = fmt_info[c.Cli.FileIODefaults.FORMAT_EXTENSIONS_KEY]
                 if u.is_list_like(exts) and ext in exts:

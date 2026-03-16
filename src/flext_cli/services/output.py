@@ -107,7 +107,7 @@ class FlextCliOutput:
     ] = {}
 
     @property
-    def console(self) -> p.Cli.Display.RichConsole:
+    def console(self) -> Console:
         """Get the console instance from FlextCliFormatters (property form).
 
         Returns:
@@ -181,14 +181,14 @@ class FlextCliOutput:
     @staticmethod
     def _is_rich_console_protocol(
         obj: Console,
-    ) -> TypeIs[p.Cli.Display.RichConsole]:
+    ) -> bool:
         """Type guard to check if object implements RichConsole."""
         return hasattr(obj, "print") and hasattr(obj, "rule")
 
     @staticmethod
     def _is_rich_progress_protocol(
         obj: Progress,
-    ) -> TypeIs[p.Cli.Interactive.RichProgress]:
+    ) -> bool:
         """Type guard to check if object implements RichProgress."""
         return (
             hasattr(obj, "__enter__")
