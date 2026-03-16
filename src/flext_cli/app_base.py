@@ -38,7 +38,7 @@ class FlextCliAppBase[SettingsT: FlextCliSettings]:
     app_name: ClassVar[str]
     app_help: ClassVar[str]
     config_class: type[SettingsT]
-    logger: p.StructlogLogger
+    logger: p.Logger
     _output: FlextCliOutput
     _cli: FlextCliCli
     _app: typer.Typer

@@ -34,9 +34,11 @@ from flext_cli.typings import FlextCliTypes
 class FlextCliCli:
     """Unified Typer/Click abstraction used by the FLEXT ecosystem."""
 
-    container: p.DI
-    logger: p.StructlogLogger
-    _json_value_adapter: ClassVar[TypeAdapter] = TypeAdapter(object)
+    container: p.Container
+    logger: p.Logger
+    _json_value_adapter: ClassVar[TypeAdapter[FlextCliTypes.Cli.JsonValue]] = (
+        TypeAdapter(FlextCliTypes.Cli.JsonValue)
+    )
 
     def __init__(self) -> None:
         """Initialize FlextCliCli."""
@@ -388,7 +390,10 @@ class FlextCliCli:
     @staticmethod
     def model_command(
         model_class: type[BaseModel],
-        handler: Callable[[BaseModel], FlextCliTypes.Cli.JsonValue | r | None],
+        handler: Callable[
+            [BaseModel],
+            FlextCliTypes.Cli.JsonValue | r[FlextCliTypes.Cli.JsonValue] | None,
+        ],
         config: FlextCliSettings | None = None,
     ) -> p.Cli.CliCommandFunction:
         """Create a command from a Pydantic model."""
@@ -450,7 +455,7 @@ class FlextCliCli:
     @staticmethod
     def prompt(
         text: str, config: m.Cli.PromptConfig | None = None, **kwargs: t.Scalar
-    ) -> r:
+    ) -> r[FlextCliTypes.Cli.JsonValue]:
         """Prompt user for input."""
         if config is None:
             config = FlextCliCli._build_prompt_config_from_kwargs(kwargs)

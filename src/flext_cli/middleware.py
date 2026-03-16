@@ -19,6 +19,7 @@ from pydantic import BaseModel
 from rich.errors import ConsoleError, LiveError, StyleError
 
 from flext_cli import p
+from flext_cli.typings import FlextCliTypes
 
 
 class FlextCliLoggingMiddleware:
@@ -27,8 +28,8 @@ class FlextCliLoggingMiddleware:
     def __call__(
         self,
         ctx: p.Cli.CliContext,
-        next_: Callable[[p.Cli.CliContext], r],
-    ) -> r:
+        next_: Callable[[p.Cli.CliContext], r[FlextCliTypes.Cli.JsonValue]],
+    ) -> r[FlextCliTypes.Cli.JsonValue]:
         """Log command execution.
 
         Args:
@@ -62,8 +63,8 @@ class FlextCliValidationMiddleware:
     def __call__(
         self,
         ctx: p.Cli.CliContext,
-        next_: Callable[[p.Cli.CliContext], r],
-    ) -> r:
+        next_: Callable[[p.Cli.CliContext], r[FlextCliTypes.Cli.JsonValue]],
+    ) -> r[FlextCliTypes.Cli.JsonValue]:
         """Validate command inputs.
 
         Args:
@@ -109,8 +110,8 @@ class FlextCliRetryMiddleware:
     def __call__(
         self,
         ctx: p.Cli.CliContext,
-        next_: Callable[[p.Cli.CliContext], r],
-    ) -> r:
+        next_: Callable[[p.Cli.CliContext], r[FlextCliTypes.Cli.JsonValue]],
+    ) -> r[FlextCliTypes.Cli.JsonValue]:
         """Retry failed commands.
 
         Args:
@@ -139,8 +140,11 @@ class FlextCliMiddleware:
     @staticmethod
     def compose(
         middlewares: list[p.Cli.Middleware],
-        handler: Callable[[p.Cli.CliContext], p_core.Result],
-    ) -> Callable[[p.Cli.CliContext], p_core.Result]:
+        handler: Callable[
+            [p.Cli.CliContext],
+            p_core.Result[FlextCliTypes.Cli.JsonValue],
+        ],
+    ) -> Callable[[p.Cli.CliContext], p_core.Result[FlextCliTypes.Cli.JsonValue]]:
         """Compose middleware into single callable.
 
         Args:
@@ -162,11 +166,15 @@ class FlextCliMiddleware:
 
         """
 
-        def composed(ctx: p.Cli.CliContext) -> p_core.Result:
+        def composed(
+            ctx: p.Cli.CliContext,
+        ) -> p_core.Result[FlextCliTypes.Cli.JsonValue]:
 
             def build_chain(
                 idx: int,
-            ) -> Callable[[p.Cli.CliContext], p_core.Result]:
+            ) -> Callable[
+                [p.Cli.CliContext], p_core.Result[FlextCliTypes.Cli.JsonValue]
+            ]:
                 if idx >= len(middlewares):
                     return handler
                 current_middleware = middlewares[idx]

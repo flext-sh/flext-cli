@@ -51,7 +51,9 @@ class FlextCliCommandBuilder:
         self._name = name
         self._options: list[OptionInfo] = []
         self._arguments: list[tuple[str, type, bool]] = []
-        self._middleware: list[Callable[[p.Cli.CliContext], r]] = []
+        self._middleware: list[
+            Callable[[p.Cli.CliContext], r[FlextCliTypes.Cli.JsonValue]]
+        ] = []
         self._handler: p.Cli.CommandHandlerCallable | None = None
 
     @staticmethod
@@ -137,7 +139,10 @@ class FlextCliCommandBuilder:
         self._arguments.append((name, type_, required))
         return self
 
-    def with_middleware(self, middleware: Callable[[p.Cli.CliContext], r]) -> Self:
+    def with_middleware(
+        self,
+        middleware: Callable[[p.Cli.CliContext], r[FlextCliTypes.Cli.JsonValue]],
+    ) -> Self:
         """Add middleware (logging, auth, validation).
 
         Args:

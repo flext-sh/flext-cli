@@ -20,7 +20,7 @@ from pydantic import TypeAdapter, ValidationError
 from flext_cli import c, m, t, u
 from flext_cli.typings import FlextCliTypes
 
-_JSON_OBJECT_ADAPTER: TypeAdapter = TypeAdapter(object)
+_JSON_OBJECT_ADAPTER: TypeAdapter[object] = TypeAdapter(object)
 
 
 def _is_json_mapping(
@@ -338,7 +338,9 @@ class FlextCliFileTools:
         )
 
     @staticmethod
-    def load_file_auto_detect(file_path: str | Path) -> r:
+    def load_file_auto_detect(
+        file_path: str | Path,
+    ) -> r[FlextCliTypes.Cli.JsonValue]:
         format_result = FlextCliFileTools.detect_file_format(file_path)
         if format_result.is_failure:
             return r.fail(
@@ -399,7 +401,7 @@ class FlextCliFileTools:
         )
 
     @staticmethod
-    def read_json_file(file_path: str | Path) -> r:
+    def read_json_file(file_path: str | Path) -> r[FlextCliTypes.Cli.JsonValue]:
 
         def _load() -> FlextCliTypes.Cli.JsonValue:
             raw = Path(file_path).read_text(encoding=c.Cli.Utilities.DEFAULT_ENCODING)
@@ -439,7 +441,7 @@ class FlextCliFileTools:
         )
 
     @staticmethod
-    def read_yaml_file(file_path: str | Path) -> r:
+    def read_yaml_file(file_path: str | Path) -> r[FlextCliTypes.Cli.JsonValue]:
 
         def _load() -> FlextCliTypes.Cli.JsonValue:
             out = FlextCliFileTools._load_structured_file(

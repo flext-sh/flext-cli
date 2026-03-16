@@ -166,7 +166,10 @@ class FlextCliProtocols(FlextProtocols):
                 """Complete command execution."""
                 ...
 
-            def execute(self, args: Sequence[str]) -> FlextProtocols.Result:
+            def execute(
+                self,
+                args: Sequence[str],
+            ) -> FlextProtocols.Result[FlextCliTypes.Cli.JsonValue]:
                 """Execute the command."""
                 ...
 
@@ -664,7 +667,7 @@ class FlextCliProtocols(FlextProtocols):
 
             def __call__(
                 self, *args: FlextCliTypes.Cli.JsonValue, **kwargs: t.Scalar
-            ) -> FlextProtocols.Result:
+            ) -> FlextProtocols.Result[FlextCliTypes.Cli.JsonValue]:
                 """Execute the handler."""
                 ...
 
@@ -674,7 +677,7 @@ class FlextCliProtocols(FlextProtocols):
 
             def handle(
                 self, model: FlextCliTypes.Cli.JsonValue, **kwargs: t.Scalar
-            ) -> FlextProtocols.Result:
+            ) -> FlextProtocols.Result[FlextCliTypes.Cli.JsonValue]:
                 """Handle the model command."""
                 ...
 
@@ -859,9 +862,9 @@ class FlextCliProtocols(FlextProtocols):
                 ctx: FlextCliProtocols.Cli.CliContext,
                 next_: Callable[
                     [FlextCliProtocols.Cli.CliContext],
-                    FlextProtocols.Result,
+                    FlextProtocols.Result[FlextCliTypes.Cli.JsonValue],
                 ],
-            ) -> FlextProtocols.Result:
+            ) -> FlextProtocols.Result[FlextCliTypes.Cli.JsonValue]:
                 """Process and pass to next middleware."""
                 ...
 

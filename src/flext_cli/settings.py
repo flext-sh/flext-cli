@@ -19,7 +19,9 @@ from pydantic import Field, TypeAdapter, ValidationError, computed_field
 from flext_cli import c, m, t
 from flext_cli.typings import FlextCliTypes
 
-_JSON_OBJECT_ADAPTER: TypeAdapter = TypeAdapter(object)
+_JSON_OBJECT_ADAPTER: TypeAdapter[FlextCliTypes.Cli.JsonValue] = TypeAdapter(
+    FlextCliTypes.Cli.JsonValue
+)
 
 logger = FlextLogger(__name__)
 
@@ -123,11 +125,11 @@ class FlextCliSettings(FlextSettings):
         """Optimal table format for display (one of simple, grid, github, plain)."""
         return "simple"
 
-    def execute_service(self) -> r:
+    def execute_service(self) -> r[Mapping[str, FlextCliTypes.Cli.JsonValue]]:
         """Execute config as service; return status dict."""
         return r.ok({"config": "loaded", "profile": self.profile})
 
-    def load_config(self) -> r:
+    def load_config(self) -> r[Mapping[str, FlextCliTypes.Cli.JsonValue]]:
         """Load current config as dict."""
         return r.ok(self.model_dump(mode="json"))
 

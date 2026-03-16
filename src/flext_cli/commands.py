@@ -71,7 +71,10 @@ class FlextCliCommands(FlextCliServiceBase):
         return self._name
 
     @staticmethod
-    def _normalize_handler_result(result: r | None, command_name: str) -> r:
+    def _normalize_handler_result(
+        result: r[FlextCliTypes.Cli.JsonValue] | None,
+        command_name: str,
+    ) -> r[FlextCliTypes.Cli.JsonValue]:
         """Normalize handler output to r."""
         if result is None:
             return r.ok({"status": "success", "command": command_name})
@@ -156,7 +159,7 @@ class FlextCliCommands(FlextCliServiceBase):
 
     def execute_command(
         self, name: str, args: Sequence[str] | None = None, **kwargs: t.Scalar
-    ) -> r:
+    ) -> r[FlextCliTypes.Cli.JsonValue]:
         """Execute a registered CLI command.
 
         Args:
@@ -177,7 +180,7 @@ class FlextCliCommands(FlextCliServiceBase):
         if not callable(handler):
             return r.fail(f"Handler not callable for: {name}")
         try:
-            result: r | None = None
+            result: r[FlextCliTypes.Cli.JsonValue] | None = None
             execution_attempted = False
             if args or kwargs:
                 try:
@@ -241,7 +244,11 @@ class FlextCliCommands(FlextCliServiceBase):
         """
         return r[list[str]].ok(list(self._commands.keys()))
 
-    def register_command(self, name: str, handler: Callable[..., r]) -> r[bool]:
+    def register_command(
+        self,
+        name: str,
+        handler: Callable[..., r[FlextCliTypes.Cli.JsonValue]],
+    ) -> r[bool]:
         """Register a CLI command.
 
         Args:
@@ -257,7 +264,9 @@ class FlextCliCommands(FlextCliServiceBase):
         self._commands[name] = FlextCliCommandEntryModel(name=name, handler=handler)
         return r[bool].ok(value=True)
 
-    def run_cli(self, args: Sequence[str] | None = None) -> r:
+    def run_cli(
+        self, args: Sequence[str] | None = None
+    ) -> r[FlextCliTypes.Cli.JsonValue]:
         """Run CLI with given arguments.
 
         Args:

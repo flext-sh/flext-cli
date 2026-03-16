@@ -41,7 +41,9 @@ from flext_cli.typings import FlextCliTypes
 
 _logger = FlextLogger(__name__)
 
-_JSON_NORMALIZE_ADAPTER: TypeAdapter = TypeAdapter(object)
+_JSON_NORMALIZE_ADAPTER: TypeAdapter[FlextCliTypes.Cli.JsonValue] = TypeAdapter(
+    FlextCliTypes.Cli.JsonValue
+)
 _DICT_STR_OBJECT_ADAPTER: TypeAdapter[dict[str, FlextCliTypes.Cli.JsonValue]] = (
     TypeAdapter(
         dict[str, FlextCliTypes.Cli.JsonValue],
@@ -93,7 +95,7 @@ class FlextCliModels(FlextModels):
         @staticmethod
         def is_sequence_like(
             obj: FlextCliTypes.Cli.JsonValue,
-        ) -> TypeGuard[Sequence]:
+        ) -> TypeGuard[Sequence[FlextCliTypes.Cli.JsonValue]]:
             """Narrow object to non-string Sequence for JSON normalization."""
             return isinstance(obj, Sequence) and not isinstance(obj, (str, bytes))
 
@@ -139,7 +141,10 @@ class FlextCliModels(FlextModels):
 
             pass
 
-        CommandEntry: TypeAlias = Mapping[str, str | Callable[..., r]]
+        CommandEntry: TypeAlias = Mapping[
+            str,
+            str | Callable[..., r[FlextCliTypes.Cli.JsonValue]],
+        ]
 
         class CommandEntryModel(BaseModel):
             """Single command entry: name + handler. Use m.Cli.CommandEntryModel."""
@@ -150,7 +155,7 @@ class FlextCliModels(FlextModels):
             )
             name: Annotated[str, Field(..., min_length=1, description="Command name")]
             handler: Annotated[
-                Callable[..., r],
+                Callable[..., r[FlextCliTypes.Cli.JsonValue]],
                 Field(..., description="Command handler callable"),
             ]
 
@@ -172,7 +177,7 @@ class FlextCliModels(FlextModels):
                 ),
             ]
 
-        class CliNormalizedJson(RootModel):
+        class CliNormalizedJson(RootModel[FlextCliTypes.Cli.JsonValue]):
             """Single contract: any value normalized to JSON (object)."""
 
             @model_validator(mode="wrap")
@@ -1005,7 +1010,7 @@ class FlextCliModels(FlextModels):
             def execute(
                 self,
                 _args: Sequence[str],
-            ) -> r:
+            ) -> r[Mapping[str, FlextCliTypes.Cli.JsonValue]]:
                 """Execute command with arguments - required by Command.
 
                 Args:
@@ -3431,7 +3436,7 @@ class FlextCliModels(FlextModels):
 
             @staticmethod
             def process_metadata_list(
-                metadata_attr: Sequence,
+                metadata_attr: Sequence[FlextCliTypes.Cli.JsonValue],
             ) -> Mapping[str, FlextCliTypes.Cli.JsonValue]:
                 """Process metadata list into dict."""
                 result: dict[str, FlextCliTypes.Cli.JsonValue] = {}
@@ -3546,8 +3551,10 @@ class FlextCliModels(FlextModels):
                 ),
             ]
 
-            JSON_VALUE_ADAPTER: ClassVar[TypeAdapter] = TypeAdapter(
-                object,
+            JSON_VALUE_ADAPTER: ClassVar[TypeAdapter[FlextCliTypes.Cli.JsonValue]] = (
+                TypeAdapter(
+                    FlextCliTypes.Cli.JsonValue,
+                )
             )
 
             @staticmethod
@@ -3574,7 +3581,7 @@ class FlextCliModels(FlextModels):
                     FieldInfo | object | Mapping[str, FlextCliTypes.Cli.JsonValue]
                 ),
                 data: Mapping[str, FlextCliTypes.Cli.JsonValue] | None = None,
-            ) -> r:
+            ) -> r[FlextCliTypes.Cli.JsonValue]:
                 """Validate field data against field info."""
                 try:
                     if isinstance(field_info, Mapping):
@@ -3607,7 +3614,7 @@ class FlextCliModels(FlextModels):
             @staticmethod
             def convert_field_value(
                 field_value: FlextCliTypes.Cli.JsonValue,
-            ) -> r:
+            ) -> r[FlextCliTypes.Cli.JsonValue]:
                 """Convert field value to object.
 
                 models.py cannot use utilities - use direct conversion instead.
@@ -3632,7 +3639,7 @@ class FlextCliModels(FlextModels):
             def validate_dict_field_data(
                 field_name: str,
                 field_data: Mapping[str, FlextCliTypes.Cli.JsonValue],
-            ) -> r:
+            ) -> r[FlextCliTypes.Cli.JsonValue]:
                 """Validate field data when field_info is a dict/Mapping."""
                 schema_result = (
                     FlextCliModels.Cli.CliModelConverter.validate_field_schema(
@@ -3676,7 +3683,7 @@ class FlextCliModels(FlextModels):
                 [
                     Callable[
                         [BaseModel],
-                        r | object,
+                        r[object] | object,
                     ],
                 ],
                 p.Cli.CliCommandWrapper,
@@ -3686,7 +3693,7 @@ class FlextCliModels(FlextModels):
                 def decorator(
                     func: Callable[
                         [BaseModel],
-                        r | object,
+                        r[object] | object,
                     ],
                 ) -> p.Cli.CliCommandWrapper:
                     def wrapper(
@@ -3771,7 +3778,7 @@ class FlextCliModels(FlextModels):
                 value: FlextCliTypes.Cli.JsonValue,
             ) -> FlextCliTypes.Cli.JsonValue:
                 """Normalize any value to object."""
-                normalized: r = (
+                normalized: r[FlextCliTypes.Cli.JsonValue] = (
                     FlextCliModels.Cli.CliModelConverter.convert_field_value(value)
                 )
                 if normalized.is_success:
