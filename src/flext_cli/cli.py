@@ -34,8 +34,8 @@ from flext_cli.typings import FlextCliTypes
 class FlextCliCli:
     """Unified Typer/Click abstraction used by the FLEXT ecosystem."""
 
-    container: FlextContainer
-    logger: FlextLogger
+    container: p.DI
+    logger: p.StructlogLogger
     _json_value_adapter: ClassVar[TypeAdapter] = TypeAdapter(object)
 
     def __init__(self) -> None:

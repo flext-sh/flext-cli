@@ -23,6 +23,7 @@ from flext_core import FlextLogger, e, r
 
 from flext_cli import FlextCliOutput
 from flext_cli.cli import FlextCliCli
+from flext_cli.protocols import p
 from flext_cli.settings import FlextCliSettings
 
 
@@ -37,7 +38,7 @@ class FlextCliAppBase[SettingsT: FlextCliSettings]:
     app_name: ClassVar[str]
     app_help: ClassVar[str]
     config_class: type[SettingsT]
-    logger: FlextLogger
+    logger: p.StructlogLogger
     _output: FlextCliOutput
     _cli: FlextCliCli
     _app: typer.Typer
