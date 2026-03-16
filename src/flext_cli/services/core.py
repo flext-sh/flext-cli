@@ -13,7 +13,7 @@ from collections.abc import Mapping, Sequence
 from datetime import UTC, datetime
 from typing import override
 
-from flext_core import FlextDecorators, FlextLogger, FlextRegistry, r, u
+from flext_core import FlextDecorators, FlextLogger, FlextRegistry, p, r, u
 from rich.errors import ConsoleError, LiveError, StyleError
 
 from flext_cli import FlextCliOutput, FlextCliServiceBase, FlextCliUtilities, c, m, t
@@ -90,7 +90,7 @@ class FlextCliCore(FlextCliServiceBase):
     _commands: dict[str, Mapping[str, FlextCliTypes.Cli.JsonValue]]
     _sessions: dict[str, FlextCliTypes.Cli.JsonValue]
     _session_active: bool
-    _registry: FlextRegistry
+    _registry: p.Registry
     _session_config: dict[str, FlextCliTypes.Cli.JsonValue]
     _session_start_time: str
 

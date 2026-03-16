@@ -139,7 +139,15 @@ class FlextCliMiddleware:
 
     @staticmethod
     def compose(
-        middlewares: list[p.Cli.Middleware],
+        middlewares: list[
+            Callable[
+                [
+                    p.Cli.CliContext,
+                    Callable[[p.Cli.CliContext], r[FlextCliTypes.Cli.JsonValue]],
+                ],
+                r[FlextCliTypes.Cli.JsonValue],
+            ]
+        ],
         handler: Callable[
             [p.Cli.CliContext],
             r[FlextCliTypes.Cli.JsonValue],
