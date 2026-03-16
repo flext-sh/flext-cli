@@ -26,6 +26,7 @@ from pydantic import (
 from flext_cli import FlextCli, FlextCliSettings, m, r
 
 _JsonDictAdapter: TypeAdapter = TypeAdapter(object)
+type EnvInput = dict[str, str | int | bool | Path] | str | int | float | bool | None
 
 # ---------------------------------------------------------------------------
 # Example 03 - Interactive Prompts
@@ -79,7 +80,10 @@ class MyAppConfig(BaseModel):
 
     @model_validator(mode="before")
     @classmethod
-    def _inject_env(cls, data):
+    def _inject_env(
+        cls,
+        data: EnvInput,
+    ) -> dict[str, str | int | bool | Path] | str | int | float | bool | None:
         if not isinstance(data, dict):
             return data
         try:
@@ -161,7 +165,10 @@ class AppConfigAdvanced(BaseModel):
 
     @model_validator(mode="before")
     @classmethod
-    def _inject_env(cls, data):
+    def _inject_env(
+        cls,
+        data: EnvInput,
+    ) -> dict[str, str | int | bool | Path] | str | int | float | bool | None:
         if not isinstance(data, dict):
             return data
         try:

@@ -32,14 +32,9 @@ from typing import (
 import pytest
 from flext_tests import tm
 from pydantic import BaseModel, ConfigDict, Field
-from src.flext_cli.typings import FlextCliTypes
 
 from flext_cli import FlextCliTypes, r, t
-from flext_cli.typings import FlextCliTypes
-from tests import FlextCliTypes
 from tests.helpers import c
-from tests.integration import FlextCliTypes
-from tests.integration.test_refactor_policy_mro import FlextCliTypes
 from tests.models import ApiResponse, UserData
 
 from ..helpers import FlextCliTestHelpers
