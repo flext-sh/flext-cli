@@ -31,7 +31,7 @@ from flext_cli.file_tools import FlextCliFileTools
 from flext_cli.formatters import FlextCliFormatters
 from flext_cli.mixins import FlextCliMixins
 from flext_cli.models import FlextCliModels as m
-from flext_cli.protocols import FlextCliProtocols as p, _DecoratorCommandLike
+from flext_cli.protocols import DecoratorCommandLike, FlextCliProtocols as p
 from flext_cli.services.cmd import FlextCliCmd
 from flext_cli.services.core import FlextCliCore
 from flext_cli.services.output import FlextCliOutput
@@ -43,7 +43,7 @@ from flext_cli.utilities import FlextCliUtilities as u
 
 
 def _is_registered_command(
-    obj: FlextCliTypes.Cli.JsonValue | _DecoratorCommandLike | Command,
+    obj: FlextCliTypes.Cli.JsonValue | DecoratorCommandLike | Command,
 ) -> TypeGuard[p.Cli.CliRegisteredCommand]:
     """Narrow to CliRegisteredCommand when protocol attributes are present."""
     return callable(obj) and hasattr(obj, "name") and hasattr(obj, "callback")

@@ -14,7 +14,7 @@ from __future__ import annotations
 import time
 from collections.abc import Callable
 
-from flext_core import p as p_core, r
+from flext_core import r
 from pydantic import BaseModel
 from rich.errors import ConsoleError, LiveError, StyleError
 
@@ -89,7 +89,7 @@ class FlextCliValidationMiddleware:
             StyleError,
             LiveError,
         ) as e:
-            return r.fail(f"Validation failed: {e}")
+            return r[FlextCliTypes.Cli.JsonValue].fail(f"Validation failed: {e}")
 
 
 class FlextCliRetryMiddleware:
@@ -142,9 +142,9 @@ class FlextCliMiddleware:
         middlewares: list[p.Cli.Middleware],
         handler: Callable[
             [p.Cli.CliContext],
-            p_core.Result[FlextCliTypes.Cli.JsonValue],
+            r[FlextCliTypes.Cli.JsonValue],
         ],
-    ) -> Callable[[p.Cli.CliContext], p_core.Result[FlextCliTypes.Cli.JsonValue]]:
+    ) -> Callable[[p.Cli.CliContext], r[FlextCliTypes.Cli.JsonValue]]:
         """Compose middleware into single callable.
 
         Args:
@@ -168,13 +168,11 @@ class FlextCliMiddleware:
 
         def composed(
             ctx: p.Cli.CliContext,
-        ) -> p_core.Result[FlextCliTypes.Cli.JsonValue]:
+        ) -> r[FlextCliTypes.Cli.JsonValue]:
 
             def build_chain(
                 idx: int,
-            ) -> Callable[
-                [p.Cli.CliContext], p_core.Result[FlextCliTypes.Cli.JsonValue]
-            ]:
+            ) -> Callable[[p.Cli.CliContext], r[FlextCliTypes.Cli.JsonValue]]:
                 if idx >= len(middlewares):
                     return handler
                 current_middleware = middlewares[idx]

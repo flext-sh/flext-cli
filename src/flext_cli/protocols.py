@@ -7,7 +7,7 @@ from datetime import datetime
 from types import TracebackType
 from typing import Protocol, Self, runtime_checkable
 
-from flext_core import FlextProtocols, t
+from flext_core import FlextProtocols, r, t
 
 from flext_cli.typings import FlextCliTypes
 
@@ -862,9 +862,9 @@ class FlextCliProtocols(FlextProtocols):
                 ctx: FlextCliProtocols.Cli.CliContext,
                 next_: Callable[
                     [FlextCliProtocols.Cli.CliContext],
-                    FlextProtocols.Result[FlextCliTypes.Cli.JsonValue],
+                    r[FlextCliTypes.Cli.JsonValue],
                 ],
-            ) -> FlextProtocols.Result[FlextCliTypes.Cli.JsonValue]:
+            ) -> r[FlextCliTypes.Cli.JsonValue]:
                 """Process and pass to next middleware."""
                 ...
 
@@ -887,16 +887,20 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
 
-__all__ = ["FlextCliProtocols", "p"]
+__all__ = ["DecoratorCommandLike", "FlextCliProtocols", "p"]
 
 p = FlextCliProtocols
 
 
-class _DecoratorCommandLike(Protocol):
+class DecoratorCommandLike(Protocol):
     """Structural type for typer/click Command-like objects (name + callback)."""
 
     @property
-    def name(self) -> str: ...
+    def name(self) -> str:
+        """Command name."""
+        ...
 
     @property
-    def callback(self) -> Callable[..., object]: ...
+    def callback(self) -> Callable[..., object]:
+        """Command callback callable."""
+        ...

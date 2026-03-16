@@ -20,7 +20,9 @@ from pydantic import TypeAdapter, ValidationError
 from flext_cli import c, m, t, u
 from flext_cli.typings import FlextCliTypes
 
-_JSON_OBJECT_ADAPTER: TypeAdapter[object] = TypeAdapter(object)
+_JSON_OBJECT_ADAPTER: TypeAdapter[FlextCliTypes.Cli.JsonValue] = TypeAdapter(
+    FlextCliTypes.Cli.JsonValue
+)
 
 
 def _is_json_mapping(
@@ -72,10 +74,18 @@ class FlextCliFileTools:
 
     @staticmethod
     def _load_structured_file(
-        file_path: str, loader: Callable[[TextIO], object]
+        file_path: str,
+        loader: Callable[[TextIO], FlextCliTypes.Cli.JsonValue | object],
     ) -> FlextCliTypes.Cli.JsonValue | None:
         with Path(file_path).open(encoding=c.Cli.Utilities.DEFAULT_ENCODING) as f:
-            loaded: FlextCliTypes.Cli.JsonValue = loader(f)
+            loaded_raw = loader(f)
+        try:
+            loaded = _JSON_OBJECT_ADAPTER.validate_python(loaded_raw)
+        except ValidationError as exc:
+            logging.getLogger(__name__).debug(
+                "_load_structured_file validation fallback: %s", exc, exc_info=False
+            )
+            return None
         try:
             return _JSON_OBJECT_ADAPTER.dump_python(loaded, mode="json", warnings=False)
         except ValidationError as exc:
@@ -343,7 +353,7 @@ class FlextCliFileTools:
     ) -> r[FlextCliTypes.Cli.JsonValue]:
         format_result = FlextCliFileTools.detect_file_format(file_path)
         if format_result.is_failure:
-            return r.fail(
+            return r[FlextCliTypes.Cli.JsonValue].fail(
                 format_result.error or c.Cli.ErrorMessages.FORMAT_DETECTION_FAILED
             )
         fmt = format_result.value
@@ -351,7 +361,9 @@ class FlextCliFileTools:
             return FlextCliFileTools.read_json_file(file_path)
         if fmt == c.Cli.FileSupportedFormats.YAML:
             return FlextCliFileTools.read_yaml_file(file_path)
-        return r.fail(c.Cli.ErrorMessages.UNSUPPORTED_FORMAT.format(format=fmt))
+        return r[FlextCliTypes.Cli.JsonValue].fail(
+            c.Cli.ErrorMessages.UNSUPPORTED_FORMAT.format(format=fmt)
+        )
 
     @staticmethod
     def load_file_auto_dict(
@@ -508,9 +520,15 @@ class FlextCliFileTools:
         data: FlextCliTypes.Cli.JsonValue | m.Cli.DisplayData,
         indent: int = 2,
     ) -> r[bool]:
-        payload: FlextCliTypes.Cli.JsonValue = (
+        payload_raw: FlextCliTypes.Cli.JsonValue | object = (
             data.data if isinstance(data, m.Cli.DisplayData) else data
         )
+        try:
+            payload: FlextCliTypes.Cli.JsonValue = _JSON_OBJECT_ADAPTER.validate_python(
+                payload_raw
+            )
+        except ValidationError:
+            payload = str(payload_raw)
 
         def _writer(f: TextIO) -> None:
             f.write(
