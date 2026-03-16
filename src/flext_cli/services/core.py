@@ -499,7 +499,7 @@ class FlextCliCore(FlextCliServiceBase):
                 str(key): value for key, value in command_def.items()
             }
             return r[m.Configuration].ok(
-                m.Configuration(config=m.Dict(root=snapshot_config))
+                m.Configuration(config=t.Dict(root=snapshot_config))
             )
         except (
             ValueError,
