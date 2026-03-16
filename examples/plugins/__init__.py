@@ -12,6 +12,11 @@ from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
 if TYPE_CHECKING:
     from flext_core.typings import FlextTypes
 
+    from examples.plugins.example_plugin import (
+        DataProcessorPlugin,
+        ExamplePlugin,
+        demonstrate_plugin_commands,
+    )
     from examples.plugins.protocols import (
         CliMainWithGroups,
         FlextCliProtocols,
@@ -21,15 +26,24 @@ if TYPE_CHECKING:
 
 _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "CliMainWithGroups": ("examples.plugins.protocols", "CliMainWithGroups"),
+    "DataProcessorPlugin": ("examples.plugins.example_plugin", "DataProcessorPlugin"),
+    "ExamplePlugin": ("examples.plugins.example_plugin", "ExamplePlugin"),
     "FlextCliProtocols": ("examples.plugins.protocols", "FlextCliProtocols"),
     "GroupWithCommands": ("examples.plugins.protocols", "GroupWithCommands"),
+    "demonstrate_plugin_commands": (
+        "examples.plugins.example_plugin",
+        "demonstrate_plugin_commands",
+    ),
     "p": ("examples.plugins.protocols", "p"),
 }
 
 __all__ = [
     "CliMainWithGroups",
+    "DataProcessorPlugin",
+    "ExamplePlugin",
     "FlextCliProtocols",
     "GroupWithCommands",
+    "demonstrate_plugin_commands",
     "p",
 ]
 

@@ -34,6 +34,11 @@ if TYPE_CHECKING:
         NumericPromptResult,
         NumericPromptResult as r,
     )
+    from examples.plugins.example_plugin import (
+        DataProcessorPlugin,
+        ExamplePlugin,
+        demonstrate_plugin_commands,
+    )
     from examples.plugins.protocols import (
         CliMainWithGroups,
         FlextCliProtocols,
@@ -47,13 +52,19 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "AppConfigNested": ("examples.models", "AppConfigNested"),
     "AppWizardConfig": ("examples.models", "AppWizardConfig"),
     "CliMainWithGroups": ("examples.plugins.protocols", "CliMainWithGroups"),
+    "DataProcessorPlugin": ("examples.plugins.example_plugin", "DataProcessorPlugin"),
     "DatabaseConfig": ("examples.models", "DatabaseConfig"),
     "DatabaseWizardConfig": ("examples.models", "DatabaseWizardConfig"),
     "DeployConfig": ("examples.models", "DeployConfig"),
+    "ExamplePlugin": ("examples.plugins.example_plugin", "ExamplePlugin"),
     "FlextCliProtocols": ("examples.plugins.protocols", "FlextCliProtocols"),
     "GroupWithCommands": ("examples.plugins.protocols", "GroupWithCommands"),
     "MyAppConfig": ("examples.models", "MyAppConfig"),
     "NumericPromptResult": ("examples.models", "NumericPromptResult"),
+    "demonstrate_plugin_commands": (
+        "examples.plugins.example_plugin",
+        "demonstrate_plugin_commands",
+    ),
     "display_config_table": ("examples.example_utils", "display_config_table"),
     "display_success_summary": ("examples.example_utils", "display_success_summary"),
     "display_validation_errors": (
@@ -75,13 +86,16 @@ __all__ = [
     "AppConfigNested",
     "AppWizardConfig",
     "CliMainWithGroups",
+    "DataProcessorPlugin",
     "DatabaseConfig",
     "DatabaseWizardConfig",
     "DeployConfig",
+    "ExamplePlugin",
     "FlextCliProtocols",
     "GroupWithCommands",
     "MyAppConfig",
     "NumericPromptResult",
+    "demonstrate_plugin_commands",
     "display_config_table",
     "display_success_summary",
     "display_validation_errors",

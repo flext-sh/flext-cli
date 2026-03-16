@@ -1,3 +1,5 @@
+"""FLEXT CLI plugin protocols."""
+
 from __future__ import annotations
 
 from collections.abc import Callable
@@ -5,6 +7,8 @@ from typing import Protocol
 
 
 class FlextCliProtocols:
+    """CLI plugin protocol definitions."""
+
     pass
 
 

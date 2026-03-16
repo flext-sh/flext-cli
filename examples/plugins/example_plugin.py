@@ -11,9 +11,10 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Protocol, runtime_checkable
 
 from flext_core import r
+
+from examples.plugins.protocols import CliMainWithGroups, GroupWithCommands
 
 type DataProcessor = Callable[[str], str]
 type ProcessorRegistry = dict[str, DataProcessor]
