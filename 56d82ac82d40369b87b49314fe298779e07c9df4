@@ -1,0 +1,23 @@
+examples/plugins/example_plugin.py
+  db706e64c0370220 128,229
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.12",
+  "base_commit_sha": "56d82ac82d40369b87b49314fe298779e07c9df4",
+  "prompts": {
+    "db706e64c0370220": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_3091847d5ffeTCLuKwyQLDE3l2",
+        "model": "kimi-for-coding/k2p5"
+      },
+      "human_author": "FLEXT Bot <team@flext.sh>",
+      "messages": [],
+      "total_additions": 4,
+      "total_deletions": 4,
+      "accepted_lines": 4,
+      "overriden_lines": 0
+    }
+  }
+}
