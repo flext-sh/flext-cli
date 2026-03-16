@@ -1,0 +1,25 @@
+examples/plugins/protocols.py
+  db706e64c0370220 1-2,10-11
+examples/typings.py
+  db706e64c0370220 1-2
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.12",
+  "base_commit_sha": "ef9d1f9d915c641039807499b376a7211bf32893",
+  "prompts": {
+    "db706e64c0370220": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_3091847d5ffeTCLuKwyQLDE3l2",
+        "model": "kimi-for-coding/k2p5"
+      },
+      "human_author": "FLEXT Bot <team@flext.sh>",
+      "messages": [],
+      "total_additions": 6,
+      "total_deletions": 0,
+      "accepted_lines": 6,
+      "overriden_lines": 0
+    }
+  }
+}
