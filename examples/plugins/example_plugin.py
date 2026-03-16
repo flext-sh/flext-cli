@@ -15,12 +15,9 @@ from typing import Protocol, runtime_checkable
 
 from flext_core import r
 
-@runtime_checkable
-
-@runtime_checkable
-
 type DataProcessor = Callable[[str], str]
 type ProcessorRegistry = dict[str, DataProcessor]
+
 
 class ExamplePlugin:
     """Example plugin demonstrating the plugin system.
@@ -128,6 +125,7 @@ class ExamplePlugin:
         except Exception as e:
             return r[bool].fail(f"Command registration failed: {e}")
 
+
 class DataProcessorPlugin:
     """Data processor plugin example.
 
@@ -228,6 +226,7 @@ class DataProcessorPlugin:
         except Exception as e:
             return r[bool].fail(f"Command registration failed: {e}")
 
+
 def demonstrate_plugin_commands() -> None:
     """Demonstrate how the plugin commands would be used.
 
@@ -256,6 +255,7 @@ def demonstrate_plugin_commands() -> None:
     print("   • process: Process data in specified format")
     print("   • formats: List available data formats")
     print("\nThese commands can be invoked through the flext CLI framework.")
+
 
 if __name__ == "__main__":
     demonstrate_plugin_commands()
