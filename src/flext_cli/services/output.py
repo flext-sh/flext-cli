@@ -10,7 +10,7 @@ from __future__ import annotations
 import csv
 from collections.abc import Callable, Iterable, Sequence
 from io import StringIO
-from typing import ClassVar, TypeGuard
+from typing import ClassVar, TypeIs
 
 import yaml
 from flext_core import FlextRuntime, r, t
@@ -181,14 +181,14 @@ class FlextCliOutput:
     @staticmethod
     def _is_rich_console_protocol(
         obj: Console,
-    ) -> TypeGuard[p.Cli.Display.RichConsole]:
+    ) -> TypeIs[p.Cli.Display.RichConsole]:
         """Type guard to check if object implements RichConsole."""
         return hasattr(obj, "print") and hasattr(obj, "rule")
 
     @staticmethod
     def _is_rich_progress_protocol(
         obj: Progress,
-    ) -> TypeGuard[p.Cli.Interactive.RichProgress]:
+    ) -> TypeIs[p.Cli.Interactive.RichProgress]:
         """Type guard to check if object implements RichProgress."""
         return (
             hasattr(obj, "__enter__")
@@ -200,7 +200,7 @@ class FlextCliOutput:
     @staticmethod
     def _is_rich_table_protocol(
         obj: RichTable | p.Cli.Display.RichTable,
-    ) -> TypeGuard[p.Cli.Display.RichTable]:
+    ) -> TypeIs[p.Cli.Display.RichTable]:
         """Type guard to check if object implements RichTable."""
         return (
             hasattr(obj, "add_column")
@@ -211,7 +211,7 @@ class FlextCliOutput:
     @staticmethod
     def _is_rich_tree_protocol(
         obj: FlextCliTypes.Cli.JsonValue,
-    ) -> TypeGuard[p.Cli.Display.RichTree]:
+    ) -> TypeIs[p.Cli.Display.RichTree]:
         """Type guard to check if object implements RichTree."""
         return hasattr(obj, "add") and hasattr(obj, "label")
 

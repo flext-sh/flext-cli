@@ -10,7 +10,7 @@ import inspect
 import logging
 import re
 from collections.abc import Mapping
-from typing import Final, TypeGuard, TypeVar
+from typing import Final, TypeIs, TypeVar
 
 import click
 from pydantic import BaseModel, Field, ValidationError
@@ -22,12 +22,12 @@ from flext_cli import FlextCliConstants, r, t
 T = TypeVar("T")
 
 
-def _is_json_dict(value: str) -> TypeGuard[dict[str, object]]:
+def _is_json_dict(value: str) -> TypeIs[dict[str, object]]:
     """TypeGuard: narrow object to dict for JSON object shape (e.g. read_json_file return)."""
     return isinstance(value, dict)
 
 
-def _is_json_list(value) -> TypeGuard[list]:
+def _is_json_list(value) -> TypeIs[list]:
     """TypeGuard: narrow object to list for JSON array shape."""
     return isinstance(value, list)
 

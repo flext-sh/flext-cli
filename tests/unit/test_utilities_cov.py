@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import types
-from enum import StrEnum
+from enum import StrEnum, unique
 from typing import Annotated
 
 import pytest
@@ -131,6 +131,7 @@ def test_validated_with_result_returns_failure_on_validation_error() -> None:
 
 def test_parse_kwargs_skips_missing_enum_field_key() -> None:
 
+    @unique
     class Mode(StrEnum):
         FAST = "fast"
 

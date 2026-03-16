@@ -19,7 +19,7 @@ import logging
 import os
 import threading
 import typing
-from enum import StrEnum
+from enum import StrEnum, unique
 from pathlib import Path
 from typing import Final, Literal
 
@@ -31,6 +31,7 @@ from pydantic_settings import BaseSettings
 from flext_cli import FlextCli, FlextCliSettings, m
 
 
+@unique
 class ConfigTestType(StrEnum):
     """Config test types."""
 

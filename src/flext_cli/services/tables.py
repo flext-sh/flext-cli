@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from itertools import starmap
-from typing import TypeGuard, override
+from typing import TypeIs, override
 
 from flext_core import r
 from rich.errors import ConsoleError, LiveError, StyleError
@@ -216,7 +216,7 @@ class FlextCliTables(FlextCliServiceBase):
 
             def _is_tabulate_data(
                 val: Sequence[t.ContainerValue],
-            ) -> TypeGuard[
+            ) -> TypeIs[
                 Sequence[Mapping[str, t.ContainerValue]]
                 | Sequence[Sequence[t.ContainerValue]]
             ]:

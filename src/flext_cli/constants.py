@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import typing
 from collections.abc import Callable, Mapping
-from enum import StrEnum
+from enum import StrEnum, unique
 from typing import Literal
 
 from flext_core import FlextConstants
@@ -88,6 +88,7 @@ class FlextCliConstants(FlextConstants):
         COMMAND_STATUSES_LIST = ValidationLists.COMMAND_STATUSES
         DEBUG_LEVELS_LIST = ValidationLists.DEBUG_LEVELS
 
+        @unique
         class CommandStatus(StrEnum):
             """Command status enum."""
 
@@ -99,16 +100,19 @@ class FlextCliConstants(FlextConstants):
                 "cancelled",
             )
 
+        @unique
         class SessionStatus(StrEnum):
             """Session status enum."""
 
             ACTIVE, COMPLETED, TERMINATED = ("active", "completed", "terminated")
 
+        @unique
         class OutputFormats(StrEnum):
             """Output formats enum."""
 
             JSON, YAML, CSV, TABLE, PLAIN = ("json", "yaml", "csv", "table", "plain")
 
+        @unique
         class MessageTypes(StrEnum):
             """Message types enum."""
 
@@ -121,21 +125,25 @@ class FlextCliConstants(FlextConstants):
             MessageTypes.SUCCESS.value,
         ]
 
+        @unique
         class LogVerbosity(StrEnum):
             """Log verbosity enum."""
 
             COMPACT, DETAILED, FULL = ("compact", "detailed", "full")
 
+        @unique
         class ServerType(StrEnum):
             """Server type enum."""
 
             RFC = "rfc"
 
+        @unique
         class EntityType(StrEnum):
             """Entity type enum."""
 
             COMMAND, GROUP = ("command", "group")
 
+        @unique
         class ServiceStatus(StrEnum):
             """Service status enum."""
 
@@ -149,6 +157,7 @@ class FlextCliConstants(FlextConstants):
         class Settings:
             """Settings constants."""
 
+            @unique
             class LogLevel(StrEnum):
                 """Log level enum."""
 

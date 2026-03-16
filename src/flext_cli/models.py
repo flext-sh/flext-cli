@@ -11,8 +11,7 @@ from typing import (
     ClassVar,
     Literal,
     Self,
-    TypeAlias,
-    TypeGuard,
+    TypeIs,
     Union,
     get_args,
     get_origin,
@@ -88,14 +87,14 @@ class FlextCliModels(FlextModels):
         @staticmethod
         def is_mapping_like(
             obj: FlextCliTypes.Cli.JsonValue,
-        ) -> TypeGuard[Mapping[str, FlextCliTypes.Cli.JsonValue]]:
+        ) -> TypeIs[Mapping[str, FlextCliTypes.Cli.JsonValue]]:
             """Narrow object to Mapping for metadata processing."""
             return isinstance(obj, Mapping)
 
         @staticmethod
         def is_sequence_like(
             obj: FlextCliTypes.Cli.JsonValue,
-        ) -> TypeGuard[Sequence[FlextCliTypes.Cli.JsonValue]]:
+        ) -> TypeIs[Sequence[FlextCliTypes.Cli.JsonValue]]:
             """Narrow object to non-string Sequence for JSON normalization."""
             return isinstance(obj, Sequence) and not isinstance(obj, (str, bytes))
 
@@ -141,7 +140,7 @@ class FlextCliModels(FlextModels):
 
             pass
 
-        CommandEntry: TypeAlias = Mapping[
+        type CommandEntry = Mapping[
             str,
             str | Callable[..., r[FlextCliTypes.Cli.JsonValue]],
         ]

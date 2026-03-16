@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import re
 import sys
-from enum import StrEnum
+from enum import StrEnum, unique
 from typing import Final, TypeVar
 
 import pytest
@@ -38,6 +38,7 @@ class TestsCliVersion:
     maintaining and expanding coverage.
     """
 
+    @unique
     class ValidationType(StrEnum):
         """Types of version validation."""
 

@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Callable
-from enum import StrEnum
+from enum import StrEnum, unique
 
 import pytest
 import typer
@@ -25,6 +25,7 @@ from flext_cli import (
 )
 
 
+@unique
 class ConfigParam(StrEnum):
     """Test configuration parameters for parametrized tests."""
 

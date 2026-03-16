@@ -18,7 +18,7 @@ import math
 import threading
 import time
 from collections.abc import Mapping
-from enum import StrEnum
+from enum import StrEnum, unique
 from typing import (
     Generic,
     Protocol,
@@ -40,6 +40,7 @@ from tests.models import ApiResponse, UserData
 from ..helpers import FlextCliTestHelpers
 
 
+@unique
 class TypingTestType(StrEnum):
     """Test types for dynamic typing tests."""
 

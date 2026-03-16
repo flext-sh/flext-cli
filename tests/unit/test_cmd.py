@@ -18,7 +18,7 @@ import json
 import stat
 import time
 from collections.abc import Mapping
-from enum import StrEnum
+from enum import StrEnum, unique
 from pathlib import Path
 
 import pytest
@@ -27,6 +27,7 @@ from flext_tests import tm
 from flext_cli import FlextCliCmd, FlextCliServiceBase, FlextCliSettings, c, m, r, u
 
 
+@unique
 class ConfigOperation(StrEnum):
     """Configuration operation types for testing."""
 
@@ -39,6 +40,7 @@ class ConfigOperation(StrEnum):
     SET_VALUE = "set_config_value"
 
 
+@unique
 class ConfigErrorScenario(StrEnum):
     """Configuration error scenarios for testing."""
 
