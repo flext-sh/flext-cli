@@ -16,10 +16,11 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import override
 
-from flext_core import FlextHandlers, T, m, r
+from flext_core import FlextHandlers, T, r
 from flext_tests import FlextTestsServiceBase
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
+from tests import m
 from tests.constants import c
 
 

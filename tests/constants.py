@@ -355,5 +355,6 @@ class TestsFlextCliConstants(FlextTestsConstants, FlextCliConstants):
         EMPTY_CREDS: Final[dict[str, str]] = {"username": "", "password": ""}
 
 
-c = TestsFlextCliConstants
 __all__ = ["TestsFlextCliConstants", "c"]
+
+c = TestsFlextCliConstants

@@ -1,5 +1,7 @@
 """Comprehensive parametrized unit tests for 100% coverage."""
 
+from __future__ import annotations
+
 from datetime import datetime
 
 import pytest

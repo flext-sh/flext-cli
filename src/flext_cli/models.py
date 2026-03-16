@@ -3811,10 +3811,9 @@ class FlextCliModels(FlextModels):
             type Progress = p.Cli.Interactive.RichProgress
 
 
-m = FlextCliModels
-
-
 __all__ = [
     "FlextCliModels",
     "m",
 ]
+
+m = FlextCliModels

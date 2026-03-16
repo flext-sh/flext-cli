@@ -9,7 +9,7 @@ from __future__ import annotations
 import secrets
 import threading
 from collections.abc import Callable, Mapping, MutableMapping, Sequence
-from typing import ClassVar, Protocol, TypeGuard, runtime_checkable
+from typing import ClassVar, TypeGuard, runtime_checkable
 
 from click import Command
 from flext_core import (
@@ -43,16 +43,6 @@ from flext_cli.utilities import FlextCliUtilities as u
 
 
 @runtime_checkable
-class _DecoratorCommandLike(Protocol):
-    """Structural type for typer/click Command-like objects (name + callback)."""
-
-    @property
-    def name(self) -> str: ...
-
-    @property
-    def callback(self) -> Callable[..., object]: ...
-
-
 def _is_registered_command(
     obj: FlextCliTypes.Cli.JsonValue | _DecoratorCommandLike | Command,
 ) -> TypeGuard[p.Cli.CliRegisteredCommand]:

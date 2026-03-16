@@ -33,5 +33,6 @@ class TestsCliUtilities(FlextCliUtilities, FlextTestsUtilities):
     """
 
 
-u = TestsCliUtilities
 __all__ = ["TestsCliUtilities", "u"]
+
+u = TestsCliUtilities

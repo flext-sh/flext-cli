@@ -1,5 +1,7 @@
 """Comprehensive parametrized tests for model factories."""
 
+from __future__ import annotations
+
 import pytest
 
 from flext_cli import c

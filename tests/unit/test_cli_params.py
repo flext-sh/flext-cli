@@ -23,7 +23,6 @@ from flext_cli import (
     FlextCliCommonParams,
     FlextCliSettings,
 )
-from tests.unit._models import CliTestConfig
 
 
 class ConfigParam(StrEnum):
@@ -43,7 +42,6 @@ class ConfigParam(StrEnum):
 # ============================================================================
 
 # Python 3.13 advanced type features for test data
-type CliTestResult = r[CliTestConfig]
 
 # ============================================================================
 # RAILWAY-ORIENTED TEST HELPERS

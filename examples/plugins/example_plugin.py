@@ -15,60 +15,12 @@ from typing import Protocol, runtime_checkable
 
 from flext_core import r
 
+@runtime_checkable
 
 @runtime_checkable
-class CliMainWithGroups(Protocol):
-    """Protocol for CLI main object with group and command decorators.
-
-    Business Rule:
-    ──────────────
-    Typer CLI applications provide group() and command() decorators for
-    organizing commands. This protocol defines the interface needed by plugins.
-
-    Audit Implications:
-    ───────────────────
-    - Plugins must check hasattr() before calling group()/command()
-    - Runtime protocol checks ensure compatibility without direct Typer imports
-    """
-
-    def command(
-        self, *args: str, **kwargs: str
-    ) -> Callable[[Callable[..., None]], Callable[..., None]]:
-        """Create a command decorator."""
-        ...
-
-    def group(
-        self, *args: str, **kwargs: str
-    ) -> Callable[[Callable[..., None]], Callable[..., None]]:
-        """Create a command group decorator."""
-        ...
-
-
-@runtime_checkable
-class GroupWithCommands(Protocol):
-    """Protocol for command group objects with command decorator.
-
-    Business Rule:
-    ──────────────
-    Typer groups provide command() decorator for registering commands.
-    This protocol defines the interface needed by plugins.
-
-    Audit Implications:
-    ───────────────────
-    - Groups are created by group() decorator
-    - Commands are registered using command() decorator on groups
-    """
-
-    def command(
-        self, *args: str, **kwargs: str
-    ) -> Callable[[Callable[..., None]], Callable[..., None]]:
-        """Create a command decorator."""
-        ...
-
 
 type DataProcessor = Callable[[str], str]
 type ProcessorRegistry = dict[str, DataProcessor]
-
 
 class ExamplePlugin:
     """Example plugin demonstrating the plugin system.
@@ -176,7 +128,6 @@ class ExamplePlugin:
         except Exception as e:
             return r[bool].fail(f"Command registration failed: {e}")
 
-
 class DataProcessorPlugin:
     """Data processor plugin example.
 
@@ -277,7 +228,6 @@ class DataProcessorPlugin:
         except Exception as e:
             return r[bool].fail(f"Command registration failed: {e}")
 
-
 def demonstrate_plugin_commands() -> None:
     """Demonstrate how the plugin commands would be used.
 
@@ -306,7 +256,6 @@ def demonstrate_plugin_commands() -> None:
     print("   • process: Process data in specified format")
     print("   • formats: List available data formats")
     print("\nThese commands can be invoked through the flext CLI framework.")
-
 
 if __name__ == "__main__":
     demonstrate_plugin_commands()

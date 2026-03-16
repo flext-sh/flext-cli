@@ -12,31 +12,25 @@ from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
 if TYPE_CHECKING:
     from flext_core.typings import FlextTypes
 
-    from examples.plugins.example_plugin import (
+    from examples.plugins.protocols import (
         CliMainWithGroups,
-        DataProcessorPlugin,
-        ExamplePlugin,
+        FlextCliProtocols,
         GroupWithCommands,
-        demonstrate_plugin_commands,
+        p,
     )
 
 _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
-    "CliMainWithGroups": ("examples.plugins.example_plugin", "CliMainWithGroups"),
-    "DataProcessorPlugin": ("examples.plugins.example_plugin", "DataProcessorPlugin"),
-    "ExamplePlugin": ("examples.plugins.example_plugin", "ExamplePlugin"),
-    "GroupWithCommands": ("examples.plugins.example_plugin", "GroupWithCommands"),
-    "demonstrate_plugin_commands": (
-        "examples.plugins.example_plugin",
-        "demonstrate_plugin_commands",
-    ),
+    "CliMainWithGroups": ("examples.plugins.protocols", "CliMainWithGroups"),
+    "FlextCliProtocols": ("examples.plugins.protocols", "FlextCliProtocols"),
+    "GroupWithCommands": ("examples.plugins.protocols", "GroupWithCommands"),
+    "p": ("examples.plugins.protocols", "p"),
 }
 
 __all__ = [
     "CliMainWithGroups",
-    "DataProcessorPlugin",
-    "ExamplePlugin",
+    "FlextCliProtocols",
     "GroupWithCommands",
-    "demonstrate_plugin_commands",
+    "p",
 ]
 
 

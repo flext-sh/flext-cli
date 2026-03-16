@@ -884,5 +884,16 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
 
-p = FlextCliProtocols
 __all__ = ["FlextCliProtocols", "p"]
+
+p = FlextCliProtocols
+
+
+class _DecoratorCommandLike(Protocol):
+    """Structural type for typer/click Command-like objects (name + callback)."""
+
+    @property
+    def name(self) -> str: ...
+
+    @property
+    def callback(self) -> Callable[..., object]: ...

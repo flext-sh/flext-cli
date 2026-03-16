@@ -26,7 +26,6 @@ from pydantic import (
 from flext_cli import FlextCli, FlextCliSettings, m, r
 
 _JsonDictAdapter: TypeAdapter = TypeAdapter(object)
-type EnvInput = dict[str, str | int | bool | Path] | str | int | float | bool | None
 
 # ---------------------------------------------------------------------------
 # Example 03 - Interactive Prompts

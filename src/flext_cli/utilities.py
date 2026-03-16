@@ -588,5 +588,6 @@ class FlextCliUtilities(FlextUtilities):
                     return enum_cls
 
 
-u = FlextCliUtilities
 __all__ = ["FlextCliUtilities", "u"]
+
+u = FlextCliUtilities

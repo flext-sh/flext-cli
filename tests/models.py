@@ -336,3 +336,5 @@ __all__ = [
     "ValidatedConfig",
     "tm",
 ]
+
+m = TestsFlextCliModels

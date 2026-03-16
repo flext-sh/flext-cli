@@ -1073,5 +1073,6 @@ class FlextCliConstants(FlextConstants):
         VALID_TOKEN: typing.ClassVar[str] = "valid_token"
 
 
-c = FlextCliConstants
 __all__ = ["FlextCliConstants", "c"]
+
+c = FlextCliConstants

@@ -35,5 +35,6 @@ class TestsCliProtocols(FlextTestsProtocols, FlextCliProtocols):
     """
 
 
-p = TestsCliProtocols
 __all__ = ["TestsCliProtocols", "p"]
+
+p = TestsCliProtocols
