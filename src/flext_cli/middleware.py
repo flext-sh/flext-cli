@@ -18,7 +18,7 @@ from flext_core import r
 from pydantic import BaseModel
 from rich.errors import ConsoleError, LiveError, StyleError
 
-from flext_cli import p, t
+from flext_cli import c, p, t
 
 
 class FlextCliLoggingMiddleware:
@@ -39,7 +39,7 @@ class FlextCliLoggingMiddleware:
             r: Result from next middleware or handler.
 
         """
-        _ = getattr(ctx, "command", "unknown")
+        _ = getattr(ctx, "command", c.Mixins.IDENTIFIER_UNKNOWN)
         start = time.perf_counter()
         result = next_(ctx)
         _elapsed = time.perf_counter() - start
