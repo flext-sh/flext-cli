@@ -10,13 +10,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import FlextDecorators, FlextMixins, r
+from flext_core import FlextDecorators, r, x
 
 from flext_cli import p, t
-from flext_cli.typings import FlextCliTypes
 
 
-class FlextCliMixins(FlextMixins):
+class FlextCliMixins(x):
     """Single unified CLI mixins class following FLEXT standards.
 
     Business Rules:
@@ -65,7 +64,7 @@ class FlextCliMixins(FlextMixins):
             operation: str,
             handler: p.Cli.CliCommandHandler,
             **context_data: t.Scalar,
-        ) -> r[FlextCliTypes.Cli.JsonValue]:
+        ) -> r[t.Cli.JsonValue]:
             """Execute handler with automatic CLI context management.
 
             Composes flext-core decorators to provide complete context setup:

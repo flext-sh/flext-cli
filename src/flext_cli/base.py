@@ -16,11 +16,10 @@ from dataclasses import dataclass
 from types import ModuleType
 from typing import override
 
-from flext_core import m as m_core, p, s, t
+from flext_core import s
 from pydantic_settings import BaseSettings
 
-from flext_cli import FlextCliSettings
-from flext_cli.typings import FlextCliTypes
+from flext_cli import FlextCliSettings, m, p, t
 
 
 @dataclass
@@ -38,7 +37,7 @@ class _CliRuntimeBootstrapOptions:
     wire_classes: Sequence[type] | None = None
 
 
-class FlextCliServiceBase(s[Mapping[str, FlextCliTypes.Cli.JsonValue]], ABC):
+class FlextCliServiceBase(s[Mapping[str, t.Cli.JsonValue]], ABC):
     """Base class for flext-cli services with typed configuration access.
 
     Note: This is an abstract base class. Subclasses must implement the
@@ -67,7 +66,7 @@ class FlextCliServiceBase(s[Mapping[str, FlextCliTypes.Cli.JsonValue]], ABC):
             Runtime bootstrap options with config_type set to FlextCliSettings
 
         """
-        return m_core.RuntimeBootstrapOptions(config_type=FlextCliSettings)
+        return m.RuntimeBootstrapOptions(config_type=FlextCliSettings)
 
     @staticmethod
     def get_cli_config() -> FlextCliSettings:

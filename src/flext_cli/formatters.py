@@ -26,8 +26,7 @@ from rich.status import Status as RichStatus
 from rich.table import Table as RichTable
 from rich.tree import Tree as RichTree
 
-from flext_cli import c, p
-from flext_cli.typings import FlextCliTypes
+from flext_cli import c, p, t
 
 _logger = FlextLogger(__name__)
 
@@ -179,7 +178,7 @@ class FlextCliFormatters:
 
     @staticmethod
     def create_table(
-        data: Mapping[str, FlextCliTypes.Cli.JsonValue] | None = None,
+        data: Mapping[str, t.Cli.JsonValue] | None = None,
         headers: list[str] | None = None,
         title: str | None = None,
     ) -> r[RichTable]:
@@ -300,9 +299,9 @@ class FlextCliFormatters:
                 c.Cli.FormattersErrorMessages.STATUS_CREATION_FAILED.format(error=exc)
             )
 
-    def execute(self) -> r[Mapping[str, FlextCliTypes.Cli.JsonValue]]:
+    def execute(self) -> r[Mapping[str, t.Cli.JsonValue]]:
         """Execute service - required by FlextService."""
-        return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].ok({
+        return r[Mapping[str, t.Cli.JsonValue]].ok({
             c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.OPERATIONAL.value,
             c.Cli.DictKeys.SERVICE: c.Cli.Services.FORMATTERS,
         })

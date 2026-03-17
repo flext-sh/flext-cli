@@ -18,8 +18,7 @@ from flext_core import r
 from pydantic import BaseModel
 from rich.errors import ConsoleError, LiveError, StyleError
 
-from flext_cli import p
-from flext_cli.typings import FlextCliTypes
+from flext_cli import p, t
 
 
 class FlextCliLoggingMiddleware:
@@ -28,8 +27,8 @@ class FlextCliLoggingMiddleware:
     def __call__(
         self,
         ctx: p.Cli.CliContext,
-        next_: Callable[[p.Cli.CliContext], r[FlextCliTypes.Cli.JsonValue]],
-    ) -> r[FlextCliTypes.Cli.JsonValue]:
+        next_: Callable[[p.Cli.CliContext], r[t.Cli.JsonValue]],
+    ) -> r[t.Cli.JsonValue]:
         """Log command execution.
 
         Args:
@@ -63,8 +62,8 @@ class FlextCliValidationMiddleware:
     def __call__(
         self,
         ctx: p.Cli.CliContext,
-        next_: Callable[[p.Cli.CliContext], r[FlextCliTypes.Cli.JsonValue]],
-    ) -> r[FlextCliTypes.Cli.JsonValue]:
+        next_: Callable[[p.Cli.CliContext], r[t.Cli.JsonValue]],
+    ) -> r[t.Cli.JsonValue]:
         """Validate command inputs.
 
         Args:
@@ -89,7 +88,7 @@ class FlextCliValidationMiddleware:
             StyleError,
             LiveError,
         ) as e:
-            return r[FlextCliTypes.Cli.JsonValue].fail(f"Validation failed: {e}")
+            return r[t.Cli.JsonValue].fail(f"Validation failed: {e}")
 
 
 class FlextCliRetryMiddleware:
@@ -110,8 +109,8 @@ class FlextCliRetryMiddleware:
     def __call__(
         self,
         ctx: p.Cli.CliContext,
-        next_: Callable[[p.Cli.CliContext], r[FlextCliTypes.Cli.JsonValue]],
-    ) -> r[FlextCliTypes.Cli.JsonValue]:
+        next_: Callable[[p.Cli.CliContext], r[t.Cli.JsonValue]],
+    ) -> r[t.Cli.JsonValue]:
         """Retry failed commands.
 
         Args:
@@ -143,16 +142,16 @@ class FlextCliMiddleware:
             Callable[
                 [
                     p.Cli.CliContext,
-                    Callable[[p.Cli.CliContext], r[FlextCliTypes.Cli.JsonValue]],
+                    Callable[[p.Cli.CliContext], r[t.Cli.JsonValue]],
                 ],
-                r[FlextCliTypes.Cli.JsonValue],
+                r[t.Cli.JsonValue],
             ]
         ],
         handler: Callable[
             [p.Cli.CliContext],
-            r[FlextCliTypes.Cli.JsonValue],
+            r[t.Cli.JsonValue],
         ],
-    ) -> Callable[[p.Cli.CliContext], r[FlextCliTypes.Cli.JsonValue]]:
+    ) -> Callable[[p.Cli.CliContext], r[t.Cli.JsonValue]]:
         """Compose middleware into single callable.
 
         Args:
@@ -176,11 +175,11 @@ class FlextCliMiddleware:
 
         def composed(
             ctx: p.Cli.CliContext,
-        ) -> r[FlextCliTypes.Cli.JsonValue]:
+        ) -> r[t.Cli.JsonValue]:
 
             def build_chain(
                 idx: int,
-            ) -> Callable[[p.Cli.CliContext], r[FlextCliTypes.Cli.JsonValue]]:
+            ) -> Callable[[p.Cli.CliContext], r[t.Cli.JsonValue]]:
                 if idx >= len(middlewares):
                     return handler
                 current_middleware = middlewares[idx]

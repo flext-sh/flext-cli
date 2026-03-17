@@ -20,30 +20,35 @@ from flext_core import (
 )
 from pydantic import ValidationError
 
-from flext_cli.app_base import FlextCliAppBase
-from flext_cli.base import FlextCliServiceBase
-from flext_cli.cli import FlextCliCli
-from flext_cli.cli_params import FlextCliCommonParams
-from flext_cli.commands import FlextCliCommands
-from flext_cli.constants import FlextCliConstants as c
-from flext_cli.debug import FlextCliDebug
-from flext_cli.file_tools import FlextCliFileTools
-from flext_cli.formatters import FlextCliFormatters
-from flext_cli.mixins import FlextCliMixins
-from flext_cli.models import FlextCliModels as m
-from flext_cli.protocols import DecoratorCommandLike, FlextCliProtocols as p
-from flext_cli.services.cmd import FlextCliCmd
-from flext_cli.services.core import FlextCliCore
-from flext_cli.services.output import FlextCliOutput
-from flext_cli.services.prompts import FlextCliPrompts
-from flext_cli.services.tables import FlextCliTables
-from flext_cli.settings import FlextCliSettings
-from flext_cli.typings import FlextCliTypes
-from flext_cli.utilities import FlextCliUtilities as u
+from flext_cli import (
+    DecoratorCommandLike,
+    FlextCliAppBase,
+    FlextCliCli,
+    FlextCliCommands,
+    FlextCliCommonParams,
+    FlextCliDebug,
+    FlextCliFileTools,
+    FlextCliFormatters,
+    FlextCliMixins,
+    FlextCliServiceBase,
+    FlextCliSettings,
+    c,
+    m,
+    p,
+    t,
+    u,
+)
+from flext_cli.services import (
+    FlextCliCmd,
+    FlextCliCore,
+    FlextCliOutput,
+    FlextCliPrompts,
+    FlextCliTables,
+)
 
 
 def _is_registered_command(
-    obj: FlextCliTypes.Cli.JsonValue | DecoratorCommandLike | Command,
+    obj: t.Cli.JsonValue | DecoratorCommandLike | Command,
 ) -> TypeIs[p.Cli.CliRegisteredCommand]:
     """Narrow to CliRegisteredCommand when protocol attributes are present."""
     return callable(obj) and hasattr(obj, "name") and hasattr(obj, "callback")
@@ -140,7 +145,7 @@ class FlextCli:
         self._valid_tokens: set[str] = set()
         self._valid_sessions: set[str] = set()
         self._session_permissions: MutableMapping[str, set[str]] = {}
-        self._users: MutableMapping[str, Mapping[str, FlextCliTypes.Cli.JsonValue]] = {}
+        self._users: MutableMapping[str, Mapping[str, t.Cli.JsonValue]] = {}
         self._deleted_users: set[str] = set()
 
     @classmethod
@@ -243,8 +248,8 @@ class FlextCli:
 
     def _create_table(
         self,
-        data: Mapping[str, FlextCliTypes.Cli.JsonValue]
-        | Sequence[Mapping[str, FlextCliTypes.Cli.JsonValue]]
+        data: Mapping[str, t.Cli.JsonValue]
+        | Sequence[Mapping[str, t.Cli.JsonValue]]
         | None,
         headers: list[str] | None = None,
         _title: str | None = None,
@@ -253,9 +258,7 @@ class FlextCli:
         if data is None:
             return r[str].fail("Table data cannot be None")
         if isinstance(data, Mapping):
-            table_data: list[Mapping[str, FlextCliTypes.Cli.JsonValue]] = [
-                dict(data.items())
-            ]
+            table_data: list[Mapping[str, t.Cli.JsonValue]] = [dict(data.items())]
         elif isinstance(data, list):
             table_data = data
         elif isinstance(data, tuple):
@@ -283,9 +286,9 @@ class FlextCli:
         """Create a Rich tree (FlextCliFormatters.Tree; add() returns None by default)."""
         return FlextCliFormatters.create_tree(label)
 
-    def execute(self) -> r[Mapping[str, FlextCliTypes.Cli.JsonValue]]:
+    def execute(self) -> r[Mapping[str, t.Cli.JsonValue]]:
         """Execute CLI service with railway pattern."""
-        result_dict: Mapping[str, FlextCliTypes.Cli.JsonValue] = {
+        result_dict: Mapping[str, t.Cli.JsonValue] = {
             c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.OPERATIONAL.value,
             c.Cli.DictKeys.SERVICE: c.Cli.FLEXT_CLI,
             "timestamp": u.generate("timestamp"),
@@ -297,7 +300,7 @@ class FlextCli:
                 "prompts": "available",
             },
         }
-        return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].ok(result_dict)
+        return r[Mapping[str, t.Cli.JsonValue]].ok(result_dict)
 
     def get_auth_token(self) -> r[str]:
         """Get authentication token using Pydantic 2 validation."""
@@ -344,8 +347,7 @@ class FlextCli:
 
     def show_table(
         self,
-        data: Mapping[str, FlextCliTypes.Cli.JsonValue]
-        | Sequence[Mapping[str, FlextCliTypes.Cli.JsonValue]],
+        data: Mapping[str, t.Cli.JsonValue] | Sequence[Mapping[str, t.Cli.JsonValue]],
         headers: list[str] | None = None,
         title: str | None = None,
     ) -> None:
@@ -361,7 +363,7 @@ class FlextCli:
         validation = FlextCli._validate_token_string(token)
         if validation.is_failure:
             return validation
-        token_data: FlextCliTypes.Cli.JsonValue = {c.Cli.DictKeys.TOKEN: token}
+        token_data: t.Cli.JsonValue = {c.Cli.DictKeys.TOKEN: token}
         write_result = self.file_tools.write_json_file(
             str(self.config.token_file),
             m.Cli.DisplayData.model_validate({"data": token_data}),

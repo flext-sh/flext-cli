@@ -17,7 +17,6 @@ from flext_core import r
 from typer.models import OptionInfo
 
 from flext_cli import m, p, t
-from flext_cli.typings import FlextCliTypes
 
 
 class FlextCliCommandBuilder:
@@ -51,14 +50,12 @@ class FlextCliCommandBuilder:
         self._name = name
         self._options: list[OptionInfo] = []
         self._arguments: list[tuple[str, type, bool]] = []
-        self._middleware: list[
-            Callable[[p.Cli.CliContext], r[FlextCliTypes.Cli.JsonValue]]
-        ] = []
+        self._middleware: list[Callable[[p.Cli.CliContext], r[t.Cli.JsonValue]]] = []
         self._handler: p.Cli.CommandHandlerCallable | None = None
 
     @staticmethod
     def _create_option_info(
-        default: FlextCliTypes.Cli.JsonValue | None = None,
+        default: t.Cli.JsonValue | None = None,
         param_decls: list[str] | None = None,
         help_text: str = "",
         **kwargs: t.Scalar,
@@ -69,7 +66,7 @@ class FlextCliCommandBuilder:
         all possible kwargs. This helper validates and constructs OptionInfo safely.
         """
         validated_param_decls = param_decls if param_decls is not None else []
-        validated_default: FlextCliTypes.Cli.JsonValue | None = default
+        validated_default: t.Cli.JsonValue | None = default
         validated_param_decls_list: Sequence[str] = validated_param_decls
         validated_help: str | None = help_text or None
         option_info = OptionInfo(
@@ -84,7 +81,7 @@ class FlextCliCommandBuilder:
         return option_info
 
     @staticmethod
-    def _is_command_protocol(obj: FlextCliTypes.Cli.JsonValue) -> bool:
+    def _is_command_protocol(obj: t.Cli.JsonValue) -> bool:
         """Check if object matches minimal command protocol shape."""
         name_value = getattr(obj, "name", None)
         description_value = getattr(obj, "description", None)
@@ -141,7 +138,7 @@ class FlextCliCommandBuilder:
 
     def with_middleware(
         self,
-        middleware: Callable[[p.Cli.CliContext], r[FlextCliTypes.Cli.JsonValue]],
+        middleware: Callable[[p.Cli.CliContext], r[t.Cli.JsonValue]],
     ) -> Self:
         """Add middleware (logging, auth, validation).
 
@@ -158,7 +155,7 @@ class FlextCliCommandBuilder:
     def with_option(
         self,
         name: str,
-        default: FlextCliTypes.Cli.JsonValue | None = None,
+        default: t.Cli.JsonValue | None = None,
         help_: str = "",
         **kwargs: t.Scalar,
     ) -> Self:

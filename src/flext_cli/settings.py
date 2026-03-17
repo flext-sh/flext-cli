@@ -13,15 +13,12 @@ from pathlib import Path
 from typing import Annotated
 
 import yaml
-from flext_core import FlextLogger, FlextSettings, FlextUtilities, r
+from flext_core import FlextLogger, FlextSettings, r
 from pydantic import Field, TypeAdapter, ValidationError, computed_field
 
-from flext_cli import c, m, t
-from flext_cli.typings import FlextCliTypes
+from flext_cli import c, m, t, u
 
-_JSON_OBJECT_ADAPTER: TypeAdapter[FlextCliTypes.Cli.JsonValue] = TypeAdapter(
-    FlextCliTypes.Cli.JsonValue
-)
+_JSON_OBJECT_ADAPTER: TypeAdapter[t.Cli.JsonValue] = TypeAdapter(t.Cli.JsonValue)
 
 logger = FlextLogger(__name__)
 
@@ -125,20 +122,20 @@ class FlextCliSettings(FlextSettings):
         """Optimal table format for display (one of simple, grid, github, plain)."""
         return "simple"
 
-    def execute_service(self) -> r[Mapping[str, FlextCliTypes.Cli.JsonValue]]:
+    def execute_service(self) -> r[Mapping[str, t.Cli.JsonValue]]:
         """Execute config as service; return status dict."""
         return r.ok({"config": "loaded", "profile": self.profile})
 
-    def load_config(self) -> r[Mapping[str, FlextCliTypes.Cli.JsonValue]]:
+    def load_config(self) -> r[Mapping[str, t.Cli.JsonValue]]:
         """Load current config as dict."""
         return r.ok(self.model_dump(mode="json"))
 
-    def save_config(self, data: FlextCliTypes.Cli.JsonValue) -> r[bool]:
+    def save_config(self, data: t.Cli.JsonValue) -> r[bool]:
         """Apply config updates from dict."""
         if not isinstance(data, Mapping):
             return r[bool].fail(c.Cli.CmdErrorMessages.CONFIG_NOT_DICT)
 
-        validated_data: dict[str, FlextCliTypes.Cli.JsonValue] = {
+        validated_data: dict[str, t.Cli.JsonValue] = {
             str(key): m.Cli.normalize_json_value(value) for key, value in data.items()
         }
 
@@ -149,11 +146,11 @@ class FlextCliSettings(FlextSettings):
                     setattr(self, key, getattr(updated, key))
             return True
 
-        return FlextUtilities.try_(_apply_updates).map_error(str)
+        return u.try_(_apply_updates).map_error(str)
 
     def update_from_cli_args(self, **kwargs: t.Scalar) -> r[bool]:
         """Update config from CLI args."""
-        data: dict[str, FlextCliTypes.Cli.JsonValue] = {
+        data: dict[str, t.Cli.JsonValue] = {
             k: v for k, v in kwargs.items() if k in self.__class__.model_fields
         }
         return self.save_config(data)
@@ -189,9 +186,7 @@ class FlextCliSettings(FlextSettings):
         try:
             raw = path.read_text(encoding="utf-8")
             if suffix == ".json":
-                parsed: FlextCliTypes.Cli.JsonValue = (
-                    _JSON_OBJECT_ADAPTER.validate_json(raw)
-                )
+                parsed: t.Cli.JsonValue = _JSON_OBJECT_ADAPTER.validate_json(raw)
             else:
                 parsed = yaml.safe_load(raw)
             if not isinstance(parsed, dict):

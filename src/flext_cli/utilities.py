@@ -17,7 +17,6 @@ from pydantic import BaseModel, ConfigDict, ValidationError, validate_call
 from rich.errors import ConsoleError, LiveError, StyleError
 
 from flext_cli import c, m, t
-from flext_cli.typings import FlextCliTypes
 
 
 class FlextCliUtilities(FlextUtilities):
@@ -173,7 +172,7 @@ class FlextCliUtilities(FlextUtilities):
             @staticmethod
             def v_config(
                 config: Mapping[str, t.Cli.CliValue]
-                | Mapping[str, FlextCliTypes.Cli.JsonValue]
+                | Mapping[str, t.Cli.JsonValue]
                 | None,
                 *,
                 fields: list[str],
@@ -229,7 +228,7 @@ class FlextCliUtilities(FlextUtilities):
             @staticmethod
             def v_req(
                 data: Mapping[str, t.Cli.CliValue]
-                | Mapping[str, FlextCliTypes.Cli.JsonValue]
+                | Mapping[str, t.Cli.JsonValue]
                 | None,
                 *,
                 fields: list[str],
@@ -289,7 +288,7 @@ class FlextCliUtilities(FlextUtilities):
             @staticmethod
             def v_step(
                 step: Mapping[str, t.Cli.CliValue]
-                | Mapping[str, FlextCliTypes.Cli.JsonValue]
+                | Mapping[str, t.Cli.JsonValue]
                 | None,
             ) -> r[bool]:
                 """Validate a pipeline step."""
@@ -556,8 +555,8 @@ class FlextCliUtilities(FlextUtilities):
                 @staticmethod
                 def merge_defaults[M: BaseModel](
                     model_cls: type[M],
-                    defaults: Mapping[str, FlextCliTypes.Cli.JsonValue],
-                    overrides: Mapping[str, FlextCliTypes.Cli.JsonValue],
+                    defaults: Mapping[str, t.Cli.JsonValue],
+                    overrides: Mapping[str, t.Cli.JsonValue],
                 ) -> r[M]:
                     """Merge default values with overrides."""
                     result = FlextUtilities.merge_defaults(

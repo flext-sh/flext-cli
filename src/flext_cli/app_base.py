@@ -21,10 +21,7 @@ import typer
 from click.exceptions import UsageError as ClickUsageError
 from flext_core import FlextLogger, e, r
 
-from flext_cli import FlextCliOutput
-from flext_cli.cli import FlextCliCli
-from flext_cli.protocols import p
-from flext_cli.settings import FlextCliSettings
+from flext_cli import FlextCliCli, FlextCliOutput, FlextCliSettings, p
 
 
 class FlextCliAppBase[SettingsT: FlextCliSettings]:
