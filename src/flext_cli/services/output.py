@@ -227,7 +227,11 @@ class FlextCliOutput:
         """Normalize formatter input to a JSON-compatible general value."""
         return (
             value
-            if isinstance(value, (str, int, float, bool, type(None), dict, list, tuple))
+            if (
+                value is None
+                or u.is_primitive(value)
+                or isinstance(value, (dict, list, tuple))
+            )
             else str(value)
         )
 
@@ -238,7 +242,11 @@ class FlextCliOutput:
         """Normalize iterable items to general value type."""
         return (
             item
-            if isinstance(item, (str, int, float, bool, type(None), dict, list, tuple))
+            if (
+                item is None
+                or u.is_primitive(item)
+                or isinstance(item, (dict, list, tuple))
+            )
             else str(item)
         )
 
@@ -308,7 +316,7 @@ class FlextCliOutput:
         """Replace None with empty string for CSV."""
         if v is None:
             return ""
-        if isinstance(v, (str, int, float, bool)):
+        if u.is_primitive(v):
             return v
         return str(v)
 
@@ -518,14 +526,14 @@ class FlextCliOutput:
         """Get value from map with default using build DSL."""
         value = m.get(k, default)
         compatible_value: FlextCliTypes.Cli.JsonValue
-        if isinstance(value, (str, int, float, bool, type(None), list)):
+        if value is None or u.is_primitive(value) or isinstance(value, list):
             compatible_value = value
         elif isinstance(value, dict):
             dict_items: dict[str, FlextCliTypes.Cli.JsonValue] = {}
             for kk, vv in value.items():
                 dict_items[str(kk)] = (
                     vv
-                    if isinstance(vv, (str, int, float, bool, type(None), list, dict))
+                    if vv is None or u.is_primitive(vv) or isinstance(vv, (list, dict))
                     else str(vv)
                 )
             compatible_value = dict_items
@@ -539,12 +547,12 @@ class FlextCliOutput:
 
         Uses object from lower layer instead of object for better type safety.
         """
-        return isinstance(v, (str, int, float, bool, type(None), dict, list))
+        return v is None or u.is_primitive(v) or isinstance(v, (dict, list))
 
     @staticmethod
     def norm_json(item: FlextCliTypes.Cli.JsonValue) -> FlextCliTypes.Cli.JsonValue:
         """Normalize item to JSON-compatible using build DSL."""
-        if isinstance(item, (str, int, float, bool, type(None))):
+        if item is None or u.is_primitive(item):
             return item
         if FlextRuntime.is_dict_like(item):
             return FlextCliOutput.to_dict_json(item)

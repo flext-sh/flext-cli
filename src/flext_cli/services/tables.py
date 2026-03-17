@@ -171,9 +171,7 @@ class FlextCliTables(FlextCliServiceBase):
             explicit_options=config,
             default_factory=lambda: m.Cli.TableConfig(),
             **{
-                k: v
-                for k, v in config_kwargs.items()
-                if isinstance(v, (str, int, float, bool, type(None)))
+                k: v for k, v in config_kwargs.items() if v is None or u.is_primitive(v)
             },
         )
         if config_result.is_failure:
