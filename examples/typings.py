@@ -4,4 +4,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from flext_core import t
+
 type EnvInput = dict[str, str | int | bool | Path] | t.Primitives | None
