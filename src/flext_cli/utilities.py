@@ -16,7 +16,9 @@ from flext_core import FlextUtilities, r
 from pydantic import BaseModel, ConfigDict, ValidationError, validate_call
 from rich.errors import ConsoleError, LiveError, StyleError
 
-from flext_cli import c, m, t
+from flext_cli.constants import c
+from flext_cli.models import m
+from flext_cli.typings import t
 
 
 class FlextCliUtilities(FlextUtilities):

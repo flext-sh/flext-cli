@@ -14,11 +14,28 @@ from collections.abc import Mapping, Sequence
 from datetime import datetime
 from typing import Literal
 
+from flext_cli.typings import t
 from flext_tests import FlextTestsModels
 from pydantic import BaseModel, ConfigDict, Field, RootModel, field_validator
 
 
-class CliCommandInput(BaseModel):
+class _PositionalModel(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    def __init__(
+        self,
+        data: Mapping[str, t.ContainerValue] | None = None,
+        /,
+        **kwargs: t.ContainerValue,
+    ) -> None:
+        payload: dict[str, t.ContainerValue] = {}
+        if data is not None:
+            payload.update(data)
+        payload.update(kwargs)
+        super().__init__(**payload)
+
+
+class CliCommandInput(_PositionalModel):
     """Test input for building CliCommand via model_construct. All optional with defaults."""
 
     model_config = ConfigDict(extra="forbid")
@@ -33,7 +50,7 @@ class CliCommandInput(BaseModel):
     kwargs: dict[str, object] = Field(default_factory=dict)
 
 
-class CliSessionInput(BaseModel):
+class CliSessionInput(_PositionalModel):
     """Test input for building CliSession via model_construct. All optional with defaults."""
 
     model_config = ConfigDict(extra="forbid")
@@ -59,7 +76,7 @@ class ScalarConfigRestore(RootModel[dict[str, _ScalarOnly]]):
         return cls(out)
 
 
-class TextTestCaseDict(BaseModel):
+class TextTestCaseDict(_PositionalModel):
     """Parametrized test case for prompt_text — Pydantic v2."""
 
     model_config = ConfigDict(extra="forbid")
@@ -69,7 +86,7 @@ class TextTestCaseDict(BaseModel):
     expected_success: bool = Field(default=True, description="Expect success")
 
 
-class ConfirmTestCaseDict(BaseModel):
+class ConfirmTestCaseDict(_PositionalModel):
     """Parametrized test case for prompt_confirmation — Pydantic v2."""
 
     model_config = ConfigDict(extra="forbid")
@@ -78,7 +95,7 @@ class ConfirmTestCaseDict(BaseModel):
     expected_value: bool = Field(default=False, description="Expected result")
 
 
-class ChoiceTestCaseDict(BaseModel):
+class ChoiceTestCaseDict(_PositionalModel):
     """Parametrized test case for prompt_choice — Pydantic v2."""
 
     model_config = ConfigDict(extra="forbid")
@@ -88,7 +105,7 @@ class ChoiceTestCaseDict(BaseModel):
     expected_success: bool = Field(default=True, description="Expect success")
 
 
-class PrintStatusCase(BaseModel):
+class PrintStatusCase(_PositionalModel):
     """Parametrized test case for print_status — Pydantic v2."""
 
     model_config = ConfigDict(extra="forbid")
@@ -96,7 +113,7 @@ class PrintStatusCase(BaseModel):
     status: str | None = Field(default=None, description="Status type")
 
 
-class UserData(BaseModel):
+class UserData(_PositionalModel):
     """User data for type scenario tests — Pydantic v2."""
 
     model_config = ConfigDict(extra="forbid")
@@ -106,7 +123,7 @@ class UserData(BaseModel):
     active: bool = Field(description="Active flag")
 
 
-class ApiResponse(BaseModel):
+class ApiResponse(_PositionalModel):
     """API response for type scenario tests — Pydantic v2."""
 
     model_config = ConfigDict(extra="forbid")
@@ -119,7 +136,7 @@ class ApiResponse(BaseModel):
 # ----- Model-command comprehensive tests (test_model_command_comprehensive.py) -----
 
 
-class ConnectionConfig(BaseModel):
+class ConnectionConfig(_PositionalModel):
     """Connection config for model_command tests; port ge=1024."""
 
     model_config = ConfigDict(extra="forbid")
@@ -128,7 +145,7 @@ class ConnectionConfig(BaseModel):
     username: str = Field(default="", description="Username")
 
 
-class EnvironmentConfig(BaseModel):
+class EnvironmentConfig(_PositionalModel):
     """Environment config with Literal types for model_command tests."""
 
     model_config = ConfigDict(extra="forbid")
@@ -137,7 +154,7 @@ class EnvironmentConfig(BaseModel):
     )
 
 
-class OptionalLiteralConfig(BaseModel):
+class OptionalLiteralConfig(_PositionalModel):
     """Config with Optional Literal for model_command tests."""
 
     model_config = ConfigDict(extra="forbid")
@@ -146,7 +163,7 @@ class OptionalLiteralConfig(BaseModel):
     )
 
 
-class AliasedConfig(BaseModel):
+class AliasedConfig(_PositionalModel):
     """Config with field aliases and populate_by_name for model_command tests."""
 
     model_config = ConfigDict(extra="forbid", populate_by_name=True)
@@ -154,7 +171,7 @@ class AliasedConfig(BaseModel):
     output_dir: str = Field(default="", alias="output-dir", description="Output dir")
 
 
-class BooleanFlagsConfig(BaseModel):
+class BooleanFlagsConfig(_PositionalModel):
     """Config with boolean flags (default True/False/None) for model_command tests."""
 
     model_config = ConfigDict(extra="forbid")
@@ -163,12 +180,12 @@ class BooleanFlagsConfig(BaseModel):
     force: bool | None = Field(default=None, description="Force")
 
 
-class NestedModelConfig(BaseModel):
+class NestedModelConfig(_PositionalModel):
     """Config with nested model for model_command tests."""
 
     model_config = ConfigDict(extra="forbid")
 
-    class Inner(BaseModel):
+    class Inner(_PositionalModel):
         """Inner key-value config for NestedModelConfig."""
 
         model_config = ConfigDict(extra="forbid")
@@ -178,7 +195,7 @@ class NestedModelConfig(BaseModel):
     inner: Inner = Field(default_factory=Inner, description="Nested config")
 
 
-class ValidatedConfig(BaseModel):
+class ValidatedConfig(_PositionalModel):
     """Config with custom host validator for model_command tests."""
 
     model_config = ConfigDict(extra="forbid")
@@ -197,7 +214,7 @@ class ValidatedConfig(BaseModel):
 # ----- Config model integration tests (test_config_model_integration.py) -----
 
 
-class AliasedParams(BaseModel):
+class AliasedParams(_PositionalModel):
     """Params with field aliases for config model integration tests."""
 
     model_config = ConfigDict(extra="forbid", populate_by_name=True)
@@ -206,7 +223,7 @@ class AliasedParams(BaseModel):
     batch_size: int = Field(default=0, alias="batch-size")
 
 
-class RequiredFieldsParams(BaseModel):
+class RequiredFieldsParams(_PositionalModel):
     """Params with required input_dir for config model integration tests."""
 
     model_config = ConfigDict(extra="forbid")
@@ -214,7 +231,7 @@ class RequiredFieldsParams(BaseModel):
     output_dir: str | None = Field(default=None, description="Output directory")
 
 
-class AppParams(BaseModel):
+class AppParams(_PositionalModel):
     """App params (input_dir, output_dir optional) for config model integration tests."""
 
     model_config = ConfigDict(extra="forbid")
@@ -222,14 +239,14 @@ class AppParams(BaseModel):
     output_dir: str | None = Field(default=None)
 
 
-class SimpleParams(BaseModel):
+class SimpleParams(_PositionalModel):
     """Minimal params for model_command without config."""
 
     model_config = ConfigDict(extra="forbid")
     name: str = Field(default="", description="Name")
 
 
-class FullAppParams(BaseModel):
+class FullAppParams(_PositionalModel):
     """Full app params for config-to-params workflow tests."""
 
     model_config = ConfigDict(extra="forbid")
@@ -239,7 +256,7 @@ class FullAppParams(BaseModel):
     verbose_mode: bool = Field(default=False)
 
 
-class StrictParams(BaseModel):
+class StrictParams(_PositionalModel):
     """Params for strict validation tests."""
 
     model_config = ConfigDict(extra="forbid", strict=True)
@@ -247,7 +264,7 @@ class StrictParams(BaseModel):
     count: int = Field(default=0)
 
 
-class ForbidExtraParams(BaseModel):
+class ForbidExtraParams(_PositionalModel):
     """Params that forbid extra fields."""
 
     model_config = ConfigDict(extra="forbid")

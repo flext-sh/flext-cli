@@ -58,9 +58,17 @@ class FlextCliFileTools:
         error_template: str,
         **format_kwargs: t.Scalar,
     ) -> r[T]:
-        return u.try_(operation_func).map_error(
-            lambda e: error_template.format(error=e, **format_kwargs)
-        )
+        try:
+            return r[T].ok(operation_func())
+        except (
+            OSError,
+            ValueError,
+            TypeError,
+            KeyError,
+            AttributeError,
+            RuntimeError,
+        ) as exc:
+            return r[T].fail(error_template.format(error=exc, **format_kwargs))
 
     @staticmethod
     def _get_encoding(encoding: str | None) -> str:

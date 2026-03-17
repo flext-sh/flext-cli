@@ -35,7 +35,9 @@ from pydantic.fields import FieldInfo
 from rich.errors import ConsoleError, LiveError, StyleError
 from typer.models import OptionInfo
 
-from flext_cli import c, p, t, u
+from flext_cli.constants import c
+from flext_cli.protocols import p
+from flext_cli.typings import t
 
 _logger = FlextLogger(__name__)
 
@@ -230,7 +232,7 @@ class FlextCliModels(FlextModels):
 
             def result(self) -> t.Cli.JsonValue:
                 val = self.map_.get(self.key, self.default)
-                if u.is_primitive(val) or isinstance(val, list):
+                if isinstance(val, (*t.PRIMITIVES_TYPES, list)):
                     return val
                 if FlextCliModels.Cli.is_mapping_like(val):
                     return {
@@ -383,7 +385,7 @@ class FlextCliModels(FlextModels):
             item: t.Cli.JsonValue,
         ) -> t.Cli.JsonValue:
             """Normalize a object to a JSON-serializable object."""
-            if u.is_primitive(item):
+            if isinstance(item, t.PRIMITIVES_TYPES):
                 return item
             if item is None:
                 return ""

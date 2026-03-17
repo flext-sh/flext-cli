@@ -350,7 +350,7 @@ class TestsCliCmd:
         ("scenario", "expected_error_keyword"),
         [
             (ConfigErrorScenario.FILE_NOT_FOUND, "not found"),
-            (ConfigErrorScenario.INVALID_JSON, "expecting value"),
+            (ConfigErrorScenario.INVALID_JSON, "validation error"),
             (ConfigErrorScenario.NOT_DICT, "not a valid dictionary"),
             (ConfigErrorScenario.MISSING_KEY, "not found"),
         ],

@@ -118,7 +118,7 @@ class FlextCliCommands(FlextCliServiceBase):
                 "Commands are required for group creation"
             )
         group_commands: dict[str, t.Cli.JsonValue] = {
-            key: value.model_dump(mode="json") for key, value in commands.items()
+            key: value.model_dump(mode="python") for key, value in commands.items()
         }
         group = FlextCliCommandGroup.model_validate({
             "name": name,
