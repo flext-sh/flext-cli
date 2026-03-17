@@ -42,7 +42,7 @@ class CliSessionInput(BaseModel):
     created_at: datetime | None = Field(default=None)
 
 
-_ScalarOnly = str | int | float | bool | None
+_ScalarOnly = t.Primitives | None
 
 
 class ScalarConfigRestore(RootModel[dict[str, _ScalarOnly]]):

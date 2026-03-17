@@ -82,7 +82,7 @@ class MyAppConfig(BaseModel):
     def _inject_env(
         cls,
         data: EnvInput,
-    ) -> dict[str, str | int | bool | Path] | str | int | float | bool | None:
+    ) -> dict[str, str | int | bool | Path] | t.Primitives | None:
         if not isinstance(data, dict):
             return data
         try:
@@ -167,7 +167,7 @@ class AppConfigAdvanced(BaseModel):
     def _inject_env(
         cls,
         data: EnvInput,
-    ) -> dict[str, str | int | bool | Path] | str | int | float | bool | None:
+    ) -> dict[str, str | int | bool | Path] | t.Primitives | None:
         if not isinstance(data, dict):
             return data
         try:
