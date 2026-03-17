@@ -17,7 +17,8 @@ from pydantic import BaseModel, Field, ValidationError
 from pydantic.fields import FieldInfo
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from flext_cli import FlextCliConstants, r, t
+from flext_cli import FlextCliConstants, t
+from flext_core import r
 
 T = TypeVar("T")
 

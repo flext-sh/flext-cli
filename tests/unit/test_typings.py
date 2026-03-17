@@ -33,7 +33,8 @@ import pytest
 from flext_tests import tm
 from pydantic import BaseModel, ConfigDict, Field
 
-from flext_cli import FlextCliTypes, r, t
+from flext_cli import FlextCliTypes, t
+from flext_core import r
 from tests.helpers import c
 from tests.models import ApiResponse, UserData
 

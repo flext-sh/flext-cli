@@ -20,7 +20,8 @@ import typer
 from click.testing import CliRunner
 from flext_tests import tm
 
-from flext_cli import FlextCliCli, FlextCliSettings, m, r
+from flext_cli import FlextCliCli, FlextCliSettings, m
+from flext_core import r
 
 from ..helpers import FlextCliTestHelpers
 

@@ -24,7 +24,8 @@ from pathlib import Path
 import pytest
 from flext_tests import tm
 
-from flext_cli import FlextCliCmd, FlextCliServiceBase, FlextCliSettings, c, m, r, u
+from flext_cli import FlextCliCmd, FlextCliServiceBase, FlextCliSettings, c, m, u
+from flext_core import r
 
 
 @unique

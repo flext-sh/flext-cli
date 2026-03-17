@@ -462,7 +462,7 @@ class FlextCliOutput:
         default: list[FlextCliTypes.Cli.JsonValue] | None = None,
     ) -> list[FlextCliTypes.Cli.JsonValue]:
         """Ensure value is list with default using build DSL."""
-        v_typed = FlextRuntime.normalize_to_general_value(v) if v is not None else None
+        v_typed = FlextRuntime.normalize_to_container(v) if v is not None else None
         built_result = u.build(
             v_typed,
             ops={"ensure": "list", "ensure_default": default or []},
@@ -586,7 +586,7 @@ class FlextCliOutput:
         v: FlextCliTypes.Cli.JsonValue,
     ) -> list[FlextCliTypes.Cli.JsonValue]:
         """Convert value to list with JSON transform using build DSL."""
-        v_typed = FlextRuntime.normalize_to_general_value(v)
+        v_typed = FlextRuntime.normalize_to_container(v)
         result = FlextCliOutput.cast_if(
             u.build(
                 v_typed,
@@ -890,7 +890,7 @@ class FlextCliOutput:
         """
         try:
             if FlextRuntime.is_list_like(data) and data:
-                normalized_data = FlextRuntime.normalize_to_general_value(data)
+                normalized_data = FlextRuntime.normalize_to_container(data)
                 coerced_list = self._coerce_to_list(normalized_data)
                 if coerced_list and FlextRuntime.is_dict_like(coerced_list[0]):
                     return self._format_csv_list(coerced_list)
@@ -1509,7 +1509,7 @@ class FlextCliOutput:
             if not data:
                 return r[str].fail(c.Cli.ErrorMessages.NO_DATA_PROVIDED)
             data_list: list[FlextCliTypes.Cli.JsonValue] = [
-                FlextRuntime.normalize_to_general_value(item) for item in data
+                FlextRuntime.normalize_to_container(item) for item in data
             ]
             dict_items = u.filter(data_list, predicate=FlextRuntime.is_dict_like)
             if len(dict_items) != len(data_list):

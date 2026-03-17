@@ -29,7 +29,7 @@ class CliCommandInput(BaseModel):
     created_at: datetime | None = Field(default=None)
     command_line: str = Field(default="test_command")
     args: Sequence[str] = Field(default_factory=list)
-    result = Field(default=None)
+    result: object | None = Field(default=None)
     kwargs: dict[str, object] = Field(default_factory=dict)
 
 
@@ -111,7 +111,7 @@ class ApiResponse(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
     status: str = Field(description="Status")
-    data = Field(description="Payload")
+    data: object = Field(description="Payload")
     message: str = Field(description="Message")
     error: str | None = Field(default=None, description="Error")
 
