@@ -91,7 +91,7 @@ if TYPE_CHECKING:
         TextTestCaseDict,
         UserData,
         ValidatedConfig,
-        tm,
+        m,
     )
     from tests.protocols import TestsCliProtocols, p
     from tests.typings import T, T_co, T_contra, TestsCliTypes, t, tt
@@ -120,7 +120,6 @@ if TYPE_CHECKING:
     from tests.unit.test_commands import TestsCliCommands
     from tests.unit.test_comprehensive_models import (
         TestsCliComprehensiveModels,
-        TestsCliComprehensiveModels as m,
         TestsCliModelSerialization,
         TestsCliModelValidation,
     )
@@ -334,7 +333,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "load_fixture_config": ("tests.conftest", "load_fixture_config"),
     "load_fixture_data": ("tests.conftest", "load_fixture_data"),
     "logging_config_factory": ("tests.conftest", "logging_config_factory"),
-    "m": ("tests.unit.test_comprehensive_models", "TestsCliComprehensiveModels"),
+    "m": ("tests.models", "m"),
     "mock_env_vars": ("tests.conftest", "mock_env_vars"),
     "p": ("tests.protocols", "p"),
     "password_simulator": ("tests.conftest", "password_simulator"),
@@ -471,7 +470,6 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
         "tests.unit.test_utilities_cov",
         "test_validation_v_uses_custom_message_on_empty_failure",
     ),
-    "tm": ("tests.models", "tm"),
     "tt": ("tests.typings", "tt"),
     "u": ("tests.utilities", "u"),
     "unit": ("tests.unit", ""),
@@ -635,7 +633,6 @@ __all__ = [
     "test_validated_with_result_returns_failure_on_validation_error",
     "test_validation_state_requires_criteria",
     "test_validation_v_uses_custom_message_on_empty_failure",
-    "tm",
     "tt",
     "u",
     "unit",

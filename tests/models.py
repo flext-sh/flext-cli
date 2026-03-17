@@ -325,7 +325,7 @@ class TestsFlextCliModels(FlextTestsModels):
     ForbidExtraParams = _ForbidExtraParamsModel
 
 
-tm = TestsFlextCliModels
+m = TestsFlextCliModels
 
 __all__ = [
     "AliasedConfig",
@@ -352,7 +352,5 @@ __all__ = [
     "TextTestCaseDict",
     "UserData",
     "ValidatedConfig",
-    "tm",
+    "m",
 ]
-
-m = TestsFlextCliModels
