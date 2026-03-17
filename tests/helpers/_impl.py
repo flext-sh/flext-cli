@@ -13,12 +13,12 @@ from collections.abc import Mapping
 from typing import Final, TypeIs, TypeVar
 
 import click
+from flext_core import r
 from pydantic import BaseModel, Field, ValidationError
 from pydantic.fields import FieldInfo
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from flext_cli import FlextCliConstants, t
-from flext_core import r
 
 T = TypeVar("T")
 

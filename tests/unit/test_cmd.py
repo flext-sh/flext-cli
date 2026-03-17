@@ -22,10 +22,10 @@ from enum import StrEnum, unique
 from pathlib import Path
 
 import pytest
+from flext_core import r
 from flext_tests import tm
 
 from flext_cli import FlextCliCmd, FlextCliServiceBase, FlextCliSettings, c, m, u
-from flext_core import r
 
 
 @unique
