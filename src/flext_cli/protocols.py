@@ -901,5 +901,5 @@ __all__ = ["DecoratorCommandLike", "FlextCliProtocols", "p"]
 
 p = FlextCliProtocols
 
-# Backwards-compatible module-level export
-DecoratorCommandLike = p.Cli.DecoratorCommandLike
+# Backwards-compatible module-level export (preserves runtime_checkable attribute)
+DecoratorCommandLike = p.Cli.DecoratorCommandLike  # type: ignore[assignment]
