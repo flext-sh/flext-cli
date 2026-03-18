@@ -882,21 +882,24 @@ class FlextCliProtocols(FlextProtocols):
                 """Register CLI commands - implement in subclass."""
                 ...
 
+        @runtime_checkable
+        class DecoratorCommandLike(Protocol):
+            """Structural type for typer/click Command-like objects (name + callback)."""
+
+            @property
+            def name(self) -> str:
+                """Command name."""
+                ...
+
+            @property
+            def callback(self) -> Callable[..., object]:
+                """Command callback callable."""
+                ...
+
 
 __all__ = ["DecoratorCommandLike", "FlextCliProtocols", "p"]
 
 p = FlextCliProtocols
 
-
-class DecoratorCommandLike(Protocol):
-    """Structural type for typer/click Command-like objects (name + callback)."""
-
-    @property
-    def name(self) -> str:
-        """Command name."""
-        ...
-
-    @property
-    def callback(self) -> Callable[..., object]:
-        """Command callback callable."""
-        ...
+# Backwards-compatible module-level export
+DecoratorCommandLike = p.Cli.DecoratorCommandLike
