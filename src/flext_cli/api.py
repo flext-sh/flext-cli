@@ -21,7 +21,6 @@ from flext_core import (
 from pydantic import ValidationError
 
 from flext_cli import (
-    DecoratorCommandLike,
     FlextCliAppBase,
     FlextCliCli,
     FlextCliCmd,
@@ -452,7 +451,7 @@ class FlextCli:
 
     @staticmethod
     def _is_registered_command(
-        obj: t.Cli.JsonValue | DecoratorCommandLike | Command,
+        obj: t.Cli.JsonValue | p.Cli.DecoratorCommandLike | Command,
     ) -> TypeIs[p.Cli.CliRegisteredCommand]:
         """Narrow to CliRegisteredCommand when protocol attributes are present."""
         return callable(obj) and hasattr(obj, "name") and hasattr(obj, "callback")
