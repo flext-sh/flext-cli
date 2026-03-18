@@ -1,0 +1,23 @@
+src/flext_cli/api.py
+  14213088da9bf177 454
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.15",
+  "base_commit_sha": "68422b87c6e28030ea0b57d6238896ac5ea7d91b",
+  "prompts": {
+    "14213088da9bf177": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_2fd11d434ffebet29gNDWlDWr2",
+        "model": "anthropic/claude-opus-4-6"
+      },
+      "human_author": "FLEXT Bot <team@flext.sh>",
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 2,
+      "accepted_lines": 1,
+      "overriden_lines": 0
+    }
+  }
+}
