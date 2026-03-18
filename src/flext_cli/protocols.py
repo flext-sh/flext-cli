@@ -922,9 +922,6 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
 
-__all__ = ["DecoratorCommandLike", "FlextCliProtocols", "p"]
+__all__ = ["FlextCliProtocols", "p"]
 
 p = FlextCliProtocols
-
-# Backwards-compatible module-level export (preserves runtime_checkable attribute)
-DecoratorCommandLike = p.Cli.DecoratorCommandLike  # type: ignore[assignment]

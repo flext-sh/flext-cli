@@ -39,7 +39,7 @@ if TYPE_CHECKING:
     from flext_cli.mixins import FlextCliMixins, x
     from flext_cli.models import FlextCliModels, m
     from flext_cli.option_groups import FlextCliOptionGroup
-    from flext_cli.protocols import DecoratorCommandLike, FlextCliProtocols, p
+    from flext_cli.protocols import FlextCliProtocols, p
     from flext_cli.services.cmd import FlextCliCmd
     from flext_cli.services.core import FlextCliCore
     from flext_cli.services.output import FlextCliOutput
@@ -50,7 +50,6 @@ if TYPE_CHECKING:
     from flext_cli.utilities import FlextCliUtilities, u
 
 _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
-    "DecoratorCommandLike": ("flext_cli.protocols", "DecoratorCommandLike"),
     "FlextCli": ("flext_cli.api", "FlextCli"),
     "FlextCliAppBase": ("flext_cli.app_base", "FlextCliAppBase"),
     "FlextCliCli": ("flext_cli.cli", "FlextCliCli"),
@@ -96,7 +95,6 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
 }
 
 __all__ = [
-    "DecoratorCommandLike",
     "FlextCli",
     "FlextCliAppBase",
     "FlextCliCli",
