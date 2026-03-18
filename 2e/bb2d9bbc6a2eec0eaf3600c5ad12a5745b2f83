@@ -1,0 +1,27 @@
+pyproject.toml
+  36d5f551215aca2a 126-127
+tests/unit/test_cli.py
+  36d5f551215aca2a 115
+tests/unit/test_config_model_integration.py
+  36d5f551215aca2a 242
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.15",
+  "base_commit_sha": "2ebb2d9bbc6a2eec0eaf3600c5ad12a5745b2f83",
+  "prompts": {
+    "36d5f551215aca2a": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_2fd5d3d4bffe6TLCKmBnupEO10",
+        "model": "anthropic/claude-haiku-4-5"
+      },
+      "human_author": "FLEXT Bot <team@flext.sh>",
+      "messages": [],
+      "total_additions": 4,
+      "total_deletions": 2,
+      "accepted_lines": 4,
+      "overriden_lines": 0
+    }
+  }
+}
