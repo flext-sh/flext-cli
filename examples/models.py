@@ -13,6 +13,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
+from flext_core import r
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -23,7 +24,7 @@ from pydantic import (
     model_validator,
 )
 
-from flext_cli import FlextCli, FlextCliSettings, m, r
+from flext_cli import FlextCli, FlextCliSettings, m
 
 _JsonDictAdapter: TypeAdapter = TypeAdapter(object)
 

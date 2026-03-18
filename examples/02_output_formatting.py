@@ -38,7 +38,9 @@ import time
 from collections.abc import Sequence
 from pathlib import Path
 
-from flext_cli import FlextCli, FlextCliTables, c, m, r, t
+from flext_core import r
+
+from flext_cli import FlextCli, FlextCliTables, c, m, t
 
 cli = FlextCli()
 tables = FlextCliTables()

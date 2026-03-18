@@ -28,10 +28,12 @@ from __future__ import annotations
 
 import time
 
-from example_utils import display_config_table, display_success_summary
-from models import AdvancedDatabaseConfig, DatabaseConfig, DeployConfig
+from flext_core import r
 
-from flext_cli import FlextCli, m, r
+from flext_cli import FlextCli, m
+
+from .example_utils import display_config_table, display_success_summary
+from .models import AdvancedDatabaseConfig, DatabaseConfig, DeployConfig
 
 cli = FlextCli()
 

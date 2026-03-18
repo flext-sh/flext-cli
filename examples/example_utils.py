@@ -13,9 +13,10 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
+from flext_core import r
 from pydantic import BaseModel
 
-from flext_cli import FlextCli, m, r
+from flext_cli import FlextCli, m
 
 
 def to_json_dict(
@@ -25,7 +26,7 @@ def to_json_dict(
     normalized = m.Cli.CliNormalizedJson(dict(data)).root
     resolved = m.Cli.NormalizedJsonDict(value=normalized, default={}).resolved
     result_dict = dict(resolved.items())
-    return m.Cli.DisplayData({"data": result_dict})
+    return m.Cli.DisplayData(data=result_dict)
 
 
 def print_demo_completion(

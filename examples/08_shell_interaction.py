@@ -33,7 +33,9 @@ from __future__ import annotations
 import os
 import time
 
-from flext_cli import FlextCli, r
+from flext_core import r
+
+from flext_cli import FlextCli
 
 cli = FlextCli()
 

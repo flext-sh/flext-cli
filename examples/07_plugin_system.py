@@ -32,7 +32,9 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from flext_cli import FlextCli, FlextCliTables, m, r, t
+from flext_core import r
+
+from flext_cli import FlextCli, FlextCliTables, m, t
 
 cli = FlextCli()
 

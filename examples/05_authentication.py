@@ -29,7 +29,9 @@ import secrets
 import time
 from pathlib import Path
 
-from flext_cli import FlextCli, m, r
+from flext_core import r
+
+from flext_cli import FlextCli, m
 
 cli = FlextCli()
 

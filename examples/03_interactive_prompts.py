@@ -30,9 +30,11 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from models import AppWizardConfig, DatabaseWizardConfig, NumericPromptResult
+from flext_core import r
 
-from flext_cli import FlextCli, FlextCliPrompts, r
+from flext_cli import FlextCli, FlextCliPrompts
+
+from .models import AppWizardConfig, DatabaseWizardConfig, NumericPromptResult
 
 cli = FlextCli()
 prompts = FlextCliPrompts()
