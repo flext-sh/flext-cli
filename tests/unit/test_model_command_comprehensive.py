@@ -25,7 +25,8 @@ import pytest
 from flext_tests import tm
 from pydantic import BaseModel, ValidationError
 
-from flext_cli import FlextCliCli, m
+from flext_cli import FlextCliCli
+from tests import m
 
 
 class TestsCliModelCommandComprehensive:
@@ -42,7 +43,7 @@ class TestsCliModelCommandComprehensive:
 
         def handler(params: BaseModel) -> None:
             """Process parameters."""
-            tm.that(params is not None, eq=True)
+            assert params is not None
 
         return handler
 
@@ -51,7 +52,7 @@ class TestsCliModelCommandComprehensive:
     ) -> None:
         """Test model_command with ConnectionConfig."""
         command = cli.model_command(m.ConnectionConfig, sample_handler)
-        tm.that(command is not None, eq=True)
+        assert command is not None
         tm.that(callable(command), eq=True)
 
     def test_environment_config_command(
@@ -59,7 +60,7 @@ class TestsCliModelCommandComprehensive:
     ) -> None:
         """Test model_command with EnvironmentConfig (Literal types)."""
         command = cli.model_command(m.EnvironmentConfig, sample_handler)
-        tm.that(command is not None, eq=True)
+        assert command is not None
         tm.that(callable(command), eq=True)
 
     def test_optional_literal_config_command(
@@ -67,7 +68,7 @@ class TestsCliModelCommandComprehensive:
     ) -> None:
         """Test model_command with Optional Literal types."""
         command = cli.model_command(m.OptionalLiteralConfig, sample_handler)
-        tm.that(command is not None, eq=True)
+        assert command is not None
         tm.that(callable(command), eq=True)
 
     def test_aliased_config_command(
@@ -75,7 +76,7 @@ class TestsCliModelCommandComprehensive:
     ) -> None:
         """Test model_command with field aliases."""
         command = cli.model_command(m.AliasedConfig, sample_handler)
-        tm.that(command is not None, eq=True)
+        assert command is not None
         tm.that(callable(command), eq=True)
 
     def test_boolean_flags_config_command(
@@ -83,7 +84,7 @@ class TestsCliModelCommandComprehensive:
     ) -> None:
         """Test model_command with various boolean flags."""
         command = cli.model_command(m.BooleanFlagsConfig, sample_handler)
-        tm.that(command is not None, eq=True)
+        assert command is not None
         tm.that(callable(command), eq=True)
 
     def test_nested_model_config_command(
@@ -91,7 +92,7 @@ class TestsCliModelCommandComprehensive:
     ) -> None:
         """Test model_command with nested models."""
         command = cli.model_command(m.NestedModelConfig, sample_handler)
-        tm.that(command is not None, eq=True)
+        assert command is not None
         tm.that(callable(command), eq=True)
 
     def test_validated_config_command(
@@ -99,7 +100,7 @@ class TestsCliModelCommandComprehensive:
     ) -> None:
         """Test model_command with custom validators."""
         command = cli.model_command(m.ValidatedConfig, sample_handler)
-        tm.that(command is not None, eq=True)
+        assert command is not None
         tm.that(callable(command), eq=True)
 
     def test_literal_types_converted_to_str(self) -> None:
@@ -108,7 +109,7 @@ class TestsCliModelCommandComprehensive:
         tm.ok(params_result)
         params = params_result.value
         env_param = next((p for p in params if p.name == "environment"), None)
-        tm.that(env_param is not None, eq=True)
+        assert env_param is not None
         tm.that(env_param.click_type, eq="STRING")
 
     def test_optional_literal_types_handled(self) -> None:
@@ -119,7 +120,7 @@ class TestsCliModelCommandComprehensive:
         tm.ok(params_result)
         params = params_result.value
         log_level_param = next((p for p in params if p.name == "log_level"), None)
-        tm.that(log_level_param is not None, eq=True)
+        assert log_level_param is not None
         tm.that(log_level_param.click_type, eq="STRING")
 
     def test_boolean_flags_default_true(self) -> None:
@@ -130,7 +131,7 @@ class TestsCliModelCommandComprehensive:
         tm.ok(params_result)
         params = params_result.value
         cache_param = next((p for p in params if p.name == "enable_cache"), None)
-        tm.that(cache_param is not None, eq=True)
+        assert cache_param is not None
         tm.that(cache_param.click_type, eq="BOOL")
         tm.that(cache_param.default is True, eq=True)
 
@@ -142,7 +143,7 @@ class TestsCliModelCommandComprehensive:
         tm.ok(params_result)
         params = params_result.value
         verbose_param = next((p for p in params if p.name == "verbose"), None)
-        tm.that(verbose_param is not None, eq=True)
+        assert verbose_param is not None
         tm.that(verbose_param.click_type, eq="BOOL")
         tm.that(verbose_param.default is False, eq=True)
 
@@ -154,7 +155,7 @@ class TestsCliModelCommandComprehensive:
         tm.ok(params_result)
         params = params_result.value
         force_param = next((p for p in params if p.name == "force"), None)
-        tm.that(force_param is not None, eq=True)
+        assert force_param is not None
         tm.that(force_param.click_type, eq="BOOL")
         tm.that(force_param.default is None, eq=True)
 
@@ -164,7 +165,7 @@ class TestsCliModelCommandComprehensive:
         tm.ok(params_result)
         params = params_result.value
         input_param = next((p for p in params if p.name == "input_dir"), None)
-        tm.that(input_param is not None, eq=True)
+        assert input_param is not None
         tm.that(
             hasattr(input_param, "aliases") or input_param.name == "input_dir", eq=True
         )
@@ -205,7 +206,7 @@ class TestsCliModelCommandComprehensive:
             tm.that(params.port is not None, eq=True)
 
         command = cli.model_command(m.ConnectionConfig, handler)
-        tm.that(command is not None, eq=True)
+        assert command is not None
 
     def test_model_command_execution_with_environment_config(
         self, cli: FlextCliCli
@@ -218,7 +219,7 @@ class TestsCliModelCommandComprehensive:
             tm.that(params.environment is not None, eq=True)
 
         command = cli.model_command(m.EnvironmentConfig, handler)
-        tm.that(command is not None, eq=True)
+        assert command is not None
 
     def test_model_command_execution_with_aliased_config(
         self, cli: FlextCliCli
@@ -232,4 +233,4 @@ class TestsCliModelCommandComprehensive:
             tm.that(params.output_dir is not None, eq=True)
 
         command = cli.model_command(m.AliasedConfig, handler)
-        tm.that(command is not None, eq=True)
+        assert command is not None
