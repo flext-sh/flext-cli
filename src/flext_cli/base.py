@@ -11,30 +11,12 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from abc import ABC
-from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
-from types import ModuleType
+from collections.abc import Mapping
 from typing import override
 
 from flext_core import s
-from pydantic_settings import BaseSettings
 
 from flext_cli import FlextCliSettings, m, p, t
-
-
-@dataclass
-class _CliRuntimeBootstrapOptions:
-    config_type: type[BaseSettings] | None = FlextCliSettings
-    config_overrides: Mapping[str, t.Scalar] | None = None
-    context: p.Context | None = None
-    subproject: str | None = None
-    services: Mapping[str, t.RegisterableService] | None = None
-    factories: Mapping[str, t.FactoryCallable] | None = None
-    resources: Mapping[str, t.ResourceCallable] | None = None
-    container_overrides: Mapping[str, t.Scalar] | None = None
-    wire_modules: Sequence[ModuleType] | None = None
-    wire_packages: Sequence[str] | None = None
-    wire_classes: Sequence[type] | None = None
 
 
 class FlextCliServiceBase(s[Mapping[str, t.Cli.JsonValue]], ABC):

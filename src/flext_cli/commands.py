@@ -19,9 +19,6 @@ from rich.errors import ConsoleError, LiveError, StyleError
 
 from flext_cli import FlextCliServiceBase, c, m, t
 
-FlextCliCommandGroup = m.Cli.CliCommandGroup
-FlextCliCommandEntryModel = m.Cli.CommandEntryModel
-
 
 class FlextCliCommands(FlextCliServiceBase):
     """CLI commands service for command registration and execution.
@@ -56,8 +53,8 @@ class FlextCliCommands(FlextCliServiceBase):
         )
         self._name = name
         self._description = description
-        self._commands: dict[str, FlextCliCommandEntryModel] = {}
-        self._groups: dict[str, FlextCliCommandGroup] = {}
+        self._commands: dict[str, m.Cli.CommandEntryModel] = {}
+        self._groups: dict[str, m.Cli.CliCommandGroup] = {}
 
     @property
     def description(self) -> str:
@@ -98,8 +95,8 @@ class FlextCliCommands(FlextCliServiceBase):
         self,
         name: str,
         description: str = "",
-        commands: Mapping[str, FlextCliCommandEntryModel] | None = None,
-    ) -> r[FlextCliCommandGroup]:
+        commands: Mapping[str, m.Cli.CommandEntryModel] | None = None,
+    ) -> r[m.Cli.CliCommandGroup]:
         """Create a command group.
 
         Args:
@@ -108,25 +105,25 @@ class FlextCliCommands(FlextCliServiceBase):
             commands: Dict of command name to handler info.
 
         Returns:
-            r[FlextCliCommandGroup]: Command group, or failure.
+            r[m.Cli.CliCommandGroup]: Command group, or failure.
 
         """
         if not name.strip():
-            return r[FlextCliCommandGroup].fail("Group name must be non-empty string")
+            return r[m.Cli.CliCommandGroup].fail("Group name must be non-empty string")
         if commands is None:
-            return r[FlextCliCommandGroup].fail(
+            return r[m.Cli.CliCommandGroup].fail(
                 "Commands are required for group creation",
             )
         group_commands: dict[str, t.Cli.JsonValue] = {
             key: value.model_dump(mode="python") for key, value in commands.items()
         }
-        group = FlextCliCommandGroup.model_validate({
+        group = m.Cli.CliCommandGroup.model_validate({
             "name": name,
             "description": description,
             "commands": group_commands,
         })
         self._groups[name] = group
-        return r[FlextCliCommandGroup].ok(group)
+        return r[m.Cli.CliCommandGroup].ok(group)
 
     def create_main_cli(self) -> Self:
         """Create the main CLI instance.
@@ -208,27 +205,27 @@ class FlextCliCommands(FlextCliServiceBase):
         ) as e:
             return r.fail(f"Command execution failed: {e}")
 
-    def get_click_group(self) -> FlextCliCommandGroup:
+    def get_click_group(self) -> m.Cli.CliCommandGroup:
         """Get Click group representation.
 
         Returns:
-            FlextCliCommandGroup: Click group info with name and commands.
+            m.Cli.CliCommandGroup: Click group info with name and commands.
 
         Note:
-            This returns a FlextCliCommandGroup object, not actual Click objects.
+            This returns a m.Cli.CliCommandGroup object, not actual Click objects.
             Use FlextCliCli for actual Click integration.
 
         """
         group_commands: dict[str, t.Cli.JsonValue] = {
             key: value.model_dump(mode="json") for key, value in self._commands.items()
         }
-        return FlextCliCommandGroup.model_validate({
+        return m.Cli.CliCommandGroup.model_validate({
             "name": self._name,
             "description": self._description,
             "commands": group_commands,
         })
 
-    def get_commands(self) -> Mapping[str, FlextCliCommandEntryModel]:
+    def get_commands(self) -> Mapping[str, m.Cli.CommandEntryModel]:
         """Get all registered commands.
 
         Returns:
@@ -263,7 +260,7 @@ class FlextCliCommands(FlextCliServiceBase):
         """
         if not name.strip():
             return r[bool].fail("Command name must be non-empty string")
-        self._commands[name] = FlextCliCommandEntryModel(name=name, handler=handler)
+        self._commands[name] = m.Cli.CommandEntryModel(name=name, handler=handler)
         return r[bool].ok(value=True)
 
     def run_cli(self, args: Sequence[str] | None = None) -> r[t.Cli.JsonValue]:
@@ -305,3 +302,6 @@ class FlextCliCommands(FlextCliServiceBase):
             return r[bool].fail(f"Command not found: {name}")
         del self._commands[name]
         return r[bool].ok(value=True)
+
+
+__all__ = ["FlextCliCommands"]

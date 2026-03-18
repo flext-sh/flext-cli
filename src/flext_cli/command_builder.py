@@ -201,3 +201,6 @@ class FlextCliCommandBuilder:
         """
         self._options.extend(group)
         return self
+
+
+__all__ = ["FlextCliCommandBuilder"]

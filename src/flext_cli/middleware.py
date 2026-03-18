@@ -188,3 +188,6 @@ class FlextCliMiddleware:
             return build_chain(0)(ctx)
 
         return composed
+
+
+__all__ = ["FlextCliLoggingMiddleware"]

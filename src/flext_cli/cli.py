@@ -20,11 +20,9 @@ from typing import IO, Annotated, ClassVar, Literal, overload
 
 import click
 import typer
-from click.exceptions import UsageError
 from flext_core import FlextContainer, FlextLogger, FlextRuntime, r
 from pydantic import BaseModel, TypeAdapter, ValidationError
 from rich.errors import ConsoleError, LiveError, StyleError
-from typer import Typer
 from typer.testing import CliRunner
 
 from flext_cli import FlextCliCommonParams, FlextCliSettings, c, m, p, t, u
@@ -995,4 +993,4 @@ class FlextCliCli:
                     return str(type_hint_candidate)
 
 
-__all__ = ["FlextCliCli", "Typer", "UsageError"]
+__all__ = ["FlextCliCli"]

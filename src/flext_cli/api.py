@@ -24,34 +24,25 @@ from flext_cli import (
     DecoratorCommandLike,
     FlextCliAppBase,
     FlextCliCli,
+    FlextCliCmd,
     FlextCliCommands,
     FlextCliCommonParams,
+    FlextCliCore,
     FlextCliDebug,
     FlextCliFileTools,
     FlextCliFormatters,
     FlextCliMixins,
+    FlextCliOutput,
+    FlextCliPrompts,
     FlextCliServiceBase,
     FlextCliSettings,
+    FlextCliTables,
     c,
     m,
     p,
     t,
     u,
 )
-from flext_cli.services import (
-    FlextCliCmd,
-    FlextCliCore,
-    FlextCliOutput,
-    FlextCliPrompts,
-    FlextCliTables,
-)
-
-
-def _is_registered_command(
-    obj: t.Cli.JsonValue | DecoratorCommandLike | Command,
-) -> TypeIs[p.Cli.CliRegisteredCommand]:
-    """Narrow to CliRegisteredCommand when protocol attributes are present."""
-    return callable(obj) and hasattr(obj, "name") and hasattr(obj, "callback")
 
 
 class FlextCli:
@@ -451,7 +442,7 @@ class FlextCli:
             else self._cli.create_group_decorator
         )
         decorated_func = factory(name=entity_name)(func)
-        if not _is_registered_command(decorated_func):
+        if not FlextCli._is_registered_command(decorated_func):
             msg = "decorated_func must implement CliRegisteredCommand protocol"
             raise TypeError(msg)
         registry = self._commands if entity_type == "command" else self._groups
@@ -459,5 +450,12 @@ class FlextCli:
         registry[entity_name] = registered_command
         return registered_command
 
+    @staticmethod
+    def _is_registered_command(
+        obj: t.Cli.JsonValue | DecoratorCommandLike | Command,
+    ) -> TypeIs[p.Cli.CliRegisteredCommand]:
+        """Narrow to CliRegisteredCommand when protocol attributes are present."""
+        return callable(obj) and hasattr(obj, "name") and hasattr(obj, "callback")
 
-__all__ = ["FlextCli", "FlextCliAppBase"]
+
+__all__ = ["FlextCli"]

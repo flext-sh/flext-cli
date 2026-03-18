@@ -412,4 +412,4 @@ class FlextCliDebug(FlextCliServiceBase):
             info_dict[error_key] = result.error or "Unknown error"
 
 
-__all__ = ["FlextCliDebug", "u"]
+__all__ = ["FlextCliDebug"]

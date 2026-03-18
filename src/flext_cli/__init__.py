@@ -27,14 +27,10 @@ if TYPE_CHECKING:
     from flext_cli.api import FlextCli
     from flext_cli.app_base import FlextCliAppBase
     from flext_cli.base import FlextCliServiceBase, s
-    from flext_cli.cli import FlextCliCli, Typer, UsageError
+    from flext_cli.cli import FlextCliCli
     from flext_cli.cli_params import FlextCliCommonParams
     from flext_cli.command_builder import FlextCliCommandBuilder
-    from flext_cli.commands import (
-        FlextCliCommandEntryModel,
-        FlextCliCommandGroup,
-        FlextCliCommands,
-    )
+    from flext_cli.commands import FlextCliCommands
     from flext_cli.constants import FlextCliConstants, c
     from flext_cli.debug import FlextCliDebug
     from flext_cli.file_tools import FlextCliFileTools
@@ -65,8 +61,6 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "FlextCliCli": ("flext_cli.cli", "FlextCliCli"),
     "FlextCliCmd": ("flext_cli.services.cmd", "FlextCliCmd"),
     "FlextCliCommandBuilder": ("flext_cli.command_builder", "FlextCliCommandBuilder"),
-    "FlextCliCommandEntryModel": ("flext_cli.commands", "FlextCliCommandEntryModel"),
-    "FlextCliCommandGroup": ("flext_cli.commands", "FlextCliCommandGroup"),
     "FlextCliCommands": ("flext_cli.commands", "FlextCliCommands"),
     "FlextCliCommonParams": ("flext_cli.cli_params", "FlextCliCommonParams"),
     "FlextCliConstants": ("flext_cli.constants", "FlextCliConstants"),
@@ -92,8 +86,6 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
         "flext_cli.middleware",
         "FlextCliValidationMiddleware",
     ),
-    "Typer": ("flext_cli.cli", "Typer"),
-    "UsageError": ("flext_cli.cli", "UsageError"),
     "__all__": ("flext_cli.__version__", "__all__"),
     "__author__": ("flext_cli.__version__", "__author__"),
     "__author_email__": ("flext_cli.__version__", "__author_email__"),
@@ -121,8 +113,6 @@ __all__ = [
     "FlextCliCli",
     "FlextCliCmd",
     "FlextCliCommandBuilder",
-    "FlextCliCommandEntryModel",
-    "FlextCliCommandGroup",
     "FlextCliCommands",
     "FlextCliCommonParams",
     "FlextCliConstants",
@@ -145,8 +135,6 @@ __all__ = [
     "FlextCliTypes",
     "FlextCliUtilities",
     "FlextCliValidationMiddleware",
-    "Typer",
-    "UsageError",
     "__all__",
     "__author__",
     "__author_email__",

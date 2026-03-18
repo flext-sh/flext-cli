@@ -47,8 +47,8 @@ class CliCommandInput(_PositionalModel):
     created_at: datetime | None = Field(default=None)
     command_line: str = Field(default="test_command")
     args: Sequence[str] = Field(default_factory=list)
-    result: object | None = Field(default=None)
-    kwargs: dict[str, object] = Field(default_factory=dict)
+    result: t.NormalizedValue = Field(default=None)
+    kwargs: dict[str, t.ContainerValue] = Field(default_factory=dict)
 
 
 class CliSessionInput(_PositionalModel):
@@ -67,7 +67,9 @@ class ScalarConfigRestore(RootModel[dict[str, _ScalarOnly]]):
     """Holds scalar-only config for container restore in fixtures. Filters nested values out."""
 
     @classmethod
-    def from_config_items(cls, items: Mapping[str, object]) -> ScalarConfigRestore:
+    def from_config_items(
+        cls, items: Mapping[str, t.NormalizedValue]
+    ) -> ScalarConfigRestore:
         """Build scalar-only dict from config items (drops nested dict/list/model)."""
         out: dict[str, _ScalarOnly] = {
             k: v
@@ -129,7 +131,7 @@ class ApiResponse(_PositionalModel):
 
     model_config = ConfigDict(extra="forbid")
     status: str = Field(description="Status")
-    data: object = Field(description="Payload")
+    data: t.NormalizedValue = Field(default=None, description="Payload")
     message: str = Field(description="Message")
     error: str | None = Field(default=None, description="Error")
 
