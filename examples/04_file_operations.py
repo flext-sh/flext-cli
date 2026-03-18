@@ -54,7 +54,7 @@ tables = FlextCliTables()
 
 
 def save_user_preferences(
-    preferences: dict[str, object],
+    preferences: dict[str, t.NormalizedValue],
     config_dir: Path,
 ) -> bool:
     """Save user preferences to JSON in YOUR app."""
@@ -99,7 +99,7 @@ def load_user_preferences(config_dir: Path) -> r[m.Cli.LoadedConfig]:
 
 
 def save_deployment_config(
-    config: dict[str, object],
+    config: dict[str, t.NormalizedValue],
     config_file: Path,
 ) -> bool:
     """Save deployment config to YAML in YOUR tool."""
@@ -141,7 +141,7 @@ def load_deployment_config(config_file: Path) -> r[m.Cli.LoadedConfig]:
 
 
 def export_database_report(
-    records: list[dict[str, object]],
+    records: list[dict[str, t.NormalizedValue]],
     output_file: Path,
     format_type: str = "grid",
 ) -> bool | None:
@@ -178,7 +178,7 @@ def list_project_files(project_dir: Path) -> None:
         return
 
     # Collect file metadata
-    files_data: list[dict[str, object]] = [
+    files_data: list[dict[str, t.NormalizedValue]] = [
         {
             "Name": item.name[:40],
             "Type": "📂 dir" if item.is_dir() else "📄 file",
@@ -298,7 +298,7 @@ def backup_config_files(source_dir: Path, backup_dir: Path) -> list[str]:
 
 
 def export_to_csv(
-    data: list[dict[str, object]],
+    data: list[dict[str, t.NormalizedValue]],
     output_file: Path,
 ) -> bool:
     """Export data to CSV with proper headers in YOUR reporting tool."""
@@ -344,7 +344,7 @@ def import_from_csv(input_file: Path) -> list[dict[str, str]] | None:
     # Display sample
     if rows:
         sample_rows = [dict(r) for r in rows[:5]]
-        tabular_data: list[dict[str, object]] = [dict(row) for row in sample_rows]
+        tabular_data: list[dict[str, t.NormalizedValue]] = [dict(row) for row in sample_rows]
         cli.show_table(tabular_data, title="📋 Sample Data")
     return [dict(r) for r in rows] if rows else None
 
@@ -420,7 +420,7 @@ def load_config_auto_detect(config_file: Path) -> r[m.Cli.LoadedConfig]:
 
 
 def export_multi_format(
-    data: dict[str, object] | list[dict[str, object]],
+    data: dict[str, t.NormalizedValue] | list[dict[str, t.NormalizedValue]],
     base_path: Path,
 ) -> dict[str, str]:
     """Export same data to multiple formats (JSON, YAML, CSV)."""
@@ -454,8 +454,8 @@ def export_multi_format(
         export_results["YAML"] = f"{size} bytes"
         cli.print(f"✅ YAML: {yaml_path.name} ({size} bytes)", style="green")
 
-    rows_adapter = TypeAdapter(list[dict[str, object]])
-    csv_rows_data: list[dict[str, object]]
+    rows_adapter = TypeAdapter(list[dict[str, t.NormalizedValue]])
+    csv_rows_data: list[dict[str, t.NormalizedValue]]
     try:
         csv_rows_data = rows_adapter.validate_python(data)
     except ValidationError:
@@ -588,13 +588,14 @@ def generate_output_files(
         return r[dict[str, Path]].fail(f"YAML export failed: {yaml_result.error}")
     results["yaml"] = yaml_file
 
-    rows_adapter = TypeAdapter(list[dict[str, object]])
-    csv_rows_data: list[dict[str, object]]
+    rows_adapter = TypeAdapter(list[dict[str, t.NormalizedValue]])
+    csv_rows_data: list[dict[str, t.NormalizedValue]]
+    content_items_list: list[object] = []
     content_items: object
     if isinstance(data.content, dict):
         content_items = data.content.get("items", [])
     else:
-        content_items = []
+        content_items = content_items_list
     try:
         csv_rows_data = rows_adapter.validate_python(content_items)
     except ValidationError:
@@ -643,7 +644,7 @@ def main() -> None:
 
     # Example 1: JSON preferences
     cli.print("\n1. JSON Config Files (user preferences):", style="bold cyan")
-    prefs: dict[str, object] = {
+    prefs: dict[str, t.NormalizedValue] = {
         "theme": "dark",
         "font_size": 14,
         "auto_save": True,
@@ -655,7 +656,7 @@ def main() -> None:
 
     # Example 2: YAML deployment config
     cli.print("\n2. YAML Configuration (deployment):", style="bold cyan")
-    deploy_config: dict[str, object] = {
+    deploy_config: dict[str, t.NormalizedValue] = {
         "environment": "staging",
         "host": "staging.example.com",
         "platform": platform.system(),
@@ -668,7 +669,7 @@ def main() -> None:
 
     # Example 3: Table export
     cli.print("\n3. Data Export (table format):", style="bold cyan")
-    sample_data: list[dict[str, object]] = [
+    sample_data: list[dict[str, t.NormalizedValue]] = [
         {"id": 1, "name": "Alice", "status": "active"},
         {"id": 2, "name": "Bob", "status": "inactive"},
     ]
@@ -685,7 +686,7 @@ def main() -> None:
 
     # Example 6: Data validation
     cli.print("\n6. Data Validation (ETL pipeline):", style="bold cyan")
-    test_data: dict[str, object] = {"id": 1, "name": "test", "value": 100}
+    test_data: dict[str, t.NormalizedValue] = {"id": 1, "name": "test", "value": 100}
     test_file = temp_dir / "test_data.json"
     cli.file_tools.write_json_file(test_file, test_data)
     valid_result = validate_and_import_data(test_file)
@@ -694,7 +695,7 @@ def main() -> None:
 
     # Example 7: CSV export/import
     cli.print("\n7. CSV Export/Import (with headers):", style="bold cyan")
-    csv_data: list[dict[str, object]] = [
+    csv_data: list[dict[str, t.NormalizedValue]] = [
         {"employee_id": 101, "name": "Alice Smith", "department": "Engineering"},
         {"employee_id": 102, "name": "Bob Jones", "department": "Sales"},
         {"employee_id": 103, "name": "Carol White", "department": "Marketing"},
@@ -712,7 +713,7 @@ def main() -> None:
 
     # Example 9: Auto-format detection
     cli.print("\n9. Auto-Format Detection:", style="bold cyan")
-    auto_config: dict[str, object] = {
+    auto_config: dict[str, t.NormalizedValue] = {
         "app": "demo",
         "version": "1.0",
         "enabled": True,
@@ -730,7 +731,7 @@ def main() -> None:
 
     # Example 10: Multi-format export
     cli.print("\n10. Multi-Format Export:", style="bold cyan")
-    multi_data: list[dict[str, object]] = [
+    multi_data: list[dict[str, t.NormalizedValue]] = [
         {"metric": "CPU", "value": "75%", "status": "OK"},
         {"metric": "Memory", "value": "82%", "status": "Warning"},
     ]
@@ -738,7 +739,7 @@ def main() -> None:
 
     # Example 11: Railway Pattern Pipeline
     cli.print("\n11. Railway Pattern Pipeline (complete workflow):", style="bold cyan")
-    pipeline_input: dict[str, object] = {
+    pipeline_input: dict[str, t.NormalizedValue] = {
         "name": "pipeline_demo",
         "version": "1.0",
         "items": [

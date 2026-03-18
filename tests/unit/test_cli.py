@@ -112,8 +112,7 @@ class TestsCliCli:
             if isinstance(choices, list):
                 choice_type = click.Choice(choices)
                 tm.that(isinstance(choice_type, click.Choice), eq=True)
-                choices_tuple: tuple[str, ...] = choice_type.choices
-                tm.that(choices_tuple, eq=tuple(choices))
+                assert tuple(choice_type.choices) == tuple(choices)
         elif click_type_name == "path":
             path_type = click.Path(
                 exists=bool(data_dict.get("exists")),
