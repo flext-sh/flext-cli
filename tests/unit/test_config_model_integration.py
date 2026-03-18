@@ -22,8 +22,7 @@ from flext_tests import tm
 from pydantic import BaseModel, Field, ValidationError
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from flext_cli import FlextCliCli, FlextCliSettings
-from tests.models import tm as tmm
+from flext_cli import FlextCliCli, FlextCliSettings, m
 
 
 class TestsCliConfigModelIntegration:
@@ -179,15 +178,15 @@ class TestsCliConfigModelIntegration:
         expected_data: dict[str, object],
     ) -> None:
         """Test parameter model validation with aliases."""
-        params = tmm.AliasedParams(input_data)
+        params = m.AliasedParams(input_data)
         for field_name, expected_value in expected_data.items():
             tm.that(getattr(params, field_name), eq=expected_value)
 
     def test_params_model_with_required_fields(self) -> None:
         """Test parameter model with required fields."""
         with pytest.raises(ValidationError):
-            tmm.RequiredFieldsParams({})
-        params = tmm.RequiredFieldsParams({"input_dir": "/test/input"})
+            m.RequiredFieldsParams({})
+        params = m.RequiredFieldsParams({"input_dir": "/test/input"})
         tm.that(params.input_dir, eq="/test/input")
         tm.that(params.output_dir is None, eq=True)
 
@@ -198,7 +197,7 @@ class TestsCliConfigModelIntegration:
         def handler(_params: BaseModel) -> None:
             pass
 
-        command = cli.model_command(tmm.AppParams, handler, config=config)
+        command = cli.model_command(m.AppParams, handler, config=config)
         tm.that(command is not None, eq=True)
         tm.that(callable(command), eq=True)
 
@@ -208,7 +207,7 @@ class TestsCliConfigModelIntegration:
         def handler(_params: BaseModel) -> None:
             pass
 
-        command = cli.model_command(tmm.SimpleParams, handler)
+        command = cli.model_command(m.SimpleParams, handler)
         tm.that(command is not None, eq=True)
 
     @pytest.mark.parametrize(
@@ -244,7 +243,7 @@ class TestsCliConfigModelIntegration:
 
     def test_field_alias_in_params_model(self) -> None:
         """Test field aliases are properly handled in parameter models."""
-        params = tmm.AliasedParams({
+        params = m.AliasedParams({
             "input-dir": "/input",
             "output-dir": "/output",
             "batch-size": 100,
@@ -252,7 +251,7 @@ class TestsCliConfigModelIntegration:
         tm.that(params.input_dir, eq="/input")
         tm.that(params.output_dir, eq="/output")
         tm.that(params.batch_size, eq=100)
-        params2 = tmm.AliasedParams({
+        params2 = m.AliasedParams({
             "input_dir": "/input2",
             "output_dir": "/output2",
             "batch_size": 200,
@@ -266,10 +265,10 @@ class TestsCliConfigModelIntegration:
         config = self.AppConfig()
         tm.that(config.input_dir, eq="/config/input")
         tm.that(config.output_dir, eq="/config/output")
-        params = tmm.AppParams()
+        params = m.AppParams()
         tm.that(params.input_dir is None, eq=True)
         tm.that(params.output_dir is None, eq=True)
-        params_from_config = tmm.AppParams({
+        params_from_config = m.AppParams({
             "input_dir": config.input_dir,
             "output_dir": config.output_dir,
         })
@@ -284,13 +283,13 @@ class TestsCliConfigModelIntegration:
 
     def test_params_validation_with_none_values(self) -> None:
         """Test parameter validation with None values."""
-        params = tmm.AliasedParams({})
+        params = m.AliasedParams({})
         tm.that(params.input_dir is None, eq=True)
         tm.that(params.output_dir is None, eq=True)
 
     def test_params_validation_with_mixed_values(self) -> None:
         """Test parameter validation with mixed None and non-None values."""
-        params_mixed = tmm.AliasedParams({"input_dir": "/input"})
+        params_mixed = m.AliasedParams({"input_dir": "/input"})
         tm.that(params_mixed.input_dir, eq="/input")
         tm.that(params_mixed.output_dir is None, eq=True)
 
@@ -303,7 +302,7 @@ class TestsCliConfigModelIntegration:
             "batch_size": config.batch_size,
             "verbose_mode": config.verbose,
         }
-        params = tmm.FullAppParams(cli_args)
+        params = m.FullAppParams(cli_args)
         tm.that(params.input_dir, eq="/app/input")
         tm.that(params.output_dir, eq="/app/output")
         tm.that(params.batch_size, eq=1000)
@@ -312,22 +311,22 @@ class TestsCliConfigModelIntegration:
     def test_cli_parameter_override_config(self) -> None:
         """Test that CLI parameters override config defaults."""
         cli_override = {"input_dir": "/cli/input", "batch_size": 200}
-        params = tmm.AliasedParams(cli_override)
+        params = m.AliasedParams(cli_override)
         tm.that(params.input_dir, eq="/cli/input")
         tm.that(params.batch_size, eq=200)
 
     def test_params_validation_strict(self) -> None:
         """Test params validation with strict mode."""
-        params = tmm.StrictParams({"name": "test", "count": 5})
+        params = m.StrictParams({"name": "test", "count": 5})
         tm.that(params.name, eq="test")
         tm.that(params.count, eq=5)
 
     def test_params_forbid_extra_fields(self) -> None:
         """Test params model forbids extra fields."""
-        params = tmm.ForbidExtraParams({"name": "test"})
+        params = m.ForbidExtraParams({"name": "test"})
         tm.that(params.name, eq="test")
         with pytest.raises(ValidationError):
-            tmm.ForbidExtraParams({
+            m.ForbidExtraParams({
                 "name": "test",
                 "extra_field": "value",
             })

@@ -14,9 +14,10 @@ from collections.abc import Mapping, Sequence
 from datetime import datetime
 from typing import Literal
 
-from flext_tests import FlextTestsMopdels
+from flext_tests import FlextTestsModels
 from pydantic import BaseModel, ConfigDict, Field, RootModel, field_validator
 
+from flext_cli import FlextCliModels
 from flext_cli.typings import t
 
 
@@ -299,7 +300,7 @@ _StrictParamsModel = StrictParams
 _ForbidExtraParamsModel = ForbidExtraParams
 
 
-class TestsFlextCliModels(FlextTestsMopdels):
+class TestsFlextCliModels(FlextTestsModels, FlextCliModels):
     """Test namespace facade for flext-cli models. Use tm alias; m is flext_cli.FlextCliModels."""
 
     CliCommandInput = _CliCommandInputModel

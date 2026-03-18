@@ -767,7 +767,7 @@ class TestsCliPrompts:
         """Test _print_message with exception."""
         logger_error_msg = "Logger error"
 
-        def mock_info(*args, **kwargs: t.Scalar) -> None:
+        def mock_info(*args: t.Scalar, **kwargs: t.Scalar) -> None:
             raise ValueError(logger_error_msg)
 
         monkeypatch.setattr(prompts.logger, "info", mock_info)
@@ -794,7 +794,7 @@ class TestsCliPrompts:
         progress_error_msg = "Progress error"
         original_info = prompts.logger.info
 
-        def mock_info(message: str, *args, **kwargs: t.Scalar) -> None:
+        def mock_info(message: str, *args: t.Scalar, **kwargs: t.Scalar) -> None:
             if "Starting progress" in str(message):
                 raise ValueError(progress_error_msg)
             original_info(str(message))
@@ -810,7 +810,7 @@ class TestsCliPrompts:
         progress_error_msg = "Progress error"
         original_info = prompts.logger.info
 
-        def mock_info(message: str, *args, **kwargs: t.Scalar) -> None:
+        def mock_info(message: str, *args: t.Scalar, **kwargs: t.Scalar) -> None:
             if "Starting progress operation" in str(message):
                 raise ValueError(progress_error_msg)
             original_info(str(message))
@@ -882,7 +882,7 @@ class TestsCliPrompts:
         execute_error_msg = "Execute error"
         original_debug = prompts.logger.debug
 
-        def mock_debug(message: str, *args, **kwargs: t.Scalar) -> None:
+        def mock_debug(message: str, *args: t.Scalar, **kwargs: t.Scalar) -> None:
             if "Prompt service execution completed" in str(message):
                 raise ValueError(execute_error_msg)
             original_debug(str(message))

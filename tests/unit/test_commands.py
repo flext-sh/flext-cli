@@ -275,7 +275,7 @@ class TestsCliCommands:
         """Test create_command_group method."""
         commands = CommandsFactory.create_commands()
 
-        def grouped_handler(*args, **kwargs: t.Scalar) -> r:
+        def grouped_handler(*args: t.Scalar, **kwargs: t.Scalar) -> r[str]:
             _ = (args, kwargs)
             return r.ok("result1")
 
