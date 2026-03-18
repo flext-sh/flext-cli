@@ -1,0 +1,57 @@
+examples/08_shell_interaction.py
+  9c2ae28ff1fe18e6 36
+examples/04_file_operations.py
+  9c2ae28ff1fe18e6 42,93
+examples/01_getting_started.py
+  9c2ae28ff1fe18e6 78
+examples/06_configuration.py
+  060a0bdb54558ba0 94
+  9c2ae28ff1fe18e6 34
+examples/02_output_formatting.py
+  9c2ae28ff1fe18e6 41-42
+examples/11_complete_integration.py
+  9c2ae28ff1fe18e6 30
+examples/models.py
+  9c2ae28ff1fe18e6 27
+examples/05_authentication.py
+  9c2ae28ff1fe18e6 32
+examples/10_testing_utilities.py
+  9c2ae28ff1fe18e6 30
+examples/example_utils.py
+  060a0bdb54558ba0 29
+examples/07_plugin_system.py
+  9c2ae28ff1fe18e6 35-36
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.15",
+  "base_commit_sha": "71994496957da8612d83ac36d12033a447c3c54c",
+  "prompts": {
+    "060a0bdb54558ba0": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_2fdca0b18ffe253PdbsMazHH00",
+        "model": "anthropic/claude-haiku-4-5"
+      },
+      "human_author": "FLEXT Bot <team@flext.sh>",
+      "messages": [],
+      "total_additions": 2,
+      "total_deletions": 2,
+      "accepted_lines": 2,
+      "overriden_lines": 0
+    },
+    "9c2ae28ff1fe18e6": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_2fdda5704ffetdWKA5R07R3uYX",
+        "model": "anthropic/claude-haiku-4-5"
+      },
+      "human_author": "FLEXT Bot <team@flext.sh>",
+      "messages": [],
+      "total_additions": 33,
+      "total_deletions": 26,
+      "accepted_lines": 13,
+      "overriden_lines": 2
+    }
+  }
+}
