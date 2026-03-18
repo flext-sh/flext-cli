@@ -19,10 +19,10 @@ from pathlib import Path
 
 import pytest
 from flext_tests import tm
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from flext_cli import FlextCliCli, FlextCliSettings, m
+from flext_cli import FlextCliCli, FlextCliSettings
 
 
 class TestsCliConfigModelIntegration:
@@ -96,6 +96,52 @@ class TestsCliConfigModelIntegration:
         model_config = SettingsConfigDict(env_prefix="APP_")
         optional_path: str | None = Field(default=None)
         required_path: str = Field(default="/default")
+
+    class AliasedParams(BaseModel):
+        """Parameters with field aliases."""
+
+        input_dir: str | None = Field(default=None, alias="input-dir")
+        output_dir: str | None = Field(default=None, alias="output-dir")
+        batch_size: int | None = Field(default=None, alias="batch-size")
+
+    class RequiredFieldsParams(BaseModel):
+        """Parameters with required fields."""
+
+        input_dir: str
+        output_dir: str | None = Field(default=None)
+
+    class AppParams(BaseModel):
+        """Application parameters."""
+
+        input_dir: str | None = Field(default=None)
+        output_dir: str | None = Field(default=None)
+
+    class SimpleParams(BaseModel):
+        """Simple parameters."""
+
+        name: str | None = Field(default=None)
+        value: str | None = Field(default=None)
+
+    class FullAppParams(BaseModel):
+        """Full application parameters."""
+
+        input_dir: str | None = Field(default=None)
+        output_dir: str | None = Field(default=None)
+        batch_size: int | None = Field(default=None)
+        verbose: bool = Field(default=False)
+
+    class StrictParams(BaseModel):
+        """Strict parameters with validation."""
+
+        input_dir: str
+        output_dir: str
+
+    class ForbidExtraParams(BaseModel):
+        """Parameters that forbid extra fields."""
+
+        model_config = ConfigDict(extra="forbid")
+        input_dir: str | None = Field(default=None)
+        output_dir: str | None = Field(default=None)
 
     @pytest.fixture
     def cli(self) -> FlextCliCli:
@@ -178,15 +224,15 @@ class TestsCliConfigModelIntegration:
         expected_data: dict[str, object],
     ) -> None:
         """Test parameter model validation with aliases."""
-        params = m.AliasedParams(input_data)
+        params = self.AliasedParams(input_data)
         for field_name, expected_value in expected_data.items():
             tm.that(getattr(params, field_name), eq=expected_value)
 
     def test_params_model_with_required_fields(self) -> None:
         """Test parameter model with required fields."""
         with pytest.raises(ValidationError):
-            m.RequiredFieldsParams({})
-        params = m.RequiredFieldsParams({"input_dir": "/test/input"})
+            self.RequiredFieldsParams()
+        params = self.RequiredFieldsParams(input_dir="/test/input")
         tm.that(params.input_dir, eq="/test/input")
         tm.that(params.output_dir is None, eq=True)
 
@@ -197,7 +243,7 @@ class TestsCliConfigModelIntegration:
         def handler(_params: BaseModel) -> None:
             pass
 
-        command = cli.model_command(m.AppParams, handler, config=config)
+        command = cli.model_command(self.AppParams, handler, config=config)
         tm.that(command is not None, eq=True)
         tm.that(callable(command), eq=True)
 
@@ -207,7 +253,7 @@ class TestsCliConfigModelIntegration:
         def handler(_params: BaseModel) -> None:
             pass
 
-        command = cli.model_command(m.SimpleParams, handler)
+        command = cli.model_command(self.SimpleParams, handler)
         tm.that(command is not None, eq=True)
 
     @pytest.mark.parametrize(
@@ -243,7 +289,7 @@ class TestsCliConfigModelIntegration:
 
     def test_field_alias_in_params_model(self) -> None:
         """Test field aliases are properly handled in parameter models."""
-        params = m.AliasedParams({
+        params = self.AliasedParams(**{
             "input-dir": "/input",
             "output-dir": "/output",
             "batch-size": 100,
@@ -251,11 +297,9 @@ class TestsCliConfigModelIntegration:
         tm.that(params.input_dir, eq="/input")
         tm.that(params.output_dir, eq="/output")
         tm.that(params.batch_size, eq=100)
-        params2 = m.AliasedParams({
-            "input_dir": "/input2",
-            "output_dir": "/output2",
-            "batch_size": 200,
-        })
+        params2 = self.AliasedParams(
+            input_dir="/input2", output_dir="/output2", batch_size=200
+        )
         tm.that(params2.input_dir, eq="/input2")
         tm.that(params2.output_dir, eq="/output2")
         tm.that(params2.batch_size, eq=200)
@@ -265,13 +309,12 @@ class TestsCliConfigModelIntegration:
         config = self.AppConfig()
         tm.that(config.input_dir, eq="/config/input")
         tm.that(config.output_dir, eq="/config/output")
-        params = m.AppParams()
+        params = self.AppParams()
         tm.that(params.input_dir is None, eq=True)
         tm.that(params.output_dir is None, eq=True)
-        params_from_config = m.AppParams({
-            "input_dir": config.input_dir,
-            "output_dir": config.output_dir,
-        })
+        params_from_config = self.AppParams(
+            input_dir=config.input_dir, output_dir=config.output_dir
+        )
         tm.that(params_from_config.input_dir, eq="/config/input")
         tm.that(params_from_config.output_dir, eq="/config/output")
 
@@ -283,13 +326,13 @@ class TestsCliConfigModelIntegration:
 
     def test_params_validation_with_none_values(self) -> None:
         """Test parameter validation with None values."""
-        params = m.AliasedParams({})
+        params = self.AliasedParams()
         tm.that(params.input_dir is None, eq=True)
         tm.that(params.output_dir is None, eq=True)
 
     def test_params_validation_with_mixed_values(self) -> None:
         """Test parameter validation with mixed None and non-None values."""
-        params_mixed = m.AliasedParams({"input_dir": "/input"})
+        params_mixed = self.AliasedParams(input_dir="/input")
         tm.that(params_mixed.input_dir, eq="/input")
         tm.that(params_mixed.output_dir is None, eq=True)
 
@@ -302,7 +345,7 @@ class TestsCliConfigModelIntegration:
             "batch_size": config.batch_size,
             "verbose_mode": config.verbose,
         }
-        params = m.FullAppParams(cli_args)
+        params = self.FullAppParams(cli_args)
         tm.that(params.input_dir, eq="/app/input")
         tm.that(params.output_dir, eq="/app/output")
         tm.that(params.batch_size, eq=1000)
@@ -311,25 +354,22 @@ class TestsCliConfigModelIntegration:
     def test_cli_parameter_override_config(self) -> None:
         """Test that CLI parameters override config defaults."""
         cli_override = {"input_dir": "/cli/input", "batch_size": 200}
-        params = m.AliasedParams(cli_override)
+        params = self.AliasedParams(cli_override)
         tm.that(params.input_dir, eq="/cli/input")
         tm.that(params.batch_size, eq=200)
 
     def test_params_validation_strict(self) -> None:
         """Test params validation with strict mode."""
-        params = m.StrictParams({"name": "test", "count": 5})
+        params = self.StrictParams(name="test", count=5)
         tm.that(params.name, eq="test")
         tm.that(params.count, eq=5)
 
     def test_params_forbid_extra_fields(self) -> None:
         """Test params model forbids extra fields."""
-        params = m.ForbidExtraParams({"name": "test"})
+        params = self.ForbidExtraParams(name="test")
         tm.that(params.name, eq="test")
         with pytest.raises(ValidationError):
-            m.ForbidExtraParams({
-                "name": "test",
-                "extra_field": "value",
-            })
+            self.ForbidExtraParams(name="test", extra_field="value")
 
     def test_config_value_extraction_int_field(self) -> None:
         """Test extracting integer values from config."""

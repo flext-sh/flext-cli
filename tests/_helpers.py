@@ -33,7 +33,7 @@ def create_test_cli_command(**overrides: t.ContainerValue) -> m.Cli.CliCommand:
     _ = merged.pop("command_id", None)
     _ = merged.pop("arguments", None)
     filtered = {k: v for k, v in merged.items() if k in CliCommandInput.model_fields}
-    inp = CliCommandInput(filtered)
+    inp = CliCommandInput(**filtered)
     return m.Cli.CliCommand.model_construct(
         _fields_set=None, **inp.model_dump(exclude_none=True)
     )
@@ -52,7 +52,7 @@ def create_test_cli_session(**overrides: t.ContainerValue) -> m.Cli.CliSession:
         for k, v in {**payload, **overrides}.items()
         if k in CliSessionInput.model_fields
     }
-    inp = CliSessionInput(filtered)
+    inp = CliSessionInput(**filtered)
     session = m.Cli.CliSession.model_construct(
         _fields_set=None, **inp.model_dump(exclude_none=True)
     )
