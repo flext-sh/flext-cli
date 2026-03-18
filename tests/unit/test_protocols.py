@@ -154,7 +154,7 @@ class TestsCliProtocols:
 
     def test_cli_authenticator_implementation(self) -> None:
         """Test CLI authenticator protocol implementation."""
-        auth_result: r[dict[str, t.Cli.JsonValue]] = (
+        auth_result = (
             FlextCliTestHelpers.ProtocolHelpers.create_authenticator_implementation()
         )
         (
