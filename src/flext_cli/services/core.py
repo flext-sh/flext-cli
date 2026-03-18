@@ -95,7 +95,8 @@ class FlextCliCore(FlextCliServiceBase):
     _session_start_time: str
 
     def __init__(
-        self, config: Mapping[str, FlextCliTypes.Cli.JsonValue] | None = None
+        self,
+        config: Mapping[str, FlextCliTypes.Cli.JsonValue] | None = None,
     ) -> None:
         """Initialize CLI core with optional configuration seed values.
 
@@ -110,7 +111,9 @@ class FlextCliCore(FlextCliServiceBase):
             initial_context=None,
         )
         object.__setattr__(
-            self, "_cli_config", dict(config) if config is not None else {}
+            self,
+            "_cli_config",
+            dict(config) if config is not None else {},
         )
         object.__setattr__(self, "_commands", {})
         object.__setattr__(self, "_registry", FlextRegistry())
@@ -133,7 +136,8 @@ class FlextCliCore(FlextCliServiceBase):
 
     @staticmethod
     def _get_dict_keys(
-        data_dict: Mapping[str, FlextCliTypes.Cli.JsonValue] | None, error_message: str
+        data_dict: Mapping[str, FlextCliTypes.Cli.JsonValue] | None,
+        error_message: str,
     ) -> r[list[str]]:
         """Generic method to safely get keys from a dictionary.
 
@@ -163,7 +167,9 @@ class FlextCliCore(FlextCliServiceBase):
         ).map_error(lambda e: error_message.format(error=e))
 
     def create_profile(
-        self, name: str, profile_config: Mapping[str, FlextCliTypes.Cli.JsonValue]
+        self,
+        name: str,
+        profile_config: Mapping[str, FlextCliTypes.Cli.JsonValue],
     ) -> r[bool]:
         """Create CLI configuration profile using railway pattern.
 
@@ -187,11 +193,13 @@ class FlextCliCore(FlextCliServiceBase):
             config: dict[str, FlextCliTypes.Cli.JsonValue] = dict(self._cli_config)
             default_dict: dict[str, FlextCliTypes.Cli.JsonValue] = {}
             profiles_result_raw = FlextCliUtilities.extract(
-                config, c.Cli.DictKeys.PROFILES, default=default_dict
+                config,
+                c.Cli.DictKeys.PROFILES,
+                default=default_dict,
             )
             if profiles_result_raw.is_failure:
                 return r[bool].fail(
-                    profiles_result_raw.error or "Failed to extract profiles"
+                    profiles_result_raw.error or "Failed to extract profiles",
                 )
             profiles_value = profiles_result_raw.value
             profiles_section_raw: dict[str, FlextCliTypes.Cli.JsonValue] = {}
@@ -201,18 +209,18 @@ class FlextCliCore(FlextCliServiceBase):
                     for key, value in profiles_value.items()
                 }
             profiles_section_raw_typed: dict[str, FlextCliTypes.Cli.JsonValue] = dict(
-                profiles_section_raw
+                profiles_section_raw,
             )
             profiles_section_raw_typed[name] = profile_config
             config[c.Cli.DictKeys.PROFILES] = profiles_section_raw_typed
             object.__setattr__(self, "_cli_config", config)
             FlextLogger(__name__).info(
-                c.Cli.LogMessages.PROFILE_CREATED.format(name=name)
+                c.Cli.LogMessages.PROFILE_CREATED.format(name=name),
             )
             return r[bool].ok(value=True)
         except (ValueError, TypeError, AttributeError, KeyError, RuntimeError) as e:
             return r[bool].fail(
-                c.Cli.ErrorMessages.PROFILE_CREATION_FAILED.format(error=e)
+                c.Cli.ErrorMessages.PROFILE_CREATION_FAILED.format(error=e),
             )
 
     def end_session(self) -> r[bool]:
@@ -301,8 +309,8 @@ class FlextCliCore(FlextCliServiceBase):
                 )
                 return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].fail(
                     c.Cli.ErrorMessages.COMMAND_LISTING_FAILED.format(
-                        error="No commands registered"
-                    )
+                        error="No commands registered",
+                    ),
                 )
             result_model = m.Cli.ServiceExecutionResult(
                 service_executed=True,
@@ -323,7 +331,7 @@ class FlextCliCore(FlextCliServiceBase):
                 commands_count=result_model.commands_count,
             )
             return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].ok(
-                result_model.model_dump()
+                result_model.model_dump(),
             )
         except (
             ValueError,
@@ -342,11 +350,14 @@ class FlextCliCore(FlextCliServiceBase):
                 severity="critical",
             )
             return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].fail(
-                c.Cli.CoreServiceLogMessages.SERVICE_EXECUTION_FAILED.format(error=e)
+                c.Cli.CoreServiceLogMessages.SERVICE_EXECUTION_FAILED.format(error=e),
             )
 
     def execute_cli_command_with_context(
-        self, command_name: str, user_id: str | None = None, **context_data: t.Scalar
+        self,
+        command_name: str,
+        user_id: str | None = None,
+        **context_data: t.Scalar,
     ) -> r[Mapping[str, FlextCliTypes.Cli.JsonValue]]:
         """Execute CLI command with automatic context enrichment (Phase 1 pattern).
 
@@ -401,7 +412,7 @@ class FlextCliCore(FlextCliServiceBase):
             },
         )
         return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].ok(
-            result_model.model_dump(mode="json")
+            result_model.model_dump(mode="json"),
         )
 
     def execute_command(
@@ -416,7 +427,7 @@ class FlextCliCore(FlextCliServiceBase):
         if command_result.is_failure:
             FlextLogger(__name__).error("FAILED - command not found", command_name=name)
             return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].fail(
-                command_result.error or "Command not found"
+                command_result.error or "Command not found",
             )
         try:
             execution_context = self._build_execution_context(context)
@@ -428,7 +439,8 @@ class FlextCliCore(FlextCliServiceBase):
                 c.Cli.DictKeys.CONTEXT: dict(execution_context),
             }
             FlextLogger(__name__).info(
-                "COMPLETED CLI command execution", command_name=name
+                "COMPLETED CLI command execution",
+                command_name=name,
             )
             return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].ok(result_dict)
         except (
@@ -440,10 +452,11 @@ class FlextCliCore(FlextCliServiceBase):
             LiveError,
         ) as e:
             FlextLogger(__name__).exception(
-                "FAILED CLI command execution", command_name=name
+                "FAILED CLI command execution",
+                command_name=name,
             )
             return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].fail(
-                c.Cli.ErrorMessages.COMMAND_EXECUTION_FAILED.format(error=e)
+                c.Cli.ErrorMessages.COMMAND_EXECUTION_FAILED.format(error=e),
             )
 
     def get_command(self, name: str) -> r[m.Configuration]:
@@ -479,7 +492,7 @@ class FlextCliCore(FlextCliServiceBase):
                 consequence="Command retrieval will fail",
             )
             return r[m.Configuration].fail(
-                c.Cli.ErrorMessages.COMMAND_NOT_FOUND.format(name=name)
+                c.Cli.ErrorMessages.COMMAND_NOT_FOUND.format(name=name),
             )
         try:
             command_def = self._commands[name]
@@ -499,7 +512,7 @@ class FlextCliCore(FlextCliServiceBase):
                 str(key): value for key, value in command_def.items()
             }
             return r[m.Configuration].ok(
-                m.Configuration(config=t.Dict(root=snapshot_config))
+                m.Configuration(config=t.Dict(root=snapshot_config)),
             )
         except (
             ValueError,
@@ -518,7 +531,7 @@ class FlextCliCore(FlextCliServiceBase):
                 consequence="Command retrieval failed completely",
             )
             return r[m.Configuration].fail(
-                c.Cli.ErrorMessages.COMMAND_RETRIEVAL_FAILED.format(error=e)
+                c.Cli.ErrorMessages.COMMAND_RETRIEVAL_FAILED.format(error=e),
             )
 
     def get_command_statistics(self) -> r[Mapping[str, FlextCliTypes.Cli.JsonValue]]:
@@ -540,7 +553,7 @@ class FlextCliCore(FlextCliServiceBase):
                 failed_commands=0,
             )
             return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].ok(
-                stats_model.model_dump(mode="json")
+                stats_model.model_dump(mode="json"),
             )
         except (
             ValueError,
@@ -551,7 +564,7 @@ class FlextCliCore(FlextCliServiceBase):
             LiveError,
         ) as e:
             return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].fail(
-                c.Cli.ErrorMessages.CLI_EXECUTION_ERROR.format(error=e)
+                c.Cli.ErrorMessages.CLI_EXECUTION_ERROR.format(error=e),
             )
 
     def get_config(self) -> r[Mapping[str, FlextCliTypes.Cli.JsonValue]]:
@@ -564,7 +577,7 @@ class FlextCliCore(FlextCliServiceBase):
         try:
             if not self._cli_config:
                 return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].fail(
-                    c.Cli.ErrorMessages.CONFIG_NOT_INITIALIZED
+                    c.Cli.ErrorMessages.CONFIG_NOT_INITIALIZED,
                 )
             return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].ok(self._cli_config)
         except (
@@ -576,7 +589,7 @@ class FlextCliCore(FlextCliServiceBase):
             LiveError,
         ) as e:
             return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].fail(
-                c.Cli.ErrorMessages.CONFIG_RETRIEVAL_FAILED.format(error=e)
+                c.Cli.ErrorMessages.CONFIG_RETRIEVAL_FAILED.format(error=e),
             )
 
     def get_configuration(self) -> r[Mapping[str, FlextCliTypes.Cli.JsonValue]]:
@@ -606,7 +619,7 @@ class FlextCliCore(FlextCliServiceBase):
                         consequence="Configuration retrieval will fail",
                     )
                     return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].fail(
-                        c.Cli.ErrorMessages.CONFIG_NOT_INITIALIZED
+                        c.Cli.ErrorMessages.CONFIG_NOT_INITIALIZED,
                     )
                 FlextLogger(__name__).debug(
                     "Configuration retrieved successfully",
@@ -614,7 +627,8 @@ class FlextCliCore(FlextCliServiceBase):
                     config_keys=str(list(self._cli_config.keys())),
                 )
                 FlextLogger(__name__).info(
-                    "Configuration retrieval completed", operation="get_configuration"
+                    "Configuration retrieval completed",
+                    operation="get_configuration",
                 )
                 return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].ok(self._cli_config)
             except (
@@ -633,7 +647,7 @@ class FlextCliCore(FlextCliServiceBase):
                     consequence="Configuration retrieval failed completely",
                 )
                 return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].fail(
-                    c.Cli.ErrorMessages.CONFIG_RETRIEVAL_FAILED.format(error=e)
+                    c.Cli.ErrorMessages.CONFIG_RETRIEVAL_FAILED.format(error=e),
                 )
 
         return validate_config_state()
@@ -646,7 +660,8 @@ class FlextCliCore(FlextCliServiceBase):
 
         """
         return self._get_dict_keys(
-            self._commands, c.Cli.ErrorMessages.COMMAND_LISTING_FAILED
+            self._commands,
+            c.Cli.ErrorMessages.COMMAND_LISTING_FAILED,
         )
 
     def get_plugins(self) -> r[list[str]]:
@@ -677,7 +692,7 @@ class FlextCliCore(FlextCliServiceBase):
                 c.Cli.DictKeys.SERVICE: c.Cli.FLEXT_CLI,
                 c.Cli.CoreServiceDictKeys.COMMANDS_REGISTERED: commands_count,
                 c.Cli.CoreServiceDictKeys.CONFIGURATION_SECTIONS: ",".join(
-                    config_keys_list
+                    config_keys_list,
                 ),
                 c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.OPERATIONAL.value
                 if self._session_active
@@ -695,7 +710,7 @@ class FlextCliCore(FlextCliServiceBase):
             LiveError,
         ) as e:
             FlextLogger(__name__).exception(
-                c.Cli.CoreServiceLogMessages.SERVICE_INFO_COLLECTION_FAILED
+                c.Cli.CoreServiceLogMessages.SERVICE_INFO_COLLECTION_FAILED,
             )
             return {c.Cli.DictKeys.MESSAGE: str(e)}
 
@@ -725,7 +740,7 @@ class FlextCliCore(FlextCliServiceBase):
                 consequence="Statistics collection will fail",
             )
             return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].fail(
-                c.Cli.ErrorMessages.NO_ACTIVE_SESSION
+                c.Cli.ErrorMessages.NO_ACTIVE_SESSION,
             )
         try:
             session_duration = c.Cli.CoreServiceDefaults.SESSION_DURATION_INIT
@@ -755,7 +770,7 @@ class FlextCliCore(FlextCliServiceBase):
                 session_duration_seconds=stats_model.session_duration_seconds,
             )
             return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].ok(
-                stats_model.model_dump(mode="json")
+                stats_model.model_dump(mode="json"),
             )
         except (
             ValueError,
@@ -774,8 +789,8 @@ class FlextCliCore(FlextCliServiceBase):
             )
             return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].fail(
                 c.Cli.CoreServiceLogMessages.SESSION_STATS_COLLECTION_FAILED.format(
-                    error=e
-                )
+                    error=e,
+                ),
             )
 
     def health_check(self) -> r[Mapping[str, FlextCliTypes.Cli.JsonValue]]:
@@ -801,7 +816,7 @@ class FlextCliCore(FlextCliServiceBase):
             LiveError,
         ) as e:
             return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].fail(
-                c.Cli.ErrorMessages.CLI_EXECUTION_ERROR.format(error=e)
+                c.Cli.ErrorMessages.CLI_EXECUTION_ERROR.format(error=e),
             )
 
     def is_session_active(self) -> bool:
@@ -861,7 +876,7 @@ class FlextCliCore(FlextCliServiceBase):
                     consequence="Command list unavailable",
                 )
                 return r[list[str]].fail(
-                    c.Cli.ErrorMessages.COMMAND_LISTING_FAILED.format(error=e)
+                    c.Cli.ErrorMessages.COMMAND_LISTING_FAILED.format(error=e),
                 )
 
         return extract_command_names()
@@ -930,12 +945,14 @@ class FlextCliCore(FlextCliServiceBase):
             )
             return r[bool].fail(
                 c.Cli.ErrorMessages.COMMAND_REGISTRATION_FAILED.format(
-                    command=command.name, error=str(e)
-                )
+                    command=command.name,
+                    error=str(e),
+                ),
             )
 
     def start_session(
-        self, session_config: Mapping[str, FlextCliTypes.Cli.JsonValue] | None = None
+        self,
+        session_config: Mapping[str, FlextCliTypes.Cli.JsonValue] | None = None,
     ) -> r[bool]:
         """Start CLI session with configuration.
 
@@ -970,7 +987,7 @@ class FlextCliCore(FlextCliServiceBase):
             LiveError,
         ) as e:
             return r[bool].fail(
-                c.Cli.ErrorMessages.SESSION_START_FAILED.format(error=e)
+                c.Cli.ErrorMessages.SESSION_START_FAILED.format(error=e),
             )
 
     def update_configuration(self, config: FlextCliTypes.Cli.JsonValue) -> r[bool]:
@@ -1006,15 +1023,16 @@ class FlextCliCore(FlextCliServiceBase):
         config_result = self._validate_config_input(validated_config_input)
         if config_result.is_failure:
             return r[bool].fail(
-                config_result.error or "Configuration validation failed"
+                config_result.error or "Configuration validation failed",
             )
         merged_config_val: dict[str, FlextCliTypes.Cli.JsonValue] = dict(
-            config_result.value or {}
+            config_result.value or {},
         )
         return self._merge_configurations(merged_config_val)
 
     def _build_execution_context(
-        self, context: Mapping[str, FlextCliTypes.Cli.JsonValue] | list[str] | None
+        self,
+        context: Mapping[str, FlextCliTypes.Cli.JsonValue] | list[str] | None,
     ) -> Mapping[str, FlextCliTypes.Cli.JsonValue]:
         """Build execution context via ExecutionContextInput model (single Pydantic contract)."""
         ctx_input = m.Cli.ExecutionContextInput.model_validate(context)
@@ -1034,7 +1052,8 @@ class FlextCliCore(FlextCliServiceBase):
         FlextLogger(__name__).info(c.Cli.LogMessages.CLI_CONFIG_UPDATED)
 
     def _merge_configurations(
-        self, valid_config: Mapping[str, FlextCliTypes.Cli.JsonValue]
+        self,
+        valid_config: Mapping[str, FlextCliTypes.Cli.JsonValue],
     ) -> r[bool]:
         """Merge new configuration with existing one."""
         try:
@@ -1053,13 +1072,13 @@ class FlextCliCore(FlextCliServiceBase):
                     consequence="Configuration merge will fail",
                 )
                 return r[bool].fail(
-                    existing_config_result.error or "Config validation failed"
+                    existing_config_result.error or "Config validation failed",
                 )
             existing_config_raw: dict[str, FlextCliTypes.Cli.JsonValue] = dict(
-                existing_config_result.value or {}
+                existing_config_result.value or {},
             )
             existing_config: dict[str, FlextCliTypes.Cli.JsonValue] = dict(
-                existing_config_raw
+                existing_config_raw,
             )
             transformed_config = FlextCliOutput.to_dict_json(valid_config)
             existing_config_guard: dict[str, FlextCliTypes.Cli.JsonValue] = {
@@ -1069,7 +1088,9 @@ class FlextCliCore(FlextCliServiceBase):
                 str(k): v for k, v in transformed_config.items()
             }
             merge_result = FlextCliUtilities.merge(
-                existing_config_guard, transformed_config_guard, strategy="deep"
+                existing_config_guard,
+                transformed_config_guard,
+                strategy="deep",
             )
             if merge_result.is_failure:
                 return r[bool].fail(merge_result.error or "Failed to merge config")
@@ -1103,16 +1124,17 @@ class FlextCliCore(FlextCliServiceBase):
                 consequence="Configuration update failed completely",
             )
             return r[bool].fail(
-                c.Cli.ErrorMessages.CONFIG_UPDATE_FAILED.format(error=e)
+                c.Cli.ErrorMessages.CONFIG_UPDATE_FAILED.format(error=e),
             )
 
     def _validate_config_input(
-        self, config: FlextCliTypes.Cli.JsonValue
+        self,
+        config: FlextCliTypes.Cli.JsonValue,
     ) -> r[Mapping[str, FlextCliTypes.Cli.JsonValue]]:
         """Validate input configuration for update operations."""
         if not isinstance(config, Mapping):
             return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].fail(
-                c.Cli.ErrorMessages.CONFIG_NOT_DICT
+                c.Cli.ErrorMessages.CONFIG_NOT_DICT,
             )
         if not config:
             FlextLogger(__name__).warning(
@@ -1121,7 +1143,7 @@ class FlextCliCore(FlextCliServiceBase):
                 consequence="Configuration update will fail",
             )
             return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].fail(
-                c.Cli.ErrorMessages.CONFIG_NOT_DICT
+                c.Cli.ErrorMessages.CONFIG_NOT_DICT,
             )
         FlextLogger(__name__).debug(
             "Configuration input validated",
@@ -1140,5 +1162,5 @@ class FlextCliCore(FlextCliServiceBase):
         if self._cli_config:
             return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].ok(self._cli_config)
         return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].fail(
-            c.Cli.ErrorMessages.CONFIG_NOT_INITIALIZED
+            c.Cli.ErrorMessages.CONFIG_NOT_INITIALIZED,
         )

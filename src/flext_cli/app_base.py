@@ -122,4 +122,3 @@ class FlextCliAppBase[SettingsT: FlextCliSettings]:
 
     def _register_commands(self) -> None:
         """Register CLI commands - implement in subclass."""
-        ...

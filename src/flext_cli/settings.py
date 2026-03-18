@@ -37,7 +37,8 @@ class FlextCliSettings(FlextSettings):
         Field(default=c.Cli.CliDefaults.DEFAULT_VERBOSE, description="Verbose output"),
     ]
     quiet: Annotated[
-        bool, Field(default=c.Cli.CliDefaults.DEFAULT_QUIET, description="Quiet output")
+        bool,
+        Field(default=c.Cli.CliDefaults.DEFAULT_QUIET, description="Quiet output"),
     ]
     log_verbosity: Annotated[
         str,
@@ -65,14 +66,16 @@ class FlextCliSettings(FlextSettings):
         ),
     ]
     config_file: Annotated[
-        str | None, Field(default=None, description="Path to config file")
+        str | None,
+        Field(default=None, description="Path to config file"),
     ]
     config_dir: Annotated[
         Path,
         Field(default_factory=_default_config_dir, description="CLI config directory"),
     ]
     token_file: Annotated[
-        str | None, Field(default=None, description="Path to auth token file")
+        str | None,
+        Field(default=None, description="Path to auth token file"),
     ]
     environment: Annotated[
         str,
@@ -83,10 +86,12 @@ class FlextCliSettings(FlextSettings):
     ]
     max_retries: Annotated[int, Field(default=3, ge=0, description="Max retries")]
     cli_timeout: Annotated[
-        float, Field(default=30.0, gt=0, description="CLI timeout seconds")
+        float,
+        Field(default=30.0, gt=0, description="CLI timeout seconds"),
     ]
     max_width: Annotated[
-        int, Field(default=120, ge=40, le=200, description="Max output width")
+        int,
+        Field(default=120, ge=40, le=200, description="Max output width"),
     ]
 
     @classmethod
@@ -168,7 +173,7 @@ class FlextCliSettings(FlextSettings):
             return r[bool].ok(value=True)
         valid_str = ", ".join(c.Cli.ValidationLists.OUTPUT_FORMATS)
         return r[bool].fail(
-            f"{c.Cli.ErrorMessages.INVALID_OUTPUT_FORMAT.format(format=output_format)}. Valid: {valid_str}"
+            f"{c.Cli.ErrorMessages.INVALID_OUTPUT_FORMAT.format(format=output_format)}. Valid: {valid_str}",
         )
 
     @classmethod
@@ -176,12 +181,12 @@ class FlextCliSettings(FlextSettings):
         """Load settings from a JSON or YAML config file."""
         if not path.exists():
             return r[FlextCliSettings].fail(
-                c.Cli.ErrorMessages.CONFIG_FILE_NOT_FOUND.format(file=str(path))
+                c.Cli.ErrorMessages.CONFIG_FILE_NOT_FOUND.format(file=str(path)),
             )
         suffix = path.suffix.lower()
         if suffix not in {".json", ".yaml", ".yml"}:
             return r[FlextCliSettings].fail(
-                c.Cli.ErrorMessages.UNSUPPORTED_CONFIG_FORMAT.format(suffix=suffix)
+                c.Cli.ErrorMessages.UNSUPPORTED_CONFIG_FORMAT.format(suffix=suffix),
             )
         try:
             raw = path.read_text(encoding="utf-8")
@@ -202,8 +207,9 @@ class FlextCliSettings(FlextSettings):
         ) as e:
             return r[FlextCliSettings].fail(
                 c.Cli.ErrorMessages.FAILED_LOAD_CONFIG_FROM_FILE.format(
-                    file=str(path), error=e
-                )
+                    file=str(path),
+                    error=e,
+                ),
             )
 
 

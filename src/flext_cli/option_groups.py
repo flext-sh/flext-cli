@@ -80,10 +80,14 @@ class FlextCliOptionGroup:
             ),
             OptionInfo(default=8080, param_decls=["--port", "-p"], help="Port number"),
             OptionInfo(
-                default=30, param_decls=["--timeout", "-t"], help="Timeout in seconds"
+                default=30,
+                param_decls=["--timeout", "-t"],
+                help="Timeout in seconds",
             ),
             OptionInfo(
-                default=False, param_decls=["--ssl/--no-ssl"], help="Enable SSL/TLS"
+                default=False,
+                param_decls=["--ssl/--no-ssl"],
+                help="Enable SSL/TLS",
             ),
         ]
 
@@ -105,7 +109,9 @@ class FlextCliOptionGroup:
                 help="Output format (json, yaml, table)",
             ),
             OptionInfo(
-                default=None, param_decls=["--output", "-o"], help="Output file path"
+                default=None,
+                param_decls=["--output", "-o"],
+                help="Output file path",
             ),
             OptionInfo(
                 default=False,

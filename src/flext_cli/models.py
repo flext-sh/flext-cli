@@ -46,7 +46,7 @@ _DICT_STR_OBJECT_ADAPTER: TypeAdapter[dict[str, t.Cli.JsonValue]] = TypeAdapter(
     dict[str, t.Cli.JsonValue],
 )
 _LIST_OBJECT_ADAPTER: TypeAdapter[list[t.Cli.JsonValue]] = TypeAdapter(
-    list[t.Cli.JsonValue]
+    list[t.Cli.JsonValue],
 )
 
 
@@ -135,8 +135,6 @@ class FlextCliModels(FlextModels):
         class SuccessSummaryDetails(RootModel[dict[str, str]]):
             """Key-value details for success summary — Pydantic v2 only. Use m.Cli.SuccessSummaryDetails."""
 
-            pass
-
         type CommandEntry = Mapping[
             str,
             str | Callable[..., r[t.Cli.JsonValue]],
@@ -164,12 +162,14 @@ class FlextCliModels(FlextModels):
             )
             name: Annotated[str, Field(..., min_length=1, description="Group name")]
             description: Annotated[
-                str, Field(default="", description="Group description")
+                str,
+                Field(default="", description="Group description"),
             ]
             commands: Annotated[
                 Mapping[str, FlextCliModels.Cli.CommandEntryModel],
                 Field(
-                    default_factory=dict, description="Command name to entry mapping"
+                    default_factory=dict,
+                    description="Command name to entry mapping",
                 ),
             ]
 
@@ -341,7 +341,8 @@ class FlextCliModels(FlextModels):
             model_config = ConfigDict(extra="forbid")
             raw: Annotated[int | str | None, Field(default=None)]
             default: Annotated[
-                int, Field(default=30, description="Default timeout in seconds")
+                int,
+                Field(default=30, description="Default timeout in seconds"),
             ]
 
             @computed_field
@@ -474,7 +475,8 @@ class FlextCliModels(FlextModels):
 
             model_config = ConfigDict(extra="forbid")
             type_kind: Annotated[
-                Literal["str", "bool", "dict"], Field(description="Requested type")
+                Literal["str", "bool", "dict"],
+                Field(description="Requested type"),
             ]
             value: Annotated[t.Cli.JsonValue | None, Field(default=None)]
             default: Annotated[t.Cli.JsonValue | None, Field(default=None)]
@@ -493,7 +495,8 @@ class FlextCliModels(FlextModels):
                 """Type-safe accessor (bypasses pyrefly computed_field limitation)."""
                 if self.value is None:
                     return FlextCliModels.Cli.default_for_type_kind(
-                        self.type_kind, self.default
+                        self.type_kind,
+                        self.default,
                     )
                 if self.type_kind == "str":
                     s = str(self.value).strip() if self.value else ""
@@ -523,7 +526,8 @@ class FlextCliModels(FlextModels):
                         }
                     return {}
                 return FlextCliModels.Cli.default_for_type_kind(
-                    self.type_kind, self.default
+                    self.type_kind,
+                    self.default,
                 )
 
         @staticmethod
@@ -1058,7 +1062,8 @@ class FlextCliModels(FlextModels):
             )
 
             session_id: Annotated[
-                str, Field(..., min_length=1, description="Session identifier")
+                str,
+                Field(..., min_length=1, description="Session identifier"),
             ]
             user_id: Annotated[str, Field(default="", description="User identifier")]
             status: Annotated[
@@ -1101,7 +1106,8 @@ class FlextCliModels(FlextModels):
                 ),
             ]
             end_time: Annotated[
-                str | None, Field(default=None, description="Session end time")
+                str | None,
+                Field(default=None, description="Session end time"),
             ]
             last_activity: Annotated[
                 str | None,
@@ -1140,7 +1146,7 @@ class FlextCliModels(FlextModels):
                 try:
                     updated_commands = list(self.commands) + [command]
                     updated_session = self.model_copy(
-                        update={"commands": tuple(updated_commands)}
+                        update={"commands": tuple(updated_commands)},
                     )
                     return r[Self].ok(updated_session)
                 except (
@@ -1214,7 +1220,8 @@ class FlextCliModels(FlextModels):
             session_id: Annotated[str, Field(..., description="Session identifier")]
             status: Annotated[str, Field(..., description="Session status")]
             commands_count: Annotated[
-                int, Field(default=0, description="Number of commands")
+                int,
+                Field(default=0, description="Number of commands"),
             ]
 
         class CliContext(FlextModels.Value):
@@ -1628,7 +1635,8 @@ class FlextCliModels(FlextModels):
                 ),
             ]
             total_steps: Annotated[
-                int, Field(default=0, description="Total number of steps")
+                int,
+                Field(default=0, description="Total number of steps"),
             ]
             successful_steps: Annotated[
                 int,
@@ -1638,7 +1646,8 @@ class FlextCliModels(FlextModels):
                 ),
             ]
             failed_steps: Annotated[
-                int, Field(default=0, description="Number of failed steps")
+                int,
+                Field(default=0, description="Number of failed steps"),
             ]
             overall_success: Annotated[
                 bool,
@@ -1678,7 +1687,8 @@ class FlextCliModels(FlextModels):
                 ),
             ]
             debug: Annotated[
-                bool | None, Field(default=None, description="Enable debug mode")
+                bool | None,
+                Field(default=None, description="Enable debug mode"),
             ]
             trace: Annotated[
                 bool | None,
@@ -1789,10 +1799,12 @@ class FlextCliModels(FlextModels):
                 ),
             ]
             multiple: Annotated[
-                bool, Field(default=False, description="Allow multiple values")
+                bool,
+                Field(default=False, description="Allow multiple values"),
             ]
             count: Annotated[
-                bool, Field(default=False, description="Count occurrences")
+                bool,
+                Field(default=False, description="Count occurrences"),
             ]
             show_default: Annotated[
                 bool,
@@ -1811,7 +1823,8 @@ class FlextCliModels(FlextModels):
 
             default: Annotated[bool, Field(default=False, description="Default value")]
             abort: Annotated[
-                bool, Field(default=False, description="Abort if not confirmed")
+                bool,
+                Field(default=False, description="Abort if not confirmed"),
             ]
             prompt_suffix: Annotated[
                 str,
@@ -1870,7 +1883,8 @@ class FlextCliModels(FlextModels):
                 ),
             ]
             hide_input: Annotated[
-                bool, Field(default=False, description="Hide user input")
+                bool,
+                Field(default=False, description="Hide user input"),
             ]
             confirmation_prompt: Annotated[
                 bool,
@@ -1902,7 +1916,8 @@ class FlextCliModels(FlextModels):
             """
 
             index: Annotated[
-                int, Field(default=0, description="Path index in sys.path")
+                int,
+                Field(default=0, description="Path index in sys.path"),
             ]
             path: Annotated[str, Field(...)]
             exists: Annotated[bool, Field(default=False)]
@@ -1956,13 +1971,16 @@ class FlextCliModels(FlextModels):
                 ),
             ]
             command: Annotated[
-                str, Field(default="", description="Command executed in context")
+                str,
+                Field(default="", description="Command executed in context"),
             ]
             arguments_count: Annotated[
-                int, Field(default=0, description="Number of arguments")
+                int,
+                Field(default=0, description="Number of arguments"),
             ]
             timestamp: Annotated[
-                str, Field(default="", description="Execution timestamp")
+                str,
+                Field(default="", description="Execution timestamp"),
             ]
 
         class DebugInfo(FlextModels.Value):
@@ -2031,7 +2049,7 @@ class FlextCliModels(FlextModels):
                 system_dict: dict[str, t.Cli.JsonValue] = {}
                 try:
                     system_dict = _DICT_STR_OBJECT_ADAPTER.validate_python(
-                        self.system_info
+                        self.system_info,
                     )
                 except ValidationError as e:
                     _logger.debug("system_info mask failed", error=e)
@@ -2050,7 +2068,7 @@ class FlextCliModels(FlextModels):
                 config_dict: dict[str, t.Cli.JsonValue] = {}
                 try:
                     config_dict = _DICT_STR_OBJECT_ADAPTER.validate_python(
-                        self.config_info
+                        self.config_info,
                     )
                 except ValidationError as e:
                     _logger.debug("config_info not valid as dict, using empty", error=e)
@@ -2238,7 +2256,8 @@ class FlextCliModels(FlextModels):
                 ),
             ]
             history_size: Annotated[
-                int, Field(default=0, description="Current history size")
+                int,
+                Field(default=0, description="Current history size"),
             ]
             prompts_answered: Annotated[
                 int,
@@ -2729,7 +2748,7 @@ class FlextCliModels(FlextModels):
 
                 """
                 narrowed_fields: dict[str, FieldInfo] = dict(
-                    self.model_class.model_fields
+                    self.model_class.model_fields,
                 )
                 annotations, defaults, fields_with_factory = self._collect_field_data(
                     narrowed_fields,
@@ -2923,7 +2942,8 @@ class FlextCliModels(FlextModels):
                                 t.Cli.JsonValue.__setattr__(self.config, fn, value)
                             except (AttributeError, TypeError) as ex:
                                 _logger.debug(
-                                    f"Could not set builder_config.{fn}",
+                                    "Could not set builder_config.%s",
+                                    fn,
                                     error=ex,
                                 )
                     if callable(self.handler):
@@ -2950,7 +2970,7 @@ class FlextCliModels(FlextModels):
                         return normalized.value
                     return str(raw_result)
 
-                setattr(typed_wrapper, "__signature__", command_signature)
+                typed_wrapper.__signature__ = command_signature
                 typed_wrapper.__annotations__ = dict(real_annotations)
                 return typed_wrapper
 
@@ -3147,7 +3167,7 @@ class FlextCliModels(FlextModels):
                     LiveError,
                 ) as e:
                     return r[p.Cli.CliParameterSpec].fail(
-                        f"Field conversion failed: {e}"
+                        f"Field conversion failed: {e}",
                     )
 
             @staticmethod
@@ -3363,7 +3383,7 @@ class FlextCliModels(FlextModels):
                         LiveError,
                     ) as e:
                         return r[list[p.Cli.CliParameterSpec]].fail(
-                            f"Conversion failed: {e}"
+                            f"Conversion failed: {e}",
                         )
                 except (
                     ValueError,
@@ -3374,7 +3394,7 @@ class FlextCliModels(FlextModels):
                     LiveError,
                 ) as e:
                     return r[list[p.Cli.CliParameterSpec]].fail(
-                        f"Conversion failed: {e}"
+                        f"Conversion failed: {e}",
                     )
 
             @staticmethod
@@ -3389,7 +3409,7 @@ class FlextCliModels(FlextModels):
                 )
                 if params_result.is_failure:
                     return r[list[t.Cli.JsonValue]].fail(
-                        params_result.error or "Conversion failed"
+                        params_result.error or "Conversion failed",
                     )
                 # After is_failure check, params_result.value is guaranteed to be the value
                 params: list[p.Cli.CliParameterSpec] = params_result.value

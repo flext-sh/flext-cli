@@ -81,7 +81,10 @@ class FlextCliFormatters:
         def add(self, label: str, *, return_child: Literal[True]) -> Self: ...
 
         def add(
-            self, label: str, *, return_child: bool = False
+            self,
+            label: str,
+            *,
+            return_child: bool = False,
         ) -> FlextCliFormatters.Tree | None:
             """Add a child node; return the wrapped child only when *return_child* is set."""
             child = self._tree.add(label)
@@ -119,12 +122,14 @@ class FlextCliFormatters:
         except ConsoleError as exc:
             _logger.warning("rich_layout_creation_failed", error=str(exc))
             return r[RichLayout].fail(
-                c.Cli.FormattersErrorMessages.LAYOUT_CREATION_FAILED.format(error=exc)
+                c.Cli.FormattersErrorMessages.LAYOUT_CREATION_FAILED.format(error=exc),
             )
 
     @staticmethod
     def create_panel(
-        content: str, title: str | None = None, border_style: str | None = None
+        content: str,
+        title: str | None = None,
+        border_style: str | None = None,
     ) -> r[RichPanel]:
         """Create Rich panel with text content.
 
@@ -151,7 +156,9 @@ class FlextCliFormatters:
             return r[RichPanel].ok(panel)
         except (ConsoleError, StyleError) as exc:
             _logger.warning(
-                "rich_panel_creation_fallback", error=str(exc), title=title or ""
+                "rich_panel_creation_fallback",
+                error=str(exc),
+                title=title or "",
             )
             return r[RichPanel].ok(RichPanel(content))
 
@@ -173,7 +180,9 @@ class FlextCliFormatters:
         except ConsoleError as exc:
             _logger.warning("rich_progress_creation_failed", error=str(exc))
             return r[Progress].fail(
-                c.Cli.FormattersErrorMessages.PROGRESS_CREATION_FAILED.format(error=exc)
+                c.Cli.FormattersErrorMessages.PROGRESS_CREATION_FAILED.format(
+                    error=exc
+                ),
             )
 
     @staticmethod
@@ -215,7 +224,9 @@ class FlextCliFormatters:
             return r[RichTable].ok(table)
         except (ConsoleError, StyleError) as exc:
             _logger.warning(
-                "rich_table_creation_fallback", error=str(exc), title=title or ""
+                "rich_table_creation_fallback",
+                error=str(exc),
+                title=title or "",
             )
             return r[RichTable].ok(RichTable())
 
@@ -239,7 +250,7 @@ class FlextCliFormatters:
         except ConsoleError as exc:
             _logger.warning("rich_tree_creation_failed", error=str(exc), label=label)
             return r[FlextCliFormatters.Tree].fail(
-                c.Cli.FormattersErrorMessages.TREE_CREATION_FAILED.format(error=exc)
+                c.Cli.FormattersErrorMessages.TREE_CREATION_FAILED.format(error=exc),
             )
 
     def create_live(self, refresh_per_second: float | None = None) -> r[RichLive]:
@@ -266,7 +277,7 @@ class FlextCliFormatters:
         except (ConsoleError, LiveError) as exc:
             _logger.warning("rich_live_creation_failed", error=str(exc))
             return r[RichLive].fail(
-                c.Cli.FormattersErrorMessages.LIVE_CREATION_FAILED.format(error=exc)
+                c.Cli.FormattersErrorMessages.LIVE_CREATION_FAILED.format(error=exc),
             )
 
     def create_status(self, message: str, spinner: str | None = None) -> r[RichStatus]:
@@ -293,10 +304,12 @@ class FlextCliFormatters:
             return r[RichStatus].ok(status)
         except (ConsoleError, StyleError) as exc:
             _logger.warning(
-                "rich_status_creation_failed", error=str(exc), message=message
+                "rich_status_creation_failed",
+                error=str(exc),
+                message=message,
             )
             return r[RichStatus].fail(
-                c.Cli.FormattersErrorMessages.STATUS_CREATION_FAILED.format(error=exc)
+                c.Cli.FormattersErrorMessages.STATUS_CREATION_FAILED.format(error=exc),
             )
 
     def execute(self) -> r[Mapping[str, t.Cli.JsonValue]]:
@@ -321,7 +334,9 @@ class FlextCliFormatters:
             self.console.print(message, style=style)
         except (ConsoleError, StyleError) as exc:
             _logger.warning(
-                "rich_print_fallback", error=str(exc), message_length=len(message)
+                "rich_print_fallback",
+                error=str(exc),
+                message_length=len(message),
             )
             _ = sys.stdout.write(f"{message}\n")
             _ = sys.stdout.flush()
@@ -354,7 +369,9 @@ class FlextCliFormatters:
             return r[str].ok(str(table))
 
     def render_tree_to_string(
-        self, tree: RichTree | FlextCliFormatters.Tree, width: int | None = None
+        self,
+        tree: RichTree | FlextCliFormatters.Tree,
+        width: int | None = None,
     ) -> r[str]:
         """Render Rich tree to string.
 

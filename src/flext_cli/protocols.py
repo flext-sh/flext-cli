@@ -38,7 +38,9 @@ class FlextCliProtocols(FlextProtocols):
                 """Protocol for Rich Tree objects."""
 
                 def add(
-                    self, label: str, **kwargs: t.Scalar
+                    self,
+                    label: str,
+                    **kwargs: t.Scalar,
                 ) -> FlextCliProtocols.Cli.Display.RichTree:
                     """Add a branch to the tree."""
                     ...
@@ -48,7 +50,10 @@ class FlextCliProtocols(FlextProtocols):
                 """Protocol for Rich Console objects."""
 
                 def print(
-                    self, text: str, style: str | None = None, **kwargs: t.Scalar
+                    self,
+                    text: str,
+                    style: str | None = None,
+                    **kwargs: t.Scalar,
                 ) -> None:
                     """Print text to the console."""
                     ...
@@ -261,7 +266,8 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
             def add_command(
-                self, command: FlextCliProtocols.Cli.Command
+                self,
+                command: FlextCliProtocols.Cli.Command,
             ) -> FlextProtocols.Result[Self]:
                 """Add a command to the session."""
                 ...
@@ -594,7 +600,9 @@ class FlextCliProtocols(FlextProtocols):
             """Protocol for CLI formatters."""
 
             def format_data(
-                self, data: t.Cli.JsonValue, **options: t.Scalar
+                self,
+                data: t.Cli.JsonValue,
+                **options: t.Scalar,
             ) -> FlextProtocols.Result[str]:
                 """Format data."""
                 ...
@@ -610,7 +618,8 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
             def save_config(
-                self, config: Mapping[str, t.Cli.JsonValue]
+                self,
+                config: Mapping[str, t.Cli.JsonValue],
             ) -> FlextProtocols.Result[bool]:
                 """Save configuration."""
                 ...
@@ -620,7 +629,9 @@ class FlextCliProtocols(FlextProtocols):
             """Protocol for CLI authentication."""
 
             def authenticate(
-                self, username: str, password: str
+                self,
+                username: str,
+                password: str,
             ) -> FlextProtocols.Result[str]:
                 """Authenticate user."""
                 ...
@@ -646,7 +657,9 @@ class FlextCliProtocols(FlextProtocols):
             """Protocol for CLI command functions that may return None."""
 
             def __call__(
-                self, *args: t.Cli.JsonValue, **kwargs: t.Scalar
+                self,
+                *args: t.Cli.JsonValue,
+                **kwargs: t.Scalar,
             ) -> t.Cli.JsonValue | None:
                 """Execute the function."""
                 ...
@@ -656,7 +669,9 @@ class FlextCliProtocols(FlextProtocols):
             """Protocol for dynamically-created CLI command wrapper functions."""
 
             def __call__(
-                self, *args: t.Cli.JsonValue, **kwargs: t.Scalar
+                self,
+                *args: t.Cli.JsonValue,
+                **kwargs: t.Scalar,
             ) -> t.Cli.JsonValue:
                 """Execute the wrapper."""
                 ...
@@ -666,7 +681,9 @@ class FlextCliProtocols(FlextProtocols):
             """Protocol for command handlers returning r."""
 
             def __call__(
-                self, *args: t.Cli.JsonValue, **kwargs: t.Scalar
+                self,
+                *args: t.Cli.JsonValue,
+                **kwargs: t.Scalar,
             ) -> FlextProtocols.Result[t.Cli.JsonValue]:
                 """Execute the handler."""
                 ...
@@ -676,7 +693,9 @@ class FlextCliProtocols(FlextProtocols):
             """Protocol for model command handlers."""
 
             def handle(
-                self, model: t.Cli.JsonValue, **kwargs: t.Scalar
+                self,
+                model: t.Cli.JsonValue,
+                **kwargs: t.Scalar,
             ) -> FlextProtocols.Result[t.Cli.JsonValue]:
                 """Handle the model command."""
                 ...
@@ -740,7 +759,8 @@ class FlextCliProtocols(FlextProtocols):
             """Protocol for CLI services."""
 
             def initialize(
-                self, context: FlextCliProtocols.Cli.CliContext
+                self,
+                context: FlextCliProtocols.Cli.CliContext,
             ) -> FlextProtocols.Result[bool]:
                 """Initialize the service."""
                 ...
@@ -758,7 +778,8 @@ class FlextCliProtocols(FlextProtocols):
             """Protocol for command processing services."""
 
             def get_command(
-                self, name: str
+                self,
+                name: str,
             ) -> FlextProtocols.Result[FlextCliProtocols.Cli.Command]:
                 """Get a command by name."""
                 ...
@@ -770,7 +791,8 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
             def register_command(
-                self, command: FlextCliProtocols.Cli.Command
+                self,
+                command: FlextCliProtocols.Cli.Command,
             ) -> FlextProtocols.Result[bool]:
                 """Register a command."""
                 ...
@@ -784,7 +806,9 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
             def format_table(
-                self, headers: Sequence[str], rows: Sequence[Sequence[str]]
+                self,
+                headers: Sequence[str],
+                rows: Sequence[Sequence[str]],
             ) -> FlextProtocols.Result[str]:
                 """Format data as a table."""
                 ...
@@ -873,7 +897,8 @@ class FlextCliProtocols(FlextProtocols):
             """
 
             def execute_cli(
-                self, args: list[str] | None = None
+                self,
+                args: list[str] | None = None,
             ) -> FlextProtocols.Result[bool]:
                 """Execute the CLI with Railway-pattern error handling."""
                 ...

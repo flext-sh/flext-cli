@@ -115,7 +115,7 @@ class FlextCliCommands(FlextCliServiceBase):
             return r[FlextCliCommandGroup].fail("Group name must be non-empty string")
         if commands is None:
             return r[FlextCliCommandGroup].fail(
-                "Commands are required for group creation"
+                "Commands are required for group creation",
             )
         group_commands: dict[str, t.Cli.JsonValue] = {
             key: value.model_dump(mode="python") for key, value in commands.items()
@@ -157,7 +157,10 @@ class FlextCliCommands(FlextCliServiceBase):
         })
 
     def execute_command(
-        self, name: str, args: Sequence[str] | None = None, **kwargs: t.Scalar
+        self,
+        name: str,
+        args: Sequence[str] | None = None,
+        **kwargs: t.Scalar,
     ) -> r[t.Cli.JsonValue]:
         """Execute a registered CLI command.
 

@@ -85,7 +85,9 @@ class FlextCliDebug(FlextCliServiceBase):
             return v
 
         env_info_result = u.Cli.process_mapping(
-            dict(os.environ), processor=process_env_item, on_error="skip"
+            dict(os.environ),
+            processor=process_env_item,
+            on_error="skip",
         )
         env_info = dict(env_info_result.map_or({}))
         return m.Cli.EnvironmentInfo(
@@ -108,7 +110,7 @@ class FlextCliDebug(FlextCliServiceBase):
                     exists=path_obj.exists(),
                     is_file=path_obj.is_file() if path_obj.exists() else False,
                     is_dir=path_obj.is_dir() if path_obj.exists() else False,
-                )
+                ),
             )
         return paths
 
@@ -138,12 +140,13 @@ class FlextCliDebug(FlextCliServiceBase):
             test_file = current_dir / "test_write.tmp"
             try:
                 _ = pathlib.Path(test_file).write_text(
-                    "test", encoding=c.Cli.Utilities.DEFAULT_ENCODING
+                    "test",
+                    encoding=c.Cli.Utilities.DEFAULT_ENCODING,
                 )
                 pathlib.Path(test_file).unlink()
             except OSError as e:
                 errors.append(
-                    c.Cli.ErrorMessages.CANNOT_WRITE_CURRENT_DIR.format(error=e)
+                    c.Cli.ErrorMessages.CANNOT_WRITE_CURRENT_DIR.format(error=e),
                 )
         except (
             ValueError,
@@ -154,7 +157,7 @@ class FlextCliDebug(FlextCliServiceBase):
             LiveError,
         ) as e:
             errors.append(
-                c.Cli.ErrorMessages.FILESYSTEM_VALIDATION_FAILED.format(error=e)
+                c.Cli.ErrorMessages.FILESYSTEM_VALIDATION_FAILED.format(error=e),
             )
         return errors
 
@@ -179,7 +182,7 @@ class FlextCliDebug(FlextCliServiceBase):
             LiveError,
         ) as e:
             return r[Mapping[str, t.Cli.JsonValue]].fail(
-                c.Cli.DebugErrorMessages.HEALTH_CHECK_FAILED.format(error=e)
+                c.Cli.DebugErrorMessages.HEALTH_CHECK_FAILED.format(error=e),
             )
 
     @staticmethod
@@ -203,7 +206,7 @@ class FlextCliDebug(FlextCliServiceBase):
             LiveError,
         ) as e:
             return r[Mapping[str, t.Cli.JsonValue]].fail(
-                c.Cli.DebugErrorMessages.TRACE_EXECUTION_FAILED.format(error=e)
+                c.Cli.DebugErrorMessages.TRACE_EXECUTION_FAILED.format(error=e),
             )
 
     @staticmethod
@@ -226,7 +229,7 @@ class FlextCliDebug(FlextCliServiceBase):
             LiveError,
         ) as e:
             return r[Mapping[str, str]].fail(
-                c.Cli.DebugErrorMessages.CONNECTIVITY_TEST_FAILED.format(error=e)
+                c.Cli.DebugErrorMessages.CONNECTIVITY_TEST_FAILED.format(error=e),
             )
 
     @override
@@ -244,7 +247,9 @@ class FlextCliDebug(FlextCliServiceBase):
         try:
             comprehensive_info: dict[str, t.Cli.JsonValue] = {}
             self._collect_info_safely(
-                "get_system_info", c.Cli.DebugDictKeys.SYSTEM_ERROR, comprehensive_info
+                "get_system_info",
+                c.Cli.DebugDictKeys.SYSTEM_ERROR,
+                comprehensive_info,
             )
             self._collect_info_safely(
                 "get_environment_variables",
@@ -252,10 +257,14 @@ class FlextCliDebug(FlextCliServiceBase):
                 comprehensive_info,
             )
             self._collect_info_safely(
-                "get_system_paths", c.Cli.DebugDictKeys.PATHS_ERROR, comprehensive_info
+                "get_system_paths",
+                c.Cli.DebugDictKeys.PATHS_ERROR,
+                comprehensive_info,
             )
             self._collect_info_safely(
-                "get_debug_info", c.Cli.DebugDictKeys.DEBUG_ERROR, comprehensive_info
+                "get_debug_info",
+                c.Cli.DebugDictKeys.DEBUG_ERROR,
+                comprehensive_info,
             )
             return r[Mapping[str, t.Cli.JsonValue]].ok(comprehensive_info)
         except (
@@ -267,7 +276,9 @@ class FlextCliDebug(FlextCliServiceBase):
             LiveError,
         ) as e:
             return r[Mapping[str, t.Cli.JsonValue]].fail(
-                c.Cli.DebugErrorMessages.COMPREHENSIVE_DEBUG_INFO_FAILED.format(error=e)
+                c.Cli.DebugErrorMessages.COMPREHENSIVE_DEBUG_INFO_FAILED.format(
+                    error=e
+                ),
             )
 
     def get_debug_info(self) -> r[Mapping[str, t.Cli.JsonValue]]:
@@ -275,15 +286,15 @@ class FlextCliDebug(FlextCliServiceBase):
         try:
             system_info_model = self._get_system_info()
             system_info_dict = FlextCliDebug._convert_model_to_dict(
-                system_info_model
+                system_info_model,
             ).model_dump()
             system_info_json: dict[str, t.Cli.JsonValue] = dict(system_info_dict)
             environment_info_model = self._get_environment_info()
             environment_info_dict = FlextCliDebug._convert_model_to_dict(
-                environment_info_model
+                environment_info_model,
             ).model_dump()
             environment_info_json: dict[str, t.Cli.JsonValue] = dict(
-                environment_info_dict
+                environment_info_dict,
             )
             debug_info: dict[str, t.Cli.JsonValue] = {
                 c.Cli.DictKeys.SERVICE: c.Cli.DebugDefaults.SERVICE_NAME,
@@ -303,7 +314,7 @@ class FlextCliDebug(FlextCliServiceBase):
             LiveError,
         ) as e:
             return r[Mapping[str, t.Cli.JsonValue]].fail(
-                c.Cli.DebugErrorMessages.DEBUG_INFO_COLLECTION_FAILED.format(error=e)
+                c.Cli.DebugErrorMessages.DEBUG_INFO_COLLECTION_FAILED.format(error=e),
             )
 
     def get_environment_variables(self) -> r[Mapping[str, t.Cli.JsonValue]]:
@@ -311,7 +322,7 @@ class FlextCliDebug(FlextCliServiceBase):
         try:
             env_info = self._get_environment_info()
             typed_env_info: dict[str, t.Cli.JsonValue] = dict(
-                env_info.variables.items()
+                env_info.variables.items(),
             )
             return r[Mapping[str, t.Cli.JsonValue]].ok(typed_env_info)
         except (
@@ -323,7 +334,7 @@ class FlextCliDebug(FlextCliServiceBase):
             LiveError,
         ) as e:
             return r[Mapping[str, t.Cli.JsonValue]].fail(
-                c.Cli.DebugErrorMessages.ENVIRONMENT_INFO_FAILED.format(error=e)
+                c.Cli.DebugErrorMessages.ENVIRONMENT_INFO_FAILED.format(error=e),
             )
 
     def get_system_info(self) -> r[Mapping[str, t.Cli.JsonValue]]:
@@ -331,7 +342,7 @@ class FlextCliDebug(FlextCliServiceBase):
         try:
             info_model = self._get_system_info()
             info_dict: dict[str, t.Cli.JsonValue] = dict(
-                FlextCliDebug._convert_model_to_dict(info_model).model_dump()
+                FlextCliDebug._convert_model_to_dict(info_model).model_dump(),
             )
             return r[Mapping[str, t.Cli.JsonValue]].ok(info_dict)
         except (
@@ -343,7 +354,7 @@ class FlextCliDebug(FlextCliServiceBase):
             LiveError,
         ) as e:
             return r[Mapping[str, t.Cli.JsonValue]].fail(
-                c.Cli.DebugErrorMessages.SYSTEM_INFO_COLLECTION_FAILED.format(error=e)
+                c.Cli.DebugErrorMessages.SYSTEM_INFO_COLLECTION_FAILED.format(error=e),
             )
 
     def get_system_paths(self) -> r[Mapping[str, t.Cli.JsonValue]]:
@@ -366,7 +377,7 @@ class FlextCliDebug(FlextCliServiceBase):
             LiveError,
         ) as e:
             return r[Mapping[str, t.Cli.JsonValue]].fail(
-                c.Cli.DebugErrorMessages.SYSTEM_PATHS_COLLECTION_FAILED.format(error=e)
+                c.Cli.DebugErrorMessages.SYSTEM_PATHS_COLLECTION_FAILED.format(error=e),
             )
 
     def validate_environment_setup(self) -> r[list[str]]:
@@ -383,7 +394,7 @@ class FlextCliDebug(FlextCliServiceBase):
             LiveError,
         ) as e:
             return r[list[str]].fail(
-                c.Cli.DebugErrorMessages.ENVIRONMENT_VALIDATION_FAILED.format(error=e)
+                c.Cli.DebugErrorMessages.ENVIRONMENT_VALIDATION_FAILED.format(error=e),
             )
 
     def _collect_info_safely(

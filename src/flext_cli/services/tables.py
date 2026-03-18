@@ -98,7 +98,8 @@ class FlextCliTables(FlextCliServiceBase):
 
     @staticmethod
     def _prepare_headers(
-        data: t.Cli.TabularData, headers: str | Sequence[str]
+        data: t.Cli.TabularData,
+        headers: str | Sequence[str],
     ) -> r[str | Sequence[str]]:
         """Prepare headers based on data type."""
         data_list = list(data)
@@ -121,7 +122,7 @@ class FlextCliTables(FlextCliServiceBase):
         """
         if not data:
             return r[bool].fail(
-                FlextCliConstants.Cli.TablesErrorMessages.TABLE_DATA_EMPTY
+                FlextCliConstants.Cli.TablesErrorMessages.TABLE_DATA_EMPTY,
             )
         if table_format not in FlextCliConstants.Cli.TABLE_FORMATS:
             available_formats_list = list(FlextCliConstants.Cli.TABLE_FORMATS.keys())
@@ -129,7 +130,7 @@ class FlextCliTables(FlextCliServiceBase):
                 FlextCliConstants.Cli.TablesErrorMessages.INVALID_TABLE_FORMAT.format(
                     table_format=table_format,
                     available_formats=", ".join(available_formats_list),
-                )
+                ),
             )
         return r[bool].ok(value=True)
 
@@ -178,7 +179,8 @@ class FlextCliTables(FlextCliServiceBase):
             return r[str].fail(config_result.error or "Invalid table configuration")
         config_final = config_result.value
         validation_result = FlextCliTables._validate_table_data(
-            data, config_final.table_format
+            data,
+            config_final.table_format,
         )
         if validation_result.is_failure:
             return r[str].fail(validation_result.error or "Table validation failed")
@@ -243,7 +245,7 @@ class FlextCliTables(FlextCliServiceBase):
                 )
                 return r[str].ok(formatted_table)
             return r[str].fail(
-                "Table data must be a sequence of mappings or a sequence of sequences"
+                "Table data must be a sequence of mappings or a sequence of sequences",
             )
         except (
             ValueError,
@@ -270,7 +272,7 @@ class FlextCliTables(FlextCliServiceBase):
                 return {"format": name, "description": desc}
 
             _ = list(
-                starmap(convert_format, FlextCliConstants.Cli.TABLE_FORMATS.items())
+                starmap(convert_format, FlextCliConstants.Cli.TABLE_FORMATS.items()),
             )
             return r[bool].ok(value=True)
         except (
@@ -297,16 +299,19 @@ class FlextCliTables(FlextCliServiceBase):
 
         """
         return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].ok({
-            "status": "table_service_ready"
+            "status": "table_service_ready",
         })
 
     def _calculate_column_count(
-        self, data: t.Cli.TabularData, headers: str | Sequence[str]
+        self,
+        data: t.Cli.TabularData,
+        headers: str | Sequence[str],
     ) -> int:
         """Calculate number of columns based on headers and data type."""
         if isinstance(headers, str):
             if headers == FlextCliConstants.Cli.TableFormats.KEYS and isinstance(
-                data, Mapping
+                data,
+                Mapping,
             ):
                 return len(data)
             data_list = list(data)
@@ -362,6 +367,6 @@ class FlextCliTables(FlextCliServiceBase):
         ) as e:
             return r[str].fail(
                 FlextCliConstants.Cli.TablesErrorMessages.TABLE_CREATION_FAILED.format(
-                    error=e
-                )
+                    error=e,
+                ),
             )

@@ -120,7 +120,11 @@ class FlextCliCommandBuilder:
         return self
 
     def with_argument(
-        self, name: str, type_: type = str, *, required: bool = True
+        self,
+        name: str,
+        type_: type = str,
+        *,
+        required: bool = True,
     ) -> Self:
         """Add command argument.
 
@@ -177,7 +181,10 @@ class FlextCliCommandBuilder:
             parts = name.split("/")
             param_decls = parts
         option_info = self._create_option_info(
-            default=default, param_decls=param_decls, help_text=help_, **kwargs
+            default=default,
+            param_decls=param_decls,
+            help_text=help_,
+            **kwargs,
         )
         self._options.append(option_info)
         return self

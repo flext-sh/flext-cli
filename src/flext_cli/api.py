@@ -187,14 +187,15 @@ class FlextCli:
                 username=username,
                 password=password,
                 realm="",
-            )
+            ),
         ).map_error(str)
         if validation_result.is_failure:
             return r[bool].fail(validation_result.error or "")
         return r[bool].ok(value=True)
 
     def authenticate(
-        self, credentials: m.Cli.PasswordAuth | m.Cli.TokenData | Mapping[str, str]
+        self,
+        credentials: m.Cli.PasswordAuth | m.Cli.TokenData | Mapping[str, str],
     ) -> r[str]:
         """Authenticate user with provided credentials (model or mapping)."""
         if isinstance(credentials, m.Cli.TokenData):
@@ -207,7 +208,7 @@ class FlextCli:
                     token=str(credentials[c.Cli.DictKeys.TOKEN]),
                     expires_at="",
                     token_type=str(credentials.get("token_type", "")),
-                )
+                ),
             ).map_error(str)
             if token_data_result.is_failure:
                 return r[str].fail(token_data_result.error or "")
@@ -220,7 +221,7 @@ class FlextCli:
                 lambda: m.Cli.PasswordAuth.model_validate({
                     c.Cli.DictKeys.USERNAME: credentials[c.Cli.DictKeys.USERNAME],
                     c.Cli.DictKeys.PASSWORD: credentials[c.Cli.DictKeys.PASSWORD],
-                })
+                }),
             ).map_error(str)
             if password_auth_result.is_failure:
                 return r[str].fail(password_auth_result.error or "")
@@ -234,14 +235,15 @@ class FlextCli:
             if not self._is_ignorable_delete(del_result):
                 return r[bool].fail(
                     c.Cli.ErrorMessages.FAILED_CLEAR_CREDENTIALS.format(
-                        error=del_result.error
-                    )
+                        error=del_result.error,
+                    ),
                 )
         self._valid_tokens.clear()
         return r[bool].ok(value=True)
 
     def command(
-        self, name: str | None = None
+        self,
+        name: str | None = None,
     ) -> Callable[[p.Cli.CliCommandFunction], p.Cli.CliRegisteredCommand]:
         """Register a command using CLI framework abstraction."""
         return self._entity_decorator(c.Cli.EntityType.COMMAND, name)
@@ -327,7 +329,8 @@ class FlextCli:
             return r[str].fail(c.Cli.ErrorMessages.TOKEN_FILE_EMPTY)
 
     def group(
-        self, name: str | None = None
+        self,
+        name: str | None = None,
     ) -> Callable[[p.Cli.CliCommandFunction], p.Cli.CliRegisteredCommand]:
         """Register a command group using CLI framework abstraction."""
         return self._entity_decorator(c.Cli.EntityType.GROUP, name)
@@ -370,7 +373,7 @@ class FlextCli:
         )
         if write_result.is_failure:
             return r[bool].fail(
-                c.Cli.ErrorMessages.TOKEN_SAVE_FAILED.format(error=write_result.error)
+                c.Cli.ErrorMessages.TOKEN_SAVE_FAILED.format(error=write_result.error),
             )
         self._valid_tokens.add(token)
         return r[bool].ok(value=True)
@@ -378,7 +381,8 @@ class FlextCli:
     def _authenticate_with_credentials(self, credentials: m.Cli.PasswordAuth) -> r[str]:
         """Authenticate using PasswordAuth model (credentials already validated)."""
         logger_core(__name__).debug(
-            "Authenticating with password auth", username=credentials.username
+            "Authenticating with password auth",
+            username=credentials.username,
         )
         token = secrets.token_urlsafe(c.Cli.APIDefaults.TOKEN_GENERATION_BYTES)
         self._valid_tokens.add(token)
@@ -393,7 +397,7 @@ class FlextCli:
         save_result = self.save_auth_token(token)
         if save_result.is_failure:
             return r[str].fail(
-                c.Cli.ErrorMessages.TOKEN_SAVE_FAILED.format(error=save_result.error)
+                c.Cli.ErrorMessages.TOKEN_SAVE_FAILED.format(error=save_result.error),
             )
         return r[str].ok(token)
 
@@ -428,7 +432,7 @@ class FlextCli:
         if u.Cli.is_file_not_found_error(error_str):
             return r[str].fail(c.Cli.ErrorMessages.TOKEN_FILE_NOT_FOUND)
         return r[str].fail(
-            c.Cli.ErrorMessages.TOKEN_LOAD_FAILED.format(error=error_str)
+            c.Cli.ErrorMessages.TOKEN_LOAD_FAILED.format(error=error_str),
         )
 
     def _register_cli_entity(

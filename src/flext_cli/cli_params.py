@@ -60,12 +60,12 @@ class FlextCliCommonParams:
             c.Cli.CliParamsRegistry.KEY_SHORT: c.Cli.CliParamsRegistry.SHORT_FLAG_OUTPUT_FORMAT,
             c.Cli.CliParamsRegistry.KEY_PRIORITY: c.Cli.CliParamsRegistry.PRIORITY_OUTPUT_FORMAT,
             c.Cli.CliParamsRegistry.KEY_CHOICES: list(
-                c.Cli.ValidationLists.OUTPUT_FORMATS
+                c.Cli.ValidationLists.OUTPUT_FORMATS,
             ),
             c.Cli.CliParamsRegistry.KEY_CASE_SENSITIVE: c.Cli.CliParamsRegistry.CASE_INSENSITIVE,
         },
         "no_color": {
-            c.Cli.CliParamsRegistry.KEY_PRIORITY: c.Cli.CliParamsRegistry.PRIORITY_NO_COLOR
+            c.Cli.CliParamsRegistry.KEY_PRIORITY: c.Cli.CliParamsRegistry.PRIORITY_NO_COLOR,
         },
         "config_file": {
             c.Cli.CliParamsRegistry.KEY_SHORT: c.Cli.CliParamsRegistry.SHORT_FLAG_CONFIG_FILE,
@@ -77,13 +77,15 @@ class FlextCliCommonParams:
 
     @classmethod
     def _apply_param_setters(
-        cls, config: FlextCliSettings, params: p.Cli.CliParamsConfig
+        cls,
+        config: FlextCliSettings,
+        params: p.Cli.CliParamsConfig,
     ) -> r[FlextCliSettings]:
         """Apply all parameter setter stages to config."""
         bool_result = cls._set_bool_params(config, params)
         if bool_result.is_failure:
             return r[FlextCliSettings].fail(
-                bool_result.error or "Boolean parameter setting failed"
+                bool_result.error or "Boolean parameter setting failed",
             )
         log_level_result = cls._set_log_level(config, params)
         if log_level_result.is_failure:
@@ -95,7 +97,8 @@ class FlextCliCommonParams:
 
     @classmethod
     def _build_params_from_kwargs(
-        cls, kwargs: Mapping[str, bool | str | None]
+        cls,
+        kwargs: Mapping[str, bool | str | None],
     ) -> m.Cli.CliParamsConfig:
         """Build CLI params from keyword arguments (Pydantic model)."""
         return m.Cli.CliParamsConfig(
@@ -126,7 +129,9 @@ class FlextCliCommonParams:
 
     @classmethod
     def _set_bool_params(
-        cls, config: FlextCliSettings, params: p.Cli.CliParamsConfig
+        cls,
+        config: FlextCliSettings,
+        params: p.Cli.CliParamsConfig,
     ) -> r[bool]:
         """Set boolean parameters with validation via model_copy."""
         if params.trace is not None and params.trace:
@@ -146,14 +151,16 @@ class FlextCliCommonParams:
 
     @classmethod
     def _set_format_params(
-        cls, config: FlextCliSettings, params: p.Cli.CliParamsConfig
+        cls,
+        config: FlextCliSettings,
+        params: p.Cli.CliParamsConfig,
     ) -> r[FlextCliSettings]:
         """Set log_format and output_format with validation."""
         if params.log_format is not None:
             if params.log_format not in c.Cli.CliParamsDefaults.VALID_LOG_FORMATS:
                 valid = ", ".join(c.Cli.CliParamsDefaults.VALID_LOG_FORMATS)
                 return r[FlextCliSettings].fail(
-                    f"invalid log format: {params.log_format}. valid: {valid}"
+                    f"invalid log format: {params.log_format}. valid: {valid}",
                 )
             config.log_verbosity = params.log_format
         if params.output_format is not None:
@@ -161,14 +168,16 @@ class FlextCliCommonParams:
             if validated_result.is_failure:
                 valid = ", ".join(c.Cli.CliParamsDefaults.VALID_OUTPUT_FORMATS)
                 return r[FlextCliSettings].fail(
-                    f"invalid output format: {params.output_format}. valid: {valid}"
+                    f"invalid output format: {params.output_format}. valid: {valid}",
                 )
             config = config.model_copy(update={"output_format": validated_result.value})
         return r[FlextCliSettings].ok(config)
 
     @classmethod
     def _set_log_level(
-        cls, config: FlextCliSettings, params: p.Cli.CliParamsConfig
+        cls,
+        config: FlextCliSettings,
+        params: p.Cli.CliParamsConfig,
     ) -> r[FlextCliSettings]:
         """Set cli_log_level with enum conversion."""
         if params.log_level is None:
@@ -179,7 +188,7 @@ class FlextCliCommonParams:
         except ValueError:
             valid = ", ".join(c.Cli.Lists.LOG_LEVELS_LIST)
             return r[FlextCliSettings].fail(
-                f"invalid log level: {params.log_level}. valid options: {valid}"
+                f"invalid log level: {params.log_level}. valid options: {valid}",
             )
 
     @classmethod
@@ -228,8 +237,9 @@ class FlextCliCommonParams:
                 valid = ", ".join(c.Cli.Lists.LOG_LEVELS_LIST)
                 return r[bool].fail(
                     c.Cli.CliParamsErrorMessages.INVALID_LOG_LEVEL.format(
-                        log_level=log_level_upper, valid=valid
-                    )
+                        log_level=log_level_upper,
+                        valid=valid,
+                    ),
                 )
             return r[bool].ok(value=True)
         except (
@@ -241,7 +251,7 @@ class FlextCliCommonParams:
             LiveError,
         ) as e:
             return r[bool].fail(
-                c.Cli.CliParamsErrorMessages.CONFIGURE_LOGGER_FAILED.format(error=e)
+                c.Cli.CliParamsErrorMessages.CONFIGURE_LOGGER_FAILED.format(error=e),
             )
 
     @classmethod
@@ -328,7 +338,7 @@ class FlextCliCommonParams:
         param_fields = sorted(
             cls.CLI_PARAM_REGISTRY.items(),
             key=lambda x: int(
-                str(x[1].get(c.Cli.CliParamsRegistry.KEY_PRIORITY, default_priority))
+                str(x[1].get(c.Cli.CliParamsRegistry.KEY_PRIORITY, default_priority)),
             ),
         )
         return {name: cls.create_option(name) for name, _ in param_fields}
