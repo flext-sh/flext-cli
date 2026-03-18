@@ -239,7 +239,7 @@ class TestsCliConfigModelIntegration:
     def test_params_model_with_required_fields(self) -> None:
         """Test parameter model with required fields."""
         with pytest.raises(ValidationError):
-            self.RequiredFieldsParams()
+            self.RequiredFieldsParams(input_dir="")
         params = self.RequiredFieldsParams(
             input_dir="/test/input", output_dir="/test/output"
         )
