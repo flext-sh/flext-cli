@@ -81,10 +81,11 @@ class TestsCliComprehensiveModels:
         completed = session.commands_by_status(c.Cli.CommandStatus.COMPLETED.value)
         tm.that(isinstance(pending, list), eq=True)
         tm.that(isinstance(completed, list), eq=True)
-        tm.that(len(pending), eq=1)
-        tm.that(len(completed), eq=1)
-        tm.that(pending[0].name, eq="cmd1")
-        tm.that(completed[0].name, eq="cmd2")
+        if isinstance(pending, list) and isinstance(completed, list):
+            tm.that(len(pending), eq=1)
+            tm.that(len(completed), eq=1)
+            tm.that(pending[0].name, eq="cmd1")
+            tm.that(completed[0].name, eq="cmd2")
 
     @pytest.mark.parametrize("commands_count", [1, 5, 10, 50])
     def test_session_with_multiple_commands(self, commands_count: int) -> None:

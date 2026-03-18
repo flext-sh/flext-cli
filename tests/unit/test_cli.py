@@ -23,7 +23,7 @@ from flext_tests import tm
 
 from flext_cli import FlextCliCli, FlextCliSettings, m
 
-from ..helpers import FlextCliTestHelpers
+from ..helpers._impl import FlextCliTestHelpers
 
 
 class TestsCliCli:
@@ -109,9 +109,10 @@ class TestsCliCli:
         if click_type_name == "choice":
             choices = data_dict.get("choices")
             tm.that(isinstance(choices, list), eq=True)
-            choice_type = click.Choice(choices)
-            tm.that(isinstance(choice_type, click.Choice), eq=True)
-            tm.that(choice_type.choices, eq=tuple(choices))
+            if isinstance(choices, list):
+                choice_type = click.Choice(choices)
+                tm.that(isinstance(choice_type, click.Choice), eq=True)
+                tm.that(choice_type.choices, eq=tuple(choices))
         elif click_type_name == "path":
             path_type = click.Path(
                 exists=bool(data_dict.get("exists")),

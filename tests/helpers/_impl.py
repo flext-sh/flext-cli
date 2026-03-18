@@ -470,7 +470,7 @@ class FlextCliTestHelpers:
         """Helper methods for CLI testing."""
 
         @staticmethod
-        def create_test_command(cli_cli: object, command_name: str) -> r[object]:
+        def create_test_command(cli_cli: object, command_name: str) -> r[click.Command]:
             """Create a test command for CLI testing."""
             try:
 
@@ -483,7 +483,7 @@ class FlextCliTestHelpers:
                 return r.fail(f"Failed to create command: {e!s}")
 
         @staticmethod
-        def create_test_group(cli_cli: object, group_name: str) -> r[object]:
+        def create_test_group(cli_cli: object, group_name: str) -> r[click.Group]:
             """Create a test group for CLI testing."""
             try:
 
@@ -498,7 +498,7 @@ class FlextCliTestHelpers:
         @staticmethod
         def create_command_with_options(
             cli_cli: object, command_name: str, option_name: str, default: str
-        ) -> r[object]:
+        ) -> r[click.Command]:
             """Create a command with options for CLI testing."""
             try:
 

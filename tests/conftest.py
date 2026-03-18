@@ -42,9 +42,8 @@ from flext_cli import (
     FlextCliSettings,
 )
 
-from . import c, m, p, t, u
+from . import c, m, p, u
 from .helpers._impl import _is_json_dict
-from .models import ScalarConfigRestore
 
 
 def pytest_configure(config: pytest.Config) -> None:
@@ -173,7 +172,7 @@ class CliCommandFactory(Protocol):
         command_line: str = ...,
         description: str = ...,
         status: str = ...,
-        **kwargs: str | int | float | bool,
+        **kwargs: str | float | bool,
     ) -> m.Cli.CliCommand:
         """Create CliCommand instance."""
         ...
@@ -187,7 +186,7 @@ class CliSessionFactory(Protocol):
         session_id: str = ...,
         user_id: str = ...,
         status: str = ...,
-        **kwargs: str | int | float | bool,
+        **kwargs: str | float | bool,
     ) -> m.Cli.CliSession:
         """Create CliSession instance."""
         ...
@@ -201,7 +200,7 @@ class DebugInfoFactory(Protocol):
         service: str = ...,
         level: str = ...,
         message: str = ...,
-        **kwargs: str | int | float | bool,
+        **kwargs: str | float | bool,
     ) -> m.Cli.DebugInfo:
         """Create DebugInfo instance."""
         ...
@@ -211,7 +210,7 @@ class LoggingConfigFactory(Protocol):
     """Protocol for LoggingConfig factory function."""
 
     def __call__(
-        self, log_level: str = ..., log_format: str = ..., **kwargs: str | int | float | bool
+        self, log_level: str = ..., log_format: str = ..., **kwargs: str | float | bool
     ) -> m.Cli.LoggingConfig:
         """Create LoggingConfig instance."""
         ...
@@ -226,7 +225,7 @@ def cli_command_factory() -> CliCommandFactory:
         command_line: str = "flext test",
         description: str = "Test command",
         status: str = "pending",
-        **kwargs: str | int | float | bool,
+        **kwargs: str | float | bool,
     ) -> m.Cli.CliCommand:
         cli_data: dict[str, object]
         cli_data = {
@@ -245,7 +244,7 @@ def cli_command_factory() -> CliCommandFactory:
         raw_data: dict[str, object] = {**cli_data, **kwargs}
         typed_data: dict[str, object] = raw_data
         transform_result = u.transform(typed_data)
-        final_data: dict[str, object]
+        final_data: Mapping[str, object]
         if transform_result.is_success:
             unwrapped = transform_result.value
             if _is_json_dict(unwrapped) and isinstance(unwrapped, dict):
@@ -254,7 +253,7 @@ def cli_command_factory() -> CliCommandFactory:
                 final_data = raw_data
         else:
             final_data = raw_data
-        return m.Cli.CliCommand(**final_data)
+        return m.Cli.CliCommand.model_validate(final_data)
 
     return _create
 
@@ -267,7 +266,7 @@ def cli_session_factory() -> CliSessionFactory:
         session_id: str = "test-session",
         user_id: str = "test_user",
         status: str = "active",
-        **kwargs: str | int | float | bool,
+        **kwargs: str | float | bool,
     ) -> m.Cli.CliSession:
         session_data: dict[str, object] = {
             "session_id": session_id,
@@ -293,7 +292,7 @@ def cli_session_factory() -> CliSessionFactory:
                 final_data = raw_data
         else:
             final_data = raw_data
-        return m.Cli.CliSession(**final_data)
+        return m.Cli.CliSession.model_validate(final_data)
 
     return _create
 
@@ -306,7 +305,7 @@ def debug_info_factory() -> DebugInfoFactory:
         service: str = "TestService",
         level: str = "INFO",
         message: str = "",
-        **kwargs: str | int | float | bool,
+        **kwargs: str | float | bool,
     ) -> m.Cli.DebugInfo:
         debug_data: dict[str, object] = {
             "service": service,
@@ -335,7 +334,7 @@ def debug_info_factory() -> DebugInfoFactory:
                 final_data = raw_data
         else:
             final_data = raw_data
-        return m.Cli.DebugInfo(**final_data)
+        return m.Cli.DebugInfo.model_validate(final_data)
 
     return _create
 
@@ -347,7 +346,7 @@ def logging_config_factory() -> LoggingConfigFactory:
     def _create(
         log_level: str = "INFO",
         log_format: str = "%(asctime)s - %(message)s",
-        **kwargs: str | int | float | bool,
+        **kwargs: str | float | bool,
     ) -> m.Cli.LoggingConfig:
         logging_data: dict[str, object] = {
             "log_level": log_level,
@@ -366,7 +365,7 @@ def logging_config_factory() -> LoggingConfigFactory:
                 final_data = raw_data
         else:
             final_data = raw_data
-        return m.Cli.LoggingConfig(**final_data)
+        return m.Cli.LoggingConfig.model_validate(final_data)
 
     return _create
 
@@ -662,11 +661,9 @@ def reset_singletons() -> None:
 def clean_flext_container() -> Generator[None]:
     """Ensure clean FlextContainer state for tests."""
     container = FlextContainer()
-    original_config = container.get_config()
     _ = container.configure({})
     yield
-    restore = ScalarConfigRestore.from_config_items(dict(original_config.root))
-    _ = container.configure(restore.root)
+    _ = container.configure(None)
 
 
 class Examples:

@@ -228,7 +228,7 @@ class TestsCliConfigModelIntegration:
         expected_data: dict[str, object],
     ) -> None:
         """Test parameter model validation with aliases."""
-        params = self.AliasedParams(**input_data)
+        params = self.AliasedParams.model_validate(input_data)
         for field_name, expected_value in expected_data.items():
             tm.that(getattr(params, field_name), eq=expected_value)
 
