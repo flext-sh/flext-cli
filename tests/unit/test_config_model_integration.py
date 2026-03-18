@@ -129,12 +129,15 @@ class TestsCliConfigModelIntegration:
         output_dir: str | None = Field(default=None)
         batch_size: int | None = Field(default=None)
         verbose: bool = Field(default=False)
+        verbose_mode: bool = Field(default=False)
 
     class StrictParams(BaseModel):
         """Strict parameters with validation."""
 
         input_dir: str
         output_dir: str
+        name: str | None = Field(default=None)
+        count: int | None = Field(default=None)
 
     class ForbidExtraParams(BaseModel):
         """Parameters that forbid extra fields."""
@@ -142,6 +145,7 @@ class TestsCliConfigModelIntegration:
         model_config = ConfigDict(extra="forbid")
         input_dir: str | None = Field(default=None)
         output_dir: str | None = Field(default=None)
+        name: str | None = Field(default=None)
 
     @pytest.fixture
     def cli(self) -> FlextCliCli:

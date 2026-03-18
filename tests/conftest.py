@@ -173,7 +173,7 @@ class CliCommandFactory(Protocol):
         command_line: str = ...,
         description: str = ...,
         status: str = ...,
-        **kwargs: t.Scalar,
+        **kwargs: str | int | float | bool,
     ) -> m.Cli.CliCommand:
         """Create CliCommand instance."""
         ...
@@ -187,7 +187,7 @@ class CliSessionFactory(Protocol):
         session_id: str = ...,
         user_id: str = ...,
         status: str = ...,
-        **kwargs: t.Scalar,
+        **kwargs: str | int | float | bool,
     ) -> m.Cli.CliSession:
         """Create CliSession instance."""
         ...
@@ -201,7 +201,7 @@ class DebugInfoFactory(Protocol):
         service: str = ...,
         level: str = ...,
         message: str = ...,
-        **kwargs: t.Scalar,
+        **kwargs: str | int | float | bool,
     ) -> m.Cli.DebugInfo:
         """Create DebugInfo instance."""
         ...
@@ -211,7 +211,7 @@ class LoggingConfigFactory(Protocol):
     """Protocol for LoggingConfig factory function."""
 
     def __call__(
-        self, log_level: str = ..., log_format: str = ..., **kwargs: t.Scalar
+        self, log_level: str = ..., log_format: str = ..., **kwargs: str | int | float | bool
     ) -> m.Cli.LoggingConfig:
         """Create LoggingConfig instance."""
         ...
@@ -226,7 +226,7 @@ def cli_command_factory() -> CliCommandFactory:
         command_line: str = "flext test",
         description: str = "Test command",
         status: str = "pending",
-        **kwargs: t.Scalar,
+        **kwargs: str | int | float | bool,
     ) -> m.Cli.CliCommand:
         cli_data: dict[str, object]
         cli_data = {
@@ -245,9 +245,10 @@ def cli_command_factory() -> CliCommandFactory:
         raw_data: dict[str, object] = {**cli_data, **kwargs}
         typed_data: dict[str, object] = raw_data
         transform_result = u.transform(typed_data)
+        final_data: dict[str, object]
         if transform_result.is_success:
             unwrapped = transform_result.value
-            if _is_json_dict(unwrapped):
+            if _is_json_dict(unwrapped) and isinstance(unwrapped, dict):
                 final_data = dict(unwrapped.items())
             else:
                 final_data = raw_data
@@ -266,7 +267,7 @@ def cli_session_factory() -> CliSessionFactory:
         session_id: str = "test-session",
         user_id: str = "test_user",
         status: str = "active",
-        **kwargs: t.Scalar,
+        **kwargs: str | int | float | bool,
     ) -> m.Cli.CliSession:
         session_data: dict[str, object] = {
             "session_id": session_id,
@@ -305,7 +306,7 @@ def debug_info_factory() -> DebugInfoFactory:
         service: str = "TestService",
         level: str = "INFO",
         message: str = "",
-        **kwargs: t.Scalar,
+        **kwargs: str | int | float | bool,
     ) -> m.Cli.DebugInfo:
         debug_data: dict[str, object] = {
             "service": service,
@@ -346,7 +347,7 @@ def logging_config_factory() -> LoggingConfigFactory:
     def _create(
         log_level: str = "INFO",
         log_format: str = "%(asctime)s - %(message)s",
-        **kwargs: t.Scalar,
+        **kwargs: str | int | float | bool,
     ) -> m.Cli.LoggingConfig:
         logging_data: dict[str, object] = {
             "log_level": log_level,
