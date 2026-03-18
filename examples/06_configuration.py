@@ -31,7 +31,7 @@ from pathlib import Path
 
 from flext_core import r
 
-from flext_cli import FlextCli, FlextCliSettings, m, u
+from flext_cli import FlextCli, FlextCliSettings, m, t, u
 
 from .example_utils import display_config_table
 from .models import AppConfigAdvanced, MyAppConfig
@@ -174,7 +174,7 @@ def validate_app_config() -> bool:
     return True
 
 
-def load_application_config() -> r:
+def load_application_config() -> r[dict[str, t.Cli.JsonValue]]:
     """Load and validate application configuration from environment."""
     cli.print("\n⚙️  Loading Application Configuration:", style="bold cyan")
     config_obj = AppConfigAdvanced()
@@ -188,7 +188,7 @@ def load_application_config() -> r:
     cli.print("✅ Environment overrides applied", style="green")
     final_data = initialize_services(overridden_data)
     cli.print("✅ Services initialized", style="green")
-    result: r = r.ok(final_data)
+    result: r[dict[str, t.Cli.JsonValue]] = r[dict[str, t.Cli.JsonValue]].ok(final_data)
     if result.is_failure:
         cli.print(f"❌ Configuration failed: {result.error}", style="bold red")
         return result

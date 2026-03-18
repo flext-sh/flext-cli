@@ -545,11 +545,13 @@ class TestsCliConstants:
         """Test get_file_extensions returns extensions for format."""
         extensions = c.Cli.get_file_extensions("json")
         tm.that(isinstance(extensions, tuple), eq=True)
-        tm.that("json" in extensions, eq=True)
+        if extensions is not None:
+            tm.that("json" in extensions, eq=True)
         yaml_extensions = c.Cli.get_file_extensions("yaml")
         tm.that(isinstance(yaml_extensions, tuple), eq=True)
-        tm.that("yaml" in yaml_extensions, eq=True)
-        tm.that("yml" in yaml_extensions, eq=True)
+        if yaml_extensions is not None:
+            tm.that("yaml" in yaml_extensions, eq=True)
+            tm.that("yml" in yaml_extensions, eq=True)
         none_extensions = c.Cli.get_file_extensions("nonexistent")
         tm.that(none_extensions is None, eq=True)
 

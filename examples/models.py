@@ -13,7 +13,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from flext_core import r
+from flext_core import r, t as core_t
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -24,9 +24,9 @@ from pydantic import (
     model_validator,
 )
 
-from flext_cli import FlextCli, FlextCliSettings, m
+from flext_cli import FlextCli, FlextCliSettings, m, t as cli_t
 
-_JsonDictAdapter: TypeAdapter = TypeAdapter(object)
+_JsonDictAdapter: TypeAdapter[object] = TypeAdapter(object)
 
 # ---------------------------------------------------------------------------
 # Example 03 - Interactive Prompts
@@ -82,8 +82,8 @@ class MyAppConfig(BaseModel):
     @classmethod
     def _inject_env(
         cls,
-        data: EnvInput,
-    ) -> dict[str, str | int | bool | Path] | t.Primitives | None:
+        data: object,
+    ) -> dict[str, str | int | bool | Path] | core_t.Primitives | None:
         if not isinstance(data, dict):
             return data
         try:
@@ -95,6 +95,8 @@ class MyAppConfig(BaseModel):
                 "max_workers": 4,
                 "timeout": 30,
             }
+        if not isinstance(typed_data, dict):
+            return None
         str_keys: set[str] = {"app_name", "api_key"}
         int_keys: set[str] = {"max_workers", "timeout"}
         updates = {
@@ -167,8 +169,8 @@ class AppConfigAdvanced(BaseModel):
     @classmethod
     def _inject_env(
         cls,
-        data: EnvInput,
-    ) -> dict[str, str | int | bool | Path] | t.Primitives | None:
+        data: object,
+    ) -> dict[str, str | int | bool | Path] | core_t.Primitives | None:
         if not isinstance(data, dict):
             return data
         try:
@@ -183,6 +185,9 @@ class AppConfigAdvanced(BaseModel):
                 "log_level": "INFO",
                 "temp_dir": Path.home() / ".cache" / "myapp",
             }
+        if not isinstance(typed_data, dict):
+            return None
+        typed_dict: dict[str, object] = typed_data
         result = {
             "database_url": os.getenv(
                 "DATABASE_URL", "postgresql://localhost:5432/myapp"
@@ -197,7 +202,7 @@ class AppConfigAdvanced(BaseModel):
             ),
         }
         updates = {
-            k: typed_data[k]
+            k: typed_dict[k]
             for k in (
                 "database_url",
                 "redis_url",
@@ -207,7 +212,7 @@ class AppConfigAdvanced(BaseModel):
                 "log_level",
                 "temp_dir",
             )
-            if k in typed_data and isinstance(typed_data[k], (str, int, bool, Path))
+            if k in typed_dict and isinstance(typed_dict[k], (str, int, bool, Path))
         }
         return {**result, **updates}
 
@@ -236,7 +241,7 @@ class AppConfigAdvanced(BaseModel):
             raise ValueError(msg)
         return v.upper()
 
-    def validate_to_mapping(self) -> r:
+    def validate_to_mapping(self) -> r[dict[str, cli_t.Cli.JsonValue]]:
         """Validate configuration and return as mapping or failure."""
         errors: list[str] = []
         if not self.api_key and os.getenv("ENVIRONMENT") == "production":

@@ -54,7 +54,7 @@ def your_cli_function() -> None:
     cli.print("ℹ️  Processing 100 records...", style="cyan")
 
 
-def display_database_results(records: Sequence) -> None:
+def display_database_results(records: Sequence[t.Cli.JsonValue]) -> None:
     """Display database query results as a table."""
     if not records:
         cli.print("No results found", style="yellow")
@@ -69,7 +69,7 @@ def display_database_results(records: Sequence) -> None:
 
 
 def export_report(
-    data: Sequence, format_type: c.Cli.OutputFormatLiteral = "table"
+    data: Sequence[t.Cli.JsonValue], format_type: c.Cli.OutputFormatLiteral = "table"
 ) -> r[str]:
     """Create ASCII tables for logs/reports in your app."""
     config = m.Cli.TableConfig(table_format=format_type)

@@ -393,21 +393,21 @@ class TestsCliPrompts:
 
     def test_with_progress_small_dataset(self, prompts: FlextCliPrompts) -> None:
         """Test with_progress with small dataset."""
-        items: list = list(range(c.ProgressDefaults.SMALL_DATASET_SIZE))
+        items: list[int] = list(range(c.ProgressDefaults.SMALL_DATASET_SIZE))
         result = prompts.with_progress(items, "simple")
         tm.ok(result)
         tm.that(result.value, eq=items)
 
     def test_with_progress_large_dataset(self, prompts: FlextCliPrompts) -> None:
         """Test with_progress with large dataset."""
-        items: list = list(range(c.ProgressDefaults.LARGE_DATASET_SIZE))
+        items: list[int] = list(range(c.ProgressDefaults.LARGE_DATASET_SIZE))
         result = prompts.with_progress(items, "simple")
         tm.ok(result)
         tm.that(result.value, eq=items)
 
     def test_with_progress_empty(self, prompts: FlextCliPrompts) -> None:
         """Test with_progress with empty list."""
-        items: list = []
+        items: list[int] = []
         result = prompts.with_progress(items, "simple")
         tm.ok(result)
         tm.that(result.value, eq=items)

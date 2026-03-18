@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
+from flext_core import t as core_t
 from pydantic import RootModel
 
 
@@ -32,5 +35,7 @@ u = FlextAutoUtilities
 m = FlextAutoModels
 
 
-class EnvInput(RootModel[dict[str, str | int | bool | Path] | t.Primitives | None]):
+class EnvInput(
+    RootModel[dict[str, str | int | bool | Path] | core_t.Primitives | None]
+):
     pass

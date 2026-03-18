@@ -224,7 +224,7 @@ class TestsCliConfigModelIntegration:
         expected_data: dict[str, object],
     ) -> None:
         """Test parameter model validation with aliases."""
-        params = self.AliasedParams(input_data)
+        params = self.AliasedParams(**input_data)
         for field_name, expected_value in expected_data.items():
             tm.that(getattr(params, field_name), eq=expected_value)
 
@@ -345,7 +345,7 @@ class TestsCliConfigModelIntegration:
             "batch_size": config.batch_size,
             "verbose_mode": config.verbose,
         }
-        params = self.FullAppParams(cli_args)
+        params = self.FullAppParams(**cli_args)
         tm.that(params.input_dir, eq="/app/input")
         tm.that(params.output_dir, eq="/app/output")
         tm.that(params.batch_size, eq=1000)
@@ -354,7 +354,7 @@ class TestsCliConfigModelIntegration:
     def test_cli_parameter_override_config(self) -> None:
         """Test that CLI parameters override config defaults."""
         cli_override = {"input_dir": "/cli/input", "batch_size": 200}
-        params = self.AliasedParams(cli_override)
+        params = self.AliasedParams(**cli_override)
         tm.that(params.input_dir, eq="/cli/input")
         tm.that(params.batch_size, eq=200)
 

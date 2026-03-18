@@ -42,7 +42,7 @@ from pathlib import Path
 from flext_core import r
 from pydantic import TypeAdapter, ValidationError
 
-from flext_cli import FlextCli, FlextCliTables, m
+from flext_cli import FlextCli, FlextCliTables, m, t
 
 cli = FlextCli()
 tables = FlextCliTables()
@@ -487,7 +487,7 @@ def export_multi_format(
 def process_file_pipeline(
     input_file: Path,
     output_dir: Path,
-) -> r:
+) -> r[dict[str, t.Cli.JsonValue]]:
     """Complete file processing pipeline using Railway Pattern.
 
     Demonstrates chaining multiple file operations with proper error handling.
@@ -496,7 +496,7 @@ def process_file_pipeline(
     cli.print(f"\n🔄 Processing file pipeline: {input_file.name}", style="cyan")
 
     # Initialize result
-    result: r
+    result: r[dict[str, t.Cli.JsonValue]]
 
     # Railway pattern: Chain operations with automatic error propagation
 

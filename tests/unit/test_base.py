@@ -18,7 +18,7 @@ from typing import override
 from flext_core import r
 from flext_tests import tm
 
-from flext_cli import FlextCliServiceBase, FlextCliSettings
+from flext_cli import FlextCliServiceBase, FlextCliSettings, t
 
 
 class TestsCliServiceBase:
@@ -32,7 +32,7 @@ class TestsCliServiceBase:
         """Concrete implementation for testing abstract base class."""
 
         @override
-        def execute(self) -> r:
+        def execute(self) -> r[t.Cli.JsonValue]:
             """Implement abstract method for testing."""
             return r.ok({})
 

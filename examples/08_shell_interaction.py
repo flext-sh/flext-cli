@@ -92,7 +92,7 @@ class InteractiveShell:
         }
         self.running = False
 
-    def execute_command(self, command_line: str) -> r:
+    def execute_command(self, command_line: str) -> r[str]:
         """Execute command from user input."""
         parts = command_line.strip().split()
         if not parts:

@@ -88,7 +88,9 @@ class MyAppPluginManager:
         super().__init__()
         self.plugins: dict[str, object] = {}
 
-    def execute_plugin(self, plugin_name: str, **kwargs: t.Container) -> r:
+    def execute_plugin(
+        self, plugin_name: str, **kwargs: t.Container
+    ) -> r[t.Cli.JsonValue]:
         """Execute plugin by name in YOUR CLI."""
         if plugin_name not in self.plugins:
             return r.fail(f"Plugin not found: {plugin_name}")
