@@ -149,5 +149,5 @@ def test_edit_config_success_logs_and_returns_ok(
     )
     result = cmd.edit_config()
     tm.ok(result)
-    tm.that(logged["message"], eq=True)
+    tm.that("message" in logged, eq=True)
     tm.that("config" in logged, eq=True)

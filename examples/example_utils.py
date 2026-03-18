@@ -96,12 +96,18 @@ def display_config_table(
     """Display configuration as a table. Accepts Pydantic model only; uses show_table."""
     if headers is None:
         headers = ["Setting", "Value"]
-    payload = (
-        config_data.data
-        if isinstance(config_data, m.Cli.DisplayData)
-        else config_data.model_dump()
-    )
-    cli.show_table(payload, headers=headers)
+    rows: list[dict[str, str]] = []
+    if isinstance(config_data, m.Cli.DisplayData) and isinstance(
+        config_data.data, dict
+    ):
+        for key, value in config_data.data.items():
+            rows.append({"Setting": str(key), "Value": str(value)})
+    else:
+        dumped = config_data.model_dump(mode="json")
+        if isinstance(dumped, dict):
+            for key, value in dumped.items():
+                rows.append({"Setting": str(key), "Value": str(value)})
+    cli.show_table(rows, headers=headers)
 
 
 def display_success_summary(

@@ -161,16 +161,25 @@ def convert_and_validate_with_pydantic(
 ) -> r[AdvancedDatabaseConfig]:
     """Convert raw data to validated Pydantic model."""
     try:
-        raw = {
-            "host": str(data.get("host", "localhost")),
-            "port": data.get("port", 5432),
-            "name": str(data.get("name", "")),
-            "username": str(data.get("username", "")),
-            "password": str(data.get("password", "")),
-            "ssl_enabled": data.get("ssl_enabled", True),
-            "connection_pool": data.get("connection_pool", 10),
-        }
-        config = AdvancedDatabaseConfig(**raw)
+        host = str(data.get("host", "localhost"))
+        port_value = data.get("port", 5432)
+        port = int(port_value) if isinstance(port_value, (str, int)) else 5432
+        name = str(data.get("name", ""))
+        username = str(data.get("username", ""))
+        password = str(data.get("password", ""))
+        ssl_value = data.get("ssl_enabled", True)
+        ssl_enabled = bool(ssl_value)
+        pool_value = data.get("connection_pool", 10)
+        connection_pool = int(pool_value) if isinstance(pool_value, (str, int)) else 10
+        config = AdvancedDatabaseConfig(
+            host=host,
+            port=port,
+            name=name,
+            username=username,
+            password=password,
+            ssl_enabled=ssl_enabled,
+            connection_pool=connection_pool,
+        )
         return r[AdvancedDatabaseConfig].ok(config)
     except Exception as e:
         return r[AdvancedDatabaseConfig].fail(f"Pydantic validation failed: {e}")
@@ -202,13 +211,12 @@ def main() -> None:
     cli.print("=" * 70, style="bold blue")
     demonstrate_auto_cli_generation()
     cli.print("\n" + "=" * 70, style="bold blue")
-    test_args: dict[str, str | int | bool] = {
-        "environment": "production",
-        "workers": 8,
-        "enable_cache": True,
-        "timeout": 60,
-    }
-    deploy_config = DeployConfig(**test_args)
+    deploy_config = DeployConfig(
+        environment="production",
+        workers=8,
+        enable_cache=True,
+        timeout=60,
+    )
     execute_deploy_from_cli(deploy_config)
     cli.print("\n" + "=" * 70, style="bold blue")
     show_common_cli_params()
@@ -216,14 +224,13 @@ def main() -> None:
     demonstrate_nested_models()
     cli.print("\n" + "=" * 70, style="bold blue")
     cli.print("\n❌ Validation Demo - Invalid Environment:", style="bold cyan")
-    invalid_args: dict[str, str | int | bool] = {
-        "environment": "invalid_env",
-        "workers": 4,
-        "enable_cache": True,
-        "timeout": 30,
-    }
     try:
-        _ = DeployConfig(**invalid_args)
+        _ = DeployConfig(
+            environment="invalid_env",
+            workers=4,
+            enable_cache=True,
+            timeout=30,
+        )
     except Exception as e:
         cli.print(f"   Caught validation error: {e}", style="yellow")
     cli.print(

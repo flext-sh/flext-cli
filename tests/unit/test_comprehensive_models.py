@@ -44,7 +44,8 @@ class TestsCliComprehensiveModels:
         cmd = create_test_cli_command(**edge_case)
         for key, value in edge_case.items():
             if key != "description":
-                tm.that(getattr(cmd, key), eq=value)
+                attr_value: object = getattr(cmd, key)
+                tm.that(attr_value, eq=value)
         tm.that("test" in (cmd.command_line or cmd.name), eq=True)
         tm.that(isinstance(cmd.created_at, datetime), eq=True)
 

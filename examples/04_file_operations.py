@@ -590,8 +590,13 @@ def generate_output_files(
 
     rows_adapter = TypeAdapter(list[dict[str, object]])
     csv_rows_data: list[dict[str, object]]
+    content_items: object
+    if isinstance(data.content, dict):
+        content_items = data.content.get("items", [])
+    else:
+        content_items = []
     try:
-        csv_rows_data = rows_adapter.validate_python(data.content.get("items", []))
+        csv_rows_data = rows_adapter.validate_python(content_items)
     except ValidationError:
         csv_rows_data = []
 

@@ -13,7 +13,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from flext_core import r, t as core_t
+from flext_core import r
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -83,7 +83,7 @@ class MyAppConfig(BaseModel):
     def _inject_env(
         cls,
         data: object,
-    ) -> dict[str, str | int | bool | Path] | core_t.Primitives | None:
+    ) -> object:
         if not isinstance(data, dict):
             return data
         try:
@@ -170,7 +170,7 @@ class AppConfigAdvanced(BaseModel):
     def _inject_env(
         cls,
         data: object,
-    ) -> dict[str, str | int | bool | Path] | core_t.Primitives | None:
+    ) -> object:
         if not isinstance(data, dict):
             return data
         try:

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Protocol
+from typing import Protocol, runtime_checkable
 
 
 class FlextCliProtocols:
@@ -15,6 +15,7 @@ class FlextCliProtocols:
 p = FlextCliProtocols
 
 
+@runtime_checkable
 class CliMainWithGroups(Protocol):
     """Protocol for CLI main object with group and command decorators.
 
@@ -42,6 +43,7 @@ class CliMainWithGroups(Protocol):
         ...
 
 
+@runtime_checkable
 class GroupWithCommands(Protocol):
     """Protocol for command group objects with command decorator.
 

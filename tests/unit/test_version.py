@@ -217,8 +217,9 @@ class TestsCliVersion:
     def test_version_string_validation(self, scenario: TestScenario.Data) -> None:
         """Test version string validation with parametrized cases."""
         tm.that(scenario.version_string is not None, eq=True)
+        version_str = scenario.version_string or ""
         result = FlextCliTestHelpers.VersionTestFactory.validate_version_string(
-            scenario.version_string
+            version_str
         )
         if scenario.should_pass:
             tm.ok(result)
@@ -233,8 +234,9 @@ class TestsCliVersion:
     def test_version_info_validation(self, scenario: TestScenario.Data) -> None:
         """Test version info tuple validation with parametrized cases."""
         tm.that(scenario.version_info is not None, eq=True)
+        version_info = scenario.version_info or ()
         result = FlextCliTestHelpers.VersionTestFactory.validate_version_info(
-            scenario.version_info
+            version_info
         )
         if scenario.should_pass:
             tm.ok(result)
@@ -250,8 +252,10 @@ class TestsCliVersion:
         """Test consistency between version string and info with parametrized cases."""
         tm.that(scenario.version_string is not None, eq=True)
         tm.that(scenario.version_info is not None, eq=True)
+        version_str = scenario.version_string or ""
+        version_info = scenario.version_info or ()
         result = FlextCliTestHelpers.VersionTestFactory.validate_consistency(
-            scenario.version_string, scenario.version_info
+            version_str, version_info
         )
         if scenario.should_pass:
             tm.ok(result)

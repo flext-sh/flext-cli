@@ -111,7 +111,7 @@ class InteractiveShell:
                     payload = result.value
                 else:
                     payload = result
-                return r.ok(payload)
+                return r.ok(str(payload))
             return r.fail("Handler is not callable")
         except Exception as e:
             return r.fail(f"Command error: {e}")

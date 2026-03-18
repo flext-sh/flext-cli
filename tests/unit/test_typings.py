@@ -468,7 +468,7 @@ class TestsCliTypings:
     def _execute_type_edge_tests(self) -> None:
         """Execute type edge case tests."""
 
-        def handle_edge_cases(value) -> str:
+        def handle_edge_cases(value: object) -> str:
             if value is None:
                 return "None"
             if isinstance(value, str) and (not value):
@@ -547,8 +547,10 @@ class TestsCliTypings:
         tm.that(isinstance(impl, Test), eq=True)
         test_data = ["str1", "str2"]
         result = impl.operation(test_data)
-        tm.that(result["processed"], eq=["STR1", "STR2"])
-        tm.that(result["count"], eq=2)
+        processed: object = result.get("processed")
+        tm.that(processed, eq=["STR1", "STR2"])
+        count: object = result.get("count")
+        tm.that(count, eq=2)
         tm.that("timestamp" in result, eq=True)
         tm.that(t is not None, eq=True)
         tm.that(hasattr(t, "Cli"), eq=True)

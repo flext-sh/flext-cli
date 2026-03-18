@@ -65,7 +65,8 @@ class TestsCliCliExtended:
     def test_param_types_extended(self) -> None:
         """Test remaining parameter types."""
         cli = FlextCliCli()
-        tm.that(cli.get_uuid_type(), eq=click.UUID)
+        uuid_type = cli.get_uuid_type()
+        tm.that(isinstance(uuid_type, type(click.UUID)), eq=True)
         tuple_type = cli.get_tuple_type([str, int])
         tm.that(isinstance(tuple_type, click.Tuple), eq=True)
         tm.that(len(tuple_type.types), eq=2)

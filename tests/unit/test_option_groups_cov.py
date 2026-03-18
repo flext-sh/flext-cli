@@ -22,8 +22,10 @@ def test_connection_options_defaults_are_exposed() -> None:
 
 def test_auth_options_include_expected_env_vars() -> None:
     options = FlextOptionGroup.auth_options()
-    env_vars = {option.envvar for option in options}
-    tm.that(env_vars, eq={"FLEXT_USERNAME", "FLEXT_PASSWORD", "FLEXT_TOKEN"})
+    env_vars: frozenset[str] = frozenset(
+        option.envvar for option in options if isinstance(option.envvar, str)
+    )
+    tm.that(env_vars, eq=frozenset({"FLEXT_USERNAME", "FLEXT_PASSWORD", "FLEXT_TOKEN"}))
 
 
 def test_output_options_expose_format_output_and_verbosity() -> None:

@@ -216,7 +216,11 @@ def main() -> None:
     manager.list_plugins()
     cli.print("\n3. Execute Plugin (data export):", style="bold cyan")
     test_data: dict[str, object] = {"id": 1, "name": "Test", "status": "active"}
-    export_result = manager.execute_plugin("data-export", data=test_data, format="json")
+    export_result = manager.execute_plugin(
+        "data-export",
+        data=json.dumps(test_data),
+        format="json",
+    )
     if export_result.is_success:
         result_value = export_result.value
         output_preview = str(result_value)[:100] if result_value else ""
@@ -226,7 +230,10 @@ def main() -> None:
         {"metric": "Users", "value": "1,234"},
         {"metric": "Orders", "value": "567"},
     ]
-    report_result = manager.execute_plugin("report-generator", data=report_data)
+    report_result = manager.execute_plugin(
+        "report-generator",
+        data=json.dumps(report_data),
+    )
     if report_result.is_success:
         cli.print(
             f"   Report length: {len(str(report_result.value))} chars", style="green"

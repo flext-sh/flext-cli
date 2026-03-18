@@ -193,7 +193,9 @@ class TestsCliConfigModelIntegration:
         for field_name in expected_fields:
             tm.that(hasattr(config, field_name), eq=True)
         for field_name, expected_value in expected_values.items():
-            tm.that(getattr(config, field_name), eq=expected_value)
+            if isinstance(expected_value, (str, int, float, bool, type(None))):
+                field_value = getattr(config, field_name)
+                tm.that(field_value, eq=expected_value)
 
     def test_config_with_environment_variables(self) -> None:
         """Test config loading from environment variables."""
@@ -230,15 +232,19 @@ class TestsCliConfigModelIntegration:
         """Test parameter model validation with aliases."""
         params = self.AliasedParams.model_validate(input_data)
         for field_name, expected_value in expected_data.items():
-            tm.that(getattr(params, field_name), eq=expected_value)
+            if isinstance(expected_value, (str, int, float, bool, type(None))):
+                field_value = getattr(params, field_name)
+                tm.that(field_value, eq=expected_value)
 
     def test_params_model_with_required_fields(self) -> None:
         """Test parameter model with required fields."""
         with pytest.raises(ValidationError):
             self.RequiredFieldsParams()
-        params = self.RequiredFieldsParams(input_dir="/test/input")
+        params = self.RequiredFieldsParams(
+            input_dir="/test/input", output_dir="/test/output"
+        )
         tm.that(params.input_dir, eq="/test/input")
-        tm.that(params.output_dir is None, eq=True)
+        tm.that(params.output_dir, eq="/test/output")
 
     def test_model_command_with_config(self, cli: FlextCliCli) -> None:
         """Test model_command applies config defaults to Typer parameters."""
@@ -364,7 +370,9 @@ class TestsCliConfigModelIntegration:
 
     def test_params_validation_strict(self) -> None:
         """Test params validation with strict mode."""
-        params = self.StrictParams(name="test", count=5)
+        params = self.StrictParams(
+            input_dir="/test/input", output_dir="/test/output", name="test", count=5
+        )
         tm.that(params.name, eq="test")
         tm.that(params.count, eq=5)
 

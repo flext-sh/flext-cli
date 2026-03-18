@@ -59,13 +59,11 @@ def display_database_results(records: Sequence[t.Cli.JsonValue]) -> None:
     if not records:
         cli.print("No results found", style="yellow")
         return
-    payload = m.Cli.DisplayData(
-        data={
-            f"Row {i}": " | ".join(str(v) for v in record.values())
-            for i, record in enumerate(records[:10], 1)
-        }
-    )
-    cli.show_table(payload.data, headers=["#", "Data"])
+    rows: list[dict[str, str]] = []
+    for i, record in enumerate(records[:10], 1):
+        row_data = " | ".join(str(v) for v in record.values())
+        rows.append({"#": f"Row {i}", "Data": row_data})
+    cli.show_table(rows, headers=["#", "Data"])
 
 
 def export_report(

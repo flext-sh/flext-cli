@@ -133,8 +133,15 @@ def show_session_info() -> None:
             else "N/A",
         }
     )
+    table_data: dict[str, str]
+    if isinstance(session_data.data, dict):
+        table_data = {str(key): str(value) for key, value in session_data.data.items()}
+    else:
+        table_data = {"Session": "Unavailable"}
     cli.show_table(
-        session_data.data, headers=["Property", "Value"], title="🔐 Current Session"
+        table_data,
+        headers=["Property", "Value"],
+        title="🔐 Current Session",
     )
 
 
