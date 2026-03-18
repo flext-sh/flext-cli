@@ -17,11 +17,10 @@ from collections.abc import Callable
 from typing import override
 
 from flext_core import FlextHandlers, T, r
-from flext_tests import FlextTestsServiceBase
+from flext_tests import s
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
-from tests import m
-from tests.constants import c
+from tests import c, m
 
 
 class TestsCliServiceBase(FlextTestsServiceBase[T]):

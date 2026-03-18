@@ -18,7 +18,7 @@ import pytest
 from flext_core import r
 
 from flext_cli import FlextCliProtocols, p, t
-from tests.constants import c
+from tests import c
 
 from ..helpers import FlextCliTestHelpers
 
