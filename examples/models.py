@@ -126,11 +126,12 @@ class MyAppConfig(BaseModel):
                 "Profile": base.profile,
             }
         )
-        cli.show_table(
-            payload.data,
-            headers=["Setting", "Value"],
-            title="⚙️  Application Configuration",
-        )
+        if isinstance(payload.data, dict):
+            cli.show_table(
+                payload.data,
+                headers=["Setting", "Value"],
+                title="⚙️  Application Configuration",
+            )
 
     def validate_config(self, cli: FlextCli) -> bool:
         """Run validation; uses cli for output."""

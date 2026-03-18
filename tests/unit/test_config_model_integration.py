@@ -381,7 +381,10 @@ class TestsCliConfigModelIntegration:
         params = self.ForbidExtraParams(name="test")
         tm.that(params.name, eq="test")
         with pytest.raises(ValidationError):
-            self.ForbidExtraParams(name="test", extra_field="value")
+            self.ForbidExtraParams.model_validate({
+                "name": "test",
+                "extra_field": "value",
+            })
 
     def test_config_value_extraction_int_field(self) -> None:
         """Test extracting integer values from config."""

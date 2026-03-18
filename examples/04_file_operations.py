@@ -594,7 +594,7 @@ def generate_output_files(
     if isinstance(data.content, dict):
         content_items = data.content.get("items", [])
     else:
-        content_items = []
+        content_items = list[dict[str, object]]()
     try:
         csv_rows_data = rows_adapter.validate_python(content_items)
     except ValidationError:
