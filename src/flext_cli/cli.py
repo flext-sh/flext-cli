@@ -278,17 +278,12 @@ class FlextCliCli:
 
     @staticmethod
     def _datetime_type(formats: Sequence[str] | None = None) -> click.DateTime:
-        formats_values = u.build(
-            formats,
-            ops={
-                "ensure": "list",
-                "ensure_default": c.Cli.FileDefaults.DEFAULT_DATETIME_FORMATS,
-            },
+        formats_values = (
+            [str(fmt) for fmt in c.Cli.FileDefaults.DEFAULT_DATETIME_FORMATS]
+            if formats is None
+            else [str(fmt) for fmt in formats]
         )
-        if not isinstance(formats_values, Sequence) or isinstance(formats_values, str):
-            msg = "datetime formats must resolve to a sequence"
-            raise TypeError(msg)
-        return click.DateTime(formats=[str(fmt) for fmt in formats_values])
+        return click.DateTime(formats=formats_values)
 
     @staticmethod
     def clear_screen() -> r[bool]:
@@ -336,7 +331,11 @@ class FlextCliCli:
             decorated = click.pass_context(func)
 
             def typed_decorated(ctx: click.Context) -> t.Cli.JsonValue:
-                return decorated(ctx)
+                result = decorated(ctx)
+                try:
+                    return FlextCliCli._json_value_adapter.validate_python(result)
+                except ValidationError:
+                    return str(result)
 
             return typed_decorated
 
@@ -417,23 +416,28 @@ class FlextCliCli:
             if is_success is False:
                 msg = f"Handler failed: {getattr(result, 'error', '')}"
                 raise ValueError(msg)
-            result_value = result
-            while getattr(result_value, "is_success", None) is True:
-                result_value = getattr(result_value, "value", None)
-            if result_value is None:
+            result_candidate = result
+            while getattr(result_candidate, "is_success", None) is True:
+                result_candidate = getattr(result_candidate, "value", None)
+            if result_candidate is None:
                 return ""
             try:
-                return FlextCliCli._json_value_adapter.validate_python(result_value)
+                return FlextCliCli._json_value_adapter.validate_python(result_candidate)
             except ValidationError as exc:
                 logging.getLogger(__name__).debug(
                     "model command result validation fallback: %s",
                     exc,
                     exc_info=False,
                 )
-                return str(result_value)
+                return str(result_candidate)
 
+        config_payload: t.Cli.JsonValue | None = None
+        if config is not None:
+            config_payload = FlextCliCli._json_value_adapter.validate_python(
+                config.model_dump(mode="json")
+            )
         return m.Cli.ModelCommandBuilder(
-            model_class, normalized_handler, config
+            model_class, normalized_handler, config_payload
         ).build()
 
     @staticmethod
@@ -476,12 +480,7 @@ class FlextCliCli:
             if isinstance(type_hint_value, (click.ParamType, type)):
                 prompt_type = type_hint_value
             elif isinstance(type_hint_value, tuple):
-                tuple_type_hints = tuple(
-                    item
-                    for item in type_hint_value
-                    if isinstance(item, (click.ParamType, type))
-                )
-                prompt_type = tuple_type_hints or None
+                prompt_type = None
             else:
                 prompt_type = None
             prompt_result = typer.prompt(
@@ -544,7 +543,9 @@ class FlextCliCli:
                     json_value = str(json_value_candidate)
             return r.ok(json_value)
         except typer.Abort as e:
-            return r.fail(c.Cli.ErrorMessages.USER_ABORTED_PROMPT.format(error=e))
+            return r[t.Cli.JsonValue].fail(
+                c.Cli.ErrorMessages.USER_ABORTED_PROMPT.format(error=e)
+            )
 
     def create_app_with_common_params(
         self,
@@ -773,11 +774,19 @@ class FlextCliCli:
             "option type hint",
             self._json_value_adapter,
         )
+        flag_value_raw = u.get(kwargs, "flag_value")
+        flag_value = self._unwrap_and_validate(
+            flag_value_raw,
+            "option flag value",
+            self._json_value_adapter,
+        )
         return m.Cli.OptionConfig(
             default=default_value,
             type_hint=self._normalize_type_hint(type_hint_value),
             required=bool(self._build_typed_value(kwargs, "required", "bool", False)),
             help_text=str(self._build_typed_value(kwargs, "help_text", "str", "")),
+            is_flag=bool(self._build_typed_value(kwargs, "is_flag", "bool", False)),
+            flag_value=flag_value,
             multiple=bool(self._build_typed_value(kwargs, "multiple", "bool", False)),
             count=bool(self._build_typed_value(kwargs, "count", "bool", False)),
             show_default=bool(
@@ -914,7 +923,8 @@ class FlextCliCli:
                 if log_level_attr and hasattr(log_level_attr, "value")
                 else str(log_level_attr)
                 if log_level_attr
-                else None
+                else None,
+                default="INFO",
             ).resolve()
         )
         return getattr(logging, level_str, logging.INFO)
