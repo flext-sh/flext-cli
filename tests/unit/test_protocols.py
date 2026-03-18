@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import pytest
 from flext_core import r
+from flext_tests import tm
 
 from flext_cli import FlextCliProtocols, p, t
 from tests import c
@@ -28,7 +29,7 @@ class TestsCliProtocols:
 
     def test_protocol_class_has_required_attributes(self) -> None:
         """Test that FlextCliProtocols has all required protocol classes."""
-        assert hasattr(FlextCliProtocols, "Cli")
+        tm.that(hasattr(FlextCliProtocols, "Cli"), eq=True)
 
     def test_cli_namespace_has_all_protocols(self) -> None:
         """Test that Cli namespace contains all required protocols."""
@@ -41,7 +42,7 @@ class TestsCliProtocols:
             "ModelCommandHandler",
         ]
         for protocol_name in required_protocols:
-            assert hasattr(p.Cli, protocol_name), f"Missing protocol: {protocol_name}"
+            tm.that(hasattr(p.Cli, protocol_name), eq=True)
 
     @pytest.mark.parametrize(
         "protocol_name",
@@ -57,15 +58,13 @@ class TestsCliProtocols:
     def test_protocol_has_runtime_checkable_attribute(self, protocol_name: str) -> None:
         """Test that each protocol is runtime checkable."""
         protocol = getattr(p.Cli, protocol_name)
-        assert hasattr(protocol, "_is_protocol"), (
-            f"{protocol_name} is not runtime checkable"
-        )
+        tm.that(hasattr(protocol, "_is_protocol"), eq=True)
 
     def test_structural_typing_enabled(self) -> None:
         """Test that protocols support structural typing through runtime_checkable."""
-        assert hasattr(p.Cli.CliFormatter, "_is_protocol")
-        assert hasattr(p.Cli.CliConfigProvider, "_is_protocol")
-        assert hasattr(p.Cli.CliAuthenticator, "_is_protocol")
+        tm.that(hasattr(p.Cli.CliFormatter, "_is_protocol"), eq=True)
+        tm.that(hasattr(p.Cli.CliConfigProvider, "_is_protocol"), eq=True)
+        tm.that(hasattr(p.Cli.CliAuthenticator, "_is_protocol"), eq=True)
 
     def test_duck_typing_with_formatter(self) -> None:
         """Test duck typing - class satisfies protocol without inheritance."""
@@ -76,21 +75,23 @@ class TestsCliProtocols:
 
         duck = DuckFormatter()
         obj = duck
-        assert isinstance(obj, p.Cli.CliFormatter)
+        tm.that(isinstance(obj, p.Cli.CliFormatter), eq=True)
 
     def test_cli_formatter_implementation(self) -> None:
         """Test CLI formatter protocol implementation."""
         formatter_result = (
             FlextCliTestHelpers.ProtocolHelpers.create_formatter_implementation()
         )
-        assert formatter_result.is_success, (
-            formatter_result.error or "create_formatter_implementation failed"
+        (
+            tm.ok(formatter_result),
+            (formatter_result.error or "create_formatter_implementation failed"),
         )
         if formatter_result.is_success and formatter_result.value:
             formatter = formatter_result.value
             validation_result = self._validate_formatter_instance(formatter)
-            assert validation_result.is_success, (
-                validation_result.error or "formatter validation failed"
+            (
+                tm.ok(validation_result),
+                (validation_result.error or "formatter validation failed"),
             )
 
     def test_formatter_format_data_method(self) -> None:
@@ -98,8 +99,9 @@ class TestsCliProtocols:
         formatter_result = (
             FlextCliTestHelpers.ProtocolHelpers.create_formatter_implementation()
         )
-        assert formatter_result.is_success, (
-            formatter_result.error or "create_formatter_implementation failed"
+        (
+            tm.ok(formatter_result),
+            (formatter_result.error or "create_formatter_implementation failed"),
         )
         if formatter_result.is_success and formatter_result.value:
             formatter = formatter_result.value
@@ -107,23 +109,23 @@ class TestsCliProtocols:
                 test_data_raw = {"key": "value"}
                 test_data = test_data_raw
                 format_result = formatter.format_data(test_data)
-                assert format_result.is_success, (
-                    format_result.error or "format_data failed"
-                )
+                tm.ok(format_result)
 
     def test_cli_config_provider_implementation(self) -> None:
         """Test CLI config provider protocol implementation."""
         provider_result = (
             FlextCliTestHelpers.ProtocolHelpers.create_config_provider_implementation()
         )
-        assert provider_result.is_success, (
-            provider_result.error or "create_config_provider_implementation failed"
+        (
+            tm.ok(provider_result),
+            (provider_result.error or "create_config_provider_implementation failed"),
         )
         if provider_result.is_success and provider_result.value:
             provider = provider_result.value
             validation_result = self._validate_config_provider_instance(provider)
-            assert validation_result.is_success, (
-                validation_result.error or "config provider validation failed"
+            (
+                tm.ok(validation_result),
+                (validation_result.error or "config provider validation failed"),
             )
 
     def test_config_provider_load_save_methods(self) -> None:
@@ -131,8 +133,9 @@ class TestsCliProtocols:
         provider_result = (
             FlextCliTestHelpers.ProtocolHelpers.create_config_provider_implementation()
         )
-        assert provider_result.is_success, (
-            provider_result.error or "create_config_provider_implementation failed"
+        (
+            tm.ok(provider_result),
+            (provider_result.error or "create_config_provider_implementation failed"),
         )
         if provider_result.is_success and provider_result.value:
             provider = provider_result.value
@@ -145,23 +148,25 @@ class TestsCliProtocols:
                     else:
                         test_config[key] = str(value)
                 save_result = provider.save_config(test_config)
-                assert save_result.is_success, save_result.error or "save_config failed"
+                tm.ok(save_result)
                 load_result = provider.load_config()
-                assert load_result.is_success, load_result.error or "load_config failed"
+                tm.ok(load_result)
 
     def test_cli_authenticator_implementation(self) -> None:
         """Test CLI authenticator protocol implementation."""
         auth_result: r = (
             FlextCliTestHelpers.ProtocolHelpers.create_authenticator_implementation()
         )
-        assert auth_result.is_success, (
-            auth_result.error or "create_authenticator_implementation failed"
+        (
+            tm.ok(auth_result),
+            (auth_result.error or "create_authenticator_implementation failed"),
         )
         if auth_result.is_success and auth_result.value:
             authenticator = auth_result.value
             validation_result = self._validate_authenticator_instance(authenticator)
-            assert validation_result.is_success, (
-                validation_result.error or "authenticator validation failed"
+            (
+                tm.ok(validation_result),
+                (validation_result.error or "authenticator validation failed"),
             )
 
     def test_authenticator_authenticate_method(self) -> None:
@@ -169,8 +174,9 @@ class TestsCliProtocols:
         auth_result = (
             FlextCliTestHelpers.ProtocolHelpers.create_authenticator_implementation()
         )
-        assert auth_result.is_success, (
-            auth_result.error or "create_authenticator_implementation failed"
+        (
+            tm.ok(auth_result),
+            (auth_result.error or "create_authenticator_implementation failed"),
         )
         if auth_result.is_success and auth_result.value:
             authenticator = auth_result.value
@@ -186,9 +192,7 @@ class TestsCliProtocols:
                     if is_failure:
                         err_msg = f"authenticate failed: {getattr(auth_response, 'error', '')}. Username: '{username}', Password: '{password}'"
                         pytest.fail(err_msg)
-                    assert getattr(auth_response, "is_success", False), (
-                        getattr(auth_response, "error", "") or "authenticate failed"
-                    )
+                    tm.that(getattr(auth_response, "is_success", False), eq=True)
                 else:
                     pytest.fail("authenticate method not found or not callable")
 
@@ -197,51 +201,53 @@ class TestsCliProtocols:
         auth_result = (
             FlextCliTestHelpers.ProtocolHelpers.create_authenticator_implementation()
         )
-        assert auth_result.is_success, (
-            auth_result.error or "create_authenticator_implementation failed"
+        (
+            tm.ok(auth_result),
+            (auth_result.error or "create_authenticator_implementation failed"),
         )
         if auth_result.is_success and auth_result.value:
             authenticator = auth_result.value
             if isinstance(authenticator, p.Cli.CliAuthenticator):
                 token = c.Authentication.VALID_TOKEN
                 validation_result = authenticator.validate_token(token)
-                assert validation_result.is_success, (
-                    validation_result.error or "validate_token failed"
+                (
+                    tm.ok(validation_result),
+                    (validation_result.error or "validate_token failed"),
                 )
 
     def test_cli_debug_provider_exists(self) -> None:
         """Test that CLI debug provider protocol exists."""
-        assert hasattr(p.Cli, "CliDebugProvider")
+        tm.that(hasattr(p.Cli, "CliDebugProvider"), eq=True)
 
     def test_cli_debug_provider_is_runtime_checkable(self) -> None:
         """Test that CLI debug provider is runtime checkable."""
-        assert hasattr(p.Cli.CliDebugProvider, "_is_protocol")
+        tm.that(hasattr(p.Cli.CliDebugProvider, "_is_protocol"), eq=True)
 
     def test_cli_plugin_exists(self) -> None:
         """Test that CLI plugin protocol exists."""
-        assert hasattr(p.Cli, "CliPlugin")
+        tm.that(hasattr(p.Cli, "CliPlugin"), eq=True)
 
     def test_cli_plugin_is_runtime_checkable(self) -> None:
         """Test that CLI plugin is runtime checkable."""
-        assert hasattr(p.Cli.CliPlugin, "_is_protocol")
+        tm.that(hasattr(p.Cli.CliPlugin, "_is_protocol"), eq=True)
 
     def test_cli_command_handler_exists(self) -> None:
         """Test that CLI command handler protocol exists."""
-        assert hasattr(p.Cli, "ModelCommandHandler")
+        tm.that(hasattr(p.Cli, "ModelCommandHandler"), eq=True)
 
     def test_cli_command_handler_is_runtime_checkable(self) -> None:
         """Test that CLI command handler is runtime checkable."""
-        assert hasattr(p.Cli.ModelCommandHandler, "_is_protocol")
+        tm.that(hasattr(p.Cli.ModelCommandHandler, "_is_protocol"), eq=True)
 
     def test_protocol_inheritance_structure(self) -> None:
         """Test protocol inheritance from p."""
-        assert issubclass(FlextCliProtocols, FlextCliProtocols)
+        tm.that(issubclass(FlextCliProtocols, FlextCliProtocols), eq=True)
 
     def test_cli_namespace_nested_properly(self) -> None:
         """Test that Cli namespace is properly nested."""
-        assert hasattr(FlextCliProtocols, "Cli")
-        assert hasattr(p.Cli, "CliFormatter")
-        assert hasattr(p.Cli, "CliConfigProvider")
+        tm.that(hasattr(FlextCliProtocols, "Cli"), eq=True)
+        tm.that(hasattr(p.Cli, "CliFormatter"), eq=True)
+        tm.that(hasattr(p.Cli, "CliConfigProvider"), eq=True)
 
     @pytest.mark.parametrize(
         ("test_type", "description", "should_succeed"),
@@ -256,8 +262,8 @@ class TestsCliProtocols:
     ) -> None:
         """Comprehensive protocol scenario tests using parametrization."""
         result = self._execute_protocol_test(test_type)
-        assert should_succeed is True
-        assert result.is_success, result.error or "protocol test failed"
+        tm.that(should_succeed is True, eq=True)
+        tm.ok(result)
 
     def _validate_formatter_instance(self, instance) -> r[bool]:
         """Validate formatter instance against protocol."""

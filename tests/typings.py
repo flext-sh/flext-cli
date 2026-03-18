@@ -1,11 +1,11 @@
 """Type system foundation for flext-cli tests.
 
-Provides TestsCliTypes, extending FlextTestsTypes with flext-cli-specific types.
+Provides TestsCliTypes, extending t with flext-cli-specific types.
 All generic test types come from flext_tests, only flext-cli-specific additions here.
 
 Architecture:
-- FlextTestsTypes (flext_tests) = Generic types for all FLEXT projects
-- TestsCliTypes (tests/) = flext-cli-specific types extending FlextTestsTypes
+- t (flext_tests) = Generic types for all FLEXT projects
+- TestsCliTypes (tests/) = flext-cli-specific types extending t
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -21,21 +21,21 @@ from flext_tests import t
 from flext_cli import FlextCliTypes
 
 
-class TestsCliTypes(FlextTestsTypes):
-    """Type system foundation for flext-cli tests - extends FlextTestsTypes and FlextCliTypes.
+class TestsCliTypes(t):
+    """Type system foundation for flext-cli tests - extends t and FlextCliTypes.
 
     Architecture: Multiple inheritance provides both generic test types AND CLI-specific types.
-    All types from both FlextTestsTypes and FlextCliTypes are available through inheritance.
+    All types from both t and FlextCliTypes are available through inheritance.
 
     Hierarchy:
-    - FlextTestsTypes.Tests.* (generic test types from flext_tests)
+    - t.Tests.* (generic test types from flext_tests)
     - FlextCliTypes.Cli.* (source types from flext_cli - INHERITED)
     - TestsCliTypes.Tests.* (flext-cli-specific test types)
 
     Rules:
-    - NEVER redeclare types from FlextTestsTypes or FlextCliTypes
+    - NEVER redeclare types from t or FlextCliTypes
     - Only flext-cli-specific types allowed (not generic for other projects)
-    - All generic types come from FlextTestsTypes
+    - All generic types come from t
     - CLI types come from FlextCliTypes via inheritance
     """
 
@@ -51,7 +51,7 @@ class TestsCliTypes(FlextTestsTypes):
             """flext-cli-specific test type definitions namespace.
 
             Use tt.Tests.* for flext-cli-specific test types.
-            Use t.Tests.* for generic test types from FlextTestsTypes.
+            Use t.Tests.* for generic test types from t.
             """
 
             ResultFormatter = FlextCliTypes.Cli.ResultFormatter

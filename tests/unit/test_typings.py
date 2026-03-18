@@ -214,7 +214,7 @@ class TestsCliTypings:
         validation_result = self.TypingValidators.validate_type_initialization(t)
         tm.ok(validation_result)
         test_data: dict[str, object] = {"key": "value"}
-        assert isinstance(test_data, dict)
+        tm.that(isinstance(test_data, dict), eq=True)
 
     def _execute_basic_functionality_tests(self) -> None:
         """Execute basic functionality tests."""
@@ -237,8 +237,8 @@ class TestsCliTypings:
             format_dict, "CliFormatData"
         )
         tm.ok(format_result)
-        assert config_dict["output_format"] == c.Cli.OutputFormats.JSON.value
-        assert config_dict["debug"] is True
+        tm.that(config_dict["output_format"], eq=c.Cli.OutputFormats.JSON.value)
+        tm.that(config_dict["debug"] is True, eq=True)
 
     def _execute_type_definition_tests(self) -> None:
         """Execute type definition tests."""
@@ -248,14 +248,14 @@ class TestsCliTypings:
         class Test(Protocol):
             def method(self) -> str: ...
 
-        assert t_var is not None
-        assert generic_type is not None
-        assert Test is not None
+        tm.that(t_var is not None, eq=True)
+        tm.that(generic_type is not None, eq=True)
+        tm.that(Test is not None, eq=True)
         user_data: dict[str, object] = {"key": "value", "number": 42}
         user_list: list[dict[str, object]] = [user_data]
-        assert isinstance(user_data, dict)
-        assert isinstance(user_list, list)
-        assert len(user_list) == 1
+        tm.that(isinstance(user_data, dict), eq=True)
+        tm.that(isinstance(user_list, list), eq=True)
+        tm.that(len(user_list), eq=1)
 
     def _execute_type_validation_tests(self) -> None:
         """Execute type validation tests."""
@@ -269,10 +269,10 @@ class TestsCliTypings:
         def process_optional(value: str | None) -> str:
             return value or "default"
 
-        assert process_value("hello") == "HELLO"
-        assert process_value(42) == "42"
-        assert process_optional("test") == "test"
-        assert process_optional(None) == "default"
+        tm.that(process_value("hello"), eq="HELLO")
+        tm.that(process_value(42), eq="42")
+        tm.that(process_optional("test"), eq="test")
+        tm.that(process_optional(None), eq="default")
         T_local = TypeVar("T_local")
         K_local = TypeVar("K_local")
         V_local = TypeVar("V_local")
@@ -296,14 +296,14 @@ class TestsCliTypings:
 
         string_container = Container("test")
         int_container = Container(42)
-        assert string_container.get_value() == "test"
-        assert int_container.get_value() == 42
+        tm.that(string_container.get_value(), eq="test")
+        tm.that(int_container.get_value(), eq=42)
         kv_store = KeyValueStore[str, int]()
         kv_store.set("key1", 100)
         kv_store.set("key2", 200)
-        assert kv_store.get("key1") == 100
-        assert kv_store.get("key2") == 200
-        assert kv_store.get("key3") is None
+        tm.that(kv_store.get("key1"), eq=100)
+        tm.that(kv_store.get("key2"), eq=200)
+        tm.that(kv_store.get("key3") is None, eq=True)
 
     def _execute_type_conversion_tests(self) -> None:
         """Execute type conversion tests."""
@@ -317,9 +317,9 @@ class TestsCliTypings:
         def process_data_safe(data: int | str) -> str:
             return str(data).upper()
 
-        assert process_data("hello") == "HELLO"
-        assert process_data_safe("hello") == "HELLO"
-        assert process_data_safe(123) == "123"
+        tm.that(process_data("hello"), eq="HELLO")
+        tm.that(process_data_safe("hello"), eq="HELLO")
+        tm.that(process_data_safe(123), eq="123")
 
         def process_union(value: str | int) -> str:
             """Process union value and return string."""
@@ -330,10 +330,10 @@ class TestsCliTypings:
         def process_optional(value: str | None) -> str:
             return value.upper() if value else "default"
 
-        assert process_union("hello") == "HELLO"
-        assert process_union(42) == "42"
-        assert process_optional("test") == "TEST"
-        assert process_optional(None) == "default"
+        tm.that(process_union("hello"), eq="HELLO")
+        tm.that(process_union(42), eq="42")
+        tm.that(process_optional("test"), eq="TEST")
+        tm.that(process_optional(None), eq="default")
 
     def _execute_type_utilities_tests(self) -> None:
         """Execute type utilities tests."""
@@ -344,17 +344,17 @@ class TestsCliTypings:
             return {"name": name, "age": age, "active": active}
 
         hints = get_type_hints(typed_function)
-        assert hints["name"] is str
-        assert hints["age"] is int
-        assert hints["active"] is bool
-        assert hints["return"] == dict[str, bool | int | str]
+        tm.that(hints["name"] is str, eq=True)
+        tm.that(hints["age"] is int, eq=True)
+        tm.that(hints["active"] is bool, eq=True)
+        tm.that(hints["return"], eq=dict[str, bool | int | str])
 
         def complex_function(data: list[dict[str, str | int]]) -> str | None:
             return "result" if data else None
 
         complex_hints = get_type_hints(complex_function)
-        assert complex_hints["data"] == list[dict[str, str | int]]
-        assert complex_hints["return"] == str | None
+        tm.that(complex_hints["data"], eq=list[dict[str, str | int]])
+        tm.that(complex_hints["return"], eq=str | None)
 
         class TypedClass:
             def __init__(self, name: str, value: int) -> None:
@@ -365,18 +365,18 @@ class TestsCliTypings:
                 return {item: len(item) for item in data}
 
         init_hints = get_type_hints(TypedClass.__init__)
-        assert init_hints["name"] is str
-        assert init_hints["value"] is int
+        tm.that(init_hints["name"] is str, eq=True)
+        tm.that(init_hints["value"] is int, eq=True)
         process_hints = get_type_hints(TypedClass.process)
-        assert process_hints["data"] == list[str]
-        assert process_hints["return"] == dict[str, int]
+        tm.that(process_hints["data"], eq=list[str])
+        tm.that(process_hints["return"], eq=dict[str, int])
         instance = TypedClass("test", 42)
         result = instance.process(["str1", "str2"])
-        assert len(result) == 2
-        assert "str1" in result or "STR1" in result
-        assert "str2" in result or "STR2" in result
+        tm.that(len(result), eq=2)
+        tm.that("str1" in result or "STR1" in result, eq=True)
+        tm.that("str2" in result or "STR2" in result, eq=True)
         values = list(result.values())
-        assert all(isinstance(v, int) for v in values)
+        tm.that(all(isinstance(v, int) for v in values), eq=True)
 
     def _execute_type_scenario_tests(self) -> None:
         """Execute type scenario tests."""
@@ -423,24 +423,24 @@ class TestsCliTypings:
             id=user_id, name=user_name, email=user_email, active=user_active
         )
         user_response = create_user_response(user_data)
-        assert isinstance(user_response, ApiResponse)
-        assert user_response.status == "success"
-        assert user_response.message == "User created successfully"
+        tm.that(isinstance(user_response, ApiResponse), eq=True)
+        tm.that(user_response.status, eq="success")
+        tm.that(user_response.message, eq="User created successfully")
         users_response = create_users_response([user_data])
-        assert isinstance(users_response, ApiResponse)
-        assert users_response.status == "success"
+        tm.that(isinstance(users_response, ApiResponse), eq=True)
+        tm.that(users_response.status, eq="success")
         users_data = users_response.data
-        assert isinstance(users_data, list)
-        assert len(users_data) == 1
+        tm.that(isinstance(users_data, list), eq=True)
+        tm.that(len(users_data), eq=1)
         processing_result = (
             FlextCliTestHelpers.TypingHelpers.create_processing_test_data()
         )
-        assert processing_result.is_success
+        tm.ok(processing_result)
         if processing_result.is_success and processing_result.value:
             string_list, number_list, mixed_dict = processing_result.value
-            assert len(string_list) == 3
-            assert len(number_list) == 5
-            assert isinstance(mixed_dict, dict)
+            tm.that(len(string_list), eq=3)
+            tm.that(len(number_list), eq=5)
+            tm.that(isinstance(mixed_dict, dict), eq=True)
 
     def _execute_type_performance_tests(self) -> None:
         """Execute type performance tests."""
@@ -461,11 +461,9 @@ class TestsCliTypings:
             result_dict = process_dict(test_dict)
         end_time = time.time()
         processing_time = end_time - start_time
-        assert processing_time < 0.1, (
-            f"Type processing too slow: {processing_time:.4f}s"
-        )
-        assert result_list == ["HELLO", "WORLD", "TEST"]
-        assert result_dict["key1"] == "123"
+        tm.that(processing_time < 0.1, eq=True)
+        tm.that(result_list, eq=["HELLO", "WORLD", "TEST"])
+        tm.that(result_dict["key1"], eq="123")
 
     def _execute_type_edge_tests(self) -> None:
         """Execute type edge case tests."""
@@ -479,14 +477,14 @@ class TestsCliTypings:
                 return str(value)
             return "Unknown"
 
-        assert handle_edge_cases(None) == "None"
-        assert handle_edge_cases("") == "Empty"
-        assert handle_edge_cases("hello") == "hello"
-        assert handle_edge_cases(42) == "42"
+        tm.that(handle_edge_cases(None), eq="None")
+        tm.that(handle_edge_cases(""), eq="Empty")
+        tm.that(handle_edge_cases("hello"), eq="hello")
+        tm.that(handle_edge_cases(42), eq="42")
         result = handle_edge_cases(math.pi)
-        assert result.startswith("3.14")
-        assert handle_edge_cases([]) == "Unknown"
-        assert handle_edge_cases({}) == "Unknown"
+        tm.that(result.startswith("3.14"), eq=True)
+        tm.that(handle_edge_cases([]), eq="Unknown")
+        tm.that(handle_edge_cases({}), eq="Unknown")
 
         def thread_safe_operation(data: list[str], results: list[str]) -> None:
             processed = [item.upper() for item in data]
@@ -503,31 +501,31 @@ class TestsCliTypings:
             thread.start()
         for thread in threads:
             thread.join()
-        assert len(results) == 10
-        assert all(item in {"STR1", "STR2"} for item in results)
+        tm.that(len(results), eq=10)
+        tm.that(all(item in {"STR1", "STR2"} for item in results), eq=True)
 
     def test_full_type_workflow_integration(self) -> None:
         """Test complete type workflow integration."""
         typed_data_result = FlextCliTestHelpers.TypingHelpers.create_typed_dict_data()
-        assert typed_data_result.is_success
+        tm.ok(typed_data_result)
         api_data_result = FlextCliTestHelpers.TypingHelpers.create_api_response_data()
-        assert api_data_result.is_success
+        tm.ok(api_data_result)
         complex_type = list[dict[str, str | int]]
         optional_type = list[str] | None
         union_type = str | int | bool
-        assert get_origin(complex_type) is list
+        tm.that(get_origin(complex_type) is list, eq=True)
         complex_args = get_args(complex_type)
-        assert len(complex_args) == 1
-        assert get_origin(complex_args[0]) is dict
-        assert get_origin(optional_type) is not None
+        tm.that(len(complex_args), eq=1)
+        tm.that(get_origin(complex_args[0]) is dict, eq=True)
+        tm.that(get_origin(optional_type) is not None, eq=True)
         optional_args = get_args(optional_type)
-        assert type(None) in optional_args
-        assert list[str] in optional_args
-        assert get_origin(union_type) is not None
+        tm.that(type(None) in optional_args, eq=True)
+        tm.that(list[str] in optional_args, eq=True)
+        tm.that(get_origin(union_type) is not None, eq=True)
         union_args = get_args(union_type)
-        assert str in union_args
-        assert int in union_args
-        assert bool in union_args
+        tm.that(str in union_args, eq=True)
+        tm.that(int in union_args, eq=True)
+        tm.that(bool in union_args, eq=True)
 
     def test_type_workflow_integration(self) -> None:
         """Test type workflow integration with helpers."""
@@ -546,13 +544,13 @@ class TestsCliTypings:
                 }
 
         impl = Implementation()
-        assert isinstance(impl, Test)
+        tm.that(isinstance(impl, Test), eq=True)
         test_data = ["str1", "str2"]
         result = impl.operation(test_data)
-        assert result["processed"] == ["STR1", "STR2"]
-        assert result["count"] == 2
-        assert "timestamp" in result
-        assert t is not None
-        assert hasattr(t, "Cli")
-        assert hasattr(t.Cli, "FormatableResult")
-        assert hasattr(t.Cli, "ResultFormatter")
+        tm.that(result["processed"], eq=["STR1", "STR2"])
+        tm.that(result["count"], eq=2)
+        tm.that("timestamp" in result, eq=True)
+        tm.that(t is not None, eq=True)
+        tm.that(hasattr(t, "Cli"), eq=True)
+        tm.that(hasattr(t.Cli, "FormatableResult"), eq=True)
+        tm.that(hasattr(t.Cli, "ResultFormatter"), eq=True)

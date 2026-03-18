@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 
 import pytest
+from flext_tests import tm
 from pydantic import ValidationError
 
 from flext_cli import c, m
@@ -31,11 +32,11 @@ class TestsCliComprehensiveModels:
     def test_command_status_transitions(self, status: c.Cli.CommandStatus) -> None:
         """Test all possible command status transitions with real data."""
         cmd = create_test_cli_command(status=status)
-        assert cmd.status == status
-        assert cmd.is_pending == (status == c.Cli.CommandStatus.PENDING)
-        assert cmd.is_running == (status == c.Cli.CommandStatus.RUNNING)
-        assert cmd.is_completed == (status == c.Cli.CommandStatus.COMPLETED)
-        assert cmd.is_failed == (status == c.Cli.CommandStatus.FAILED)
+        tm.that(cmd.status, eq=status)
+        tm.that(cmd.is_pending, eq=(status == c.Cli.CommandStatus.PENDING))
+        tm.that(cmd.is_running, eq=(status == c.Cli.CommandStatus.RUNNING))
+        tm.that(cmd.is_completed, eq=(status == c.Cli.CommandStatus.COMPLETED))
+        tm.that(cmd.is_failed, eq=(status == c.Cli.CommandStatus.FAILED))
 
     @pytest.mark.parametrize("edge_case", generate_edge_case_data())
     def test_command_edge_cases(self, edge_case: dict[str, object]) -> None:
@@ -43,9 +44,9 @@ class TestsCliComprehensiveModels:
         cmd = create_test_cli_command(**edge_case)
         for key, value in edge_case.items():
             if key != "description":
-                assert getattr(cmd, key) == value
-        assert "test" in (cmd.command_line or cmd.name)
-        assert isinstance(cmd.created_at, datetime)
+                tm.that(getattr(cmd, key), eq=value)
+        tm.that("test" in (cmd.command_line or cmd.name), eq=True)
+        tm.that(isinstance(cmd.created_at, datetime), eq=True)
 
     @pytest.mark.parametrize(
         "status",
@@ -58,12 +59,12 @@ class TestsCliComprehensiveModels:
     def test_session_statuses(self, status: c.Cli.SessionStatus) -> None:
         """Test session creation with different statuses."""
         session = create_test_cli_session(status=status)
-        assert session.status == status
-        assert session.session_id is not None
+        tm.that(session.status, eq=status)
+        tm.that(session.session_id is not None, eq=True)
         if hasattr(session, "commands"):
-            assert len(session.commands) == 0
+            tm.that(len(session.commands), eq=0)
         else:
-            assert session.commands_executed == 0
+            tm.that(session.commands_executed, eq=0)
 
     def test_session_command_filtering(self) -> None:
         """Test session command filtering by status."""
@@ -78,12 +79,12 @@ class TestsCliComprehensiveModels:
         )
         pending = session.commands_by_status(c.Cli.CommandStatus.PENDING.value)
         completed = session.commands_by_status(c.Cli.CommandStatus.COMPLETED.value)
-        assert isinstance(pending, list)
-        assert isinstance(completed, list)
-        assert len(pending) == 1
-        assert len(completed) == 1
-        assert pending[0].name == "cmd1"
-        assert completed[0].name == "cmd2"
+        tm.that(isinstance(pending, list), eq=True)
+        tm.that(isinstance(completed, list), eq=True)
+        tm.that(len(pending), eq=1)
+        tm.that(len(completed), eq=1)
+        tm.that(pending[0].name, eq="cmd1")
+        tm.that(completed[0].name, eq="cmd2")
 
     @pytest.mark.parametrize("commands_count", [1, 5, 10, 50])
     def test_session_with_multiple_commands(self, commands_count: int) -> None:
@@ -96,7 +97,7 @@ class TestsCliComprehensiveModels:
             status=c.Cli.SessionStatus.ACTIVE,
             commands=commands,
         )
-        assert len(session.commands) == commands_count
+        tm.that(len(session.commands), eq=commands_count)
 
 
 class TestsCliModelValidation:
@@ -105,16 +106,16 @@ class TestsCliModelValidation:
     def test_command_validation_rules(self) -> None:
         """Test command validation business rules."""
         cmd = create_test_cli_command()
-        assert cmd.name == "test_command"
-        assert cmd.status == "pending"
+        tm.that(cmd.name, eq="test_command")
+        tm.that(cmd.status, eq="pending")
         cmd_custom = create_test_cli_command(name="custom", status="running")
-        assert cmd_custom.name == "custom"
-        assert cmd_custom.status == "running"
+        tm.that(cmd_custom.name, eq="custom")
+        tm.that(cmd_custom.status, eq="running")
 
     def test_session_validation_rules(self) -> None:
         """Test session validation business rules."""
         session = create_test_cli_session()
-        assert session.status == "active"
+        tm.that(session.status, eq="active")
         with pytest.raises(ValidationError):
             m.Cli.CliSession(session_id="test", status="invalid_status")
 
@@ -126,19 +127,19 @@ class TestsCliModelSerialization:
         """Test command JSON serialization with real data."""
         cmd = create_test_cli_command()
         json_data = cmd.model_dump()
-        assert "unique_id" in json_data
-        assert "name" in json_data
-        assert "status" in json_data
-        assert "created_at" in json_data
+        tm.that("unique_id" in json_data, eq=True)
+        tm.that("name" in json_data, eq=True)
+        tm.that("status" in json_data, eq=True)
+        tm.that("created_at" in json_data, eq=True)
         cmd_copy = m.Cli.CliCommand.model_construct(**json_data)
-        assert cmd_copy.unique_id == cmd.unique_id
+        tm.that(cmd_copy.unique_id, eq=cmd.unique_id)
 
     def test_session_serialization(self) -> None:
         """Test session JSON serialization with real data."""
         session = create_test_cli_session()
         json_data = session.model_dump()
-        assert "session_id" in json_data
-        assert "status" in json_data
-        assert "commands" in json_data or "commands_executed" in json_data
+        tm.that("session_id" in json_data, eq=True)
+        tm.that("status" in json_data, eq=True)
+        tm.that("commands" in json_data or "commands_executed" in json_data, eq=True)
         session_copy = m.Cli.CliSession.model_construct(**json_data)
-        assert session_copy.session_id == session.session_id
+        tm.that(session_copy.session_id, eq=session.session_id)

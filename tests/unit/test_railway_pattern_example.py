@@ -18,6 +18,7 @@ from collections.abc import Generator
 from pathlib import Path
 
 import pytest
+from flext_tests import tm
 
 from flext_cli import FlextCliFileTools
 
@@ -70,14 +71,14 @@ class TestsCliRailwayPatternExample:
         """
         test_file = temp_dir / filename
         write_result = file_tools.write_json_file(str(test_file), test_data)
-        assert write_result.is_success
-        assert test_file.exists()
+        tm.ok(write_result)
+        tm.that(test_file.exists(), eq=True)
         read_result = file_tools.read_json_file(str(test_file))
-        assert read_result.is_success
+        tm.ok(read_result)
         loaded_data = read_result.value
-        assert isinstance(loaded_data, dict)
+        tm.that(isinstance(loaded_data, dict), eq=True)
         for key in verify_keys:
-            assert key in loaded_data
+            tm.that(key in loaded_data, eq=True)
 
     @pytest.mark.parametrize(
         ("invalid_path", "test_data", "scenario"),
@@ -106,9 +107,9 @@ class TestsCliRailwayPatternExample:
         - Proper error propagation
         """
         result = file_tools.write_json_file(invalid_path, test_data)
-        assert result.is_failure
+        tm.fail(result)
         error_msg = result.error
-        assert error_msg is not None
+        tm.that(error_msg is not None, eq=True)
 
     def test_railway_error_recovery(
         self, file_tools: FlextCliFileTools, temp_dir: Path
@@ -124,12 +125,12 @@ class TestsCliRailwayPatternExample:
         primary_result = file_tools.write_json_file(
             "/invalid/path", {"strategy": "fallback"}
         )
-        assert primary_result.is_failure
+        tm.fail(primary_result)
         fallback_result = file_tools.write_json_file(
             str(fallback_file), {"strategy": "fallback"}
         )
-        assert fallback_result.is_success
-        assert fallback_file.exists()
+        tm.ok(fallback_result)
+        tm.that(fallback_file.exists(), eq=True)
 
     def test_railway_workflow_integration(
         self, file_tools: FlextCliFileTools, temp_dir: Path
@@ -148,20 +149,20 @@ class TestsCliRailwayPatternExample:
         config_result = file_tools.write_json_file(
             str(config_file), {"debug": True, "timeout": 30}
         )
-        assert config_result.is_success
+        tm.ok(config_result)
         data_result = file_tools.write_json_file(str(data_file), {"items": [1, 2, 3]})
-        assert data_result.is_success
+        tm.ok(data_result)
         config_read = file_tools.read_json_file(str(config_file))
-        assert config_read.is_success
+        tm.ok(config_read)
         data_read = file_tools.read_json_file(str(data_file))
-        assert data_read.is_success
+        tm.ok(data_read)
         combined = {"config": config_read.value, "data": data_read.value}
         write_result = file_tools.write_json_file(str(output_file), combined)
-        assert write_result.is_success
-        assert output_file.exists()
+        tm.ok(write_result)
+        tm.that(output_file.exists(), eq=True)
         final_result = file_tools.read_json_file(str(output_file))
-        assert final_result.is_success
+        tm.ok(final_result)
         final_data = final_result.value
-        assert isinstance(final_data, dict)
-        assert "config" in final_data
-        assert "data" in final_data
+        tm.that(isinstance(final_data, dict), eq=True)
+        tm.that("config" in final_data, eq=True)
+        tm.that("data" in final_data, eq=True)

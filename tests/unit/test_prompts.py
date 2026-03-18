@@ -170,34 +170,34 @@ class TestsCliPrompts:
     def test_initialization_default(self) -> None:
         """Test prompts initialization with default parameters."""
         prompts = FlextCliPrompts()
-        assert hasattr(prompts, "quiet")
-        assert hasattr(prompts, "interactive_mode")
-        assert hasattr(prompts, "default_timeout")
-        assert prompts.default_timeout > 0
-        assert hasattr(prompts, "logger")
-        assert prompts.logger is not None
+        tm.that(hasattr(prompts, "quiet"), eq=True)
+        tm.that(hasattr(prompts, "interactive_mode"), eq=True)
+        tm.that(hasattr(prompts, "default_timeout"), eq=True)
+        tm.that(prompts.default_timeout > 0, eq=True)
+        tm.that(hasattr(prompts, "logger"), eq=True)
+        tm.that(prompts.logger is not None, eq=True)
 
     def test_initialization_quiet_mode(self) -> None:
         """Test prompts initialization with quiet mode."""
         prompts = self.Fixtures.create_quiet_prompts()
-        assert prompts.quiet is True
-        assert prompts.interactive_mode is False
+        tm.that(prompts.quiet is True, eq=True)
+        tm.that(prompts.interactive_mode is False, eq=True)
 
     def test_initialization_interactive_mode(self) -> None:
         """Test prompts initialization with interactive mode."""
         prompts = self.Fixtures.create_interactive_prompts()
-        assert prompts.interactive_mode is True
+        tm.that(prompts.interactive_mode is True, eq=True)
 
     def test_initialization_custom_timeout(self) -> None:
         """Test prompts initialization with custom timeout."""
         prompts = FlextCliPrompts(default_timeout=c.TestData.CUSTOM)
-        assert prompts.default_timeout == c.TestData.CUSTOM
+        tm.that(prompts.default_timeout, eq=c.TestData.CUSTOM)
 
     def test_execute_success(self, prompts: FlextCliPrompts) -> None:
         """Test execute method returns success."""
         result = prompts.execute()
         tm.ok(result)
-        assert isinstance(result.value, dict)
+        tm.that(isinstance(result.value, dict), eq=True)
 
     @pytest.mark.parametrize("test_case", TestData.get_prompt_text_cases())
     def test_prompt_text_parametrized(
@@ -210,18 +210,18 @@ class TestsCliPrompts:
             validation_pattern=test_case.validation_pattern,
         )
         if test_case.expected_success:
-            assert isinstance(result, r)
+            tm.that(isinstance(result, r), eq=True)
             tm.ok(result)
-            assert result.value == test_case.default
+            tm.that(result.value, eq=test_case.default)
         else:
-            assert isinstance(result, r)
+            tm.that(isinstance(result, r), eq=True)
             tm.fail(result)
 
     def test_prompt_text_no_default_failure(self) -> None:
         """Test prompt_text without default in non-interactive mode fails."""
         prompts = self.Fixtures.create_quiet_prompts()
         result = prompts.prompt_text("simple")
-        assert isinstance(result, r)
+        tm.that(isinstance(result, r), eq=True)
         tm.fail(result, has="no default provided")
 
     def test_prompt_text_interactive_mode(
@@ -230,7 +230,7 @@ class TestsCliPrompts:
         """Test prompt_text in interactive mode."""
         result = interactive_prompts.prompt_text("simple", default="text")
         tm.ok(result)
-        assert isinstance(result.value, str)
+        tm.that(isinstance(result.value, str), eq=True)
 
     @pytest.mark.parametrize("test_case", TestData.get_confirm_cases())
     def test_prompt_confirmation_parametrized(
@@ -242,7 +242,7 @@ class TestsCliPrompts:
             test_case.message, default=test_case.default
         )
         tm.ok(result)
-        assert result.value == test_case.expected_value
+        tm.that(result.value, eq=test_case.expected_value)
 
     def test_prompt_confirmation_interactive_mode(
         self, interactive_prompts: FlextCliPrompts
@@ -250,7 +250,7 @@ class TestsCliPrompts:
         """Test prompt_confirmation in interactive mode."""
         result = interactive_prompts.prompt_confirmation("confirm", default=True)
         tm.ok(result)
-        assert isinstance(result.value, bool)
+        tm.that(isinstance(result.value, bool), eq=True)
 
     @pytest.mark.parametrize("test_case", TestData.get_choice_cases())
     def test_prompt_choice_parametrized(self, test_case: ChoiceTestCaseDict) -> None:
@@ -260,12 +260,12 @@ class TestsCliPrompts:
             test_case.message, test_case.choices, default=test_case.default
         )
         if test_case.expected_success:
-            assert isinstance(result, r)
+            tm.that(isinstance(result, r), eq=True)
             tm.ok(result)
             if test_case.default:
-                assert result.value == test_case.default
+                tm.that(result.value, eq=test_case.default)
         else:
-            assert isinstance(result, r)
+            tm.that(isinstance(result, r), eq=True)
             tm.fail(result)
 
     def test_prompt_choice_no_default_required(self) -> None:
@@ -282,7 +282,7 @@ class TestsCliPrompts:
             "choose", ["simple", "complex", "advanced"], default="simple"
         )
         tm.ok(result)
-        assert result.value in {"simple", "complex", "advanced"}
+        tm.that(result.value in {"simple", "complex", "advanced"}, eq=True)
 
     def test_prompt_choice_exception_handling(self) -> None:
         """Test prompt_choice exception handler."""
@@ -313,37 +313,37 @@ class TestsCliPrompts:
         result = prompts.prompt_password(
             c.TestData.PASSWORD, min_length=c.PasswordDefaults.MIN_LENGTH_STRICT
         )
-        assert isinstance(result, r)
+        tm.that(isinstance(result, r), eq=True)
 
     def test_prompt_with_default(self, prompts: FlextCliPrompts) -> None:
         """Test prompt method with default value."""
         result = prompts.prompt("simple", default="text")
-        assert isinstance(result, r)
+        tm.that(isinstance(result, r), eq=True)
 
     def test_prompt_no_default(self, prompts: FlextCliPrompts) -> None:
         """Test prompt method without default."""
         result = prompts.prompt("simple")
-        assert isinstance(result, r)
+        tm.that(isinstance(result, r), eq=True)
 
     def test_confirm_with_default(self, prompts: FlextCliPrompts) -> None:
         """Test confirm method with default."""
         result = prompts.confirm("confirm", default=True)
-        assert isinstance(result, r)
+        tm.that(isinstance(result, r), eq=True)
 
     def test_confirm_no_default(self, prompts: FlextCliPrompts) -> None:
         """Test confirm method without default."""
         result = prompts.confirm("confirm")
-        assert isinstance(result, r)
+        tm.that(isinstance(result, r), eq=True)
 
     def test_select_from_options_valid(self, prompts: FlextCliPrompts) -> None:
         """Test select_from_options with valid options."""
         result = prompts.select_from_options(["simple"], "choose")
-        assert isinstance(result, r)
+        tm.that(isinstance(result, r), eq=True)
 
     def test_select_from_options_empty(self, prompts: FlextCliPrompts) -> None:
         """Test select_from_options with empty options."""
         result = prompts.select_from_options([], "choose")
-        assert isinstance(result, r)
+        tm.that(isinstance(result, r), eq=True)
         tm.fail(result, has="options")
 
     def test_select_from_options_history_tracking(
@@ -352,7 +352,7 @@ class TestsCliPrompts:
         """Test that select_from_options tracks history."""
         initial_history_len = len(prompts.prompt_history)
         _ = prompts.select_from_options(c.TWO, "choose")
-        assert len(prompts.prompt_history) >= initial_history_len
+        tm.that(len(prompts.prompt_history) >= initial_history_len, eq=True)
 
     @pytest.mark.parametrize("test_case", TestData.get_print_status_cases())
     def test_print_status_parametrized(
@@ -389,37 +389,37 @@ class TestsCliPrompts:
         """Test create_progress method."""
         result = prompts.create_progress("simple")
         tm.ok(result)
-        assert isinstance(result.value, str)
+        tm.that(isinstance(result.value, str), eq=True)
 
     def test_with_progress_small_dataset(self, prompts: FlextCliPrompts) -> None:
         """Test with_progress with small dataset."""
         items: list = list(range(c.ProgressDefaults.SMALL_DATASET_SIZE))
         result = prompts.with_progress(items, "simple")
         tm.ok(result)
-        assert result.value == items
+        tm.that(result.value, eq=items)
 
     def test_with_progress_large_dataset(self, prompts: FlextCliPrompts) -> None:
         """Test with_progress with large dataset."""
         items: list = list(range(c.ProgressDefaults.LARGE_DATASET_SIZE))
         result = prompts.with_progress(items, "simple")
         tm.ok(result)
-        assert result.value == items
+        tm.that(result.value, eq=items)
 
     def test_with_progress_empty(self, prompts: FlextCliPrompts) -> None:
         """Test with_progress with empty list."""
         items: list = []
         result = prompts.with_progress(items, "simple")
         tm.ok(result)
-        assert result.value == items
+        tm.that(result.value, eq=items)
 
     def test_clear_prompt_history(self, prompts: FlextCliPrompts) -> None:
         """Test clear_prompt_history method."""
         _ = prompts.prompt("simple", default="text")
         _ = prompts.prompt("with_default", default="text")
-        assert len(prompts.prompt_history) > 0
+        tm.that(len(prompts.prompt_history) > 0, eq=True)
         result = prompts.clear_prompt_history()
         tm.ok(result)
-        assert len(prompts.prompt_history) == 0
+        tm.that(len(prompts.prompt_history), eq=0)
 
     def test_clear_prompt_history_exception(self) -> None:
         """Test clear_prompt_history exception handling."""
@@ -446,35 +446,35 @@ class TestsCliPrompts:
         result = prompts.get_prompt_statistics()
         tm.ok(result)
         stats = result.value
-        assert isinstance(stats, dict)
-        assert "prompts_executed" in stats
-        assert "interactive_mode" in stats
-        assert "default_timeout" in stats
-        assert "history_size" in stats
-        assert "timestamp" in stats
+        tm.that(isinstance(stats, dict), eq=True)
+        tm.that("prompts_executed" in stats, eq=True)
+        tm.that("interactive_mode" in stats, eq=True)
+        tm.that("default_timeout" in stats, eq=True)
+        tm.that("history_size" in stats, eq=True)
+        tm.that("timestamp" in stats, eq=True)
         prompts_executed = stats["prompts_executed"]
-        assert isinstance(prompts_executed, int)
-        assert prompts_executed >= 2
+        tm.that(isinstance(prompts_executed, int), eq=True)
+        tm.that(prompts_executed >= 2, eq=True)
 
     def test_edge_cases_empty_message(self, prompts: FlextCliPrompts) -> None:
         """Test edge case: empty message."""
         result = prompts.prompt("", default="text")
-        assert isinstance(result, r)
+        tm.that(isinstance(result, r), eq=True)
 
     def test_edge_cases_long_message(self, prompts: FlextCliPrompts) -> None:
         """Test edge case: very long message."""
         result = prompts.prompt(c.TestData.LONG, default="text")
-        assert isinstance(result, r)
+        tm.that(isinstance(result, r), eq=True)
 
     def test_edge_cases_special_characters(self, prompts: FlextCliPrompts) -> None:
         """Test edge case: special characters in message."""
         result = prompts.prompt(c.TestData.SPECIAL, default="text")
-        assert isinstance(result, r)
+        tm.that(isinstance(result, r), eq=True)
 
     def test_edge_cases_unicode(self, prompts: FlextCliPrompts) -> None:
         """Test edge case: unicode characters."""
         result = prompts.prompt(c.TestData.UNICODE, default="text")
-        assert isinstance(result, r)
+        tm.that(isinstance(result, r), eq=True)
 
     def test_performance_multiple_prompts(self, prompts: FlextCliPrompts) -> None:
         """Test prompts performance with multiple operations."""
@@ -484,17 +484,15 @@ class TestsCliPrompts:
         end_time = time.time()
         elapsed = end_time - start_time
         performance_threshold = 0.5
-        assert elapsed < performance_threshold, (
-            f"Performance test failed: {elapsed}s > {performance_threshold}s"
-        )
+        tm.that(elapsed < performance_threshold, eq=True)
 
     def test_memory_usage_repeated_operations(self, prompts: FlextCliPrompts) -> None:
         """Test prompts memory usage with repeated operations."""
         for i in range(20):
             result = prompts.prompt(f"Memory test {i}:", default="text")
-            assert isinstance(result, r)
+            tm.that(isinstance(result, r), eq=True)
             tm.ok(result)
-            assert result.value == "text"
+            tm.that(result.value, eq="text")
         progress_result = prompts.create_progress("Memory test progress")
         tm.ok(progress_result)
 
@@ -503,11 +501,11 @@ class TestsCliPrompts:
         status_result = prompts.print_status("Starting workflow")
         tm.ok(status_result)
         prompt_result = prompts.prompt("simple", default="text")
-        assert isinstance(prompt_result, r)
+        tm.that(isinstance(prompt_result, r), eq=True)
         confirm_result = prompts.confirm("confirm", default=True)
-        assert isinstance(confirm_result, r)
+        tm.that(isinstance(confirm_result, r), eq=True)
         select_result = prompts.select_from_options(c.TWO, "choose")
-        assert isinstance(select_result, r)
+        tm.that(isinstance(select_result, r), eq=True)
         success_result = prompts.print_success("Workflow completed")
         tm.ok(success_result)
 
@@ -522,7 +520,7 @@ class TestsCliPrompts:
             validation_pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$",
         )
         tm.ok(result)
-        assert result.value == "test@example.com"
+        tm.that(result.value, eq="test@example.com")
 
     def test_prompt_text_with_validation_pattern_invalid_default(
         self, prompts: FlextCliPrompts
@@ -544,7 +542,7 @@ class TestsCliPrompts:
         result = quiet_prompts.prompt_text(
             "Enter value:", default="", validation_pattern="^\\d+$"
         )
-        tm.fail(result) or result.is_success
+        tm.that(result.is_failure or result.is_success, eq=True)
 
     def test_prompt_text_interactive_with_pattern_validation(
         self, prompts: FlextCliPrompts, monkeypatch: pytest.MonkeyPatch
@@ -555,7 +553,7 @@ class TestsCliPrompts:
         result = interactive_prompts.prompt_text(
             "Enter number:", default="", validation_pattern="^\\d+$"
         )
-        assert isinstance(result, r)
+        tm.that(isinstance(result, r), eq=True)
 
     def test_prompt_text_interactive_pattern_mismatch(
         self, prompts: FlextCliPrompts, monkeypatch: pytest.MonkeyPatch
@@ -613,14 +611,14 @@ class TestsCliPrompts:
         quiet_prompts = self.Fixtures.create_quiet_prompts()
         result = quiet_prompts.confirm("Continue?", default=True)
         tm.ok(result)
-        assert result.value is True
+        tm.that(result.value is True, eq=True)
 
     def test_confirm_non_interactive_mode(self, prompts: FlextCliPrompts) -> None:
         """Test confirm in non-interactive mode."""
         quiet_prompts = self.Fixtures.create_quiet_prompts(interactive_mode=False)
         result = quiet_prompts.confirm("Continue?", default=False)
         tm.ok(result)
-        assert result.value is False
+        tm.that(result.value is False, eq=True)
 
     def test_prompt_choice_empty_choices(self, prompts: FlextCliPrompts) -> None:
         """Test prompt_choice with empty choices list."""
@@ -650,7 +648,7 @@ class TestsCliPrompts:
         quiet_prompts = self.Fixtures.create_quiet_prompts()
         result = quiet_prompts.prompt_choice("Select:", choices=["a", "b"], default="a")
         tm.ok(result)
-        assert result.value == "a"
+        tm.that(result.value, eq="a")
 
     def test_prompt_password_too_short(
         self, prompts: FlextCliPrompts, monkeypatch: pytest.MonkeyPatch
@@ -691,21 +689,21 @@ class TestsCliPrompts:
         interactive_prompts = self.Fixtures.create_interactive_prompts()
         result = interactive_prompts.prompt_password("Password:", min_length=8)
         tm.ok(result)
-        assert len(result.value) >= 8
+        tm.that(len(result.value) >= 8, eq=True)
 
     def test_prompt_quiet_mode(self, prompts: FlextCliPrompts) -> None:
         """Test prompt in quiet mode."""
         quiet_prompts = self.Fixtures.create_quiet_prompts()
         result = quiet_prompts.prompt("Enter value:", default="default_value")
         tm.ok(result)
-        assert result.value == "default_value"
+        tm.that(result.value, eq="default_value")
 
     def test_prompt_non_interactive_mode(self, prompts: FlextCliPrompts) -> None:
         """Test prompt in non-interactive mode."""
         quiet_prompts = self.Fixtures.create_quiet_prompts(interactive_mode=False)
         result = quiet_prompts.prompt("Enter value:", default="default_value")
         tm.ok(result)
-        assert result.value == "default_value"
+        tm.that(result.value, eq="default_value")
 
     def test_prompt_empty_input_uses_default(
         self, prompts: FlextCliPrompts, monkeypatch: pytest.MonkeyPatch
@@ -715,7 +713,7 @@ class TestsCliPrompts:
         interactive_prompts = self.Fixtures.create_interactive_prompts()
         result = interactive_prompts.prompt("Enter value:", default="default")
         tm.ok(result)
-        assert result.value == "default"
+        tm.that(result.value, eq="default")
 
     def test_prompt_exception_handling(
         self, prompts: FlextCliPrompts, monkeypatch: pytest.MonkeyPatch
@@ -740,7 +738,7 @@ class TestsCliPrompts:
         """Test select_from_options with single option."""
         quiet_prompts = self.Fixtures.create_quiet_prompts()
         result = quiet_prompts.select_from_options(["only"], "Select:")
-        assert isinstance(result, r)
+        tm.that(isinstance(result, r), eq=True)
 
     def test_select_from_options_exception(
         self, prompts: FlextCliPrompts, monkeypatch: pytest.MonkeyPatch
@@ -825,7 +823,7 @@ class TestsCliPrompts:
         """Test with_progress with empty items list."""
         result = prompts.with_progress([], "Processing")
         tm.ok(result)
-        assert result.value == []
+        tm.that(result.value, eq=[])
 
     def test_prompt_history_property(self, prompts: FlextCliPrompts) -> None:
         """Test prompt_history property returns copy."""
@@ -833,10 +831,10 @@ class TestsCliPrompts:
         prompts.prompt("Test 2", default="")
         history1 = prompts.prompt_history
         history2 = prompts.prompt_history
-        assert history1 == history2
-        assert history1 is not history2
+        tm.that(history1, eq=history2)
+        tm.that(history1 is not history2, eq=True)
         history1.append("test")
-        assert len(prompts.prompt_history) == 2
+        tm.that(len(prompts.prompt_history), eq=2)
 
     def test_get_prompt_statistics_empty_history(
         self, prompts: FlextCliPrompts
@@ -845,8 +843,8 @@ class TestsCliPrompts:
         result = prompts.get_prompt_statistics()
         tm.ok(result)
         stats = result.value
-        assert stats["prompts_executed"] == 0
-        assert stats["history_size"] == 0
+        tm.that(stats["prompts_executed"], eq=0)
+        tm.that(stats["history_size"], eq=0)
 
     def test_get_prompt_statistics_with_history(self, prompts: FlextCliPrompts) -> None:
         """Test get_prompt_statistics with history."""
@@ -856,26 +854,26 @@ class TestsCliPrompts:
         result = prompts.get_prompt_statistics()
         tm.ok(result)
         stats = result.value
-        assert "prompts_executed" in stats
-        assert "history_size" in stats
-        assert isinstance(stats["prompts_executed"], int)
-        assert isinstance(stats["history_size"], int)
+        tm.that("prompts_executed" in stats, eq=True)
+        tm.that("history_size" in stats, eq=True)
+        tm.that(isinstance(stats["prompts_executed"], int), eq=True)
+        tm.that(isinstance(stats["history_size"], int), eq=True)
 
     def test_initialization_quiet_disables_interactive(
         self, prompts: FlextCliPrompts
     ) -> None:
         """Test that quiet=True disables interactive mode."""
         quiet_prompts = FlextCliPrompts(interactive_mode=True, quiet=True)
-        assert quiet_prompts.interactive_mode is False
-        assert quiet_prompts.quiet is True
+        tm.that(quiet_prompts.interactive_mode is False, eq=True)
+        tm.that(quiet_prompts.quiet is True, eq=True)
 
     def test_initialization_interactive_with_quiet_false(
         self, prompts: FlextCliPrompts
     ) -> None:
         """Test initialization with interactive=True and quiet=False."""
         interactive_prompts = FlextCliPrompts(interactive_mode=True, quiet=False)
-        assert interactive_prompts.interactive_mode is True
-        assert interactive_prompts.quiet is False
+        tm.that(interactive_prompts.interactive_mode is True, eq=True)
+        tm.that(interactive_prompts.quiet is False, eq=True)
 
     def test_execute_with_exception(
         self, prompts: FlextCliPrompts, monkeypatch: pytest.MonkeyPatch

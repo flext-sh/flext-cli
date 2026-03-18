@@ -32,9 +32,9 @@ class TestsCliCli:
     def test_cli_initialization(self) -> None:
         """Test CLI class initialization."""
         cli_cli = FlextCliCli()
-        assert isinstance(cli_cli, FlextCliCli)
-        assert hasattr(cli_cli, "logger")
-        assert hasattr(cli_cli, "container")
+        tm.that(isinstance(cli_cli, FlextCliCli), eq=True)
+        tm.that(hasattr(cli_cli, "logger"), eq=True)
+        tm.that(hasattr(cli_cli, "container"), eq=True)
 
     def test_cli_execute_method(self) -> None:
         """Test CLI execute method returns valid result."""
@@ -42,9 +42,9 @@ class TestsCliCli:
         execute_result = cli_cli.execute()
         tm.ok(execute_result)
         data = execute_result.value
-        assert isinstance(data, dict)
-        assert data.get("service") == "flext-cli"
-        assert data.get("status") == "operational"
+        tm.that(isinstance(data, dict), eq=True)
+        tm.that(data.get("service"), eq="flext-cli")
+        tm.that(data.get("status"), eq="operational")
 
     def test_command_decorator_creation(self) -> None:
         """Test command decorator creation."""
@@ -52,10 +52,10 @@ class TestsCliCli:
         command_result = FlextCliTestHelpers.CliHelpers.create_test_command(
             cli_cli, "test_cmd"
         )
-        assert command_result.is_success
+        tm.ok(command_result)
         if command_result.is_success and command_result.value:
-            assert isinstance(command_result.value, click.Command)
-            assert command_result.value.name == "test_cmd"
+            tm.that(isinstance(command_result.value, click.Command), eq=True)
+            tm.that(command_result.value.name, eq="test_cmd")
 
     def test_group_decorator_creation(self) -> None:
         """Test group decorator creation."""
@@ -63,10 +63,10 @@ class TestsCliCli:
         group_result = FlextCliTestHelpers.CliHelpers.create_test_group(
             cli_cli, "test_group"
         )
-        assert group_result.is_success
+        tm.ok(group_result)
         if group_result.is_success and group_result.value:
-            assert isinstance(group_result.value, click.Group)
-            assert group_result.value.name == "test_group"
+            tm.that(isinstance(group_result.value, click.Group), eq=True)
+            tm.that(group_result.value.name, eq="test_group")
 
     def test_option_decorator(self) -> None:
         """Test option decorator creation."""
@@ -76,13 +76,13 @@ class TestsCliCli:
         option_decorator = cli_cli.create_option_decorator(
             "--count", "-c", config=option_config
         )
-        assert callable(option_decorator)
+        tm.that(callable(option_decorator), eq=True)
 
     def test_argument_decorator(self) -> None:
         """Test argument decorator creation."""
         cli_cli = FlextCliCli()
         argument_decorator = cli_cli.create_argument_decorator("filename")
-        assert callable(argument_decorator)
+        tm.that(callable(argument_decorator), eq=True)
 
     def test_command_with_options(self) -> None:
         """Test command creation with options."""
@@ -90,7 +90,7 @@ class TestsCliCli:
         command_result = FlextCliTestHelpers.CliHelpers.create_command_with_options(
             cli_cli, "test_cmd", "--value", "default"
         )
-        assert command_result.is_success
+        tm.ok(command_result)
 
     @pytest.mark.parametrize(
         ("click_type_name", "data_dict"),
@@ -108,20 +108,20 @@ class TestsCliCli:
         """Test Click type creation with various parameter types."""
         if click_type_name == "choice":
             choices = data_dict.get("choices")
-            assert isinstance(choices, list)
+            tm.that(isinstance(choices, list), eq=True)
             choice_type = click.Choice(choices)
-            assert isinstance(choice_type, click.Choice)
-            assert choice_type.choices == tuple(choices)
+            tm.that(isinstance(choice_type, click.Choice), eq=True)
+            tm.that(choice_type.choices, eq=tuple(choices))
         elif click_type_name == "path":
             path_type = click.Path(
                 exists=bool(data_dict.get("exists")),
                 file_okay=bool(data_dict.get("file_okay")),
                 dir_okay=bool(data_dict.get("dir_okay")),
             )
-            assert isinstance(path_type, click.Path)
+            tm.that(isinstance(path_type, click.Path), eq=True)
         elif click_type_name in {"intrange", "floatrange"}:
-            assert "min" in data_dict
-            assert "max" in data_dict
+            tm.that("min" in data_dict, eq=True)
+            tm.that("max" in data_dict, eq=True)
 
     @pytest.mark.parametrize(
         ("primitive_type", "getter_method"),
@@ -142,28 +142,28 @@ class TestsCliCli:
         expected_type = {"str": str, "int": int, "float": float, "bool": bool}[
             primitive_type
         ]
-        assert result is expected_type
+        tm.that(result is expected_type, eq=True)
 
     def test_datetime_type(self) -> None:
         """Test DateTime type creation."""
         cli_cli = FlextCliCli()
         datetime_type = cli_cli.get_datetime_type()
-        assert isinstance(datetime_type, click.DateTime)
+        tm.that(isinstance(datetime_type, click.DateTime), eq=True)
         for fmt in ["%Y-%m-%d", "%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%S"]:
-            assert fmt in datetime_type.formats
+            tm.that(fmt in datetime_type.formats, eq=True)
 
     def test_cli_runner_invocation(self) -> None:
         """Test CLI runner for command invocation."""
         runner = CliRunner()
-        assert isinstance(runner, CliRunner)
+        tm.that(isinstance(runner, CliRunner), eq=True)
 
         @click.command()
         def simple_command() -> None:
             click.echo("hello")
 
         result = runner.invoke(simple_command, [])
-        assert result.exit_code == 0
-        assert "hello" in result.output
+        tm.that(result.exit_code, eq=0)
+        tm.that("hello" in result.output, eq=True)
 
     @pytest.mark.parametrize(
         ("test_type", "description", "should_succeed"),
@@ -178,7 +178,7 @@ class TestsCliCli:
     ) -> None:
         """Comprehensive CLI scenario tests using parametrization."""
         result = self._execute_cli_test(test_type)
-        assert should_succeed is True
+        tm.that(should_succeed is True, eq=True)
         tm.ok(result)
 
     def _execute_cli_test(self, test_type: str) -> r[bool]:
@@ -204,23 +204,23 @@ class TestsCliCli:
                     success = True
                 case "context":
                     cli_cli = FlextCliCli()
-                    assert isinstance(cli_cli, FlextCliCli)
+                    tm.that(isinstance(cli_cli, FlextCliCli), eq=True)
                     success = True
                 case "runner":
                     self.test_cli_runner_invocation()
                     success = True
                 case "utility":
                     cli_cli = FlextCliCli()
-                    assert hasattr(cli_cli, "logger")
+                    tm.that(hasattr(cli_cli, "logger"), eq=True)
                     success = True
                 case "model":
                     cli_cli = FlextCliCli()
-                    assert isinstance(cli_cli, FlextCliCli)
+                    tm.that(isinstance(cli_cli, FlextCliCli), eq=True)
                     success = True
                 case "integration":
                     cli_cli = FlextCliCli()
                     result = cli_cli.execute()
-                    assert result.is_success
+                    tm.ok(result)
                     success = True
                 case _:
                     return r[bool].fail(f"Unknown test type: {test_type}")
@@ -235,19 +235,19 @@ class TestsCliCli:
             """Test create_app_with_common_params creation only."""
             cli = FlextCliCli()
             app = cli.create_app_with_common_params("test_app", "help")
-            assert isinstance(app, typer.Typer)
+            tm.that(isinstance(app, typer.Typer), eq=True)
 
         def test_echo(self) -> None:
             """Test echo."""
             cli = FlextCliCli()
             result = cli.echo("message")
-            assert result.is_success
+            tm.ok(result)
 
         def test_utilities(self) -> None:
             """Test utility methods."""
             cli = FlextCliCli()
-            assert isinstance(cli.format_filename("test.txt"), str)
-            assert isinstance(cli.get_terminal_size(), tuple)
+            tm.that(isinstance(cli.format_filename("test.txt"), str), eq=True)
+            tm.that(isinstance(cli.get_terminal_size(), tuple), eq=True)
 
         def test_model_command_validation(self) -> None:
             """Test model_command input validation."""
@@ -264,168 +264,168 @@ class TestsCliCli:
             """Test create_cli_runner."""
             cli = FlextCliCli()
             result = cli.create_cli_runner()
-            assert result.is_success
-            assert isinstance(result.value, CliRunner)
+            tm.ok(result)
+            tm.that(isinstance(result.value, CliRunner), eq=True)
 
         def test_get_current_context(self) -> None:
             """Test get_current_context."""
             cli = FlextCliCli()
             ctx = cli.get_current_context()
-            assert ctx is None
+            tm.that(ctx is None, eq=True)
 
         def test_create_pass_context_decorator(self) -> None:
             """Test create_pass_context_decorator."""
             cli = FlextCliCli()
             decorator = cli.create_pass_context_decorator()
-            assert callable(decorator)
+            tm.that(callable(decorator), eq=True)
 
     def test_get_terminal_size(self) -> None:
         """Test get_terminal_size method."""
         cli = FlextCliCli()
         width, height = cli.get_terminal_size()
-        assert isinstance(width, int)
-        assert isinstance(height, int)
-        assert width > 0
-        assert height > 0
+        tm.that(isinstance(width, int), eq=True)
+        tm.that(isinstance(height, int), eq=True)
+        tm.that(width > 0, eq=True)
+        tm.that(height > 0, eq=True)
 
     def test_clear_screen(self) -> None:
         """Test clear_screen method."""
         cli = FlextCliCli()
         result = cli.clear_screen()
-        assert result.is_success
-        assert result.value is True
+        tm.ok(result)
+        tm.that(result.value is True, eq=True)
 
     def test_get_current_context_none(self) -> None:
         """Test get_current_context when not in command."""
         cli = FlextCliCli()
         ctx = cli.get_current_context()
-        assert ctx is None
+        tm.that(ctx is None, eq=True)
 
     def test_get_bool_type(self) -> None:
         """Test get_bool_type method."""
         cli = FlextCliCli()
         bool_type = cli.get_bool_type()
-        assert bool_type is bool
+        tm.that(bool_type is bool, eq=True)
 
     def test_get_string_type(self) -> None:
         """Test get_string_type method."""
         cli = FlextCliCli()
         string_type = cli.get_string_type()
-        assert string_type is str
+        tm.that(string_type is str, eq=True)
 
     def test_get_int_type(self) -> None:
         """Test get_int_type method."""
         cli = FlextCliCli()
         int_type = cli.get_int_type()
-        assert int_type is int
+        tm.that(int_type is int, eq=True)
 
     def test_get_float_type(self) -> None:
         """Test get_float_type method."""
         cli = FlextCliCli()
         float_type = cli.get_float_type()
-        assert float_type is float
+        tm.that(float_type is float, eq=True)
 
     def test_get_uuid_type(self) -> None:
         """Test get_uuid_type method."""
         cli = FlextCliCli()
         uuid_type = cli.get_uuid_type()
-        assert hasattr(uuid_type, "name")
+        tm.that(hasattr(uuid_type, "name"), eq=True)
 
     def test_get_datetime_type(self) -> None:
         """Test get_datetime_type method."""
         cli = FlextCliCli()
         datetime_type = cli.get_datetime_type()
-        assert hasattr(datetime_type, "name")
+        tm.that(hasattr(datetime_type, "name"), eq=True)
 
     def test_get_tuple_type(self) -> None:
         """Test get_tuple_type method."""
         cli = FlextCliCli()
         tuple_type = cli.get_tuple_type([str, int])
-        assert hasattr(tuple_type, "name")
+        tm.that(hasattr(tuple_type, "name"), eq=True)
 
     def test_format_filename(self) -> None:
         """Test format_filename method."""
         cli = FlextCliCli()
         result = cli.format_filename("test.py")
-        assert isinstance(result, str)
-        assert "test.py" in result
+        tm.that(isinstance(result, str), eq=True)
+        tm.that("test.py" in result, eq=True)
 
     def test_pause(self) -> None:
         """Test pause method."""
         cli = FlextCliCli()
         result = cli.pause()
-        assert result.is_success
+        tm.ok(result)
         result = cli.pause("Press Enter to continue...")
-        assert result.is_success
+        tm.ok(result)
 
     def test_echo(self) -> None:
         """Test echo method."""
         cli = FlextCliCli()
         result = cli.echo("test message")
-        assert result.is_success
+        tm.ok(result)
         result = cli.echo("colored message", color=True)
-        assert result.is_success
+        tm.ok(result)
 
     def test_execute_method(self) -> None:
         """Test execute method returns valid result."""
         cli = FlextCliCli()
         result = cli.execute()
-        assert result.is_success
+        tm.ok(result)
         data = result.value
-        assert isinstance(data, dict)
+        tm.that(isinstance(data, dict), eq=True)
 
     def test_create_pass_context_decorator(self) -> None:
         """Test create_pass_context_decorator method."""
         cli = FlextCliCli()
         decorator = cli.create_pass_context_decorator()
-        assert callable(decorator)
+        tm.that(callable(decorator), eq=True)
 
     def test_create_cli_runner(self) -> None:
         """Test create_cli_runner method."""
         cli = FlextCliCli()
         result = cli.create_cli_runner()
-        assert result.is_success
+        tm.ok(result)
         runner = result.value
-        assert hasattr(runner, "invoke")
+        tm.that(hasattr(runner, "invoke"), eq=True)
 
     def test_format_filename_method(self) -> None:
         """Test format_filename method."""
         cli = FlextCliCli()
         result = cli.format_filename("test.py")
-        assert isinstance(result, str)
-        assert "test.py" in result
+        tm.that(isinstance(result, str), eq=True)
+        tm.that("test.py" in result, eq=True)
 
     def test_create_command_decorator(self) -> None:
         """Test create_command_decorator method."""
         cli = FlextCliCli()
         decorator = cli.create_command_decorator("test_cmd")
-        assert callable(decorator)
+        tm.that(callable(decorator), eq=True)
 
     def test_create_option_decorator(self) -> None:
         """Test create_option_decorator method."""
         cli = FlextCliCli()
         decorator = cli.create_option_decorator("--test-option")
-        assert callable(decorator)
+        tm.that(callable(decorator), eq=True)
 
     def test_create_argument_decorator(self) -> None:
         """Test create_argument_decorator method."""
         cli = FlextCliCli()
         decorator = cli.create_argument_decorator("test_arg")
-        assert callable(decorator)
+        tm.that(callable(decorator), eq=True)
 
     def test_build_bool_value(self) -> None:
         """Test _build_bool_value method."""
         cli = FlextCliCli()
         bool_value = cli._build_bool_value({"test": True}, "test", default=False)
-        assert isinstance(bool_value, bool)
-        assert bool_value is True
+        tm.that(isinstance(bool_value, bool), eq=True)
+        tm.that(bool_value is True, eq=True)
 
     def test_build_str_value(self) -> None:
         """Test _build_str_value method."""
         cli = FlextCliCli()
         str_value = cli._build_str_value({"test": "value"}, "test", default="default")
-        assert isinstance(str_value, str)
-        assert str_value == "value"
+        tm.that(isinstance(str_value, str), eq=True)
+        tm.that(str_value, eq="value")
 
     def test_get_console_enabled(self) -> None:
         """Test _get_console_enabled method."""
@@ -433,12 +433,12 @@ class TestsCliCli:
         config = FlextCliSettings()
         config.no_color = False
         console_enabled = cli._get_console_enabled(config)
-        assert isinstance(console_enabled, bool)
+        tm.that(isinstance(console_enabled, bool), eq=True)
 
     def test_apply_common_params_to_config(self) -> None:
         """Test _apply_common_params_to_config method."""
         cli = FlextCliCli()
         config = FlextCliSettings()
         cli._apply_common_params_to_config(config, verbose=True, debug=True)
-        assert config.verbose is True
-        assert config.debug is True
+        tm.that(config.verbose is True, eq=True)
+        tm.that(config.debug is True, eq=True)

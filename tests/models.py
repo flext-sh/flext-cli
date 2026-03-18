@@ -1,7 +1,7 @@
 """Pydantic models for flext-cli tests only.
 
 All test-domain models live here; tests MUST NOT use dict/Any/object as data contracts.
-Reuse m.Cli types where possible; add test-specific input models only when needed.
+Reuse FlextTestsMopdels.Cli types where possible; add test-specific input models only when needed.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -14,7 +14,7 @@ from collections.abc import Mapping, Sequence
 from datetime import datetime
 from typing import Literal
 
-from flext_tests import m
+from flext_tests import FlextTestsMopdels
 from pydantic import BaseModel, ConfigDict, Field, RootModel, field_validator
 
 from flext_cli.typings import t
@@ -297,7 +297,7 @@ _StrictParamsModel = StrictParams
 _ForbidExtraParamsModel = ForbidExtraParams
 
 
-class TestsFlextCliModels(FlextTestsModels):
+class TestsFlextCliModels(FlextTestsMopdels):
     """Test namespace facade for flext-cli models. Use tm alias; m is flext_cli.FlextCliModels."""
 
     CliCommandInput = _CliCommandInputModel

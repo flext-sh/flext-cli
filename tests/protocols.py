@@ -1,11 +1,11 @@
 """Protocol definitions for flext-cli tests.
 
-Provides TestsCliProtocols, extending FlextTestsProtocols with flext-cli-specific
+Provides TestsCliProtocols, extending p with flext-cli-specific
 protocols. All generic test protocols come from flext_tests.
 
 Architecture:
-- FlextTestsProtocols (flext_tests) = Generic protocols for all FLEXT projects
-- TestsCliProtocols (tests/) = flext-cli-specific protocols extending FlextTestsProtocols
+- p (flext_tests) = Generic protocols for all FLEXT projects
+- TestsCliProtocols (tests/) = flext-cli-specific protocols extending p
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -18,15 +18,15 @@ from flext_tests import p
 from flext_cli import FlextCliProtocols
 
 
-class TestsCliProtocols(FlextTestsProtocols, FlextCliProtocols):
+class TestsCliProtocols(p, FlextCliProtocols):
     """Protocol definitions for flext-cli tests.
 
-    Extends both FlextTestsProtocols and FlextCliProtocols with flext-cli-specific
+    Extends both p and FlextCliProtocols with flext-cli-specific
     protocol definitions.
 
     Provides access to:
-    - p.Tests.Docker.* (from FlextTestsProtocols)
-    - p.Tests.Factory.* (from FlextTestsProtocols)
+    - p.Tests.Docker.* (from p)
+    - p.Tests.Factory.* (from p)
     - p.Cli.* (from FlextCliProtocols)
 
     Rules:

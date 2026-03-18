@@ -8,6 +8,7 @@ from datetime import UTC, datetime
 
 import psutil
 import pytest
+from flext_tests import tm
 
 from flext_cli import FlextCliModels, c, m
 from tests._helpers import create_test_cli_command
@@ -34,13 +35,13 @@ class TestsCliPerformanceAutomated:
             status=c.Cli.SessionStatus.ACTIVE,
             commands=commands,
         )
-        assert len(session.commands) == num_commands
+        tm.that(len(session.commands), eq=num_commands)
         start_time = time.time()
         pending = session.commands_by_status(c.Cli.CommandStatus.PENDING.value)
         filter_time = time.time() - start_time
-        assert len(pending) == num_commands
-        assert creation_time < 5.0, f"Command creation too slow: {creation_time}s"
-        assert filter_time < 0.1, f"Command filtering too slow: {filter_time}s"
+        tm.that(len(pending), eq=num_commands)
+        tm.that(creation_time < 5.0, eq=True)
+        tm.that(filter_time < 0.1, eq=True)
 
     @pytest.mark.parametrize("data_size", [100, 1000, 10000])
     def test_command_data_handling_performance(self, data_size: int) -> None:
@@ -51,8 +52,8 @@ class TestsCliPerformanceAutomated:
             name="perf-test", args=large_args, command_line=" ".join(large_args[:100])
         )
         creation_time = time.time() - start_time
-        assert len(cmd.args) == min(data_size, 1000)
-        assert creation_time < 0.5, f"Large data creation too slow: {creation_time}s"
+        tm.that(len(cmd.args), eq=min(data_size, 1000))
+        tm.that(creation_time < 0.5, eq=True)
 
     def test_memory_usage_patterns(self) -> None:
         """Test memory usage patterns with real object creation."""
@@ -67,4 +68,4 @@ class TestsCliPerformanceAutomated:
         final_memory = process.memory_info().rss / 1024 / 1024
         memory_increase = final_memory - initial_memory
         del commands
-        assert memory_increase < 50, f"Memory usage too high: {memory_increase}MB"
+        tm.that(memory_increase < 50, eq=True)

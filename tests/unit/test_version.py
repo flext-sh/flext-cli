@@ -159,40 +159,40 @@ class TestsCliVersion:
 
     def test_actual_version_string_type(self) -> None:
         """Test __version__ is a non-empty string."""
-        assert isinstance(__version__, str)
-        assert len(__version__) > 0
-        assert __version__ == __version__.strip()
+        tm.that(isinstance(__version__, str), eq=True)
+        tm.that(len(__version__) > 0, eq=True)
+        tm.that(__version__, eq=__version__.strip())
 
     def test_actual_version_string_semver_compliant(self) -> None:
         """Test __version__ matches semver pattern."""
         pattern: Final[str] = "^\\d+\\.\\d+\\.\\d+(?:-[\\w\\.]+)?(?:\\+[\\w\\.]+)?$"
-        assert re.match(pattern, __version__) is not None
+        tm.that(re.match(pattern, __version__) is not None, eq=True)
 
     def test_actual_version_string_length_bounds(self) -> None:
         """Test version string length is within acceptable bounds."""
         min_len: Final[int] = 5
         max_len: Final[int] = 50
-        assert min_len <= len(__version__) <= max_len
+        tm.that(min_len <= len(__version__) <= max_len, eq=True)
 
     def test_actual_version_info_structure(self) -> None:
         """Test __version_info__ is a valid tuple."""
-        assert isinstance(__version_info__, tuple)
-        assert len(__version_info__) >= 3
-        for i, part in enumerate(__version_info__):
-            assert isinstance(part, (int, str)), f"Part {i} invalid type: {type(part)}"
+        tm.that(isinstance(__version_info__, tuple), eq=True)
+        tm.that(len(__version_info__) >= 3, eq=True)
+        for part in __version_info__:
+            tm.that(isinstance(part, (int, str)), eq=True)
             if isinstance(part, int):
-                assert part >= 0, f"Part {i} negative: {part}"
+                tm.that(part >= 0, eq=True)
             else:
-                assert len(part) > 0, f"Part {i} empty string"
+                tm.that(len(part) > 0, eq=True)
 
     def test_actual_version_parts_extraction(self) -> None:
         """Test major.minor.patch can be extracted from version."""
         parts: list[str] = __version__.split(".")
-        assert len(parts) >= 3
+        tm.that(len(parts) >= 3, eq=True)
         major_str, minor_str, patch_str = (parts[0], parts[1], parts[2])
-        assert major_str.isdigit()
-        assert minor_str.isdigit()
-        assert patch_str[0].isdigit()
+        tm.that(major_str.isdigit(), eq=True)
+        tm.that(minor_str.isdigit(), eq=True)
+        tm.that(patch_str[0].isdigit(), eq=True)
 
     def test_actual_version_consistency(self) -> None:
         """Test __version__ and __version_info__ are consistent."""
@@ -205,9 +205,9 @@ class TestsCliVersion:
         """Test version values are immutable."""
         original_version = __version__
         original_info = __version_info__
-        assert __version__ == original_version
-        assert __version_info__ == original_info
-        assert isinstance(__version_info__, tuple)
+        tm.that(__version__, eq=original_version)
+        tm.that(__version_info__, eq=original_info)
+        tm.that(isinstance(__version_info__, tuple), eq=True)
 
     @pytest.mark.parametrize(
         "scenario",
@@ -216,7 +216,7 @@ class TestsCliVersion:
     )
     def test_version_string_validation(self, scenario: TestScenario.Data) -> None:
         """Test version string validation with parametrized cases."""
-        assert scenario.version_string is not None
+        tm.that(scenario.version_string is not None, eq=True)
         result = FlextCliTestHelpers.VersionTestFactory.validate_version_string(
             scenario.version_string
         )
@@ -232,7 +232,7 @@ class TestsCliVersion:
     )
     def test_version_info_validation(self, scenario: TestScenario.Data) -> None:
         """Test version info tuple validation with parametrized cases."""
-        assert scenario.version_info is not None
+        tm.that(scenario.version_info is not None, eq=True)
         result = FlextCliTestHelpers.VersionTestFactory.validate_version_info(
             scenario.version_info
         )
@@ -248,8 +248,8 @@ class TestsCliVersion:
     )
     def test_version_consistency_validation(self, scenario: TestScenario.Data) -> None:
         """Test consistency between version string and info with parametrized cases."""
-        assert scenario.version_string is not None
-        assert scenario.version_info is not None
+        tm.that(scenario.version_string is not None, eq=True)
+        tm.that(scenario.version_info is not None, eq=True)
         result = FlextCliTestHelpers.VersionTestFactory.validate_consistency(
             scenario.version_string, scenario.version_info
         )

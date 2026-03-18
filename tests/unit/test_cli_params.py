@@ -124,17 +124,17 @@ class TestsCliCommonParams:
     def test_common_params_class_exists(self) -> None:
         """Test that FlextCliCommonParams exists and has required methods."""
         # Direct assertion - no fallbacks
-        assert FlextCliCommonParams is not None
-        assert hasattr(FlextCliCommonParams, "create_option")
-        assert hasattr(FlextCliCommonParams, "apply_to_config")
-        assert hasattr(FlextCliCommonParams, "get_all_common_params")
+        tm.that(FlextCliCommonParams is not None, eq=True)
+        tm.that(hasattr(FlextCliCommonParams, "create_option"), eq=True)
+        tm.that(hasattr(FlextCliCommonParams, "apply_to_config"), eq=True)
+        tm.that(hasattr(FlextCliCommonParams, "get_all_common_params"), eq=True)
 
     def test_create_option_success(self) -> None:
         """Test create_option returns valid option using Railway pattern."""
         # Direct call - Railway pattern with proper validation
         option = FlextCliCommonParams.create_option("verbose")
 
-        assert option is not None
+        tm.that(option is not None, eq=True)
 
     def test_apply_to_config_with_valid_params(self) -> None:
         """Test apply_to_config with Railway pattern - no state manipulation."""
@@ -153,9 +153,9 @@ class TestsCliCommonParams:
 
         tm.ok(result)
         updated_config = result.value
-        assert updated_config.verbose is True
-        assert updated_config.debug is True
-        assert updated_config.cli_log_level == "DEBUG"
+        tm.that(updated_config.verbose is True, eq=True)
+        tm.that(updated_config.debug is True, eq=True)
+        tm.that(updated_config.cli_log_level, eq="DEBUG")
 
     def test_apply_to_config_trace_requires_debug(self) -> None:
         """Test trace requires debug - Railway pattern validation."""
@@ -167,7 +167,7 @@ class TestsCliCommonParams:
 
         tm.fail(result)
         error_msg = str(result.error).lower() if result.error else ""
-        assert "trace mode requires debug mode" in error_msg
+        tm.that("trace mode requires debug mode" in error_msg, eq=True)
 
     def test_apply_to_config_trace_with_debug(self) -> None:
         """Test trace works with debug enabled - Railway pattern."""
@@ -179,8 +179,8 @@ class TestsCliCommonParams:
 
         tm.ok(result)
         updated_config = result.value
-        assert updated_config.debug is True
-        assert updated_config.trace is True
+        tm.that(updated_config.debug is True, eq=True)
+        tm.that(updated_config.trace is True, eq=True)
 
     def test_apply_to_config_invalid_log_level(self) -> None:
         """Test invalid log level validation - Railway pattern."""
@@ -192,7 +192,7 @@ class TestsCliCommonParams:
 
         tm.fail(result)
         error_msg = str(result.error).lower() if result.error else ""
-        assert "invalid" in error_msg and "log level" in error_msg
+        tm.that("invalid" in error_msg and "log level" in error_msg, eq=True)
 
     def test_configure_logger_success(self) -> None:
         """Test logger configuration - Railway pattern."""
@@ -207,50 +207,50 @@ class TestsCliCommonParams:
         updated_config = config_result.value
         result = FlextCliCommonParams.configure_logger(updated_config)
 
-        assert result.is_success
+        tm.ok(result)
 
     def test_decorator_adds_parameters(self) -> None:
         """Test decorator adds CLI parameters - Railway pattern."""
         app_result = create_cli_app()
-        assert app_result.is_success
+        tm.ok(app_result)
 
         app = app_result.value
         command_result = create_decorated_command(app, "test")
-        assert command_result.is_success
+        tm.ok(command_result)
 
         runner = CliRunner()
         result = runner.invoke(app, ["--help"])
 
-        assert result.exit_code == 0
-        assert "--verbose" in result.stdout
-        assert "--debug" in result.stdout
-        assert "--log-level" in result.stdout
-        assert "--output-format" in result.stdout
+        tm.that(result.exit_code, eq=0)
+        tm.that("--verbose" in result.stdout, eq=True)
+        tm.that("--debug" in result.stdout, eq=True)
+        tm.that("--log-level" in result.stdout, eq=True)
+        tm.that("--output-format" in result.stdout, eq=True)
 
     def test_decorator_flags_work(self) -> None:
         """Test decorator flags work - Railway pattern."""
         app_result = create_cli_app()
-        assert app_result.is_success
+        tm.ok(app_result)
 
         app = app_result.value
         command_result = create_decorated_command(app, "test")
-        assert command_result.is_success
+        tm.ok(command_result)
 
         runner = CliRunner()
         result = runner.invoke(app, ["--verbose", "--debug"])
 
-        assert result.exit_code == 0
-        assert "Verbose: enabled" in result.stdout
-        assert "Debug: enabled" in result.stdout
+        tm.that(result.exit_code, eq=0)
+        tm.that("Verbose: enabled" in result.stdout, eq=True)
+        tm.that("Debug: enabled" in result.stdout, eq=True)
 
     def test_decorator_parameters_work(self) -> None:
         """Test decorator parameters work - Railway pattern."""
         app_result = create_cli_app()
-        assert app_result.is_success
+        tm.ok(app_result)
 
         app = app_result.value
         command_result = create_decorated_command(app, "test")
-        assert command_result.is_success
+        tm.ok(command_result)
 
         runner = CliRunner()
         result = runner.invoke(
@@ -258,33 +258,33 @@ class TestsCliCommonParams:
             ["--log-level", "WARNING", "--output-format", "json"],
         )
 
-        assert result.exit_code == 0
-        assert "Log level: WARNING" in result.stdout
-        assert "Output format: json" in result.stdout
+        tm.that(result.exit_code, eq=0)
+        tm.that("Log level: WARNING" in result.stdout, eq=True)
+        tm.that("Output format: json" in result.stdout, eq=True)
 
     def test_get_all_common_params(self) -> None:
         """Test get_all_common_params returns valid dict - Railway pattern."""
         # Get params directly - Railway pattern without None values
         params = FlextCliCommonParams.get_all_common_params()
 
-        assert isinstance(params, dict)
-        assert len(params) > 0
-        assert "verbose" in params
-        assert "debug" in params
-        assert "cli_log_level" in params
+        tm.that(isinstance(params, dict), eq=True)
+        tm.that(len(params) > 0, eq=True)
+        tm.that("verbose" in params, eq=True)
+        tm.that("debug" in params, eq=True)
+        tm.that("cli_log_level" in params, eq=True)
 
     def test_enforcement_can_be_disabled(self) -> None:
         """Test enforcement can be disabled for testing - Railway pattern."""
         # Test enable/disable cycle
         FlextCliCommonParams.enable_enforcement()
-        assert FlextCliCommonParams._enforcement_mode is True
+        tm.that(FlextCliCommonParams._enforcement_mode is True, eq=True)
 
         FlextCliCommonParams.disable_enforcement()
-        assert not FlextCliCommonParams._enforcement_mode
+        tm.that(not FlextCliCommonParams._enforcement_mode, eq=True)
 
         # Restore enforcement
         FlextCliCommonParams.enable_enforcement()
-        assert FlextCliCommonParams._enforcement_mode is True
+        tm.that(FlextCliCommonParams._enforcement_mode is True, eq=True)
 
     def test_validate_enabled_when_enforced(self) -> None:
         """Test validate_enabled succeeds when enforced - Railway pattern."""
@@ -301,7 +301,7 @@ class TestsCliCommonParams:
             result = FlextCliCommonParams.validate_enabled()
             tm.fail(result)
             error_msg = str(result.error).lower() if result.error else ""
-            assert "mandatory" in error_msg or "disabled" in error_msg
+            tm.that("mandatory" in error_msg or "disabled" in error_msg, eq=True)
         finally:
             # Restore state
             FlextCliCommonParams._params_enabled = True
@@ -314,7 +314,7 @@ class TestsCliCommonParams:
             pytest.fail("Expected ValueError to be raised")
         except ValueError as e:
             error_msg = str(e).lower()
-            assert "not found" in error_msg
+            tm.that("not found" in error_msg, eq=True)
 
     def test_apply_to_config_invalid_log_format(self) -> None:
         """Test invalid log format - Railway pattern."""
@@ -326,7 +326,7 @@ class TestsCliCommonParams:
 
         tm.fail(result)
         error_msg = str(result.error).lower() if result.error else ""
-        assert "invalid" in error_msg and "log format" in error_msg
+        tm.that("invalid" in error_msg and "log format" in error_msg, eq=True)
 
     def test_apply_to_config_invalid_output_format(self) -> None:
         """Test invalid output format - Railway pattern."""
@@ -338,4 +338,4 @@ class TestsCliCommonParams:
 
         tm.fail(result)
         error_msg = str(result.error).lower() if result.error else ""
-        assert "invalid" in error_msg and "output format" in error_msg
+        tm.that("invalid" in error_msg and "output format" in error_msg, eq=True)

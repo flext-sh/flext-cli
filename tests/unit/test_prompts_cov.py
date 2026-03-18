@@ -5,6 +5,7 @@ from __future__ import annotations
 import builtins
 
 import pytest
+from flext_tests import tm
 
 from flext_cli import FlextCliPrompts
 
@@ -19,7 +20,7 @@ def test_prompt_confirmation_handles_exception_from_record(
         lambda _value: (_ for _ in ()).throw(ValueError("record boom")),
     )
     result = prompts.prompt_confirmation("continue?")
-    assert result.is_failure
+    tm.fail(result)
 
 
 def test_prompt_choice_covers_required_default_and_exception(
@@ -27,14 +28,14 @@ def test_prompt_choice_covers_required_default_and_exception(
 ) -> None:
     prompts = FlextCliPrompts(interactive_mode=True)
     missing_default = prompts.prompt_choice("pick", ["a", "b"], default=None)
-    assert missing_default.is_failure
+    tm.fail(missing_default)
     monkeypatch.setattr(
         prompts,
         "_record",
         lambda _value: (_ for _ in ()).throw(ValueError("choice boom")),
     )
     exploded = prompts.prompt_choice("pick", ["a"], default="a")
-    assert exploded.is_failure
+    tm.fail(exploded)
 
 
 def test_prompt_logs_input_when_not_test_env(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -46,8 +47,8 @@ def test_prompt_logs_input_when_not_test_env(monkeypatch: pytest.MonkeyPatch) ->
     )
     monkeypatch.setattr(builtins, "input", lambda _msg="": "typed")
     result = prompts.prompt("message", default="default")
-    assert result.is_success
-    assert captured
+    tm.ok(result)
+    tm.that(captured, eq=True)
 
 
 def test_read_confirmation_input_paths(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -57,35 +58,43 @@ def test_read_confirmation_input_paths(monkeypatch: pytest.MonkeyPatch) -> None:
         prompts.logger, "warning", lambda *args, **kwargs: warnings.append("warn")
     )
     monkeypatch.setattr(builtins, "input", lambda _msg="": "")
-    assert prompts._read_confirmation_input("m", "p", default=True).value is True
+    tm.that(
+        prompts._read_confirmation_input("m", "p", default=True).value is True, eq=True
+    )
     monkeypatch.setattr(builtins, "input", lambda _msg="": "yes")
-    assert prompts._read_confirmation_input("m", "p", default=False).value is True
+    tm.that(
+        prompts._read_confirmation_input("m", "p", default=False).value is True, eq=True
+    )
     monkeypatch.setattr(builtins, "input", lambda _msg="": "no")
-    assert prompts._read_confirmation_input("m", "p", default=True).value is False
+    tm.that(
+        prompts._read_confirmation_input("m", "p", default=True).value is False, eq=True
+    )
     entries = iter(["maybe", "y"])
     monkeypatch.setattr(builtins, "input", lambda _msg="": next(entries))
-    assert prompts._read_confirmation_input("m", "p", default=False).value is True
-    assert warnings
+    tm.that(
+        prompts._read_confirmation_input("m", "p", default=False).value is True, eq=True
+    )
+    tm.that(warnings, eq=True)
 
 
 def test_read_selection_paths(monkeypatch: pytest.MonkeyPatch) -> None:
     prompts = FlextCliPrompts(interactive_mode=True)
     entries_empty = iter(["", "1"])
     monkeypatch.setattr(builtins, "input", lambda _msg="": next(entries_empty))
-    assert prompts._read_selection(["a", "b"]).value == "a"
+    tm.that(prompts._read_selection(["a", "b"]).value, eq="a")
     monkeypatch.setattr(builtins, "input", lambda _msg="": "1")
-    assert prompts._read_selection(["a", "b"]).value == "a"
+    tm.that(prompts._read_selection(["a", "b"]).value, eq="a")
     entries = iter(["bad", "2"])
     monkeypatch.setattr(builtins, "input", lambda _msg="": next(entries))
-    assert prompts._read_selection(["a", "b"]).value == "b"
+    tm.that(prompts._read_selection(["a", "b"]).value, eq="b")
     monkeypatch.setattr(
         builtins, "input", lambda _msg="": (_ for _ in ()).throw(KeyboardInterrupt())
     )
-    assert prompts._read_selection(["a"]).is_failure
+    tm.fail(prompts._read_selection(["a"]))
     monkeypatch.setattr(
         builtins, "input", lambda _msg="": (_ for _ in ()).throw(EOFError())
     )
-    assert prompts._read_selection(["a"]).is_failure
+    tm.fail(prompts._read_selection(["a"]))
 
 
 def test_select_from_options_logs_successful_selection(
@@ -100,8 +109,8 @@ def test_select_from_options_logs_successful_selection(
         lambda _values: type("X", (), {"is_success": True, "value": "b"})(),
     )
     result = prompts.select_from_options(["a", "b"], "pick one")
-    assert result.is_success
-    assert logs
+    tm.ok(result)
+    tm.that(logs, eq=True)
 
 
 def test_print_status_exception_path(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -113,4 +122,4 @@ def test_print_status_exception_path(monkeypatch: pytest.MonkeyPatch) -> None:
     )
     monkeypatch.setattr(prompts.logger, "exception", lambda *args, **kwargs: None)
     result = prompts.print_status("hi")
-    assert result.is_failure
+    tm.fail(result)

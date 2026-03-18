@@ -17,6 +17,7 @@ import time
 
 import pytest
 from flext_core import r
+from flext_tests import tm
 
 from flext_cli import FlextCliDebug
 
@@ -36,153 +37,153 @@ class TestsCliDebug:
 
     def test_debug_initialization(self, debug: FlextCliDebug) -> None:
         """Test debug initialization."""
-        assert isinstance(debug, FlextCliDebug)
-        assert hasattr(debug, "logger")
+        tm.that(isinstance(debug, FlextCliDebug), eq=True)
+        tm.that(hasattr(debug, "logger"), eq=True)
 
     def test_debug_execute(self, debug: FlextCliDebug) -> None:
         """Test debug execute method."""
         result = debug.execute()
-        assert isinstance(result, r)
-        assert result.is_success
-        assert isinstance(result.value, dict)
+        tm.that(isinstance(result, r), eq=True)
+        tm.ok(result)
+        tm.that(isinstance(result.value, dict), eq=True)
 
     def test_debug_get_system_paths(self, debug: FlextCliDebug) -> None:
         """Test getting system paths."""
         result = debug.get_system_paths()
-        assert isinstance(result, r)
-        assert result.is_success
+        tm.that(isinstance(result, r), eq=True)
+        tm.ok(result)
         paths_dict = result.value
-        assert isinstance(paths_dict, dict)
-        assert "paths" in paths_dict
+        tm.that(isinstance(paths_dict, dict), eq=True)
+        tm.that("paths" in paths_dict, eq=True)
 
     def test_debug_validate_environment_setup(self, debug: FlextCliDebug) -> None:
         """Test validating environment setup."""
         result = debug.validate_environment_setup()
-        assert isinstance(result, r)
-        assert result.is_success
-        assert isinstance(result.value, list)
+        tm.that(isinstance(result, r), eq=True)
+        tm.ok(result)
+        tm.that(isinstance(result.value, list), eq=True)
 
     def test_debug_test_connectivity(self, debug: FlextCliDebug) -> None:
         """Test connectivity testing."""
         result = debug.test_connectivity()
-        assert isinstance(result, r)
-        assert result.is_success
-        assert isinstance(result.value, dict)
+        tm.that(isinstance(result, r), eq=True)
+        tm.ok(result)
+        tm.that(isinstance(result.value, dict), eq=True)
 
     def test_debug_execute_health_check(self, debug: FlextCliDebug) -> None:
         """Test executing health check."""
         result = debug.execute_health_check()
-        assert isinstance(result, r)
-        assert result.is_success
-        assert isinstance(result.value, dict)
+        tm.that(isinstance(result, r), eq=True)
+        tm.ok(result)
+        tm.that(isinstance(result.value, dict), eq=True)
 
     def test_debug_execute_trace(self, debug: FlextCliDebug) -> None:
         """Test executing trace."""
         result = debug.execute_trace(["test", "args"])
-        assert isinstance(result, r)
-        assert result.is_success
-        assert isinstance(result.value, dict)
+        tm.that(isinstance(result, r), eq=True)
+        tm.ok(result)
+        tm.that(isinstance(result.value, dict), eq=True)
 
     def test_debug_get_debug_info(self, debug: FlextCliDebug) -> None:
         """Test getting debug information."""
         result = debug.get_debug_info()
-        assert isinstance(result, r)
-        assert result.is_success
-        assert isinstance(result.value, dict)
+        tm.that(isinstance(result, r), eq=True)
+        tm.ok(result)
+        tm.that(isinstance(result.value, dict), eq=True)
 
     def test_debug_integration_workflow(self, debug: FlextCliDebug) -> None:
         """Test complete debug workflow."""
         paths_result = debug.get_system_paths()
-        assert paths_result.is_success
+        tm.ok(paths_result)
         validate_result = debug.validate_environment_setup()
-        assert validate_result.is_success
+        tm.ok(validate_result)
         connectivity_result = debug.test_connectivity()
-        assert connectivity_result.is_success
+        tm.ok(connectivity_result)
         health_result = debug.execute_health_check()
-        assert health_result.is_success
+        tm.ok(health_result)
         debug_info_result = debug.get_debug_info()
-        assert debug_info_result.is_success
+        tm.ok(debug_info_result)
 
     def test_debug_real_functionality(self, debug: FlextCliDebug) -> None:
         """Test real debug functionality without mocks."""
         result = debug.get_system_paths()
-        assert result.is_success
+        tm.ok(result)
         paths_dict = result.value
-        assert isinstance(paths_dict, dict)
-        assert "paths" in paths_dict
+        tm.that(isinstance(paths_dict, dict), eq=True)
+        tm.that("paths" in paths_dict, eq=True)
         env_result = debug.validate_environment_setup()
-        assert env_result.is_success
+        tm.ok(env_result)
         env_issues = env_result.value
-        assert isinstance(env_issues, list)
+        tm.that(isinstance(env_issues, list), eq=True)
 
     def test_debug_edge_cases(self, debug: FlextCliDebug) -> None:
         """Test edge cases and error conditions."""
         result = debug.execute_trace([])
-        assert isinstance(result, r)
+        tm.that(isinstance(result, r), eq=True)
         result = debug.execute_trace(["arg1", "arg2", "arg3"])
-        assert isinstance(result, r)
+        tm.that(isinstance(result, r), eq=True)
         result = debug.execute_trace([
             "arg with spaces",
             "arg-with-dashes",
             "arg_with_underscores",
         ])
-        assert isinstance(result, r)
+        tm.that(isinstance(result, r), eq=True)
 
     def test_debug_performance(self, debug: FlextCliDebug) -> None:
         """Test debug performance with multiple operations."""
         start_time = time.time()
         for _i in range(20):
             paths_result = debug.get_system_paths()
-            assert paths_result.is_success
+            tm.ok(paths_result)
         end_time = time.time()
         elapsed = end_time - start_time
-        assert elapsed < 0.5
+        tm.that(elapsed < 0.5, eq=True)
 
     def test_debug_memory_usage(self, debug: FlextCliDebug) -> None:
         """Test debug memory usage with repeated calls."""
         for _i in range(10):
             paths_result = debug.get_system_paths()
-            assert isinstance(paths_result, r)
-            assert paths_result.is_success
+            tm.that(isinstance(paths_result, r), eq=True)
+            tm.ok(paths_result)
         for _i in range(5):
             info_result = debug.get_debug_info()
-            assert isinstance(info_result, r)
-            assert info_result.is_success
+            tm.that(isinstance(info_result, r), eq=True)
+            tm.ok(info_result)
 
     def test_get_comprehensive_debug_info(self, debug: FlextCliDebug) -> None:
         """Test get_comprehensive_debug_info method (lines 148-194)."""
         result = debug.get_comprehensive_debug_info()
-        assert isinstance(result, r)
-        assert result.is_success
+        tm.that(isinstance(result, r), eq=True)
+        tm.ok(result)
         info = result.value
-        assert isinstance(info, dict)
-        assert "system" in info or "system_error" in info
-        assert "environment" in info or "environment_error" in info
-        assert "paths" in info or "paths_error" in info
-        assert "debug" in info or "debug_error" in info
+        tm.that(isinstance(info, dict), eq=True)
+        tm.that("system" in info or "system_error" in info, eq=True)
+        tm.that("environment" in info or "environment_error" in info, eq=True)
+        tm.that("paths" in info or "paths_error" in info, eq=True)
+        tm.that("debug" in info or "debug_error" in info, eq=True)
 
     def test_get_system_info(self, debug: FlextCliDebug) -> None:
         """Test get_system_info method (lines 55-72)."""
         result = debug.get_system_info()
-        assert isinstance(result, r)
-        assert result.is_success
+        tm.that(isinstance(result, r), eq=True)
+        tm.ok(result)
         info = result.value
-        assert isinstance(info, dict)
-        assert len(info) > 0
+        tm.that(isinstance(info, dict), eq=True)
+        tm.that(len(info) > 0, eq=True)
 
     def test_get_environment_variables(self, debug: FlextCliDebug) -> None:
         """Test get_environment_variables method (lines 74-88)."""
         result = debug.get_environment_variables()
-        assert isinstance(result, r)
-        assert result.is_success
+        tm.that(isinstance(result, r), eq=True)
+        tm.ok(result)
         env = result.value
-        assert isinstance(env, dict)
+        tm.that(isinstance(env, dict), eq=True)
         for key, value in env.items():
             if any(
                 sens in key.lower()
                 for sens in ["password", "token", "secret", "key", "auth"]
             ):
-                assert value == "***MASKED***"
+                tm.that(value, eq="***MASKED***")
 
     def test_get_system_info_exception(self) -> None:
         """Test get_system_info exception handler (lines 69-70).
@@ -191,9 +192,9 @@ class TestsCliDebug:
         """
         debug = FlextCliDebug()
         result = debug.get_system_info()
-        assert result.is_success
+        tm.ok(result)
         info = result.value
-        assert isinstance(info, dict)
+        tm.that(isinstance(info, dict), eq=True)
 
     def test_get_environment_variables_exception(self) -> None:
         """Test get_environment_variables exception handler (lines 85-86).
@@ -202,9 +203,9 @@ class TestsCliDebug:
         """
         debug = FlextCliDebug()
         result = debug.get_environment_variables()
-        assert result.is_success
+        tm.ok(result)
         env_vars = result.value
-        assert isinstance(env_vars, dict)
+        tm.that(isinstance(env_vars, dict), eq=True)
 
     def test_get_system_paths_exception(self) -> None:
         """Test get_system_paths exception handler (lines 107-108).
@@ -213,10 +214,10 @@ class TestsCliDebug:
         """
         debug = FlextCliDebug()
         result = debug.get_system_paths()
-        assert result.is_success
+        tm.ok(result)
         paths = result.value
-        assert isinstance(paths, dict)
-        assert "paths" in paths
+        tm.that(isinstance(paths, dict), eq=True)
+        tm.that("paths" in paths, eq=True)
 
     def test_validate_environment_setup_exception(self) -> None:
         """Test validate_environment_setup exception handler (lines 119-120).
@@ -225,9 +226,9 @@ class TestsCliDebug:
         """
         debug = FlextCliDebug()
         result = debug.validate_environment_setup()
-        assert result.is_success
+        tm.ok(result)
         validation = result.value
-        assert isinstance(validation, list)
+        tm.that(isinstance(validation, list), eq=True)
 
     def test_test_connectivity_exception(self) -> None:
         """Test test_connectivity exception handler (lines 95-96).
@@ -236,9 +237,9 @@ class TestsCliDebug:
         """
         debug = FlextCliDebug()
         result = debug.test_connectivity()
-        assert result.is_success
+        tm.ok(result)
         connectivity = result.value
-        assert isinstance(connectivity, dict)
+        tm.that(isinstance(connectivity, dict), eq=True)
 
     def test_execute_health_check_exception(self) -> None:
         """Test execute_health_check exception handler (lines 152-153).
@@ -247,9 +248,9 @@ class TestsCliDebug:
         """
         debug = FlextCliDebug()
         result = debug.execute_health_check()
-        assert result.is_success
+        tm.ok(result)
         health = result.value
-        assert isinstance(health, dict)
+        tm.that(isinstance(health, dict), eq=True)
 
     def test_execute_trace_exception(self) -> None:
         """Test execute_trace exception handler (lines 129-130).
@@ -258,9 +259,9 @@ class TestsCliDebug:
         """
         debug = FlextCliDebug()
         result = debug.execute_trace(["arg1", "arg2"])
-        assert result.is_success
+        tm.ok(result)
         trace = result.value
-        assert isinstance(trace, dict)
+        tm.that(isinstance(trace, dict), eq=True)
 
     def test_get_debug_info_exception(self) -> None:
         """Test get_debug_info exception handler (lines 192-193).
@@ -269,9 +270,9 @@ class TestsCliDebug:
         """
         debug = FlextCliDebug()
         result = debug.get_debug_info()
-        assert result.is_success
+        tm.ok(result)
         info = result.value
-        assert isinstance(info, dict)
+        tm.that(isinstance(info, dict), eq=True)
 
     def test_get_comprehensive_debug_info_exception(self) -> None:
         """Test get_comprehensive_debug_info exception handler (line 209).
@@ -280,9 +281,9 @@ class TestsCliDebug:
         """
         debug = FlextCliDebug()
         result = debug.get_comprehensive_debug_info()
-        assert result.is_success
+        tm.ok(result)
         info = result.value
-        assert isinstance(info, dict)
+        tm.that(isinstance(info, dict), eq=True)
 
     def test_get_system_paths_with_path_info_models(self) -> None:
         """Test get_system_paths with PathInfo models (type-safe approach).
@@ -291,12 +292,12 @@ class TestsCliDebug:
         """
         debug = FlextCliDebug()
         result = debug.get_system_paths()
-        assert result.is_success
+        tm.ok(result)
         paths_dict = result.value
-        assert isinstance(paths_dict, dict)
-        assert "paths" in paths_dict
+        tm.that(isinstance(paths_dict, dict), eq=True)
+        tm.that("paths" in paths_dict, eq=True)
         paths = paths_dict["paths"]
-        assert isinstance(paths, list)
+        tm.that(isinstance(paths, list), eq=True)
 
     def test_get_comprehensive_debug_info_environment_error(self) -> None:
         """Test get_comprehensive_debug_info when get_environment_variables fails (line 218).
@@ -305,9 +306,9 @@ class TestsCliDebug:
         """
         debug = FlextCliDebug()
         result = debug.get_comprehensive_debug_info()
-        assert result.is_success
+        tm.ok(result)
         info = result.value
-        assert isinstance(info, dict)
+        tm.that(isinstance(info, dict), eq=True)
 
     def test_get_comprehensive_debug_info_paths_error(self) -> None:
         """Test get_comprehensive_debug_info when get_system_paths fails (line 227).
@@ -316,9 +317,9 @@ class TestsCliDebug:
         """
         debug = FlextCliDebug()
         result = debug.get_comprehensive_debug_info()
-        assert result.is_success
+        tm.ok(result)
         info = result.value
-        assert isinstance(info, dict)
+        tm.that(isinstance(info, dict), eq=True)
 
     def test_get_comprehensive_debug_info_outer_exception(self) -> None:
         """Test get_comprehensive_debug_info outer exception handler (lines 271-276).
@@ -327,9 +328,9 @@ class TestsCliDebug:
         """
         debug = FlextCliDebug()
         result = debug.get_comprehensive_debug_info()
-        assert result.is_success
+        tm.ok(result)
         info = result.value
-        assert isinstance(info, dict)
+        tm.that(isinstance(info, dict), eq=True)
 
     def test_validate_filesystem_permissions_oserror(self) -> None:
         """Test _validate_filesystem_permissions OSError handler (lines 312-317).
@@ -338,9 +339,9 @@ class TestsCliDebug:
         """
         debug = FlextCliDebug()
         result = debug.validate_environment_setup()
-        assert result.is_success
+        tm.ok(result)
         errors = result.value
-        assert isinstance(errors, list)
+        tm.that(isinstance(errors, list), eq=True)
 
     def test_validate_filesystem_permissions_general_exception(self) -> None:
         """Test _validate_filesystem_permissions general exception handler (lines 319-324).
@@ -349,31 +350,31 @@ class TestsCliDebug:
         """
         debug = FlextCliDebug()
         result = debug.validate_environment_setup()
-        assert result.is_success
+        tm.ok(result)
         errors = result.value
-        assert isinstance(errors, list)
+        tm.that(isinstance(errors, list), eq=True)
 
     def test_test_connectivity(self) -> None:
         """Test test_connectivity static method."""
         result = FlextCliDebug.test_connectivity()
-        assert result.is_success
+        tm.ok(result)
         connectivity_info = result.value
-        assert isinstance(connectivity_info, dict)
-        assert len(connectivity_info) > 0
+        tm.that(isinstance(connectivity_info, dict), eq=True)
+        tm.that(len(connectivity_info) > 0, eq=True)
 
     def test_execute_health_check(self) -> None:
         """Test execute_health_check static method."""
         result = FlextCliDebug.execute_health_check()
-        assert result.is_success
+        tm.ok(result)
         health_info = result.value
-        assert isinstance(health_info, dict)
-        assert len(health_info) > 0
+        tm.that(isinstance(health_info, dict), eq=True)
+        tm.that(len(health_info) > 0, eq=True)
 
     def test_get_environment_variables_static(self) -> None:
         """Test get_environment_variables method."""
         debug = FlextCliDebug()
         result = debug.get_environment_variables()
-        assert result.is_success
+        tm.ok(result)
         env_vars = result.value
-        assert isinstance(env_vars, dict)
-        assert len(env_vars) >= 0
+        tm.that(isinstance(env_vars, dict), eq=True)
+        tm.that(len(env_vars) >= 0, eq=True)

@@ -593,15 +593,15 @@ def load_fixture_data() -> Mapping[str, object]:
 
 
 @pytest.fixture(scope="session")
-def flext_test_docker(tmp_path_factory: pytest.TempPathFactory) -> FlextTestsDocker:
-    """FlextTestsDocker instance for managing test containers.
+def flext_test_docker(tmp_path_factory: pytest.TempPathFactory) -> tk:
+    """Tk instance for managing test containers.
 
     Container stays alive after tests for debugging, recreated on infra failures.
     Tests are idempotent with cleanup at start/end. Uses session scope to persist
     containers across tests but clean up at session end.
     """
     workspace_root = Path(__file__).parent.parent
-    docker_manager = FlextTestsDocker(workspace_root=workspace_root)
+    docker_manager = tk(workspace_root=workspace_root)
     try:
         _ = docker_manager.cleanup_dirty_containers()
     except OSError as startup_err:

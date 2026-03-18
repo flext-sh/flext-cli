@@ -25,6 +25,7 @@ from typing import Final, Literal
 
 import pytest
 import yaml
+from flext_tests import tm
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic_settings import BaseSettings
 
@@ -132,24 +133,24 @@ class TestsCliConfigBasics:
     def test_initialization(self) -> None:
         """Test basic initialization."""
         config = FlextCliSettings()
-        assert config is not None
-        assert isinstance(config, FlextCliSettings)
+        tm.that(config is not None, eq=True)
+        tm.that(isinstance(config, FlextCliSettings), eq=True)
 
     def test_serialization_deserialization(self) -> None:
         """Test model_dump and model_validate."""
         config = FlextCliSettings()
         dumped = config.model_dump()
-        assert isinstance(dumped, dict)
-        assert "verbose" in dumped
+        tm.that(isinstance(dumped, dict), eq=True)
+        tm.that("verbose" in dumped, eq=True)
         data = {"verbose": False, "profile": "test"}
         validated = FlextCliSettings.model_validate(data)
-        assert validated.profile == "test"
+        tm.that(validated.profile, eq="test")
 
     def test_singleton_pattern(self) -> None:
         """Test singleton behavior."""
         config1 = FlextCliSettings.get_instance()
         config2 = FlextCliSettings.get_instance()
-        assert config1.profile == config2.profile
+        tm.that(config1.profile, eq=config2.profile)
 
 
 class TestsCliConfigService:
@@ -160,14 +161,14 @@ class TestsCliConfigService:
         FlextCliSettings()
         FlextCliSettings.reset_for_testing()
         new_config = FlextCliSettings()
-        assert new_config is not None
+        tm.that(new_config is not None, eq=True)
 
     def test_execute_as_service(self) -> None:
         """Test execute_service returns r."""
         config: FlextCliSettings = FlextCliSettings()
         result = config.execute_service()
-        assert result.is_success
-        assert isinstance(result.value, dict)
+        tm.ok(result)
+        tm.that(isinstance(result.value, dict), eq=True)
 
 
 class TestsCliLoggingConfig:
@@ -202,7 +203,7 @@ class TestsCliLoggingConfig:
         config = m.Cli.LoggingConfig.model_construct(
             log_level=log_level, log_format="json"
         )
-        assert config.log_level == expected
+        tm.that(config.log_level, eq=expected)
 
 
 class TestsCliConfigFilesOperations:
@@ -225,33 +226,33 @@ class TestsCliConfigFilesOperations:
     def test_load_json_config(self, temp_config_json: Path) -> None:
         """Test JSON loading."""
         result = FlextCliSettings.load_from_config_file(temp_config_json)
-        assert result.is_success
-        assert isinstance(result.value, FlextCliSettings)
+        tm.ok(result)
+        tm.that(isinstance(result.value, FlextCliSettings), eq=True)
 
     def test_load_yaml_config(self, temp_config_yaml: Path) -> None:
         """Test YAML loading."""
         result = FlextCliSettings.load_from_config_file(temp_config_yaml)
-        assert result.is_success
-        assert isinstance(result.value, FlextCliSettings)
+        tm.ok(result)
+        tm.that(isinstance(result.value, FlextCliSettings), eq=True)
 
     def test_load_nonexistent_file(self, tmp_path: Path) -> None:
         """Test error handling for missing file."""
         result = FlextCliSettings.load_from_config_file(tmp_path / "nonexistent.json")
-        assert result.is_failure
+        tm.fail(result)
 
     def test_load_invalid_format(self, tmp_path: Path) -> None:
         """Test unsupported file format."""
         txt_file = tmp_path / "config.txt"
         txt_file.write_text("invalid")
         result = FlextCliSettings.load_from_config_file(txt_file)
-        assert result.is_failure
+        tm.fail(result)
 
     def test_load_invalid_json(self, tmp_path: Path) -> None:
         """Test invalid JSON content."""
         json_file = tmp_path / "invalid.json"
         json_file.write_text("{invalid json}")
         result = FlextCliSettings.load_from_config_file(json_file)
-        assert result.is_failure
+        tm.fail(result)
 
 
 class TestsCliConfigIntegration:
@@ -277,14 +278,14 @@ class TestsCliConfigIntegration:
         """Test FlextCli uses config."""
         cli = FlextCli()
         config = cli.config
-        assert config is not None
-        assert isinstance(config, FlextCliSettings)
+        tm.that(config is not None, eq=True)
+        tm.that(isinstance(config, FlextCliSettings), eq=True)
 
     def test_config_inheritance(self) -> None:
         """Test inheritance from BaseSettings (Pydantic v2)."""
         config = FlextCliSettings()
-        assert isinstance(config, BaseSettings)
-        assert hasattr(config, "model_config")
+        tm.that(isinstance(config, BaseSettings), eq=True)
+        tm.that(hasattr(config, "model_config"), eq=True)
 
     def test_env_var_loading(self) -> None:
         """Test environment variable integration."""
@@ -294,14 +295,10 @@ class TestsCliConfigIntegration:
             FlextCliSettings.reset_for_testing()
             config = FlextCliSettings()
             if config.profile != "env_profile":
-                assert os.environ.get("FLEXT_CLI_PROFILE") == "env_profile", (
-                    "Environment variable not set"
-                )
+                tm.that(os.environ.get("FLEXT_CLI_PROFILE"), eq="env_profile")
                 config_data = {"profile": os.environ["FLEXT_CLI_PROFILE"]}
                 config = FlextCliSettings.model_validate(config_data)
-            assert config.profile == "env_profile", (
-                f"Expected 'env_profile', got '{config.profile}'"
-            )
+            tm.that(config.profile, eq="env_profile")
         finally:
             os.environ.pop("FLEXT_CLI_PROFILE", None)
             if original_profile is not None:
@@ -319,33 +316,33 @@ class TestsCliConfigValidation:
         """Test output format validation."""
         config: FlextCliSettings = FlextCliSettings()
         result = config.validate_output_format_result(fmt)
-        assert result.is_success == should_pass
+        tm.that(result.is_success, eq=should_pass)
 
     @pytest.mark.parametrize("env", ConfigTestFactory.VALID_ENVIRONMENTS)
     def test_valid_environments(self, env: str) -> None:
         """Test all valid environments."""
-        assert env in ConfigTestFactory.VALID_ENVIRONMENTS
+        tm.that(env in ConfigTestFactory.VALID_ENVIRONMENTS, eq=True)
 
     def test_model_dump(self) -> None:
         """Test model_dump returns complete dict."""
         config: FlextCliSettings = FlextCliSettings()
         dumped = config.model_dump()
-        assert isinstance(dumped, dict)
-        assert len(dumped) > 0
+        tm.that(isinstance(dumped, dict), eq=True)
+        tm.that(len(dumped) > 0, eq=True)
 
     def test_update_from_cli_args(self) -> None:
         """Test update_from_cli_args."""
         config: FlextCliSettings = FlextCliSettings()
         result = config.update_from_cli_args(profile="new_profile", debug=True)
-        assert result.is_success
-        assert config.profile == "new_profile"
-        assert config.debug is True
+        tm.ok(result)
+        tm.that(config.profile, eq="new_profile")
+        tm.that(config.debug is True, eq=True)
 
     def test_validate_cli_overrides(self) -> None:
         """Test validate_cli_overrides."""
         config: FlextCliSettings = FlextCliSettings()
         result = config.validate_cli_overrides(profile="valid", output_format="json")
-        assert result.is_success or result.is_failure
+        tm.that(result.is_success or result.is_failure, eq=True)
 
 
 class TestsCliConfigComputedFields:
@@ -355,29 +352,29 @@ class TestsCliConfigComputedFields:
         """Test auto_output_format computed field."""
         config: FlextCliSettings = FlextCliSettings()
         fmt_value = config.auto_output_format
-        assert isinstance(fmt_value, str), f"Expected str, got {type(fmt_value)}"
+        tm.that(isinstance(fmt_value, str), eq=True)
         fmt: str = fmt_value
-        assert fmt in {"table", "json", "plain"}
+        tm.that(fmt in {"table", "json", "plain"}, eq=True)
 
     def test_auto_verbosity(self) -> None:
         """Test auto_verbosity computed field."""
         config = FlextCliSettings()
         verb_value = config.auto_verbosity
         verb: str = verb_value
-        assert verb in {"normal", "quiet", "verbose"}
+        tm.that(verb in {"normal", "quiet", "verbose"}, eq=True)
 
     def test_optimal_table_format(self) -> None:
         """Test optimal_table_format computed field."""
         config = FlextCliSettings()
         fmt_value = config.optimal_table_format
-        assert isinstance(fmt_value, str), f"Expected str, got {type(fmt_value)}"
+        tm.that(isinstance(fmt_value, str), eq=True)
         fmt: str = fmt_value
-        assert fmt in {"simple", "grid", "github", "plain"}
+        tm.that(fmt in {"simple", "grid", "github", "plain"}, eq=True)
 
     def test_auto_color_support(self) -> None:
         """Test auto_color_support computed field."""
         config = FlextCliSettings()
-        assert isinstance(config.auto_color_support, bool)
+        tm.that(isinstance(config.auto_color_support, bool), eq=True)
 
 
 class TestsCliConfigLogging:
@@ -386,8 +383,8 @@ class TestsCliConfigLogging:
     def test_logger_creation(self) -> None:
         """Test logger creation."""
         logger = logging.getLogger("test_logger")
-        assert logger is not None
-        assert isinstance(logger, logging.Logger)
+        tm.that(logger is not None, eq=True)
+        tm.that(isinstance(logger, logging.Logger), eq=True)
 
     def test_logging_levels(self, caplog: pytest.LogCaptureFixture) -> None:
         """Test logging at different levels."""
@@ -395,8 +392,8 @@ class TestsCliConfigLogging:
         logger.setLevel(logging.INFO)
         logger.info("Info message")
         logger.warning("Warning message")
-        assert "Info message" in caplog.text
-        assert "Warning message" in caplog.text
+        tm.that("Info message" in caplog.text, eq=True)
+        tm.that("Warning message" in caplog.text, eq=True)
 
 
 class TestsCliConfigConcurrency:
@@ -419,8 +416,8 @@ class TestsCliConfigConcurrency:
             thread.start()
         for thread in threads:
             thread.join()
-        assert len(results) == 5
-        assert len(errors) == 0
+        tm.that(len(results), eq=5)
+        tm.that(len(errors), eq=0)
 
 
 class TestsCliConfigMemory:
@@ -432,7 +429,7 @@ class TestsCliConfigMemory:
         del configs
         gc.collect()
         new_config = FlextCliSettings()
-        assert new_config is not None
+        tm.that(new_config is not None, eq=True)
 
     def test_state_persistence(self) -> None:
         """Test config state persistence using model_copy."""
@@ -440,10 +437,10 @@ class TestsCliConfigMemory:
         config1 = FlextCliSettings()
         original_debug = config1.debug
         config_modified = config1.model_copy(update={"debug": not original_debug})
-        assert config_modified.debug is not original_debug
+        tm.that(config_modified.debug is not original_debug, eq=True)
         config_modified2 = config1.model_copy(update={"environment": "test"})
-        assert config_modified2.environment == "test"
-        assert hasattr(config_modified2, "environment")
+        tm.that(config_modified2.environment, eq="test")
+        tm.that(hasattr(config_modified2, "environment"), eq=True)
 
 
 class TestsCliConfigEdgeCases:
@@ -452,21 +449,21 @@ class TestsCliConfigEdgeCases:
     def test_extreme_values(self) -> None:
         """Test config with extreme numeric values."""
         config: FlextCliSettings = FlextCliSettings()
-        assert config.max_retries >= 0
-        assert config.cli_timeout > 0
-        assert config.max_width > 0
+        tm.that(config.max_retries >= 0, eq=True)
+        tm.that(config.cli_timeout > 0, eq=True)
+        tm.that(config.max_width > 0, eq=True)
 
     def test_load_config(self) -> None:
         """Test load_config method."""
         config: FlextCliSettings = FlextCliSettings()
         result = config.load_config()
-        assert result.is_success or result.is_failure
+        tm.that(result.is_success or result.is_failure, eq=True)
         if result.is_success:
-            assert isinstance(result.value, dict)
+            tm.that(isinstance(result.value, dict), eq=True)
 
     def test_save_config(self) -> None:
         """Test save_config method."""
         config: FlextCliSettings = FlextCliSettings()
         new_config: dict[str, object] = {"debug": True}
         result = config.save_config(new_config)
-        assert result.is_success or result.is_failure
+        tm.that(result.is_success or result.is_failure, eq=True)
