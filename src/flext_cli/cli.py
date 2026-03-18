@@ -39,6 +39,27 @@ class FlextCliCli:
         t.Cli.JsonValue
     )
 
+    @staticmethod
+    def _unwrap_and_validate(
+        raw_value: t.Cli.JsonValue | None,
+        context_label: str,
+        adapter: TypeAdapter[t.Cli.JsonValue],
+    ) -> t.Cli.JsonValue | None:
+        if raw_value is None:
+            return None
+        candidate: t.Cli.JsonValue = raw_value
+        while getattr(candidate, "is_success", None) is True:
+            candidate = getattr(candidate, "value", None)
+        if candidate is None:
+            return ""
+        try:
+            return adapter.validate_python(candidate)
+        except ValidationError as exc:
+            logging.getLogger(__name__).debug(
+                "%s validation fallback: %s", context_label, exc, exc_info=False
+            )
+            return str(candidate)
+
     def __init__(self) -> None:
         """Initialize FlextCliCli."""
         super().__init__()
@@ -212,44 +233,16 @@ class FlextCliCli:
         value_proc_val = u.get(kwargs, "value_proc")
         default_raw = u.get(kwargs, "default")
         type_hint_raw = u.get(kwargs, "type_hint")
-        if default_raw is None:
-            default_value: t.Cli.JsonValue | None = None
-        else:
-            default_value_candidate: t.Cli.JsonValue = default_raw
-            while getattr(default_value_candidate, "is_success", None) is True:
-                default_value_candidate = getattr(
-                    default_value_candidate, "value", None
-                )
-            if default_value_candidate is None:
-                default_value = ""
-            else:
-                try:
-                    default_value = FlextCliCli._json_value_adapter.validate_python(
-                        default_value_candidate
-                    )
-                except ValidationError as exc:
-                    logging.getLogger(__name__).debug(
-                        "default value validation fallback: %s", exc, exc_info=False
-                    )
-                    default_value = str(default_value_candidate)
-        if type_hint_raw is None:
-            type_hint_value: t.Cli.JsonValue | None = None
-        else:
-            type_hint_candidate: t.Cli.JsonValue = type_hint_raw
-            while getattr(type_hint_candidate, "is_success", None) is True:
-                type_hint_candidate = getattr(type_hint_candidate, "value", None)
-            if type_hint_candidate is None:
-                type_hint_value = ""
-            else:
-                try:
-                    type_hint_value = FlextCliCli._json_value_adapter.validate_python(
-                        type_hint_candidate
-                    )
-                except ValidationError as exc:
-                    logging.getLogger(__name__).debug(
-                        "type hint validation fallback: %s", exc, exc_info=False
-                    )
-                    type_hint_value = str(type_hint_candidate)
+        default_value = FlextCliCli._unwrap_and_validate(
+            default_raw,
+            "default value",
+            FlextCliCli._json_value_adapter,
+        )
+        type_hint_value = FlextCliCli._unwrap_and_validate(
+            type_hint_raw,
+            "type hint",
+            FlextCliCli._json_value_adapter,
+        )
         return m.Cli.PromptConfig(
             default=default_value,
             type_hint=type_hint_value,
@@ -769,45 +762,17 @@ class FlextCliCli:
         self, kwargs: Mapping[str, t.Cli.JsonValue]
     ) -> m.Cli.OptionConfig:
         default_raw = u.get(kwargs, "default")
-        if default_raw is None:
-            default_value: t.Cli.JsonValue | None = None
-        else:
-            default_value_candidate: t.Cli.JsonValue = default_raw
-            while getattr(default_value_candidate, "is_success", None) is True:
-                default_value_candidate = getattr(
-                    default_value_candidate, "value", None
-                )
-            if default_value_candidate is None:
-                default_value = ""
-            else:
-                try:
-                    default_value = self._json_value_adapter.validate_python(
-                        default_value_candidate
-                    )
-                except ValidationError as exc:
-                    logging.getLogger(__name__).debug(
-                        "option default validation fallback: %s", exc, exc_info=False
-                    )
-                    default_value = str(default_value_candidate)
+        default_value = self._unwrap_and_validate(
+            default_raw,
+            "option default",
+            self._json_value_adapter,
+        )
         type_hint_raw = u.get(kwargs, "type_hint")
-        if type_hint_raw is None:
-            type_hint_value: t.Cli.JsonValue | None = None
-        else:
-            type_hint_candidate: t.Cli.JsonValue = type_hint_raw
-            while getattr(type_hint_candidate, "is_success", None) is True:
-                type_hint_candidate = getattr(type_hint_candidate, "value", None)
-            if type_hint_candidate is None:
-                type_hint_value = ""
-            else:
-                try:
-                    type_hint_value = self._json_value_adapter.validate_python(
-                        type_hint_candidate
-                    )
-                except ValidationError as exc:
-                    logging.getLogger(__name__).debug(
-                        "option type hint validation fallback: %s", exc, exc_info=False
-                    )
-                    type_hint_value = str(type_hint_candidate)
+        type_hint_value = self._unwrap_and_validate(
+            type_hint_raw,
+            "option type hint",
+            self._json_value_adapter,
+        )
         return m.Cli.OptionConfig(
             default=default_value,
             type_hint=self._normalize_type_hint(type_hint_value),
