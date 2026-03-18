@@ -167,18 +167,18 @@ class FlextCliProtocols(FlextProtocols):
                 """Get command usage."""
                 ...
 
-            def complete_execution(self, exit_code: int) -> r[Self]:
+            def complete_execution(self, exit_code: int) -> FlextProtocols.Result[Self]:
                 """Complete command execution."""
                 ...
 
             def execute(
                 self,
                 args: Sequence[str],
-            ) -> r[t.Cli.JsonValue]:
+            ) -> FlextProtocols.Result[t.Cli.JsonValue]:
                 """Execute the command."""
                 ...
 
-            def start_execution(self) -> r[Self]:
+            def start_execution(self) -> FlextProtocols.Result[Self]:
                 """Start command execution."""
                 ...
 
@@ -268,7 +268,7 @@ class FlextCliProtocols(FlextProtocols):
             def add_command(
                 self,
                 command: FlextCliProtocols.Cli.Command,
-            ) -> r[Self]:
+            ) -> FlextProtocols.Result[Self]:
                 """Add a command to the session."""
                 ...
 
@@ -603,7 +603,7 @@ class FlextCliProtocols(FlextProtocols):
                 self,
                 data: t.Cli.JsonValue,
                 **options: t.Scalar,
-            ) -> r[str]:
+            ) -> FlextProtocols.Result[str]:
                 """Format data."""
                 ...
 
@@ -613,14 +613,14 @@ class FlextCliProtocols(FlextProtocols):
 
             def load_config(
                 self,
-            ) -> r[Mapping[str, t.Cli.JsonValue]]:
+            ) -> FlextProtocols.Result[Mapping[str, t.Cli.JsonValue]]:
                 """Load configuration."""
                 ...
 
             def save_config(
                 self,
                 config: Mapping[str, t.Cli.JsonValue],
-            ) -> r[bool]:
+            ) -> FlextProtocols.Result[bool]:
                 """Save configuration."""
                 ...
 
@@ -632,11 +632,11 @@ class FlextCliProtocols(FlextProtocols):
                 self,
                 username: str,
                 password: str,
-            ) -> r[str]:
+            ) -> FlextProtocols.Result[str]:
                 """Authenticate user."""
                 ...
 
-            def validate_token(self, token: str) -> r[bool]:
+            def validate_token(self, token: str) -> FlextProtocols.Result[bool]:
                 """Validate token."""
                 ...
 
@@ -646,7 +646,7 @@ class FlextCliProtocols(FlextProtocols):
 
             def get_debug_info(
                 self,
-            ) -> r[Mapping[str, t.Cli.JsonValue]]:
+            ) -> FlextProtocols.Result[Mapping[str, t.Cli.JsonValue]]:
                 """Get debug information."""
                 ...
 
@@ -684,7 +684,7 @@ class FlextCliProtocols(FlextProtocols):
                 self,
                 *args: t.Cli.JsonValue,
                 **kwargs: t.Scalar,
-            ) -> r[t.Cli.JsonValue]:
+            ) -> FlextProtocols.Result[t.Cli.JsonValue]:
                 """Execute the handler."""
                 ...
 
@@ -696,7 +696,7 @@ class FlextCliProtocols(FlextProtocols):
                 self,
                 model: t.Cli.JsonValue,
                 **kwargs: t.Scalar,
-            ) -> r[t.Cli.JsonValue]:
+            ) -> FlextProtocols.Result[t.Cli.JsonValue]:
                 """Handle the model command."""
                 ...
 
@@ -746,11 +746,11 @@ class FlextCliProtocols(FlextProtocols):
                 """Get plugin name."""
                 ...
 
-            def initialize(self) -> r[bool]:
+            def initialize(self) -> FlextProtocols.Result[bool]:
                 """Initialize the plugin."""
                 ...
 
-            def shutdown(self) -> r[bool]:
+            def shutdown(self) -> FlextProtocols.Result[bool]:
                 """Shutdown the plugin."""
                 ...
 
@@ -761,7 +761,7 @@ class FlextCliProtocols(FlextProtocols):
             def initialize(
                 self,
                 context: FlextCliProtocols.Cli.CliContext,
-            ) -> r[bool]:
+            ) -> FlextProtocols.Result[bool]:
                 """Initialize the service."""
                 ...
 
@@ -769,7 +769,7 @@ class FlextCliProtocols(FlextProtocols):
                 """Check service health."""
                 ...
 
-            def shutdown(self) -> r[bool]:
+            def shutdown(self) -> FlextProtocols.Result[bool]:
                 """Shutdown the service."""
                 ...
 
@@ -780,20 +780,20 @@ class FlextCliProtocols(FlextProtocols):
             def get_command(
                 self,
                 name: str,
-            ) -> r[FlextCliProtocols.Cli.Command]:
+            ) -> FlextProtocols.Result[FlextCliProtocols.Cli.Command]:
                 """Get a command by name."""
                 ...
 
             def list_commands(
                 self,
-            ) -> r[Sequence[FlextCliProtocols.Cli.Command]]:
+            ) -> FlextProtocols.Result[Sequence[FlextCliProtocols.Cli.Command]]:
                 """List all commands."""
                 ...
 
             def register_command(
                 self,
                 command: FlextCliProtocols.Cli.Command,
-            ) -> r[bool]:
+            ) -> FlextProtocols.Result[bool]:
                 """Register a command."""
                 ...
 
@@ -801,7 +801,7 @@ class FlextCliProtocols(FlextProtocols):
         class OutputService(Protocol):
             """Protocol for output formatting services."""
 
-            def format_json(self, data: t.Cli.JsonValue) -> r[str]:
+            def format_json(self, data: t.Cli.JsonValue) -> FlextProtocols.Result[str]:
                 """Format data as JSON."""
                 ...
 
@@ -809,11 +809,11 @@ class FlextCliProtocols(FlextProtocols):
                 self,
                 headers: Sequence[str],
                 rows: Sequence[Sequence[str]],
-            ) -> r[str]:
+            ) -> FlextProtocols.Result[str]:
                 """Format data as a table."""
                 ...
 
-            def format_yaml(self, data: t.Cli.JsonValue) -> r[str]:
+            def format_yaml(self, data: t.Cli.JsonValue) -> FlextProtocols.Result[str]:
                 """Format data as YAML."""
                 ...
 
@@ -830,7 +830,7 @@ class FlextCliProtocols(FlextProtocols):
                 args: Sequence[str],
                 context: FlextCliProtocols.Cli.CliContext,
                 output: FlextCliProtocols.Cli.CliOutput,
-            ) -> r[int]:
+            ) -> FlextProtocols.Result[int]:
                 """Handle the CLI request."""
                 ...
 
@@ -842,7 +842,7 @@ class FlextCliProtocols(FlextProtocols):
                 """Get exit code for exception."""
                 ...
 
-            def handle_error(self, error: Exception) -> r[str]:
+            def handle_error(self, error: Exception) -> FlextProtocols.Result[str]:
                 """Handle an exception."""
                 ...
 
@@ -899,7 +899,7 @@ class FlextCliProtocols(FlextProtocols):
             def execute_cli(
                 self,
                 args: list[str] | None = None,
-            ) -> r[bool]:
+            ) -> FlextProtocols.Result[bool]:
                 """Execute the CLI with Railway-pattern error handling."""
                 ...
 

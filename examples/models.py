@@ -126,13 +126,11 @@ class MyAppConfig(BaseModel):
                 "Profile": base.profile,
             }
         )
-        if isinstance(payload.data, dict):
-            table_data = {str(key): str(value) for key, value in payload.data.items()}
-            cli.show_table(
-                table_data,
-                headers=["Setting", "Value"],
-                title="⚙️  Application Configuration",
-            )
+        cli.show_table(
+            payload.data,
+            headers=["Setting", "Value"],
+            title="⚙️  Application Configuration",
+        )
 
     def validate_config(self, cli: FlextCli) -> bool:
         """Run validation; uses cli for output."""
@@ -190,7 +188,7 @@ class AppConfigAdvanced(BaseModel):
         if not isinstance(typed_data, dict):
             return None
         typed_dict: dict[str, object] = typed_data
-        result: dict[str, str | int | bool | Path] = {
+        result = {
             "database_url": os.getenv(
                 "DATABASE_URL", "postgresql://localhost:5432/myapp"
             ),
@@ -203,19 +201,19 @@ class AppConfigAdvanced(BaseModel):
                 os.getenv("TEMP_DIR", str(Path.home() / ".cache" / "myapp"))
             ),
         }
-        updates: dict[str, str | int | bool | Path] = {}
-        for key in (
-            "database_url",
-            "redis_url",
-            "api_key",
-            "max_workers",
-            "enable_metrics",
-            "log_level",
-            "temp_dir",
-        ):
-            value = typed_dict.get(key)
-            if isinstance(value, (str, int, bool, Path)):
-                updates[key] = value
+        updates = {
+            k: typed_dict[k]
+            for k in (
+                "database_url",
+                "redis_url",
+                "api_key",
+                "max_workers",
+                "enable_metrics",
+                "log_level",
+                "temp_dir",
+            )
+            if k in typed_dict and isinstance(typed_dict[k], (str, int, bool, Path))
+        }
         return {**result, **updates}
 
     @field_validator("database_url")
