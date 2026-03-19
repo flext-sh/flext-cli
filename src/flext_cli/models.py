@@ -8,14 +8,14 @@ import types
 from collections.abc import Callable, Mapping, MutableMapping, Sequence
 from typing import (
     Annotated,
+    Any,
     ClassVar,
     Literal,
     Self,
-    TypeIs,
+    TypeGuard,
     Union,
     get_args,
     get_origin,
-    override,
 )
 
 import typer
@@ -85,16 +85,16 @@ class FlextCliModels(FlextModels):
 
         @staticmethod
         def is_mapping_like(
-            obj: t.Cli.JsonValue,
-        ) -> TypeIs[Mapping[str, t.Cli.JsonValue]]:
-            """Narrow object to Mapping for metadata processing."""
+            obj: t.Cli.JsonValue | Mapping[str, t.Cli.JsonValue],
+        ) -> TypeGuard[Mapping[str, t.Cli.JsonValue]]:
+            """Narrow value to Mapping for metadata processing."""
             return isinstance(obj, Mapping)
 
         @staticmethod
         def is_sequence_like(
-            obj: t.Cli.JsonValue,
-        ) -> TypeIs[Sequence[t.Cli.JsonValue]]:
-            """Narrow object to non-string Sequence for JSON normalization."""
+            obj: t.Cli.JsonValue | Sequence[t.Cli.JsonValue],
+        ) -> TypeGuard[Sequence[t.Cli.JsonValue]]:
+            """Narrow value to non-string Sequence for JSON normalization."""
             return isinstance(obj, Sequence) and not isinstance(obj, (str, bytes))
 
         @staticmethod
@@ -176,7 +176,7 @@ class FlextCliModels(FlextModels):
             ]
 
         class CliNormalizedJson(RootModel[t.Cli.JsonValue]):
-            """Single contract: any value normalized to JSON (object)."""
+            """Single contract: any value normalized to JSON-compatible value."""
 
             @model_validator(mode="wrap")
             @classmethod
@@ -193,7 +193,7 @@ class FlextCliModels(FlextModels):
                 return handler(normalized)
 
         class _JsonNormalizeInput(BaseModel):
-            """Single contract for norm_json: value -> normalized object."""
+            """Single contract for norm_json: value -> normalized JSON value."""
 
             model_config = ConfigDict(extra="forbid")
             value: Annotated[t.Cli.JsonValue, Field(description="Value to normalize")]
@@ -380,7 +380,12 @@ class FlextCliModels(FlextModels):
                 if isinstance(raw, Sequence) and not isinstance(raw, (str, bytes)):
                     lst = list(raw)
                     processed = list_processor(lst) if list_processor else lst
-                    return {c.Cli.DictKeys.ARGS: processed}
+                    return {
+                        c.Cli.DictKeys.ARGS: [
+                            FlextCliModels.Cli.normalize_json_value(item)
+                            for item in processed
+                        ]
+                    }
                 if isinstance(raw, Mapping):
                     return dict(raw)
                 return {}
@@ -389,7 +394,7 @@ class FlextCliModels(FlextModels):
         def normalize_json_value(
             item: t.Cli.JsonValue,
         ) -> t.Cli.JsonValue:
-            """Normalize a object to a JSON-serializable object."""
+            """Normalize a value to a JSON-serializable value."""
             if isinstance(item, t.PRIMITIVES_TYPES):
                 return item
             if item is None:
@@ -405,7 +410,7 @@ class FlextCliModels(FlextModels):
             return str(item)
 
         class _NormalizedJsonList(BaseModel):
-            """Single contract: ensure value is list of object with default. Replaces ensure_list branching."""
+            """Single contract: ensure value is list with default. Replaces ensure_list branching."""
 
             model_config = ConfigDict(extra="forbid")
             value: Annotated[
@@ -797,22 +802,14 @@ class FlextCliModels(FlextModels):
                 # This avoids frozen instance errors during initialization
             )
 
-            # Inherit created_at and updated_at from Entity - frozen=True makes them read-only
-            # Entity provides these fields, and frozen models inherit them correctly
-            @override
-            def model_post_init(self, __context: t.Cli.JsonValue, /) -> None:
-                """Post-initialization hook for frozen model compatibility.
-
-                Uses standard Pydantic 2 signature for model_post_init.
-                Entity's timestamp fields are inherited and work correctly with frozen=True.
-                """
-                # Entity handles timestamp initialization via its own model_post_init
+            def model_post_init(self, __context: Any = None, /) -> None:
+                return
 
             def _copy_with_update(self, **updates: t.Scalar) -> Self:
                 """Helper method for model_copy with updates - reduces repetition.
 
                 Composition pattern: centralizes model_copy logic for reuse.
-                Uses object instead of object to accept Protocol types.
+                Uses broad value contracts to accept protocol implementations.
                 """
                 return self.model_copy(update=updates)
 
@@ -1065,6 +1062,9 @@ class FlextCliModels(FlextModels):
                 validate_default=True,
             )
 
+            def model_post_init(self, __context: Any = None, /) -> None:
+                return
+
             session_id: Annotated[
                 str,
                 Field(..., min_length=1, description="Session identifier"),
@@ -1196,21 +1196,11 @@ class FlextCliModels(FlextModels):
                     return result.get(status, [])
                 return result
 
-            # Inherit created_at and updated_at from Entity - frozen=True makes them read-only
-            # Entity provides these fields, and frozen models inherit them correctly
-            @override
-            def model_post_init(self, __context: t.Cli.JsonValue, /) -> None:
-                """Post-initialization hook for frozen model compatibility.
-
-                Entity's timestamp fields are inherited and work correctly with frozen=True.
-                """
-                # Entity handles timestamp initialization via its own model_post_init
-
             def _copy_with_update(self, **updates: t.Scalar) -> Self:
                 """Helper method for model_copy with updates - reduces repetition.
 
                 Composition pattern: centralizes model_copy logic for reuse.
-                Uses object instead of object to accept Protocol types.
+                Uses broad value contracts to accept protocol implementations.
                 """
                 return self.model_copy(update=updates)
 
@@ -2170,7 +2160,7 @@ class FlextCliModels(FlextModels):
             ───────────────────
             - Dynamic code generation MUST validate model_class is BaseModel subclass
             - Wrapper creation MUST avoid dynamic code execution
-            - Type conversion MUST preserve type safety (no object types) - See type-system-architecture.md
+            - Type conversion MUST preserve strict type safety - See type-system-architecture.md
             - Field validation MUST use Pydantic validators (not bypassed)
             - Sensitive fields (SecretStr) MUST be handled securely in CLI args
             - Command execution MUST log all parameters (except sensitive fields)
@@ -2317,7 +2307,7 @@ class FlextCliModels(FlextModels):
                 return type_name, field_type
 
             @staticmethod
-            def _resolve_type_alias(field_type: type) -> tuple[type, type | None]:
+            def _resolve_type_alias(field_type: type) -> tuple[type, str | None]:
                 """Resolve type aliases to Literal and return (resolved_type, origin).
 
                 Handles PEP 695 type aliases like `type X = Literal[...]`.
@@ -2325,7 +2315,7 @@ class FlextCliModels(FlextModels):
                 """
                 origin = get_origin(field_type)
                 if origin is not None:
-                    return field_type, origin
+                    return field_type, str(origin)
 
                 # Check if type has __value__ (type alias characteristic)
                 # Use getattr for type access - field_type is a type, not a Mapping
@@ -2337,11 +2327,14 @@ class FlextCliModels(FlextModels):
                 )
                 if type_value is not None and "Literal" in type_value:
                     # Check if __value__ is a Literal type
-                    return str, Literal
+                    return str, "Literal"
                     # Not Literal - continue to return field_type with origin
                 # Return field_type with its origin (None if not a generic)
                 # This handles both cases: type_value is None or not Literal
-                return field_type, get_origin(field_type)
+                resolved_origin = get_origin(field_type)
+                return field_type, str(
+                    resolved_origin
+                ) if resolved_origin is not None else None
 
             @staticmethod
             def get_builtin_name(_t: type, builtin_types: set[str]) -> str:
@@ -2443,7 +2436,7 @@ class FlextCliModels(FlextModels):
             def _process_field_metadata(
                 self,
                 field_name: str,
-                field_info: FieldInfo | object,
+                field_info: FieldInfo | Mapping[str, t.Cli.JsonValue] | t.Cli.JsonValue,
             ) -> tuple[type, t.Cli.JsonValue | None, bool, bool]:
                 """Process field metadata and return type info.
 
@@ -2492,8 +2485,6 @@ class FlextCliModels(FlextModels):
                     field_type = (
                         type(default_value) if default_value is not None else str
                     )
-                elif str(field_type_raw) == "<class 'object'>":
-                    field_type = str
                 else:
                     # Has annotation - resolve type alias
                     field_type, origin = self._resolve_type_alias(field_type_raw)
@@ -2652,7 +2643,9 @@ class FlextCliModels(FlextModels):
                 # models.py cannot use utilities - use direct iteration instead
                 def process_field(
                     field_name: str,
-                    field_info: FieldInfo | object,
+                    field_info: FieldInfo
+                    | Mapping[str, t.Cli.JsonValue]
+                    | t.Cli.JsonValue,
                 ) -> tuple[type, t.Cli.JsonValue | None, bool]:
                     """Process single field and return (type, default, has_factory)."""
                     field_type, default_val, _is_required, has_factory = (
@@ -2740,7 +2733,7 @@ class FlextCliModels(FlextModels):
                     if self.config is not None:
                         for fn, value in bound_arguments.arguments.items():
                             try:
-                                t.Cli.JsonValue.__setattr__(self.config, fn, value)
+                                setattr(self.config, fn, value)
                             except (AttributeError, TypeError) as ex:
                                 _logger.debug(
                                     "Could not set builder_config.%s",
@@ -2756,7 +2749,6 @@ class FlextCliModels(FlextModels):
                 real_annotations = self._create_real_annotations(annotations)
                 command_wrapper.__annotations__ = dict(real_annotations)
 
-                # TypeGuard narrows command_wrapper to Callable[..., object] for dynamic exec result
                 def typed_wrapper(
                     *args: t.Cli.JsonValue,
                     **kwargs: t.Scalar,
@@ -2843,7 +2835,7 @@ class FlextCliModels(FlextModels):
             @staticmethod
             def extract_base_props(
                 field_name: str,
-                field_info: FieldInfo | object,
+                field_info: FieldInfo | Mapping[str, t.Cli.JsonValue] | t.Cli.JsonValue,
             ) -> dict[str, t.Cli.JsonValue]:
                 """Extract base properties from field info."""
                 annotation = (
@@ -2869,7 +2861,7 @@ class FlextCliModels(FlextModels):
             @staticmethod
             def extract_field_properties(
                 field_name: str,
-                field_info: FieldInfo | object,
+                field_info: FieldInfo | Mapping[str, t.Cli.JsonValue] | t.Cli.JsonValue,
                 types: Mapping[str, type | str] | None = None,
             ) -> r[Mapping[str, t.Cli.JsonValue]]:
                 """Extract properties from Pydantic field info."""
@@ -2911,7 +2903,7 @@ class FlextCliModels(FlextModels):
             @staticmethod
             def field_to_cli_param(
                 field_name: str,
-                field_info: FieldInfo | object,
+                field_info: FieldInfo | Mapping[str, t.Cli.JsonValue] | t.Cli.JsonValue,
             ) -> r[p.Cli.CliParameterSpec]:
                 """Convert Pydantic field to CLI parameter specification."""
                 try:
@@ -3021,15 +3013,22 @@ class FlextCliModels(FlextModels):
             @staticmethod
             def merge_field_info_dict(
                 props: MutableMapping[str, t.Cli.JsonValue],
-                field_info: FieldInfo | object,
+                field_info: (
+                    FieldInfo | Mapping[str, t.Cli.JsonValue] | t.Cli.JsonValue
+                ),
             ) -> None:
                 """Merge field_info dict attributes into props."""
                 if isinstance(field_info, Mapping):
-                    filtered: dict[str, t.Cli.JsonValue] = {
-                        str(k): FlextCliModels.Cli.CliModelConverter.to_json_value(v)
-                        for k, v in field_info.items()
-                        if str(k) != "__dict__"
-                    }
+                    filtered: dict[str, t.Cli.JsonValue] = {}
+                    for k, v in field_info.items():
+                        key_str = str(k)
+                        if key_str == "__dict__":
+                            continue
+                        filtered[key_str] = _JSON_NORMALIZE_ADAPTER.dump_python(
+                            v,
+                            mode="json",
+                            warnings=False,
+                        )
                     props.update(filtered)
                     return
                 metadata_dict = (
@@ -3045,7 +3044,9 @@ class FlextCliModels(FlextModels):
             @staticmethod
             def merge_json_schema_extra(
                 props: MutableMapping[str, t.Cli.JsonValue],
-                field_info: FieldInfo | object,
+                field_info: (
+                    FieldInfo | Mapping[str, t.Cli.JsonValue] | t.Cli.JsonValue
+                ),
             ) -> None:
                 """Merge json_schema_extra into props metadata."""
                 json_schema_extra = (
@@ -3090,7 +3091,7 @@ class FlextCliModels(FlextModels):
             @staticmethod
             def merge_metadata_attr(
                 props: MutableMapping[str, t.Cli.JsonValue],
-                field_info: FieldInfo | object,
+                field_info: FieldInfo | Mapping[str, t.Cli.JsonValue] | t.Cli.JsonValue,
             ) -> None:
                 """Merge metadata attribute into props."""
                 metadata_attr = (
@@ -3218,10 +3219,10 @@ class FlextCliModels(FlextModels):
                 options: list[t.Cli.JsonValue] = []
                 for param in params:
                     # Type narrowing: param is CliParameterSpec
-                    # Create a simple object with option_name and param_decls attributes
+                    # Create a simple record with option_name and param_decls attributes
                     option_name = f"--{param.field_name.replace('_', '-')}"
                     param_decls_list: t.Cli.JsonValue = [option_name]
-                    # type is not in object, so we use string representation
+                    # type attribute may be absent, so we use string representation
                     param_type_name: str = (
                         param.param_type.__name__
                         if hasattr(param.param_type, "__name__")
@@ -3241,7 +3242,7 @@ class FlextCliModels(FlextModels):
             @staticmethod
             def process_metadata_list(
                 metadata_attr: Sequence[t.Cli.JsonValue],
-            ) -> Mapping[str, t.Cli.JsonValue]:
+            ) -> dict[str, t.Cli.JsonValue]:
                 """Process metadata list into dict."""
                 result: dict[str, t.Cli.JsonValue] = {}
                 for item in metadata_attr:
@@ -3316,7 +3317,7 @@ class FlextCliModels(FlextModels):
             def to_json_value(
                 value: t.Cli.JsonValue,
             ) -> t.Cli.JsonValue:
-                """Convert arbitrary value into object."""
+                """Convert arbitrary value into JSON-compatible value."""
                 converted = FlextCliModels.Cli.CliModelConverter.convert_field_value(
                     value,
                 )
@@ -3324,34 +3325,62 @@ class FlextCliModels(FlextModels):
                     return converted.value
                 return str(value)
 
+            @staticmethod
+            def _is_python_type_value(value: t.Cli.JsonValue) -> bool:
+                return isinstance(value, type)
+
+            @staticmethod
+            def _is_string_value(value: t.Cli.JsonValue) -> bool:
+                return isinstance(value, str)
+
+            @staticmethod
+            def _is_boolean_value(value: t.Cli.JsonValue) -> bool:
+                return value in {True, False}
+
+            @staticmethod
+            def _is_validators_value(value: t.Cli.JsonValue) -> bool:
+                return isinstance(value, (list, tuple)) and not isinstance(
+                    value,
+                    (Mapping, bytes),
+                )
+
+            @staticmethod
+            def _is_mapping_value(value: t.Cli.JsonValue) -> bool:
+                return isinstance(value, Mapping)
+
             # Field validation rules: (field_key, expected_type, type_check_func)
             FIELD_VALIDATION_RULES: ClassVar[
                 list[tuple[str, str, Callable[..., bool]]]
             ] = [
-                ("python_type", "type", lambda v: isinstance(v, type)),
+                (
+                    "python_type",
+                    "type",
+                    _is_python_type_value,
+                ),
                 (
                     "click_type",
                     "str",
-                    lambda v: isinstance(v, str),
+                    _is_string_value,
                 ),
-                ("is_required", "bool", lambda v: v in {True, False}),
+                (
+                    "is_required",
+                    "bool",
+                    _is_boolean_value,
+                ),
                 (
                     "description",
                     "str",
-                    lambda v: isinstance(v, str),
+                    _is_string_value,
                 ),
                 (
                     "validators",
                     "list/tuple",
-                    lambda v: (
-                        isinstance(v, (list, tuple))
-                        and not isinstance(v, (Mapping, bytes))
-                    ),
+                    _is_validators_value,
                 ),
                 (
                     "metadata",
                     "dict",
-                    lambda v: isinstance(v, Mapping),
+                    _is_mapping_value,
                 ),
             ]
 
@@ -3396,9 +3425,11 @@ class FlextCliModels(FlextModels):
                         )
                     if data is not None:
                         if field_name not in data:
-                            return r.fail(f"Field {field_name} not found")
+                            return r[t.Cli.JsonValue].fail(
+                                f"Field {field_name} not found",
+                            )
                         return r.ok(data[field_name])
-                    return r.fail(
+                    return r[t.Cli.JsonValue].fail(
                         "No data provided for validation",
                     )
                 except (
@@ -3409,7 +3440,7 @@ class FlextCliModels(FlextModels):
                     StyleError,
                     LiveError,
                 ) as e:
-                    return r.fail(
+                    return r[t.Cli.JsonValue].fail(
                         f"Validation failed: {e}",
                     )
 
@@ -3449,7 +3480,7 @@ class FlextCliModels(FlextModels):
                     )
                 )
                 if schema_result.is_failure:
-                    return r.fail(
+                    return r[t.Cli.JsonValue].fail(
                         schema_result.error or "Schema validation failed",
                     )
                 field_value = field_data.get(field_name, None)

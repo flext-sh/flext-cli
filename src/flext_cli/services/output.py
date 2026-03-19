@@ -504,7 +504,9 @@ class FlextCliOutput:
             return default
 
     @staticmethod
-    def get_keys(d: dict[str, FlextCliTypes.Cli.JsonValue] | object) -> list[str]:
+    def get_keys(
+        d: dict[str, FlextCliTypes.Cli.JsonValue] | FlextCliTypes.Cli.JsonValue,
+    ) -> list[str]:
         """Extract keys from dict using build DSL.
 
         Business Rules:
@@ -843,7 +845,9 @@ class FlextCliOutput:
 
     def format_and_display_result(
         self,
-        result: BaseModel | object | r[FlextCliTypes.Cli.JsonValue],
+        result: BaseModel
+        | FlextCliTypes.Cli.JsonValue
+        | r[FlextCliTypes.Cli.JsonValue],
         output_format: str = c.Cli.OutputFormats.TABLE.value,
     ) -> None:
         """Auto-detect result type and apply registered formatter with extracted helpers.
@@ -1326,7 +1330,9 @@ class FlextCliOutput:
 
     def _convert_result_to_formattable(
         self,
-        result: BaseModel | object | r[FlextCliTypes.Cli.JsonValue],
+        result: BaseModel
+        | FlextCliTypes.Cli.JsonValue
+        | r[FlextCliTypes.Cli.JsonValue],
         output_format: str,
     ) -> r[str]:
         """Convert result object to formattable string.
@@ -1406,7 +1412,9 @@ class FlextCliOutput:
 
     def _dispatch_registered_formatter(
         self,
-        result: BaseModel | object | r[FlextCliTypes.Cli.JsonValue],
+        result: BaseModel
+        | FlextCliTypes.Cli.JsonValue
+        | r[FlextCliTypes.Cli.JsonValue],
         formatter: Callable[
             [FlextCliTypes.Cli.JsonValue | r[FlextCliTypes.Cli.JsonValue], str],
             None,
@@ -1793,7 +1801,9 @@ class FlextCliOutput:
 
     def _try_registered_formatter(
         self,
-        result: BaseModel | object | r[FlextCliTypes.Cli.JsonValue],
+        result: BaseModel
+        | FlextCliTypes.Cli.JsonValue
+        | r[FlextCliTypes.Cli.JsonValue],
         output_format: str,
     ) -> r[bool]:
         """Try to use registered formatter for result type.

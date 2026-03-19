@@ -326,14 +326,14 @@ class FlextCliCli:
 
     @staticmethod
     def create_pass_context_decorator() -> Callable[
-        [Callable[[click.Context], object]],
-        Callable[[click.Context], object],
+        [Callable[[click.Context], t.Cli.JsonValue]],
+        Callable[[click.Context], t.Cli.JsonValue],
     ]:
         """Create pass context decorator."""
 
         def pass_context_wrapper(
-            func: Callable[[click.Context], object],
-        ) -> Callable[[click.Context], object]:
+            func: Callable[[click.Context], t.Cli.JsonValue],
+        ) -> Callable[[click.Context], t.Cli.JsonValue]:
             decorated = click.pass_context(func)
 
             def typed_decorated(ctx: click.Context) -> t.Cli.JsonValue:

@@ -481,7 +481,7 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
             @property
-            def value_proc(self) -> Callable[[str], object] | None:
+            def value_proc(self) -> Callable[[str], t.Cli.JsonValue] | None:
                 """Get value processor."""
                 ...
 
@@ -917,7 +917,7 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
             @property
-            def callback(self) -> Callable[..., object]:
+            def callback(self) -> Callable[..., t.Cli.JsonValue]:
                 """Command callback callable."""
                 ...
 

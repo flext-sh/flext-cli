@@ -11,7 +11,7 @@ import tempfile
 import zipfile
 from collections.abc import Callable, Mapping
 from pathlib import Path
-from typing import TextIO, TypeIs
+from typing import TextIO, TypeGuard
 
 import yaml
 from flext_core import r
@@ -24,7 +24,7 @@ _JSON_OBJECT_ADAPTER: TypeAdapter[t.Cli.JsonValue] = TypeAdapter(t.Cli.JsonValue
 
 def _is_json_mapping(
     value: t.Cli.JsonValue,
-) -> TypeIs[Mapping[str, t.Cli.JsonValue]]:
+) -> TypeGuard[Mapping[str, t.Cli.JsonValue]]:
     """Narrow object to mapping for structured file load."""
     return isinstance(value, Mapping)
 
@@ -43,9 +43,7 @@ class FlextCliFileTools:
             .lstrip(c.Cli.FileToolsDefaults.EXTENSION_PREFIX)
         )
         for fmt_name, fmt_info in supported_formats.items():
-            if isinstance(fmt_info, Mapping) and (
-                c.Cli.FileIODefaults.FORMAT_EXTENSIONS_KEY in fmt_info
-            ):
+            if c.Cli.FileIODefaults.FORMAT_EXTENSIONS_KEY in fmt_info:
                 exts = fmt_info[c.Cli.FileIODefaults.FORMAT_EXTENSIONS_KEY]
                 if u.is_list_like(exts) and ext in exts:
                     return r[str].ok(fmt_name)
@@ -80,7 +78,7 @@ class FlextCliFileTools:
     @staticmethod
     def _load_structured_file(
         file_path: str,
-        loader: Callable[[TextIO], t.Cli.JsonValue | object],
+        loader: Callable[[TextIO], t.Cli.JsonValue],
     ) -> t.Cli.JsonValue | None:
         with Path(file_path).open(encoding=c.Cli.Utilities.DEFAULT_ENCODING) as f:
             loaded_raw = loader(f)
@@ -115,7 +113,7 @@ class FlextCliFileTools:
 
     @staticmethod
     def _run_bool_operation(
-        operation_func: Callable[[], object],
+        operation_func: Callable[[], t.Cli.JsonValue],
         error_template: str,
         **format_kwargs: t.Scalar,
     ) -> r[bool]:
@@ -555,7 +553,7 @@ class FlextCliFileTools:
         data: t.Cli.JsonValue | m.Cli.DisplayData,
         indent: int = 2,
     ) -> r[bool]:
-        payload_raw: t.Cli.JsonValue | object = (
+        payload_raw: t.Cli.JsonValue = (
             data.data if isinstance(data, m.Cli.DisplayData) else data
         )
         try:
