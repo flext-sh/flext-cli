@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping, Sequence
-from typing import TypeAlias
 
 from flext_core import FlextTypes
 
@@ -36,14 +35,14 @@ class FlextCliTypes(FlextTypes):
         5. Type composition with Protocols for better type safety
         """
 
-        JsonScalar: TypeAlias = FlextTypes.Scalar | None
-        JsonValue: TypeAlias = FlextTypes.NormalizedValue
-        JsonDict: TypeAlias = Mapping[str, JsonValue]
-        TableRow: TypeAlias = Mapping[str, JsonValue]
+        type JsonScalar = FlextTypes.Scalar | None
+        type JsonValue = FlextTypes.NormalizedValue
+        type JsonDict = Mapping[str, JsonValue]
+        type TableRow = Mapping[str, JsonValue]
         ResultFormatter = Callable[[JsonValue], str]
-        FormatableResult: TypeAlias = str
+        type FormatableResult = str
         TabularData = Sequence[TableRow]
-        TableRows: TypeAlias = Sequence[TableRow]
+        type TableRows = Sequence[TableRow]
         CliValue = (
             FlextTypes.Scalar
             | list[str]

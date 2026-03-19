@@ -9,7 +9,7 @@ from typing import Protocol, Self, runtime_checkable
 
 from flext_core import FlextProtocols, r
 
-from flext_cli.typings import t
+from flext_cli import t
 
 
 class FlextCliProtocols(FlextProtocols):

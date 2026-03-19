@@ -5,7 +5,7 @@ from typing import Annotated
 from flext_core import FlextModels
 from pydantic import Field
 
-from flext_cli.typings import t
+from flext_cli import t
 
 
 class FlextCliModelsStatistics:

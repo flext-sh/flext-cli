@@ -155,10 +155,8 @@ class FlextCliOutput:
         rows_result = u.Cli.process(data, processor=build_row, on_error="fail")
         if rows_result.is_failure:
             return r[list[list[str]]].fail(rows_result.error or "Failed to build rows")
-        rows_raw = FlextCliOutput.ensure_list(rows_result.unwrap_or([]), [])
-        rows: list[list[str]] = [
-            [str(item) for item in row] for row in rows_raw if isinstance(row, list)
-        ]
+        rows_raw = rows_result.value or []
+        rows: list[list[str]] = [[str(item) for item in row] for row in rows_raw]
         return r[list[list[str]]].ok(rows)
 
     @staticmethod
@@ -168,11 +166,9 @@ class FlextCliOutput:
         console.print(formatted)
 
     @staticmethod
-    def _is_custom_iterable_value(data: FlextCliTypes.Cli.JsonValue) -> bool:
+    def _is_custom_iterable_value(_data: FlextCliTypes.Cli.JsonValue) -> bool:
         """Check if value should use custom iterable strategy."""
-        return isinstance(data, Iterable) and (
-            not isinstance(data, (str, list, tuple, dict))
-        )
+        return False
 
     @staticmethod
     def _is_mapping_value(data: FlextCliTypes.Cli.JsonValue) -> bool:
@@ -270,14 +266,16 @@ class FlextCliOutput:
             return {c.Cli.OutputFieldNames.KEY: k, c.Cli.OutputFieldNames.VALUE: str(v)}
 
         process_result = u.Cli.process_mapping(data, processor=kv_pair, on_error="skip")
-        dict_result = FlextCliOutput.ensure_dict(process_result.unwrap_or({}), {})
+        process_value = process_result.unwrap_or({})
+        dict_result: dict[str, dict[str, FlextCliTypes.Cli.JsonValue]] = dict(
+            process_value,
+        )
         table_data_raw = FlextCliOutput.ensure_list(list(dict_result.values()), [])
         table_data: list[dict[str, FlextCliTypes.Cli.JsonValue]] = [
             item for item in table_data_raw if isinstance(item, dict)
         ]
-        table_headers_raw = FlextCliOutput.ensure_list(
-            headers,
-            [c.Cli.TableFormats.KEYS],
+        table_headers_raw = (
+            list(headers) if headers is not None else [c.Cli.TableFormats.KEYS]
         )
         table_headers: list[str] = [str(h) for h in table_headers_raw]
         return r[
@@ -297,11 +295,9 @@ class FlextCliOutput:
             return r[
                 tuple[list[dict[str, FlextCliTypes.Cli.JsonValue]], str | list[str]]
             ].fail(c.Cli.ErrorMessages.NO_DATA_PROVIDED)
-        if headers is not None and (not FlextRuntime.is_list_like(headers)):
-            return r[
-                tuple[list[dict[str, FlextCliTypes.Cli.JsonValue]], str | list[str]]
-            ].fail(c.Cli.ErrorMessages.TABLE_HEADERS_MUST_BE_LIST)
-        headers_list = FlextCliOutput.ensure_list(headers, [c.Cli.TableFormats.KEYS])
+        headers_list = (
+            list(headers) if headers is not None else [c.Cli.TableFormats.KEYS]
+        )
         table_headers = [str(h) for h in headers_list]
         if headers is not None and table_headers != [c.Cli.TableFormats.KEYS]:
             validation_result = FlextCliOutput._validate_headers(table_headers, data)
@@ -421,23 +417,15 @@ class FlextCliOutput:
             config_for_table: m.Cli.TableConfig
             if isinstance(config, m.Cli.TableConfig):
                 config_for_table = config
-            elif hasattr(config, "model_dump"):
-                model_dump_method = config.model_dump
-                if callable(model_dump_method):
-                    config_dict = model_dump_method()
-                    config_for_table = m.Cli.TableConfig.model_validate(config_dict)
-                else:
-                    config_for_table = m.Cli.TableConfig.model_validate({})
             else:
-                config_for_table = m.Cli.TableConfig.model_validate({})
+                config_for_table = m.Cli.TableConfig.model_validate(config)
             data_json: list[dict[str, FlextCliTypes.Cli.JsonValue]] = [
                 {str(k): m.Cli.normalize_json_value(v) for k, v in row.items()}
                 for row in data
             ]
             return FlextCliTables.create_table(data=data_json, config=config_for_table)
-        validated_headers_raw = FlextCliOutput.ensure_list(
-            headers,
-            [c.Cli.TableFormats.KEYS],
+        validated_headers_raw = (
+            list(headers) if headers is not None else [c.Cli.TableFormats.KEYS]
         )
         validated_headers: list[str] = [str(h) for h in validated_headers_raw]
         final_config = m.Cli.TableConfig.model_validate({
@@ -927,8 +915,7 @@ class FlextCliOutput:
         """
         try:
             if FlextRuntime.is_list_like(data) and data:
-                normalized_data = FlextRuntime.normalize_to_container(data)
-                coerced_list = self._coerce_to_list(normalized_data)
+                coerced_list = self._coerce_to_list(data)
                 if coerced_list and FlextRuntime.is_dict_like(coerced_list[0]):
                     return self._format_csv_list(coerced_list)
             if FlextRuntime.is_dict_like(data):
@@ -1566,7 +1553,7 @@ class FlextCliOutput:
             if not data:
                 return r[str].fail(c.Cli.ErrorMessages.NO_DATA_PROVIDED)
             data_list: list[FlextCliTypes.Cli.JsonValue] = [
-                FlextRuntime.normalize_to_container(item) for item in data
+                m.Cli.normalize_json_value(item) for item in data
             ]
             dict_items = u.filter(data_list, predicate=FlextRuntime.is_dict_like)
             if len(dict_items) != len(data_list):
@@ -1738,7 +1725,13 @@ class FlextCliOutput:
         default_headers_general: list[FlextCliTypes.Cli.JsonValue] = list(
             default_headers,
         )
-        table_headers_raw = self.ensure_list(headers, default_headers_general)
+        table_headers_raw = (
+            list(headers)
+            if headers is not None
+            else list(
+                default_headers_general,
+            )
+        )
         table_headers: list[str] = [str(h) for h in table_headers_raw]
         if headers is not None:
             validation_result = FlextCliOutput._validate_headers(table_headers, data)

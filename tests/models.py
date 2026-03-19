@@ -17,8 +17,7 @@ from typing import Literal
 from flext_tests import FlextTestsModels
 from pydantic import BaseModel, ConfigDict, Field, RootModel, field_validator
 
-from flext_cli import FlextCliModels
-from flext_cli.typings import t
+from flext_cli import FlextCliModels, t
 
 
 class _PositionalModel(BaseModel):

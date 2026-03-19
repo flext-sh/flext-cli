@@ -26,8 +26,6 @@ from flext_tests import tm
 
 from flext_cli import FlextCliConstants, c, u
 
-from ..helpers import FlextCliTestHelpers
-
 
 class TestsCliConstants:
     """Comprehensive test suite for FlextCliConstants functionality.
@@ -43,7 +41,7 @@ class TestsCliConstants:
         @staticmethod
         def get_constants() -> type[FlextCliConstants]:
             """Get FlextCliConstants instance."""
-            return FlextCliTestHelpers.ConstantsFactory.get_constants()
+            return FlextCliConstants
 
     class TestData:
         """Factory for creating test data scenarios."""
@@ -184,8 +182,8 @@ class TestsCliConstants:
         constants = self.Fixtures.get_constants()
         constant_value = self.Assertions._get_constant_value(constants, constant_name)
         tm.that(constant_value is not None, eq=True)
-        tm.that(constant_value, eq=True)
-        tm.that(constant_value.strip(), eq=True)
+        tm.that(bool(constant_value), eq=True)
+        tm.that(bool(constant_value.strip()), eq=True)
 
     @pytest.mark.parametrize(
         "constant_name",

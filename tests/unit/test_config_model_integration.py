@@ -100,6 +100,8 @@ class TestsCliConfigModelIntegration:
     class AliasedParams(BaseModel):
         """Parameters with field aliases."""
 
+        model_config = ConfigDict(populate_by_name=True)
+
         input_dir: str | None = Field(default=None, alias="input-dir")
         output_dir: str | None = Field(default=None, alias="output-dir")
         batch_size: int | None = Field(default=None, alias="batch-size")
@@ -107,7 +109,7 @@ class TestsCliConfigModelIntegration:
     class RequiredFieldsParams(BaseModel):
         """Parameters with required fields."""
 
-        input_dir: str
+        input_dir: str = Field(min_length=1)
         output_dir: str | None = Field(default=None)
 
     class AppParams(BaseModel):
@@ -299,7 +301,7 @@ class TestsCliConfigModelIntegration:
 
     def test_field_alias_in_params_model(self) -> None:
         """Test field aliases are properly handled in parameter models."""
-        params = self.AliasedParams(**{
+        params = self.AliasedParams.model_validate({
             "input-dir": "/input",
             "output-dir": "/output",
             "batch-size": 100,
@@ -307,9 +309,11 @@ class TestsCliConfigModelIntegration:
         tm.that(params.input_dir, eq="/input")
         tm.that(params.output_dir, eq="/output")
         tm.that(params.batch_size, eq=100)
-        params2 = self.AliasedParams(
-            input_dir="/input2", output_dir="/output2", batch_size=200
-        )
+        params2 = self.AliasedParams.model_validate({
+            "input_dir": "/input2",
+            "output_dir": "/output2",
+            "batch_size": 200,
+        })
         tm.that(params2.input_dir, eq="/input2")
         tm.that(params2.output_dir, eq="/output2")
         tm.that(params2.batch_size, eq=200)
@@ -342,7 +346,7 @@ class TestsCliConfigModelIntegration:
 
     def test_params_validation_with_mixed_values(self) -> None:
         """Test parameter validation with mixed None and non-None values."""
-        params_mixed = self.AliasedParams(input_dir="/input")
+        params_mixed = self.AliasedParams.model_validate({"input_dir": "/input"})
         tm.that(params_mixed.input_dir, eq="/input")
         tm.that(params_mixed.output_dir is None, eq=True)
 
@@ -355,7 +359,7 @@ class TestsCliConfigModelIntegration:
             "batch_size": config.batch_size,
             "verbose_mode": config.verbose,
         }
-        params = self.FullAppParams(**cli_args)
+        params = self.FullAppParams.model_validate(cli_args)
         tm.that(params.input_dir, eq="/app/input")
         tm.that(params.output_dir, eq="/app/output")
         tm.that(params.batch_size, eq=1000)
@@ -364,7 +368,7 @@ class TestsCliConfigModelIntegration:
     def test_cli_parameter_override_config(self) -> None:
         """Test that CLI parameters override config defaults."""
         cli_override = {"input_dir": "/cli/input", "batch_size": 200}
-        params = self.AliasedParams(**cli_override)
+        params = self.AliasedParams.model_validate(cli_override)
         tm.that(params.input_dir, eq="/cli/input")
         tm.that(params.batch_size, eq=200)
 
