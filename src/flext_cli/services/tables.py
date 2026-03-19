@@ -9,7 +9,6 @@ SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
-from flext_cli import c
 
 from collections.abc import Mapping, Sequence
 from itertools import starmap
@@ -19,7 +18,7 @@ from flext_core import r
 from rich.errors import ConsoleError, LiveError, StyleError
 from tabulate import tabulate
 
-from flext_cli import FlextCliServiceBase, m, t, u
+from flext_cli import FlextCliServiceBase, c, m, t, u
 from flext_cli.typings import FlextCliTypes
 
 

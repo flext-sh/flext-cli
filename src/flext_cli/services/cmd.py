@@ -9,7 +9,6 @@ SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
-from flext_cli import c
 
 from collections.abc import Mapping
 from pathlib import Path
@@ -23,6 +22,7 @@ from flext_cli import (
     FlextCliOutput,
     FlextCliServiceBase,
     FlextCliUtilities,
+    c,
     m,
 )
 from flext_cli.typings import FlextCliTypes
