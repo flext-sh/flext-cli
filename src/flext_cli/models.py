@@ -35,6 +35,8 @@ from pydantic.fields import FieldInfo
 from rich.errors import ConsoleError, LiveError, StyleError
 from typer.models import OptionInfo
 
+from flext_cli._models.cli_models_statistics import FlextCliModelsStatistics
+from flext_cli._models.cli_models_system_context import FlextCliModelsSystemContext
 from flext_cli.constants import c
 from flext_cli.protocols import p
 from flext_cli.typings import t
@@ -72,7 +74,7 @@ class FlextCliModels(FlextModels):
     7. Self para metodos de transformacao
     """
 
-    class Cli:
+    class Cli(FlextCliModelsStatistics, FlextCliModelsSystemContext):
         """CLI project namespace - PADRAO HIERARQUICO.
 
         Este namespace contem todos os modelos CLI especificos do flext-cli.
@@ -113,7 +115,7 @@ class FlextCliModels(FlextModels):
 
             model_config = ConfigDict(extra="forbid", validate_assignment=True)
             data: Annotated[
-                object,
+                t.Cli.JsonValue,
                 Field(
                     default_factory=dict,
                     description="Field-value pairs for display",
@@ -125,7 +127,7 @@ class FlextCliModels(FlextModels):
 
             model_config = ConfigDict(extra="forbid", validate_assignment=True)
             content: Annotated[
-                object,
+                t.Cli.JsonValue,
                 Field(
                     default_factory=dict,
                     description="Configuration key-value content",
@@ -194,7 +196,7 @@ class FlextCliModels(FlextModels):
             """Single contract for norm_json: value -> normalized object."""
 
             model_config = ConfigDict(extra="forbid")
-            value: Annotated[object, Field(description="Value to normalize")]
+            value: Annotated[t.Cli.JsonValue, Field(description="Value to normalize")]
 
             @computed_field
             @property
@@ -228,7 +230,9 @@ class FlextCliModels(FlextModels):
                 Field(alias="map", description="Source mapping"),
             ]
             key: Annotated[str, Field(description="Key to look up")]
-            default: Annotated[object, Field(description="Default if key missing")]
+            default: Annotated[
+                t.Cli.JsonValue, Field(description="Default if key missing")
+            ]
 
             def result(self) -> t.Cli.JsonValue:
                 val = self.map_.get(self.key, self.default)
@@ -1764,7 +1768,7 @@ class FlextCliModels(FlextModels):
                 ),
             ]
             type_hint: Annotated[
-                object,
+                t.Cli.JsonValue | None,
                 Field(
                     default=None,
                     description="Parameter type (Click type or Python type)",
@@ -1862,14 +1866,14 @@ class FlextCliModels(FlextModels):
                 ),
             ]
             type_hint: Annotated[
-                object,
+                t.Cli.JsonValue | None,
                 Field(
                     default=None,
                     description="Value type",
                 ),
             ]
             value_proc: Annotated[
-                object,
+                Callable[[t.Cli.JsonValue], t.Cli.JsonValue] | None,
                 Field(
                     default=None,
                     description="Value processor function",
@@ -1907,80 +1911,6 @@ class FlextCliModels(FlextModels):
                     default=True,
                     description="Show available choices",
                 ),
-            ]
-
-        class PathInfo(FlextModels.Value):
-            """Path information for debug outpuFlextCliTypes.
-
-            Inherits frozen=True and extra="forbid" from FlextModels.Value.
-            """
-
-            index: Annotated[
-                int,
-                Field(default=0, description="Path index in sys.path"),
-            ]
-            path: Annotated[str, Field(...)]
-            exists: Annotated[bool, Field(default=False)]
-            is_file: Annotated[bool, Field(default=False)]
-            is_dir: Annotated[bool, Field(default=False)]
-
-        class EnvironmentInfo(FlextModels.Value):
-            """Environment information for debug outpuFlextCliTypes.
-
-            Inherits frozen=True and extra="forbid" from FlextModels.Value.
-            """
-
-            python_version: Annotated[str, Field(default="")]
-            os_name: Annotated[str, Field(default="")]
-            os_version: Annotated[str, Field(default="")]
-            variables: Annotated[dict[str, str], Field(default_factory=dict)]
-
-        class SystemInfo(FlextModels.Value):
-            """System information for debug outpuFlextCliTypes.
-
-            Inherits frozen=True and extra="forbid" from FlextModels.Value.
-            """
-
-            python_version: Annotated[str, Field(default="")]
-            platform: Annotated[str, Field(default="")]
-            architecture: Annotated[list[str], Field(default_factory=list)]
-            processor: Annotated[str, Field(default="")]
-            hostname: Annotated[str, Field(default="")]
-            memory_total: Annotated[int, Field(default=0)]
-            cpu_count: Annotated[int, Field(default=0)]
-
-        class ContextExecutionResult(FlextModels.Value):
-            """Context execution result.
-
-            Inherits frozen=True and extra="forbid" from FlextModels.Value.
-            """
-
-            success: Annotated[bool, Field(default=True)]
-            context_id: Annotated[str, Field(default="")]
-            metadata: Annotated[
-                dict[str, t.Cli.JsonValue],
-                Field(
-                    default_factory=dict,
-                ),
-            ]
-            context_executed: Annotated[
-                bool,
-                Field(
-                    default=False,
-                    description="Whether context was executed",
-                ),
-            ]
-            command: Annotated[
-                str,
-                Field(default="", description="Command executed in context"),
-            ]
-            arguments_count: Annotated[
-                int,
-                Field(default=0, description="Number of arguments"),
-            ]
-            timestamp: Annotated[
-                str,
-                Field(default="", description="Execution timestamp"),
             ]
 
         class DebugInfo(FlextModels.Value):
@@ -2196,10 +2126,10 @@ class FlextCliModels(FlextModels):
             token_type: Annotated[str, Field(default="Bearer")]
 
         class FormatInputData(FlextModels.Value):
-            """Single contract for format input: BaseModel or object. Normalizes to object."""
+            """Single contract for format input: BaseModel or JSON-like value."""
 
             data: Annotated[
-                BaseModel | object,
+                BaseModel | t.Cli.JsonValue,
                 Field(
                     ...,
                     description="Data to format (model or raw JSON)",
@@ -2213,135 +2143,6 @@ class FlextCliModels(FlextModels):
                 if isinstance(self.data, BaseModel):
                     return self.data.model_dump()
                 return self.data
-
-        class SessionStatistics(FlextModels.Value):
-            """Statistics for CLI session tracking.
-
-            Inherits frozen=True and extra="forbid" from FlextModels.Value.
-            """
-
-            commands_executed: Annotated[
-                int,
-                Field(
-                    default=0,
-                    description="Number of commands executed",
-                ),
-            ]
-            errors_count: Annotated[
-                int,
-                Field(
-                    default=0,
-                    description="Number of errors encountered",
-                ),
-            ]
-            session_duration_seconds: Annotated[
-                float,
-                Field(
-                    default=0.0,
-                    description="Session duration in seconds",
-                ),
-            ]
-
-        class PromptStatistics(FlextModels.Value):
-            """Statistics for prompt service usage tracking.
-
-            Inherits frozen=True and extra="forbid" from FlextModels.Value.
-            """
-
-            prompts_executed: Annotated[
-                int,
-                Field(
-                    default=0,
-                    description="Total prompts executed",
-                ),
-            ]
-            history_size: Annotated[
-                int,
-                Field(default=0, description="Current history size"),
-            ]
-            prompts_answered: Annotated[
-                int,
-                Field(
-                    default=0,
-                    description="Prompts that received answers",
-                ),
-            ]
-            prompts_cancelled: Annotated[
-                int,
-                Field(
-                    default=0,
-                    description="Prompts that were cancelled",
-                ),
-            ]
-            interactive_mode: Annotated[
-                bool,
-                Field(
-                    default=False,
-                    description="Interactive mode flag",
-                ),
-            ]
-            default_timeout: Annotated[
-                int,
-                Field(
-                    default=30,
-                    description="Default timeout in seconds",
-                ),
-            ]
-            timestamp: Annotated[
-                str,
-                Field(
-                    default="",
-                    description="Timestamp of statistics collection",
-                ),
-            ]
-
-        class CommandStatistics(FlextModels.Value):
-            """Command statistics.
-
-            Inherits frozen=True and extra="forbid" from FlextModels.Value.
-            """
-
-            total_commands: Annotated[int, Field(default=0)]
-            successful_commands: Annotated[int, Field(default=0)]
-            failed_commands: Annotated[int, Field(default=0)]
-
-        class CommandExecutionContextResult(FlextModels.Value):
-            """Command execution context result.
-
-            Inherits frozen=True and extra="forbid" from FlextModels.Value.
-            """
-
-            command_name: Annotated[str, Field(...)]
-            exit_code: Annotated[int, Field(default=0)]
-            output: Annotated[str, Field(default="")]
-            context: Annotated[
-                dict[str, t.Cli.JsonValue],
-                Field(
-                    default_factory=dict,
-                ),
-            ]
-
-        class WorkflowStepResult(FlextModels.Value):
-            """Workflow step result.
-
-            Inherits frozen=True and extra="forbid" from FlextModels.Value.
-            """
-
-            step_name: Annotated[str, Field(...)]
-            success: Annotated[bool, Field(default=True)]
-            message: Annotated[str, Field(default="")]
-            duration: Annotated[float, Field(default=0.0)]
-
-        class WorkflowProgress(FlextModels.Value):
-            """Workflow progress information.
-
-            Inherits frozen=True and extra="forbid" from FlextModels.Value.
-            """
-
-            current_step: Annotated[int, Field(default=0)]
-            total_steps: Annotated[int, Field(default=0)]
-            current_step_name: Annotated[str, Field(default="")]
-            percentage: Annotated[float, Field(default=0.0)]
 
         class ModelCommandBuilder:
             """Builder for Typer commands from Pydantic models.
@@ -2382,7 +2183,7 @@ class FlextCliModels(FlextModels):
             def __init__(
                 self,
                 model_class: type[BaseModel],
-                handler: Callable[[BaseModel], object],
+                handler: Callable[[BaseModel], t.Cli.JsonValue],
                 config: t.Cli.JsonValue | None = None,
             ) -> None:
                 """Initialize builder with model class, handler, and optional config.
@@ -2516,7 +2317,7 @@ class FlextCliModels(FlextModels):
                 return type_name, field_type
 
             @staticmethod
-            def _resolve_type_alias(field_type: type) -> tuple[type, object]:
+            def _resolve_type_alias(field_type: type) -> tuple[type, type | None]:
                 """Resolve type aliases to Literal and return (resolved_type, origin).
 
                 Handles PEP 695 type aliases like `type X = Literal[...]`.
@@ -2527,7 +2328,7 @@ class FlextCliModels(FlextModels):
                     return field_type, origin
 
                 # Check if type has __value__ (type alias characteristic)
-                # Use getattr for type object access - field_type is a type, not a Mapping
+                # Use getattr for type access - field_type is a type, not a Mapping
                 type_value_candidate = getattr(field_type, "__value__", None)
                 type_value: str | None = (
                     str(type_value_candidate)
@@ -2682,7 +2483,7 @@ class FlextCliModels(FlextModels):
                         default_value = config_value
 
                 # Get and resolve field type
-                # Use getattr for FieldInfo access - field_info is an object, not always a Mapping
+                # Use getattr for FieldInfo access in mixed input payloads
                 field_type_raw = (
                     field_info.annotation if isinstance(field_info, FieldInfo) else None
                 )
@@ -2691,7 +2492,7 @@ class FlextCliModels(FlextModels):
                     field_type = (
                         type(default_value) if default_value is not None else str
                     )
-                elif field_type_raw is object:
+                elif str(field_type_raw) == "<class 'object'>":
                     field_type = str
                 else:
                     # Has annotation - resolve type alias
@@ -3561,9 +3362,11 @@ class FlextCliModels(FlextModels):
             @staticmethod
             def _process_validators(
                 field_info: (
-                    Sequence[Callable[..., object]] | Sequence[t.Cli.JsonValue] | object
+                    Sequence[Callable[..., t.Cli.JsonValue]]
+                    | Sequence[t.Cli.JsonValue]
+                    | t.Cli.JsonValue
                 ),
-            ) -> list[Callable[..., object]]:
+            ) -> list[Callable[..., t.Cli.JsonValue]]:
                 """Process validators from field info, filtering only callable validators."""
                 if not isinstance(field_info, (list, tuple, range)):
                     return []
@@ -3576,7 +3379,9 @@ class FlextCliModels(FlextModels):
             @staticmethod
             def _validate_field_data(
                 field_name: str,
-                field_info: (FieldInfo | object | Mapping[str, t.Cli.JsonValue]),
+                field_info: (
+                    FieldInfo | Mapping[str, t.Cli.JsonValue] | t.Cli.JsonValue
+                ),
                 data: Mapping[str, t.Cli.JsonValue] | None = None,
             ) -> r[t.Cli.JsonValue]:
                 """Validate field data against field info."""
@@ -3612,10 +3417,10 @@ class FlextCliModels(FlextModels):
             def convert_field_value(
                 field_value: t.Cli.JsonValue,
             ) -> r[t.Cli.JsonValue]:
-                """Convert field value to object.
+                """Convert field value to JSON-compatible value.
 
                 models.py cannot use utilities - use direct conversion instead.
-                Uses object from lower layer for proper type safety.
+                Uses lower-layer JSON contracts for strict type safety.
                 """
                 if field_value is None:
                     return r.ok("")
@@ -3680,7 +3485,7 @@ class FlextCliModels(FlextModels):
                 [
                     Callable[
                         [BaseModel],
-                        r[object] | object,
+                        r[t.Cli.JsonValue] | t.Cli.JsonValue,
                     ],
                 ],
                 p.Cli.CliCommandWrapper,
@@ -3690,7 +3495,7 @@ class FlextCliModels(FlextModels):
                 def decorator(
                     func: Callable[
                         [BaseModel],
-                        r[object] | object,
+                        r[t.Cli.JsonValue] | t.Cli.JsonValue,
                     ],
                 ) -> p.Cli.CliCommandWrapper:
                     def wrapper(
@@ -3702,7 +3507,7 @@ class FlextCliModels(FlextModels):
                             model_instance = model_class(**kwargs)
                             # Call original function with model
                             result = func(model_instance)
-                            # Convert result to object if needed
+                            # Convert result to JSON-compatible value if needed
                             output: t.Cli.JsonValue
                             if isinstance(result, r):
                                 if result.is_success:
@@ -3774,7 +3579,7 @@ class FlextCliModels(FlextModels):
             def normalize_output(
                 value: t.Cli.JsonValue,
             ) -> t.Cli.JsonValue:
-                """Normalize any value to object."""
+                """Normalize any value to JSON-compatible value."""
                 normalized: r[t.Cli.JsonValue] = (
                     FlextCliModels.Cli.CliModelConverter.convert_field_value(value)
                 )

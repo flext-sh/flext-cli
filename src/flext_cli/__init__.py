@@ -12,7 +12,7 @@ from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
 if TYPE_CHECKING:
     from flext_core.typings import FlextTypes
 
-    from flext_cli import services
+    from flext_cli import _models, services
     from flext_cli.__version__ import (
         __all__,
         __author__,
@@ -24,6 +24,8 @@ if TYPE_CHECKING:
         __version__,
         __version_info__,
     )
+    from flext_cli._models.cli_models_statistics import FlextCliModelsStatistics
+    from flext_cli._models.cli_models_system_context import FlextCliModelsSystemContext
     from flext_cli.api import FlextCli
     from flext_cli.app_base import FlextCliAppBase
     from flext_cli.base import FlextCliServiceBase, s
@@ -65,6 +67,14 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "FlextCliLoggingMiddleware": ("flext_cli.middleware", "FlextCliLoggingMiddleware"),
     "FlextCliMixins": ("flext_cli.mixins", "FlextCliMixins"),
     "FlextCliModels": ("flext_cli.models", "FlextCliModels"),
+    "FlextCliModelsStatistics": (
+        "flext_cli._models.cli_models_statistics",
+        "FlextCliModelsStatistics",
+    ),
+    "FlextCliModelsSystemContext": (
+        "flext_cli._models.cli_models_system_context",
+        "FlextCliModelsSystemContext",
+    ),
     "FlextCliOptionGroup": ("flext_cli.option_groups", "FlextCliOptionGroup"),
     "FlextCliOutput": ("flext_cli.services.output", "FlextCliOutput"),
     "FlextCliPrompts": ("flext_cli.services.prompts", "FlextCliPrompts"),
@@ -83,6 +93,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "__url__": ("flext_cli.__version__", "__url__"),
     "__version__": ("flext_cli.__version__", "__version__"),
     "__version_info__": ("flext_cli.__version__", "__version_info__"),
+    "_models": ("flext_cli._models", ""),
     "c": ("flext_cli.constants", "c"),
     "logger": ("flext_cli.settings", "logger"),
     "m": ("flext_cli.models", "m"),
@@ -110,6 +121,8 @@ __all__ = [
     "FlextCliLoggingMiddleware",
     "FlextCliMixins",
     "FlextCliModels",
+    "FlextCliModelsStatistics",
+    "FlextCliModelsSystemContext",
     "FlextCliOptionGroup",
     "FlextCliOutput",
     "FlextCliPrompts",
@@ -128,6 +141,7 @@ __all__ = [
     "__url__",
     "__version__",
     "__version_info__",
+    "_models",
     "c",
     "logger",
     "m",
