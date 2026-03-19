@@ -51,7 +51,6 @@ if TYPE_CHECKING:
     from .test_commands import TestsCliCommands
     from .test_comprehensive_models import (
         TestsCliComprehensiveModels,
-        TestsCliComprehensiveModels as m,
         TestsCliModelSerialization,
         TestsCliModelValidation,
     )
@@ -68,12 +67,11 @@ if TYPE_CHECKING:
         TestsCliConfigLogging,
         TestsCliConfigMemory,
         TestsCliConfigService,
-        TestsCliConfigService as s,
         TestsCliConfigValidation,
         TestsCliLoggingConfig,
     )
     from .test_config_model_integration import TestsCliConfigModelIntegration
-    from .test_constants import TestsCliConstants, TestsCliConstants as c
+    from .test_constants import TestsCliConstants
     from .test_debug import TestsCliDebug
     from .test_model_command_comprehensive import TestsCliModelCommandComprehensive
     from .test_model_factories import TestsCliModelFactories
@@ -93,7 +91,7 @@ if TYPE_CHECKING:
         test_read_selection_paths,
         test_select_from_options_logs_successful_selection,
     )
-    from .test_protocols import TestsCliProtocols, TestsCliProtocols as p
+    from .test_protocols import TestsCliProtocols
     from .test_railway_pattern_example import TestsCliRailwayPatternExample
     from .test_typings import TestsCliTypings, TypingTestCase, TypingTestType
     from .test_utilities_cov import (
@@ -191,17 +189,13 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "TypingTestCase": ("tests.unit.test_typings", "TypingTestCase"),
     "TypingTestType": ("tests.unit.test_typings", "TypingTestType"),
     "VALID_CONFIG_DATA": ("tests.unit.test_cmd", "VALID_CONFIG_DATA"),
-    "c": ("tests.unit.test_constants", "TestsCliConstants"),
     "create_cli_app": ("tests.unit.test_cli_params", "create_cli_app"),
     "create_decorated_command": (
         "tests.unit.test_cli_params",
         "create_decorated_command",
     ),
     "create_test_config": ("tests.unit.test_cli_params", "create_test_config"),
-    "m": ("tests.unit.test_comprehensive_models", "TestsCliComprehensiveModels"),
-    "p": ("tests.unit.test_protocols", "TestsCliProtocols"),
     "reset_config_singleton": ("tests.unit.conftest", "reset_config_singleton"),
-    "s": ("tests.unit.test_config", "TestsCliConfigService"),
     "test_auth_options_include_expected_env_vars": (
         "tests.unit.test_option_groups_cov",
         "test_auth_options_include_expected_env_vars",
@@ -365,14 +359,10 @@ __all__ = [
     "TestsCliVersion",
     "TypingTestCase",
     "TypingTestType",
-    "c",
     "create_cli_app",
     "create_decorated_command",
     "create_test_config",
-    "m",
-    "p",
     "reset_config_singleton",
-    "s",
     "test_auth_options_include_expected_env_vars",
     "test_connection_options_defaults_are_exposed",
     "test_edit_config_outer_exception_path",

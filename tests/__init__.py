@@ -12,6 +12,13 @@ from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
 if TYPE_CHECKING:
     from flext_core.typings import FlextTypes
 
+    from flext_cli.decorators import d
+    from flext_cli.exceptions import e
+    from flext_cli.handlers import h
+    from flext_cli.mixins import x
+    from flext_cli.result import r
+    from flext_cli.service import s
+
     from . import integration as integration, unit as unit
     from .base import TestsCliServiceBase
     from .conftest import (
@@ -136,7 +143,6 @@ if TYPE_CHECKING:
         TestsCliConfigLogging,
         TestsCliConfigMemory,
         TestsCliConfigService,
-        TestsCliConfigService as s,
         TestsCliConfigValidation,
         TestsCliLoggingConfig,
     )
@@ -305,7 +311,9 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
         "create_decorated_command",
     ),
     "create_test_config": ("tests.unit.test_cli_params", "create_test_config"),
+    "d": ("flext_cli.decorators", "d"),
     "debug_info_factory": ("tests.conftest", "debug_info_factory"),
+    "e": ("flext_cli.exceptions", "e"),
     "fixture_config_file": ("tests.conftest", "fixture_config_file"),
     "fixture_data_csv": ("tests.conftest", "fixture_data_csv"),
     "fixture_data_json": ("tests.conftest", "fixture_data_json"),
@@ -325,6 +333,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "flext_cli_protocols": ("tests.conftest", "flext_cli_protocols"),
     "flext_cli_utilities": ("tests.conftest", "flext_cli_utilities"),
     "flext_test_docker": ("tests.conftest", "flext_test_docker"),
+    "h": ("flext_cli.handlers", "h"),
     "input_exception_simulator": ("tests.conftest", "input_exception_simulator"),
     "input_simulator": ("tests.conftest", "input_simulator"),
     "integration": ("tests.integration", ""),
@@ -340,9 +349,10 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
         "pytest_collection_modifyitems",
     ),
     "pytest_configure": ("tests.conftest", "pytest_configure"),
+    "r": ("flext_cli.result", "r"),
     "reset_config_singleton": ("tests.unit.conftest", "reset_config_singleton"),
     "reset_singletons": ("tests.conftest", "reset_singletons"),
-    "s": ("tests.unit.test_config", "TestsCliConfigService"),
+    "s": ("flext_cli.service", "s"),
     "sample_command_data": ("tests.conftest", "sample_command_data"),
     "sample_config_data": ("tests.conftest", "sample_config_data"),
     "sample_file_data": ("tests.conftest", "sample_file_data"),
@@ -471,6 +481,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "tt": ("tests.typings", "tt"),
     "u": ("tests.utilities", "u"),
     "unit": ("tests.unit", ""),
+    "x": ("flext_cli.mixins", "x"),
 }
 
 __all__ = [
@@ -558,7 +569,9 @@ __all__ = [
     "create_cli_app",
     "create_decorated_command",
     "create_test_config",
+    "d",
     "debug_info_factory",
+    "e",
     "fixture_config_file",
     "fixture_data_csv",
     "fixture_data_json",
@@ -578,6 +591,7 @@ __all__ = [
     "flext_cli_protocols",
     "flext_cli_utilities",
     "flext_test_docker",
+    "h",
     "input_exception_simulator",
     "input_simulator",
     "integration",
@@ -590,6 +604,7 @@ __all__ = [
     "password_simulator",
     "pytest_collection_modifyitems",
     "pytest_configure",
+    "r",
     "reset_config_singleton",
     "reset_singletons",
     "s",
@@ -634,6 +649,7 @@ __all__ = [
     "tt",
     "u",
     "unit",
+    "x",
 ]
 
 
