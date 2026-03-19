@@ -13,10 +13,19 @@ from collections.abc import Mapping, Sequence
 from datetime import UTC, datetime
 from typing import override
 
-from flext_core import FlextDecorators, FlextLogger, FlextRegistry, p, r, u
+from flext_core import FlextDecorators, FlextLogger, FlextRegistry, r
 from rich.errors import ConsoleError, LiveError, StyleError
 
-from flext_cli import FlextCliOutput, FlextCliServiceBase, FlextCliUtilities, c, m, t
+from flext_cli import (
+    FlextCliOutput,
+    FlextCliServiceBase,
+    FlextCliUtilities,
+    c,
+    m,
+    p,
+    t,
+    u,
+)
 from flext_cli.typings import FlextCliTypes
 
 

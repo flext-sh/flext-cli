@@ -15,7 +15,7 @@ from collections.abc import Mapping
 from io import StringIO
 from typing import Literal, Self, overload, override
 
-from flext_core import FlextLogger, r, u
+from flext_core import FlextLogger, r
 from rich.console import Console
 from rich.errors import ConsoleError, LiveError, NotRenderableError, StyleError
 from rich.layout import Layout as RichLayout
@@ -26,7 +26,7 @@ from rich.status import Status as RichStatus
 from rich.table import Table as RichTable
 from rich.tree import Tree as RichTree
 
-from flext_cli import c, p, t
+from flext_cli import c, p, t, u
 
 _logger = FlextLogger(__name__)
 

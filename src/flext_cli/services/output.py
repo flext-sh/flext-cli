@@ -13,14 +13,14 @@ from io import StringIO
 from typing import ClassVar, TypeIs
 
 import yaml
-from flext_core import FlextRuntime, r, t
+from flext_core import FlextRuntime, r
 from pydantic import BaseModel, TypeAdapter
 from rich.console import Console
 from rich.progress import Progress
 from rich.table import Table as RichTable
 from rich.tree import Tree as RichTree
 
-from flext_cli import FlextCliFormatters, FlextCliTables, c, m, p, u
+from flext_cli import FlextCliFormatters, FlextCliTables, c, m, p, t, u
 from flext_cli.typings import FlextCliTypes
 
 _JSON_VALUE_ADAPTER: TypeAdapter[FlextCliTypes.Cli.JsonValue] = TypeAdapter(

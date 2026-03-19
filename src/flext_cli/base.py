@@ -14,9 +14,7 @@ from abc import ABC
 from collections.abc import Mapping
 from typing import override
 
-from flext_core import s
-
-from flext_cli import FlextCliSettings, m, p, t
+from flext_cli import FlextCliSettings, m, p, s, t
 
 
 class FlextCliServiceBase(s[Mapping[str, t.Cli.JsonValue]], ABC):
