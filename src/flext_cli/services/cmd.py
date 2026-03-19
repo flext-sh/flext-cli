@@ -9,6 +9,7 @@ SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
+from flext_cli import c
 
 from collections.abc import Mapping
 from pathlib import Path
@@ -18,7 +19,6 @@ from flext_core import r
 from rich.errors import ConsoleError, LiveError, StyleError
 
 from flext_cli import (
-    FlextCliConstants,
     FlextCliFileTools,
     FlextCliOutput,
     FlextCliServiceBase,
@@ -79,7 +79,7 @@ class FlextCliCmd(FlextCliServiceBase):
         return FlextCliUtilities.try_(
             FlextCliUtilities.Cli.ConfigOps.get_config_info,
         ).map_error(
-            lambda e: FlextCliConstants.Cli.ErrorMessages.CONFIG_INFO_FAILED.format(
+            lambda e: c.Cli.ErrorMessages.CONFIG_INFO_FAILED.format(
                 error=e,
             ),
         )
@@ -90,7 +90,7 @@ class FlextCliCmd(FlextCliServiceBase):
         return FlextCliUtilities.try_(
             FlextCliUtilities.Cli.ConfigOps.get_config_paths,
         ).map_error(
-            lambda e: FlextCliConstants.Cli.ErrorMessages.CONFIG_PATHS_FAILED.format(
+            lambda e: c.Cli.ErrorMessages.CONFIG_PATHS_FAILED.format(
                 error=e,
             ),
         )
@@ -100,7 +100,7 @@ class FlextCliCmd(FlextCliServiceBase):
         try:
             config_path = (
                 FlextCliServiceBase.get_cli_config().config_dir
-                / FlextCliConstants.Cli.ConfigFiles.CLI_CONFIG_JSON
+                / c.Cli.ConfigFiles.CLI_CONFIG_JSON
             )
             path = Path(str(config_path))
             if not path.exists():
@@ -116,7 +116,7 @@ class FlextCliCmd(FlextCliServiceBase):
                 )
                 if save_result.is_failure:
                     return r[str].fail(
-                        FlextCliConstants.Cli.CmdErrorMessages.CREATE_DEFAULT_CONFIG_FAILED.format(
+                        c.Cli.CmdErrorMessages.CREATE_DEFAULT_CONFIG_FAILED.format(
                             error=save_result.error,
                         ),
                     )
@@ -125,10 +125,10 @@ class FlextCliCmd(FlextCliServiceBase):
                 load_error_text = str(load_result.error or "")
                 if "Cannot create success result with None value" in load_error_text:
                     return r[str].fail(
-                        FlextCliConstants.Cli.CmdErrorMessages.CONFIG_NOT_DICT,
+                        c.Cli.CmdErrorMessages.CONFIG_NOT_DICT,
                     )
                 return r[str].fail(
-                    FlextCliConstants.Cli.CmdErrorMessages.CONFIG_LOAD_FAILED.format(
+                    c.Cli.CmdErrorMessages.CONFIG_LOAD_FAILED.format(
                         error=load_result.error,
                     ),
                 )
@@ -148,18 +148,18 @@ class FlextCliCmd(FlextCliServiceBase):
                     exc_info=False,
                 )
                 return r[str].fail(
-                    FlextCliConstants.Cli.CmdErrorMessages.CONFIG_NOT_DICT,
+                    c.Cli.CmdErrorMessages.CONFIG_NOT_DICT,
                 )
             config_info_str = str({
-                FlextCliConstants.Cli.DictKeys.CONFIG_FILE: str(path),
-                FlextCliConstants.Cli.DictKeys.CONFIG_DATA: config_model,
-                FlextCliConstants.Cli.DictKeys.MESSAGE: FlextCliConstants.Cli.ServiceMessages.CONFIG_LOADED_SUCCESSFULLY,
+                c.Cli.DictKeys.CONFIG_FILE: str(path),
+                c.Cli.DictKeys.CONFIG_DATA: config_model,
+                c.Cli.DictKeys.MESSAGE: c.Cli.ServiceMessages.CONFIG_LOADED_SUCCESSFULLY,
             })
             self.logger.info(
-                FlextCliConstants.Cli.CmdMessages.CONFIG_EDIT_COMPLETED_LOG,
+                c.Cli.CmdMessages.CONFIG_EDIT_COMPLETED_LOG,
                 config=config_info_str,
             )
-            return r[str].ok(FlextCliConstants.Cli.LogMessages.CONFIG_EDIT_COMPLETED)
+            return r[str].ok(c.Cli.LogMessages.CONFIG_EDIT_COMPLETED)
         except (
             ValueError,
             TypeError,
@@ -169,15 +169,15 @@ class FlextCliCmd(FlextCliServiceBase):
             LiveError,
         ) as e:
             return r[str].fail(
-                FlextCliConstants.Cli.ErrorMessages.EDIT_CONFIG_FAILED.format(error=e),
+                c.Cli.ErrorMessages.EDIT_CONFIG_FAILED.format(error=e),
             )
 
     @override
     def execute(self) -> r[Mapping[str, FlextCliTypes.Cli.JsonValue]]:
         """Report operational status required by `FlextService`."""
         return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].ok({
-            FlextCliConstants.Cli.DictKeys.STATUS: FlextCliConstants.Cli.ServiceStatus.OPERATIONAL.value,
-            FlextCliConstants.Cli.DictKeys.SERVICE: FlextCliConstants.Cli.CmdDefaults.SERVICE_NAME,
+            c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.OPERATIONAL.value,
+            c.Cli.DictKeys.SERVICE: c.Cli.CmdDefaults.SERVICE_NAME,
         })
 
     def get_config_value(
@@ -188,11 +188,11 @@ class FlextCliCmd(FlextCliServiceBase):
         try:
             config_path = (
                 FlextCliServiceBase.get_cli_config().config_dir
-                / FlextCliConstants.Cli.ConfigFiles.CLI_CONFIG_JSON
+                / c.Cli.ConfigFiles.CLI_CONFIG_JSON
             )
             if not config_path.exists():
                 return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].fail(
-                    FlextCliConstants.Cli.CmdErrorMessages.CONFIG_FILE_NOT_FOUND.format(
+                    c.Cli.CmdErrorMessages.CONFIG_FILE_NOT_FOUND.format(
                         path=config_path,
                     ),
                 )
@@ -201,17 +201,17 @@ class FlextCliCmd(FlextCliServiceBase):
                 load_error_text = str(load_result.error or "")
                 if "Cannot create success result with None value" in load_error_text:
                     return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].fail(
-                        FlextCliConstants.Cli.CmdErrorMessages.CONFIG_NOT_DICT,
+                        c.Cli.CmdErrorMessages.CONFIG_NOT_DICT,
                     )
                 return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].fail(
-                    FlextCliConstants.Cli.CmdErrorMessages.CONFIG_LOAD_FAILED.format(
+                    c.Cli.CmdErrorMessages.CONFIG_LOAD_FAILED.format(
                         error=load_result.error,
                     ),
                 )
             config_data = load_result.value
             if not FlextCliUtilities.is_dict_like(config_data):
                 return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].fail(
-                    FlextCliConstants.Cli.CmdErrorMessages.CONFIG_NOT_DICT,
+                    c.Cli.CmdErrorMessages.CONFIG_NOT_DICT,
                 )
             if isinstance(config_data, Mapping):
                 normalized: dict[str, FlextCliTypes.Cli.JsonValue] = {
@@ -222,15 +222,15 @@ class FlextCliCmd(FlextCliServiceBase):
                 normalized = {}
             if key not in normalized:
                 return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].fail(
-                    FlextCliConstants.Cli.CmdErrorMessages.CONFIG_KEY_NOT_FOUND.format(
+                    c.Cli.CmdErrorMessages.CONFIG_KEY_NOT_FOUND.format(
                         key=key,
                     ),
                 )
             value = normalized[key]
             raw_data = {
-                FlextCliConstants.Cli.DictKeys.KEY: key,
-                FlextCliConstants.Cli.DictKeys.VALUE: value,
-                FlextCliConstants.Cli.DictKeys.TIMESTAMP: FlextCliUtilities.generate(
+                c.Cli.DictKeys.KEY: key,
+                c.Cli.DictKeys.VALUE: value,
+                c.Cli.DictKeys.TIMESTAMP: FlextCliUtilities.generate(
                     "timestamp",
                 ),
             }
@@ -248,9 +248,7 @@ class FlextCliCmd(FlextCliServiceBase):
             LiveError,
         ) as e:
             return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].fail(
-                FlextCliConstants.Cli.CmdErrorMessages.GET_CONFIG_FAILED.format(
-                    error=e
-                ),
+                c.Cli.CmdErrorMessages.GET_CONFIG_FAILED.format(error=e),
             )
 
     def set_config_value(self, key: str, value: str) -> r[bool]:
@@ -258,7 +256,7 @@ class FlextCliCmd(FlextCliServiceBase):
         try:
             config_path = (
                 FlextCliServiceBase.get_cli_config().config_dir
-                / FlextCliConstants.Cli.ConfigFiles.CLI_CONFIG_JSON
+                / c.Cli.ConfigFiles.CLI_CONFIG_JSON
             )
             config_data: FlextCliTypes.Cli.JsonValue = {key: value}
             save_result = self._file_tools.write_json_file(
@@ -267,12 +265,12 @@ class FlextCliCmd(FlextCliServiceBase):
             )
             if save_result.is_failure:
                 return r[bool].fail(
-                    FlextCliConstants.Cli.CmdErrorMessages.CONFIG_SAVE_FAILED.format(
+                    c.Cli.CmdErrorMessages.CONFIG_SAVE_FAILED.format(
                         error=save_result.error,
                     ),
                 )
             self.logger.info(
-                FlextCliConstants.Cli.CmdMessages.CONFIG_SAVED.format(
+                c.Cli.CmdMessages.CONFIG_SAVED.format(
                     key=key,
                     value=value,
                 ),
@@ -287,7 +285,7 @@ class FlextCliCmd(FlextCliServiceBase):
             LiveError,
         ) as e:
             return r[bool].fail(
-                FlextCliConstants.Cli.ErrorMessages.SET_CONFIG_FAILED.format(error=e),
+                c.Cli.ErrorMessages.SET_CONFIG_FAILED.format(error=e),
             )
 
     def show_config(self) -> r[bool]:
@@ -301,12 +299,12 @@ class FlextCliCmd(FlextCliServiceBase):
             info_result = self.get_config_info()
             if info_result.is_failure:
                 return r[bool].fail(
-                    FlextCliConstants.Cli.CmdErrorMessages.SHOW_CONFIG_FAILED.format(
+                    c.Cli.CmdErrorMessages.SHOW_CONFIG_FAILED.format(
                         error=info_result.error,
                     ),
                 )
             self.logger.info(
-                FlextCliConstants.Cli.LogMessages.CONFIG_DISPLAYED,
+                c.Cli.LogMessages.CONFIG_DISPLAYED,
                 config=info_result.value,
             )
             return r[bool].ok(value=True)
@@ -319,7 +317,7 @@ class FlextCliCmd(FlextCliServiceBase):
             LiveError,
         ) as e:
             return r[bool].fail(
-                FlextCliConstants.Cli.CmdErrorMessages.SHOW_CONFIG_FAILED.format(
+                c.Cli.CmdErrorMessages.SHOW_CONFIG_FAILED.format(
                     error=e,
                 ),
             )
@@ -335,14 +333,14 @@ class FlextCliCmd(FlextCliServiceBase):
             results = FlextCliUtilities.Cli.ConfigOps.validate_config_structure()
             if results:
                 self.logger.info(
-                    FlextCliConstants.Cli.LogMessages.CONFIG_VALIDATION_RESULTS.format(
+                    c.Cli.LogMessages.CONFIG_VALIDATION_RESULTS.format(
                         results=results,
                     ),
                 )
             return r[bool].ok(value=True)
         except (OSError, ValueError, TypeError, RuntimeError) as e:
             return r[bool].fail(
-                FlextCliConstants.Cli.ErrorMessages.CONFIG_VALIDATION_FAILED.format(
+                c.Cli.ErrorMessages.CONFIG_VALIDATION_FAILED.format(
                     error=e,
                 ),
             )

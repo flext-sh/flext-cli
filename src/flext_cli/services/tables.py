@@ -9,6 +9,7 @@ SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
+from flext_cli import c
 
 from collections.abc import Mapping, Sequence
 from itertools import starmap
@@ -18,7 +19,7 @@ from flext_core import r
 from rich.errors import ConsoleError, LiveError, StyleError
 from tabulate import tabulate
 
-from flext_cli import FlextCliConstants, FlextCliServiceBase, m, t, u
+from flext_cli import FlextCliServiceBase, m, t, u
 from flext_cli.typings import FlextCliTypes
 
 
@@ -122,12 +123,12 @@ class FlextCliTables(FlextCliServiceBase):
         """
         if not data:
             return r[bool].fail(
-                FlextCliConstants.Cli.TablesErrorMessages.TABLE_DATA_EMPTY,
+                c.Cli.TablesErrorMessages.TABLE_DATA_EMPTY,
             )
-        if table_format not in FlextCliConstants.Cli.TABLE_FORMATS:
-            available_formats_list = list(FlextCliConstants.Cli.TABLE_FORMATS.keys())
+        if table_format not in c.Cli.TABLE_FORMATS:
+            available_formats_list = list(c.Cli.TABLE_FORMATS.keys())
             return r[bool].fail(
-                FlextCliConstants.Cli.TablesErrorMessages.INVALID_TABLE_FORMAT.format(
+                c.Cli.TablesErrorMessages.INVALID_TABLE_FORMAT.format(
                     table_format=table_format,
                     available_formats=", ".join(available_formats_list),
                 ),
@@ -272,7 +273,7 @@ class FlextCliTables(FlextCliServiceBase):
                 return {"format": name, "description": desc}
 
             _ = list(
-                starmap(convert_format, FlextCliConstants.Cli.TABLE_FORMATS.items()),
+                starmap(convert_format, c.Cli.TABLE_FORMATS.items()),
             )
             return r[bool].ok(value=True)
         except (
@@ -309,7 +310,7 @@ class FlextCliTables(FlextCliServiceBase):
     ) -> int:
         """Calculate number of columns based on headers and data type."""
         if isinstance(headers, str):
-            if headers == FlextCliConstants.Cli.TableFormats.KEYS and isinstance(
+            if headers == c.Cli.TableFormats.KEYS and isinstance(
                 data,
                 Mapping,
             ):
@@ -366,7 +367,7 @@ class FlextCliTables(FlextCliServiceBase):
             LiveError,
         ) as e:
             return r[str].fail(
-                FlextCliConstants.Cli.TablesErrorMessages.TABLE_CREATION_FAILED.format(
+                c.Cli.TablesErrorMessages.TABLE_CREATION_FAILED.format(
                     error=e,
                 ),
             )
