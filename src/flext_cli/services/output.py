@@ -211,8 +211,8 @@ class FlextCliOutput:
 
     @staticmethod
     def _is_rich_tree_protocol(
-        obj: FlextCliTypes.Cli.JsonValue,
-    ) -> TypeIs[p.Cli.Display.RichTree]:
+        obj: RichTree | p.Cli.Display.RichTree,
+    ) -> bool:
         """Type guard to check if object implements RichTree."""
         return hasattr(obj, "add") and hasattr(obj, "label")
 
