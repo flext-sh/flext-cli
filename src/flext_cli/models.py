@@ -801,6 +801,7 @@ class FlextCliModels(FlextModels):
             )
 
             def model_post_init(self, __context: Any = None, /) -> None:
+                """Finalize initialization without post-processing side effects."""
                 return
 
             def _copy_with_update(self, **updates: t.Scalar) -> Self:
@@ -1061,6 +1062,7 @@ class FlextCliModels(FlextModels):
             )
 
             def model_post_init(self, __context: Any = None, /) -> None:
+                """Finalize initialization without post-processing side effects."""
                 return
 
             session_id: Annotated[
