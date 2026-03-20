@@ -12,7 +12,7 @@ from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
 if TYPE_CHECKING:
     from flext_core.typings import FlextTypes
 
-    from flext_cli import c, d, e, h, m, p, r, s, t, u, x
+    from flext_cli import d, e, h, r, s, x
 
     from . import integration as integration, unit as unit
     from .base import TestsCliServiceBase
@@ -66,7 +66,7 @@ if TYPE_CHECKING:
         temp_json_file,
         temp_yaml_file,
     )
-    from .constants import TestsFlextCliConstants
+    from .constants import TestsFlextCliConstants, TestsFlextCliConstants as c
     from .integration.test_cli_workflow import TestsCliWorkflowIntegration
     from .models import (
         AliasedConfig,
@@ -90,12 +90,13 @@ if TYPE_CHECKING:
         SimpleParams,
         StrictParams,
         TestsFlextCliModels,
+        TestsFlextCliModels as m,
         TextTestCaseDict,
         UserData,
         ValidatedConfig,
     )
-    from .protocols import TestsCliProtocols
-    from .typings import T, T_co, T_contra, TestsCliTypes, tt
+    from .protocols import TestsCliProtocols, TestsCliProtocols as p
+    from .typings import T, T_co, T_contra, TestsCliTypes, TestsCliTypes as t, tt
     from .unit.conftest import reset_config_singleton
     from .unit.test_cli import TestsCliCli
     from .unit.test_cli_extended import TestsCliCliExtended
@@ -176,7 +177,7 @@ if TYPE_CHECKING:
         test_validation_v_uses_custom_message_on_empty_failure,
     )
     from .unit.test_version import TestsCliVersion
-    from .utilities import TestsCliUtilities
+    from .utilities import TestsCliUtilities, TestsCliUtilities as u
 
 _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "AliasedConfig": ("tests.models", "AliasedConfig"),
@@ -294,7 +295,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "TypingTestType": ("tests.unit.test_typings", "TypingTestType"),
     "UserData": ("tests.models", "UserData"),
     "ValidatedConfig": ("tests.models", "ValidatedConfig"),
-    "c": ("flext_cli", "c"),
+    "c": ("tests.constants", "TestsFlextCliConstants"),
     "clean_flext_container": ("tests.conftest", "clean_flext_container"),
     "cli_command_factory": ("tests.conftest", "cli_command_factory"),
     "cli_runner": ("tests.conftest", "cli_runner"),
@@ -334,9 +335,9 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "load_fixture_config": ("tests.conftest", "load_fixture_config"),
     "load_fixture_data": ("tests.conftest", "load_fixture_data"),
     "logging_config_factory": ("tests.conftest", "logging_config_factory"),
-    "m": ("flext_cli", "m"),
+    "m": ("tests.models", "TestsFlextCliModels"),
     "mock_env_vars": ("tests.conftest", "mock_env_vars"),
-    "p": ("flext_cli", "p"),
+    "p": ("tests.protocols", "TestsCliProtocols"),
     "password_simulator": ("tests.conftest", "password_simulator"),
     "pytest_collection_modifyitems": (
         "tests.conftest",
@@ -350,7 +351,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "sample_command_data": ("tests.conftest", "sample_command_data"),
     "sample_config_data": ("tests.conftest", "sample_config_data"),
     "sample_file_data": ("tests.conftest", "sample_file_data"),
-    "t": ("flext_cli", "t"),
+    "t": ("tests.typings", "TestsCliTypes"),
     "temp_csv_file": ("tests.conftest", "temp_csv_file"),
     "temp_dir": ("tests.conftest", "temp_dir"),
     "temp_file": ("tests.conftest", "temp_file"),
@@ -473,7 +474,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
         "test_validation_v_uses_custom_message_on_empty_failure",
     ),
     "tt": ("tests.typings", "tt"),
-    "u": ("flext_cli", "u"),
+    "u": ("tests.utilities", "TestsCliUtilities"),
     "unit": ("tests.unit", ""),
     "x": ("flext_cli", "x"),
 }

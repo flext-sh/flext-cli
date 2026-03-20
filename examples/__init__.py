@@ -32,6 +32,7 @@ if TYPE_CHECKING:
         DeployConfig,
         MyAppConfig,
         NumericPromptResult,
+        NumericPromptResult as r,
     )
     from examples.plugins.example_plugin import (
         DataProcessorPlugin,
@@ -75,6 +76,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "plugins": ("examples.plugins", ""),
     "print_demo_completion": ("examples.example_utils", "print_demo_completion"),
     "print_demo_error": ("examples.example_utils", "print_demo_error"),
+    "r": ("examples.models", "NumericPromptResult"),
     "to_json_dict": ("examples.example_utils", "to_json_dict"),
 }
 
@@ -102,6 +104,7 @@ __all__ = [
     "plugins",
     "print_demo_completion",
     "print_demo_error",
+    "r",
     "to_json_dict",
 ]
 
