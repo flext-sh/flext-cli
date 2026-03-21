@@ -140,11 +140,11 @@ class ApiResponse(_PositionalModel):
 
 
 class ConnectionConfig(_PositionalModel):
-    """Connection config for model_command tests; port ge=1024."""
+    """Connection config for model_command tests; port >= 1024."""
 
     model_config = ConfigDict(extra="forbid")
     host: str | None = Field(default=None, description="Host")
-    port: int = Field(default=5432, ge=1024, description="Port")
+    port: t.PortNumber = Field(default=5432, description="Port")
     username: str = Field(default="", description="Username")
 
 
