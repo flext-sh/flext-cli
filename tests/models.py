@@ -140,7 +140,7 @@ class ApiResponse(_PositionalModel):
 
 
 class ConnectionConfig(_PositionalModel):
-    """Connection config for model_command tests; port >= 1024."""
+    """Connection config for model_command tests; port validated by t.PortNumber (1-65535)."""
 
     model_config = ConfigDict(extra="forbid")
     host: str | None = Field(default=None, description="Host")
@@ -203,7 +203,7 @@ class ValidatedConfig(_PositionalModel):
 
     model_config = ConfigDict(extra="forbid")
     host: str = Field(default="", description="Host (e.g. example.com)")
-    port: int = Field(default=5432, description="Port")
+    port: t.PortNumber = Field(default=5432, description="Port")
 
     @field_validator("host")
     @classmethod
