@@ -12,8 +12,6 @@ from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
 if TYPE_CHECKING:
     from flext_core.typings import FlextTypes
 
-
-if TYPE_CHECKING:
     from flext_cli._models.cli_models_statistics import FlextCliModelsStatistics
     from flext_cli._models.cli_models_system_context import FlextCliModelsSystemContext
 
