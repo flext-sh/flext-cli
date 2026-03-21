@@ -68,14 +68,8 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "FlextCliLoggingMiddleware": ("flext_cli.middleware", "FlextCliLoggingMiddleware"),
     "FlextCliMixins": ("flext_cli.mixins", "FlextCliMixins"),
     "FlextCliModels": ("flext_cli.models", "FlextCliModels"),
-    "FlextCliModelsStatistics": (
-        "flext_cli._models.cli_models_statistics",
-        "FlextCliModelsStatistics",
-    ),
-    "FlextCliModelsSystemContext": (
-        "flext_cli._models.cli_models_system_context",
-        "FlextCliModelsSystemContext",
-    ),
+    "FlextCliModelsStatistics": ("flext_cli._models.cli_models_statistics", "FlextCliModelsStatistics"),
+    "FlextCliModelsSystemContext": ("flext_cli._models.cli_models_system_context", "FlextCliModelsSystemContext"),
     "FlextCliOptionGroup": ("flext_cli.option_groups", "FlextCliOptionGroup"),
     "FlextCliOutput": ("flext_cli.services.output", "FlextCliOutput"),
     "FlextCliPrompts": ("flext_cli.services.prompts", "FlextCliPrompts"),
