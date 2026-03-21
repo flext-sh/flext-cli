@@ -12,10 +12,9 @@ from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
 if TYPE_CHECKING:
     from flext_core.typings import FlextTypes
 
-    from flext_cli import d, e, h, r, s, x
+    from flext_cli import d, e, h, p, r, s, x
 
     from . import integration as integration, unit as unit
-    from .base import TestsCliServiceBase
     from .conftest import (
         CliCommandFactory,
         CliSessionFactory,
@@ -95,9 +94,9 @@ if TYPE_CHECKING:
         UserData,
         ValidatedConfig,
     )
-    from .protocols import TestsCliProtocols, TestsCliProtocols as p
-    from .typings import T, T_co, T_contra, TestsCliTypes, TestsCliTypes as t, tt
+    from .typings import T_co, T_contra, TestsCliTypes, TestsCliTypes as t, tt
     from .unit.conftest import reset_config_singleton
+    from .unit.test_base import TestsCliServiceBase
     from .unit.test_cli import TestsCliCli
     from .unit.test_cli_extended import TestsCliCliExtended
     from .unit.test_cli_params import (
@@ -107,7 +106,15 @@ if TYPE_CHECKING:
         create_decorated_command,
         create_test_config,
     )
-    from .unit.test_cmd import ConfigErrorScenario, ConfigOperation, TestsCliCmd
+    from .unit.test_cmd import (
+        CONFIG_FILE_NAME,
+        CONFIG_OPERATION_METHODS,
+        ERROR_SCENARIO_DATA,
+        VALID_CONFIG_DATA,
+        ConfigErrorScenario,
+        ConfigOperation,
+        TestsCliCmd,
+    )
     from .unit.test_cmd_cov import (
         test_edit_config_outer_exception_path,
         test_edit_config_success_logs_and_returns_ok,
@@ -162,6 +169,7 @@ if TYPE_CHECKING:
         test_read_selection_paths,
         test_select_from_options_logs_successful_selection,
     )
+    from .unit.test_protocols import TestsCliProtocols
     from .unit.test_railway_pattern_example import TestsCliRailwayPatternExample
     from .unit.test_typings import TestsCliTypings, TypingTestCase, TypingTestType
     from .unit.test_utilities_cov import (
@@ -176,7 +184,7 @@ if TYPE_CHECKING:
         test_validation_state_requires_criteria,
         test_validation_v_uses_custom_message_on_empty_failure,
     )
-    from .unit.test_version import TestsCliVersion
+    from .unit.test_version import T, TestsCliVersion
     from .utilities import TestsCliUtilities, TestsCliUtilities as u
 
 _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
@@ -185,6 +193,8 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "ApiResponse": ("tests.models", "ApiResponse"),
     "AppParams": ("tests.models", "AppParams"),
     "BooleanFlagsConfig": ("tests.models", "BooleanFlagsConfig"),
+    "CONFIG_FILE_NAME": ("tests.unit.test_cmd", "CONFIG_FILE_NAME"),
+    "CONFIG_OPERATION_METHODS": ("tests.unit.test_cmd", "CONFIG_OPERATION_METHODS"),
     "ChoiceTestCaseDict": ("tests.models", "ChoiceTestCaseDict"),
     "CliCommandFactory": ("tests.conftest", "CliCommandFactory"),
     "CliCommandInput": ("tests.models", "CliCommandInput"),
@@ -199,6 +209,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "ConfirmTestCaseDict": ("tests.models", "ConfirmTestCaseDict"),
     "ConnectionConfig": ("tests.models", "ConnectionConfig"),
     "DebugInfoFactory": ("tests.conftest", "DebugInfoFactory"),
+    "ERROR_SCENARIO_DATA": ("tests.unit.test_cmd", "ERROR_SCENARIO_DATA"),
     "EnvironmentConfig": ("tests.models", "EnvironmentConfig"),
     "Examples": ("tests.conftest", "Examples"),
     "ForbidExtraParams": ("tests.models", "ForbidExtraParams"),
@@ -212,7 +223,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "ScalarConfigRestore": ("tests.models", "ScalarConfigRestore"),
     "SimpleParams": ("tests.models", "SimpleParams"),
     "StrictParams": ("tests.models", "StrictParams"),
-    "T": ("tests.typings", "T"),
+    "T": ("tests.unit.test_version", "T"),
     "T_co": ("tests.typings", "T_co"),
     "T_contra": ("tests.typings", "T_contra"),
     "TestsCliCli": ("tests.unit.test_cli", "TestsCliCli"),
@@ -274,12 +285,12 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
         "TestsCliPerformanceAutomated",
     ),
     "TestsCliPrompts": ("tests.unit.test_prompts", "TestsCliPrompts"),
-    "TestsCliProtocols": ("tests.protocols", "TestsCliProtocols"),
+    "TestsCliProtocols": ("tests.unit.test_protocols", "TestsCliProtocols"),
     "TestsCliRailwayPatternExample": (
         "tests.unit.test_railway_pattern_example",
         "TestsCliRailwayPatternExample",
     ),
-    "TestsCliServiceBase": ("tests.base", "TestsCliServiceBase"),
+    "TestsCliServiceBase": ("tests.unit.test_base", "TestsCliServiceBase"),
     "TestsCliTypes": ("tests.typings", "TestsCliTypes"),
     "TestsCliTypings": ("tests.unit.test_typings", "TestsCliTypings"),
     "TestsCliUtilities": ("tests.utilities", "TestsCliUtilities"),
@@ -294,6 +305,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "TypingTestCase": ("tests.unit.test_typings", "TypingTestCase"),
     "TypingTestType": ("tests.unit.test_typings", "TypingTestType"),
     "UserData": ("tests.models", "UserData"),
+    "VALID_CONFIG_DATA": ("tests.unit.test_cmd", "VALID_CONFIG_DATA"),
     "ValidatedConfig": ("tests.models", "ValidatedConfig"),
     "c": ("tests.constants", "TestsFlextCliConstants"),
     "clean_flext_container": ("tests.conftest", "clean_flext_container"),
@@ -337,7 +349,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "logging_config_factory": ("tests.conftest", "logging_config_factory"),
     "m": ("tests.models", "TestsFlextCliModels"),
     "mock_env_vars": ("tests.conftest", "mock_env_vars"),
-    "p": ("tests.protocols", "TestsCliProtocols"),
+    "p": ("flext_cli", "p"),
     "password_simulator": ("tests.conftest", "password_simulator"),
     "pytest_collection_modifyitems": (
         "tests.conftest",
@@ -480,6 +492,10 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
 }
 
 __all__ = [
+    "CONFIG_FILE_NAME",
+    "CONFIG_OPERATION_METHODS",
+    "ERROR_SCENARIO_DATA",
+    "VALID_CONFIG_DATA",
     "AliasedConfig",
     "AliasedParams",
     "ApiResponse",
