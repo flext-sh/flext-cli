@@ -84,14 +84,16 @@ class FlextCliSettings(FlextSettings):
             description="Environment name (development, staging, production)",
         ),
     ]
-    max_retries: Annotated[int, Field(default=3, ge=0, description="Max retries")]
+    max_retries: Annotated[
+        t.NonNegativeInt, Field(default=3, description="Max retries")
+    ]
     cli_timeout: Annotated[
-        float,
-        Field(default=30.0, gt=0, description="CLI timeout seconds"),
+        t.PositiveFloat,
+        Field(default=30.0, description="CLI timeout seconds"),
     ]
     max_width: Annotated[
-        int,
-        Field(default=120, ge=40, le=200, description="Max output width"),
+        t.NonNegativeInt,
+        Field(default=120, le=200, description="Max output width"),
     ]
 
     @classmethod

@@ -147,7 +147,7 @@ class FlextCliModels(FlextModels):
                 arbitrary_types_allowed=True,
                 extra="forbid",
             )
-            name: Annotated[str, Field(..., min_length=1, description="Command name")]
+            name: Annotated[t.NonEmptyStr, Field(..., description="Command name")]
             handler: Annotated[
                 Callable[..., r[t.Cli.JsonValue]],
                 Field(..., description="Command handler callable"),
@@ -160,7 +160,7 @@ class FlextCliModels(FlextModels):
                 arbitrary_types_allowed=True,
                 extra="forbid",
             )
-            name: Annotated[str, Field(..., min_length=1, description="Group name")]
+            name: Annotated[t.NonEmptyStr, Field(..., description="Group name")]
             description: Annotated[
                 str,
                 Field(default="", description="Group description"),
@@ -1066,8 +1066,8 @@ class FlextCliModels(FlextModels):
                 return
 
             session_id: Annotated[
-                str,
-                Field(..., min_length=1, description="Session identifier"),
+                t.NonEmptyStr,
+                Field(..., description="Session identifier"),
             ]
             user_id: Annotated[str, Field(default="", description="User identifier")]
             status: Annotated[
@@ -1314,10 +1314,9 @@ class FlextCliModels(FlextModels):
             ]
 
             exit_code: Annotated[
-                int,
+                t.NonNegativeInt,
                 Field(
                     default=0,
-                    ge=0,
                     description="Exit code",
                 ),
             ]
@@ -1339,10 +1338,9 @@ class FlextCliModels(FlextModels):
             ]
 
             duration: Annotated[
-                float,
+                t.NonNegativeFloat,
                 Field(
                     default=0.0,
-                    ge=0.0,
                     description="Execution duration in seconds",
                 ),
             ]
@@ -1380,10 +1378,9 @@ class FlextCliModels(FlextModels):
             ]
 
             commands_count: Annotated[
-                int,
+                t.NonNegativeInt,
                 Field(
                     default=0,
-                    ge=0,
                     description="Number of registered commands",
                 ),
             ]
@@ -1445,19 +1442,17 @@ class FlextCliModels(FlextModels):
             ]
 
             commands_count: Annotated[
-                int,
+                t.NonNegativeInt,
                 Field(
                     default=0,
-                    ge=0,
                     description="Number of registered commands",
                 ),
             ]
 
             plugins_count: Annotated[
-                int,
+                t.NonNegativeInt,
                 Field(
                     default=0,
-                    ge=0,
                     description="Number of loaded plugins",
                 ),
             ]
@@ -1585,11 +1580,9 @@ class FlextCliModels(FlextModels):
             ]
 
             timeout: Annotated[
-                int,
+                t.PositiveInt,
                 Field(
                     default=30,
-                    ge=1,
-                    le=300,
                     description="Default timeout in seconds",
                 ),
             ]
@@ -2090,8 +2083,8 @@ class FlextCliModels(FlextModels):
             Inherits frozen=True and extra="forbid" from FlextModels.Value.
             """
 
-            username: Annotated[str, Field(..., min_length=3)]
-            password: Annotated[str, Field(..., min_length=8)]
+            username: Annotated[t.BoundedStr, Field(...)]
+            password: Annotated[t.BoundedStr, Field(...)]
             realm: Annotated[str, Field(default="")]
 
         class CmdConfig(FlextModels.Value):
