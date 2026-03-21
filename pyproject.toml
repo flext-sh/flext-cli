@@ -126,7 +126,15 @@ project-excludes = [
   "tests/unit/test_config_model_integration.py",
 ]
 python-version = "3.13"
-search-path = [".", "../flext-core/examples", "../flext-core/src", "../flext-core/tests", "examples", "src", "tests"]
+search-path = [
+  ".",
+  "../flext-core/examples",
+  "../flext-core/src",
+  "../flext-core/tests",
+  "examples",
+  "src",
+  "tests",
+]
 
 [tool.pyrefly.errors]
 bad-override = false
@@ -144,12 +152,21 @@ unannotated-attribute = true
 unannotated-parameter = true
 unannotated-return = true
 
-
 [tool.mypy]
 disable_error_code = [
   "prop-decorator",
 ]
-mypy_path = [".", "../flext-core/examples", "../flext-core/src", "../flext-core/tests", "../typings", "../typings/generated", "examples", "src", "tests"]
+mypy_path = [
+  ".",
+  "../flext-core/examples",
+  "../flext-core/src",
+  "../flext-core/tests",
+  "../typings",
+  "../typings/generated",
+  "examples",
+  "src",
+  "tests",
+]
 plugins = [
   "pydantic.mypy",
 ]
@@ -190,9 +207,9 @@ preview = true
 respect-gitignore = true
 show-fixes = true
 src = [
-    "examples",
-    "src",
-    "tests",
+  "examples",
+  "src",
+  "tests",
 ]
 target-version = "py313"
 
@@ -534,7 +551,17 @@ indent-style = "space"
 line-ending = "lf"
 quote-style = "double"
 [tool.pyright]
-extraPaths = [".", "../flext-core/examples", "../flext-core/src", "../flext-core/tests", "../typings", "../typings/generated", "examples", "src", "tests"]
+extraPaths = [
+  ".",
+  "../flext-core/examples",
+  "../flext-core/src",
+  "../flext-core/tests",
+  "../typings",
+  "../typings/generated",
+  "examples",
+  "src",
+  "tests",
+]
 pythonPlatform = "Linux"
 pythonVersion = "3.13"
 reportConstantRedefinition = "error"
@@ -555,16 +582,16 @@ reportUnusedVariable = "error"
 typeCheckingMode = "strict"
 
 [[tool.pyright.executionEnvironments]]
+reportPrivateUsage = "none"
 root = "examples"
-reportPrivateUsage = "none"
 
 [[tool.pyright.executionEnvironments]]
-root = "src"
 reportPrivateUsage = "error"
+root = "src"
 
 [[tool.pyright.executionEnvironments]]
-root = "tests"
 reportPrivateUsage = "none"
+root = "tests"
 
 [tool.tomlsort]
 all = true
@@ -583,7 +610,6 @@ line_length = 88
 preserve_quotes = true
 section_whitelines = 1
 whitelines = 1
-
 
 [tool.pytest.ini_options]
 addopts = [ "--strict-markers" ]
@@ -608,7 +634,6 @@ enable_assertion_pass_hook = true
 
 # [CUSTOM] poetry dev extensions
 # [MANAGED] pyrefly
-
 
 [tool.coverage.report]
 fail_under = 15
