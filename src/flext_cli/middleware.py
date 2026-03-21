@@ -39,7 +39,7 @@ class FlextCliLoggingMiddleware:
             r: Result from next middleware or handler.
 
         """
-        _ = getattr(ctx, "command", c.Mixins.IDENTIFIER_UNKNOWN)
+        _ = getattr(ctx, "command", c.IDENTIFIER_UNKNOWN)
         start = time.perf_counter()
         result = next_(ctx)
         _elapsed = time.perf_counter() - start

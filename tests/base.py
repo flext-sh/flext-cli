@@ -47,8 +47,8 @@ class TestsCliServiceBase(s[T]):
         handler_name: str | None = Field(
             default=None, description="Optional handler name"
         )
-        handler_type: c.Cqrs.HandlerType = Field(
-            default=c.Cqrs.HandlerType.COMMAND,
+        handler_type: c.HandlerType = Field(
+            default=c.HandlerType.COMMAND,
             description="Handler type used for test case",
         )
         expected_result: t.Container | None = Field(
@@ -104,7 +104,7 @@ class TestsCliServiceBase(s[T]):
                 cases.append(
                     TestsCliServiceBase.HandlerTestCase(
                         handler_id=str(spec["handler_id"]),
-                        handler_type=getattr(c.Cqrs.HandlerType, handler_type_name),
+                        handler_type=getattr(c.HandlerType, handler_type_name),
                         expected_result=TestsCliServiceBase.HandlerFactories._to_expected_result(
                             spec.get("expected_result")
                         ),
@@ -136,7 +136,7 @@ class TestsCliServiceBase(s[T]):
         def create_test_handler(
             handler_id: str,
             handler_name: str | None = None,
-            handler_type: c.Cqrs.HandlerType = c.Cqrs.HandlerType.COMMAND,
+            handler_type: c.HandlerType = c.HandlerType.COMMAND,
             process_fn: Callable[[t.Container], r[t.Container]] | None = None,
         ) -> FlextHandlers[t.Container, t.Container]:
             """Factory for creating test handlers - reduces massive boilerplate.

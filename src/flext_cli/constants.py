@@ -172,12 +172,12 @@ class FlextCliConstants(FlextConstants):
         class Logging:
             """Logging constants."""
 
-            CONSOLE_ENABLED = FlextConstants.Logging.CONSOLE_ENABLED
+            CONSOLE_ENABLED = FlextConstants.CONSOLE_ENABLED
 
         class Utilities:
             """Utility constants."""
 
-            DEFAULT_ENCODING = FlextConstants.Utilities.DEFAULT_ENCODING
+            DEFAULT_ENCODING = FlextConstants.DEFAULT_ENCODING
 
         class Terminal:
             """Terminal constants."""
