@@ -66,6 +66,13 @@ if TYPE_CHECKING:
         temp_yaml_file,
     )
     from .constants import TestsFlextCliConstants, TestsFlextCliConstants as c
+    from .helpers._impl import (
+        ConfigFactory,
+        FlextCliTestHelpers,
+        ParamsFactory,
+        TestScenario,
+        ValidationHelper,
+    )
     from .integration.test_cli_workflow import TestsCliWorkflowIntegration
     from .models import (
         AliasedConfig,
@@ -95,6 +102,7 @@ if TYPE_CHECKING:
         ValidatedConfig,
     )
     from .typings import T_co, T_contra, TestsCliTypes, TestsCliTypes as t, tt
+    from .unit._models import CliTestConfig
     from .unit.conftest import reset_config_singleton
     from .unit.test_base import TestsCliServiceBase
     from .unit.test_cli import TestsCliCli
@@ -200,7 +208,9 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "CliCommandInput": ("tests.models", "CliCommandInput"),
     "CliSessionFactory": ("tests.conftest", "CliSessionFactory"),
     "CliSessionInput": ("tests.models", "CliSessionInput"),
+    "CliTestConfig": ("tests.unit._models", "CliTestConfig"),
     "ConfigErrorScenario": ("tests.unit.test_cmd", "ConfigErrorScenario"),
+    "ConfigFactory": ("tests.helpers._impl", "ConfigFactory"),
     "ConfigOperation": ("tests.unit.test_cmd", "ConfigOperation"),
     "ConfigParam": ("tests.unit.test_cli_params", "ConfigParam"),
     "ConfigTestFactory": ("tests.unit.test_config", "ConfigTestFactory"),
@@ -212,12 +222,14 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "ERROR_SCENARIO_DATA": ("tests.unit.test_cmd", "ERROR_SCENARIO_DATA"),
     "EnvironmentConfig": ("tests.models", "EnvironmentConfig"),
     "Examples": ("tests.conftest", "Examples"),
+    "FlextCliTestHelpers": ("tests.helpers._impl", "FlextCliTestHelpers"),
     "ForbidExtraParams": ("tests.models", "ForbidExtraParams"),
     "FullAppParams": ("tests.models", "FullAppParams"),
     "InfoTuples": ("tests.conftest", "InfoTuples"),
     "LoggingConfigFactory": ("tests.conftest", "LoggingConfigFactory"),
     "NestedModelConfig": ("tests.models", "NestedModelConfig"),
     "OptionalLiteralConfig": ("tests.models", "OptionalLiteralConfig"),
+    "ParamsFactory": ("tests.helpers._impl", "ParamsFactory"),
     "PrintStatusCase": ("tests.models", "PrintStatusCase"),
     "RequiredFieldsParams": ("tests.models", "RequiredFieldsParams"),
     "ScalarConfigRestore": ("tests.models", "ScalarConfigRestore"),
@@ -226,6 +238,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "T": ("tests.unit.test_version", "T"),
     "T_co": ("tests.typings", "T_co"),
     "T_contra": ("tests.typings", "T_contra"),
+    "TestScenario": ("tests.helpers._impl", "TestScenario"),
     "TestsCliCli": ("tests.unit.test_cli", "TestsCliCli"),
     "TestsCliCliExtended": ("tests.unit.test_cli_extended", "TestsCliCliExtended"),
     "TestsCliCmd": ("tests.unit.test_cmd", "TestsCliCmd"),
@@ -307,6 +320,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "UserData": ("tests.models", "UserData"),
     "VALID_CONFIG_DATA": ("tests.unit.test_cmd", "VALID_CONFIG_DATA"),
     "ValidatedConfig": ("tests.models", "ValidatedConfig"),
+    "ValidationHelper": ("tests.helpers._impl", "ValidationHelper"),
     "c": ("tests.constants", "TestsFlextCliConstants"),
     "clean_flext_container": ("tests.conftest", "clean_flext_container"),
     "cli_command_factory": ("tests.conftest", "cli_command_factory"),
@@ -506,7 +520,9 @@ __all__ = [
     "CliCommandInput",
     "CliSessionFactory",
     "CliSessionInput",
+    "CliTestConfig",
     "ConfigErrorScenario",
+    "ConfigFactory",
     "ConfigOperation",
     "ConfigParam",
     "ConfigTestFactory",
@@ -517,12 +533,14 @@ __all__ = [
     "DebugInfoFactory",
     "EnvironmentConfig",
     "Examples",
+    "FlextCliTestHelpers",
     "ForbidExtraParams",
     "FullAppParams",
     "InfoTuples",
     "LoggingConfigFactory",
     "NestedModelConfig",
     "OptionalLiteralConfig",
+    "ParamsFactory",
     "PrintStatusCase",
     "RequiredFieldsParams",
     "ScalarConfigRestore",
@@ -531,6 +549,7 @@ __all__ = [
     "T",
     "T_co",
     "T_contra",
+    "TestScenario",
     "TestsCliCli",
     "TestsCliCliExtended",
     "TestsCliCmd",
@@ -572,6 +591,7 @@ __all__ = [
     "TypingTestType",
     "UserData",
     "ValidatedConfig",
+    "ValidationHelper",
     "c",
     "clean_flext_container",
     "cli_command_factory",
