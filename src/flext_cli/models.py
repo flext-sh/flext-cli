@@ -813,10 +813,9 @@ class FlextCliModels(FlextModels):
                 return self.model_copy(update=updates)
 
             name: Annotated[
-                str,
+                t.NonEmptyStr,
                 Field(
                     ...,
-                    min_length=1,
                     description="Command name",
                 ),
             ]
