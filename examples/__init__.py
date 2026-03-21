@@ -33,15 +33,13 @@ if TYPE_CHECKING:
         MyAppConfig,
         NumericPromptResult,
     )
-    from examples.plugins.example_plugin import (
+    from examples.plugins import (
+        CliMainWithGroups,
         DataProcessorPlugin,
         ExamplePlugin,
-        demonstrate_plugin_commands,
-    )
-    from examples.plugins.protocols import (
-        CliMainWithGroups,
         FlextCliProtocols,
         GroupWithCommands,
+        demonstrate_plugin_commands,
         p,
     )
 
@@ -50,20 +48,17 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "AppConfigAdvanced": ("examples.models", "AppConfigAdvanced"),
     "AppConfigNested": ("examples.models", "AppConfigNested"),
     "AppWizardConfig": ("examples.models", "AppWizardConfig"),
-    "CliMainWithGroups": ("examples.plugins.protocols", "CliMainWithGroups"),
-    "DataProcessorPlugin": ("examples.plugins.example_plugin", "DataProcessorPlugin"),
+    "CliMainWithGroups": ("examples.plugins", "CliMainWithGroups"),
+    "DataProcessorPlugin": ("examples.plugins", "DataProcessorPlugin"),
     "DatabaseConfig": ("examples.models", "DatabaseConfig"),
     "DatabaseWizardConfig": ("examples.models", "DatabaseWizardConfig"),
     "DeployConfig": ("examples.models", "DeployConfig"),
-    "ExamplePlugin": ("examples.plugins.example_plugin", "ExamplePlugin"),
-    "FlextCliProtocols": ("examples.plugins.protocols", "FlextCliProtocols"),
-    "GroupWithCommands": ("examples.plugins.protocols", "GroupWithCommands"),
+    "ExamplePlugin": ("examples.plugins", "ExamplePlugin"),
+    "FlextCliProtocols": ("examples.plugins", "FlextCliProtocols"),
+    "GroupWithCommands": ("examples.plugins", "GroupWithCommands"),
     "MyAppConfig": ("examples.models", "MyAppConfig"),
     "NumericPromptResult": ("examples.models", "NumericPromptResult"),
-    "demonstrate_plugin_commands": (
-        "examples.plugins.example_plugin",
-        "demonstrate_plugin_commands",
-    ),
+    "demonstrate_plugin_commands": ("examples.plugins", "demonstrate_plugin_commands"),
     "display_config_table": ("examples.example_utils", "display_config_table"),
     "display_success_summary": ("examples.example_utils", "display_success_summary"),
     "display_validation_errors": (
@@ -71,7 +66,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
         "display_validation_errors",
     ),
     "handle_command_result": ("examples.example_utils", "handle_command_result"),
-    "p": ("examples.plugins.protocols", "p"),
+    "p": ("examples.plugins", "p"),
     "plugins": ("examples.plugins", ""),
     "print_demo_completion": ("examples.example_utils", "print_demo_completion"),
     "print_demo_error": ("examples.example_utils", "print_demo_error"),

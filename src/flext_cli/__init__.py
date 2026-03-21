@@ -25,8 +25,7 @@ if TYPE_CHECKING:
         __version__,
         __version_info__,
     )
-    from flext_cli._models.cli_models_statistics import FlextCliModelsStatistics
-    from flext_cli._models.cli_models_system_context import FlextCliModelsSystemContext
+    from flext_cli._models import FlextCliModelsStatistics, FlextCliModelsSystemContext
     from flext_cli.api import FlextCli
     from flext_cli.app_base import FlextCliAppBase
     from flext_cli.base import FlextCliServiceBase
@@ -43,11 +42,13 @@ if TYPE_CHECKING:
     from flext_cli.models import FlextCliModels, FlextCliModels as m
     from flext_cli.option_groups import FlextCliOptionGroup
     from flext_cli.protocols import FlextCliProtocols, FlextCliProtocols as p
-    from flext_cli.services.cmd import FlextCliCmd
-    from flext_cli.services.core import FlextCliCore
-    from flext_cli.services.output import FlextCliOutput
-    from flext_cli.services.prompts import FlextCliPrompts
-    from flext_cli.services.tables import FlextCliTables
+    from flext_cli.services import (
+        FlextCliCmd,
+        FlextCliCore,
+        FlextCliOutput,
+        FlextCliPrompts,
+        FlextCliTables,
+    )
     from flext_cli.settings import FlextCliSettings, logger
     from flext_cli.typings import FlextCliTypes, FlextCliTypes as t
     from flext_cli.utilities import FlextCliUtilities, FlextCliUtilities as u
@@ -56,33 +57,27 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "FlextCli": ("flext_cli.api", "FlextCli"),
     "FlextCliAppBase": ("flext_cli.app_base", "FlextCliAppBase"),
     "FlextCliCli": ("flext_cli.cli", "FlextCliCli"),
-    "FlextCliCmd": ("flext_cli.services.cmd", "FlextCliCmd"),
+    "FlextCliCmd": ("flext_cli.services", "FlextCliCmd"),
     "FlextCliCommandBuilder": ("flext_cli.command_builder", "FlextCliCommandBuilder"),
     "FlextCliCommands": ("flext_cli.commands", "FlextCliCommands"),
     "FlextCliCommonParams": ("flext_cli.cli_params", "FlextCliCommonParams"),
     "FlextCliConstants": ("flext_cli.constants", "FlextCliConstants"),
-    "FlextCliCore": ("flext_cli.services.core", "FlextCliCore"),
+    "FlextCliCore": ("flext_cli.services", "FlextCliCore"),
     "FlextCliDebug": ("flext_cli.debug", "FlextCliDebug"),
     "FlextCliFileTools": ("flext_cli.file_tools", "FlextCliFileTools"),
     "FlextCliFormatters": ("flext_cli.formatters", "FlextCliFormatters"),
     "FlextCliLoggingMiddleware": ("flext_cli.middleware", "FlextCliLoggingMiddleware"),
     "FlextCliMixins": ("flext_cli.mixins", "FlextCliMixins"),
     "FlextCliModels": ("flext_cli.models", "FlextCliModels"),
-    "FlextCliModelsStatistics": (
-        "flext_cli._models.cli_models_statistics",
-        "FlextCliModelsStatistics",
-    ),
-    "FlextCliModelsSystemContext": (
-        "flext_cli._models.cli_models_system_context",
-        "FlextCliModelsSystemContext",
-    ),
+    "FlextCliModelsStatistics": ("flext_cli._models", "FlextCliModelsStatistics"),
+    "FlextCliModelsSystemContext": ("flext_cli._models", "FlextCliModelsSystemContext"),
     "FlextCliOptionGroup": ("flext_cli.option_groups", "FlextCliOptionGroup"),
-    "FlextCliOutput": ("flext_cli.services.output", "FlextCliOutput"),
-    "FlextCliPrompts": ("flext_cli.services.prompts", "FlextCliPrompts"),
+    "FlextCliOutput": ("flext_cli.services", "FlextCliOutput"),
+    "FlextCliPrompts": ("flext_cli.services", "FlextCliPrompts"),
     "FlextCliProtocols": ("flext_cli.protocols", "FlextCliProtocols"),
     "FlextCliServiceBase": ("flext_cli.base", "FlextCliServiceBase"),
     "FlextCliSettings": ("flext_cli.settings", "FlextCliSettings"),
-    "FlextCliTables": ("flext_cli.services.tables", "FlextCliTables"),
+    "FlextCliTables": ("flext_cli.services", "FlextCliTables"),
     "FlextCliTypes": ("flext_cli.typings", "FlextCliTypes"),
     "FlextCliUtilities": ("flext_cli.utilities", "FlextCliUtilities"),
     "__all__": ("flext_cli.__version__", "__all__"),
