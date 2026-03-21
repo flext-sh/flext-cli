@@ -29,7 +29,6 @@ classifiers = [
   "Typing :: Typed",
 ]
 dependencies = [
-  "attrs>=25.4,<26",
   "cachetools>=5.3",
   "click>=8.2.1",
   "flext-core @ file:../flext-core",
