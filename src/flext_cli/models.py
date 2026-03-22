@@ -8,7 +8,6 @@ import types
 from collections.abc import Callable, Mapping, MutableMapping, Sequence
 from typing import (
     Annotated,
-    Any,
     ClassVar,
     Literal,
     Self,
@@ -802,7 +801,9 @@ class FlextCliModels(FlextModels):
             )
 
             @override
-            def model_post_init(self, __context: Any = None, /) -> None:
+            def model_post_init(
+                self, __context: dict[str, t.Scalar] | None = None, /
+            ) -> None:
                 """Finalize initialization without post-processing side effects."""
                 return
 
@@ -1063,7 +1064,9 @@ class FlextCliModels(FlextModels):
             )
 
             @override
-            def model_post_init(self, __context: Any = None, /) -> None:
+            def model_post_init(
+                self, __context: dict[str, t.Scalar] | None = None, /
+            ) -> None:
                 """Finalize initialization without post-processing side effects."""
                 return
 
