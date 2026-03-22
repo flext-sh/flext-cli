@@ -30,6 +30,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from pydantic_settings import BaseSettings
 
 from flext_cli import FlextCli, FlextCliSettings, m
+from tests import t
 
 
 @unique
@@ -47,11 +48,11 @@ class ConfigTestType(StrEnum):
 class ConfigTestScenario(BaseModel):
     """Test scenario with data."""
 
-    model_config = ConfigDict(frozen=True)
+    model_config: ClassVar[ConfigDict] = ConfigDict(frozen=True)
 
     name: str = Field(description="Scenario name")
     test_type: ConfigTestType = Field(description="Scenario test type")
-    data: dict[str, object] | None = Field(
+    data: dict[str, t.NormalizedValue] | None = Field(
         default=None,
         description="Scenario input data",
     )
@@ -79,13 +80,13 @@ class ConfigTestFactory:
         "ERROR",
         "CRITICAL",
     ]
-    JSON_CONFIG_DATA: Final[dict[str, object]] = {
+    JSON_CONFIG_DATA: Final[dict[str, t.NormalizedValue]] = {
         "debug": True,
         "verbose": False,
         "profile": "test",
         "output_format": "json",
     }
-    YAML_CONFIG_DATA: Final[dict[str, object]] = {
+    YAML_CONFIG_DATA: Final[dict[str, t.NormalizedValue]] = {
         "debug": False,
         "verbose": True,
         "profile": "yaml_test",
@@ -464,6 +465,6 @@ class TestsCliConfigEdgeCases:
     def test_save_config(self) -> None:
         """Test save_config method."""
         config: FlextCliSettings = FlextCliSettings()
-        new_config: dict[str, object] = {"debug": True}
+        new_config: dict[str, t.NormalizedValue] = {"debug": True}
         result = config.save_config(new_config)
         tm.that(result.is_success or result.is_failure, eq=True)

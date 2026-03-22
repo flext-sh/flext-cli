@@ -32,8 +32,15 @@ class FlextCliTestUtilities(FlextCliUtilities, FlextTestsUtilities):
     All utilities are available through inheritance.
     """
 
-    class Tests:
-        """Test-specific utilities."""
+    class Cli(FlextCliUtilities.Cli):
+        """CLI-specific utilities for testing.
+
+        Inherits all CLI utilities from FlextCliUtilities.Cli.
+        Add any test-specific CLI utilities here if needed.
+        """
+
+        class Tests:
+            """Test-specific utilities."""
 
 
 u = FlextCliTestUtilities

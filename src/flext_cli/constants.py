@@ -943,7 +943,7 @@ class FlextCliConstants(FlextConstants):
 
             TOKEN_GENERATION_BYTES = 32
             TOKEN_DATA_TYPE_ERROR, TOKEN_VALUE_TYPE_ERROR = (
-                "Token file must contain a JSON object",
+                "Token file must contain a JSON t.NormalizedValue",
                 "Token must be a string",
             )
             APP_DESCRIPTION_SUFFIX, CONTAINER_REGISTRATION_KEY = (" CLI", "flext_cli")

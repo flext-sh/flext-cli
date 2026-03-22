@@ -56,7 +56,7 @@ class TestsCliPerformanceAutomated:
         tm.that(creation_time < 0.5, eq=True)
 
     def test_memory_usage_patterns(self) -> None:
-        """Test memory usage patterns with real object creation."""
+        """Test memory usage patterns with real t.NormalizedValue creation."""
         process = psutil.Process(os.getpid())
         initial_memory = process.memory_info().rss / 1024 / 1024
         commands: list[FlextCliModels.Cli.CliCommand] = []

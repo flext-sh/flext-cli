@@ -49,7 +49,9 @@ class DataExportPlugin:
         self.version = "1.0.0"
 
     @staticmethod
-    def execute(data: dict[str, object], output_format: str = "json") -> r[str]:
+    def execute(
+        data: dict[str, t.NormalizedValue], output_format: str = "json"
+    ) -> r[str]:
         """Execute plugin logic in YOUR application."""
         if output_format == "json":
             output = json.dumps(data, indent=2)
@@ -68,7 +70,7 @@ class ReportGeneratorPlugin:
         self.version = "1.0.0"
 
     @staticmethod
-    def execute(data: list[dict[str, object]]) -> r[str]:
+    def execute(data: list[dict[str, t.NormalizedValue]]) -> r[str]:
         """Generate report from data in YOUR CLI."""
         tables = FlextCliTables()
         config = m.Cli.TableConfig(table_format="grid")
@@ -86,7 +88,7 @@ class MyAppPluginManager:
     def __init__(self) -> None:
         """Initialize plugin manager with empty plugin registry."""
         super().__init__()
-        self.plugins: dict[str, object] = {}
+        self.plugins: dict[str, t.NormalizedValue] = {}
 
     def execute_plugin(
         self, plugin_name: str, **kwargs: t.Container
@@ -120,7 +122,7 @@ class MyAppPluginManager:
             cli.print("⚠️  No plugins registered", style="yellow")
             return
 
-        def get_plugin_version(_name: str, plugin: object) -> str:
+        def get_plugin_version(_name: str, plugin: t.NormalizedValue) -> str:
             """Get plugin version."""
             return getattr(plugin, "version", "1.0.0")
 
@@ -128,7 +130,7 @@ class MyAppPluginManager:
             name: get_plugin_version(name, plugin)
             for name, plugin in self.plugins.items()
         }
-        rows: list[dict[str, object]] = [
+        rows: list[dict[str, t.NormalizedValue]] = [
             {"Plugin": name, "Version": ver} for name, ver in plugin_items.items()
         ]
         cli.show_table(rows, headers=["Plugin", "Version"])
@@ -156,21 +158,21 @@ def load_plugins_from_directory(plugin_dir: Path) -> MyAppPluginManager:
 class ConfigurablePlugin:
     """Example of configurable plugin for YOUR CLI."""
 
-    def __init__(self, config: dict[str, object]) -> None:
+    def __init__(self, config: dict[str, t.NormalizedValue]) -> None:
         """Initialize configurable plugin with configuration dictionary."""
         super().__init__()
         self.name = "configurable-plugin"
-        self.config: dict[str, object] = config
+        self.config: dict[str, t.NormalizedValue] = config
 
-    def execute(self) -> r[dict[str, object]]:
+    def execute(self) -> r[dict[str, t.NormalizedValue]]:
         """Execute with configuration in YOUR CLI."""
         cli.print(f"🔧 Plugin config: {self.config}", style="cyan")
-        result_data: dict[str, object] = {
+        result_data: dict[str, t.NormalizedValue] = {
             "plugin": self.name,
             "config_applied": True,
             **self.config,
         }
-        return r[dict[str, object]].ok(result_data)
+        return r[dict[str, t.NormalizedValue]].ok(result_data)
 
 
 class LifecyclePlugin:
@@ -215,7 +217,11 @@ def main() -> None:
     cli.print("\n2. List Plugins (inventory):", style="bold cyan")
     manager.list_plugins()
     cli.print("\n3. Execute Plugin (data export):", style="bold cyan")
-    test_data: dict[str, object] = {"id": 1, "name": "Test", "status": "active"}
+    test_data: dict[str, t.NormalizedValue] = {
+        "id": 1,
+        "name": "Test",
+        "status": "active",
+    }
     export_result = manager.execute_plugin(
         "data-export",
         data=json.dumps(test_data),
@@ -226,7 +232,7 @@ def main() -> None:
         output_preview = str(result_value)[:100] if result_value else ""
         cli.print(f"   Output: {output_preview}...", style="white")
     cli.print("\n4. Report Plugin (table generation):", style="bold cyan")
-    report_data: list[dict[str, object]] = [
+    report_data: list[dict[str, t.NormalizedValue]] = [
         {"metric": "Users", "value": "1,234"},
         {"metric": "Orders", "value": "567"},
     ]
@@ -239,7 +245,7 @@ def main() -> None:
             f"   Report length: {len(str(report_result.value))} chars", style="green"
         )
     cli.print("\n5. Configurable Plugin:", style="bold cyan")
-    config: dict[str, object] = {"theme": "dark", "verbose": True}
+    config: dict[str, t.NormalizedValue] = {"theme": "dark", "verbose": True}
     config_plugin = ConfigurablePlugin(config)
     config_result = config_plugin.execute()
     if config_result.is_success:

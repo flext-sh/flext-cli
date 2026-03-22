@@ -156,7 +156,7 @@ class FlextCliTables(FlextCliServiceBase):
         Example:
             >>> tables = FlextCliTables()
             >>> data = [{"name": "Alice", "age": 30}]
-            >>> # With config object
+            >>> # With config t.NormalizedValue
             >>> config = m.Cli.Value.TableConfig(table_format="grid")
             >>> result = tables.create_table(data, config)
             >>> # With kwargs (automatic conversion)

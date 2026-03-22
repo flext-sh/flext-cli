@@ -385,10 +385,10 @@ class FlextCliCli:
         return (size.columns, size.lines)
 
     @staticmethod
-    def model_command(
-        model_class: type[BaseModel],
+    def model_command[M: BaseModel](
+        model_class: type[M],
         handler: Callable[
-            [BaseModel],
+            [M],
             t.Cli.JsonValue | r[t.Cli.JsonValue] | None,
         ],
         config: FlextCliSettings | None = None,
@@ -396,7 +396,7 @@ class FlextCliCli:
         """Create a command from a Pydantic model."""
 
         def normalized_handler(model: BaseModel) -> t.Cli.JsonValue:
-            if getattr(model, "__class__", None) is not model_class:
+            if not isinstance(model, model_class):
                 msg = "model argument must be an instance of the declared model class"
                 raise TypeError(msg)
             result = handler(model)

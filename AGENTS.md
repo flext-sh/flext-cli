@@ -783,7 +783,7 @@ ______________________________________________________________________
 ### Replacement Rules
 
 9. **cast()**: ❌ REPLACE ALL - Replace with Models/Protocols/TypeGuards
-1. **Any**: ❌ REPLACE ALL - Replace with specific types (Models, Protocols, TypeVars, object)
+1. **Any**: ❌ REPLACE ALL - Replace with specific types (Models, Protocols, TypeVars, t.NormalizedValue)
 
 ### Examples
 
@@ -905,7 +905,7 @@ When passing dict[str, SpecificType] to a parameter expecting dict[str, BaseType
 
 ```python
 # ❌ FAILS - dict is invariant
-def _process_config(config: dict[str, object]) -> None: ...
+def _process_config(config: dict[str, t.NormalizedValue]) -> None: ...
 
 
 _process_config({"key": True, "value": "string"})  # Type error
@@ -914,7 +914,7 @@ _process_config({"key": True, "value": "string"})  # Type error
 from collections.abc import Mapping
 
 
-def _process_config(config: Mapping[str, object]) -> None: ...
+def _process_config(config: Mapping[str, t.NormalizedValue]) -> None: ...
 
 
 _process_config({"key": True, "value": "string"})  # OK

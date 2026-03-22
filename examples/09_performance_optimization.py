@@ -35,7 +35,7 @@ import tempfile
 import time
 from functools import lru_cache
 
-from flext_cli import FlextCli, FlextCliOutput
+from flext_cli import FlextCli, FlextCliOutput, t
 
 cli = FlextCli()
 output = FlextCliOutput()
@@ -101,7 +101,7 @@ def demonstrate_lazy_loading() -> None:
     )
 
 
-def efficient_table_display(large_dataset: list[dict[str, object]]) -> None:
+def efficient_table_display(large_dataset: list[dict[str, t.NormalizedValue]]) -> None:
     """Display large tables efficiently in YOUR CLI."""
     preview_size = 10
     total = len(large_dataset)
@@ -151,7 +151,7 @@ def main() -> None:
     demonstrate_caching()
     demonstrate_lazy_loading()
     cli.print("\n4. Efficient Table Display:", style="bold cyan")
-    large_data: list[dict[str, object]] = [
+    large_data: list[dict[str, t.NormalizedValue]] = [
         {"id": i, "name": f"Item {i}"} for i in range(1000)
     ]
     efficient_table_display(large_data)

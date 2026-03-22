@@ -8,7 +8,7 @@
 - [When to Use Each Pattern](#when-to-use-each-pattern)
   - [Use FlextService When](#use-flextservice-when)
   - [Use Simple Class When](#use-simple-class-when)
-  - [Use Value Object (Pydantic) When](#use-value-object-pydantic-when)
+  - [Use Value Object (Pydantic) When](#use-value-t.NormalizedValue-pydantic-when)
 - [Architecture Decision Flowchart](#architecture-decision-flowchart)
 - [Code Organization Guidelines](#code-organization-guidelines)
   - [Module Structure](#module-structure)
@@ -293,7 +293,7 @@ Key phases:
 1. Documentation (complete)
 1. Delete duplicates (validator.py, auth.py, testing.py)
 1. Convert services to simple classes
-1. Fix context (service → value object)
+1. Fix context (service → value t.NormalizedValue)
 1. Remove API wrappers
 1. Remove unused infrastructure
 1. Reorganize tests

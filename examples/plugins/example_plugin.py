@@ -14,7 +14,7 @@ from collections.abc import Callable
 
 from flext_core import r
 
-from examples.plugins.protocols import CliMainWithGroups, GroupWithCommands
+from examples import CliMainWithGroups, GroupWithCommands
 
 type DataProcessor = Callable[[str], str]
 type ProcessorRegistry = dict[str, DataProcessor]

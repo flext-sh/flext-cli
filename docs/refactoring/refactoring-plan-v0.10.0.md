@@ -126,7 +126,7 @@ ______________________________________________________________________
 
 ```python
 # ❌ CURRENT: Too many services
-class FlextCliFileTools(FlextService[dict[str, object]]):
+class FlextCliFileTools(FlextService[dict[str, t.NormalizedValue]]):
     """File operations as a service - OVERKILL"""
     def __init__(self):
         super().__init__()  # Unnecessary overhead
@@ -213,7 +213,7 @@ class FlextCliContext(FlextService[CliDataDict]):
 
 - Mutable state where immutability is better
 - Service overhead for simple data
-- Violates value object pattern
+- Violates value t.NormalizedValue pattern
 
 #### 5. Duplicate Modules
 
@@ -337,7 +337,7 @@ class FlextCliContext(m.Value):
 
     command: str | None = None
     arguments: list[str] = Field(default_factory=list)
-    environment_variables: dict[str, object] = Field(default_factory=dict)
+    environment_variables: dict[str, t.NormalizedValue] = Field(default_factory=dict)
     working_directory: str | None = None
 
     # No methods - just validated data
@@ -453,7 +453,7 @@ ______________________________________________________________________
 **Before**:
 
 ```python
-class FlextCliFileTools(FlextService[dict[str, object]]):
+class FlextCliFileTools(FlextService[dict[str, t.NormalizedValue]]):
     def __init__(self):
         super().__init__()
         self.logger = FlextLogger(__name__)
@@ -515,11 +515,11 @@ from flext_core import FlextModels
 
 
 class FlextCliContext(m.Value):
-    """Immutable context value object."""
+    """Immutable context value t.NormalizedValue."""
 
     command: str | None = None
     arguments: list[str] = Field(default_factory=list)
-    environment_variables: dict[str, object] = Field(default_factory=dict)
+    environment_variables: dict[str, t.NormalizedValue] = Field(default_factory=dict)
     working_directory: str | None = None
     created_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
 
@@ -531,7 +531,7 @@ class FlextCliContext(m.Value):
 - Immutable by default
 - Simpler mental model
 - No lifecycle management needed
-- Follows value object pattern
+- Follows value t.NormalizedValue pattern
 
 ### Phase 4: Remove API Wrappers
 
@@ -783,7 +783,7 @@ Commit after each: "refactor: convert FlextCliFileTools to simple class"
 1. Update all usage sites
 1. Update tests
 1. Run: `make validate`
-1. Commit: "refactor: convert context to value object"
+1. Commit: "refactor: convert context to value t.NormalizedValue"
 
 #### Phase 5: Remove API Wrappers
 
@@ -883,7 +883,7 @@ ______________________________________________________________________
 
 ### High Risk (Careful Attention Required)
 
-**1. Change FlextCliContext from service to value object**
+**1. Change FlextCliContext from service to value t.NormalizedValue**
 
 - Architectural pattern change
 - Affects all context usage

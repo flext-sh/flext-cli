@@ -408,7 +408,7 @@ class FlextCli:
         kw_map: Mapping[str, str] = {
             "dict": c.Cli.APIDefaults.TOKEN_DATA_TYPE_ERROR,
             "mapping": c.Cli.APIDefaults.TOKEN_DATA_TYPE_ERROR,
-            "object": c.Cli.APIDefaults.TOKEN_DATA_TYPE_ERROR,
+            "t.NormalizedValue": c.Cli.APIDefaults.TOKEN_DATA_TYPE_ERROR,
             "string": c.Cli.APIDefaults.TOKEN_VALUE_TYPE_ERROR,
             "str": c.Cli.APIDefaults.TOKEN_VALUE_TYPE_ERROR,
         }

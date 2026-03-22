@@ -30,10 +30,14 @@ import time
 
 from flext_core import r
 
-from flext_cli import FlextCli, m
-
-from .example_utils import display_config_table, display_success_summary
-from .models import AdvancedDatabaseConfig, DatabaseConfig, DeployConfig
+from examples import (
+    AdvancedDatabaseConfig,
+    DatabaseConfig,
+    DeployConfig,
+    display_config_table,
+    display_success_summary,
+)
+from flext_cli import FlextCli, m, t
 
 cli = FlextCli()
 
@@ -87,7 +91,7 @@ def show_common_cli_params() -> None:
     cli.print(
         "These are AUTOMATICALLY available in ALL flext-cli commands:\n", style="yellow"
     )
-    common_params: dict[str, object] = {
+    common_params: dict[str, t.NormalizedValue] = {
         "verbose": "Enable verbose output (-v)",
         "quiet": "Suppress non-error output (-q)",
         "debug": "Enable debug mode (-d)",
@@ -120,7 +124,7 @@ def demonstrate_nested_models() -> None:
 def create_database_config_from_cli() -> r[AdvancedDatabaseConfig]:
     """Create validated DatabaseConfig using Railway Pattern with Pydantic."""
     cli.print("\n🗄️  Database Configuration with Railway Pattern:", style="bold cyan")
-    cli_args: dict[str, object] = {
+    cli_args: dict[str, t.NormalizedValue] = {
         "host": "db.example.com",
         "port": 5432,
         "name": "production_db",
@@ -145,8 +149,8 @@ def create_database_config_from_cli() -> r[AdvancedDatabaseConfig]:
 
 
 def validate_required_fields(
-    data: dict[str, object],
-) -> dict[str, object]:
+    data: dict[str, t.NormalizedValue],
+) -> dict[str, t.NormalizedValue]:
     """Validate that all required fields are present."""
     required = ["host", "name", "username", "password"]
     missing = [field for field in required if field not in data or not data[field]]
@@ -157,7 +161,7 @@ def validate_required_fields(
 
 
 def convert_and_validate_with_pydantic(
-    data: dict[str, object],
+    data: dict[str, t.NormalizedValue],
 ) -> r[AdvancedDatabaseConfig]:
     """Convert raw data to validated Pydantic model."""
     try:

@@ -15,7 +15,6 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 
-from flext_core import T, T_co, T_contra
 from flext_tests import FlextTestsTypes
 
 from flext_cli import FlextCliTypes
@@ -59,16 +58,13 @@ class FlextCliTestTypes(FlextTestsTypes, FlextCliTypes):
             TabularData = FlextCliTypes.Cli.TabularData
             type CliConfigMapping = Mapping[
                 str,
-                object | Sequence[str] | Mapping[str, str | int] | None,
+                t.NormalizedValue | Sequence[str] | Mapping[str, str | int] | None,
             ]
             "CLI configuration mapping specific to flext-cli."
-            type CommandArgsMapping = Mapping[str, object]
+            type CommandArgsMapping = Mapping[str, t.NormalizedValue]
             "Command arguments mapping for CLI operations."
-
-            class Fixtures:
-                """TypedDict definitions for test fixtures."""
 
 
 t = FlextCliTestTypes
-tt = FlextCliTestTypes
-__all__ = ["FlextCliTestTypes", "T", "T_co", "T_contra", "t", "tt"]
+
+__all__ = ["FlextCliTestTypes", "t"]

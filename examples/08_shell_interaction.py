@@ -35,12 +35,12 @@ import time
 
 from flext_core import r
 
-from flext_cli import FlextCli
+from flext_cli import FlextCli, t
 
 cli = FlextCli()
 
 
-def handle_status_command() -> r[dict[str, object]]:
+def handle_status_command() -> r[dict[str, t.NormalizedValue]]:
     """Status command in YOUR interactive CLI."""
     status = {
         "status": "running",
@@ -49,7 +49,7 @@ def handle_status_command() -> r[dict[str, object]]:
     }
     cli.print(f"✅ Status: {status['status']}", style="green")
     cli.print(f"   User: {status['user']}", style="cyan")
-    return r[dict[str, object]].ok(dict(status))
+    return r[dict[str, t.NormalizedValue]].ok(dict(status))
 
 
 def handle_list_command(filter_text: str = "") -> r[list[str]]:

@@ -10,6 +10,7 @@ import pytest
 from flext_tests import tm
 
 from flext_cli import FlextCliPrompts
+from tests import t
 
 
 def test_prompt_confirmation_handles_exception_from_record(
@@ -69,7 +70,9 @@ def test_read_confirmation_input_paths(monkeypatch: pytest.MonkeyPatch) -> None:
     prompts = FlextCliPrompts(interactive_mode=True)
     warnings: list[str] = []
 
-    def capture_warning(*_args: object, **_kwargs: object) -> None:
+    def capture_warning(
+        *_args: t.NormalizedValue, **_kwargs: t.NormalizedValue
+    ) -> None:
         warnings.append("warn")
 
     monkeypatch.setattr(prompts.logger, "warning", capture_warning)
@@ -147,7 +150,9 @@ def test_print_status_exception_path(monkeypatch: pytest.MonkeyPatch) -> None:
         msg = "log boom"
         raise ValueError(msg)
 
-    def swallow_exception(*_args: object, **_kwargs: object) -> None:
+    def swallow_exception(
+        *_args: t.NormalizedValue, **_kwargs: t.NormalizedValue
+    ) -> None:
         return
 
     monkeypatch.setattr(

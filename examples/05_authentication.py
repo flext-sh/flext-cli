@@ -31,14 +31,17 @@ from pathlib import Path
 
 from flext_core import r
 
-from flext_cli import FlextCli, m
+from flext_cli import FlextCli, m, t
 
 cli = FlextCli()
 
 
 def login_to_service(username: str, password: str) -> bool:
     """Login and save token in YOUR CLI application."""
-    credentials: dict[str, object] = {"username": username, "password": password}
+    credentials: dict[str, t.NormalizedValue] = {
+        "username": username,
+        "password": password,
+    }
     auth_result = cli.authenticate({k: str(v) for k, v in credentials.items()})
     if auth_result.is_failure:
         cli.print(f"❌ Login failed: {auth_result.error}", style="bold red")

@@ -25,7 +25,7 @@ _JSON_OBJECT_ADAPTER: TypeAdapter[t.Cli.JsonValue] = TypeAdapter(t.Cli.JsonValue
 def _is_json_mapping(
     value: t.Cli.JsonValue,
 ) -> TypeGuard[Mapping[str, t.Cli.JsonValue]]:
-    """Narrow object to mapping for structured file load."""
+    """Narrow t.NormalizedValue to mapping for structured file load."""
     return isinstance(value, Mapping)
 
 
@@ -394,14 +394,14 @@ class FlextCliFileTools:
     def load_file_auto_dict(
         file_path: str | Path,
     ) -> r[dict[str, t.Cli.JsonValue]]:
-        """Load JSON or YAML file and return as dict. Fails if root is not an object."""
+        """Load JSON or YAML file and return as dict. Fails if root is not an t.NormalizedValue."""
         result = FlextCliFileTools.load_file_auto_detect(file_path)
         if result.is_failure:
             return r[dict[str, t.Cli.JsonValue]].fail(result.error or "Load failed")
         value = result.value
         if not _is_json_mapping(value):
             return r[dict[str, t.Cli.JsonValue]].fail(
-                "File root is not an object; use load_file_auto_detect for other types",
+                "File root is not an t.NormalizedValue; use load_file_auto_detect for other types",
             )
         return r[dict[str, t.Cli.JsonValue]].ok(dict(value))
 
@@ -456,7 +456,7 @@ class FlextCliFileTools:
     def read_json_dict(
         file_path: str | Path,
     ) -> r[dict[str, t.Cli.JsonValue]]:
-        """Read a JSON file whose root is an object. Returns typed dict; no narrowing needed."""
+        """Read a JSON file whose root is an t.NormalizedValue. Returns typed dict; no narrowing needed."""
         result = FlextCliFileTools.read_json_file(file_path)
         if result.is_failure:
             return r[dict[str, t.Cli.JsonValue]].fail(
@@ -465,7 +465,7 @@ class FlextCliFileTools:
         value = result.value
         if not _is_json_mapping(value):
             return r[dict[str, t.Cli.JsonValue]].fail(
-                "JSON root is not an object; use read_json_file for other types",
+                "JSON root is not an t.NormalizedValue; use read_json_file for other types",
             )
         return r[dict[str, t.Cli.JsonValue]].ok(dict(value))
 

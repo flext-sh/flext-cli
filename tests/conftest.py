@@ -41,9 +41,7 @@ from flext_cli import (
     FlextCliServiceBase,
     FlextCliSettings,
 )
-
-from . import c, m, p, u
-from .helpers._impl import _is_json_dict
+from tests import _is_json_dict, c, m, p, t, u
 
 
 def pytest_configure(config: pytest.Config) -> None:
@@ -227,7 +225,7 @@ def cli_command_factory() -> CliCommandFactory:
         status: str = "pending",
         **kwargs: str | float | bool,
     ) -> m.Cli.CliCommand:
-        cli_data: dict[str, object]
+        cli_data: dict[str, t.NormalizedValue]
         cli_data = {
             "command_line": command_line,
             "args": [],
@@ -241,10 +239,10 @@ def cli_command_factory() -> CliCommandFactory:
             "name": name,
             "description": description,
         }
-        raw_data: dict[str, object] = {**cli_data, **kwargs}
-        typed_data: dict[str, object] = raw_data
+        raw_data: dict[str, t.NormalizedValue] = {**cli_data, **kwargs}
+        typed_data: dict[str, t.NormalizedValue] = raw_data
         transform_result = u.transform(typed_data)
-        final_data: Mapping[str, object]
+        final_data: Mapping[str, t.NormalizedValue]
         if transform_result.is_success:
             unwrapped = transform_result.value
             if _is_json_dict(unwrapped) and isinstance(unwrapped, dict):
@@ -268,7 +266,7 @@ def cli_session_factory() -> CliSessionFactory:
         status: str = "active",
         **kwargs: str | float | bool,
     ) -> m.Cli.CliSession:
-        session_data: dict[str, object] = {
+        session_data: dict[str, t.NormalizedValue] = {
             "session_id": session_id,
             "status": status,
             "user_id": user_id,
@@ -281,7 +279,7 @@ def cli_session_factory() -> CliSessionFactory:
             "created_at": datetime.now(UTC).isoformat(),
             "updated_at": None,
         }
-        raw_data: dict[str, object] = {**session_data, **kwargs}
+        raw_data: dict[str, t.NormalizedValue] = {**session_data, **kwargs}
         typed_data = raw_data
         transform_result = u.transform(typed_data)
         if transform_result.is_success:
@@ -307,7 +305,7 @@ def debug_info_factory() -> DebugInfoFactory:
         message: str = "",
         **kwargs: str | float | bool,
     ) -> m.Cli.DebugInfo:
-        debug_data: dict[str, object] = {
+        debug_data: dict[str, t.NormalizedValue] = {
             "service": service,
             "level": level,
             "message": message or "",
@@ -323,7 +321,7 @@ def debug_info_factory() -> DebugInfoFactory:
             "message",
         }
         filtered_kwargs = {k: v for k, v in kwargs.items() if k in valid_fields}
-        raw_data: dict[str, object] = {**debug_data, **filtered_kwargs}
+        raw_data: dict[str, t.NormalizedValue] = {**debug_data, **filtered_kwargs}
         typed_data = raw_data
         transform_result = u.transform(typed_data)
         if transform_result.is_success:
@@ -348,13 +346,13 @@ def logging_config_factory() -> LoggingConfigFactory:
         log_format: str = "%(asctime)s - %(message)s",
         **kwargs: str | float | bool,
     ) -> m.Cli.LoggingConfig:
-        logging_data: dict[str, object] = {
+        logging_data: dict[str, t.NormalizedValue] = {
             "log_level": log_level,
             "log_format": log_format,
             "console_output": True,
             "log_file": "",
         }
-        raw_data: dict[str, object] = {**logging_data, **kwargs}
+        raw_data: dict[str, t.NormalizedValue] = {**logging_data, **kwargs}
         typed_data = raw_data
         transform_result = u.transform(typed_data)
         if transform_result.is_success:
@@ -370,7 +368,7 @@ def logging_config_factory() -> LoggingConfigFactory:
     return _create
 
 
-def _create_service_instance(service_class: type) -> object:
+def _create_service_instance(service_class: type) -> t.NormalizedValue:
     """Factory helper for creating service instances.
 
     Args:
@@ -512,7 +510,7 @@ def flext_cli_utilities() -> type[u]:
 
 
 @pytest.fixture
-def sample_config_data() -> dict[str, object]:
+def sample_config_data() -> dict[str, t.NormalizedValue]:
     """Provide sample configuration data for tests."""
     return {
         "debug": True,
@@ -527,7 +525,7 @@ def sample_config_data() -> dict[str, object]:
 
 
 @pytest.fixture
-def sample_file_data(temp_dir: Path) -> dict[str, object]:
+def sample_file_data(temp_dir: Path) -> dict[str, t.NormalizedValue]:
     """Provide sample file data for tests."""
     return {
         "content": "This is test content for file operations",
@@ -542,7 +540,7 @@ def sample_file_data(temp_dir: Path) -> dict[str, object]:
 
 
 @pytest.fixture
-def sample_command_data() -> dict[str, object]:
+def sample_command_data() -> dict[str, t.NormalizedValue]:
     """Provide sample command data for tests."""
     return {
         "command": "test_command",
@@ -574,22 +572,26 @@ def fixture_data_csv() -> Path:
 
 
 @pytest.fixture
-def load_fixture_config() -> Mapping[str, object]:
+def load_fixture_config() -> Mapping[str, t.NormalizedValue]:
     """Load configuration data from fixtures directory."""
     fixture_path = Path("tests/fixtures/configs/test_config.json")
     with fixture_path.open(encoding="utf-8") as f:
         data = json.load(f)
-    adapter: TypeAdapter[Mapping[str, object]] = TypeAdapter(object)
+    adapter: TypeAdapter[Mapping[str, t.NormalizedValue]] = TypeAdapter(
+        t.NormalizedValue
+    )
     return adapter.validate_python(data)
 
 
 @pytest.fixture
-def load_fixture_data() -> Mapping[str, object]:
+def load_fixture_data() -> Mapping[str, t.NormalizedValue]:
     """Load test data from fixtures directory."""
     fixture_path = Path("tests/fixtures/data/test_data.json")
     with fixture_path.open(encoding="utf-8") as f:
         data = json.load(f)
-    adapter: TypeAdapter[Mapping[str, object]] = TypeAdapter(object)
+    adapter: TypeAdapter[Mapping[str, t.NormalizedValue]] = TypeAdapter(
+        t.NormalizedValue
+    )
     return adapter.validate_python(data)
 
 
@@ -732,7 +734,7 @@ def password_simulator() -> Iterator[Callable[[str], None]]:
 
     original_getpass = getpass.getpass
 
-    def simulated_getpass(prompt: str = "", stream: object = None) -> str:
+    def simulated_getpass(prompt: str = "", stream: t.NormalizedValue = None) -> str:
         """Return the set password."""
         return password_value
 

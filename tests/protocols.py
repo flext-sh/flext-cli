@@ -34,8 +34,15 @@ class FlextCliTestProtocols(FlextTestsProtocols, FlextCliProtocols):
     - Only flext-cli-specific test protocols allowed
     """
 
-    class Tests:
-        """Test-specific protocols."""
+    class Cli(FlextCliProtocols.Cli):
+        """Flext-cli-specific protocol definitions for testing.
+
+        Inherits all CLI protocols from FlextCliProtocols.Cli.
+        Add any test-specific CLI protocols here if needed.
+        """
+
+        class Tests:
+            """Test-specific protocols."""
 
 
 p = FlextCliTestProtocols

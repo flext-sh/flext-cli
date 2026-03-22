@@ -29,13 +29,13 @@ ______________________________________________________________________
 ## Phase 2 — Tests: helpers/\_impl.py + integration_test_complete_workflow.py
 
 - helpers/\_impl: Prefer `FlextCliSettings` / `m.Cli.CliParamsConfig` when structure is known (docstrings added); `extract_config_values` return `Mapping`; keep `ValidationHelper.assert_field_type` (isinstance for assertions is acceptable).
-- integration_test: **No test-only Pydantic models** (PipelineInput, ProcessedPipelineData, etc. removed per constraint). Use `_is_json_dict` / `_is_json_list` TypeGuards for dict/list narrowing; pipeline uses `dict[str, object]` and `_validate_pipeline_data`, `_transform_pipeline_data`, `_generate_pipeline_stats`, `_create_pipeline_report_from_data` with existing types only.
+- integration_test: **No test-only Pydantic models** (PipelineInput, ProcessedPipelineData, etc. removed per constraint). Use `_is_json_dict` / `_is_json_list` TypeGuards for dict/list narrowing; pipeline uses `dict[str, t.NormalizedValue]` and `_validate_pipeline_data`, `_transform_pipeline_data`, `_generate_pipeline_stats`, `_create_pipeline_report_from_data` with existing types only.
 - **Done**: integration_test uses `_is_json_dict` / `_is_json_list`; helpers/\_impl exports these TypeGuards; conftest uses `_is_json_dict(unwrapped)` in factories.
 
 ## Phase 3 — flext-cli src: model boundaries and conversions
 
 - Prefer Pydantic models at boundaries; remove unused `cast` import and `cast_if` helper (use TypeAdapter.validate_python result directly); no new cast(); reduce broad isinstance where a model or protocol can be used.
-- **Done**: Removed `cast_if`; `to_dict_json` / `to_list_json` use TypeAdapter.validate_python with ValidationError fallback only (no cast_if). `ensure_dict` uses `isinstance(result, dict)`; `get_map_val` uses `isinstance` for object compatibility.
+- **Done**: Removed `cast_if`; `to_dict_json` / `to_list_json` use TypeAdapter.validate_python with ValidationError fallback only (no cast_if). `ensure_dict` uses `isinstance(result, dict)`; `get_map_val` uses `isinstance` for t.NormalizedValue compatibility.
 - output.py: `convert_field_value` (models.py) catch only `ValidationError`, not bare Exception.
 
 ## Phase 4 — Bypasses and silent errors

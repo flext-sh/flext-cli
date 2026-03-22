@@ -52,7 +52,7 @@ class TestsCliVersion:
         class Data(BaseModel):
             """Version test scenario data."""
 
-            model_config = ConfigDict(frozen=True)
+            model_config: ClassVar[ConfigDict] = ConfigDict(frozen=True)
 
             name: str = Field(description="Scenario name")
             version_string: str | None = Field(

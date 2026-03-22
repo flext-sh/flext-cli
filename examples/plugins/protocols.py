@@ -17,7 +17,7 @@ p = FlextCliProtocols
 
 @runtime_checkable
 class CliMainWithGroups(Protocol):
-    """Protocol for CLI main object with group and command decorators.
+    """Protocol for CLI main t.NormalizedValue with group and command decorators.
 
     Business Rule:
     ──────────────

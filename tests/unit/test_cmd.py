@@ -26,6 +26,7 @@ from flext_core import r
 from flext_tests import tm
 
 from flext_cli import FlextCliCmd, FlextCliServiceBase, FlextCliSettings, c, m, u
+from tests import t
 
 
 @unique
@@ -78,7 +79,9 @@ def _create_cmd_instance() -> FlextCliCmd:
     return FlextCliCmd()
 
 
-def _create_config_file(temp_dir: Path, content: str | Mapping[str, object]) -> Path:
+def _create_config_file(
+    temp_dir: Path, content: str | Mapping[str, t.NormalizedValue]
+) -> Path:
     """Create config file with specified content."""
     config_file = temp_dir / CONFIG_FILE_NAME
     if isinstance(content, str):

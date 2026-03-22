@@ -584,26 +584,21 @@ class FlextCliUtilities(FlextUtilities):
                     overrides: Mapping[str, t.Cli.JsonValue],
                 ) -> r[M]:
                     """Merge default values with overrides."""
-                    result = FlextUtilities.merge_defaults(
-                        model_cls,
-                        defaults,
-                        overrides,
-                    )
-                    return (
-                        r[M].ok(result.value)
-                        if result.is_success
-                        else r[M].fail(result.error or "")
-                    )
+                    merged = {**defaults, **overrides}
+                    try:
+                        instance = model_cls.model_validate(merged)
+                        return r[M].ok(instance)
+                    except (ValueError, TypeError, ValidationError) as exc:
+                        return r[M].fail(f"Model validation failed: {exc}")
 
                 @staticmethod
                 def update[M: BaseModel](instance: M, **updates: t.Scalar) -> r[M]:
                     """Update model instance."""
-                    result = FlextUtilities.update(instance, **updates)
-                    return (
-                        r[M].ok(result.value)
-                        if result.is_success
-                        else r[M].fail(result.error or "")
-                    )
+                    try:
+                        updated = instance.model_copy(update=updates)
+                        return r[M].ok(updated)
+                    except (ValueError, TypeError, ValidationError) as exc:
+                        return r[M].fail(f"Model update failed: {exc}")
 
             class Pydantic:
                 """Pydantic utilities."""

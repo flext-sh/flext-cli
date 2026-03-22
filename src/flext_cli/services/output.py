@@ -179,14 +179,14 @@ class FlextCliOutput:
     def _is_rich_console_protocol(
         obj: Console,
     ) -> bool:
-        """Type guard to check if object implements RichConsole."""
+        """Type guard to check if t.NormalizedValue implements RichConsole."""
         return hasattr(obj, "print") and hasattr(obj, "rule")
 
     @staticmethod
     def _is_rich_progress_protocol(
         obj: Progress,
     ) -> bool:
-        """Type guard to check if object implements RichProgress."""
+        """Type guard to check if t.NormalizedValue implements RichProgress."""
         return (
             hasattr(obj, "__enter__")
             and hasattr(obj, "__exit__")
@@ -198,7 +198,7 @@ class FlextCliOutput:
     def _is_rich_table_protocol(
         obj: RichTable | p.Cli.Display.RichTable,
     ) -> TypeIs[p.Cli.Display.RichTable]:
-        """Type guard to check if object implements RichTable."""
+        """Type guard to check if t.NormalizedValue implements RichTable."""
         return (
             hasattr(obj, "add_column")
             and hasattr(obj, "add_row")
@@ -209,7 +209,7 @@ class FlextCliOutput:
     def _is_rich_tree_protocol(
         obj: RichTree | p.Cli.Display.RichTree,
     ) -> bool:
-        """Type guard to check if object implements RichTree."""
+        """Type guard to check if t.NormalizedValue implements RichTree."""
         return hasattr(obj, "add") and hasattr(obj, "label")
 
     @staticmethod
@@ -385,7 +385,7 @@ class FlextCliOutput:
 
         Audit Implications:
         ───────────────────
-        - Config object preferred for complex table configurations
+        - Config t.NormalizedValue preferred for complex table configurations
         - Individual parameters provided for simple use cases
         - All parameters have sensible defaults from constants
 
@@ -393,7 +393,7 @@ class FlextCliOutput:
             data: List of dictionaries to display
             headers: Optional custom headers (ignored if config provided)
             table_format: Table format (ignored if config provided)
-            config: Optional TableConfig object for full control
+            config: Optional TableConfig t.NormalizedValue for full control
 
         Returns:
             r[str]: ASCII table string
@@ -404,7 +404,7 @@ class FlextCliOutput:
             >>> result = output.create_ascii_table(
             ...     data=[{"name": "Bob", "age": 25}], table_format="grid"
             ... )
-            >>> # Or with config object for full control
+            >>> # Or with config t.NormalizedValue for full control
             >>> config = m.Cli.TableConfig(
             ...     headers=["Name", "Age"],
             ...     table_format="fancy_grid",
@@ -548,7 +548,7 @@ class FlextCliOutput:
     def is_json(v: FlextCliTypes.Cli.JsonValue) -> bool:
         """Check if value is JSON-compatible type.
 
-        Uses object from lower layer instead of object for better type safety.
+        Uses t.NormalizedValue from lower layer instead of t.NormalizedValue for better type safety.
         """
         return v is None or u.is_primitive(v) or isinstance(v, (dict, list))
 
@@ -676,7 +676,7 @@ class FlextCliOutput:
             headers: Optional custom headers
 
         Returns:
-            r containing Rich Table object
+            r containing Rich Table t.NormalizedValue
 
         Example:
             >>> output = FlextCliOutput()
@@ -843,7 +843,7 @@ class FlextCliOutput:
         **PURPOSE**: Eliminate manual type checking and formatter dispatch.
 
         Args:
-            result: Domain result object to format
+            result: Domain result t.NormalizedValue to format
             output_format: Output format ("table", "json", "yaml", etc.Cli.)
 
         """
@@ -1212,7 +1212,7 @@ class FlextCliOutput:
         """Convert table to string using FlextCliFormatters.
 
         Args:
-            table: Table object from formatters
+            table: Table t.NormalizedValue from formatters
             width: Optional width for console
 
         Returns:
@@ -1229,8 +1229,8 @@ class FlextCliOutput:
         """Build tree recursively (helper for format_as_tree).
 
         Args:
-            tree: Tree object from formatters
-            data: Data to build tree from (object - can be dict, list, or primitive)
+            tree: Tree t.NormalizedValue from formatters
+            data: Data to build tree from (t.NormalizedValue - can be dict, list, or primitive)
 
         """
         if isinstance(data, dict):
@@ -1272,7 +1272,7 @@ class FlextCliOutput:
     ) -> list[FlextCliTypes.Cli.JsonValue]:
         """Coerce data to list for CSV processing.
 
-        Uses types from lower layer (object) for proper type safety.
+        Uses types from lower layer (t.NormalizedValue) for proper type safety.
         """
         if isinstance(data, list):
             return data
@@ -1322,14 +1322,14 @@ class FlextCliOutput:
         | r[FlextCliTypes.Cli.JsonValue],
         output_format: str,
     ) -> r[str]:
-        """Convert result object to formattable string.
+        """Convert result t.NormalizedValue to formattable string.
 
         Handles multiple result types: Pydantic models, objects with __dict__, and fallback.
         Fast-fails if result is None - caller must handle None values explicitly.
         """
         if result is None:
             return r[str].fail(
-                "Cannot format None result - provide a valid result object",
+                "Cannot format None result - provide a valid result t.NormalizedValue",
             )
         if isinstance(result, BaseModel):
             return self._format_pydantic_model(result, output_format)
@@ -1453,7 +1453,7 @@ class FlextCliOutput:
         result: FlextCliTypes.Cli.JsonValue | r[FlextCliTypes.Cli.JsonValue],
         output_format: str,
     ) -> r[str]:
-        """Format object with __dict__ to string."""
+        """Format t.NormalizedValue with __dict__ to string."""
         if isinstance(result, r):
             if result.is_failure:
                 return r[str].fail(f"Cannot format failed result: {result.error}")
@@ -1600,7 +1600,7 @@ class FlextCliOutput:
     ) -> r[p.Cli.Display.RichTable]:
         """Initialize a Rich table with headers.
 
-        Uses RichTable from lower layer instead of object for better type safety.
+        Uses RichTable from lower layer instead of t.NormalizedValue for better type safety.
         """
         table_result = FlextCliFormatters().create_table(
             data=None,
@@ -1657,7 +1657,7 @@ class FlextCliOutput:
     ) -> r[bool]:
         """Add columns and rows to table.
 
-        Uses RichTable from lower layer instead of object for better type safety.
+        Uses RichTable from lower layer instead of t.NormalizedValue for better type safety.
         """
         u.Cli.process(
             headers,
@@ -1747,7 +1747,7 @@ class FlextCliOutput:
     ) -> dict[str, t.Scalar]:
         """Process CSV row with None replacement.
 
-        Uses object from lower layer instead of object for better type safety.
+        Uses t.NormalizedValue from lower layer instead of t.NormalizedValue for better type safety.
         """
         processed: dict[str, t.Scalar] = {}
         for k, v in row.items():
@@ -1781,7 +1781,7 @@ class FlextCliOutput:
     ) -> list[FlextCliTypes.Cli.JsonValue]:
         """Try to iterate over data and return list of items.
 
-        Helper to avoid type checker issues with non-iterable types in object.
+        Helper to avoid type checker issues with non-iterable types in t.NormalizedValue.
         Uses duck typing: attempts iteration and catches TypeError if not iterable.
         """
         try:

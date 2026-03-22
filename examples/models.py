@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+from typing import ClassVar
 
 from flext_core import r
 from pydantic import (
@@ -24,9 +25,9 @@ from pydantic import (
     model_validator,
 )
 
-from flext_cli import FlextCli, FlextCliSettings, m, t as cli_t
+from flext_cli import FlextCli, FlextCliSettings, m, t, t as cli_t
 
-_JsonDictAdapter: TypeAdapter[object] = TypeAdapter(object)
+_JsonDictAdapter: TypeAdapter[t.NormalizedValue] = TypeAdapter(t.NormalizedValue)
 
 # ---------------------------------------------------------------------------
 # Example 03 - Interactive Prompts
@@ -36,7 +37,7 @@ _JsonDictAdapter: TypeAdapter[object] = TypeAdapter(object)
 class DatabaseWizardConfig(BaseModel):
     """Database setup wizard result — Pydantic v2 only."""
 
-    model_config = ConfigDict(extra="forbid", validate_assignment=True)
+    model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid", validate_assignment=True)
     host: str = Field(default="localhost", description="Database host")
     port: int = Field(default=5432, ge=1, le=65535, description="Port")
     database: str = Field(default="", description="Database name")
@@ -46,7 +47,7 @@ class DatabaseWizardConfig(BaseModel):
 class AppWizardConfig(BaseModel):
     """App configuration wizard result — Pydantic v2 only."""
 
-    model_config = ConfigDict(extra="forbid", validate_assignment=True)
+    model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid", validate_assignment=True)
     app_name: str = Field(default="my-app", description="Application name")
     environment: str = Field(default="development", description="Environment")
     port: int = Field(default=8080, ge=1024, le=65535, description="Port")
@@ -58,7 +59,7 @@ class AppWizardConfig(BaseModel):
 class NumericPromptResult(BaseModel):
     """Numeric prompts result — Pydantic v2 only."""
 
-    model_config = ConfigDict(extra="forbid", validate_assignment=True)
+    model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid", validate_assignment=True)
     workers: int = Field(default=4, ge=1, le=32, description="Workers")
     cpu_limit: float = Field(default=2.5, ge=0.0, description="CPU limit")
     percentage: int = Field(default=50, ge=0, le=100, description="Percentage")
@@ -72,7 +73,7 @@ class NumericPromptResult(BaseModel):
 class MyAppConfig(BaseModel):
     """Custom configuration for YOUR CLI application — Pydantic v2 only."""
 
-    model_config = ConfigDict(extra="forbid", validate_assignment=True)
+    model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid", validate_assignment=True)
     app_name: str = Field(default="my-cli-tool", description="Application name")
     api_key: str = Field(default="", description="API key")
     max_workers: int = Field(default=4, ge=1, description="Max workers")
@@ -82,8 +83,8 @@ class MyAppConfig(BaseModel):
     @classmethod
     def _inject_env(
         cls,
-        data: object,
-    ) -> object:
+        data: t.NormalizedValue,
+    ) -> t.NormalizedValue:
         if not isinstance(data, dict):
             return data
         try:
@@ -148,7 +149,7 @@ class MyAppConfig(BaseModel):
 class AppConfigAdvanced(BaseModel):
     """Advanced application configuration — Pydantic v2 only."""
 
-    model_config = ConfigDict(extra="forbid", validate_assignment=True)
+    model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid", validate_assignment=True)
     database_url: str = Field(
         default="postgresql://localhost:5432/myapp",
         description="Database URL",
@@ -170,8 +171,8 @@ class AppConfigAdvanced(BaseModel):
     @classmethod
     def _inject_env(
         cls,
-        data: object,
-    ) -> object:
+        data: t.NormalizedValue,
+    ) -> t.NormalizedValue:
         if not isinstance(data, dict):
             return data
         try:
@@ -188,7 +189,7 @@ class AppConfigAdvanced(BaseModel):
             }
         if not isinstance(typed_data, dict):
             return None
-        typed_dict: dict[str, object] = typed_data
+        typed_dict: dict[str, t.NormalizedValue] = typed_data
         result = {
             "database_url": os.getenv(
                 "DATABASE_URL", "postgresql://localhost:5432/myapp"
@@ -275,7 +276,7 @@ class AppConfigAdvanced(BaseModel):
 class DeployConfig(BaseModel):
     """Deployment configuration - auto-generates CLI parameters."""
 
-    model_config = ConfigDict(extra="forbid", validate_assignment=True)
+    model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid", validate_assignment=True)
     environment: str = Field(
         default="development",
         description="Deployment environment (dev/staging/prod)",
@@ -302,7 +303,7 @@ class DeployConfig(BaseModel):
 class DatabaseConfig(BaseModel):
     """Database configuration."""
 
-    model_config = ConfigDict(extra="forbid", validate_assignment=True)
+    model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid", validate_assignment=True)
     host: str = Field(default="localhost", description="Database host")
     port: int = Field(default=5432, ge=1024, le=65535, description="Database port")
     name: str = Field(description="Database name")
@@ -311,7 +312,7 @@ class DatabaseConfig(BaseModel):
 class AppConfigNested(BaseModel):
     """Application configuration with nested database model."""
 
-    model_config = ConfigDict(extra="forbid", validate_assignment=True)
+    model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid", validate_assignment=True)
     app_name: str = Field(description="Application name")
     version: str = Field(default="1.0.0", description="Application version")
     database: DatabaseConfig = Field(description="Database configuration")
@@ -321,7 +322,7 @@ class AppConfigNested(BaseModel):
 class AdvancedDatabaseConfig(BaseModel):
     """Database configuration with advanced validation."""
 
-    model_config = ConfigDict(extra="forbid", validate_assignment=True)
+    model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid", validate_assignment=True)
     host: str = Field(description="Database host", default="localhost")
     port: int = Field(description="Database port", ge=1024, le=65535, default=5432)
     name: str = Field(description="Database name", min_length=1)

@@ -23,13 +23,13 @@ from flext_cli import FlextCliConstants, t
 T = TypeVar("T")
 
 
-def _is_json_dict(value: object) -> TypeIs[dict[str, object]]:
-    """TypeGuard: narrow object to dict for JSON object shape (e.g. read_json_file return)."""
+def _is_json_dict(value: t.NormalizedValue) -> TypeIs[dict[str, t.NormalizedValue]]:
+    """TypeGuard: narrow t.NormalizedValue to dict for JSON t.NormalizedValue shape (e.g. read_json_file return)."""
     return isinstance(value, dict)
 
 
-def _is_json_list(value: object) -> TypeIs[list[object]]:
-    """TypeGuard: narrow object to list for JSON array shape."""
+def _is_json_list(value: t.NormalizedValue) -> TypeIs[list[t.NormalizedValue]]:
+    """TypeGuard: narrow t.NormalizedValue to list for JSON array shape."""
     return isinstance(value, list)
 
 
@@ -50,7 +50,7 @@ class ConfigFactory:
         if fields is None:
             fields = {"test_field": (str, Field(default="test"))}
         annotations: dict[str, type] = {}
-        class_dict: dict[str, object] = {
+        class_dict: dict[str, t.NormalizedValue] = {
             "model_config": SettingsConfigDict(env_prefix=prefix),
             "__annotations__": annotations,
         }
@@ -86,7 +86,7 @@ class ParamsFactory:
             str, tuple[type, t.Scalar | FieldInfo, dict[str, t.Scalar]]
         ] = fields if fields is not None else default_fields
         annotations: dict[str, type] = {}
-        class_dict: dict[str, object] = {
+        class_dict: dict[str, t.NormalizedValue] = {
             "model_config": {"populate_by_name": populate_by_name},
             "__annotations__": annotations,
         }
@@ -108,9 +108,12 @@ class ValidationHelper:
 
     @staticmethod
     def assert_field_value(
-        obj: object, field_name: str, expected_value: object, message: str | None = None
+        obj: t.NormalizedValue,
+        field_name: str,
+        expected_value: t.NormalizedValue,
+        message: str | None = None,
     ) -> None:
-        """Assert that an object field has expected value."""
+        """Assert that an t.NormalizedValue field has expected value."""
         actual = getattr(obj, field_name)
         assert actual == expected_value, (
             message or f"{field_name}={actual}, expected {expected_value}"
@@ -118,9 +121,9 @@ class ValidationHelper:
 
     @staticmethod
     def assert_field_type(
-        obj: object, field_name: str, expected_type: type | tuple[type, ...]
+        obj: t.NormalizedValue, field_name: str, expected_type: type | tuple[type, ...]
     ) -> None:
-        """Assert that an object field has expected type."""
+        """Assert that an t.NormalizedValue field has expected type."""
         value = getattr(obj, field_name)
         assert isinstance(value, expected_type), (
             f"{field_name}={type(value)}, expected {expected_type}"
@@ -129,7 +132,7 @@ class ValidationHelper:
     @staticmethod
     def extract_config_values(
         config: BaseSettings, field_names: list[str]
-    ) -> Mapping[str, object]:
+    ) -> Mapping[str, t.NormalizedValue]:
         """Extract multiple field values from config as a read-only Mapping.
 
         When the config structure is known, callers should use FlextCliSettings
@@ -280,12 +283,14 @@ class FlextCliTestHelpers:
         """Helper methods for protocol implementation tests."""
 
         @staticmethod
-        def create_formatter_implementation() -> r[object]:
+        def create_formatter_implementation() -> r[t.NormalizedValue]:
             """Create a formatter implementation satisfying CliFormatter protocol."""
             try:
 
                 class TestFormatter:
-                    def format_data(self, data: object, **options: t.Scalar) -> r[str]:
+                    def format_data(
+                        self, data: t.NormalizedValue, **options: t.Scalar
+                    ) -> r[str]:
                         try:
                             return r[str].ok(str(data))
                         except (ValueError, TypeError, ValidationError) as e:
@@ -301,23 +306,25 @@ class FlextCliTestHelpers:
                 return r.fail(f"Failed to create formatter: {e!s}")
 
         @staticmethod
-        def create_config_provider_implementation() -> r[object]:
+        def create_config_provider_implementation() -> r[t.NormalizedValue]:
             """Create a config provider implementation satisfying CliConfigProvider protocol."""
             try:
 
                 class TestConfigProvider:
                     def __init__(self) -> None:
                         super().__init__()
-                        self.config: dict[str, object] = {}
+                        self.config: dict[str, t.NormalizedValue] = {}
 
-                    def load_config(self) -> r[dict[str, object]]:
+                    def load_config(self) -> r[dict[str, t.NormalizedValue]]:
                         """Return config dict; treat as Mapping when contract is read-only."""
                         try:
-                            return r[dict[str, object]].ok(self.config)
+                            return r[dict[str, t.NormalizedValue]].ok(self.config)
                         except (ValueError, TypeError, ValidationError) as e:
-                            return r[dict[str, object]].fail(str(e))
+                            return r[dict[str, t.NormalizedValue]].fail(str(e))
 
-                    def save_config(self, config: Mapping[str, object]) -> r[bool]:
+                    def save_config(
+                        self, config: Mapping[str, t.NormalizedValue]
+                    ) -> r[bool]:
                         try:
                             self.config = dict(config.items())
                             return r[bool].ok(True)
@@ -339,7 +346,7 @@ class FlextCliTestHelpers:
                 return r.fail(f"Failed to create config provider: {e!s}")
 
         @staticmethod
-        def create_authenticator_implementation() -> r[object]:
+        def create_authenticator_implementation() -> r[t.NormalizedValue]:
             """Create a CliAuthenticator protocol implementation."""
             try:
 
@@ -386,7 +393,7 @@ class FlextCliTestHelpers:
 
         @staticmethod
         def create_processing_test_data() -> r[
-            tuple[list[str], list[int], dict[str, object]]
+            tuple[list[str], list[int], dict[str, t.NormalizedValue]]
         ]:
             """Create test data for type processing scenarios.
 
@@ -396,49 +403,49 @@ class FlextCliTestHelpers:
             try:
                 string_list = ["hello", "world", "test"]
                 number_list = [1, 2, 3, 4, 5]
-                mixed_dict: dict[str, object] = {
+                mixed_dict: dict[str, t.NormalizedValue] = {
                     "key1": 123,
                     "key2": "value",
                     "key3": True,
                     "key4": [1, 2, 3],
                 }
-                return r[tuple[list[str], list[int], dict[str, object]]].ok((
+                return r[tuple[list[str], list[int], dict[str, t.NormalizedValue]]].ok((
                     string_list,
                     number_list,
                     mixed_dict,
                 ))
             except (ValueError, TypeError, ValidationError) as e:
-                return r[tuple[list[str], list[int], dict[str, object]]].fail(
-                    f"Failed to create processing test data: {e!s}"
-                )
+                return r[
+                    tuple[list[str], list[int], dict[str, t.NormalizedValue]]
+                ].fail(f"Failed to create processing test data: {e!s}")
 
         @staticmethod
-        def create_typed_dict_data() -> r[dict[str, object]]:
+        def create_typed_dict_data() -> r[dict[str, t.NormalizedValue]]:
             """Create typed dict test data.
 
-            Returns a dict; treat as Mapping[str, object] when the contract is read-only.
+            Returns a dict; treat as Mapping[str, t.NormalizedValue] when the contract is read-only.
             """
             try:
-                user_data: dict[str, object] = {
+                user_data: dict[str, t.NormalizedValue] = {
                     "id": 1,
                     "name": "John Doe",
                     "email": "john@example.com",
                     "active": True,
                 }
-                return r[dict[str, object]].ok(user_data)
+                return r[dict[str, t.NormalizedValue]].ok(user_data)
             except (ValueError, TypeError, ValidationError) as e:
-                return r[dict[str, object]].fail(
+                return r[dict[str, t.NormalizedValue]].fail(
                     f"Failed to create typed dict data: {e!s}"
                 )
 
         @staticmethod
-        def create_api_response_data() -> r[list[dict[str, object]]]:
+        def create_api_response_data() -> r[list[dict[str, t.NormalizedValue]]]:
             """Create API response test data.
 
-            Returns a list of dicts; treat each item as Mapping[str, object] when read-only.
+            Returns a list of dicts; treat each item as Mapping[str, t.NormalizedValue] when read-only.
             """
             try:
-                users_data: list[dict[str, object]] = [
+                users_data: list[dict[str, t.NormalizedValue]] = [
                     {
                         "id": 1,
                         "name": "Alice",
@@ -452,9 +459,9 @@ class FlextCliTestHelpers:
                         "active": False,
                     },
                 ]
-                return r[list[dict[str, object]]].ok(users_data)
+                return r[list[dict[str, t.NormalizedValue]]].ok(users_data)
             except (ValueError, TypeError, ValidationError) as e:
-                return r[list[dict[str, object]]].fail(
+                return r[list[dict[str, t.NormalizedValue]]].fail(
                     f"Failed to create API response data: {e!s}"
                 )
 
@@ -470,7 +477,9 @@ class FlextCliTestHelpers:
         """Helper methods for CLI testing."""
 
         @staticmethod
-        def create_test_command(cli_cli: object, command_name: str) -> r[click.Command]:
+        def create_test_command(
+            cli_cli: t.NormalizedValue, command_name: str
+        ) -> r[click.Command]:
             """Create a test command for CLI testing."""
             try:
 
@@ -483,7 +492,9 @@ class FlextCliTestHelpers:
                 return r.fail(f"Failed to create command: {e!s}")
 
         @staticmethod
-        def create_test_group(cli_cli: object, group_name: str) -> r[click.Group]:
+        def create_test_group(
+            cli_cli: t.NormalizedValue, group_name: str
+        ) -> r[click.Group]:
             """Create a test group for CLI testing."""
             try:
 
@@ -497,7 +508,10 @@ class FlextCliTestHelpers:
 
         @staticmethod
         def create_command_with_options(
-            cli_cli: object, command_name: str, option_name: str, default: str
+            cli_cli: t.NormalizedValue,
+            command_name: str,
+            option_name: str,
+            default: str,
         ) -> r[click.Command]:
             """Create a command with options for CLI testing."""
             try:

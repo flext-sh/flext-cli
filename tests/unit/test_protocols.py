@@ -70,7 +70,9 @@ class TestsCliProtocols:
         """Test duck typing - class satisfies protocol without inheritance."""
 
         class DuckFormatter:
-            def format_data(self, data: object, **options: t.Scalar) -> r[str]:
+            def format_data(
+                self, data: t.NormalizedValue, **options: t.Scalar
+            ) -> r[str]:
                 return r[str].ok("formatted")
 
         duck = DuckFormatter()
@@ -141,7 +143,7 @@ class TestsCliProtocols:
             provider = provider_result.value
             if isinstance(provider, p.Cli.CliConfigProvider):
                 test_config_raw = c.TestConfiguration.BASIC_CONFIG
-                test_config: dict[str, object] = {}
+                test_config: dict[str, t.NormalizedValue] = {}
                 for key, value in test_config_raw.items():
                     if isinstance(value, t.PRIMITIVES_TYPES) or value is None:
                         test_config[key] = value
@@ -265,7 +267,7 @@ class TestsCliProtocols:
         tm.that(should_succeed is True, eq=True)
         tm.ok(result)
 
-    def _validate_formatter_instance(self, instance: object) -> r[bool]:
+    def _validate_formatter_instance(self, instance: t.NormalizedValue) -> r[bool]:
         """Validate formatter instance against protocol."""
         try:
             if isinstance(instance, p.Cli.CliFormatter):
@@ -274,7 +276,9 @@ class TestsCliProtocols:
         except Exception as e:
             return r[bool].fail(str(e))
 
-    def _validate_config_provider_instance(self, instance: object) -> r[bool]:
+    def _validate_config_provider_instance(
+        self, instance: t.NormalizedValue
+    ) -> r[bool]:
         """Validate config provider instance against protocol."""
         try:
             if isinstance(instance, p.Cli.CliConfigProvider):
@@ -283,7 +287,7 @@ class TestsCliProtocols:
         except Exception as e:
             return r[bool].fail(str(e))
 
-    def _validate_authenticator_instance(self, instance: object) -> r[bool]:
+    def _validate_authenticator_instance(self, instance: t.NormalizedValue) -> r[bool]:
         """Validate authenticator instance against protocol."""
         try:
             if isinstance(instance, p.Cli.CliAuthenticator):

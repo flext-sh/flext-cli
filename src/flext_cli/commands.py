@@ -212,7 +212,7 @@ class FlextCliCommands(FlextCliServiceBase):
             m.Cli.CliCommandGroup: Click group info with name and commands.
 
         Note:
-            This returns a m.Cli.CliCommandGroup object, not actual Click objects.
+            This returns a m.Cli.CliCommandGroup t.NormalizedValue, not actual Click objects.
             Use FlextCliCli for actual Click integration.
 
         """

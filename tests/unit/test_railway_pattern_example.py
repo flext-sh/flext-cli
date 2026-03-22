@@ -21,6 +21,7 @@ import pytest
 from flext_tests import tm
 
 from flext_cli import FlextCliFileTools
+from tests import t
 
 
 class TestsCliRailwayPatternExample:
@@ -58,7 +59,7 @@ class TestsCliRailwayPatternExample:
         self,
         file_tools: FlextCliFileTools,
         temp_dir: Path,
-        test_data: dict[str, object],
+        test_data: dict[str, t.NormalizedValue],
         filename: str,
         verify_keys: list[str],
     ) -> None:
@@ -96,7 +97,7 @@ class TestsCliRailwayPatternExample:
         self,
         file_tools: FlextCliFileTools,
         invalid_path: str,
-        test_data: dict[str, object],
+        test_data: dict[str, t.NormalizedValue],
         scenario: str,
     ) -> None:
         """Test Railway Pattern error handling and propagation.

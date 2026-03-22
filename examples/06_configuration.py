@@ -31,10 +31,8 @@ from pathlib import Path
 
 from flext_core import r
 
+from examples import AppConfigAdvanced, MyAppConfig, display_config_table
 from flext_cli import FlextCli, FlextCliSettings, m, t, u
-
-from .example_utils import display_config_table
-from .models import AppConfigAdvanced, MyAppConfig
 
 cli = FlextCli()
 
@@ -178,7 +176,7 @@ def load_application_config() -> r[dict[str, t.Cli.JsonValue]]:
     """Load and validate application configuration from environment."""
     cli.print("\n⚙️  Loading Application Configuration:", style="bold cyan")
     config_obj = AppConfigAdvanced()
-    cli.print("✅ Config object created", style="green")
+    cli.print("✅ Config t.NormalizedValue created", style="green")
     validate_result = config_obj.validate_to_mapping()
     if validate_result.is_failure:
         return validate_result
@@ -197,10 +195,10 @@ def load_application_config() -> r[dict[str, t.Cli.JsonValue]]:
 
 
 def apply_environment_overrides(
-    config: Mapping[str, object],
-) -> dict[str, object]:
+    config: Mapping[str, t.NormalizedValue],
+) -> dict[str, t.NormalizedValue]:
     """Apply environment-specific configuration overrides."""
-    result: dict[str, object] = dict(config)
+    result: dict[str, t.NormalizedValue] = dict(config)
     env = os.getenv("ENVIRONMENT", "development")
     if env == "production":
         max_workers_value = result.get("max_workers", 4)
@@ -216,8 +214,8 @@ def apply_environment_overrides(
 
 
 def initialize_services(
-    config: dict[str, object],
-) -> dict[str, object]:
+    config: dict[str, t.NormalizedValue],
+) -> dict[str, t.NormalizedValue]:
     """Initialize services based on configuration."""
     time.sleep(0.05)
     config["services_initialized"] = True

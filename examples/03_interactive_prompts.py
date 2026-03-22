@@ -32,9 +32,8 @@ from __future__ import annotations
 
 from flext_core import r
 
+from examples import AppWizardConfig, DatabaseWizardConfig, NumericPromptResult
 from flext_cli import FlextCli, FlextCliPrompts
-
-from .models import AppWizardConfig, DatabaseWizardConfig, NumericPromptResult
 
 cli = FlextCli()
 prompts = FlextCliPrompts()

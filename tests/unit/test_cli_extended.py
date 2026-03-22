@@ -15,7 +15,8 @@ from flext_core import FlextRuntime
 from flext_tests import tm
 from typer.testing import CliRunner
 
-from flext_cli import FlextCliCli, FlextCliSettings, m, t
+from flext_cli import FlextCliCli, FlextCliSettings
+from tests import m, t
 
 
 class TestsCliCliExtended:
@@ -34,8 +35,12 @@ class TestsCliCliExtended:
             click.echo("Hello")
 
         runner = CliRunner()
-        with patch.object(FlextRuntime, "reconfigure_structlog") as mock_reconfigure:
-            with patch.object(FlextCliSettings, "get_global") as mock_get_config:
+        with patch.t.NormalizedValue(
+            FlextRuntime, "reconfigure_structlog"
+        ) as mock_reconfigure:
+            with patch.t.NormalizedValue(
+                FlextCliSettings, "get_global"
+            ) as mock_get_config:
                 mock_get_config.return_value = mock_config_instance
                 result = runner.invoke(app, ["--debug", "hello"])
                 tm.that(result.exit_code, eq=0)
@@ -57,7 +62,9 @@ class TestsCliCliExtended:
             click.echo("Hello")
 
         runner = CliRunner()
-        with patch.object(FlextRuntime, "reconfigure_structlog") as mock_reconfigure:
+        with patch.t.NormalizedValue(
+            FlextRuntime, "reconfigure_structlog"
+        ) as mock_reconfigure:
             result = runner.invoke(app, ["--quiet", "hello"])
             tm.that(result.exit_code, eq=0)
             mock_reconfigure.assert_called()

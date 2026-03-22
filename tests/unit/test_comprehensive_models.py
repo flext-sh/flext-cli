@@ -39,12 +39,12 @@ class TestsCliComprehensiveModels:
         tm.that(cmd.is_failed, eq=(status == c.Cli.CommandStatus.FAILED))
 
     @pytest.mark.parametrize("edge_case", generate_edge_case_data())
-    def test_command_edge_cases(self, edge_case: dict[str, object]) -> None:
+    def test_command_edge_cases(self, edge_case: dict[str, t.NormalizedValue]) -> None:
         """Test command creation with comprehensive edge cases."""
         cmd = create_test_cli_command(**edge_case)
         for key, value in edge_case.items():
             if key != "description":
-                attr_value: object = getattr(cmd, key)
+                attr_value: t.NormalizedValue = getattr(cmd, key)
                 tm.that(attr_value, eq=value)
         tm.that("test" in (cmd.command_line or cmd.name), eq=True)
         tm.that(isinstance(cmd.created_at, datetime), eq=True)

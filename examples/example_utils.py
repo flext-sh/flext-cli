@@ -16,11 +16,11 @@ from collections.abc import Mapping
 from flext_core import r
 from pydantic import BaseModel
 
-from flext_cli import FlextCli, m
+from flext_cli import FlextCli, m, t
 
 
 def to_json_dict(
-    data: Mapping[str, object],
+    data: Mapping[str, t.NormalizedValue],
 ) -> m.Cli.DisplayData:
     """Normalize config/mapping to DisplayData for create_table/display_config_table."""
     normalized = m.Cli.CliNormalizedJson(dict(data)).root

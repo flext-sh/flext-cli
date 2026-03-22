@@ -23,6 +23,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from flext_cli import FlextCliCli, FlextCliSettings
+from tests import t
 
 
 class TestsCliConfigModelIntegration:
@@ -100,7 +101,7 @@ class TestsCliConfigModelIntegration:
     class AliasedParams(BaseModel):
         """Parameters with field aliases."""
 
-        model_config = ConfigDict(populate_by_name=True)
+        model_config: ClassVar[ConfigDict] = ConfigDict(populate_by_name=True)
 
         input_dir: str | None = Field(default=None, alias="input-dir")
         output_dir: str | None = Field(default=None, alias="output-dir")
@@ -144,7 +145,7 @@ class TestsCliConfigModelIntegration:
     class ForbidExtraParams(BaseModel):
         """Parameters that forbid extra fields."""
 
-        model_config = ConfigDict(extra="forbid")
+        model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
         input_dir: str | None = Field(default=None)
         output_dir: str | None = Field(default=None)
         name: str | None = Field(default=None)
@@ -188,7 +189,7 @@ class TestsCliConfigModelIntegration:
         self,
         config_class: type[BaseSettings],
         expected_fields: list[str],
-        expected_values: dict[str, object],
+        expected_values: dict[str, t.NormalizedValue],
     ) -> None:
         """Test config initialization with various field types."""
         config = config_class()
@@ -228,8 +229,8 @@ class TestsCliConfigModelIntegration:
     )
     def test_params_validation(
         self,
-        input_data: dict[str, object],
-        expected_data: dict[str, object],
+        input_data: dict[str, t.NormalizedValue],
+        expected_data: dict[str, t.NormalizedValue],
     ) -> None:
         """Test parameter model validation with aliases."""
         params = self.AliasedParams.model_validate(input_data)

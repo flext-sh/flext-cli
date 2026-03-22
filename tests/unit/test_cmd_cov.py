@@ -10,6 +10,7 @@ from flext_tests import tm
 
 import flext_cli.services.cmd as cmd_module
 from flext_cli import FlextCliCmd, m
+from tests import t
 
 
 def test_show_config_paths_failure_on_exception(
@@ -131,7 +132,7 @@ def test_edit_config_success_logs_and_returns_ok(
     cli_config = tmp_path / "cli_config.json"
     cli_config.write_text('{"name": "ok"}', encoding="utf-8")
     cmd = FlextCliCmd()
-    logged: dict[str, object] = {}
+    logged: dict[str, t.NormalizedValue] = {}
     monkeypatch.setattr(
         cmd_module.FlextCliServiceBase,
         "get_cli_config",

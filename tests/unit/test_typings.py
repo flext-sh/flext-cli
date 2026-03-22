@@ -59,7 +59,7 @@ class TypingTestType(StrEnum):
 class TypingTestCase(BaseModel):
     """Test case data for typing tests."""
 
-    model_config = ConfigDict(frozen=True)
+    model_config: ClassVar[ConfigDict] = ConfigDict(frozen=True)
 
     test_type: TypingTestType = Field(description="Typing test category")
     description: str = Field(description="Typing test case description")
@@ -122,7 +122,7 @@ class TestsCliTypings:
             ]
 
         @staticmethod
-        def create_type_test_data() -> dict[str, object]:
+        def create_type_test_data() -> dict[str, t.NormalizedValue]:
             """Create test data for type operations."""
             return {
                 "config_data": {
@@ -165,7 +165,9 @@ class TestsCliTypings:
                 return r[bool].fail(str(e))
 
         @staticmethod
-        def validate_type_usage(data: dict[str, object], type_hint: str) -> r[bool]:
+        def validate_type_usage(
+            data: dict[str, t.NormalizedValue], type_hint: str
+        ) -> r[bool]:
             """Validate type usage with actual data."""
             try:
                 match type_hint:
@@ -213,7 +215,7 @@ class TestsCliTypings:
         """Execute initialization-related tests."""
         validation_result = self.TypingValidators.validate_type_initialization(t)
         tm.ok(validation_result)
-        test_data: dict[str, object] = {"key": "value"}
+        test_data: dict[str, t.NormalizedValue] = {"key": "value"}
         tm.that(isinstance(test_data, dict), eq=True)
 
     def _execute_basic_functionality_tests(self) -> None:
@@ -223,7 +225,7 @@ class TestsCliTypings:
         if not isinstance(config_data_obj, dict):
             error_msg = "config_data must be a dict"
             raise TypeError(error_msg)
-        config_dict: dict[str, object] = config_data_obj
+        config_dict: dict[str, t.NormalizedValue] = config_data_obj
         config_result = self.TypingValidators.validate_type_usage(
             config_dict, "CliConfigData"
         )
@@ -232,7 +234,7 @@ class TestsCliTypings:
         if not isinstance(format_data_obj, dict):
             error_msg = "format_data must be a dict"
             raise TypeError(error_msg)
-        format_dict: dict[str, object] = format_data_obj
+        format_dict: dict[str, t.NormalizedValue] = format_data_obj
         format_result = self.TypingValidators.validate_type_usage(
             format_dict, "CliFormatData"
         )
@@ -251,8 +253,8 @@ class TestsCliTypings:
         tm.that(t_var is not None, eq=True)
         tm.that(generic_type is not None, eq=True)
         tm.that(Test is not None, eq=True)
-        user_data: dict[str, object] = {"key": "value", "number": 42}
-        user_list: list[dict[str, object]] = [user_data]
+        user_data: dict[str, t.NormalizedValue] = {"key": "value", "number": 42}
+        user_list: list[dict[str, t.NormalizedValue]] = [user_data]
         tm.that(isinstance(user_data, dict), eq=True)
         tm.that(isinstance(user_list, list), eq=True)
         tm.that(len(user_list), eq=1)
@@ -448,7 +450,7 @@ class TestsCliTypings:
         def process_list(data: list[str]) -> list[str]:
             return [item.upper() for item in data]
 
-        def process_dict(data: Mapping[str, object]) -> dict[str, str]:
+        def process_dict(data: Mapping[str, t.NormalizedValue]) -> dict[str, str]:
             return {key: str(value) for key, value in data.items()}
 
         test_list = ["hello", "world", "test"]
@@ -468,7 +470,7 @@ class TestsCliTypings:
     def _execute_type_edge_tests(self) -> None:
         """Execute type edge case tests."""
 
-        def handle_edge_cases(value: object) -> str:
+        def handle_edge_cases(value: t.NormalizedValue) -> str:
             if value is None:
                 return "None"
             if isinstance(value, str) and (not value):
@@ -532,10 +534,10 @@ class TestsCliTypings:
 
         @runtime_checkable
         class Test(Protocol):
-            def operation(self, data: list[str]) -> dict[str, object]: ...
+            def operation(self, data: list[str]) -> dict[str, t.NormalizedValue]: ...
 
         class Implementation:
-            def operation(self, data: list[str]) -> dict[str, object]:
+            def operation(self, data: list[str]) -> dict[str, t.NormalizedValue]:
                 time.sleep(0.001)
                 return {
                     "processed": [item.upper() for item in data],
@@ -547,9 +549,9 @@ class TestsCliTypings:
         tm.that(isinstance(impl, Test), eq=True)
         test_data = ["str1", "str2"]
         result = impl.operation(test_data)
-        processed: object = result.get("processed")
+        processed: t.NormalizedValue = result.get("processed")
         tm.that(processed, eq=["STR1", "STR2"])
-        count: object = result.get("count")
+        count: t.NormalizedValue = result.get("count")
         tm.that(count, eq=2)
         tm.that("timestamp" in result, eq=True)
         tm.that(t is not None, eq=True)

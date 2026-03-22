@@ -23,6 +23,7 @@ from flext_cli import (
     FlextCliCommonParams,
     FlextCliSettings,
 )
+from tests import t
 
 
 @unique
@@ -70,7 +71,7 @@ def create_cli_app() -> r[typer.Typer]:
 def create_decorated_command(
     app: typer.Typer,
     command_name: str = "test",
-) -> r[Callable[..., object]]:
+) -> r[Callable[..., t.NormalizedValue]]:
     """Create decorated command using Railway pattern - no mocks or manipulation."""
 
     @app.command(name=command_name)
@@ -106,7 +107,7 @@ def create_decorated_command(
         typer.echo(f"Output format: {output_format}")
 
     # Return the command function directly - Railway pattern
-    return r[Callable[..., object]].ok(typer_command)
+    return r[Callable[..., t.NormalizedValue]].ok(typer_command)
 
 
 # ============================================================================

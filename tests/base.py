@@ -16,7 +16,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
-from typing import override
+from typing import ClassVar, override
 
 from flext_core import FlextHandlers, T, r
 from flext_tests import s, td
@@ -38,10 +38,14 @@ class TestsCliServiceBase(s[T]):
     - All generic service functionality comes from s
     """
 
+    @override
+    def execute(self) -> r[T]:
+        return r[T].fail("not implemented")
+
     class HandlerTestCase(BaseModel):
         """Factory for handler test case configurations."""
 
-        model_config = ConfigDict(frozen=True)
+        model_config: ClassVar[ConfigDict] = ConfigDict(frozen=True)
 
         handler_id: str = Field(description="Handler identifier")
         handler_name: str | None = Field(
@@ -83,7 +87,7 @@ class TestsCliServiceBase(s[T]):
         """Centralized factories for test handlers."""
 
         @staticmethod
-        def _to_expected_result(value: object) -> t.Container | None:
+        def _to_expected_result(value: t.NormalizedValue) -> t.Container | None:
             if value is None:
                 return None
             if isinstance(value, (str, int, float, bool, datetime, Path)):

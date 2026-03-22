@@ -82,7 +82,7 @@ class FlextCliCommandBuilder:
 
     @staticmethod
     def _is_command_protocol(obj: t.Cli.JsonValue) -> bool:
-        """Check if object matches minimal command protocol shape."""
+        """Check if t.NormalizedValue matches minimal command protocol shape."""
         name_value = getattr(obj, "name", None)
         description_value = getattr(obj, "description", None)
         has_name = isinstance(name_value, str)

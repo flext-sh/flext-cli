@@ -22,6 +22,7 @@ from flext_core import r
 from flext_tests import tm
 
 from flext_cli import FlextCliCli, FlextCliSettings, m
+from tests import t
 
 from ..helpers._impl import FlextCliTestHelpers
 
@@ -103,7 +104,7 @@ class TestsCliCli:
         ],
     )
     def test_click_type_creation(
-        self, click_type_name: str, data_dict: dict[str, object]
+        self, click_type_name: str, data_dict: dict[str, t.NormalizedValue]
     ) -> None:
         """Test Click type creation with various parameter types."""
         if click_type_name == "choice":
@@ -256,7 +257,7 @@ class TestsCliCli:
             cli = FlextCliCli()
             invalid_model: type = dict
 
-            def handler(_model: object) -> str:
+            def handler(_model: t.NormalizedValue) -> str:
                 return "invalid"
 
             with pytest.raises(Exception):

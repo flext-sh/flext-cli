@@ -142,7 +142,7 @@ If fail you need to use .venv of flext.
 
 ```python
 # Error
-error: Argument 1 to "process" has incompatible type "str"; expected "dict[str, object]"
+error: Argument 1 to "process" has incompatible type "str"; expected "dict[str, t.NormalizedValue]"
 ```
 
 #### Solutions
@@ -156,7 +156,7 @@ def process(data):
 
 
 # ✅ CORRECT
-def process(data: dict[str, object]) -> r[ProcessedData]:
+def process(data: dict[str, t.NormalizedValue]) -> r[ProcessedData]:
     return r.ok(ProcessedData(**data))
 ```
 
