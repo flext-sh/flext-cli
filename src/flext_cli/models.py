@@ -16,6 +16,7 @@ from typing import (
     Union,
     get_args,
     get_origin,
+    override,
 )
 
 import typer
@@ -800,6 +801,7 @@ class FlextCliModels(FlextModels):
                 # This avoids frozen instance errors during initialization
             )
 
+            @override
             def model_post_init(self, __context: Any = None, /) -> None:
                 """Finalize initialization without post-processing side effects."""
                 return
@@ -1060,6 +1062,7 @@ class FlextCliModels(FlextModels):
                 validate_default=True,
             )
 
+            @override
             def model_post_init(self, __context: Any = None, /) -> None:
                 """Finalize initialization without post-processing side effects."""
                 return
