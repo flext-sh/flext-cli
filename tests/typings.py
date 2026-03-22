@@ -1,11 +1,11 @@
 """Type system foundation for flext-cli tests.
 
-Provides TestsCliTypes, extending t with flext-cli-specific types.
+Provides FlextCliTestTypes, extending FlextTestsTypes with flext-cli-specific types.
 All generic test types come from flext_tests, only flext-cli-specific additions here.
 
 Architecture:
-- t (flext_tests) = Generic types for all FLEXT projects
-- TestsCliTypes (tests/) = flext-cli-specific types extending t
+- FlextTestsTypes (flext_tests) = Generic types for all FLEXT projects
+- FlextCliTestTypes (tests/) = flext-cli-specific types extending FlextTestsTypes
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -16,33 +16,33 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 
 from flext_core import T, T_co, T_contra
-from flext_tests import t
+from flext_tests import FlextTestsTypes
 
 from flext_cli import FlextCliTypes
 
 
-class TestsCliTypes(t):
-    """Type system foundation for flext-cli tests - extends t and FlextCliTypes.
+class FlextCliTestTypes(FlextTestsTypes, FlextCliTypes):
+    """Type system foundation for flext-cli tests - extends FlextTestsTypes and FlextCliTypes.
 
     Architecture: Multiple inheritance provides both generic test types AND CLI-specific types.
-    All types from both t and FlextCliTypes are available through inheritance.
+    All types from both FlextTestsTypes and FlextCliTypes are available through inheritance.
 
     Hierarchy:
-    - t.Tests.* (generic test types from flext_tests)
+    - FlextTestsTypes.Tests.* (generic test types from flext_tests)
     - FlextCliTypes.Cli.* (source types from flext_cli - INHERITED)
-    - TestsCliTypes.Tests.* (flext-cli-specific test types)
+    - FlextCliTestTypes.Tests.* (flext-cli-specific test types)
 
     Rules:
-    - NEVER redeclare types from t or FlextCliTypes
+    - NEVER redeclare types from FlextTestsTypes or FlextCliTypes
     - Only flext-cli-specific types allowed (not generic for other projects)
-    - All generic types come from t
+    - All generic types come from FlextTestsTypes
     - CLI types come from FlextCliTypes via inheritance
     """
 
     class Cli(FlextCliTypes.Cli):
         """Flext-cli-specific type definitions for testing.
 
-        Uses composition of FlextCliTypes and t for type safety and consistency.
+        Uses composition of FlextCliTypes and FlextTestsTypes for type safety and consistency.
         Only defines types that are truly flext-cli-specific.
         Dict type aliases were removed in Pydantic v2 migration - use models instead.
         """
@@ -50,8 +50,8 @@ class TestsCliTypes(t):
         class Tests:
             """flext-cli-specific test type definitions namespace.
 
-            Use tt.Tests.* for flext-cli-specific test types.
-            Use t.Tests.* for generic test types from t.
+            Use t.Tests.* for flext-cli-specific test types.
+            Use FlextTestsTypes.Tests.* for generic test types.
             """
 
             ResultFormatter = FlextCliTypes.Cli.ResultFormatter
@@ -69,6 +69,6 @@ class TestsCliTypes(t):
                 """TypedDict definitions for test fixtures."""
 
 
-t = TestsCliTypes
-tt = TestsCliTypes
-__all__ = ["T", "T_co", "T_contra", "TestsCliTypes", "t", "tt"]
+t = FlextCliTestTypes
+tt = FlextCliTestTypes
+__all__ = ["FlextCliTestTypes", "T", "T_co", "T_contra", "t", "tt"]

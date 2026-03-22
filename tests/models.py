@@ -1,7 +1,7 @@
 """Pydantic models for flext-cli tests only.
 
 All test-domain models live here; tests MUST NOT use dict/Any/object as data contracts.
-Reuse FlextTestsMopdels.Cli types where possible; add test-specific input models only when needed.
+Reuse FlextTestsModels types where possible; add test-specific input models only when needed.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -299,8 +299,8 @@ _StrictParamsModel = StrictParams
 _ForbidExtraParamsModel = ForbidExtraParams
 
 
-class TestsFlextCliModels(FlextTestsModels, FlextCliModels):
-    """Test namespace facade for flext-cli models. Use tm alias; m is flext_cli.FlextCliModels."""
+class FlextCliTestModels(FlextTestsModels, FlextCliModels):
+    """Test namespace facade for flext-cli models. Use m alias; preserves all test model types."""
 
     CliCommandInput = _CliCommandInputModel
     CliSessionInput = _CliSessionInputModel
@@ -327,7 +327,7 @@ class TestsFlextCliModels(FlextTestsModels, FlextCliModels):
     ForbidExtraParams = _ForbidExtraParamsModel
 
 
-m = TestsFlextCliModels
+m = FlextCliTestModels
 
 __all__ = [
     "AliasedConfig",
@@ -341,6 +341,7 @@ __all__ = [
     "ConfirmTestCaseDict",
     "ConnectionConfig",
     "EnvironmentConfig",
+    "FlextCliTestModels",
     "ForbidExtraParams",
     "FullAppParams",
     "NestedModelConfig",
@@ -350,7 +351,6 @@ __all__ = [
     "ScalarConfigRestore",
     "SimpleParams",
     "StrictParams",
-    "TestsFlextCliModels",
     "TextTestCaseDict",
     "UserData",
     "ValidatedConfig",

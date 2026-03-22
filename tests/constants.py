@@ -1,10 +1,10 @@
 """Constants for flext-cli tests.
 
-Provides TestsFlextCliConstants, extending c with flext-cli-specific
+Provides FlextCliTestConstants, extending FlextTestsConstants with flext-cli-specific
 constants using COMPOSITION INHERITANCE.
 
 Inheritance hierarchy:
-- c (flext_tests) - Provides .Tests.* namespace
+- FlextTestsConstants (flext_tests) - Provides .Tests.* namespace
 - FlextCliConstants (production) - Provides .Cli.* namespace
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
@@ -15,17 +15,17 @@ from __future__ import annotations
 
 from typing import Final
 
-from flext_tests import c
+from flext_tests import FlextTestsConstants
 from pydantic import BaseModel, ConfigDict, Field
 
 from flext_cli import FlextCliConstants
 
 
-class TestsFlextCliConstants(c, FlextCliConstants):
+class FlextCliTestConstants(FlextTestsConstants, FlextCliConstants):
     """Constants for flext-cli tests using COMPOSITION INHERITANCE.
 
     MANDATORY: Inherits from BOTH:
-    1. c - for test infrastructure (.Tests.*)
+    1. FlextTestsConstants - for test infrastructure (.Tests.*)
     2. FlextCliConstants - for domain constants (.Cli.*)
 
     Access patterns:
@@ -36,9 +36,9 @@ class TestsFlextCliConstants(c, FlextCliConstants):
     - c.TestData.* (project-specific test data)
 
     Rules:
-    - NEVER duplicate constants from c or FlextCliConstants
+    - NEVER duplicate constants from FlextTestsConstants or FlextCliConstants
     - Only flext-cli-specific constants allowed (not generic for other projects)
-    - All generic constants come from c
+    - All generic constants come from FlextTestsConstants
     - All production constants come from FlextCliConstants
     """
 
@@ -355,6 +355,5 @@ class TestsFlextCliConstants(c, FlextCliConstants):
         EMPTY_CREDS: Final[dict[str, str]] = {"username": "", "password": ""}
 
 
-__all__ = ["TestsFlextCliConstants", "c"]
-
-c = TestsFlextCliConstants
+c = FlextCliTestConstants
+__all__ = ["FlextCliTestConstants", "c"]

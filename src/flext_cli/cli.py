@@ -336,8 +336,8 @@ class FlextCliCli:
         ) -> Callable[[click.Context], t.Cli.JsonValue]:
             decorated = click.pass_context(func)
 
-            def typed_decorated(ctx: click.Context) -> t.Cli.JsonValue:
-                result = decorated(ctx)
+            def typed_decorated(_ctx: click.Context) -> t.Cli.JsonValue:
+                result = decorated(_ctx)
                 try:
                     return FlextCliCli._json_value_adapter.validate_python(result)
                 except ValidationError:

@@ -25,7 +25,7 @@ import pytest
 import yaml
 from click.testing import CliRunner
 from flext_core import FlextContainer, FlextSettings
-from flext_tests.docker import tk
+from flext_tests import tk
 from pydantic import TypeAdapter
 
 from flext_cli import (
