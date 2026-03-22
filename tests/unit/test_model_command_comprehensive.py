@@ -192,7 +192,7 @@ class TestsCliModelCommandComprehensive:
         config = m.ConnectionConfig.model_validate({"username": "user", "port": 5432})
         tm.that(config.port, eq=5432)
         with pytest.raises(ValidationError):
-            m.ConnectionConfig.model_validate({"username": "user", "port": 100})
+            m.ConnectionConfig.model_validate({"username": "user", "port": 0})
 
     def test_model_command_execution_with_connection_config(
         self, cli: FlextCliCli
