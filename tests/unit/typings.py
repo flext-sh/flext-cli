@@ -2,6 +2,6 @@ from __future__ import annotations
 
 from flext_core import r
 
-from tests import CliTestConfig
+from flext_cli import FlextCliSettings
 
-type CliTestResult = r[CliTestConfig]
+type CliTestResult = r[FlextCliSettings]

@@ -116,7 +116,7 @@ def test_normalize_union_type_returns_annotation_for_none_only_args(
     )
     union_type = str | int
     result = u.Cli.TypeNormalizer.normalize_union_type(union_type)
-    tm.that(result, eq=union_type)
+    tm.that(result == union_type, eq=True)
 
 
 def test_validated_with_result_returns_failure_on_validation_error() -> None:

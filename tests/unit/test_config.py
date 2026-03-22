@@ -21,7 +21,7 @@ import threading
 import typing
 from enum import StrEnum, unique
 from pathlib import Path
-from typing import Final, Literal
+from typing import ClassVar, Final, Literal
 
 import pytest
 import yaml

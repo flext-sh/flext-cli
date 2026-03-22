@@ -829,7 +829,7 @@ class FlextCliModels(FlextModels):
 
             args: Annotated[
                 Sequence[str],
-                Field(default_factory=list, description="Command arguments"),
+                Field(description="Command arguments"),
             ] = ()
 
             status: Annotated[
@@ -864,7 +864,7 @@ class FlextCliModels(FlextModels):
 
             kwargs: Annotated[
                 dict[str, t.Cli.JsonValue],
-                Field(default_factory=dict, description="Command keyword arguments"),
+                Field(description="Command keyword arguments"),
             ] = {}  # noqa: RUF012
 
             @property

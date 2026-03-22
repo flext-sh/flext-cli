@@ -20,6 +20,7 @@ import time
 from collections.abc import Mapping
 from enum import StrEnum, unique
 from typing import (
+    ClassVar,
     Generic,
     Protocol,
     TypeVar,

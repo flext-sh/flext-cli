@@ -16,7 +16,7 @@ from __future__ import annotations
 import re
 import sys
 from enum import StrEnum, unique
-from typing import Final, TypeVar
+from typing import ClassVar, Final, TypeVar
 
 import pytest
 from flext_tests import tm

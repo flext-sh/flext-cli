@@ -169,7 +169,9 @@ class FlextCliTestModels(FlextTestsModels, FlextCliModels):
             class AliasedConfig(PositionalModel):
                 """Config with field aliases and populate_by_name for model_command tests."""
 
-                model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid", populate_by_name=True)
+                model_config: ClassVar[ConfigDict] = ConfigDict(
+                    extra="forbid", populate_by_name=True
+                )
                 input_dir: str = Field(
                     default="", alias="input-dir", description="Input dir"
                 )
@@ -219,7 +221,9 @@ class FlextCliTestModels(FlextTestsModels, FlextCliModels):
             class AliasedParams(PositionalModel):
                 """Params with field aliases for config model integration tests."""
 
-                model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid", populate_by_name=True)
+                model_config: ClassVar[ConfigDict] = ConfigDict(
+                    extra="forbid", populate_by_name=True
+                )
                 input_dir: str | None = Field(default=None, alias="input-dir")
                 output_dir: str | None = Field(default=None, alias="output-dir")
                 batch_size: int = Field(default=0, alias="batch-size")
@@ -258,7 +262,9 @@ class FlextCliTestModels(FlextTestsModels, FlextCliModels):
             class StrictParams(PositionalModel):
                 """Params for strict validation tests."""
 
-                model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid", strict=True)
+                model_config: ClassVar[ConfigDict] = ConfigDict(
+                    extra="forbid", strict=True
+                )
                 name: str = Field(default="")
                 count: int = Field(default=0)
 

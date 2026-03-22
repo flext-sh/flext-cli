@@ -13,7 +13,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import Final
+from typing import ClassVar, Final
 
 from flext_tests import FlextTestsConstants
 from pydantic import BaseModel, ConfigDict, Field
@@ -43,8 +43,8 @@ class FlextCliTestConstants(FlextTestsConstants, FlextCliConstants):
     - All production constants come from FlextCliConstants
     """
 
-    class Cli(FlextCliConstants.Cli):
-        class Test:
+    class Cli(FlextCliConstants.Cli):  # noqa: D106
+        class Test:  # noqa: D106
             ALICE: Final[str] = "Alice"
             VALID_FIELD_NAME: Final[str] = "validField"
             FIELD_NAME: Final[str] = "field"
@@ -156,6 +156,14 @@ class FlextCliTestConstants(FlextTestsConstants, FlextCliConstants):
                 SPECIAL: Final[str] = "!@#$%^&*()"
                 UNICODE: Final[str] = "你好世界🌍"
                 PERFORMANCE_THRESHOLD: Final[float] = 1.0
+                ALICE: Final[str] = "alice"
+                VALID_FIELD_NAME: Final[str] = "validField"
+                FIELD_NAME: Final[str] = "field"
+                WHITESPACE_FIELD_NAME: Final[str] = "field with spaces"
+                VALID_STRING: Final[str] = "valid_string"
+                STRING: Final[str] = "string"
+                WHITESPACE_STRING: Final[str] = "string with spaces"
+                NONE_VALUE: Final[None] = None
 
             class Strings:
                 """Flext-cli-specific test strings organized by complexity."""
@@ -218,18 +226,6 @@ class FlextCliTestConstants(FlextTestsConstants, FlextCliConstants):
                 FAILURE: Final[str] = "failure"
                 PENDING: Final[str] = "pending"
                 RUNNING: Final[str] = "running"
-
-            class TestData:
-                """Test data constants."""
-
-                ALICE: Final[str] = "alice"
-                VALID_FIELD_NAME: Final[str] = "validField"
-                FIELD_NAME: Final[str] = "field"
-                WHITESPACE_FIELD_NAME: Final[str] = "field with spaces"
-                VALID_STRING: Final[str] = "valid_string"
-                STRING: Final[str] = "string"
-                WHITESPACE_STRING: Final[str] = "string with spaces"
-                NONE_VALUE: Final[None] = None
 
         class Fixtures:
             """Test fixture dataclasses for flext-cli tests."""
@@ -370,6 +366,12 @@ class FlextCliTestConstants(FlextTestsConstants, FlextCliConstants):
                 "password": "wrong",
             }
             EMPTY_CREDS: Final[dict[str, str]] = {"username": "", "password": ""}
+
+    TestData = Cli.Test.TestData
+    TestConfiguration = Cli.Test.TestConfiguration
+    PasswordDefaults = Cli.Test.PasswordDefaults
+    ProgressDefaults = Cli.Test.ProgressDefaults
+    TWO = Cli.Test.TWO
 
 
 c = FlextCliTestConstants
