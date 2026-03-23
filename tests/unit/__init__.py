@@ -17,18 +17,18 @@ from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
 if TYPE_CHECKING:
     from flext_core import FlextTypes
 
-    from .conftest import reset_config_singleton
-    from .test_base import TestsCliServiceBase
-    from .test_cli import TestsCliCli
-    from .test_cli_extended import TestsCliCliExtended
-    from .test_cli_params import (
+    from tests.unit.conftest import reset_config_singleton
+    from tests.unit.test_base import TestsCliServiceBase
+    from tests.unit.test_cli import TestsCliCli
+    from tests.unit.test_cli_extended import TestsCliCliExtended
+    from tests.unit.test_cli_params import (
         ConfigParam,
         TestsCliCommonParams,
         create_cli_app,
         create_decorated_command,
         create_test_config,
     )
-    from .test_cmd import (
+    from tests.unit.test_cmd import (
         CONFIG_FILE_NAME,
         CONFIG_OPERATION_METHODS,
         ERROR_SCENARIO_DATA,
@@ -37,7 +37,7 @@ if TYPE_CHECKING:
         ConfigOperation,
         TestsCliCmd,
     )
-    from .test_cmd_cov import (
+    from tests.unit.test_cmd_cov import (
         test_edit_config_outer_exception_path,
         test_edit_config_success_logs_and_returns_ok,
         test_get_config_info_failure_on_exception,
@@ -48,13 +48,13 @@ if TYPE_CHECKING:
         test_show_config_paths_failure_on_exception,
         test_validate_config_failure_on_exception,
     )
-    from .test_commands import TestsCliCommands
-    from .test_comprehensive_models import (
+    from tests.unit.test_commands import TestsCliCommands
+    from tests.unit.test_comprehensive_models import (
         TestsCliComprehensiveModels,
         TestsCliModelSerialization,
         TestsCliModelValidation,
     )
-    from .test_config import (
+    from tests.unit.test_config import (
         ConfigTestFactory,
         ConfigTestScenario,
         ConfigTestType,
@@ -70,19 +70,21 @@ if TYPE_CHECKING:
         TestsCliConfigValidation,
         TestsCliLoggingConfig,
     )
-    from .test_config_model_integration import TestsCliConfigModelIntegration
-    from .test_constants import TestsCliConstants
-    from .test_debug import TestsCliDebug
-    from .test_model_command_comprehensive import TestsCliModelCommandComprehensive
-    from .test_model_factories import TestsCliModelFactories
-    from .test_option_groups_cov import (
+    from tests.unit.test_config_model_integration import TestsCliConfigModelIntegration
+    from tests.unit.test_constants import TestsCliConstants
+    from tests.unit.test_debug import TestsCliDebug
+    from tests.unit.test_model_command_comprehensive import (
+        TestsCliModelCommandComprehensive,
+    )
+    from tests.unit.test_model_factories import TestsCliModelFactories
+    from tests.unit.test_option_groups_cov import (
         test_auth_options_include_expected_env_vars,
         test_connection_options_defaults_are_exposed,
         test_output_options_expose_format_output_and_verbosity,
     )
-    from .test_performance_automated import TestsCliPerformanceAutomated
-    from .test_prompts import TestsCliPrompts
-    from .test_prompts_cov import (
+    from tests.unit.test_performance_automated import TestsCliPerformanceAutomated
+    from tests.unit.test_prompts import TestsCliPrompts
+    from tests.unit.test_prompts_cov import (
         test_print_status_exception_path,
         test_prompt_choice_covers_required_default_and_exception,
         test_prompt_confirmation_handles_exception_from_record,
@@ -91,10 +93,10 @@ if TYPE_CHECKING:
         test_read_selection_paths,
         test_select_from_options_logs_successful_selection,
     )
-    from .test_protocols import TestsCliProtocols
-    from .test_railway_pattern_example import TestsCliRailwayPatternExample
-    from .test_typings import TestsCliTypings, TypingTestCase, TypingTestType
-    from .test_utilities_cov import (
+    from tests.unit.test_protocols import TestsCliProtocols
+    from tests.unit.test_railway_pattern_example import TestsCliRailwayPatternExample
+    from tests.unit.test_typings import TestsCliTypings, TypingTestCase, TypingTestType
+    from tests.unit.test_utilities_cov import (
         test_normalize_union_type_returns_annotation_for_none_only_args,
         test_normalize_union_type_returns_none_for_empty_normalized_list,
         test_normalize_union_type_returns_none_when_inner_is_none,
@@ -106,7 +108,7 @@ if TYPE_CHECKING:
         test_validation_state_requires_criteria,
         test_validation_v_uses_custom_message_on_empty_failure,
     )
-    from .test_version import T, TestsCliVersion
+    from tests.unit.test_version import T, TestsCliVersion
 
 _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "CONFIG_FILE_NAME": ("tests.unit.test_cmd", "CONFIG_FILE_NAME"),
