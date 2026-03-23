@@ -1,7 +1,6 @@
 # FLEXT-CLI v0.10.0 Refactoring Plan
 
 <!-- TOC START -->
-
 - [Table of Contents](#table-of-contents)
 - [Executive Summary](#executive-summary)
   - [Purpose](#purpose)
@@ -43,7 +42,6 @@
   - [Week 3: Test Reorganization & Polish](#week-3-test-reorganization-polish)
   - [Week 4: Release & Support](#week-4-release-support)
 - [Conclusion](#conclusion)
-
 <!-- TOC END -->
 
 **Version**: 0.10.0

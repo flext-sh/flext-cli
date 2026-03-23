@@ -1,7 +1,6 @@
 # Breaking Changes: v0.9.0 → v0.10.0
 
 <!-- TOC START -->
-
 - [Summary](#summary)
 - [1. API Wrapper Methods Removed](#1-api-wrapper-methods-removed)
   - [Removed Methods](#removed-methods)
@@ -36,7 +35,6 @@
   - [If Migration Fails](#if-migration-fails)
   - [Support Resources](#support-resources)
 - [FAQ](#faq)
-
 <!-- TOC END -->
 
 **Complete list of all breaking changes with fixes**

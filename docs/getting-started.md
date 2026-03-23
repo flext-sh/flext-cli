@@ -1,7 +1,6 @@
 # Getting Started with flext-cli
 
 <!-- TOC START -->
-
 - [📌 Quick Navigation](#quick-navigation)
 - [v0.10.0 Getting Started (Current)](#v0100-getting-started-current)
   - [Overview](#overview)
@@ -32,7 +31,6 @@
   - [Validation Commands](#validation-commands)
   - [Implementation Verification](#implementation-verification)
 - [Next Steps](#next-steps)
-
 <!-- TOC END -->
 
 **Installation and setup guide for the FLEXT ecosystem CLI foundation library.**

@@ -11,7 +11,7 @@ import tempfile
 import zipfile
 from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
-from typing import TextIO, TypeGuard
+from typing import TextIO, TypeIs
 
 import yaml
 from flext_core import r
@@ -24,7 +24,7 @@ _JSON_OBJECT_ADAPTER: TypeAdapter[t.Cli.JsonValue] = TypeAdapter(t.Cli.JsonValue
 
 def _is_json_mapping(
     value: t.Cli.JsonValue,
-) -> TypeGuard[Mapping[str, t.Cli.JsonValue]]:
+) -> TypeIs[Mapping[str, t.Cli.JsonValue]]:
     """Narrow t.NormalizedValue to mapping for structured file load."""
     return isinstance(value, Mapping)
 

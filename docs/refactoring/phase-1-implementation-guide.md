@@ -1,7 +1,6 @@
 # Phase 1 Implementation Guide
 
 <!-- TOC START -->
-
 - [v0.10.0 Refactoring - Remove Duplication & Dead Code](#v0100-refactoring-remove-duplication-dead-code)
 - [Overview](#overview)
 - [Step 4: Delete validator.py ✅](#step-4-delete-validatorpy)
@@ -28,7 +27,6 @@
   - [If you need to rollback](#if-you-need-to-rollback)
 - [Summary](#summary)
 - [Next Phase](#next-phase)
-
 <!-- TOC END -->
 
 ## v0.10.0 Refactoring - Remove Duplication & Dead Code

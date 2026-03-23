@@ -1,7 +1,6 @@
 # Migration Guide: v0.9.0 → v0.10.0
 
 <!-- TOC START -->
-
 - [Table of Contents](#table-of-contents)
 - [Overview](#overview)
   - [What Changed](#what-changed)
@@ -44,7 +43,6 @@
   - [Migration Assistance](#migration-assistance)
   - [Reporting Problems](#reporting-problems)
 - [Summary](#summary)
-
 <!-- TOC END -->
 
 **Estimated Migration Time**: 30-60 minutes for typical projects

@@ -1,7 +1,6 @@
 # Architecture Comparison: v0.9.0 vs v0.10.0
 
 <!-- TOC START -->
-
 - [Executive Summary](#executive-summary)
 - [Module Classification](#module-classification)
   - [v0.9.0 (Current): Everything is a Service](#v090-current-everything-is-a-service)
@@ -34,7 +33,6 @@
   - [What Improved](#what-improved)
   - [Trade-offs](#trade-offs)
   - [Overall Assessment](#overall-assessment)
-
 <!-- TOC END -->
 
 **Visual side-by-side comparison of the old and new architectures**

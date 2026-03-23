@@ -1,7 +1,6 @@
 # CLI Architecture
 
 <!-- TOC START -->
-
 - [Princípios](#princpios)
 - [Mapa dos módulos](#mapa-dos-mdulos)
 - [Fluxo em tempo de execução](#fluxo-em-tempo-de-execuo)
@@ -9,7 +8,6 @@
 - [Exemplo mínimo](#exemplo-mnimo)
 - [Referências rápidas](#referncias-rpidas)
 - [Related Documentation](#related-documentation)
-
 <!-- TOC END -->
 
 Panorama da arquitetura implementada no **flext-cli** 0.10.0, conforme o código-fonte.

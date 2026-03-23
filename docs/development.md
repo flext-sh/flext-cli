@@ -1,14 +1,13 @@
 # Development Guide - flext-cli
 
 <!-- TOC START -->
-
 - [📌 Quick Navigation](#quick-navigation)
 - [v0.10.0 Development Guidelines (Current)](#v0100-development-guidelines-current)
   - [Overview](#overview)
 - [When to Use Each Pattern](#when-to-use-each-pattern)
   - [Use FlextService When](#use-flextservice-when)
   - [Use Simple Class When](#use-simple-class-when)
-  - [Use Value Object (Pydantic) When](#use-value-t.NormalizedValue-pydantic-when)
+  - [Use Value Object (Pydantic) When](#use-value-object-pydantic-when)
 - [Architecture Decision Flowchart](#architecture-decision-flowchart)
 - [Code Organization Guidelines](#code-organization-guidelines)
   - [Module Structure](#module-structure)
@@ -43,7 +42,6 @@
 - [Debug and Troubleshooting](#debug-and-troubleshooting)
   - [Common Issues](#common-issues)
   - [Debug Commands](#debug-commands)
-
 <!-- TOC END -->
 
 **Contributing guidelines and development workflow for flext-cli.**

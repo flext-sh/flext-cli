@@ -1,14 +1,12 @@
 # Direct Typing Refactor Plan — flext-cli
 
 <!-- TOC START -->
-
 - [Phase 1 — Tests: \_helpers.py + conftest.py](#phase-1-tests-helperspy-conftestpy)
 - [Phase 2 — Tests: helpers/\_impl.py + integration_test_complete_workflow.py](#phase-2-tests-helpersimplpy-integrationtestcompleteworkflowpy)
 - [Phase 3 — flext-cli src: model boundaries and conversions](#phase-3-flext-cli-src-model-boundaries-and-conversions)
 - [Phase 4 — Bypasses and silent errors](#phase-4-bypasses-and-silent-errors)
   - [Phase 4 audit (agents)](#phase-4-audit-agents)
 - [Success criteria](#success-criteria)
-
 <!-- TOC END -->
 
 **Goal**: Use direct typing in tests and modules; remove conversions, `isinstance`, `cast`, type narrowings, dicts in favor of centralized Pydantic v2 models; remove bypasses and silent errors.
