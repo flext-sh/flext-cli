@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import logging
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable, Mapping, MutableMapping, Sequence
 from typing import Self, override
 
 from flext_core import r
@@ -53,8 +53,8 @@ class FlextCliCommands(FlextCliServiceBase):
         )
         self._name = name
         self._description = description
-        self._commands: Mapping[str, m.Cli.CommandEntryModel] = {}
-        self._groups: Mapping[str, m.Cli.CliCommandGroup] = {}
+        self._commands: MutableMapping[str, m.Cli.CommandEntryModel] = {}
+        self._groups: MutableMapping[str, m.Cli.CliCommandGroup] = {}
 
     @property
     def description(self) -> str:

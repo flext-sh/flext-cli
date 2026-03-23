@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, MutableSequence, Sequence
 from typing import Self
 
 from flext_core import r
@@ -48,9 +48,9 @@ class FlextCliCommandBuilder:
         """
         super().__init__()
         self._name = name
-        self._options: Sequence[OptionInfo] = []
-        self._arguments: Sequence[tuple[str, type, bool]] = []
-        self._middleware: Sequence[
+        self._options: MutableSequence[OptionInfo] = []
+        self._arguments: MutableSequence[tuple[str, type, bool]] = []
+        self._middleware: MutableSequence[
             Callable[[p.Cli.CliContext], r[t.Cli.JsonValue]]
         ] = []
         self._handler: p.Cli.CommandHandlerCallable | None = None

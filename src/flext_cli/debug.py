@@ -15,7 +15,7 @@ import pathlib
 import platform
 import sys
 import tempfile
-from collections.abc import Mapping, MutableMapping, Sequence
+from collections.abc import Mapping, MutableMapping, MutableSequence, Sequence
 from typing import override
 
 from flext_core import r
@@ -98,9 +98,9 @@ class FlextCliDebug(FlextCliServiceBase):
         )
 
     @staticmethod
-    def _get_path_info() -> Sequence[m.Cli.PathInfo]:
+    def _get_path_info() -> MutableSequence[m.Cli.PathInfo]:
         """Get system path information as list of Pydantic models."""
-        paths: Sequence[m.Cli.PathInfo] = []
+        paths: MutableSequence[m.Cli.PathInfo] = []
         for i, path in enumerate(sys.path):
             path_obj = pathlib.Path(path)
             paths.append(
@@ -129,9 +129,9 @@ class FlextCliDebug(FlextCliServiceBase):
         )
 
     @staticmethod
-    def _validate_filesystem_permissions() -> Sequence[str]:
+    def _validate_filesystem_permissions() -> MutableSequence[str]:
         """Validate filesystem permissions and setup."""
-        errors: Sequence[str] = []
+        errors: MutableSequence[str] = []
         try:
             with tempfile.NamedTemporaryFile(delete=True) as tmp:
                 _ = tmp.write(b"test")
@@ -245,7 +245,7 @@ class FlextCliDebug(FlextCliServiceBase):
     ) -> r[Mapping[str, t.Cli.JsonValue]]:
         """Get comprehensive debug information combining all debug methods."""
         try:
-            comprehensive_info: Mapping[str, t.Cli.JsonValue] = {}
+            comprehensive_info: MutableMapping[str, t.Cli.JsonValue] = {}
             self._collect_info_safely(
                 "get_system_info",
                 c.Cli.DebugDictKeys.SYSTEM_ERROR,
@@ -361,7 +361,7 @@ class FlextCliDebug(FlextCliServiceBase):
         """Get system path information - public API method."""
         try:
             paths_data = self._get_path_info()
-            serialized_paths: Sequence[t.Cli.JsonValue] = []
+            serialized_paths: MutableSequence[t.Cli.JsonValue] = []
             for path_info in paths_data:
                 path_dict = FlextCliDebug._convert_model_to_dict(path_info).model_dump()
                 path_json_dict: Mapping[str, t.Cli.JsonValue] = dict(path_dict)
