@@ -36,8 +36,7 @@ from flext_tests import tm
 from pydantic import BaseModel, ConfigDict, Field
 
 from flext_cli import FlextCliTypes, t
-from tests.helpers import c
-from tests.models import ApiResponse, UserData
+from tests import ApiResponse, UserData, c
 
 from ..helpers import FlextCliTestHelpers
 

@@ -10,7 +10,7 @@ import pytest
 from flext_core import r
 
 from flext_cli import FlextCliCommands, m, t
-from tests.models import CliCommandInput, CliSessionInput
+from tests import CliCommandInput, CliSessionInput
 
 
 def create_test_cli_command(**overrides: t.ContainerValue) -> m.Cli.CliCommand:

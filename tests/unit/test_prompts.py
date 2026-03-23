@@ -23,12 +23,13 @@ from flext_core import r
 from flext_tests import tm
 
 from flext_cli import FlextCliPrompts
-from tests import c, t
-from tests.models import (
+from tests import (
     ChoiceTestCaseDict,
     ConfirmTestCaseDict,
     PrintStatusCase,
     TextTestCaseDict,
+    c,
+    t,
 )
 
 T = TypeVar("T")

@@ -11,7 +11,7 @@ import pytest
 from flext_tests import tm
 
 from flext_cli import FlextCliModels, c, m
-from tests._helpers import create_test_cli_command
+from tests import create_test_cli_command
 
 
 class TestsCliPerformanceAutomated:

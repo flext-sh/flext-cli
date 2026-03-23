@@ -235,7 +235,7 @@ from flext_cli import FlextCliTesting
 **NEW**:
 
 ```python
-from tests.fixtures.testing_utilities import (
+from tests import (
     FlextCliTesting,
     FlextCliTestRunner,
     FlextCliMockScenarios,
@@ -247,19 +247,19 @@ from tests.fixtures.testing_utilities import (
 ```bash
 # Update imports in test files
 find tests -name "*.py" -type f -exec sed -i \
-  's/from flext_cli import FlextCliTesting/from tests.fixtures.testing_utilities import FlextCliTesting/g' \
+  's/from flext_cli import FlextCliTesting/from tests import FlextCliTesting/g' \
   {} +
 
 find tests -name "*.py" -type f -exec sed -i \
-  's/from flext_cli import FlextCliTestRunner/from tests.fixtures.testing_utilities import FlextCliTestRunner/g' \
+  's/from flext_cli import FlextCliTestRunner/from tests import FlextCliTestRunner/g' \
   {} +
 
 find tests -name "*.py" -type f -exec sed -i \
-  's/from flext_cli import FlextCliMockScenarios/from tests.fixtures.testing_utilities import FlextCliMockScenarios/g' \
+  's/from flext_cli import FlextCliMockScenarios/from tests import FlextCliMockScenarios/g' \
   {} +
 
 find tests -name "*.py" -type f -exec sed -i \
-  's/from flext_cli import/from tests.fixtures.testing_utilities import/g' \
+  's/from flext_cli import/from tests import/g' \
   {} +
 ```
 
@@ -317,7 +317,7 @@ python -c "from flext_cli import FlextCliTesting" 2>&1 | grep -q "ImportError" &
 make test
 
 # Verify tests can import from new location
-python -c "from tests.fixtures.testing_utilities import FlextCliTesting; print('✓ Import works')"
+python -c "from tests import FlextCliTesting; print('✓ Import works')"
 ```
 
 **Expected**: Can't import from flext_cli anymore, tests pass, can import from tests.fixtures
@@ -411,7 +411,7 @@ mv tests/fixtures/testing_utilities.py src/flext_cli/testing.py
 
 # Restore test imports
 find tests -name "*.py" -type f -exec sed -i \
-  's/from tests.fixtures.testing_utilities import/from flext_cli import/g' \
+  's/from tests import/from flext_cli import/g' \
   {} +
 ```
 

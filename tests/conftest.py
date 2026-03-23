@@ -41,8 +41,7 @@ from flext_cli import (
     FlextCliServiceBase,
     FlextCliSettings,
 )
-from tests import c, m, p, t, u
-from tests.helpers._impl import _is_json_dict
+from tests import _is_json_dict, c, m, p, t, u
 
 
 def pytest_configure(config: pytest.Config) -> None:

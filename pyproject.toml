@@ -564,6 +564,7 @@ extraPaths = [
 ]
 pythonPlatform = "Linux"
 pythonVersion = "3.13"
+reportCallIssue = "none"
 reportConstantRedefinition = "error"
 reportIncompatibleMethodOverride = "error"
 reportIncompatibleVariableOverride = "error"
@@ -593,6 +594,7 @@ root = "src"
 reportPrivateUsage = "none"
 root = "tests"
 
+# [MANAGED] tomlsort
 [tool.tomlsort]
 all = true
 in_place = true

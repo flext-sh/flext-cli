@@ -9,7 +9,7 @@ from flext_tests import tm
 from pydantic import ValidationError
 
 from flext_cli import c, m, t
-from tests._helpers import (
+from tests import (
     create_test_cli_command,
     create_test_cli_session,
     generate_edge_case_data,

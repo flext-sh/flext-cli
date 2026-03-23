@@ -199,7 +199,7 @@ result = cli.authenticate({"token": "abc123"})
 from flext_cli import FlextCliTesting, FlextCliTestRunner, FlextCliMockScenarios
 
 # ✅ FIX: Import from test fixtures
-from tests.fixtures.testing_utilities import (
+from tests import (
     FlextCliTesting,
     FlextCliTestRunner,
     FlextCliMockScenarios,
@@ -311,10 +311,10 @@ If you import from test modules:
 
 ```python
 # ❌ OLD
-from tests.unit.test_config import SomeTestHelper
+from tests import SomeTestHelper
 
 # ✅ NEW
-from tests.unit.config.test_config_loading import SomeTestHelper
+from tests import SomeTestHelper
 ```
 
 ______________________________________________________________________

@@ -195,7 +195,7 @@ result = cli.file_tools.read_json_file("config.json")
 from flext_cli import FlextCliTesting, FlextCliTestRunner
 
 # ✅ v0.10.0 (NEW)
-from tests.fixtures.testing_utilities import FlextCliTesting, FlextCliTestRunner
+from tests import FlextCliTesting, FlextCliTestRunner
 ```
 
 ### 5. Removed Modules

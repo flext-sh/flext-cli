@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from flext_cli import c, m
-from tests._helpers import create_test_cli_command
+from tests import create_test_cli_command
 
 
 class TestsCliWorkflowIntegration:

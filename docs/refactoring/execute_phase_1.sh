@@ -64,22 +64,22 @@ if [ "$affected_files" -gt 0 ]; then
 
 	# Update FlextCliTesting imports
 	find tests -name "*.py" -type f -exec sed -i \
-		's/from flext_cli import FlextCliTesting/from tests.fixtures.testing_utilities import FlextCliTesting/g' \
+		's/from flext_cli import FlextCliTesting/from tests import FlextCliTesting/g' \
 		{} + 2>/dev/null || true
 
 	# Update FlextCliTestRunner imports
 	find tests -name "*.py" -type f -exec sed -i \
-		's/from flext_cli import FlextCliTestRunner/from tests.fixtures.testing_utilities import FlextCliTestRunner/g' \
+		's/from flext_cli import FlextCliTestRunner/from tests import FlextCliTestRunner/g' \
 		{} + 2>/dev/null || true
 
 	# Update FlextCliMockScenarios imports
 	find tests -name "*.py" -type f -exec sed -i \
-		's/from flext_cli import FlextCliMockScenarios/from tests.fixtures.testing_utilities import FlextCliMockScenarios/g' \
+		's/from flext_cli import FlextCliMockScenarios/from tests import FlextCliMockScenarios/g' \
 		{} + 2>/dev/null || true
 
 	# Update direct module imports
 	find tests -name "*.py" -type f -exec sed -i \
-		's/from flext_cli import/from tests.fixtures.testing_utilities import/g' \
+		's/from flext_cli import/from tests import/g' \
 		{} + 2>/dev/null || true
 
 	echo "✅ Test imports updated"
