@@ -23,9 +23,15 @@ from flext_cli import FlextCliModels, t
 class FlextCliTestModels(FlextTestsModels, FlextCliModels):
     """Test namespace facade for flext-cli models. Use m alias; preserves all test model types."""
 
-    class Cli(FlextCliModels.Cli):  # noqa: D106
-        class Test:  # noqa: D106
-            class PositionalModel(BaseModel):  # noqa: D106
+    class Cli(FlextCliModels.Cli):
+        """CLI models with test-specific extensions."""
+
+        class Test:
+            """Test-specific model definitions."""
+
+            class PositionalModel(BaseModel):
+                """Model accepting positional data for test scenarios."""
+
                 model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
 
                 def __init__(

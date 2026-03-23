@@ -6,7 +6,7 @@ import pytest
 from flext_tests import tm
 
 from flext_cli import c
-from tests import create_test_cli_command, create_test_cli_session
+from tests._helpers import create_test_cli_command, create_test_cli_session
 
 
 class TestsCliModelFactories:

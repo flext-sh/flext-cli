@@ -862,8 +862,8 @@ class FlextCliModels(FlextModels):
 
             kwargs: Annotated[
                 dict[str, t.Cli.JsonValue],
-                Field(description="Command keyword arguments"),
-            ] = {}  # noqa: RUF012
+                Field(default_factory=dict, description="Command keyword arguments"),
+            ]
 
             @property
             def command_summary(self) -> Mapping[str, str]:
@@ -3525,7 +3525,7 @@ class FlextCliModels(FlextModels):
                                 validated_model = model_cls(**kwargs)
                                 model_instances.append(validated_model)
                             result: t.Cli.JsonValue = func(
-                                *(m_inst.model_dump() for m in model_instances),
+                                *(inst.model_dump() for inst in model_instances),
                             )
                             return result
                         except (

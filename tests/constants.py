@@ -43,8 +43,12 @@ class FlextCliTestConstants(FlextTestsConstants, FlextCliConstants):
     - All production constants come from FlextCliConstants
     """
 
-    class Cli(FlextCliConstants.Cli):  # noqa: D106
-        class Test:  # noqa: D106
+    class Cli(FlextCliConstants.Cli):
+        """CLI constants with test-specific extensions."""
+
+        class Test:
+            """Test-specific constant values."""
+
             ALICE: Final[str] = "Alice"
             VALID_FIELD_NAME: Final[str] = "validField"
             FIELD_NAME: Final[str] = "field"
