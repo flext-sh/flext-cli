@@ -20,8 +20,7 @@ from rich.progress import Progress
 from rich.table import Table as RichTable
 from rich.tree import Tree as RichTree
 
-from flext_cli import FlextCliFormatters, FlextCliTables, c, m, p, t, u
-from flext_cli.typings import FlextCliTypes
+from flext_cli import FlextCliFormatters, FlextCliTables, FlextCliTypes, c, m, p, t, u
 
 _JSON_VALUE_ADAPTER: TypeAdapter[FlextCliTypes.Cli.JsonValue] = TypeAdapter(
     FlextCliTypes.Cli.JsonValue,
@@ -346,19 +345,19 @@ class FlextCliOutput:
     @staticmethod
     def cast_if(
         v: FlextCliTypes.Cli.JsonValue,
-        t_type: type,
+        t: type,
         default: FlextCliTypes.Cli.JsonValue,
     ) -> FlextCliTypes.Cli.JsonValue:
         """Cast value if isinstance else return default.
 
         Pattern: Non-generic cast_if for runtime type checking.
-        Checks v against t_type, returns v if match, else returns default.
+        Checks v against t, returns v if match, else returns default.
         """
-        if isinstance(v, t_type):
+        if isinstance(v, t):
             return v
-        if isinstance(default, t_type):
+        if isinstance(default, t):
             return default
-        type_name = t_type.__name__ if hasattr(t_type, "__name__") else str(t_type)
+        type_name = t.__name__ if hasattr(t, "__name__") else str(t)
         default_type_name = (
             type(default).__name__
             if hasattr(type(default), "__name__")

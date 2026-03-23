@@ -18,8 +18,7 @@ from flext_core import r
 from rich.errors import ConsoleError, LiveError, StyleError
 from tabulate import tabulate
 
-from flext_cli import FlextCliServiceBase, c, m, t, u
-from flext_cli.typings import FlextCliTypes
+from flext_cli import FlextCliServiceBase, FlextCliTypes, c, m, t, u
 
 
 class FlextCliTables(FlextCliServiceBase):

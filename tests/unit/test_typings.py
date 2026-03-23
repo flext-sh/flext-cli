@@ -245,13 +245,13 @@ class TestsCliTypings:
 
     def _execute_type_definition_tests(self) -> None:
         """Execute type definition tests."""
-        t_var = TypeVar("t_var")
+        TypeVar("t")
         generic_type = Generic
 
         class Test(Protocol):
             def method(self) -> str: ...
 
-        tm.that(t_var is not None, eq=True)
+        tm.that(t is not None, eq=True)
         tm.that(generic_type is not None, eq=True)
         tm.that(Test is not None, eq=True)
         user_data: dict[str, t.NormalizedValue] = {"key": "value", "number": 42}

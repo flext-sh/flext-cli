@@ -21,11 +21,11 @@ from flext_cli import (
     FlextCliFileTools,
     FlextCliOutput,
     FlextCliServiceBase,
+    FlextCliTypes,
     FlextCliUtilities,
     c,
     m,
 )
-from flext_cli.typings import FlextCliTypes
 
 
 class FlextCliCmd(FlextCliServiceBase):

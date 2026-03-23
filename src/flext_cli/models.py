@@ -35,9 +35,7 @@ from pydantic.fields import FieldInfo
 from rich.errors import ConsoleError, LiveError, StyleError
 from typer.models import OptionInfo
 
-from flext_cli import c, p, t
-from flext_cli._models.cli_models_statistics import FlextCliModelsStatistics
-from flext_cli._models.cli_models_system_context import FlextCliModelsSystemContext
+from flext_cli import FlextCliModelsStatistics, FlextCliModelsSystemContext, c, p, t
 
 _logger = FlextLogger(__name__)
 
@@ -3527,7 +3525,7 @@ class FlextCliModels(FlextModels):
                                 validated_model = model_cls(**kwargs)
                                 model_instances.append(validated_model)
                             result: t.Cli.JsonValue = func(
-                                *(m_inst.model_dump() for m_inst in model_instances),
+                                *(m_inst.model_dump() for m in model_instances),
                             )
                             return result
                         except (

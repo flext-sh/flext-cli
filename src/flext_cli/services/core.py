@@ -19,6 +19,7 @@ from rich.errors import ConsoleError, LiveError, StyleError
 from flext_cli import (
     FlextCliOutput,
     FlextCliServiceBase,
+    FlextCliTypes,
     FlextCliUtilities,
     c,
     m,
@@ -26,7 +27,6 @@ from flext_cli import (
     t,
     u,
 )
-from flext_cli.typings import FlextCliTypes
 
 
 class FlextCliCore(FlextCliServiceBase):

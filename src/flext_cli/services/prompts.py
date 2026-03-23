@@ -12,8 +12,14 @@ from flext_core import r
 from pydantic import Field, PrivateAttr
 from rich.errors import ConsoleError, LiveError, StyleError
 
-from flext_cli import FlextCliConstants, FlextCliServiceBase, FlextCliUtilities, m, t
-from flext_cli.typings import FlextCliTypes
+from flext_cli import (
+    FlextCliConstants,
+    FlextCliServiceBase,
+    FlextCliTypes,
+    FlextCliUtilities,
+    m,
+    t,
+)
 
 CLI = FlextCliConstants.Cli
 PD, EM = (CLI.PromptsDefaults, CLI.ErrorMessages)

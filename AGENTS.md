@@ -342,11 +342,11 @@ This section defines **mandatory patterns** for imports, namespaces, and module 
 
 ```python
 # ✅ CORRECT - Runtime short aliases (src/ and tests/)
-from flext_cli.typings import t  # FlextCliTypes
-from flext_cli.constants import c  # FlextCliConstants
-from flext_cli.models import m  # FlextCliModels
-from flext_cli.protocols import p  # FlextCliProtocols
-from flext_cli.utilities import u  # FlextCliUtilities
+from flext_cli import t  # FlextCliTypes
+from flext_cli import c  # FlextCliConstants
+from flext_cli import m  # FlextCliModels
+from flext_cli import p  # FlextCliProtocols
+from flext_cli import u  # FlextCliUtilities
 
 # flext_core aliases (also available)
 from flext_core import r  # r
@@ -431,7 +431,7 @@ class FlextCliProtocols(FlextProtocols):
 
 
 # services/cmd.py (Tier 3 - can import protocols)
-from flext_cli.protocols import p
+from flext_cli import p
 
 
 class FlextCliCmd:
@@ -465,7 +465,7 @@ class CommandHandler:
 ```python
 # ✅ ALLOWED - Same tier imports
 # utilities.py can import from models.py (both Tier 1)
-from flext_cli.models import m
+from flext_cli import m
 
 
 class FlextCliUtilities:
@@ -478,14 +478,14 @@ class FlextCliUtilities:
 ```python
 # ❌ FORBIDDEN PATTERN - Creates circular import
 # api.py
-from flext_cli.services.cmd import FlextCliCmd
+from flext_cli import FlextCliCmd
 
 # services/cmd.py
-from flext_cli.api import FlextCli  # CIRCULAR!
+from flext_cli import FlextCli  # CIRCULAR!
 
 # ✅ CORRECT - Services use protocols, not concrete api.py
 # services/cmd.py
-from flext_cli.protocols import p
+from flext_cli import p
 # No import of api.py
 ```
 
@@ -496,8 +496,8 @@ from flext_cli.protocols import p
 
 # ✅ CORRECT - Import from package root
 from flext_cli import FlextCli, FlextCliConfig
-from flext_cli.models import m
-from flext_cli.constants import c
+from flext_cli import m
+from flext_cli import c
 
 # ✅ CORRECT - Import test helpers
 from tests import tm, tf  # TestsFlextCliMatchers, TestsFlextCliFixtures
@@ -802,7 +802,7 @@ except ImportError:
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from flext_cli.protocols import p
+    from flext_cli import p
 
 # ✅ CORRECT - Forward references
 from __future__ import annotations
