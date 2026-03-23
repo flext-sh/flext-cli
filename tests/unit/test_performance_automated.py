@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import time
+from collections.abc import Sequence
 from datetime import UTC, datetime
 
 import psutil
@@ -20,7 +21,7 @@ class TestsCliPerformanceAutomated:
     @pytest.mark.parametrize("num_commands", [10, 50, 100, 500])
     def test_session_bulk_command_operations(self, num_commands: int) -> None:
         """Test bulk command operations performance."""
-        commands: list[FlextCliModels.Cli.CliCommand] = []
+        commands: Sequence[FlextCliModels.Cli.CliCommand] = []
         base_time = time.time()
         start_time = time.time()
         for i in range(num_commands):
@@ -59,7 +60,7 @@ class TestsCliPerformanceAutomated:
         """Test memory usage patterns with real t.NormalizedValue creation."""
         process = psutil.Process(os.getpid())
         initial_memory = process.memory_info().rss / 1024 / 1024
-        commands: list[FlextCliModels.Cli.CliCommand] = []
+        commands: Sequence[FlextCliModels.Cli.CliCommand] = []
         for i in range(1000):
             cmd = create_test_cli_command(
                 name=f"cmd{i}", args=[f"arg{j}" for j in range(10)]

@@ -15,7 +15,7 @@ import pathlib
 import platform
 import sys
 import tempfile
-from collections.abc import Mapping, MutableMapping
+from collections.abc import Mapping, MutableMapping, Sequence
 from typing import override
 
 from flext_core import r
@@ -98,9 +98,9 @@ class FlextCliDebug(FlextCliServiceBase):
         )
 
     @staticmethod
-    def _get_path_info() -> list[m.Cli.PathInfo]:
+    def _get_path_info() -> Sequence[m.Cli.PathInfo]:
         """Get system path information as list of Pydantic models."""
-        paths: list[m.Cli.PathInfo] = []
+        paths: Sequence[m.Cli.PathInfo] = []
         for i, path in enumerate(sys.path):
             path_obj = pathlib.Path(path)
             paths.append(
@@ -129,9 +129,9 @@ class FlextCliDebug(FlextCliServiceBase):
         )
 
     @staticmethod
-    def _validate_filesystem_permissions() -> list[str]:
+    def _validate_filesystem_permissions() -> Sequence[str]:
         """Validate filesystem permissions and setup."""
-        errors: list[str] = []
+        errors: Sequence[str] = []
         try:
             with tempfile.NamedTemporaryFile(delete=True) as tmp:
                 _ = tmp.write(b"test")
@@ -165,7 +165,7 @@ class FlextCliDebug(FlextCliServiceBase):
     def execute_health_check() -> r[Mapping[str, t.Cli.JsonValue]]:
         """Execute comprehensive health check."""
         try:
-            health_info: dict[str, t.Cli.JsonValue] = {
+            health_info: Mapping[str, t.Cli.JsonValue] = {
                 c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.HEALTHY.value,
                 c.Cli.DictKeys.TIMESTAMP: u.generate("timestamp"),
                 c.Cli.DictKeys.SERVICE: c.Cli.DebugDefaults.SERVICE_NAME,
@@ -186,10 +186,10 @@ class FlextCliDebug(FlextCliServiceBase):
             )
 
     @staticmethod
-    def execute_trace(args: list[str]) -> r[Mapping[str, t.Cli.JsonValue]]:
+    def execute_trace(args: Sequence[str]) -> r[Mapping[str, t.Cli.JsonValue]]:
         """Execute trace operation with provided arguments."""
         try:
-            trace_info: dict[str, t.Cli.JsonValue] = {
+            trace_info: Mapping[str, t.Cli.JsonValue] = {
                 c.Cli.DebugDictKeys.OPERATION: c.Cli.TRACE,
                 c.Cli.DictKeys.ARGS: list(args),
                 c.Cli.DebugDictKeys.ARGS_COUNT: len(args),
@@ -245,7 +245,7 @@ class FlextCliDebug(FlextCliServiceBase):
     ) -> r[Mapping[str, t.Cli.JsonValue]]:
         """Get comprehensive debug information combining all debug methods."""
         try:
-            comprehensive_info: dict[str, t.Cli.JsonValue] = {}
+            comprehensive_info: Mapping[str, t.Cli.JsonValue] = {}
             self._collect_info_safely(
                 "get_system_info",
                 c.Cli.DebugDictKeys.SYSTEM_ERROR,
@@ -288,15 +288,15 @@ class FlextCliDebug(FlextCliServiceBase):
             system_info_dict = FlextCliDebug._convert_model_to_dict(
                 system_info_model,
             ).model_dump()
-            system_info_json: dict[str, t.Cli.JsonValue] = dict(system_info_dict)
+            system_info_json: Mapping[str, t.Cli.JsonValue] = dict(system_info_dict)
             environment_info_model = self._get_environment_info()
             environment_info_dict = FlextCliDebug._convert_model_to_dict(
                 environment_info_model,
             ).model_dump()
-            environment_info_json: dict[str, t.Cli.JsonValue] = dict(
+            environment_info_json: Mapping[str, t.Cli.JsonValue] = dict(
                 environment_info_dict,
             )
-            debug_info: dict[str, t.Cli.JsonValue] = {
+            debug_info: Mapping[str, t.Cli.JsonValue] = {
                 c.Cli.DictKeys.SERVICE: c.Cli.DebugDefaults.SERVICE_NAME,
                 c.Cli.DictKeys.TIMESTAMP: u.generate("timestamp"),
                 c.Cli.DebugDictKeys.DEBUG_ID: u.generate("id"),
@@ -321,7 +321,7 @@ class FlextCliDebug(FlextCliServiceBase):
         """Get environment variables with sensitive data masked."""
         try:
             env_info = self._get_environment_info()
-            typed_env_info: dict[str, t.Cli.JsonValue] = dict(
+            typed_env_info: Mapping[str, t.Cli.JsonValue] = dict(
                 env_info.variables.items(),
             )
             return r[Mapping[str, t.Cli.JsonValue]].ok(typed_env_info)
@@ -341,7 +341,7 @@ class FlextCliDebug(FlextCliServiceBase):
         """Get system information - public API method."""
         try:
             info_model = self._get_system_info()
-            info_dict: dict[str, t.Cli.JsonValue] = dict(
+            info_dict: Mapping[str, t.Cli.JsonValue] = dict(
                 FlextCliDebug._convert_model_to_dict(info_model).model_dump(),
             )
             return r[Mapping[str, t.Cli.JsonValue]].ok(info_dict)
@@ -361,12 +361,12 @@ class FlextCliDebug(FlextCliServiceBase):
         """Get system path information - public API method."""
         try:
             paths_data = self._get_path_info()
-            serialized_paths: list[t.Cli.JsonValue] = []
+            serialized_paths: Sequence[t.Cli.JsonValue] = []
             for path_info in paths_data:
                 path_dict = FlextCliDebug._convert_model_to_dict(path_info).model_dump()
-                path_json_dict: dict[str, t.Cli.JsonValue] = dict(path_dict)
+                path_json_dict: Mapping[str, t.Cli.JsonValue] = dict(path_dict)
                 serialized_paths.append(path_json_dict)
-            paths_dict: dict[str, t.Cli.JsonValue] = {"paths": serialized_paths}
+            paths_dict: Mapping[str, t.Cli.JsonValue] = {"paths": serialized_paths}
             return r[Mapping[str, t.Cli.JsonValue]].ok(paths_dict)
         except (
             ValueError,
@@ -380,11 +380,11 @@ class FlextCliDebug(FlextCliServiceBase):
                 c.Cli.DebugErrorMessages.SYSTEM_PATHS_COLLECTION_FAILED.format(error=e),
             )
 
-    def validate_environment_setup(self) -> r[list[str]]:
+    def validate_environment_setup(self) -> r[Sequence[str]]:
         """Validate environment setup and dependencies."""
         try:
             results = self._validate_filesystem_permissions()
-            return r[list[str]].ok(results)
+            return r[Sequence[str]].ok(results)
         except (
             ValueError,
             TypeError,
@@ -393,7 +393,7 @@ class FlextCliDebug(FlextCliServiceBase):
             StyleError,
             LiveError,
         ) as e:
-            return r[list[str]].fail(
+            return r[Sequence[str]].fail(
                 c.Cli.DebugErrorMessages.ENVIRONMENT_VALIDATION_FAILED.format(error=e),
             )
 

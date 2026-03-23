@@ -142,7 +142,7 @@ class FlextCliSettings(FlextSettings):
         if not isinstance(data, Mapping):
             return r[bool].fail(c.Cli.CmdErrorMessages.CONFIG_NOT_DICT)
 
-        validated_data: dict[str, t.Cli.JsonValue] = {
+        validated_data: Mapping[str, t.Cli.JsonValue] = {
             str(key): m.Cli.normalize_json_value(value) for key, value in data.items()
         }
 
@@ -157,7 +157,7 @@ class FlextCliSettings(FlextSettings):
 
     def update_from_cli_args(self, **kwargs: t.Scalar) -> r[bool]:
         """Update config from CLI args."""
-        data: dict[str, t.Cli.JsonValue] = {
+        data: Mapping[str, t.Cli.JsonValue] = {
             k: v for k, v in kwargs.items() if k in self.__class__.model_fields
         }
         return self.save_config(data)

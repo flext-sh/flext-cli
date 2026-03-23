@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import override
 
@@ -85,7 +85,7 @@ class FlextCliCmd(FlextCliServiceBase):
         )
 
     @staticmethod
-    def show_config_paths() -> r[list[str]]:
+    def show_config_paths() -> r[Sequence[str]]:
         """Show configuration paths using FlextCliUtilities directly."""
         return FlextCliUtilities.try_(
             FlextCliUtilities.Cli.ConfigOps.get_config_paths,
@@ -214,7 +214,7 @@ class FlextCliCmd(FlextCliServiceBase):
                     c.Cli.CmdErrorMessages.CONFIG_NOT_DICT,
                 )
             if isinstance(config_data, Mapping):
-                normalized: dict[str, FlextCliTypes.Cli.JsonValue] = {
+                normalized: Mapping[str, FlextCliTypes.Cli.JsonValue] = {
                     str(k): m.Cli.normalize_json_value(v)
                     for k, v in config_data.items()
                 }
@@ -234,7 +234,7 @@ class FlextCliCmd(FlextCliServiceBase):
                     "timestamp",
                 ),
             }
-            result_data: dict[str, FlextCliTypes.Cli.JsonValue] = {
+            result_data: Mapping[str, FlextCliTypes.Cli.JsonValue] = {
                 str(k): m.Cli.normalize_json_value(v)
                 for k, v in FlextCliOutput.to_dict_json(raw_data).items()
             }

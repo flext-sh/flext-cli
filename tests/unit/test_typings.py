@@ -17,7 +17,7 @@ from __future__ import annotations
 import math
 import threading
 import time
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from enum import StrEnum, unique
 from typing import (
     ClassVar,
@@ -80,7 +80,7 @@ class TestsCliTypings:
         """Factory for creating typing test data and cases."""
 
         @staticmethod
-        def create_comprehensive_test_cases() -> list[TypingTestCase]:
+        def create_comprehensive_test_cases() -> Sequence[TypingTestCase]:
             """Create comprehensive test cases for all typing scenarios."""
             return [
                 TypingTestCase(
@@ -122,7 +122,7 @@ class TestsCliTypings:
             ]
 
         @staticmethod
-        def create_type_test_data() -> dict[str, t.NormalizedValue]:
+        def create_type_test_data() -> Mapping[str, t.NormalizedValue]:
             """Create test data for type operations."""
             return {
                 "config_data": {
@@ -166,7 +166,7 @@ class TestsCliTypings:
 
         @staticmethod
         def validate_type_usage(
-            data: dict[str, t.NormalizedValue], type_hint: str
+            data: Mapping[str, t.NormalizedValue], type_hint: str
         ) -> r[bool]:
             """Validate type usage with actual data."""
             try:
@@ -215,7 +215,7 @@ class TestsCliTypings:
         """Execute initialization-related tests."""
         validation_result = self.TypingValidators.validate_type_initialization(t)
         tm.ok(validation_result)
-        test_data: dict[str, t.NormalizedValue] = {"key": "value"}
+        test_data: Mapping[str, t.NormalizedValue] = {"key": "value"}
         tm.that(isinstance(test_data, dict), eq=True)
 
     def _execute_basic_functionality_tests(self) -> None:
@@ -225,7 +225,7 @@ class TestsCliTypings:
         if not isinstance(config_data_obj, dict):
             error_msg = "config_data must be a dict"
             raise TypeError(error_msg)
-        config_dict: dict[str, t.NormalizedValue] = config_data_obj
+        config_dict: Mapping[str, t.NormalizedValue] = config_data_obj
         config_result = self.TypingValidators.validate_type_usage(
             config_dict, "CliConfigData"
         )
@@ -234,7 +234,7 @@ class TestsCliTypings:
         if not isinstance(format_data_obj, dict):
             error_msg = "format_data must be a dict"
             raise TypeError(error_msg)
-        format_dict: dict[str, t.NormalizedValue] = format_data_obj
+        format_dict: Mapping[str, t.NormalizedValue] = format_data_obj
         format_result = self.TypingValidators.validate_type_usage(
             format_dict, "CliFormatData"
         )
@@ -253,8 +253,8 @@ class TestsCliTypings:
         tm.that(t is not None, eq=True)
         tm.that(generic_type is not None, eq=True)
         tm.that(Test is not None, eq=True)
-        user_data: dict[str, t.NormalizedValue] = {"key": "value", "number": 42}
-        user_list: list[dict[str, t.NormalizedValue]] = [user_data]
+        user_data: Mapping[str, t.NormalizedValue] = {"key": "value", "number": 42}
+        user_list: Sequence[Mapping[str, t.NormalizedValue]] = [user_data]
         tm.that(isinstance(user_data, dict), eq=True)
         tm.that(isinstance(user_list, list), eq=True)
         tm.that(len(user_list), eq=1)
@@ -288,7 +288,7 @@ class TestsCliTypings:
 
         class KeyValueStore(Generic[K_local, V_local]):
             def __init__(self) -> None:
-                self._store: dict[K_local, V_local] = {}
+                self._store: Mapping[K_local, V_local] = {}
 
             def set(self, key: K_local, value: V_local) -> None:
                 self._store[key] = value
@@ -342,20 +342,20 @@ class TestsCliTypings:
 
         def typed_function(
             name: str, age: int, *, active: bool = True
-        ) -> dict[str, bool | int | str]:
+        ) -> Mapping[str, bool | int | str]:
             return {"name": name, "age": age, "active": active}
 
         hints = get_type_hints(typed_function)
         tm.that(hints["name"] is str, eq=True)
         tm.that(hints["age"] is int, eq=True)
         tm.that(hints["active"] is bool, eq=True)
-        tm.that(hints["return"], eq=dict[str, bool | int | str])
+        tm.that(hints["return"], eq=Mapping[str, bool | int | str])
 
-        def complex_function(data: list[dict[str, str | int]]) -> str | None:
+        def complex_function(data: Sequence[Mapping[str, str | int]]) -> str | None:
             return "result" if data else None
 
         complex_hints = get_type_hints(complex_function)
-        tm.that(complex_hints["data"], eq=list[dict[str, str | int]])
+        tm.that(complex_hints["data"], eq=Sequence[Mapping[str, str | int]])
         tm.that(complex_hints["return"], eq=str | None)
 
         class TypedClass:
@@ -363,15 +363,15 @@ class TestsCliTypings:
                 self.name = name
                 self.value = value
 
-            def process(self, data: list[str]) -> dict[str, int]:
+            def process(self, data: Sequence[str]) -> Mapping[str, int]:
                 return {item: len(item) for item in data}
 
         init_hints = get_type_hints(TypedClass.__init__)
         tm.that(init_hints["name"] is str, eq=True)
         tm.that(init_hints["value"] is int, eq=True)
         process_hints = get_type_hints(TypedClass.process)
-        tm.that(process_hints["data"], eq=list[str])
-        tm.that(process_hints["return"], eq=dict[str, int])
+        tm.that(process_hints["data"], eq=Sequence[str])
+        tm.that(process_hints["return"], eq=Mapping[str, int])
         instance = TypedClass("test", 42)
         result = instance.process(["str1", "str2"])
         tm.that(len(result), eq=2)
@@ -391,7 +391,7 @@ class TestsCliTypings:
                 error=None,
             )
 
-        def create_users_response(users: list[UserData]) -> ApiResponse:
+        def create_users_response(users: Sequence[UserData]) -> ApiResponse:
             return ApiResponse(
                 status="success",
                 data=[u.model_dump() for u in users],
@@ -447,16 +447,16 @@ class TestsCliTypings:
     def _execute_type_performance_tests(self) -> None:
         """Execute type performance tests."""
 
-        def process_list(data: list[str]) -> list[str]:
+        def process_list(data: Sequence[str]) -> Sequence[str]:
             return [item.upper() for item in data]
 
-        def process_dict(data: Mapping[str, t.NormalizedValue]) -> dict[str, str]:
+        def process_dict(data: Mapping[str, t.NormalizedValue]) -> Mapping[str, str]:
             return {key: str(value) for key, value in data.items()}
 
         test_list = ["hello", "world", "test"]
         test_dict = {"key1": 123, "key2": "value"}
-        result_list: list[str] = []
-        result_dict: dict[str, str] = {}
+        result_list: Sequence[str] = []
+        result_dict: Mapping[str, str] = {}
         start_time = time.time()
         for _ in range(1000):
             result_list = process_list(test_list)
@@ -488,13 +488,13 @@ class TestsCliTypings:
         tm.that(handle_edge_cases([]), eq="Unknown")
         tm.that(handle_edge_cases({}), eq="Unknown")
 
-        def thread_safe_operation(data: list[str], results: list[str]) -> None:
+        def thread_safe_operation(data: Sequence[str], results: Sequence[str]) -> None:
             processed = [item.upper() for item in data]
             results.extend(processed)
 
         test_data = ["str1", "str2"]
-        results: list[str] = []
-        threads: list[threading.Thread] = []
+        results: Sequence[str] = []
+        threads: Sequence[threading.Thread] = []
         for _ in range(5):
             thread = threading.Thread(
                 target=thread_safe_operation, args=(test_data, results)
@@ -512,8 +512,8 @@ class TestsCliTypings:
         tm.ok(typed_data_result)
         api_data_result = FlextCliTestHelpers.TypingHelpers.create_api_response_data()
         tm.ok(api_data_result)
-        complex_type = list[dict[str, str | int]]
-        optional_type = list[str] | None
+        complex_type = Sequence[Mapping[str, str | int]]
+        optional_type = Sequence[str] | None
         union_type = str | int | bool
         tm.that(get_origin(complex_type) is list, eq=True)
         complex_args = get_args(complex_type)
@@ -522,7 +522,7 @@ class TestsCliTypings:
         tm.that(get_origin(optional_type) is not None, eq=True)
         optional_args = get_args(optional_type)
         tm.that(type(None) in optional_args, eq=True)
-        tm.that(list[str] in optional_args, eq=True)
+        tm.that(Sequence[str] in optional_args, eq=True)
         tm.that(get_origin(union_type) is not None, eq=True)
         union_args = get_args(union_type)
         tm.that(str in union_args, eq=True)
@@ -534,10 +534,12 @@ class TestsCliTypings:
 
         @runtime_checkable
         class Test(Protocol):
-            def operation(self, data: list[str]) -> dict[str, t.NormalizedValue]: ...
+            def operation(
+                self, data: Sequence[str]
+            ) -> Mapping[str, t.NormalizedValue]: ...
 
         class Implementation:
-            def operation(self, data: list[str]) -> dict[str, t.NormalizedValue]:
+            def operation(self, data: Sequence[str]) -> Mapping[str, t.NormalizedValue]:
                 time.sleep(0.001)
                 return {
                     "processed": [item.upper() for item in data],

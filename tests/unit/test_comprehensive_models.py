@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from datetime import datetime
 
 import pytest
@@ -39,7 +40,9 @@ class TestsCliComprehensiveModels:
         tm.that(cmd.is_failed, eq=(status == c.Cli.CommandStatus.FAILED))
 
     @pytest.mark.parametrize("edge_case", generate_edge_case_data())
-    def test_command_edge_cases(self, edge_case: dict[str, t.NormalizedValue]) -> None:
+    def test_command_edge_cases(
+        self, edge_case: Mapping[str, t.NormalizedValue]
+    ) -> None:
         """Test command creation with comprehensive edge cases."""
         cmd = create_test_cli_command(**edge_case)
         for key, value in edge_case.items():

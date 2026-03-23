@@ -14,6 +14,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Mapping
+
 import click
 import pytest
 import typer
@@ -104,7 +106,7 @@ class TestsCliCli:
         ],
     )
     def test_click_type_creation(
-        self, click_type_name: str, data_dict: dict[str, t.NormalizedValue]
+        self, click_type_name: str, data_dict: Mapping[str, t.NormalizedValue]
     ) -> None:
         """Test Click type creation with various parameter types."""
         if click_type_name == "choice":

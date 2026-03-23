@@ -19,6 +19,7 @@ import logging
 import os
 import threading
 import typing
+from collections.abc import Mapping, Sequence
 from enum import StrEnum, unique
 from pathlib import Path
 from typing import ClassVar, Final, Literal
@@ -52,7 +53,7 @@ class ConfigTestScenario(BaseModel):
 
     name: str = Field(description="Scenario name")
     test_type: ConfigTestType = Field(description="Scenario test type")
-    data: dict[str, t.NormalizedValue] | None = Field(
+    data: Mapping[str, t.NormalizedValue] | None = Field(
         default=None,
         description="Scenario input data",
     )
@@ -65,28 +66,28 @@ class ConfigTestScenario(BaseModel):
 class ConfigTestFactory:
     """Factory for config test scenarios - maximizes parametrization."""
 
-    VALID_OUTPUT_FORMATS: Final[list[str]] = ["json", "yaml", "csv", "table"]
-    VALID_ENVIRONMENTS: Final[list[str]] = [
+    VALID_OUTPUT_FORMATS: Final[Sequence[str]] = ["json", "yaml", "csv", "table"]
+    VALID_ENVIRONMENTS: Final[Sequence[str]] = [
         "development",
         "staging",
         "production",
         "test",
     ]
-    VALID_VERBOSITIES: Final[list[str]] = ["compact", "detailed", "full"]
-    VALID_LOGGING_LEVELS: Final[list[str]] = [
+    VALID_VERBOSITIES: Final[Sequence[str]] = ["compact", "detailed", "full"]
+    VALID_LOGGING_LEVELS: Final[Sequence[str]] = [
         "DEBUG",
         "INFO",
         "WARNING",
         "ERROR",
         "CRITICAL",
     ]
-    JSON_CONFIG_DATA: Final[dict[str, t.NormalizedValue]] = {
+    JSON_CONFIG_DATA: Final[Mapping[str, t.NormalizedValue]] = {
         "debug": True,
         "verbose": False,
         "profile": "test",
         "output_format": "json",
     }
-    YAML_CONFIG_DATA: Final[dict[str, t.NormalizedValue]] = {
+    YAML_CONFIG_DATA: Final[Mapping[str, t.NormalizedValue]] = {
         "debug": False,
         "verbose": True,
         "profile": "yaml_test",
@@ -94,7 +95,7 @@ class ConfigTestFactory:
     }
 
     @classmethod
-    def create_scenarios(cls) -> list[ConfigTestScenario]:
+    def create_scenarios(cls) -> Sequence[ConfigTestScenario]:
         """Generate all test scenarios using mapping."""
         return [
             ConfigTestScenario(
@@ -116,14 +117,14 @@ class ConfigTestFactory:
         ]
 
     @classmethod
-    def get_validation_test_cases(cls) -> list[tuple[str, bool]]:
+    def get_validation_test_cases(cls) -> Sequence[tuple[str, bool]]:
         """Generate validation test cases - formats, envs, levels."""
         return [(fmt, True) for fmt in cls.VALID_OUTPUT_FORMATS] + [
             ("invalid_format", False)
         ]
 
     @classmethod
-    def get_logging_scenarios(cls) -> list[tuple[str, str]]:
+    def get_logging_scenarios(cls) -> Sequence[tuple[str, str]]:
         """Generate logging level scenarios."""
         return [(level, level) for level in cls.VALID_LOGGING_LEVELS]
 
@@ -402,8 +403,8 @@ class TestsCliConfigConcurrency:
 
     def test_concurrent_access(self) -> None:
         """Test concurrent config access is safe."""
-        results: list[tuple[int, bool, str]] = []
-        errors: list[tuple[int, str]] = []
+        results: Sequence[tuple[int, bool, str]] = []
+        errors: Sequence[tuple[int, str]] = []
 
         def worker(worker_id: int) -> None:
             try:
@@ -465,6 +466,6 @@ class TestsCliConfigEdgeCases:
     def test_save_config(self) -> None:
         """Test save_config method."""
         config: FlextCliSettings = FlextCliSettings()
-        new_config: dict[str, t.NormalizedValue] = {"debug": True}
+        new_config: Mapping[str, t.NormalizedValue] = {"debug": True}
         result = config.save_config(new_config)
         tm.that(result.is_success or result.is_failure, eq=True)

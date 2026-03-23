@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import re
 import sys
+from collections.abc import Sequence
 from enum import StrEnum, unique
 from typing import ClassVar, Final, TypeVar
 
@@ -78,7 +79,7 @@ class TestsCliVersion:
                 return validation_enum.STRING
 
         @classmethod
-        def get_string_cases(cls) -> list[TestsCliVersion.TestScenario.Data]:
+        def get_string_cases(cls) -> Sequence[TestsCliVersion.TestScenario.Data]:
             """Get parametrized test cases for version string validation."""
             data_class = cls.Data
             return [
@@ -106,7 +107,7 @@ class TestsCliVersion:
             ]
 
         @classmethod
-        def get_info_cases(cls) -> list[TestsCliVersion.TestScenario.Data]:
+        def get_info_cases(cls) -> Sequence[TestsCliVersion.TestScenario.Data]:
             """Get parametrized test cases for version info validation."""
             data_class = cls.Data
             return [
@@ -133,7 +134,7 @@ class TestsCliVersion:
             ]
 
         @classmethod
-        def get_consistency_cases(cls) -> list[TestsCliVersion.TestScenario.Data]:
+        def get_consistency_cases(cls) -> Sequence[TestsCliVersion.TestScenario.Data]:
             """Get parametrized test cases for version consistency validation."""
             data_class = cls.Data
             return [
@@ -187,7 +188,7 @@ class TestsCliVersion:
 
     def test_actual_version_parts_extraction(self) -> None:
         """Test major.minor.patch can be extracted from version."""
-        parts: list[str] = __version__.split(".")
+        parts: Sequence[str] = __version__.split(".")
         tm.that(len(parts) >= 3, eq=True)
         major_str, minor_str, patch_str = (parts[0], parts[1], parts[2])
         tm.that(major_str.isdigit(), eq=True)

@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import sys
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from io import StringIO
 from typing import Literal, Self, overload, override
 
@@ -188,7 +188,7 @@ class FlextCliFormatters:
     @staticmethod
     def create_table(
         data: Mapping[str, t.Cli.JsonValue] | None = None,
-        headers: list[str] | None = None,
+        headers: Sequence[str] | None = None,
         title: str | None = None,
     ) -> r[RichTable]:
         """Create Rich table with basic formatting.

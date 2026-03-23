@@ -53,20 +53,20 @@ class ConfigErrorScenario(StrEnum):
     READ_ONLY_DIR = "read_only_dir"
 
 
-CONFIG_OPERATION_METHODS: dict[ConfigOperation, str] = {
+CONFIG_OPERATION_METHODS: Mapping[ConfigOperation, str] = {
     ConfigOperation.EDIT: "edit_config",
     ConfigOperation.SHOW: "show_config",
     ConfigOperation.VALIDATE: "validate_config",
     ConfigOperation.GET_INFO: "get_config_info",
     ConfigOperation.SHOW_PATHS: "show_config_paths",
 }
-ERROR_SCENARIO_DATA: dict[ConfigErrorScenario, dict[str, str]] = {
+ERROR_SCENARIO_DATA: Mapping[ConfigErrorScenario, Mapping[str, str]] = {
     ConfigErrorScenario.INVALID_JSON: {"content": "invalid json content {"},
     ConfigErrorScenario.NOT_DICT: {"content": '"not a dict"'},
     ConfigErrorScenario.MISSING_KEY: {"content": '{"other_key": "value"}'},
     ConfigErrorScenario.FILE_NOT_FOUND: {"content": ""},
 }
-VALID_CONFIG_DATA: dict[str, int | str] = {
+VALID_CONFIG_DATA: Mapping[str, int | str] = {
     "host": "localhost",
     "port": 8080,
     "timeout": 30,

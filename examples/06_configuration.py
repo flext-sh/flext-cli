@@ -172,7 +172,7 @@ def validate_app_config() -> bool:
     return True
 
 
-def load_application_config() -> r[dict[str, t.Cli.JsonValue]]:
+def load_application_config() -> r[Mapping[str, t.Cli.JsonValue]]:
     """Load and validate application configuration from environment."""
     cli.print("\n⚙️  Loading Application Configuration:", style="bold cyan")
     config_obj = AppConfigAdvanced()
@@ -186,7 +186,9 @@ def load_application_config() -> r[dict[str, t.Cli.JsonValue]]:
     cli.print("✅ Environment overrides applied", style="green")
     final_data = initialize_services(overridden_data)
     cli.print("✅ Services initialized", style="green")
-    result: r[dict[str, t.Cli.JsonValue]] = r[dict[str, t.Cli.JsonValue]].ok(final_data)
+    result: r[Mapping[str, t.Cli.JsonValue]] = r[Mapping[str, t.Cli.JsonValue]].ok(
+        final_data
+    )
     if result.is_failure:
         cli.print(f"❌ Configuration failed: {result.error}", style="bold red")
         return result
@@ -196,9 +198,9 @@ def load_application_config() -> r[dict[str, t.Cli.JsonValue]]:
 
 def apply_environment_overrides(
     config: Mapping[str, t.NormalizedValue],
-) -> dict[str, t.NormalizedValue]:
+) -> Mapping[str, t.NormalizedValue]:
     """Apply environment-specific configuration overrides."""
-    result: dict[str, t.NormalizedValue] = dict(config)
+    result: Mapping[str, t.NormalizedValue] = dict(config)
     env = os.getenv("ENVIRONMENT", "development")
     if env == "production":
         max_workers_value = result.get("max_workers", 4)
@@ -214,8 +216,8 @@ def apply_environment_overrides(
 
 
 def initialize_services(
-    config: dict[str, t.NormalizedValue],
-) -> dict[str, t.NormalizedValue]:
+    config: Mapping[str, t.NormalizedValue],
+) -> Mapping[str, t.NormalizedValue]:
     """Initialize services based on configuration."""
     time.sleep(0.05)
     config["services_initialized"] = True

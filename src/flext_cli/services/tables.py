@@ -188,9 +188,9 @@ class FlextCliTables(FlextCliServiceBase):
             return r[str].fail(headers_result.error or "Header preparation failed")
         try:
             if u.is_dict_like(data):
-                mapping_rows: list[Mapping[str, t.ContainerValue]] = []
+                mapping_rows: Sequence[Mapping[str, t.ContainerValue]] = []
                 if isinstance(data, Mapping):
-                    normalized_row: dict[str, t.ContainerValue] = {
+                    normalized_row: Mapping[str, t.ContainerValue] = {
                         str(key): m.Cli.normalize_json_value(value)
                         for key, value in data.items()
                     }
@@ -200,7 +200,7 @@ class FlextCliTables(FlextCliServiceBase):
                 normalized_data = data
             headers_value = headers_result.value
             if normalized_data and (not isinstance(headers_value, str)):
-                normalized_mapping_rows: list[Mapping[str, t.ContainerValue]] = [
+                normalized_mapping_rows: Sequence[Mapping[str, t.ContainerValue]] = [
                     dict(row) for row in normalized_data
                 ]
                 table_rows = [list(row.values()) for row in normalized_mapping_rows]
@@ -294,7 +294,7 @@ class FlextCliTables(FlextCliServiceBase):
         print_available_formats). Execute provides a default success response.
 
         Returns:
-            r[dict[str, FlextCliTypes.Cli.JsonValue]]: Success result.
+            r[Mapping[str, FlextCliTypes.Cli.JsonValue]]: Success result.
 
         """
         return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].ok({

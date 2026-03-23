@@ -156,7 +156,7 @@ class FlextCliCli:
                 return click.Tuple([])
             tuple_values = list(tuple_types)
             return click.Tuple(tuple_values)
-        registry: dict[
+        registry: Mapping[
             str,
             Callable[[], type[bool | str | int | float] | click.ParamType],
         ] = {
@@ -304,7 +304,7 @@ class FlextCliCli:
     ) -> r[bool]:
         """Confirm action with user."""
         if config is None:
-            kwargs_typed: dict[str, t.Cli.JsonValue] = dict(kwargs)
+            kwargs_typed: Mapping[str, t.Cli.JsonValue] = dict(kwargs)
             config = FlextCliCli._build_confirm_config_from_kwargs(kwargs_typed)
         if not hasattr(config, "default"):
             msg = "confirm config must implement ConfirmConfig"
@@ -522,7 +522,7 @@ class FlextCliCli:
                 )
                 prompt_result_map = None
             if prompt_result_map is not None:
-                normalized_map: dict[str, t.Cli.JsonValue] = {}
+                normalized_map: Mapping[str, t.Cli.JsonValue] = {}
                 for key, value in prompt_result_map.items():
                     try:
                         normalized_value = (
@@ -712,7 +712,7 @@ class FlextCliCli:
         quiet: bool = False,
         log_level: str | None = None,
     ) -> None:
-        common_params: dict[str, t.Cli.JsonValue] = {
+        common_params: Mapping[str, t.Cli.JsonValue] = {
             "debug": debug,
             "trace": trace,
             "verbose": verbose,

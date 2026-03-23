@@ -15,6 +15,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import ClassVar
 
@@ -189,8 +190,8 @@ class TestsCliConfigModelIntegration:
     def test_config_initialization(
         self,
         config_class: type[BaseSettings],
-        expected_fields: list[str],
-        expected_values: dict[str, t.NormalizedValue],
+        expected_fields: Sequence[str],
+        expected_values: Mapping[str, t.NormalizedValue],
     ) -> None:
         """Test config initialization with various field types."""
         config = config_class()
@@ -230,8 +231,8 @@ class TestsCliConfigModelIntegration:
     )
     def test_params_validation(
         self,
-        input_data: dict[str, t.NormalizedValue],
-        expected_data: dict[str, t.NormalizedValue],
+        input_data: Mapping[str, t.NormalizedValue],
+        expected_data: Mapping[str, t.NormalizedValue],
     ) -> None:
         """Test parameter model validation with aliases."""
         params = self.AliasedParams.model_validate(input_data)

@@ -9,7 +9,7 @@ from __future__ import annotations
 import inspect
 import logging
 import re
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from typing import Final, TypeIs, TypeVar
 
 import click
@@ -23,12 +23,12 @@ from flext_cli import FlextCliConstants, t
 T = TypeVar("T")
 
 
-def _is_json_dict(value: t.NormalizedValue) -> TypeIs[dict[str, t.NormalizedValue]]:
+def _is_json_dict(value: t.NormalizedValue) -> TypeIs[Mapping[str, t.NormalizedValue]]:
     """TypeGuard: narrow t.NormalizedValue to dict for JSON t.NormalizedValue shape (e.g. read_json_file return)."""
     return isinstance(value, dict)
 
 
-def _is_json_list(value: t.NormalizedValue) -> TypeIs[list[t.NormalizedValue]]:
+def _is_json_list(value: t.NormalizedValue) -> TypeIs[Sequence[t.NormalizedValue]]:
     """TypeGuard: narrow t.NormalizedValue to list for JSON array shape."""
     return isinstance(value, list)
 
@@ -44,13 +44,13 @@ class ConfigFactory:
     def create_config(
         name: str,
         prefix: str = "TEST_",
-        fields: dict[str, tuple[type, t.Scalar | FieldInfo]] | None = None,
+        fields: Mapping[str, tuple[type, t.Scalar | FieldInfo]] | None = None,
     ) -> type[BaseSettings]:
         """Create a BaseSettings config class dynamically."""
         if fields is None:
             fields = {"test_field": (str, Field(default="test"))}
-        annotations: dict[str, type] = {}
-        class_dict: dict[str, t.NormalizedValue] = {
+        annotations: Mapping[str, type] = {}
+        class_dict: Mapping[str, t.NormalizedValue] = {
             "model_config": SettingsConfigDict(env_prefix=prefix),
             "__annotations__": annotations,
         }
@@ -70,7 +70,7 @@ class ParamsFactory:
     @staticmethod
     def create_params(
         name: str,
-        fields: dict[str, tuple[type, t.Scalar | FieldInfo, dict[str, t.Scalar]]]
+        fields: Mapping[str, tuple[type, t.Scalar | FieldInfo, Mapping[str, t.Scalar]]]
         | None = None,
         *,
         populate_by_name: bool = True,
@@ -78,15 +78,15 @@ class ParamsFactory:
         """Create a BaseModel params class dynamically."""
         default_field = Field(default=None)
         assert isinstance(default_field, FieldInfo)
-        empty_kwargs: dict[str, t.Scalar] = {}
-        default_fields: dict[
-            str, tuple[type, t.Scalar | FieldInfo, dict[str, t.Scalar]]
+        empty_kwargs: Mapping[str, t.Scalar] = {}
+        default_fields: Mapping[
+            str, tuple[type, t.Scalar | FieldInfo, Mapping[str, t.Scalar]]
         ] = {"test_field": (str, default_field, empty_kwargs)}
-        resolved_fields: dict[
-            str, tuple[type, t.Scalar | FieldInfo, dict[str, t.Scalar]]
+        resolved_fields: Mapping[
+            str, tuple[type, t.Scalar | FieldInfo, Mapping[str, t.Scalar]]
         ] = fields if fields is not None else default_fields
-        annotations: dict[str, type] = {}
-        class_dict: dict[str, t.NormalizedValue] = {
+        annotations: Mapping[str, type] = {}
+        class_dict: Mapping[str, t.NormalizedValue] = {
             "model_config": {"populate_by_name": populate_by_name},
             "__annotations__": annotations,
         }
@@ -131,7 +131,7 @@ class ValidationHelper:
 
     @staticmethod
     def extract_config_values(
-        config: BaseSettings, field_names: list[str]
+        config: BaseSettings, field_names: Sequence[str]
     ) -> Mapping[str, t.NormalizedValue]:
         """Extract multiple field values from config as a read-only Mapping.
 
@@ -249,7 +249,7 @@ class FlextCliTestHelpers:
                 else []
             )
             version_parts_raw = base_parts + prerelease_parts
-            version_parts: list[int | str] = []
+            version_parts: Sequence[int | str] = []
             for part in version_parts_raw:
                 try:
                     version_parts.append(int(part))
@@ -313,14 +313,14 @@ class FlextCliTestHelpers:
                 class TestConfigProvider:
                     def __init__(self) -> None:
                         super().__init__()
-                        self.config: dict[str, t.NormalizedValue] = {}
+                        self.config: Mapping[str, t.NormalizedValue] = {}
 
-                    def load_config(self) -> r[dict[str, t.NormalizedValue]]:
+                    def load_config(self) -> r[Mapping[str, t.NormalizedValue]]:
                         """Return config dict; treat as Mapping when contract is read-only."""
                         try:
-                            return r[dict[str, t.NormalizedValue]].ok(self.config)
+                            return r[Mapping[str, t.NormalizedValue]].ok(self.config)
                         except (ValueError, TypeError, ValidationError) as e:
-                            return r[dict[str, t.NormalizedValue]].fail(str(e))
+                            return r[Mapping[str, t.NormalizedValue]].fail(str(e))
 
                     def save_config(
                         self, config: Mapping[str, t.NormalizedValue]
@@ -393,7 +393,7 @@ class FlextCliTestHelpers:
 
         @staticmethod
         def create_processing_test_data() -> r[
-            tuple[list[str], list[int], dict[str, t.NormalizedValue]]
+            tuple[Sequence[str], Sequence[int], Mapping[str, t.NormalizedValue]]
         ]:
             """Create test data for type processing scenarios.
 
@@ -403,49 +403,51 @@ class FlextCliTestHelpers:
             try:
                 string_list = ["hello", "world", "test"]
                 number_list = [1, 2, 3, 4, 5]
-                mixed_dict: dict[str, t.NormalizedValue] = {
+                mixed_dict: Mapping[str, t.NormalizedValue] = {
                     "key1": 123,
                     "key2": "value",
                     "key3": True,
                     "key4": [1, 2, 3],
                 }
-                return r[tuple[list[str], list[int], dict[str, t.NormalizedValue]]].ok((
+                return r[
+                    tuple[Sequence[str], Sequence[int], Mapping[str, t.NormalizedValue]]
+                ].ok((
                     string_list,
                     number_list,
                     mixed_dict,
                 ))
             except (ValueError, TypeError, ValidationError) as e:
                 return r[
-                    tuple[list[str], list[int], dict[str, t.NormalizedValue]]
+                    tuple[Sequence[str], Sequence[int], Mapping[str, t.NormalizedValue]]
                 ].fail(f"Failed to create processing test data: {e!s}")
 
         @staticmethod
-        def create_typed_dict_data() -> r[dict[str, t.NormalizedValue]]:
+        def create_typed_dict_data() -> r[Mapping[str, t.NormalizedValue]]:
             """Create typed dict test data.
 
             Returns a dict; treat as Mapping[str, t.NormalizedValue] when the contract is read-only.
             """
             try:
-                user_data: dict[str, t.NormalizedValue] = {
+                user_data: Mapping[str, t.NormalizedValue] = {
                     "id": 1,
                     "name": "John Doe",
                     "email": "john@example.com",
                     "active": True,
                 }
-                return r[dict[str, t.NormalizedValue]].ok(user_data)
+                return r[Mapping[str, t.NormalizedValue]].ok(user_data)
             except (ValueError, TypeError, ValidationError) as e:
-                return r[dict[str, t.NormalizedValue]].fail(
+                return r[Mapping[str, t.NormalizedValue]].fail(
                     f"Failed to create typed dict data: {e!s}"
                 )
 
         @staticmethod
-        def create_api_response_data() -> r[list[dict[str, t.NormalizedValue]]]:
+        def create_api_response_data() -> r[Sequence[Mapping[str, t.NormalizedValue]]]:
             """Create API response test data.
 
             Returns a list of dicts; treat each item as Mapping[str, t.NormalizedValue] when read-only.
             """
             try:
-                users_data: list[dict[str, t.NormalizedValue]] = [
+                users_data: Sequence[Mapping[str, t.NormalizedValue]] = [
                     {
                         "id": 1,
                         "name": "Alice",
@@ -459,9 +461,9 @@ class FlextCliTestHelpers:
                         "active": False,
                     },
                 ]
-                return r[list[dict[str, t.NormalizedValue]]].ok(users_data)
+                return r[Sequence[Mapping[str, t.NormalizedValue]]].ok(users_data)
             except (ValueError, TypeError, ValidationError) as e:
-                return r[list[dict[str, t.NormalizedValue]]].fail(
+                return r[Sequence[Mapping[str, t.NormalizedValue]]].fail(
                     f"Failed to create API response data: {e!s}"
                 )
 

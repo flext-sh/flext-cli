@@ -16,6 +16,7 @@ from __future__ import annotations
 import getpass
 import time
 from collections import UserList
+from collections.abc import Sequence
 from typing import Never, TypeVar, override
 
 import pytest
@@ -45,7 +46,7 @@ class TestsCliPrompts:
 
     @staticmethod
     def _set_prompt_history(
-        prompts: FlextCliPrompts, history: list[str] | UserList[str]
+        prompts: FlextCliPrompts, history: Sequence[str] | UserList[str]
     ) -> None:
         """Helper method to set _prompt_history for testing.
 
@@ -81,7 +82,7 @@ class TestsCliPrompts:
         """Factory for creating test data scenarios."""
 
         @staticmethod
-        def get_prompt_text_cases() -> list[TextTestCaseDict]:
+        def get_prompt_text_cases() -> Sequence[TextTestCaseDict]:
             """Get parametrized test cases for prompt_text."""
             return [
                 TextTestCaseDict(
@@ -111,7 +112,7 @@ class TestsCliPrompts:
             ]
 
         @staticmethod
-        def get_confirm_cases() -> list[ConfirmTestCaseDict]:
+        def get_confirm_cases() -> Sequence[ConfirmTestCaseDict]:
             """Get parametrized test cases for confirm."""
             return [
                 ConfirmTestCaseDict(
@@ -124,7 +125,7 @@ class TestsCliPrompts:
             ]
 
         @staticmethod
-        def get_choice_cases() -> list[ChoiceTestCaseDict]:
+        def get_choice_cases() -> Sequence[ChoiceTestCaseDict]:
             """Get parametrized test cases for prompt_choice."""
             return [
                 ChoiceTestCaseDict(
@@ -145,9 +146,9 @@ class TestsCliPrompts:
             ]
 
         @staticmethod
-        def get_print_status_cases() -> list[PrintStatusCase]:
+        def get_print_status_cases() -> Sequence[PrintStatusCase]:
             """Get parametrized test cases for print_status."""
-            cases: list[PrintStatusCase] = [
+            cases: Sequence[PrintStatusCase] = [
                 PrintStatusCase(message="simple", status=None),
                 PrintStatusCase(message="simple", status=c.Cli.MessageTypes.INFO),
                 PrintStatusCase(message="", status=c.Cli.MessageTypes.WARNING),
@@ -394,21 +395,21 @@ class TestsCliPrompts:
 
     def test_with_progress_small_dataset(self, prompts: FlextCliPrompts) -> None:
         """Test with_progress with small dataset."""
-        items: list[int] = list(range(c.ProgressDefaults.SMALL_DATASET_SIZE))
+        items: Sequence[int] = list(range(c.ProgressDefaults.SMALL_DATASET_SIZE))
         result = prompts.with_progress(items, "simple")
         tm.ok(result)
         tm.that(result.value, eq=items)
 
     def test_with_progress_large_dataset(self, prompts: FlextCliPrompts) -> None:
         """Test with_progress with large dataset."""
-        items: list[int] = list(range(c.ProgressDefaults.LARGE_DATASET_SIZE))
+        items: Sequence[int] = list(range(c.ProgressDefaults.LARGE_DATASET_SIZE))
         result = prompts.with_progress(items, "simple")
         tm.ok(result)
         tm.that(result.value, eq=items)
 
     def test_with_progress_empty(self, prompts: FlextCliPrompts) -> None:
         """Test with_progress with empty list."""
-        items: list[int] = []
+        items: Sequence[int] = []
         result = prompts.with_progress(items, "simple")
         tm.ok(result)
         tm.that(result.value, eq=items)

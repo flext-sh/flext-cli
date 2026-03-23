@@ -126,7 +126,7 @@ ______________________________________________________________________
 
 ```python
 # ❌ CURRENT: Too many services
-class FlextCliFileTools(FlextService[dict[str, t.NormalizedValue]]):
+class FlextCliFileTools(FlextService[Mapping[str, t.NormalizedValue]]):
     """File operations as a service - OVERKILL"""
     def __init__(self):
         super().__init__()  # Unnecessary overhead
@@ -273,8 +273,8 @@ class FlextCliCore(FlextService[CliDataDict]):
 
     def __init__(self):
         super().__init__()
-        self._commands: dict[str, Command] = {}  # STATE
-        self._sessions: dict[str, Session] = {}  # STATE
+        self._commands: Mapping[str, Command] = {}  # STATE
+        self._sessions: Mapping[str, Session] = {}  # STATE
         self._config: FlextCliSettings = FlextCliSettings()  # STATE
 ```
 
@@ -336,8 +336,8 @@ class FlextCliContext(m.Value):
     """Immutable execution context."""
 
     command: str | None = None
-    arguments: list[str] = Field(default_factory=list)
-    environment_variables: dict[str, t.NormalizedValue] = Field(default_factory=dict)
+    arguments: Sequence[str] = Field(default_factory=list)
+    environment_variables: Mapping[str, t.NormalizedValue] = Field(default_factory=dict)
     working_directory: str | None = None
 
     # No methods - just validated data
@@ -453,7 +453,7 @@ ______________________________________________________________________
 **Before**:
 
 ```python
-class FlextCliFileTools(FlextService[dict[str, t.NormalizedValue]]):
+class FlextCliFileTools(FlextService[Mapping[str, t.NormalizedValue]]):
     def __init__(self):
         super().__init__()
         self.logger = FlextLogger(__name__)
@@ -518,8 +518,8 @@ class FlextCliContext(m.Value):
     """Immutable context value t.NormalizedValue."""
 
     command: str | None = None
-    arguments: list[str] = Field(default_factory=list)
-    environment_variables: dict[str, t.NormalizedValue] = Field(default_factory=dict)
+    arguments: Sequence[str] = Field(default_factory=list)
+    environment_variables: Mapping[str, t.NormalizedValue] = Field(default_factory=dict)
     working_directory: str | None = None
     created_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
 

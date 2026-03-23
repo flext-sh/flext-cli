@@ -16,7 +16,7 @@ import json
 import logging
 import os
 from collections import deque
-from collections.abc import Callable, Generator, Iterator, Mapping
+from collections.abc import Callable, Generator, Iterator, Mapping, Sequence
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Protocol
@@ -94,7 +94,7 @@ def temp_json_file(temp_dir: Path) -> Path:
 
     Uses the consolidated temp_dir fixture from flext-core/tests/conftest.py.
     """
-    test_data: dict[str, str | int | list[int]] = {
+    test_data: Mapping[str, str | int | Sequence[int]] = {
         "key": "value",
         "number": 42,
         "list": [1, 2, 3],
@@ -108,7 +108,7 @@ def temp_yaml_file(temp_dir: Path) -> Path:
 
     Uses the consolidated temp_dir fixture from flext-core/tests/conftest.py.
     """
-    test_data: dict[str, str | int | list[int]] = {
+    test_data: Mapping[str, str | int | Sequence[int]] = {
         "key": "value",
         "number": 42,
         "list": [1, 2, 3],
@@ -226,7 +226,7 @@ def cli_command_factory() -> CliCommandFactory:
         status: str = "pending",
         **kwargs: str | float | bool,
     ) -> m.Cli.CliCommand:
-        cli_data: dict[str, t.NormalizedValue]
+        cli_data: Mapping[str, t.NormalizedValue]
         cli_data = {
             "command_line": command_line,
             "args": [],
@@ -240,8 +240,8 @@ def cli_command_factory() -> CliCommandFactory:
             "name": name,
             "description": description,
         }
-        raw_data: dict[str, t.NormalizedValue] = {**cli_data, **kwargs}
-        typed_data: dict[str, t.NormalizedValue] = raw_data
+        raw_data: Mapping[str, t.NormalizedValue] = {**cli_data, **kwargs}
+        typed_data: Mapping[str, t.NormalizedValue] = raw_data
         transform_result = u.transform(typed_data)
         final_data: Mapping[str, t.NormalizedValue]
         if transform_result.is_success:
@@ -267,7 +267,7 @@ def cli_session_factory() -> CliSessionFactory:
         status: str = "active",
         **kwargs: str | float | bool,
     ) -> m.Cli.CliSession:
-        session_data: dict[str, t.NormalizedValue] = {
+        session_data: Mapping[str, t.NormalizedValue] = {
             "session_id": session_id,
             "status": status,
             "user_id": user_id,
@@ -280,7 +280,7 @@ def cli_session_factory() -> CliSessionFactory:
             "created_at": datetime.now(UTC).isoformat(),
             "updated_at": None,
         }
-        raw_data: dict[str, t.NormalizedValue] = {**session_data, **kwargs}
+        raw_data: Mapping[str, t.NormalizedValue] = {**session_data, **kwargs}
         typed_data = raw_data
         transform_result = u.transform(typed_data)
         if transform_result.is_success:
@@ -306,7 +306,7 @@ def debug_info_factory() -> DebugInfoFactory:
         message: str = "",
         **kwargs: str | float | bool,
     ) -> m.Cli.DebugInfo:
-        debug_data: dict[str, t.NormalizedValue] = {
+        debug_data: Mapping[str, t.NormalizedValue] = {
             "service": service,
             "level": level,
             "message": message or "",
@@ -322,7 +322,7 @@ def debug_info_factory() -> DebugInfoFactory:
             "message",
         }
         filtered_kwargs = {k: v for k, v in kwargs.items() if k in valid_fields}
-        raw_data: dict[str, t.NormalizedValue] = {**debug_data, **filtered_kwargs}
+        raw_data: Mapping[str, t.NormalizedValue] = {**debug_data, **filtered_kwargs}
         typed_data = raw_data
         transform_result = u.transform(typed_data)
         if transform_result.is_success:
@@ -347,13 +347,13 @@ def logging_config_factory() -> LoggingConfigFactory:
         log_format: str = "%(asctime)s - %(message)s",
         **kwargs: str | float | bool,
     ) -> m.Cli.LoggingConfig:
-        logging_data: dict[str, t.NormalizedValue] = {
+        logging_data: Mapping[str, t.NormalizedValue] = {
             "log_level": log_level,
             "log_format": log_format,
             "console_output": True,
             "log_file": "",
         }
-        raw_data: dict[str, t.NormalizedValue] = {**logging_data, **kwargs}
+        raw_data: Mapping[str, t.NormalizedValue] = {**logging_data, **kwargs}
         typed_data = raw_data
         transform_result = u.transform(typed_data)
         if transform_result.is_success:
@@ -384,7 +384,7 @@ def _create_service_instance(service_class: type) -> t.NormalizedValue:
     return service_class()
 
 
-_SERVICE_CLASSES: dict[str, type] = {
+_SERVICE_CLASSES: Mapping[str, type] = {
     "cmd": FlextCliCmd,
     "commands": FlextCliCommands,
     "config": FlextCliSettings,
@@ -511,7 +511,7 @@ def flext_cli_utilities() -> type[u]:
 
 
 @pytest.fixture
-def sample_config_data() -> dict[str, t.NormalizedValue]:
+def sample_config_data() -> Mapping[str, t.NormalizedValue]:
     """Provide sample configuration data for tests."""
     return {
         "debug": True,
@@ -526,7 +526,7 @@ def sample_config_data() -> dict[str, t.NormalizedValue]:
 
 
 @pytest.fixture
-def sample_file_data(temp_dir: Path) -> dict[str, t.NormalizedValue]:
+def sample_file_data(temp_dir: Path) -> Mapping[str, t.NormalizedValue]:
     """Provide sample file data for tests."""
     return {
         "content": "This is test content for file operations",
@@ -541,7 +541,7 @@ def sample_file_data(temp_dir: Path) -> dict[str, t.NormalizedValue]:
 
 
 @pytest.fixture
-def sample_command_data() -> dict[str, t.NormalizedValue]:
+def sample_command_data() -> Mapping[str, t.NormalizedValue]:
     """Provide sample command data for tests."""
     return {
         "command": "test_command",
@@ -616,12 +616,12 @@ def flext_test_docker(tmp_path_factory: pytest.TempPathFactory) -> tk:
 
 
 @pytest.fixture
-def mock_env_vars(tmp_path: Path) -> Generator[dict[str, str]]:
+def mock_env_vars(tmp_path: Path) -> Generator[Mapping[str, str]]:
     """Set up environment variables for tests using real .env file."""
     env_file = tmp_path / ".env"
     env_content = "FLEXT_CLI_DEBUG=true\nFLEXT_CLI_OUTPUT_FORMAT=json\nFLEXT_CLI_NO_COLOR=false\nFLEXT_CLI_PROFILE=test\nFLEXT_CLI_TIMEOUT=30\nFLEXT_CLI_RETRIES=3\n"
     _ = env_file.write_text(env_content)
-    original_env: dict[str, str] = {}
+    original_env: Mapping[str, str] = {}
     env_vars = {
         "FLEXT_CLI_DEBUG": "true",
         "FLEXT_CLI_OUTPUT_FORMAT": "json",
@@ -688,7 +688,7 @@ class InfoTuples:
 
 
 @pytest.fixture
-def input_simulator() -> Iterator[Callable[[list[str]], None]]:
+def input_simulator() -> Iterator[Callable[[Sequence[str]], None]]:
     """Simulate user input via fixture-based queue (REPLACES monkeypatch).
 
     Usage:
@@ -699,7 +699,7 @@ def input_simulator() -> Iterator[Callable[[list[str]], None]]:
     """
     input_queue: deque[str] = deque()
 
-    def queue_inputs(values: list[str]) -> None:
+    def queue_inputs(values: Sequence[str]) -> None:
         """Queue input values to be returned by simulated input."""
         input_queue.extend(values)
 
@@ -775,7 +775,7 @@ def input_exception_simulator() -> Iterator[Callable[[type[Exception]], None]]:
 
 
 def pytest_collection_modifyitems(
-    config: pytest.Config, items: list[pytest.Item]
+    config: pytest.Config, items: Sequence[pytest.Item]
 ) -> None:
     """Modify test collection to add markers based on test names."""
     _ = config

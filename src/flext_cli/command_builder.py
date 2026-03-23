@@ -48,15 +48,17 @@ class FlextCliCommandBuilder:
         """
         super().__init__()
         self._name = name
-        self._options: list[OptionInfo] = []
-        self._arguments: list[tuple[str, type, bool]] = []
-        self._middleware: list[Callable[[p.Cli.CliContext], r[t.Cli.JsonValue]]] = []
+        self._options: Sequence[OptionInfo] = []
+        self._arguments: Sequence[tuple[str, type, bool]] = []
+        self._middleware: Sequence[
+            Callable[[p.Cli.CliContext], r[t.Cli.JsonValue]]
+        ] = []
         self._handler: p.Cli.CommandHandlerCallable | None = None
 
     @staticmethod
     def _create_option_info(
         default: t.Cli.JsonValue | None = None,
-        param_decls: list[str] | None = None,
+        param_decls: Sequence[str] | None = None,
         help_text: str = "",
         **kwargs: t.Scalar,
     ) -> OptionInfo:
@@ -189,7 +191,7 @@ class FlextCliCommandBuilder:
         self._options.append(option_info)
         return self
 
-    def with_option_group(self, group: list[OptionInfo]) -> Self:
+    def with_option_group(self, group: Sequence[OptionInfo]) -> Self:
         """Add predefined option group.
 
         Args:

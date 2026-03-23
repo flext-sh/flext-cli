@@ -45,7 +45,7 @@ class FlextCliCore(FlextCliServiceBase):
 
     Architecture Implications:
     ───────────────────────────
-    - Command registry uses dict[str, JsonDict] for O(1) lookup
+    - Command registry uses Mapping[str, JsonDict] for O(1) lookup
     - Session tracking enables audit trail and state management
     - Plugin system uses pluggy for extensibility
     - Cache (LRUCache, TTLCache) improves performance for repeated operations
@@ -95,12 +95,12 @@ class FlextCliCore(FlextCliServiceBase):
             """Record a cache miss."""
             self.cache_misses += 1
 
-    _cli_config: dict[str, FlextCliTypes.Cli.JsonValue]
-    _commands: dict[str, Mapping[str, FlextCliTypes.Cli.JsonValue]]
-    _sessions: dict[str, FlextCliTypes.Cli.JsonValue]
+    _cli_config: Mapping[str, FlextCliTypes.Cli.JsonValue]
+    _commands: Mapping[str, Mapping[str, FlextCliTypes.Cli.JsonValue]]
+    _sessions: Mapping[str, FlextCliTypes.Cli.JsonValue]
     _session_active: bool
     _registry: p.Registry
-    _session_config: dict[str, FlextCliTypes.Cli.JsonValue]
+    _session_config: Mapping[str, FlextCliTypes.Cli.JsonValue]
     _session_start_time: str
 
     def __init__(
@@ -147,7 +147,7 @@ class FlextCliCore(FlextCliServiceBase):
     def _get_dict_keys(
         data_dict: Mapping[str, FlextCliTypes.Cli.JsonValue] | None,
         error_message: str,
-    ) -> r[list[str]]:
+    ) -> r[Sequence[str]]:
         """Generic method to safely get keys from a dictionary.
 
         Business Rule:
@@ -160,7 +160,7 @@ class FlextCliCore(FlextCliServiceBase):
             error_message: Error message template to use on failure
 
         Returns:
-            r[list[str]] with list of keys or error
+            r[Sequence[str]] with list of keys or error
 
         """
         return u.try_(
@@ -199,8 +199,8 @@ class FlextCliCore(FlextCliServiceBase):
         if not self._cli_config:
             return r[bool].fail(c.Cli.ErrorMessages.CONFIG_NOT_INITIALIZED)
         try:
-            config: dict[str, FlextCliTypes.Cli.JsonValue] = dict(self._cli_config)
-            default_dict: dict[str, FlextCliTypes.Cli.JsonValue] = {}
+            config: Mapping[str, FlextCliTypes.Cli.JsonValue] = dict(self._cli_config)
+            default_dict: Mapping[str, FlextCliTypes.Cli.JsonValue] = {}
             profiles_result_raw = FlextCliUtilities.extract(
                 config,
                 c.Cli.DictKeys.PROFILES,
@@ -211,14 +211,16 @@ class FlextCliCore(FlextCliServiceBase):
                     profiles_result_raw.error or "Failed to extract profiles",
                 )
             profiles_value = profiles_result_raw.value
-            profiles_section_raw: dict[str, FlextCliTypes.Cli.JsonValue] = {}
+            profiles_section_raw: Mapping[str, FlextCliTypes.Cli.JsonValue] = {}
             if isinstance(profiles_value, dict):
                 profiles_section_raw = {
                     str(key): m.Cli.normalize_json_value(value)
                     for key, value in profiles_value.items()
                 }
-            profiles_section_raw_typed: dict[str, FlextCliTypes.Cli.JsonValue] = dict(
-                profiles_section_raw,
+            profiles_section_raw_typed: Mapping[str, FlextCliTypes.Cli.JsonValue] = (
+                dict(
+                    profiles_section_raw,
+                )
             )
             profiles_section_raw_typed[name] = profile_config
             config[c.Cli.DictKeys.PROFILES] = profiles_section_raw_typed
@@ -427,7 +429,9 @@ class FlextCliCore(FlextCliServiceBase):
     def execute_command(
         self,
         name: str,
-        context: Mapping[str, FlextCliTypes.Cli.JsonValue] | list[str] | None = None,
+        context: Mapping[str, FlextCliTypes.Cli.JsonValue]
+        | Sequence[str]
+        | None = None,
         timeout: float | None = None,
     ) -> r[Mapping[str, FlextCliTypes.Cli.JsonValue]]:
         """Execute registered command with context."""
@@ -440,7 +444,7 @@ class FlextCliCore(FlextCliServiceBase):
             )
         try:
             execution_context = self._build_execution_context(context)
-            result_dict: dict[str, FlextCliTypes.Cli.JsonValue] = {
+            result_dict: Mapping[str, FlextCliTypes.Cli.JsonValue] = {
                 c.Cli.DictKeys.COMMAND: name,
                 c.Cli.DictKeys.STATUS: True,
                 c.Cli.DictKeys.TIMESTAMP: FlextCliUtilities.generate("timestamp"),
@@ -517,7 +521,7 @@ class FlextCliCore(FlextCliServiceBase):
                 command_name=name,
                 definition_keys=str(list(command_def.keys())),
             )
-            snapshot_config: dict[str, FlextCliTypes.Cli.JsonValue] = {
+            snapshot_config: Mapping[str, FlextCliTypes.Cli.JsonValue] = {
                 str(key): value for key, value in command_def.items()
             }
             return r[m.Configuration].ok(
@@ -608,7 +612,7 @@ class FlextCliCore(FlextCliServiceBase):
         Uses railway pattern to ensure configuration integrity.
 
         Returns:
-            r[dict[str, FlextCliTypes.Cli.JsonValue]]: Current configuration or error with details
+            r[Mapping[str, FlextCliTypes.Cli.JsonValue]]: Current configuration or error with details
 
         """
 
@@ -661,11 +665,11 @@ class FlextCliCore(FlextCliServiceBase):
 
         return validate_config_state()
 
-    def get_handlers(self) -> r[list[str]]:
+    def get_handlers(self) -> r[Sequence[str]]:
         """Get list of registered command handlers.
 
         Returns:
-            r[list[str]]: List of handler names
+            r[Sequence[str]]: List of handler names
 
         """
         return self._get_dict_keys(
@@ -673,31 +677,31 @@ class FlextCliCore(FlextCliServiceBase):
             c.Cli.ErrorMessages.COMMAND_LISTING_FAILED,
         )
 
-    def get_plugins(self) -> r[list[str]]:
+    def get_plugins(self) -> r[Sequence[str]]:
         """Get list of registered plugins.
 
         Returns:
-            r[list[str]]: List of plugin names
+            r[Sequence[str]]: List of plugin names
 
         """
         result = self._registry.list_plugins("cli_plugins")
         if result.is_failure:
-            return r[list[str]].ok([])
-        return r[list[str]].ok(result.value or [])
+            return r[Sequence[str]].ok([])
+        return r[Sequence[str]].ok(result.value or [])
 
     @override
     def get_service_info(self) -> Mapping[str, t.Scalar]:
         """Get comprehensive service information.
 
         Returns:
-            dict[str, FlextCliTypes.Cli.JsonValue]: Service information (matches FlextService signature)
+            Mapping[str, FlextCliTypes.Cli.JsonValue]: Service information (matches FlextService signature)
 
         """
         try:
             commands_count = len(self._commands)
             config_keys = list(self._cli_config.keys())
-            config_keys_list: list[str] = list(config_keys) if config_keys else []
-            info_data: dict[str, t.Scalar] = {
+            config_keys_list: Sequence[str] = list(config_keys) if config_keys else []
+            info_data: Mapping[str, t.Scalar] = {
                 c.Cli.DictKeys.SERVICE: c.Cli.FLEXT_CLI,
                 c.Cli.CoreServiceDictKeys.COMMANDS_REGISTERED: commands_count,
                 c.Cli.CoreServiceDictKeys.CONFIGURATION_SECTIONS: ",".join(
@@ -806,7 +810,7 @@ class FlextCliCore(FlextCliServiceBase):
         """Perform health check on the CLI service.
 
         Returns:
-            r[dict[str, FlextCliTypes.Cli.JsonValue]]: Health check result
+            r[Mapping[str, FlextCliTypes.Cli.JsonValue]]: Health check result
 
         """
         try:
@@ -837,14 +841,14 @@ class FlextCliCore(FlextCliServiceBase):
         """
         return self._session_active
 
-    def list_commands(self) -> r[list[str]]:
+    def list_commands(self) -> r[Sequence[str]]:
         """List all registered commands using functional composition.
 
         Performs command listing with railway pattern and proper error handling.
         Uses functional approach to extract command names safely.
 
         Returns:
-            r[list[str]]: List of command names or error with details
+            r[Sequence[str]]: List of command names or error with details
 
         """
         FlextLogger(__name__).debug(
@@ -853,7 +857,7 @@ class FlextCliCore(FlextCliServiceBase):
             total_commands=len(self._commands),
         )
 
-        def extract_command_names() -> r[list[str]]:
+        def extract_command_names() -> r[Sequence[str]]:
             """Extract command names from internal registry."""
             try:
                 command_names = list(self._commands.keys())
@@ -868,7 +872,7 @@ class FlextCliCore(FlextCliServiceBase):
                     operation="list_commands",
                     total_commands=len(command_names),
                 )
-                return r[list[str]].ok(command_names)
+                return r[Sequence[str]].ok(command_names)
             except (
                 ValueError,
                 TypeError,
@@ -884,7 +888,7 @@ class FlextCliCore(FlextCliServiceBase):
                     error_type=type(e).__name__,
                     consequence="Command list unavailable",
                 )
-                return r[list[str]].fail(
+                return r[Sequence[str]].fail(
                     c.Cli.ErrorMessages.COMMAND_LISTING_FAILED.format(error=e),
                 )
 
@@ -920,7 +924,7 @@ class FlextCliCore(FlextCliServiceBase):
             return r[bool].fail(c.Cli.ErrorMessages.COMMAND_NAME_EMPTY)
         try:
             created_at_val: FlextCliTypes.Cli.JsonValue = command.created_at.isoformat()
-            command_data: dict[str, FlextCliTypes.Cli.JsonValue] = {
+            command_data: Mapping[str, FlextCliTypes.Cli.JsonValue] = {
                 "name": command.name,
                 "unique_id": command.unique_id,
                 "status": command.status,
@@ -1025,7 +1029,7 @@ class FlextCliCore(FlextCliServiceBase):
             operation="update_configuration",
             config_type=type(config).__name__,
         )
-        validated_config_input: dict[str, FlextCliTypes.Cli.JsonValue] = {
+        validated_config_input: Mapping[str, FlextCliTypes.Cli.JsonValue] = {
             str(key): m.Cli.normalize_json_value(value)
             for key, value in FlextCliOutput.to_dict_json(config).items()
         }
@@ -1034,19 +1038,19 @@ class FlextCliCore(FlextCliServiceBase):
             return r[bool].fail(
                 config_result.error or "Configuration validation failed",
             )
-        merged_config_val: dict[str, FlextCliTypes.Cli.JsonValue] = dict(
+        merged_config_val: Mapping[str, FlextCliTypes.Cli.JsonValue] = dict(
             config_result.value or {},
         )
         return self._merge_configurations(merged_config_val)
 
     def _build_execution_context(
         self,
-        context: Mapping[str, FlextCliTypes.Cli.JsonValue] | list[str] | None,
+        context: Mapping[str, FlextCliTypes.Cli.JsonValue] | Sequence[str] | None,
     ) -> Mapping[str, FlextCliTypes.Cli.JsonValue]:
         """Build execution context via ExecutionContextInput model (single Pydantic contract)."""
         ctx_input = m.Cli.ExecutionContextInput.model_validate(context)
 
-        def list_processor(seq: Sequence[str]) -> list[FlextCliTypes.Cli.JsonValue]:
+        def list_processor(seq: Sequence[str]) -> Sequence[FlextCliTypes.Cli.JsonValue]:
             process_result = FlextCliUtilities.process(
                 list(seq),
                 processor=m.Cli.normalize_json_value,
@@ -1083,17 +1087,17 @@ class FlextCliCore(FlextCliServiceBase):
                 return r[bool].fail(
                     existing_config_result.error or "Config validation failed",
                 )
-            existing_config_raw: dict[str, FlextCliTypes.Cli.JsonValue] = dict(
+            existing_config_raw: Mapping[str, FlextCliTypes.Cli.JsonValue] = dict(
                 existing_config_result.value or {},
             )
-            existing_config: dict[str, FlextCliTypes.Cli.JsonValue] = dict(
+            existing_config: Mapping[str, FlextCliTypes.Cli.JsonValue] = dict(
                 existing_config_raw,
             )
             transformed_config = FlextCliOutput.to_dict_json(valid_config)
-            existing_config_guard: dict[str, FlextCliTypes.Cli.JsonValue] = {
+            existing_config_guard: Mapping[str, FlextCliTypes.Cli.JsonValue] = {
                 str(k): v for k, v in existing_config.items()
             }
-            transformed_config_guard: dict[str, FlextCliTypes.Cli.JsonValue] = {
+            transformed_config_guard: Mapping[str, FlextCliTypes.Cli.JsonValue] = {
                 str(k): v for k, v in transformed_config.items()
             }
             merge_result = FlextCliUtilities.merge(
@@ -1160,7 +1164,7 @@ class FlextCliCore(FlextCliServiceBase):
             config_keys=str(list(config.keys())),
         )
         json_config = FlextCliOutput.to_dict_json(config)
-        normalized_json_config: dict[str, FlextCliTypes.Cli.JsonValue] = {
+        normalized_json_config: Mapping[str, FlextCliTypes.Cli.JsonValue] = {
             str(key): m.Cli.normalize_json_value(value)
             for key, value in json_config.items()
         }

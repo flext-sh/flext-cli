@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from typing import Annotated
 
 from flext_core import FlextModels
@@ -23,12 +24,12 @@ class FlextCliModelsSystemContext:
         python_version: Annotated[str, Field(default="")]
         os_name: Annotated[str, Field(default="")]
         os_version: Annotated[str, Field(default="")]
-        variables: Annotated[dict[str, str], Field(default_factory=dict)]
+        variables: Annotated[Mapping[str, str], Field(default_factory=dict)]
 
     class SystemInfo(FlextModels.Value):
         python_version: Annotated[str, Field(default="")]
         platform: Annotated[str, Field(default="")]
-        architecture: Annotated[list[str], Field(default_factory=list)]
+        architecture: Annotated[Sequence[str], Field(default_factory=list)]
         processor: Annotated[str, Field(default="")]
         hostname: Annotated[str, Field(default="")]
         memory_total: Annotated[int, Field(default=0)]
@@ -38,7 +39,7 @@ class FlextCliModelsSystemContext:
         success: Annotated[bool, Field(default=True)]
         context_id: Annotated[str, Field(default="")]
         metadata: Annotated[
-            dict[str, t.Cli.JsonValue],
+            Mapping[str, t.Cli.JsonValue],
             Field(default_factory=dict),
         ]
         context_executed: Annotated[

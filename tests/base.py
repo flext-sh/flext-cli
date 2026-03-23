@@ -13,7 +13,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from datetime import datetime
 from pathlib import Path
 from typing import ClassVar, override
@@ -98,8 +98,8 @@ class TestsCliServiceBase(s[T]):
         @staticmethod
         def _build_cases(
             *, should_fail: bool
-        ) -> list[TestsCliServiceBase.HandlerTestCase]:
-            cases: list[TestsCliServiceBase.HandlerTestCase] = []
+        ) -> Sequence[TestsCliServiceBase.HandlerTestCase]:
+            cases: Sequence[TestsCliServiceBase.HandlerTestCase] = []
             for spec in td.default_handler_case_specs():
                 spec_should_fail = bool(spec.get("should_fail", False))
                 if spec_should_fail is not should_fail:
@@ -124,12 +124,12 @@ class TestsCliServiceBase(s[T]):
             return cases
 
         @staticmethod
-        def success_cases() -> list[TestsCliServiceBase.HandlerTestCase]:
+        def success_cases() -> Sequence[TestsCliServiceBase.HandlerTestCase]:
             """Generate success handler test cases."""
             return TestsCliServiceBase.HandlerFactories._build_cases(should_fail=False)
 
         @staticmethod
-        def failure_cases() -> list[TestsCliServiceBase.HandlerTestCase]:
+        def failure_cases() -> Sequence[TestsCliServiceBase.HandlerTestCase]:
             """Generate failure handler test cases."""
             return TestsCliServiceBase.HandlerFactories._build_cases(should_fail=True)
 

@@ -19,6 +19,7 @@ import logging
 import platform
 import tempfile
 import time
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 
 import pytest
@@ -47,7 +48,7 @@ class TestsCliConstants:
         """Factory for creating test data scenarios."""
 
         @staticmethod
-        def get_constant_value_cases() -> list[tuple[str, str]]:
+        def get_constant_value_cases() -> Sequence[tuple[str, str]]:
             """Get parametrized test cases for constant values."""
             return [
                 ("PROJECT_NAME", "flext-cli"),
@@ -58,7 +59,7 @@ class TestsCliConstants:
             ]
 
         @staticmethod
-        def get_constant_names() -> list[str]:
+        def get_constant_names() -> Sequence[str]:
             """Get list of constant names for parametrized tests."""
             return [
                 "PROJECT_NAME",
@@ -68,7 +69,7 @@ class TestsCliConstants:
             ]
 
         @staticmethod
-        def get_file_name_constants() -> list[str]:
+        def get_file_name_constants() -> Sequence[str]:
             """Get list of file name constants."""
             return ["TOKEN_FILE_NAME", "REFRESH_TOKEN_FILE_NAME"]
 
@@ -80,7 +81,7 @@ class TestsCliConstants:
             constants: type[FlextCliConstants], constant_name: str
         ) -> str:
             """Get constant value from correct namespace."""
-            mapping: dict[str, str] = {
+            mapping: Mapping[str, str] = {
                 "PROJECT_NAME": constants.Cli.Project.NAME,
                 "FLEXT_DIR_NAME": constants.Cli.Paths.FLEXT_DIR_NAME,
                 "TOKEN_FILE_NAME": constants.Cli.Paths.TOKEN_FILE_NAME,

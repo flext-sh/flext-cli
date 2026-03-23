@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from datetime import UTC, datetime
 
 import pytest
@@ -16,7 +16,7 @@ from tests import CliCommandInput, CliSessionInput
 def create_test_cli_command(**overrides: t.ContainerValue) -> m.Cli.CliCommand:
     """Factory for real CliCommand instances with sensible defaults."""
     now = datetime.now(UTC)
-    payload: dict[str, t.ContainerValue] = {
+    payload: Mapping[str, t.ContainerValue] = {
         "unique_id": f"test-cmd-{now.timestamp()}",
         "name": "test_command",
         "description": "Test command description",
@@ -42,7 +42,7 @@ def create_test_cli_command(**overrides: t.ContainerValue) -> m.Cli.CliCommand:
 def create_test_cli_session(**overrides: t.ContainerValue) -> m.Cli.CliSession:
     """Factory for real CliSession instances with sensible defaults."""
     now = datetime.now(UTC)
-    payload: dict[str, t.ContainerValue] = {
+    payload: Mapping[str, t.ContainerValue] = {
         "session_id": f"test-session-{now.timestamp()}",
         "status": "active",
         "created_at": now,
@@ -75,7 +75,7 @@ class AuthHelpers:
         **overrides: t.ContainerValue,
     ) -> Mapping[str, t.ContainerValue]:
         """Create test credentials dict."""
-        defaults: dict[str, t.ContainerValue] = {
+        defaults: Mapping[str, t.ContainerValue] = {
             "username": "test_user",
             "password": "test_pass",
             "token": AuthHelpers.create_test_token(),
@@ -83,7 +83,7 @@ class AuthHelpers:
         return {**defaults, **overrides}
 
     @staticmethod
-    def create_auth_test_data() -> dict[str, t.ContainerValue]:
+    def create_auth_test_data() -> Mapping[str, t.ContainerValue]:
         """Create authentication test data."""
         return {
             "valid_credentials": {"username": "test_user", "password": "test_pass"},
@@ -92,7 +92,7 @@ class AuthHelpers:
         }
 
     @staticmethod
-    def create_auth_operations_test_data() -> dict[str, t.ContainerValue]:
+    def create_auth_operations_test_data() -> Mapping[str, t.ContainerValue]:
         """Create authentication operations test data."""
         return {
             "login_success": {
@@ -134,7 +134,7 @@ class CommandHelpers:
         **overrides: t.ContainerValue,
     ) -> Mapping[str, t.ContainerValue]:
         """Create test command data."""
-        defaults: dict[str, t.ContainerValue] = {
+        defaults: Mapping[str, t.ContainerValue] = {
             "name": "test_command",
             "args": ["--test"],
             "timeout": 30.0,
@@ -143,7 +143,7 @@ class CommandHelpers:
         return {**defaults, **overrides}
 
     @staticmethod
-    def create_command_execution_test_data() -> dict[str, t.ContainerValue]:
+    def create_command_execution_test_data() -> Mapping[str, t.ContainerValue]:
         """Create command execution test data."""
         return {
             "basic_command": {"name": "echo", "args": ["hello world"], "timeout": 10.0},
@@ -158,7 +158,7 @@ class CommandHelpers:
 
     @staticmethod
     def simulate_command_execution(
-        command_data: dict[str, t.ContainerValue],
+        command_data: Mapping[str, t.ContainerValue],
     ) -> Mapping[str, t.ContainerValue]:
         """Simulate command execution result."""
         return {
@@ -177,7 +177,7 @@ class OutputHelpers:
         **overrides: t.ContainerValue,
     ) -> Mapping[str, t.ContainerValue]:
         """Create test output data."""
-        defaults: dict[str, t.ContainerValue] = {
+        defaults: Mapping[str, t.ContainerValue] = {
             "format": "json",
             "data": {"test": "data"},
             "headers": ["col1", "col2"],
@@ -186,7 +186,7 @@ class OutputHelpers:
         return {**defaults, **overrides}
 
     @staticmethod
-    def create_format_test_data() -> dict[str, t.ContainerValue]:
+    def create_format_test_data() -> Mapping[str, t.ContainerValue]:
         """Create format test data for output formatting tests."""
         return {
             "json": {"test": "data", "number": 42},
@@ -195,7 +195,7 @@ class OutputHelpers:
         }
 
     @staticmethod
-    def create_table_test_data() -> dict[str, t.ContainerValue]:
+    def create_table_test_data() -> Mapping[str, t.ContainerValue]:
         """Create table test data for output formatting tests."""
         return {
             "simple": {
@@ -210,7 +210,7 @@ class OutputHelpers:
         }
 
     @staticmethod
-    def format_test_output(data: dict[str, t.ContainerValue]) -> str:
+    def format_test_output(data: Mapping[str, t.ContainerValue]) -> str:
         """Format test output."""
         if data.get("format") == "json":
             return json.dumps(data.get("data", {}))
@@ -226,9 +226,9 @@ class CommandsFactory:
         return create_test_cli_command(**overrides)
 
     @staticmethod
-    def create_command_chain(count: int = 3) -> list[m.Cli.CliCommand]:
+    def create_command_chain(count: int = 3) -> Sequence[m.Cli.CliCommand]:
         """Create a chain of related commands."""
-        commands: list[m.Cli.CliCommand] = []
+        commands: Sequence[m.Cli.CliCommand] = []
         for i in range(count):
             cmd = create_test_cli_command(
                 command_id=f"chain_cmd_{i}",
@@ -239,7 +239,7 @@ class CommandsFactory:
         return commands
 
     @staticmethod
-    def create_commands_with_dependencies() -> list[m.Cli.CliCommand]:
+    def create_commands_with_dependencies() -> Sequence[m.Cli.CliCommand]:
         """Create commands with dependency relationships."""
         cmd1 = create_test_cli_command(
             command_id="dep_cmd_1", name="prepare_data", arguments=["--prepare"]
@@ -290,7 +290,7 @@ class CommandsFactory:
         return commands.register_command(command_name, handler)
 
 
-def generate_edge_case_data() -> list[dict[str, t.ContainerValue]]:
+def generate_edge_case_data() -> Sequence[Mapping[str, t.ContainerValue]]:
     """Generate comprehensive edge case test data for CliCommand.
 
     Only uses valid CliCommand fields: name, description, command_line, usage,
@@ -335,6 +335,6 @@ def test_cli_session() -> m.Cli.CliSession:
 
 
 @pytest.fixture
-def edge_case_commands() -> list[m.Cli.CliCommand]:
+def edge_case_commands() -> Sequence[m.Cli.CliCommand]:
     """Fixture providing edge case command instances."""
     return [create_test_cli_command(**data) for data in generate_edge_case_data()]

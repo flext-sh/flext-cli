@@ -898,7 +898,7 @@ class FlextCliProtocols(FlextProtocols):
 
             def execute_cli(
                 self,
-                args: list[str] | None = None,
+                args: Sequence[str] | None = None,
             ) -> r[bool]:
                 """Execute the CLI with Railway-pattern error handling."""
                 ...

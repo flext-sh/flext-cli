@@ -15,6 +15,7 @@ import os
 import pathlib
 import sys
 import traceback
+from collections.abc import Sequence
 from typing import ClassVar
 
 import typer
@@ -74,7 +75,7 @@ class FlextCliAppBase[SettingsT: FlextCliSettings]:
             raise ne
 
     @staticmethod
-    def _resolve_cli_args(args: list[str] | None) -> list[str]:
+    def _resolve_cli_args(args: Sequence[str] | None) -> Sequence[str]:
         """Resolve CLI arguments based on environment."""
         if args is None:
             if os.getenv("PYTEST_CURRENT_TEST"):
@@ -82,7 +83,7 @@ class FlextCliAppBase[SettingsT: FlextCliSettings]:
             return sys.argv[1:] if len(sys.argv) > 1 else []
         return args
 
-    def execute_cli(self, args: list[str] | None = None) -> r[bool]:
+    def execute_cli(self, args: Sequence[str] | None = None) -> r[bool]:
         """Execute the CLI with Railway-pattern error handling."""
         try:
             sys.modules["pathlib"] = pathlib

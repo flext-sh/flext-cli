@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import Annotated
 
 from flext_core import FlextModels
@@ -63,7 +64,7 @@ class FlextCliModelsStatistics:
         exit_code: Annotated[int, Field(default=0)]
         output: Annotated[str, Field(default="")]
         context: Annotated[
-            dict[str, t.Cli.JsonValue],
+            Mapping[str, t.Cli.JsonValue],
             Field(default_factory=dict),
         ]
 

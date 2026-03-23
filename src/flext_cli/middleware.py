@@ -12,7 +12,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 
 from flext_core import r
 from pydantic import BaseModel
@@ -138,7 +138,7 @@ class FlextCliMiddleware:
 
     @staticmethod
     def compose(
-        middlewares: list[
+        middlewares: Sequence[
             Callable[
                 [
                     p.Cli.CliContext,

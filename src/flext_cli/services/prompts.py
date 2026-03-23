@@ -5,7 +5,7 @@ from __future__ import annotations
 import getpass
 import os
 import re
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from typing import Annotated, override
 
 from flext_core import r
@@ -27,7 +27,7 @@ PM, PEM = (CLI.PromptsMessages, CLI.PromptsErrorMessages)
 SOURCE_PATH = "flext-cli/src/flext_cli/prompts.py"
 
 
-def _empty_prompt_history() -> list[str]:
+def _empty_prompt_history() -> Sequence[str]:
     return []
 
 
@@ -46,7 +46,7 @@ class FlextCliPrompts(FlextCliServiceBase):
             description="Default timeout for prompt operations in seconds",
         ),
     ]
-    _prompt_history: list[str] = PrivateAttr(default_factory=_empty_prompt_history)
+    _prompt_history: Sequence[str] = PrivateAttr(default_factory=_empty_prompt_history)
 
     def __init__(
         self,
@@ -83,7 +83,7 @@ class FlextCliPrompts(FlextCliServiceBase):
         )
 
     @property
-    def prompt_history(self) -> list[str]:
+    def prompt_history(self) -> Sequence[str]:
         return self._prompt_history.copy()
 
     def clear_prompt_history(self) -> r[bool]:
@@ -311,7 +311,7 @@ class FlextCliPrompts(FlextCliServiceBase):
     def prompt_choice(
         self,
         message: str,
-        choices: list[str],
+        choices: Sequence[str],
         default: str | None = None,
     ) -> r[str]:
         if not choices:
@@ -448,7 +448,7 @@ class FlextCliPrompts(FlextCliServiceBase):
 
     def select_from_options(
         self,
-        options: list[str],
+        options: Sequence[str],
         message: str = PD.DEFAULT_CHOICE_MESSAGE,
     ) -> r[str]:
         try:
@@ -491,9 +491,9 @@ class FlextCliPrompts(FlextCliServiceBase):
 
     def with_progress(
         self,
-        items: list[FlextCliTypes.Cli.JsonValue],
+        items: Sequence[FlextCliTypes.Cli.JsonValue],
         description: str = PD.DEFAULT_PROCESSING_DESCRIPTION,
-    ) -> r[list[FlextCliTypes.Cli.JsonValue]]:
+    ) -> r[Sequence[FlextCliTypes.Cli.JsonValue]]:
         try:
             total = len(items)
             self.logger.info("Starting progress operation with items")
@@ -520,7 +520,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                     processed=total,
                 ),
             )
-            return r[list[FlextCliTypes.Cli.JsonValue]].ok(items)
+            return r[Sequence[FlextCliTypes.Cli.JsonValue]].ok(items)
         except (
             ValueError,
             TypeError,
@@ -535,7 +535,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 exc,
                 "Progress operation failed completely",
             )
-            return r[list[FlextCliTypes.Cli.JsonValue]].fail(
+            return r[Sequence[FlextCliTypes.Cli.JsonValue]].fail(
                 PEM.PROGRESS_PROCESSING_FAILED.format(error=exc),
             )
 
@@ -626,7 +626,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 consequence="Prompting again",
             )
 
-    def _read_selection(self, options: list[str]) -> r[str]:
+    def _read_selection(self, options: Sequence[str]) -> r[str]:
         count = len(options)
         while True:
             try:

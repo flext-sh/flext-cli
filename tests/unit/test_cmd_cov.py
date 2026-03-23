@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from pathlib import Path
 
 import pytest
@@ -132,7 +133,7 @@ def test_edit_config_success_logs_and_returns_ok(
     cli_config = tmp_path / "cli_config.json"
     cli_config.write_text('{"name": "ok"}', encoding="utf-8")
     cmd = FlextCliCmd()
-    logged: dict[str, t.NormalizedValue] = {}
+    logged: Mapping[str, t.NormalizedValue] = {}
     monkeypatch.setattr(
         cmd_module.FlextCliServiceBase,
         "get_cli_config",

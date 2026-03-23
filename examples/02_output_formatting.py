@@ -35,7 +35,7 @@ from __future__ import annotations
 
 import pathlib
 import time
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 
 from flext_core import r
@@ -59,7 +59,7 @@ def display_database_results(records: Sequence[t.Cli.JsonValue]) -> None:
     if not records:
         cli.print("No results found", style="yellow")
         return
-    rows: list[dict[str, str]] = []
+    rows: Sequence[Mapping[str, str]] = []
     for i, record in enumerate(records[:10], 1):
         row_data = " | ".join(str(v) for v in record.values())
         rows.append({"#": f"Row {i}", "Data": row_data})
@@ -77,7 +77,7 @@ def export_report(
     return r[str].fail(result.error or "Failed to create table")
 
 
-def process_large_dataset(items: list[str]) -> None:
+def process_large_dataset(items: Sequence[str]) -> None:
     """Process items with progress updates."""
     cli.print("Processing items...", style="cyan")
     total = len(items)
@@ -126,7 +126,7 @@ def monitor_live_metrics() -> None:
         cpu = 45 + i % 40
         memory = 55 + i % 35
         requests = 150 + i * 10
-        metrics_data: list[dict[str, t.NormalizedValue]] = [
+        metrics_data: Sequence[Mapping[str, t.NormalizedValue]] = [
             {
                 "Metric": "CPU Usage",
                 "Value": f"{cpu}%",
@@ -144,7 +144,7 @@ def monitor_live_metrics() -> None:
     cli.print("✅ Monitoring session complete", style="green")
 
 
-def display_with_panels(data: dict[str, t.NormalizedValue]) -> None:
+def display_with_panels(data: Mapping[str, t.NormalizedValue]) -> None:
     """Display content in organized sections."""
     cli.print("\n📦 Organized Content Display:", style="cyan")
     cli.print("\n📊 Summary:", style="bold blue")
@@ -152,7 +152,7 @@ def display_with_panels(data: dict[str, t.NormalizedValue]) -> None:
     cli.print(f"  Successful: {data.get('successful', 0)}", style="green")
     cli.print(f"  Failed: {data.get('failed', 0)}", style="red")
     cli.print(f"  Pending: {data.get('pending', 0)}", style="yellow")
-    details_data: list[dict[str, t.NormalizedValue]] = []
+    details_data: Sequence[Mapping[str, t.NormalizedValue]] = []
     for key, value in data.items():
         if key not in {"total", "successful", "failed", "pending"}:
             details_data.append({"Property": key, "Value": str(value)})
@@ -171,7 +171,7 @@ def main() -> None:
     cli.print("\n1. Styled Messages (replace print):", style="bold cyan")
     your_cli_function()
     cli.print("\n2. Rich Tables (display data):", style="bold cyan")
-    sample_data: list[dict[str, t.NormalizedValue]] = [
+    sample_data: Sequence[Mapping[str, t.NormalizedValue]] = [
         {"id": 1, "name": "Alice", "status": "active"},
         {"id": 2, "name": "Bob", "status": "inactive"},
     ]
@@ -190,7 +190,7 @@ def main() -> None:
     cli.print("\n7. Live Updates (real-time monitoring):", style="bold cyan")
     monitor_live_metrics()
     cli.print("\n8. Panels (organized content):", style="bold cyan")
-    panel_data: dict[str, t.NormalizedValue] = {
+    panel_data: Mapping[str, t.NormalizedValue] = {
         "total": 1250,
         "successful": 1100,
         "failed": 50,

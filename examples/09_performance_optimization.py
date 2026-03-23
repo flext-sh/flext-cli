@@ -33,6 +33,7 @@ from __future__ import annotations
 import pathlib
 import tempfile
 import time
+from collections.abc import Mapping, Sequence
 from functools import lru_cache
 
 from flext_cli import FlextCli, FlextCliOutput, t
@@ -76,10 +77,10 @@ class LazyDataLoader:
     def __init__(self) -> None:
         """Initialize lazy data loader with deferred data loading."""
         super().__init__()
-        self._data: list[int] | None = None
+        self._data: Sequence[int] | None = None
 
     @property
-    def data(self) -> list[int]:
+    def data(self) -> Sequence[int]:
         """Load data only when needed."""
         if self._data is None:
             cli.print("   📦 Loading data (first access only)...", style="cyan")
@@ -101,7 +102,9 @@ def demonstrate_lazy_loading() -> None:
     )
 
 
-def efficient_table_display(large_dataset: list[dict[str, t.NormalizedValue]]) -> None:
+def efficient_table_display(
+    large_dataset: Sequence[Mapping[str, t.NormalizedValue]],
+) -> None:
     """Display large tables efficiently in YOUR CLI."""
     preview_size = 10
     total = len(large_dataset)
@@ -114,7 +117,7 @@ def efficient_table_display(large_dataset: list[dict[str, t.NormalizedValue]]) -
         cli.print(f"   ... ({total - preview_size} more rows)", style="yellow")
 
 
-def process_large_dataset(items: list[int], batch_size: int = 100) -> None:
+def process_large_dataset(items: Sequence[int], batch_size: int = 100) -> None:
     """Process large datasets in batches in YOUR CLI."""
     cli.print(f"\n🔄 Batch Processing ({len(items)} items):", style="bold cyan")
     total_batches = (len(items) + batch_size - 1) // batch_size
@@ -151,12 +154,12 @@ def main() -> None:
     demonstrate_caching()
     demonstrate_lazy_loading()
     cli.print("\n4. Efficient Table Display:", style="bold cyan")
-    large_data: list[dict[str, t.NormalizedValue]] = [
+    large_data: Sequence[Mapping[str, t.NormalizedValue]] = [
         {"id": i, "name": f"Item {i}"} for i in range(1000)
     ]
     efficient_table_display(large_data)
     cli.print("\n5. Batch Processing:", style="bold cyan")
-    items: list[int] = list(range(500))
+    items: Sequence[int] = list(range(500))
     process_large_dataset(items, batch_size=100)
     cli.print("\n6. Memory-Efficient File Streaming:", style="bold cyan")
     demo_file = pathlib.Path(tempfile.gettempdir()) / "large_file.txt"

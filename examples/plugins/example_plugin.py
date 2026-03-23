@@ -10,14 +10,14 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Mapping, Sequence
 
 from flext_core import r
 
 from examples import CliMainWithGroups, GroupWithCommands
 
 type DataProcessor = Callable[[str], str]
-type ProcessorRegistry = dict[str, DataProcessor]
+type ProcessorRegistry = Mapping[str, DataProcessor]
 
 
 class ExamplePlugin:
@@ -39,7 +39,7 @@ class ExamplePlugin:
         """Initialize plugin."""
         super().__init__()
         self._initialized = False
-        self._config: dict[str, bool | int] = {}
+        self._config: Mapping[str, bool | int] = {}
 
     def initialize(self, _cli_main: CliMainWithGroups) -> r[bool]:
         """Initialize the plugin.
@@ -196,7 +196,7 @@ class DataProcessorPlugin:
                     return processor(input_data)
                 return f"Unsupported format: {format_type}"
 
-            def list_formats() -> list[str]:
+            def list_formats() -> Sequence[str]:
                 """List available data formats.
 
                 Returns:

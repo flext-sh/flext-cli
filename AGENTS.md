@@ -404,10 +404,14 @@ m = FlextCliModels
 
 ### 3. Circular Import Avoidance Strategies
 
-**Strategy 1: Forward References with `from __future__ import annotations`**
+**Strategy 1: Forward References with `from **future** import annotations
+
+from collections.abc import Mapping, Sequence`**
 
 ```python
 from __future__ import annotations
+
+from collections.abc import Mapping, Sequence
 from typing import Self
 
 
@@ -807,6 +811,8 @@ if TYPE_CHECKING:
 # ✅ CORRECT - Forward references
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
+
 
 def process(protocol: "p.Cli.Display") -> None:
     pass
@@ -894,18 +900,18 @@ When mypy doesn't recognize type narrowing within list comprehensions, use expli
 result = [item for item in items if isinstance(item, CliCommand)]
 
 # ✅ CORRECT - explicit loop with isinstance narrowing
-cli_commands: list[CliCommand] = []
+cli_commands: Sequence[CliCommand] = []
 for cmd in items:
     if isinstance(cmd, CliCommand):
         cli_commands.append(cmd)
 ```
 
 **Dict Variance with Mapping**:
-When passing dict[str, SpecificType] to a parameter expecting dict[str, BaseType], use `Mapping[str, BaseType]` instead (covariant) to allow type-compatible arguments:
+When passing Mapping[str, SpecificType] to a parameter expecting Mapping[str, BaseType], use `Mapping[str, BaseType]` instead (covariant) to allow type-compatible arguments:
 
 ```python
 # ❌ FAILS - dict is invariant
-def _process_config(config: dict[str, t.NormalizedValue]) -> None: ...
+def _process_config(config: Mapping[str, t.NormalizedValue]) -> None: ...
 
 
 _process_config({"key": True, "value": "string"})  # Type error
@@ -925,10 +931,10 @@ Always use specific error codes in `# type: ignore` comments rather than generic
 
 ```python
 # ❌ WRONG
-list_instance: list[str] = list_with_union
+list_instance: Sequence[str] = list_with_union
 
 # ✅ CORRECT
-list_instance: list[str] = list_with_union
+list_instance: Sequence[str] = list_with_union
 ```
 
 ### Testing Fixes

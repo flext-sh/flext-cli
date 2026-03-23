@@ -53,8 +53,8 @@ class FlextCliCommands(FlextCliServiceBase):
         )
         self._name = name
         self._description = description
-        self._commands: dict[str, m.Cli.CommandEntryModel] = {}
-        self._groups: dict[str, m.Cli.CliCommandGroup] = {}
+        self._commands: Mapping[str, m.Cli.CommandEntryModel] = {}
+        self._groups: Mapping[str, m.Cli.CliCommandGroup] = {}
 
     @property
     def description(self) -> str:
@@ -114,7 +114,7 @@ class FlextCliCommands(FlextCliServiceBase):
             return r[m.Cli.CliCommandGroup].fail(
                 "Commands are required for group creation",
             )
-        group_commands: dict[str, t.Cli.JsonValue] = {
+        group_commands: Mapping[str, t.Cli.JsonValue] = {
             key: value.model_dump(mode="python") for key, value in commands.items()
         }
         group = m.Cli.CliCommandGroup.model_validate({
@@ -216,7 +216,7 @@ class FlextCliCommands(FlextCliServiceBase):
             Use FlextCliCli for actual Click integration.
 
         """
-        group_commands: dict[str, t.Cli.JsonValue] = {
+        group_commands: Mapping[str, t.Cli.JsonValue] = {
             key: value.model_dump(mode="json") for key, value in self._commands.items()
         }
         return m.Cli.CliCommandGroup.model_validate({
@@ -234,14 +234,14 @@ class FlextCliCommands(FlextCliServiceBase):
         """
         return dict(self._commands)
 
-    def list_commands(self) -> r[list[str]]:
+    def list_commands(self) -> r[Sequence[str]]:
         """List all registered command names.
 
         Returns:
-            r[list[str]]: List of command names.
+            r[Sequence[str]]: List of command names.
 
         """
-        return r[list[str]].ok(list(self._commands.keys()))
+        return r[Sequence[str]].ok(list(self._commands.keys()))
 
     def register_command(
         self,

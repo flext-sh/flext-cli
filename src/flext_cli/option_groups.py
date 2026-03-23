@@ -10,6 +10,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 from typer.models import OptionInfo
 
 
@@ -29,7 +31,7 @@ class FlextCliOptionGroup:
     """
 
     @staticmethod
-    def auth_options() -> list[OptionInfo]:
+    def auth_options() -> Sequence[OptionInfo]:
         """Common authentication options.
 
         Returns:
@@ -61,7 +63,7 @@ class FlextCliOptionGroup:
         ]
 
     @staticmethod
-    def connection_options() -> list[OptionInfo]:
+    def connection_options() -> Sequence[OptionInfo]:
         """Common connection options for any service.
 
         Returns:
@@ -92,7 +94,7 @@ class FlextCliOptionGroup:
         ]
 
     @staticmethod
-    def output_options() -> list[OptionInfo]:
+    def output_options() -> Sequence[OptionInfo]:
         """Common output format options.
 
         Returns:

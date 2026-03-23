@@ -40,7 +40,7 @@ class FlextCliTestModels(FlextTestsModels, FlextCliModels):
                     /,
                     **kwargs: t.ContainerValue,
                 ) -> None:
-                    payload: dict[str, t.ContainerValue] = {}
+                    payload: Mapping[str, t.ContainerValue] = {}
                     if data is not None:
                         payload.update(data)
                     payload.update(kwargs)
@@ -58,7 +58,7 @@ class FlextCliTestModels(FlextTestsModels, FlextCliModels):
                 command_line: str = Field(default="test_command")
                 args: Sequence[str] = Field(default_factory=list)
                 result: t.NormalizedValue = Field(default=None)
-                kwargs: dict[str, t.ContainerValue] = Field(default_factory=dict)
+                kwargs: Mapping[str, t.ContainerValue] = Field(default_factory=dict)
 
             class CliSessionInput(PositionalModel):
                 """Test input for building CliSession via model_construct. All optional with defaults."""
@@ -70,7 +70,7 @@ class FlextCliTestModels(FlextTestsModels, FlextCliModels):
 
             _ScalarOnly = t.Primitives | None
 
-            class ScalarConfigRestore(RootModel[dict[str, _ScalarOnly]]):
+            class ScalarConfigRestore(RootModel[Mapping[str, _ScalarOnly]]):
                 """Holds scalar-only config for container restore in fixtures. Filters nested values out."""
 
                 @classmethod
@@ -78,7 +78,7 @@ class FlextCliTestModels(FlextTestsModels, FlextCliModels):
                     cls, items: Mapping[str, t.NormalizedValue]
                 ) -> Self:
                     """Build scalar-only dict from config items (drops nested dict/list/model)."""
-                    out: dict[str, t.Primitives | None] = {
+                    out: Mapping[str, t.Primitives | None] = {
                         k: v
                         for k, v in items.items()
                         if v is None or isinstance(v, (str, int, float, bool))
@@ -113,7 +113,7 @@ class FlextCliTestModels(FlextTestsModels, FlextCliModels):
 
                 model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
                 message: str = Field(default="", description="Prompt message")
-                choices: list[str] = Field(
+                choices: Sequence[str] = Field(
                     default_factory=list, description="Choice list"
                 )
                 default: str | None = Field(default=None, description="Default choice")

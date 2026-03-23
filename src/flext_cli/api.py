@@ -243,14 +243,14 @@ class FlextCli:
         data: Mapping[str, t.Cli.JsonValue]
         | Sequence[Mapping[str, t.Cli.JsonValue]]
         | None,
-        headers: list[str] | None = None,
+        headers: Sequence[str] | None = None,
         _title: str | None = None,
     ) -> r[str]:
         """Create a formatted ASCII table (internal; use show_table for display)."""
         if data is None:
             return r[str].fail("Table data cannot be None")
         if isinstance(data, Mapping):
-            table_data: list[Mapping[str, t.Cli.JsonValue]] = [dict(data.items())]
+            table_data: Sequence[Mapping[str, t.Cli.JsonValue]] = [dict(data.items())]
         elif isinstance(data, list):
             table_data = data
         elif isinstance(data, tuple):
@@ -341,7 +341,7 @@ class FlextCli:
     def show_table(
         self,
         data: Mapping[str, t.Cli.JsonValue] | Sequence[Mapping[str, t.Cli.JsonValue]],
-        headers: list[str] | None = None,
+        headers: Sequence[str] | None = None,
         title: str | None = None,
     ) -> None:
         """Create and print a table in one call. No result to capture; no branching."""

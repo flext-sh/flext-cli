@@ -90,8 +90,8 @@ class FlextCliCore(FlextService[CliDataDict]):
 
     def __init__(self):
         super().__init__()
-        self._commands: dict[str, Command] = {}  # MUTABLE STATE
-        self._sessions: dict[str, Session] = {}  # MUTABLE STATE
+        self._commands: Mapping[str, Command] = {}  # MUTABLE STATE
+        self._sessions: Mapping[str, Session] = {}  # MUTABLE STATE
         self._config: FlextCliSettings = ...       # MANAGED STATE
 
     def register_command(self, name: str, command: Command) -> r[bool]:

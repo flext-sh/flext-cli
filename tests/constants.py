@@ -13,6 +13,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from typing import ClassVar, Final
 
 from flext_tests import FlextTestsConstants
@@ -57,7 +58,7 @@ class FlextCliTestConstants(FlextTestsConstants, FlextCliConstants):
             STRING: Final[str] = "string"
             WHITESPACE_STRING: Final[str] = "string with spaces"
             NONE_VALUE: Final[None] = None
-            TWO: Final[list[str]] = ["item1", "item2"]
+            TWO: Final[Sequence[str]] = ["item1", "item2"]
             PASSWORD: Final[str] = "secret123"
             LONG: Final[str] = "a" * 1000
             SPECIAL: Final[str] = "!@#$%^&*()"
@@ -65,7 +66,7 @@ class FlextCliTestConstants(FlextTestsConstants, FlextCliConstants):
             PERFORMANCE_THRESHOLD: Final[float] = 0.1
             INFO: Final[str] = "INFO"
             WARNING: Final[str] = "WARNING"
-            ALL: Final[list[str]] = ["ALL"]
+            ALL: Final[Sequence[str]] = ["ALL"]
             NAME_HEADER: Final[str] = "Name"
             GRID: Final[str] = "grid"
             FANCY_GRID: Final[str] = "fancy_grid"
@@ -97,7 +98,7 @@ class FlextCliTestConstants(FlextTestsConstants, FlextCliConstants):
             class Statuses:
                 """Test status constants."""
 
-                VALID_STATUSES: Final[list[str]] = [
+                VALID_STATUSES: Final[Sequence[str]] = [
                     "pending",
                     "running",
                     "completed",
@@ -115,7 +116,7 @@ class FlextCliTestConstants(FlextTestsConstants, FlextCliConstants):
                     "errno 2",
                     "cannot open",
                 )
-                NON_FILE_ERRORS: Final[list[str]] = [
+                NON_FILE_ERRORS: Final[Sequence[str]] = [
                     "permission denied",
                     "disk full",
                     "access denied",
@@ -140,7 +141,7 @@ class FlextCliTestConstants(FlextTestsConstants, FlextCliConstants):
             class TestConfiguration:
                 """Test configuration constants."""
 
-                BASIC_CONFIG: Final[dict[str, t.NormalizedValue]] = {
+                BASIC_CONFIG: Final[Mapping[str, t.NormalizedValue]] = {
                     "app_name": "test_app",
                     "debug": False,
                     "log_level": "INFO",
@@ -346,7 +347,7 @@ class FlextCliTestConstants(FlextTestsConstants, FlextCliConstants):
 
                 PLUS: Final[str] = "+"
 
-            SPECIALIZED_CASES: Final[list[tuple[str, str, list[str]]]] = [
+            SPECIALIZED_CASES: Final[Sequence[tuple[str, str, Sequence[str]]]] = [
                 ("simple", "simple", ["name", "role", "alice"]),
                 ("grid", "grid", ["+", "-", "|"]),
                 ("fancy_grid", "fancy_grid", ["╒", "═", "│"]),
@@ -361,15 +362,15 @@ class FlextCliTestConstants(FlextTestsConstants, FlextCliConstants):
 
             VALID_TOKEN: Final[str] = "valid_token"
             INVALID_TOKEN: Final[str] = "invalid_token_xyz"
-            VALID_CREDS: Final[dict[str, str]] = {
+            VALID_CREDS: Final[Mapping[str, str]] = {
                 "username": "testuser",
                 "password": "testpass",
             }
-            INVALID_CREDS: Final[dict[str, str]] = {
+            INVALID_CREDS: Final[Mapping[str, str]] = {
                 "username": "invalid",
                 "password": "wrong",
             }
-            EMPTY_CREDS: Final[dict[str, str]] = {"username": "", "password": ""}
+            EMPTY_CREDS: Final[Mapping[str, str]] = {"username": "", "password": ""}
 
     TestData = Cli.Test.TestData
     TestConfiguration = Cli.Test.TestConfiguration

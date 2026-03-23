@@ -30,6 +30,7 @@ from __future__ import annotations
 import hashlib
 import shutil
 import tempfile
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 
 from pydantic import TypeAdapter, ValidationError
@@ -39,7 +40,9 @@ from flext_cli import FlextCli, t
 cli = FlextCli()
 
 
-def export_to_csv(data: list[dict[str, t.NormalizedValue]], output_file: Path) -> None:
+def export_to_csv(
+    data: Sequence[Mapping[str, t.NormalizedValue]], output_file: Path
+) -> None:
     """Export data to CSV with proper headers."""
     if not data:
         cli.print("⚠️  No data to export", style="yellow")
@@ -56,7 +59,9 @@ def export_to_csv(data: list[dict[str, t.NormalizedValue]], output_file: Path) -
         cli.print(f"❌ Export failed: {write_result.error}", style="bold red")
 
 
-def import_from_csv(input_file: Path) -> list[dict[str, t.NormalizedValue]] | None:
+def import_from_csv(
+    input_file: Path,
+) -> Sequence[Mapping[str, t.NormalizedValue]] | None:
     """Import data from CSV with headers."""
     cli.print(f"\n📥 Importing from CSV: {input_file.name}", style="bold cyan")
     read_result = cli.file_tools.read_csv_file_with_headers(input_file)
@@ -93,7 +98,7 @@ def process_binary_file(input_file: Path, output_file: Path) -> None:
         cli.print(f"❌ Write failed: {write_result.error}", style="bold red")
 
 
-def load_any_format_file(file_path: Path) -> dict[str, t.NormalizedValue] | None:
+def load_any_format_file(file_path: Path) -> Mapping[str, t.NormalizedValue] | None:
     """Load config from ANY format - automatically detected."""
     cli.print(f"\n🔍 Auto-Detecting Format: {file_path.name}", style="bold cyan")
     format_result = cli.file_tools.detect_file_format(file_path)
@@ -120,12 +125,12 @@ def load_any_format_file(file_path: Path) -> dict[str, t.NormalizedValue] | None
 
 
 def export_data_multi_format(
-    data: dict[str, t.NormalizedValue] | list[dict[str, t.NormalizedValue]],
+    data: Mapping[str, t.NormalizedValue] | Sequence[Mapping[str, t.NormalizedValue]],
     base_path: Path,
-) -> dict[str, str]:
+) -> Mapping[str, str]:
     """Export same data to multiple formats (JSON, YAML, CSV)."""
     cli.print(f"\n💾 Multi-Format Export: {base_path.stem}", style="bold cyan")
-    export_results: dict[str, str] = {}
+    export_results: Mapping[str, str] = {}
     json_path = base_path.with_suffix(".json")
     json_payload = data
     json_result = cli.file_tools.write_json_file(json_path, json_payload, indent=2)
@@ -140,8 +145,8 @@ def export_data_multi_format(
         size = yaml_path.stat().st_size
         export_results["YAML"] = f"{size} bytes"
         cli.print(f"✅ YAML: {yaml_path.name} ({size} bytes)", style="green")
-    rows_adapter = TypeAdapter(list[dict[str, t.NormalizedValue]])
-    csv_rows_data: list[dict[str, t.NormalizedValue]]
+    rows_adapter = TypeAdapter(Sequence[Mapping[str, t.NormalizedValue]])
+    csv_rows_data: Sequence[Mapping[str, t.NormalizedValue]]
     try:
         csv_rows_data = rows_adapter.validate_python(data)
     except ValidationError:
@@ -213,13 +218,13 @@ def main() -> None:
     temp_dir.mkdir(exist_ok=True)
     cli.print("\n" + "=" * 70, style="bold blue")
     cli.print("1. CSV Export/Import:", style="bold cyan")
-    sample_data: list[dict[str, t.NormalizedValue]] = [
+    sample_data: Sequence[Mapping[str, t.NormalizedValue]] = [
         {"id": 1, "name": "Alice", "department": "Engineering", "salary": "100000"},
         {"id": 2, "name": "Bob", "department": "Sales", "salary": "80000"},
         {"id": 3, "name": "Charlie", "department": "Marketing", "salary": "90000"},
     ]
     csv_file = temp_dir / "employees.csv"
-    typed_sample_data: list[dict[str, t.NormalizedValue]] = [
+    typed_sample_data: Sequence[Mapping[str, t.NormalizedValue]] = [
         dict(row) for row in sample_data
     ]
     export_to_csv(typed_sample_data, csv_file)
@@ -232,7 +237,7 @@ def main() -> None:
     process_binary_file(binary_input, binary_output)
     cli.print("\n" + "=" * 70, style="bold blue")
     cli.print("3. Auto-Format Detection:", style="bold cyan")
-    test_config: dict[str, t.NormalizedValue] = {
+    test_config: Mapping[str, t.NormalizedValue] = {
         "app": "test",
         "version": "1.0",
         "debug": True,
@@ -245,7 +250,7 @@ def main() -> None:
     load_any_format_file(yaml_file)
     cli.print("\n" + "=" * 70, style="bold blue")
     cli.print("4. Multi-Format Export:", style="bold cyan")
-    multi_data: list[dict[str, t.NormalizedValue]] = [
+    multi_data: Sequence[Mapping[str, t.NormalizedValue]] = [
         {"metric": "CPU", "value": "75%", "status": "OK"},
         {"metric": "Memory", "value": "82%", "status": "Warning"},
         {"metric": "Disk", "value": "45%", "status": "OK"},
@@ -259,7 +264,7 @@ def main() -> None:
     process_text_file(text_input, text_output)
     cli.print("\n" + "=" * 70, style="bold blue")
     cli.print("6. File Copy with Verification:", style="bold cyan")
-    demo_config: dict[str, t.NormalizedValue] = {
+    demo_config: Mapping[str, t.NormalizedValue] = {
         "app": "demo",
         "version": "2.0",
         "enabled": True,

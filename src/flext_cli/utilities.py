@@ -35,11 +35,11 @@ class FlextCliUtilities(FlextUtilities):
             on_error: str = "fail",
             filter_keys: set[str] | None = None,
             exclude_keys: set[str] | None = None,
-        ) -> r[list[U]]:
+        ) -> r[Sequence[U]]:
             """Process a sequence of items with error handling."""
             _ = (filter_keys, exclude_keys)
-            errors: list[str] = []
-            values: list[U] = []
+            errors: Sequence[str] = []
+            values: Sequence[U] = []
             for idx, item in enumerate(items):
                 if predicate is not None and (not predicate(item)):
                     continue
@@ -54,7 +54,7 @@ class FlextCliUtilities(FlextUtilities):
                     LiveError,
                 ) as exc:
                     if on_error == "fail":
-                        return r[list[U]].fail(f"Error at index {idx}: {exc}")
+                        return r[Sequence[U]].fail(f"Error at index {idx}: {exc}")
                     if on_error == "collect":
                         errors.append(f"[{idx}]: {exc}")
                     else:
@@ -65,7 +65,9 @@ class FlextCliUtilities(FlextUtilities):
                             exc_info=False,
                         )
             return (
-                r[list[U]].fail("; ".join(errors)) if errors else r[list[U]].ok(values)
+                r[Sequence[U]].fail("; ".join(errors))
+                if errors
+                else r[Sequence[U]].ok(values)
             )
 
         @staticmethod
@@ -75,8 +77,8 @@ class FlextCliUtilities(FlextUtilities):
             on_error: str = "fail",
         ) -> r[Mapping[str, U]]:
             """Process a mapping of items with error handling."""
-            errors: list[str] = []
-            values: dict[str, U] = {}
+            errors: Sequence[str] = []
+            values: Mapping[str, U] = {}
             for key, value in items.items():
                 try:
                     values[key] = processor(key, value)
@@ -140,7 +142,7 @@ class FlextCliUtilities(FlextUtilities):
                 *,
                 name: str = "field",
                 empty: bool = True,
-                in_list: list[str] | None = None,
+                in_list: Sequence[str] | None = None,
                 eq: str | None = None,
                 msg: str = "",
             ) -> r[bool]:
@@ -183,7 +185,7 @@ class FlextCliUtilities(FlextUtilities):
                 | Mapping[str, t.Cli.JsonValue]
                 | None,
                 *,
-                fields: list[str],
+                fields: Sequence[str],
             ) -> r[bool]:
                 """Validate configuration fields."""
                 return FlextCliUtilities.Cli.CliValidation.v_req(config, fields=fields)
@@ -241,7 +243,7 @@ class FlextCliUtilities(FlextUtilities):
                 | Mapping[str, t.Cli.JsonValue]
                 | None,
                 *,
-                fields: list[str],
+                fields: Sequence[str],
             ) -> r[bool]:
                 """Validate that required fields are present in a dictionary."""
                 if data is None:
@@ -260,7 +262,7 @@ class FlextCliUtilities(FlextUtilities):
                 )
 
             @staticmethod
-            def v_session(current: str, *, valid: list[str]) -> r[bool]:
+            def v_session(current: str, *, valid: Sequence[str]) -> r[bool]:
                 """Validate a session status."""
                 return FlextCliUtilities.Cli.CliValidation.v_state(
                     current,
@@ -273,7 +275,7 @@ class FlextCliUtilities(FlextUtilities):
                 current: str,
                 *,
                 required: str | None = None,
-                valid: list[str] | None = None,
+                valid: Sequence[str] | None = None,
                 name: str = "state",
             ) -> r[bool]:
                 """Validate a state value."""
@@ -333,7 +335,7 @@ class FlextCliUtilities(FlextUtilities):
             def validate_field_in_list(
                 field_value: str | float | None,
                 *,
-                valid_values: list[str],
+                valid_values: Sequence[str],
                 field_name: str,
             ) -> r[bool]:
                 """Validate that a field value is in a list of valid values."""
@@ -379,7 +381,7 @@ class FlextCliUtilities(FlextUtilities):
                 )
 
             @staticmethod
-            def get_config_paths() -> list[str]:
+            def get_config_paths() -> Sequence[str]:
                 """Get standard configuration paths."""
                 base = Path.home() / c.Cli.Paths.FLEXT_DIR_NAME
                 return [
@@ -392,7 +394,7 @@ class FlextCliUtilities(FlextUtilities):
                 ]
 
             @staticmethod
-            def validate_config_structure() -> list[str]:
+            def validate_config_structure() -> Sequence[str]:
                 """Validate configuration directory structure."""
                 base = Path.home() / c.Cli.Paths.FLEXT_DIR_NAME
                 ok = c.Cli.Symbols.SUCCESS_MARK
@@ -441,7 +443,7 @@ class FlextCliUtilities(FlextUtilities):
 
             @staticmethod
             def combine_types_with_union(
-                types_list: list[type | types.UnionType],
+                types_list: Sequence[type | types.UnionType],
                 *,
                 include_none: bool = False,
             ) -> type | types.UnionType:
@@ -475,7 +477,7 @@ class FlextCliUtilities(FlextUtilities):
                 raw_args = get_args(annotation)
                 if not raw_args:
                     return annotation
-                args_list: list[type | types.UnionType] = []
+                args_list: Sequence[type | types.UnionType] = []
                 for arg in raw_args:
                     if isinstance(arg, (type, types.UnionType)):
                         args_list.append(arg)
@@ -522,7 +524,7 @@ class FlextCliUtilities(FlextUtilities):
                 ) -> r[Mapping[str, t.Cli.CliValue]]:
                     """Parse keyword arguments."""
                     parsed = dict(kwargs)
-                    errors: list[str] = []
+                    errors: Sequence[str] = []
                     for key, enum_cls in enum_fields.items():
                         if key not in parsed:
                             continue
