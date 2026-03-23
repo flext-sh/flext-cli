@@ -188,7 +188,7 @@ class FlextCliTables(FlextCliServiceBase):
             return r[str].fail(headers_result.error or "Header preparation failed")
         try:
             if u.is_dict_like(data):
-                mapping_rows: Sequence[Mapping[str, t.ContainerValue]] = []
+                mapping_rows: list[Mapping[str, t.ContainerValue]] = []
                 if isinstance(data, Mapping):
                     normalized_row: Mapping[str, t.ContainerValue] = {
                         str(key): m.Cli.normalize_json_value(value)

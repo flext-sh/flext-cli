@@ -1132,7 +1132,7 @@ class FlextCliModels(FlextModels):
                 cli_commands: Sequence[FlextCliModels.Cli.CliCommand] = list(
                     self.commands
                 )
-                result: Mapping[str, Sequence[FlextCliModels.Cli.CliCommand]] = {}
+                result: MutableMapping[str, list[FlextCliModels.Cli.CliCommand]] = {}
                 for command in cli_commands:
                     cmd_status = command.status or ""
                     if cmd_status not in result:
@@ -1900,7 +1900,7 @@ class FlextCliModels(FlextModels):
 
                 """
                 sensitive_keys = c.Cli.SENSITIVE_KEYS
-                data: Mapping[str, t.Cli.JsonValue] = {
+                data: MutableMapping[str, t.Cli.JsonValue] = {
                     "service": self.service,
                     "level": self.level,
                     "message": self.message,
@@ -2012,7 +2012,7 @@ class FlextCliModels(FlextModels):
                 )
 
                 # Build option arguments
-                option_args: Sequence[str] = [f"--{cli_param_name.replace('_', '-')}"]
+                option_args: list[str] = [f"--{cli_param_name.replace('_', '-')}"]
                 if short_flag:
                     option_args.append(f"-{short_flag}")
 
@@ -2608,8 +2608,8 @@ class FlextCliModels(FlextModels):
                     for field_name, field_info in model_fields.items()
                 }
                 # Build annotations, defaults, and fields_with_factory from processed results
-                annotations: Mapping[str, type] = {}
-                defaults: Mapping[str, t.Cli.JsonValue] = {}
+                annotations: MutableMapping[str, type] = {}
+                defaults: MutableMapping[str, t.Cli.JsonValue] = {}
                 fields_with_factory: set[str] = set()
 
                 for field_name, (
@@ -2635,8 +2635,8 @@ class FlextCliModels(FlextModels):
                 defaults: Mapping[str, t.Cli.JsonValue],
                 fields_with_factory: set[str],
             ) -> p.Cli.CliCommandWrapper:
-                required_parameters: Sequence[inspect.Parameter] = []
-                defaulted_parameters: Sequence[inspect.Parameter] = []
+                required_parameters: list[inspect.Parameter] = []
+                defaulted_parameters: list[inspect.Parameter] = []
                 for field_name, field_type in annotations.items():
                     has_default = (
                         field_name in defaults and field_name not in fields_with_factory
@@ -2776,7 +2776,7 @@ class FlextCliModels(FlextModels):
             def extract_base_props(
                 field_name: str,
                 field_info: FieldInfo | Mapping[str, t.Cli.JsonValue] | t.Cli.JsonValue,
-            ) -> Mapping[str, t.Cli.JsonValue]:
+            ) -> MutableMapping[str, t.Cli.JsonValue]:
                 """Extract base properties from field info."""
                 annotation = (
                     field_info.annotation if isinstance(field_info, FieldInfo) else None
@@ -2959,7 +2959,7 @@ class FlextCliModels(FlextModels):
             ) -> None:
                 """Merge field_info dict attributes into props."""
                 if isinstance(field_info, Mapping):
-                    filtered: Mapping[str, t.Cli.JsonValue] = {}
+                    filtered: MutableMapping[str, t.Cli.JsonValue] = {}
                     for k, v in field_info.items():
                         key_str = str(k)
                         if key_str == "__dict__":
@@ -3017,7 +3017,7 @@ class FlextCliModels(FlextModels):
                     msg = "json_schema_extra must be Mapping"
                     raise TypeError(msg) from exc
 
-                dict_metadata: Mapping[str, t.Cli.JsonValue] = {
+                dict_metadata: MutableMapping[str, t.Cli.JsonValue] = {
                     str(k): FlextCliModels.Cli.CliModelConverter.to_json_value(v)
                     for k, v in metadata_dict.items()
                 }
@@ -3156,7 +3156,7 @@ class FlextCliModels(FlextModels):
                 # After is_failure check, params_result.value is guaranteed to be the value
                 params: Sequence[p.Cli.CliParameterSpec] = params_result.value
                 # Create Click option-like objects with option_name and param_decls
-                options: Sequence[t.Cli.JsonValue] = []
+                options: list[t.Cli.JsonValue] = []
                 for param in params:
                     # Type narrowing: param is CliParameterSpec
                     # Create a simple record with option_name and param_decls attributes
@@ -3184,7 +3184,7 @@ class FlextCliModels(FlextModels):
                 metadata_attr: Sequence[t.Cli.JsonValue],
             ) -> Mapping[str, t.Cli.JsonValue]:
                 """Process metadata list into dict."""
-                result: Mapping[str, t.Cli.JsonValue] = {}
+                result: MutableMapping[str, t.Cli.JsonValue] = {}
                 for item in metadata_attr:
                     if FlextCliModels.Cli.is_mapping_like(item):
                         dict_item = {
@@ -3524,7 +3524,7 @@ class FlextCliModels(FlextModels):
                         **kwargs: t.Scalar,
                     ) -> t.Cli.JsonValue:
                         try:
-                            model_instances: Sequence[BaseModel] = []
+                            model_instances: list[BaseModel] = []
                             for model_cls in model_classes:
                                 validated_model = model_cls(**kwargs)
                                 model_instances.append(validated_model)

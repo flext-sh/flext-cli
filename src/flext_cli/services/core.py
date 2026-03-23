@@ -9,7 +9,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping, MutableMapping, Sequence
 from datetime import UTC, datetime
 from typing import override
 
@@ -96,7 +96,7 @@ class FlextCliCore(FlextCliServiceBase):
             self.cache_misses += 1
 
     _cli_config: Mapping[str, FlextCliTypes.Cli.JsonValue]
-    _commands: Mapping[str, Mapping[str, FlextCliTypes.Cli.JsonValue]]
+    _commands: MutableMapping[str, Mapping[str, FlextCliTypes.Cli.JsonValue]]
     _sessions: Mapping[str, FlextCliTypes.Cli.JsonValue]
     _session_active: bool
     _registry: p.Registry
@@ -147,7 +147,7 @@ class FlextCliCore(FlextCliServiceBase):
     def _get_dict_keys(
         data_dict: Mapping[str, FlextCliTypes.Cli.JsonValue] | None,
         error_message: str,
-    ) -> r[Sequence[str]]:
+    ) -> r[list[str]]:
         """Generic method to safely get keys from a dictionary.
 
         Business Rule:
@@ -199,7 +199,7 @@ class FlextCliCore(FlextCliServiceBase):
         if not self._cli_config:
             return r[bool].fail(c.Cli.ErrorMessages.CONFIG_NOT_INITIALIZED)
         try:
-            config: Mapping[str, FlextCliTypes.Cli.JsonValue] = dict(self._cli_config)
+            config: MutableMapping[str, FlextCliTypes.Cli.JsonValue] = dict(self._cli_config)
             default_dict: Mapping[str, FlextCliTypes.Cli.JsonValue] = {}
             profiles_result_raw = FlextCliUtilities.extract(
                 config,
@@ -217,7 +217,7 @@ class FlextCliCore(FlextCliServiceBase):
                     str(key): m.Cli.normalize_json_value(value)
                     for key, value in profiles_value.items()
                 }
-            profiles_section_raw_typed: Mapping[str, FlextCliTypes.Cli.JsonValue] = (
+            profiles_section_raw_typed: MutableMapping[str, FlextCliTypes.Cli.JsonValue] = (
                 dict(
                     profiles_section_raw,
                 )
@@ -495,7 +495,7 @@ class FlextCliCore(FlextCliServiceBase):
                 consequence="Command retrieval will fail",
             )
             return r[m.Configuration].fail(c.Cli.ErrorMessages.COMMAND_NAME_EMPTY)
-        command_check = u.get(self._commands, name)
+        command_check = self._commands.get(name)
         if command_check is None:
             FlextLogger(__name__).warning(
                 "Command not found in registry",
@@ -665,7 +665,7 @@ class FlextCliCore(FlextCliServiceBase):
 
         return validate_config_state()
 
-    def get_handlers(self) -> r[Sequence[str]]:
+    def get_handlers(self) -> r[list[str]]:
         """Get list of registered command handlers.
 
         Returns:
@@ -1100,7 +1100,7 @@ class FlextCliCore(FlextCliServiceBase):
             transformed_config_guard: Mapping[str, FlextCliTypes.Cli.JsonValue] = {
                 str(k): v for k, v in transformed_config.items()
             }
-            merge_result = FlextCliUtilities.merge(
+            merge_result = FlextCliUtilities.merge_mappings(
                 existing_config_guard,
                 transformed_config_guard,
                 strategy="deep",

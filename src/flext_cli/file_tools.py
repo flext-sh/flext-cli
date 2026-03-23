@@ -289,7 +289,7 @@ class FlextCliFileTools:
         path = Path(directory)
 
         def _search() -> Sequence[str]:
-            matches: Sequence[str] = []
+            matches: list[str] = []
             for fp in path.rglob(c.Cli.FileIODefaults.GLOB_PATTERN_ALL):
                 if not fp.is_file():
                     continue

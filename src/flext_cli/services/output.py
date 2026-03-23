@@ -8,7 +8,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import csv
-from collections.abc import Callable, Iterable, Mapping, Sequence
+from collections.abc import Callable, Iterable, Mapping, MutableMapping, Sequence
 from io import StringIO
 from typing import ClassVar, TypeIs
 
@@ -96,7 +96,7 @@ class FlextCliOutput:
     """
 
     _result_formatters: ClassVar[
-        Mapping[
+        MutableMapping[
             type,
             Callable[
                 [FlextCliTypes.Cli.JsonValue | r[FlextCliTypes.Cli.JsonValue], str],
@@ -143,7 +143,7 @@ class FlextCliOutput:
             """Build row values using u utilities."""
             values = u.Cli.process(
                 headers,
-                processor=lambda h: str(u.get(row_data, h)) if h in row_data else None,
+                processor=lambda h: str(row_data.get(h)) if h in row_data else None,
                 on_error="skip",
             )
             values_list = values.value or []
@@ -554,7 +554,7 @@ class FlextCliOutput:
         if value is None or u.is_primitive(value) or isinstance(value, list):
             compatible_value = value
         elif isinstance(value, dict):
-            dict_items: Mapping[str, FlextCliTypes.Cli.JsonValue] = {}
+            dict_items: MutableMapping[str, FlextCliTypes.Cli.JsonValue] = {}
             for kk, vv in value.items():
                 dict_items[str(kk)] = (
                     vv
@@ -1322,7 +1322,7 @@ class FlextCliOutput:
         try:
             if isinstance(data, Sequence):
                 return list(data)
-            iterable_items: Sequence[FlextCliTypes.Cli.JsonValue] = []
+            iterable_items: list[FlextCliTypes.Cli.JsonValue] = []
             for item in data:
                 item_general: FlextCliTypes.Cli.JsonValue = (
                     item
@@ -1463,7 +1463,7 @@ class FlextCliOutput:
         dict_rows: Sequence[Mapping[str, FlextCliTypes.Cli.JsonValue]] = [
             item for item in dict_rows_raw if isinstance(item, dict)
         ]
-        csv_rows: Sequence[Mapping[str, t.Scalar]] = []
+        csv_rows: list[Mapping[str, t.Scalar]] = []
         for row in dict_rows:
             processed_row = self._process_csv_row(row)
             csv_rows.append(processed_row)
@@ -1647,7 +1647,7 @@ class FlextCliOutput:
         """Iterate dictionary values as tuple items."""
         if not isinstance(data, dict):
             return []
-        iterable_items: Sequence[FlextCliTypes.Cli.JsonValue] = []
+        iterable_items: list[FlextCliTypes.Cli.JsonValue] = []
         for key, value in data.items():
             dict_item: FlextCliTypes.Cli.JsonValue = (key, value)
             iterable_items.append(dict_item)
@@ -1780,7 +1780,7 @@ class FlextCliOutput:
 
         Uses t.NormalizedValue from lower layer instead of t.NormalizedValue for better type safety.
         """
-        processed: Mapping[str, t.Scalar] = {}
+        processed: MutableMapping[str, t.Scalar] = {}
         for k, v in row.items():
             processed[k] = self._replace_none_for_csv(k, v)
         return processed

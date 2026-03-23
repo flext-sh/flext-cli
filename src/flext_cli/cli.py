@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import logging
 import shutil
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable, Mapping, MutableMapping, Sequence
 from pathlib import Path
 from typing import IO, Annotated, ClassVar, Literal, overload
 
@@ -178,7 +178,7 @@ class FlextCliCli:
     ) -> tuple[Callable[..., bool], Callable[..., str]]:
 
         def get_bool_val(k: str, *, default: bool = False) -> bool:
-            val = u.get(kwargs, k)
+            val = kwargs.get(k)
             if val is None or not val:
                 return default
             built = u.build(val, ops={"ensure": "bool", "ensure_default": default})
@@ -188,7 +188,7 @@ class FlextCliCli:
             return built
 
         def get_str_val(k: str, default: str = "") -> str:
-            val = u.get(kwargs, k)
+            val = kwargs.get(k)
             if val is None or not val:
                 return default
             built = u.build(val, ops={"ensure": "str", "ensure_default": default})
@@ -234,9 +234,9 @@ class FlextCliCli:
         if isinstance(kwargs, m.Cli.PromptConfig):
             return kwargs
         get_bool_val, get_str_val = FlextCliCli._build_config_getters(kwargs)
-        value_proc_val = u.get(kwargs, "value_proc")
-        default_raw = u.get(kwargs, "default")
-        type_hint_raw = u.get(kwargs, "type_hint")
+        value_proc_val = kwargs.get("value_proc")
+        default_raw = kwargs.get("default")
+        type_hint_raw = kwargs.get("type_hint")
         default_value = FlextCliCli._unwrap_and_validate(
             default_raw,
             "default value",
@@ -522,7 +522,7 @@ class FlextCliCli:
                 )
                 prompt_result_map = None
             if prompt_result_map is not None:
-                normalized_map: Mapping[str, t.Cli.JsonValue] = {}
+                normalized_map: MutableMapping[str, t.Cli.JsonValue] = {}
                 for key, value in prompt_result_map.items():
                     try:
                         normalized_value = (
@@ -712,7 +712,7 @@ class FlextCliCli:
         quiet: bool = False,
         log_level: str | None = None,
     ) -> None:
-        common_params: Mapping[str, t.Cli.JsonValue] = {
+        common_params: MutableMapping[str, t.Cli.JsonValue] = {
             "debug": debug,
             "trace": trace,
             "verbose": verbose,
@@ -732,7 +732,7 @@ class FlextCliCli:
             return
 
         def get_bool(k: str) -> bool | None:
-            value = u.get(filtered_params, k)
+            value = filtered_params.get(k)
             if value is None or not value:
                 return None
             typed_value = self._extract_typed_value(str(value), "bool")
@@ -741,7 +741,7 @@ class FlextCliCli:
             return bool(typed_value)
 
         def get_str(k: str) -> str | None:
-            value = u.get(filtered_params, k)
+            value = filtered_params.get(k)
             if value is None or not value:
                 return None
             typed_value = self._extract_typed_value(str(value), "str")
@@ -785,19 +785,19 @@ class FlextCliCli:
         self,
         kwargs: Mapping[str, t.Cli.JsonValue],
     ) -> m.Cli.OptionConfig:
-        default_raw = u.get(kwargs, "default")
+        default_raw = kwargs.get("default")
         default_value = self._unwrap_and_validate(
             default_raw,
             "option default",
             self._json_value_adapter,
         )
-        type_hint_raw = u.get(kwargs, "type_hint")
+        type_hint_raw = kwargs.get("type_hint")
         type_hint_value = self._unwrap_and_validate(
             type_hint_raw,
             "option type hint",
             self._json_value_adapter,
         )
-        flag_value_raw = u.get(kwargs, "flag_value")
+        flag_value_raw = kwargs.get("flag_value")
         flag_value = self._unwrap_and_validate(
             flag_value_raw,
             "option flag value",
@@ -836,7 +836,7 @@ class FlextCliCli:
         type_name: Literal["bool", "str"],
         default: t.Cli.JsonValue,
     ) -> t.Cli.JsonValue:
-        val = u.get(kwargs, key)
+        val = kwargs.get(key)
         if val is None or not val:
             return default
         if type_name == "bool":
