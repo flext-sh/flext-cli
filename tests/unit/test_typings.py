@@ -18,7 +18,7 @@ import collections.abc
 import math
 import threading
 import time
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping, MutableSequence, Sequence
 from enum import StrEnum, unique
 from typing import (
     Annotated,
@@ -498,7 +498,9 @@ class TestsCliTypings:
         tm.that(handle_edge_cases([]), eq="Unknown")
         tm.that(handle_edge_cases({}), eq="Unknown")
 
-        def thread_safe_operation(data: t.StrSequence, results: list[str]) -> None:
+        def thread_safe_operation(
+            data: t.StrSequence, results: MutableSequence[str]
+        ) -> None:
             processed = [item.upper() for item in data]
             results.extend(processed)
 

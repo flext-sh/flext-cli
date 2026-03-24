@@ -15,7 +15,7 @@ import pathlib
 import platform
 import sys
 import tempfile
-from collections.abc import Mapping, MutableMapping, MutableSequence
+from collections.abc import Mapping, MutableMapping, MutableSequence, Sequence
 from typing import override
 
 from flext_core import r
@@ -98,21 +98,18 @@ class FlextCliDebug(FlextCliServiceBase):
         )
 
     @staticmethod
-    def _get_path_info() -> MutableSequence[m.Cli.PathInfo]:
+    def _get_path_info() -> Sequence[m.Cli.PathInfo]:
         """Get system path information as list of Pydantic models."""
-        paths: MutableSequence[m.Cli.PathInfo] = []
-        for i, path in enumerate(sys.path):
-            path_obj = pathlib.Path(path)
-            paths.append(
-                m.Cli.PathInfo(
-                    index=i,
-                    path=path,
-                    exists=path_obj.exists(),
-                    is_file=path_obj.is_file() if path_obj.exists() else False,
-                    is_dir=path_obj.is_dir() if path_obj.exists() else False,
-                ),
+        return [
+            m.Cli.PathInfo(
+                index=i,
+                path=path,
+                exists=(path_obj := pathlib.Path(path)).exists(),
+                is_file=path_obj.is_file() if path_obj.exists() else False,
+                is_dir=path_obj.is_dir() if path_obj.exists() else False,
             )
-        return paths
+            for i, path in enumerate(sys.path)
+        ]
 
     @staticmethod
     def _get_system_info() -> m.Cli.SystemInfo:
@@ -361,11 +358,10 @@ class FlextCliDebug(FlextCliServiceBase):
         """Get system path information - public API method."""
         try:
             paths_data = self._get_path_info()
-            serialized_paths: MutableSequence[t.Cli.JsonValue] = []
-            for path_info in paths_data:
-                path_dict = FlextCliDebug._convert_model_to_dict(path_info).model_dump()
-                path_json_dict: Mapping[str, t.Cli.JsonValue] = dict(path_dict)
-                serialized_paths.append(path_json_dict)
+            serialized_paths: Sequence[t.Cli.JsonValue] = [
+                dict(FlextCliDebug._convert_model_to_dict(path_info).model_dump())
+                for path_info in paths_data
+            ]
             paths_dict: Mapping[str, t.Cli.JsonValue] = {"paths": serialized_paths}
             return r[Mapping[str, t.Cli.JsonValue]].ok(paths_dict)
         except (

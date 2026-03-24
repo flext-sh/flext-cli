@@ -13,7 +13,6 @@ from collections.abc import (
     Iterable,
     Mapping,
     MutableMapping,
-    MutableSequence,
     Sequence,
 )
 from io import StringIO
@@ -1331,18 +1330,15 @@ class FlextCliOutput:
         try:
             if isinstance(data, Sequence):
                 return list(data)
-            iterable_items: MutableSequence[FlextCliTypes.Cli.JsonValue] = []
-            for item in data:
-                item_general: FlextCliTypes.Cli.JsonValue = (
-                    item
-                    if isinstance(
-                        item,
-                        (str, int, float, bool, type(None), dict, list, tuple),
-                    )
-                    else str(item)
+            return [
+                item
+                if isinstance(
+                    item,
+                    (str, int, float, bool, type(None), dict, list, tuple),
                 )
-                iterable_items.append(item_general)
-            return iterable_items
+                else str(item)
+                for item in data
+            ]
         except (TypeError, ValueError):
             return []
 
@@ -1472,10 +1468,9 @@ class FlextCliOutput:
         dict_rows: Sequence[Mapping[str, FlextCliTypes.Cli.JsonValue]] = [
             item for item in dict_rows_raw if isinstance(item, dict)
         ]
-        csv_rows: MutableSequence[t.ConfigurationMapping] = []
-        for row in dict_rows:
-            processed_row = self._process_csv_row(row)
-            csv_rows.append(processed_row)
+        csv_rows: Sequence[t.ConfigurationMapping] = [
+            self._process_csv_row(row) for row in dict_rows
+        ]
         writer.writerows(csv_rows)
         return r[str].ok(output_buffer.getvalue())
 
@@ -1656,11 +1651,7 @@ class FlextCliOutput:
         """Iterate dictionary values as tuple items."""
         if not isinstance(data, dict):
             return []
-        iterable_items: MutableSequence[FlextCliTypes.Cli.JsonValue] = []
-        for key, value in data.items():
-            dict_item: FlextCliTypes.Cli.JsonValue = (key, value)
-            iterable_items.append(dict_item)
-        return iterable_items
+        return [(key, value) for key, value in data.items()]
 
     def _iterate_model(
         self,
