@@ -60,7 +60,7 @@ CONFIG_OPERATION_METHODS: Mapping[ConfigOperation, str] = {
     ConfigOperation.GET_INFO: "get_config_info",
     ConfigOperation.SHOW_PATHS: "show_config_paths",
 }
-ERROR_SCENARIO_DATA: Mapping[ConfigErrorScenario, t.StrMapping] = {
+ERROR_SCENARIO_DATA: Mapping[ConfigErrorScenario, Mapping[str, str]] = {
     ConfigErrorScenario.INVALID_JSON: {"content": "invalid json content {"},
     ConfigErrorScenario.NOT_DICT: {"content": '"not a dict"'},
     ConfigErrorScenario.MISSING_KEY: {"content": '{"other_key": "value"}'},

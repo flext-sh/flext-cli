@@ -620,7 +620,7 @@ class FlextCliConstants(FlextConstants):
             "toml": ("toml",),
             "xml": ("xml",),
         }
-        FILE_FORMAT_MIME_TYPES: typing.ClassVar[t.StrMapping] = {
+        FILE_FORMAT_MIME_TYPES: typing.ClassVar[Mapping[str, str]] = {
             "json": "application/json",
             "yaml": "application/x-yaml",
             "csv": "text/csv",
@@ -861,7 +861,7 @@ class FlextCliConstants(FlextConstants):
                 "Panel creation failed: {error}",
             )
 
-        TABLE_FORMATS: typing.ClassVar[t.StrMapping] = {
+        TABLE_FORMATS: typing.ClassVar[Mapping[str, str]] = {
             "plain": "Minimal formatting, no borders",
             "simple": "Simple ASCII borders",
             "grid": "Grid-style ASCII table",
@@ -1071,7 +1071,7 @@ class FlextCliConstants(FlextConstants):
     class Authentication:
         """Shared protocol test authentication constants."""
 
-        VALID_CREDS: typing.ClassVar[t.StrMapping] = {
+        VALID_CREDS: typing.ClassVar[Mapping[str, str]] = {
             "username": "testuser",
             "password": "testpass",
         }

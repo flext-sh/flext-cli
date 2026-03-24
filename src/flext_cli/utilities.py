@@ -142,7 +142,7 @@ class FlextCliUtilities(FlextUtilities):
                 *,
                 name: str = "field",
                 empty: bool = True,
-                in_list: t.StrSequence | None = None,
+                in_list: Sequence[str] | None = None,
                 eq: str | None = None,
                 msg: str = "",
             ) -> r[bool]:
@@ -185,7 +185,7 @@ class FlextCliUtilities(FlextUtilities):
                 | Mapping[str, t.Cli.JsonValue]
                 | None,
                 *,
-                fields: t.StrSequence,
+                fields: Sequence[str],
             ) -> r[bool]:
                 """Validate configuration fields."""
                 return FlextCliUtilities.Cli.CliValidation.v_req(config, fields=fields)
@@ -243,7 +243,7 @@ class FlextCliUtilities(FlextUtilities):
                 | Mapping[str, t.Cli.JsonValue]
                 | None,
                 *,
-                fields: t.StrSequence,
+                fields: Sequence[str],
             ) -> r[bool]:
                 """Validate that required fields are present in a dictionary."""
                 if data is None:
@@ -262,7 +262,7 @@ class FlextCliUtilities(FlextUtilities):
                 )
 
             @staticmethod
-            def v_session(current: str, *, valid: t.StrSequence) -> r[bool]:
+            def v_session(current: str, *, valid: Sequence[str]) -> r[bool]:
                 """Validate a session status."""
                 return FlextCliUtilities.Cli.CliValidation.v_state(
                     current,
@@ -275,7 +275,7 @@ class FlextCliUtilities(FlextUtilities):
                 current: str,
                 *,
                 required: str | None = None,
-                valid: t.StrSequence | None = None,
+                valid: Sequence[str] | None = None,
                 name: str = "state",
             ) -> r[bool]:
                 """Validate a state value."""
@@ -335,7 +335,7 @@ class FlextCliUtilities(FlextUtilities):
             def validate_field_in_list(
                 field_value: str | float | None,
                 *,
-                valid_values: t.StrSequence,
+                valid_values: Sequence[str],
                 field_name: str,
             ) -> r[bool]:
                 """Validate that a field value is in a list of valid values."""
@@ -380,7 +380,7 @@ class FlextCliUtilities(FlextUtilities):
                 )
 
             @staticmethod
-            def get_config_paths() -> t.StrSequence:
+            def get_config_paths() -> Sequence[str]:
                 """Get standard configuration paths."""
                 base = Path.home() / c.Cli.Paths.FLEXT_DIR_NAME
                 return [
@@ -393,7 +393,7 @@ class FlextCliUtilities(FlextUtilities):
                 ]
 
             @staticmethod
-            def validate_config_structure() -> t.StrSequence:
+            def validate_config_structure() -> Sequence[str]:
                 """Validate configuration directory structure."""
                 base = Path.home() / c.Cli.Paths.FLEXT_DIR_NAME
                 ok = c.Cli.Symbols.SUCCESS_MARK

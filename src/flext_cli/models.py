@@ -134,7 +134,7 @@ class FlextCliModels(FlextModels):
                 ),
             ]
 
-        class SuccessSummaryDetails(RootModel[t.StrMapping]):
+        class SuccessSummaryDetails(RootModel[Mapping[str, str]]):
             """Key-value details for success summary — Pydantic v2 only. Use m.Cli.SuccessSummaryDetails."""
 
         type CommandEntry = Mapping[
@@ -267,7 +267,7 @@ class FlextCliModels(FlextModels):
 
             @computed_field
             @property
-            def resolved(self) -> t.StrSequence:
+            def resolved(self) -> Sequence[str]:
                 if isinstance(self.input_, Mapping):
                     return list(self.input_.keys())
                 root = FlextCliModels.Cli.unwrap_root_value(self.input_)
@@ -367,13 +367,13 @@ class FlextCliModels(FlextModels):
                 return self.default
 
         class _ExecutionContextInput(
-            RootModel[t.StrSequence | Mapping[str, t.Cli.JsonValue] | None],
+            RootModel[Sequence[str] | Mapping[str, t.Cli.JsonValue] | None],
         ):
             """Execution context: None, list of args, or mapping. Single Pydantic contract. Use model_validate(context) then .to_mapping() or .root."""
 
             def to_mapping(
                 self,
-                list_processor: Callable[[t.StrSequence], Sequence[t.Cli.JsonValue]]
+                list_processor: Callable[[Sequence[str]], Sequence[t.Cli.JsonValue]]
                 | None = None,
             ) -> Mapping[str, t.Cli.JsonValue]:
                 raw = self.root
@@ -647,7 +647,7 @@ class FlextCliModels(FlextModels):
 
             # Headers configuration
             headers: Annotated[
-                str | t.StrSequence,
+                str | Sequence[str],
                 Field(
                     description=(
                         "Table headers (string like 'keys', 'firstrow' "
@@ -703,7 +703,7 @@ class FlextCliModels(FlextModels):
 
             # Column alignment
             colalign: Annotated[
-                t.StrSequence | None,
+                Sequence[str] | None,
                 Field(
                     description="Per-column alignment (left, center, right, decimal)"
                 ),
@@ -717,7 +717,7 @@ class FlextCliModels(FlextModels):
                 ),
             ] = False
 
-            def get_effective_colalign(self) -> t.StrSequence | None:
+            def get_effective_colalign(self) -> Sequence[str] | None:
                 """Get effective column alignment, resolving None to default."""
                 return self.colalign
 
@@ -828,7 +828,7 @@ class FlextCliModels(FlextModels):
             ] = "default"
 
             args: Annotated[
-                t.StrSequence,
+                Sequence[str],
                 Field(description="Command arguments"),
             ] = ()
 
@@ -868,7 +868,7 @@ class FlextCliModels(FlextModels):
             ]
 
             @property
-            def command_summary(self) -> t.StrMapping:
+            def command_summary(self) -> Mapping[str, str]:
                 """Return command summary as dict."""
                 return {"command": self.command_line or self.name}
 
@@ -944,7 +944,7 @@ class FlextCliModels(FlextModels):
 
             def execute(
                 self,
-                _args: t.StrSequence,
+                _args: Sequence[str],
             ) -> r[Mapping[str, t.Cli.JsonValue]]:
                 """Execute command with arguments - required by Command.
 
@@ -982,7 +982,7 @@ class FlextCliModels(FlextModels):
                 """Update command status."""
                 return self.model_copy(update={"status": status})
 
-            def with_args(self, args: t.StrSequence) -> Self:
+            def with_args(self, args: Sequence[str]) -> Self:
                 """Return copy with new arguments."""
                 return self.model_copy(update={"args": list(args)})
 
@@ -1183,7 +1183,7 @@ class FlextCliModels(FlextModels):
             ]
 
             env: Annotated[
-                t.StrMapping,
+                Mapping[str, str],
                 Field(
                     default_factory=dict,
                     description="Environment variables",
@@ -1191,7 +1191,7 @@ class FlextCliModels(FlextModels):
             ]
 
             args: Annotated[
-                t.StrSequence,
+                Sequence[str],
                 Field(
                     default_factory=list,
                     description="Command line arguments",
@@ -1223,7 +1223,7 @@ class FlextCliModels(FlextModels):
             ]
 
             headers: Annotated[
-                t.StrSequence,
+                Sequence[str],
                 Field(
                     default_factory=list,
                     description="Table headers",
@@ -2911,7 +2911,7 @@ class FlextCliModels(FlextModels):
                 origin = get_origin(pydantic_type)
                 if origin is None:
                     return None
-                # For generic types like t.StrSequence, t.StrMapping, return the origin
+                # For generic types like Sequence[str], Mapping[str, str], return the origin
                 if origin is list:
                     return list
                 if origin is dict:
@@ -3216,7 +3216,7 @@ class FlextCliModels(FlextModels):
                     return FlextCliModels.Cli.CliModelConverter.handle_union_type(
                         pydantic_type,
                     )
-                # Handle generic types like t.StrSequence, t.StrMapping
+                # Handle generic types like Sequence[str], Mapping[str, str]
                 generic_result = (
                     FlextCliModels.Cli.CliModelConverter.handle_generic_type(
                         pydantic_type,

@@ -66,15 +66,15 @@ class ConfigTestScenario(BaseModel):
 class ConfigTestFactory:
     """Factory for config test scenarios - maximizes parametrization."""
 
-    VALID_OUTPUT_FORMATS: Final[t.StrSequence] = ["json", "yaml", "csv", "table"]
-    VALID_ENVIRONMENTS: Final[t.StrSequence] = [
+    VALID_OUTPUT_FORMATS: Final[Sequence[str]] = ["json", "yaml", "csv", "table"]
+    VALID_ENVIRONMENTS: Final[Sequence[str]] = [
         "development",
         "staging",
         "production",
         "test",
     ]
-    VALID_VERBOSITIES: Final[t.StrSequence] = ["compact", "detailed", "full"]
-    VALID_LOGGING_LEVELS: Final[t.StrSequence] = [
+    VALID_VERBOSITIES: Final[Sequence[str]] = ["compact", "detailed", "full"]
+    VALID_LOGGING_LEVELS: Final[Sequence[str]] = [
         "DEBUG",
         "INFO",
         "WARNING",

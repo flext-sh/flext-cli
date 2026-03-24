@@ -19,7 +19,7 @@ import logging
 import platform
 import tempfile
 import time
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 
 import pytest
@@ -81,7 +81,7 @@ class TestsCliConstants:
             constants: type[FlextCliConstants], constant_name: str
         ) -> str:
             """Get constant value from correct namespace."""
-            mapping: t.StrMapping = {
+            mapping: Mapping[str, str] = {
                 "PROJECT_NAME": constants.Cli.Project.NAME,
                 "FLEXT_DIR_NAME": constants.Cli.Paths.FLEXT_DIR_NAME,
                 "TOKEN_FILE_NAME": constants.Cli.Paths.TOKEN_FILE_NAME,

@@ -612,12 +612,12 @@ def flext_test_docker(tmp_path_factory: pytest.TempPathFactory) -> tk:
 
 
 @pytest.fixture
-def mock_env_vars(tmp_path: Path) -> Generator[t.StrMapping]:
+def mock_env_vars(tmp_path: Path) -> Generator[Mapping[str, str]]:
     """Set up environment variables for tests using real .env file."""
     env_file = tmp_path / ".env"
     env_content = "FLEXT_CLI_DEBUG=true\nFLEXT_CLI_OUTPUT_FORMAT=json\nFLEXT_CLI_NO_COLOR=false\nFLEXT_CLI_PROFILE=test\nFLEXT_CLI_TIMEOUT=30\nFLEXT_CLI_RETRIES=3\n"
     _ = env_file.write_text(env_content)
-    original_env: t.StrMapping = {}
+    original_env: Mapping[str, str] = {}
     env_vars = {
         "FLEXT_CLI_DEBUG": "true",
         "FLEXT_CLI_OUTPUT_FORMAT": "json",
@@ -684,7 +684,7 @@ class InfoTuples:
 
 
 @pytest.fixture
-def input_simulator() -> Iterator[Callable[[t.StrSequence], None]]:
+def input_simulator() -> Iterator[Callable[[Sequence[str]], None]]:
     """Simulate user input via fixture-based queue (REPLACES monkeypatch).
 
     Usage:
@@ -695,7 +695,7 @@ def input_simulator() -> Iterator[Callable[[t.StrSequence], None]]:
     """
     input_queue: deque[str] = deque()
 
-    def queue_inputs(values: t.StrSequence) -> None:
+    def queue_inputs(values: Sequence[str]) -> None:
         """Queue input values to be returned by simulated input."""
         input_queue.extend(values)
 

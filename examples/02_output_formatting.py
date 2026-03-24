@@ -35,7 +35,7 @@ from __future__ import annotations
 
 import pathlib
 import time
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 
 from flext_core import r
@@ -59,7 +59,7 @@ def display_database_results(records: Sequence[t.Cli.JsonValue]) -> None:
     if not records:
         cli.print("No results found", style="yellow")
         return
-    rows: Sequence[t.StrMapping] = []
+    rows: Sequence[Mapping[str, str]] = []
     for i, record in enumerate(records[:10], 1):
         row_data = " | ".join(str(v) for v in record.values())
         rows.append({"#": f"Row {i}", "Data": row_data})
@@ -77,7 +77,7 @@ def export_report(
     return r[str].fail(result.error or "Failed to create table")
 
 
-def process_large_dataset(items: t.StrSequence) -> None:
+def process_large_dataset(items: Sequence[str]) -> None:
     """Process items with progress updates."""
     cli.print("Processing items...", style="cyan")
     total = len(items)

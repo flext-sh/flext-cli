@@ -251,13 +251,13 @@ def validate_and_import_data(input_file: Path) -> r[m.Cli.LoadedConfig]:
 # ============================================================================
 
 
-def backup_config_files(source_dir: Path, backup_dir: Path) -> t.StrSequence:
+def backup_config_files(source_dir: Path, backup_dir: Path) -> Sequence[str]:
     """Backup configuration files in YOUR backup tool."""
     backup_dir.mkdir(parents=True, exist_ok=True)
 
     config_files = list(source_dir.glob("*.json")) + list(source_dir.glob("*.yaml"))
 
-    backed_up: t.StrSequence = []
+    backed_up: Sequence[str] = []
     for config_file in config_files:
         # Read original
         if config_file.suffix == ".json":
@@ -327,7 +327,7 @@ def export_to_csv(
     return True
 
 
-def import_from_csv(input_file: Path) -> Sequence[t.StrMapping] | None:
+def import_from_csv(input_file: Path) -> Sequence[Mapping[str, str]] | None:
     """Import data from CSV with headers in YOUR data tool."""
     cli.print(f"📥 Importing from {input_file.name}...", style="cyan")
 
@@ -422,11 +422,11 @@ def load_config_auto_detect(config_file: Path) -> r[m.Cli.LoadedConfig]:
 def export_multi_format(
     data: t.ContainerMapping | Sequence[t.ContainerMapping],
     base_path: Path,
-) -> t.StrMapping:
+) -> Mapping[str, str]:
     """Export same data to multiple formats (JSON, YAML, CSV)."""
     cli.print(f"💾 Multi-format export: {base_path.stem}", style="cyan")
 
-    export_results: t.StrMapping = {}
+    export_results: Mapping[str, str] = {}
 
     # Export to JSON
     json_path = base_path.with_suffix(".json")
@@ -602,7 +602,7 @@ def generate_output_files(
 
     if csv_rows_data:
         csv_file = output_dir / f"{base_name}.csv"
-        csv_rows: Sequence[t.StrSequence] = [
+        csv_rows: Sequence[Sequence[str]] = [
             [str(value) for value in item.values()] for item in csv_rows_data
         ]
         csv_result = cli.file_tools.write_csv_file(csv_file, csv_rows)
@@ -615,7 +615,7 @@ def generate_output_files(
 
 def create_processing_summary(
     results: Mapping[str, Path],
-) -> Mapping[str, bool | int | t.StrSequence | str]:
+) -> Mapping[str, bool | int | Sequence[str] | str]:
     """Create a summary of the processing pipeline."""
     return {
         "pipeline_completed": True,

@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from datetime import datetime
 from typing import ClassVar, Literal, Self
 
@@ -56,7 +56,7 @@ class FlextCliTestModels(FlextTestsModels, FlextCliModels):
                 status: str = Field(default="pending")
                 created_at: datetime | None = Field(default=None)
                 command_line: str = Field(default="test_command")
-                args: t.StrSequence = Field(default_factory=list)
+                args: Sequence[str] = Field(default_factory=list)
                 result: t.NormalizedValue = Field(default=None)
                 kwargs: Mapping[str, t.ContainerValue] = Field(default_factory=dict)
 
@@ -111,7 +111,7 @@ class FlextCliTestModels(FlextTestsModels, FlextCliModels):
 
                 model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
                 message: str = Field(default="", description="Prompt message")
-                choices: t.StrSequence = Field(
+                choices: Sequence[str] = Field(
                     default_factory=list, description="Choice list"
                 )
                 default: str | None = Field(default=None, description="Default choice")

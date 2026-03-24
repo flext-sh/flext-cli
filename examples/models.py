@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import ClassVar
 
@@ -256,7 +256,7 @@ class AppConfigAdvanced(BaseModel):
 
     def validate_to_mapping(self) -> r[Mapping[str, cli_t.Cli.JsonValue]]:
         """Validate configuration and return as mapping or failure."""
-        errors: t.StrSequence = []
+        errors: Sequence[str] = []
         if not self.api_key and os.getenv("ENVIRONMENT") == "production":
             errors.append("API_KEY is required in production")
         if not self.temp_dir.exists():
@@ -306,7 +306,7 @@ class DeployConfig(BaseModel):
     @classmethod
     def validate_environment(cls, v: str) -> str:
         """Restrict environment to development, staging, production."""
-        valid_envs: t.StrSequence = ["development", "staging", "production"]
+        valid_envs: Sequence[str] = ["development", "staging", "production"]
         if v not in valid_envs:
             msg = f"Must be one of: {', '.join(valid_envs)}"
             raise ValueError(msg)

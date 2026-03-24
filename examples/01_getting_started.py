@@ -13,6 +13,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import tempfile
+from collections.abc import Mapping
 from pathlib import Path
 
 from flext_core import r
@@ -63,7 +64,7 @@ class FlextCliGettingStarted:
 
     def display_user_data(self, user: m.Cli.DisplayData) -> None:
         """Show how to display YOUR data as a table."""
-        table_data: t.StrMapping
+        table_data: Mapping[str, str]
         if isinstance(user.data, dict):
             table_data = {str(key): str(value) for key, value in user.data.items()}
         else:

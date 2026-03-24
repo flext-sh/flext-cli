@@ -185,7 +185,7 @@ class FlextCli:
 
     def authenticate(
         self,
-        credentials: m.Cli.PasswordAuth | m.Cli.TokenData | t.StrMapping,
+        credentials: m.Cli.PasswordAuth | m.Cli.TokenData | Mapping[str, str],
     ) -> r[str]:
         """Authenticate user with provided credentials (model or mapping)."""
         if isinstance(credentials, m.Cli.TokenData):
@@ -405,7 +405,7 @@ class FlextCli:
 
     def _get_token_error_message(self, error_str: str) -> str:
         """Get error message based on exception content."""
-        kw_map: t.StrMapping = {
+        kw_map: Mapping[str, str] = {
             "dict": c.Cli.APIDefaults.TOKEN_DATA_TYPE_ERROR,
             "mapping": c.Cli.APIDefaults.TOKEN_DATA_TYPE_ERROR,
             "t.NormalizedValue": c.Cli.APIDefaults.TOKEN_DATA_TYPE_ERROR,

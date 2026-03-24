@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 
 from flext_core import r
 from pydantic import BaseModel
@@ -32,7 +32,7 @@ def to_json_dict(
 def print_demo_completion(
     cli: FlextCli,
     demo_name: str,
-    features: t.StrSequence,
+    features: Sequence[str],
     *,
     style: str = "green",
 ) -> None:
@@ -52,7 +52,7 @@ def handle_command_result(
     cli: FlextCli,
     result: r[BaseModel],
     action: str,
-    success_fields: t.StrSequence | None = None,
+    success_fields: Sequence[str] | None = None,
 ) -> None:
     """Generic handler for CQRS command results. Accepts r[BaseModel] only."""
     success_fields = success_fields or ["id", "status"]
@@ -91,12 +91,12 @@ def print_demo_error(
 def display_config_table(
     cli: FlextCli,
     config_data: BaseModel,
-    headers: t.StrSequence | None = None,
+    headers: Sequence[str] | None = None,
 ) -> None:
     """Display configuration as a table. Accepts Pydantic model only; uses show_table."""
     if headers is None:
         headers = ["Setting", "Value"]
-    rows: Sequence[t.StrMapping] = []
+    rows: Sequence[Mapping[str, str]] = []
     if isinstance(config_data, m.Cli.DisplayData) and isinstance(
         config_data.data, dict
     ):
@@ -127,7 +127,7 @@ def display_success_summary(
 
 def display_validation_errors(
     cli: FlextCli,
-    errors: t.StrSequence,
+    errors: Sequence[str],
     context: str = "validation",
 ) -> None:
     """Display validation errors in a consistent format using FlextCli."""

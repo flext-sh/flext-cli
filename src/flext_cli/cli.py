@@ -82,7 +82,7 @@ class FlextCliCli:
         return bool
 
     @classmethod
-    def get_datetime_type(cls, formats: t.StrSequence | None = None) -> click.DateTime:
+    def get_datetime_type(cls, formats: Sequence[str] | None = None) -> click.DateTime:
         """Get datetime type."""
         result: (
             type[bool | str | int | float]
@@ -143,7 +143,7 @@ class FlextCliCli:
         cls,
         type_name: str,
         *,
-        formats: t.StrSequence | None = None,
+        formats: Sequence[str] | None = None,
         tuple_types: Sequence[click.ParamType | type] | None = None,
     ) -> (
         type[bool | str | int | float] | click.DateTime | click.ParamType | click.Tuple
@@ -282,7 +282,7 @@ class FlextCliCli:
         return FlextCliCli._build_prompt_config(kwargs)
 
     @staticmethod
-    def _datetime_type(formats: t.StrSequence | None = None) -> click.DateTime:
+    def _datetime_type(formats: Sequence[str] | None = None) -> click.DateTime:
         formats_values = (
             [str(fmt) for fmt in c.Cli.FileDefaults.DEFAULT_DATETIME_FORMATS]
             if formats is None
@@ -636,7 +636,7 @@ class FlextCliCli:
     def create_cli_runner(
         self,
         charset: str = c.Cli.Utilities.DEFAULT_ENCODING,
-        env: t.StrMapping | None = None,
+        env: Mapping[str, str] | None = None,
         *,
         echo_stdin: bool = False,
     ) -> r[CliRunner]:
