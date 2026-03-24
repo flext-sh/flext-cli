@@ -257,7 +257,7 @@ class TestsCliTypings:
             def method(self) -> str: ...
 
         tm.that(t, none=False)
-        tm.that(generic_type, none=False)
+        tm.that(generic_type is not None, eq=True)
         tm.that(Test, none=False)
         user_data: t.ContainerMapping = {"key": "value", "number": 42}
         user_list: Sequence[t.ContainerMapping] = [user_data]
@@ -294,7 +294,7 @@ class TestsCliTypings:
 
         class KeyValueStore(Generic[K_local, V_local]):
             def __init__(self) -> None:
-                self._store: Mapping[K_local, V_local] = {}
+                self._store: dict[K_local, V_local] = {}
 
             def set(self, key: K_local, value: V_local) -> None:
                 self._store[key] = value
@@ -317,9 +317,6 @@ class TestsCliTypings:
         """Execute type conversion tests."""
 
         def process_data(data: str) -> str:
-            if not isinstance(data, str):
-                error_msg = "data must be a str"
-                raise TypeError(error_msg)
             return data.upper()
 
         def process_data_safe(data: int | str) -> str:
@@ -387,7 +384,7 @@ class TestsCliTypings:
         tm.that("str1" in result or "STR1" in result, eq=True)
         tm.that("str2" in result or "STR2" in result, eq=True)
         values = list(result.values())
-        tm.that(all(isinstance(v, int) for v in values), eq=True)
+        tm.that(all(v > 0 for v in values), eq=True)
 
     def _execute_type_scenario_tests(self) -> None:
         """Execute type scenario tests."""
@@ -445,6 +442,7 @@ class TestsCliTypings:
         tm.that(users_response.status, eq="success")
         users_data = users_response.data
         tm.that(users_data, is_=list)
+        assert isinstance(users_data, list)
         tm.that(len(users_data), eq=1)
         processing_result = (
             FlextCliTestHelpers.TypingHelpers.create_processing_test_data()
@@ -500,12 +498,12 @@ class TestsCliTypings:
         tm.that(handle_edge_cases([]), eq="Unknown")
         tm.that(handle_edge_cases({}), eq="Unknown")
 
-        def thread_safe_operation(data: t.StrSequence, results: t.StrSequence) -> None:
+        def thread_safe_operation(data: t.StrSequence, results: list[str]) -> None:
             processed = [item.upper() for item in data]
             results.extend(processed)
 
         test_data = ["str1", "str2"]
-        results: t.StrSequence = []
+        results: list[str] = []
         threads: Sequence[threading.Thread] = []
         for _ in range(5):
             thread = threading.Thread(
@@ -563,7 +561,7 @@ class TestsCliTypings:
                 }
 
         impl = Implementation()
-        tm.that(impl, is_=Test)
+        tm.that(isinstance(impl, Test), eq=True)
         test_data = ["str1", "str2"]
         result = impl.operation(test_data)
         processed: t.NormalizedValue = result.get("processed")

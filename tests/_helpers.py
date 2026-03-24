@@ -33,7 +33,7 @@ def create_test_cli_command(**overrides: t.ContainerValue) -> m.Cli.CliCommand:
     _ = merged.pop("command_id", None)
     _ = merged.pop("arguments", None)
     filtered = {k: v for k, v in merged.items() if k in CliCommandInput.model_fields}
-    inp = CliCommandInput(**filtered)
+    inp = CliCommandInput.model_validate(filtered)
     return m.Cli.CliCommand.model_construct(
         _fields_set=None,
         **inp.model_dump(exclude_none=True),
@@ -268,8 +268,10 @@ class CommandsFactory:
     ) -> r[bool]:
         """Register a simple test command that returns a fixed value."""
 
-        def handler(*args: t.ContainerValue, **kwargs: t.ContainerValue) -> r[str]:
-            return r[str].ok(result_value)
+        def handler(
+            *args: t.ContainerValue, **kwargs: t.ContainerValue
+        ) -> r[t.Cli.JsonValue]:
+            return r[t.Cli.JsonValue].ok(result_value)
 
         return commands.register_command(command_name, handler)
 
@@ -280,8 +282,10 @@ class CommandsFactory:
     ) -> r[bool]:
         """Register a command that accepts arguments."""
 
-        def handler(*args: t.ContainerValue, **kwargs: t.ContainerValue) -> r[str]:
-            return r[str].ok(f"args: {len(args)}")
+        def handler(
+            *args: t.ContainerValue, **kwargs: t.ContainerValue
+        ) -> r[t.Cli.JsonValue]:
+            return r[t.Cli.JsonValue].ok(f"args: {len(args)}")
 
         return commands.register_command(command_name, handler)
 
@@ -293,8 +297,10 @@ class CommandsFactory:
     ) -> r[bool]:
         """Register a command that fails with a specific error."""
 
-        def handler(*args: t.ContainerValue, **kwargs: t.ContainerValue) -> r[str]:
-            return r.fail(error_message)
+        def handler(
+            *args: t.ContainerValue, **kwargs: t.ContainerValue
+        ) -> r[t.Cli.JsonValue]:
+            return r[t.Cli.JsonValue].fail(error_message)
 
         return commands.register_command(command_name, handler)
 

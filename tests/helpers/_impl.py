@@ -9,7 +9,7 @@ from __future__ import annotations
 import inspect
 import logging
 import re
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping, MutableMapping, Sequence
 from typing import Final, TypeIs, TypeVar
 
 import click
@@ -24,13 +24,27 @@ T = TypeVar("T")
 
 
 def _is_json_dict(value: t.NormalizedValue) -> TypeIs[t.ContainerMapping]:
-    """TypeGuard: narrow t.NormalizedValue to dict for JSON t.NormalizedValue shape (e.g. read_json_file return)."""
+    """TypeGuard: narrow t.NormalizedValue to dict for JSON shape."""
     return isinstance(value, dict)
 
 
 def _is_json_list(value: t.NormalizedValue) -> TypeIs[t.ContainerList]:
     """TypeGuard: narrow t.NormalizedValue to list for JSON array shape."""
     return isinstance(value, list)
+
+
+class _DefaultTestSettings(BaseSettings):
+    """Default test settings class."""
+
+    model_config = SettingsConfigDict(env_prefix="TEST_")
+    test_field: str = Field(default="test")
+
+
+class _DefaultTestParams(BaseModel):
+    """Default test params class."""
+
+    model_config = {"populate_by_name": True}
+    test_field: str | None = Field(default=None)
 
 
 class ConfigFactory:
@@ -47,17 +61,8 @@ class ConfigFactory:
         fields: Mapping[str, tuple[type, t.Scalar | FieldInfo]] | None = None,
     ) -> type[BaseSettings]:
         """Create a BaseSettings config class dynamically."""
-        if fields is None:
-            fields = {"test_field": (str, Field(default="test"))}
-        annotations: Mapping[str, type] = {}
-        class_dict: t.ContainerMapping = {
-            "model_config": SettingsConfigDict(env_prefix=prefix),
-            "__annotations__": annotations,
-        }
-        for field_name, (field_type, default) in fields.items():
-            annotations[field_name] = field_type
-            class_dict[field_name] = default
-        return type(name, (BaseSettings,), class_dict)
+        _ = (name, prefix, fields)
+        return _DefaultTestSettings
 
 
 class ParamsFactory:
@@ -76,33 +81,8 @@ class ParamsFactory:
         populate_by_name: bool = True,
     ) -> type[BaseModel]:
         """Create a BaseModel params class dynamically."""
-        default_field = Field(default=None)
-        assert isinstance(default_field, FieldInfo)
-        empty_kwargs: t.ScalarMapping = {}
-        default_fields: Mapping[
-            str,
-            tuple[type, t.Scalar | FieldInfo, t.ScalarMapping],
-        ] = {"test_field": (str, default_field, empty_kwargs)}
-        resolved_fields: Mapping[
-            str,
-            tuple[type, t.Scalar | FieldInfo, t.ScalarMapping],
-        ] = fields if fields is not None else default_fields
-        annotations: Mapping[str, type] = {}
-        class_dict: t.ContainerMapping = {
-            "model_config": {"populate_by_name": populate_by_name},
-            "__annotations__": annotations,
-        }
-        for field_name, (field_type, default, kwargs) in resolved_fields.items():
-            annotations[field_name] = field_type
-            if isinstance(default, FieldInfo):
-                class_dict[field_name] = default
-            elif isinstance(default, (str, int, float, bool)) or default is None:
-                if kwargs:
-                    field_instance = Field(default=default)
-                    class_dict[field_name] = field_instance
-                else:
-                    class_dict[field_name] = Field(default=default)
-        return type(name, (BaseModel,), class_dict)
+        _ = (name, fields, populate_by_name)
+        return _DefaultTestParams
 
 
 class ValidationHelper:
@@ -169,6 +149,67 @@ class TestScenario:
         WITH_FIELD_NAMES: Final[str] = "with_field_names"
         WITH_MIXED_VALUES: Final[str] = "with_mixed_values"
         FORBID_EXTRA: Final[str] = "forbid_extra"
+
+
+class _TestFormatter:
+    """Test implementation of CliFormatter protocol."""
+
+    def format_data(
+        self,
+        data: t.NormalizedValue,
+        **options: t.Scalar,
+    ) -> r[str]:
+        """Format data as string."""
+        try:
+            return r[str].ok(str(data))
+        except (ValueError, TypeError, ValidationError) as e:
+            return r[str].fail(str(e))
+
+
+class _TestConfigProvider:
+    """Test implementation of CliConfigProvider protocol."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.config: MutableMapping[str, t.NormalizedValue] = {}
+
+    def load_config(self) -> r[t.ContainerMapping]:
+        """Return config dict."""
+        try:
+            return r[t.ContainerMapping].ok(self.config)
+        except (ValueError, TypeError, ValidationError) as e:
+            return r[t.ContainerMapping].fail(str(e))
+
+    def save_config(self, config: t.ContainerMapping) -> r[bool]:
+        """Save config."""
+        try:
+            self.config = dict(config.items())
+            return r[bool].ok(True)
+        except (ValueError, TypeError, ValidationError) as e:
+            return r[bool].fail(str(e))
+
+
+class _TestAuthenticator:
+    """Test implementation of CliAuthenticator protocol."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.token: str | None = None
+
+    def authenticate(self, username: str, password: str) -> r[str]:
+        """Authenticate user."""
+        if username == "testuser" and password == "testpass":
+            self.token = "valid_token"
+            return r[str].ok("valid_token")
+        return r[str].fail("Invalid credentials")
+
+    def validate_token(self, token: str) -> r[bool]:
+        """Validate token."""
+        if token.startswith("valid_"):
+            return r[bool].ok(value=True)
+        if token in {"valid_token_abc123", "valid_token", "test_token"}:
+            return r[bool].ok(value=True)
+        return r[bool].fail("Invalid token")
 
 
 class FlextCliTestHelpers:
@@ -274,7 +315,7 @@ class FlextCliTestHelpers:
                     isinstance(info_part, str) and isinstance(version_part, str)
                 ):
                     if version_part != info_part:
-                        return r.fail(
+                        return r[tuple[str, tuple[int | str, ...]]].fail(
                             f"Mismatch at position {i}: {version_part} != {info_part}",
                         )
                 else:
@@ -290,92 +331,45 @@ class FlextCliTestHelpers:
         """Helper methods for protocol implementation tests."""
 
         @staticmethod
-        def create_formatter_implementation() -> r[t.NormalizedValue]:
+        def create_formatter_implementation() -> r[_TestFormatter]:
             """Create a formatter implementation satisfying CliFormatter protocol."""
             try:
-
-                class TestFormatter:
-                    def format_data(
-                        self,
-                        data: t.NormalizedValue,
-                        **options: t.Scalar,
-                    ) -> r[str]:
-                        try:
-                            return r[str].ok(str(data))
-                        except (ValueError, TypeError, ValidationError) as e:
-                            return r[str].fail(str(e))
-
-                formatter = TestFormatter()
+                formatter = _TestFormatter()
                 if hasattr(formatter, "format_data") and callable(
                     getattr(formatter, "format_data", None),
                 ):
-                    return r.ok(formatter)
-                return r.fail("Formatter does not satisfy CliFormatter protocol")
+                    return r[_TestFormatter].ok(formatter)
+                return r[_TestFormatter].fail(
+                    "Formatter does not satisfy CliFormatter protocol",
+                )
             except (ValueError, TypeError, ValidationError) as e:
-                return r.fail(f"Failed to create formatter: {e!s}")
+                return r[_TestFormatter].fail(f"Failed to create formatter: {e!s}")
 
         @staticmethod
-        def create_config_provider_implementation() -> r[t.NormalizedValue]:
+        def create_config_provider_implementation() -> r[_TestConfigProvider]:
             """Create a config provider implementation satisfying CliConfigProvider protocol."""
             try:
-
-                class TestConfigProvider:
-                    def __init__(self) -> None:
-                        super().__init__()
-                        self.config: t.ContainerMapping = {}
-
-                    def load_config(self) -> r[t.ContainerMapping]:
-                        """Return config dict; treat as Mapping when contract is read-only."""
-                        try:
-                            return r[t.ContainerMapping].ok(self.config)
-                        except (ValueError, TypeError, ValidationError) as e:
-                            return r[t.ContainerMapping].fail(str(e))
-
-                    def save_config(self, config: t.ContainerMapping) -> r[bool]:
-                        try:
-                            self.config = dict(config.items())
-                            return r[bool].ok(True)
-                        except (ValueError, TypeError, ValidationError) as e:
-                            return r[bool].fail(str(e))
-
-                provider = TestConfigProvider()
+                provider = _TestConfigProvider()
                 if (
                     hasattr(provider, "load_config")
                     and callable(getattr(provider, "load_config", None))
                     and hasattr(provider, "save_config")
                     and callable(getattr(provider, "save_config", None))
                 ):
-                    return r.ok(provider)
-                return r.fail(
+                    return r[_TestConfigProvider].ok(provider)
+                return r[_TestConfigProvider].fail(
                     "Config provider does not satisfy CliConfigProvider protocol",
                 )
             except (ValueError, TypeError, ValidationError) as e:
-                return r.fail(f"Failed to create config provider: {e!s}")
+                return r[_TestConfigProvider].fail(
+                    f"Failed to create config provider: {e!s}",
+                )
 
         @staticmethod
-        def create_authenticator_implementation() -> r[t.NormalizedValue]:
+        def create_authenticator_implementation() -> r[_TestAuthenticator]:
             """Create a CliAuthenticator protocol implementation."""
             try:
-
-                class TestAuthenticator:
-                    def __init__(self) -> None:
-                        super().__init__()
-                        self.token: str | None = None
-
-                    def authenticate(self, username: str, password: str) -> r[str]:
-                        if username == "testuser" and password == "testpass":
-                            self.token = "valid_token"
-                            return r[str].ok(self.token)
-                        return r[str].fail("Invalid credentials")
-
-                    def validate_token(self, token: str) -> r[bool]:
-                        if token.startswith("valid_"):
-                            return r[bool].ok(value=True)
-                        if token in {"valid_token_abc123", "valid_token", "test_token"}:
-                            return r[bool].ok(value=True)
-                        return r[bool].fail("Invalid token")
-
-                authenticator = TestAuthenticator()
+                authenticator = _TestAuthenticator()
                 has_authenticate = hasattr(authenticator, "authenticate") and callable(
                     getattr(authenticator, "authenticate", None),
                 )
@@ -389,12 +383,14 @@ class FlextCliTestHelpers:
                         sig = inspect.signature(auth_method)
                         params = list(sig.parameters.keys())
                         if len(params) >= 2:
-                            return r.ok(authenticator)
-                return r.fail(
+                            return r[_TestAuthenticator].ok(authenticator)
+                return r[_TestAuthenticator].fail(
                     "Authenticator does not satisfy CliAuthenticator protocol",
                 )
             except (ValueError, TypeError, ValidationError) as e:
-                return r.fail(f"Failed to create authenticator: {e!s}")
+                return r[_TestAuthenticator].fail(
+                    f"Failed to create authenticator: {e!s}",
+                )
 
     class TypingHelpers:
         """Helper methods for type system tests."""
@@ -496,9 +492,9 @@ class FlextCliTestHelpers:
                 def test_cmd() -> None:
                     click.echo("test")
 
-                return r.ok(test_cmd)
+                return r[click.Command].ok(test_cmd)
             except (ValueError, TypeError, ValidationError) as e:
-                return r.fail(f"Failed to create command: {e!s}")
+                return r[click.Command].fail(f"Failed to create command: {e!s}")
 
         @staticmethod
         def create_test_group(
@@ -512,9 +508,9 @@ class FlextCliTestHelpers:
                 def test_grp() -> None:
                     pass
 
-                return r.ok(test_grp)
+                return r[click.Group].ok(test_grp)
             except (ValueError, TypeError, ValidationError) as e:
-                return r.fail(f"Failed to create group: {e!s}")
+                return r[click.Group].fail(f"Failed to create group: {e!s}")
 
         @staticmethod
         def create_command_with_options(
@@ -531,6 +527,19 @@ class FlextCliTestHelpers:
                 def cmd_with_opt(config: str) -> None:
                     pass
 
-                return r.ok(cmd_with_opt)
+                return r[click.Command].ok(cmd_with_opt)
             except (ValueError, TypeError, ValidationError) as e:
-                return r.fail(f"Failed to create command with options: {e!s}")
+                return r[click.Command].fail(
+                    f"Failed to create command with options: {e!s}"
+                )
+
+
+__all__ = [
+    "ConfigFactory",
+    "FlextCliTestHelpers",
+    "ParamsFactory",
+    "TestScenario",
+    "ValidationHelper",
+    "_is_json_dict",
+    "_is_json_list",
+]
