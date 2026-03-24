@@ -18,7 +18,7 @@ import collections.abc
 import math
 import threading
 import time
-from collections.abc import Mapping, MutableSequence, Sequence
+from collections.abc import Mapping, MutableMapping, MutableSequence, Sequence
 from enum import StrEnum, unique
 from typing import (
     Annotated,
@@ -294,7 +294,7 @@ class TestsCliTypings:
 
         class KeyValueStore(Generic[K_local, V_local]):
             def __init__(self) -> None:
-                self._store: dict[K_local, V_local] = {}
+                self._store: MutableMapping[K_local, V_local] = {}
 
             def set(self, key: K_local, value: V_local) -> None:
                 self._store[key] = value
@@ -505,7 +505,7 @@ class TestsCliTypings:
             results.extend(processed)
 
         test_data = ["str1", "str2"]
-        results: list[str] = []
+        results: MutableSequence[str] = []
         threads: Sequence[threading.Thread] = []
         for _ in range(5):
             thread = threading.Thread(
