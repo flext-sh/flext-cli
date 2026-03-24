@@ -161,7 +161,7 @@ class TestsCliVersion:
     def test_actual_version_string_type(self) -> None:
         """Test __version__ is a non-empty string."""
         tm.that(isinstance(__version__, str), eq=True)
-        tm.that(len(__version__) > 0, eq=True)
+        tm.that(__version__, eq=True)
         tm.that(__version__, eq=__version__.strip())
 
     def test_actual_version_string_semver_compliant(self) -> None:
@@ -184,7 +184,7 @@ class TestsCliVersion:
             if isinstance(part, int):
                 tm.that(part >= 0, eq=True)
             else:
-                tm.that(len(part) > 0, eq=True)
+                tm.that(part, eq=True)
 
     def test_actual_version_parts_extraction(self) -> None:
         """Test major.minor.patch can be extracted from version."""

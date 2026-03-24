@@ -169,7 +169,7 @@ class TestsCliDebug:
         tm.ok(result)
         info = result.value
         tm.that(isinstance(info, dict), eq=True)
-        tm.that(len(info) > 0, eq=True)
+        tm.that(info, eq=True)
 
     def test_get_environment_variables(self, debug: FlextCliDebug) -> None:
         """Test get_environment_variables method (lines 74-88)."""
@@ -360,7 +360,7 @@ class TestsCliDebug:
         tm.ok(result)
         connectivity_info = result.value
         tm.that(isinstance(connectivity_info, dict), eq=True)
-        tm.that(len(connectivity_info) > 0, eq=True)
+        tm.that(connectivity_info, eq=True)
 
     def test_execute_health_check(self) -> None:
         """Test execute_health_check static method."""
@@ -368,7 +368,7 @@ class TestsCliDebug:
         tm.ok(result)
         health_info = result.value
         tm.that(isinstance(health_info, dict), eq=True)
-        tm.that(len(health_info) > 0, eq=True)
+        tm.that(health_info, eq=True)
 
     def test_get_environment_variables_static(self) -> None:
         """Test get_environment_variables method."""

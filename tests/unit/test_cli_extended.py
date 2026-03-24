@@ -137,7 +137,7 @@ class TestsCliCliExtended:
         cmd = deco(cmd_impl)
         click_params = getattr(cmd, "__click_params__", None)
         if isinstance(click_params, list):
-            tm.that(len(click_params) > 0, eq=True)
+            tm.that(click_params, eq=True)
             click_info = click_params[0]
             tm.that(click_info.required is True, eq=True)
             tm.that(click_info.default is False, eq=True)

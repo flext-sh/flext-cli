@@ -269,7 +269,7 @@ class TestsCliCommonParams:
         params = FlextCliCommonParams.get_all_common_params()
 
         tm.that(isinstance(params, dict), eq=True)
-        tm.that(len(params) > 0, eq=True)
+        tm.that(params, eq=True)
         tm.that("verbose" in params, eq=True)
         tm.that("debug" in params, eq=True)
         tm.that("cli_log_level" in params, eq=True)

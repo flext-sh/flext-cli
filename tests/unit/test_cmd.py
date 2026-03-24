@@ -218,7 +218,7 @@ class TestsCliCmd:
         result = cmd.show_config_paths()
         tm.ok(result)
         tm.that(isinstance(result.value, list), eq=True)
-        tm.that(len(result.value) > 0, eq=True)
+        tm.that(result.value, eq=True)
 
     def test_cmd_validate_config(self) -> None:
         """Test validate_config method."""
@@ -454,14 +454,14 @@ class TestsCliCmd:
         """Test u.Cli.ConfigOps.get_config_paths() directly."""
         paths = u.Cli.ConfigOps.get_config_paths()
         tm.that(isinstance(paths, list), eq=True)
-        tm.that(len(paths) > 0, eq=True)
+        tm.that(paths, eq=True)
         tm.that(any(".flext" in path for path in paths), eq=True)
 
     def test_cmd_config_helper_validate_config_structure(self) -> None:
         """Test u.Cli.ConfigOps.validate_config_structure() directly."""
         results = u.Cli.ConfigOps.validate_config_structure()
         tm.that(isinstance(results, list), eq=True)
-        tm.that(len(results) > 0, eq=True)
+        tm.that(results, eq=True)
 
     def test_cmd_config_helper_get_config_info(self) -> None:
         """Test u.Cli.ConfigOps.get_config_info() directly."""

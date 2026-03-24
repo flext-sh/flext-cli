@@ -330,7 +330,7 @@ class TestsCliConfigValidation:
         config: FlextCliSettings = FlextCliSettings()
         dumped = config.model_dump()
         tm.that(isinstance(dumped, dict), eq=True)
-        tm.that(len(dumped) > 0, eq=True)
+        tm.that(dumped, eq=True)
 
     def test_update_from_cli_args(self) -> None:
         """Test update_from_cli_args."""
