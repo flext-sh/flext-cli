@@ -393,7 +393,7 @@ class FlextCli:
 
     def _entity_decorator(
         self,
-        entity_type: c.Cli.EntityTypeLiteral | c.Cli.EntityType,
+        entity_type: c.Cli.EntityType,
         name: str | None = None,
     ) -> Callable[[p.Cli.CliCommandFunction], p.Cli.CliRegisteredCommand]:
         """Return decorator that registers a CLI entity."""
@@ -427,7 +427,7 @@ class FlextCli:
 
     def _register_cli_entity(
         self,
-        entity_type: c.Cli.EntityTypeLiteral | c.Cli.EntityType,
+        entity_type: c.Cli.EntityType,
         name: str | None,
         func: p.Cli.CliCommandFunction,
     ) -> p.Cli.CliRegisteredCommand:

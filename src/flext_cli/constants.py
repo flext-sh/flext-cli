@@ -18,9 +18,6 @@ class FlextCliConstants(FlextConstants):
     class Cli:
         """CLI related constants."""
 
-        type EntityTypeLiteral = Literal["command", "group"]
-        type OutputFormatLiteral = Literal["json", "yaml", "csv", "table", "plain"]
-
         class Project:
             """Project constants."""
 
