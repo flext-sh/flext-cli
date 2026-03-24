@@ -61,10 +61,16 @@ _LAZY_IMPORTS: Mapping[str, tuple[str, str]] = {
     "GroupWithCommands": ("examples.plugins.protocols", "GroupWithCommands"),
     "MyAppConfig": ("examples.models", "MyAppConfig"),
     "NumericPromptResult": ("examples.models", "NumericPromptResult"),
-    "demonstrate_plugin_commands": ("examples.plugins.example_plugin", "demonstrate_plugin_commands"),
+    "demonstrate_plugin_commands": (
+        "examples.plugins.example_plugin",
+        "demonstrate_plugin_commands",
+    ),
     "display_config_table": ("examples.example_utils", "display_config_table"),
     "display_success_summary": ("examples.example_utils", "display_success_summary"),
-    "display_validation_errors": ("examples.example_utils", "display_validation_errors"),
+    "display_validation_errors": (
+        "examples.example_utils",
+        "display_validation_errors",
+    ),
     "handle_command_result": ("examples.example_utils", "handle_command_result"),
     "p": ("examples.plugins.protocols", "p"),
     "plugins": ("examples.plugins", ""),
