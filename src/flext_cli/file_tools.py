@@ -22,15 +22,15 @@ from flext_cli import c, m, t, u
 _JSON_OBJECT_ADAPTER: TypeAdapter[t.Cli.JsonValue] = TypeAdapter(t.Cli.JsonValue)
 
 
-def _is_json_mapping(
-    value: t.Cli.JsonValue,
-) -> TypeIs[Mapping[str, t.Cli.JsonValue]]:
-    """Narrow t.NormalizedValue to mapping for structured file load."""
-    return isinstance(value, Mapping)
-
-
 class FlextCliFileTools:
     """File operations for JSON, YAML, CSV, and text with r."""
+
+    @staticmethod
+    def _is_json_mapping(
+        value: t.Cli.JsonValue,
+    ) -> TypeIs[Mapping[str, t.Cli.JsonValue]]:
+        """Narrow t.NormalizedValue to mapping for structured file load."""
+        return isinstance(value, Mapping)
 
     @staticmethod
     def _detect_format_from_extension(
@@ -399,7 +399,7 @@ class FlextCliFileTools:
         if result.is_failure:
             return r[Mapping[str, t.Cli.JsonValue]].fail(result.error or "Load failed")
         value = result.value
-        if not _is_json_mapping(value):
+        if not FlextCliFileTools._is_json_mapping(value):
             return r[Mapping[str, t.Cli.JsonValue]].fail(
                 "File root is not an t.NormalizedValue; use load_file_auto_detect for other types",
             )
@@ -465,7 +465,7 @@ class FlextCliFileTools:
                 result.error or "JSON load failed",
             )
         value = result.value
-        if not _is_json_mapping(value):
+        if not FlextCliFileTools._is_json_mapping(value):
             return r[Mapping[str, t.Cli.JsonValue]].fail(
                 "JSON root is not an t.NormalizedValue; use read_json_file for other types",
             )

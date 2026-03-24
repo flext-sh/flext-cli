@@ -23,13 +23,13 @@ _JSON_OBJECT_ADAPTER: TypeAdapter[t.Cli.JsonValue] = TypeAdapter(t.Cli.JsonValue
 logger = FlextLogger(__name__)
 
 
-def _default_config_dir() -> Path:
-    """Resolve default CLI config directory (e.g. ~/.flext or XDG)."""
-    return Path.home() / ".flext"
-
-
 class FlextCliSettings(FlextSettings):
     """CLI-specific configuration; extends FlextSettings with profile and CLI fields."""
+
+    @staticmethod
+    def _default_config_dir() -> Path:
+        """Resolve default CLI config directory (e.g. ~/.flext or XDG)."""
+        return Path.home() / ".flext"
 
     profile: Annotated[str, Field(default="default", description="CLI profile name")]
     verbose: Annotated[
@@ -71,7 +71,10 @@ class FlextCliSettings(FlextSettings):
     ]
     config_dir: Annotated[
         Path,
-        Field(default_factory=_default_config_dir, description="CLI config directory"),
+        Field(
+            default_factory=lambda: FlextCliSettings._default_config_dir(),
+            description="CLI config directory",
+        ),
     ]
     token_file: Annotated[
         str | None,
