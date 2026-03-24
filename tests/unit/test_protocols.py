@@ -71,7 +71,9 @@ class TestsCliProtocols:
 
         class DuckFormatter:
             def format_data(
-                self, data: t.NormalizedValue, **options: t.Scalar
+                self,
+                data: t.NormalizedValue,
+                **options: t.Scalar,
             ) -> r[str]:
                 return r[str].ok("formatted")
 
@@ -260,7 +262,10 @@ class TestsCliProtocols:
         ],
     )
     def test_protocol_comprehensive_scenarios(
-        self, test_type: str, description: str, should_succeed: bool
+        self,
+        test_type: str,
+        description: str,
+        should_succeed: bool,
     ) -> None:
         """Comprehensive protocol scenario tests using parametrization."""
         result = self._execute_protocol_test(test_type)
@@ -277,7 +282,8 @@ class TestsCliProtocols:
             return r[bool].fail(str(e))
 
     def _validate_config_provider_instance(
-        self, instance: t.NormalizedValue
+        self,
+        instance: t.NormalizedValue,
     ) -> r[bool]:
         """Validate config provider instance against protocol."""
         try:

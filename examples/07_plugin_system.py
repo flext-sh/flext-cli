@@ -90,7 +90,9 @@ class MyAppPluginManager:
         self.plugins: t.ContainerMapping = {}
 
     def execute_plugin(
-        self, plugin_name: str, **kwargs: t.Container
+        self,
+        plugin_name: str,
+        **kwargs: t.Container,
     ) -> r[t.Cli.JsonValue]:
         """Execute plugin by name in YOUR CLI."""
         if plugin_name not in self.plugins:
@@ -105,9 +107,9 @@ class MyAppPluginManager:
             if hasattr(raw, "is_success") and hasattr(raw, "value"):
                 if getattr(raw, "is_failure", False):
                     return r.fail(
-                        getattr(raw, "error", "Unknown error") or "Unknown error"
+                        getattr(raw, "error", "Unknown error") or "Unknown error",
                     )
-                result_value = getattr(raw, "value")
+                result_value = raw.value
             else:
                 result_value = raw
             normalized = m.Cli.CliNormalizedJson(result_value).root
@@ -241,7 +243,8 @@ def main() -> None:
     )
     if report_result.is_success:
         cli.print(
-            f"   Report length: {len(str(report_result.value))} chars", style="green"
+            f"   Report length: {len(str(report_result.value))} chars",
+            style="green",
         )
     cli.print("\n5. Configurable Plugin:", style="bold cyan")
     config: t.ContainerMapping = {"theme": "dark", "verbose": True}
@@ -263,7 +266,8 @@ def main() -> None:
     plugin_dir = Path.home() / ".myapp" / "plugins"
     loaded_manager = load_plugins_from_directory(plugin_dir)
     cli.print(
-        f"   Plugins available: {list(loaded_manager.plugins.keys())}", style="white"
+        f"   Plugins available: {list(loaded_manager.plugins.keys())}",
+        style="white",
     )
     cli.print("\n" + "=" * 70, style="bold blue")
     cli.print("  ✅ Plugin Examples Complete", style="bold green")

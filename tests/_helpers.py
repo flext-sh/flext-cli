@@ -35,7 +35,8 @@ def create_test_cli_command(**overrides: t.ContainerValue) -> m.Cli.CliCommand:
     filtered = {k: v for k, v in merged.items() if k in CliCommandInput.model_fields}
     inp = CliCommandInput(**filtered)
     return m.Cli.CliCommand.model_construct(
-        _fields_set=None, **inp.model_dump(exclude_none=True)
+        _fields_set=None,
+        **inp.model_dump(exclude_none=True),
     )
 
 
@@ -54,7 +55,8 @@ def create_test_cli_session(**overrides: t.ContainerValue) -> m.Cli.CliSession:
     }
     inp = CliSessionInput(**filtered)
     session = m.Cli.CliSession.model_construct(
-        _fields_set=None, **inp.model_dump(exclude_none=True)
+        _fields_set=None,
+        **inp.model_dump(exclude_none=True),
     )
     if getattr(session, "environment", None) is None:
         object.__setattr__(session, "environment", overrides.get("environment", "test"))
@@ -242,7 +244,9 @@ class CommandsFactory:
     def create_commands_with_dependencies() -> Sequence[m.Cli.CliCommand]:
         """Create commands with dependency relationships."""
         cmd1 = create_test_cli_command(
-            command_id="dep_cmd_1", name="prepare_data", arguments=["--prepare"]
+            command_id="dep_cmd_1",
+            name="prepare_data",
+            arguments=["--prepare"],
         )
         cmd2 = create_test_cli_command(
             command_id="dep_cmd_2",
@@ -258,7 +262,9 @@ class CommandsFactory:
 
     @staticmethod
     def register_simple_command(
-        commands: FlextCliCommands, command_name: str, result_value: str = "success"
+        commands: FlextCliCommands,
+        command_name: str,
+        result_value: str = "success",
     ) -> r[bool]:
         """Register a simple test command that returns a fixed value."""
 
@@ -269,7 +275,8 @@ class CommandsFactory:
 
     @staticmethod
     def register_command_with_args(
-        commands: FlextCliCommands, command_name: str
+        commands: FlextCliCommands,
+        command_name: str,
     ) -> r[bool]:
         """Register a command that accepts arguments."""
 
@@ -280,7 +287,9 @@ class CommandsFactory:
 
     @staticmethod
     def register_failing_command(
-        commands: FlextCliCommands, command_name: str, error_message: str = "Test error"
+        commands: FlextCliCommands,
+        command_name: str,
+        error_message: str = "Test error",
     ) -> r[bool]:
         """Register a command that fails with a specific error."""
 

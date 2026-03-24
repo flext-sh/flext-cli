@@ -78,7 +78,7 @@ class FlextCliCommands(FlextCliServiceBase):
             return r[t.Cli.JsonValue].ok(result.value)
         error_value = result.error
         return r[t.Cli.JsonValue].fail(
-            str(error_value) if error_value else "Command failed"
+            str(error_value) if error_value else "Command failed",
         )
 
     def clear_commands(self) -> r[int]:
@@ -173,13 +173,13 @@ class FlextCliCommands(FlextCliServiceBase):
 
         """
         if not name.strip():
-            return r.fail("Invalid command name")
+            return r[t.Cli.JsonValue].fail("Invalid command name")
         if name not in self._commands:
-            return r.fail(f"Command not found: {name}")
+            return r[t.Cli.JsonValue].fail(f"Command not found: {name}")
         cmd_info = self._commands[name]
         handler = cmd_info.handler
         if not callable(handler):
-            return r.fail(f"Handler not callable for: {name}")
+            return r[t.Cli.JsonValue].fail(f"Handler not callable for: {name}")
         try:
             result: r[t.Cli.JsonValue] | None = None
             execution_attempted = False
@@ -205,7 +205,7 @@ class FlextCliCommands(FlextCliServiceBase):
             StyleError,
             LiveError,
         ) as e:
-            return r.fail(f"Command execution failed: {e}")
+            return r[t.Cli.JsonValue].fail(f"Command execution failed: {e}")
 
     def get_click_group(self) -> m.Cli.CliCommandGroup:
         """Get Click group representation.
@@ -276,18 +276,18 @@ class FlextCliCommands(FlextCliServiceBase):
 
         """
         if not args:
-            return r.ok({"status": "success", "message": "No args"})
+            return r[t.Cli.JsonValue].ok({"status": "success", "message": "No args"})
         cmd_name = args[0] if args else ""
         cmd_args = list(args[1:]) if len(args) > 1 else []
         if cmd_name in {"--help", "-h"}:
-            return r.ok({
+            return r[t.Cli.JsonValue].ok({
                 "status": "help",
                 "commands": list(self._commands.keys()),
             })
         if cmd_name in {"--version", "-v"}:
-            return r.ok({"status": "version", "name": self._name})
+            return r[t.Cli.JsonValue].ok({"status": "version", "name": self._name})
         if cmd_name not in self._commands:
-            return r.fail(f"Command not found: {cmd_name}")
+            return r[t.Cli.JsonValue].fail(f"Command not found: {cmd_name}")
         return self.execute_command(cmd_name, args=cmd_args)
 
     def unregister_command(self, name: str) -> r[bool]:

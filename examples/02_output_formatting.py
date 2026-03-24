@@ -67,7 +67,8 @@ def display_database_results(records: Sequence[t.Cli.JsonValue]) -> None:
 
 
 def export_report(
-    data: Sequence[t.Cli.JsonValue], format_type: c.Cli.OutputFormatLiteral = "table"
+    data: Sequence[t.Cli.JsonValue],
+    format_type: c.Cli.OutputFormatLiteral = "table",
 ) -> r[str]:
     """Create ASCII tables for logs/reports in your app."""
     config = m.Cli.TableConfig(table_format=format_type)
@@ -205,18 +206,21 @@ def main() -> None:
     cli.print("=" * 70, style="bold blue")
     cli.print("\n💡 Integration Tips:", style="bold cyan")
     cli.print(
-        "  • Rich tables: Use cli.show_table() for terminal display", style="white"
+        "  • Rich tables: Use cli.show_table() for terminal display",
+        style="white",
     )
     cli.print("  • ASCII tables: Use FlextCliTables for logs/files", style="white")
     cli.print("  • Progress: Use cli.print() with percentage updates", style="white")
     cli.print("  • Status: Use cli.print() with status messages", style="white")
     cli.print(
-        "  • Tables: Use cli.show_table() for auto-refreshing data", style="white"
+        "  • Tables: Use cli.show_table() for auto-refreshing data",
+        style="white",
     )
     cli.print("  • Organization: Use cli.print() with sections", style="white")
     cli.print("  • All methods return r for error handling", style="white")
     cli.print(
-        "  • NEVER import rich/click/tabulate directly - use FlextCli!", style="white"
+        "  • NEVER import rich/click/tabulate directly - use FlextCli!",
+        style="white",
     )
 
 

@@ -76,7 +76,9 @@ class TestsCliCommands:
         """Test command execution functionality."""
         commands = CommandsFactory.create_commands()
         _ = CommandsFactory.register_simple_command(
-            commands, "test_execution", "executed"
+            commands,
+            "test_execution",
+            "executed",
         )
         result = commands.execute_command("test_execution")
         tm.ok(result)
@@ -96,7 +98,9 @@ class TestsCliCommands:
         """Test execute_command with handler that doesn't accept args."""
         commands = CommandsFactory.create_commands()
         _ = CommandsFactory.register_simple_command(
-            commands, "test_no_args", "no_args_result"
+            commands,
+            "test_no_args",
+            "no_args_result",
         )
         result = commands.execute_command("test_no_args", args=["arg1", "arg2"])
         tm.ok(result)
@@ -126,7 +130,8 @@ class TestsCliCommands:
         """Test execute_command with non-callable handler."""
         commands = CommandsFactory.create_commands()
         bad_entry = m.Cli.CommandEntryModel.model_construct(
-            name="bad_cmd", handler="not_callable"
+            name="bad_cmd",
+            handler="not_callable",
         )
         commands._commands["bad_cmd"] = bad_entry
         result = commands.execute_command("bad_cmd")
@@ -145,7 +150,8 @@ class TestsCliCommands:
         """Test execute_command with invalid command structure."""
         commands = CommandsFactory.create_commands()
         invalid_entry = m.Cli.CommandEntryModel.model_construct(
-            name="bad_cmd", handler=None
+            name="bad_cmd",
+            handler=None,
         )
         commands._commands["bad_cmd"] = invalid_entry
         result = commands.execute_command("bad_cmd")
@@ -178,7 +184,9 @@ class TestsCliCommands:
         result = commands.execute()
         tm.ok(result)
         _ = CommandsFactory.register_simple_command(
-            commands, "integration_test", "integration_ok"
+            commands,
+            "integration_test",
+            "integration_ok",
         )
         exec_result = commands.execute_command("integration_test")
         tm.ok(exec_result)
@@ -283,7 +291,7 @@ class TestsCliCommands:
             "test_group",
             description="Test group description",
             commands={
-                "cmd1": m.Cli.CommandEntryModel(name="cmd1", handler=grouped_handler)
+                "cmd1": m.Cli.CommandEntryModel(name="cmd1", handler=grouped_handler),
             },
         )
         tm.ok(result)
@@ -333,7 +341,9 @@ class TestsCliCommands:
         """Test create_command_group with None commands."""
         commands = CommandsFactory.create_commands()
         result = commands.create_command_group(
-            "test_group", "Test group description", None
+            "test_group",
+            "Test group description",
+            None,
         )
         tm.fail(result)
         tm.that(str(result.error).lower(), has="required")
@@ -342,7 +352,9 @@ class TestsCliCommands:
         """Test create_command_group with empty commands dict."""
         commands = CommandsFactory.create_commands()
         result = commands.create_command_group(
-            "test_group", "Test group description", {}
+            "test_group",
+            "Test group description",
+            {},
         )
         tm.that(result, is_=r)
 

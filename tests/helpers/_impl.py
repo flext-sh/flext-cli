@@ -80,10 +80,12 @@ class ParamsFactory:
         assert isinstance(default_field, FieldInfo)
         empty_kwargs: t.ScalarMapping = {}
         default_fields: Mapping[
-            str, tuple[type, t.Scalar | FieldInfo, t.ScalarMapping]
+            str,
+            tuple[type, t.Scalar | FieldInfo, t.ScalarMapping],
         ] = {"test_field": (str, default_field, empty_kwargs)}
         resolved_fields: Mapping[
-            str, tuple[type, t.Scalar | FieldInfo, t.ScalarMapping]
+            str,
+            tuple[type, t.Scalar | FieldInfo, t.ScalarMapping],
         ] = fields if fields is not None else default_fields
         annotations: Mapping[str, type] = {}
         class_dict: t.ContainerMapping = {
@@ -121,7 +123,9 @@ class ValidationHelper:
 
     @staticmethod
     def assert_field_type(
-        obj: t.NormalizedValue, field_name: str, expected_type: type | tuple[type, ...]
+        obj: t.NormalizedValue,
+        field_name: str,
+        expected_type: type | tuple[type, ...],
     ) -> None:
         """Assert that an t.NormalizedValue field has expected type."""
         value = getattr(obj, field_name)
@@ -131,7 +135,8 @@ class ValidationHelper:
 
     @staticmethod
     def extract_config_values(
-        config: BaseSettings, field_names: t.StrSequence
+        config: BaseSettings,
+        field_names: t.StrSequence,
     ) -> t.ContainerMapping:
         """Extract multiple field values from config as a read-only Mapping.
 
@@ -206,39 +211,40 @@ class FlextCliTestHelpers:
             """Validate version info tuple structure."""
             if len(version_info) < 3:
                 return r[tuple[int | str, ...]].fail(
-                    "Version info must have at least 3 parts"
+                    "Version info must have at least 3 parts",
                 )
             for i, part in enumerate(version_info):
                 if isinstance(part, int) and part < 0:
                     return r[tuple[int | str, ...]].fail(
-                        f"Version part {i} must be non-negative int"
+                        f"Version part {i} must be non-negative int",
                     )
                 if isinstance(part, str) and (not part):
                     return r[tuple[int | str, ...]].fail(
-                        f"Version part {i} must be non-empty string"
+                        f"Version part {i} must be non-empty string",
                     )
             return r[tuple[int | str, ...]].ok(version_info)
 
         @staticmethod
         def validate_consistency(
-            version_string: str, version_info: tuple[int | str, ...]
+            version_string: str,
+            version_info: tuple[int | str, ...],
         ) -> r[tuple[str, tuple[int | str, ...]]]:
             """Validate consistency between version string and info tuple."""
             string_result = (
                 FlextCliTestHelpers.VersionTestFactory.validate_version_string(
-                    version_string
+                    version_string,
                 )
             )
             if string_result.is_failure:
                 return r[tuple[str, tuple[int | str, ...]]].fail(
-                    f"Invalid version string: {string_result.error}"
+                    f"Invalid version string: {string_result.error}",
                 )
             info_result = FlextCliTestHelpers.VersionTestFactory.validate_version_info(
-                version_info
+                version_info,
             )
             if info_result.is_failure:
                 return r[tuple[str, tuple[int | str, ...]]].fail(
-                    f"Invalid version info: {info_result.error}"
+                    f"Invalid version info: {info_result.error}",
                 )
             version_without_metadata = version_string.split("+", maxsplit=1)[0]
             version_base_and_prerelease = version_without_metadata.split("-")
@@ -255,7 +261,8 @@ class FlextCliTestHelpers:
                     version_parts.append(int(part))
                 except ValueError:
                     logging.getLogger(__name__).debug(
-                        "version part non-int, keep as str: %s", part
+                        "version part non-int, keep as str: %s",
+                        part,
                     )
                     version_parts.append(part)
             info_parts = list(version_info)
@@ -268,11 +275,11 @@ class FlextCliTestHelpers:
                 ):
                     if version_part != info_part:
                         return r.fail(
-                            f"Mismatch at position {i}: {version_part} != {info_part}"
+                            f"Mismatch at position {i}: {version_part} != {info_part}",
                         )
                 else:
                     return r[tuple[str, tuple[int | str, ...]]].fail(
-                        f"Type mismatch at position {i}: {type(version_part).__name__} != {type(info_part).__name__}"
+                        f"Type mismatch at position {i}: {type(version_part).__name__} != {type(info_part).__name__}",
                     )
             return r[tuple[str, tuple[int | str, ...]]].ok((
                 version_string,
@@ -289,7 +296,9 @@ class FlextCliTestHelpers:
 
                 class TestFormatter:
                     def format_data(
-                        self, data: t.NormalizedValue, **options: t.Scalar
+                        self,
+                        data: t.NormalizedValue,
+                        **options: t.Scalar,
                     ) -> r[str]:
                         try:
                             return r[str].ok(str(data))
@@ -298,7 +307,7 @@ class FlextCliTestHelpers:
 
                 formatter = TestFormatter()
                 if hasattr(formatter, "format_data") and callable(
-                    getattr(formatter, "format_data", None)
+                    getattr(formatter, "format_data", None),
                 ):
                     return r.ok(formatter)
                 return r.fail("Formatter does not satisfy CliFormatter protocol")
@@ -338,7 +347,7 @@ class FlextCliTestHelpers:
                 ):
                     return r.ok(provider)
                 return r.fail(
-                    "Config provider does not satisfy CliConfigProvider protocol"
+                    "Config provider does not satisfy CliConfigProvider protocol",
                 )
             except (ValueError, TypeError, ValidationError) as e:
                 return r.fail(f"Failed to create config provider: {e!s}")
@@ -368,10 +377,11 @@ class FlextCliTestHelpers:
 
                 authenticator = TestAuthenticator()
                 has_authenticate = hasattr(authenticator, "authenticate") and callable(
-                    getattr(authenticator, "authenticate", None)
+                    getattr(authenticator, "authenticate", None),
                 )
                 has_validate_token = hasattr(
-                    authenticator, "validate_token"
+                    authenticator,
+                    "validate_token",
                 ) and callable(getattr(authenticator, "validate_token", None))
                 if has_authenticate and has_validate_token:
                     auth_method = getattr(authenticator, "authenticate", None)
@@ -381,7 +391,7 @@ class FlextCliTestHelpers:
                         if len(params) >= 2:
                             return r.ok(authenticator)
                 return r.fail(
-                    "Authenticator does not satisfy CliAuthenticator protocol"
+                    "Authenticator does not satisfy CliAuthenticator protocol",
                 )
             except (ValueError, TypeError, ValidationError) as e:
                 return r.fail(f"Failed to create authenticator: {e!s}")
@@ -414,7 +424,7 @@ class FlextCliTestHelpers:
                 ))
             except (ValueError, TypeError, ValidationError) as e:
                 return r[tuple[t.StrSequence, Sequence[int], t.ContainerMapping]].fail(
-                    f"Failed to create processing test data: {e!s}"
+                    f"Failed to create processing test data: {e!s}",
                 )
 
         @staticmethod
@@ -433,7 +443,7 @@ class FlextCliTestHelpers:
                 return r[t.ContainerMapping].ok(user_data)
             except (ValueError, TypeError, ValidationError) as e:
                 return r[t.ContainerMapping].fail(
-                    f"Failed to create typed dict data: {e!s}"
+                    f"Failed to create typed dict data: {e!s}",
                 )
 
         @staticmethod
@@ -460,7 +470,7 @@ class FlextCliTestHelpers:
                 return r[Sequence[t.ContainerMapping]].ok(users_data)
             except (ValueError, TypeError, ValidationError) as e:
                 return r[Sequence[t.ContainerMapping]].fail(
-                    f"Failed to create API response data: {e!s}"
+                    f"Failed to create API response data: {e!s}",
                 )
 
     class ConstantsFactory:
@@ -476,7 +486,8 @@ class FlextCliTestHelpers:
 
         @staticmethod
         def create_test_command(
-            cli_cli: t.NormalizedValue, command_name: str
+            cli_cli: t.NormalizedValue,
+            command_name: str,
         ) -> r[click.Command]:
             """Create a test command for CLI testing."""
             try:
@@ -491,7 +502,8 @@ class FlextCliTestHelpers:
 
         @staticmethod
         def create_test_group(
-            cli_cli: t.NormalizedValue, group_name: str
+            cli_cli: t.NormalizedValue,
+            group_name: str,
         ) -> r[click.Group]:
             """Create a test group for CLI testing."""
             try:

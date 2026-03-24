@@ -120,7 +120,7 @@ class ConfigTestFactory:
     def get_validation_test_cases(cls) -> Sequence[tuple[str, bool]]:
         """Generate validation test cases - formats, envs, levels."""
         return [(fmt, True) for fmt in cls.VALID_OUTPUT_FORMATS] + [
-            ("invalid_format", False)
+            ("invalid_format", False),
         ]
 
     @classmethod
@@ -177,7 +177,8 @@ class TestsCliLoggingConfig:
     """Logging configuration tests."""
 
     @pytest.mark.parametrize(
-        ("level", "expected"), ConfigTestFactory.get_logging_scenarios()
+        ("level", "expected"),
+        ConfigTestFactory.get_logging_scenarios(),
     )
     def test_logging_levels(self, level: str, expected: str) -> None:
         """Test all logging levels with single parametrized test."""
@@ -203,7 +204,8 @@ class TestsCliLoggingConfig:
             case "CRITICAL":
                 log_level = "CRITICAL"
         config = m.Cli.LoggingConfig.model_construct(
-            log_level=log_level, log_format="json"
+            log_level=log_level,
+            log_format="json",
         )
         tm.that(config.log_level, eq=expected)
 
@@ -312,7 +314,8 @@ class TestsCliConfigValidation:
     """Validation tests using parametrized factory."""
 
     @pytest.mark.parametrize(
-        ("fmt", "should_pass"), ConfigTestFactory.get_validation_test_cases()
+        ("fmt", "should_pass"),
+        ConfigTestFactory.get_validation_test_cases(),
     )
     def test_output_format_validation(self, fmt: str, should_pass: bool) -> None:
         """Test output format validation."""

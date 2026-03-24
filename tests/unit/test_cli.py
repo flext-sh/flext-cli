@@ -51,7 +51,8 @@ class TestsCliCli:
         """Test command decorator creation."""
         cli_cli = FlextCliCli()
         command_result = FlextCliTestHelpers.CliHelpers.create_test_command(
-            cli_cli, "test_cmd"
+            cli_cli,
+            "test_cmd",
         )
         tm.ok(command_result)
         if command_result.is_success and command_result.value:
@@ -62,7 +63,8 @@ class TestsCliCli:
         """Test group decorator creation."""
         cli_cli = FlextCliCli()
         group_result = FlextCliTestHelpers.CliHelpers.create_test_group(
-            cli_cli, "test_group"
+            cli_cli,
+            "test_group",
         )
         tm.ok(group_result)
         if group_result.is_success and group_result.value:
@@ -75,7 +77,9 @@ class TestsCliCli:
         option_config_instance = m.Cli.OptionConfig.model_construct(default=1)
         option_config = option_config_instance
         option_decorator = cli_cli.create_option_decorator(
-            "--count", "-c", config=option_config
+            "--count",
+            "-c",
+            config=option_config,
         )
         tm.that(callable(option_decorator), eq=True)
 
@@ -89,7 +93,10 @@ class TestsCliCli:
         """Test command creation with options."""
         cli_cli = FlextCliCli()
         command_result = FlextCliTestHelpers.CliHelpers.create_command_with_options(
-            cli_cli, "test_cmd", "--value", "default"
+            cli_cli,
+            "test_cmd",
+            "--value",
+            "default",
         )
         tm.ok(command_result)
 
@@ -104,7 +111,9 @@ class TestsCliCli:
         ],
     )
     def test_click_type_creation(
-        self, click_type_name: str, data_dict: t.ContainerMapping
+        self,
+        click_type_name: str,
+        data_dict: t.ContainerMapping,
     ) -> None:
         """Test Click type creation with various parameter types."""
         if click_type_name == "choice":
@@ -136,7 +145,9 @@ class TestsCliCli:
         }.items(),
     )
     def test_primitive_type_getters(
-        self, primitive_type: str, getter_method: str
+        self,
+        primitive_type: str,
+        getter_method: str,
     ) -> None:
         """Test primitive type getter methods."""
         cli_cli = FlextCliCli()
@@ -177,7 +188,10 @@ class TestsCliCli:
         ],
     )
     def test_cli_comprehensive_scenarios(
-        self, test_type: str, description: str, should_succeed: bool
+        self,
+        test_type: str,
+        description: str,
+        should_succeed: bool,
     ) -> None:
         """Comprehensive CLI scenario tests using parametrization."""
         result = self._execute_cli_test(test_type)

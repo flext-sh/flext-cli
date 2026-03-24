@@ -131,11 +131,12 @@ def show_session_info() -> None:
             if token_file_path.exists()
             else "N/A",
             "Modified": time.strftime(
-                "%Y-%m-%d %H:%M:%S", time.localtime(token_file_path.stat().st_mtime)
+                "%Y-%m-%d %H:%M:%S",
+                time.localtime(token_file_path.stat().st_mtime),
             )
             if token_file_path.exists()
             else "N/A",
-        }
+        },
     )
     table_data: Mapping[str, str]
     if isinstance(session_data.data, dict):
@@ -231,10 +232,12 @@ def main() -> None:
     cli.print("\n💡 Integration Tips:", style="bold cyan")
     cli.print("  • Login: Use cli.authenticate() to save tokens", style="white")
     cli.print(
-        "  • API Calls: Use cli.get_auth_token() to retrieve tokens", style="white"
+        "  • API Calls: Use cli.get_auth_token() to retrieve tokens",
+        style="white",
     )
     cli.print(
-        "  • Validation: Use cli.validate_credentials() for user input", style="white"
+        "  • Validation: Use cli.validate_credentials() for user input",
+        style="white",
     )
     cli.print("  • Logout: Delete token file at cli.config.token_file", style="white")
 

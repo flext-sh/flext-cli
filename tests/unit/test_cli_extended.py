@@ -27,7 +27,9 @@ class TestsCliCliExtended:
         cli = FlextCliCli()
         mock_config_instance = FlextCliSettings.get_global()
         app = cli.create_app_with_common_params(
-            "test_app", "Test App", config=mock_config_instance
+            "test_app",
+            "Test App",
+            config=mock_config_instance,
         )
 
         @app.command()
@@ -50,7 +52,9 @@ class TestsCliCliExtended:
         cli = FlextCliCli()
         mock_config_instance = FlextCliSettings.get_global()
         app = cli.create_app_with_common_params(
-            "test_app", "Test App", config=mock_config_instance
+            "test_app",
+            "Test App",
+            config=mock_config_instance,
         )
 
         @app.command()
@@ -127,7 +131,10 @@ class TestsCliCliExtended:
         """Test helper functions inside create_option_decorator via execution."""
         cli = FlextCliCli()
         deco = cli.create_option_decorator(
-            "--flag", required=True, default=False, help_text="A flag"
+            "--flag",
+            required=True,
+            default=False,
+            help_text="A flag",
         )
 
         def cmd_impl(*args: t.Scalar, **kwargs: t.Scalar) -> str:

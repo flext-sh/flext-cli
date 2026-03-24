@@ -89,7 +89,9 @@ def test_normalize_union_type_returns_none_when_inner_is_none(
         return original(annotation)
 
     monkeypatch.setattr(
-        u.Cli.TypeNormalizer, "normalize_annotation", staticmethod(fake)
+        u.Cli.TypeNormalizer,
+        "normalize_annotation",
+        staticmethod(fake),
     )
     result = u.Cli.TypeNormalizer.normalize_union_type(union_type)
     tm.that(result, none=True)
@@ -112,7 +114,8 @@ def test_normalize_union_type_returns_annotation_for_none_only_args(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(
-        "flext_cli.utilities.get_args", lambda _annotation: (types.NoneType,)
+        "flext_cli.utilities.get_args",
+        lambda _annotation: (types.NoneType,),
     )
     union_type = str | int
     result = u.Cli.TypeNormalizer.normalize_union_type(union_type)

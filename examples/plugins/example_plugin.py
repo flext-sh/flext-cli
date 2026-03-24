@@ -72,7 +72,7 @@ class ExamplePlugin:
         try:
             if not isinstance(cli_main, CliMainWithGroups):
                 return r[bool].fail(
-                    "cli_main does not implement CliMainWithGroups protocol"
+                    "cli_main does not implement CliMainWithGroups protocol",
                 )
             cli_with_group = cli_main
 
@@ -98,13 +98,13 @@ class ExamplePlugin:
             def status() -> None:
                 """Show plugin status."""
                 print(
-                    f"Plugin status: {('Active' if self._initialized else 'Inactive')}"
+                    f"Plugin status: {('Active' if self._initialized else 'Inactive')}",
                 )
                 print(f"Configuration: {self._config}")
 
             if not isinstance(example, GroupWithCommands):
                 return r[bool].fail(
-                    "example group does not implement GroupWithCommands protocol"
+                    "example group does not implement GroupWithCommands protocol",
                 )
             example_group = example
 
@@ -208,7 +208,7 @@ class DataProcessorPlugin:
 
             if not isinstance(data, GroupWithCommands):
                 return r[bool].fail(
-                    "data group does not implement GroupWithCommands protocol"
+                    "data group does not implement GroupWithCommands protocol",
                 )
             data_group = data
 

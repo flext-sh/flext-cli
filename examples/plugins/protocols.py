@@ -9,8 +9,6 @@ from typing import Protocol, runtime_checkable
 class FlextCliProtocols:
     """CLI plugin protocol definitions."""
 
-    pass
-
 
 p = FlextCliProtocols
 
@@ -31,13 +29,17 @@ class CliMainWithGroups(Protocol):
     """
 
     def command(
-        self, *args: str, **kwargs: str
+        self,
+        *args: str,
+        **kwargs: str,
     ) -> Callable[[Callable[..., None]], Callable[..., None]]:
         """Create a command decorator."""
         ...
 
     def group(
-        self, *args: str, **kwargs: str
+        self,
+        *args: str,
+        **kwargs: str,
     ) -> Callable[[Callable[..., None]], Callable[..., None]]:
         """Create a command group decorator."""
         ...
@@ -59,7 +61,9 @@ class GroupWithCommands(Protocol):
     """
 
     def command(
-        self, *args: str, **kwargs: str
+        self,
+        *args: str,
+        **kwargs: str,
     ) -> Callable[[Callable[..., None]], Callable[..., None]]:
         """Create a command decorator."""
         ...

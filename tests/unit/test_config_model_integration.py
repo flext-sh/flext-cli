@@ -161,7 +161,7 @@ class TestsCliConfigModelIntegration:
         """Create temporary .env file for testing."""
         env_file = tmp_path / ".env"
         env_file.write_text(
-            "TEST_APP_INPUT_DIR=/test/input\nTEST_APP_OUTPUT_DIR=/test/output\nTEST_APP_TIMEOUT_SECONDS=60\nTEST_APP_VERBOSE=true\n"
+            "TEST_APP_INPUT_DIR=/test/input\nTEST_APP_OUTPUT_DIR=/test/output\nTEST_APP_TIMEOUT_SECONDS=60\nTEST_APP_VERBOSE=true\n",
         )
         return env_file
 
@@ -245,7 +245,8 @@ class TestsCliConfigModelIntegration:
         with pytest.raises(ValidationError):
             self.RequiredFieldsParams(input_dir="")
         params = self.RequiredFieldsParams(
-            input_dir="/test/input", output_dir="/test/output"
+            input_dir="/test/input",
+            output_dir="/test/output",
         )
         tm.that(params.input_dir, eq="/test/input")
         tm.that(params.output_dir, eq="/test/output")
@@ -329,7 +330,8 @@ class TestsCliConfigModelIntegration:
         tm.that(params.input_dir, none=True)
         tm.that(params.output_dir, none=True)
         params_from_config = self.AppParams(
-            input_dir=config.input_dir, output_dir=config.output_dir
+            input_dir=config.input_dir,
+            output_dir=config.output_dir,
         )
         tm.that(params_from_config.input_dir, eq="/config/input")
         tm.that(params_from_config.output_dir, eq="/config/output")
@@ -377,7 +379,10 @@ class TestsCliConfigModelIntegration:
     def test_params_validation_strict(self) -> None:
         """Test params validation with strict mode."""
         params = self.StrictParams(
-            input_dir="/test/input", output_dir="/test/output", name="test", count=5
+            input_dir="/test/input",
+            output_dir="/test/output",
+            name="test",
+            count=5,
         )
         tm.that(params.name, eq="test")
         tm.that(params.count, eq=5)

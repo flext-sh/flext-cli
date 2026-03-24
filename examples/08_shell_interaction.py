@@ -58,7 +58,8 @@ def handle_list_command(filter_text: str = "") -> r[t.StrSequence]:
     if filter_text:
         filtered = [item for item in items if filter_text in item]
         cli.print(
-            f"📋 Found {len(filtered)} items matching '{filter_text}'", style="cyan"
+            f"📋 Found {len(filtered)} items matching '{filter_text}'",
+            style="cyan",
         )
         return r[t.StrSequence].ok(filtered)
     cli.print(f"📋 Total items: {len(items)}", style="cyan")

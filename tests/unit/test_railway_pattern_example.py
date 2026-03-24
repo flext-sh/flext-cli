@@ -113,7 +113,9 @@ class TestsCliRailwayPatternExample:
         tm.that(error_msg, none=False)
 
     def test_railway_error_recovery(
-        self, file_tools: FlextCliFileTools, temp_dir: Path
+        self,
+        file_tools: FlextCliFileTools,
+        temp_dir: Path,
     ) -> None:
         """Test Railway Pattern with fallback/recovery strategies.
 
@@ -124,17 +126,21 @@ class TestsCliRailwayPatternExample:
         """
         fallback_file = temp_dir / "fallback_file.txt"
         primary_result = file_tools.write_json_file(
-            "/invalid/path", {"strategy": "fallback"}
+            "/invalid/path",
+            {"strategy": "fallback"},
         )
         tm.fail(primary_result)
         fallback_result = file_tools.write_json_file(
-            str(fallback_file), {"strategy": "fallback"}
+            str(fallback_file),
+            {"strategy": "fallback"},
         )
         tm.ok(fallback_result)
         tm.that(fallback_file.exists(), eq=True)
 
     def test_railway_workflow_integration(
-        self, file_tools: FlextCliFileTools, temp_dir: Path
+        self,
+        file_tools: FlextCliFileTools,
+        temp_dir: Path,
     ) -> None:
         """Test complete multi-step workflow using Railway Pattern.
 
@@ -148,7 +154,8 @@ class TestsCliRailwayPatternExample:
         data_file = temp_dir / "data_file.json"
         output_file = temp_dir / "output_file.json"
         config_result = file_tools.write_json_file(
-            str(config_file), {"debug": True, "timeout": 30}
+            str(config_file),
+            {"debug": True, "timeout": 30},
         )
         tm.ok(config_result)
         data_result = file_tools.write_json_file(str(data_file), {"items": [1, 2, 3]})

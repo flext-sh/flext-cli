@@ -13,7 +13,9 @@ class TestsCliWorkflowIntegration:
         """Test complete workflow: register command -> create session with command -> verify."""
         cmd = create_test_cli_command()
         session = m.Cli.CliSession.model_construct(
-            session_id="test-session", status=c.Cli.SessionStatus.ACTIVE, commands=[cmd]
+            session_id="test-session",
+            status=c.Cli.SessionStatus.ACTIVE,
+            commands=[cmd],
         )
         assert len(session.commands) == 1
         assert session.commands[0].command_line == cmd.command_line
@@ -22,10 +24,12 @@ class TestsCliWorkflowIntegration:
         """Test filtering commands by status in session."""
         pending_cmd = create_test_cli_command(status=c.Cli.CommandStatus.PENDING)
         running_cmd = create_test_cli_command(
-            name="running-cmd", status=c.Cli.CommandStatus.RUNNING
+            name="running-cmd",
+            status=c.Cli.CommandStatus.RUNNING,
         )
         completed_cmd = create_test_cli_command(
-            name="completed-cmd", status=c.Cli.CommandStatus.COMPLETED
+            name="completed-cmd",
+            status=c.Cli.CommandStatus.COMPLETED,
         )
         session = m.Cli.CliSession.model_construct(
             session_id="test-session",

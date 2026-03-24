@@ -78,7 +78,8 @@ class TestsCliConstants:
 
         @staticmethod
         def _get_constant_value(
-            constants: type[FlextCliConstants], constant_name: str
+            constants: type[FlextCliConstants],
+            constant_name: str,
         ) -> str:
             """Get constant value from correct namespace."""
             mapping: t.StrMapping = {
@@ -95,11 +96,13 @@ class TestsCliConstants:
 
         @staticmethod
         def assert_constant_exists(
-            constants: type[FlextCliConstants], constant_name: str
+            constants: type[FlextCliConstants],
+            constant_name: str,
         ) -> None:
             """Assert constant exists and has value."""
             value = TestsCliConstants.Assertions._get_constant_value(
-                constants, constant_name
+                constants,
+                constant_name,
             )
             tm.that(value, none=False)
             tm.that(value, is_=str)
@@ -108,11 +111,14 @@ class TestsCliConstants:
 
         @staticmethod
         def assert_constant_value(
-            constants: type[FlextCliConstants], constant_name: str, expected_value: str
+            constants: type[FlextCliConstants],
+            constant_name: str,
+            expected_value: str,
         ) -> None:
             """Assert constant has expected value."""
             actual_value = TestsCliConstants.Assertions._get_constant_value(
-                constants, constant_name
+                constants,
+                constant_name,
             )
             tm.that(actual_value, eq=expected_value)
             tm.that(actual_value, is_=str)
@@ -120,11 +126,13 @@ class TestsCliConstants:
 
         @staticmethod
         def assert_file_name_format(
-            constants: type[FlextCliConstants], constant_name: str
+            constants: type[FlextCliConstants],
+            constant_name: str,
         ) -> None:
             """Assert file name constant follows format."""
             value = TestsCliConstants.Assertions._get_constant_value(
-                constants, constant_name
+                constants,
+                constant_name,
             )
             tm.that(value.endswith(".json"), eq=True)
             tm.that(not value.startswith("."), eq=True)
@@ -211,7 +219,8 @@ class TestsCliConstants:
         tm.that(len(constants.Cli.Paths.FLEXT_DIR_NAME), gt=1)
 
     @pytest.mark.parametrize(
-        "constant_name", ["TOKEN_FILE_NAME", "REFRESH_TOKEN_FILE_NAME"]
+        "constant_name",
+        ["TOKEN_FILE_NAME", "REFRESH_TOKEN_FILE_NAME"],
     )
     def test_file_name_format_validation(self, constant_name: str) -> None:
         """Test that file names follow expected format."""
@@ -219,13 +228,17 @@ class TestsCliConstants:
         self.Assertions.assert_file_name_format(constants, constant_name)
 
     @pytest.mark.parametrize(
-        "constant_name", ["TOKEN_FILE_NAME", "REFRESH_TOKEN_FILE_NAME"]
+        "constant_name",
+        ["TOKEN_FILE_NAME", "REFRESH_TOKEN_FILE_NAME"],
     )
     @pytest.mark.parametrize(
-        "invalid_char", ["/", "\\", ":", "*", "?", '"', "<", ">", "|"]
+        "invalid_char",
+        ["/", "\\", ":", "*", "?", '"', "<", ">", "|"],
     )
     def test_file_names_no_invalid_characters(
-        self, constant_name: str, invalid_char: str
+        self,
+        constant_name: str,
+        invalid_char: str,
     ) -> None:
         """Test that file names don't contain invalid characters."""
         constants = self.Fixtures.get_constants()
@@ -254,7 +267,7 @@ class TestsCliConstants:
         tm.that(str(token_file).endswith(constants.Cli.Paths.TOKEN_FILE_NAME), eq=True)
         tm.that(
             str(refresh_token_file).endswith(
-                constants.Cli.Paths.REFRESH_TOKEN_FILE_NAME
+                constants.Cli.Paths.REFRESH_TOKEN_FILE_NAME,
             ),
             eq=True,
         )
@@ -330,7 +343,7 @@ class TestsCliConstants:
             tm.that(ascii_encoded, is_=bytes)
         except UnicodeEncodeError:
             logging.getLogger(__name__).debug(
-                "constant not encodable as ascii, skip assert"
+                "constant not encodable as ascii, skip assert",
             )
 
     def test_validate_constant_format(self) -> None:
@@ -445,10 +458,10 @@ class TestsCliConstants:
             token_file = app_dir / constants.Cli.Paths.TOKEN_FILE_NAME
             refresh_token_file = app_dir / constants.Cli.Paths.REFRESH_TOKEN_FILE_NAME
             token_file.write_text(
-                json.dumps({"access_token": "test_token", "token_type": "Bearer"})
+                json.dumps({"access_token": "test_token", "token_type": "Bearer"}),
             )
             refresh_token_file.write_text(
-                json.dumps({"refresh_token": "test_refresh_token"})
+                json.dumps({"refresh_token": "test_refresh_token"}),
             )
             tm.that(token_file.exists(), eq=True)
             tm.that(refresh_token_file.exists(), eq=True)
@@ -460,7 +473,7 @@ class TestsCliConstants:
                     "token": constants.Cli.Paths.TOKEN_FILE_NAME,
                     "refresh_token": constants.Cli.Paths.REFRESH_TOKEN_FILE_NAME,
                 },
-            }
+            },
         }
         tm.that(config, none=False)
         tm.that(config, is_=dict)
@@ -533,7 +546,9 @@ class TestsCliConstants:
     def test_create_cli_discriminated_union(self) -> None:
         """Test create_cli_discriminated_union creates union mapping."""
         union_map = u.create_discriminated_union(
-            "status", c.Cli.CommandStatus, c.Cli.SessionStatus
+            "status",
+            c.Cli.CommandStatus,
+            c.Cli.SessionStatus,
         )
         tm.that(union_map, is_=dict)
         tm.that(union_map, empty=False)

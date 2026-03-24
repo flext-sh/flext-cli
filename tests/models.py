@@ -90,10 +90,12 @@ class FlextCliTestModels(FlextTestsModels, FlextCliModels):
                 message: str = Field(default="", description="Prompt message")
                 default: str = Field(default="", description="Default value")
                 validation_pattern: str | None = Field(
-                    default=None, description="Regex pattern"
+                    default=None,
+                    description="Regex pattern",
                 )
                 expected_success: bool = Field(
-                    default=True, description="Expect success"
+                    default=True,
+                    description="Expect success",
                 )
 
             class ConfirmTestCaseDict(PositionalModel):
@@ -103,7 +105,8 @@ class FlextCliTestModels(FlextTestsModels, FlextCliModels):
                 message: str = Field(default="", description="Prompt message")
                 default: bool = Field(default=False, description="Default value")
                 expected_value: bool = Field(
-                    default=False, description="Expected result"
+                    default=False,
+                    description="Expected result",
                 )
 
             class ChoiceTestCaseDict(PositionalModel):
@@ -112,11 +115,13 @@ class FlextCliTestModels(FlextTestsModels, FlextCliModels):
                 model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
                 message: str = Field(default="", description="Prompt message")
                 choices: t.StrSequence = Field(
-                    default_factory=list, description="Choice list"
+                    default_factory=list,
+                    description="Choice list",
                 )
                 default: str | None = Field(default=None, description="Default choice")
                 expected_success: bool = Field(
-                    default=True, description="Expect success"
+                    default=True,
+                    description="Expect success",
                 )
 
             class PrintStatusCase(PositionalModel):
@@ -159,7 +164,8 @@ class FlextCliTestModels(FlextTestsModels, FlextCliModels):
 
                 model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
                 environment: Literal["dev", "prod", "staging"] = Field(
-                    default="dev", description="Environment"
+                    default="dev",
+                    description="Environment",
                 )
 
             class OptionalLiteralConfig(PositionalModel):
@@ -167,20 +173,26 @@ class FlextCliTestModels(FlextTestsModels, FlextCliModels):
 
                 model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
                 log_level: Literal["debug", "info", "warning", "error"] | None = Field(
-                    default=None, description="Log level"
+                    default=None,
+                    description="Log level",
                 )
 
             class AliasedConfig(PositionalModel):
                 """Config with field aliases and populate_by_name for model_command tests."""
 
                 model_config: ClassVar[ConfigDict] = ConfigDict(
-                    extra="forbid", populate_by_name=True
+                    extra="forbid",
+                    populate_by_name=True,
                 )
                 input_dir: str = Field(
-                    default="", alias="input-dir", description="Input dir"
+                    default="",
+                    alias="input-dir",
+                    description="Input dir",
                 )
                 output_dir: str = Field(
-                    default="", alias="output-dir", description="Output dir"
+                    default="",
+                    alias="output-dir",
+                    description="Output dir",
                 )
 
             class BooleanFlagsConfig(PositionalModel):
@@ -226,7 +238,8 @@ class FlextCliTestModels(FlextTestsModels, FlextCliModels):
                 """Params with field aliases for config model integration tests."""
 
                 model_config: ClassVar[ConfigDict] = ConfigDict(
-                    extra="forbid", populate_by_name=True
+                    extra="forbid",
+                    populate_by_name=True,
                 )
                 input_dir: str | None = Field(default=None, alias="input-dir")
                 output_dir: str | None = Field(default=None, alias="output-dir")
@@ -238,7 +251,8 @@ class FlextCliTestModels(FlextTestsModels, FlextCliModels):
                 model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
                 input_dir: str = Field(..., description="Input directory")
                 output_dir: str | None = Field(
-                    default=None, description="Output directory"
+                    default=None,
+                    description="Output directory",
                 )
 
             class AppParams(PositionalModel):
@@ -267,7 +281,8 @@ class FlextCliTestModels(FlextTestsModels, FlextCliModels):
                 """Params for strict validation tests."""
 
                 model_config: ClassVar[ConfigDict] = ConfigDict(
-                    extra="forbid", strict=True
+                    extra="forbid",
+                    strict=True,
                 )
                 name: str = Field(default="")
                 count: int = Field(default=0)

@@ -64,7 +64,7 @@ class FlextCliModels(FlextModels):
         """
 
         _JSON_NORMALIZE_ADAPTER: ClassVar[TypeAdapter[t.Cli.JsonValue]] = TypeAdapter(
-            t.Cli.JsonValue
+            t.Cli.JsonValue,
         )
         _DICT_STR_OBJECT_ADAPTER: ClassVar[
             TypeAdapter[Mapping[str, t.Cli.JsonValue]]
@@ -116,7 +116,8 @@ class FlextCliModels(FlextModels):
             """Key-value data for table/display — Pydantic v2 contract. Use m.Cli.DisplayData."""
 
             model_config: ClassVar[ConfigDict] = ConfigDict(
-                extra="forbid", validate_assignment=True
+                extra="forbid",
+                validate_assignment=True,
             )
             data: Annotated[
                 t.Cli.JsonValue,
@@ -130,7 +131,8 @@ class FlextCliModels(FlextModels):
             """Loaded configuration content — Pydantic v2 contract. Use m.Cli.LoadedConfig."""
 
             model_config: ClassVar[ConfigDict] = ConfigDict(
-                extra="forbid", validate_assignment=True
+                extra="forbid",
+                validate_assignment=True,
             )
             content: Annotated[
                 t.Cli.JsonValue,
@@ -237,7 +239,8 @@ class FlextCliModels(FlextModels):
             ]
             key: Annotated[str, Field(description="Key to look up")]
             default: Annotated[
-                t.Cli.JsonValue, Field(description="Default if key missing")
+                t.Cli.JsonValue,
+                Field(description="Default if key missing"),
             ]
 
             def result(self) -> t.Cli.JsonValue:
@@ -287,7 +290,8 @@ class FlextCliModels(FlextModels):
             model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
             value: Annotated[t.Cli.JsonValue | None, Field(default=None)]
             default: Annotated[
-                Mapping[str, t.Cli.JsonValue], Field(default_factory=dict)
+                Mapping[str, t.Cli.JsonValue],
+                Field(default_factory=dict),
             ]
 
             @computed_field
@@ -308,7 +312,7 @@ class FlextCliModels(FlextModels):
                 try:
                     parsed = (
                         FlextCliModels.Cli._DICT_STR_OBJECT_ADAPTER.validate_python(  # noqa: SLF001
-                            source
+                            source,
                         )
                     )
                     return {
@@ -340,7 +344,7 @@ class FlextCliModels(FlextModels):
                 source = FlextCliModels.Cli.unwrap_root_value(self.value)
                 try:
                     seq = FlextCliModels.Cli._LIST_OBJECT_ADAPTER.validate_python(  # noqa: SLF001
-                        source
+                        source,
                     )
                     return [
                         FlextCliModels.Cli._JSON_NORMALIZE_ADAPTER.dump_python(  # noqa: SLF001
@@ -398,7 +402,7 @@ class FlextCliModels(FlextModels):
                         c.Cli.DictKeys.ARGS: [
                             FlextCliModels.Cli.normalize_json_value(item)
                             for item in processed
-                        ]
+                        ],
                     }
                 if isinstance(raw, Mapping):
                     return dict(raw)
@@ -451,7 +455,7 @@ class FlextCliModels(FlextModels):
                 source = FlextCliModels.Cli.unwrap_root_value(self.value)
                 try:
                     raw_list = FlextCliModels.Cli._LIST_OBJECT_ADAPTER.validate_python(  # noqa: SLF001
-                        source
+                        source,
                     )
                     return [
                         FlextCliModels.Cli.normalize_json_value(i) for i in raw_list
@@ -489,7 +493,7 @@ class FlextCliModels(FlextModels):
                 try:
                     raw_dict = (
                         FlextCliModels.Cli._DICT_STR_OBJECT_ADAPTER.validate_python(  # noqa: SLF001
-                            source
+                            source,
                         )
                     )
                     return {
@@ -538,7 +542,7 @@ class FlextCliModels(FlextModels):
                     if FlextCliModels.Cli.is_mapping_like(self.value):
                         return {
                             str(
-                                k
+                                k,
                             ): FlextCliModels.Cli._JSON_NORMALIZE_ADAPTER.dump_python(  # noqa: SLF001
                                 vv,
                                 mode="json",
@@ -549,7 +553,7 @@ class FlextCliModels(FlextModels):
                     if FlextCliModels.Cli.is_mapping_like(self.default):
                         return {
                             str(
-                                k
+                                k,
                             ): FlextCliModels.Cli._JSON_NORMALIZE_ADAPTER.dump_python(  # noqa: SLF001
                                 vv,
                                 mode="json",
@@ -727,7 +731,7 @@ class FlextCliModels(FlextModels):
             colalign: Annotated[
                 t.StrSequence | None,
                 Field(
-                    description="Per-column alignment (left, center, right, decimal)"
+                    description="Per-column alignment (left, center, right, decimal)",
                 ),
             ] = None
 
@@ -735,7 +739,7 @@ class FlextCliModels(FlextModels):
             disable_numparse: Annotated[
                 bool | Sequence[int],
                 Field(
-                    description="Disable number parsing (bool or list of column indices)"
+                    description="Disable number parsing (bool or list of column indices)",
                 ),
             ] = False
 
@@ -803,7 +807,9 @@ class FlextCliModels(FlextModels):
 
             @override
             def model_post_init(
-                self, __context: t.ConfigurationMapping | None = None, /
+                self,
+                __context: t.ConfigurationMapping | None = None,
+                /,
             ) -> None:
                 """Finalize initialization without post-processing side effects."""
                 return
@@ -1027,7 +1033,9 @@ class FlextCliModels(FlextModels):
 
             @override
             def model_post_init(
-                self, __context: t.ConfigurationMapping | None = None, /
+                self,
+                __context: t.ConfigurationMapping | None = None,
+                /,
             ) -> None:
                 """Finalize initialization without post-processing side effects."""
                 return
@@ -1152,7 +1160,7 @@ class FlextCliModels(FlextModels):
 
                 """
                 cli_commands: Sequence[FlextCliModels.Cli.CliCommand] = list(
-                    self.commands
+                    self.commands,
                 )
                 result: MutableMapping[str, list[FlextCliModels.Cli.CliCommand]] = {}
                 for command in cli_commands:
@@ -2299,7 +2307,7 @@ class FlextCliModels(FlextModels):
                 # This handles both cases: type_value is None or not Literal
                 resolved_origin = get_origin(field_type)
                 return field_type, str(
-                    resolved_origin
+                    resolved_origin,
                 ) if resolved_origin is not None else None
 
             @staticmethod

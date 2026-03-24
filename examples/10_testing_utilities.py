@@ -113,7 +113,8 @@ def test_interactive_command() -> None:
     result = interactive_command()
     if not result.is_success:
         cli.print(
-            f"   ❌ Interactive command should succeed: {result.error}", style="red"
+            f"   ❌ Interactive command should succeed: {result.error}",
+            style="red",
         )
         return
     if "TestUser" not in result.value:

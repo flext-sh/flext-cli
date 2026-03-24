@@ -98,7 +98,8 @@ def display_config_table(
         headers = ["Setting", "Value"]
     rows: Sequence[t.StrMapping] = []
     if isinstance(config_data, m.Cli.DisplayData) and isinstance(
-        config_data.data, dict
+        config_data.data,
+        dict,
     ):
         for key, value in config_data.data.items():
             rows.append({"Setting": str(key), "Value": str(value)})

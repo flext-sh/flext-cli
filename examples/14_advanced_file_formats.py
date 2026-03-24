@@ -90,7 +90,8 @@ def process_binary_file(input_file: Path, output_file: Path) -> None:
     write_result = cli.file_tools.write_binary_file(output_file, processed_data)
     if write_result.is_success:
         cli.print(
-            f"✅ Wrote {len(processed_data)} bytes to {output_file.name}", style="green"
+            f"✅ Wrote {len(processed_data)} bytes to {output_file.name}",
+            style="green",
         )
     else:
         cli.print(f"❌ Write failed: {write_result.error}", style="bold red")
@@ -102,7 +103,8 @@ def load_any_format_file(file_path: Path) -> t.ContainerMapping | None:
     format_result = cli.file_tools.detect_file_format(file_path)
     if format_result.is_failure:
         cli.print(
-            f"❌ Format detection failed: {format_result.error}", style="bold red"
+            f"❌ Format detection failed: {format_result.error}",
+            style="bold red",
         )
         return None
     detected_format = format_result.value
@@ -180,14 +182,16 @@ def process_text_file(input_file: Path, output_file: Path) -> None:
     write_result = cli.file_tools.write_text_file(output_file, processed)
     if write_result.is_success:
         cli.print(
-            f"✅ Wrote {len(processed)} characters to {output_file.name}", style="green"
+            f"✅ Wrote {len(processed)} characters to {output_file.name}",
+            style="green",
         )
 
 
 def copy_file_with_verification(source: Path, destination: Path) -> bool:
     """Copy file and verify integrity."""
     cli.print(
-        f"\n📋 Copying File: {source.name} → {destination.name}", style="bold cyan"
+        f"\n📋 Copying File: {source.name} → {destination.name}",
+        style="bold cyan",
     )
     source_data = source.read_bytes()
     source_hash = hashlib.sha256(source_data).hexdigest()
@@ -274,17 +278,21 @@ def main() -> None:
     cli.print("=" * 70, style="bold blue")
     cli.print("\n💡 Integration Tips:", style="bold cyan")
     cli.print(
-        "  • CSV: Use read_csv_file_with_headers() for structured data", style="white"
+        "  • CSV: Use read_csv_file_with_headers() for structured data",
+        style="white",
     )
     cli.print(
-        "  • Binary: Use read_binary_file() for images, PDFs, etc.", style="white"
+        "  • Binary: Use read_binary_file() for images, PDFs, etc.",
+        style="white",
     )
     cli.print("  • Auto-detect: Use load_file_auto() for flexible input", style="white")
     cli.print(
-        "  • Multi-format: Export to JSON, YAML, CSV simultaneously", style="white"
+        "  • Multi-format: Export to JSON, YAML, CSV simultaneously",
+        style="white",
     )
     cli.print(
-        "  • Verification: Calculate checksums for integrity checks", style="white"
+        "  • Verification: Calculate checksums for integrity checks",
+        style="white",
     )
 
 

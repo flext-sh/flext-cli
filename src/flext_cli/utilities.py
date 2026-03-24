@@ -223,7 +223,7 @@ class FlextCliUtilities(FlextUtilities):
                     return r[str].ok(fmt)
                 return r[str].fail(
                     c.Cli.ErrorMessages.INVALID_OUTPUT_FORMAT.format(
-                        format=format_type
+                        format=format_type,
                     ),
                 )
 

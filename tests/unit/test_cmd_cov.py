@@ -62,7 +62,8 @@ def test_set_config_value_outer_exception_path(monkeypatch: pytest.MonkeyPatch) 
 
 
 def test_get_config_value_outer_exception_path(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
 ) -> None:
 
     class FakeConfig:
@@ -123,7 +124,8 @@ def test_edit_config_outer_exception_path(monkeypatch: pytest.MonkeyPatch) -> No
 
 
 def test_edit_config_success_logs_and_returns_ok(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
 ) -> None:
 
     class FakeConfig:

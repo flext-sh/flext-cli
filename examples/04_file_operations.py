@@ -86,7 +86,7 @@ def load_user_preferences(config_dir: Path) -> r[m.Cli.LoadedConfig]:
     if read_result.is_failure:
         cli.print(f"⚠️  Could not load: {read_result.error}", style="yellow")
         return r[m.Cli.LoadedConfig].fail(
-            read_result.error or "Could not load preferences"
+            read_result.error or "Could not load preferences",
         )
 
     cli.print(f"✅ Loaded preferences from {config_file.name}", style="green")

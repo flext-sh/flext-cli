@@ -57,13 +57,16 @@ class TestsCliVersion:
 
             name: str = Field(description="Scenario name")
             version_string: str | None = Field(
-                default=None, description="Version string under test"
+                default=None,
+                description="Version string under test",
             )
             version_info: tuple[int | str, ...] | None = Field(
-                default=None, description="Version info tuple under test"
+                default=None,
+                description="Version info tuple under test",
             )
             should_pass: bool = Field(
-                default=True, description="Whether scenario should pass validation"
+                default=True,
+                description="Whether scenario should pass validation",
             )
 
             @property
@@ -197,7 +200,8 @@ class TestsCliVersion:
     def test_actual_version_consistency(self) -> None:
         """Test __version__ and __version_info__ are consistent."""
         result = FlextCliTestHelpers.VersionTestFactory.validate_consistency(
-            __version__, __version_info__
+            __version__,
+            __version_info__,
         )
         tm.ok(result)
 
@@ -219,7 +223,7 @@ class TestsCliVersion:
         tm.that(scenario.version_string, none=False)
         version_str = scenario.version_string or ""
         result = FlextCliTestHelpers.VersionTestFactory.validate_version_string(
-            version_str
+            version_str,
         )
         if scenario.should_pass:
             tm.ok(result)
@@ -236,7 +240,7 @@ class TestsCliVersion:
         tm.that(scenario.version_info, none=False)
         version_info = scenario.version_info or ()
         result = FlextCliTestHelpers.VersionTestFactory.validate_version_info(
-            version_info
+            version_info,
         )
         if scenario.should_pass:
             tm.ok(result)
@@ -255,7 +259,8 @@ class TestsCliVersion:
         version_str = scenario.version_string or ""
         version_info = scenario.version_info or ()
         result = FlextCliTestHelpers.VersionTestFactory.validate_consistency(
-            version_str, version_info
+            version_str,
+            version_info,
         )
         if scenario.should_pass:
             tm.ok(result)

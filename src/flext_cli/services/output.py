@@ -156,7 +156,7 @@ class FlextCliOutput:
         rows_result = u.Cli.process(data, processor=build_row, on_error="fail")
         if rows_result.is_failure:
             return r[Sequence[t.StrSequence]].fail(
-                rows_result.error or "Failed to build rows"
+                rows_result.error or "Failed to build rows",
             )
         rows_raw = rows_result.value or []
         rows: Sequence[t.StrSequence] = [
@@ -290,7 +290,8 @@ class FlextCliOutput:
         table_headers: t.StrSequence = [str(h) for h in table_headers_raw]
         return r[
             tuple[
-                Sequence[Mapping[str, FlextCliTypes.Cli.JsonValue]], str | t.StrSequence
+                Sequence[Mapping[str, FlextCliTypes.Cli.JsonValue]],
+                str | t.StrSequence,
             ]
         ].ok((
             table_data,
@@ -327,7 +328,8 @@ class FlextCliOutput:
                 ].fail(validation_result.error or "Header validation failed")
         return r[
             tuple[
-                Sequence[Mapping[str, FlextCliTypes.Cli.JsonValue]], str | t.StrSequence
+                Sequence[Mapping[str, FlextCliTypes.Cli.JsonValue]],
+                str | t.StrSequence,
             ]
         ].ok((
             data,
@@ -655,7 +657,7 @@ class FlextCliOutput:
             if format_str not in valid_formats:
                 return r[FlextCliOutput].fail(
                     c.Cli.ErrorMessages.INVALID_OUTPUT_FORMAT.format(
-                        format=format_type
+                        format=format_type,
                     ),
                 )
             return r[FlextCliOutput].ok(self)
@@ -1721,7 +1723,8 @@ class FlextCliOutput:
             return self._prepare_list_data(converted_list, headers)
         return r[
             tuple[
-                Sequence[Mapping[str, FlextCliTypes.Cli.JsonValue]], str | t.StrSequence
+                Sequence[Mapping[str, FlextCliTypes.Cli.JsonValue]],
+                str | t.StrSequence,
             ]
         ].fail(c.Cli.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT)
 
@@ -1752,7 +1755,7 @@ class FlextCliOutput:
         headers: t.StrSequence | None = None,
     ) -> r[t.StrSequence]:
         """Prepare and validate table headers."""
-        default_headers = self.get_keys(data[0]) if data else []
+        default_headers: Sequence[str] = self.get_keys(data[0]) if data else []
         default_headers_general: Sequence[FlextCliTypes.Cli.JsonValue] = list(
             default_headers,
         )

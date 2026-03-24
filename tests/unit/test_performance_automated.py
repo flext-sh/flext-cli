@@ -50,7 +50,9 @@ class TestsCliPerformanceAutomated:
         large_args = [f"arg{i}" for i in range(min(data_size, 1000))]
         start_time = time.time()
         cmd = create_test_cli_command(
-            name="perf-test", args=large_args, command_line=" ".join(large_args[:100])
+            name="perf-test",
+            args=large_args,
+            command_line=" ".join(large_args[:100]),
         )
         creation_time = time.time() - start_time
         tm.that(len(cmd.args), eq=min(data_size, 1000))
@@ -63,7 +65,8 @@ class TestsCliPerformanceAutomated:
         commands: Sequence[FlextCliModels.Cli.CliCommand] = []
         for i in range(1000):
             cmd = create_test_cli_command(
-                name=f"cmd{i}", args=[f"arg{j}" for j in range(10)]
+                name=f"cmd{i}",
+                args=[f"arg{j}" for j in range(10)],
             )
             commands.append(cmd)
         final_memory = process.memory_info().rss / 1024 / 1024

@@ -52,7 +52,8 @@ def pytest_configure(config: pytest.Config) -> None:
     config.addinivalue_line("markers", "slow: marks tests as slow running")
     config.addinivalue_line("markers", "docker: marks tests that require Docker")
     config.addinivalue_line(
-        "markers", "real_functionality: marks tests that test real functionality"
+        "markers",
+        "real_functionality: marks tests that test real functionality",
     )
 
 
@@ -137,7 +138,9 @@ def temp_file(temp_dir: Path) -> Path:
 
 @pytest.fixture
 def flext_cli_api(
-    tmp_path: Path, request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch
+    tmp_path: Path,
+    request: pytest.FixtureRequest,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> FlextCli:
     """Create isolated FlextCli instance with test-specific config.
 
@@ -152,7 +155,8 @@ def flext_cli_api(
     monkeypatch.setenv("FLEXT_CLI_CONFIG_DIR", str(test_dir))
     monkeypatch.setenv("FLEXT_CLI_TOKEN_FILE", str(test_dir / "token.json"))
     monkeypatch.setenv(
-        "FLEXT_CLI_REFRESH_TOKEN_FILE", str(test_dir / "refresh_token.json")
+        "FLEXT_CLI_REFRESH_TOKEN_FILE",
+        str(test_dir / "refresh_token.json"),
     )
     monkeypatch.setenv("FLEXT_CLI_PROFILE", "test")
     monkeypatch.setenv("FLEXT_CLI_OUTPUT_FORMAT", "json")
@@ -209,7 +213,10 @@ class LoggingConfigFactory(Protocol):
     """Protocol for LoggingConfig factory function."""
 
     def __call__(
-        self, log_level: str = ..., log_format: str = ..., **kwargs: str | float | bool
+        self,
+        log_level: str = ...,
+        log_format: str = ...,
+        **kwargs: str | float | bool,
     ) -> m.Cli.LoggingConfig:
         """Create LoggingConfig instance."""
         ...
@@ -606,7 +613,8 @@ def flext_test_docker(tmp_path_factory: pytest.TempPathFactory) -> tk:
         _ = docker_manager.cleanup_dirty_containers()
     except OSError as startup_err:
         logging.getLogger(__name__).debug(
-            "Docker cleanup at startup skipped: %s", startup_err
+            "Docker cleanup at startup skipped: %s",
+            startup_err,
         )
     return docker_manager
 
@@ -771,7 +779,8 @@ def input_exception_simulator() -> Iterator[Callable[[type[Exception]], None]]:
 
 
 def pytest_collection_modifyitems(
-    config: pytest.Config, items: Sequence[pytest.Item]
+    config: pytest.Config,
+    items: Sequence[pytest.Item],
 ) -> None:
     """Modify test collection to add markers based on test names."""
     _ = config

@@ -70,27 +70,32 @@ def test_read_confirmation_input_paths(monkeypatch: pytest.MonkeyPatch) -> None:
     warnings: t.StrSequence = []
 
     def capture_warning(
-        *_args: t.NormalizedValue, **_kwargs: t.NormalizedValue
+        *_args: t.NormalizedValue,
+        **_kwargs: t.NormalizedValue,
     ) -> None:
         warnings.append("warn")
 
     monkeypatch.setattr(prompts.logger, "warning", capture_warning)
     monkeypatch.setattr(builtins, "input", lambda _msg="": "")
     tm.that(
-        prompts._read_confirmation_input("m", "p", default=True).value is True, eq=True
+        prompts._read_confirmation_input("m", "p", default=True).value is True,
+        eq=True,
     )
     monkeypatch.setattr(builtins, "input", lambda _msg="": "yes")
     tm.that(
-        prompts._read_confirmation_input("m", "p", default=False).value is True, eq=True
+        prompts._read_confirmation_input("m", "p", default=False).value is True,
+        eq=True,
     )
     monkeypatch.setattr(builtins, "input", lambda _msg="": "no")
     tm.that(
-        prompts._read_confirmation_input("m", "p", default=True).value is False, eq=True
+        prompts._read_confirmation_input("m", "p", default=True).value is False,
+        eq=True,
     )
     entries = iter(["maybe", "y"])
     monkeypatch.setattr(builtins, "input", lambda _msg="": next(entries))
     tm.that(
-        prompts._read_confirmation_input("m", "p", default=False).value is True, eq=True
+        prompts._read_confirmation_input("m", "p", default=False).value is True,
+        eq=True,
     )
     tm.that(bool(warnings), eq=True)
 
@@ -106,11 +111,15 @@ def test_read_selection_paths(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(builtins, "input", lambda _msg="": next(entries))
     tm.that(prompts._read_selection(["a", "b"]).value, eq="b")
     monkeypatch.setattr(
-        builtins, "input", lambda _msg="": (_ for _ in ()).throw(KeyboardInterrupt())
+        builtins,
+        "input",
+        lambda _msg="": (_ for _ in ()).throw(KeyboardInterrupt()),
     )
     tm.fail(prompts._read_selection(["a"]))
     monkeypatch.setattr(
-        builtins, "input", lambda _msg="": (_ for _ in ()).throw(EOFError())
+        builtins,
+        "input",
+        lambda _msg="": (_ for _ in ()).throw(EOFError()),
     )
     tm.fail(prompts._read_selection(["a"]))
 
@@ -150,7 +159,8 @@ def test_print_status_exception_path(monkeypatch: pytest.MonkeyPatch) -> None:
         raise ValueError(msg)
 
     def swallow_exception(
-        *_args: t.NormalizedValue, **_kwargs: t.NormalizedValue
+        *_args: t.NormalizedValue,
+        **_kwargs: t.NormalizedValue,
     ) -> None:
         return
 

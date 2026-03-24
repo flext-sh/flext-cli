@@ -14,6 +14,7 @@ from datetime import UTC, datetime
 from typing import override
 
 from flext_core import FlextDecorators, FlextLogger, FlextRegistry, r
+from pydantic import BaseModel
 from rich.errors import ConsoleError, LiveError, StyleError
 
 from flext_cli import (
@@ -200,7 +201,7 @@ class FlextCliCore(FlextCliServiceBase):
             return r[bool].fail(c.Cli.ErrorMessages.CONFIG_NOT_INITIALIZED)
         try:
             config: MutableMapping[str, FlextCliTypes.Cli.JsonValue] = dict(
-                self._cli_config
+                self._cli_config,
             )
             default_dict: Mapping[str, FlextCliTypes.Cli.JsonValue] = {}
             profiles_result_raw = FlextCliUtilities.extract(
@@ -220,7 +221,8 @@ class FlextCliCore(FlextCliServiceBase):
                     for key, value in profiles_value.items()
                 }
             profiles_section_raw_typed: MutableMapping[
-                str, FlextCliTypes.Cli.JsonValue
+                str,
+                FlextCliTypes.Cli.JsonValue,
             ] = dict(
                 profiles_section_raw,
             )
@@ -523,7 +525,7 @@ class FlextCliCore(FlextCliServiceBase):
                 command_name=name,
                 definition_keys=str(list(command_def.keys())),
             )
-            snapshot_config: Mapping[str, FlextCliTypes.Cli.JsonValue] = {
+            snapshot_config: MutableMapping[str, t.NormalizedValue | BaseModel] = {
                 str(key): value for key, value in command_def.items()
             }
             return r[m.Configuration].ok(

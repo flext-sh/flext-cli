@@ -187,7 +187,8 @@ class TestsCliTypings:
         ids=lambda x: f"{x.test_type.value}_{x.description.lower().replace(' ', '_')}",
     )
     def test_typing_comprehensive_functionality(
-        self, test_case: TypingTestCase
+        self,
+        test_case: TypingTestCase,
     ) -> None:
         """Comprehensive typing functionality tests using dynamic execution."""
         match test_case.test_type:
@@ -226,7 +227,8 @@ class TestsCliTypings:
             raise TypeError(error_msg)
         config_dict: t.ContainerMapping = config_data_obj
         config_result = self.TypingValidators.validate_type_usage(
-            config_dict, "CliConfigData"
+            config_dict,
+            "CliConfigData",
         )
         tm.ok(config_result)
         format_data_obj = test_data["format_data"]
@@ -235,7 +237,8 @@ class TestsCliTypings:
             raise TypeError(error_msg)
         format_dict: t.ContainerMapping = format_data_obj
         format_result = self.TypingValidators.validate_type_usage(
-            format_dict, "CliFormatData"
+            format_dict,
+            "CliFormatData",
         )
         tm.ok(format_result)
         tm.that(config_dict["output_format"], eq=c.Cli.OutputFormats.JSON.value)
@@ -340,7 +343,10 @@ class TestsCliTypings:
         """Execute type utilities tests."""
 
         def typed_function(
-            name: str, age: int, *, active: bool = True
+            name: str,
+            age: int,
+            *,
+            active: bool = True,
         ) -> Mapping[str, bool | int | str]:
             return {"name": name, "age": age, "active": active}
 
@@ -421,7 +427,10 @@ class TestsCliTypings:
         if not isinstance(user_active, bool):
             raise TypeError(error_active)
         user_data = UserData(
-            id=user_id, name=user_name, email=user_email, active=user_active
+            id=user_id,
+            name=user_name,
+            email=user_email,
+            active=user_active,
         )
         user_response = create_user_response(user_data)
         tm.that(user_response, is_=ApiResponse)
@@ -496,7 +505,8 @@ class TestsCliTypings:
         threads: Sequence[threading.Thread] = []
         for _ in range(5):
             thread = threading.Thread(
-                target=thread_safe_operation, args=(test_data, results)
+                target=thread_safe_operation,
+                args=(test_data, results),
             )
             threads.append(thread)
             thread.start()

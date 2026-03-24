@@ -9,7 +9,7 @@ from __future__ import annotations
 import secrets
 import threading
 from collections.abc import Callable, Mapping, MutableMapping, Sequence
-from typing import ClassVar, TypeIs
+from typing import ClassVar, TypeGuard
 
 from click import Command
 from flext_core import (
@@ -452,7 +452,7 @@ class FlextCli:
     @staticmethod
     def _is_registered_command(
         obj: t.Cli.JsonValue | p.Cli.DecoratorCommandLike | Command,
-    ) -> TypeIs[p.Cli.CliRegisteredCommand]:
+    ) -> TypeGuard[p.Cli.CliRegisteredCommand]:
         """Narrow to CliRegisteredCommand when protocol attributes are present."""
         return callable(obj) and hasattr(obj, "name") and hasattr(obj, "callback")
 

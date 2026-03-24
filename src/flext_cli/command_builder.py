@@ -67,9 +67,11 @@ class FlextCliCommandBuilder:
         Typer validates kwargs at runtime, but static type checkers can't infer
         all possible kwargs. This helper validates and constructs OptionInfo safely.
         """
-        validated_param_decls = param_decls if param_decls is not None else []
+        validated_param_decls: t.StrSequence = (
+            param_decls if param_decls is not None else []
+        )
         validated_default: t.Cli.JsonValue | None = default
-        validated_param_decls_list: t.StrSequence = validated_param_decls
+        validated_param_decls_list: list[str] = list(validated_param_decls)
         validated_help: str | None = help_text or None
         option_info = OptionInfo(
             default=validated_default,
@@ -83,7 +85,7 @@ class FlextCliCommandBuilder:
         return option_info
 
     @staticmethod
-    def _is_command_protocol(obj: t.Cli.JsonValue) -> bool:
+    def _is_command_protocol(obj: m.Cli.CliCommand | t.Cli.JsonValue) -> bool:
         """Check if t.NormalizedValue matches minimal command protocol shape."""
         name_value = getattr(obj, "name", None)
         description_value = getattr(obj, "description", None)

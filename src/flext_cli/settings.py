@@ -85,7 +85,8 @@ class FlextCliSettings(FlextSettings):
         ),
     ]
     max_retries: Annotated[
-        t.NonNegativeInt, Field(default=3, description="Max retries")
+        t.NonNegativeInt,
+        Field(default=3, description="Max retries"),
     ]
     cli_timeout: Annotated[
         t.PositiveFloat,

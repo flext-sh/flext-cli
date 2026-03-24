@@ -76,7 +76,8 @@ def execute_deploy_from_cli(config: DeployConfig) -> None:
     deploy_result = deploy_application(config)
     if deploy_result.is_success:
         cli.print(
-            f"✅ Deployment successful to {config.environment}!", style="bold green"
+            f"✅ Deployment successful to {config.environment}!",
+            style="bold green",
         )
 
 
@@ -89,7 +90,8 @@ def show_common_cli_params() -> None:
     """Show auto-generated common CLI parameters."""
     cli.print("\n⚙️  Auto-Generated Common CLI Parameters:", style="bold cyan")
     cli.print(
-        "These are AUTOMATICALLY available in ALL flext-cli commands:\n", style="yellow"
+        "These are AUTOMATICALLY available in ALL flext-cli commands:\n",
+        style="yellow",
     )
     common_params: t.ContainerMapping = {
         "verbose": "Enable verbose output (-v)",
@@ -238,7 +240,8 @@ def main() -> None:
     except Exception as e:
         cli.print(f"   Caught validation error: {e}", style="yellow")
     cli.print(
-        "\n6. Railway Pattern with Pydantic (complete workflow):", style="bold cyan"
+        "\n6. Railway Pattern with Pydantic (complete workflow):",
+        style="bold cyan",
     )
     db_config_result = create_database_config_from_cli()
     if db_config_result.is_success:
@@ -256,10 +259,12 @@ def main() -> None:
     )
     cli.print("  • Add field_validator() for custom validation", style="white")
     cli.print(
-        "  • Constraints (ge, le) become CLI validation automatically", style="white"
+        "  • Constraints (ge, le) become CLI validation automatically",
+        style="white",
     )
     cli.print(
-        "  • Model → CLI → validated instance = type-safe workflow!", style="white"
+        "  • Model → CLI → validated instance = type-safe workflow!",
+        style="white",
     )
 
 

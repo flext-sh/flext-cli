@@ -181,7 +181,7 @@ class FlextCliFormatters:
             _logger.warning("rich_progress_creation_failed", error=str(exc))
             return r[Progress].fail(
                 c.Cli.FormattersErrorMessages.PROGRESS_CREATION_FAILED.format(
-                    error=exc
+                    error=exc,
                 ),
             )
 

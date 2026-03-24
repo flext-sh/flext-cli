@@ -351,7 +351,10 @@ class TestsCliCmd:
         ],
     )
     def test_cmd_get_config_value_error_scenarios(
-        self, temp_dir: Path, scenario: ConfigErrorScenario, expected_error_keyword: str
+        self,
+        temp_dir: Path,
+        scenario: ConfigErrorScenario,
+        expected_error_keyword: str,
     ) -> None:
         """Test get_config_value with various error scenarios."""
         cmd = _create_cmd_instance()
@@ -373,7 +376,8 @@ class TestsCliCmd:
         """Test get_config_value with invalid JSON file."""
         cmd = _create_cmd_instance()
         _create_config_file(
-            temp_dir, ERROR_SCENARIO_DATA[ConfigErrorScenario.INVALID_JSON]["content"]
+            temp_dir,
+            ERROR_SCENARIO_DATA[ConfigErrorScenario.INVALID_JSON]["content"],
         )
         original_config_dir = _set_config_dir(temp_dir)
         try:
@@ -399,7 +403,8 @@ class TestsCliCmd:
         """Test edit_config when config data is not a dict."""
         cmd = _create_cmd_instance()
         _create_config_file(
-            temp_dir, ERROR_SCENARIO_DATA[ConfigErrorScenario.NOT_DICT]["content"]
+            temp_dir,
+            ERROR_SCENARIO_DATA[ConfigErrorScenario.NOT_DICT]["content"],
         )
         original_config_dir = _set_config_dir(temp_dir)
         try:
@@ -413,7 +418,8 @@ class TestsCliCmd:
         """Test edit_config with invalid JSON file."""
         cmd = _create_cmd_instance()
         _create_config_file(
-            temp_dir, ERROR_SCENARIO_DATA[ConfigErrorScenario.INVALID_JSON]["content"]
+            temp_dir,
+            ERROR_SCENARIO_DATA[ConfigErrorScenario.INVALID_JSON]["content"],
         )
         original_config_dir = _set_config_dir(temp_dir)
         try:

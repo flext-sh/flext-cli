@@ -48,7 +48,9 @@ class TestsCliModelCommandComprehensive:
         return handler
 
     def test_connection_config_command(
-        self, cli: FlextCliCli, sample_handler: Callable[[BaseModel], None]
+        self,
+        cli: FlextCliCli,
+        sample_handler: Callable[[BaseModel], None],
     ) -> None:
         """Test model_command with ConnectionConfig."""
         command = cli.model_command(m.ConnectionConfig, sample_handler)
@@ -56,7 +58,9 @@ class TestsCliModelCommandComprehensive:
         tm.that(callable(command), eq=True)
 
     def test_environment_config_command(
-        self, cli: FlextCliCli, sample_handler: Callable[[BaseModel], None]
+        self,
+        cli: FlextCliCli,
+        sample_handler: Callable[[BaseModel], None],
     ) -> None:
         """Test model_command with EnvironmentConfig (Literal types)."""
         command = cli.model_command(m.EnvironmentConfig, sample_handler)
@@ -64,7 +68,9 @@ class TestsCliModelCommandComprehensive:
         tm.that(callable(command), eq=True)
 
     def test_optional_literal_config_command(
-        self, cli: FlextCliCli, sample_handler: Callable[[BaseModel], None]
+        self,
+        cli: FlextCliCli,
+        sample_handler: Callable[[BaseModel], None],
     ) -> None:
         """Test model_command with Optional Literal types."""
         command = cli.model_command(m.OptionalLiteralConfig, sample_handler)
@@ -72,7 +78,9 @@ class TestsCliModelCommandComprehensive:
         tm.that(callable(command), eq=True)
 
     def test_aliased_config_command(
-        self, cli: FlextCliCli, sample_handler: Callable[[BaseModel], None]
+        self,
+        cli: FlextCliCli,
+        sample_handler: Callable[[BaseModel], None],
     ) -> None:
         """Test model_command with field aliases."""
         command = cli.model_command(m.AliasedConfig, sample_handler)
@@ -80,7 +88,9 @@ class TestsCliModelCommandComprehensive:
         tm.that(callable(command), eq=True)
 
     def test_boolean_flags_config_command(
-        self, cli: FlextCliCli, sample_handler: Callable[[BaseModel], None]
+        self,
+        cli: FlextCliCli,
+        sample_handler: Callable[[BaseModel], None],
     ) -> None:
         """Test model_command with various boolean flags."""
         command = cli.model_command(m.BooleanFlagsConfig, sample_handler)
@@ -88,7 +98,9 @@ class TestsCliModelCommandComprehensive:
         tm.that(callable(command), eq=True)
 
     def test_nested_model_config_command(
-        self, cli: FlextCliCli, sample_handler: Callable[[BaseModel], None]
+        self,
+        cli: FlextCliCli,
+        sample_handler: Callable[[BaseModel], None],
     ) -> None:
         """Test model_command with nested models."""
         command = cli.model_command(m.NestedModelConfig, sample_handler)
@@ -96,7 +108,9 @@ class TestsCliModelCommandComprehensive:
         tm.that(callable(command), eq=True)
 
     def test_validated_config_command(
-        self, cli: FlextCliCli, sample_handler: Callable[[BaseModel], None]
+        self,
+        cli: FlextCliCli,
+        sample_handler: Callable[[BaseModel], None],
     ) -> None:
         """Test model_command with custom validators."""
         command = cli.model_command(m.ValidatedConfig, sample_handler)
@@ -115,7 +129,7 @@ class TestsCliModelCommandComprehensive:
     def test_optional_literal_types_handled(self) -> None:
         """Test that Optional[Literal[...]] types are handled."""
         params_result = m.Cli.CliModelConverter.model_to_cli_params(
-            m.OptionalLiteralConfig
+            m.OptionalLiteralConfig,
         )
         tm.ok(params_result)
         params = params_result.value
@@ -126,7 +140,7 @@ class TestsCliModelCommandComprehensive:
     def test_boolean_flags_default_true(self) -> None:
         """Test boolean flags with default=True."""
         params_result = m.Cli.CliModelConverter.model_to_cli_params(
-            m.BooleanFlagsConfig
+            m.BooleanFlagsConfig,
         )
         tm.ok(params_result)
         params = params_result.value
@@ -138,7 +152,7 @@ class TestsCliModelCommandComprehensive:
     def test_boolean_flags_default_false(self) -> None:
         """Test boolean flags with default=False."""
         params_result = m.Cli.CliModelConverter.model_to_cli_params(
-            m.BooleanFlagsConfig
+            m.BooleanFlagsConfig,
         )
         tm.ok(params_result)
         params = params_result.value
@@ -150,7 +164,7 @@ class TestsCliModelCommandComprehensive:
     def test_optional_boolean_flags(self) -> None:
         """Test optional boolean flags."""
         params_result = m.Cli.CliModelConverter.model_to_cli_params(
-            m.BooleanFlagsConfig
+            m.BooleanFlagsConfig,
         )
         tm.ok(params_result)
         params = params_result.value
@@ -167,7 +181,8 @@ class TestsCliModelCommandComprehensive:
         input_param = next((p for p in params if p.name == "input_dir"), None)
         assert input_param is not None
         tm.that(
-            hasattr(input_param, "aliases") or input_param.name == "input_dir", eq=True
+            hasattr(input_param, "aliases") or input_param.name == "input_dir",
+            eq=True,
         )
 
     def test_populate_by_name_works(self) -> None:
@@ -195,7 +210,8 @@ class TestsCliModelCommandComprehensive:
             m.ConnectionConfig.model_validate({"username": "user", "port": 0})
 
     def test_model_command_execution_with_connection_config(
-        self, cli: FlextCliCli
+        self,
+        cli: FlextCliCli,
     ) -> None:
         """Test executing model_command with ConnectionConfig."""
 
@@ -210,7 +226,8 @@ class TestsCliModelCommandComprehensive:
         assert command is not None
 
     def test_model_command_execution_with_environment_config(
-        self, cli: FlextCliCli
+        self,
+        cli: FlextCliCli,
     ) -> None:
         """Test executing model_command with EnvironmentConfig."""
 
@@ -224,7 +241,8 @@ class TestsCliModelCommandComprehensive:
         assert command is not None
 
     def test_model_command_execution_with_aliased_config(
-        self, cli: FlextCliCli
+        self,
+        cli: FlextCliCli,
     ) -> None:
         """Test executing model_command with AliasedConfig."""
 

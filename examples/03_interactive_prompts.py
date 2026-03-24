@@ -68,7 +68,8 @@ def authenticate_user() -> bool:
 def delete_database(database_name: str) -> None:
     """Confirm before destructive operations in YOUR app."""
     confirm_result = prompts.confirm(
-        f"⚠️  Delete database '{database_name}'? This cannot be undone!", default=False
+        f"⚠️  Delete database '{database_name}'? This cannot be undone!",
+        default=False,
     )
     if confirm_result.is_failure:
         cli.print(f"Error: {confirm_result.error}", style="bold red")
@@ -84,7 +85,8 @@ def select_environment() -> r[str]:
     """Environment selection in YOUR deployment tool."""
     environments = ["development", "staging", "production"]
     choice_result = prompts.prompt_choice(
-        "Select deployment environment:", choices=environments
+        "Select deployment environment:",
+        choices=environments,
     )
     if choice_result.is_failure:
         cli.print(f"Error: {choice_result.error}", style="bold red")
@@ -116,13 +118,13 @@ def database_setup_wizard() -> r[DatabaseWizardConfig]:
     db_result = prompts.prompt("Database name:")
     if db_result.is_failure:
         return r[DatabaseWizardConfig].fail(
-            db_result.error or "Failed to get database name"
+            db_result.error or "Failed to get database name",
         )
     database = db_result.value
     pwd_result = prompts.prompt_password("Database password:")
     if pwd_result.is_failure:
         return r[DatabaseWizardConfig].fail(
-            pwd_result.error or "Failed to get password"
+            pwd_result.error or "Failed to get password",
         )
     password = pwd_result.value
     cli.print("\n📋 Review configuration:", style="yellow")
@@ -133,15 +135,20 @@ def database_setup_wizard() -> r[DatabaseWizardConfig]:
         {"Setting": "password", "Value": "********"},
     ]
     cli.show_table(
-        display_data, headers=["Setting", "Value"], title="Database Configuration"
+        display_data,
+        headers=["Setting", "Value"],
+        title="Database Configuration",
     )
     confirm = prompts.confirm("Save this configuration?", default=True)
     if confirm.is_success and confirm.value:
         cli.print("✅ Configuration saved!", style="green")
         return r[DatabaseWizardConfig].ok(
             DatabaseWizardConfig(
-                host=host, port=port, database=database, password=password
-            )
+                host=host,
+                port=port,
+                database=database,
+                password=password,
+            ),
         )
     cli.print("❌ Setup cancelled", style="yellow")
     return r[DatabaseWizardConfig].fail("Setup cancelled by user")
@@ -180,7 +187,9 @@ def flext_prompt_with_validation() -> r[int]:
         cli.print(f"❌ Error: {name_result.error}", style="red")
         return r[int].fail(name_result.error or "Name prompt failed")
     env_result = prompts.prompt_choice(
-        "Select environment", choices=["dev", "staging", "prod"], default="dev"
+        "Select environment",
+        choices=["dev", "staging", "prod"],
+        default="dev",
     )
     if env_result.is_success:
         environment = env_result.value
@@ -222,7 +231,8 @@ def flext_confirm_prompts() -> bool:
     else:
         cli.print("❌ Operation cancelled", style="yellow")
     delete_result = prompts.confirm(
-        "⚠️  Delete all data? This cannot be undone!", default=False
+        "⚠️  Delete all data? This cannot be undone!",
+        default=False,
     )
     if delete_result.is_success and delete_result.value:
         cli.print("🗑️  Deleting all data...", style="red")
@@ -236,7 +246,9 @@ def flext_numeric_prompts() -> r[NumericPromptResult]:
     cli.print("\n🔢 Type-Safe Numeric Input", style="cyan")
 
     def validate_int(
-        value: str, min_val: int | None = None, max_val: int | None = None
+        value: str,
+        min_val: int | None = None,
+        max_val: int | None = None,
     ) -> r[int]:
         try:
             num = int(value)
@@ -263,7 +275,8 @@ def flext_numeric_prompts() -> r[NumericPromptResult]:
         if workers_validation.is_success:
             workers = workers_validation.value
             cli.print(
-                f"✅ Workers: {workers} (type: {type(workers).__name__})", style="green"
+                f"✅ Workers: {workers} (type: {type(workers).__name__})",
+                style="green",
             )
     cpu_result = prompts.prompt("CPU limit (cores)", default="2.5")
     if cpu_result.is_success:
@@ -281,7 +294,9 @@ def flext_numeric_prompts() -> r[NumericPromptResult]:
             percentage = pct_validation.value
             cli.print(f"✅ Percentage: {percentage}%", style="green")
     return r[NumericPromptResult].ok(
-        NumericPromptResult(workers=workers, cpu_limit=cpu_limit, percentage=percentage)
+        NumericPromptResult(
+            workers=workers, cpu_limit=cpu_limit, percentage=percentage
+        ),
     )
 
 
@@ -291,7 +306,7 @@ def flext_configuration_wizard() -> r[AppWizardConfig]:
     name_result = prompts.prompt("Application name", default="my-app")
     if name_result.is_failure:
         return r[AppWizardConfig].fail(
-            name_result.error or "Failed to get application name"
+            name_result.error or "Failed to get application name",
         )
     app_name = name_result.value
     env_result = prompts.prompt_choice(
@@ -301,7 +316,7 @@ def flext_configuration_wizard() -> r[AppWizardConfig]:
     )
     if env_result.is_failure:
         return r[AppWizardConfig].fail(
-            env_result.error or "Failed to select environment"
+            env_result.error or "Failed to select environment",
         )
     environment = env_result.value
 
@@ -348,7 +363,9 @@ def flext_configuration_wizard() -> r[AppWizardConfig]:
         {"Setting": k, "Value": str(v)} for k, v in summary.model_dump().items()
     ]
     cli.show_table(
-        display_rows, headers=["Setting", "Value"], title="Application Configuration"
+        display_rows,
+        headers=["Setting", "Value"],
+        title="Application Configuration",
     )
     save_result = prompts.confirm("Save this configuration?", default=True)
     if save_result.is_success and save_result.value:
@@ -389,14 +406,16 @@ def main() -> None:
     cli.print("\n💡 Integration Tips:", style="bold cyan")
     cli.print("  • Replace input() with prompts.prompt() for better UX", style="white")
     cli.print(
-        "  • Use prompts.prompt_password() for secrets (masked input)", style="white"
+        "  • Use prompts.prompt_password() for secrets (masked input)",
+        style="white",
     )
     cli.print("  • Add prompts.confirm() before destructive operations", style="white")
     cli.print("  • Use prompts.prompt_choice() for validated selections", style="white")
     cli.print("  • Combine with r for robust validation", style="white")
     cli.print("  • All methods return r - no try/except needed", style="white")
     cli.print(
-        "  • NEVER import rich/click directly - use FlextCli wrappers!", style="white"
+        "  • NEVER import rich/click directly - use FlextCli wrappers!",
+        style="white",
     )
 
 

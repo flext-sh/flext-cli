@@ -49,7 +49,8 @@ class TestsCliServiceBase(s[T]):
 
         handler_id: str = Field(description="Handler identifier")
         handler_name: str | None = Field(
-            default=None, description="Optional handler name"
+            default=None,
+            description="Optional handler name",
         )
         handler_type: c.HandlerType = Field(
             default=c.HandlerType.COMMAND,
@@ -68,7 +69,8 @@ class TestsCliServiceBase(s[T]):
             description="Expected error message when failure occurs",
         )
         description: str = Field(
-            default="", description="Human readable scenario description"
+            default="",
+            description="Human readable scenario description",
         )
 
         def create_handler(
@@ -97,7 +99,8 @@ class TestsCliServiceBase(s[T]):
 
         @staticmethod
         def _build_cases(
-            *, should_fail: bool
+            *,
+            should_fail: bool,
         ) -> Sequence[TestsCliServiceBase.HandlerTestCase]:
             cases: Sequence[TestsCliServiceBase.HandlerTestCase] = []
             for spec in td.default_handler_case_specs():
@@ -110,7 +113,7 @@ class TestsCliServiceBase(s[T]):
                         handler_id=str(spec["handler_id"]),
                         handler_type=getattr(c.HandlerType, handler_type_name),
                         expected_result=TestsCliServiceBase.HandlerFactories._to_expected_result(
-                            spec.get("expected_result")
+                            spec.get("expected_result"),
                         ),
                         should_fail=spec_should_fail,
                         error_message=(
@@ -119,7 +122,7 @@ class TestsCliServiceBase(s[T]):
                             else None
                         ),
                         description=str(spec["description"]),
-                    )
+                    ),
                 )
             return cases
 
@@ -208,7 +211,8 @@ class TestsCliServiceBase(s[T]):
                 return r[t.Container].ok(result_value)
 
             return TestsCliServiceBase.Handlers.create_test_handler(
-                handler_id, process_fn=always_succeed
+                handler_id,
+                process_fn=always_succeed,
             )
 
         @staticmethod
@@ -237,7 +241,8 @@ class TestsCliServiceBase(s[T]):
                 return r[t.Container].fail(error_message)
 
             return TestsCliServiceBase.Handlers.create_test_handler(
-                handler_id, process_fn=always_fail
+                handler_id,
+                process_fn=always_fail,
             )
 
         @staticmethod
@@ -268,7 +273,8 @@ class TestsCliServiceBase(s[T]):
                     return r[t.Container].fail(f"Transformation failed: {e}")
 
             return TestsCliServiceBase.Handlers.create_test_handler(
-                handler_id, process_fn=transform
+                handler_id,
+                process_fn=transform,
             )
 
 

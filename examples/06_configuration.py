@@ -69,7 +69,7 @@ def load_environment_config() -> m.Cli.DisplayData:
             "API URL": api_url,
             "Max Retries": max_retries,
             "Environment": environment,
-        }
+        },
     )
     cli.print(f"🌍 {environment.capitalize()} Configuration", style="bold cyan")
     display_config_table(cli=cli, config_data=settings)
@@ -91,7 +91,9 @@ def show_config_locations() -> m.Cli.DisplayData:
     }
     display_payload = m.Cli.DisplayData(data=locations)
     display_config_table(
-        cli=cli, config_data=display_payload, headers=["Location", "Path"]
+        cli=cli,
+        config_data=display_payload,
+        headers=["Location", "Path"],
     )
     return display_payload
 
@@ -105,14 +107,15 @@ def load_profile_config(profile_name: str = "default") -> r[FlextCliSettings]:
         output_format="json" if profile_name == "production" else "table",
     )
     validate_result = profile_config.validate_output_format_result(
-        profile_config.output_format
+        profile_config.output_format,
     )
     if validate_result.is_failure:
         cli.print(
-            f"❌ Profile validation failed: {validate_result.error}", style="bold red"
+            f"❌ Profile validation failed: {validate_result.error}",
+            style="bold red",
         )
         return r[FlextCliSettings].fail(
-            validate_result.error or "Profile validation failed"
+            validate_result.error or "Profile validation failed",
         )
     cli.print(f"✅ Profile '{profile_name}' loaded successfully", style="green")
     profile_data = {
@@ -156,7 +159,8 @@ def validate_app_config() -> bool:
     validate_result = config.validate_output_format_result(config.output_format)
     if validate_result.is_failure:
         cli.print(
-            f"   ❌ Base config invalid: {validate_result.error}", style="bold red"
+            f"   ❌ Base config invalid: {validate_result.error}",
+            style="bold red",
         )
         return False
     cli.print("   ✅ Base config valid", style="green")
@@ -187,7 +191,7 @@ def load_application_config() -> r[Mapping[str, t.Cli.JsonValue]]:
     final_data = initialize_services(overridden_data)
     cli.print("✅ Services initialized", style="green")
     result: r[Mapping[str, t.Cli.JsonValue]] = r[Mapping[str, t.Cli.JsonValue]].ok(
-        final_data
+        final_data,
     )
     if result.is_failure:
         cli.print(f"❌ Configuration failed: {result.error}", style="bold red")

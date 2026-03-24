@@ -52,7 +52,7 @@ class FlextCliGettingStarted:
         output_format = c.Cli.OutputFormats.JSON
         self.cli.print(f"Selected format: {output_format.value}", style="blue")
         valid_formats: tuple[str, ...] = tuple(
-            sorted(c.Cli.ValidationLists.OUTPUT_FORMATS)
+            sorted(c.Cli.ValidationLists.OUTPUT_FORMATS),
         )
         self.cli.print(f"Available formats: {', '.join(valid_formats)}")
         sample_data: t.Cli.JsonDict = {
@@ -81,7 +81,7 @@ class FlextCliGettingStarted:
         if read_result.is_failure:
             self.cli.print(f"Failed to load: {read_result.error}", style="red")
             return r[m.Cli.LoadedConfig].fail(
-                read_result.error or "Failed to load config"
+                read_result.error or "Failed to load config",
             )
         return r[m.Cli.LoadedConfig].ok(m.Cli.LoadedConfig(content=read_result.value))
 

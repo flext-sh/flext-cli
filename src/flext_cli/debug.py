@@ -277,7 +277,7 @@ class FlextCliDebug(FlextCliServiceBase):
         ) as e:
             return r[Mapping[str, t.Cli.JsonValue]].fail(
                 c.Cli.DebugErrorMessages.COMPREHENSIVE_DEBUG_INFO_FAILED.format(
-                    error=e
+                    error=e,
                 ),
             )
 
