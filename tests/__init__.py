@@ -72,6 +72,8 @@ if TYPE_CHECKING:
         ParamsFactory,
         TestScenario,
         ValidationHelper,
+        _is_json_dict,
+        _is_json_list,
     )
     from tests.integration.test_cli_workflow import TestsCliWorkflowIntegration
     from tests.models import (
@@ -321,6 +323,8 @@ _LAZY_IMPORTS: Mapping[str, tuple[str, str]] = {
     "VALID_CONFIG_DATA": ("tests.unit.test_cmd", "VALID_CONFIG_DATA"),
     "ValidatedConfig": ("tests.models", "ValidatedConfig"),
     "ValidationHelper": ("tests.helpers._impl", "ValidationHelper"),
+    "_is_json_dict": ("tests.helpers._impl", "_is_json_dict"),
+    "_is_json_list": ("tests.helpers._impl", "_is_json_list"),
     "c": ("tests.constants", "FlextCliTestConstants"),
     "clean_flext_container": ("tests.conftest", "clean_flext_container"),
     "cli_command_factory": ("tests.conftest", "cli_command_factory"),
@@ -589,6 +593,8 @@ __all__ = [
     "UserData",
     "ValidatedConfig",
     "ValidationHelper",
+    "_is_json_dict",
+    "_is_json_list",
     "c",
     "clean_flext_container",
     "cli_command_factory",

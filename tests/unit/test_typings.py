@@ -257,7 +257,7 @@ class TestsCliTypings:
             def method(self) -> str: ...
 
         tm.that(t, none=False)
-        tm.that(generic_type is not None, eq=True)
+        tm.that(generic_type.__name__, eq="Generic")
         tm.that(Test, none=False)
         user_data: t.ContainerMapping = {"key": "value", "number": 42}
         user_list: Sequence[t.ContainerMapping] = [user_data]
@@ -560,8 +560,7 @@ class TestsCliTypings:
                     "timestamp": "2025-01-01T00:00:00Z",
                 }
 
-        impl = Implementation()
-        tm.that(isinstance(impl, Test), eq=True)
+        impl: Test = Implementation()
         test_data = ["str1", "str2"]
         result = impl.operation(test_data)
         processed: t.NormalizedValue = result.get("processed")
