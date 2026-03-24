@@ -226,7 +226,7 @@ class FlextCliConstants(FlextConstants):
         class TIMEOUTS:
             """Timeout constants."""
 
-            DEFAULT = FlextConstants.DEFAULT_TIMEOUT_SECONDS
+            DEFAULT = 30
 
         FLEXT_CLI, TRACE, CLI_VERSION = ("flext-cli", "trace", "2.0.0")
 

@@ -21,9 +21,11 @@ from flext_cli import (
     t,
 )
 
-CLI = FlextCliConstants.Cli
-PD, EM = (CLI.PromptsDefaults, CLI.ErrorMessages)
-PM, PEM = (CLI.PromptsMessages, CLI.PromptsErrorMessages)
+PD, EM = (FlextCliConstants.Cli.PromptsDefaults, FlextCliConstants.Cli.ErrorMessages)
+PM, PEM = (
+    FlextCliConstants.Cli.PromptsMessages,
+    FlextCliConstants.Cli.PromptsErrorMessages,
+)
 SOURCE_PATH = "flext-cli/src/flext_cli/prompts.py"
 
 
@@ -42,7 +44,7 @@ class FlextCliPrompts(FlextCliServiceBase):
     default_timeout: Annotated[
         int,
         Field(
-            default=CLI.TIMEOUTS.DEFAULT,
+            default=FlextCliConstants.Cli.TIMEOUTS.DEFAULT,
             description="Default timeout for prompt operations in seconds",
         ),
     ]
@@ -52,7 +54,7 @@ class FlextCliPrompts(FlextCliServiceBase):
 
     def __init__(
         self,
-        default_timeout: int = CLI.TIMEOUTS.DEFAULT,
+        default_timeout: int = FlextCliConstants.Cli.TIMEOUTS.DEFAULT,
         *,
         interactive_mode: bool = True,
         quiet: bool = False,
@@ -240,7 +242,7 @@ class FlextCliPrompts(FlextCliServiceBase):
     def print_status(
         self,
         message: str,
-        status: str = CLI.MessageTypes.INFO.value,
+        status: str = FlextCliConstants.Cli.MessageTypes.INFO.value,
     ) -> r[bool]:
         try:
             self.logger.info(
@@ -384,7 +386,7 @@ class FlextCliPrompts(FlextCliServiceBase):
     def prompt_password(
         self,
         message: str = "Password:",
-        min_length: int = CLI.FormattingDefaults.MIN_FIELD_LENGTH,
+        min_length: int = FlextCliConstants.Cli.FormattingDefaults.MIN_FIELD_LENGTH,
     ) -> r[str]:
         if not self.interactive_mode:
             return r[str].fail(EM.INTERACTIVE_MODE_DISABLED_PASSWORD)
@@ -503,7 +505,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 PM.PROGRESS_OPERATION.format(description=description, count=total),
             )
             self.logger.info(PM.PROCESSING.format(description=description, count=total))
-            threshold = CLI.ProgressDefaults.REPORT_THRESHOLD
+            threshold = FlextCliConstants.Cli.ProgressDefaults.REPORT_THRESHOLD
             if total > threshold:
                 interval = max(1, total // threshold)
                 if total % interval == 0:
