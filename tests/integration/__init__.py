@@ -16,10 +16,7 @@ if TYPE_CHECKING:
     from tests.integration.test_cli_workflow import TestsCliWorkflowIntegration
 
 _LAZY_IMPORTS: Mapping[str, tuple[str, str]] = {
-    "TestsCliWorkflowIntegration": (
-        "tests.integration.test_cli_workflow",
-        "TestsCliWorkflowIntegration",
-    ),
+    "TestsCliWorkflowIntegration": ("tests.integration.test_cli_workflow", "TestsCliWorkflowIntegration"),
 }
 
 __all__ = [

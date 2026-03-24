@@ -17,14 +17,8 @@ if TYPE_CHECKING:
     from flext_cli._models.cli_models_system_context import FlextCliModelsSystemContext
 
 _LAZY_IMPORTS: Mapping[str, tuple[str, str]] = {
-    "FlextCliModelsStatistics": (
-        "flext_cli._models.cli_models_statistics",
-        "FlextCliModelsStatistics",
-    ),
-    "FlextCliModelsSystemContext": (
-        "flext_cli._models.cli_models_system_context",
-        "FlextCliModelsSystemContext",
-    ),
+    "FlextCliModelsStatistics": ("flext_cli._models.cli_models_statistics", "FlextCliModelsStatistics"),
+    "FlextCliModelsSystemContext": ("flext_cli._models.cli_models_system_context", "FlextCliModelsSystemContext"),
 }
 
 __all__ = [
