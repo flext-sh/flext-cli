@@ -490,4 +490,5 @@ class FlextCliTestConstants(FlextTestsConstants, FlextCliConstants):
 
 
 c = FlextCliTestConstants
+
 __all__ = ["FlextCliTestConstants", "c"]
