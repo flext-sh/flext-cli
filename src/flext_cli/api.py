@@ -185,7 +185,7 @@ class FlextCli:
 
     def authenticate(
         self,
-        credentials: m.Cli.PasswordAuth | m.Cli.TokenData | Mapping[str, str],
+        credentials: m.Cli.PasswordAuth | m.Cli.TokenData | t.StrMapping,
     ) -> r[str]:
         """Authenticate user with provided credentials (model or mapping)."""
         if isinstance(credentials, m.Cli.TokenData):
@@ -243,7 +243,7 @@ class FlextCli:
         data: Mapping[str, t.Cli.JsonValue]
         | Sequence[Mapping[str, t.Cli.JsonValue]]
         | None,
-        headers: Sequence[str] | None = None,
+        headers: t.StrSequence | None = None,
         _title: str | None = None,
     ) -> r[str]:
         """Create a formatted ASCII table (internal; use show_table for display)."""
@@ -341,7 +341,7 @@ class FlextCli:
     def show_table(
         self,
         data: Mapping[str, t.Cli.JsonValue] | Sequence[Mapping[str, t.Cli.JsonValue]],
-        headers: Sequence[str] | None = None,
+        headers: t.StrSequence | None = None,
         title: str | None = None,
     ) -> None:
         """Create and print a table in one call. No result to capture; no branching."""
@@ -405,7 +405,7 @@ class FlextCli:
 
     def _get_token_error_message(self, error_str: str) -> str:
         """Get error message based on exception content."""
-        kw_map: Mapping[str, str] = {
+        kw_map: t.StrMapping = {
             "dict": c.Cli.APIDefaults.TOKEN_DATA_TYPE_ERROR,
             "mapping": c.Cli.APIDefaults.TOKEN_DATA_TYPE_ERROR,
             "t.NormalizedValue": c.Cli.APIDefaults.TOKEN_DATA_TYPE_ERROR,

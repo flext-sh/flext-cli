@@ -10,11 +10,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Sequence, Callable, Mapping
+from collections.abc import Callable, Mapping
 
 from flext_core import r
 
 from examples import CliMainWithGroups, GroupWithCommands
+from flext_cli import t
 
 type DataProcessor = Callable[[str], str]
 type ProcessorRegistry = Mapping[str, DataProcessor]
@@ -196,7 +197,7 @@ class DataProcessorPlugin:
                     return processor(input_data)
                 return f"Unsupported format: {format_type}"
 
-            def list_formats() -> Sequence[str]:
+            def list_formats() -> t.StrSequence:
                 """List available data formats.
 
                 Returns:

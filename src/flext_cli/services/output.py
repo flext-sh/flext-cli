@@ -133,13 +133,13 @@ class FlextCliOutput:
     @staticmethod
     def _build_table_rows(
         data: Sequence[Mapping[str, FlextCliTypes.Cli.JsonValue]],
-        headers: Sequence[str],
-    ) -> r[Sequence[Sequence[str]]]:
+        headers: t.StrSequence,
+    ) -> r[Sequence[t.StrSequence]]:
         """Build table rows from data."""
 
         def build_row(
             row_data: Mapping[str, FlextCliTypes.Cli.JsonValue],
-        ) -> Sequence[str]:
+        ) -> t.StrSequence:
             """Build row values using u utilities."""
             values = u.Cli.process(
                 headers,
@@ -148,21 +148,21 @@ class FlextCliOutput:
             )
             values_list = values.value or []
             filtered = u.filter(values_list, predicate=lambda v: v is not None)
-            filtered_list: Sequence[str] = [
+            filtered_list: t.StrSequence = [
                 str(item) for item in filtered if item is not None
             ]
             return filtered_list
 
         rows_result = u.Cli.process(data, processor=build_row, on_error="fail")
         if rows_result.is_failure:
-            return r[Sequence[Sequence[str]]].fail(
+            return r[Sequence[t.StrSequence]].fail(
                 rows_result.error or "Failed to build rows"
             )
         rows_raw = rows_result.value or []
-        rows: Sequence[Sequence[str]] = [
+        rows: Sequence[t.StrSequence] = [
             [str(item) for item in row] for row in rows_raw
         ]
-        return r[Sequence[Sequence[str]]].ok(rows)
+        return r[Sequence[t.StrSequence]].ok(rows)
 
     @staticmethod
     def _display_formatted_result(formatted: str) -> None:
@@ -255,16 +255,16 @@ class FlextCliOutput:
     @staticmethod
     def _prepare_dict_data(
         data: Mapping[str, FlextCliTypes.Cli.JsonValue],
-        headers: Sequence[str] | None,
+        headers: t.StrSequence | None,
     ) -> r[
-        tuple[Sequence[Mapping[str, FlextCliTypes.Cli.JsonValue]], str | Sequence[str]]
+        tuple[Sequence[Mapping[str, FlextCliTypes.Cli.JsonValue]], str | t.StrSequence]
     ]:
         """Prepare dict data for table display."""
         if c.Cli.OutputDefaults.TEST_INVALID_KEY in data and len(data) == 1:
             return r[
                 tuple[
                     Sequence[Mapping[str, FlextCliTypes.Cli.JsonValue]],
-                    str | Sequence[str],
+                    str | t.StrSequence,
                 ]
             ].fail(c.Cli.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT)
 
@@ -287,10 +287,10 @@ class FlextCliOutput:
         table_headers_raw = (
             list(headers) if headers is not None else [c.Cli.TableFormats.KEYS]
         )
-        table_headers: Sequence[str] = [str(h) for h in table_headers_raw]
+        table_headers: t.StrSequence = [str(h) for h in table_headers_raw]
         return r[
             tuple[
-                Sequence[Mapping[str, FlextCliTypes.Cli.JsonValue]], str | Sequence[str]
+                Sequence[Mapping[str, FlextCliTypes.Cli.JsonValue]], str | t.StrSequence
             ]
         ].ok((
             table_data,
@@ -300,16 +300,16 @@ class FlextCliOutput:
     @staticmethod
     def _prepare_list_data(
         data: Sequence[Mapping[str, FlextCliTypes.Cli.JsonValue]],
-        headers: Sequence[str] | None,
+        headers: t.StrSequence | None,
     ) -> r[
-        tuple[Sequence[Mapping[str, FlextCliTypes.Cli.JsonValue]], str | Sequence[str]]
+        tuple[Sequence[Mapping[str, FlextCliTypes.Cli.JsonValue]], str | t.StrSequence]
     ]:
         """Prepare list data for table display."""
         if not data:
             return r[
                 tuple[
                     Sequence[Mapping[str, FlextCliTypes.Cli.JsonValue]],
-                    str | Sequence[str],
+                    str | t.StrSequence,
                 ]
             ].fail(c.Cli.ErrorMessages.NO_DATA_PROVIDED)
         headers_list = (
@@ -322,12 +322,12 @@ class FlextCliOutput:
                 return r[
                     tuple[
                         Sequence[Mapping[str, FlextCliTypes.Cli.JsonValue]],
-                        str | Sequence[str],
+                        str | t.StrSequence,
                     ]
                 ].fail(validation_result.error or "Header validation failed")
         return r[
             tuple[
-                Sequence[Mapping[str, FlextCliTypes.Cli.JsonValue]], str | Sequence[str]
+                Sequence[Mapping[str, FlextCliTypes.Cli.JsonValue]], str | t.StrSequence
             ]
         ].ok((
             data,
@@ -345,7 +345,7 @@ class FlextCliOutput:
 
     @staticmethod
     def _validate_headers(
-        headers: Sequence[str],
+        headers: t.StrSequence,
         data: Sequence[Mapping[str, FlextCliTypes.Cli.JsonValue]],
     ) -> r[bool]:
         """Validate headers exist in data."""
@@ -392,7 +392,7 @@ class FlextCliOutput:
     @staticmethod
     def create_ascii_table(
         data: Sequence[Mapping[str, FlextCliTypes.Cli.JsonValue]],
-        headers: Sequence[str] | None = None,
+        headers: t.StrSequence | None = None,
         table_format: str = c.Cli.TableFormats.SIMPLE,
         *,
         config: p.Cli.TableConfig | None = None,
@@ -449,7 +449,7 @@ class FlextCliOutput:
         validated_headers_raw = (
             list(headers) if headers is not None else [c.Cli.TableFormats.KEYS]
         )
-        validated_headers: Sequence[str] = [str(h) for h in validated_headers_raw]
+        validated_headers: t.StrSequence = [str(h) for h in validated_headers_raw]
         final_config = m.Cli.TableConfig.model_validate({
             "headers": validated_headers,
             "table_format": table_format,
@@ -516,20 +516,20 @@ class FlextCliOutput:
     @staticmethod
     def get_keys(
         d: Mapping[str, FlextCliTypes.Cli.JsonValue] | FlextCliTypes.Cli.JsonValue,
-    ) -> Sequence[str]:
+    ) -> t.StrSequence:
         """Extract keys from dict using build DSL.
 
         Business Rules:
         ───────────────
         1. Keys extraction MUST handle both dict and non-dict inputs safely
         2. Non-dict inputs MUST return empty list (no error)
-        3. Dict keys MUST be converted to Sequence[str] for type safety
+        3. Dict keys MUST be converted to t.StrSequence for type safety
 
         Architecture Implications:
         ───────────────────────────
         - Uses u.build() for type coercion and validation
         - Returns empty list for non-dict inputs (safe fallback)
-        - Type-safe conversion to Sequence[str] using type narrowing
+        - Type-safe conversion to t.StrSequence using type narrowing
 
         Audit Implications:
         ───────────────────
@@ -688,7 +688,7 @@ class FlextCliOutput:
         self,
         data: Sequence[Mapping[str, FlextCliTypes.Cli.JsonValue]],
         title: str | None = None,
-        headers: Sequence[str] | None = None,
+        headers: t.StrSequence | None = None,
     ) -> r[p.Cli.Display.RichTable]:
         """Create a Rich table from data using FlextCliFormatters.
 
@@ -745,7 +745,7 @@ class FlextCliOutput:
         format_type: str | None = None,
         *,
         title: str | None = None,
-        headers: Sequence[str] | None = None,
+        headers: t.StrSequence | None = None,
     ) -> None:
         """Display data in specified format.
 
@@ -957,7 +957,7 @@ class FlextCliOutput:
         data: FlextCliTypes.Cli.JsonValue,
         format_type: str = c.Cli.OutputFormats.TABLE.value,
         title: str | None = None,
-        headers: Sequence[str] | None = None,
+        headers: t.StrSequence | None = None,
     ) -> r[str]:
         """Format data using specified format type with railway pattern.
 
@@ -1021,7 +1021,7 @@ class FlextCliOutput:
         | Sequence[Mapping[str, FlextCliTypes.Cli.JsonValue]]
         | str,
         title: str | None = None,
-        headers: Sequence[str] | None = None,
+        headers: t.StrSequence | None = None,
     ) -> r[str]:
         """Format data as a tabulated table string using FlextCliTables.
 
@@ -1368,7 +1368,7 @@ class FlextCliOutput:
     def _create_table_string(
         self,
         table_data: Sequence[Mapping[str, FlextCliTypes.Cli.JsonValue]],
-        table_headers: str | Sequence[str],
+        table_headers: str | t.StrSequence,
     ) -> r[str]:
         """Create table string using FlextCliTables."""
         try:
@@ -1396,7 +1396,7 @@ class FlextCliOutput:
         format_type: str,
         data: FlextCliTypes.Cli.JsonValue,
         title: str | None,
-        headers: Sequence[str] | None,
+        headers: t.StrSequence | None,
     ) -> r[str]:
         """Dispatch to appropriate formatter based on format type."""
         formatters: Mapping[str, Callable[[], r[str]]] = {
@@ -1565,7 +1565,7 @@ class FlextCliOutput:
         self,
         data: FlextCliTypes.Cli.JsonValue,
         title: str | None,
-        headers: Sequence[str] | None,
+        headers: t.StrSequence | None,
     ) -> r[str]:
         """Format data as table with type validation."""
         if FlextRuntime.is_dict_like(data):
@@ -1617,7 +1617,7 @@ class FlextCliOutput:
 
     def _initialize_rich_table(
         self,
-        headers: Sequence[str],
+        headers: t.StrSequence,
         title: str | None = None,
     ) -> r[p.Cli.Display.RichTable]:
         """Initialize a Rich table with headers.
@@ -1675,7 +1675,7 @@ class FlextCliOutput:
         self,
         table: p.Cli.Display.RichTable,
         data: Sequence[Mapping[str, FlextCliTypes.Cli.JsonValue]],
-        headers: Sequence[str],
+        headers: t.StrSequence,
     ) -> r[bool]:
         """Add columns and rows to table.
 
@@ -1699,9 +1699,9 @@ class FlextCliOutput:
         data: Mapping[str, FlextCliTypes.Cli.JsonValue]
         | Sequence[Mapping[str, FlextCliTypes.Cli.JsonValue]]
         | str,
-        headers: Sequence[str] | None,
+        headers: t.StrSequence | None,
     ) -> r[
-        tuple[Sequence[Mapping[str, FlextCliTypes.Cli.JsonValue]], str | Sequence[str]]
+        tuple[Sequence[Mapping[str, FlextCliTypes.Cli.JsonValue]], str | t.StrSequence]
     ]:
         """Prepare and validate table data and headers."""
         if FlextRuntime.is_dict_like(data):
@@ -1721,7 +1721,7 @@ class FlextCliOutput:
             return self._prepare_list_data(converted_list, headers)
         return r[
             tuple[
-                Sequence[Mapping[str, FlextCliTypes.Cli.JsonValue]], str | Sequence[str]
+                Sequence[Mapping[str, FlextCliTypes.Cli.JsonValue]], str | t.StrSequence
             ]
         ].fail(c.Cli.ErrorMessages.TABLE_FORMAT_REQUIRED_DICT)
 
@@ -1730,9 +1730,9 @@ class FlextCliOutput:
         data: Mapping[str, FlextCliTypes.Cli.JsonValue]
         | Sequence[Mapping[str, FlextCliTypes.Cli.JsonValue]]
         | str,
-        headers: Sequence[str] | None,
+        headers: t.StrSequence | None,
     ) -> r[
-        tuple[Sequence[Mapping[str, FlextCliTypes.Cli.JsonValue]], str | Sequence[str]]
+        tuple[Sequence[Mapping[str, FlextCliTypes.Cli.JsonValue]], str | t.StrSequence]
     ]:
         """Safely prepare table data with exception handling."""
         try:
@@ -1742,15 +1742,15 @@ class FlextCliOutput:
             return r[
                 tuple[
                     Sequence[Mapping[str, FlextCliTypes.Cli.JsonValue]],
-                    str | Sequence[str],
+                    str | t.StrSequence,
                 ]
             ].fail(error_msg)
 
     def _prepare_table_headers(
         self,
         data: Sequence[Mapping[str, FlextCliTypes.Cli.JsonValue]],
-        headers: Sequence[str] | None = None,
-    ) -> r[Sequence[str]]:
+        headers: t.StrSequence | None = None,
+    ) -> r[t.StrSequence]:
         """Prepare and validate table headers."""
         default_headers = self.get_keys(data[0]) if data else []
         default_headers_general: Sequence[FlextCliTypes.Cli.JsonValue] = list(
@@ -1763,14 +1763,14 @@ class FlextCliOutput:
                 default_headers_general,
             )
         )
-        table_headers: Sequence[str] = [str(h) for h in table_headers_raw]
+        table_headers: t.StrSequence = [str(h) for h in table_headers_raw]
         if headers is not None:
             validation_result = FlextCliOutput._validate_headers(table_headers, data)
             if validation_result.is_failure:
-                return r[Sequence[str]].fail(
+                return r[t.StrSequence].fail(
                     validation_result.error or "Header validation failed",
                 )
-        return r[Sequence[str]].ok(table_headers)
+        return r[t.StrSequence].ok(table_headers)
 
     def _process_csv_row(
         self,

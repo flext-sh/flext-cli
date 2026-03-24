@@ -23,7 +23,7 @@ import pytest
 from flext_tests import tm
 from pydantic import BaseModel, ConfigDict, Field
 
-from flext_cli import __version__, __version_info__
+from flext_cli import __version__, __version_info__, t
 
 from ..conftest import Examples, InfoTuples
 from ..helpers import FlextCliTestHelpers
@@ -187,7 +187,7 @@ class TestsCliVersion:
 
     def test_actual_version_parts_extraction(self) -> None:
         """Test major.minor.patch can be extracted from version."""
-        parts: Sequence[str] = __version__.split(".")
+        parts: t.StrSequence = __version__.split(".")
         tm.that(len(parts), gte=3)
         major_str, minor_str, patch_str = (parts[0], parts[1], parts[2])
         tm.that(major_str.isdigit(), eq=True)

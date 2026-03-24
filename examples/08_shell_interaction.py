@@ -30,8 +30,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Sequence
-
 import os
 import time
 
@@ -54,7 +52,7 @@ def handle_status_command() -> r[t.ContainerMapping]:
     return r[t.ContainerMapping].ok(dict(status))
 
 
-def handle_list_command(filter_text: str = "") -> r[Sequence[str]]:
+def handle_list_command(filter_text: str = "") -> r[t.StrSequence]:
     """List command with filtering in YOUR CLI."""
     items = ["item1", "item2", "item3", "test_item"]
     if filter_text:
@@ -62,9 +60,9 @@ def handle_list_command(filter_text: str = "") -> r[Sequence[str]]:
         cli.print(
             f"📋 Found {len(filtered)} items matching '{filter_text}'", style="cyan"
         )
-        return r[Sequence[str]].ok(filtered)
+        return r[t.StrSequence].ok(filtered)
     cli.print(f"📋 Total items: {len(items)}", style="cyan")
-    return r[Sequence[str]].ok(items)
+    return r[t.StrSequence].ok(items)
 
 
 def handle_config_command(key: str = "", value: str = "") -> r[str]:
@@ -100,7 +98,7 @@ class InteractiveShell:
         if not parts:
             return r.fail("Empty command")
         cmd_name = parts[0]
-        args: Sequence[str] = parts[1:] if len(parts) > 1 else []
+        args: t.StrSequence = parts[1:] if len(parts) > 1 else []
         if cmd_name not in self.commands:
             return r.fail(f"Unknown command: {cmd_name}")
         handler = self.commands[cmd_name]
@@ -132,7 +130,7 @@ class InteractiveShell:
         return r[bool].ok(value=True)
 
 
-def handle_multiline_input(lines: Sequence[str]) -> str:
+def handle_multiline_input(lines: t.StrSequence) -> str:
     """Process multi-line input in YOUR interactive CLI."""
     combined = "\n".join(lines)
     cli.print(f"📝 Processing {len(lines)} lines...", style="cyan")
@@ -146,7 +144,7 @@ class CommandHistory:
     def __init__(self, max_size: int = 100) -> None:
         """Initialize command history with maximum size limit."""
         super().__init__()
-        self.history: Sequence[str] = []
+        self.history: t.StrSequence = []
         self.max_size = max_size
 
     def add(self, command: str) -> None:
@@ -164,7 +162,7 @@ class CommandHistory:
         for i, cmd in enumerate(self.get_recent(), 1):
             cli.print(f"   {i}. {cmd}", style="white")
 
-    def get_recent(self, count: int = 10) -> Sequence[str]:
+    def get_recent(self, count: int = 10) -> t.StrSequence:
         """Get recent commands."""
         return self.history[-count:]
 

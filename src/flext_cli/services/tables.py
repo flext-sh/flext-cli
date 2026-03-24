@@ -98,18 +98,18 @@ class FlextCliTables(FlextCliServiceBase):
     @staticmethod
     def _prepare_headers(
         data: t.Cli.TabularData,
-        headers: str | Sequence[str],
-    ) -> r[str | Sequence[str]]:
+        headers: str | t.StrSequence,
+    ) -> r[str | t.StrSequence]:
         """Prepare headers based on data type."""
         data_list = list(data)
         if not data_list:
-            return r[str | Sequence[str]].ok(headers)
+            return r[str | t.StrSequence].ok(headers)
         if isinstance(headers, str):
-            return r[str | Sequence[str]].ok(headers)
+            return r[str | t.StrSequence].ok(headers)
         first_row = data_list[0]
         if u.is_dict_like(first_row):
-            return r[str | Sequence[str]].ok(list(headers))
-        return r[str | Sequence[str]].ok(headers)
+            return r[str | t.StrSequence].ok(list(headers))
+        return r[str | t.StrSequence].ok(headers)
 
     @staticmethod
     def _validate_table_data(data: t.Cli.TabularData, table_format: str) -> r[bool]:
@@ -266,7 +266,7 @@ class FlextCliTables(FlextCliServiceBase):
         """
         try:
 
-            def convert_format(name: str, desc: str) -> Mapping[str, str]:
+            def convert_format(name: str, desc: str) -> t.StrMapping:
                 """Convert format to a display dictionary."""
                 return {"format": name, "description": desc}
 
@@ -304,7 +304,7 @@ class FlextCliTables(FlextCliServiceBase):
     def _calculate_column_count(
         self,
         data: t.Cli.TabularData,
-        headers: str | Sequence[str],
+        headers: str | t.StrSequence,
     ) -> int:
         """Calculate number of columns based on headers and data type."""
         if isinstance(headers, str):
@@ -335,7 +335,7 @@ class FlextCliTables(FlextCliServiceBase):
         self,
         data: t.Cli.TabularData,
         cfg: m.Cli.TableConfig,
-        headers: str | Sequence[str],
+        headers: str | t.StrSequence,
     ) -> r[str]:
         """Create table string using tabulate with exception handling."""
         try:

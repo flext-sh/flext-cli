@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import typing
-from collections.abc import Sequence, Callable, Mapping
+from collections.abc import Callable, Mapping
 from enum import StrEnum, unique
 from typing import Literal
 
 from flext_core import FlextConstants
+
+from flext_cli import t
 
 
 class FlextCliConstants(FlextConstants):
@@ -57,26 +59,26 @@ class FlextCliConstants(FlextConstants):
         class ValidationLists:
             """Validation lists."""
 
-            OUTPUT_FORMATS: typing.ClassVar[Sequence[str]] = [
+            OUTPUT_FORMATS: typing.ClassVar[t.StrSequence] = [
                 "json",
                 "yaml",
                 "csv",
                 "table",
                 "plain",
             ]
-            COMMAND_STATUSES: typing.ClassVar[Sequence[str]] = [
+            COMMAND_STATUSES: typing.ClassVar[t.StrSequence] = [
                 "pending",
                 "running",
                 "completed",
                 "failed",
                 "cancelled",
             ]
-            SESSION_STATUSES: typing.ClassVar[Sequence[str]] = [
+            SESSION_STATUSES: typing.ClassVar[t.StrSequence] = [
                 "active",
                 "completed",
                 "terminated",
             ]
-            DEBUG_LEVELS: typing.ClassVar[Sequence[str]] = [
+            DEBUG_LEVELS: typing.ClassVar[t.StrSequence] = [
                 "DEBUG",
                 "INFO",
                 "WARNING",
@@ -114,7 +116,7 @@ class FlextCliConstants(FlextConstants):
 
             INFO, ERROR, WARNING, SUCCESS = ("info", "error", "warning", "success")
 
-        MESSAGE_TYPES_LIST: typing.ClassVar[Sequence[str]] = [
+        MESSAGE_TYPES_LIST: typing.ClassVar[t.StrSequence] = [
             MessageTypes.INFO.value,
             MessageTypes.ERROR.value,
             MessageTypes.WARNING.value,
@@ -429,7 +431,7 @@ class FlextCliConstants(FlextConstants):
             """Subdirectory constants."""
 
             CACHE, LOGS, REFRESH_TOKEN = ("cache", "logs", "refresh_token")
-            STANDARD_SUBDIRS: typing.ClassVar[Sequence[str]] = [CACHE, LOGS]
+            STANDARD_SUBDIRS: typing.ClassVar[t.StrSequence] = [CACHE, LOGS]
 
         class Symbols:
             """Symbol constants."""
@@ -492,12 +494,12 @@ class FlextCliConstants(FlextConstants):
         class CliParamsDefaults:
             """CLI parameters defaults."""
 
-            VALID_LOG_FORMATS: typing.ClassVar[Sequence[str]] = [
+            VALID_LOG_FORMATS: typing.ClassVar[t.StrSequence] = [
                 "compact",
                 "detailed",
                 "full",
             ]
-            VALID_OUTPUT_FORMATS: typing.ClassVar[Sequence[str]] = [
+            VALID_OUTPUT_FORMATS: typing.ClassVar[t.StrSequence] = [
                 "table",
                 "json",
                 "yaml",
@@ -530,7 +532,7 @@ class FlextCliConstants(FlextConstants):
             """Supported file format constants."""
 
             JSON, YAML = ("json", "yaml")
-            SUPPORTED_FORMATS: typing.ClassVar[Sequence[str]] = [
+            SUPPORTED_FORMATS: typing.ClassVar[t.StrSequence] = [
                 "json",
                 "yaml",
                 "yml",
@@ -547,7 +549,7 @@ class FlextCliConstants(FlextConstants):
         class FileDefaults:
             """File defaults."""
 
-            DEFAULT_DATETIME_FORMATS: typing.ClassVar[Sequence[str]] = [
+            DEFAULT_DATETIME_FORMATS: typing.ClassVar[t.StrSequence] = [
                 "%Y-%m-%d",
                 "%Y-%m-%dT%H:%M:%S",
                 "%Y-%m-%d %H:%M:%S",
@@ -620,7 +622,7 @@ class FlextCliConstants(FlextConstants):
             "toml": ("toml",),
             "xml": ("xml",),
         }
-        FILE_FORMAT_MIME_TYPES: typing.ClassVar[Mapping[str, str]] = {
+        FILE_FORMAT_MIME_TYPES: typing.ClassVar[t.StrMapping] = {
             "json": "application/json",
             "yaml": "application/x-yaml",
             "csv": "text/csv",
@@ -861,7 +863,7 @@ class FlextCliConstants(FlextConstants):
                 "Panel creation failed: {error}",
             )
 
-        TABLE_FORMATS: typing.ClassVar[Mapping[str, str]] = {
+        TABLE_FORMATS: typing.ClassVar[t.StrMapping] = {
             "plain": "Minimal formatting, no borders",
             "simple": "Simple ASCII borders",
             "grid": "Grid-style ASCII table",
@@ -1050,7 +1052,7 @@ class FlextCliConstants(FlextConstants):
         class Lists:
             """Lists constants."""
 
-            LOG_LEVELS_LIST: typing.ClassVar[Sequence[str]] = [
+            LOG_LEVELS_LIST: typing.ClassVar[t.StrSequence] = [
                 "DEBUG",
                 "INFO",
                 "WARNING",
@@ -1071,7 +1073,7 @@ class FlextCliConstants(FlextConstants):
     class Authentication:
         """Shared protocol test authentication constants."""
 
-        VALID_CREDS: typing.ClassVar[Mapping[str, str]] = {
+        VALID_CREDS: typing.ClassVar[t.StrMapping] = {
             "username": "testuser",
             "password": "testpass",
         }

@@ -58,7 +58,7 @@ class FlextCliCommandBuilder:
     @staticmethod
     def _create_option_info(
         default: t.Cli.JsonValue | None = None,
-        param_decls: Sequence[str] | None = None,
+        param_decls: t.StrSequence | None = None,
         help_text: str = "",
         **kwargs: t.Scalar,
     ) -> OptionInfo:
@@ -69,7 +69,7 @@ class FlextCliCommandBuilder:
         """
         validated_param_decls = param_decls if param_decls is not None else []
         validated_default: t.Cli.JsonValue | None = default
-        validated_param_decls_list: Sequence[str] = validated_param_decls
+        validated_param_decls_list: t.StrSequence = validated_param_decls
         validated_help: str | None = help_text or None
         option_info = OptionInfo(
             default=validated_default,

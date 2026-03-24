@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Sequence, Mapping
+from collections.abc import Mapping
 from pathlib import Path
 from typing import override
 
@@ -25,6 +25,7 @@ from flext_cli import (
     FlextCliUtilities,
     c,
     m,
+    t,
 )
 
 
@@ -85,7 +86,7 @@ class FlextCliCmd(FlextCliServiceBase):
         )
 
     @staticmethod
-    def show_config_paths() -> r[Sequence[str]]:
+    def show_config_paths() -> r[t.StrSequence]:
         """Show configuration paths using FlextCliUtilities directly."""
         return FlextCliUtilities.try_(
             FlextCliUtilities.Cli.ConfigOps.get_config_paths,

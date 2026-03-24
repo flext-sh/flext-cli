@@ -361,14 +361,14 @@ class TestsCliTypings:
                 self.name = name
                 self.value = value
 
-            def process(self, data: Sequence[str]) -> Mapping[str, int]:
+            def process(self, data: t.StrSequence) -> Mapping[str, int]:
                 return {item: len(item) for item in data}
 
         init_hints = get_type_hints(TypedClass.__init__)
         tm.that(init_hints["name"] is str, eq=True)
         tm.that(init_hints["value"] is int, eq=True)
         process_hints = get_type_hints(TypedClass.process)
-        tm.that(process_hints["data"], eq=Sequence[str])
+        tm.that(process_hints["data"], eq=t.StrSequence)
         tm.that(process_hints["return"], eq=Mapping[str, int])
         instance = TypedClass("test", 42)
         result = instance.process(["str1", "str2"])
@@ -445,16 +445,16 @@ class TestsCliTypings:
     def _execute_type_performance_tests(self) -> None:
         """Execute type performance tests."""
 
-        def process_list(data: Sequence[str]) -> Sequence[str]:
+        def process_list(data: t.StrSequence) -> t.StrSequence:
             return [item.upper() for item in data]
 
-        def process_dict(data: t.ContainerMapping) -> Mapping[str, str]:
+        def process_dict(data: t.ContainerMapping) -> t.StrMapping:
             return {key: str(value) for key, value in data.items()}
 
         test_list = ["hello", "world", "test"]
         test_dict = {"key1": 123, "key2": "value"}
-        result_list: Sequence[str] = []
-        result_dict: Mapping[str, str] = {}
+        result_list: t.StrSequence = []
+        result_dict: t.StrMapping = {}
         start_time = time.time()
         for _ in range(1000):
             result_list = process_list(test_list)
@@ -486,12 +486,12 @@ class TestsCliTypings:
         tm.that(handle_edge_cases([]), eq="Unknown")
         tm.that(handle_edge_cases({}), eq="Unknown")
 
-        def thread_safe_operation(data: Sequence[str], results: Sequence[str]) -> None:
+        def thread_safe_operation(data: t.StrSequence, results: t.StrSequence) -> None:
             processed = [item.upper() for item in data]
             results.extend(processed)
 
         test_data = ["str1", "str2"]
-        results: Sequence[str] = []
+        results: t.StrSequence = []
         threads: Sequence[threading.Thread] = []
         for _ in range(5):
             thread = threading.Thread(
@@ -511,7 +511,7 @@ class TestsCliTypings:
         api_data_result = FlextCliTestHelpers.TypingHelpers.create_api_response_data()
         tm.ok(api_data_result)
         complex_type = Sequence[Mapping[str, str | int]]
-        optional_type = Sequence[str] | None
+        optional_type = t.StrSequence | None
         union_type = t.Scalar
         tm.that(get_origin(complex_type) is list, eq=True)
         complex_args = get_args(complex_type)
@@ -520,7 +520,7 @@ class TestsCliTypings:
         tm.that(get_origin(optional_type), none=False)
         optional_args = get_args(optional_type)
         tm.that(optional_args, has=type(None))
-        tm.that(optional_args, has=Sequence[str])
+        tm.that(optional_args, has=t.StrSequence)
         tm.that(get_origin(union_type), none=False)
         union_args = get_args(union_type)
         tm.that(union_args, has=str)
@@ -532,10 +532,10 @@ class TestsCliTypings:
 
         @runtime_checkable
         class Test(Protocol):
-            def operation(self, data: Sequence[str]) -> t.ContainerMapping: ...
+            def operation(self, data: t.StrSequence) -> t.ContainerMapping: ...
 
         class Implementation:
-            def operation(self, data: Sequence[str]) -> t.ContainerMapping:
+            def operation(self, data: t.StrSequence) -> t.ContainerMapping:
                 time.sleep(0.001)
                 return {
                     "processed": [item.upper() for item in data],

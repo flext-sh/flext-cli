@@ -10,8 +10,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Sequence
-
 import inspect
 import os
 import pathlib
@@ -23,7 +21,7 @@ import typer
 from click.exceptions import UsageError as ClickUsageError
 from flext_core import FlextLogger, e, r
 
-from flext_cli import FlextCliCli, FlextCliOutput, FlextCliSettings, p
+from flext_cli import FlextCliCli, FlextCliOutput, FlextCliSettings, p, t
 
 
 class FlextCliAppBase[SettingsT: FlextCliSettings]:
@@ -76,7 +74,7 @@ class FlextCliAppBase[SettingsT: FlextCliSettings]:
             raise ne
 
     @staticmethod
-    def _resolve_cli_args(args: Sequence[str] | None) -> Sequence[str]:
+    def _resolve_cli_args(args: t.StrSequence | None) -> t.StrSequence:
         """Resolve CLI arguments based on environment."""
         if args is None:
             if os.getenv("PYTEST_CURRENT_TEST"):
@@ -84,7 +82,7 @@ class FlextCliAppBase[SettingsT: FlextCliSettings]:
             return sys.argv[1:] if len(sys.argv) > 1 else []
         return args
 
-    def execute_cli(self, args: Sequence[str] | None = None) -> r[bool]:
+    def execute_cli(self, args: t.StrSequence | None = None) -> r[bool]:
         """Execute the CLI with Railway-pattern error handling."""
         try:
             sys.modules["pathlib"] = pathlib

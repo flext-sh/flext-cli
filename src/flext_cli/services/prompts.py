@@ -83,7 +83,7 @@ class FlextCliPrompts(FlextCliServiceBase):
         )
 
     @property
-    def prompt_history(self) -> Sequence[str]:
+    def prompt_history(self) -> t.StrSequence:
         return self._prompt_history.copy()
 
     def clear_prompt_history(self) -> r[bool]:
@@ -311,7 +311,7 @@ class FlextCliPrompts(FlextCliServiceBase):
     def prompt_choice(
         self,
         message: str,
-        choices: Sequence[str],
+        choices: t.StrSequence,
         default: str | None = None,
     ) -> r[str]:
         if not choices:
@@ -448,7 +448,7 @@ class FlextCliPrompts(FlextCliServiceBase):
 
     def select_from_options(
         self,
-        options: Sequence[str],
+        options: t.StrSequence,
         message: str = PD.DEFAULT_CHOICE_MESSAGE,
     ) -> r[str]:
         try:
@@ -626,7 +626,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 consequence="Prompting again",
             )
 
-    def _read_selection(self, options: Sequence[str]) -> r[str]:
+    def _read_selection(self, options: t.StrSequence) -> r[str]:
         count = len(options)
         while True:
             try:

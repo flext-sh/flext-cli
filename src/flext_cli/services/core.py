@@ -160,7 +160,7 @@ class FlextCliCore(FlextCliServiceBase):
             error_message: Error message template to use on failure
 
         Returns:
-            r[Sequence[str]] with list of keys or error
+            r[t.StrSequence] with list of keys or error
 
         """
         return u.try_(
@@ -432,7 +432,7 @@ class FlextCliCore(FlextCliServiceBase):
         self,
         name: str,
         context: Mapping[str, FlextCliTypes.Cli.JsonValue]
-        | Sequence[str]
+        | t.StrSequence
         | None = None,
         timeout: float | None = None,
     ) -> r[Mapping[str, FlextCliTypes.Cli.JsonValue]]:
@@ -671,7 +671,7 @@ class FlextCliCore(FlextCliServiceBase):
         """Get list of registered command handlers.
 
         Returns:
-            r[Sequence[str]]: List of handler names
+            r[t.StrSequence]: List of handler names
 
         """
         return self._get_dict_keys(
@@ -679,17 +679,17 @@ class FlextCliCore(FlextCliServiceBase):
             c.Cli.ErrorMessages.COMMAND_LISTING_FAILED,
         )
 
-    def get_plugins(self) -> r[Sequence[str]]:
+    def get_plugins(self) -> r[t.StrSequence]:
         """Get list of registered plugins.
 
         Returns:
-            r[Sequence[str]]: List of plugin names
+            r[t.StrSequence]: List of plugin names
 
         """
         result = self._registry.list_plugins("cli_plugins")
         if result.is_failure:
-            return r[Sequence[str]].ok([])
-        return r[Sequence[str]].ok(result.value or [])
+            return r[t.StrSequence].ok([])
+        return r[t.StrSequence].ok(result.value or [])
 
     @override
     def get_service_info(self) -> t.ConfigurationMapping:
@@ -702,7 +702,7 @@ class FlextCliCore(FlextCliServiceBase):
         try:
             commands_count = len(self._commands)
             config_keys = list(self._cli_config.keys())
-            config_keys_list: Sequence[str] = list(config_keys) if config_keys else []
+            config_keys_list: t.StrSequence = list(config_keys) if config_keys else []
             info_data: t.ConfigurationMapping = {
                 c.Cli.DictKeys.SERVICE: c.Cli.FLEXT_CLI,
                 c.Cli.CoreServiceDictKeys.COMMANDS_REGISTERED: commands_count,
@@ -843,14 +843,14 @@ class FlextCliCore(FlextCliServiceBase):
         """
         return self._session_active
 
-    def list_commands(self) -> r[Sequence[str]]:
+    def list_commands(self) -> r[t.StrSequence]:
         """List all registered commands using functional composition.
 
         Performs command listing with railway pattern and proper error handling.
         Uses functional approach to extract command names safely.
 
         Returns:
-            r[Sequence[str]]: List of command names or error with details
+            r[t.StrSequence]: List of command names or error with details
 
         """
         FlextLogger(__name__).debug(
@@ -859,7 +859,7 @@ class FlextCliCore(FlextCliServiceBase):
             total_commands=len(self._commands),
         )
 
-        def extract_command_names() -> r[Sequence[str]]:
+        def extract_command_names() -> r[t.StrSequence]:
             """Extract command names from internal registry."""
             try:
                 command_names = list(self._commands.keys())
@@ -874,7 +874,7 @@ class FlextCliCore(FlextCliServiceBase):
                     operation="list_commands",
                     total_commands=len(command_names),
                 )
-                return r[Sequence[str]].ok(command_names)
+                return r[t.StrSequence].ok(command_names)
             except (
                 ValueError,
                 TypeError,
@@ -890,7 +890,7 @@ class FlextCliCore(FlextCliServiceBase):
                     error_type=type(e).__name__,
                     consequence="Command list unavailable",
                 )
-                return r[Sequence[str]].fail(
+                return r[t.StrSequence].fail(
                     c.Cli.ErrorMessages.COMMAND_LISTING_FAILED.format(error=e),
                 )
 
@@ -1047,12 +1047,12 @@ class FlextCliCore(FlextCliServiceBase):
 
     def _build_execution_context(
         self,
-        context: Mapping[str, FlextCliTypes.Cli.JsonValue] | Sequence[str] | None,
+        context: Mapping[str, FlextCliTypes.Cli.JsonValue] | t.StrSequence | None,
     ) -> Mapping[str, FlextCliTypes.Cli.JsonValue]:
         """Build execution context via ExecutionContextInput model (single Pydantic contract)."""
         ctx_input = m.Cli.ExecutionContextInput.model_validate(context)
 
-        def list_processor(seq: Sequence[str]) -> Sequence[FlextCliTypes.Cli.JsonValue]:
+        def list_processor(seq: t.StrSequence) -> Sequence[FlextCliTypes.Cli.JsonValue]:
             process_result = FlextCliUtilities.process(
                 list(seq),
                 processor=m.Cli.normalize_json_value,

@@ -83,7 +83,7 @@ class FlextCliProtocols(FlextProtocols):
             """Protocol for CLI commands."""
 
             @property
-            def args(self) -> Sequence[str]:
+            def args(self) -> t.StrSequence:
                 """Get command arguments."""
                 ...
 
@@ -93,7 +93,7 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
             @property
-            def command_summary(self) -> Mapping[str, str]:
+            def command_summary(self) -> t.StrMapping:
                 """Get command summary."""
                 ...
 
@@ -173,7 +173,7 @@ class FlextCliProtocols(FlextProtocols):
 
             def execute(
                 self,
-                args: Sequence[str],
+                args: t.StrSequence,
             ) -> r[t.Cli.JsonValue]:
                 """Execute the command."""
                 ...
@@ -186,7 +186,7 @@ class FlextCliProtocols(FlextProtocols):
                 """Update command status."""
                 ...
 
-            def with_args(self, args: Sequence[str]) -> Self:
+            def with_args(self, args: t.StrSequence) -> Self:
                 """Return a copy with updated arguments."""
                 ...
 
@@ -490,7 +490,7 @@ class FlextCliProtocols(FlextProtocols):
             """Protocol for CLI table configuration."""
 
             @property
-            def headers(self) -> Sequence[str]:
+            def headers(self) -> t.StrSequence:
                 """Get table headers."""
                 ...
 
@@ -553,7 +553,7 @@ class FlextCliProtocols(FlextProtocols):
             """Protocol for system information models."""
 
             @property
-            def architecture(self) -> Sequence[str]:
+            def architecture(self) -> t.StrSequence:
                 """Get architecture information."""
                 ...
 
@@ -582,7 +582,7 @@ class FlextCliProtocols(FlextProtocols):
             """Protocol for environment information models."""
 
             @property
-            def env_vars(self) -> Mapping[str, str]:
+            def env_vars(self) -> t.StrMapping:
                 """Get environment variables."""
                 ...
 
@@ -591,7 +591,7 @@ class FlextCliProtocols(FlextProtocols):
             """Protocol for path information models."""
 
             @property
-            def paths(self) -> Sequence[str]:
+            def paths(self) -> t.StrSequence:
                 """Get system paths."""
                 ...
 
@@ -705,7 +705,7 @@ class FlextCliProtocols(FlextProtocols):
             """Protocol for CLI execution context."""
 
             @property
-            def args(self) -> Sequence[str]:
+            def args(self) -> t.StrSequence:
                 """Get command arguments."""
                 ...
 
@@ -715,7 +715,7 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
             @property
-            def env(self) -> Mapping[str, str]:
+            def env(self) -> t.StrMapping:
                 """Get environment variables."""
                 ...
 
@@ -807,8 +807,8 @@ class FlextCliProtocols(FlextProtocols):
 
             def format_table(
                 self,
-                headers: Sequence[str],
-                rows: Sequence[Sequence[str]],
+                headers: t.StrSequence,
+                rows: Sequence[t.StrSequence],
             ) -> r[str]:
                 """Format data as a table."""
                 ...
@@ -821,13 +821,13 @@ class FlextCliProtocols(FlextProtocols):
         class CliHandler(Protocol):
             """Protocol for CLI request handlers."""
 
-            def can_handle(self, args: Sequence[str]) -> bool:
+            def can_handle(self, args: t.StrSequence) -> bool:
                 """Check if handler can process arguments."""
                 ...
 
             def handle(
                 self,
-                args: Sequence[str],
+                args: t.StrSequence,
                 context: FlextCliProtocols.Cli.CliContext,
                 output: FlextCliProtocols.Cli.CliOutput,
             ) -> r[int]:
@@ -898,7 +898,7 @@ class FlextCliProtocols(FlextProtocols):
 
             def execute_cli(
                 self,
-                args: Sequence[str] | None = None,
+                args: t.StrSequence | None = None,
             ) -> r[bool]:
                 """Execute the CLI with Railway-pattern error handling."""
                 ...

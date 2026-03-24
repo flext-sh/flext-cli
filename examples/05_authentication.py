@@ -24,11 +24,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping
-
 import os
 import secrets
 import time
+from collections.abc import Mapping
 from pathlib import Path
 
 from flext_core import r

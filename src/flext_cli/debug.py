@@ -10,8 +10,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import FlextCliTypes as t
-
 import os
 import pathlib
 import platform
@@ -212,7 +210,7 @@ class FlextCliDebug(FlextCliServiceBase):
             )
 
     @staticmethod
-    def test_connectivity() -> r[Mapping[str, str]]:
+    def test_connectivity() -> r[t.StrMapping]:
         """Test basic connectivity and service status."""
         try:
             connectivity_info = {
@@ -221,7 +219,7 @@ class FlextCliDebug(FlextCliServiceBase):
                 c.Cli.DictKeys.SERVICE: str(FlextCliDebug),
                 c.Cli.DebugDictKeys.CONNECTIVITY: c.Cli.ServiceStatus.OPERATIONAL.value,
             }
-            return r[Mapping[str, str]].ok(connectivity_info)
+            return r[t.StrMapping].ok(connectivity_info)
         except (
             ValueError,
             TypeError,
@@ -230,7 +228,7 @@ class FlextCliDebug(FlextCliServiceBase):
             StyleError,
             LiveError,
         ) as e:
-            return r[Mapping[str, str]].fail(
+            return r[t.StrMapping].fail(
                 c.Cli.DebugErrorMessages.CONNECTIVITY_TEST_FAILED.format(error=e),
             )
 
