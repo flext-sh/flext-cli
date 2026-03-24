@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping, MutableSequence, Sequence
 from itertools import starmap
 from typing import TypeIs, override
 
@@ -188,7 +188,7 @@ class FlextCliTables(FlextCliServiceBase):
             return r[str].fail(headers_result.error or "Header preparation failed")
         try:
             if u.is_dict_like(data):
-                mapping_rows: list[Mapping[str, t.Cli.JsonValue]] = []
+                mapping_rows: MutableSequence[Mapping[str, t.Cli.JsonValue]] = []
                 if isinstance(data, Mapping):
                     normalized_row: Mapping[str, t.Cli.JsonValue] = {
                         str(key): m.Cli.normalize_json_value(value)

@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import os
 import types
-from collections.abc import Callable, Mapping, MutableMapping, Sequence
+from collections.abc import Callable, Mapping, MutableMapping, MutableSequence, Sequence
 from datetime import UTC, datetime
 from enum import StrEnum
 from functools import wraps
@@ -38,8 +38,8 @@ class FlextCliUtilities(FlextUtilities):
         ) -> r[Sequence[U]]:
             """Process a sequence of items with error handling."""
             _ = (filter_keys, exclude_keys)
-            errors: list[str] = []
-            values: list[U] = []
+            errors: MutableSequence[str] = []
+            values: MutableSequence[U] = []
             for idx, item in enumerate(items):
                 if predicate is not None and (not predicate(item)):
                     continue
@@ -77,7 +77,7 @@ class FlextCliUtilities(FlextUtilities):
             on_error: str = "fail",
         ) -> r[Mapping[str, U]]:
             """Process a mapping of items with error handling."""
-            errors: list[str] = []
+            errors: MutableSequence[str] = []
             values: MutableMapping[str, U] = {}
             for key, value in items.items():
                 try:
@@ -476,7 +476,7 @@ class FlextCliUtilities(FlextUtilities):
                 raw_args = get_args(annotation)
                 if not raw_args:
                     return annotation
-                args_list: list[type | types.UnionType] = []
+                args_list: MutableSequence[type | types.UnionType] = []
                 for arg in raw_args:
                     if isinstance(arg, (type, types.UnionType)):
                         args_list.append(arg)
@@ -523,7 +523,7 @@ class FlextCliUtilities(FlextUtilities):
                 ) -> r[Mapping[str, t.Cli.CliValue]]:
                     """Parse keyword arguments."""
                     parsed = dict(kwargs)
-                    errors: list[str] = []
+                    errors: MutableSequence[str] = []
                     for key, enum_cls in enum_fields.items():
                         if key not in parsed:
                             continue

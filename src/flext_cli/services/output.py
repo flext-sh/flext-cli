@@ -8,7 +8,14 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import csv
-from collections.abc import Callable, Iterable, Mapping, MutableMapping, Sequence
+from collections.abc import (
+    Callable,
+    Iterable,
+    Mapping,
+    MutableMapping,
+    MutableSequence,
+    Sequence,
+)
 from io import StringIO
 from typing import ClassVar, TypeIs
 
