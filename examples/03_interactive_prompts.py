@@ -295,7 +295,7 @@ def flext_numeric_prompts() -> r[NumericPromptResult]:
             cli.print(f"✅ Percentage: {percentage}%", style="green")
     return r[NumericPromptResult].ok(
         NumericPromptResult(
-            workers=workers, cpu_limit=cpu_limit, percentage=percentage
+            workers=workers, cpu_limit=cpu_limit, percentage=percentage,
         ),
     )
 

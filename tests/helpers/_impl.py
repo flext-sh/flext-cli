@@ -530,7 +530,7 @@ class FlextCliTestHelpers:
                 return r[click.Command].ok(cmd_with_opt)
             except (ValueError, TypeError, ValidationError) as e:
                 return r[click.Command].fail(
-                    f"Failed to create command with options: {e!s}"
+                    f"Failed to create command with options: {e!s}",
                 )
 
 

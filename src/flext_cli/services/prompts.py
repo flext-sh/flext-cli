@@ -49,7 +49,7 @@ class FlextCliPrompts(FlextCliServiceBase):
         ),
     ]
     _prompt_history: list[str] = PrivateAttr(
-        default_factory=lambda: FlextCliPrompts._empty_prompt_history()
+        default_factory=lambda: FlextCliPrompts._empty_prompt_history(),
     )
 
     def __init__(
