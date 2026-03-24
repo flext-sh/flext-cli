@@ -1324,7 +1324,7 @@ class FlextCliOutput:
         try:
             if isinstance(data, Sequence):
                 return list(data)
-            iterable_items: list[FlextCliTypes.Cli.JsonValue] = []
+            iterable_items: MutableSequence[FlextCliTypes.Cli.JsonValue] = []
             for item in data:
                 item_general: FlextCliTypes.Cli.JsonValue = (
                     item
@@ -1465,7 +1465,7 @@ class FlextCliOutput:
         dict_rows: Sequence[Mapping[str, FlextCliTypes.Cli.JsonValue]] = [
             item for item in dict_rows_raw if isinstance(item, dict)
         ]
-        csv_rows: list[t.ConfigurationMapping] = []
+        csv_rows: MutableSequence[t.ConfigurationMapping] = []
         for row in dict_rows:
             processed_row = self._process_csv_row(row)
             csv_rows.append(processed_row)
@@ -1649,7 +1649,7 @@ class FlextCliOutput:
         """Iterate dictionary values as tuple items."""
         if not isinstance(data, dict):
             return []
-        iterable_items: list[FlextCliTypes.Cli.JsonValue] = []
+        iterable_items: MutableSequence[FlextCliTypes.Cli.JsonValue] = []
         for key, value in data.items():
             dict_item: FlextCliTypes.Cli.JsonValue = (key, value)
             iterable_items.append(dict_item)

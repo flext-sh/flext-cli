@@ -5,7 +5,7 @@ from __future__ import annotations
 import inspect
 import operator
 import types
-from collections.abc import Callable, Mapping, MutableMapping, Sequence
+from collections.abc import Callable, Mapping, MutableMapping, MutableSequence, Sequence
 from typing import (
     Annotated,
     ClassVar,
@@ -2044,7 +2044,7 @@ class FlextCliModels(FlextModels):
                 )
 
                 # Build option arguments
-                option_args: list[str] = [f"--{cli_param_name.replace('_', '-')}"]
+                option_args: MutableSequence[str] = [f"--{cli_param_name.replace('_', '-')}"]
                 if short_flag:
                     option_args.append(f"-{short_flag}")
 
@@ -2667,8 +2667,8 @@ class FlextCliModels(FlextModels):
                 defaults: Mapping[str, t.Cli.JsonValue],
                 fields_with_factory: set[str],
             ) -> p.Cli.CliCommandWrapper:
-                required_parameters: list[inspect.Parameter] = []
-                defaulted_parameters: list[inspect.Parameter] = []
+                required_parameters: MutableSequence[inspect.Parameter] = []
+                defaulted_parameters: MutableSequence[inspect.Parameter] = []
                 for field_name, field_type in annotations.items():
                     has_default = (
                         field_name in defaults and field_name not in fields_with_factory
@@ -3194,7 +3194,7 @@ class FlextCliModels(FlextModels):
                 # After is_failure check, params_result.value is guaranteed to be the value
                 params: Sequence[p.Cli.CliParameterSpec] = params_result.value
                 # Create Click option-like objects with option_name and param_decls
-                options: list[t.Cli.JsonValue] = []
+                options: MutableSequence[t.Cli.JsonValue] = []
                 for param in params:
                     # Type narrowing: param is CliParameterSpec
                     # Create a simple record with option_name and param_decls attributes
@@ -3562,7 +3562,7 @@ class FlextCliModels(FlextModels):
                         **kwargs: t.Scalar,
                     ) -> t.Cli.JsonValue:
                         try:
-                            model_instances: list[BaseModel] = []
+                            model_instances: MutableSequence[BaseModel] = []
                             for model_cls in model_classes:
                                 validated_model = model_cls(**kwargs)
                                 model_instances.append(validated_model)
