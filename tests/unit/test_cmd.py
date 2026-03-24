@@ -79,9 +79,7 @@ def _create_cmd_instance() -> FlextCliCmd:
     return FlextCliCmd()
 
 
-def _create_config_file(
-    temp_dir: Path, content: str | Mapping[str, t.NormalizedValue]
-) -> Path:
+def _create_config_file(temp_dir: Path, content: str | t.ContainerMapping) -> Path:
     """Create config file with specified content."""
     config_file = temp_dir / CONFIG_FILE_NAME
     if isinstance(content, str):
@@ -266,7 +264,7 @@ class TestsCliCmd:
         config_dir = tmp_path / "config"
         config_dir.mkdir()
         config_file = config_dir / CONFIG_FILE_NAME
-        tm.that(config_file.exists(), eq=False)
+        tm.that(not config_file.exists(), eq=True)
         cmd = _create_cmd_instance()
         result = cmd.edit_config()
         tm.that(result, is_=r)
@@ -278,7 +276,7 @@ class TestsCliCmd:
         config_dir = tmp_path / "config"
         config_dir.mkdir()
         config_file = config_dir / CONFIG_FILE_NAME
-        tm.that(config_file.exists(), eq=False)
+        tm.that(not config_file.exists(), eq=True)
         cmd = _create_cmd_instance()
         result = cmd.edit_config()
         tm.that(result, is_=r)
@@ -290,7 +288,7 @@ class TestsCliCmd:
         config_dir = tmp_path / "config"
         config_dir.mkdir()
         config_file = config_dir / CONFIG_FILE_NAME
-        tm.that(config_file.exists(), eq=False)
+        tm.that(not config_file.exists(), eq=True)
         cmd = _create_cmd_instance()
         result1 = cmd.edit_config()
         tm.that(result1, is_=r)

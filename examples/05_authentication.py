@@ -39,7 +39,7 @@ cli = FlextCli()
 
 def login_to_service(username: str, password: str) -> bool:
     """Login and save token in YOUR CLI application."""
-    credentials: Mapping[str, t.NormalizedValue] = {
+    credentials: t.ContainerMapping = {
         "username": username,
         "password": password,
     }

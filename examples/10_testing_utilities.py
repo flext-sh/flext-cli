@@ -25,7 +25,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import tempfile
-from collections.abc import Mapping
 from pathlib import Path
 
 from flext_core import r
@@ -66,7 +65,7 @@ def test_cli_command() -> None:
     cli.print("   ✅ Failure case passed", style="green")
 
 
-def save_config_command(config: Mapping[str, t.NormalizedValue]) -> r[bool]:
+def save_config_command(config: t.ContainerMapping) -> r[bool]:
     """CLI command that saves config."""
     temp_file = Path(tempfile.gettempdir()) / "test_config.json"
     write_result = cli.file_tools.write_json_file(temp_file, config)
@@ -79,7 +78,7 @@ def test_file_operations() -> None:
     """Test file operations in YOUR test suite."""
     cli.print("\n📄 Testing File Operations:", style="bold cyan")
     config_data = {"test": True, "value": 123}
-    config: Mapping[str, t.NormalizedValue] = dict(config_data)
+    config: t.ContainerMapping = dict(config_data)
     result = save_config_command(config)
     if not result.is_success:
         cli.print(f"   ❌ Config save should succeed: {result.error}", style="red")
@@ -163,26 +162,22 @@ def test_error_scenarios() -> None:
     cli.print("   ✅ Valid value test passed", style="green")
 
 
-def full_workflow_command() -> r[Mapping[str, t.NormalizedValue]]:
+def full_workflow_command() -> r[t.ContainerMapping]:
     """Complete workflow to test."""
-    data: Mapping[str, t.NormalizedValue] = {"status": "processing", "items": [1, 2, 3]}
+    data: t.ContainerMapping = {"status": "processing", "items": [1, 2, 3]}
     temp_file = Path(tempfile.gettempdir()) / "workflow_test.json"
     write_result = cli.file_tools.write_json_file(temp_file, data)
     if write_result.is_failure:
-        return r[Mapping[str, t.NormalizedValue]].fail(
-            f"Write failed: {write_result.error}"
-        )
+        return r[t.ContainerMapping].fail(f"Write failed: {write_result.error}")
     read_result = cli.file_tools.read_json_dict(temp_file)
     if read_result.is_failure:
         temp_file.unlink(missing_ok=True)
-        return r[Mapping[str, t.NormalizedValue]].fail(
-            f"Read failed: {read_result.error}"
-        )
+        return r[t.ContainerMapping].fail(f"Read failed: {read_result.error}")
     loaded = read_result.value
     loaded["status"] = "completed"
     loaded["processed"] = True
     temp_file.unlink(missing_ok=True)
-    return r[Mapping[str, t.NormalizedValue]].ok(loaded)
+    return r[t.ContainerMapping].ok(loaded)
 
 
 def test_integration() -> None:

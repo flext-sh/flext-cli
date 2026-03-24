@@ -40,9 +40,7 @@ from flext_cli import FlextCli, t
 cli = FlextCli()
 
 
-def export_to_csv(
-    data: Sequence[Mapping[str, t.NormalizedValue]], output_file: Path
-) -> None:
+def export_to_csv(data: Sequence[t.ContainerMapping], output_file: Path) -> None:
     """Export data to CSV with proper headers."""
     if not data:
         cli.print("⚠️  No data to export", style="yellow")
@@ -61,7 +59,7 @@ def export_to_csv(
 
 def import_from_csv(
     input_file: Path,
-) -> Sequence[Mapping[str, t.NormalizedValue]] | None:
+) -> Sequence[t.ContainerMapping] | None:
     """Import data from CSV with headers."""
     cli.print(f"\n📥 Importing from CSV: {input_file.name}", style="bold cyan")
     read_result = cli.file_tools.read_csv_file_with_headers(input_file)
@@ -98,7 +96,7 @@ def process_binary_file(input_file: Path, output_file: Path) -> None:
         cli.print(f"❌ Write failed: {write_result.error}", style="bold red")
 
 
-def load_any_format_file(file_path: Path) -> Mapping[str, t.NormalizedValue] | None:
+def load_any_format_file(file_path: Path) -> t.ContainerMapping | None:
     """Load config from ANY format - automatically detected."""
     cli.print(f"\n🔍 Auto-Detecting Format: {file_path.name}", style="bold cyan")
     format_result = cli.file_tools.detect_file_format(file_path)
@@ -125,7 +123,7 @@ def load_any_format_file(file_path: Path) -> Mapping[str, t.NormalizedValue] | N
 
 
 def export_data_multi_format(
-    data: Mapping[str, t.NormalizedValue] | Sequence[Mapping[str, t.NormalizedValue]],
+    data: t.ContainerMapping | Sequence[t.ContainerMapping],
     base_path: Path,
 ) -> Mapping[str, str]:
     """Export same data to multiple formats (JSON, YAML, CSV)."""
@@ -145,8 +143,8 @@ def export_data_multi_format(
         size = yaml_path.stat().st_size
         export_results["YAML"] = f"{size} bytes"
         cli.print(f"✅ YAML: {yaml_path.name} ({size} bytes)", style="green")
-    rows_adapter = TypeAdapter(Sequence[Mapping[str, t.NormalizedValue]])
-    csv_rows_data: Sequence[Mapping[str, t.NormalizedValue]]
+    rows_adapter = TypeAdapter(Sequence[t.ContainerMapping])
+    csv_rows_data: Sequence[t.ContainerMapping]
     try:
         csv_rows_data = rows_adapter.validate_python(data)
     except ValidationError:
@@ -218,15 +216,13 @@ def main() -> None:
     temp_dir.mkdir(exist_ok=True)
     cli.print("\n" + "=" * 70, style="bold blue")
     cli.print("1. CSV Export/Import:", style="bold cyan")
-    sample_data: Sequence[Mapping[str, t.NormalizedValue]] = [
+    sample_data: Sequence[t.ContainerMapping] = [
         {"id": 1, "name": "Alice", "department": "Engineering", "salary": "100000"},
         {"id": 2, "name": "Bob", "department": "Sales", "salary": "80000"},
         {"id": 3, "name": "Charlie", "department": "Marketing", "salary": "90000"},
     ]
     csv_file = temp_dir / "employees.csv"
-    typed_sample_data: Sequence[Mapping[str, t.NormalizedValue]] = [
-        dict(row) for row in sample_data
-    ]
+    typed_sample_data: Sequence[t.ContainerMapping] = [dict(row) for row in sample_data]
     export_to_csv(typed_sample_data, csv_file)
     import_from_csv(csv_file)
     cli.print("\n" + "=" * 70, style="bold blue")
@@ -237,7 +233,7 @@ def main() -> None:
     process_binary_file(binary_input, binary_output)
     cli.print("\n" + "=" * 70, style="bold blue")
     cli.print("3. Auto-Format Detection:", style="bold cyan")
-    test_config: Mapping[str, t.NormalizedValue] = {
+    test_config: t.ContainerMapping = {
         "app": "test",
         "version": "1.0",
         "debug": True,
@@ -250,7 +246,7 @@ def main() -> None:
     load_any_format_file(yaml_file)
     cli.print("\n" + "=" * 70, style="bold blue")
     cli.print("4. Multi-Format Export:", style="bold cyan")
-    multi_data: Sequence[Mapping[str, t.NormalizedValue]] = [
+    multi_data: Sequence[t.ContainerMapping] = [
         {"metric": "CPU", "value": "75%", "status": "OK"},
         {"metric": "Memory", "value": "82%", "status": "Warning"},
         {"metric": "Disk", "value": "45%", "status": "OK"},
@@ -264,7 +260,7 @@ def main() -> None:
     process_text_file(text_input, text_output)
     cli.print("\n" + "=" * 70, style="bold blue")
     cli.print("6. File Copy with Verification:", style="bold cyan")
-    demo_config: Mapping[str, t.NormalizedValue] = {
+    demo_config: t.ContainerMapping = {
         "app": "demo",
         "version": "2.0",
         "enabled": True,

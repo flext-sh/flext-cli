@@ -14,8 +14,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping
-
 import pytest
 from flext_core import r
 from flext_tests import tm
@@ -145,7 +143,7 @@ class TestsCliProtocols:
             provider = provider_result.value
             if isinstance(provider, p.Cli.CliConfigProvider):
                 test_config_raw = c.TestConfiguration.BASIC_CONFIG
-                test_config: Mapping[str, t.NormalizedValue] = {}
+                test_config: t.ContainerMapping = {}
                 for key, value in test_config_raw.items():
                     if isinstance(value, t.PRIMITIVES_TYPES) or value is None:
                         test_config[key] = value

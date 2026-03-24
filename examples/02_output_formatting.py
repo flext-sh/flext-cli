@@ -126,7 +126,7 @@ def monitor_live_metrics() -> None:
         cpu = 45 + i % 40
         memory = 55 + i % 35
         requests = 150 + i * 10
-        metrics_data: Sequence[Mapping[str, t.NormalizedValue]] = [
+        metrics_data: Sequence[t.ContainerMapping] = [
             {
                 "Metric": "CPU Usage",
                 "Value": f"{cpu}%",
@@ -144,7 +144,7 @@ def monitor_live_metrics() -> None:
     cli.print("✅ Monitoring session complete", style="green")
 
 
-def display_with_panels(data: Mapping[str, t.NormalizedValue]) -> None:
+def display_with_panels(data: t.ContainerMapping) -> None:
     """Display content in organized sections."""
     cli.print("\n📦 Organized Content Display:", style="cyan")
     cli.print("\n📊 Summary:", style="bold blue")
@@ -152,7 +152,7 @@ def display_with_panels(data: Mapping[str, t.NormalizedValue]) -> None:
     cli.print(f"  Successful: {data.get('successful', 0)}", style="green")
     cli.print(f"  Failed: {data.get('failed', 0)}", style="red")
     cli.print(f"  Pending: {data.get('pending', 0)}", style="yellow")
-    details_data: Sequence[Mapping[str, t.NormalizedValue]] = []
+    details_data: Sequence[t.ContainerMapping] = []
     for key, value in data.items():
         if key not in {"total", "successful", "failed", "pending"}:
             details_data.append({"Property": key, "Value": str(value)})
@@ -171,7 +171,7 @@ def main() -> None:
     cli.print("\n1. Styled Messages (replace print):", style="bold cyan")
     your_cli_function()
     cli.print("\n2. Rich Tables (display data):", style="bold cyan")
-    sample_data: Sequence[Mapping[str, t.NormalizedValue]] = [
+    sample_data: Sequence[t.ContainerMapping] = [
         {"id": 1, "name": "Alice", "status": "active"},
         {"id": 2, "name": "Bob", "status": "inactive"},
     ]
@@ -190,7 +190,7 @@ def main() -> None:
     cli.print("\n7. Live Updates (real-time monitoring):", style="bold cyan")
     monitor_live_metrics()
     cli.print("\n8. Panels (organized content):", style="bold cyan")
-    panel_data: Mapping[str, t.NormalizedValue] = {
+    panel_data: t.ContainerMapping = {
         "total": 1250,
         "successful": 1100,
         "failed": 50,

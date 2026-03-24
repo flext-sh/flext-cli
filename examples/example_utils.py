@@ -20,7 +20,7 @@ from flext_cli import FlextCli, m, t
 
 
 def to_json_dict(
-    data: Mapping[str, t.NormalizedValue],
+    data: t.ContainerMapping,
 ) -> m.Cli.DisplayData:
     """Normalize config/mapping to DisplayData for create_table/display_config_table."""
     normalized = m.Cli.CliNormalizedJson(dict(data)).root

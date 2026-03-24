@@ -61,7 +61,7 @@ class FlextCliTestTypes(FlextTestsTypes, FlextCliTypes):
                 t.NormalizedValue | Sequence[str] | Mapping[str, str | int] | None,
             ]
             "CLI configuration mapping specific to flext-cli."
-            type CommandArgsMapping = Mapping[str, t.NormalizedValue]
+            type CommandArgsMapping = t.ContainerMapping
             "Command arguments mapping for CLI operations."
 
 

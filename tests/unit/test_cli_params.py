@@ -281,7 +281,7 @@ class TestsCliCommonParams:
         tm.that(FlextCliCommonParams._enforcement_mode is True, eq=True)
 
         FlextCliCommonParams.disable_enforcement()
-        tm.that(FlextCliCommonParams._enforcement_mode, eq=False)
+        tm.that(not FlextCliCommonParams._enforcement_mode, eq=True)
 
         # Restore enforcement
         FlextCliCommonParams.enable_enforcement()

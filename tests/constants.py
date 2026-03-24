@@ -141,7 +141,7 @@ class FlextCliTestConstants(FlextTestsConstants, FlextCliConstants):
             class TestConfiguration:
                 """Test configuration constants."""
 
-                BASIC_CONFIG: Final[Mapping[str, t.NormalizedValue]] = {
+                BASIC_CONFIG: Final[t.ContainerMapping] = {
                     "app_name": "test_app",
                     "debug": False,
                     "log_level": "INFO",

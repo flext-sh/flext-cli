@@ -127,7 +127,7 @@ class TestsCliConstants:
                 constants, constant_name
             )
             tm.that(value.endswith(".json"), eq=True)
-            tm.that(value.startswith("."), eq=False)
+            tm.that(not value.startswith("."), eq=True)
             tm.that("/" not in value, eq=True)
             tm.that("\\" not in value, eq=True)
 
@@ -338,12 +338,12 @@ class TestsCliConstants:
         constants = self.Fixtures.get_constants()
         tm.that(constants.Cli.Project.NAME, is_=str)
         tm.that(constants.Cli.Project.NAME.strip(), eq=True)
-        tm.that(constants.Cli.Project.NAME.startswith(" "), eq=False)
-        tm.that(constants.Cli.Project.NAME.endswith(" "), eq=False)
+        tm.that(not constants.Cli.Project.NAME.startswith(" "), eq=True)
+        tm.that(not constants.Cli.Project.NAME.endswith(" "), eq=True)
         tm.that(constants.Cli.Paths.FLEXT_DIR_NAME, is_=str)
         tm.that(constants.Cli.Paths.FLEXT_DIR_NAME.startswith("."), eq=True)
         tm.that(len(constants.Cli.Paths.FLEXT_DIR_NAME), gt=1)
-        tm.that(constants.Cli.Paths.FLEXT_DIR_NAME.endswith("."), eq=False)
+        tm.that(not constants.Cli.Paths.FLEXT_DIR_NAME.endswith("."), eq=True)
         for file_name in [
             constants.Cli.Paths.TOKEN_FILE_NAME,
             constants.Cli.Paths.REFRESH_TOKEN_FILE_NAME,

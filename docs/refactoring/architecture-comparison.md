@@ -208,7 +208,7 @@ cli.formatters.print(table.unwrap())
 
 ```python
 # ❌ Unnecessary service infrastructure
-class FlextCliFileTools(FlextService[Mapping[str, t.NormalizedValue]]):
+class FlextCliFileTools(FlextService[t.ContainerMapping]):
     def __init__(self):
         super().__init__()  # Service overhead
         self.logger = FlextLogger(__name__)

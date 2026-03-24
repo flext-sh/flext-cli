@@ -74,9 +74,7 @@ class FlextCliTestModels(FlextTestsModels, FlextCliModels):
                 """Holds scalar-only config for container restore in fixtures. Filters nested values out."""
 
                 @classmethod
-                def from_config_items(
-                    cls, items: Mapping[str, t.NormalizedValue]
-                ) -> Self:
+                def from_config_items(cls, items: t.ContainerMapping) -> Self:
                     """Build scalar-only dict from config items (drops nested dict/list/model)."""
                     out: Mapping[str, t.Primitives | None] = {
                         k: v

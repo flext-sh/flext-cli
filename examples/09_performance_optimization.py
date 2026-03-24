@@ -33,7 +33,7 @@ from __future__ import annotations
 import pathlib
 import tempfile
 import time
-from collections.abc import Mapping, Sequence
+from collections.abc import Sequence
 from functools import lru_cache
 
 from flext_cli import FlextCli, FlextCliOutput, t
@@ -103,7 +103,7 @@ def demonstrate_lazy_loading() -> None:
 
 
 def efficient_table_display(
-    large_dataset: Sequence[Mapping[str, t.NormalizedValue]],
+    large_dataset: Sequence[t.ContainerMapping],
 ) -> None:
     """Display large tables efficiently in YOUR CLI."""
     preview_size = 10
@@ -154,7 +154,7 @@ def main() -> None:
     demonstrate_caching()
     demonstrate_lazy_loading()
     cli.print("\n4. Efficient Table Display:", style="bold cyan")
-    large_data: Sequence[Mapping[str, t.NormalizedValue]] = [
+    large_data: Sequence[t.ContainerMapping] = [
         {"id": i, "name": f"Item {i}"} for i in range(1000)
     ]
     efficient_table_display(large_data)

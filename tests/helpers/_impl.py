@@ -23,12 +23,12 @@ from flext_cli import FlextCliConstants, t
 T = TypeVar("T")
 
 
-def _is_json_dict(value: t.NormalizedValue) -> TypeIs[Mapping[str, t.NormalizedValue]]:
+def _is_json_dict(value: t.NormalizedValue) -> TypeIs[t.ContainerMapping]:
     """TypeGuard: narrow t.NormalizedValue to dict for JSON t.NormalizedValue shape (e.g. read_json_file return)."""
     return isinstance(value, dict)
 
 
-def _is_json_list(value: t.NormalizedValue) -> TypeIs[Sequence[t.NormalizedValue]]:
+def _is_json_list(value: t.NormalizedValue) -> TypeIs[t.ContainerList]:
     """TypeGuard: narrow t.NormalizedValue to list for JSON array shape."""
     return isinstance(value, list)
 
@@ -50,7 +50,7 @@ class ConfigFactory:
         if fields is None:
             fields = {"test_field": (str, Field(default="test"))}
         annotations: Mapping[str, type] = {}
-        class_dict: Mapping[str, t.NormalizedValue] = {
+        class_dict: t.ContainerMapping = {
             "model_config": SettingsConfigDict(env_prefix=prefix),
             "__annotations__": annotations,
         }
@@ -86,7 +86,7 @@ class ParamsFactory:
             str, tuple[type, t.Scalar | FieldInfo, Mapping[str, t.Scalar]]
         ] = fields if fields is not None else default_fields
         annotations: Mapping[str, type] = {}
-        class_dict: Mapping[str, t.NormalizedValue] = {
+        class_dict: t.ContainerMapping = {
             "model_config": {"populate_by_name": populate_by_name},
             "__annotations__": annotations,
         }
@@ -132,7 +132,7 @@ class ValidationHelper:
     @staticmethod
     def extract_config_values(
         config: BaseSettings, field_names: Sequence[str]
-    ) -> Mapping[str, t.NormalizedValue]:
+    ) -> t.ContainerMapping:
         """Extract multiple field values from config as a read-only Mapping.
 
         When the config structure is known, callers should use FlextCliSettings
@@ -313,18 +313,16 @@ class FlextCliTestHelpers:
                 class TestConfigProvider:
                     def __init__(self) -> None:
                         super().__init__()
-                        self.config: Mapping[str, t.NormalizedValue] = {}
+                        self.config: t.ContainerMapping = {}
 
-                    def load_config(self) -> r[Mapping[str, t.NormalizedValue]]:
+                    def load_config(self) -> r[t.ContainerMapping]:
                         """Return config dict; treat as Mapping when contract is read-only."""
                         try:
-                            return r[Mapping[str, t.NormalizedValue]].ok(self.config)
+                            return r[t.ContainerMapping].ok(self.config)
                         except (ValueError, TypeError, ValidationError) as e:
-                            return r[Mapping[str, t.NormalizedValue]].fail(str(e))
+                            return r[t.ContainerMapping].fail(str(e))
 
-                    def save_config(
-                        self, config: Mapping[str, t.NormalizedValue]
-                    ) -> r[bool]:
+                    def save_config(self, config: t.ContainerMapping) -> r[bool]:
                         try:
                             self.config = dict(config.items())
                             return r[bool].ok(True)
@@ -393,7 +391,7 @@ class FlextCliTestHelpers:
 
         @staticmethod
         def create_processing_test_data() -> r[
-            tuple[Sequence[str], Sequence[int], Mapping[str, t.NormalizedValue]]
+            tuple[Sequence[str], Sequence[int], t.ContainerMapping]
         ]:
             """Create test data for type processing scenarios.
 
@@ -403,51 +401,49 @@ class FlextCliTestHelpers:
             try:
                 string_list = ["hello", "world", "test"]
                 number_list = [1, 2, 3, 4, 5]
-                mixed_dict: Mapping[str, t.NormalizedValue] = {
+                mixed_dict: t.ContainerMapping = {
                     "key1": 123,
                     "key2": "value",
                     "key3": True,
                     "key4": [1, 2, 3],
                 }
-                return r[
-                    tuple[Sequence[str], Sequence[int], Mapping[str, t.NormalizedValue]]
-                ].ok((
+                return r[tuple[Sequence[str], Sequence[int], t.ContainerMapping]].ok((
                     string_list,
                     number_list,
                     mixed_dict,
                 ))
             except (ValueError, TypeError, ValidationError) as e:
-                return r[
-                    tuple[Sequence[str], Sequence[int], Mapping[str, t.NormalizedValue]]
-                ].fail(f"Failed to create processing test data: {e!s}")
+                return r[tuple[Sequence[str], Sequence[int], t.ContainerMapping]].fail(
+                    f"Failed to create processing test data: {e!s}"
+                )
 
         @staticmethod
-        def create_typed_dict_data() -> r[Mapping[str, t.NormalizedValue]]:
+        def create_typed_dict_data() -> r[t.ContainerMapping]:
             """Create typed dict test data.
 
-            Returns a dict; treat as Mapping[str, t.NormalizedValue] when the contract is read-only.
+            Returns a dict; treat as t.ContainerMapping when the contract is read-only.
             """
             try:
-                user_data: Mapping[str, t.NormalizedValue] = {
+                user_data: t.ContainerMapping = {
                     "id": 1,
                     "name": "John Doe",
                     "email": "john@example.com",
                     "active": True,
                 }
-                return r[Mapping[str, t.NormalizedValue]].ok(user_data)
+                return r[t.ContainerMapping].ok(user_data)
             except (ValueError, TypeError, ValidationError) as e:
-                return r[Mapping[str, t.NormalizedValue]].fail(
+                return r[t.ContainerMapping].fail(
                     f"Failed to create typed dict data: {e!s}"
                 )
 
         @staticmethod
-        def create_api_response_data() -> r[Sequence[Mapping[str, t.NormalizedValue]]]:
+        def create_api_response_data() -> r[Sequence[t.ContainerMapping]]:
             """Create API response test data.
 
-            Returns a list of dicts; treat each item as Mapping[str, t.NormalizedValue] when read-only.
+            Returns a list of dicts; treat each item as t.ContainerMapping when read-only.
             """
             try:
-                users_data: Sequence[Mapping[str, t.NormalizedValue]] = [
+                users_data: Sequence[t.ContainerMapping] = [
                     {
                         "id": 1,
                         "name": "Alice",
@@ -461,9 +457,9 @@ class FlextCliTestHelpers:
                         "active": False,
                     },
                 ]
-                return r[Sequence[Mapping[str, t.NormalizedValue]]].ok(users_data)
+                return r[Sequence[t.ContainerMapping]].ok(users_data)
             except (ValueError, TypeError, ValidationError) as e:
-                return r[Sequence[Mapping[str, t.NormalizedValue]]].fail(
+                return r[Sequence[t.ContainerMapping]].fail(
                     f"Failed to create API response data: {e!s}"
                 )
 

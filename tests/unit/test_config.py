@@ -19,7 +19,7 @@ import logging
 import os
 import threading
 import typing
-from collections.abc import Mapping, Sequence
+from collections.abc import Sequence
 from enum import StrEnum, unique
 from pathlib import Path
 from typing import ClassVar, Final, Literal
@@ -53,7 +53,7 @@ class ConfigTestScenario(BaseModel):
 
     name: str = Field(description="Scenario name")
     test_type: ConfigTestType = Field(description="Scenario test type")
-    data: Mapping[str, t.NormalizedValue] | None = Field(
+    data: t.ContainerMapping | None = Field(
         default=None,
         description="Scenario input data",
     )
@@ -81,13 +81,13 @@ class ConfigTestFactory:
         "ERROR",
         "CRITICAL",
     ]
-    JSON_CONFIG_DATA: Final[Mapping[str, t.NormalizedValue]] = {
+    JSON_CONFIG_DATA: Final[t.ContainerMapping] = {
         "debug": True,
         "verbose": False,
         "profile": "test",
         "output_format": "json",
     }
-    YAML_CONFIG_DATA: Final[Mapping[str, t.NormalizedValue]] = {
+    YAML_CONFIG_DATA: Final[t.ContainerMapping] = {
         "debug": False,
         "verbose": True,
         "profile": "yaml_test",
@@ -466,6 +466,6 @@ class TestsCliConfigEdgeCases:
     def test_save_config(self) -> None:
         """Test save_config method."""
         config: FlextCliSettings = FlextCliSettings()
-        new_config: Mapping[str, t.NormalizedValue] = {"debug": True}
+        new_config: t.ContainerMapping = {"debug": True}
         result = config.save_config(new_config)
         tm.that(result.is_success or result.is_failure, eq=True)

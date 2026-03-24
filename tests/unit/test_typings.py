@@ -122,7 +122,7 @@ class TestsCliTypings:
             ]
 
         @staticmethod
-        def create_type_test_data() -> Mapping[str, t.NormalizedValue]:
+        def create_type_test_data() -> t.ContainerMapping:
             """Create test data for type operations."""
             return {
                 "config_data": {
@@ -165,9 +165,7 @@ class TestsCliTypings:
                 return r[bool].fail(str(e))
 
         @staticmethod
-        def validate_type_usage(
-            data: Mapping[str, t.NormalizedValue], type_hint: str
-        ) -> r[bool]:
+        def validate_type_usage(data: t.ContainerMapping, type_hint: str) -> r[bool]:
             """Validate type usage with actual data."""
             try:
                 match type_hint:
@@ -215,7 +213,7 @@ class TestsCliTypings:
         """Execute initialization-related tests."""
         validation_result = self.TypingValidators.validate_type_initialization(t)
         tm.ok(validation_result)
-        test_data: Mapping[str, t.NormalizedValue] = {"key": "value"}
+        test_data: t.ContainerMapping = {"key": "value"}
         tm.that(test_data, is_=dict)
 
     def _execute_basic_functionality_tests(self) -> None:
@@ -225,7 +223,7 @@ class TestsCliTypings:
         if not isinstance(config_data_obj, dict):
             error_msg = "config_data must be a dict"
             raise TypeError(error_msg)
-        config_dict: Mapping[str, t.NormalizedValue] = config_data_obj
+        config_dict: t.ContainerMapping = config_data_obj
         config_result = self.TypingValidators.validate_type_usage(
             config_dict, "CliConfigData"
         )
@@ -234,7 +232,7 @@ class TestsCliTypings:
         if not isinstance(format_data_obj, dict):
             error_msg = "format_data must be a dict"
             raise TypeError(error_msg)
-        format_dict: Mapping[str, t.NormalizedValue] = format_data_obj
+        format_dict: t.ContainerMapping = format_data_obj
         format_result = self.TypingValidators.validate_type_usage(
             format_dict, "CliFormatData"
         )
@@ -253,8 +251,8 @@ class TestsCliTypings:
         tm.that(t, none=False)
         tm.that(generic_type, none=False)
         tm.that(Test, none=False)
-        user_data: Mapping[str, t.NormalizedValue] = {"key": "value", "number": 42}
-        user_list: Sequence[Mapping[str, t.NormalizedValue]] = [user_data]
+        user_data: t.ContainerMapping = {"key": "value", "number": 42}
+        user_list: Sequence[t.ContainerMapping] = [user_data]
         tm.that(user_data, is_=dict)
         tm.that(user_list, is_=list)
         tm.that(len(user_list), eq=1)
@@ -450,7 +448,7 @@ class TestsCliTypings:
         def process_list(data: Sequence[str]) -> Sequence[str]:
             return [item.upper() for item in data]
 
-        def process_dict(data: Mapping[str, t.NormalizedValue]) -> Mapping[str, str]:
+        def process_dict(data: t.ContainerMapping) -> Mapping[str, str]:
             return {key: str(value) for key, value in data.items()}
 
         test_list = ["hello", "world", "test"]
@@ -534,12 +532,10 @@ class TestsCliTypings:
 
         @runtime_checkable
         class Test(Protocol):
-            def operation(
-                self, data: Sequence[str]
-            ) -> Mapping[str, t.NormalizedValue]: ...
+            def operation(self, data: Sequence[str]) -> t.ContainerMapping: ...
 
         class Implementation:
-            def operation(self, data: Sequence[str]) -> Mapping[str, t.NormalizedValue]:
+            def operation(self, data: Sequence[str]) -> t.ContainerMapping:
                 time.sleep(0.001)
                 return {
                     "processed": [item.upper() for item in data],

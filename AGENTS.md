@@ -911,7 +911,7 @@ When passing Mapping[str, SpecificType] to a parameter expecting Mapping[str, Ba
 
 ```python
 # ❌ FAILS - dict is invariant
-def _process_config(config: Mapping[str, t.NormalizedValue]) -> None: ...
+def _process_config(config: t.ContainerMapping) -> None: ...
 
 
 _process_config({"key": True, "value": "string"})  # Type error
@@ -920,7 +920,7 @@ _process_config({"key": True, "value": "string"})  # Type error
 from collections.abc import Mapping
 
 
-def _process_config(config: Mapping[str, t.NormalizedValue]) -> None: ...
+def _process_config(config: t.ContainerMapping) -> None: ...
 
 
 _process_config({"key": True, "value": "string"})  # OK

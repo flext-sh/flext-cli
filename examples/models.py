@@ -200,7 +200,7 @@ class AppConfigAdvanced(BaseModel):
             }
         if not isinstance(typed_data, dict):
             return None
-        typed_dict: Mapping[str, t.NormalizedValue] = typed_data
+        typed_dict: t.ContainerMapping = typed_data
         result = {
             "database_url": os.getenv(
                 "DATABASE_URL", "postgresql://localhost:5432/myapp"

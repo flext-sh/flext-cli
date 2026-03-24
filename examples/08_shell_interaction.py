@@ -32,7 +32,7 @@ from __future__ import annotations
 
 import os
 import time
-from collections.abc import Mapping, Sequence
+from collections.abc import Sequence
 
 from flext_core import r
 
@@ -41,7 +41,7 @@ from flext_cli import FlextCli, t
 cli = FlextCli()
 
 
-def handle_status_command() -> r[Mapping[str, t.NormalizedValue]]:
+def handle_status_command() -> r[t.ContainerMapping]:
     """Status command in YOUR interactive CLI."""
     status = {
         "status": "running",
@@ -50,7 +50,7 @@ def handle_status_command() -> r[Mapping[str, t.NormalizedValue]]:
     }
     cli.print(f"✅ Status: {status['status']}", style="green")
     cli.print(f"   User: {status['user']}", style="cyan")
-    return r[Mapping[str, t.NormalizedValue]].ok(dict(status))
+    return r[t.ContainerMapping].ok(dict(status))
 
 
 def handle_list_command(filter_text: str = "") -> r[Sequence[str]]:

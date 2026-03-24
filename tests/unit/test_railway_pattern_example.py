@@ -14,7 +14,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import tempfile
-from collections.abc import Generator, Mapping, Sequence
+from collections.abc import Generator, Sequence
 from pathlib import Path
 
 import pytest
@@ -59,7 +59,7 @@ class TestsCliRailwayPatternExample:
         self,
         file_tools: FlextCliFileTools,
         temp_dir: Path,
-        test_data: Mapping[str, t.NormalizedValue],
+        test_data: t.ContainerMapping,
         filename: str,
         verify_keys: Sequence[str],
     ) -> None:
@@ -97,7 +97,7 @@ class TestsCliRailwayPatternExample:
         self,
         file_tools: FlextCliFileTools,
         invalid_path: str,
-        test_data: Mapping[str, t.NormalizedValue],
+        test_data: t.ContainerMapping,
         scenario: str,
     ) -> None:
         """Test Railway Pattern error handling and propagation.

@@ -30,7 +30,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import json
-from collections.abc import Mapping, Sequence
+from collections.abc import Sequence
 from pathlib import Path
 
 from flext_core import r
@@ -50,9 +50,7 @@ class DataExportPlugin:
         self.version = "1.0.0"
 
     @staticmethod
-    def execute(
-        data: Mapping[str, t.NormalizedValue], output_format: str = "json"
-    ) -> r[str]:
+    def execute(data: t.ContainerMapping, output_format: str = "json") -> r[str]:
         """Execute plugin logic in YOUR application."""
         if output_format == "json":
             output = json.dumps(data, indent=2)
@@ -71,7 +69,7 @@ class ReportGeneratorPlugin:
         self.version = "1.0.0"
 
     @staticmethod
-    def execute(data: Sequence[Mapping[str, t.NormalizedValue]]) -> r[str]:
+    def execute(data: Sequence[t.ContainerMapping]) -> r[str]:
         """Generate report from data in YOUR CLI."""
         tables = FlextCliTables()
         config = m.Cli.TableConfig(table_format="grid")
@@ -89,7 +87,7 @@ class MyAppPluginManager:
     def __init__(self) -> None:
         """Initialize plugin manager with empty plugin registry."""
         super().__init__()
-        self.plugins: Mapping[str, t.NormalizedValue] = {}
+        self.plugins: t.ContainerMapping = {}
 
     def execute_plugin(
         self, plugin_name: str, **kwargs: t.Container
@@ -131,7 +129,7 @@ class MyAppPluginManager:
             name: get_plugin_version(name, plugin)
             for name, plugin in self.plugins.items()
         }
-        rows: Sequence[Mapping[str, t.NormalizedValue]] = [
+        rows: Sequence[t.ContainerMapping] = [
             {"Plugin": name, "Version": ver} for name, ver in plugin_items.items()
         ]
         cli.show_table(rows, headers=["Plugin", "Version"])
@@ -159,21 +157,21 @@ def load_plugins_from_directory(plugin_dir: Path) -> MyAppPluginManager:
 class ConfigurablePlugin:
     """Example of configurable plugin for YOUR CLI."""
 
-    def __init__(self, config: Mapping[str, t.NormalizedValue]) -> None:
+    def __init__(self, config: t.ContainerMapping) -> None:
         """Initialize configurable plugin with configuration dictionary."""
         super().__init__()
         self.name = "configurable-plugin"
-        self.config: Mapping[str, t.NormalizedValue] = config
+        self.config: t.ContainerMapping = config
 
-    def execute(self) -> r[Mapping[str, t.NormalizedValue]]:
+    def execute(self) -> r[t.ContainerMapping]:
         """Execute with configuration in YOUR CLI."""
         cli.print(f"🔧 Plugin config: {self.config}", style="cyan")
-        result_data: Mapping[str, t.NormalizedValue] = {
+        result_data: t.ContainerMapping = {
             "plugin": self.name,
             "config_applied": True,
             **self.config,
         }
-        return r[Mapping[str, t.NormalizedValue]].ok(result_data)
+        return r[t.ContainerMapping].ok(result_data)
 
 
 class LifecyclePlugin:
@@ -218,7 +216,7 @@ def main() -> None:
     cli.print("\n2. List Plugins (inventory):", style="bold cyan")
     manager.list_plugins()
     cli.print("\n3. Execute Plugin (data export):", style="bold cyan")
-    test_data: Mapping[str, t.NormalizedValue] = {
+    test_data: t.ContainerMapping = {
         "id": 1,
         "name": "Test",
         "status": "active",
@@ -233,7 +231,7 @@ def main() -> None:
         output_preview = str(result_value)[:100] if result_value else ""
         cli.print(f"   Output: {output_preview}...", style="white")
     cli.print("\n4. Report Plugin (table generation):", style="bold cyan")
-    report_data: Sequence[Mapping[str, t.NormalizedValue]] = [
+    report_data: Sequence[t.ContainerMapping] = [
         {"metric": "Users", "value": "1,234"},
         {"metric": "Orders", "value": "567"},
     ]
@@ -246,7 +244,7 @@ def main() -> None:
             f"   Report length: {len(str(report_result.value))} chars", style="green"
         )
     cli.print("\n5. Configurable Plugin:", style="bold cyan")
-    config: Mapping[str, t.NormalizedValue] = {"theme": "dark", "verbose": True}
+    config: t.ContainerMapping = {"theme": "dark", "verbose": True}
     config_plugin = ConfigurablePlugin(config)
     config_result = config_plugin.execute()
     if config_result.is_success:
