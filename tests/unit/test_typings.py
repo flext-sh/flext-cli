@@ -14,6 +14,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import collections.abc
 import math
 import threading
 import time
@@ -513,19 +514,23 @@ class TestsCliTypings:
         complex_type = Sequence[Mapping[str, str | int]]
         optional_type = t.StrSequence | None
         union_type = t.Scalar
-        tm.that(get_origin(complex_type) is list, eq=True)
+        tm.that(get_origin(complex_type) is collections.abc.Sequence, eq=True)
         complex_args = get_args(complex_type)
         tm.that(len(complex_args), eq=1)
-        tm.that(get_origin(complex_args[0]) is dict, eq=True)
+        tm.that(get_origin(complex_args[0]) is collections.abc.Mapping, eq=True)
         tm.that(get_origin(optional_type), none=False)
         optional_args = get_args(optional_type)
-        tm.that(optional_args, has=type(None))
-        tm.that(optional_args, has=t.StrSequence)
-        tm.that(get_origin(union_type), none=False)
-        union_args = get_args(union_type)
-        tm.that(union_args, has=str)
-        tm.that(union_args, has=int)
-        tm.that(union_args, has=bool)
+        tm.that(type(None) in optional_args, eq=True)
+        tm.that(t.StrSequence in optional_args, eq=True)
+        tm.that(hasattr(union_type, "__value__"), eq=True)
+        union_args = get_args(union_type.__value__)
+        tm.that(len(union_args), gte=2)
+        # Scalar = Primitives | datetime — verify nested alias components
+        primitives_alias = union_args[0]
+        tm.that(hasattr(primitives_alias, "__value__"), eq=True)
+        primitives_args = get_args(primitives_alias.__value__)
+        tm.that(str in primitives_args, eq=True)
+        tm.that(bool in primitives_args, eq=True)
 
     def test_type_workflow_integration(self) -> None:
         """Test type workflow integration with helpers."""
