@@ -71,7 +71,7 @@ class FlextCliCommandBuilder:
             param_decls if param_decls is not None else []
         )
         validated_default: t.Cli.JsonValue | None = default
-        validated_param_decls_list: list[str] = list(validated_param_decls)
+        validated_param_decls_list: Sequence[str] = list(validated_param_decls)
         validated_help: str | None = help_text or None
         option_info = OptionInfo(
             default=validated_default,

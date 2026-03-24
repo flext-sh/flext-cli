@@ -1162,7 +1162,9 @@ class FlextCliModels(FlextModels):
                 cli_commands: Sequence[FlextCliModels.Cli.CliCommand] = list(
                     self.commands,
                 )
-                result: MutableMapping[str, list[FlextCliModels.Cli.CliCommand]] = {}
+                result: MutableMapping[
+                    str, MutableSequence[FlextCliModels.Cli.CliCommand]
+                ] = {}
                 for command in cli_commands:
                     cmd_status = command.status or ""
                     result.setdefault(cmd_status, []).append(command)
@@ -2044,7 +2046,9 @@ class FlextCliModels(FlextModels):
                 )
 
                 # Build option arguments
-                option_args: MutableSequence[str] = [f"--{cli_param_name.replace('_', '-')}"]
+                option_args: MutableSequence[str] = [
+                    f"--{cli_param_name.replace('_', '-')}"
+                ]
                 if short_flag:
                     option_args.append(f"-{short_flag}")
 

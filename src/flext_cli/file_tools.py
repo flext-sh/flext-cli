@@ -9,7 +9,7 @@ import os
 import shutil
 import tempfile
 import zipfile
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable, Mapping, MutableSequence, Sequence
 from pathlib import Path
 from typing import TextIO, TypeIs
 
@@ -289,7 +289,7 @@ class FlextCliFileTools:
         path = Path(directory)
 
         def _search() -> t.StrSequence:
-            matches: list[str] = []
+            matches: MutableSequence[str] = []
             for fp in path.rglob(c.Cli.FileIODefaults.GLOB_PATTERN_ALL):
                 if not fp.is_file():
                     continue

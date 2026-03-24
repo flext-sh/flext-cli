@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import secrets
 import threading
-from collections.abc import Callable, Mapping, MutableMapping, Sequence
+from collections.abc import Callable, Mapping, MutableMapping, MutableSequence, Sequence
 from typing import ClassVar, TypeIs
 
 from click import Command
@@ -254,11 +254,11 @@ class FlextCli:
         elif isinstance(data, list):
             table_data = data
         elif isinstance(data, tuple):
-            table_data: list[Mapping[str, t.Cli.JsonValue]] = []
+            table_data: MutableSequence[Mapping[str, t.Cli.JsonValue]] = []
             for row in data:
                 table_data.append(row)
         else:
-            table_data: list[Mapping[str, t.Cli.JsonValue]] = []
+            table_data: MutableSequence[Mapping[str, t.Cli.JsonValue]] = []
         table_config = m.Cli.TableConfig(
             headers=headers or "keys",
             show_header=True,
