@@ -10,12 +10,13 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 import inspect
 import os
 import pathlib
 import sys
 import traceback
-from collections.abc import Sequence
 from typing import ClassVar
 
 import typer

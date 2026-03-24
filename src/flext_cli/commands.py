@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import logging
-from collections.abc import Callable, Mapping, MutableMapping, Sequence
+from collections.abc import Sequence, Callable, Mapping, MutableMapping
 from typing import Self, override
 
 from flext_core import r

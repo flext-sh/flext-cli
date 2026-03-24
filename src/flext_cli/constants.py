@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import typing
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Sequence, Callable, Mapping
 from enum import StrEnum, unique
 from typing import Literal
 

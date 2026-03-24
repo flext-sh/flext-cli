@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping, MutableMapping, Sequence
+from collections.abc import Sequence, Callable, Mapping, MutableMapping
 from typing import ClassVar
 
 from flext_core import r

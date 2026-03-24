@@ -14,7 +14,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import tempfile
-from collections.abc import Generator, Sequence
+from collections.abc import Mapping, Sequence, Generator
 from pathlib import Path
 
 import pytest

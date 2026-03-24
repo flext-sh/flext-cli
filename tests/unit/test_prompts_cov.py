@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-import builtins
 from collections.abc import Sequence
+
+import builtins
 from typing import Never
 
 import pytest

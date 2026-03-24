@@ -12,8 +12,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import tempfile
 from collections.abc import Mapping
+
+import tempfile
 from pathlib import Path
 
 from flext_core import r

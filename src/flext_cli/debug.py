@@ -10,12 +10,14 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from flext_cli import FlextCliTypes as t
+
 import os
 import pathlib
 import platform
 import sys
 import tempfile
-from collections.abc import Mapping, MutableMapping, MutableSequence, Sequence
+from collections.abc import Mapping, MutableMapping, MutableSequence
 from typing import override
 
 from flext_core import r
@@ -186,7 +188,7 @@ class FlextCliDebug(FlextCliServiceBase):
             )
 
     @staticmethod
-    def execute_trace(args: Sequence[str]) -> r[Mapping[str, t.Cli.JsonValue]]:
+    def execute_trace(args: t.StrSequence) -> r[Mapping[str, t.Cli.JsonValue]]:
         """Execute trace operation with provided arguments."""
         try:
             trace_info: Mapping[str, t.Cli.JsonValue] = {
@@ -380,11 +382,11 @@ class FlextCliDebug(FlextCliServiceBase):
                 c.Cli.DebugErrorMessages.SYSTEM_PATHS_COLLECTION_FAILED.format(error=e),
             )
 
-    def validate_environment_setup(self) -> r[Sequence[str]]:
+    def validate_environment_setup(self) -> r[t.StrSequence]:
         """Validate environment setup and dependencies."""
         try:
             results = self._validate_filesystem_permissions()
-            return r[Sequence[str]].ok(results)
+            return r[t.StrSequence].ok(results)
         except (
             ValueError,
             TypeError,
@@ -393,7 +395,7 @@ class FlextCliDebug(FlextCliServiceBase):
             StyleError,
             LiveError,
         ) as e:
-            return r[Sequence[str]].fail(
+            return r[t.StrSequence].fail(
                 c.Cli.DebugErrorMessages.ENVIRONMENT_VALIDATION_FAILED.format(error=e),
             )
 
