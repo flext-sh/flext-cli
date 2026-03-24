@@ -102,7 +102,7 @@ class TestsCliConstants:
                 constants, constant_name
             )
             tm.that(value, none=False)
-            tm.that(isinstance(value, str), eq=True)
+            tm.that(value, is_=str)
             tm.that(value, eq=True)
             tm.that(value.strip(), eq=True)
 
@@ -115,7 +115,7 @@ class TestsCliConstants:
                 constants, constant_name
             )
             tm.that(actual_value, eq=expected_value)
-            tm.that(isinstance(actual_value, str), eq=True)
+            tm.that(actual_value, is_=str)
             tm.that(actual_value, eq=True)
 
         @staticmethod
@@ -166,7 +166,7 @@ class TestsCliConstants:
         """Test that constants are properly defined and immutable."""
         constants = self.Fixtures.get_constants()
         constant_value = self.Assertions._get_constant_value(constants, constant_name)
-        tm.that(isinstance(constant_value, str), eq=True)
+        tm.that(constant_value, is_=str)
         tm.that(constant_value.strip(), eq=True)
 
     @pytest.mark.parametrize(
@@ -199,7 +199,7 @@ class TestsCliConstants:
         """Test constants type safety."""
         constants = self.Fixtures.get_constants()
         constant_value = self.Assertions._get_constant_value(constants, constant_name)
-        tm.that(isinstance(constant_value, str), eq=True)
+        tm.that(constant_value, is_=str)
         tm.that(constant_value, eq=True)
         tm.that(constant_value.upper(), none=False)
         tm.that(constant_value.lower(), none=False)
@@ -292,7 +292,7 @@ class TestsCliConstants:
             f"Refreshing token from: {constants.Cli.Paths.REFRESH_TOKEN_FILE_NAME}",
         ]
         for message in log_messages:
-            tm.that(isinstance(message, str), eq=True)
+            tm.that(message, is_=str)
             tm.that(message, eq=True)
             tm.that(
                 (
@@ -321,13 +321,13 @@ class TestsCliConstants:
         """Test that constants are compatible with different encodings."""
         constants = self.Fixtures.get_constants()
         utf8_encoded = constants.Cli.Project.NAME.encode("utf-8")
-        tm.that(isinstance(utf8_encoded, bytes), eq=True)
+        tm.that(utf8_encoded, is_=bytes)
         tm.that(utf8_encoded, eq=True)
         decoded = utf8_encoded.decode("utf-8")
         tm.that(decoded, eq=constants.Cli.Project.NAME)
         try:
             ascii_encoded = constants.Cli.Project.NAME.encode("ascii")
-            tm.that(isinstance(ascii_encoded, bytes), eq=True)
+            tm.that(ascii_encoded, is_=bytes)
         except UnicodeEncodeError:
             logging.getLogger(__name__).debug(
                 "constant not encodable as ascii, skip assert"
@@ -336,11 +336,11 @@ class TestsCliConstants:
     def test_validate_constant_format(self) -> None:
         """Test constant format validation."""
         constants = self.Fixtures.get_constants()
-        tm.that(isinstance(constants.Cli.Project.NAME, str), eq=True)
+        tm.that(constants.Cli.Project.NAME, is_=str)
         tm.that(constants.Cli.Project.NAME.strip(), eq=True)
         tm.that(constants.Cli.Project.NAME.startswith(" "), eq=False)
         tm.that(constants.Cli.Project.NAME.endswith(" "), eq=False)
-        tm.that(isinstance(constants.Cli.Paths.FLEXT_DIR_NAME, str), eq=True)
+        tm.that(constants.Cli.Paths.FLEXT_DIR_NAME, is_=str)
         tm.that(constants.Cli.Paths.FLEXT_DIR_NAME.startswith("."), eq=True)
         tm.that(len(constants.Cli.Paths.FLEXT_DIR_NAME), gt=1)
         tm.that(constants.Cli.Paths.FLEXT_DIR_NAME.endswith("."), eq=False)
@@ -397,10 +397,10 @@ class TestsCliConstants:
         flext_dir = constants.Cli.Paths.FLEXT_DIR_NAME
         token_file = constants.Cli.Paths.TOKEN_FILE_NAME
         refresh_token_file = constants.Cli.Paths.REFRESH_TOKEN_FILE_NAME
-        tm.that(isinstance(project_name, str), eq=True)
-        tm.that(isinstance(flext_dir, str), eq=True)
-        tm.that(isinstance(token_file, str), eq=True)
-        tm.that(isinstance(refresh_token_file, str), eq=True)
+        tm.that(project_name, is_=str)
+        tm.that(flext_dir, is_=str)
+        tm.that(token_file, is_=str)
+        tm.that(refresh_token_file, is_=str)
 
     def test_constants_multiple_instances(self) -> None:
         """Test that multiple instances return the same constants."""
@@ -463,14 +463,14 @@ class TestsCliConstants:
             }
         }
         tm.that(config, none=False)
-        tm.that(isinstance(config, dict), eq=True)
+        tm.that(config, is_=dict)
         error_messages = {
             "missing_token": f"Token file '{constants.Cli.Paths.TOKEN_FILE_NAME}' not found",
             "missing_refresh_token": f"Refresh token file '{constants.Cli.Paths.REFRESH_TOKEN_FILE_NAME}' not found",
             "invalid_dir": f"Directory '{constants.Cli.Paths.FLEXT_DIR_NAME}' is not accessible",
         }
         for message in error_messages.values():
-            tm.that(isinstance(message, str), eq=True)
+            tm.that(message, is_=str)
             tm.that(message, eq=True)
             tm.that(
                 (
@@ -498,13 +498,13 @@ class TestsCliConstants:
         """Test that constants can be concatenated."""
         constants = self.Fixtures.get_constants()
         combined = constants.Cli.Project.NAME + " " + constants.Cli.Paths.FLEXT_DIR_NAME
-        tm.that(isinstance(combined, str), eq=True)
+        tm.that(combined, is_=str)
         tm.that(combined, eq=True)
 
     def test_get_valid_output_formats(self) -> None:
         """Test get_valid_output_formats returns sorted tuple."""
         formats = u.Cli.CliValidation.get_valid_output_formats()
-        tm.that(isinstance(formats, tuple), eq=True)
+        tm.that(formats, is_=tuple)
         tm.that(formats, eq=True)
         tm.that(all(isinstance(fmt, str) for fmt in formats), eq=True)
         tm.that(formats, eq=tuple(sorted(formats)))
@@ -512,7 +512,7 @@ class TestsCliConstants:
     def test_get_valid_command_statuses(self) -> None:
         """Test get_valid_command_statuses returns sorted tuple."""
         statuses = u.Cli.CliValidation.get_valid_command_statuses()
-        tm.that(isinstance(statuses, tuple), eq=True)
+        tm.that(statuses, is_=tuple)
         tm.that(statuses, eq=True)
         tm.that(all(isinstance(status, str) for status in statuses), eq=True)
         tm.that(statuses, eq=tuple(sorted(statuses)))
@@ -520,13 +520,13 @@ class TestsCliConstants:
     def test_get_enum_values(self) -> None:
         """Test get_enum_values extracts values from StrEnum."""
         values = u.get_enum_values(c.Cli.CommandStatus)
-        tm.that(isinstance(values, tuple), eq=True)
+        tm.that(values, is_=tuple)
         tm.that(values, eq=True)
         tm.that(all(isinstance(v, str) for v in values), eq=True)
         tm.that(values, has="pending")
         tm.that(values, has="running")
         output_values = u.get_enum_values(c.Cli.OutputFormats)
-        tm.that(isinstance(output_values, tuple), eq=True)
+        tm.that(output_values, is_=tuple)
         tm.that(output_values, has="json")
         tm.that(output_values, has="yaml")
 
@@ -535,7 +535,7 @@ class TestsCliConstants:
         union_map = u.create_discriminated_union(
             "status", c.Cli.CommandStatus, c.Cli.SessionStatus
         )
-        tm.that(isinstance(union_map, dict), eq=True)
+        tm.that(union_map, is_=dict)
         tm.that(union_map, eq=True)
         tm.that(union_map["pending"], eq=c.Cli.CommandStatus)
         tm.that(union_map["active"], eq=c.Cli.SessionStatus)
@@ -543,11 +543,11 @@ class TestsCliConstants:
     def test_get_file_extensions(self) -> None:
         """Test get_file_extensions returns extensions for format."""
         extensions = c.Cli.get_file_extensions("json")
-        tm.that(isinstance(extensions, tuple), eq=True)
+        tm.that(extensions, is_=tuple)
         if extensions is not None:
             tm.that(extensions, has="json")
         yaml_extensions = c.Cli.get_file_extensions("yaml")
-        tm.that(isinstance(yaml_extensions, tuple), eq=True)
+        tm.that(yaml_extensions, is_=tuple)
         if yaml_extensions is not None:
             tm.that(yaml_extensions, has="yaml")
             tm.that(yaml_extensions, has="yml")
@@ -557,10 +557,10 @@ class TestsCliConstants:
     def test_get_mime_type(self) -> None:
         """Test get_mime_type returns MIME type for format."""
         mime = c.Cli.get_mime_type("json")
-        tm.that(isinstance(mime, str), eq=True)
+        tm.that(mime, is_=str)
         tm.that(mime, eq="application/json")
         yaml_mime = c.Cli.get_mime_type("yaml")
-        tm.that(isinstance(yaml_mime, str), eq=True)
+        tm.that(yaml_mime, is_=str)
         tm.that(yaml_mime, eq="application/x-yaml")
         none_mime = c.Cli.get_mime_type("nonexistent")
         tm.that(none_mime, none=True)

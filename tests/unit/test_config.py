@@ -136,13 +136,13 @@ class TestsCliConfigBasics:
         """Test basic initialization."""
         config = FlextCliSettings()
         tm.that(config, none=False)
-        tm.that(isinstance(config, FlextCliSettings), eq=True)
+        tm.that(config, is_=FlextCliSettings)
 
     def test_serialization_deserialization(self) -> None:
         """Test model_dump and model_validate."""
         config = FlextCliSettings()
         dumped = config.model_dump()
-        tm.that(isinstance(dumped, dict), eq=True)
+        tm.that(dumped, is_=dict)
         tm.that(dumped, has="verbose")
         data = {"verbose": False, "profile": "test"}
         validated = FlextCliSettings.model_validate(data)
@@ -170,7 +170,7 @@ class TestsCliConfigService:
         config: FlextCliSettings = FlextCliSettings()
         result = config.execute_service()
         tm.ok(result)
-        tm.that(isinstance(result.value, dict), eq=True)
+        tm.that(result.value, is_=dict)
 
 
 class TestsCliLoggingConfig:
@@ -229,13 +229,13 @@ class TestsCliConfigFilesOperations:
         """Test JSON loading."""
         result = FlextCliSettings.load_from_config_file(temp_config_json)
         tm.ok(result)
-        tm.that(isinstance(result.value, FlextCliSettings), eq=True)
+        tm.that(result.value, is_=FlextCliSettings)
 
     def test_load_yaml_config(self, temp_config_yaml: Path) -> None:
         """Test YAML loading."""
         result = FlextCliSettings.load_from_config_file(temp_config_yaml)
         tm.ok(result)
-        tm.that(isinstance(result.value, FlextCliSettings), eq=True)
+        tm.that(result.value, is_=FlextCliSettings)
 
     def test_load_nonexistent_file(self, tmp_path: Path) -> None:
         """Test error handling for missing file."""
@@ -281,12 +281,12 @@ class TestsCliConfigIntegration:
         cli = FlextCli()
         config = cli.config
         tm.that(config, none=False)
-        tm.that(isinstance(config, FlextCliSettings), eq=True)
+        tm.that(config, is_=FlextCliSettings)
 
     def test_config_inheritance(self) -> None:
         """Test inheritance from BaseSettings (Pydantic v2)."""
         config = FlextCliSettings()
-        tm.that(isinstance(config, BaseSettings), eq=True)
+        tm.that(config, is_=BaseSettings)
         tm.that(hasattr(config, "model_config"), eq=True)
 
     def test_env_var_loading(self) -> None:
@@ -329,7 +329,7 @@ class TestsCliConfigValidation:
         """Test model_dump returns complete dict."""
         config: FlextCliSettings = FlextCliSettings()
         dumped = config.model_dump()
-        tm.that(isinstance(dumped, dict), eq=True)
+        tm.that(dumped, is_=dict)
         tm.that(dumped, eq=True)
 
     def test_update_from_cli_args(self) -> None:
@@ -354,7 +354,7 @@ class TestsCliConfigComputedFields:
         """Test auto_output_format computed field."""
         config: FlextCliSettings = FlextCliSettings()
         fmt_value = config.auto_output_format
-        tm.that(isinstance(fmt_value, str), eq=True)
+        tm.that(fmt_value, is_=str)
         fmt: str = fmt_value
         tm.that({"table", "json", "plain"}, has=fmt)
 
@@ -369,14 +369,14 @@ class TestsCliConfigComputedFields:
         """Test optimal_table_format computed field."""
         config = FlextCliSettings()
         fmt_value = config.optimal_table_format
-        tm.that(isinstance(fmt_value, str), eq=True)
+        tm.that(fmt_value, is_=str)
         fmt: str = fmt_value
         tm.that({"simple", "grid", "github", "plain"}, has=fmt)
 
     def test_auto_color_support(self) -> None:
         """Test auto_color_support computed field."""
         config = FlextCliSettings()
-        tm.that(isinstance(config.auto_color_support, bool), eq=True)
+        tm.that(config.auto_color_support, is_=bool)
 
 
 class TestsCliConfigLogging:
@@ -386,7 +386,7 @@ class TestsCliConfigLogging:
         """Test logger creation."""
         logger = logging.getLogger("test_logger")
         tm.that(logger, none=False)
-        tm.that(isinstance(logger, logging.Logger), eq=True)
+        tm.that(logger, is_=logging.Logger)
 
     def test_logging_levels(self, caplog: pytest.LogCaptureFixture) -> None:
         """Test logging at different levels."""
@@ -461,7 +461,7 @@ class TestsCliConfigEdgeCases:
         result = config.load_config()
         tm.that(result.is_success or result.is_failure, eq=True)
         if result.is_success:
-            tm.that(isinstance(result.value, dict), eq=True)
+            tm.that(result.value, is_=dict)
 
     def test_save_config(self) -> None:
         """Test save_config method."""

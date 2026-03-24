@@ -30,7 +30,7 @@ class TestsCliCommands:
         """Test Commands initialization with proper configuration."""
         commands = CommandsFactory.create_commands()
         tm.that(commands, none=False)
-        tm.that(isinstance(commands, FlextCliCommands), eq=True)
+        tm.that(commands, is_=FlextCliCommands)
 
     def test_commands_execute_sync(self) -> None:
         """Test synchronous Commands execution."""
@@ -38,7 +38,7 @@ class TestsCliCommands:
         result = commands.execute()
         tm.ok(result)
         tm.that(result.value, none=False)
-        tm.that(isinstance(result.value, dict), eq=True)
+        tm.that(result.value, is_=dict)
         tm.that(result.value["app_name"], eq=c.Cli.FLEXT_CLI)
 
     def test_commands_execute(self) -> None:
@@ -47,7 +47,7 @@ class TestsCliCommands:
         result = commands.execute()
         tm.ok(result)
         tm.that(result.value, none=False)
-        tm.that(isinstance(result.value, dict), eq=True)
+        tm.that(result.value, is_=dict)
         tm.that(result.value["app_name"], eq=c.Cli.FLEXT_CLI)
 
     def test_commands_list(self) -> None:
@@ -55,9 +55,9 @@ class TestsCliCommands:
         commands = CommandsFactory.create_commands()
         result = commands.execute()
         tm.ok(result)
-        tm.that(isinstance(result.value, dict), eq=True)
+        tm.that(result.value, is_=dict)
         commands_count = result.value["commands_count"]
-        tm.that(isinstance(commands_count, int), eq=True)
+        tm.that(commands_count, is_=int)
         tm.that(commands_count, gte=0)
 
     def test_commands_registration(self) -> None:
@@ -67,9 +67,9 @@ class TestsCliCommands:
         tm.ok(reg_result)
         exec_result = commands.execute()
         tm.ok(exec_result)
-        tm.that(isinstance(exec_result.value, dict), eq=True)
+        tm.that(exec_result.value, is_=dict)
         commands_count = exec_result.value["commands_count"]
-        tm.that(isinstance(commands_count, int), eq=True)
+        tm.that(commands_count, is_=int)
         tm.that(commands_count, gte=0)
 
     def test_commands_execution(self) -> None:
@@ -242,7 +242,7 @@ class TestsCliCommands:
         _ = CommandsFactory.register_simple_command(commands, "cmd1")
         _ = CommandsFactory.register_simple_command(commands, "cmd2")
         cmds = commands.get_commands()
-        tm.that(isinstance(cmds, dict), eq=True)
+        tm.that(cmds, is_=dict)
         tm.that(len(cmds), eq=2)
         tm.that(cmds, has="cmd1")
         tm.that(cmds, has="cmd2")
@@ -266,7 +266,7 @@ class TestsCliCommands:
         result = commands.list_commands()
         tm.ok(result)
         cmd_list = result.value
-        tm.that(isinstance(cmd_list, list), eq=True)
+        tm.that(cmd_list, is_=list)
         tm.that(len(cmd_list), eq=2)
         tm.that(cmd_list, has="alpha")
         tm.that(cmd_list, has="beta")
@@ -325,7 +325,7 @@ class TestsCliCommands:
         """Test create_main_cli method."""
         commands = FlextCliCommands(name="test_cli", description="Test CLI")
         main_cli = commands.create_main_cli()
-        tm.that(isinstance(main_cli, FlextCliCommands), eq=True)
+        tm.that(main_cli, is_=FlextCliCommands)
         tm.that(main_cli._name, eq="test_cli")
         tm.that(main_cli._description, eq="Test CLI")
 
@@ -344,14 +344,14 @@ class TestsCliCommands:
         result = commands.create_command_group(
             "test_group", "Test group description", {}
         )
-        tm.that(isinstance(result, r), eq=True)
+        tm.that(result, is_=r)
 
     def test_run_cli_success_with_empty_args(self) -> None:
         """Test run_cli with successful execution and empty args."""
         commands = CommandsFactory.create_commands()
         _ = CommandsFactory.register_simple_command(commands, "test_command")
         result = commands.run_cli()
-        tm.that(isinstance(result, r), eq=True)
+        tm.that(result, is_=r)
 
     def test_clear_commands_success_with_multiple(self) -> None:
         """Test clear_commands with real commands."""
@@ -372,5 +372,5 @@ class TestsCliCommands:
         result = commands.list_commands()
         tm.ok(result)
         commands_list = result.value
-        tm.that(isinstance(commands_list, list), eq=True)
+        tm.that(commands_list, is_=list)
         tm.that(len(commands_list), eq=2)

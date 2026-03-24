@@ -216,7 +216,7 @@ class TestsCliTypings:
         validation_result = self.TypingValidators.validate_type_initialization(t)
         tm.ok(validation_result)
         test_data: Mapping[str, t.NormalizedValue] = {"key": "value"}
-        tm.that(isinstance(test_data, dict), eq=True)
+        tm.that(test_data, is_=dict)
 
     def _execute_basic_functionality_tests(self) -> None:
         """Execute basic functionality tests."""
@@ -255,8 +255,8 @@ class TestsCliTypings:
         tm.that(Test, none=False)
         user_data: Mapping[str, t.NormalizedValue] = {"key": "value", "number": 42}
         user_list: Sequence[Mapping[str, t.NormalizedValue]] = [user_data]
-        tm.that(isinstance(user_data, dict), eq=True)
-        tm.that(isinstance(user_list, list), eq=True)
+        tm.that(user_data, is_=dict)
+        tm.that(user_list, is_=list)
         tm.that(len(user_list), eq=1)
 
     def _execute_type_validation_tests(self) -> None:
@@ -425,14 +425,14 @@ class TestsCliTypings:
             id=user_id, name=user_name, email=user_email, active=user_active
         )
         user_response = create_user_response(user_data)
-        tm.that(isinstance(user_response, ApiResponse), eq=True)
+        tm.that(user_response, is_=ApiResponse)
         tm.that(user_response.status, eq="success")
         tm.that(user_response.message, eq="User created successfully")
         users_response = create_users_response([user_data])
-        tm.that(isinstance(users_response, ApiResponse), eq=True)
+        tm.that(users_response, is_=ApiResponse)
         tm.that(users_response.status, eq="success")
         users_data = users_response.data
-        tm.that(isinstance(users_data, list), eq=True)
+        tm.that(users_data, is_=list)
         tm.that(len(users_data), eq=1)
         processing_result = (
             FlextCliTestHelpers.TypingHelpers.create_processing_test_data()
@@ -442,7 +442,7 @@ class TestsCliTypings:
             string_list, number_list, mixed_dict = processing_result.value
             tm.that(len(string_list), eq=3)
             tm.that(len(number_list), eq=5)
-            tm.that(isinstance(mixed_dict, dict), eq=True)
+            tm.that(mixed_dict, is_=dict)
 
     def _execute_type_performance_tests(self) -> None:
         """Execute type performance tests."""
@@ -548,7 +548,7 @@ class TestsCliTypings:
                 }
 
         impl = Implementation()
-        tm.that(isinstance(impl, Test), eq=True)
+        tm.that(impl, is_=Test)
         test_data = ["str1", "str2"]
         result = impl.operation(test_data)
         processed: t.NormalizedValue = result.get("processed")

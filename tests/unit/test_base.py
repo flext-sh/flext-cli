@@ -41,14 +41,14 @@ class TestsCliServiceBase:
         """Test FlextCliServiceBase can be instantiated via concrete class."""
         service = self._ConcreteService()
         tm.that(service, none=False)
-        tm.that(isinstance(service, FlextCliServiceBase), eq=True)
+        tm.that(service, is_=FlextCliServiceBase)
 
     def test_cli_config_property(self) -> None:
         """Test cli_config property returns FlextCliSettings singleton."""
         service = self._ConcreteService()
         config = service.cli_config
         tm.that(config, none=False)
-        tm.that(isinstance(config, FlextCliSettings), eq=True)
+        tm.that(config, is_=FlextCliSettings)
         config2 = service.cli_config
         tm.that(config is config2, eq=True)
 
@@ -56,7 +56,7 @@ class TestsCliServiceBase:
         """Test get_cli_config static method returns FlextCliSettings singleton."""
         config = FlextCliServiceBase.get_cli_config()
         tm.that(config, none=False)
-        tm.that(isinstance(config, FlextCliSettings), eq=True)
+        tm.that(config, is_=FlextCliSettings)
         config2 = FlextCliServiceBase.get_cli_config()
         tm.that(config is config2, eq=True)
         service = self._ConcreteService()

@@ -77,7 +77,7 @@ class TestsCliRailwayPatternExample:
         read_result = file_tools.read_json_file(str(test_file))
         tm.ok(read_result)
         loaded_data = read_result.value
-        tm.that(isinstance(loaded_data, dict), eq=True)
+        tm.that(loaded_data, is_=dict)
         for key in verify_keys:
             tm.that(loaded_data, has=key)
 
@@ -164,6 +164,6 @@ class TestsCliRailwayPatternExample:
         final_result = file_tools.read_json_file(str(output_file))
         tm.ok(final_result)
         final_data = final_result.value
-        tm.that(isinstance(final_data, dict), eq=True)
+        tm.that(final_data, is_=dict)
         tm.that(final_data, has="config")
         tm.that(final_data, has="data")

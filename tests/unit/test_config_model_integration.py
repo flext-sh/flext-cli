@@ -291,7 +291,7 @@ class TestsCliConfigModelIntegration:
         """Test extracting config values of different types."""
         config = config_class()
         value = getattr(config, field_name)
-        tm.that(isinstance(value, expected_type), eq=True)
+        tm.that(value, is_=expected_type)
         tm.that(value, eq=expected_value)
 
     def test_config_field_access(self) -> None:

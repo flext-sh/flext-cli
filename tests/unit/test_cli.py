@@ -35,7 +35,7 @@ class TestsCliCli:
     def test_cli_initialization(self) -> None:
         """Test CLI class initialization."""
         cli_cli = FlextCliCli()
-        tm.that(isinstance(cli_cli, FlextCliCli), eq=True)
+        tm.that(cli_cli, is_=FlextCliCli)
         tm.that(hasattr(cli_cli, "logger"), eq=True)
         tm.that(hasattr(cli_cli, "container"), eq=True)
 
@@ -45,7 +45,7 @@ class TestsCliCli:
         execute_result = cli_cli.execute()
         tm.ok(execute_result)
         data = execute_result.value
-        tm.that(isinstance(data, dict), eq=True)
+        tm.that(data, is_=dict)
         tm.that(data.get("service"), eq="flext-cli")
         tm.that(data.get("status"), eq="operational")
 
@@ -57,7 +57,7 @@ class TestsCliCli:
         )
         tm.ok(command_result)
         if command_result.is_success and command_result.value:
-            tm.that(isinstance(command_result.value, click.Command), eq=True)
+            tm.that(command_result.value, is_=click.Command)
             tm.that(command_result.value.name, eq="test_cmd")
 
     def test_group_decorator_creation(self) -> None:
@@ -68,7 +68,7 @@ class TestsCliCli:
         )
         tm.ok(group_result)
         if group_result.is_success and group_result.value:
-            tm.that(isinstance(group_result.value, click.Group), eq=True)
+            tm.that(group_result.value, is_=click.Group)
             tm.that(group_result.value.name, eq="test_group")
 
     def test_option_decorator(self) -> None:
@@ -111,10 +111,10 @@ class TestsCliCli:
         """Test Click type creation with various parameter types."""
         if click_type_name == "choice":
             choices = data_dict.get("choices")
-            tm.that(isinstance(choices, list), eq=True)
+            tm.that(choices, is_=list)
             if isinstance(choices, list):
                 choice_type = click.Choice(choices)
-                tm.that(isinstance(choice_type, click.Choice), eq=True)
+                tm.that(choice_type, is_=click.Choice)
                 choices_tuple: tuple[str, ...] = tuple(choice_type.choices)
                 tm.that(choices_tuple, eq=tuple(choices))
         elif click_type_name == "path":
@@ -123,7 +123,7 @@ class TestsCliCli:
                 file_okay=bool(data_dict.get("file_okay")),
                 dir_okay=bool(data_dict.get("dir_okay")),
             )
-            tm.that(isinstance(path_type, click.Path), eq=True)
+            tm.that(path_type, is_=click.Path)
         elif click_type_name in {"intrange", "floatrange"}:
             tm.that(data_dict, has="min")
             tm.that(data_dict, has="max")
@@ -153,14 +153,14 @@ class TestsCliCli:
         """Test DateTime type creation."""
         cli_cli = FlextCliCli()
         datetime_type = cli_cli.get_datetime_type()
-        tm.that(isinstance(datetime_type, click.DateTime), eq=True)
+        tm.that(datetime_type, is_=click.DateTime)
         for fmt in ["%Y-%m-%d", "%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%S"]:
             tm.that(datetime_type.formats, has=fmt)
 
     def test_cli_runner_invocation(self) -> None:
         """Test CLI runner for command invocation."""
         runner = CliRunner()
-        tm.that(isinstance(runner, CliRunner), eq=True)
+        tm.that(runner, is_=CliRunner)
 
         @click.command()
         def simple_command() -> None:
@@ -209,7 +209,7 @@ class TestsCliCli:
                     success = True
                 case "context":
                     cli_cli = FlextCliCli()
-                    tm.that(isinstance(cli_cli, FlextCliCli), eq=True)
+                    tm.that(cli_cli, is_=FlextCliCli)
                     success = True
                 case "runner":
                     self.test_cli_runner_invocation()
@@ -220,7 +220,7 @@ class TestsCliCli:
                     success = True
                 case "model":
                     cli_cli = FlextCliCli()
-                    tm.that(isinstance(cli_cli, FlextCliCli), eq=True)
+                    tm.that(cli_cli, is_=FlextCliCli)
                     success = True
                 case "integration":
                     cli_cli = FlextCliCli()
@@ -240,7 +240,7 @@ class TestsCliCli:
             """Test create_app_with_common_params creation only."""
             cli = FlextCliCli()
             app = cli.create_app_with_common_params("test_app", "help")
-            tm.that(isinstance(app, typer.Typer), eq=True)
+            tm.that(app, is_=typer.Typer)
 
         def test_echo(self) -> None:
             """Test echo."""
@@ -251,8 +251,8 @@ class TestsCliCli:
         def test_utilities(self) -> None:
             """Test utility methods."""
             cli = FlextCliCli()
-            tm.that(isinstance(cli.format_filename("test.txt"), str), eq=True)
-            tm.that(isinstance(cli.get_terminal_size(), tuple), eq=True)
+            tm.that(cli.format_filename("test.txt"), is_=str)
+            tm.that(cli.get_terminal_size(), is_=tuple)
 
         def test_model_command_validation(self) -> None:
             """Test model_command input validation."""
@@ -270,7 +270,7 @@ class TestsCliCli:
             cli = FlextCliCli()
             result = cli.create_cli_runner()
             tm.ok(result)
-            tm.that(isinstance(result.value, CliRunner), eq=True)
+            tm.that(result.value, is_=CliRunner)
 
         def test_get_current_context(self) -> None:
             """Test get_current_context."""
@@ -288,8 +288,8 @@ class TestsCliCli:
         """Test get_terminal_size method."""
         cli = FlextCliCli()
         width, height = cli.get_terminal_size()
-        tm.that(isinstance(width, int), eq=True)
-        tm.that(isinstance(height, int), eq=True)
+        tm.that(width, is_=int)
+        tm.that(height, is_=int)
         tm.that(width, gt=0)
         tm.that(height, gt=0)
 
@@ -352,7 +352,7 @@ class TestsCliCli:
         """Test format_filename method."""
         cli = FlextCliCli()
         result = cli.format_filename("test.py")
-        tm.that(isinstance(result, str), eq=True)
+        tm.that(result, is_=str)
         tm.that(result, has="test.py")
 
     def test_pause(self) -> None:
@@ -377,7 +377,7 @@ class TestsCliCli:
         result = cli.execute()
         tm.ok(result)
         data = result.value
-        tm.that(isinstance(data, dict), eq=True)
+        tm.that(data, is_=dict)
 
     def test_create_pass_context_decorator(self) -> None:
         """Test create_pass_context_decorator method."""
@@ -397,7 +397,7 @@ class TestsCliCli:
         """Test format_filename method."""
         cli = FlextCliCli()
         result = cli.format_filename("test.py")
-        tm.that(isinstance(result, str), eq=True)
+        tm.that(result, is_=str)
         tm.that(result, has="test.py")
 
     def test_create_command_decorator(self) -> None:
@@ -422,14 +422,14 @@ class TestsCliCli:
         """Test _build_bool_value method."""
         cli = FlextCliCli()
         bool_value = cli._build_bool_value({"test": True}, "test", default=False)
-        tm.that(isinstance(bool_value, bool), eq=True)
+        tm.that(bool_value, is_=bool)
         tm.that(bool_value is True, eq=True)
 
     def test_build_str_value(self) -> None:
         """Test _build_str_value method."""
         cli = FlextCliCli()
         str_value = cli._build_str_value({"test": "value"}, "test", default="default")
-        tm.that(isinstance(str_value, str), eq=True)
+        tm.that(str_value, is_=str)
         tm.that(str_value, eq="value")
 
     def test_get_console_enabled(self) -> None:
@@ -438,7 +438,7 @@ class TestsCliCli:
         config = FlextCliSettings()
         config.no_color = False
         console_enabled = cli._get_console_enabled(config)
-        tm.that(isinstance(console_enabled, bool), eq=True)
+        tm.that(console_enabled, is_=bool)
 
     def test_apply_common_params_to_config(self) -> None:
         """Test _apply_common_params_to_config method."""

@@ -160,8 +160,8 @@ class TestsCliVersion:
 
     def test_actual_version_string_type(self) -> None:
         """Test __version__ is a non-empty string."""
-        tm.that(isinstance(__version__, str), eq=True)
-        tm.that(__version__, eq=True)
+        tm.that(__version__, is_=str)
+        tm.that(bool(__version__), eq=True)
         tm.that(__version__, eq=__version__.strip())
 
     def test_actual_version_string_semver_compliant(self) -> None:
@@ -176,14 +176,14 @@ class TestsCliVersion:
 
     def test_actual_version_info_structure(self) -> None:
         """Test __version_info__ is a valid tuple."""
-        tm.that(isinstance(__version_info__, tuple), eq=True)
+        tm.that(__version_info__, is_=tuple)
         tm.that(len(__version_info__), gte=3)
         for part in __version_info__:
-            tm.that(isinstance(part, (int, str)), eq=True)
+            tm.that(part, is_=(int, str))
             if isinstance(part, int):
                 tm.that(part, gte=0)
             else:
-                tm.that(part, eq=True)
+                tm.that(len(str(part)), gt=0)
 
     def test_actual_version_parts_extraction(self) -> None:
         """Test major.minor.patch can be extracted from version."""
@@ -207,7 +207,7 @@ class TestsCliVersion:
         original_info = __version_info__
         tm.that(__version__, eq=original_version)
         tm.that(__version_info__, eq=original_info)
-        tm.that(isinstance(__version_info__, tuple), eq=True)
+        tm.that(__version_info__, is_=tuple)
 
     @pytest.mark.parametrize(
         "scenario",

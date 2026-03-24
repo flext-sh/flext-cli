@@ -201,7 +201,7 @@ class TestsCliModelCommandComprehensive:
 
         def handler(params: BaseModel) -> None:
             """Process connection config."""
-            tm.that(isinstance(params, m.ConnectionConfig), eq=True)
+            tm.that(params, is_=m.ConnectionConfig)
             assert isinstance(params, m.ConnectionConfig)
             tm.that(params.host, none=False)
             tm.that(params.port, none=False)
@@ -216,7 +216,7 @@ class TestsCliModelCommandComprehensive:
 
         def handler(params: BaseModel) -> None:
             """Process environment config."""
-            tm.that(isinstance(params, m.EnvironmentConfig), eq=True)
+            tm.that(params, is_=m.EnvironmentConfig)
             assert isinstance(params, m.EnvironmentConfig)
             tm.that(params.environment, none=False)
 
@@ -230,7 +230,7 @@ class TestsCliModelCommandComprehensive:
 
         def handler(params: BaseModel) -> None:
             """Process aliased config."""
-            tm.that(isinstance(params, m.AliasedConfig), eq=True)
+            tm.that(params, is_=m.AliasedConfig)
             assert isinstance(params, m.AliasedConfig)
             tm.that(params.input_dir, none=False)
             tm.that(params.output_dir, none=False)

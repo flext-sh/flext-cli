@@ -79,7 +79,7 @@ class TestsCliProtocols:
 
         duck = DuckFormatter()
         obj = duck
-        tm.that(isinstance(obj, p.Cli.CliFormatter), eq=True)
+        tm.that(obj, is_=p.Cli.CliFormatter)
 
     def test_cli_formatter_implementation(self) -> None:
         """Test CLI formatter protocol implementation."""

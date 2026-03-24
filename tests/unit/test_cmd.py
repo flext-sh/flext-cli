@@ -129,12 +129,12 @@ class TestsCliCmd:
         """Test CMD initialization with proper configuration."""
         cmd = _create_cmd_instance()
         tm.that(cmd, none=False)
-        tm.that(isinstance(cmd, FlextCliCmd), eq=True)
+        tm.that(cmd, is_=FlextCliCmd)
 
     def test_cmd_instantiation(self) -> None:
         """Test direct instantiation."""
         instance = _create_cmd_instance()
-        tm.that(isinstance(instance, FlextCliCmd), eq=True)
+        tm.that(instance, is_=FlextCliCmd)
 
     def test_cmd_service_properties(self) -> None:
         """Test CMD service properties."""
@@ -150,7 +150,7 @@ class TestsCliCmd:
         result = cmd.execute()
         tm.ok(result)
         data = result.value
-        tm.that(isinstance(data, dict), eq=True)
+        tm.that(data, is_=dict)
         tm.that(data["status"], eq="operational")
         tm.that(data["service"], eq="FlextCliCmd")
 
@@ -158,7 +158,7 @@ class TestsCliCmd:
         """Test command bus service property."""
         cmd = _create_cmd_instance()
         tm.that(cmd, none=False)
-        tm.that(isinstance(cmd, FlextCliCmd), eq=True)
+        tm.that(cmd, is_=FlextCliCmd)
 
     def test_cmd_integration(self) -> None:
         """Test CMD integration with other services."""
@@ -166,7 +166,7 @@ class TestsCliCmd:
         result = cmd.execute()
         tm.ok(result)
         tm.that(cmd, none=False)
-        tm.that(isinstance(cmd, FlextCliCmd), eq=True)
+        tm.that(cmd, is_=FlextCliCmd)
 
     def test_cmd_logging_integration(self) -> None:
         """Test CMD logging integration."""
@@ -209,7 +209,7 @@ class TestsCliCmd:
             cmd = _create_cmd_instance()
             method = getattr(cmd, CONFIG_OPERATION_METHODS[operation])
             result = method()
-            tm.that(isinstance(result, r), eq=True)
+            tm.that(result, is_=r)
             tm.that(result.is_success or result.is_failure, eq=True)
 
     def test_cmd_show_config_paths(self) -> None:
@@ -217,7 +217,7 @@ class TestsCliCmd:
         cmd = _create_cmd_instance()
         result = cmd.show_config_paths()
         tm.ok(result)
-        tm.that(isinstance(result.value, list), eq=True)
+        tm.that(result.value, is_=list)
         tm.that(result.value, eq=True)
 
     def test_cmd_validate_config(self) -> None:
@@ -231,7 +231,7 @@ class TestsCliCmd:
         cmd = _create_cmd_instance()
         result = cmd.get_config_info()
         tm.ok(result)
-        tm.that(isinstance(result.value, m.Cli.ConfigSnapshot), eq=True)
+        tm.that(result.value, is_=m.Cli.ConfigSnapshot)
         tm.that(result.value.config_dir, none=False)
 
     def test_cmd_show_config(self) -> None:
@@ -246,9 +246,9 @@ class TestsCliCmd:
         config_dir.mkdir()
         cmd = _create_cmd_instance()
         result = cmd.edit_config()
-        tm.that(isinstance(result, r), eq=True)
+        tm.that(result, is_=r)
         if result.is_success:
-            tm.that(isinstance(result.value, str), eq=True)
+            tm.that(result.value, is_=str)
 
     def test_cmd_config_edit_existing(self, tmp_path: Path) -> None:
         """Test editing existing configuration."""
@@ -257,9 +257,9 @@ class TestsCliCmd:
         _create_config_file(config_dir, VALID_CONFIG_DATA)
         cmd = _create_cmd_instance()
         result = cmd.edit_config()
-        tm.that(isinstance(result, r), eq=True)
+        tm.that(result, is_=r)
         if result.is_success:
-            tm.that(isinstance(result.value, str), eq=True)
+            tm.that(result.value, is_=str)
 
     def test_cmd_config_default_values(self, tmp_path: Path) -> None:
         """Test default configuration values with clean temporary directory."""
@@ -269,9 +269,9 @@ class TestsCliCmd:
         tm.that(config_file.exists(), eq=False)
         cmd = _create_cmd_instance()
         result = cmd.edit_config()
-        tm.that(isinstance(result, r), eq=True)
+        tm.that(result, is_=r)
         if result.is_success:
-            tm.that(isinstance(result.value, str), eq=True)
+            tm.that(result.value, is_=str)
 
     def test_cmd_edit_config_creates_default(self, tmp_path: Path) -> None:
         """Test edit_config creates default configuration."""
@@ -281,9 +281,9 @@ class TestsCliCmd:
         tm.that(config_file.exists(), eq=False)
         cmd = _create_cmd_instance()
         result = cmd.edit_config()
-        tm.that(isinstance(result, r), eq=True)
+        tm.that(result, is_=r)
         if result.is_success:
-            tm.that(isinstance(result.value, str), eq=True)
+            tm.that(result.value, is_=str)
 
     def test_cmd_configuration_consistency(self, tmp_path: Path) -> None:
         """Test configuration consistency across operations."""
@@ -293,13 +293,13 @@ class TestsCliCmd:
         tm.that(config_file.exists(), eq=False)
         cmd = _create_cmd_instance()
         result1 = cmd.edit_config()
-        tm.that(isinstance(result1, r), eq=True)
+        tm.that(result1, is_=r)
         result2 = cmd.edit_config()
-        tm.that(isinstance(result2, r), eq=True)
+        tm.that(result2, is_=r)
         if result1.is_success:
-            tm.that(isinstance(result1.value, str), eq=True)
+            tm.that(result1.value, is_=str)
         if result2.is_success:
-            tm.that(isinstance(result2.value, str), eq=True)
+            tm.that(result2.value, is_=str)
 
     def test_cmd_set_config_value(self) -> None:
         """Test set_config_value method."""
@@ -421,7 +421,7 @@ class TestsCliCmd:
         try:
             result = cmd.edit_config()
             tm.fail(result)
-            tm.that(isinstance(result.error, str), eq=True)
+            tm.that(result.error, is_=str)
             tm.that(result.error, none=False)
         finally:
             _restore_config_dir(original_config_dir)
@@ -433,7 +433,7 @@ class TestsCliCmd:
         original_config_dir = _set_config_dir(read_only_dir)
         try:
             result = cmd.set_config_value("key", "value")
-            tm.that(isinstance(result, r), eq=True)
+            tm.that(result, is_=r)
         finally:
             _restore_dir_permissions(read_only_dir)
             _restore_config_dir(original_config_dir)
@@ -445,7 +445,7 @@ class TestsCliCmd:
         original_config_dir = _set_config_dir(read_only_dir)
         try:
             result = cmd.edit_config()
-            tm.that(isinstance(result, r), eq=True)
+            tm.that(result, is_=r)
         finally:
             _restore_dir_permissions(read_only_dir)
             _restore_config_dir(original_config_dir)
@@ -453,30 +453,30 @@ class TestsCliCmd:
     def test_cmd_config_helper_get_config_paths(self) -> None:
         """Test u.Cli.ConfigOps.get_config_paths() directly."""
         paths = u.Cli.ConfigOps.get_config_paths()
-        tm.that(isinstance(paths, list), eq=True)
+        tm.that(paths, is_=list)
         tm.that(paths, eq=True)
         tm.that(any(".flext" in path for path in paths), eq=True)
 
     def test_cmd_config_helper_validate_config_structure(self) -> None:
         """Test u.Cli.ConfigOps.validate_config_structure() directly."""
         results = u.Cli.ConfigOps.validate_config_structure()
-        tm.that(isinstance(results, list), eq=True)
+        tm.that(results, is_=list)
         tm.that(results, eq=True)
 
     def test_cmd_config_helper_get_config_info(self) -> None:
         """Test u.Cli.ConfigOps.get_config_info() directly."""
         info = u.Cli.ConfigOps.get_config_info()
-        tm.that(isinstance(info, m.Cli.ConfigSnapshot), eq=True)
-        tm.that(isinstance(info.config_dir, str), eq=True)
-        tm.that(isinstance(info.config_exists, bool), eq=True)
-        tm.that(isinstance(info.config_readable, bool), eq=True)
-        tm.that(isinstance(info.config_writable, bool), eq=True)
-        tm.that(isinstance(info.timestamp, str), eq=True)
+        tm.that(info, is_=m.Cli.ConfigSnapshot)
+        tm.that(info.config_dir, is_=str)
+        tm.that(info.config_exists, is_=bool)
+        tm.that(info.config_readable, is_=bool)
+        tm.that(info.config_writable, is_=bool)
+        tm.that(info.timestamp, is_=str)
 
     def test_cmd_validate_config_structure_missing_dir(self) -> None:
         """Test validate_config_structure when main config directory is missing."""
         results = u.Cli.ConfigOps.validate_config_structure()
-        tm.that(isinstance(results, list), eq=True)
+        tm.that(results, is_=list)
         tm.that(all(isinstance(r, str) for r in results), eq=True)
 
     def test_cmd_error_handling(self) -> None:
@@ -489,39 +489,39 @@ class TestsCliCmd:
         """Test show_config_paths exception handler."""
         cmd = _create_cmd_instance()
         result = cmd.show_config_paths()
-        tm.that(isinstance(result, r), eq=True)
+        tm.that(result, is_=r)
         if result.is_success:
-            tm.that(isinstance(result.value, list), eq=True)
+            tm.that(result.value, is_=list)
             tm.that(all(isinstance(p, str) for p in result.value), eq=True)
 
     def test_cmd_validate_config_exception(self) -> None:
         """Test validate_config exception handler."""
         cmd = _create_cmd_instance()
         result = cmd.validate_config()
-        tm.that(isinstance(result, r), eq=True)
+        tm.that(result, is_=r)
         tm.that(result.is_success or result.is_failure, eq=True)
 
     def test_cmd_get_config_info_exception(self) -> None:
         """Test get_config_info exception handler."""
         cmd = _create_cmd_instance()
         result = cmd.get_config_info()
-        tm.that(isinstance(result, r), eq=True)
+        tm.that(result, is_=r)
         if result.is_success:
             info = result.value
-            tm.that(isinstance(info, m.Cli.ConfigSnapshot), eq=True)
+            tm.that(info, is_=m.Cli.ConfigSnapshot)
 
     def test_cmd_set_config_value_exception(self) -> None:
         """Test set_config_value exception handler."""
         cmd = _create_cmd_instance()
         result = cmd.set_config_value("key", "value")
-        tm.that(isinstance(result, r), eq=True)
+        tm.that(result, is_=r)
         tm.that(result.is_success or result.is_failure, eq=True)
 
     def test_cmd_get_config_value_exception(self) -> None:
         """Test get_config_value exception handler."""
         cmd = _create_cmd_instance()
         result = cmd.get_config_value("key")
-        tm.that(isinstance(result, r), eq=True)
+        tm.that(result, is_=r)
         if result.is_success:
             tm.that(result.value, none=False)
 
@@ -529,7 +529,7 @@ class TestsCliCmd:
         """Test show_config exception handler."""
         cmd = _create_cmd_instance()
         result = cmd.show_config()
-        tm.that(isinstance(result, r), eq=True)
+        tm.that(result, is_=r)
 
     def test_cmd_show_config_get_info_failure(self, temp_dir: Path) -> None:
         """Test show_config with invalid config."""
@@ -538,7 +538,7 @@ class TestsCliCmd:
         original_config_dir = _set_config_dir(temp_dir)
         try:
             result = cmd.show_config()
-            tm.that(isinstance(result, r), eq=True)
+            tm.that(result, is_=r)
         finally:
             _restore_config_dir(original_config_dir)
 
@@ -546,9 +546,9 @@ class TestsCliCmd:
         """Test edit_config exception handler."""
         cmd = _create_cmd_instance()
         result = cmd.edit_config()
-        tm.that(isinstance(result, r), eq=True)
+        tm.that(result, is_=r)
         if result.is_success:
-            tm.that(isinstance(result.value, str), eq=True)
+            tm.that(result.value, is_=str)
 
     def test_cmd_config_display_helper_show_config(self) -> None:
         """Test show_config method."""

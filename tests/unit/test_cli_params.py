@@ -268,7 +268,7 @@ class TestsCliCommonParams:
         # Get params directly - Railway pattern without None values
         params = FlextCliCommonParams.get_all_common_params()
 
-        tm.that(isinstance(params, dict), eq=True)
+        tm.that(params, is_=dict)
         tm.that(params, eq=True)
         tm.that(params, has="verbose")
         tm.that(params, has="debug")

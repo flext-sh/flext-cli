@@ -50,7 +50,7 @@ class TestsCliComprehensiveModels:
                 attr_value: t.NormalizedValue = getattr(cmd, key)
                 tm.that(attr_value, eq=value)
         tm.that((cmd.command_line or cmd.name), has="test")
-        tm.that(isinstance(cmd.created_at, datetime), eq=True)
+        tm.that(cmd.created_at, is_=datetime)
 
     @pytest.mark.parametrize(
         "status",
@@ -83,8 +83,8 @@ class TestsCliComprehensiveModels:
         )
         pending = session.commands_by_status(c.Cli.CommandStatus.PENDING.value)
         completed = session.commands_by_status(c.Cli.CommandStatus.COMPLETED.value)
-        tm.that(isinstance(pending, list), eq=True)
-        tm.that(isinstance(completed, list), eq=True)
+        tm.that(pending, is_=list)
+        tm.that(completed, is_=list)
         if isinstance(pending, list) and isinstance(completed, list):
             tm.that(len(pending), eq=1)
             tm.that(len(completed), eq=1)
