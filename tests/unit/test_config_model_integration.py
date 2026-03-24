@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import ClassVar
+from typing import Annotated, ClassVar
 
 import pytest
 from flext_tests import tm
@@ -34,122 +34,122 @@ class TestsCliConfigModelIntegration:
         """Config with required fields."""
 
         model_config = SettingsConfigDict(env_prefix="TEST_APP_")
-        input_dir: str = Field(default="/tmp/test/input")
-        output_dir: str = Field(default="/tmp/test/output")
+        input_dir: Annotated[str, Field(default="/tmp/test/input")]
+        output_dir: Annotated[str, Field(default="/tmp/test/output")]
 
     class OptionalFieldsConfig(BaseSettings):
         """Config with optional fields."""
 
         model_config = SettingsConfigDict(env_prefix="TEST_APP_")
-        input_dir: str | None = Field(default=None)
-        output_dir: str | None = Field(default=None)
-        verbose: bool = Field(default=False)
+        input_dir: Annotated[str | None, Field(default=None)]
+        output_dir: Annotated[str | None, Field(default=None)]
+        verbose: Annotated[bool, Field(default=False)]
 
     class TypedFieldsConfig(BaseSettings):
         """Config with various typed fields."""
 
         model_config = SettingsConfigDict(env_prefix="APP_")
-        timeout: int = Field(default=30)
-        max_retries: int = Field(default=3)
-        debug: bool = Field(default=False)
-        optional_path: str | None = Field(default=None)
+        timeout: Annotated[int, Field(default=30)]
+        max_retries: Annotated[int, Field(default=3)]
+        debug: Annotated[bool, Field(default=False)]
+        optional_path: Annotated[str | None, Field(default=None)]
 
     class AppConfig(BaseSettings):
         """Application configuration."""
 
         model_config = SettingsConfigDict(env_prefix="TEST_")
-        input_dir: str = Field(default="/config/input")
-        output_dir: str = Field(default="/config/output")
-        verbose: bool = Field(default=False)
+        input_dir: Annotated[str, Field(default="/config/input")]
+        output_dir: Annotated[str, Field(default="/config/output")]
+        verbose: Annotated[bool, Field(default=False)]
 
     class FullAppConfig(BaseSettings):
         """Full application config."""
 
         model_config = SettingsConfigDict(env_prefix="APP_")
-        input_dir: str = Field(default="/app/input")
-        output_dir: str = Field(default="/app/output")
-        batch_size: int = Field(default=1000)
-        verbose: bool = Field(default=False)
+        input_dir: Annotated[str, Field(default="/app/input")]
+        output_dir: Annotated[str, Field(default="/app/output")]
+        batch_size: Annotated[int, Field(default=1000)]
+        verbose: Annotated[bool, Field(default=False)]
 
     class StringConfig(BaseSettings):
         """String field config."""
 
         model_config = SettingsConfigDict(env_prefix="TEST_")
-        input_path: str = Field(default="/tmp/test/input")
-        output_path: str = Field(default="/tmp/test/output")
+        input_path: Annotated[str, Field(default="/tmp/test/input")]
+        output_path: Annotated[str, Field(default="/tmp/test/output")]
 
     class IntConfig(BaseSettings):
         """Integer field config."""
 
         model_config = SettingsConfigDict(env_prefix="APP_")
-        timeout: int = Field(default=30)
-        max_retries: int = Field(default=3)
+        timeout: Annotated[int, Field(default=30)]
+        max_retries: Annotated[int, Field(default=3)]
 
     class BoolConfig(BaseSettings):
         """Boolean field config."""
 
         model_config = SettingsConfigDict(env_prefix="APP_")
-        debug: bool = Field(default=False)
-        verbose: bool = Field(default=False)
+        debug: Annotated[bool, Field(default=False)]
+        verbose: Annotated[bool, Field(default=False)]
 
     class OptionalPathConfig(BaseSettings):
         """Config with optional fields."""
 
         model_config = SettingsConfigDict(env_prefix="APP_")
-        optional_path: str | None = Field(default=None)
-        required_path: str = Field(default="/default")
+        optional_path: Annotated[str | None, Field(default=None)]
+        required_path: Annotated[str, Field(default="/default")]
 
     class AliasedParams(BaseModel):
         """Parameters with field aliases."""
 
         model_config: ClassVar[ConfigDict] = ConfigDict(populate_by_name=True)
 
-        input_dir: str | None = Field(default=None, alias="input-dir")
-        output_dir: str | None = Field(default=None, alias="output-dir")
-        batch_size: int | None = Field(default=None, alias="batch-size")
+        input_dir: Annotated[str | None, Field(default=None, alias="input-dir")]
+        output_dir: Annotated[str | None, Field(default=None, alias="output-dir")]
+        batch_size: Annotated[int | None, Field(default=None, alias="batch-size")]
 
     class RequiredFieldsParams(BaseModel):
         """Parameters with required fields."""
 
-        input_dir: str = Field(min_length=1)
-        output_dir: str | None = Field(default=None)
+        input_dir: Annotated[str, Field(min_length=1)]
+        output_dir: Annotated[str | None, Field(default=None)]
 
     class AppParams(BaseModel):
         """Application parameters."""
 
-        input_dir: str | None = Field(default=None)
-        output_dir: str | None = Field(default=None)
+        input_dir: Annotated[str | None, Field(default=None)]
+        output_dir: Annotated[str | None, Field(default=None)]
 
     class SimpleParams(BaseModel):
         """Simple parameters."""
 
-        name: str | None = Field(default=None)
-        value: str | None = Field(default=None)
+        name: Annotated[str | None, Field(default=None)]
+        value: Annotated[str | None, Field(default=None)]
 
     class FullAppParams(BaseModel):
         """Full application parameters."""
 
-        input_dir: str | None = Field(default=None)
-        output_dir: str | None = Field(default=None)
-        batch_size: int | None = Field(default=None)
-        verbose: bool = Field(default=False)
-        verbose_mode: bool = Field(default=False)
+        input_dir: Annotated[str | None, Field(default=None)]
+        output_dir: Annotated[str | None, Field(default=None)]
+        batch_size: Annotated[int | None, Field(default=None)]
+        verbose: Annotated[bool, Field(default=False)]
+        verbose_mode: Annotated[bool, Field(default=False)]
 
     class StrictParams(BaseModel):
         """Strict parameters with validation."""
 
         input_dir: str
         output_dir: str
-        name: str | None = Field(default=None)
-        count: int | None = Field(default=None)
+        name: Annotated[str | None, Field(default=None)]
+        count: Annotated[int | None, Field(default=None)]
 
     class ForbidExtraParams(BaseModel):
         """Parameters that forbid extra fields."""
 
         model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
-        input_dir: str | None = Field(default=None)
-        output_dir: str | None = Field(default=None)
-        name: str | None = Field(default=None)
+        input_dir: Annotated[str | None, Field(default=None)]
+        output_dir: Annotated[str | None, Field(default=None)]
+        name: Annotated[str | None, Field(default=None)]
 
     @pytest.fixture
     def cli(self) -> FlextCliCli:

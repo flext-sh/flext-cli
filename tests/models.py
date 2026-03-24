@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from datetime import datetime
-from typing import ClassVar, Literal, Self
+from typing import Annotated, ClassVar, Literal, Self
 
 from flext_tests import FlextTestsModels
 from pydantic import BaseModel, ConfigDict, Field, RootModel, field_validator
@@ -50,23 +50,26 @@ class FlextCliTestModels(FlextTestsModels, FlextCliModels):
                 """Test input for building CliCommand via model_construct. All optional with defaults."""
 
                 model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
-                unique_id: str = Field(default="test-cmd-0")
-                name: str = Field(default="test_command")
-                description: str = Field(default="Test command description")
-                status: str = Field(default="pending")
-                created_at: datetime | None = Field(default=None)
-                command_line: str = Field(default="test_command")
-                args: t.StrSequence = Field(default_factory=list)
-                result: t.NormalizedValue = Field(default=None)
-                kwargs: Mapping[str, t.ContainerValue] = Field(default_factory=dict)
+                unique_id: Annotated[str, Field(default="test-cmd-0")]
+                name: Annotated[str, Field(default="test_command")]
+                description: Annotated[str, Field(default="Test command description")]
+                status: Annotated[str, Field(default="pending")]
+                created_at: Annotated[datetime | None, Field(default=None)]
+                command_line: Annotated[str, Field(default="test_command")]
+                args: Annotated[t.StrSequence, Field(default_factory=list)]
+                result: Annotated[t.NormalizedValue, Field(default=None)]
+                kwargs: Annotated[
+                    Mapping[str, t.ContainerValue],
+                    Field(default_factory=dict),
+                ]
 
             class CliSessionInput(PositionalModel):
                 """Test input for building CliSession via model_construct. All optional with defaults."""
 
                 model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
-                session_id: str = Field(default="test-session-0")
-                status: str = Field(default="active")
-                created_at: datetime | None = Field(default=None)
+                session_id: Annotated[str, Field(default="test-session-0")]
+                status: Annotated[str, Field(default="active")]
+                created_at: Annotated[datetime | None, Field(default=None)]
 
             _ScalarOnly = t.Primitives | None
 
@@ -87,67 +90,94 @@ class FlextCliTestModels(FlextTestsModels, FlextCliModels):
                 """Parametrized test case for prompt_text — Pydantic v2."""
 
                 model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
-                message: str = Field(default="", description="Prompt message")
-                default: str = Field(default="", description="Default value")
-                validation_pattern: str | None = Field(
-                    default=None,
-                    description="Regex pattern",
-                )
-                expected_success: bool = Field(
-                    default=True,
-                    description="Expect success",
-                )
+                message: Annotated[str, Field(default="", description="Prompt message")]
+                default: Annotated[str, Field(default="", description="Default value")]
+                validation_pattern: Annotated[
+                    str | None,
+                    Field(
+                        default=None,
+                        description="Regex pattern",
+                    ),
+                ]
+                expected_success: Annotated[
+                    bool,
+                    Field(
+                        default=True,
+                        description="Expect success",
+                    ),
+                ]
 
             class ConfirmTestCaseDict(PositionalModel):
                 """Parametrized test case for prompt_confirmation — Pydantic v2."""
 
                 model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
-                message: str = Field(default="", description="Prompt message")
-                default: bool = Field(default=False, description="Default value")
-                expected_value: bool = Field(
-                    default=False,
-                    description="Expected result",
-                )
+                message: Annotated[str, Field(default="", description="Prompt message")]
+                default: Annotated[
+                    bool,
+                    Field(default=False, description="Default value"),
+                ]
+                expected_value: Annotated[
+                    bool,
+                    Field(
+                        default=False,
+                        description="Expected result",
+                    ),
+                ]
 
             class ChoiceTestCaseDict(PositionalModel):
                 """Parametrized test case for prompt_choice — Pydantic v2."""
 
                 model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
-                message: str = Field(default="", description="Prompt message")
-                choices: t.StrSequence = Field(
-                    default_factory=list,
-                    description="Choice list",
-                )
-                default: str | None = Field(default=None, description="Default choice")
-                expected_success: bool = Field(
-                    default=True,
-                    description="Expect success",
-                )
+                message: Annotated[str, Field(default="", description="Prompt message")]
+                choices: Annotated[
+                    t.StrSequence,
+                    Field(
+                        default_factory=list,
+                        description="Choice list",
+                    ),
+                ]
+                default: Annotated[
+                    str | None,
+                    Field(default=None, description="Default choice"),
+                ]
+                expected_success: Annotated[
+                    bool,
+                    Field(
+                        default=True,
+                        description="Expect success",
+                    ),
+                ]
 
             class PrintStatusCase(PositionalModel):
                 """Parametrized test case for print_status — Pydantic v2."""
 
                 model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
-                message: str = Field(default="", description="Message")
-                status: str | None = Field(default=None, description="Status type")
+                message: Annotated[str, Field(default="", description="Message")]
+                status: Annotated[
+                    str | None,
+                    Field(default=None, description="Status type"),
+                ]
 
             class UserData(PositionalModel):
                 """User data for type scenario tests — Pydantic v2."""
 
                 model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
-                id: int = Field(description="User id")
-                name: str = Field(description="User name")
-                email: str = Field(description="Email")
-                active: bool = Field(description="Active flag")
+                id: Annotated[int, Field(description="User id")]
+                name: Annotated[str, Field(description="User name")]
+                email: Annotated[str, Field(description="Email")]
+                active: Annotated[bool, Field(description="Active flag")]
 
             class ApiResponse(PositionalModel):
                 """API response for type scenario tests — Pydantic v2."""
 
                 model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
-                status: str = Field(description="Status")
-                data: t.NormalizedValue = Field(default=None, description="Payload")
-                message: str = Field(description="Message")
-                error: str | None = Field(default=None, description="Error")
+                status: Annotated[str, Field(description="Status")]
+                data: Annotated[
+                    t.NormalizedValue,
+                    Field(default=None, description="Payload"),
+                ]
+                message: Annotated[str, Field(description="Message")]
+                error: Annotated[str | None, Field(default=None, description="Error")]
 
             # ----- Model-command comprehensive tests (test_model_command_comprehensive.py) -----
 
@@ -155,27 +185,33 @@ class FlextCliTestModels(FlextTestsModels, FlextCliModels):
                 """Connection config for model_command tests; port validated by t.PortNumber (1-65535)."""
 
                 model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
-                host: str | None = Field(default=None, description="Host")
-                port: t.PortNumber = Field(default=5432, description="Port")
-                username: str = Field(default="", description="Username")
+                host: Annotated[str | None, Field(default=None, description="Host")]
+                port: Annotated[t.PortNumber, Field(default=5432, description="Port")]
+                username: Annotated[str, Field(default="", description="Username")]
 
             class EnvironmentConfig(PositionalModel):
                 """Environment config with Literal types for model_command tests."""
 
                 model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
-                environment: Literal["dev", "prod", "staging"] = Field(
-                    default="dev",
-                    description="Environment",
-                )
+                environment: Annotated[
+                    Literal["dev", "prod", "staging"],
+                    Field(
+                        default="dev",
+                        description="Environment",
+                    ),
+                ]
 
             class OptionalLiteralConfig(PositionalModel):
                 """Config with Optional Literal for model_command tests."""
 
                 model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
-                log_level: Literal["debug", "info", "warning", "error"] | None = Field(
-                    default=None,
-                    description="Log level",
-                )
+                log_level: Annotated[
+                    Literal["debug", "info", "warning", "error"] | None,
+                    Field(
+                        default=None,
+                        description="Log level",
+                    ),
+                ]
 
             class AliasedConfig(PositionalModel):
                 """Config with field aliases and populate_by_name for model_command tests."""
@@ -184,24 +220,33 @@ class FlextCliTestModels(FlextTestsModels, FlextCliModels):
                     extra="forbid",
                     populate_by_name=True,
                 )
-                input_dir: str = Field(
-                    default="",
-                    alias="input-dir",
-                    description="Input dir",
-                )
-                output_dir: str = Field(
-                    default="",
-                    alias="output-dir",
-                    description="Output dir",
-                )
+                input_dir: Annotated[
+                    str,
+                    Field(
+                        default="",
+                        alias="input-dir",
+                        description="Input dir",
+                    ),
+                ]
+                output_dir: Annotated[
+                    str,
+                    Field(
+                        default="",
+                        alias="output-dir",
+                        description="Output dir",
+                    ),
+                ]
 
             class BooleanFlagsConfig(PositionalModel):
                 """Config with boolean flags (default True/False/None) for model_command tests."""
 
                 model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
-                enable_cache: bool = Field(default=True, description="Enable cache")
-                verbose: bool = Field(default=False, description="Verbose")
-                force: bool | None = Field(default=None, description="Force")
+                enable_cache: Annotated[
+                    bool,
+                    Field(default=True, description="Enable cache"),
+                ]
+                verbose: Annotated[bool, Field(default=False, description="Verbose")]
+                force: Annotated[bool | None, Field(default=None, description="Force")]
 
             class NestedModelConfig(PositionalModel):
                 """Config with nested model for model_command tests."""
@@ -212,17 +257,22 @@ class FlextCliTestModels(FlextTestsModels, FlextCliModels):
                     """Inner key-value config for NestedModelConfig."""
 
                     model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
-                    key: str = Field(default="", description="Key")
-                    value: int = Field(default=0, description="Value")
+                    key: Annotated[str, Field(default="", description="Key")]
+                    value: Annotated[int, Field(default=0, description="Value")]
 
-                inner: Inner = Field(default_factory=Inner, description="Nested config")
+                inner: Annotated[
+                    Inner,
+                    Field(default_factory=Inner, description="Nested config"),
+                ]
 
             class ValidatedConfig(PositionalModel):
                 """Config with custom host validator for model_command tests."""
 
                 model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
-                host: str = Field(default="", description="Host (e.g. example.com)")
-                port: t.PortNumber = Field(default=5432, description="Port")
+                host: Annotated[
+                    str, Field(default="", description="Host (e.g. example.com)")
+                ]
+                port: Annotated[t.PortNumber, Field(default=5432, description="Port")]
 
                 @field_validator("host")
                 @classmethod
@@ -241,41 +291,47 @@ class FlextCliTestModels(FlextTestsModels, FlextCliModels):
                     extra="forbid",
                     populate_by_name=True,
                 )
-                input_dir: str | None = Field(default=None, alias="input-dir")
-                output_dir: str | None = Field(default=None, alias="output-dir")
-                batch_size: int = Field(default=0, alias="batch-size")
+                input_dir: Annotated[str | None, Field(default=None, alias="input-dir")]
+                output_dir: Annotated[
+                    str | None,
+                    Field(default=None, alias="output-dir"),
+                ]
+                batch_size: Annotated[int, Field(default=0, alias="batch-size")]
 
             class RequiredFieldsParams(PositionalModel):
                 """Params with required input_dir for config model integration tests."""
 
                 model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
-                input_dir: str = Field(..., description="Input directory")
-                output_dir: str | None = Field(
-                    default=None,
-                    description="Output directory",
-                )
+                input_dir: Annotated[str, Field(..., description="Input directory")]
+                output_dir: Annotated[
+                    str | None,
+                    Field(
+                        default=None,
+                        description="Output directory",
+                    ),
+                ]
 
             class AppParams(PositionalModel):
                 """App params (input_dir, output_dir optional) for config model integration tests."""
 
                 model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
-                input_dir: str | None = Field(default=None)
-                output_dir: str | None = Field(default=None)
+                input_dir: Annotated[str | None, Field(default=None)]
+                output_dir: Annotated[str | None, Field(default=None)]
 
             class SimpleParams(PositionalModel):
                 """Minimal params for model_command without config."""
 
                 model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
-                name: str = Field(default="", description="Name")
+                name: Annotated[str, Field(default="", description="Name")]
 
             class FullAppParams(PositionalModel):
                 """Full app params for config-to-params workflow tests."""
 
                 model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
-                input_dir: str = Field(default="")
-                output_dir: str = Field(default="")
-                batch_size: int = Field(default=0)
-                verbose_mode: bool = Field(default=False)
+                input_dir: Annotated[str, Field(default="")]
+                output_dir: Annotated[str, Field(default="")]
+                batch_size: Annotated[int, Field(default=0)]
+                verbose_mode: Annotated[bool, Field(default=False)]
 
             class StrictParams(PositionalModel):
                 """Params for strict validation tests."""
@@ -284,14 +340,14 @@ class FlextCliTestModels(FlextTestsModels, FlextCliModels):
                     extra="forbid",
                     strict=True,
                 )
-                name: str = Field(default="")
-                count: int = Field(default=0)
+                name: Annotated[str, Field(default="")]
+                count: Annotated[int, Field(default=0)]
 
             class ForbidExtraParams(PositionalModel):
                 """Params that forbid extra fields."""
 
                 model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
-                name: str = Field(default="", description="Name")
+                name: Annotated[str, Field(default="", description="Name")]
 
     ConnectionConfig = Cli.Test.ConnectionConfig
     ValidatedConfig = Cli.Test.ValidatedConfig

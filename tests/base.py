@@ -16,7 +16,7 @@ from __future__ import annotations
 from collections.abc import Callable, Sequence
 from datetime import datetime
 from pathlib import Path
-from typing import ClassVar, override
+from typing import Annotated, ClassVar, override
 
 from flext_core import FlextHandlers, T, r
 from flext_tests import s, td
@@ -47,31 +47,49 @@ class TestsCliServiceBase(s[T]):
 
         model_config: ClassVar[ConfigDict] = ConfigDict(frozen=True)
 
-        handler_id: str = Field(description="Handler identifier")
-        handler_name: str | None = Field(
-            default=None,
-            description="Optional handler name",
-        )
-        handler_type: c.HandlerType = Field(
-            default=c.HandlerType.COMMAND,
-            description="Handler type used for test case",
-        )
-        expected_result: t.Container | None = Field(
-            default=None,
-            description="Expected handler result value",
-        )
-        should_fail: bool = Field(
-            default=False,
-            description="Whether handler is expected to fail",
-        )
-        error_message: str | None = Field(
-            default=None,
-            description="Expected error message when failure occurs",
-        )
-        description: str = Field(
-            default="",
-            description="Human readable scenario description",
-        )
+        handler_id: Annotated[str, Field(description="Handler identifier")]
+        handler_name: Annotated[
+            str | None,
+            Field(
+                default=None,
+                description="Optional handler name",
+            ),
+        ]
+        handler_type: Annotated[
+            c.HandlerType,
+            Field(
+                default=c.HandlerType.COMMAND,
+                description="Handler type used for test case",
+            ),
+        ]
+        expected_result: Annotated[
+            t.Container | None,
+            Field(
+                default=None,
+                description="Expected handler result value",
+            ),
+        ]
+        should_fail: Annotated[
+            bool,
+            Field(
+                default=False,
+                description="Whether handler is expected to fail",
+            ),
+        ]
+        error_message: Annotated[
+            str | None,
+            Field(
+                default=None,
+                description="Expected error message when failure occurs",
+            ),
+        ]
+        description: Annotated[
+            str,
+            Field(
+                default="",
+                description="Human readable scenario description",
+            ),
+        ]
 
         def create_handler(
             self,

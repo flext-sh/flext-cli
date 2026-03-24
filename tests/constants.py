@@ -14,7 +14,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import ClassVar, Final
+from typing import Annotated, ClassVar, Final
 
 from flext_tests import FlextTestsConstants
 from pydantic import BaseModel, ConfigDict, Field
@@ -240,129 +240,214 @@ class FlextCliTestConstants(FlextTestsConstants, FlextCliConstants):
 
                 model_config: ClassVar[ConfigDict] = ConfigDict(frozen=True)
 
-                user_id: str = Field(
-                    default="test_user_123",
-                    description="Test user id",
-                )
-                session_id: str = Field(
-                    default="test_session_123",
-                    description="Test session id",
-                )
-                service_name: str = Field(
-                    default="test_service",
-                    description="Test service name",
-                )
-                operation_id: str = Field(
-                    default="test_operation",
-                    description="Test operation id",
-                )
-                request_id: str = Field(
-                    default="test-request-456",
-                    description="Test request id",
-                )
-                correlation_id: str = Field(
-                    default="test-corr-123",
-                    description="Test correlation id",
-                )
+                user_id: Annotated[
+                    str,
+                    Field(
+                        default="test_user_123",
+                        description="Test user id",
+                    ),
+                ]
+                session_id: Annotated[
+                    str,
+                    Field(
+                        default="test_session_123",
+                        description="Test session id",
+                    ),
+                ]
+                service_name: Annotated[
+                    str,
+                    Field(
+                        default="test_service",
+                        description="Test service name",
+                    ),
+                ]
+                operation_id: Annotated[
+                    str,
+                    Field(
+                        default="test_operation",
+                        description="Test operation id",
+                    ),
+                ]
+                request_id: Annotated[
+                    str,
+                    Field(
+                        default="test-request-456",
+                        description="Test request id",
+                    ),
+                ]
+                correlation_id: Annotated[
+                    str,
+                    Field(
+                        default="test-corr-123",
+                        description="Test correlation id",
+                    ),
+                ]
 
             class Names(BaseModel):
                 """Test module and component names."""
 
                 model_config: ClassVar[ConfigDict] = ConfigDict(frozen=True)
 
-                module_name: str = Field(
-                    default="test_module",
-                    description="Test module name",
-                )
-                handler_name: str = Field(
-                    default="test_handler",
-                    description="Test handler name",
-                )
-                chain_name: str = Field(
-                    default="test_chain",
-                    description="Test chain name",
-                )
-                command_type: str = Field(
-                    default="test_command",
-                    description="Test command type",
-                )
-                query_type: str = Field(
-                    default="test_query",
-                    description="Test query type",
-                )
-                logger_name: str = Field(
-                    default="test_logger",
-                    description="Test logger name",
-                )
-                app_name: str = Field(default="test-app", description="Test app name")
-                validation_app: str = Field(
-                    default="validation-test",
-                    description="Validation app name",
-                )
-                source_service: str = Field(
-                    default="test_service",
-                    description="Source service name",
-                )
+                module_name: Annotated[
+                    str,
+                    Field(
+                        default="test_module",
+                        description="Test module name",
+                    ),
+                ]
+                handler_name: Annotated[
+                    str,
+                    Field(
+                        default="test_handler",
+                        description="Test handler name",
+                    ),
+                ]
+                chain_name: Annotated[
+                    str,
+                    Field(
+                        default="test_chain",
+                        description="Test chain name",
+                    ),
+                ]
+                command_type: Annotated[
+                    str,
+                    Field(
+                        default="test_command",
+                        description="Test command type",
+                    ),
+                ]
+                query_type: Annotated[
+                    str,
+                    Field(
+                        default="test_query",
+                        description="Test query type",
+                    ),
+                ]
+                logger_name: Annotated[
+                    str,
+                    Field(
+                        default="test_logger",
+                        description="Test logger name",
+                    ),
+                ]
+                app_name: Annotated[
+                    str, Field(default="test-app", description="Test app name")
+                ]
+                validation_app: Annotated[
+                    str,
+                    Field(
+                        default="validation-test",
+                        description="Validation app name",
+                    ),
+                ]
+                source_service: Annotated[
+                    str,
+                    Field(
+                        default="test_service",
+                        description="Source service name",
+                    ),
+                ]
 
             class ErrorData(BaseModel):
                 """Test error codes and messages."""
 
                 model_config: ClassVar[ConfigDict] = ConfigDict(frozen=True)
 
-                error_code: str = Field(
-                    default="TEST_ERROR_001",
-                    description="Test error code",
-                )
-                validation_error: str = Field(
-                    default="test_error",
-                    description="Validation error text",
-                )
-                operation_error: str = Field(
-                    default="Op failed",
-                    description="Operation error text",
-                )
-                config_error: str = Field(
-                    default="Config failed",
-                    description="Config error text",
-                )
-                timeout_error: str = Field(
-                    default="Operation timeout",
-                    description="Timeout error text",
-                )
+                error_code: Annotated[
+                    str,
+                    Field(
+                        default="TEST_ERROR_001",
+                        description="Test error code",
+                    ),
+                ]
+                validation_error: Annotated[
+                    str,
+                    Field(
+                        default="test_error",
+                        description="Validation error text",
+                    ),
+                ]
+                operation_error: Annotated[
+                    str,
+                    Field(
+                        default="Op failed",
+                        description="Operation error text",
+                    ),
+                ]
+                config_error: Annotated[
+                    str,
+                    Field(
+                        default="Config failed",
+                        description="Config error text",
+                    ),
+                ]
+                timeout_error: Annotated[
+                    str,
+                    Field(
+                        default="Operation timeout",
+                        description="Timeout error text",
+                    ),
+                ]
 
             class Data(BaseModel):
                 """Test field names and data values."""
 
                 model_config: ClassVar[ConfigDict] = ConfigDict(frozen=True)
 
-                field_name: str = Field(
-                    default="test_field",
-                    description="Test field name",
-                )
-                config_key: str = Field(
-                    default="test_key",
-                    description="Test config key",
-                )
-                username: str = Field(default="test_user", description="Test username")
-                email: str = Field(default="test@example.com", description="Test email")
-                password: str = Field(default="test_pass", description="Test password")
-                string_value: str = Field(
-                    default="test_value",
-                    description="Test string value",
-                )
-                input_data: str = Field(
-                    default="test_input",
-                    description="Test input data",
-                )
-                request_data: str = Field(
-                    default="test_request",
-                    description="Test request data",
-                )
-                result_data: str = Field(
-                    default="test_result",
-                    description="Test result data",
-                )
-                message: str = Field(default="test_message", description="Test message")
+                field_name: Annotated[
+                    str,
+                    Field(
+                        default="test_field",
+                        description="Test field name",
+                    ),
+                ]
+                config_key: Annotated[
+                    str,
+                    Field(
+                        default="test_key",
+                        description="Test config key",
+                    ),
+                ]
+                username: Annotated[
+                    str, Field(default="test_user", description="Test username")
+                ]
+                email: Annotated[
+                    str, Field(default="test@example.com", description="Test email")
+                ]
+                password: Annotated[
+                    str, Field(default="test_pass", description="Test password")
+                ]
+                string_value: Annotated[
+                    str,
+                    Field(
+                        default="test_value",
+                        description="Test string value",
+                    ),
+                ]
+                input_data: Annotated[
+                    str,
+                    Field(
+                        default="test_input",
+                        description="Test input data",
+                    ),
+                ]
+                request_data: Annotated[
+                    str,
+                    Field(
+                        default="test_request",
+                        description="Test request data",
+                    ),
+                ]
+                result_data: Annotated[
+                    str,
+                    Field(
+                        default="test_result",
+                        description="Test result data",
+                    ),
+                ]
+                message: Annotated[
+                    str, Field(default="test_message", description="Test message")
+                ]
 
         class Table:
             """Table-related test constants."""

@@ -17,7 +17,7 @@ import re
 import sys
 from collections.abc import Sequence
 from enum import StrEnum, unique
-from typing import ClassVar, Final, TypeVar
+from typing import Annotated, ClassVar, Final, TypeVar
 
 import pytest
 from flext_tests import tm
@@ -55,19 +55,28 @@ class TestsCliVersion:
 
             model_config: ClassVar[ConfigDict] = ConfigDict(frozen=True)
 
-            name: str = Field(description="Scenario name")
-            version_string: str | None = Field(
-                default=None,
-                description="Version string under test",
-            )
-            version_info: tuple[int | str, ...] | None = Field(
-                default=None,
-                description="Version info tuple under test",
-            )
-            should_pass: bool = Field(
-                default=True,
-                description="Whether scenario should pass validation",
-            )
+            name: Annotated[str, Field(description="Scenario name")]
+            version_string: Annotated[
+                str | None,
+                Field(
+                    default=None,
+                    description="Version string under test",
+                ),
+            ]
+            version_info: Annotated[
+                tuple[int | str, ...] | None,
+                Field(
+                    default=None,
+                    description="Version info tuple under test",
+                ),
+            ]
+            should_pass: Annotated[
+                bool,
+                Field(
+                    default=True,
+                    description="Whether scenario should pass validation",
+                ),
+            ]
 
             @property
             def validation_type(self) -> TestsCliVersion.ValidationType:

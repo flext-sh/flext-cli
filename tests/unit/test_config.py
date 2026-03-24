@@ -22,7 +22,7 @@ import typing
 from collections.abc import Sequence
 from enum import StrEnum, unique
 from pathlib import Path
-from typing import ClassVar, Final, Literal
+from typing import Annotated, ClassVar, Final, Literal
 
 import pytest
 import yaml
@@ -51,16 +51,22 @@ class ConfigTestScenario(BaseModel):
 
     model_config: ClassVar[ConfigDict] = ConfigDict(frozen=True)
 
-    name: str = Field(description="Scenario name")
-    test_type: ConfigTestType = Field(description="Scenario test type")
-    data: t.ContainerMapping | None = Field(
-        default=None,
-        description="Scenario input data",
-    )
-    should_pass: bool = Field(
-        default=True,
-        description="Whether scenario is expected to pass",
-    )
+    name: Annotated[str, Field(description="Scenario name")]
+    test_type: Annotated[ConfigTestType, Field(description="Scenario test type")]
+    data: Annotated[
+        t.ContainerMapping | None,
+        Field(
+            default=None,
+            description="Scenario input data",
+        ),
+    ]
+    should_pass: Annotated[
+        bool,
+        Field(
+            default=True,
+            description="Whether scenario is expected to pass",
+        ),
+    ]
 
 
 class ConfigTestFactory:

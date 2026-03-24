@@ -21,6 +21,7 @@ import time
 from collections.abc import Mapping, Sequence
 from enum import StrEnum, unique
 from typing import (
+    Annotated,
     ClassVar,
     Generic,
     Protocol,
@@ -62,12 +63,15 @@ class TypingTestCase(BaseModel):
 
     model_config: ClassVar[ConfigDict] = ConfigDict(frozen=True)
 
-    test_type: TypingTestType = Field(description="Typing test category")
-    description: str = Field(description="Typing test case description")
-    expected_success: bool = Field(
-        default=True,
-        description="Whether test case is expected to succeed",
-    )
+    test_type: Annotated[TypingTestType, Field(description="Typing test category")]
+    description: Annotated[str, Field(description="Typing test case description")]
+    expected_success: Annotated[
+        bool,
+        Field(
+            default=True,
+            description="Whether test case is expected to succeed",
+        ),
+    ]
 
 
 class TestsCliTypings:
