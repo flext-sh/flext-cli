@@ -270,7 +270,8 @@ class FlextCliTestModels(FlextTestsModels, FlextCliModels):
 
                 model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
                 host: Annotated[
-                    str, Field(default="", description="Host (e.g. example.com)"),
+                    str,
+                    Field(default="", description="Host (e.g. example.com)"),
                 ]
                 port: Annotated[t.PortNumber, Field(default=5432, description="Port")]
 

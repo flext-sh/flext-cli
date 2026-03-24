@@ -269,7 +269,8 @@ class CommandsFactory:
         """Register a simple test command that returns a fixed value."""
 
         def handler(
-            *args: t.ContainerValue, **kwargs: t.ContainerValue,
+            *args: t.ContainerValue,
+            **kwargs: t.ContainerValue,
         ) -> r[t.Cli.JsonValue]:
             return r[t.Cli.JsonValue].ok(result_value)
 
@@ -283,7 +284,8 @@ class CommandsFactory:
         """Register a command that accepts arguments."""
 
         def handler(
-            *args: t.ContainerValue, **kwargs: t.ContainerValue,
+            *args: t.ContainerValue,
+            **kwargs: t.ContainerValue,
         ) -> r[t.Cli.JsonValue]:
             return r[t.Cli.JsonValue].ok(f"args: {len(args)}")
 
@@ -298,7 +300,8 @@ class CommandsFactory:
         """Register a command that fails with a specific error."""
 
         def handler(
-            *args: t.ContainerValue, **kwargs: t.ContainerValue,
+            *args: t.ContainerValue,
+            **kwargs: t.ContainerValue,
         ) -> r[t.Cli.JsonValue]:
             return r[t.Cli.JsonValue].fail(error_message)
 

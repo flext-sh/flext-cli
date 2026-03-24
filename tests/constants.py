@@ -331,7 +331,8 @@ class FlextCliTestConstants(FlextTestsConstants, FlextCliConstants):
                     ),
                 ]
                 app_name: Annotated[
-                    str, Field(default="test-app", description="Test app name"),
+                    str,
+                    Field(default="test-app", description="Test app name"),
                 ]
                 validation_app: Annotated[
                     str,
@@ -409,13 +410,16 @@ class FlextCliTestConstants(FlextTestsConstants, FlextCliConstants):
                     ),
                 ]
                 username: Annotated[
-                    str, Field(default="test_user", description="Test username"),
+                    str,
+                    Field(default="test_user", description="Test username"),
                 ]
                 email: Annotated[
-                    str, Field(default="test@example.com", description="Test email"),
+                    str,
+                    Field(default="test@example.com", description="Test email"),
                 ]
                 password: Annotated[
-                    str, Field(default="test_pass", description="Test password"),
+                    str,
+                    Field(default="test_pass", description="Test password"),
                 ]
                 string_value: Annotated[
                     str,
@@ -446,7 +450,8 @@ class FlextCliTestConstants(FlextTestsConstants, FlextCliConstants):
                     ),
                 ]
                 message: Annotated[
-                    str, Field(default="test_message", description="Test message"),
+                    str,
+                    Field(default="test_message", description="Test message"),
                 ]
 
         class Table:
