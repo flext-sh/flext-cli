@@ -84,10 +84,6 @@ class FlextCliConstants(FlextConstants):
                 "CRITICAL",
             ]
 
-        OUTPUT_FORMATS_LIST = ValidationLists.OUTPUT_FORMATS
-        COMMAND_STATUSES_LIST = ValidationLists.COMMAND_STATUSES
-        DEBUG_LEVELS_LIST = ValidationLists.DEBUG_LEVELS
-
         @unique
         class CommandStatus(StrEnum):
             """Command status enum."""
@@ -624,7 +620,7 @@ class FlextCliConstants(FlextConstants):
             "toml": ("toml",),
             "xml": ("xml",),
         }
-        FILE_FORMAT_MIME_TYPES: Mapping[str, str] = {
+        FILE_FORMAT_MIME_TYPES: typing.ClassVar[t.StrMapping] = {
             "json": "application/json",
             "yaml": "application/x-yaml",
             "csv": "text/csv",
@@ -865,7 +861,7 @@ class FlextCliConstants(FlextConstants):
                 "Panel creation failed: {error}",
             )
 
-        TABLE_FORMATS: typing.ClassVar[Mapping[str, str]] = {
+        TABLE_FORMATS: typing.ClassVar[t.StrMapping] = {
             "plain": "Minimal formatting, no borders",
             "simple": "Simple ASCII borders",
             "grid": "Grid-style ASCII table",
@@ -1075,7 +1071,7 @@ class FlextCliConstants(FlextConstants):
     class Authentication:
         """Shared protocol test authentication constants."""
 
-        VALID_CREDS: typing.ClassVar[Mapping[str, str]] = {
+        VALID_CREDS: typing.ClassVar[t.StrMapping] = {
             "username": "testuser",
             "password": "testpass",
         }

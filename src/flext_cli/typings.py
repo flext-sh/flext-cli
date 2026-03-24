@@ -45,8 +45,8 @@ class FlextCliTypes(FlextTypes):
         type TableRows = Sequence[TableRow]
         CliValue = (
             FlextTypes.Scalar
-            | Sequence[str]
-            | Mapping[str, FlextTypes.Scalar | Sequence[str]]
+            | FlextTypes.StrSequence
+            | Mapping[str, FlextTypes.Scalar | FlextTypes.StrSequence]
             | None
         )
 

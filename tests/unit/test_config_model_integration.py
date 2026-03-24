@@ -15,7 +15,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
-from collections.abc import Sequence
 from pathlib import Path
 from typing import ClassVar
 
@@ -190,7 +189,7 @@ class TestsCliConfigModelIntegration:
     def test_config_initialization(
         self,
         config_class: type[BaseSettings],
-        expected_fields: Sequence[str],
+        expected_fields: t.StrSequence,
         expected_values: t.ContainerMapping,
     ) -> None:
         """Test config initialization with various field types."""

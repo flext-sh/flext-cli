@@ -131,7 +131,7 @@ class ValidationHelper:
 
     @staticmethod
     def extract_config_values(
-        config: BaseSettings, field_names: Sequence[str]
+        config: BaseSettings, field_names: t.StrSequence
     ) -> t.ContainerMapping:
         """Extract multiple field values from config as a read-only Mapping.
 
@@ -391,7 +391,7 @@ class FlextCliTestHelpers:
 
         @staticmethod
         def create_processing_test_data() -> r[
-            tuple[Sequence[str], Sequence[int], t.ContainerMapping]
+            tuple[t.StrSequence, Sequence[int], t.ContainerMapping]
         ]:
             """Create test data for type processing scenarios.
 
@@ -407,13 +407,13 @@ class FlextCliTestHelpers:
                     "key3": True,
                     "key4": [1, 2, 3],
                 }
-                return r[tuple[Sequence[str], Sequence[int], t.ContainerMapping]].ok((
+                return r[tuple[t.StrSequence, Sequence[int], t.ContainerMapping]].ok((
                     string_list,
                     number_list,
                     mixed_dict,
                 ))
             except (ValueError, TypeError, ValidationError) as e:
-                return r[tuple[Sequence[str], Sequence[int], t.ContainerMapping]].fail(
+                return r[tuple[t.StrSequence, Sequence[int], t.ContainerMapping]].fail(
                     f"Failed to create processing test data: {e!s}"
                 )
 

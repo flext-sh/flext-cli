@@ -13,7 +13,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping
 
 from flext_tests import FlextTestsTypes
 
@@ -58,7 +58,7 @@ class FlextCliTestTypes(FlextTestsTypes, FlextCliTypes):
             TabularData = FlextCliTypes.Cli.TabularData
             type CliConfigMapping = Mapping[
                 str,
-                t.NormalizedValue | Sequence[str] | Mapping[str, str | int] | None,
+                t.NormalizedValue | t.StrSequence | Mapping[str, str | int] | None,
             ]
             "CLI configuration mapping specific to flext-cli."
             type CommandArgsMapping = t.ContainerMapping

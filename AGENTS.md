@@ -931,10 +931,10 @@ Always use specific error codes in `# type: ignore` comments rather than generic
 
 ```python
 # ❌ WRONG
-list_instance: Sequence[str] = list_with_union
+list_instance: t.StrSequence = list_with_union
 
 # ✅ CORRECT
-list_instance: Sequence[str] = list_with_union
+list_instance: t.StrSequence = list_with_union
 ```
 
 ### Testing Fixes

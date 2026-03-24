@@ -334,7 +334,7 @@ class FlextCliContext(m.Value):
     """Immutable execution context."""
 
     command: str | None = None
-    arguments: Sequence[str] = Field(default_factory=list)
+    arguments: t.StrSequence = Field(default_factory=list)
     environment_variables: t.ContainerMapping = Field(default_factory=dict)
     working_directory: str | None = None
 
@@ -516,7 +516,7 @@ class FlextCliContext(m.Value):
     """Immutable context value t.NormalizedValue."""
 
     command: str | None = None
-    arguments: Sequence[str] = Field(default_factory=list)
+    arguments: t.StrSequence = Field(default_factory=list)
     environment_variables: t.ContainerMapping = Field(default_factory=dict)
     working_directory: str | None = None
     created_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())

@@ -27,7 +27,6 @@ from __future__ import annotations
 import os
 import secrets
 import time
-from collections.abc import Mapping
 from pathlib import Path
 
 from flext_core import r
@@ -61,21 +60,21 @@ def get_saved_token() -> r[str]:
     return r[str].ok(token_result.value)
 
 
-def call_authenticated_api(endpoint: str) -> r[Mapping[str, str]]:
+def call_authenticated_api(endpoint: str) -> r[t.StrMapping]:
     """Make authenticated API call in YOUR tool. Returns r[dict]; no None."""
     token_result = cli.get_auth_token()
     if token_result.is_failure:
         cli.print("❌ Authentication required. Please login first.", style="bold red")
-        return r[Mapping[str, str]].fail("Authentication required")
+        return r[t.StrMapping].fail("Authentication required")
     token = token_result.value
     try:
         cli.print(f"📡 Calling {endpoint}...", style="cyan")
         cli.print(f"   Using token: {token[:20]}...", style="white")
         cli.print("✅ API call successful", style="green")
-        return r[Mapping[str, str]].ok({"status": "success"})
+        return r[t.StrMapping].ok({"status": "success"})
     except Exception as e:
         cli.print(f"❌ API call failed: {e}", style="bold red")
-        return r[Mapping[str, str]].fail(str(e))
+        return r[t.StrMapping].fail(str(e))
 
 
 def validate_current_token() -> bool:
@@ -137,7 +136,7 @@ def show_session_info() -> None:
             else "N/A",
         }
     )
-    table_data: Mapping[str, str]
+    table_data: t.StrMapping
     if isinstance(session_data.data, dict):
         table_data = {str(key): str(value) for key, value in session_data.data.items()}
     else:

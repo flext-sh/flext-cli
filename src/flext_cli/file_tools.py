@@ -35,7 +35,7 @@ class FlextCliFileTools:
     @staticmethod
     def _detect_format_from_extension(
         file_path: str | Path,
-        supported_formats: Mapping[str, Mapping[str, Sequence[str]]],
+        supported_formats: Mapping[str, Mapping[str, t.StrSequence]],
     ) -> r[str]:
         ext = (
             Path(file_path)
@@ -102,12 +102,12 @@ class FlextCliFileTools:
             return None
 
     @staticmethod
-    def _read_csv_dict_rows(file_path: Path) -> Sequence[Mapping[str, str]]:
+    def _read_csv_dict_rows(file_path: Path) -> Sequence[t.StrMapping]:
         with file_path.open(encoding=c.Cli.Utilities.DEFAULT_ENCODING, newline="") as f:
             return list(csv.DictReader(f))
 
     @staticmethod
-    def _read_csv_rows(file_path: Path) -> Sequence[Sequence[str]]:
+    def _read_csv_rows(file_path: Path) -> Sequence[t.StrSequence]:
         with file_path.open(encoding=c.Cli.Utilities.DEFAULT_ENCODING, newline="") as f:
             return list(csv.reader(f))
 
@@ -212,7 +212,7 @@ class FlextCliFileTools:
         )
 
     @staticmethod
-    def create_zip_archive(archive_path: str | Path, files: Sequence[str]) -> r[bool]:
+    def create_zip_archive(archive_path: str | Path, files: t.StrSequence) -> r[bool]:
 
         def _create() -> None:
             with zipfile.ZipFile(
@@ -244,7 +244,7 @@ class FlextCliFileTools:
 
     @staticmethod
     def detect_file_format(file_path: str | Path) -> r[str]:
-        fmts: Mapping[str, Mapping[str, Sequence[str]]] = {
+        fmts: Mapping[str, Mapping[str, t.StrSequence]] = {
             name: {c.Cli.FileIODefaults.FORMAT_EXTENSIONS_KEY: list(cfg["extensions"])}
             for name, cfg in c.Cli.FILE_FORMATS.items()
         }
@@ -285,10 +285,10 @@ class FlextCliFileTools:
         )
 
     @staticmethod
-    def find_files_by_content(directory: str | Path, content: str) -> r[Sequence[str]]:
+    def find_files_by_content(directory: str | Path, content: str) -> r[t.StrSequence]:
         path = Path(directory)
 
-        def _search() -> Sequence[str]:
+        def _search() -> t.StrSequence:
             matches: list[str] = []
             for fp in path.rglob(c.Cli.FileIODefaults.GLOB_PATTERN_ALL):
                 if not fp.is_file():
@@ -314,7 +314,7 @@ class FlextCliFileTools:
         )
 
     @staticmethod
-    def find_files_by_name(directory: str | Path, name: str) -> r[Sequence[str]]:
+    def find_files_by_name(directory: str | Path, name: str) -> r[t.StrSequence]:
         path = Path(directory)
         return FlextCliFileTools._execute_file_operation(
             lambda: [
@@ -326,7 +326,7 @@ class FlextCliFileTools:
         )
 
     @staticmethod
-    def find_files_by_pattern(directory: str | Path, pattern: str) -> r[Sequence[str]]:
+    def find_files_by_pattern(directory: str | Path, pattern: str) -> r[t.StrSequence]:
         path = Path(directory)
         return FlextCliFileTools._execute_file_operation(
             lambda: [str(p) for p in path.glob(pattern)],
@@ -361,11 +361,11 @@ class FlextCliFileTools:
         )
 
     @staticmethod
-    def get_supported_formats() -> r[Sequence[str]]:
-        return r[Sequence[str]].ok(c.Cli.FileSupportedFormats.SUPPORTED_FORMATS)
+    def get_supported_formats() -> r[t.StrSequence]:
+        return r[t.StrSequence].ok(c.Cli.FileSupportedFormats.SUPPORTED_FORMATS)
 
     @staticmethod
-    def list_directory(dir_path: str | Path) -> r[Sequence[str]]:
+    def list_directory(dir_path: str | Path) -> r[t.StrSequence]:
         path = Path(dir_path)
         return FlextCliFileTools._execute_file_operation(
             lambda: [str(p.name) for p in path.iterdir()],
@@ -421,7 +421,7 @@ class FlextCliFileTools:
         )
 
     @staticmethod
-    def read_csv_file(file_path: str | Path) -> r[Sequence[Sequence[str]]]:
+    def read_csv_file(file_path: str | Path) -> r[Sequence[t.StrSequence]]:
         path = Path(file_path)
         return FlextCliFileTools._execute_file_operation(
             lambda: FlextCliFileTools._read_csv_rows(path),
@@ -431,7 +431,7 @@ class FlextCliFileTools:
     @staticmethod
     def read_csv_file_with_headers(
         file_path: str | Path,
-    ) -> r[Sequence[Mapping[str, str]]]:
+    ) -> r[Sequence[t.StrMapping]]:
         path = Path(file_path)
         return FlextCliFileTools._execute_file_operation(
             lambda: FlextCliFileTools._read_csv_dict_rows(path),
@@ -533,7 +533,7 @@ class FlextCliFileTools:
         )
 
     @staticmethod
-    def write_csv_file(file_path: str | Path, data: Sequence[Sequence[str]]) -> r[bool]:
+    def write_csv_file(file_path: str | Path, data: Sequence[t.StrSequence]) -> r[bool]:
         path = Path(file_path)
 
         def _write() -> None:

@@ -19,7 +19,7 @@ import logging
 import platform
 import tempfile
 import time
-from collections.abc import Mapping, Sequence
+from collections.abc import Sequence
 from pathlib import Path
 
 import pytest
@@ -81,7 +81,7 @@ class TestsCliConstants:
             constants: type[FlextCliConstants], constant_name: str
         ) -> str:
             """Get constant value from correct namespace."""
-            mapping: Mapping[str, str] = {
+            mapping: t.StrMapping = {
                 "PROJECT_NAME": constants.Cli.Project.NAME,
                 "FLEXT_DIR_NAME": constants.Cli.Paths.FLEXT_DIR_NAME,
                 "TOKEN_FILE_NAME": constants.Cli.Paths.TOKEN_FILE_NAME,
@@ -103,8 +103,8 @@ class TestsCliConstants:
             )
             tm.that(value, none=False)
             tm.that(value, is_=str)
-            tm.that(value, eq=True)
-            tm.that(value.strip(), eq=True)
+            tm.that(value, empty=False)
+            tm.that(value.strip(), empty=False)
 
         @staticmethod
         def assert_constant_value(
@@ -116,7 +116,7 @@ class TestsCliConstants:
             )
             tm.that(actual_value, eq=expected_value)
             tm.that(actual_value, is_=str)
-            tm.that(actual_value, eq=True)
+            tm.that(actual_value, empty=False)
 
         @staticmethod
         def assert_file_name_format(
@@ -167,7 +167,7 @@ class TestsCliConstants:
         constants = self.Fixtures.get_constants()
         constant_value = self.Assertions._get_constant_value(constants, constant_name)
         tm.that(constant_value, is_=str)
-        tm.that(constant_value.strip(), eq=True)
+        tm.that(constant_value.strip(), empty=False)
 
     @pytest.mark.parametrize(
         "constant_name",
@@ -200,7 +200,7 @@ class TestsCliConstants:
         constants = self.Fixtures.get_constants()
         constant_value = self.Assertions._get_constant_value(constants, constant_name)
         tm.that(constant_value, is_=str)
-        tm.that(constant_value, eq=True)
+        tm.that(constant_value, empty=False)
         tm.that(constant_value.upper(), none=False)
         tm.that(constant_value.lower(), none=False)
 
@@ -293,7 +293,7 @@ class TestsCliConstants:
         ]
         for message in log_messages:
             tm.that(message, is_=str)
-            tm.that(message, eq=True)
+            tm.that(message, empty=False)
             tm.that(
                 (
                     constants.Cli.Project.NAME in message
@@ -322,7 +322,7 @@ class TestsCliConstants:
         constants = self.Fixtures.get_constants()
         utf8_encoded = constants.Cli.Project.NAME.encode("utf-8")
         tm.that(utf8_encoded, is_=bytes)
-        tm.that(utf8_encoded, eq=True)
+        tm.that(utf8_encoded, empty=False)
         decoded = utf8_encoded.decode("utf-8")
         tm.that(decoded, eq=constants.Cli.Project.NAME)
         try:
@@ -337,7 +337,7 @@ class TestsCliConstants:
         """Test constant format validation."""
         constants = self.Fixtures.get_constants()
         tm.that(constants.Cli.Project.NAME, is_=str)
-        tm.that(constants.Cli.Project.NAME.strip(), eq=True)
+        tm.that(constants.Cli.Project.NAME.strip(), empty=False)
         tm.that(not constants.Cli.Project.NAME.startswith(" "), eq=True)
         tm.that(not constants.Cli.Project.NAME.endswith(" "), eq=True)
         tm.that(constants.Cli.Paths.FLEXT_DIR_NAME, is_=str)
@@ -471,7 +471,7 @@ class TestsCliConstants:
         }
         for message in error_messages.values():
             tm.that(message, is_=str)
-            tm.that(message, eq=True)
+            tm.that(message, empty=False)
             tm.that(
                 (
                     constants.Cli.Paths.TOKEN_FILE_NAME in message
@@ -499,13 +499,13 @@ class TestsCliConstants:
         constants = self.Fixtures.get_constants()
         combined = constants.Cli.Project.NAME + " " + constants.Cli.Paths.FLEXT_DIR_NAME
         tm.that(combined, is_=str)
-        tm.that(combined, eq=True)
+        tm.that(combined, empty=False)
 
     def test_get_valid_output_formats(self) -> None:
         """Test get_valid_output_formats returns sorted tuple."""
         formats = u.Cli.CliValidation.get_valid_output_formats()
         tm.that(formats, is_=tuple)
-        tm.that(formats, eq=True)
+        tm.that(formats, empty=False)
         tm.that(all(isinstance(fmt, str) for fmt in formats), eq=True)
         tm.that(formats, eq=tuple(sorted(formats)))
 
@@ -513,7 +513,7 @@ class TestsCliConstants:
         """Test get_valid_command_statuses returns sorted tuple."""
         statuses = u.Cli.CliValidation.get_valid_command_statuses()
         tm.that(statuses, is_=tuple)
-        tm.that(statuses, eq=True)
+        tm.that(statuses, empty=False)
         tm.that(all(isinstance(status, str) for status in statuses), eq=True)
         tm.that(statuses, eq=tuple(sorted(statuses)))
 
@@ -521,7 +521,7 @@ class TestsCliConstants:
         """Test get_enum_values extracts values from StrEnum."""
         values = u.get_enum_values(c.Cli.CommandStatus)
         tm.that(values, is_=tuple)
-        tm.that(values, eq=True)
+        tm.that(values, empty=False)
         tm.that(all(isinstance(v, str) for v in values), eq=True)
         tm.that(values, has="pending")
         tm.that(values, has="running")
@@ -536,7 +536,7 @@ class TestsCliConstants:
             "status", c.Cli.CommandStatus, c.Cli.SessionStatus
         )
         tm.that(union_map, is_=dict)
-        tm.that(union_map, eq=True)
+        tm.that(union_map, empty=False)
         tm.that(union_map["pending"], eq=c.Cli.CommandStatus)
         tm.that(union_map["active"], eq=c.Cli.SessionStatus)
 

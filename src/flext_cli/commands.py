@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import logging
-from collections.abc import Callable, Mapping, MutableMapping, Sequence
+from collections.abc import Callable, Mapping, MutableMapping
 from typing import Self, override
 
 from flext_core import r
@@ -156,7 +156,7 @@ class FlextCliCommands(FlextCliServiceBase):
     def execute_command(
         self,
         name: str,
-        args: Sequence[str] | None = None,
+        args: t.StrSequence | None = None,
         **kwargs: t.Scalar,
     ) -> r[t.Cli.JsonValue]:
         """Execute a registered CLI command.
@@ -234,14 +234,14 @@ class FlextCliCommands(FlextCliServiceBase):
         """
         return dict(self._commands)
 
-    def list_commands(self) -> r[Sequence[str]]:
+    def list_commands(self) -> r[t.StrSequence]:
         """List all registered command names.
 
         Returns:
-            r[Sequence[str]]: List of command names.
+            r[t.StrSequence]: List of command names.
 
         """
-        return r[Sequence[str]].ok(list(self._commands.keys()))
+        return r[t.StrSequence].ok(list(self._commands.keys()))
 
     def register_command(
         self,
@@ -263,7 +263,7 @@ class FlextCliCommands(FlextCliServiceBase):
         self._commands[name] = m.Cli.CommandEntryModel(name=name, handler=handler)
         return r[bool].ok(value=True)
 
-    def run_cli(self, args: Sequence[str] | None = None) -> r[t.Cli.JsonValue]:
+    def run_cli(self, args: t.StrSequence | None = None) -> r[t.Cli.JsonValue]:
         """Run CLI with given arguments.
 
         Args:

@@ -46,7 +46,7 @@ class TestsCliPrompts:
 
     @staticmethod
     def _set_prompt_history(
-        prompts: FlextCliPrompts, history: Sequence[str] | UserList[str]
+        prompts: FlextCliPrompts, history: t.StrSequence | UserList[str]
     ) -> None:
         """Helper method to set _prompt_history for testing.
 

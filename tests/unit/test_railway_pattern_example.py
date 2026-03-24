@@ -14,7 +14,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import tempfile
-from collections.abc import Generator, Sequence
+from collections.abc import Generator
 from pathlib import Path
 
 import pytest
@@ -61,7 +61,7 @@ class TestsCliRailwayPatternExample:
         temp_dir: Path,
         test_data: t.ContainerMapping,
         filename: str,
-        verify_keys: Sequence[str],
+        verify_keys: t.StrSequence,
     ) -> None:
         """Test Railway Pattern success chain for write-read operations.
 

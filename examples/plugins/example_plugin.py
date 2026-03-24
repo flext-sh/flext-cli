@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable, Mapping
 
 from flext_core import r
 
@@ -196,7 +196,7 @@ class DataProcessorPlugin:
                     return processor(input_data)
                 return f"Unsupported format: {format_type}"
 
-            def list_formats() -> Sequence[str]:
+            def list_formats() -> t.StrSequence:
                 """List available data formats.
 
                 Returns:

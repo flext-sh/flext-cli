@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping, MutableMapping, Sequence
+from collections.abc import Callable, Mapping, MutableMapping
 from typing import ClassVar
 
 from flext_core import r
@@ -25,7 +25,7 @@ class FlextCliCommonParams:
     """
 
     CLI_PARAM_REGISTRY: ClassVar[
-        Mapping[str, Mapping[str, t.Scalar | Sequence[str]]]
+        Mapping[str, Mapping[str, t.Scalar | t.StrSequence]]
     ] = {
         "verbose": {
             c.Cli.CliParamsRegistry.KEY_SHORT: c.Cli.CliParamsRegistry.SHORT_FLAG_VERBOSE,
