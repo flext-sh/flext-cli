@@ -175,9 +175,9 @@ class TestsCliPrompts:
         tm.that(hasattr(prompts, "quiet"), eq=True)
         tm.that(hasattr(prompts, "interactive_mode"), eq=True)
         tm.that(hasattr(prompts, "default_timeout"), eq=True)
-        tm.that(prompts.default_timeout > 0, eq=True)
+        tm.that(prompts.default_timeout, gt=0)
         tm.that(hasattr(prompts, "logger"), eq=True)
-        tm.that(prompts.logger is not None, eq=True)
+        tm.that(prompts.logger, none=False)
 
     def test_initialization_quiet_mode(self) -> None:
         """Test prompts initialization with quiet mode."""
@@ -284,7 +284,7 @@ class TestsCliPrompts:
             "choose", ["simple", "complex", "advanced"], default="simple"
         )
         tm.ok(result)
-        tm.that(result.value in {"simple", "complex", "advanced"}, eq=True)
+        tm.that({"simple", "complex", "advanced"}, has=result.value)
 
     def test_prompt_choice_exception_handling(self) -> None:
         """Test prompt_choice exception handler."""
@@ -354,7 +354,7 @@ class TestsCliPrompts:
         """Test that select_from_options tracks history."""
         initial_history_len = len(prompts.prompt_history)
         _ = prompts.select_from_options(c.TWO, "choose")
-        tm.that(len(prompts.prompt_history) >= initial_history_len, eq=True)
+        tm.that(len(prompts.prompt_history), gte=initial_history_len)
 
     @pytest.mark.parametrize("test_case", TestData.get_print_status_cases())
     def test_print_status_parametrized(
@@ -449,14 +449,14 @@ class TestsCliPrompts:
         tm.ok(result)
         stats = result.value
         tm.that(isinstance(stats, dict), eq=True)
-        tm.that("prompts_executed" in stats, eq=True)
-        tm.that("interactive_mode" in stats, eq=True)
-        tm.that("default_timeout" in stats, eq=True)
-        tm.that("history_size" in stats, eq=True)
-        tm.that("timestamp" in stats, eq=True)
+        tm.that(stats, has="prompts_executed")
+        tm.that(stats, has="interactive_mode")
+        tm.that(stats, has="default_timeout")
+        tm.that(stats, has="history_size")
+        tm.that(stats, has="timestamp")
         prompts_executed = stats["prompts_executed"]
         tm.that(isinstance(prompts_executed, int), eq=True)
-        tm.that(prompts_executed >= 2, eq=True)
+        tm.that(prompts_executed, gte=2)
 
     def test_edge_cases_empty_message(self, prompts: FlextCliPrompts) -> None:
         """Test edge case: empty message."""
@@ -486,7 +486,7 @@ class TestsCliPrompts:
         end_time = time.time()
         elapsed = end_time - start_time
         performance_threshold = 0.5
-        tm.that(elapsed < performance_threshold, eq=True)
+        tm.that(elapsed, lt=performance_threshold)
 
     def test_memory_usage_repeated_operations(self, prompts: FlextCliPrompts) -> None:
         """Test prompts memory usage with repeated operations."""
@@ -691,7 +691,7 @@ class TestsCliPrompts:
         interactive_prompts = self.Fixtures.create_interactive_prompts()
         result = interactive_prompts.prompt_password("Password:", min_length=8)
         tm.ok(result)
-        tm.that(len(result.value) >= 8, eq=True)
+        tm.that(len(result.value), gte=8)
 
     def test_prompt_quiet_mode(self, prompts: FlextCliPrompts) -> None:
         """Test prompt in quiet mode."""
@@ -856,8 +856,8 @@ class TestsCliPrompts:
         result = prompts.get_prompt_statistics()
         tm.ok(result)
         stats = result.value
-        tm.that("prompts_executed" in stats, eq=True)
-        tm.that("history_size" in stats, eq=True)
+        tm.that(stats, has="prompts_executed")
+        tm.that(stats, has="history_size")
         tm.that(isinstance(stats["prompts_executed"], int), eq=True)
         tm.that(isinstance(stats["history_size"], int), eq=True)
 

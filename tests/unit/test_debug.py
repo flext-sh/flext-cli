@@ -54,7 +54,7 @@ class TestsCliDebug:
         tm.ok(result)
         paths_dict = result.value
         tm.that(isinstance(paths_dict, dict), eq=True)
-        tm.that("paths" in paths_dict, eq=True)
+        tm.that(paths_dict, has="paths")
 
     def test_debug_validate_environment_setup(self, debug: FlextCliDebug) -> None:
         """Test validating environment setup."""
@@ -110,7 +110,7 @@ class TestsCliDebug:
         tm.ok(result)
         paths_dict = result.value
         tm.that(isinstance(paths_dict, dict), eq=True)
-        tm.that("paths" in paths_dict, eq=True)
+        tm.that(paths_dict, has="paths")
         env_result = debug.validate_environment_setup()
         tm.ok(env_result)
         env_issues = env_result.value
@@ -137,7 +137,7 @@ class TestsCliDebug:
             tm.ok(paths_result)
         end_time = time.time()
         elapsed = end_time - start_time
-        tm.that(elapsed < 0.5, eq=True)
+        tm.that(elapsed, lt=0.5)
 
     def test_debug_memory_usage(self, debug: FlextCliDebug) -> None:
         """Test debug memory usage with repeated calls."""
@@ -217,7 +217,7 @@ class TestsCliDebug:
         tm.ok(result)
         paths = result.value
         tm.that(isinstance(paths, dict), eq=True)
-        tm.that("paths" in paths, eq=True)
+        tm.that(paths, has="paths")
 
     def test_validate_environment_setup_exception(self) -> None:
         """Test validate_environment_setup exception handler (lines 119-120).
@@ -295,7 +295,7 @@ class TestsCliDebug:
         tm.ok(result)
         paths_dict = result.value
         tm.that(isinstance(paths_dict, dict), eq=True)
-        tm.that("paths" in paths_dict, eq=True)
+        tm.that(paths_dict, has="paths")
         paths = paths_dict["paths"]
         tm.that(isinstance(paths, list), eq=True)
 
@@ -377,4 +377,4 @@ class TestsCliDebug:
         tm.ok(result)
         env_vars = result.value
         tm.that(isinstance(env_vars, dict), eq=True)
-        tm.that(len(env_vars) >= 0, eq=True)
+        tm.that(len(env_vars), gte=0)

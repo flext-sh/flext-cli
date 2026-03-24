@@ -250,9 +250,9 @@ class TestsCliTypings:
         class Test(Protocol):
             def method(self) -> str: ...
 
-        tm.that(t is not None, eq=True)
-        tm.that(generic_type is not None, eq=True)
-        tm.that(Test is not None, eq=True)
+        tm.that(t, none=False)
+        tm.that(generic_type, none=False)
+        tm.that(Test, none=False)
         user_data: Mapping[str, t.NormalizedValue] = {"key": "value", "number": 42}
         user_list: Sequence[Mapping[str, t.NormalizedValue]] = [user_data]
         tm.that(isinstance(user_data, dict), eq=True)
@@ -305,7 +305,7 @@ class TestsCliTypings:
         kv_store.set("key2", 200)
         tm.that(kv_store.get("key1"), eq=100)
         tm.that(kv_store.get("key2"), eq=200)
-        tm.that(kv_store.get("key3") is None, eq=True)
+        tm.that(kv_store.get("key3"), none=True)
 
     def _execute_type_conversion_tests(self) -> None:
         """Execute type conversion tests."""
@@ -463,7 +463,7 @@ class TestsCliTypings:
             result_dict = process_dict(test_dict)
         end_time = time.time()
         processing_time = end_time - start_time
-        tm.that(processing_time < 0.1, eq=True)
+        tm.that(processing_time, lt=0.1)
         tm.that(result_list, eq=["HELLO", "WORLD", "TEST"])
         tm.that(result_dict["key1"], eq="123")
 
@@ -519,15 +519,15 @@ class TestsCliTypings:
         complex_args = get_args(complex_type)
         tm.that(len(complex_args), eq=1)
         tm.that(get_origin(complex_args[0]) is dict, eq=True)
-        tm.that(get_origin(optional_type) is not None, eq=True)
+        tm.that(get_origin(optional_type), none=False)
         optional_args = get_args(optional_type)
-        tm.that(type(None) in optional_args, eq=True)
-        tm.that(Sequence[str] in optional_args, eq=True)
-        tm.that(get_origin(union_type) is not None, eq=True)
+        tm.that(optional_args, has=type(None))
+        tm.that(optional_args, has=Sequence[str])
+        tm.that(get_origin(union_type), none=False)
         union_args = get_args(union_type)
-        tm.that(str in union_args, eq=True)
-        tm.that(int in union_args, eq=True)
-        tm.that(bool in union_args, eq=True)
+        tm.that(union_args, has=str)
+        tm.that(union_args, has=int)
+        tm.that(union_args, has=bool)
 
     def test_type_workflow_integration(self) -> None:
         """Test type workflow integration with helpers."""
@@ -555,8 +555,8 @@ class TestsCliTypings:
         tm.that(processed, eq=["STR1", "STR2"])
         count: t.NormalizedValue = result.get("count")
         tm.that(count, eq=2)
-        tm.that("timestamp" in result, eq=True)
-        tm.that(t is not None, eq=True)
+        tm.that(result, has="timestamp")
+        tm.that(t, none=False)
         tm.that(hasattr(t, "Cli"), eq=True)
         tm.that(hasattr(t.Cli, "FormatableResult"), eq=True)
         tm.that(hasattr(t.Cli, "ResultFormatter"), eq=True)

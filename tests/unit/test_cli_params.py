@@ -125,7 +125,7 @@ class TestsCliCommonParams:
     def test_common_params_class_exists(self) -> None:
         """Test that FlextCliCommonParams exists and has required methods."""
         # Direct assertion - no fallbacks
-        tm.that(FlextCliCommonParams is not None, eq=True)
+        tm.that(FlextCliCommonParams, none=False)
         tm.that(hasattr(FlextCliCommonParams, "create_option"), eq=True)
         tm.that(hasattr(FlextCliCommonParams, "apply_to_config"), eq=True)
         tm.that(hasattr(FlextCliCommonParams, "get_all_common_params"), eq=True)
@@ -135,7 +135,7 @@ class TestsCliCommonParams:
         # Direct call - Railway pattern with proper validation
         option = FlextCliCommonParams.create_option("verbose")
 
-        tm.that(option is not None, eq=True)
+        tm.that(option, none=False)
 
     def test_apply_to_config_with_valid_params(self) -> None:
         """Test apply_to_config with Railway pattern - no state manipulation."""
@@ -168,7 +168,7 @@ class TestsCliCommonParams:
 
         tm.fail(result)
         error_msg = str(result.error).lower() if result.error else ""
-        tm.that("trace mode requires debug mode" in error_msg, eq=True)
+        tm.that(error_msg, has="trace mode requires debug mode")
 
     def test_apply_to_config_trace_with_debug(self) -> None:
         """Test trace works with debug enabled - Railway pattern."""
@@ -223,10 +223,10 @@ class TestsCliCommonParams:
         result = runner.invoke(app, ["--help"])
 
         tm.that(result.exit_code, eq=0)
-        tm.that("--verbose" in result.stdout, eq=True)
-        tm.that("--debug" in result.stdout, eq=True)
-        tm.that("--log-level" in result.stdout, eq=True)
-        tm.that("--output-format" in result.stdout, eq=True)
+        tm.that(result.stdout, has="--verbose")
+        tm.that(result.stdout, has="--debug")
+        tm.that(result.stdout, has="--log-level")
+        tm.that(result.stdout, has="--output-format")
 
     def test_decorator_flags_work(self) -> None:
         """Test decorator flags work - Railway pattern."""
@@ -241,8 +241,8 @@ class TestsCliCommonParams:
         result = runner.invoke(app, ["--verbose", "--debug"])
 
         tm.that(result.exit_code, eq=0)
-        tm.that("Verbose: enabled" in result.stdout, eq=True)
-        tm.that("Debug: enabled" in result.stdout, eq=True)
+        tm.that(result.stdout, has="Verbose: enabled")
+        tm.that(result.stdout, has="Debug: enabled")
 
     def test_decorator_parameters_work(self) -> None:
         """Test decorator parameters work - Railway pattern."""
@@ -260,8 +260,8 @@ class TestsCliCommonParams:
         )
 
         tm.that(result.exit_code, eq=0)
-        tm.that("Log level: WARNING" in result.stdout, eq=True)
-        tm.that("Output format: json" in result.stdout, eq=True)
+        tm.that(result.stdout, has="Log level: WARNING")
+        tm.that(result.stdout, has="Output format: json")
 
     def test_get_all_common_params(self) -> None:
         """Test get_all_common_params returns valid dict - Railway pattern."""
@@ -270,9 +270,9 @@ class TestsCliCommonParams:
 
         tm.that(isinstance(params, dict), eq=True)
         tm.that(params, eq=True)
-        tm.that("verbose" in params, eq=True)
-        tm.that("debug" in params, eq=True)
-        tm.that("cli_log_level" in params, eq=True)
+        tm.that(params, has="verbose")
+        tm.that(params, has="debug")
+        tm.that(params, has="cli_log_level")
 
     def test_enforcement_can_be_disabled(self) -> None:
         """Test enforcement can be disabled for testing - Railway pattern."""
@@ -281,7 +281,7 @@ class TestsCliCommonParams:
         tm.that(FlextCliCommonParams._enforcement_mode is True, eq=True)
 
         FlextCliCommonParams.disable_enforcement()
-        tm.that(not FlextCliCommonParams._enforcement_mode, eq=True)
+        tm.that(FlextCliCommonParams._enforcement_mode, eq=False)
 
         # Restore enforcement
         FlextCliCommonParams.enable_enforcement()
@@ -315,7 +315,7 @@ class TestsCliCommonParams:
             pytest.fail("Expected ValueError to be raised")
         except ValueError as e:
             error_msg = str(e).lower()
-            tm.that("not found" in error_msg, eq=True)
+            tm.that(error_msg, has="not found")
 
     def test_apply_to_config_invalid_log_format(self) -> None:
         """Test invalid log format - Railway pattern."""

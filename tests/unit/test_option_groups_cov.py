@@ -32,5 +32,5 @@ def test_output_options_expose_format_output_and_verbosity() -> None:
     options = FlextOptionGroup.output_options()
     tm.that(len(options), eq=3)
     tm.that(options[0].default, eq="table")
-    tm.that(options[1].default is None, eq=True)
+    tm.that(options[1].default, none=True)
     tm.that(options[2].default is False, eq=True)

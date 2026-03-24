@@ -135,7 +135,7 @@ class TestsCliConfigBasics:
     def test_initialization(self) -> None:
         """Test basic initialization."""
         config = FlextCliSettings()
-        tm.that(config is not None, eq=True)
+        tm.that(config, none=False)
         tm.that(isinstance(config, FlextCliSettings), eq=True)
 
     def test_serialization_deserialization(self) -> None:
@@ -143,7 +143,7 @@ class TestsCliConfigBasics:
         config = FlextCliSettings()
         dumped = config.model_dump()
         tm.that(isinstance(dumped, dict), eq=True)
-        tm.that("verbose" in dumped, eq=True)
+        tm.that(dumped, has="verbose")
         data = {"verbose": False, "profile": "test"}
         validated = FlextCliSettings.model_validate(data)
         tm.that(validated.profile, eq="test")
@@ -163,7 +163,7 @@ class TestsCliConfigService:
         FlextCliSettings()
         FlextCliSettings.reset_for_testing()
         new_config = FlextCliSettings()
-        tm.that(new_config is not None, eq=True)
+        tm.that(new_config, none=False)
 
     def test_execute_as_service(self) -> None:
         """Test execute_service returns r."""
@@ -280,7 +280,7 @@ class TestsCliConfigIntegration:
         """Test FlextCli uses config."""
         cli = FlextCli()
         config = cli.config
-        tm.that(config is not None, eq=True)
+        tm.that(config, none=False)
         tm.that(isinstance(config, FlextCliSettings), eq=True)
 
     def test_config_inheritance(self) -> None:
@@ -323,7 +323,7 @@ class TestsCliConfigValidation:
     @pytest.mark.parametrize("env", ConfigTestFactory.VALID_ENVIRONMENTS)
     def test_valid_environments(self, env: str) -> None:
         """Test all valid environments."""
-        tm.that(env in ConfigTestFactory.VALID_ENVIRONMENTS, eq=True)
+        tm.that(ConfigTestFactory.VALID_ENVIRONMENTS, has=env)
 
     def test_model_dump(self) -> None:
         """Test model_dump returns complete dict."""
@@ -356,14 +356,14 @@ class TestsCliConfigComputedFields:
         fmt_value = config.auto_output_format
         tm.that(isinstance(fmt_value, str), eq=True)
         fmt: str = fmt_value
-        tm.that(fmt in {"table", "json", "plain"}, eq=True)
+        tm.that({"table", "json", "plain"}, has=fmt)
 
     def test_auto_verbosity(self) -> None:
         """Test auto_verbosity computed field."""
         config = FlextCliSettings()
         verb_value = config.auto_verbosity
         verb: str = verb_value
-        tm.that(verb in {"normal", "quiet", "verbose"}, eq=True)
+        tm.that({"normal", "quiet", "verbose"}, has=verb)
 
     def test_optimal_table_format(self) -> None:
         """Test optimal_table_format computed field."""
@@ -371,7 +371,7 @@ class TestsCliConfigComputedFields:
         fmt_value = config.optimal_table_format
         tm.that(isinstance(fmt_value, str), eq=True)
         fmt: str = fmt_value
-        tm.that(fmt in {"simple", "grid", "github", "plain"}, eq=True)
+        tm.that({"simple", "grid", "github", "plain"}, has=fmt)
 
     def test_auto_color_support(self) -> None:
         """Test auto_color_support computed field."""
@@ -385,7 +385,7 @@ class TestsCliConfigLogging:
     def test_logger_creation(self) -> None:
         """Test logger creation."""
         logger = logging.getLogger("test_logger")
-        tm.that(logger is not None, eq=True)
+        tm.that(logger, none=False)
         tm.that(isinstance(logger, logging.Logger), eq=True)
 
     def test_logging_levels(self, caplog: pytest.LogCaptureFixture) -> None:
@@ -394,8 +394,8 @@ class TestsCliConfigLogging:
         logger.setLevel(logging.INFO)
         logger.info("Info message")
         logger.warning("Warning message")
-        tm.that("Info message" in caplog.text, eq=True)
-        tm.that("Warning message" in caplog.text, eq=True)
+        tm.that(caplog.text, has="Info message")
+        tm.that(caplog.text, has="Warning message")
 
 
 class TestsCliConfigConcurrency:
@@ -431,7 +431,7 @@ class TestsCliConfigMemory:
         del configs
         gc.collect()
         new_config = FlextCliSettings()
-        tm.that(new_config is not None, eq=True)
+        tm.that(new_config, none=False)
 
     def test_state_persistence(self) -> None:
         """Test config state persistence using model_copy."""
@@ -451,9 +451,9 @@ class TestsCliConfigEdgeCases:
     def test_extreme_values(self) -> None:
         """Test config with extreme numeric values."""
         config: FlextCliSettings = FlextCliSettings()
-        tm.that(config.max_retries >= 0, eq=True)
-        tm.that(config.cli_timeout > 0, eq=True)
-        tm.that(config.max_width > 0, eq=True)
+        tm.that(config.max_retries, gte=0)
+        tm.that(config.cli_timeout, gt=0)
+        tm.that(config.max_width, gt=0)
 
     def test_load_config(self) -> None:
         """Test load_config method."""

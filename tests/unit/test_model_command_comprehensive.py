@@ -157,7 +157,7 @@ class TestsCliModelCommandComprehensive:
         force_param = next((p for p in params if p.name == "force"), None)
         assert force_param is not None
         tm.that(force_param.click_type, eq="BOOL")
-        tm.that(force_param.default is None, eq=True)
+        tm.that(force_param.default, none=True)
 
     def test_field_aliases_preserved(self) -> None:
         """Test that field aliases are preserved."""
@@ -203,8 +203,8 @@ class TestsCliModelCommandComprehensive:
             """Process connection config."""
             tm.that(isinstance(params, m.ConnectionConfig), eq=True)
             assert isinstance(params, m.ConnectionConfig)
-            tm.that(params.host is not None, eq=True)
-            tm.that(params.port is not None, eq=True)
+            tm.that(params.host, none=False)
+            tm.that(params.port, none=False)
 
         command = cli.model_command(m.ConnectionConfig, handler)
         assert command is not None
@@ -218,7 +218,7 @@ class TestsCliModelCommandComprehensive:
             """Process environment config."""
             tm.that(isinstance(params, m.EnvironmentConfig), eq=True)
             assert isinstance(params, m.EnvironmentConfig)
-            tm.that(params.environment is not None, eq=True)
+            tm.that(params.environment, none=False)
 
         command = cli.model_command(m.EnvironmentConfig, handler)
         assert command is not None
@@ -232,8 +232,8 @@ class TestsCliModelCommandComprehensive:
             """Process aliased config."""
             tm.that(isinstance(params, m.AliasedConfig), eq=True)
             assert isinstance(params, m.AliasedConfig)
-            tm.that(params.input_dir is not None, eq=True)
-            tm.that(params.output_dir is not None, eq=True)
+            tm.that(params.input_dir, none=False)
+            tm.that(params.output_dir, none=False)
 
         command = cli.model_command(m.AliasedConfig, handler)
         assert command is not None

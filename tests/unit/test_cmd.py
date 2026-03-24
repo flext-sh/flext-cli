@@ -128,7 +128,7 @@ class TestsCliCmd:
     def test_cmd_initialization(self) -> None:
         """Test CMD initialization with proper configuration."""
         cmd = _create_cmd_instance()
-        tm.that(cmd is not None, eq=True)
+        tm.that(cmd, none=False)
         tm.that(isinstance(cmd, FlextCliCmd), eq=True)
 
     def test_cmd_instantiation(self) -> None:
@@ -157,7 +157,7 @@ class TestsCliCmd:
     def test_cmd_command_bus_service(self) -> None:
         """Test command bus service property."""
         cmd = _create_cmd_instance()
-        tm.that(cmd is not None, eq=True)
+        tm.that(cmd, none=False)
         tm.that(isinstance(cmd, FlextCliCmd), eq=True)
 
     def test_cmd_integration(self) -> None:
@@ -165,7 +165,7 @@ class TestsCliCmd:
         cmd = _create_cmd_instance()
         result = cmd.execute()
         tm.ok(result)
-        tm.that(cmd is not None, eq=True)
+        tm.that(cmd, none=False)
         tm.that(isinstance(cmd, FlextCliCmd), eq=True)
 
     def test_cmd_logging_integration(self) -> None:
@@ -173,7 +173,7 @@ class TestsCliCmd:
         cmd = _create_cmd_instance()
         result = cmd.execute()
         tm.ok(result)
-        tm.that(result.value is not None, eq=True)
+        tm.that(result.value, none=False)
 
     def test_cmd_performance(self) -> None:
         """Test CMD performance characteristics."""
@@ -182,7 +182,7 @@ class TestsCliCmd:
         result = cmd.execute()
         execution_time = time.time() - start_time
         tm.ok(result)
-        tm.that(execution_time < 1.0, eq=True)
+        tm.that(execution_time, lt=1.0)
 
     def test_cmd_memory_usage(self) -> None:
         """Test CMD memory usage characteristics."""
@@ -232,7 +232,7 @@ class TestsCliCmd:
         result = cmd.get_config_info()
         tm.ok(result)
         tm.that(isinstance(result.value, m.Cli.ConfigSnapshot), eq=True)
-        tm.that(result.value.config_dir is not None, eq=True)
+        tm.that(result.value.config_dir, none=False)
 
     def test_cmd_show_config(self) -> None:
         """Test show_config method."""
@@ -266,7 +266,7 @@ class TestsCliCmd:
         config_dir = tmp_path / "config"
         config_dir.mkdir()
         config_file = config_dir / CONFIG_FILE_NAME
-        tm.that(not config_file.exists(), eq=True)
+        tm.that(config_file.exists(), eq=False)
         cmd = _create_cmd_instance()
         result = cmd.edit_config()
         tm.that(isinstance(result, r), eq=True)
@@ -278,7 +278,7 @@ class TestsCliCmd:
         config_dir = tmp_path / "config"
         config_dir.mkdir()
         config_file = config_dir / CONFIG_FILE_NAME
-        tm.that(not config_file.exists(), eq=True)
+        tm.that(config_file.exists(), eq=False)
         cmd = _create_cmd_instance()
         result = cmd.edit_config()
         tm.that(isinstance(result, r), eq=True)
@@ -290,7 +290,7 @@ class TestsCliCmd:
         config_dir = tmp_path / "config"
         config_dir.mkdir()
         config_file = config_dir / CONFIG_FILE_NAME
-        tm.that(not config_file.exists(), eq=True)
+        tm.that(config_file.exists(), eq=False)
         cmd = _create_cmd_instance()
         result1 = cmd.edit_config()
         tm.that(isinstance(result1, r), eq=True)
@@ -305,7 +305,7 @@ class TestsCliCmd:
         """Test set_config_value method."""
         cmd = _create_cmd_instance()
         result = cmd.set_config_value("test_key", "test_value")
-        tm.that(result is not None, eq=True)
+        tm.that(result, none=False)
         if result.is_success:
             tm.that(result.value is True, eq=True)
 
@@ -318,7 +318,7 @@ class TestsCliCmd:
         result = cmd.get_config_value("nonexistent_key")
         tm.fail(result)
         error_msg = str(result.error).lower() if result.error else ""
-        tm.that("not found" in error_msg, eq=True)
+        tm.that(error_msg, has="not found")
 
     def test_cmd_get_config_value_key_found_in_file(self, temp_dir: Path) -> None:
         """Test get_config_value success path when key is found."""
@@ -339,7 +339,7 @@ class TestsCliCmd:
             data = result.value
             tm.that(data["key"], eq="found_key")
             tm.that(data["value"], eq="found_value")
-            tm.that("timestamp" in data, eq=True)
+            tm.that(data, has="timestamp")
         finally:
             config.config_dir = original_config_dir
 
@@ -367,7 +367,7 @@ class TestsCliCmd:
             result = cmd.get_config_value("test_key")
             tm.fail(result)
             error_msg = str(result.error).lower() if result.error else ""
-            tm.that(expected_error_keyword in error_msg, eq=True)
+            tm.that(error_msg, has=expected_error_keyword)
         finally:
             _restore_config_dir(original_config_dir)
 
@@ -381,7 +381,7 @@ class TestsCliCmd:
         try:
             result = cmd.get_config_value("test_key")
             tm.fail(result)
-            tm.that(result.error is not None, eq=True)
+            tm.that(result.error, none=False)
         finally:
             _restore_config_dir(original_config_dir)
 
@@ -393,7 +393,7 @@ class TestsCliCmd:
         try:
             result = cmd.get_config_value("test_key")
             tm.fail(result)
-            tm.that("not a valid dictionary" in str(result.error), eq=True)
+            tm.that(str(result.error), has="not a valid dictionary")
         finally:
             _restore_config_dir(original_config_dir)
 
@@ -407,7 +407,7 @@ class TestsCliCmd:
         try:
             result = cmd.edit_config()
             tm.fail(result)
-            tm.that("not a valid dictionary" in str(result.error), eq=True)
+            tm.that(str(result.error), has="not a valid dictionary")
         finally:
             _restore_config_dir(original_config_dir)
 
@@ -422,7 +422,7 @@ class TestsCliCmd:
             result = cmd.edit_config()
             tm.fail(result)
             tm.that(isinstance(result.error, str), eq=True)
-            tm.that(result.error is not None, eq=True)
+            tm.that(result.error, none=False)
         finally:
             _restore_config_dir(original_config_dir)
 
@@ -483,7 +483,7 @@ class TestsCliCmd:
         """Test CMD error handling capabilities."""
         cmd = _create_cmd_instance()
         result = cmd.edit_config()
-        tm.that(result is not None, eq=True)
+        tm.that(result, none=False)
 
     def test_cmd_show_config_paths_exception(self) -> None:
         """Test show_config_paths exception handler."""
@@ -523,7 +523,7 @@ class TestsCliCmd:
         result = cmd.get_config_value("key")
         tm.that(isinstance(result, r), eq=True)
         if result.is_success:
-            tm.that(result.value is not None, eq=True)
+            tm.that(result.value, none=False)
 
     def test_cmd_show_config_exception(self) -> None:
         """Test show_config exception handler."""
@@ -608,5 +608,5 @@ class TestsCliCmd:
         """Test edit_config handles errors gracefully."""
         cmd = _create_cmd_instance()
         result = cmd.edit_config()
-        tm.that(result is not None, eq=True)
+        tm.that(result, none=False)
         tm.that(result.is_success or result.is_failure, eq=True)

@@ -259,7 +259,7 @@ class TestsCliConfigModelIntegration:
             pass
 
         command = cli.model_command(self.AppParams, handler, config=config)
-        tm.that(command is not None, eq=True)
+        tm.that(command, none=False)
         tm.that(callable(command), eq=True)
 
     def test_model_command_without_config(self, cli: FlextCliCli) -> None:
@@ -269,7 +269,7 @@ class TestsCliConfigModelIntegration:
             pass
 
         command = cli.model_command(self.SimpleParams, handler)
-        tm.that(command is not None, eq=True)
+        tm.that(command, none=False)
 
     @pytest.mark.parametrize(
         ("config_class", "field_name", "expected_type", "expected_value"),
@@ -327,8 +327,8 @@ class TestsCliConfigModelIntegration:
         tm.that(config.input_dir, eq="/config/input")
         tm.that(config.output_dir, eq="/config/output")
         params = self.AppParams()
-        tm.that(params.input_dir is None, eq=True)
-        tm.that(params.output_dir is None, eq=True)
+        tm.that(params.input_dir, none=True)
+        tm.that(params.output_dir, none=True)
         params_from_config = self.AppParams(
             input_dir=config.input_dir, output_dir=config.output_dir
         )
@@ -344,14 +344,14 @@ class TestsCliConfigModelIntegration:
     def test_params_validation_with_none_values(self) -> None:
         """Test parameter validation with None values."""
         params = self.AliasedParams()
-        tm.that(params.input_dir is None, eq=True)
-        tm.that(params.output_dir is None, eq=True)
+        tm.that(params.input_dir, none=True)
+        tm.that(params.output_dir, none=True)
 
     def test_params_validation_with_mixed_values(self) -> None:
         """Test parameter validation with mixed None and non-None values."""
         params_mixed = self.AliasedParams.model_validate({"input_dir": "/input"})
         tm.that(params_mixed.input_dir, eq="/input")
-        tm.that(params_mixed.output_dir is None, eq=True)
+        tm.that(params_mixed.output_dir, none=True)
 
     def test_full_workflow_config_to_params(self) -> None:
         """Test full workflow from config to parameters."""
@@ -408,5 +408,5 @@ class TestsCliConfigModelIntegration:
     def test_config_value_extraction_with_none(self) -> None:
         """Test config extraction returns None for unset optional fields."""
         config = self.OptionalPathConfig()
-        tm.that(config.optional_path is None, eq=True)
+        tm.that(config.optional_path, none=True)
         tm.that(config.required_path, eq="/default")

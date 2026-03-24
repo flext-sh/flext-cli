@@ -40,7 +40,7 @@ class TestsCliCliExtended:
                 mock_get_config.return_value = mock_config_instance
                 result = runner.invoke(app, ["--debug", "hello"])
                 tm.that(result.exit_code, eq=0)
-                tm.that("Hello" in result.stdout, eq=True)
+                tm.that(result.stdout, has="Hello")
                 mock_reconfigure.assert_called()
                 call_args = mock_reconfigure.call_args[1]
                 tm.that(call_args["log_level"], eq=logging.DEBUG)
@@ -96,7 +96,7 @@ class TestsCliCliExtended:
             mock_confirm.side_effect = typer.Abort()
             result = cli.confirm("Continue?", abort=True)
             tm.fail(result)
-            tm.that("User aborted" in str(result.error), eq=True)
+            tm.that(str(result.error), has="User aborted")
 
     def test_prompt_logic_extended(self) -> None:
         """Test prompt logic with various scenarios."""
@@ -109,7 +109,7 @@ class TestsCliCliExtended:
             mock_prompt.side_effect = typer.Abort()
             result = cli.prompt("Name")
             tm.fail(result)
-            tm.that("User aborted" in str(result.error), eq=True)
+            tm.that(str(result.error), has="User aborted")
 
     def test_utility_wrappers(self) -> None:
         """Test simple utility wrappers."""

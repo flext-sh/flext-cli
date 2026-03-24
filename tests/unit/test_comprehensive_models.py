@@ -49,7 +49,7 @@ class TestsCliComprehensiveModels:
             if key != "description":
                 attr_value: t.NormalizedValue = getattr(cmd, key)
                 tm.that(attr_value, eq=value)
-        tm.that("test" in (cmd.command_line or cmd.name), eq=True)
+        tm.that((cmd.command_line or cmd.name), has="test")
         tm.that(isinstance(cmd.created_at, datetime), eq=True)
 
     @pytest.mark.parametrize(
@@ -64,7 +64,7 @@ class TestsCliComprehensiveModels:
         """Test session creation with different statuses."""
         session = create_test_cli_session(status=status)
         tm.that(session.status, eq=status)
-        tm.that(session.session_id is not None, eq=True)
+        tm.that(session.session_id, none=False)
         if hasattr(session, "commands"):
             tm.that(len(session.commands), eq=0)
         else:
@@ -132,10 +132,10 @@ class TestsCliModelSerialization:
         """Test command JSON serialization with real data."""
         cmd = create_test_cli_command()
         json_data = cmd.model_dump()
-        tm.that("unique_id" in json_data, eq=True)
-        tm.that("name" in json_data, eq=True)
-        tm.that("status" in json_data, eq=True)
-        tm.that("created_at" in json_data, eq=True)
+        tm.that(json_data, has="unique_id")
+        tm.that(json_data, has="name")
+        tm.that(json_data, has="status")
+        tm.that(json_data, has="created_at")
         cmd_copy = m.Cli.CliCommand.model_construct(**json_data)
         tm.that(cmd_copy.unique_id, eq=cmd.unique_id)
 
@@ -143,8 +143,8 @@ class TestsCliModelSerialization:
         """Test session JSON serialization with real data."""
         session = create_test_cli_session()
         json_data = session.model_dump()
-        tm.that("session_id" in json_data, eq=True)
-        tm.that("status" in json_data, eq=True)
+        tm.that(json_data, has="session_id")
+        tm.that(json_data, has="status")
         tm.that("commands" in json_data or "commands_executed" in json_data, eq=True)
         session_copy = m.Cli.CliSession.model_construct(**json_data)
         tm.that(session_copy.session_id, eq=session.session_id)

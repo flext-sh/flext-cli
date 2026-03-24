@@ -125,8 +125,8 @@ class TestsCliCli:
             )
             tm.that(isinstance(path_type, click.Path), eq=True)
         elif click_type_name in {"intrange", "floatrange"}:
-            tm.that("min" in data_dict, eq=True)
-            tm.that("max" in data_dict, eq=True)
+            tm.that(data_dict, has="min")
+            tm.that(data_dict, has="max")
 
     @pytest.mark.parametrize(
         ("primitive_type", "getter_method"),
@@ -155,7 +155,7 @@ class TestsCliCli:
         datetime_type = cli_cli.get_datetime_type()
         tm.that(isinstance(datetime_type, click.DateTime), eq=True)
         for fmt in ["%Y-%m-%d", "%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%S"]:
-            tm.that(fmt in datetime_type.formats, eq=True)
+            tm.that(datetime_type.formats, has=fmt)
 
     def test_cli_runner_invocation(self) -> None:
         """Test CLI runner for command invocation."""
@@ -168,7 +168,7 @@ class TestsCliCli:
 
         result = runner.invoke(simple_command, [])
         tm.that(result.exit_code, eq=0)
-        tm.that("hello" in result.output, eq=True)
+        tm.that(result.output, has="hello")
 
     @pytest.mark.parametrize(
         ("test_type", "description", "should_succeed"),
@@ -276,7 +276,7 @@ class TestsCliCli:
             """Test get_current_context."""
             cli = FlextCliCli()
             ctx = cli.get_current_context()
-            tm.that(ctx is None, eq=True)
+            tm.that(ctx, none=True)
 
         def test_create_pass_context_decorator(self) -> None:
             """Test create_pass_context_decorator."""
@@ -290,8 +290,8 @@ class TestsCliCli:
         width, height = cli.get_terminal_size()
         tm.that(isinstance(width, int), eq=True)
         tm.that(isinstance(height, int), eq=True)
-        tm.that(width > 0, eq=True)
-        tm.that(height > 0, eq=True)
+        tm.that(width, gt=0)
+        tm.that(height, gt=0)
 
     def test_clear_screen(self) -> None:
         """Test clear_screen method."""
@@ -304,7 +304,7 @@ class TestsCliCli:
         """Test get_current_context when not in command."""
         cli = FlextCliCli()
         ctx = cli.get_current_context()
-        tm.that(ctx is None, eq=True)
+        tm.that(ctx, none=True)
 
     def test_get_bool_type(self) -> None:
         """Test get_bool_type method."""
@@ -353,7 +353,7 @@ class TestsCliCli:
         cli = FlextCliCli()
         result = cli.format_filename("test.py")
         tm.that(isinstance(result, str), eq=True)
-        tm.that("test.py" in result, eq=True)
+        tm.that(result, has="test.py")
 
     def test_pause(self) -> None:
         """Test pause method."""
@@ -398,7 +398,7 @@ class TestsCliCli:
         cli = FlextCliCli()
         result = cli.format_filename("test.py")
         tm.that(isinstance(result, str), eq=True)
-        tm.that("test.py" in result, eq=True)
+        tm.that(result, has="test.py")
 
     def test_create_command_decorator(self) -> None:
         """Test create_command_decorator method."""

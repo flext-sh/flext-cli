@@ -28,7 +28,7 @@ def test_process_fail_and_collect_paths() -> None:
         on_error="collect",
     )
     tm.fail(collect_result)
-    tm.that("[1]" in (collect_result.error or ""), eq=True)
+    tm.that((collect_result.error or ""), has="[1]")
     skipped = u.Cli.process(values, lambda x: 10 // x, predicate=lambda x: x != 0)
     tm.ok(skipped)
 
@@ -51,7 +51,7 @@ def test_process_mapping_fail_and_collect_paths() -> None:
         on_error="collect",
     )
     tm.fail(collect_result)
-    tm.that("bad" in (collect_result.error or ""), eq=True)
+    tm.that((collect_result.error or ""), has="bad")
 
 
 def test_validate_required_string_raises_value_error() -> None:
@@ -72,7 +72,7 @@ def test_validation_v_uses_custom_message_on_empty_failure() -> None:
 def test_validation_state_requires_criteria() -> None:
     result = u.Cli.CliValidation.v_state("active")
     tm.fail(result)
-    tm.that("no validation criteria" in (result.error or ""), eq=True)
+    tm.that((result.error or ""), has="no validation criteria")
 
 
 def test_normalize_union_type_returns_none_when_inner_is_none(
@@ -92,7 +92,7 @@ def test_normalize_union_type_returns_none_when_inner_is_none(
         u.Cli.TypeNormalizer, "normalize_annotation", staticmethod(fake)
     )
     result = u.Cli.TypeNormalizer.normalize_union_type(union_type)
-    tm.that(result is None, eq=True)
+    tm.that(result, none=True)
 
 
 def test_normalize_union_type_returns_none_for_empty_normalized_list(
@@ -105,7 +105,7 @@ def test_normalize_union_type_returns_none_for_empty_normalized_list(
         staticmethod(lambda _annotation: None),
     )
     result = u.Cli.TypeNormalizer.normalize_union_type(union_type)
-    tm.that(result is None, eq=True)
+    tm.that(result, none=True)
 
 
 def test_normalize_union_type_returns_annotation_for_none_only_args(
@@ -116,7 +116,7 @@ def test_normalize_union_type_returns_annotation_for_none_only_args(
     )
     union_type = str | int
     result = u.Cli.TypeNormalizer.normalize_union_type(union_type)
-    tm.that(result == union_type, eq=True)
+    tm.that(result, eq=union_type)
 
 
 def test_validated_with_result_returns_failure_on_validation_error() -> None:
@@ -127,7 +127,7 @@ def test_validated_with_result_returns_failure_on_validation_error() -> None:
 
     result = parse_int(value=-1)
     tm.fail(result)
-    tm.that("validation" in (result.error or "").lower(), eq=True)
+    tm.that((result.error or "").lower(), has="validation")
 
 
 def test_parse_kwargs_skips_missing_enum_field_key() -> None:
@@ -138,4 +138,4 @@ def test_parse_kwargs_skips_missing_enum_field_key() -> None:
 
     result = u.Cli.TypeNormalizer.Args.parse_kwargs({"other": "x"}, {"mode": Mode})
     tm.ok(result)
-    tm.that("other" in result.value, eq=True)
+    tm.that(result.value, has="other")

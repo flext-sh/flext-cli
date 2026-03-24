@@ -41,8 +41,8 @@ class TestsCliPerformanceAutomated:
         pending = session.commands_by_status(c.Cli.CommandStatus.PENDING.value)
         filter_time = time.time() - start_time
         tm.that(len(pending), eq=num_commands)
-        tm.that(creation_time < 5.0, eq=True)
-        tm.that(filter_time < 0.1, eq=True)
+        tm.that(creation_time, lt=5.0)
+        tm.that(filter_time, lt=0.1)
 
     @pytest.mark.parametrize("data_size", [100, 1000, 10000])
     def test_command_data_handling_performance(self, data_size: int) -> None:
@@ -54,7 +54,7 @@ class TestsCliPerformanceAutomated:
         )
         creation_time = time.time() - start_time
         tm.that(len(cmd.args), eq=min(data_size, 1000))
-        tm.that(creation_time < 0.5, eq=True)
+        tm.that(creation_time, lt=0.5)
 
     def test_memory_usage_patterns(self) -> None:
         """Test memory usage patterns with real t.NormalizedValue creation."""
@@ -69,4 +69,4 @@ class TestsCliPerformanceAutomated:
         final_memory = process.memory_info().rss / 1024 / 1024
         memory_increase = final_memory - initial_memory
         del commands
-        tm.that(memory_increase < 50, eq=True)
+        tm.that(memory_increase, lt=50)

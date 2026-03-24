@@ -79,7 +79,7 @@ class TestsCliRailwayPatternExample:
         loaded_data = read_result.value
         tm.that(isinstance(loaded_data, dict), eq=True)
         for key in verify_keys:
-            tm.that(key in loaded_data, eq=True)
+            tm.that(loaded_data, has=key)
 
     @pytest.mark.parametrize(
         ("invalid_path", "test_data", "scenario"),
@@ -110,7 +110,7 @@ class TestsCliRailwayPatternExample:
         result = file_tools.write_json_file(invalid_path, test_data)
         tm.fail(result)
         error_msg = result.error
-        tm.that(error_msg is not None, eq=True)
+        tm.that(error_msg, none=False)
 
     def test_railway_error_recovery(
         self, file_tools: FlextCliFileTools, temp_dir: Path
@@ -165,5 +165,5 @@ class TestsCliRailwayPatternExample:
         tm.ok(final_result)
         final_data = final_result.value
         tm.that(isinstance(final_data, dict), eq=True)
-        tm.that("config" in final_data, eq=True)
-        tm.that("data" in final_data, eq=True)
+        tm.that(final_data, has="config")
+        tm.that(final_data, has="data")

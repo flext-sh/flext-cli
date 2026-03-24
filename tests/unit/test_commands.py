@@ -29,7 +29,7 @@ class TestsCliCommands:
     def test_commands_initialization(self) -> None:
         """Test Commands initialization with proper configuration."""
         commands = CommandsFactory.create_commands()
-        tm.that(commands is not None, eq=True)
+        tm.that(commands, none=False)
         tm.that(isinstance(commands, FlextCliCommands), eq=True)
 
     def test_commands_execute_sync(self) -> None:
@@ -37,7 +37,7 @@ class TestsCliCommands:
         commands = CommandsFactory.create_commands()
         result = commands.execute()
         tm.ok(result)
-        tm.that(result.value is not None, eq=True)
+        tm.that(result.value, none=False)
         tm.that(isinstance(result.value, dict), eq=True)
         tm.that(result.value["app_name"], eq=c.Cli.FLEXT_CLI)
 
@@ -46,7 +46,7 @@ class TestsCliCommands:
         commands = CommandsFactory.create_commands()
         result = commands.execute()
         tm.ok(result)
-        tm.that(result.value is not None, eq=True)
+        tm.that(result.value, none=False)
         tm.that(isinstance(result.value, dict), eq=True)
         tm.that(result.value["app_name"], eq=c.Cli.FLEXT_CLI)
 
@@ -58,7 +58,7 @@ class TestsCliCommands:
         tm.that(isinstance(result.value, dict), eq=True)
         commands_count = result.value["commands_count"]
         tm.that(isinstance(commands_count, int), eq=True)
-        tm.that(commands_count >= 0, eq=True)
+        tm.that(commands_count, gte=0)
 
     def test_commands_registration(self) -> None:
         """Test command registration functionality."""
@@ -70,7 +70,7 @@ class TestsCliCommands:
         tm.that(isinstance(exec_result.value, dict), eq=True)
         commands_count = exec_result.value["commands_count"]
         tm.that(isinstance(commands_count, int), eq=True)
-        tm.that(commands_count >= 0, eq=True)
+        tm.that(commands_count, gte=0)
 
     def test_commands_execution(self) -> None:
         """Test command execution functionality."""
@@ -89,8 +89,8 @@ class TestsCliCommands:
         result = commands.execute_command("test_with_args", args=["arg1", "arg2"])
         tm.ok(result)
         result_value = str(result.value)
-        tm.that("args:" in result_value, eq=True)
-        tm.that("2" in result_value, eq=True)
+        tm.that(result_value, has="args:")
+        tm.that(result_value, has="2")
 
     def test_execute_command_handler_without_args(self) -> None:
         """Test execute_command with handler that doesn't accept args."""
@@ -115,7 +115,7 @@ class TestsCliCommands:
         commands = CommandsFactory.create_commands()
         result = commands.execute_command("non_existent")
         tm.fail(result)
-        tm.that(result.error is not None, eq=True)
+        tm.that(result.error, none=False)
         tm.that(
             "not found" in (result.error or "").lower()
             or "unknown" in (result.error or "").lower(),
@@ -131,7 +131,7 @@ class TestsCliCommands:
         commands._commands["bad_cmd"] = bad_entry
         result = commands.execute_command("bad_cmd")
         tm.fail(result)
-        tm.that("not callable" in str(result.error).lower(), eq=True)
+        tm.that(str(result.error).lower(), has="not callable")
 
     def test_execute_command_execution_exception(self) -> None:
         """Test execute_command when handler raises exception."""
@@ -139,7 +139,7 @@ class TestsCliCommands:
         _ = CommandsFactory.register_failing_command(commands, "failing")
         result = commands.execute_command("failing")
         tm.fail(result)
-        tm.that(result.error is not None, eq=True)
+        tm.that(result.error, none=False)
 
     def test_execute_command_invalid_structure(self) -> None:
         """Test execute_command with invalid command structure."""
@@ -163,7 +163,7 @@ class TestsCliCommands:
         result = commands.execute()
         execution_time = time.time() - start_time
         tm.ok(result)
-        tm.that(execution_time < 5.0, eq=True)
+        tm.that(execution_time, lt=5.0)
 
     def test_commands_memory_usage(self) -> None:
         """Test commands memory usage characteristics."""
@@ -196,7 +196,7 @@ class TestsCliCommands:
         commands = CommandsFactory.create_commands()
         result = commands.execute()
         tm.ok(result)
-        tm.that(result.value is not None, eq=True)
+        tm.that(result.value, none=False)
 
     def test_commands_concurrent_execution(self) -> None:
         """Test commands concurrent execution."""
@@ -224,8 +224,8 @@ class TestsCliCommands:
         commands = CommandsFactory.create_commands()
         result = commands.unregister_command("non_existent")
         tm.fail(result)
-        tm.that(result.error is not None, eq=True)
-        tm.that("not found" in (result.error or "").lower(), eq=True)
+        tm.that(result.error, none=False)
+        tm.that((result.error or "").lower(), has="not found")
 
     def test_unregister_command_success(self) -> None:
         """Test successful command unregistration."""
@@ -244,8 +244,8 @@ class TestsCliCommands:
         cmds = commands.get_commands()
         tm.that(isinstance(cmds, dict), eq=True)
         tm.that(len(cmds), eq=2)
-        tm.that("cmd1" in cmds, eq=True)
-        tm.that("cmd2" in cmds, eq=True)
+        tm.that(cmds, has="cmd1")
+        tm.that(cmds, has="cmd2")
 
     def test_clear_commands(self) -> None:
         """Test clear_commands method."""
@@ -268,8 +268,8 @@ class TestsCliCommands:
         cmd_list = result.value
         tm.that(isinstance(cmd_list, list), eq=True)
         tm.that(len(cmd_list), eq=2)
-        tm.that("alpha" in cmd_list, eq=True)
-        tm.that("beta" in cmd_list, eq=True)
+        tm.that(cmd_list, has="alpha")
+        tm.that(cmd_list, has="beta")
 
     def test_create_command_group(self) -> None:
         """Test create_command_group method."""
@@ -295,7 +295,7 @@ class TestsCliCommands:
         """Test get_click_group method."""
         commands = CommandsFactory.create_commands()
         group = commands.get_click_group()
-        tm.that(group is not None, eq=True)
+        tm.that(group, none=False)
         tm.that(hasattr(group, "name"), eq=True)
         tm.that(hasattr(group, "commands"), eq=True)
 
@@ -318,8 +318,8 @@ class TestsCliCommands:
         _ = CommandsFactory.register_simple_command(commands, "valid")
         result = commands.run_cli(["invalid_cmd"])
         tm.fail(result)
-        tm.that(result.error is not None, eq=True)
-        tm.that("not found" in (result.error or "").lower(), eq=True)
+        tm.that(result.error, none=False)
+        tm.that((result.error or "").lower(), has="not found")
 
     def test_create_main_cli(self) -> None:
         """Test create_main_cli method."""
@@ -336,7 +336,7 @@ class TestsCliCommands:
             "test_group", "Test group description", None
         )
         tm.fail(result)
-        tm.that("required" in str(result.error).lower(), eq=True)
+        tm.that(str(result.error).lower(), has="required")
 
     def test_create_command_group_with_empty_commands(self) -> None:
         """Test create_command_group with empty commands dict."""

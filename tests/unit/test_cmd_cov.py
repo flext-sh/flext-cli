@@ -24,7 +24,7 @@ def test_show_config_paths_failure_on_exception(
     )
     result = FlextCliCmd.show_config_paths()
     tm.fail(result)
-    tm.that("paths error" in (result.error or ""), eq=True)
+    tm.that((result.error or ""), has="paths error")
 
 
 def test_validate_config_failure_on_exception(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -36,7 +36,7 @@ def test_validate_config_failure_on_exception(monkeypatch: pytest.MonkeyPatch) -
     )
     result = cmd.validate_config()
     tm.fail(result)
-    tm.that("validate error" in (result.error or ""), eq=True)
+    tm.that((result.error or ""), has="validate error")
 
 
 def test_get_config_info_failure_on_exception(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -47,7 +47,7 @@ def test_get_config_info_failure_on_exception(monkeypatch: pytest.MonkeyPatch) -
     )
     result = FlextCliCmd.get_config_info()
     tm.fail(result)
-    tm.that("info error" in (result.error or ""), eq=True)
+    tm.that((result.error or ""), has="info error")
 
 
 def test_set_config_value_outer_exception_path(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -59,7 +59,7 @@ def test_set_config_value_outer_exception_path(monkeypatch: pytest.MonkeyPatch) 
     )
     result = cmd.set_config_value("k", "v")
     tm.fail(result)
-    tm.that("write exception" in (result.error or ""), eq=True)
+    tm.that((result.error or ""), has="write exception")
 
 
 def test_get_config_value_outer_exception_path(
@@ -83,7 +83,7 @@ def test_get_config_value_outer_exception_path(
     )
     result = cmd.get_config_value("x")
     tm.fail(result)
-    tm.that("read exception" in (result.error or ""), eq=True)
+    tm.that((result.error or ""), has="read exception")
 
 
 def test_show_config_failure_when_info_result_is_failure(
@@ -97,7 +97,7 @@ def test_show_config_failure_when_info_result_is_failure(
     )
     result = cmd.show_config()
     tm.fail(result)
-    tm.that("bad info" in (result.error or ""), eq=True)
+    tm.that((result.error or ""), has="bad info")
 
 
 def test_show_config_outer_exception_path(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -109,7 +109,7 @@ def test_show_config_outer_exception_path(monkeypatch: pytest.MonkeyPatch) -> No
     )
     result = cmd.show_config()
     tm.fail(result)
-    tm.that("show error" in (result.error or ""), eq=True)
+    tm.that((result.error or ""), has="show error")
 
 
 def test_edit_config_outer_exception_path(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -120,7 +120,7 @@ def test_edit_config_outer_exception_path(monkeypatch: pytest.MonkeyPatch) -> No
     )
     result = FlextCliCmd().edit_config()
     tm.fail(result)
-    tm.that("config access error" in (result.error or ""), eq=True)
+    tm.that((result.error or ""), has="config access error")
 
 
 def test_edit_config_success_logs_and_returns_ok(
@@ -151,5 +151,5 @@ def test_edit_config_success_logs_and_returns_ok(
     )
     result = cmd.edit_config()
     tm.ok(result)
-    tm.that("message" in logged, eq=True)
-    tm.that("config" in logged, eq=True)
+    tm.that(logged, has="message")
+    tm.that(logged, has="config")
