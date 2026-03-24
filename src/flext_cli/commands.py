@@ -73,11 +73,13 @@ class FlextCliCommands(FlextCliServiceBase):
     ) -> r[t.Cli.JsonValue]:
         """Normalize handler output to r."""
         if result is None:
-            return r.ok({"status": "success", "command": command_name})
+            return r[t.Cli.JsonValue].ok({"status": "success", "command": command_name})
         if result.is_success:
-            return r.ok(result.value)
+            return r[t.Cli.JsonValue].ok(result.value)
         error_value = result.error
-        return r.fail(str(error_value) if error_value else "Command failed")
+        return r[t.Cli.JsonValue].fail(
+            str(error_value) if error_value else "Command failed"
+        )
 
     def clear_commands(self) -> r[int]:
         """Clear all registered commands.

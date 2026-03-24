@@ -329,7 +329,7 @@ class FlextCliModels(FlextModels):
             value: Annotated[t.Cli.JsonValue | None, Field(default=None)]
             default: Annotated[
                 Sequence[t.Cli.JsonValue],
-                Field(default_factory=FlextCliModels.Cli._default_json_list),
+                Field(default_factory=list),
             ]
 
             @computed_field
@@ -434,7 +434,7 @@ class FlextCliModels(FlextModels):
             default: Annotated[
                 Sequence[t.Cli.JsonValue],
                 Field(
-                    default_factory=FlextCliModels.Cli._default_json_list,
+                    default_factory=list,
                     description="Default when value is None or invalid",
                 ),
             ]
@@ -1586,7 +1586,7 @@ class FlextCliModels(FlextModels):
             step_results: Annotated[
                 Sequence[Mapping[str, t.Cli.JsonValue]],
                 Field(
-                    default_factory=FlextCliModels.Cli._default_step_results,
+                    default_factory=list,
                     description="Results for each workflow step",
                 ),
             ]
