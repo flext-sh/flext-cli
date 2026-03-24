@@ -25,17 +25,17 @@ if TYPE_CHECKING:
         p,
     )
 
-_LAZY_IMPORTS: Mapping[str, tuple[str, str]] = {
-    "CliMainWithGroups": ("examples.plugins.protocols", "CliMainWithGroups"),
-    "DataProcessorPlugin": ("examples.plugins.example_plugin", "DataProcessorPlugin"),
-    "ExamplePlugin": ("examples.plugins.example_plugin", "ExamplePlugin"),
-    "FlextCliProtocols": ("examples.plugins.protocols", "FlextCliProtocols"),
-    "GroupWithCommands": ("examples.plugins.protocols", "GroupWithCommands"),
-    "demonstrate_plugin_commands": (
+_LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
+    "CliMainWithGroups": ["examples.plugins.protocols", "CliMainWithGroups"],
+    "DataProcessorPlugin": ["examples.plugins.example_plugin", "DataProcessorPlugin"],
+    "ExamplePlugin": ["examples.plugins.example_plugin", "ExamplePlugin"],
+    "FlextCliProtocols": ["examples.plugins.protocols", "FlextCliProtocols"],
+    "GroupWithCommands": ["examples.plugins.protocols", "GroupWithCommands"],
+    "demonstrate_plugin_commands": [
         "examples.plugins.example_plugin",
         "demonstrate_plugin_commands",
-    ),
-    "p": ("examples.plugins.protocols", "p"),
+    ],
+    "p": ["examples.plugins.protocols", "p"],
 }
 
 __all__ = [

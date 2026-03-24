@@ -254,11 +254,11 @@ class FlextCli:
         elif isinstance(data, list):
             table_data = data
         elif isinstance(data, tuple):
-            table_data = []
+            table_data: list[Mapping[str, t.Cli.JsonValue]] = []
             for row in data:
                 table_data.append(row)
         else:
-            table_data = []
+            table_data: list[Mapping[str, t.Cli.JsonValue]] = []
         table_config = m.Cli.TableConfig(
             headers=headers or "keys",
             show_header=True,

@@ -16,15 +16,15 @@ if TYPE_CHECKING:
     from flext_cli._models.cli_models_statistics import FlextCliModelsStatistics
     from flext_cli._models.cli_models_system_context import FlextCliModelsSystemContext
 
-_LAZY_IMPORTS: Mapping[str, tuple[str, str]] = {
-    "FlextCliModelsStatistics": (
+_LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
+    "FlextCliModelsStatistics": [
         "flext_cli._models.cli_models_statistics",
         "FlextCliModelsStatistics",
-    ),
-    "FlextCliModelsSystemContext": (
+    ],
+    "FlextCliModelsSystemContext": [
         "flext_cli._models.cli_models_system_context",
         "FlextCliModelsSystemContext",
-    ),
+    ],
 }
 
 __all__ = [

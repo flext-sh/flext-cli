@@ -220,7 +220,7 @@ class FlextCliCmd(FlextCliServiceBase):
                     for k, v in config_data.items()
                 }
             else:
-                normalized = {}
+                normalized: Mapping[str, FlextCliTypes.Cli.JsonValue] = {}
             if key not in normalized:
                 return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].fail(
                     c.Cli.CmdErrorMessages.CONFIG_KEY_NOT_FOUND.format(

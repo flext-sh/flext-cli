@@ -1165,9 +1165,7 @@ class FlextCliModels(FlextModels):
                 result: MutableMapping[str, list[FlextCliModels.Cli.CliCommand]] = {}
                 for command in cli_commands:
                     cmd_status = command.status or ""
-                    if cmd_status not in result:
-                        result[cmd_status] = []
-                    result[cmd_status].append(command)
+                    result.setdefault(cmd_status, []).append(command)
 
                 if status is not None:
                     return result.get(status, [])
