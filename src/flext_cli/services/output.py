@@ -201,8 +201,8 @@ class FlextCliOutput:
 
     @staticmethod
     def _is_rich_table_protocol(
-        obj: RichTable | p.Cli.Display.RichTable,
-    ) -> TypeIs[p.Cli.Display.RichTable]:
+        obj: RichTable | p.Cli.RichTable,
+    ) -> TypeIs[p.Cli.RichTable]:
         """Type guard to check if t.NormalizedValue implements RichTable."""
         return (
             hasattr(obj, "add_column")
@@ -212,7 +212,7 @@ class FlextCliOutput:
 
     @staticmethod
     def _is_rich_tree_protocol(
-        obj: RichTree | p.Cli.Display.RichTree,
+        obj: RichTree | p.Cli.RichTree,
     ) -> bool:
         """Type guard to check if t.NormalizedValue implements RichTree."""
         return hasattr(obj, "add") and hasattr(obj, "label")
@@ -666,7 +666,7 @@ class FlextCliOutput:
                 c.Cli.ErrorMessages.CREATE_FORMATTER_FAILED.format(error=e),
             )
 
-    def create_progress_bar(self) -> r[p.Cli.Interactive.RichProgress]:
+    def create_progress_bar(self) -> r[p.Cli.RichProgress]:
         """Create a Rich progress bar using FlextCliFormatters.
 
         Returns:
@@ -683,15 +683,15 @@ class FlextCliOutput:
             if not self._is_rich_progress_protocol(progress_value):
                 msg = "progress_value must implement RichProgress"
                 raise TypeError(msg)
-            return r[p.Cli.Interactive.RichProgress].ok(progress_value)
-        return r[p.Cli.Interactive.RichProgress].fail(result.error or "")
+            return r[p.Cli.RichProgress].ok(progress_value)
+        return r[p.Cli.RichProgress].fail(result.error or "")
 
     def create_rich_table(
         self,
         data: Sequence[Mapping[str, FlextCliTypes.Cli.JsonValue]],
         title: str | None = None,
         headers: t.StrSequence | None = None,
-    ) -> r[p.Cli.Display.RichTable]:
+    ) -> r[p.Cli.RichTable]:
         """Create a Rich table from data using FlextCliFormatters.
 
         Args:
@@ -714,32 +714,32 @@ class FlextCliOutput:
 
         """
         if not data:
-            return r[p.Cli.Display.RichTable].fail(c.Cli.ErrorMessages.NO_DATA_PROVIDED)
+            return r[p.Cli.RichTable].fail(c.Cli.ErrorMessages.NO_DATA_PROVIDED)
         try:
             headers_result = self._prepare_table_headers(data, headers)
             if headers_result.is_failure:
-                return r[p.Cli.Display.RichTable].fail(
+                return r[p.Cli.RichTable].fail(
                     headers_result.error or "Failed to prepare headers",
                 )
             table_headers = headers_result.value
             table_result = self._initialize_rich_table(table_headers, title)
             if table_result.is_failure:
-                return r[p.Cli.Display.RichTable].fail(
+                return r[p.Cli.RichTable].fail(
                     table_result.error or "Failed to initialize table",
                 )
             table = table_result.value
             populate_result = self._populate_table_rows(table, data, table_headers)
             if populate_result.is_failure:
-                return r[p.Cli.Display.RichTable].fail(
+                return r[p.Cli.RichTable].fail(
                     populate_result.error or "Failed to populate table",
                 )
             if not self._is_rich_table_protocol(table):
                 msg = "table must implement RichTable"
                 raise TypeError(msg)
-            return r[p.Cli.Display.RichTable].ok(table)
+            return r[p.Cli.RichTable].ok(table)
         except Exception as e:
             error_msg = c.Cli.ErrorMessages.CREATE_RICH_TABLE_FAILED.format(error=e)
-            return r[p.Cli.Display.RichTable].fail(error_msg)
+            return r[p.Cli.RichTable].fail(error_msg)
 
     def display_data(
         self,
@@ -1230,7 +1230,7 @@ class FlextCliOutput:
 
     def table_to_string(
         self,
-        table: p.Cli.Display.RichTable,
+        table: p.Cli.RichTable,
         width: int | None = None,
     ) -> r[str]:
         """Convert table to string using FlextCliFormatters.
@@ -1621,7 +1621,7 @@ class FlextCliOutput:
         self,
         headers: t.StrSequence,
         title: str | None = None,
-    ) -> r[p.Cli.Display.RichTable]:
+    ) -> r[p.Cli.RichTable]:
         """Initialize a Rich table with headers.
 
         Uses RichTable from lower layer instead of t.NormalizedValue for better type safety.
@@ -1632,13 +1632,13 @@ class FlextCliOutput:
             title=title,
         )
         if table_result.is_failure:
-            return r[p.Cli.Display.RichTable].fail(
+            return r[p.Cli.RichTable].fail(
                 f"Failed to create Rich table: {table_result.error}",
             )
         table_value = table_result.value
         if self._is_rich_table_protocol(table_value):
-            return r[p.Cli.Display.RichTable].ok(table_value)
-        return r[p.Cli.Display.RichTable].fail(
+            return r[p.Cli.RichTable].ok(table_value)
+        return r[p.Cli.RichTable].fail(
             "Table value is not RichTable compatible",
         )
 
@@ -1675,7 +1675,7 @@ class FlextCliOutput:
 
     def _populate_table_rows(
         self,
-        table: p.Cli.Display.RichTable,
+        table: p.Cli.RichTable,
         data: Sequence[Mapping[str, FlextCliTypes.Cli.JsonValue]],
         headers: t.StrSequence,
     ) -> r[bool]:

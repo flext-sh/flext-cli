@@ -193,7 +193,7 @@ class FlextCliModels(FlextModels):
                 data: t.Cli.JsonValue,
                 handler: Callable[..., FlextCliModels.Cli.CliNormalizedJson],
             ) -> FlextCliModels.Cli.CliNormalizedJson:
-                normalized = FlextCliModels.Cli._JSON_NORMALIZE_ADAPTER.dump_python(  # noqa: SLF001
+                normalized = FlextCliModels.Cli._JSON_NORMALIZE_ADAPTER.dump_python(
                     data,
                     mode="json",
                     warnings=False,
@@ -249,14 +249,14 @@ class FlextCliModels(FlextModels):
                     return val
                 if FlextCliModels.Cli.is_mapping_like(val):
                     return {
-                        str(k): FlextCliModels.Cli._JSON_NORMALIZE_ADAPTER.dump_python(  # noqa: SLF001
+                        str(k): FlextCliModels.Cli._JSON_NORMALIZE_ADAPTER.dump_python(
                             vv,
                             mode="json",
                             warnings=False,
                         )
                         for k, vv in val.items()
                     }
-                return FlextCliModels.Cli._JSON_NORMALIZE_ADAPTER.dump_python(  # noqa: SLF001
+                return FlextCliModels.Cli._JSON_NORMALIZE_ADAPTER.dump_python(
                     val,
                     mode="json",
                     warnings=False,
@@ -302,7 +302,7 @@ class FlextCliModels(FlextModels):
                 source = FlextCliModels.Cli.unwrap_root_value(self.value)
                 if FlextCliModels.Cli.is_mapping_like(source):
                     return {
-                        str(k): FlextCliModels.Cli._JSON_NORMALIZE_ADAPTER.dump_python(  # noqa: SLF001
+                        str(k): FlextCliModels.Cli._JSON_NORMALIZE_ADAPTER.dump_python(
                             vv,
                             mode="json",
                             warnings=False,
@@ -311,12 +311,12 @@ class FlextCliModels(FlextModels):
                     }
                 try:
                     parsed = (
-                        FlextCliModels.Cli._DICT_STR_OBJECT_ADAPTER.validate_python(  # noqa: SLF001
+                        FlextCliModels.Cli._DICT_STR_OBJECT_ADAPTER.validate_python(
                             source,
                         )
                     )
                     return {
-                        str(k): FlextCliModels.Cli._JSON_NORMALIZE_ADAPTER.dump_python(  # noqa: SLF001
+                        str(k): FlextCliModels.Cli._JSON_NORMALIZE_ADAPTER.dump_python(
                             vv,
                             mode="json",
                             warnings=False,
@@ -343,11 +343,11 @@ class FlextCliModels(FlextModels):
                     return list(self.default)
                 source = FlextCliModels.Cli.unwrap_root_value(self.value)
                 try:
-                    seq = FlextCliModels.Cli._LIST_OBJECT_ADAPTER.validate_python(  # noqa: SLF001
+                    seq = FlextCliModels.Cli._LIST_OBJECT_ADAPTER.validate_python(
                         source,
                     )
                     return [
-                        FlextCliModels.Cli._JSON_NORMALIZE_ADAPTER.dump_python(  # noqa: SLF001
+                        FlextCliModels.Cli._JSON_NORMALIZE_ADAPTER.dump_python(
                             x,
                             mode="json",
                             warnings=False,
@@ -454,7 +454,7 @@ class FlextCliModels(FlextModels):
                     return list(self.default)
                 source = FlextCliModels.Cli.unwrap_root_value(self.value)
                 try:
-                    raw_list = FlextCliModels.Cli._LIST_OBJECT_ADAPTER.validate_python(  # noqa: SLF001
+                    raw_list = FlextCliModels.Cli._LIST_OBJECT_ADAPTER.validate_python(
                         source,
                     )
                     return [
@@ -492,7 +492,7 @@ class FlextCliModels(FlextModels):
                 source = FlextCliModels.Cli.unwrap_root_value(self.value)
                 try:
                     raw_dict = (
-                        FlextCliModels.Cli._DICT_STR_OBJECT_ADAPTER.validate_python(  # noqa: SLF001
+                        FlextCliModels.Cli._DICT_STR_OBJECT_ADAPTER.validate_python(
                             source,
                         )
                     )
@@ -543,7 +543,7 @@ class FlextCliModels(FlextModels):
                         return {
                             str(
                                 k,
-                            ): FlextCliModels.Cli._JSON_NORMALIZE_ADAPTER.dump_python(  # noqa: SLF001
+                            ): FlextCliModels.Cli._JSON_NORMALIZE_ADAPTER.dump_python(
                                 vv,
                                 mode="json",
                                 warnings=False,
@@ -554,7 +554,7 @@ class FlextCliModels(FlextModels):
                         return {
                             str(
                                 k,
-                            ): FlextCliModels.Cli._JSON_NORMALIZE_ADAPTER.dump_python(  # noqa: SLF001
+                            ): FlextCliModels.Cli._JSON_NORMALIZE_ADAPTER.dump_python(
                                 vv,
                                 mode="json",
                                 warnings=False,
@@ -579,7 +579,7 @@ class FlextCliModels(FlextModels):
                 return default if isinstance(default, bool) else False
             if FlextCliModels.Cli.is_mapping_like(default):
                 return {
-                    str(k): FlextCliModels.Cli._JSON_NORMALIZE_ADAPTER.dump_python(  # noqa: SLF001
+                    str(k): FlextCliModels.Cli._JSON_NORMALIZE_ADAPTER.dump_python(
                         v,
                         mode="json",
                         warnings=False,
@@ -1939,7 +1939,7 @@ class FlextCliModels(FlextModels):
                 system_dict: Mapping[str, t.Cli.JsonValue] = {}
                 try:
                     system_dict = (
-                        FlextCliModels.Cli._DICT_STR_OBJECT_ADAPTER.validate_python(  # noqa: SLF001
+                        FlextCliModels.Cli._DICT_STR_OBJECT_ADAPTER.validate_python(
                             self.system_info,
                         )
                     )
@@ -1960,7 +1960,7 @@ class FlextCliModels(FlextModels):
                 config_dict: Mapping[str, t.Cli.JsonValue] = {}
                 try:
                     config_dict = (
-                        FlextCliModels.Cli._DICT_STR_OBJECT_ADAPTER.validate_python(  # noqa: SLF001
+                        FlextCliModels.Cli._DICT_STR_OBJECT_ADAPTER.validate_python(
                             self.config_info,
                         )
                     )
@@ -2999,7 +2999,7 @@ class FlextCliModels(FlextModels):
                         if key_str == "__dict__":
                             continue
                         filtered[key_str] = (
-                            FlextCliModels.Cli._JSON_NORMALIZE_ADAPTER.dump_python(  # noqa: SLF001
+                            FlextCliModels.Cli._JSON_NORMALIZE_ADAPTER.dump_python(
                                 v,
                                 mode="json",
                                 warnings=False,
@@ -3037,7 +3037,7 @@ class FlextCliModels(FlextModels):
 
                 try:
                     metadata_dict = (
-                        FlextCliModels.Cli._DICT_STR_OBJECT_ADAPTER.validate_python(  # noqa: SLF001
+                        FlextCliModels.Cli._DICT_STR_OBJECT_ADAPTER.validate_python(
                             metadata_raw,
                             strict=True,
                         )
@@ -3048,7 +3048,7 @@ class FlextCliModels(FlextModels):
 
                 try:
                     schema_dict = (
-                        FlextCliModels.Cli._DICT_STR_OBJECT_ADAPTER.validate_python(  # noqa: SLF001
+                        FlextCliModels.Cli._DICT_STR_OBJECT_ADAPTER.validate_python(
                             json_schema_extra,
                             strict=True,
                         )
@@ -3616,9 +3616,9 @@ class FlextCliModels(FlextModels):
             """
 
             # Reference protocol types (FlextCliModels.Cli.Display.*)
-            type RichTable = p.Cli.Display.RichTable
-            type RichTree = p.Cli.Display.RichTree
-            type Console = p.Cli.Display.RichConsole
+            type RichTable = p.Cli.RichTable
+            type RichTree = p.Cli.RichTree
+            type Console = p.Cli.RichConsole
 
         class Interactive:
             """Interactive display type aliases using Protocols.
@@ -3628,7 +3628,7 @@ class FlextCliModels(FlextModels):
             """
 
             # Reference protocol types (FlextCliModels.Cli.Interactive.*)
-            type Progress = p.Cli.Interactive.RichProgress
+            type Progress = p.Cli.RichProgress
 
 
 __all__ = [

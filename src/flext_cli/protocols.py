@@ -18,65 +18,63 @@ class FlextCliProtocols(FlextProtocols):
     class Cli:
         """CLI protocol namespace for all CLI-specific protocols."""
 
-        class Display:
-            """Rich display abstraction protocols - NO IMPORTS of Rich classes."""
+        """Rich display abstraction protocols - NO IMPORTS of Rich classes."""
 
-            @runtime_checkable
-            class RichTable(Protocol):
-                """Protocol for Rich Table objects."""
+        @runtime_checkable
+        class RichTable(Protocol):
+            """Protocol for Rich Table objects."""
 
-                def add_column(self, header: str, **kwargs: t.Scalar) -> None:
-                    """Add a column to the table."""
-                    ...
+            def add_column(self, header: str, **kwargs: t.Scalar) -> None:
+                """Add a column to the table."""
+                ...
 
-                def add_row(self, *cells: str, **kwargs: t.Scalar) -> None:
-                    """Add a row to the table."""
-                    ...
+            def add_row(self, *cells: str, **kwargs: t.Scalar) -> None:
+                """Add a row to the table."""
+                ...
 
-            @runtime_checkable
-            class RichTree(Protocol):
-                """Protocol for Rich Tree objects."""
+        @runtime_checkable
+        class RichTree(Protocol):
+            """Protocol for Rich Tree objects."""
 
-                def add(
-                    self,
-                    label: str,
-                    **kwargs: t.Scalar,
-                ) -> FlextCliProtocols.Cli.Display.RichTree:
-                    """Add a branch to the tree."""
-                    ...
+            def add(
+                self,
+                label: str,
+                **kwargs: t.Scalar,
+            ) -> FlextCliProtocols.Cli.RichTree:
+                """Add a branch to the tree."""
+                ...
 
-            @runtime_checkable
-            class RichConsole(Protocol):
-                """Protocol for Rich Console objects."""
+        @runtime_checkable
+        class RichConsole(Protocol):
+            """Protocol for Rich Console objects."""
 
-                def print(
-                    self,
-                    text: str,
-                    style: str | None = None,
-                    **kwargs: t.Scalar,
-                ) -> None:
-                    """Print text to the console."""
-                    ...
+            def print(
+                self,
+                text: str,
+                style: str | None = None,
+                **kwargs: t.Scalar,
+            ) -> None:
+                """Print text to the console."""
+                ...
 
-        class Interactive:
-            """Interactive display abstraction protocols."""
+        # """Interactive display abstraction protocols."""
 
-            @runtime_checkable
-            class RichProgress(Protocol):
-                """Protocol for Rich Progress objects."""
+        @runtime_checkable
+        class RichProgress(Protocol):
+            """Protocol for Rich Progress objects."""
 
-                def __enter__(self) -> Self:
-                    """Enter the context manager."""
-                    ...
+            def __enter__(self) -> Self:
+                """Enter the context manager."""
+                ...
 
-                def __exit__(
-                    self,
-                    exc_type: type[BaseException] | None,
-                    exc_val: BaseException | None,
-                    exc_tb: TracebackType | None,
-                ) -> None:
-                    """Exit the context manager."""
-                    ...
+            def __exit__(
+                self,
+                exc_type: type[BaseException] | None,
+                exc_val: BaseException | None,
+                exc_tb: TracebackType | None,
+            ) -> None:
+                """Exit the context manager."""
+                ...
 
         @runtime_checkable
         class Command(Protocol):

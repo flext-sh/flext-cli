@@ -343,7 +343,7 @@ class FlextCliFormatters:
 
     def render_table_to_string(
         self,
-        table: RichTable | p.Cli.Display.RichTable,
+        table: RichTable | p.Cli.RichTable,
         width: int | None = None,
     ) -> r[str]:
         """Render Rich table to string.

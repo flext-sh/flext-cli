@@ -814,7 +814,7 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 
 
-def process(protocol: "p.Cli.Display") -> None:
+def process(protocol: "p.Cli") -> None:
     pass
 
 
