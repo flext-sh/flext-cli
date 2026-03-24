@@ -199,7 +199,9 @@ class FlextCliCore(FlextCliServiceBase):
         if not self._cli_config:
             return r[bool].fail(c.Cli.ErrorMessages.CONFIG_NOT_INITIALIZED)
         try:
-            config: MutableMapping[str, FlextCliTypes.Cli.JsonValue] = dict(self._cli_config)
+            config: MutableMapping[str, FlextCliTypes.Cli.JsonValue] = dict(
+                self._cli_config
+            )
             default_dict: Mapping[str, FlextCliTypes.Cli.JsonValue] = {}
             profiles_result_raw = FlextCliUtilities.extract(
                 config,
@@ -217,10 +219,10 @@ class FlextCliCore(FlextCliServiceBase):
                     str(key): m.Cli.normalize_json_value(value)
                     for key, value in profiles_value.items()
                 }
-            profiles_section_raw_typed: MutableMapping[str, FlextCliTypes.Cli.JsonValue] = (
-                dict(
-                    profiles_section_raw,
-                )
+            profiles_section_raw_typed: MutableMapping[
+                str, FlextCliTypes.Cli.JsonValue
+            ] = dict(
+                profiles_section_raw,
             )
             profiles_section_raw_typed[name] = profile_config
             config[c.Cli.DictKeys.PROFILES] = profiles_section_raw_typed
