@@ -286,7 +286,7 @@ class TestsCliConfigModelIntegration:
         config_class: type[BaseSettings],
         field_name: str,
         expected_type: type,
-        expected_value: str | int | bool | None,
+        expected_value: t.Scalar | None,
     ) -> None:
         """Test extracting config values of different types."""
         config = config_class()

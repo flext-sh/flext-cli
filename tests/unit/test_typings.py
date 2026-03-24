@@ -512,7 +512,7 @@ class TestsCliTypings:
         tm.ok(api_data_result)
         complex_type = Sequence[Mapping[str, str | int]]
         optional_type = Sequence[str] | None
-        union_type = str | int | bool
+        union_type = t.Scalar
         tm.that(get_origin(complex_type) is list, eq=True)
         complex_args = get_args(complex_type)
         tm.that(len(complex_args), eq=1)

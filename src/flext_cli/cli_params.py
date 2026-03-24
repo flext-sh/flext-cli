@@ -9,7 +9,7 @@ from flext_core import r
 from rich.errors import ConsoleError, LiveError, StyleError
 from typer.models import OptionInfo
 
-from flext_cli import FlextCliSettings, c, m, p, u
+from flext_cli import FlextCliSettings, c, m, p, t, u
 
 
 class FlextCliCommonParams:
@@ -25,7 +25,7 @@ class FlextCliCommonParams:
     """
 
     CLI_PARAM_REGISTRY: ClassVar[
-        Mapping[str, Mapping[str, str | int | bool | Sequence[str]]]
+        Mapping[str, Mapping[str, t.Scalar | Sequence[str]]]
     ] = {
         "verbose": {
             c.Cli.CliParamsRegistry.KEY_SHORT: c.Cli.CliParamsRegistry.SHORT_FLAG_VERBOSE,
