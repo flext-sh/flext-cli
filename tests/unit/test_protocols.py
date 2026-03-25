@@ -185,7 +185,10 @@ class TestsCliProtocols:
         if auth_result.is_success and auth_result.value:
             authenticator = auth_result.value
             if isinstance(authenticator, p.Cli.CliAuthenticator):
-                creds_raw = c.Authentication.VALID_CREDS
+                creds_raw: t.StrMapping = {
+                    "username": "testuser",
+                    "password": "testpass",
+                }
                 creds = creds_raw
                 username = creds.get("username", "test_user")
                 password = creds.get("password", "test_pass")

@@ -10,12 +10,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import FlextDecorators, r, x
+from flext_core import FlextDecorators, FlextMixins, r
 
 from flext_cli import p, t
 
 
-class FlextCliMixins(x):
+class FlextCliMixins(FlextMixins):
     """Single unified CLI mixins class following FLEXT standards.
 
     Business Rules:

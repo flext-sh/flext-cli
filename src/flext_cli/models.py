@@ -945,7 +945,7 @@ class FlextCliModels(FlextModels):
                     updated = self.model_copy(
                         update={"status": "completed", "exit_code": exit_code},
                     )
-                    return r[Self].ok(updated)
+                    return r.ok(updated)
                 except (
                     ValueError,
                     TypeError,
@@ -981,7 +981,7 @@ class FlextCliModels(FlextModels):
                 """Start command execution - update status to running."""
                 try:
                     updated = self.model_copy(update={"status": "running"})
-                    return r[Self].ok(updated)
+                    return r.ok(updated)
                 except (
                     ValueError,
                     TypeError,
@@ -1116,7 +1116,7 @@ class FlextCliModels(FlextModels):
                     updated_session = self.model_copy(
                         update={"commands": tuple(updated_commands)},
                     )
-                    return r[Self].ok(updated_session)
+                    return r.ok(updated_session)
                 except (
                     ValueError,
                     TypeError,
@@ -2654,8 +2654,8 @@ class FlextCliModels(FlextModels):
                 defaults: Mapping[str, t.Cli.JsonValue],
                 fields_with_factory: set[str],
             ) -> p.Cli.CliCommandWrapper:
-                required_parameters: MutableSequence[inspect.Parameter] = []
-                defaulted_parameters: MutableSequence[inspect.Parameter] = []
+                required_parameters: list[inspect.Parameter] = []
+                defaulted_parameters: list[inspect.Parameter] = []
                 for field_name, field_type in annotations.items():
                     has_default = (
                         field_name in defaults and field_name not in fields_with_factory
@@ -2722,7 +2722,7 @@ class FlextCliModels(FlextModels):
                         return normalized.value
                     return str(raw_result)
 
-                typed_wrapper.__signature__ = command_signature
+                typed_wrapper.__signature__ = command_signature  # type: ignore[attr-defined]
                 typed_wrapper.__annotations__ = dict(real_annotations)
                 return typed_wrapper
 

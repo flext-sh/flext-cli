@@ -16,7 +16,7 @@ from collections.abc import (
     Sequence,
 )
 from io import StringIO
-from typing import ClassVar, TypeIs
+from typing import ClassVar, TypeIs, cast
 
 import yaml
 from flext_core import FlextRuntime, r
@@ -385,9 +385,9 @@ class FlextCliOutput:
         Checks v against t, returns v if match, else returns default.
         """
         if isinstance(v, t):
-            return v
+            return cast("FlextCliTypes.Cli.JsonValue", v)
         if isinstance(default, t):
-            return default
+            return cast("FlextCliTypes.Cli.JsonValue", default)
         type_name = t.__name__ if hasattr(t, "__name__") else str(t)
         default_type_name = (
             type(default).__name__
@@ -1754,15 +1754,10 @@ class FlextCliOutput:
     ) -> r[t.StrSequence]:
         """Prepare and validate table headers."""
         default_headers: Sequence[str] = self.get_keys(data[0]) if data else []
-        default_headers_general: Sequence[FlextCliTypes.Cli.JsonValue] = list(
-            default_headers,
-        )
         table_headers_raw = (
             list(headers)
             if headers is not None
-            else list(
-                default_headers_general,
-            )
+            else list(default_headers)
         )
         table_headers: t.StrSequence = [str(h) for h in table_headers_raw]
         if headers is not None:

@@ -8,8 +8,8 @@ from __future__ import annotations
 
 import secrets
 import threading
-from collections.abc import Callable, Mapping, MutableMapping, MutableSequence, Sequence
-from typing import ClassVar, TypeIs
+from collections.abc import Callable, Mapping, MutableMapping, Sequence
+from typing import ClassVar, TypeGuard
 
 from click import Command
 from flext_core import (
@@ -257,9 +257,9 @@ class FlextCli:
             case list():
                 table_data = data
             case tuple():
-                table_data: Sequence[Mapping[str, t.Cli.JsonValue]] = list(data)
+                table_data = list(data)
             case _:
-                table_data: MutableSequence[Mapping[str, t.Cli.JsonValue]] = []
+                table_data = []
         table_config = m.Cli.TableConfig(
             headers=headers or "keys",
             show_header=True,
@@ -453,7 +453,7 @@ class FlextCli:
     @staticmethod
     def _is_registered_command(
         obj: t.Cli.JsonValue | p.Cli.DecoratorCommandLike | Command,
-    ) -> TypeIs[p.Cli.CliRegisteredCommand]:
+    ) -> TypeGuard[p.Cli.CliRegisteredCommand]:
         """Narrow to CliRegisteredCommand when protocol attributes are present."""
         return callable(obj) and hasattr(obj, "name") and hasattr(obj, "callback")
 

@@ -422,7 +422,7 @@ class FlextCliCli:
             if is_success is False:
                 msg = f"Handler failed: {getattr(result, 'error', '')}"
                 raise ValueError(msg)
-            result_candidate = result
+            result_candidate: t.Cli.JsonValue | r[t.Cli.JsonValue] | None = result
             while getattr(result_candidate, "is_success", None) is True:
                 result_candidate = getattr(result_candidate, "value", None)
             if result_candidate is None:
