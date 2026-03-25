@@ -56,7 +56,7 @@ class FlextCliTestModels(FlextTestsModels, FlextCliModels):
                 status: Annotated[str, Field(default="pending")]
                 created_at: Annotated[datetime | None, Field(default=None)]
                 command_line: Annotated[str, Field(default="test_command")]
-                args: Annotated[t.StrSequence, Field(default_factory=list)]
+                args: t.StrSequence = Field(default_factory=list)
                 result: Annotated[t.NormalizedValue, Field(default=None)]
                 kwargs: Annotated[
                     Mapping[str, t.ContainerValue],
@@ -132,10 +132,9 @@ class FlextCliTestModels(FlextTestsModels, FlextCliModels):
                 choices: Annotated[
                     t.StrSequence,
                     Field(
-                        default_factory=list,
                         description="Choice list",
                     ),
-                ]
+                ] = Field(default_factory=list)
                 default: Annotated[
                     str | None,
                     Field(default=None, description="Default choice"),
@@ -262,8 +261,8 @@ class FlextCliTestModels(FlextTestsModels, FlextCliModels):
 
                 inner: Annotated[
                     Inner,
-                    Field(default_factory=Inner, description="Nested config"),
-                ]
+                    Field(description="Nested config"),
+                ] = Field(default_factory=Inner)
 
             class ValidatedConfig(PositionalModel):
                 """Config with custom host validator for model_command tests."""

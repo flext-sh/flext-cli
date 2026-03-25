@@ -447,7 +447,7 @@ class TestsCliPrompts:
         """Test clear_prompt_history method."""
         _ = prompts.prompt("simple", default="text")
         _ = prompts.prompt("with_default", default="text")
-        tm.that(prompts.prompt_history, eq=True)
+        tm.that(prompts.prompt_history, empty=False)
         result = prompts.clear_prompt_history()
         tm.ok(result)
         tm.that(len(prompts.prompt_history), eq=0)

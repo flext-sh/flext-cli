@@ -72,10 +72,9 @@ class FlextCliSettings(FlextSettings):
     config_dir: Annotated[
         Path,
         Field(
-            default_factory=lambda: FlextCliSettings._default_config_dir(),
             description="CLI config directory",
         ),
-    ]
+    ] = Field(default_factory=lambda: FlextCliSettings._default_config_dir())
     token_file: Annotated[
         str | None,
         Field(default=None, description="Path to auth token file"),

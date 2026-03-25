@@ -122,10 +122,9 @@ class FlextCliModels(FlextModels):
             data: Annotated[
                 t.Cli.JsonValue,
                 Field(
-                    default_factory=dict,
                     description="Field-value pairs for display",
                 ),
-            ]
+            ] = Field(default_factory=dict)
 
         class LoadedConfig(BaseModel):
             """Loaded configuration content — Pydantic v2 contract. Use m.Cli.LoadedConfig."""
@@ -137,10 +136,9 @@ class FlextCliModels(FlextModels):
             content: Annotated[
                 t.Cli.JsonValue,
                 Field(
-                    default_factory=dict,
                     description="Configuration key-value content",
                 ),
-            ]
+            ] = Field(default_factory=dict)
 
         class SuccessSummaryDetails(RootModel[t.StrMapping]):
             """Key-value details for success summary — Pydantic v2 only. Use m.Cli.SuccessSummaryDetails."""
@@ -178,10 +176,9 @@ class FlextCliModels(FlextModels):
             commands: Annotated[
                 Mapping[str, FlextCliModels.Cli.CommandEntryModel],
                 Field(
-                    default_factory=dict,
                     description="Command name to entry mapping",
                 ),
-            ]
+            ] = Field(default_factory=dict)
 
         class CliNormalizedJson(RootModel[t.Cli.JsonValue]):
             """Single contract: any value normalized to JSON-compatible value."""
@@ -331,10 +328,7 @@ class FlextCliModels(FlextModels):
 
             model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
             value: Annotated[t.Cli.JsonValue | None, Field(default=None)]
-            default: Annotated[
-                Sequence[t.Cli.JsonValue],
-                Field(default_factory=list),
-            ]
+            default: Sequence[t.Cli.JsonValue] = Field(default_factory=list)
 
             @computed_field
             @property
@@ -438,10 +432,9 @@ class FlextCliModels(FlextModels):
             default: Annotated[
                 Sequence[t.Cli.JsonValue],
                 Field(
-                    default_factory=list,
                     description="Default when value is None or invalid",
                 ),
-            ]
+            ] = Field(default_factory=list)
 
             @computed_field
             @property
@@ -474,10 +467,9 @@ class FlextCliModels(FlextModels):
             default: Annotated[
                 Mapping[str, t.Cli.JsonValue],
                 Field(
-                    default_factory=dict,
                     description="Default when value is None or invalid",
                 ),
-            ]
+            ] = Field(default_factory=dict)
 
             @computed_field
             @property
@@ -892,8 +884,8 @@ class FlextCliModels(FlextModels):
 
             kwargs: Annotated[
                 Mapping[str, t.Cli.JsonValue],
-                Field(default_factory=dict, description="Command keyword arguments"),
-            ]
+                Field(description="Command keyword arguments"),
+            ] = Field(default_factory=dict)
 
             @property
             def command_summary(self) -> t.StrMapping:
@@ -1073,10 +1065,9 @@ class FlextCliModels(FlextModels):
             commands: Annotated[
                 tuple[FlextCliModels.Cli.CliCommand, ...],
                 Field(
-                    default_factory=tuple,
                     description="Commands in session",
                 ),
-            ]
+            ] = Field(default_factory=tuple)
             start_time: Annotated[
                 str | None,
                 Field(
@@ -1215,18 +1206,16 @@ class FlextCliModels(FlextModels):
             env: Annotated[
                 t.StrMapping,
                 Field(
-                    default_factory=dict,
                     description="Environment variables",
                 ),
-            ]
+            ] = Field(default_factory=dict)
 
             args: Annotated[
                 t.StrSequence,
                 Field(
-                    default_factory=list,
                     description="Command line arguments",
                 ),
-            ]
+            ] = Field(default_factory=list)
 
             output_format: Annotated[
                 c.Cli.OutputFormats,
@@ -1255,10 +1244,9 @@ class FlextCliModels(FlextModels):
             headers: Annotated[
                 t.StrSequence,
                 Field(
-                    default_factory=list,
                     description="Table headers",
                 ),
-            ]
+            ] = Field(default_factory=list)
 
             show_headers: Annotated[
                 bool,
@@ -1594,10 +1582,9 @@ class FlextCliModels(FlextModels):
             step_results: Annotated[
                 Sequence[Mapping[str, t.Cli.JsonValue]],
                 Field(
-                    default_factory=list,
                     description="Results for each workflow step",
                 ),
-            ]
+            ] = Field(default_factory=list)
             total_steps: Annotated[
                 int,
                 Field(default=0, description="Total number of steps"),
@@ -1885,17 +1872,15 @@ class FlextCliModels(FlextModels):
             system_info: Annotated[
                 Mapping[str, t.Cli.JsonValue],
                 Field(
-                    default_factory=dict,
                     description="System information",
                 ),
-            ]
+            ] = Field(default_factory=dict)
             config_info: Annotated[
                 Mapping[str, t.Cli.JsonValue],
                 Field(
-                    default_factory=dict,
                     description="Configuration information",
                 ),
-            ]
+            ] = Field(default_factory=dict)
 
             @property
             def debug_summary(self) -> FlextCliModels.Cli.CliDebugData:
@@ -3566,10 +3551,9 @@ class FlextCliModels(FlextModels):
                         **kwargs: t.Scalar,
                     ) -> t.Cli.JsonValue:
                         try:
-                            model_instances: MutableSequence[BaseModel] = []
-                            for model_cls in model_classes:
-                                validated_model = model_cls(**kwargs)
-                                model_instances.append(validated_model)
+                            model_instances: Sequence[BaseModel] = [
+                                model_cls(**kwargs) for model_cls in model_classes
+                            ]
                             result: t.Cli.JsonValue = func(
                                 *(inst.model_dump() for inst in model_instances),
                             )

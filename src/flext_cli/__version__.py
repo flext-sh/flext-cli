@@ -26,10 +26,14 @@ _prerelease_parts = _prerelease.split(".") if _has_prerelease else []
 __version_info__ = tuple(
     int(part) if part.isdigit() else part for part in _base_parts + _prerelease_parts
 )
-__title__ = _metadata["Name"]
-__description__ = _metadata["Summary"]
-__author__ = _metadata["Author"]
-__author_email__ = _metadata["Author-Email"]
+_name = _metadata.get("Name")
+__title__ = _name if _name is not None else ""
+_summary = _metadata.get("Summary")
+__description__ = _summary if _summary is not None else ""
+_author = _metadata.get("Author")
+__author__ = _author if _author is not None else ""
+_author_email = _metadata.get("Author-Email")
+__author_email__ = _author_email if _author_email is not None else ""
 _license_value = _metadata.get("License")
 __license__ = _license_value if _license_value is not None else ""
 _home_page = _metadata.get("Home-Page")

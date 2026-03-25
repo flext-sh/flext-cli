@@ -17,7 +17,7 @@ from __future__ import annotations
 import json
 import stat
 import time
-from collections.abc import Mapping
+from collections.abc import Iterator, Mapping
 from enum import StrEnum, unique
 from pathlib import Path
 
@@ -72,6 +72,20 @@ VALID_CONFIG_DATA: Mapping[str, int | str] = {
     "timeout": 30,
 }
 CONFIG_FILE_NAME = c.Cli.ConfigFiles.CLI_CONFIG_JSON
+
+
+@pytest.fixture(autouse=True)
+def _isolate_cli_config_dir(tmp_path: Path) -> Iterator[None]:
+    """Isolate CLI config path per test to avoid touching user HOME."""
+    config_dir = tmp_path / ".flext"
+    config_dir.mkdir(parents=True, exist_ok=True)
+    config = FlextCliSettings.get_instance()
+    original_config_dir = config.config_dir
+    config.config_dir = config_dir
+    try:
+        yield
+    finally:
+        config.config_dir = original_config_dir
 
 
 def _create_cmd_instance() -> FlextCliCmd:
@@ -216,7 +230,8 @@ class TestsCliCmd:
         result = cmd.show_config_paths()
         tm.ok(result)
         tm.that(result.value, is_=list)
-        tm.that(result.value, eq=True)
+        tm.that(result.value, empty=False)
+        tm.that(all(isinstance(path, str) for path in result.value), eq=True)
 
     def test_cmd_validate_config(self) -> None:
         """Test validate_config method."""
@@ -303,7 +318,7 @@ class TestsCliCmd:
         """Test set_config_value method."""
         cmd = _create_cmd_instance()
         result = cmd.set_config_value("test_key", "test_value")
-        tm.that(result, none=False)
+        tm.that(result, is_=r)
         if result.is_success:
             tm.that(result.value is True, eq=True)
 
@@ -458,14 +473,15 @@ class TestsCliCmd:
         """Test u.Cli.ConfigOps.get_config_paths() directly."""
         paths = u.Cli.ConfigOps.get_config_paths()
         tm.that(paths, is_=list)
-        tm.that(paths, eq=True)
+        tm.that(paths, empty=False)
+        tm.that(all(isinstance(path, str) for path in paths), eq=True)
         tm.that(any(".flext" in path for path in paths), eq=True)
 
     def test_cmd_config_helper_validate_config_structure(self) -> None:
         """Test u.Cli.ConfigOps.validate_config_structure() directly."""
         results = u.Cli.ConfigOps.validate_config_structure()
         tm.that(results, is_=list)
-        tm.that(results, eq=True)
+        tm.that(results, empty=False)
 
     def test_cmd_config_helper_get_config_info(self) -> None:
         """Test u.Cli.ConfigOps.get_config_info() directly."""
@@ -487,7 +503,7 @@ class TestsCliCmd:
         """Test CMD error handling capabilities."""
         cmd = _create_cmd_instance()
         result = cmd.edit_config()
-        tm.that(result, none=False)
+        tm.that(result, is_=r)
 
     def test_cmd_show_config_paths_exception(self) -> None:
         """Test show_config_paths exception handler."""
@@ -612,5 +628,5 @@ class TestsCliCmd:
         """Test edit_config handles errors gracefully."""
         cmd = _create_cmd_instance()
         result = cmd.edit_config()
-        tm.that(result, none=False)
+        tm.that(result, is_=r)
         tm.that(result.is_success or result.is_failure, eq=True)

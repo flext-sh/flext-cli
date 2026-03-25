@@ -269,10 +269,11 @@ class TestsCliCommonParams:
         params = FlextCliCommonParams.get_all_common_params()
 
         tm.that(params, is_=dict)
-        tm.that(params, eq=True)
-        tm.that(params, has="verbose")
-        tm.that(params, has="debug")
-        tm.that(params, has="cli_log_level")
+        param_names = list(params.keys())
+        tm.that(param_names, empty=False)
+        tm.that(param_names, has="verbose")
+        tm.that(param_names, has="debug")
+        tm.that(param_names, has="cli_log_level")
 
     def test_enforcement_can_be_disabled(self) -> None:
         """Test enforcement can be disabled for testing - Railway pattern."""

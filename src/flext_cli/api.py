@@ -249,16 +249,17 @@ class FlextCli:
         """Create a formatted ASCII table (internal; use show_table for display)."""
         if data is None:
             return r[str].fail("Table data cannot be None")
-        if isinstance(data, Mapping):
-            table_data: Sequence[Mapping[str, t.Cli.JsonValue]] = [dict(data.items())]
-        elif isinstance(data, list):
-            table_data = data
-        elif isinstance(data, tuple):
-            table_data: MutableSequence[Mapping[str, t.Cli.JsonValue]] = []
-            for row in data:
-                table_data.append(row)
-        else:
-            table_data: MutableSequence[Mapping[str, t.Cli.JsonValue]] = []
+        match data:
+            case Mapping():
+                table_data: Sequence[Mapping[str, t.Cli.JsonValue]] = [
+                    dict(data.items())
+                ]
+            case list():
+                table_data = data
+            case tuple():
+                table_data: Sequence[Mapping[str, t.Cli.JsonValue]] = list(data)
+            case _:
+                table_data: MutableSequence[Mapping[str, t.Cli.JsonValue]] = []
         table_config = m.Cli.TableConfig(
             headers=headers or "keys",
             show_header=True,

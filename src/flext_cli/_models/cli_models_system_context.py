@@ -24,12 +24,12 @@ class FlextCliModelsSystemContext:
         python_version: Annotated[str, Field(default="")]
         os_name: Annotated[str, Field(default="")]
         os_version: Annotated[str, Field(default="")]
-        variables: Annotated[t.StrMapping, Field(default_factory=dict)]
+        variables: t.StrMapping = Field(default_factory=dict)
 
     class SystemInfo(FlextModels.Value):
         python_version: Annotated[str, Field(default="")]
         platform: Annotated[str, Field(default="")]
-        architecture: Annotated[t.StrSequence, Field(default_factory=list)]
+        architecture: t.StrSequence = Field(default_factory=list)
         processor: Annotated[str, Field(default="")]
         hostname: Annotated[str, Field(default="")]
         memory_total: Annotated[int, Field(default=0)]
