@@ -144,7 +144,7 @@ class TestsCliProtocols:
         if provider_result.is_success and provider_result.value:
             provider = provider_result.value
             if isinstance(provider, p.Cli.CliConfigProvider):
-                test_config_raw = c.TestConfiguration.BASIC_CONFIG
+                test_config_raw = c.Cli.Test.TestConfiguration.BASIC_CONFIG
                 test_config: t.ContainerMapping = {}
                 for key, value in test_config_raw.items():
                     if isinstance(value, t.PRIMITIVES_TYPES) or value is None:

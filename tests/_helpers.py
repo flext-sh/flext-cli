@@ -10,7 +10,7 @@ import pytest
 from flext_core import r
 
 from flext_cli import FlextCliCommands, m, t
-from tests import CliCommandInput, CliSessionInput
+from tests import m as tm
 
 
 def create_test_cli_command(**overrides: t.ContainerValue) -> m.Cli.CliCommand:
@@ -32,8 +32,10 @@ def create_test_cli_command(**overrides: t.ContainerValue) -> m.Cli.CliCommand:
     merged = {**payload, **overrides}
     _ = merged.pop("command_id", None)
     _ = merged.pop("arguments", None)
-    filtered = {k: v for k, v in merged.items() if k in CliCommandInput.model_fields}
-    inp = CliCommandInput.model_validate(filtered)
+    filtered = {
+        k: v for k, v in merged.items() if k in tm.Cli.Test.CliCommandInput.model_fields
+    }
+    inp = tm.Cli.Test.CliCommandInput.model_validate(filtered)
     return m.Cli.CliCommand.model_construct(
         _fields_set=None,
         **inp.model_dump(exclude_none=True),
@@ -51,9 +53,9 @@ def create_test_cli_session(**overrides: t.ContainerValue) -> m.Cli.CliSession:
     filtered = {
         k: v
         for k, v in {**payload, **overrides}.items()
-        if k in CliSessionInput.model_fields
+        if k in tm.Cli.Test.CliSessionInput.model_fields
     }
-    inp = CliSessionInput(**filtered)
+    inp = tm.Cli.Test.CliSessionInput(**filtered)
     session = m.Cli.CliSession.model_construct(
         _fields_set=None,
         **inp.model_dump(exclude_none=True),

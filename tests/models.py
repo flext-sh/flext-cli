@@ -349,80 +349,10 @@ class FlextCliTestModels(FlextTestsModels, FlextCliModels):
                 model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
                 name: Annotated[str, Field(default="", description="Name")]
 
-    ConnectionConfig = Cli.Test.ConnectionConfig
-    ValidatedConfig = Cli.Test.ValidatedConfig
-    UserData = Cli.Test.UserData
-    TextTestCaseDict = Cli.Test.TextTestCaseDict
-    StrictParams = Cli.Test.StrictParams
-    SimpleParams = Cli.Test.SimpleParams
-    ScalarConfigRestore = Cli.Test.ScalarConfigRestore
-    RequiredFieldsParams = Cli.Test.RequiredFieldsParams
-    PrintStatusCase = Cli.Test.PrintStatusCase
-    OptionalLiteralConfig = Cli.Test.OptionalLiteralConfig
-    NestedModelConfig = Cli.Test.NestedModelConfig
-    FullAppParams = Cli.Test.FullAppParams
-    ForbidExtraParams = Cli.Test.ForbidExtraParams
-    EnvironmentConfig = Cli.Test.EnvironmentConfig
-    ConfirmTestCaseDict = Cli.Test.ConfirmTestCaseDict
-    CliSessionInput = Cli.Test.CliSessionInput
-    CliCommandInput = Cli.Test.CliCommandInput
-    ChoiceTestCaseDict = Cli.Test.ChoiceTestCaseDict
-    BooleanFlagsConfig = Cli.Test.BooleanFlagsConfig
-    AppParams = Cli.Test.AppParams
-    ApiResponse = Cli.Test.ApiResponse
-    AliasedParams = Cli.Test.AliasedParams
-    AliasedConfig = Cli.Test.AliasedConfig
 
-
-AliasedConfig = FlextCliTestModels.Cli.Test.AliasedConfig
-AliasedParams = FlextCliTestModels.Cli.Test.AliasedParams
-ApiResponse = FlextCliTestModels.Cli.Test.ApiResponse
-AppParams = FlextCliTestModels.Cli.Test.AppParams
-BooleanFlagsConfig = FlextCliTestModels.Cli.Test.BooleanFlagsConfig
-ChoiceTestCaseDict = FlextCliTestModels.Cli.Test.ChoiceTestCaseDict
-CliCommandInput = FlextCliTestModels.Cli.Test.CliCommandInput
-CliSessionInput = FlextCliTestModels.Cli.Test.CliSessionInput
-ConfirmTestCaseDict = FlextCliTestModels.Cli.Test.ConfirmTestCaseDict
-ConnectionConfig = FlextCliTestModels.Cli.Test.ConnectionConfig
-EnvironmentConfig = FlextCliTestModels.Cli.Test.EnvironmentConfig
-ForbidExtraParams = FlextCliTestModels.Cli.Test.ForbidExtraParams
-FullAppParams = FlextCliTestModels.Cli.Test.FullAppParams
-NestedModelConfig = FlextCliTestModels.Cli.Test.NestedModelConfig
-OptionalLiteralConfig = FlextCliTestModels.Cli.Test.OptionalLiteralConfig
-PrintStatusCase = FlextCliTestModels.Cli.Test.PrintStatusCase
-RequiredFieldsParams = FlextCliTestModels.Cli.Test.RequiredFieldsParams
-ScalarConfigRestore = FlextCliTestModels.Cli.Test.ScalarConfigRestore
-SimpleParams = FlextCliTestModels.Cli.Test.SimpleParams
-StrictParams = FlextCliTestModels.Cli.Test.StrictParams
-TextTestCaseDict = FlextCliTestModels.Cli.Test.TextTestCaseDict
-UserData = FlextCliTestModels.Cli.Test.UserData
-ValidatedConfig = FlextCliTestModels.Cli.Test.ValidatedConfig
 m = FlextCliTestModels
 
 __all__ = [
-    "AliasedConfig",
-    "AliasedParams",
-    "ApiResponse",
-    "AppParams",
-    "BooleanFlagsConfig",
-    "ChoiceTestCaseDict",
-    "CliCommandInput",
-    "CliSessionInput",
-    "ConfirmTestCaseDict",
-    "ConnectionConfig",
-    "EnvironmentConfig",
     "FlextCliTestModels",
-    "ForbidExtraParams",
-    "FullAppParams",
-    "NestedModelConfig",
-    "OptionalLiteralConfig",
-    "PrintStatusCase",
-    "RequiredFieldsParams",
-    "ScalarConfigRestore",
-    "SimpleParams",
-    "StrictParams",
-    "TextTestCaseDict",
-    "UserData",
-    "ValidatedConfig",
     "m",
 ]

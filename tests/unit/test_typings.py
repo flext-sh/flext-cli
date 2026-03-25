@@ -38,7 +38,7 @@ from flext_tests import tm
 from pydantic import BaseModel, ConfigDict, Field
 
 from flext_cli import FlextCliTypes, t
-from tests import ApiResponse, UserData, c
+from tests import c, m
 
 from ..helpers import FlextCliTestHelpers
 
@@ -389,16 +389,18 @@ class TestsCliTypings:
     def _execute_type_scenario_tests(self) -> None:
         """Execute type scenario tests."""
 
-        def create_user_response(user: UserData) -> ApiResponse:
-            return ApiResponse(
+        def create_user_response(user: m.Cli.Test.UserData) -> m.Cli.Test.ApiResponse:
+            return m.Cli.Test.ApiResponse(
                 status="success",
                 data=user.model_dump(),
                 message="User created successfully",
                 error=None,
             )
 
-        def create_users_response(users: Sequence[UserData]) -> ApiResponse:
-            return ApiResponse(
+        def create_users_response(
+            users: Sequence[m.Cli.Test.UserData],
+        ) -> m.Cli.Test.ApiResponse:
+            return m.Cli.Test.ApiResponse(
                 status="success",
                 data=[u.model_dump() for u in users],
                 message=f"Retrieved {len(users)} users",
@@ -427,18 +429,18 @@ class TestsCliTypings:
             raise TypeError(error_email)
         if not isinstance(user_active, bool):
             raise TypeError(error_active)
-        user_data = UserData(
+        user_data = m.Cli.Test.UserData(
             id=user_id,
             name=user_name,
             email=user_email,
             active=user_active,
         )
         user_response = create_user_response(user_data)
-        tm.that(user_response, is_=ApiResponse)
+        tm.that(user_response, is_=m.Cli.Test.ApiResponse)
         tm.that(user_response.status, eq="success")
         tm.that(user_response.message, eq="User created successfully")
         users_response = create_users_response([user_data])
-        tm.that(users_response, is_=ApiResponse)
+        tm.that(users_response, is_=m.Cli.Test.ApiResponse)
         tm.that(users_response.status, eq="success")
         users_data = users_response.data
         tm.that(users_data, is_=list)

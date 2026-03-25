@@ -25,11 +25,8 @@ from flext_tests import tm
 
 from flext_cli import FlextCliPrompts
 from tests import (
-    ChoiceTestCaseDict,
-    ConfirmTestCaseDict,
-    PrintStatusCase,
-    TextTestCaseDict,
     c,
+    m,
     t,
 )
 
@@ -89,28 +86,28 @@ class TestsCliPrompts:
         """Factory for creating test data scenarios."""
 
         @staticmethod
-        def get_prompt_text_cases() -> Sequence[TextTestCaseDict]:
+        def get_prompt_text_cases() -> Sequence[m.Cli.Test.TextTestCaseDict]:
             """Get parametrized test cases for prompt_text."""
             return [
-                TextTestCaseDict(
+                m.Cli.Test.TextTestCaseDict(
                     message="simple",
                     default="text",
                     validation_pattern=None,
                     expected_success=True,
                 ),
-                TextTestCaseDict(
+                m.Cli.Test.TextTestCaseDict(
                     message="",
                     default="",
                     validation_pattern=None,
                     expected_success=False,
                 ),
-                TextTestCaseDict(
+                m.Cli.Test.TextTestCaseDict(
                     message="with_default",
                     default="test@example.com",
                     validation_pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$",
                     expected_success=True,
                 ),
-                TextTestCaseDict(
+                m.Cli.Test.TextTestCaseDict(
                     message="with_default",
                     default="invalid-email",
                     validation_pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$",
@@ -119,39 +116,41 @@ class TestsCliPrompts:
             ]
 
         @staticmethod
-        def get_confirm_cases() -> Sequence[ConfirmTestCaseDict]:
+        def get_confirm_cases() -> Sequence[m.Cli.Test.ConfirmTestCaseDict]:
             """Get parametrized test cases for confirm."""
             return [
-                ConfirmTestCaseDict(
+                m.Cli.Test.ConfirmTestCaseDict(
                     message="confirm",
                     default=True,
                     expected_value=True,
                 ),
-                ConfirmTestCaseDict(
+                m.Cli.Test.ConfirmTestCaseDict(
                     message="confirm",
                     default=False,
                     expected_value=False,
                 ),
-                ConfirmTestCaseDict(message="", default=True, expected_value=True),
+                m.Cli.Test.ConfirmTestCaseDict(
+                    message="", default=True, expected_value=True
+                ),
             ]
 
         @staticmethod
-        def get_choice_cases() -> Sequence[ChoiceTestCaseDict]:
+        def get_choice_cases() -> Sequence[m.Cli.Test.ChoiceTestCaseDict]:
             """Get parametrized test cases for prompt_choice."""
             return [
-                ChoiceTestCaseDict(
+                m.Cli.Test.ChoiceTestCaseDict(
                     message="choose",
                     choices=["simple", "complex"],
                     default="simple",
                     expected_success=True,
                 ),
-                ChoiceTestCaseDict(
+                m.Cli.Test.ChoiceTestCaseDict(
                     message="choose",
                     choices=[],
                     default=None,
                     expected_success=False,
                 ),
-                ChoiceTestCaseDict(
+                m.Cli.Test.ChoiceTestCaseDict(
                     message="choose",
                     choices=["simple", "complex"],
                     default="invalid_choice",
@@ -160,15 +159,19 @@ class TestsCliPrompts:
             ]
 
         @staticmethod
-        def get_print_status_cases() -> Sequence[PrintStatusCase]:
+        def get_print_status_cases() -> Sequence[m.Cli.Test.PrintStatusCase]:
             """Get parametrized test cases for print_status."""
-            cases: Sequence[PrintStatusCase] = [
-                PrintStatusCase(message="simple", status=None),
-                PrintStatusCase(message="simple", status=c.Cli.MessageTypes.INFO),
-                PrintStatusCase(message="", status=c.Cli.MessageTypes.WARNING),
+            cases: Sequence[m.Cli.Test.PrintStatusCase] = [
+                m.Cli.Test.PrintStatusCase(message="simple", status=None),
+                m.Cli.Test.PrintStatusCase(
+                    message="simple", status=c.Cli.MessageTypes.INFO
+                ),
+                m.Cli.Test.PrintStatusCase(
+                    message="", status=c.Cli.MessageTypes.WARNING
+                ),
             ]
             cases.extend([
-                PrintStatusCase(message="simple", status=status)
+                m.Cli.Test.PrintStatusCase(message="simple", status=status)
                 for status in c.Cli.MESSAGE_TYPES_LIST
             ])
             return cases
@@ -206,8 +209,8 @@ class TestsCliPrompts:
 
     def test_initialization_custom_timeout(self) -> None:
         """Test prompts initialization with custom timeout."""
-        prompts = FlextCliPrompts(default_timeout=c.TestData.CUSTOM)
-        tm.that(prompts.default_timeout, eq=c.TestData.CUSTOM)
+        prompts = FlextCliPrompts(default_timeout=c.Cli.Test.TestData.CUSTOM)
+        tm.that(prompts.default_timeout, eq=c.Cli.Test.TestData.CUSTOM)
 
     def test_execute_success(self, prompts: FlextCliPrompts) -> None:
         """Test execute method returns success."""
@@ -218,7 +221,7 @@ class TestsCliPrompts:
     @pytest.mark.parametrize("test_case", TestData.get_prompt_text_cases())
     def test_prompt_text_parametrized(
         self,
-        test_case: TextTestCaseDict,
+        test_case: m.Cli.Test.TextTestCaseDict,
         prompts: FlextCliPrompts,
     ) -> None:
         """Test prompt_text with parametrized cases."""
@@ -254,7 +257,7 @@ class TestsCliPrompts:
     @pytest.mark.parametrize("test_case", TestData.get_confirm_cases())
     def test_prompt_confirmation_parametrized(
         self,
-        test_case: ConfirmTestCaseDict,
+        test_case: m.Cli.Test.ConfirmTestCaseDict,
     ) -> None:
         """Test prompt_confirmation with parametrized cases."""
         prompts = self.Fixtures.create_quiet_prompts()
@@ -275,7 +278,9 @@ class TestsCliPrompts:
         tm.that(result.value, is_=bool)
 
     @pytest.mark.parametrize("test_case", TestData.get_choice_cases())
-    def test_prompt_choice_parametrized(self, test_case: ChoiceTestCaseDict) -> None:
+    def test_prompt_choice_parametrized(
+        self, test_case: m.Cli.Test.ChoiceTestCaseDict
+    ) -> None:
         """Test prompt_choice with parametrized cases."""
         prompts = self.Fixtures.create_quiet_prompts()
         result = prompts.prompt_choice(
@@ -295,7 +300,7 @@ class TestsCliPrompts:
     def test_prompt_choice_no_default_required(self) -> None:
         """Test prompt_choice without default triggers INTERACTIVE_MODE_DISABLED_CHOICE error."""
         prompts = self.Fixtures.create_quiet_prompts()
-        result = prompts.prompt_choice("choose", c.TWO)
+        result = prompts.prompt_choice("choose", c.Cli.Test.TWO)
         tm.fail(result, has="Interactive mode disabled")
 
     def test_prompt_choice_interactive_mode(
@@ -325,21 +330,21 @@ class TestsCliPrompts:
 
         error_list = ErrorList()
         TestsCliPrompts._set_prompt_history(prompts, list(error_list))
-        result = prompts.prompt_choice("choose", c.TWO, default="choice")
+        result = prompts.prompt_choice("choose", c.Cli.Test.TWO, default="choice")
         tm.fail(result)
 
     def test_prompt_password_non_interactive_failure(self) -> None:
         """Test prompt_password in non-interactive mode fails."""
         prompts = self.Fixtures.create_quiet_prompts()
-        result = prompts.prompt_password(c.TestData.PASSWORD)
+        result = prompts.prompt_password(c.Cli.Test.TestData.PASSWORD)
         tm.fail(result, has="Interactive mode disabled")
 
     def test_prompt_password_min_length(self) -> None:
         """Test prompt_password with min_length validation."""
         prompts = self.Fixtures.create_quiet_prompts(interactive_mode=False)
         result = prompts.prompt_password(
-            c.TestData.PASSWORD,
-            min_length=c.PasswordDefaults.MIN_LENGTH_STRICT,
+            c.Cli.Test.TestData.PASSWORD,
+            min_length=c.Cli.Test.PasswordDefaults.MIN_LENGTH_STRICT,
         )
         tm.that(result, is_=r)
 
@@ -380,13 +385,13 @@ class TestsCliPrompts:
     ) -> None:
         """Test that select_from_options tracks history."""
         initial_history_len = len(prompts.prompt_history)
-        _ = prompts.select_from_options(c.TWO, "choose")
+        _ = prompts.select_from_options(c.Cli.Test.TWO, "choose")
         tm.that(len(prompts.prompt_history), gte=initial_history_len)
 
     @pytest.mark.parametrize("test_case", TestData.get_print_status_cases())
     def test_print_status_parametrized(
         self,
-        test_case: PrintStatusCase,
+        test_case: m.Cli.Test.PrintStatusCase,
         prompts: FlextCliPrompts,
     ) -> None:
         """Test print_status with parametrized cases."""
@@ -424,14 +429,18 @@ class TestsCliPrompts:
 
     def test_with_progress_small_dataset(self, prompts: FlextCliPrompts) -> None:
         """Test with_progress with small dataset."""
-        items: Sequence[int] = list(range(c.ProgressDefaults.SMALL_DATASET_SIZE))
+        items: Sequence[int] = list(
+            range(c.Cli.Test.ProgressDefaults.SMALL_DATASET_SIZE)
+        )
         result = prompts.with_progress(items, "simple")
         tm.ok(result)
         tm.that(result.value, eq=items)
 
     def test_with_progress_large_dataset(self, prompts: FlextCliPrompts) -> None:
         """Test with_progress with large dataset."""
-        items: Sequence[int] = list(range(c.ProgressDefaults.LARGE_DATASET_SIZE))
+        items: Sequence[int] = list(
+            range(c.Cli.Test.ProgressDefaults.LARGE_DATASET_SIZE)
+        )
         result = prompts.with_progress(items, "simple")
         tm.ok(result)
         tm.that(result.value, eq=items)
@@ -494,17 +503,17 @@ class TestsCliPrompts:
 
     def test_edge_cases_long_message(self, prompts: FlextCliPrompts) -> None:
         """Test edge case: very long message."""
-        result = prompts.prompt(c.TestData.LONG, default="text")
+        result = prompts.prompt(c.Cli.Test.TestData.LONG, default="text")
         tm.that(result, is_=r)
 
     def test_edge_cases_special_characters(self, prompts: FlextCliPrompts) -> None:
         """Test edge case: special characters in message."""
-        result = prompts.prompt(c.TestData.SPECIAL, default="text")
+        result = prompts.prompt(c.Cli.Test.TestData.SPECIAL, default="text")
         tm.that(result, is_=r)
 
     def test_edge_cases_unicode(self, prompts: FlextCliPrompts) -> None:
         """Test edge case: unicode characters."""
-        result = prompts.prompt(c.TestData.UNICODE, default="text")
+        result = prompts.prompt(c.Cli.Test.TestData.UNICODE, default="text")
         tm.that(result, is_=r)
 
     def test_performance_multiple_prompts(self, prompts: FlextCliPrompts) -> None:
@@ -535,7 +544,7 @@ class TestsCliPrompts:
         tm.that(prompt_result, is_=r)
         confirm_result = prompts.confirm("confirm", default=True)
         tm.that(confirm_result, is_=r)
-        select_result = prompts.select_from_options(c.TWO, "choose")
+        select_result = prompts.select_from_options(c.Cli.Test.TWO, "choose")
         tm.that(select_result, is_=r)
         success_result = prompts.print_success("Workflow completed")
         tm.ok(success_result)

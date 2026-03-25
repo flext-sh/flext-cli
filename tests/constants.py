@@ -35,7 +35,7 @@ class FlextCliTestConstants(FlextTestsConstants, FlextCliConstants):
     - c.Tests.Matcher.* (assertion messages)
     - c.Tests.Factory.* (test data generation)
     - c.Cli.* (domain constants from production)
-    - c.TestData.* (project-specific test data)
+    - c.Cli.Test.TestData.* (project-specific test data)
 
     Rules:
     - NEVER duplicate constants from FlextTestsConstants or FlextCliConstants
@@ -486,12 +486,6 @@ class FlextCliTestConstants(FlextTestsConstants, FlextCliConstants):
                 "password": "wrong",
             }
             EMPTY_CREDS: Final[t.StrMapping] = {"username": "", "password": ""}
-
-    TestData = Cli.Test.TestData
-    TestConfiguration = Cli.Test.TestConfiguration
-    PasswordDefaults = Cli.Test.PasswordDefaults
-    ProgressDefaults = Cli.Test.ProgressDefaults
-    TWO = Cli.Test.TWO
 
 
 c = FlextCliTestConstants

@@ -53,7 +53,7 @@ class TestsCliModelCommandComprehensive:
         sample_handler: Callable[[BaseModel], None],
     ) -> None:
         """Test model_command with ConnectionConfig."""
-        command = cli.model_command(m.ConnectionConfig, sample_handler)
+        command = cli.model_command(m.Cli.Test.ConnectionConfig, sample_handler)
         assert command is not None
         tm.that(callable(command), eq=True)
 
@@ -63,7 +63,7 @@ class TestsCliModelCommandComprehensive:
         sample_handler: Callable[[BaseModel], None],
     ) -> None:
         """Test model_command with EnvironmentConfig (Literal types)."""
-        command = cli.model_command(m.EnvironmentConfig, sample_handler)
+        command = cli.model_command(m.Cli.Test.EnvironmentConfig, sample_handler)
         assert command is not None
         tm.that(callable(command), eq=True)
 
@@ -73,7 +73,7 @@ class TestsCliModelCommandComprehensive:
         sample_handler: Callable[[BaseModel], None],
     ) -> None:
         """Test model_command with Optional Literal types."""
-        command = cli.model_command(m.OptionalLiteralConfig, sample_handler)
+        command = cli.model_command(m.Cli.Test.OptionalLiteralConfig, sample_handler)
         assert command is not None
         tm.that(callable(command), eq=True)
 
@@ -83,7 +83,7 @@ class TestsCliModelCommandComprehensive:
         sample_handler: Callable[[BaseModel], None],
     ) -> None:
         """Test model_command with field aliases."""
-        command = cli.model_command(m.AliasedConfig, sample_handler)
+        command = cli.model_command(m.Cli.Test.AliasedConfig, sample_handler)
         assert command is not None
         tm.that(callable(command), eq=True)
 
@@ -93,7 +93,7 @@ class TestsCliModelCommandComprehensive:
         sample_handler: Callable[[BaseModel], None],
     ) -> None:
         """Test model_command with various boolean flags."""
-        command = cli.model_command(m.BooleanFlagsConfig, sample_handler)
+        command = cli.model_command(m.Cli.Test.BooleanFlagsConfig, sample_handler)
         assert command is not None
         tm.that(callable(command), eq=True)
 
@@ -103,7 +103,7 @@ class TestsCliModelCommandComprehensive:
         sample_handler: Callable[[BaseModel], None],
     ) -> None:
         """Test model_command with nested models."""
-        command = cli.model_command(m.NestedModelConfig, sample_handler)
+        command = cli.model_command(m.Cli.Test.NestedModelConfig, sample_handler)
         assert command is not None
         tm.that(callable(command), eq=True)
 
@@ -113,13 +113,15 @@ class TestsCliModelCommandComprehensive:
         sample_handler: Callable[[BaseModel], None],
     ) -> None:
         """Test model_command with custom validators."""
-        command = cli.model_command(m.ValidatedConfig, sample_handler)
+        command = cli.model_command(m.Cli.Test.ValidatedConfig, sample_handler)
         assert command is not None
         tm.that(callable(command), eq=True)
 
     def test_literal_types_converted_to_str(self) -> None:
         """Test that Literal types are converted to str for Typer."""
-        params_result = m.Cli.CliModelConverter.model_to_cli_params(m.EnvironmentConfig)
+        params_result = m.Cli.CliModelConverter.model_to_cli_params(
+            m.Cli.Test.EnvironmentConfig
+        )
         tm.ok(params_result)
         params = params_result.value
         env_param = next((p for p in params if p.name == "environment"), None)
@@ -129,7 +131,7 @@ class TestsCliModelCommandComprehensive:
     def test_optional_literal_types_handled(self) -> None:
         """Test that Optional[Literal[...]] types are handled."""
         params_result = m.Cli.CliModelConverter.model_to_cli_params(
-            m.OptionalLiteralConfig,
+            m.Cli.Test.OptionalLiteralConfig,
         )
         tm.ok(params_result)
         params = params_result.value
@@ -140,7 +142,7 @@ class TestsCliModelCommandComprehensive:
     def test_boolean_flags_default_true(self) -> None:
         """Test boolean flags with default=True."""
         params_result = m.Cli.CliModelConverter.model_to_cli_params(
-            m.BooleanFlagsConfig,
+            m.Cli.Test.BooleanFlagsConfig,
         )
         tm.ok(params_result)
         params = params_result.value
@@ -152,7 +154,7 @@ class TestsCliModelCommandComprehensive:
     def test_boolean_flags_default_false(self) -> None:
         """Test boolean flags with default=False."""
         params_result = m.Cli.CliModelConverter.model_to_cli_params(
-            m.BooleanFlagsConfig,
+            m.Cli.Test.BooleanFlagsConfig,
         )
         tm.ok(params_result)
         params = params_result.value
@@ -164,7 +166,7 @@ class TestsCliModelCommandComprehensive:
     def test_optional_boolean_flags(self) -> None:
         """Test optional boolean flags."""
         params_result = m.Cli.CliModelConverter.model_to_cli_params(
-            m.BooleanFlagsConfig,
+            m.Cli.Test.BooleanFlagsConfig,
         )
         tm.ok(params_result)
         params = params_result.value
@@ -175,7 +177,9 @@ class TestsCliModelCommandComprehensive:
 
     def test_field_aliases_preserved(self) -> None:
         """Test that field aliases are preserved."""
-        params_result = m.Cli.CliModelConverter.model_to_cli_params(m.AliasedConfig)
+        params_result = m.Cli.CliModelConverter.model_to_cli_params(
+            m.Cli.Test.AliasedConfig
+        )
         tm.ok(params_result)
         params = params_result.value
         input_param = next((p for p in params if p.name == "input_dir"), None)
@@ -187,27 +191,30 @@ class TestsCliModelCommandComprehensive:
 
     def test_populate_by_name_works(self) -> None:
         """Test that populate_by_name allows both alias and field name."""
-        config1 = m.AliasedConfig.model_validate({"input-dir": "/test/input"})
+        config1 = m.Cli.Test.AliasedConfig.model_validate({"input-dir": "/test/input"})
         tm.that(config1.input_dir, eq="/test/input")
-        config2 = m.AliasedConfig.model_validate({"input_dir": "/test/input2"})
+        config2 = m.Cli.Test.AliasedConfig.model_validate({"input_dir": "/test/input2"})
         tm.that(config2.input_dir, eq="/test/input2")
 
     def test_custom_validator_works(self) -> None:
         """Test that custom validators work in CLI context."""
-        config = m.ValidatedConfig.model_validate({
+        config = m.Cli.Test.ValidatedConfig.model_validate({
             "host": "example.com",
             "port": 5432,
         })
         tm.that(config.host, eq="example.com")
         with pytest.raises(ValidationError):
-            m.ValidatedConfig.model_validate({"host": "invalid", "port": 5432})
+            m.Cli.Test.ValidatedConfig.model_validate({"host": "invalid", "port": 5432})
 
     def test_field_constraints_enforced(self) -> None:
         """Test that Field constraints (ge, le) are enforced."""
-        config = m.ConnectionConfig.model_validate({"username": "user", "port": 5432})
+        config = m.Cli.Test.ConnectionConfig.model_validate({
+            "username": "user",
+            "port": 5432,
+        })
         tm.that(config.port, eq=5432)
         with pytest.raises(ValidationError):
-            m.ConnectionConfig.model_validate({"username": "user", "port": 0})
+            m.Cli.Test.ConnectionConfig.model_validate({"username": "user", "port": 0})
 
     def test_model_command_execution_with_connection_config(
         self,
@@ -217,12 +224,12 @@ class TestsCliModelCommandComprehensive:
 
         def handler(params: BaseModel) -> None:
             """Process connection config."""
-            tm.that(params, is_=m.ConnectionConfig)
-            assert isinstance(params, m.ConnectionConfig)
+            tm.that(params, is_=m.Cli.Test.ConnectionConfig)
+            assert isinstance(params, m.Cli.Test.ConnectionConfig)
             tm.that(params.host, none=False)
             tm.that(params.port, none=False)
 
-        command = cli.model_command(m.ConnectionConfig, handler)
+        command = cli.model_command(m.Cli.Test.ConnectionConfig, handler)
         assert command is not None
 
     def test_model_command_execution_with_environment_config(
@@ -233,11 +240,11 @@ class TestsCliModelCommandComprehensive:
 
         def handler(params: BaseModel) -> None:
             """Process environment config."""
-            tm.that(params, is_=m.EnvironmentConfig)
-            assert isinstance(params, m.EnvironmentConfig)
+            tm.that(params, is_=m.Cli.Test.EnvironmentConfig)
+            assert isinstance(params, m.Cli.Test.EnvironmentConfig)
             tm.that(params.environment, none=False)
 
-        command = cli.model_command(m.EnvironmentConfig, handler)
+        command = cli.model_command(m.Cli.Test.EnvironmentConfig, handler)
         assert command is not None
 
     def test_model_command_execution_with_aliased_config(
@@ -248,10 +255,10 @@ class TestsCliModelCommandComprehensive:
 
         def handler(params: BaseModel) -> None:
             """Process aliased config."""
-            tm.that(params, is_=m.AliasedConfig)
-            assert isinstance(params, m.AliasedConfig)
+            tm.that(params, is_=m.Cli.Test.AliasedConfig)
+            assert isinstance(params, m.Cli.Test.AliasedConfig)
             tm.that(params.input_dir, none=False)
             tm.that(params.output_dir, none=False)
 
-        command = cli.model_command(m.AliasedConfig, handler)
+        command = cli.model_command(m.Cli.Test.AliasedConfig, handler)
         assert command is not None
