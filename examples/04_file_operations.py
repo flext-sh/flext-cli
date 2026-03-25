@@ -257,7 +257,7 @@ def backup_config_files(source_dir: Path, backup_dir: Path) -> t.StrSequence:
 
     config_files = list(source_dir.glob("*.json")) + list(source_dir.glob("*.yaml"))
 
-    backed_up: t.StrSequence = []
+    backed_up: list[str] = []
     for config_file in config_files:
         # Read original
         if config_file.suffix == ".json":
@@ -426,7 +426,7 @@ def export_multi_format(
     """Export same data to multiple formats (JSON, YAML, CSV)."""
     cli.print(f"💾 Multi-format export: {base_path.stem}", style="cyan")
 
-    export_results: t.StrMapping = {}
+    export_results: dict[str, str] = {}
 
     # Export to JSON
     json_path = base_path.with_suffix(".json")
@@ -454,7 +454,7 @@ def export_multi_format(
         export_results["YAML"] = f"{size} bytes"
         cli.print(f"✅ YAML: {yaml_path.name} ({size} bytes)", style="green")
 
-    rows_adapter = TypeAdapter(Sequence[t.ContainerMapping])
+    rows_adapter: TypeAdapter[Sequence[t.ContainerMapping]] = TypeAdapter(Sequence[t.ContainerMapping])
     csv_rows_data: Sequence[t.ContainerMapping]
     try:
         csv_rows_data = rows_adapter.validate_python(data)
@@ -588,13 +588,13 @@ def generate_output_files(
         return r[Mapping[str, Path]].fail(f"YAML export failed: {yaml_result.error}")
     results["yaml"] = yaml_file
 
-    rows_adapter = TypeAdapter(Sequence[t.ContainerMapping])
+    rows_adapter: TypeAdapter[Sequence[t.ContainerMapping]] = TypeAdapter(Sequence[t.ContainerMapping])
     csv_rows_data: Sequence[t.ContainerMapping]
     content_items: t.ValueOrModel = ""
     if isinstance(data.content, dict):
         content_items = data.content.get("items", [])
     else:
-        content_items = Sequence[t.ContainerMapping]()
+        content_items = []
     try:
         csv_rows_data = rows_adapter.validate_python(content_items)
     except ValidationError:

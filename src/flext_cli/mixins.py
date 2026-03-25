@@ -87,7 +87,7 @@ class FlextCliMixins(FlextMixins):
             raw_result = wrapped_handler(**context_data)
             if isinstance(raw_result, r):
                 return raw_result
-            return r.ok(raw_result)
+            return r[t.Cli.JsonValue].ok(raw_result)
 
 
 x = FlextCliMixins

@@ -52,7 +52,7 @@ def test_prompt_choice_covers_required_default_and_exception(
 
 def test_prompt_logs_input_when_not_test_env(monkeypatch: pytest.MonkeyPatch) -> None:
     prompts = FlextCliPrompts(interactive_mode=True, quiet=False)
-    captured: t.StrSequence = []
+    captured: list[str] = []
 
     def capture_info(message: str) -> None:
         captured.append(str(message))
@@ -67,7 +67,7 @@ def test_prompt_logs_input_when_not_test_env(monkeypatch: pytest.MonkeyPatch) ->
 
 def test_read_confirmation_input_paths(monkeypatch: pytest.MonkeyPatch) -> None:
     prompts = FlextCliPrompts(interactive_mode=True)
-    warnings: t.StrSequence = []
+    warnings: list[str] = []
 
     def capture_warning(
         *_args: t.NormalizedValue,
@@ -128,7 +128,7 @@ def test_select_from_options_logs_successful_selection(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     prompts = FlextCliPrompts(interactive_mode=True, quiet=False)
-    logs: t.StrSequence = []
+    logs: list[str] = []
 
     def capture_info(msg: str) -> None:
         logs.append(str(msg))

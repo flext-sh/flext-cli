@@ -214,13 +214,10 @@ class FlextCliCmd(FlextCliServiceBase):
                 return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].fail(
                     c.Cli.CmdErrorMessages.CONFIG_NOT_DICT,
                 )
-            if isinstance(config_data, Mapping):
-                normalized: Mapping[str, FlextCliTypes.Cli.JsonValue] = {
-                    str(k): m.Cli.normalize_json_value(v)
-                    for k, v in config_data.items()
-                }
-            else:
-                normalized = {}
+            normalized: Mapping[str, FlextCliTypes.Cli.JsonValue] = {
+                str(k): m.Cli.normalize_json_value(v)
+                for k, v in config_data.items()
+            }
             if key not in normalized:
                 return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].fail(
                     c.Cli.CmdErrorMessages.CONFIG_KEY_NOT_FOUND.format(

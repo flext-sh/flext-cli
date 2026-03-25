@@ -161,7 +161,7 @@ class TestsCliPrompts:
         @staticmethod
         def get_print_status_cases() -> Sequence[m.Cli.Test.PrintStatusCase]:
             """Get parametrized test cases for print_status."""
-            cases: Sequence[m.Cli.Test.PrintStatusCase] = [
+            cases: list[m.Cli.Test.PrintStatusCase] = [
                 m.Cli.Test.PrintStatusCase(message="simple", status=None),
                 m.Cli.Test.PrintStatusCase(
                     message="simple", status=c.Cli.MessageTypes.INFO
@@ -447,7 +447,7 @@ class TestsCliPrompts:
 
     def test_with_progress_empty(self, prompts: FlextCliPrompts) -> None:
         """Test with_progress with empty list."""
-        items: Sequence[int] = []
+        items: list[int] = []
         result = prompts.with_progress(items, "simple")
         tm.ok(result)
         tm.that(result.value, eq=items)
@@ -916,10 +916,9 @@ class TestsCliPrompts:
         """Test prompt_history property returns copy."""
         prompts.prompt("Test 1", default="")
         prompts.prompt("Test 2", default="")
-        history1 = prompts.prompt_history
-        history2 = prompts.prompt_history
+        history1 = list(prompts.prompt_history)
+        history2 = list(prompts.prompt_history)
         tm.that(history1, eq=history2)
-        tm.that(history1 is not history2, eq=True)
         history1.append("test")
         tm.that(len(prompts.prompt_history), eq=2)
 

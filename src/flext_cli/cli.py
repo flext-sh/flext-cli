@@ -537,7 +537,7 @@ class FlextCliCli:
                             exc_info=False,
                         )
                         continue
-                return r.ok(normalized_map)
+                return r[t.Cli.JsonValue].ok(normalized_map)
             json_value_candidate: t.Cli.JsonValue = prompt_result
             while getattr(json_value_candidate, "is_success", None) is True:
                 json_value_candidate = getattr(json_value_candidate, "value", None)
@@ -555,7 +555,7 @@ class FlextCliCli:
                         exc_info=False,
                     )
                     json_value = str(json_value_candidate)
-            return r.ok(json_value)
+            return r[t.Cli.JsonValue].ok(json_value)
         except typer.Abort as e:
             return r[t.Cli.JsonValue].fail(
                 c.Cli.ErrorMessages.USER_ABORTED_PROMPT.format(error=e),

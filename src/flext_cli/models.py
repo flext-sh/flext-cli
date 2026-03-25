@@ -945,7 +945,7 @@ class FlextCliModels(FlextModels):
                     updated = self.model_copy(
                         update={"status": "completed", "exit_code": exit_code},
                     )
-                    return r.ok(updated)
+                    return r[Self].ok(updated)
                 except (
                     ValueError,
                     TypeError,
@@ -975,13 +975,13 @@ class FlextCliModels(FlextModels):
                 """
                 # Default implementation - returns empty result
                 # Real implementations should override this method
-                return r.ok({})
+                return r[Mapping[str, t.Cli.JsonValue]].ok({})
 
             def start_execution(self) -> r[Self]:
                 """Start command execution - update status to running."""
                 try:
                     updated = self.model_copy(update={"status": "running"})
-                    return r.ok(updated)
+                    return r[Self].ok(updated)
                 except (
                     ValueError,
                     TypeError,
@@ -1116,7 +1116,7 @@ class FlextCliModels(FlextModels):
                     updated_session = self.model_copy(
                         update={"commands": tuple(updated_commands)},
                     )
-                    return r.ok(updated_session)
+                    return r[Self].ok(updated_session)
                 except (
                     ValueError,
                     TypeError,
@@ -1582,7 +1582,7 @@ class FlextCliModels(FlextModels):
                 Field(
                     description="Results for each workflow step",
                 ),
-            ] = Field(default_factory=list)
+            ] = Field(default_factory=lambda: list[Mapping[str, t.Cli.JsonValue]]())
             total_steps: Annotated[
                 int,
                 Field(default=0, description="Total number of steps"),
@@ -2722,7 +2722,7 @@ class FlextCliModels(FlextModels):
                         return normalized.value
                     return str(raw_result)
 
-                typed_wrapper.__signature__ = command_signature  # type: ignore[attr-defined]
+                typed_wrapper.__signature__ = command_signature
                 typed_wrapper.__annotations__ = dict(real_annotations)
                 return typed_wrapper
 
@@ -3393,7 +3393,7 @@ class FlextCliModels(FlextModels):
                             return r[t.Cli.JsonValue].fail(
                                 f"Field {field_name} not found",
                             )
-                        return r.ok(data[field_name])
+                        return r[t.Cli.JsonValue].ok(data[field_name])
                     return r[t.Cli.JsonValue].fail(
                         "No data provided for validation",
                     )
@@ -3419,19 +3419,19 @@ class FlextCliModels(FlextModels):
                 Uses lower-layer JSON contracts for strict type safety.
                 """
                 if field_value is None:
-                    return r.ok("")
+                    return r[t.Cli.JsonValue].ok("")
                 try:
                     json_value = FlextCliModels.Cli.CliModelConverter.JSON_VALUE_ADAPTER.validate_python(
                         field_value,
                     )
-                    return r.ok(json_value)
+                    return r[t.Cli.JsonValue].ok(json_value)
                 except ValidationError as exc:
                     _logger.debug(
                         "convert_field_value validation fallback",
                         error=exc,
                         exc_info=False,
                     )
-                    return r.ok(str(field_value))
+                    return r[t.Cli.JsonValue].ok(str(field_value))
 
             @staticmethod
             def validate_dict_field_data(

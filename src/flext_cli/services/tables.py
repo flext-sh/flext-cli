@@ -171,7 +171,7 @@ class FlextCliTables(FlextCliServiceBase):
             explicit_options=config,
             default_factory=lambda: m.Cli.TableConfig(),
             **{
-                k: v for k, v in config_kwargs.items() if v is None or u.is_primitive(v)
+                k: v for k, v in config_kwargs.items() if u.is_primitive(v)
             },
         )
         if config_result.is_failure:
@@ -329,8 +329,6 @@ class FlextCliTables(FlextCliServiceBase):
             first_row = data_list[0]
             if u.is_dict_like(first_row):
                 return len(list(first_row.keys()))
-            if isinstance(first_row, Sequence):
-                return len(first_row)
             return 0
         return 0
 

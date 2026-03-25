@@ -16,7 +16,7 @@ from collections.abc import (
     Sequence,
 )
 from io import StringIO
-from typing import ClassVar, TypeIs, cast
+from typing import ClassVar, TypeIs
 
 import yaml
 from flext_core import FlextRuntime, r
@@ -385,9 +385,9 @@ class FlextCliOutput:
         Checks v against t, returns v if match, else returns default.
         """
         if isinstance(v, t):
-            return cast("FlextCliTypes.Cli.JsonValue", v)
+            return v
         if isinstance(default, t):
-            return cast("FlextCliTypes.Cli.JsonValue", default)
+            return default
         type_name = t.__name__ if hasattr(t, "__name__") else str(t)
         default_type_name = (
             type(default).__name__
@@ -856,7 +856,7 @@ class FlextCliOutput:
             The execute() method returns service operational status.
 
         """
-        return r.ok({
+        return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].ok({
             c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.OPERATIONAL.value,
             c.Cli.DictKeys.SERVICE: c.Cli.Services.OUTPUT,
         })

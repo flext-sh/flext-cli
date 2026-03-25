@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import os
 import time
-from collections.abc import Sequence
 from datetime import UTC, datetime
 
 import psutil
@@ -21,7 +20,7 @@ class TestsCliPerformanceAutomated:
     @pytest.mark.parametrize("num_commands", [10, 50, 100, 500])
     def test_session_bulk_command_operations(self, num_commands: int) -> None:
         """Test bulk command operations performance."""
-        commands: Sequence[FlextCliModels.Cli.CliCommand] = []
+        commands: list[FlextCliModels.Cli.CliCommand] = []
         base_time = time.time()
         start_time = time.time()
         for i in range(num_commands):

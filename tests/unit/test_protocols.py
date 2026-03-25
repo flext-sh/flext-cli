@@ -145,7 +145,7 @@ class TestsCliProtocols:
             provider = provider_result.value
             if isinstance(provider, p.Cli.CliConfigProvider):
                 test_config_raw = c.Cli.Test.TestConfiguration.BASIC_CONFIG
-                test_config: t.ContainerMapping = {}
+                test_config: dict[str, t.NormalizedValue] = {}
                 for key, value in test_config_raw.items():
                     if isinstance(value, t.PRIMITIVES_TYPES) or value is None:
                         test_config[key] = value
@@ -215,7 +215,7 @@ class TestsCliProtocols:
         if auth_result.is_success and auth_result.value:
             authenticator = auth_result.value
             if isinstance(authenticator, p.Cli.CliAuthenticator):
-                token = c.Authentication.VALID_TOKEN
+                token = c.Cli.Test.TestAuthentication.VALID_TOKEN
                 validation_result = authenticator.validate_token(token)
                 (
                     tm.ok(validation_result),

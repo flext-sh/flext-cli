@@ -134,11 +134,11 @@ class FlextCliSettings(FlextSettings):
 
     def execute_service(self) -> r[Mapping[str, t.Cli.JsonValue]]:
         """Execute config as service; return status dict."""
-        return r.ok({"config": "loaded", "profile": self.profile})
+        return r[Mapping[str, t.Cli.JsonValue]].ok({"config": "loaded", "profile": self.profile})
 
     def load_config(self) -> r[Mapping[str, t.Cli.JsonValue]]:
         """Load current config as dict."""
-        return r.ok(self.model_dump(mode="json"))
+        return r[Mapping[str, t.Cli.JsonValue]].ok(self.model_dump(mode="json"))
 
     def save_config(self, data: t.Cli.JsonValue) -> r[bool]:
         """Apply config updates from dict."""
