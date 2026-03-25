@@ -168,7 +168,30 @@ table_str = cli.output.format_data(data, format_type="table")
 
 ### 2. FlextCliContext Removed
 
+<<<<<<< Updated upstream
 `FlextCliContext` was removed. Remove any imports and usages. For simple context data (cwd, env, args, output_format) use `m.Cli.CliContext` from `flext_cli.models`.
+=======
+Context is now an immutable value object (no longer a service).
+
+```python
+# ❌ v0.9.0 (OLD)
+context = FlextCliContext(command="test")
+context.activate()  # Method no longer exists
+context.is_active = True  # Can't modify
+context.deactivate()  # Method no longer exists
+
+# ✅ v0.10.0 (NEW)
+context = FlextCliContext(
+    command="test", arguments=["arg1", "arg2"], environment_variables={"ENV": "prod"}
+)
+# Context is immutable - create new one to "change" it
+new_context = FlextCliContext(
+    command="test2",
+    arguments=context.arguments,  # Copy what you want
+    environment_variables=context.environment_variables,
+)
+```
+>>>>>>> Stashed changes
 
 ### 3. Service Class Instantiation
 
@@ -193,7 +216,11 @@ result = cli.file_tools.read_json_file("config.json")
 from flext_cli import FlextCliTesting, FlextCliTestRunner
 
 # ✅ v0.10.0 (NEW)
+<<<<<<< Updated upstream
 from tests import FlextCliTesting, FlextCliTestRunner
+=======
+from tests.fixtures.testing_utilities import FlextCliTesting, FlextCliTestRunner
+>>>>>>> Stashed changes
 ```
 
 ### 5. Removed Modules
@@ -504,7 +531,37 @@ def process_data():
 
 ### Example 3: Context Usage
 
+<<<<<<< Updated upstream
 `FlextCliContext` was removed. Use `m.Cli.CliContext` (cwd, env, args, output_format) from `flext_cli.models` for context data, or pass command/arguments directly.
+=======
+```python
+# ❌ v0.9.0
+from flext_cli import FlextCliContext
+
+
+def run_command(command: str, args: list[str]):
+    context = FlextCliContext(command=command, arguments=args)
+    context.activate()
+
+    try:
+        # ... execute command with context
+        pass
+    finally:
+        context.deactivate()
+
+
+# ✅ v0.10.0
+from flext_cli import FlextCliContext
+
+
+def run_command(command: str, args: list[str]):
+    # Context is just immutable data
+    context = FlextCliContext(command=command, arguments=args)
+
+    # ... execute command with context
+    # No activate/deactivate needed
+```
+>>>>>>> Stashed changes
 
 ______________________________________________________________________
 

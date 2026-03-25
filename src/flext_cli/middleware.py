@@ -176,7 +176,6 @@ class FlextCliMiddleware:
         def composed(
             ctx: p.Cli.CliContext,
         ) -> r[t.Cli.JsonValue]:
-
             def build_chain(
                 idx: int,
             ) -> Callable[[p.Cli.CliContext], r[t.Cli.JsonValue]]:

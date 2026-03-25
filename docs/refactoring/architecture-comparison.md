@@ -202,6 +202,39 @@ cli.formatters.print(table.unwrap())
 # Explicit, clear ownership
 ```
 
+<<<<<<< Updated upstream
+=======
+### Example 3: Context Usage
+
+#### v0.9.0 (Old)
+
+```python
+# Context as service (mutable, with methods)
+from flext_cli import FlextCliContext
+
+context = FlextCliContext(command="test")
+context.activate()  # Service method
+context.is_active = True  # Mutable state
+# ... use context
+context.deactivate()  # Service method
+```
+
+#### v0.10.0 (New)
+
+```python
+# Context as value object (immutable, just data)
+from flext_cli import FlextCliContext
+
+context = FlextCliContext(
+    command="test", arguments=["arg1"], environment_variables={"ENV": "prod"}
+)
+# Immutable - no activate/deactivate needed
+# Just data, no behavior
+```
+
+______________________________________________________________________
+
+>>>>>>> Stashed changes
 ## Service Class Patterns
 
 ### v0.9.0: Everything Extends FlextService

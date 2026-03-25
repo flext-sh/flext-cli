@@ -10,10 +10,9 @@ from typing import TYPE_CHECKING
 
 from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
 
-if TYPE_CHECKING:
-    from flext_core import FlextTypes, d, e, h, r, s
 
-    from flext_cli import _models, services
+if TYPE_CHECKING:
+    from flext_core import FlextTypes
     from flext_cli.__version__ import (
         __all__,
         __author__,
@@ -25,6 +24,7 @@ if TYPE_CHECKING:
         __version__,
         __version_info__,
     )
+    import flext_cli._models as _models
     from flext_cli._models.cli_models_statistics import FlextCliModelsStatistics
     from flext_cli._models.cli_models_system_context import FlextCliModelsSystemContext
     from flext_cli.api import FlextCli
@@ -43,6 +43,7 @@ if TYPE_CHECKING:
     from flext_cli.models import FlextCliModels, FlextCliModels as m
     from flext_cli.option_groups import FlextCliOptionGroup
     from flext_cli.protocols import FlextCliProtocols, FlextCliProtocols as p
+    import flext_cli.services as services
     from flext_cli.services.cmd import FlextCliCmd
     from flext_cli.services.core import FlextCliCore
     from flext_cli.services.output import FlextCliOutput
@@ -51,6 +52,8 @@ if TYPE_CHECKING:
     from flext_cli.settings import FlextCliSettings, logger
     from flext_cli.typings import FlextCliTypes, FlextCliTypes as t
     from flext_cli.utilities import FlextCliUtilities, FlextCliUtilities as u
+
+    from flext_core import d, e, h, r, s
 
 _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
     "FlextCli": ["flext_cli.api", "FlextCli"],
@@ -68,14 +71,8 @@ _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
     "FlextCliLoggingMiddleware": ["flext_cli.middleware", "FlextCliLoggingMiddleware"],
     "FlextCliMixins": ["flext_cli.mixins", "FlextCliMixins"],
     "FlextCliModels": ["flext_cli.models", "FlextCliModels"],
-    "FlextCliModelsStatistics": [
-        "flext_cli._models.cli_models_statistics",
-        "FlextCliModelsStatistics",
-    ],
-    "FlextCliModelsSystemContext": [
-        "flext_cli._models.cli_models_system_context",
-        "FlextCliModelsSystemContext",
-    ],
+    "FlextCliModelsStatistics": ["flext_cli._models.cli_models_statistics", "FlextCliModelsStatistics"],
+    "FlextCliModelsSystemContext": ["flext_cli._models.cli_models_system_context", "FlextCliModelsSystemContext"],
     "FlextCliOptionGroup": ["flext_cli.option_groups", "FlextCliOptionGroup"],
     "FlextCliOutput": ["flext_cli.services.output", "FlextCliOutput"],
     "FlextCliPrompts": ["flext_cli.services.prompts", "FlextCliPrompts"],
@@ -180,7 +177,6 @@ def __getattr__(name: str) -> FlextTypes.ModuleExport:
 
     Raises:
         AttributeError: If attribute not registered.
-
     """
     if name in _LAZY_CACHE:
         return _LAZY_CACHE[name]
@@ -195,7 +191,6 @@ def __dir__() -> Sequence[str]:
 
     Returns:
         List of public names from module exports.
-
     """
     return sorted(__all__)
 

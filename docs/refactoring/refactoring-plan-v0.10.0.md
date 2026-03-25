@@ -502,8 +502,13 @@ class FlextCliFileTools:
 class FlextCliContext(FlextService[CliDataDict]):
     """Context as service with methods."""
 
+<<<<<<< Updated upstream
     def activate(self) -> r[bool]: ...
     def deactivate(self) -> r[bool]: ...
+=======
+    def activate(self) -> FlextResult[bool]: ...
+    def deactivate(self) -> FlextResult[bool]: ...
+>>>>>>> Stashed changes
 ```
 
 **After**:
@@ -513,7 +518,11 @@ from flext_core import FlextModels
 
 
 class FlextCliContext(m.Value):
+<<<<<<< Updated upstream
     """Immutable context value t.NormalizedValue."""
+=======
+    """Immutable context value object."""
+>>>>>>> Stashed changes
 
     command: str | None = None
     arguments: t.StrSequence = Field(default_factory=list)
@@ -541,6 +550,7 @@ def print(self, message, style) -> r[bool]:
     return self.formatters.print(message, style)
 
 
+<<<<<<< Updated upstream
 def create_table(self, data, headers, title) -> r[str]:
     return self.output.format_data(...)
 
@@ -590,6 +600,57 @@ def confirm(self, message) -> r[bool]:
 
 
 def select(self, message, choices) -> r[str]:
+=======
+def create_table(self, data, headers, title) -> FlextResult[str]:
+    return self.output.format_data(...)
+
+
+def print_table(self, table) -> FlextResult[bool]:
+    return self.formatters.print(table)
+
+
+def create_tree(self, label) -> FlextResult[Any]:
+    return self.formatters.create_tree(label)
+
+
+def format_output(self, data, format_type) -> FlextResult[str]:
+    return self.output.format_data(data, format_type)
+
+
+def read_json_file(self, path) -> FlextResult[dict]:
+    return self.file_tools.read_json_file(path)
+
+
+def write_json_file(self, path, data) -> FlextResult[bool]:
+    return self.file_tools.write_json_file(path, data)
+
+
+def read_yaml_file(self, path) -> FlextResult[dict]:
+    return self.file_tools.read_yaml_file(path)
+
+
+def write_yaml_file(self, path, data) -> FlextResult[bool]:
+    return self.file_tools.write_yaml_file(path, data)
+
+
+def read_csv_file(self, path) -> FlextResult[list]:
+    return self.file_tools.read_csv_file(path)
+
+
+def write_csv_file(self, path, data) -> FlextResult[bool]:
+    return self.file_tools.write_csv_file(path, data)
+
+
+def prompt_user(self, message) -> FlextResult[str]:
+    return self.prompts.prompt(message)
+
+
+def confirm(self, message) -> FlextResult[bool]:
+    return self.prompts.confirm(message)
+
+
+def select(self, message, choices) -> FlextResult[str]:
+>>>>>>> Stashed changes
     return self.prompts.select(message, choices)
 ```
 
@@ -606,7 +667,11 @@ def get_instance(cls) -> FlextCli:
     """Singleton pattern."""
 
 
+<<<<<<< Updated upstream
 def authenticate(self, credentials) -> r[str]:
+=======
+def authenticate(self, credentials) -> FlextResult[str]:
+>>>>>>> Stashed changes
     """Orchestrates authentication (business logic)."""
 
 
@@ -618,11 +683,19 @@ def group(self, name, **kwargs):
     """CLI group decorator."""
 
 
+<<<<<<< Updated upstream
 def execute_cli(self) -> r[bool]:
     """Execute CLI application."""
 
 
 def execute(self) -> r[dict]:
+=======
+def execute_cli(self) -> FlextResult[bool]:
+    """Execute CLI application."""
+
+
+def execute(self) -> FlextResult[dict]:
+>>>>>>> Stashed changes
     """Execute command."""
 ```
 
