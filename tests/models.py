@@ -262,7 +262,7 @@ class FlextCliTestModels(FlextTestsModels, FlextCliModels):
                 inner: Annotated[
                     Inner,
                     Field(description="Nested config"),
-                ] = Field(default_factory=lambda: FlextCliTestModels.Cli.Test.NestedModelConfig.Inner())
+                ] = Field(default_factory=lambda: FlextCliTestModels.Cli.Test.NestedModelConfig.Inner(key="", value=0))
 
             class ValidatedConfig(PositionalModel):
                 """Config with custom host validator for model_command tests."""
