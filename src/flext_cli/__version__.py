@@ -22,7 +22,7 @@ __version__ = re.sub(
 _version_without_metadata = __version__.split("+", maxsplit=1)[0]
 _version_base, _has_prerelease, _prerelease = _version_without_metadata.partition("-")
 _base_parts = _version_base.split(".")
-_prerelease_parts = _prerelease.split(".") if _has_prerelease else []
+_prerelease_parts: list[str] = _prerelease.split(".") if _has_prerelease else []
 __version_info__ = tuple(
     int(part) if part.isdigit() else part for part in _base_parts + _prerelease_parts
 )

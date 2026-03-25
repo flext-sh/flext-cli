@@ -215,8 +215,7 @@ class FlextCliCmd(FlextCliServiceBase):
                     c.Cli.CmdErrorMessages.CONFIG_NOT_DICT,
                 )
             normalized: Mapping[str, FlextCliTypes.Cli.JsonValue] = {
-                str(k): m.Cli.normalize_json_value(v)
-                for k, v in config_data.items()
+                str(k): m.Cli.normalize_json_value(v) for k, v in config_data.items()
             }
             if key not in normalized:
                 return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].fail(

@@ -454,7 +454,9 @@ def export_multi_format(
         export_results["YAML"] = f"{size} bytes"
         cli.print(f"✅ YAML: {yaml_path.name} ({size} bytes)", style="green")
 
-    rows_adapter: TypeAdapter[Sequence[t.ContainerMapping]] = TypeAdapter(Sequence[t.ContainerMapping])
+    rows_adapter: TypeAdapter[Sequence[t.ContainerMapping]] = TypeAdapter(
+        Sequence[t.ContainerMapping]
+    )
     csv_rows_data: Sequence[t.ContainerMapping]
     try:
         csv_rows_data = rows_adapter.validate_python(data)
@@ -588,7 +590,9 @@ def generate_output_files(
         return r[Mapping[str, Path]].fail(f"YAML export failed: {yaml_result.error}")
     results["yaml"] = yaml_file
 
-    rows_adapter: TypeAdapter[Sequence[t.ContainerMapping]] = TypeAdapter(Sequence[t.ContainerMapping])
+    rows_adapter: TypeAdapter[Sequence[t.ContainerMapping]] = TypeAdapter(
+        Sequence[t.ContainerMapping]
+    )
     csv_rows_data: Sequence[t.ContainerMapping]
     content_items: t.ValueOrModel = ""
     if isinstance(data.content, dict):

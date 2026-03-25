@@ -939,13 +939,16 @@ class FlextCliModels(FlextModels):
                         .map(lambda _unused: cls.model_construct(name="invalid"))
                     )
 
-            def complete_execution(self, exit_code: int) -> r[Self]:
+            def complete_execution(
+                self,
+                exit_code: int,
+            ) -> r[FlextCliModels.Cli.CliCommand]:
                 """Complete command execution with exit code."""
                 try:
                     updated = self.model_copy(
                         update={"status": "completed", "exit_code": exit_code},
                     )
-                    return r[Self].ok(updated)
+                    return r[FlextCliModels.Cli.CliCommand].ok(updated)
                 except (
                     ValueError,
                     TypeError,
@@ -955,7 +958,7 @@ class FlextCliModels(FlextModels):
                     LiveError,
                 ) as e:
                     return (
-                        r[Self]
+                        r[FlextCliModels.Cli.CliCommand]
                         .fail(f"Failed to complete execution: {e}")
                         .map(lambda _unused: self)
                     )
@@ -977,11 +980,11 @@ class FlextCliModels(FlextModels):
                 # Real implementations should override this method
                 return r[Mapping[str, t.Cli.JsonValue]].ok({})
 
-            def start_execution(self) -> r[Self]:
+            def start_execution(self) -> r[FlextCliModels.Cli.CliCommand]:
                 """Start command execution - update status to running."""
                 try:
                     updated = self.model_copy(update={"status": "running"})
-                    return r[Self].ok(updated)
+                    return r[FlextCliModels.Cli.CliCommand].ok(updated)
                 except (
                     ValueError,
                     TypeError,
@@ -991,7 +994,7 @@ class FlextCliModels(FlextModels):
                     LiveError,
                 ) as e:
                     return (
-                        r[Self]
+                        r[FlextCliModels.Cli.CliCommand]
                         .fail(f"Failed to start execution: {e}")
                         .map(lambda _unused: self)
                     )
@@ -1109,14 +1112,17 @@ class FlextCliModels(FlextModels):
                     commands_count=len(self.commands),
                 )
 
-            def add_command(self, command: FlextCliModels.Cli.CliCommand) -> r[Self]:
+            def add_command(
+                self,
+                command: FlextCliModels.Cli.CliCommand,
+            ) -> r[FlextCliModels.Cli.CliSession]:
                 """Add command to session."""
                 try:
                     updated_commands = list(self.commands) + [command]
                     updated_session = self.model_copy(
                         update={"commands": tuple(updated_commands)},
                     )
-                    return r[Self].ok(updated_session)
+                    return r[FlextCliModels.Cli.CliSession].ok(updated_session)
                 except (
                     ValueError,
                     TypeError,
@@ -1126,7 +1132,7 @@ class FlextCliModels(FlextModels):
                     LiveError,
                 ) as e:
                     return (
-                        r[Self]
+                        r[FlextCliModels.Cli.CliSession]
                         .fail(f"Failed to add command: {e}")
                         .map(lambda _unused: self)
                     )

@@ -215,7 +215,7 @@ class TestsCliProtocols:
         if auth_result.is_success and auth_result.value:
             authenticator = auth_result.value
             if isinstance(authenticator, p.Cli.CliAuthenticator):
-                token = c.Cli.Test.TestAuthentication.VALID_TOKEN
+                token = c.Cli.TestAuthentication.VALID_TOKEN
                 validation_result = authenticator.validate_token(token)
                 (
                     tm.ok(validation_result),

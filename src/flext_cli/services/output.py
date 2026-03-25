@@ -384,9 +384,11 @@ class FlextCliOutput:
         Pattern: Non-generic cast_if for runtime type checking.
         Checks v against t, returns v if match, else returns default.
         """
-        if isinstance(v, t):
+        matched = isinstance(v, t)
+        if matched:
             return v
-        if isinstance(default, t):
+        default_matched = isinstance(default, t)
+        if default_matched:
             return default
         type_name = t.__name__ if hasattr(t, "__name__") else str(t)
         default_type_name = (

@@ -134,7 +134,10 @@ class FlextCliSettings(FlextSettings):
 
     def execute_service(self) -> r[Mapping[str, t.Cli.JsonValue]]:
         """Execute config as service; return status dict."""
-        return r[Mapping[str, t.Cli.JsonValue]].ok({"config": "loaded", "profile": self.profile})
+        return r[Mapping[str, t.Cli.JsonValue]].ok({
+            "config": "loaded",
+            "profile": self.profile,
+        })
 
     def load_config(self) -> r[Mapping[str, t.Cli.JsonValue]]:
         """Load current config as dict."""

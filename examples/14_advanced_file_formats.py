@@ -145,7 +145,9 @@ def export_data_multi_format(
         size = yaml_path.stat().st_size
         export_results["YAML"] = f"{size} bytes"
         cli.print(f"✅ YAML: {yaml_path.name} ({size} bytes)", style="green")
-    rows_adapter: TypeAdapter[Sequence[t.ContainerMapping]] = TypeAdapter(Sequence[t.ContainerMapping])
+    rows_adapter: TypeAdapter[Sequence[t.ContainerMapping]] = TypeAdapter(
+        Sequence[t.ContainerMapping]
+    )
     csv_rows_data: Sequence[t.ContainerMapping]
     try:
         csv_rows_data = rows_adapter.validate_python(data)

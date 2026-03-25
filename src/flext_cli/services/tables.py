@@ -170,9 +170,7 @@ class FlextCliTables(FlextCliServiceBase):
             model_class=m.Cli.TableConfig,
             explicit_options=config,
             default_factory=lambda: m.Cli.TableConfig(),
-            **{
-                k: v for k, v in config_kwargs.items() if u.is_primitive(v)
-            },
+            **{k: v for k, v in config_kwargs.items() if u.is_primitive(v)},
         )
         if config_result.is_failure:
             return r[str].fail(config_result.error or "Invalid table configuration")
