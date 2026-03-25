@@ -2722,7 +2722,7 @@ class FlextCliModels(FlextModels):
                         return normalized.value
                     return str(raw_result)
 
-                typed_wrapper.__signature__ = command_signature
+                setattr(typed_wrapper, "__signature__", command_signature)
                 typed_wrapper.__annotations__ = dict(real_annotations)
                 return typed_wrapper
 
