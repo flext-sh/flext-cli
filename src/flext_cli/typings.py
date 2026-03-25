@@ -43,7 +43,7 @@ class FlextCliTypes(FlextTypes):
         type FormatableResult = str
         TabularData = Sequence[TableRow]
         type TableRows = Sequence[TableRow]
-        CliValue = (
+        type CliValue = (
             FlextTypes.Scalar
             | FlextTypes.StrSequence
             | Mapping[str, FlextTypes.Scalar | FlextTypes.StrSequence]
