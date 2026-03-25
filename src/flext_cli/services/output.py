@@ -1755,9 +1755,7 @@ class FlextCliOutput:
         """Prepare and validate table headers."""
         default_headers: Sequence[str] = self.get_keys(data[0]) if data else []
         table_headers_raw = (
-            list(headers)
-            if headers is not None
-            else list(default_headers)
+            list(headers) if headers is not None else list(default_headers)
         )
         table_headers: t.StrSequence = [str(h) for h in table_headers_raw]
         if headers is not None:
