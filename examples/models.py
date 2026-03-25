@@ -206,7 +206,7 @@ class AppConfigAdvanced(BaseModel):
         if not isinstance(typed_data, dict):
             return None
         typed_dict: t.ContainerMapping = typed_data
-        result: dict[str, t.ContainerValue] = {
+        return {
             "database_url": os.getenv(
                 "DATABASE_URL",
                 "postgresql://localhost:5432/myapp",
@@ -219,21 +219,20 @@ class AppConfigAdvanced(BaseModel):
             "temp_dir": Path(
                 os.getenv("TEMP_DIR", str(Path.home() / ".cache" / "myapp")),
             ),
+            **{
+                k: typed_dict[k]
+                for k in (
+                    "database_url",
+                    "redis_url",
+                    "api_key",
+                    "max_workers",
+                    "enable_metrics",
+                    "log_level",
+                    "temp_dir",
+                )
+                if k in typed_dict and isinstance(typed_dict[k], (str, int, bool, Path))
+            },
         }
-        updates = {
-            k: typed_dict[k]
-            for k in (
-                "database_url",
-                "redis_url",
-                "api_key",
-                "max_workers",
-                "enable_metrics",
-                "log_level",
-                "temp_dir",
-            )
-            if k in typed_dict and isinstance(typed_dict[k], (str, int, bool, Path))
-        }
-        return {**result, **updates}
 
     @field_validator("database_url")
     @classmethod

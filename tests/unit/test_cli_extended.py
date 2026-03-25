@@ -137,7 +137,9 @@ class TestsCliCliExtended:
             help_text="A flag",
         )
 
-        def cmd_impl(*args: t.Scalar, **kwargs: t.Scalar) -> str:
+        def cmd_impl(
+            *args: t.Cli.JsonValue, **kwargs: t.Scalar
+        ) -> t.Cli.JsonValue | None:
             _ = (args, kwargs)
             return "ok"
 

@@ -482,7 +482,6 @@ class FlextCliTestHelpers:
 
         @staticmethod
         def create_test_command(
-            cli_cli: t.NormalizedValue,
             command_name: str,
         ) -> r[click.Command]:
             """Create a test command for CLI testing."""
@@ -498,7 +497,6 @@ class FlextCliTestHelpers:
 
         @staticmethod
         def create_test_group(
-            cli_cli: t.NormalizedValue,
             group_name: str,
         ) -> r[click.Group]:
             """Create a test group for CLI testing."""
@@ -514,7 +512,6 @@ class FlextCliTestHelpers:
 
         @staticmethod
         def create_command_with_options(
-            cli_cli: t.NormalizedValue,
             command_name: str,
             option_name: str,
             default: str,

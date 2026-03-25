@@ -16,10 +16,17 @@ import json
 import logging
 import os
 from collections import deque
-from collections.abc import Callable, Generator, Iterator, Mapping, Sequence
+from collections.abc import (
+    Callable,
+    Generator,
+    Iterator,
+    Mapping,
+    MutableMapping,
+    Sequence,
+)
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Protocol
+from typing import Protocol, TextIO
 
 import pytest
 import yaml
@@ -43,6 +50,24 @@ from flext_cli import (
 )
 from tests import c, m, p, t, u
 from tests.helpers._impl import _is_json_dict
+
+
+def _create_service_instance[T](service_class: type[T]) -> T:
+    """Factory helper for creating service instances.
+
+    Calls constructor on the service class, with special handling for FlextCliSettings
+    which uses its get_global() factory method instead.
+
+    Args:
+        service_class: The service class to instantiate
+
+    Returns:
+        New instance of the service class
+
+    """
+    if service_class is FlextCliSettings:
+        return FlextCliServiceBase.get_cli_config()  # type: ignore[return-value]
+    return service_class()
 
 
 def pytest_configure(config: pytest.Config) -> None:
@@ -236,14 +261,14 @@ def cli_command_factory() -> CliCommandFactory:
         cli_data: t.ContainerMapping
         cli_data = {
             "command_line": command_line,
-            "args": [],
+            "args": list[t.ContainerValue](),
             "status": status,
             "exit_code": None,
             "output": "",
             "error_output": "",
             "execution_time": None,
             "result": None,
-            "kwargs": {},
+            "kwargs": dict[str, t.ContainerValue](),
             "name": name,
             "description": description,
         }
@@ -278,7 +303,7 @@ def cli_session_factory() -> CliSessionFactory:
             "session_id": session_id,
             "status": status,
             "user_id": user_id,
-            "commands": [],
+            "commands": list[t.ContainerValue](),
             "start_time": None,
             "end_time": None,
             "last_activity": None,
@@ -317,8 +342,8 @@ def debug_info_factory() -> DebugInfoFactory:
             "service": service,
             "level": level,
             "message": message or "",
-            "system_info": {},
-            "config_info": {},
+            "system_info": dict[str, t.ContainerValue](),
+            "config_info": dict[str, t.ContainerValue](),
         }
         valid_fields = {
             "service",
@@ -374,21 +399,6 @@ def logging_config_factory() -> LoggingConfigFactory:
         return m.Cli.LoggingConfig.model_validate(final_data)
 
     return _create
-
-
-def _create_service_instance(service_class: type) -> t.NormalizedValue:
-    """Factory helper for creating service instances.
-
-    Args:
-        service_class: The service class to instantiate
-
-    Returns:
-        New instance of the service class
-
-    """
-    if service_class is FlextCliSettings:
-        return FlextCliServiceBase.get_cli_config()
-    return service_class()
 
 
 _SERVICE_CLASSES: Mapping[str, type] = {
@@ -625,7 +635,7 @@ def mock_env_vars(tmp_path: Path) -> Generator[t.StrMapping]:
     env_file = tmp_path / ".env"
     env_content = "FLEXT_CLI_DEBUG=true\nFLEXT_CLI_OUTPUT_FORMAT=json\nFLEXT_CLI_NO_COLOR=false\nFLEXT_CLI_PROFILE=test\nFLEXT_CLI_TIMEOUT=30\nFLEXT_CLI_RETRIES=3\n"
     _ = env_file.write_text(env_content)
-    original_env: t.StrMapping = {}
+    original_env: MutableMapping[str, str] = {}
     env_vars = {
         "FLEXT_CLI_DEBUG": "true",
         "FLEXT_CLI_OUTPUT_FORMAT": "json",
@@ -739,7 +749,7 @@ def password_simulator() -> Iterator[Callable[[str], None]]:
 
     original_getpass = getpass.getpass
 
-    def simulated_getpass(prompt: str = "", stream: t.NormalizedValue = None) -> str:
+    def simulated_getpass(prompt: str = "", stream: TextIO | None = None) -> str:
         """Return the set password."""
         return password_value
 

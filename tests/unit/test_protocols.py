@@ -275,7 +275,7 @@ class TestsCliProtocols:
         tm.that(should_succeed is True, eq=True)
         tm.ok(result)
 
-    def _validate_formatter_instance(self, instance: t.NormalizedValue) -> r[bool]:
+    def _validate_formatter_instance(self, instance: object) -> r[bool]:
         """Validate formatter instance against protocol."""
         try:
             if isinstance(instance, p.Cli.CliFormatter):
@@ -286,7 +286,7 @@ class TestsCliProtocols:
 
     def _validate_config_provider_instance(
         self,
-        instance: t.NormalizedValue,
+        instance: object,
     ) -> r[bool]:
         """Validate config provider instance against protocol."""
         try:
@@ -296,7 +296,7 @@ class TestsCliProtocols:
         except Exception as e:
             return r[bool].fail(str(e))
 
-    def _validate_authenticator_instance(self, instance: t.NormalizedValue) -> r[bool]:
+    def _validate_authenticator_instance(self, instance: object) -> r[bool]:
         """Validate authenticator instance against protocol."""
         try:
             if isinstance(instance, p.Cli.CliAuthenticator):

@@ -49,9 +49,7 @@ class TestsCliCli:
 
     def test_command_decorator_creation(self) -> None:
         """Test command decorator creation."""
-        cli_cli = FlextCliCli()
         command_result = FlextCliTestHelpers.CliHelpers.create_test_command(
-            cli_cli,
             "test_cmd",
         )
         tm.ok(command_result)
@@ -61,9 +59,7 @@ class TestsCliCli:
 
     def test_group_decorator_creation(self) -> None:
         """Test group decorator creation."""
-        cli_cli = FlextCliCli()
         group_result = FlextCliTestHelpers.CliHelpers.create_test_group(
-            cli_cli,
             "test_group",
         )
         tm.ok(group_result)
@@ -91,9 +87,7 @@ class TestsCliCli:
 
     def test_command_with_options(self) -> None:
         """Test command creation with options."""
-        cli_cli = FlextCliCli()
         command_result = FlextCliTestHelpers.CliHelpers.create_command_with_options(
-            cli_cli,
             "test_cmd",
             "--value",
             "default",
@@ -120,10 +114,11 @@ class TestsCliCli:
             choices = data_dict.get("choices")
             tm.that(choices, is_=list)
             if isinstance(choices, list):
-                choice_type = click.Choice(choices)
+                str_choices = [str(c) for c in choices]
+                choice_type = click.Choice(str_choices)
                 tm.that(choice_type, is_=click.Choice)
                 choices_tuple: tuple[str, ...] = tuple(choice_type.choices)
-                tm.that(choices_tuple, eq=tuple(choices))
+                tm.that(choices_tuple, eq=tuple(str_choices))
         elif click_type_name == "path":
             path_type = click.Path(
                 exists=bool(data_dict.get("exists")),

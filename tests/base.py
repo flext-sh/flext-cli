@@ -16,13 +16,15 @@ from __future__ import annotations
 from collections.abc import Callable, Sequence
 from datetime import datetime
 from pathlib import Path
-from typing import Annotated, ClassVar, override
+from typing import Annotated, ClassVar, TypeVar, override
 
-from flext_core import FlextHandlers, T, r
+from flext_core import FlextHandlers, r
 from flext_tests import s, td
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from tests import c, m, t
+
+T = TypeVar("T", bound=t.ValueOrModel)
 
 
 class TestsCliServiceBase(s[T]):
@@ -107,12 +109,13 @@ class TestsCliServiceBase(s[T]):
         """Centralized factories for test handlers."""
 
         @staticmethod
-        def _to_expected_result(value: t.NormalizedValue) -> t.Container | None:
+        def _to_expected_result(value: t.Tests.Testobject | None) -> t.Container | None:
             if value is None:
                 return None
-            if isinstance(value, (str, int, float, bool, datetime, Path)):
-                container_value: t.Container = value
-                return container_value
+            if isinstance(value, (str, int, float, bool)):
+                return value
+            if isinstance(value, (datetime, Path)):
+                return value
             return None
 
         @staticmethod

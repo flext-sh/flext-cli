@@ -61,18 +61,19 @@ def display_database_results(records: Sequence[t.Cli.JsonValue]) -> None:
         return
     rows: list[t.StrMapping] = []
     for i, record in enumerate(records[:10], 1):
-        row_data = " | ".join(str(v) for v in record.values())
-        rows.append({"#": f"Row {i}", "Data": row_data})
+        if isinstance(record, dict):
+            row_data = " | ".join(str(v) for v in record.values())
+            rows.append({"#": f"Row {i}", "Data": row_data})
     cli.show_table(rows, headers=["#", "Data"])
 
 
 def export_report(
-    data: Sequence[t.Cli.JsonValue],
-    format_type: c.Cli.OutputFormatLiteral = "table",
+    data: Sequence[t.ContainerMapping],
+    format_type: str = "table",
 ) -> r[str]:
     """Create ASCII tables for logs/reports in your app."""
     config = m.Cli.TableConfig(table_format=format_type)
-    result = tables.create_table(list(data), config=config)
+    result = tables.create_table(list(data) if data else [], config=config)
     if result.is_success:
         return r[str].ok(result.value)
     return r[str].fail(result.error or "Failed to create table")

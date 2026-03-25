@@ -88,10 +88,10 @@ class DataManagerCLI:
         self.display_welcome()
         self.cli.print("\n📂 Loading existing data...", style="cyan")
         load_result = self.load_data()
-        current_data: dict[str, t.ContainerValue] = {}
+        current_data: t.MutableContainerMapping = {}
         if load_result.is_success:
             loaded_data = load_result.value
-            current_data = dict(loaded_data)
+            current_data = dict(loaded_data) if isinstance(loaded_data, dict) else {}
         else:
             self.cli.print("   Creating new dataset", style="yellow")
         self.cli.print("\n📊 Current Data:", style="bold cyan")
@@ -101,7 +101,7 @@ class DataManagerCLI:
         if entry_result.is_failure:
             return r[bool].fail(f"Add entry failed: {entry_result.error}")
         new_entry = entry_result.value
-        current_data.update(dict(new_entry))
+        current_data.update(new_entry)
         self.cli.print("\n💾 Saving Data:", style="bold cyan")
         save_result = self.save_data(current_data)
         if save_result.is_failure:

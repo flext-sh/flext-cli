@@ -87,7 +87,7 @@ class MyAppPluginManager:
     def __init__(self) -> None:
         """Initialize plugin manager with empty plugin registry."""
         super().__init__()
-        self.plugins: dict[str, t.ContainerValue] = {}
+        self.plugins: dict[str, DataExportPlugin | ReportGeneratorPlugin] = {}
 
     def execute_plugin(
         self,
@@ -98,21 +98,22 @@ class MyAppPluginManager:
         if plugin_name not in self.plugins:
             return r.fail(f"Plugin not found: {plugin_name}")
         plugin = self.plugins[plugin_name]
-        execute_attr = getattr(plugin, "execute", None)
-        if not callable(execute_attr):
-            return r.fail(f"Plugin {plugin_name} does not have execute method")
-        execute_method = execute_attr
         try:
-            raw = execute_method(**kwargs)
-            if hasattr(raw, "is_success") and hasattr(raw, "value"):
-                if getattr(raw, "is_failure", False):
-                    return r.fail(
-                        getattr(raw, "error", "Unknown error") or "Unknown error",
-                    )
-                result_value = raw.value
+            if isinstance(plugin, DataExportPlugin):
+                data_val = kwargs.get("data", "")
+                fmt_val = kwargs.get("format", "json")
+                raw = plugin.execute(
+                    data={"raw": str(data_val)},
+                    output_format=str(fmt_val),
+                )
+            elif isinstance(plugin, ReportGeneratorPlugin):
+                data_val = kwargs.get("data", "")
+                raw = plugin.execute(data=[{"raw": str(data_val)}])
             else:
-                result_value = raw
-            normalized = m.Cli.CliNormalizedJson(result_value).root
+                return r.fail(f"Plugin {plugin_name} has no execute method")
+            if raw.is_failure:
+                return r.fail(raw.error or "Unknown error")
+            normalized = m.Cli.CliNormalizedJson(raw.value).root
             return r.ok(normalized)
         except Exception as e:
             return r.fail(f"Plugin execution failed: {e}")
@@ -123,13 +124,12 @@ class MyAppPluginManager:
             cli.print("⚠️  No plugins registered", style="yellow")
             return
 
-        def get_plugin_version(_name: str, plugin: t.NormalizedValue) -> str:
+        def get_plugin_version(plugin: DataExportPlugin | ReportGeneratorPlugin) -> str:
             """Get plugin version."""
-            return getattr(plugin, "version", "1.0.0")
+            return plugin.version
 
         plugin_items = {
-            name: get_plugin_version(name, plugin)
-            for name, plugin in self.plugins.items()
+            name: get_plugin_version(plugin) for name, plugin in self.plugins.items()
         }
         rows: Sequence[t.ContainerMapping] = [
             {"Plugin": name, "Version": ver} for name, ver in plugin_items.items()

@@ -41,7 +41,7 @@ class TestsCliComprehensiveModels:
     @pytest.mark.parametrize("edge_case", generate_edge_case_data())
     def test_command_edge_cases(self, edge_case: t.ContainerMapping) -> None:
         """Test command creation with comprehensive edge cases."""
-        cmd = create_test_cli_command(**edge_case)
+        cmd = create_test_cli_command(**edge_case)  # type: ignore[arg-type]
         for key, value in edge_case.items():
             if key != "description":
                 attr_value: t.NormalizedValue = getattr(cmd, key)
