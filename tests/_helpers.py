@@ -16,7 +16,7 @@ from tests import m as tm
 def create_test_cli_command(**overrides: t.ContainerValue) -> m.Cli.CliCommand:
     """Factory for real CliCommand instances with sensible defaults."""
     now = datetime.now(UTC)
-    payload: Mapping[str, t.ContainerValue] = {
+    payload: dict[str, t.ContainerValue] = {
         "unique_id": f"test-cmd-{now.timestamp()}",
         "name": "test_command",
         "description": "Test command description",
@@ -45,7 +45,7 @@ def create_test_cli_command(**overrides: t.ContainerValue) -> m.Cli.CliCommand:
 def create_test_cli_session(**overrides: t.ContainerValue) -> m.Cli.CliSession:
     """Factory for real CliSession instances with sensible defaults."""
     now = datetime.now(UTC)
-    payload: Mapping[str, t.ContainerValue] = {
+    payload: dict[str, t.ContainerValue] = {
         "session_id": f"test-session-{now.timestamp()}",
         "status": "active",
         "created_at": now,
@@ -55,7 +55,7 @@ def create_test_cli_session(**overrides: t.ContainerValue) -> m.Cli.CliSession:
         for k, v in {**payload, **overrides}.items()
         if k in tm.Cli.Test.CliSessionInput.model_fields
     }
-    inp = tm.Cli.Test.CliSessionInput(**filtered)
+    inp = tm.Cli.Test.CliSessionInput.model_validate(filtered)
     session = m.Cli.CliSession.model_construct(
         _fields_set=None,
         **inp.model_dump(exclude_none=True),
@@ -208,7 +208,7 @@ class OutputHelpers:
             },
             "with_none": {
                 "headers": ["Name", "Age", "City"],
-                "rows": [["Alice", "25", None], ["Bob", None, "LA"]],
+                "rows": [["Alice", "25", ""], ["Bob", "", "LA"]],
             },
             "empty": {"headers": [], "rows": []},
         }
@@ -232,7 +232,7 @@ class CommandsFactory:
     @staticmethod
     def create_command_chain(count: int = 3) -> Sequence[m.Cli.CliCommand]:
         """Create a chain of related commands."""
-        commands: Sequence[m.Cli.CliCommand] = []
+        commands: list[m.Cli.CliCommand] = []
         for i in range(count):
             cmd = create_test_cli_command(
                 command_id=f"chain_cmd_{i}",

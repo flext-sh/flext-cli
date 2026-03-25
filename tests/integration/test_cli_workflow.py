@@ -14,8 +14,14 @@ class TestsCliWorkflowIntegration:
         cmd = create_test_cli_command()
         session = m.Cli.CliSession.model_construct(
             session_id="test-session",
+            user_id="",
             status=c.Cli.SessionStatus.ACTIVE,
-            commands=[cmd],
+            commands=(cmd,),
+            start_time=None,
+            end_time=None,
+            last_activity=None,
+            internal_duration_seconds=0.0,
+            commands_executed=0,
         )
         assert len(session.commands) == 1
         assert session.commands[0].command_line == cmd.command_line
@@ -33,8 +39,14 @@ class TestsCliWorkflowIntegration:
         )
         session = m.Cli.CliSession.model_construct(
             session_id="test-session",
+            user_id="",
             status=c.Cli.SessionStatus.ACTIVE,
-            commands=[pending_cmd, running_cmd, completed_cmd],
+            commands=(pending_cmd, running_cmd, completed_cmd),
+            start_time=None,
+            end_time=None,
+            last_activity=None,
+            internal_duration_seconds=0.0,
+            commands_executed=0,
         )
         pending = session.commands_by_status(c.Cli.CommandStatus.PENDING.value)
         running = session.commands_by_status(c.Cli.CommandStatus.RUNNING.value)

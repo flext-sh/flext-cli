@@ -40,7 +40,7 @@ class FlextCliTestModels(FlextTestsModels, FlextCliModels):
                     /,
                     **kwargs: t.ContainerValue,
                 ) -> None:
-                    payload: Mapping[str, t.ContainerValue] = {}
+                    payload: dict[str, t.ContainerValue] = {}
                     if data is not None:
                         payload.update(data)
                     payload.update(kwargs)
@@ -71,9 +71,9 @@ class FlextCliTestModels(FlextTestsModels, FlextCliModels):
                 status: Annotated[str, Field(default="active")]
                 created_at: Annotated[datetime | None, Field(default=None)]
 
-            _ScalarOnly = t.Primitives | None
+            type _ScalarOnly = t.Primitives | None
 
-            class ScalarConfigRestore(RootModel[Mapping[str, _ScalarOnly]]):
+            class ScalarConfigRestore(RootModel[Mapping[str, t.Primitives | None]]):
                 """Holds scalar-only config for container restore in fixtures. Filters nested values out."""
 
                 @classmethod
@@ -262,7 +262,7 @@ class FlextCliTestModels(FlextTestsModels, FlextCliModels):
                 inner: Annotated[
                     Inner,
                     Field(description="Nested config"),
-                ] = Field(default_factory=Inner)
+                ] = Field(default_factory=lambda: FlextCliTestModels.Cli.Test.NestedModelConfig.Inner())
 
             class ValidatedConfig(PositionalModel):
                 """Config with custom host validator for model_command tests."""
