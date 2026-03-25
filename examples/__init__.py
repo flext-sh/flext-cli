@@ -10,9 +10,10 @@ from typing import TYPE_CHECKING
 
 from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
 
-
 if TYPE_CHECKING:
     from flext_core import FlextTypes
+
+    from examples import plugins
     from examples.example_utils import (
         display_config_table,
         display_success_summary,
@@ -33,7 +34,6 @@ if TYPE_CHECKING:
         MyAppConfig,
         NumericPromptResult,
     )
-    import examples.plugins as plugins
     from examples.plugins.example_plugin import (
         DataProcessorPlugin,
         ExamplePlugin,
@@ -61,10 +61,16 @@ _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
     "GroupWithCommands": ["examples.plugins.protocols", "GroupWithCommands"],
     "MyAppConfig": ["examples.models", "MyAppConfig"],
     "NumericPromptResult": ["examples.models", "NumericPromptResult"],
-    "demonstrate_plugin_commands": ["examples.plugins.example_plugin", "demonstrate_plugin_commands"],
+    "demonstrate_plugin_commands": [
+        "examples.plugins.example_plugin",
+        "demonstrate_plugin_commands",
+    ],
     "display_config_table": ["examples.example_utils", "display_config_table"],
     "display_success_summary": ["examples.example_utils", "display_success_summary"],
-    "display_validation_errors": ["examples.example_utils", "display_validation_errors"],
+    "display_validation_errors": [
+        "examples.example_utils",
+        "display_validation_errors",
+    ],
     "handle_command_result": ["examples.example_utils", "handle_command_result"],
     "p": ["examples.plugins.protocols", "p"],
     "plugins": ["examples.plugins", ""],
@@ -118,6 +124,7 @@ def __getattr__(name: str) -> FlextTypes.ModuleExport:
 
     Raises:
         AttributeError: If attribute not registered.
+
     """
     if name in _LAZY_CACHE:
         return _LAZY_CACHE[name]
@@ -132,6 +139,7 @@ def __dir__() -> Sequence[str]:
 
     Returns:
         List of public names from module exports.
+
     """
     return sorted(__all__)
 

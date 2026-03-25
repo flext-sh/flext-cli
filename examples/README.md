@@ -248,11 +248,7 @@ from flext_core import t
 from flext_core import u
 
 
-<<<<<<< Updated upstream
 def process_data(data: dict) -> r[dict]:
-=======
-def process_data(data: dict) -> FlextResult[dict]:
->>>>>>> Stashed changes
     cli = FlextCli()
 
     if not data:
@@ -356,11 +352,7 @@ from flext_core import t
 from flext_core import u
 
 
-<<<<<<< Updated upstream
 def typed_operation(data: dict) -> r[dict]:
-=======
-def typed_operation(data: dict) -> FlextResult[dict]:
->>>>>>> Stashed changes
     cli = FlextCli()
     return cli.file_tools.write_json("output.json", data)
 ```
@@ -416,11 +408,7 @@ from flext_core import t
 from flext_core import u
 
 
-<<<<<<< Updated upstream
 def process_pipeline(input_file: str) -> r[dict]:
-=======
-def process_pipeline(input_file: str) -> FlextResult[dict]:
->>>>>>> Stashed changes
     cli = FlextCli()
 
     # Read input

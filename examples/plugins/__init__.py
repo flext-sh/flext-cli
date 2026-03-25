@@ -10,9 +10,9 @@ from typing import TYPE_CHECKING
 
 from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
 
-
 if TYPE_CHECKING:
     from flext_core import FlextTypes
+
     from examples.plugins.example_plugin import (
         DataProcessorPlugin,
         ExamplePlugin,
@@ -31,7 +31,10 @@ _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
     "ExamplePlugin": ["examples.plugins.example_plugin", "ExamplePlugin"],
     "FlextCliProtocols": ["examples.plugins.protocols", "FlextCliProtocols"],
     "GroupWithCommands": ["examples.plugins.protocols", "GroupWithCommands"],
-    "demonstrate_plugin_commands": ["examples.plugins.example_plugin", "demonstrate_plugin_commands"],
+    "demonstrate_plugin_commands": [
+        "examples.plugins.example_plugin",
+        "demonstrate_plugin_commands",
+    ],
     "p": ["examples.plugins.protocols", "p"],
 }
 
@@ -63,6 +66,7 @@ def __getattr__(name: str) -> FlextTypes.ModuleExport:
 
     Raises:
         AttributeError: If attribute not registered.
+
     """
     if name in _LAZY_CACHE:
         return _LAZY_CACHE[name]
@@ -77,6 +81,7 @@ def __dir__() -> Sequence[str]:
 
     Returns:
         List of public names from module exports.
+
     """
     return sorted(__all__)
 

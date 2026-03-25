@@ -211,16 +211,11 @@ from flext_core import r
 cli = FlextCli()
 
 
-<<<<<<< Updated upstream
 def validate_config(config: dict) -> r[dict]:
-=======
-def validate_config(config: dict) -> FlextResult[dict]:
->>>>>>> Stashed changes
     """Validate configuration."""
     if "required_field" not in config:
         return r[dict].fail("Missing required_field")
     return r[dict].ok(config)
-
 
 
 def apply_defaults(config: dict) -> dict:
@@ -242,30 +237,6 @@ if not result.is_success:
     cli.formatters.print(f"Error: {result.error}", style="red")
 ```
 
-<<<<<<< Updated upstream
-=======
-### 📦 Immutable Context
-
-```python
-from flext_cli import FlextCliContext
-
-# Create immutable execution context (value object)
-context = FlextCliContext(
-    command="deploy",
-    arguments=["production", "--force"],
-    environment_variables={"ENV": "prod"},
-    working_directory="/app",
-)
-
-# Access data (immutable)
-print(f"Command: {context.command}")
-print(f"Args: {context.arguments}")
-
-# Create modified copy (immutability)
-updated_context = context.model_copy(update={"working_directory": "/app/new"})
-```
-
->>>>>>> Stashed changes
 ______________________________________________________________________
 
 ## Development Workflow (v0.10.0)

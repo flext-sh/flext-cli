@@ -32,10 +32,6 @@ from flext_cli import (
     FlextCliFileTools,  # I/O de arquivos
     FlextCliFormatters,  # Saída Rich
     FlextCliSettings,  # Configuração validada (singleton)
-<<<<<<< Updated upstream
-=======
-    FlextCliContext,  # Contexto imutável
->>>>>>> Stashed changes
     FlextCliModels,  # Modelos Pydantic
     FlextCliConstants,  # Constantes compartilhadas
 )
