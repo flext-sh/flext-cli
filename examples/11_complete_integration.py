@@ -88,7 +88,7 @@ class DataManagerCLI:
         self.display_welcome()
         self.cli.print("\n📂 Loading existing data...", style="cyan")
         load_result = self.load_data()
-        current_data: t.ContainerMapping = {}
+        current_data: dict[str, t.ContainerValue] = {}
         if load_result.is_success:
             loaded_data = load_result.value
             current_data = dict(loaded_data)

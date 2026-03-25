@@ -145,7 +145,7 @@ class CommandHistory:
     def __init__(self, max_size: int = 100) -> None:
         """Initialize command history with maximum size limit."""
         super().__init__()
-        self.history: t.StrSequence = []
+        self.history: list[str] = []
         self.max_size = max_size
 
     def add(self, command: str) -> None:

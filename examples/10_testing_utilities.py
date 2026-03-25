@@ -174,7 +174,7 @@ def full_workflow_command() -> r[t.ContainerMapping]:
     if read_result.is_failure:
         temp_file.unlink(missing_ok=True)
         return r[t.ContainerMapping].fail(f"Read failed: {read_result.error}")
-    loaded = read_result.value
+    loaded: dict[str, t.NormalizedValue] = dict(read_result.value)
     loaded["status"] = "completed"
     loaded["processed"] = True
     temp_file.unlink(missing_ok=True)

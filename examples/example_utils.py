@@ -11,8 +11,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Sequence
-
 from flext_core import r
 from pydantic import BaseModel
 
@@ -96,7 +94,7 @@ def display_config_table(
     """Display configuration as a table. Accepts Pydantic model only; uses show_table."""
     if headers is None:
         headers = ["Setting", "Value"]
-    rows: Sequence[t.StrMapping] = []
+    rows: list[t.StrMapping] = []
     if isinstance(config_data, m.Cli.DisplayData) and isinstance(
         config_data.data,
         dict,

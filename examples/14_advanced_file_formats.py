@@ -130,7 +130,7 @@ def export_data_multi_format(
 ) -> t.StrMapping:
     """Export same data to multiple formats (JSON, YAML, CSV)."""
     cli.print(f"\n💾 Multi-Format Export: {base_path.stem}", style="bold cyan")
-    export_results: t.StrMapping = {}
+    export_results: dict[str, str] = {}
     json_path = base_path.with_suffix(".json")
     json_payload = data
     json_result = cli.file_tools.write_json_file(json_path, json_payload, indent=2)
@@ -145,7 +145,7 @@ def export_data_multi_format(
         size = yaml_path.stat().st_size
         export_results["YAML"] = f"{size} bytes"
         cli.print(f"✅ YAML: {yaml_path.name} ({size} bytes)", style="green")
-    rows_adapter = TypeAdapter(Sequence[t.ContainerMapping])
+    rows_adapter: TypeAdapter[Sequence[t.ContainerMapping]] = TypeAdapter(Sequence[t.ContainerMapping])
     csv_rows_data: Sequence[t.ContainerMapping]
     try:
         csv_rows_data = rows_adapter.validate_python(data)

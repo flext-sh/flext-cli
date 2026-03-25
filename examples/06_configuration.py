@@ -204,7 +204,7 @@ def apply_environment_overrides(
     config: t.ContainerMapping,
 ) -> t.ContainerMapping:
     """Apply environment-specific configuration overrides."""
-    result: t.ContainerMapping = dict(config)
+    result: dict[str, t.ContainerValue] = dict(config)
     env = os.getenv("ENVIRONMENT", "development")
     if env == "production":
         max_workers_value = result.get("max_workers", 4)
@@ -220,8 +220,8 @@ def apply_environment_overrides(
 
 
 def initialize_services(
-    config: t.ContainerMapping,
-) -> t.ContainerMapping:
+    config: dict[str, t.ContainerValue],
+) -> dict[str, t.ContainerValue]:
     """Initialize services based on configuration."""
     time.sleep(0.05)
     config["services_initialized"] = True

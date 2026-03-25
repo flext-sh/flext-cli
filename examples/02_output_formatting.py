@@ -59,7 +59,7 @@ def display_database_results(records: Sequence[t.Cli.JsonValue]) -> None:
     if not records:
         cli.print("No results found", style="yellow")
         return
-    rows: Sequence[t.StrMapping] = []
+    rows: list[t.StrMapping] = []
     for i, record in enumerate(records[:10], 1):
         row_data = " | ".join(str(v) for v in record.values())
         rows.append({"#": f"Row {i}", "Data": row_data})
@@ -153,7 +153,7 @@ def display_with_panels(data: t.ContainerMapping) -> None:
     cli.print(f"  Successful: {data.get('successful', 0)}", style="green")
     cli.print(f"  Failed: {data.get('failed', 0)}", style="red")
     cli.print(f"  Pending: {data.get('pending', 0)}", style="yellow")
-    details_data: Sequence[t.ContainerMapping] = []
+    details_data: list[t.ContainerMapping] = []
     for key, value in data.items():
         if key not in {"total", "successful", "failed", "pending"}:
             details_data.append({"Property": key, "Value": str(value)})

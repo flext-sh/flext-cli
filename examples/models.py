@@ -206,7 +206,7 @@ class AppConfigAdvanced(BaseModel):
         if not isinstance(typed_data, dict):
             return None
         typed_dict: t.ContainerMapping = typed_data
-        result = {
+        result: dict[str, t.ContainerValue] = {
             "database_url": os.getenv(
                 "DATABASE_URL",
                 "postgresql://localhost:5432/myapp",
@@ -262,7 +262,7 @@ class AppConfigAdvanced(BaseModel):
 
     def validate_to_mapping(self) -> r[Mapping[str, cli_t.Cli.JsonValue]]:
         """Validate configuration and return as mapping or failure."""
-        errors: t.StrSequence = []
+        errors: list[str] = []
         if not self.api_key and os.getenv("ENVIRONMENT") == "production":
             errors.append("API_KEY is required in production")
         if not self.temp_dir.exists():

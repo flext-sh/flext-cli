@@ -296,7 +296,7 @@ class FlextCliTestHelpers:
                 else []
             )
             version_parts_raw = base_parts + prerelease_parts
-            version_parts: Sequence[int | str] = []
+            version_parts: list[int | str] = []
             for part in version_parts_raw:
                 try:
                     version_parts.append(int(part))

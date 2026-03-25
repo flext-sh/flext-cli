@@ -508,7 +508,7 @@ class TestsCliTypings:
 
         test_data = ["str1", "str2"]
         results: MutableSequence[str] = []
-        threads: Sequence[threading.Thread] = []
+        threads: list[threading.Thread] = []
         for _ in range(5):
             thread = threading.Thread(
                 target=thread_safe_operation,

@@ -566,7 +566,7 @@ def generate_output_files(
     output_dir.mkdir(exist_ok=True)
     base_name = "processed_data"
 
-    results: Mapping[str, Path] = {}
+    results: dict[str, Path] = {}
 
     # JSON output
     json_file = output_dir / f"{base_name}.json"

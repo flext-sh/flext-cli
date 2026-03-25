@@ -62,7 +62,7 @@ class TestsCliPerformanceAutomated:
         """Test memory usage patterns with real t.NormalizedValue creation."""
         process = psutil.Process(os.getpid())
         initial_memory = process.memory_info().rss / 1024 / 1024
-        commands: Sequence[FlextCliModels.Cli.CliCommand] = []
+        commands: list[FlextCliModels.Cli.CliCommand] = []
         for i in range(1000):
             cmd = create_test_cli_command(
                 name=f"cmd{i}",

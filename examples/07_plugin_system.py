@@ -87,7 +87,7 @@ class MyAppPluginManager:
     def __init__(self) -> None:
         """Initialize plugin manager with empty plugin registry."""
         super().__init__()
-        self.plugins: t.ContainerMapping = {}
+        self.plugins: dict[str, t.ContainerValue] = {}
 
     def execute_plugin(
         self,

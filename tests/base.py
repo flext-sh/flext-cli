@@ -120,7 +120,7 @@ class TestsCliServiceBase(s[T]):
             *,
             should_fail: bool,
         ) -> Sequence[TestsCliServiceBase.HandlerTestCase]:
-            cases: Sequence[TestsCliServiceBase.HandlerTestCase] = []
+            cases: list[TestsCliServiceBase.HandlerTestCase] = []
             for spec in td.default_handler_case_specs():
                 spec_should_fail = bool(spec.get("should_fail", False))
                 if spec_should_fail is not should_fail:
