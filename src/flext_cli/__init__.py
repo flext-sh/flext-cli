@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
 
 if TYPE_CHECKING:
-    from flext_core import FlextTypes, d, e, h, r, s
+    from flext_core import FlextTypes, d, e, h, r
 
     from flext_cli import _models, services
     from flext_cli.__version__ import (
@@ -29,7 +29,7 @@ if TYPE_CHECKING:
     from flext_cli._models.cli_models_system_context import FlextCliModelsSystemContext
     from flext_cli.api import FlextCli
     from flext_cli.app_base import FlextCliAppBase
-    from flext_cli.base import FlextCliServiceBase
+    from flext_cli.base import FlextCliServiceBase, s
     from flext_cli.cli import FlextCliCli
     from flext_cli.cli_params import FlextCliCommonParams
     from flext_cli.command_builder import FlextCliCommandBuilder
@@ -103,7 +103,7 @@ _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
     "m": ["flext_cli.models", "FlextCliModels"],
     "p": ["flext_cli.protocols", "FlextCliProtocols"],
     "r": ["flext_core", "r"],
-    "s": ["flext_core", "s"],
+    "s": ["flext_cli.base", "s"],
     "services": ["flext_cli.services", ""],
     "t": ["flext_cli.typings", "FlextCliTypes"],
     "u": ["flext_cli.utilities", "FlextCliUtilities"],
