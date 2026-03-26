@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import inspect
 import logging
-import operator
 import os
 import types
 from collections.abc import Callable, Mapping, MutableMapping, MutableSequence, Sequence
@@ -18,7 +17,6 @@ from typing import (
     Union,
     get_args,
     get_origin,
-    override,
 )
 
 import typer
@@ -275,41 +273,6 @@ class FlextCliUtilities(FlextUtilities):
             )
 
             @staticmethod
-            def cli_args_to_model(
-                model_cls: type[BaseModel],
-                cli_args: Mapping[str, t.Cli.JsonValue],
-            ) -> r[BaseModel]:
-                """Convert CLI arguments dict to Pydantic model instance."""
-                try:
-                    cli_args_dict: Mapping[str, t.Cli.JsonValue] = dict(
-                        cli_args,
-                    )
-                    model_validate_method = model_cls.model_validate
-                    model_instance = model_validate_method(cli_args_dict)
-                    return r[BaseModel].ok(model_instance)
-                except (
-                    ValueError,
-                    TypeError,
-                    KeyError,
-                    ConsoleError,
-                    StyleError,
-                    LiveError,
-                ) as e:
-                    return r[BaseModel].fail(f"Failed to create model instance: {e}")
-
-            @staticmethod
-            def to_json_value(
-                value: t.Cli.JsonValue,
-            ) -> t.Cli.JsonValue:
-                """Convert arbitrary value into JSON-compatible value."""
-                converted = FlextCliUtilities.Cli.CliModelConverter.convert_field_value(
-                    value,
-                )
-                if converted.is_success:
-                    return converted.value
-                return str(value)
-
-            @staticmethod
             def convert_field_value(
                 field_value: t.Cli.JsonValue,
             ) -> r[t.Cli.JsonValue]:
@@ -416,38 +379,6 @@ class FlextCliUtilities(FlextUtilities):
                 return result_type, is_optional
 
             @staticmethod
-            def _format_bool_param(
-                type_name: str,
-                inner_type: type,
-                default_val: t.Cli.JsonValue | None,
-            ) -> tuple[str, t.Cli.JsonValue | None]:
-                """Format boolean parameter for Typer flag detection."""
-                if inner_type is bool:
-                    return "bool", False if default_val is None else default_val
-                return type_name, default_val
-
-            @staticmethod
-            def _get_type_name_for_signature(
-                field_type: type,
-                builtin_types: set[str],
-            ) -> tuple[str, type]:
-                """Get type name string for Typer function signature."""
-                origin = get_origin(field_type)
-                builder = FlextCliUtilities.Cli.ModelCommandBuilder
-
-                if origin is Literal:
-                    return "str", field_type
-
-                if origin is not None and (origin is Union or origin is type(Union)):
-                    args = get_args(field_type)
-                    if type(None) in args:
-                        return builder.handle_optional_type(args, builtin_types)
-                    return builder.handle_union_type(args, builtin_types)
-
-                type_name = builder.get_builtin_name(field_type, builtin_types)
-                return type_name, field_type
-
-            @staticmethod
             def _resolve_type_alias(field_type: type) -> tuple[type, str | None]:
                 """Resolve type aliases to Literal and return (resolved_type, origin)."""
                 origin = get_origin(field_type)
@@ -466,93 +397,6 @@ class FlextCliUtilities(FlextUtilities):
                 return field_type, str(
                     resolved_origin,
                 ) if resolved_origin is not None else None
-
-            @staticmethod
-            def get_builtin_name(_t: type, builtin_types: set[str]) -> str:
-                """Get configured alias name or 'str' fallback."""
-                if len(builtin_types) == 1:
-                    custom_name = next(iter(builtin_types))
-                    if custom_name not in {
-                        "str",
-                        "int",
-                        "float",
-                        "bool",
-                        "list",
-                        "dict",
-                        "tuple",
-                        "set",
-                        "bytes",
-                    }:
-                        return custom_name
-                return "str"
-
-            @staticmethod
-            def handle_optional_type(
-                args: tuple[type, ...],
-                builtin_types: set[str],
-            ) -> tuple[str, type]:
-                """Handle T | None pattern (Union with None)."""
-                non_none_types: Sequence[type] = [
-                    item for item in args if item is not type(None)
-                ]
-                inner_type = non_none_types[0] if non_none_types else str
-
-                if get_origin(inner_type) is Literal:
-                    return "str | None", inner_type
-
-                inner_name = FlextCliUtilities.Cli.ModelCommandBuilder.get_builtin_name(
-                    inner_type,
-                    builtin_types,
-                )
-                return f"{inner_name} | None", inner_type
-
-            @staticmethod
-            def handle_union_type(
-                args: tuple[type, ...],
-                builtin_types: set[str],
-            ) -> tuple[str, type]:
-                """Handle Union without None."""
-                non_none_types: Sequence[type] = [
-                    item
-                    for item in args
-                    if item is not type(None)
-                ]
-                if not non_none_types:
-                    return "str", str
-
-                first_type = non_none_types[0]
-                if get_origin(first_type) is Literal:
-                    return "str", first_type
-
-                type_name = FlextCliUtilities.Cli.ModelCommandBuilder.get_builtin_name(
-                    first_type,
-                    builtin_types,
-                )
-                return type_name, first_type
-
-            def _build_param_signature(
-                self,
-                name: str,
-                type_info: tuple[str, type, t.Cli.JsonValue | None, bool, bool],
-            ) -> tuple[str, bool]:
-                """Build parameter signature string."""
-                type_name, inner_type, default_val, has_factory, has_default = type_info
-                type_name, default_val = self._format_bool_param(
-                    type_name,
-                    inner_type,
-                    default_val,
-                )
-
-                if has_factory:
-                    return f"{name}: {type_name} | None", True
-
-                if has_default:
-                    default_repr = repr(default_val)
-                    if "PydanticUndefined" in default_repr:
-                        return f"{name}: {type_name} | None", True
-                    return f"{name}: {type_name} = {default_repr}", False
-
-                return f"{name}: {type_name}", True
 
             def _process_field_metadata(
                 self,
@@ -610,18 +454,6 @@ class FlextCliUtilities(FlextUtilities):
                 field_type_typed: type = field_type
                 return field_type_typed, default_value, is_required, has_factory
 
-            _BUILTIN_TYPES: ClassVar[set[str]] = {
-                "str",
-                "int",
-                "float",
-                "bool",
-                "list",
-                "dict",
-                "tuple",
-                "set",
-                "bytes",
-            }
-
             def build(self) -> p.Cli.CliCommandWrapper:
                 """Build Typer command from Pydantic model."""
                 narrowed_fields: Mapping[str, FieldInfo] = dict(
@@ -635,65 +467,6 @@ class FlextCliUtilities(FlextUtilities):
                     defaults,
                     fields_with_factory,
                 )
-
-            def _build_signature_parts(
-                self,
-                annotations: Mapping[str, type],
-                defaults: Mapping[str, t.Cli.JsonValue],
-                fields_with_factory: set[str],
-            ) -> str:
-                """Build function signature string from field data."""
-
-                def process_signature(name: str, field_type: type) -> tuple[str, bool]:
-                    type_name, inner_type = self._get_type_name_for_signature(
-                        field_type,
-                        self._BUILTIN_TYPES,
-                    )
-                    type_info = (
-                        type_name,
-                        inner_type,
-                        defaults.get(name),
-                        name in fields_with_factory,
-                        name in defaults,
-                    )
-                    param_str, is_no_default = self._build_param_signature(
-                        name,
-                        type_info,
-                    )
-                    return param_str, is_no_default
-
-                signatures_dict: Mapping[str, tuple[str, bool]] = {
-                    name: process_signature(name, field_type)
-                    for name, field_type in annotations.items()
-                }
-                get_bool_flag = operator.itemgetter(1)
-                signatures_values = list(signatures_dict.values())
-                signatures_values_typed: Sequence[tuple[str, bool]] = signatures_values
-
-                def has_no_default(item: tuple[str, bool]) -> bool:
-                    """Check if item has no default (is_no_default is True)."""
-                    return bool(get_bool_flag(item))
-
-                def has_default(item: tuple[str, bool]) -> bool:
-                    """Check if item has default (is_no_default is False)."""
-                    return not bool(get_bool_flag(item))
-
-                params_no_default_list = [
-                    item for item in signatures_values_typed if has_no_default(item)
-                ]
-                params_with_default_list = [
-                    item for item in signatures_values_typed if has_default(item)
-                ]
-                params_no_default = list(params_no_default_list)
-                params_with_default = list(params_with_default_list)
-                params_no_default_strs = [
-                    operator.itemgetter(0)(item) for item in params_no_default
-                ]
-                params_with_default_strs = [
-                    operator.itemgetter(0)(item) for item in params_with_default
-                ]
-
-                return ", ".join(params_no_default_strs + params_with_default_strs)
 
             def _collect_field_data(
                 self,
@@ -918,17 +691,6 @@ class FlextCliUtilities(FlextUtilities):
                 return r[bool].ok(value=True)
 
             @staticmethod
-            def v_config(
-                config: Mapping[str, t.Cli.CliValue]
-                | Mapping[str, t.Cli.JsonValue]
-                | None,
-                *,
-                fields: t.StrSequence,
-            ) -> r[bool]:
-                """Validate configuration fields."""
-                return FlextCliUtilities.Cli.CliValidation.v_req(config, fields=fields)
-
-            @staticmethod
             def v_empty(val: t.Cli.CliValue, *, name: str = "field") -> r[bool]:
                 """Validate that a value is not empty."""
                 if val is None:
@@ -964,64 +726,6 @@ class FlextCliUtilities(FlextUtilities):
                         format=format_type,
                     ),
                 )
-
-            @staticmethod
-            def v_level(level: str) -> r[bool]:
-                """Validate a debug level."""
-                return FlextCliUtilities.Cli.CliValidation.v(
-                    level,
-                    name="level",
-                    empty=False,
-                    in_list=c.Cli.ValidationLists.DEBUG_LEVELS,
-                )
-
-            @staticmethod
-            def v_req(
-                data: Mapping[str, t.Cli.CliValue]
-                | Mapping[str, t.Cli.JsonValue]
-                | None,
-                *,
-                fields: t.StrSequence,
-            ) -> r[bool]:
-                """Validate that required fields are present in a dictionary."""
-                if data is None:
-                    return r[bool].fail(
-                        c.Cli.MixinsValidationMessages.CONFIG_MISSING_FIELDS.format(
-                            missing_fields=fields,
-                        ),
-                    )
-                missing = [name for name in fields if name not in data]
-                if not missing:
-                    return r[bool].ok(True)
-                return r[bool].fail(
-                    c.Cli.MixinsValidationMessages.CONFIG_MISSING_FIELDS.format(
-                        missing_fields=missing,
-                    ),
-                )
-
-            @staticmethod
-            def v_state(
-                current: str,
-                *,
-                required: str | None = None,
-                valid: t.StrSequence | None = None,
-                name: str = "state",
-            ) -> r[bool]:
-                """Validate a state value."""
-                if required is not None:
-                    return FlextCliUtilities.Cli.CliValidation.v(
-                        current,
-                        name=name,
-                        eq=required,
-                    )
-                if valid is not None:
-                    return FlextCliUtilities.Cli.CliValidation.v(
-                        current,
-                        name=name,
-                        in_list=valid,
-                        empty=False,
-                    )
-                return r[bool].fail(f"{name}: no validation criteria provided")
 
         class ConfigOps:
             """Configuration operations."""

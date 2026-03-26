@@ -32,7 +32,6 @@ if TYPE_CHECKING:
     from flext_cli.cli_params import FlextCliCommonParams
     from flext_cli.commands import FlextCliCommands
     from flext_cli.constants import FlextCliConstants, FlextCliConstants as c
-    from flext_cli.debug import FlextCliDebug
     from flext_cli.file_tools import FlextCliFileTools
     from flext_cli.formatters import FlextCliFormatters
     from flext_cli.models import FlextCliModels, FlextCliModels as m
@@ -52,7 +51,6 @@ _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
     "FlextCliCommands": ["flext_cli.commands", "FlextCliCommands"],
     "FlextCliCommonParams": ["flext_cli.cli_params", "FlextCliCommonParams"],
     "FlextCliConstants": ["flext_cli.constants", "FlextCliConstants"],
-    "FlextCliDebug": ["flext_cli.debug", "FlextCliDebug"],
     "FlextCliFileTools": ["flext_cli.file_tools", "FlextCliFileTools"],
     "FlextCliFormatters": ["flext_cli.formatters", "FlextCliFormatters"],
     "FlextCliModels": ["flext_cli.models", "FlextCliModels"],
@@ -100,7 +98,6 @@ __all__ = [
     "FlextCliCommands",
     "FlextCliCommonParams",
     "FlextCliConstants",
-    "FlextCliDebug",
     "FlextCliFileTools",
     "FlextCliFormatters",
     "FlextCliModels",

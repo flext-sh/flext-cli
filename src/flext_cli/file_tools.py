@@ -2,52 +2,20 @@
 
 from __future__ import annotations
 
-import csv
-import logging
-import os
-import shutil
-import tempfile
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable
 from pathlib import Path
-from typing import TextIO, TypeIs
+from typing import TextIO
 
-import yaml
 from flext_core import r
 from pydantic import TypeAdapter, ValidationError
 
-from flext_cli import c, m, t, u
+from flext_cli import c, m, t
 
 _JSON_OBJECT_ADAPTER: TypeAdapter[t.Cli.JsonValue] = TypeAdapter(t.Cli.JsonValue)
 
 
 class FlextCliFileTools:
-    """File operations for JSON, YAML, CSV, and text with r."""
-
-    @staticmethod
-    def _is_json_mapping(
-        value: t.Cli.JsonValue,
-    ) -> TypeIs[Mapping[str, t.Cli.JsonValue]]:
-        """Narrow t.NormalizedValue to mapping for structured file load."""
-        return isinstance(value, Mapping)
-
-    @staticmethod
-    def _detect_format_from_extension(
-        file_path: str | Path,
-        supported_formats: Mapping[str, Mapping[str, t.StrSequence]],
-    ) -> r[str]:
-        ext = (
-            Path(file_path)
-            .suffix.lower()
-            .lstrip(c.Cli.FileToolsDefaults.EXTENSION_PREFIX)
-        )
-        for fmt_name, fmt_info in supported_formats.items():
-            if c.Cli.FileIODefaults.FORMAT_EXTENSIONS_KEY in fmt_info:
-                exts = fmt_info[c.Cli.FileIODefaults.FORMAT_EXTENSIONS_KEY]
-                if u.is_list_like(exts) and ext in exts:
-                    return r[str].ok(fmt_name)
-        return r[str].fail(
-            c.Cli.FileErrorMessages.UNSUPPORTED_FORMAT_GENERIC.format(extension=ext),
-        )
+    """File operations for JSON with r."""
 
     @staticmethod
     def _execute_file_operation[T](
@@ -68,48 +36,6 @@ class FlextCliFileTools:
             return r[T].fail(error_template.format(error=exc, **format_kwargs))
 
     @staticmethod
-    def _get_encoding(encoding: str | None) -> str:
-        if isinstance(encoding, str) and encoding:
-            return encoding
-        return c.DEFAULT_ENCODING
-
-    @staticmethod
-    def _load_structured_file(
-        file_path: str,
-        loader: Callable[[TextIO], t.Cli.JsonValue],
-    ) -> t.Cli.JsonValue | None:
-        with Path(file_path).open(encoding=c.DEFAULT_ENCODING) as f:
-            loaded_raw = loader(f)
-        try:
-            loaded = _JSON_OBJECT_ADAPTER.validate_python(loaded_raw)
-        except ValidationError as exc:
-            logging.getLogger(__name__).debug(
-                "_load_structured_file validation fallback: %s",
-                exc,
-                exc_info=False,
-            )
-            return None
-        try:
-            return _JSON_OBJECT_ADAPTER.dump_python(loaded, mode="json", warnings=False)
-        except ValidationError as exc:
-            logging.getLogger(__name__).debug(
-                "_load_structured_file serialization fallback: %s",
-                exc,
-                exc_info=False,
-            )
-            return None
-
-    @staticmethod
-    def _read_csv_dict_rows(file_path: Path) -> Sequence[t.StrMapping]:
-        with file_path.open(encoding=c.DEFAULT_ENCODING, newline="") as f:
-            return list(csv.DictReader(f))
-
-    @staticmethod
-    def _read_csv_rows(file_path: Path) -> Sequence[t.StrSequence]:
-        with file_path.open(encoding=c.DEFAULT_ENCODING, newline="") as f:
-            return list(csv.reader(f))
-
-    @staticmethod
     def _run_bool_operation(
         operation_func: Callable[[], t.Cli.JsonValue],
         error_template: str,
@@ -124,20 +50,6 @@ class FlextCliFileTools:
             _run,
             error_template,
             **format_kwargs,
-        )
-
-    @staticmethod
-    def _save_file_by_extension(
-        file_path: str | Path,
-        data: t.Cli.JsonValue,
-    ) -> r[bool]:
-        ext = Path(file_path).suffix.lower()
-        if ext == c.Cli.FileExtensions.JSON:
-            return FlextCliFileTools.write_json_file(file_path, data)
-        if ext in c.Cli.FileSupportedFormats.YAML_EXTENSIONS_SET:
-            return FlextCliFileTools.write_yaml_file(file_path, data)
-        return r[bool].fail(
-            c.Cli.FileErrorMessages.UNSUPPORTED_FORMAT_EXTENSION.format(extension=ext),
         )
 
     @staticmethod
@@ -156,132 +68,11 @@ class FlextCliFileTools:
         return FlextCliFileTools._execute_file_operation(_write, error_template)
 
     @staticmethod
-    def copy_file(source_path: str | Path, destination_path: str | Path) -> r[bool]:
-        return FlextCliFileTools._run_bool_operation(
-            lambda: shutil.copy2(str(source_path), str(destination_path)),
-            c.Cli.ErrorMessages.FILE_COPY_FAILED,
-        )
-
-    @staticmethod
-    def create_directory(dir_path: str | Path) -> r[bool]:
-        path = Path(dir_path)
-        return FlextCliFileTools._run_bool_operation(
-            lambda: path.mkdir(parents=True, exist_ok=True),
-            c.Cli.FileErrorMessages.DIRECTORY_CREATION_FAILED,
-        )
-
-    @staticmethod
-    def create_temp_directory() -> r[str]:
-        return FlextCliFileTools._execute_file_operation(
-            tempfile.mkdtemp,
-            c.Cli.FileErrorMessages.TEMP_DIR_CREATION_FAILED,
-        )
-
-    @staticmethod
-    def create_temp_file() -> r[str]:
-
-        def _create() -> str:
-            fd, path = tempfile.mkstemp()
-            os.close(fd)
-            return path
-
-        return FlextCliFileTools._execute_file_operation(
-            _create,
-            c.Cli.FileErrorMessages.TEMP_FILE_CREATION_FAILED,
-        )
-
-    @staticmethod
     def delete_file(file_path: str | Path) -> r[bool]:
         path = Path(file_path)
         return FlextCliFileTools._run_bool_operation(
             path.unlink,
             c.Cli.FileErrorMessages.FILE_DELETION_FAILED,
-        )
-
-    @staticmethod
-    def detect_file_format(file_path: str | Path) -> r[str]:
-        fmts: Mapping[str, Mapping[str, t.StrSequence]] = {
-            name: {c.Cli.FileIODefaults.FORMAT_EXTENSIONS_KEY: list(cfg["extensions"])}
-            for name, cfg in c.Cli.FILE_FORMATS.items()
-        }
-        return FlextCliFileTools._detect_format_from_extension(file_path, fmts)
-
-    @staticmethod
-    def directory_exists(dir_path: str | Path) -> r[bool]:
-        path = Path(dir_path)
-        return FlextCliFileTools._execute_file_operation(
-            path.is_dir,
-            c.Cli.FileErrorMessages.DIRECTORY_CHECK_FAILED,
-        )
-
-    @staticmethod
-    def file_exists(file_path: str | Path) -> r[bool]:
-        path = Path(file_path)
-        return FlextCliFileTools._execute_file_operation(
-            path.exists,
-            c.Cli.FileErrorMessages.FILE_EXISTENCE_CHECK_FAILED,
-        )
-
-    @staticmethod
-    def list_directory(dir_path: str | Path) -> r[t.StrSequence]:
-        path = Path(dir_path)
-        return FlextCliFileTools._execute_file_operation(
-            lambda: [str(p.name) for p in path.iterdir()],
-            c.Cli.FileErrorMessages.DIRECTORY_LISTING_FAILED,
-        )
-
-    @staticmethod
-    def load_file_auto_dict(
-        file_path: str | Path,
-    ) -> r[Mapping[str, t.Cli.JsonValue]]:
-        """Load JSON or YAML file and return as dict. Fails if root is not a mapping."""
-        format_result = FlextCliFileTools.detect_file_format(file_path)
-        if format_result.is_failure:
-            return r[Mapping[str, t.Cli.JsonValue]].fail(
-                format_result.error or c.Cli.ErrorMessages.FORMAT_DETECTION_FAILED,
-            )
-        fmt = format_result.value
-        if fmt == c.Cli.FileSupportedFormats.JSON:
-            result = FlextCliFileTools.read_json_file(file_path)
-        elif fmt == c.Cli.FileSupportedFormats.YAML:
-            result = FlextCliFileTools.read_yaml_file(file_path)
-        else:
-            return r[Mapping[str, t.Cli.JsonValue]].fail(
-                c.Cli.ErrorMessages.UNSUPPORTED_FORMAT.format(format=fmt),
-            )
-        if result.is_failure:
-            return r[Mapping[str, t.Cli.JsonValue]].fail(result.error or "Load failed")
-        value = result.value
-        if not FlextCliFileTools._is_json_mapping(value):
-            return r[Mapping[str, t.Cli.JsonValue]].fail(
-                "File root is not a mapping; expected JSON/YAML object at root",
-            )
-        return r[Mapping[str, t.Cli.JsonValue]].ok(dict(value))
-
-    @staticmethod
-    def read_binary_file(file_path: str | Path) -> r[bytes]:
-        p = Path(file_path)
-        return FlextCliFileTools._execute_file_operation(
-            p.read_bytes,
-            c.Cli.FileErrorMessages.BINARY_READ_FAILED,
-        )
-
-    @staticmethod
-    def read_csv_file(file_path: str | Path) -> r[Sequence[t.StrSequence]]:
-        path = Path(file_path)
-        return FlextCliFileTools._execute_file_operation(
-            lambda: FlextCliFileTools._read_csv_rows(path),
-            c.Cli.FileErrorMessages.CSV_READ_FAILED,
-        )
-
-    @staticmethod
-    def read_csv_file_with_headers(
-        file_path: str | Path,
-    ) -> r[Sequence[t.StrMapping]]:
-        path = Path(file_path)
-        return FlextCliFileTools._execute_file_operation(
-            lambda: FlextCliFileTools._read_csv_dict_rows(path),
-            c.Cli.FileErrorMessages.CSV_READ_FAILED,
         )
 
     @staticmethod
@@ -298,78 +89,6 @@ class FlextCliFileTools:
         return FlextCliFileTools._execute_file_operation(
             _load,
             c.Cli.FileErrorMessages.JSON_LOAD_FAILED,
-        )
-
-    @staticmethod
-    def read_json_dict(
-        file_path: str | Path,
-    ) -> r[Mapping[str, t.Cli.JsonValue]]:
-        """Read a JSON file whose root is an t.NormalizedValue. Returns typed dict; no narrowing needed."""
-        result = FlextCliFileTools.read_json_file(file_path)
-        if result.is_failure:
-            return r[Mapping[str, t.Cli.JsonValue]].fail(
-                result.error or "JSON load failed",
-            )
-        value = result.value
-        if not FlextCliFileTools._is_json_mapping(value):
-            return r[Mapping[str, t.Cli.JsonValue]].fail(
-                "JSON root is not an t.NormalizedValue; use read_json_file for other types",
-            )
-        return r[Mapping[str, t.Cli.JsonValue]].ok(dict(value))
-
-    @staticmethod
-    def read_text_file(file_path: str | Path) -> r[str]:
-        p = Path(file_path)
-        return FlextCliFileTools._execute_file_operation(
-            lambda: p.read_text(encoding=c.DEFAULT_ENCODING),
-            c.Cli.ErrorMessages.TEXT_FILE_READ_FAILED,
-        )
-
-    @staticmethod
-    def read_yaml_file(file_path: str | Path) -> r[t.Cli.JsonValue]:
-
-        def _load() -> t.Cli.JsonValue:
-            out = FlextCliFileTools._load_structured_file(
-                str(file_path),
-                yaml.safe_load,
-            )
-            if out is None:
-                msg = "YAML load returned None"
-                raise ValueError(msg)
-            return out
-
-        return FlextCliFileTools._execute_file_operation(
-            _load,
-            c.Cli.FileErrorMessages.YAML_LOAD_FAILED,
-        )
-
-    @staticmethod
-    def save_file(file_path: str | Path, data: t.Cli.JsonValue) -> r[bool]:
-        return FlextCliFileTools._save_file_by_extension(file_path, data)
-
-    @staticmethod
-    def write_binary_file(file_path: str | Path, content: bytes) -> r[bool]:
-        p = Path(file_path)
-        return FlextCliFileTools._run_bool_operation(
-            lambda: p.write_bytes(content),
-            c.Cli.FileErrorMessages.BINARY_WRITE_FAILED,
-        )
-
-    @staticmethod
-    def write_csv_file(file_path: str | Path, data: Sequence[t.StrSequence]) -> r[bool]:
-        path = Path(file_path)
-
-        def _write() -> None:
-            with path.open(
-                mode="w",
-                encoding=c.DEFAULT_ENCODING,
-                newline="",
-            ) as f:
-                csv.writer(f).writerows(data)
-
-        return FlextCliFileTools._run_bool_operation(
-            _write,
-            c.Cli.FileErrorMessages.CSV_WRITE_FAILED,
         )
 
     @staticmethod
@@ -395,42 +114,6 @@ class FlextCliFileTools:
             file_path,
             _writer,
             c.Cli.ErrorMessages.JSON_WRITE_FAILED,
-        )
-
-    @staticmethod
-    def write_text_file(
-        file_path: str | Path,
-        content: str,
-        encoding: str | None = c.DEFAULT_ENCODING,
-    ) -> r[bool]:
-        p = Path(file_path)
-        return FlextCliFileTools._run_bool_operation(
-            lambda: p.write_text(
-                content,
-                encoding=FlextCliFileTools._get_encoding(encoding),
-            ),
-            c.Cli.ErrorMessages.TEXT_FILE_WRITE_FAILED,
-        )
-
-    @staticmethod
-    def write_yaml_file(
-        file_path: str | Path,
-        data: t.Cli.JsonValue,
-        *,
-        default_flow_style: bool | None = None,
-        sort_keys: bool = False,
-        allow_unicode: bool = True,
-    ) -> r[bool]:
-        return FlextCliFileTools._write_structured_file(
-            file_path,
-            lambda f: yaml.safe_dump(
-                data,
-                f,
-                default_flow_style=default_flow_style,
-                sort_keys=sort_keys,
-                allow_unicode=allow_unicode,
-            ),
-            c.Cli.ErrorMessages.YAML_WRITE_FAILED,
         )
 
 
