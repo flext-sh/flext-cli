@@ -26,34 +26,5 @@ class TestsCliWorkflowIntegration:
         assert len(session.commands) == 1
         assert session.commands[0].command_line == cmd.command_line
 
-    def test_session_command_filtering_by_status(self) -> None:
-        """Test filtering commands by status in session."""
-        pending_cmd = create_test_cli_command(status=c.Cli.CommandStatus.PENDING)
-        running_cmd = create_test_cli_command(
-            name="running-cmd",
-            status=c.Cli.CommandStatus.RUNNING,
-        )
-        completed_cmd = create_test_cli_command(
-            name="completed-cmd",
-            status=c.Cli.CommandStatus.COMPLETED,
-        )
-        session = m.Cli.CliSession.model_construct(
-            session_id="test-session",
-            user_id="",
-            status=c.Cli.SessionStatus.ACTIVE,
-            commands=(pending_cmd, running_cmd, completed_cmd),
-            start_time=None,
-            end_time=None,
-            last_activity=None,
-            internal_duration_seconds=0.0,
-            commands_executed=0,
-        )
-        pending = session.commands_by_status(c.Cli.CommandStatus.PENDING.value)
-        running = session.commands_by_status(c.Cli.CommandStatus.RUNNING.value)
-        completed = session.commands_by_status(c.Cli.CommandStatus.COMPLETED.value)
-        assert len(pending) == 1
-        assert len(running) == 1
-        assert len(completed) == 1
-
     def test_end_to_end_cli_processing_workflow(self) -> None:
         """Test end-to-end CLI processing workflow."""

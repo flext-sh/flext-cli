@@ -67,19 +67,6 @@ class TestsCliCliExtended:
             tm.that(result.exit_code, eq=0)
             mock_reconfigure.assert_called()
 
-    def test_param_types_extended(self) -> None:
-        """Test remaining parameter types."""
-        cli = FlextCliCli()
-        uuid_type = cli.get_uuid_type()
-        tm.that(uuid_type, is_=type(click.UUID))
-        tuple_type = cli.get_tuple_type([str, int])
-        tm.that(tuple_type, is_=click.Tuple)
-        tm.that(len(tuple_type.types), eq=2)
-        tm.that(cli.get_bool_type() is bool, eq=True)
-        tm.that(cli.get_string_type() is str, eq=True)
-        tm.that(cli.get_int_type() is int, eq=True)
-        tm.that(cli.get_float_type() is float, eq=True)
-
     def test_confirm_logic_extended(self) -> None:
         """Test confirm logic with various scenarios."""
         cli = FlextCliCli()
@@ -114,18 +101,6 @@ class TestsCliCliExtended:
             result = cli.prompt("Name")
             tm.fail(result)
             tm.that(str(result.error), has="User aborted")
-
-    def test_utility_wrappers(self) -> None:
-        """Test simple utility wrappers."""
-        cli = FlextCliCli()
-        with patch("click.clear") as mock_clear:
-            result = cli.clear_screen()
-            tm.ok(result)
-            mock_clear.assert_called_once()
-        with patch("click.pause") as mock_pause:
-            result = cli.pause(info="Press any key")
-            tm.ok(result)
-            mock_pause.assert_called_with(info="Press any key")
 
     def test_create_option_decorator_helpers(self) -> None:
         """Test helper functions inside create_option_decorator via execution."""

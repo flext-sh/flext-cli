@@ -218,20 +218,6 @@ class CliSessionFactory(Protocol):
         ...
 
 
-class DebugInfoFactory(Protocol):
-    """Protocol for DebugInfo factory function."""
-
-    def __call__(
-        self,
-        service: str = ...,
-        level: str = ...,
-        message: str = ...,
-        **kwargs: str | float | bool,
-    ) -> m.Cli.DebugInfo:
-        """Create DebugInfo instance."""
-        ...
-
-
 class LoggingConfigFactory(Protocol):
     """Protocol for LoggingConfig factory function."""
 
@@ -322,48 +308,6 @@ def cli_session_factory() -> CliSessionFactory:
         else:
             final_data = raw_data
         return m.Cli.CliSession.model_validate(final_data)
-
-    return _create
-
-
-@pytest.fixture
-def debug_info_factory() -> DebugInfoFactory:
-    """Factory fixture for creating DebugInfo models with defaults."""
-
-    def _create(
-        service: str = "TestService",
-        level: str = "INFO",
-        message: str = "",
-        **kwargs: str | float | bool,
-    ) -> m.Cli.DebugInfo:
-        debug_data: t.ContainerMapping = {
-            "service": service,
-            "level": level,
-            "message": message or "",
-            "system_info": dict[str, t.ContainerValue](),
-            "config_info": dict[str, t.ContainerValue](),
-        }
-        valid_fields = {
-            "service",
-            "timestamp",
-            "system_info",
-            "config_info",
-            "level",
-            "message",
-        }
-        filtered_kwargs = {k: v for k, v in kwargs.items() if k in valid_fields}
-        raw_data: t.ContainerMapping = {**debug_data, **filtered_kwargs}
-        typed_data = raw_data
-        transform_result = u.transform(typed_data)
-        if transform_result.is_success:
-            unwrapped = transform_result.value
-            if _is_json_dict(unwrapped):
-                final_data = dict(unwrapped.items())
-            else:
-                final_data = raw_data
-        else:
-            final_data = raw_data
-        return m.Cli.DebugInfo.model_validate(final_data)
 
     return _create
 
@@ -516,7 +460,7 @@ def sample_config_data() -> t.ContainerMapping:
         "no_color": False,
         "profile": "test",
         "timeout": c.Cli.TIMEOUTS.DEFAULT,
-        "retries": c.Cli.HTTP.MAX_RETRIES,
+        "retries": 3,
         "api_endpoint": "https://api.example.com",
         "auth_token": "test_token_123",
     }
@@ -545,7 +489,7 @@ def sample_command_data() -> t.ContainerMapping:
         "args": ["--verbose", "--output", "json"],
         "kwargs": {
             "timeout": c.Cli.TIMEOUTS.DEFAULT,
-            "retries": c.Cli.HTTP.MAX_RETRIES,
+            "retries": 3,
         },
         "expected_result": {"status": "success", "data": "test_output"},
     }

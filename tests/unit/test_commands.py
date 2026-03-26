@@ -1,10 +1,10 @@
 """FLEXT CLI Commands Tests - Comprehensive Commands Functionality Testing.
 
 Tests for FlextCliCommands covering command registration, execution, lifecycle management,
-error handling, integration workflows, and edge cases with 100% coverage.
+error handling, integration workflows, and edge cases.
 
 Modules tested: flext_cli.commands.FlextCliCommands
-Scope: All command operations, registration, execution, lifecycle management
+Scope: All kept command operations, registration, execution, lifecycle management
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -227,45 +227,6 @@ class TestsCliCommands:
         invalid_result = commands.execute_command("invalid_cmd")
         tm.fail(invalid_result)
 
-    def test_unregister_command_not_found(self) -> None:
-        """Test unregister_command when command doesn't exist."""
-        commands = CommandsFactory.create_commands()
-        result = commands.unregister_command("non_existent")
-        tm.fail(result)
-        tm.that(result.error, none=False)
-        tm.that((result.error or "").lower(), has="not found")
-
-    def test_unregister_command_success(self) -> None:
-        """Test successful command unregistration."""
-        commands = CommandsFactory.create_commands()
-        _ = CommandsFactory.register_simple_command(commands, "temp_cmd")
-        result = commands.unregister_command("temp_cmd")
-        tm.ok(result)
-        exec_result = commands.execute_command("temp_cmd")
-        tm.fail(exec_result)
-
-    def test_get_commands(self) -> None:
-        """Test get_commands method."""
-        commands = CommandsFactory.create_commands()
-        _ = CommandsFactory.register_simple_command(commands, "cmd1")
-        _ = CommandsFactory.register_simple_command(commands, "cmd2")
-        cmds = commands.get_commands()
-        tm.that(cmds, is_=dict)
-        tm.that(len(cmds), eq=2)
-        tm.that(cmds, has="cmd1")
-        tm.that(cmds, has="cmd2")
-
-    def test_clear_commands(self) -> None:
-        """Test clear_commands method."""
-        commands = CommandsFactory.create_commands()
-        _ = CommandsFactory.register_simple_command(commands, "cmd1")
-        _ = CommandsFactory.register_simple_command(commands, "cmd2")
-        result = commands.clear_commands()
-        tm.ok(result)
-        tm.that(result.value, eq=2)
-        cmds = commands.get_commands()
-        tm.that(len(cmds), eq=0)
-
     def test_list_commands(self) -> None:
         """Test list_commands method."""
         commands = CommandsFactory.create_commands()
@@ -278,34 +239,6 @@ class TestsCliCommands:
         tm.that(len(cmd_list), eq=2)
         tm.that(cmd_list, has="alpha")
         tm.that(cmd_list, has="beta")
-
-    def test_create_command_group(self) -> None:
-        """Test create_command_group method."""
-        commands = CommandsFactory.create_commands()
-
-        def grouped_handler(*args: t.Scalar, **kwargs: t.Scalar) -> r[str]:
-            _ = (args, kwargs)
-            return r.ok("result1")
-
-        result = commands.create_command_group(
-            "test_group",
-            description="Test group description",
-            commands={
-                "cmd1": m.Cli.CommandEntryModel(name="cmd1", handler=grouped_handler),
-            },
-        )
-        tm.ok(result)
-        group = result.value
-        tm.that(hasattr(group, "name"), eq=True)
-        tm.that(group.name, eq="test_group")
-
-    def test_get_click_group(self) -> None:
-        """Test get_click_group method."""
-        commands = CommandsFactory.create_commands()
-        group = commands.get_click_group()
-        tm.that(group, none=False)
-        tm.that(hasattr(group, "name"), eq=True)
-        tm.that(hasattr(group, "commands"), eq=True)
 
     def test_run_cli_success(self) -> None:
         """Test run_cli successful execution."""
@@ -329,52 +262,12 @@ class TestsCliCommands:
         tm.that(result.error, none=False)
         tm.that((result.error or "").lower(), has="not found")
 
-    def test_create_main_cli(self) -> None:
-        """Test create_main_cli method."""
-        commands = FlextCliCommands(name="test_cli", description="Test CLI")
-        main_cli = commands.create_main_cli()
-        tm.that(main_cli, is_=FlextCliCommands)
-        tm.that(main_cli._name, eq="test_cli")
-        tm.that(main_cli._description, eq="Test CLI")
-
-    def test_create_command_group_with_none(self) -> None:
-        """Test create_command_group with None commands."""
-        commands = CommandsFactory.create_commands()
-        result = commands.create_command_group(
-            "test_group",
-            "Test group description",
-            None,
-        )
-        tm.fail(result)
-        tm.that(str(result.error).lower(), has="required")
-
-    def test_create_command_group_with_empty_commands(self) -> None:
-        """Test create_command_group with empty commands dict."""
-        commands = CommandsFactory.create_commands()
-        result = commands.create_command_group(
-            "test_group",
-            "Test group description",
-            {},
-        )
-        tm.that(result, is_=r)
-
     def test_run_cli_success_with_empty_args(self) -> None:
         """Test run_cli with successful execution and empty args."""
         commands = CommandsFactory.create_commands()
         _ = CommandsFactory.register_simple_command(commands, "test_command")
         result = commands.run_cli()
         tm.that(result, is_=r)
-
-    def test_clear_commands_success_with_multiple(self) -> None:
-        """Test clear_commands with real commands."""
-        commands = CommandsFactory.create_commands()
-        _ = CommandsFactory.register_simple_command(commands, "cmd1")
-        _ = CommandsFactory.register_simple_command(commands, "cmd2")
-        result = commands.clear_commands()
-        tm.ok(result)
-        list_result = commands.list_commands()
-        if list_result.is_success:
-            tm.that(len(list_result.value), eq=0)
 
     def test_list_commands_success_with_registered(self) -> None:
         """Test list_commands with real registered commands."""

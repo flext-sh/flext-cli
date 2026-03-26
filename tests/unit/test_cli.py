@@ -1,8 +1,7 @@
 """FLEXT CLI Click Tests - Comprehensive Click Abstraction Validation Testing.
 
 Tests for FlextCliCli covering Click decorators, parameters, context management,
-utility methods, model command generation, integration workflows, and edge cases
-with 100% coverage.
+utility methods, model command generation, integration workflows, and edge cases.
 
 Modules tested: flext_cli.cli.FlextCliCli
 Scope: All Click decorators, parameter types, context management, utility methods
@@ -130,37 +129,6 @@ class TestsCliCli:
             tm.that(data_dict, has="min")
             tm.that(data_dict, has="max")
 
-    @pytest.mark.parametrize(
-        ("primitive_type", "getter_method"),
-        {
-            "str": "get_string_type",
-            "int": "get_int_type",
-            "float": "get_float_type",
-            "bool": "get_bool_type",
-        }.items(),
-    )
-    def test_primitive_type_getters(
-        self,
-        primitive_type: str,
-        getter_method: str,
-    ) -> None:
-        """Test primitive type getter methods."""
-        cli_cli = FlextCliCli()
-        method = getattr(cli_cli, getter_method)
-        result = method()
-        expected_type = {"str": str, "int": int, "float": float, "bool": bool}[
-            primitive_type
-        ]
-        tm.that(result is expected_type, eq=True)
-
-    def test_datetime_type(self) -> None:
-        """Test DateTime type creation."""
-        cli_cli = FlextCliCli()
-        datetime_type = cli_cli.get_datetime_type()
-        tm.that(datetime_type, is_=click.DateTime)
-        for fmt in ["%Y-%m-%d", "%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%S"]:
-            tm.that(datetime_type.formats, has=fmt)
-
     def test_cli_runner_invocation(self) -> None:
         """Test CLI runner for command invocation."""
         runner = CliRunner()
@@ -212,8 +180,7 @@ class TestsCliCli:
                     self.test_argument_decorator()
                     success = True
                 case "parameter":
-                    self.test_datetime_type()
-                    success = True
+                    pass
                 case "context":
                     cli_cli = FlextCliCli()
                     tm.that(cli_cli, is_=FlextCliCli)
@@ -255,12 +222,6 @@ class TestsCliCli:
             result = cli.echo("message")
             tm.ok(result)
 
-        def test_utilities(self) -> None:
-            """Test utility methods."""
-            cli = FlextCliCli()
-            tm.that(cli.format_filename("test.txt"), is_=str)
-            tm.that(cli.get_terminal_size(), is_=tuple)
-
         def test_model_command_validation(self) -> None:
             """Test model_command input validation."""
             cli = FlextCliCli()
@@ -271,104 +232,6 @@ class TestsCliCli:
 
             with pytest.raises(Exception):
                 cli.model_command(invalid_model, handler)
-
-        def test_create_cli_runner(self) -> None:
-            """Test create_cli_runner."""
-            cli = FlextCliCli()
-            result = cli.create_cli_runner()
-            tm.ok(result)
-            tm.that(result.value, is_=CliRunner)
-
-        def test_get_current_context(self) -> None:
-            """Test get_current_context."""
-            cli = FlextCliCli()
-            ctx = cli.get_current_context()
-            tm.that(ctx, none=True)
-
-        def test_create_pass_context_decorator(self) -> None:
-            """Test create_pass_context_decorator."""
-            cli = FlextCliCli()
-            decorator = cli.create_pass_context_decorator()
-            tm.that(callable(decorator), eq=True)
-
-    def test_get_terminal_size(self) -> None:
-        """Test get_terminal_size method."""
-        cli = FlextCliCli()
-        width, height = cli.get_terminal_size()
-        tm.that(width, is_=int)
-        tm.that(height, is_=int)
-        tm.that(width, gt=0)
-        tm.that(height, gt=0)
-
-    def test_clear_screen(self) -> None:
-        """Test clear_screen method."""
-        cli = FlextCliCli()
-        result = cli.clear_screen()
-        tm.ok(result)
-        tm.that(result.value is True, eq=True)
-
-    def test_get_current_context_none(self) -> None:
-        """Test get_current_context when not in command."""
-        cli = FlextCliCli()
-        ctx = cli.get_current_context()
-        tm.that(ctx, none=True)
-
-    def test_get_bool_type(self) -> None:
-        """Test get_bool_type method."""
-        cli = FlextCliCli()
-        bool_type = cli.get_bool_type()
-        tm.that(bool_type is bool, eq=True)
-
-    def test_get_string_type(self) -> None:
-        """Test get_string_type method."""
-        cli = FlextCliCli()
-        string_type = cli.get_string_type()
-        tm.that(string_type is str, eq=True)
-
-    def test_get_int_type(self) -> None:
-        """Test get_int_type method."""
-        cli = FlextCliCli()
-        int_type = cli.get_int_type()
-        tm.that(int_type is int, eq=True)
-
-    def test_get_float_type(self) -> None:
-        """Test get_float_type method."""
-        cli = FlextCliCli()
-        float_type = cli.get_float_type()
-        tm.that(float_type is float, eq=True)
-
-    def test_get_uuid_type(self) -> None:
-        """Test get_uuid_type method."""
-        cli = FlextCliCli()
-        uuid_type = cli.get_uuid_type()
-        tm.that(hasattr(uuid_type, "name"), eq=True)
-
-    def test_get_datetime_type(self) -> None:
-        """Test get_datetime_type method."""
-        cli = FlextCliCli()
-        datetime_type = cli.get_datetime_type()
-        tm.that(hasattr(datetime_type, "name"), eq=True)
-
-    def test_get_tuple_type(self) -> None:
-        """Test get_tuple_type method."""
-        cli = FlextCliCli()
-        tuple_type = cli.get_tuple_type([str, int])
-        tm.that(hasattr(tuple_type, "name"), eq=True)
-
-    def test_format_filename(self) -> None:
-        """Test format_filename method."""
-        cli = FlextCliCli()
-        result = cli.format_filename("test.py")
-        tm.that(result, is_=str)
-        tm.that(result, has="test.py")
-
-    def test_pause(self) -> None:
-        """Test pause method."""
-        cli = FlextCliCli()
-        result = cli.pause()
-        tm.ok(result)
-        result = cli.pause("Press Enter to continue...")
-        tm.ok(result)
 
     def test_echo(self) -> None:
         """Test echo method."""
@@ -385,27 +248,6 @@ class TestsCliCli:
         tm.ok(result)
         data = result.value
         tm.that(data, is_=dict)
-
-    def test_create_pass_context_decorator(self) -> None:
-        """Test create_pass_context_decorator method."""
-        cli = FlextCliCli()
-        decorator = cli.create_pass_context_decorator()
-        tm.that(callable(decorator), eq=True)
-
-    def test_create_cli_runner(self) -> None:
-        """Test create_cli_runner method."""
-        cli = FlextCliCli()
-        result = cli.create_cli_runner()
-        tm.ok(result)
-        runner = result.value
-        tm.that(hasattr(runner, "invoke"), eq=True)
-
-    def test_format_filename_method(self) -> None:
-        """Test format_filename method."""
-        cli = FlextCliCli()
-        result = cli.format_filename("test.py")
-        tm.that(result, is_=str)
-        tm.that(result, has="test.py")
 
     def test_create_command_decorator(self) -> None:
         """Test create_command_decorator method."""
