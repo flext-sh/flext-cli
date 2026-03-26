@@ -13,9 +13,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import logging
-import shutil
-from collections.abc import Callable, Mapping, MutableMapping, Sequence
-from pathlib import Path
+from collections.abc import Callable, Mapping, MutableMapping
 from typing import IO, Annotated, ClassVar, Literal, overload
 
 import click
@@ -23,7 +21,6 @@ import typer
 from flext_core import FlextContainer, FlextLogger, FlextRuntime, r
 from pydantic import BaseModel, TypeAdapter, ValidationError
 from rich.errors import ConsoleError, LiveError, StyleError
-from typer.testing import CliRunner
 
 from flext_cli import FlextCliCommonParams, FlextCliSettings, c, m, p, t, u
 
@@ -66,111 +63,6 @@ class FlextCliCli:
         super().__init__()
         self.container = FlextContainer.get_global()
         self.logger = FlextLogger(__name__)
-
-    @classmethod
-    def _tuple_type(
-        cls,
-        tuple_types: Sequence[click.ParamType | type] | None = None,
-    ) -> click.Tuple:
-        if tuple_types is None:
-            return click.Tuple([])
-        return click.Tuple(list(tuple_types))
-
-    @classmethod
-    def get_bool_type(cls) -> type[bool]:
-        """Get boolean type."""
-        return bool
-
-    @classmethod
-    def get_datetime_type(cls, formats: t.StrSequence | None = None) -> click.DateTime:
-        """Get datetime type."""
-        result: (
-            type[bool | str | int | float]
-            | click.DateTime
-            | click.ParamType
-            | click.Tuple
-        ) = cls.type_factory("datetime", formats=formats)
-        if not isinstance(result, click.DateTime):
-            msg = "datetime type factory returned invalid type"
-            raise TypeError(msg)
-        return cls._datetime_type(formats)
-
-    @classmethod
-    def get_float_type(cls) -> type[float]:
-        """Get float type."""
-        return float
-
-    @classmethod
-    def get_int_type(cls) -> type[int]:
-        """Get integer type."""
-        return int
-
-    @classmethod
-    def get_string_type(cls) -> type[str]:
-        """Get string type."""
-        return str
-
-    @classmethod
-    def get_tuple_type(cls, types: Sequence[type | click.ParamType]) -> click.Tuple:
-        """Get tuple type."""
-        result: (
-            type[bool | str | int | float]
-            | click.DateTime
-            | click.ParamType
-            | click.Tuple
-        ) = cls.type_factory("tuple", tuple_types=types)
-        if not isinstance(result, click.Tuple):
-            msg = "tuple type factory returned invalid type"
-            raise TypeError(msg)
-        return cls._tuple_type(types)
-
-    @classmethod
-    def get_uuid_type(cls) -> click.ParamType:
-        """Get UUID type."""
-        result: (
-            type[bool | str | int | float]
-            | click.DateTime
-            | click.ParamType
-            | click.Tuple
-        ) = cls.type_factory("uuid")
-        if not isinstance(result, click.ParamType):
-            msg = "uuid type factory returned invalid type"
-            raise TypeError(msg)
-        return click.UUID
-
-    @classmethod
-    def type_factory(
-        cls,
-        type_name: str,
-        *,
-        formats: t.StrSequence | None = None,
-        tuple_types: Sequence[click.ParamType | type] | None = None,
-    ) -> (
-        type[bool | str | int | float] | click.DateTime | click.ParamType | click.Tuple
-    ):
-        """Create a click type from a string name."""
-        if type_name == "datetime":
-            return cls._datetime_type(formats)
-        if type_name == "tuple":
-            if tuple_types is None:
-                return click.Tuple([])
-            tuple_values = list(tuple_types)
-            return click.Tuple(tuple_values)
-        registry: Mapping[
-            str,
-            Callable[[], type[bool | str | int | float] | click.ParamType],
-        ] = {
-            "uuid": lambda: click.UUID,
-            "bool": lambda: bool,
-            "string": lambda: str,
-            "int": lambda: int,
-            "float": lambda: float,
-        }
-        factory = registry.get(type_name)
-        if factory is None:
-            msg = f"Unsupported type factory: {type_name}"
-            raise ValueError(msg)
-        return factory()
 
     @staticmethod
     def _build_config_getters(
@@ -282,21 +174,6 @@ class FlextCliCli:
         return FlextCliCli._build_prompt_config(kwargs)
 
     @staticmethod
-    def _datetime_type(formats: t.StrSequence | None = None) -> click.DateTime:
-        formats_values = (
-            [str(fmt) for fmt in c.Cli.FileDefaults.DEFAULT_DATETIME_FORMATS]
-            if formats is None
-            else [str(fmt) for fmt in formats]
-        )
-        return click.DateTime(formats=formats_values)
-
-    @staticmethod
-    def clear_screen() -> r[bool]:
-        """Clear the screen."""
-        click.clear()
-        return r[bool].ok(value=True)
-
-    @staticmethod
     def confirm(
         text: str,
         config: p.Cli.ConfirmConfig | None = None,
@@ -325,29 +202,6 @@ class FlextCliCli:
             )
 
     @staticmethod
-    def create_pass_context_decorator() -> Callable[
-        [Callable[[click.Context], t.Cli.JsonValue]],
-        Callable[[click.Context], t.Cli.JsonValue],
-    ]:
-        """Create pass context decorator."""
-
-        def pass_context_wrapper(
-            func: Callable[[click.Context], t.Cli.JsonValue],
-        ) -> Callable[[click.Context], t.Cli.JsonValue]:
-            decorated = click.pass_context(func)
-
-            def typed_decorated(_ctx: click.Context) -> t.Cli.JsonValue:
-                result = decorated(_ctx)
-                try:
-                    return FlextCliCli._json_value_adapter.validate_python(result)
-                except ValidationError:
-                    return str(result)
-
-            return typed_decorated
-
-        return pass_context_wrapper
-
-    @staticmethod
     def echo(
         message: str | None = None,
         file: IO[str] | None = None,
@@ -367,22 +221,6 @@ class FlextCliCli:
             c.Cli.DictKeys.SERVICE: c.Cli.FLEXT_CLI,
             c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.OPERATIONAL.value,
         })
-
-    @staticmethod
-    def format_filename(filename: str | Path, *, shorten: bool = False) -> str:
-        """Format filename."""
-        return click.format_filename(str(filename), shorten=shorten)
-
-    @staticmethod
-    def get_current_context() -> click.Context | None:
-        """Get current click context."""
-        return click.get_current_context(silent=True)
-
-    @staticmethod
-    def get_terminal_size() -> tuple[int, int]:
-        """Get terminal size."""
-        size = shutil.get_terminal_size()
-        return (size.columns, size.lines)
 
     @staticmethod
     def model_command[M: BaseModel](
@@ -447,12 +285,6 @@ class FlextCliCli:
             normalized_handler,
             config_payload,
         ).build()
-
-    @staticmethod
-    def pause(info: str = c.Cli.CmdMessages.DEFAULT_PAUSE_MESSAGE) -> r[bool]:
-        """Pause execution."""
-        click.pause(info=info)
-        return r[bool].ok(value=True)
 
     @staticmethod
     def prompt(
@@ -632,18 +464,6 @@ class FlextCliCli:
             extra_info=str({"param_decls": param_decls, "required": required}),
         )
         return decorator
-
-    def create_cli_runner(
-        self,
-        charset: str = c.Cli.Utilities.DEFAULT_ENCODING,
-        env: t.StrMapping | None = None,
-        *,
-        echo_stdin: bool = False,
-    ) -> r[CliRunner]:
-        """Create a CLI runner."""
-        runner = CliRunner(charset=charset, env=env, echo_stdin=echo_stdin)
-        self.logger.debug("Created CliRunner for testing")
-        return r[CliRunner].ok(runner)
 
     def create_command_decorator(
         self,

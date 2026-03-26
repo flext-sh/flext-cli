@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Callable, Mapping, MutableMapping
-from typing import Self, override
+from typing import override
 
 from flext_core import r
 from rich.errors import ConsoleError, LiveError, StyleError
@@ -54,17 +54,6 @@ class FlextCliCommands(FlextCliServiceBase):
         self._name = name
         self._description = description
         self._commands: MutableMapping[str, m.Cli.CommandEntryModel] = {}
-        self._groups: MutableMapping[str, m.Cli.CliCommandGroup] = {}
-
-    @property
-    def description(self) -> str:
-        """Return CLI description."""
-        return self._description
-
-    @property
-    def name(self) -> str:
-        """Return CLI name."""
-        return self._name
 
     @staticmethod
     def _normalize_handler_result(
@@ -80,61 +69,6 @@ class FlextCliCommands(FlextCliServiceBase):
         return r[t.Cli.JsonValue].fail(
             str(error_value) if error_value else "Command failed",
         )
-
-    def clear_commands(self) -> r[int]:
-        """Clear all registered commands.
-
-        Returns:
-            r[int]: Number of commands cleared.
-
-        """
-        count = len(self._commands)
-        self._commands.clear()
-        self._groups.clear()
-        return r[int].ok(count)
-
-    def create_command_group(
-        self,
-        name: str,
-        description: str = "",
-        commands: Mapping[str, m.Cli.CommandEntryModel] | None = None,
-    ) -> r[m.Cli.CliCommandGroup]:
-        """Create a command group.
-
-        Args:
-            name: Group name.
-            description: Group description.
-            commands: Dict of command name to handler info.
-
-        Returns:
-            r[m.Cli.CliCommandGroup]: Command group, or failure.
-
-        """
-        if not name.strip():
-            return r[m.Cli.CliCommandGroup].fail("Group name must be non-empty string")
-        if commands is None:
-            return r[m.Cli.CliCommandGroup].fail(
-                "Commands are required for group creation",
-            )
-        group_commands: Mapping[str, t.Cli.JsonValue] = {
-            key: value.model_dump(mode="python") for key, value in commands.items()
-        }
-        group = m.Cli.CliCommandGroup.model_validate({
-            "name": name,
-            "description": description,
-            "commands": group_commands,
-        })
-        self._groups[name] = group
-        return r[m.Cli.CliCommandGroup].ok(group)
-
-    def create_main_cli(self) -> Self:
-        """Create the main CLI instance.
-
-        Returns:
-            Self: This commands instance configured as main CLI.
-
-        """
-        return self
 
     @override
     def execute(self) -> r[Mapping[str, t.Cli.JsonValue]]:
@@ -207,35 +141,6 @@ class FlextCliCommands(FlextCliServiceBase):
         ) as e:
             return r[t.Cli.JsonValue].fail(f"Command execution failed: {e}")
 
-    def get_click_group(self) -> m.Cli.CliCommandGroup:
-        """Get Click group representation.
-
-        Returns:
-            m.Cli.CliCommandGroup: Click group info with name and commands.
-
-        Note:
-            This returns a m.Cli.CliCommandGroup t.NormalizedValue, not actual Click objects.
-            Use FlextCliCli for actual Click integration.
-
-        """
-        group_commands: Mapping[str, t.Cli.JsonValue] = {
-            key: value.model_dump(mode="json") for key, value in self._commands.items()
-        }
-        return m.Cli.CliCommandGroup.model_validate({
-            "name": self._name,
-            "description": self._description,
-            "commands": group_commands,
-        })
-
-    def get_commands(self) -> Mapping[str, m.Cli.CommandEntryModel]:
-        """Get all registered commands.
-
-        Returns:
-            Dict mapping command names to command info.
-
-        """
-        return dict(self._commands)
-
     def list_commands(self) -> r[t.StrSequence]:
         """List all registered command names.
 
@@ -289,21 +194,6 @@ class FlextCliCommands(FlextCliServiceBase):
         if cmd_name not in self._commands:
             return r[t.Cli.JsonValue].fail(f"Command not found: {cmd_name}")
         return self.execute_command(cmd_name, args=cmd_args)
-
-    def unregister_command(self, name: str) -> r[bool]:
-        """Unregister a CLI command.
-
-        Args:
-            name: Command name to unregister.
-
-        Returns:
-            r[bool]: Success if unregistered, failure if not found.
-
-        """
-        if name not in self._commands:
-            return r[bool].fail(f"Command not found: {name}")
-        del self._commands[name]
-        return r[bool].ok(value=True)
 
 
 __all__ = ["FlextCliCommands"]

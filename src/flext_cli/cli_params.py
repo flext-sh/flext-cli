@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping, MutableMapping
+from collections.abc import Mapping, MutableMapping
 from typing import ClassVar
 
 from flext_core import r
@@ -72,8 +72,6 @@ class FlextCliCommonParams:
             c.Cli.CliParamsRegistry.KEY_PRIORITY: c.Cli.CliParamsRegistry.PRIORITY_CONFIG_FILE,
         },
     }
-    _params_enabled: bool = True
-    _enforcement_mode: bool = True
 
     @classmethod
     def _apply_param_setters(
@@ -217,138 +215,12 @@ class FlextCliCommonParams:
             return r[FlextCliSettings].fail(f"Failed to apply CLI parameters: {e}")
 
     @classmethod
-    def configure_logger(cls, config: FlextCliSettings) -> r[bool]:
-        """Configure FlextLogger based on config parameters.
-
-        NOTE: FlextLogger uses structlog which configures logging globally.
-        The log_level from FlextCliSettings is used during logger initialization.
-        This method validates the configuration but doesn't modify the logger directly.
-
-        Args:
-            config: FlextCliSettings with logging configuration
-
-        Returns:
-            r[bool]: True if logger configured successfully, failure on error
-
-        """
-        try:
-            log_level_upper = config.cli_log_level.upper()
-            if log_level_upper not in c.Cli.Lists.LOG_LEVELS_LIST:
-                valid = ", ".join(c.Cli.Lists.LOG_LEVELS_LIST)
-                return r[bool].fail(
-                    c.Cli.CliParamsErrorMessages.INVALID_LOG_LEVEL.format(
-                        log_level=log_level_upper,
-                        valid=valid,
-                    ),
-                )
-            return r[bool].ok(value=True)
-        except (
-            ValueError,
-            TypeError,
-            KeyError,
-            ConsoleError,
-            StyleError,
-            LiveError,
-        ) as e:
-            return r[bool].fail(
-                c.Cli.CliParamsErrorMessages.CONFIGURE_LOGGER_FAILED.format(error=e),
-            )
-
-    @classmethod
-    def create_decorator(
-        cls,
-    ) -> Callable[[p.Cli.CliCommandFunction], p.Cli.CliCommandFunction]:
-        """Create decorator to validate common CLI parameters are used.
-
-        By default, ALL parameters are included and this is MANDATORY.
-        Attempting to disable enforcement will raise an error unless explicitly allowed.
-
-        NOTE: This decorator validates parameter enforcement.
-        The decorated function MUST include common parameters in its signature using
-        the *_option() methods:
-
-        Returns:
-            Callable: Decorator function
-
-        Raises:
-            SystemExit: If enforcement is enabled and parameters are disabled
-
-        Example:
-            ```python
-            @app.command()
-            @FlextCliCommonParams.create_decorator()
-            def my_command(
-                name: str,
-                verbose: bool = FlextCliCommonParams.create_option("verbose"),
-                debug: bool = FlextCliCommonParams.create_option("debug"),
-                log_level: str = FlextCliCommonParams.create_option("cli_log_level"),
-                output_format: str = FlextCliCommonParams.create_option(
-                    "output_format"
-                ),
-                # ... other common params using create_option() method
-            ) -> None:
-                # Common parameters automatically available with full metadata
-                config = FlextCliServiceBase.get_cli_config()
-                FlextCliCommonParams.apply_to_config(
-                    config,
-                    verbose=verbose,
-                    debug=debug,
-                    log_level=log_level,
-                    output_format=output_format,
-                )
-            ```
-
-        """
-
-        def decorator(func: p.Cli.CliCommandFunction) -> p.Cli.CliCommandFunction:
-            validation = cls.validate_enabled()
-            if validation.is_failure and cls._enforcement_mode:
-                error_message = (
-                    str(validation.error)
-                    if validation.error is not None
-                    else c.Cli.CliParamsErrorMessages.PARAMS_MANDATORY
-                )
-                raise RuntimeError(error_message)
-            return func
-
-        return decorator
-
-    @classmethod
     def create_option(cls, field_name: str) -> OptionInfo:
         """Create typer.Option() from FlextCliSettings field metadata."""
         if field_name not in cls.CLI_PARAM_REGISTRY:
             msg = f"Field '{field_name}' not found in CLI parameter registry"
             raise ValueError(msg)
         return m.Cli.OptionBuilder(field_name, cls.CLI_PARAM_REGISTRY).build()
-
-    @classmethod
-    def disable_enforcement(cls) -> None:
-        """Disable enforcement mode (for testing only)."""
-        cls._enforcement_mode = False
-
-    @classmethod
-    def enable_enforcement(cls) -> None:
-        """Enable enforcement mode (default)."""
-        cls._enforcement_mode = True
-
-    @classmethod
-    def get_all_common_params(cls) -> Mapping[str, OptionInfo]:
-        """Get all common CLI parameters sorted by priority."""
-        default_priority = c.Cli.CliDefaults.DEFAULT_PRIORITY
-        param_fields = sorted(
-            cls.CLI_PARAM_REGISTRY.items(),
-            key=lambda x: int(
-                str(x[1].get(c.Cli.CliParamsRegistry.KEY_PRIORITY, default_priority)),
-            ),
-        )
-        return {name: cls.create_option(name) for name, _ in param_fields}
-
-    @classmethod
-    def validate_enabled(cls) -> r[bool]:
-        """Validate that common parameters are enabled."""
-        if not cls._params_enabled and cls._enforcement_mode:
-            return r[bool].fail(c.Cli.CliParamsErrorMessages.PARAMS_MANDATORY)
-        return r[bool].ok(value=True)
 
     @staticmethod
     def _opt_bool(kwargs: Mapping[str, bool | str | None], key: str) -> bool | None:

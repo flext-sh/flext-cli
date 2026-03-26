@@ -185,16 +185,6 @@ class FlextCliConstants(FlextConstants):
                 True,
             )
 
-        class Services:
-            """Service constants."""
-
-            OUTPUT, FORMATTERS = ("output", "formatters")
-
-        class HTTP:
-            """HTTP constants."""
-
-            MAX_RETRIES = 3
-
         class TIMEOUTS:
             """Timeout constants."""
 
@@ -664,45 +654,6 @@ class FlextCliConstants(FlextConstants):
             )
             CREATE_DEFAULT_CONFIG_FAILED = "Failed to create default config: {error}"
 
-        class CoreServiceDefaults:
-            """Core service defaults."""
-
-            SESSION_DURATION_INIT, OPERATION_TYPE_CLI_COMMAND, CLI_COMMAND_PREFIX = (
-                0,
-                "cli_command",
-                "cli_command_",
-            )
-
-        class PrivateAttributes:
-            """Private attribute names."""
-
-            SESSION_CONFIG, SESSION_START_TIME = (
-                "_session_config",
-                "_session_start_time",
-            )
-
-        class CoreServiceDictKeys:
-            """Core service dictionary keys."""
-
-            COMMANDS_REGISTERED, CONFIGURATION_SECTIONS = (
-                "commands_registered",
-                "configuration_sections",
-            )
-            SERVICE_READY, SESSION_ACTIVE, COMMANDS_COUNT = (
-                "service_ready",
-                "session_active",
-                "commands_count",
-            )
-
-        class CoreServiceLogMessages:
-            """Core service log messages."""
-
-            SERVICE_INFO_COLLECTION_FAILED = "Service info collection failed"
-            SESSION_STATS_COLLECTION_FAILED, SERVICE_EXECUTION_FAILED = (
-                "Session statistics collection failed: {error}",
-                "Service execution failed: {error}",
-            )
-
         class MixinsFieldNames:
             """Mixin field names."""
 
@@ -845,11 +796,6 @@ class FlextCliConstants(FlextConstants):
             """UI defaults."""
 
             DEFAULT_PROMPT_SUFFIX = ": "
-
-        class CliSessionDefaults:
-            """CLI session defaults."""
-
-            DEFAULT_USER_ID = ""
 
         class FormattingDefaults:
             """Formatting defaults."""

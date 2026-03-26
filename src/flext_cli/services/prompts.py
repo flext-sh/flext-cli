@@ -4,19 +4,17 @@ from __future__ import annotations
 
 import getpass
 import os
-import re
-from collections.abc import Mapping, Sequence
-from typing import Annotated, override
+from collections.abc import Mapping
+from typing import override
 
 from flext_core import r
-from pydantic import Field, PrivateAttr
+from pydantic import PrivateAttr
 from rich.errors import ConsoleError, LiveError, StyleError
 
 from flext_cli import (
     FlextCliConstants,
     FlextCliServiceBase,
     FlextCliTypes,
-    FlextCliUtilities,
     m,
     t,
 )
@@ -32,24 +30,10 @@ SOURCE_PATH = "flext-cli/src/flext_cli/prompts.py"
 class FlextCliPrompts(FlextCliServiceBase):
     """CLI prompts service with validation, history, and non-interactive fallbacks."""
 
-    @staticmethod
-    def _empty_prompt_history() -> list[str]:
-        return []
-
-    interactive_mode: Annotated[
-        bool,
-        Field(default=True, description="Enable interactive prompts"),
-    ]
-    quiet: Annotated[bool, Field(default=False, description="Enable quiet mode")]
-    default_timeout: Annotated[
-        int,
-        Field(
-            default=FlextCliConstants.Cli.TIMEOUTS.DEFAULT,
-            description="Default timeout for prompt operations in seconds",
-        ),
-    ]
-    _prompt_history: list[str] = PrivateAttr(
-        default_factory=lambda: FlextCliPrompts._empty_prompt_history(),
+    _interactive_mode: bool = PrivateAttr(default=True)
+    _quiet: bool = PrivateAttr(default=False)
+    _default_timeout: int = PrivateAttr(
+        default=FlextCliConstants.Cli.TIMEOUTS.DEFAULT,
     )
 
     def __init__(
@@ -68,52 +52,27 @@ class FlextCliPrompts(FlextCliServiceBase):
             config_overrides=None,
             initial_context=None,
         )
-        self.interactive_mode = bool(data.get("interactive_mode", True))
-        self.quiet = bool(data.get("quiet"))
+        self._interactive_mode = bool(data.get("interactive_mode", True))
+        self._quiet = bool(data.get("quiet"))
         timeout_raw = data.get("default_timeout")
         resolved_timeout_raw = (
             timeout_raw if isinstance(timeout_raw, int | str) else None
         )
-        self.default_timeout = m.Cli.PromptTimeoutResolved(
+        self._default_timeout = m.Cli.PromptTimeoutResolved(
             raw=resolved_timeout_raw,
             default=default_timeout,
         ).resolve()
         self.logger.debug(
             "Initialized CLI prompts service",
             operation="__init__",
-            interactive_mode=self.interactive_mode,
-            quiet=self.quiet,
-            default_timeout=self.default_timeout,
+            interactive_mode=self._interactive_mode,
+            quiet=self._quiet,
+            default_timeout=self._default_timeout,
         )
-
-    @property
-    def prompt_history(self) -> t.StrSequence:
-        return self._prompt_history.copy()
-
-    def clear_prompt_history(self) -> r[bool]:
-        try:
-            self._prompt_history.clear()
-            return r[bool].ok(value=True)
-        except (
-            ValueError,
-            TypeError,
-            KeyError,
-            ConsoleError,
-            StyleError,
-            LiveError,
-        ) as exc:
-            self.logger.exception(
-                "FAILED to clear prompt history - operation aborted",
-                operation="clear_prompt_history",
-                error=str(exc),
-                error_type=type(exc).__name__,
-                consequence="History may still contain entries",
-            )
-            return r[bool].fail(EM.HISTORY_CLEAR_FAILED.format(error=exc))
 
     def confirm(self, message: str, *, default: bool = False) -> r[bool]:
         try:
-            if self.quiet or not self.interactive_mode:
+            if self._quiet or not self._interactive_mode:
                 return r[bool].ok(default)
             prompt_text = (
                 f"{message}{PD.CONFIRMATION_YES_PROMPT}"
@@ -135,34 +94,6 @@ class FlextCliPrompts(FlextCliServiceBase):
         ) as exc:
             self._fatal("confirm", message, exc, "Confirmation failed completely")
             return r[bool].fail(PEM.CONFIRMATION_FAILED.format(error=exc))
-
-    def create_progress(
-        self,
-        description: str = PD.DEFAULT_PROCESSING_DESCRIPTION,
-    ) -> r[str]:
-        try:
-            self._record(f"Progress: {description}")
-            self.logger.info("Starting progress operation")
-            self.logger.info(PM.STARTING_PROGRESS.format(description=description))
-            self.logger.info(PM.CREATED_PROGRESS.format(description=description))
-            return r[str].ok(description)
-        except (
-            ValueError,
-            TypeError,
-            KeyError,
-            ConsoleError,
-            StyleError,
-            LiveError,
-        ) as exc:
-            self.logger.exception(
-                "FAILED to create progress indicator - operation aborted",
-                operation="create_progress",
-                description=description,
-                error=str(exc),
-                error_type=type(exc).__name__,
-                consequence="Progress indicator not created",
-            )
-            return r[str].fail(PEM.PROGRESS_CREATION_FAILED.format(error=exc))
 
     @override
     def execute(self) -> r[Mapping[str, FlextCliTypes.Cli.JsonValue]]:
@@ -188,41 +119,6 @@ class FlextCliPrompts(FlextCliServiceBase):
                 PEM.PROMPT_SERVICE_EXECUTION_FAILED.format(error=exc),
             )
 
-    def get_prompt_statistics(self) -> r[Mapping[str, FlextCliTypes.Cli.JsonValue]]:
-        try:
-            size = len(self._prompt_history)
-            stats_model = m.Cli.PromptStatistics(
-                prompts_executed=size,
-                prompts_answered=size,
-                prompts_cancelled=0,
-                interactive_mode=self.interactive_mode,
-                default_timeout=self.default_timeout,
-                history_size=size,
-                timestamp=FlextCliUtilities.generate("timestamp"),
-            )
-            stats_dict: Mapping[str, FlextCliTypes.Cli.JsonValue] = (
-                stats_model.model_dump(mode="json")
-            )
-            return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].ok(stats_dict)
-        except (
-            ValueError,
-            TypeError,
-            KeyError,
-            ConsoleError,
-            StyleError,
-            LiveError,
-        ) as exc:
-            self.logger.exception(
-                "FAILED to collect prompt statistics - operation aborted",
-                operation="get_prompt_statistics",
-                error=str(exc),
-                error_type=type(exc).__name__,
-                consequence="Statistics unavailable",
-            )
-            return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].fail(
-                PEM.STATISTICS_COLLECTION_FAILED.format(error=exc),
-            )
-
     def print_error(self, message: str) -> r[bool]:
         return self._print_message(
             message,
@@ -230,43 +126,6 @@ class FlextCliPrompts(FlextCliServiceBase):
             PD.ERROR_FORMAT,
             PEM.PRINT_ERROR_FAILED,
         )
-
-    def print_info(self, message: str) -> r[bool]:
-        return self._print_message(
-            message,
-            "info",
-            PD.INFO_FORMAT,
-            PEM.PRINT_INFO_FAILED,
-        )
-
-    def print_status(
-        self,
-        message: str,
-        status: str = FlextCliConstants.Cli.MessageTypes.INFO.value,
-    ) -> r[bool]:
-        try:
-            self.logger.info(
-                PD.STATUS_FORMAT.format(status=status.upper(), message=message),
-            )
-            return r[bool].ok(value=True)
-        except (
-            ValueError,
-            TypeError,
-            KeyError,
-            ConsoleError,
-            StyleError,
-            LiveError,
-        ) as exc:
-            self.logger.exception(
-                "FAILED to print status message - operation aborted",
-                operation="print_status",
-                prompt_message=message,
-                status=status,
-                error=str(exc),
-                error_type=type(exc).__name__,
-                consequence="Status message not displayed",
-            )
-            return r[bool].fail(PEM.PRINT_STATUS_FAILED.format(error=exc))
 
     def print_success(self, message: str) -> r[bool]:
         return self._print_message(
@@ -286,8 +145,7 @@ class FlextCliPrompts(FlextCliServiceBase):
 
     def prompt(self, message: str, default: str = "") -> r[str]:
         try:
-            self._record(message)
-            if self.quiet or not self.interactive_mode:
+            if self._quiet or not self._interactive_mode:
                 return r[str].ok(default)
             display_message = (
                 f"{message}{PD.PROMPT_DEFAULT_FORMAT.format(default=default)}"
@@ -320,24 +178,11 @@ class FlextCliPrompts(FlextCliServiceBase):
     ) -> r[str]:
         if not choices:
             return r[str].fail(EM.NO_CHOICES_PROVIDED)
-        if not self.interactive_mode:
+        if not self._interactive_mode:
             if default and default in choices:
                 return r[str].ok(default)
             return r[str].fail(EM.INTERACTIVE_MODE_DISABLED_CHOICE)
         try:
-            options = ", ".join(
-                (
-                    PD.CHOICE_LIST_FORMAT.format(index=index + 1, choice=choice)
-                    for index, choice in enumerate(choices)
-                ),
-            )
-            self._record(
-                PD.CHOICE_HISTORY_FORMAT.format(
-                    message=message,
-                    separator=PD.CHOICE_PROMPT_SEPARATOR,
-                    options=options,
-                ),
-            )
             if default is None:
                 return r[str].fail(
                     PEM.CHOICE_REQUIRED.format(choices=", ".join(choices)),
@@ -361,37 +206,14 @@ class FlextCliPrompts(FlextCliServiceBase):
             )
             return r[str].fail(EM.CHOICE_PROMPT_FAILED.format(error=exc))
 
-    def prompt_confirmation(self, message: str, *, default: bool = False) -> r[bool]:
-        if not self.interactive_mode:
-            return r[bool].ok(default)
-        try:
-            self._record(f"{message}{PD.CONFIRMATION_SUFFIX}")
-            return r[bool].ok(default)
-        except (
-            ValueError,
-            TypeError,
-            KeyError,
-            ConsoleError,
-            StyleError,
-            LiveError,
-        ) as exc:
-            self._fatal(
-                "prompt_confirmation",
-                message,
-                exc,
-                "Confirmation prompt failed completely",
-            )
-            return r[bool].fail(EM.CONFIRMATION_PROMPT_FAILED.format(error=exc))
-
     def prompt_password(
         self,
         message: str = "Password:",
         min_length: int = FlextCliConstants.Cli.FormattingDefaults.MIN_FIELD_LENGTH,
     ) -> r[str]:
-        if not self.interactive_mode:
+        if not self._interactive_mode:
             return r[str].fail(EM.INTERACTIVE_MODE_DISABLED_PASSWORD)
         try:
-            self._record(f"{message} [password hidden]")
             password = getpass.getpass(prompt=f"{message}{PD.PROMPT_SPACE_SUFFIX}")
             if len(password) < min_length:
                 return r[str].fail(
@@ -413,135 +235,6 @@ class FlextCliPrompts(FlextCliServiceBase):
                 "Password prompt failed completely",
             )
             return r[str].fail(EM.PASSWORD_PROMPT_FAILED.format(error=exc))
-
-    def prompt_text(
-        self,
-        message: str,
-        default: str = "",
-        validation_pattern: str | None = None,
-    ) -> r[str]:
-        if not self.interactive_mode:
-            if not default:
-                return r[str].fail(EM.INTERACTIVE_MODE_DISABLED)
-            if validation_pattern and (not re.match(validation_pattern, default)):
-                return r[str].fail(
-                    EM.DEFAULT_PATTERN_MISMATCH.format(pattern=validation_pattern),
-                )
-            return r[str].ok(default)
-        try:
-            self._record(message)
-            if (
-                validation_pattern
-                and default
-                and (not re.match(validation_pattern, default))
-            ):
-                return r[str].fail(
-                    EM.INPUT_PATTERN_MISMATCH.format(pattern=validation_pattern),
-                )
-            return r[str].ok(default)
-        except (
-            ValueError,
-            TypeError,
-            KeyError,
-            ConsoleError,
-            StyleError,
-            LiveError,
-        ) as exc:
-            self._fatal("prompt_text", message, exc, "Text prompt failed completely")
-            return r[str].fail(EM.TEXT_PROMPT_FAILED.format(error=exc))
-
-    def select_from_options(
-        self,
-        options: t.StrSequence,
-        message: str = PD.DEFAULT_CHOICE_MESSAGE,
-    ) -> r[str]:
-        try:
-            values = [str(option) for option in options]
-            self._record(
-                PD.CHOICE_HISTORY_FORMAT.format(
-                    message=message,
-                    separator=PD.PROMPT_INPUT_SEPARATOR,
-                    options=values,
-                ),
-            )
-            if not values:
-                return r[str].fail(PM.NO_OPTIONS_PROVIDED)
-            if self.quiet or not self.interactive_mode:
-                return r[str].ok(values[0])
-            self.logger.info(PD.SELECTION_PROMPT.format(message=message))
-            for idx, value in enumerate(values, 1):
-                self.logger.info(PD.CHOICE_DISPLAY_FORMAT.format(num=idx, option=value))
-            result = self._read_selection(values)
-            if result.is_success:
-                self.logger.info(
-                    PM.USER_SELECTION_LOG.format(message=message, choice=result.value),
-                )
-            return result
-        except (
-            ValueError,
-            TypeError,
-            KeyError,
-            ConsoleError,
-            StyleError,
-            LiveError,
-        ) as exc:
-            self._fatal(
-                "select_from_options",
-                message,
-                exc,
-                "Selection failed completely",
-            )
-            return r[str].fail(PEM.SELECTION_FAILED.format(error=exc))
-
-    def with_progress(
-        self,
-        items: Sequence[FlextCliTypes.Cli.JsonValue],
-        description: str = PD.DEFAULT_PROCESSING_DESCRIPTION,
-    ) -> r[Sequence[FlextCliTypes.Cli.JsonValue]]:
-        try:
-            total = len(items)
-            self.logger.info("Starting progress operation with items")
-            self._record(
-                PM.PROGRESS_OPERATION.format(description=description, count=total),
-            )
-            self.logger.info(PM.PROCESSING.format(description=description, count=total))
-            threshold = FlextCliConstants.Cli.ProgressDefaults.REPORT_THRESHOLD
-            if total > threshold:
-                interval = max(1, total // threshold)
-                if total % interval == 0:
-                    progress = total / total * 100
-                    self.logger.info(
-                        PD.PROGRESS_FORMAT.format(
-                            progress=progress,
-                            current=total,
-                            total=total,
-                        ),
-                    )
-            self.logger.info(PM.PROGRESS_COMPLETED.format(description=description))
-            self.logger.info(
-                PM.PROGRESS_COMPLETED_LOG.format(
-                    description=description,
-                    processed=total,
-                ),
-            )
-            return r[Sequence[FlextCliTypes.Cli.JsonValue]].ok(items)
-        except (
-            ValueError,
-            TypeError,
-            KeyError,
-            ConsoleError,
-            StyleError,
-            LiveError,
-        ) as exc:
-            self._fatal(
-                "with_progress",
-                description,
-                exc,
-                "Progress operation failed completely",
-            )
-            return r[Sequence[FlextCliTypes.Cli.JsonValue]].fail(
-                PEM.PROGRESS_PROCESSING_FAILED.format(error=exc),
-            )
 
     def _fatal(
         self,
@@ -629,26 +322,6 @@ class FlextCliPrompts(FlextCliServiceBase):
                 user_input=text,
                 consequence="Prompting again",
             )
-
-    def _read_selection(self, options: t.StrSequence) -> r[str]:
-        count = len(options)
-        while True:
-            try:
-                choice = input(PD.CHOICE_PROMPT_PREFIX.format(count=count)).strip()
-                if not choice:
-                    continue
-                index = int(choice)
-                if 1 <= index <= count:
-                    return r[str].ok(options[index - 1])
-            except ValueError:
-                continue
-            except KeyboardInterrupt:
-                return r[str].fail(PM.USER_CANCELLED_SELECTION)
-            except EOFError:
-                return r[str].fail(PM.INPUT_STREAM_ENDED)
-
-    def _record(self, value: str) -> None:
-        self._prompt_history.append(value)
 
 
 __all__ = ["FlextCliPrompts"]
