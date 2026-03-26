@@ -1,0 +1,39 @@
+tests/unit/test_cli_params.py
+  692efb5021d42258 101
+tests/unit/test_cmd_cov.py
+  692efb5021d42258 17-23,26,29
+tests/unit/test_cli.py
+  692efb5021d42258 4,183
+tests/unit/test_cmd.py
+  692efb5021d42258 4-5,8,23
+tests/unit/test_config.py
+  692efb5021d42258 3-4,7,220
+tests/unit/test_prompts_cov.py
+  692efb5021d42258 1
+tests/unit/test_prompts.py
+  692efb5021d42258 7,88-91,93-95,98-117,119,121,123-128,130,132,134,136-138,140,362-364,367-369,372-375,377-380,382-385,387-390,392-395,397-405,407-413
+tests/unit/test_commands.py
+  692efb5021d42258 4,7
+tests/conftest.py
+  692efb5021d42258 463,492
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.19",
+  "base_commit_sha": "ea88a62e2e9d0b0e39dc6e266efcc1e6c954d3fa",
+  "prompts": {
+    "692efb5021d42258": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f769829f-6a4e-41ae-9104-340c9871a56d",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "FLEXT Bot <team@flext.sh>",
+      "messages": [],
+      "total_additions": 112,
+      "total_deletions": 1912,
+      "accepted_lines": 110,
+      "overriden_lines": 0
+    }
+  }
+}
