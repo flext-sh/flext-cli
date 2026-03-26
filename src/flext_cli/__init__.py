@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
 
 if TYPE_CHECKING:
-    from flext_core import FlextTypes, d, e, h, r
+    from flext_core import FlextTypes, d, e, h, r, x
 
     from flext_cli import _models, services
     from flext_cli.__version__ import (
@@ -95,6 +95,7 @@ _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
     "services": ["flext_cli.services", ""],
     "t": ["flext_cli.typings", "FlextCliTypes"],
     "u": ["flext_cli.utilities", "FlextCliUtilities"],
+    "x": ["flext_core", "x"],
 }
 
 __all__ = [
@@ -140,6 +141,7 @@ __all__ = [
     "services",
     "t",
     "u",
+    "x",
 ]
 
 
