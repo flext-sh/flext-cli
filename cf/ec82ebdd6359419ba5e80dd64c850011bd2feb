@@ -1,0 +1,33 @@
+tests/__init__.py
+  692efb5021d42258 66
+tests/unit/test_typings.py
+  692efb5021d42258 1,10,20,25
+tests/unit/__init__.py
+  692efb5021d42258 57
+tests/helpers/__init__.py
+  692efb5021d42258 17,22
+tests/models.py
+  692efb5021d42258 14,17
+tests/conftest.py
+  692efb5021d42258 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.19",
+  "base_commit_sha": "cfec82ebdd6359419ba5e80dd64c850011bd2feb",
+  "prompts": {
+    "692efb5021d42258": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f769829f-6a4e-41ae-9104-340c9871a56d",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "FLEXT Bot <team@flext.sh>",
+      "messages": [],
+      "total_additions": 12,
+      "total_deletions": 1232,
+      "accepted_lines": 12,
+      "overriden_lines": 0
+    }
+  }
+}
