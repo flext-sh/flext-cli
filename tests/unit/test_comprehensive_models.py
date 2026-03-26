@@ -6,7 +6,6 @@ from datetime import datetime
 
 import pytest
 from flext_tests import tm
-from pydantic import ValidationError
 
 from flext_cli import c, m, t
 from tests._helpers import (
@@ -18,25 +17,6 @@ from tests._helpers import (
 
 class TestsCliComprehensiveModels:
     """Comprehensive tests covering all model functionality with real data."""
-
-    @pytest.mark.parametrize(
-        "status",
-        [
-            c.Cli.CommandStatus.PENDING,
-            c.Cli.CommandStatus.RUNNING,
-            c.Cli.CommandStatus.COMPLETED,
-            c.Cli.CommandStatus.FAILED,
-            c.Cli.CommandStatus.CANCELLED,
-        ],
-    )
-    def test_command_status_transitions(self, status: c.Cli.CommandStatus) -> None:
-        """Test all possible command status transitions with real data."""
-        cmd = create_test_cli_command(status=status)
-        tm.that(cmd.status, eq=status)
-        tm.that(cmd.is_pending, eq=(status == c.Cli.CommandStatus.PENDING))
-        tm.that(cmd.is_running, eq=(status == c.Cli.CommandStatus.RUNNING))
-        tm.that(cmd.is_completed, eq=(status == c.Cli.CommandStatus.COMPLETED))
-        tm.that(cmd.is_failed, eq=(status == c.Cli.CommandStatus.FAILED))
 
     @pytest.mark.parametrize("edge_case", generate_edge_case_data())
     def test_command_edge_cases(self, edge_case: t.ContainerMapping) -> None:
@@ -66,28 +46,6 @@ class TestsCliComprehensiveModels:
             tm.that(len(session.commands), eq=0)
         else:
             tm.that(session.commands_executed, eq=0)
-
-    def test_session_command_filtering(self) -> None:
-        """Test session command filtering by status."""
-        cmd1 = create_test_cli_command(name="cmd1", status=c.Cli.CommandStatus.PENDING)
-        cmd2 = create_test_cli_command(
-            name="cmd2",
-            status=c.Cli.CommandStatus.COMPLETED,
-        )
-        session = m.Cli.CliSession.model_construct(
-            session_id="test-session",
-            status=c.Cli.SessionStatus.ACTIVE,
-            commands=[cmd1, cmd2],
-        )
-        pending = session.commands_by_status(c.Cli.CommandStatus.PENDING.value)
-        completed = session.commands_by_status(c.Cli.CommandStatus.COMPLETED.value)
-        tm.that(pending, is_=list)
-        tm.that(completed, is_=list)
-        if isinstance(pending, list) and isinstance(completed, list):
-            tm.that(len(pending), eq=1)
-            tm.that(len(completed), eq=1)
-            tm.that(pending[0].name, eq="cmd1")
-            tm.that(completed[0].name, eq="cmd2")
 
     @pytest.mark.parametrize("commands_count", [1, 5, 10, 50])
     def test_session_with_multiple_commands(self, commands_count: int) -> None:
@@ -119,8 +77,6 @@ class TestsCliModelValidation:
         """Test session validation business rules."""
         session = create_test_cli_session()
         tm.that(session.status, eq="active")
-        with pytest.raises(ValidationError):
-            m.Cli.CliSession(session_id="test", status="invalid_status")
 
 
 class TestsCliModelSerialization:

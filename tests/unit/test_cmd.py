@@ -15,12 +15,11 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import time
-from pathlib import Path
 
 from flext_core import r
 from flext_tests import tm
 
-from flext_cli import FlextCliCmd, FlextCliSettings, c, m, u
+from flext_cli import FlextCliCmd, m, u
 
 
 def _create_cmd_instance() -> FlextCliCmd:

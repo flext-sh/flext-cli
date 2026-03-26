@@ -20,7 +20,6 @@ import threading
 import typing
 from collections.abc import Sequence
 from enum import StrEnum, unique
-from pathlib import Path
 from typing import Annotated, ClassVar, Final, Literal
 
 import pytest

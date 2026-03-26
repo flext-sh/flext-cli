@@ -15,8 +15,7 @@ from __future__ import annotations
 
 import getpass
 import time
-from collections import UserList
-from typing import Never, TypeVar, override
+from typing import TypeVar
 
 import pytest
 from flext_core import r
@@ -25,7 +24,6 @@ from flext_tests import tm
 from flext_cli import FlextCliPrompts
 from tests import (
     c,
-    m,
     t,
 )
 
