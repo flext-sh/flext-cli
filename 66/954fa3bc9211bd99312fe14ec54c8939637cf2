@@ -1,0 +1,51 @@
+examples/14_advanced_file_formats.py
+  692efb5021d42258 52,65,81,90,103,112,136,143,163,175,184,201,249-250,275
+examples/06_configuration.py
+  692efb5021d42258 43-47
+src/flext_cli/models.py
+  692efb5021d42258 16,42-84
+examples/README.md
+  692efb5021d42258 150,158,168-174,208,252,269,293,301,303,307-308,352,370,373,410,415,419,423,437,445,447,468
+examples/01_getting_started.py
+  692efb5021d42258 92
+examples/04_file_operations.py
+  692efb5021d42258 14-18,770-771
+examples/05_authentication.py
+  692efb5021d42258 51,155
+examples/10_testing_utilities.py
+  692efb5021d42258 102-103
+tests/unit/test_prompts_cov.py
+  692efb5021d42258 30
+src/flext_cli/services/output.py
+  692efb5021d42258 54,56,59
+src/flext_cli/api.py
+  692efb5021d42258 13,51-56
+examples/11_complete_integration.py
+  692efb5021d42258 48-49,183
+src/flext_cli/constants.py
+  692efb5021d42258 19-36
+src/flext_cli/typings.py
+  692efb5021d42258 33-34
+tests/unit/test_prompts.py
+  692efb5021d42258 51-55,64-68
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.19",
+  "base_commit_sha": "66954fa3bc9211bd99312fe14ec54c8939637cf2",
+  "prompts": {
+    "692efb5021d42258": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f769829f-6a4e-41ae-9104-340c9871a56d",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "FLEXT Bot <team@flext.sh>",
+      "messages": [],
+      "total_additions": 191,
+      "total_deletions": 124,
+      "accepted_lines": 149,
+      "overriden_lines": 0
+    }
+  }
+}
