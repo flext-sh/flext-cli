@@ -1,0 +1,23 @@
+tests/utilities.py
+  692efb5021d42258 29
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.19",
+  "base_commit_sha": "038d157083935ac9571512dcfa6cb024f5b44cb6",
+  "prompts": {
+    "692efb5021d42258": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f769829f-6a4e-41ae-9104-340c9871a56d",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "FLEXT Bot <team@flext.sh>",
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 183,
+      "accepted_lines": 1,
+      "overriden_lines": 0
+    }
+  }
+}
