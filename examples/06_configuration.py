@@ -39,13 +39,12 @@ cli = FlextCli()
 
 def get_cli_settings() -> FlextCliSettings:
     """Access flext-cli config settings in YOUR application."""
-    config = cli.config
     cli.print("📋 Current Configuration:", style="bold cyan")
-    cli.print(f"   Debug Mode: {config.debug}", style="cyan")
-    cli.print(f"   Log Level: {config.cli_log_level}", style="cyan")
-    cli.print(f"   Environment: {config.environment}", style="cyan")
-    cli.print(f"   Profile: {config.profile}", style="cyan")
-    return config
+    cli.print(f"   Debug Mode: {cli.debug}", style="cyan")
+    cli.print(f"   Log Level: {cli.cli_log_level}", style="cyan")
+    cli.print(f"   Output Format: {cli.output_format}", style="cyan")
+    cli.print(f"   App Name: {cli.app_name}", style="cyan")
+    return cli
 
 
 def load_environment_config() -> m.Cli.DisplayData:

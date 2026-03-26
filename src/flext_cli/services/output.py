@@ -51,12 +51,12 @@ class FlextCliOutput:
         raise TypeError(msg)
 
     @staticmethod
-    def ensure_str(v: FlextCliTypes.Cli.JsonValue | None, default: str = "") -> str:
+    def ensure_str(value: FlextCliTypes.Cli.JsonValue | None, default: str = "") -> str:
         """Ensure value is str with default."""
-        if v is None:
+        if value is None:
             return default
         try:
-            return str(v)
+            return str(value)
         except (TypeError, ValueError):
             return default
 

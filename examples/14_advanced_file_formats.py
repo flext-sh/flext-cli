@@ -49,7 +49,7 @@ def export_to_csv(data: Sequence[t.ContainerMapping], output_file: Path) -> None
     headers = list(data[0].keys())
     rows = [headers]
     rows.extend([[str(row.get(header, "")) for header in headers] for row in data])
-    write_result = cli.file_tools.write_csv_file(output_file, rows)
+    write_result = cli.write_csv_file(output_file, rows)
     if write_result.is_success:
         size = output_file.stat().st_size
         cli.print(f"✅ Exported {len(data)} rows to CSV ({size} bytes)", style="green")
@@ -62,7 +62,7 @@ def import_from_csv(
 ) -> Sequence[t.ContainerMapping] | None:
     """Import data from CSV with headers."""
     cli.print(f"\n📥 Importing from CSV: {input_file.name}", style="bold cyan")
-    read_result = cli.file_tools.read_csv_file_with_headers(input_file)
+    read_result = cli.read_csv_file_with_headers(input_file)
     if read_result.is_failure:
         cli.print(f"❌ Import failed: {read_result.error}", style="bold red")
         return []
@@ -78,7 +78,7 @@ def import_from_csv(
 def process_binary_file(input_file: Path, output_file: Path) -> None:
     """Read, process, and write binary files."""
     cli.print(f"\n🔧 Processing Binary File: {input_file.name}", style="bold cyan")
-    read_result = cli.file_tools.read_binary_file(input_file)
+    read_result = cli.read_binary_file(input_file)
     if read_result.is_failure:
         cli.print(f"❌ Read failed: {read_result.error}", style="bold red")
         return
@@ -87,7 +87,7 @@ def process_binary_file(input_file: Path, output_file: Path) -> None:
     checksum = hashlib.sha256(data).hexdigest()
     cli.print(f"   MD5 checksum: {checksum}", style="cyan")
     processed_data = data
-    write_result = cli.file_tools.write_binary_file(output_file, processed_data)
+    write_result = cli.write_binary_file(output_file, processed_data)
     if write_result.is_success:
         cli.print(
             f"✅ Wrote {len(processed_data)} bytes to {output_file.name}",
@@ -100,7 +100,7 @@ def process_binary_file(input_file: Path, output_file: Path) -> None:
 def load_any_format_file(file_path: Path) -> t.ContainerMapping | None:
     """Load config from ANY format - automatically detected."""
     cli.print(f"\n🔍 Auto-Detecting Format: {file_path.name}", style="bold cyan")
-    format_result = cli.file_tools.detect_file_format(file_path)
+    format_result = cli.detect_file_format(file_path)
     if format_result.is_failure:
         cli.print(
             f"❌ Format detection failed: {format_result.error}",
@@ -109,7 +109,7 @@ def load_any_format_file(file_path: Path) -> t.ContainerMapping | None:
         return None
     detected_format = format_result.value
     cli.print(f"✅ Detected format: {detected_format.upper()}", style="green")
-    load_result = cli.file_tools.load_file_auto_dict(file_path)
+    load_result = cli.load_file_auto_dict(file_path)
     if load_result.is_failure:
         cli.print(f"❌ Load failed: {load_result.error}", style="bold red")
         return None
@@ -133,14 +133,14 @@ def export_data_multi_format(
     export_results: dict[str, str] = {}
     json_path = base_path.with_suffix(".json")
     json_payload = data
-    json_result = cli.file_tools.write_json_file(json_path, json_payload, indent=2)
+    json_result = cli.write_json_file(json_path, json_payload, indent=2)
     if json_result.is_success:
         size = json_path.stat().st_size
         export_results["JSON"] = f"{size} bytes"
         cli.print(f"✅ JSON: {json_path.name} ({size} bytes)", style="green")
     yaml_path = base_path.with_suffix(".yaml")
     yaml_payload = data
-    yaml_result = cli.file_tools.write_yaml_file(yaml_path, yaml_payload)
+    yaml_result = cli.write_yaml_file(yaml_path, yaml_payload)
     if yaml_result.is_success:
         size = yaml_path.stat().st_size
         export_results["YAML"] = f"{size} bytes"
@@ -160,7 +160,7 @@ def export_data_multi_format(
         rows.extend([
             [str(row.get(header, "")) for header in headers] for row in csv_rows_data
         ])
-        csv_result = cli.file_tools.write_csv_file(csv_path, rows)
+        csv_result = cli.write_csv_file(csv_path, rows)
         if csv_result.is_success:
             size = csv_path.stat().st_size
             export_results["CSV"] = f"{size} bytes"
@@ -172,7 +172,7 @@ def export_data_multi_format(
 def process_text_file(input_file: Path, output_file: Path) -> None:
     """Read and write text files with proper encoding."""
     cli.print(f"\n📝 Processing Text File: {input_file.name}", style="bold cyan")
-    read_result = cli.file_tools.read_text_file(input_file)
+    read_result = cli.read_text_file(input_file)
     if read_result.is_failure:
         cli.print(f"❌ Read failed: {read_result.error}", style="bold red")
         return
@@ -181,7 +181,7 @@ def process_text_file(input_file: Path, output_file: Path) -> None:
     cli.print(f"   Lines: {content.count(chr(10)) + 1}", style="cyan")
     cli.print(f"   Words: {len(content.split())}", style="cyan")
     processed = content.upper()
-    write_result = cli.file_tools.write_text_file(output_file, processed)
+    write_result = cli.write_text_file(output_file, processed)
     if write_result.is_success:
         cli.print(
             f"✅ Wrote {len(processed)} characters to {output_file.name}",
@@ -198,7 +198,7 @@ def copy_file_with_verification(source: Path, destination: Path) -> bool:
     source_data = source.read_bytes()
     source_hash = hashlib.sha256(source_data).hexdigest()
     cli.print(f"   Source MD5: {source_hash}", style="cyan")
-    copy_result = cli.file_tools.copy_file(source, destination)
+    copy_result = cli.copy_file(source, destination)
     if copy_result.is_failure:
         cli.print(f"❌ Copy failed: {copy_result.error}", style="bold red")
         return False
@@ -246,8 +246,8 @@ def main() -> None:
     }
     json_file = temp_dir / "config.json"
     yaml_file = temp_dir / "config.yaml"
-    cli.file_tools.write_json_file(json_file, test_config)
-    cli.file_tools.write_yaml_file(yaml_file, test_config)
+    cli.write_json_file(json_file, test_config)
+    cli.write_yaml_file(yaml_file, test_config)
     load_any_format_file(json_file)
     load_any_format_file(yaml_file)
     cli.print("\n" + "=" * 70, style="bold blue")
@@ -272,7 +272,7 @@ def main() -> None:
         "enabled": True,
     }
     demo_json = temp_dir / "demo_config.json"
-    cli.file_tools.write_json_file(demo_json, demo_config)
+    cli.write_json_file(demo_json, demo_config)
     copy_file_with_verification(demo_json, temp_dir / "demo_config_backup.json")
     shutil.rmtree(temp_dir, ignore_errors=True)
     cli.print("\n" + "=" * 70, style="bold blue")

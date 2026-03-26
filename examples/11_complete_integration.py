@@ -45,7 +45,8 @@ class DataManagerCLI:
 
     def add_entry(self) -> r[t.ContainerMapping]:
         """Add new entry with user prompts."""
-        prompts = FlextCliPrompts(interactive_mode=False)
+        prompts = FlextCliPrompts()
+        prompts._interactive_mode = False
         key_result = prompts.prompt("Enter key:", default="sample_key")
         if key_result.is_failure:
             return r[t.ContainerMapping].fail(f"Prompt failed: {key_result.error}")
@@ -75,7 +76,7 @@ class DataManagerCLI:
         """Load data with error handling. Uses read_json_dict for dict-only result."""
         if not self.data_file.exists():
             return r[t.ContainerMapping].fail("No data file found")
-        read_result = self.cli.file_tools.read_json_dict(str(self.data_file))
+        read_result = self.cli.read_json_dict(str(self.data_file))
         if read_result.is_failure:
             error_msg = read_result.error or "Unknown error"
             self.cli.print(f"❌ Load failed: {error_msg}", style="bold red")
@@ -112,7 +113,7 @@ class DataManagerCLI:
 
     def save_data(self, data: t.ContainerMapping) -> r[bool]:
         """Save data with proper error handling."""
-        write_result = self.cli.file_tools.write_json_file(self.data_file, data)
+        write_result = self.cli.write_json_file(self.data_file, data)
         if write_result.is_failure:
             error_msg = write_result.error or "Unknown error"
             self.cli.print(f"❌ Save failed: {error_msg}", style="bold red")
@@ -179,7 +180,7 @@ def main() -> None:
     cli.print("\n🏗️  Complete CLI Architecture:", style="bold cyan")
     architecture = {
         "Output": "cli.print() + cli.show_table()",
-        "File I/O": "cli.file_tools.read_json_dict/write",
+        "File I/O": "cli.read_json_dict/write_json_file",
         "User Input": "FlextCliPrompts",
         "Config": "cli.config",
         "Auth": "cli.save/get_auth_token()",

@@ -16,6 +16,24 @@ class FlextCliConstants(FlextConstants):
     class Cli:
         """CLI related constants."""
 
+        @unique
+        class OutputFormats(StrEnum):
+            """Output format enum for CLI commands."""
+
+            JSON, YAML, CSV, TABLE, PLAIN = ("json", "yaml", "csv", "table", "plain")
+
+        @unique
+        class CommandStatus(StrEnum):
+            """Command execution status enum."""
+
+            PENDING, RUNNING, COMPLETED, FAILED, CANCELLED = (
+                "pending",
+                "running",
+                "completed",
+                "failed",
+                "cancelled",
+            )
+
         class Paths:
             """Path constants."""
 

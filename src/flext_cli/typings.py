@@ -30,6 +30,8 @@ class FlextCliTypes(FlextTypes):
         type JsonValue = FlextTypes.NormalizedValue
         type TableRow = Mapping[str, JsonValue]
         TabularData = Sequence[TableRow]
+        type JsonDict = Mapping[str, JsonValue]
+        type TableRows = Sequence[TableRow]
         type CliValue = (
             FlextTypes.Scalar
             | FlextTypes.StrSequence

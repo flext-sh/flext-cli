@@ -12,7 +12,7 @@ from tests import t
 
 
 def test_prompt_logs_input_when_not_test_env(monkeypatch: pytest.MonkeyPatch) -> None:
-    prompts = FlextCliPrompts(interactive_mode=True, quiet=False)
+    prompts = FlextCliPrompts()
     captured: list[str] = []
 
     def capture_info(message: str) -> None:
@@ -27,7 +27,7 @@ def test_prompt_logs_input_when_not_test_env(monkeypatch: pytest.MonkeyPatch) ->
 
 
 def test_read_confirmation_input_paths(monkeypatch: pytest.MonkeyPatch) -> None:
-    prompts = FlextCliPrompts(interactive_mode=True)
+    prompts = FlextCliPrompts()
     warnings: list[str] = []
 
     def capture_warning(

@@ -147,15 +147,15 @@ from flext_cli import FlextCli
 cli = FlextCli()
 
 # Use features
-cli.output.success("Hello, World!")
+cli.print_success("Hello, World!")
 
 # Display data
 data = [{"name": "Alice", "age": 30}, {"name": "Bob", "age": 25}]
-cli.tables.display_rich_table(data, title="Users")
+cli.display_rich_table(data, title="Users")
 
 # Interactive prompt
-name = cli.prompts.prompt("Enter your name:")
-cli.output.info(f"Hello, {name}!")
+name = cli.prompt("Enter your name:")
+cli.print("Hello!", style="bold green")
 ```
 
 ## 📦 Available Modules
@@ -165,18 +165,13 @@ Access all modules through the `FlextCli` facade:
 ```python
 cli = FlextCli()
 
-# Domain services (accessed via properties)
-cli.core  # FlextCliCore - Core functionality
-cli.output  # FlextCliOutput - Styled messages
-cli.formatters  # FlextCliFormatters - Data formatting
-cli.tables  # FlextCliTables - Table display
-cli.prompts  # FlextCliPrompts - User input
-cli.file_tools  # FlextCliFileTools - File operations
-cli.auth  # FlextCliAuth - Authentication
-cli.plugins  # FlextCliPlugins - Plugin system
-cli.shell  # FlextCliShell - Interactive shell
-cli.performance  # FlextCliPerformance - Optimization
-cli.processors  # FlextCliProcessors - Data processing
+# All services available directly via MRO inheritance:
+cli.print_success("msg")  # FlextCliOutput
+cli.print("msg", style="bold")  # FlextCliFormatters
+cli.display_rich_table(data)  # FlextCliTables
+cli.prompt("Enter name:")  # FlextCliPrompts
+cli.read_json_file("f.json")  # FlextCliFileTools
+cli.config  # FlextCliSettings
 ```
 
 Or import modules directly:
@@ -210,7 +205,7 @@ flext-cli follows the FLEXT ecosystem architecture:
 from flext_cli import FlextCli
 
 cli = FlextCli()
-cli.output.success("Operation successful")
+cli.print_success("Operation successful")
 ```
 
 ### Pattern 2: Service-Specific Import
@@ -254,7 +249,7 @@ def process_data(data: dict) -> r[dict]:
     if not data:
         return r[dict].fail("Data is empty")
 
-    cli.output.info("Processing...")
+    cli.print("Processing...")
     # ... processing logic ...
 
     return r[dict].ok(processed_data)
@@ -271,7 +266,7 @@ config = FlextCliSettings(
 )
 
 cli = FlextCli()
-cli.output.info(f"Debug mode: {config.debug}")
+cli.print(f"Debug mode: {config.debug}")
 ```
 
 ## 🎓 Learning Path
@@ -295,7 +290,7 @@ cli.output.info(f"Debug mode: {config.debug}")
 All operations return `r` for type-safe error handling:
 
 ```python
-result = cli.file_tools.read_json("config.json")
+result = cli.read_json_file("config.json")
 
 if result.is_success:
     data = result.value
@@ -303,14 +298,14 @@ else:
     error = result.error
 ```
 
-### 2. Property-Based Service Access
+### 2. Direct MRO Method Access
 
-Access domain services through properties:
+Access all services directly on the FlextCli instance:
 
 ```python
 cli = FlextCli()
-cli.output.success("Message")  # Not: cli.get_output().success()
-cli.tables.display_rich_table()  # Not: cli.get_tables().display()
+cli.print_success("Message")  # Direct MRO method
+cli.display_rich_table(data)  # Direct MRO method
 ```
 
 ### 3. Configuration Management
@@ -354,7 +349,7 @@ from flext_core import u
 
 def typed_operation(data: dict) -> r[dict]:
     cli = FlextCli()
-    return cli.file_tools.write_json("output.json", data)
+    return cli.write_json_file("output.json", data)
 ```
 
 ## 🔧 Common Use Cases
@@ -369,13 +364,13 @@ def main():
     cli = FlextCli()
 
     # Get user input
-    name = cli.prompts.prompt("Enter project name:")
+    name = cli.prompt("Enter project name:")
 
     # Process
-    cli.output.info(f"Creating project: {name}")
+    cli.print(f"Creating project: {name}")
 
     # Show results
-    cli.output.success("Project created!")
+    cli.print_success("Project created!")
 
 
 if __name__ == "__main__":
@@ -412,20 +407,20 @@ def process_pipeline(input_file: str) -> r[dict]:
     cli = FlextCli()
 
     # Read input
-    data_result = cli.file_tools.read_json(input_file)
+    data_result = cli.read_json_file(input_file)
     if data_result.is_failure:
         return r[dict].fail(f"Read failed: {data_result.error}")
 
     # Process
-    cli.output.info("Processing data...")
+    cli.print("Processing data...")
     processed = transform_data(data_result.value)
 
     # Write output
-    write_result = cli.file_tools.write_json("output.json", processed)
+    write_result = cli.write_json_file("output.json", processed)
     if write_result.is_failure:
         return r[dict].fail(f"Write failed: {write_result.error}")
 
-    cli.output.success("Pipeline complete!")
+    cli.print_success("Pipeline complete!")
     return r[dict].ok(processed)
 ```
 
@@ -439,7 +434,7 @@ def interactive_tool():
     cli = FlextCli()
 
     while True:
-        action = cli.prompts.select(
+        action = cli.prompt_choice(
             "Choose action:", choices=["Process", "View", "Exit"]
         )
 
@@ -447,9 +442,9 @@ def interactive_tool():
             break
 
         if action == "Process":
-            cli.output.info("Processing...")
+            cli.print("Processing...")
             # ... processing logic ...
-            cli.output.success("Done!")
+            cli.print_success("Done!")
 ```
 
 ## 📚 Additional Resources
@@ -470,7 +465,7 @@ def interactive_tool():
 
 1. **Use r** for all operations
 1. **Initialize FlextCli once** and reuse
-1. **Access services via properties** (cli.output, cli.tables)
+1. **Access services via MRO methods** (cli.print_success, cli.prompt)
 1. **Handle errors explicitly** with r patterns
 1. **Use type hints** for better IDE support
 1. **Configure via FlextCliSettings** for environment-specific settings

@@ -13,31 +13,17 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
+    RootModel,
 )
 
 from flext_cli import FlextCliModelsSystemContext, c, t
 
 
 class FlextCliModels(FlextModels):
-    """FlextCli models extending FlextModels.
-
-    NAMESPACE HIERARCHY PADRAO:
-    ───────────────────────────
-    1. Heranca real de FlextModels, SEM BaseModel direto
-    2. Namespace hierarquico: FlextCliModels.Cli.Entity, FlextCliModels.Cli.Value, etc.
-    3. SEM duplicacao de declaracoes ou aliases de raiz
-    4. ConfigDict frozen=True, extra="forbid"
-    5. StrEnum de constants, nao criar novos
-    6. field_validator para validacao complexa
-    7. Self para metodos de transformacao
-    """
+    """FlextCli models extending FlextModels."""
 
     class Cli(FlextCliModelsSystemContext):
-        """CLI project namespace - PADRAO HIERARQUICO.
-
-        Este namespace contem todos os modelos CLI especificos do flext-cli.
-        PADRAO: Namespace hierarquico completo, sem duplicacao.
-        """
+        """CLI project namespace."""
 
         class DisplayData(BaseModel):
             """Key-value data for table/display — Pydantic v2 contract. Use m.Cli.DisplayData."""
@@ -53,6 +39,49 @@ class FlextCliModels(FlextModels):
                 ),
             ] = Field(default_factory=dict)
 
+        class LoadedConfig(BaseModel):
+            """Loaded configuration content wrapper — Pydantic v2 contract. Use m.Cli.LoadedConfig."""
+
+            model_config: ClassVar[ConfigDict] = ConfigDict(
+                extra="forbid",
+                validate_assignment=True,
+            )
+            content: Annotated[
+                t.Cli.JsonValue,
+                Field(
+                    description="Loaded configuration content (dict or other JSON value)",
+                ),
+            ] = Field(default_factory=dict)
+
+        class CliNormalizedJson(RootModel[t.Cli.JsonValue]):
+            """Normalize raw JSON value. Use m.Cli.CliNormalizedJson(value).root."""
+
+        class NormalizedJsonDict(BaseModel):
+            """Resolve normalized JSON to a dict with defaults. Use m.Cli.NormalizedJsonDict."""
+
+            model_config: ClassVar[ConfigDict] = ConfigDict(
+                extra="forbid",
+                validate_assignment=True,
+            )
+            value: Annotated[
+                t.Cli.JsonValue,
+                Field(description="The normalized JSON value"),
+            ] = Field(default_factory=dict)
+            default: Annotated[
+                Mapping[str, t.Cli.JsonValue],
+                Field(description="Default mapping if value is not a dict"),
+            ] = Field(default_factory=dict)
+
+            @property
+            def resolved(self) -> Mapping[str, t.Cli.JsonValue]:
+                """Resolve value to dict or return default."""
+                if isinstance(self.value, dict):
+                    return self.value
+                return self.default
+
+        class SuccessSummaryDetails(RootModel[Mapping[str, str]]):
+            """Key-value success summary details. Use m.Cli.SuccessSummaryDetails."""
+
         class CommandEntryModel(BaseModel):
             """Single command entry: name + handler. Use m.Cli.CommandEntryModel."""
 
@@ -65,10 +94,6 @@ class FlextCliModels(FlextModels):
                 Callable[..., r[t.Cli.JsonValue]],
                 Field(..., description="Command handler callable"),
             ]
-
-        # CRÍTICO: NÃO redeclarar classes base de flext-core (Entity, Value, AggregateRoot, etc.)
-        # Elas vêm automaticamente via herança: FlextCliModels(FlextModels)
-        # APENAS declarar modelos CLI-ESPECÍFICOS que estendem as bases
 
         class TableConfig(FlextModels.Value):
             """Table display configuration for tabulate extending Value via inheritance.

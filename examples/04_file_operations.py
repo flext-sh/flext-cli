@@ -11,11 +11,11 @@ WHEN TO USE THIS:
 - Auto-detecting file formats
 
 FLEXT-CLI PROVIDES:
-- file_tools.read_json() / write_json() - JSON file operations
-- file_tools.read_yaml_file() / write_yaml() - YAML config files
-- file_tools.read_csv_file_with_headers() / write_csv_file() - CSV with headers
-- file_tools.read_binary_file() / write_binary_file() - Binary operations
-- file_tools.detect_file_format() / load_file_auto() - Auto-format detection
+- cli.read_json() / write_json() - JSON file operations
+- cli.read_yaml_file() / write_yaml() - YAML config files
+- cli.read_csv_file_with_headers() / write_csv_file() - CSV with headers
+- cli.read_binary_file() / write_binary_file() - Binary operations
+- cli.detect_file_format() / load_file_auto() - Auto-format detection
 - r error handling - No try/except needed
 - Automatic path handling with pathlib integration
 
@@ -64,7 +64,7 @@ def save_user_preferences(
     # with open(config_file, 'w') as f:
     #     json.dump(preferences, f)
 
-    write_result = cli.file_tools.write_json_file(
+    write_result = cli.write_json_file(
         config_file,
         preferences,
     )
@@ -81,7 +81,7 @@ def load_user_preferences(config_dir: Path) -> r[m.Cli.LoadedConfig]:
     """Load user preferences from JSON in YOUR app. Returns r[LoadedConfig]; no None."""
     config_file = config_dir / "preferences.json"
 
-    read_result = cli.file_tools.read_json_dict(config_file)
+    read_result = cli.read_json_dict(config_file)
 
     if read_result.is_failure:
         cli.print(f"⚠️  Could not load: {read_result.error}", style="yellow")
@@ -108,7 +108,7 @@ def save_deployment_config(
     #     yaml.dump(config, f)
 
     # Cast dict to t.NormalizedValue (compatible with t.NormalizedValue)
-    write_result = cli.file_tools.write_yaml_file(
+    write_result = cli.write_yaml_file(
         config_file,
         config,
     )
@@ -123,7 +123,7 @@ def save_deployment_config(
 
 def load_deployment_config(config_file: Path) -> r[m.Cli.LoadedConfig]:
     """Load deployment config from YAML in YOUR tool. Returns r[LoadedConfig]; no None."""
-    load_result = cli.file_tools.load_file_auto_dict(config_file)
+    load_result = cli.load_file_auto_dict(config_file)
 
     if load_result.is_failure:
         cli.print(f"❌ Config load failed: {load_result.error}", style="bold red")
@@ -227,7 +227,7 @@ def show_directory_tree(root_path: Path, max_items: int = 15) -> None:
 
 def validate_and_import_data(input_file: Path) -> r[m.Cli.LoadedConfig]:
     """Validate and import data in YOUR ETL pipeline. Returns r[LoadedConfig]; no None."""
-    read_result = cli.file_tools.read_json_dict(input_file)
+    read_result = cli.read_json_dict(input_file)
 
     if read_result.is_failure:
         cli.print(f"❌ Read failed: {read_result.error}", style="bold red")
@@ -261,9 +261,9 @@ def backup_config_files(source_dir: Path, backup_dir: Path) -> t.StrSequence:
     for config_file in config_files:
         # Read original
         if config_file.suffix == ".json":
-            read_result = cli.file_tools.read_json_file(config_file)
+            read_result = cli.read_json_file(config_file)
         else:
-            read_result = cli.file_tools.read_yaml_file(config_file)
+            read_result = cli.read_yaml_file(config_file)
 
         if read_result.is_failure:
             cli.print(
@@ -275,12 +275,12 @@ def backup_config_files(source_dir: Path, backup_dir: Path) -> t.StrSequence:
         # Write backup
         backup_file = backup_dir / config_file.name
         if config_file.suffix == ".json":
-            write_result = cli.file_tools.write_json_file(
+            write_result = cli.write_json_file(
                 backup_file,
                 read_result.value,
             )
         else:
-            write_result = cli.file_tools.write_yaml_file(
+            write_result = cli.write_yaml_file(
                 backup_file,
                 read_result.value,
             )
@@ -316,7 +316,7 @@ def export_to_csv(
     rows.extend([[str(row.get(header, "")) for header in headers] for row in data])
 
     # Write CSV (headers included as first row)
-    write_result = cli.file_tools.write_csv_file(output_file, rows)
+    write_result = cli.write_csv_file(output_file, rows)
 
     if write_result.is_failure:
         cli.print(f"❌ CSV export failed: {write_result.error}", style="bold red")
@@ -332,7 +332,7 @@ def import_from_csv(input_file: Path) -> Sequence[t.StrMapping] | None:
     cli.print(f"📥 Importing from {input_file.name}...", style="cyan")
 
     # Read CSV with headers
-    read_result = cli.file_tools.read_csv_file_with_headers(input_file)
+    read_result = cli.read_csv_file_with_headers(input_file)
 
     if read_result.is_failure:
         cli.print(f"❌ CSV import failed: {read_result.error}", style="bold red")
@@ -359,7 +359,7 @@ def process_binary_file(input_file: Path, output_file: Path) -> bool:
     cli.print(f"🔧 Processing binary file: {input_file.name}", style="cyan")
 
     # Read binary file
-    read_result = cli.file_tools.read_binary_file(input_file)
+    read_result = cli.read_binary_file(input_file)
 
     if read_result.is_failure:
         cli.print(f"❌ Read failed: {read_result.error}", style="bold red")
@@ -376,7 +376,7 @@ def process_binary_file(input_file: Path, output_file: Path) -> bool:
     processed_data = data
 
     # Write binary file
-    write_result = cli.file_tools.write_binary_file(output_file, processed_data)
+    write_result = cli.write_binary_file(output_file, processed_data)
 
     if write_result.is_failure:
         cli.print(f"❌ Write failed: {write_result.error}", style="bold red")
@@ -398,7 +398,7 @@ def load_config_auto_detect(config_file: Path) -> r[m.Cli.LoadedConfig]:
     """Load config from ANY format with auto-detection. Returns r[LoadedConfig]; no None."""
     cli.print(f"🔍 Auto-detecting format: {config_file.name}", style="cyan")
 
-    load_result = cli.file_tools.load_file_auto_dict(config_file)
+    load_result = cli.load_file_auto_dict(config_file)
 
     if load_result.is_failure:
         cli.print(f"❌ Load failed: {load_result.error}", style="bold red")
@@ -432,7 +432,7 @@ def export_multi_format(
     json_path = base_path.with_suffix(".json")
     # Handle both single dict and list of dicts
     json_payload = data
-    json_result = cli.file_tools.write_json_file(
+    json_result = cli.write_json_file(
         json_path,
         json_payload,
         indent=2,
@@ -445,7 +445,7 @@ def export_multi_format(
     # Export to YAML
     yaml_path = base_path.with_suffix(".yaml")
     yaml_payload = data
-    yaml_result = cli.file_tools.write_yaml_file(
+    yaml_result = cli.write_yaml_file(
         yaml_path,
         yaml_payload,
     )
@@ -471,7 +471,7 @@ def export_multi_format(
             [[str(row.get(header, "")) for header in headers] for row in csv_rows_data],
         )
 
-        csv_result = cli.file_tools.write_csv_file(csv_path, rows)
+        csv_result = cli.write_csv_file(csv_path, rows)
         if csv_result.is_success:
             size = csv_path.stat().st_size
             export_results["CSV"] = f"{size} bytes"
@@ -511,7 +511,7 @@ def process_file_pipeline(
         cli.print("✅ Input validation passed", style="green")
 
         # Step 2: Read file content (dict-only, no narrowing)
-        read_result = cli.file_tools.read_json_dict(input_file)
+        read_result = cli.read_json_dict(input_file)
         if read_result.is_failure:
             result = r.fail(
                 f"File read failed: {read_result.error}",
@@ -572,7 +572,7 @@ def generate_output_files(
 
     # JSON output
     json_file = output_dir / f"{base_name}.json"
-    json_result = cli.file_tools.write_json_file(
+    json_result = cli.write_json_file(
         json_file,
         data.content,
     )
@@ -582,7 +582,7 @@ def generate_output_files(
 
     # YAML output
     yaml_file = output_dir / f"{base_name}.yaml"
-    yaml_result = cli.file_tools.write_yaml_file(
+    yaml_result = cli.write_yaml_file(
         yaml_file,
         data.content,
     )
@@ -609,7 +609,7 @@ def generate_output_files(
         csv_rows: Sequence[t.StrSequence] = [
             [str(value) for value in item.values()] for item in csv_rows_data
         ]
-        csv_result = cli.file_tools.write_csv_file(csv_file, csv_rows)
+        csv_result = cli.write_csv_file(csv_file, csv_rows)
         if csv_result.is_failure:
             return r[Mapping[str, Path]].fail(f"CSV export failed: {csv_result.error}")
         results["csv"] = csv_file
@@ -691,7 +691,7 @@ def main() -> None:
     cli.print("\n6. Data Validation (ETL pipeline):", style="bold cyan")
     test_data: t.ContainerMapping = {"id": 1, "name": "test", "value": 100}
     test_file = temp_dir / "test_data.json"
-    cli.file_tools.write_json_file(test_file, test_data)
+    cli.write_json_file(test_file, test_data)
     valid_result = validate_and_import_data(test_file)
     if valid_result.is_failure:
         cli.print(f"   Validation: {valid_result.error}", style="yellow")
@@ -723,8 +723,8 @@ def main() -> None:
     }
     auto_json = temp_dir / "auto_config.json"
     auto_yaml = temp_dir / "auto_config.yaml"
-    cli.file_tools.write_json_file(auto_json, auto_config)
-    cli.file_tools.write_yaml_file(auto_yaml, auto_config)
+    cli.write_json_file(auto_json, auto_config)
+    cli.write_yaml_file(auto_yaml, auto_config)
     auto1_result = load_config_auto_detect(auto_json)
     auto2_result = load_config_auto_detect(auto_yaml)
     if auto1_result.is_failure:
@@ -751,7 +751,7 @@ def main() -> None:
         ],
     }
     pipeline_file = temp_dir / "pipeline_input.json"
-    cli.file_tools.write_json_file(pipeline_file, pipeline_input)
+    cli.write_json_file(pipeline_file, pipeline_input)
     pipeline_result = process_file_pipeline(pipeline_file, temp_dir / "pipeline_output")
 
     if pipeline_result.is_success:
@@ -767,8 +767,8 @@ def main() -> None:
 
     # Integration guide
     cli.print("\n💡 Integration Tips:", style="bold cyan")
-    cli.print("  • JSON: Use file_tools.read_json() / write_json()", style="white")
-    cli.print("  • YAML: Use file_tools.read_yaml_file() / write_yaml()", style="white")
+    cli.print("  • JSON: Use cli.read_json() / write_json()", style="white")
+    cli.print("  • YAML: Use cli.read_yaml_file() / write_yaml()", style="white")
     cli.print(
         "  • CSV: Use read_csv_file_with_headers() for structured data",
         style="white",

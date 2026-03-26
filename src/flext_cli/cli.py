@@ -12,6 +12,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+
 class FlextCliCli:
     """Unified Typer/Click abstraction marker for the FLEXT CLI ecosystem.
 

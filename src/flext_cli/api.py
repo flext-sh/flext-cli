@@ -10,6 +10,7 @@ from collections.abc import Mapping
 from typing import override
 
 from flext_core import r
+from pydantic_settings import SettingsConfigDict
 
 from flext_cli import (
     FlextCliCli,
@@ -46,6 +47,12 @@ class FlextCli(
     formatters, output, prompts, settings, tables).
     All operations return r[T].
     """
+
+    model_config = SettingsConfigDict(
+        arbitrary_types_allowed=True,
+        extra="ignore",
+        validate_assignment=True,
+    )
 
     @override
     def execute(self) -> r[Mapping[str, t.Cli.JsonValue]]:

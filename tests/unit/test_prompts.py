@@ -48,11 +48,11 @@ class TestsCliPrompts:
             default_timeout: int = 5,
         ) -> FlextCliPrompts:
             """Create prompts in quiet (non-interactive) mode."""
-            return FlextCliPrompts(
-                interactive_mode=interactive_mode,
-                quiet=True,
-                default_timeout=default_timeout,
-            )
+            instance = FlextCliPrompts()
+            instance._interactive_mode = interactive_mode
+            instance._quiet = True
+            instance._default_timeout = default_timeout
+            return instance
 
         @staticmethod
         def create_interactive_prompts(
@@ -61,11 +61,11 @@ class TestsCliPrompts:
             default_timeout: int = 5,
         ) -> FlextCliPrompts:
             """Create prompts in interactive mode."""
-            return FlextCliPrompts(
-                interactive_mode=True,
-                quiet=quiet,
-                default_timeout=default_timeout,
-            )
+            instance = FlextCliPrompts()
+            instance._interactive_mode = True
+            instance._quiet = quiet
+            instance._default_timeout = default_timeout
+            return instance
 
     @pytest.fixture
     def prompts(self) -> FlextCliPrompts:

@@ -68,7 +68,7 @@ def test_cli_command() -> None:
 def save_config_command(config: t.ContainerMapping) -> r[bool]:
     """CLI command that saves config."""
     temp_file = Path(tempfile.gettempdir()) / "test_config.json"
-    write_result = cli.file_tools.write_json_file(temp_file, config)
+    write_result = cli.write_json_file(temp_file, config)
     if write_result.is_failure:
         return r[bool].fail(f"Save failed: {write_result.error}")
     return r[bool].ok(value=True)
@@ -85,7 +85,7 @@ def test_file_operations() -> None:
         return
     cli.print("   ✅ File save test passed", style="green")
     temp_file = Path(tempfile.gettempdir()) / "test_config.json"
-    read_result = cli.file_tools.read_json_dict(temp_file)
+    read_result = cli.read_json_dict(temp_file)
     if not read_result.is_success:
         cli.print("   ❌ Config read should succeed", style="red")
         return
@@ -99,7 +99,8 @@ def test_file_operations() -> None:
 
 def interactive_command() -> r[str]:
     """Command with user prompts to test."""
-    prompts = FlextCliPrompts(interactive_mode=False)
+    prompts = FlextCliPrompts()
+    prompts._interactive_mode = False
     name_result = prompts.prompt("Enter name:", default="TestUser")
     if name_result.is_failure:
         return r[str].fail(f"Prompt failed: {name_result.error}")
@@ -167,10 +168,10 @@ def full_workflow_command() -> r[t.ContainerMapping]:
     """Complete workflow to test."""
     data: t.ContainerMapping = {"status": "processing", "items": [1, 2, 3]}
     temp_file = Path(tempfile.gettempdir()) / "workflow_test.json"
-    write_result = cli.file_tools.write_json_file(temp_file, data)
+    write_result = cli.write_json_file(temp_file, data)
     if write_result.is_failure:
         return r[t.ContainerMapping].fail(f"Write failed: {write_result.error}")
-    read_result = cli.file_tools.read_json_dict(temp_file)
+    read_result = cli.read_json_dict(temp_file)
     if read_result.is_failure:
         temp_file.unlink(missing_ok=True)
         return r[t.ContainerMapping].fail(f"Read failed: {read_result.error}")

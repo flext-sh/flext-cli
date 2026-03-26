@@ -59,7 +59,7 @@ class FlextCliGettingStarted:
 
     def load_config(self, filepath: str) -> r[m.Cli.LoadedConfig]:
         """Load YOUR config from JSON. Returns r[LoadedConfig]; no None."""
-        read_result = self.cli.file_tools.read_json_dict(filepath)
+        read_result = self.cli.read_json_dict(filepath)
         if read_result.is_failure:
             self.cli.print(f"Failed to load: {read_result.error}", style="red")
             return r[m.Cli.LoadedConfig].fail(
@@ -70,7 +70,7 @@ class FlextCliGettingStarted:
     def process_data_with_flext_result(self) -> None:
         """Use r pattern in YOUR code - no try/except needed."""
         nonexistent_file = str(Path(tempfile.gettempdir()) / "nonexistent.json")
-        result = self.cli.file_tools.read_json_dict(nonexistent_file)
+        result = self.cli.read_json_dict(nonexistent_file)
         if result.is_success:
             self.cli.print("Data loaded successfully", style="green")
         else:
@@ -89,7 +89,7 @@ class FlextCliGettingStarted:
 
     def save_config(self, config: m.Cli.LoadedConfig, filepath: str) -> bool:
         """Save YOUR config to JSON with proper error handling."""
-        write_result = self.cli.file_tools.write_json_file(filepath, config.content)
+        write_result = self.cli.write_json_file(filepath, config.content)
         if write_result.is_failure:
             self.cli.print(f"Failed to save: {write_result.error}", style="red")
             return False

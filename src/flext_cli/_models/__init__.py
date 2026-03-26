@@ -16,10 +16,7 @@ if TYPE_CHECKING:
     from flext_cli._models.cli_models_system_context import FlextCliModelsSystemContext
 
 _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
-    "FlextCliModelsSystemContext": [
-        "flext_cli._models.cli_models_system_context",
-        "FlextCliModelsSystemContext",
-    ],
+    "FlextCliModelsSystemContext": ["flext_cli._models.cli_models_system_context", "FlextCliModelsSystemContext"],
 }
 
 __all__ = [

@@ -48,7 +48,7 @@ def login_to_service(username: str, password: str) -> bool:
         cli.print(f"❌ Login failed: {auth_result.error}", style="bold red")
         return False
     cli.print("✅ Login successful!", style="green")
-    cli.print(f"   Token saved to: {cli.config.token_file}", style="cyan")
+    cli.print(f"   Token saved to: {cli.token_file}", style="cyan")
     return True
 
 
@@ -120,7 +120,7 @@ def show_session_info() -> None:
         cli.print("❌ Not authenticated", style="bold red")
         return
     token = token_result.value
-    token_file_str = cli.config.token_file or ""
+    token_file_str = cli.token_file or ""
     token_file_path = Path(token_file_str)
     session_data = m.Cli.DisplayData(
         data={
@@ -152,7 +152,7 @@ def show_session_info() -> None:
 
 def logout() -> None:
     """Logout and clear token in YOUR CLI."""
-    token_file_str = cli.config.token_file or ""
+    token_file_str = cli.token_file or ""
     token_file_path = Path(token_file_str)
     if not token_file_path.exists():
         cli.print("⚠️  No active session", style="yellow")
