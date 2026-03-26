@@ -18,7 +18,7 @@ from pathlib import Path
 
 from flext_core import r
 
-from flext_cli import FlextCli, c, m, t
+from flext_cli import c, cli, m, t
 
 
 class FlextCliGettingStarted:
@@ -27,22 +27,21 @@ class FlextCliGettingStarted:
     def __init__(self) -> None:
         """Initialize with flext-cli instance."""
         super().__init__()
-        self.cli = FlextCli()
 
     def advanced_types_example(self) -> None:
         """Demonstrate advanced Python 3.13+ typing patterns with flext-cli."""
         output_format = c.Cli.OutputFormats.JSON
-        self.cli.print(f"Selected format: {output_format.value}", style="blue")
+        cli.print(f"Selected format: {output_format.value}", style="blue")
         valid_formats: tuple[str, ...] = tuple(
             sorted(c.Cli.ValidationLists.OUTPUT_FORMATS),
         )
-        self.cli.print(f"Available formats: {', '.join(valid_formats)}")
+        cli.print(f"Available formats: {', '.join(valid_formats)}")
         sample_data: t.Cli.JsonDict = {
             "status": c.Cli.CommandStatus.COMPLETED.value,
             "data": [1, 2, 3],
             "metadata": {"version": "1.0"},
         }
-        self.cli.print(f"Sample data: {sample_data}", style="green")
+        cli.print(f"Sample data: {sample_data}", style="green")
 
     def display_user_data(self, user: m.Cli.DisplayData) -> None:
         """Show how to display YOUR data as a table."""
@@ -51,7 +50,7 @@ class FlextCliGettingStarted:
             table_data = {str(key): str(value) for key, value in user.data.items()}
         else:
             table_data = {"value": str(user.data)}
-        self.cli.show_table(
+        cli.show_table(
             table_data,
             headers=["Field", "Value"],
             title="User Information",
@@ -59,9 +58,9 @@ class FlextCliGettingStarted:
 
     def load_config(self, filepath: str) -> r[m.Cli.LoadedConfig]:
         """Load YOUR config from JSON. Returns r[LoadedConfig]; no None."""
-        read_result = self.cli.read_json_dict(filepath)
+        read_result = cli.read_json_file(filepath)
         if read_result.is_failure:
-            self.cli.print(f"Failed to load: {read_result.error}", style="red")
+            cli.print(f"Failed to load: {read_result.error}", style="red")
             return r[m.Cli.LoadedConfig].fail(
                 read_result.error or "Failed to load config",
             )
@@ -70,36 +69,36 @@ class FlextCliGettingStarted:
     def process_data_with_flext_result(self) -> None:
         """Use r pattern in YOUR code - no try/except needed."""
         nonexistent_file = str(Path(tempfile.gettempdir()) / "nonexistent.json")
-        result = self.cli.read_json_dict(nonexistent_file)
+        result = cli.read_json_file(nonexistent_file)
         if result.is_success:
-            self.cli.print("Data loaded successfully", style="green")
+            cli.print("Data loaded successfully", style="green")
         else:
-            self.cli.print(f"Error: {result.error}", style="yellow")
+            cli.print(f"Error: {result.error}", style="yellow")
 
     def run_examples(self) -> None:
         """Run all getting started examples."""
-        self.cli.print("=== Flext CLI Getting Started Examples ===", style="bold blue")
-        self.cli.print("\n1. Styled Output Examples:", style="bold")
+        cli.print("=== Flext CLI Getting Started Examples ===", style="bold blue")
+        cli.print("\n1. Styled Output Examples:", style="bold")
         self.your_function_after()
-        self.cli.print("\n2. File I/O Examples:", style="bold")
+        cli.print("\n2. File I/O Examples:", style="bold")
         self.process_data_with_flext_result()
-        self.cli.print("\n3. Advanced Types Examples:", style="bold")
+        cli.print("\n3. Advanced Types Examples:", style="bold")
         self.advanced_types_example()
-        self.cli.print("\n✅ All examples completed!", style="bold green")
+        cli.print("\n✅ All examples completed!", style="bold green")
 
     def save_config(self, config: m.Cli.LoadedConfig, filepath: str) -> bool:
         """Save YOUR config to JSON with proper error handling."""
-        write_result = self.cli.write_json_file(filepath, config.content)
+        write_result = cli.write_json_file(filepath, config.content)
         if write_result.is_failure:
-            self.cli.print(f"Failed to save: {write_result.error}", style="red")
+            cli.print(f"Failed to save: {write_result.error}", style="red")
             return False
-        self.cli.print(f"✅ Saved to {filepath}", style="green")
+        cli.print(f"✅ Saved to {filepath}", style="green")
         return True
 
     def your_function_after(self) -> None:
         """Your new code using flext-cli."""
-        self.cli.print("Operation completed", style="green")
-        self.cli.print("ERROR: Something failed", style="bold red")
+        cli.print("Operation completed", style="green")
+        cli.print("ERROR: Something failed", style="bold red")
 
     def your_function_before(self) -> None:
         """Your old code using print()."""

@@ -21,7 +21,7 @@ WHAT YOU CAN BUILD USING THIS PATTERN:
 - Auto-completion for YOUR commands
 
 HOW TO IMPLEMENT IN YOUR CLI:
-Use flext-cli foundation (r, FlextCli) + prompt_toolkit library
+Use flext-cli foundation (r, cli) + prompt_toolkit library
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -35,9 +35,7 @@ import time
 
 from flext_core import r
 
-from flext_cli import FlextCli, t
-
-cli = FlextCli()
+from flext_cli import cli, t
 
 
 def handle_status_command() -> r[t.ContainerMapping]:

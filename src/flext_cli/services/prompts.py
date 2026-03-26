@@ -9,11 +9,9 @@ from typing import override
 
 from flext_core import r
 from pydantic import PrivateAttr
-from rich.errors import ConsoleError, LiveError, StyleError
 
 from flext_cli import (
     FlextCliServiceBase,
-    FlextCliTypes,
     c,
     t,
 )
@@ -40,38 +38,24 @@ class FlextCliPrompts(FlextCliServiceBase):
             return r[bool].fail("User cancelled confirmation")
         except EOFError:
             return r[bool].fail("Input stream ended")
-        except (
-            ValueError,
-            TypeError,
-            KeyError,
-            ConsoleError,
-            StyleError,
-            LiveError,
-        ) as exc:
+        except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
             self._fatal("confirm", message, exc, "Confirmation failed completely")
             return r[bool].fail(f"Confirmation failed: {exc}")
 
     @override
-    def execute(self) -> r[Mapping[str, FlextCliTypes.Cli.JsonValue]]:
+    def execute(self) -> r[Mapping[str, t.Cli.JsonValue]]:
         try:
             self.logger.debug("Prompt service execution completed", operation="execute")
-            empty_result: Mapping[str, FlextCliTypes.Cli.JsonValue] = {}
-            return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].ok(empty_result)
-        except (
-            ValueError,
-            TypeError,
-            KeyError,
-            ConsoleError,
-            StyleError,
-            LiveError,
-        ) as exc:
+            empty_result: Mapping[str, t.Cli.JsonValue] = {}
+            return r[Mapping[str, t.Cli.JsonValue]].ok(empty_result)
+        except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
             self._fatal(
                 "execute",
                 "execute",
                 exc,
                 "Prompt service execution failed completely",
             )
-            return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].fail(
+            return r[Mapping[str, t.Cli.JsonValue]].fail(
                 f"Prompt service execution failed: {exc}",
             )
 
@@ -109,14 +93,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                     c.Cli.Prompts.PROMPT_LOG_FMT.format(message=message, input=value),
                 )
             return r[str].ok(value)
-        except (
-            ValueError,
-            TypeError,
-            KeyError,
-            ConsoleError,
-            StyleError,
-            LiveError,
-        ) as exc:
+        except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
             self._fatal("prompt", message, exc, "Prompt failed completely")
             return r[str].fail(f"Prompt failed: {exc}")
 
@@ -140,14 +117,7 @@ class FlextCliPrompts(FlextCliServiceBase):
             if default not in choices:
                 return r[str].fail(f"Invalid choice: {default}")
             return r[str].ok(default)
-        except (
-            ValueError,
-            TypeError,
-            KeyError,
-            ConsoleError,
-            StyleError,
-            LiveError,
-        ) as exc:
+        except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
             self._fatal(
                 "prompt_choice",
                 message,
@@ -170,14 +140,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                     f"Password too short: minimum {min_length} characters",
                 )
             return r[str].ok(password)
-        except (
-            ValueError,
-            TypeError,
-            KeyError,
-            ConsoleError,
-            StyleError,
-            LiveError,
-        ) as exc:
+        except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
             self._fatal(
                 "prompt_password",
                 message,
@@ -229,14 +192,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 case _:
                     self.logger.info(formatted_message)
             return r[bool].ok(value=True)
-        except (
-            ValueError,
-            TypeError,
-            KeyError,
-            ConsoleError,
-            StyleError,
-            LiveError,
-        ) as exc:
+        except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
             self.logger.exception(
                 "FAILED to print message - operation aborted",
                 operation="_print_message",

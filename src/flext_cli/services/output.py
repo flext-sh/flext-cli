@@ -12,7 +12,9 @@ from collections.abc import (
     MutableMapping,
 )
 
-from flext_cli import FlextCliFormatters, FlextCliTypes, c, u
+from flext_cli import FlextCliFormatters, c, t, u
+
+_FORMATTER = FlextCliFormatters()
 
 
 class FlextCliOutput:
@@ -30,18 +32,22 @@ class FlextCliOutput:
 
     @staticmethod
     def cast_if(
-        v: FlextCliTypes.Cli.JsonValue,
-        t: type,
-        default: FlextCliTypes.Cli.JsonValue,
-    ) -> FlextCliTypes.Cli.JsonValue:
+        v: t.Cli.JsonValue,
+        target_type: type,
+        default: t.Cli.JsonValue,
+    ) -> t.Cli.JsonValue:
         """Cast value if isinstance else return default."""
-        matched = isinstance(v, t)
+        matched = isinstance(v, target_type)
         if matched:
             return v
-        default_matched = isinstance(default, t)
+        default_matched = isinstance(default, target_type)
         if default_matched:
             return default
-        type_name = t.__name__ if hasattr(t, "__name__") else str(t)
+        type_name = (
+            target_type.__name__
+            if hasattr(target_type, "__name__")
+            else str(target_type)
+        )
         default_type_name = (
             type(default).__name__
             if hasattr(type(default), "__name__")
@@ -51,7 +57,7 @@ class FlextCliOutput:
         raise TypeError(msg)
 
     @staticmethod
-    def ensure_str(value: FlextCliTypes.Cli.JsonValue | None, default: str = "") -> str:
+    def ensure_str(value: t.Cli.JsonValue | None, default: str = "") -> str:
         """Ensure value is str with default."""
         if value is None:
             return default
@@ -62,17 +68,17 @@ class FlextCliOutput:
 
     @staticmethod
     def get_map_val(
-        m: Mapping[str, FlextCliTypes.Cli.JsonValue],
+        mapping: Mapping[str, t.Cli.JsonValue],
         k: str,
-        default: FlextCliTypes.Cli.JsonValue,
-    ) -> FlextCliTypes.Cli.JsonValue:
+        default: t.Cli.JsonValue,
+    ) -> t.Cli.JsonValue:
         """Get value from map with default using build DSL."""
-        value = m.get(k, default)
-        compatible_value: FlextCliTypes.Cli.JsonValue
+        value = mapping.get(k, default)
+        compatible_value: t.Cli.JsonValue
         if value is None or u.is_primitive(value) or isinstance(value, list):
             compatible_value = value
         elif isinstance(value, dict):
-            dict_items: MutableMapping[str, FlextCliTypes.Cli.JsonValue] = {}
+            dict_items: MutableMapping[str, t.Cli.JsonValue] = {}
             for kk, vv in value.items():
                 dict_items[str(kk)] = (
                     vv
@@ -86,8 +92,8 @@ class FlextCliOutput:
 
     @staticmethod
     def to_dict_json(
-        v: FlextCliTypes.Cli.JsonValue,
-    ) -> Mapping[str, FlextCliTypes.Cli.JsonValue]:
+        v: t.Cli.JsonValue,
+    ) -> Mapping[str, t.Cli.JsonValue]:
         """Convert value to dict with JSON transform using build DSL."""
         result = FlextCliOutput.cast_if(
             u.build(
@@ -102,9 +108,10 @@ class FlextCliOutput:
             return result
         return {}
 
-    # ── Instance methods (public API) ───────────────────────────────
+    # ── Static methods (public API) ─────────────────────────────────
 
-    def display_message(self, message: str, message_type: str | None = None) -> None:
+    @staticmethod
+    def display_message(message: str, message_type: str | None = None) -> None:
         """Display message with specified type and styling.
 
         Args:
@@ -112,10 +119,7 @@ class FlextCliOutput:
             message_type: Type of message (info, success, error, warning)
 
         """
-        final_message_type = self.ensure_str(
-            message_type,
-            c.Cli.OutputDefaults.DEFAULT_MESSAGE_TYPE,
-        )
+        final_type = message_type or c.Cli.OutputDefaults.DEFAULT_MESSAGE_TYPE
         style_map = {
             c.Cli.MessageTypes.INFO.value: c.Cli.Styles.BLUE,
             c.Cli.MessageTypes.SUCCESS.value: c.Cli.Styles.BOLD_GREEN,
@@ -128,25 +132,22 @@ class FlextCliOutput:
             c.Cli.MessageTypes.ERROR.value: c.Cli.Emojis.ERROR,
             c.Cli.MessageTypes.WARNING.value: c.Cli.Emojis.WARNING,
         }
-        style_map_general: Mapping[str, FlextCliTypes.Cli.JsonValue] = dict(style_map)
-        emoji_map_general: Mapping[str, FlextCliTypes.Cli.JsonValue] = dict(emoji_map)
-        style = self.ensure_str(
-            self.get_map_val(style_map_general, final_message_type, c.Cli.Styles.BLUE),
-        )
-        emoji = self.ensure_str(
-            self.get_map_val(emoji_map_general, final_message_type, c.Cli.Emojis.INFO),
-        )
-        formatted_message = f"{emoji} {message}"
-        self.print_message(formatted_message, style=style)
+        style = style_map.get(final_type, c.Cli.Styles.BLUE)
+        emoji = emoji_map.get(final_type, c.Cli.Emojis.INFO)
+        FlextCliOutput.print_message(f"{emoji} {message}", style=style)
 
-    def display_text(self, text: str, *, style: str | None = None) -> None:
+    @staticmethod
+    def display_text(text: str, *, style: str | None = None) -> None:
         """Display text with optional style. Delegates to print_message."""
-        self.print_message(text, style=style)
+        FlextCliOutput.print_message(text, style=style)
 
-    def print_message(self, message: str, style: str | None = None) -> None:
+    @staticmethod
+    def print_message(message: str, style: str | None = None) -> None:
         """Print a message using FlextCliFormatters."""
-        validated_style = self.ensure_str(style, c.Cli.OutputDefaults.EMPTY_STYLE)
-        FlextCliFormatters().print(message, style=validated_style)
+        validated_style = FlextCliOutput.ensure_str(
+            style, c.Cli.OutputDefaults.EMPTY_STYLE
+        )
+        _FORMATTER.print(message, style=validated_style)
 
 
 __all__ = ["FlextCliOutput"]

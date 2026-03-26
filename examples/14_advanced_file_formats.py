@@ -35,9 +35,7 @@ from pathlib import Path
 
 from pydantic import TypeAdapter, ValidationError
 
-from flext_cli import FlextCli, t
-
-cli = FlextCli()
+from flext_cli import cli, t
 
 
 def export_to_csv(data: Sequence[t.ContainerMapping], output_file: Path) -> None:

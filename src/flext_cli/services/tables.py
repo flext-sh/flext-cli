@@ -14,85 +14,13 @@ from collections.abc import Mapping, Sequence
 from typing import TypeIs
 
 from flext_core import r
-from rich.errors import ConsoleError, LiveError, StyleError
 from tabulate import tabulate
 
-from flext_cli import FlextCliServiceBase, c, m, t, u
+from flext_cli import FlextCliFormatters, FlextCliServiceBase, c, m, t, u
 
 
 class FlextCliTables(FlextCliServiceBase):
-    """Tabulate integration for lightweight ASCII tables.
-
-    Business Rules:
-    ───────────────
-    1. Table format MUST be validated against supported formats
-    2. Table data MUST be validated (non-empty, iterable)
-    3. Headers MUST match data structure (keys or explicit headers)
-    4. Table formatting MUST handle empty data gracefully
-    5. Format discovery MUST return all available tabulate formats
-    6. All operations MUST use r[T] for error handling
-    7. Table creation MUST respect TableConfig settings
-    8. Performance MUST be optimized for large datasets
-
-    Architecture Implications:
-    ───────────────────────────
-    - Uses tabulate library directly (no wrappers)
-    - TableConfig model provides type-safe configuration
-    - Format discovery uses tabulate's internal format list
-    - Extends FlextCliServiceBase for consistent logging
-    - Railway-Oriented Programming via r for error handling
-
-    Audit Implications:
-    ───────────────────
-    - Table creation MUST be logged with format type and data size
-    - Format validation failures MUST be logged
-    - Empty data handling MUST be logged for monitoring
-    - Performance metrics SHOULD be logged for large datasets
-
-    Provides simple, fast table formatting without ANSI codes.
-    Perfect for:
-    - Plain text output
-    - Large datasets (performance-critical)
-    - Log files and reports
-    - Markdown/reStructuredText generation
-    - HTML table generation
-
-    Examples:
-        >>> tables = FlextCliTables()
-        >>>
-        >>> data = [
-        ...     {"name": "Alice", "age": 30, "city": "NYC"},
-        ...     {"name": "Bob", "age": 25, "city": "LA"},
-        ... ]
-        >>>
-        >>> # Simple grid table
-        >>> result = tables.create_table(data, table_format="grid")
-        >>>
-        >>> # Markdown pipe table
-        >>> result = tables.create_table(data, table_format="pipe")
-        >>>
-        >>> # Custom headers and alignment
-        >>> result = tables.create_table(
-        ...     data,
-        ...     headers=["Name", "Age", "City"],
-        ...     table_format="fancy_grid",
-        ...     align=["left", "right", "left"],
-        ... )
-
-    Note:
-        Use Rich tables (FlextCliFormatters) for:
-        - Colored output
-        - Interactive terminals
-        - Visual styling
-        - Borders and boxes
-
-        Use Tabulate tables (this class) for:
-        - Plain text output
-        - Performance
-        - File output
-        - Markdown/HTML generation
-
-    """
+    """Tabulate integration for lightweight ASCII tables."""
 
     @staticmethod
     def _prepare_headers(
@@ -133,7 +61,7 @@ class FlextCliTables(FlextCliServiceBase):
         return r[bool].ok(value=True)
 
     @staticmethod
-    def create_table(
+    def _create_table(
         data: t.Cli.TabularData,
         config: m.Cli.TableConfig | None = None,
         **config_kwargs: t.Scalar,
@@ -156,13 +84,13 @@ class FlextCliTables(FlextCliServiceBase):
             >>> data = [{"name": "Alice", "age": 30}]
             >>> # With config t.NormalizedValue
             >>> config = m.Cli.Value.TableConfig(table_format="grid")
-            >>> result = tables.create_table(data, config)
+            >>> result = tables._create_table(data, config)
             >>> # With kwargs (automatic conversion)
-            >>> result = tables.create_table(
+            >>> result = tables._create_table(
             ...     data, table_format="grid", headers=["Name", "Age"]
             ... )
             >>> # Without config (uses defaults)
-            >>> result = tables.create_table(data)
+            >>> result = tables._create_table(data)
 
         """
         config_result = u.build_options_from_kwargs(
@@ -246,12 +174,18 @@ class FlextCliTables(FlextCliServiceBase):
             return r[str].fail(
                 "Table data must be a sequence of mappings or a sequence of sequences",
             )
-        except (
-            ValueError,
-            TypeError,
-            KeyError,
-            ConsoleError,
-            StyleError,
-            LiveError,
-        ) as e:
+        except c.Cli.CLI_SAFE_EXCEPTIONS as e:
             return r[str].fail(f"Table formatting failed: {e}")
+
+    @staticmethod
+    def show_table(
+        data: t.Cli.TabularData,
+        config: m.Cli.TableConfig | None = None,
+        **config_kwargs: t.Scalar,
+    ) -> None:
+        """Gera e exibe tabela formatada no console. Não retorna string, apenas exibe."""
+        result = FlextCliTables._create_table(data, config, **config_kwargs)
+        if result.is_success:
+            FlextCliFormatters.print(result.value)
+        else:
+            FlextCliFormatters.print(f"[table error] {result.error}", style="bold red")

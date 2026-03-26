@@ -2,7 +2,7 @@
 
 <!-- TOC START -->
 - [Imports essenciais](#imports-essenciais)
-- [Facade `FlextCli`](#facade-flextcli)
+- [Facade `cli`](#facade-flextcli)
   - [Métodos principais](#mtodos-principais)
 - [Base para aplicativos Typer (`FlextCliAppBase`)](#base-para-aplicativos-typer-flextcliappbase)
 - [Serviço `FlextCliCore`](#servio-flextclicore)
@@ -15,7 +15,7 @@
 
 Referência alinhada ao código-fonte do **flext-cli** 0.10.0. Última revisão: 2025-02-06.
 
-- **Facade**: `FlextCli` expõe serviços e utilidades como atributos e mantém wrappers de conveniência (`print`, `create_table`, `create_tree`).
+- **Facade**: `cli` expõe serviços e utilidades como atributos e mantém wrappers de conveniência (`print`, `create_table`, `create_tree`).
 - **Resultados**: todas as operações retornam `r[T]` para composições seguras.
 - **Isolamento de frameworks**: Typer/Click apenas em `cli.py`; Rich/Tabulate restritos a `formatters.py` e `services/tables.py`.
 
@@ -23,7 +23,7 @@ Referência alinhada ao código-fonte do **flext-cli** 0.10.0. Última revisão:
 
 ```python
 from flext_cli import (
-    FlextCli,  # Facade principal
+    cli,  # Facade principal
     FlextCliCore,  # Serviço de registro/execução de comandos
     FlextCliCmd,  # Operações auxiliares de configuração
     FlextCliOutput,  # Formatação e exibição
@@ -38,7 +38,7 @@ from flext_cli import (
 from flext_core import r
 ```
 
-## Facade `FlextCli`
+## Facade `cli`
 
 Acesso direto aos serviços `core`, `cmd`, `output`, `prompts`, `tables`, às utilidades `formatters`, `file_tools`, `utilities` e ao `config` compartilhado.
 
@@ -50,7 +50,6 @@ Acesso direto aos serviços `core`, `cmd`, `output`, `prompts`, `tables`, às ut
 - **Wrappers de compatibilidade**: `print(message, style=None)`, `create_table(data, headers=None, title=None)`, `print_table(table)`, `create_tree(label)`.
 
 ```python
-cli = FlextCli()
 cli.authenticate({"username": "user", "password": "pass"})
 cli.core.register_command(cli.Models.CliCommand(name="hello", handler="handlers:hello"))
 cli.print("ready", style="bold green")

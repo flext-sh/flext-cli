@@ -6,6 +6,7 @@ import typing
 from enum import StrEnum, unique
 
 from flext_core import FlextConstants
+from rich.errors import ConsoleError, LiveError, StyleError
 
 from flext_cli import t
 
@@ -15,6 +16,15 @@ class FlextCliConstants(FlextConstants):
 
     class Cli:
         """CLI related constants."""
+
+        CLI_SAFE_EXCEPTIONS: typing.ClassVar[tuple[type[Exception], ...]] = (
+            ValueError,
+            TypeError,
+            KeyError,
+            ConsoleError,
+            StyleError,
+            LiveError,
+        )
 
         @unique
         class OutputFormats(StrEnum):

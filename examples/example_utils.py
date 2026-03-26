@@ -1,7 +1,7 @@
 """Common utilities for FLEXT CLI examples.
 
 Eliminates code duplication across example files by providing shared patterns
-and common functionality using ONLY FlextCli wrappers - NO direct Rich imports!
+and common functionality using ONLY cli wrappers - NO direct Rich imports!
 All data transport uses Pydantic v2 models from flext_cli (m.Cli).
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
@@ -14,7 +14,7 @@ from __future__ import annotations
 from flext_core import r
 from pydantic import BaseModel
 
-from flext_cli import FlextCli, m, t
+from flext_cli import cli, m, t
 
 
 def to_json_dict(
@@ -28,13 +28,13 @@ def to_json_dict(
 
 
 def print_demo_completion(
-    cli: FlextCli,
+    cli: cli,
     demo_name: str,
     features: t.StrSequence,
     *,
     style: str = "green",
 ) -> None:
-    """Print standardized demo completion message using FlextCli."""
+    """Print standardized demo completion message using cli."""
     cli.print(f"\n🎉 {demo_name} Complete", style=f"bold {style}")
     cli.print(f"✅ {demo_name} Completed!", style=style)
     cli.print("\nKey Features Demonstrated:", style="cyan")
@@ -47,7 +47,7 @@ def print_demo_completion(
 
 
 def handle_command_result(
-    cli: FlextCli,
+    cli: cli,
     result: r[BaseModel],
     action: str,
     success_fields: t.StrSequence | None = None,
@@ -68,7 +68,7 @@ def handle_command_result(
 
 
 def print_demo_error(
-    cli: FlextCli,
+    cli: cli,
     demo_name: str,
     error: str,
     *,
@@ -87,7 +87,7 @@ def print_demo_error(
 
 
 def display_config_table(
-    cli: FlextCli,
+    cli: cli,
     config_data: BaseModel,
     headers: t.StrSequence | None = None,
 ) -> None:
@@ -110,11 +110,11 @@ def display_config_table(
 
 
 def display_success_summary(
-    cli: FlextCli,
+    cli: cli,
     operation: str,
     details: m.Cli.SuccessSummaryDetails | None = None,
 ) -> None:
-    """Display a standardized success summary using FlextCli."""
+    """Display a standardized success summary using cli."""
     cli.print(
         f"✅ {operation} completed successfully!",
         style="bold green",
@@ -125,11 +125,11 @@ def display_success_summary(
 
 
 def display_validation_errors(
-    cli: FlextCli,
+    cli: cli,
     errors: t.StrSequence,
     context: str = "validation",
 ) -> None:
-    """Display validation errors in a consistent format using FlextCli."""
+    """Display validation errors in a consistent format using cli."""
     cli.print(
         f"❌ {context.title()} failed with {len(errors)} error(s):",
         style="bold red",

@@ -69,7 +69,7 @@ ______________________________________________________________________
 v0.10.0 simplifies FLEXT-CLI by:
 
 - ✅ **Direct Access Pattern**: Call methods on specific services (e.g., `cli.formatters.print()`)
-- ✅ **Removed Wrappers**: No more thin wrapper methods in FlextCli
+- ✅ **Removed Wrappers**: No more thin wrapper methods in cli
 - ✅ **Simplified Services**: Only 3-4 service classes (down from 18)
 - ✅ **FlextCliContext removed**: Use `m.Cli.CliContext` for simple context data or pass args directly
 - ✅ **Removed Complexity**: No unused async/threading/plugin code
@@ -100,12 +100,10 @@ API wrapper methods have been removed. Use direct access instead.
 
 ```python
 # ❌ v0.9.0 (OLD - No longer works)
-cli = FlextCli()
 cli.print("Hello, World!")
 cli.print("Success!", style="success")
 
 # ✅ v0.10.0 (NEW - Use this)
-cli = FlextCli()
 cli.formatters.print("Hello, World!")
 cli.formatters.print("Success!", style="success")
 ```
@@ -182,7 +180,6 @@ result = file_tools.read_json_file("config.json")
 # ✅ v0.10.0 (NEW - Static methods)
 result = FlextCliFileTools.read_json_file("config.json")
 # Or through main CLI:
-cli = FlextCli()
 result = cli.file_tools.read_json_file("config.json")
 ```
 
@@ -208,8 +205,7 @@ These modules no longer exist:
 # ❌ v0.9.0 (OLD - Will fail)
 from flext_cli import FlextCliAuthService
 
-# ✅ v0.10.0 (NEW - Use FlextCli.authenticate())
-cli = FlextCli()
+# ✅ v0.10.0 (NEW - Use cli.authenticate())
 result = cli.authenticate({"token": "abc123"})
 ```
 
@@ -311,16 +307,16 @@ Common test failures:
 
 ```python
 # ❌ OLD (if you had type hints)
-def process_cli(cli: FlextCli) -> None:
+def process_cli(cli: cli) -> None:
     cli.print("Processing...")
 
 
 # ✅ NEW (type hints still work)
-def process_cli(cli: FlextCli) -> None:
+def process_cli(cli: cli) -> None:
     cli.formatters.print("Processing...")
 ```
 
-Type hints for FlextCli don't change - only method calls do.
+Type hints for cli don't change - only method calls do.
 
 ______________________________________________________________________
 
@@ -347,7 +343,7 @@ ______________________________________________________________________
 
 ### Services Reference
 
-Access these through FlextCli instance:
+Access these through cli instance:
 
 | Service          | Methods                                       | Purpose                  |
 | ---------------- | --------------------------------------------- | ------------------------ |
@@ -418,12 +414,11 @@ ______________________________________________________________________
 
 ```python
 # ❌ v0.9.0
-from flext_cli import FlextCli
+from flext_cli import cli
 
 
 def main():
-    cli = FlextCli()
-    cli.print("Welcome!", style="success")
+        cli.print("Welcome!", style="success")
 
     config = cli.read_json_file("config.json").unwrap()
     cli.print(f"Loaded config: {config['name']}")
@@ -435,12 +430,11 @@ def main():
 
 
 # ✅ v0.10.0
-from flext_cli import FlextCli
+from flext_cli import cli
 
 
 def main():
-    cli = FlextCli()
-    cli.formatters.print("Welcome!", style="success")
+        cli.formatters.print("Welcome!", style="success")
 
     config = cli.file_tools.read_json_file("config.json").unwrap()
     cli.formatters.print(f"Loaded config: {config['name']}")
@@ -455,12 +449,11 @@ def main():
 
 ```python
 # ❌ v0.9.0
-from flext_cli import FlextCli
+from flext_cli import cli
 
 
 def process_data():
-    cli = FlextCli()
-
+    
     # Read input
     data = cli.read_csv_file("input.csv").unwrap()
     cli.print(f"Loaded {len(data)} records")
@@ -478,12 +471,11 @@ def process_data():
 
 
 # ✅ v0.10.0
-from flext_cli import FlextCli
+from flext_cli import cli
 
 
 def process_data():
-    cli = FlextCli()
-
+    
     # Read input
     data = cli.file_tools.read_csv_file("input.csv").unwrap()
     cli.formatters.print(f"Loaded {len(data)} records")

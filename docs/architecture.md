@@ -14,7 +14,7 @@ Panorama da arquitetura implementada no **flext-cli** 0.10.0, conforme o código
 
 ## Princípios
 
-- **Facade única**: `FlextCli` compõe serviços (`core`, `cmd`, `output`, `prompts`, `tables`) e utilidades (`formatters`, `file_tools`, `utilities`) e mantém wrappers legados.
+- **Facade única**: `cli` compõe serviços (`core`, `cmd`, `output`, `prompts`, `tables`) e utilidades (`formatters`, `file_tools`, `utilities`) e mantém wrappers legados.
 - **Fronteiras claras de framework**: Typer/Click ficam em `cli.py`; Rich/Tabulate são usados apenas em `formatters.py` e `services/tables.py`.
 - **Contratos explícitos**: `models.py` e `protocols.py` definem os tipos de entrada/saída validados com Pydantic v2.
 - **Retornos com `r[T]`**: erros e sucessos são encadeáveis em autenticação, orquestração e I/O.
@@ -23,7 +23,7 @@ Panorama da arquitetura implementada no **flext-cli** 0.10.0, conforme o código
 
 ```
 src/flext_cli/
-├── api.py                # Facade FlextCli e base para CLIs Typer
+├── api.py                # Facade cli e base para CLIs Typer
 ├── base.py               # Base de serviços com acesso ao config singleton
 ├── cli.py                # Única fronteira com Typer/Click
 ├── cli_params.py         # Parâmetros reutilizáveis para comandos Typer/Click
@@ -48,7 +48,7 @@ src/flext_cli/
 
 ## Fluxo em tempo de execução
 
-1. **Bootstrap**: `FlextCli` registra o identificador do CLI no `FlextContainer` e instancia os serviços e utilidades compartilhados.
+1. **Bootstrap**: `cli` registra o identificador do CLI no `FlextContainer` e instancia os serviços e utilidades compartilhados.
 1. **Registro de comandos**: modelos em `commands.py` são validados em `FlextCliCore.register_command` antes de serem armazenados.
 1. **Execução**: `FlextCliCore.execute_command` resolve o comando registrado; `FlextCliCmd` fornece operações utilitárias ligadas à configuração persistida.
 1. **Entrada/Saída**: `prompts.py` coleta entrada; `output.py`, `formatters.py` e `tables.py` geram saídas em Rich/ASCII/JSON/YAML/CSV sem expor o Rich diretamente.
@@ -58,14 +58,13 @@ src/flext_cli/
 
 - `r`: envelope de sucesso/falha usado por todas as operações públicas.
 - `FlextService`: herdado em `FlextCliServiceBase` para logging, contexto e ciclo de vida.
-- `FlextContainer`: registro do identificador do CLI ao inicializar `FlextCli` ou `FlextCliCli`.
+- `FlextContainer`: registro do identificador do CLI ao inicializar `cli` ou `FlextCliCli`.
 
 ## Exemplo mínimo
 
 ```python
-from flext_cli import FlextCli
+from flext_cli import cli
 
-cli = FlextCli()
 command = cli.Models.CliCommand(name="hello", handler="handlers:hello")
 cli.core.register_command(command)
 

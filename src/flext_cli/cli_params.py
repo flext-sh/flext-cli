@@ -6,7 +6,6 @@ from collections.abc import Mapping, MutableMapping
 from typing import ClassVar
 
 from flext_core import r
-from rich.errors import ConsoleError, LiveError, StyleError
 from typer.models import OptionInfo
 
 from flext_cli import FlextCliSettings, c, m, p, t, u
@@ -204,14 +203,7 @@ class FlextCliCommonParams:
         try:
             params_to_use = cls._resolve_params(params, kwargs)
             return cls._apply_param_setters(config, params_to_use)
-        except (
-            ValueError,
-            TypeError,
-            KeyError,
-            ConsoleError,
-            StyleError,
-            LiveError,
-        ) as e:
+        except c.Cli.CLI_SAFE_EXCEPTIONS as e:
             return r[FlextCliSettings].fail(f"Failed to apply CLI parameters: {e}")
 
     @classmethod

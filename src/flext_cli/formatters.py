@@ -11,8 +11,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import sys
-from functools import cached_property
-from typing import Literal, Self, overload, override
+from typing import ClassVar, Literal, Self, overload, override
 
 from flext_core import FlextLogger, r
 from rich.console import Console
@@ -75,10 +74,7 @@ class FlextCliFormatters:
             """Expose inner Rich Tree for rendering or advanced use."""
             return self._tree
 
-    @cached_property
-    def console(self) -> Console:
-        """Lazily create Rich Console on first access."""
-        return Console()
+    console: ClassVar[Console] = Console()
 
     @staticmethod
     def create_tree(label: str) -> r[FlextCliFormatters.Tree]:
@@ -103,7 +99,8 @@ class FlextCliFormatters:
                 c.Cli.FormattersErrorMessages.TREE_CREATION_FAILED.format(error=exc),
             )
 
-    def print(self, message: str, style: str | None = None) -> None:
+    @staticmethod
+    def print(message: str, style: str | None = None) -> None:
         """Print formatted message using Rich.
 
         Args:
@@ -115,7 +112,7 @@ class FlextCliFormatters:
 
         """
         try:
-            self.console.print(message, style=style)
+            FlextCliFormatters.console.print(message, style=style)
         except (ConsoleError, StyleError) as exc:
             _logger.warning(
                 "rich_print_fallback",

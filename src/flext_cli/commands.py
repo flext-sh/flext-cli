@@ -16,7 +16,6 @@ from typing import Self, override
 
 from flext_core import r
 from pydantic import PrivateAttr
-from rich.errors import ConsoleError, LiveError, StyleError
 
 from flext_cli import FlextCliServiceBase, c, m, t
 
@@ -114,14 +113,7 @@ class FlextCliCommands(FlextCliServiceBase):
             if not execution_attempted:
                 result = handler()
             return self._normalize_handler_result(result, name)
-        except (
-            ValueError,
-            TypeError,
-            KeyError,
-            ConsoleError,
-            StyleError,
-            LiveError,
-        ) as e:
+        except c.Cli.CLI_SAFE_EXCEPTIONS as e:
             return r[t.Cli.JsonValue].fail(
                 c.Cli.CommandsErrorMessages.COMMAND_EXECUTION_FAILED.format(error=e),
             )

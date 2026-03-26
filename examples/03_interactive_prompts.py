@@ -33,9 +33,8 @@ from __future__ import annotations
 from flext_core import r
 
 from examples import AppWizardConfig, DatabaseWizardConfig, NumericPromptResult
-from flext_cli import FlextCli, FlextCliPrompts
+from flext_cli import FlextCliPrompts, cli
 
-cli = FlextCli()
 prompts = FlextCliPrompts()
 
 
@@ -177,8 +176,8 @@ def validate_email_input() -> r[str]:
 
 
 def flext_prompt_with_validation() -> r[int]:
-    """Use FlextCli prompts with custom validation logic."""
-    cli.print("\n📝 FlextCli Prompts with Custom Validation", style="cyan")
+    """Use cli prompts with custom validation logic."""
+    cli.print("\n📝 cli Prompts with Custom Validation", style="cyan")
     name_result = prompts.prompt("Enter your name", default="Anonymous")
     if name_result.is_success:
         name = name_result.value
@@ -223,7 +222,7 @@ def flext_prompt_with_validation() -> r[int]:
 
 
 def flext_confirm_prompts() -> bool:
-    """Use FlextCli confirm() for boolean confirmations."""
+    """Use cli confirm() for boolean confirmations."""
     cli.print("\n🔘 Boolean Confirmations", style="cyan")
     proceed_result = prompts.confirm("Would you like to proceed?", default=True)
     if proceed_result.is_success and proceed_result.value:
@@ -242,7 +241,7 @@ def flext_confirm_prompts() -> bool:
 
 
 def flext_numeric_prompts() -> r[NumericPromptResult]:
-    """Use FlextCli prompts with numeric validation."""
+    """Use cli prompts with numeric validation."""
     cli.print("\n🔢 Type-Safe Numeric Input", style="cyan")
 
     def validate_int(
@@ -303,7 +302,7 @@ def flext_numeric_prompts() -> r[NumericPromptResult]:
 
 
 def flext_configuration_wizard() -> r[AppWizardConfig]:
-    """Complete configuration wizard using FlextCli prompts."""
+    """Complete configuration wizard using cli prompts."""
     cli.print("\n⚙️  Application Configuration Wizard", style="bold cyan")
     name_result = prompts.prompt("Application name", default="my-app")
     if name_result.is_failure:
@@ -394,13 +393,13 @@ def main() -> None:
     _ = database_setup_wizard()
     cli.print("\n6. Input Validation (email):", style="bold cyan")
     _ = validate_email_input()
-    cli.print("\n7. FlextCli Prompts (custom validation):", style="bold cyan")
+    cli.print("\n7. cli Prompts (custom validation):", style="bold cyan")
     _ = flext_prompt_with_validation()
-    cli.print("\n8. FlextCli Confirm (boolean prompts):", style="bold cyan")
+    cli.print("\n8. cli Confirm (boolean prompts):", style="bold cyan")
     _ = flext_confirm_prompts()
-    cli.print("\n9. FlextCli Numeric Prompts (type-safe):", style="bold cyan")
+    cli.print("\n9. cli Numeric Prompts (type-safe):", style="bold cyan")
     _ = flext_numeric_prompts()
-    cli.print("\n10. FlextCli Configuration Wizard:", style="bold cyan")
+    cli.print("\n10. cli Configuration Wizard:", style="bold cyan")
     _ = flext_configuration_wizard()
     cli.print("\n" + "=" * 70, style="bold blue")
     cli.print("  ✅ Prompt Examples Complete", style="bold green")
@@ -416,7 +415,7 @@ def main() -> None:
     cli.print("  • Combine with r for robust validation", style="white")
     cli.print("  • All methods return r - no try/except needed", style="white")
     cli.print(
-        "  • NEVER import rich/click directly - use FlextCli wrappers!",
+        "  • NEVER import rich/click directly - use cli wrappers!",
         style="white",
     )
 

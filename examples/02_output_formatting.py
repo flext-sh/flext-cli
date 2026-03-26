@@ -40,9 +40,8 @@ from pathlib import Path
 
 from flext_core import r
 
-from flext_cli import FlextCli, FlextCliTables, c, m, t
+from flext_cli import FlextCliTables, c, cli, m, t
 
-cli = FlextCli()
 tables = FlextCliTables()
 
 
@@ -220,7 +219,7 @@ def main() -> None:
     cli.print("  • Organization: Use cli.print() with sections", style="white")
     cli.print("  • All methods return r for error handling", style="white")
     cli.print(
-        "  • NEVER import rich/click/tabulate directly - use FlextCli!",
+        "  • NEVER import rich/click/tabulate directly - use cli!",
         style="white",
     )
 

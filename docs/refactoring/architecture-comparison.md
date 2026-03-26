@@ -61,7 +61,7 @@ ______________________________________________________________________
 
 Services (Stateful):
 ✅ FlextCliCore - Commands, sessions
-✅ FlextCli - Main facade
+✅ cli - Main facade
 ✅ FlextCliCmd - Command execution
 
 Services (Unnecessary):
@@ -84,7 +84,7 @@ Services (Unnecessary):
 
 Services (Stateful - ONLY 3-4):
 ✅ FlextCliCore - Commands, sessions, config
-✅ FlextCli - Main facade (singleton)
+✅ cli - Main facade (singleton)
 ✅ FlextCliCmd - Command execution (evaluate)
 
 Simple Classes (Utilities - 10+):
@@ -109,7 +109,6 @@ ______________________________________________________________________
 
 ```python
 # ❌ Multiple ways to do the same thing
-cli = FlextCli()
 
 # Way 1: Through wrapper
 cli.print("Hello")
@@ -126,7 +125,6 @@ cli.formatters.print("Hello")
 
 ```python
 # ✅ One clear way
-cli = FlextCli()
 
 # Always direct access - clear ownership
 cli.formatters.print("Hello")
@@ -145,9 +143,8 @@ ______________________________________________________________________
 #### v0.9.0 (Old)
 
 ```python
-from flext_cli import FlextCli
+from flext_cli import cli
 
-cli = FlextCli()
 
 # Wrapper method (will be removed)
 config = cli.read_json_file("config.json").unwrap()
@@ -161,9 +158,8 @@ config = cli.file_tools.read_json_file("config.json").unwrap()
 #### v0.10.0 (New)
 
 ```python
-from flext_cli import FlextCli
+from flext_cli import cli
 
-cli = FlextCli()
 
 # Only one way - direct access
 config = cli.file_tools.read_json_file("config.json").unwrap()
@@ -332,7 +328,7 @@ ______________________________________________________________________
 
 ```python
 cli.print("msg")
-    → FlextCli.print()  # Wrapper
+    → cli.print()  # Wrapper
         → self.formatters.print("msg")  # Actual method
             → Rich library
 

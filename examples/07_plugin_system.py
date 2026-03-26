@@ -20,7 +20,7 @@ WHAT YOU CAN BUILD USING THIS PATTERN:
 - Lifecycle hooks (initialize, execute, cleanup)
 
 HOW TO IMPLEMENT IN YOUR CLI:
-Use flext-cli foundation (r, FlextCli) to build plugin architecture
+Use flext-cli foundation (r, cli) to build plugin architecture
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -35,9 +35,7 @@ from pathlib import Path
 
 from flext_core import r
 
-from flext_cli import FlextCli, FlextCliTables, m, t
-
-cli = FlextCli()
+from flext_cli import FlextCliTables, cli, m, t
 
 
 class DataExportPlugin:

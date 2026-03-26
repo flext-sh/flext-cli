@@ -17,9 +17,9 @@ from pathlib import Path
 from flext_core import r
 from pydantic import TypeAdapter, ValidationError
 
-from flext_cli import FlextCli, FlextCliTables, m, t
+from flext_cli import FlextCliTables, cli, m, t
 
-cli = FlextCli()
+cli = cli()
 tables = FlextCliTables()
 
 
@@ -56,7 +56,7 @@ def load_user_preferences(config_dir: Path) -> r[m.Cli.LoadedConfig]:
     """Load user preferences from JSON in YOUR app. Returns r[LoadedConfig]; no None."""
     config_file = config_dir / "preferences.json"
 
-    read_result = cli.read_json_dict(config_file)
+    read_result = cli.read_json_file(config_file)
 
     if read_result.is_failure:
         cli.print(f"⚠️  Could not load: {read_result.error}", style="yellow")
@@ -202,7 +202,7 @@ def show_directory_tree(root_path: Path, max_items: int = 15) -> None:
 
 def validate_and_import_data(input_file: Path) -> r[m.Cli.LoadedConfig]:
     """Validate and import data in YOUR ETL pipeline. Returns r[LoadedConfig]; no None."""
-    read_result = cli.read_json_dict(input_file)
+    read_result = cli.read_json_file(input_file)
 
     if read_result.is_failure:
         cli.print(f"❌ Read failed: {read_result.error}", style="bold red")
@@ -486,7 +486,7 @@ def process_file_pipeline(
         cli.print("✅ Input validation passed", style="green")
 
         # Step 2: Read file content (dict-only, no narrowing)
-        read_result = cli.read_json_dict(input_file)
+        read_result = cli.read_json_file(input_file)
         if read_result.is_failure:
             result = r.fail(
                 f"File read failed: {read_result.error}",

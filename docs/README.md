@@ -12,7 +12,7 @@ Documentação alinhada ao **flext-cli** 0.10.0 conforme o código-fonte atual.
 
 ## Visão geral
 
-- **Facade única (`FlextCli`)**: expõe serviços (`core`, `cmd`, `output`, `prompts`, `tables`) e utilidades (`formatters`, `file_tools`, `utilities`) como atributos públicos.
+- **Facade única (`cli`)**: expõe serviços (`core`, `cmd`, `output`, `prompts`, `tables`) e utilidades (`formatters`, `file_tools`, `utilities`) como atributos públicos.
 - **Wrappers de compatibilidade**: `print`, `create_table`, `print_table` e `create_tree` delegam para os serviços internos sem acoplar frameworks.
 - **Isolamento de frameworks**: Typer/Click permanecem em `cli.py`; Rich/Tabulate ficam confinados a `formatters.py` e `services/tables.py`.
 - **Contratos e modelos**: `models.py`, `constants.py` e `protocols.py` documentam os tipos validados com Pydantic v2.
@@ -30,7 +30,7 @@ Documentação alinhada ao **flext-cli** 0.10.0 conforme o código-fonte atual.
 - Compatibilidade mantida pelos wrappers principais (`print`, `create_table`, `create_tree`).
 - Serviços com estado em `services/` separados de utilidades stateless em `formatters.py`, `file_tools.py` e `utilities.py`.
 - Configuração centralizada em `FlextCliSettings` e exposta via `FlextCliServiceBase` para todos os serviços.
-- Registro do identificador da aplicação no `FlextContainer` na inicialização do `FlextCli`.
+- Registro do identificador da aplicação no `FlextContainer` na inicialização do `cli`.
 
 ## Status
 

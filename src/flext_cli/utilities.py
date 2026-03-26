@@ -30,7 +30,6 @@ from pydantic import (
     computed_field,
 )
 from pydantic.fields import FieldInfo
-from rich.errors import ConsoleError, LiveError, StyleError
 from typer.models import OptionInfo
 
 from flext_cli import c, m, p, t
@@ -610,14 +609,7 @@ class FlextCliUtilities(FlextUtilities):
             for key, value in items.items():
                 try:
                     values[key] = processor(key, value)
-                except (
-                    ValueError,
-                    TypeError,
-                    KeyError,
-                    ConsoleError,
-                    StyleError,
-                    LiveError,
-                ) as exc:
+                except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
                     if on_error == "fail":
                         return r[Mapping[str, U]].fail(f"Error processing {key}: {exc}")
                     if on_error == "collect":

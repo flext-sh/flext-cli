@@ -168,7 +168,7 @@ ______________________________________________________________________
 ```
 Does the class manage mutable state?
 ├─ YES → Use FlextService
-│        Examples: FlextCliCore, FlextCli
+│        Examples: FlextCliCore, cli
 │
 └─ NO → Does it have behavior (business logic)?
     ├─ YES → Is it stateless utility functions?
@@ -193,7 +193,7 @@ Follow the v0.10.0 module organization:
 src/flext_cli/
 ├── Services (3-4 only)
 │   ├── core.py              # FlextCliCore - stateful
-│   ├── api.py               # FlextCli - facade
+│   ├── api.py               # cli - facade
 │   └── cmd.py               # FlextCliCmd - command execution
 │
 ├── Simple Classes (utilities)
@@ -215,7 +215,6 @@ src/flext_cli/
 
 ```python
 # ✅ CORRECT - Direct access
-cli = FlextCli()
 cli.formatters.print("Hello", style="green")
 cli.file_tools.read_json_file("config.json")
 cli.prompts.confirm("Continue?")
@@ -391,14 +390,14 @@ Follow these patterns when extending flext-cli:
 
 ```python
 # ✅ Correct - Use flext-cli patterns
-from flext_cli import FlextCli
+from flext_cli import cli
 
 
 class ProjectCliService:
     """Project CLI service following FLEXT patterns."""
 
     def __init__(self):
-        self._cli_api = FlextCli()
+        self._cli_api = cli()
 
     def process_data(self, data: dict):
         """Process CLI data."""
@@ -432,12 +431,12 @@ tests/
 
 ```python
 import pytest
-from flext_cli import FlextCli
+from flext_cli import cli
 
 
 def test_cli_api_operation():
     """Test CLI API operations."""
-    api = FlextCli()
+    api = cli()
 
     result = api.process_command("test")
 
@@ -447,7 +446,7 @@ def test_cli_api_operation():
 
 def test_error_handling():
     """Test proper error handling."""
-    api = FlextCli()
+    api = cli()
 
     result = api.process_command("")  # Invalid input
 
@@ -531,7 +530,7 @@ from flext_core import FlextRuntime
 from flext_core import FlextService
 from flext_core import t
 from flext_core import u
-from flext_cli import FlextCli
+from flext_cli import cli
 
 class DataCommands(FlextService):
     """Data management commands."""

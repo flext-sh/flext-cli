@@ -54,7 +54,10 @@ _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
     "FlextCliFileTools": ["flext_cli.file_tools", "FlextCliFileTools"],
     "FlextCliFormatters": ["flext_cli.formatters", "FlextCliFormatters"],
     "FlextCliModels": ["flext_cli.models", "FlextCliModels"],
-    "FlextCliModelsSystemContext": ["flext_cli._models.cli_models_system_context", "FlextCliModelsSystemContext"],
+    "FlextCliModelsSystemContext": [
+        "flext_cli._models.cli_models_system_context",
+        "FlextCliModelsSystemContext",
+    ],
     "FlextCliOutput": ["flext_cli.services.output", "FlextCliOutput"],
     "FlextCliPrompts": ["flext_cli.services.prompts", "FlextCliPrompts"],
     "FlextCliProtocols": ["flext_cli.protocols", "FlextCliProtocols"],

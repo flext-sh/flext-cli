@@ -29,9 +29,7 @@ from pathlib import Path
 
 from flext_core import r
 
-from flext_cli import FlextCli, FlextCliPrompts, t
-
-cli = FlextCli()
+from flext_cli import FlextCliPrompts, cli, t
 
 
 def my_cli_command(name: str) -> r[str]:
@@ -85,7 +83,7 @@ def test_file_operations() -> None:
         return
     cli.print("   ✅ File save test passed", style="green")
     temp_file = Path(tempfile.gettempdir()) / "test_config.json"
-    read_result = cli.read_json_dict(temp_file)
+    read_result = cli.read_json_file(temp_file)
     if not read_result.is_success:
         cli.print("   ❌ Config read should succeed", style="red")
         return
@@ -171,7 +169,7 @@ def full_workflow_command() -> r[t.ContainerMapping]:
     write_result = cli.write_json_file(temp_file, data)
     if write_result.is_failure:
         return r[t.ContainerMapping].fail(f"Write failed: {write_result.error}")
-    read_result = cli.read_json_dict(temp_file)
+    read_result = cli.read_json_file(temp_file)
     if read_result.is_failure:
         temp_file.unlink(missing_ok=True)
         return r[t.ContainerMapping].fail(f"Read failed: {read_result.error}")
@@ -220,7 +218,7 @@ def main() -> None:
     cli.print("  • Write integration tests for workflows", style="white")
     cli.print("\n📝 pytest Example:", style="bold cyan")
     cli.print(
-        '\ndef test_my_command():\n    from flext_cli import FlextCli\n    cli = FlextCli()\n\n    result = my_command(param="test")\n\n    assert result.is_success\n    assert result.value == expected_value\n    ',
+        '\ndef test_my_command():\n    from flext_cli import cli\n    cli = cli()\n\n    result = my_command(param="test")\n\n    assert result.is_success\n    assert result.value == expected_value\n    ',
         style="cyan",
     )
 

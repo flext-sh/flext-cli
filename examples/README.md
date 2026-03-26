@@ -13,7 +13,7 @@
 - [📦 Available Modules](#-available-modules)
 - [🏗️ Architecture](#-architecture)
 - [💡 Usage Patterns](#-usage-patterns)
-  - [Pattern 1: Direct FlextCli Usage](#pattern-1-direct-flextcli-usage)
+  - [Pattern 1: Direct cli Usage](#pattern-1-direct-flextcli-usage)
   - [Pattern 2: Service-Specific Import](#pattern-2-service-specific-import)
   - [Pattern 3: With r](#pattern-3-with-flextresult)
   - [Pattern 4: With Configuration](#pattern-4-with-configuration)
@@ -33,11 +33,11 @@
 
 <!-- TOC END -->
 
-**IMPORTANT**: flext-cli is a **LIBRARY**, not a CLI application. Import `FlextCli` and use it in your Python applications.
+**IMPORTANT**: flext-cli is a **LIBRARY**, not a CLI application. Import `cli` and use it in your Python applications.
 
 ## 📚 Overview
 
-This directory contains comprehensive examples demonstrating all flext-cli capabilities. Each example focuses on specific modules and features, showing how to use them through the `FlextCli` API.
+This directory contains comprehensive examples demonstrating all flext-cli capabilities. Each example focuses on specific modules and features, showing how to use them through the `cli` API.
 
 ## 🎯 What is flext-cli
 
@@ -58,7 +58,7 @@ flext-cli is a production-ready Python library that provides:
 
 1. **[01_getting_started.py](01_getting_started.py)** - Start here!
 
-   - Basic FlextCli initialization
+   - Basic cli initialization
    - Accessing domain services
    - r railway pattern
    - Core operations
@@ -141,10 +141,9 @@ flext-cli is a production-ready Python library that provides:
 pip install flext-cli
 
 # Import and use
-from flext_cli import FlextCli
+from flext_cli import cli
 
 # Initialize
-cli = FlextCli()
 
 # Use features
 cli.print_success("Hello, World!")
@@ -160,11 +159,9 @@ cli.print("Hello!", style="bold green")
 
 ## 📦 Available Modules
 
-Access all modules through the `FlextCli` facade:
+Access all modules through the `cli` facade:
 
 ```python
-cli = FlextCli()
-
 # All services available directly via MRO inheritance:
 cli.print_success("msg")  # FlextCliOutput
 cli.print("msg", style="bold")  # FlextCliFormatters
@@ -178,7 +175,7 @@ Or import modules directly:
 
 ```python
 from flext_cli import (
-    FlextCli,
+    cli,
     FlextCliSettings,
     FlextCliOutput,
     FlextCliFormatters,
@@ -191,7 +188,7 @@ from flext_cli import (
 
 flext-cli follows the FLEXT ecosystem architecture:
 
-- **FlextCli** - Main facade providing unified access
+- **cli** - Main facade providing unified access
 - **Services** - Specialized modules (Output, Formatters, Tables, etc.)
 - **r** - Railway-oriented error handling (from flext-core)
 - **FlextSettings** - Pydantic-based configuration
@@ -199,12 +196,11 @@ flext-cli follows the FLEXT ecosystem architecture:
 
 ## 💡 Usage Patterns
 
-### Pattern 1: Direct FlextCli Usage
+### Pattern 1: Direct cli Usage
 
 ```python
-from flext_cli import FlextCli
+from flext_cli import cli
 
-cli = FlextCli()
 cli.print_success("Operation successful")
 ```
 
@@ -220,7 +216,7 @@ output.error("Something went wrong")
 ### Pattern 3: With r
 
 ```python
-from flext_cli import FlextCli
+from flext_cli import cli
 from flext_core import FlextBus
 from flext_core import FlextSettings
 from flext_core import FlextConstants
@@ -244,8 +240,7 @@ from flext_core import u
 
 
 def process_data(data: dict) -> r[dict]:
-    cli = FlextCli()
-
+    
     if not data:
         return r[dict].fail("Data is empty")
 
@@ -258,14 +253,13 @@ def process_data(data: dict) -> r[dict]:
 ### Pattern 4: With Configuration
 
 ```python
-from flext_cli import FlextCli, FlextCliSettings
+from flext_cli import cli, FlextCliSettings
 
 config = FlextCliSettings(
     debug=True,
     log_level="DEBUG",
 )
 
-cli = FlextCli()
 cli.print(f"Debug mode: {config.debug}")
 ```
 
@@ -300,10 +294,9 @@ else:
 
 ### 2. Direct MRO Method Access
 
-Access all services directly on the FlextCli instance:
+Access all services directly on the cli instance:
 
 ```python
-cli = FlextCli()
 cli.print_success("Message")  # Direct MRO method
 cli.display_rich_table(data)  # Direct MRO method
 ```
@@ -324,7 +317,7 @@ config = FlextCliSettings(
 Complete type hints for IDE support:
 
 ```python
-from flext_cli import FlextCli
+from flext_cli import cli
 from flext_core import FlextBus
 from flext_core import FlextSettings
 from flext_core import FlextConstants
@@ -348,7 +341,6 @@ from flext_core import u
 
 
 def typed_operation(data: dict) -> r[dict]:
-    cli = FlextCli()
     return cli.write_json_file("output.json", data)
 ```
 
@@ -357,12 +349,11 @@ def typed_operation(data: dict) -> r[dict]:
 ### CLI Application Development
 
 ```python
-from flext_cli import FlextCli
+from flext_cli import cli
 
 
 def main():
-    cli = FlextCli()
-
+    
     # Get user input
     name = cli.prompt("Enter project name:")
 
@@ -380,7 +371,7 @@ if __name__ == "__main__":
 ### Data Processing Pipeline
 
 ```python
-from flext_cli import FlextCli
+from flext_cli import cli
 from flext_core import FlextBus
 from flext_core import FlextSettings
 from flext_core import FlextConstants
@@ -404,8 +395,7 @@ from flext_core import u
 
 
 def process_pipeline(input_file: str) -> r[dict]:
-    cli = FlextCli()
-
+    
     # Read input
     data_result = cli.read_json_file(input_file)
     if data_result.is_failure:
@@ -427,12 +417,11 @@ def process_pipeline(input_file: str) -> r[dict]:
 ### Interactive Tool
 
 ```python
-from flext_cli import FlextCli
+from flext_cli import cli
 
 
 def interactive_tool():
-    cli = FlextCli()
-
+    
     while True:
         action = cli.prompt_choice(
             "Choose action:", choices=["Process", "View", "Exit"]
@@ -464,7 +453,7 @@ def interactive_tool():
 ## ✅ Best Practices
 
 1. **Use r** for all operations
-1. **Initialize FlextCli once** and reuse
+1. **Initialize cli once** and reuse
 1. **Access services via MRO methods** (cli.print_success, cli.prompt)
 1. **Handle errors explicitly** with r patterns
 1. **Use type hints** for better IDE support

@@ -22,7 +22,7 @@ from flext_tests import tm
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic_settings import BaseSettings
 
-from flext_cli import FlextCli, FlextCliSettings
+from flext_cli import FlextCliSettings, cli
 from tests import t
 
 
@@ -140,12 +140,12 @@ class TestsCliLoggingConfig:
 
 
 class TestsCliConfigIntegration:
-    """Integration with FlextCli."""
+    """Integration with cli."""
 
     def test_flext_cli_integration(self) -> None:
-        """Test FlextCli uses config."""
-        cli = FlextCli()
-        config = cli.config
+        """Test cli uses config."""
+        instance = cli()
+        config = instance.config
         tm.that(config, none=False)
         tm.that(config, is_=FlextCliSettings)
 

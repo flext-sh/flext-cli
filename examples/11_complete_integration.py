@@ -29,9 +29,7 @@ from pathlib import Path
 
 from flext_core import r
 
-from flext_cli import FlextCli, FlextCliPrompts, t
-
-cli = FlextCli()
+from flext_cli import FlextCliPrompts, cli, t
 
 
 class DataManagerCLI:
@@ -40,7 +38,6 @@ class DataManagerCLI:
     def __init__(self) -> None:
         """Initialize data manager CLI with temporary data file."""
         super().__init__()
-        self.cli = FlextCli()
         self.data_file = Path(tempfile.gettempdir()) / "app_data.json"
 
     def add_entry(self) -> r[t.ContainerMapping]:
@@ -55,70 +52,70 @@ class DataManagerCLI:
         if value_result.is_failure:
             return r[t.ContainerMapping].fail(f"Prompt failed: {value_result.error}")
         value = value_result.value
-        self.cli.print(f"✅ Created entry: {key} = {value}", style="green")
+        cli.print(f"✅ Created entry: {key} = {value}", style="green")
         converted_entry: t.ContainerMapping = {key: value}
         return r[t.ContainerMapping].ok(converted_entry)
 
     def display_data(self, data: t.ContainerMapping) -> None:
         """Display data as formatted table."""
         if not data:
-            self.cli.print("⚠️  No data to display", style="yellow")
+            cli.print("⚠️  No data to display", style="yellow")
             return
-        self.cli.show_table(data, headers=["Field", "Value"], title="📋 Current Data")
+        cli.show_table(data, headers=["Field", "Value"], title="📋 Current Data")
 
     def display_welcome(self) -> None:
         """Show welcome message with styled output."""
-        self.cli.print("=" * 70, style="bold blue")
-        self.cli.print("  📊 Data Manager CLI", style="bold white on blue")
-        self.cli.print("=" * 70, style="bold blue")
+        cli.print("=" * 70, style="bold blue")
+        cli.print("  📊 Data Manager CLI", style="bold white on blue")
+        cli.print("=" * 70, style="bold blue")
 
     def load_data(self) -> r[t.ContainerMapping]:
-        """Load data with error handling. Uses read_json_dict for dict-only result."""
+        """Load data with error handling. Uses read_json_file for dict-only result."""
         if not self.data_file.exists():
             return r[t.ContainerMapping].fail("No data file found")
-        read_result = self.cli.read_json_dict(str(self.data_file))
+        read_result = cli.read_json_file(str(self.data_file))
         if read_result.is_failure:
             error_msg = read_result.error or "Unknown error"
-            self.cli.print(f"❌ Load failed: {error_msg}", style="bold red")
+            cli.print(f"❌ Load failed: {error_msg}", style="bold red")
             return r[t.ContainerMapping].fail(error_msg)
-        self.cli.print("✅ Data loaded successfully", style="green")
+        cli.print("✅ Data loaded successfully", style="green")
         return r[t.ContainerMapping].ok(read_result.value)
 
     def run_workflow(self) -> r[bool]:
         """Complete workflow integrating all features."""
         self.display_welcome()
-        self.cli.print("\n📂 Loading existing data...", style="cyan")
+        cli.print("\n📂 Loading existing data...", style="cyan")
         load_result = self.load_data()
         current_data: t.MutableContainerMapping = {}
         if load_result.is_success:
             loaded_data = load_result.value
             current_data = dict(loaded_data) if isinstance(loaded_data, dict) else {}
         else:
-            self.cli.print("   Creating new dataset", style="yellow")
-        self.cli.print("\n📊 Current Data:", style="bold cyan")
+            cli.print("   Creating new dataset", style="yellow")
+        cli.print("\n📊 Current Data:", style="bold cyan")
         self.display_data(current_data)
-        self.cli.print("\n➕ Adding New Entry:", style="bold cyan")
+        cli.print("\n➕ Adding New Entry:", style="bold cyan")
         entry_result = self.add_entry()
         if entry_result.is_failure:
             return r[bool].fail(f"Add entry failed: {entry_result.error}")
         new_entry = entry_result.value
         current_data.update(new_entry)
-        self.cli.print("\n💾 Saving Data:", style="bold cyan")
+        cli.print("\n💾 Saving Data:", style="bold cyan")
         save_result = self.save_data(current_data)
         if save_result.is_failure:
             return r[bool].fail(f"Save failed: {save_result.error}")
-        self.cli.print("\n✨ Final Result:", style="bold cyan")
+        cli.print("\n✨ Final Result:", style="bold cyan")
         self.display_data(current_data)
         return r[bool].ok(value=True)
 
     def save_data(self, data: t.ContainerMapping) -> r[bool]:
         """Save data with proper error handling."""
-        write_result = self.cli.write_json_file(self.data_file, data)
+        write_result = cli.write_json_file(self.data_file, data)
         if write_result.is_failure:
             error_msg = write_result.error or "Unknown error"
-            self.cli.print(f"❌ Save failed: {error_msg}", style="bold red")
+            cli.print(f"❌ Save failed: {error_msg}", style="bold red")
             return r[bool].fail(error_msg)
-        self.cli.print(f"✅ Data saved to {self.data_file.name}", style="green")
+        cli.print(f"✅ Data saved to {self.data_file.name}", style="green")
         return r[bool].ok(value=True)
 
 
@@ -173,14 +170,14 @@ def main() -> None:
     cli.print("  ✅ Complete Integration Examples Done!", style="bold green")
     cli.print("=" * 70, style="bold blue")
     cli.print("\n💡 Integration Summary:", style="bold cyan")
-    cli.print("  • Use FlextCli() constructor for singleton access", style="white")
+    cli.print("  • Use cli() constructor for singleton access", style="white")
     cli.print("  • Chain operations with r.map()", style="white")
     cli.print("  • Handle errors gracefully with is_success/is_failure", style="white")
     cli.print("  • Combine all features for complete CLI apps", style="white")
     cli.print("\n🏗️  Complete CLI Architecture:", style="bold cyan")
     architecture = {
         "Output": "cli.print() + cli.show_table()",
-        "File I/O": "cli.read_json_dict/write_json_file",
+        "File I/O": "cli.read_json_file/write_json_file",
         "User Input": "FlextCliPrompts",
         "Config": "cli.config",
         "Auth": "cli.save/get_auth_token()",

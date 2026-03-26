@@ -102,7 +102,7 @@ cd flext-cli
 make setup
 
 # Verify installation
-python -c "from flext_cli import FlextCli; print('✅ Installation successful')"
+python -c "from flext_cli import cli; print('✅ Installation successful')"
 ```
 
 ### As a Dependency
@@ -130,11 +130,10 @@ ______________________________________________________________________
 ### 🚀 Your First CLI Application
 
 ```python
-from flext_cli import FlextCli
+from flext_cli import cli
 from flext_core import r
 
 # Initialize CLI (singleton pattern)
-cli = FlextCli()
 
 # Print with styling (MRO inheritance)
 cli.print("Welcome to FLEXT CLI!", style="green bold")
@@ -158,9 +157,8 @@ if confirm_result.is_success and confirm_result.unwrap():
 ### 📊 Working with Tables
 
 ```python
-from flext_cli import FlextCli
+from flext_cli import cli
 
-cli = FlextCli()
 
 # Create data
 users = [
@@ -175,9 +173,8 @@ cli.display_rich_table(users, title="Users")
 ### 📁 File Operations
 
 ```python
-from flext_cli import FlextCli
+from flext_cli import cli
 
-cli = FlextCli()
 
 # JSON operations
 data = {"setting": "value", "enabled": True}
@@ -201,10 +198,8 @@ if read_result.is_success:
 Chain operations with `r[T]`:
 
 ```python
-from flext_cli import FlextCli
+from flext_cli import cli
 from flext_core import r
-
-cli = FlextCli()
 
 
 def validate_config(config: dict) -> r[dict]:
@@ -256,14 +251,13 @@ make format                 # Auto-format with Ruff
 ### Development Pattern (v0.10.0)
 
 ```python
-from flext_cli import FlextCli
+from flext_cli import cli
 from flext_core import r
 
 
 def my_cli_application() -> r[bool]:
     """Application using v0.10.0 patterns."""
-    cli = FlextCli()
-
+    
     # Direct access to all services
     cli.print("Starting...", style="cyan")
 
@@ -286,13 +280,12 @@ def my_cli_application() -> r[bool]:
 
 ```python
 import pytest
-from flext_cli import FlextCli
+from flext_cli import cli
 
 
 def test_my_cli_operation():
     """Test using v0.10.0 patterns."""
-    cli = FlextCli()
-
+    
     # Test file operations (direct access)
     result = cli.read_json_file("test_config.json")
 
@@ -418,7 +411,7 @@ find src/ -name "*.py" -exec wc -l {} + | tail -1
 # Expected: 10,000+ lines across 32 modules
 
 # Verify core services load
-python -c "from flext_cli import FlextCliService, FlextCliAuth, FlextCli; print('✅ All core services import successfully')"
+python -c "from flext_cli import FlextCliService, FlextCliAuth, cli; print('✅ All core services import successfully')"
 ```
 
 ______________________________________________________________________

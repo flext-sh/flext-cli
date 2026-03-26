@@ -26,7 +26,7 @@ from pydantic import (
     model_validator,
 )
 
-from flext_cli import FlextCli, m, t, t as cli_t
+from flext_cli import cli, m, t, t as cli_t
 
 _JsonDictAdapter: TypeAdapter[t.NormalizedValue] = TypeAdapter(t.NormalizedValue)
 
@@ -127,7 +127,7 @@ class MyAppConfig(BaseModel):
             **updates,
         }
 
-    def display(self, cli: FlextCli) -> None:
+    def display(self, cli: cli) -> None:
         """Display app configuration; uses cli for base settings."""
         payload = m.Cli.DisplayData(
             data={
@@ -146,7 +146,7 @@ class MyAppConfig(BaseModel):
                 title="⚙️  Application Configuration",
             )
 
-    def validate_config(self, cli: FlextCli) -> bool:
+    def validate_config(self, cli: cli) -> bool:
         """Run validation; uses cli for output."""
         if not self.api_key:
             cli.print("❌ API_KEY not configured", style="bold red")

@@ -32,9 +32,7 @@ from pathlib import Path
 
 from flext_core import r
 
-from flext_cli import FlextCli, m, t
-
-cli = FlextCli()
+from flext_cli import cli, m, t
 
 
 def login_to_service(username: str, password: str) -> bool:

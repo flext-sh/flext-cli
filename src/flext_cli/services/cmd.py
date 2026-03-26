@@ -14,14 +14,13 @@ from collections.abc import Mapping
 from typing import override
 
 from flext_core import r
-from rich.errors import ConsoleError, LiveError, StyleError
 
 from flext_cli import (
     FlextCliServiceBase,
-    FlextCliTypes,
     FlextCliUtilities,
     c,
     m,
+    t,
 )
 
 
@@ -45,9 +44,9 @@ class FlextCliCmd(FlextCliServiceBase):
         )
 
     @override
-    def execute(self) -> r[Mapping[str, FlextCliTypes.Cli.JsonValue]]:
+    def execute(self) -> r[Mapping[str, t.Cli.JsonValue]]:
         """Report operational status required by `FlextService`."""
-        return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].ok({
+        return r[Mapping[str, t.Cli.JsonValue]].ok({
             c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.OPERATIONAL.value,
             c.Cli.DictKeys.SERVICE: c.Cli.CmdDefaults.SERVICE_NAME,
         })
@@ -72,14 +71,7 @@ class FlextCliCmd(FlextCliServiceBase):
                 config=info_result.value,
             )
             return r[bool].ok(value=True)
-        except (
-            ValueError,
-            TypeError,
-            KeyError,
-            ConsoleError,
-            StyleError,
-            LiveError,
-        ) as e:
+        except c.Cli.CLI_SAFE_EXCEPTIONS as e:
             return r[bool].fail(
                 c.Cli.CmdErrorMessages.SHOW_CONFIG_FAILED.format(
                     error=e,

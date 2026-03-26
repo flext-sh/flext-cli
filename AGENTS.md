@@ -83,7 +83,7 @@ Tier 2 - Infrastructure:
 
 Tier 3 - Application (Top Layer):
   ├── services/*.py   # Business logic → All lower tiers
-  └── api.py          # FlextCli facade → All lower tiers
+  └── api.py          # cli facade → All lower tiers
 ```
 
 ______________________________________________________________________
@@ -135,7 +135,7 @@ ______________________________________________________________________
 
 **Key Architecture**:
 
-- Single consolidated API class: `FlextCli`
+- Single consolidated API class: `cli`
 - Wraps Click (CLI framework) and Rich (terminal UI) internally
 - Uses flext-core patterns: `r[T]` railway pattern, `FlextService`
 - Poetry-based dependency management
@@ -151,7 +151,7 @@ ______________________________________________________________________
 ```
 src/flext_cli/
 ├── __init__.py          # Public API exports with short aliases (t, c, p, m, u, r, e, d, x)
-├── api.py               # FlextCli - main facade API (ONE class)
+├── api.py               # cli - main facade API (ONE class)
 ├── app_base.py          # FlextCliAppBase - base class for CLI apps (ONE class)
 ├── base.py              # FlextCliServiceBase - service base (ONE class)
 ├── cli.py               # FlextCliCli - Click abstraction (ONE class, ONLY Click import)
@@ -177,7 +177,7 @@ src/flext_cli/
 
 **Pattern Rules**:
 
-- **ONE class per module** - Each module has exactly ONE class prefixed with `FlextCli*`
+- **ONE class per module** - Each module has exactly ONE class prefixed with `cli*`
 - **Short aliases** - `t` (Types), `c` (Constants), `p` (Protocols), `m` (Models), `u` (Utilities), `s` (ServiceBase)
 - **Core aliases** - `r` (r), `e` (FlextExceptions), `d` (FlextDecorators), `x` (FlextMixins) from `flext_core`
 - **Extension pattern** - All classes extend corresponding `Flext*` classes from `flext-core`
@@ -197,7 +197,7 @@ src/flext_cli/
 
 ```python
 from flext_cli import (
-    FlextCli,  # Main consolidated API (NOT FlextCliApi)
+    cli,  # Main consolidated API (NOT FlextCliApi)
     FlextCliConfig,  # Configuration (NOT FlextCliConfigs)
     FlextCliConstants,  # Constants
     FlextCliFormatters,  # Rich formatting abstraction
@@ -223,10 +223,9 @@ from flext_cli import (
 All operations return `r[T]` for composable error handling:
 
 ```python
-from flext_cli import FlextCli
+from flext_cli import cli
 from flext_core import r
 
-cli = FlextCli()
 
 # All operations return r
 result = cli.authenticate({"token": "abc123"})
@@ -270,9 +269,8 @@ import click
 from rich.console import Console
 
 # ✅ CORRECT - Use abstraction layers
-from flext_cli import FlextCli, FlextCliFormatters, FlextCliTables
+from flext_cli import cli, FlextCliFormatters, FlextCliTables
 
-cli = FlextCli()
 cli.print("Success!", style="green")  # Rich abstraction
 table = cli.create_table(...)  # Table abstraction
 ```
@@ -485,7 +483,7 @@ class FlextCliUtilities:
 from flext_cli import FlextCliCmd
 
 # services/cmd.py
-from flext_cli import FlextCli  # CIRCULAR!
+from flext_cli import cli  # CIRCULAR!
 
 # ✅ CORRECT - Services use protocols, not concrete api.py
 # services/cmd.py
@@ -499,7 +497,7 @@ from flext_cli import p
 # tests/unit/test_my_module.py
 
 # ✅ CORRECT - Import from package root
-from flext_cli import FlextCli, FlextCliConfig
+from flext_cli import cli, FlextCliConfig
 from flext_cli import m
 from flext_cli import c
 
@@ -509,8 +507,8 @@ from tests import tm, tf  # TestsFlextCliMatchers, TestsFlextCliFixtures
 
 # ✅ CORRECT - Use pytest fixtures
 @pytest.fixture
-def cli_client() -> FlextCli:
-    return FlextCli()
+def cli_client() -> cli:
+    return cli()
 
 
 # ❌ FORBIDDEN - Don't use TYPE_CHECKING in tests unnecessarily
@@ -518,7 +516,7 @@ def cli_client() -> FlextCli:
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from flext_cli import FlextCli
+    from flext_cli import cli
 ```
 
 ### 6. Complete Import Hierarchy Reference
@@ -680,7 +678,7 @@ Common fixtures available in all tests (from `conftest.py`):
 - **NO Python modules in fixtures/** - Use only data files (JSON, YAML, CSV, etc.), rely on conftest.py and flext_tests
 - **helpers/** - Only domain-specific helpers, always use conftest, flext_tests, and base classes
 - **NO bad-override** - All `@override` must amplify scope or correctly override abstract methods
-- **TestsCli structure** - All test support classes must extend both `FlextTests*` and `FlextCli*` classes
+- **TestsCli structure** - All test support classes must extend both `FlextTests*` and `cli*` classes
 
 ______________________________________________________________________
 
@@ -743,7 +741,7 @@ ______________________________________________________________________
 
 ```bash
 # If you get "ModuleNotFoundError: No module named 'flext_cli'"
-PYTHONPATH=src poetry run python -c "from flext_cli import FlextCli"
+PYTHONPATH=src poetry run python -c "from flext_cli import cli"
 
 # Always set PYTHONPATH when running tests or scripts
 PYTHONPATH=src poetry run pytest tests/

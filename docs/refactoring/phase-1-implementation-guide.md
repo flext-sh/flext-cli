@@ -145,7 +145,7 @@ from flext_cli import FlextCliCli
 ...
 __all__ = [
     # Core API (alphabetically sorted per FLEXT standards)
-    "FlextCli",
+    "cli",
     # "FlextCliAsync",  # Module not yet implemented
     "FlextCliAuthService",
     "FlextCliCli",
@@ -160,7 +160,7 @@ from flext_cli import FlextCliCli
 ...
 __all__ = [
     # Core API (alphabetically sorted per FLEXT standards)
-    "FlextCli",
+    "cli",
     # "FlextCliAsync",  # Module not yet implemented
     "FlextCliCli",
 ```
@@ -389,7 +389,7 @@ ls src/flext_cli/*.py | wc -l  # Should be 2 fewer (validator, auth deleted)
 ls tests/fixtures/testing_utilities.py  # Should exist
 
 # Check no broken imports
-python -c "from flext_cli import FlextCli, FlextCliSettings; print('✓ Imports working')"
+python -c "from flext_cli import cli, FlextCliSettings; print('✓ Imports working')"
 ```
 
 ______________________________________________________________________

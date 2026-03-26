@@ -37,9 +37,7 @@ from examples import (
     display_config_table,
     display_success_summary,
 )
-from flext_cli import FlextCli, m, t
-
-cli = FlextCli()
+from flext_cli import cli, m, t
 
 
 def demonstrate_auto_cli_generation() -> None:

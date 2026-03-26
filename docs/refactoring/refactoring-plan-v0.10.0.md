@@ -172,11 +172,11 @@ import pluggy  # Plugin system never used
 
 #### 3. Thin API Wrappers
 
-**Problem**: FlextCli has ~15 wrapper methods that just delegate.
+**Problem**: cli has ~15 wrapper methods that just delegate.
 
 ```python
 # ❌ CURRENT: Unnecessary indirection
-class FlextCli:
+class cli:
     def print(self, message: str, style: str | None = None) -> r[bool]:
         return self.formatters.print(message, style)
 
@@ -279,7 +279,7 @@ class FlextCliCore(FlextService[CliDataDict]):
 **Services in v0.10.0**:
 
 1. **FlextCliCore** - Command/session management ✅
-1. **FlextCli** - Main API facade (evaluate if needed) ⚠️
+1. **cli** - Main API facade (evaluate if needed) ⚠️
 1. **FlextCliCmd** - Command execution (evaluate if needed) ⚠️
 
 #### Simple Classes (10+ utilities)
@@ -351,7 +351,6 @@ class FlextCliContext(m.Value):
 **Old (v0.9.0)**: Wrapper methods
 
 ```python
-cli = FlextCli()
 cli.print("Hello")  # Wrapper method
 cli.create_table(data)  # Wrapper method
 cli.read_json_file("config.json")  # Wrapper method
@@ -360,7 +359,6 @@ cli.read_json_file("config.json")  # Wrapper method
 **New (v0.10.0)**: Direct access
 
 ```python
-cli = FlextCli()
 cli.formatters.print("Hello")  # Direct
 cli.output.format_data(data, format_type="table")  # Direct
 cli.file_tools.read_json_file("config.json")  # Direct
@@ -377,7 +375,7 @@ cli.file_tools.read_json_file("config.json")  # Direct
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    FlextCli (Main Facade)                     │
+│                    cli (Main Facade)                     │
 │  - Singleton pattern                                          │
 │  - Core initialization                                        │
 │  - Authentication (business logic, not simple delegation)     │
@@ -431,7 +429,7 @@ ______________________________________________________________________
 1. **auth.py** (300 lines)
 
    - Duplicate of auth functionality in api.py
-   - FlextCliAuthService duplicates FlextCli.authenticate()
+   - FlextCliAuthService duplicates cli.authenticate()
    - Remove from `__init__.py` exports
    - No external usage found
 
@@ -533,7 +531,7 @@ class FlextCliContext(m.Value):
 
 ### Phase 4: Remove API Wrappers
 
-**Methods to Remove from FlextCli**:
+**Methods to Remove from cli**:
 
 ```python
 # ❌ Remove these wrappers:
@@ -593,7 +591,7 @@ def select(self, message, choices) -> r[str]:
     return self.prompts.select(message, choices)
 ```
 
-**Keep in FlextCli**:
+**Keep in cli**:
 
 ```python
 # ✅ Keep these (not simple wrappers):
@@ -602,7 +600,7 @@ def __init__(self) -> None:
 
 
 @classmethod
-def get_instance(cls) -> FlextCli:
+def get_instance(cls) -> cli:
     """Singleton pattern."""
 
 

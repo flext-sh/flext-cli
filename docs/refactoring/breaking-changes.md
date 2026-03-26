@@ -63,7 +63,7 @@ ______________________________________________________________________
 
 ### Removed Methods
 
-All these methods have been removed from `FlextCli`:
+All these methods have been removed from `cli`:
 
 ```python
 # ❌ REMOVED - No longer available
@@ -181,10 +181,9 @@ from pydantic import Field, field_validator
 from flext_cli import FlextCliAuthService
 from flext_cli import FlextCliAuthService
 
-# ✅ FIX: Use FlextCli.authenticate()
-from flext_cli import FlextCli
+# ✅ FIX: Use cli.authenticate()
+from flext_cli import cli
 
-cli = FlextCli()
 result = cli.authenticate({"token": "abc123"})
 ```
 
@@ -243,11 +242,10 @@ result = file_tools.read_json_file("config.json")
 result = FlextCliFileTools.read_json_file("config.json")
 
 # ✅ OR - Through main CLI (recommended)
-cli = FlextCli()
 result = cli.file_tools.read_json_file("config.json")
 ```
 
-**Note**: Most users access through `FlextCli` instance, so no changes needed
+**Note**: Most users access through `cli` instance, so no changes needed
 
 ______________________________________________________________________
 
@@ -325,7 +323,7 @@ ______________________________________________________________________
 
 ```python
 # ❌ REMOVED from flext_cli
-FlextCliAuthService  # Use FlextCli.authenticate()
+FlextCliAuthService  # Use cli.authenticate()
 FlextCliTesting  # Move to tests/fixtures/testing_utilities
 FlextCliTestRunner  # Move to tests/fixtures/testing_utilities
 FlextCliMockScenarios  # Move to tests/fixtures/testing_utilities
@@ -338,7 +336,7 @@ All other exports remain:
 ```python
 # ✅ Still available
 from flext_cli import (
-    FlextCli,  # Main API
+    cli,  # Main API
     FlextCliSettings,  # Configuration
     FlextCliCore,  # Core service
     FlextCliFormatters,  # Formatting
