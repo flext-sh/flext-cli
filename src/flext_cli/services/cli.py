@@ -23,6 +23,9 @@ from flext_cli import (
     FlextCliOutput,
     FlextCliServiceBase,
     FlextCliSettings,
+    m,
+    p,
+    t,
 )
 
 
@@ -286,7 +289,7 @@ class FlextCliCli(FlextCliServiceBase):
         *,
         prog_name: str,
         args: Sequence[str] | None = None,
-        error_message: Callable[[], str | None] | None = None,
+        error_message: p.Cli.ErrorMessageProvider | None = None,
     ) -> r[bool]:
         """Execute a Typer app and normalize exit behavior into `r[bool]`."""
         cli_args = list(args) if args is not None else sys.argv[1:]
@@ -333,18 +336,18 @@ class FlextCliCli(FlextCliServiceBase):
         _ = app.command(name, help=help_text)(command)
 
     @classmethod
-    def register_result_command[M: BaseModel, TResult](
+    def register_result_command[M: BaseModel, TResult: t.ValueOrModel](
         cls,
         app: typer.Typer,
         *,
         failure_message: str,
-        handler: Callable[[M], r[TResult]],
+        handler: p.Cli.ResultCommandHandler[M, TResult],
         help_text: str,
         model_cls: type[M],
         name: str,
         config: BaseModel | None = None,
-        remember_failure: Callable[[str | None, str], None] | None = None,
-        success_formatter: Callable[[TResult], str] | None = None,
+        remember_failure: p.Cli.FailureMessageRecorder | None = None,
+        success_formatter: p.Cli.SuccessMessageFormatter[TResult] | None = None,
         success_message: str | None = None,
         success_type: str = "success",
     ) -> None:
@@ -371,6 +374,28 @@ class FlextCliCli(FlextCliServiceBase):
             name=name,
             help_text=help_text,
             command=cls.model_command(model_cls, execute, config=config),
+        )
+
+    @classmethod
+    def register_result_route[M: BaseModel, TResult: t.ValueOrModel](
+        cls,
+        app: typer.Typer,
+        *,
+        route: m.Cli.ResultCommandRouteModel[M, TResult],
+        remember_failure: p.Cli.FailureMessageRecorder | None = None,
+    ) -> None:
+        """Register a declarative result route model on a Typer app."""
+        cls.register_result_command(
+            app,
+            name=route.name,
+            help_text=route.help_text,
+            model_cls=route.model_cls,
+            handler=route.handler,
+            failure_message=route.failure_message,
+            remember_failure=remember_failure,
+            success_formatter=route.success_formatter,
+            success_message=route.success_message,
+            success_type=route.success_type,
         )
 
 

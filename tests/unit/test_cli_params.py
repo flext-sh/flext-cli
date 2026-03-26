@@ -12,11 +12,13 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from enum import StrEnum, unique
+from typing import Annotated
 
 import pytest
 import typer
 from flext_core import r
 from flext_tests import tm
+from typer.models import OptionInfo
 from typer.testing import CliRunner
 
 from flext_cli import (
@@ -65,25 +67,22 @@ def create_decorated_command(
 
     @app.command(name=command_name)
     def typer_command(
-        verbose: bool = typer.Option(
-            False,
-            "--verbose",
-            "-v",
-            help="Enable verbose output",
-        ),
-        debug: bool = typer.Option(False, "--debug", "-d", help="Enable debug mode"),
-        log_level: str = typer.Option(
-            "INFO",
-            "--log-level",
-            "-L",
-            help="Set logging level",
-        ),
-        output_format: str = typer.Option(
-            "table",
-            "--output-format",
-            "-o",
-            help="Set output format",
-        ),
+        verbose: Annotated[
+            bool,
+            FlextCliCommonParams.create_option("verbose"),
+        ] = False,
+        debug: Annotated[
+            bool,
+            FlextCliCommonParams.create_option("debug"),
+        ] = False,
+        log_level: Annotated[
+            str,
+            FlextCliCommonParams.create_option("cli_log_level"),
+        ] = "INFO",
+        output_format: Annotated[
+            str,
+            FlextCliCommonParams.create_option("output_format"),
+        ] = "table",
     ) -> None:
         """Test command with Railway-oriented parameter handling."""
         typer.echo(f"Command: {command_name}")
@@ -100,16 +99,16 @@ def create_decorated_command(
 class TestsCliCommonParams:
     """Railway-oriented tests for FlextCliCommonParams - zero fallbacks or state manipulation."""
 
-    def test_common_params_class_exists(self) -> None:
-        """Test that FlextCliCommonParams exists and has required methods."""
-        tm.that(FlextCliCommonParams, none=False)
-        tm.that(hasattr(FlextCliCommonParams, "create_option"), eq=True)
-        tm.that(hasattr(FlextCliCommonParams, "apply_to_config"), eq=True)
+    def test_create_option_returns_option_info_for_known_fields(self) -> None:
+        """Test create_option returns OptionInfo for each registered CLI param."""
+        for field_name in ("verbose", "quiet", "debug"):
+            option = FlextCliCommonParams.create_option(field_name)
+            assert isinstance(option, OptionInfo)
 
     def test_create_option_success(self) -> None:
         """Test create_option returns valid option using Railway pattern."""
         option = FlextCliCommonParams.create_option("verbose")
-        tm.that(option, none=False)
+        assert option is not None
 
     def test_apply_to_config_with_valid_params(self) -> None:
         """Test apply_to_config with Railway pattern - no state manipulation."""

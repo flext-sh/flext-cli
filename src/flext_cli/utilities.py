@@ -268,6 +268,24 @@ class FlextCliUtilities(FlextUtilities):
             )
 
             @staticmethod
+            def cli_args_to_model(
+                model_class: type[BaseModel],
+                cli_args: Mapping[str, t.Cli.JsonValue],
+            ) -> r[BaseModel]:
+                """Convert CLI args dict to a Pydantic model instance.
+
+                Validates the args dict against the model schema and returns
+                r[BaseModel] wrapping success or validation failure.
+                """
+                try:
+                    instance = model_class.model_validate(dict(cli_args))
+                    return r[BaseModel].ok(instance)
+                except ValidationError as exc:
+                    return r[BaseModel].fail(
+                        f"Validation error for {model_class.__name__}: {exc}",
+                    )
+
+            @staticmethod
             def convert_field_value(
                 field_value: t.Cli.JsonValue,
             ) -> r[t.Cli.JsonValue]:

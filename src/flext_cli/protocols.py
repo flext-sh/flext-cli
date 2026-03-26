@@ -79,18 +79,36 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
         @runtime_checkable
-        class ResultCommandHandler(Protocol):
+        class ResultCommandHandler[TParams: BaseModel, TResult: t.ValueOrModel](
+            Protocol
+        ):
             """Protocol for model-driven CLI handlers returning `r[...]`."""
 
-            def __call__(self, params: BaseModel) -> r[t.ValueOrModel]:
+            def __call__(self, params: TParams) -> r[TResult]:
                 """Execute the handler and return a railway result."""
                 ...
 
         @runtime_checkable
-        class SuccessMessageFormatter(Protocol):
+        class ErrorMessageProvider(Protocol):
+            """Protocol for deferred CLI error message resolution."""
+
+            def __call__(self) -> str | None:
+                """Return the current normalized error message, if any."""
+                ...
+
+        @runtime_checkable
+        class FailureMessageRecorder(Protocol):
+            """Protocol for persisting normalized CLI failure state."""
+
+            def __call__(self, error: str | None, fallback: str) -> None:
+                """Remember a CLI failure using the original and fallback messages."""
+                ...
+
+        @runtime_checkable
+        class SuccessMessageFormatter[TResult: t.ValueOrModel](Protocol):
             """Protocol for rendering a success result into a CLI message."""
 
-            def __call__(self, value: t.ValueOrModel) -> str:
+            def __call__(self, value: TResult) -> str:
                 """Return the success message to display."""
                 ...
 

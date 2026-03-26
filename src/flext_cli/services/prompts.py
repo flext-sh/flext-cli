@@ -24,6 +24,16 @@ class FlextCliPrompts(FlextCliServiceBase):
     _quiet: bool = PrivateAttr(default=False)
     _default_timeout: int = PrivateAttr(default=c.Cli.Prompts.DEFAULT_TIMEOUT)
 
+    @property
+    def interactive_mode(self) -> bool:
+        """Expose interactive prompt mode through the public facade."""
+        return self._interactive_mode
+
+    @interactive_mode.setter
+    def interactive_mode(self, value: bool) -> None:
+        """Enable or disable interactive prompt handling."""
+        self._interactive_mode = value
+
     def confirm(self, message: str, *, default: bool = False) -> r[bool]:
         try:
             if self._quiet or not self._interactive_mode:

@@ -125,12 +125,12 @@ class FlextCliCommands(FlextCliServiceBase):
         """
         return r[t.StrSequence].ok(list(self._commands.keys()))
 
-    def register_command(
+    def register_handler(
         self,
         name: str,
         handler: Callable[..., r[t.Cli.JsonValue]],
     ) -> r[bool]:
-        """Register a CLI command.
+        """Register a handler in the lightweight command registry.
 
         Args:
             name: Command name.

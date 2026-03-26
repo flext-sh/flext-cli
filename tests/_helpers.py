@@ -29,7 +29,7 @@ class CommandsFactory:
         ) -> r[t.Cli.JsonValue]:
             return r[t.Cli.JsonValue].ok(result_value)
 
-        return commands.register_command(command_name, handler)
+        return commands.register_handler(command_name, handler)
 
     @staticmethod
     def register_command_with_args(
@@ -44,7 +44,7 @@ class CommandsFactory:
         ) -> r[t.Cli.JsonValue]:
             return r[t.Cli.JsonValue].ok(f"args: {len(args)}")
 
-        return commands.register_command(command_name, handler)
+        return commands.register_handler(command_name, handler)
 
     @staticmethod
     def register_failing_command(
@@ -60,4 +60,4 @@ class CommandsFactory:
         ) -> r[t.Cli.JsonValue]:
             return r[t.Cli.JsonValue].fail(error_message)
 
-        return commands.register_command(command_name, handler)
+        return commands.register_handler(command_name, handler)

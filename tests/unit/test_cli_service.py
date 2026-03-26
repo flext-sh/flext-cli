@@ -9,6 +9,7 @@ from flext_tests import tm
 from pydantic import BaseModel, Field
 
 from flext_cli import cli
+from tests import m
 
 
 class _SampleInput(BaseModel):
@@ -21,6 +22,16 @@ class _SampleInput(BaseModel):
         Literal["json", "table"],
         Field(default="table", description="Output format"),
     ]
+
+
+class _SampleOutput(BaseModel):
+    """Concrete output model for result-route tests."""
+
+    message: Annotated[str, Field(description="User-facing success message")]
+
+
+class _SampleRoute(m.Cli.ResultCommandRouteModel[_SampleInput, _SampleOutput]):
+    """Concrete route model for test-time generic stability."""
 
 
 class TestsCliService:
@@ -122,40 +133,57 @@ class TestsCliService:
             help_text="Result application",
             config=cli.settings,
         )
+        group = cli.create_group(help_text="Grouped commands", name="group")
         remembered: list[tuple[str | None, str]] = []
 
         def remember_failure(error: str | None, fallback: str) -> None:
             remembered.append((error, fallback))
 
-        def ok_handler(params: _SampleInput) -> r[str]:
-            return r[str].ok(f"processed {params.name}")
+        def ok_handler(params: _SampleInput) -> r[_SampleOutput]:
+            return r[_SampleOutput].ok(
+                _SampleOutput(message=f"processed {params.name}")
+            )
 
-        def fail_handler(_params: _SampleInput) -> r[str]:
-            return r[str].fail("boom")
+        def fail_handler(params: _SampleInput) -> r[_SampleOutput]:
+            _ = params
+            return r[_SampleOutput].fail("boom")
 
-        cli.register_result_command(
+        def build_ok_route() -> _SampleRoute:
+            return _SampleRoute(
+                name="ok",
+                help_text="Successful command",
+                model_cls=_SampleInput,
+                handler=ok_handler,
+                failure_message="ok failed",
+            )
+
+        def build_fail_route() -> _SampleRoute:
+            return _SampleRoute(
+                name="fail",
+                help_text="Failing command",
+                model_cls=_SampleInput,
+                handler=fail_handler,
+                failure_message="failure fallback",
+            )
+
+        cli.register_result_route(
             app,
-            name="ok",
-            help_text="Successful command",
-            model_cls=_SampleInput,
-            handler=ok_handler,
-            success_formatter=lambda value: value,
-            failure_message="ok failed",
+            route=build_ok_route(),
             remember_failure=remember_failure,
         )
-        cli.register_result_command(
-            app,
-            name="fail",
-            help_text="Failing command",
-            model_cls=_SampleInput,
-            handler=fail_handler,
-            failure_message="failure fallback",
+        cli.register_result_route(
+            group,
+            route=build_fail_route(),
             remember_failure=remember_failure,
         )
+        cli.add_group(app, name="group", group=group)
         runner_result = cli.create_cli_runner()
         tm.ok(runner_result)
         ok_result = runner_result.value.invoke(app, ["ok", "--name", "alice"])
-        fail_result = runner_result.value.invoke(app, ["fail", "--name", "alice"])
+        fail_result = runner_result.value.invoke(
+            app,
+            ["group", "fail", "--name", "alice"],
+        )
 
         tm.that(ok_result.exit_code, eq=0)
         tm.that(ok_result.stdout, has="processed alice")

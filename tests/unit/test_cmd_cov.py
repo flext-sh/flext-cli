@@ -21,7 +21,7 @@ def test_show_config_paths_failure_on_exception(
     """
     cmd = FlextCliCmd()
     monkeypatch.setattr(
-        cmd_module.FlextCliUtilities.Cli.ConfigOps,
+        cmd_module.u.Cli.ConfigOps,
         "validate_config_structure",
         staticmethod(lambda: (_ for _ in ()).throw(RuntimeError("paths error"))),
     )
@@ -33,7 +33,7 @@ def test_show_config_paths_failure_on_exception(
 def test_validate_config_failure_on_exception(monkeypatch: pytest.MonkeyPatch) -> None:
     cmd = FlextCliCmd()
     monkeypatch.setattr(
-        cmd_module.FlextCliUtilities.Cli.ConfigOps,
+        cmd_module.u.Cli.ConfigOps,
         "validate_config_structure",
         staticmethod(lambda: (_ for _ in ()).throw(RuntimeError("validate error"))),
     )
@@ -44,7 +44,7 @@ def test_validate_config_failure_on_exception(monkeypatch: pytest.MonkeyPatch) -
 
 def test_get_config_info_failure_on_exception(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
-        cmd_module.FlextCliUtilities.Cli.ConfigOps,
+        cmd_module.u.Cli.ConfigOps,
         "get_config_info",
         staticmethod(lambda: (_ for _ in ()).throw(RuntimeError("info error"))),
     )

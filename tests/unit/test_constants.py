@@ -15,21 +15,20 @@ from __future__ import annotations
 
 from flext_tests import tm
 
-from flext_cli import FlextCliConstants, c, u
+from flext_cli import c, u
 
 
 class TestsCliConstants:
     """Comprehensive test suite for FlextCliConstants functionality."""
 
-    def test_constants_class_exists(self) -> None:
-        """Test FlextCliConstants class exists and is accessible."""
-        tm.that(FlextCliConstants, none=False)
-        tm.that(hasattr(FlextCliConstants, "Cli"), eq=True)
-
-    def test_cli_version_exists(self) -> None:
-        """Test CLI_VERSION constant exists."""
-        tm.that(c.Cli.CLI_VERSION, is_=str)
-        tm.that(c.Cli.CLI_VERSION, empty=False)
+    def test_cli_version_is_semver(self) -> None:
+        """Test CLI_VERSION follows semver format (major.minor.patch)."""
+        version = c.Cli.CLI_VERSION
+        tm.that(version, is_=str)
+        parts = version.split(".")
+        tm.that(len(parts) >= 3, eq=True)
+        for part in parts[:3]:
+            tm.that(part.isdigit(), eq=True)
 
     def test_flext_cli_constant(self) -> None:
         """Test FLEXT_CLI constant."""

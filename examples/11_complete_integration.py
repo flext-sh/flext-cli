@@ -45,7 +45,7 @@ class DataManagerCLI:
     def add_entry(self) -> r[t.ContainerMapping]:
         """Add new entry with user prompts."""
         prompts = cli
-        prompts._interactive_mode = False
+        prompts.interactive_mode = False
         key_result = prompts.prompt("Enter key:", default="sample_key")
         if key_result.is_failure:
             return r[t.ContainerMapping].fail(f"Prompt failed: {key_result.error}")
