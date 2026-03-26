@@ -6,21 +6,14 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import inspect
 import logging
 import re
-from collections.abc import Mapping, MutableMapping, Sequence
-from typing import Final, TypeIs, TypeVar
+from collections.abc import Sequence
+from typing import Final, TypeIs
 
-import click
 from flext_core import r
-from pydantic import BaseModel, Field, ValidationError
-from pydantic.fields import FieldInfo
-from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from flext_cli import FlextCliConstants, t
-
-T = TypeVar("T")
+from flext_cli import t
 
 
 def _is_json_dict(value: t.NormalizedValue) -> TypeIs[t.ContainerMapping]:
@@ -31,100 +24,6 @@ def _is_json_dict(value: t.NormalizedValue) -> TypeIs[t.ContainerMapping]:
 def _is_json_list(value: t.NormalizedValue) -> TypeIs[t.ContainerList]:
     """TypeGuard: narrow t.NormalizedValue to list for JSON array shape."""
     return isinstance(value, list)
-
-
-class _DefaultTestSettings(BaseSettings):
-    """Default test settings class."""
-
-    model_config = SettingsConfigDict(env_prefix="TEST_")
-    test_field: str = Field(default="test")
-
-
-class _DefaultTestParams(BaseModel):
-    """Default test params class."""
-
-    model_config = {"populate_by_name": True}
-    test_field: str | None = Field(default=None)
-
-
-class ConfigFactory:
-    """Factory for creating BaseSettings configuration classes.
-
-    Prefer FlextCliSettings or m.Cli.CliConfig when the structure is known;
-    use this only for dynamic or parametrized config classes in tests.
-    """
-
-    @staticmethod
-    def create_config(
-        name: str,
-        prefix: str = "TEST_",
-        fields: Mapping[str, tuple[type, t.Scalar | FieldInfo]] | None = None,
-    ) -> type[BaseSettings]:
-        """Create a BaseSettings config class dynamically."""
-        _ = (name, prefix, fields)
-        return _DefaultTestSettings
-
-
-class ParamsFactory:
-    """Factory for creating BaseModel parameter classes.
-
-    Prefer m.Cli.CliParamsConfig or existing Pydantic models when the structure
-    is known; use this only for dynamic parametrized param classes in tests.
-    """
-
-    @staticmethod
-    def create_params(
-        name: str,
-        fields: Mapping[str, tuple[type, t.Scalar | FieldInfo, t.ScalarMapping]]
-        | None = None,
-        *,
-        populate_by_name: bool = True,
-    ) -> type[BaseModel]:
-        """Create a BaseModel params class dynamically."""
-        _ = (name, fields, populate_by_name)
-        return _DefaultTestParams
-
-
-class ValidationHelper:
-    """Helper methods for common validation patterns."""
-
-    @staticmethod
-    def assert_field_value(
-        obj: t.NormalizedValue,
-        field_name: str,
-        expected_value: t.NormalizedValue,
-        message: str | None = None,
-    ) -> None:
-        """Assert that an t.NormalizedValue field has expected value."""
-        actual = getattr(obj, field_name)
-        assert actual == expected_value, (
-            message or f"{field_name}={actual}, expected {expected_value}"
-        )
-
-    @staticmethod
-    def assert_field_type(
-        obj: t.NormalizedValue,
-        field_name: str,
-        expected_type: type | tuple[type, ...],
-    ) -> None:
-        """Assert that an t.NormalizedValue field has expected type."""
-        value = getattr(obj, field_name)
-        assert isinstance(value, expected_type), (
-            f"{field_name}={type(value)}, expected {expected_type}"
-        )
-
-    @staticmethod
-    def extract_config_values(
-        config: BaseSettings,
-        field_names: t.StrSequence,
-    ) -> t.ContainerMapping:
-        """Extract multiple field values from config as a read-only Mapping.
-
-        When the config structure is known, callers should use FlextCliSettings
-        or m.Cli (FlextCliModels) for typed access; this helper returns a generic
-        Mapping for dynamic or parametrized config tests only.
-        """
-        return {name: getattr(config, name) for name in field_names}
 
 
 class TestScenario:
@@ -151,86 +50,8 @@ class TestScenario:
         FORBID_EXTRA: Final[str] = "forbid_extra"
 
 
-class _TestFormatter:
-    """Test implementation of CliFormatter protocol."""
-
-    def format_data(
-        self,
-        data: t.NormalizedValue,
-        **options: t.Scalar,
-    ) -> r[str]:
-        """Format data as string."""
-        try:
-            return r[str].ok(str(data))
-        except (ValueError, TypeError, ValidationError) as e:
-            return r[str].fail(str(e))
-
-
-class _TestConfigProvider:
-    """Test implementation of CliConfigProvider protocol."""
-
-    def __init__(self) -> None:
-        super().__init__()
-        self.config: MutableMapping[str, t.NormalizedValue] = {}
-
-    def load_config(self) -> r[t.ContainerMapping]:
-        """Return config dict."""
-        try:
-            return r[t.ContainerMapping].ok(self.config)
-        except (ValueError, TypeError, ValidationError) as e:
-            return r[t.ContainerMapping].fail(str(e))
-
-    def save_config(self, config: t.ContainerMapping) -> r[bool]:
-        """Save config."""
-        try:
-            self.config = dict(config.items())
-            return r[bool].ok(True)
-        except (ValueError, TypeError, ValidationError) as e:
-            return r[bool].fail(str(e))
-
-
-class _TestAuthenticator:
-    """Test implementation of CliAuthenticator protocol."""
-
-    def __init__(self) -> None:
-        super().__init__()
-        self.token: str | None = None
-
-    def authenticate(self, username: str, password: str) -> r[str]:
-        """Authenticate user."""
-        if username == "testuser" and password == "testpass":
-            self.token = "valid_token"
-            return r[str].ok("valid_token")
-        return r[str].fail("Invalid credentials")
-
-    def validate_token(self, token: str) -> r[bool]:
-        """Validate token."""
-        if token.startswith("valid_"):
-            return r[bool].ok(value=True)
-        if token in {"valid_token_abc123", "valid_token", "test_token"}:
-            return r[bool].ok(value=True)
-        return r[bool].fail("Invalid token")
-
-
 class FlextCliTestHelpers:
     """Centralized test helpers for flext-cli test modules."""
-
-    class AssertHelpers:
-        """Helper methods for asserting r state."""
-
-        @staticmethod
-        def assert_result_success(result: r[T]) -> None:
-            """Assert that a r is successful."""
-            assert result.is_success, (
-                f"Expected success but got failure: {result.error}"
-            )
-
-        @staticmethod
-        def assert_result_failure(result: r[T]) -> None:
-            """Assert that a r is a failure."""
-            assert result.is_failure, (
-                f"Expected failure but got success: {result.value}"
-            )
 
     class VersionTestFactory:
         """Factory for version validation tests."""
@@ -327,71 +148,6 @@ class FlextCliTestHelpers:
                 version_info,
             ))
 
-    class ProtocolHelpers:
-        """Helper methods for protocol implementation tests."""
-
-        @staticmethod
-        def create_formatter_implementation() -> r[_TestFormatter]:
-            """Create a formatter implementation satisfying CliFormatter protocol."""
-            try:
-                formatter = _TestFormatter()
-                if hasattr(formatter, "format_data") and callable(
-                    getattr(formatter, "format_data", None),
-                ):
-                    return r[_TestFormatter].ok(formatter)
-                return r[_TestFormatter].fail(
-                    "Formatter does not satisfy CliFormatter protocol",
-                )
-            except (ValueError, TypeError, ValidationError) as e:
-                return r[_TestFormatter].fail(f"Failed to create formatter: {e!s}")
-
-        @staticmethod
-        def create_config_provider_implementation() -> r[_TestConfigProvider]:
-            """Create a config provider implementation satisfying CliConfigProvider protocol."""
-            try:
-                provider = _TestConfigProvider()
-                if (
-                    hasattr(provider, "load_config")
-                    and callable(getattr(provider, "load_config", None))
-                    and hasattr(provider, "save_config")
-                    and callable(getattr(provider, "save_config", None))
-                ):
-                    return r[_TestConfigProvider].ok(provider)
-                return r[_TestConfigProvider].fail(
-                    "Config provider does not satisfy CliConfigProvider protocol",
-                )
-            except (ValueError, TypeError, ValidationError) as e:
-                return r[_TestConfigProvider].fail(
-                    f"Failed to create config provider: {e!s}",
-                )
-
-        @staticmethod
-        def create_authenticator_implementation() -> r[_TestAuthenticator]:
-            """Create a CliAuthenticator protocol implementation."""
-            try:
-                authenticator = _TestAuthenticator()
-                has_authenticate = hasattr(authenticator, "authenticate") and callable(
-                    getattr(authenticator, "authenticate", None),
-                )
-                has_validate_token = hasattr(
-                    authenticator,
-                    "validate_token",
-                ) and callable(getattr(authenticator, "validate_token", None))
-                if has_authenticate and has_validate_token:
-                    auth_method = getattr(authenticator, "authenticate", None)
-                    if auth_method:
-                        sig = inspect.signature(auth_method)
-                        params = list(sig.parameters.keys())
-                        if len(params) >= 2:
-                            return r[_TestAuthenticator].ok(authenticator)
-                return r[_TestAuthenticator].fail(
-                    "Authenticator does not satisfy CliAuthenticator protocol",
-                )
-            except (ValueError, TypeError, ValidationError) as e:
-                return r[_TestAuthenticator].fail(
-                    f"Failed to create authenticator: {e!s}",
-                )
-
     class TypingHelpers:
         """Helper methods for type system tests."""
 
@@ -399,11 +155,7 @@ class FlextCliTestHelpers:
         def create_processing_test_data() -> r[
             tuple[t.StrSequence, Sequence[int], t.ContainerMapping]
         ]:
-            """Create test data for type processing scenarios.
-
-            Returns (string list, number list, config-like dict). The third element
-            is a Mapping-shaped dict; use as Mapping when the contract is read-only.
-            """
+            """Create test data for type processing scenarios."""
             try:
                 string_list = ["hello", "world", "test"]
                 number_list = [1, 2, 3, 4, 5]
@@ -418,17 +170,14 @@ class FlextCliTestHelpers:
                     number_list,
                     mixed_dict,
                 ))
-            except (ValueError, TypeError, ValidationError) as e:
+            except (ValueError, TypeError) as e:
                 return r[tuple[t.StrSequence, Sequence[int], t.ContainerMapping]].fail(
                     f"Failed to create processing test data: {e!s}",
                 )
 
         @staticmethod
         def create_typed_dict_data() -> r[t.ContainerMapping]:
-            """Create typed dict test data.
-
-            Returns a dict; treat as t.ContainerMapping when the contract is read-only.
-            """
+            """Create typed dict test data."""
             try:
                 user_data: t.ContainerMapping = {
                     "id": 1,
@@ -437,17 +186,14 @@ class FlextCliTestHelpers:
                     "active": True,
                 }
                 return r[t.ContainerMapping].ok(user_data)
-            except (ValueError, TypeError, ValidationError) as e:
+            except (ValueError, TypeError) as e:
                 return r[t.ContainerMapping].fail(
                     f"Failed to create typed dict data: {e!s}",
                 )
 
         @staticmethod
         def create_api_response_data() -> r[Sequence[t.ContainerMapping]]:
-            """Create API response test data.
-
-            Returns a list of dicts; treat each item as t.ContainerMapping when read-only.
-            """
+            """Create API response test data."""
             try:
                 users_data: Sequence[t.ContainerMapping] = [
                     {
@@ -464,79 +210,15 @@ class FlextCliTestHelpers:
                     },
                 ]
                 return r[Sequence[t.ContainerMapping]].ok(users_data)
-            except (ValueError, TypeError, ValidationError) as e:
+            except (ValueError, TypeError) as e:
                 return r[Sequence[t.ContainerMapping]].fail(
                     f"Failed to create API response data: {e!s}",
                 )
 
-    class ConstantsFactory:
-        """Factory for creating constants test fixtures."""
-
-        @staticmethod
-        def get_constants() -> type[FlextCliConstants]:
-            """Get FlextCliConstants instance for testing."""
-            return FlextCliConstants
-
-    class CliHelpers:
-        """Helper methods for CLI testing."""
-
-        @staticmethod
-        def create_test_command(
-            command_name: str,
-        ) -> r[click.Command]:
-            """Create a test command for CLI testing."""
-            try:
-
-                @click.command(name=command_name)
-                def test_cmd() -> None:
-                    click.echo("test")
-
-                return r[click.Command].ok(test_cmd)
-            except (ValueError, TypeError, ValidationError) as e:
-                return r[click.Command].fail(f"Failed to create command: {e!s}")
-
-        @staticmethod
-        def create_test_group(
-            group_name: str,
-        ) -> r[click.Group]:
-            """Create a test group for CLI testing."""
-            try:
-
-                @click.group(name=group_name)
-                def test_grp() -> None:
-                    pass
-
-                return r[click.Group].ok(test_grp)
-            except (ValueError, TypeError, ValidationError) as e:
-                return r[click.Group].fail(f"Failed to create group: {e!s}")
-
-        @staticmethod
-        def create_command_with_options(
-            command_name: str,
-            option_name: str,
-            default: str,
-        ) -> r[click.Command]:
-            """Create a command with options for CLI testing."""
-            try:
-
-                @click.command(name=command_name)
-                @click.option(option_name, default=default)
-                def cmd_with_opt(config: str) -> None:
-                    pass
-
-                return r[click.Command].ok(cmd_with_opt)
-            except (ValueError, TypeError, ValidationError) as e:
-                return r[click.Command].fail(
-                    f"Failed to create command with options: {e!s}",
-                )
-
 
 __all__ = [
-    "ConfigFactory",
     "FlextCliTestHelpers",
-    "ParamsFactory",
     "TestScenario",
-    "ValidationHelper",
     "_is_json_dict",
     "_is_json_list",
 ]

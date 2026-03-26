@@ -30,7 +30,6 @@ from flext_cli import (
     FlextCliFormatters,
     FlextCliOutput,
     FlextCliPrompts,
-    FlextCliServiceBase,
     FlextCliSettings,
     FlextCliTables,
     c,
@@ -117,7 +116,7 @@ class FlextCli:
         self._commands: MutableMapping[str, p.Cli.CliRegisteredCommand] = {}
         self._groups: MutableMapping[str, p.Cli.CliRegisteredCommand] = {}
         self._plugin_commands: MutableMapping[str, p.Cli.CliRegisteredCommand] = {}
-        self.config = FlextCliServiceBase.get_cli_config()
+        self.config = FlextCliSettings.get_global()
         self._valid_tokens: set[str] = set()
         self._valid_sessions: set[str] = set()
         self._session_permissions: MutableMapping[str, set[str]] = {}
@@ -148,11 +147,6 @@ class FlextCli:
         """Validate token string; raises ValueError if empty."""
         if not token or not token.strip():
             return r[bool].fail("Token cannot be empty")
-        return r[bool].ok(value=True)
-
-    @staticmethod
-    def execute_cli() -> r[bool]:
-        """Execute the CLI application."""
         return r[bool].ok(value=True)
 
     @staticmethod

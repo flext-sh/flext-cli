@@ -2,17 +2,42 @@
 
 from __future__ import annotations
 
+import inspect
 import logging
+import operator
 import os
+import types
 from collections.abc import Callable, Mapping, MutableMapping, MutableSequence, Sequence
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import override
+from typing import (
+    Annotated,
+    ClassVar,
+    Literal,
+    TypeIs,
+    Union,
+    get_args,
+    get_origin,
+    override,
+)
 
-from flext_core import FlextUtilities, r
+import typer
+from flext_core import FlextLogger, FlextUtilities, r
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    TypeAdapter,
+    ValidationError,
+    computed_field,
+)
+from pydantic.fields import FieldInfo
 from rich.errors import ConsoleError, LiveError, StyleError
+from typer.models import OptionInfo
 
-from flext_cli import c, m, t
+from flext_cli import c, m, p, t
+
+_logger = FlextLogger(__name__)
 
 
 class FlextCliUtilities(FlextUtilities):
@@ -21,26 +46,247 @@ class FlextCliUtilities(FlextUtilities):
     class Cli(FlextUtilities):
         """Command line interface specific utilities."""
 
+        JSON_NORMALIZE_ADAPTER: ClassVar[TypeAdapter[t.Cli.JsonValue]] = TypeAdapter(
+            t.Cli.JsonValue,
+        )
+
         @staticmethod
-        @override
-        def process[T, U](
-            items: Sequence[T],
-            processor: Callable[[T], U],
-            *,
-            predicate: Callable[[T], bool] | None = None,
-            on_error: str = "fail",
-            filter_keys: set[str] | None = None,
-            exclude_keys: set[str] | None = None,
-        ) -> r[Sequence[U]]:
-            """Process a sequence of items with error handling."""
-            _ = (filter_keys, exclude_keys)
-            errors: MutableSequence[str] = []
-            values: MutableSequence[U] = []
-            for idx, item in enumerate(items):
-                if predicate is not None and (not predicate(item)):
-                    continue
+        def is_mapping_like(
+            obj: t.Cli.JsonValue | Mapping[str, t.Cli.JsonValue],
+        ) -> TypeIs[Mapping[str, t.Cli.JsonValue]]:
+            """Narrow value to Mapping for metadata processing."""
+            return isinstance(obj, Mapping)
+
+        @staticmethod
+        def unwrap_root_value(
+            value: t.Cli.JsonValue,
+        ) -> t.Cli.JsonValue:
+            """Unwrap RootModel .root value if present, otherwise return as-is."""
+            if hasattr(value, "__dict__"):
+                model_dict = value.__dict__
+                if "root" in model_dict:
+                    root_value = model_dict["root"]
+                    if root_value is not None:
+                        return root_value
+            return value
+
+        @staticmethod
+        def normalize_json_value(
+            item: t.Cli.JsonValue,
+        ) -> t.Cli.JsonValue:
+            """Normalize a value to a JSON-serializable value."""
+            if isinstance(item, t.PRIMITIVES_TYPES):
+                return item
+            if item is None:
+                return ""
+            source = FlextCliUtilities.Cli.unwrap_root_value(item)
+            if FlextCliUtilities.Cli.is_mapping_like(source):
+                return {
+                    str(k): FlextCliUtilities.Cli.normalize_json_value(v)
+                    for k, v in source.items()
+                }
+            if isinstance(source, Sequence) and not isinstance(source, (str, bytes)):
+                return [FlextCliUtilities.Cli.normalize_json_value(i) for i in source]
+            return str(item)
+
+        @staticmethod
+        def default_for_type_kind(
+            type_kind: Literal["str", "bool", "dict"],
+            default: t.Cli.JsonValue | None,
+        ) -> str | bool | Mapping[str, t.Cli.JsonValue] | None:
+            """Default value for type_kind. Centralized (no polymorphic branches at call sites)."""
+            if type_kind == "str":
+                return default if isinstance(default, str) else None
+            if type_kind == "bool":
+                return default if isinstance(default, bool) else False
+            if FlextCliUtilities.Cli.is_mapping_like(default):
+                return {
+                    str(k): FlextCliUtilities.Cli.JSON_NORMALIZE_ADAPTER.dump_python(
+                        v,
+                        mode="json",
+                        warnings=False,
+                    )
+                    for k, v in default.items()
+                }
+            return {}
+
+        class PromptTimeoutResolved(BaseModel):
+            """Single contract: raw (int | str | None) + default -> int. Replaces isinstance(timeout_raw, int/str) branching."""
+
+            model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
+            raw: Annotated[int | str | None, Field(default=None)]
+            default: Annotated[
+                int,
+                Field(default=30, description="Default timeout in seconds"),
+            ]
+
+            @computed_field
+            @property
+            def resolved(self) -> int:
+                """Resolved timeout value."""
+                return self.resolve()
+
+            def resolve(self) -> int:
+                """Type-safe accessor (bypasses pyrefly computed_field limitation)."""
+                if self.raw is None:
+                    return self.default
+                if isinstance(self.raw, int):
+                    return self.raw
+                if self.raw.isdigit():
+                    return int(self.raw)
+                return self.default
+
+        class LogLevelResolved(BaseModel):
+            """Single contract for log level string (replaces u.convert for log level)."""
+
+            model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
+            raw: Annotated[str | None, Field(default=None)]
+            default: Annotated[str, Field(default="INFO")]
+
+            @computed_field
+            @property
+            def resolved(self) -> str:
+                """Resolved log level value."""
+                return self.resolve()
+
+            def resolve(self) -> str:
+                """Type-safe accessor (bypasses pyrefly computed_field limitation)."""
+                s = (self.raw or self.default).strip().upper()
+                return s or self.default
+
+        class TypedExtract(BaseModel):
+            """Single contract for typed value extraction (str | bool | dict). Replaces polymorphic _extract_typed_value."""
+
+            model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
+            type_kind: Annotated[
+                Literal["str", "bool", "dict"],
+                Field(description="Requested type"),
+            ]
+            value: Annotated[t.Cli.JsonValue | None, Field(default=None)]
+            default: Annotated[t.Cli.JsonValue | None, Field(default=None)]
+
+            @computed_field
+            @property
+            def resolved(
+                self,
+            ) -> str | bool | Mapping[str, t.Cli.JsonValue] | None:
+                """Value coerced to type_kind, or default. Single Pydantic contract (no polymorphic methods)."""
+                return self.resolve()
+
+            def resolve(
+                self,
+            ) -> str | bool | Mapping[str, t.Cli.JsonValue] | None:
+                """Type-safe accessor (bypasses pyrefly computed_field limitation)."""
+                if self.value is None:
+                    return FlextCliUtilities.Cli.default_for_type_kind(
+                        self.type_kind,
+                        self.default,
+                    )
+                if self.type_kind == "str":
+                    s = str(self.value).strip() if self.value else ""
+                    return s or (
+                        self.default if isinstance(self.default, str) else None
+                    )
+                if self.type_kind == "bool":
+                    return bool(self.value)
+                if self.type_kind == "dict":
+                    if FlextCliUtilities.Cli.is_mapping_like(self.value):
+                        return {
+                            str(
+                                k,
+                            ): FlextCliUtilities.Cli.JSON_NORMALIZE_ADAPTER.dump_python(
+                                vv,
+                                mode="json",
+                                warnings=False,
+                            )
+                            for k, vv in self.value.items()
+                        }
+                    if FlextCliUtilities.Cli.is_mapping_like(self.default):
+                        return {
+                            str(
+                                k,
+                            ): FlextCliUtilities.Cli.JSON_NORMALIZE_ADAPTER.dump_python(
+                                vv,
+                                mode="json",
+                                warnings=False,
+                            )
+                            for k, vv in self.default.items()
+                        }
+                    return {}
+                return FlextCliUtilities.Cli.default_for_type_kind(
+                    self.type_kind,
+                    self.default,
+                )
+
+        class OptionBuilder:
+            """Builder for Typer CLI options from field metadata.
+
+            Constructs typer.Option instances from field_name and registry configuration.
+            NOT a Pydantic model - this is a utility builder class.
+            """
+
+            def __init__(
+                self,
+                field_name: str,
+                registry: Mapping[str, Mapping[str, t.Cli.JsonValue]],
+            ) -> None:
+                """Initialize builder with field name and registry."""
+                super().__init__()
+                self.field_name = field_name
+                self.registry = registry
+
+            def build(self) -> typer.models.OptionInfo:
+                """Build typer.Option from field metadata."""
+                field_meta = self.registry.get(self.field_name, {})
+                if not field_meta:
+                    msg = "Option registry metadata must support key lookup"
+                    raise TypeError(msg)
+                help_text = str(field_meta.get("help", ""))
+                short_flag = str(field_meta.get("short", ""))
+                default_value = field_meta.get("default", ...)
+
+                field_name_override = field_meta.get(
+                    c.Cli.CliParamsRegistry.KEY_FIELD_NAME_OVERRIDE,
+                )
+                cli_param_name: str = (
+                    field_name_override
+                    if isinstance(field_name_override, str)
+                    else self.field_name
+                )
+
+                option_args: MutableSequence[str] = [
+                    f"--{cli_param_name.replace('_', '-')}"
+                ]
+                if short_flag:
+                    option_args.append(f"-{short_flag}")
+
+                option: OptionInfo = OptionInfo(
+                    default=default_value,
+                    param_decls=option_args,
+                    help=help_text,
+                )
+                return option
+
+        class CliModelConverter:
+            """Converter for Pydantic models to CLI parameters."""
+
+            JSON_VALUE_ADAPTER: ClassVar[TypeAdapter[t.Cli.JsonValue]] = TypeAdapter(
+                t.Cli.JsonValue,
+            )
+
+            @staticmethod
+            def cli_args_to_model(
+                model_cls: type[BaseModel],
+                cli_args: Mapping[str, t.Cli.JsonValue],
+            ) -> r[BaseModel]:
+                """Convert CLI arguments dict to Pydantic model instance."""
                 try:
-                    values.append(processor(item))
+                    cli_args_dict: Mapping[str, t.Cli.JsonValue] = dict(
+                        cli_args,
+                    )
+                    model_validate_method = model_cls.model_validate
+                    model_instance = model_validate_method(cli_args_dict)
+                    return r[BaseModel].ok(model_instance)
                 except (
                     ValueError,
                     TypeError,
@@ -48,23 +294,536 @@ class FlextCliUtilities(FlextUtilities):
                     ConsoleError,
                     StyleError,
                     LiveError,
-                ) as exc:
-                    if on_error == "fail":
-                        return r[Sequence[U]].fail(f"Error at index {idx}: {exc}")
-                    if on_error == "collect":
-                        errors.append(f"[{idx}]: {exc}")
+                ) as e:
+                    return r[BaseModel].fail(f"Failed to create model instance: {e}")
+
+            @staticmethod
+            def to_json_value(
+                value: t.Cli.JsonValue,
+            ) -> t.Cli.JsonValue:
+                """Convert arbitrary value into JSON-compatible value."""
+                converted = FlextCliUtilities.Cli.CliModelConverter.convert_field_value(
+                    value,
+                )
+                if converted.is_success:
+                    return converted.value
+                return str(value)
+
+            @staticmethod
+            def convert_field_value(
+                field_value: t.Cli.JsonValue,
+            ) -> r[t.Cli.JsonValue]:
+                """Convert field value to JSON-compatible value."""
+                if field_value is None:
+                    return r[t.Cli.JsonValue].ok("")
+                try:
+                    json_value = FlextCliUtilities.Cli.CliModelConverter.JSON_VALUE_ADAPTER.validate_python(
+                        field_value,
+                    )
+                    return r[t.Cli.JsonValue].ok(json_value)
+                except ValidationError as exc:
+                    _logger.debug(
+                        "convert_field_value validation fallback",
+                        error=exc,
+                        exc_info=False,
+                    )
+                    return r[t.Cli.JsonValue].ok(str(field_value))
+
+        class ModelCommandBuilder:
+            """Builder for Typer commands from Pydantic models.
+
+            Creates Typer command functions with automatic parameter extraction from model fields.
+            NOT a Pydantic model - this is a utility builder class.
+            """
+
+            def __init__(
+                self,
+                model_class: type[BaseModel],
+                handler: Callable[[BaseModel], t.Cli.JsonValue],
+                config: t.Cli.JsonValue | None = None,
+            ) -> None:
+                """Initialize builder with model class, handler, and optional config."""
+                super().__init__()
+                self.model_class = model_class
+                self.handler = handler
+                self.config = config
+
+            @staticmethod
+            def _create_real_annotations(
+                annotations: Mapping[str, type],
+            ) -> Mapping[str, type]:
+                """Create real type annotations for Typer flag detection."""
+
+                def process_annotation(_name: str, field_type: type) -> type:
+                    origin = get_origin(field_type)
+                    is_union = (
+                        origin is Union
+                        or origin is type(Union)
+                        or origin is types.UnionType
+                    )
+                    if is_union:
+                        args = get_args(field_type)
+                        non_none = [a for a in args if a is not type(None)]
+                        if non_none and non_none[0] is bool:
+                            return bool
+                        return field_type
+                    return field_type
+
+                processed_annotations: Mapping[str, type] = {
+                    name: process_annotation(name, field_type)
+                    for name, field_type in annotations.items()
+                }
+                return processed_annotations
+
+            @staticmethod
+            def _extract_optional_inner_type(
+                field_type: type,
+            ) -> tuple[type, bool]:
+                """Extract inner type from Optional/Union types.
+
+                Returns (inner_type, is_optional) tuple.
+                """
+                result_type: type = field_type
+                is_optional = False
+
+                origin = get_origin(field_type)
+                if origin is None:
+                    pass
+                elif origin is Literal:
+                    result_type = str
+                elif type(None) not in get_args(field_type):
+                    non_none_types = [
+                        arg for arg in get_args(field_type) if arg is not type(None)
+                    ]
+                    if non_none_types:
+                        first_type = non_none_types[0]
+                        if get_origin(first_type) is Literal:
+                            result_type = str
+                        else:
+                            result_type = first_type
                     else:
-                        logging.getLogger(__name__).debug(
-                            "process skip index %s: %s",
-                            idx,
-                            exc,
-                            exc_info=False,
+                        result_type = str
+                else:
+                    is_optional = True
+                    non_none_types = [
+                        arg for arg in get_args(field_type) if arg is not type(None)
+                    ]
+                    if not non_none_types or get_origin(non_none_types[0]) is Literal:
+                        result_type = str
+                    else:
+                        result_type = non_none_types[0]
+
+                return result_type, is_optional
+
+            @staticmethod
+            def _format_bool_param(
+                type_name: str,
+                inner_type: type,
+                default_val: t.Cli.JsonValue | None,
+            ) -> tuple[str, t.Cli.JsonValue | None]:
+                """Format boolean parameter for Typer flag detection."""
+                if inner_type is bool:
+                    return "bool", False if default_val is None else default_val
+                return type_name, default_val
+
+            @staticmethod
+            def _get_type_name_for_signature(
+                field_type: type,
+                builtin_types: set[str],
+            ) -> tuple[str, type]:
+                """Get type name string for Typer function signature."""
+                origin = get_origin(field_type)
+                builder = FlextCliUtilities.Cli.ModelCommandBuilder
+
+                if origin is Literal:
+                    return "str", field_type
+
+                if origin is not None and (origin is Union or origin is type(Union)):
+                    args = get_args(field_type)
+                    if type(None) in args:
+                        return builder.handle_optional_type(args, builtin_types)
+                    return builder.handle_union_type(args, builtin_types)
+
+                type_name = builder.get_builtin_name(field_type, builtin_types)
+                return type_name, field_type
+
+            @staticmethod
+            def _resolve_type_alias(field_type: type) -> tuple[type, str | None]:
+                """Resolve type aliases to Literal and return (resolved_type, origin)."""
+                origin = get_origin(field_type)
+                if origin is not None:
+                    return field_type, str(origin)
+
+                type_value_candidate = getattr(field_type, "__value__", None)
+                type_value: str | None = (
+                    str(type_value_candidate)
+                    if type_value_candidate is not None
+                    else None
+                )
+                if type_value is not None and "Literal" in type_value:
+                    return str, "Literal"
+                resolved_origin = get_origin(field_type)
+                return field_type, str(
+                    resolved_origin,
+                ) if resolved_origin is not None else None
+
+            @staticmethod
+            def get_builtin_name(_t: type, builtin_types: set[str]) -> str:
+                """Get configured alias name or 'str' fallback."""
+                if len(builtin_types) == 1:
+                    custom_name = next(iter(builtin_types))
+                    if custom_name not in {
+                        "str",
+                        "int",
+                        "float",
+                        "bool",
+                        "list",
+                        "dict",
+                        "tuple",
+                        "set",
+                        "bytes",
+                    }:
+                        return custom_name
+                return "str"
+
+            @staticmethod
+            def handle_optional_type(
+                args: tuple[type, ...],
+                builtin_types: set[str],
+            ) -> tuple[str, type]:
+                """Handle T | None pattern (Union with None)."""
+                non_none_types: Sequence[type] = [
+                    item for item in args if item is not type(None)
+                ]
+                inner_type = non_none_types[0] if non_none_types else str
+
+                if get_origin(inner_type) is Literal:
+                    return "str | None", inner_type
+
+                inner_name = FlextCliUtilities.Cli.ModelCommandBuilder.get_builtin_name(
+                    inner_type,
+                    builtin_types,
+                )
+                return f"{inner_name} | None", inner_type
+
+            @staticmethod
+            def handle_union_type(
+                args: tuple[type, ...],
+                builtin_types: set[str],
+            ) -> tuple[str, type]:
+                """Handle Union without None."""
+                non_none_types: Sequence[type] = [
+                    item
+                    for item in args
+                    if item is not type(None)
+                ]
+                if not non_none_types:
+                    return "str", str
+
+                first_type = non_none_types[0]
+                if get_origin(first_type) is Literal:
+                    return "str", first_type
+
+                type_name = FlextCliUtilities.Cli.ModelCommandBuilder.get_builtin_name(
+                    first_type,
+                    builtin_types,
+                )
+                return type_name, first_type
+
+            def _build_param_signature(
+                self,
+                name: str,
+                type_info: tuple[str, type, t.Cli.JsonValue | None, bool, bool],
+            ) -> tuple[str, bool]:
+                """Build parameter signature string."""
+                type_name, inner_type, default_val, has_factory, has_default = type_info
+                type_name, default_val = self._format_bool_param(
+                    type_name,
+                    inner_type,
+                    default_val,
+                )
+
+                if has_factory:
+                    return f"{name}: {type_name} | None", True
+
+                if has_default:
+                    default_repr = repr(default_val)
+                    if "PydanticUndefined" in default_repr:
+                        return f"{name}: {type_name} | None", True
+                    return f"{name}: {type_name} = {default_repr}", False
+
+                return f"{name}: {type_name}", True
+
+            def _process_field_metadata(
+                self,
+                field_name: str,
+                field_info: FieldInfo | Mapping[str, t.Cli.JsonValue] | t.Cli.JsonValue,
+            ) -> tuple[type, t.Cli.JsonValue | None, bool, bool]:
+                """Process field metadata and return type info.
+
+                Returns (field_type, default_value, is_required, has_factory).
+                """
+                default_value: t.Cli.JsonValue | None = None
+                is_required = True
+                has_factory = False
+
+                default_attr = (
+                    field_info.default if isinstance(field_info, FieldInfo) else None
+                )
+                if default_attr is not None:
+                    default_value = default_attr
+                factory_attr = (
+                    field_info.default_factory
+                    if isinstance(field_info, FieldInfo)
+                    else None
+                )
+                has_factory = callable(factory_attr)
+                is_required_fn = (
+                    field_info.is_required
+                    if isinstance(field_info, FieldInfo)
+                    else None
+                )
+                if callable(is_required_fn):
+                    is_required = bool(is_required_fn())
+
+                if self.config is not None:
+                    config_value = (
+                        getattr(self.config, field_name)
+                        if hasattr(self.config, field_name)
+                        else None
+                    )
+                    if config_value is not None:
+                        default_value = config_value
+
+                field_type_raw = (
+                    field_info.annotation if isinstance(field_info, FieldInfo) else None
+                )
+                if field_type_raw is None:
+                    field_type = (
+                        type(default_value) if default_value is not None else str
+                    )
+                else:
+                    field_type, origin = self._resolve_type_alias(field_type_raw)
+                    if origin is not None and field_type is not str:
+                        field_type, _ = self._extract_optional_inner_type(field_type)
+
+                field_type_typed: type = field_type
+                return field_type_typed, default_value, is_required, has_factory
+
+            _BUILTIN_TYPES: ClassVar[set[str]] = {
+                "str",
+                "int",
+                "float",
+                "bool",
+                "list",
+                "dict",
+                "tuple",
+                "set",
+                "bytes",
+            }
+
+            def build(self) -> p.Cli.CliCommandWrapper:
+                """Build Typer command from Pydantic model."""
+                narrowed_fields: Mapping[str, FieldInfo] = dict(
+                    self.model_class.model_fields,
+                )
+                annotations, defaults, fields_with_factory = self._collect_field_data(
+                    narrowed_fields,
+                )
+                return self._execute_command_wrapper(
+                    annotations,
+                    defaults,
+                    fields_with_factory,
+                )
+
+            def _build_signature_parts(
+                self,
+                annotations: Mapping[str, type],
+                defaults: Mapping[str, t.Cli.JsonValue],
+                fields_with_factory: set[str],
+            ) -> str:
+                """Build function signature string from field data."""
+
+                def process_signature(name: str, field_type: type) -> tuple[str, bool]:
+                    type_name, inner_type = self._get_type_name_for_signature(
+                        field_type,
+                        self._BUILTIN_TYPES,
+                    )
+                    type_info = (
+                        type_name,
+                        inner_type,
+                        defaults.get(name),
+                        name in fields_with_factory,
+                        name in defaults,
+                    )
+                    param_str, is_no_default = self._build_param_signature(
+                        name,
+                        type_info,
+                    )
+                    return param_str, is_no_default
+
+                signatures_dict: Mapping[str, tuple[str, bool]] = {
+                    name: process_signature(name, field_type)
+                    for name, field_type in annotations.items()
+                }
+                get_bool_flag = operator.itemgetter(1)
+                signatures_values = list(signatures_dict.values())
+                signatures_values_typed: Sequence[tuple[str, bool]] = signatures_values
+
+                def has_no_default(item: tuple[str, bool]) -> bool:
+                    """Check if item has no default (is_no_default is True)."""
+                    return bool(get_bool_flag(item))
+
+                def has_default(item: tuple[str, bool]) -> bool:
+                    """Check if item has default (is_no_default is False)."""
+                    return not bool(get_bool_flag(item))
+
+                params_no_default_list = [
+                    item for item in signatures_values_typed if has_no_default(item)
+                ]
+                params_with_default_list = [
+                    item for item in signatures_values_typed if has_default(item)
+                ]
+                params_no_default = list(params_no_default_list)
+                params_with_default = list(params_with_default_list)
+                params_no_default_strs = [
+                    operator.itemgetter(0)(item) for item in params_no_default
+                ]
+                params_with_default_strs = [
+                    operator.itemgetter(0)(item) for item in params_with_default
+                ]
+
+                return ", ".join(params_no_default_strs + params_with_default_strs)
+
+            def _collect_field_data(
+                self,
+                model_fields: Mapping[str, FieldInfo],
+            ) -> tuple[
+                Mapping[str, type],
+                Mapping[str, t.Cli.JsonValue],
+                set[str],
+            ]:
+                """Collect annotations, defaults and factory fields from model fields."""
+
+                def process_field(
+                    field_name: str,
+                    field_info: FieldInfo
+                    | Mapping[str, t.Cli.JsonValue]
+                    | t.Cli.JsonValue,
+                ) -> tuple[type, t.Cli.JsonValue | None, bool]:
+                    """Process single field and return (type, default, has_factory)."""
+                    field_type, default_val, _is_required, has_factory = (
+                        self._process_field_metadata(field_name, field_info)
+                    )
+                    return (
+                        field_type,
+                        default_val if default_val is not None else None,
+                        has_factory,
+                    )
+
+                processed_dict: Mapping[
+                    str,
+                    tuple[type, t.Cli.JsonValue | None, bool],
+                ] = {
+                    field_name: process_field(field_name, field_info)
+                    for field_name, field_info in model_fields.items()
+                }
+                annotations: MutableMapping[str, type] = {}
+                defaults: MutableMapping[str, t.Cli.JsonValue] = {}
+                fields_with_factory: set[str] = set()
+
+                for field_name, (
+                    field_type,
+                    default_val,
+                    has_factory,
+                ) in processed_dict.items():
+                    annotations[field_name] = field_type
+                    if has_factory:
+                        fields_with_factory.add(field_name)
+                    if (
+                        field_name not in fields_with_factory
+                        and default_val is not None
+                    ):
+                        defaults[field_name] = default_val
+
+                return annotations, defaults, fields_with_factory
+
+            def _execute_command_wrapper(
+                self,
+                annotations: Mapping[str, type],
+                defaults: Mapping[str, t.Cli.JsonValue],
+                fields_with_factory: set[str],
+            ) -> p.Cli.CliCommandWrapper:
+                required_parameters: list[inspect.Parameter] = []
+                defaulted_parameters: list[inspect.Parameter] = []
+                for field_name, field_type in annotations.items():
+                    has_default = (
+                        field_name in defaults and field_name not in fields_with_factory
+                    )
+                    default_value = (
+                        defaults[field_name] if has_default else inspect.Parameter.empty
+                    )
+                    parameter = inspect.Parameter(
+                        name=field_name,
+                        kind=inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                        default=default_value,
+                        annotation=field_type,
+                    )
+                    if has_default:
+                        defaulted_parameters.append(parameter)
+                    else:
+                        required_parameters.append(parameter)
+                signature_parameters = required_parameters + defaulted_parameters
+                command_signature = inspect.Signature(parameters=signature_parameters)
+
+                def command_wrapper(
+                    *args: t.Cli.JsonValue,
+                    **kwargs: t.Scalar,
+                ) -> t.Cli.JsonValue:
+                    try:
+                        bound_arguments = command_signature.bind(*args, **kwargs)
+                    except TypeError as ex:
+                        msg = f"Invalid command arguments: {ex}"
+                        raise RuntimeError(msg) from ex
+
+                    model_instance = self.model_class.model_validate(
+                        dict(bound_arguments.arguments),
+                    )
+                    if self.config is not None:
+                        for fn, value in bound_arguments.arguments.items():
+                            try:
+                                setattr(self.config, fn, value)
+                            except (AttributeError, TypeError) as ex:
+                                _logger.debug(
+                                    "Could not set builder_config.%s",
+                                    fn,
+                                    error=ex,
+                                )
+                    if callable(self.handler):
+                        return self.handler(model_instance)
+                    msg = "builder_handler is not callable"
+                    raise RuntimeError(msg)
+
+                real_annotations = self._create_real_annotations(annotations)
+                command_wrapper.__annotations__ = dict(real_annotations)
+
+                def typed_wrapper(
+                    *args: t.Cli.JsonValue,
+                    **kwargs: t.Scalar,
+                ) -> t.Cli.JsonValue:
+                    raw_result = command_wrapper(*args, **kwargs)
+                    normalized = (
+                        FlextCliUtilities.Cli.CliModelConverter.convert_field_value(
+                            raw_result,
                         )
-            return (
-                r[Sequence[U]].fail("; ".join(errors))
-                if errors
-                else r[Sequence[U]].ok(values)
-            )
+                    )
+                    if normalized.is_success:
+                        return normalized.value
+                    return str(raw_result)
+
+                setattr(typed_wrapper, "__signature__", command_signature)
+                typed_wrapper.__annotations__ = dict(real_annotations)
+                return typed_wrapper
 
         @staticmethod
         def process_mapping[T, U](
@@ -102,13 +861,6 @@ class FlextCliUtilities(FlextUtilities):
                 if errors
                 else r[Mapping[str, U]].ok(values)
             )
-
-        @staticmethod
-        def validate_required_string(value: str, *, context: str = "Value") -> None:
-            """Validate that a string is not empty."""
-            checked = FlextCliUtilities.Cli.CliValidation.v_empty(value, name=context)
-            if checked.is_failure:
-                raise ValueError(checked.error or f"{context} cannot be empty")
 
         class CliValidation:
             """CLI-specific validation utilities."""
@@ -286,19 +1038,6 @@ class FlextCliUtilities(FlextUtilities):
                     config_writable=exists and os.access(path, os.W_OK),
                     timestamp=datetime.now(UTC).isoformat(),
                 )
-
-            @staticmethod
-            def get_config_paths() -> t.StrSequence:
-                """Get standard configuration paths."""
-                base = Path.home() / c.Cli.Paths.FLEXT_DIR_NAME
-                return [
-                    str(base),
-                    str(base / c.Cli.DictKeys.CONFIG),
-                    str(base / c.Cli.Subdirectories.CACHE),
-                    str(base / c.Cli.Subdirectories.LOGS),
-                    str(base / c.Cli.DictKeys.TOKEN),
-                    str(base / c.Cli.Subdirectories.REFRESH_TOKEN),
-                ]
 
             @staticmethod
             def validate_config_structure() -> t.StrSequence:

@@ -47,15 +47,6 @@ def test_process_mapping_fail_and_collect_paths() -> None:
     tm.that((collect_result.error or ""), has="bad")
 
 
-def test_validate_required_string_raises_value_error() -> None:
-    raised = False
-    try:
-        u.Cli.validate_required_string("", context="Token")
-    except ValueError:
-        raised = True
-    tm.that(raised, eq=True)
-
-
 def test_validation_v_uses_custom_message_on_empty_failure() -> None:
     result = u.Cli.CliValidation.v(None, name="x", empty=False, msg="custom")
     tm.fail(result)

@@ -19,7 +19,6 @@ if TYPE_CHECKING:
     from flext_core import FlextTypes
 
     from tests.unit.conftest import reset_config_singleton
-    from tests.unit.test_base import TestsCliServiceBase
     from tests.unit.test_cli import TestsCliCli
     from tests.unit.test_cli_extended import TestsCliCliExtended
     from tests.unit.test_cli_params import (
@@ -76,7 +75,6 @@ if TYPE_CHECKING:
     from tests.unit.test_utilities_cov import (
         test_process_fail_and_collect_paths,
         test_process_mapping_fail_and_collect_paths,
-        test_validate_required_string_raises_value_error,
         test_validation_state_requires_criteria,
         test_validation_v_uses_custom_message_on_empty_failure,
     )
@@ -144,7 +142,6 @@ _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
         "tests.unit.test_railway_pattern_example",
         "TestsCliRailwayPatternExample",
     ],
-    "TestsCliServiceBase": ["tests.unit.test_base", "TestsCliServiceBase"],
     "TestsCliTypings": ["tests.unit.test_typings", "TestsCliTypings"],
     "TestsCliVersion": ["tests.unit.test_version", "TestsCliVersion"],
     "TypingTestCase": ["tests.unit.test_typings", "TypingTestCase"],
@@ -192,10 +189,6 @@ _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
         "tests.unit.test_cmd_cov",
         "test_validate_config_failure_on_exception",
     ],
-    "test_validate_required_string_raises_value_error": [
-        "tests.unit.test_utilities_cov",
-        "test_validate_required_string_raises_value_error",
-    ],
     "test_validation_state_requires_criteria": [
         "tests.unit.test_utilities_cov",
         "test_validation_state_requires_criteria",
@@ -238,7 +231,6 @@ __all__ = [
     "TestsCliPrompts",
     "TestsCliProtocols",
     "TestsCliRailwayPatternExample",
-    "TestsCliServiceBase",
     "TestsCliTypings",
     "TestsCliVersion",
     "TypingTestCase",
@@ -256,7 +248,6 @@ __all__ = [
     "test_show_config_outer_exception_path",
     "test_show_config_paths_failure_on_exception",
     "test_validate_config_failure_on_exception",
-    "test_validate_required_string_raises_value_error",
     "test_validation_state_requires_criteria",
     "test_validation_v_uses_custom_message_on_empty_failure",
 ]

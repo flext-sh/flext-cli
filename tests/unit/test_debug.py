@@ -1,7 +1,7 @@
 """FLEXT CLI Debug Tests - Comprehensive Debug Operations Testing.
 
 Tests for FlextCliDebug covering system info, environment variables, paths,
-connectivity, health checks, trace execution, and edge cases with 100% coverage.
+validation, and edge cases with 100% coverage.
 
 Modules tested: flext_cli.debug.FlextCliDebug
 Scope: All debug operations, system/environment/path info, validation, exception handling
@@ -63,27 +63,6 @@ class TestsCliDebug:
         tm.ok(result)
         tm.that(result.value, is_=list)
 
-    def test_debug_test_connectivity(self, debug: FlextCliDebug) -> None:
-        """Test connectivity testing."""
-        result = debug.test_connectivity()
-        tm.that(result, is_=r)
-        tm.ok(result)
-        tm.that(result.value, is_=dict)
-
-    def test_debug_execute_health_check(self, debug: FlextCliDebug) -> None:
-        """Test executing health check."""
-        result = debug.execute_health_check()
-        tm.that(result, is_=r)
-        tm.ok(result)
-        tm.that(result.value, is_=dict)
-
-    def test_debug_execute_trace(self, debug: FlextCliDebug) -> None:
-        """Test executing trace."""
-        result = debug.execute_trace(["test", "args"])
-        tm.that(result, is_=r)
-        tm.ok(result)
-        tm.that(result.value, is_=dict)
-
     def test_debug_get_debug_info(self, debug: FlextCliDebug) -> None:
         """Test getting debug information."""
         result = debug.get_debug_info()
@@ -97,10 +76,6 @@ class TestsCliDebug:
         tm.ok(paths_result)
         validate_result = debug.validate_environment_setup()
         tm.ok(validate_result)
-        connectivity_result = debug.test_connectivity()
-        tm.ok(connectivity_result)
-        health_result = debug.execute_health_check()
-        tm.ok(health_result)
         debug_info_result = debug.get_debug_info()
         tm.ok(debug_info_result)
 
@@ -115,19 +90,6 @@ class TestsCliDebug:
         tm.ok(env_result)
         env_issues = env_result.value
         tm.that(env_issues, is_=list)
-
-    def test_debug_edge_cases(self, debug: FlextCliDebug) -> None:
-        """Test edge cases and error conditions."""
-        result = debug.execute_trace([])
-        tm.that(result, is_=r)
-        result = debug.execute_trace(["arg1", "arg2", "arg3"])
-        tm.that(result, is_=r)
-        result = debug.execute_trace([
-            "arg with spaces",
-            "arg-with-dashes",
-            "arg_with_underscores",
-        ])
-        tm.that(result, is_=r)
 
     def test_debug_performance(self, debug: FlextCliDebug) -> None:
         """Test debug performance with multiple operations."""
@@ -186,7 +148,7 @@ class TestsCliDebug:
                 tm.that(value, eq="***MASKED***")
 
     def test_get_system_info_exception(self) -> None:
-        """Test get_system_info exception handler (lines 69-70).
+        """Test get_system_info exception handler.
 
         Uses real system info collection to test actual behavior.
         """
@@ -197,7 +159,7 @@ class TestsCliDebug:
         tm.that(info, is_=dict)
 
     def test_get_environment_variables_exception(self) -> None:
-        """Test get_environment_variables exception handler (lines 85-86).
+        """Test get_environment_variables exception handler.
 
         Uses real environment info collection to test actual behavior.
         """
@@ -208,7 +170,7 @@ class TestsCliDebug:
         tm.that(env_vars, is_=dict)
 
     def test_get_system_paths_exception(self) -> None:
-        """Test get_system_paths exception handler (lines 107-108).
+        """Test get_system_paths exception handler.
 
         Uses real path info collection to test actual behavior.
         """
@@ -220,7 +182,7 @@ class TestsCliDebug:
         tm.that(paths, has="paths")
 
     def test_validate_environment_setup_exception(self) -> None:
-        """Test validate_environment_setup exception handler (lines 119-120).
+        """Test validate_environment_setup exception handler.
 
         Uses real environment validation to test actual behavior.
         """
@@ -230,41 +192,8 @@ class TestsCliDebug:
         validation = result.value
         tm.that(validation, is_=list)
 
-    def test_test_connectivity_exception(self) -> None:
-        """Test test_connectivity exception handler (lines 95-96).
-
-        Uses real connectivity testing to test actual behavior.
-        """
-        debug = FlextCliDebug()
-        result = debug.test_connectivity()
-        tm.ok(result)
-        connectivity = result.value
-        tm.that(connectivity, is_=dict)
-
-    def test_execute_health_check_exception(self) -> None:
-        """Test execute_health_check exception handler (lines 152-153).
-
-        Uses real health check execution to test actual behavior.
-        """
-        debug = FlextCliDebug()
-        result = debug.execute_health_check()
-        tm.ok(result)
-        health = result.value
-        tm.that(health, is_=dict)
-
-    def test_execute_trace_exception(self) -> None:
-        """Test execute_trace exception handler (lines 129-130).
-
-        Uses real trace execution to test actual behavior.
-        """
-        debug = FlextCliDebug()
-        result = debug.execute_trace(["arg1", "arg2"])
-        tm.ok(result)
-        trace = result.value
-        tm.that(trace, is_=dict)
-
     def test_get_debug_info_exception(self) -> None:
-        """Test get_debug_info exception handler (lines 192-193).
+        """Test get_debug_info exception handler.
 
         Uses real debug info collection to test actual behavior.
         """
@@ -275,7 +204,7 @@ class TestsCliDebug:
         tm.that(info, is_=dict)
 
     def test_get_comprehensive_debug_info_exception(self) -> None:
-        """Test get_comprehensive_debug_info exception handler (line 209).
+        """Test get_comprehensive_debug_info exception handler.
 
         Uses real comprehensive debug info collection to test actual behavior.
         """
@@ -300,7 +229,7 @@ class TestsCliDebug:
         tm.that(paths, is_=list)
 
     def test_get_comprehensive_debug_info_environment_error(self) -> None:
-        """Test get_comprehensive_debug_info when get_environment_variables fails (line 218).
+        """Test get_comprehensive_debug_info when get_environment_variables fails.
 
         Uses real comprehensive debug info collection to test actual behavior.
         """
@@ -311,7 +240,7 @@ class TestsCliDebug:
         tm.that(info, is_=dict)
 
     def test_get_comprehensive_debug_info_paths_error(self) -> None:
-        """Test get_comprehensive_debug_info when get_system_paths fails (line 227).
+        """Test get_comprehensive_debug_info when get_system_paths fails.
 
         Uses real comprehensive debug info collection to test actual behavior.
         """
@@ -322,7 +251,7 @@ class TestsCliDebug:
         tm.that(info, is_=dict)
 
     def test_get_comprehensive_debug_info_outer_exception(self) -> None:
-        """Test get_comprehensive_debug_info outer exception handler (lines 271-276).
+        """Test get_comprehensive_debug_info outer exception handler.
 
         Uses real comprehensive debug info collection to test actual behavior.
         """
@@ -333,7 +262,7 @@ class TestsCliDebug:
         tm.that(info, is_=dict)
 
     def test_validate_filesystem_permissions_oserror(self) -> None:
-        """Test _validate_filesystem_permissions OSError handler (lines 312-317).
+        """Test _validate_filesystem_permissions OSError handler.
 
         Uses real filesystem validation to test actual behavior.
         """
@@ -344,7 +273,7 @@ class TestsCliDebug:
         tm.that(errors, is_=list)
 
     def test_validate_filesystem_permissions_general_exception(self) -> None:
-        """Test _validate_filesystem_permissions general exception handler (lines 319-324).
+        """Test _validate_filesystem_permissions general exception handler.
 
         Uses real filesystem validation to test actual behavior.
         """
@@ -353,22 +282,6 @@ class TestsCliDebug:
         tm.ok(result)
         errors = result.value
         tm.that(errors, is_=list)
-
-    def test_test_connectivity(self) -> None:
-        """Test test_connectivity static method."""
-        result = FlextCliDebug.test_connectivity()
-        tm.ok(result)
-        connectivity_info = result.value
-        tm.that(connectivity_info, is_=dict)
-        tm.that(connectivity_info, empty=False)
-
-    def test_execute_health_check(self) -> None:
-        """Test execute_health_check static method."""
-        result = FlextCliDebug.execute_health_check()
-        tm.ok(result)
-        health_info = result.value
-        tm.that(health_info, is_=dict)
-        tm.that(health_info, empty=False)
 
     def test_get_environment_variables_static(self) -> None:
         """Test get_environment_variables method."""

@@ -13,11 +13,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Sequence
-from typing import Annotated, ClassVar, Final
+from typing import Final
 
 from flext_tests import FlextTestsConstants
-from pydantic import BaseModel, ConfigDict, Field
 
 from flext_cli import FlextCliConstants
 from tests import t
@@ -50,28 +48,7 @@ class FlextCliTestConstants(FlextTestsConstants, FlextCliConstants):
         class Test:
             """Test-specific constant values."""
 
-            ALICE: Final[str] = "Alice"
-            VALID_FIELD_NAME: Final[str] = "validField"
-            FIELD_NAME: Final[str] = "field"
-            WHITESPACE_FIELD_NAME: Final[str] = "field with spaces"
-            VALID_STRING: Final[str] = "valid_string"
-            STRING: Final[str] = "string"
-            WHITESPACE_STRING: Final[str] = "string with spaces"
-            NONE_VALUE: Final[None] = None
             TWO: Final[t.StrSequence] = ["item1", "item2"]
-            PASSWORD: Final[str] = "secret123"
-            LONG: Final[str] = "a" * 1000
-            SPECIAL: Final[str] = "!@#$%^&*()"
-            UNICODE: Final[str] = "测试字符串"
-            PERFORMANCE_THRESHOLD: Final[float] = 0.1
-            INFO: Final[str] = "INFO"
-            WARNING: Final[str] = "WARNING"
-            ALL: Final[t.StrSequence] = ["ALL"]
-            NAME_HEADER: Final[str] = "Name"
-            GRID: Final[str] = "grid"
-            FANCY_GRID: Final[str] = "fancy_grid"
-            INVALID: Final[str] = "invalid"
-            EXPECTED_ALL: Final[str] = "expected_all"
 
             class Environment:
                 """Test environment constants."""
@@ -80,74 +57,10 @@ class FlextCliTestConstants(FlextTestsConstants, FlextCliConstants):
                 PYTEST_BINARY: Final[str] = "pytest"
                 CI_VALUE: Final[str] = "true"
 
-            SPECIALIZED_CASES: Final[str] = "specialized_cases"
-
-            class Borders:
-                """Table border constants."""
-
-                PLUS: Final[str] = "plus"
-
-            Data: Final[str] = "data"
-            Config: Final[str] = "config"
-
-            class OutputFormats:
-                """Output format constants."""
-
-                INVALID_FORMAT: Final[str] = "invalid_format"
-
-            class Statuses:
-                """Test status constants."""
-
-                VALID_STATUSES: Final[t.StrSequence] = [
-                    "pending",
-                    "running",
-                    "completed",
-                    "failed",
-                ]
-                INVALID_STATUS: Final[str] = "invalid_status"
-
-            class FileOps:
-                """Test file operations constants."""
-
-                FILE_NOT_FOUND_PATTERNS: Final[tuple[str, ...]] = (
-                    "not found",
-                    "no such file",
-                    "does not exist",
-                    "errno 2",
-                    "cannot open",
-                )
-                NON_FILE_ERRORS: Final[t.StrSequence] = [
-                    "permission denied",
-                    "disk full",
-                    "access denied",
-                ]
-
-            Password: Final[str] = "password"
-
             class PasswordDefaults:
                 """Password validation constants."""
 
                 MIN_LENGTH_STRICT: Final[int] = 8
-                MIN_LENGTH_DEFAULT: Final[int] = 1
-
-            Progress: Final[str] = "progress"
-
-            class ProgressDefaults:
-                """Progress bar constants."""
-
-                SMALL_DATASET_SIZE: Final[int] = 5
-                LARGE_DATASET_SIZE: Final[int] = 100
-
-            class TestConfiguration:
-                """Test configuration constants."""
-
-                BASIC_CONFIG: Final[t.ContainerMapping] = {
-                    "app_name": "test_app",
-                    "debug": False,
-                    "log_level": "INFO",
-                    "output_format": "json",
-                }
-                "Basic configuration for testing config provider operations."
 
             class TestData:
                 """Test data constants for test modules."""
@@ -169,29 +82,6 @@ class FlextCliTestConstants(FlextTestsConstants, FlextCliConstants):
                 STRING: Final[str] = "string"
                 WHITESPACE_STRING: Final[str] = "string with spaces"
                 NONE_VALUE: Final[None] = None
-
-            class Strings:
-                """Flext-cli-specific test strings organized by complexity."""
-
-                EMPTY: Final[str] = ""
-                WHITESPACE_ONLY: Final[str] = "   "
-                SINGLE_CHAR: Final[str] = "a"
-                BASIC_WORD: Final[str] = "hello"
-                BASIC_LIST: Final[str] = "a,b,c"
-                NUMERIC_LIST: Final[str] = "1,2,3"
-                WITH_SPACES: Final[str] = "a, b, c"
-                EXCESSIVE_SPACES: Final[str] = "  a  ,  b  ,  c  "
-                LEADING_SPACES: Final[str] = "  hello"
-                TRAILING_SPACES: Final[str] = "hello  "
-                LEADING_TRAILING: Final[str] = ",a,b,c,"
-                WITH_EMPTY: Final[str] = "a,,c"
-                ONLY_DELIMITERS: Final[str] = ",,,"
-                UNICODE_CHARS: Final[str] = "héllo,wörld"
-                VALID_EMAIL: Final[str] = "test@example.com"
-                INVALID_EMAIL: Final[str] = "invalid-email"
-                USER_ID_VALID: Final[str] = "123"
-                USER_ID_INVALID: Final[str] = "invalid"
-                USER_ID_EMPTY: Final[str] = ""
 
             class TestErrors:
                 """Flext-cli-specific error message patterns for validation."""
@@ -231,261 +121,6 @@ class FlextCliTestConstants(FlextTestsConstants, FlextCliConstants):
                 FAILURE: Final[str] = "failure"
                 PENDING: Final[str] = "pending"
                 RUNNING: Final[str] = "running"
-
-        class Fixtures:
-            """Test fixture dataclasses for flext-cli tests."""
-
-            class Identifiers(BaseModel):
-                """Test identifiers and IDs."""
-
-                model_config: ClassVar[ConfigDict] = ConfigDict(frozen=True)
-
-                user_id: Annotated[
-                    str,
-                    Field(
-                        default="test_user_123",
-                        description="Test user id",
-                    ),
-                ]
-                session_id: Annotated[
-                    str,
-                    Field(
-                        default="test_session_123",
-                        description="Test session id",
-                    ),
-                ]
-                service_name: Annotated[
-                    str,
-                    Field(
-                        default="test_service",
-                        description="Test service name",
-                    ),
-                ]
-                operation_id: Annotated[
-                    str,
-                    Field(
-                        default="test_operation",
-                        description="Test operation id",
-                    ),
-                ]
-                request_id: Annotated[
-                    str,
-                    Field(
-                        default="test-request-456",
-                        description="Test request id",
-                    ),
-                ]
-                correlation_id: Annotated[
-                    str,
-                    Field(
-                        default="test-corr-123",
-                        description="Test correlation id",
-                    ),
-                ]
-
-            class Names(BaseModel):
-                """Test module and component names."""
-
-                model_config: ClassVar[ConfigDict] = ConfigDict(frozen=True)
-
-                module_name: Annotated[
-                    str,
-                    Field(
-                        default="test_module",
-                        description="Test module name",
-                    ),
-                ]
-                handler_name: Annotated[
-                    str,
-                    Field(
-                        default="test_handler",
-                        description="Test handler name",
-                    ),
-                ]
-                chain_name: Annotated[
-                    str,
-                    Field(
-                        default="test_chain",
-                        description="Test chain name",
-                    ),
-                ]
-                command_type: Annotated[
-                    str,
-                    Field(
-                        default="test_command",
-                        description="Test command type",
-                    ),
-                ]
-                query_type: Annotated[
-                    str,
-                    Field(
-                        default="test_query",
-                        description="Test query type",
-                    ),
-                ]
-                logger_name: Annotated[
-                    str,
-                    Field(
-                        default="test_logger",
-                        description="Test logger name",
-                    ),
-                ]
-                app_name: Annotated[
-                    str,
-                    Field(default="test-app", description="Test app name"),
-                ]
-                validation_app: Annotated[
-                    str,
-                    Field(
-                        default="validation-test",
-                        description="Validation app name",
-                    ),
-                ]
-                source_service: Annotated[
-                    str,
-                    Field(
-                        default="test_service",
-                        description="Source service name",
-                    ),
-                ]
-
-            class ErrorData(BaseModel):
-                """Test error codes and messages."""
-
-                model_config: ClassVar[ConfigDict] = ConfigDict(frozen=True)
-
-                error_code: Annotated[
-                    str,
-                    Field(
-                        default="TEST_ERROR_001",
-                        description="Test error code",
-                    ),
-                ]
-                validation_error: Annotated[
-                    str,
-                    Field(
-                        default="test_error",
-                        description="Validation error text",
-                    ),
-                ]
-                operation_error: Annotated[
-                    str,
-                    Field(
-                        default="Op failed",
-                        description="Operation error text",
-                    ),
-                ]
-                config_error: Annotated[
-                    str,
-                    Field(
-                        default="Config failed",
-                        description="Config error text",
-                    ),
-                ]
-                timeout_error: Annotated[
-                    str,
-                    Field(
-                        default="Operation timeout",
-                        description="Timeout error text",
-                    ),
-                ]
-
-            class Data(BaseModel):
-                """Test field names and data values."""
-
-                model_config: ClassVar[ConfigDict] = ConfigDict(frozen=True)
-
-                field_name: Annotated[
-                    str,
-                    Field(
-                        default="test_field",
-                        description="Test field name",
-                    ),
-                ]
-                config_key: Annotated[
-                    str,
-                    Field(
-                        default="test_key",
-                        description="Test config key",
-                    ),
-                ]
-                username: Annotated[
-                    str,
-                    Field(default="test_user", description="Test username"),
-                ]
-                email: Annotated[
-                    str,
-                    Field(default="test@example.com", description="Test email"),
-                ]
-                password: Annotated[
-                    str,
-                    Field(default="test_pass", description="Test password"),
-                ]
-                string_value: Annotated[
-                    str,
-                    Field(
-                        default="test_value",
-                        description="Test string value",
-                    ),
-                ]
-                input_data: Annotated[
-                    str,
-                    Field(
-                        default="test_input",
-                        description="Test input data",
-                    ),
-                ]
-                request_data: Annotated[
-                    str,
-                    Field(
-                        default="test_request",
-                        description="Test request data",
-                    ),
-                ]
-                result_data: Annotated[
-                    str,
-                    Field(
-                        default="test_result",
-                        description="Test result data",
-                    ),
-                ]
-                message: Annotated[
-                    str,
-                    Field(default="test_message", description="Test message"),
-                ]
-
-        class Table:
-            """Table-related test constants."""
-
-            class Borders:
-                """Table border constants."""
-
-                PLUS: Final[str] = "+"
-
-            SPECIALIZED_CASES: Final[Sequence[tuple[str, str, t.StrSequence]]] = [
-                ("simple", "simple", ["name", "role", "alice"]),
-                ("grid", "grid", ["+", "-", "|"]),
-                ("fancy_grid", "fancy_grid", ["╒", "═", "│"]),
-                ("markdown", "markdown", ["|", "-"]),
-                ("html", "html", ["<table>", "<tr>", "<td>"]),
-                ("latex", "latex", ["\\begin{tabular}", "\\hline"]),
-                ("rst", "rst", ["=", "name", "role"]),
-            ]
-
-        class TestAuthentication:
-            """Authentication test constants for protocol testing."""
-
-            VALID_TOKEN: Final[str] = "valid_token"
-            INVALID_TOKEN: Final[str] = "invalid_token_xyz"
-            VALID_CREDS: Final[t.StrMapping] = {
-                "username": "testuser",
-                "password": "testpass",
-            }
-            INVALID_CREDS: Final[t.StrMapping] = {
-                "username": "invalid",
-                "password": "wrong",
-            }
-            EMPTY_CREDS: Final[t.StrMapping] = {"username": "", "password": ""}
 
 
 c = FlextCliTestConstants

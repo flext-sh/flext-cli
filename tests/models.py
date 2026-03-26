@@ -12,10 +12,10 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from datetime import datetime
-from typing import Annotated, ClassVar, Literal, Self
+from typing import Annotated, ClassVar, Literal
 
 from flext_tests import FlextTestsModels
-from pydantic import BaseModel, ConfigDict, Field, RootModel, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from flext_cli import FlextCliModels, t
 
@@ -70,92 +70,6 @@ class FlextCliTestModels(FlextTestsModels, FlextCliModels):
                 session_id: Annotated[str, Field(default="test-session-0")]
                 status: Annotated[str, Field(default="active")]
                 created_at: Annotated[datetime | None, Field(default=None)]
-
-            type _ScalarOnly = t.Primitives | None
-
-            class ScalarConfigRestore(RootModel[Mapping[str, t.Primitives | None]]):
-                """Holds scalar-only config for container restore in fixtures. Filters nested values out."""
-
-                @classmethod
-                def from_config_items(cls, items: t.ContainerMapping) -> Self:
-                    """Build scalar-only dict from config items (drops nested dict/list/model)."""
-                    out: Mapping[str, t.Primitives | None] = {
-                        k: v
-                        for k, v in items.items()
-                        if v is None or isinstance(v, (str, int, float, bool))
-                    }
-                    return cls(out)
-
-            class TextTestCaseDict(PositionalModel):
-                """Parametrized test case for prompt_text — Pydantic v2."""
-
-                model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
-                message: Annotated[str, Field(default="", description="Prompt message")]
-                default: Annotated[str, Field(default="", description="Default value")]
-                validation_pattern: Annotated[
-                    str | None,
-                    Field(
-                        default=None,
-                        description="Regex pattern",
-                    ),
-                ]
-                expected_success: Annotated[
-                    bool,
-                    Field(
-                        default=True,
-                        description="Expect success",
-                    ),
-                ]
-
-            class ConfirmTestCaseDict(PositionalModel):
-                """Parametrized test case for prompt_confirmation — Pydantic v2."""
-
-                model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
-                message: Annotated[str, Field(default="", description="Prompt message")]
-                default: Annotated[
-                    bool,
-                    Field(default=False, description="Default value"),
-                ]
-                expected_value: Annotated[
-                    bool,
-                    Field(
-                        default=False,
-                        description="Expected result",
-                    ),
-                ]
-
-            class ChoiceTestCaseDict(PositionalModel):
-                """Parametrized test case for prompt_choice — Pydantic v2."""
-
-                model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
-                message: Annotated[str, Field(default="", description="Prompt message")]
-                choices: Annotated[
-                    t.StrSequence,
-                    Field(
-                        description="Choice list",
-                    ),
-                ] = Field(default_factory=list)
-                default: Annotated[
-                    str | None,
-                    Field(default=None, description="Default choice"),
-                ]
-                expected_success: Annotated[
-                    bool,
-                    Field(
-                        default=True,
-                        description="Expect success",
-                    ),
-                ]
-
-            class PrintStatusCase(PositionalModel):
-                """Parametrized test case for print_status — Pydantic v2."""
-
-                model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
-                message: Annotated[str, Field(default="", description="Message")]
-                status: Annotated[
-                    str | None,
-                    Field(default=None, description="Status type"),
-                ]
 
             class UserData(PositionalModel):
                 """User data for type scenario tests — Pydantic v2."""

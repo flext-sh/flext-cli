@@ -13,6 +13,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import override
 
 from flext_core import r
@@ -33,9 +34,9 @@ class TestsCliServiceBase:
         """Concrete implementation for testing abstract base class."""
 
         @override
-        def execute(self) -> r[t.Cli.JsonValue]:
+        def execute(self) -> r[Mapping[str, t.Cli.JsonValue]]:
             """Implement abstract method for testing."""
-            return r.ok({})
+            return r[Mapping[str, t.Cli.JsonValue]].ok({})
 
     def test_service_base_initialization(self) -> None:
         """Test FlextCliServiceBase can be instantiated via concrete class."""
@@ -52,20 +53,8 @@ class TestsCliServiceBase:
         config2 = service.cli_config
         tm.that(config is config2, eq=True)
 
-    def test_get_cli_config_static_method(self) -> None:
-        """Test get_cli_config static method returns FlextCliSettings singleton."""
-        config = FlextCliServiceBase.get_cli_config()
-        tm.that(config, none=False)
-        tm.that(config, is_=FlextCliSettings)
-        config2 = FlextCliServiceBase.get_cli_config()
-        tm.that(config is config2, eq=True)
-        service = self._ConcreteService()
-        tm.that(config is service.cli_config, eq=True)
-
     def test_config_singleton_consistency(self) -> None:
-        """Test that property and static method return same singleton."""
+        """Test that config returns same singleton across instances."""
         service1 = self._ConcreteService()
         service2 = self._ConcreteService()
         tm.that(service1.cli_config is service2.cli_config, eq=True)
-        tm.that(service1.cli_config is FlextCliServiceBase.get_cli_config(), eq=True)
-        tm.that(service2.cli_config is FlextCliServiceBase.get_cli_config(), eq=True)

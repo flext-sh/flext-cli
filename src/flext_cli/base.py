@@ -50,10 +50,5 @@ class FlextCliServiceBase(s[Mapping[str, t.Cli.JsonValue]], ABC):
         """
         return m.RuntimeBootstrapOptions(config_type=FlextCliSettings)
 
-    @staticmethod
-    def get_cli_config() -> FlextCliSettings:
-        """Return shared `FlextCliSettings` singleton without instantiating service."""
-        return FlextCliSettings.get_global()
-
 
 __all__ = ["FlextCliServiceBase", "s"]

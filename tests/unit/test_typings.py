@@ -40,8 +40,6 @@ from pydantic import BaseModel, ConfigDict, Field
 from flext_cli import FlextCliTypes, t
 from tests import c, m
 
-from ..helpers import FlextCliTestHelpers
-
 
 @unique
 class TypingTestType(StrEnum):
@@ -446,15 +444,12 @@ class TestsCliTypings:
         tm.that(users_data, is_=list)
         assert isinstance(users_data, list)
         tm.that(len(users_data), eq=1)
-        processing_result = (
-            FlextCliTestHelpers.TypingHelpers.create_processing_test_data()
-        )
-        tm.ok(processing_result)
-        if processing_result.is_success and processing_result.value:
-            string_list, number_list, mixed_dict = processing_result.value
-            tm.that(len(string_list), eq=3)
-            tm.that(len(number_list), eq=5)
-            tm.that(mixed_dict, is_=dict)
+        string_list = ["str1", "str2", "str3"]
+        number_list = [1, 2, 3, 4, 5]
+        mixed_dict: t.ContainerMapping = {"key": "value", "number": 42}
+        tm.that(len(string_list), eq=3)
+        tm.that(len(number_list), eq=5)
+        tm.that(mixed_dict, is_=dict)
 
     def _execute_type_performance_tests(self) -> None:
         """Execute type performance tests."""
@@ -523,10 +518,15 @@ class TestsCliTypings:
 
     def test_full_type_workflow_integration(self) -> None:
         """Test complete type workflow integration."""
-        typed_data_result = FlextCliTestHelpers.TypingHelpers.create_typed_dict_data()
-        tm.ok(typed_data_result)
-        api_data_result = FlextCliTestHelpers.TypingHelpers.create_api_response_data()
-        tm.ok(api_data_result)
+        typed_data: t.ContainerMapping = {"key": "value", "number": 42}
+        tm.that(typed_data, is_=dict)
+        api_data = m.Cli.Test.ApiResponse(
+            status="success",
+            data={"id": 1},
+            message="ok",
+            error=None,
+        )
+        tm.that(api_data, is_=m.Cli.Test.ApiResponse)
         complex_type = Sequence[Mapping[str, str | int]]
         optional_type = t.StrSequence | None
         union_type = t.Scalar

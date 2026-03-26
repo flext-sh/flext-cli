@@ -280,7 +280,7 @@ class FlextCliCli:
             config_payload = FlextCliCli._json_value_adapter.validate_python(
                 config.model_dump(mode="json"),
             )
-        return m.Cli.ModelCommandBuilder(
+        return u.Cli.ModelCommandBuilder(
             model_class,
             normalized_handler,
             config_payload,
@@ -744,18 +744,18 @@ class FlextCliCli:
         if type_name not in {"str", "bool", "dict"}:
             return default
         if type_name == "str":
-            return m.Cli.TypedExtract(
+            return u.Cli.TypedExtract(
                 type_kind="str",
                 value=val,
                 default=default,
             ).resolve()
         if type_name == "bool":
-            return m.Cli.TypedExtract(
+            return u.Cli.TypedExtract(
                 type_kind="bool",
                 value=val,
                 default=default,
             ).resolve()
-        return m.Cli.TypedExtract(
+        return u.Cli.TypedExtract(
             type_kind="dict",
             value=val,
             default=default,
@@ -777,7 +777,7 @@ class FlextCliCli:
             None,
         )
         level_str: str = str(
-            m.Cli.LogLevelResolved(
+            u.Cli.LogLevelResolved(
                 raw=log_level_attr.value
                 if log_level_attr and hasattr(log_level_attr, "value")
                 else str(log_level_attr)

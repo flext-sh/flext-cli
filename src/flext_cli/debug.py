@@ -27,34 +27,6 @@ from flext_cli import FlextCliServiceBase, c, m, t, u
 class FlextCliDebug(FlextCliServiceBase):
     """Debug service extending FlextCliServiceBase.
 
-    Business Rules:
-    ───────────────
-    1. Debug operations MUST NOT expose sensitive data (passwords, tokens, keys)
-    2. System information MUST be collected safely (handle missing attributes)
-    3. Environment variables MUST be filtered to exclude sensitive values
-    4. Path information MUST validate paths exist before reporting
-    5. Health checks MUST validate all critical components
-    6. Debug output MUST be formatted for readability (JSON/YAML)
-    7. Debug operations MUST use r[T] for error handling
-    8. Trace operations MUST respect debug mode configuration
-
-    Architecture Implications:
-    ───────────────────────────
-    - Extends FlextCliServiceBase for consistent logging and container access
-    - Uses FlextModels for structured debug information
-    - Generalized helpers reduce code duplication (DRY)
-    - Safe info collection handles missing attributes gracefully
-    - Model conversion uses Pydantic model_dump for serialization
-
-    Audit Implications:
-    ───────────────────
-    - Debug operations MUST be logged with operation type and result
-    - Sensitive data MUST be masked in debug output (passwords, tokens, keys)
-    - System information collection MUST not expose security vulnerabilities
-    - Environment variable access MUST filter sensitive values
-    - Debug output MUST be sanitized before logging or display
-    - Health check failures MUST be logged for monitoring
-
     Provides essential debugging functionality using flext-core patterns.
     Follows single-responsibility principle with nested helpers.
     """
@@ -67,12 +39,6 @@ class FlextCliDebug(FlextCliServiceBase):
             config_overrides=None,
             initial_context=None,
         )
-
-    @staticmethod
-    def _convert_model_to_dict(
-        model: m.Cli.SystemInfo | m.Cli.EnvironmentInfo | m.Cli.PathInfo,
-    ) -> m.Cli.SystemInfo | m.Cli.EnvironmentInfo | m.Cli.PathInfo:
-        return model
 
     @staticmethod
     def _get_environment_info() -> m.Cli.EnvironmentInfo:
@@ -138,7 +104,7 @@ class FlextCliDebug(FlextCliServiceBase):
             try:
                 _ = pathlib.Path(test_file).write_text(
                     "test",
-                    encoding=c.Cli.Utilities.DEFAULT_ENCODING,
+                    encoding=c.DEFAULT_ENCODING,
                 )
                 pathlib.Path(test_file).unlink()
             except OSError as e:
@@ -157,77 +123,6 @@ class FlextCliDebug(FlextCliServiceBase):
                 c.Cli.ErrorMessages.FILESYSTEM_VALIDATION_FAILED.format(error=e),
             )
         return errors
-
-    @staticmethod
-    def execute_health_check() -> r[Mapping[str, t.Cli.JsonValue]]:
-        """Execute comprehensive health check."""
-        try:
-            health_info: Mapping[str, t.Cli.JsonValue] = {
-                c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.HEALTHY.value,
-                c.Cli.DictKeys.TIMESTAMP: u.generate("timestamp"),
-                c.Cli.DictKeys.SERVICE: c.Cli.DebugDefaults.SERVICE_NAME,
-                c.Cli.DebugDictKeys.CHECK_ID: u.generate("id"),
-                c.Cli.DebugDictKeys.CHECKS_PASSED: True,
-            }
-            return r[Mapping[str, t.Cli.JsonValue]].ok(health_info)
-        except (
-            ValueError,
-            TypeError,
-            KeyError,
-            ConsoleError,
-            StyleError,
-            LiveError,
-        ) as e:
-            return r[Mapping[str, t.Cli.JsonValue]].fail(
-                c.Cli.DebugErrorMessages.HEALTH_CHECK_FAILED.format(error=e),
-            )
-
-    @staticmethod
-    def execute_trace(args: t.StrSequence) -> r[Mapping[str, t.Cli.JsonValue]]:
-        """Execute trace operation with provided arguments."""
-        try:
-            trace_info: Mapping[str, t.Cli.JsonValue] = {
-                c.Cli.DebugDictKeys.OPERATION: c.Cli.TRACE,
-                c.Cli.DictKeys.ARGS: list(args),
-                c.Cli.DebugDictKeys.ARGS_COUNT: len(args),
-                c.Cli.DictKeys.TIMESTAMP: u.generate("timestamp"),
-                c.Cli.DebugDictKeys.TRACE_ID: u.generate("id"),
-            }
-            return r[Mapping[str, t.Cli.JsonValue]].ok(trace_info)
-        except (
-            ValueError,
-            TypeError,
-            KeyError,
-            ConsoleError,
-            StyleError,
-            LiveError,
-        ) as e:
-            return r[Mapping[str, t.Cli.JsonValue]].fail(
-                c.Cli.DebugErrorMessages.TRACE_EXECUTION_FAILED.format(error=e),
-            )
-
-    @staticmethod
-    def test_connectivity() -> r[t.StrMapping]:
-        """Test basic connectivity and service status."""
-        try:
-            connectivity_info = {
-                c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.CONNECTED.value,
-                c.Cli.DictKeys.TIMESTAMP: u.generate("timestamp"),
-                c.Cli.DictKeys.SERVICE: str(FlextCliDebug),
-                c.Cli.DebugDictKeys.CONNECTIVITY: c.Cli.ServiceStatus.OPERATIONAL.value,
-            }
-            return r[t.StrMapping].ok(connectivity_info)
-        except (
-            ValueError,
-            TypeError,
-            KeyError,
-            ConsoleError,
-            StyleError,
-            LiveError,
-        ) as e:
-            return r[t.StrMapping].fail(
-                c.Cli.DebugErrorMessages.CONNECTIVITY_TEST_FAILED.format(error=e),
-            )
 
     @override
     def execute(self) -> r[Mapping[str, t.Cli.JsonValue]]:
@@ -282,14 +177,10 @@ class FlextCliDebug(FlextCliServiceBase):
         """Get comprehensive debug information."""
         try:
             system_info_model = self._get_system_info()
-            system_info_dict = FlextCliDebug._convert_model_to_dict(
-                system_info_model,
-            ).model_dump()
+            system_info_dict = system_info_model.model_dump()
             system_info_json: Mapping[str, t.Cli.JsonValue] = dict(system_info_dict)
             environment_info_model = self._get_environment_info()
-            environment_info_dict = FlextCliDebug._convert_model_to_dict(
-                environment_info_model,
-            ).model_dump()
+            environment_info_dict = environment_info_model.model_dump()
             environment_info_json: Mapping[str, t.Cli.JsonValue] = dict(
                 environment_info_dict,
             )
@@ -339,7 +230,7 @@ class FlextCliDebug(FlextCliServiceBase):
         try:
             info_model = self._get_system_info()
             info_dict: Mapping[str, t.Cli.JsonValue] = dict(
-                FlextCliDebug._convert_model_to_dict(info_model).model_dump(),
+                info_model.model_dump(),
             )
             return r[Mapping[str, t.Cli.JsonValue]].ok(info_dict)
         except (
@@ -359,8 +250,7 @@ class FlextCliDebug(FlextCliServiceBase):
         try:
             paths_data = self._get_path_info()
             serialized_paths: Sequence[t.Cli.JsonValue] = [
-                dict(FlextCliDebug._convert_model_to_dict(path_info).model_dump())
-                for path_info in paths_data
+                dict(path_info.model_dump()) for path_info in paths_data
             ]
             paths_dict: Mapping[str, t.Cli.JsonValue] = {"paths": serialized_paths}
             return r[Mapping[str, t.Cli.JsonValue]].ok(paths_dict)

@@ -15,8 +15,8 @@ from flext_cli import (
     FlextCliConstants,
     FlextCliServiceBase,
     FlextCliTypes,
-    m,
     t,
+    u,
 )
 
 PD, EM = (FlextCliConstants.Cli.PromptsDefaults, FlextCliConstants.Cli.ErrorMessages)
@@ -58,7 +58,7 @@ class FlextCliPrompts(FlextCliServiceBase):
         resolved_timeout_raw = (
             timeout_raw if isinstance(timeout_raw, int | str) else None
         )
-        self._default_timeout = m.Cli.PromptTimeoutResolved(
+        self._default_timeout = u.Cli.PromptTimeoutResolved(
             raw=resolved_timeout_raw,
             default=default_timeout,
         ).resolve()

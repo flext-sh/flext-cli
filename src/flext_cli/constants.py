@@ -5,7 +5,7 @@ from __future__ import annotations
 import typing
 from collections.abc import Mapping
 from enum import StrEnum, unique
-from typing import Final, Literal
+from typing import Literal
 
 from flext_core import FlextConstants
 
@@ -163,11 +163,6 @@ class FlextCliConstants(FlextConstants):
                     "ERROR",
                     "CRITICAL",
                 )
-
-        class Utilities:
-            """Utility constants."""
-
-            DEFAULT_ENCODING: Final[str] = FlextConstants.DEFAULT_ENCODING
 
         class CliDefaults:
             """Default CLI constants."""

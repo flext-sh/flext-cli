@@ -25,7 +25,6 @@ if TYPE_CHECKING:
         __version__,
         __version_info__,
     )
-    from flext_cli._models.cli_models_statistics import FlextCliModelsStatistics
     from flext_cli._models.cli_models_system_context import FlextCliModelsSystemContext
     from flext_cli.api import FlextCli
     from flext_cli.base import FlextCliServiceBase, s
@@ -57,10 +56,6 @@ _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
     "FlextCliFileTools": ["flext_cli.file_tools", "FlextCliFileTools"],
     "FlextCliFormatters": ["flext_cli.formatters", "FlextCliFormatters"],
     "FlextCliModels": ["flext_cli.models", "FlextCliModels"],
-    "FlextCliModelsStatistics": [
-        "flext_cli._models.cli_models_statistics",
-        "FlextCliModelsStatistics",
-    ],
     "FlextCliModelsSystemContext": [
         "flext_cli._models.cli_models_system_context",
         "FlextCliModelsSystemContext",
@@ -109,7 +104,6 @@ __all__ = [
     "FlextCliFileTools",
     "FlextCliFormatters",
     "FlextCliModels",
-    "FlextCliModelsStatistics",
     "FlextCliModelsSystemContext",
     "FlextCliOutput",
     "FlextCliPrompts",

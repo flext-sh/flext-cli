@@ -188,7 +188,7 @@ class FlextCliTables(FlextCliServiceBase):
                 normalized_data: Sequence[Mapping[str, t.Cli.JsonValue]] = (
                     [
                         {
-                            str(key): m.Cli.normalize_json_value(value)
+                            str(key): u.Cli.normalize_json_value(value)
                             for key, value in data.items()
                         },
                     ]

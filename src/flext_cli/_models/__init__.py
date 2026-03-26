@@ -13,14 +13,9 @@ from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
 if TYPE_CHECKING:
     from flext_core import FlextTypes
 
-    from flext_cli._models.cli_models_statistics import FlextCliModelsStatistics
     from flext_cli._models.cli_models_system_context import FlextCliModelsSystemContext
 
 _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
-    "FlextCliModelsStatistics": [
-        "flext_cli._models.cli_models_statistics",
-        "FlextCliModelsStatistics",
-    ],
     "FlextCliModelsSystemContext": [
         "flext_cli._models.cli_models_system_context",
         "FlextCliModelsSystemContext",
@@ -28,7 +23,6 @@ _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
 }
 
 __all__ = [
-    "FlextCliModelsStatistics",
     "FlextCliModelsSystemContext",
 ]
 

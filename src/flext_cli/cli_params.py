@@ -220,7 +220,7 @@ class FlextCliCommonParams:
         if field_name not in cls.CLI_PARAM_REGISTRY:
             msg = f"Field '{field_name}' not found in CLI parameter registry"
             raise ValueError(msg)
-        return m.Cli.OptionBuilder(field_name, cls.CLI_PARAM_REGISTRY).build()
+        return u.Cli.OptionBuilder(field_name, cls.CLI_PARAM_REGISTRY).build()
 
     @staticmethod
     def _opt_bool(kwargs: Mapping[str, bool | str | None], key: str) -> bool | None:

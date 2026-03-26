@@ -71,14 +71,14 @@ class FlextCliFileTools:
     def _get_encoding(encoding: str | None) -> str:
         if isinstance(encoding, str) and encoding:
             return encoding
-        return c.Cli.Utilities.DEFAULT_ENCODING
+        return c.DEFAULT_ENCODING
 
     @staticmethod
     def _load_structured_file(
         file_path: str,
         loader: Callable[[TextIO], t.Cli.JsonValue],
     ) -> t.Cli.JsonValue | None:
-        with Path(file_path).open(encoding=c.Cli.Utilities.DEFAULT_ENCODING) as f:
+        with Path(file_path).open(encoding=c.DEFAULT_ENCODING) as f:
             loaded_raw = loader(f)
         try:
             loaded = _JSON_OBJECT_ADAPTER.validate_python(loaded_raw)
@@ -101,12 +101,12 @@ class FlextCliFileTools:
 
     @staticmethod
     def _read_csv_dict_rows(file_path: Path) -> Sequence[t.StrMapping]:
-        with file_path.open(encoding=c.Cli.Utilities.DEFAULT_ENCODING, newline="") as f:
+        with file_path.open(encoding=c.DEFAULT_ENCODING, newline="") as f:
             return list(csv.DictReader(f))
 
     @staticmethod
     def _read_csv_rows(file_path: Path) -> Sequence[t.StrSequence]:
-        with file_path.open(encoding=c.Cli.Utilities.DEFAULT_ENCODING, newline="") as f:
+        with file_path.open(encoding=c.DEFAULT_ENCODING, newline="") as f:
             return list(csv.reader(f))
 
     @staticmethod
@@ -149,7 +149,7 @@ class FlextCliFileTools:
         path = Path(file_path)
 
         def _write() -> bool:
-            with path.open(mode="w", encoding=c.Cli.Utilities.DEFAULT_ENCODING) as f:
+            with path.open(mode="w", encoding=c.DEFAULT_ENCODING) as f:
                 writer(f)
             return True
 
@@ -288,7 +288,7 @@ class FlextCliFileTools:
     def read_json_file(file_path: str | Path) -> r[t.Cli.JsonValue]:
 
         def _load() -> t.Cli.JsonValue:
-            raw = Path(file_path).read_text(encoding=c.Cli.Utilities.DEFAULT_ENCODING)
+            raw = Path(file_path).read_text(encoding=c.DEFAULT_ENCODING)
             parsed = _JSON_OBJECT_ADAPTER.validate_json(raw)
             if parsed is None:
                 msg = "JSON load returned None"
@@ -321,7 +321,7 @@ class FlextCliFileTools:
     def read_text_file(file_path: str | Path) -> r[str]:
         p = Path(file_path)
         return FlextCliFileTools._execute_file_operation(
-            lambda: p.read_text(encoding=c.Cli.Utilities.DEFAULT_ENCODING),
+            lambda: p.read_text(encoding=c.DEFAULT_ENCODING),
             c.Cli.ErrorMessages.TEXT_FILE_READ_FAILED,
         )
 
@@ -362,7 +362,7 @@ class FlextCliFileTools:
         def _write() -> None:
             with path.open(
                 mode="w",
-                encoding=c.Cli.Utilities.DEFAULT_ENCODING,
+                encoding=c.DEFAULT_ENCODING,
                 newline="",
             ) as f:
                 csv.writer(f).writerows(data)
@@ -401,7 +401,7 @@ class FlextCliFileTools:
     def write_text_file(
         file_path: str | Path,
         content: str,
-        encoding: str | None = c.Cli.Utilities.DEFAULT_ENCODING,
+        encoding: str | None = c.DEFAULT_ENCODING,
     ) -> r[bool]:
         p = Path(file_path)
         return FlextCliFileTools._run_bool_operation(

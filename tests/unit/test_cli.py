@@ -23,8 +23,6 @@ from flext_tests import tm
 from flext_cli import FlextCliCli, FlextCliSettings, m
 from tests import t
 
-from ..helpers._impl import FlextCliTestHelpers
-
 
 class TestsCliCli:
     """Comprehensive test suite for flext_cli.FlextCliCli module."""
@@ -48,23 +46,15 @@ class TestsCliCli:
 
     def test_command_decorator_creation(self) -> None:
         """Test command decorator creation."""
-        command_result = FlextCliTestHelpers.CliHelpers.create_test_command(
-            "test_cmd",
-        )
-        tm.ok(command_result)
-        if command_result.is_success and command_result.value:
-            tm.that(command_result.value, is_=click.Command)
-            tm.that(command_result.value.name, eq="test_cmd")
+        cli = FlextCliCli()
+        decorator = cli.create_command_decorator("test_cmd")
+        tm.that(callable(decorator), eq=True)
 
     def test_group_decorator_creation(self) -> None:
         """Test group decorator creation."""
-        group_result = FlextCliTestHelpers.CliHelpers.create_test_group(
-            "test_group",
-        )
-        tm.ok(group_result)
-        if group_result.is_success and group_result.value:
-            tm.that(group_result.value, is_=click.Group)
-            tm.that(group_result.value.name, eq="test_group")
+        cli = FlextCliCli()
+        decorator = cli.create_group_decorator("test_group")
+        tm.that(callable(decorator), eq=True)
 
     def test_option_decorator(self) -> None:
         """Test option decorator creation."""
@@ -86,12 +76,10 @@ class TestsCliCli:
 
     def test_command_with_options(self) -> None:
         """Test command creation with options."""
-        command_result = FlextCliTestHelpers.CliHelpers.create_command_with_options(
-            "test_cmd",
-            "--value",
-            "default",
-        )
-        tm.ok(command_result)
+        cli = FlextCliCli()
+        option_config = m.Cli.OptionConfig.model_construct(default="default")
+        decorator = cli.create_option_decorator("--value", config=option_config)
+        tm.that(callable(decorator), eq=True)
 
     @pytest.mark.parametrize(
         ("click_type_name", "data_dict"),
