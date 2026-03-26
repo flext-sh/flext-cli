@@ -177,7 +177,21 @@ _LAZY_CACHE: MutableMapping[str, FlextTypes.ModuleExport] = {}
 
 
 def __getattr__(name: str) -> FlextTypes.ModuleExport:
-    """Lazy-load module attributes on first access (PEP 562)."""
+    """Lazy-load module attributes on first access (PEP 562).
+
+    A local cache ``_LAZY_CACHE`` persists resolved objects across repeated
+    accesses during process lifetime.
+
+    Args:
+        name: Attribute name requested by dir()/import.
+
+    Returns:
+        Lazy-loaded module export type.
+
+    Raises:
+        AttributeError: If attribute not registered.
+
+    """
     if name in _LAZY_CACHE:
         return _LAZY_CACHE[name]
 
@@ -187,7 +201,12 @@ def __getattr__(name: str) -> FlextTypes.ModuleExport:
 
 
 def __dir__() -> Sequence[str]:
-    """Return list of available attributes."""
+    """Return list of available attributes for dir() and autocomplete.
+
+    Returns:
+        List of public names from module exports.
+
+    """
     return sorted(__all__)
 
 

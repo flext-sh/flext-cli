@@ -12,9 +12,9 @@ from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
 
 if TYPE_CHECKING:
     from flext_core import FlextTypes
-    from flext_tests import d, e, h, r, s, u, x
+    from flext_tests import d, e, h, p, r, s, u, x
 
-    from tests import integration, unit
+    from tests import unit
     from tests.conftest import (
         Examples,
         InfoTuples,
@@ -22,9 +22,7 @@ if TYPE_CHECKING:
         pytest_configure,
     )
     from tests.constants import FlextCliTestConstants, FlextCliTestConstants as c
-    from tests.helpers._impl import (
-        FlextCliTestHelpers,
-    )
+    from tests.helpers._impl import FlextCliTestHelpers
     from tests.models import FlextCliTestModels, FlextCliTestModels as m
     from tests.typings import FlextCliTestTypes, FlextCliTestTypes as t
     from tests.unit.conftest import reset_config_singleton
@@ -111,8 +109,8 @@ _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
     "d": ["flext_tests", "d"],
     "e": ["flext_tests", "e"],
     "h": ["flext_tests", "h"],
-    "integration": ["tests.integration", ""],
     "m": ["tests.models", "FlextCliTestModels"],
+    "p": ["flext_tests", "p"],
     "pytest_collection_modifyitems": [
         "tests.conftest",
         "pytest_collection_modifyitems",
@@ -201,8 +199,8 @@ __all__ = [
     "d",
     "e",
     "h",
-    "integration",
     "m",
+    "p",
     "pytest_collection_modifyitems",
     "pytest_configure",
     "r",
