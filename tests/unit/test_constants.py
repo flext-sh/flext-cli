@@ -514,22 +514,6 @@ class TestsCliConstants:
         tm.that(combined, is_=str)
         tm.that(combined, empty=False)
 
-    def test_get_valid_output_formats(self) -> None:
-        """Test get_valid_output_formats returns sorted tuple."""
-        formats = u.Cli.CliValidation.get_valid_output_formats()
-        tm.that(formats, is_=tuple)
-        tm.that(formats, empty=False)
-        tm.that(all(isinstance(fmt, str) for fmt in formats), eq=True)
-        tm.that(formats, eq=tuple(sorted(formats)))
-
-    def test_get_valid_command_statuses(self) -> None:
-        """Test get_valid_command_statuses returns sorted tuple."""
-        statuses = u.Cli.CliValidation.get_valid_command_statuses()
-        tm.that(statuses, is_=tuple)
-        tm.that(statuses, empty=False)
-        tm.that(all(isinstance(status, str) for status in statuses), eq=True)
-        tm.that(statuses, eq=tuple(sorted(statuses)))
-
     def test_get_enum_values(self) -> None:
         """Test get_enum_values extracts values from StrEnum."""
         values = u.get_enum_values(c.Cli.CommandStatus)
@@ -554,36 +538,3 @@ class TestsCliConstants:
         tm.that(union_map, empty=False)
         tm.that(union_map["pending"], eq=c.Cli.CommandStatus)
         tm.that(union_map["active"], eq=c.Cli.SessionStatus)
-
-    def test_get_file_extensions(self) -> None:
-        """Test get_file_extensions returns extensions for format."""
-        extensions = c.Cli.get_file_extensions("json")
-        tm.that(extensions, is_=tuple)
-        if extensions is not None:
-            tm.that(extensions, has="json")
-        yaml_extensions = c.Cli.get_file_extensions("yaml")
-        tm.that(yaml_extensions, is_=tuple)
-        if yaml_extensions is not None:
-            tm.that(yaml_extensions, has="yaml")
-            tm.that(yaml_extensions, has="yml")
-        none_extensions = c.Cli.get_file_extensions("nonexistent")
-        tm.that(none_extensions, none=True)
-
-    def test_get_mime_type(self) -> None:
-        """Test get_mime_type returns MIME type for format."""
-        mime = c.Cli.get_mime_type("json")
-        tm.that(mime, is_=str)
-        tm.that(mime, eq="application/json")
-        yaml_mime = c.Cli.get_mime_type("yaml")
-        tm.that(yaml_mime, is_=str)
-        tm.that(yaml_mime, eq="application/x-yaml")
-        none_mime = c.Cli.get_mime_type("nonexistent")
-        tm.that(none_mime, none=True)
-
-    def test_validate_file_format(self) -> None:
-        """Test validate_file_format checks format support."""
-        tm.that(c.Cli.validate_file_format("json") is True, eq=True)
-        tm.that(c.Cli.validate_file_format("yaml") is True, eq=True)
-        tm.that(c.Cli.validate_file_format("csv") is True, eq=True)
-        tm.that(c.Cli.validate_file_format("nonexistent") is False, eq=True)
-        tm.that(c.Cli.validate_file_format("invalid") is False, eq=True)

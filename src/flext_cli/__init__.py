@@ -28,23 +28,17 @@ if TYPE_CHECKING:
     from flext_cli._models.cli_models_statistics import FlextCliModelsStatistics
     from flext_cli._models.cli_models_system_context import FlextCliModelsSystemContext
     from flext_cli.api import FlextCli
-    from flext_cli.app_base import FlextCliAppBase
     from flext_cli.base import FlextCliServiceBase, s
     from flext_cli.cli import FlextCliCli
     from flext_cli.cli_params import FlextCliCommonParams
-    from flext_cli.command_builder import FlextCliCommandBuilder
     from flext_cli.commands import FlextCliCommands
     from flext_cli.constants import FlextCliConstants, FlextCliConstants as c
     from flext_cli.debug import FlextCliDebug
     from flext_cli.file_tools import FlextCliFileTools
     from flext_cli.formatters import FlextCliFormatters
-    from flext_cli.middleware import FlextCliLoggingMiddleware
-    from flext_cli.mixins import FlextCliMixins, FlextCliMixins as x
     from flext_cli.models import FlextCliModels, FlextCliModels as m
-    from flext_cli.option_groups import FlextCliOptionGroup
     from flext_cli.protocols import FlextCliProtocols, FlextCliProtocols as p
     from flext_cli.services.cmd import FlextCliCmd
-    from flext_cli.services.core import FlextCliCore
     from flext_cli.services.output import FlextCliOutput
     from flext_cli.services.prompts import FlextCliPrompts
     from flext_cli.services.tables import FlextCliTables
@@ -54,19 +48,14 @@ if TYPE_CHECKING:
 
 _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
     "FlextCli": ["flext_cli.api", "FlextCli"],
-    "FlextCliAppBase": ["flext_cli.app_base", "FlextCliAppBase"],
     "FlextCliCli": ["flext_cli.cli", "FlextCliCli"],
     "FlextCliCmd": ["flext_cli.services.cmd", "FlextCliCmd"],
-    "FlextCliCommandBuilder": ["flext_cli.command_builder", "FlextCliCommandBuilder"],
     "FlextCliCommands": ["flext_cli.commands", "FlextCliCommands"],
     "FlextCliCommonParams": ["flext_cli.cli_params", "FlextCliCommonParams"],
     "FlextCliConstants": ["flext_cli.constants", "FlextCliConstants"],
-    "FlextCliCore": ["flext_cli.services.core", "FlextCliCore"],
     "FlextCliDebug": ["flext_cli.debug", "FlextCliDebug"],
     "FlextCliFileTools": ["flext_cli.file_tools", "FlextCliFileTools"],
     "FlextCliFormatters": ["flext_cli.formatters", "FlextCliFormatters"],
-    "FlextCliLoggingMiddleware": ["flext_cli.middleware", "FlextCliLoggingMiddleware"],
-    "FlextCliMixins": ["flext_cli.mixins", "FlextCliMixins"],
     "FlextCliModels": ["flext_cli.models", "FlextCliModels"],
     "FlextCliModelsStatistics": [
         "flext_cli._models.cli_models_statistics",
@@ -76,7 +65,6 @@ _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
         "flext_cli._models.cli_models_system_context",
         "FlextCliModelsSystemContext",
     ],
-    "FlextCliOptionGroup": ["flext_cli.option_groups", "FlextCliOptionGroup"],
     "FlextCliOutput": ["flext_cli.services.output", "FlextCliOutput"],
     "FlextCliPrompts": ["flext_cli.services.prompts", "FlextCliPrompts"],
     "FlextCliProtocols": ["flext_cli.protocols", "FlextCliProtocols"],
@@ -107,28 +95,21 @@ _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
     "services": ["flext_cli.services", ""],
     "t": ["flext_cli.typings", "FlextCliTypes"],
     "u": ["flext_cli.utilities", "FlextCliUtilities"],
-    "x": ["flext_cli.mixins", "FlextCliMixins"],
 }
 
 __all__ = [
     "FlextCli",
-    "FlextCliAppBase",
     "FlextCliCli",
     "FlextCliCmd",
-    "FlextCliCommandBuilder",
     "FlextCliCommands",
     "FlextCliCommonParams",
     "FlextCliConstants",
-    "FlextCliCore",
     "FlextCliDebug",
     "FlextCliFileTools",
     "FlextCliFormatters",
-    "FlextCliLoggingMiddleware",
-    "FlextCliMixins",
     "FlextCliModels",
     "FlextCliModelsStatistics",
     "FlextCliModelsSystemContext",
-    "FlextCliOptionGroup",
     "FlextCliOutput",
     "FlextCliPrompts",
     "FlextCliProtocols",
@@ -159,7 +140,6 @@ __all__ = [
     "services",
     "t",
     "u",
-    "x",
 ]
 
 

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from collections.abc import Mapping
 from typing import Annotated
 
 from flext_core import FlextModels
@@ -34,30 +33,3 @@ class FlextCliModelsSystemContext:
         hostname: Annotated[str, Field(default="")]
         memory_total: Annotated[int, Field(default=0)]
         cpu_count: Annotated[int, Field(default=0)]
-
-    class ContextExecutionResult(FlextModels.Value):
-        success: Annotated[bool, Field(default=True)]
-        context_id: Annotated[str, Field(default="")]
-        metadata: Annotated[
-            Mapping[str, t.Cli.JsonValue],
-            Field(default_factory=dict),
-        ]
-        context_executed: Annotated[
-            bool,
-            Field(
-                default=False,
-                description="Whether context was executed",
-            ),
-        ]
-        command: Annotated[
-            str,
-            Field(default="", description="Command executed in context"),
-        ]
-        arguments_count: Annotated[
-            int,
-            Field(default=0, description="Number of arguments"),
-        ]
-        timestamp: Annotated[
-            str,
-            Field(default="", description="Execution timestamp"),
-        ]

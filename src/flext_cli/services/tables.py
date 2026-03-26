@@ -11,14 +11,13 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from itertools import starmap
-from typing import TypeIs, override
+from typing import TypeIs
 
 from flext_core import r
 from rich.errors import ConsoleError, LiveError, StyleError
 from tabulate import tabulate
 
-from flext_cli import FlextCliServiceBase, FlextCliTypes, c, m, t, u
+from flext_cli import FlextCliServiceBase, c, m, t, u
 
 
 class FlextCliTables(FlextCliServiceBase):
@@ -256,115 +255,3 @@ class FlextCliTables(FlextCliServiceBase):
             LiveError,
         ) as e:
             return r[str].fail(f"Table formatting failed: {e}")
-
-    @staticmethod
-    def print_available_formats() -> r[bool]:
-        """Print all available table formats with descriptions.
-
-        Returns:
-            r[bool]: True if formats printed successfully, failure on error
-
-        """
-        try:
-
-            def convert_format(name: str, desc: str) -> t.StrMapping:
-                """Convert format to a display dictionary."""
-                return {"format": name, "description": desc}
-
-            _ = list(
-                starmap(convert_format, c.Cli.TABLE_FORMATS.items()),
-            )
-            return r[bool].ok(value=True)
-        except (
-            ValueError,
-            TypeError,
-            KeyError,
-            ConsoleError,
-            StyleError,
-            LiveError,
-        ) as e:
-            return r[bool].fail(str(e))
-
-    @override
-    def execute(self) -> r[Mapping[str, FlextCliTypes.Cli.JsonValue]]:
-        """Execute table service - returns success indicator.
-
-        Business Rule:
-        ──────────────
-        The table service is primarily used for its static methods (create_table,
-        print_available_formats). Execute provides a default success response.
-
-        Returns:
-            r[Mapping[str, FlextCliTypes.Cli.JsonValue]]: Success result.
-
-        """
-        return r[Mapping[str, FlextCliTypes.Cli.JsonValue]].ok({
-            "status": "table_service_ready",
-        })
-
-    def _calculate_column_count(
-        self,
-        data: t.Cli.TabularData,
-        headers: str | t.StrSequence,
-    ) -> int:
-        """Calculate number of columns based on headers and data type."""
-        if isinstance(headers, str):
-            if headers == c.Cli.TableFormats.KEYS and isinstance(
-                data,
-                Mapping,
-            ):
-                return len(data)
-            data_list = list(data)
-            if data_list and isinstance(data_list[0], Sequence):
-                return len(data_list[0])
-            return 0
-        if headers:
-            return len(headers)
-        if isinstance(data, Mapping):
-            return len(data)
-        data_list = list(data)
-        if data_list:
-            first_row = data_list[0]
-            if u.is_dict_like(first_row):
-                return len(list(first_row.keys()))
-            return 0
-        return 0
-
-    def _create_table_string(
-        self,
-        data: t.Cli.TabularData,
-        cfg: m.Cli.TableConfig,
-        headers: str | t.StrSequence,
-    ) -> r[str]:
-        """Create table string using tabulate with exception handling."""
-        try:
-            colalign = cfg.get_effective_colalign()
-            num_cols = len(headers) if headers else 0
-            if colalign is not None and num_cols > 0 and (len(colalign) > num_cols):
-                colalign = colalign[:num_cols]
-            table_str = tabulate(
-                data,
-                headers=headers,
-                tablefmt=cfg.table_format,
-                floatfmt=cfg.floatfmt,
-                numalign=cfg.numalign,
-                stralign=cfg.stralign,
-                missingval=cfg.missingval,
-                showindex=cfg.showindex,
-                disable_numparse=cfg.disable_numparse,
-                colalign=colalign,
-            )
-            return r[str].ok(table_str)
-        except (
-            ValueError,
-            TypeError,
-            KeyError,
-            ConsoleError,
-            StyleError,
-            LiveError,
-        ) as e:
-            return r[str].fail(
-                c.Cli.TablesErrorMessages.TABLE_CREATION_FAILED.format(
-                    error=e,
-                ),
-            )

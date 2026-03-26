@@ -39,10 +39,8 @@ from flext_cli import (
     FlextCli,
     FlextCliCmd,
     FlextCliCommands,
-    FlextCliCore,
     FlextCliDebug,
     FlextCliFileTools,
-    FlextCliMixins,
     FlextCliOutput,
     FlextCliPrompts,
     FlextCliServiceBase,
@@ -406,10 +404,8 @@ _SERVICE_CLASSES: Mapping[str, type] = {
     "commands": FlextCliCommands,
     "config": FlextCliSettings,
     "constants": c,
-    "core": FlextCliCore,
     "debug": FlextCliDebug,
     "file_tools": FlextCliFileTools,
-    "mixins": FlextCliMixins,
     "models": m,
     "output": FlextCliOutput,
     "prompts": FlextCliPrompts,
@@ -458,14 +454,6 @@ def flext_cli_context() -> c:
 
 
 @pytest.fixture
-def flext_cli_core() -> FlextCliCore:
-    """Create FlextCliCore instance for testing."""
-    instance = _create_service_instance(FlextCliCore)
-    assert isinstance(instance, FlextCliCore)
-    return instance
-
-
-@pytest.fixture
 def flext_cli_debug() -> FlextCliDebug:
     """Create FlextCliDebug instance for testing."""
     instance = _create_service_instance(FlextCliDebug)
@@ -478,14 +466,6 @@ def flext_cli_file_tools() -> FlextCliFileTools:
     """Create FlextCliFileTools instance for testing."""
     instance = _create_service_instance(FlextCliFileTools)
     assert isinstance(instance, FlextCliFileTools)
-    return instance
-
-
-@pytest.fixture
-def flext_cli_mixins() -> FlextCliMixins:
-    """Create FlextCliMixins instance for testing."""
-    instance = _create_service_instance(FlextCliMixins)
-    assert isinstance(instance, FlextCliMixins)
     return instance
 
 

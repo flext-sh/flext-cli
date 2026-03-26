@@ -4,16 +4,12 @@ from __future__ import annotations
 
 import logging
 import os
-import types
 from collections.abc import Callable, Mapping, MutableMapping, MutableSequence, Sequence
 from datetime import UTC, datetime
-from enum import StrEnum
-from functools import wraps
 from pathlib import Path
-from typing import get_args, get_origin, override
+from typing import override
 
 from flext_core import FlextUtilities, r
-from pydantic import BaseModel, ConfigDict, ValidationError, validate_call
 from rich.errors import ConsoleError, LiveError, StyleError
 
 from flext_cli import c, m, t
@@ -116,16 +112,6 @@ class FlextCliUtilities(FlextUtilities):
 
         class CliValidation:
             """CLI-specific validation utilities."""
-
-            @staticmethod
-            def get_valid_command_statuses() -> tuple[str, ...]:
-                """Get valid command statuses."""
-                return tuple(sorted(c.Cli.ValidationMappings.COMMAND_STATUS_SET))
-
-            @staticmethod
-            def get_valid_output_formats() -> tuple[str, ...]:
-                """Get valid output formats."""
-                return tuple(sorted(c.Cli.ValidationMappings.OUTPUT_FORMAT_SET))
 
             @staticmethod
             def to_str(value: t.Cli.CliValue) -> str:
@@ -262,15 +248,6 @@ class FlextCliUtilities(FlextUtilities):
                 )
 
             @staticmethod
-            def v_session(current: str, *, valid: t.StrSequence) -> r[bool]:
-                """Validate a session status."""
-                return FlextCliUtilities.Cli.CliValidation.v_state(
-                    current,
-                    valid=valid,
-                    name="session_status",
-                )
-
-            @staticmethod
             def v_state(
                 current: str,
                 *,
@@ -293,75 +270,6 @@ class FlextCliUtilities(FlextUtilities):
                         empty=False,
                     )
                 return r[bool].fail(f"{name}: no validation criteria provided")
-
-            @staticmethod
-            def v_status(status: str) -> r[bool]:
-                """Validate a command status."""
-                return FlextCliUtilities.Cli.CliValidation.v(
-                    status,
-                    name="status",
-                    empty=False,
-                    in_list=c.Cli.ValidationLists.COMMAND_STATUSES,
-                )
-
-            @staticmethod
-            def v_step(
-                step: Mapping[str, t.Cli.CliValue]
-                | Mapping[str, t.Cli.JsonValue]
-                | None,
-            ) -> r[bool]:
-                """Validate a pipeline step."""
-                if step is None:
-                    return r[bool].fail(
-                        c.Cli.MixinsValidationMessages.PIPELINE_STEP_EMPTY,
-                    )
-                key = c.Cli.MixinsFieldNames.PIPELINE_STEP_NAME
-                if key not in step:
-                    return r[bool].fail(
-                        c.Cli.MixinsValidationMessages.PIPELINE_STEP_NO_NAME,
-                    )
-                value = step[key]
-                if value is None:
-                    return r[bool].fail(
-                        c.Cli.MixinsValidationMessages.PIPELINE_STEP_NAME_EMPTY,
-                    )
-                if isinstance(value, str) and (not value.strip()):
-                    return r[bool].fail(
-                        c.Cli.MixinsValidationMessages.PIPELINE_STEP_NAME_EMPTY,
-                    )
-                return r[bool].ok(value=True)
-
-            @staticmethod
-            def validate_field_in_list(
-                field_value: str | float | None,
-                *,
-                valid_values: t.StrSequence,
-                field_name: str,
-            ) -> r[bool]:
-                """Validate that a field value is in a list of valid values."""
-                return FlextCliUtilities.Cli.CliValidation.v(
-                    field_value,
-                    name=field_name,
-                    empty=False,
-                    in_list=valid_values,
-                )
-
-        class Environment:
-            """CLI environment utilities."""
-
-            @staticmethod
-            def is_test_environment() -> bool:
-                """Check if running in a test environment."""
-                pytest_test = os.environ.get(
-                    c.Cli.EnvironmentConstants.PYTEST_CURRENT_TEST,
-                )
-                underscore = os.environ.get(c.Cli.EnvironmentConstants.UNDERSCORE, "")
-                ci = os.environ.get(c.Cli.EnvironmentConstants.CI)
-                return (
-                    pytest_test is not None
-                    or c.Cli.EnvironmentConstants.PYTEST in underscore.lower()
-                    or ci == c.Cli.EnvironmentConstants.CI_TRUE_VALUE
-                )
 
         class ConfigOps:
             """Configuration operations."""
@@ -436,178 +344,6 @@ class FlextCliUtilities(FlextUtilities):
             """Check if message matches any pattern."""
             text = msg.lower()
             return any(pattern.lower() in text for pattern in patterns)
-
-        class TypeNormalizer:
-            """Type normalization utilities."""
-
-            @staticmethod
-            def combine_types_with_union(
-                types_list: Sequence[type | types.UnionType],
-                *,
-                include_none: bool = False,
-            ) -> type | types.UnionType:
-                """Combine types using union."""
-                result: type | types.UnionType = types_list[0]
-                for item in types_list[1:]:
-                    result |= item
-                if include_none:
-                    result |= types.NoneType
-                return result
-
-            @staticmethod
-            def normalize_annotation(
-                annotation: type | types.UnionType | None,
-            ) -> type | types.UnionType | None:
-                """Normalize type annotation."""
-                if annotation is None:
-                    return None
-                origin_obj = get_origin(annotation)
-                if origin_obj is types.UnionType or str(origin_obj) == "typing.Union":
-                    return FlextCliUtilities.Cli.TypeNormalizer.normalize_union_type(
-                        annotation,
-                    )
-                return annotation
-
-            @staticmethod
-            def normalize_union_type(
-                annotation: type | types.UnionType,
-            ) -> type | types.UnionType | None:
-                """Normalize union type."""
-                raw_args = get_args(annotation)
-                if not raw_args:
-                    return annotation
-                args_list: MutableSequence[type | types.UnionType] = []
-                for arg in raw_args:
-                    if isinstance(arg, (type, types.UnionType)):
-                        args_list.append(arg)
-                    else:
-                        return annotation
-                args: tuple[type | types.UnionType, ...] = tuple(args_list)
-                has_none = types.NoneType in args
-                non_none = [arg for arg in args if arg is not types.NoneType]
-                if len(non_none) == 1:
-                    inner = FlextCliUtilities.Cli.TypeNormalizer.normalize_annotation(
-                        non_none[0],
-                    )
-                    if inner is None:
-                        return None
-                    return inner | types.NoneType if has_none else inner
-                if len(non_none) > 1:
-                    normalized = [
-                        item
-                        for item in (
-                            FlextCliUtilities.Cli.TypeNormalizer.normalize_annotation(
-                                arg,
-                            )
-                            for arg in non_none
-                        )
-                        if item is not None
-                    ]
-                    if not normalized:
-                        return None
-                    return (
-                        FlextCliUtilities.Cli.TypeNormalizer.combine_types_with_union(
-                            normalized,
-                            include_none=has_none,
-                        )
-                    )
-                return annotation
-
-            class Args:
-                """Function arguments normalization."""
-
-                @staticmethod
-                def parse_kwargs[E: StrEnum](
-                    kwargs: Mapping[str, t.Cli.CliValue],
-                    enum_fields: Mapping[str, type[E]],
-                ) -> r[Mapping[str, t.Cli.CliValue]]:
-                    """Parse keyword arguments."""
-                    parsed = dict(kwargs)
-                    errors: MutableSequence[str] = []
-                    for key, enum_cls in enum_fields.items():
-                        if key not in parsed:
-                            continue
-                        value = parsed[key]
-                        if isinstance(value, str):
-                            try:
-                                parsed_enum = enum_cls(value)
-                                parsed[key] = parsed_enum.value
-                            except ValueError:
-                                errors.append(f"{key}: '{value}'")
-                        else:
-                            continue
-                    return (
-                        r[Mapping[str, t.Cli.CliValue]].fail(f"Invalid: {errors}")
-                        if errors
-                        else r[Mapping[str, t.Cli.CliValue]].ok(parsed)
-                    )
-
-                @staticmethod
-                def validated_with_result[**P, U](
-                    func: Callable[P, r[U]],
-                ) -> Callable[P, r[U]]:
-                    """Validate arguments and return result."""
-                    wrapped = validate_call(
-                        config=ConfigDict(arbitrary_types_allowed=True),
-                        validate_return=False,
-                    )(func)
-
-                    @wraps(func)
-                    def call(*args: P.args, **kwargs: P.kwargs) -> r[U]:
-                        try:
-                            return wrapped(*args, **kwargs)
-                        except ValidationError as exc:
-                            return r[U].fail(str(exc))
-
-                    return call
-
-            class Model:
-                """Pydantic model normalization."""
-
-                @staticmethod
-                def from_dict[M: BaseModel](
-                    model_cls: type[M],
-                    data: Mapping[str, t.Cli.CliValue],
-                    *,
-                    strict: bool = False,
-                ) -> r[M]:
-                    """Create model instance from dictionary."""
-                    try:
-                        instance = model_cls.model_validate(data, strict=strict)
-                        return r[M].ok(instance)
-                    except ValidationError as exc:
-                        return r[M].fail(f"Model validation failed: {exc}")
-
-                @staticmethod
-                def merge_defaults[M: BaseModel](
-                    model_cls: type[M],
-                    defaults: Mapping[str, t.Cli.JsonValue],
-                    overrides: Mapping[str, t.Cli.JsonValue],
-                ) -> r[M]:
-                    """Merge default values with overrides."""
-                    merged = {**defaults, **overrides}
-                    try:
-                        instance = model_cls.model_validate(merged)
-                        return r[M].ok(instance)
-                    except (ValueError, TypeError, ValidationError) as exc:
-                        return r[M].fail(f"Model validation failed: {exc}")
-
-                @staticmethod
-                def update[M: BaseModel](instance: M, **updates: t.Scalar) -> r[M]:
-                    """Update model instance."""
-                    try:
-                        updated = instance.model_copy(update=updates)
-                        return r[M].ok(updated)
-                    except (ValueError, TypeError, ValidationError) as exc:
-                        return r[M].fail(f"Model update failed: {exc}")
-
-            class Pydantic:
-                """Pydantic utilities."""
-
-                @staticmethod
-                def coerced_enum[E: StrEnum](enum_cls: type[E]) -> type[E]:
-                    """Create a forced enum with validation."""
-                    return enum_cls
 
 
 __all__ = ["FlextCliUtilities", "u"]

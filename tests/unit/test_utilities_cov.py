@@ -2,14 +2,7 @@
 
 from __future__ import annotations
 
-import types
-from enum import StrEnum, unique
-from typing import Annotated
-
-import pytest
-from flext_core import r
 from flext_tests import tm
-from pydantic import Field
 
 from flext_cli import u
 
@@ -73,72 +66,3 @@ def test_validation_state_requires_criteria() -> None:
     result = u.Cli.CliValidation.v_state("active")
     tm.fail(result)
     tm.that((result.error or ""), has="no validation criteria")
-
-
-def test_normalize_union_type_returns_none_when_inner_is_none(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    union_type = str | None
-    original = u.Cli.TypeNormalizer.normalize_annotation
-
-    def fake(
-        annotation: type | types.UnionType | None,
-    ) -> type | types.UnionType | None:
-        if annotation is str:
-            return None
-        return original(annotation)
-
-    monkeypatch.setattr(
-        u.Cli.TypeNormalizer,
-        "normalize_annotation",
-        staticmethod(fake),
-    )
-    result = u.Cli.TypeNormalizer.normalize_union_type(union_type)
-    tm.that(result, none=True)
-
-
-def test_normalize_union_type_returns_none_for_empty_normalized_list(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    union_type = str | int
-    monkeypatch.setattr(
-        u.Cli.TypeNormalizer,
-        "normalize_annotation",
-        staticmethod(lambda _annotation: None),
-    )
-    result = u.Cli.TypeNormalizer.normalize_union_type(union_type)
-    tm.that(result, none=True)
-
-
-def test_normalize_union_type_returns_annotation_for_none_only_args(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    monkeypatch.setattr(
-        "flext_cli.utilities.get_args",
-        lambda _annotation: (types.NoneType,),
-    )
-    union_type = str | int
-    result = u.Cli.TypeNormalizer.normalize_union_type(union_type)
-    tm.that(result, eq=union_type)
-
-
-def test_validated_with_result_returns_failure_on_validation_error() -> None:
-
-    @u.Cli.TypeNormalizer.Args.validated_with_result
-    def parse_int(value: Annotated[int, Field(gt=0)]) -> r[int]:
-        return r[int].ok(value)
-
-    result = parse_int(value=-1)
-    tm.fail(result)
-    tm.that((result.error or "").lower(), has="validation")
-
-
-def test_parse_kwargs_skips_missing_enum_field_key() -> None:
-
-    @unique
-    class Mode(StrEnum):
-        FAST = "fast"
-
-    result = u.Cli.TypeNormalizer.Args.parse_kwargs({"other": "x"}, {"mode": Mode})
-    tm.ok(result)
-    tm.that(result.value, has="other")

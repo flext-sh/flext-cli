@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import typing
-from collections.abc import Callable, Mapping
+from collections.abc import Mapping
 from enum import StrEnum, unique
 from typing import Final, Literal
 
@@ -164,25 +164,10 @@ class FlextCliConstants(FlextConstants):
                     "CRITICAL",
                 )
 
-        class Logging:
-            """Logging constants."""
-
-            CONSOLE_ENABLED = FlextConstants.CONSOLE_ENABLED
-
         class Utilities:
             """Utility constants."""
 
             DEFAULT_ENCODING: Final[str] = FlextConstants.DEFAULT_ENCODING
-
-        class Terminal:
-            """Terminal constants."""
-
-            WIDTH_NARROW, WIDTH_MEDIUM = (80, 120)
-
-        class ExitCodes:
-            """Exit code constants."""
-
-            FAILURE = 1
 
         class CliDefaults:
             """Default CLI constants."""
@@ -198,16 +183,6 @@ class FlextCliConstants(FlextConstants):
                 False,
                 False,
                 True,
-            )
-
-        class CliGlobalDefaults:
-            """Global default CLI constants."""
-
-            DEFAULT_VERSION_STRING, DEFAULT_SERVICE_NAME = ("2.0.0", "flext-cli-config")
-            DEFAULT_VERBOSITY, QUIET_VERBOSITY, NORMAL_VERBOSITY = (
-                "verbose",
-                "quiet",
-                "normal",
             )
 
         class Services:
@@ -467,11 +442,6 @@ class FlextCliConstants(FlextConstants):
                 "true",
             )
 
-        class ValidationLimits:
-            """Validation limit constants."""
-
-            MIN_MAX_WIDTH, MAX_MAX_WIDTH = (40, 200)
-
         class CliParamsRegistry:
             """CLI parameters registry."""
 
@@ -611,78 +581,6 @@ class FlextCliConstants(FlextConstants):
             "toml": {"extensions": ("toml",), "mime_type": "application/toml"},
             "xml": {"extensions": ("xml",), "mime_type": "application/xml"},
         }
-        FILE_FORMAT_EXTENSIONS: Mapping[str, tuple[str, ...]] = {
-            "json": ("json",),
-            "yaml": ("yaml", "yml"),
-            "csv": ("csv",),
-            "tsv": ("tsv",),
-            "toml": ("toml",),
-            "xml": ("xml",),
-        }
-        FILE_FORMAT_MIME_TYPES: typing.ClassVar[t.StrMapping] = {
-            "json": "application/json",
-            "yaml": "application/x-yaml",
-            "csv": "text/csv",
-            "tsv": "text/tab-separated-values",
-            "toml": "application/toml",
-            "xml": "application/xml",
-        }
-        SUPPORTED_FILE_FORMATS = frozenset({
-            "json",
-            "yaml",
-            "csv",
-            "tsv",
-            "toml",
-            "xml",
-        })
-        get_file_extensions: Callable[[str], tuple[str, ...] | None] = (
-            FILE_FORMAT_EXTENSIONS.get
-        )
-        get_mime_type: Callable[[str], str | None] = FILE_FORMAT_MIME_TYPES.get
-        validate_file_format: Callable[[str], bool] = (
-            SUPPORTED_FILE_FORMATS.__contains__
-        )
-
-        class ContextDictKeys:
-            """Context dictionary keys."""
-
-            ID, CONTEXT_ID, COMMAND = ("id", "context_id", "command")
-            CREATED_AT, TIMEOUT_SECONDS = ("created_at", "timeout_seconds")
-            ARGUMENTS_COUNT, ARGUMENTS = ("arguments_count", "arguments")
-            ENVIRONMENT_VARIABLES, ENVIRONMENT_VARIABLES_COUNT = (
-                "environment_variables",
-                "environment_variables_count",
-            )
-            WORKING_DIRECTORY, IS_ACTIVE = ("working_directory", "is_active")
-            METADATA_KEYS, METADATA_COUNT, CONTEXT_EXECUTED = (
-                "metadata_keys",
-                "metadata_count",
-                "context_executed",
-            )
-
-        class ContextErrorMessages:
-            """Context error messages."""
-
-            ARGUMENTS_NOT_INITIALIZED = (
-                "Context arguments not initialized - cannot serialize"
-            )
-            ENV_VARS_NOT_INITIALIZED = (
-                "Context environment variables not initialized - cannot serialize"
-            )
-            ENV_VAR_NOT_FOUND, ENV_VAR_RETRIEVAL_FAILED = (
-                "Environment variable '{name}' not found",
-                "Environment variable retrieval failed: {error}",
-            )
-            ENV_VAR_SETTING_FAILED = "Environment variable setting failed: {error}"
-            ARGUMENT_ADDITION_FAILED, ARGUMENT_NOT_FOUND, ARGUMENT_REMOVAL_FAILED = (
-                "Argument addition failed: {error}",
-                "Argument '{argument}' not found",
-                "Argument removal failed: {error}",
-            )
-            METADATA_SETTING_FAILED, METADATA_KEY_NOT_FOUND = (
-                "Metadata setting failed: {error}",
-                "Metadata key '{key}' not found",
-            )
 
         class DebugDefaults:
             """Debug defaults."""
@@ -1056,25 +954,6 @@ class FlextCliConstants(FlextConstants):
                 "ERROR",
                 "CRITICAL",
             ]
-
-        class Configuration:
-            """Shared protocol test configuration constants."""
-
-            BASIC_CONFIG: typing.ClassVar[Mapping[str, str | bool]] = {
-                "app_name": "test_app",
-                "debug": False,
-                "log_level": "INFO",
-                "output_format": "json",
-            }
-
-        class Authentication:
-            """Shared protocol test authentication constants."""
-
-            VALID_CREDS: typing.ClassVar[t.StrMapping] = {
-                "username": "testuser",
-                "password": "testpass",
-            }
-            VALID_TOKEN: typing.ClassVar[str] = "valid_token"
 
 
 __all__ = ["FlextCliConstants", "c"]

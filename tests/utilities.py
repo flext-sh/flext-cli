@@ -26,7 +26,7 @@ class FlextCliTestUtilities(FlextCliUtilities, FlextTestsUtilities):
     and test utilities (FlextTestsUtilities).
 
     Inheritance Order:
-    - FlextCliUtilities: CLI-specific namespaces (Cli.CliValidation, Cli.TypeNormalizer, etc.)
+    - FlextCliUtilities: CLI-specific namespaces (Cli.CliValidation, etc.)
     - FlextTestsUtilities: Generic test utilities (Result, TestContext, Factory, etc.)
 
     All utilities are available through inheritance.

@@ -36,10 +36,8 @@ if TYPE_CHECKING:
         flext_cli_config,
         flext_cli_constants,
         flext_cli_context,
-        flext_cli_core,
         flext_cli_debug,
         flext_cli_file_tools,
-        flext_cli_mixins,
         flext_cli_models,
         flext_cli_output,
         flext_cli_prompts,
@@ -139,11 +137,6 @@ if TYPE_CHECKING:
         TestsCliModelCommandComprehensive,
     )
     from tests.unit.test_model_factories import TestsCliModelFactories
-    from tests.unit.test_option_groups_cov import (
-        test_auth_options_include_expected_env_vars,
-        test_connection_options_defaults_are_exposed,
-        test_output_options_expose_format_output_and_verbosity,
-    )
     from tests.unit.test_performance_automated import TestsCliPerformanceAutomated
     from tests.unit.test_prompts import TestsCliPrompts
     from tests.unit.test_prompts_cov import (
@@ -159,14 +152,9 @@ if TYPE_CHECKING:
     from tests.unit.test_railway_pattern_example import TestsCliRailwayPatternExample
     from tests.unit.test_typings import TestsCliTypings, TypingTestCase, TypingTestType
     from tests.unit.test_utilities_cov import (
-        test_normalize_union_type_returns_annotation_for_none_only_args,
-        test_normalize_union_type_returns_none_for_empty_normalized_list,
-        test_normalize_union_type_returns_none_when_inner_is_none,
-        test_parse_kwargs_skips_missing_enum_field_key,
         test_process_fail_and_collect_paths,
         test_process_mapping_fail_and_collect_paths,
         test_validate_required_string_raises_value_error,
-        test_validated_with_result_returns_failure_on_validation_error,
         test_validation_state_requires_criteria,
         test_validation_v_uses_custom_message_on_empty_failure,
     )
@@ -299,10 +287,8 @@ _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
     "flext_cli_config": ["tests.conftest", "flext_cli_config"],
     "flext_cli_constants": ["tests.conftest", "flext_cli_constants"],
     "flext_cli_context": ["tests.conftest", "flext_cli_context"],
-    "flext_cli_core": ["tests.conftest", "flext_cli_core"],
     "flext_cli_debug": ["tests.conftest", "flext_cli_debug"],
     "flext_cli_file_tools": ["tests.conftest", "flext_cli_file_tools"],
-    "flext_cli_mixins": ["tests.conftest", "flext_cli_mixins"],
     "flext_cli_models": ["tests.conftest", "flext_cli_models"],
     "flext_cli_output": ["tests.conftest", "flext_cli_output"],
     "flext_cli_prompts": ["tests.conftest", "flext_cli_prompts"],
@@ -338,14 +324,6 @@ _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
     "temp_file": ["tests.conftest", "temp_file"],
     "temp_json_file": ["tests.conftest", "temp_json_file"],
     "temp_yaml_file": ["tests.conftest", "temp_yaml_file"],
-    "test_auth_options_include_expected_env_vars": [
-        "tests.unit.test_option_groups_cov",
-        "test_auth_options_include_expected_env_vars",
-    ],
-    "test_connection_options_defaults_are_exposed": [
-        "tests.unit.test_option_groups_cov",
-        "test_connection_options_defaults_are_exposed",
-    ],
     "test_edit_config_outer_exception_path": [
         "tests.unit.test_cmd_cov",
         "test_edit_config_outer_exception_path",
@@ -361,26 +339,6 @@ _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
     "test_get_config_value_outer_exception_path": [
         "tests.unit.test_cmd_cov",
         "test_get_config_value_outer_exception_path",
-    ],
-    "test_normalize_union_type_returns_annotation_for_none_only_args": [
-        "tests.unit.test_utilities_cov",
-        "test_normalize_union_type_returns_annotation_for_none_only_args",
-    ],
-    "test_normalize_union_type_returns_none_for_empty_normalized_list": [
-        "tests.unit.test_utilities_cov",
-        "test_normalize_union_type_returns_none_for_empty_normalized_list",
-    ],
-    "test_normalize_union_type_returns_none_when_inner_is_none": [
-        "tests.unit.test_utilities_cov",
-        "test_normalize_union_type_returns_none_when_inner_is_none",
-    ],
-    "test_output_options_expose_format_output_and_verbosity": [
-        "tests.unit.test_option_groups_cov",
-        "test_output_options_expose_format_output_and_verbosity",
-    ],
-    "test_parse_kwargs_skips_missing_enum_field_key": [
-        "tests.unit.test_utilities_cov",
-        "test_parse_kwargs_skips_missing_enum_field_key",
     ],
     "test_print_status_exception_path": [
         "tests.unit.test_prompts_cov",
@@ -441,10 +399,6 @@ _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
     "test_validate_required_string_raises_value_error": [
         "tests.unit.test_utilities_cov",
         "test_validate_required_string_raises_value_error",
-    ],
-    "test_validated_with_result_returns_failure_on_validation_error": [
-        "tests.unit.test_utilities_cov",
-        "test_validated_with_result_returns_failure_on_validation_error",
     ],
     "test_validation_state_requires_criteria": [
         "tests.unit.test_utilities_cov",
@@ -543,10 +497,8 @@ __all__ = [
     "flext_cli_config",
     "flext_cli_constants",
     "flext_cli_context",
-    "flext_cli_core",
     "flext_cli_debug",
     "flext_cli_file_tools",
-    "flext_cli_mixins",
     "flext_cli_models",
     "flext_cli_output",
     "flext_cli_prompts",
@@ -579,17 +531,10 @@ __all__ = [
     "temp_file",
     "temp_json_file",
     "temp_yaml_file",
-    "test_auth_options_include_expected_env_vars",
-    "test_connection_options_defaults_are_exposed",
     "test_edit_config_outer_exception_path",
     "test_edit_config_success_logs_and_returns_ok",
     "test_get_config_info_failure_on_exception",
     "test_get_config_value_outer_exception_path",
-    "test_normalize_union_type_returns_annotation_for_none_only_args",
-    "test_normalize_union_type_returns_none_for_empty_normalized_list",
-    "test_normalize_union_type_returns_none_when_inner_is_none",
-    "test_output_options_expose_format_output_and_verbosity",
-    "test_parse_kwargs_skips_missing_enum_field_key",
     "test_print_status_exception_path",
     "test_process_fail_and_collect_paths",
     "test_process_mapping_fail_and_collect_paths",
@@ -605,7 +550,6 @@ __all__ = [
     "test_show_config_paths_failure_on_exception",
     "test_validate_config_failure_on_exception",
     "test_validate_required_string_raises_value_error",
-    "test_validated_with_result_returns_failure_on_validation_error",
     "test_validation_state_requires_criteria",
     "test_validation_v_uses_custom_message_on_empty_failure",
     "u",

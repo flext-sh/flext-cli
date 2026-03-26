@@ -21,16 +21,13 @@ from flext_core import (
 from pydantic import ValidationError
 
 from flext_cli import (
-    FlextCliAppBase,
     FlextCliCli,
     FlextCliCmd,
     FlextCliCommands,
     FlextCliCommonParams,
-    FlextCliCore,
     FlextCliDebug,
     FlextCliFileTools,
     FlextCliFormatters,
-    FlextCliMixins,
     FlextCliOutput,
     FlextCliPrompts,
     FlextCliServiceBase,
@@ -81,17 +78,8 @@ class FlextCli:
     class Config(FlextCliSettings):
         """CLI config."""
 
-    class Core(FlextCliCore):
-        """CLI core."""
-
     class Debug(FlextCliDebug):
         """CLI debug."""
-
-    class Mixins(FlextCliMixins):
-        """CLI mixins."""
-
-    class AppBase(FlextCliAppBase[FlextCliSettings]):
-        """CLI app base (abstract). Subclasses must implement _register_commands."""
 
     _instance: ClassVar[FlextCli | None] = None
     _lock: ClassVar[threading.Lock] = threading.Lock()
@@ -100,7 +88,6 @@ class FlextCli:
     formatters: FlextCliFormatters
     file_tools: FlextCliFileTools
     output: FlextCliOutput
-    core: FlextCliCore
     cmd: FlextCliCmd
     prompts: FlextCliPrompts
     _name: str
@@ -121,9 +108,8 @@ class FlextCli:
         if not self._container.has_service(key):
             self._container.register(key, key)
         self.formatters, self.file_tools = (FlextCliFormatters(), FlextCliFileTools())
-        self.output, self.core, self.cmd, self.prompts = (
+        self.output, self.cmd, self.prompts = (
             FlextCliOutput(),
-            FlextCliCore(),
             FlextCliCmd(),
             FlextCliPrompts(),
         )
@@ -289,7 +275,6 @@ class FlextCli:
             "components": {
                 "config": "available",
                 "formatters": "available",
-                "core": "available",
                 "prompts": "available",
             },
         }

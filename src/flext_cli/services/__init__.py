@@ -21,14 +21,12 @@ if TYPE_CHECKING:
     from flext_core import FlextTypes
 
     from flext_cli.services.cmd import FlextCliCmd
-    from flext_cli.services.core import FlextCliCore
     from flext_cli.services.output import FlextCliOutput
     from flext_cli.services.prompts import FlextCliPrompts
     from flext_cli.services.tables import FlextCliTables
 
 _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
     "FlextCliCmd": ["flext_cli.services.cmd", "FlextCliCmd"],
-    "FlextCliCore": ["flext_cli.services.core", "FlextCliCore"],
     "FlextCliOutput": ["flext_cli.services.output", "FlextCliOutput"],
     "FlextCliPrompts": ["flext_cli.services.prompts", "FlextCliPrompts"],
     "FlextCliTables": ["flext_cli.services.tables", "FlextCliTables"],
@@ -36,7 +34,6 @@ _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
 
 __all__ = [
     "FlextCliCmd",
-    "FlextCliCore",
     "FlextCliOutput",
     "FlextCliPrompts",
     "FlextCliTables",

@@ -3,13 +3,11 @@
 from __future__ import annotations
 
 import csv
-import hashlib
 import logging
 import os
 import shutil
 import tempfile
-import zipfile
-from collections.abc import Callable, Mapping, MutableSequence, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
 from typing import TextIO, TypeIs
 
@@ -158,25 +156,6 @@ class FlextCliFileTools:
         return FlextCliFileTools._execute_file_operation(_write, error_template)
 
     @staticmethod
-    def calculate_file_hash(file_path: str | Path, algorithm: str = "sha256") -> r[str]:
-        path = Path(file_path)
-
-        def _calculate() -> str:
-            h = hashlib.new(algorithm)
-            with path.open("rb") as f:
-                for chunk in iter(
-                    lambda: f.read(c.Cli.FileToolsDefaults.CHUNK_SIZE),
-                    b"",
-                ):
-                    h.update(chunk)
-            return h.hexdigest()
-
-        return FlextCliFileTools._execute_file_operation(
-            _calculate,
-            c.Cli.FileErrorMessages.HASH_CALCULATION_FAILED,
-        )
-
-    @staticmethod
     def copy_file(source_path: str | Path, destination_path: str | Path) -> r[bool]:
         return FlextCliFileTools._run_bool_operation(
             lambda: shutil.copy2(str(source_path), str(destination_path)),
@@ -212,29 +191,6 @@ class FlextCliFileTools:
         )
 
     @staticmethod
-    def create_zip_archive(archive_path: str | Path, files: t.StrSequence) -> r[bool]:
-
-        def _create() -> None:
-            with zipfile.ZipFile(
-                archive_path,
-                c.Cli.FileIODefaults.ZIP_WRITE_MODE,
-            ) as zf:
-                for file in files:
-                    zf.write(file, Path(file).name)
-
-        return FlextCliFileTools._run_bool_operation(
-            _create,
-            c.Cli.FileErrorMessages.ZIP_CREATION_FAILED,
-        )
-
-    @staticmethod
-    def delete_directory(dir_path: str | Path) -> r[bool]:
-        return FlextCliFileTools._run_bool_operation(
-            lambda: shutil.rmtree(str(dir_path)),
-            c.Cli.FileErrorMessages.DIRECTORY_DELETION_FAILED,
-        )
-
-    @staticmethod
     def delete_file(file_path: str | Path) -> r[bool]:
         path = Path(file_path)
         return FlextCliFileTools._run_bool_operation(
@@ -259,110 +215,12 @@ class FlextCliFileTools:
         )
 
     @staticmethod
-    def extract_zip_archive(
-        archive_path: str | Path,
-        extract_to: str | Path,
-    ) -> r[bool]:
-
-        def _extract() -> None:
-            with zipfile.ZipFile(
-                archive_path,
-                c.Cli.FileIODefaults.ZIP_READ_MODE,
-            ) as zf:
-                zf.extractall(extract_to)
-
-        return FlextCliFileTools._run_bool_operation(
-            _extract,
-            c.Cli.FileErrorMessages.ZIP_EXTRACTION_FAILED,
-        )
-
-    @staticmethod
     def file_exists(file_path: str | Path) -> r[bool]:
         path = Path(file_path)
         return FlextCliFileTools._execute_file_operation(
             path.exists,
             c.Cli.FileErrorMessages.FILE_EXISTENCE_CHECK_FAILED,
         )
-
-    @staticmethod
-    def find_files_by_content(directory: str | Path, content: str) -> r[t.StrSequence]:
-        path = Path(directory)
-
-        def _search() -> t.StrSequence:
-            matches: MutableSequence[str] = []
-            for fp in path.rglob(c.Cli.FileIODefaults.GLOB_PATTERN_ALL):
-                if not fp.is_file():
-                    continue
-                try:
-                    if content in fp.read_text(
-                        encoding=c.Cli.Utilities.DEFAULT_ENCODING,
-                    ):
-                        matches.append(str(fp))
-                except (UnicodeDecodeError, PermissionError) as read_exc:
-                    logging.getLogger(__name__).debug(
-                        "find_files_by_content skip file %s: %s",
-                        fp,
-                        read_exc,
-                        exc_info=False,
-                    )
-                    continue
-            return matches
-
-        return FlextCliFileTools._execute_file_operation(
-            _search,
-            c.Cli.FileErrorMessages.CONTENT_SEARCH_FAILED,
-        )
-
-    @staticmethod
-    def find_files_by_name(directory: str | Path, name: str) -> r[t.StrSequence]:
-        path = Path(directory)
-        return FlextCliFileTools._execute_file_operation(
-            lambda: [
-                str(p)
-                for p in path.rglob(c.Cli.FileIODefaults.GLOB_PATTERN_ALL)
-                if p.name == name
-            ],
-            c.Cli.FileErrorMessages.FILE_SEARCH_FAILED,
-        )
-
-    @staticmethod
-    def find_files_by_pattern(directory: str | Path, pattern: str) -> r[t.StrSequence]:
-        path = Path(directory)
-        return FlextCliFileTools._execute_file_operation(
-            lambda: [str(p) for p in path.glob(pattern)],
-            c.Cli.FileErrorMessages.FILE_SEARCH_FAILED,
-        )
-
-    @staticmethod
-    def get_file_modified_time(file_path: str | Path) -> r[float | None]:
-        p = Path(file_path)
-        return FlextCliFileTools._execute_file_operation(
-            lambda: float(p.stat().st_mtime),
-            "Failed to get modification time for {file_path}: {error}",
-            file_path=str(p),
-        )
-
-    @staticmethod
-    def get_file_permissions(file_path: str | Path) -> r[int]:
-        p = Path(file_path)
-        return FlextCliFileTools._execute_file_operation(
-            lambda: p.stat().st_mode & 511,
-            "Failed to get permissions for {file_path}: {error}",
-            file_path=str(p),
-        )
-
-    @staticmethod
-    def get_file_size(file_path: str | Path) -> r[int]:
-        p = Path(file_path)
-        return FlextCliFileTools._execute_file_operation(
-            lambda: int(p.stat().st_size),
-            "Failed to get file size for {file_path}: {error}",
-            file_path=str(p),
-        )
-
-    @staticmethod
-    def get_supported_formats() -> r[t.StrSequence]:
-        return r[t.StrSequence].ok(c.Cli.FileSupportedFormats.SUPPORTED_FORMATS)
 
     @staticmethod
     def list_directory(dir_path: str | Path) -> r[t.StrSequence]:
@@ -373,44 +231,32 @@ class FlextCliFileTools:
         )
 
     @staticmethod
-    def load_file_auto_detect(
+    def load_file_auto_dict(
         file_path: str | Path,
-    ) -> r[t.Cli.JsonValue]:
+    ) -> r[Mapping[str, t.Cli.JsonValue]]:
+        """Load JSON or YAML file and return as dict. Fails if root is not a mapping."""
         format_result = FlextCliFileTools.detect_file_format(file_path)
         if format_result.is_failure:
-            return r[t.Cli.JsonValue].fail(
+            return r[Mapping[str, t.Cli.JsonValue]].fail(
                 format_result.error or c.Cli.ErrorMessages.FORMAT_DETECTION_FAILED,
             )
         fmt = format_result.value
         if fmt == c.Cli.FileSupportedFormats.JSON:
-            return FlextCliFileTools.read_json_file(file_path)
-        if fmt == c.Cli.FileSupportedFormats.YAML:
-            return FlextCliFileTools.read_yaml_file(file_path)
-        return r[t.Cli.JsonValue].fail(
-            c.Cli.ErrorMessages.UNSUPPORTED_FORMAT.format(format=fmt),
-        )
-
-    @staticmethod
-    def load_file_auto_dict(
-        file_path: str | Path,
-    ) -> r[Mapping[str, t.Cli.JsonValue]]:
-        """Load JSON or YAML file and return as dict. Fails if root is not an t.NormalizedValue."""
-        result = FlextCliFileTools.load_file_auto_detect(file_path)
+            result = FlextCliFileTools.read_json_file(file_path)
+        elif fmt == c.Cli.FileSupportedFormats.YAML:
+            result = FlextCliFileTools.read_yaml_file(file_path)
+        else:
+            return r[Mapping[str, t.Cli.JsonValue]].fail(
+                c.Cli.ErrorMessages.UNSUPPORTED_FORMAT.format(format=fmt),
+            )
         if result.is_failure:
             return r[Mapping[str, t.Cli.JsonValue]].fail(result.error or "Load failed")
         value = result.value
         if not FlextCliFileTools._is_json_mapping(value):
             return r[Mapping[str, t.Cli.JsonValue]].fail(
-                "File root is not an t.NormalizedValue; use load_file_auto_detect for other types",
+                "File root is not a mapping; expected JSON/YAML object at root",
             )
         return r[Mapping[str, t.Cli.JsonValue]].ok(dict(value))
-
-    @staticmethod
-    def move_file(source: str | Path, destination: str | Path) -> r[bool]:
-        return FlextCliFileTools._run_bool_operation(
-            lambda: shutil.move(str(source), str(destination)),
-            c.Cli.FileErrorMessages.FILE_MOVE_FAILED,
-        )
 
     @staticmethod
     def read_binary_file(file_path: str | Path) -> r[bytes]:
@@ -500,29 +346,6 @@ class FlextCliFileTools:
     @staticmethod
     def save_file(file_path: str | Path, data: t.Cli.JsonValue) -> r[bool]:
         return FlextCliFileTools._save_file_by_extension(file_path, data)
-
-    @staticmethod
-    def set_file_permissions(file_path: str | Path, mode: int) -> r[bool]:
-        p = Path(file_path)
-        return FlextCliFileTools._run_bool_operation(
-            lambda: p.chmod(mode),
-            "Failed to set permissions for {file_path}: {error}",
-            file_path=str(p),
-        )
-
-    @staticmethod
-    def verify_file_hash(
-        file_path: str | Path,
-        expected_hash: str,
-        algorithm: str = "sha256",
-    ) -> r[bool]:
-        hash_result = FlextCliFileTools.calculate_file_hash(file_path, algorithm)
-        if hash_result.is_failure:
-            return r[bool].fail(
-                hash_result.error
-                or c.Cli.FileErrorMessages.HASH_CALCULATION_FAILED_NO_ERROR,
-            )
-        return r[bool].ok(hash_result.value == expected_hash)
 
     @staticmethod
     def write_binary_file(file_path: str | Path, content: bytes) -> r[bool]:

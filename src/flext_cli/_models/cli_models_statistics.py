@@ -67,15 +67,3 @@ class FlextCliModelsStatistics:
             Mapping[str, t.Cli.JsonValue],
             Field(default_factory=dict),
         ]
-
-    class WorkflowStepResult(FlextModels.Value):
-        step_name: Annotated[str, Field(...)]
-        success: Annotated[bool, Field(default=True)]
-        message: Annotated[str, Field(default="")]
-        duration: Annotated[float, Field(default=0.0)]
-
-    class WorkflowProgress(FlextModels.Value):
-        current_step: Annotated[int, Field(default=0)]
-        total_steps: Annotated[int, Field(default=0)]
-        current_step_name: Annotated[str, Field(default="")]
-        percentage: Annotated[float, Field(default=0.0)]

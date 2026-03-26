@@ -17,12 +17,8 @@ from typing import Literal, Self, overload, override
 
 from flext_core import FlextLogger, r
 from rich.console import Console
-from rich.errors import ConsoleError, LiveError, NotRenderableError, StyleError
-from rich.layout import Layout as RichLayout
-from rich.live import Live as RichLive
-from rich.panel import Panel as RichPanel
+from rich.errors import ConsoleError, NotRenderableError, StyleError
 from rich.progress import Progress
-from rich.status import Status as RichStatus
 from rich.table import Table as RichTable
 from rich.tree import Tree as RichTree
 
@@ -103,64 +99,6 @@ class FlextCliFormatters:
         """Initialize Rich formatters with direct Rich imports."""
         super().__init__()
         self.console: Console = Console()
-
-    @staticmethod
-    def create_layout() -> r[RichLayout]:
-        """Create Rich layout with default settings.
-
-        Returns:
-            r[RichLayout]: Rich Layout instance or error
-
-        Note:
-            For custom layouts (named regions, sizes), create Layout objects
-            directly using Rich.
-
-        """
-        try:
-            layout = RichLayout()
-            return r[RichLayout].ok(layout)
-        except ConsoleError as exc:
-            _logger.warning("rich_layout_creation_failed", error=str(exc))
-            return r[RichLayout].fail(
-                c.Cli.FormattersErrorMessages.LAYOUT_CREATION_FAILED.format(error=exc),
-            )
-
-    @staticmethod
-    def create_panel(
-        content: str,
-        title: str | None = None,
-        border_style: str | None = None,
-    ) -> r[RichPanel]:
-        """Create Rich panel with text content.
-
-        Args:
-            content: Panel content (text)
-            title: Optional panel title
-            border_style: Border style (e.g., "blue", "green", "red")
-
-        Returns:
-            r[RichPanel]: Rich Panel instance or error
-
-        Note:
-            For panels with complex content (Rich renderables), create Panel objects
-            directly using Rich.
-
-        """
-        try:
-            validated_border_style = (
-                border_style
-                if border_style is not None
-                else c.Cli.FormattersDefaults.DEFAULT_BORDER_STYLE
-            )
-            panel = RichPanel(content, title=title, border_style=validated_border_style)
-            return r[RichPanel].ok(panel)
-        except (ConsoleError, StyleError) as exc:
-            _logger.warning(
-                "rich_panel_creation_fallback",
-                error=str(exc),
-                title=title or "",
-            )
-            return r[RichPanel].ok(RichPanel(content))
 
     @staticmethod
     def create_progress() -> r[Progress]:
@@ -252,72 +190,6 @@ class FlextCliFormatters:
             return r[FlextCliFormatters.Tree].fail(
                 c.Cli.FormattersErrorMessages.TREE_CREATION_FAILED.format(error=exc),
             )
-
-    def create_live(self, refresh_per_second: float | None = None) -> r[RichLive]:
-        """Create Rich live display.
-
-        Args:
-            refresh_per_second: Refresh rate for live updates
-
-        Returns:
-            r[RichLive]: Rich Live instance or error
-
-        Note:
-            For custom live displays, access self.console directly and create Live objects.
-
-        """
-        try:
-            validated_refresh_rate = (
-                refresh_per_second
-                if refresh_per_second is not None
-                else c.Cli.FormattersDefaults.DEFAULT_REFRESH_RATE
-            )
-            live = RichLive(refresh_per_second=validated_refresh_rate)
-            return r[RichLive].ok(live)
-        except (ConsoleError, LiveError) as exc:
-            _logger.warning("rich_live_creation_failed", error=str(exc))
-            return r[RichLive].fail(
-                c.Cli.FormattersErrorMessages.LIVE_CREATION_FAILED.format(error=exc),
-            )
-
-    def create_status(self, message: str, spinner: str | None = None) -> r[RichStatus]:
-        """Create Rich status spinner.
-
-        Args:
-            message: Status message
-            spinner: Spinner style (e.g., "dots", "line", "arrow")
-
-        Returns:
-            r[RichStatus]: Rich Status instance or error
-
-        Note:
-            For custom spinners, access self.console directly and create Status objects.
-
-        """
-        try:
-            validated_spinner = (
-                spinner
-                if spinner is not None
-                else c.Cli.FormattersDefaults.DEFAULT_SPINNER
-            )
-            status = RichStatus(message, spinner=validated_spinner)
-            return r[RichStatus].ok(status)
-        except (ConsoleError, StyleError) as exc:
-            _logger.warning(
-                "rich_status_creation_failed",
-                error=str(exc),
-                message=message,
-            )
-            return r[RichStatus].fail(
-                c.Cli.FormattersErrorMessages.STATUS_CREATION_FAILED.format(error=exc),
-            )
-
-    def execute(self) -> r[Mapping[str, t.Cli.JsonValue]]:
-        """Execute service - required by FlextService."""
-        return r[Mapping[str, t.Cli.JsonValue]].ok({
-            c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.OPERATIONAL.value,
-            c.Cli.DictKeys.SERVICE: c.Cli.Services.FORMATTERS,
-        })
 
     def print(self, message: str, style: str | None = None) -> None:
         """Print formatted message using Rich.
