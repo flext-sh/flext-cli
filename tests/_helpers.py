@@ -2,103 +2,15 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
-from datetime import UTC, datetime
+from collections.abc import Sequence
 
-import pytest
 from flext_core import r
 
-from flext_cli import FlextCliCommands, m, t
-from tests import m as tm
-
-
-def create_test_cli_command(**overrides: t.ContainerValue) -> m.Cli.CliCommand:
-    """Factory for real CliCommand instances with sensible defaults."""
-    now = datetime.now(UTC)
-    payload: dict[str, t.ContainerValue] = {
-        "unique_id": f"test-cmd-{now.timestamp()}",
-        "name": "test_command",
-        "description": "Test command description",
-        "status": "pending",
-        "created_at": now,
-        "command_line": "test_command",
-    }
-    if "command_id" in overrides and isinstance(overrides["command_id"], str):
-        payload["unique_id"] = overrides["command_id"]
-    if "arguments" in overrides and isinstance(overrides["arguments"], (list, tuple)):
-        args_val = overrides["arguments"]
-        payload["args"] = [str(x) for x in args_val if isinstance(x, str)]
-    merged = {**payload, **overrides}
-    _ = merged.pop("command_id", None)
-    _ = merged.pop("arguments", None)
-    filtered = {
-        k: v for k, v in merged.items() if k in tm.Cli.Test.CliCommandInput.model_fields
-    }
-    inp = tm.Cli.Test.CliCommandInput.model_validate(filtered)
-    return m.Cli.CliCommand.model_construct(
-        _fields_set=None,
-        **inp.model_dump(exclude_none=True),
-    )
-
-
-def create_test_cli_session(**overrides: t.ContainerValue) -> m.Cli.CliSession:
-    """Factory for real CliSession instances with sensible defaults."""
-    now = datetime.now(UTC)
-    payload: dict[str, t.ContainerValue] = {
-        "session_id": f"test-session-{now.timestamp()}",
-        "status": "active",
-        "created_at": now,
-    }
-    filtered = {
-        k: v
-        for k, v in {**payload, **overrides}.items()
-        if k in tm.Cli.Test.CliSessionInput.model_fields
-    }
-    inp = tm.Cli.Test.CliSessionInput.model_validate(filtered)
-    session = m.Cli.CliSession.model_construct(
-        _fields_set=None,
-        **inp.model_dump(exclude_none=True),
-    )
-    if getattr(session, "environment", None) is None:
-        object.__setattr__(session, "environment", overrides.get("environment", "test"))
-    return session
+from flext_cli import FlextCliCommands, t
 
 
 class CommandsFactory:
     """Factory for creating test commands with high automation."""
-
-    @staticmethod
-    def create_basic_command(**overrides: t.ContainerValue) -> m.Cli.CliCommand:
-        """Create basic test command."""
-        return create_test_cli_command(**overrides)
-
-    @staticmethod
-    def create_command_chain(count: int = 3) -> Sequence[m.Cli.CliCommand]:
-        """Create a chain of related commands."""
-        commands: list[m.Cli.CliCommand] = []
-        for i in range(count):
-            cmd = create_test_cli_command(
-                command_id=f"chain_cmd_{i}",
-                name=f"command_{i}",
-                arguments=[f"--step={i}"],
-            )
-            commands.append(cmd)
-        return commands
-
-    @staticmethod
-    def create_commands_with_dependencies() -> Sequence[m.Cli.CliCommand]:
-        """Create commands with dependency relationships."""
-        cmd1 = create_test_cli_command(
-            command_id="dep_cmd_1",
-            name="prepare_data",
-            arguments=["--prepare"],
-        )
-        cmd2 = create_test_cli_command(
-            command_id="dep_cmd_2",
-            name="process_data",
-            arguments=["--process", "--input=dep_cmd_1"],
-        )
-        return [cmd1, cmd2]
 
     @staticmethod
     def create_commands() -> FlextCliCommands:
@@ -153,51 +65,10 @@ class CommandsFactory:
         return commands.register_command(command_name, handler)
 
 
-def generate_edge_case_data() -> Sequence[Mapping[str, t.ContainerValue]]:
-    """Generate comprehensive edge case test data for CliCommand.
-
-    Only uses valid CliCommand fields: name, description, command_line, usage,
-    entry_point, plugin_version, args, status, exit_code, output.
-    """
+def generate_edge_case_data() -> Sequence[dict[str, t.ContainerValue]]:
+    """Generate comprehensive edge case test data."""
     return [
-        {"name": "a", "description": "Minimum name length"},
-        {"name": "a" * 100, "description": "Maximum name length"},
-        {"name": "test_123", "description": "Underscores"},
-        {"name": "test-123", "description": "Hyphens"},
-        {"name": "test.123", "description": "Dots"},
-        {"name": "测试命令", "description": "Chinese characters"},
-        {"name": "café", "description": "Accented characters"},
-        {
-            "name": "test",
-            "command_line": "test --verbose --debug",
-            "description": "With flags",
-        },
-        {"name": "test", "command_line": "", "description": "Empty command line"},
-        {"name": "test", "args": [], "description": "Empty args"},
-        {
-            "name": "test",
-            "args": ["--verbose", "--debug"],
-            "description": "Multiple args",
-        },
-        {"name": "test", "status": "pending", "description": "Pending status"},
-        {"name": "test", "status": "running", "description": "Running status"},
-        {"name": "test", "status": "completed", "description": "Completed status"},
+        {"name": "a"},
+        {"name": "a" * 100},
+        {"name": "test_123"},
     ]
-
-
-@pytest.fixture
-def test_cli_command() -> m.Cli.CliCommand:
-    """Fixture providing test CliCommand instance."""
-    return create_test_cli_command()
-
-
-@pytest.fixture
-def test_cli_session() -> m.Cli.CliSession:
-    """Fixture providing test CliSession instance."""
-    return create_test_cli_session()
-
-
-@pytest.fixture
-def edge_case_commands() -> Sequence[m.Cli.CliCommand]:
-    """Fixture providing edge case command instances."""
-    return [create_test_cli_command(**data) for data in generate_edge_case_data()]

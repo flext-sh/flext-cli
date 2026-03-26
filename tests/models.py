@@ -11,7 +11,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Mapping
-from datetime import datetime
 from typing import Annotated, ClassVar, Literal
 
 from flext_tests import FlextTestsModels
@@ -46,33 +45,8 @@ class FlextCliTestModels(FlextTestsModels, FlextCliModels):
                     payload.update(kwargs)
                     super().__init__(**payload)
 
-            class CliCommandInput(PositionalModel):
-                """Test input for building CliCommand via model_construct. All optional with defaults."""
-
-                model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
-                unique_id: Annotated[str, Field(default="test-cmd-0")]
-                name: Annotated[str, Field(default="test_command")]
-                description: Annotated[str, Field(default="Test command description")]
-                status: Annotated[str, Field(default="pending")]
-                created_at: Annotated[datetime | None, Field(default=None)]
-                command_line: Annotated[str, Field(default="test_command")]
-                args: t.StrSequence = Field(default_factory=list)
-                result: Annotated[t.NormalizedValue, Field(default=None)]
-                kwargs: Annotated[
-                    Mapping[str, t.ContainerValue],
-                    Field(default_factory=dict),
-                ]
-
-            class CliSessionInput(PositionalModel):
-                """Test input for building CliSession via model_construct. All optional with defaults."""
-
-                model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
-                session_id: Annotated[str, Field(default="test-session-0")]
-                status: Annotated[str, Field(default="active")]
-                created_at: Annotated[datetime | None, Field(default=None)]
-
             class UserData(PositionalModel):
-                """User data for type scenario tests — Pydantic v2."""
+                """User data for type scenario tests -- Pydantic v2."""
 
                 model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
                 id: Annotated[int, Field(description="User id")]
@@ -81,7 +55,7 @@ class FlextCliTestModels(FlextTestsModels, FlextCliModels):
                 active: Annotated[bool, Field(description="Active flag")]
 
             class ApiResponse(PositionalModel):
-                """API response for type scenario tests — Pydantic v2."""
+                """API response for type scenario tests -- Pydantic v2."""
 
                 model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
                 status: Annotated[str, Field(description="Status")]

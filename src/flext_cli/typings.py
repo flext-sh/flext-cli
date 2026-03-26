@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Mapping, Sequence
 
 from flext_core import FlextTypes
 
@@ -25,24 +25,11 @@ class FlextCliTypes(FlextTypes):
         Provides organized access to all CLI types for other FLEXT projects.
         Usage: Other projects can reference `FlextCliTypes.Cli.*` via short alias `FlextTypes.Cli.*`.
         This enables consistent namespace patterns for cross-project type access.
-
-        RULES (Architecture Layer Compliance):
-        ─────────────────────────────────────
-        1. Single class pattern - NO nested sub-namespaces (Data, Auth, etFlextCliConstants.Cli.)
-        2. Direct access via FlextTypes.Cli.* - simple and clear
-        3. Reuse from FlextTypes parent class (inheritance, no duplication)
-        4. Complex types only - no simple wrappers
-        5. Type composition with Protocols for better type safety
         """
 
-        type JsonScalar = FlextTypes.Scalar | None
         type JsonValue = FlextTypes.NormalizedValue
-        type JsonDict = Mapping[str, JsonValue]
         type TableRow = Mapping[str, JsonValue]
-        ResultFormatter = Callable[[JsonValue], str]
-        type FormatableResult = str
         TabularData = Sequence[TableRow]
-        type TableRows = Sequence[TableRow]
         type CliValue = (
             FlextTypes.Scalar
             | FlextTypes.StrSequence

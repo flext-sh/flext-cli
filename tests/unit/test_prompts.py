@@ -305,7 +305,10 @@ class TestsCliPrompts:
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Test prompt with empty input uses default."""
-        monkeypatch.setattr("builtins.input", lambda _: "")
+        def _empty_input(prompt: str) -> str:
+            return ""
+
+        monkeypatch.setattr("builtins.input", _empty_input)
         interactive_prompts = self.Fixtures.create_interactive_prompts()
         result = interactive_prompts.prompt("Enter value:", default="default")
         tm.ok(result)

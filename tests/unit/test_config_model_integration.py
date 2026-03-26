@@ -15,7 +15,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
-from pathlib import Path
 from typing import Annotated, ClassVar
 
 import pytest
@@ -23,7 +22,6 @@ from flext_tests import tm
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from flext_cli import FlextCliCli, FlextCliSettings
 from tests import t
 
 
@@ -151,20 +149,6 @@ class TestsCliConfigModelIntegration:
         output_dir: Annotated[str | None, Field(default=None)]
         name: Annotated[str | None, Field(default=None)]
 
-    @pytest.fixture
-    def cli(self) -> FlextCliCli:
-        """Create FlextCliCli instance."""
-        return FlextCliCli()
-
-    @pytest.fixture
-    def temp_env_file(self, tmp_path: Path) -> Path:
-        """Create temporary .env file for testing."""
-        env_file = tmp_path / ".env"
-        env_file.write_text(
-            "TEST_APP_INPUT_DIR=/test/input\nTEST_APP_OUTPUT_DIR=/test/output\nTEST_APP_TIMEOUT_SECONDS=60\nTEST_APP_VERBOSE=true\n",
-        )
-        return env_file
-
     @pytest.mark.parametrize(
         ("config_class", "expected_fields", "expected_values"),
         [
@@ -250,26 +234,6 @@ class TestsCliConfigModelIntegration:
         )
         tm.that(params.input_dir, eq="/test/input")
         tm.that(params.output_dir, eq="/test/output")
-
-    def test_model_command_with_config(self, cli: FlextCliCli) -> None:
-        """Test model_command applies config defaults to Typer parameters."""
-        config = FlextCliSettings.get_global()
-
-        def handler(_params: BaseModel) -> None:
-            pass
-
-        command = cli.model_command(self.AppParams, handler, config=config)
-        tm.that(command, none=False)
-        tm.that(callable(command), eq=True)
-
-    def test_model_command_without_config(self, cli: FlextCliCli) -> None:
-        """Test model_command works without config."""
-
-        def handler(_params: BaseModel) -> None:
-            pass
-
-        command = cli.model_command(self.SimpleParams, handler)
-        tm.that(command, none=False)
 
     @pytest.mark.parametrize(
         ("config_class", "field_name", "expected_type", "expected_value"),

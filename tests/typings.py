@@ -53,8 +53,6 @@ class FlextCliTestTypes(FlextTestsTypes, FlextCliTypes):
             Use FlextTestsTypes.Tests.* for generic test types.
             """
 
-            ResultFormatter = FlextCliTypes.Cli.ResultFormatter
-            FormatableResult = FlextCliTypes.Cli.FormatableResult
             TabularData = FlextCliTypes.Cli.TabularData
             type CliConfigMapping = Mapping[
                 str,

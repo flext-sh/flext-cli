@@ -31,10 +31,7 @@ _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
     "ExamplePlugin": ["examples.plugins.example_plugin", "ExamplePlugin"],
     "FlextCliProtocols": ["examples.plugins.protocols", "FlextCliProtocols"],
     "GroupWithCommands": ["examples.plugins.protocols", "GroupWithCommands"],
-    "demonstrate_plugin_commands": [
-        "examples.plugins.example_plugin",
-        "demonstrate_plugin_commands",
-    ],
+    "demonstrate_plugin_commands": ["examples.plugins.example_plugin", "demonstrate_plugin_commands"],
     "p": ["examples.plugins.protocols", "p"],
 }
 

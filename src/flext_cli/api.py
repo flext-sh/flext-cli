@@ -19,7 +19,6 @@ from flext_cli import (
     FlextCliCmd,
     FlextCliCommands,
     FlextCliCommonParams,
-    FlextCliDebug,
     FlextCliFileTools,
     FlextCliFormatters,
     FlextCliOutput,
@@ -68,9 +67,6 @@ class FlextCli:
 
     class Config(FlextCliSettings):
         """CLI config."""
-
-    class Debug(FlextCliDebug):
-        """CLI debug."""
 
     logger: logger_core
     config: FlextCliSettings

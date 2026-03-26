@@ -6,8 +6,6 @@ from collections.abc import Callable, Mapping, Sequence
 from typing import (
     Annotated,
     ClassVar,
-    Self,
-    override,
 )
 
 from flext_core import FlextModels, r
@@ -15,9 +13,7 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
-    computed_field,
 )
-from rich.errors import ConsoleError, LiveError, StyleError
 
 from flext_cli import FlextCliModelsSystemContext, c, t
 
@@ -40,8 +36,6 @@ class FlextCliModels(FlextModels):
         """CLI project namespace - PADRAO HIERARQUICO.
 
         Este namespace contem todos os modelos CLI especificos do flext-cli.
-        Acesso via: FlextCliModels.Cli.Entity, FlextCliModels.Cli.Value, FlextCliModels.Cli.CliCommand, etc.
-
         PADRAO: Namespace hierarquico completo, sem duplicacao.
         """
 
@@ -447,26 +441,6 @@ class FlextCliModels(FlextModels):
                     description="Show available choices",
                 ),
             ]
-
-        class PasswordAuth(FlextModels.Value):
-            """Password authentication data.
-
-            Inherits frozen=True and extra="forbid" from FlextModels.Value.
-            """
-
-            username: Annotated[t.BoundedStr, Field(...)]
-            password: Annotated[t.BoundedStr, Field(...)]
-            realm: Annotated[str, Field(default="")]
-
-        class TokenData(FlextModels.Value):
-            """Authentication token data.
-
-            Inherits frozen=True and extra="forbid" from FlextModels.Value.
-            """
-
-            token: Annotated[str, Field(...)]
-            expires_at: Annotated[str, Field(default="")]
-            token_type: Annotated[str, Field(default="Bearer")]
 
 
 __all__ = [

@@ -65,20 +65,22 @@ def create_decorated_command(
 
     @app.command(name=command_name)
     def typer_command(
-        verbose: bool = typer.Option(
+        verbose: bool = typer.Option(  # pyright: ignore[reportUnknownMemberType]
             False,
             "--verbose",
             "-v",
             help="Enable verbose output",
         ),
-        debug: bool = typer.Option(False, "--debug", "-d", help="Enable debug mode"),
-        log_level: str = typer.Option(
+        debug: bool = typer.Option(  # pyright: ignore[reportUnknownMemberType]
+            False, "--debug", "-d", help="Enable debug mode"
+        ),
+        log_level: str = typer.Option(  # pyright: ignore[reportUnknownMemberType]
             "INFO",
             "--log-level",
             "-L",
             help="Set logging level",
         ),
-        output_format: str = typer.Option(
+        output_format: str = typer.Option(  # pyright: ignore[reportUnknownMemberType]
             "table",
             "--output-format",
             "-o",

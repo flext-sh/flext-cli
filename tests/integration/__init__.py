@@ -13,39 +13,16 @@ from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
 if TYPE_CHECKING:
     from flext_core import FlextTypes
 
-    from tests.integration.test_cli_workflow import TestsCliWorkflowIntegration
+_LAZY_IMPORTS: Mapping[str, Sequence[str]] = {}
 
-_LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
-    "TestsCliWorkflowIntegration": [
-        "tests.integration.test_cli_workflow",
-        "TestsCliWorkflowIntegration",
-    ],
-}
-
-__all__ = [
-    "TestsCliWorkflowIntegration",
-]
+__all__: list[str] = []
 
 
 _LAZY_CACHE: MutableMapping[str, FlextTypes.ModuleExport] = {}
 
 
 def __getattr__(name: str) -> FlextTypes.ModuleExport:
-    """Lazy-load module attributes on first access (PEP 562).
-
-    A local cache ``_LAZY_CACHE`` persists resolved objects across repeated
-    accesses during process lifetime.
-
-    Args:
-        name: Attribute name requested by dir()/import.
-
-    Returns:
-        Lazy-loaded module export type.
-
-    Raises:
-        AttributeError: If attribute not registered.
-
-    """
+    """Lazy-load module attributes on first access (PEP 562)."""
     if name in _LAZY_CACHE:
         return _LAZY_CACHE[name]
 
@@ -55,12 +32,7 @@ def __getattr__(name: str) -> FlextTypes.ModuleExport:
 
 
 def __dir__() -> Sequence[str]:
-    """Return list of available attributes for dir() and autocomplete.
-
-    Returns:
-        List of public names from module exports.
-
-    """
+    """Return list of available attributes."""
     return sorted(__all__)
 
 

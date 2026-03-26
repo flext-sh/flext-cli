@@ -38,7 +38,7 @@ from flext_tests import tm
 from pydantic import BaseModel, ConfigDict, Field
 
 from flext_cli import FlextCliTypes, t
-from tests import c, m
+from tests import m
 
 
 @unique
@@ -129,7 +129,7 @@ class TestsCliTypings:
             """Create test data for type operations."""
             return {
                 "config_data": {
-                    "output_format": c.Cli.OutputFormats.JSON.value,
+                    "output_format": "json",
                     "debug": True,
                     "timeout": 30,
                 },
@@ -159,7 +159,7 @@ class TestsCliTypings:
                 cli_namespace = getattr(types_class, "Cli", None)
                 if cli_namespace is None:
                     return r[bool].fail("Cli namespace is None")
-                required_attrs = ["FormatableResult", "ResultFormatter", "TabularData"]
+                required_attrs = ["TabularData", "JsonValue"]
                 for attr in required_attrs:
                     if not hasattr(cli_namespace, attr):
                         return r[bool].fail(f"Missing Cli attribute: {attr}")
@@ -243,7 +243,7 @@ class TestsCliTypings:
             "CliFormatData",
         )
         tm.ok(format_result)
-        tm.that(config_dict["output_format"], eq=c.Cli.OutputFormats.JSON.value)
+        tm.that(config_dict["output_format"], eq="json")
         tm.that(config_dict["debug"] is True, eq=True)
 
     def _execute_type_definition_tests(self) -> None:
@@ -574,5 +574,5 @@ class TestsCliTypings:
         tm.that(result, has="timestamp")
         tm.that(t, none=False)
         tm.that(hasattr(t, "Cli"), eq=True)
-        tm.that(hasattr(t.Cli, "FormatableResult"), eq=True)
-        tm.that(hasattr(t.Cli, "ResultFormatter"), eq=True)
+        tm.that(hasattr(t.Cli, "TabularData"), eq=True)
+        tm.that(hasattr(t.Cli, "JsonValue"), eq=True)

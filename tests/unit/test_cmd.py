@@ -138,7 +138,8 @@ class TestsCliCmd:
         """Test validate_config_structure when main config directory is missing."""
         results = u.Cli.ConfigOps.validate_config_structure()
         tm.that(results, is_=list)
-        tm.that(all(isinstance(r, str) for r in results), eq=True)
+        for item in results:
+            tm.that(item, is_=str)
 
     def test_cmd_validate_config_exception(self) -> None:
         """Test validate_config exception handler."""
