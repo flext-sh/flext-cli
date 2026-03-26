@@ -1,0 +1,35 @@
+src/flext_cli/commands.py
+  692efb5021d42258 33,35-40
+examples/12_pydantic_driven_cli.py
+  692efb5021d42258 48-56,58-59,115-119
+docs/getting-started.md
+  692efb5021d42258 57,139,142,151,171-172,182,278
+examples/models.py
+  692efb5021d42258 29,138-139
+examples/10_testing_utilities.py
+  692efb5021d42258 103
+examples/06_configuration.py
+  692efb5021d42258 52-54,58,65,68,77,101,112,115,148
+examples/11_complete_integration.py
+  692efb5021d42258 49
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.19",
+  "base_commit_sha": "8fa91fb82676dea29bc5e0b456f4a551c56ea5e7",
+  "prompts": {
+    "692efb5021d42258": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f769829f-6a4e-41ae-9104-340c9871a56d",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "FLEXT Bot <team@flext.sh>",
+      "messages": [],
+      "total_additions": 68,
+      "total_deletions": 75,
+      "accepted_lines": 48,
+      "overriden_lines": 1
+    }
+  }
+}
