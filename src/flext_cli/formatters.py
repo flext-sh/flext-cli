@@ -11,6 +11,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import sys
+from functools import cached_property
 from typing import Literal, Self, overload, override
 
 from flext_core import FlextLogger, r
@@ -74,10 +75,10 @@ class FlextCliFormatters:
             """Expose inner Rich Tree for rendering or advanced use."""
             return self._tree
 
-    def __init__(self) -> None:
-        """Initialize Rich formatters with direct Rich imports."""
-        super().__init__()
-        self.console: Console = Console()
+    @cached_property
+    def console(self) -> Console:
+        """Lazily create Rich Console on first access."""
+        return Console()
 
     @staticmethod
     def create_tree(label: str) -> r[FlextCliFormatters.Tree]:

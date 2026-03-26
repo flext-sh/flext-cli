@@ -15,6 +15,7 @@ from collections.abc import Callable, Mapping, MutableMapping
 from typing import override
 
 from flext_core import r
+from pydantic import PrivateAttr
 from rich.errors import ConsoleError, LiveError, StyleError
 
 from flext_cli import FlextCliServiceBase, c, m, t
@@ -23,26 +24,11 @@ from flext_cli import FlextCliServiceBase, c, m, t
 class FlextCliCommands(FlextCliServiceBase):
     """CLI commands service for command registration and execution."""
 
-    def __init__(
-        self,
-        name: str = c.Cli.CommandsDefaults.DEFAULT_NAME,
-        description: str = c.Cli.CommandsDefaults.DEFAULT_DESCRIPTION,
-    ) -> None:
-        """Initialize commands service.
-
-        Args:
-            name: CLI application name.
-            description: CLI application description.
-
-        """
-        super().__init__(
-            config_type=None,
-            config_overrides=None,
-            initial_context=None,
-        )
-        self._name = name
-        self._description = description
-        self._commands: MutableMapping[str, m.Cli.CommandEntryModel] = {}
+    _name: str = PrivateAttr(default=c.Cli.CommandsDefaults.DEFAULT_NAME)
+    _description: str = PrivateAttr(default=c.Cli.CommandsDefaults.DEFAULT_DESCRIPTION)
+    _commands: MutableMapping[str, m.Cli.CommandEntryModel] = PrivateAttr(
+        default_factory=dict,
+    )
 
     @staticmethod
     def _normalize_handler_result(

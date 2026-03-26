@@ -12,22 +12,11 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import FlextContainer, FlextLogger
-
-from flext_cli import p
-
-
 class FlextCliCli:
-    """Unified Typer/Click abstraction used by the FLEXT ecosystem."""
+    """Unified Typer/Click abstraction marker for the FLEXT CLI ecosystem.
 
-    container: p.Container
-    logger: p.Logger
-
-    def __init__(self) -> None:
-        """Initialize FlextCliCli."""
-        super().__init__()
-        self.container = FlextContainer.get_global()
-        self.logger = FlextLogger(__name__)
+    Container and logger are provided by FlextMixins via MRO.
+    """
 
 
 __all__ = ["FlextCliCli"]

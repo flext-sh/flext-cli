@@ -16,7 +16,6 @@ from flext_cli import (
     FlextCliTypes,
     c,
     t,
-    u,
 )
 
 
@@ -26,40 +25,6 @@ class FlextCliPrompts(FlextCliServiceBase):
     _interactive_mode: bool = PrivateAttr(default=True)
     _quiet: bool = PrivateAttr(default=False)
     _default_timeout: int = PrivateAttr(default=c.Cli.Prompts.DEFAULT_TIMEOUT)
-
-    def __init__(
-        self,
-        default_timeout: int = c.Cli.Prompts.DEFAULT_TIMEOUT,
-        *,
-        interactive_mode: bool = True,
-        quiet: bool = False,
-        **data: t.Scalar,
-    ) -> None:
-        data["interactive_mode"] = interactive_mode and (not quiet)
-        data["quiet"] = quiet
-        data["default_timeout"] = default_timeout
-        super().__init__(
-            config_type=None,
-            config_overrides=None,
-            initial_context=None,
-        )
-        self._interactive_mode = bool(data.get("interactive_mode", True))
-        self._quiet = bool(data.get("quiet"))
-        timeout_raw = data.get("default_timeout")
-        resolved_timeout_raw = (
-            timeout_raw if isinstance(timeout_raw, int | str) else None
-        )
-        self._default_timeout = u.Cli.PromptTimeoutResolved(
-            raw=resolved_timeout_raw,
-            default=default_timeout,
-        ).resolve()
-        self.logger.debug(
-            "Initialized CLI prompts service",
-            operation="__init__",
-            interactive_mode=self._interactive_mode,
-            quiet=self._quiet,
-            default_timeout=self._default_timeout,
-        )
 
     def confirm(self, message: str, *, default: bool = False) -> r[bool]:
         try:

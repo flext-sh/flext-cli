@@ -17,7 +17,6 @@ from flext_core import r
 from rich.errors import ConsoleError, LiveError, StyleError
 
 from flext_cli import (
-    FlextCliFileTools,
     FlextCliServiceBase,
     FlextCliTypes,
     FlextCliUtilities,
@@ -29,47 +28,10 @@ from flext_cli import (
 class FlextCliCmd(FlextCliServiceBase):
     """Execute registered CLI commands and expose execution metadata.
 
-    Business Rules:
-    ───────────────
-    1. Command execution MUST validate configuration before execution
-    2. Configuration validation MUST check structure and required fields
-    3. Configuration paths MUST be resolved from environment or defaults
-    4. Configuration values MUST be persisted to config files
-    5. All operations MUST use r[T] for error handling
-    6. File operations MUST use FlextCliFileTools for consistency
-    7. Config operations MUST delegate to FlextCliUtilities.Cli.ConfigOps
-    8. Command execution MUST log all operations for audit trail
-
-    Architecture Implications:
-    ───────────────────────────
-    - Extends FlextCliServiceBase for consistent logging and container access
-    - Delegates file operations to FlextCliFileTools (SRP)
-    - Delegates config operations to FlextCliUtilities.Cli.ConfigOps (SRP)
-    - Railway-Oriented Programming via r for composable error handling
-    - Static methods for stateless operations
-
-    Audit Implications:
-    ───────────────────
-    - Configuration validation MUST be logged with validation results
-    - Configuration changes MUST be logged with key, value (no sensitive data)
-    - Configuration path resolution MUST be logged for debugging
-    - File operations MUST be logged with file paths (no sensitive content)
-    - Command execution failures MUST be logged with full context
-
-    # Attributes initialized in __init__ (inherit types from FlextService)
-    # Logger is provided by FlextMixins mixin
-    # All config utilities moved to FlextCliUtilities.Cli.ConfigOps
+    Extends FlextCliServiceBase for consistent logging and container access.
+    Delegates config operations to FlextCliUtilities.Cli.ConfigOps.
+    Railway-Oriented Programming via r for composable error handling.
     """
-
-    @override
-    def __init__(self) -> None:
-        """Initialize the command service and supporting file helpers."""
-        super().__init__(
-            config_type=None,
-            config_overrides=None,
-            initial_context=None,
-        )
-        self._file_tools = FlextCliFileTools()
 
     @staticmethod
     def get_config_info() -> r[m.Cli.ConfigSnapshot]:
