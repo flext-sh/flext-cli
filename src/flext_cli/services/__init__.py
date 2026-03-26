@@ -20,6 +20,7 @@ from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
 if TYPE_CHECKING:
     from flext_core import FlextTypes
 
+    from flext_cli.services.auth import FlextCliAuth
     from flext_cli.services.cli import FlextCliCli
     from flext_cli.services.cli_params import FlextCliCommonParams
     from flext_cli.services.cmd import FlextCliCmd
@@ -31,6 +32,7 @@ if TYPE_CHECKING:
     from flext_cli.services.tables import FlextCliTables
 
 _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
+    "FlextCliAuth": ["flext_cli.services.auth", "FlextCliAuth"],
     "FlextCliCli": ["flext_cli.services.cli", "FlextCliCli"],
     "FlextCliCmd": ["flext_cli.services.cmd", "FlextCliCmd"],
     "FlextCliCommands": ["flext_cli.services.commands", "FlextCliCommands"],
@@ -43,6 +45,7 @@ _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
 }
 
 __all__ = [
+    "FlextCliAuth",
     "FlextCliCli",
     "FlextCliCmd",
     "FlextCliCommands",

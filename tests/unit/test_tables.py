@@ -38,6 +38,17 @@ class TestsCliTables:
         tm.that("Alpha" in table, eq=True)
         tm.that("identifier" in table, eq=False)
 
+    def test_format_table_accepts_public_table_alias(self) -> None:
+        """The public 'table' format alias must resolve to the default backend."""
+        result = FlextCliTables.format_table(
+            [{"name": "Alice", "status": "active"}],
+            table_format="table",
+        )
+        tm.that(result.is_success, eq=True)
+        table = result.value or ""
+        tm.that("Alice" in table, eq=True)
+        tm.that("active" in table, eq=True)
+
     def test_show_table_prints_title_before_rendered_table(
         self,
         monkeypatch: pytest.MonkeyPatch,

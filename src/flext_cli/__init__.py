@@ -31,6 +31,7 @@ if TYPE_CHECKING:
     from flext_cli.constants import FlextCliConstants, FlextCliConstants as c
     from flext_cli.models import FlextCliModels, FlextCliModels as m
     from flext_cli.protocols import FlextCliProtocols, FlextCliProtocols as p
+    from flext_cli.services.auth import FlextCliAuth
     from flext_cli.services.cli import FlextCliCli
     from flext_cli.services.cli_params import FlextCliCommonParams
     from flext_cli.services.cmd import FlextCliCmd
@@ -46,6 +47,7 @@ if TYPE_CHECKING:
 
 _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
     "FlextCli": ["flext_cli.api", "FlextCli"],
+    "FlextCliAuth": ["flext_cli.services.auth", "FlextCliAuth"],
     "FlextCliCli": ["flext_cli.services.cli", "FlextCliCli"],
     "FlextCliCmd": ["flext_cli.services.cmd", "FlextCliCmd"],
     "FlextCliCommands": ["flext_cli.services.commands", "FlextCliCommands"],
@@ -91,6 +93,7 @@ _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
 
 __all__ = [
     "FlextCli",
+    "FlextCliAuth",
     "FlextCliCli",
     "FlextCliCmd",
     "FlextCliCommands",

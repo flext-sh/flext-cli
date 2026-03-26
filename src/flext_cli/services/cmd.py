@@ -1,4 +1,4 @@
-"""Command execution and configuration bridge for flext-cli.
+"""Command execution and configuration bridge for flext-.
 
 Encapsulates the bridge between registered commands, file utilities, and configuration
 helpers using `r` for predictable success/failure handling.
@@ -17,10 +17,10 @@ from flext_core import r
 
 from flext_cli import (
     FlextCliServiceBase,
-    FlextCliUtilities,
     c,
     m,
     t,
+    u,
 )
 
 
@@ -28,15 +28,15 @@ class FlextCliCmd(FlextCliServiceBase):
     """Execute registered CLI commands and expose execution metadata.
 
     Extends FlextCliServiceBase for consistent logging and container access.
-    Delegates config operations to FlextCliUtilities.Cli.ConfigOps.
+    Delegates config operations to u.Cli.ConfigOps.
     Railway-Oriented Programming via r for composable error handling.
     """
 
     @staticmethod
     def get_config_info() -> r[m.Cli.ConfigSnapshot]:
-        """Get configuration information using FlextCliUtilities directly."""
-        return FlextCliUtilities.try_(
-            FlextCliUtilities.Cli.ConfigOps.get_config_info,
+        """Get configuration information using u directly."""
+        return u.try_(
+            u.Cli.ConfigOps.get_config_info,
         ).map_error(
             lambda e: c.Cli.ErrorMessages.CONFIG_INFO_FAILED.format(
                 error=e,
@@ -79,14 +79,14 @@ class FlextCliCmd(FlextCliServiceBase):
             )
 
     def validate_config(self) -> r[bool]:
-        """Validate configuration structure using FlextCliUtilities directly.
+        """Validate configuration structure using u directly.
 
         Returns:
             r[bool]: True if validation passed, or error
 
         """
         try:
-            results = FlextCliUtilities.Cli.ConfigOps.validate_config_structure()
+            results = u.Cli.ConfigOps.validate_config_structure()
             if results:
                 self.logger.info(
                     c.Cli.LogMessages.CONFIG_VALIDATION_RESULTS.format(

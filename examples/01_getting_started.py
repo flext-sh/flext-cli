@@ -1,4 +1,4 @@
-"""FlextCliGettingStarted - Complete getting started example with flext-cli.
+"""FlextCliGettingStarted - Complete getting started example with flext-.
 
 This module demonstrates how to use flext-cli as a library in your Python projects.
 Provides comprehensive examples of all major flext-cli features including styled output,

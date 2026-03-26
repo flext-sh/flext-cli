@@ -22,6 +22,13 @@ class FlextCliTables(FlextCliServiceBase):
     """Tabulate integration for lightweight ASCII tables."""
 
     @staticmethod
+    def _normalize_table_format(table_format: str) -> str:
+        """Map public table aliases to concrete tabulate backends."""
+        if table_format == c.Cli.OutputFormats.TABLE.value:
+            return "simple"
+        return table_format
+
+    @staticmethod
     def _build_config(
         config: m.Cli.TableConfig | None = None,
         **config_kwargs: t.Cli.TableConfigValue,
@@ -29,12 +36,19 @@ class FlextCliTables(FlextCliServiceBase):
         """Build a concrete table config from an explicit model plus kwargs."""
         base_config = config or m.Cli.TableConfig()
         if not config_kwargs:
+            if base_config.table_format == c.Cli.OutputFormats.TABLE.value:
+                return r[m.Cli.TableConfig].ok(
+                    base_config.model_copy(update={"table_format": "simple"}),
+                )
             return r[m.Cli.TableConfig].ok(base_config)
         valid_fields = set(m.Cli.TableConfig.model_fields)
         config_data = base_config.model_dump()
         for key, value in config_kwargs.items():
             if key in valid_fields:
                 config_data[key] = value
+        config_data["table_format"] = FlextCliTables._normalize_table_format(
+            str(config_data["table_format"]),
+        )
         try:
             return r[m.Cli.TableConfig].ok(m.Cli.TableConfig(**config_data))
         except c.Cli.CLI_SAFE_EXCEPTIONS as exc:

@@ -1,4 +1,4 @@
-"""Testing Utilities - Testing YOUR CLI with flext-cli.
+"""Testing Utilities - Testing YOUR CLI with flext-.
 
 WHEN TO USE THIS:
 - Writing tests for CLI applications
@@ -103,7 +103,7 @@ def test_file_operations() -> None:
 def interactive_command() -> r[str]:
     """Command with user prompts to test."""
     prompts = cli
-    prompts._interactive_mode = False  # noqa: SLF001
+    prompts._interactive_mode = False
     name_result = prompts.prompt("Enter name:", default="TestUser")
     if name_result.is_failure:
         return r[str].fail(f"Prompt failed: {name_result.error}")

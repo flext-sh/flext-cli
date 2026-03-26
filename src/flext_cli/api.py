@@ -1,4 +1,4 @@
-"""Public API facade for flext-cli.
+"""Public API facade for flext-.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -7,11 +7,12 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import override
+from typing import ClassVar, Self, override
 
 from flext_core import r
 
 from flext_cli import (
+    FlextCliAuth,
     FlextCliCli,
     FlextCliCmd,
     FlextCliCommands,
@@ -28,6 +29,7 @@ from flext_cli import (
 
 
 class FlextCli(
+    FlextCliAuth,
     FlextCliCli,
     FlextCliCmd,
     FlextCliCommands,
@@ -44,6 +46,15 @@ class FlextCli(
     formatters, output, prompts, settings, tables).
     All operations return r[T].
     """
+
+    _instance: ClassVar[Self | None] = None
+
+    @classmethod
+    def get_instance(cls) -> Self:
+        """Return the shared CLI facade instance."""
+        if cls._instance is None:
+            cls._instance = cls()
+        return cls._instance
 
     @override
     def execute(self) -> r[Mapping[str, t.Cli.JsonValue]]:

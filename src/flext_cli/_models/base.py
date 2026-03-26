@@ -16,7 +16,7 @@ from pydantic import (
     RootModel,
 )
 
-from flext_cli import c, t
+from flext_cli import c, p, t
 
 
 class FlextCliModelsBase:
@@ -90,6 +90,56 @@ class FlextCliModelsBase:
         handler: Annotated[
             Callable[..., r[t.Cli.JsonValue]],
             Field(..., description="Command handler callable"),
+        ]
+
+    class ResultCommandRouteModel(BaseModel):
+        """Declarative route specification for model-driven CLI commands."""
+
+        model_config: ClassVar[ConfigDict] = ConfigDict(
+            arbitrary_types_allowed=True,
+            extra="forbid",
+            frozen=True,
+        )
+        name: Annotated[t.NonEmptyStr, Field(..., description="Command name")]
+        help_text: Annotated[str, Field(..., description="User-facing help text")]
+        model_cls: Annotated[
+            type[BaseModel],
+            Field(..., description="Pydantic input model class"),
+        ]
+        handler: Annotated[
+            p.Cli.ResultCommandHandler,
+            Field(..., description="Command handler returning r[...]"),
+        ]
+        failure_message: Annotated[
+            str,
+            Field(..., description="Fallback error message on handler failure"),
+        ]
+        success_message: Annotated[
+            str | None,
+            Field(default=None, description="Static success message"),
+        ]
+        success_formatter: Annotated[
+            p.Cli.SuccessMessageFormatter | None,
+            Field(default=None, description="Dynamic success formatter"),
+        ] = None
+        success_type: Annotated[
+            str,
+            Field(default="success", description="CLI output style on success"),
+        ] = "success"
+
+    class ResultCommandGroupModel(BaseModel):
+        """Declarative command-group specification for CLI routers."""
+
+        model_config: ClassVar[ConfigDict] = ConfigDict(
+            arbitrary_types_allowed=True,
+            extra="forbid",
+            frozen=True,
+        )
+        name: Annotated[t.NonEmptyStr, Field(..., description="Group name")]
+        help_text: Annotated[str, Field(..., description="Group help text")]
+        routes: Annotated[
+            Sequence["FlextCliModelsBase.ResultCommandRouteModel"],
+            Field(default_factory=tuple, description="Command routes in the group"),
         ]
 
     class TableConfig(FlextModels.Value):

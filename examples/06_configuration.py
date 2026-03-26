@@ -37,13 +37,12 @@ from flext_cli import FlextCliSettings, cli
 
 def get_cli_settings() -> FlextCliSettings:
     """Access flext-cli config settings in YOUR application."""
-    settings = cli.settings
     cli.print("📋 Current Configuration:", style="bold cyan")
-    cli.print(f"   Debug Mode: {settings.debug}", style="cyan")
-    cli.print(f"   Log Level: {settings.cli_log_level}", style="cyan")
-    cli.print(f"   Output Format: {settings.output_format}", style="cyan")
-    cli.print(f"   App Name: {settings.project_name}", style="cyan")
-    return settings
+    cli.print(f"   Debug Mode: {cli.settings.debug}", style="cyan")
+    cli.print(f"   Log Level: {cli.settings.cli_log_level}", style="cyan")
+    cli.print(f"   Output Format: {cli.settings.output_format}", style="cyan")
+    cli.print(f"   App Name: {cli.settings.app_name}", style="cyan")
+    return cli.settings
 
 
 def load_environment_config() -> m.Cli.DisplayData:
@@ -65,7 +64,7 @@ def load_environment_config() -> m.Cli.DisplayData:
             "Debug": str(debug_mode),
         },
     )
-    cli.print(f"🌍 {cli_settings.project_name} Configuration", style="bold cyan")
+    cli.print(f"🌍 {cli_settings.app_name} Configuration", style="bold cyan")
     u.display_config_table(config_data=settings)
     return settings
 

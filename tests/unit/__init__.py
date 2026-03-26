@@ -1,7 +1,7 @@
 # AUTO-GENERATED FILE — DO NOT EDIT MANUALLY.
 # Regenerate with: make gen
 #
-"""Test units for flext-cli.
+"""Test units for flext-.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -27,6 +27,7 @@ if TYPE_CHECKING:
         create_decorated_command,
         create_test_config,
     )
+    from tests.unit.test_cli_service import TestsCliService
     from tests.unit.test_cmd import TestsCliCmd
     from tests.unit.test_cmd_cov import (
         test_get_config_info_failure_on_exception,
@@ -48,6 +49,7 @@ if TYPE_CHECKING:
         TestsCliLoggingConfig,
     )
     from tests.unit.test_constants import TestsCliConstants
+    from tests.unit.test_examples_smoke import TestFlextCliExamplesSmoke
     from tests.unit.test_prompts import TestsCliPrompts
     from tests.unit.test_prompts_cov import (
         test_prompt_logs_input_when_not_test_env,
@@ -69,6 +71,10 @@ _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
     "ConfigTestScenario": ["tests.unit.test_config", "ConfigTestScenario"],
     "ConfigTestType": ["tests.unit.test_config", "ConfigTestType"],
     "T": ["tests.unit.test_version", "T"],
+    "TestFlextCliExamplesSmoke": [
+        "tests.unit.test_examples_smoke",
+        "TestFlextCliExamplesSmoke",
+    ],
     "TestsCliCmd": ["tests.unit.test_cmd", "TestsCliCmd"],
     "TestsCliCommands": ["tests.unit.test_commands", "TestsCliCommands"],
     "TestsCliCommonParams": ["tests.unit.test_cli_params", "TestsCliCommonParams"],
@@ -84,6 +90,7 @@ _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
     "TestsCliLoggingConfig": ["tests.unit.test_config", "TestsCliLoggingConfig"],
     "TestsCliPrompts": ["tests.unit.test_prompts", "TestsCliPrompts"],
     "TestsCliProtocols": ["tests.unit.test_protocols", "TestsCliProtocols"],
+    "TestsCliService": ["tests.unit.test_cli_service", "TestsCliService"],
     "TestsCliServiceBase": ["tests.unit.test_base", "TestsCliServiceBase"],
     "TestsCliTables": ["tests.unit.test_tables", "TestsCliTables"],
     "TestsCliTypings": ["tests.unit.test_typings", "TestsCliTypings"],
@@ -143,6 +150,7 @@ __all__ = [
     "ConfigTestScenario",
     "ConfigTestType",
     "T",
+    "TestFlextCliExamplesSmoke",
     "TestsCliCmd",
     "TestsCliCommands",
     "TestsCliCommonParams",
@@ -155,6 +163,7 @@ __all__ = [
     "TestsCliLoggingConfig",
     "TestsCliPrompts",
     "TestsCliProtocols",
+    "TestsCliService",
     "TestsCliServiceBase",
     "TestsCliTables",
     "TestsCliTypings",

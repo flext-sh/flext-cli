@@ -5,7 +5,8 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Protocol, runtime_checkable
 
-from flext_core import FlextProtocols
+from flext_core import FlextProtocols, r
+from pydantic import BaseModel
 
 from flext_cli import t
 
@@ -75,6 +76,22 @@ class FlextCliProtocols(FlextProtocols):
                 **kwargs: t.Scalar,
             ) -> t.Cli.JsonValue:
                 """Execute the wrapper."""
+                ...
+
+        @runtime_checkable
+        class ResultCommandHandler(Protocol):
+            """Protocol for model-driven CLI handlers returning `r[...]`."""
+
+            def __call__(self, params: BaseModel) -> r[t.ValueOrModel]:
+                """Execute the handler and return a railway result."""
+                ...
+
+        @runtime_checkable
+        class SuccessMessageFormatter(Protocol):
+            """Protocol for rendering a success result into a CLI message."""
+
+            def __call__(self, value: t.ValueOrModel) -> str:
+                """Return the success message to display."""
                 ...
 
 
