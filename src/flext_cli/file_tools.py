@@ -107,7 +107,9 @@ class FlextCliFileTools:
 
         def _writer(f: TextIO) -> None:
             f.write(
-                _JSON_OBJECT_ADAPTER.dump_json(payload, indent=indent).decode("utf-8"),
+                _JSON_OBJECT_ADAPTER.dump_json(payload, indent=indent).decode(
+                    c.DEFAULT_ENCODING,
+                ),
             )
 
         return FlextCliFileTools._write_structured_file(

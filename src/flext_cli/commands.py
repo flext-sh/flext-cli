@@ -21,24 +21,13 @@ from flext_cli import FlextCliServiceBase, c, m, t
 
 
 class FlextCliCommands(FlextCliServiceBase):
-    """CLI commands service for command registration and execution.
+    """CLI commands service for command registration and execution."""
 
-    Provides:
-    - Command registration and unregistration
-    - Command execution with arguments
-    - Command groups creation
-    - Command listing and discovery
-
-    Business Rules:
-    ───────────────
-    1. Command names MUST be non-empty strings
-    2. Command handlers MUST be callable
-    3. Commands MUST be registered before execution
-    4. Command groups MUST have at least one command
-
-    """
-
-    def __init__(self, name: str = "flext", description: str = "FLEXT CLI") -> None:
+    def __init__(
+        self,
+        name: str = c.Cli.CommandsDefaults.DEFAULT_NAME,
+        description: str = c.Cli.CommandsDefaults.DEFAULT_DESCRIPTION,
+    ) -> None:
         """Initialize commands service.
 
         Args:
@@ -60,7 +49,6 @@ class FlextCliCommands(FlextCliServiceBase):
         result: r[t.Cli.JsonValue] | None,
         command_name: str,
     ) -> r[t.Cli.JsonValue]:
-        """Normalize handler output to r."""
         if result is None:
             return r[t.Cli.JsonValue].ok({"status": "success", "command": command_name})
         if result.is_success:
@@ -73,11 +61,6 @@ class FlextCliCommands(FlextCliServiceBase):
     @override
     def execute(self) -> r[Mapping[str, t.Cli.JsonValue]]:
         """Execute commands service - returns service status.
-
-        Business Rule:
-        ──────────────
-        Returns status information about the commands service including
-        registered commands count.
 
         Returns:
             r[dict]: Service status with commands count.
@@ -107,13 +90,19 @@ class FlextCliCommands(FlextCliServiceBase):
 
         """
         if not name.strip():
-            return r[t.Cli.JsonValue].fail("Invalid command name")
+            return r[t.Cli.JsonValue].fail(
+                c.Cli.CommandsErrorMessages.INVALID_COMMAND_NAME
+            )
         if name not in self._commands:
-            return r[t.Cli.JsonValue].fail(f"Command not found: {name}")
+            return r[t.Cli.JsonValue].fail(
+                c.Cli.CommandsErrorMessages.COMMAND_NOT_FOUND.format(name=name),
+            )
         cmd_info = self._commands[name]
         handler = cmd_info.handler
         if not callable(handler):
-            return r[t.Cli.JsonValue].fail(f"Handler not callable for: {name}")
+            return r[t.Cli.JsonValue].fail(
+                c.Cli.CommandsErrorMessages.HANDLER_NOT_CALLABLE.format(name=name),
+            )
         try:
             result: r[t.Cli.JsonValue] | None = None
             execution_attempted = False
@@ -139,7 +128,9 @@ class FlextCliCommands(FlextCliServiceBase):
             StyleError,
             LiveError,
         ) as e:
-            return r[t.Cli.JsonValue].fail(f"Command execution failed: {e}")
+            return r[t.Cli.JsonValue].fail(
+                c.Cli.CommandsErrorMessages.COMMAND_EXECUTION_FAILED.format(error=e),
+            )
 
     def list_commands(self) -> r[t.StrSequence]:
         """List all registered command names.
@@ -166,7 +157,7 @@ class FlextCliCommands(FlextCliServiceBase):
 
         """
         if not name.strip():
-            return r[bool].fail("Command name must be non-empty string")
+            return r[bool].fail(c.Cli.CommandsErrorMessages.COMMAND_NAME_EMPTY)
         self._commands[name] = m.Cli.CommandEntryModel(name=name, handler=handler)
         return r[bool].ok(value=True)
 
@@ -192,7 +183,9 @@ class FlextCliCommands(FlextCliServiceBase):
         if cmd_name in {"--version", "-v"}:
             return r[t.Cli.JsonValue].ok({"status": "version", "name": self._name})
         if cmd_name not in self._commands:
-            return r[t.Cli.JsonValue].fail(f"Command not found: {cmd_name}")
+            return r[t.Cli.JsonValue].fail(
+                c.Cli.CommandsErrorMessages.COMMAND_NOT_FOUND.format(name=cmd_name),
+            )
         return self.execute_command(cmd_name, args=cmd_args)
 
 

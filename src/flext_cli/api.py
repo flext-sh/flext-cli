@@ -15,16 +15,12 @@ from flext_core import (
 )
 
 from flext_cli import (
-    FlextCliCli,
     FlextCliCmd,
-    FlextCliCommands,
-    FlextCliCommonParams,
     FlextCliFileTools,
     FlextCliFormatters,
     FlextCliOutput,
     FlextCliPrompts,
     FlextCliSettings,
-    FlextCliTables,
     c,
     t,
     u,
@@ -34,39 +30,9 @@ from flext_cli import (
 class FlextCli:
     """Coordinate CLI operations and expose domain services.
 
-    Facade over CLI services (core, cmd, output, prompts, tables).
+    Composition facade over CLI services (cmd, output, prompts, tables, formatters).
     All operations return r[T].
     """
-
-    class Base(FlextCliCli):
-        """CLI base."""
-
-    class Runner(FlextCliCmd):
-        """CLI runner."""
-
-    class Commands(FlextCliCommands):
-        """CLI commands."""
-
-    class Params(FlextCliCommonParams):
-        """CLI params."""
-
-    class Output(FlextCliOutput):
-        """CLI output."""
-
-    class Formatters(FlextCliFormatters):
-        """CLI formatters."""
-
-    class Tables(FlextCliTables):
-        """CLI tables."""
-
-    class Prompts(FlextCliPrompts):
-        """CLI prompts."""
-
-    class FileTools(FlextCliFileTools):
-        """CLI file tools."""
-
-    class Config(FlextCliSettings):
-        """CLI config."""
 
     logger: logger_core
     config: FlextCliSettings
@@ -105,7 +71,7 @@ class FlextCli:
             c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.OPERATIONAL.value,
             c.Cli.DictKeys.SERVICE: c.Cli.FLEXT_CLI,
             "timestamp": u.generate("timestamp"),
-            "version": "0.1.0",
+            "version": c.Cli.CLI_VERSION,
             "components": {
                 "config": "available",
                 "formatters": "available",

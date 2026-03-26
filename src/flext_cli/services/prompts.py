@@ -14,22 +14,10 @@ from rich.errors import ConsoleError, LiveError, StyleError
 from flext_cli import (
     FlextCliServiceBase,
     FlextCliTypes,
+    c,
     t,
     u,
 )
-
-# Inline constants — prompts.py is the sole consumer of all of these.
-_DEFAULT_TIMEOUT = 30
-_MIN_PASSWORD_LENGTH = 1
-_CONFIRM_YES = " [Y/n]: "
-_CONFIRM_NO = " [y/N]: "
-_ERROR_FMT = "[bold red]Error:[/bold red] {message}"
-_SUCCESS_FMT = "[bold green]Success:[/bold green] {message}"
-_WARNING_FMT = "[bold yellow]Warning:[/bold yellow] {message}"
-_PROMPT_DEFAULT_FMT = " [{default}]"
-_PROMPT_SEP = ": "
-_PROMPT_LOG_FMT = "User input for '{message}': {input}"
-_PROMPT_SPACE = " "
 
 
 class FlextCliPrompts(FlextCliServiceBase):
@@ -37,11 +25,11 @@ class FlextCliPrompts(FlextCliServiceBase):
 
     _interactive_mode: bool = PrivateAttr(default=True)
     _quiet: bool = PrivateAttr(default=False)
-    _default_timeout: int = PrivateAttr(default=_DEFAULT_TIMEOUT)
+    _default_timeout: int = PrivateAttr(default=c.Cli.Prompts.DEFAULT_TIMEOUT)
 
     def __init__(
         self,
-        default_timeout: int = _DEFAULT_TIMEOUT,
+        default_timeout: int = c.Cli.Prompts.DEFAULT_TIMEOUT,
         *,
         interactive_mode: bool = True,
         quiet: bool = False,
@@ -78,7 +66,9 @@ class FlextCliPrompts(FlextCliServiceBase):
             if self._quiet or not self._interactive_mode:
                 return r[bool].ok(default)
             prompt_text = (
-                f"{message}{_CONFIRM_YES}" if default else f"{message}{_CONFIRM_NO}"
+                f"{message}{c.Cli.Prompts.CONFIRM_YES}"
+                if default
+                else f"{message}{c.Cli.Prompts.CONFIRM_NO}"
             )
             return self._read_confirmation_input(message, prompt_text, default=default)
         except KeyboardInterrupt:
@@ -122,17 +112,20 @@ class FlextCliPrompts(FlextCliServiceBase):
 
     def print_error(self, message: str) -> r[bool]:
         return self._print_message(
-            message, "error", _ERROR_FMT, "Print error failed: {error}"
+            message, "error", c.Cli.Prompts.ERROR_FMT, "Print error failed: {error}"
         )
 
     def print_success(self, message: str) -> r[bool]:
         return self._print_message(
-            message, "info", _SUCCESS_FMT, "Print success failed: {error}"
+            message, "info", c.Cli.Prompts.SUCCESS_FMT, "Print success failed: {error}"
         )
 
     def print_warning(self, message: str) -> r[bool]:
         return self._print_message(
-            message, "warning", _WARNING_FMT, "Print warning failed: {error}"
+            message,
+            "warning",
+            c.Cli.Prompts.WARNING_FMT,
+            "Print warning failed: {error}",
         )
 
     def prompt(self, message: str, default: str = "") -> r[str]:
@@ -140,15 +133,15 @@ class FlextCliPrompts(FlextCliServiceBase):
             if self._quiet or not self._interactive_mode:
                 return r[str].ok(default)
             display_message = (
-                f"{message}{_PROMPT_DEFAULT_FMT.format(default=default)}"
+                f"{message}{c.Cli.Prompts.PROMPT_DEFAULT_FMT.format(default=default)}"
                 if default
                 else message
             )
-            raw = input(f"{display_message}{_PROMPT_SEP}").strip()
+            raw = input(f"{display_message}{c.Cli.Prompts.PROMPT_SEP}").strip()
             value = raw or default
             if not self._is_test_env():
                 self.logger.info(
-                    _PROMPT_LOG_FMT.format(message=message, input=value),
+                    c.Cli.Prompts.PROMPT_LOG_FMT.format(message=message, input=value),
                 )
             return r[str].ok(value)
         except (
@@ -201,12 +194,12 @@ class FlextCliPrompts(FlextCliServiceBase):
     def prompt_password(
         self,
         message: str = "Password:",
-        min_length: int = _MIN_PASSWORD_LENGTH,
+        min_length: int = c.Cli.Prompts.MIN_PASSWORD_LENGTH,
     ) -> r[str]:
         if not self._interactive_mode:
             return r[str].fail("Interactive mode disabled for password prompt")
         try:
-            password = getpass.getpass(prompt=f"{message}{_PROMPT_SPACE}")
+            password = getpass.getpass(prompt=f"{message}{c.Cli.Prompts.PROMPT_SPACE}")
             if len(password) < min_length:
                 return r[str].fail(
                     f"Password too short: minimum {min_length} characters",

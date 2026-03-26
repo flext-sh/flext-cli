@@ -164,7 +164,7 @@ class FlextCliCommonParams:
         if params.output_format is not None:
             validated_result = u.Cli.CliValidation.v_format(params.output_format)
             if validated_result.is_failure:
-                valid = ", ".join(c.Cli.CliParamsDefaults.VALID_OUTPUT_FORMATS)
+                valid = ", ".join(c.Cli.ValidationLists.OUTPUT_FORMATS)
                 return r[FlextCliSettings].fail(
                     f"invalid output format: {params.output_format}. valid: {valid}",
                 )

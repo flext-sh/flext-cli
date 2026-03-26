@@ -31,13 +31,6 @@ class FlextCliConstants(FlextConstants):
                 "table",
                 "plain",
             ]
-            DEBUG_LEVELS: typing.ClassVar[t.StrSequence] = [
-                "DEBUG",
-                "INFO",
-                "WARNING",
-                "ERROR",
-                "CRITICAL",
-            ]
 
         @unique
         class MessageTypes(StrEnum):
@@ -174,13 +167,6 @@ class FlextCliConstants(FlextConstants):
                 "detailed",
                 "full",
             ]
-            VALID_OUTPUT_FORMATS: typing.ClassVar[t.StrSequence] = [
-                "table",
-                "json",
-                "yaml",
-                "csv",
-                "plain",
-            ]
 
         class FileErrorMessages:
             """File error messages."""
@@ -208,6 +194,36 @@ class FlextCliConstants(FlextConstants):
             CONFIG_MISSING_FIELDS = (
                 "Missing required configuration fields: {missing_fields}"
             )
+
+        class Prompts:
+            """Prompt display constants."""
+
+            DEFAULT_TIMEOUT = 30
+            MIN_PASSWORD_LENGTH = 1
+            CONFIRM_YES = " [Y/n]: "
+            CONFIRM_NO = " [y/N]: "
+            ERROR_FMT = "[bold red]Error:[/bold red] {message}"
+            SUCCESS_FMT = "[bold green]Success:[/bold green] {message}"
+            WARNING_FMT = "[bold yellow]Warning:[/bold yellow] {message}"
+            PROMPT_DEFAULT_FMT = " [{default}]"
+            PROMPT_SEP = ": "
+            PROMPT_LOG_FMT = "User input for '{message}': {input}"
+            PROMPT_SPACE = " "
+
+        class CommandsDefaults:
+            """Commands service defaults."""
+
+            DEFAULT_NAME = "flext"
+            DEFAULT_DESCRIPTION = "FLEXT CLI"
+
+        class CommandsErrorMessages:
+            """Commands service error messages."""
+
+            INVALID_COMMAND_NAME = "Invalid command name"
+            COMMAND_NOT_FOUND = "Command not found: {name}"
+            HANDLER_NOT_CALLABLE = "Handler not callable for: {name}"
+            COMMAND_EXECUTION_FAILED = "Command execution failed: {error}"
+            COMMAND_NAME_EMPTY = "Command name must be non-empty string"
 
         class FormattersErrorMessages:
             """Formatter error messages."""
