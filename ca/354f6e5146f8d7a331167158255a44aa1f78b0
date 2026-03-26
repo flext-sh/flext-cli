@@ -1,0 +1,33 @@
+src/flext_cli/cli_params.py
+  692efb5021d42258 167
+src/flext_cli/commands.py
+  692efb5021d42258 28-29,94,98,104,132,160,187
+src/flext_cli/services/prompts.py
+  692efb5021d42258 17,28,32,69,71,115,120,127,136,140,144,197,202
+src/flext_cli/constants.py
+  692efb5021d42258 198-227
+src/flext_cli/file_tools.py
+  692efb5021d42258 110-112
+src/flext_cli/api.py
+  692efb5021d42258 33,74
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.19",
+  "base_commit_sha": "ca354f6e5146f8d7a331167158255a44aa1f78b0",
+  "prompts": {
+    "692efb5021d42258": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f769829f-6a4e-41ae-9104-340c9871a56d",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "FLEXT Bot <team@flext.sh>",
+      "messages": [],
+      "total_additions": 70,
+      "total_deletions": 66,
+      "accepted_lines": 58,
+      "overriden_lines": 0
+    }
+  }
+}
