@@ -140,24 +140,11 @@ class FlextCliOutput:
         self.print_message(formatted_message, style=style)
 
     def display_text(self, text: str, *, style: str | None = None) -> None:
-        """Display text using FlextCliFormatters.
-
-        Args:
-            text: Text to display
-            style: Optional Rich style
-
-        """
-        validated_style = self.ensure_str(style, c.Cli.OutputDefaults.EMPTY_STYLE)
-        FlextCliFormatters().print(text, style=validated_style)
+        """Display text with optional style. Delegates to print_message."""
+        self.print_message(text, style=style)
 
     def print_message(self, message: str, style: str | None = None) -> None:
-        """Print a message using FlextCliFormatters.
-
-        Args:
-            message: Message to print
-            style: Optional Rich style
-
-        """
+        """Print a message using FlextCliFormatters."""
         validated_style = self.ensure_str(style, c.Cli.OutputDefaults.EMPTY_STYLE)
         FlextCliFormatters().print(message, style=validated_style)
 

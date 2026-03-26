@@ -1,30 +1,5 @@
 """File Operations - Using flext-cli for File I/O in YOUR Code.
 
-WHEN TO USE THIS:
-- Building CLI tools that read/write config files
-- Need to save/load data in JSON, YAML, CSV formats
-- Want structured error handling for file operations
-- Need to validate file contents
-- Building data export/import features
-- Working with CSV files with proper headers
-- Handling binary files (images, PDFs, etc.)
-- Auto-detecting file formats
-
-FLEXT-CLI PROVIDES:
-- cli.read_json() / write_json() - JSON file operations
-- cli.read_yaml_file() / write_yaml() - YAML config files
-- cli.read_csv_file_with_headers() / write_csv_file() - CSV with headers
-- cli.read_binary_file() / write_binary_file() - Binary operations
-- cli.detect_file_format() / load_file_auto() - Auto-format detection
-- r error handling - No try/except needed
-- Automatic path handling with pathlib integration
-
-HOW TO USE IN YOUR CLI:
-Replace open() and json.load() with flext-cli file_tools for better error handling
-Use CSV operations for structured data with headers
-Use binary operations for images, PDFs, etc.
-Use auto-detection for flexible file loading
-
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 

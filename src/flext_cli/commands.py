@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Callable, Mapping, MutableMapping
-from typing import override
+from typing import Self, override
 
 from flext_core import r
 from pydantic import PrivateAttr
@@ -29,6 +29,14 @@ class FlextCliCommands(FlextCliServiceBase):
     _commands: MutableMapping[str, m.Cli.CommandEntryModel] = PrivateAttr(
         default_factory=dict,
     )
+
+    @classmethod
+    def create(cls, *, name: str, description: str = "") -> Self:
+        """Create a named FlextCliCommands instance."""
+        instance = cls()
+        instance._name = name
+        instance._description = description or name
+        return instance
 
     @staticmethod
     def _normalize_handler_result(

@@ -100,7 +100,7 @@ def test_file_operations() -> None:
 def interactive_command() -> r[str]:
     """Command with user prompts to test."""
     prompts = FlextCliPrompts()
-    prompts._interactive_mode = False
+    prompts._interactive_mode = False  # noqa: SLF001
     name_result = prompts.prompt("Enter name:", default="TestUser")
     if name_result.is_failure:
         return r[str].fail(f"Prompt failed: {name_result.error}")

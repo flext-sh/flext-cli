@@ -54,7 +54,7 @@ ______________________________________________________________________
 
 flext-cli v0.10.0 is a simplified, streamlined CLI foundation library for the FLEXT ecosystem. It provides:
 
-- **Direct Access API**: Clear ownership with `cli.formatters.*`, `cli.file_tools.*`, `cli.prompts.*`
+- **Direct MRO API**: All services available directly on `cli.*` via MRO inheritance
 - **Services for State Only**: FlextService used only where needed (3-4 classes)
 - **Simple Utilities**: Stateless operations as simple classes
 - **Value Objects**: Immutable data models using Pydantic
@@ -136,23 +136,23 @@ from flext_core import r
 # Initialize CLI (singleton pattern)
 cli = FlextCli()
 
-# Print with styling (direct access to formatters)
-cli.formatters.print("Welcome to FLEXT CLI!", style="green bold")
+# Print with styling (MRO inheritance)
+cli.print("Welcome to FLEXT CLI!", style="green bold")
 
-# Read configuration file (direct access to file_tools)
-config_result = cli.file_tools.read_json_file("config.json")
+# Read configuration file
+config_result = cli.read_json_file("config.json")
 
 if config_result.is_success:
     config = config_result.unwrap()
-    cli.formatters.print(f"Loaded config: {config}", style="cyan")
+    cli.print(f"Loaded config: {config}", style="cyan")
 else:
-    cli.formatters.print(f"Error: {config_result.error}", style="red")
+    cli.print(f"Error: {config_result.error}", style="red")
 
-# Interactive prompt (direct access to prompts)
-confirm_result = cli.prompts.confirm("Continue?")
+# Interactive prompt
+confirm_result = cli.confirm("Continue?")
 
 if confirm_result.is_success and confirm_result.unwrap():
-    cli.formatters.print("Let's go!", style="green")
+    cli.print("Let's go!", style="green")
 ```
 
 ### 📊 Working with Tables
@@ -168,12 +168,8 @@ users = [
     {"name": "Bob", "role": "User", "status": "Active"},
 ]
 
-# Format as table (direct access to output)
-table_result = cli.output.format_data(data={"users": users}, format_type="table")
-
-# Display
-if table_result.is_success:
-    cli.formatters.print(table_result.unwrap())
+# Display as table
+cli.display_rich_table(users, title="Users")
 ```
 
 ### 📁 File Operations
@@ -183,21 +179,21 @@ from flext_cli import FlextCli
 
 cli = FlextCli()
 
-# JSON operations (direct access to file_tools)
+# JSON operations
 data = {"setting": "value", "enabled": True}
 
 # Write
-write_result = cli.file_tools.write_json_file("config.json", data)
+write_result = cli.write_json_file("config.json", data)
 
 if write_result.is_success:
-    cli.formatters.print("Config saved!", style="green")
+    cli.print("Config saved!", style="green")
 
 # Read
-read_result = cli.file_tools.read_json_file("config.json")
+read_result = cli.read_json_file("config.json")
 
 if read_result.is_success:
     loaded_data = read_result.unwrap()
-    cli.formatters.print(f"Loaded: {loaded_data}", style="cyan")
+    cli.print(f"Loaded: {loaded_data}", style="cyan")
 ```
 
 ### 🔄 Railway-Oriented Programming
@@ -229,12 +225,12 @@ result = (
     .read_json_file("config.json")
     .flat_map(validate_config)  # Validate
     .map(apply_defaults)  # Transform
-    .map(lambda cfg: cli.formatters.print(f"Final config: {cfg}"))
+    .map(lambda cfg: cli.print(f"Final config: {cfg}"))
 )
 
 # Handle result
 if not result.is_success:
-    cli.formatters.print(f"Error: {result.error}", style="red")
+    cli.print(f"Error: {result.error}", style="red")
 ```
 
 ______________________________________________________________________
@@ -269,19 +265,19 @@ def my_cli_application() -> r[bool]:
     cli = FlextCli()
 
     # Direct access to all services
-    cli.formatters.print("Starting...", style="cyan")
+    cli.print("Starting...", style="cyan")
 
     # File operations
-    config_result = cli.file_tools.read_json_file("config.json")
+    config_result = cli.read_json_file("config.json")
 
     if not config_result.is_success:
-        cli.formatters.print(f"Error: {config_result.error}", style="red")
+        cli.print(f"Error: {config_result.error}", style="red")
         return r[bool].fail(config_result.error)
 
     # User interaction
-    confirm_result = cli.prompts.confirm("Continue?")
+    confirm_result = cli.confirm("Continue?")
     if confirm_result.is_success and confirm_result.unwrap():
-        cli.formatters.print("Processing...", style="green")
+        cli.print("Processing...", style="green")
         return r[bool].ok(value=True)
     return r[bool].fail("Operation cancelled")
 ```
@@ -298,7 +294,7 @@ def test_my_cli_operation():
     cli = FlextCli()
 
     # Test file operations (direct access)
-    result = cli.file_tools.read_json_file("test_config.json")
+    result = cli.read_json_file("test_config.json")
 
     assert result.is_success
     config = result.unwrap()

@@ -71,4 +71,6 @@ class FlextCli(
         return r[Mapping[str, t.Cli.JsonValue]].ok(result_dict)
 
 
-__all__ = ["FlextCli"]
+cli = FlextCli
+
+__all__ = ["FlextCli", "cli"]

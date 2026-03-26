@@ -26,7 +26,7 @@ if TYPE_CHECKING:
         __version_info__,
     )
     from flext_cli._models.cli_models_system_context import FlextCliModelsSystemContext
-    from flext_cli.api import FlextCli
+    from flext_cli.api import FlextCli, cli
     from flext_cli.base import FlextCliServiceBase, s
     from flext_cli.cli import FlextCliCli
     from flext_cli.cli_params import FlextCliCommonParams
@@ -74,6 +74,7 @@ _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
     "__version_info__": ["flext_cli.__version__", "__version_info__"],
     "_models": ["flext_cli._models", ""],
     "c": ["flext_cli.constants", "FlextCliConstants"],
+    "cli": ["flext_cli.api", "cli"],
     "d": ["flext_core", "d"],
     "e": ["flext_core", "e"],
     "h": ["flext_core", "h"],
@@ -118,6 +119,7 @@ __all__ = [
     "__version_info__",
     "_models",
     "c",
+    "cli",
     "d",
     "e",
     "h",

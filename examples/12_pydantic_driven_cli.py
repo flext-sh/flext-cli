@@ -45,18 +45,19 @@ cli = FlextCli()
 def demonstrate_auto_cli_generation() -> None:
     """Show auto-generated CLI parameters from Pydantic model."""
     cli.print("\n🔧 Auto-Generated CLI Parameters:", style="bold cyan")
-    params_result = m.Cli.CliModelConverter.model_to_cli_params(DeployConfig)
-    if params_result.is_success:
-        params = params_result.value
+    fields = DeployConfig.model_fields
+    cli.print(
+        f"✅ Generated {len(fields)} CLI parameters from DeployConfig:",
+        style="green",
+    )
+    for name, field_info in fields.items():
+        field_type = field_info.annotation.__name__ if field_info.annotation else "str"
+        description = field_info.description or ""
+        default = field_info.default
         cli.print(
-            f"✅ Generated {len(params)} CLI parameters from DeployConfig:",
-            style="green",
+            f"   --{name:<20} {description:<50} (type: {field_type}, default: {default})",
+            style="cyan",
         )
-        for param in params:
-            cli.print(
-                f"   --{param.name:<20} {param.help:<50} (type: {param.click_type}, default: {param.default})",
-                style="cyan",
-            )
     cli.print("\n📝 Example CLI usage:", style="bold cyan")
     cli.print(
         "   python app.py deploy --environment production --workers 8 --enable-cache",
@@ -111,12 +112,11 @@ def show_common_cli_params() -> None:
 def demonstrate_nested_models() -> None:
     """Show CLI generation from nested Pydantic models."""
     cli.print("\n🏗️  Nested Model CLI Generation:", style="bold cyan")
-    db_params_result = m.Cli.CliModelConverter.model_to_cli_params(DatabaseConfig)
-    if db_params_result.is_success:
-        db_params = db_params_result.value
-        cli.print("Database config parameters:", style="green")
-        for param in db_params:
-            cli.print(f"   --db-{param.name}: {param.help}", style="cyan")
+    db_fields = DatabaseConfig.model_fields
+    cli.print("Database config parameters:", style="green")
+    for name, field_info in db_fields.items():
+        description = field_info.description or ""
+        cli.print(f"   --db-{name}: {description}", style="cyan")
     cli.print("\n💡 Tip: Use prefixes for nested models:", style="yellow")
     cli.print("   --database-host localhost", style="white")
     cli.print("   --database-port 5432", style="white")
