@@ -32,7 +32,8 @@ from pathlib import Path
 
 from flext_core import r
 
-from flext_cli import cli, m, t
+from examples import m, t
+from flext_cli import cli
 
 
 def login_to_service(username: str, password: str) -> bool:
@@ -45,8 +46,9 @@ def login_to_service(username: str, password: str) -> bool:
     if auth_result.is_failure:
         cli.print(f"❌ Login failed: {auth_result.error}", style="bold red")
         return False
+    settings = cli.settings
     cli.print("✅ Login successful!", style="green")
-    cli.print(f"   Token saved to: {cli.token_file}", style="cyan")
+    cli.print(f"   Token saved to: {settings.token_file}", style="cyan")
     return True
 
 
@@ -118,7 +120,7 @@ def show_session_info() -> None:
         cli.print("❌ Not authenticated", style="bold red")
         return
     token = token_result.value
-    token_file_str = cli.token_file or ""
+    token_file_str = cli.settings.token_file or ""
     token_file_path = Path(token_file_str)
     session_data = m.Cli.DisplayData(
         data={
@@ -150,7 +152,7 @@ def show_session_info() -> None:
 
 def logout() -> None:
     """Logout and clear token in YOUR CLI."""
-    token_file_str = cli.token_file or ""
+    token_file_str = cli.settings.token_file or ""
     token_file_path = Path(token_file_str)
     if not token_file_path.exists():
         cli.print("⚠️  No active session", style="yellow")
@@ -237,7 +239,7 @@ def main() -> None:
         "  • Validation: Use cli.validate_credentials() for user input",
         style="white",
     )
-    cli.print("  • Logout: Delete token file at cli.config.token_file", style="white")
+    cli.print("  • Logout: Delete token file at cli.settings.token_file", style="white")
 
 
 if __name__ == "__main__":

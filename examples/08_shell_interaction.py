@@ -35,7 +35,8 @@ import time
 
 from flext_core import r
 
-from flext_cli import cli, t
+from examples import t
+from flext_cli import cli
 
 
 def handle_status_command() -> r[t.ContainerMapping]:
@@ -95,25 +96,25 @@ class InteractiveShell:
         """Execute command from user input."""
         parts = command_line.strip().split()
         if not parts:
-            return r.fail("Empty command")
+            return r[str].fail("Empty command")
         cmd_name = parts[0]
         args: t.StrSequence = parts[1:] if len(parts) > 1 else []
         if cmd_name not in self.commands:
-            return r.fail(f"Unknown command: {cmd_name}")
+            return r[str].fail(f"Unknown command: {cmd_name}")
         handler = self.commands[cmd_name]
         try:
             if callable(handler):
                 result = handler(*args) if args else handler()
                 if hasattr(result, "is_failure") and hasattr(result, "value"):
                     if result.is_failure:
-                        return r.fail(result.error or "Unknown command error")
+                        return r[str].fail(result.error or "Unknown command error")
                     payload = result.value
                 else:
                     payload = result
-                return r.ok(str(payload))
-            return r.fail("Handler is not callable")
+                return r[str].ok(str(payload))
+            return r[str].fail("Handler is not callable")
         except Exception as e:
-            return r.fail(f"Command error: {e}")
+            return r[str].fail(f"Command error: {e}")
 
     def exit_shell(self) -> r[bool]:
         """Exit interactive shell."""

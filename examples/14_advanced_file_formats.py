@@ -35,7 +35,8 @@ from pathlib import Path
 
 from pydantic import TypeAdapter, ValidationError
 
-from flext_cli import cli, t
+from examples import t
+from flext_cli import cli
 
 
 def export_to_csv(data: Sequence[t.ContainerMapping], output_file: Path) -> None:
@@ -128,6 +129,7 @@ def export_data_multi_format(
 ) -> t.StrMapping:
     """Export same data to multiple formats (JSON, YAML, CSV)."""
     cli.print(f"\n💾 Multi-Format Export: {base_path.stem}", style="bold cyan")
+
     export_results: dict[str, str] = {}
     json_path = base_path.with_suffix(".json")
     json_payload = data
@@ -136,6 +138,7 @@ def export_data_multi_format(
         size = json_path.stat().st_size
         export_results["JSON"] = f"{size} bytes"
         cli.print(f"✅ JSON: {json_path.name} ({size} bytes)", style="green")
+
     yaml_path = base_path.with_suffix(".yaml")
     yaml_payload = data
     yaml_result = cli.write_yaml_file(yaml_path, yaml_payload)
@@ -143,6 +146,7 @@ def export_data_multi_format(
         size = yaml_path.stat().st_size
         export_results["YAML"] = f"{size} bytes"
         cli.print(f"✅ YAML: {yaml_path.name} ({size} bytes)", style="green")
+
     rows_adapter: TypeAdapter[Sequence[t.ContainerMapping]] = TypeAdapter(
         Sequence[t.ContainerMapping]
     )
@@ -151,6 +155,7 @@ def export_data_multi_format(
         csv_rows_data = rows_adapter.validate_python(data)
     except ValidationError:
         csv_rows_data = []
+
     if csv_rows_data:
         csv_path = base_path.with_suffix(".csv")
         headers = list(csv_rows_data[0].keys())
@@ -164,6 +169,7 @@ def export_data_multi_format(
             export_results["CSV"] = f"{size} bytes"
             cli.print(f"✅ CSV: {csv_path.name} ({size} bytes)", style="green")
     cli.print(f"\n📊 Exported to {len(export_results)} formats", style="bold green")
+
     return export_results
 
 

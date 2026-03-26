@@ -10,7 +10,6 @@ from collections.abc import Mapping
 from typing import override
 
 from flext_core import r
-from pydantic_settings import SettingsConfigDict
 
 from flext_cli import (
     FlextCliCli,
@@ -21,7 +20,6 @@ from flext_cli import (
     FlextCliFormatters,
     FlextCliOutput,
     FlextCliPrompts,
-    FlextCliSettings,
     FlextCliTables,
     c,
     t,
@@ -38,7 +36,6 @@ class FlextCli(
     FlextCliFormatters,
     FlextCliOutput,
     FlextCliPrompts,
-    FlextCliSettings,
     FlextCliTables,
 ):
     """Coordinate CLI operations and expose domain services.
@@ -47,12 +44,6 @@ class FlextCli(
     formatters, output, prompts, settings, tables).
     All operations return r[T].
     """
-
-    model_config = SettingsConfigDict(
-        arbitrary_types_allowed=True,
-        extra="ignore",
-        validate_assignment=True,
-    )
 
     @override
     def execute(self) -> r[Mapping[str, t.Cli.JsonValue]]:
@@ -71,6 +62,6 @@ class FlextCli(
         return r[Mapping[str, t.Cli.JsonValue]].ok(result_dict)
 
 
-cli = FlextCli
+cli = FlextCli.get_instance()
 
 __all__ = ["FlextCli", "cli"]

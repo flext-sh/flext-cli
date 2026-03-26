@@ -25,18 +25,18 @@ if TYPE_CHECKING:
         __version__,
         __version_info__,
     )
-    from flext_cli._models.cli_models_system_context import FlextCliModelsSystemContext
+    from flext_cli._models.base import FlextCliModelsBase
     from flext_cli.api import FlextCli, cli
     from flext_cli.base import FlextCliServiceBase, s
-    from flext_cli.cli import FlextCliCli
-    from flext_cli.cli_params import FlextCliCommonParams
-    from flext_cli.commands import FlextCliCommands
     from flext_cli.constants import FlextCliConstants, FlextCliConstants as c
-    from flext_cli.file_tools import FlextCliFileTools
-    from flext_cli.formatters import FlextCliFormatters
     from flext_cli.models import FlextCliModels, FlextCliModels as m
     from flext_cli.protocols import FlextCliProtocols, FlextCliProtocols as p
+    from flext_cli.services.cli import FlextCliCli
+    from flext_cli.services.cli_params import FlextCliCommonParams
     from flext_cli.services.cmd import FlextCliCmd
+    from flext_cli.services.commands import FlextCliCommands
+    from flext_cli.services.file_tools import FlextCliFileTools
+    from flext_cli.services.formatters import FlextCliFormatters
     from flext_cli.services.output import FlextCliOutput
     from flext_cli.services.prompts import FlextCliPrompts
     from flext_cli.services.tables import FlextCliTables
@@ -46,18 +46,15 @@ if TYPE_CHECKING:
 
 _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
     "FlextCli": ["flext_cli.api", "FlextCli"],
-    "FlextCliCli": ["flext_cli.cli", "FlextCliCli"],
+    "FlextCliCli": ["flext_cli.services.cli", "FlextCliCli"],
     "FlextCliCmd": ["flext_cli.services.cmd", "FlextCliCmd"],
-    "FlextCliCommands": ["flext_cli.commands", "FlextCliCommands"],
-    "FlextCliCommonParams": ["flext_cli.cli_params", "FlextCliCommonParams"],
+    "FlextCliCommands": ["flext_cli.services.commands", "FlextCliCommands"],
+    "FlextCliCommonParams": ["flext_cli.services.cli_params", "FlextCliCommonParams"],
     "FlextCliConstants": ["flext_cli.constants", "FlextCliConstants"],
-    "FlextCliFileTools": ["flext_cli.file_tools", "FlextCliFileTools"],
-    "FlextCliFormatters": ["flext_cli.formatters", "FlextCliFormatters"],
+    "FlextCliFileTools": ["flext_cli.services.file_tools", "FlextCliFileTools"],
+    "FlextCliFormatters": ["flext_cli.services.formatters", "FlextCliFormatters"],
     "FlextCliModels": ["flext_cli.models", "FlextCliModels"],
-    "FlextCliModelsSystemContext": [
-        "flext_cli._models.cli_models_system_context",
-        "FlextCliModelsSystemContext",
-    ],
+    "FlextCliModelsBase": ["flext_cli._models.base", "FlextCliModelsBase"],
     "FlextCliOutput": ["flext_cli.services.output", "FlextCliOutput"],
     "FlextCliPrompts": ["flext_cli.services.prompts", "FlextCliPrompts"],
     "FlextCliProtocols": ["flext_cli.protocols", "FlextCliProtocols"],
@@ -102,7 +99,7 @@ __all__ = [
     "FlextCliFileTools",
     "FlextCliFormatters",
     "FlextCliModels",
-    "FlextCliModelsSystemContext",
+    "FlextCliModelsBase",
     "FlextCliOutput",
     "FlextCliPrompts",
     "FlextCliProtocols",

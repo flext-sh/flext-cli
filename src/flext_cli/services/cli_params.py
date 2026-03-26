@@ -3,15 +3,21 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, MutableMapping
-from typing import ClassVar
 
 from flext_core import r
 from typer.models import OptionInfo
 
-from flext_cli import FlextCliSettings, c, m, p, t, u
+from flext_cli import (
+    FlextCliServiceBase,
+    FlextCliSettings,
+    c,
+    m,
+    p,
+    u,
+)
 
 
-class FlextCliCommonParams:
+class FlextCliCommonParams(FlextCliServiceBase):
     """Common CLI parameters auto-generated from FlextSettings field metadata.
 
     Business Rules:
@@ -22,55 +28,6 @@ class FlextCliCommonParams:
     4. Choices MUST be validated against allowed values
     5. Boolean parameters automatically become Typer flags
     """
-
-    CLI_PARAM_REGISTRY: ClassVar[
-        Mapping[str, Mapping[str, t.Scalar | t.StrSequence]]
-    ] = {
-        "verbose": {
-            c.Cli.CliParamsRegistry.KEY_SHORT: c.Cli.CliParamsRegistry.SHORT_FLAG_VERBOSE,
-            c.Cli.CliParamsRegistry.KEY_PRIORITY: c.Cli.CliParamsRegistry.PRIORITY_VERBOSE,
-        },
-        "quiet": {
-            c.Cli.CliParamsRegistry.KEY_SHORT: c.Cli.CliParamsRegistry.SHORT_FLAG_QUIET,
-            c.Cli.CliParamsRegistry.KEY_PRIORITY: c.Cli.CliParamsRegistry.PRIORITY_QUIET,
-        },
-        "debug": {
-            c.Cli.CliParamsRegistry.KEY_SHORT: c.Cli.CliParamsRegistry.SHORT_FLAG_DEBUG,
-            c.Cli.CliParamsRegistry.KEY_PRIORITY: c.Cli.CliParamsRegistry.PRIORITY_DEBUG,
-        },
-        "trace": {
-            c.Cli.CliParamsRegistry.KEY_SHORT: c.Cli.CliParamsRegistry.SHORT_FLAG_TRACE,
-            c.Cli.CliParamsRegistry.KEY_PRIORITY: c.Cli.CliParamsRegistry.PRIORITY_TRACE,
-        },
-        "cli_log_level": {
-            c.Cli.CliParamsRegistry.KEY_SHORT: c.Cli.CliParamsRegistry.SHORT_FLAG_LOG_LEVEL,
-            c.Cli.CliParamsRegistry.KEY_PRIORITY: c.Cli.CliParamsRegistry.PRIORITY_LOG_LEVEL,
-            c.Cli.CliParamsRegistry.KEY_CHOICES: c.Cli.Lists.LOG_LEVELS_LIST,
-            c.Cli.CliParamsRegistry.KEY_CASE_SENSITIVE: c.Cli.CliParamsRegistry.CASE_INSENSITIVE,
-            c.Cli.CliParamsRegistry.KEY_FIELD_NAME_OVERRIDE: "log_level",
-        },
-        "log_verbosity": {
-            c.Cli.CliParamsRegistry.KEY_PRIORITY: c.Cli.CliParamsRegistry.PRIORITY_LOG_FORMAT,
-            c.Cli.CliParamsRegistry.KEY_CHOICES: c.Cli.Lists.LOG_LEVELS_LIST,
-            c.Cli.CliParamsRegistry.KEY_CASE_SENSITIVE: c.Cli.CliParamsRegistry.CASE_INSENSITIVE,
-            c.Cli.CliParamsRegistry.KEY_FIELD_NAME_OVERRIDE: c.Cli.CliParamsRegistry.LOG_FORMAT_OVERRIDE,
-        },
-        "output_format": {
-            c.Cli.CliParamsRegistry.KEY_SHORT: c.Cli.CliParamsRegistry.SHORT_FLAG_OUTPUT_FORMAT,
-            c.Cli.CliParamsRegistry.KEY_PRIORITY: c.Cli.CliParamsRegistry.PRIORITY_OUTPUT_FORMAT,
-            c.Cli.CliParamsRegistry.KEY_CHOICES: list(
-                c.Cli.ValidationLists.OUTPUT_FORMATS,
-            ),
-            c.Cli.CliParamsRegistry.KEY_CASE_SENSITIVE: c.Cli.CliParamsRegistry.CASE_INSENSITIVE,
-        },
-        "no_color": {
-            c.Cli.CliParamsRegistry.KEY_PRIORITY: c.Cli.CliParamsRegistry.PRIORITY_NO_COLOR,
-        },
-        "config_file": {
-            c.Cli.CliParamsRegistry.KEY_SHORT: c.Cli.CliParamsRegistry.SHORT_FLAG_CONFIG_FILE,
-            c.Cli.CliParamsRegistry.KEY_PRIORITY: c.Cli.CliParamsRegistry.PRIORITY_CONFIG_FILE,
-        },
-    }
 
     @classmethod
     def _apply_param_setters(
@@ -209,10 +166,10 @@ class FlextCliCommonParams:
     @classmethod
     def create_option(cls, field_name: str) -> OptionInfo:
         """Create typer.Option() from FlextCliSettings field metadata."""
-        if field_name not in cls.CLI_PARAM_REGISTRY:
+        if field_name not in c.Cli.CLI_PARAM_REGISTRY:
             msg = f"Field '{field_name}' not found in CLI parameter registry"
             raise ValueError(msg)
-        return u.Cli.OptionBuilder(field_name, cls.CLI_PARAM_REGISTRY).build()
+        return u.Cli.OptionBuilder(field_name, c.Cli.CLI_PARAM_REGISTRY).build()
 
     @staticmethod
     def _opt_bool(kwargs: Mapping[str, bool | str | None], key: str) -> bool | None:

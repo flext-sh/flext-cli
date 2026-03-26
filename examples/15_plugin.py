@@ -10,15 +10,11 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping
+from collections.abc import Mapping
 
 from flext_core import r
 
-from examples import CliMainWithGroups, GroupWithCommands
-from flext_cli import t
-
-type DataProcessor = Callable[[str], str]
-type ProcessorRegistry = Mapping[str, DataProcessor]
+from examples import p, t
 
 
 class ExamplePlugin:
@@ -42,7 +38,7 @@ class ExamplePlugin:
         self._initialized = False
         self._config: Mapping[str, bool | int] = {}
 
-    def initialize(self, _cli_main: CliMainWithGroups) -> r[bool]:
+    def initialize(self, _cli_main: p.CliMainWithGroups) -> r[bool]:
         """Initialize the plugin.
 
         Args:
@@ -59,7 +55,7 @@ class ExamplePlugin:
         except Exception as e:
             return r[bool].fail(f"Plugin initialization failed: {e}")
 
-    def register_commands(self, cli_main: CliMainWithGroups) -> r[bool]:
+    def register_commands(self, cli_main: p.CliMainWithGroups) -> r[bool]:
         """Register plugin commands.
 
         Args:
@@ -70,15 +66,16 @@ class ExamplePlugin:
 
         """
         try:
-            if not isinstance(cli_main, CliMainWithGroups):
-                return r[bool].fail(
-                    "cli_main does not implement CliMainWithGroups protocol",
-                )
             cli_with_group = cli_main
 
             @cli_with_group.group()
             def example() -> None:
                 """Example plugin commands."""
+
+            if not isinstance(example, p.GroupWithCommands):
+                return r[bool].fail(
+                    "example group does not implement GroupWithCommands protocol",
+                )
 
             def hello(name: str = "World") -> None:
                 """Say hello from the plugin.
@@ -102,10 +99,6 @@ class ExamplePlugin:
                 )
                 print(f"Configuration: {self._config}")
 
-            if not isinstance(example, GroupWithCommands):
-                return r[bool].fail(
-                    "example group does not implement GroupWithCommands protocol",
-                )
             example_group = example
 
             @example_group.command()
@@ -142,9 +135,9 @@ class DataProcessorPlugin:
     def __init__(self) -> None:
         """Initialize data processor plugin."""
         super().__init__()
-        self._processors: ProcessorRegistry = {}
+        self._processors: t.ProcessorRegistry = {}
 
-    def initialize(self, _cli_main: CliMainWithGroups) -> r[bool]:
+    def initialize(self, _cli_main: p.CliMainWithGroups) -> r[bool]:
         """Initialize the plugin.
 
         Args:
@@ -164,7 +157,7 @@ class DataProcessorPlugin:
         except Exception as e:
             return r[bool].fail(f"Initialization failed: {e}")
 
-    def register_commands(self, cli_main: CliMainWithGroups) -> r[bool]:
+    def register_commands(self, cli_main: p.CliMainWithGroups) -> r[bool]:
         """Register data processing commands.
 
         Args:
@@ -181,6 +174,11 @@ class DataProcessorPlugin:
             def data() -> None:
                 """Data processing commands."""
 
+            if not isinstance(data, p.GroupWithCommands):
+                return r[bool].fail(
+                    "data group does not implement GroupWithCommands protocol",
+                )
+
             def process_data(input_data: str, format_type: str = "json") -> str:
                 """Process data in specified format.
 
@@ -193,7 +191,7 @@ class DataProcessorPlugin:
 
                 """
                 if format_type in self._processors:
-                    processor: DataProcessor = self._processors[format_type]
+                    processor: t.DataProcessor = self._processors[format_type]
                     return processor(input_data)
                 return f"Unsupported format: {format_type}"
 
@@ -206,10 +204,6 @@ class DataProcessorPlugin:
                 """
                 return list(self._processors.keys())
 
-            if not isinstance(data, GroupWithCommands):
-                return r[bool].fail(
-                    "data group does not implement GroupWithCommands protocol",
-                )
             data_group = data
 
             @data_group.command()

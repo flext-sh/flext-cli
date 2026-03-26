@@ -30,20 +30,14 @@ import time
 
 from flext_core import r
 
-from examples import (
-    AdvancedDatabaseConfig,
-    DatabaseConfig,
-    DeployConfig,
-    display_config_table,
-    display_success_summary,
-)
-from flext_cli import cli, m, t
+from examples import m, t, u
+from flext_cli import cli
 
 
 def demonstrate_auto_cli_generation() -> None:
     """Show auto-generated CLI parameters from Pydantic model."""
     cli.print("\n🔧 Auto-Generated CLI Parameters:", style="bold cyan")
-    fields = DeployConfig.model_fields
+    fields = m.DeployConfig.model_fields
     cli.print(
         f"✅ Generated {len(fields)} CLI parameters from DeployConfig:",
         style="green",
@@ -63,7 +57,7 @@ def demonstrate_auto_cli_generation() -> None:
     )
 
 
-def execute_deploy_from_cli(config: DeployConfig) -> None:
+def execute_deploy_from_cli(config: m.DeployConfig) -> None:
     """Convert validated Pydantic config to deployment. Accepts DeployConfig only."""
     cli.print("\n🚀 Deploying with CLI Arguments:", style="bold cyan")
     cli.print("✅ Valid configuration:", style="green")
@@ -80,7 +74,7 @@ def execute_deploy_from_cli(config: DeployConfig) -> None:
         )
 
 
-def deploy_application(config: DeployConfig) -> r[str]:
+def deploy_application(config: m.DeployConfig) -> r[str]:
     """Deploy application with validated config."""
     return r[str].ok(f"Deployed to {config.environment}")
 
@@ -110,7 +104,7 @@ def show_common_cli_params() -> None:
 def demonstrate_nested_models() -> None:
     """Show CLI generation from nested Pydantic models."""
     cli.print("\n🏗️  Nested Model CLI Generation:", style="bold cyan")
-    db_fields = DatabaseConfig.model_fields
+    db_fields = m.DatabaseConfig.model_fields
     cli.print("Database config parameters:", style="green")
     for name, field_info in db_fields.items():
         description = field_info.description or ""
@@ -121,7 +115,7 @@ def demonstrate_nested_models() -> None:
     cli.print("   --database-name myapp", style="white")
 
 
-def create_database_config_from_cli() -> r[AdvancedDatabaseConfig]:
+def create_database_config_from_cli() -> r[m.AdvancedDatabaseConfig]:
     """Create validated DatabaseConfig using Railway Pattern with Pydantic."""
     cli.print("\n🗄️  Database Configuration with Railway Pattern:", style="bold cyan")
     cli_args: t.ContainerMapping = {
@@ -144,8 +138,8 @@ def create_database_config_from_cli() -> r[AdvancedDatabaseConfig]:
     cli.print("✅ Business rules validated", style="green")
     tested_config = perform_connection_test(final_config)
     cli.print("✅ Connection test passed", style="green")
-    display_success_summary(cli, "Database configuration")
-    return r[AdvancedDatabaseConfig].ok(tested_config)
+    u.display_success_summary("Database configuration")
+    return r[m.AdvancedDatabaseConfig].ok(tested_config)
 
 
 def validate_required_fields(
@@ -162,7 +156,7 @@ def validate_required_fields(
 
 def convert_and_validate_with_pydantic(
     data: t.ContainerMapping,
-) -> r[AdvancedDatabaseConfig]:
+) -> r[m.AdvancedDatabaseConfig]:
     """Convert raw data to validated Pydantic model."""
     try:
         host = str(data.get("host", "localhost"))
@@ -175,7 +169,7 @@ def convert_and_validate_with_pydantic(
         ssl_enabled = bool(ssl_value)
         pool_value = data.get("connection_pool", 10)
         connection_pool = int(pool_value) if isinstance(pool_value, (str, int)) else 10
-        config = AdvancedDatabaseConfig(
+        config = m.AdvancedDatabaseConfig(
             host=host,
             port=port,
             name=name,
@@ -184,12 +178,14 @@ def convert_and_validate_with_pydantic(
             ssl_enabled=ssl_enabled,
             connection_pool=connection_pool,
         )
-        return r[AdvancedDatabaseConfig].ok(config)
+        return r[m.AdvancedDatabaseConfig].ok(config)
     except Exception as e:
-        return r[AdvancedDatabaseConfig].fail(f"Pydantic validation failed: {e}")
+        return r[m.AdvancedDatabaseConfig].fail(f"Pydantic validation failed: {e}")
 
 
-def validate_business_rules(config: AdvancedDatabaseConfig) -> AdvancedDatabaseConfig:
+def validate_business_rules(
+    config: m.AdvancedDatabaseConfig,
+) -> m.AdvancedDatabaseConfig:
     """Apply custom business logic validation; returns new instance (no mutation)."""
     if config.ssl_enabled and config.port == 5432:
         config = config.model_copy(update={"port": 5433})
@@ -199,7 +195,9 @@ def validate_business_rules(config: AdvancedDatabaseConfig) -> AdvancedDatabaseC
     return config
 
 
-def perform_connection_test(config: AdvancedDatabaseConfig) -> AdvancedDatabaseConfig:
+def perform_connection_test(
+    config: m.AdvancedDatabaseConfig,
+) -> m.AdvancedDatabaseConfig:
     """Simulate database connection test."""
     time.sleep(0.1)
     if "fail" in config.host:
@@ -215,7 +213,7 @@ def main() -> None:
     cli.print("=" * 70, style="bold blue")
     demonstrate_auto_cli_generation()
     cli.print("\n" + "=" * 70, style="bold blue")
-    deploy_config = DeployConfig(
+    deploy_config = m.DeployConfig(
         environment="production",
         workers=8,
         enable_cache=True,
@@ -229,7 +227,7 @@ def main() -> None:
     cli.print("\n" + "=" * 70, style="bold blue")
     cli.print("\n❌ Validation Demo - Invalid Environment:", style="bold cyan")
     try:
-        _ = DeployConfig(
+        _ = m.DeployConfig(
             environment="invalid_env",
             workers=4,
             enable_cache=True,
@@ -245,7 +243,7 @@ def main() -> None:
     if db_config_result.is_success:
         final_config = db_config_result.value
         payload = final_config.model_dump(mode="json")
-        display_config_table(cli=cli, config_data=m.Cli.DisplayData(data=payload))
+        u.display_config_table(config_data=m.Cli.DisplayData(data=payload))
     cli.print("\n" + "=" * 70, style="bold blue")
     cli.print("  ✅ Pydantic CLI Examples Complete", style="bold green")
     cli.print("=" * 70, style="bold blue")

@@ -18,6 +18,7 @@ from flext_cli import c
 logger = FlextLogger(__name__)
 
 
+@FlextSettings.auto_register("cli")
 class FlextCliSettings(FlextSettings):
     """CLI-specific configuration; extends FlextSettings with profile and CLI fields."""
 

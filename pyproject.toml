@@ -145,6 +145,7 @@ allow-direct-references = true
 disable_error_code = [
   "name-defined",
   "prop-decorator",
+  "union-attr",
 ]
 explicit_package_bases = true
 ignore_missing_imports = true

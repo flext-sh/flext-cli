@@ -44,17 +44,17 @@ class TestsCliServiceBase:
         tm.that(service, none=False)
         tm.that(service, is_=FlextCliServiceBase)
 
-    def test_cli_config_property(self) -> None:
-        """Test cli_config property returns FlextCliSettings singleton."""
+    def test_settings_property(self) -> None:
+        """Test settings property returns FlextCliSettings singleton."""
         service = self._ConcreteService()
-        config = service.cli_config
+        config = service.settings
         tm.that(config, none=False)
         tm.that(config, is_=FlextCliSettings)
-        config2 = service.cli_config
+        config2 = service.settings
         tm.that(config is config2, eq=True)
 
     def test_config_singleton_consistency(self) -> None:
-        """Test that config returns same singleton across instances."""
+        """Test that settings returns same singleton across instances."""
         service1 = self._ConcreteService()
         service2 = self._ConcreteService()
-        tm.that(service1.cli_config is service2.cli_config, eq=True)
+        tm.that(service1.settings is service2.settings, eq=True)

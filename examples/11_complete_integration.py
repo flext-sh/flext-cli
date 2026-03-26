@@ -25,11 +25,13 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import tempfile
+from collections.abc import Mapping
 from pathlib import Path
 
 from flext_core import r
 
-from flext_cli import FlextCliPrompts, cli, t
+from examples import t
+from flext_cli import cli
 
 
 class DataManagerCLI:
@@ -42,7 +44,7 @@ class DataManagerCLI:
 
     def add_entry(self) -> r[t.ContainerMapping]:
         """Add new entry with user prompts."""
-        prompts = FlextCliPrompts()
+        prompts = cli
         prompts._interactive_mode = False  # noqa: SLF001
         key_result = prompts.prompt("Enter key:", default="sample_key")
         if key_result.is_failure:
@@ -78,6 +80,8 @@ class DataManagerCLI:
             error_msg = read_result.error or "Unknown error"
             cli.print(f"❌ Load failed: {error_msg}", style="bold red")
             return r[t.ContainerMapping].fail(error_msg)
+        if not isinstance(read_result.value, Mapping):
+            return r[t.ContainerMapping].fail("Data file must contain a mapping")
         cli.print("✅ Data loaded successfully", style="green")
         return r[t.ContainerMapping].ok(read_result.value)
 
@@ -170,7 +174,7 @@ def main() -> None:
     cli.print("  ✅ Complete Integration Examples Done!", style="bold green")
     cli.print("=" * 70, style="bold blue")
     cli.print("\n💡 Integration Summary:", style="bold cyan")
-    cli.print("  • Use cli() constructor for singleton access", style="white")
+    cli.print("  • Use the shared cli singleton directly", style="white")
     cli.print("  • Chain operations with r.map()", style="white")
     cli.print("  • Handle errors gracefully with is_success/is_failure", style="white")
     cli.print("  • Combine all features for complete CLI apps", style="white")
@@ -178,8 +182,8 @@ def main() -> None:
     architecture = {
         "Output": "cli.print() + cli.show_table()",
         "File I/O": "cli.read_json_file/write_json_file",
-        "User Input": "FlextCliPrompts",
-        "Config": "cli.config",
+        "User Input": "cli",
+        "Config": "cli.settings",
         "Auth": "cli.save/get_auth_token()",
         "Error Handling": "r pattern",
     }

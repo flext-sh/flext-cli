@@ -43,10 +43,6 @@ class FlextCliUtilities(FlextUtilities):
     class Cli(FlextUtilities):
         """Command line interface specific utilities."""
 
-        JSON_NORMALIZE_ADAPTER: ClassVar[TypeAdapter[t.Cli.JsonValue]] = TypeAdapter(
-            t.Cli.JsonValue,
-        )
-
         @staticmethod
         def is_mapping_like(
             obj: t.Cli.JsonValue | Mapping[str, t.Cli.JsonValue],
@@ -98,7 +94,7 @@ class FlextCliUtilities(FlextUtilities):
                 return default if isinstance(default, bool) else False
             if FlextCliUtilities.Cli.is_mapping_like(default):
                 return {
-                    str(k): FlextCliUtilities.Cli.JSON_NORMALIZE_ADAPTER.dump_python(
+                    str(k): t.Cli.JSON_NORMALIZE_ADAPTER.dump_python(
                         v,
                         mode="json",
                         warnings=False,
@@ -191,7 +187,7 @@ class FlextCliUtilities(FlextUtilities):
                         return {
                             str(
                                 k,
-                            ): FlextCliUtilities.Cli.JSON_NORMALIZE_ADAPTER.dump_python(
+                            ): t.Cli.JSON_NORMALIZE_ADAPTER.dump_python(
                                 vv,
                                 mode="json",
                                 warnings=False,
@@ -202,7 +198,7 @@ class FlextCliUtilities(FlextUtilities):
                         return {
                             str(
                                 k,
-                            ): FlextCliUtilities.Cli.JSON_NORMALIZE_ADAPTER.dump_python(
+                            ): t.Cli.JSON_NORMALIZE_ADAPTER.dump_python(
                                 vv,
                                 mode="json",
                                 warnings=False,

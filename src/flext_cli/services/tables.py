@@ -11,7 +11,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from typing import TypeIs
 
 from flext_core import r
 from tabulate import tabulate
@@ -23,20 +22,23 @@ class FlextCliTables(FlextCliServiceBase):
     """Tabulate integration for lightweight ASCII tables."""
 
     @staticmethod
-    def _prepare_headers(
-        data: t.Cli.TabularData,
-        headers: str | t.StrSequence,
-    ) -> r[str | t.StrSequence]:
-        """Prepare headers based on data type."""
-        data_list = list(data)
-        if not data_list:
-            return r[str | t.StrSequence].ok(headers)
-        if isinstance(headers, str):
-            return r[str | t.StrSequence].ok(headers)
-        first_row = data_list[0]
-        if u.is_dict_like(first_row):
-            return r[str | t.StrSequence].ok(list(headers))
-        return r[str | t.StrSequence].ok(headers)
+    def _build_config(
+        config: m.Cli.TableConfig | None = None,
+        **config_kwargs: t.Cli.TableConfigValue,
+    ) -> r[m.Cli.TableConfig]:
+        """Build a concrete table config from an explicit model plus kwargs."""
+        base_config = config or m.Cli.TableConfig()
+        if not config_kwargs:
+            return r[m.Cli.TableConfig].ok(base_config)
+        valid_fields = set(m.Cli.TableConfig.model_fields)
+        config_data = base_config.model_dump()
+        for key, value in config_kwargs.items():
+            if key in valid_fields:
+                config_data[key] = value
+        try:
+            return r[m.Cli.TableConfig].ok(m.Cli.TableConfig(**config_data))
+        except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
+            return r[m.Cli.TableConfig].fail(f"Invalid table configuration: {exc}")
 
     @staticmethod
     def _validate_table_data(data: t.Cli.TabularData, table_format: str) -> r[bool]:
@@ -61,131 +63,170 @@ class FlextCliTables(FlextCliServiceBase):
         return r[bool].ok(value=True)
 
     @staticmethod
-    def _create_table(
+    def _normalize_mapping_row(
+        row: Mapping[str, t.Cli.JsonValue],
+    ) -> t.Cli.TableMappingRow:
+        """Normalize a mapping row to a string-key JSON-compatible mapping."""
+        return {
+            str(key): u.Cli.normalize_json_value(value) for key, value in row.items()
+        }
+
+    @staticmethod
+    def _normalize_data(
+        data: t.Cli.TabularData,
+    ) -> r[Sequence[t.Cli.TableRow]]:
+        """Normalize mapping and sequence inputs to tabulate-compatible rows."""
+        if isinstance(data, Mapping):
+            return r[Sequence[t.Cli.TableRow]].ok(
+                [
+                    {
+                        "Key": str(key),
+                        "Value": u.Cli.normalize_json_value(value),
+                    }
+                    for key, value in data.items()
+                ],
+            )
+        normalized_rows: list[t.Cli.TableRow] = []
+        for row in data:
+            if isinstance(row, Mapping):
+                normalized_rows.append(FlextCliTables._normalize_mapping_row(row))
+                continue
+            if isinstance(row, Sequence) and not isinstance(row, str):
+                normalized_rows.append([
+                    u.Cli.normalize_json_value(value) for value in row
+                ])
+                continue
+            return r[Sequence[t.Cli.TableRow]].fail(
+                "Table data must be a mapping or a sequence of mappings/sequences",
+            )
+        return r[Sequence[t.Cli.TableRow]].ok(normalized_rows)
+
+    @staticmethod
+    def _prepare_headers(
+        headers: str | t.StrSequence | None,
+        *,
+        show_header: bool,
+    ) -> str | t.StrSequence:
+        """Resolve headers for tabulate."""
+        if not show_header or headers is None:
+            return []
+        if isinstance(headers, str):
+            return headers
+        return list(headers)
+
+    @staticmethod
+    def _column_count(
+        rows: Sequence[t.Cli.TableRow],
+        headers: str | t.StrSequence,
+    ) -> int:
+        """Compute effective column count for alignment settings."""
+        if isinstance(headers, Sequence) and not isinstance(headers, str):
+            return len(headers)
+        if not rows:
+            return 0
+        first_row = rows[0]
+        if isinstance(first_row, Mapping):
+            return len(first_row)
+        return len(first_row)
+
+    @staticmethod
+    def _render_table(
+        rows: Sequence[t.Cli.TableRow],
+        config: m.Cli.TableConfig,
+    ) -> r[str]:
+        """Render normalized rows to a tabulated string."""
+        headers = FlextCliTables._prepare_headers(
+            config.headers,
+            show_header=config.show_header,
+        )
+        colalign = config.colalign
+        column_count = FlextCliTables._column_count(rows, headers)
+        if colalign is not None and column_count > 0 and len(colalign) > column_count:
+            colalign = colalign[:column_count]
+        try:
+            if rows and isinstance(rows[0], Mapping) and not isinstance(headers, str):
+                row_values = [
+                    list(row.values()) for row in rows if isinstance(row, Mapping)
+                ]
+                return r[str].ok(
+                    tabulate(
+                        row_values,
+                        headers=list(headers),
+                        tablefmt=config.table_format,
+                        floatfmt=config.floatfmt,
+                        numalign=config.numalign,
+                        stralign=config.stralign,
+                        missingval=config.missingval,
+                        showindex=config.showindex,
+                        disable_numparse=config.disable_numparse,
+                        colalign=colalign,
+                    ),
+                )
+            return r[str].ok(
+                tabulate(
+                    rows,
+                    headers=headers,
+                    tablefmt=config.table_format,
+                    floatfmt=config.floatfmt,
+                    numalign=config.numalign,
+                    stralign=config.stralign,
+                    missingval=config.missingval,
+                    showindex=config.showindex,
+                    disable_numparse=config.disable_numparse,
+                    colalign=colalign,
+                ),
+            )
+        except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
+            return r[str].fail(f"Table formatting failed: {exc}")
+
+    @staticmethod
+    def format_table(
         data: t.Cli.TabularData,
         config: m.Cli.TableConfig | None = None,
-        **config_kwargs: t.Scalar,
+        **config_kwargs: t.Cli.TableConfigValue,
     ) -> r[str]:
-        """Create formatted ASCII table using tabulate with Pydantic config.
-
-        Uses build_options_from_kwargs pattern for automatic kwargs to Model conversion.
-
-        Args:
-            data: Table data (list of dicts, list of lists, etFlextCliConstants.Cli.)
-            config: Table configuration (TableConfig model with all settings)
-                   If None, uses default configuration
-            **config_kwargs: Individual config option overrides (snake_case field names)
-
-        Returns:
-            r containing formatted table string
-
-        Example:
-            >>> tables = FlextCliTables()
-            >>> data = [{"name": "Alice", "age": 30}]
-            >>> # With config t.NormalizedValue
-            >>> config = m.Cli.Value.TableConfig(table_format="grid")
-            >>> result = tables._create_table(data, config)
-            >>> # With kwargs (automatic conversion)
-            >>> result = tables._create_table(
-            ...     data, table_format="grid", headers=["Name", "Age"]
-            ... )
-            >>> # Without config (uses defaults)
-            >>> result = tables._create_table(data)
-
-        """
-        config_result = u.build_options_from_kwargs(
-            model_class=m.Cli.TableConfig,
-            explicit_options=config,
-            default_factory=lambda: m.Cli.TableConfig(),
-            **{k: v for k, v in config_kwargs.items() if u.is_primitive(v)},
-        )
+        """Format table data to a string using the public CLI API."""
+        config_result = FlextCliTables._build_config(config, **config_kwargs)
         if config_result.is_failure:
             return r[str].fail(config_result.error or "Invalid table configuration")
         config_final = config_result.value
         validation_result = FlextCliTables._validate_table_data(
-            data,
-            config_final.table_format,
+            data, config_final.table_format
         )
         if validation_result.is_failure:
             return r[str].fail(validation_result.error or "Table validation failed")
-        headers_result = FlextCliTables._prepare_headers(data, config_final.headers)
-        if headers_result.is_failure:
-            return r[str].fail(headers_result.error or "Header preparation failed")
-        try:
-            if u.is_dict_like(data):
-                normalized_data: Sequence[Mapping[str, t.Cli.JsonValue]] = (
-                    [
-                        {
-                            str(key): u.Cli.normalize_json_value(value)
-                            for key, value in data.items()
-                        },
-                    ]
-                    if isinstance(data, Mapping)
-                    else []
-                )
-            else:
-                normalized_data = data
-            headers_value = headers_result.value
-            if normalized_data and (not isinstance(headers_value, str)):
-                normalized_mapping_rows: Sequence[Mapping[str, t.Cli.JsonValue]] = [
-                    dict(row) for row in normalized_data
-                ]
-                table_rows = [list(row.values()) for row in normalized_mapping_rows]
-                formatted_table = tabulate(
-                    table_rows,
-                    headers=list(headers_value),
-                    tablefmt=config_final.table_format,
-                    numalign=config_final.numalign,
-                    stralign=config_final.stralign,
-                )
-                return r[str].ok(formatted_table)
+        normalized_result = FlextCliTables._normalize_data(data)
+        if normalized_result.is_failure:
+            return r[str].fail(normalized_result.error or "Table normalization failed")
+        return FlextCliTables._render_table(normalized_result.value, config_final)
 
-            def _is_tabulate_data(
-                val: Sequence[Mapping[str, t.Cli.JsonValue]]
-                | Sequence[t.ContainerValue],
-            ) -> TypeIs[
-                Sequence[Mapping[str, t.ContainerValue]]
-                | Sequence[Sequence[t.ContainerValue]]
-            ]:
-                """Narrow to tabulate-acceptable rows (sequence of mappings or sequences)."""
-                if not val:
-                    return True
-                first = val[0]
-                if isinstance(first, str):
-                    return False
-                if isinstance(first, Mapping):
-                    return all(isinstance(row, Mapping) for row in val)
-                if isinstance(first, Sequence):
-                    return all(
-                        isinstance(row, Sequence) and (not isinstance(row, str))
-                        for row in val
-                    )
-                return False
-
-            if _is_tabulate_data(normalized_data):
-                formatted_table = tabulate(
-                    normalized_data,
-                    headers=headers_value,
-                    tablefmt=config_final.table_format,
-                    numalign=config_final.numalign,
-                    stralign=config_final.stralign,
-                )
-                return r[str].ok(formatted_table)
-            return r[str].fail(
-                "Table data must be a sequence of mappings or a sequence of sequences",
-            )
-        except c.Cli.CLI_SAFE_EXCEPTIONS as e:
-            return r[str].fail(f"Table formatting failed: {e}")
+    @staticmethod
+    def _create_table(
+        data: t.Cli.TabularData,
+        config: m.Cli.TableConfig | None = None,
+        **config_kwargs: t.Cli.TableConfigValue,
+    ) -> r[str]:
+        """Private string renderer used by show_table and other internal callers."""
+        return FlextCliTables.format_table(data, config, **config_kwargs)
 
     @staticmethod
     def show_table(
         data: t.Cli.TabularData,
         config: m.Cli.TableConfig | None = None,
-        **config_kwargs: t.Scalar,
+        **config_kwargs: t.Cli.TableConfigValue,
     ) -> None:
         """Gera e exibe tabela formatada no console. Não retorna string, apenas exibe."""
-        result = FlextCliTables._create_table(data, config, **config_kwargs)
+        config_result = FlextCliTables._build_config(config, **config_kwargs)
+        if config_result.is_failure:
+            FlextCliFormatters.print(
+                f"[table error] {config_result.error}",
+                style="bold red",
+            )
+            return
+        result = FlextCliTables._create_table(data, config_result.value)
         if result.is_success:
+            if config_result.value.title:
+                FlextCliFormatters.print(config_result.value.title, style="bold")
             FlextCliFormatters.print(result.value)
         else:
             FlextCliFormatters.print(f"[table error] {result.error}", style="bold red")

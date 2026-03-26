@@ -35,7 +35,8 @@ from pathlib import Path
 
 from flext_core import r
 
-from flext_cli import FlextCliTables, cli, m, t
+from examples import m, t
+from flext_cli import cli
 
 
 class DataExportPlugin:
@@ -69,9 +70,7 @@ class ReportGeneratorPlugin:
     @staticmethod
     def execute(data: Sequence[t.ContainerMapping]) -> r[str]:
         """Generate report from data in YOUR CLI."""
-        tables = FlextCliTables()
-        config = m.Cli.TableConfig(table_format="grid")
-        table_result = tables.create_table(data, config=config)
+        table_result = cli.format_table(data, table_format="grid")
         if table_result.is_failure:
             return r[str].fail(f"Report generation failed: {table_result.error}")
         report = table_result.value
@@ -94,7 +93,7 @@ class MyAppPluginManager:
     ) -> r[t.Cli.JsonValue]:
         """Execute plugin by name in YOUR CLI."""
         if plugin_name not in self.plugins:
-            return r.fail(f"Plugin not found: {plugin_name}")
+            return r[t.Cli.JsonValue].fail(f"Plugin not found: {plugin_name}")
         plugin = self.plugins[plugin_name]
         try:
             if isinstance(plugin, DataExportPlugin):
@@ -104,17 +103,15 @@ class MyAppPluginManager:
                     data={"raw": str(data_val)},
                     output_format=str(fmt_val),
                 )
-            elif isinstance(plugin, ReportGeneratorPlugin):
+            else:
                 data_val = kwargs.get("data", "")
                 raw = plugin.execute(data=[{"raw": str(data_val)}])
-            else:
-                return r.fail(f"Plugin {plugin_name} has no execute method")
             if raw.is_failure:
-                return r.fail(raw.error or "Unknown error")
+                return r[t.Cli.JsonValue].fail(raw.error or "Unknown error")
             normalized = m.Cli.CliNormalizedJson(raw.value).root
-            return r.ok(normalized)
+            return r[t.Cli.JsonValue].ok(normalized)
         except Exception as e:
-            return r.fail(f"Plugin execution failed: {e}")
+            return r[t.Cli.JsonValue].fail(f"Plugin execution failed: {e}")
 
     def list_plugins(self) -> None:
         """List all registered plugins in YOUR CLI."""

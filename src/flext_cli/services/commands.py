@@ -10,7 +10,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import logging
 from collections.abc import Callable, Mapping, MutableMapping
 from typing import Self, override
 
@@ -26,7 +25,7 @@ class FlextCliCommands(FlextCliServiceBase):
     _name: str = PrivateAttr(default=c.Cli.CommandsDefaults.DEFAULT_NAME)
     _description: str = PrivateAttr(default=c.Cli.CommandsDefaults.DEFAULT_DESCRIPTION)
     _commands: MutableMapping[str, m.Cli.CommandEntryModel] = PrivateAttr(
-        default_factory=dict,
+        default_factory=lambda: {},
     )
 
     @classmethod
@@ -104,11 +103,10 @@ class FlextCliCommands(FlextCliServiceBase):
                     result = handler(*args, **kwargs) if args else handler(**kwargs)
                     execution_attempted = True
                 except TypeError as exc:
-                    logging.getLogger(__name__).debug(
-                        "Handler signature mismatch for %s, trying no-args: %s",
-                        name,
-                        exc,
-                        exc_info=False,
+                    self.logger.debug(
+                        "Handler signature mismatch; retrying without args",
+                        command_name=name,
+                        error=str(exc),
                     )
             if not execution_attempted:
                 result = handler()

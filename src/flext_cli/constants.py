@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import typing
+from collections.abc import Mapping
 from enum import StrEnum, unique
+from typing import ClassVar
 
 from flext_core import FlextConstants
 from rich.errors import ConsoleError, LiveError, StyleError
@@ -320,6 +322,55 @@ class FlextCliConstants(FlextConstants):
                 "ERROR",
                 "CRITICAL",
             ]
+
+        CLI_PARAM_REGISTRY: ClassVar[
+            Mapping[str, Mapping[str, t.Scalar | t.StrSequence]]
+        ] = {
+            "verbose": {
+                CliParamsRegistry.KEY_SHORT: CliParamsRegistry.SHORT_FLAG_VERBOSE,
+                CliParamsRegistry.KEY_PRIORITY: CliParamsRegistry.PRIORITY_VERBOSE,
+            },
+            "quiet": {
+                CliParamsRegistry.KEY_SHORT: CliParamsRegistry.SHORT_FLAG_QUIET,
+                CliParamsRegistry.KEY_PRIORITY: CliParamsRegistry.PRIORITY_QUIET,
+            },
+            "debug": {
+                CliParamsRegistry.KEY_SHORT: CliParamsRegistry.SHORT_FLAG_DEBUG,
+                CliParamsRegistry.KEY_PRIORITY: CliParamsRegistry.PRIORITY_DEBUG,
+            },
+            "trace": {
+                CliParamsRegistry.KEY_SHORT: CliParamsRegistry.SHORT_FLAG_TRACE,
+                CliParamsRegistry.KEY_PRIORITY: CliParamsRegistry.PRIORITY_TRACE,
+            },
+            "cli_log_level": {
+                CliParamsRegistry.KEY_SHORT: CliParamsRegistry.SHORT_FLAG_LOG_LEVEL,
+                CliParamsRegistry.KEY_PRIORITY: CliParamsRegistry.PRIORITY_LOG_LEVEL,
+                CliParamsRegistry.KEY_CHOICES: Lists.LOG_LEVELS_LIST,
+                CliParamsRegistry.KEY_CASE_SENSITIVE: CliParamsRegistry.CASE_INSENSITIVE,
+                CliParamsRegistry.KEY_FIELD_NAME_OVERRIDE: "log_level",
+            },
+            "log_verbosity": {
+                CliParamsRegistry.KEY_PRIORITY: CliParamsRegistry.PRIORITY_LOG_FORMAT,
+                CliParamsRegistry.KEY_CHOICES: Lists.LOG_LEVELS_LIST,
+                CliParamsRegistry.KEY_CASE_SENSITIVE: CliParamsRegistry.CASE_INSENSITIVE,
+                CliParamsRegistry.KEY_FIELD_NAME_OVERRIDE: CliParamsRegistry.LOG_FORMAT_OVERRIDE,
+            },
+            "output_format": {
+                CliParamsRegistry.KEY_SHORT: CliParamsRegistry.SHORT_FLAG_OUTPUT_FORMAT,
+                CliParamsRegistry.KEY_PRIORITY: CliParamsRegistry.PRIORITY_OUTPUT_FORMAT,
+                CliParamsRegistry.KEY_CHOICES: list(
+                    ValidationLists.OUTPUT_FORMATS,
+                ),
+                CliParamsRegistry.KEY_CASE_SENSITIVE: CliParamsRegistry.CASE_INSENSITIVE,
+            },
+            "no_color": {
+                CliParamsRegistry.KEY_PRIORITY: CliParamsRegistry.PRIORITY_NO_COLOR,
+            },
+            "config_file": {
+                CliParamsRegistry.KEY_SHORT: CliParamsRegistry.SHORT_FLAG_CONFIG_FILE,
+                CliParamsRegistry.KEY_PRIORITY: CliParamsRegistry.PRIORITY_CONFIG_FILE,
+            },
+        }
 
 
 __all__ = ["FlextCliConstants", "c"]

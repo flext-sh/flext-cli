@@ -12,7 +12,7 @@ WHEN TO USE THIS:
 FLEXT-CLI PROVIDES:
 - cli.print() - Styled text output (uses Rich)
 - cli.show_table() - Create and print tables in one call (no branching)
-- FlextCliTables - ASCII tables for plain text (create_table for strings, export_report pattern)
+- cli.format_table() - Format tables as strings for logs, files, and reports
 - Progress bars and spinners
 - Tree structures for hierarchical data
 - Rich Status - Spinning status indicators
@@ -40,9 +40,8 @@ from pathlib import Path
 
 from flext_core import r
 
-from flext_cli import FlextCliTables, c, cli, m, t
-
-tables = FlextCliTables()
+from examples import c, t
+from flext_cli import cli
 
 
 def your_cli_function() -> None:
@@ -71,11 +70,7 @@ def export_report(
     format_type: str = "table",
 ) -> r[str]:
     """Create ASCII tables for logs/reports in your app."""
-    config = m.Cli.TableConfig(table_format=format_type)
-    result = tables.create_table(list(data) if data else [], config=config)
-    if result.is_success:
-        return r[str].ok(result.value)
-    return r[str].fail(result.error or "Failed to create table")
+    return cli.format_table(list(data) if data else [], table_format=format_type)
 
 
 def process_large_dataset(items: t.StrSequence) -> None:
@@ -209,7 +204,7 @@ def main() -> None:
         "  • Rich tables: Use cli.show_table() for terminal display",
         style="white",
     )
-    cli.print("  • ASCII tables: Use FlextCliTables for logs/files", style="white")
+    cli.print("  • ASCII tables: Use cli.format_table() for logs/files", style="white")
     cli.print("  • Progress: Use cli.print() with percentage updates", style="white")
     cli.print("  • Status: Use cli.print() with status messages", style="white")
     cli.print(

@@ -18,7 +18,8 @@ from pathlib import Path
 
 from flext_core import r
 
-from flext_cli import c, cli, m, t
+from examples import c, m, t
+from flext_cli import cli
 
 
 class FlextCliGettingStarted:

@@ -25,11 +25,13 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import tempfile
+from collections.abc import Mapping
 from pathlib import Path
 
 from flext_core import r
 
-from flext_cli import FlextCliPrompts, cli, t
+from examples import t
+from flext_cli import cli
 
 
 def my_cli_command(name: str) -> r[str]:
@@ -88,6 +90,9 @@ def test_file_operations() -> None:
         cli.print("   ❌ Config read should succeed", style="red")
         return
     loaded = read_result.value
+    if not isinstance(loaded, Mapping):
+        cli.print("   ❌ Config payload should be a mapping", style="red")
+        return
     if loaded.get("test") is not True:
         cli.print("   ❌ Config value mismatch", style="red")
         return
@@ -97,7 +102,7 @@ def test_file_operations() -> None:
 
 def interactive_command() -> r[str]:
     """Command with user prompts to test."""
-    prompts = FlextCliPrompts()
+    prompts = cli
     prompts._interactive_mode = False  # noqa: SLF001
     name_result = prompts.prompt("Enter name:", default="TestUser")
     if name_result.is_failure:
@@ -173,7 +178,11 @@ def full_workflow_command() -> r[t.ContainerMapping]:
     if read_result.is_failure:
         temp_file.unlink(missing_ok=True)
         return r[t.ContainerMapping].fail(f"Read failed: {read_result.error}")
-    loaded: dict[str, t.NormalizedValue] = dict(read_result.value)
+    read_data = read_result.value
+    if not isinstance(read_data, Mapping):
+        temp_file.unlink(missing_ok=True)
+        return r[t.ContainerMapping].fail("Workflow payload must be a mapping")
+    loaded: dict[str, t.NormalizedValue] = dict(read_data)
     loaded["status"] = "completed"
     loaded["processed"] = True
     temp_file.unlink(missing_ok=True)
@@ -218,7 +227,7 @@ def main() -> None:
     cli.print("  • Write integration tests for workflows", style="white")
     cli.print("\n📝 pytest Example:", style="bold cyan")
     cli.print(
-        '\ndef test_my_command():\n    from flext_cli import cli\n    cli = cli()\n\n    result = my_command(param="test")\n\n    assert result.is_success\n    assert result.value == expected_value\n    ',
+        '\ndef test_my_command():\n    from flext_cli import cli\n\n    result = my_command(param="test")\n\n    assert result.is_success\n    assert result.value == expected_value\n    ',
         style="cyan",
     )
 

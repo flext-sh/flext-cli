@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
+from typing import ClassVar
 
 from flext_core import FlextTypes
+from pydantic import TypeAdapter
 
 
 class FlextCliTypes(FlextTypes):
@@ -28,8 +30,11 @@ class FlextCliTypes(FlextTypes):
         """
 
         type JsonValue = FlextTypes.NormalizedValue
-        type TableRow = Mapping[str, JsonValue]
-        TabularData = Sequence[TableRow]
+        type TableMappingRow = Mapping[str, JsonValue]
+        type TableSequenceRow = Sequence[JsonValue]
+        type TableRow = TableMappingRow | TableSequenceRow
+        type TableConfigValue = JsonValue
+        TabularData = TableMappingRow | Sequence[TableRow]
         type JsonDict = Mapping[str, JsonValue]
         type TableRows = Sequence[TableRow]
         type CliValue = (
@@ -37,6 +42,10 @@ class FlextCliTypes(FlextTypes):
             | FlextTypes.StrSequence
             | Mapping[str, FlextTypes.Scalar | FlextTypes.StrSequence]
             | None
+        )
+        JSON_OBJECT_ADAPTER: TypeAdapter[JsonValue] = TypeAdapter(JsonValue)
+        JSON_NORMALIZE_ADAPTER: ClassVar[TypeAdapter[JsonValue]] = TypeAdapter(
+            JsonValue,
         )
 
 

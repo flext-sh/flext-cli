@@ -13,17 +13,15 @@ from __future__ import annotations
 import sys
 from typing import ClassVar, Literal, Self, overload, override
 
-from flext_core import FlextLogger, r
+from flext_core import r
 from rich.console import Console
 from rich.errors import ConsoleError, StyleError
 from rich.tree import Tree as RichTree
 
-from flext_cli import c
-
-_logger = FlextLogger(__name__)
+from flext_cli import FlextCliServiceBase, c
 
 
-class FlextCliFormatters:
+class FlextCliFormatters(FlextCliServiceBase):
     """Thin Rich formatters facade - delegates to Rich library directly.
 
     Business Rules:
@@ -76,8 +74,8 @@ class FlextCliFormatters:
 
     console: ClassVar[Console] = Console()
 
-    @staticmethod
-    def create_tree(label: str) -> r[FlextCliFormatters.Tree]:
+    @classmethod
+    def create_tree(cls, label: str) -> r[FlextCliFormatters.Tree]:
         """Create Rich tree wrapped for optional return use (add() returns None by default).
 
         Args:
@@ -94,13 +92,17 @@ class FlextCliFormatters:
             tree = RichTree(label)
             return r[FlextCliFormatters.Tree].ok(FlextCliFormatters.Tree(tree))
         except ConsoleError as exc:
-            _logger.warning("rich_tree_creation_failed", error=str(exc), label=label)
+            cls._get_or_create_logger().warning(
+                "rich_tree_creation_failed",
+                error=str(exc),
+                label=label,
+            )
             return r[FlextCliFormatters.Tree].fail(
                 c.Cli.FormattersErrorMessages.TREE_CREATION_FAILED.format(error=exc),
             )
 
-    @staticmethod
-    def print(message: str, style: str | None = None) -> None:
+    @classmethod
+    def print(cls, message: str, style: str | None = None) -> None:
         """Print formatted message using Rich.
 
         Args:
@@ -112,9 +114,9 @@ class FlextCliFormatters:
 
         """
         try:
-            FlextCliFormatters.console.print(message, style=style)
+            cls.console.print(message, style=style)
         except (ConsoleError, StyleError) as exc:
-            _logger.warning(
+            cls._get_or_create_logger().warning(
                 "rich_print_fallback",
                 error=str(exc),
                 message_length=len(message),

@@ -14,9 +14,9 @@ from abc import ABC
 from collections.abc import Mapping
 from typing import override
 
-from flext_core import s
+from flext_core import FlextSettings, s
 
-from flext_cli import FlextCliSettings, m, p, t
+from flext_cli import FlextCliSettings, t
 
 
 class FlextCliServiceBase(s[Mapping[str, t.Cli.JsonValue]], ABC):
@@ -27,28 +27,10 @@ class FlextCliServiceBase(s[Mapping[str, t.Cli.JsonValue]], ABC):
     """
 
     @property
-    def cli_config(self) -> FlextCliSettings:
-        """Return the shared `FlextCliSettings` singleton with full type support."""
-        return FlextCliSettings.get_global()
-
     @override
-    @classmethod
-    def _runtime_bootstrap_options(cls) -> p.RuntimeBootstrapOptions | None:
-        """Return runtime bootstrap options for CLI services.
-
-        Business Rule: This method provides runtime bootstrap configuration for
-        all CLI services, ensuring they use FlextCliSettings as the configuration
-        type. This enables proper DI integration and namespace access.
-
-        Implication: All services extending FlextCliServiceBase automatically
-        use FlextCliSettings for their runtime configuration, ensuring consistent
-        configuration handling across all CLI services.
-
-        Returns:
-            Runtime bootstrap options with config_type set to FlextCliSettings
-
-        """
-        return m.RuntimeBootstrapOptions(config_type=FlextCliSettings)
+    def settings(self) -> FlextCliSettings:
+        """Return the typed CLI settings namespace."""
+        return FlextSettings.get_global().get_namespace("cli", FlextCliSettings)
 
 
 __all__ = ["FlextCliServiceBase", "s"]

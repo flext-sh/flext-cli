@@ -144,10 +144,16 @@ class TestsCliConfigIntegration:
 
     def test_flext_cli_integration(self) -> None:
         """Test cli uses config."""
-        instance = cli()
-        config = instance.config
+        instance = cli
+        config = instance.settings
         tm.that(config, none=False)
         tm.that(config, is_=FlextCliSettings)
+
+    def test_flext_cli_settings_namespace(self) -> None:
+        """Test cli exposes direct namespaced settings access."""
+        settings = cli.settings
+        tm.that(settings, none=False)
+        tm.that(settings, is_=FlextCliSettings)
 
     def test_config_inheritance(self) -> None:
         """Test inheritance from BaseSettings (Pydantic v2)."""

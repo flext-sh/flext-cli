@@ -11,13 +11,12 @@ from collections.abc import (
     Mapping,
     MutableMapping,
 )
+from typing import override
 
-from flext_cli import FlextCliFormatters, c, t, u
-
-_FORMATTER = FlextCliFormatters()
+from flext_cli import FlextCliFormatters, FlextCliServiceBase, c, t, u
 
 
-class FlextCliOutput:
+class FlextCliOutput(FlextCliServiceBase):
     """CLI output tools for the flext ecosystem.
 
     Provides a unified output API while delegating to specialized
@@ -56,6 +55,7 @@ class FlextCliOutput:
         msg = f"default must be instance of {type_name}, got {default_type_name}"
         raise TypeError(msg)
 
+    @override
     @staticmethod
     def ensure_str(value: t.Cli.JsonValue | None, default: str = "") -> str:
         """Ensure value is str with default."""
@@ -147,7 +147,7 @@ class FlextCliOutput:
         validated_style = FlextCliOutput.ensure_str(
             style, c.Cli.OutputDefaults.EMPTY_STYLE
         )
-        _FORMATTER.print(message, style=validated_style)
+        FlextCliFormatters.print(message, style=validated_style)
 
 
 __all__ = ["FlextCliOutput"]

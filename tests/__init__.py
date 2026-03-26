@@ -61,6 +61,7 @@ if TYPE_CHECKING:
         test_read_confirmation_input_paths,
     )
     from tests.unit.test_protocols import TestsCliProtocols
+    from tests.unit.test_tables import TestsCliTables
     from tests.unit.test_typings import TestsCliTypings
     from tests.unit.test_utilities_cov import (
         test_process_fail_and_collect_paths,
@@ -97,6 +98,7 @@ _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
     "TestsCliPrompts": ["tests.unit.test_prompts", "TestsCliPrompts"],
     "TestsCliProtocols": ["tests.unit.test_protocols", "TestsCliProtocols"],
     "TestsCliServiceBase": ["tests.unit.test_base", "TestsCliServiceBase"],
+    "TestsCliTables": ["tests.unit.test_tables", "TestsCliTables"],
     "TestsCliTypings": ["tests.unit.test_typings", "TestsCliTypings"],
     "TestsCliVersion": ["tests.unit.test_version", "TestsCliVersion"],
     "c": ["tests.constants", "FlextCliTestConstants"],
@@ -190,6 +192,7 @@ __all__ = [
     "TestsCliPrompts",
     "TestsCliProtocols",
     "TestsCliServiceBase",
+    "TestsCliTables",
     "TestsCliTypings",
     "TestsCliVersion",
     "c",

@@ -17,11 +17,8 @@ from pathlib import Path
 from flext_core import r
 from pydantic import TypeAdapter, ValidationError
 
-from flext_cli import FlextCliTables, cli, m, t
-
-cli = cli()
-tables = FlextCliTables()
-
+from examples import m, t
+from flext_cli import cli
 
 # ============================================================================
 # PATTERN 1: JSON config files in YOUR application
@@ -121,10 +118,7 @@ def export_database_report(
     format_type: str = "grid",
 ) -> bool | None:
     """Export database query results in YOUR reporting tool."""
-    # Create ASCII table (for logs, emails, markdown docs)
-    # Create table config with specified format
-    config = m.Cli.TableConfig(table_format=format_type)
-    table_result = tables.create_table(records, config=config)
+    table_result = cli.format_table(records, table_format=format_type)
 
     if table_result.is_failure:
         cli.print(f"❌ Table creation failed: {table_result.error}", style="bold red")
@@ -209,11 +203,13 @@ def validate_and_import_data(input_file: Path) -> r[m.Cli.LoadedConfig]:
         return r[m.Cli.LoadedConfig].fail(read_result.error or "Read failed")
 
     data = read_result.value
+    if not isinstance(data, Mapping):
+        return r[m.Cli.LoadedConfig].fail("Input data must be a mapping")
 
     required_fields = ["id", "name", "value"]
     for field in required_fields:
         if field not in data:
-            return r.fail(f"Missing required field: {field}")
+            return r[m.Cli.LoadedConfig].fail(f"Missing required field: {field}")
 
     cli.print("✅ Data validated successfully", style="green")
     return r[m.Cli.LoadedConfig].ok(
@@ -479,41 +475,45 @@ def process_file_pipeline(
 
     # Step 1: Validate input file exists and is readable
     if not input_file.exists():
-        result = r.fail(f"File not found: {input_file}")
+        result = r[Mapping[str, t.Cli.JsonValue]].fail(f"File not found: {input_file}")
     elif not input_file.is_file():
-        result = r.fail(f"Not a file: {input_file}")
+        result = r[Mapping[str, t.Cli.JsonValue]].fail(f"Not a file: {input_file}")
     else:
         cli.print("✅ Input validation passed", style="green")
 
         # Step 2: Read file content (dict-only, no narrowing)
         read_result = cli.read_json_file(input_file)
         if read_result.is_failure:
-            result = r.fail(
+            result = r[Mapping[str, t.Cli.JsonValue]].fail(
                 f"File read failed: {read_result.error}",
             )
         else:
             data = read_result.value
             cli.print("✅ File read successfully", style="green")
-
-            transformed_data = validate_and_transform_data(data)
-            cli.print("✅ Data validation/transform passed", style="green")
-
-            output_result = generate_output_files(transformed_data, output_dir)
-            if output_result.is_failure:
-                result = r.fail(
-                    output_result.error or "Unknown error",
+            if not isinstance(data, Mapping):
+                result = r[Mapping[str, t.Cli.JsonValue]].fail(
+                    "File content must be a mapping",
                 )
             else:
-                results = output_result.value
-                cli.print("✅ Output files generated", style="green")
+                transformed_data = validate_and_transform_data(data)
+                cli.print("✅ Data validation/transform passed", style="green")
 
-                summary = create_processing_summary(results)
-                cli.print("✅ Processing summary created", style="green")
-                cli.print(
-                    "🎉 File processing pipeline completed successfully!",
-                    style="bold green",
-                )
-                result = r.ok(summary)
+                output_result = generate_output_files(transformed_data, output_dir)
+                if output_result.is_failure:
+                    result = r[Mapping[str, t.Cli.JsonValue]].fail(
+                        output_result.error or "Unknown error",
+                    )
+                else:
+                    results = output_result.value
+                    cli.print("✅ Output files generated", style="green")
+
+                    summary = create_processing_summary(results)
+                    cli.print("✅ Processing summary created", style="green")
+                    cli.print(
+                        "🎉 File processing pipeline completed successfully!",
+                        style="bold green",
+                    )
+                    result = r[Mapping[str, t.Cli.JsonValue]].ok(summary)
 
     if result.is_failure:
         cli.print(f"❌ Pipeline failed: {result.error}", style="bold red")

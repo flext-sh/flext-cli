@@ -8,14 +8,14 @@ WHEN TO USE THIS:
 - Need configuration validation
 
 FLEXT-CLI PROVIDES:
-- FlextCliSettings - Configuration management class
-- cli.config - Access to current config settings
+- cli - Configuration management class
+- cli.settings - Direct access to current config settings
 - Environment variable loading (FLEXT_*)
 - Built-in validation with r
 - Profile-based configuration
 
 HOW TO USE IN YOUR CLI:
-Access config settings through cli.config and customize for YOUR application
+Access config settings through cli.settings and customize for YOUR application
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -31,23 +31,25 @@ from pathlib import Path
 
 from flext_core import r
 
-from examples import AppConfigAdvanced, MyAppConfig, display_config_table
-from flext_cli import FlextCliSettings, cli, m, t, u
+from examples import m, t, u
+from flext_cli import FlextCliSettings, cli
 
 
 def get_cli_settings() -> FlextCliSettings:
     """Access flext-cli config settings in YOUR application."""
+    settings = cli.settings
     cli.print("📋 Current Configuration:", style="bold cyan")
-    cli.print(f"   Debug Mode: {cli.debug}", style="cyan")
-    cli.print(f"   Log Level: {cli.cli_log_level}", style="cyan")
-    cli.print(f"   Output Format: {cli.output_format}", style="cyan")
-    cli.print(f"   App Name: {cli.app_name}", style="cyan")
-    return cli
+    cli.print(f"   Debug Mode: {settings.debug}", style="cyan")
+    cli.print(f"   Log Level: {settings.cli_log_level}", style="cyan")
+    cli.print(f"   Output Format: {settings.output_format}", style="cyan")
+    cli.print(f"   App Name: {settings.project_name}", style="cyan")
+    return settings
 
 
 def load_environment_config() -> m.Cli.DisplayData:
     """Load environment-specific config in YOUR tool. Returns DisplayData model."""
-    debug_mode = cli.debug
+    cli_settings = cli.settings
+    debug_mode = cli_settings.debug
     if debug_mode:
         cli.print("🔧 Debug mode - using development settings", style="bold yellow")
         api_url = "https://api.staging.example.com"
@@ -63,8 +65,8 @@ def load_environment_config() -> m.Cli.DisplayData:
             "Debug": str(debug_mode),
         },
     )
-    cli.print(f"🌍 {cli.app_name} Configuration", style="bold cyan")
-    display_config_table(cli=cli, config_data=settings)
+    cli.print(f"🌍 {cli_settings.project_name} Configuration", style="bold cyan")
+    u.display_config_table(config_data=settings)
     return settings
 
 
@@ -72,7 +74,7 @@ def show_config_locations() -> m.Cli.DisplayData:
     """Display config file locations for YOUR application. Returns DisplayData model."""
     home_dir = Path.home()
     config_dir = home_dir / ".flext"
-    token_file_str = cli.token_file or ""
+    token_file_str = cli.settings.token_file or ""
     token_file_path = Path(token_file_str)
     locations = {
         "Home Directory": str(home_dir),
@@ -81,8 +83,7 @@ def show_config_locations() -> m.Cli.DisplayData:
         "Token Exists": "Yes" if token_file_path.exists() else "No",
     }
     display_payload = m.Cli.DisplayData(data=locations)
-    display_config_table(
-        cli=cli,
+    u.display_config_table(
         config_data=display_payload,
         headers=["Location", "Path"],
     )
@@ -90,11 +91,14 @@ def show_config_locations() -> m.Cli.DisplayData:
 
 
 def load_profile_config(profile_name: str = "default") -> r[FlextCliSettings]:
-    """Load profile-specific config in YOUR tool. Returns r[FlextCliSettings]; no None."""
+    """Load profile-specific config in YOUR tool. Returns r[FlextCliSettings]."""
     cli.print(f"📋 Loading profile: {profile_name}", style="bold cyan")
-    profile_config = FlextCliSettings(
-        debug=profile_name == "development",
-        output_format="json" if profile_name == "production" else "table",
+    profile_config = cli.settings.model_copy(
+        update={
+            "debug": profile_name == "development",
+            "output_format": "json" if profile_name == "production" else "table",
+        },
+        deep=True,
     )
     validate_result = u.Cli.CliValidation.v_format(profile_config.output_format)
     if validate_result.is_failure:
@@ -112,7 +116,7 @@ def load_profile_config(profile_name: str = "default") -> r[FlextCliSettings]:
         "Output": profile_config.output_format,
         "App Name": profile_config.app_name,
     }
-    display_config_table(cli=cli, config_data=m.Cli.DisplayData(data=profile_data))
+    u.display_config_table(config_data=m.Cli.DisplayData(data=profile_data))
     return r[FlextCliSettings].ok(profile_config)
 
 
@@ -141,9 +145,10 @@ def show_environment_variables() -> None:
 
 def validate_app_config() -> bool:
     """Validate configuration in YOUR application startup."""
+    settings = cli.settings
     cli.print("🔍 Validating Configuration...", style="bold cyan")
     cli.print("\n1. Validating base configuration...", style="cyan")
-    validate_result = u.Cli.CliValidation.v_format(cli.output_format)
+    validate_result = u.Cli.CliValidation.v_format(settings.output_format)
     if validate_result.is_failure:
         cli.print(
             f"   ❌ Base config invalid: {validate_result.error}",
@@ -152,7 +157,7 @@ def validate_app_config() -> bool:
         return False
     cli.print("   ✅ Base config valid", style="green")
     cli.print("\n2. Validating custom settings...", style="cyan")
-    app_config = MyAppConfig()
+    app_config = m.MyAppConfig()
     if not app_config.validate_config(cli):
         cli.print("   ❌ Custom config invalid", style="bold red")
         return False
@@ -166,7 +171,7 @@ def validate_app_config() -> bool:
 def load_application_config() -> r[Mapping[str, t.Cli.JsonValue]]:
     """Load and validate application configuration from environment."""
     cli.print("\n⚙️  Loading Application Configuration:", style="bold cyan")
-    config_obj = AppConfigAdvanced()
+    config_obj = m.AppConfigAdvanced()
     cli.print("✅ Config t.NormalizedValue created", style="green")
     validate_result = config_obj.validate_to_mapping()
     if validate_result.is_failure:
@@ -227,7 +232,7 @@ def main() -> None:
     cli.print("\n2. Environment Config (deployment settings):", style="bold cyan")
     _ = load_environment_config()
     cli.print("\n3. Custom Config Class (app-specific):", style="bold cyan")
-    app_config = MyAppConfig()
+    app_config = m.MyAppConfig()
     _ = app_config.validate_config(cli)
     app_config.display(cli)
     cli.print("\n4. Config Locations (file paths):", style="bold cyan")
@@ -244,16 +249,17 @@ def main() -> None:
         final_config = config_result.value
         final_config_data = {k: str(v) for k, v in final_config.items()}
         cli.print("Final Application Configuration", style="bold cyan")
-        display_config_table(
-            cli=cli,
+        u.display_config_table(
             config_data=m.Cli.DisplayData(data=final_config_data),
         )
     cli.print("\n" + "=" * 70, style="bold blue")
     cli.print("  ✅ Configuration Examples Complete", style="bold green")
     cli.print("=" * 70, style="bold blue")
     cli.print("\n💡 Integration Tips:", style="bold cyan")
-    cli.print("  • Access config: Use cli.config for built-in settings", style="white")
-    cli.print("  • Custom config: Extend FlextCliSettings for your app", style="white")
+    cli.print(
+        "  • Access config: Use cli.settings for built-in settings", style="white"
+    )
+    cli.print("  • Custom config: Extend cli for your app", style="white")
     cli.print("  • Validation: Use config.validate_business_rules()", style="white")
     cli.print("  • Environment: Use FLEXT_* env vars for configuration", style="white")
 

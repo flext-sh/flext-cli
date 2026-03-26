@@ -13,97 +13,49 @@ from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
 if TYPE_CHECKING:
     from flext_core import FlextTypes
 
-    from examples import plugins
-    from examples.example_utils import (
-        display_config_table,
-        display_success_summary,
-        display_validation_errors,
-        handle_command_result,
-        print_demo_completion,
-        print_demo_error,
-        to_json_dict,
-    )
-    from examples.models import (
-        AdvancedDatabaseConfig,
-        AppConfigAdvanced,
-        AppConfigNested,
-        AppWizardConfig,
-        DatabaseConfig,
-        DatabaseWizardConfig,
-        DeployConfig,
-        MyAppConfig,
-        NumericPromptResult,
-    )
-    from examples.plugins.example_plugin import (
-        DataProcessorPlugin,
-        ExamplePlugin,
-        demonstrate_plugin_commands,
-    )
-    from examples.plugins.protocols import (
-        CliMainWithGroups,
-        FlextCliProtocols,
-        GroupWithCommands,
-        p,
-    )
+    from examples.constants import ExamplesConstants, ExamplesConstants as c
+    from examples.models import ExamplesModels, ExamplesModels as m
+    from examples.protocols import ExamplesProtocols, ExamplesProtocols as p
+    from examples.typings import ExamplesTypes, ExamplesTypes as t
+    from examples.utilities import ExamplesUtilities, ExamplesUtilities as u
+    from flext_cli import d, e, h, r, s, x
 
 _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
-    "AdvancedDatabaseConfig": ["examples.models", "AdvancedDatabaseConfig"],
-    "AppConfigAdvanced": ["examples.models", "AppConfigAdvanced"],
-    "AppConfigNested": ["examples.models", "AppConfigNested"],
-    "AppWizardConfig": ["examples.models", "AppWizardConfig"],
-    "CliMainWithGroups": ["examples.plugins.protocols", "CliMainWithGroups"],
-    "DataProcessorPlugin": ["examples.plugins.example_plugin", "DataProcessorPlugin"],
-    "DatabaseConfig": ["examples.models", "DatabaseConfig"],
-    "DatabaseWizardConfig": ["examples.models", "DatabaseWizardConfig"],
-    "DeployConfig": ["examples.models", "DeployConfig"],
-    "ExamplePlugin": ["examples.plugins.example_plugin", "ExamplePlugin"],
-    "FlextCliProtocols": ["examples.plugins.protocols", "FlextCliProtocols"],
-    "GroupWithCommands": ["examples.plugins.protocols", "GroupWithCommands"],
-    "MyAppConfig": ["examples.models", "MyAppConfig"],
-    "NumericPromptResult": ["examples.models", "NumericPromptResult"],
-    "demonstrate_plugin_commands": [
-        "examples.plugins.example_plugin",
-        "demonstrate_plugin_commands",
-    ],
-    "display_config_table": ["examples.example_utils", "display_config_table"],
-    "display_success_summary": ["examples.example_utils", "display_success_summary"],
-    "display_validation_errors": [
-        "examples.example_utils",
-        "display_validation_errors",
-    ],
-    "handle_command_result": ["examples.example_utils", "handle_command_result"],
-    "p": ["examples.plugins.protocols", "p"],
-    "plugins": ["examples.plugins", ""],
-    "print_demo_completion": ["examples.example_utils", "print_demo_completion"],
-    "print_demo_error": ["examples.example_utils", "print_demo_error"],
-    "to_json_dict": ["examples.example_utils", "to_json_dict"],
+    "ExamplesConstants": ["examples.constants", "ExamplesConstants"],
+    "ExamplesModels": ["examples.models", "ExamplesModels"],
+    "ExamplesProtocols": ["examples.protocols", "ExamplesProtocols"],
+    "ExamplesTypes": ["examples.typings", "ExamplesTypes"],
+    "ExamplesUtilities": ["examples.utilities", "ExamplesUtilities"],
+    "c": ["examples.constants", "ExamplesConstants"],
+    "d": ["flext_cli", "d"],
+    "e": ["flext_cli", "e"],
+    "h": ["flext_cli", "h"],
+    "m": ["examples.models", "ExamplesModels"],
+    "p": ["examples.protocols", "ExamplesProtocols"],
+    "r": ["flext_cli", "r"],
+    "s": ["flext_cli", "s"],
+    "t": ["examples.typings", "ExamplesTypes"],
+    "u": ["examples.utilities", "ExamplesUtilities"],
+    "x": ["flext_cli", "x"],
 }
 
 __all__ = [
-    "AdvancedDatabaseConfig",
-    "AppConfigAdvanced",
-    "AppConfigNested",
-    "AppWizardConfig",
-    "CliMainWithGroups",
-    "DataProcessorPlugin",
-    "DatabaseConfig",
-    "DatabaseWizardConfig",
-    "DeployConfig",
-    "ExamplePlugin",
-    "FlextCliProtocols",
-    "GroupWithCommands",
-    "MyAppConfig",
-    "NumericPromptResult",
-    "demonstrate_plugin_commands",
-    "display_config_table",
-    "display_success_summary",
-    "display_validation_errors",
-    "handle_command_result",
+    "ExamplesConstants",
+    "ExamplesModels",
+    "ExamplesProtocols",
+    "ExamplesTypes",
+    "ExamplesUtilities",
+    "c",
+    "d",
+    "e",
+    "h",
+    "m",
     "p",
-    "plugins",
-    "print_demo_completion",
-    "print_demo_error",
-    "to_json_dict",
+    "r",
+    "s",
+    "t",
+    "u",
+    "x",
 ]
 
 
