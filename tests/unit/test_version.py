@@ -62,21 +62,21 @@ class TestsCliVersion:
                     default=None,
                     description="Version string under test",
                 ),
-            ]
+            ] = None
             version_info: Annotated[
                 tuple[int | str, ...] | None,
                 Field(
                     default=None,
                     description="Version info tuple under test",
                 ),
-            ]
+            ] = None
             should_pass: Annotated[
                 bool,
                 Field(
                     default=True,
                     description="Whether scenario should pass validation",
                 ),
-            ]
+            ] = True
 
             @property
             def validation_type(self) -> TestsCliVersion.ValidationType:

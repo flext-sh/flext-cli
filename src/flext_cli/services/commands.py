@@ -25,7 +25,7 @@ class FlextCliCommands(FlextCliServiceBase):
     _name: str = PrivateAttr(default=c.Cli.CommandsDefaults.DEFAULT_NAME)
     _description: str = PrivateAttr(default=c.Cli.CommandsDefaults.DEFAULT_DESCRIPTION)
     _commands: MutableMapping[str, m.Cli.CommandEntryModel] = PrivateAttr(
-        default_factory=lambda: {},
+        default_factory=dict[str, m.Cli.CommandEntryModel],
     )
 
     @classmethod

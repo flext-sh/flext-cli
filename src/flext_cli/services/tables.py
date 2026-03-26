@@ -91,14 +91,11 @@ class FlextCliTables(FlextCliServiceBase):
             if isinstance(row, Mapping):
                 normalized_rows.append(FlextCliTables._normalize_mapping_row(row))
                 continue
-            if isinstance(row, Sequence) and not isinstance(row, str):
-                normalized_rows.append([
-                    u.Cli.normalize_json_value(value) for value in row
-                ])
-                continue
-            return r[Sequence[t.Cli.TableRow]].fail(
-                "Table data must be a mapping or a sequence of mappings/sequences",
-            )
+            if isinstance(row, str):
+                return r[Sequence[t.Cli.TableRow]].fail(
+                    "Table data must be a mapping or a sequence of mappings/sequences",
+                )
+            normalized_rows.append([u.Cli.normalize_json_value(value) for value in row])
         return r[Sequence[t.Cli.TableRow]].ok(normalized_rows)
 
     @staticmethod
@@ -120,7 +117,7 @@ class FlextCliTables(FlextCliServiceBase):
         headers: str | t.StrSequence,
     ) -> int:
         """Compute effective column count for alignment settings."""
-        if isinstance(headers, Sequence) and not isinstance(headers, str):
+        if not isinstance(headers, str):
             return len(headers)
         if not rows:
             return 0

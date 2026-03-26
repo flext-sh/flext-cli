@@ -16,7 +16,7 @@ from __future__ import annotations
 from flext_core import r
 from flext_tests import tm
 
-from flext_cli import FlextCliCommands, c, m
+from flext_cli import FlextCliCommands, c, m, t
 
 from ..helpers import CommandsFactory
 
@@ -118,10 +118,11 @@ class TestsCliCommands:
     def test_execute_command_handler_not_callable(self) -> None:
         """Test execute_command with non-callable handler."""
         commands = CommandsFactory.create_commands()
-        bad_entry = m.Cli.CommandEntryModel.model_construct(
+        bad_entry = m.Cli.CommandEntryModel(
             name="bad_cmd",
-            handler="not_callable",
+            handler=lambda: r[t.Cli.JsonValue].ok("ok"),
         )
+        object.__setattr__(bad_entry, "handler", "not_callable")
         commands._commands["bad_cmd"] = bad_entry
         result = commands.execute_command("bad_cmd")
         tm.fail(result)
@@ -138,10 +139,11 @@ class TestsCliCommands:
     def test_execute_command_invalid_structure(self) -> None:
         """Test execute_command with invalid command structure."""
         commands = CommandsFactory.create_commands()
-        invalid_entry = m.Cli.CommandEntryModel.model_construct(
+        invalid_entry = m.Cli.CommandEntryModel(
             name="bad_cmd",
-            handler=None,
+            handler=lambda: r[t.Cli.JsonValue].ok("ok"),
         )
+        object.__setattr__(invalid_entry, "handler", None)
         commands._commands["bad_cmd"] = invalid_entry
         result = commands.execute_command("bad_cmd")
         tm.fail(result)
