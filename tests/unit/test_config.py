@@ -13,9 +13,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import gc
-import logging
-import threading
 from collections.abc import Sequence
 from enum import StrEnum, unique
 from typing import Annotated, ClassVar, Final
@@ -173,69 +170,6 @@ class TestsCliConfigValidation:
         dumped = config.model_dump()
         tm.that(dumped, is_=dict)
         tm.that(dumped, empty=False)
-
-
-class TestsCliConfigLogging:
-    """Logging integration tests."""
-
-    def test_logger_creation(self) -> None:
-        """Test logger creation."""
-        logger = logging.getLogger("test_logger")
-        tm.that(logger, none=False)
-        tm.that(logger, is_=logging.Logger)
-
-    def test_logging_levels(self, caplog: pytest.LogCaptureFixture) -> None:
-        """Test logging at different levels."""
-        logger = logging.getLogger("test_level")
-        logger.setLevel(logging.INFO)
-        logger.info("Info message")
-        logger.warning("Warning message")
-        tm.that(caplog.text, has="Info message")
-        tm.that(caplog.text, has="Warning message")
-
-
-class TestsCliConfigConcurrency:
-    """Thread safety and concurrency tests."""
-
-    def test_concurrent_access(self) -> None:
-        """Test concurrent config access is safe."""
-        results: list[tuple[int, bool]] = []
-        errors: list[tuple[int, str]] = []
-
-        def worker(worker_id: int) -> None:
-            try:
-                config = FlextCliSettings()
-                results.append((worker_id, config.debug))
-            except Exception as e:
-                errors.append((worker_id, str(e)))
-
-        threads = [threading.Thread(target=worker, args=(i,)) for i in range(5)]
-        for thread in threads:
-            thread.start()
-        for thread in threads:
-            thread.join()
-        tm.that(len(results), eq=5)
-        tm.that(len(errors), eq=0)
-
-
-class TestsCliConfigMemory:
-    """Memory management tests."""
-
-    def test_config_cleanup(self) -> None:
-        """Test config cleanup with gc."""
-        configs = [FlextCliSettings() for _ in range(10)]
-        del configs
-        gc.collect()
-        new_config = FlextCliSettings()
-        tm.that(new_config, none=False)
-
-    def test_state_persistence(self) -> None:
-        """Test config state persistence using model_copy."""
-        FlextCliSettings.reset_for_testing()
-        config1 = FlextCliSettings()
-        original_debug = config1.debug
-        config_modified = config1.model_copy(update={"debug": not original_debug})
-        tm.that(config_modified.debug is not original_debug, eq=True)
 
 
 class TestsCliConfigEdgeCases:

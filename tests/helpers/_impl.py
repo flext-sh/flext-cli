@@ -8,46 +8,8 @@ from __future__ import annotations
 
 import logging
 import re
-from collections.abc import Sequence
-from typing import Final, TypeIs
 
 from flext_core import r
-
-from flext_cli import t
-
-
-def _is_json_dict(value: t.NormalizedValue) -> TypeIs[t.ContainerMapping]:
-    """TypeGuard: narrow t.NormalizedValue to dict for JSON shape."""
-    return isinstance(value, dict)
-
-
-def _is_json_list(value: t.NormalizedValue) -> TypeIs[t.ContainerList]:
-    """TypeGuard: narrow t.NormalizedValue to list for JSON array shape."""
-    return isinstance(value, list)
-
-
-class TestScenario:
-    """Enum-like class for test scenarios."""
-
-    class ConfigScenarios:
-        """Configuration test scenarios."""
-
-        REQUIRED_FIELDS: Final[str] = "required_fields"
-        OPTIONAL_FIELDS: Final[str] = "optional_fields"
-        WITH_DEFAULTS: Final[str] = "with_defaults"
-        WITH_ENV_VARS: Final[str] = "with_env_vars"
-        WITH_NONE_VALUES: Final[str] = "with_none_values"
-        MISSING_ENV_VAR: Final[str] = "missing_env_var"
-
-    class ParamsScenarios:
-        """Parameter test scenarios."""
-
-        WITH_ALIASES: Final[str] = "with_aliases"
-        WITH_REQUIRED: Final[str] = "with_required"
-        WITH_OPTIONAL: Final[str] = "with_optional"
-        WITH_FIELD_NAMES: Final[str] = "with_field_names"
-        WITH_MIXED_VALUES: Final[str] = "with_mixed_values"
-        FORBID_EXTRA: Final[str] = "forbid_extra"
 
 
 class FlextCliTestHelpers:
@@ -148,77 +110,5 @@ class FlextCliTestHelpers:
                 version_info,
             ))
 
-    class TypingHelpers:
-        """Helper methods for type system tests."""
 
-        @staticmethod
-        def create_processing_test_data() -> r[
-            tuple[t.StrSequence, Sequence[int], t.ContainerMapping]
-        ]:
-            """Create test data for type processing scenarios."""
-            try:
-                string_list = ["hello", "world", "test"]
-                number_list = [1, 2, 3, 4, 5]
-                mixed_dict: t.ContainerMapping = {
-                    "key1": 123,
-                    "key2": "value",
-                    "key3": True,
-                    "key4": [1, 2, 3],
-                }
-                return r[tuple[t.StrSequence, Sequence[int], t.ContainerMapping]].ok((
-                    string_list,
-                    number_list,
-                    mixed_dict,
-                ))
-            except (ValueError, TypeError) as e:
-                return r[tuple[t.StrSequence, Sequence[int], t.ContainerMapping]].fail(
-                    f"Failed to create processing test data: {e!s}",
-                )
-
-        @staticmethod
-        def create_typed_dict_data() -> r[t.ContainerMapping]:
-            """Create typed dict test data."""
-            try:
-                user_data: t.ContainerMapping = {
-                    "id": 1,
-                    "name": "John Doe",
-                    "email": "john@example.com",
-                    "active": True,
-                }
-                return r[t.ContainerMapping].ok(user_data)
-            except (ValueError, TypeError) as e:
-                return r[t.ContainerMapping].fail(
-                    f"Failed to create typed dict data: {e!s}",
-                )
-
-        @staticmethod
-        def create_api_response_data() -> r[Sequence[t.ContainerMapping]]:
-            """Create API response test data."""
-            try:
-                users_data: Sequence[t.ContainerMapping] = [
-                    {
-                        "id": 1,
-                        "name": "Alice",
-                        "email": "alice@example.com",
-                        "active": True,
-                    },
-                    {
-                        "id": 2,
-                        "name": "Bob",
-                        "email": "bob@example.com",
-                        "active": False,
-                    },
-                ]
-                return r[Sequence[t.ContainerMapping]].ok(users_data)
-            except (ValueError, TypeError) as e:
-                return r[Sequence[t.ContainerMapping]].fail(
-                    f"Failed to create API response data: {e!s}",
-                )
-
-
-__all__ = [
-    "FlextCliTestHelpers",
-    "TestScenario",
-    "_is_json_dict",
-    "_is_json_list",
-]
+__all__ = ["FlextCliTestHelpers"]

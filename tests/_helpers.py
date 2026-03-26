@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
-
 from flext_core import r
 
 from flext_cli import FlextCliCommands, t
@@ -63,12 +61,3 @@ class CommandsFactory:
             return r[t.Cli.JsonValue].fail(error_message)
 
         return commands.register_command(command_name, handler)
-
-
-def generate_edge_case_data() -> Sequence[dict[str, t.ContainerValue]]:
-    """Generate comprehensive edge case test data."""
-    return [
-        {"name": "a"},
-        {"name": "a" * 100},
-        {"name": "test_123"},
-    ]

@@ -50,13 +50,6 @@ class FlextCliTestConstants(FlextTestsConstants, FlextCliConstants):
 
             TWO: Final[t.StrSequence] = ["item1", "item2"]
 
-            class Environment:
-                """Test environment constants."""
-
-                PYTEST_CURRENT_TEST: Final[str] = "PYTEST_CURRENT_TEST"
-                PYTEST_BINARY: Final[str] = "pytest"
-                CI_VALUE: Final[str] = "true"
-
             class PasswordDefaults:
                 """Password validation constants."""
 
@@ -65,7 +58,6 @@ class FlextCliTestConstants(FlextTestsConstants, FlextCliConstants):
             class TestData:
                 """Test data constants for test modules."""
 
-                CUSTOM: Final[int] = 42
                 TWO: Final[int] = 2
                 PASSWORD: Final[str] = "test_password_123"
                 LONG: Final[str] = (
@@ -73,54 +65,6 @@ class FlextCliTestConstants(FlextTestsConstants, FlextCliConstants):
                 )
                 SPECIAL: Final[str] = "!@#$%^&*()"
                 UNICODE: Final[str] = "你好世界🌍"
-                PERFORMANCE_THRESHOLD: Final[float] = 1.0
-                ALICE: Final[str] = "alice"
-                VALID_FIELD_NAME: Final[str] = "validField"
-                FIELD_NAME: Final[str] = "field"
-                WHITESPACE_FIELD_NAME: Final[str] = "field with spaces"
-                VALID_STRING: Final[str] = "valid_string"
-                STRING: Final[str] = "string"
-                WHITESPACE_STRING: Final[str] = "string with spaces"
-                NONE_VALUE: Final[None] = None
-
-            class TestErrors:
-                """Flext-cli-specific error message patterns for validation."""
-
-                PROCESSING_ERROR: Final[str] = "Processing error occurred"
-                COMMAND_FAILED: Final[str] = "Command failed"
-                INVALID_FORMAT: Final[str] = "Invalid format"
-                MISSING_ARGUMENT: Final[str] = "Missing required argument"
-
-            class Commands:
-                """Test command names."""
-
-                TEST_CMD: Final[str] = "test-command"
-                HELP_CMD: Final[str] = "help"
-                VERSION_CMD: Final[str] = "version"
-
-            class Formats:
-                """Test output formats."""
-
-                JSON: Final[str] = "json"
-                YAML: Final[str] = "yaml"
-                TABLE: Final[str] = "table"
-                PLAIN: Final[str] = "plain"
-
-            class MixinsFieldNames:
-                """Field name constants for validation messages."""
-
-                OUTPUT_FORMAT: Final[str] = "output format"
-                LOG_LEVEL: Final[str] = "log level"
-                STATUS: Final[str] = "status"
-                PIPELINE_STEP_NAME: Final[str] = "name"
-
-            class Status:
-                """Test command statuses."""
-
-                SUCCESS: Final[str] = "success"
-                FAILURE: Final[str] = "failure"
-                PENDING: Final[str] = "pending"
-                RUNNING: Final[str] = "running"
 
 
 c = FlextCliTestConstants

@@ -41,16 +41,12 @@ if TYPE_CHECKING:
         ConfigTestScenario,
         ConfigTestType,
         TestsCliConfigBasics,
-        TestsCliConfigConcurrency,
         TestsCliConfigEdgeCases,
         TestsCliConfigIntegration,
-        TestsCliConfigLogging,
-        TestsCliConfigMemory,
         TestsCliConfigService,
         TestsCliConfigValidation,
         TestsCliLoggingConfig,
     )
-    from tests.unit.test_config_model_integration import TestsCliConfigModelIntegration
     from tests.unit.test_constants import TestsCliConstants
     from tests.unit.test_prompts import TestsCliPrompts
     from tests.unit.test_prompts_cov import (
@@ -58,8 +54,7 @@ if TYPE_CHECKING:
         test_read_confirmation_input_paths,
     )
     from tests.unit.test_protocols import TestsCliProtocols
-    from tests.unit.test_railway_pattern_example import TestsCliRailwayPatternExample
-    from tests.unit.test_typings import TestsCliTypings, TypingTestCase, TypingTestType
+    from tests.unit.test_typings import TestsCliTypings
     from tests.unit.test_utilities_cov import (
         test_process_fail_and_collect_paths,
         test_process_mapping_fail_and_collect_paths,
@@ -77,38 +72,67 @@ _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
     "TestsCliCommands": ["tests.unit.test_commands", "TestsCliCommands"],
     "TestsCliCommonParams": ["tests.unit.test_cli_params", "TestsCliCommonParams"],
     "TestsCliConfigBasics": ["tests.unit.test_config", "TestsCliConfigBasics"],
-    "TestsCliConfigConcurrency": ["tests.unit.test_config", "TestsCliConfigConcurrency"],
     "TestsCliConfigEdgeCases": ["tests.unit.test_config", "TestsCliConfigEdgeCases"],
-    "TestsCliConfigIntegration": ["tests.unit.test_config", "TestsCliConfigIntegration"],
-    "TestsCliConfigLogging": ["tests.unit.test_config", "TestsCliConfigLogging"],
-    "TestsCliConfigMemory": ["tests.unit.test_config", "TestsCliConfigMemory"],
-    "TestsCliConfigModelIntegration": ["tests.unit.test_config_model_integration", "TestsCliConfigModelIntegration"],
+    "TestsCliConfigIntegration": [
+        "tests.unit.test_config",
+        "TestsCliConfigIntegration",
+    ],
     "TestsCliConfigService": ["tests.unit.test_config", "TestsCliConfigService"],
     "TestsCliConfigValidation": ["tests.unit.test_config", "TestsCliConfigValidation"],
     "TestsCliConstants": ["tests.unit.test_constants", "TestsCliConstants"],
     "TestsCliLoggingConfig": ["tests.unit.test_config", "TestsCliLoggingConfig"],
     "TestsCliPrompts": ["tests.unit.test_prompts", "TestsCliPrompts"],
     "TestsCliProtocols": ["tests.unit.test_protocols", "TestsCliProtocols"],
-    "TestsCliRailwayPatternExample": ["tests.unit.test_railway_pattern_example", "TestsCliRailwayPatternExample"],
     "TestsCliServiceBase": ["tests.unit.test_base", "TestsCliServiceBase"],
     "TestsCliTypings": ["tests.unit.test_typings", "TestsCliTypings"],
     "TestsCliVersion": ["tests.unit.test_version", "TestsCliVersion"],
-    "TypingTestCase": ["tests.unit.test_typings", "TypingTestCase"],
-    "TypingTestType": ["tests.unit.test_typings", "TypingTestType"],
     "create_cli_app": ["tests.unit.test_cli_params", "create_cli_app"],
-    "create_decorated_command": ["tests.unit.test_cli_params", "create_decorated_command"],
+    "create_decorated_command": [
+        "tests.unit.test_cli_params",
+        "create_decorated_command",
+    ],
     "create_test_config": ["tests.unit.test_cli_params", "create_test_config"],
     "reset_config_singleton": ["tests.unit.conftest", "reset_config_singleton"],
-    "test_get_config_info_failure_on_exception": ["tests.unit.test_cmd_cov", "test_get_config_info_failure_on_exception"],
-    "test_process_fail_and_collect_paths": ["tests.unit.test_utilities_cov", "test_process_fail_and_collect_paths"],
-    "test_process_mapping_fail_and_collect_paths": ["tests.unit.test_utilities_cov", "test_process_mapping_fail_and_collect_paths"],
-    "test_prompt_logs_input_when_not_test_env": ["tests.unit.test_prompts_cov", "test_prompt_logs_input_when_not_test_env"],
-    "test_read_confirmation_input_paths": ["tests.unit.test_prompts_cov", "test_read_confirmation_input_paths"],
-    "test_show_config_failure_when_info_result_is_failure": ["tests.unit.test_cmd_cov", "test_show_config_failure_when_info_result_is_failure"],
-    "test_show_config_outer_exception_path": ["tests.unit.test_cmd_cov", "test_show_config_outer_exception_path"],
-    "test_show_config_paths_failure_on_exception": ["tests.unit.test_cmd_cov", "test_show_config_paths_failure_on_exception"],
-    "test_validate_config_failure_on_exception": ["tests.unit.test_cmd_cov", "test_validate_config_failure_on_exception"],
-    "test_validation_v_uses_custom_message_on_empty_failure": ["tests.unit.test_utilities_cov", "test_validation_v_uses_custom_message_on_empty_failure"],
+    "test_get_config_info_failure_on_exception": [
+        "tests.unit.test_cmd_cov",
+        "test_get_config_info_failure_on_exception",
+    ],
+    "test_process_fail_and_collect_paths": [
+        "tests.unit.test_utilities_cov",
+        "test_process_fail_and_collect_paths",
+    ],
+    "test_process_mapping_fail_and_collect_paths": [
+        "tests.unit.test_utilities_cov",
+        "test_process_mapping_fail_and_collect_paths",
+    ],
+    "test_prompt_logs_input_when_not_test_env": [
+        "tests.unit.test_prompts_cov",
+        "test_prompt_logs_input_when_not_test_env",
+    ],
+    "test_read_confirmation_input_paths": [
+        "tests.unit.test_prompts_cov",
+        "test_read_confirmation_input_paths",
+    ],
+    "test_show_config_failure_when_info_result_is_failure": [
+        "tests.unit.test_cmd_cov",
+        "test_show_config_failure_when_info_result_is_failure",
+    ],
+    "test_show_config_outer_exception_path": [
+        "tests.unit.test_cmd_cov",
+        "test_show_config_outer_exception_path",
+    ],
+    "test_show_config_paths_failure_on_exception": [
+        "tests.unit.test_cmd_cov",
+        "test_show_config_paths_failure_on_exception",
+    ],
+    "test_validate_config_failure_on_exception": [
+        "tests.unit.test_cmd_cov",
+        "test_validate_config_failure_on_exception",
+    ],
+    "test_validation_v_uses_custom_message_on_empty_failure": [
+        "tests.unit.test_utilities_cov",
+        "test_validation_v_uses_custom_message_on_empty_failure",
+    ],
 }
 
 __all__ = [
@@ -121,24 +145,17 @@ __all__ = [
     "TestsCliCommands",
     "TestsCliCommonParams",
     "TestsCliConfigBasics",
-    "TestsCliConfigConcurrency",
     "TestsCliConfigEdgeCases",
     "TestsCliConfigIntegration",
-    "TestsCliConfigLogging",
-    "TestsCliConfigMemory",
-    "TestsCliConfigModelIntegration",
     "TestsCliConfigService",
     "TestsCliConfigValidation",
     "TestsCliConstants",
     "TestsCliLoggingConfig",
     "TestsCliPrompts",
     "TestsCliProtocols",
-    "TestsCliRailwayPatternExample",
     "TestsCliServiceBase",
     "TestsCliTypings",
     "TestsCliVersion",
-    "TypingTestCase",
-    "TypingTestType",
     "create_cli_app",
     "create_decorated_command",
     "create_test_config",

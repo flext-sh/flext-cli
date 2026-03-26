@@ -13,8 +13,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping
-
 from flext_tests import FlextTestsTypes
 
 from flext_cli import FlextCliTypes
@@ -29,7 +27,6 @@ class FlextCliTestTypes(FlextTestsTypes, FlextCliTypes):
     Hierarchy:
     - FlextTestsTypes.Tests.* (generic test types from flext_tests)
     - FlextCliTypes.Cli.* (source types from flext_cli - INHERITED)
-    - FlextCliTestTypes.Tests.* (flext-cli-specific test types)
 
     Rules:
     - NEVER redeclare types from FlextTestsTypes or FlextCliTypes
@@ -45,22 +42,6 @@ class FlextCliTestTypes(FlextTestsTypes, FlextCliTypes):
         Only defines types that are truly flext-cli-specific.
         Dict type aliases were removed in Pydantic v2 migration - use models instead.
         """
-
-        class Tests:
-            """flext-cli-specific test type definitions namespace.
-
-            Use t.Tests.* for flext-cli-specific test types.
-            Use FlextTestsTypes.Tests.* for generic test types.
-            """
-
-            TabularData = FlextCliTypes.Cli.TabularData
-            type CliConfigMapping = Mapping[
-                str,
-                t.NormalizedValue | t.StrSequence | Mapping[str, str | int] | None,
-            ]
-            "CLI configuration mapping specific to flext-cli."
-            type CommandArgsMapping = t.ContainerMapping
-            "Command arguments mapping for CLI operations."
 
 
 t = FlextCliTestTypes

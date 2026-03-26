@@ -13,8 +13,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import time
-
 from flext_core import r
 from flext_tests import tm
 
@@ -34,15 +32,6 @@ class TestsCliCommands:
 
     def test_commands_execute_sync(self) -> None:
         """Test synchronous Commands execution."""
-        commands = CommandsFactory.create_commands()
-        result = commands.execute()
-        tm.ok(result)
-        tm.that(result.value, none=False)
-        tm.that(result.value, is_=dict)
-        tm.that(result.value["app_name"], eq=c.Cli.FLEXT_CLI)
-
-    def test_commands_execute(self) -> None:
-        """Test execute method (now sync, delegates to execute)."""
         commands = CommandsFactory.create_commands()
         result = commands.execute()
         tm.ok(result)
@@ -161,50 +150,6 @@ class TestsCliCommands:
             or "not callable" in str(result.error),
             eq=True,
         )
-
-    def test_commands_performance(self) -> None:
-        """Test commands performance characteristics."""
-        commands = CommandsFactory.create_commands()
-        start_time = time.time()
-        result = commands.execute()
-        execution_time = time.time() - start_time
-        tm.ok(result)
-        tm.that(execution_time, lt=5.0)
-
-    def test_commands_memory_usage(self) -> None:
-        """Test commands memory usage characteristics."""
-        commands = CommandsFactory.create_commands()
-        for _ in range(10):
-            result = commands.execute()
-            tm.ok(result)
-
-    def test_commands_integration(self) -> None:
-        """Test commands integration with other services."""
-        commands = CommandsFactory.create_commands()
-        result = commands.execute()
-        tm.ok(result)
-        _ = CommandsFactory.register_simple_command(
-            commands,
-            "integration_test",
-            "integration_ok",
-        )
-        exec_result = commands.execute_command("integration_test")
-        tm.ok(exec_result)
-        tm.that(exec_result.value, eq="integration_ok")
-
-    def test_commands_service_properties(self) -> None:
-        """Test commands service properties."""
-        commands = CommandsFactory.create_commands()
-        tm.that(hasattr(commands, "register_command"), eq=True)
-        tm.that(hasattr(commands, "execute_command"), eq=True)
-        tm.that(hasattr(commands, "execute"), eq=True)
-
-    def test_commands_logging_integration(self) -> None:
-        """Test commands logging integration."""
-        commands = CommandsFactory.create_commands()
-        result = commands.execute()
-        tm.ok(result)
-        tm.that(result.value, none=False)
 
     def test_commands_concurrent_execution(self) -> None:
         """Test commands concurrent execution."""

@@ -305,6 +305,7 @@ class TestsCliPrompts:
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Test prompt with empty input uses default."""
+
         def _empty_input(prompt: str) -> str:
             return ""
 
