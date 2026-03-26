@@ -22,18 +22,7 @@ from flext_cli import FlextCli, c, m, t
 
 
 class FlextCliGettingStarted:
-    """Complete getting started examples for flext-cli library usage.
-
-    Demonstrates all major flext-cli capabilities:
-    - Styled console output with Rich integration
-    - Table formatting with tabulate and Rich
-    - File I/O with JSON, YAML, CSV support
-    - Railway-oriented error handling (r)
-    - Configuration management patterns
-    - Interactive user prompts
-
-    All examples use modern Python 3.13+ features and follow FLEXT standards.
-    """
+    """Complete getting started examples for flext-cli library usage."""
 
     def __init__(self) -> None:
         """Initialize with flext-cli instance."""
@@ -41,14 +30,7 @@ class FlextCliGettingStarted:
         self.cli = FlextCli()
 
     def advanced_types_example(self) -> None:
-        """Demonstrate advanced Python 3.13+ typing patterns with flext-cli.
-
-        Shows how to use:
-        - StrEnum for runtime validation
-        - collections.abc.Mapping for immutable data
-        - PEP 695 type aliases
-        - Advanced Literal unions
-        """
+        """Demonstrate advanced Python 3.13+ typing patterns with flext-cli."""
         output_format = c.Cli.OutputFormats.JSON
         self.cli.print(f"Selected format: {output_format.value}", style="blue")
         valid_formats: tuple[str, ...] = tuple(
