@@ -71,13 +71,19 @@ _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
     "ConfigTestScenario": ["tests.unit.test_config", "ConfigTestScenario"],
     "ConfigTestType": ["tests.unit.test_config", "ConfigTestType"],
     "T": ["tests.unit.test_version", "T"],
-    "TestFlextCliExamplesSmoke": ["tests.unit.test_examples_smoke", "TestFlextCliExamplesSmoke"],
+    "TestFlextCliExamplesSmoke": [
+        "tests.unit.test_examples_smoke",
+        "TestFlextCliExamplesSmoke",
+    ],
     "TestsCliCmd": ["tests.unit.test_cmd", "TestsCliCmd"],
     "TestsCliCommands": ["tests.unit.test_commands", "TestsCliCommands"],
     "TestsCliCommonParams": ["tests.unit.test_cli_params", "TestsCliCommonParams"],
     "TestsCliConfigBasics": ["tests.unit.test_config", "TestsCliConfigBasics"],
     "TestsCliConfigEdgeCases": ["tests.unit.test_config", "TestsCliConfigEdgeCases"],
-    "TestsCliConfigIntegration": ["tests.unit.test_config", "TestsCliConfigIntegration"],
+    "TestsCliConfigIntegration": [
+        "tests.unit.test_config",
+        "TestsCliConfigIntegration",
+    ],
     "TestsCliConfigService": ["tests.unit.test_config", "TestsCliConfigService"],
     "TestsCliConfigValidation": ["tests.unit.test_config", "TestsCliConfigValidation"],
     "TestsCliConstants": ["tests.unit.test_constants", "TestsCliConstants"],
@@ -90,19 +96,52 @@ _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
     "TestsCliTypings": ["tests.unit.test_typings", "TestsCliTypings"],
     "TestsCliVersion": ["tests.unit.test_version", "TestsCliVersion"],
     "create_cli_app": ["tests.unit.test_cli_params", "create_cli_app"],
-    "create_decorated_command": ["tests.unit.test_cli_params", "create_decorated_command"],
+    "create_decorated_command": [
+        "tests.unit.test_cli_params",
+        "create_decorated_command",
+    ],
     "create_test_config": ["tests.unit.test_cli_params", "create_test_config"],
     "reset_config_singleton": ["tests.unit.conftest", "reset_config_singleton"],
-    "test_get_config_info_failure_on_exception": ["tests.unit.test_cmd_cov", "test_get_config_info_failure_on_exception"],
-    "test_process_fail_and_collect_paths": ["tests.unit.test_utilities_cov", "test_process_fail_and_collect_paths"],
-    "test_process_mapping_fail_and_collect_paths": ["tests.unit.test_utilities_cov", "test_process_mapping_fail_and_collect_paths"],
-    "test_prompt_logs_input_when_not_test_env": ["tests.unit.test_prompts_cov", "test_prompt_logs_input_when_not_test_env"],
-    "test_read_confirmation_input_paths": ["tests.unit.test_prompts_cov", "test_read_confirmation_input_paths"],
-    "test_show_config_failure_when_info_result_is_failure": ["tests.unit.test_cmd_cov", "test_show_config_failure_when_info_result_is_failure"],
-    "test_show_config_outer_exception_path": ["tests.unit.test_cmd_cov", "test_show_config_outer_exception_path"],
-    "test_show_config_paths_failure_on_exception": ["tests.unit.test_cmd_cov", "test_show_config_paths_failure_on_exception"],
-    "test_validate_config_failure_on_exception": ["tests.unit.test_cmd_cov", "test_validate_config_failure_on_exception"],
-    "test_validation_v_uses_custom_message_on_empty_failure": ["tests.unit.test_utilities_cov", "test_validation_v_uses_custom_message_on_empty_failure"],
+    "test_get_config_info_failure_on_exception": [
+        "tests.unit.test_cmd_cov",
+        "test_get_config_info_failure_on_exception",
+    ],
+    "test_process_fail_and_collect_paths": [
+        "tests.unit.test_utilities_cov",
+        "test_process_fail_and_collect_paths",
+    ],
+    "test_process_mapping_fail_and_collect_paths": [
+        "tests.unit.test_utilities_cov",
+        "test_process_mapping_fail_and_collect_paths",
+    ],
+    "test_prompt_logs_input_when_not_test_env": [
+        "tests.unit.test_prompts_cov",
+        "test_prompt_logs_input_when_not_test_env",
+    ],
+    "test_read_confirmation_input_paths": [
+        "tests.unit.test_prompts_cov",
+        "test_read_confirmation_input_paths",
+    ],
+    "test_show_config_failure_when_info_result_is_failure": [
+        "tests.unit.test_cmd_cov",
+        "test_show_config_failure_when_info_result_is_failure",
+    ],
+    "test_show_config_outer_exception_path": [
+        "tests.unit.test_cmd_cov",
+        "test_show_config_outer_exception_path",
+    ],
+    "test_show_config_paths_failure_on_exception": [
+        "tests.unit.test_cmd_cov",
+        "test_show_config_paths_failure_on_exception",
+    ],
+    "test_validate_config_failure_on_exception": [
+        "tests.unit.test_cmd_cov",
+        "test_validate_config_failure_on_exception",
+    ],
+    "test_validation_v_uses_custom_message_on_empty_failure": [
+        "tests.unit.test_utilities_cov",
+        "test_validation_v_uses_custom_message_on_empty_failure",
+    ],
 }
 
 __all__ = [
