@@ -38,11 +38,11 @@ class ExamplePlugin:
         self._initialized = False
         self._config: Mapping[str, bool | int] = {}
 
-    def initialize(self, cli: p.CliMainWithGroups) -> r[bool]:
+    def initialize(self, _cli: p.CliMainWithGroups) -> r[bool]:
         """Initialize the plugin.
 
         Args:
-            cli: FlextCliMain instance
+            _cli: FlextCliMain instance (unused — protocol-required)
 
         Returns:
             r[bool] indicating success (True) or failure
@@ -137,11 +137,11 @@ class DataProcessorPlugin:
         super().__init__()
         self._processors: t.ProcessorRegistry = {}
 
-    def initialize(self, cli: p.CliMainWithGroups) -> r[bool]:
+    def initialize(self, _cli: p.CliMainWithGroups) -> r[bool]:
         """Initialize the plugin.
 
         Args:
-            cli: FlextCliMain instance
+            _cli: FlextCliMain instance (unused — protocol-required)
 
         Returns:
             r[bool] indicating success (True) or failure
