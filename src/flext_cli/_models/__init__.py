@@ -13,14 +13,17 @@ from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
 if TYPE_CHECKING:
     from flext_core import FlextTypes
 
+    from flext_cli._models import base
     from flext_cli._models.base import FlextCliModelsBase
 
 _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
     "FlextCliModelsBase": ["flext_cli._models.base", "FlextCliModelsBase"],
+    "base": ["flext_cli._models.base", ""],
 }
 
 __all__ = [
     "FlextCliModelsBase",
+    "base",
 ]
 
 

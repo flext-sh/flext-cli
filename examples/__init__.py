@@ -13,6 +13,7 @@ from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
 if TYPE_CHECKING:
     from flext_core import FlextTypes
 
+    from examples import constants, models, protocols, typings, utilities
     from examples.constants import ExamplesConstants, ExamplesConstants as c
     from examples.models import ExamplesModels, ExamplesModels as m
     from examples.protocols import ExamplesProtocols, ExamplesProtocols as p
@@ -27,15 +28,20 @@ _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
     "ExamplesTypes": ["examples.typings", "ExamplesTypes"],
     "ExamplesUtilities": ["examples.utilities", "ExamplesUtilities"],
     "c": ["examples.constants", "ExamplesConstants"],
+    "constants": ["examples.constants", ""],
     "d": ["flext_cli", "d"],
     "e": ["flext_cli", "e"],
     "h": ["flext_cli", "h"],
     "m": ["examples.models", "ExamplesModels"],
+    "models": ["examples.models", ""],
     "p": ["examples.protocols", "ExamplesProtocols"],
+    "protocols": ["examples.protocols", ""],
     "r": ["flext_cli", "r"],
     "s": ["flext_cli", "s"],
     "t": ["examples.typings", "ExamplesTypes"],
+    "typings": ["examples.typings", ""],
     "u": ["examples.utilities", "ExamplesUtilities"],
+    "utilities": ["examples.utilities", ""],
     "x": ["flext_cli", "x"],
 }
 
@@ -46,15 +52,20 @@ __all__ = [
     "ExamplesTypes",
     "ExamplesUtilities",
     "c",
+    "constants",
     "d",
     "e",
     "h",
     "m",
+    "models",
     "p",
+    "protocols",
     "r",
     "s",
     "t",
+    "typings",
     "u",
+    "utilities",
     "x",
 ]
 

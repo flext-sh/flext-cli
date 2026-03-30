@@ -18,6 +18,25 @@ from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
 if TYPE_CHECKING:
     from flext_core import FlextTypes
 
+    from tests.unit import (
+        conftest,
+        test_base,
+        test_cli_params,
+        test_cli_service,
+        test_cmd,
+        test_cmd_cov,
+        test_commands,
+        test_config,
+        test_constants,
+        test_examples_smoke,
+        test_prompts,
+        test_prompts_cov,
+        test_protocols,
+        test_tables,
+        test_typings,
+        test_utilities_cov,
+        test_version,
+    )
     from tests.unit.conftest import reset_config_singleton
     from tests.unit.test_base import TestsCliServiceBase
     from tests.unit.test_cli_params import (
@@ -95,6 +114,7 @@ _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
     "TestsCliTables": ["tests.unit.test_tables", "TestsCliTables"],
     "TestsCliTypings": ["tests.unit.test_typings", "TestsCliTypings"],
     "TestsCliVersion": ["tests.unit.test_version", "TestsCliVersion"],
+    "conftest": ["tests.unit.conftest", ""],
     "create_cli_app": ["tests.unit.test_cli_params", "create_cli_app"],
     "create_decorated_command": [
         "tests.unit.test_cli_params",
@@ -102,6 +122,15 @@ _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
     ],
     "create_test_config": ["tests.unit.test_cli_params", "create_test_config"],
     "reset_config_singleton": ["tests.unit.conftest", "reset_config_singleton"],
+    "test_base": ["tests.unit.test_base", ""],
+    "test_cli_params": ["tests.unit.test_cli_params", ""],
+    "test_cli_service": ["tests.unit.test_cli_service", ""],
+    "test_cmd": ["tests.unit.test_cmd", ""],
+    "test_cmd_cov": ["tests.unit.test_cmd_cov", ""],
+    "test_commands": ["tests.unit.test_commands", ""],
+    "test_config": ["tests.unit.test_config", ""],
+    "test_constants": ["tests.unit.test_constants", ""],
+    "test_examples_smoke": ["tests.unit.test_examples_smoke", ""],
     "test_get_config_info_failure_on_exception": [
         "tests.unit.test_cmd_cov",
         "test_get_config_info_failure_on_exception",
@@ -118,6 +147,9 @@ _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
         "tests.unit.test_prompts_cov",
         "test_prompt_logs_input_when_not_test_env",
     ],
+    "test_prompts": ["tests.unit.test_prompts", ""],
+    "test_prompts_cov": ["tests.unit.test_prompts_cov", ""],
+    "test_protocols": ["tests.unit.test_protocols", ""],
     "test_read_confirmation_input_paths": [
         "tests.unit.test_prompts_cov",
         "test_read_confirmation_input_paths",
@@ -134,6 +166,9 @@ _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
         "tests.unit.test_cmd_cov",
         "test_show_config_paths_failure_on_exception",
     ],
+    "test_tables": ["tests.unit.test_tables", ""],
+    "test_typings": ["tests.unit.test_typings", ""],
+    "test_utilities_cov": ["tests.unit.test_utilities_cov", ""],
     "test_validate_config_failure_on_exception": [
         "tests.unit.test_cmd_cov",
         "test_validate_config_failure_on_exception",
@@ -142,6 +177,7 @@ _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
         "tests.unit.test_utilities_cov",
         "test_validation_v_uses_custom_message_on_empty_failure",
     ],
+    "test_version": ["tests.unit.test_version", ""],
 }
 
 __all__ = [
@@ -168,20 +204,37 @@ __all__ = [
     "TestsCliTables",
     "TestsCliTypings",
     "TestsCliVersion",
+    "conftest",
     "create_cli_app",
     "create_decorated_command",
     "create_test_config",
     "reset_config_singleton",
+    "test_base",
+    "test_cli_params",
+    "test_cli_service",
+    "test_cmd",
+    "test_cmd_cov",
+    "test_commands",
+    "test_config",
+    "test_constants",
+    "test_examples_smoke",
     "test_get_config_info_failure_on_exception",
     "test_process_fail_and_collect_paths",
     "test_process_mapping_fail_and_collect_paths",
     "test_prompt_logs_input_when_not_test_env",
+    "test_prompts",
+    "test_prompts_cov",
+    "test_protocols",
     "test_read_confirmation_input_paths",
     "test_show_config_failure_when_info_result_is_failure",
     "test_show_config_outer_exception_path",
     "test_show_config_paths_failure_on_exception",
+    "test_tables",
+    "test_typings",
+    "test_utilities_cov",
     "test_validate_config_failure_on_exception",
     "test_validation_v_uses_custom_message_on_empty_failure",
+    "test_version",
 ]
 
 

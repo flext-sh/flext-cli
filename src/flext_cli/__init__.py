@@ -24,13 +24,35 @@ from flext_cli.__version__ import (
 if TYPE_CHECKING:
     from flext_core import FlextTypes, d, e, h, r, x
 
-    from flext_cli import _models, services
+    from flext_cli import (
+        _models,
+        api,
+        base,
+        constants,
+        models,
+        protocols,
+        services,
+        settings,
+        typings,
+        utilities,
+    )
     from flext_cli._models.base import FlextCliModelsBase
     from flext_cli.api import FlextCli, cli
     from flext_cli.base import FlextCliServiceBase, s
     from flext_cli.constants import FlextCliConstants, FlextCliConstants as c
     from flext_cli.models import FlextCliModels, FlextCliModels as m
     from flext_cli.protocols import FlextCliProtocols, FlextCliProtocols as p
+    from flext_cli.services import (
+        auth,
+        cli_params,
+        cmd,
+        commands,
+        file_tools,
+        formatters,
+        output,
+        prompts,
+        tables,
+    )
     from flext_cli.services.auth import FlextCliAuth
     from flext_cli.services.cli import FlextCliCli
     from flext_cli.services.cli_params import FlextCliCommonParams
@@ -66,19 +88,36 @@ _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
     "FlextCliTypes": ["flext_cli.typings", "FlextCliTypes"],
     "FlextCliUtilities": ["flext_cli.utilities", "FlextCliUtilities"],
     "_models": ["flext_cli._models", ""],
+    "api": ["flext_cli.api", ""],
+    "auth": ["flext_cli.services.auth", ""],
+    "base": ["flext_cli.base", ""],
     "c": ["flext_cli.constants", "FlextCliConstants"],
     "cli": ["flext_cli.api", "cli"],
+    "cli_params": ["flext_cli.services.cli_params", ""],
+    "cmd": ["flext_cli.services.cmd", ""],
+    "commands": ["flext_cli.services.commands", ""],
+    "constants": ["flext_cli.constants", ""],
     "d": ["flext_core", "d"],
     "e": ["flext_core", "e"],
+    "file_tools": ["flext_cli.services.file_tools", ""],
+    "formatters": ["flext_cli.services.formatters", ""],
     "h": ["flext_core", "h"],
     "logger": ["flext_cli.settings", "logger"],
     "m": ["flext_cli.models", "FlextCliModels"],
+    "models": ["flext_cli.models", ""],
+    "output": ["flext_cli.services.output", ""],
     "p": ["flext_cli.protocols", "FlextCliProtocols"],
+    "prompts": ["flext_cli.services.prompts", ""],
+    "protocols": ["flext_cli.protocols", ""],
     "r": ["flext_core", "r"],
     "s": ["flext_cli.base", "s"],
     "services": ["flext_cli.services", ""],
+    "settings": ["flext_cli.settings", ""],
     "t": ["flext_cli.typings", "FlextCliTypes"],
+    "tables": ["flext_cli.services.tables", ""],
+    "typings": ["flext_cli.typings", ""],
     "u": ["flext_cli.utilities", "FlextCliUtilities"],
+    "utilities": ["flext_cli.utilities", ""],
     "x": ["flext_core", "x"],
 }
 
@@ -111,19 +150,36 @@ __all__ = [
     "__version__",
     "__version_info__",
     "_models",
+    "api",
+    "auth",
+    "base",
     "c",
     "cli",
+    "cli_params",
+    "cmd",
+    "commands",
+    "constants",
     "d",
     "e",
+    "file_tools",
+    "formatters",
     "h",
     "logger",
     "m",
+    "models",
+    "output",
     "p",
+    "prompts",
+    "protocols",
     "r",
     "s",
     "services",
+    "settings",
     "t",
+    "tables",
+    "typings",
     "u",
+    "utilities",
     "x",
 ]
 

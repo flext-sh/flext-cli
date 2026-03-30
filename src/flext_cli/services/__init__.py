@@ -20,6 +20,18 @@ from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
 if TYPE_CHECKING:
     from flext_core import FlextTypes
 
+    from flext_cli.services import (
+        auth,
+        cli,
+        cli_params,
+        cmd,
+        commands,
+        file_tools,
+        formatters,
+        output,
+        prompts,
+        tables,
+    )
     from flext_cli.services.auth import FlextCliAuth
     from flext_cli.services.cli import FlextCliCli
     from flext_cli.services.cli_params import FlextCliCommonParams
@@ -42,6 +54,16 @@ _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
     "FlextCliOutput": ["flext_cli.services.output", "FlextCliOutput"],
     "FlextCliPrompts": ["flext_cli.services.prompts", "FlextCliPrompts"],
     "FlextCliTables": ["flext_cli.services.tables", "FlextCliTables"],
+    "auth": ["flext_cli.services.auth", ""],
+    "cli": ["flext_cli.services.cli", ""],
+    "cli_params": ["flext_cli.services.cli_params", ""],
+    "cmd": ["flext_cli.services.cmd", ""],
+    "commands": ["flext_cli.services.commands", ""],
+    "file_tools": ["flext_cli.services.file_tools", ""],
+    "formatters": ["flext_cli.services.formatters", ""],
+    "output": ["flext_cli.services.output", ""],
+    "prompts": ["flext_cli.services.prompts", ""],
+    "tables": ["flext_cli.services.tables", ""],
 }
 
 __all__ = [
@@ -55,6 +77,16 @@ __all__ = [
     "FlextCliOutput",
     "FlextCliPrompts",
     "FlextCliTables",
+    "auth",
+    "cli",
+    "cli_params",
+    "cmd",
+    "commands",
+    "file_tools",
+    "formatters",
+    "output",
+    "prompts",
+    "tables",
 ]
 
 
