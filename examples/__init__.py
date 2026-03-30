@@ -11,13 +11,12 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import install_lazy_exports
 
 if TYPE_CHECKING:
-    from examples import constants, models, protocols, typings, utilities
     from examples.constants import *
     from examples.models import *
     from examples.protocols import *
     from examples.typings import *
     from examples.utilities import *
-    from flext_cli import *
+
 
 _LAZY_IMPORTS: Mapping[str, str | Sequence[str]] = {
     "ExamplesConstants": "examples.constants",
@@ -44,4 +43,4 @@ _LAZY_IMPORTS: Mapping[str, str | Sequence[str]] = {
 }
 
 
-install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, sorted(_LAZY_IMPORTS))
+install_lazy_exports(__name__, globals(), _LAZY_IMPORTS)
