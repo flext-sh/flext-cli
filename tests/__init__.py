@@ -5,90 +5,104 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping, MutableMapping, Sequence
+from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING
 
-from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
+from flext_core.lazy import install_lazy_exports
 
 if TYPE_CHECKING:
-    from flext_core import FlextTypes
-    from flext_tests import d, e, h, p, r, s, u, x
-
-    from tests import conftest, constants, models, typings, unit
+    from tests import (
+        conftest as conftest,
+        constants as constants,
+        models as models,
+        typings as typings,
+        unit as unit,
+    )
     from tests.conftest import (
-        Examples,
-        InfoTuples,
-        pytest_collection_modifyitems,
-        pytest_configure,
+        Examples as Examples,
+        InfoTuples as InfoTuples,
+        pytest_collection_modifyitems as pytest_collection_modifyitems,
+        pytest_configure as pytest_configure,
     )
-    from tests.constants import FlextCliTestConstants, FlextCliTestConstants as c
-    from tests.helpers._impl import FlextCliTestHelpers
-    from tests.models import FlextCliTestModels, FlextCliTestModels as m
-    from tests.typings import FlextCliTestTypes, FlextCliTestTypes as t
+    from tests.constants import (
+        FlextCliTestConstants as FlextCliTestConstants,
+        FlextCliTestConstants as c,
+    )
+    from tests.helpers._impl import FlextCliTestHelpers as FlextCliTestHelpers
+    from tests.models import (
+        FlextCliTestModels as FlextCliTestModels,
+        FlextCliTestModels as m,
+    )
+    from tests.typings import (
+        FlextCliTestTypes as FlextCliTestTypes,
+        FlextCliTestTypes as t,
+    )
     from tests.unit import (
-        test_base,
-        test_cli_params,
-        test_cli_service,
-        test_cmd,
-        test_cmd_cov,
-        test_commands,
-        test_config,
-        test_constants,
-        test_examples_smoke,
-        test_prompts,
-        test_prompts_cov,
-        test_protocols,
-        test_tables,
-        test_typings,
-        test_utilities_cov,
-        test_version,
+        test_base as test_base,
+        test_cli_params as test_cli_params,
+        test_cli_service as test_cli_service,
+        test_cmd as test_cmd,
+        test_cmd_cov as test_cmd_cov,
+        test_commands as test_commands,
+        test_config as test_config,
+        test_constants as test_constants,
+        test_examples_smoke as test_examples_smoke,
+        test_prompts as test_prompts,
+        test_prompts_cov as test_prompts_cov,
+        test_protocols as test_protocols,
+        test_tables as test_tables,
+        test_typings as test_typings,
+        test_utilities_cov as test_utilities_cov,
+        test_version as test_version,
     )
-    from tests.unit.conftest import reset_config_singleton
-    from tests.unit.test_base import TestsCliServiceBase
+    from tests.unit.conftest import reset_config_singleton as reset_config_singleton
+    from tests.unit.test_base import TestsCliServiceBase as TestsCliServiceBase
     from tests.unit.test_cli_params import (
-        ConfigParam,
-        TestsCliCommonParams,
-        create_cli_app,
-        create_decorated_command,
-        create_test_config,
+        ConfigParam as ConfigParam,
+        TestsCliCommonParams as TestsCliCommonParams,
+        create_cli_app as create_cli_app,
+        create_decorated_command as create_decorated_command,
+        create_test_config as create_test_config,
     )
-    from tests.unit.test_cli_service import TestsCliService
-    from tests.unit.test_cmd import TestsCliCmd
+    from tests.unit.test_cli_service import TestsCliService as TestsCliService
+    from tests.unit.test_cmd import TestsCliCmd as TestsCliCmd
     from tests.unit.test_cmd_cov import (
-        test_get_config_info_failure_on_exception,
-        test_show_config_failure_when_info_result_is_failure,
-        test_show_config_outer_exception_path,
-        test_show_config_paths_failure_on_exception,
-        test_validate_config_failure_on_exception,
+        test_get_config_info_failure_on_exception as test_get_config_info_failure_on_exception,
+        test_show_config_failure_when_info_result_is_failure as test_show_config_failure_when_info_result_is_failure,
+        test_show_config_outer_exception_path as test_show_config_outer_exception_path,
+        test_show_config_paths_failure_on_exception as test_show_config_paths_failure_on_exception,
+        test_validate_config_failure_on_exception as test_validate_config_failure_on_exception,
     )
-    from tests.unit.test_commands import TestsCliCommands
+    from tests.unit.test_commands import TestsCliCommands as TestsCliCommands
     from tests.unit.test_config import (
-        ConfigTestFactory,
-        ConfigTestScenario,
-        ConfigTestType,
-        TestsCliConfigBasics,
-        TestsCliConfigEdgeCases,
-        TestsCliConfigIntegration,
-        TestsCliConfigService,
-        TestsCliConfigValidation,
-        TestsCliLoggingConfig,
+        ConfigTestFactory as ConfigTestFactory,
+        ConfigTestScenario as ConfigTestScenario,
+        ConfigTestType as ConfigTestType,
+        TestsCliConfigBasics as TestsCliConfigBasics,
+        TestsCliConfigEdgeCases as TestsCliConfigEdgeCases,
+        TestsCliConfigIntegration as TestsCliConfigIntegration,
+        TestsCliConfigService as TestsCliConfigService,
+        TestsCliConfigValidation as TestsCliConfigValidation,
+        TestsCliLoggingConfig as TestsCliLoggingConfig,
     )
-    from tests.unit.test_constants import TestsCliConstants
-    from tests.unit.test_examples_smoke import TestFlextCliExamplesSmoke
-    from tests.unit.test_prompts import TestsCliPrompts
+    from tests.unit.test_constants import TestsCliConstants as TestsCliConstants
+    from tests.unit.test_examples_smoke import (
+        TestFlextCliExamplesSmoke as TestFlextCliExamplesSmoke,
+    )
+    from tests.unit.test_prompts import TestsCliPrompts as TestsCliPrompts
     from tests.unit.test_prompts_cov import (
-        test_prompt_logs_input_when_not_test_env,
-        test_read_confirmation_input_paths,
+        test_prompt_logs_input_when_not_test_env as test_prompt_logs_input_when_not_test_env,
+        test_read_confirmation_input_paths as test_read_confirmation_input_paths,
     )
-    from tests.unit.test_protocols import TestsCliProtocols
-    from tests.unit.test_tables import TestsCliTables
-    from tests.unit.test_typings import TestsCliTypings
+    from tests.unit.test_protocols import TestsCliProtocols as TestsCliProtocols
+    from tests.unit.test_tables import TestsCliTables as TestsCliTables
+    from tests.unit.test_typings import TestsCliTypings as TestsCliTypings
     from tests.unit.test_utilities_cov import (
-        test_process_fail_and_collect_paths,
-        test_process_mapping_fail_and_collect_paths,
-        test_validation_v_uses_custom_message_on_empty_failure,
+        test_process_fail_and_collect_paths as test_process_fail_and_collect_paths,
+        test_process_mapping_fail_and_collect_paths as test_process_mapping_fail_and_collect_paths,
+        test_validation_v_uses_custom_message_on_empty_failure as test_validation_v_uses_custom_message_on_empty_failure,
     )
-    from tests.unit.test_version import T, TestsCliVersion
+    from tests.unit.test_version import T as T, TestsCliVersion as TestsCliVersion
 
 _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
     "ConfigParam": ["tests.unit.test_cli_params", "ConfigParam"],
@@ -212,7 +226,7 @@ _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
     "x": ["flext_tests", "x"],
 }
 
-__all__ = [
+_EXPORTS: Sequence[str] = [
     "ConfigParam",
     "ConfigTestFactory",
     "ConfigTestScenario",
@@ -293,41 +307,4 @@ __all__ = [
 ]
 
 
-_LAZY_CACHE: MutableMapping[str, FlextTypes.ModuleExport] = {}
-
-
-def __getattr__(name: str) -> FlextTypes.ModuleExport:
-    """Lazy-load module attributes on first access (PEP 562).
-
-    A local cache ``_LAZY_CACHE`` persists resolved objects across repeated
-    accesses during process lifetime.
-
-    Args:
-        name: Attribute name requested by dir()/import.
-
-    Returns:
-        Lazy-loaded module export type.
-
-    Raises:
-        AttributeError: If attribute not registered.
-
-    """
-    if name in _LAZY_CACHE:
-        return _LAZY_CACHE[name]
-
-    value = lazy_getattr(name, _LAZY_IMPORTS, globals(), __name__)
-    _LAZY_CACHE[name] = value
-    return value
-
-
-def __dir__() -> Sequence[str]:
-    """Return list of available attributes for dir() and autocomplete.
-
-    Returns:
-        List of public names from module exports.
-
-    """
-    return sorted(__all__)
-
-
-cleanup_submodule_namespace(__name__, _LAZY_IMPORTS)
+install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, _EXPORTS)

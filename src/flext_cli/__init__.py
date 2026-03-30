@@ -5,67 +5,79 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping, MutableMapping, Sequence
+from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING
 
-from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
+from flext_core.lazy import install_lazy_exports
 
 from flext_cli.__version__ import (
-    __author__,
-    __author_email__,
-    __description__,
-    __license__,
-    __title__,
-    __url__,
-    __version__,
-    __version_info__,
+    __author__ as __author__,
+    __author_email__ as __author_email__,
+    __description__ as __description__,
+    __license__ as __license__,
+    __title__ as __title__,
+    __url__ as __url__,
+    __version__ as __version__,
+    __version_info__ as __version_info__,
 )
 
 if TYPE_CHECKING:
-    from flext_core import FlextTypes, d, e, h, r, x
-
     from flext_cli import (
-        _models,
-        api,
-        base,
-        constants,
-        models,
-        protocols,
-        services,
-        settings,
-        typings,
-        utilities,
+        _models as _models,
+        api as api,
+        base as base,
+        constants as constants,
+        models as models,
+        protocols as protocols,
+        services as services,
+        settings as settings,
+        typings as typings,
+        utilities as utilities,
     )
-    from flext_cli._models.base import FlextCliModelsBase
-    from flext_cli.api import FlextCli, cli
-    from flext_cli.base import FlextCliServiceBase, s
-    from flext_cli.constants import FlextCliConstants, FlextCliConstants as c
-    from flext_cli.models import FlextCliModels, FlextCliModels as m
-    from flext_cli.protocols import FlextCliProtocols, FlextCliProtocols as p
+    from flext_cli._models.base import FlextCliModelsBase as FlextCliModelsBase
+    from flext_cli.api import FlextCli as FlextCli, cli as cli
+    from flext_cli.base import FlextCliServiceBase as FlextCliServiceBase, s as s
+    from flext_cli.constants import (
+        FlextCliConstants as FlextCliConstants,
+        FlextCliConstants as c,
+    )
+    from flext_cli.models import FlextCliModels as FlextCliModels, FlextCliModels as m
+    from flext_cli.protocols import (
+        FlextCliProtocols as FlextCliProtocols,
+        FlextCliProtocols as p,
+    )
     from flext_cli.services import (
-        auth,
-        cli_params,
-        cmd,
-        commands,
-        file_tools,
-        formatters,
-        output,
-        prompts,
-        tables,
+        auth as auth,
+        cli_params as cli_params,
+        cmd as cmd,
+        commands as commands,
+        file_tools as file_tools,
+        formatters as formatters,
+        output as output,
+        prompts as prompts,
+        tables as tables,
     )
-    from flext_cli.services.auth import FlextCliAuth
-    from flext_cli.services.cli import FlextCliCli
-    from flext_cli.services.cli_params import FlextCliCommonParams
-    from flext_cli.services.cmd import FlextCliCmd
-    from flext_cli.services.commands import FlextCliCommands
-    from flext_cli.services.file_tools import FlextCliFileTools
-    from flext_cli.services.formatters import FlextCliFormatters
-    from flext_cli.services.output import FlextCliOutput
-    from flext_cli.services.prompts import FlextCliPrompts
-    from flext_cli.services.tables import FlextCliTables
-    from flext_cli.settings import FlextCliSettings, logger
-    from flext_cli.typings import FlextCliTypes, FlextCliTypes as t
-    from flext_cli.utilities import FlextCliUtilities, FlextCliUtilities as u
+    from flext_cli.services.auth import FlextCliAuth as FlextCliAuth
+    from flext_cli.services.cli import FlextCliCli as FlextCliCli
+    from flext_cli.services.cli_params import (
+        FlextCliCommonParams as FlextCliCommonParams,
+    )
+    from flext_cli.services.cmd import FlextCliCmd as FlextCliCmd
+    from flext_cli.services.commands import FlextCliCommands as FlextCliCommands
+    from flext_cli.services.file_tools import FlextCliFileTools as FlextCliFileTools
+    from flext_cli.services.formatters import FlextCliFormatters as FlextCliFormatters
+    from flext_cli.services.output import FlextCliOutput as FlextCliOutput
+    from flext_cli.services.prompts import FlextCliPrompts as FlextCliPrompts
+    from flext_cli.services.tables import FlextCliTables as FlextCliTables
+    from flext_cli.settings import (
+        FlextCliSettings as FlextCliSettings,
+        logger as logger,
+    )
+    from flext_cli.typings import FlextCliTypes as FlextCliTypes, FlextCliTypes as t
+    from flext_cli.utilities import (
+        FlextCliUtilities as FlextCliUtilities,
+        FlextCliUtilities as u,
+    )
 
 _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
     "FlextCli": ["flext_cli.api", "FlextCli"],
@@ -121,7 +133,7 @@ _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
     "x": ["flext_core", "x"],
 }
 
-__all__ = [
+_EXPORTS: Sequence[str] = [
     "FlextCli",
     "FlextCliAuth",
     "FlextCliCli",
@@ -184,41 +196,4 @@ __all__ = [
 ]
 
 
-_LAZY_CACHE: MutableMapping[str, FlextTypes.ModuleExport] = {}
-
-
-def __getattr__(name: str) -> FlextTypes.ModuleExport:
-    """Lazy-load module attributes on first access (PEP 562).
-
-    A local cache ``_LAZY_CACHE`` persists resolved objects across repeated
-    accesses during process lifetime.
-
-    Args:
-        name: Attribute name requested by dir()/import.
-
-    Returns:
-        Lazy-loaded module export type.
-
-    Raises:
-        AttributeError: If attribute not registered.
-
-    """
-    if name in _LAZY_CACHE:
-        return _LAZY_CACHE[name]
-
-    value = lazy_getattr(name, _LAZY_IMPORTS, globals(), __name__)
-    _LAZY_CACHE[name] = value
-    return value
-
-
-def __dir__() -> Sequence[str]:
-    """Return list of available attributes for dir() and autocomplete.
-
-    Returns:
-        List of public names from module exports.
-
-    """
-    return sorted(__all__)
-
-
-cleanup_submodule_namespace(__name__, _LAZY_IMPORTS)
+install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, _EXPORTS)

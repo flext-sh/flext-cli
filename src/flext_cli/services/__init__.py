@@ -12,36 +12,36 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping, MutableMapping, Sequence
+from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING
 
-from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
+from flext_core.lazy import install_lazy_exports
 
 if TYPE_CHECKING:
-    from flext_core import FlextTypes
-
     from flext_cli.services import (
-        auth,
-        cli,
-        cli_params,
-        cmd,
-        commands,
-        file_tools,
-        formatters,
-        output,
-        prompts,
-        tables,
+        auth as auth,
+        cli as cli,
+        cli_params as cli_params,
+        cmd as cmd,
+        commands as commands,
+        file_tools as file_tools,
+        formatters as formatters,
+        output as output,
+        prompts as prompts,
+        tables as tables,
     )
-    from flext_cli.services.auth import FlextCliAuth
-    from flext_cli.services.cli import FlextCliCli
-    from flext_cli.services.cli_params import FlextCliCommonParams
-    from flext_cli.services.cmd import FlextCliCmd
-    from flext_cli.services.commands import FlextCliCommands
-    from flext_cli.services.file_tools import FlextCliFileTools
-    from flext_cli.services.formatters import FlextCliFormatters
-    from flext_cli.services.output import FlextCliOutput
-    from flext_cli.services.prompts import FlextCliPrompts
-    from flext_cli.services.tables import FlextCliTables
+    from flext_cli.services.auth import FlextCliAuth as FlextCliAuth
+    from flext_cli.services.cli import FlextCliCli as FlextCliCli
+    from flext_cli.services.cli_params import (
+        FlextCliCommonParams as FlextCliCommonParams,
+    )
+    from flext_cli.services.cmd import FlextCliCmd as FlextCliCmd
+    from flext_cli.services.commands import FlextCliCommands as FlextCliCommands
+    from flext_cli.services.file_tools import FlextCliFileTools as FlextCliFileTools
+    from flext_cli.services.formatters import FlextCliFormatters as FlextCliFormatters
+    from flext_cli.services.output import FlextCliOutput as FlextCliOutput
+    from flext_cli.services.prompts import FlextCliPrompts as FlextCliPrompts
+    from flext_cli.services.tables import FlextCliTables as FlextCliTables
 
 _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
     "FlextCliAuth": ["flext_cli.services.auth", "FlextCliAuth"],
@@ -66,7 +66,7 @@ _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
     "tables": ["flext_cli.services.tables", ""],
 }
 
-__all__ = [
+_EXPORTS: Sequence[str] = [
     "FlextCliAuth",
     "FlextCliCli",
     "FlextCliCmd",
@@ -90,41 +90,4 @@ __all__ = [
 ]
 
 
-_LAZY_CACHE: MutableMapping[str, FlextTypes.ModuleExport] = {}
-
-
-def __getattr__(name: str) -> FlextTypes.ModuleExport:
-    """Lazy-load module attributes on first access (PEP 562).
-
-    A local cache ``_LAZY_CACHE`` persists resolved objects across repeated
-    accesses during process lifetime.
-
-    Args:
-        name: Attribute name requested by dir()/import.
-
-    Returns:
-        Lazy-loaded module export type.
-
-    Raises:
-        AttributeError: If attribute not registered.
-
-    """
-    if name in _LAZY_CACHE:
-        return _LAZY_CACHE[name]
-
-    value = lazy_getattr(name, _LAZY_IMPORTS, globals(), __name__)
-    _LAZY_CACHE[name] = value
-    return value
-
-
-def __dir__() -> Sequence[str]:
-    """Return list of available attributes for dir() and autocomplete.
-
-    Returns:
-        List of public names from module exports.
-
-    """
-    return sorted(__all__)
-
-
-cleanup_submodule_namespace(__name__, _LAZY_IMPORTS)
+install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, _EXPORTS)
