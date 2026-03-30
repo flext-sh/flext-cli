@@ -10,21 +10,21 @@ from typing import TYPE_CHECKING
 
 from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
 
+from flext_cli.__version__ import (
+    __author__,
+    __author_email__,
+    __description__,
+    __license__,
+    __title__,
+    __url__,
+    __version__,
+    __version_info__,
+)
+
 if TYPE_CHECKING:
     from flext_core import FlextTypes, d, e, h, r, x
 
     from flext_cli import _models, services
-    from flext_cli.__version__ import (
-        __all__,
-        __author__,
-        __author_email__,
-        __description__,
-        __license__,
-        __title__,
-        __url__,
-        __version__,
-        __version_info__,
-    )
     from flext_cli._models.base import FlextCliModelsBase
     from flext_cli.api import FlextCli, cli
     from flext_cli.base import FlextCliServiceBase, s
@@ -65,15 +65,6 @@ _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
     "FlextCliTables": ["flext_cli.services.tables", "FlextCliTables"],
     "FlextCliTypes": ["flext_cli.typings", "FlextCliTypes"],
     "FlextCliUtilities": ["flext_cli.utilities", "FlextCliUtilities"],
-    "__all__": ["flext_cli.__version__", "__all__"],
-    "__author__": ["flext_cli.__version__", "__author__"],
-    "__author_email__": ["flext_cli.__version__", "__author_email__"],
-    "__description__": ["flext_cli.__version__", "__description__"],
-    "__license__": ["flext_cli.__version__", "__license__"],
-    "__title__": ["flext_cli.__version__", "__title__"],
-    "__url__": ["flext_cli.__version__", "__url__"],
-    "__version__": ["flext_cli.__version__", "__version__"],
-    "__version_info__": ["flext_cli.__version__", "__version_info__"],
     "_models": ["flext_cli._models", ""],
     "c": ["flext_cli.constants", "FlextCliConstants"],
     "cli": ["flext_cli.api", "cli"],
@@ -111,7 +102,6 @@ __all__ = [
     "FlextCliTables",
     "FlextCliTypes",
     "FlextCliUtilities",
-    "__all__",
     "__author__",
     "__author_email__",
     "__description__",
