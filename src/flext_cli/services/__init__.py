@@ -19,75 +19,50 @@ from flext_core.lazy import install_lazy_exports
 
 if TYPE_CHECKING:
     from flext_cli.services import (
-        auth as auth,
-        cli as cli,
-        cli_params as cli_params,
-        cmd as cmd,
-        commands as commands,
-        file_tools as file_tools,
-        formatters as formatters,
-        output as output,
-        prompts as prompts,
-        tables as tables,
+        auth,
+        cli,
+        cli_params,
+        cmd,
+        commands,
+        file_tools,
+        formatters,
+        output,
+        prompts,
+        tables,
     )
-    from flext_cli.services.auth import FlextCliAuth as FlextCliAuth
-    from flext_cli.services.cli import FlextCliCli as FlextCliCli
-    from flext_cli.services.cli_params import (
-        FlextCliCommonParams as FlextCliCommonParams,
-    )
-    from flext_cli.services.cmd import FlextCliCmd as FlextCliCmd
-    from flext_cli.services.commands import FlextCliCommands as FlextCliCommands
-    from flext_cli.services.file_tools import FlextCliFileTools as FlextCliFileTools
-    from flext_cli.services.formatters import FlextCliFormatters as FlextCliFormatters
-    from flext_cli.services.output import FlextCliOutput as FlextCliOutput
-    from flext_cli.services.prompts import FlextCliPrompts as FlextCliPrompts
-    from flext_cli.services.tables import FlextCliTables as FlextCliTables
+    from flext_cli.services.auth import *
+    from flext_cli.services.cli import *
+    from flext_cli.services.cli_params import *
+    from flext_cli.services.cmd import *
+    from flext_cli.services.commands import *
+    from flext_cli.services.file_tools import *
+    from flext_cli.services.formatters import *
+    from flext_cli.services.output import *
+    from flext_cli.services.prompts import *
+    from flext_cli.services.tables import *
 
-_LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
-    "FlextCliAuth": ["flext_cli.services.auth", "FlextCliAuth"],
-    "FlextCliCli": ["flext_cli.services.cli", "FlextCliCli"],
-    "FlextCliCmd": ["flext_cli.services.cmd", "FlextCliCmd"],
-    "FlextCliCommands": ["flext_cli.services.commands", "FlextCliCommands"],
-    "FlextCliCommonParams": ["flext_cli.services.cli_params", "FlextCliCommonParams"],
-    "FlextCliFileTools": ["flext_cli.services.file_tools", "FlextCliFileTools"],
-    "FlextCliFormatters": ["flext_cli.services.formatters", "FlextCliFormatters"],
-    "FlextCliOutput": ["flext_cli.services.output", "FlextCliOutput"],
-    "FlextCliPrompts": ["flext_cli.services.prompts", "FlextCliPrompts"],
-    "FlextCliTables": ["flext_cli.services.tables", "FlextCliTables"],
-    "auth": ["flext_cli.services.auth", ""],
-    "cli": ["flext_cli.services.cli", ""],
-    "cli_params": ["flext_cli.services.cli_params", ""],
-    "cmd": ["flext_cli.services.cmd", ""],
-    "commands": ["flext_cli.services.commands", ""],
-    "file_tools": ["flext_cli.services.file_tools", ""],
-    "formatters": ["flext_cli.services.formatters", ""],
-    "output": ["flext_cli.services.output", ""],
-    "prompts": ["flext_cli.services.prompts", ""],
-    "tables": ["flext_cli.services.tables", ""],
+_LAZY_IMPORTS: Mapping[str, str | Sequence[str]] = {
+    "FlextCliAuth": "flext_cli.services.auth",
+    "FlextCliCli": "flext_cli.services.cli",
+    "FlextCliCmd": "flext_cli.services.cmd",
+    "FlextCliCommands": "flext_cli.services.commands",
+    "FlextCliCommonParams": "flext_cli.services.cli_params",
+    "FlextCliFileTools": "flext_cli.services.file_tools",
+    "FlextCliFormatters": "flext_cli.services.formatters",
+    "FlextCliOutput": "flext_cli.services.output",
+    "FlextCliPrompts": "flext_cli.services.prompts",
+    "FlextCliTables": "flext_cli.services.tables",
+    "auth": "flext_cli.services.auth",
+    "cli": "flext_cli.services.cli",
+    "cli_params": "flext_cli.services.cli_params",
+    "cmd": "flext_cli.services.cmd",
+    "commands": "flext_cli.services.commands",
+    "file_tools": "flext_cli.services.file_tools",
+    "formatters": "flext_cli.services.formatters",
+    "output": "flext_cli.services.output",
+    "prompts": "flext_cli.services.prompts",
+    "tables": "flext_cli.services.tables",
 }
 
-_EXPORTS: Sequence[str] = [
-    "FlextCliAuth",
-    "FlextCliCli",
-    "FlextCliCmd",
-    "FlextCliCommands",
-    "FlextCliCommonParams",
-    "FlextCliFileTools",
-    "FlextCliFormatters",
-    "FlextCliOutput",
-    "FlextCliPrompts",
-    "FlextCliTables",
-    "auth",
-    "cli",
-    "cli_params",
-    "cmd",
-    "commands",
-    "file_tools",
-    "formatters",
-    "output",
-    "prompts",
-    "tables",
-]
 
-
-install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, _EXPORTS)
+install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, sorted(_LAZY_IMPORTS))

@@ -11,300 +11,129 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import install_lazy_exports
 
 if TYPE_CHECKING:
-    from tests import (
-        conftest as conftest,
-        constants as constants,
-        models as models,
-        typings as typings,
-        unit as unit,
-    )
-    from tests.conftest import (
-        Examples as Examples,
-        InfoTuples as InfoTuples,
-        pytest_collection_modifyitems as pytest_collection_modifyitems,
-        pytest_configure as pytest_configure,
-    )
-    from tests.constants import (
-        FlextCliTestConstants as FlextCliTestConstants,
-        FlextCliTestConstants as c,
-    )
-    from tests.helpers._impl import FlextCliTestHelpers as FlextCliTestHelpers
-    from tests.models import (
-        FlextCliTestModels as FlextCliTestModels,
-        FlextCliTestModels as m,
-    )
-    from tests.typings import (
-        FlextCliTestTypes as FlextCliTestTypes,
-        FlextCliTestTypes as t,
-    )
-    from tests.unit import (
-        test_base as test_base,
-        test_cli_params as test_cli_params,
-        test_cli_service as test_cli_service,
-        test_cmd as test_cmd,
-        test_cmd_cov as test_cmd_cov,
-        test_commands as test_commands,
-        test_config as test_config,
-        test_constants as test_constants,
-        test_examples_smoke as test_examples_smoke,
-        test_prompts as test_prompts,
-        test_prompts_cov as test_prompts_cov,
-        test_protocols as test_protocols,
-        test_tables as test_tables,
-        test_typings as test_typings,
-        test_utilities_cov as test_utilities_cov,
-        test_version as test_version,
-    )
-    from tests.unit.conftest import reset_config_singleton as reset_config_singleton
-    from tests.unit.test_base import TestsCliServiceBase as TestsCliServiceBase
-    from tests.unit.test_cli_params import (
-        ConfigParam as ConfigParam,
-        TestsCliCommonParams as TestsCliCommonParams,
-        create_cli_app as create_cli_app,
-        create_decorated_command as create_decorated_command,
-        create_test_config as create_test_config,
-    )
-    from tests.unit.test_cli_service import TestsCliService as TestsCliService
-    from tests.unit.test_cmd import TestsCliCmd as TestsCliCmd
-    from tests.unit.test_cmd_cov import (
-        test_get_config_info_failure_on_exception as test_get_config_info_failure_on_exception,
-        test_show_config_failure_when_info_result_is_failure as test_show_config_failure_when_info_result_is_failure,
-        test_show_config_outer_exception_path as test_show_config_outer_exception_path,
-        test_show_config_paths_failure_on_exception as test_show_config_paths_failure_on_exception,
-        test_validate_config_failure_on_exception as test_validate_config_failure_on_exception,
-    )
-    from tests.unit.test_commands import TestsCliCommands as TestsCliCommands
-    from tests.unit.test_config import (
-        ConfigTestFactory as ConfigTestFactory,
-        ConfigTestScenario as ConfigTestScenario,
-        ConfigTestType as ConfigTestType,
-        TestsCliConfigBasics as TestsCliConfigBasics,
-        TestsCliConfigEdgeCases as TestsCliConfigEdgeCases,
-        TestsCliConfigIntegration as TestsCliConfigIntegration,
-        TestsCliConfigService as TestsCliConfigService,
-        TestsCliConfigValidation as TestsCliConfigValidation,
-        TestsCliLoggingConfig as TestsCliLoggingConfig,
-    )
-    from tests.unit.test_constants import TestsCliConstants as TestsCliConstants
-    from tests.unit.test_examples_smoke import (
-        TestFlextCliExamplesSmoke as TestFlextCliExamplesSmoke,
-    )
-    from tests.unit.test_prompts import TestsCliPrompts as TestsCliPrompts
-    from tests.unit.test_prompts_cov import (
-        test_prompt_logs_input_when_not_test_env as test_prompt_logs_input_when_not_test_env,
-        test_read_confirmation_input_paths as test_read_confirmation_input_paths,
-    )
-    from tests.unit.test_protocols import TestsCliProtocols as TestsCliProtocols
-    from tests.unit.test_tables import TestsCliTables as TestsCliTables
-    from tests.unit.test_typings import TestsCliTypings as TestsCliTypings
-    from tests.unit.test_utilities_cov import (
-        test_process_fail_and_collect_paths as test_process_fail_and_collect_paths,
-        test_process_mapping_fail_and_collect_paths as test_process_mapping_fail_and_collect_paths,
-        test_validation_v_uses_custom_message_on_empty_failure as test_validation_v_uses_custom_message_on_empty_failure,
-    )
-    from tests.unit.test_version import T as T, TestsCliVersion as TestsCliVersion
+    from flext_tests import *
 
-_LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
-    "ConfigParam": ["tests.unit.test_cli_params", "ConfigParam"],
-    "ConfigTestFactory": ["tests.unit.test_config", "ConfigTestFactory"],
-    "ConfigTestScenario": ["tests.unit.test_config", "ConfigTestScenario"],
-    "ConfigTestType": ["tests.unit.test_config", "ConfigTestType"],
-    "Examples": ["tests.conftest", "Examples"],
-    "FlextCliTestConstants": ["tests.constants", "FlextCliTestConstants"],
-    "FlextCliTestHelpers": ["tests.helpers._impl", "FlextCliTestHelpers"],
-    "FlextCliTestModels": ["tests.models", "FlextCliTestModels"],
-    "FlextCliTestTypes": ["tests.typings", "FlextCliTestTypes"],
-    "InfoTuples": ["tests.conftest", "InfoTuples"],
-    "T": ["tests.unit.test_version", "T"],
-    "TestFlextCliExamplesSmoke": [
-        "tests.unit.test_examples_smoke",
-        "TestFlextCliExamplesSmoke",
-    ],
-    "TestsCliCmd": ["tests.unit.test_cmd", "TestsCliCmd"],
-    "TestsCliCommands": ["tests.unit.test_commands", "TestsCliCommands"],
-    "TestsCliCommonParams": ["tests.unit.test_cli_params", "TestsCliCommonParams"],
-    "TestsCliConfigBasics": ["tests.unit.test_config", "TestsCliConfigBasics"],
-    "TestsCliConfigEdgeCases": ["tests.unit.test_config", "TestsCliConfigEdgeCases"],
-    "TestsCliConfigIntegration": [
-        "tests.unit.test_config",
-        "TestsCliConfigIntegration",
-    ],
-    "TestsCliConfigService": ["tests.unit.test_config", "TestsCliConfigService"],
-    "TestsCliConfigValidation": ["tests.unit.test_config", "TestsCliConfigValidation"],
-    "TestsCliConstants": ["tests.unit.test_constants", "TestsCliConstants"],
-    "TestsCliLoggingConfig": ["tests.unit.test_config", "TestsCliLoggingConfig"],
-    "TestsCliPrompts": ["tests.unit.test_prompts", "TestsCliPrompts"],
-    "TestsCliProtocols": ["tests.unit.test_protocols", "TestsCliProtocols"],
-    "TestsCliService": ["tests.unit.test_cli_service", "TestsCliService"],
-    "TestsCliServiceBase": ["tests.unit.test_base", "TestsCliServiceBase"],
-    "TestsCliTables": ["tests.unit.test_tables", "TestsCliTables"],
-    "TestsCliTypings": ["tests.unit.test_typings", "TestsCliTypings"],
-    "TestsCliVersion": ["tests.unit.test_version", "TestsCliVersion"],
+    from tests import conftest, constants, models, typings, unit
+    from tests.conftest import *
+    from tests.constants import *
+    from tests.helpers._impl import *
+    from tests.models import *
+    from tests.typings import *
+    from tests.unit import (
+        test_base,
+        test_cli_params,
+        test_cli_service,
+        test_cmd,
+        test_cmd_cov,
+        test_commands,
+        test_config,
+        test_constants,
+        test_examples_smoke,
+        test_prompts,
+        test_prompts_cov,
+        test_protocols,
+        test_tables,
+        test_typings,
+        test_utilities_cov,
+        test_version,
+    )
+    from tests.unit.conftest import *
+    from tests.unit.test_base import *
+    from tests.unit.test_cli_params import *
+    from tests.unit.test_cli_service import *
+    from tests.unit.test_cmd import *
+    from tests.unit.test_cmd_cov import *
+    from tests.unit.test_commands import *
+    from tests.unit.test_config import *
+    from tests.unit.test_constants import *
+    from tests.unit.test_examples_smoke import *
+    from tests.unit.test_prompts import *
+    from tests.unit.test_prompts_cov import *
+    from tests.unit.test_protocols import *
+    from tests.unit.test_tables import *
+    from tests.unit.test_typings import *
+    from tests.unit.test_utilities_cov import *
+    from tests.unit.test_version import *
+
+_LAZY_IMPORTS: Mapping[str, str | Sequence[str]] = {
+    "ConfigParam": "tests.unit.test_cli_params",
+    "ConfigTestFactory": "tests.unit.test_config",
+    "ConfigTestScenario": "tests.unit.test_config",
+    "ConfigTestType": "tests.unit.test_config",
+    "Examples": "tests.conftest",
+    "FlextCliTestConstants": "tests.constants",
+    "FlextCliTestHelpers": "tests.helpers._impl",
+    "FlextCliTestModels": "tests.models",
+    "FlextCliTestTypes": "tests.typings",
+    "InfoTuples": "tests.conftest",
+    "T": "tests.unit.test_version",
+    "TestFlextCliExamplesSmoke": "tests.unit.test_examples_smoke",
+    "TestsCliCmd": "tests.unit.test_cmd",
+    "TestsCliCommands": "tests.unit.test_commands",
+    "TestsCliCommonParams": "tests.unit.test_cli_params",
+    "TestsCliConfigBasics": "tests.unit.test_config",
+    "TestsCliConfigEdgeCases": "tests.unit.test_config",
+    "TestsCliConfigIntegration": "tests.unit.test_config",
+    "TestsCliConfigService": "tests.unit.test_config",
+    "TestsCliConfigValidation": "tests.unit.test_config",
+    "TestsCliConstants": "tests.unit.test_constants",
+    "TestsCliLoggingConfig": "tests.unit.test_config",
+    "TestsCliPrompts": "tests.unit.test_prompts",
+    "TestsCliProtocols": "tests.unit.test_protocols",
+    "TestsCliService": "tests.unit.test_cli_service",
+    "TestsCliServiceBase": "tests.unit.test_base",
+    "TestsCliTables": "tests.unit.test_tables",
+    "TestsCliTypings": "tests.unit.test_typings",
+    "TestsCliVersion": "tests.unit.test_version",
     "c": ["tests.constants", "FlextCliTestConstants"],
-    "conftest": ["tests.conftest", ""],
-    "constants": ["tests.constants", ""],
-    "create_cli_app": ["tests.unit.test_cli_params", "create_cli_app"],
-    "create_decorated_command": [
-        "tests.unit.test_cli_params",
-        "create_decorated_command",
-    ],
-    "create_test_config": ["tests.unit.test_cli_params", "create_test_config"],
-    "d": ["flext_tests", "d"],
-    "e": ["flext_tests", "e"],
-    "h": ["flext_tests", "h"],
+    "conftest": "tests.conftest",
+    "constants": "tests.constants",
+    "create_cli_app": "tests.unit.test_cli_params",
+    "create_decorated_command": "tests.unit.test_cli_params",
+    "create_test_config": "tests.unit.test_cli_params",
+    "d": "flext_tests",
+    "e": "flext_tests",
+    "h": "flext_tests",
     "m": ["tests.models", "FlextCliTestModels"],
-    "models": ["tests.models", ""],
-    "p": ["flext_tests", "p"],
-    "pytest_collection_modifyitems": [
-        "tests.conftest",
-        "pytest_collection_modifyitems",
-    ],
-    "pytest_configure": ["tests.conftest", "pytest_configure"],
-    "r": ["flext_tests", "r"],
-    "reset_config_singleton": ["tests.unit.conftest", "reset_config_singleton"],
-    "s": ["flext_tests", "s"],
+    "models": "tests.models",
+    "p": "flext_tests",
+    "pytest_collection_modifyitems": "tests.conftest",
+    "pytest_configure": "tests.conftest",
+    "r": "flext_tests",
+    "reset_config_singleton": "tests.unit.conftest",
+    "s": "flext_tests",
     "t": ["tests.typings", "FlextCliTestTypes"],
-    "test_base": ["tests.unit.test_base", ""],
-    "test_cli_params": ["tests.unit.test_cli_params", ""],
-    "test_cli_service": ["tests.unit.test_cli_service", ""],
-    "test_cmd": ["tests.unit.test_cmd", ""],
-    "test_cmd_cov": ["tests.unit.test_cmd_cov", ""],
-    "test_commands": ["tests.unit.test_commands", ""],
-    "test_config": ["tests.unit.test_config", ""],
-    "test_constants": ["tests.unit.test_constants", ""],
-    "test_examples_smoke": ["tests.unit.test_examples_smoke", ""],
-    "test_get_config_info_failure_on_exception": [
-        "tests.unit.test_cmd_cov",
-        "test_get_config_info_failure_on_exception",
-    ],
-    "test_process_fail_and_collect_paths": [
-        "tests.unit.test_utilities_cov",
-        "test_process_fail_and_collect_paths",
-    ],
-    "test_process_mapping_fail_and_collect_paths": [
-        "tests.unit.test_utilities_cov",
-        "test_process_mapping_fail_and_collect_paths",
-    ],
-    "test_prompt_logs_input_when_not_test_env": [
-        "tests.unit.test_prompts_cov",
-        "test_prompt_logs_input_when_not_test_env",
-    ],
-    "test_prompts": ["tests.unit.test_prompts", ""],
-    "test_prompts_cov": ["tests.unit.test_prompts_cov", ""],
-    "test_protocols": ["tests.unit.test_protocols", ""],
-    "test_read_confirmation_input_paths": [
-        "tests.unit.test_prompts_cov",
-        "test_read_confirmation_input_paths",
-    ],
-    "test_show_config_failure_when_info_result_is_failure": [
-        "tests.unit.test_cmd_cov",
-        "test_show_config_failure_when_info_result_is_failure",
-    ],
-    "test_show_config_outer_exception_path": [
-        "tests.unit.test_cmd_cov",
-        "test_show_config_outer_exception_path",
-    ],
-    "test_show_config_paths_failure_on_exception": [
-        "tests.unit.test_cmd_cov",
-        "test_show_config_paths_failure_on_exception",
-    ],
-    "test_tables": ["tests.unit.test_tables", ""],
-    "test_typings": ["tests.unit.test_typings", ""],
-    "test_utilities_cov": ["tests.unit.test_utilities_cov", ""],
-    "test_validate_config_failure_on_exception": [
-        "tests.unit.test_cmd_cov",
-        "test_validate_config_failure_on_exception",
-    ],
-    "test_validation_v_uses_custom_message_on_empty_failure": [
-        "tests.unit.test_utilities_cov",
-        "test_validation_v_uses_custom_message_on_empty_failure",
-    ],
-    "test_version": ["tests.unit.test_version", ""],
-    "typings": ["tests.typings", ""],
-    "u": ["flext_tests", "u"],
-    "unit": ["tests.unit", ""],
-    "x": ["flext_tests", "x"],
+    "test_base": "tests.unit.test_base",
+    "test_cli_params": "tests.unit.test_cli_params",
+    "test_cli_service": "tests.unit.test_cli_service",
+    "test_cmd": "tests.unit.test_cmd",
+    "test_cmd_cov": "tests.unit.test_cmd_cov",
+    "test_commands": "tests.unit.test_commands",
+    "test_config": "tests.unit.test_config",
+    "test_constants": "tests.unit.test_constants",
+    "test_examples_smoke": "tests.unit.test_examples_smoke",
+    "test_get_config_info_failure_on_exception": "tests.unit.test_cmd_cov",
+    "test_process_fail_and_collect_paths": "tests.unit.test_utilities_cov",
+    "test_process_mapping_fail_and_collect_paths": "tests.unit.test_utilities_cov",
+    "test_prompt_logs_input_when_not_test_env": "tests.unit.test_prompts_cov",
+    "test_prompts": "tests.unit.test_prompts",
+    "test_prompts_cov": "tests.unit.test_prompts_cov",
+    "test_protocols": "tests.unit.test_protocols",
+    "test_read_confirmation_input_paths": "tests.unit.test_prompts_cov",
+    "test_show_config_failure_when_info_result_is_failure": "tests.unit.test_cmd_cov",
+    "test_show_config_outer_exception_path": "tests.unit.test_cmd_cov",
+    "test_show_config_paths_failure_on_exception": "tests.unit.test_cmd_cov",
+    "test_tables": "tests.unit.test_tables",
+    "test_typings": "tests.unit.test_typings",
+    "test_utilities_cov": "tests.unit.test_utilities_cov",
+    "test_validate_config_failure_on_exception": "tests.unit.test_cmd_cov",
+    "test_validation_v_uses_custom_message_on_empty_failure": "tests.unit.test_utilities_cov",
+    "test_version": "tests.unit.test_version",
+    "typings": "tests.typings",
+    "u": "flext_tests",
+    "unit": "tests.unit",
+    "x": "flext_tests",
 }
 
-_EXPORTS: Sequence[str] = [
-    "ConfigParam",
-    "ConfigTestFactory",
-    "ConfigTestScenario",
-    "ConfigTestType",
-    "Examples",
-    "FlextCliTestConstants",
-    "FlextCliTestHelpers",
-    "FlextCliTestModels",
-    "FlextCliTestTypes",
-    "InfoTuples",
-    "T",
-    "TestFlextCliExamplesSmoke",
-    "TestsCliCmd",
-    "TestsCliCommands",
-    "TestsCliCommonParams",
-    "TestsCliConfigBasics",
-    "TestsCliConfigEdgeCases",
-    "TestsCliConfigIntegration",
-    "TestsCliConfigService",
-    "TestsCliConfigValidation",
-    "TestsCliConstants",
-    "TestsCliLoggingConfig",
-    "TestsCliPrompts",
-    "TestsCliProtocols",
-    "TestsCliService",
-    "TestsCliServiceBase",
-    "TestsCliTables",
-    "TestsCliTypings",
-    "TestsCliVersion",
-    "c",
-    "conftest",
-    "constants",
-    "create_cli_app",
-    "create_decorated_command",
-    "create_test_config",
-    "d",
-    "e",
-    "h",
-    "m",
-    "models",
-    "p",
-    "pytest_collection_modifyitems",
-    "pytest_configure",
-    "r",
-    "reset_config_singleton",
-    "s",
-    "t",
-    "test_base",
-    "test_cli_params",
-    "test_cli_service",
-    "test_cmd",
-    "test_cmd_cov",
-    "test_commands",
-    "test_config",
-    "test_constants",
-    "test_examples_smoke",
-    "test_get_config_info_failure_on_exception",
-    "test_process_fail_and_collect_paths",
-    "test_process_mapping_fail_and_collect_paths",
-    "test_prompt_logs_input_when_not_test_env",
-    "test_prompts",
-    "test_prompts_cov",
-    "test_protocols",
-    "test_read_confirmation_input_paths",
-    "test_show_config_failure_when_info_result_is_failure",
-    "test_show_config_outer_exception_path",
-    "test_show_config_paths_failure_on_exception",
-    "test_tables",
-    "test_typings",
-    "test_utilities_cov",
-    "test_validate_config_failure_on_exception",
-    "test_validation_v_uses_custom_message_on_empty_failure",
-    "test_version",
-    "typings",
-    "u",
-    "unit",
-    "x",
-]
 
-
-install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, _EXPORTS)
+install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, sorted(_LAZY_IMPORTS))
