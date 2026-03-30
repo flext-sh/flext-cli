@@ -6,17 +6,17 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING as _TYPE_CHECKING
 
 from flext_core.lazy import install_lazy_exports
 
-if TYPE_CHECKING:
+if _TYPE_CHECKING:
     from examples.constants import *
     from examples.models import *
     from examples.protocols import *
     from examples.typings import *
     from examples.utilities import *
-
+    from flext_cli import d, e, h, r, s, x
 
 _LAZY_IMPORTS: Mapping[str, str | Sequence[str]] = {
     "ExamplesConstants": "examples.constants",
