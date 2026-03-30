@@ -30,6 +30,15 @@ class _SampleOutput(BaseModel):
     message: Annotated[str, Field(description="User-facing success message")]
 
 
+class _RepeatableInput(BaseModel):
+    """Exercise repeatable CLI options derived from list-typed fields."""
+
+    make_arg: Annotated[
+        list[str],
+        Field(default_factory=list, description="Repeatable make-style arg"),
+    ] = Field(default_factory=list)
+
+
 class _SampleRoute(m.Cli.ResultCommandRouteModel[_SampleInput, _SampleOutput]):
     """Concrete route model for test-time generic stability."""
 
@@ -104,6 +113,44 @@ class TestsCliService:
         tm.that(captured[0].count, eq=3)
         tm.that(captured[0].dry_run, eq=True)
         tm.that(captured[0].output_format, eq="json")
+
+    def test_model_command_accepts_repeatable_list_options(self) -> None:
+        captured: list[_RepeatableInput] = []
+        app = cli.create_app_with_common_params(
+            name="root",
+            help_text="Root application",
+            config=cli.settings,
+        )
+        group = cli.create_group(help_text="Sample group", name="sample")
+
+        def handle(params: _RepeatableInput) -> None:
+            captured.append(params)
+
+        command = cli.model_command(_RepeatableInput, handle)
+        cli.register_command(
+            group,
+            name="repeat",
+            help_text="Run repeatable option command",
+            command=command,
+        )
+        cli.add_group(app, name="sample", group=group)
+        runner_result = cli.create_cli_runner()
+        tm.ok(runner_result)
+        exec_result = runner_result.value.invoke(
+            app,
+            [
+                "sample",
+                "repeat",
+                "--make-arg",
+                "FILES=a b c.py",
+                "--make-arg",
+                "VERBOSE=1",
+            ],
+        )
+
+        tm.that(exec_result.exit_code, eq=0)
+        tm.that(len(captured), eq=1)
+        tm.that(captured[0].make_arg, eq=["FILES=a b c.py", "VERBOSE=1"])
 
     def test_execute_app_returns_user_facing_failure_message(self) -> None:
         app = cli.create_group(help_text="Failure group")

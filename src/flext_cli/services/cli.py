@@ -84,7 +84,9 @@ class FlextCliCli(FlextCliServiceBase):
             if len(args) == FlextCliCli._OPTIONAL_UNION_ARG_COUNT and NoneType in args:
                 value = args[0] if args[1] is NoneType else args[1]
                 return value if isinstance(value, type) else annotation
-        if origin in {dict, frozenset, list, set, tuple}:
+        if origin in {list, tuple}:
+            return annotation
+        if origin in {dict, frozenset, set}:
             return origin
         return annotation
 
