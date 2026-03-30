@@ -11,11 +11,14 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import sys
+from collections.abc import Sequence
 from typing import ClassVar, Literal, Self, overload, override
 
 from flext_core import r
 from rich.console import Console
 from rich.errors import ConsoleError, StyleError
+from rich.panel import Panel
+from rich.table import Table as RichTable
 from rich.tree import Tree as RichTree
 
 from flext_cli import FlextCliServiceBase, c
@@ -122,6 +125,60 @@ class FlextCliFormatters(FlextCliServiceBase):
                 message_length=len(message),
             )
             _ = sys.stdout.write(f"{message}\n")
+            _ = sys.stdout.flush()
+
+    @classmethod
+    def render_rule(cls, text: str) -> None:
+        """Render a horizontal rule with centered text via Rich."""
+        try:
+            cls.console.rule(text)
+        except (ConsoleError, StyleError) as exc:
+            cls._get_or_create_logger().warning(
+                "rich_rule_fallback",
+                error=str(exc),
+            )
+            _ = sys.stdout.write(f"{'=' * 60}\n  {text}\n{'=' * 60}\n")
+            _ = sys.stdout.flush()
+
+    @classmethod
+    def render_panel(cls, content: str, *, title: str = "") -> None:
+        """Render a Rich Panel with optional title."""
+        try:
+            cls.console.print(Panel(content, title=title or None))
+        except (ConsoleError, StyleError) as exc:
+            cls._get_or_create_logger().warning(
+                "rich_panel_fallback",
+                error=str(exc),
+            )
+            header = f"── {title} ──\n" if title else ""
+            _ = sys.stdout.write(f"{header}{content}\n")
+            _ = sys.stdout.flush()
+
+    @classmethod
+    def render_table(
+        cls,
+        columns: Sequence[str],
+        rows: Sequence[Sequence[str]],
+        *,
+        title: str = "",
+    ) -> None:
+        """Render a Rich Table with columns and rows."""
+        try:
+            table = RichTable(title=title or None)
+            for col in columns:
+                table.add_column(col)
+            for row in rows:
+                table.add_row(*row)
+            cls.console.print(table)
+        except (ConsoleError, StyleError) as exc:
+            cls._get_or_create_logger().warning(
+                "rich_table_fallback",
+                error=str(exc),
+            )
+            header = "  ".join(columns)
+            _ = sys.stdout.write(f"{header}\n")
+            for row in rows:
+                _ = sys.stdout.write(f"{'  '.join(row)}\n")
             _ = sys.stdout.flush()
 
 

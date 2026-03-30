@@ -125,12 +125,14 @@ class FlextCliOutput(FlextCliServiceBase):
             c.Cli.MessageTypes.SUCCESS.value: c.Cli.Styles.BOLD_GREEN,
             c.Cli.MessageTypes.ERROR.value: c.Cli.Styles.BOLD_RED,
             c.Cli.MessageTypes.WARNING.value: c.Cli.Styles.BOLD_YELLOW,
+            c.Cli.MessageTypes.DEBUG.value: "dim",
         }
         emoji_map = {
             c.Cli.MessageTypes.INFO.value: c.Cli.Emojis.INFO,
             c.Cli.MessageTypes.SUCCESS.value: c.Cli.Emojis.SUCCESS,
             c.Cli.MessageTypes.ERROR.value: c.Cli.Emojis.ERROR,
             c.Cli.MessageTypes.WARNING.value: c.Cli.Emojis.WARNING,
+            c.Cli.MessageTypes.DEBUG.value: "D",
         }
         style = style_map.get(final_type, c.Cli.Styles.BLUE)
         emoji = emoji_map.get(final_type, c.Cli.Emojis.INFO)
@@ -148,6 +150,78 @@ class FlextCliOutput(FlextCliServiceBase):
             style, c.Cli.OutputDefaults.EMPTY_STYLE
         )
         FlextCliFormatters.print(message, style=validated_style)
+
+    @staticmethod
+    def display_header(text: str) -> None:
+        """Display a section header via Rich rule."""
+        FlextCliFormatters.render_rule(text)
+
+    @staticmethod
+    def display_progress(
+        current: int,
+        total: int,
+        label: str,
+        *,
+        detail: str = "",
+    ) -> None:
+        """Display progress indicator [current/total] label detail."""
+        w = len(str(total))
+        suffix = f" {detail}" if detail else ""
+        FlextCliFormatters.print(f"[{current:0{w}d}/{total}] {label}{suffix}")
+
+    @staticmethod
+    def display_status(
+        success: bool,
+        label: str,
+        detail: str,
+        *,
+        elapsed: float | None = None,
+    ) -> None:
+        """Display a pass/fail status line."""
+        sym = c.Cli.Symbols.SUCCESS_MARK if success else c.Cli.Symbols.FAILURE_MARK
+        style = c.Cli.Styles.BOLD_GREEN if success else c.Cli.Styles.BOLD_RED
+        timing = f"  ({elapsed:.2f}s)" if elapsed is not None else ""
+        FlextCliFormatters.print(
+            f"  {sym} {label:<8} {detail:<24}{timing}", style=style
+        )
+
+    @staticmethod
+    def display_summary(
+        title: str,
+        *,
+        total: int,
+        success: int,
+        failed: int,
+        skipped: int = 0,
+    ) -> None:
+        """Display a summary panel."""
+        content = (
+            f"Total: {total}  Success: {success}  Failed: {failed}  Skipped: {skipped}"
+        )
+        FlextCliFormatters.render_panel(content, title=title)
+
+    @staticmethod
+    def display_gate(name: str, passed: bool, *, message: str = "") -> None:
+        """Display a quality gate result."""
+        sym = c.Cli.Symbols.SUCCESS_MARK if passed else c.Cli.Symbols.FAILURE_MARK
+        style = c.Cli.Styles.BOLD_GREEN if passed else c.Cli.Styles.BOLD_RED
+        suffix = f"  {message}" if message else ""
+        FlextCliFormatters.print(f"    {sym} {name:<10}{suffix}", style=style)
+
+    @staticmethod
+    def display_metrics(
+        metrics: Mapping[str, str | int | float],
+    ) -> None:
+        """Display key=value metric pairs."""
+        for key, value in metrics.items():
+            FlextCliFormatters.print(f"{key}={value}")
+
+    @staticmethod
+    def display_debug(message: str, *, verbose: bool = False) -> None:
+        """Display debug message (no-op unless verbose)."""
+        if not verbose:
+            return
+        FlextCliFormatters.print(f"[DEBUG] {message}", style="dim")
 
 
 __all__ = ["FlextCliOutput"]

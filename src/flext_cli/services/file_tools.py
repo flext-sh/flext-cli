@@ -3,14 +3,17 @@
 from __future__ import annotations
 
 import csv
+import json
+import os
 import shutil
+import tempfile
 from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
 from typing import TextIO
 
 import yaml
 from flext_core import r
-from pydantic import ValidationError
+from pydantic import BaseModel, ValidationError
 
 from flext_cli import FlextCliServiceBase, c, m, t, u
 
@@ -96,6 +99,30 @@ class FlextCliFileTools(FlextCliServiceBase):
         )
 
     @staticmethod
+    def atomic_write_text_file(file_path: str | Path, content: str) -> r[bool]:
+        """Write text file atomically via tempfile + rename in same directory."""
+        path = Path(file_path)
+
+        def _atomic_write() -> bool:
+            fd, tmp_path = tempfile.mkstemp(
+                dir=path.parent,
+                suffix=".tmp",
+            )
+            try:
+                with os.fdopen(fd, "w", encoding=c.DEFAULT_ENCODING) as f:
+                    f.write(content)
+                Path(tmp_path).replace(path)
+            except BaseException:
+                Path(tmp_path).unlink(missing_ok=True)
+                raise
+            return True
+
+        return FlextCliFileTools._execute_file_operation(
+            _atomic_write,
+            "Atomic write failed: {error}",
+        )
+
+    @staticmethod
     def read_json_file(file_path: str | Path) -> r[t.Cli.JsonValue]:
 
         def _load() -> t.Cli.JsonValue:
@@ -109,6 +136,54 @@ class FlextCliFileTools(FlextCliServiceBase):
         return FlextCliFileTools._execute_file_operation(
             _load,
             c.Cli.FileErrorMessages.JSON_LOAD_FAILED,
+        )
+
+    @staticmethod
+    def read_json_model[M: BaseModel](
+        file_path: str | Path,
+        model_type: type[M],
+    ) -> r[M]:
+        """Read JSON file directly into a Pydantic model via model_validate_json.
+
+        Uses pydantic-core Rust path (no intermediate dict) — ~3x faster than
+        json.loads + model_validate.
+        """
+
+        def _load() -> M:
+            raw = Path(file_path).read_bytes()
+            return model_type.model_validate_json(raw, strict=False)
+
+        return FlextCliFileTools._execute_file_operation(
+            _load,
+            c.Cli.FileErrorMessages.JSON_LOAD_FAILED,
+        )
+
+    @staticmethod
+    def write_json_model(
+        file_path: str | Path,
+        model: BaseModel,
+        indent: int = 2,
+        *,
+        by_alias: bool = False,
+        exclude_none: bool = False,
+    ) -> r[bool]:
+        """Write a Pydantic model directly to JSON via model_dump_json.
+
+        Type-safe: accepts only BaseModel, serializes via Rust path.
+        """
+
+        def _write() -> bool:
+            json_str = model.model_dump_json(
+                indent=indent,
+                by_alias=by_alias,
+                exclude_none=exclude_none,
+            )
+            Path(file_path).write_text(json_str, encoding=c.DEFAULT_ENCODING)
+            return True
+
+        return FlextCliFileTools._execute_file_operation(
+            _write,
+            c.Cli.ErrorMessages.JSON_WRITE_FAILED,
         )
 
     @staticmethod
@@ -128,6 +203,9 @@ class FlextCliFileTools(FlextCliServiceBase):
         file_path: str | Path,
         data: t.Cli.JsonValue | m.Cli.DisplayData,
         indent: int = 2,
+        *,
+        sort_keys: bool = False,
+        ensure_ascii: bool = False,
     ) -> r[bool]:
         payload_raw: t.Cli.JsonValue = (
             data.data if isinstance(data, m.Cli.DisplayData) else data
@@ -140,11 +218,22 @@ class FlextCliFileTools(FlextCliServiceBase):
             payload = str(payload_raw)
 
         def _writer(f: TextIO) -> None:
-            f.write(
-                t.Cli.JSON_OBJECT_ADAPTER.dump_json(payload, indent=indent).decode(
-                    c.DEFAULT_ENCODING,
-                ),
-            )
+            if sort_keys or ensure_ascii:
+                f.write(
+                    json.dumps(
+                        payload,
+                        indent=indent,
+                        sort_keys=sort_keys,
+                        ensure_ascii=ensure_ascii,
+                    ),
+                )
+            else:
+                f.write(
+                    t.Cli.JSON_OBJECT_ADAPTER.dump_json(
+                        payload,
+                        indent=indent,
+                    ).decode(c.DEFAULT_ENCODING),
+                )
 
         return FlextCliFileTools._write_structured_file(
             file_path,

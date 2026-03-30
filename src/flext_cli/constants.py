@@ -66,7 +66,13 @@ class FlextCliConstants(FlextConstants):
         class MessageTypes(StrEnum):
             """Message types enum."""
 
-            INFO, ERROR, WARNING, SUCCESS = ("info", "error", "warning", "success")
+            INFO, ERROR, WARNING, SUCCESS, DEBUG = (
+                "info",
+                "error",
+                "warning",
+                "success",
+                "debug",
+            )
 
         @unique
         class LogVerbosity(StrEnum):
@@ -157,6 +163,7 @@ class FlextCliConstants(FlextConstants):
             """Symbol constants."""
 
             SUCCESS_MARK, FAILURE_MARK = ("\u2713", "\u2717")
+            WARN, SKIP = ("\u26a0", "\u25cb")
 
         class Styles:
             """Style constants."""
