@@ -13,47 +13,13 @@ from flext_core.lazy import install_lazy_exports
 if TYPE_CHECKING:
     from flext_tests import *
 
-    from tests import conftest, constants, models, typings, unit
+    from tests import conftest, constants, models, typings
     from tests.conftest import *
     from tests.constants import *
     from tests.helpers._impl import *
     from tests.models import *
     from tests.typings import *
-    from tests.unit import (
-        test_base,
-        test_cli_params,
-        test_cli_service,
-        test_cmd,
-        test_cmd_cov,
-        test_commands,
-        test_config,
-        test_constants,
-        test_examples_smoke,
-        test_prompts,
-        test_prompts_cov,
-        test_protocols,
-        test_tables,
-        test_typings,
-        test_utilities_cov,
-        test_version,
-    )
-    from tests.unit.conftest import *
-    from tests.unit.test_base import *
-    from tests.unit.test_cli_params import *
-    from tests.unit.test_cli_service import *
-    from tests.unit.test_cmd import *
-    from tests.unit.test_cmd_cov import *
-    from tests.unit.test_commands import *
-    from tests.unit.test_config import *
-    from tests.unit.test_constants import *
-    from tests.unit.test_examples_smoke import *
-    from tests.unit.test_prompts import *
-    from tests.unit.test_prompts_cov import *
-    from tests.unit.test_protocols import *
-    from tests.unit.test_tables import *
-    from tests.unit.test_typings import *
-    from tests.unit.test_utilities_cov import *
-    from tests.unit.test_version import *
+    from tests.unit import *
 
 _LAZY_IMPORTS: Mapping[str, str | Sequence[str]] = {
     "ConfigParam": "tests.unit.test_cli_params",

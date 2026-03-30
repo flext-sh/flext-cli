@@ -25,44 +25,22 @@ if TYPE_CHECKING:
     from flext_core import *
 
     from flext_cli import (
-        _models,
         api,
         base,
         constants,
         models,
         protocols,
-        services,
         settings,
         typings,
         utilities,
     )
-    from flext_cli._models.base import *
+    from flext_cli._models import *
     from flext_cli.api import *
     from flext_cli.base import *
     from flext_cli.constants import *
     from flext_cli.models import *
     from flext_cli.protocols import *
-    from flext_cli.services import (
-        auth,
-        cli_params,
-        cmd,
-        commands,
-        file_tools,
-        formatters,
-        output,
-        prompts,
-        tables,
-    )
-    from flext_cli.services.auth import *
-    from flext_cli.services.cli import *
-    from flext_cli.services.cli_params import *
-    from flext_cli.services.cmd import *
-    from flext_cli.services.commands import *
-    from flext_cli.services.file_tools import *
-    from flext_cli.services.formatters import *
-    from flext_cli.services.output import *
-    from flext_cli.services.prompts import *
-    from flext_cli.services.tables import *
+    from flext_cli.services import *
     from flext_cli.settings import *
     from flext_cli.typings import *
     from flext_cli.utilities import *
