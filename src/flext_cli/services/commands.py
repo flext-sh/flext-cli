@@ -90,7 +90,7 @@ class FlextCliCommands(FlextCliServiceBase):
                 c.Cli.CommandsErrorMessages.COMMAND_NOT_FOUND.format(name=name),
             )
         cmd_info = self._commands[name]
-        handler = cmd_info.handler
+        handler: Callable[..., r[t.Cli.JsonValue]] = cmd_info.handler
         if not callable(handler):
             return r[t.Cli.JsonValue].fail(
                 c.Cli.CommandsErrorMessages.HANDLER_NOT_CALLABLE.format(name=name),
@@ -158,7 +158,7 @@ class FlextCliCommands(FlextCliServiceBase):
         if not args:
             return r[t.Cli.JsonValue].ok({"status": "success", "message": "No args"})
         cmd_name = args[0] if args else ""
-        cmd_args = list(args[1:]) if len(args) > 1 else []
+        cmd_args: list[str] = list(args[1:]) if len(args) > 1 else []
         if cmd_name in {"--help", "-h"}:
             return r[t.Cli.JsonValue].ok({
                 "status": "help",

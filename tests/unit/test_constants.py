@@ -48,8 +48,8 @@ class TestsCliConstants:
 
     def test_get_enum_values(self) -> None:
         """Test get_enum_values extracts values from StrEnum."""
-        values = u.get_enum_values(c.Cli.ServiceStatus)
-        tm.that(values, is_=tuple)
+        values = u.enum_values(c.Cli.ServiceStatus)
+        tm.that(values, is_=frozenset)
         tm.that(values, empty=False)
         for v in values:
             tm.that(v, is_=str)

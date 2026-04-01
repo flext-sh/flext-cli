@@ -120,7 +120,7 @@ class FlextCliTables(FlextCliServiceBase):
     ) -> str | t.StrSequence:
         """Resolve headers for tabulate."""
         if not show_header or headers is None:
-            return []
+            return list[str]()
         if isinstance(headers, str):
             return headers
         return list(headers)

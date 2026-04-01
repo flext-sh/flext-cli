@@ -17,8 +17,7 @@ from flext_core import r
 from flext_tests import tm
 
 from flext_cli import FlextCliCommands, c, m, t
-
-from ..helpers import CommandsFactory
+from tests._helpers import CommandsFactory
 
 
 class TestsCliCommands:
