@@ -19,22 +19,51 @@ if _TYPE_CHECKING:
     from flext_core import FlextTypes
 
     from tests.unit.conftest import *
-    from tests.unit.test_base import *
-    from tests.unit.test_cli_params import *
-    from tests.unit.test_cli_service import *
-    from tests.unit.test_cmd import *
-    from tests.unit.test_cmd_cov import *
-    from tests.unit.test_commands import *
-    from tests.unit.test_config import *
-    from tests.unit.test_constants import *
-    from tests.unit.test_examples_smoke import *
-    from tests.unit.test_prompts import *
-    from tests.unit.test_prompts_cov import *
-    from tests.unit.test_protocols import *
-    from tests.unit.test_tables import *
-    from tests.unit.test_typings import *
-    from tests.unit.test_utilities_cov import *
-    from tests.unit.test_version import *
+    from tests.unit.test_base import TestsCliServiceBase
+    from tests.unit.test_cli_params import (
+        ConfigParam,
+        TestsCliCommonParams,
+        create_cli_app,
+        create_decorated_command,
+        create_test_config,
+    )
+    from tests.unit.test_cli_service import TestsCliService
+    from tests.unit.test_cmd import TestsCliCmd
+    from tests.unit.test_cmd_cov import (
+        test_get_config_info_failure_on_exception,
+        test_show_config_failure_when_info_result_is_failure,
+        test_show_config_outer_exception_path,
+        test_show_config_paths_failure_on_exception,
+        test_validate_config_failure_on_exception,
+    )
+    from tests.unit.test_commands import TestsCliCommands
+    from tests.unit.test_config import (
+        ConfigTestFactory,
+        ConfigTestScenario,
+        ConfigTestType,
+        TestsCliConfigBasics,
+        TestsCliConfigEdgeCases,
+        TestsCliConfigIntegration,
+        TestsCliConfigService,
+        TestsCliConfigValidation,
+        TestsCliLoggingConfig,
+    )
+    from tests.unit.test_constants import TestsCliConstants
+    from tests.unit.test_examples_smoke import TestFlextCliExamplesSmoke
+    from tests.unit.test_prompts import TestsCliPrompts
+    from tests.unit.test_prompts_cov import (
+        test_prompt_logs_input_when_not_test_env,
+        test_read_confirmation_input_paths,
+    )
+    from tests.unit.test_protocols import TestsCliProtocols
+    from tests.unit.test_tables import TestsCliTables
+    from tests.unit.test_typings import TestsCliTypings
+    from tests.unit.test_utilities_cov import (
+        test_process_fail_and_collect_paths,
+        test_process_mapping_fail_and_collect_paths,
+        test_validation_v_uses_custom_message_on_empty_failure,
+    )
+    from tests.unit.test_version import T, TestsCliVersion
 
 _LAZY_IMPORTS: Mapping[str, str | Sequence[str]] = {
     "ConfigParam": "tests.unit.test_cli_params",
