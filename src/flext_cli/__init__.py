@@ -24,16 +24,48 @@ from flext_cli.__version__ import (
 if _TYPE_CHECKING:
     from flext_core import FlextTypes, d, e, h, r, x
 
-    from flext_cli._models import *
-    from flext_cli.api import *
-    from flext_cli.base import *
-    from flext_cli.constants import *
-    from flext_cli.models import *
-    from flext_cli.protocols import *
-    from flext_cli.services import *
-    from flext_cli.settings import *
-    from flext_cli.typings import *
-    from flext_cli.utilities import *
+    from flext_cli import (
+        _models,
+        api,
+        base,
+        constants,
+        models,
+        protocols,
+        services,
+        settings,
+        typings,
+        utilities,
+    )
+    from flext_cli._models import FlextCliModelsBase
+    from flext_cli.api import FlextCli, cli
+    from flext_cli.base import FlextCliServiceBase, s
+    from flext_cli.constants import FlextCliConstants, FlextCliConstants as c
+    from flext_cli.models import FlextCliModels, FlextCliModels as m
+    from flext_cli.protocols import FlextCliProtocols, FlextCliProtocols as p
+    from flext_cli.services import (
+        FlextCliAuth,
+        FlextCliCli,
+        FlextCliCmd,
+        FlextCliCommands,
+        FlextCliCommonParams,
+        FlextCliFileTools,
+        FlextCliFormatters,
+        FlextCliOutput,
+        FlextCliPrompts,
+        FlextCliTables,
+        auth,
+        cli_params,
+        cmd,
+        commands,
+        file_tools,
+        formatters,
+        output,
+        prompts,
+        tables,
+    )
+    from flext_cli.settings import FlextCliSettings, logger
+    from flext_cli.typings import FlextCliTypes, FlextCliTypes as t
+    from flext_cli.utilities import FlextCliUtilities, FlextCliUtilities as u
 
 _LAZY_IMPORTS: Mapping[str, str | Sequence[str]] = merge_lazy_imports(
     (

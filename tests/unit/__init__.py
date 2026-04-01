@@ -18,7 +18,26 @@ from flext_core.lazy import install_lazy_exports
 if _TYPE_CHECKING:
     from flext_core import FlextTypes
 
-    from tests.unit.conftest import *
+    from tests.unit import (
+        conftest,
+        test_base,
+        test_cli_params,
+        test_cli_service,
+        test_cmd,
+        test_cmd_cov,
+        test_commands,
+        test_config,
+        test_constants,
+        test_examples_smoke,
+        test_prompts,
+        test_prompts_cov,
+        test_protocols,
+        test_tables,
+        test_typings,
+        test_utilities_cov,
+        test_version,
+    )
+    from tests.unit.conftest import reset_config_singleton
     from tests.unit.test_base import TestsCliServiceBase
     from tests.unit.test_cli_params import (
         ConfigParam,

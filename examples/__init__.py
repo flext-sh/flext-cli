@@ -13,11 +13,12 @@ from flext_core.lazy import install_lazy_exports
 if _TYPE_CHECKING:
     from flext_core import FlextTypes
 
-    from examples.constants import *
-    from examples.models import *
-    from examples.protocols import *
-    from examples.typings import *
-    from examples.utilities import *
+    from examples import constants, models, protocols, typings, utilities
+    from examples.constants import ExamplesConstants, ExamplesConstants as c
+    from examples.models import ExamplesModels, ExamplesModels as m
+    from examples.protocols import ExamplesProtocols, ExamplesProtocols as p
+    from examples.typings import ExamplesTypes, ExamplesTypes as t
+    from examples.utilities import ExamplesUtilities, ExamplesUtilities as u
     from flext_cli import d, e, h, r, s, x
 
 _LAZY_IMPORTS: Mapping[str, str | Sequence[str]] = {

@@ -17,7 +17,8 @@ from flext_core.lazy import install_lazy_exports
 if _TYPE_CHECKING:
     from flext_core import FlextTypes
 
-    from tests.helpers._impl import *
+    from tests.helpers import _impl
+    from tests.helpers._impl import FlextCliTestHelpers
 
 _LAZY_IMPORTS: Mapping[str, str | Sequence[str]] = {
     "FlextCliTestHelpers": "tests.helpers._impl",

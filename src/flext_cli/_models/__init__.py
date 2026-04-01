@@ -13,7 +13,8 @@ from flext_core.lazy import install_lazy_exports
 if _TYPE_CHECKING:
     from flext_core import FlextTypes
 
-    from flext_cli._models.base import *
+    from flext_cli._models import base
+    from flext_cli._models.base import FlextCliModelsBase
 
 _LAZY_IMPORTS: Mapping[str, str | Sequence[str]] = {
     "FlextCliModelsBase": "flext_cli._models.base",

@@ -20,16 +20,28 @@ from flext_core.lazy import install_lazy_exports
 if _TYPE_CHECKING:
     from flext_core import FlextTypes
 
-    from flext_cli.services.auth import *
-    from flext_cli.services.cli import *
-    from flext_cli.services.cli_params import *
-    from flext_cli.services.cmd import *
-    from flext_cli.services.commands import *
-    from flext_cli.services.file_tools import *
-    from flext_cli.services.formatters import *
-    from flext_cli.services.output import *
-    from flext_cli.services.prompts import *
-    from flext_cli.services.tables import *
+    from flext_cli.services import (
+        auth,
+        cli,
+        cli_params,
+        cmd,
+        commands,
+        file_tools,
+        formatters,
+        output,
+        prompts,
+        tables,
+    )
+    from flext_cli.services.auth import FlextCliAuth
+    from flext_cli.services.cli import FlextCliCli
+    from flext_cli.services.cli_params import FlextCliCommonParams
+    from flext_cli.services.cmd import FlextCliCmd
+    from flext_cli.services.commands import FlextCliCommands
+    from flext_cli.services.file_tools import FlextCliFileTools
+    from flext_cli.services.formatters import FlextCliFormatters
+    from flext_cli.services.output import FlextCliOutput
+    from flext_cli.services.prompts import FlextCliPrompts
+    from flext_cli.services.tables import FlextCliTables
 
 _LAZY_IMPORTS: Mapping[str, str | Sequence[str]] = {
     "FlextCliAuth": "flext_cli.services.auth",
