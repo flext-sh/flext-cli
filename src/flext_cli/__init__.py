@@ -63,7 +63,12 @@ if _TYPE_CHECKING:
     from flext_cli.settings import FlextCliSettings, logger
     from flext_cli.typings import FlextCliTypes, FlextCliTypes as t
     from flext_cli.utilities import FlextCliUtilities, FlextCliUtilities as u
-    from flext_core import FlextTypes, d, e, h, r, x
+    from flext_core import FlextTypes
+    from flext_core.decorators import FlextDecorators as d
+    from flext_core.exceptions import FlextExceptions as e
+    from flext_core.handlers import FlextHandlers as h
+    from flext_core.mixins import FlextMixins as x
+    from flext_core.result import FlextResult as r
 
 _LAZY_IMPORTS: FlextTypes.LazyImportIndex = merge_lazy_imports(
     (
@@ -85,15 +90,15 @@ _LAZY_IMPORTS: FlextTypes.LazyImportIndex = merge_lazy_imports(
         "c": ("flext_cli.constants", "FlextCliConstants"),
         "cli": "flext_cli.api",
         "constants": "flext_cli.constants",
-        "d": "flext_core",
-        "e": "flext_core",
-        "h": "flext_core",
+        "d": ("flext_core.decorators", "FlextDecorators"),
+        "e": ("flext_core.exceptions", "FlextExceptions"),
+        "h": ("flext_core.handlers", "FlextHandlers"),
         "logger": "flext_cli.settings",
         "m": ("flext_cli.models", "FlextCliModels"),
         "models": "flext_cli.models",
         "p": ("flext_cli.protocols", "FlextCliProtocols"),
         "protocols": "flext_cli.protocols",
-        "r": "flext_core",
+        "r": ("flext_core.result", "FlextResult"),
         "s": "flext_cli.base",
         "services": "flext_cli.services",
         "settings": "flext_cli.settings",
@@ -101,7 +106,7 @@ _LAZY_IMPORTS: FlextTypes.LazyImportIndex = merge_lazy_imports(
         "typings": "flext_cli.typings",
         "u": ("flext_cli.utilities", "FlextCliUtilities"),
         "utilities": "flext_cli.utilities",
-        "x": "flext_core",
+        "x": ("flext_core.mixins", "FlextMixins"),
     },
 )
 

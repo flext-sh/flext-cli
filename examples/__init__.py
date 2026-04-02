@@ -169,8 +169,13 @@ if _TYPE_CHECKING:
     from examples.protocols import ExamplesProtocols, ExamplesProtocols as p
     from examples.typings import ExamplesTypes, ExamplesTypes as t
     from examples.utilities import ExamplesUtilities, ExamplesUtilities as u
-    from flext_cli import d, e, h, r, s, x
     from flext_core import FlextTypes
+    from flext_core.decorators import FlextDecorators as d
+    from flext_core.exceptions import FlextExceptions as e
+    from flext_core.handlers import FlextHandlers as h
+    from flext_core.mixins import FlextMixins as x
+    from flext_core.result import FlextResult as r
+    from flext_core.service import FlextService as s
 
 _LAZY_IMPORTS: FlextTypes.LazyImportIndex = {
     "CommandHistory": "examples.ex_08_shell_interaction",
@@ -202,7 +207,7 @@ _LAZY_IMPORTS: FlextTypes.LazyImportIndex = {
     "copy_file_with_verification": "examples.ex_14_advanced_file_formats",
     "create_database_config_from_cli": "examples.ex_12_pydantic_driven_cli",
     "create_processing_summary": "examples.ex_04_file_operations",
-    "d": "flext_cli",
+    "d": ("flext_core.decorators", "FlextDecorators"),
     "database_setup_wizard": "examples.ex_03_interactive_prompts",
     "delete_database": "examples.ex_03_interactive_prompts",
     "demonstrate_auto_cli_generation": "examples.ex_12_pydantic_driven_cli",
@@ -214,7 +219,7 @@ _LAZY_IMPORTS: FlextTypes.LazyImportIndex = {
     "display_database_results": "examples.ex_02_output_formatting",
     "display_project_structure": "examples.ex_02_output_formatting",
     "display_with_panels": "examples.ex_02_output_formatting",
-    "e": "flext_cli",
+    "e": ("flext_core.exceptions", "FlextExceptions"),
     "efficient_cli_usage": "examples.ex_09_performance_optimization",
     "efficient_table_display": "examples.ex_09_performance_optimization",
     "ex_01_getting_started": "examples.ex_01_getting_started",
@@ -247,7 +252,7 @@ _LAZY_IMPORTS: FlextTypes.LazyImportIndex = {
     "get_cli_settings": "examples.ex_06_configuration",
     "get_saved_token": "examples.ex_05_authentication",
     "get_user_configuration": "examples.ex_03_interactive_prompts",
-    "h": "flext_cli",
+    "h": ("flext_core.handlers", "FlextHandlers"),
     "handle_config_command": "examples.ex_08_shell_interaction",
     "handle_list_command": "examples.ex_08_shell_interaction",
     "handle_multiline_input": "examples.ex_08_shell_interaction",
@@ -281,10 +286,10 @@ _LAZY_IMPORTS: FlextTypes.LazyImportIndex = {
     "process_with_status": "examples.ex_02_output_formatting",
     "prompts": "examples.ex_03_interactive_prompts",
     "protocols": "examples.protocols",
-    "r": "flext_cli",
+    "r": ("flext_core.result", "FlextResult"),
     "refresh_token_if_needed": "examples.ex_05_authentication",
     "risky_operation": "examples.ex_10_testing_utilities",
-    "s": "flext_cli",
+    "s": ("flext_core.service", "FlextService"),
     "save_config_command": "examples.ex_10_testing_utilities",
     "save_deployment_config": "examples.ex_04_file_operations",
     "save_user_preferences": "examples.ex_04_file_operations",
@@ -312,7 +317,7 @@ _LAZY_IMPORTS: FlextTypes.LazyImportIndex = {
     "validate_email_input": "examples.ex_03_interactive_prompts",
     "validate_required_fields": "examples.ex_12_pydantic_driven_cli",
     "validate_user_credentials": "examples.ex_05_authentication",
-    "x": "flext_cli",
+    "x": ("flext_core.mixins", "FlextMixins"),
     "your_cli_function": "examples.ex_02_output_formatting",
 }
 
