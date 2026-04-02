@@ -27,8 +27,8 @@ from pydantic import (
 from pydantic.fields import FieldInfo
 from typer.models import OptionInfo
 
-from flext_cli import c, m, p, t
-from flext_core import FlextLogger, FlextUtilities, r
+from flext_cli import c, m, p, r, t
+from flext_core import FlextLogger, FlextUtilities
 
 _logger = FlextLogger(__name__)
 
@@ -41,15 +41,15 @@ class FlextCliUtilities(FlextUtilities):
 
         @staticmethod
         def is_mapping_like(
-            obj: t.Cli.JsonValue | Mapping[str, t.Cli.JsonValue],
-        ) -> TypeIs[Mapping[str, t.Cli.JsonValue]]:
+            obj: t.NormalizedValue | Mapping[str, t.NormalizedValue],
+        ) -> TypeIs[Mapping[str, t.NormalizedValue]]:
             """Narrow value to Mapping for metadata processing."""
             return isinstance(obj, Mapping)
 
         @staticmethod
         def unwrap_root_value(
-            value: t.Cli.JsonValue,
-        ) -> t.Cli.JsonValue:
+            value: t.NormalizedValue,
+        ) -> t.NormalizedValue:
             """Unwrap RootModel .root value if present, otherwise return as-is."""
             if hasattr(value, "__dict__"):
                 model_dict = value.__dict__
@@ -61,7 +61,7 @@ class FlextCliUtilities(FlextUtilities):
 
         @staticmethod
         def normalize_json_value(
-            item: t.Cli.JsonValue,
+            item: t.NormalizedValue,
         ) -> t.Cli.JsonValue:
             """Normalize a value to a JSON-serializable value."""
             if isinstance(item, t.PRIMITIVES_TYPES):
@@ -90,11 +90,7 @@ class FlextCliUtilities(FlextUtilities):
                 return default if isinstance(default, bool) else False
             if FlextCliUtilities.Cli.is_mapping_like(default):
                 return {
-                    str(k): t.Cli.JSON_NORMALIZE_ADAPTER.dump_python(
-                        v,
-                        mode="json",
-                        warnings=False,
-                    )
+                    str(k): FlextCliUtilities.Cli.normalize_json_value(v)
                     for k, v in default.items()
                 }
             return {}

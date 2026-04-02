@@ -191,10 +191,12 @@ def load_application_config() -> r[Mapping[str, t.Cli.JsonValue]]:
 
 
 def apply_environment_overrides(
-    config: t.ContainerMapping,
-) -> t.MutableContainerMapping:
+    config: Mapping[str, t.Cli.JsonValue],
+) -> t.MutableContainerValueMapping:
     """Apply environment-specific configuration overrides."""
-    result: t.MutableContainerMapping = dict(config) if isinstance(config, dict) else {}
+    result: t.MutableContainerValueMapping = (
+        dict(config) if isinstance(config, dict) else {}
+    )
     env = os.getenv("ENVIRONMENT", "development")
     if env == "production":
         max_workers_value = result.get("max_workers", 4)
@@ -210,11 +212,13 @@ def apply_environment_overrides(
 
 
 def initialize_services(
-    config: t.ContainerMapping,
-) -> t.MutableContainerMapping:
+    config: Mapping[str, t.Cli.JsonValue],
+) -> t.MutableContainerValueMapping:
     """Initialize services based on configuration."""
     time.sleep(0.05)
-    result: t.MutableContainerMapping = dict(config) if isinstance(config, dict) else {}
+    result: t.MutableContainerValueMapping = (
+        dict(config) if isinstance(config, dict) else {}
+    )
     result["services_initialized"] = True
     result["initialized_at"] = "2025-11-23T10:00:00Z"
     return result

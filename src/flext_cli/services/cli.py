@@ -222,7 +222,8 @@ class FlextCliCli(FlextCliServiceBase):
         """Build a Typer command directly from a Pydantic request model."""
         parameters: list[Parameter] = []
         annotations: dict[str, object] = {"return": None}
-        for field_name, field_info in model_cls.model_fields.items():
+        fields: dict[str, object] = getattr(model_cls, "model_fields", {})
+        for field_name, field_info in fields.items():
             parameter, annotation = cls._build_model_parameter(
                 field_name,
                 field_info,

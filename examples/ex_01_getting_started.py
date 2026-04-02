@@ -13,6 +13,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import tempfile
+from collections.abc import Mapping
 from pathlib import Path
 
 from examples import c, m, t
@@ -63,7 +64,11 @@ class FlextCliGettingStarted:
             return r[m.Cli.LoadedConfig].fail(
                 read_result.error or "Failed to load config",
             )
-        return r[m.Cli.LoadedConfig].ok(m.Cli.LoadedConfig(content=read_result.value))
+        if not isinstance(read_result.value, Mapping):
+            return r[m.Cli.LoadedConfig].fail("Config content must be a mapping")
+        return r[m.Cli.LoadedConfig].ok(
+            m.Cli.LoadedConfig(content=dict(read_result.value)),
+        )
 
     def process_data_with_flext_result(self) -> None:
         """Use r pattern in YOUR code - no try/except needed."""

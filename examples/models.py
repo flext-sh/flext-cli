@@ -135,9 +135,12 @@ class ExamplesModels(FlextCliModels):
                 data=payload_data,
             )
             if isinstance(payload.data, dict):
+                safe_data: t.Cli.TableMappingRow = {
+                    str(k): str(v) for k, v in payload.data.items()
+                }
                 cli.show_table(
-                    payload.data,
-                    headers=["Setting", "Value"],
+                    safe_data,
+                    show_header=True,
                     title="⚙️  Application Configuration",
                 )
 

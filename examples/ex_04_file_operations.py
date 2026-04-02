@@ -17,8 +17,7 @@ from pathlib import Path
 from pydantic import TypeAdapter, ValidationError
 
 from examples import m, t
-from flext_cli import cli
-from flext_core import r
+from flext_cli import cli, r, u
 
 # ============================================================================
 # PATTERN 1: JSON config files in YOUR application
@@ -38,7 +37,7 @@ def save_user_preferences(
 
     write_result = cli.write_json_file(
         config_file,
-        preferences,
+        u.Cli.normalize_json_value(preferences),
     )
 
     if write_result.is_failure:
@@ -60,9 +59,13 @@ def load_user_preferences(config_dir: Path) -> r[m.Cli.LoadedConfig]:
         return r[m.Cli.LoadedConfig].fail(
             read_result.error or "Could not load preferences",
         )
+    if not isinstance(read_result.value, Mapping):
+        return r[m.Cli.LoadedConfig].fail("Preferences content must be a mapping")
 
     cli.print(f"✅ Loaded preferences from {config_file.name}", style="green")
-    return r[m.Cli.LoadedConfig].ok(m.Cli.LoadedConfig(content=read_result.value))
+    return r[m.Cli.LoadedConfig].ok(
+        m.Cli.LoadedConfig(content=dict(read_result.value)),
+    )
 
 
 # ============================================================================
@@ -82,7 +85,7 @@ def save_deployment_config(
     # Cast dict to t.NormalizedValue (compatible with t.NormalizedValue)
     write_result = cli.write_yaml_file(
         config_file,
-        config,
+        u.Cli.normalize_json_value(config),
     )
 
     if write_result.is_failure:
@@ -118,7 +121,11 @@ def export_database_report(
     format_type: str = "grid",
 ) -> bool | None:
     """Export database query results in YOUR reporting tool."""
-    table_result = cli.format_table(records, table_format=format_type)
+    table_rows: Sequence[t.Cli.TableMappingRow] = [
+        {str(key): u.Cli.normalize_json_value(value) for key, value in record.items()}
+        for record in records
+    ]
+    table_result = cli.format_table(table_rows, table_format=format_type)
 
     if table_result.is_failure:
         cli.print(f"❌ Table creation failed: {table_result.error}", style="bold red")
@@ -147,7 +154,7 @@ def list_project_files(project_dir: Path) -> None:
         return
 
     # Collect file metadata
-    files_data: Sequence[t.ContainerMapping] = [
+    files_data: Sequence[t.Cli.TableMappingRow] = [
         {
             "Name": item.name[:40],
             "Type": "📂 dir" if item.is_dir() else "📄 file",
@@ -315,7 +322,9 @@ def import_from_csv(input_file: Path) -> Sequence[t.StrMapping] | None:
     # Display sample
     if rows:
         sample_rows = [dict(r) for r in rows[:5]]
-        tabular_data: Sequence[t.ContainerMapping] = [dict(row) for row in sample_rows]
+        tabular_data: Sequence[t.Cli.TableMappingRow] = [
+            dict(row) for row in sample_rows
+        ]
         cli.show_table(tabular_data, title="📋 Sample Data")
     return [dict(r) for r in rows] if rows else None
 
@@ -402,7 +411,7 @@ def export_multi_format(
     # Export to JSON
     json_path = base_path.with_suffix(".json")
     # Handle both single dict and list of dicts
-    json_payload = data
+    json_payload = u.Cli.normalize_json_value(data)
     json_result = cli.write_json_file(
         json_path,
         json_payload,
@@ -415,7 +424,7 @@ def export_multi_format(
 
     # Export to YAML
     yaml_path = base_path.with_suffix(".yaml")
-    yaml_payload = data
+    yaml_payload = u.Cli.normalize_json_value(data)
     yaml_result = cli.write_yaml_file(
         yaml_path,
         yaml_payload,
@@ -666,7 +675,7 @@ def main() -> None:
     cli.print("\n6. Data Validation (ETL pipeline):", style="bold cyan")
     test_data: t.ContainerMapping = {"id": 1, "name": "test", "value": 100}
     test_file = temp_dir / "test_data.json"
-    cli.write_json_file(test_file, test_data)
+    cli.write_json_file(test_file, u.Cli.normalize_json_value(test_data))
     valid_result = validate_and_import_data(test_file)
     if valid_result.is_failure:
         cli.print(f"   Validation: {valid_result.error}", style="yellow")
@@ -698,8 +707,8 @@ def main() -> None:
     }
     auto_json = temp_dir / "auto_config.json"
     auto_yaml = temp_dir / "auto_config.yaml"
-    cli.write_json_file(auto_json, auto_config)
-    cli.write_yaml_file(auto_yaml, auto_config)
+    cli.write_json_file(auto_json, u.Cli.normalize_json_value(auto_config))
+    cli.write_yaml_file(auto_yaml, u.Cli.normalize_json_value(auto_config))
     auto1_result = load_config_auto_detect(auto_json)
     auto2_result = load_config_auto_detect(auto_yaml)
     if auto1_result.is_failure:
@@ -726,7 +735,7 @@ def main() -> None:
         ],
     }
     pipeline_file = temp_dir / "pipeline_input.json"
-    cli.write_json_file(pipeline_file, pipeline_input)
+    cli.write_json_file(pipeline_file, u.Cli.normalize_json_value(pipeline_input))
     pipeline_result = process_file_pipeline(pipeline_file, temp_dir / "pipeline_output")
 
     if pipeline_result.is_success:

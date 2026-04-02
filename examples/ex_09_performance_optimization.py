@@ -113,7 +113,7 @@ def efficient_table_display(
         style="cyan",
     )
     preview_data = large_dataset[:preview_size]
-    cli.show_table(preview_data, headers=None)
+    cli.show_table(preview_data, show_header=False)
     if total > preview_size:
         cli.print(f"   ... ({total - preview_size} more rows)", style="yellow")
 

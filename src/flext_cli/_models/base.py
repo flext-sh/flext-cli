@@ -32,7 +32,7 @@ class FlextCliModelsBase:
             validate_assignment=True,
         )
         data: Annotated[
-            t.Cli.JsonValue,
+            t.ContainerMapping,
             Field(
                 description="Field-value pairs for display",
             ),
@@ -46,7 +46,7 @@ class FlextCliModelsBase:
             validate_assignment=True,
         )
         content: Annotated[
-            t.Cli.JsonValue,
+            t.ContainerMapping,
             Field(
                 description="Loaded configuration content (dict or other JSON value)",
             ),

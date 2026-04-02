@@ -51,7 +51,7 @@ def your_cli_function() -> None:
     cli.print("ℹ️  Processing 100 records...", style="cyan")
 
 
-def display_database_results(records: Sequence[t.Cli.JsonValue]) -> None:
+def display_database_results(records: Sequence[t.Cli.TableMappingRow]) -> None:
     """Display database query results as a table."""
     if not records:
         cli.print("No results found", style="yellow")
@@ -65,7 +65,7 @@ def display_database_results(records: Sequence[t.Cli.JsonValue]) -> None:
 
 
 def export_report(
-    data: Sequence[t.ContainerMapping],
+    data: Sequence[t.Cli.TableMappingRow],
     format_type: str = "table",
 ) -> r[str]:
     """Create ASCII tables for logs/reports in your app."""
@@ -166,7 +166,7 @@ def main() -> None:
     cli.print("\n1. Styled Messages (replace print):", style="bold cyan")
     your_cli_function()
     cli.print("\n2. Rich Tables (display data):", style="bold cyan")
-    sample_data: Sequence[t.ContainerMapping] = [
+    sample_data: Sequence[t.Cli.TableMappingRow] = [
         {"id": 1, "name": "Alice", "status": "active"},
         {"id": 2, "name": "Bob", "status": "inactive"},
     ]

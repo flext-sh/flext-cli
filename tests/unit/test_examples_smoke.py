@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from pathlib import Path
 
 from examples import (
@@ -79,6 +80,7 @@ class TestFlextCliExamplesSmoke:
 
         deployment_result = file_operations.load_deployment_config(deployment_file)
         tm.ok(deployment_result)
+        assert isinstance(deployment_result.value.content, Mapping)
         tm.that(deployment_result.value.content["environment"], eq="dev")
 
         import_file = tmp_path / "record.json"
@@ -88,6 +90,7 @@ class TestFlextCliExamplesSmoke:
         )
         validation_result = file_operations.validate_and_import_data(import_file)
         tm.ok(validation_result)
+        assert isinstance(validation_result.value.content, Mapping)
         tm.that(validation_result.value.content["name"], eq="Alice")
 
     def test_authentication_and_configuration_examples(self, tmp_path: Path) -> None:
@@ -106,6 +109,7 @@ class TestFlextCliExamplesSmoke:
         tm.that(authentication.validate_current_token(), eq=True)
 
         locations = configuration.show_config_locations()
+        assert isinstance(locations.data, Mapping)
         tm.that(locations.data["Token Exists"], eq="Yes")
 
         profile_result = configuration.load_profile_config("development")

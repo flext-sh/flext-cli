@@ -57,7 +57,7 @@ class FlextCliOutput(FlextCliServiceBase):
 
     @override
     @staticmethod
-    def ensure_str(value: t.Cli.JsonValue | None, default: str = "") -> str:
+    def ensure_str(value: t.RecursiveContainer, default: str = "") -> str:
         """Ensure value is str with default."""
         if value is None:
             return default
@@ -95,16 +95,27 @@ class FlextCliOutput(FlextCliServiceBase):
         v: t.Cli.JsonValue,
     ) -> Mapping[str, t.Cli.JsonValue]:
         """Convert value to dict with JSON transform using build DSL."""
-        result = FlextCliOutput.cast_if(
-            u.build(
-                v,
-                ops={"ensure": "dict", "transform": {"to_json": True}},
-                on_error="skip",
-            ),
-            dict,
-            {},
+        built = u.build(
+            v,
+            ops={"ensure": "dict", "transform": {"to_json": True}},
+            on_error="skip",
         )
-        if isinstance(result, dict):
+        if isinstance(built, dict):
+            result: dict[str, t.Cli.JsonValue] = {}
+            for k, val in built.items():
+                compatible_value: t.Cli.JsonValue
+                if val is None:
+                    compatible_value = ""
+                elif isinstance(val, (bool, float, int, str)):
+                    compatible_value = val
+                elif isinstance(val, dict):
+                    dict_items: MutableMapping[str, t.Cli.JsonValue] = {}
+                    for kk, vv in val.items():
+                        dict_items[str(kk)] = str(vv)
+                    compatible_value = dict_items
+                else:
+                    compatible_value = str(val)
+                result[str(k)] = compatible_value
             return result
         return {}
 

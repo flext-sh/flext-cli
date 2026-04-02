@@ -62,6 +62,18 @@ class FlextCliTables(FlextCliServiceBase):
             r[bool]: True if validation passed, failure on error
 
         """
+        return FlextCliTables._validate_table_data_wide(data, table_format)
+
+    @staticmethod
+    def _validate_table_data_wide(
+        data: t.Cli.TabularData | Sequence[t.ContainerMapping], table_format: str
+    ) -> r[bool]:
+        """Validate table data and format.
+
+        Returns:
+            r[bool]: True if validation passed, failure on error
+
+        """
         if not data:
             return r[bool].fail(
                 c.Cli.TablesErrorMessages.TABLE_DATA_EMPTY,
@@ -78,7 +90,7 @@ class FlextCliTables(FlextCliServiceBase):
 
     @staticmethod
     def _normalize_mapping_row(
-        row: Mapping[str, t.Cli.JsonValue],
+        row: Mapping[str, t.NormalizedValue],
     ) -> t.Cli.TableMappingRow:
         """Normalize a mapping row to a string-key JSON-compatible mapping."""
         return {
@@ -87,7 +99,7 @@ class FlextCliTables(FlextCliServiceBase):
 
     @staticmethod
     def _normalize_data(
-        data: t.Cli.TabularData,
+        data: t.Cli.TabularData | Sequence[t.ContainerMapping],
     ) -> r[Sequence[t.Cli.TableRow]]:
         """Normalize mapping and sequence inputs to tabulate-compatible rows."""
         if isinstance(data, Mapping):
@@ -192,7 +204,7 @@ class FlextCliTables(FlextCliServiceBase):
 
     @staticmethod
     def format_table(
-        data: t.Cli.TabularData,
+        data: t.Cli.TabularData | Sequence[t.ContainerMapping],
         config: m.Cli.TableConfig | None = None,
         **config_kwargs: t.Cli.TableConfigValue,
     ) -> r[str]:
@@ -201,7 +213,7 @@ class FlextCliTables(FlextCliServiceBase):
         if config_result.is_failure:
             return r[str].fail(config_result.error or "Invalid table configuration")
         config_final = config_result.value
-        validation_result = FlextCliTables._validate_table_data(
+        validation_result = FlextCliTables._validate_table_data_wide(
             data, config_final.table_format
         )
         if validation_result.is_failure:
@@ -213,7 +225,7 @@ class FlextCliTables(FlextCliServiceBase):
 
     @staticmethod
     def _create_table(
-        data: t.Cli.TabularData,
+        data: t.Cli.TabularData | Sequence[t.ContainerMapping],
         config: m.Cli.TableConfig | None = None,
         **config_kwargs: t.Cli.TableConfigValue,
     ) -> r[str]:
@@ -222,7 +234,7 @@ class FlextCliTables(FlextCliServiceBase):
 
     @staticmethod
     def show_table(
-        data: t.Cli.TabularData,
+        data: t.Cli.TabularData | Sequence[t.ContainerMapping],
         config: m.Cli.TableConfig | None = None,
         **config_kwargs: t.Cli.TableConfigValue,
     ) -> None:

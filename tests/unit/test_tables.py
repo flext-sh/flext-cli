@@ -29,7 +29,7 @@ class TestsCliTables:
         """Headerless rendering must work for row sequences from examples."""
         result = FlextCliTables.format_table(
             [{"identifier": "row-1", "display_name": "Alpha"}],
-            headers=None,
+            show_header=False,
             table_format="plain",
         )
         tm.that(result.is_success, eq=True)

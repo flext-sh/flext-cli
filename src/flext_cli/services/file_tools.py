@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import TextIO
 
 import yaml
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel
 
 from flext_cli import FlextCliServiceBase, c, m, t, u
 from flext_core import r
@@ -40,8 +40,8 @@ class FlextCliFileTools(FlextCliServiceBase):
             return r[T].fail(error_template.format(error=exc, **format_kwargs))
 
     @staticmethod
-    def _run_bool_operation(
-        operation_func: Callable[[], t.Cli.JsonValue],
+    def _run_bool_operation[T](
+        operation_func: Callable[[], T],
         error_template: str,
         **format_kwargs: t.Scalar,
     ) -> r[bool]:
@@ -201,21 +201,16 @@ class FlextCliFileTools(FlextCliServiceBase):
     @staticmethod
     def write_json_file(
         file_path: str | Path,
-        data: t.Cli.JsonValue | m.Cli.DisplayData,
+        data: t.NormalizedValue | Sequence[t.ContainerMapping] | m.Cli.DisplayData,
         indent: int = 2,
         *,
         sort_keys: bool = False,
         ensure_ascii: bool = False,
     ) -> r[bool]:
-        payload_raw: t.Cli.JsonValue = (
+        payload_raw: t.NormalizedValue | Sequence[t.ContainerMapping] = (
             data.data if isinstance(data, m.Cli.DisplayData) else data
         )
-        try:
-            payload: t.Cli.JsonValue = t.Cli.JSON_OBJECT_ADAPTER.validate_python(
-                payload_raw
-            )
-        except ValidationError:
-            payload = str(payload_raw)
+        payload: t.Cli.JsonValue = u.Cli.normalize_json_value(payload_raw)
 
         def _writer(f: TextIO) -> None:
             if sort_keys or ensure_ascii:
@@ -244,17 +239,12 @@ class FlextCliFileTools(FlextCliServiceBase):
     @staticmethod
     def write_yaml_file(
         file_path: str | Path,
-        data: t.Cli.JsonValue | m.Cli.DisplayData,
+        data: t.NormalizedValue | Sequence[t.ContainerMapping] | m.Cli.DisplayData,
     ) -> r[bool]:
-        payload_raw: t.Cli.JsonValue = (
+        payload_raw: t.NormalizedValue | Sequence[t.ContainerMapping] = (
             data.data if isinstance(data, m.Cli.DisplayData) else data
         )
-        try:
-            payload: t.Cli.JsonValue = t.Cli.JSON_OBJECT_ADAPTER.validate_python(
-                payload_raw
-            )
-        except ValidationError:
-            payload = str(payload_raw)
+        payload: t.Cli.JsonValue = u.Cli.normalize_json_value(payload_raw)
 
         def _writer(f: TextIO) -> None:
             yaml.safe_dump(payload, f, sort_keys=False, allow_unicode=True)

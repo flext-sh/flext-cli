@@ -62,7 +62,8 @@ class DataManagerCLI:
         if not data:
             cli.print("⚠️  No data to display", style="yellow")
             return
-        cli.show_table(data, headers=["Field", "Value"], title="📋 Current Data")
+        safe_data: t.Cli.TableMappingRow = {str(k): str(v) for k, v in data.items()}
+        cli.show_table(safe_data, show_header=True, title="📋 Current Data")
 
     def display_welcome(self) -> None:
         """Show welcome message with styled output."""
