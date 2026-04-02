@@ -17,8 +17,7 @@ from typing import (
 
 from flext_tests import tm
 
-from flext_cli import t
-from tests import m
+from tests import m, t
 
 
 class TestsCliTypings:

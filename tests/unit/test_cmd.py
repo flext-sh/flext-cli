@@ -16,7 +16,8 @@ from __future__ import annotations
 
 from flext_tests import tm
 
-from flext_cli import FlextCliCmd, m, u
+from flext_cli import FlextCliCmd
+from tests import m, u
 
 
 def _create_cmd_instance() -> FlextCliCmd:

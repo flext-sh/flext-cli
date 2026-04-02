@@ -7,7 +7,8 @@ from flext_core import r
 from flext_tests import tm
 
 import flext_cli.services.cmd as cmd_module
-from flext_cli import FlextCliCmd, m
+from flext_cli import FlextCliCmd
+from tests import m
 
 
 def test_show_config_paths_failure_on_exception(

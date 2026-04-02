@@ -12,9 +12,18 @@ from flext_core.lazy import install_lazy_exports, merge_lazy_imports
 
 if _TYPE_CHECKING:
     from flext_core import FlextTypes
-    from flext_tests import d, e, h, p, r, s, u, x
+    from flext_tests import d, e, h, r, s, x
 
-    from tests import conftest, constants, helpers, models, typings, unit
+    from tests import (
+        conftest,
+        constants,
+        helpers,
+        models,
+        protocols,
+        typings,
+        unit,
+        utilities,
+    )
     from tests.conftest import (
         Examples,
         InfoTuples,
@@ -24,6 +33,7 @@ if _TYPE_CHECKING:
     from tests.constants import FlextCliTestConstants, FlextCliTestConstants as c
     from tests.helpers import FlextCliTestHelpers
     from tests.models import FlextCliTestModels, FlextCliTestModels as m
+    from tests.protocols import FlextCliTestProtocols, FlextCliTestProtocols as p
     from tests.typings import FlextCliTestTypes, FlextCliTestTypes as t
     from tests.unit import (
         ConfigParam,
@@ -80,6 +90,7 @@ if _TYPE_CHECKING:
         test_validation_v_uses_custom_message_on_empty_failure,
         test_version,
     )
+    from tests.utilities import FlextCliTestUtilities, FlextCliTestUtilities as u
 
 _LAZY_IMPORTS: Mapping[str, str | Sequence[str]] = merge_lazy_imports(
     (
@@ -90,7 +101,9 @@ _LAZY_IMPORTS: Mapping[str, str | Sequence[str]] = merge_lazy_imports(
         "Examples": "tests.conftest",
         "FlextCliTestConstants": "tests.constants",
         "FlextCliTestModels": "tests.models",
+        "FlextCliTestProtocols": "tests.protocols",
         "FlextCliTestTypes": "tests.typings",
+        "FlextCliTestUtilities": "tests.utilities",
         "InfoTuples": "tests.conftest",
         "c": ("tests.constants", "FlextCliTestConstants"),
         "conftest": "tests.conftest",
@@ -101,15 +114,17 @@ _LAZY_IMPORTS: Mapping[str, str | Sequence[str]] = merge_lazy_imports(
         "helpers": "tests.helpers",
         "m": ("tests.models", "FlextCliTestModels"),
         "models": "tests.models",
-        "p": "flext_tests",
+        "p": ("tests.protocols", "FlextCliTestProtocols"),
+        "protocols": "tests.protocols",
         "pytest_collection_modifyitems": "tests.conftest",
         "pytest_configure": "tests.conftest",
         "r": "flext_tests",
         "s": "flext_tests",
         "t": ("tests.typings", "FlextCliTestTypes"),
         "typings": "tests.typings",
-        "u": "flext_tests",
+        "u": ("tests.utilities", "FlextCliTestUtilities"),
         "unit": "tests.unit",
+        "utilities": "tests.utilities",
         "x": "flext_tests",
     },
 )

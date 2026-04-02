@@ -23,7 +23,8 @@ import pytest
 from flext_tests import tm
 from pydantic import BaseModel, ConfigDict, Field
 
-from flext_cli import __version__, __version_info__, t
+from flext_cli import __version__, __version_info__
+from tests import t
 
 from ..conftest import Examples, InfoTuples
 from ..helpers import FlextCliTestHelpers

@@ -14,7 +14,8 @@ from __future__ import annotations
 
 from flext_tests import tm
 
-from flext_cli import FlextCliProtocols, p
+from flext_cli import FlextCliProtocols
+from tests import p
 
 
 class TestsCliProtocols:

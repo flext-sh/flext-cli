@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from flext_tests import tm
 
-from flext_cli import u
+from tests import u
 
 
 def test_process_fail_and_collect_paths() -> None:

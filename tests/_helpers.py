@@ -4,7 +4,8 @@ from __future__ import annotations
 
 from flext_core import r
 
-from flext_cli import FlextCliCommands, t
+from flext_cli import FlextCliCommands
+from tests import t
 
 
 class CommandsFactory:

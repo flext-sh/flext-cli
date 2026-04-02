@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from flext_tests import tm
 
-from flext_cli import c, u
+from tests import c, u
 
 
 class TestsCliConstants:

@@ -16,7 +16,7 @@ from typing import Annotated, ClassVar
 from flext_tests import FlextTestsModels
 from pydantic import BaseModel, ConfigDict, Field
 
-from flext_cli import FlextCliModels, t
+from flext_cli import FlextCliModels, FlextCliTypes
 
 
 class FlextCliTestModels(FlextTestsModels, FlextCliModels):
@@ -35,11 +35,11 @@ class FlextCliTestModels(FlextTestsModels, FlextCliModels):
 
                 def __init__(
                     self,
-                    data: Mapping[str, t.ContainerValue] | None = None,
+                    data: Mapping[str, FlextCliTypes.ContainerValue] | None = None,
                     /,
-                    **kwargs: t.ContainerValue,
+                    **kwargs: FlextCliTypes.ContainerValue,
                 ) -> None:
-                    payload: dict[str, t.ContainerValue] = {}
+                    payload: dict[str, FlextCliTypes.ContainerValue] = {}
                     if data is not None:
                         payload.update(data)
                     payload.update(kwargs)
@@ -60,7 +60,7 @@ class FlextCliTestModels(FlextTestsModels, FlextCliModels):
                 model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
                 status: Annotated[str, Field(description="Status")]
                 data: Annotated[
-                    t.NormalizedValue,
+                    FlextCliTypes.NormalizedValue,
                     Field(default=None, description="Payload"),
                 ]
                 message: Annotated[str, Field(description="Message")]
