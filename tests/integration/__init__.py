@@ -8,8 +8,9 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 
 from flext_core.lazy import install_lazy_exports
+from tests import t
 
-_LAZY_IMPORTS: Mapping[str, Sequence[str]] = {}
+_LAZY_IMPORTS: t.StrSequenceMapping = {}
 
 __all__: list[str] = []
 

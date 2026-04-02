@@ -31,7 +31,7 @@ class FlextCliTypes(FlextTypes):
         """
 
         type JsonValue = FlextTypes.ContainerValue
-        type TableMappingRow = Mapping[str, FlextTypes.ContainerValue]
+        type TableMappingRow = FlextTypes.ContainerValueMapping
         type TableSequenceRow = Sequence[FlextTypes.ContainerValue]
         type TableRow = TableMappingRow | TableSequenceRow
         type TableConfigValue = FlextTypes.ContainerValue

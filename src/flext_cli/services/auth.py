@@ -20,6 +20,7 @@ from flext_cli import (
     FlextCliFileTools,
     FlextCliServiceBase,
     c,
+    t,
 )
 from flext_core import r
 
@@ -67,7 +68,7 @@ class FlextCliAuth(FlextCliServiceBase):
             return r[str].fail("Token file does not contain a valid token")
         return r[str].ok(token_value)
 
-    def authenticate(self, credentials: Mapping[str, str]) -> r[str]:
+    def authenticate(self, credentials: t.StrMapping) -> r[str]:
         """Authenticate with a token or username/password and persist the token."""
         token_value = credentials.get(c.Cli.DictKeys.TOKEN)
         if isinstance(token_value, str) and token_value:

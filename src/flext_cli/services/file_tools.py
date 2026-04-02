@@ -290,9 +290,9 @@ class FlextCliFileTools(FlextCliServiceBase):
     @staticmethod
     def read_csv_file_with_headers(
         file_path: str | Path,
-    ) -> r[Sequence[Mapping[str, str]]]:
+    ) -> r[Sequence[t.StrMapping]]:
 
-        def _load() -> Sequence[Mapping[str, str]]:
+        def _load() -> Sequence[t.StrMapping]:
             with Path(file_path).open(
                 encoding=c.DEFAULT_ENCODING,
                 newline="",

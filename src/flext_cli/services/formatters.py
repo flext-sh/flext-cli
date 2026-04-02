@@ -20,7 +20,7 @@ from rich.panel import Panel
 from rich.table import Table as RichTable
 from rich.tree import Tree as RichTree
 
-from flext_cli import FlextCliServiceBase, c
+from flext_cli import FlextCliServiceBase, c, t
 from flext_core import r
 
 
@@ -157,8 +157,8 @@ class FlextCliFormatters(FlextCliServiceBase):
     @classmethod
     def render_table(
         cls,
-        columns: Sequence[str],
-        rows: Sequence[Sequence[str]],
+        columns: t.StrSequence,
+        rows: Sequence[t.StrSequence],
         *,
         title: str = "",
     ) -> None:

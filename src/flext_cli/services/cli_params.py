@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping, MutableMapping
+from collections.abc import Mapping
 
 from typer.models import OptionInfo
 
@@ -12,6 +12,7 @@ from flext_cli import (
     c,
     m,
     p,
+    t,
     u,
 )
 from flext_core import r
@@ -92,7 +93,7 @@ class FlextCliCommonParams(FlextCliServiceBase):
             will_be_debug = params.debug if params.debug is not None else config.debug
             if not will_be_debug:
                 return r[bool].fail("Trace mode requires debug mode to be enabled")
-        update_data: MutableMapping[str, bool] = {}
+        update_data: t.MutableBoolMapping = {}
         for field in ("verbose", "quiet", "debug", "trace", "no_color"):
             val = getattr(params, field, None)
             if val is not None:

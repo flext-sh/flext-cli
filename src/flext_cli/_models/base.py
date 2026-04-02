@@ -78,7 +78,7 @@ class FlextCliModelsBase:
                 return self.value
             return self.default
 
-    class SuccessSummaryDetails(RootModel[Mapping[str, str]]):
+    class SuccessSummaryDetails(RootModel[t.StrMapping]):
         """Key-value success summary details. Use m.Cli.SuccessSummaryDetails."""
 
     class CommandEntryModel(BaseModel):

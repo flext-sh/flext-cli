@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import sys
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable, Mapping
 from inspect import Parameter, Signature
 from types import NoneType, UnionType
 from typing import Annotated, Literal, TypeAliasType, Union, get_args, get_origin
@@ -290,7 +290,7 @@ class FlextCliCli(FlextCliServiceBase):
         app: typer.Typer,
         *,
         prog_name: str,
-        args: Sequence[str] | None = None,
+        args: t.StrSequence | None = None,
         error_message: p.Cli.ErrorMessageProvider | None = None,
     ) -> r[bool]:
         """Execute a Typer app and normalize exit behavior into `r[bool]`."""
