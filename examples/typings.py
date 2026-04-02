@@ -22,9 +22,9 @@ class ExamplesTypes(FlextCliTypes):
 
     type DataProcessor = Callable[[str], str]
     type ProcessorRegistry = Mapping[str, DataProcessor]
-    JSON_DICT_ADAPTER: ClassVar[TypeAdapter[FlextCliTypes.NormalizedValue]] = (
+    JSON_DICT_ADAPTER: ClassVar[TypeAdapter[FlextCliTypes.ContainerMapping]] = (
         TypeAdapter(
-            FlextCliTypes.NormalizedValue,
+            FlextCliTypes.ContainerMapping,
         )
     )
 

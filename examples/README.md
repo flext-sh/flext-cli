@@ -56,21 +56,21 @@ flext-cli is a production-ready Python library that provides:
 
 ### Getting Started
 
-1. **[01_getting_started.py](01_getting_started.py)** - Start here!
+1. **[ex_01_getting_started.py](ex_01_getting_started.py)** - Start here!
 
    - Basic cli initialization
    - Accessing domain services
    - r railway pattern
    - Core operations
 
-1. **[02_output_formatting.py](02_output_formatting.py)** - Rich output
+1. **[ex_02_output_formatting.py](ex_02_output_formatting.py)** - Rich output
 
    - Styled messages (success, error, warning, info)
    - Table display (Rich and Tabulate)
    - Data formatting (JSON, YAML)
    - Progress bars and spinners
 
-1. **[03_interactive_prompts.py](03_interactive_prompts.py)** - User interaction
+1. **[ex_03_interactive_prompts.py](ex_03_interactive_prompts.py)** - User interaction
 
    - Confirmation prompts
    - Text input
@@ -80,21 +80,21 @@ flext-cli is a production-ready Python library that provides:
 
 ### Core Features
 
-4. **[04_file_operations.py](04_file_operations.py)** - File handling
+4. **[ex_04_file_operations.py](ex_04_file_operations.py)** - File handling
 
    - File reading/writing
    - Path validation
    - Directory operations
    - JSON/YAML file handling
 
-1. **[05_authentication.py](05_authentication.py)** - Auth patterns
+1. **[ex_05_authentication.py](ex_05_authentication.py)** - Auth patterns
 
    - Token management
    - Authorization headers
    - Session management
    - Protected operations
 
-1. **[06_configuration.py](06_configuration.py)** - Config management
+1. **[ex_06_configuration.py](ex_06_configuration.py)** - Config management
 
    - FlextCliSettings usage
    - Environment variables
@@ -103,25 +103,25 @@ flext-cli is a production-ready Python library that provides:
 
 ### Advanced Features
 
-7. **[07_plugin_system.py](07_plugin_system.py)** - Plugins
+7. **[ex_07_plugin_system.py](ex_07_plugin_system.py)** - Plugins
 
    - Plugin loading
    - Custom plugin development
    - Plugin lifecycle
 
-1. **[08_shell_interaction.py](08_shell_interaction.py)** - Interactive shell
+1. **[ex_08_shell_interaction.py](ex_08_shell_interaction.py)** - Interactive shell
 
    - REPL functionality
    - Command history
    - Custom commands
 
-1. **[09_performance_optimization.py](09_performance_optimization.py)** - Performance
+1. **[ex_09_performance_optimization.py](ex_09_performance_optimization.py)** - Performance
 
    - Caching strategies
    - Lazy loading
    - Performance measurement
 
-1. **[10_testing_utilities.py](10_testing_utilities.py)** - Testing
+1. **[ex_10_testing_utilities.py](ex_10_testing_utilities.py)** - Testing
 
    - Mock scenarios
    - Output capture
@@ -129,7 +129,7 @@ flext-cli is a production-ready Python library that provides:
 
 ### Integration
 
-11. **[11_complete_integration.py](11_complete_integration.py)** - Everything together
+11. **[ex_11_complete_integration.py](ex_11_complete_integration.py)** - Everything together
     - Complete workflow example
     - Module integration
     - Best practices
@@ -267,15 +267,15 @@ cli.print(f"Debug mode: {config.debug}")
 
 **Beginner** (Start here):
 
-1. 01_getting_started.py
-1. 02_output_formatting.py
-1. 03_interactive_prompts.py
+1. ex_01_getting_started.py
+1. ex_02_output_formatting.py
+1. ex_03_interactive_prompts.py
 
-**Intermediate**: 4. 04_file_operations.py 5. 05_authentication.py 6. 06_configuration.py
+**Intermediate**: 4. ex_04_file_operations.py 5. ex_05_authentication.py 6. ex_06_configuration.py
 
-**Advanced**: 7. 07_plugin_system.py 8. 08_shell_interaction.py 9. 09_performance_optimization.py 10. 10_testing_utilities.py
+**Advanced**: 7. ex_07_plugin_system.py 8. ex_08_shell_interaction.py 9. ex_09_performance_optimization.py 10. ex_10_testing_utilities.py
 
-**Integration**: 11. 11_complete_integration.py
+**Integration**: 11. ex_11_complete_integration.py
 
 ## 📝 Key Concepts
 

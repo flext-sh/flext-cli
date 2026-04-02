@@ -2,9 +2,15 @@
 
 from __future__ import annotations
 
-import importlib
 from pathlib import Path
 
+from examples import (
+    ex_01_getting_started as getting_started,
+    ex_02_output_formatting as output_formatting,
+    ex_04_file_operations as file_operations,
+    ex_05_authentication as authentication,
+    ex_06_configuration as configuration,
+)
 from flext_tests import tm
 
 from flext_cli import FlextCliSettings, cli
@@ -15,9 +21,6 @@ class TestFlextCliExamplesSmoke:
 
     def test_getting_started_and_output_examples(self, tmp_path: Path) -> None:
         """Examples must round-trip config data and format tables via cli."""
-        getting_started = importlib.import_module("examples.01_getting_started")
-        output_formatting = importlib.import_module("examples.02_output_formatting")
-
         example = getting_started.FlextCliGettingStarted()
         config_path = tmp_path / "config.json"
         config = getting_started.m.Cli.LoadedConfig(
@@ -48,8 +51,6 @@ class TestFlextCliExamplesSmoke:
 
     def test_file_operation_examples(self, tmp_path: Path) -> None:
         """File-oriented examples must use cli file APIs successfully."""
-        file_operations = importlib.import_module("examples.04_file_operations")
-
         config_dir = tmp_path / "config"
         config_dir.mkdir()
         preferences = {
@@ -91,9 +92,6 @@ class TestFlextCliExamplesSmoke:
 
     def test_authentication_and_configuration_examples(self, tmp_path: Path) -> None:
         """Auth and config examples must work through cli.settings and cli auth APIs."""
-        authentication = importlib.import_module("examples.05_authentication")
-        configuration = importlib.import_module("examples.06_configuration")
-
         cli.settings.token_file = str(tmp_path / "auth_token.json")
 
         settings = configuration.get_cli_settings()

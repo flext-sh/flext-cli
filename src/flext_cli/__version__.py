@@ -1,7 +1,8 @@
-"""Version and package metadata using importlib.metadata.
+"""Version and package metadata from project declarations.
 
-Single source of truth pattern following flext-core standards.
-All metadata comes from pyproject.toml via importlib.metadata.
+Single source of truth lives in pyproject.toml.
+This module reads required package metadata directly from the local project
+declarations and fails fast if any mandatory field is missing.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -9,16 +10,16 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import re
-from importlib.metadata import metadata
+import tomllib
+from pathlib import Path
 
-_metadata = metadata("flext_cli")
-_raw_version = _metadata["Version"]
-__version__ = re.sub(
-    r"(\d)(a|b|rc)(\d+)$",
-    "\\1-\\2\\3",
-    re.sub(r"\.dev(\d+)$", r"-dev\1", _raw_version),
-)
+_PYPROJECT_PATH = Path(__file__).resolve().parents[2] / "pyproject.toml"
+_PROJECT_METADATA = tomllib.loads(_PYPROJECT_PATH.read_text(encoding="utf-8"))[
+    "project"
+]
+_AUTHOR_METADATA = _PROJECT_METADATA["authors"][0]
+
+__version__ = _PROJECT_METADATA["version"]
 _version_without_metadata = __version__.split("+", maxsplit=1)[0]
 _version_base, _has_prerelease, _prerelease = _version_without_metadata.partition("-")
 _base_parts = _version_base.split(".")
@@ -26,18 +27,12 @@ _prerelease_parts: list[str] = _prerelease.split(".") if _has_prerelease else []
 __version_info__ = tuple(
     int(part) if part.isdigit() else part for part in _base_parts + _prerelease_parts
 )
-_name = _metadata.get("Name")
-__title__ = _name if _name is not None else ""
-_summary = _metadata.get("Summary")
-__description__ = _summary if _summary is not None else ""
-_author = _metadata.get("Author")
-__author__ = _author if _author is not None else ""
-_author_email = _metadata.get("Author-Email")
-__author_email__ = _author_email if _author_email is not None else ""
-_license_value = _metadata.get("License")
-__license__ = _license_value if _license_value is not None else ""
-_home_page = _metadata.get("Home-Page")
-__url__ = _home_page if _home_page is not None else ""
+__title__ = _PROJECT_METADATA["name"]
+__description__ = _PROJECT_METADATA["description"]
+__author__ = _AUTHOR_METADATA["name"]
+__author_email__ = _AUTHOR_METADATA["email"]
+__license__ = _PROJECT_METADATA["license"]
+__url__ = _PROJECT_METADATA["urls"]["Homepage"]
 __all__ = [
     "__author__",
     "__author_email__",

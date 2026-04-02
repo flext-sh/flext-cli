@@ -29,13 +29,13 @@ class FlextCliTypes(FlextTypes):
         This enables consistent namespace patterns for cross-project type access.
         """
 
-        type JsonValue = FlextTypes.NormalizedValue
-        type TableMappingRow = Mapping[str, JsonValue]
-        type TableSequenceRow = Sequence[JsonValue]
+        type JsonValue = FlextTypes.ContainerValue
+        type TableMappingRow = Mapping[str, FlextTypes.ContainerValue]
+        type TableSequenceRow = Sequence[FlextTypes.ContainerValue]
         type TableRow = TableMappingRow | TableSequenceRow
-        type TableConfigValue = JsonValue
+        type TableConfigValue = FlextTypes.ContainerValue
         TabularData = TableMappingRow | Sequence[TableRow]
-        type JsonDict = Mapping[str, JsonValue]
+        type JsonDict = FlextTypes.ContainerValueMapping
         type TableRows = Sequence[TableRow]
         type CliValue = (
             FlextTypes.Scalar
@@ -43,9 +43,13 @@ class FlextCliTypes(FlextTypes):
             | Mapping[str, FlextTypes.Scalar | FlextTypes.StrSequence]
             | None
         )
-        JSON_OBJECT_ADAPTER: TypeAdapter[JsonValue] = TypeAdapter(JsonValue)
-        JSON_NORMALIZE_ADAPTER: ClassVar[TypeAdapter[JsonValue]] = TypeAdapter(
-            JsonValue,
+        JSON_OBJECT_ADAPTER: TypeAdapter[FlextTypes.ContainerValue] = TypeAdapter(
+            FlextTypes.ContainerValue,
+        )
+        JSON_NORMALIZE_ADAPTER: ClassVar[TypeAdapter[FlextTypes.ContainerValue]] = (
+            TypeAdapter(
+                FlextTypes.ContainerValue,
+            )
         )
 
 
