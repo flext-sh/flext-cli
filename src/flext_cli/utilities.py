@@ -10,7 +10,6 @@ from collections.abc import Callable, Mapping, MutableMapping, MutableSequence, 
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import (
-    Annotated,
     ClassVar,
     Literal,
     TypeIs,
@@ -20,19 +19,16 @@ from typing import (
 )
 
 import typer
-from flext_core import FlextLogger, FlextUtilities, r
 from pydantic import (
     BaseModel,
-    ConfigDict,
-    Field,
     TypeAdapter,
     ValidationError,
-    computed_field,
 )
 from pydantic.fields import FieldInfo
 from typer.models import OptionInfo
 
 from flext_cli import c, m, p, t
+from flext_core import FlextLogger, FlextUtilities, r
 
 _logger = FlextLogger(__name__)
 
@@ -103,114 +99,6 @@ class FlextCliUtilities(FlextUtilities):
                 }
             return {}
 
-        class PromptTimeoutResolved(BaseModel):
-            """Single contract: raw (int | str | None) + default -> int. Replaces isinstance(timeout_raw, int/str) branching."""
-
-            model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
-            raw: Annotated[int | str | None, Field(default=None)]
-            default: Annotated[
-                int,
-                Field(default=30, description="Default timeout in seconds"),
-            ]
-
-            @computed_field
-            @property
-            def resolved(self) -> int:
-                """Resolved timeout value."""
-                return self.resolve()
-
-            def resolve(self) -> int:
-                """Type-safe accessor (bypasses pyrefly computed_field limitation)."""
-                if self.raw is None:
-                    return self.default
-                if isinstance(self.raw, int):
-                    return self.raw
-                if self.raw.isdigit():
-                    return int(self.raw)
-                return self.default
-
-        class LogLevelResolved(BaseModel):
-            """Single contract for log level string (replaces u.convert for log level)."""
-
-            model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
-            raw: Annotated[str | None, Field(default=None)]
-            default: Annotated[str, Field(default="INFO")]
-
-            @computed_field
-            @property
-            def resolved(self) -> str:
-                """Resolved log level value."""
-                return self.resolve()
-
-            def resolve(self) -> str:
-                """Type-safe accessor (bypasses pyrefly computed_field limitation)."""
-                s = (self.raw or self.default).strip().upper()
-                return s or self.default
-
-        class TypedExtract(BaseModel):
-            """Single contract for typed value extraction (str | bool | dict). Replaces polymorphic _extract_typed_value."""
-
-            model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
-            type_kind: Annotated[
-                Literal["str", "bool", "dict"],
-                Field(description="Requested type"),
-            ]
-            value: Annotated[t.Cli.JsonValue | None, Field(default=None)]
-            default: Annotated[t.Cli.JsonValue | None, Field(default=None)]
-
-            @computed_field
-            @property
-            def resolved(
-                self,
-            ) -> str | bool | Mapping[str, t.Cli.JsonValue] | None:
-                """Value coerced to type_kind, or default. Single Pydantic contract (no polymorphic methods)."""
-                return self.resolve()
-
-            def resolve(
-                self,
-            ) -> str | bool | Mapping[str, t.Cli.JsonValue] | None:
-                """Type-safe accessor (bypasses pyrefly computed_field limitation)."""
-                if self.value is None:
-                    return FlextCliUtilities.Cli.default_for_type_kind(
-                        self.type_kind,
-                        self.default,
-                    )
-                if self.type_kind == "str":
-                    s = str(self.value).strip() if self.value else ""
-                    return s or (
-                        self.default if isinstance(self.default, str) else None
-                    )
-                if self.type_kind == "bool":
-                    return bool(self.value)
-                if self.type_kind == "dict":
-                    if FlextCliUtilities.Cli.is_mapping_like(self.value):
-                        return {
-                            str(
-                                k,
-                            ): t.Cli.JSON_NORMALIZE_ADAPTER.dump_python(
-                                vv,
-                                mode="json",
-                                warnings=False,
-                            )
-                            for k, vv in self.value.items()
-                        }
-                    if FlextCliUtilities.Cli.is_mapping_like(self.default):
-                        return {
-                            str(
-                                k,
-                            ): t.Cli.JSON_NORMALIZE_ADAPTER.dump_python(
-                                vv,
-                                mode="json",
-                                warnings=False,
-                            )
-                            for k, vv in self.default.items()
-                        }
-                    return {}
-                return FlextCliUtilities.Cli.default_for_type_kind(
-                    self.type_kind,
-                    self.default,
-                )
-
         class OptionBuilder:
             """Builder for Typer CLI options from field metadata.
 
@@ -278,7 +166,7 @@ class FlextCliUtilities(FlextUtilities):
                 r[BaseModel] wrapping success or validation failure.
                 """
                 try:
-                    instance = model_class.model_validate(dict(cli_args))
+                    instance = model_class.model_validate(cli_args)
                     return r[BaseModel].ok(instance)
                 except ValidationError as exc:
                     return r[BaseModel].fail(

@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 import pytest
-from flext_core import r
 from flext_tests import tm
 
 import flext_cli.services.cmd as cmd_module
 from flext_cli import FlextCliCmd
+from flext_core import r
 from tests import m
 
 

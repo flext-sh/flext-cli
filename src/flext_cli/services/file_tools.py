@@ -12,10 +12,10 @@ from pathlib import Path
 from typing import TextIO
 
 import yaml
-from flext_core import r
 from pydantic import BaseModel, ValidationError
 
 from flext_cli import FlextCliServiceBase, c, m, t, u
+from flext_core import r
 
 
 class FlextCliFileTools(FlextCliServiceBase):

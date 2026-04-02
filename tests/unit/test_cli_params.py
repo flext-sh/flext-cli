@@ -16,7 +16,6 @@ from typing import Annotated
 
 import pytest
 import typer
-from flext_core import r
 from flext_tests import tm
 from typer.models import OptionInfo
 from typer.testing import CliRunner
@@ -25,6 +24,7 @@ from flext_cli import (
     FlextCliCommonParams,
     FlextCliSettings,
 )
+from flext_core import r
 from tests import t
 
 

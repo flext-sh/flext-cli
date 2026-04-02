@@ -11,8 +11,6 @@ from typing import TYPE_CHECKING as _TYPE_CHECKING
 from flext_core.lazy import install_lazy_exports
 
 if _TYPE_CHECKING:
-    from flext_core import FlextTypes
-
     from examples import (
         constants,
         ex_01_getting_started,
@@ -172,8 +170,9 @@ if _TYPE_CHECKING:
     from examples.typings import ExamplesTypes, ExamplesTypes as t
     from examples.utilities import ExamplesUtilities, ExamplesUtilities as u
     from flext_cli import d, e, h, r, s, x
+    from flext_core import FlextTypes
 
-_LAZY_IMPORTS: Mapping[str, str | Sequence[str]] = {
+_LAZY_IMPORTS: FlextTypes.LazyImportIndex = {
     "CommandHistory": "examples.ex_08_shell_interaction",
     "ConfigurablePlugin": "examples.ex_07_plugin_system",
     "DataExportPlugin": "examples.ex_07_plugin_system",

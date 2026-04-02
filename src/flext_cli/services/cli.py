@@ -13,7 +13,6 @@ from types import NoneType, UnionType
 from typing import Annotated, Literal, TypeAliasType, Union, get_args, get_origin
 
 import typer
-from flext_core import r
 from pydantic import BaseModel
 from typer.models import OptionInfo
 from typer.testing import CliRunner
@@ -27,6 +26,7 @@ from flext_cli import (
     p,
     t,
 )
+from flext_core import r
 
 
 class FlextCliCli(FlextCliServiceBase):
@@ -232,7 +232,7 @@ class FlextCliCli(FlextCliServiceBase):
             annotations[field_name] = annotation
         command = cls._ModelCommand(
             config=config,
-            handler=lambda model: handler(model_cls.model_validate(model.model_dump())),
+            handler=lambda model: handler(model_cls.model_validate(model)),
             model_cls=model_cls,
             parameters=parameters,
         )

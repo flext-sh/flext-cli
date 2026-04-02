@@ -7,7 +7,6 @@ import os
 from collections.abc import Mapping
 from typing import override
 
-from flext_core import r
 from pydantic import PrivateAttr
 
 from flext_cli import (
@@ -15,6 +14,7 @@ from flext_cli import (
     c,
     t,
 )
+from flext_core import r
 
 
 class FlextCliPrompts(FlextCliServiceBase):

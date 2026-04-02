@@ -18,10 +18,10 @@ import time
 from typing import TypeVar
 
 import pytest
-from flext_core import r
 from flext_tests import tm
 
 from flext_cli import FlextCliPrompts
+from flext_core import r
 from tests import (
     c,
     t,

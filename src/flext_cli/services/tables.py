@@ -12,10 +12,10 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 
-from flext_core import r
 from tabulate import tabulate
 
 from flext_cli import FlextCliFormatters, FlextCliServiceBase, c, m, t, u
+from flext_core import r
 
 
 class FlextCliTables(FlextCliServiceBase):

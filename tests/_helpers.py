@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-from flext_core import r
-
 from flext_cli import FlextCliCommands
+from flext_core import r
 from tests import t
 
 

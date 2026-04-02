@@ -5,10 +5,10 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Protocol, runtime_checkable
 
-from flext_core import FlextProtocols, r
 from pydantic import BaseModel
 
 from flext_cli import t
+from flext_core import FlextProtocols, r
 
 
 class FlextCliProtocols(FlextProtocols):

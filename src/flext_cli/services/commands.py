@@ -13,10 +13,10 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping, MutableMapping
 from typing import Self, override
 
-from flext_core import r
 from pydantic import PrivateAttr
 
 from flext_cli import FlextCliServiceBase, c, m, t
+from flext_core import r
 
 
 class FlextCliCommands(FlextCliServiceBase):

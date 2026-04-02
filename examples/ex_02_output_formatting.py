@@ -38,10 +38,9 @@ import time
 from collections.abc import Sequence
 from pathlib import Path
 
-from flext_core import r
-
 from examples import c, t
 from flext_cli import cli
+from flext_core import r
 
 
 def your_cli_function() -> None:

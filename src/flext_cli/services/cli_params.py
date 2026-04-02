@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from collections.abc import Mapping, MutableMapping
 
-from flext_core import r
 from typer.models import OptionInfo
 
 from flext_cli import (
@@ -15,6 +14,7 @@ from flext_cli import (
     p,
     u,
 )
+from flext_core import r
 
 
 class FlextCliCommonParams(FlextCliServiceBase):

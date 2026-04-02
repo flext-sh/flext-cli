@@ -28,10 +28,9 @@ import tempfile
 from collections.abc import Mapping
 from pathlib import Path
 
-from flext_core import r
-
 from examples import t
 from flext_cli import cli
+from flext_core import r
 
 
 def my_cli_command(name: str) -> r[str]:

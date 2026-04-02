@@ -14,7 +14,6 @@ import sys
 from collections.abc import Sequence
 from typing import ClassVar, Literal, Self, overload, override
 
-from flext_core import r
 from rich.console import Console
 from rich.errors import ConsoleError, StyleError
 from rich.panel import Panel
@@ -22,6 +21,7 @@ from rich.table import Table as RichTable
 from rich.tree import Tree as RichTree
 
 from flext_cli import FlextCliServiceBase, c
+from flext_core import r
 
 
 class FlextCliFormatters(FlextCliServiceBase):

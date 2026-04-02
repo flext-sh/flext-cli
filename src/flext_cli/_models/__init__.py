@@ -11,12 +11,11 @@ from typing import TYPE_CHECKING as _TYPE_CHECKING
 from flext_core.lazy import install_lazy_exports
 
 if _TYPE_CHECKING:
-    from flext_core import FlextTypes
-
     from flext_cli._models import base
     from flext_cli._models.base import FlextCliModelsBase
+    from flext_core import FlextTypes
 
-_LAZY_IMPORTS: Mapping[str, str | Sequence[str]] = {
+_LAZY_IMPORTS: FlextTypes.LazyImportIndex = {
     "FlextCliModelsBase": "flext_cli._models.base",
     "base": "flext_cli._models.base",
 }

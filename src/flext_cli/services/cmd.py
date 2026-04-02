@@ -13,8 +13,6 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import override
 
-from flext_core import r
-
 from flext_cli import (
     FlextCliServiceBase,
     c,
@@ -22,6 +20,7 @@ from flext_cli import (
     t,
     u,
 )
+from flext_core import r
 
 
 class FlextCliCmd(FlextCliServiceBase):

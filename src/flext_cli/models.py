@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-from flext_core import FlextModels
-
 from flext_cli import FlextCliModelsBase
+from flext_core import FlextModels
 
 
 class FlextCliModels(FlextModels):

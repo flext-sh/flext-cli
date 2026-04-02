@@ -5,8 +5,9 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from typing import ClassVar
 
-from flext_core import FlextTypes
 from pydantic import TypeAdapter
+
+from flext_core import FlextTypes
 
 
 class FlextCliTypes(FlextTypes):

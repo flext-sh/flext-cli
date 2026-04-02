@@ -210,7 +210,7 @@ class FlextCliOutput(FlextCliServiceBase):
 
     @staticmethod
     def display_metrics(
-        metrics: Mapping[str, str | int | float],
+        metrics: t.ConfigValueMapping,
     ) -> None:
         """Display key=value metric pairs."""
         for key, value in metrics.items():

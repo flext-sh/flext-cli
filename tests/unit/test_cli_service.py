@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from typing import Annotated, Literal
 
-from flext_core import r
 from flext_tests import tm
 from pydantic import BaseModel, Field
 
 from flext_cli import cli
+from flext_core import r
 from tests import m
 
 

@@ -30,10 +30,9 @@ import time
 from collections.abc import Mapping
 from pathlib import Path
 
-from flext_core import r
-
 from examples import m, t
 from flext_cli import cli
+from flext_core import r
 
 
 def login_to_service(username: str, password: str) -> bool:

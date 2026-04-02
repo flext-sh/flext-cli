@@ -14,11 +14,11 @@ import tempfile
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 
-from flext_core import r
 from pydantic import TypeAdapter, ValidationError
 
 from examples import m, t
 from flext_cli import cli
+from flext_core import r
 
 # ============================================================================
 # PATTERN 1: JSON config files in YOUR application

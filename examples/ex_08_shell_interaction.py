@@ -33,10 +33,9 @@ from __future__ import annotations
 import os
 import time
 
-from flext_core import r
-
 from examples import t
 from flext_cli import cli
+from flext_core import r
 
 
 def handle_status_command() -> r[t.ContainerMapping]:

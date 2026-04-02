@@ -30,10 +30,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import r
-
 from examples import m
 from flext_cli import cli
+from flext_core import r
 
 prompts = cli.get_instance()
 

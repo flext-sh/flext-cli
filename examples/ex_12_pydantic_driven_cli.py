@@ -28,10 +28,9 @@ from __future__ import annotations
 
 import time
 
-from flext_core import r
-
 from examples import m, t, u
 from flext_cli import cli
+from flext_core import r
 
 
 def demonstrate_auto_cli_generation() -> None:

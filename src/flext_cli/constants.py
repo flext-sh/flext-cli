@@ -7,10 +7,10 @@ from collections.abc import Mapping
 from enum import StrEnum, unique
 from typing import ClassVar
 
-from flext_core import FlextConstants
 from rich.errors import ConsoleError, LiveError, StyleError
 
 from flext_cli import t
+from flext_core import FlextConstants
 
 
 class FlextCliConstants(FlextConstants):

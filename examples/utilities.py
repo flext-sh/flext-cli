@@ -11,12 +11,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import r
 from pydantic import BaseModel
 
 from examples.models import m
 from examples.typings import t
 from flext_cli import FlextCliUtilities, cli
+from flext_core import r
 
 
 class ExamplesUtilities(FlextCliUtilities):

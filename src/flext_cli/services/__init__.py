@@ -18,8 +18,6 @@ from typing import TYPE_CHECKING as _TYPE_CHECKING
 from flext_core.lazy import install_lazy_exports
 
 if _TYPE_CHECKING:
-    from flext_core import FlextTypes
-
     from flext_cli.services import (
         auth,
         cli,
@@ -42,8 +40,9 @@ if _TYPE_CHECKING:
     from flext_cli.services.output import FlextCliOutput
     from flext_cli.services.prompts import FlextCliPrompts
     from flext_cli.services.tables import FlextCliTables
+    from flext_core import FlextTypes
 
-_LAZY_IMPORTS: Mapping[str, str | Sequence[str]] = {
+_LAZY_IMPORTS: FlextTypes.LazyImportIndex = {
     "FlextCliAuth": "flext_cli.services.auth",
     "FlextCliCli": "flext_cli.services.cli",
     "FlextCliCmd": "flext_cli.services.cmd",

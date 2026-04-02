@@ -33,10 +33,9 @@ import json
 from collections.abc import Sequence
 from pathlib import Path
 
-from flext_core import r
-
 from examples import m, t
 from flext_cli import cli
+from flext_core import r
 
 
 class DataExportPlugin:

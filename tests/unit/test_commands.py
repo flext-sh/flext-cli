@@ -13,10 +13,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import r
 from flext_tests import tm
 
 from flext_cli import FlextCliCommands
+from flext_core import r
 from tests import c, m, t
 from tests._helpers import CommandsFactory
 

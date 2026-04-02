@@ -29,10 +29,9 @@ import time
 from collections.abc import Mapping
 from pathlib import Path
 
-from flext_core import r
-
 from examples import m, t, u
 from flext_cli import FlextCliSettings, cli
+from flext_core import r
 
 
 def get_cli_settings() -> FlextCliSettings:

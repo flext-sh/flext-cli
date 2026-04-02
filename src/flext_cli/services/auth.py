@@ -16,13 +16,12 @@ import secrets
 from collections.abc import Mapping
 from pathlib import Path
 
-from flext_core import r
-
 from flext_cli import (
     FlextCliFileTools,
     FlextCliServiceBase,
     c,
 )
+from flext_core import r
 
 
 class FlextCliAuth(FlextCliServiceBase):

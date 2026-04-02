@@ -6,17 +6,19 @@ from collections.abc import Callable, Mapping, Sequence
 from typing import (
     Annotated,
     ClassVar,
+    Literal,
 )
 
-from flext_core import FlextModels, r
 from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
     RootModel,
+    computed_field,
 )
 
 from flext_cli import c, p, t
+from flext_core import FlextModels, r
 
 
 class FlextCliModelsBase:
@@ -503,6 +505,121 @@ class FlextCliModelsBase:
                 description="Show available choices",
             ),
         ]
+
+    class PromptTimeoutResolved(BaseModel):
+        """Single contract: raw (int | str | None) + default -> int."""
+
+        model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
+        raw: Annotated[int | str | None, Field(default=None)]
+        default: Annotated[
+            int,
+            Field(default=30, description="Default timeout in seconds"),
+        ]
+
+        @computed_field
+        @property
+        def resolved(self) -> int:
+            """Resolved timeout value."""
+            return self.resolve()
+
+        def resolve(self) -> int:
+            """Type-safe accessor (bypasses pyrefly computed_field limitation)."""
+            if self.raw is None:
+                return self.default
+            if isinstance(self.raw, int):
+                return self.raw
+            if isinstance(self.raw, str) and self.raw.isdigit():
+                return int(self.raw)
+            return self.default
+
+    class LogLevelResolved(BaseModel):
+        """Single contract for log level string."""
+
+        model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
+        raw: Annotated[str | None, Field(default=None)]
+        default: Annotated[str, Field(default="INFO")]
+
+        @computed_field
+        @property
+        def resolved(self) -> str:
+            """Resolved log level value."""
+            return self.resolve()
+
+        def resolve(self) -> str:
+            """Type-safe accessor (bypasses pyrefly computed_field limitation)."""
+            s = (self.raw or self.default).strip().upper()
+            return s or self.default
+
+    class TypedExtract(BaseModel):
+        """Single contract for typed value extraction (str | bool | dict)."""
+
+        model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
+        type_kind: Annotated[
+            Literal["str", "bool", "dict"],
+            Field(description="Requested type"),
+        ]
+        value: Annotated[t.Cli.JsonValue | None, Field(default=None)]
+        default: Annotated[t.Cli.JsonValue | None, Field(default=None)]
+
+        @computed_field
+        @property
+        def resolved(
+            self,
+        ) -> str | bool | Mapping[str, t.Cli.JsonValue] | None:
+            """Value coerced to type_kind, or default."""
+            return self.resolve()
+
+        def resolve(
+            self,
+        ) -> str | bool | Mapping[str, t.Cli.JsonValue] | None:
+            """Type-safe accessor (bypasses pyrefly computed_field limitation)."""
+            if self.value is None:
+                return self._default_for_kind()
+            if self.type_kind == "str":
+                s = str(self.value).strip() if self.value else ""
+                return s or (self.default if isinstance(self.default, str) else None)
+            if self.type_kind == "bool":
+                return bool(self.value)
+            if self.type_kind == "dict":
+                if isinstance(self.value, Mapping):
+                    return {
+                        str(k): t.Cli.JSON_NORMALIZE_ADAPTER.dump_python(
+                            vv,
+                            mode="json",
+                            warnings=False,
+                        )
+                        for k, vv in self.value.items()
+                    }
+                if isinstance(self.default, Mapping):
+                    return {
+                        str(k): t.Cli.JSON_NORMALIZE_ADAPTER.dump_python(
+                            vv,
+                            mode="json",
+                            warnings=False,
+                        )
+                        for k, vv in self.default.items()
+                    }
+                return {}
+            return self._default_for_kind()
+
+        def _default_for_kind(
+            self,
+        ) -> str | bool | Mapping[str, t.Cli.JsonValue] | None:
+            """Return default typed value for the requested kind."""
+            if self.type_kind == "str":
+                return self.default if isinstance(self.default, str) else None
+            if self.type_kind == "bool":
+                return self.default if isinstance(self.default, bool) else False
+            if isinstance(self.default, Mapping):
+                return {
+                    str(k): t.Cli.JSON_NORMALIZE_ADAPTER.dump_python(
+                        vv,
+                        mode="json",
+                        warnings=False,
+                    )
+                    for k, vv in self.default.items()
+                }
+            return {}
 
 
 __all__ = [

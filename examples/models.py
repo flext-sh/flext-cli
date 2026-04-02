@@ -15,7 +15,6 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import ClassVar
 
-from flext_core import r
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -27,6 +26,7 @@ from pydantic import (
 
 from examples.typings import t
 from flext_cli import FlextCliModels
+from flext_core import r
 
 
 class ExamplesModels(FlextCliModels):

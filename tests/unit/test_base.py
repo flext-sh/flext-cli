@@ -16,10 +16,10 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import override
 
-from flext_core import r
 from flext_tests import tm
 
 from flext_cli import FlextCliServiceBase, FlextCliSettings
+from flext_core import r
 from tests import t
 
 
