@@ -75,14 +75,14 @@ class FlextCliOutput(FlextCliServiceBase):
         """Get value from map with default using build DSL."""
         value = mapping.get(k, default)
         compatible_value: t.Cli.JsonValue
-        if value is None or u.is_primitive(value) or isinstance(value, list):
+        if u.is_primitive(value) or isinstance(value, list):
             compatible_value = value
         elif isinstance(value, dict):
             dict_items: MutableMapping[str, t.Cli.JsonValue] = {}
             for kk, vv in value.items():
                 dict_items[str(kk)] = (
                     vv
-                    if vv is None or u.is_primitive(vv) or isinstance(vv, (list, dict))
+                    if u.is_primitive(vv) or isinstance(vv, (list, dict))
                     else str(vv)
                 )
             compatible_value = dict_items

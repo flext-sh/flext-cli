@@ -127,11 +127,7 @@ class FlextCliFileTools(FlextCliServiceBase):
 
         def _load() -> t.Cli.JsonValue:
             raw = Path(file_path).read_text(encoding=c.DEFAULT_ENCODING)
-            parsed = t.Cli.JSON_OBJECT_ADAPTER.validate_json(raw)
-            if parsed is None:
-                msg = "JSON load returned None"
-                raise ValueError(msg)
-            return parsed
+            return t.Cli.JSON_OBJECT_ADAPTER.validate_json(raw)
 
         return FlextCliFileTools._execute_file_operation(
             _load,

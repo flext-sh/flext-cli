@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+# pyright: reportUnusedImport=false, reportUnusedExpression=false
 from collections.abc import Mapping, Sequence
 
 from flext_core.lazy import install_lazy_exports

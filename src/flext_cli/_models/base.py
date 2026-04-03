@@ -526,10 +526,10 @@ class FlextCliModelsBase:
             """Type-safe accessor (bypasses pyrefly computed_field limitation)."""
             if self.raw is None:
                 return self.default
+            if isinstance(self.raw, str):
+                return int(self.raw) if self.raw.isdigit() else self.default
             if isinstance(self.raw, int):
                 return self.raw
-            if isinstance(self.raw, str) and self.raw.isdigit():
-                return int(self.raw)
             return self.default
 
     class LogLevelResolved(BaseModel):

@@ -5,20 +5,29 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
-from typing import TYPE_CHECKING as _TYPE_CHECKING
+import typing as _t
 
+from flext_cli._models.base import FlextCliModelsBase
 from flext_core.lazy import install_lazy_exports
 
-if _TYPE_CHECKING:
-    from flext_cli._models import base
-    from flext_cli._models.base import FlextCliModelsBase
-    from flext_core import FlextTypes
+if _t.TYPE_CHECKING:
+    import flext_cli._models.base as _flext_cli__models_base
 
-_LAZY_IMPORTS: FlextTypes.LazyImportIndex = {
+    base = _flext_cli__models_base
+
+    _ = (
+        FlextCliModelsBase,
+        base,
+    )
+_LAZY_IMPORTS = {
     "FlextCliModelsBase": "flext_cli._models.base",
     "base": "flext_cli._models.base",
 }
+
+__all__ = [
+    "FlextCliModelsBase",
+    "base",
+]
 
 
 install_lazy_exports(__name__, globals(), _LAZY_IMPORTS)
