@@ -95,6 +95,22 @@ class FlextCliUtilities(FlextUtilities):
                 }
             return {}
 
+        @staticmethod
+        def project_names_from_values(
+            *values: str | t.StrSequence | None,
+        ) -> t.StrSequence | None:
+            """Normalize repeated or comma-separated CLI selector values."""
+            names: MutableSequence[str] = []
+            for value in values:
+                if value is None:
+                    continue
+                raw_values = [value] if isinstance(value, str) else list(value)
+                for raw_value in raw_values:
+                    names.extend(
+                        item.strip() for item in raw_value.split(",") if item.strip()
+                    )
+            return names or None
+
         class OptionBuilder:
             """Builder for Typer CLI options from field metadata.
 

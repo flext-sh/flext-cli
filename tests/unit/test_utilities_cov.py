@@ -53,3 +53,8 @@ def test_validation_v_uses_custom_message_on_empty_failure() -> None:
     result = u.Cli.CliValidation.v(None, name="x", empty=False, msg="custom")
     tm.fail(result)
     tm.that(result.error, eq="custom")
+
+
+def test_project_names_from_values_normalizes_repeated_cli_selectors() -> None:
+    result = u.Cli.project_names_from_values("a,b", [" c ", "", "d,e"], None)
+    tm.that(result, eq=["a", "b", "c", "d", "e"])
