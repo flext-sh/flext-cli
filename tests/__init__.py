@@ -131,6 +131,7 @@ if _t.TYPE_CHECKING:
     from tests.unit.test_utilities_cov import (
         test_process_fail_and_collect_paths,
         test_process_mapping_fail_and_collect_paths,
+        test_project_names_from_values_normalizes_repeated_cli_selectors,
         test_validation_v_uses_custom_message_on_empty_failure,
     )
 
@@ -247,6 +248,7 @@ __all__ = [
     "test_get_config_info_failure_on_exception",
     "test_process_fail_and_collect_paths",
     "test_process_mapping_fail_and_collect_paths",
+    "test_project_names_from_values_normalizes_repeated_cli_selectors",
     "test_prompt_logs_input_when_not_test_env",
     "test_prompts",
     "test_prompts_cov",
