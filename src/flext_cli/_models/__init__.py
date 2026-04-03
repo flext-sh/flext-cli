@@ -7,18 +7,13 @@ from __future__ import annotations
 
 import typing as _t
 
-from flext_cli._models.base import FlextCliModelsBase
 from flext_core.lazy import install_lazy_exports
 
 if _t.TYPE_CHECKING:
     import flext_cli._models.base as _flext_cli__models_base
 
     base = _flext_cli__models_base
-
-    _ = (
-        FlextCliModelsBase,
-        base,
-    )
+    from flext_cli._models.base import FlextCliModelsBase
 _LAZY_IMPORTS = {
     "FlextCliModelsBase": "flext_cli._models.base",
     "base": "flext_cli._models.base",
