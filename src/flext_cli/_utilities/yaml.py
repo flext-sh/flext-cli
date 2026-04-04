@@ -28,6 +28,9 @@ class FlextCliUtilitiesYaml:
 
     logger = FlextLogger(__name__)
 
+    # Re-exported so consumers never need ``import yaml`` directly.
+    YAMLError: type[Exception] = YAMLError
+
     # ------------------------------------------------------------------
     # Reading
     # ------------------------------------------------------------------

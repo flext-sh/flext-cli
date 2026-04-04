@@ -5,6 +5,7 @@ from __future__ import annotations
 import typing
 from collections.abc import Mapping
 from enum import StrEnum, unique
+from types import MappingProxyType
 from typing import ClassVar
 
 from rich.errors import ConsoleError, LiveError, StyleError
@@ -60,13 +61,13 @@ class FlextCliConstants(FlextConstants):
         class ValidationLists:
             """Validation lists."""
 
-            OUTPUT_FORMATS: typing.ClassVar[t.StrSequence] = [
+            OUTPUT_FORMATS: typing.ClassVar[t.StrSequence] = (
                 "json",
                 "yaml",
                 "csv",
                 "table",
                 "plain",
-            ]
+            )
 
         @unique
         class MessageTypes(StrEnum):
@@ -163,7 +164,7 @@ class FlextCliConstants(FlextConstants):
             """Subdirectory constants."""
 
             CACHE, LOGS = ("cache", "logs")
-            STANDARD_SUBDIRS: typing.ClassVar[t.StrSequence] = [CACHE, LOGS]
+            STANDARD_SUBDIRS: typing.ClassVar[t.StrSequence] = (CACHE, LOGS)
 
         class Symbols:
             """Symbol constants."""
@@ -205,11 +206,11 @@ class FlextCliConstants(FlextConstants):
         class CliParamsDefaults:
             """CLI parameters defaults."""
 
-            VALID_LOG_FORMATS: typing.ClassVar[t.StrSequence] = [
+            VALID_LOG_FORMATS: typing.ClassVar[t.StrSequence] = (
                 "compact",
                 "detailed",
                 "full",
-            ]
+            )
 
         class FileErrorMessages:
             """File error messages."""
@@ -273,7 +274,7 @@ class FlextCliConstants(FlextConstants):
 
             TREE_CREATION_FAILED = "Tree creation failed: {error}"
 
-        TABLE_FORMATS: typing.ClassVar[t.StrMapping] = {
+        TABLE_FORMATS: typing.ClassVar[t.StrMapping] = MappingProxyType({
             "plain": "Minimal formatting, no borders",
             "simple": "Simple ASCII borders",
             "grid": "Grid-style ASCII table",
@@ -296,7 +297,7 @@ class FlextCliConstants(FlextConstants):
             "latex_longtable": "LaTeX longtable",
             "textile": "Textile markup",
             "tsv": "Tab-separated values",
-        }
+        })
 
         class TablesErrorMessages:
             """Table error messages."""
@@ -328,17 +329,17 @@ class FlextCliConstants(FlextConstants):
         class Lists:
             """Lists constants."""
 
-            LOG_LEVELS_LIST: typing.ClassVar[t.StrSequence] = [
+            LOG_LEVELS_LIST: typing.ClassVar[t.StrSequence] = (
                 "DEBUG",
                 "INFO",
                 "WARNING",
                 "ERROR",
                 "CRITICAL",
-            ]
+            )
 
         CLI_PARAM_REGISTRY: ClassVar[
             Mapping[str, Mapping[str, t.Scalar | t.StrSequence]]
-        ] = {
+        ] = MappingProxyType({
             "verbose": {
                 CliParamsRegistry.KEY_SHORT: CliParamsRegistry.SHORT_FLAG_VERBOSE,
                 CliParamsRegistry.KEY_PRIORITY: CliParamsRegistry.PRIORITY_VERBOSE,
@@ -383,7 +384,7 @@ class FlextCliConstants(FlextConstants):
                 CliParamsRegistry.KEY_SHORT: CliParamsRegistry.SHORT_FLAG_CONFIG_FILE,
                 CliParamsRegistry.KEY_PRIORITY: CliParamsRegistry.PRIORITY_CONFIG_FILE,
             },
-        }
+        })
 
 
 c = FlextCliConstants

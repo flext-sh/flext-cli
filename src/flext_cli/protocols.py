@@ -14,7 +14,8 @@ from flext_core import FlextProtocols, r
 class FlextCliProtocols(FlextProtocols):
     """CLI protocol definitions extending FlextProtocols."""
 
-    class Cli:
+    @runtime_checkable
+    class Cli(Protocol):
         """CLI protocol namespace for all CLI-specific protocols."""
 
         @runtime_checkable
