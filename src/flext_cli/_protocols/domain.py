@@ -1,0 +1,90 @@
+"""Higher-level CLI structural contracts."""
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
+
+from pydantic import BaseModel
+
+from flext_cli._protocols.base import FlextCliProtocolsBase
+
+if TYPE_CHECKING:
+    from flext_cli import t
+
+
+class FlextCliProtocolsDomain:
+    """CLI domain protocols layered on top of base callable contracts."""
+
+    @runtime_checkable
+    class DisplayData(Protocol):
+        """Display payload contract backed by a data mapping."""
+
+        @property
+        def data(self) -> t.ContainerMapping:
+            """Expose the display payload."""
+            ...
+
+    @runtime_checkable
+    class LoadedConfig(Protocol):
+        """Loaded configuration payload contract."""
+
+        @property
+        def content(self) -> t.ContainerMapping:
+            """Expose loaded configuration content."""
+            ...
+
+    @runtime_checkable
+    class JsonValueProcessor(Protocol):
+        """Protocol for JSON-compatible value processors."""
+
+        def __call__(self, value: t.Cli.JsonValue) -> t.Cli.JsonValue:
+            """Transform one JSON-compatible value."""
+            ...
+
+    @runtime_checkable
+    class JsonCommandHandler(Protocol):
+        """Protocol for lightweight command handlers returning JSON payloads."""
+
+        def __call__(
+            self,
+            *args: t.Cli.JsonValue,
+            **kwargs: t.Cli.JsonValue,
+        ) -> t.Cli.JsonValueResult:
+            """Execute a command and return a railway JSON result."""
+            ...
+
+    @runtime_checkable
+    class ModelCommandHandler[TParams: BaseModel](Protocol):
+        """Protocol for model-driven CLI command execution."""
+
+        def __call__(self, params: TParams) -> None:
+            """Execute one model-backed CLI command."""
+            ...
+
+    @runtime_checkable
+    class CommandEntry(Protocol):
+        """Protocol for command registry entries."""
+
+        name: str
+        handler: FlextCliProtocolsDomain.JsonCommandHandler
+
+    @runtime_checkable
+    class ResultCommandRoute(Protocol):
+        """Protocol for declarative result-route registration."""
+
+        name: str
+        help_text: str
+        model_cls: type[BaseModel]
+        handler: FlextCliProtocolsBase.ResultCommandHandler[
+            BaseModel,
+            t.Cli.ValueOrModel,
+        ]
+        failure_message: str
+        success_message: str | None
+        success_formatter: (
+            FlextCliProtocolsBase.SuccessMessageFormatter[t.Cli.ValueOrModel] | None
+        )
+        success_type: str
+
+
+__all__ = ["FlextCliProtocolsDomain"]

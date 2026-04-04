@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import sys
 from collections.abc import Sequence
-from typing import ClassVar, Literal, Self, overload, override
+from typing import ClassVar, Self, overload, override
 
 from rich.console import Console
 from rich.errors import ConsoleError, StyleError
@@ -54,7 +54,9 @@ class FlextCliFormatters(FlextCliServiceBase):
         def add(self, label: str) -> None: ...
 
         @overload
-        def add(self, label: str, *, return_child: Literal[True]) -> Self: ...
+        def add(
+            self, label: str, *, return_child: t.Cli.ReturnChildLiteral
+        ) -> Self: ...
 
         def add(
             self,

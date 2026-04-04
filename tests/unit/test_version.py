@@ -14,22 +14,14 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import re
-import sys
-from collections.abc import Sequence
-from enum import StrEnum, unique
-from typing import Annotated, ClassVar, Final, TypeVar
+from typing import Final
 
 import pytest
 from flext_tests import tm
-from pydantic import BaseModel, ConfigDict, Field
 
 from flext_cli import __version__, __version_info__
-from tests import t
-
-from ..conftest import Examples, InfoTuples
-from ..helpers import FlextCliTestHelpers
-
-T = TypeVar("T")
+from tests import m, t
+from tests.helpers import FlextCliTestHelpers
 
 
 class TestsCliVersion:
@@ -39,137 +31,6 @@ class TestsCliVersion:
     Uses factories, constants, dynamic tests, and helpers to reduce code while
     maintaining and expanding coverage.
     """
-
-    @unique
-    class ValidationType(StrEnum):
-        """Types of version validation."""
-
-        STRING = "string_validation"
-        INFO = "info_validation"
-        CONSISTENCY = "consistency"
-
-    class TestScenario:
-        """Version test scenario data class."""
-
-        class Data(BaseModel):
-            """Version test scenario data."""
-
-            model_config: ClassVar[ConfigDict] = ConfigDict(frozen=True)
-
-            name: Annotated[str, Field(description="Scenario name")]
-            version_string: Annotated[
-                str | None,
-                Field(
-                    default=None,
-                    description="Version string under test",
-                ),
-            ] = None
-            version_info: Annotated[
-                tuple[int | str, ...] | None,
-                Field(
-                    default=None,
-                    description="Version info tuple under test",
-                ),
-            ] = None
-            should_pass: Annotated[
-                bool,
-                Field(
-                    default=True,
-                    description="Whether scenario should pass validation",
-                ),
-            ] = True
-
-            @property
-            def validation_type(self) -> TestsCliVersion.ValidationType:
-                """Determine validation type based on data provided."""
-                current_module = sys.modules[__name__]
-                test_class: type[TestsCliVersion] = current_module.TestsCliVersion
-                validation_enum = test_class.ValidationType
-                if self.version_string and self.version_info:
-                    return validation_enum.CONSISTENCY
-                if self.version_info:
-                    return validation_enum.INFO
-                return validation_enum.STRING
-
-        @classmethod
-        def get_string_cases(cls) -> Sequence[TestsCliVersion.TestScenario.Data]:
-            """Get parametrized test cases for version string validation."""
-            data_class = cls.Data
-            return [
-                data_class(
-                    name="valid_semver",
-                    version_string=Examples.VALID_SEMVER,
-                    should_pass=True,
-                ),
-                data_class(
-                    name="valid_complex",
-                    version_string=Examples.VALID_SEMVER_COMPLEX,
-                    should_pass=True,
-                ),
-                data_class(
-                    name="invalid_no_dots",
-                    version_string=Examples.INVALID_NO_DOTS,
-                    should_pass=False,
-                ),
-                data_class(
-                    name="invalid_non_numeric",
-                    version_string=Examples.INVALID_NON_NUMERIC,
-                    should_pass=False,
-                ),
-                data_class(name="invalid_empty", version_string="", should_pass=False),
-            ]
-
-        @classmethod
-        def get_info_cases(cls) -> Sequence[TestsCliVersion.TestScenario.Data]:
-            """Get parametrized test cases for version info validation."""
-            data_class = cls.Data
-            return [
-                data_class(
-                    name="valid_tuple",
-                    version_info=InfoTuples.VALID_TUPLE,
-                    should_pass=True,
-                ),
-                data_class(
-                    name="valid_complex_tuple",
-                    version_info=InfoTuples.VALID_COMPLEX_TUPLE,
-                    should_pass=True,
-                ),
-                data_class(
-                    name="short_tuple",
-                    version_info=InfoTuples.SHORT_TUPLE,
-                    should_pass=False,
-                ),
-                data_class(
-                    name="empty_tuple",
-                    version_info=InfoTuples.EMPTY_TUPLE,
-                    should_pass=False,
-                ),
-            ]
-
-        @classmethod
-        def get_consistency_cases(cls) -> Sequence[TestsCliVersion.TestScenario.Data]:
-            """Get parametrized test cases for version consistency validation."""
-            data_class = cls.Data
-            return [
-                data_class(
-                    name="valid_match",
-                    version_string=Examples.VALID_SEMVER,
-                    version_info=InfoTuples.VALID_TUPLE,
-                    should_pass=True,
-                ),
-                data_class(
-                    name="valid_complex_match",
-                    version_string=Examples.VALID_SEMVER_COMPLEX,
-                    version_info=InfoTuples.VALID_COMPLEX_TUPLE,
-                    should_pass=True,
-                ),
-                data_class(
-                    name="invalid_mismatch",
-                    version_string=Examples.INVALID_NO_DOTS,
-                    version_info=InfoTuples.SHORT_TUPLE,
-                    should_pass=False,
-                ),
-            ]
 
     def test_actual_version_string_type(self) -> None:
         """Test __version__ is a non-empty string."""
@@ -225,10 +86,12 @@ class TestsCliVersion:
 
     @pytest.mark.parametrize(
         "scenario",
-        TestScenario.get_string_cases(),
-        ids=[s.name for s in TestScenario.get_string_cases()],
+        m.Cli.Tests.VersionScenarios.get_string_cases(),
+        ids=[s.name for s in m.Cli.Tests.VersionScenarios.get_string_cases()],
     )
-    def test_version_string_validation(self, scenario: TestScenario.Data) -> None:
+    def test_version_string_validation(
+        self, scenario: m.Cli.Tests.VersionTestScenario
+    ) -> None:
         """Test version string validation with parametrized cases."""
         tm.that(scenario.version_string, none=False)
         version_str = scenario.version_string or ""
@@ -242,10 +105,12 @@ class TestsCliVersion:
 
     @pytest.mark.parametrize(
         "scenario",
-        TestScenario.get_info_cases(),
-        ids=[s.name for s in TestScenario.get_info_cases()],
+        m.Cli.Tests.VersionScenarios.get_info_cases(),
+        ids=[s.name for s in m.Cli.Tests.VersionScenarios.get_info_cases()],
     )
-    def test_version_info_validation(self, scenario: TestScenario.Data) -> None:
+    def test_version_info_validation(
+        self, scenario: m.Cli.Tests.VersionTestScenario
+    ) -> None:
         """Test version info tuple validation with parametrized cases."""
         tm.that(scenario.version_info, none=False)
         version_info = scenario.version_info or ()
@@ -259,10 +124,12 @@ class TestsCliVersion:
 
     @pytest.mark.parametrize(
         "scenario",
-        TestScenario.get_consistency_cases(),
-        ids=[s.name for s in TestScenario.get_consistency_cases()],
+        m.Cli.Tests.VersionScenarios.get_consistency_cases(),
+        ids=[s.name for s in m.Cli.Tests.VersionScenarios.get_consistency_cases()],
     )
-    def test_version_consistency_validation(self, scenario: TestScenario.Data) -> None:
+    def test_version_consistency_validation(
+        self, scenario: m.Cli.Tests.VersionTestScenario
+    ) -> None:
         """Test consistency between version string and info with parametrized cases."""
         tm.that(scenario.version_string, none=False)
         tm.that(scenario.version_info, none=False)

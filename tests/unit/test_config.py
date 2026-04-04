@@ -13,76 +13,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Sequence
-from enum import StrEnum, unique
-from typing import Annotated, ClassVar, Final
-
 import pytest
 from flext_tests import tm
-from pydantic import BaseModel, ConfigDict, Field
 from pydantic_settings import BaseSettings
 
 from flext_cli import FlextCliSettings, cli
-from tests import t
-
-
-@unique
-class ConfigTestType(StrEnum):
-    """Config test types."""
-
-    INITIALIZATION = "initialization"
-    SERIALIZATION = "serialization"
-    VALIDATION = "validation"
-    INTEGRATION = "integration"
-    EDGE_CASES = "edge_cases"
-
-
-class ConfigTestScenario(BaseModel):
-    """Test scenario with data."""
-
-    model_config: ClassVar[ConfigDict] = ConfigDict(frozen=True)
-
-    name: Annotated[str, Field(description="Scenario name")]
-    test_type: Annotated[ConfigTestType, Field(description="Scenario test type")]
-    data: Annotated[
-        t.ContainerMapping | None,
-        Field(
-            default=None,
-            description="Scenario input data",
-        ),
-    ]
-    should_pass: Annotated[
-        bool,
-        Field(
-            default=True,
-            description="Whether scenario is expected to pass",
-        ),
-    ]
-
-
-class ConfigTestFactory:
-    """Factory for config test scenarios - maximizes parametrization."""
-
-    VALID_OUTPUT_FORMATS: Final[t.StrSequence] = ["json", "yaml", "csv", "table"]
-    VALID_ENVIRONMENTS: Final[t.StrSequence] = [
-        "development",
-        "staging",
-        "production",
-        "test",
-    ]
-    VALID_VERBOSITIES: Final[t.StrSequence] = ["compact", "detailed", "full"]
-    VALID_LOGGING_LEVELS: Final[t.StrSequence] = [
-        "DEBUG",
-        "INFO",
-        "WARNING",
-        "ERROR",
-        "CRITICAL",
-    ]
-
-    @classmethod
-    def get_logging_scenarios(cls) -> Sequence[tuple[str, str]]:
-        """Generate logging level scenarios."""
-        return [(level, level) for level in cls.VALID_LOGGING_LEVELS]
+from tests import c
 
 
 class TestsCliConfigBasics:
@@ -124,18 +60,11 @@ class TestsCliLoggingConfig:
 
     @pytest.mark.parametrize(
         ("level", "expected"),
-        ConfigTestFactory.get_logging_scenarios(),
+        c.Cli.Tests.ConfigFactory.get_logging_scenarios(),
     )
     def test_logging_levels(self, level: str, expected: str) -> None:
         """Test all logging levels with single parametrized test."""
-        valid_levels: tuple[str, ...] = (
-            "DEBUG",
-            "INFO",
-            "WARNING",
-            "ERROR",
-            "CRITICAL",
-        )
-        tm.that(level in valid_levels, eq=True)
+        tm.that(level in c.Cli.Tests.ConfigFactory.VALID_LOGGING_LEVELS, eq=True)
         tm.that(level, eq=expected)
 
 
@@ -165,10 +94,10 @@ class TestsCliConfigIntegration:
 class TestsCliConfigValidation:
     """Validation tests."""
 
-    @pytest.mark.parametrize("env", ConfigTestFactory.VALID_ENVIRONMENTS)
+    @pytest.mark.parametrize("env", c.Cli.Tests.ConfigFactory.VALID_ENVIRONMENTS)
     def test_valid_environments(self, env: str) -> None:
         """Test all valid environments."""
-        tm.that(ConfigTestFactory.VALID_ENVIRONMENTS, has=env)
+        tm.that(c.Cli.Tests.ConfigFactory.VALID_ENVIRONMENTS, has=env)
 
     def test_model_dump(self) -> None:
         """Test model_dump returns complete dict."""

@@ -1,12 +1,11 @@
-"""FlextCli models module - Pydantic domain models."""
+"""CLI Pydantic domain models."""
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping
+from collections.abc import Mapping
 from typing import (
     Annotated,
     ClassVar,
-    Literal,
 )
 
 from pydantic import (
@@ -17,8 +16,8 @@ from pydantic import (
     computed_field,
 )
 
-from flext_cli import c, t
-from flext_core import FlextModels, r
+from flext_cli import c, p, t
+from flext_core import m
 
 
 class FlextCliModelsBase:
@@ -67,12 +66,12 @@ class FlextCliModelsBase:
             Field(description="The normalized JSON value"),
         ] = Field(default_factory=dict)
         default: Annotated[
-            Mapping[str, t.Cli.JsonValue],
+            t.Cli.JsonMapping,
             Field(description="Default mapping if value is not a dict"),
         ] = Field(default_factory=dict)
 
         @property
-        def resolved(self) -> Mapping[str, t.Cli.JsonValue]:
+        def resolved(self) -> t.Cli.JsonMapping:
             """Resolve value to dict or return default."""
             if isinstance(self.value, dict):
                 return self.value
@@ -90,7 +89,7 @@ class FlextCliModelsBase:
         )
         name: Annotated[t.NonEmptyStr, Field(..., description="Command name")]
         handler: Annotated[
-            Callable[..., r[t.Cli.JsonValue]],
+            p.Cli.JsonCommandHandler,
             Field(..., description="Command handler callable"),
         ]
 
@@ -109,7 +108,7 @@ class FlextCliModelsBase:
             Field(..., description="Pydantic input model class"),
         ]
         handler: Annotated[
-            Callable[..., BaseModel],
+            p.Cli.ResultCommandHandler[BaseModel, t.Cli.ValueOrModel],
             Field(..., description="Command handler returning r[...]"),
         ]
         failure_message: Annotated[
@@ -121,7 +120,7 @@ class FlextCliModelsBase:
             Field(default=None, description="Static success message"),
         ] = None
         success_formatter: Annotated[
-            Callable[..., str] | None,
+            p.Cli.SuccessMessageFormatter[t.Cli.ValueOrModel] | None,
             Field(default=None, description="Dynamic success formatter"),
         ] = None
         success_type: Annotated[
@@ -142,16 +141,16 @@ class FlextCliModelsBase:
         avoid pyright invariant override errors.
         """
 
-    class TableConfig(FlextModels.Value):
+    class TableConfig(m.Value):
         """Table display configuration for tabulate extending Value via inheritance.
 
         Fields map directly to tabulate() parameters.
-        Inherits frozen=True and extra="forbid" from FlextModels.Value.
+        Inherits frozen=True and extra="forbid" from m.Value.
         """
 
         # Headers configuration
         headers: Annotated[
-            str | t.StrSequence | None,
+            t.Cli.TableHeaders,
             Field(
                 description=(
                     "Table headers (string like 'keys', 'firstrow' "
@@ -222,7 +221,7 @@ class FlextCliModelsBase:
             description="Disable number parsing (bool or list of column indices)",
         )
 
-    class ConfigSnapshot(FlextModels.Value):
+    class ConfigSnapshot(m.Value):
         """Snapshot of current CLI configuration information."""
 
         model_config: ClassVar[ConfigDict] = ConfigDict(
@@ -270,12 +269,12 @@ class FlextCliModelsBase:
             ),
         ]
 
-    class CliParamsConfig(FlextModels.Value):
+    class CliParamsConfig(m.Value):
         """CLI parameters configuration for command-line parsing.
 
         Maps directly to CLI flags: --verbose, --quiet, --debug, --trace, etc.
         All fields are optional (None) to allow partial updates.
-        Inherits frozen=True and extra="forbid" from FlextModels.Value.
+        Inherits frozen=True and extra="forbid" from m.Value.
         """
 
         verbose: Annotated[
@@ -333,7 +332,7 @@ class FlextCliModelsBase:
         ]
 
         @property
-        def params(self) -> Mapping[str, t.Cli.JsonValue]:
+        def params(self) -> t.Cli.JsonMapping:
             """Parameters mapping - required by CliParamsConfig."""
             return {
                 "verbose": bool(self.verbose) if self.verbose is not None else False,
@@ -348,7 +347,7 @@ class FlextCliModelsBase:
                 ),
             }
 
-    class OptionConfig(FlextModels.Value):
+    class OptionConfig(m.Value):
         """Configuration for CLI option decorators.
 
         Used with create_option_decorator to reduce argument counts.
@@ -418,11 +417,11 @@ class FlextCliModelsBase:
             ),
         ]
 
-    class ConfirmConfig(FlextModels.Value):
+    class ConfirmConfig(m.Value):
         """Configuration for confirm prompts.
 
         Used with confirm() method to reduce argument counts.
-        Inherits frozen=True and extra="forbid" from FlextModels.Value.
+        Inherits frozen=True and extra="forbid" from m.Value.
         """
 
         default: Annotated[bool, Field(default=False, description="Default value")]
@@ -446,7 +445,7 @@ class FlextCliModelsBase:
         ]
         err: Annotated[bool, Field(default=False, description="Write to stderr")]
 
-    class PromptConfig(FlextModels.Value):
+    class PromptConfig(m.Value):
         """Configuration for input prompts.
 
         Used with prompt() method to reduce argument counts.
@@ -473,7 +472,7 @@ class FlextCliModelsBase:
             ),
         ]
         value_proc: Annotated[
-            Callable[[t.Cli.JsonValue], t.Cli.JsonValue] | None,
+            p.Cli.JsonValueProcessor | None,
             Field(
                 default=None,
                 description="Value processor function",
@@ -517,7 +516,7 @@ class FlextCliModelsBase:
         """Single contract: raw (int | str | None) + default -> int."""
 
         model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
-        raw: Annotated[int | str | None, Field(default=None)]
+        raw: Annotated[t.Cli.IntTextValue, Field(default=None)]
         default: Annotated[
             int,
             Field(default=30, description="Default timeout in seconds"),
@@ -560,7 +559,7 @@ class FlextCliModelsBase:
 
         model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
         type_kind: Annotated[
-            Literal["str", "bool", "dict"],
+            t.Cli.TypeKind,
             Field(description="Requested type"),
         ]
         value: Annotated[t.Cli.JsonValue | None, Field(default=None)]
@@ -568,15 +567,11 @@ class FlextCliModelsBase:
 
         @computed_field
         @property
-        def resolved(
-            self,
-        ) -> str | bool | Mapping[str, t.Cli.JsonValue] | None:
+        def resolved(self) -> t.Cli.TypedExtractValue:
             """Value coerced to type_kind, or default."""
             return self.resolve()
 
-        def resolve(
-            self,
-        ) -> str | bool | Mapping[str, t.Cli.JsonValue] | None:
+        def resolve(self) -> t.Cli.TypedExtractValue:
             """Type-safe accessor (bypasses pyrefly computed_field limitation)."""
             if self.value is None:
                 return self._default_for_kind()
@@ -599,9 +594,7 @@ class FlextCliModelsBase:
                 return {}
             return self._default_for_kind()
 
-        def _default_for_kind(
-            self,
-        ) -> str | bool | Mapping[str, t.Cli.JsonValue] | None:
+        def _default_for_kind(self) -> t.Cli.TypedExtractValue:
             """Return default typed value for the requested kind."""
             if self.type_kind == "str":
                 return self.default if isinstance(self.default, str) else None

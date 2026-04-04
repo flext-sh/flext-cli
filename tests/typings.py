@@ -13,6 +13,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from enum import StrEnum, unique
+
 from flext_tests import FlextTestsTypes
 
 from flext_cli import FlextCliTypes
@@ -36,12 +38,40 @@ class FlextCliTestTypes(FlextTestsTypes, FlextCliTypes):
     """
 
     class Cli(FlextCliTypes.Cli):
-        """Flext-cli-specific type definitions for testing.
+        """Flext-cli-specific type definitions for testing."""
 
-        Uses composition of FlextCliTypes and FlextTestsTypes for type safety and consistency.
-        Only defines types that are truly flext-cli-specific.
-        Dict type aliases were removed in Pydantic v2 migration - use models instead.
-        """
+        class Tests:
+            """Test-specific type definitions for flext-cli."""
+
+            @unique
+            class ValidationType(StrEnum):
+                """Types of version validation."""
+
+                STRING = "string_validation"
+                INFO = "info_validation"
+                CONSISTENCY = "consistency"
+
+            @unique
+            class ConfigTestType(StrEnum):
+                """Config test types."""
+
+                INITIALIZATION = "initialization"
+                SERIALIZATION = "serialization"
+                VALIDATION = "validation"
+                INTEGRATION = "integration"
+                EDGE_CASES = "edge_cases"
+
+            @unique
+            class ConfigParam(StrEnum):
+                """Test configuration parameters for parametrized tests."""
+
+                VERBOSE = "verbose"
+                QUIET = "quiet"
+                DEBUG = "debug"
+                NO_COLOR = "no_color"
+                LOG_LEVEL = "log_level"
+                LOG_FORMAT = "log_format"
+                OUTPUT_FORMAT = "output_format"
 
 
 t = FlextCliTestTypes

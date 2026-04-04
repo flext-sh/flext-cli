@@ -19,24 +19,6 @@ def pytest_configure(config: pytest.Config) -> None:
     )
 
 
-class Examples:
-    """Version string examples for parametrized tests."""
-
-    VALID_SEMVER: str = "1.2.3"
-    VALID_SEMVER_COMPLEX: str = "1.2.3-alpha.1+build.123"
-    INVALID_NO_DOTS: str = "version"
-    INVALID_NON_NUMERIC: str = "a.b.c"
-
-
-class InfoTuples:
-    """Version info tuple examples for parametrized tests."""
-
-    VALID_TUPLE: tuple[int, int, int] = (1, 2, 3)
-    VALID_COMPLEX_TUPLE: tuple[int | str, ...] = (1, 2, 3, "alpha", 1)
-    SHORT_TUPLE: tuple[int, int] = (1, 2)
-    EMPTY_TUPLE: tuple[()] = ()
-
-
 def pytest_collection_modifyitems(
     config: pytest.Config,
     items: Sequence[pytest.Item],

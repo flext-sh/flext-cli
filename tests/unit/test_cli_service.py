@@ -3,45 +3,12 @@
 from __future__ import annotations
 
 from collections.abc import MutableSequence
-from typing import Annotated, Literal
 
 from flext_tests import tm
-from pydantic import BaseModel, Field
 
 from flext_cli import cli
 from flext_core import r
 from tests import m
-
-
-class _SampleInput(BaseModel):
-    """Small request model for exercising model-driven CLI generation."""
-
-    name: Annotated[str, Field(description="Target name")]
-    count: Annotated[int, Field(default=1, description="How many times")]
-    dry_run: Annotated[bool, Field(default=False, description="Dry-run mode")]
-    output_format: Annotated[
-        Literal["json", "table"],
-        Field(default="table", description="Output format"),
-    ]
-
-
-class _SampleOutput(BaseModel):
-    """Concrete output model for result-route tests."""
-
-    message: Annotated[str, Field(description="User-facing success message")]
-
-
-class _RepeatableInput(BaseModel):
-    """Exercise repeatable CLI options derived from list-typed fields."""
-
-    make_arg: Annotated[
-        list[str],
-        Field(default_factory=list, description="Repeatable make-style arg"),
-    ] = Field(default_factory=list)
-
-
-class _SampleRoute(m.Cli.ResultCommandRouteModel[_SampleInput, _SampleOutput]):
-    """Concrete route model for test-time generic stability."""
 
 
 class TestsCliService:
@@ -68,7 +35,7 @@ class TestsCliService:
         tm.that(cli.settings.debug, eq=True)
 
     def test_model_command_generates_real_typer_options(self) -> None:
-        captured: MutableSequence[_SampleInput] = []
+        captured: MutableSequence[m.Cli.Tests.SampleInput] = []
         app = cli.create_app_with_common_params(
             name="root",
             help_text="Root application",
@@ -76,10 +43,10 @@ class TestsCliService:
         )
         group = cli.create_group(help_text="Sample group", name="sample")
 
-        def handle(params: _SampleInput) -> None:
+        def handle(params: m.Cli.Tests.SampleInput) -> None:
             captured.append(params)
 
-        command = cli.model_command(_SampleInput, handle)
+        command = cli.model_command(m.Cli.Tests.SampleInput, handle)
         cli.register_command(
             group,
             name="run",
@@ -116,7 +83,7 @@ class TestsCliService:
         tm.that(captured[0].output_format, eq="json")
 
     def test_model_command_accepts_repeatable_list_options(self) -> None:
-        captured: MutableSequence[_RepeatableInput] = []
+        captured: MutableSequence[m.Cli.Tests.RepeatableInput] = []
         app = cli.create_app_with_common_params(
             name="root",
             help_text="Root application",
@@ -124,10 +91,10 @@ class TestsCliService:
         )
         group = cli.create_group(help_text="Sample group", name="sample")
 
-        def handle(params: _RepeatableInput) -> None:
+        def handle(params: m.Cli.Tests.RepeatableInput) -> None:
             captured.append(params)
 
-        command = cli.model_command(_RepeatableInput, handle)
+        command = cli.model_command(m.Cli.Tests.RepeatableInput, handle)
         cli.register_command(
             group,
             name="repeat",
@@ -156,14 +123,14 @@ class TestsCliService:
     def test_execute_app_returns_user_facing_failure_message(self) -> None:
         app = cli.create_group(help_text="Failure group")
 
-        def fail_handler(_params: _SampleInput) -> None:
+        def fail_handler(_params: m.Cli.Tests.SampleInput) -> None:
             cli.exit(code=1)
 
         cli.register_command(
             app,
             name="fail",
             help_text="Fail intentionally",
-            command=cli.model_command(_SampleInput, fail_handler),
+            command=cli.model_command(m.Cli.Tests.SampleInput, fail_handler),
         )
         result = cli.execute_app(
             app,
@@ -187,29 +154,31 @@ class TestsCliService:
         def remember_failure(error: str | None, fallback: str) -> None:
             remembered.append((error, fallback))
 
-        def ok_handler(params: _SampleInput) -> r[_SampleOutput]:
-            return r[_SampleOutput].ok(
-                _SampleOutput(message=f"processed {params.name}")
+        def ok_handler(params: m.Cli.Tests.SampleInput) -> r[m.Cli.Tests.SampleOutput]:
+            return r[m.Cli.Tests.SampleOutput].ok(
+                m.Cli.Tests.SampleOutput(message=f"processed {params.name}")
             )
 
-        def fail_handler(params: _SampleInput) -> r[_SampleOutput]:
+        def fail_handler(
+            params: m.Cli.Tests.SampleInput,
+        ) -> r[m.Cli.Tests.SampleOutput]:
             _ = params
-            return r[_SampleOutput].fail("boom")
+            return r[m.Cli.Tests.SampleOutput].fail("boom")
 
-        def build_ok_route() -> _SampleRoute:
-            return _SampleRoute(
+        def build_ok_route() -> m.Cli.Tests.SampleRoute:
+            return m.Cli.Tests.SampleRoute(
                 name="ok",
                 help_text="Successful command",
-                model_cls=_SampleInput,
+                model_cls=m.Cli.Tests.SampleInput,
                 handler=ok_handler,
                 failure_message="ok failed",
             )
 
-        def build_fail_route() -> _SampleRoute:
-            return _SampleRoute(
+        def build_fail_route() -> m.Cli.Tests.SampleRoute:
+            return m.Cli.Tests.SampleRoute(
                 name="fail",
                 help_text="Failing command",
-                model_cls=_SampleInput,
+                model_cls=m.Cli.Tests.SampleInput,
                 handler=fail_handler,
                 failure_message="failure fallback",
             )

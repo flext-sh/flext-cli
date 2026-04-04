@@ -20,11 +20,6 @@ from flext_cli import FlextCliCmd
 from tests import m, u
 
 
-def _create_cmd_instance() -> FlextCliCmd:
-    """Create FlextCliCmd instance for testing."""
-    return FlextCliCmd()
-
-
 class TestsCliCmd:
     """Comprehensive tests for FlextCliCmd class.
 
@@ -33,20 +28,20 @@ class TestsCliCmd:
 
     def test_cmd_initialization(self) -> None:
         """Test CMD initialization with proper configuration."""
-        cmd = _create_cmd_instance()
+        cmd = u.Cli.Tests.create_cmd_instance()
         tm.that(cmd, none=False)
         tm.that(cmd, is_=FlextCliCmd)
 
     def test_cmd_service_properties(self) -> None:
         """Test CMD service properties."""
-        cmd = _create_cmd_instance()
+        cmd = u.Cli.Tests.create_cmd_instance()
         tm.that(hasattr(cmd, "execute"), eq=True)
         tm.that(hasattr(cmd, "logger"), eq=True)
         tm.that(hasattr(cmd, "container"), eq=True)
 
     def test_cmd_execute_sync(self) -> None:
         """Test synchronous CMD execution."""
-        cmd = _create_cmd_instance()
+        cmd = u.Cli.Tests.create_cmd_instance()
         result = cmd.execute()
         tm.ok(result)
         data = result.value
@@ -56,13 +51,13 @@ class TestsCliCmd:
 
     def test_cmd_validate_config(self) -> None:
         """Test validate_config method."""
-        cmd = _create_cmd_instance()
+        cmd = u.Cli.Tests.create_cmd_instance()
         result = cmd.validate_config()
         tm.ok(result)
 
     def test_cmd_get_config_info(self) -> None:
         """Test get_config_info method."""
-        cmd = _create_cmd_instance()
+        cmd = u.Cli.Tests.create_cmd_instance()
         result = cmd.get_config_info()
         tm.ok(result)
         tm.that(result.value, is_=m.Cli.ConfigSnapshot)
@@ -70,7 +65,7 @@ class TestsCliCmd:
 
     def test_cmd_show_config(self) -> None:
         """Test show_config method."""
-        cmd = _create_cmd_instance()
+        cmd = u.Cli.Tests.create_cmd_instance()
         result = cmd.show_config()
         tm.ok(result)
 

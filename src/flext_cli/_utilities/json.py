@@ -24,8 +24,8 @@ class FlextCliUtilitiesJson:
 
     @staticmethod
     def is_mapping_like(
-        value: t.Cli.RecursiveContainer | Mapping[str, t.Cli.RecursiveContainer] | None,
-    ) -> TypeIs[Mapping[str, t.Cli.RecursiveContainer]]:
+        value: t.Cli.RecursiveMappingSource,
+    ) -> TypeIs[t.Cli.RecursiveMapping]:
         """Narrow values to mapping-like recursive containers."""
         return isinstance(value, Mapping)
 
@@ -72,7 +72,7 @@ class FlextCliUtilitiesJson:
         if not path.exists():
             return r[t.Cli.JsonMapping].ok({})
         try:
-            raw = path.read_text(encoding=c.DEFAULT_ENCODING)
+            raw = path.read_text(encoding=c.Cli.Encoding.DEFAULT)
             loaded: t.Cli.JsonValue = t.Cli.JSON_VALUE_ADAPTER.validate_json(raw)
         except (ValidationError, OSError) as exc:
             return r[t.Cli.JsonMapping].fail(f"json_read: {exc}")
@@ -88,7 +88,7 @@ class FlextCliUtilitiesJson:
     @staticmethod
     def json_write(
         path: Path,
-        payload: t.Cli.JsonValue | BaseModel | t.Cli.JsonMapping | t.Cli.JsonList,
+        payload: t.Cli.JsonPayload,
         *,
         sort_keys: bool = False,
         indent: int = 2,
@@ -115,11 +115,11 @@ class FlextCliUtilitiesJson:
             )
             content = (
                 t.Cli.JSON_VALUE_ADAPTER.dump_json(normalized, indent=indent).decode(
-                    c.DEFAULT_ENCODING,
+                    c.Cli.Encoding.DEFAULT,
                 )
                 + "\n"
             )
-            _ = path.write_text(content, encoding=c.DEFAULT_ENCODING)
+            _ = path.write_text(content, encoding=c.Cli.Encoding.DEFAULT)
         except (TypeError, ValueError, ValidationError, OSError) as exc:
             return r[bool].fail(f"json_write: {exc}")
         return r[bool].ok(True)
@@ -136,7 +136,7 @@ class FlextCliUtilitiesJson:
 
     @staticmethod
     def json_normalize(
-        value: t.Cli.JsonValue | BaseModel | None,
+        value: t.Cli.JsonValueOrModel,
     ) -> t.Cli.JsonValue:
         """Normalize a value to a JSON-serializable form."""
         if value is None:

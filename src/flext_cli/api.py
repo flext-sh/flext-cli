@@ -6,7 +6,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping
 from typing import ClassVar, Self, override
 
 from flext_cli import (
@@ -56,9 +55,9 @@ class FlextCli(
         return cls._instance
 
     @override
-    def execute(self) -> r[Mapping[str, t.Cli.JsonValue]]:
+    def execute(self) -> r[t.Cli.JsonMapping]:
         """Execute CLI service with railway pattern."""
-        result_dict: Mapping[str, t.Cli.JsonValue] = {
+        result_dict: t.Cli.JsonMapping = {
             c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.OPERATIONAL.value,
             c.Cli.DictKeys.SERVICE: c.Cli.FLEXT_CLI,
             "timestamp": u.generate("timestamp"),
@@ -69,7 +68,7 @@ class FlextCli(
                 "prompts": "available",
             },
         }
-        return r[Mapping[str, t.Cli.JsonValue]].ok(result_dict)
+        return r[t.Cli.JsonMapping].ok(result_dict)
 
 
 cli = FlextCli.get_instance()

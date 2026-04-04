@@ -68,7 +68,8 @@ class FlextCliTables(FlextCliServiceBase):
 
     @staticmethod
     def _validate_table_data_wide(
-        data: t.Cli.TabularData | Sequence[t.ContainerMapping], table_format: str
+        data: t.Cli.TableDataSource,
+        table_format: str,
     ) -> r[bool]:
         """Validate table data and format.
 
@@ -101,7 +102,7 @@ class FlextCliTables(FlextCliServiceBase):
 
     @staticmethod
     def _normalize_data(
-        data: t.Cli.TabularData | Sequence[t.ContainerMapping],
+        data: t.Cli.TableDataSource,
     ) -> r[Sequence[t.Cli.TableRow]]:
         """Normalize mapping and sequence inputs to tabulate-compatible rows."""
         if isinstance(data, Mapping):
@@ -128,7 +129,7 @@ class FlextCliTables(FlextCliServiceBase):
 
     @staticmethod
     def _prepare_headers(
-        headers: str | t.StrSequence | None,
+        headers: t.Cli.TableHeaders,
         *,
         show_header: bool,
     ) -> str | t.StrSequence:
@@ -204,7 +205,7 @@ class FlextCliTables(FlextCliServiceBase):
 
     @staticmethod
     def format_table(
-        data: t.Cli.TabularData | Sequence[t.ContainerMapping],
+        data: t.Cli.TableDataSource,
         config: m.Cli.TableConfig | None = None,
         **config_kwargs: t.Cli.TableConfigValue,
     ) -> r[str]:
@@ -226,7 +227,7 @@ class FlextCliTables(FlextCliServiceBase):
 
     @staticmethod
     def _create_table(
-        data: t.Cli.TabularData | Sequence[t.ContainerMapping],
+        data: t.Cli.TableDataSource,
         config: m.Cli.TableConfig | None = None,
         **config_kwargs: t.Cli.TableConfigValue,
     ) -> r[str]:
@@ -235,7 +236,7 @@ class FlextCliTables(FlextCliServiceBase):
 
     @staticmethod
     def show_table(
-        data: t.Cli.TabularData | Sequence[t.ContainerMapping],
+        data: t.Cli.TableDataSource,
         config: m.Cli.TableConfig | None = None,
         **config_kwargs: t.Cli.TableConfigValue,
     ) -> None:

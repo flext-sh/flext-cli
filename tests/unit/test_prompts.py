@@ -15,19 +15,13 @@ from __future__ import annotations
 
 import getpass
 import time
-from typing import TypeVar
 
 import pytest
 from flext_tests import tm
 
 from flext_cli import FlextCliPrompts
 from flext_core import r
-from tests import (
-    c,
-    t,
-)
-
-T = TypeVar("T")
+from tests import c, t
 
 
 class TestsCliPrompts:
@@ -140,7 +134,7 @@ class TestsCliPrompts:
     def test_prompt_choice_no_default_required(self) -> None:
         """Test prompt_choice without default triggers INTERACTIVE_MODE_DISABLED_CHOICE error."""
         prompts = self.Fixtures.create_quiet_prompts()
-        result = prompts.prompt_choice("choose", c.Cli.Test.TWO)
+        result = prompts.prompt_choice("choose", c.Cli.Tests.TWO)
         tm.fail(result, has="Interactive mode disabled")
 
     def test_prompt_choice_interactive_mode(
@@ -160,21 +154,21 @@ class TestsCliPrompts:
         """Test prompt_choice exception handler."""
         prompts = self.Fixtures.create_interactive_prompts()
 
-        result = prompts.prompt_choice("choose", c.Cli.Test.TWO, default="choice")
+        result = prompts.prompt_choice("choose", c.Cli.Tests.TWO, default="choice")
         tm.fail(result)
 
     def test_prompt_password_non_interactive_failure(self) -> None:
         """Test prompt_password in non-interactive mode fails."""
         prompts = self.Fixtures.create_quiet_prompts()
-        result = prompts.prompt_password(c.Cli.Test.TestData.PASSWORD)
+        result = prompts.prompt_password(c.Cli.Tests.TestData.PASSWORD)
         tm.fail(result, has="Interactive mode disabled")
 
     def test_prompt_password_min_length(self) -> None:
         """Test prompt_password with min_length validation."""
         prompts = self.Fixtures.create_quiet_prompts(interactive_mode=False)
         result = prompts.prompt_password(
-            c.Cli.Test.TestData.PASSWORD,
-            min_length=c.Cli.Test.PasswordDefaults.MIN_LENGTH_STRICT,
+            c.Cli.Tests.TestData.PASSWORD,
+            min_length=c.Cli.Tests.PasswordDefaults.MIN_LENGTH_STRICT,
         )
         tm.that(result, is_=r)
 
@@ -383,17 +377,17 @@ class TestsCliPrompts:
 
     def test_edge_cases_long_message(self, prompts: FlextCliPrompts) -> None:
         """Test edge case: very long message."""
-        result = prompts.prompt(c.Cli.Test.TestData.LONG, default="text")
+        result = prompts.prompt(c.Cli.Tests.TestData.LONG, default="text")
         tm.that(result, is_=r)
 
     def test_edge_cases_special_characters(self, prompts: FlextCliPrompts) -> None:
         """Test edge case: special characters in message."""
-        result = prompts.prompt(c.Cli.Test.TestData.SPECIAL, default="text")
+        result = prompts.prompt(c.Cli.Tests.TestData.SPECIAL, default="text")
         tm.that(result, is_=r)
 
     def test_edge_cases_unicode(self, prompts: FlextCliPrompts) -> None:
         """Test edge case: unicode characters."""
-        result = prompts.prompt(c.Cli.Test.TestData.UNICODE, default="text")
+        result = prompts.prompt(c.Cli.Tests.TestData.UNICODE, default="text")
         tm.that(result, is_=r)
 
     def test_performance_multiple_prompts(self, prompts: FlextCliPrompts) -> None:

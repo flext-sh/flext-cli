@@ -17,8 +17,7 @@ from flext_tests import tm
 
 from flext_cli import FlextCliCommands
 from flext_core import r
-from tests import c, m, t
-from tests._helpers import CommandsFactory
+from tests import c, m, t, u
 
 
 class TestsCliCommands:
@@ -26,13 +25,13 @@ class TestsCliCommands:
 
     def test_commands_initialization(self) -> None:
         """Test Commands initialization with proper configuration."""
-        commands = CommandsFactory.create_commands()
+        commands = u.Cli.Tests.CommandsFactory.create_commands()
         tm.that(commands, none=False)
         tm.that(commands, is_=FlextCliCommands)
 
     def test_commands_execute_sync(self) -> None:
         """Test synchronous Commands execution."""
-        commands = CommandsFactory.create_commands()
+        commands = u.Cli.Tests.CommandsFactory.create_commands()
         result = commands.execute()
         tm.ok(result)
         tm.that(result.value, none=False)
@@ -41,7 +40,7 @@ class TestsCliCommands:
 
     def test_commands_list(self) -> None:
         """Test commands list functionality."""
-        commands = CommandsFactory.create_commands()
+        commands = u.Cli.Tests.CommandsFactory.create_commands()
         result = commands.execute()
         tm.ok(result)
         tm.that(result.value, is_=dict)
@@ -51,8 +50,10 @@ class TestsCliCommands:
 
     def test_commands_registration(self) -> None:
         """Test command registration functionality."""
-        commands = CommandsFactory.create_commands()
-        reg_result = CommandsFactory.register_simple_command(commands, "test_command")
+        commands = u.Cli.Tests.CommandsFactory.create_commands()
+        reg_result = u.Cli.Tests.CommandsFactory.register_simple_command(
+            commands, "test_command"
+        )
         tm.ok(reg_result)
         exec_result = commands.execute()
         tm.ok(exec_result)
@@ -63,8 +64,8 @@ class TestsCliCommands:
 
     def test_commands_execution(self) -> None:
         """Test command execution functionality."""
-        commands = CommandsFactory.create_commands()
-        _ = CommandsFactory.register_simple_command(
+        commands = u.Cli.Tests.CommandsFactory.create_commands()
+        _ = u.Cli.Tests.CommandsFactory.register_simple_command(
             commands,
             "test_execution",
             "executed",
@@ -75,8 +76,10 @@ class TestsCliCommands:
 
     def test_execute_command_with_args(self) -> None:
         """Test execute_command with args parameter."""
-        commands = CommandsFactory.create_commands()
-        _ = CommandsFactory.register_command_with_args(commands, "test_with_args")
+        commands = u.Cli.Tests.CommandsFactory.create_commands()
+        _ = u.Cli.Tests.CommandsFactory.register_command_with_args(
+            commands, "test_with_args"
+        )
         result = commands.execute_command("test_with_args", args=["arg1", "arg2"])
         tm.ok(result)
         result_value = str(result.value)
@@ -85,8 +88,8 @@ class TestsCliCommands:
 
     def test_execute_command_handler_without_args(self) -> None:
         """Test execute_command with handler that doesn't accept args."""
-        commands = CommandsFactory.create_commands()
-        _ = CommandsFactory.register_simple_command(
+        commands = u.Cli.Tests.CommandsFactory.create_commands()
+        _ = u.Cli.Tests.CommandsFactory.register_simple_command(
             commands,
             "test_no_args",
             "no_args_result",
@@ -97,15 +100,17 @@ class TestsCliCommands:
 
     def test_execute_command_with_timeout(self) -> None:
         """Test execute_command with timeout parameter."""
-        commands = CommandsFactory.create_commands()
-        _ = CommandsFactory.register_simple_command(commands, "timed", "timed_result")
+        commands = u.Cli.Tests.CommandsFactory.create_commands()
+        _ = u.Cli.Tests.CommandsFactory.register_simple_command(
+            commands, "timed", "timed_result"
+        )
         result = commands.execute_command("timed", timeout=10)
         tm.ok(result)
         tm.that(result.value, eq="timed_result")
 
     def test_commands_error_handling(self) -> None:
         """Test commands error handling capabilities."""
-        commands = CommandsFactory.create_commands()
+        commands = u.Cli.Tests.CommandsFactory.create_commands()
         result = commands.execute_command("non_existent")
         tm.fail(result)
         tm.that(result.error, none=False)
@@ -117,7 +122,7 @@ class TestsCliCommands:
 
     def test_execute_command_handler_not_callable(self) -> None:
         """Test execute_command with non-callable handler."""
-        commands = CommandsFactory.create_commands()
+        commands = u.Cli.Tests.CommandsFactory.create_commands()
         bad_entry = m.Cli.CommandEntryModel(
             name="bad_cmd",
             handler=lambda: r[t.Cli.JsonValue].ok("ok"),
@@ -130,15 +135,15 @@ class TestsCliCommands:
 
     def test_execute_command_execution_exception(self) -> None:
         """Test execute_command when handler raises exception."""
-        commands = CommandsFactory.create_commands()
-        _ = CommandsFactory.register_failing_command(commands, "failing")
+        commands = u.Cli.Tests.CommandsFactory.create_commands()
+        _ = u.Cli.Tests.CommandsFactory.register_failing_command(commands, "failing")
         result = commands.execute_command("failing")
         tm.fail(result)
         tm.that(result.error, none=False)
 
     def test_execute_command_invalid_structure(self) -> None:
         """Test execute_command with invalid command structure."""
-        commands = CommandsFactory.create_commands()
+        commands = u.Cli.Tests.CommandsFactory.create_commands()
         invalid_entry = m.Cli.CommandEntryModel(
             name="bad_cmd",
             handler=lambda: r[t.Cli.JsonValue].ok("ok"),
@@ -155,9 +160,13 @@ class TestsCliCommands:
 
     def test_commands_concurrent_execution(self) -> None:
         """Test commands concurrent execution."""
-        commands = CommandsFactory.create_commands()
-        _ = CommandsFactory.register_simple_command(commands, "cmd1", "result1")
-        _ = CommandsFactory.register_simple_command(commands, "cmd2", "result2")
+        commands = u.Cli.Tests.CommandsFactory.create_commands()
+        _ = u.Cli.Tests.CommandsFactory.register_simple_command(
+            commands, "cmd1", "result1"
+        )
+        _ = u.Cli.Tests.CommandsFactory.register_simple_command(
+            commands, "cmd2", "result2"
+        )
         result1 = commands.execute_command("cmd1")
         result2 = commands.execute_command("cmd2")
         tm.ok(result1)
@@ -167,8 +176,10 @@ class TestsCliCommands:
 
     def test_commands_command_validation(self) -> None:
         """Test command validation functionality."""
-        commands = CommandsFactory.create_commands()
-        _ = CommandsFactory.register_simple_command(commands, "valid", "test_result")
+        commands = u.Cli.Tests.CommandsFactory.create_commands()
+        _ = u.Cli.Tests.CommandsFactory.register_simple_command(
+            commands, "valid", "test_result"
+        )
         result = commands.execute_command("valid")
         tm.ok(result)
         invalid_result = commands.execute_command("invalid_cmd")
@@ -176,9 +187,9 @@ class TestsCliCommands:
 
     def test_list_commands(self) -> None:
         """Test list_commands method."""
-        commands = CommandsFactory.create_commands()
-        _ = CommandsFactory.register_simple_command(commands, "alpha")
-        _ = CommandsFactory.register_simple_command(commands, "beta")
+        commands = u.Cli.Tests.CommandsFactory.create_commands()
+        _ = u.Cli.Tests.CommandsFactory.register_simple_command(commands, "alpha")
+        _ = u.Cli.Tests.CommandsFactory.register_simple_command(commands, "beta")
         result = commands.list_commands()
         tm.ok(result)
         cmd_list = result.value
@@ -189,21 +200,23 @@ class TestsCliCommands:
 
     def test_run_cli_success(self) -> None:
         """Test run_cli successful execution."""
-        commands = CommandsFactory.create_commands()
-        _ = CommandsFactory.register_simple_command(commands, "test_command")
+        commands = u.Cli.Tests.CommandsFactory.create_commands()
+        _ = u.Cli.Tests.CommandsFactory.register_simple_command(
+            commands, "test_command"
+        )
         result = commands.run_cli(["test_command"])
         tm.ok(result)
 
     def test_run_cli_with_options(self) -> None:
         """Test run_cli skips option arguments."""
-        commands = CommandsFactory.create_commands()
+        commands = u.Cli.Tests.CommandsFactory.create_commands()
         result = commands.run_cli(["--help", "--version"])
         tm.ok(result)
 
     def test_run_cli_with_invalid_command(self) -> None:
         """Test run_cli with invalid command in args."""
-        commands = CommandsFactory.create_commands()
-        _ = CommandsFactory.register_simple_command(commands, "valid")
+        commands = u.Cli.Tests.CommandsFactory.create_commands()
+        _ = u.Cli.Tests.CommandsFactory.register_simple_command(commands, "valid")
         result = commands.run_cli(["invalid_cmd"])
         tm.fail(result)
         tm.that(result.error, none=False)
@@ -211,16 +224,18 @@ class TestsCliCommands:
 
     def test_run_cli_success_with_empty_args(self) -> None:
         """Test run_cli with successful execution and empty args."""
-        commands = CommandsFactory.create_commands()
-        _ = CommandsFactory.register_simple_command(commands, "test_command")
+        commands = u.Cli.Tests.CommandsFactory.create_commands()
+        _ = u.Cli.Tests.CommandsFactory.register_simple_command(
+            commands, "test_command"
+        )
         result = commands.run_cli()
         tm.that(result, is_=r)
 
     def test_list_commands_success_with_registered(self) -> None:
         """Test list_commands with real registered commands."""
-        commands = CommandsFactory.create_commands()
-        _ = CommandsFactory.register_simple_command(commands, "cmd1")
-        _ = CommandsFactory.register_simple_command(commands, "cmd2")
+        commands = u.Cli.Tests.CommandsFactory.create_commands()
+        _ = u.Cli.Tests.CommandsFactory.register_simple_command(commands, "cmd1")
+        _ = u.Cli.Tests.CommandsFactory.register_simple_command(commands, "cmd2")
         result = commands.list_commands()
         tm.ok(result)
         commands_list = result.value

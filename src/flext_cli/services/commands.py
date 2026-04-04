@@ -10,22 +10,21 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping, MutableMapping
+from collections.abc import MutableMapping
 from typing import Self, override
 
 from pydantic import PrivateAttr
 
-from flext_cli import FlextCliServiceBase, c, m, t
-from flext_core import r
+from flext_cli import c, m, p, r, s, t
 
 
-class FlextCliCommands(FlextCliServiceBase):
+class FlextCliCommands(s):
     """CLI commands service for command registration and execution."""
 
     _name: str = PrivateAttr(default=c.Cli.CommandsDefaults.DEFAULT_NAME)
     _description: str = PrivateAttr(default=c.Cli.CommandsDefaults.DEFAULT_DESCRIPTION)
-    _commands: MutableMapping[str, m.Cli.CommandEntryModel] = PrivateAttr(
-        default_factory=lambda: dict[str, m.Cli.CommandEntryModel](),
+    _commands: MutableMapping[str, p.Cli.CommandEntry] = PrivateAttr(
+        default_factory=dict,
     )
 
     @classmethod
@@ -56,19 +55,19 @@ class FlextCliCommands(FlextCliServiceBase):
         )
 
     @override
-    def execute(self) -> r[Mapping[str, t.Cli.JsonValue]]:
+    def execute(self) -> r[t.Cli.JsonMapping]:
         """Execute commands service - returns service status.
 
         Returns:
             r[dict]: Service status with commands count.
 
         """
-        status: Mapping[str, t.Cli.JsonValue] = {
+        status: t.Cli.JsonMapping = {
             "app_name": c.Cli.FLEXT_CLI,
             "is_initialized": True,
             "commands_count": len(self._commands),
         }
-        return r[Mapping[str, t.Cli.JsonValue]].ok(status)
+        return r[t.Cli.JsonMapping].ok(status)
 
     def execute_command(
         self,
@@ -96,7 +95,7 @@ class FlextCliCommands(FlextCliServiceBase):
                 c.Cli.CommandsErrorMessages.COMMAND_NOT_FOUND.format(name=name),
             )
         cmd_info = self._commands[name]
-        handler: Callable[..., r[t.Cli.JsonValue]] = cmd_info.handler
+        handler: p.Cli.JsonCommandHandler = cmd_info.handler
         if not callable(handler):
             return r[t.Cli.JsonValue].fail(
                 c.Cli.CommandsErrorMessages.HANDLER_NOT_CALLABLE.format(name=name),
@@ -135,7 +134,7 @@ class FlextCliCommands(FlextCliServiceBase):
     def register_handler(
         self,
         name: str,
-        handler: Callable[..., r[t.Cli.JsonValue]],
+        handler: p.Cli.JsonCommandHandler,
     ) -> r[bool]:
         """Register a handler in the lightweight command registry.
 

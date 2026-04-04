@@ -6,13 +6,11 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping
 from typing import Protocol, runtime_checkable
 
 from pydantic import BaseModel
 
-from flext_cli import t
-from flext_core import r
+from flext_cli import r, t
 
 
 class FlextCliProtocolsBase:
@@ -48,7 +46,7 @@ class FlextCliProtocolsBase:
             ...
 
         @property
-        def params(self) -> Mapping[str, t.Cli.JsonValue]:
+        def params(self) -> t.Cli.JsonMapping:
             """Get configuration parameters."""
             ...
 

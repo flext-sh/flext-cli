@@ -19,7 +19,9 @@ if _t.TYPE_CHECKING:
 
     _protocols = _flext_cli__protocols
     import flext_cli._utilities as _flext_cli__utilities
-    from flext_cli._protocols import FlextCliProtocolsBase
+    from flext_cli._protocols import FlextCliProtocolsBase, FlextCliProtocolsDomain
+    from flext_cli._typings.base import FlextCliTypesBase
+    from flext_cli._typings.domain import FlextCliTypesDomain
 
     _utilities = _flext_cli__utilities
     import flext_cli.api as _flext_cli_api
@@ -106,6 +108,8 @@ _LAZY_IMPORTS = merge_lazy_imports(
         "FlextCliServiceBase": "flext_cli.base",
         "FlextCliSettings": "flext_cli.settings",
         "FlextCliTypes": "flext_cli.typings",
+        "FlextCliTypesBase": "flext_cli._typings.base",
+        "FlextCliTypesDomain": "flext_cli._typings.domain",
         "FlextCliUtilities": "flext_cli.utilities",
         "__author__": "flext_cli.__version__",
         "__author_email__": "flext_cli.__version__",
@@ -159,10 +163,13 @@ __all__ = [
     "FlextCliPrompts",
     "FlextCliProtocols",
     "FlextCliProtocolsBase",
+    "FlextCliProtocolsDomain",
     "FlextCliServiceBase",
     "FlextCliSettings",
     "FlextCliTables",
     "FlextCliTypes",
+    "FlextCliTypesBase",
+    "FlextCliTypesDomain",
     "FlextCliUtilities",
     "FlextCliUtilitiesJson",
     "FlextCliUtilitiesToml",

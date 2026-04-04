@@ -2,21 +2,19 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
-
 from flext_cli import (
-    FlextCliServiceBase,
     FlextCliSettings,
     c,
     m,
     p,
+    r,
+    s,
     t,
     u,
 )
-from flext_core import r
 
 
-class FlextCliCommonParams(FlextCliServiceBase):
+class FlextCliCommonParams(s):
     """Common CLI parameters auto-generated from FlextSettings field metadata.
 
     Business Rules:
@@ -51,7 +49,7 @@ class FlextCliCommonParams(FlextCliServiceBase):
     @classmethod
     def _build_params_from_kwargs(
         cls,
-        kwargs: Mapping[str, bool | str | None],
+        kwargs: t.Cli.CliParamKwargs,
     ) -> m.Cli.CliParamsConfig:
         """Build CLI params from keyword arguments (Pydantic model)."""
         return m.Cli.CliParamsConfig(
@@ -69,7 +67,7 @@ class FlextCliCommonParams(FlextCliServiceBase):
     def _resolve_params(
         cls,
         params: p.Cli.CliParamsConfig | None,
-        kwargs: Mapping[str, bool | str | None],
+        kwargs: t.Cli.CliParamKwargs,
     ) -> m.Cli.CliParamsConfig:
         """Resolve explicit params or build from kwargs (returns Pydantic model)."""
         if params is not None:
@@ -149,7 +147,7 @@ class FlextCliCommonParams(FlextCliServiceBase):
         cls,
         config: FlextCliSettings,
         params: p.Cli.CliParamsConfig | None = None,
-        **kwargs: bool | str | None,
+        **kwargs: t.Cli.CliParamValue,
     ) -> r[FlextCliSettings]:
         """Apply CLI parameter values to FlextSettings using Pydantic validation.
 
@@ -171,13 +169,13 @@ class FlextCliCommonParams(FlextCliServiceBase):
         return u.Cli.OptionBuilder(field_name, c.Cli.CLI_PARAM_REGISTRY).build()
 
     @staticmethod
-    def _opt_bool(kwargs: Mapping[str, bool | str | None], key: str) -> bool | None:
+    def _opt_bool(kwargs: t.Cli.CliParamKwargs, key: str) -> bool | None:
         """Extract optional bool from kwargs."""
         v = kwargs.get(key)
         return bool(v) if v is not None else None
 
     @staticmethod
-    def _opt_str(kwargs: Mapping[str, bool | str | None], key: str) -> str | None:
+    def _opt_str(kwargs: t.Cli.CliParamKwargs, key: str) -> str | None:
         """Extract optional str from kwargs."""
         v = kwargs.get(key)
         return str(v) if v is not None else None

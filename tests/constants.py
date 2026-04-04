@@ -13,6 +13,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import Final
 
 from flext_tests import FlextTestsConstants
@@ -33,7 +34,7 @@ class FlextCliTestConstants(FlextTestsConstants, FlextCliConstants):
     - c.Tests.Matcher.* (assertion messages)
     - c.Tests.Factory.* (test data generation)
     - c.Cli.* (domain constants from production)
-    - c.Cli.Test.TestData.* (project-specific test data)
+    - c.Cli.Tests.* (project-specific test data)
 
     Rules:
     - NEVER duplicate constants from FlextTestsConstants or FlextCliConstants
@@ -45,8 +46,8 @@ class FlextCliTestConstants(FlextTestsConstants, FlextCliConstants):
     class Cli(FlextCliConstants.Cli):
         """CLI constants with test-specific extensions."""
 
-        class Test:
-            """Test-specific constant values."""
+        class Tests:
+            """Test-specific constant values for flext-cli."""
 
             TWO: Final[t.StrSequence] = ["item1", "item2"]
 
@@ -65,6 +66,61 @@ class FlextCliTestConstants(FlextTestsConstants, FlextCliConstants):
                 )
                 SPECIAL: Final[str] = "!@#$%^&*()"
                 UNICODE: Final[str] = "你好世界🌍"
+
+            class VersionExamples:
+                """Version string examples for parametrized tests."""
+
+                VALID_SEMVER: Final[str] = "1.2.3"
+                VALID_SEMVER_COMPLEX: Final[str] = "1.2.3-alpha.1+build.123"
+                INVALID_NO_DOTS: Final[str] = "version"
+                INVALID_NON_NUMERIC: Final[str] = "a.b.c"
+
+            class VersionInfoTuples:
+                """Version info tuple examples for parametrized tests."""
+
+                VALID_TUPLE: Final[tuple[int, int, int]] = (1, 2, 3)
+                VALID_COMPLEX_TUPLE: Final[tuple[int | str, ...]] = (
+                    1,
+                    2,
+                    3,
+                    "alpha",
+                    1,
+                )
+                SHORT_TUPLE: Final[tuple[int, int]] = (1, 2)
+                EMPTY_TUPLE: Final[tuple[()]] = ()
+
+            class ConfigFactory:
+                """Factory constants for config test scenarios."""
+
+                VALID_OUTPUT_FORMATS: Final[t.StrSequence] = [
+                    "json",
+                    "yaml",
+                    "csv",
+                    "table",
+                ]
+                VALID_ENVIRONMENTS: Final[t.StrSequence] = [
+                    "development",
+                    "staging",
+                    "production",
+                    "test",
+                ]
+                VALID_VERBOSITIES: Final[t.StrSequence] = [
+                    "compact",
+                    "detailed",
+                    "full",
+                ]
+                VALID_LOGGING_LEVELS: Final[t.StrSequence] = [
+                    "DEBUG",
+                    "INFO",
+                    "WARNING",
+                    "ERROR",
+                    "CRITICAL",
+                ]
+
+                @classmethod
+                def get_logging_scenarios(cls) -> Sequence[tuple[str, str]]:
+                    """Generate logging level scenarios."""
+                    return [(level, level) for level in cls.VALID_LOGGING_LEVELS]
 
 
 c = FlextCliTestConstants

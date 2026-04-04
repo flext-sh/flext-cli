@@ -7,15 +7,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import (
-    Mapping,
-    Sequence,
-)
+from collections.abc import Mapping, Sequence
 
-from flext_cli import FlextCliFormatters, FlextCliServiceBase, c, t, u
+from flext_cli import FlextCliFormatters, c, s, t, u
 
 
-class FlextCliOutput(FlextCliServiceBase):
+class FlextCliOutput(s):
     """CLI output tools for the flext ecosystem.
 
     Provides a unified output API while delegating to specialized
@@ -66,7 +63,7 @@ class FlextCliOutput(FlextCliServiceBase):
 
     @staticmethod
     def get_map_val(
-        mapping: Mapping[str, t.Cli.JsonValue],
+        mapping: t.Cli.JsonMapping,
         k: str,
         default: t.Cli.JsonValue,
     ) -> t.Cli.JsonValue:
@@ -86,11 +83,9 @@ class FlextCliOutput(FlextCliServiceBase):
         return compatible_value
 
     @staticmethod
-    def to_dict_json(
-        v: t.Cli.JsonValue,
-    ) -> Mapping[str, t.Cli.JsonValue]:
+    def to_dict_json(v: t.Cli.JsonValue) -> t.Cli.JsonMapping:
         """Convert value to dict natively instead of using build DSL."""
-        built: Mapping[str, t.Cli.JsonValue] = v if isinstance(v, Mapping) else {}
+        built: t.Cli.JsonMapping = v if isinstance(v, Mapping) else {}
         result: dict[str, t.Cli.JsonValue] = {}
         for k, val in built.items():
             compatible_value: t.Cli.JsonValue

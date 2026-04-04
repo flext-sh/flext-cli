@@ -10,89 +10,13 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Callable
-from enum import StrEnum, unique
-from typing import Annotated
-
 import pytest
-import typer
 from flext_tests import tm
 from typer.models import OptionInfo
 from typer.testing import CliRunner
 
-from flext_cli import (
-    FlextCliCommonParams,
-    FlextCliSettings,
-)
-from flext_core import r
-
-
-@unique
-class ConfigParam(StrEnum):
-    """Test configuration parameters for parametrized tests."""
-
-    VERBOSE = "verbose"
-    QUIET = "quiet"
-    DEBUG = "debug"
-    NO_COLOR = "no_color"
-    LOG_LEVEL = "log_level"
-    LOG_FORMAT = "log_format"
-    OUTPUT_FORMAT = "output_format"
-
-
-def create_test_config() -> r[FlextCliSettings]:
-    """Create test config using Railway pattern - no fallbacks or state manipulation."""
-    try:
-        config = FlextCliSettings()
-        return r[FlextCliSettings].ok(config)
-    except Exception as e:
-        return r[FlextCliSettings].fail(f"Failed to create test config: {e}")
-
-
-def create_cli_app() -> r[typer.Typer]:
-    """Create CLI app using Railway pattern."""
-    try:
-        app = typer.Typer()
-        return r[typer.Typer].ok(app)
-    except Exception as e:
-        return r[typer.Typer].fail(f"Failed to create CLI app: {e}")
-
-
-def create_decorated_command(
-    app: typer.Typer,
-    command_name: str = "test",
-) -> r[Callable[..., None]]:
-    """Create decorated command using Railway pattern - no mocks or manipulation."""
-
-    @app.command(name=command_name)
-    def typer_command(
-        verbose: Annotated[
-            bool,
-            FlextCliCommonParams.create_option("verbose"),
-        ] = False,
-        debug: Annotated[
-            bool,
-            FlextCliCommonParams.create_option("debug"),
-        ] = False,
-        log_level: Annotated[
-            str,
-            FlextCliCommonParams.create_option("cli_log_level"),
-        ] = "INFO",
-        output_format: Annotated[
-            str,
-            FlextCliCommonParams.create_option("output_format"),
-        ] = "table",
-    ) -> None:
-        """Test command with Railway-oriented parameter handling."""
-        typer.echo(f"Command: {command_name}")
-        if verbose:
-            typer.echo("Verbose: enabled")
-        if debug:
-            typer.echo("Debug: enabled")
-        typer.echo(f"Log level: {log_level}")
-        typer.echo(f"Output format: {output_format}")
-
-    return r[Callable[..., None]].ok(typer_command)
+from flext_cli import FlextCliCommonParams
+from tests import u
 
 
 class TestsCliCommonParams:
@@ -111,7 +35,7 @@ class TestsCliCommonParams:
 
     def test_apply_to_config_with_valid_params(self) -> None:
         """Test apply_to_config with Railway pattern - no state manipulation."""
-        config_result = create_test_config()
+        config_result = u.Cli.Tests.create_test_config()
         tm.ok(config_result)
 
         config = config_result.value
@@ -130,7 +54,7 @@ class TestsCliCommonParams:
 
     def test_apply_to_config_trace_requires_debug(self) -> None:
         """Test trace requires debug - Railway pattern validation."""
-        config_result = create_test_config()
+        config_result = u.Cli.Tests.create_test_config()
         tm.ok(config_result)
 
         config = config_result.value
@@ -142,7 +66,7 @@ class TestsCliCommonParams:
 
     def test_apply_to_config_trace_with_debug(self) -> None:
         """Test trace works with debug enabled - Railway pattern."""
-        config_result = create_test_config()
+        config_result = u.Cli.Tests.create_test_config()
         tm.ok(config_result)
 
         config = config_result.value
@@ -155,7 +79,7 @@ class TestsCliCommonParams:
 
     def test_apply_to_config_invalid_log_level(self) -> None:
         """Test invalid log level validation - Railway pattern."""
-        config_result = create_test_config()
+        config_result = u.Cli.Tests.create_test_config()
         tm.ok(config_result)
 
         config = config_result.value
@@ -167,11 +91,11 @@ class TestsCliCommonParams:
 
     def test_decorator_adds_parameters(self) -> None:
         """Test decorator adds CLI parameters - Railway pattern."""
-        app_result = create_cli_app()
+        app_result = u.Cli.Tests.create_cli_app()
         tm.ok(app_result)
 
         app = app_result.value
-        command_result = create_decorated_command(app, "test")
+        command_result = u.Cli.Tests.create_decorated_command(app, "test")
         tm.ok(command_result)
 
         runner = CliRunner()
@@ -185,11 +109,11 @@ class TestsCliCommonParams:
 
     def test_decorator_flags_work(self) -> None:
         """Test decorator flags work - Railway pattern."""
-        app_result = create_cli_app()
+        app_result = u.Cli.Tests.create_cli_app()
         tm.ok(app_result)
 
         app = app_result.value
-        command_result = create_decorated_command(app, "test")
+        command_result = u.Cli.Tests.create_decorated_command(app, "test")
         tm.ok(command_result)
 
         runner = CliRunner()
@@ -201,11 +125,11 @@ class TestsCliCommonParams:
 
     def test_decorator_parameters_work(self) -> None:
         """Test decorator parameters work - Railway pattern."""
-        app_result = create_cli_app()
+        app_result = u.Cli.Tests.create_cli_app()
         tm.ok(app_result)
 
         app = app_result.value
-        command_result = create_decorated_command(app, "test")
+        command_result = u.Cli.Tests.create_decorated_command(app, "test")
         tm.ok(command_result)
 
         runner = CliRunner()
@@ -229,7 +153,7 @@ class TestsCliCommonParams:
 
     def test_apply_to_config_invalid_log_format(self) -> None:
         """Test invalid log format - Railway pattern."""
-        config_result = create_test_config()
+        config_result = u.Cli.Tests.create_test_config()
         tm.ok(config_result)
 
         config = config_result.value
@@ -241,7 +165,7 @@ class TestsCliCommonParams:
 
     def test_apply_to_config_invalid_output_format(self) -> None:
         """Test invalid output format - Railway pattern."""
-        config_result = create_test_config()
+        config_result = u.Cli.Tests.create_test_config()
         tm.ok(config_result)
 
         config = config_result.value

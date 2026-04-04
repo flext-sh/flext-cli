@@ -6,16 +6,10 @@ import inspect
 import logging
 import os
 import types
-from collections.abc import Callable, Mapping, MutableMapping, MutableSequence
+from collections.abc import Mapping, MutableMapping, MutableSequence
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import (
-    ClassVar,
-    Literal,
-    Union,
-    get_args,
-    get_origin,
-)
+from typing import ClassVar, Literal, Union, get_args, get_origin
 
 from pydantic import (
     BaseModel,
@@ -48,9 +42,9 @@ class FlextCliUtilities(FlextUtilities):
 
         @staticmethod
         def default_for_type_kind(
-            type_kind: Literal["str", "bool", "dict"],
+            type_kind: t.Cli.TypeKind,
             default: t.Cli.JsonValue | None,
-        ) -> str | bool | Mapping[str, t.Cli.JsonValue] | None:
+        ) -> t.Cli.TypedExtractValue:
             """Default value for type_kind. Centralized (no polymorphic branches at call sites)."""
             if type_kind == "str":
                 return default if isinstance(default, str) else None
@@ -65,7 +59,7 @@ class FlextCliUtilities(FlextUtilities):
 
         @staticmethod
         def project_names_from_values(
-            *values: str | t.Cli.StrSequence | None,
+            *values: t.Cli.ProjectNamesValue,
         ) -> list[str] | None:
             """Normalize repeated or comma-separated CLI selector values."""
             names: list[str] = []
@@ -89,7 +83,7 @@ class FlextCliUtilities(FlextUtilities):
             def __init__(
                 self,
                 field_name: str,
-                registry: Mapping[str, Mapping[str, t.Scalar | t.StrSequence]],
+                registry: t.Cli.OptionRegistry,
             ) -> None:
                 """Initialize builder with field name and registry."""
                 super().__init__()
@@ -137,7 +131,7 @@ class FlextCliUtilities(FlextUtilities):
             @staticmethod
             def cli_args_to_model[M: BaseModel](
                 model_class: type[M],
-                cli_args: Mapping[str, t.Cli.JsonValue],
+                cli_args: t.Cli.JsonMapping,
             ) -> r[M]:
                 """Convert CLI args dict to a Pydantic model instance.
 
@@ -184,7 +178,7 @@ class FlextCliUtilities(FlextUtilities):
             def __init__(
                 self,
                 model_class: type[M],
-                handler: Callable[[M], t.Cli.JsonValue],
+                handler: t.Cli.JsonModelHandler[M],
                 config: t.Cli.JsonValue | None = None,
             ) -> None:
                 """Initialize builder with model class, handler, and optional config."""
@@ -283,7 +277,7 @@ class FlextCliUtilities(FlextUtilities):
             def _process_field_metadata(
                 self,
                 field_name: str,
-                field_info: FieldInfo | Mapping[str, t.Cli.JsonValue] | t.Cli.JsonValue,
+                field_info: t.Cli.FieldMetadataSource,
             ) -> tuple[type, t.Cli.JsonValue | None, bool, bool]:
                 """Process field metadata and return type info.
 
@@ -356,16 +350,14 @@ class FlextCliUtilities(FlextUtilities):
                 model_fields: Mapping[str, FieldInfo],
             ) -> tuple[
                 Mapping[str, type],
-                Mapping[str, t.Cli.JsonValue],
+                t.Cli.JsonDefaults,
                 set[str],
             ]:
                 """Collect annotations, defaults and factory fields from model fields."""
 
                 def process_field(
                     field_name: str,
-                    field_info: FieldInfo
-                    | Mapping[str, t.Cli.JsonValue]
-                    | t.Cli.JsonValue,
+                    field_info: t.Cli.FieldMetadataSource,
                 ) -> tuple[type, t.Cli.JsonValue | None, bool]:
                     """Process single field and return (type, default, has_factory)."""
                     field_type, default_val, _is_required, has_factory = (
@@ -385,7 +377,7 @@ class FlextCliUtilities(FlextUtilities):
                     for field_name, field_info in model_fields.items()
                 }
                 annotations: MutableMapping[str, type] = {}
-                defaults: MutableMapping[str, t.Cli.JsonValue] = {}
+                defaults: t.Cli.MutableJsonDefaults = {}
                 fields_with_factory: set[str] = set()
 
                 for field_name, (
@@ -407,7 +399,7 @@ class FlextCliUtilities(FlextUtilities):
             def _execute_command_wrapper(
                 self,
                 annotations: Mapping[str, type],
-                defaults: Mapping[str, t.Cli.JsonValue],
+                defaults: t.Cli.JsonDefaults,
                 fields_with_factory: set[str],
             ) -> p.Cli.CliCommandWrapper:
                 required_parameters: MutableSequence[inspect.Parameter] = []
@@ -485,7 +477,7 @@ class FlextCliUtilities(FlextUtilities):
         @staticmethod
         def process_mapping[T, U](
             items: Mapping[str, T],
-            processor: Callable[[str, T], U],
+            processor: t.Cli.MappingProcessor[T, U],
             on_error: str = "fail",
         ) -> r[Mapping[str, U]]:
             """Process a mapping of items with error handling."""

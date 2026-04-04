@@ -7,22 +7,21 @@ import json
 import os
 import shutil
 import tempfile
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Sequence
 from pathlib import Path
 from typing import TextIO
 
 from pydantic import BaseModel
 
-from flext_cli import FlextCliServiceBase, c, m, t, u
-from flext_core import r
+from flext_cli import c, p, r, s, t, u
 
 
-class FlextCliFileTools(FlextCliServiceBase):
+class FlextCliFileTools(s):
     """File operations with r."""
 
     @staticmethod
     def _execute_file_operation[T](
-        operation_func: Callable[[], T],
+        operation_func: t.Cli.NullaryOperation[T],
         error_template: str,
         **format_kwargs: t.Scalar,
     ) -> r[T]:
@@ -40,7 +39,7 @@ class FlextCliFileTools(FlextCliServiceBase):
 
     @staticmethod
     def _run_bool_operation[T](
-        operation_func: Callable[[], T],
+        operation_func: t.Cli.NullaryOperation[T],
         error_template: str,
         **format_kwargs: t.Scalar,
     ) -> r[bool]:
@@ -57,21 +56,21 @@ class FlextCliFileTools(FlextCliServiceBase):
 
     @staticmethod
     def _write_structured_file(
-        file_path: str | Path,
-        writer: Callable[[TextIO], None],
+        file_path: t.Cli.TextPath,
+        writer: t.Cli.TextStreamWriter,
         error_template: str,
     ) -> r[bool]:
         path = Path(file_path)
 
         def _write() -> bool:
-            with path.open(mode="w", encoding=c.DEFAULT_ENCODING) as f:
+            with path.open(mode="w", encoding=c.Cli.Encoding.DEFAULT) as f:
                 writer(f)
             return True
 
         return FlextCliFileTools._execute_file_operation(_write, error_template)
 
     @staticmethod
-    def delete_file(file_path: str | Path) -> r[bool]:
+    def delete_file(file_path: t.Cli.TextPath) -> r[bool]:
         path = Path(file_path)
         return FlextCliFileTools._run_bool_operation(
             path.unlink,
@@ -79,17 +78,17 @@ class FlextCliFileTools(FlextCliServiceBase):
         )
 
     @staticmethod
-    def read_text_file(file_path: str | Path) -> r[str]:
+    def read_text_file(file_path: t.Cli.TextPath) -> r[str]:
         return FlextCliFileTools._execute_file_operation(
-            lambda: Path(file_path).read_text(encoding=c.DEFAULT_ENCODING),
+            lambda: Path(file_path).read_text(encoding=c.Cli.Encoding.DEFAULT),
             "Text read failed: {error}",
         )
 
     @staticmethod
-    def write_text_file(file_path: str | Path, content: str) -> r[bool]:
+    def write_text_file(file_path: t.Cli.TextPath, content: str) -> r[bool]:
 
         def _write() -> bool:
-            Path(file_path).write_text(content, encoding=c.DEFAULT_ENCODING)
+            Path(file_path).write_text(content, encoding=c.Cli.Encoding.DEFAULT)
             return True
 
         return FlextCliFileTools._execute_file_operation(
@@ -98,7 +97,7 @@ class FlextCliFileTools(FlextCliServiceBase):
         )
 
     @staticmethod
-    def atomic_write_text_file(file_path: str | Path, content: str) -> r[bool]:
+    def atomic_write_text_file(file_path: t.Cli.TextPath, content: str) -> r[bool]:
         """Write text file atomically via tempfile + rename in same directory."""
         path = Path(file_path)
 
@@ -108,7 +107,7 @@ class FlextCliFileTools(FlextCliServiceBase):
                 suffix=".tmp",
             )
             try:
-                with os.fdopen(fd, "w", encoding=c.DEFAULT_ENCODING) as f:
+                with os.fdopen(fd, "w", encoding=c.Cli.Encoding.DEFAULT) as f:
                     f.write(content)
                 Path(tmp_path).replace(path)
             except BaseException:
@@ -122,10 +121,10 @@ class FlextCliFileTools(FlextCliServiceBase):
         )
 
     @staticmethod
-    def read_json_file(file_path: str | Path) -> r[t.Cli.JsonValue]:
+    def read_json_file(file_path: t.Cli.TextPath) -> r[t.Cli.JsonValue]:
 
         def _load() -> t.Cli.JsonValue:
-            raw = Path(file_path).read_text(encoding=c.DEFAULT_ENCODING)
+            raw = Path(file_path).read_text(encoding=c.Cli.Encoding.DEFAULT)
             return t.Cli.JSON_VALUE_ADAPTER.validate_json(raw)
 
         return FlextCliFileTools._execute_file_operation(
@@ -135,7 +134,7 @@ class FlextCliFileTools(FlextCliServiceBase):
 
     @staticmethod
     def read_json_model[M: BaseModel](
-        file_path: str | Path,
+        file_path: t.Cli.TextPath,
         model_type: type[M],
     ) -> r[M]:
         """Read JSON file directly into a Pydantic model via model_validate_json.
@@ -155,7 +154,7 @@ class FlextCliFileTools(FlextCliServiceBase):
 
     @staticmethod
     def write_json_model(
-        file_path: str | Path,
+        file_path: t.Cli.TextPath,
         model: BaseModel,
         indent: int = 2,
         *,
@@ -173,7 +172,7 @@ class FlextCliFileTools(FlextCliServiceBase):
                 by_alias=by_alias,
                 exclude_none=exclude_none,
             )
-            Path(file_path).write_text(json_str, encoding=c.DEFAULT_ENCODING)
+            Path(file_path).write_text(json_str, encoding=c.Cli.Encoding.DEFAULT)
             return True
 
         return FlextCliFileTools._execute_file_operation(
@@ -182,7 +181,7 @@ class FlextCliFileTools(FlextCliServiceBase):
         )
 
     @staticmethod
-    def read_yaml_file(file_path: str | Path) -> r[t.Cli.JsonValue]:
+    def read_yaml_file(file_path: t.Cli.TextPath) -> r[t.Cli.JsonValue]:
         result = u.Cli.yaml_safe_load(Path(file_path))
         if result.is_failure:
             return r[t.Cli.JsonValue].fail(result.error or "YAML load failed")
@@ -193,15 +192,15 @@ class FlextCliFileTools(FlextCliServiceBase):
 
     @staticmethod
     def write_json_file(
-        file_path: str | Path,
-        data: t.RecursiveContainer | Sequence[t.ContainerMapping] | m.Cli.DisplayData,
+        file_path: t.Cli.TextPath,
+        data: t.Cli.JsonWriteData,
         indent: int = 2,
         *,
         sort_keys: bool = False,
         ensure_ascii: bool = False,
     ) -> r[bool]:
         payload_raw: t.RecursiveContainer | Sequence[t.ContainerMapping] = (
-            data.data if isinstance(data, m.Cli.DisplayData) else data
+            data.data if isinstance(data, p.Cli.DisplayData) else data
         )
         payload: t.Cli.JsonValue = u.Cli.normalize_json_value(payload_raw)
 
@@ -220,7 +219,7 @@ class FlextCliFileTools(FlextCliServiceBase):
                     t.Cli.JSON_VALUE_ADAPTER.dump_json(
                         payload,
                         indent=indent,
-                    ).decode(c.DEFAULT_ENCODING),
+                    ).decode(c.Cli.Encoding.DEFAULT),
                 )
 
         return FlextCliFileTools._write_structured_file(
@@ -231,25 +230,25 @@ class FlextCliFileTools(FlextCliServiceBase):
 
     @staticmethod
     def write_yaml_file(
-        file_path: str | Path,
-        data: t.RecursiveContainer | Sequence[t.ContainerMapping] | m.Cli.DisplayData,
+        file_path: t.Cli.TextPath,
+        data: t.Cli.JsonWriteData,
     ) -> r[bool]:
         payload_raw: t.RecursiveContainer | Sequence[t.ContainerMapping] = (
-            data.data if isinstance(data, m.Cli.DisplayData) else data
+            data.data if isinstance(data, p.Cli.DisplayData) else data
         )
         payload: t.Cli.JsonValue = u.Cli.normalize_json_value(payload_raw)
         return u.Cli.yaml_dump(Path(file_path), payload)
 
     @staticmethod
     def write_csv_file(
-        file_path: str | Path,
+        file_path: t.Cli.TextPath,
         rows: Sequence[t.StrSequence],
     ) -> r[bool]:
 
         def _write() -> bool:
             with Path(file_path).open(
                 mode="w",
-                encoding=c.DEFAULT_ENCODING,
+                encoding=c.Cli.Encoding.DEFAULT,
                 newline="",
             ) as f:
                 writer = csv.writer(f)
@@ -264,12 +263,12 @@ class FlextCliFileTools(FlextCliServiceBase):
 
     @staticmethod
     def read_csv_file_with_headers(
-        file_path: str | Path,
+        file_path: t.Cli.TextPath,
     ) -> r[Sequence[t.StrMapping]]:
 
         def _load() -> Sequence[t.StrMapping]:
             with Path(file_path).open(
-                encoding=c.DEFAULT_ENCODING,
+                encoding=c.Cli.Encoding.DEFAULT,
                 newline="",
             ) as f:
                 return [dict(row) for row in csv.DictReader(f)]
@@ -280,14 +279,14 @@ class FlextCliFileTools(FlextCliServiceBase):
         )
 
     @staticmethod
-    def read_binary_file(file_path: str | Path) -> r[bytes]:
+    def read_binary_file(file_path: t.Cli.TextPath) -> r[bytes]:
         return FlextCliFileTools._execute_file_operation(
             lambda: Path(file_path).read_bytes(),
             "Binary read failed: {error}",
         )
 
     @staticmethod
-    def write_binary_file(file_path: str | Path, data: bytes) -> r[bool]:
+    def write_binary_file(file_path: t.Cli.TextPath, data: bytes) -> r[bool]:
 
         def _write() -> bool:
             Path(file_path).write_bytes(data)
@@ -299,7 +298,10 @@ class FlextCliFileTools(FlextCliServiceBase):
         )
 
     @staticmethod
-    def copy_file(source_path: str | Path, destination_path: str | Path) -> r[bool]:
+    def copy_file(
+        source_path: t.Cli.TextPath,
+        destination_path: t.Cli.TextPath,
+    ) -> r[bool]:
 
         def _copy() -> bool:
             shutil.copy2(source_path, destination_path)
@@ -311,7 +313,7 @@ class FlextCliFileTools(FlextCliServiceBase):
         )
 
     @staticmethod
-    def detect_file_format(file_path: str | Path) -> r[str]:
+    def detect_file_format(file_path: t.Cli.TextPath) -> r[str]:
         suffix = Path(file_path).suffix.lower()
         if suffix == ".json":
             return r[str].ok("json")
@@ -326,30 +328,30 @@ class FlextCliFileTools(FlextCliServiceBase):
         return r[str].fail("Unable to detect file format without an extension")
 
     @staticmethod
-    def load_file_auto_dict(file_path: str | Path) -> r[Mapping[str, t.Cli.JsonValue]]:
+    def load_file_auto_dict(file_path: t.Cli.TextPath) -> t.Cli.JsonMappingResult:
         path = Path(file_path)
         if path.suffix.lower() == ".json":
             result = FlextCliFileTools.read_json_file(path)
         elif path.suffix.lower() in {".yaml", ".yml"}:
             result = FlextCliFileTools.read_yaml_file(path)
         else:
-            return r[Mapping[str, t.Cli.JsonValue]].fail(
+            return r[t.Cli.JsonMapping].fail(
                 f"Unsupported format: {path.suffix or '<none>'}",
             )
         if result.is_failure:
-            return r[Mapping[str, t.Cli.JsonValue]].fail(
+            return r[t.Cli.JsonMapping].fail(
                 result.error or "Auto load failed",
             )
         payload = result.value
-        if not isinstance(payload, Mapping):
-            return r[Mapping[str, t.Cli.JsonValue]].fail(
+        if not isinstance(payload, dict):
+            return r[t.Cli.JsonMapping].fail(
                 "Auto-detected file must contain a mapping",
             )
-        normalized_payload: Mapping[str, t.Cli.JsonValue] = {
+        normalized_payload: t.Cli.JsonMapping = {
             str(key): u.Cli.normalize_json_value(value)
             for key, value in payload.items()
         }
-        return r[Mapping[str, t.Cli.JsonValue]].ok(normalized_payload)
+        return r[t.Cli.JsonMapping].ok(normalized_payload)
 
 
 __all__ = ["FlextCliFileTools"]

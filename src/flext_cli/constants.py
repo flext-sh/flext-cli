@@ -368,9 +368,7 @@ class FlextCliConstants(FlextConstants):
                 "CRITICAL",
             )
 
-        CLI_PARAM_REGISTRY: ClassVar[
-            Mapping[str, Mapping[str, t.Scalar | t.StrSequence]]
-        ] = MappingProxyType({
+        CLI_PARAM_REGISTRY: ClassVar[t.Cli.OptionRegistry] = MappingProxyType({
             "verbose": {
                 CliParamsRegistry.KEY_SHORT: CliParamsRegistry.SHORT_FLAG_VERBOSE,
                 CliParamsRegistry.KEY_PRIORITY: CliParamsRegistry.PRIORITY_VERBOSE,

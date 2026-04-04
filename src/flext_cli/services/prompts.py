@@ -4,20 +4,19 @@ from __future__ import annotations
 
 import getpass
 import os
-from collections.abc import Mapping
 from typing import override
 
 from pydantic import PrivateAttr
 
 from flext_cli import (
-    FlextCliServiceBase,
     c,
+    r,
+    s,
     t,
 )
-from flext_core import r
 
 
-class FlextCliPrompts(FlextCliServiceBase):
+class FlextCliPrompts(s):
     """CLI prompts service with validation, history, and non-interactive fallbacks."""
 
     _interactive_mode: bool = PrivateAttr(default=True)
@@ -53,11 +52,11 @@ class FlextCliPrompts(FlextCliServiceBase):
             return r[bool].fail(f"Confirmation failed: {exc}")
 
     @override
-    def execute(self) -> r[Mapping[str, t.Cli.JsonValue]]:
+    def execute(self) -> r[t.Cli.JsonMapping]:
         try:
             self.logger.debug("Prompt service execution completed", operation="execute")
-            empty_result: Mapping[str, t.Cli.JsonValue] = {}
-            return r[Mapping[str, t.Cli.JsonValue]].ok(empty_result)
+            empty_result: t.Cli.JsonMapping = {}
+            return r[t.Cli.JsonMapping].ok(empty_result)
         except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
             self._fatal(
                 "execute",
@@ -65,7 +64,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 exc,
                 "Prompt service execution failed completely",
             )
-            return r[Mapping[str, t.Cli.JsonValue]].fail(
+            return r[t.Cli.JsonMapping].fail(
                 f"Prompt service execution failed: {exc}",
             )
 

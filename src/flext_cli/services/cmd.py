@@ -10,23 +10,22 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping
 from typing import override
 
 from flext_cli import (
-    FlextCliServiceBase,
     c,
     m,
+    r,
+    s,
     t,
     u,
 )
-from flext_core import r
 
 
-class FlextCliCmd(FlextCliServiceBase):
+class FlextCliCmd(s):
     """Execute registered CLI commands and expose execution metadata.
 
-    Extends FlextCliServiceBase for consistent logging and container access.
+    Extends s for consistent logging and container access.
     Delegates config operations to u.Cli.ConfigOps.
     Railway-Oriented Programming via r for composable error handling.
     """
@@ -43,13 +42,13 @@ class FlextCliCmd(FlextCliServiceBase):
         )
 
     @override
-    def execute(self) -> r[Mapping[str, t.Cli.JsonValue]]:
+    def execute(self) -> r[t.Cli.JsonMapping]:
         """Report operational status required by `FlextService`."""
-        status: Mapping[str, t.Cli.JsonValue] = {
+        status: t.Cli.JsonMapping = {
             c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.OPERATIONAL.value,
             c.Cli.DictKeys.SERVICE: c.Cli.CmdDefaults.SERVICE_NAME,
         }
-        return r[Mapping[str, t.Cli.JsonValue]].ok(status)
+        return r[t.Cli.JsonMapping].ok(status)
 
     def show_config(self) -> r[bool]:
         """Show current configuration.

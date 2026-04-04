@@ -24,7 +24,7 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_as_mapping(
-        value: t.RecursiveContainer | t.Cli.TomlItem | t.Cli.TomlDocument | None,
+        value: t.Cli.TomlMappingSource,
     ) -> t.Cli.JsonDict | None:
         """Normalize a TOML mapping into a typed plain mapping."""
         normalized = FlextCliUtilitiesToml.toml_unwrap_item(value)
@@ -37,10 +37,10 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_unwrap_item(
-        value: t.RecursiveContainer | t.Cli.TomlItem | t.Cli.TomlDocument | None,
+        value: t.Cli.TomlMappingSource,
     ) -> t.RecursiveContainer | None:
         """Unwrap TOML items and documents to plain Python values."""
-        normalized: t.RecursiveContainer | t.Cli.TomlItem | None = value
+        normalized: t.Cli.TomlUnwrappedSource = value
         if FlextCliUtilitiesToml.toml_is_document(
             value,
         ) or FlextCliUtilitiesToml.toml_is_item(value):
@@ -51,7 +51,7 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_as_string_list(
-        value: t.RecursiveContainer | t.Cli.TomlItem | None,
+        value: t.Cli.TomlUnwrappedSource,
     ) -> t.StrSequence:
         """Normalize a TOML array into a string sequence."""
         normalized = FlextCliUtilitiesToml.toml_unwrap_item(value)
@@ -98,28 +98,28 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_is_document(
-        value: t.Cli.TomlValue | t.RecursiveContainer | None,
+        value: t.Cli.TomlRuntimeSource,
     ) -> TypeIs[t.Cli.TomlDocument]:
         """Return True when the value is a TOML document."""
         return isinstance(value, TOMLDocument)
 
     @staticmethod
     def toml_is_table(
-        value: t.Cli.TomlValue | t.RecursiveContainer | None,
+        value: t.Cli.TomlRuntimeSource,
     ) -> TypeIs[t.Cli.TomlTable]:
         """Return True when the value is a TOML table."""
         return isinstance(value, TomlTable)
 
     @staticmethod
     def toml_is_item(
-        value: t.Cli.TomlValue | t.RecursiveContainer | None,
+        value: t.Cli.TomlRuntimeSource,
     ) -> TypeIs[t.Cli.TomlItem]:
         """Return True when the value is a TOML item."""
         return isinstance(value, TomlItem)
 
     @staticmethod
     def toml_is_aot(
-        value: t.Cli.TomlValue | t.RecursiveContainer | None,
+        value: t.Cli.TomlRuntimeSource,
     ) -> TypeIs[t.Cli.TomlAoT]:
         """Return True when the value is a TOML array-of-tables."""
         return isinstance(value, AoT)
@@ -268,7 +268,7 @@ class FlextCliUtilitiesToml:
         if not path.exists():
             return None
         try:
-            return tomlkit.parse(path.read_text(encoding=c.DEFAULT_ENCODING))
+            return tomlkit.parse(path.read_text(encoding=c.Cli.Encoding.DEFAULT))
         except (OSError, ValueError) as exc:
             FlextCliUtilitiesToml.logger.warning(
                 "Failed to read or parse TOML document",
@@ -344,7 +344,7 @@ class FlextCliUtilitiesToml:
             u.write_file(
                 path,
                 doc.as_string(),
-                encoding=c.DEFAULT_ENCODING,
+                encoding=c.Cli.Encoding.DEFAULT,
             )
         except OSError as exc:
             return r[bool].fail(f"TOML write error: {exc}")
