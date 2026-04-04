@@ -3,13 +3,11 @@
 from __future__ import annotations
 
 import csv
-import json
 import os
 import shutil
 import tempfile
 from collections.abc import Sequence
 from pathlib import Path
-from typing import TextIO
 
 from pydantic import BaseModel
 
@@ -202,30 +200,12 @@ class FlextCliFileTools(s):
         payload_raw: t.RecursiveContainer | Sequence[t.ContainerMapping] = (
             data.data if isinstance(data, p.Cli.DisplayData) else data
         )
-        payload: t.Cli.JsonValue = u.Cli.normalize_json_value(payload_raw)
-
-        def _writer(f: TextIO) -> None:
-            if sort_keys or ensure_ascii:
-                f.write(
-                    json.dumps(
-                        payload,
-                        indent=indent,
-                        sort_keys=sort_keys,
-                        ensure_ascii=ensure_ascii,
-                    ),
-                )
-            else:
-                f.write(
-                    t.Cli.JSON_VALUE_ADAPTER.dump_json(
-                        payload,
-                        indent=indent,
-                    ).decode(c.Cli.Encoding.DEFAULT),
-                )
-
-        return FlextCliFileTools._write_structured_file(
-            file_path,
-            _writer,
-            c.Cli.ErrorMessages.JSON_WRITE_FAILED,
+        return u.Cli.json_write(
+            Path(file_path),
+            u.Cli.normalize_json_value(payload_raw),
+            sort_keys=sort_keys,
+            ensure_ascii=ensure_ascii,
+            indent=indent,
         )
 
     @staticmethod

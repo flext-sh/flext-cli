@@ -113,8 +113,8 @@ class FlextCliTestUtilities(FlextTestsUtilities, FlextCliUtilities):
                     def handler(
                         *args: t.ContainerValue,
                         **kwargs: t.ContainerValue,
-                    ) -> r[t.Cli.JsonValue]:
-                        return r[t.Cli.JsonValue].ok(result_value)
+                    ) -> r[t.RecursiveValue]:
+                        return r[t.RecursiveValue].ok(result_value)
 
                     return commands.register_handler(command_name, handler)
 
@@ -128,8 +128,8 @@ class FlextCliTestUtilities(FlextTestsUtilities, FlextCliUtilities):
                     def handler(
                         *args: t.ContainerValue,
                         **kwargs: t.ContainerValue,
-                    ) -> r[t.Cli.JsonValue]:
-                        return r[t.Cli.JsonValue].ok(f"args: {len(args)}")
+                    ) -> r[t.RecursiveValue]:
+                        return r[t.RecursiveValue].ok(f"args: {len(args)}")
 
                     return commands.register_handler(command_name, handler)
 
@@ -144,8 +144,8 @@ class FlextCliTestUtilities(FlextTestsUtilities, FlextCliUtilities):
                     def handler(
                         *args: t.ContainerValue,
                         **kwargs: t.ContainerValue,
-                    ) -> r[t.Cli.JsonValue]:
-                        return r[t.Cli.JsonValue].fail(error_message)
+                    ) -> r[t.RecursiveValue]:
+                        return r[t.RecursiveValue].fail(error_message)
 
                     return commands.register_handler(command_name, handler)
 

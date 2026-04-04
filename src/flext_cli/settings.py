@@ -12,7 +12,7 @@ from typing import Annotated
 
 from pydantic import Field
 
-from flext_cli import FlextCliConstants as c
+from flext_cli import c
 from flext_core import FlextLogger, FlextSettings
 
 logger = FlextLogger(__name__)

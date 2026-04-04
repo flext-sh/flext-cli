@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from pydantic import BaseModel
 
-from flext_cli._protocols.base import FlextCliProtocolsBase
+from flext_cli import FlextCliProtocolsBase
 
 if TYPE_CHECKING:
     from flext_cli import t

@@ -38,7 +38,7 @@ class FlextCliUtilitiesYaml:
 
     @staticmethod
     def yaml_safe_load(path: Path) -> r[t.Cli.YamlDict]:
-        """Load a YAML file → ``r[JsonDict]``.
+        """Load a YAML file → ``r[JsonMapping]``.
 
         Returns ``r.ok(mapping)`` on success, ``r.fail(msg)`` on missing,
         parse error, or non-mapping content.
@@ -57,7 +57,7 @@ class FlextCliUtilitiesYaml:
 
     @staticmethod
     def yaml_parse(text: str) -> r[t.Cli.YamlDict]:
-        """Parse a YAML string → ``r[JsonDict]``.
+        """Parse a YAML string → ``r[JsonMapping]``.
 
         Returns a validated mapping or failure.
         """

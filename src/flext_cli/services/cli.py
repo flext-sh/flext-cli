@@ -306,7 +306,7 @@ class FlextCliCli(s):
         help_text: str,
         config: FlextCliSettings | None = None,
         add_completion: bool = True,
-    ) -> t.Cli.TyperApp:
+    ) -> t.Cli.CliApp:
         """Create a Typer app with the shared global FLEXT CLI parameters."""
         app = typer.Typer(name=name, help=help_text, add_completion=add_completion)
 
@@ -339,10 +339,10 @@ class FlextCliCli(s):
 
     @staticmethod
     def add_group(
-        app: t.Cli.TyperApp,
+        app: t.Cli.CliApp,
         *,
         name: str,
-        group: t.Cli.TyperApp,
+        group: t.Cli.CliApp,
     ) -> None:
         """Attach a subcommand group to an application."""
         app.add_typer(group, name=name)
@@ -352,7 +352,7 @@ class FlextCliCli(s):
         *,
         help_text: str,
         name: str | None = None,
-    ) -> t.Cli.TyperApp:
+    ) -> t.Cli.CliApp:
         """Create a Typer command group without re-registering global params."""
         return typer.Typer(name=name, help=help_text)
 
@@ -365,7 +365,7 @@ class FlextCliCli(s):
     ) -> t.Cli.CliCommand:
         """Build a Typer command directly from a Pydantic request model."""
         parameters: MutableSequence[Parameter] = []
-        annotations: t.Cli.TyperAnnotations = {"return": type(None)}
+        annotations: t.Cli.CliAnnotations = {"return": type(None)}
         fields: t.Cli.FieldInfoMapping = getattr(model_cls, "model_fields", {})
         for field_name, field_info in fields.items():
             if field_info.exclude is True:
@@ -437,7 +437,7 @@ class FlextCliCli(s):
 
     @staticmethod
     def execute_app(
-        app: t.Cli.TyperApp,
+        app: t.Cli.CliApp,
         *,
         prog_name: str,
         args: Sequence[str] | None = None,
@@ -478,7 +478,7 @@ class FlextCliCli(s):
 
     @staticmethod
     def register_command(
-        app: t.Cli.TyperApp,
+        app: t.Cli.CliApp,
         *,
         name: str,
         help_text: str,
@@ -490,7 +490,7 @@ class FlextCliCli(s):
     @classmethod
     def register_result_command[M: BaseModel, TResult: t.Cli.ValueOrModel](
         cls,
-        app: t.Cli.TyperApp,
+        app: t.Cli.CliApp,
         *,
         failure_message: str,
         handler: p.Cli.ResultCommandHandler[M, TResult],
@@ -593,7 +593,7 @@ class FlextCliCli(s):
     @classmethod
     def register_result_route(
         cls,
-        app: t.Cli.TyperApp,
+        app: t.Cli.CliApp,
         *,
         route: m.Cli.ResultCommandRoute,
         remember_failure: p.Cli.FailureMessageRecorder | None = None,
@@ -617,7 +617,7 @@ class FlextCliCli(s):
     @classmethod
     def register_result_routes(
         cls,
-        app: t.Cli.TyperApp,
+        app: t.Cli.CliApp,
         routes: t.Cli.ResultCommandRoutes,
     ) -> None:
         """Register multiple heterogeneous result routes in one call."""

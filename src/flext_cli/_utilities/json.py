@@ -91,6 +91,7 @@ class FlextCliUtilitiesJson:
         payload: t.Cli.JsonPayload,
         *,
         sort_keys: bool = False,
+        ensure_ascii: bool = False,
         indent: int = 2,
     ) -> r[bool]:
         """Write a JSON payload to a file. Creates parent dirs as needed."""
@@ -98,7 +99,7 @@ class FlextCliUtilitiesJson:
             path.parent.mkdir(parents=True, exist_ok=True)
             materialized: t.Cli.JsonValue
             if isinstance(payload, BaseModel):
-                materialized = payload.model_dump()
+                materialized = payload.model_dump(mode="json")
             elif isinstance(payload, Mapping):
                 materialized = dict(payload)
             elif isinstance(payload, Sequence) and not isinstance(payload, str):
@@ -114,7 +115,11 @@ class FlextCliUtilitiesJson:
                 else validated
             )
             content = (
-                t.Cli.JSON_VALUE_ADAPTER.dump_json(normalized, indent=indent).decode(
+                t.Cli.JSON_VALUE_ADAPTER.dump_json(
+                    normalized,
+                    indent=indent,
+                    ensure_ascii=ensure_ascii,
+                ).decode(
                     c.Cli.Encoding.DEFAULT,
                 )
                 + "\n"
@@ -142,7 +147,7 @@ class FlextCliUtilitiesJson:
         if value is None:
             return None
         if isinstance(value, BaseModel):
-            return value.model_dump()
+            return value.model_dump(mode="json")
         return value
 
     @staticmethod

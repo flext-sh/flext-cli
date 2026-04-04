@@ -10,9 +10,8 @@ from typing import Protocol, runtime_checkable
 
 from pydantic import BaseModel
 
-from flext_cli._typings.base import FlextCliTypesBase as cli_t
-from flext_core import t
-from flext_core.result import FlextResult as r
+from flext_cli import FlextCliTypesBase as cli_t
+from flext_core import r, t
 
 
 class FlextCliProtocolsBase:
@@ -73,9 +72,9 @@ class FlextCliProtocolsBase:
 
         def __call__(
             self,
-            *args: t.JsonValue,
-            **kwargs: t.JsonValue,
-        ) -> t.JsonValue:
+            *args: t.RecursiveContainer,
+            **kwargs: t.RecursiveContainer,
+        ) -> t.RecursiveValue:
             """Execute the wrapper."""
             ...
 

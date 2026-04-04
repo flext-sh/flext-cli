@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-from flext_cli._protocols.base import FlextCliProtocolsBase
-from flext_cli._protocols.domain import FlextCliProtocolsDomain
+from flext_cli import FlextCliProtocolsBase, FlextCliProtocolsDomain
 from flext_core import FlextProtocols
 
 

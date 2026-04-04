@@ -161,7 +161,7 @@ class FlextCliCommonParams(s):
             return r[FlextCliSettings].fail(f"Failed to apply CLI parameters: {e}")
 
     @classmethod
-    def create_option(cls, field_name: str) -> t.Cli.TyperOptionInfo:
+    def create_option(cls, field_name: str) -> t.Cli.CliOptionInfo:
         """Create typer.Option() from FlextCliSettings field metadata."""
         if field_name not in c.Cli.CLI_PARAM_REGISTRY:
             msg = f"Field '{field_name}' not found in CLI parameter registry"

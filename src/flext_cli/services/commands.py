@@ -15,7 +15,7 @@ from typing import Self, override
 
 from pydantic import PrivateAttr
 
-from flext_cli import c, m, p, r, s, t
+from flext_cli import c, m, p, r, s, t, u
 
 
 def _empty_command_registry() -> MutableMapping[str, p.Cli.CommandEntry]:
@@ -42,7 +42,7 @@ class FlextCliCommands(s):
 
     @staticmethod
     def _normalize_handler_result(
-        result: r[t.Cli.JsonValue] | None,
+        result: r[t.RecursiveValue] | None,
         command_name: str,
     ) -> r[t.Cli.JsonValue]:
         if result is None:
@@ -52,7 +52,7 @@ class FlextCliCommands(s):
             }
             return r[t.Cli.JsonValue].ok(payload)
         if result.is_success:
-            result_value: t.Cli.JsonValue = result.value
+            result_value: t.Cli.JsonValue = u.Cli.normalize_json_value(result.value)
             return r[t.Cli.JsonValue].ok(result_value)
         error_value = result.error
         return r[t.Cli.JsonValue].fail(
@@ -106,7 +106,7 @@ class FlextCliCommands(s):
                 c.Cli.CommandsErrorMessages.HANDLER_NOT_CALLABLE.format(name=name),
             )
         try:
-            result: r[t.Cli.JsonValue] | None = None
+            result: r[t.RecursiveValue] | None = None
             execution_attempted = False
             if args or kwargs:
                 try:

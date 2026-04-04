@@ -469,7 +469,7 @@ def export_multi_format(
 def process_file_pipeline(
     input_file: Path,
     output_dir: Path,
-) -> r[Mapping[str, t.Cli.JsonValue]]:
+) -> r[Mapping[str, t.RecursiveValue]]:
     """Complete file processing pipeline using Railway Pattern.
 
     Demonstrates chaining multiple file operations with proper error handling.
@@ -478,29 +478,29 @@ def process_file_pipeline(
     cli.print(f"\n🔄 Processing file pipeline: {input_file.name}", style="cyan")
 
     # Initialize result
-    result: r[Mapping[str, t.Cli.JsonValue]]
+    result: r[Mapping[str, t.RecursiveValue]]
 
     # Railway pattern: Chain operations with automatic error propagation
 
     # Step 1: Validate input file exists and is readable
     if not input_file.exists():
-        result = r[Mapping[str, t.Cli.JsonValue]].fail(f"File not found: {input_file}")
+        result = r[Mapping[str, t.RecursiveValue]].fail(f"File not found: {input_file}")
     elif not input_file.is_file():
-        result = r[Mapping[str, t.Cli.JsonValue]].fail(f"Not a file: {input_file}")
+        result = r[Mapping[str, t.RecursiveValue]].fail(f"Not a file: {input_file}")
     else:
         cli.print("✅ Input validation passed", style="green")
 
         # Step 2: Read file content (dict-only, no narrowing)
         read_result = cli.read_json_file(input_file)
         if read_result.is_failure:
-            result = r[Mapping[str, t.Cli.JsonValue]].fail(
+            result = r[Mapping[str, t.RecursiveValue]].fail(
                 f"File read failed: {read_result.error}",
             )
         else:
             data = read_result.value
             cli.print("✅ File read successfully", style="green")
             if not isinstance(data, Mapping):
-                result = r[Mapping[str, t.Cli.JsonValue]].fail(
+                result = r[Mapping[str, t.RecursiveValue]].fail(
                     "File content must be a mapping",
                 )
             else:
@@ -509,7 +509,7 @@ def process_file_pipeline(
 
                 output_result = generate_output_files(transformed_data, output_dir)
                 if output_result.is_failure:
-                    result = r[Mapping[str, t.Cli.JsonValue]].fail(
+                    result = r[Mapping[str, t.RecursiveValue]].fail(
                         output_result.error or "Unknown error",
                     )
                 else:
@@ -522,7 +522,7 @@ def process_file_pipeline(
                         "🎉 File processing pipeline completed successfully!",
                         style="bold green",
                     )
-                    result = r[Mapping[str, t.Cli.JsonValue]].ok(summary)
+                    result = r[Mapping[str, t.RecursiveValue]].ok(summary)
 
     if result.is_failure:
         cli.print(f"❌ Pipeline failed: {result.error}", style="bold red")

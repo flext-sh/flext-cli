@@ -425,9 +425,9 @@ class FlextCliUtilities(FlextUtilities):
                 command_signature = inspect.Signature(parameters=signature_parameters)
 
                 def command_wrapper(
-                    *args: t.Cli.JsonValue,
-                    **kwargs: t.Cli.JsonValue,
-                ) -> t.Cli.JsonValue:
+                    *args: t.RecursiveContainer,
+                    **kwargs: t.RecursiveContainer,
+                ) -> t.RecursiveValue:
                     try:
                         bound_arguments = command_signature.bind(*args, **kwargs)
                     except TypeError as ex:
@@ -456,19 +456,11 @@ class FlextCliUtilities(FlextUtilities):
                 command_wrapper.__annotations__ = dict(real_annotations)
 
                 def typed_wrapper(
-                    *args: t.Cli.JsonValue,
-                    **kwargs: t.Cli.JsonValue,
-                ) -> t.Cli.JsonValue:
+                    *args: t.RecursiveContainer,
+                    **kwargs: t.RecursiveContainer,
+                ) -> t.RecursiveValue:
                     raw_result = command_wrapper(*args, **kwargs)
-                    normalized: r[t.Cli.JsonValue] = (
-                        FlextCliUtilities.Cli.CliModelConverter.convert_field_value(
-                            raw_result,
-                        )
-                    )
-                    if normalized.is_success:
-                        normalized_value: t.Cli.JsonValue = normalized.value
-                        return normalized_value
-                    return str(raw_result)
+                    return FlextCliUtilities.Cli.normalize_json_value(raw_result)
 
                 setattr(typed_wrapper, "__signature__", command_signature)
                 typed_wrapper.__annotations__ = dict(real_annotations)

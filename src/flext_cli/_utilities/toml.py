@@ -25,7 +25,7 @@ class FlextCliUtilitiesToml:
     @staticmethod
     def toml_as_mapping(
         value: t.Cli.TomlMappingSource,
-    ) -> t.Cli.JsonDict | None:
+    ) -> t.Cli.JsonMapping | None:
         """Normalize a TOML mapping into a typed plain mapping."""
         normalized = FlextCliUtilitiesToml.toml_unwrap_item(value)
         if normalized is None or not u.is_mapping(normalized):
@@ -289,17 +289,17 @@ class FlextCliUtilitiesToml:
         return r[t.Cli.TomlDocument].ok(doc)
 
     @staticmethod
-    def toml_read_json(path: Path) -> r[t.Cli.JsonDict]:
-        """Read TOML and return the unwrapped root table as ``JsonDict``."""
+    def toml_read_json(path: Path) -> r[t.Cli.JsonMapping]:
+        """Read TOML and return the unwrapped root table as ``JsonMapping``."""
         document_result = FlextCliUtilitiesToml.toml_read_document(path)
         if document_result.is_failure:
-            return r[t.Cli.JsonDict].fail(
+            return r[t.Cli.JsonMapping].fail(
                 document_result.error or f"TOML parse failed: {path}",
             )
         mapping = FlextCliUtilitiesToml.toml_as_mapping(document_result.value)
         if mapping is None:
-            return r[t.Cli.JsonDict].fail(f"TOML root must be a table: {path}")
-        return r[t.Cli.JsonDict].ok(mapping)
+            return r[t.Cli.JsonMapping].fail(f"TOML root must be a table: {path}")
+        return r[t.Cli.JsonMapping].ok(mapping)
 
     @staticmethod
     def _resolve_taplo_config(path: Path) -> Path | None:

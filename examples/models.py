@@ -122,7 +122,7 @@ class ExamplesModels(FlextCliModels):
         def display(self, cli: t.CliApi) -> None:
             """Display app configuration; uses cli for base settings."""
             config = cli.settings
-            payload_data: t.Cli.JsonDict = {
+            payload_data: t.Cli.JsonMapping = {
                 "App Name": self.app_name,
                 "API Key": f"{self.api_key[:10]}..." if self.api_key else "Not set",
                 "Max Workers": str(self.max_workers),

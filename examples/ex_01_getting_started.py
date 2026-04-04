@@ -36,7 +36,7 @@ class FlextCliGettingStarted:
             sorted(c.Cli.ValidationLists.OUTPUT_FORMATS),
         )
         cli.print(f"Available formats: {', '.join(valid_formats)}")
-        sample_data: t.Cli.JsonDict = {
+        sample_data: t.Cli.JsonMapping = {
             "status": c.Cli.CommandStatus.COMPLETED.value,
             "data": [1, 2, 3],
             "metadata": {"version": "1.0"},
