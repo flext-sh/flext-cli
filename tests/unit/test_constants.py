@@ -13,6 +13,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Mapping
+
 from flext_tests import tm
 
 from tests import c, u
@@ -96,7 +98,7 @@ class TestsCliConstants:
 
     def test_table_formats(self) -> None:
         """Test TABLE_FORMATS constant."""
-        tm.that(c.Cli.TABLE_FORMATS, is_=dict)
+        tm.that(c.Cli.TABLE_FORMATS, is_=Mapping)
         tm.that(c.Cli.TABLE_FORMATS, empty=False)
 
     def test_output_defaults(self) -> None:
