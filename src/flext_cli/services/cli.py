@@ -13,6 +13,7 @@ from pathlib import Path
 from types import GenericAlias, NoneType, UnionType
 from typing import (
     Annotated,
+    ClassVar,
     Literal,
     TypeAliasType,
     TypeIs,
@@ -49,7 +50,7 @@ _CLI_SCALAR_TYPES: tuple[
 class FlextCliCli(FlextCliServiceBase):
     """Unified Typer abstraction for model-driven CLI applications."""
 
-    _OPTIONAL_UNION_ARG_COUNT = 2
+    _OPTIONAL_UNION_ARG_COUNT: ClassVar[int] = 2
 
     class _ModelCommand[M: BaseModel]:
         """Callable wrapper with explicit signature for Typer introspection.
@@ -94,6 +95,13 @@ class FlextCliCli(FlextCliServiceBase):
         """Resolve runtime annotations to concrete types accepted by Typer."""
         if isinstance(annotation, TypeAliasType):
             return FlextCliCli._resolve_typer_annotation(annotation.__value__)
+        if isinstance(annotation, UnionType):
+            args = tuple(
+                FlextCliCli._resolve_typer_annotation(arg)
+                for arg in get_args(annotation)
+            )
+            if len(args) == FlextCliCli._OPTIONAL_UNION_ARG_COUNT and NoneType in args:
+                return args[0] if args[1] is NoneType else args[1]
         origin = get_origin(annotation)
         if origin is Annotated:
             value, *_ = get_args(annotation)
