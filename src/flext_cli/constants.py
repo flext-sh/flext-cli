@@ -120,6 +120,12 @@ class FlextCliConstants(FlextConstants):
 
         FLEXT_CLI, CLI_VERSION = ("flext-cli", "2.0.0")
 
+        OPTIONAL_UNION_ARG_COUNT: typing.Final[int] = 2
+
+        CLI_SCALAR_TYPES_TUPLE: typing.ClassVar[
+            tuple[type[str], type[int], type[float], type[bool]]
+        ] = (str, int, float, bool)
+
         class CmdMessages:
             """Command messages."""
 
@@ -175,17 +181,24 @@ class FlextCliConstants(FlextConstants):
         class Styles:
             """Style constants."""
 
-            BLUE, BOLD_GREEN, BOLD_RED, BOLD_YELLOW = (
+            BLUE, BOLD_GREEN, BOLD_RED, BOLD_YELLOW, DIM = (
                 "blue",
                 "bold green",
                 "bold red",
                 "bold yellow",
+                "dim",
             )
 
         class Emojis:
             """Emoji constants."""
 
-            INFO, SUCCESS, ERROR, WARNING = ("i", "\u2705", "\u274c", "\u26a0\ufe0f")
+            INFO, SUCCESS, ERROR, WARNING, DEBUG = (
+                "i",
+                "\u2705",
+                "\u274c",
+                "\u26a0\ufe0f",
+                "D",
+            )
 
         class CliParamsRegistry:
             """CLI parameters registry."""
@@ -253,6 +266,8 @@ class FlextCliConstants(FlextConstants):
             PROMPT_SEP = ": "
             PROMPT_LOG_FMT = "User input for '{message}': {input}"
             PROMPT_SPACE = " "
+            YES_VALUES: typing.ClassVar[frozenset[str]] = frozenset({"y", "yes"})
+            NO_VALUES: typing.ClassVar[frozenset[str]] = frozenset({"n", "no"})
 
         class CommandsDefaults:
             """Commands service defaults."""
@@ -315,6 +330,22 @@ class FlextCliConstants(FlextConstants):
                 "info",
                 "table",
             )
+
+        MESSAGE_STYLE_MAP: typing.ClassVar[Mapping[str, str]] = MappingProxyType({
+            "info": "blue",
+            "success": "bold green",
+            "error": "bold red",
+            "warning": "bold yellow",
+            "debug": "dim",
+        })
+
+        MESSAGE_EMOJI_MAP: typing.ClassVar[Mapping[str, str]] = MappingProxyType({
+            "info": "i",
+            "success": "\u2705",
+            "error": "\u274c",
+            "warning": "\u26a0\ufe0f",
+            "debug": "D",
+        })
 
         class APIDefaults:
             """API defaults."""

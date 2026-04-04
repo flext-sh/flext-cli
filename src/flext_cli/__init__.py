@@ -12,20 +12,14 @@ from flext_core.lazy import install_lazy_exports, merge_lazy_imports
 
 if _t.TYPE_CHECKING:
     import flext_cli._models as _flext_cli__models
-    from flext_cli.__version__ import (
-        __author__,
-        __author_email__,
-        __description__,
-        __license__,
-        __title__,
-        __url__,
-        __version__,
-        __version_info__,
-    )
 
     _models = _flext_cli__models
-    import flext_cli._utilities as _flext_cli__utilities
+    import flext_cli._protocols as _flext_cli__protocols
     from flext_cli._models import FlextCliModelsBase
+
+    _protocols = _flext_cli__protocols
+    import flext_cli._utilities as _flext_cli__utilities
+    from flext_cli._protocols import FlextCliProtocolsBase
 
     _utilities = _flext_cli__utilities
     import flext_cli.api as _flext_cli_api
@@ -100,6 +94,7 @@ if _t.TYPE_CHECKING:
 _LAZY_IMPORTS = merge_lazy_imports(
     (
         "flext_cli._models",
+        "flext_cli._protocols",
         "flext_cli._utilities",
         "flext_cli.services",
     ),
@@ -121,6 +116,7 @@ _LAZY_IMPORTS = merge_lazy_imports(
         "__version__": "flext_cli.__version__",
         "__version_info__": "flext_cli.__version__",
         "_models": "flext_cli._models",
+        "_protocols": "flext_cli._protocols",
         "_utilities": "flext_cli._utilities",
         "api": "flext_cli.api",
         "base": "flext_cli.base",
@@ -162,6 +158,7 @@ __all__ = [
     "FlextCliOutput",
     "FlextCliPrompts",
     "FlextCliProtocols",
+    "FlextCliProtocolsBase",
     "FlextCliServiceBase",
     "FlextCliSettings",
     "FlextCliTables",
@@ -179,6 +176,7 @@ __all__ = [
     "__version__",
     "__version_info__",
     "_models",
+    "_protocols",
     "_utilities",
     "api",
     "auth",

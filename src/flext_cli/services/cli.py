@@ -13,7 +13,6 @@ from pathlib import Path
 from types import GenericAlias, NoneType, UnionType
 from typing import (
     Annotated,
-    ClassVar,
     Literal,
     TypeAliasType,
     TypeIs,
@@ -33,24 +32,16 @@ from flext_cli import (
     FlextCliOutput,
     FlextCliServiceBase,
     FlextCliSettings,
+    c,
     m,
     p,
     t,
 )
 from flext_core import r
 
-_CLI_SCALAR_TYPES: tuple[
-    type[str],
-    type[int],
-    type[float],
-    type[bool],
-] = (str, int, float, bool)
-
 
 class FlextCliCli(FlextCliServiceBase):
     """Unified Typer abstraction for model-driven CLI applications."""
-
-    _OPTIONAL_UNION_ARG_COUNT: ClassVar[int] = 2
 
     class _ModelCommand[M: BaseModel]:
         """Callable wrapper with explicit signature for Typer introspection.
@@ -98,7 +89,7 @@ class FlextCliCli(FlextCliServiceBase):
                 FlextCliCli._resolve_typer_annotation(arg)
                 for arg in get_args(annotation)
             )
-            if len(args) == FlextCliCli._OPTIONAL_UNION_ARG_COUNT and NoneType in args:
+            if len(args) == c.Cli.OPTIONAL_UNION_ARG_COUNT and NoneType in args:
                 return args[0] if args[1] is NoneType else args[1]
         origin = get_origin(annotation)
         if origin is Annotated:
@@ -111,7 +102,7 @@ class FlextCliCli(FlextCliServiceBase):
                 FlextCliCli._resolve_typer_annotation(arg)
                 for arg in get_args(annotation)
             )
-            if len(args) == FlextCliCli._OPTIONAL_UNION_ARG_COUNT and NoneType in args:
+            if len(args) == c.Cli.OPTIONAL_UNION_ARG_COUNT and NoneType in args:
                 return args[0] if args[1] is NoneType else args[1]
         if origin is Sequence:
             args = get_args(annotation)
@@ -160,7 +151,7 @@ class FlextCliCli(FlextCliServiceBase):
         """Return True when a mapping is a valid Typer default."""
         return all(
             item_value is None
-            or isinstance(item_value, _CLI_SCALAR_TYPES)
+            or isinstance(item_value, c.Cli.CLI_SCALAR_TYPES_TUPLE)
             or cls._is_string_sequence(item_value)
             for item_value in value.values()
         )
@@ -170,7 +161,7 @@ class FlextCliCli(FlextCliServiceBase):
         cls, value: object
     ) -> t.Cli.Scalar | t.Cli.StrSequence | None:
         """Normalize one runtime value into an allowed Typer scalar or string sequence."""
-        if isinstance(value, _CLI_SCALAR_TYPES):
+        if isinstance(value, c.Cli.CLI_SCALAR_TYPES_TUPLE):
             return value
         if isinstance(value, Path):
             return str(value)
@@ -432,7 +423,7 @@ class FlextCliCli(FlextCliServiceBase):
     @staticmethod
     def create_cli_runner(
         *,
-        charset: str = "utf-8",
+        charset: str = c.Cli.Encoding.DEFAULT,
         env: Mapping[str, str] | None = None,
         echo_stdin: bool = False,
     ) -> r[t.Cli.TyperRunner]:

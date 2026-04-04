@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from pathlib import Path
+from typing import ClassVar
 
 from pydantic import ValidationError
 from yaml import YAMLError, safe_dump, safe_load
@@ -26,7 +27,7 @@ class FlextCliUtilitiesYaml:
     Projects needing domain-specific normalization wrap these methods.
     """
 
-    logger = FlextLogger(__name__)
+    logger: ClassVar[FlextLogger] = FlextLogger(__name__)
 
     # Re-exported so consumers never need ``import yaml`` directly.
     YAMLError: type[Exception] = YAMLError

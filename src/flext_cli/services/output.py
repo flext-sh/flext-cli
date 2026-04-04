@@ -117,22 +117,8 @@ class FlextCliOutput(FlextCliServiceBase):
 
         """
         final_type = message_type or c.Cli.OutputDefaults.DEFAULT_MESSAGE_TYPE
-        style_map = {
-            c.Cli.MessageTypes.INFO.value: c.Cli.Styles.BLUE,
-            c.Cli.MessageTypes.SUCCESS.value: c.Cli.Styles.BOLD_GREEN,
-            c.Cli.MessageTypes.ERROR.value: c.Cli.Styles.BOLD_RED,
-            c.Cli.MessageTypes.WARNING.value: c.Cli.Styles.BOLD_YELLOW,
-            c.Cli.MessageTypes.DEBUG.value: "dim",
-        }
-        emoji_map = {
-            c.Cli.MessageTypes.INFO.value: c.Cli.Emojis.INFO,
-            c.Cli.MessageTypes.SUCCESS.value: c.Cli.Emojis.SUCCESS,
-            c.Cli.MessageTypes.ERROR.value: c.Cli.Emojis.ERROR,
-            c.Cli.MessageTypes.WARNING.value: c.Cli.Emojis.WARNING,
-            c.Cli.MessageTypes.DEBUG.value: "D",
-        }
-        style = style_map.get(final_type, c.Cli.Styles.BLUE)
-        emoji = emoji_map.get(final_type, c.Cli.Emojis.INFO)
+        style = c.Cli.MESSAGE_STYLE_MAP.get(final_type, c.Cli.Styles.BLUE)
+        emoji = c.Cli.MESSAGE_EMOJI_MAP.get(final_type, c.Cli.Emojis.INFO)
         FlextCliOutput.print_message(f"{emoji} {message}", style=style)
 
     @staticmethod
@@ -218,7 +204,7 @@ class FlextCliOutput(FlextCliServiceBase):
         """Display debug message (no-op unless verbose)."""
         if not verbose:
             return
-        FlextCliFormatters.print(f"[DEBUG] {message}", style="dim")
+        FlextCliFormatters.print(f"[DEBUG] {message}", style=c.Cli.Styles.DIM)
 
 
 __all__ = ["FlextCliOutput"]

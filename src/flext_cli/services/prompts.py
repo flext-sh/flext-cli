@@ -221,8 +221,8 @@ class FlextCliPrompts(FlextCliServiceBase):
         *,
         default: bool,
     ) -> r[bool]:
-        yes_values = {"y", "yes"}
-        no_values = {"n", "no"}
+        yes_values = c.Cli.Prompts.YES_VALUES
+        no_values = c.Cli.Prompts.NO_VALUES
         while True:
             text = input(prompt_text).strip().lower()
             if not text:

@@ -5,22 +5,21 @@ from __future__ import annotations
 import subprocess
 from collections.abc import MutableSequence, Sequence
 from pathlib import Path
-from typing import TypeIs
+from typing import ClassVar, TypeIs
 
 import tomlkit
 from pydantic import TypeAdapter, ValidationError
 from tomlkit import TOMLDocument
 from tomlkit.items import AoT, Item as TomlItem, Table as TomlTable
 
-from flext_cli import c, r, t
-from flext_cli._utilities.json import FlextCliUtilitiesJson
+from flext_cli import FlextCliUtilitiesJson, c, r, t
 from flext_core import FlextLogger, u
 
 
 class FlextCliUtilitiesToml:
     """Generic TOML read/write and table-manipulation helpers."""
 
-    logger = FlextLogger(__name__)
+    logger: ClassVar[FlextLogger] = FlextLogger(__name__)
     _STR_SEQUENCE_ADAPTER: TypeAdapter[Sequence[str]] = TypeAdapter(Sequence[str])
 
     @staticmethod

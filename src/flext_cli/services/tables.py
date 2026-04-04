@@ -244,7 +244,7 @@ class FlextCliTables(FlextCliServiceBase):
         if config_result.is_failure:
             FlextCliFormatters.print(
                 f"[table error] {config_result.error}",
-                style="bold red",
+                style=c.Cli.Styles.BOLD_RED,
             )
             return
         config_final: m.Cli.TableConfig = config_result.value
@@ -255,4 +255,6 @@ class FlextCliTables(FlextCliServiceBase):
             table_output: str = result.value
             FlextCliFormatters.print(table_output)
         else:
-            FlextCliFormatters.print(f"[table error] {result.error}", style="bold red")
+            FlextCliFormatters.print(
+                f"[table error] {result.error}", style=c.Cli.Styles.BOLD_RED
+            )
