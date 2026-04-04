@@ -10,7 +10,9 @@ from typing import Protocol, runtime_checkable
 
 from pydantic import BaseModel
 
-from flext_cli import r, t
+from flext_cli._typings.base import FlextCliTypesBase as cli_t
+from flext_core import t
+from flext_core.result import FlextResult as r
 
 
 class FlextCliProtocolsBase:
@@ -46,7 +48,7 @@ class FlextCliProtocolsBase:
             ...
 
         @property
-        def params(self) -> t.Cli.JsonMapping:
+        def params(self) -> t.JsonMapping:
             """Get configuration parameters."""
             ...
 
@@ -71,19 +73,17 @@ class FlextCliProtocolsBase:
 
         def __call__(
             self,
-            *args: t.Cli.JsonValue,
-            **kwargs: t.Cli.JsonValue,
-        ) -> t.Cli.JsonValue:
+            *args: t.JsonValue,
+            **kwargs: t.JsonValue,
+        ) -> t.JsonValue:
             """Execute the wrapper."""
             ...
 
     @runtime_checkable
-    class ResultCommandHandler[TParams: BaseModel, TResult: t.Cli.ValueOrModel](
-        Protocol
-    ):
+    class ResultCommandHandler[TParams: BaseModel, TResult: t.ValueOrModel](Protocol):
         """Protocol for model-driven CLI handlers returning `r[...]`."""
 
-        def __call__(self, params: TParams) -> r[TResult]:
+        def __call__(self, params: TParams, /) -> r[TResult]:
             """Execute the handler and return a railway result."""
             ...
 
@@ -104,7 +104,7 @@ class FlextCliProtocolsBase:
             ...
 
     @runtime_checkable
-    class SuccessMessageFormatter[TResult: t.Cli.ValueOrModel](Protocol):
+    class SuccessMessageFormatter[TResult: t.ValueOrModel](Protocol):
         """Protocol for rendering a success result into a CLI message."""
 
         def __call__(self, value: TResult) -> str:
@@ -117,7 +117,7 @@ class FlextCliProtocolsBase:
 
         def dump(
             self,
-            data: t.Cli.YamlDumpable,
+            data: cli_t.YamlDumpable,
             *,
             default_flow_style: bool = True,
         ) -> str:

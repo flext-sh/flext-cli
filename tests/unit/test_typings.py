@@ -27,13 +27,13 @@ class TestsCliTypings:
         """Test complete type workflow integration."""
         typed_data: t.ContainerMapping = {"key": "value", "number": 42}
         tm.that(typed_data, is_=dict)
-        api_data = m.Cli.Test.ApiResponse(
+        api_data = m.Cli.Tests.ApiResponse(
             status="success",
             data={"id": 1},
             message="ok",
             error=None,
         )
-        tm.that(api_data, is_=m.Cli.Test.ApiResponse)
+        tm.that(api_data, is_=m.Cli.Tests.ApiResponse)
         complex_type = Sequence[Mapping[str, str | int]]
         optional_type = t.StrSequence | None
         union_type = t.Scalar

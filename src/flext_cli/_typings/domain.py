@@ -9,8 +9,10 @@ from typing import Literal, TextIO
 from pydantic import BaseModel
 from pydantic.fields import FieldInfo
 
-from flext_cli import FlextCliTypesBase, p
+from flext_cli._typings.base import FlextCliTypesBase
+from flext_cli.protocols import FlextCliProtocols as p
 from flext_core import t
+from flext_core.result import FlextResult as r
 
 
 class FlextCliTypesDomain:
@@ -42,6 +44,8 @@ class FlextCliTypesDomain:
     type MutableJsonDefaults = MutableMapping[str, t.JsonValue]
     type NullaryOperation[T] = Callable[[], T]
     type TextStreamWriter = Callable[[TextIO], None]
+    type CliCommand = Callable[..., object]
+    type JsonCommandFn = Callable[..., r[t.JsonValue] | None]
     type MappingProcessor[T, U] = Callable[[str, T], U]
     type JsonModelHandler[M: BaseModel] = Callable[[M], t.JsonValue]
     type RecursiveMapping = Mapping[str, t.RecursiveContainer]

@@ -89,7 +89,7 @@ class FlextCliModelsBase:
         )
         name: Annotated[t.NonEmptyStr, Field(..., description="Command name")]
         handler: Annotated[
-            p.Cli.JsonCommandHandler,
+            t.Cli.JsonCommandFn,
             Field(..., description="Command handler callable"),
         ]
 
@@ -108,7 +108,7 @@ class FlextCliModelsBase:
             Field(..., description="Pydantic input model class"),
         ]
         handler: Annotated[
-            p.Cli.ResultCommandHandler[BaseModel, t.Cli.ValueOrModel],
+            t.Cli.CliCommand,
             Field(..., description="Command handler returning r[...]"),
         ]
         failure_message: Annotated[

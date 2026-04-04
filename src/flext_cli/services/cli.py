@@ -32,6 +32,7 @@ from flext_cli import (
     FlextCliOutput,
     FlextCliSettings,
     c,
+    m,
     p,
     s,
     t,
@@ -64,7 +65,7 @@ class FlextCliCli(s):
             model_cls: type[M],
             parameters: Sequence[Parameter],
         ) -> None:
-            self.__name__ = handler.__name__
+            self.__name__ = getattr(handler, "__name__", model_cls.__name__)
             self.__signature__ = Signature(parameters)
             self._config = config
             self._handler = handler
@@ -361,7 +362,7 @@ class FlextCliCli(s):
         model_cls: type[M],
         handler: p.Cli.ModelCommandHandler[M],
         config: t.Cli.ConfigModel = None,
-    ) -> p.Cli.CliCommandWrapper:
+    ) -> t.Cli.CliCommand:
         """Build a Typer command directly from a Pydantic request model."""
         parameters: MutableSequence[Parameter] = []
         annotations: t.Cli.TyperAnnotations = {"return": type(None)}
@@ -481,7 +482,7 @@ class FlextCliCli(s):
         *,
         name: str,
         help_text: str,
-        command: p.Cli.CliCommandWrapper,
+        command: t.Cli.CliCommand,
     ) -> None:
         """Register a command on the given Typer application."""
         _ = app.command(name, help=help_text)(command)
@@ -556,7 +557,7 @@ class FlextCliCli(s):
     def _build_result_executor_erased(
         cls,
         *,
-        handler: p.Cli.ResultCommandHandler[BaseModel, t.Cli.ValueOrModel],
+        handler: t.Cli.CliCommand,
         failure_message: str = "",
         remember_failure: p.Cli.FailureMessageRecorder | None = None,
         success_formatter: p.Cli.SuccessMessageFormatter[t.Cli.ValueOrModel]
@@ -594,7 +595,7 @@ class FlextCliCli(s):
         cls,
         app: t.Cli.TyperApp,
         *,
-        route: p.Cli.ResultCommandRoute,
+        route: m.Cli.ResultCommandRoute,
         remember_failure: p.Cli.FailureMessageRecorder | None = None,
     ) -> None:
         """Register a declarative result route on a Typer app."""

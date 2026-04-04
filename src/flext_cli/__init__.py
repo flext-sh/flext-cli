@@ -18,10 +18,16 @@ if _t.TYPE_CHECKING:
     from flext_cli._models import FlextCliModelsBase
 
     _protocols = _flext_cli__protocols
+    import flext_cli._typings as _flext_cli__typings
+    from flext_cli._protocols import (
+        FlextCliProtocolsBase,
+        FlextCliProtocolsDomain,
+        domain,
+    )
+
+    _typings = _flext_cli__typings
     import flext_cli._utilities as _flext_cli__utilities
-    from flext_cli._protocols import FlextCliProtocolsBase, FlextCliProtocolsDomain
-    from flext_cli._typings.base import FlextCliTypesBase
-    from flext_cli._typings.domain import FlextCliTypesDomain
+    from flext_cli._typings import FlextCliTypesBase, FlextCliTypesDomain
 
     _utilities = _flext_cli__utilities
     import flext_cli.api as _flext_cli_api
@@ -97,6 +103,7 @@ _LAZY_IMPORTS = merge_lazy_imports(
     (
         "flext_cli._models",
         "flext_cli._protocols",
+        "flext_cli._typings",
         "flext_cli._utilities",
         "flext_cli.services",
     ),
@@ -108,8 +115,6 @@ _LAZY_IMPORTS = merge_lazy_imports(
         "FlextCliServiceBase": "flext_cli.base",
         "FlextCliSettings": "flext_cli.settings",
         "FlextCliTypes": "flext_cli.typings",
-        "FlextCliTypesBase": "flext_cli._typings.base",
-        "FlextCliTypesDomain": "flext_cli._typings.domain",
         "FlextCliUtilities": "flext_cli.utilities",
         "__author__": "flext_cli.__version__",
         "__author_email__": "flext_cli.__version__",
@@ -121,6 +126,7 @@ _LAZY_IMPORTS = merge_lazy_imports(
         "__version_info__": "flext_cli.__version__",
         "_models": "flext_cli._models",
         "_protocols": "flext_cli._protocols",
+        "_typings": "flext_cli._typings",
         "_utilities": "flext_cli._utilities",
         "api": "flext_cli.api",
         "base": "flext_cli.base",
@@ -184,6 +190,7 @@ __all__ = [
     "__version_info__",
     "_models",
     "_protocols",
+    "_typings",
     "_utilities",
     "api",
     "auth",
@@ -195,6 +202,7 @@ __all__ = [
     "commands",
     "constants",
     "d",
+    "domain",
     "e",
     "file_tools",
     "formatters",

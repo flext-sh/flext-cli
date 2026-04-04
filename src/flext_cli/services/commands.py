@@ -18,13 +18,18 @@ from pydantic import PrivateAttr
 from flext_cli import c, m, p, r, s, t
 
 
+def _empty_command_registry() -> MutableMapping[str, p.Cli.CommandEntry]:
+    """Create an empty typed command registry for PrivateAttr initialization."""
+    return {}
+
+
 class FlextCliCommands(s):
     """CLI commands service for command registration and execution."""
 
     _name: str = PrivateAttr(default=c.Cli.CommandsDefaults.DEFAULT_NAME)
     _description: str = PrivateAttr(default=c.Cli.CommandsDefaults.DEFAULT_DESCRIPTION)
     _commands: MutableMapping[str, p.Cli.CommandEntry] = PrivateAttr(
-        default_factory=dict,
+        default_factory=_empty_command_registry,
     )
 
     @classmethod
@@ -95,7 +100,7 @@ class FlextCliCommands(s):
                 c.Cli.CommandsErrorMessages.COMMAND_NOT_FOUND.format(name=name),
             )
         cmd_info = self._commands[name]
-        handler: p.Cli.JsonCommandHandler = cmd_info.handler
+        handler: t.Cli.JsonCommandFn = cmd_info.handler
         if not callable(handler):
             return r[t.Cli.JsonValue].fail(
                 c.Cli.CommandsErrorMessages.HANDLER_NOT_CALLABLE.format(name=name),
@@ -134,7 +139,7 @@ class FlextCliCommands(s):
     def register_handler(
         self,
         name: str,
-        handler: p.Cli.JsonCommandHandler,
+        handler: t.Cli.JsonCommandFn,
     ) -> r[bool]:
         """Register a handler in the lightweight command registry.
 

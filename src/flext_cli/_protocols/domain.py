@@ -42,22 +42,10 @@ class FlextCliProtocolsDomain:
             ...
 
     @runtime_checkable
-    class JsonCommandHandler(Protocol):
-        """Protocol for lightweight command handlers returning JSON payloads."""
-
-        def __call__(
-            self,
-            *args: t.Cli.JsonValue,
-            **kwargs: t.Cli.JsonValue,
-        ) -> t.Cli.JsonValueResult:
-            """Execute a command and return a railway JSON result."""
-            ...
-
-    @runtime_checkable
     class ModelCommandHandler[TParams: BaseModel](Protocol):
         """Protocol for model-driven CLI command execution."""
 
-        def __call__(self, params: TParams) -> None:
+        def __call__(self, params: TParams, /) -> None:
             """Execute one model-backed CLI command."""
             ...
 
@@ -66,25 +54,53 @@ class FlextCliProtocolsDomain:
         """Protocol for command registry entries."""
 
         name: str
-        handler: FlextCliProtocolsDomain.JsonCommandHandler
+        handler: t.Cli.JsonCommandFn
 
     @runtime_checkable
     class ResultCommandRoute(Protocol):
         """Protocol for declarative result-route registration."""
 
-        name: str
-        help_text: str
-        model_cls: type[BaseModel]
-        handler: FlextCliProtocolsBase.ResultCommandHandler[
-            BaseModel,
-            t.Cli.ValueOrModel,
-        ]
-        failure_message: str
-        success_message: str | None
-        success_formatter: (
-            FlextCliProtocolsBase.SuccessMessageFormatter[t.Cli.ValueOrModel] | None
-        )
-        success_type: str
+        @property
+        def name(self) -> str:
+            """Return the command name."""
+            ...
+
+        @property
+        def help_text(self) -> str:
+            """Return the user-facing help text."""
+            ...
+
+        @property
+        def model_cls(self) -> type[BaseModel]:
+            """Return the input model class."""
+            ...
+
+        @property
+        def handler(self) -> t.Cli.CliCommand:
+            """Return the route handler."""
+            ...
+
+        @property
+        def failure_message(self) -> str:
+            """Return the fallback failure message."""
+            ...
+
+        @property
+        def success_message(self) -> str | None:
+            """Return the static success message."""
+            ...
+
+        @property
+        def success_formatter(
+            self,
+        ) -> FlextCliProtocolsBase.SuccessMessageFormatter[t.Cli.ValueOrModel] | None:
+            """Return the dynamic success formatter."""
+            ...
+
+        @property
+        def success_type(self) -> str:
+            """Return the success message style."""
+            ...
 
 
 __all__ = ["FlextCliProtocolsDomain"]
