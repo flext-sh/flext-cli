@@ -46,9 +46,9 @@ class FlextCliFormatters(FlextCliServiceBase):
         Use add(label) for side-effect only; add(label, return_child=True) to chain.
         """
 
-        def __init__(self, tree: RichTree) -> None:
+        def __init__(self, tree: t.Cli.RichTreeType) -> None:
             """Wrap a Rich Tree instance for side-effect-safe usage."""
-            self._tree: RichTree = tree
+            self._tree: t.Cli.RichTreeType = tree
 
         @overload
         def add(self, label: str) -> None: ...
@@ -71,11 +71,11 @@ class FlextCliFormatters(FlextCliServiceBase):
             return str(self._tree)
 
         @property
-        def tree(self) -> RichTree:
+        def tree(self) -> t.Cli.RichTreeType:
             """Expose inner Rich Tree for rendering or advanced use."""
             return self._tree
 
-    console: ClassVar[Console] = Console()
+    console: ClassVar[t.Cli.RichConsoleType] = Console()
 
     @classmethod
     def create_tree(cls, label: str) -> r[FlextCliFormatters.Tree]:
@@ -93,7 +93,7 @@ class FlextCliFormatters(FlextCliServiceBase):
         """
         try:
             tree = RichTree(label)
-            return r[FlextCliFormatters.Tree].ok(FlextCliFormatters.Tree(tree))
+            return r.ok(FlextCliFormatters.Tree(tree))
         except ConsoleError as exc:
             cls._get_or_create_logger().warning(
                 "rich_tree_creation_failed",

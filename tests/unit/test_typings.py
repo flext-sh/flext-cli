@@ -73,9 +73,9 @@ class TestsCliTypings:
         impl: Test = Implementation()
         test_data = ["str1", "str2"]
         result = impl.operation(test_data)
-        processed: t.NormalizedValue = result.get("processed")
+        processed: t.RecursiveContainer | None = result.get("processed")
         tm.that(processed, eq=["STR1", "STR2"])
-        count: t.NormalizedValue = result.get("count")
+        count: t.RecursiveContainer | None = result.get("count")
         tm.that(count, eq=2)
         tm.that(result, has="timestamp")
         tm.that(t, none=False)

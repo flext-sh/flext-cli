@@ -73,13 +73,13 @@ class FlextCliProtocols(FlextProtocols):
             def __call__(
                 self,
                 *args: t.Cli.JsonValue,
-                **kwargs: t.Scalar,
+                **kwargs: t.Cli.JsonValue,
             ) -> t.Cli.JsonValue:
                 """Execute the wrapper."""
                 ...
 
         @runtime_checkable
-        class ResultCommandHandler[TParams: BaseModel, TResult: t.ValueOrModel](
+        class ResultCommandHandler[TParams: BaseModel, TResult: t.Cli.ValueOrModel](
             Protocol
         ):
             """Protocol for model-driven CLI handlers returning `r[...]`."""
@@ -105,11 +105,24 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
         @runtime_checkable
-        class SuccessMessageFormatter[TResult: t.ValueOrModel](Protocol):
+        class SuccessMessageFormatter[TResult: t.Cli.ValueOrModel](Protocol):
             """Protocol for rendering a success result into a CLI message."""
 
             def __call__(self, value: TResult) -> str:
                 """Return the success message to display."""
+                ...
+
+        @runtime_checkable
+        class YamlModule(Protocol):
+            """Protocol for YAML serialization module interface."""
+
+            def dump(
+                self,
+                data: t.Cli.YamlDumpable,
+                *,
+                default_flow_style: bool = True,
+            ) -> str:
+                """Dump data as YAML string."""
                 ...
 
 

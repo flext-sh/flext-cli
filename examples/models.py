@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
-from collections.abc import Mapping
+from collections.abc import Mapping, MutableSequence
 from pathlib import Path
 from typing import ClassVar
 
@@ -89,9 +89,9 @@ class ExamplesModels(FlextCliModels):
         @classmethod
         def _inject_env(
             cls,
-            data: t.NormalizedValue,
-        ) -> t.NormalizedValue:
-            if not isinstance(data, dict):
+            data: t.EnvInput,
+        ) -> t.EnvInput:
+            if not isinstance(data, Mapping):
                 return data
             try:
                 typed_data = t.JSON_DICT_ADAPTER.validate_python(data)
@@ -102,7 +102,7 @@ class ExamplesModels(FlextCliModels):
                     "max_workers": 4,
                     "timeout": 30,
                 }
-            if not isinstance(typed_data, dict):
+            if not isinstance(typed_data, Mapping):
                 return None
             str_keys: set[str] = {"app_name", "api_key"}
             int_keys: set[str] = {"max_workers", "timeout"}
@@ -183,9 +183,9 @@ class ExamplesModels(FlextCliModels):
         @classmethod
         def _inject_env(
             cls,
-            data: t.NormalizedValue,
-        ) -> t.NormalizedValue:
-            if not isinstance(data, dict):
+            data: t.EnvInput,
+        ) -> t.EnvInput:
+            if not isinstance(data, Mapping):
                 return data
             try:
                 typed_data = t.JSON_DICT_ADAPTER.validate_python(data)
@@ -199,9 +199,24 @@ class ExamplesModels(FlextCliModels):
                     "log_level": "INFO",
                     "temp_dir": Path.home() / ".cache" / "myapp",
                 }
-            if not isinstance(typed_data, dict):
+            if not isinstance(typed_data, Mapping):
                 return None
             typed_dict: t.ContainerMapping = typed_data
+            overrides: dict[str, t.Container] = {}
+            for key in (
+                "database_url",
+                "redis_url",
+                "api_key",
+                "max_workers",
+                "enable_metrics",
+                "log_level",
+                "temp_dir",
+            ):
+                if key not in typed_dict:
+                    continue
+                value = typed_dict[key]
+                if isinstance(value, (str, int, bool, Path)):
+                    overrides[key] = value
             return {
                 "database_url": os.getenv(
                     "DATABASE_URL",
@@ -217,20 +232,7 @@ class ExamplesModels(FlextCliModels):
                 "temp_dir": Path(
                     os.getenv("TEMP_DIR", str(Path.home() / ".cache" / "myapp")),
                 ),
-                **{
-                    k: typed_dict[k]
-                    for k in (
-                        "database_url",
-                        "redis_url",
-                        "api_key",
-                        "max_workers",
-                        "enable_metrics",
-                        "log_level",
-                        "temp_dir",
-                    )
-                    if k in typed_dict
-                    and isinstance(typed_dict[k], (str, int, bool, Path))
-                },
+                **overrides,
             }
 
         @field_validator("database_url")
@@ -260,7 +262,7 @@ class ExamplesModels(FlextCliModels):
 
         def validate_to_mapping(self) -> r[Mapping[str, t.Cli.JsonValue]]:
             """Validate configuration and return as mapping or failure."""
-            errors: list[str] = []
+            errors: MutableSequence[str] = []
             if not self.api_key and os.getenv("ENVIRONMENT") == "production":
                 errors.append("API_KEY is required in production")
             if not self.temp_dir.exists():

@@ -90,8 +90,16 @@ if _t.TYPE_CHECKING:
     from tests.unit.test_protocols import TestsCliProtocols
 
     test_tables = _tests_unit_test_tables
-    import tests.unit.test_typings as _tests_unit_test_typings
+    import tests.unit.test_toml_utilities as _tests_unit_test_toml_utilities
     from tests.unit.test_tables import TestsCliTables
+
+    test_toml_utilities = _tests_unit_test_toml_utilities
+    import tests.unit.test_typings as _tests_unit_test_typings
+    from tests.unit.test_toml_utilities import (
+        TestCliTomlDocument,
+        TestCliTomlHelpers,
+        TestCliTomlRead,
+    )
 
     test_typings = _tests_unit_test_typings
     import tests.unit.test_utilities_cov as _tests_unit_test_utilities_cov
@@ -125,6 +133,9 @@ _LAZY_IMPORTS = {
     "ConfigTestScenario": "tests.unit.test_config",
     "ConfigTestType": "tests.unit.test_config",
     "T": "tests.unit.test_version",
+    "TestCliTomlDocument": "tests.unit.test_toml_utilities",
+    "TestCliTomlHelpers": "tests.unit.test_toml_utilities",
+    "TestCliTomlRead": "tests.unit.test_toml_utilities",
     "TestFlextCliExamplesSmoke": "tests.unit.test_examples_smoke",
     "TestsCliCmd": "tests.unit.test_cmd",
     "TestsCliCommands": "tests.unit.test_commands",
@@ -179,6 +190,7 @@ _LAZY_IMPORTS = {
     "test_show_config_outer_exception_path": "tests.unit.test_cmd_cov",
     "test_show_config_paths_failure_on_exception": "tests.unit.test_cmd_cov",
     "test_tables": "tests.unit.test_tables",
+    "test_toml_utilities": "tests.unit.test_toml_utilities",
     "test_typings": "tests.unit.test_typings",
     "test_utilities_cov": "tests.unit.test_utilities_cov",
     "test_validate_config_failure_on_exception": "tests.unit.test_cmd_cov",
@@ -194,6 +206,9 @@ __all__ = [
     "ConfigTestScenario",
     "ConfigTestType",
     "T",
+    "TestCliTomlDocument",
+    "TestCliTomlHelpers",
+    "TestCliTomlRead",
     "TestFlextCliExamplesSmoke",
     "TestsCliCmd",
     "TestsCliCommands",
@@ -248,6 +263,7 @@ __all__ = [
     "test_show_config_outer_exception_path",
     "test_show_config_paths_failure_on_exception",
     "test_tables",
+    "test_toml_utilities",
     "test_typings",
     "test_utilities_cov",
     "test_validate_config_failure_on_exception",

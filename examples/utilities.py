@@ -11,6 +11,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Mapping, MutableSequence
+
 from pydantic import BaseModel
 
 from examples.models import m
@@ -27,7 +29,10 @@ class ExamplesUtilities(FlextCliUtilities):
         data: t.ContainerMapping,
     ) -> m.Cli.DisplayData:
         """Normalize config/mapping to DisplayData for create_table/display_config_table."""
-        normalized = m.Cli.CliNormalizedJson(dict(data)).root
+        json_value: t.Cli.JsonValue = t.Cli.JSON_VALUE_ADAPTER.validate_python(
+            FlextCliUtilities.Cli.normalize_json_value(data),
+        )
+        normalized = m.Cli.CliNormalizedJson(json_value).root
         resolved = m.Cli.NormalizedJsonDict(value=normalized, default={}).resolved
         result_dict = dict(resolved.items())
         return m.Cli.DisplayData(data=result_dict)
@@ -96,10 +101,10 @@ class ExamplesUtilities(FlextCliUtilities):
         """Display configuration as a table. Accepts Pydantic model only; uses show_table."""
         if headers is None:
             headers = ["Setting", "Value"]
-        rows: list[t.StrMapping] = []
+        rows: MutableSequence[t.StrMapping] = []
         if isinstance(config_data, m.Cli.DisplayData) and isinstance(
             config_data.data,
-            dict,
+            Mapping,
         ):
             for key, value in config_data.data.items():
                 rows.append({"Setting": str(key), "Value": str(value)})

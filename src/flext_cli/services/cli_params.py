@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
-from typer.models import OptionInfo
-
 from flext_cli import (
     FlextCliServiceBase,
     FlextCliSettings,
@@ -48,7 +46,7 @@ class FlextCliCommonParams(FlextCliServiceBase):
         format_result = cls._set_format_params(config, params)
         if format_result.is_failure:
             return format_result
-        return r[FlextCliSettings].ok(config)
+        return r.ok(config)
 
     @classmethod
     def _build_params_from_kwargs(
@@ -102,7 +100,7 @@ class FlextCliCommonParams(FlextCliServiceBase):
             validated_config = config.model_copy(update=update_data)
             for key in update_data:
                 setattr(config, key, getattr(validated_config, key))
-        return r[bool].ok(value=True)
+        return r.ok(True)
 
     @classmethod
     def _set_format_params(
@@ -126,7 +124,7 @@ class FlextCliCommonParams(FlextCliServiceBase):
                     f"invalid output format: {params.output_format}. valid: {valid}",
                 )
             config = config.model_copy(update={"output_format": validated_result.value})
-        return r[FlextCliSettings].ok(config)
+        return r.ok(config)
 
     @classmethod
     def _set_log_level(
@@ -136,10 +134,10 @@ class FlextCliCommonParams(FlextCliServiceBase):
     ) -> r[FlextCliSettings]:
         """Set cli_log_level with enum conversion."""
         if params.log_level is None:
-            return r[FlextCliSettings].ok(config)
+            return r.ok(config)
         try:
             config.cli_log_level = c.Cli.Settings.LogLevel(params.log_level.upper())
-            return r[FlextCliSettings].ok(config)
+            return r.ok(config)
         except ValueError:
             valid = ", ".join(c.Cli.Lists.LOG_LEVELS_LIST)
             return r[FlextCliSettings].fail(
@@ -165,7 +163,7 @@ class FlextCliCommonParams(FlextCliServiceBase):
             return r[FlextCliSettings].fail(f"Failed to apply CLI parameters: {e}")
 
     @classmethod
-    def create_option(cls, field_name: str) -> OptionInfo:
+    def create_option(cls, field_name: str) -> t.Cli.TyperOptionInfo:
         """Create typer.Option() from FlextCliSettings field metadata."""
         if field_name not in c.Cli.CLI_PARAM_REGISTRY:
             msg = f"Field '{field_name}' not found in CLI parameter registry"

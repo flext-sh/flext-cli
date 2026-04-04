@@ -25,7 +25,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import tempfile
-from collections.abc import Mapping
+from collections.abc import Mapping, MutableMapping
 from pathlib import Path
 
 from examples import t
@@ -166,26 +166,34 @@ def test_error_scenarios() -> None:
     cli.print("   ✅ Valid value test passed", style="green")
 
 
-def full_workflow_command() -> r[t.ContainerMapping]:
+def full_workflow_command() -> r[Mapping[str, t.Cli.JsonValue]]:
     """Complete workflow to test."""
     data: t.ContainerMapping = {"status": "processing", "items": [1, 2, 3]}
     temp_file = Path(tempfile.gettempdir()) / "workflow_test.json"
     write_result = cli.write_json_file(temp_file, data)
     if write_result.is_failure:
-        return r[t.ContainerMapping].fail(f"Write failed: {write_result.error}")
+        return r[Mapping[str, t.Cli.JsonValue]].fail(
+            f"Write failed: {write_result.error}",
+        )
     read_result = cli.read_json_file(temp_file)
     if read_result.is_failure:
         temp_file.unlink(missing_ok=True)
-        return r[t.ContainerMapping].fail(f"Read failed: {read_result.error}")
+        return r[Mapping[str, t.Cli.JsonValue]].fail(
+            f"Read failed: {read_result.error}",
+        )
     read_data = read_result.value
     if not isinstance(read_data, Mapping):
         temp_file.unlink(missing_ok=True)
-        return r[t.ContainerMapping].fail("Workflow payload must be a mapping")
-    loaded: dict[str, t.NormalizedValue] = dict(read_data)
+        return r[Mapping[str, t.Cli.JsonValue]].fail(
+            "Workflow payload must be a mapping",
+        )
+    loaded: MutableMapping[str, t.Cli.JsonValue] = {
+        str(key): value for key, value in read_data.items()
+    }
     loaded["status"] = "completed"
     loaded["processed"] = True
     temp_file.unlink(missing_ok=True)
-    return r[t.ContainerMapping].ok(loaded)
+    return r[Mapping[str, t.Cli.JsonValue]].ok(loaded)
 
 
 def test_integration() -> None:

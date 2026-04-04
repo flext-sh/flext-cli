@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import logging
 import re
+from collections.abc import MutableSequence
 
 from flext_core import r
 
@@ -79,7 +80,7 @@ class FlextCliTestHelpers:
                 else []
             )
             version_parts_raw = base_parts + prerelease_parts
-            version_parts: list[int | str] = []
+            version_parts: MutableSequence[int | str] = []
             for part in version_parts_raw:
                 try:
                     version_parts.append(int(part))

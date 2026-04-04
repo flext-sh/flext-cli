@@ -180,9 +180,7 @@ def load_application_config() -> r[Mapping[str, t.Cli.JsonValue]]:
     cli.print("✅ Environment overrides applied", style="green")
     final_data = initialize_services(overridden_data)
     cli.print("✅ Services initialized", style="green")
-    result: r[Mapping[str, t.Cli.JsonValue]] = r[Mapping[str, t.Cli.JsonValue]].ok(
-        final_data,
-    )
+    result = r[Mapping[str, t.Cli.JsonValue]].ok(final_data)
     if result.is_failure:
         cli.print(f"❌ Configuration failed: {result.error}", style="bold red")
         return result
@@ -192,11 +190,11 @@ def load_application_config() -> r[Mapping[str, t.Cli.JsonValue]]:
 
 def apply_environment_overrides(
     config: Mapping[str, t.Cli.JsonValue],
-) -> t.MutableContainerValueMapping:
+) -> Mapping[str, t.Cli.JsonValue]:
     """Apply environment-specific configuration overrides."""
-    result: t.MutableContainerValueMapping = (
-        dict(config) if isinstance(config, dict) else {}
-    )
+    result: dict[str, t.Cli.JsonValue] = {
+        str(key): value for key, value in config.items()
+    }
     env = os.getenv("ENVIRONMENT", "development")
     if env == "production":
         max_workers_value = result.get("max_workers", 4)
@@ -213,12 +211,12 @@ def apply_environment_overrides(
 
 def initialize_services(
     config: Mapping[str, t.Cli.JsonValue],
-) -> t.MutableContainerValueMapping:
+) -> Mapping[str, t.Cli.JsonValue]:
     """Initialize services based on configuration."""
     time.sleep(0.05)
-    result: t.MutableContainerValueMapping = (
-        dict(config) if isinstance(config, dict) else {}
-    )
+    result: dict[str, t.Cli.JsonValue] = {
+        str(key): value for key, value in config.items()
+    }
     result["services_initialized"] = True
     result["initialized_at"] = "2025-11-23T10:00:00Z"
     return result

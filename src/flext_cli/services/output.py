@@ -9,9 +9,8 @@ from __future__ import annotations
 
 from collections.abc import (
     Mapping,
-    MutableMapping,
+    Sequence,
 )
-from typing import override
 
 from flext_cli import FlextCliFormatters, FlextCliServiceBase, c, t, u
 
@@ -55,7 +54,6 @@ class FlextCliOutput(FlextCliServiceBase):
         msg = f"default must be instance of {type_name}, got {default_type_name}"
         raise TypeError(msg)
 
-    @override
     @staticmethod
     def ensure_str(value: t.RecursiveContainer, default: str = "") -> str:
         """Ensure value is str with default."""
@@ -75,17 +73,14 @@ class FlextCliOutput(FlextCliServiceBase):
         """Get value from map with default using build DSL."""
         value = mapping.get(k, default)
         compatible_value: t.Cli.JsonValue
-        if u.is_primitive(value) or isinstance(value, list):
+        if u.is_primitive(value) or (
+            isinstance(value, Sequence) and not isinstance(value, str)
+        ):
             compatible_value = value
-        elif isinstance(value, dict):
-            dict_items: MutableMapping[str, t.Cli.JsonValue] = {}
-            for kk, vv in value.items():
-                dict_items[str(kk)] = (
-                    vv
-                    if u.is_primitive(vv) or isinstance(vv, (list, dict))
-                    else str(vv)
-                )
-            compatible_value = dict_items
+        elif isinstance(value, Mapping):
+            compatible_value = {
+                str(kk): u.Cli.normalize_json_value(vv) for kk, vv in value.items()
+            }
         else:
             compatible_value = str(value)
         return compatible_value
@@ -94,30 +89,21 @@ class FlextCliOutput(FlextCliServiceBase):
     def to_dict_json(
         v: t.Cli.JsonValue,
     ) -> Mapping[str, t.Cli.JsonValue]:
-        """Convert value to dict with JSON transform using build DSL."""
-        built = u.build(
-            v,
-            ops={"ensure": "dict", "transform": {"to_json": True}},
-            on_error="skip",
-        )
-        if isinstance(built, dict):
-            result: dict[str, t.Cli.JsonValue] = {}
-            for k, val in built.items():
-                compatible_value: t.Cli.JsonValue
-                if val is None:
-                    compatible_value = ""
-                elif isinstance(val, (bool, float, int, str)):
-                    compatible_value = val
-                elif isinstance(val, dict):
-                    dict_items: MutableMapping[str, t.Cli.JsonValue] = {}
-                    for kk, vv in val.items():
-                        dict_items[str(kk)] = str(vv)
-                    compatible_value = dict_items
-                else:
-                    compatible_value = str(val)
-                result[str(k)] = compatible_value
-            return result
-        return {}
+        """Convert value to dict natively instead of using build DSL."""
+        built: Mapping[str, t.Cli.JsonValue] = v if isinstance(v, Mapping) else {}
+        result: dict[str, t.Cli.JsonValue] = {}
+        for k, val in built.items():
+            compatible_value: t.Cli.JsonValue
+            if isinstance(val, (bool, float, int, str)):
+                compatible_value = val
+            elif isinstance(val, Mapping):
+                compatible_value = {
+                    str(kk): u.Cli.normalize_json_value(vv) for kk, vv in val.items()
+                }
+            else:
+                compatible_value = u.Cli.normalize_json_value(val)
+            result[str(k)] = compatible_value
+        return result
 
     # ── Static methods (public API) ─────────────────────────────────
 

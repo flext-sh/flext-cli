@@ -11,7 +11,7 @@ import hashlib
 import platform
 import shutil
 import tempfile
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping, MutableMapping, MutableSequence, Sequence
 from pathlib import Path
 
 from pydantic import TypeAdapter, ValidationError
@@ -235,7 +235,7 @@ def backup_config_files(source_dir: Path, backup_dir: Path) -> t.StrSequence:
 
     config_files = list(source_dir.glob("*.json")) + list(source_dir.glob("*.yaml"))
 
-    backed_up: list[str] = []
+    backed_up: MutableSequence[str] = []
     for config_file in config_files:
         # Read original
         if config_file.suffix == ".json":
@@ -406,7 +406,7 @@ def export_multi_format(
     """Export same data to multiple formats (JSON, YAML, CSV)."""
     cli.print(f"💾 Multi-format export: {base_path.stem}", style="cyan")
 
-    export_results: dict[str, str] = {}
+    export_results: MutableMapping[str, str] = {}
 
     # Export to JSON
     json_path = base_path.with_suffix(".json")
@@ -552,7 +552,7 @@ def generate_output_files(
     output_dir.mkdir(exist_ok=True)
     base_name = "processed_data"
 
-    results: dict[str, Path] = {}
+    results: MutableMapping[str, Path] = {}
 
     # JSON output
     json_file = output_dir / f"{base_name}.json"

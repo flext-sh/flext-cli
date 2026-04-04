@@ -9,13 +9,13 @@ from tests import u
 
 def test_process_fail_and_collect_paths() -> None:
     values = [1, 0]
-    fail_result = u.Cli.process(
+    fail_result = u.process(
         values,
         lambda x: (_ for _ in ()).throw(ValueError("div zero")) if x == 0 else 10 // x,
         on_error="fail",
     )
     tm.fail(fail_result)
-    collect_result = u.Cli.process(
+    collect_result = u.process(
         values,
         lambda x: (_ for _ in ()).throw(ValueError("div zero")) if x == 0 else 10 // x,
         on_error="collect",
@@ -24,7 +24,7 @@ def test_process_fail_and_collect_paths() -> None:
     # The error message includes the index — check it references the failing item
     error_str = collect_result.error or ""
     tm.that(len(error_str) > 0, eq=True)
-    skipped = u.Cli.process(values, lambda x: 10 // x, predicate=lambda x: x != 0)
+    skipped = u.process(values, lambda x: 10 // x, predicate=lambda x: x != 0)
     tm.ok(skipped)
 
 

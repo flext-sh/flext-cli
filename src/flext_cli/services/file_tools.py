@@ -11,7 +11,6 @@ from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
 from typing import TextIO
 
-import yaml
 from pydantic import BaseModel
 
 from flext_cli import FlextCliServiceBase, c, m, t, u
@@ -28,7 +27,7 @@ class FlextCliFileTools(FlextCliServiceBase):
         **format_kwargs: t.Scalar,
     ) -> r[T]:
         try:
-            return r[T].ok(operation_func())
+            return r.ok(operation_func())
         except (
             OSError,
             ValueError,
@@ -127,7 +126,7 @@ class FlextCliFileTools(FlextCliServiceBase):
 
         def _load() -> t.Cli.JsonValue:
             raw = Path(file_path).read_text(encoding=c.DEFAULT_ENCODING)
-            return t.Cli.JSON_OBJECT_ADAPTER.validate_json(raw)
+            return t.Cli.JSON_VALUE_ADAPTER.validate_json(raw)
 
         return FlextCliFileTools._execute_file_operation(
             _load,
@@ -184,26 +183,24 @@ class FlextCliFileTools(FlextCliServiceBase):
 
     @staticmethod
     def read_yaml_file(file_path: str | Path) -> r[t.Cli.JsonValue]:
-
-        def _load() -> t.Cli.JsonValue:
-            raw = Path(file_path).read_text(encoding=c.DEFAULT_ENCODING)
-            return t.Cli.JSON_OBJECT_ADAPTER.validate_python(yaml.safe_load(raw))
-
-        return FlextCliFileTools._execute_file_operation(
-            _load,
-            "YAML load failed: {error}",
+        result = u.Cli.yaml_safe_load(Path(file_path))
+        if result.is_failure:
+            return r[t.Cli.JsonValue].fail(result.error or "YAML load failed")
+        validated: t.Cli.JsonValue = t.Cli.JSON_VALUE_ADAPTER.validate_python(
+            result.value,
         )
+        return r[t.Cli.JsonValue].ok(validated)
 
     @staticmethod
     def write_json_file(
         file_path: str | Path,
-        data: t.NormalizedValue | Sequence[t.ContainerMapping] | m.Cli.DisplayData,
+        data: t.RecursiveContainer | Sequence[t.ContainerMapping] | m.Cli.DisplayData,
         indent: int = 2,
         *,
         sort_keys: bool = False,
         ensure_ascii: bool = False,
     ) -> r[bool]:
-        payload_raw: t.NormalizedValue | Sequence[t.ContainerMapping] = (
+        payload_raw: t.RecursiveContainer | Sequence[t.ContainerMapping] = (
             data.data if isinstance(data, m.Cli.DisplayData) else data
         )
         payload: t.Cli.JsonValue = u.Cli.normalize_json_value(payload_raw)
@@ -220,7 +217,7 @@ class FlextCliFileTools(FlextCliServiceBase):
                 )
             else:
                 f.write(
-                    t.Cli.JSON_OBJECT_ADAPTER.dump_json(
+                    t.Cli.JSON_VALUE_ADAPTER.dump_json(
                         payload,
                         indent=indent,
                     ).decode(c.DEFAULT_ENCODING),
@@ -235,21 +232,13 @@ class FlextCliFileTools(FlextCliServiceBase):
     @staticmethod
     def write_yaml_file(
         file_path: str | Path,
-        data: t.NormalizedValue | Sequence[t.ContainerMapping] | m.Cli.DisplayData,
+        data: t.RecursiveContainer | Sequence[t.ContainerMapping] | m.Cli.DisplayData,
     ) -> r[bool]:
-        payload_raw: t.NormalizedValue | Sequence[t.ContainerMapping] = (
+        payload_raw: t.RecursiveContainer | Sequence[t.ContainerMapping] = (
             data.data if isinstance(data, m.Cli.DisplayData) else data
         )
         payload: t.Cli.JsonValue = u.Cli.normalize_json_value(payload_raw)
-
-        def _writer(f: TextIO) -> None:
-            yaml.safe_dump(payload, f, sort_keys=False, allow_unicode=True)
-
-        return FlextCliFileTools._write_structured_file(
-            file_path,
-            _writer,
-            "YAML write failed: {error}",
-        )
+        return u.Cli.yaml_dump(Path(file_path), payload)
 
     @staticmethod
     def write_csv_file(
@@ -325,13 +314,13 @@ class FlextCliFileTools(FlextCliServiceBase):
     def detect_file_format(file_path: str | Path) -> r[str]:
         suffix = Path(file_path).suffix.lower()
         if suffix == ".json":
-            return r[str].ok("json")
+            return r.ok("json")
         if suffix in {".yaml", ".yml"}:
-            return r[str].ok("yaml")
+            return r.ok("yaml")
         if suffix == ".csv":
-            return r[str].ok("csv")
+            return r.ok("csv")
         if suffix in {".txt", ".log"}:
-            return r[str].ok("text")
+            return r.ok("text")
         if suffix:
             return r[str].fail(f"Unsupported format: {suffix}")
         return r[str].fail("Unable to detect file format without an extension")
@@ -356,12 +345,11 @@ class FlextCliFileTools(FlextCliServiceBase):
             return r[Mapping[str, t.Cli.JsonValue]].fail(
                 "Auto-detected file must contain a mapping",
             )
-        return r[Mapping[str, t.Cli.JsonValue]].ok(
-            {
-                str(key): u.Cli.normalize_json_value(value)
-                for key, value in payload.items()
-            },
-        )
+        normalized_payload: Mapping[str, t.Cli.JsonValue] = {
+            str(key): u.Cli.normalize_json_value(value)
+            for key, value in payload.items()
+        }
+        return r.ok(normalized_payload)
 
 
 __all__ = ["FlextCliFileTools"]

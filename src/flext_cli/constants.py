@@ -19,6 +19,12 @@ class FlextCliConstants(FlextConstants):
     class Cli:
         """CLI related constants."""
 
+        class Encoding:
+            """Encoding constants."""
+
+            DEFAULT: typing.Final[str] = "utf-8"
+            "Default text encoding for file operations."
+
         CLI_SAFE_EXCEPTIONS: typing.ClassVar[tuple[type[Exception], ...]] = (
             ValueError,
             TypeError,

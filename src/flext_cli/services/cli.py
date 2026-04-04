@@ -7,13 +7,23 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import sys
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Mapping, MutableMapping, MutableSequence, Sequence
 from inspect import Parameter, Signature
-from types import NoneType, UnionType
-from typing import Annotated, Literal, TypeAliasType, Union, get_args, get_origin
+from pathlib import Path
+from types import GenericAlias, NoneType, UnionType
+from typing import (
+    Annotated,
+    Literal,
+    TypeAliasType,
+    TypeIs,
+    Union,
+    get_args,
+    get_origin,
+)
 
 import typer
 from pydantic import BaseModel
+from pydantic.fields import FieldInfo
 from typer.models import OptionInfo
 from typer.testing import CliRunner
 
@@ -28,29 +38,40 @@ from flext_cli import (
 )
 from flext_core import r
 
+_CLI_SCALAR_TYPES: tuple[
+    type[str],
+    type[int],
+    type[float],
+    type[bool],
+] = (str, int, float, bool)
+
 
 class FlextCliCli(FlextCliServiceBase):
     """Unified Typer abstraction for model-driven CLI applications."""
 
     _OPTIONAL_UNION_ARG_COUNT = 2
 
-    class _ModelCommand:
-        """Callable wrapper with explicit signature for Typer introspection."""
+    class _ModelCommand[M: BaseModel]:
+        """Callable wrapper with explicit signature for Typer introspection.
 
-        __annotations__: dict[str, object]
+        Note: __annotations__ uses MutableMapping[str, type] because Typer reads
+        it via inspect at runtime. __call__ uses t.Scalar kwargs because Typer
+        may pass scalar values or repeated option lists.
+        """
+
         __name__: str
         __signature__: Signature
         _config: BaseModel | None
-        _handler: Callable[[BaseModel], object | None]
-        _model_cls: type[BaseModel]
+        _handler: Callable[[M], None]
+        _model_cls: type[M]
 
         def __init__(
             self,
             *,
             config: BaseModel | None,
-            handler: Callable[[BaseModel], object | None],
-            model_cls: type[BaseModel],
-            parameters: list[Parameter],
+            handler: Callable[[M], None],
+            model_cls: type[M],
+            parameters: Sequence[Parameter],
         ) -> None:
             self.__name__ = handler.__name__
             self.__signature__ = Signature(parameters)
@@ -58,15 +79,18 @@ class FlextCliCli(FlextCliServiceBase):
             self._handler = handler
             self._model_cls = model_cls
 
-        def __call__(self, **kwargs: object) -> object | None:
+        def __call__(self, **kwargs: t.Cli.CliValue) -> None:
             if self._config is not None:
                 for field_name, field_value in kwargs.items():
                     if hasattr(self._config, field_name):
                         setattr(self._config, field_name, field_value)
-            return self._handler(self._model_cls.model_validate(kwargs))
+            model = self._model_cls.model_validate(kwargs)
+            self._handler(model)
 
     @staticmethod
-    def _resolve_typer_annotation(annotation: object) -> object:
+    def _resolve_typer_annotation(
+        annotation: type | TypeAliasType,
+    ) -> type | GenericAlias:
         """Resolve runtime annotations to concrete types accepted by Typer."""
         if isinstance(annotation, TypeAliasType):
             return FlextCliCli._resolve_typer_annotation(annotation.__value__)
@@ -82,55 +106,161 @@ class FlextCliCli(FlextCliServiceBase):
                 for arg in get_args(annotation)
             )
             if len(args) == FlextCliCli._OPTIONAL_UNION_ARG_COUNT and NoneType in args:
-                value = args[0] if args[1] is NoneType else args[1]
-                return value if isinstance(value, type) else annotation
+                return args[0] if args[1] is NoneType else args[1]
+        if origin is Sequence:
+            args = get_args(annotation)
+            if args:
+                value = FlextCliCli._resolve_typer_annotation(args[0])
+                if isinstance(value, type):
+                    return list[value]
+            return list[str]
         if origin in {list, tuple}:
-            return annotation
+            args = get_args(annotation)
+            if args:
+                value = FlextCliCli._resolve_typer_annotation(args[0])
+                if isinstance(value, type):
+                    return list[value]
+            return list[str]
         if origin in {dict, frozenset, set}:
             return origin
         return annotation
 
     @staticmethod
+    def _is_string_sequence(value: object) -> TypeIs[t.Cli.StrSequence]:
+        """Return True for concrete string sequences accepted by repeated CLI options."""
+        if not isinstance(value, (list, tuple)):
+            return False
+        return all(isinstance(item, str) for item in value)
+
+    @classmethod
+    def _is_cli_default_mapping(
+        cls,
+        value: Mapping[str, object],
+    ) -> TypeIs[t.Cli.DefaultMapping]:
+        """Return True when a mapping is a valid Typer default."""
+        return all(
+            item_value is None
+            or isinstance(item_value, _CLI_SCALAR_TYPES)
+            or cls._is_string_sequence(item_value)
+            for item_value in value.values()
+        )
+
+    @classmethod
+    def _normalize_cli_atom(
+        cls, value: object
+    ) -> t.Cli.Scalar | t.Cli.StrSequence | None:
+        """Normalize one runtime value into an allowed Typer scalar or string sequence."""
+        if isinstance(value, _CLI_SCALAR_TYPES):
+            return value
+        if isinstance(value, Path):
+            return str(value)
+        if cls._is_string_sequence(value):
+            return tuple(value)
+        return None
+
+    @staticmethod
     def _field_default(
-        field_name: str, field_info: object, config: BaseModel | None
-    ) -> object:
+        field_name: str, field_info: FieldInfo, config: BaseModel | None
+    ) -> t.Cli.CliValue:
         """Resolve CLI default from config first, then from model field metadata."""
         if config is not None and hasattr(config, field_name):
             configured = getattr(config, field_name)
-            if configured is not None:
-                return configured
+            return FlextCliCli._normalize_cli_default(configured)
         default_factory = getattr(field_info, "default_factory", None)
         if callable(default_factory):
-            return default_factory()
-        default_value = getattr(field_info, "default", ...)
-        return default_value if default_value is not None else None
+            factory_result: object = default_factory()
+            if factory_result is None:
+                return None
+            normalized_atom = FlextCliCli._normalize_cli_atom(factory_result)
+            if normalized_atom is not None:
+                return normalized_atom
+            if isinstance(factory_result, Mapping):
+                normalized_mapping: dict[str, t.Cli.Scalar | t.Cli.StrSequence] = {}
+                for key, item_value in factory_result.items():
+                    if not isinstance(key, str):
+                        continue
+                    normalized_item = FlextCliCli._normalize_cli_atom(item_value)
+                    if normalized_item is not None:
+                        normalized_mapping[key] = normalized_item
+                if normalized_mapping:
+                    return normalized_mapping
+                return None
+            if isinstance(
+                factory_result, (list, tuple)
+            ) and FlextCliCli._is_string_sequence(factory_result):
+                normalized_sequence: tuple[str, ...] = tuple(
+                    item for item in factory_result if isinstance(item, str)
+                )
+                return normalized_sequence
+            return None
+        default_value = getattr(field_info, "default", None)
+        return FlextCliCli._normalize_cli_default(default_value)
+
+    @classmethod
+    def _normalize_cli_default(
+        cls,
+        value: object | None,
+    ) -> t.Cli.CliValue:
+        """Normalize field defaults into Typer-compatible scalar/mapping/list values."""
+        if value is None:
+            return None
+        normalized_atom = cls._normalize_cli_atom(value)
+        if normalized_atom is not None:
+            return normalized_atom
+        if isinstance(value, Mapping):
+            normalized_mapping: dict[str, t.Cli.Scalar | t.Cli.StrSequence] = {}
+            for key, item_value in value.items():
+                if not isinstance(key, str):
+                    continue
+                normalized_item = cls._normalize_cli_atom(item_value)
+                if normalized_item is not None:
+                    normalized_mapping[key] = normalized_item
+            if normalized_mapping:
+                return normalized_mapping
+            return None
+        if isinstance(value, (list, tuple)) and cls._is_string_sequence(value):
+            normalized_sequence: tuple[str, ...] = tuple(
+                item for item in value if isinstance(item, str)
+            )
+            return normalized_sequence
+        return None
 
     @classmethod
     def _build_model_parameter(
         cls,
         field_name: str,
-        field_info: object,
+        field_info: FieldInfo,
         config: BaseModel | None,
-    ) -> tuple[Parameter, object]:
+    ) -> tuple[Parameter, type | GenericAlias]:
         """Build a keyword-only Typer option from a Pydantic field."""
-        alias = getattr(field_info, "alias", None)
-        cli_name = alias if isinstance(alias, str) and alias else field_name
+        alias = field_info.alias
+        cli_name = alias or field_name
         option_name = f"--{cli_name.replace('_', '-')}"
         annotation = cls._resolve_typer_annotation(
-            getattr(field_info, "annotation", None) or str,
+            field_info.annotation or str,
         )
-        is_required = bool(getattr(field_info, "is_required", lambda: False)())
+        is_required = bool(field_info.is_required())
         default_value = (
             ... if is_required else cls._field_default(field_name, field_info, config)
         )
         option_decls = [option_name]
+        extra = getattr(field_info, "json_schema_extra", None)
+        custom_param_decls: list[str] | None = None
+        if isinstance(extra, Mapping):
+            declared = extra.get("typer_param_decls")
+            if isinstance(declared, (list, tuple)) and all(
+                isinstance(item, str) for item in declared
+            ):
+                custom_param_decls = list(declared)
         if annotation is bool and isinstance(default_value, bool):
             dashed_name = cli_name.replace("_", "-")
             option_decls = [f"--{dashed_name}/--no-{dashed_name}"]
+        if custom_param_decls is not None:
+            option_decls = custom_param_decls
         option = OptionInfo(
             default=default_value,
             param_decls=option_decls,
-            help=getattr(field_info, "description", None),
+            help=field_info.description,
         )
         return (
             Parameter(
@@ -171,7 +301,7 @@ class FlextCliCli(FlextCliServiceBase):
         help_text: str,
         config: FlextCliSettings | None = None,
         add_completion: bool = True,
-    ) -> typer.Typer:
+    ) -> t.Cli.TyperApp:
         """Create a Typer app with the shared global FLEXT CLI parameters."""
         app = typer.Typer(name=name, help=help_text, add_completion=add_completion)
 
@@ -203,12 +333,21 @@ class FlextCliCli(FlextCliServiceBase):
         return app
 
     @staticmethod
-    def add_group(app: typer.Typer, *, name: str, group: typer.Typer) -> None:
+    def add_group(
+        app: t.Cli.TyperApp,
+        *,
+        name: str,
+        group: t.Cli.TyperApp,
+    ) -> None:
         """Attach a subcommand group to an application."""
         app.add_typer(group, name=name)
 
     @staticmethod
-    def create_group(*, help_text: str, name: str | None = None) -> typer.Typer:
+    def create_group(
+        *,
+        help_text: str,
+        name: str | None = None,
+    ) -> t.Cli.TyperApp:
         """Create a Typer command group without re-registering global params."""
         return typer.Typer(name=name, help=help_text)
 
@@ -216,14 +355,16 @@ class FlextCliCli(FlextCliServiceBase):
     def model_command[M: BaseModel](
         cls,
         model_cls: type[M],
-        handler: Callable[[M], object | None],
+        handler: Callable[[M], None],
         config: BaseModel | None = None,
-    ) -> Callable[..., object | None]:
+    ) -> Callable[..., None]:
         """Build a Typer command directly from a Pydantic request model."""
-        parameters: list[Parameter] = []
-        annotations: dict[str, object] = {"return": None}
-        fields: dict[str, object] = getattr(model_cls, "model_fields", {})
+        parameters: MutableSequence[Parameter] = []
+        annotations: t.Cli.TyperAnnotations = {"return": type(None)}
+        fields: t.Cli.FieldInfoMapping = getattr(model_cls, "model_fields", {})
         for field_name, field_info in fields.items():
+            if field_info.exclude is True:
+                continue
             parameter, annotation = cls._build_model_parameter(
                 field_name,
                 field_info,
@@ -233,22 +374,22 @@ class FlextCliCli(FlextCliServiceBase):
             annotations[field_name] = annotation
         command = cls._ModelCommand(
             config=config,
-            handler=lambda model: handler(model_cls.model_validate(model)),
+            handler=handler,
             model_cls=model_cls,
             parameters=parameters,
         )
-        command.__annotations__ = annotations
+        command.__annotations__ = dict(annotations)
         return command
 
     @classmethod
     def derive_model[M: BaseModel](
         cls,
         model_cls: type[M],
-        *sources: BaseModel | Mapping[str, object] | None,
-        overrides: Mapping[str, object] | None = None,
+        *sources: BaseModel | Mapping[str, t.Cli.Scalar] | None,
+        overrides: Mapping[str, t.Cli.Scalar] | None = None,
     ) -> M:
         """Derive a target Pydantic model from ordered model/mapping sources."""
-        merged: dict[str, object] = {}
+        merged: MutableMapping[str, t.Cli.Scalar] = {}
         for source in sources:
             merged.update(cls._model_source_data(model_cls, source))
         if overrides is not None:
@@ -258,12 +399,12 @@ class FlextCliCli(FlextCliServiceBase):
     @staticmethod
     def _model_source_data(
         model_cls: type[BaseModel],
-        source: BaseModel | Mapping[str, object] | None,
-    ) -> dict[str, object]:
+        source: BaseModel | Mapping[str, t.Cli.Scalar] | None,
+    ) -> Mapping[str, t.Cli.Scalar]:
         """Extract only target-compatible fields from a model or mapping source."""
         if source is None:
             return {}
-        raw_source: Mapping[str, object]
+        raw_source: Mapping[str, t.Cli.Scalar]
         if isinstance(source, BaseModel):
             raw_source = source.model_dump(exclude_none=True)
         else:
@@ -278,20 +419,23 @@ class FlextCliCli(FlextCliServiceBase):
     def create_cli_runner(
         *,
         charset: str = "utf-8",
-        env: dict[str, str] | None = None,
+        env: Mapping[str, str] | None = None,
         echo_stdin: bool = False,
-    ) -> r[CliRunner]:
+    ) -> r[t.Cli.TyperRunner]:
         """Create a Typer/Click test runner for real CLI execution tests."""
-        return r[CliRunner].ok(
-            CliRunner(charset=charset, env=env, echo_stdin=echo_stdin),
+        runner = CliRunner(
+            charset=charset,
+            env=dict(env) if env is not None else None,
+            echo_stdin=echo_stdin,
         )
+        return r[t.Cli.TyperRunner].ok(runner)
 
     @staticmethod
     def execute_app(
-        app: typer.Typer,
+        app: t.Cli.TyperApp,
         *,
         prog_name: str,
-        args: t.StrSequence | None = None,
+        args: Sequence[str] | None = None,
         error_message: p.Cli.ErrorMessageProvider | None = None,
     ) -> r[bool]:
         """Execute a Typer app and normalize exit behavior into `r[bool]`."""
@@ -329,19 +473,19 @@ class FlextCliCli(FlextCliServiceBase):
 
     @staticmethod
     def register_command(
-        app: typer.Typer,
+        app: t.Cli.TyperApp,
         *,
         name: str,
         help_text: str,
-        command: Callable[..., object | None],
+        command: Callable[..., None],
     ) -> None:
         """Register a command on the given Typer application."""
         _ = app.command(name, help=help_text)(command)
 
     @classmethod
-    def register_result_command[M: BaseModel, TResult: t.ValueOrModel](
+    def register_result_command[M: BaseModel, TResult: t.Cli.ValueOrModel](
         cls,
-        app: typer.Typer,
+        app: t.Cli.TyperApp,
         *,
         failure_message: str,
         handler: p.Cli.ResultCommandHandler[M, TResult],
@@ -350,28 +494,19 @@ class FlextCliCli(FlextCliServiceBase):
         name: str,
         config: BaseModel | None = None,
         remember_failure: p.Cli.FailureMessageRecorder | None = None,
-        success_formatter: p.Cli.SuccessMessageFormatter[TResult] | None = None,
+        success_formatter: Callable[..., str] | None = None,
         success_message: str | None = None,
         success_type: str = "success",
     ) -> None:
         """Register a model command that normalizes `r[...]` CLI handling."""
-
-        def execute(params: M) -> None:
-            result = handler(params)
-            if result.is_failure:
-                if remember_failure is not None:
-                    remember_failure(result.error, failure_message)
-                cls.exit(code=1)
-            message = success_message
-            if success_formatter is not None:
-                message = success_formatter(result.value)
-            elif hasattr(result.value, "message"):
-                candidate = getattr(result.value, "message")
-                if isinstance(candidate, str) and candidate:
-                    message = candidate
-            if message:
-                FlextCliOutput.display_message(message, success_type)
-
+        execute = cls._build_result_executor(
+            failure_message=failure_message,
+            handler=handler,
+            remember_failure=remember_failure,
+            success_formatter=success_formatter,
+            success_message=success_message,
+            success_type=success_type,
+        )
         cls.register_command(
             app,
             name=name,
@@ -380,26 +515,126 @@ class FlextCliCli(FlextCliServiceBase):
         )
 
     @classmethod
-    def register_result_route[M: BaseModel, TResult: t.ValueOrModel](
+    def _build_result_executor[M: BaseModel, TResult: t.Cli.ValueOrModel](
         cls,
-        app: typer.Typer,
         *,
-        route: m.Cli.ResultCommandRouteModel[M, TResult],
+        failure_message: str,
+        handler: p.Cli.ResultCommandHandler[M, TResult],
+        remember_failure: p.Cli.FailureMessageRecorder | None = None,
+        success_formatter: Callable[..., str] | None = None,
+        success_message: str | None = None,
+        success_type: str = "success",
+    ) -> Callable[[M], None]:
+        """Build the shared executor used by single and batched route registration."""
+
+        def execute(params: M) -> None:
+            result: r[TResult] = handler(params)
+            if result.is_failure:
+                if remember_failure is not None:
+                    remember_failure(result.error, failure_message)
+                cls.exit(code=1)
+            message = success_message
+            result_value: TResult = result.value
+            if success_formatter is not None:
+                message = success_formatter(result_value)
+            elif hasattr(result_value, "message"):
+                candidate = getattr(result_value, "message")
+                if isinstance(candidate, str) and candidate:
+                    message = candidate
+            elif isinstance(result_value, str) and result_value:
+                message = result_value
+            if message:
+                FlextCliOutput.display_message(message, success_type)
+
+        return execute
+
+    @classmethod
+    def _build_result_executor_erased(
+        cls,
+        *,
+        handler: Callable[..., BaseModel],
+        failure_message: str = "",
+        remember_failure: p.Cli.FailureMessageRecorder | None = None,
+        success_formatter: Callable[..., str] | None = None,
+        success_message: str | None = None,
+        success_type: str = "success",
+    ) -> Callable[[BaseModel], None]:
+        """Build a batch executor for type-erased route registration.
+
+        The handler field is typed as ``Callable[..., BaseModel]`` for
+        variance compatibility — all ``r[T]`` inherit from ``BaseModel``.
+        At runtime, the return is always a ``FlextResult``.
+        """
+
+        def execute(params: BaseModel) -> None:
+            result_model = handler(params)
+            is_failure = getattr(result_model, "is_failure", False)
+            if is_failure:
+                error_msg = getattr(result_model, "error", None)
+                if remember_failure is not None:
+                    remember_failure(error_msg, failure_message)
+                cls.exit(code=1)
+            message = success_message
+            result_value = getattr(result_model, "value", None)
+            if success_formatter is not None and result_value is not None:
+                message = success_formatter(result_value)
+            elif hasattr(result_value, "message"):
+                candidate = getattr(result_value, "message")
+                if isinstance(candidate, str) and candidate:
+                    message = candidate
+            elif isinstance(result_value, str) and result_value:
+                message = result_value
+            if message:
+                FlextCliOutput.display_message(message, success_type)
+
+        return execute
+
+    @classmethod
+    def register_result_route(
+        cls,
+        app: t.Cli.TyperApp,
+        *,
+        route: m.Cli.ResultCommandRoute,
         remember_failure: p.Cli.FailureMessageRecorder | None = None,
     ) -> None:
-        """Register a declarative result route model on a Typer app."""
-        cls.register_result_command(
-            app,
-            name=route.name,
-            help_text=route.help_text,
-            model_cls=route.model_cls,
+        """Register a declarative result route on a Typer app."""
+        execute = cls._build_result_executor_erased(
             handler=route.handler,
-            failure_message=route.failure_message,
             remember_failure=remember_failure,
+            failure_message=route.failure_message,
             success_formatter=route.success_formatter,
             success_message=route.success_message,
             success_type=route.success_type,
         )
+        cls.register_command(
+            app,
+            name=route.name,
+            help_text=route.help_text,
+            command=cls.model_command(route.model_cls, execute),
+        )
+
+    @classmethod
+    def register_result_routes(
+        cls,
+        app: t.Cli.TyperApp,
+        routes: Sequence[m.Cli.ResultCommandRoute],
+    ) -> None:
+        """Register multiple heterogeneous result routes in one call."""
+        for route in routes:
+            cls.register_command(
+                app,
+                name=route.name,
+                help_text=route.help_text,
+                command=cls.model_command(
+                    route.model_cls,
+                    cls._build_result_executor_erased(
+                        handler=route.handler,
+                        success_formatter=route.success_formatter,
+                        success_message=route.success_message,
+                        success_type=route.success_type,
+                    ),
+                ),
+            )
 
 
 __all__ = ["FlextCliCli"]

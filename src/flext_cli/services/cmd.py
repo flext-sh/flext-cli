@@ -45,10 +45,11 @@ class FlextCliCmd(FlextCliServiceBase):
     @override
     def execute(self) -> r[Mapping[str, t.Cli.JsonValue]]:
         """Report operational status required by `FlextService`."""
-        return r[Mapping[str, t.Cli.JsonValue]].ok({
+        status: Mapping[str, t.Cli.JsonValue] = {
             c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.OPERATIONAL.value,
             c.Cli.DictKeys.SERVICE: c.Cli.CmdDefaults.SERVICE_NAME,
-        })
+        }
+        return r.ok(status)
 
     def show_config(self) -> r[bool]:
         """Show current configuration.
@@ -69,7 +70,7 @@ class FlextCliCmd(FlextCliServiceBase):
                 c.Cli.LogMessages.CONFIG_DISPLAYED,
                 config=info_result.value,
             )
-            return r[bool].ok(value=True)
+            return r.ok(True)
         except c.Cli.CLI_SAFE_EXCEPTIONS as e:
             return r[bool].fail(
                 c.Cli.CmdErrorMessages.SHOW_CONFIG_FAILED.format(
@@ -92,7 +93,7 @@ class FlextCliCmd(FlextCliServiceBase):
                         results=results,
                     ),
                 )
-            return r[bool].ok(value=True)
+            return r.ok(True)
         except (OSError, ValueError, TypeError, RuntimeError) as e:
             return r[bool].fail(
                 c.Cli.ErrorMessages.CONFIG_VALIDATION_FAILED.format(

@@ -30,7 +30,7 @@ from __future__ import annotations
 import hashlib
 import shutil
 import tempfile
-from collections.abc import Sequence
+from collections.abc import MutableMapping, Sequence
 from pathlib import Path
 
 from pydantic import TypeAdapter, ValidationError
@@ -130,7 +130,7 @@ def export_data_multi_format(
     """Export same data to multiple formats (JSON, YAML, CSV)."""
     cli.print(f"\n💾 Multi-Format Export: {base_path.stem}", style="bold cyan")
 
-    export_results: dict[str, str] = {}
+    export_results: MutableMapping[str, str] = {}
     json_path = base_path.with_suffix(".json")
     json_payload = data
     json_result = cli.write_json_file(json_path, json_payload, indent=2)

@@ -24,8 +24,19 @@ if _t.TYPE_CHECKING:
     )
 
     _models = _flext_cli__models
+    import flext_cli._utilities as _flext_cli__utilities
+    from flext_cli._models import FlextCliModelsBase
+
+    _utilities = _flext_cli__utilities
     import flext_cli.api as _flext_cli_api
-    from flext_cli._models.base import FlextCliModelsBase
+    from flext_cli._utilities import (
+        FlextCliUtilitiesJson,
+        FlextCliUtilitiesToml,
+        FlextCliUtilitiesYaml,
+        json,
+        toml,
+        yaml,
+    )
 
     api = _flext_cli_api
     import flext_cli.base as _flext_cli_base
@@ -48,44 +59,28 @@ if _t.TYPE_CHECKING:
     from flext_cli.protocols import FlextCliProtocols, FlextCliProtocols as p
 
     services = _flext_cli_services
-    import flext_cli.services.auth as _flext_cli_services_auth
-
-    auth = _flext_cli_services_auth
-    import flext_cli.services.cli_params as _flext_cli_services_cli_params
-    from flext_cli.services.auth import FlextCliAuth
-    from flext_cli.services.cli import FlextCliCli
-
-    cli_params = _flext_cli_services_cli_params
-    import flext_cli.services.cmd as _flext_cli_services_cmd
-    from flext_cli.services.cli_params import FlextCliCommonParams
-
-    cmd = _flext_cli_services_cmd
-    import flext_cli.services.commands as _flext_cli_services_commands
-    from flext_cli.services.cmd import FlextCliCmd
-
-    commands = _flext_cli_services_commands
-    import flext_cli.services.file_tools as _flext_cli_services_file_tools
-    from flext_cli.services.commands import FlextCliCommands
-
-    file_tools = _flext_cli_services_file_tools
-    import flext_cli.services.formatters as _flext_cli_services_formatters
-    from flext_cli.services.file_tools import FlextCliFileTools
-
-    formatters = _flext_cli_services_formatters
-    import flext_cli.services.output as _flext_cli_services_output
-    from flext_cli.services.formatters import FlextCliFormatters
-
-    output = _flext_cli_services_output
-    import flext_cli.services.prompts as _flext_cli_services_prompts
-    from flext_cli.services.output import FlextCliOutput
-
-    prompts = _flext_cli_services_prompts
-    import flext_cli.services.tables as _flext_cli_services_tables
-    from flext_cli.services.prompts import FlextCliPrompts
-
-    tables = _flext_cli_services_tables
     import flext_cli.settings as _flext_cli_settings
-    from flext_cli.services.tables import FlextCliTables
+    from flext_cli.services import (
+        FlextCliAuth,
+        FlextCliCli,
+        FlextCliCmd,
+        FlextCliCommands,
+        FlextCliCommonParams,
+        FlextCliFileTools,
+        FlextCliFormatters,
+        FlextCliOutput,
+        FlextCliPrompts,
+        FlextCliTables,
+        auth,
+        cli_params,
+        cmd,
+        commands,
+        file_tools,
+        formatters,
+        output,
+        prompts,
+        tables,
+    )
 
     settings = _flext_cli_settings
     import flext_cli.typings as _flext_cli_typings
@@ -105,6 +100,7 @@ if _t.TYPE_CHECKING:
 _LAZY_IMPORTS = merge_lazy_imports(
     (
         "flext_cli._models",
+        "flext_cli._utilities",
         "flext_cli.services",
     ),
     {
@@ -125,6 +121,7 @@ _LAZY_IMPORTS = merge_lazy_imports(
         "__version__": "flext_cli.__version__",
         "__version_info__": "flext_cli.__version__",
         "_models": "flext_cli._models",
+        "_utilities": "flext_cli._utilities",
         "api": "flext_cli.api",
         "base": "flext_cli.base",
         "c": ("flext_cli.constants", "FlextCliConstants"),
@@ -170,6 +167,9 @@ __all__ = [
     "FlextCliTables",
     "FlextCliTypes",
     "FlextCliUtilities",
+    "FlextCliUtilitiesJson",
+    "FlextCliUtilitiesToml",
+    "FlextCliUtilitiesYaml",
     "__author__",
     "__author_email__",
     "__description__",
@@ -179,6 +179,7 @@ __all__ = [
     "__version__",
     "__version_info__",
     "_models",
+    "_utilities",
     "api",
     "auth",
     "base",
@@ -193,6 +194,7 @@ __all__ = [
     "file_tools",
     "formatters",
     "h",
+    "json",
     "logger",
     "m",
     "models",
@@ -206,10 +208,12 @@ __all__ = [
     "settings",
     "t",
     "tables",
+    "toml",
     "typings",
     "u",
     "utilities",
     "x",
+    "yaml",
 ]
 
 

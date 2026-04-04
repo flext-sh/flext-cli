@@ -25,7 +25,7 @@ class FlextCliCommands(FlextCliServiceBase):
     _name: str = PrivateAttr(default=c.Cli.CommandsDefaults.DEFAULT_NAME)
     _description: str = PrivateAttr(default=c.Cli.CommandsDefaults.DEFAULT_DESCRIPTION)
     _commands: MutableMapping[str, m.Cli.CommandEntryModel] = PrivateAttr(
-        default_factory=dict[str, m.Cli.CommandEntryModel],
+        default_factory=dict,
     )
 
     @classmethod
@@ -42,9 +42,14 @@ class FlextCliCommands(FlextCliServiceBase):
         command_name: str,
     ) -> r[t.Cli.JsonValue]:
         if result is None:
-            return r[t.Cli.JsonValue].ok({"status": "success", "command": command_name})
+            payload: t.Cli.JsonValue = {
+                "status": "success",
+                "command": command_name,
+            }
+            return r.ok(payload)
         if result.is_success:
-            return r[t.Cli.JsonValue].ok(result.value)
+            result_value: t.Cli.JsonValue = result.value
+            return r.ok(result_value)
         error_value = result.error
         return r[t.Cli.JsonValue].fail(
             str(error_value) if error_value else "Command failed",
@@ -58,11 +63,12 @@ class FlextCliCommands(FlextCliServiceBase):
             r[dict]: Service status with commands count.
 
         """
-        return r[Mapping[str, t.Cli.JsonValue]].ok({
+        status: Mapping[str, t.Cli.JsonValue] = {
             "app_name": c.Cli.FLEXT_CLI,
             "is_initialized": True,
             "commands_count": len(self._commands),
-        })
+        }
+        return r.ok(status)
 
     def execute_command(
         self,
@@ -123,7 +129,8 @@ class FlextCliCommands(FlextCliServiceBase):
             r[t.StrSequence]: List of command names.
 
         """
-        return r[t.StrSequence].ok(list(self._commands.keys()))
+        command_names: t.StrSequence = list(self._commands.keys())
+        return r.ok(command_names)
 
     def register_handler(
         self,
@@ -143,7 +150,7 @@ class FlextCliCommands(FlextCliServiceBase):
         if not name.strip():
             return r[bool].fail(c.Cli.CommandsErrorMessages.COMMAND_NAME_EMPTY)
         self._commands[name] = m.Cli.CommandEntryModel(name=name, handler=handler)
-        return r[bool].ok(value=True)
+        return r.ok(True)
 
     def run_cli(self, args: t.StrSequence | None = None) -> r[t.Cli.JsonValue]:
         """Run CLI with given arguments.
@@ -156,16 +163,25 @@ class FlextCliCommands(FlextCliServiceBase):
 
         """
         if not args:
-            return r[t.Cli.JsonValue].ok({"status": "success", "message": "No args"})
+            empty_args_payload: t.Cli.JsonValue = {
+                "status": "success",
+                "message": "No args",
+            }
+            return r.ok(empty_args_payload)
         cmd_name = args[0] if args else ""
-        cmd_args: list[str] = list(args[1:]) if len(args) > 1 else []
+        cmd_args = list(args[1:]) if len(args) > 1 else []
         if cmd_name in {"--help", "-h"}:
-            return r[t.Cli.JsonValue].ok({
+            help_payload: t.Cli.JsonValue = {
                 "status": "help",
                 "commands": list(self._commands.keys()),
-            })
+            }
+            return r.ok(help_payload)
         if cmd_name in {"--version", "-v"}:
-            return r[t.Cli.JsonValue].ok({"status": "version", "name": self._name})
+            version_payload: t.Cli.JsonValue = {
+                "status": "version",
+                "name": self._name,
+            }
+            return r.ok(version_payload)
         if cmd_name not in self._commands:
             return r[t.Cli.JsonValue].fail(
                 c.Cli.CommandsErrorMessages.COMMAND_NOT_FOUND.format(name=cmd_name),

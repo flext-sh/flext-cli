@@ -6,19 +6,17 @@ import inspect
 import logging
 import os
 import types
-from collections.abc import Callable, Mapping, MutableMapping, MutableSequence, Sequence
+from collections.abc import Callable, Mapping, MutableMapping, MutableSequence
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import (
     ClassVar,
     Literal,
-    TypeIs,
     Union,
     get_args,
     get_origin,
 )
 
-import typer
 from pydantic import (
     BaseModel,
     TypeAdapter,
@@ -28,6 +26,9 @@ from pydantic.fields import FieldInfo
 from typer.models import OptionInfo
 
 from flext_cli import c, m, p, r, t
+from flext_cli._utilities.json import FlextCliUtilitiesJson
+from flext_cli._utilities.toml import FlextCliUtilitiesToml
+from flext_cli._utilities.yaml import FlextCliUtilitiesYaml
 from flext_core import FlextLogger, FlextUtilities
 
 _logger = FlextLogger(__name__)
@@ -36,47 +37,8 @@ _logger = FlextLogger(__name__)
 class FlextCliUtilities(FlextUtilities):
     """Main utilities class for the Flext CLI."""
 
-    class Cli(FlextUtilities):
+    class Cli(FlextCliUtilitiesJson, FlextCliUtilitiesToml, FlextCliUtilitiesYaml):
         """Command line interface specific utilities."""
-
-        @staticmethod
-        def is_mapping_like(
-            obj: t.NormalizedValue | Mapping[str, t.NormalizedValue],
-        ) -> TypeIs[Mapping[str, t.NormalizedValue]]:
-            """Narrow value to Mapping for metadata processing."""
-            return isinstance(obj, Mapping)
-
-        @staticmethod
-        def unwrap_root_value(
-            value: t.NormalizedValue,
-        ) -> t.NormalizedValue:
-            """Unwrap RootModel .root value if present, otherwise return as-is."""
-            if hasattr(value, "__dict__"):
-                model_dict = value.__dict__
-                if "root" in model_dict:
-                    root_value = model_dict["root"]
-                    if root_value is not None:
-                        return root_value
-            return value
-
-        @staticmethod
-        def normalize_json_value(
-            item: t.NormalizedValue,
-        ) -> t.Cli.JsonValue:
-            """Normalize a value to a JSON-serializable value."""
-            if isinstance(item, t.PRIMITIVES_TYPES):
-                return item
-            if item is None:
-                return ""
-            source = FlextCliUtilities.Cli.unwrap_root_value(item)
-            if FlextCliUtilities.Cli.is_mapping_like(source):
-                return {
-                    str(k): FlextCliUtilities.Cli.normalize_json_value(v)
-                    for k, v in source.items()
-                }
-            if isinstance(source, Sequence) and not isinstance(source, (str, bytes)):
-                return [FlextCliUtilities.Cli.normalize_json_value(i) for i in source]
-            return str(item)
 
         @staticmethod
         def default_for_type_kind(
@@ -88,7 +50,7 @@ class FlextCliUtilities(FlextUtilities):
                 return default if isinstance(default, str) else None
             if type_kind == "bool":
                 return default if isinstance(default, bool) else False
-            if FlextCliUtilities.Cli.is_mapping_like(default):
+            if isinstance(default, Mapping):
                 return {
                     str(k): FlextCliUtilities.Cli.normalize_json_value(v)
                     for k, v in default.items()
@@ -97,10 +59,10 @@ class FlextCliUtilities(FlextUtilities):
 
         @staticmethod
         def project_names_from_values(
-            *values: str | t.StrSequence | None,
-        ) -> t.StrSequence | None:
+            *values: str | t.Cli.StrSequence | None,
+        ) -> list[str] | None:
             """Normalize repeated or comma-separated CLI selector values."""
-            names: MutableSequence[str] = []
+            names: list[str] = []
             for value in values:
                 if value is None:
                     continue
@@ -121,14 +83,14 @@ class FlextCliUtilities(FlextUtilities):
             def __init__(
                 self,
                 field_name: str,
-                registry: Mapping[str, Mapping[str, t.Cli.JsonValue]],
+                registry: Mapping[str, Mapping[str, t.Scalar | t.StrSequence]],
             ) -> None:
                 """Initialize builder with field name and registry."""
                 super().__init__()
                 self.field_name = field_name
                 self.registry = registry
 
-            def build(self) -> typer.models.OptionInfo:
+            def build(self) -> OptionInfo:
                 """Build typer.Option from field metadata."""
                 field_meta = self.registry.get(self.field_name, {})
                 if not field_meta:
@@ -153,12 +115,11 @@ class FlextCliUtilities(FlextUtilities):
                 if short_flag:
                     option_args.append(f"-{short_flag}")
 
-                option: OptionInfo = OptionInfo(
+                return OptionInfo(
                     default=default_value,
                     param_decls=option_args,
                     help=help_text,
                 )
-                return option
 
         class CliModelConverter:
             """Converter for Pydantic models to CLI parameters."""
@@ -168,44 +129,46 @@ class FlextCliUtilities(FlextUtilities):
             )
 
             @staticmethod
-            def cli_args_to_model(
-                model_class: type[BaseModel],
+            def cli_args_to_model[M: BaseModel](
+                model_class: type[M],
                 cli_args: Mapping[str, t.Cli.JsonValue],
-            ) -> r[BaseModel]:
+            ) -> r[M]:
                 """Convert CLI args dict to a Pydantic model instance.
 
                 Validates the args dict against the model schema and returns
-                r[BaseModel] wrapping success or validation failure.
+                r[M] wrapping success or validation failure.
                 """
                 try:
-                    instance = model_class.model_validate(cli_args)
-                    return r[BaseModel].ok(instance)
+                    instance: M = model_class.model_validate(cli_args)
+                    return r.ok(instance)
                 except ValidationError as exc:
-                    return r[BaseModel].fail(
+                    return r[M].fail(
                         f"Validation error for {model_class.__name__}: {exc}",
                     )
 
             @staticmethod
             def convert_field_value(
-                field_value: t.Cli.JsonValue,
+                field_value: t.Cli.JsonValue | None,
             ) -> r[t.Cli.JsonValue]:
                 """Convert field value to JSON-compatible value."""
                 if field_value is None:
-                    return r[t.Cli.JsonValue].ok("")
+                    empty_value: t.Cli.JsonValue = ""
+                    return r.ok(empty_value)
                 try:
-                    json_value = FlextCliUtilities.Cli.CliModelConverter.JSON_VALUE_ADAPTER.validate_python(
+                    json_value: t.Cli.JsonValue = FlextCliUtilities.Cli.CliModelConverter.JSON_VALUE_ADAPTER.validate_python(
                         field_value,
                     )
-                    return r[t.Cli.JsonValue].ok(json_value)
+                    return r.ok(json_value)
                 except ValidationError as exc:
                     _logger.debug(
                         "convert_field_value validation fallback",
                         error=exc,
                         exc_info=False,
                     )
-                    return r[t.Cli.JsonValue].ok(str(field_value))
+                    fallback_value: t.Cli.JsonValue = str(field_value)
+                    return r.ok(fallback_value)
 
-        class ModelCommandBuilder:
+        class ModelCommandBuilder[M: BaseModel]:
             """Builder for Typer commands from Pydantic models.
 
             Creates Typer command functions with automatic parameter extraction from model fields.
@@ -214,8 +177,8 @@ class FlextCliUtilities(FlextUtilities):
 
             def __init__(
                 self,
-                model_class: type[BaseModel],
-                handler: Callable[[BaseModel], t.Cli.JsonValue],
+                model_class: type[M],
+                handler: Callable[[M], t.Cli.JsonValue],
                 config: t.Cli.JsonValue | None = None,
             ) -> None:
                 """Initialize builder with model class, handler, and optional config."""
@@ -369,8 +332,9 @@ class FlextCliUtilities(FlextUtilities):
 
             def build(self) -> p.Cli.CliCommandWrapper:
                 """Build Typer command from Pydantic model."""
-                narrowed_fields: Mapping[str, FieldInfo] = dict(
-                    self.model_class.model_fields,
+                narrowed_fields: t.Cli.FieldInfoMapping = getattr(
+                    self.model_class,
+                    "__pydantic_fields__",
                 )
                 annotations, defaults, fields_with_factory = self._collect_field_data(
                     narrowed_fields,
@@ -440,8 +404,8 @@ class FlextCliUtilities(FlextUtilities):
                 defaults: Mapping[str, t.Cli.JsonValue],
                 fields_with_factory: set[str],
             ) -> p.Cli.CliCommandWrapper:
-                required_parameters: list[inspect.Parameter] = []
-                defaulted_parameters: list[inspect.Parameter] = []
+                required_parameters: MutableSequence[inspect.Parameter] = []
+                defaulted_parameters: MutableSequence[inspect.Parameter] = []
                 for field_name, field_type in annotations.items():
                     has_default = (
                         field_name in defaults and field_name not in fields_with_factory
@@ -459,12 +423,12 @@ class FlextCliUtilities(FlextUtilities):
                         defaulted_parameters.append(parameter)
                     else:
                         required_parameters.append(parameter)
-                signature_parameters = required_parameters + defaulted_parameters
+                signature_parameters = [*required_parameters, *defaulted_parameters]
                 command_signature = inspect.Signature(parameters=signature_parameters)
 
                 def command_wrapper(
                     *args: t.Cli.JsonValue,
-                    **kwargs: t.Scalar,
+                    **kwargs: t.Cli.JsonValue,
                 ) -> t.Cli.JsonValue:
                     try:
                         bound_arguments = command_signature.bind(*args, **kwargs)
@@ -495,16 +459,17 @@ class FlextCliUtilities(FlextUtilities):
 
                 def typed_wrapper(
                     *args: t.Cli.JsonValue,
-                    **kwargs: t.Scalar,
+                    **kwargs: t.Cli.JsonValue,
                 ) -> t.Cli.JsonValue:
                     raw_result = command_wrapper(*args, **kwargs)
-                    normalized = (
+                    normalized: r[t.Cli.JsonValue] = (
                         FlextCliUtilities.Cli.CliModelConverter.convert_field_value(
                             raw_result,
                         )
                     )
                     if normalized.is_success:
-                        return normalized.value
+                        normalized_value: t.Cli.JsonValue = normalized.value
+                        return normalized_value
                     return str(raw_result)
 
                 setattr(typed_wrapper, "__signature__", command_signature)
@@ -536,9 +501,7 @@ class FlextCliUtilities(FlextUtilities):
                             exc_info=False,
                         )
             return (
-                r[Mapping[str, U]].fail("; ".join(errors))
-                if errors
-                else r[Mapping[str, U]].ok(values)
+                r[Mapping[str, U]].fail("; ".join(errors)) if errors else r.ok(values)
             )
 
         class CliValidation:
@@ -594,7 +557,8 @@ class FlextCliUtilities(FlextUtilities):
                             )
                         )
                         return r[bool].fail(msg or err)
-                return r[bool].ok(value=True)
+                    return r.ok(True)
+                return r.ok(True)
 
             @staticmethod
             def v_empty(val: t.Cli.CliValue, *, name: str = "field") -> r[bool]:
@@ -613,7 +577,7 @@ class FlextCliUtilities(FlextUtilities):
                             field_name=name,
                         ),
                     )
-                return r[bool].ok(value=True)
+                return r.ok(True)
 
             @staticmethod
             def v_format(format_type: str) -> r[str]:
@@ -626,7 +590,7 @@ class FlextCliUtilities(FlextUtilities):
                     in_list=c.Cli.ValidationLists.OUTPUT_FORMATS,
                 )
                 if valid.is_success:
-                    return r[str].ok(fmt)
+                    return r.ok(fmt)
                 return r[str].fail(
                     c.Cli.ErrorMessages.INVALID_OUTPUT_FORMAT.format(
                         format=format_type,

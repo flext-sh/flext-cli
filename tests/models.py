@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Mapping, MutableMapping
 from typing import Annotated, ClassVar
 
 from flext_tests import FlextTestsModels
@@ -39,7 +39,7 @@ class FlextCliTestModels(FlextTestsModels, FlextCliModels):
                     /,
                     **kwargs: FlextCliTypes.ContainerValue,
                 ) -> None:
-                    payload: dict[str, FlextCliTypes.ContainerValue] = {}
+                    payload: MutableMapping[str, FlextCliTypes.ContainerValue] = {}
                     if data is not None:
                         payload.update(data)
                     payload.update(kwargs)

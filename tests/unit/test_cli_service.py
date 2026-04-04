@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import MutableSequence
 from typing import Annotated, Literal
 
 from flext_tests import tm
@@ -67,7 +68,7 @@ class TestsCliService:
         tm.that(cli.settings.debug, eq=True)
 
     def test_model_command_generates_real_typer_options(self) -> None:
-        captured: list[_SampleInput] = []
+        captured: MutableSequence[_SampleInput] = []
         app = cli.create_app_with_common_params(
             name="root",
             help_text="Root application",
@@ -115,7 +116,7 @@ class TestsCliService:
         tm.that(captured[0].output_format, eq="json")
 
     def test_model_command_accepts_repeatable_list_options(self) -> None:
-        captured: list[_RepeatableInput] = []
+        captured: MutableSequence[_RepeatableInput] = []
         app = cli.create_app_with_common_params(
             name="root",
             help_text="Root application",
@@ -181,7 +182,7 @@ class TestsCliService:
             config=cli.settings,
         )
         group = cli.create_group(help_text="Grouped commands", name="group")
-        remembered: list[tuple[str | None, str]] = []
+        remembered: MutableSequence[tuple[str | None, str]] = []
 
         def remember_failure(error: str | None, fallback: str) -> None:
             remembered.append((error, fallback))

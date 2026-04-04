@@ -122,7 +122,7 @@ class TestsCliCommands:
             name="bad_cmd",
             handler=lambda: r[t.Cli.JsonValue].ok("ok"),
         )
-        object.__setattr__(bad_entry, "handler", "not_callable")
+        bad_entry.__dict__["handler"] = "not_callable"
         commands._commands["bad_cmd"] = bad_entry
         result = commands.execute_command("bad_cmd")
         tm.fail(result)
@@ -143,7 +143,7 @@ class TestsCliCommands:
             name="bad_cmd",
             handler=lambda: r[t.Cli.JsonValue].ok("ok"),
         )
-        object.__setattr__(invalid_entry, "handler", None)
+        invalid_entry.__dict__["handler"] = None
         commands._commands["bad_cmd"] = invalid_entry
         result = commands.execute_command("bad_cmd")
         tm.fail(result)

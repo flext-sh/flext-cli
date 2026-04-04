@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import builtins
+from collections.abc import MutableSequence
 
 import pytest
 from flext_tests import tm
@@ -13,7 +14,7 @@ from tests import t
 
 def test_prompt_logs_input_when_not_test_env(monkeypatch: pytest.MonkeyPatch) -> None:
     prompts = FlextCliPrompts()
-    captured: list[str] = []
+    captured: MutableSequence[str] = []
 
     def capture_info(message: str) -> None:
         captured.append(str(message))
@@ -28,11 +29,11 @@ def test_prompt_logs_input_when_not_test_env(monkeypatch: pytest.MonkeyPatch) ->
 
 def test_read_confirmation_input_paths(monkeypatch: pytest.MonkeyPatch) -> None:
     prompts = FlextCliPrompts()
-    warnings: list[str] = []
+    warnings: MutableSequence[str] = []
 
     def capture_warning(
-        *_args: t.NormalizedValue,
-        **_kwargs: t.NormalizedValue,
+        *_args: t.ContainerValue,
+        **_kwargs: t.ContainerValue,
     ) -> None:
         warnings.append("warn")
 

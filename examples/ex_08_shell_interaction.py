@@ -32,6 +32,7 @@ from __future__ import annotations
 
 import os
 import time
+from collections.abc import MutableSequence
 
 from examples import t
 from flext_cli import cli
@@ -143,7 +144,7 @@ class CommandHistory:
     def __init__(self, max_size: int = 100) -> None:
         """Initialize command history with maximum size limit."""
         super().__init__()
-        self.history: list[str] = []
+        self.history: MutableSequence[str] = []
         self.max_size = max_size
 
     def add(self, command: str) -> None:

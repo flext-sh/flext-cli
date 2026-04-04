@@ -30,7 +30,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import json
-from collections.abc import Sequence
+from collections.abc import MutableMapping, Sequence
 from pathlib import Path
 
 from examples import m, t
@@ -83,7 +83,7 @@ class MyAppPluginManager:
     def __init__(self) -> None:
         """Initialize plugin manager with empty plugin registry."""
         super().__init__()
-        self.plugins: dict[str, DataExportPlugin | ReportGeneratorPlugin] = {}
+        self.plugins: MutableMapping[str, DataExportPlugin | ReportGeneratorPlugin] = {}
 
     def execute_plugin(
         self,

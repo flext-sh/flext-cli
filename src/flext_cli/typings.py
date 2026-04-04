@@ -2,10 +2,20 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping, MutableMapping, Sequence
+from types import GenericAlias
 from typing import ClassVar
 
 from pydantic import TypeAdapter
+from pydantic.fields import FieldInfo
+from rich.console import Console as RichConsole
+from rich.tree import Tree as RichTree
+from tomlkit.container import Container
+from tomlkit.items import AoT, Array, Item, Table
+from tomlkit.toml_document import TOMLDocument
+from typer import Typer
+from typer.models import OptionInfo
+from typer.testing import CliRunner
 
 from flext_core import FlextTypes
 
@@ -30,28 +40,85 @@ class FlextCliTypes(FlextTypes):
         This enables consistent namespace patterns for cross-project type access.
         """
 
-        type JsonValue = FlextTypes.ContainerValue
-        type TableMappingRow = FlextTypes.ContainerValueMapping
-        type TableSequenceRow = Sequence[FlextTypes.ContainerValue]
+        type Scalar = FlextTypes.Scalar
+        type StrSequence = FlextTypes.StrSequence
+        type RecursiveContainer = FlextTypes.RecursiveContainer
+        type DefaultMapping = Mapping[str, Scalar | StrSequence]
+        type ValueOrModel = FlextTypes.ValueOrModel
+        type JsonValue = FlextTypes.JsonValue
+        type JsonMapping = FlextTypes.JsonMapping
+        type JsonList = FlextTypes.JsonList
+        type JsonDict = FlextTypes.JsonMapping
+        type TableMappingRow = FlextTypes.JsonMapping
+        type TableSequenceRow = FlextTypes.JsonList
         type TableRow = TableMappingRow | TableSequenceRow
-        type TableConfigValue = FlextTypes.ContainerValue
-        TabularData = TableMappingRow | Sequence[TableRow]
-        type JsonDict = FlextTypes.ContainerValueMapping
+        type TableConfigValue = FlextCliTypes.ContainerValue
+        type TabularData = TableMappingRow | Sequence[TableRow]
         type TableRows = Sequence[TableRow]
         type CliValue = (
-            FlextTypes.Scalar
-            | FlextTypes.StrSequence
-            | Mapping[str, FlextTypes.Scalar | FlextTypes.StrSequence]
+            FlextCliTypes.Scalar
+            | FlextCliTypes.StrSequence
+            | Mapping[str, FlextCliTypes.Scalar | FlextCliTypes.StrSequence]
             | None
         )
-        JSON_OBJECT_ADAPTER: TypeAdapter[FlextTypes.ContainerValue] = TypeAdapter(
-            FlextTypes.ContainerValue,
+        type FieldInfoMapping = Mapping[str, FieldInfo]
+        type TyperAnnotations = MutableMapping[str, type | GenericAlias]
+        type TyperApp = Typer
+        type TyperOptionInfo = OptionInfo
+        type TyperRunner = CliRunner
+        type TomlDocument = TOMLDocument
+        type TomlTable = Table
+        type TomlItem = Item
+        type TomlArray = Array
+        type TomlAoT = AoT
+        type TomlContainer = Container
+        type TomlParent = TOMLDocument | Table
+        type TomlValue = TOMLDocument | Table | Item | Array | AoT | Container
+        type RichTreeType = RichTree
+        type RichConsoleType = RichConsole
+
+        # YAML types (YAML parses to same Python types as JSON)
+        type YamlDict = FlextTypes.JsonMapping
+        type YamlValue = FlextTypes.JsonValue
+        type YamlList = FlextTypes.JsonList
+        type YamlDumpable = (
+            FlextTypes.JsonMapping
+            | Mapping[str, FlextTypes.NormalizedValue]
+            | FlextTypes.JsonList
+            | FlextTypes.JsonValue
         )
-        JSON_NORMALIZE_ADAPTER: ClassVar[TypeAdapter[FlextTypes.ContainerValue]] = (
-            TypeAdapter(
-                FlextTypes.ContainerValue,
-            )
+
+        PRIMITIVE_TYPES: ClassVar[
+            tuple[type[str], type[int], type[float], type[bool]]
+        ] = FlextTypes.PRIMITIVES_TYPES
+        SCALAR_TYPES: ClassVar[tuple[type, ...]] = FlextTypes.SCALAR_TYPES
+
+        # JSON adapters — SSOT para todos os projetos
+        JSON_VALUE_ADAPTER: ClassVar[TypeAdapter[FlextTypes.JsonValue]] = TypeAdapter(
+            FlextTypes.JsonValue
         )
+        JSON_MAPPING_ADAPTER: ClassVar[TypeAdapter[FlextTypes.JsonMapping]] = (
+            TypeAdapter(FlextTypes.JsonMapping)
+        )
+        JSON_LIST_ADAPTER: ClassVar[TypeAdapter[FlextTypes.JsonList]] = TypeAdapter(
+            FlextTypes.JsonList
+        )
+
+        # YAML adapters — delegates to same underlying types as JSON
+        YAML_DICT_ADAPTER: ClassVar[TypeAdapter[FlextTypes.JsonMapping]] = TypeAdapter(
+            FlextTypes.JsonMapping
+        )
+        YAML_SEQ_ADAPTER: ClassVar[TypeAdapter[FlextTypes.JsonList]] = TypeAdapter(
+            FlextTypes.JsonList
+        )
+
+        # ContainerValue adapters (NOT JSON — includes Path/datetime)
+        CONTAINER_VALUE_ADAPTER: TypeAdapter[FlextTypes.ContainerValue] = TypeAdapter(
+            FlextTypes.ContainerValue
+        )
+        CONTAINER_NORMALIZE_ADAPTER: ClassVar[
+            TypeAdapter[FlextTypes.ContainerValue]
+        ] = TypeAdapter(FlextTypes.ContainerValue)
 
 
 t = FlextCliTypes

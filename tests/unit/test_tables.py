@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import MutableSequence
+
 import pytest
 from flext_tests import tm
 
@@ -54,7 +56,7 @@ class TestsCliTables:
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """show_table must print the title before the rendered table body."""
-        printed: list[tuple[str, str | None]] = []
+        printed: MutableSequence[tuple[str, str | None]] = []
 
         def fake_print(message: str, style: str | None = None) -> None:
             printed.append((message, style))

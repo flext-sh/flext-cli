@@ -17,7 +17,7 @@ from pydantic import (
     computed_field,
 )
 
-from flext_cli import c, p, t
+from flext_cli import c, t
 from flext_core import FlextModels, r
 
 
@@ -94,11 +94,8 @@ class FlextCliModelsBase:
             Field(..., description="Command handler callable"),
         ]
 
-    class ResultCommandRouteModel[
-        TParams: BaseModel,
-        TResult: t.ValueOrModel,
-    ](BaseModel):
-        """Declarative route specification for model-driven CLI commands."""
+    class ResultCommandRoute(BaseModel):
+        """Type-erased route contract for heterogeneous batch registration."""
 
         model_config: ClassVar[ConfigDict] = ConfigDict(
             arbitrary_types_allowed=True,
@@ -108,11 +105,11 @@ class FlextCliModelsBase:
         name: Annotated[t.NonEmptyStr, Field(..., description="Command name")]
         help_text: Annotated[str, Field(..., description="User-facing help text")]
         model_cls: Annotated[
-            type[TParams],
+            type[BaseModel],
             Field(..., description="Pydantic input model class"),
         ]
         handler: Annotated[
-            p.Cli.ResultCommandHandler[TParams, TResult],
+            Callable[..., BaseModel],
             Field(..., description="Command handler returning r[...]"),
         ]
         failure_message: Annotated[
@@ -124,13 +121,26 @@ class FlextCliModelsBase:
             Field(default=None, description="Static success message"),
         ] = None
         success_formatter: Annotated[
-            p.Cli.SuccessMessageFormatter[TResult] | None,
+            Callable[..., str] | None,
             Field(default=None, description="Dynamic success formatter"),
         ] = None
         success_type: Annotated[
             str,
             Field(default="success", description="CLI output style on success"),
         ] = "success"
+
+    class ResultCommandRouteModel[
+        TParams: BaseModel,
+        TResult: t.ValueOrModel,
+    ](ResultCommandRoute):
+        """Declarative route specification for model-driven CLI commands.
+
+        Inherits from ResultCommandRoute so instances pass as
+        Sequence[ResultCommandRoute] in register_result_routes.
+        Generic params exist for call-site type safety but do NOT
+        redeclare fields — the parent's erased types are kept to
+        avoid pyright invariant override errors.
+        """
 
     class TableConfig(FlextModels.Value):
         """Table display configuration for tabulate extending Value via inheritance.
@@ -528,9 +538,7 @@ class FlextCliModelsBase:
                 return self.default
             if isinstance(self.raw, str):
                 return int(self.raw) if self.raw.isdigit() else self.default
-            if isinstance(self.raw, int):
-                return self.raw
-            return self.default
+            return self.raw
 
     class LogLevelResolved(BaseModel):
         """Single contract for log level string."""
@@ -583,20 +591,12 @@ class FlextCliModelsBase:
             if self.type_kind == "dict":
                 if isinstance(self.value, Mapping):
                     return {
-                        str(k): t.Cli.JSON_NORMALIZE_ADAPTER.dump_python(
-                            vv,
-                            mode="json",
-                            warnings=False,
-                        )
+                        str(k): t.Cli.JSON_VALUE_ADAPTER.validate_python(vv)
                         for k, vv in self.value.items()
                     }
                 if isinstance(self.default, Mapping):
                     return {
-                        str(k): t.Cli.JSON_NORMALIZE_ADAPTER.dump_python(
-                            vv,
-                            mode="json",
-                            warnings=False,
-                        )
+                        str(k): t.Cli.JSON_VALUE_ADAPTER.validate_python(vv)
                         for k, vv in self.default.items()
                     }
                 return {}
@@ -612,11 +612,7 @@ class FlextCliModelsBase:
                 return self.default if isinstance(self.default, bool) else False
             if isinstance(self.default, Mapping):
                 return {
-                    str(k): t.Cli.JSON_NORMALIZE_ADAPTER.dump_python(
-                        vv,
-                        mode="json",
-                        warnings=False,
-                    )
+                    str(k): t.Cli.JSON_VALUE_ADAPTER.validate_python(vv)
                     for k, vv in self.default.items()
                 }
             return {}
