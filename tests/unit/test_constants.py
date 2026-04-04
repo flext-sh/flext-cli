@@ -93,7 +93,7 @@ class TestsCliConstants:
         """Test Subdirectories constants."""
         tm.that(c.Cli.Subdirectories.CACHE, is_=str)
         tm.that(c.Cli.Subdirectories.LOGS, is_=str)
-        tm.that(c.Cli.Subdirectories.STANDARD_SUBDIRS, is_=list)
+        tm.that(c.Cli.Subdirectories.STANDARD_SUBDIRS, is_=tuple)
         tm.that(c.Cli.Subdirectories.STANDARD_SUBDIRS, empty=False)
 
     def test_table_formats(self) -> None:
