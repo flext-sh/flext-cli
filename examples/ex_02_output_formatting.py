@@ -35,7 +35,7 @@ from __future__ import annotations
 
 import pathlib
 import time
-from collections.abc import Mapping, MutableSequence, Sequence
+from collections.abc import MutableSequence, Sequence
 from pathlib import Path
 
 from examples import c, t
@@ -58,9 +58,8 @@ def display_database_results(records: Sequence[t.Cli.TableMappingRow]) -> None:
         return
     rows: MutableSequence[t.StrMapping] = []
     for i, record in enumerate(records[:10], 1):
-        if isinstance(record, Mapping):
-            row_data = " | ".join(str(v) for v in record.values())
-            rows.append({"#": f"Row {i}", "Data": row_data})
+        row_data = " | ".join(str(v) for v in record.values())
+        rows.append({"#": f"Row {i}", "Data": row_data})
     cli.show_table(rows, headers=["#", "Data"])
 
 

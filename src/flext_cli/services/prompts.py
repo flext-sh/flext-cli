@@ -37,7 +37,7 @@ class FlextCliPrompts(FlextCliServiceBase):
     def confirm(self, message: str, *, default: bool = False) -> r[bool]:
         try:
             if self._quiet or not self._interactive_mode:
-                return r.ok(default)
+                return r[bool].ok(default)
             prompt_text = (
                 f"{message}{c.Cli.Prompts.CONFIRM_YES}"
                 if default
@@ -57,7 +57,7 @@ class FlextCliPrompts(FlextCliServiceBase):
         try:
             self.logger.debug("Prompt service execution completed", operation="execute")
             empty_result: Mapping[str, t.Cli.JsonValue] = {}
-            return r.ok(empty_result)
+            return r[Mapping[str, t.Cli.JsonValue]].ok(empty_result)
         except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
             self._fatal(
                 "execute",
@@ -90,7 +90,7 @@ class FlextCliPrompts(FlextCliServiceBase):
     def prompt(self, message: str, default: str = "") -> r[str]:
         try:
             if self._quiet or not self._interactive_mode:
-                return r.ok(default)
+                return r[str].ok(default)
             display_message = (
                 f"{message}{c.Cli.Prompts.PROMPT_DEFAULT_FMT.format(default=default)}"
                 if default
@@ -102,7 +102,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 self.logger.info(
                     c.Cli.Prompts.PROMPT_LOG_FMT.format(message=message, input=value),
                 )
-            return r.ok(value)
+            return r[str].ok(value)
         except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
             self._fatal("prompt", message, exc, "Prompt failed completely")
             return r[str].fail(f"Prompt failed: {exc}")
@@ -117,7 +117,7 @@ class FlextCliPrompts(FlextCliServiceBase):
             return r[str].fail("No choices provided")
         if not self._interactive_mode:
             if default and default in choices:
-                return r.ok(default)
+                return r[str].ok(default)
             return r[str].fail("Interactive mode disabled for choice prompt")
         try:
             if default is None:
@@ -126,7 +126,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 )
             if default not in choices:
                 return r[str].fail(f"Invalid choice: {default}")
-            return r.ok(default)
+            return r[str].ok(default)
         except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
             self._fatal(
                 "prompt_choice",
@@ -149,7 +149,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                 return r[str].fail(
                     f"Password too short: minimum {min_length} characters",
                 )
-            return r.ok(password)
+            return r[str].ok(password)
         except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
             self._fatal(
                 "prompt_password",
@@ -201,7 +201,7 @@ class FlextCliPrompts(FlextCliServiceBase):
                     self.logger.warning(formatted_message)
                 case _:
                     self.logger.info(formatted_message)
-            return r.ok(True)
+            return r[bool].ok(True)
         except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
             self.logger.exception(
                 "FAILED to print message - operation aborted",
@@ -226,11 +226,11 @@ class FlextCliPrompts(FlextCliServiceBase):
         while True:
             text = input(prompt_text).strip().lower()
             if not text:
-                return r.ok(default)
+                return r[bool].ok(default)
             if text in yes_values:
-                return r.ok(True)
+                return r[bool].ok(True)
             if text in no_values:
-                return r.ok(False)
+                return r[bool].ok(False)
             self.logger.warning(
                 "Invalid confirmation input - please enter yes or no",
                 operation="confirm",

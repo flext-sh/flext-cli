@@ -102,8 +102,7 @@ class ExamplesModels(FlextCliModels):
                     "max_workers": 4,
                     "timeout": 30,
                 }
-            if not isinstance(typed_data, Mapping):
-                return None
+
             str_keys: set[str] = {"app_name", "api_key"}
             int_keys: set[str] = {"max_workers", "timeout"}
             updates = {
@@ -199,8 +198,7 @@ class ExamplesModels(FlextCliModels):
                     "log_level": "INFO",
                     "temp_dir": Path.home() / ".cache" / "myapp",
                 }
-            if not isinstance(typed_data, Mapping):
-                return None
+
             typed_dict: t.ContainerMapping = typed_data
             overrides: dict[str, t.Container] = {}
             for key in (

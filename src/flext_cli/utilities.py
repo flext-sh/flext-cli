@@ -140,7 +140,7 @@ class FlextCliUtilities(FlextUtilities):
                 """
                 try:
                     instance: M = model_class.model_validate(cli_args)
-                    return r.ok(instance)
+                    return r[M].ok(instance)
                 except ValidationError as exc:
                     return r[M].fail(
                         f"Validation error for {model_class.__name__}: {exc}",
@@ -153,12 +153,12 @@ class FlextCliUtilities(FlextUtilities):
                 """Convert field value to JSON-compatible value."""
                 if field_value is None:
                     empty_value: t.Cli.JsonValue = ""
-                    return r.ok(empty_value)
+                    return r[t.Cli.JsonValue].ok(empty_value)
                 try:
                     json_value: t.Cli.JsonValue = FlextCliUtilities.Cli.CliModelConverter.JSON_VALUE_ADAPTER.validate_python(
                         field_value,
                     )
-                    return r.ok(json_value)
+                    return r[t.Cli.JsonValue].ok(json_value)
                 except ValidationError as exc:
                     _logger.debug(
                         "convert_field_value validation fallback",
@@ -166,7 +166,7 @@ class FlextCliUtilities(FlextUtilities):
                         exc_info=False,
                     )
                     fallback_value: t.Cli.JsonValue = str(field_value)
-                    return r.ok(fallback_value)
+                    return r[t.Cli.JsonValue].ok(fallback_value)
 
         class ModelCommandBuilder[M: BaseModel]:
             """Builder for Typer commands from Pydantic models.
@@ -501,7 +501,9 @@ class FlextCliUtilities(FlextUtilities):
                             exc_info=False,
                         )
             return (
-                r[Mapping[str, U]].fail("; ".join(errors)) if errors else r.ok(values)
+                r[Mapping[str, U]].fail("; ".join(errors))
+                if errors
+                else r[Mapping[str, U]].ok(values)
             )
 
         class CliValidation:
@@ -557,8 +559,8 @@ class FlextCliUtilities(FlextUtilities):
                             )
                         )
                         return r[bool].fail(msg or err)
-                    return r.ok(True)
-                return r.ok(True)
+                    return r[bool].ok(True)
+                return r[bool].ok(True)
 
             @staticmethod
             def v_empty(val: t.Cli.CliValue, *, name: str = "field") -> r[bool]:
@@ -577,7 +579,7 @@ class FlextCliUtilities(FlextUtilities):
                             field_name=name,
                         ),
                     )
-                return r.ok(True)
+                return r[bool].ok(True)
 
             @staticmethod
             def v_format(format_type: str) -> r[str]:
@@ -590,7 +592,7 @@ class FlextCliUtilities(FlextUtilities):
                     in_list=c.Cli.ValidationLists.OUTPUT_FORMATS,
                 )
                 if valid.is_success:
-                    return r.ok(fmt)
+                    return r[str].ok(fmt)
                 return r[str].fail(
                     c.Cli.ErrorMessages.INVALID_OUTPUT_FORMAT.format(
                         format=format_type,

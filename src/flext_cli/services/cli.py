@@ -89,9 +89,7 @@ class FlextCliCli(FlextCliServiceBase):
             self._handler(model)
 
     @staticmethod
-    def _resolve_typer_annotation(
-        annotation: type | TypeAliasType,
-    ) -> type | GenericAlias:
+    def _resolve_typer_annotation(annotation: object) -> type | GenericAlias:
         """Resolve runtime annotations to concrete types accepted by Typer."""
         if isinstance(annotation, TypeAliasType):
             return FlextCliCli._resolve_typer_annotation(annotation.__value__)
@@ -131,14 +129,26 @@ class FlextCliCli(FlextCliServiceBase):
             return list[str]
         if origin in {dict, frozenset, set}:
             return origin
-        if isinstance(annotation, (type, GenericAlias)):
+        if isinstance(annotation, GenericAlias):
             return annotation
-        return type(annotation)
+        if isinstance(annotation, type):
+            return annotation
+        return str
+
+    @staticmethod
+    def _is_obj_sequence(value: object) -> TypeIs[Sequence[object]]:
+        """Safely narrow objects to sequence for iteration without Unknown types."""
+        return isinstance(value, (list, tuple))
+
+    @staticmethod
+    def _is_obj_mapping(value: object) -> TypeIs[Mapping[object, object]]:
+        """Safely narrow objects to mapping for iteration without Unknown types."""
+        return isinstance(value, Mapping)
 
     @staticmethod
     def _is_string_sequence(value: object) -> TypeIs[t.Cli.StrSequence]:
         """Return True for concrete string sequences accepted by repeated CLI options."""
-        if not isinstance(value, (list, tuple)):
+        if not FlextCliCli._is_obj_sequence(value):
             return False
         return all(isinstance(item, str) for item in value)
 
@@ -184,7 +194,7 @@ class FlextCliCli(FlextCliServiceBase):
             normalized_atom = FlextCliCli._normalize_cli_atom(factory_result)
             if normalized_atom is not None:
                 return normalized_atom
-            if isinstance(factory_result, Mapping):
+            if FlextCliCli._is_obj_mapping(factory_result):
                 normalized_mapping: dict[str, t.Cli.Scalar | t.Cli.StrSequence] = {}
                 for key, item_value in factory_result.items():
                     if not isinstance(key, str):
@@ -195,12 +205,10 @@ class FlextCliCli(FlextCliServiceBase):
                 if normalized_mapping:
                     return normalized_mapping
                 return None
-            if isinstance(
-                factory_result, (list, tuple)
+            if FlextCliCli._is_obj_sequence(
+                factory_result
             ) and FlextCliCli._is_string_sequence(factory_result):
-                normalized_sequence: tuple[str, ...] = tuple(
-                    item for item in factory_result if isinstance(item, str)
-                )
+                normalized_sequence: tuple[str, ...] = tuple(factory_result)
                 return normalized_sequence
             return None
         default_value = getattr(field_info, "default", None)
@@ -217,7 +225,7 @@ class FlextCliCli(FlextCliServiceBase):
         normalized_atom = cls._normalize_cli_atom(value)
         if normalized_atom is not None:
             return normalized_atom
-        if isinstance(value, Mapping):
+        if cls._is_obj_mapping(value):
             normalized_mapping: dict[str, t.Cli.Scalar | t.Cli.StrSequence] = {}
             for key, item_value in value.items():
                 if not isinstance(key, str):
@@ -228,10 +236,8 @@ class FlextCliCli(FlextCliServiceBase):
             if normalized_mapping:
                 return normalized_mapping
             return None
-        if isinstance(value, (list, tuple)) and cls._is_string_sequence(value):
-            normalized_sequence: tuple[str, ...] = tuple(
-                item for item in value if isinstance(item, str)
-            )
+        if cls._is_obj_sequence(value) and cls._is_string_sequence(value):
+            normalized_sequence: tuple[str, ...] = tuple(value)
             return normalized_sequence
         return None
 
@@ -256,12 +262,10 @@ class FlextCliCli(FlextCliServiceBase):
         option_decls = [option_name]
         extra = getattr(field_info, "json_schema_extra", None)
         custom_param_decls: list[str] | None = None
-        if isinstance(extra, Mapping):
+        if cls._is_obj_mapping(extra):
             declared = extra.get("typer_param_decls")
-            if isinstance(declared, (list, tuple)) and all(
-                isinstance(item, str) for item in declared
-            ):
-                custom_param_decls = list(declared)
+            if cls._is_obj_sequence(declared):
+                custom_param_decls = [str(item) for item in declared]
         if annotation is bool and isinstance(default_value, bool):
             dashed_name = cli_name.replace("_", "-")
             option_decls = [f"--{dashed_name}/--no-{dashed_name}"]

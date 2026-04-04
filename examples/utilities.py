@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping, MutableSequence
+from collections.abc import MutableSequence
 
 from pydantic import BaseModel
 
@@ -102,10 +102,7 @@ class ExamplesUtilities(FlextCliUtilities):
         if headers is None:
             headers = ["Setting", "Value"]
         rows: MutableSequence[t.StrMapping] = []
-        if isinstance(config_data, m.Cli.DisplayData) and isinstance(
-            config_data.data,
-            Mapping,
-        ):
+        if isinstance(config_data, m.Cli.DisplayData):
             for key, value in config_data.data.items():
                 rows.append({"Setting": str(key), "Value": str(value)})
         else:

@@ -40,8 +40,8 @@ class FlextCliTables(FlextCliServiceBase):
                 normalized_config: m.Cli.TableConfig = base_config.model_copy(
                     update={"table_format": "simple"},
                 )
-                return r.ok(normalized_config)
-            return r.ok(base_config)
+                return r[m.Cli.TableConfig].ok(normalized_config)
+            return r[m.Cli.TableConfig].ok(base_config)
         valid_fields = set(m.Cli.TableConfig.model_fields)
         config_data = base_config.model_dump()
         for key, value in config_kwargs.items():
@@ -52,7 +52,7 @@ class FlextCliTables(FlextCliServiceBase):
         )
         try:
             resolved_config = m.Cli.TableConfig(**config_data)
-            return r.ok(resolved_config)
+            return r[m.Cli.TableConfig].ok(resolved_config)
         except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
             return r[m.Cli.TableConfig].fail(f"Invalid table configuration: {exc}")
 
@@ -88,7 +88,7 @@ class FlextCliTables(FlextCliServiceBase):
                     available_formats=", ".join(available_formats_list),
                 ),
             )
-        return r.ok(True)
+        return r[bool].ok(True)
 
     @staticmethod
     def _normalize_mapping_row(
@@ -112,7 +112,7 @@ class FlextCliTables(FlextCliServiceBase):
                 }
                 for key, value in data.items()
             ]
-            return r.ok(mapping_rows)
+            return r[Sequence[t.Cli.TableRow]].ok(mapping_rows)
         normalized_rows: MutableSequence[t.Cli.TableRow] = []
         for row in data:
             if isinstance(row, Mapping):
@@ -124,7 +124,7 @@ class FlextCliTables(FlextCliServiceBase):
                 )
             normalized_rows.append([u.Cli.normalize_json_value(value) for value in row])
         rows: Sequence[t.Cli.TableRow] = normalized_rows
-        return r.ok(rows)
+        return r[Sequence[t.Cli.TableRow]].ok(rows)
 
     @staticmethod
     def _prepare_headers(
@@ -185,7 +185,7 @@ class FlextCliTables(FlextCliServiceBase):
                     disable_numparse=config.disable_numparse,
                     colalign=colalign,
                 )
-                return r.ok(rendered_table)
+                return r[str].ok(rendered_table)
             rendered_table = tabulate(
                 rows,
                 headers=headers,
@@ -198,7 +198,7 @@ class FlextCliTables(FlextCliServiceBase):
                 disable_numparse=config.disable_numparse,
                 colalign=colalign,
             )
-            return r.ok(rendered_table)
+            return r[str].ok(rendered_table)
         except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
             return r[str].fail(f"Table formatting failed: {exc}")
 

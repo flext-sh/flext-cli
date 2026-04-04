@@ -93,7 +93,7 @@ class FlextCliFormatters(FlextCliServiceBase):
         """
         try:
             tree = RichTree(label)
-            return r.ok(FlextCliFormatters.Tree(tree))
+            return r[FlextCliFormatters.Tree].ok(FlextCliFormatters.Tree(tree))
         except ConsoleError as exc:
             cls._get_or_create_logger().warning(
                 "rich_tree_creation_failed",
