@@ -55,6 +55,8 @@ class FlextCliTypes(FlextTypes):
         type TableConfigValue = FlextTypes.ContainerValue
         type TabularData = TableMappingRow | Sequence[TableRow]
         type TableRows = Sequence[TableRow]
+        type TableShowIndex = bool | str | Sequence[str | int]
+        type TableDisableNumparse = bool | Sequence[int]
         type CliValue = Scalar | StrSequence | Mapping[str, Scalar | StrSequence] | None
         type FieldInfoMapping = Mapping[str, FieldInfo]
         type TyperAnnotations = MutableMapping[str, type | GenericAlias]

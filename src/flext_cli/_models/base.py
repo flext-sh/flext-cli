@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable, Mapping
 from typing import (
     Annotated,
     ClassVar,
@@ -204,10 +204,9 @@ class FlextCliModelsBase:
         ] = ""
 
         # Index display
-        showindex: Annotated[
-            bool | str | Sequence[str | int],
-            Field(description="Whether to show row indices"),
-        ] = False
+        showindex: t.Cli.TableShowIndex = Field(
+            default=False, description="Whether to show row indices"
+        )
 
         # Column alignment
         colalign: Annotated[
@@ -218,12 +217,10 @@ class FlextCliModelsBase:
         ] = None
 
         # Number parsing
-        disable_numparse: Annotated[
-            bool | Sequence[int],
-            Field(
-                description="Disable number parsing (bool or list of column indices)",
-            ),
-        ] = False
+        disable_numparse: t.Cli.TableDisableNumparse = Field(
+            default=False,
+            description="Disable number parsing (bool or list of column indices)",
+        )
 
     class ConfigSnapshot(FlextModels.Value):
         """Snapshot of current CLI configuration information."""
