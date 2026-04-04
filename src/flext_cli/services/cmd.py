@@ -49,7 +49,7 @@ class FlextCliCmd(FlextCliServiceBase):
             c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.OPERATIONAL.value,
             c.Cli.DictKeys.SERVICE: c.Cli.CmdDefaults.SERVICE_NAME,
         }
-        return r.ok(status)
+        return r[Mapping[str, t.Cli.JsonValue]].ok(status)
 
     def show_config(self) -> r[bool]:
         """Show current configuration.
@@ -70,7 +70,7 @@ class FlextCliCmd(FlextCliServiceBase):
                 c.Cli.LogMessages.CONFIG_DISPLAYED,
                 config=info_result.value,
             )
-            return r.ok(True)
+            return r[bool].ok(True)
         except c.Cli.CLI_SAFE_EXCEPTIONS as e:
             return r[bool].fail(
                 c.Cli.CmdErrorMessages.SHOW_CONFIG_FAILED.format(
@@ -93,7 +93,7 @@ class FlextCliCmd(FlextCliServiceBase):
                         results=results,
                     ),
                 )
-            return r.ok(True)
+            return r[bool].ok(True)
         except (OSError, ValueError, TypeError, RuntimeError) as e:
             return r[bool].fail(
                 c.Cli.ErrorMessages.CONFIG_VALIDATION_FAILED.format(

@@ -52,15 +52,10 @@ class FlextCliTypes(FlextTypes):
         type TableMappingRow = FlextTypes.JsonMapping
         type TableSequenceRow = FlextTypes.JsonList
         type TableRow = TableMappingRow | TableSequenceRow
-        type TableConfigValue = FlextCliTypes.ContainerValue
+        type TableConfigValue = FlextTypes.ContainerValue
         type TabularData = TableMappingRow | Sequence[TableRow]
         type TableRows = Sequence[TableRow]
-        type CliValue = (
-            FlextCliTypes.Scalar
-            | FlextCliTypes.StrSequence
-            | Mapping[str, FlextCliTypes.Scalar | FlextCliTypes.StrSequence]
-            | None
-        )
+        type CliValue = Scalar | StrSequence | Mapping[str, Scalar | StrSequence] | None
         type FieldInfoMapping = Mapping[str, FieldInfo]
         type TyperAnnotations = MutableMapping[str, type | GenericAlias]
         type TyperApp = Typer
@@ -122,4 +117,5 @@ class FlextCliTypes(FlextTypes):
 
 
 t = FlextCliTypes
+
 __all__ = ["FlextCliTypes", "t"]

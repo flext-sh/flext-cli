@@ -386,6 +386,6 @@ class FlextCliConstants(FlextConstants):
         }
 
 
-__all__ = ["FlextCliConstants", "c"]
-
 c = FlextCliConstants
+
+__all__ = ["FlextCliConstants", "c"]

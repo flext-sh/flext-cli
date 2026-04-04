@@ -21,10 +21,10 @@ from flext_cli import (
     FlextCliPrompts,
     FlextCliTables,
     c,
+    r,
     t,
     u,
 )
-from flext_core import r
 
 
 class FlextCli(

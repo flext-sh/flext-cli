@@ -659,6 +659,6 @@ class FlextCliUtilities(FlextUtilities):
             return any(pattern.lower() in text for pattern in patterns)
 
 
-__all__ = ["FlextCliUtilities", "u"]
-
 u = FlextCliUtilities
+
+__all__ = ["FlextCliUtilities", "u"]

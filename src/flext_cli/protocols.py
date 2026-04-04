@@ -126,6 +126,6 @@ class FlextCliProtocols(FlextProtocols):
                 ...
 
 
-__all__ = ["FlextCliProtocols", "p"]
-
 p = FlextCliProtocols
+
+__all__ = ["FlextCliProtocols", "p"]

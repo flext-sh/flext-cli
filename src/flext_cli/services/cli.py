@@ -120,18 +120,20 @@ class FlextCliCli(FlextCliServiceBase):
             if args:
                 value = FlextCliCli._resolve_typer_annotation(args[0])
                 if isinstance(value, type):
-                    return list[value]
+                    return GenericAlias(list, (value,))
             return list[str]
         if origin in {list, tuple}:
             args = get_args(annotation)
             if args:
                 value = FlextCliCli._resolve_typer_annotation(args[0])
                 if isinstance(value, type):
-                    return list[value]
+                    return GenericAlias(list, (value,))
             return list[str]
         if origin in {dict, frozenset, set}:
             return origin
-        return annotation
+        if isinstance(annotation, (type, GenericAlias)):
+            return annotation
+        return type(annotation)
 
     @staticmethod
     def _is_string_sequence(value: object) -> TypeIs[t.Cli.StrSequence]:

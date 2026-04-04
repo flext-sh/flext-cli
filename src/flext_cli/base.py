@@ -15,10 +15,10 @@ from collections.abc import Mapping
 from typing import override
 
 from flext_cli import FlextCliSettings, t
-from flext_core import FlextSettings, s
+from flext_core import FlextService, FlextSettings
 
 
-class FlextCliServiceBase(s[Mapping[str, t.Cli.JsonValue]], ABC):
+class FlextCliServiceBase(FlextService[Mapping[str, t.Cli.JsonValue]], ABC):
     """Base class for flext-cli services with typed configuration access.
 
     Note: This is an abstract base class. Subclasses must implement the
@@ -31,5 +31,7 @@ class FlextCliServiceBase(s[Mapping[str, t.Cli.JsonValue]], ABC):
         """Return the typed CLI settings namespace."""
         return FlextSettings.get_global().get_namespace("cli", FlextCliSettings)
 
+
+s = FlextCliServiceBase
 
 __all__ = ["FlextCliServiceBase", "s"]

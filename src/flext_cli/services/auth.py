@@ -44,7 +44,7 @@ class FlextCliAuth(FlextCliServiceBase):
             return r[bool].fail("Username cannot be empty")
         if not password.strip():
             return r[bool].fail("Password cannot be empty")
-        return r.ok(True)
+        return r[bool].ok(True)
 
     def save_auth_token(self, token: str) -> r[bool]:
         """Persist an authentication token using the public file facade."""
@@ -66,7 +66,7 @@ class FlextCliAuth(FlextCliServiceBase):
         token_value = payload.get(c.Cli.DictKeys.TOKEN)
         if not isinstance(token_value, str) or not token_value:
             return r[str].fail("Token file does not contain a valid token")
-        return r.ok(token_value)
+        return r[str].ok(token_value)
 
     def authenticate(self, credentials: t.StrMapping) -> r[str]:
         """Authenticate with a token or username/password and persist the token."""
@@ -75,7 +75,7 @@ class FlextCliAuth(FlextCliServiceBase):
             save_result = self.save_auth_token(token_value)
             if save_result.is_failure:
                 return r[str].fail(save_result.error or "Failed to save token")
-            return r.ok(token_value)
+            return r[str].ok(token_value)
         username = credentials.get(c.Cli.DictKeys.USERNAME, "")
         password = credentials.get(c.Cli.DictKeys.PASSWORD, "")
         validation_result = self.validate_credentials(username, password)
@@ -85,13 +85,13 @@ class FlextCliAuth(FlextCliServiceBase):
         save_result = self.save_auth_token(generated_token)
         if save_result.is_failure:
             return r[str].fail(save_result.error or "Failed to save token")
-        return r.ok(generated_token)
+        return r[str].ok(generated_token)
 
     def clear_auth_tokens(self) -> r[bool]:
         """Delete the configured authentication token file if present."""
         token_file = self._get_token_file_path()
         if not token_file.exists():
-            return r.ok(True)
+            return r[bool].ok(True)
         return FlextCliFileTools.delete_file(token_file)
 
 

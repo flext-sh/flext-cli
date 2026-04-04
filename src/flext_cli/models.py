@@ -13,9 +13,9 @@ class FlextCliModels(FlextModels):
         """CLI project namespace."""
 
 
+m = FlextCliModels
+
 __all__ = [
     "FlextCliModels",
     "m",
 ]
-
-m = FlextCliModels

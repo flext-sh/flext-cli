@@ -46,7 +46,7 @@ class FlextCliCommonParams(FlextCliServiceBase):
         format_result = cls._set_format_params(config, params)
         if format_result.is_failure:
             return format_result
-        return r.ok(config)
+        return r[FlextCliSettings].ok(config)
 
     @classmethod
     def _build_params_from_kwargs(
@@ -100,7 +100,7 @@ class FlextCliCommonParams(FlextCliServiceBase):
             validated_config = config.model_copy(update=update_data)
             for key in update_data:
                 setattr(config, key, getattr(validated_config, key))
-        return r.ok(True)
+        return r[bool].ok(True)
 
     @classmethod
     def _set_format_params(
@@ -124,7 +124,7 @@ class FlextCliCommonParams(FlextCliServiceBase):
                     f"invalid output format: {params.output_format}. valid: {valid}",
                 )
             config = config.model_copy(update={"output_format": validated_result.value})
-        return r.ok(config)
+        return r[FlextCliSettings].ok(config)
 
     @classmethod
     def _set_log_level(
@@ -134,10 +134,10 @@ class FlextCliCommonParams(FlextCliServiceBase):
     ) -> r[FlextCliSettings]:
         """Set cli_log_level with enum conversion."""
         if params.log_level is None:
-            return r.ok(config)
+            return r[FlextCliSettings].ok(config)
         try:
             config.cli_log_level = c.Cli.Settings.LogLevel(params.log_level.upper())
-            return r.ok(config)
+            return r[FlextCliSettings].ok(config)
         except ValueError:
             valid = ", ".join(c.Cli.Lists.LOG_LEVELS_LIST)
             return r[FlextCliSettings].fail(

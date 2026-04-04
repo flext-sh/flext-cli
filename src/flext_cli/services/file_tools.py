@@ -27,7 +27,7 @@ class FlextCliFileTools(FlextCliServiceBase):
         **format_kwargs: t.Scalar,
     ) -> r[T]:
         try:
-            return r.ok(operation_func())
+            return r[T].ok(operation_func())
         except (
             OSError,
             ValueError,
@@ -314,13 +314,13 @@ class FlextCliFileTools(FlextCliServiceBase):
     def detect_file_format(file_path: str | Path) -> r[str]:
         suffix = Path(file_path).suffix.lower()
         if suffix == ".json":
-            return r.ok("json")
+            return r[str].ok("json")
         if suffix in {".yaml", ".yml"}:
-            return r.ok("yaml")
+            return r[str].ok("yaml")
         if suffix == ".csv":
-            return r.ok("csv")
+            return r[str].ok("csv")
         if suffix in {".txt", ".log"}:
-            return r.ok("text")
+            return r[str].ok("text")
         if suffix:
             return r[str].fail(f"Unsupported format: {suffix}")
         return r[str].fail("Unable to detect file format without an extension")
@@ -349,7 +349,7 @@ class FlextCliFileTools(FlextCliServiceBase):
             str(key): u.Cli.normalize_json_value(value)
             for key, value in payload.items()
         }
-        return r.ok(normalized_payload)
+        return r[Mapping[str, t.Cli.JsonValue]].ok(normalized_payload)
 
 
 __all__ = ["FlextCliFileTools"]
