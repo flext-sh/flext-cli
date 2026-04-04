@@ -1,0 +1,51 @@
+src/flext_cli/_utilities/toml.py
+  e1d2767e43e21b6f 11,35
+src/flext_cli/_utilities/json.py
+  e1d2767e43e21b6f 67,73,76,78,80,82-83,86,91,99,108-109,117,128,131-132,135,139-140,149,152,158
+src/flext_cli/protocols.py
+  cdbb584679205432 115-127
+src/flext_cli/_utilities/yaml.py
+  cdbb584679205432 36,47,51,55,63,65,67,71,73-74,80-81,91,103,114,144
+src/flext_cli/typings.py
+  cdbb584679205432 80,84,86,89-90,106-107,110
+src/flext_cli/utilities.py
+  e1d2767e43e21b6f 86
+src/flext_cli/services/output.py
+  e1d2767e43e21b6f 94
+src/flext_cli/services/file_tools.py
+  e1d2767e43e21b6f 129,188-190,192,220
+  cdbb584679205432 186-187,241
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.5",
+  "base_commit_sha": "5a58f29c4bd170c3303bbc2ba1ddc339a6eafe25",
+  "prompts": {
+    "cdbb584679205432": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "deb21ed0-98e4-498f-8592-3944a588496c",
+        "model": "unknown"
+      },
+      "human_author": "FLEXT Bot",
+      "messages": [],
+      "total_additions": 65,
+      "total_deletions": 47,
+      "accepted_lines": 41,
+      "overriden_lines": 8
+    },
+    "e1d2767e43e21b6f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b88f5b43-f2ee-4bd5-8e49-f0bc2c3099ed",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "FLEXT Bot",
+      "messages": [],
+      "total_additions": 60,
+      "total_deletions": 63,
+      "accepted_lines": 34,
+      "overriden_lines": 3
+    }
+  }
+}
