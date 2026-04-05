@@ -12,6 +12,7 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
+    JsonValue as PydanticJsonValue,
     RootModel,
     computed_field,
 )
@@ -51,7 +52,7 @@ class FlextCliModelsBase:
             ),
         ] = Field(default_factory=dict)
 
-    class CliNormalizedJson(RootModel[t.Cli.JsonValue]):
+    class CliNormalizedJson(RootModel[PydanticJsonValue]):
         """Normalize raw JSON value. Use m.Cli.CliNormalizedJson(value).root."""
 
     class NormalizedJsonDict(BaseModel):
@@ -77,7 +78,7 @@ class FlextCliModelsBase:
                 return self.value
             return self.default
 
-    class SuccessSummaryDetails(RootModel[t.StrMapping]):
+    class SuccessSummaryDetails(RootModel[Mapping[str, str]]):
         """Key-value success summary details. Use m.Cli.SuccessSummaryDetails."""
 
     class CommandEntryModel(BaseModel):
@@ -127,19 +128,6 @@ class FlextCliModelsBase:
             str,
             Field(default="success", description="CLI output style on success"),
         ] = "success"
-
-    class ResultCommandRouteModel[
-        TParams: BaseModel,
-        TResult: t.ValueOrModel,
-    ](ResultCommandRoute):
-        """Declarative route specification for model-driven CLI commands.
-
-        Inherits from ResultCommandRoute so instances pass as
-        Sequence[ResultCommandRoute] in register_result_routes.
-        Generic params exist for call-site type safety but do NOT
-        redeclare fields — the parent's erased types are kept to
-        avoid pyright invariant override errors.
-        """
 
     class TableConfig(m.Value):
         """Table display configuration for tabulate extending Value via inheritance.

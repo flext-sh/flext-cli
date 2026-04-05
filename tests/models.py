@@ -255,9 +255,7 @@ class FlextCliTestModels(FlextTestsModels, FlextCliModels):
                     ),
                 ] = Field(default_factory=list)
 
-            class SampleRoute(
-                FlextCliModels.Cli.ResultCommandRouteModel[SampleInput, SampleOutput]
-            ):
+            class SampleRoute(FlextCliModels.Cli.ResultCommandRoute):
                 """Concrete route model for test-time generic stability."""
 
 
