@@ -1,0 +1,39 @@
+examples/protocols.py
+  cdd262d4e064dc50 11,69,72
+examples/models.py
+  cdd262d4e064dc50 31,34-36,55,64,67,78,81,89,93,96,105,133-134,136-156,158-179,181-186,207,215,230,254,258,261,285,295,298,311,318,322,325,344,365,368
+examples/constants.py
+  cdd262d4e064dc50 10,13-14,56,59
+examples/typings.py
+  cdd262d4e064dc50 15,30,33
+examples/utilities.py
+  cdd262d4e064dc50 22,140,143
+examples/ex_06_configuration.py
+  cdd262d4e064dc50 158,172,238
+examples/ex_12_pydantic_driven_cli.py
+  cdd262d4e064dc50 42,62,79,109,120,169,178,184,197,213,227
+examples/__init__.py
+  cdd262d4e064dc50 18,198,203,209,213,229-233,244,316,321,345,352,373-374,376-377
+examples/ex_03_interactive_prompts.py
+  cdd262d4e064dc50 103,108,114,120,123,129,148-149,157,247,299-300,308,313,323,359,378,380
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.5",
+  "base_commit_sha": "557130e3a90bec7deb1619233492424b7953e862",
+  "prompts": {
+    "cdd262d4e064dc50": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "bb50d2f6-2887-49fd-99be-f714814b3981",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "FLEXT Bot",
+      "messages": [],
+      "total_additions": 451,
+      "total_deletions": 439,
+      "accepted_lines": 152,
+      "overriden_lines": 16
+    }
+  }
+}
