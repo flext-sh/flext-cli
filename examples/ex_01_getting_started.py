@@ -104,9 +104,6 @@ class FlextCliGettingStarted:
         cli.print("Operation completed", style="green")
         cli.print("ERROR: Something failed", style="bold red")
 
-    def your_function_before(self) -> None:
-        """Your old code using print()."""
-
 
 def main() -> None:
     """Main entry point for the getting started examples."""

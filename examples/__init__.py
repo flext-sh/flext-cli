@@ -14,7 +14,10 @@ if _t.TYPE_CHECKING:
 
     constants = _examples_constants
     import examples.ex_01_getting_started as _examples_ex_01_getting_started
-    from examples.constants import ExamplesConstants, ExamplesConstants as c
+    from examples.constants import (
+        FlextCliExamplesConstants,
+        FlextCliExamplesConstants as c,
+    )
 
     ex_01_getting_started = _examples_ex_01_getting_started
     import examples.ex_02_output_formatting as _examples_ex_02_output_formatting
@@ -192,18 +195,24 @@ if _t.TYPE_CHECKING:
 
     models = _examples_models
     import examples.protocols as _examples_protocols
-    from examples.models import ExamplesModels, ExamplesModels as m
+    from examples.models import FlextCliExamplesModels, FlextCliExamplesModels as m
 
     protocols = _examples_protocols
     import examples.typings as _examples_typings
-    from examples.protocols import ExamplesProtocols, ExamplesProtocols as p
+    from examples.protocols import (
+        FlextCliExamplesProtocols,
+        FlextCliExamplesProtocols as p,
+    )
 
     typings = _examples_typings
     import examples.utilities as _examples_utilities
-    from examples.typings import ExamplesTypes, ExamplesTypes as t
+    from examples.typings import FlextCliExamplesTypes, FlextCliExamplesTypes as t
 
     utilities = _examples_utilities
-    from examples.utilities import ExamplesUtilities, ExamplesUtilities as u
+    from examples.utilities import (
+        FlextCliExamplesUtilities,
+        FlextCliExamplesUtilities as u,
+    )
     from flext_core.decorators import FlextDecorators as d
     from flext_core.exceptions import FlextExceptions as e
     from flext_core.handlers import FlextHandlers as h
@@ -217,11 +226,11 @@ _LAZY_IMPORTS = {
     "DataManagerCLI": "examples.ex_11_complete_integration",
     "DataProcessorPlugin": "examples.ex_15_plugin",
     "ExamplePlugin": "examples.ex_15_plugin",
-    "ExamplesConstants": "examples.constants",
-    "ExamplesModels": "examples.models",
-    "ExamplesProtocols": "examples.protocols",
-    "ExamplesTypes": "examples.typings",
-    "ExamplesUtilities": "examples.utilities",
+    "FlextCliExamplesConstants": "examples.constants",
+    "FlextCliExamplesModels": "examples.models",
+    "FlextCliExamplesProtocols": "examples.protocols",
+    "FlextCliExamplesTypes": "examples.typings",
+    "FlextCliExamplesUtilities": "examples.utilities",
     "FlextCliGettingStarted": "examples.ex_01_getting_started",
     "InteractiveShell": "examples.ex_08_shell_interaction",
     "LazyDataLoader": "examples.ex_09_performance_optimization",
@@ -232,7 +241,7 @@ _LAZY_IMPORTS = {
     "apply_environment_overrides": "examples.ex_06_configuration",
     "authenticate_user": "examples.ex_03_interactive_prompts",
     "backup_config_files": "examples.ex_04_file_operations",
-    "c": ("examples.constants", "ExamplesConstants"),
+    "c": ("examples.constants", "FlextCliExamplesConstants"),
     "call_authenticated_api": "examples.ex_05_authentication",
     "complete_auth_workflow": "examples.ex_05_authentication",
     "constants": "examples.constants",
@@ -304,12 +313,12 @@ _LAZY_IMPORTS = {
     "load_user_preferences": "examples.ex_04_file_operations",
     "login_to_service": "examples.ex_05_authentication",
     "logout": "examples.ex_05_authentication",
-    "m": ("examples.models", "ExamplesModels"),
+    "m": ("examples.models", "FlextCliExamplesModels"),
     "main": "examples.ex_14_advanced_file_formats",
     "models": "examples.models",
     "monitor_live_metrics": "examples.ex_02_output_formatting",
     "my_cli_command": "examples.ex_10_testing_utilities",
-    "p": ("examples.protocols", "ExamplesProtocols"),
+    "p": ("examples.protocols", "FlextCliExamplesProtocols"),
     "perform_connection_test": "examples.ex_12_pydantic_driven_cli",
     "process_binary_file": "examples.ex_14_advanced_file_formats",
     "process_file_pipeline": "examples.ex_04_file_operations",
@@ -333,14 +342,14 @@ _LAZY_IMPORTS = {
     "show_environment_variables": "examples.ex_06_configuration",
     "show_session_info": "examples.ex_05_authentication",
     "stream_large_file": "examples.ex_09_performance_optimization",
-    "t": ("examples.typings", "ExamplesTypes"),
+    "t": ("examples.typings", "FlextCliExamplesTypes"),
     "test_cli_command": "examples.ex_10_testing_utilities",
     "test_error_scenarios": "examples.ex_10_testing_utilities",
     "test_file_operations": "examples.ex_10_testing_utilities",
     "test_integration": "examples.ex_10_testing_utilities",
     "test_interactive_command": "examples.ex_10_testing_utilities",
     "typings": "examples.typings",
-    "u": ("examples.utilities", "ExamplesUtilities"),
+    "u": ("examples.utilities", "FlextCliExamplesUtilities"),
     "utilities": "examples.utilities",
     "validate_and_import_data": "examples.ex_04_file_operations",
     "validate_and_transform_data": "examples.ex_04_file_operations",
@@ -361,11 +370,11 @@ __all__ = [
     "DataManagerCLI",
     "DataProcessorPlugin",
     "ExamplePlugin",
-    "ExamplesConstants",
-    "ExamplesModels",
-    "ExamplesProtocols",
-    "ExamplesTypes",
-    "ExamplesUtilities",
+    "FlextCliExamplesConstants",
+    "FlextCliExamplesModels",
+    "FlextCliExamplesProtocols",
+    "FlextCliExamplesTypes",
+    "FlextCliExamplesUtilities",
     "FlextCliGettingStarted",
     "InteractiveShell",
     "LazyDataLoader",

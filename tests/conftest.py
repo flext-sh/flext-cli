@@ -2,9 +2,21 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 
 import pytest
+
+from flext_cli import FlextCliSettings
+
+pytest_plugins = ["flext_tests.conftest_plugin"]
+
+
+@pytest.fixture
+def cli_settings(
+    settings_factory: Callable[..., FlextCliSettings],
+) -> FlextCliSettings:
+    """Provide clean FlextCliSettings for tests."""
+    return settings_factory(FlextCliSettings)
 
 
 def pytest_configure(config: pytest.Config) -> None:

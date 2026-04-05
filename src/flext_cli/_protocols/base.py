@@ -6,12 +6,14 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from pydantic import BaseModel
 
-from flext_cli import FlextCliTypesBase as cli_t
-from flext_core import r, t
+from flext_core import r
+
+if TYPE_CHECKING:
+    from flext_cli import t
 
 
 class FlextCliProtocolsBase:
@@ -79,11 +81,32 @@ class FlextCliProtocolsBase:
             ...
 
     @runtime_checkable
-    class ResultCommandHandler[TParams: BaseModel, TResult: t.ValueOrModel](Protocol):
+    class ResultCommandHandler[TParams: BaseModel, TResult: t.Cli.ResultValue](
+        Protocol
+    ):
         """Protocol for model-driven CLI handlers returning `r[...]`."""
 
         def __call__(self, params: TParams, /) -> r[TResult]:
             """Execute the handler and return a railway result."""
+            ...
+
+    @runtime_checkable
+    class ErasedCommandResult(Protocol):
+        """Type-erased result surface consumed by declarative CLI routes."""
+
+        @property
+        def is_failure(self) -> bool:
+            """Indicate whether the command failed."""
+            ...
+
+        @property
+        def error(self) -> str | None:
+            """Expose the normalized failure message, if any."""
+            ...
+
+        @property
+        def value(self) -> t.Cli.ResultValue:
+            """Expose the successful payload for message formatting."""
             ...
 
     @runtime_checkable
@@ -103,7 +126,7 @@ class FlextCliProtocolsBase:
             ...
 
     @runtime_checkable
-    class SuccessMessageFormatter[TResult: t.ValueOrModel](Protocol):
+    class SuccessMessageFormatter[TResult: t.Cli.ResultValue](Protocol):
         """Protocol for rendering a success result into a CLI message."""
 
         def __call__(self, value: TResult) -> str:
@@ -116,7 +139,7 @@ class FlextCliProtocolsBase:
 
         def dump(
             self,
-            data: cli_t.YamlDumpable,
+            data: t.Cli.YamlDumpable,
             *,
             default_flow_style: bool = True,
         ) -> str:

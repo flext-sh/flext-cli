@@ -8,12 +8,12 @@ from typing import Protocol, runtime_checkable
 from flext_cli import FlextCliProtocols
 
 
-class ExamplesProtocols(FlextCliProtocols):
+class FlextCliExamplesProtocols(FlextCliProtocols):
     """Public examples protocol facade extending flext-cli protocols."""
 
     @runtime_checkable
     class CliMainWithGroups(Protocol):
-        """Protocol for CLI main t.NormalizedValue with group and command decorators.
+        """Protocol for a CLI entrypoint with group and command decorators.
 
         Business Rule:
         ──────────────
@@ -23,7 +23,7 @@ class ExamplesProtocols(FlextCliProtocols):
         Audit Implications:
         ───────────────────
         - Plugins must check hasattr() before calling group()/command()
-        - Runtime protocol checks ensure compatibility without direct Typer imports
+        - Runtime protocol checks keep the plugin contract independent from Typer internals
         """
 
         def command(
@@ -66,9 +66,9 @@ class ExamplesProtocols(FlextCliProtocols):
             ...
 
 
-p = ExamplesProtocols
+p = FlextCliExamplesProtocols
 
 __all__ = [
-    "ExamplesProtocols",
+    "FlextCliExamplesProtocols",
     "p",
 ]

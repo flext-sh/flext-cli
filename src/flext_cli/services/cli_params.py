@@ -115,7 +115,7 @@ class FlextCliCommonParams(s):
                 )
             config.log_verbosity = params.log_format
         if params.output_format is not None:
-            validated_result = u.Cli.CliValidation.v_format(params.output_format)
+            validated_result = u.Cli.validate_format(params.output_format)
             if validated_result.is_failure:
                 valid = ", ".join(c.Cli.ValidationLists.OUTPUT_FORMATS)
                 return r[FlextCliSettings].fail(
@@ -166,7 +166,7 @@ class FlextCliCommonParams(s):
         if field_name not in c.Cli.CLI_PARAM_REGISTRY:
             msg = f"Field '{field_name}' not found in CLI parameter registry"
             raise ValueError(msg)
-        return u.Cli.OptionBuilder(field_name, c.Cli.CLI_PARAM_REGISTRY).build()
+        return u.Cli.build_option(field_name, c.Cli.CLI_PARAM_REGISTRY)
 
     @staticmethod
     def _opt_bool(kwargs: t.Cli.CliParamKwargs, key: str) -> bool | None:

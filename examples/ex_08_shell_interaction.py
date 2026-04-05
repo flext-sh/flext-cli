@@ -35,6 +35,7 @@ import time
 from collections.abc import MutableSequence
 
 from examples import t
+from examples.constants import c
 from flext_cli import cli
 from flext_core import r
 
@@ -53,7 +54,7 @@ def handle_status_command() -> r[t.ContainerMapping]:
 
 def handle_list_command(filter_text: str = "") -> r[t.StrSequence]:
     """List command with filtering in YOUR CLI."""
-    items = ["item1", "item2", "item3", "test_item"]
+    items = list(c.Examples.Defaults.DEFAULT_SHELL_ITEMS)
     if filter_text:
         filtered = [item for item in items if filter_text in item]
         cli.print(

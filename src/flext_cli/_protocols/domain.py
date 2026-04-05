@@ -63,11 +63,11 @@ class FlextCliProtocolsDomain:
         name: str
         help_text: str
         model_cls: type[BaseModel]
-        handler: t.Cli.CliCommand
+        handler: t.Cli.ResultRouteHandler
         failure_message: str
         success_message: str | None
         success_formatter: (
-            FlextCliProtocolsBase.SuccessMessageFormatter[t.Cli.ValueOrModel] | None
+            FlextCliProtocolsBase.SuccessMessageFormatter[t.Cli.ResultValue] | None
         )
         success_type: str
 

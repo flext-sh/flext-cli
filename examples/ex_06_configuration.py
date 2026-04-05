@@ -98,7 +98,7 @@ def load_profile_config(profile_name: str = "default") -> r[FlextCliSettings]:
         },
         deep=True,
     )
-    validate_result = u.Cli.CliValidation.v_format(profile_config.output_format)
+    validate_result = u.Cli.validate_format(profile_config.output_format)
     if validate_result.is_failure:
         cli.print(
             f"❌ Profile validation failed: {validate_result.error}",
@@ -146,7 +146,7 @@ def validate_app_config() -> bool:
     settings = cli.settings
     cli.print("🔍 Validating Configuration...", style="bold cyan")
     cli.print("\n1. Validating base configuration...", style="cyan")
-    validate_result = u.Cli.CliValidation.v_format(settings.output_format)
+    validate_result = u.Cli.validate_format(settings.output_format)
     if validate_result.is_failure:
         cli.print(
             f"   ❌ Base config invalid: {validate_result.error}",
@@ -155,7 +155,7 @@ def validate_app_config() -> bool:
         return False
     cli.print("   ✅ Base config valid", style="green")
     cli.print("\n2. Validating custom settings...", style="cyan")
-    app_config = m.MyAppConfig()
+    app_config = m.Examples.MyAppConfig()
     if not app_config.validate_config(cli):
         cli.print("   ❌ Custom config invalid", style="bold red")
         return False
@@ -169,8 +169,8 @@ def validate_app_config() -> bool:
 def load_application_config() -> r[Mapping[str, t.Cli.JsonValue]]:
     """Load and validate application configuration from environment."""
     cli.print("\n⚙️  Loading Application Configuration:", style="bold cyan")
-    config_obj = m.AppConfigAdvanced()
-    cli.print("✅ Config t.NormalizedValue created", style="green")
+    config_obj = m.Examples.AppConfigAdvanced()
+    cli.print("✅ Configuration model created", style="green")
     validate_result = config_obj.validate_to_mapping()
     if validate_result.is_failure:
         return validate_result
@@ -198,10 +198,13 @@ def apply_environment_overrides(
     env = os.getenv("ENVIRONMENT", "development")
     if env == "production":
         max_workers_value = result.get("max_workers", 4)
-        try:
-            result["max_workers"] = min(int(str(max_workers_value)), 20)
-        except (TypeError, ValueError):
-            result["max_workers"] = 4
+        if isinstance(max_workers_value, bool) or not isinstance(
+            max_workers_value,
+            int,
+        ):
+            msg = "max_workers must be an integer"
+            raise ValueError(msg)
+        result["max_workers"] = min(max_workers_value, 20)
         result["enable_metrics"] = True
     elif env == "testing":
         result["max_workers"] = 1
@@ -232,7 +235,7 @@ def main() -> None:
     cli.print("\n2. Environment Config (deployment settings):", style="bold cyan")
     _ = load_environment_config()
     cli.print("\n3. Custom Config Class (app-specific):", style="bold cyan")
-    app_config = m.MyAppConfig()
+    app_config = m.Examples.MyAppConfig()
     _ = app_config.validate_config(cli)
     app_config.display(cli)
     cli.print("\n4. Config Locations (file paths):", style="bold cyan")

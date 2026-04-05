@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, MutableMapping, Sequence
-from types import GenericAlias
-from typing import ClassVar
+from types import GenericAlias, UnionType
+from typing import ClassVar, TypeAliasType
 
 from pydantic import JsonValue as PydanticJsonValue, TypeAdapter
 from pydantic.fields import FieldInfo
@@ -40,6 +40,7 @@ class FlextCliTypesBase:
     type TableRows = Sequence[TableRow]
     type TableShowIndex = bool | str | Sequence[str | int]
     type TableDisableNumparse = bool | Sequence[int]
+    type TableColAlign = Sequence[str | None] | None
     type CliValue = Scalar | StrSequence | DefaultMapping | None
     type FieldInfoMapping = Mapping[str, FieldInfo]
     type CliAnnotations = MutableMapping[str, type | GenericAlias]
@@ -56,6 +57,9 @@ class FlextCliTypesBase:
     type TomlValue = TOMLDocument | Table | Item | Array | AoT | Container
     type RichTreeType = RichTree
     type RichConsoleType = RichConsole
+
+    type RuntimeAnnotation = type | GenericAlias | UnionType | TypeAliasType | None
+    type RuntimeValue = t.NormalizedValue
 
     type YamlDict = t.JsonMapping
     type YamlValue = t.RecursiveValue

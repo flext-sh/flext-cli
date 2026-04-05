@@ -27,7 +27,7 @@ class FlextCliUtilitiesYaml:
     Projects needing domain-specific normalization wrap these methods.
     """
 
-    logger: ClassVar[FlextLogger] = FlextLogger(__name__)
+    _module_logger: ClassVar[FlextLogger] = FlextLogger(__name__)
 
     # Re-exported so consumers never need ``import yaml`` directly.
     YAMLError: type[Exception] = YAMLError

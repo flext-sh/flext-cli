@@ -26,7 +26,7 @@ class FlextCliCmd(s):
     """Execute registered CLI commands and expose execution metadata.
 
     Extends s for consistent logging and container access.
-    Delegates config operations to u.Cli.ConfigOps.
+    Delegates config operations to direct ``u.Cli`` helpers.
     Railway-Oriented Programming via r for composable error handling.
     """
 
@@ -34,7 +34,7 @@ class FlextCliCmd(s):
     def get_config_info() -> r[m.Cli.ConfigSnapshot]:
         """Get configuration information using u directly."""
         return u.try_(
-            u.Cli.ConfigOps.get_config_info,
+            u.Cli.get_config_info,
         ).map_error(
             lambda e: c.Cli.ErrorMessages.CONFIG_INFO_FAILED.format(
                 error=e,
@@ -85,7 +85,7 @@ class FlextCliCmd(s):
 
         """
         try:
-            results = u.Cli.ConfigOps.validate_config_structure()
+            results = u.Cli.validate_config_structure()
             if results:
                 self.logger.info(
                     c.Cli.LogMessages.CONFIG_VALIDATION_RESULTS.format(

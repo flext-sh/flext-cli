@@ -13,15 +13,13 @@ from __future__ import annotations
 
 from collections.abc import MutableSequence
 
-from pydantic import BaseModel
-
 from examples.models import m
 from examples.typings import t
 from flext_cli import FlextCliUtilities, cli
 from flext_core import r
 
 
-class ExamplesUtilities(FlextCliUtilities):
+class FlextCliExamplesUtilities(FlextCliUtilities):
     """Public examples utility facade extending flext-cli utilities."""
 
     @staticmethod
@@ -57,11 +55,11 @@ class ExamplesUtilities(FlextCliUtilities):
 
     @staticmethod
     def handle_command_result(
-        result: r[BaseModel],
+        result: r[m.Value],
         action: str,
         success_fields: t.StrSequence | None = None,
     ) -> None:
-        """Generic handler for CQRS command results. Accepts r[BaseModel] only."""
+        """Generic handler for CQRS command results."""
         success_fields = success_fields or ["id", "status"]
 
         if result.is_success:
@@ -95,10 +93,10 @@ class ExamplesUtilities(FlextCliUtilities):
 
     @staticmethod
     def display_config_table(
-        config_data: BaseModel,
+        config_data: m.Cli.DisplayData | m.Value,
         headers: t.StrSequence | None = None,
     ) -> None:
-        """Display configuration as a table. Accepts Pydantic model only; uses show_table."""
+        """Display configuration as a table using canonical example models."""
         if headers is None:
             headers = ["Setting", "Value"]
         rows: MutableSequence[t.StrMapping] = []
@@ -139,9 +137,9 @@ class ExamplesUtilities(FlextCliUtilities):
             cli.print(f"   {i}. {error}", style="red")
 
 
-u = ExamplesUtilities
+u = FlextCliExamplesUtilities
 
 __all__ = [
-    "ExamplesUtilities",
+    "FlextCliExamplesUtilities",
     "u",
 ]

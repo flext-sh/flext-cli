@@ -21,7 +21,7 @@ class TestsCliCmdCov:
         """Test show_config_paths static utility failure path."""
         cmd = FlextCliCmd()
         monkeypatch.setattr(
-            cmd_module.u.Cli.ConfigOps,
+            cmd_module.u.Cli,
             "validate_config_structure",
             staticmethod(lambda: (_ for _ in ()).throw(RuntimeError("paths error"))),
         )
@@ -34,7 +34,7 @@ class TestsCliCmdCov:
     ) -> None:
         cmd = FlextCliCmd()
         monkeypatch.setattr(
-            cmd_module.u.Cli.ConfigOps,
+            cmd_module.u.Cli,
             "validate_config_structure",
             staticmethod(lambda: (_ for _ in ()).throw(RuntimeError("validate error"))),
         )
@@ -46,7 +46,7 @@ class TestsCliCmdCov:
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         monkeypatch.setattr(
-            cmd_module.u.Cli.ConfigOps,
+            cmd_module.u.Cli,
             "get_config_info",
             staticmethod(lambda: (_ for _ in ()).throw(RuntimeError("info error"))),
         )

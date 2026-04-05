@@ -28,7 +28,10 @@ from __future__ import annotations
 
 import time
 
+from pydantic import ValidationError
+
 from examples import m, t, u
+from examples.constants import c
 from flext_cli import cli
 from flext_core import r
 
@@ -36,7 +39,7 @@ from flext_core import r
 def demonstrate_auto_cli_generation() -> None:
     """Show auto-generated CLI parameters from Pydantic model."""
     cli.print("\n🔧 Auto-Generated CLI Parameters:", style="bold cyan")
-    fields = m.DeployConfig.model_fields
+    fields = m.Examples.DeployConfig.model_fields
     cli.print(
         f"✅ Generated {len(fields)} CLI parameters from DeployConfig:",
         style="green",
@@ -56,7 +59,7 @@ def demonstrate_auto_cli_generation() -> None:
     )
 
 
-def execute_deploy_from_cli(config: m.DeployConfig) -> None:
+def execute_deploy_from_cli(config: m.Examples.DeployConfig) -> None:
     """Convert validated Pydantic config to deployment. Accepts DeployConfig only."""
     cli.print("\n🚀 Deploying with CLI Arguments:", style="bold cyan")
     cli.print("✅ Valid configuration:", style="green")
@@ -73,7 +76,7 @@ def execute_deploy_from_cli(config: m.DeployConfig) -> None:
         )
 
 
-def deploy_application(config: m.DeployConfig) -> r[str]:
+def deploy_application(config: m.Examples.DeployConfig) -> r[str]:
     """Deploy application with validated config."""
     return r[str].ok(f"Deployed to {config.environment}")
 
@@ -103,7 +106,7 @@ def show_common_cli_params() -> None:
 def demonstrate_nested_models() -> None:
     """Show CLI generation from nested Pydantic models."""
     cli.print("\n🏗️  Nested Model CLI Generation:", style="bold cyan")
-    db_fields = m.DatabaseConfig.model_fields
+    db_fields = m.Examples.DatabaseConfig.model_fields
     cli.print("Database config parameters:", style="green")
     for name, field_info in db_fields.items():
         description = field_info.description or ""
@@ -114,7 +117,7 @@ def demonstrate_nested_models() -> None:
     cli.print("   --database-name myapp", style="white")
 
 
-def create_database_config_from_cli() -> r[m.AdvancedDatabaseConfig]:
+def create_database_config_from_cli() -> r[m.Examples.AdvancedDatabaseConfig]:
     """Create validated DatabaseConfig using Railway Pattern with Pydantic."""
     cli.print("\n🗄️  Database Configuration with Railway Pattern:", style="bold cyan")
     cli_args: t.ContainerMapping = {
@@ -126,83 +129,78 @@ def create_database_config_from_cli() -> r[m.AdvancedDatabaseConfig]:
         "ssl_enabled": True,
         "connection_pool": 20,
     }
-    validated_data = validate_required_fields(cli_args)
+    validated_data_result = validate_required_fields(cli_args)
+    if validated_data_result.is_failure:
+        return r[m.Examples.AdvancedDatabaseConfig].fail(
+            validated_data_result.error or "Required field validation failed",
+        )
     cli.print("✅ Required fields validated", style="green")
-    pydantic_result = convert_and_validate_with_pydantic(validated_data)
+    pydantic_result = convert_and_validate_with_pydantic(validated_data_result.value)
     if pydantic_result.is_failure:
         return pydantic_result
     cli.print("✅ Pydantic validation passed", style="green")
-    config = pydantic_result.value
-    final_config = validate_business_rules(config)
+    business_rules_result = validate_business_rules(pydantic_result.value)
+    if business_rules_result.is_failure:
+        return business_rules_result
     cli.print("✅ Business rules validated", style="green")
-    tested_config = perform_connection_test(final_config)
+    tested_config_result = perform_connection_test(business_rules_result.value)
+    if tested_config_result.is_failure:
+        return tested_config_result
     cli.print("✅ Connection test passed", style="green")
     u.display_success_summary("Database configuration")
-    return r[m.AdvancedDatabaseConfig].ok(tested_config)
+    return tested_config_result
 
 
 def validate_required_fields(
     data: t.ContainerMapping,
-) -> t.ContainerMapping:
+) -> r[t.ContainerMapping]:
     """Validate that all required fields are present."""
-    required = ["host", "name", "username", "password"]
+    required = list(c.Examples.Defaults.DATABASE_REQUIRED_FIELDS)
     missing = [field for field in required if field not in data or not data[field]]
     if missing:
-        msg = f"Missing required fields: {missing}"
-        raise ValueError(msg)
-    return data
+        return r[t.ContainerMapping].fail(
+            f"Missing required fields: {missing}",
+        )
+    return r[t.ContainerMapping].ok(data)
 
 
 def convert_and_validate_with_pydantic(
     data: t.ContainerMapping,
-) -> r[m.AdvancedDatabaseConfig]:
+) -> r[m.Examples.AdvancedDatabaseConfig]:
     """Convert raw data to validated Pydantic model."""
     try:
-        host = str(data.get("host", "localhost"))
-        port_value = data.get("port", 5432)
-        port = int(port_value) if isinstance(port_value, (str, int)) else 5432
-        name = str(data.get("name", ""))
-        username = str(data.get("username", ""))
-        password = str(data.get("password", ""))
-        ssl_value = data.get("ssl_enabled", True)
-        ssl_enabled = bool(ssl_value)
-        pool_value = data.get("connection_pool", 10)
-        connection_pool = int(pool_value) if isinstance(pool_value, (str, int)) else 10
-        config = m.AdvancedDatabaseConfig(
-            host=host,
-            port=port,
-            name=name,
-            username=username,
-            password=password,
-            ssl_enabled=ssl_enabled,
-            connection_pool=connection_pool,
+        return r[m.Examples.AdvancedDatabaseConfig].ok(
+            m.Examples.AdvancedDatabaseConfig.model_validate(
+                data,
+            ),
         )
-        return r[m.AdvancedDatabaseConfig].ok(config)
-    except Exception as e:
-        return r[m.AdvancedDatabaseConfig].fail(f"Pydantic validation failed: {e}")
+    except ValidationError as error:
+        return r[m.Examples.AdvancedDatabaseConfig].fail(
+            f"Pydantic validation failed: {error}",
+        )
 
 
 def validate_business_rules(
-    config: m.AdvancedDatabaseConfig,
-) -> m.AdvancedDatabaseConfig:
-    """Apply custom business logic validation; returns new instance (no mutation)."""
+    config: m.Examples.AdvancedDatabaseConfig,
+) -> r[m.Examples.AdvancedDatabaseConfig]:
+    """Apply custom business rules to validated database configuration."""
     if config.ssl_enabled and config.port == 5432:
         config = config.model_copy(update={"port": 5433})
     if config.connection_pool > 50 and config.host == "localhost":
-        msg = "Localhost cannot handle large connection pools"
-        raise ValueError(msg)
-    return config
+        return r[m.Examples.AdvancedDatabaseConfig].fail(
+            "Localhost cannot handle large connection pools",
+        )
+    return r[m.Examples.AdvancedDatabaseConfig].ok(config)
 
 
 def perform_connection_test(
-    config: m.AdvancedDatabaseConfig,
-) -> m.AdvancedDatabaseConfig:
+    config: m.Examples.AdvancedDatabaseConfig,
+) -> r[m.Examples.AdvancedDatabaseConfig]:
     """Simulate database connection test."""
     time.sleep(0.1)
     if "fail" in config.host:
-        msg = "Connection test failed"
-        raise ConnectionError(msg)
-    return config
+        return r[m.Examples.AdvancedDatabaseConfig].fail("Connection test failed")
+    return r[m.Examples.AdvancedDatabaseConfig].ok(config)
 
 
 def main() -> None:
@@ -212,7 +210,7 @@ def main() -> None:
     cli.print("=" * 70, style="bold blue")
     demonstrate_auto_cli_generation()
     cli.print("\n" + "=" * 70, style="bold blue")
-    deploy_config = m.DeployConfig(
+    deploy_config = m.Examples.DeployConfig(
         environment="production",
         workers=8,
         enable_cache=True,
@@ -226,14 +224,14 @@ def main() -> None:
     cli.print("\n" + "=" * 70, style="bold blue")
     cli.print("\n❌ Validation Demo - Invalid Environment:", style="bold cyan")
     try:
-        _ = m.DeployConfig(
+        _ = m.Examples.DeployConfig(
             environment="invalid_env",
             workers=4,
             enable_cache=True,
             timeout=30,
         )
-    except Exception as e:
-        cli.print(f"   Caught validation error: {e}", style="yellow")
+    except ValidationError as error:
+        cli.print(f"   Caught validation error: {error}", style="yellow")
     cli.print(
         "\n6. Railway Pattern with Pydantic (complete workflow):",
         style="bold cyan",

@@ -31,6 +31,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from examples import m
+from examples.constants import c
 from flext_cli import cli
 from flext_core import r
 
@@ -81,7 +82,7 @@ def delete_database(database_name: str) -> None:
 
 def select_environment() -> r[str]:
     """Environment selection in YOUR deployment tool."""
-    environments = ["development", "staging", "production"]
+    environments = list(c.Examples.Defaults.DEPLOYMENT_ENVIRONMENTS)
     choice_result = prompts.prompt_choice(
         "Select deployment environment:",
         choices=environments,
@@ -99,29 +100,33 @@ def select_environment() -> r[str]:
     return r[str].ok(selected)
 
 
-def database_setup_wizard() -> r[m.DatabaseWizardConfig]:
+def database_setup_wizard() -> r[m.Examples.DatabaseWizardConfig]:
     """Multi-step configuration wizard for YOUR application."""
     cli.print("📝 Database Setup Wizard", style="bold cyan")
     host_result = prompts.prompt("Database host:", default="localhost")
     if host_result.is_failure:
-        return r[m.DatabaseWizardConfig].fail(host_result.error or "Failed to get host")
+        return r[m.Examples.DatabaseWizardConfig].fail(
+            host_result.error or "Failed to get host"
+        )
     host = host_result.value
     port_result = prompts.prompt("Port:", default="5432")
     if port_result.is_failure:
-        return r[m.DatabaseWizardConfig].fail(port_result.error or "Failed to get port")
+        return r[m.Examples.DatabaseWizardConfig].fail(
+            port_result.error or "Failed to get port"
+        )
     try:
         port = int(port_result.value)
     except ValueError:
-        return r[m.DatabaseWizardConfig].fail("Port must be a number")
+        return r[m.Examples.DatabaseWizardConfig].fail("Port must be a number")
     db_result = prompts.prompt("Database name:")
     if db_result.is_failure:
-        return r[m.DatabaseWizardConfig].fail(
+        return r[m.Examples.DatabaseWizardConfig].fail(
             db_result.error or "Failed to get database name",
         )
     database = db_result.value
     pwd_result = prompts.prompt_password("Database password:")
     if pwd_result.is_failure:
-        return r[m.DatabaseWizardConfig].fail(
+        return r[m.Examples.DatabaseWizardConfig].fail(
             pwd_result.error or "Failed to get password",
         )
     password = pwd_result.value
@@ -140,8 +145,8 @@ def database_setup_wizard() -> r[m.DatabaseWizardConfig]:
     confirm = prompts.confirm("Save this configuration?", default=True)
     if confirm.is_success and confirm.value:
         cli.print("✅ Configuration saved!", style="green")
-        return r[m.DatabaseWizardConfig].ok(
-            m.DatabaseWizardConfig(
+        return r[m.Examples.DatabaseWizardConfig].ok(
+            m.Examples.DatabaseWizardConfig(
                 host=host,
                 port=port,
                 database=database,
@@ -149,7 +154,7 @@ def database_setup_wizard() -> r[m.DatabaseWizardConfig]:
             ),
         )
     cli.print("❌ Setup cancelled", style="yellow")
-    return r[m.DatabaseWizardConfig].fail("Setup cancelled by user")
+    return r[m.Examples.DatabaseWizardConfig].fail("Setup cancelled by user")
 
 
 def validate_email_input() -> r[str]:
@@ -186,7 +191,7 @@ def flext_prompt_with_validation() -> r[int]:
         return r[int].fail(name_result.error or "Name prompt failed")
     env_result = prompts.prompt_choice(
         "Select environment",
-        choices=["dev", "staging", "prod"],
+        choices=list(c.Examples.Defaults.DEPLOYMENT_ENVIRONMENTS_SHORT),
         default="dev",
     )
     if env_result.is_success:
@@ -239,7 +244,7 @@ def flext_confirm_prompts() -> bool:
     return False
 
 
-def flext_numeric_prompts() -> r[m.NumericPromptResult]:
+def flext_numeric_prompts() -> r[m.Examples.NumericPromptResult]:
     """Use cli cli with numeric validation."""
     cli.print("\n🔢 Type-Safe Numeric Input", style="cyan")
 
@@ -291,8 +296,8 @@ def flext_numeric_prompts() -> r[m.NumericPromptResult]:
         if pct_validation.is_success:
             percentage = pct_validation.value
             cli.print(f"✅ Percentage: {percentage}%", style="green")
-    return r[m.NumericPromptResult].ok(
-        m.NumericPromptResult(
+    return r[m.Examples.NumericPromptResult].ok(
+        m.Examples.NumericPromptResult(
             workers=workers,
             cpu_limit=cpu_limit,
             percentage=percentage,
@@ -300,22 +305,22 @@ def flext_numeric_prompts() -> r[m.NumericPromptResult]:
     )
 
 
-def flext_configuration_wizard() -> r[m.AppWizardConfig]:
+def flext_configuration_wizard() -> r[m.Examples.AppWizardConfig]:
     """Complete configuration wizard using cli cli."""
     cli.print("\n⚙️  Application Configuration Wizard", style="bold cyan")
     name_result = prompts.prompt("Application name", default="my-app")
     if name_result.is_failure:
-        return r[m.AppWizardConfig].fail(
+        return r[m.Examples.AppWizardConfig].fail(
             name_result.error or "Failed to get application name",
         )
     app_name = name_result.value
     env_result = prompts.prompt_choice(
         "Environment",
-        choices=["development", "staging", "production"],
+        choices=list(c.Examples.Defaults.DEPLOYMENT_ENVIRONMENTS),
         default="development",
     )
     if env_result.is_failure:
-        return r[m.AppWizardConfig].fail(
+        return r[m.Examples.AppWizardConfig].fail(
             env_result.error or "Failed to select environment",
         )
     environment = env_result.value
@@ -351,7 +356,7 @@ def flext_configuration_wizard() -> r[m.AppWizardConfig]:
     if auth_result.is_success:
         enable_auth = auth_result.value
     cli.print("\n📋 Configuration Summary:", style="yellow")
-    summary = m.AppWizardConfig(
+    summary = m.Examples.AppWizardConfig(
         app_name=app_name,
         environment=environment,
         port=port,
@@ -370,9 +375,9 @@ def flext_configuration_wizard() -> r[m.AppWizardConfig]:
     save_result = prompts.confirm("Save this configuration?", default=True)
     if save_result.is_success and save_result.value:
         cli.print("✅ Configuration saved!", style="bold green")
-        return r[m.AppWizardConfig].ok(summary)
+        return r[m.Examples.AppWizardConfig].ok(summary)
     cli.print("❌ Configuration discarded", style="yellow")
-    return r[m.AppWizardConfig].fail("Configuration discarded by user")
+    return r[m.Examples.AppWizardConfig].fail("Configuration discarded by user")
 
 
 def main() -> None:

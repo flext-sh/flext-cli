@@ -12,12 +12,10 @@ from pydantic import (
 from flext_cli import FlextCli, FlextCliTypes
 
 
-class ExamplesTypes(FlextCliTypes):
+class FlextCliExamplesTypes(FlextCliTypes):
     """Public examples type facade extending flext-cli types."""
 
-    type EnvInput = (
-        Mapping[str, FlextCliTypes.Container] | FlextCliTypes.Primitives | None
-    )
+    type EnvInput = FlextCliTypes.ContainerMapping | FlextCliTypes.Primitives | None
     type CliApi = FlextCli
 
     type DataProcessor = Callable[[str], str]
@@ -29,9 +27,9 @@ class ExamplesTypes(FlextCliTypes):
     )
 
 
-t = ExamplesTypes
+t = FlextCliExamplesTypes
 
 __all__ = [
-    "ExamplesTypes",
+    "FlextCliExamplesTypes",
     "t",
 ]

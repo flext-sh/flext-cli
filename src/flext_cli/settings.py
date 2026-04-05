@@ -8,9 +8,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import Annotated
+from typing import Annotated, ClassVar
 
 from pydantic import Field
+from pydantic_settings import SettingsConfigDict
 
 from flext_cli import c
 from flext_core import FlextLogger, FlextSettings
@@ -21,6 +22,11 @@ logger = FlextLogger(__name__)
 @FlextSettings.auto_register("cli")
 class FlextCliSettings(FlextSettings):
     """CLI-specific configuration; extends FlextSettings with profile and CLI fields."""
+
+    model_config: ClassVar[SettingsConfigDict] = SettingsConfigDict(
+        env_prefix="FLEXT_CLI_",
+        extra="ignore",
+    )
 
     verbose: Annotated[
         bool,

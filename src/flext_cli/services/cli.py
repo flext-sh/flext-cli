@@ -80,7 +80,9 @@ class FlextCliCli(s):
             self._handler(model)
 
     @staticmethod
-    def _resolve_typer_annotation(annotation: object) -> type | GenericAlias:
+    def _resolve_typer_annotation(
+        annotation: t.Cli.RuntimeAnnotation,
+    ) -> type | GenericAlias:
         """Resolve runtime annotations to concrete types accepted by Typer."""
         if isinstance(annotation, TypeAliasType):
             return FlextCliCli._resolve_typer_annotation(annotation.__value__)
@@ -127,13 +129,17 @@ class FlextCliCli(s):
         return str
 
     @staticmethod
-    def _is_obj_sequence(value: object) -> TypeIs[Sequence[object]]:
-        """Safely narrow objects to sequence for iteration without Unknown types."""
+    def _is_obj_sequence(
+        value: object,
+    ) -> TypeIs[Sequence[object]]:
+        """Safely narrow runtime values to sequence for iteration."""
         return isinstance(value, (list, tuple))
 
     @staticmethod
-    def _is_obj_mapping(value: object) -> TypeIs[Mapping[object, object]]:
-        """Safely narrow objects to mapping for iteration without Unknown types."""
+    def _is_obj_mapping(
+        value: object,
+    ) -> TypeIs[Mapping[object, object]]:
+        """Safely narrow runtime values to mapping for iteration."""
         return isinstance(value, Mapping)
 
     @staticmethod
@@ -179,36 +185,14 @@ class FlextCliCli(s):
             return FlextCliCli._normalize_cli_default(configured)
         default_factory = getattr(field_info, "default_factory", None)
         if callable(default_factory):
-            factory_result: object = default_factory()
-            if factory_result is None:
-                return None
-            normalized_atom = FlextCliCli._normalize_cli_atom(factory_result)
-            if normalized_atom is not None:
-                return normalized_atom
-            if FlextCliCli._is_obj_mapping(factory_result):
-                normalized_mapping: t.Cli.MutableDefaultMapping = {}
-                for key, item_value in factory_result.items():
-                    if not isinstance(key, str):
-                        continue
-                    normalized_item = FlextCliCli._normalize_cli_atom(item_value)
-                    if normalized_item is not None:
-                        normalized_mapping[key] = normalized_item
-                if normalized_mapping:
-                    return normalized_mapping
-                return None
-            if FlextCliCli._is_obj_sequence(
-                factory_result
-            ) and FlextCliCli._is_string_sequence(factory_result):
-                normalized_sequence: tuple[str, ...] = tuple(factory_result)
-                return normalized_sequence
-            return None
+            return FlextCliCli._normalize_cli_default(default_factory())
         default_value = getattr(field_info, "default", None)
         return FlextCliCli._normalize_cli_default(default_value)
 
     @classmethod
     def _normalize_cli_default(
         cls,
-        value: object | None,
+        value: object,
     ) -> t.Cli.CliValue:
         """Normalize field defaults into Typer-compatible scalar/mapping/list values."""
         if value is None:
@@ -227,7 +211,7 @@ class FlextCliCli(s):
             if normalized_mapping:
                 return normalized_mapping
             return None
-        if cls._is_obj_sequence(value) and cls._is_string_sequence(value):
+        if cls._is_string_sequence(value):
             normalized_sequence: tuple[str, ...] = tuple(value)
             return normalized_sequence
         return None
@@ -488,7 +472,7 @@ class FlextCliCli(s):
         _ = app.command(name, help=help_text)(command)
 
     @classmethod
-    def register_result_command[M: BaseModel, TResult: t.Cli.ValueOrModel](
+    def register_result_command[M: BaseModel, TResult: t.Cli.ResultValue](
         cls,
         app: t.Cli.CliApp,
         *,
@@ -520,7 +504,7 @@ class FlextCliCli(s):
         )
 
     @classmethod
-    def _build_result_executor[M: BaseModel, TResult: t.Cli.ValueOrModel](
+    def _build_result_executor[M: BaseModel, TResult: t.Cli.ResultValue](
         cls,
         *,
         failure_message: str,
@@ -557,10 +541,10 @@ class FlextCliCli(s):
     def _build_result_executor_erased(
         cls,
         *,
-        handler: t.Cli.CliCommand,
+        handler: t.Cli.ResultRouteHandler,
         failure_message: str = "",
         remember_failure: p.Cli.FailureMessageRecorder | None = None,
-        success_formatter: p.Cli.SuccessMessageFormatter[t.Cli.ValueOrModel]
+        success_formatter: p.Cli.SuccessMessageFormatter[t.Cli.ResultValue]
         | None = None,
         success_message: str | None = None,
         success_type: str = "success",

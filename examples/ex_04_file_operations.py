@@ -17,6 +17,7 @@ from pathlib import Path
 from pydantic import TypeAdapter, ValidationError
 
 from examples import m, t
+from examples.constants import c
 from flext_cli import cli, r, u
 
 # ============================================================================
@@ -82,7 +83,7 @@ def save_deployment_config(
     # with open(config_file, 'w') as f:
     #     yaml.dump(config, f)
 
-    # Cast dict to t.NormalizedValue (compatible with t.NormalizedValue)
+    # Normalize the mapping into the CLI JSON contract before writing YAML.
     write_result = cli.write_yaml_file(
         config_file,
         u.Cli.normalize_json_value(config),
@@ -213,7 +214,7 @@ def validate_and_import_data(input_file: Path) -> r[m.Cli.LoadedConfig]:
     if not isinstance(data, Mapping):
         return r[m.Cli.LoadedConfig].fail("Input data must be a mapping")
 
-    required_fields = ["id", "name", "value"]
+    required_fields = list(c.Examples.Defaults.REQUIRED_DATA_FIELDS)
     for field in required_fields:
         if field not in data:
             return r[m.Cli.LoadedConfig].fail(f"Missing required field: {field}")

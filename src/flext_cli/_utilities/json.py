@@ -9,18 +9,18 @@ from __future__ import annotations
 import operator
 from collections.abc import Mapping, Sequence
 from pathlib import Path
-from typing import TypeIs
+from typing import ClassVar, TypeIs
 
 from pydantic import BaseModel, ValidationError
 
 from flext_cli import c, r, t
 from flext_core import FlextLogger
 
-_logger = FlextLogger(__name__)
-
 
 class FlextCliUtilitiesJson:
     """Generic JSON read/write and manipulation helpers."""
+
+    _module_logger: ClassVar[FlextLogger] = FlextLogger(__name__)
 
     @staticmethod
     def is_mapping_like(
@@ -126,6 +126,11 @@ class FlextCliUtilitiesJson:
             )
             _ = path.write_text(content, encoding=c.Cli.Encoding.DEFAULT)
         except (TypeError, ValueError, ValidationError, OSError) as exc:
+            FlextCliUtilitiesJson._module_logger.debug(
+                "json_write failed",
+                error=str(exc),
+                exc_info=False,
+            )
             return r[bool].fail(f"json_write: {exc}")
         return r[bool].ok(True)
 

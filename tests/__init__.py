@@ -14,7 +14,12 @@ if _t.TYPE_CHECKING:
 
     conftest = _tests_conftest
     import tests.constants as _tests_constants
-    from tests.conftest import pytest_collection_modifyitems, pytest_configure
+    from tests.conftest import (
+        cli_settings,
+        pytest_collection_modifyitems,
+        pytest_configure,
+        pytest_plugins,
+    )
 
     constants = _tests_constants
     import tests.helpers as _tests_helpers
@@ -103,6 +108,7 @@ _LAZY_IMPORTS = merge_lazy_imports(
         "FlextCliTestTypes": "tests.typings",
         "FlextCliTestUtilities": "tests.utilities",
         "c": ("tests.constants", "FlextCliTestConstants"),
+        "cli_settings": "tests.conftest",
         "conftest": "tests.conftest",
         "constants": "tests.constants",
         "d": ("flext_core.decorators", "FlextDecorators"),
@@ -115,6 +121,7 @@ _LAZY_IMPORTS = merge_lazy_imports(
         "protocols": "tests.protocols",
         "pytest_collection_modifyitems": "tests.conftest",
         "pytest_configure": "tests.conftest",
+        "pytest_plugins": "tests.conftest",
         "r": ("flext_core.result", "FlextResult"),
         "s": ("flext_core.service", "FlextService"),
         "t": ("tests.typings", "FlextCliTestTypes"),
@@ -158,6 +165,7 @@ __all__ = [
     "TestsCliUtilitiesCov",
     "TestsCliVersion",
     "c",
+    "cli_settings",
     "conftest",
     "constants",
     "d",
@@ -170,6 +178,7 @@ __all__ = [
     "protocols",
     "pytest_collection_modifyitems",
     "pytest_configure",
+    "pytest_plugins",
     "r",
     "reset_config_singleton",
     "s",

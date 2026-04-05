@@ -55,7 +55,7 @@ class TestsCliUtilitiesCov:
         tm.that((collect_result.error or ""), has="bad")
 
     def test_validation_v_uses_custom_message_on_empty_failure(self) -> None:
-        result = u.Cli.CliValidation.v(None, name="x", empty=False, msg="custom")
+        result = u.Cli.validate_value(None, name="x", empty=False, msg="custom")
         tm.fail(result)
         tm.that(result.error, eq="custom")
 

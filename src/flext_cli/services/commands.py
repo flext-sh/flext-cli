@@ -18,19 +18,19 @@ from pydantic import PrivateAttr
 from flext_cli import c, m, p, r, s, t, u
 
 
-def _empty_command_registry() -> MutableMapping[str, p.Cli.CommandEntry]:
-    """Create an empty typed command registry for PrivateAttr initialization."""
-    return {}
-
-
 class FlextCliCommands(s):
     """CLI commands service for command registration and execution."""
 
     _name: str = PrivateAttr(default=c.Cli.CommandsDefaults.DEFAULT_NAME)
     _description: str = PrivateAttr(default=c.Cli.CommandsDefaults.DEFAULT_DESCRIPTION)
     _commands: MutableMapping[str, p.Cli.CommandEntry] = PrivateAttr(
-        default_factory=_empty_command_registry,
+        default_factory=lambda: dict[str, p.Cli.CommandEntry](),
     )
+
+    @staticmethod
+    def _empty_command_registry() -> MutableMapping[str, p.Cli.CommandEntry]:
+        """Create an empty typed command registry for PrivateAttr initialization."""
+        return {}
 
     @classmethod
     def create(cls, *, name: str, description: str = "") -> Self:

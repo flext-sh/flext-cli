@@ -14,11 +14,10 @@ from collections.abc import Mapping, MutableSequence, Sequence
 
 from tabulate import tabulate
 
-from flext_cli import FlextCliFormatters, FlextCliServiceBase, c, m, t, u
-from flext_core import r
+from flext_cli import FlextCliFormatters, c, m, r, s, t, u
 
 
-class FlextCliTables(FlextCliServiceBase):
+class FlextCliTables(s):
     """Tabulate integration for lightweight ASCII tables."""
 
     @staticmethod

@@ -19,7 +19,7 @@ from flext_core import FlextLogger, u
 class FlextCliUtilitiesToml:
     """Generic TOML read/write and table-manipulation helpers."""
 
-    logger: ClassVar[FlextLogger] = FlextLogger(__name__)
+    _module_logger: ClassVar[FlextLogger] = FlextLogger(__name__)
     _STR_SEQUENCE_ADAPTER: TypeAdapter[Sequence[str]] = TypeAdapter(Sequence[str])
 
     @staticmethod
@@ -270,10 +270,10 @@ class FlextCliUtilitiesToml:
         try:
             return tomlkit.parse(path.read_text(encoding=c.Cli.Encoding.DEFAULT))
         except (OSError, ValueError) as exc:
-            FlextCliUtilitiesToml.logger.warning(
+            FlextCliUtilitiesToml._module_logger.warning(
                 "Failed to read or parse TOML document",
                 path=str(path),
-                error=exc,
+                error=str(exc),
                 error_type=type(exc).__name__,
             )
             return None

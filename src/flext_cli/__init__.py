@@ -11,7 +11,17 @@ from flext_cli.__version__ import *
 from flext_core.lazy import install_lazy_exports, merge_lazy_imports
 
 if _t.TYPE_CHECKING:
+    import flext_cli._constants as _flext_cli__constants
+
+    _constants = _flext_cli__constants
     import flext_cli._models as _flext_cli__models
+    from flext_cli._constants import (
+        FlextCliConstantsBase,
+        FlextCliConstantsConfig,
+        FlextCliConstantsEnums,
+        config,
+        enums,
+    )
 
     _models = _flext_cli__models
     import flext_cli._protocols as _flext_cli__protocols
@@ -32,11 +42,27 @@ if _t.TYPE_CHECKING:
     _utilities = _flext_cli__utilities
     import flext_cli.api as _flext_cli_api
     from flext_cli._utilities import (
+        FlextCliUtilitiesBase,
+        FlextCliUtilitiesCliModelConverter,
+        FlextCliUtilitiesConfiguration,
+        FlextCliUtilitiesConversion,
         FlextCliUtilitiesJson,
+        FlextCliUtilitiesMatching,
+        FlextCliUtilitiesModelCommandBuilder,
+        FlextCliUtilitiesModelCommands,
+        FlextCliUtilitiesOptionBuilder,
+        FlextCliUtilitiesOptions,
         FlextCliUtilitiesToml,
+        FlextCliUtilitiesValidation,
         FlextCliUtilitiesYaml,
+        configuration,
+        conversion,
         json,
+        matching,
+        model_commands,
+        options,
         toml,
+        validation,
         yaml,
     )
 
@@ -101,6 +127,7 @@ if _t.TYPE_CHECKING:
     from flext_core.result import FlextResult as r
 _LAZY_IMPORTS = merge_lazy_imports(
     (
+        "flext_cli._constants",
         "flext_cli._models",
         "flext_cli._protocols",
         "flext_cli._typings",
@@ -124,6 +151,7 @@ _LAZY_IMPORTS = merge_lazy_imports(
         "__url__": "flext_cli.__version__",
         "__version__": "flext_cli.__version__",
         "__version_info__": "flext_cli.__version__",
+        "_constants": "flext_cli._constants",
         "_models": "flext_cli._models",
         "_protocols": "flext_cli._protocols",
         "_typings": "flext_cli._typings",
@@ -161,6 +189,9 @@ __all__ = [
     "FlextCliCommands",
     "FlextCliCommonParams",
     "FlextCliConstants",
+    "FlextCliConstantsBase",
+    "FlextCliConstantsConfig",
+    "FlextCliConstantsEnums",
     "FlextCliFileTools",
     "FlextCliFormatters",
     "FlextCliModels",
@@ -177,8 +208,18 @@ __all__ = [
     "FlextCliTypesBase",
     "FlextCliTypesDomain",
     "FlextCliUtilities",
+    "FlextCliUtilitiesBase",
+    "FlextCliUtilitiesCliModelConverter",
+    "FlextCliUtilitiesConfiguration",
+    "FlextCliUtilitiesConversion",
     "FlextCliUtilitiesJson",
+    "FlextCliUtilitiesMatching",
+    "FlextCliUtilitiesModelCommandBuilder",
+    "FlextCliUtilitiesModelCommands",
+    "FlextCliUtilitiesOptionBuilder",
+    "FlextCliUtilitiesOptions",
     "FlextCliUtilitiesToml",
+    "FlextCliUtilitiesValidation",
     "FlextCliUtilitiesYaml",
     "__author__",
     "__author_email__",
@@ -188,6 +229,7 @@ __all__ = [
     "__url__",
     "__version__",
     "__version_info__",
+    "_constants",
     "_models",
     "_protocols",
     "_typings",
@@ -200,17 +242,24 @@ __all__ = [
     "cli_params",
     "cmd",
     "commands",
+    "config",
+    "configuration",
     "constants",
+    "conversion",
     "d",
     "domain",
     "e",
+    "enums",
     "file_tools",
     "formatters",
     "h",
     "json",
     "logger",
     "m",
+    "matching",
+    "model_commands",
     "models",
+    "options",
     "output",
     "p",
     "prompts",
@@ -225,6 +274,7 @@ __all__ = [
     "typings",
     "u",
     "utilities",
+    "validation",
     "x",
     "yaml",
 ]

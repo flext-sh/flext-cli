@@ -36,7 +36,7 @@ class FlextCliModelsBase:
             Field(
                 description="Field-value pairs for display",
             ),
-        ] = Field(default_factory=dict)
+        ] = Field(default_factory=dict, description="Field-value pairs for display")
 
     class LoadedConfig(BaseModel):
         """Loaded configuration content wrapper — Pydantic v2 contract. Use m.Cli.LoadedConfig."""
@@ -50,7 +50,10 @@ class FlextCliModelsBase:
             Field(
                 description="Loaded configuration content (dict or other JSON value)",
             ),
-        ] = Field(default_factory=dict)
+        ] = Field(
+            default_factory=dict,
+            description="Loaded configuration content (dict or other JSON value)",
+        )
 
     class CliNormalizedJson(RootModel[PydanticJsonValue]):
         """Normalize raw JSON value. Use m.Cli.CliNormalizedJson(value).root."""
@@ -65,11 +68,14 @@ class FlextCliModelsBase:
         value: Annotated[
             t.Cli.JsonValue,
             Field(description="The normalized JSON value"),
-        ] = Field(default_factory=dict)
+        ] = Field(default_factory=dict, description="The normalized JSON value")
         default: Annotated[
             t.Cli.JsonMapping,
             Field(description="Default mapping if value is not a dict"),
-        ] = Field(default_factory=dict)
+        ] = Field(
+            default_factory=dict,
+            description="Default mapping if value is not a dict",
+        )
 
         @property
         def resolved(self) -> t.Cli.JsonMapping:
@@ -109,7 +115,7 @@ class FlextCliModelsBase:
             Field(..., description="Pydantic input model class"),
         ]
         handler: Annotated[
-            t.Cli.CliCommand,
+            t.Cli.ResultRouteHandler,
             Field(..., description="Command handler returning r[...]"),
         ]
         failure_message: Annotated[
@@ -197,7 +203,7 @@ class FlextCliModelsBase:
 
         # Column alignment
         colalign: Annotated[
-            t.StrSequence | None,
+            t.Cli.TableColAlign,
             Field(
                 description="Per-column alignment (left, center, right, decimal)",
             ),
@@ -504,7 +510,10 @@ class FlextCliModelsBase:
         """Single contract: raw (int | str | None) + default -> int."""
 
         model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
-        raw: Annotated[t.Cli.IntTextValue, Field(default=None)]
+        raw: Annotated[
+            t.Cli.IntTextValue,
+            Field(default=None, description="Raw timeout input (int, str, or None)"),
+        ]
         default: Annotated[
             int,
             Field(default=30, description="Default timeout in seconds"),
@@ -528,8 +537,14 @@ class FlextCliModelsBase:
         """Single contract for log level string."""
 
         model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
-        raw: Annotated[str | None, Field(default=None)]
-        default: Annotated[str, Field(default="INFO")]
+        raw: Annotated[
+            str | None,
+            Field(default=None, description="Raw log level input string"),
+        ]
+        default: Annotated[
+            str,
+            Field(default="INFO", description="Default log level when raw is absent"),
+        ]
 
         @computed_field
         @property
@@ -550,8 +565,14 @@ class FlextCliModelsBase:
             t.Cli.TypeKind,
             Field(description="Requested type"),
         ]
-        value: Annotated[t.Cli.JsonValue | None, Field(default=None)]
-        default: Annotated[t.Cli.JsonValue | None, Field(default=None)]
+        value: Annotated[
+            t.Cli.JsonValue | None,
+            Field(default=None, description="Value to extract and coerce"),
+        ]
+        default: Annotated[
+            t.Cli.JsonValue | None,
+            Field(default=None, description="Fallback value when extraction fails"),
+        ]
 
         @computed_field
         @property
