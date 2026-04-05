@@ -72,7 +72,7 @@ if _t.TYPE_CHECKING:
 
     base = _flext_cli_base
     import flext_cli.constants as _flext_cli_constants
-    from flext_cli.base import FlextCliServiceBase, FlextCliServiceBase as s
+    from flext_cli.base import FlextCliServiceBase, s
 
     constants = _flext_cli_constants
     import flext_cli.models as _flext_cli_models
@@ -170,7 +170,7 @@ _LAZY_IMPORTS = merge_lazy_imports(
         "p": ("flext_cli.protocols", "FlextCliProtocols"),
         "protocols": "flext_cli.protocols",
         "r": ("flext_core.result", "FlextResult"),
-        "s": ("flext_cli.base", "FlextCliServiceBase"),
+        "s": "flext_cli.base",
         "services": "flext_cli.services",
         "settings": "flext_cli.settings",
         "t": ("flext_cli.typings", "FlextCliTypes"),

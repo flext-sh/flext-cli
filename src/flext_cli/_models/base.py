@@ -127,7 +127,7 @@ class FlextCliModelsBase:
             Field(default=None, description="Static success message"),
         ] = None
         success_formatter: Annotated[
-            p.Cli.SuccessMessageFormatter[t.Cli.ValueOrModel] | None,
+            p.Cli.SuccessMessageFormatter[t.Cli.ResultValue] | None,
             Field(default=None, description="Dynamic success formatter"),
         ] = None
         success_type: Annotated[
