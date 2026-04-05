@@ -68,9 +68,10 @@ class FlextCliUtilities(FlextUtilities):
                     continue
                 raw_values = [value] if isinstance(value, str) else list(value)
                 for raw_value in raw_values:
-                    names.extend(
-                        item.strip() for item in raw_value.split(",") if item.strip()
-                    )
+                    for comma_group in raw_value.split(","):
+                        names.extend(
+                            item.strip() for item in comma_group.split() if item.strip()
+                        )
             return names or None
 
         class OptionBuilder:
@@ -112,6 +113,8 @@ class FlextCliUtilities(FlextUtilities):
                 option_args: MutableSequence[str] = [
                     f"--{cli_param_name.replace('_', '-')}"
                 ]
+                if cli_param_name == "project":
+                    option_args.append("--projects")
                 if short_flag:
                     option_args.append(f"-{short_flag}")
 

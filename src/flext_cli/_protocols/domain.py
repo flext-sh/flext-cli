@@ -60,47 +60,16 @@ class FlextCliProtocolsDomain:
     class ResultCommandRoute(Protocol):
         """Protocol for declarative result-route registration."""
 
-        @property
-        def name(self) -> str:
-            """Return the command name."""
-            ...
-
-        @property
-        def help_text(self) -> str:
-            """Return the user-facing help text."""
-            ...
-
-        @property
-        def model_cls(self) -> type[BaseModel]:
-            """Return the input model class."""
-            ...
-
-        @property
-        def handler(self) -> t.Cli.CliCommand:
-            """Return the route handler."""
-            ...
-
-        @property
-        def failure_message(self) -> str:
-            """Return the fallback failure message."""
-            ...
-
-        @property
-        def success_message(self) -> str | None:
-            """Return the static success message."""
-            ...
-
-        @property
-        def success_formatter(
-            self,
-        ) -> FlextCliProtocolsBase.SuccessMessageFormatter[t.Cli.ValueOrModel] | None:
-            """Return the dynamic success formatter."""
-            ...
-
-        @property
-        def success_type(self) -> str:
-            """Return the success message style."""
-            ...
+        name: str
+        help_text: str
+        model_cls: type[BaseModel]
+        handler: t.Cli.CliCommand
+        failure_message: str
+        success_message: str | None
+        success_formatter: (
+            FlextCliProtocolsBase.SuccessMessageFormatter[t.Cli.ValueOrModel] | None
+        )
+        success_type: str
 
 
 __all__ = ["FlextCliProtocolsDomain"]

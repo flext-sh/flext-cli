@@ -618,7 +618,7 @@ class FlextCliCli(s):
     def register_result_routes(
         cls,
         app: t.Cli.CliApp,
-        routes: t.Cli.ResultCommandRoutes,
+        routes: Sequence[m.Cli.ResultCommandRoute],
     ) -> None:
         """Register multiple heterogeneous result routes in one call."""
         for route in routes:
