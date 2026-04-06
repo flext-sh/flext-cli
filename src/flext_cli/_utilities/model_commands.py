@@ -10,8 +10,7 @@ from typing import ClassVar, Literal, Union, get_args, get_origin
 from pydantic import BaseModel
 from pydantic.fields import FieldInfo
 
-from flext_cli import p, t
-from flext_cli._utilities.json import FlextCliUtilitiesJson
+from flext_cli import FlextCliUtilitiesJson, p, t
 from flext_core import FlextLogger
 
 
