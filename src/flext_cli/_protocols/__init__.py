@@ -19,8 +19,11 @@ if _t.TYPE_CHECKING:
     domain = _flext_cli__protocols_domain
     from flext_cli._protocols.domain import FlextCliProtocolsDomain
 _LAZY_IMPORTS = {
-    "FlextCliProtocolsBase": "flext_cli._protocols.base",
-    "FlextCliProtocolsDomain": "flext_cli._protocols.domain",
+    "FlextCliProtocolsBase": ("flext_cli._protocols.base", "FlextCliProtocolsBase"),
+    "FlextCliProtocolsDomain": (
+        "flext_cli._protocols.domain",
+        "FlextCliProtocolsDomain",
+    ),
     "base": "flext_cli._protocols.base",
     "domain": "flext_cli._protocols.domain",
 }

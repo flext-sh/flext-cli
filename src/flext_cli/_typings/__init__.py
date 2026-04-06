@@ -19,8 +19,8 @@ if _t.TYPE_CHECKING:
     domain = _flext_cli__typings_domain
     from flext_cli._typings.domain import FlextCliTypesDomain
 _LAZY_IMPORTS = {
-    "FlextCliTypesBase": "flext_cli._typings.base",
-    "FlextCliTypesDomain": "flext_cli._typings.domain",
+    "FlextCliTypesBase": ("flext_cli._typings.base", "FlextCliTypesBase"),
+    "FlextCliTypesDomain": ("flext_cli._typings.domain", "FlextCliTypesDomain"),
     "base": "flext_cli._typings.base",
     "domain": "flext_cli._typings.domain",
 }

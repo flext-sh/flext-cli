@@ -15,7 +15,7 @@ if _t.TYPE_CHECKING:
     base = _flext_cli__models_base
     from flext_cli._models.base import FlextCliModelsBase
 _LAZY_IMPORTS = {
-    "FlextCliModelsBase": "flext_cli._models.base",
+    "FlextCliModelsBase": ("flext_cli._models.base", "FlextCliModelsBase"),
     "base": "flext_cli._models.base",
 }
 

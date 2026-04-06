@@ -26,7 +26,7 @@ if _t.TYPE_CHECKING:
     from flext_core.utilities import FlextUtilities as u
     from tests.helpers._impl import FlextCliTestHelpers
 _LAZY_IMPORTS = {
-    "FlextCliTestHelpers": "tests.helpers._impl",
+    "FlextCliTestHelpers": ("tests.helpers._impl", "FlextCliTestHelpers"),
     "_impl": "tests.helpers._impl",
     "c": ("flext_core.constants", "FlextConstants"),
     "d": ("flext_core.decorators", "FlextDecorators"),

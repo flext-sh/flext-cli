@@ -64,20 +64,47 @@ if _t.TYPE_CHECKING:
     yaml = _flext_cli__utilities_yaml
     from flext_cli._utilities.yaml import FlextCliUtilitiesYaml
 _LAZY_IMPORTS = {
-    "FlextCliUtilitiesBase": "flext_cli._utilities.base",
-    "FlextCliUtilitiesCliModelConverter": "flext_cli._utilities.conversion",
-    "FlextCliUtilitiesConfiguration": "flext_cli._utilities.configuration",
-    "FlextCliUtilitiesConversion": "flext_cli._utilities.conversion",
-    "FlextCliUtilitiesFiles": "flext_cli._utilities.files",
-    "FlextCliUtilitiesJson": "flext_cli._utilities.json",
-    "FlextCliUtilitiesMatching": "flext_cli._utilities.matching",
-    "FlextCliUtilitiesModelCommandBuilder": "flext_cli._utilities.model_commands",
-    "FlextCliUtilitiesModelCommands": "flext_cli._utilities.model_commands",
-    "FlextCliUtilitiesOptionBuilder": "flext_cli._utilities.options",
-    "FlextCliUtilitiesOptions": "flext_cli._utilities.options",
-    "FlextCliUtilitiesToml": "flext_cli._utilities.toml",
-    "FlextCliUtilitiesValidation": "flext_cli._utilities.validation",
-    "FlextCliUtilitiesYaml": "flext_cli._utilities.yaml",
+    "FlextCliUtilitiesBase": ("flext_cli._utilities.base", "FlextCliUtilitiesBase"),
+    "FlextCliUtilitiesCliModelConverter": (
+        "flext_cli._utilities.conversion",
+        "FlextCliUtilitiesCliModelConverter",
+    ),
+    "FlextCliUtilitiesConfiguration": (
+        "flext_cli._utilities.configuration",
+        "FlextCliUtilitiesConfiguration",
+    ),
+    "FlextCliUtilitiesConversion": (
+        "flext_cli._utilities.conversion",
+        "FlextCliUtilitiesConversion",
+    ),
+    "FlextCliUtilitiesFiles": ("flext_cli._utilities.files", "FlextCliUtilitiesFiles"),
+    "FlextCliUtilitiesJson": ("flext_cli._utilities.json", "FlextCliUtilitiesJson"),
+    "FlextCliUtilitiesMatching": (
+        "flext_cli._utilities.matching",
+        "FlextCliUtilitiesMatching",
+    ),
+    "FlextCliUtilitiesModelCommandBuilder": (
+        "flext_cli._utilities.model_commands",
+        "FlextCliUtilitiesModelCommandBuilder",
+    ),
+    "FlextCliUtilitiesModelCommands": (
+        "flext_cli._utilities.model_commands",
+        "FlextCliUtilitiesModelCommands",
+    ),
+    "FlextCliUtilitiesOptionBuilder": (
+        "flext_cli._utilities.options",
+        "FlextCliUtilitiesOptionBuilder",
+    ),
+    "FlextCliUtilitiesOptions": (
+        "flext_cli._utilities.options",
+        "FlextCliUtilitiesOptions",
+    ),
+    "FlextCliUtilitiesToml": ("flext_cli._utilities.toml", "FlextCliUtilitiesToml"),
+    "FlextCliUtilitiesValidation": (
+        "flext_cli._utilities.validation",
+        "FlextCliUtilitiesValidation",
+    ),
+    "FlextCliUtilitiesYaml": ("flext_cli._utilities.yaml", "FlextCliUtilitiesYaml"),
     "base": "flext_cli._utilities.base",
     "configuration": "flext_cli._utilities.configuration",
     "conversion": "flext_cli._utilities.conversion",

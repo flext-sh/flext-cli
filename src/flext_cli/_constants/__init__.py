@@ -23,9 +23,12 @@ if _t.TYPE_CHECKING:
     enums = _flext_cli__constants_enums
     from flext_cli._constants.enums import FlextCliConstantsEnums
 _LAZY_IMPORTS = {
-    "FlextCliConstantsBase": "flext_cli._constants.base",
-    "FlextCliConstantsConfig": "flext_cli._constants.config",
-    "FlextCliConstantsEnums": "flext_cli._constants.enums",
+    "FlextCliConstantsBase": ("flext_cli._constants.base", "FlextCliConstantsBase"),
+    "FlextCliConstantsConfig": (
+        "flext_cli._constants.config",
+        "FlextCliConstantsConfig",
+    ),
+    "FlextCliConstantsEnums": ("flext_cli._constants.enums", "FlextCliConstantsEnums"),
     "base": "flext_cli._constants.base",
     "config": "flext_cli._constants.config",
     "enums": "flext_cli._constants.enums",
