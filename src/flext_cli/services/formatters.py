@@ -63,10 +63,10 @@ class FlextCliFormatters(FlextCliServiceBase):
             label: str,
             *,
             return_child: bool = False,
-        ) -> FlextCliFormatters.Tree | None:
+        ) -> Self | None:
             """Add a child node; return the wrapped child only when *return_child* is set."""
             child = self._tree.add(label)
-            return FlextCliFormatters.Tree(child) if return_child else None
+            return self.__class__(child) if return_child else None
 
         @override
         def __str__(self) -> str:

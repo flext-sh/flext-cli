@@ -13,7 +13,7 @@ from __future__ import annotations
 from abc import ABC
 from typing import override
 
-from flext_cli import FlextCliSettings, t
+from flext_cli import FlextCliSettings, p, t
 from flext_core import FlextService, FlextSettings
 
 
