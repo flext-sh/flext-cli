@@ -9,16 +9,16 @@ from typing import Literal, TextIO
 from pydantic import BaseModel
 from pydantic.fields import FieldInfo
 
-from flext_cli import FlextCliProtocols as p, FlextCliTypesBase as cli_t
-from flext_core import r, t
+from flext_cli import FlextCliTypesBase, p, r
+from flext_core import t
 
 
 class FlextCliTypesDomain:
     """Composite CLI aliases built from canonical protocols and core types."""
 
     type ResultValue = t.ValueOrModel | Sequence[t.ValueOrModel]
-    type JsonValueResult = p.Result[cli_t.JsonValue]
-    type JsonMappingResult = p.Result[cli_t.JsonMapping]
+    type JsonValueResult = p.Result[FlextCliTypesBase.JsonValue]
+    type JsonMappingResult = p.Result[FlextCliTypesBase.JsonMapping]
     type ScalarMapping = Mapping[str, t.Scalar]
     type MutableScalarMapping = MutableMapping[str, t.Scalar]
     type MutableDefaultMapping = MutableMapping[
@@ -38,12 +38,14 @@ class FlextCliTypesDomain:
         str,
         Mapping[str, t.Scalar | t.StrSequence],
     ]
-    type FieldMetadataSource = FieldInfo | cli_t.JsonMapping | cli_t.JsonValue
-    type JsonDefaults = Mapping[str, cli_t.JsonValue]
-    type MutableJsonDefaults = MutableMapping[str, cli_t.JsonValue]
+    type FieldMetadataSource = (
+        FieldInfo | FlextCliTypesBase.JsonMapping | FlextCliTypesBase.JsonValue
+    )
+    type JsonDefaults = Mapping[str, FlextCliTypesBase.JsonValue]
+    type MutableJsonDefaults = MutableMapping[str, FlextCliTypesBase.JsonValue]
     type NullaryOperation[T] = Callable[[], T]
     type TextStreamWriter = Callable[[TextIO], None]
-    type CliCommand = Callable[..., cli_t.RuntimeValue]
+    type CliCommand = Callable[..., FlextCliTypesBase.RuntimeValue]
     type JsonCommandFn = Callable[..., r[t.RecursiveValue] | None]
     type ResultRouteHandler = Callable[..., p.Cli.ErasedCommandResult]
     type MappingProcessor[T, U] = Callable[[str, T], U]
@@ -51,23 +53,26 @@ class FlextCliTypesDomain:
     type RecursiveMapping = Mapping[str, t.RecursiveContainer]
     type RecursiveMappingSource = t.RecursiveContainer | RecursiveMapping | None
     type JsonPayload = (
-        cli_t.JsonValue
+        FlextCliTypesBase.JsonValue
         | BaseModel
-        | cli_t.JsonMapping
-        | cli_t.JsonList
+        | FlextCliTypesBase.JsonMapping
+        | FlextCliTypesBase.JsonList
         | Mapping[str, t.NormalizedValue]
     )
-    type JsonValueOrModel = cli_t.JsonValue | BaseModel | None
+    type JsonValueOrModel = FlextCliTypesBase.JsonValue | BaseModel | None
     type TomlMappingSource = (
-        t.RecursiveContainer | cli_t.TomlItem | cli_t.TomlDocument | None
+        t.RecursiveContainer
+        | FlextCliTypesBase.TomlItem
+        | FlextCliTypesBase.TomlDocument
+        | None
     )
-    type TomlUnwrappedSource = t.RecursiveContainer | cli_t.TomlItem | None
-    type TomlRuntimeSource = cli_t.TomlValue | t.RecursiveContainer | None
+    type TomlUnwrappedSource = t.RecursiveContainer | FlextCliTypesBase.TomlItem | None
+    type TomlRuntimeSource = FlextCliTypesBase.TomlValue | t.RecursiveContainer | None
     type TypeKind = Literal["str", "bool", "dict"]
     type ReturnChildLiteral = Literal[True]
-    type TypedExtractValue = str | bool | cli_t.JsonMapping | None
+    type TypedExtractValue = str | bool | FlextCliTypesBase.JsonMapping | None
     type ResultCommandRoutes = Sequence[p.Cli.ResultCommandRoute]
-    type TableDataSource = cli_t.TabularData | Sequence[t.ContainerMapping]
+    type TableDataSource = FlextCliTypesBase.TabularData | Sequence[t.ContainerMapping]
     type TextPath = str | Path
     type PathLike = str | Path
     type JsonWriteData = (

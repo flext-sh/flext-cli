@@ -15,11 +15,11 @@ from collections.abc import MutableSequence
 
 from examples.models import m
 from examples.typings import t
-from flext_cli import FlextCliUtilities, cli
+from flext_cli import cli, u as _cli_u
 from flext_core import r
 
 
-class FlextCliExamplesUtilities(FlextCliUtilities):
+class FlextCliExamplesUtilities(_cli_u):
     """Public examples utility facade extending flext-cli utilities."""
 
     @classmethod

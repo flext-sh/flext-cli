@@ -9,21 +9,19 @@ from pydantic import (
     TypeAdapter,
 )
 
-from flext_cli import FlextCli, FlextCliTypes
+from flext_cli import FlextCli, t as _cli_t
 
 
-class FlextCliExamplesTypes(FlextCliTypes):
+class FlextCliExamplesTypes(_cli_t):
     """Public examples type facade extending flext-cli types."""
 
-    type EnvInput = FlextCliTypes.ContainerMapping | FlextCliTypes.Primitives | None
+    type EnvInput = _cli_t.ContainerMapping | _cli_t.Primitives | None
     type CliApi = FlextCli
 
     type DataProcessor = Callable[[str], str]
     type ProcessorRegistry = Mapping[str, DataProcessor]
-    JSON_DICT_ADAPTER: ClassVar[TypeAdapter[FlextCliTypes.ContainerMapping]] = (
-        TypeAdapter(
-            FlextCliTypes.ContainerMapping,
-        )
+    JSON_DICT_ADAPTER: ClassVar[TypeAdapter[_cli_t.ContainerMapping]] = TypeAdapter(
+        _cli_t.ContainerMapping,
     )
 
 

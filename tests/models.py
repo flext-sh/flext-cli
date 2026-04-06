@@ -16,14 +16,14 @@ from typing import Annotated, ClassVar, Literal
 from flext_tests import FlextTestsModels
 from pydantic import BaseModel, ConfigDict, Field
 
-from flext_cli import FlextCliModels, FlextCliTypes
+from flext_cli import m as _cli_m, t as _cli_t
 from tests import t
 
 
-class FlextCliTestModels(FlextTestsModels, FlextCliModels):
+class FlextCliTestModels(FlextTestsModels, _cli_m):
     """Test namespace facade for flext-cli models. Use m alias; preserves all test model types."""
 
-    class Cli(FlextCliModels.Cli):
+    class Cli(_cli_m.Cli):
         """CLI models with test-specific extensions."""
 
         class Tests:
@@ -36,11 +36,11 @@ class FlextCliTestModels(FlextTestsModels, FlextCliModels):
 
                 def __init__(
                     self,
-                    data: Mapping[str, FlextCliTypes.ContainerValue] | None = None,
+                    data: Mapping[str, _cli_t.ContainerValue] | None = None,
                     /,
-                    **kwargs: FlextCliTypes.ContainerValue,
+                    **kwargs: _cli_t.ContainerValue,
                 ) -> None:
-                    payload: MutableMapping[str, FlextCliTypes.ContainerValue] = {}
+                    payload: MutableMapping[str, _cli_t.ContainerValue] = {}
                     if data is not None:
                         payload.update(data)
                     payload.update(kwargs)
@@ -61,7 +61,7 @@ class FlextCliTestModels(FlextTestsModels, FlextCliModels):
                 model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
                 status: Annotated[str, Field(description="Status")]
                 data: Annotated[
-                    FlextCliTypes.NormalizedValue,
+                    _cli_t.NormalizedValue,
                     Field(default=None, description="Payload"),
                 ]
                 message: Annotated[str, Field(description="Message")]
@@ -213,7 +213,7 @@ class FlextCliTestModels(FlextTestsModels, FlextCliModels):
                     t.Cli.Tests.ConfigTestType, Field(description="Scenario test type")
                 ]
                 data: Annotated[
-                    FlextCliTypes.ContainerMapping | None,
+                    _cli_t.ContainerMapping | None,
                     Field(default=None, description="Scenario input data"),
                 ]
                 should_pass: Annotated[
@@ -255,7 +255,7 @@ class FlextCliTestModels(FlextTestsModels, FlextCliModels):
                     ),
                 ] = Field(default_factory=list)
 
-            class SampleRoute(FlextCliModels.Cli.ResultCommandRoute):
+            class SampleRoute(_cli_m.Cli.ResultCommandRoute):
                 """Concrete route model for test-time generic stability."""
 
 
