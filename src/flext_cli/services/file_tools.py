@@ -3,9 +3,7 @@
 from __future__ import annotations
 
 import csv
-import os
 import shutil
-import tempfile
 from collections.abc import Sequence
 from pathlib import Path
 
@@ -96,27 +94,13 @@ class FlextCliFileTools(s):
 
     @staticmethod
     def atomic_write_text_file(file_path: t.Cli.TextPath, content: str) -> r[bool]:
-        """Write text file atomically via tempfile + rename in same directory."""
-        path = Path(file_path)
-
-        def _atomic_write() -> bool:
-            fd, tmp_path = tempfile.mkstemp(
-                dir=path.parent,
-                suffix=".tmp",
+        """Write text file atomically via the canonical ``u.Cli`` utility surface."""
+        result = u.Cli.atomic_write_text_file(file_path, content)
+        if result.is_failure:
+            return r[bool].fail(
+                result.error or "Text write failed",
             )
-            try:
-                with os.fdopen(fd, "w", encoding=c.Cli.Encoding.DEFAULT) as f:
-                    f.write(content)
-                Path(tmp_path).replace(path)
-            except BaseException:
-                Path(tmp_path).unlink(missing_ok=True)
-                raise
-            return True
-
-        return FlextCliFileTools._execute_file_operation(
-            _atomic_write,
-            "Atomic write failed: {error}",
-        )
+        return result
 
     @staticmethod
     def read_json_file(file_path: t.Cli.TextPath) -> r[t.Cli.JsonValue]:

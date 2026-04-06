@@ -21,6 +21,10 @@ if _t.TYPE_CHECKING:
     from flext_cli._utilities.configuration import FlextCliUtilitiesConfiguration
 
     conversion = _flext_cli__utilities_conversion
+    import flext_cli._utilities.files as _flext_cli__utilities_files
+    from flext_cli._utilities.files import FlextCliUtilitiesFiles
+
+    files = _flext_cli__utilities_files
     import flext_cli._utilities.json as _flext_cli__utilities_json
     from flext_cli._utilities.conversion import (
         FlextCliUtilitiesCliModelConverter,
@@ -64,6 +68,7 @@ _LAZY_IMPORTS = {
     "FlextCliUtilitiesCliModelConverter": "flext_cli._utilities.conversion",
     "FlextCliUtilitiesConfiguration": "flext_cli._utilities.configuration",
     "FlextCliUtilitiesConversion": "flext_cli._utilities.conversion",
+    "FlextCliUtilitiesFiles": "flext_cli._utilities.files",
     "FlextCliUtilitiesJson": "flext_cli._utilities.json",
     "FlextCliUtilitiesMatching": "flext_cli._utilities.matching",
     "FlextCliUtilitiesModelCommandBuilder": "flext_cli._utilities.model_commands",
@@ -90,6 +95,7 @@ __all__ = [
     "FlextCliUtilitiesCliModelConverter",
     "FlextCliUtilitiesConfiguration",
     "FlextCliUtilitiesConversion",
+    "FlextCliUtilitiesFiles",
     "FlextCliUtilitiesJson",
     "FlextCliUtilitiesMatching",
     "FlextCliUtilitiesModelCommandBuilder",
