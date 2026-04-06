@@ -13,11 +13,91 @@ from pydantic import BaseModel
 from flext_core import r
 
 if TYPE_CHECKING:
-    from flext_cli import t
+    from flext_cli import m, t
 
 
 class FlextCliProtocolsBase:
     """CLI protocol namespace for all CLI-specific protocols."""
+
+    @runtime_checkable
+    class CommandOutput(Protocol):
+        """Minimal external command execution output contract."""
+
+        @property
+        def duration(self) -> float:
+            """Return the command duration in seconds."""
+            ...
+
+        @property
+        def exit_code(self) -> int:
+            """Return the command exit code."""
+            ...
+
+        @property
+        def stderr(self) -> str:
+            """Return the command standard error."""
+            ...
+
+        @property
+        def stdout(self) -> str:
+            """Return the command standard output."""
+            ...
+
+    @runtime_checkable
+    class CommandRunner(Protocol):
+        """Contract for generic command execution services."""
+
+        def run(
+            self,
+            cmd: t.StrSequence,
+            cwd: t.Cli.PathLike | None = None,
+            timeout: int | None = None,
+            env: t.Cli.StrEnvMapping | None = None,
+        ) -> r[m.Cli.CommandOutput]:
+            """Execute a command and require zero exit status."""
+            ...
+
+        def capture(
+            self,
+            cmd: t.StrSequence,
+            cwd: t.Cli.PathLike | None = None,
+            timeout: int | None = None,
+            env: t.Cli.StrEnvMapping | None = None,
+        ) -> r[str]:
+            """Execute a command and return stripped stdout."""
+            ...
+
+        def run_raw(
+            self,
+            cmd: t.StrSequence,
+            cwd: t.Cli.PathLike | None = None,
+            timeout: int | None = None,
+            env: t.Cli.StrEnvMapping | None = None,
+            input_data: bytes | None = None,
+        ) -> r[m.Cli.CommandOutput]:
+            """Execute a command without enforcing zero exit status."""
+            ...
+
+        def run_checked(
+            self,
+            cmd: t.StrSequence,
+            cwd: t.Cli.PathLike | None = None,
+            timeout: int | None = None,
+            env: t.Cli.StrEnvMapping | None = None,
+        ) -> r[bool]:
+            """Execute a command and return a success flag."""
+            ...
+
+        def run_to_file(
+            self,
+            cmd: t.StrSequence,
+            output_file: t.Cli.PathLike,
+            cwd: t.Cli.PathLike | None = None,
+            timeout: int | None = None,
+            env: t.Cli.StrEnvMapping | None = None,
+        ) -> r[int]:
+            """Execute a command and write combined output to a file."""
+            ...
 
     @runtime_checkable
     class CliParamsConfig(Protocol):

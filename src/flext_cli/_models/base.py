@@ -24,6 +24,23 @@ from flext_core import m
 class FlextCliModelsBase:
     """CLI project namespace."""
 
+    class CommandOutput(m.Value):
+        """Standardized external command execution payload. Use m.Cli.CommandOutput."""
+
+        stdout: Annotated[
+            str,
+            Field(default="", description="Captured standard output"),
+        ] = ""
+        stderr: Annotated[
+            str,
+            Field(default="", description="Captured standard error"),
+        ] = ""
+        exit_code: Annotated[int, Field(description="Command exit code")]
+        duration: Annotated[
+            t.NonNegativeFloat,
+            Field(default=0.0, description="Duration in seconds"),
+        ] = 0.0
+
     class DisplayData(BaseModel):
         """Key-value data for table/display — Pydantic v2 contract. Use m.Cli.DisplayData."""
 

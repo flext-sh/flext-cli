@@ -68,8 +68,21 @@ if _t.TYPE_CHECKING:
     from tests.unit.test_prompts_cov import TestsCliPromptsCov
 
     test_protocols = _tests_unit_test_protocols
-    import tests.unit.test_tables as _tests_unit_test_tables
+    import tests.unit.test_runtime_utilities_core as _tests_unit_test_runtime_utilities_core
     from tests.unit.test_protocols import TestsCliProtocols
+
+    test_runtime_utilities_core = _tests_unit_test_runtime_utilities_core
+    import tests.unit.test_runtime_utilities_extra as _tests_unit_test_runtime_utilities_extra
+    from tests.unit.test_runtime_utilities_core import (
+        runner,
+        test_capture_cases,
+        test_run_cases,
+        test_run_raw_cases,
+    )
+
+    test_runtime_utilities_extra = _tests_unit_test_runtime_utilities_extra
+    import tests.unit.test_tables as _tests_unit_test_tables
+    from tests.unit.test_runtime_utilities_extra import TestCliRuntimeUtilitiesExtra
 
     test_tables = _tests_unit_test_tables
     import tests.unit.test_toml_utilities as _tests_unit_test_toml_utilities
@@ -105,6 +118,10 @@ if _t.TYPE_CHECKING:
     from flext_core.utilities import FlextUtilities as u
     from tests.unit.test_version import TestsCliVersion
 _LAZY_IMPORTS = {
+    "TestCliRuntimeUtilitiesExtra": (
+        "tests.unit.test_runtime_utilities_extra",
+        "TestCliRuntimeUtilitiesExtra",
+    ),
     "TestCliTomlDocument": ("tests.unit.test_toml_utilities", "TestCliTomlDocument"),
     "TestCliTomlHelpers": ("tests.unit.test_toml_utilities", "TestCliTomlHelpers"),
     "TestCliTomlRead": ("tests.unit.test_toml_utilities", "TestCliTomlRead"),
@@ -144,9 +161,14 @@ _LAZY_IMPORTS = {
     "p": ("flext_core.protocols", "FlextProtocols"),
     "r": ("flext_core.result", "FlextResult"),
     "reset_config_singleton": ("tests.unit.conftest", "reset_config_singleton"),
+    "runner": ("tests.unit.test_runtime_utilities_core", "runner"),
     "s": ("flext_core.service", "FlextService"),
     "t": ("flext_core.typings", "FlextTypes"),
     "test_base": "tests.unit.test_base",
+    "test_capture_cases": (
+        "tests.unit.test_runtime_utilities_core",
+        "test_capture_cases",
+    ),
     "test_cli_params": "tests.unit.test_cli_params",
     "test_cli_service": "tests.unit.test_cli_service",
     "test_cmd": "tests.unit.test_cmd",
@@ -158,6 +180,13 @@ _LAZY_IMPORTS = {
     "test_prompts": "tests.unit.test_prompts",
     "test_prompts_cov": "tests.unit.test_prompts_cov",
     "test_protocols": "tests.unit.test_protocols",
+    "test_run_cases": ("tests.unit.test_runtime_utilities_core", "test_run_cases"),
+    "test_run_raw_cases": (
+        "tests.unit.test_runtime_utilities_core",
+        "test_run_raw_cases",
+    ),
+    "test_runtime_utilities_core": "tests.unit.test_runtime_utilities_core",
+    "test_runtime_utilities_extra": "tests.unit.test_runtime_utilities_extra",
     "test_tables": "tests.unit.test_tables",
     "test_toml_utilities": "tests.unit.test_toml_utilities",
     "test_typings": "tests.unit.test_typings",
@@ -168,6 +197,7 @@ _LAZY_IMPORTS = {
 }
 
 __all__ = [
+    "TestCliRuntimeUtilitiesExtra",
     "TestCliTomlDocument",
     "TestCliTomlHelpers",
     "TestCliTomlRead",
@@ -201,9 +231,11 @@ __all__ = [
     "p",
     "r",
     "reset_config_singleton",
+    "runner",
     "s",
     "t",
     "test_base",
+    "test_capture_cases",
     "test_cli_params",
     "test_cli_service",
     "test_cmd",
@@ -215,6 +247,10 @@ __all__ = [
     "test_prompts",
     "test_prompts_cov",
     "test_protocols",
+    "test_run_cases",
+    "test_run_raw_cases",
+    "test_runtime_utilities_core",
+    "test_runtime_utilities_extra",
     "test_tables",
     "test_toml_utilities",
     "test_typings",

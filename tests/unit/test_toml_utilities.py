@@ -3,14 +3,13 @@
 from __future__ import annotations
 
 import stat
-import subprocess
 from collections.abc import Mapping
 from pathlib import Path
 
 import pytest
 from flext_tests import tm
 
-from tests import t, u
+from tests import m, r, t, u
 
 
 class TestCliTomlRead:
@@ -90,19 +89,24 @@ class TestCliTomlDocument:
         doc["project"] = {"name": "demo"}
         commands: list[tuple[list[str], Path | None]] = []
 
-        def _run(
+        def _run_raw(
             cmd: list[str],
             *,
             cwd: Path | None = None,
-            capture_output: bool,
-            check: bool,
-            text: bool,
-        ) -> subprocess.CompletedProcess[str]:
-            _ = (capture_output, check, text)
+            timeout: int | None = None,
+            env: t.Cli.StrEnvMapping | None = None,
+            input_data: bytes | None = None,
+        ) -> r[m.Cli.CommandOutput]:
+            _ = timeout, env, input_data
             commands.append((cmd, cwd))
-            return subprocess.CompletedProcess(cmd, 0, "", "")
+            return r[m.Cli.CommandOutput].ok(
+                m.Cli.CommandOutput(stdout="", stderr="", exit_code=0),
+            )
 
-        monkeypatch.setattr("flext_cli._utilities.toml.subprocess.run", _run)
+        monkeypatch.setattr(
+            "flext_cli._utilities.base.FlextCliUtilitiesBase.run_raw",
+            _run_raw,
+        )
 
         tm.ok(u.Cli.toml_write_document(pyproject, doc))
         tm.that(len(commands), eq=1)

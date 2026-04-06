@@ -69,6 +69,7 @@ class FlextCliTypesDomain:
     type ResultCommandRoutes = Sequence[p.Cli.ResultCommandRoute]
     type TableDataSource = cli_t.TabularData | Sequence[t.ContainerMapping]
     type TextPath = str | Path
+    type PathLike = str | Path
     type JsonWriteData = (
         t.RecursiveContainer | Sequence[t.ContainerMapping] | p.Cli.DisplayData
     )

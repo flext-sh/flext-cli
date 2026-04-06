@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import ClassVar
 
 from pydantic import ValidationError
-from yaml import YAMLError, safe_dump, safe_load
+from yaml import safe_dump, safe_load
 
 from flext_cli import c, r, t
 from flext_core import FlextLogger, u
@@ -28,9 +28,6 @@ class FlextCliUtilitiesYaml:
     """
 
     _module_logger: ClassVar[FlextLogger] = FlextLogger(__name__)
-
-    # Re-exported so consumers never need ``import yaml`` directly.
-    YAMLError: type[Exception] = YAMLError
 
     # ------------------------------------------------------------------
     # Reading
@@ -63,7 +60,7 @@ class FlextCliUtilitiesYaml:
         """
         try:
             parsed = safe_load(text)
-        except YAMLError as exc:
+        except t.Cli.YAMLError as exc:
             return r[t.Cli.YamlDict].fail(f"YAML parse error: {exc}")
         if parsed is None:
             return r[t.Cli.YamlDict].ok({})
@@ -99,7 +96,7 @@ class FlextCliUtilitiesYaml:
         try:
             raw = path.read_text(encoding=c.Cli.Encoding.DEFAULT)
             parsed = safe_load(raw)
-        except (OSError, YAMLError):
+        except (OSError, t.Cli.YAMLError):
             return []
         if not isinstance(parsed, list):
             return []
@@ -140,7 +137,7 @@ class FlextCliUtilitiesYaml:
                     indent=indent,
                 )
             return r[bool].ok(True)
-        except (OSError, YAMLError, ValueError, TypeError) as exc:
+        except (OSError, t.Cli.YAMLError, ValueError, TypeError) as exc:
             return r[bool].fail(f"YAML write error: {exc}")
 
     @staticmethod
@@ -166,7 +163,7 @@ class FlextCliUtilitiesYaml:
                 allow_unicode=True,
                 indent=indent,
             )
-        except (YAMLError, ValueError, TypeError):
+        except (t.Cli.YAMLError, ValueError, TypeError):
             return ""
 
 

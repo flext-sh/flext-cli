@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import subprocess
 from collections.abc import MutableSequence, Sequence
 from pathlib import Path
 from typing import ClassVar, TypeIs
@@ -13,6 +12,7 @@ from tomlkit import TOMLDocument
 from tomlkit.items import AoT, Item as TomlItem, Table as TomlTable
 
 from flext_cli import FlextCliUtilitiesJson, c, r, t
+from flext_cli._utilities.base import FlextCliUtilitiesBase
 from flext_core import FlextLogger, u
 
 
@@ -377,19 +377,13 @@ class FlextCliUtilitiesToml:
         if config_path is not None:
             command.extend(["--config", str(config_path)])
         command.append(str(path))
-        try:
-            result = subprocess.run(
-                command,
-                cwd=path.parent,
-                capture_output=True,
-                check=False,
-                text=True,
-            )
-        except (OSError, ValueError) as exc:
-            return r[bool].fail(f"taplo format failed: {exc}")
-        if result.returncode != 0:
-            output = (result.stderr or result.stdout).strip()
-            return r[bool].fail(output or f"taplo format failed: {path}")
+        result = FlextCliUtilitiesBase.run_raw(command, cwd=path.parent)
+        if result.is_failure:
+            return r[bool].fail(result.error or f"taplo format failed: {path}")
+        output = result.value
+        if output.exit_code != 0:
+            message = (output.stderr or output.stdout).strip()
+            return r[bool].fail(message or f"taplo format failed: {path}")
         return r[bool].ok(True)
 
     @staticmethod

@@ -47,11 +47,15 @@ if _t.TYPE_CHECKING:
     )
 
     options = _flext_cli__utilities_options
-    import flext_cli._utilities.toml as _flext_cli__utilities_toml
+    import flext_cli._utilities.runtime as _flext_cli__utilities_runtime
     from flext_cli._utilities.options import (
         FlextCliUtilitiesOptionBuilder,
         FlextCliUtilitiesOptions,
     )
+
+    runtime = _flext_cli__utilities_runtime
+    import flext_cli._utilities.toml as _flext_cli__utilities_toml
+    from flext_cli._utilities.runtime import FlextCliUtilitiesRuntime
 
     toml = _flext_cli__utilities_toml
     import flext_cli._utilities.validation as _flext_cli__utilities_validation
@@ -99,6 +103,10 @@ _LAZY_IMPORTS = {
         "flext_cli._utilities.options",
         "FlextCliUtilitiesOptions",
     ),
+    "FlextCliUtilitiesRuntime": (
+        "flext_cli._utilities.runtime",
+        "FlextCliUtilitiesRuntime",
+    ),
     "FlextCliUtilitiesToml": ("flext_cli._utilities.toml", "FlextCliUtilitiesToml"),
     "FlextCliUtilitiesValidation": (
         "flext_cli._utilities.validation",
@@ -113,6 +121,7 @@ _LAZY_IMPORTS = {
     "matching": "flext_cli._utilities.matching",
     "model_commands": "flext_cli._utilities.model_commands",
     "options": "flext_cli._utilities.options",
+    "runtime": "flext_cli._utilities.runtime",
     "toml": "flext_cli._utilities.toml",
     "validation": "flext_cli._utilities.validation",
     "yaml": "flext_cli._utilities.yaml",
@@ -130,6 +139,7 @@ __all__ = [
     "FlextCliUtilitiesModelCommands",
     "FlextCliUtilitiesOptionBuilder",
     "FlextCliUtilitiesOptions",
+    "FlextCliUtilitiesRuntime",
     "FlextCliUtilitiesToml",
     "FlextCliUtilitiesValidation",
     "FlextCliUtilitiesYaml",
@@ -141,6 +151,7 @@ __all__ = [
     "matching",
     "model_commands",
     "options",
+    "runtime",
     "toml",
     "validation",
     "yaml",

@@ -11,6 +11,7 @@ from flext_cli import (
     FlextCliUtilitiesOptions,
     FlextCliUtilitiesValidation,
 )
+from flext_cli._utilities.runtime import FlextCliUtilitiesRuntime
 
 
 class FlextCliUtilitiesBase(
@@ -20,6 +21,7 @@ class FlextCliUtilitiesBase(
     FlextCliUtilitiesMatching,
     FlextCliUtilitiesModelCommands,
     FlextCliUtilitiesOptions,
+    FlextCliUtilitiesRuntime,
     FlextCliUtilitiesValidation,
 ):
     """Thin aggregate for the public direct ``u.Cli`` MRO surface."""
