@@ -101,11 +101,19 @@ class FlextCliUtilitiesJson:
             if isinstance(payload, BaseModel):
                 materialized = payload.model_dump(mode="json")
             elif isinstance(payload, Mapping):
-                materialized = dict(payload)
-            elif isinstance(payload, Sequence) and not isinstance(payload, str):
-                materialized = list(payload)
+                materialized = {
+                    str(key): FlextCliUtilitiesJson.normalize_json_value(value)
+                    for key, value in payload.items()
+                }
+            elif isinstance(payload, Sequence) and not isinstance(
+                payload, (str, bytes)
+            ):
+                materialized = [
+                    FlextCliUtilitiesJson.normalize_json_value(value)
+                    for value in payload
+                ]
             else:
-                materialized = payload
+                materialized = t.Cli.JSON_VALUE_ADAPTER.validate_python(payload)
             validated: t.Cli.JsonValue = t.Cli.JSON_VALUE_ADAPTER.validate_python(
                 materialized,
             )

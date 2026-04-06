@@ -22,13 +22,14 @@ from flext_core import r
 class FlextCliExamplesUtilities(FlextCliUtilities):
     """Public examples utility facade extending flext-cli utilities."""
 
-    @staticmethod
+    @classmethod
     def to_json_dict(
+        cls,
         data: t.ContainerMapping,
     ) -> m.Cli.DisplayData:
         """Normalize config/mapping to DisplayData for create_table/display_config_table."""
         json_value: t.Cli.JsonValue = t.Cli.JSON_VALUE_ADAPTER.validate_python(
-            FlextCliUtilities.Cli.normalize_json_value(data),
+            cls.Cli.normalize_json_value(data),
         )
         normalized = m.Cli.CliNormalizedJson(json_value).root
         resolved = m.Cli.NormalizedJsonDict(value=normalized, default={}).resolved
