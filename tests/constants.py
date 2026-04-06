@@ -30,8 +30,8 @@ class FlextCliTestConstants(FlextTestsConstants, FlextCliConstants):
     2. FlextCliConstants - for domain constants (.Cli.*)
 
     Access patterns:
-    - c.Tests.Docker.* (container testing)
-    - c.Tests.Matcher.* (assertion messages)
+    - c.Tests.* (container testing)
+    - c.Tests.* (assertion messages)
     - c.Tests.Factory.* (test data generation)
     - c.Cli.* (domain constants from production)
     - c.Cli.Tests.* (project-specific test data)
