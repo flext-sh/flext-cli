@@ -2,14 +2,20 @@
 
 from __future__ import annotations
 
-from flext_cli import FlextCliProtocolsBase, FlextCliProtocolsDomain
+from flext_cli import (
+    FlextCliProtocolsBase,
+    FlextCliProtocolsDomain,
+    FlextCliProtocolsPipeline,
+)
 from flext_core import FlextProtocols
 
 
 class FlextCliProtocols(FlextProtocols):
     """CLI protocol definitions extending FlextProtocols."""
 
-    class Cli(FlextCliProtocolsDomain, FlextCliProtocolsBase):
+    class Cli(
+        FlextCliProtocolsPipeline, FlextCliProtocolsDomain, FlextCliProtocolsBase
+    ):
         """Unified CLI protocol namespace."""
 
 

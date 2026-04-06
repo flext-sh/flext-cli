@@ -17,22 +17,33 @@ if _t.TYPE_CHECKING:
     from flext_cli._protocols.base import FlextCliProtocolsBase
 
     domain = _flext_cli__protocols_domain
+    import flext_cli._protocols.pipeline as _flext_cli__protocols_pipeline
     from flext_cli._protocols.domain import FlextCliProtocolsDomain
+
+    pipeline = _flext_cli__protocols_pipeline
+    from flext_cli._protocols.pipeline import FlextCliProtocolsPipeline
 _LAZY_IMPORTS = {
     "FlextCliProtocolsBase": ("flext_cli._protocols.base", "FlextCliProtocolsBase"),
     "FlextCliProtocolsDomain": (
         "flext_cli._protocols.domain",
         "FlextCliProtocolsDomain",
     ),
+    "FlextCliProtocolsPipeline": (
+        "flext_cli._protocols.pipeline",
+        "FlextCliProtocolsPipeline",
+    ),
     "base": "flext_cli._protocols.base",
     "domain": "flext_cli._protocols.domain",
+    "pipeline": "flext_cli._protocols.pipeline",
 }
 
 __all__ = [
     "FlextCliProtocolsBase",
     "FlextCliProtocolsDomain",
+    "FlextCliProtocolsPipeline",
     "base",
     "domain",
+    "pipeline",
 ]
 
 

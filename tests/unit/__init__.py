@@ -56,8 +56,12 @@ if _t.TYPE_CHECKING:
     from tests.unit.test_constants import TestsCliConstants
 
     test_examples_smoke = _tests_unit_test_examples_smoke
-    import tests.unit.test_prompts as _tests_unit_test_prompts
+    import tests.unit.test_pipeline as _tests_unit_test_pipeline
     from tests.unit.test_examples_smoke import TestFlextCliExamplesSmoke
+
+    test_pipeline = _tests_unit_test_pipeline
+    import tests.unit.test_prompts as _tests_unit_test_prompts
+    from tests.unit.test_pipeline import TestPipelineExecute
 
     test_prompts = _tests_unit_test_prompts
     import tests.unit.test_prompts_cov as _tests_unit_test_prompts_cov
@@ -129,6 +133,7 @@ _LAZY_IMPORTS = {
         "tests.unit.test_examples_smoke",
         "TestFlextCliExamplesSmoke",
     ),
+    "TestPipelineExecute": ("tests.unit.test_pipeline", "TestPipelineExecute"),
     "TestsCliCmd": ("tests.unit.test_cmd", "TestsCliCmd"),
     "TestsCliCmdCov": ("tests.unit.test_cmd_cov", "TestsCliCmdCov"),
     "TestsCliCommands": ("tests.unit.test_commands", "TestsCliCommands"),
@@ -177,6 +182,7 @@ _LAZY_IMPORTS = {
     "test_config": "tests.unit.test_config",
     "test_constants": "tests.unit.test_constants",
     "test_examples_smoke": "tests.unit.test_examples_smoke",
+    "test_pipeline": "tests.unit.test_pipeline",
     "test_prompts": "tests.unit.test_prompts",
     "test_prompts_cov": "tests.unit.test_prompts_cov",
     "test_protocols": "tests.unit.test_protocols",
@@ -202,6 +208,7 @@ __all__ = [
     "TestCliTomlHelpers",
     "TestCliTomlRead",
     "TestFlextCliExamplesSmoke",
+    "TestPipelineExecute",
     "TestsCliCmd",
     "TestsCliCmdCov",
     "TestsCliCommands",
@@ -244,6 +251,7 @@ __all__ = [
     "test_config",
     "test_constants",
     "test_examples_smoke",
+    "test_pipeline",
     "test_prompts",
     "test_prompts_cov",
     "test_protocols",

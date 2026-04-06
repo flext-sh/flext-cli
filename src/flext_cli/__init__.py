@@ -19,25 +19,32 @@ if _t.TYPE_CHECKING:
         FlextCliConstantsBase,
         FlextCliConstantsConfig,
         FlextCliConstantsEnums,
+        FlextCliConstantsPipeline,
         config,
         enums,
+        pipeline,
     )
 
     _models = _flext_cli__models
     import flext_cli._protocols as _flext_cli__protocols
-    from flext_cli._models import FlextCliModelsBase
+    from flext_cli._models import FlextCliModelsBase, FlextCliModelsPipeline
 
     _protocols = _flext_cli__protocols
     import flext_cli._typings as _flext_cli__typings
     from flext_cli._protocols import (
         FlextCliProtocolsBase,
         FlextCliProtocolsDomain,
+        FlextCliProtocolsPipeline,
         domain,
     )
 
     _typings = _flext_cli__typings
     import flext_cli._utilities as _flext_cli__utilities
-    from flext_cli._typings import FlextCliTypesBase, FlextCliTypesDomain
+    from flext_cli._typings import (
+        FlextCliTypesBase,
+        FlextCliTypesDomain,
+        FlextCliTypesPipeline,
+    )
 
     _utilities = _flext_cli__utilities
     import flext_cli.api as _flext_cli_api
@@ -53,6 +60,7 @@ if _t.TYPE_CHECKING:
         FlextCliUtilitiesModelCommands,
         FlextCliUtilitiesOptionBuilder,
         FlextCliUtilitiesOptions,
+        FlextCliUtilitiesPipeline,
         FlextCliUtilitiesRuntime,
         FlextCliUtilitiesToml,
         FlextCliUtilitiesValidation,
@@ -201,21 +209,25 @@ __all__ = [
     "FlextCliConstantsBase",
     "FlextCliConstantsConfig",
     "FlextCliConstantsEnums",
+    "FlextCliConstantsPipeline",
     "FlextCliFileTools",
     "FlextCliFormatters",
     "FlextCliModels",
     "FlextCliModelsBase",
+    "FlextCliModelsPipeline",
     "FlextCliOutput",
     "FlextCliPrompts",
     "FlextCliProtocols",
     "FlextCliProtocolsBase",
     "FlextCliProtocolsDomain",
+    "FlextCliProtocolsPipeline",
     "FlextCliServiceBase",
     "FlextCliSettings",
     "FlextCliTables",
     "FlextCliTypes",
     "FlextCliTypesBase",
     "FlextCliTypesDomain",
+    "FlextCliTypesPipeline",
     "FlextCliUtilities",
     "FlextCliUtilitiesBase",
     "FlextCliUtilitiesCliModelConverter",
@@ -228,6 +240,7 @@ __all__ = [
     "FlextCliUtilitiesModelCommands",
     "FlextCliUtilitiesOptionBuilder",
     "FlextCliUtilitiesOptions",
+    "FlextCliUtilitiesPipeline",
     "FlextCliUtilitiesRuntime",
     "FlextCliUtilitiesToml",
     "FlextCliUtilitiesValidation",
@@ -273,6 +286,7 @@ __all__ = [
     "models",
     "options",
     "p",
+    "pipeline",
     "prompts",
     "protocols",
     "r",
