@@ -5,10 +5,10 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Protocol, runtime_checkable
 
-from flext_cli import p as _cli_p
+from flext_cli import p
 
 
-class FlextCliExamplesProtocols(_cli_p):
+class FlextCliExamplesProtocols(p):
     """Public examples protocol facade extending flext-cli protocols."""
 
     @runtime_checkable

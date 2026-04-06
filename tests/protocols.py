@@ -8,13 +8,13 @@ from __future__ import annotations
 
 from flext_tests import FlextTestsProtocols
 
-from flext_cli import p as _cli_p
+from flext_cli import p
 
 
-class FlextCliTestProtocols(FlextTestsProtocols, _cli_p):
+class FlextCliTestProtocols(FlextTestsProtocols, p):
     """Test protocols for flext-cli."""
 
-    class Cli(_cli_p.Cli):
+    class Cli(p.Cli):
         """Cli domain test protocols."""
 
         class Tests:

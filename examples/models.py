@@ -24,11 +24,11 @@ from pydantic import (
 )
 
 from examples.typings import t
-from flext_cli import m as _cli_m
+from flext_cli import m
 from flext_core import r
 
 
-class FlextCliExamplesModels(_cli_m):
+class FlextCliExamplesModels(m):
     """Public examples model facade extending flext-cli models."""
 
     class Examples:
@@ -50,7 +50,7 @@ class FlextCliExamplesModels(_cli_m):
             }
             return {**env_overrides, **typed_data}
 
-        class DatabaseWizardConfig(_cli_m.Value):
+        class DatabaseWizardConfig(m.Value):
             """Database setup wizard result — Pydantic v2 only."""
 
             model_config: ClassVar[ConfigDict] = ConfigDict(
@@ -62,7 +62,7 @@ class FlextCliExamplesModels(_cli_m):
             database: str = Field(default="", description="Database name")
             password: str = Field(default="", description="Password")
 
-        class AppWizardConfig(_cli_m.Value):
+        class AppWizardConfig(m.Value):
             """App configuration wizard result — Pydantic v2 only."""
 
             model_config: ClassVar[ConfigDict] = ConfigDict(
@@ -76,7 +76,7 @@ class FlextCliExamplesModels(_cli_m):
             enable_cache: bool = Field(default=True, description="Enable cache")
             enable_auth: bool = Field(default=True, description="Enable auth")
 
-        class NumericPromptResult(_cli_m.Value):
+        class NumericPromptResult(m.Value):
             """Numeric prompts result — Pydantic v2 only."""
 
             model_config: ClassVar[ConfigDict] = ConfigDict(
@@ -91,7 +91,7 @@ class FlextCliExamplesModels(_cli_m):
         # Example 06 - Configuration
         # -------------------------------------------------------------------
 
-        class MyAppConfig(_cli_m.Value):
+        class MyAppConfig(m.Value):
             """Custom configuration for YOUR CLI application — Pydantic v2 only."""
 
             model_config: ClassVar[ConfigDict] = ConfigDict(
@@ -154,7 +154,7 @@ class FlextCliExamplesModels(_cli_m):
                 cli.print("✅ Configuration valid", style="green")
                 return True
 
-        class AppConfigAdvanced(_cli_m.Value):
+        class AppConfigAdvanced(m.Value):
             """Advanced application configuration — Pydantic v2 only."""
 
             model_config: ClassVar[ConfigDict] = ConfigDict(
@@ -256,7 +256,7 @@ class FlextCliExamplesModels(_cli_m):
         # Example 12 - Pydantic-driven CLI
         # -------------------------------------------------------------------
 
-        class DeployConfig(_cli_m.Value):
+        class DeployConfig(m.Value):
             """Deployment configuration - auto-generates CLI parameters."""
 
             model_config: ClassVar[ConfigDict] = ConfigDict(
@@ -293,7 +293,7 @@ class FlextCliExamplesModels(_cli_m):
                     raise ValueError(msg)
                 return v
 
-        class DatabaseConfig(_cli_m.Value):
+        class DatabaseConfig(m.Value):
             """Database configuration."""
 
             model_config: ClassVar[ConfigDict] = ConfigDict(
@@ -306,7 +306,7 @@ class FlextCliExamplesModels(_cli_m):
             )
             name: str = Field(description="Database name")
 
-        class AppConfigNested(_cli_m.Value):
+        class AppConfigNested(m.Value):
             """Application configuration with nested database model."""
 
             model_config: ClassVar[ConfigDict] = ConfigDict(
@@ -320,7 +320,7 @@ class FlextCliExamplesModels(_cli_m):
             )
             debug: bool = Field(default=False, description="Enable debug mode")
 
-        class AdvancedDatabaseConfig(_cli_m.Value):
+        class AdvancedDatabaseConfig(m.Value):
             """Database configuration with advanced validation."""
 
             model_config: ClassVar[ConfigDict] = ConfigDict(

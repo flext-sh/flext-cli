@@ -17,27 +17,27 @@ from enum import StrEnum, unique
 
 from flext_tests import FlextTestsTypes
 
-from flext_cli import t as _cli_t
+from flext_cli import t
 
 
-class FlextCliTestTypes(FlextTestsTypes, _cli_t):
-    """Type system foundation for flext-cli tests - extends FlextTestsTypes and _cli_t.
+class FlextCliTestTypes(FlextTestsTypes, t):
+    """Type system foundation for flext-cli tests - extends FlextTestsTypes and t.
 
     Architecture: Multiple inheritance provides both generic test types AND CLI-specific types.
-    All types from both FlextTestsTypes and _cli_t are available through inheritance.
+    All types from both FlextTestsTypes and t are available through inheritance.
 
     Hierarchy:
     - FlextTestsTypes.Tests.* (generic test types from flext_tests)
-    - _cli_t.Cli.* (source types from flext_cli - INHERITED)
+    - t.Cli.* (source types from flext_cli - INHERITED)
 
     Rules:
-    - NEVER redeclare types from FlextTestsTypes or _cli_t
+    - NEVER redeclare types from FlextTestsTypes or t
     - Only flext-cli-specific types allowed (not generic for other projects)
     - All generic types come from FlextTestsTypes
-    - CLI types come from _cli_t via inheritance
+    - CLI types come from t via inheritance
     """
 
-    class Cli(_cli_t.Cli):
+    class Cli(t.Cli):
         """Flext-cli-specific type definitions for testing."""
 
         class Tests:
