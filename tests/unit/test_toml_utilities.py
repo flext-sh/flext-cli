@@ -146,6 +146,38 @@ class TestCliTomlHelpers:
 
         tm.that(u.Cli.toml_get(table, "key"), eq="value")
 
+    def test_path_helpers_navigate_and_lookup_tables(self) -> None:
+        doc = u.Cli.toml_document()
+
+        created = u.Cli.toml_ensure_path(doc, ("tool", "ruff", "lint"))
+        created["select"] = u.Cli.toml_array(["E", "F"])
+
+        resolved = u.Cli.toml_get_table_path(doc, ("tool", "ruff", "lint"))
+
+        assert resolved is not None
+        tm.that(
+            u.Cli.toml_as_string_list(u.Cli.toml_get_item(resolved, "select")),
+            eq=["E", "F"],
+        )
+        tm.that(u.Cli.toml_get_table_path(doc, ("tool", "mypy")), none=True)
+
+    def test_dot_path_and_navigate_path_keep_tool_prefix_stable(self) -> None:
+        doc = u.Cli.toml_document()
+        table = u.Cli.toml_navigate_path(doc, ["tool", "pytest", "ini_options"])
+
+        table["addopts"] = "-q"
+
+        tm.that(
+            u.Cli.toml_dot_path("", "tool", "pytest", "ini_options"),
+            eq="tool.pytest.ini_options",
+        )
+        tm.that(
+            u.Cli.toml_get(
+                u.Cli.toml_navigate_path(doc, ["pytest", "ini_options"]), "addopts"
+            ),
+            eq="-q",
+        )
+
     def test_as_mapping_and_get_helpers(self) -> None:
         mapping: Mapping[str, t.RecursiveContainer] = {"key": "value"}
         tm.that(u.Cli.toml_as_mapping(mapping), eq=mapping)

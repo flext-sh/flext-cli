@@ -169,6 +169,34 @@ class FlextCliUtilitiesToml:
         return table
 
     @staticmethod
+    def toml_ensure_path(
+        parent: t.Cli.TomlParent,
+        path: t.StrSequence,
+    ) -> t.Cli.TomlTable:
+        """Return a nested table path, creating intermediate tables as needed."""
+        current: t.Cli.TomlParent = parent
+        for segment in path:
+            current = FlextCliUtilitiesToml.toml_ensure_table(current, segment)
+        if FlextCliUtilitiesToml.toml_is_table(current):
+            return current
+        msg = "toml_ensure_path must return a TOML table"
+        raise TypeError(msg)
+
+    @staticmethod
+    def toml_get_table_path(
+        parent: t.Cli.TomlParent,
+        path: t.StrSequence,
+    ) -> t.Cli.TomlTable | None:
+        """Return a nested table path without creating missing tables."""
+        current: t.Cli.TomlParent = parent
+        for segment in path:
+            table = FlextCliUtilitiesToml.toml_get_table(current, segment)
+            if table is None:
+                return None
+            current = table
+        return current if FlextCliUtilitiesToml.toml_is_table(current) else None
+
+    @staticmethod
     def toml_ensure_tool_table(doc: t.Cli.TomlDocument) -> t.Cli.TomlTable:
         """Return the top-level ``[tool]`` table."""
         return FlextCliUtilitiesToml.toml_ensure_table(doc, "tool")
@@ -261,6 +289,34 @@ class FlextCliUtilitiesToml:
         container[key] = FlextCliUtilitiesToml.toml_array(merged)
         changes.append(change_message)
         return True
+
+    @staticmethod
+    def toml_navigate_path(
+        doc: t.Cli.TomlDocument,
+        path: t.StrSequence,
+    ) -> t.Cli.TomlTable:
+        """Navigate to a nested TOML table by path segments.
+
+        Always roots at [tool]. Skips "tool" in path if present.
+        Creates intermediate tables as needed.
+        """
+        return FlextCliUtilitiesToml.toml_ensure_path(
+            FlextCliUtilitiesToml.toml_ensure_tool_table(doc),
+            [segment for segment in path if segment != "tool"],
+        )
+
+    @staticmethod
+    def toml_dot_path(*parts: str) -> str:
+        """Build one dotted TOML path from non-empty segments."""
+        return ".".join(part for part in parts if part)
+
+    @staticmethod
+    def toml_table_prefix(path: t.StrSequence) -> str:
+        """Build a dotted prefix string from table path (e.g. "tool.ruff.lint")."""
+        return FlextCliUtilitiesToml.toml_dot_path(
+            "tool",
+            *(segment for segment in path if segment != "tool"),
+        )
 
     @staticmethod
     def toml_read(path: Path) -> t.Cli.TomlDocument | None:

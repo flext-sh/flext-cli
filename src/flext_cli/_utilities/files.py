@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import os
 import tempfile
 from pathlib import Path
@@ -41,6 +42,21 @@ class FlextCliUtilitiesFiles:
         except OSError as exc:
             return r[bool].fail(f"atomic_write_text_file: {exc}")
         return r[bool].ok(True)
+
+    @staticmethod
+    def sha256_content(content: str) -> str:
+        """Return the SHA-256 hex digest for text content."""
+        return hashlib.sha256(content.encode(c.Cli.Encoding.DEFAULT)).hexdigest()
+
+    @staticmethod
+    def sha256_file(file_path: t.Cli.TextPath) -> str:
+        """Return the SHA-256 hex digest for a file on disk."""
+        path = Path(file_path)
+        hasher = hashlib.sha256()
+        with path.open("rb") as handle:
+            for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+                hasher.update(chunk)
+        return hasher.hexdigest()
 
 
 __all__ = ["FlextCliUtilitiesFiles"]
