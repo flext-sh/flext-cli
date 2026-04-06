@@ -52,7 +52,7 @@ class FlextCliAuth(FlextCliServiceBase):
             return r[bool].fail("Token cannot be empty")
         return FlextCliFileTools.write_json_file(
             self._get_token_file_path(),
-            {c.Cli.DictKeys.TOKEN: token},
+            {c.Cli.DictKeys.AUTH_TOKEN: token},
         )
 
     def get_auth_token(self) -> r[str]:
@@ -63,21 +63,21 @@ class FlextCliAuth(FlextCliServiceBase):
         payload = read_result.value
         if not isinstance(payload, Mapping):
             return r[str].fail("Token file must contain a mapping")
-        token_value = payload.get(c.Cli.DictKeys.TOKEN)
+        token_value = payload.get(c.Cli.DictKeys.AUTH_TOKEN)
         if not isinstance(token_value, str) or not token_value:
             return r[str].fail("Token file does not contain a valid token")
         return r[str].ok(token_value)
 
     def authenticate(self, credentials: t.StrMapping) -> r[str]:
         """Authenticate with a token or username/password and persist the token."""
-        token_value = credentials.get(c.Cli.DictKeys.TOKEN)
+        token_value = credentials.get(c.Cli.DictKeys.AUTH_TOKEN)
         if isinstance(token_value, str) and token_value:
             save_result = self.save_auth_token(token_value)
             if save_result.is_failure:
                 return r[str].fail(save_result.error or "Failed to save token")
             return r[str].ok(token_value)
         username = credentials.get(c.Cli.DictKeys.USERNAME, "")
-        password = credentials.get(c.Cli.DictKeys.PASSWORD, "")
+        password = credentials.get(c.Cli.DictKeys.USER_SECRET, "")
         validation_result = self.validate_credentials(username, password)
         if validation_result.is_failure:
             return r[str].fail(validation_result.error or "Invalid credentials")

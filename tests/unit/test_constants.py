@@ -66,8 +66,8 @@ class TestsCliConstants:
 
     def test_error_messages(self) -> None:
         """Test ErrorMessages constants."""
-        tm.that(c.Cli.ErrorMessages.TOKEN_FILE_NOT_FOUND, is_=str)
-        tm.that(c.Cli.ErrorMessages.TOKEN_FILE_NOT_FOUND, empty=False)
+        tm.that(c.Cli.ErrorMessages.AUTH_FILE_NOT_FOUND, is_=str)
+        tm.that(c.Cli.ErrorMessages.AUTH_FILE_NOT_FOUND, empty=False)
         tm.that(c.Cli.ErrorMessages.INVALID_OUTPUT_FORMAT, is_=str)
 
     def test_emojis(self) -> None:

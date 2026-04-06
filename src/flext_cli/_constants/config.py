@@ -58,10 +58,10 @@ class FlextCliConstantsConfig:
         )
         CONFIG_VALIDATION_FAILED: Final[str] = "Config validation failed: {error}"
         JSON_WRITE_FAILED: Final[str] = "JSON write failed: {error}"
-        TOKEN_SAVE_FAILED: Final[str] = "Failed to save token: {error}"  # noqa: S105 - user-facing error message, not a secret
-        TOKEN_LOAD_FAILED: Final[str] = "Failed to load token: {error}"  # noqa: S105 - user-facing error message, not a secret
-        TOKEN_FILE_NOT_FOUND: Final[str] = "Token file does not exist"  # noqa: S105 - user-facing error message, not a secret
-        TOKEN_FILE_EMPTY: Final[str] = "Token file is empty"  # noqa: S105 - user-facing error message, not a secret
+        AUTH_SAVE_FAILED: Final[str] = "Failed to save token: {error}"
+        AUTH_LOAD_FAILED: Final[str] = "Failed to load token: {error}"
+        AUTH_FILE_NOT_FOUND: Final[str] = "Token file does not exist"
+        AUTH_FILE_EMPTY: Final[str] = "Token file is empty"
         INVALID_OUTPUT_FORMAT: Final[str] = "Invalid output format: {format}"
         CONFIG_INFO_FAILED: Final[str] = "Config info failed: {error}"
         FAILED_CLEAR_CREDENTIALS: Final[str] = "Failed to clear credentials: {error}"

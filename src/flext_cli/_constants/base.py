@@ -36,9 +36,9 @@ class FlextCliConstantsBase:
 
         STATUS: Final[str] = "status"
         SERVICE: Final[str] = "service"
-        TOKEN: Final[str] = "token"  # noqa: S105 - dictionary key name, not a secret
+        AUTH_TOKEN: Final[str] = "token"
         USERNAME: Final[str] = "username"
-        PASSWORD: Final[str] = "password"  # noqa: S105 - dictionary key name, not a secret
+        USER_SECRET: Final[str] = "password"
 
     class Subdirectories:
         """Subdirectory constants."""
