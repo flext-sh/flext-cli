@@ -1,0 +1,35 @@
+src/flext_cli/utilities.py
+  6cff451c18d7ce6e 8,19
+src/flext_cli/_models/pipeline.py
+  6cff451c18d7ce6e 5,12,21-22,34,40,47-48,63-66,70,86-87,96
+tests/unit/test_pipeline.py
+  6cff451c18d7ce6e 1-6,8-73,75-79,81-229,231-255
+src/flext_cli/_utilities/pipeline.py
+  6cff451c18d7ce6e 1-164
+src/flext_cli/_typings/pipeline.py
+  6cff451c18d7ce6e 6,8-9,18-22
+src/flext_cli/__init__.py
+  6cff451c18d7ce6e 63,243
+src/flext_cli/_utilities/__init__.py
+  6cff451c18d7ce6e 50,56,58,110-113,132,151,164
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.5",
+  "base_commit_sha": "59ac0388ceaaa2b80cc6d46b8ccc7d671ee86d1d",
+  "prompts": {
+    "6cff451c18d7ce6e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "402d2823-dbda-4a2a-a6e4-189ba4b8a964",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "FLEXT Bot",
+      "messages": [],
+      "total_additions": 466,
+      "total_deletions": 32,
+      "accepted_lines": 458,
+      "overriden_lines": 2
+    }
+  }
+}
