@@ -158,9 +158,7 @@ class FlextCliCommonParams(s):
             params_to_use = cls._resolve_params(params, kwargs)
             return cls._apply_param_setters(config, params_to_use)
         except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
-            return r[FlextCliSettings].fail(
-                f"Failed to apply CLI parameters: {exc}"
-            )
+            return r[FlextCliSettings].fail(f"Failed to apply CLI parameters: {exc}")
 
     @classmethod
     def create_option(cls, field_name: str) -> t.Cli.CliOptionInfo:
