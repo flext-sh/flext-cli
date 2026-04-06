@@ -50,7 +50,13 @@ class FlextCliTypesDomain:
     type JsonModelHandler[M: BaseModel] = Callable[[M], t.RecursiveValue]
     type RecursiveMapping = Mapping[str, t.RecursiveContainer]
     type RecursiveMappingSource = t.RecursiveContainer | RecursiveMapping | None
-    type JsonPayload = cli_t.JsonValue | BaseModel | cli_t.JsonMapping | cli_t.JsonList
+    type JsonPayload = (
+        cli_t.JsonValue
+        | BaseModel
+        | cli_t.JsonMapping
+        | cli_t.JsonList
+        | Mapping[str, t.NormalizedValue]
+    )
     type JsonValueOrModel = cli_t.JsonValue | BaseModel | None
     type TomlMappingSource = (
         t.RecursiveContainer | cli_t.TomlItem | cli_t.TomlDocument | None
