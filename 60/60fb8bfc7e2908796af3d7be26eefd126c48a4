@@ -1,0 +1,25 @@
+src/flext_cli/_typings/pipeline.py
+  6cff451c18d7ce6e 11,19,22
+src/flext_cli/_models/pipeline.py
+  6cff451c18d7ce6e 61
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.5",
+  "base_commit_sha": "6060fb8bfc7e2908796af3d7be26eefd126c48a4",
+  "prompts": {
+    "6cff451c18d7ce6e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "402d2823-dbda-4a2a-a6e4-189ba4b8a964",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "FLEXT Bot",
+      "messages": [],
+      "total_additions": 4,
+      "total_deletions": 4,
+      "accepted_lines": 4,
+      "overriden_lines": 0
+    }
+  }
+}
