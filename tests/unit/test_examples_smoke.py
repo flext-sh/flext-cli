@@ -5,13 +5,15 @@ from __future__ import annotations
 from collections.abc import Mapping
 from pathlib import Path
 
-from examples import (
-    ex_01_getting_started as getting_started,
-    ex_02_output_formatting as output_formatting,
-    ex_04_file_operations as file_operations,
-    ex_05_authentication as authentication,
-    ex_06_configuration as configuration,
-)
+import examples.ex_01_getting_started as getting_started
+import examples.ex_02_output_formatting as output_formatting
+import examples.ex_04_file_operations as file_operations
+import examples.ex_05_authentication as authentication
+import examples.ex_06_configuration as configuration
+import examples.ex_10_testing_utilities as testing_utilities
+import examples.ex_11_complete_integration as complete_integration
+import examples.ex_12_pydantic_driven_cli as pydantic_driven
+import pytest
 from flext_tests import tm
 
 from flext_cli import FlextCliSettings, cli
@@ -120,3 +122,77 @@ class TestFlextCliExamplesSmoke:
         authentication.logout()
         cleared_result = cli.get_auth_token()
         tm.fail(cleared_result)
+
+    def test_testing_utility_examples_run_real_cli_workflows(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        tmp_path: Path,
+    ) -> None:
+        """Testing examples must validate real CLI file and workflow behavior."""
+        monkeypatch.setattr(
+            testing_utilities.tempfile,
+            "gettempdir",
+            lambda: str(tmp_path),
+        )
+
+        command_result = testing_utilities.my_cli_command("World")
+        tm.ok(command_result)
+        tm.that(command_result.value, eq="Hello, World!")
+
+        save_result = testing_utilities.save_config_command(
+            {"feature": "examples", "enabled": True},
+        )
+        tm.ok(save_result)
+
+        saved_config = cli.read_json_file(tmp_path / "test_config.json")
+        tm.ok(saved_config)
+        assert isinstance(saved_config.value, Mapping)
+        tm.that(saved_config.value["feature"], eq="examples")
+        tm.that(saved_config.value["enabled"], eq=True)
+
+        workflow_result = testing_utilities.full_workflow_command()
+        tm.ok(workflow_result)
+        tm.that(workflow_result.value["status"], eq="completed")
+        tm.that(workflow_result.value["processed"], eq=True)
+        tm.that((tmp_path / "workflow_test.json").exists(), eq=False)
+
+    def test_complete_integration_example_persists_validated_workflow_data(
+        self,
+        tmp_path: Path,
+    ) -> None:
+        """Complete integration example must persist and reload real workflow data."""
+        app = complete_integration.DataManagerCLI()
+        app.data_file = tmp_path / "app_data.json"
+
+        workflow_result = app.run_workflow()
+        tm.ok(workflow_result)
+        tm.that(app.data_file.exists(), eq=True)
+
+        load_result = app.load_data()
+        tm.ok(load_result)
+        tm.that(load_result.value["sample_key"], eq="sample_value")
+
+    def test_configuration_and_pydantic_examples_validate_production_flow(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        tmp_path: Path,
+    ) -> None:
+        """Configuration examples must honor env overrides and typed workflow rules."""
+        cache_dir = tmp_path / "cache"
+        monkeypatch.setenv("ENVIRONMENT", "production")
+        monkeypatch.setenv("API_KEY", "prod-secret")
+        monkeypatch.setenv("MAX_WORKERS", "25")
+        monkeypatch.setenv("TEMP_DIR", str(cache_dir))
+
+        config_result = configuration.load_application_config()
+        tm.ok(config_result)
+        tm.that(config_result.value["max_workers"], eq=20)
+        tm.that(config_result.value["enable_metrics"], eq=True)
+        tm.that(config_result.value["services_initialized"], eq=True)
+        tm.that(Path(str(config_result.value["temp_dir"])).exists(), eq=True)
+
+        database_result = pydantic_driven.create_database_config_from_cli()
+        tm.ok(database_result)
+        tm.that(database_result.value.port, eq=5433)
+        tm.that(database_result.value.ssl_enabled, eq=True)
+        tm.that(database_result.value.connection_pool, eq=20)

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from flext_cli import m, r, t, u
+from flext_cli import c, m, r, t, u
 
 # ── Fixtures ────────────────────────────────────────────────────────
 
@@ -17,7 +17,7 @@ def _ok_handler(stage_id: str, output_key: str = "done") -> t.Cli.PipelineHandle
         return r[m.Cli.PipelineStageResult].ok(
             m.Cli.PipelineStageResult(
                 stage_id=stage_id,
-                status="ok",
+                status=c.Cli.Pipeline.STATUS_OK,
                 output={output_key: stage_id},
                 duration_ms=1.0,
             ),
@@ -63,7 +63,7 @@ class TestPipelineExecute:
         assert pipeline.ok
         assert len(pipeline.stages) == 1
         assert pipeline.stages[0].stage_id == "alpha"
-        assert pipeline.stages[0].status == "ok"
+        assert pipeline.stages[0].status == c.Cli.Pipeline.STATUS_OK
 
     def test_dependency_order(self, tmp_path: Path) -> None:
         """Stages execute in topological order — B depends on A."""
@@ -75,7 +75,9 @@ class TestPipelineExecute:
             ) -> r[m.Cli.PipelineStageResult]:
                 execution_order.append(stage_id)
                 return r[m.Cli.PipelineStageResult].ok(
-                    m.Cli.PipelineStageResult(stage_id=stage_id, status="ok"),
+                    m.Cli.PipelineStageResult(
+                        stage_id=stage_id, status=c.Cli.Pipeline.STATUS_OK
+                    ),
                 )
 
             return handler
@@ -97,18 +99,22 @@ class TestPipelineExecute:
 
     def test_shared_state_propagation(self, tmp_path: Path) -> None:
         """Stage B can read what stage A wrote to shared."""
-        received: dict[str, object] = {}
+        received: dict[str, t.NormalizedValue] = {}
 
         def reader(ctx: m.Cli.PipelineStageContext) -> r[m.Cli.PipelineStageResult]:
             received["from_a"] = ctx.shared.get("a_output")
             return r[m.Cli.PipelineStageResult].ok(
-                m.Cli.PipelineStageResult(stage_id="b", status="ok"),
+                m.Cli.PipelineStageResult(
+                    stage_id="b", status=c.Cli.Pipeline.STATUS_OK
+                ),
             )
 
         def writer(ctx: m.Cli.PipelineStageContext) -> r[m.Cli.PipelineStageResult]:
             ctx.shared["a_output"] = "hello"
             return r[m.Cli.PipelineStageResult].ok(
-                m.Cli.PipelineStageResult(stage_id="a", status="ok"),
+                m.Cli.PipelineStageResult(
+                    stage_id="a", status=c.Cli.Pipeline.STATUS_OK
+                ),
             )
 
         stages = [
@@ -157,7 +163,7 @@ class TestPipelineExecute:
         assert result.is_success
         pipeline = result.value
         assert pipeline.ok
-        assert pipeline.stages[0].status == "skipped"
+        assert pipeline.stages[0].status == c.Cli.Pipeline.STATUS_SKIPPED
 
     def test_cycle_detection(self, tmp_path: Path) -> None:
         """Circular dependencies produce a failure result."""
@@ -186,7 +192,9 @@ class TestPipelineExecute:
             if call_count < 3:
                 return r[m.Cli.PipelineStageResult].fail("transient")
             return r[m.Cli.PipelineStageResult].ok(
-                m.Cli.PipelineStageResult(stage_id="flaky", status="ok"),
+                m.Cli.PipelineStageResult(
+                    stage_id="flaky", status=c.Cli.Pipeline.STATUS_OK
+                ),
             )
 
         stages = [
@@ -225,7 +233,9 @@ class TestPipelineExecute:
             def h(ctx: m.Cli.PipelineStageContext) -> r[m.Cli.PipelineStageResult]:
                 order.append(sid)
                 return r[m.Cli.PipelineStageResult].ok(
-                    m.Cli.PipelineStageResult(stage_id=sid, status="ok"),
+                    m.Cli.PipelineStageResult(
+                        stage_id=sid, status=c.Cli.Pipeline.STATUS_OK
+                    ),
                 )
 
             return h

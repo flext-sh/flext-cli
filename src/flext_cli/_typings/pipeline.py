@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Literal
 from flext_core import r
 
 if TYPE_CHECKING:
-    from flext_cli import m, p
+    from flext_cli import m
 
 
 class FlextCliTypesPipeline:
@@ -16,10 +16,10 @@ class FlextCliTypesPipeline:
 
     type PipelineStageStatus = Literal["ok", "skipped", "failed"]
     type PipelineHandler = Callable[
-        [p.Cli.PipelineStageContext],
+        [m.Cli.PipelineStageContext],
         r[m.Cli.PipelineStageResult],
     ]
-    type PipelineSkipPredicate = Callable[[p.Cli.PipelineStageContext], bool]
+    type PipelineSkipPredicate = Callable[[m.Cli.PipelineStageContext], bool]
 
 
 __all__ = ["FlextCliTypesPipeline"]

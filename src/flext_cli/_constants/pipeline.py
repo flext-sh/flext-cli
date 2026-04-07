@@ -16,7 +16,10 @@ class FlextCliConstantsPipeline:
         DEFAULT_FAIL_FAST: Final[bool] = True
         DEFAULT_RETRY: Final[t.RetryCount] = 0
         MAX_RETRY: Final[t.RetryCount] = 3
-        STAGE_TIMEOUT_SECONDS: Final[int] = 600
+
+        STATUS_OK: Final = "ok"
+        STATUS_SKIPPED: Final = "skipped"
+        STATUS_FAILED: Final = "failed"
 
 
 __all__ = ["FlextCliConstantsPipeline"]

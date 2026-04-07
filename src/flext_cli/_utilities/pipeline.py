@@ -65,7 +65,7 @@ class FlextCliUtilitiesPipeline:
                 results.append(
                     m.Cli.PipelineStageResult(
                         stage_id=stage_id,
-                        status="skipped",
+                        status=c.Cli.Pipeline.STATUS_SKIPPED,
                         error="skipped due to prior failure (fail_fast)",
                     ),
                 )
@@ -78,7 +78,7 @@ class FlextCliUtilitiesPipeline:
             )
             results.append(stage_result)
 
-            if stage_result.status == "failed":
+            if stage_result.status == c.Cli.Pipeline.STATUS_FAILED:
                 failed = True
 
         total_ms = (time.monotonic() - pipeline_start) * 1000
@@ -108,7 +108,7 @@ class FlextCliUtilitiesPipeline:
             log.debug("stage_skipped", stage_id=spec.stage_id, reason="skip_if")
             return m.Cli.PipelineStageResult(
                 stage_id=spec.stage_id,
-                status="skipped",
+                status=c.Cli.Pipeline.STATUS_SKIPPED,
             )
 
         max_attempts = 1 + min(spec.retry, c.Cli.Pipeline.MAX_RETRY)
@@ -156,7 +156,7 @@ class FlextCliUtilitiesPipeline:
         )
         return m.Cli.PipelineStageResult(
             stage_id=spec.stage_id,
-            status="failed",
+            status=c.Cli.Pipeline.STATUS_FAILED,
             error=last_error,
         )
 

@@ -8,7 +8,7 @@ from typing import Annotated, ClassVar
 
 from pydantic import ConfigDict, Field
 
-from flext_cli import t
+from flext_cli import c, t
 from flext_core import FlextModels, r
 
 
@@ -57,8 +57,14 @@ class FlextCliModelsPipeline:
         ]
         depends_on: Annotated[
             frozenset[str],
-            Field(default=frozenset(), description="Stage IDs this stage depends on"),
+            Field(
+                default_factory=frozenset, description="Stage IDs this stage depends on"
+            ),
         ]
+        # NOTE: handler/skip_if use inline Callable, not t.Cli.PipelineHandler /
+        # t.Cli.PipelineSkipPredicate.  Those are PEP 695 `type` aliases that
+        # reference p.Cli.PipelineStageContext under TYPE_CHECKING — Pydantic
+        # cannot resolve them at runtime for model field validation.
         handler: Annotated[
             Callable[
                 [FlextCliModelsPipeline.PipelineStageContext],
@@ -73,9 +79,9 @@ class FlextCliModelsPipeline:
         retry: Annotated[
             int,
             Field(
-                default=0,
+                default=c.Cli.Pipeline.DEFAULT_RETRY,
                 ge=0,
-                le=3,
+                le=c.Cli.Pipeline.MAX_RETRY,
                 description="Number of retries on failure",
             ),
         ]
@@ -122,19 +128,19 @@ class FlextCliModelsPipeline:
         @property
         def ok(self) -> bool:
             """True if no stage failed."""
-            return all(s.status != "failed" for s in self.stages)
+            return all(s.status != c.Cli.Pipeline.STATUS_FAILED for s in self.stages)
 
         @property
         def failed_stages(self) -> Sequence[FlextCliModelsPipeline.PipelineStageResult]:
             """Return only failed stage results."""
-            return [s for s in self.stages if s.status == "failed"]
+            return [s for s in self.stages if s.status == c.Cli.Pipeline.STATUS_FAILED]
 
         @property
         def skipped_stages(
             self,
         ) -> Sequence[FlextCliModelsPipeline.PipelineStageResult]:
             """Return only skipped stage results."""
-            return [s for s in self.stages if s.status == "skipped"]
+            return [s for s in self.stages if s.status == c.Cli.Pipeline.STATUS_SKIPPED]
 
 
 __all__ = ["FlextCliModelsPipeline"]

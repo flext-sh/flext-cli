@@ -19,6 +19,7 @@ from typing import ClassVar
 from pydantic import (
     ConfigDict,
     Field,
+    TypeAdapter,
     field_validator,
     model_validator,
 )
@@ -36,18 +37,31 @@ class FlextCliExamplesModels(m):
 
         @staticmethod
         def merge_env_overrides(
-            data: t.EnvInput,
+            data: t.ModelInput,
             env_fields: Mapping[str, str],
-        ) -> t.EnvInput:
+            field_types: Mapping[str, t.TypeHintSpecifier],
+        ) -> t.ModelInput:
             """Merge explicit input with environment overrides using Pydantic coercion."""
             if not isinstance(data, Mapping):
                 return data
             typed_data = t.JSON_DICT_ADAPTER.validate_python(data)
-            env_overrides = {
-                field_name: os.environ[env_name]
-                for field_name, env_name in env_fields.items()
-                if env_name in os.environ
-            }
+            env_overrides: dict[str, t.EnvValue] = {}
+            for field_name, env_name in env_fields.items():
+                if env_name not in os.environ or field_name not in field_types:
+                    continue
+                validated_value = TypeAdapter(field_types[field_name]).validate_python(
+                    os.environ[env_name],
+                )
+                if isinstance(validated_value, Mapping):
+                    env_overrides[field_name] = t.JSON_DICT_ADAPTER.validate_python(
+                        validated_value,
+                    )
+                    continue
+                if isinstance(validated_value, Path | str | int | float | bool):
+                    env_overrides[field_name] = validated_value
+                    continue
+                msg = f"Unsupported env override type for {field_name}: {type(validated_value).__name__}"
+                raise TypeError(msg)
             return {**env_overrides, **typed_data}
 
         class DatabaseWizardConfig(m.Value):
@@ -107,8 +121,8 @@ class FlextCliExamplesModels(m):
             @classmethod
             def _inject_env(
                 cls,
-                data: t.EnvInput,
-            ) -> t.EnvInput:
+                data: t.ModelInput,
+            ) -> t.ModelInput:
                 return FlextCliExamplesModels.Examples.merge_env_overrides(
                     data,
                     {
@@ -116,6 +130,10 @@ class FlextCliExamplesModels(m):
                         "api_key": "API_KEY",
                         "max_workers": "MAX_WORKERS",
                         "timeout": "TIMEOUT",
+                    },
+                    {
+                        field_name: field_info.annotation or str
+                        for field_name, field_info in cls.model_fields.items()
                     },
                 )
 
@@ -182,8 +200,8 @@ class FlextCliExamplesModels(m):
             @classmethod
             def _inject_env(
                 cls,
-                data: t.EnvInput,
-            ) -> t.EnvInput:
+                data: t.ModelInput,
+            ) -> t.ModelInput:
                 return FlextCliExamplesModels.Examples.merge_env_overrides(
                     data,
                     {
@@ -194,6 +212,10 @@ class FlextCliExamplesModels(m):
                         "enable_metrics": "ENABLE_METRICS",
                         "log_level": "LOG_LEVEL",
                         "temp_dir": "TEMP_DIR",
+                    },
+                    {
+                        field_name: field_info.annotation or str
+                        for field_name, field_info in cls.model_fields.items()
                     },
                 )
 

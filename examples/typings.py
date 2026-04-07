@@ -15,7 +15,9 @@ from flext_cli import FlextCli, t
 class FlextCliExamplesTypes(t):
     """Public examples type facade extending flext-cli types."""
 
-    type EnvInput = t.ContainerMapping | t.Primitives | None
+    type EnvValue = t.RecursiveContainer
+    type EnvInput = t.ContainerMapping | t.Container | None
+    type ModelInput = t.ContainerMapping | t.Container | None
     type CliApi = FlextCli
 
     type DataProcessor = Callable[[str], str]
