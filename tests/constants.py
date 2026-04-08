@@ -5,7 +5,7 @@ constants using COMPOSITION INHERITANCE.
 
 Inheritance hierarchy:
 - FlextTestsConstants (flext_tests) - Provides .Tests.* namespace
-- _cli_c (production) - Provides .Cli.* namespace
+- c (production) - Provides .Cli.* namespace
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -18,16 +18,16 @@ from typing import Final
 
 from flext_tests import FlextTestsConstants
 
-from flext_cli import c as _cli_c
+from flext_cli import c
 from tests import t
 
 
-class TestsFlextCliConstants(FlextTestsConstants, _cli_c):
+class TestsFlextCliConstants(FlextTestsConstants, c):
     """Constants for flext-cli tests using COMPOSITION INHERITANCE.
 
     MANDATORY: Inherits from BOTH:
     1. FlextTestsConstants - for test infrastructure (.Tests.*)
-    2. _cli_c - for domain constants (.Cli.*)
+    2. c - for domain constants (.Cli.*)
 
     Access patterns:
     - c.Tests.* (container testing)
@@ -37,13 +37,13 @@ class TestsFlextCliConstants(FlextTestsConstants, _cli_c):
     - c.Cli.Tests.* (project-specific test data)
 
     Rules:
-    - NEVER duplicate constants from FlextTestsConstants or _cli_c
+    - NEVER duplicate constants from FlextTestsConstants or c
     - Only flext-cli-specific constants allowed (not generic for other projects)
     - All generic constants come from FlextTestsConstants
-    - All production constants come from _cli_c
+    - All production constants come from c
     """
 
-    class Cli(_cli_c.Cli):
+    class Cli(c.Cli):
         """CLI constants with test-specific extensions."""
 
         class Tests:

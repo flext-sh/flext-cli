@@ -17,16 +17,16 @@ from flext_cli import (
     FlextCliCommands,
     FlextCliCommonParams,
     FlextCliSettings,
-    u as _cli_u,
+    u,
 )
 from flext_core import r
 from tests import t
 
 
-class TestsFlextCliUtilities(FlextTestsUtilities, _cli_u):
+class TestsFlextCliUtilities(FlextTestsUtilities, u):
     """Test utilities for flext-cli."""
 
-    class Cli(_cli_u.Cli):
+    class Cli(u.Cli):
         """Cli domain test utilities."""
 
         class Tests:

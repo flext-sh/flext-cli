@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from typing import Final
 
-from flext_cli import c as _cli_c
+from flext_cli import c
 
 
-class ExamplesFlextCliConstants(_cli_c):
+class ExamplesFlextCliConstants(c):
     """Public examples constants facade extending flext-cli constants."""
 
     class Examples:

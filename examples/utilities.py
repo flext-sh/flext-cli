@@ -14,11 +14,11 @@ from __future__ import annotations
 from collections.abc import MutableSequence
 
 from examples import m, t
-from flext_cli import cli, u as _cli_u
+from flext_cli import cli, u
 from flext_core import r
 
 
-class ExamplesFlextCliUtilities(_cli_u):
+class ExamplesFlextCliUtilities(u):
     """Public examples utility facade extending flext-cli utilities."""
 
     @classmethod

@@ -40,7 +40,7 @@ from examples import t
 from flext_cli import cli
 
 
-def efficient_cli_usage() -> None:
+def efficientusage() -> None:
     """Use singleton pattern in YOUR CLI for performance."""
     cli.print("✅ Using singleton - no re-initialization overhead", style="green")
 
@@ -150,7 +150,7 @@ def main() -> None:
     cli.print("  Performance Optimization Library Usage", style="bold white")
     cli.print("=" * 70, style="bold blue")
     cli.print("\n1. Singleton Pattern (zero overhead):", style="bold cyan")
-    efficient_cli_usage()
+    efficientusage()
     cli.print("\n2. Caching Expensive Operations:", style="bold cyan")
     demonstrate_caching()
     demonstrate_lazy_loading()
