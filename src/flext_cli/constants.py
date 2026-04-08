@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from flext_cli import (
     FlextCliConstantsBase,
-    FlextCliConstantsConfig,
     FlextCliConstantsEnums,
+    FlextCliConstantsSettings,
     FlextCliConstantsPipeline,
 )
 from flext_core import FlextConstants
@@ -18,7 +18,7 @@ class FlextCliConstants(FlextConstants):
         FlextCliConstantsPipeline,
         FlextCliConstantsBase,
         FlextCliConstantsEnums,
-        FlextCliConstantsConfig,
+        FlextCliConstantsSettings,
     ):
         """CLI related constants."""
 

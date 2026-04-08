@@ -1,7 +1,7 @@
 """FLEXT CLI Base Tests - Comprehensive Base Service Validation Testing.
 
 Tests for FlextCliServiceBase covering initialization, configuration access,
-singleton pattern, and inheritance from FlextService with 100% coverage.
+singleton pattern, and inheritance from s with 100% coverage.
 
 Modules tested: flext_cli.base.FlextCliServiceBase
 Scope: All base service functionality, config access, inheritance patterns

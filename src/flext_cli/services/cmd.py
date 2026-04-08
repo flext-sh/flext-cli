@@ -43,7 +43,7 @@ class FlextCliCmd(s):
 
     @override
     def execute(self) -> r[t.Cli.JsonMapping]:
-        """Report operational status required by `FlextService`."""
+        """Report operational status required by `s`."""
         status: t.Cli.JsonMapping = {
             c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.OPERATIONAL.value,
             c.Cli.DictKeys.SERVICE: c.Cli.CmdDefaults.SERVICE_NAME,

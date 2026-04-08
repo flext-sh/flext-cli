@@ -57,7 +57,7 @@ src/flext_cli/
 ## Integração com flext-core
 
 - `r`: envelope de sucesso/falha usado por todas as operações públicas.
-- `FlextService`: herdado em `FlextCliServiceBase` para logging, contexto e ciclo de vida.
+- `s`: herdado em `FlextCliServiceBase` para logging, contexto e ciclo de vida.
 - `FlextContainer`: registro do identificador do CLI ao inicializar `cli` ou `FlextCliCli`.
 
 ## Exemplo mínimo

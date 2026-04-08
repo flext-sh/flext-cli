@@ -5,7 +5,7 @@
 - [v0.10.0 Development Guidelines (Current)](#v0100-development-guidelines-current)
   - [Overview](#overview)
 - [When to Use Each Pattern](#when-to-use-each-pattern)
-  - [Use FlextService When](#use-flextservice-when)
+  - [Use s When](#use-flextservice-when)
   - [Use Simple Class When](#use-simple-class-when)
   - [Use Value Object (Pydantic) When](#use-value-object-pydantic-when)
 - [Architecture Decision Flowchart](#architecture-decision-flowchart)
@@ -69,7 +69,7 @@ ______________________________________________________________________
 
 ## When to Use Each Pattern
 
-### Use FlextService When
+### Use s When
 
 **Requirements**:
 
@@ -81,9 +81,9 @@ ______________________________________________________________________
 **Example - FlextCliCore (Stateful Service)**:
 
 ```python
-from flext_core import FlextService
+from flext_core import s
 
-class FlextCliCore(FlextService[CliDataDict]):
+class FlextCliCore(s[CliDataDict]):
     """Core service managing commands and sessions."""
 
     def __init__(self):
@@ -167,14 +167,14 @@ ______________________________________________________________________
 
 ```
 Does the class manage mutable state?
-├─ YES → Use FlextService
+├─ YES → Use s
 │        Examples: FlextCliCore, cli
 │
 └─ NO → Does it have behavior (business logic)?
     ├─ YES → Is it stateless utility functions?
     │   ├─ YES → Use Simple Class
     │   │        Examples: FlextCliFileTools, FlextCliFormatters
-    │   └─ NO → Re-evaluate: might need FlextService
+    │   └─ NO → Re-evaluate: might need s
     │
     └─ NO → Is it just data with validation?
         └─ YES → Use Value Object (Pydantic)
@@ -515,9 +515,9 @@ from flext_core import FlextSettings
 from flext_core import FlextConstants
 from flext_core import FlextContainer
 from flext_core import FlextContext
-from flext_core import FlextDecorators
+from flext_core import d
 from flext_core import FlextDispatcher
-from flext_core import FlextExceptions
+from flext_core import e
 from flext_core import h
 from flext_core import FlextLogger
 from flext_core import x
@@ -527,12 +527,12 @@ from flext_core import p
 from flext_core import FlextRegistry
 from flext_core import r
 from flext_core import u
-from flext_core import FlextService
+from flext_core import s
 from flext_core import t
 from flext_core import u
 from flext_cli import cli
 
-class DataCommands(FlextService):
+class DataCommands(s):
     """Data management commands."""
 
     def handle_export(self, **kwargs) -> r[bool]:

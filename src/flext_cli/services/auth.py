@@ -28,7 +28,7 @@ from flext_core import r
 class FlextCliAuth(FlextCliServiceBase):
     """Unified Typer/Click abstraction marker for the FLEXT CLI ecosystem.
 
-    Container and logger are provided by FlextMixins via MRO.
+    Container and logger are provided by x via MRO.
     """
 
     def _get_token_file_path(self) -> Path:

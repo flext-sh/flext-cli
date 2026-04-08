@@ -120,11 +120,11 @@ ______________________________________________________________________
 
 #### 1. Excessive Service Classes (18 services)
 
-**Problem**: Nearly every class extends FlextService unnecessarily.
+**Problem**: Nearly every class extends s unnecessarily.
 
 ```python
 # ❌ CURRENT: Too many services
-class FlextCliFileTools(FlextService[t.ContainerMapping]):
+class FlextCliFileTools(s[t.ContainerMapping]):
     """File operations as a service - OVERKILL"""
     def __init__(self):
         super().__init__()  # Unnecessary overhead
@@ -202,7 +202,7 @@ class cli:
 
 ```python
 # ❌ CURRENT: Context with service methods
-class FlextCliContext(FlextService[CliDataDict]):
+class FlextCliContext(s[CliDataDict]):
     def activate(self) -> r[bool]: ...
     def deactivate(self) -> r[bool]: ...
 ```
@@ -247,7 +247,7 @@ ______________________________________________________________________
 
 ### Design Principles
 
-1. **Services Only for State** - Use FlextService only when managing state
+1. **Services Only for State** - Use s only when managing state
 1. **Simple Classes for Utilities** - Stateless operations use simple classes
 1. **Value Objects for Data** - Immutable data models using Pydantic
 1. **Direct Access Pattern** - No thin wrappers, direct property access
@@ -257,7 +257,7 @@ ______________________________________________________________________
 
 #### Services (3-4 classes only)
 
-**FlextService should be used when**:
+**s should be used when**:
 
 - Class manages mutable state (commands, sessions, configuration)
 - Class requires dependency injection
@@ -266,7 +266,7 @@ ______________________________________________________________________
 
 ```python
 # ✅ FlextCliCore - Stateful service
-class FlextCliCore(FlextService[CliDataDict]):
+class FlextCliCore(s[CliDataDict]):
     """Manages commands, sessions, configuration lifecycle."""
 
     def __init__(self):
@@ -449,7 +449,7 @@ ______________________________________________________________________
 **Before**:
 
 ```python
-class FlextCliFileTools(FlextService[t.ContainerMapping]):
+class FlextCliFileTools(s[t.ContainerMapping]):
     def __init__(self):
         super().__init__()
         self.logger = FlextLogger(__name__)
@@ -472,7 +472,7 @@ class FlextCliFileTools:
 
 **Changes**:
 
-- Remove FlextService inheritance
+- Remove s inheritance
 - Remove `__init__`
 - Make methods static (no self needed)
 - Remove logger (can use module-level logger if needed)
@@ -497,7 +497,7 @@ class FlextCliFileTools:
 **Before**:
 
 ```python
-class FlextCliContext(FlextService[CliDataDict]):
+class FlextCliContext(s[CliDataDict]):
     """Context as service with methods."""
 
     def activate(self) -> r[bool]: ...
@@ -752,7 +752,7 @@ See: [IMPLEMENTATION_CHECKLIST.md](IMPLEMENTATION_CHECKLIST.md)
 
 For each utility class:
 
-1. Remove FlextService inheritance
+1. Remove s inheritance
 1. Remove `__init__` method
 1. Convert instance methods to static methods
 1. Remove `self` parameter
@@ -773,7 +773,7 @@ Commit after each: "refactor: convert FlextCliFileTools to simple class"
 
 #### Phase 4: Fix FlextCliContext
 
-1. Change inheritance: `FlextService` → `m.Value`
+1. Change inheritance: `s` → `m.Value`
 1. Remove service methods: `activate()`, `deactivate()`
 1. Add `model_config = ConfigDict(frozen=True)`
 1. Update all usage sites

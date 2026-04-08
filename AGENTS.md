@@ -137,7 +137,7 @@ ______________________________________________________________________
 
 - Single consolidated API class: `cli`
 - Wraps Click (CLI framework) and Rich (terminal UI) internally
-- Uses flext-core patterns: `r[T]` railway pattern, `FlextService`
+- Uses flext-core patterns: `r[T]` railway pattern, `s`
 - Poetry-based dependency management
 
 ______________________________________________________________________
@@ -157,7 +157,7 @@ src/flext_cli/
 ├── cli.py               # FlextCliCli - Click abstraction (ONE class, ONLY Click import)
 ├── cli_params.py        # FlextCliCommonParams - reusable CLI parameters (ONE class)
 ├── commands.py          # FlextCliCommands - command registration (ONE class)
-├── config.py            # FlextCliConfig - singleton configuration (ONE class)
+├── config.py            # FlextCliSettings - singleton configuration (ONE class)
 ├── constants.py         # FlextCliConstants - all constants (ONE class, extends FlextConstants, alias: c)
 ├── debug.py             # FlextCliDebug - debug utilities (ONE class)
 ├── file_tools.py        # FlextCliFileTools - JSON/YAML/CSV operations (ONE class)
@@ -169,7 +169,7 @@ src/flext_cli/
 ├── utilities.py         # FlextCliUtilities - utilities (ONE class, extends FlextUtilities, alias: u)
 └── services/
     ├── cmd.py           # FlextCliCmd - command execution (ONE class)
-    ├── core.py          # FlextCliCore - extends FlextService (ONE class)
+    ├── core.py          # FlextCliCore - extends s (ONE class)
     ├── output.py        # FlextCliOutput - output management (ONE class)
     ├── prompts.py       # FlextCliPrompts - interactive prompts (ONE class)
     └── tables.py        # FlextCliTables - Tabulate integration (ONE class)
@@ -179,7 +179,7 @@ src/flext_cli/
 
 - **ONE class per module** - Each module has exactly ONE class prefixed with `cli*`
 - **Short aliases** - `t` (Types), `c` (Constants), `p` (Protocols), `m` (Models), `u` (Utilities), `s` (ServiceBase)
-- **Core aliases** - `r` (r), `e` (FlextExceptions), `d` (FlextDecorators), `x` (FlextMixins) from `flext_core`
+- **Core aliases** - `r` (r), `e` (e), `d` (d), `x` (x) from `flext_core`
 - **Extension pattern** - All classes extend corresponding `Flext*` classes from `flext-core`
 - **NO bad-override** - `@override` only when amplifying scope or overriding abstract methods
 - **NO duplicate classes** - Each class has unique responsibility (SOLID)
@@ -198,7 +198,7 @@ src/flext_cli/
 ```python
 from flext_cli import (
     cli,  # Main consolidated API (NOT FlextCliApi)
-    FlextCliConfig,  # Configuration (NOT FlextCliConfigs)
+    FlextCliSettings,  # Configuration (NOT FlextCliConfigs)
     FlextCliConstants,  # Constants
     FlextCliFormatters,  # Rich formatting abstraction
     FlextCliTables,  # Table formatting
@@ -249,10 +249,10 @@ class FlextCliFormatters:
 Configuration uses global singleton with environment variable support:
 
 ```python
-from flext_cli import FlextCliConfig
+from flext_cli import FlextCliSettings
 
 # Get singleton instance (creates if needed)
-config = FlextCliConfig.get_global_instance()
+config = FlextCliSettings.get_global_instance()
 
 # All configuration is read-only properties
 debug = config.debug  # FLEXT_DEBUG env var
@@ -348,9 +348,9 @@ from flext_cli import u  # FlextCliUtilities
 
 # flext_core aliases (also available)
 from flext_core import r  # r
-from flext_core import e  # FlextExceptions
-from flext_core import d  # FlextDecorators
-from flext_core import mx  # FlextMixins
+from flext_core import e  # e
+from flext_core import d  # d
+from flext_core import mx  # x
 
 # Usage with full namespace (MANDATORY)
 result: r[str] = r[str].ok("value")
@@ -497,7 +497,7 @@ from flext_cli import p
 # tests/unit/test_my_module.py
 
 # ✅ CORRECT - Import from package root
-from flext_cli import cli, FlextCliConfig
+from flext_cli import cli, FlextCliSettings
 from flext_cli import m
 from flext_cli import c
 
@@ -593,7 +593,7 @@ tests/
 **Short Aliases Usage**:
 
 - Use `t`, `c`, `m`, `p`, `u`, `s` from `tests` module for support (NOT for test declarations)
-- Use `r` (r), `e` (FlextExceptions), `d` (FlextDecorators), `x` (FlextMixins) directly from `flext_core`
+- Use `r` (r), `e` (e), `d` (d), `x` (x) directly from `flext_core`
 - All aliases must work with class short names without lint complaints
 
 ### TestsCli Structure Pattern
@@ -669,7 +669,7 @@ Common fixtures available in all tests (from `conftest.py`):
 
 - **ONE class per module** - Prefix with `TestsCli*` (e.g., `TestsCliOutput`)
 - **Use short aliases** - `t`, `c`, `m`, `p`, `u`, `s` from `tests` module for support (NOT for test declarations)
-- **Use flext-core aliases** - `r` (r), `e` (FlextExceptions), `d` (FlextDecorators), `x` (FlextMixins) directly from `flext_core`
+- **Use flext-core aliases** - `r` (r), `e` (e), `d` (d), `x` (x) directly from `flext_core`
 - **NO monkeypatch usage** - Use fixtures with data and behavior validation instead
 - **Test real functionality** - Use fixtures with actual data, not mocks
 - **Validate outputs** - Test behavior and output validation, not just coverage
@@ -867,7 +867,7 @@ Based on unified FLEXT ecosystem patterns:
 - **Models**: Inheritance from `FlextModels`, Pydantic v2 patterns (`model_config = ConfigDict(...)`), Self type usage
 - **Types**: Inheritance from `FlextTypes`, PEP 695 type aliases, namespace organization (`t.Cli.*`)
 - **Testing**: TestsCli structure, 100% coverage requirement, no mocks policy
-- **DI**: FlextService patterns, Container usage, Config auto-registration
+- **DI**: s patterns, Container usage, Config auto-registration
 - **Func Tests**: Integration test patterns, real implementations only, no mocks policy
 
 ______________________________________________________________________

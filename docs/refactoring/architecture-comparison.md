@@ -12,7 +12,7 @@
   - [Example 1: File Operations](#example-1-file-operations)
   - [Example 2: Output Formatting](#example-2-output-formatting)
 - [Service Class Patterns](#service-class-patterns)
-  - [v0.9.0: Everything Extends FlextService](#v090-everything-extends-flextservice)
+  - [v0.9.0: Everything Extends s](#v090-everything-extends-flextservice)
   - [v0.10.0: Simple Classes for Utilities](#v0100-simple-classes-for-utilities)
 - [Test Organization](#test-organization)
   - [v0.9.0: Flat Structure](#v090-flat-structure)
@@ -200,11 +200,11 @@ cli.formatters.print(table.unwrap())
 
 ## Service Class Patterns
 
-### v0.9.0: Everything Extends FlextService
+### v0.9.0: Everything Extends s
 
 ```python
 # ❌ Unnecessary service infrastructure
-class FlextCliFileTools(FlextService[t.ContainerMapping]):
+class FlextCliFileTools(s[t.ContainerMapping]):
     def __init__(self):
         super().__init__()  # Service overhead
         self.logger = FlextLogger(__name__)
@@ -313,7 +313,7 @@ from cachetools import LRUCache, TTLCache  # Evaluate usage
 # ✅ Only what's actually used
 import json
 from pathlib import Path
-from flext_core import r, FlextService
+from flext_core import r, s
 ```
 
 **Benefit**: Clear dependencies, no confusion

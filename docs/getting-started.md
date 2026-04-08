@@ -55,7 +55,7 @@ ______________________________________________________________________
 flext-cli v0.10.0 is a simplified, streamlined CLI foundation library for the FLEXT ecosystem. It provides:
 
 - **Direct MRO API**: All services available directly on `cli.*` via MRO inheritance
-- **Services for State Only**: FlextService used only where needed (3-4 classes)
+- **Services for State Only**: s used only where needed (3-4 classes)
 - **Simple Utilities**: Stateless operations as simple classes
 - **Value Objects**: Immutable data models using Pydantic
 - **Railway Pattern**: All operations return `r[T]`
@@ -82,7 +82,7 @@ ______________________________________________________________________
 
 flext-cli integrates with:
 
-- **[flext-core](https://github.com/organization/flext/tree/main/flext-core/README.md)**: Foundation patterns (r, FlextService, FlextModels)
+- **[flext-core](https://github.com/organization/flext/tree/main/flext-core/README.md)**: Foundation patterns (r, s, FlextModels)
 - **Click 8.2+**: CLI framework (abstracted)
 - **Rich 14.0+**: Terminal UI (abstracted)
 - **Pydantic 2.11+**: Data validation
@@ -359,9 +359,9 @@ from flext_core import FlextSettings
 from flext_core import FlextConstants
 from flext_core import FlextContainer
 from flext_core import FlextContext
-from flext_core import FlextDecorators
+from flext_core import d
 from flext_core import FlextDispatcher
-from flext_core import FlextExceptions
+from flext_core import e
 from flext_core import h
 from flext_core import FlextLogger
 from flext_core import x
@@ -371,7 +371,7 @@ from flext_core import p
 from flext_core import FlextRegistry
 from flext_core import r
 from flext_core import u
-from flext_core import FlextService
+from flext_core import s
 from flext_core import t
 from flext_core import u
 

@@ -174,7 +174,7 @@ Most utility classes are now simple classes (no service inheritance).
 
 ```python
 # ❌ v0.9.0 (OLD - Some classes were services)
-file_tools = FlextCliFileTools()  # Was FlextService
+file_tools = FlextCliFileTools()  # Was s
 result = file_tools.read_json_file("config.json")
 
 # ✅ v0.10.0 (NEW - Static methods)

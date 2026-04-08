@@ -9,7 +9,7 @@ from typing import ClassVar, Final
 from flext_core import t
 
 
-class FlextCliConstantsConfig:
+class FlextCliConstantsSettings:
     """CLI defaults, messages, registries, and output configuration."""
 
     class ValidationLists:

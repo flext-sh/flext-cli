@@ -335,7 +335,7 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_read_document(path: Path) -> r[t.Cli.TomlDocument]:
-        """Read a TOML document with ``FlextResult`` semantics."""
+        """Read a TOML document with ``r`` semantics."""
         if not path.exists():
             return r[t.Cli.TomlDocument].fail(f"failed to read TOML: {path}")
         doc = FlextCliUtilitiesToml.toml_read(path)
