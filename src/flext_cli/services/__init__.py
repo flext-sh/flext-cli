@@ -23,17 +23,11 @@ _LAZY_IMPORTS = {
     "cli_params": "flext_cli.services.cli_params",
     "cmd": "flext_cli.services.cmd",
     "commands": "flext_cli.services.commands",
-    "d": ("flext_core.decorators", "FlextDecorators"),
-    "e": ("flext_core.exceptions", "FlextExceptions"),
     "file_tools": "flext_cli.services.file_tools",
     "formatters": "flext_cli.services.formatters",
-    "h": ("flext_core.handlers", "FlextHandlers"),
     "output": "flext_cli.services.output",
     "prompts": "flext_cli.services.prompts",
-    "r": ("flext_core.result", "FlextResult"),
-    "s": ("flext_core.service", "FlextService"),
     "tables": "flext_cli.services.tables",
-    "x": ("flext_core.mixins", "FlextMixins"),
 }
 
 

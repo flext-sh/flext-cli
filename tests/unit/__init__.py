@@ -9,11 +9,6 @@ from flext_core.lazy import install_lazy_exports
 
 _LAZY_IMPORTS = {
     "conftest": "tests.unit.conftest",
-    "d": ("flext_core.decorators", "FlextDecorators"),
-    "e": ("flext_core.exceptions", "FlextExceptions"),
-    "h": ("flext_core.handlers", "FlextHandlers"),
-    "r": ("flext_core.result", "FlextResult"),
-    "s": ("flext_core.service", "FlextService"),
     "test_base": "tests.unit.test_base",
     "test_cli_params": "tests.unit.test_cli_params",
     "test_cli_service": "tests.unit.test_cli_service",
@@ -34,7 +29,6 @@ _LAZY_IMPORTS = {
     "test_typings": "tests.unit.test_typings",
     "test_utilities_cov": "tests.unit.test_utilities_cov",
     "test_version": "tests.unit.test_version",
-    "x": ("flext_core.mixins", "FlextMixins"),
 }
 
 

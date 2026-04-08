@@ -22,10 +22,7 @@ if _t.TYPE_CHECKING:
     from tests.typings import TestsFlextCliTypes, TestsFlextCliTypes as t
     from tests.utilities import TestsFlextCliUtilities, TestsFlextCliUtilities as u
 _LAZY_IMPORTS = merge_lazy_imports(
-    (
-        "tests.helpers",
-        "tests.unit",
-    ),
+    ("tests.unit",),
     {
         "TestsFlextCliConstants": ("tests.constants", "TestsFlextCliConstants"),
         "TestsFlextCliModels": ("tests.models", "TestsFlextCliModels"),
@@ -38,7 +35,6 @@ _LAZY_IMPORTS = merge_lazy_imports(
         "d": ("flext_core.decorators", "FlextDecorators"),
         "e": ("flext_core.exceptions", "FlextExceptions"),
         "h": ("flext_core.handlers", "FlextHandlers"),
-        "helpers": "tests.helpers",
         "m": ("tests.models", "TestsFlextCliModels"),
         "models": "tests.models",
         "p": ("tests.protocols", "TestsFlextCliProtocols"),
@@ -73,7 +69,6 @@ __all__ = [
     "d",
     "e",
     "h",
-    "helpers",
     "m",
     "models",
     "p",
