@@ -30,8 +30,7 @@ import time
 
 from pydantic import ValidationError
 
-from examples import m, t, u
-from examples.constants import c
+from examples import c, m, t, u
 from flext_cli import cli
 from flext_core import r
 

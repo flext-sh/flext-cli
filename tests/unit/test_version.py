@@ -20,8 +20,7 @@ import pytest
 from flext_tests import tm
 
 from flext_cli import __version__, __version_info__
-from tests import m, t
-from tests.helpers import FlextCliTestHelpers
+from tests import FlextCliTestHelpers, m, t
 
 
 class TestsCliVersion:

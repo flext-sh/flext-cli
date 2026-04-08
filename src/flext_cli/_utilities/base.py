@@ -9,9 +9,9 @@ from flext_cli import (
     FlextCliUtilitiesMatching,
     FlextCliUtilitiesModelCommands,
     FlextCliUtilitiesOptions,
+    FlextCliUtilitiesRuntime,
     FlextCliUtilitiesValidation,
 )
-from flext_cli._utilities.runtime import FlextCliUtilitiesRuntime
 
 
 class FlextCliUtilitiesBase(

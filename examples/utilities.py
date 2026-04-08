@@ -13,8 +13,7 @@ from __future__ import annotations
 
 from collections.abc import MutableSequence
 
-from examples.models import m
-from examples.typings import t
+from examples import m, t
 from flext_cli import cli, u as _cli_u
 from flext_core import r
 

@@ -34,8 +34,7 @@ import os
 import time
 from collections.abc import MutableSequence
 
-from examples import t
-from examples.constants import c
+from examples import c, t
 from flext_cli import cli
 from flext_core import r
 

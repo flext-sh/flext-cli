@@ -16,8 +16,7 @@ from pathlib import Path
 
 from pydantic import TypeAdapter, ValidationError
 
-from examples import m, t
-from examples.constants import c
+from examples import c, m, t
 from flext_cli import cli, r, u
 
 # ============================================================================

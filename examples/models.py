@@ -24,7 +24,7 @@ from pydantic import (
     model_validator,
 )
 
-from examples.typings import t
+from examples import t
 from flext_cli import m
 from flext_core import r
 

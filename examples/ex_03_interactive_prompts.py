@@ -30,8 +30,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from examples import m
-from examples.constants import c
+from examples import c, m
 from flext_cli import cli
 from flext_core import r
 
