@@ -5,72 +5,8 @@
 
 from __future__ import annotations
 
-import typing as _t
-
 from flext_core.lazy import install_lazy_exports
 
-if _t.TYPE_CHECKING:
-    import flext_cli._utilities.base as _flext_cli__utilities_base
-
-    base = _flext_cli__utilities_base
-    import flext_cli._utilities.configuration as _flext_cli__utilities_configuration
-    from flext_cli._utilities.base import FlextCliUtilitiesBase
-
-    configuration = _flext_cli__utilities_configuration
-    import flext_cli._utilities.conversion as _flext_cli__utilities_conversion
-    from flext_cli._utilities.configuration import FlextCliUtilitiesConfiguration
-
-    conversion = _flext_cli__utilities_conversion
-    import flext_cli._utilities.files as _flext_cli__utilities_files
-    from flext_cli._utilities.conversion import (
-        FlextCliUtilitiesCliModelConverter,
-        FlextCliUtilitiesConversion,
-    )
-
-    files = _flext_cli__utilities_files
-    import flext_cli._utilities.json as _flext_cli__utilities_json
-    from flext_cli._utilities.files import FlextCliUtilitiesFiles
-
-    json = _flext_cli__utilities_json
-    import flext_cli._utilities.matching as _flext_cli__utilities_matching
-    from flext_cli._utilities.json import FlextCliUtilitiesJson
-
-    matching = _flext_cli__utilities_matching
-    import flext_cli._utilities.model_commands as _flext_cli__utilities_model_commands
-    from flext_cli._utilities.matching import FlextCliUtilitiesMatching
-
-    model_commands = _flext_cli__utilities_model_commands
-    import flext_cli._utilities.options as _flext_cli__utilities_options
-    from flext_cli._utilities.model_commands import (
-        FlextCliUtilitiesModelCommandBuilder,
-        FlextCliUtilitiesModelCommands,
-    )
-
-    options = _flext_cli__utilities_options
-    import flext_cli._utilities.pipeline as _flext_cli__utilities_pipeline
-    from flext_cli._utilities.options import (
-        FlextCliUtilitiesOptionBuilder,
-        FlextCliUtilitiesOptions,
-    )
-
-    pipeline = _flext_cli__utilities_pipeline
-    import flext_cli._utilities.runtime as _flext_cli__utilities_runtime
-    from flext_cli._utilities.pipeline import FlextCliUtilitiesPipeline
-
-    runtime = _flext_cli__utilities_runtime
-    import flext_cli._utilities.toml as _flext_cli__utilities_toml
-    from flext_cli._utilities.runtime import FlextCliUtilitiesRuntime
-
-    toml = _flext_cli__utilities_toml
-    import flext_cli._utilities.validation as _flext_cli__utilities_validation
-    from flext_cli._utilities.toml import FlextCliUtilitiesToml
-
-    validation = _flext_cli__utilities_validation
-    import flext_cli._utilities.yaml as _flext_cli__utilities_yaml
-    from flext_cli._utilities.validation import FlextCliUtilitiesValidation
-
-    yaml = _flext_cli__utilities_yaml
-    from flext_cli._utilities.yaml import FlextCliUtilitiesYaml
 _LAZY_IMPORTS = {
     "FlextCliUtilitiesBase": ("flext_cli._utilities.base", "FlextCliUtilitiesBase"),
     "FlextCliUtilitiesCliModelConverter": (
@@ -136,37 +72,5 @@ _LAZY_IMPORTS = {
     "yaml": "flext_cli._utilities.yaml",
 }
 
-__all__ = [
-    "FlextCliUtilitiesBase",
-    "FlextCliUtilitiesCliModelConverter",
-    "FlextCliUtilitiesConfiguration",
-    "FlextCliUtilitiesConversion",
-    "FlextCliUtilitiesFiles",
-    "FlextCliUtilitiesJson",
-    "FlextCliUtilitiesMatching",
-    "FlextCliUtilitiesModelCommandBuilder",
-    "FlextCliUtilitiesModelCommands",
-    "FlextCliUtilitiesOptionBuilder",
-    "FlextCliUtilitiesOptions",
-    "FlextCliUtilitiesPipeline",
-    "FlextCliUtilitiesRuntime",
-    "FlextCliUtilitiesToml",
-    "FlextCliUtilitiesValidation",
-    "FlextCliUtilitiesYaml",
-    "base",
-    "configuration",
-    "conversion",
-    "files",
-    "json",
-    "matching",
-    "model_commands",
-    "options",
-    "pipeline",
-    "runtime",
-    "toml",
-    "validation",
-    "yaml",
-]
 
-
-install_lazy_exports(__name__, globals(), _LAZY_IMPORTS)
+install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, publish_all=False)
