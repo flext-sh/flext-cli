@@ -8,7 +8,7 @@ from typing import Protocol, runtime_checkable
 from flext_cli import p
 
 
-class FlextCliExamplesProtocols(p):
+class ExamplesFlextCliProtocols(p):
     """Public examples protocol facade extending flext-cli protocols."""
 
     @runtime_checkable
@@ -66,9 +66,9 @@ class FlextCliExamplesProtocols(p):
             ...
 
 
-p = FlextCliExamplesProtocols
+p = ExamplesFlextCliProtocols
 
 __all__ = [
-    "FlextCliExamplesProtocols",
+    "ExamplesFlextCliProtocols",
     "p",
 ]

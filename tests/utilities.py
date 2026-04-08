@@ -23,7 +23,7 @@ from flext_core import r
 from tests import t
 
 
-class FlextCliTestUtilities(FlextTestsUtilities, _cli_u):
+class TestsFlextCliUtilities(FlextTestsUtilities, _cli_u):
     """Test utilities for flext-cli."""
 
     class Cli(_cli_u.Cli):
@@ -150,5 +150,5 @@ class FlextCliTestUtilities(FlextTestsUtilities, _cli_u):
                     return commands.register_handler(command_name, handler)
 
 
-u = FlextCliTestUtilities
-__all__ = ["FlextCliTestUtilities", "u"]
+u = TestsFlextCliUtilities
+__all__ = ["TestsFlextCliUtilities", "u"]

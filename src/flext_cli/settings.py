@@ -14,9 +14,7 @@ from pydantic import Field
 from pydantic_settings import SettingsConfigDict
 
 from flext_cli import c
-from flext_core import FlextLogger, FlextSettings
-
-logger = FlextLogger(__name__)
+from flext_core import FlextSettings
 
 
 @FlextSettings.auto_register("cli")
@@ -69,6 +67,3 @@ class FlextCliSettings(FlextSettings):
         str | None,
         Field(default=None, description="Path to auth token file"),
     ]
-
-
-__all__ = ["FlextCliSettings", "logger"]

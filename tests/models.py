@@ -1,7 +1,7 @@
 """Pydantic models for flext-cli tests only.
 
 All test-domain models live here; tests MUST NOT use dict/Any/t.NormalizedValue as data contracts.
-Reuse FlextTestsModels types where possible; add test-specific input models only when needed.
+Reuse TestsFlextModels types where possible; add test-specific input models only when needed.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -20,7 +20,7 @@ from flext_cli import m
 from tests import t
 
 
-class FlextCliTestModels(FlextTestsModels, m):
+class TestsFlextCliModels(FlextTestsModels, m):
     """Test namespace facade for flext-cli models. Use m alias; preserves all test model types."""
 
     class Cli(m.Cli):
@@ -106,11 +106,11 @@ class FlextCliTestModels(FlextTestsModels, m):
                 @classmethod
                 def get_string_cases(
                     cls,
-                ) -> Sequence[FlextCliTestModels.Cli.Tests.VersionTestScenario]:
+                ) -> Sequence[TestsFlextCliModels.Cli.Tests.VersionTestScenario]:
                     """Get parametrized test cases for version string validation."""
                     from tests import c
 
-                    data_class = FlextCliTestModels.Cli.Tests.VersionTestScenario
+                    data_class = TestsFlextCliModels.Cli.Tests.VersionTestScenario
                     ex = c.Cli.Tests.VersionExamples
                     return [
                         data_class(
@@ -141,11 +141,11 @@ class FlextCliTestModels(FlextTestsModels, m):
                 @classmethod
                 def get_info_cases(
                     cls,
-                ) -> Sequence[FlextCliTestModels.Cli.Tests.VersionTestScenario]:
+                ) -> Sequence[TestsFlextCliModels.Cli.Tests.VersionTestScenario]:
                     """Get parametrized test cases for version info validation."""
                     from tests import c
 
-                    data_class = FlextCliTestModels.Cli.Tests.VersionTestScenario
+                    data_class = TestsFlextCliModels.Cli.Tests.VersionTestScenario
                     info = c.Cli.Tests.VersionInfoTuples
                     return [
                         data_class(
@@ -173,11 +173,11 @@ class FlextCliTestModels(FlextTestsModels, m):
                 @classmethod
                 def get_consistency_cases(
                     cls,
-                ) -> Sequence[FlextCliTestModels.Cli.Tests.VersionTestScenario]:
+                ) -> Sequence[TestsFlextCliModels.Cli.Tests.VersionTestScenario]:
                     """Get parametrized test cases for version consistency validation."""
                     from tests import c
 
-                    data_class = FlextCliTestModels.Cli.Tests.VersionTestScenario
+                    data_class = TestsFlextCliModels.Cli.Tests.VersionTestScenario
                     ex = c.Cli.Tests.VersionExamples
                     info = c.Cli.Tests.VersionInfoTuples
                     return [
@@ -259,9 +259,9 @@ class FlextCliTestModels(FlextTestsModels, m):
                 """Concrete route model for test-time generic stability."""
 
 
-m = FlextCliTestModels
+m = TestsFlextCliModels
 
 __all__ = [
-    "FlextCliTestModels",
+    "TestsFlextCliModels",
     "m",
 ]

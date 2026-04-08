@@ -1,11 +1,11 @@
 """Type system foundation for flext-cli tests.
 
-Provides FlextCliTestTypes, extending FlextTestsTypes with flext-cli-specific types.
+Provides TestsFlextCliTypes, extending TestsFlextTypes with flext-cli-specific types.
 All generic test types come from flext_tests, only flext-cli-specific additions here.
 
 Architecture:
-- FlextTestsTypes (flext_tests) = Generic types for all FLEXT projects
-- FlextCliTestTypes (tests/) = flext-cli-specific types extending FlextTestsTypes
+- TestsFlextTypes (flext_tests) = Generic types for all FLEXT projects
+- TestsFlextCliTypes (tests/) = flext-cli-specific types extending TestsFlextTypes
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -20,20 +20,20 @@ from flext_tests import FlextTestsTypes
 from flext_cli import t
 
 
-class FlextCliTestTypes(FlextTestsTypes, t):
-    """Type system foundation for flext-cli tests - extends FlextTestsTypes and t.
+class TestsFlextCliTypes(FlextTestsTypes, t):
+    """Type system foundation for flext-cli tests - extends TestsFlextTypes and t.
 
     Architecture: Multiple inheritance provides both generic test types AND CLI-specific types.
-    All types from both FlextTestsTypes and t are available through inheritance.
+    All types from both TestsFlextTypes and t are available through inheritance.
 
     Hierarchy:
-    - FlextTestsTypes.Tests.* (generic test types from flext_tests)
+    - TestsFlextTypes.Tests.* (generic test types from flext_tests)
     - t.Cli.* (source types from flext_cli - INHERITED)
 
     Rules:
-    - NEVER redeclare types from FlextTestsTypes or t
+    - NEVER redeclare types from TestsFlextTypes or t
     - Only flext-cli-specific types allowed (not generic for other projects)
-    - All generic types come from FlextTestsTypes
+    - All generic types come from TestsFlextTypes
     - CLI types come from t via inheritance
     """
 
@@ -74,6 +74,6 @@ class FlextCliTestTypes(FlextTestsTypes, t):
                 OUTPUT_FORMAT = "output_format"
 
 
-t = FlextCliTestTypes
+t = TestsFlextCliTypes
 
-__all__ = ["FlextCliTestTypes", "t"]
+__all__ = ["TestsFlextCliTypes", "t"]

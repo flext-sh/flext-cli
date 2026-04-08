@@ -18,7 +18,7 @@ from flext_cli import cli, u as _cli_u
 from flext_core import r
 
 
-class FlextCliExamplesUtilities(_cli_u):
+class ExamplesFlextCliUtilities(_cli_u):
     """Public examples utility facade extending flext-cli utilities."""
 
     @classmethod
@@ -137,9 +137,9 @@ class FlextCliExamplesUtilities(_cli_u):
             cli.print(f"   {i}. {error}", style="red")
 
 
-u = FlextCliExamplesUtilities
+u = ExamplesFlextCliUtilities
 
 __all__ = [
-    "FlextCliExamplesUtilities",
+    "ExamplesFlextCliUtilities",
     "u",
 ]

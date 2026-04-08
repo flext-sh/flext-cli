@@ -73,4 +73,5 @@ class FlextCli(
 
 cli = FlextCli.get_instance()
 
+
 __all__ = ["FlextCli", "cli"]

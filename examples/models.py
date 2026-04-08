@@ -29,7 +29,7 @@ from flext_cli import m
 from flext_core import r
 
 
-class FlextCliExamplesModels(m):
+class ExamplesFlextCliModels(m):
     """Public examples model facade extending flext-cli models."""
 
     class Examples:
@@ -123,7 +123,7 @@ class FlextCliExamplesModels(m):
                 cls,
                 data: t.ModelInput,
             ) -> t.ModelInput:
-                return FlextCliExamplesModels.Examples.merge_env_overrides(
+                return ExamplesFlextCliModels.Examples.merge_env_overrides(
                     data,
                     {
                         "app_name": "APP_NAME",
@@ -148,7 +148,7 @@ class FlextCliExamplesModels(m):
                     "Debug": str(config.debug),
                     "App": str(config.app_name),
                 }
-                payload = FlextCliExamplesModels.Cli.DisplayData(
+                payload = ExamplesFlextCliModels.Cli.DisplayData(
                     data=payload_data,
                 )
                 if isinstance(payload.data, dict):
@@ -202,7 +202,7 @@ class FlextCliExamplesModels(m):
                 cls,
                 data: t.ModelInput,
             ) -> t.ModelInput:
-                return FlextCliExamplesModels.Examples.merge_env_overrides(
+                return ExamplesFlextCliModels.Examples.merge_env_overrides(
                     data,
                     {
                         "database_url": "DATABASE_URL",
@@ -337,7 +337,7 @@ class FlextCliExamplesModels(m):
             )
             app_name: str = Field(description="Application name")
             version: str = Field(default="1.0.0", description="Application version")
-            database: FlextCliExamplesModels.Examples.DatabaseConfig = Field(
+            database: ExamplesFlextCliModels.Examples.DatabaseConfig = Field(
                 description="Database configuration"
             )
             debug: bool = Field(default=False, description="Enable debug mode")
@@ -384,9 +384,9 @@ class FlextCliExamplesModels(m):
                     return host
 
 
-m = FlextCliExamplesModels
+m = ExamplesFlextCliModels
 
 __all__ = [
-    "FlextCliExamplesModels",
+    "ExamplesFlextCliModels",
     "m",
 ]

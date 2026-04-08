@@ -11,7 +11,7 @@ from flext_tests import FlextTestsProtocols
 from flext_cli import p
 
 
-class FlextCliTestProtocols(FlextTestsProtocols, p):
+class TestsFlextCliProtocols(FlextTestsProtocols, p):
     """Test protocols for flext-cli."""
 
     class Cli(p.Cli):
@@ -21,5 +21,5 @@ class FlextCliTestProtocols(FlextTestsProtocols, p):
             """Test-specific protocols."""
 
 
-p = FlextCliTestProtocols
-__all__ = ["FlextCliTestProtocols", "p"]
+p = TestsFlextCliProtocols
+__all__ = ["TestsFlextCliProtocols", "p"]

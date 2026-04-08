@@ -1,6 +1,6 @@
 """Constants for flext-cli tests.
 
-Provides FlextCliTestConstants, extending FlextTestsConstants with flext-cli-specific
+Provides TestsFlextCliConstants, extending FlextTestsConstants with flext-cli-specific
 constants using COMPOSITION INHERITANCE.
 
 Inheritance hierarchy:
@@ -22,7 +22,7 @@ from flext_cli import c as _cli_c
 from tests import t
 
 
-class FlextCliTestConstants(FlextTestsConstants, _cli_c):
+class TestsFlextCliConstants(FlextTestsConstants, _cli_c):
     """Constants for flext-cli tests using COMPOSITION INHERITANCE.
 
     MANDATORY: Inherits from BOTH:
@@ -123,6 +123,6 @@ class FlextCliTestConstants(FlextTestsConstants, _cli_c):
                     return [(level, level) for level in cls.VALID_LOGGING_LEVELS]
 
 
-c = FlextCliTestConstants
+c = TestsFlextCliConstants
 
-__all__ = ["FlextCliTestConstants", "c"]
+__all__ = ["TestsFlextCliConstants", "c"]

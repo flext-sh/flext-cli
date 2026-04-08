@@ -7,7 +7,7 @@ from typing import Final
 from flext_cli import c as _cli_c
 
 
-class FlextCliExamplesConstants(_cli_c):
+class ExamplesFlextCliConstants(_cli_c):
     """Public examples constants facade extending flext-cli constants."""
 
     class Examples:
@@ -53,9 +53,9 @@ class FlextCliExamplesConstants(_cli_c):
             SETTING_VALUE: Final[tuple[str, str]] = ("Setting", "Value")
 
 
-c = FlextCliExamplesConstants
+c = ExamplesFlextCliConstants
 
 __all__ = [
-    "FlextCliExamplesConstants",
+    "ExamplesFlextCliConstants",
     "c",
 ]

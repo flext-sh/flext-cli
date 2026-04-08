@@ -9,10 +9,10 @@ from pathlib import Path
 
 from pydantic import BaseModel
 
-from flext_cli import c, p, r, s, t, u
+from flext_cli import FlextCliServiceBase, c, p, r, t, u
 
 
-class FlextCliFileTools(s):
+class FlextCliFileTools(FlextCliServiceBase):
     """File operations with r."""
 
     @staticmethod
@@ -22,7 +22,7 @@ class FlextCliFileTools(s):
         **format_kwargs: t.Scalar,
     ) -> r[T]:
         try:
-            return r[T].ok(operation_func())
+            return r.ok(operation_func())
         except (
             OSError,
             ValueError,
@@ -31,7 +31,7 @@ class FlextCliFileTools(s):
             AttributeError,
             RuntimeError,
         ) as exc:
-            return r[T].fail(error_template.format(error=exc, **format_kwargs))
+            return r.fail(error_template.format(error=exc, **format_kwargs))
 
     @staticmethod
     def _run_bool_operation[T](

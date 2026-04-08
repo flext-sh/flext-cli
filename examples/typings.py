@@ -12,7 +12,7 @@ from pydantic import (
 from flext_cli import FlextCli, t
 
 
-class FlextCliExamplesTypes(t):
+class ExamplesFlextCliTypes(t):
     """Public examples type facade extending flext-cli types."""
 
     type EnvValue = t.RecursiveContainer
@@ -27,9 +27,9 @@ class FlextCliExamplesTypes(t):
     )
 
 
-t = FlextCliExamplesTypes
+t = ExamplesFlextCliTypes
 
 __all__ = [
-    "FlextCliExamplesTypes",
+    "ExamplesFlextCliTypes",
     "t",
 ]

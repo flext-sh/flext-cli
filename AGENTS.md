@@ -565,12 +565,12 @@ ______________________________________________________________________
 
 ```
 tests/
-├── typings.py            # TestsCliTypes - extends FlextTestsTypes and FlextCliTypes (alias: t)
+├── typings.py            # TestsCliTypes - extends TestsFlextTypes and FlextCliTypes (alias: t)
 ├── constants.py          # TestsCliConstants - extends FlextTestsConstants and FlextCliConstants (alias: c)
-├── protocols.py          # TestsCliProtocols - extends FlextTestsProtocols and FlextCliProtocols (alias: p)
-├── models.py             # TestsCliModels - extends FlextTestsModels and FlextCliModels (alias: m)
-├── utilities.py          # TestsCliUtilities - extends FlextTestsUtilities and FlextCliUtilities (alias: u)
-├── base.py               # TestsCliServiceBase - extends FlextTestsServiceBase and FlextCliServiceBase
+├── protocols.py          # TestsCliProtocols - extends TestsFlextProtocols and FlextCliProtocols (alias: p)
+├── models.py             # TestsCliModels - extends TestsFlextModels and FlextCliModels (alias: m)
+├── utilities.py          # TestsCliUtilities - extends TestsFlextUtilities and FlextCliUtilities (alias: u)
+├── base.py               # TestsCliServiceBase - extends TestsFlextServiceBase and FlextCliServiceBase
 ├── __init__.py           # Exports all TestsCli classes and short aliases (t, c, p, m, u)
 ├── conftest.py           # Centralized pytest configuration and fixtures (ONLY pytest config, no test helpers)
 ├── helpers/              # Domain-specific helpers ONLY (uses conftest, flext_tests, base classes)
@@ -602,7 +602,7 @@ tests/
 
 1. **TestsCliTypes** (`tests/typings.py`):
 
-   - Extends `FlextTestsTypes` and `FlextCliTypes`
+   - Extends `TestsFlextTypes` and `FlextCliTypes`
    - Provides short alias `t`
    - Centralizes all test-specific type definitions
 
@@ -614,25 +614,25 @@ tests/
 
 1. **TestsCliProtocols** (`tests/protocols.py`):
 
-   - Extends `FlextTestsProtocols` and `FlextCliProtocols`
+   - Extends `TestsFlextProtocols` and `FlextCliProtocols`
    - Provides short alias `p`
    - Centralizes all test-specific protocols
 
 1. **TestsCliModels** (`tests/models.py`):
 
-   - Extends `FlextTestsModels` and `FlextCliModels`
+   - Extends `TestsFlextModels` and `FlextCliModels`
    - Provides short alias `m`
    - Centralizes all test-specific models
 
 1. **TestsCliUtilities** (`tests/utilities.py`):
 
-   - Extends `FlextTestsUtilities` and `FlextCliUtilities`
+   - Extends `TestsFlextUtilities` and `FlextCliUtilities`
    - Provides short alias `u`
    - Centralizes all test-specific utilities
 
 1. **TestsCliServiceBase** (`tests/base.py`):
 
-   - Extends `FlextTestsServiceBase` and `FlextCliServiceBase`
+   - Extends `TestsFlextServiceBase` and `FlextCliServiceBase`
    - Provides short alias `s`
    - Base service for test infrastructure
 
