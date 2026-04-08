@@ -22,21 +22,21 @@ if _t.TYPE_CHECKING:
     from tests.typings import TestsFlextCliTypes, TestsFlextCliTypes as t
     from tests.utilities import TestsFlextCliUtilities, TestsFlextCliUtilities as u
 _LAZY_IMPORTS = {
-    "TestsFlextCliConstants": ("tests.constants", "TestsFlextCliConstants"),
-    "TestsFlextCliModels": ("tests.models", "TestsFlextCliModels"),
-    "TestsFlextCliProtocols": ("tests.protocols", "TestsFlextCliProtocols"),
-    "TestsFlextCliTypes": ("tests.typings", "TestsFlextCliTypes"),
-    "TestsFlextCliUtilities": ("tests.utilities", "TestsFlextCliUtilities"),
-    "c": ("tests.constants", "TestsFlextCliConstants"),
+    "TestsFlextCliConstants": ".constants",
+    "TestsFlextCliModels": ".models",
+    "TestsFlextCliProtocols": ".protocols",
+    "TestsFlextCliTypes": ".typings",
+    "TestsFlextCliUtilities": ".utilities",
+    "c": (".constants", "TestsFlextCliConstants"),
     "d": ("flext_core.decorators", "FlextDecorators"),
     "e": ("flext_core.exceptions", "FlextExceptions"),
     "h": ("flext_core.handlers", "FlextHandlers"),
-    "m": ("tests.models", "TestsFlextCliModels"),
-    "p": ("tests.protocols", "TestsFlextCliProtocols"),
+    "m": (".models", "TestsFlextCliModels"),
+    "p": (".protocols", "TestsFlextCliProtocols"),
     "r": ("flext_core.result", "FlextResult"),
     "s": ("flext_core.service", "FlextService"),
-    "t": ("tests.typings", "TestsFlextCliTypes"),
-    "u": ("tests.utilities", "TestsFlextCliUtilities"),
+    "t": (".typings", "TestsFlextCliTypes"),
+    "u": (".utilities", "TestsFlextCliUtilities"),
     "x": ("flext_core.mixins", "FlextMixins"),
 }
 

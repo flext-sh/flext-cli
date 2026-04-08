@@ -8,8 +8,8 @@ from __future__ import annotations
 from flext_core.lazy import install_lazy_exports
 
 _LAZY_IMPORTS = {
-    "FlextCliModelsBase": ("flext_cli._models.base", "FlextCliModelsBase"),
-    "FlextCliModelsPipeline": ("flext_cli._models.pipeline", "FlextCliModelsPipeline"),
+    "FlextCliModelsBase": ".base",
+    "FlextCliModelsPipeline": ".pipeline",
 }
 
 

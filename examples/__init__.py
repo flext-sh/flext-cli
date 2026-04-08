@@ -31,21 +31,21 @@ if _t.TYPE_CHECKING:
     from flext_core.result import FlextResult as r
     from flext_core.service import FlextService as s
 _LAZY_IMPORTS = {
-    "ExamplesFlextCliConstants": ("examples.constants", "ExamplesFlextCliConstants"),
-    "ExamplesFlextCliModels": ("examples.models", "ExamplesFlextCliModels"),
-    "ExamplesFlextCliProtocols": ("examples.protocols", "ExamplesFlextCliProtocols"),
-    "ExamplesFlextCliTypes": ("examples.typings", "ExamplesFlextCliTypes"),
-    "ExamplesFlextCliUtilities": ("examples.utilities", "ExamplesFlextCliUtilities"),
-    "c": ("examples.constants", "ExamplesFlextCliConstants"),
+    "ExamplesFlextCliConstants": ".constants",
+    "ExamplesFlextCliModels": ".models",
+    "ExamplesFlextCliProtocols": ".protocols",
+    "ExamplesFlextCliTypes": ".typings",
+    "ExamplesFlextCliUtilities": ".utilities",
+    "c": (".constants", "ExamplesFlextCliConstants"),
     "d": ("flext_core.decorators", "FlextDecorators"),
     "e": ("flext_core.exceptions", "FlextExceptions"),
     "h": ("flext_core.handlers", "FlextHandlers"),
-    "m": ("examples.models", "ExamplesFlextCliModels"),
-    "p": ("examples.protocols", "ExamplesFlextCliProtocols"),
+    "m": (".models", "ExamplesFlextCliModels"),
+    "p": (".protocols", "ExamplesFlextCliProtocols"),
     "r": ("flext_core.result", "FlextResult"),
     "s": ("flext_core.service", "FlextService"),
-    "t": ("examples.typings", "ExamplesFlextCliTypes"),
-    "u": ("examples.utilities", "ExamplesFlextCliUtilities"),
+    "t": (".typings", "ExamplesFlextCliTypes"),
+    "u": (".utilities", "ExamplesFlextCliUtilities"),
     "x": ("flext_core.mixins", "FlextMixins"),
 }
 

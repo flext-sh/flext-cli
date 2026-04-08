@@ -8,9 +8,9 @@ from __future__ import annotations
 from flext_core.lazy import install_lazy_exports
 
 _LAZY_IMPORTS = {
-    "FlextCliTypesBase": ("flext_cli._typings.base", "FlextCliTypesBase"),
-    "FlextCliTypesDomain": ("flext_cli._typings.domain", "FlextCliTypesDomain"),
-    "FlextCliTypesPipeline": ("flext_cli._typings.pipeline", "FlextCliTypesPipeline"),
+    "FlextCliTypesBase": ".base",
+    "FlextCliTypesDomain": ".domain",
+    "FlextCliTypesPipeline": ".pipeline",
 }
 
 

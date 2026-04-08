@@ -8,16 +8,10 @@ from __future__ import annotations
 from flext_core.lazy import install_lazy_exports
 
 _LAZY_IMPORTS = {
-    "FlextCliConstantsBase": ("flext_cli._constants.base", "FlextCliConstantsBase"),
-    "FlextCliConstantsConfig": (
-        "flext_cli._constants.config",
-        "FlextCliConstantsConfig",
-    ),
-    "FlextCliConstantsEnums": ("flext_cli._constants.enums", "FlextCliConstantsEnums"),
-    "FlextCliConstantsPipeline": (
-        "flext_cli._constants.pipeline",
-        "FlextCliConstantsPipeline",
-    ),
+    "FlextCliConstantsBase": ".base",
+    "FlextCliConstantsConfig": ".config",
+    "FlextCliConstantsEnums": ".enums",
+    "FlextCliConstantsPipeline": ".pipeline",
 }
 
 
