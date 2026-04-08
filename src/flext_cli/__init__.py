@@ -1,7 +1,5 @@
-# AUTO-GENERATED FILE — DO NOT EDIT MANUALLY.
-# Regenerate with: make gen
-#
-"""Flext cli package."""
+# AUTO-GENERATED FILE — Regenerate with: make gen
+"""Flext Cli package."""
 
 from __future__ import annotations
 
