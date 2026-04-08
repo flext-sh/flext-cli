@@ -3,26 +3,34 @@
 
 from __future__ import annotations
 
-from flext_core.lazy import install_lazy_exports
+from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
-_LAZY_IMPORTS = {
-    "FlextCliUtilitiesBase": ".base",
-    "FlextCliUtilitiesCliModelConverter": ".conversion",
-    "FlextCliUtilitiesConfiguration": ".configuration",
-    "FlextCliUtilitiesConversion": ".conversion",
-    "FlextCliUtilitiesFiles": ".files",
-    "FlextCliUtilitiesJson": ".json",
-    "FlextCliUtilitiesMatching": ".matching",
-    "FlextCliUtilitiesModelCommandBuilder": ".model_commands",
-    "FlextCliUtilitiesModelCommands": ".model_commands",
-    "FlextCliUtilitiesOptionBuilder": ".options",
-    "FlextCliUtilitiesOptions": ".options",
-    "FlextCliUtilitiesPipeline": ".pipeline",
-    "FlextCliUtilitiesRuntime": ".runtime",
-    "FlextCliUtilitiesToml": ".toml",
-    "FlextCliUtilitiesValidation": ".validation",
-    "FlextCliUtilitiesYaml": ".yaml",
-}
+_LAZY_IMPORTS = build_lazy_import_map(
+    {
+        ".base": ("FlextCliUtilitiesBase",),
+        ".configuration": ("FlextCliUtilitiesConfiguration",),
+        ".conversion": (
+            "FlextCliUtilitiesCliModelConverter",
+            "FlextCliUtilitiesConversion",
+        ),
+        ".files": ("FlextCliUtilitiesFiles",),
+        ".json": ("FlextCliUtilitiesJson",),
+        ".matching": ("FlextCliUtilitiesMatching",),
+        ".model_commands": (
+            "FlextCliUtilitiesModelCommandBuilder",
+            "FlextCliUtilitiesModelCommands",
+        ),
+        ".options": (
+            "FlextCliUtilitiesOptionBuilder",
+            "FlextCliUtilitiesOptions",
+        ),
+        ".pipeline": ("FlextCliUtilitiesPipeline",),
+        ".runtime": ("FlextCliUtilitiesRuntime",),
+        ".toml": ("FlextCliUtilitiesToml",),
+        ".validation": ("FlextCliUtilitiesValidation",),
+        ".yaml": ("FlextCliUtilitiesYaml",),
+    },
+)
 
 
 install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, publish_all=False)

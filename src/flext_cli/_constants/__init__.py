@@ -3,14 +3,16 @@
 
 from __future__ import annotations
 
-from flext_core.lazy import install_lazy_exports
+from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
-_LAZY_IMPORTS = {
-    "FlextCliConstantsBase": ".base",
-    "FlextCliConstantsConfig": ".config",
-    "FlextCliConstantsEnums": ".enums",
-    "FlextCliConstantsPipeline": ".pipeline",
-}
+_LAZY_IMPORTS = build_lazy_import_map(
+    {
+        ".base": ("FlextCliConstantsBase",),
+        ".config": ("FlextCliConstantsConfig",),
+        ".enums": ("FlextCliConstantsEnums",),
+        ".pipeline": ("FlextCliConstantsPipeline",),
+    },
+)
 
 
 install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, publish_all=False)

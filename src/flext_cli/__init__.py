@@ -6,7 +6,11 @@ from __future__ import annotations
 import typing as _t
 
 from flext_cli.__version__ import *
-from flext_core.lazy import install_lazy_exports, merge_lazy_imports
+from flext_core.lazy import (
+    build_lazy_import_map,
+    install_lazy_exports,
+    merge_lazy_imports,
+)
 
 if _t.TYPE_CHECKING:
     from flext_cli._constants.base import FlextCliConstantsBase
@@ -75,36 +79,46 @@ _LAZY_IMPORTS = merge_lazy_imports(
         "._utilities",
         ".services",
     ),
-    {
-        "FlextCli": ".api",
-        "FlextCliConstants": ".constants",
-        "FlextCliModels": ".models",
-        "FlextCliProtocols": ".protocols",
-        "FlextCliServiceBase": ".base",
-        "FlextCliSettings": ".settings",
-        "FlextCliTypes": ".typings",
-        "FlextCliUtilities": ".utilities",
-        "__author__": ".__version__",
-        "__author_email__": ".__version__",
-        "__description__": ".__version__",
-        "__license__": ".__version__",
-        "__title__": ".__version__",
-        "__url__": ".__version__",
-        "__version__": ".__version__",
-        "__version_info__": ".__version__",
-        "c": (".constants", "FlextCliConstants"),
-        "cli": ".api",
-        "d": ("flext_core.decorators", "FlextDecorators"),
-        "e": ("flext_core.exceptions", "FlextExceptions"),
-        "h": ("flext_core.handlers", "FlextHandlers"),
-        "m": (".models", "FlextCliModels"),
-        "p": (".protocols", "FlextCliProtocols"),
-        "r": ("flext_core.result", "FlextResult"),
-        "s": ".base",
-        "t": (".typings", "FlextCliTypes"),
-        "u": (".utilities", "FlextCliUtilities"),
-        "x": ("flext_core.mixins", "FlextMixins"),
-    },
+    build_lazy_import_map(
+        {
+            ".__version__": (
+                "__author__",
+                "__author_email__",
+                "__description__",
+                "__license__",
+                "__title__",
+                "__url__",
+                "__version__",
+                "__version_info__",
+            ),
+            ".api": (
+                "FlextCli",
+                "cli",
+            ),
+            ".base": (
+                "FlextCliServiceBase",
+                "s",
+            ),
+            ".constants": ("FlextCliConstants",),
+            ".models": ("FlextCliModels",),
+            ".protocols": ("FlextCliProtocols",),
+            ".settings": ("FlextCliSettings",),
+            ".typings": ("FlextCliTypes",),
+            ".utilities": ("FlextCliUtilities",),
+        },
+        alias_groups={
+            ".constants": (("c", "FlextCliConstants"),),
+            ".models": (("m", "FlextCliModels"),),
+            ".protocols": (("p", "FlextCliProtocols"),),
+            ".typings": (("t", "FlextCliTypes"),),
+            ".utilities": (("u", "FlextCliUtilities"),),
+            "flext_core.decorators": (("d", "FlextDecorators"),),
+            "flext_core.exceptions": (("e", "FlextExceptions"),),
+            "flext_core.handlers": (("h", "FlextHandlers"),),
+            "flext_core.mixins": (("x", "FlextMixins"),),
+            "flext_core.result": (("r", "FlextResult"),),
+        },
+    ),
     exclude_names=(
         "cleanup_submodule_namespace",
         "install_lazy_exports",
