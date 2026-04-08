@@ -18,10 +18,6 @@ _LAZY_IMPORTS = {
         "flext_cli._constants.pipeline",
         "FlextCliConstantsPipeline",
     ),
-    "base": "flext_cli._constants.base",
-    "config": "flext_cli._constants.config",
-    "enums": "flext_cli._constants.enums",
-    "pipeline": "flext_cli._constants.pipeline",
 }
 
 

@@ -57,19 +57,6 @@ _LAZY_IMPORTS = {
         "FlextCliUtilitiesValidation",
     ),
     "FlextCliUtilitiesYaml": ("flext_cli._utilities.yaml", "FlextCliUtilitiesYaml"),
-    "base": "flext_cli._utilities.base",
-    "configuration": "flext_cli._utilities.configuration",
-    "conversion": "flext_cli._utilities.conversion",
-    "files": "flext_cli._utilities.files",
-    "json": "flext_cli._utilities.json",
-    "matching": "flext_cli._utilities.matching",
-    "model_commands": "flext_cli._utilities.model_commands",
-    "options": "flext_cli._utilities.options",
-    "pipeline": "flext_cli._utilities.pipeline",
-    "runtime": "flext_cli._utilities.runtime",
-    "toml": "flext_cli._utilities.toml",
-    "validation": "flext_cli._utilities.validation",
-    "yaml": "flext_cli._utilities.yaml",
 }
 
 

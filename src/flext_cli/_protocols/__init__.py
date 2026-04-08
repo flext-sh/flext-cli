@@ -17,9 +17,6 @@ _LAZY_IMPORTS = {
         "flext_cli._protocols.pipeline",
         "FlextCliProtocolsPipeline",
     ),
-    "base": "flext_cli._protocols.base",
-    "domain": "flext_cli._protocols.domain",
-    "pipeline": "flext_cli._protocols.pipeline",
 }
 
 

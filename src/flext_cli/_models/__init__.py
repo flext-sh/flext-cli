@@ -10,8 +10,6 @@ from flext_core.lazy import install_lazy_exports
 _LAZY_IMPORTS = {
     "FlextCliModelsBase": ("flext_cli._models.base", "FlextCliModelsBase"),
     "FlextCliModelsPipeline": ("flext_cli._models.pipeline", "FlextCliModelsPipeline"),
-    "base": "flext_cli._models.base",
-    "pipeline": "flext_cli._models.pipeline",
 }
 
 

@@ -18,16 +18,6 @@ _LAZY_IMPORTS = {
     "FlextCliOutput": ("flext_cli.services.output", "FlextCliOutput"),
     "FlextCliPrompts": ("flext_cli.services.prompts", "FlextCliPrompts"),
     "FlextCliTables": ("flext_cli.services.tables", "FlextCliTables"),
-    "auth": "flext_cli.services.auth",
-    "cli": "flext_cli.services.cli",
-    "cli_params": "flext_cli.services.cli_params",
-    "cmd": "flext_cli.services.cmd",
-    "commands": "flext_cli.services.commands",
-    "file_tools": "flext_cli.services.file_tools",
-    "formatters": "flext_cli.services.formatters",
-    "output": "flext_cli.services.output",
-    "prompts": "flext_cli.services.prompts",
-    "tables": "flext_cli.services.tables",
 }
 
 
