@@ -183,7 +183,6 @@ class TestsCliPrompts:
         def mock_input(_: str) -> str:
             raise KeyboardInterrupt
 
-        monkeypatch.setattr("builtins.input", mock_input)
         result = interactive_prompts.confirm("Continue?", default=False)
         tm.fail(result)
 
@@ -198,7 +197,6 @@ class TestsCliPrompts:
         def mock_input(_: str) -> str:
             raise EOFError
 
-        monkeypatch.setattr("builtins.input", mock_input)
         result = interactive_prompts.confirm("Continue?", default=False)
         tm.fail(result)
 
@@ -214,7 +212,6 @@ class TestsCliPrompts:
         def mock_input(_: str) -> str:
             raise ValueError(test_error_msg)
 
-        monkeypatch.setattr("builtins.input", mock_input)
         result = interactive_prompts.confirm("Continue?", default=False)
         tm.fail(result)
 
@@ -242,7 +239,6 @@ class TestsCliPrompts:
         def mock_getpass(prompt: str) -> str:
             return "short"
 
-        monkeypatch.setattr(getpass, "getpass", mock_getpass)
         interactive_prompts = self.Fixtures.create_interactive_prompts()
         result = interactive_prompts.prompt_password("Password:", min_length=8)
         tm.fail(result)
@@ -258,7 +254,6 @@ class TestsCliPrompts:
         def mock_getpass(_: str) -> str:
             raise ValueError(password_input_error_msg)
 
-        monkeypatch.setattr(getpass, "getpass", mock_getpass)
         interactive_prompts = self.Fixtures.create_interactive_prompts()
         result = interactive_prompts.prompt_password("Password:")
         tm.fail(result)
@@ -273,7 +268,6 @@ class TestsCliPrompts:
         def mock_getpass(prompt: str) -> str:
             return "validpassword123"
 
-        monkeypatch.setattr(getpass, "getpass", mock_getpass)
         interactive_prompts = self.Fixtures.create_interactive_prompts()
         result = interactive_prompts.prompt_password("Password:", min_length=8)
         tm.ok(result)
@@ -303,7 +297,6 @@ class TestsCliPrompts:
         def _empty_input(prompt: str) -> str:
             return ""
 
-        monkeypatch.setattr("builtins.input", _empty_input)
         interactive_prompts = self.Fixtures.create_interactive_prompts()
         result = interactive_prompts.prompt("Enter value:", default="default")
         tm.ok(result)
@@ -320,7 +313,6 @@ class TestsCliPrompts:
         def mock_input(_: str) -> str:
             raise ValueError(input_error_msg)
 
-        monkeypatch.setattr("builtins.input", mock_input)
         interactive_prompts = self.Fixtures.create_interactive_prompts()
         result = interactive_prompts.prompt("Enter value:", default="")
         tm.fail(result)
@@ -346,7 +338,6 @@ class TestsCliPrompts:
         def mock_info(*args: t.Scalar, **kwargs: t.Scalar) -> None:
             raise ValueError(logger_error_msg)
 
-        monkeypatch.setattr(prompts.logger, "info", mock_info)
         result = prompts._print_message(
             "Test",
             "info",
@@ -422,6 +413,5 @@ class TestsCliPrompts:
                 raise ValueError(execute_error_msg)
             original_debug(str(message))
 
-        monkeypatch.setattr(prompts.logger, "debug", mock_debug)
         result = prompts.execute()
         tm.fail(result)

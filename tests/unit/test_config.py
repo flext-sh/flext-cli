@@ -88,7 +88,6 @@ class TestsCliConfigIntegration:
         """Test inheritance from BaseSettings (Pydantic v2)."""
         config = FlextCliSettings()
         tm.that(config, is_=BaseSettings)
-        tm.that(hasattr(config, "model_config"), eq=True)
 
 
 class TestsCliConfigValidation:

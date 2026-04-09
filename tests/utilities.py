@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import re
 from collections.abc import Callable
 from typing import Annotated
 
@@ -17,10 +18,9 @@ from flext_cli import (
     FlextCliCommands,
     FlextCliCommonParams,
     FlextCliSettings,
-    u,
 )
-from flext_core import r
-from tests import t
+from flext_core import FlextLogger
+from tests import r, t, u
 
 
 class TestsFlextCliUtilities(FlextTestsUtilities, u):
@@ -31,6 +31,101 @@ class TestsFlextCliUtilities(FlextTestsUtilities, u):
 
         class Tests:
             """Test-specific utilities for flext-cli."""
+
+            class VersionTestFactory:
+                """Version validation helpers exposed through the canonical `u` namespace."""
+
+                @staticmethod
+                def validate_version_string(version: str) -> r[str]:
+                    """Validate version string against semver pattern."""
+                    if not version:
+                        return r[str].fail("Version must be non-empty string")
+                    pattern = "^\\d+\\.\\d+\\.\\d+(?:-[\\w\\.]+)?(?:\\+[\\w\\.]+)?$"
+                    if not re.match(pattern, version):
+                        return r[str].fail(
+                            f"Version '{version}' does not match semver pattern"
+                        )
+                    return r[str].ok(version)
+
+                @staticmethod
+                def validate_version_info(
+                    version_info: tuple[int | str, ...],
+                ) -> r[tuple[int | str, ...]]:
+                    """Validate version info tuple structure."""
+                    if len(version_info) < 3:
+                        return r[tuple[int | str, ...]].fail(
+                            "Version info must have at least 3 parts",
+                        )
+                    for index, part in enumerate(version_info):
+                        if isinstance(part, int) and part < 0:
+                            return r[tuple[int | str, ...]].fail(
+                                f"Version part {index} must be non-negative int",
+                            )
+                        if isinstance(part, str) and not part:
+                            return r[tuple[int | str, ...]].fail(
+                                f"Version part {index} must be non-empty string",
+                            )
+                    return r[tuple[int | str, ...]].ok(version_info)
+
+                @staticmethod
+                def validate_consistency(
+                    version_string: str,
+                    version_info: tuple[int | str, ...],
+                ) -> r[tuple[str, tuple[int | str, ...]]]:
+                    """Validate consistency between version string and version info."""
+                    string_result = TestsFlextCliUtilities.Cli.Tests.VersionTestFactory.validate_version_string(
+                        version_string,
+                    )
+                    if string_result.is_failure:
+                        return r[tuple[str, tuple[int | str, ...]]].fail(
+                            f"Invalid version string: {string_result.error}",
+                        )
+                    info_result = TestsFlextCliUtilities.Cli.Tests.VersionTestFactory.validate_version_info(
+                        version_info,
+                    )
+                    if info_result.is_failure:
+                        return r[tuple[str, tuple[int | str, ...]]].fail(
+                            f"Invalid version info: {info_result.error}",
+                        )
+                    version_without_metadata = version_string.split("+", maxsplit=1)[0]
+                    version_base_and_prerelease = version_without_metadata.split("-")
+                    base_parts = version_base_and_prerelease[0].split(".")
+                    prerelease_parts = (
+                        version_base_and_prerelease[1].split(".")
+                        if len(version_base_and_prerelease) > 1
+                        else []
+                    )
+                    version_parts: list[int | str] = []
+                    for part in [*base_parts, *prerelease_parts]:
+                        try:
+                            version_parts.append(int(part))
+                        except ValueError:
+                            FlextLogger.getLogger(__name__).debug(
+                                "version part non-int, keep as str: %s",
+                                part,
+                            )
+                            version_parts.append(part)
+                    for index, info_part in enumerate(version_info):
+                        if index >= len(version_parts):
+                            break
+                        version_part = version_parts[index]
+                        same_kind = (
+                            isinstance(info_part, int) and isinstance(version_part, int)
+                        ) or (
+                            isinstance(info_part, str) and isinstance(version_part, str)
+                        )
+                        if not same_kind:
+                            return r[tuple[str, tuple[int | str, ...]]].fail(
+                                f"Type mismatch at position {index}: {type(version_part).__name__} != {type(info_part).__name__}",
+                            )
+                        if version_part != info_part:
+                            return r[tuple[str, tuple[int | str, ...]]].fail(
+                                f"Mismatch at position {index}: {version_part} != {info_part}",
+                            )
+                    return r[tuple[str, tuple[int | str, ...]]].ok((
+                        version_string,
+                        version_info,
+                    ))
 
             @staticmethod
             def create_test_config() -> r[FlextCliSettings]:
@@ -151,4 +246,5 @@ class TestsFlextCliUtilities(FlextTestsUtilities, u):
 
 
 u = TestsFlextCliUtilities
+
 __all__ = ["TestsFlextCliUtilities", "u"]

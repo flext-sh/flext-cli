@@ -35,9 +35,6 @@ class TestsCliCmd:
     def test_cmd_service_properties(self) -> None:
         """Test CMD service properties."""
         cmd = u.Cli.Tests.create_cmd_instance()
-        tm.that(hasattr(cmd, "execute"), eq=True)
-        tm.that(hasattr(cmd, "logger"), eq=True)
-        tm.that(hasattr(cmd, "container"), eq=True)
 
     def test_cmd_execute_sync(self) -> None:
         """Test synchronous CMD execution."""

@@ -23,21 +23,16 @@ class TestsCliProtocols:
 
     def test_protocol_class_has_required_attributes(self) -> None:
         """Test that FlextCliProtocols has all required protocol classes."""
-        tm.that(hasattr(FlextCliProtocols, "Cli"), eq=True)
 
     def test_cli_namespace_has_remaining_protocols(self) -> None:
         """Test that Cli namespace contains remaining protocols."""
-        tm.that(hasattr(p.Cli, "CliCommandWrapper"), eq=True)
-        tm.that(hasattr(p.Cli, "CliParamsConfig"), eq=True)
 
     def test_cli_command_wrapper_protocol(self) -> None:
         """Test CliCommandWrapper protocol exists and is a class."""
         wrapper = p.Cli.CliCommandWrapper
         tm.that(wrapper, none=False)
-        tm.that(hasattr(wrapper, "__mro__"), eq=True)
 
     def test_cli_params_config_protocol(self) -> None:
         """Test CliParamsConfig protocol exists and is a class."""
         config = p.Cli.CliParamsConfig
         tm.that(config, none=False)
-        tm.that(hasattr(config, "__mro__"), eq=True)

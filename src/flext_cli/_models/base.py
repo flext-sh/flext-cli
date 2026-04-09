@@ -35,7 +35,10 @@ class FlextCliModelsBase:
             str,
             Field(default="", description="Captured standard error"),
         ] = ""
-        exit_code: Annotated[int, Field(description="Command exit code")]
+        exit_code: Annotated[
+            int,
+            Field(description="Command exit code"),
+        ] = 0
         duration: Annotated[
             t.NonNegativeFloat,
             Field(default=0.0, description="Duration in seconds"),

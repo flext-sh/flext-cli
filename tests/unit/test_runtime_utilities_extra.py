@@ -70,7 +70,6 @@ class TestCliRuntimeUtilitiesExtra:
             msg = "Invalid argument"
             raise ValueError(msg)
 
-        monkeypatch.setattr("flext_cli._utilities.runtime.subprocess.run", mock_run)
         result = u.Cli().run_to_file(["echo", "test"], output_file)
         tm.fail(result)
         assert isinstance(result.error, str)

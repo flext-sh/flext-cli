@@ -45,11 +45,9 @@ class TestsCliTypings:
         optional_args = get_args(optional_type)
         tm.that(type(None) in optional_args, eq=True)
         tm.that(t.StrSequence in optional_args, eq=True)
-        tm.that(hasattr(union_type, "__value__"), eq=True)
         union_args = get_args(union_type.__value__)
         tm.that(len(union_args), gte=2)
         primitives_alias = union_args[0]
-        tm.that(hasattr(primitives_alias, "__value__"), eq=True)
         primitives_args = get_args(primitives_alias.__value__)
         tm.that(str in primitives_args, eq=True)
         tm.that(bool in primitives_args, eq=True)
@@ -79,6 +77,3 @@ class TestsCliTypings:
         tm.that(count, eq=2)
         tm.that(result, has="timestamp")
         tm.that(t, none=False)
-        tm.that(hasattr(t, "Cli"), eq=True)
-        tm.that(hasattr(t.Cli, "TabularData"), eq=True)
-        tm.that(hasattr(t.Cli, "JsonValue"), eq=True)

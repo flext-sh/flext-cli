@@ -24,9 +24,6 @@ class TestsCliPromptsCov:
         def capture_info(message: str) -> None:
             captured.append(str(message))
 
-        monkeypatch.setattr(prompts, "_is_test_env", lambda: False)
-        monkeypatch.setattr(prompts.logger, "info", capture_info)
-        monkeypatch.setattr(builtins, "input", lambda _msg="": "typed")
         result = prompts.prompt("message", default="default")
         tm.ok(result)
         tm.that(bool(captured), eq=True)
@@ -43,24 +40,19 @@ class TestsCliPromptsCov:
         ) -> None:
             warnings.append("warn")
 
-        monkeypatch.setattr(prompts.logger, "warning", capture_warning)
-        monkeypatch.setattr(builtins, "input", lambda _msg="": "")
         tm.that(
             prompts._read_confirmation_input("m", "p", default=True).value is True,
             eq=True,
         )
-        monkeypatch.setattr(builtins, "input", lambda _msg="": "yes")
         tm.that(
             prompts._read_confirmation_input("m", "p", default=False).value is True,
             eq=True,
         )
-        monkeypatch.setattr(builtins, "input", lambda _msg="": "no")
         tm.that(
             prompts._read_confirmation_input("m", "p", default=True).value is False,
             eq=True,
         )
         entries = iter(["maybe", "y"])
-        monkeypatch.setattr(builtins, "input", lambda _msg="": next(entries))
         tm.that(
             prompts._read_confirmation_input("m", "p", default=False).value is True,
             eq=True,

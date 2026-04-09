@@ -163,6 +163,7 @@ disable_error_code = [
   "assignment",
   "attr-defined",
   "call-arg",
+  "misc",
   "name-defined",
   "prop-decorator",
 ]
@@ -333,6 +334,11 @@ extraPaths = [
 ignore = [
   "**/*.pyi",
   "../typings",
+]
+include = [
+  "examples",
+  "src",
+  "tests",
 ]
 pythonPlatform = "Linux"
 pythonVersion = "3.13"
