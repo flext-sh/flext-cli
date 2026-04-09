@@ -20,7 +20,7 @@ import pytest
 from flext_tests import tm
 
 from flext_cli import __version__, __version_info__
-from tests import FlextCliTestHelpers, m, t
+from tests import m, t, u
 
 
 class TestsCliVersion:
@@ -69,7 +69,7 @@ class TestsCliVersion:
 
     def test_actual_version_consistency(self) -> None:
         """Test __version__ and __version_info__ are consistent."""
-        result = FlextCliTestHelpers.VersionTestFactory.validate_consistency(
+        result = u.Cli.Tests.VersionTestFactory.validate_consistency(
             __version__,
             __version_info__,
         )
@@ -94,7 +94,7 @@ class TestsCliVersion:
         """Test version string validation with parametrized cases."""
         tm.that(scenario.version_string, none=False)
         version_str = scenario.version_string or ""
-        result = FlextCliTestHelpers.VersionTestFactory.validate_version_string(
+        result = u.Cli.Tests.VersionTestFactory.validate_version_string(
             version_str,
         )
         if scenario.should_pass:
@@ -113,7 +113,7 @@ class TestsCliVersion:
         """Test version info tuple validation with parametrized cases."""
         tm.that(scenario.version_info, none=False)
         version_info = scenario.version_info or ()
-        result = FlextCliTestHelpers.VersionTestFactory.validate_version_info(
+        result = u.Cli.Tests.VersionTestFactory.validate_version_info(
             version_info,
         )
         if scenario.should_pass:
@@ -134,7 +134,7 @@ class TestsCliVersion:
         tm.that(scenario.version_info, none=False)
         version_str = scenario.version_string or ""
         version_info = scenario.version_info or ()
-        result = FlextCliTestHelpers.VersionTestFactory.validate_consistency(
+        result = u.Cli.Tests.VersionTestFactory.validate_consistency(
             version_str,
             version_info,
         )
