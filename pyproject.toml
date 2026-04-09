@@ -163,7 +163,6 @@ disable_error_code = [
   "assignment",
   "attr-defined",
   "call-arg",
-  "misc",
   "name-defined",
   "prop-decorator",
 ]
