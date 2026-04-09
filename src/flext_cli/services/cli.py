@@ -516,12 +516,19 @@ class FlextCliCli(s):
     ) -> p.Cli.ModelCommandHandler[M]:
         """Build the shared executor used by single and batched route registration."""
 
+        def _exit_with_failure(error: str | None) -> None:
+            if remember_failure is not None:
+                remember_failure(error, failure_message)
+            FlextCliOutput.display_message(
+                error or failure_message,
+                "error",
+            )
+            cls.exit(code=1)
+
         def execute(params: M) -> None:
             result: r[TResult] = handler(params)
             if result.is_failure:
-                if remember_failure is not None:
-                    remember_failure(result.error, failure_message)
-                cls.exit(code=1)
+                _exit_with_failure(result.error)
             message = success_message
             result_value: TResult = result.value
             if success_formatter is not None:
@@ -551,14 +558,21 @@ class FlextCliCli(s):
     ) -> p.Cli.ModelCommandHandler[BaseModel]:
         """Build a batch executor for type-erased route registration."""
 
+        def _exit_with_failure(error: str | None) -> None:
+            if remember_failure is not None:
+                remember_failure(error, failure_message)
+            FlextCliOutput.display_message(
+                error or failure_message,
+                "error",
+            )
+            cls.exit(code=1)
+
         def execute(params: BaseModel) -> None:
             result_model = handler(params)
             is_failure = getattr(result_model, "is_failure", False)
             if is_failure:
                 error_msg = getattr(result_model, "error", None)
-                if remember_failure is not None:
-                    remember_failure(error_msg, failure_message)
-                cls.exit(code=1)
+                _exit_with_failure(error_msg if isinstance(error_msg, str) else None)
             message = success_message
             result_value = getattr(result_model, "value", None)
             if success_formatter is not None and result_value is not None:
@@ -603,6 +617,7 @@ class FlextCliCli(s):
         cls,
         app: t.Cli.CliApp,
         routes: Sequence[m.Cli.ResultCommandRoute],
+        remember_failure: p.Cli.FailureMessageRecorder | None = None,
     ) -> None:
         """Register multiple heterogeneous result routes in one call."""
         for route in routes:
@@ -614,6 +629,8 @@ class FlextCliCli(s):
                     route.model_cls,
                     cls._build_result_executor_erased(
                         handler=route.handler,
+                        failure_message=route.failure_message,
+                        remember_failure=remember_failure,
                         success_formatter=route.success_formatter,
                         success_message=route.success_message,
                         success_type=route.success_type,

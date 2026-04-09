@@ -205,4 +205,43 @@ class TestsCliService:
         tm.that(ok_result.exit_code, eq=0)
         tm.that(ok_result.stdout, has="processed alice")
         tm.that(fail_result.exit_code, eq=1)
+        tm.that(fail_result.stdout, has="boom")
         tm.that(remembered, eq=[("boom", "failure fallback")])
+
+    def test_register_result_routes_preserves_failure_metadata(self) -> None:
+        app = cli.create_app_with_common_params(
+            name="result-app",
+            help_text="Result application",
+            config=cli.settings,
+        )
+        remembered: MutableSequence[tuple[str | None, str]] = []
+
+        def remember_failure(error: str | None, fallback: str) -> None:
+            remembered.append((error, fallback))
+
+        def fail_handler(
+            params: m.Cli.Tests.SampleInput,
+        ) -> r[m.Cli.Tests.SampleOutput]:
+            _ = params
+            return r[m.Cli.Tests.SampleOutput].fail("batched boom")
+
+        cli.register_result_routes(
+            app,
+            [
+                m.Cli.Tests.SampleRoute(
+                    name="fail",
+                    help_text="Failing command",
+                    model_cls=m.Cli.Tests.SampleInput,
+                    handler=fail_handler,
+                    failure_message="batched failure fallback",
+                )
+            ],
+            remember_failure=remember_failure,
+        )
+        runner_result = cli.create_cli_runner()
+        tm.ok(runner_result)
+        fail_result = runner_result.value.invoke(app, ["fail", "--name", "alice"])
+
+        tm.that(fail_result.exit_code, eq=1)
+        tm.that(fail_result.stdout, has="batched boom")
+        tm.that(remembered, eq=[("batched boom", "batched failure fallback")])
