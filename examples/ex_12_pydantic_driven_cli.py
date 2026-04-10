@@ -35,6 +35,20 @@ from flext_cli import cli
 from flext_core import r
 
 
+def _report_step_success[T](value: T, message: str) -> T:
+    """Emit a success message while preserving the pipeline value."""
+    cli.print(message, style="green")
+    return value
+
+
+def _finish_database_config(
+    config: m.Examples.AdvancedDatabaseConfig,
+) -> m.Examples.AdvancedDatabaseConfig:
+    """Emit the final success summary and preserve the validated config."""
+    u.display_success_summary("Database configuration")
+    return config
+
+
 def demonstrate_auto_cli_generation() -> None:
     """Show auto-generated CLI parameters from Pydantic model."""
     cli.print("\n🔧 Auto-Generated CLI Parameters:", style="bold cyan")
@@ -128,26 +142,45 @@ def create_database_config_from_cli() -> r[m.Examples.AdvancedDatabaseConfig]:
         "ssl_enabled": True,
         "connection_pool": 20,
     }
-    validated_data_result = validate_required_fields(cli_args)
-    if validated_data_result.is_failure:
-        return r[m.Examples.AdvancedDatabaseConfig].fail(
-            validated_data_result.error or "Required field validation failed",
+    return (
+        validate_required_fields(cli_args)
+        .map_error(
+            lambda error: error or "Required field validation failed",
         )
-    cli.print("✅ Required fields validated", style="green")
-    pydantic_result = convert_and_validate_with_pydantic(validated_data_result.value)
-    if pydantic_result.is_failure:
-        return pydantic_result
-    cli.print("✅ Pydantic validation passed", style="green")
-    business_rules_result = validate_business_rules(pydantic_result.value)
-    if business_rules_result.is_failure:
-        return business_rules_result
-    cli.print("✅ Business rules validated", style="green")
-    tested_config_result = perform_connection_test(business_rules_result.value)
-    if tested_config_result.is_failure:
-        return tested_config_result
-    cli.print("✅ Connection test passed", style="green")
-    u.display_success_summary("Database configuration")
-    return tested_config_result
+        .map(
+            lambda data: _report_step_success(data, "✅ Required fields validated"),
+        )
+        .flat_map(
+            convert_and_validate_with_pydantic,
+        )
+        .map(
+            lambda config: _report_step_success(
+                config,
+                "✅ Pydantic validation passed",
+            ),
+        )
+        .flat_map(
+            validate_business_rules,
+        )
+        .map(
+            lambda config: _report_step_success(
+                config,
+                "✅ Business rules validated",
+            ),
+        )
+        .flat_map(
+            perform_connection_test,
+        )
+        .map(
+            lambda config: _report_step_success(
+                config,
+                "✅ Connection test passed",
+            ),
+        )
+        .map(
+            _finish_database_config,
+        )
+    )
 
 
 def validate_required_fields(

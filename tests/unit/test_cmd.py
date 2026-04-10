@@ -34,7 +34,7 @@ class TestsCliCmd:
 
     def test_cmd_service_properties(self) -> None:
         """Test CMD service properties."""
-        cmd = u.Cli.Tests.create_cmd_instance()
+        u.Cli.Tests.create_cmd_instance()
 
     def test_cmd_execute_sync(self) -> None:
         """Test synchronous CMD execution."""

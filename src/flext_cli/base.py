@@ -14,10 +14,10 @@ from abc import ABC
 from typing import override
 
 from flext_cli import FlextCliSettings, FlextCliTypesBase
-from flext_core import FlextSettings, s
+from flext_core import FlextService, FlextSettings
 
 
-class FlextCliServiceBase(s[FlextCliTypesBase.JsonMapping], ABC):
+class FlextCliServiceBase(FlextService[FlextCliTypesBase.JsonMapping], ABC):
     """Base class for flext-cli services with typed configuration access.
 
     Note: This is an abstract base class. Subclasses must implement the

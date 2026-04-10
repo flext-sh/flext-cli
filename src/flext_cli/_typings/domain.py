@@ -44,6 +44,7 @@ class FlextCliTypesDomain:
     type JsonDefaults = Mapping[str, FlextCliTypesBase.JsonValue]
     type MutableJsonDefaults = MutableMapping[str, FlextCliTypesBase.JsonValue]
     type NullaryOperation[T] = Callable[[], T]
+    type PromptTextReader = Callable[[str], str]
     type TextStreamWriter = Callable[[TextIO], None]
     type CliCommand = Callable[..., FlextCliTypesBase.RuntimeValue]
     type JsonCommandFn = Callable[..., r[t.RecursiveValue] | None]

@@ -45,8 +45,8 @@ class FlextCliProtocolsDomain:
     class ModelCommandHandler[TParams: BaseModel](Protocol):
         """Protocol for model-driven CLI command execution."""
 
-        def __call__(self, params: TParams, /) -> None:
-            """Execute one model-backed CLI command."""
+        def __call__(self, params: TParams, /) -> t.Cli.RuntimeValue:
+            """Execute one model-backed CLI command and return its normalized value."""
             ...
 
     @runtime_checkable

@@ -33,6 +33,13 @@ from flext_cli import cli
 from flext_core import r
 
 
+def _temp_file_path(filename: str, *, base_dir: Path | None = None) -> Path:
+    """Resolve an example temp file path."""
+    return (
+        base_dir if base_dir is not None else Path(tempfile.gettempdir())
+    ) / filename
+
+
 def my_cli_command(name: str) -> r[str]:
     """Example CLI command to test."""
     if not name:
@@ -64,13 +71,23 @@ def test_cli_command() -> None:
     cli.print("   ✅ Failure case passed", style="green")
 
 
-def save_config_command(config: t.ContainerMapping) -> r[bool]:
+def save_config_command(
+    config: t.ContainerMapping,
+    *,
+    base_dir: Path | None = None,
+) -> r[bool]:
     """CLI command that saves config."""
-    temp_file = Path(tempfile.gettempdir()) / "test_config.json"
-    write_result = cli.write_json_file(temp_file, config)
-    if write_result.is_failure:
-        return r[bool].fail(f"Save failed: {write_result.error}")
-    return r[bool].ok(value=True)
+    temp_file = _temp_file_path("test_config.json", base_dir=base_dir)
+    return (
+        cli
+        .write_json_file(temp_file, config)
+        .map_error(
+            lambda error: f"Save failed: {error}",
+        )
+        .map(
+            lambda _: True,
+        )
+    )
 
 
 def test_file_operations() -> None:
@@ -166,24 +183,13 @@ def test_error_scenarios() -> None:
     cli.print("   ✅ Valid value test passed", style="green")
 
 
-def full_workflow_command() -> r[Mapping[str, t.Cli.JsonValue]]:
-    """Complete workflow to test."""
-    data: t.ContainerMapping = {"status": "processing", "items": [1, 2, 3]}
-    temp_file = Path(tempfile.gettempdir()) / "workflow_test.json"
-    write_result = cli.write_json_file(temp_file, data)
-    if write_result.is_failure:
-        return r[Mapping[str, t.Cli.JsonValue]].fail(
-            f"Write failed: {write_result.error}",
-        )
-    read_result = cli.read_json_file(temp_file)
-    if read_result.is_failure:
-        temp_file.unlink(missing_ok=True)
-        return r[Mapping[str, t.Cli.JsonValue]].fail(
-            f"Read failed: {read_result.error}",
-        )
-    read_data = read_result.value
+def _finalize_workflow_data(
+    temp_file: Path,
+    read_data: t.Cli.JsonValue,
+) -> r[Mapping[str, t.Cli.JsonValue]]:
+    """Validate workflow payload, mark it processed, and clean up the temp file."""
+    temp_file.unlink(missing_ok=True)
     if not isinstance(read_data, Mapping):
-        temp_file.unlink(missing_ok=True)
         return r[Mapping[str, t.Cli.JsonValue]].fail(
             "Workflow payload must be a mapping",
         )
@@ -192,8 +198,34 @@ def full_workflow_command() -> r[Mapping[str, t.Cli.JsonValue]]:
     }
     loaded["status"] = "completed"
     loaded["processed"] = True
-    temp_file.unlink(missing_ok=True)
     return r[Mapping[str, t.Cli.JsonValue]].ok(loaded)
+
+
+def full_workflow_command(
+    *,
+    base_dir: Path | None = None,
+) -> r[Mapping[str, t.Cli.JsonValue]]:
+    """Complete workflow to test."""
+    data: t.ContainerMapping = {"status": "processing", "items": [1, 2, 3]}
+    temp_file = _temp_file_path("workflow_test.json", base_dir=base_dir)
+    result = (
+        cli
+        .write_json_file(temp_file, data)
+        .map_error(
+            lambda error: f"Write failed: {error}",
+        )
+        .flat_map(
+            lambda _: cli.read_json_file(temp_file).map_error(
+                lambda error: f"Read failed: {error}",
+            ),
+        )
+        .flat_map(
+            lambda read_data: _finalize_workflow_data(temp_file, read_data),
+        )
+    )
+    if result.is_failure:
+        temp_file.unlink(missing_ok=True)
+    return result
 
 
 def test_integration() -> None:

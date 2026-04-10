@@ -4,10 +4,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
 from flext_tests import tm
 
-from tests import m, t, u
+from tests import m, u
 
 
 class TestCliRuntimeUtilitiesExtra:
@@ -61,16 +60,13 @@ class TestCliRuntimeUtilitiesExtra:
     def test_run_to_file_valueerror(
         self,
         tmp_path: Path,
-        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         output_file = tmp_path / "output.txt"
-
-        def mock_run(*args: t.Scalar, **kwargs: t.Scalar) -> None:
-            _ = args, kwargs
-            msg = "Invalid argument"
-            raise ValueError(msg)
-
-        result = u.Cli().run_to_file(["echo", "test"], output_file)
+        result = u.Cli().run_to_file(
+            ["echo", "test"],
+            output_file,
+            env={"BAD": "x\0y"},
+        )
         tm.fail(result)
         assert isinstance(result.error, str)
         assert "execution error" in result.error.lower()

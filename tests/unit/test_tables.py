@@ -2,12 +2,10 @@
 
 from __future__ import annotations
 
-from collections.abc import MutableSequence
-
 import pytest
 from flext_tests import tm
 
-from flext_cli import FlextCliFormatters, FlextCliTables
+from flext_cli import FlextCliTables
 
 
 class TestsCliTables:
@@ -53,25 +51,16 @@ class TestsCliTables:
 
     def test_show_table_prints_title_before_rendered_table(
         self,
-        monkeypatch: pytest.MonkeyPatch,
+        capsys: pytest.CaptureFixture[str],
     ) -> None:
         """show_table must print the title before the rendered table body."""
-        printed: MutableSequence[tuple[str, str | None]] = []
-
-        def fake_print(message: str, style: str | None = None) -> None:
-            printed.append((message, style))
-
-        monkeypatch.setattr(
-            FlextCliFormatters,
-            "print",
-            staticmethod(fake_print),
-        )
         FlextCliTables.show_table(
             {"service": "cli", "state": "ready"},
             headers=["Field", "Value"],
             title="Current State",
         )
-        tm.that(len(printed), eq=2)
-        tm.that(printed[0][0], eq="Current State")
-        tm.that(printed[0][1], eq="bold")
-        tm.that("service" in printed[1][0], eq=True)
+        captured = capsys.readouterr()
+        output = captured.out
+        tm.that("Current State" in output, eq=True)
+        tm.that("service" in output, eq=True)
+        tm.that(output.index("Current State") < output.index("service"), eq=True)

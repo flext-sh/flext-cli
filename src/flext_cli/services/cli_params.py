@@ -33,18 +33,22 @@ class FlextCliCommonParams(s):
         params: p.Cli.CliParamsConfig,
     ) -> r[FlextCliSettings]:
         """Apply all parameter setter stages to config."""
-        bool_result = cls._set_bool_params(config, params)
-        if bool_result.is_failure:
-            return r[FlextCliSettings].fail(
-                bool_result.error or "Boolean parameter setting failed",
+        return (
+            cls
+            ._set_bool_params(config, params)
+            .map_error(
+                lambda error: error or "Boolean parameter setting failed",
             )
-        log_level_result = cls._set_log_level(config, params)
-        if log_level_result.is_failure:
-            return log_level_result
-        format_result = cls._set_format_params(config, params)
-        if format_result.is_failure:
-            return format_result
-        return r[FlextCliSettings].ok(config)
+            .map(
+                lambda _: config,
+            )
+            .flat_map(
+                lambda updated_config: cls._set_log_level(updated_config, params),
+            )
+            .flat_map(
+                lambda updated_config: cls._set_format_params(updated_config, params),
+            )
+        )
 
     @classmethod
     def _build_params_from_kwargs(

@@ -2,14 +2,32 @@
 
 from __future__ import annotations
 
+import os
 import stat
-from collections.abc import Mapping
+from collections.abc import Generator, Mapping
+from contextlib import contextmanager
 from pathlib import Path
 
-import pytest
 from flext_tests import tm
 
-from tests import m, r, t, u
+from tests import t, u
+
+
+@contextmanager
+def _temporary_environment(
+    overrides: Mapping[str, str],
+) -> Generator[None]:
+    original_values = {key: os.environ.get(key) for key in overrides}
+    try:
+        for key, value in overrides.items():
+            os.environ[key] = value
+        yield
+    finally:
+        for key, value in original_values.items():
+            if value is None:
+                os.environ.pop(key, None)
+            else:
+                os.environ[key] = value
 
 
 class TestCliTomlRead:
@@ -77,44 +95,35 @@ class TestCliTomlDocument:
         tm.ok(u.Cli.toml_write_document(toml_file, doc))
         tm.that(toml_file.exists(), eq=True)
 
-    def test_write_pyproject_runs_taplo(
-        self,
-        tmp_path: Path,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
+    def test_write_pyproject_runs_taplo(self, tmp_path: Path) -> None:
         pyproject = tmp_path / "pyproject.toml"
         taplo_config = tmp_path / ".taplo.toml"
+        command_log = tmp_path / "taplo.log"
+        bin_dir = tmp_path / "bin"
+        bin_dir.mkdir()
         taplo_config.write_text("", encoding="utf-8")
+        taplo = bin_dir / "taplo"
+        taplo.write_text(
+            "#!/bin/sh\n"
+            f"printf '%s\\n' \"$PWD\" > '{command_log}'\n"
+            'for arg in "$@"; do\n'
+            f"  printf '%s\\n' \"$arg\" >> '{command_log}'\n"
+            "done\n",
+            encoding="utf-8",
+        )
+        taplo.chmod(stat.S_IRWXU)
         doc = u.Cli.toml_document()
         doc["project"] = {"name": "demo"}
-        commands: list[tuple[list[str], Path | None]] = []
-
-        def _run_raw(
-            cmd: list[str],
-            *,
-            cwd: Path | None = None,
-            timeout: int | None = None,
-            env: t.Cli.StrEnvMapping | None = None,
-            input_data: bytes | None = None,
-        ) -> r[m.Cli.CommandOutput]:
-            _ = timeout, env, input_data
-            commands.append((cmd, cwd))
-            return r[m.Cli.CommandOutput].ok(
-                m.Cli.CommandOutput(stdout="", stderr="", exit_code=0),
-            )
-
-        monkeypatch.setattr(
-            "flext_cli._utilities.base.FlextCliUtilitiesBase.run_raw",
-            _run_raw,
-        )
-
-        tm.ok(u.Cli.toml_write_document(pyproject, doc))
-        tm.that(len(commands), eq=1)
-        tm.that(commands[0][0][:2], eq=["taplo", "format"])
-        tm.that(commands[0][0], contains="--config")
-        tm.that(commands[0][0], contains=str(taplo_config))
-        tm.that(commands[0][0], contains=str(pyproject))
-        tm.that(commands[0][1], eq=tmp_path)
+        with _temporary_environment({
+            "PATH": f"{bin_dir}:{os.environ.get('PATH', '')}",
+        }):
+            tm.ok(u.Cli.toml_write_document(pyproject, doc))
+        logged_command = command_log.read_text(encoding="utf-8").splitlines()
+        tm.that(logged_command[0], eq=str(tmp_path))
+        tm.that(logged_command[1:3], eq=["format", "--config"])
+        tm.that(logged_command, contains="--config")
+        tm.that(logged_command, contains=str(taplo_config))
+        tm.that(logged_command, contains=str(pyproject))
 
     def test_write_permission_error(self, tmp_path: Path) -> None:
         readonly_dir = tmp_path / "readonly"

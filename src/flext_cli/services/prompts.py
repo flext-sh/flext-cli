@@ -22,6 +22,11 @@ class FlextCliPrompts(s):
     _interactive_mode: bool = PrivateAttr(default=True)
     _quiet: bool = PrivateAttr(default=False)
     _default_timeout: int = PrivateAttr(default=c.Cli.Prompts.DEFAULT_TIMEOUT)
+    _input_reader: t.Cli.PromptTextReader = PrivateAttr(default_factory=lambda: input)
+    _password_reader: t.Cli.PromptTextReader = PrivateAttr(
+        default_factory=lambda: getpass.getpass
+    )
+    _test_env_override: bool | None = PrivateAttr(default=None)
 
     @property
     def interactive_mode(self) -> bool:
@@ -54,7 +59,9 @@ class FlextCliPrompts(s):
     @override
     def execute(self) -> r[t.Cli.JsonMapping]:
         try:
-            self.logger.debug("Prompt service execution completed", operation="execute")
+            self._log(
+                "debug", "Prompt service execution completed", operation="execute"
+            )
             empty_result: t.Cli.JsonMapping = {}
             return r[t.Cli.JsonMapping].ok(empty_result)
         except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
@@ -95,10 +102,13 @@ class FlextCliPrompts(s):
                 if default
                 else message
             )
-            raw = input(f"{display_message}{c.Cli.Prompts.PROMPT_SEP}").strip()
+            raw = self._input_reader(
+                f"{display_message}{c.Cli.Prompts.PROMPT_SEP}"
+            ).strip()
             value = raw or default
             if not self._is_test_env():
-                self.logger.info(
+                self._log(
+                    "info",
                     c.Cli.Prompts.PROMPT_LOG_FMT.format(message=message, input=value),
                 )
             return r[str].ok(value)
@@ -143,7 +153,7 @@ class FlextCliPrompts(s):
         if not self._interactive_mode:
             return r[str].fail("Interactive mode disabled for password prompt")
         try:
-            password = getpass.getpass(prompt=f"{message}{c.Cli.Prompts.PROMPT_SPACE}")
+            password = self._password_reader(f"{message}{c.Cli.Prompts.PROMPT_SPACE}")
             if len(password) < min_length:
                 return r[str].fail(
                     f"Password too short: minimum {min_length} characters",
@@ -165,9 +175,9 @@ class FlextCliPrompts(s):
         exc: Exception,
         consequence: str,
     ) -> None:
-        self.logger.error(
-            "FATAL ERROR during %s - operation aborted",
-            operation,
+        self._log(
+            "error",
+            f"FATAL ERROR during {operation} - operation aborted",
             operation=operation,
             prompt_message=message,
             error=str(exc),
@@ -177,12 +187,30 @@ class FlextCliPrompts(s):
         )
 
     def _is_test_env(self) -> bool:
+        if self._test_env_override is not None:
+            return self._test_env_override
         env_underscore = os.environ.get("_", "")
         return (
             os.environ.get("PYTEST_CURRENT_TEST") is not None
             or "pytest" in env_underscore.lower()
             or os.environ.get("CI") == "true"
         )
+
+    def _log(
+        self,
+        log_level: str,
+        message: str,
+        **context: t.RuntimeData | Exception,
+    ) -> None:
+        match log_level:
+            case "debug":
+                self.logger.debug(message, **context)
+            case "error":
+                self.logger.error(message, **context)
+            case "warning":
+                self.logger.warning(message, **context)
+            case _:
+                self.logger.info(message, **context)
 
     def _print_message(
         self,
@@ -193,13 +221,7 @@ class FlextCliPrompts(s):
     ) -> r[bool]:
         try:
             formatted_message = message_format.format(message=message)
-            match log_level:
-                case "error":
-                    self.logger.error(formatted_message)
-                case "warning":
-                    self.logger.warning(formatted_message)
-                case _:
-                    self.logger.info(formatted_message)
+            self._log(log_level, formatted_message)
             return r[bool].ok(True)
         except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
             self.logger.exception(
@@ -223,14 +245,15 @@ class FlextCliPrompts(s):
         yes_values = c.Cli.Prompts.YES_VALUES
         no_values = c.Cli.Prompts.NO_VALUES
         while True:
-            text = input(prompt_text).strip().lower()
+            text = self._input_reader(prompt_text).strip().lower()
             if not text:
                 return r[bool].ok(default)
             if text in yes_values:
                 return r[bool].ok(True)
             if text in no_values:
                 return r[bool].ok(False)
-            self.logger.warning(
+            self._log(
+                "warning",
                 "Invalid confirmation input - please enter yes or no",
                 operation="confirm",
                 prompt_message=message,

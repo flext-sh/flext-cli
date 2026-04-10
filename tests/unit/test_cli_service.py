@@ -8,7 +8,7 @@ from flext_tests import tm
 
 from flext_cli import cli
 from flext_core import r
-from tests import m
+from tests import m, t
 
 
 class TestsCliService:
@@ -119,6 +119,33 @@ class TestsCliService:
         tm.that(exec_result.exit_code, eq=0)
         tm.that(len(captured), eq=1)
         tm.that(captured[0].make_arg, eq=["FILES=a b c.py", "VERBOSE=1"])
+
+    def test_model_command_returns_handler_value(self) -> None:
+        def handle(params: m.Cli.Tests.SampleInput) -> t.ContainerMapping:
+            return {
+                "name": params.name,
+                "count": params.count,
+                "dry_run": params.dry_run,
+                "output_format": params.output_format,
+            }
+
+        command = cli.model_command(m.Cli.Tests.SampleInput, handle)
+        result = command(
+            name="alice",
+            count=3,
+            dry_run=True,
+            output_format="json",
+        )
+
+        tm.that(
+            result,
+            eq={
+                "name": "alice",
+                "count": 3,
+                "dry_run": True,
+                "output_format": "json",
+            },
+        )
 
     def test_execute_app_returns_user_facing_failure_message(self) -> None:
         app = cli.create_group(help_text="Failure group")

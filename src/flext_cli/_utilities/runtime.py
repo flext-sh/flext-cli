@@ -65,20 +65,24 @@ class FlextCliUtilitiesRuntime:
         env: t.Cli.StrEnvMapping | None = None,
     ) -> r[m.Cli.CommandOutput]:
         """Run a command and fail on non-zero exit status."""
-        result = FlextCliUtilitiesRuntime.run_raw(
+
+        def require_zero_exit(
+            output: m.Cli.CommandOutput,
+        ) -> r[m.Cli.CommandOutput]:
+            if output.exit_code != 0:
+                return r[m.Cli.CommandOutput].fail(
+                    f"failed ({output.exit_code}): {shlex.join(list(cmd))}: {(output.stderr or output.stdout).strip()}",
+                )
+            return r[m.Cli.CommandOutput].ok(output)
+
+        return FlextCliUtilitiesRuntime.run_raw(
             cmd,
             cwd=cwd,
             timeout=timeout,
             env=env,
+        ).flat_map(
+            require_zero_exit,
         )
-        if result.is_failure:
-            return result
-        output = result.value
-        if output.exit_code != 0:
-            return r[m.Cli.CommandOutput].fail(
-                f"failed ({output.exit_code}): {shlex.join(list(cmd))}: {(output.stderr or output.stdout).strip()}",
-            )
-        return result
 
     @staticmethod
     def run_checked(

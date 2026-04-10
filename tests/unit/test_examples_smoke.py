@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+import os
+from collections.abc import Generator, Mapping
+from contextlib import contextmanager
 from pathlib import Path
 
 import examples.ex_01_getting_started as getting_started
@@ -13,10 +15,27 @@ import examples.ex_06_configuration as configuration
 import examples.ex_10_testing_utilities as testing_utilities
 import examples.ex_11_complete_integration as complete_integration
 import examples.ex_12_pydantic_driven_cli as pydantic_driven
-import pytest
 from flext_tests import tm
 
 from flext_cli import FlextCliSettings, cli
+from tests import t
+
+
+@contextmanager
+def _temporary_environment(
+    overrides: Mapping[str, str],
+) -> Generator[None]:
+    original_values = {key: os.environ.get(key) for key in overrides}
+    try:
+        for key, value in overrides.items():
+            os.environ[key] = value
+        yield
+    finally:
+        for key, value in original_values.items():
+            if value is None:
+                os.environ.pop(key, None)
+            else:
+                os.environ[key] = value
 
 
 class TestFlextCliExamplesSmoke:
@@ -56,7 +75,7 @@ class TestFlextCliExamplesSmoke:
         """File-oriented examples must use cli file APIs successfully."""
         config_dir = tmp_path / "config"
         config_dir.mkdir()
-        preferences = {
+        preferences: t.ContainerMapping = {
             "theme": "dark",
             "notifications": True,
         }
@@ -71,7 +90,10 @@ class TestFlextCliExamplesSmoke:
         assert preferences_result.value.content == preferences
 
         deployment_file = tmp_path / "deployment.yaml"
-        deployment_config = {"environment": "dev", "replicas": 2}
+        deployment_config: t.ContainerMapping = {
+            "environment": "dev",
+            "replicas": 2,
+        }
         tm.that(
             file_operations.save_deployment_config(
                 deployment_config,
@@ -125,22 +147,16 @@ class TestFlextCliExamplesSmoke:
 
     def test_testing_utility_examples_run_real_cli_workflows(
         self,
-        monkeypatch: pytest.MonkeyPatch,
         tmp_path: Path,
     ) -> None:
         """Testing examples must validate real CLI file and workflow behavior."""
-        monkeypatch.setattr(
-            testing_utilities.tempfile,
-            "gettempdir",
-            lambda: str(tmp_path),
-        )
-
         command_result = testing_utilities.my_cli_command("World")
         tm.ok(command_result)
         tm.that(command_result.value, eq="Hello, World!")
 
         save_result = testing_utilities.save_config_command(
             {"feature": "examples", "enabled": True},
+            base_dir=tmp_path,
         )
         tm.ok(save_result)
 
@@ -150,7 +166,7 @@ class TestFlextCliExamplesSmoke:
         tm.that(saved_config.value["feature"], eq="examples")
         tm.that(saved_config.value["enabled"], eq=True)
 
-        workflow_result = testing_utilities.full_workflow_command()
+        workflow_result = testing_utilities.full_workflow_command(base_dir=tmp_path)
         tm.ok(workflow_result)
         tm.that(workflow_result.value["status"], eq="completed")
         tm.that(workflow_result.value["processed"], eq=True)
@@ -174,25 +190,25 @@ class TestFlextCliExamplesSmoke:
 
     def test_configuration_and_pydantic_examples_validate_production_flow(
         self,
-        monkeypatch: pytest.MonkeyPatch,
         tmp_path: Path,
     ) -> None:
         """Configuration examples must honor env overrides and typed workflow rules."""
         cache_dir = tmp_path / "cache"
-        monkeypatch.setenv("ENVIRONMENT", "production")
-        monkeypatch.setenv("API_KEY", "prod-secret")
-        monkeypatch.setenv("MAX_WORKERS", "25")
-        monkeypatch.setenv("TEMP_DIR", str(cache_dir))
+        with _temporary_environment({
+            "ENVIRONMENT": "production",
+            "API_KEY": "prod-secret",
+            "MAX_WORKERS": "25",
+            "TEMP_DIR": str(cache_dir),
+        }):
+            config_result = configuration.load_application_config()
+            tm.ok(config_result)
+            tm.that(config_result.value["max_workers"], eq=20)
+            tm.that(config_result.value["enable_metrics"], eq=True)
+            tm.that(config_result.value["services_initialized"], eq=True)
+            tm.that(Path(str(config_result.value["temp_dir"])).exists(), eq=True)
 
-        config_result = configuration.load_application_config()
-        tm.ok(config_result)
-        tm.that(config_result.value["max_workers"], eq=20)
-        tm.that(config_result.value["enable_metrics"], eq=True)
-        tm.that(config_result.value["services_initialized"], eq=True)
-        tm.that(Path(str(config_result.value["temp_dir"])).exists(), eq=True)
-
-        database_result = pydantic_driven.create_database_config_from_cli()
-        tm.ok(database_result)
-        tm.that(database_result.value.port, eq=5433)
-        tm.that(database_result.value.ssl_enabled, eq=True)
-        tm.that(database_result.value.connection_pool, eq=20)
+            database_result = pydantic_driven.create_database_config_from_cli()
+            tm.ok(database_result)
+            tm.that(database_result.value.port, eq=5433)
+            tm.that(database_result.value.ssl_enabled, eq=True)
+            tm.that(database_result.value.connection_pool, eq=20)

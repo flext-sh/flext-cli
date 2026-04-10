@@ -71,13 +71,13 @@ class FlextCliCli(s):
             self._handler = handler
             self._model_cls = model_cls
 
-        def __call__(self, **kwargs: t.Cli.CliValue) -> None:
+        def __call__(self, **kwargs: t.Cli.CliValue) -> t.Cli.RuntimeValue:
             if self._config is not None:
                 for field_name, field_value in kwargs.items():
                     if hasattr(self._config, field_name):
                         setattr(self._config, field_name, field_value)
             model = self._model_cls.model_validate(kwargs)
-            self._handler(model)
+            return self._handler(model)
 
     @staticmethod
     def _resolve_typer_annotation(

@@ -1,417 +1,280 @@
-"""FLEXT CLI Prompts Tests - Comprehensive Real Functionality Testing.
-
-Tests for FlextCliPrompts covering all real functionality with flext_tests
-integration, comprehensive prompt operations, and targeting 100% coverage.
-
-Modules tested: FlextCliPrompts (prompts service)
-Scope: All prompt methods, initialization, edge cases
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-
-"""
+"""Behavioral tests for the prompts service."""
 
 from __future__ import annotations
 
-import getpass
 import time
+from typing import Self, override
 
 import pytest
 from flext_tests import tm
+from pydantic import PrivateAttr
 
 from flext_cli import FlextCliPrompts
-from flext_core import r
 from tests import c, t
 
 
-class TestsCliPrompts:
-    """Comprehensive tests for FlextCliPrompts functionality.
+class ScriptedPrompts(FlextCliPrompts):
+    """Prompt service with typed scripting helpers."""
 
-    Single class with nested helper classes and methods organized by functionality.
-    Uses factories, constants, dynamic tests, and helpers to reduce code while
-    maintaining and expanding coverage.
-    """
+    def use_input_values(self, values: t.StrSequence) -> Self:
+        values_iter = iter(values)
+        self._input_reader = lambda _prompt: next(values_iter)
+        return self
+
+    def use_input_error(self, error: Exception) -> Self:
+        def raise_input(_prompt: str) -> str:
+            raise error
+
+        self._input_reader = raise_input
+        return self
+
+    def use_password(self, password: str) -> Self:
+        self._password_reader = lambda _prompt: password
+        return self
+
+    def use_password_error(self, error: Exception) -> Self:
+        def raise_password(_prompt: str) -> str:
+            raise error
+
+        self._password_reader = raise_password
+        return self
+
+
+class CaptureLogPrompts(ScriptedPrompts):
+    """Prompt service that captures log calls without writing to the real logger."""
+
+    _records: list[tuple[str, str]] = PrivateAttr(default_factory=list)
+
+    @property
+    def records(self) -> list[tuple[str, str]]:
+        return self._records
+
+    @override
+    def _log(
+        self,
+        log_level: str,
+        message: str,
+        **_context: t.ContainerValue,
+    ) -> None:
+        self._records.append((log_level, message))
+
+
+class FailingLogPrompts(ScriptedPrompts):
+    """Prompt service that fails on one selected log level."""
+
+    _failure_level: str = PrivateAttr(default="")
+    _failure_message: str = PrivateAttr(default="logger failure")
+
+    @override
+    def _log(
+        self,
+        log_level: str,
+        message: str,
+        **context: t.ContainerValue,
+    ) -> None:
+        if log_level == self._failure_level:
+            raise ValueError(self._failure_message)
+        super()._log(log_level, message, **context)
+
+
+class TestsCliPrompts:
+    """Behavior-only tests for FlextCliPrompts."""
 
     class Fixtures:
-        """Factory for creating prompt instances for testing."""
+        """Small factories for direct prompt scripting."""
 
         @staticmethod
-        def create_quiet_prompts(
+        def create(
+            prompt_type: type[ScriptedPrompts] = ScriptedPrompts,
             *,
-            interactive_mode: bool = False,
-            default_timeout: int = 5,
-        ) -> FlextCliPrompts:
-            """Create prompts in quiet (non-interactive) mode."""
-            instance = FlextCliPrompts()
-            instance._interactive_mode = interactive_mode
-            instance._quiet = True
-            instance._default_timeout = default_timeout
-            return instance
-
-        @staticmethod
-        def create_interactive_prompts(
-            *,
+            interactive_mode: bool = True,
             quiet: bool = False,
-            default_timeout: int = 5,
-        ) -> FlextCliPrompts:
-            """Create prompts in interactive mode."""
-            instance = FlextCliPrompts()
-            instance._interactive_mode = True
-            instance._quiet = quiet
-            instance._default_timeout = default_timeout
-            return instance
+        ) -> ScriptedPrompts:
+            prompts = prompt_type()
+            prompts.interactive_mode = interactive_mode
+            prompts._quiet = quiet
+            return prompts
 
-    @pytest.fixture
-    def prompts(self) -> FlextCliPrompts:
-        """Create FlextCliPrompts instance for testing in non-interactive mode."""
-        return self.Fixtures.create_quiet_prompts()
-
-    @pytest.fixture
-    def interactive_prompts(self) -> FlextCliPrompts:
-        """Create FlextCliPrompts instance for interactive testing."""
-        return self.Fixtures.create_interactive_prompts()
-
-    def test_execute_success(self, prompts: FlextCliPrompts) -> None:
-        """Test execute method returns success."""
+    def test_execute_success(self) -> None:
+        prompts = self.Fixtures.create(interactive_mode=False)
         result = prompts.execute()
         tm.ok(result)
-        tm.that(result.value, is_=dict)
+        tm.that(result.value, eq={})
 
-    def test_prompt_with_default(self, prompts: FlextCliPrompts) -> None:
-        """Test prompt method with default value."""
-        result = prompts.prompt("simple", default="text")
-        tm.that(result, is_=r)
+    def test_execute_failure_when_debug_logging_crashes(self) -> None:
+        prompts = self.Fixtures.create(FailingLogPrompts, interactive_mode=False)
+        assert isinstance(prompts, FailingLogPrompts)
+        prompts._failure_level = "debug"
+        prompts._failure_message = "Execute error"
+        result = prompts.execute()
+        tm.fail(result, has="Execute error")
 
-    def test_prompt_no_default(self, prompts: FlextCliPrompts) -> None:
-        """Test prompt method without default."""
-        result = prompts.prompt("simple")
-        tm.that(result, is_=r)
+    def test_prompt_returns_default_in_quiet_and_non_interactive_modes(self) -> None:
+        quiet_prompts = self.Fixtures.create(quiet=True)
+        tm.that(
+            quiet_prompts.prompt("Enter value", default="default").value, eq="default"
+        )
+        non_interactive_prompts = self.Fixtures.create(interactive_mode=False)
+        tm.that(
+            non_interactive_prompts.prompt("Enter value", default="fallback").value,
+            eq="fallback",
+        )
 
-    def test_confirm_with_default(self, prompts: FlextCliPrompts) -> None:
-        """Test confirm method with default."""
-        result = prompts.confirm("confirm", default=True)
-        tm.that(result, is_=r)
+    def test_prompt_reads_input_and_uses_default_for_empty_text(self) -> None:
+        prompts = self.Fixtures.create().use_input_values([" typed ", ""])
+        prompts._test_env_override = True
+        typed_result = prompts.prompt("Enter value")
+        tm.ok(typed_result)
+        tm.that(typed_result.value, eq="typed")
+        default_result = prompts.prompt("Enter value", default="default")
+        tm.ok(default_result)
+        tm.that(default_result.value, eq="default")
 
-    def test_confirm_no_default(self, prompts: FlextCliPrompts) -> None:
-        """Test confirm method without default."""
-        result = prompts.confirm("confirm")
-        tm.that(result, is_=r)
+    def test_prompt_handles_input_failure(self) -> None:
+        prompts = self.Fixtures.create().use_input_error(ValueError("Input error"))
+        result = prompts.prompt("Enter value")
+        tm.fail(result, has="Input error")
 
-    def test_prompt_choice_empty_choices(self, prompts: FlextCliPrompts) -> None:
-        """Test prompt_choice with empty choices list."""
-        result = prompts.prompt_choice("Select:", choices=[], default=None)
-        tm.fail(result)
+    def test_confirm_returns_defaults_when_not_interactive(self) -> None:
+        quiet_prompts = self.Fixtures.create(quiet=True)
+        tm.that(quiet_prompts.confirm("Continue?", default=True).value, eq=True)
+        non_interactive_prompts = self.Fixtures.create(interactive_mode=False)
+        tm.that(
+            non_interactive_prompts.confirm("Continue?", default=False).value,
+            eq=False,
+        )
 
-    def test_prompt_choice_invalid_default(self, prompts: FlextCliPrompts) -> None:
-        """Test prompt_choice with invalid default."""
-        quiet_prompts = self.Fixtures.create_quiet_prompts()
-        result = quiet_prompts.prompt_choice("Select:", choices=["a", "b"], default="c")
-        tm.fail(result)
+    def test_confirm_accepts_yes_no_default_and_invalid_retry(self) -> None:
+        prompts = self.Fixtures.create(CaptureLogPrompts)
+        assert isinstance(prompts, CaptureLogPrompts)
+        prompts.use_input_values(["", "y", "n", "maybe", "yes"])
+        tm.that(prompts.confirm("Continue?", default=True).value, eq=True)
+        tm.that(prompts.confirm("Continue?", default=False).value, eq=True)
+        tm.that(prompts.confirm("Continue?", default=True).value, eq=False)
+        retry_result = prompts.confirm("Continue?", default=False)
+        tm.ok(retry_result)
+        tm.that(retry_result.value, eq=True)
+        tm.that(
+            prompts.records,
+            has=[("warning", "Invalid confirmation input - please enter yes or no")],
+        )
 
-    def test_prompt_choice_non_interactive_no_default(
+    @pytest.mark.parametrize(
+        ("error", "expected"),
+        [
+            (KeyboardInterrupt(), "User cancelled confirmation"),
+            (EOFError(), "Input stream ended"),
+            (ValueError("Test error"), "Confirmation failed: Test error"),
+        ],
+    )
+    def test_confirm_handles_failures(
         self,
-        prompts: FlextCliPrompts,
+        error: Exception,
+        expected: str,
     ) -> None:
-        """Test prompt_choice in non-interactive mode without default."""
-        quiet_prompts = self.Fixtures.create_quiet_prompts()
-        result = quiet_prompts.prompt_choice(
+        prompts = self.Fixtures.create().use_input_error(error)
+        result = prompts.confirm("Continue?", default=False)
+        tm.fail(result, has=expected)
+
+    def test_prompt_choice_paths(self) -> None:
+        quiet_prompts = self.Fixtures.create(interactive_mode=False)
+        tm.fail(quiet_prompts.prompt_choice("Select:", choices=[], default=None))
+        tm.fail(
+            quiet_prompts.prompt_choice("Select:", choices=["a", "b"], default=None),
+            has="Interactive mode disabled",
+        )
+        valid_default = quiet_prompts.prompt_choice(
             "Select:",
             choices=["a", "b"],
-            default=None,
+            default="a",
         )
-        tm.fail(result)
-
-    def test_prompt_choice_non_interactive_valid_default(
-        self,
-        prompts: FlextCliPrompts,
-    ) -> None:
-        """Test prompt_choice in non-interactive mode with valid default."""
-        quiet_prompts = self.Fixtures.create_quiet_prompts()
-        result = quiet_prompts.prompt_choice("Select:", choices=["a", "b"], default="a")
-        tm.ok(result)
-        tm.that(result.value, eq="a")
-
-    def test_prompt_choice_no_default_required(self) -> None:
-        """Test prompt_choice without default triggers INTERACTIVE_MODE_DISABLED_CHOICE error."""
-        prompts = self.Fixtures.create_quiet_prompts()
-        result = prompts.prompt_choice("choose", c.Cli.Tests.TWO)
-        tm.fail(result, has="Interactive mode disabled")
-
-    def test_prompt_choice_interactive_mode(
-        self,
-        interactive_prompts: FlextCliPrompts,
-    ) -> None:
-        """Test prompt_choice in interactive mode."""
-        result = interactive_prompts.prompt_choice(
-            "choose",
-            ["simple", "complex", "advanced"],
+        tm.ok(valid_default)
+        tm.that(valid_default.value, eq="a")
+        interactive_prompts = self.Fixtures.create()
+        tm.fail(
+            interactive_prompts.prompt_choice(
+                "Select:", choices=["a", "b"], default=None
+            ),
+            has="Choice required",
+        )
+        tm.fail(
+            interactive_prompts.prompt_choice(
+                "Select:", choices=["a", "b"], default="c"
+            ),
+            has="Invalid choice",
+        )
+        selected = interactive_prompts.prompt_choice(
+            "Select:",
+            choices=["simple", "complex", "advanced"],
             default="simple",
         )
-        tm.ok(result)
-        tm.that({"simple", "complex", "advanced"}, has=result.value)
+        tm.ok(selected)
+        tm.that(selected.value, eq="simple")
 
-    def test_prompt_choice_exception_handling(self) -> None:
-        """Test prompt_choice exception handler."""
-        prompts = self.Fixtures.create_interactive_prompts()
-
-        result = prompts.prompt_choice("choose", c.Cli.Tests.TWO, default="choice")
-        tm.fail(result)
-
-    def test_prompt_password_non_interactive_failure(self) -> None:
-        """Test prompt_password in non-interactive mode fails."""
-        prompts = self.Fixtures.create_quiet_prompts()
-        result = prompts.prompt_password(c.Cli.Tests.TestData.PASSWORD)
-        tm.fail(result, has="Interactive mode disabled")
-
-    def test_prompt_password_min_length(self) -> None:
-        """Test prompt_password with min_length validation."""
-        prompts = self.Fixtures.create_quiet_prompts(interactive_mode=False)
-        result = prompts.prompt_password(
-            c.Cli.Tests.TestData.PASSWORD,
-            min_length=c.Cli.Tests.PasswordDefaults.MIN_LENGTH_STRICT,
+    def test_prompt_password_paths(self) -> None:
+        tm.fail(
+            self.Fixtures.create(interactive_mode=False).prompt_password("Password:"),
+            has="Interactive mode disabled",
         )
-        tm.that(result, is_=r)
-
-    def test_confirm_keyboard_interrupt(
-        self,
-        prompts: FlextCliPrompts,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """Test confirm with KeyboardInterrupt."""
-        interactive_prompts = self.Fixtures.create_interactive_prompts()
-
-        def mock_input(_: str) -> str:
-            raise KeyboardInterrupt
-
-        result = interactive_prompts.confirm("Continue?", default=False)
-        tm.fail(result)
-
-    def test_confirm_eof_error(
-        self,
-        prompts: FlextCliPrompts,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """Test confirm with EOFError."""
-        interactive_prompts = self.Fixtures.create_interactive_prompts()
-
-        def mock_input(_: str) -> str:
-            raise EOFError
-
-        result = interactive_prompts.confirm("Continue?", default=False)
-        tm.fail(result)
-
-    def test_confirm_exception_handling(
-        self,
-        prompts: FlextCliPrompts,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """Test confirm with general exception."""
-        interactive_prompts = self.Fixtures.create_interactive_prompts()
-        test_error_msg = "Test error"
-
-        def mock_input(_: str) -> str:
-            raise ValueError(test_error_msg)
-
-        result = interactive_prompts.confirm("Continue?", default=False)
-        tm.fail(result)
-
-    def test_confirm_quiet_mode(self, prompts: FlextCliPrompts) -> None:
-        """Test confirm in quiet mode."""
-        quiet_prompts = self.Fixtures.create_quiet_prompts()
-        result = quiet_prompts.confirm("Continue?", default=True)
-        tm.ok(result)
-        tm.that(result.value is True, eq=True)
-
-    def test_confirm_non_interactive_mode(self, prompts: FlextCliPrompts) -> None:
-        """Test confirm in non-interactive mode."""
-        quiet_prompts = self.Fixtures.create_quiet_prompts(interactive_mode=False)
-        result = quiet_prompts.confirm("Continue?", default=False)
-        tm.ok(result)
-        tm.that(result.value is False, eq=True)
-
-    def test_prompt_password_too_short(
-        self,
-        prompts: FlextCliPrompts,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """Test prompt_password with password too short."""
-
-        def mock_getpass(prompt: str) -> str:
-            return "short"
-
-        interactive_prompts = self.Fixtures.create_interactive_prompts()
-        result = interactive_prompts.prompt_password("Password:", min_length=8)
-        tm.fail(result)
-
-    def test_prompt_password_exception(
-        self,
-        prompts: FlextCliPrompts,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """Test prompt_password with exception."""
-        password_input_error_msg = "Password input error"
-
-        def mock_getpass(_: str) -> str:
-            raise ValueError(password_input_error_msg)
-
-        interactive_prompts = self.Fixtures.create_interactive_prompts()
-        result = interactive_prompts.prompt_password("Password:")
-        tm.fail(result)
-
-    def test_prompt_password_valid_length(
-        self,
-        prompts: FlextCliPrompts,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """Test prompt_password with valid password length."""
-
-        def mock_getpass(prompt: str) -> str:
-            return "validpassword123"
-
-        interactive_prompts = self.Fixtures.create_interactive_prompts()
-        result = interactive_prompts.prompt_password("Password:", min_length=8)
-        tm.ok(result)
-        tm.that(len(result.value), gte=8)
-
-    def test_prompt_quiet_mode(self, prompts: FlextCliPrompts) -> None:
-        """Test prompt in quiet mode."""
-        quiet_prompts = self.Fixtures.create_quiet_prompts()
-        result = quiet_prompts.prompt("Enter value:", default="default_value")
-        tm.ok(result)
-        tm.that(result.value, eq="default_value")
-
-    def test_prompt_non_interactive_mode(self, prompts: FlextCliPrompts) -> None:
-        """Test prompt in non-interactive mode."""
-        quiet_prompts = self.Fixtures.create_quiet_prompts(interactive_mode=False)
-        result = quiet_prompts.prompt("Enter value:", default="default_value")
-        tm.ok(result)
-        tm.that(result.value, eq="default_value")
-
-    def test_prompt_empty_input_uses_default(
-        self,
-        prompts: FlextCliPrompts,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """Test prompt with empty input uses default."""
-
-        def _empty_input(prompt: str) -> str:
-            return ""
-
-        interactive_prompts = self.Fixtures.create_interactive_prompts()
-        result = interactive_prompts.prompt("Enter value:", default="default")
-        tm.ok(result)
-        tm.that(result.value, eq="default")
-
-    def test_prompt_exception_handling(
-        self,
-        prompts: FlextCliPrompts,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """Test prompt with exception."""
-        input_error_msg = "Input error"
-
-        def mock_input(_: str) -> str:
-            raise ValueError(input_error_msg)
-
-        interactive_prompts = self.Fixtures.create_interactive_prompts()
-        result = interactive_prompts.prompt("Enter value:", default="")
-        tm.fail(result)
-
-    def test_print_message_success(self, prompts: FlextCliPrompts) -> None:
-        """Test _print_message success path."""
-        result = prompts._print_message(
-            "Test message",
-            "info",
-            "Format: {message}",
-            "Error: {error}",
+        short_prompts = self.Fixtures.create().use_password("short")
+        tm.fail(
+            short_prompts.prompt_password("Password:", min_length=8), has="too short"
         )
-        tm.ok(result)
+        valid_prompts = self.Fixtures.create().use_password("validpassword123")
+        valid_result = valid_prompts.prompt_password("Password:", min_length=8)
+        tm.ok(valid_result)
+        tm.that(len(valid_result.value), gte=8)
+        failing_prompts = self.Fixtures.create().use_password_error(
+            ValueError("Password input error"),
+        )
+        tm.fail(
+            failing_prompts.prompt_password("Password:"), has="Password input error"
+        )
 
-    def test_print_message_exception(
-        self,
-        prompts: FlextCliPrompts,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """Test _print_message with exception."""
-        logger_error_msg = "Logger error"
+    def test_print_message_and_helper_paths(self) -> None:
+        prompts = self.Fixtures.create()
+        tm.ok(
+            prompts._print_message(
+                "Test", "info", "Format: {message}", "Error: {error}"
+            )
+        )
+        tm.ok(prompts.print_success("simple"))
+        tm.ok(prompts.print_error("simple"))
+        tm.ok(prompts.print_warning("simple"))
 
-        def mock_info(*args: t.Scalar, **kwargs: t.Scalar) -> None:
-            raise ValueError(logger_error_msg)
-
+    def test_print_message_failure_when_logging_crashes(self) -> None:
+        prompts = self.Fixtures.create(FailingLogPrompts)
+        assert isinstance(prompts, FailingLogPrompts)
+        prompts._failure_level = "info"
+        prompts._failure_message = "Logger error"
         result = prompts._print_message(
             "Test",
             "info",
             "Format: {message}",
             "Error: {error}",
         )
-        tm.fail(result)
+        tm.fail(result, has="Logger error")
 
-    def test_print_success(self, prompts: FlextCliPrompts) -> None:
-        """Test print_success method."""
-        result = prompts.print_success("simple")
+    @pytest.mark.parametrize(
+        "message",
+        [
+            "",
+            c.Cli.Tests.TestData.LONG,
+            c.Cli.Tests.TestData.SPECIAL,
+            c.Cli.Tests.TestData.UNICODE,
+        ],
+    )
+    def test_prompt_accepts_edge_case_messages(self, message: str) -> None:
+        prompts = self.Fixtures.create(interactive_mode=False)
+        result = prompts.prompt(message, default="text")
         tm.ok(result)
+        tm.that(result.value, eq="text")
 
-    def test_print_error(self, prompts: FlextCliPrompts) -> None:
-        """Test print_error method."""
-        result = prompts.print_error("simple")
-        tm.ok(result)
-
-    def test_print_warning(self, prompts: FlextCliPrompts) -> None:
-        """Test print_warning method."""
-        result = prompts.print_warning("simple")
-        tm.ok(result)
-
-    def test_edge_cases_empty_message(self, prompts: FlextCliPrompts) -> None:
-        """Test edge case: empty message."""
-        result = prompts.prompt("", default="text")
-        tm.that(result, is_=r)
-
-    def test_edge_cases_long_message(self, prompts: FlextCliPrompts) -> None:
-        """Test edge case: very long message."""
-        result = prompts.prompt(c.Cli.Tests.TestData.LONG, default="text")
-        tm.that(result, is_=r)
-
-    def test_edge_cases_special_characters(self, prompts: FlextCliPrompts) -> None:
-        """Test edge case: special characters in message."""
-        result = prompts.prompt(c.Cli.Tests.TestData.SPECIAL, default="text")
-        tm.that(result, is_=r)
-
-    def test_edge_cases_unicode(self, prompts: FlextCliPrompts) -> None:
-        """Test edge case: unicode characters."""
-        result = prompts.prompt(c.Cli.Tests.TestData.UNICODE, default="text")
-        tm.that(result, is_=r)
-
-    def test_performance_multiple_prompts(self, prompts: FlextCliPrompts) -> None:
-        """Test prompts performance with multiple operations."""
-        start_time = time.time()
-        for i in range(100):
-            _ = prompts.prompt(f"Prompt {i}:", default="text")
-        end_time = time.time()
-        elapsed = end_time - start_time
-        performance_threshold = 0.5
-        tm.that(elapsed, lt=performance_threshold)
-
-    def test_memory_usage_repeated_operations(self, prompts: FlextCliPrompts) -> None:
-        """Test prompts memory usage with repeated operations."""
-        for i in range(20):
-            result = prompts.prompt(f"Memory test {i}:", default="text")
-            tm.that(result, is_=r)
+    def test_repeated_prompt_operations_remain_fast(self) -> None:
+        prompts = self.Fixtures.create(interactive_mode=False)
+        started_at = time.time()
+        for index in range(100):
+            result = prompts.prompt(f"Prompt {index}", default="text")
             tm.ok(result)
             tm.that(result.value, eq="text")
-
-    def test_execute_with_exception(
-        self,
-        prompts: FlextCliPrompts,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """Test execute method with exception."""
-        execute_error_msg = "Execute error"
-        original_debug = prompts.logger.debug
-
-        def mock_debug(message: str, *args: t.Scalar, **kwargs: t.Scalar) -> None:
-            if "Prompt service execution completed" in str(message):
-                raise ValueError(execute_error_msg)
-            original_debug(str(message))
-
-        result = prompts.execute()
-        tm.fail(result)
+        tm.that(time.time() - started_at, lt=0.5)
