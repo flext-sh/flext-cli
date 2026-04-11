@@ -19,7 +19,7 @@ class TestsCliTables:
             colalign=["left", "right"],
             table_format="grid",
         )
-        tm.that(result.is_success, eq=True)
+        tm.that(result.success, eq=True)
         table = result.value or ""
         tm.that("Field" in table, eq=True)
         tm.that("status" in table, eq=True)
@@ -32,7 +32,7 @@ class TestsCliTables:
             show_header=False,
             table_format="plain",
         )
-        tm.that(result.is_success, eq=True)
+        tm.that(result.success, eq=True)
         table = result.value or ""
         tm.that("row-1" in table, eq=True)
         tm.that("Alpha" in table, eq=True)
@@ -44,7 +44,7 @@ class TestsCliTables:
             [{"name": "Alice", "status": "active"}],
             table_format="table",
         )
-        tm.that(result.is_success, eq=True)
+        tm.that(result.success, eq=True)
         table = result.value or ""
         tm.that("Alice" in table, eq=True)
         tm.that("active" in table, eq=True)

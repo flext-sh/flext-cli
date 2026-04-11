@@ -280,7 +280,7 @@ class FlextCliCli(s):
             trace=trace,
             verbose=verbose,
         )
-        if result.is_failure:
+        if result.failure:
             self.logger.warning("failed to apply cli params", error=result.error or "")
 
     def create_app_with_common_params(
@@ -407,7 +407,7 @@ class FlextCliCli(s):
     @staticmethod
     def create_cli_runner(
         *,
-        charset: str = c.Cli.Encoding.DEFAULT,
+        charset: str = c.Cli.ENCODING_DEFAULT,
         env: t.Cli.StrEnvMapping | None = None,
         echo_stdin: bool = False,
     ) -> r[t.Cli.TyperRunner]:
@@ -485,7 +485,9 @@ class FlextCliCli(s):
         remember_failure: p.Cli.FailureMessageRecorder | None = None,
         success_formatter: p.Cli.SuccessMessageFormatter[TResult] | None = None,
         success_message: str | None = None,
-        success_type: str = "success",
+        success_type: c.Cli.MessageTypes | t.Cli.MessageTypeLiteral = (
+            c.Cli.MESSAGE_TYPE_SUCCESS
+        ),
     ) -> None:
         """Register a model command that normalizes `r[...]` CLI handling."""
         execute = cls._build_result_executor(
@@ -512,7 +514,9 @@ class FlextCliCli(s):
         remember_failure: p.Cli.FailureMessageRecorder | None = None,
         success_formatter: p.Cli.SuccessMessageFormatter[TResult] | None = None,
         success_message: str | None = None,
-        success_type: str = "success",
+        success_type: c.Cli.MessageTypes | t.Cli.MessageTypeLiteral = (
+            c.Cli.MESSAGE_TYPE_SUCCESS
+        ),
     ) -> p.Cli.ModelCommandHandler[M]:
         """Build the shared executor used by single and batched route registration."""
 
@@ -521,20 +525,20 @@ class FlextCliCli(s):
                 remember_failure(error, failure_message)
             FlextCliOutput.display_message(
                 error or failure_message,
-                "error",
+                c.Cli.MESSAGE_TYPE_ERROR,
             )
             cls.exit(code=1)
 
         def execute(params: M) -> None:
             result: r[TResult] = handler(params)
-            if result.is_failure:
+            if result.failure:
                 _exit_with_failure(result.error)
             message = success_message
             result_value: TResult = result.value
             if success_formatter is not None:
                 message = success_formatter(result_value)
             elif hasattr(result_value, "message"):
-                candidate = getattr(result_value, "message")
+                candidate = result_value.message
                 if isinstance(candidate, str) and candidate:
                     message = candidate
             elif isinstance(result_value, str) and result_value:
@@ -554,7 +558,9 @@ class FlextCliCli(s):
         success_formatter: p.Cli.SuccessMessageFormatter[t.Cli.ResultValue]
         | None = None,
         success_message: str | None = None,
-        success_type: str = "success",
+        success_type: c.Cli.MessageTypes | t.Cli.MessageTypeLiteral = (
+            c.Cli.MESSAGE_TYPE_SUCCESS
+        ),
     ) -> p.Cli.ModelCommandHandler[BaseModel]:
         """Build a batch executor for type-erased route registration."""
 
@@ -563,14 +569,14 @@ class FlextCliCli(s):
                 remember_failure(error, failure_message)
             FlextCliOutput.display_message(
                 error or failure_message,
-                "error",
+                c.Cli.MESSAGE_TYPE_ERROR,
             )
             cls.exit(code=1)
 
         def execute(params: BaseModel) -> None:
             result_model = handler(params)
-            is_failure = getattr(result_model, "is_failure", False)
-            if is_failure:
+            failure = getattr(result_model, "failure", False)
+            if failure:
                 error_msg = getattr(result_model, "error", None)
                 _exit_with_failure(error_msg if isinstance(error_msg, str) else None)
             message = success_message
@@ -578,7 +584,7 @@ class FlextCliCli(s):
             if success_formatter is not None and result_value is not None:
                 message = success_formatter(result_value)
             elif hasattr(result_value, "message"):
-                candidate = getattr(result_value, "message")
+                candidate = result_value.message
                 if isinstance(candidate, str) and candidate:
                     message = candidate
             elif isinstance(result_value, str) and result_value:

@@ -64,18 +64,18 @@ class FlextCliUtilitiesValidation:
         """Validate a value against emptiness, enumerations, or equality constraints."""
         if not empty:
             check = FlextCliUtilitiesValidation.validate_not_empty(val, name=name)
-            if check.is_failure:
+            if check.failure:
                 return r[bool].fail(msg or check.error or "")
         if in_list is not None:
             val_str = FlextCliUtilitiesValidation.to_str(val)
             if val_str not in set(in_list):
                 err = (
-                    c.Cli.MixinsValidationMessages.SESSION_STATUS_INVALID.format(
+                    c.Cli.VALIDATION_MSG_SESSION_STATUS_INVALID.format(
                         current_status=val_str,
                         valid_states=in_list,
                     )
                     if name == "session_status"
-                    else c.Cli.MixinsValidationMessages.INVALID_ENUM_VALUE.format(
+                    else c.Cli.VALIDATION_MSG_INVALID_ENUM_VALUE.format(
                         field_name=name,
                         valid_values=in_list,
                     )
@@ -84,7 +84,7 @@ class FlextCliUtilitiesValidation:
         if eq is not None:
             val_str = FlextCliUtilitiesValidation.to_str(val)
             if val_str != eq:
-                err = c.Cli.MixinsValidationMessages.COMMAND_STATE_INVALID.format(
+                err = c.Cli.VALIDATION_MSG_COMMAND_STATE_INVALID.format(
                     operation=name,
                     current_status=val_str,
                     required_status=eq,
@@ -102,13 +102,13 @@ class FlextCliUtilitiesValidation:
         """Validate that a value is not empty."""
         if val is None:
             return r[bool].fail(
-                c.Cli.MixinsValidationMessages.FIELD_CANNOT_BE_EMPTY.format(
+                c.Cli.VALIDATION_MSG_FIELD_CANNOT_BE_EMPTY.format(
                     field_name=name,
                 ),
             )
         if isinstance(val, str) and not FlextUtilities.is_string_non_empty(val):
             return r[bool].fail(
-                c.Cli.MixinsValidationMessages.FIELD_CANNOT_BE_EMPTY.format(
+                c.Cli.VALIDATION_MSG_FIELD_CANNOT_BE_EMPTY.format(
                     field_name=name,
                 ),
             )
@@ -122,12 +122,12 @@ class FlextCliUtilitiesValidation:
             fmt,
             name="format",
             empty=False,
-            in_list=c.Cli.ValidationLists.OUTPUT_FORMATS,
+            in_list=c.Cli.VALIDATION_OUTPUT_FORMATS,
         )
-        if valid.is_success:
+        if valid.success:
             return r[str].ok(fmt)
         return r[str].fail(
-            c.Cli.ErrorMessages.INVALID_OUTPUT_FORMAT.format(format=format_type),
+            c.Cli.ERR_INVALID_OUTPUT_FORMAT.format(format=format_type),
         )
 
 

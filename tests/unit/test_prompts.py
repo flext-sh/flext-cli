@@ -9,7 +9,7 @@ import pytest
 from flext_tests import tm
 from pydantic import PrivateAttr
 
-from flext_cli import FlextCliPrompts
+from flext_cli import FlextCliPrompts, m
 from tests import c, t
 
 
@@ -38,6 +38,14 @@ class ScriptedPrompts(FlextCliPrompts):
 
         self._password_reader = raise_password
         return self
+
+    def configure_state(self, *, interactive: bool = True, quiet: bool = False) -> Self:
+        return self.configure(
+            m.Cli.PromptRuntimeState(
+                interactive=interactive,
+                quiet=quiet,
+            ),
+        )
 
 
 class CaptureLogPrompts(ScriptedPrompts):
@@ -90,10 +98,10 @@ class TestsCliPrompts:
             interactive_mode: bool = True,
             quiet: bool = False,
         ) -> ScriptedPrompts:
-            prompts = prompt_type()
-            prompts.interactive_mode = interactive_mode
-            prompts._quiet = quiet
-            return prompts
+            return prompt_type().configure_state(
+                interactive=interactive_mode,
+                quiet=quiet,
+            )
 
     def test_execute_success(self) -> None:
         prompts = self.Fixtures.create(interactive_mode=False)
@@ -122,7 +130,6 @@ class TestsCliPrompts:
 
     def test_prompt_reads_input_and_uses_default_for_empty_text(self) -> None:
         prompts = self.Fixtures.create().use_input_values([" typed ", ""])
-        prompts._test_env_override = True
         typed_result = prompts.prompt("Enter value")
         tm.ok(typed_result)
         tm.that(typed_result.value, eq="typed")
@@ -231,28 +238,18 @@ class TestsCliPrompts:
             failing_prompts.prompt_password("Password:"), has="Password input error"
         )
 
-    def test_print_message_and_helper_paths(self) -> None:
+    def test_print_helpers_paths(self) -> None:
         prompts = self.Fixtures.create()
-        tm.ok(
-            prompts._print_message(
-                "Test", "info", "Format: {message}", "Error: {error}"
-            )
-        )
         tm.ok(prompts.print_success("simple"))
         tm.ok(prompts.print_error("simple"))
         tm.ok(prompts.print_warning("simple"))
 
-    def test_print_message_failure_when_logging_crashes(self) -> None:
+    def test_print_helper_failure_when_logging_crashes(self) -> None:
         prompts = self.Fixtures.create(FailingLogPrompts)
         assert isinstance(prompts, FailingLogPrompts)
         prompts._failure_level = "info"
         prompts._failure_message = "Logger error"
-        result = prompts._print_message(
-            "Test",
-            "info",
-            "Format: {message}",
-            "Error: {error}",
-        )
+        result = prompts.print_success("Test")
         tm.fail(result, has="Logger error")
 
     @pytest.mark.parametrize(

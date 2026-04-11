@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, MutableMapping, Sequence
 from types import GenericAlias, UnionType
-from typing import ClassVar, TypeAliasType
+from typing import ClassVar, Literal, TypeAliasType
 
 from pydantic import JsonValue as PydanticJsonValue, TypeAdapter
 from pydantic.fields import FieldInfo
@@ -17,6 +17,7 @@ from typer import Typer
 from typer.models import OptionInfo
 from typer.testing import CliRunner
 
+from flext_cli import c
 from flext_core import t
 
 
@@ -46,6 +47,64 @@ class FlextCliTypesBase:
     type CliAnnotations = MutableMapping[str, type | GenericAlias]
     type CliApp = Typer
     type CliOptionInfo = OptionInfo
+
+    # Literal types derived from nested StrEnum authorities
+    type OutputFormatLiteral = Literal[
+        c.Cli.OutputFormats.JSON,
+        c.Cli.OutputFormats.YAML,
+        c.Cli.OutputFormats.CSV,
+        c.Cli.OutputFormats.TABLE,
+        c.Cli.OutputFormats.PLAIN,
+    ]
+    type MessageTypeLiteral = Literal[
+        c.Cli.MessageTypes.INFO,
+        c.Cli.MessageTypes.ERROR,
+        c.Cli.MessageTypes.WARNING,
+        c.Cli.MessageTypes.SUCCESS,
+        c.Cli.MessageTypes.DEBUG,
+    ]
+    type CommandStatusLiteral = Literal[
+        c.Cli.CommandStatus.PENDING,
+        c.Cli.CommandStatus.RUNNING,
+        c.Cli.CommandStatus.COMPLETED,
+        c.Cli.CommandStatus.FAILED,
+        c.Cli.CommandStatus.CANCELLED,
+    ]
+    type LogLevelLiteral = Literal[
+        c.LogLevel.DEBUG,
+        c.LogLevel.INFO,
+        c.LogLevel.WARNING,
+        c.LogLevel.ERROR,
+        c.LogLevel.CRITICAL,
+    ]
+    type LogVerbosityLiteral = Literal[
+        c.Cli.LogVerbosity.COMPACT,
+        c.Cli.LogVerbosity.DETAILED,
+        c.Cli.LogVerbosity.FULL,
+    ]
+    type PipelineStageStatusLiteral = Literal[
+        c.Cli.PipelineStageStatus.OK,
+        c.Cli.PipelineStageStatus.SKIPPED,
+        c.Cli.PipelineStageStatus.FAILED,
+    ]
+    type StyleLiteral = Literal[
+        c.Cli.MessageStyles.BLUE,
+        c.Cli.MessageStyles.GREEN,
+        c.Cli.MessageStyles.RED,
+        c.Cli.MessageStyles.YELLOW,
+        c.Cli.MessageStyles.CYAN,
+        c.Cli.MessageStyles.WHITE,
+        c.Cli.MessageStyles.DIM,
+        c.Cli.MessageStyles.BOLD,
+        c.Cli.MessageStyles.BOLD_BLUE,
+        c.Cli.MessageStyles.BOLD_GREEN,
+        c.Cli.MessageStyles.BOLD_RED,
+        c.Cli.MessageStyles.BOLD_YELLOW,
+        c.Cli.MessageStyles.BOLD_CYAN,
+        c.Cli.MessageStyles.BOLD_WHITE,
+        c.Cli.MessageStyles.BOLD_MAGENTA,
+    ]
+
     type TyperRunner = CliRunner
     type TomlDocument = TOMLDocument
     type TomlTable = Table

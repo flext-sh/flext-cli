@@ -31,7 +31,7 @@ class FlextCliAuth(FlextCliServiceBase):
     Container and logger are provided by x via MRO.
     """
 
-    def _get_token_file_path(self) -> Path:
+    def _resolve_token_file_path(self) -> Path:
         """Resolve the auth token path from settings with a safe default."""
         token_file = self.settings.token_file
         if isinstance(token_file, str) and token_file.strip():
@@ -51,45 +51,45 @@ class FlextCliAuth(FlextCliServiceBase):
         if not token.strip():
             return r[bool].fail("Token cannot be empty")
         return FlextCliFileTools.write_json_file(
-            self._get_token_file_path(),
-            {c.Cli.DictKeys.AUTH_TOKEN: token},
+            self._resolve_token_file_path(),
+            {c.Cli.DICT_KEY_AUTH_TOKEN: token},
         )
 
-    def get_auth_token(self) -> r[str]:
+    def fetch_auth_token(self) -> r[str]:
         """Load the persisted authentication token from the configured token file."""
-        read_result = FlextCliFileTools.read_json_file(self._get_token_file_path())
-        if read_result.is_failure:
+        read_result = FlextCliFileTools.read_json_file(self._resolve_token_file_path())
+        if read_result.failure:
             return r[str].fail(read_result.error or "Failed to load auth token")
         payload = read_result.value
         if not isinstance(payload, Mapping):
             return r[str].fail("Token file must contain a mapping")
-        token_value = payload.get(c.Cli.DictKeys.AUTH_TOKEN)
+        token_value = payload.get(c.Cli.DICT_KEY_AUTH_TOKEN)
         if not isinstance(token_value, str) or not token_value:
             return r[str].fail("Token file does not contain a valid token")
         return r[str].ok(token_value)
 
     def authenticate(self, credentials: t.StrMapping) -> r[str]:
         """Authenticate with a token or username/password and persist the token."""
-        token_value = credentials.get(c.Cli.DictKeys.AUTH_TOKEN)
+        token_value = credentials.get(c.Cli.DICT_KEY_AUTH_TOKEN)
         if isinstance(token_value, str) and token_value:
             save_result = self.save_auth_token(token_value)
-            if save_result.is_failure:
+            if save_result.failure:
                 return r[str].fail(save_result.error or "Failed to save token")
             return r[str].ok(token_value)
-        username = credentials.get(c.Cli.DictKeys.USERNAME, "")
-        password = credentials.get(c.Cli.DictKeys.USER_SECRET, "")
+        username = credentials.get(c.Cli.DICT_KEY_USERNAME, "")
+        password = credentials.get(c.Cli.DICT_KEY_USER_SECRET, "")
         validation_result = self.validate_credentials(username, password)
-        if validation_result.is_failure:
+        if validation_result.failure:
             return r[str].fail(validation_result.error or "Invalid credentials")
         generated_token = secrets.token_urlsafe(32)
         save_result = self.save_auth_token(generated_token)
-        if save_result.is_failure:
+        if save_result.failure:
             return r[str].fail(save_result.error or "Failed to save token")
         return r[str].ok(generated_token)
 
     def clear_auth_tokens(self) -> r[bool]:
         """Delete the configured authentication token file if present."""
-        token_file = self._get_token_file_path()
+        token_file = self._resolve_token_file_path()
         if not token_file.exists():
             return r[bool].ok(True)
         return FlextCliFileTools.delete_file(token_file)

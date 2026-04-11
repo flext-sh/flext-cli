@@ -62,12 +62,12 @@ class FlextCliOutput(s):
             return default
 
     @staticmethod
-    def get_map_val(
+    def resolve_map_value(
         mapping: t.Cli.JsonMapping,
         k: str,
         default: t.Cli.JsonValue,
     ) -> t.Cli.JsonValue:
-        """Get value from map with default using build DSL."""
+        """Resolve a mapping value with a normalized default."""
         value = mapping.get(k, default)
         compatible_value: t.Cli.JsonValue
         if u.is_primitive(value) or (
@@ -103,7 +103,10 @@ class FlextCliOutput(s):
     # ── Static methods (public API) ─────────────────────────────────
 
     @staticmethod
-    def display_message(message: str, message_type: str | None = None) -> None:
+    def display_message(
+        message: str,
+        message_type: t.Cli.MessageTypeLiteral | c.Cli.MessageTypes | None = None,
+    ) -> None:
         """Display message with specified type and styling.
 
         Args:
@@ -111,9 +114,14 @@ class FlextCliOutput(s):
             message_type: Type of message (info, success, error, warning)
 
         """
-        final_type = message_type or c.Cli.OutputDefaults.DEFAULT_MESSAGE_TYPE
-        style = c.Cli.MESSAGE_STYLE_MAP.get(final_type, c.Cli.Styles.BLUE)
-        emoji = c.Cli.MESSAGE_EMOJI_MAP.get(final_type, c.Cli.Emojis.INFO)
+        if message_type is None:
+            final_type = c.Cli.OUTPUT_DEFAULT_MESSAGE_TYPE
+        elif isinstance(message_type, str):
+            final_type = message_type
+        else:
+            final_type = message_type.value
+        style = c.Cli.MESSAGE_STYLE_MAP.get(final_type, c.Cli.MessageStyles.BLUE)
+        emoji = c.Cli.MESSAGE_EMOJI_MAP.get(final_type, c.Cli.EMOJI_INFO)
         FlextCliOutput.print_message(f"{emoji} {message}", style=style)
 
     @staticmethod
@@ -124,9 +132,7 @@ class FlextCliOutput(s):
     @staticmethod
     def print_message(message: str, style: str | None = None) -> None:
         """Print a message using FlextCliFormatters."""
-        validated_style = FlextCliOutput.ensure_str(
-            style, c.Cli.OutputDefaults.EMPTY_STYLE
-        )
+        validated_style = FlextCliOutput.ensure_str(style, c.Cli.OUTPUT_EMPTY_STYLE)
         FlextCliFormatters.print(message, style=validated_style)
 
     @staticmethod
@@ -156,8 +162,10 @@ class FlextCliOutput(s):
         elapsed: float | None = None,
     ) -> None:
         """Display a pass/fail status line."""
-        sym = c.Cli.Symbols.SUCCESS_MARK if success else c.Cli.Symbols.FAILURE_MARK
-        style = c.Cli.Styles.BOLD_GREEN if success else c.Cli.Styles.BOLD_RED
+        sym = c.Cli.SYMBOL_SUCCESS_MARK if success else c.Cli.SYMBOL_FAILURE_MARK
+        style = (
+            c.Cli.MessageStyles.BOLD_GREEN if success else c.Cli.MessageStyles.BOLD_RED
+        )
         timing = f"  ({elapsed:.2f}s)" if elapsed is not None else ""
         FlextCliFormatters.print(
             f"  {sym} {label:<8} {detail:<24}{timing}", style=style
@@ -181,8 +189,10 @@ class FlextCliOutput(s):
     @staticmethod
     def display_gate(name: str, passed: bool, *, message: str = "") -> None:
         """Display a quality gate result."""
-        sym = c.Cli.Symbols.SUCCESS_MARK if passed else c.Cli.Symbols.FAILURE_MARK
-        style = c.Cli.Styles.BOLD_GREEN if passed else c.Cli.Styles.BOLD_RED
+        sym = c.Cli.SYMBOL_SUCCESS_MARK if passed else c.Cli.SYMBOL_FAILURE_MARK
+        style = (
+            c.Cli.MessageStyles.BOLD_GREEN if passed else c.Cli.MessageStyles.BOLD_RED
+        )
         suffix = f"  {message}" if message else ""
         FlextCliFormatters.print(f"    {sym} {name:<10}{suffix}", style=style)
 
@@ -199,7 +209,7 @@ class FlextCliOutput(s):
         """Display debug message (no-op unless verbose)."""
         if not verbose:
             return
-        FlextCliFormatters.print(f"[DEBUG] {message}", style=c.Cli.Styles.DIM)
+        FlextCliFormatters.print(f"[DEBUG] {message}", style=c.Cli.MessageStyles.DIM)
 
 
 __all__ = ["FlextCliOutput"]

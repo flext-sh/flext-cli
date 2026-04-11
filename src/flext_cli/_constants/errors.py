@@ -1,0 +1,98 @@
+"""FLEXT CLI error string authorities."""
+
+from __future__ import annotations
+
+from typing import Final
+
+
+class FlextCliConstantsErrors:
+    """Flat error-message constants authority."""
+
+    ERR_ENSURE_DIR_FAILED: Final[str] = "ensure_dir: {error}"
+    ERR_ENSURE_DIR_GENERIC_FAILED: Final[str] = "ensure_dir failed"
+    ERR_ATOMIC_WRITE_TEXT_FILE_FAILED: Final[str] = "atomic_write_text_file: {error}"
+    ERR_FILE_DELETION_FAILED: Final[str] = "File deletion failed: {error}"
+    ERR_JSON_LOAD_FAILED: Final[str] = "JSON load failed: {error}"
+
+    ERR_INVALID_CREDENTIALS: Final[str] = (
+        "Invalid credentials: missing token or username/password"
+    )
+    ERR_CONFIG_VALIDATION_FAILED: Final[str] = "Config validation failed: {error}"
+    ERR_JSON_WRITE_FAILED: Final[str] = "JSON write failed: {error}"
+    ERR_AUTH_SAVE_FAILED: Final[str] = "Failed to save token: {error}"
+    ERR_AUTH_LOAD_FAILED: Final[str] = "Failed to load token: {error}"
+    ERR_AUTH_FILE_NOT_FOUND: Final[str] = "Token file does not exist"
+    ERR_AUTH_FILE_EMPTY: Final[str] = "Token file is empty"
+    ERR_INVALID_OUTPUT_FORMAT: Final[str] = "Invalid output format: {format}"
+    ERR_CONFIG_INFO_FAILED: Final[str] = "Config info failed: {error}"
+    ERR_FAILED_CLEAR_CREDENTIALS: Final[str] = "Failed to clear credentials: {error}"
+
+    CLI_PARAM_ERR_TRACE_REQUIRES_DEBUG: Final[str] = (
+        "Trace mode requires debug mode to be enabled"
+    )
+    CLI_PARAM_ERR_FIELD_NOT_FOUND_FMT: Final[str] = (
+        "Field '{field_name}' not found in CLI parameter registry"
+    )
+    CLI_PARAM_ERR_APPLY_FAILED_FMT: Final[str] = (
+        "Failed to apply CLI parameters: {error}"
+    )
+    CLI_PARAM_ERR_INVALID_WITH_VALID_FMT: Final[str] = (
+        "invalid {field_label}: {field_value}. valid: {valid_values}"
+    )
+    CLI_PARAM_ERR_INVALID_WITH_OPTIONS_FMT: Final[str] = (
+        "invalid {field_label}: {field_value}. valid options: {valid_values}"
+    )
+
+    ERR_SHOW_CONFIG_FAILED: Final[str] = "Show config failed: {error}"
+
+    VALIDATION_MSG_FIELD_CANNOT_BE_EMPTY: Final[str] = "{field_name} cannot be empty"
+    VALIDATION_MSG_INVALID_ENUM_VALUE: Final[str] = (
+        "Invalid {field_name}. Valid values: {valid_values}"
+    )
+    VALIDATION_MSG_COMMAND_STATE_INVALID: Final[str] = (
+        "Cannot {operation}: command is in '{current_status}' state, requires '{required_status}'"
+    )
+    VALIDATION_MSG_SESSION_STATUS_INVALID: Final[str] = (
+        "Invalid session status '{current_status}'. Valid states: {valid_states}"
+    )
+    VALIDATION_MSG_CONFIG_MISSING_FIELDS: Final[str] = (
+        "Missing required configuration fields: {missing_fields}"
+    )
+
+    ERR_INVALID_CONFIRM_INPUT: Final[str] = (
+        "Invalid confirmation input - please enter yes or no"
+    )
+    ERR_USER_CANCELLED_CONFIRMATION: Final[str] = "User cancelled confirmation"
+    ERR_INPUT_STREAM_ENDED: Final[str] = "Input stream ended"
+    ERR_CONFIRMATION_FAILED_FMT: Final[str] = "Confirmation failed: {error}"
+    ERR_NO_CHOICES: Final[str] = "No choices provided"
+    ERR_INTERACTIVE_CHOICE_DISABLED: Final[str] = (
+        "Interactive mode disabled for choice prompt"
+    )
+    ERR_CHOICE_REQUIRED_FMT: Final[str] = "Choice required. Options: {choices}"
+    ERR_INVALID_CHOICE_FMT: Final[str] = "Invalid choice: {choice}"
+    ERR_INTERACTIVE_PASSWORD_DISABLED: Final[str] = (
+        "Interactive mode disabled for password prompt"
+    )
+    ERR_PASSWORD_TOO_SHORT_FMT: Final[str] = (
+        "Password too short: minimum {min_length} characters"
+    )
+    ERR_PROMPT_FAILED_FMT: Final[str] = "Prompt failed: {error}"
+    ERR_CHOICE_PROMPT_FAILED_FMT: Final[str] = "Choice prompt failed: {error}"
+    ERR_PASSWORD_PROMPT_FAILED_FMT: Final[str] = "Password prompt failed: {error}"
+
+    ERR_INVALID_COMMAND_NAME: Final[str] = "Invalid command name"
+    ERR_COMMAND_NOT_FOUND: Final[str] = "Command not found: {name}"
+    ERR_HANDLER_NOT_CALLABLE: Final[str] = "Handler not callable for: {name}"
+    ERR_COMMAND_EXECUTION_FAILED: Final[str] = "Command execution failed: {error}"
+    ERR_COMMAND_NAME_EMPTY: Final[str] = "Command name must be non-empty string"
+
+    ERR_TREE_CREATION_FAILED: Final[str] = "Tree creation failed: {error}"
+
+    ERR_TABLE_DATA_EMPTY: Final[str] = "Table data cannot be empty"
+    ERR_INVALID_TABLE_FORMAT: Final[str] = (
+        "Invalid table format: {table_format}. Available: {available_formats}"
+    )
+
+
+__all__ = ["FlextCliConstantsErrors"]

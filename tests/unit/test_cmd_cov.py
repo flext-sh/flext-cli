@@ -44,24 +44,24 @@ class TestsCliCmdCov:
         tmp_path: Path,
     ) -> None:
         """validate_config must accept the standard FLEXT directory layout."""
-        base_dir = tmp_path / c.Cli.Paths.FLEXT_DIR_NAME
+        base_dir = tmp_path / c.Cli.PATH_FLEXT_DIR_NAME
         base_dir.mkdir()
-        for subdir in c.Cli.Subdirectories.STANDARD_SUBDIRS:
+        for subdir in c.Cli.STANDARD_SUBDIRS:
             (base_dir / subdir).mkdir()
         cmd = FlextCliCmd()
         with _temporary_home(tmp_path):
             result = cmd.validate_config()
         tm.ok(result)
 
-    def test_get_config_info_reflects_real_home_directory(
+    def test_config_snapshot_reflects_real_home_directory(
         self,
         tmp_path: Path,
     ) -> None:
-        """get_config_info must expose the resolved canonical config directory."""
-        config_dir = tmp_path / c.Cli.Paths.FLEXT_DIR_NAME
+        """config_snapshot must expose the resolved canonical config directory."""
+        config_dir = tmp_path / c.Cli.PATH_FLEXT_DIR_NAME
         config_dir.mkdir()
         with _temporary_home(tmp_path):
-            result = FlextCliCmd.get_config_info()
+            result = FlextCliCmd.config_snapshot()
         tm.ok(result)
         tm.that(result.value.config_dir, eq=str(config_dir))
         tm.that(result.value.config_exists, eq=True)
@@ -71,7 +71,7 @@ class TestsCliCmdCov:
         tmp_path: Path,
     ) -> None:
         """show_config must succeed when the canonical config snapshot is readable."""
-        (tmp_path / c.Cli.Paths.FLEXT_DIR_NAME).mkdir()
+        (tmp_path / c.Cli.PATH_FLEXT_DIR_NAME).mkdir()
         cmd = FlextCliCmd()
         with _temporary_home(tmp_path):
             result = cmd.show_config()

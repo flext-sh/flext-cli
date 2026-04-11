@@ -60,7 +60,7 @@ class TestsCliLoggingConfig:
 
     @pytest.mark.parametrize(
         ("level", "expected"),
-        c.Cli.Tests.ConfigFactory.get_logging_scenarios(),
+        c.Cli.Tests.ConfigFactory.logging_scenarios(),
     )
     def test_logging_levels(self, level: str, expected: str) -> None:
         """Test all logging levels with single parametrized test."""

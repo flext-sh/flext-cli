@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from collections.abc import MutableSequence
 
-from examples import m, t
+from examples import c, m, t
 from flext_cli import cli, u
 from flext_core import r
 
@@ -40,17 +40,18 @@ class ExamplesFlextCliUtilities(u):
         demo_name: str,
         features: t.StrSequence,
         *,
-        style: str = "green",
+        style: c.Cli.MessageStyles = c.Cli.MessageStyles.GREEN,
+        bold_style: c.Cli.MessageStyles = c.Cli.MessageStyles.BOLD_GREEN,
     ) -> None:
         """Print standardized demo completion message using cli."""
-        cli.print(f"\n🎉 {demo_name} Complete", style=f"bold {style}")
+        cli.print(f"\n🎉 {demo_name} Complete", style=bold_style)
         cli.print(f"✅ {demo_name} Completed!", style=style)
-        cli.print("\nKey Features Demonstrated:", style="cyan")
+        cli.print("\nKey Features Demonstrated:", style=c.Cli.MessageStyles.CYAN)
         for feature in features:
-            cli.print(f"  • {feature}", style="white")
+            cli.print(f"  • {feature}", style=c.Cli.MessageStyles.WHITE)
         cli.print(
             "\nAll operations used r pattern for error handling!",
-            style="yellow",
+            style=c.Cli.MessageStyles.YELLOW,
         )
 
     @staticmethod
@@ -62,33 +63,37 @@ class ExamplesFlextCliUtilities(u):
         """Generic handler for CQRS command results."""
         success_fields = success_fields or ["id", "status"]
 
-        if result.is_success:
+        if result.success:
             raw = result.value
             data = raw.model_dump()
-            cli.print(f"✅ {action.title()} successful", style="green")
+            cli.print(
+                f"✅ {action.title()} successful", style=c.Cli.MessageStyles.GREEN
+            )
             for field in success_fields:
                 if field in data:
                     display_name = field.replace("_", " ").title()
                     cli.print(f"{display_name}: {data[field]}")
         else:
-            cli.print(f"❌ Failed to {action}: {result.error}", style="red")
+            cli.print(
+                f"❌ Failed to {action}: {result.error}", style=c.Cli.MessageStyles.RED
+            )
 
     @staticmethod
     def print_demo_error(
         demo_name: str,
         error: str,
         *,
-        style: str = "red",
+        bold_style: c.Cli.MessageStyles = c.Cli.MessageStyles.BOLD_RED,
     ) -> None:
         """Print standardized demo error message."""
-        cli.print(f"❌ {demo_name} failed: {error}", style=f"bold {style}")
+        cli.print(f"❌ {demo_name} failed: {error}", style=bold_style)
         cli.print(
             "This failure demonstrates r error handling!",
-            style="yellow",
+            style=c.Cli.MessageStyles.YELLOW,
         )
         cli.print(
             "The error was caught and wrapped in a r for clean handling.",
-            style="white",
+            style=c.Cli.MessageStyles.WHITE,
         )
 
     @staticmethod
@@ -117,11 +122,11 @@ class ExamplesFlextCliUtilities(u):
         """Display a standardized success summary using cli."""
         cli.print(
             f"✅ {operation} completed successfully!",
-            style="bold green",
+            style=c.Cli.MessageStyles.BOLD_GREEN,
         )
         if details is not None:
             for key, value in details.root.items():
-                cli.print(f"   {key}: {value}", style="cyan")
+                cli.print(f"   {key}: {value}", style=c.Cli.MessageStyles.CYAN)
 
     @staticmethod
     def display_validation_errors(
@@ -131,10 +136,10 @@ class ExamplesFlextCliUtilities(u):
         """Display validation errors in a consistent format using cli."""
         cli.print(
             f"❌ {context.title()} failed with {len(errors)} error(s):",
-            style="bold red",
+            style=c.Cli.MessageStyles.BOLD_RED,
         )
         for i, error in enumerate(errors, 1):
-            cli.print(f"   {i}. {error}", style="red")
+            cli.print(f"   {i}. {error}", style=c.Cli.MessageStyles.RED)
 
 
 u = ExamplesFlextCliUtilities

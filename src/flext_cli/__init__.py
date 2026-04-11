@@ -16,6 +16,8 @@ if _t.TYPE_CHECKING:
     from flext_cli._constants.base import FlextCliConstantsBase
     from flext_cli._constants.config import FlextCliConstantsSettings
     from flext_cli._constants.enums import FlextCliConstantsEnums
+    from flext_cli._constants.errors import FlextCliConstantsErrors
+    from flext_cli._constants.output import FlextCliConstantsOutput
     from flext_cli._constants.pipeline import FlextCliConstantsPipeline
     from flext_cli._models.base import FlextCliModelsBase
     from flext_cli._models.pipeline import FlextCliModelsPipeline
@@ -47,7 +49,7 @@ if _t.TYPE_CHECKING:
     from flext_cli._utilities.toml import FlextCliUtilitiesToml
     from flext_cli._utilities.validation import FlextCliUtilitiesValidation
     from flext_cli._utilities.yaml import FlextCliUtilitiesYaml
-    from flext_cli.api import FlextCli, cli
+    from flext_cli.api import FlextCli
     from flext_cli.base import FlextCliServiceBase, s
     from flext_cli.constants import FlextCliConstants, c
     from flext_cli.models import FlextCliModels, m
@@ -65,11 +67,7 @@ if _t.TYPE_CHECKING:
     from flext_cli.settings import FlextCliSettings
     from flext_cli.typings import FlextCliTypes, t
     from flext_cli.utilities import FlextCliUtilities, u
-    from flext_core.decorators import d
-    from flext_core.exceptions import e
-    from flext_core.handlers import h
-    from flext_core.mixins import x
-    from flext_core.result import r
+    from flext_core import d, e, h, r, x
 _LAZY_IMPORTS = merge_lazy_imports(
     (
         "._constants",
@@ -91,10 +89,7 @@ _LAZY_IMPORTS = merge_lazy_imports(
                 "__version__",
                 "__version_info__",
             ),
-            ".api": (
-                "FlextCli",
-                "cli",
-            ),
+            ".api": ("FlextCli",),
             ".base": (
                 "FlextCliServiceBase",
                 "s",
@@ -120,11 +115,13 @@ _LAZY_IMPORTS = merge_lazy_imports(
                 "FlextCliUtilities",
                 "u",
             ),
-            "flext_core.decorators": ("d",),
-            "flext_core.exceptions": ("e",),
-            "flext_core.handlers": ("h",),
-            "flext_core.mixins": ("x",),
-            "flext_core.result": ("r",),
+            "flext_core": (
+                "d",
+                "e",
+                "h",
+                "r",
+                "x",
+            ),
         },
     ),
     exclude_names=(
@@ -152,6 +149,8 @@ __all__ = [
     "FlextCliConstants",
     "FlextCliConstantsBase",
     "FlextCliConstantsEnums",
+    "FlextCliConstantsErrors",
+    "FlextCliConstantsOutput",
     "FlextCliConstantsPipeline",
     "FlextCliConstantsSettings",
     "FlextCliFileTools",
@@ -198,7 +197,6 @@ __all__ = [
     "__version__",
     "__version_info__",
     "c",
-    "cli",
     "d",
     "e",
     "h",

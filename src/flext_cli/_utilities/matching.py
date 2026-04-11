@@ -2,30 +2,39 @@
 
 from __future__ import annotations
 
+import re
+
+from flext_cli import c
+
 
 class FlextCliUtilitiesMatching:
     """Pattern matching methods exposed directly on ``u.Cli``."""
-
-    FILE_NOT_FOUND_PATTERNS: tuple[str, ...] = (
-        "not found",
-        "no such file",
-        "does not exist",
-        "errno 2",
-        "cannot open",
-    )
 
     @staticmethod
     def matches(msg: str, *patterns: str) -> bool:
         """Check whether a message matches any of the given patterns."""
         text = msg.lower()
-        return any(pattern.lower() in text for pattern in patterns)
+        return any(pattern in text for pattern in patterns)
 
     @staticmethod
-    def is_file_not_found_error(error_msg: str) -> bool:
-        """Check whether an error message indicates a missing file."""
-        return FlextCliUtilitiesMatching.matches(
+    def matches_regex(msg: str, *patterns: re.Pattern[str]) -> bool:
+        """Check whether a message matches any compiled regex pattern."""
+        return any(pattern.search(msg) is not None for pattern in patterns)
+
+    @staticmethod
+    def file_not_found_error(error_msg: str) -> bool:
+        """Match error messages that indicate a missing file."""
+        return FlextCliUtilitiesMatching.matches_regex(
             error_msg,
-            *FlextCliUtilitiesMatching.FILE_NOT_FOUND_PATTERNS,
+            *c.Cli.FILE_NOT_FOUND_REGEXES,
+        )
+
+    @staticmethod
+    def cli_usage_error(error_msg: str) -> bool:
+        """Match error messages that indicate CLI usage/input failure."""
+        return FlextCliUtilitiesMatching.matches_regex(
+            error_msg,
+            *c.Cli.CLI_USAGE_ERROR_REGEXES,
         )
 
 

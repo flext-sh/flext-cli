@@ -14,13 +14,12 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import re
-from typing import Final
 
 import pytest
 from flext_tests import tm
 
 from flext_cli import __version__, __version_info__
-from tests import m, t, u
+from tests import c, m, t, u
 
 
 class TestsCliVersion:
@@ -39,8 +38,10 @@ class TestsCliVersion:
 
     def test_actual_version_string_semver_compliant(self) -> None:
         """Test __version__ matches semver pattern."""
-        pattern: Final[str] = "^\\d+\\.\\d+\\.\\d+(?:-[\\w\\.]+)?(?:\\+[\\w\\.]+)?$"
-        tm.that(re.match(pattern, __version__), none=False)
+        tm.that(
+            re.match(c.Cli.Tests.VersionExamples.SEMVER_PATTERN, __version__),
+            none=False,
+        )
 
     def test_actual_version_string_length_bounds(self) -> None:
         """Test version string length is within acceptable bounds."""
@@ -85,8 +86,8 @@ class TestsCliVersion:
 
     @pytest.mark.parametrize(
         "scenario",
-        m.Cli.Tests.VersionScenarios.get_string_cases(),
-        ids=[s.name for s in m.Cli.Tests.VersionScenarios.get_string_cases()],
+        m.Cli.Tests.VersionScenarios.string_cases(),
+        ids=[s.name for s in m.Cli.Tests.VersionScenarios.string_cases()],
     )
     def test_version_string_validation(
         self, scenario: m.Cli.Tests.VersionTestScenario
@@ -104,8 +105,8 @@ class TestsCliVersion:
 
     @pytest.mark.parametrize(
         "scenario",
-        m.Cli.Tests.VersionScenarios.get_info_cases(),
-        ids=[s.name for s in m.Cli.Tests.VersionScenarios.get_info_cases()],
+        m.Cli.Tests.VersionScenarios.info_cases(),
+        ids=[s.name for s in m.Cli.Tests.VersionScenarios.info_cases()],
     )
     def test_version_info_validation(
         self, scenario: m.Cli.Tests.VersionTestScenario
@@ -123,8 +124,8 @@ class TestsCliVersion:
 
     @pytest.mark.parametrize(
         "scenario",
-        m.Cli.Tests.VersionScenarios.get_consistency_cases(),
-        ids=[s.name for s in m.Cli.Tests.VersionScenarios.get_consistency_cases()],
+        m.Cli.Tests.VersionScenarios.consistency_cases(),
+        ids=[s.name for s in m.Cli.Tests.VersionScenarios.consistency_cases()],
     )
     def test_version_consistency_validation(
         self, scenario: m.Cli.Tests.VersionTestScenario

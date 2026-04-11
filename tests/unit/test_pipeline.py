@@ -17,7 +17,7 @@ def _ok_handler(stage_id: str, output_key: str = "done") -> t.Cli.PipelineHandle
         return r[m.Cli.PipelineStageResult].ok(
             m.Cli.PipelineStageResult(
                 stage_id=stage_id,
-                status=c.Cli.Pipeline.STATUS_OK,
+                status=c.Cli.PIPELINE_STATUS_OK,
                 output={output_key: stage_id},
                 duration_ms=1.0,
             ),
@@ -58,12 +58,12 @@ class TestPipelineExecute:
             ),
         ]
         result = u.Cli.execute_pipeline(stages, _make_ctx(tmp_path))
-        assert result.is_success
+        assert result.success
         pipeline = result.value
-        assert pipeline.ok
+        assert pipeline.success
         assert len(pipeline.stages) == 1
         assert pipeline.stages[0].stage_id == "alpha"
-        assert pipeline.stages[0].status == c.Cli.Pipeline.STATUS_OK
+        assert pipeline.stages[0].status == c.Cli.PIPELINE_STATUS_OK
 
     def test_dependency_order(self, tmp_path: Path) -> None:
         """Stages execute in topological order — B depends on A."""
@@ -76,7 +76,7 @@ class TestPipelineExecute:
                 execution_order.append(stage_id)
                 return r[m.Cli.PipelineStageResult].ok(
                     m.Cli.PipelineStageResult(
-                        stage_id=stage_id, status=c.Cli.Pipeline.STATUS_OK
+                        stage_id=stage_id, status=c.Cli.PIPELINE_STATUS_OK
                     ),
                 )
 
@@ -94,7 +94,7 @@ class TestPipelineExecute:
             ),
         ]
         result = u.Cli.execute_pipeline(stages, _make_ctx(tmp_path))
-        assert result.is_success
+        assert result.success
         assert execution_order == ["a", "b"]
 
     def test_shared_state_propagation(self, tmp_path: Path) -> None:
@@ -105,7 +105,7 @@ class TestPipelineExecute:
             received["from_a"] = ctx.shared.get("a_output")
             return r[m.Cli.PipelineStageResult].ok(
                 m.Cli.PipelineStageResult(
-                    stage_id="b", status=c.Cli.Pipeline.STATUS_OK
+                    stage_id="b", status=c.Cli.PIPELINE_STATUS_OK
                 ),
             )
 
@@ -113,7 +113,7 @@ class TestPipelineExecute:
             ctx.shared["a_output"] = "hello"
             return r[m.Cli.PipelineStageResult].ok(
                 m.Cli.PipelineStageResult(
-                    stage_id="a", status=c.Cli.Pipeline.STATUS_OK
+                    stage_id="a", status=c.Cli.PIPELINE_STATUS_OK
                 ),
             )
 
@@ -126,7 +126,7 @@ class TestPipelineExecute:
             ),
         ]
         result = u.Cli.execute_pipeline(stages, _make_ctx(tmp_path))
-        assert result.is_success
+        assert result.success
         assert received["from_a"] == "hello"
 
     def test_fail_fast_stops_on_failure(self, tmp_path: Path) -> None:
@@ -144,9 +144,9 @@ class TestPipelineExecute:
             _make_ctx(tmp_path),
             fail_fast=True,
         )
-        assert result.is_success
+        assert result.success
         pipeline = result.value
-        assert not pipeline.ok
+        assert not pipeline.success
         assert len(pipeline.failed_stages) == 1
         assert pipeline.failed_stages[0].stage_id == "a"
 
@@ -160,10 +160,10 @@ class TestPipelineExecute:
             ),
         ]
         result = u.Cli.execute_pipeline(stages, _make_ctx(tmp_path))
-        assert result.is_success
+        assert result.success
         pipeline = result.value
-        assert pipeline.ok
-        assert pipeline.stages[0].status == c.Cli.Pipeline.STATUS_SKIPPED
+        assert pipeline.success
+        assert pipeline.stages[0].status == c.Cli.PIPELINE_STATUS_SKIPPED
 
     def test_cycle_detection(self, tmp_path: Path) -> None:
         """Circular dependencies produce a failure result."""
@@ -180,7 +180,7 @@ class TestPipelineExecute:
             ),
         ]
         result = u.Cli.execute_pipeline(stages, _make_ctx(tmp_path))
-        assert result.is_failure
+        assert result.failure
 
     def test_retry_on_failure(self, tmp_path: Path) -> None:
         """Stage retries up to retry count before succeeding."""
@@ -193,7 +193,7 @@ class TestPipelineExecute:
                 return r[m.Cli.PipelineStageResult].fail("transient")
             return r[m.Cli.PipelineStageResult].ok(
                 m.Cli.PipelineStageResult(
-                    stage_id="flaky", status=c.Cli.Pipeline.STATUS_OK
+                    stage_id="flaky", status=c.Cli.PIPELINE_STATUS_OK
                 ),
             )
 
@@ -205,15 +205,15 @@ class TestPipelineExecute:
             ),
         ]
         result = u.Cli.execute_pipeline(stages, _make_ctx(tmp_path))
-        assert result.is_success
-        assert result.value.ok
+        assert result.success
+        assert result.value.success
         assert call_count == 3
 
     def test_empty_pipeline(self, tmp_path: Path) -> None:
         """Empty pipeline returns ok with no stages."""
         result = u.Cli.execute_pipeline([], _make_ctx(tmp_path))
-        assert result.is_success
-        assert result.value.ok
+        assert result.success
+        assert result.value.success
         assert len(result.value.stages) == 0
 
     def test_total_duration_tracked(self, tmp_path: Path) -> None:
@@ -222,7 +222,7 @@ class TestPipelineExecute:
             m.Cli.PipelineStageSpec(stage_id="a", handler=_ok_handler("a")),
         ]
         result = u.Cli.execute_pipeline(stages, _make_ctx(tmp_path))
-        assert result.is_success
+        assert result.success
         assert result.value.total_duration_ms >= 0.0
 
     def test_diamond_dependency(self, tmp_path: Path) -> None:
@@ -234,7 +234,7 @@ class TestPipelineExecute:
                 order.append(sid)
                 return r[m.Cli.PipelineStageResult].ok(
                     m.Cli.PipelineStageResult(
-                        stage_id=sid, status=c.Cli.Pipeline.STATUS_OK
+                        stage_id=sid, status=c.Cli.PIPELINE_STATUS_OK
                     ),
                 )
 
@@ -259,7 +259,7 @@ class TestPipelineExecute:
             ),
         ]
         result = u.Cli.execute_pipeline(stages, _make_ctx(tmp_path))
-        assert result.is_success
+        assert result.success
         assert order[0] == "a"
         assert order[-1] == "d"
         assert set(order[1:3]) == {"b", "c"}

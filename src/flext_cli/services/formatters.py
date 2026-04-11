@@ -103,7 +103,7 @@ class FlextCliFormatters(FlextCliServiceBase):
                 label=label,
             )
             return r[FlextCliFormatters.Tree].fail(
-                c.Cli.FormattersErrorMessages.TREE_CREATION_FAILED.format(error=exc),
+                c.Cli.ERR_TREE_CREATION_FAILED.format(error=exc),
             )
 
     @classmethod

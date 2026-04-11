@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Literal
 
+from flext_cli._constants.enums import FlextCliConstantsEnums
 from flext_core import r
 
 if TYPE_CHECKING:
@@ -14,7 +15,11 @@ if TYPE_CHECKING:
 class FlextCliTypesPipeline:
     """Pipeline type aliases namespace."""
 
-    type PipelineStageStatus = Literal["ok", "skipped", "failed"]
+    type PipelineStageStatus = Literal[
+        FlextCliConstantsEnums.PipelineStageStatus.OK,
+        FlextCliConstantsEnums.PipelineStageStatus.SKIPPED,
+        FlextCliConstantsEnums.PipelineStageStatus.FAILED,
+    ]
     type PipelineHandler = Callable[
         [m.Cli.PipelineStageContext],
         r[m.Cli.PipelineStageResult],

@@ -4,12 +4,13 @@ from __future__ import annotations
 
 import getpass
 import os
-from typing import override
+from typing import Self, override
 
 from pydantic import PrivateAttr
 
 from flext_cli import (
     c,
+    m,
     r,
     s,
     t,
@@ -19,42 +20,39 @@ from flext_cli import (
 class FlextCliPrompts(s):
     """CLI prompts service with validation, history, and non-interactive fallbacks."""
 
-    _interactive_mode: bool = PrivateAttr(default=True)
-    _quiet: bool = PrivateAttr(default=False)
-    _default_timeout: int = PrivateAttr(default=c.Cli.Prompts.DEFAULT_TIMEOUT)
+    _state: m.Cli.PromptRuntimeState = PrivateAttr(
+        default_factory=m.Cli.PromptRuntimeState,
+    )
     _input_reader: t.Cli.PromptTextReader = PrivateAttr(default_factory=lambda: input)
     _password_reader: t.Cli.PromptTextReader = PrivateAttr(
         default_factory=lambda: getpass.getpass
     )
     _test_env_override: bool | None = PrivateAttr(default=None)
 
-    @property
-    def interactive_mode(self) -> bool:
-        """Expose interactive prompt mode through the public facade."""
-        return self._interactive_mode
-
-    @interactive_mode.setter
-    def interactive_mode(self, value: bool) -> None:
-        """Enable or disable interactive prompt handling."""
-        self._interactive_mode = value
+    def configure(self, state: m.Cli.PromptRuntimeState) -> Self:
+        """Replace prompt runtime state using the canonical CLI model."""
+        self._state = state
+        return self
 
     def confirm(self, message: str, *, default: bool = False) -> r[bool]:
         try:
-            if self._quiet or not self._interactive_mode:
+            if self._state.quiet or not self._state.interactive:
                 return r[bool].ok(default)
             prompt_text = (
-                f"{message}{c.Cli.Prompts.CONFIRM_YES}"
+                f"{message}{c.Cli.PROMPT_CONFIRM_YES}"
                 if default
-                else f"{message}{c.Cli.Prompts.CONFIRM_NO}"
+                else f"{message}{c.Cli.PROMPT_CONFIRM_NO}"
             )
             return self._read_confirmation_input(message, prompt_text, default=default)
         except KeyboardInterrupt:
-            return r[bool].fail("User cancelled confirmation")
+            return r[bool].fail(c.Cli.ERR_USER_CANCELLED_CONFIRMATION)
         except EOFError:
-            return r[bool].fail("Input stream ended")
+            return r[bool].fail(c.Cli.ERR_INPUT_STREAM_ENDED)
         except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
             self._fatal("confirm", message, exc, "Confirmation failed completely")
-            return r[bool].fail(f"Confirmation failed: {exc}")
+            return r[bool].fail(
+                c.Cli.ERR_CONFIRMATION_FAILED_FMT.format(error=exc),
+            )
 
     @override
     def execute(self) -> r[t.Cli.JsonMapping]:
@@ -77,44 +75,42 @@ class FlextCliPrompts(s):
 
     def print_error(self, message: str) -> r[bool]:
         return self._print_message(
-            message, "error", c.Cli.Prompts.ERROR_FMT, "Print error failed: {error}"
+            message, "error", c.Cli.PROMPT_ERROR_FMT, "Print error failed: {error}"
         )
 
     def print_success(self, message: str) -> r[bool]:
         return self._print_message(
-            message, "info", c.Cli.Prompts.SUCCESS_FMT, "Print success failed: {error}"
+            message, "info", c.Cli.PROMPT_SUCCESS_FMT, "Print success failed: {error}"
         )
 
     def print_warning(self, message: str) -> r[bool]:
         return self._print_message(
             message,
             "warning",
-            c.Cli.Prompts.WARNING_FMT,
+            c.Cli.PROMPT_WARNING_FMT,
             "Print warning failed: {error}",
         )
 
     def prompt(self, message: str, default: str = "") -> r[str]:
         try:
-            if self._quiet or not self._interactive_mode:
+            if self._state.quiet or not self._state.interactive:
                 return r[str].ok(default)
             display_message = (
-                f"{message}{c.Cli.Prompts.PROMPT_DEFAULT_FMT.format(default=default)}"
+                f"{message}{c.Cli.PROMPT_DEFAULT_FMT.format(default=default)}"
                 if default
                 else message
             )
-            raw = self._input_reader(
-                f"{display_message}{c.Cli.Prompts.PROMPT_SEP}"
-            ).strip()
+            raw = self._input_reader(f"{display_message}{c.Cli.PROMPT_SEP}").strip()
             value = raw or default
             if not self._is_test_env():
                 self._log(
                     "info",
-                    c.Cli.Prompts.PROMPT_LOG_FMT.format(message=message, input=value),
+                    c.Cli.PROMPT_LOG_FMT.format(message=message, input=value),
                 )
             return r[str].ok(value)
         except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
             self._fatal("prompt", message, exc, "Prompt failed completely")
-            return r[str].fail(f"Prompt failed: {exc}")
+            return r[str].fail(c.Cli.ERR_PROMPT_FAILED_FMT.format(error=exc))
 
     def prompt_choice(
         self,
@@ -123,18 +119,22 @@ class FlextCliPrompts(s):
         default: str | None = None,
     ) -> r[str]:
         if not choices:
-            return r[str].fail("No choices provided")
-        if not self._interactive_mode:
+            return r[str].fail(c.Cli.ERR_NO_CHOICES)
+        if not self._state.interactive:
             if default and default in choices:
                 return r[str].ok(default)
-            return r[str].fail("Interactive mode disabled for choice prompt")
+            return r[str].fail(c.Cli.ERR_INTERACTIVE_CHOICE_DISABLED)
         try:
             if default is None:
                 return r[str].fail(
-                    f"Choice required. Options: {', '.join(choices)}",
+                    c.Cli.ERR_CHOICE_REQUIRED_FMT.format(
+                        choices=", ".join(choices),
+                    ),
                 )
             if default not in choices:
-                return r[str].fail(f"Invalid choice: {default}")
+                return r[str].fail(
+                    c.Cli.ERR_INVALID_CHOICE_FMT.format(choice=default),
+                )
             return r[str].ok(default)
         except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
             self._fatal(
@@ -143,20 +143,24 @@ class FlextCliPrompts(s):
                 exc,
                 "Choice prompt failed completely",
             )
-            return r[str].fail(f"Choice prompt failed: {exc}")
+            return r[str].fail(
+                c.Cli.ERR_CHOICE_PROMPT_FAILED_FMT.format(error=exc),
+            )
 
     def prompt_password(
         self,
         message: str = "Password:",
-        min_length: int = c.Cli.Prompts.MIN_PASSWORD_LENGTH,
+        min_length: int = c.Cli.PROMPT_MIN_PASSWORD_LENGTH,
     ) -> r[str]:
-        if not self._interactive_mode:
-            return r[str].fail("Interactive mode disabled for password prompt")
+        if not self._state.interactive:
+            return r[str].fail(c.Cli.ERR_INTERACTIVE_PASSWORD_DISABLED)
         try:
-            password = self._password_reader(f"{message}{c.Cli.Prompts.PROMPT_SPACE}")
+            password = self._password_reader(f"{message}{c.Cli.PROMPT_SPACE}")
             if len(password) < min_length:
                 return r[str].fail(
-                    f"Password too short: minimum {min_length} characters",
+                    c.Cli.ERR_PASSWORD_TOO_SHORT_FMT.format(
+                        min_length=min_length,
+                    ),
                 )
             return r[str].ok(password)
         except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
@@ -166,7 +170,9 @@ class FlextCliPrompts(s):
                 exc,
                 "Password prompt failed completely",
             )
-            return r[str].fail(f"Password prompt failed: {exc}")
+            return r[str].fail(
+                c.Cli.ERR_PASSWORD_PROMPT_FAILED_FMT.format(error=exc),
+            )
 
     def _fatal(
         self,
@@ -242,8 +248,8 @@ class FlextCliPrompts(s):
         *,
         default: bool,
     ) -> r[bool]:
-        yes_values = c.Cli.Prompts.YES_VALUES
-        no_values = c.Cli.Prompts.NO_VALUES
+        yes_values = c.Cli.PROMPT_YES_VALUES
+        no_values = c.Cli.PROMPT_NO_VALUES
         while True:
             text = self._input_reader(prompt_text).strip().lower()
             if not text:
@@ -254,7 +260,7 @@ class FlextCliPrompts(s):
                 return r[bool].ok(False)
             self._log(
                 "warning",
-                "Invalid confirmation input - please enter yes or no",
+                c.Cli.ERR_INVALID_CONFIRM_INPUT,
                 operation="confirm",
                 prompt_message=message,
                 user_input=text,

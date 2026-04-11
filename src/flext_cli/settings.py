@@ -28,34 +28,34 @@ class FlextCliSettings(FlextSettings):
 
     verbose: Annotated[
         bool,
-        Field(default=c.Cli.CliDefaults.DEFAULT_VERBOSE, description="Verbose output"),
+        Field(default=c.Cli.CLI_DEFAULT_VERBOSE, description="Verbose output"),
     ]
     quiet: Annotated[
         bool,
-        Field(default=c.Cli.CliDefaults.DEFAULT_QUIET, description="Quiet output"),
+        Field(default=c.Cli.CLI_DEFAULT_QUIET, description="Quiet output"),
     ]
     log_verbosity: Annotated[
         str,
         Field(
-            default=c.Cli.LogVerbosity.COMPACT.value,
+            default=c.Cli.LOG_VERBOSITY_COMPACT.value,
             description="Log format (compact, detailed, full)",
         ),
     ]
     cli_log_level: Annotated[
-        c.Cli.Settings.LogLevel,
-        Field(default=c.Cli.Settings.LogLevel.INFO, description="CLI log level"),
+        c.LogLevel,
+        Field(default=c.Cli.LOG_LEVEL_INFO, description="CLI log level"),
     ]
     no_color: Annotated[
         bool,
         Field(
-            default=c.Cli.CliDefaults.DEFAULT_NO_COLOR,
+            default=c.Cli.CLI_DEFAULT_NO_COLOR,
             description="Disable colored output",
         ),
     ]
     output_format: Annotated[
         str,
         Field(
-            default=c.Cli.OutputDefaults.DEFAULT_FORMAT_TYPE,
+            default=c.Cli.OUTPUT_DEFAULT_FORMAT_TYPE,
             description="Output format (table, json, yaml, csv, plain)",
         ),
     ]

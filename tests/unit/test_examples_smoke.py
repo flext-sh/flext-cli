@@ -121,13 +121,13 @@ class TestFlextCliExamplesSmoke:
         """Auth and config examples must work through cli.settings and cli auth APIs."""
         cli.settings.token_file = str(tmp_path / "auth_token.json")
 
-        settings = configuration.get_cli_settings()
+        settings = configuration.show_cli_settings()
         tm.that(settings, is_=FlextCliSettings)
         tm.that(settings.token_file, eq=cli.settings.token_file)
 
         tm.that(authentication.login_to_service("demo", "secret"), eq=True)
 
-        token_result = authentication.get_saved_token()
+        token_result = authentication.fetch_saved_token()
         tm.ok(token_result)
         tm.that(len(token_result.value) >= 20, eq=True)
         tm.that(authentication.validate_current_token(), eq=True)
@@ -142,7 +142,7 @@ class TestFlextCliExamplesSmoke:
         tm.that(profile_result.value.output_format, eq="table")
 
         authentication.logout()
-        cleared_result = cli.get_auth_token()
+        cleared_result = cli.fetch_auth_token()
         tm.fail(cleared_result)
 
     def test_testing_utility_examples_run_real_cli_workflows(

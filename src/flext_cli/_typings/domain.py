@@ -10,6 +10,7 @@ from pydantic import BaseModel
 from pydantic.fields import FieldInfo
 
 from flext_cli import FlextCliTypesBase, p, r
+from flext_cli._constants.enums import FlextCliConstantsEnums
 from flext_core import t
 
 
@@ -69,7 +70,11 @@ class FlextCliTypesDomain:
     )
     type TomlUnwrappedSource = t.RecursiveContainer | FlextCliTypesBase.TomlItem | None
     type TomlRuntimeSource = FlextCliTypesBase.TomlValue | t.RecursiveContainer | None
-    type TypeKind = Literal["str", "bool", "dict"]
+    type TypeKind = Literal[
+        FlextCliConstantsEnums.TypeKind.STR,
+        FlextCliConstantsEnums.TypeKind.BOOL,
+        FlextCliConstantsEnums.TypeKind.DICT,
+    ]
     type ReturnChildLiteral = Literal[True]
     type TypedExtractValue = str | bool | FlextCliTypesBase.JsonMapping | None
     type ResultCommandRoutes = Sequence[p.Cli.ResultCommandRoute]

@@ -33,7 +33,7 @@ import json
 from collections.abc import MutableMapping, Sequence
 from pathlib import Path
 
-from examples import m, t
+from examples import c, m, t
 from flext_cli import cli
 from flext_core import r
 
@@ -52,7 +52,10 @@ class DataExportPlugin:
         """Execute plugin logic in YOUR application."""
         if output_format == "json":
             output = json.dumps(data, indent=2)
-            cli.print(f"✅ Exported data as JSON ({len(output)} chars)", style="green")
+            cli.print(
+                f"✅ Exported data as JSON ({len(output)} chars)",
+                style=c.Cli.MessageStyles.GREEN,
+            )
             return r[str].ok(output)
         return r[str].fail(f"Unsupported format: {output_format}")
 
@@ -70,10 +73,13 @@ class ReportGeneratorPlugin:
     def execute(data: Sequence[t.ContainerMapping]) -> r[str]:
         """Generate report from data in YOUR CLI."""
         table_result = cli.format_table(data, table_format="grid")
-        if table_result.is_failure:
+        if table_result.failure:
             return r[str].fail(f"Report generation failed: {table_result.error}")
         report = table_result.value
-        cli.print(f"✅ Generated report ({len(report)} chars)", style="green")
+        cli.print(
+            f"✅ Generated report ({len(report)} chars)",
+            style=c.Cli.MessageStyles.GREEN,
+        )
         return r[str].ok(report)
 
 
@@ -105,7 +111,7 @@ class MyAppPluginManager:
             else:
                 data_val = kwargs.get("data", "")
                 raw = plugin.execute(data=[{"raw": str(data_val)}])
-            if raw.is_failure:
+            if raw.failure:
                 return r[t.Cli.JsonValue].fail(raw.error or "Unknown error")
             normalized = m.Cli.CliNormalizedJson(raw.value).root
             return r[t.Cli.JsonValue].ok(normalized)
@@ -115,15 +121,18 @@ class MyAppPluginManager:
     def list_plugins(self) -> None:
         """List all registered plugins in YOUR CLI."""
         if not self.plugins:
-            cli.print("⚠️  No plugins registered", style="yellow")
+            cli.print("⚠️  No plugins registered", style=c.Cli.MessageStyles.YELLOW)
             return
 
-        def get_plugin_version(plugin: DataExportPlugin | ReportGeneratorPlugin) -> str:
+        def resolve_plugin_version(
+            plugin: DataExportPlugin | ReportGeneratorPlugin,
+        ) -> str:
             """Get plugin version."""
             return plugin.version
 
         plugin_items = {
-            name: get_plugin_version(plugin) for name, plugin in self.plugins.items()
+            name: resolve_plugin_version(plugin)
+            for name, plugin in self.plugins.items()
         }
         rows: Sequence[t.ContainerMapping] = [
             {"Plugin": name, "Version": ver} for name, ver in plugin_items.items()
@@ -134,19 +143,28 @@ class MyAppPluginManager:
         """Register plugin in YOUR CLI."""
         plugin_name = getattr(plugin, "name", plugin.__class__.__name__)
         self.plugins[plugin_name] = plugin
-        cli.print(f"🔌 Registered plugin: {plugin_name}", style="cyan")
+        cli.print(
+            f"🔌 Registered plugin: {plugin_name}", style=c.Cli.MessageStyles.CYAN
+        )
 
 
 def load_plugins_from_directory(plugin_dir: Path) -> MyAppPluginManager:
     """Load plugins from directory in YOUR CLI."""
     manager = MyAppPluginManager()
-    cli.print(f"🔍 Scanning for plugins in: {plugin_dir}", style="cyan")
+    cli.print(
+        f"🔍 Scanning for plugins in: {plugin_dir}", style=c.Cli.MessageStyles.CYAN
+    )
     if not plugin_dir.exists():
-        cli.print(f"⚠️  Plugin directory not found: {plugin_dir}", style="yellow")
+        cli.print(
+            f"⚠️  Plugin directory not found: {plugin_dir}",
+            style=c.Cli.MessageStyles.YELLOW,
+        )
         return manager
     manager.register_plugin(DataExportPlugin())
     manager.register_plugin(ReportGeneratorPlugin())
-    cli.print(f"✅ Loaded {len(manager.plugins)} plugins", style="green")
+    cli.print(
+        f"✅ Loaded {len(manager.plugins)} plugins", style=c.Cli.MessageStyles.GREEN
+    )
     return manager
 
 
@@ -161,7 +179,7 @@ class ConfigurablePlugin:
 
     def execute(self) -> r[t.ContainerMapping]:
         """Execute with configuration in YOUR CLI."""
-        cli.print(f"🔧 Plugin config: {self.config}", style="cyan")
+        cli.print(f"🔧 Plugin config: {self.config}", style=c.Cli.MessageStyles.CYAN)
         result_data: t.ContainerMapping = {
             "plugin": self.name,
             "config_applied": True,
@@ -181,7 +199,7 @@ class LifecyclePlugin:
 
     def cleanup(self) -> r[bool]:
         """Cleanup plugin resources."""
-        cli.print(f"🧹 Cleaning up {self.name}...", style="cyan")
+        cli.print(f"🧹 Cleaning up {self.name}...", style=c.Cli.MessageStyles.CYAN)
         self.initialized = False
         return r[bool].ok(value=True)
 
@@ -190,28 +208,28 @@ class LifecyclePlugin:
         if not self.initialized:
             return r[str].fail("Plugin not initialized")
         processed = data.upper()
-        cli.print(f"✅ Processed: {processed}", style="green")
+        cli.print(f"✅ Processed: {processed}", style=c.Cli.MessageStyles.GREEN)
         return r[str].ok(processed)
 
     def initialize(self) -> r[bool]:
         """Initialize plugin resources."""
-        cli.print(f"🚀 Initializing {self.name}...", style="cyan")
+        cli.print(f"🚀 Initializing {self.name}...", style=c.Cli.MessageStyles.CYAN)
         self.initialized = True
         return r[bool].ok(value=True)
 
 
 def main() -> None:
     """Examples of using plugin system in YOUR code."""
-    cli.print("=" * 70, style="bold blue")
-    cli.print("  Plugin System Library Usage", style="bold white")
-    cli.print("=" * 70, style="bold blue")
-    cli.print("\n1. Plugin Registration (basic):", style="bold cyan")
+    cli.print("=" * 70, style=c.Cli.MessageStyles.BOLD_BLUE)
+    cli.print("  Plugin System Library Usage", style=c.Cli.MessageStyles.BOLD_WHITE)
+    cli.print("=" * 70, style=c.Cli.MessageStyles.BOLD_BLUE)
+    cli.print("\n1. Plugin Registration (basic):", style=c.Cli.MessageStyles.BOLD_CYAN)
     manager = MyAppPluginManager()
     manager.register_plugin(DataExportPlugin())
     manager.register_plugin(ReportGeneratorPlugin())
-    cli.print("\n2. List Plugins (inventory):", style="bold cyan")
+    cli.print("\n2. List Plugins (inventory):", style=c.Cli.MessageStyles.BOLD_CYAN)
     manager.list_plugins()
-    cli.print("\n3. Execute Plugin (data export):", style="bold cyan")
+    cli.print("\n3. Execute Plugin (data export):", style=c.Cli.MessageStyles.BOLD_CYAN)
     test_data: t.ContainerMapping = {
         "id": 1,
         "name": "Test",
@@ -222,11 +240,13 @@ def main() -> None:
         data=json.dumps(test_data),
         format="json",
     )
-    if export_result.is_success:
+    if export_result.success:
         result_value = export_result.value
         output_preview = str(result_value)[:100] if result_value else ""
-        cli.print(f"   Output: {output_preview}...", style="white")
-    cli.print("\n4. Report Plugin (table generation):", style="bold cyan")
+        cli.print(f"   Output: {output_preview}...", style=c.Cli.MessageStyles.WHITE)
+    cli.print(
+        "\n4. Report Plugin (table generation):", style=c.Cli.MessageStyles.BOLD_CYAN
+    )
     report_data: Sequence[t.ContainerMapping] = [
         {"metric": "Users", "value": "1,234"},
         {"metric": "Orders", "value": "567"},
@@ -235,42 +255,62 @@ def main() -> None:
         "report-generator",
         data=json.dumps(report_data),
     )
-    if report_result.is_success:
+    if report_result.success:
         cli.print(
             f"   Report length: {len(str(report_result.value))} chars",
-            style="green",
+            style=c.Cli.MessageStyles.GREEN,
         )
-    cli.print("\n5. Configurable Plugin:", style="bold cyan")
+    cli.print("\n5. Configurable Plugin:", style=c.Cli.MessageStyles.BOLD_CYAN)
     config: t.ContainerMapping = {"theme": "dark", "verbose": True}
     config_plugin = ConfigurablePlugin(config)
     config_result = config_plugin.execute()
-    if config_result.is_success:
-        cli.print(f"   Result: {config_result.value}", style="green")
-    cli.print("\n6. Plugin Lifecycle (init/execute/cleanup):", style="bold cyan")
+    if config_result.success:
+        cli.print(f"   Result: {config_result.value}", style=c.Cli.MessageStyles.GREEN)
+    cli.print(
+        "\n6. Plugin Lifecycle (init/execute/cleanup):",
+        style=c.Cli.MessageStyles.BOLD_CYAN,
+    )
     lifecycle_plugin = LifecyclePlugin()
     init_ok = lifecycle_plugin.initialize()
-    if init_ok.is_success:
+    if init_ok.success:
         exec_result = lifecycle_plugin.execute("hello world")
-        if exec_result.is_success:
-            cli.print(f"   Output: {exec_result.value}", style="white")
+        if exec_result.success:
+            cli.print(
+                f"   Output: {exec_result.value}", style=c.Cli.MessageStyles.WHITE
+            )
         cleanup_result = lifecycle_plugin.cleanup()
-        if cleanup_result.is_failure:
-            cli.print(f"   Cleanup warning: {cleanup_result.error}", style="yellow")
-    cli.print("\n7. Load from Directory (dynamic discovery):", style="bold cyan")
+        if cleanup_result.failure:
+            cli.print(
+                f"   Cleanup warning: {cleanup_result.error}",
+                style=c.Cli.MessageStyles.YELLOW,
+            )
+    cli.print(
+        "\n7. Load from Directory (dynamic discovery):",
+        style=c.Cli.MessageStyles.BOLD_CYAN,
+    )
     plugin_dir = Path.home() / ".myapp" / "plugins"
     loaded_manager = load_plugins_from_directory(plugin_dir)
     cli.print(
         f"   Plugins available: {list(loaded_manager.plugins.keys())}",
-        style="white",
+        style=c.Cli.MessageStyles.WHITE,
     )
-    cli.print("\n" + "=" * 70, style="bold blue")
-    cli.print("  ✅ Plugin Examples Complete", style="bold green")
-    cli.print("=" * 70, style="bold blue")
-    cli.print("\n💡 Integration Tips:", style="bold cyan")
-    cli.print("  • Create plugin classes with execute() method", style="white")
-    cli.print("  • Use plugin manager to register and execute plugins", style="white")
-    cli.print("  • Add lifecycle hooks (initialize, cleanup) as needed", style="white")
-    cli.print("  • Use r for plugin error handling", style="white")
+    cli.print("\n" + "=" * 70, style=c.Cli.MessageStyles.BOLD_BLUE)
+    cli.print("  ✅ Plugin Examples Complete", style=c.Cli.MessageStyles.BOLD_GREEN)
+    cli.print("=" * 70, style=c.Cli.MessageStyles.BOLD_BLUE)
+    cli.print("\n💡 Integration Tips:", style=c.Cli.MessageStyles.BOLD_CYAN)
+    cli.print(
+        "  • Create plugin classes with execute() method",
+        style=c.Cli.MessageStyles.WHITE,
+    )
+    cli.print(
+        "  • Use plugin manager to register and execute plugins",
+        style=c.Cli.MessageStyles.WHITE,
+    )
+    cli.print(
+        "  • Add lifecycle hooks (initialize, cleanup) as needed",
+        style=c.Cli.MessageStyles.WHITE,
+    )
+    cli.print("  • Use r for plugin error handling", style=c.Cli.MessageStyles.WHITE)
 
 
 if __name__ == "__main__":

@@ -126,7 +126,7 @@ class FlextCliUtilitiesRuntime:
         try:
             output_path = Path(output_file)
             output_path.parent.mkdir(parents=True, exist_ok=True)
-            with output_path.open("w", encoding=c.Cli.Encoding.DEFAULT) as handle:
+            with output_path.open("w", encoding=c.Cli.ENCODING_DEFAULT) as handle:
                 result = subprocess.run(
                     list(cmd),
                     cwd=cwd,

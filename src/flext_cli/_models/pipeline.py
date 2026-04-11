@@ -6,7 +6,7 @@ from collections.abc import Callable, MutableMapping, Sequence
 from pathlib import Path
 from typing import Annotated, ClassVar
 
-from pydantic import ConfigDict, Field
+from pydantic import ConfigDict, Field, computed_field
 
 from flext_cli import c, t
 from flext_core import FlextModels, r
@@ -79,9 +79,9 @@ class FlextCliModelsPipeline:
         retry: Annotated[
             int,
             Field(
-                default=c.Cli.Pipeline.DEFAULT_RETRY,
+                default=c.Cli.PIPELINE_DEFAULT_RETRY,
                 ge=0,
-                le=c.Cli.Pipeline.MAX_RETRY,
+                le=c.Cli.PIPELINE_MAX_RETRY,
                 description="Number of retries on failure",
             ),
         ]
@@ -125,22 +125,25 @@ class FlextCliModelsPipeline:
             Field(default=0.0, description="Total pipeline execution time"),
         ]
 
+        @computed_field
         @property
-        def ok(self) -> bool:
+        def success(self) -> bool:
             """True if no stage failed."""
-            return all(s.status != c.Cli.Pipeline.STATUS_FAILED for s in self.stages)
+            return all(s.status != c.Cli.PIPELINE_STATUS_FAILED for s in self.stages)
 
+        @computed_field
         @property
         def failed_stages(self) -> Sequence[FlextCliModelsPipeline.PipelineStageResult]:
             """Return only failed stage results."""
-            return [s for s in self.stages if s.status == c.Cli.Pipeline.STATUS_FAILED]
+            return [s for s in self.stages if s.status == c.Cli.PIPELINE_STATUS_FAILED]
 
+        @computed_field
         @property
         def skipped_stages(
             self,
         ) -> Sequence[FlextCliModelsPipeline.PipelineStageResult]:
             """Return only skipped stage results."""
-            return [s for s in self.stages if s.status == c.Cli.Pipeline.STATUS_SKIPPED]
+            return [s for s in self.stages if s.status == c.Cli.PIPELINE_STATUS_SKIPPED]
 
 
 __all__ = ["FlextCliModelsPipeline"]

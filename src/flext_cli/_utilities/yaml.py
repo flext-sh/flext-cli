@@ -47,7 +47,7 @@ class FlextCliUtilitiesYaml:
         if not path.is_file():
             return r[t.Cli.YamlDict].fail(f"YAML file not found: {path}")
         try:
-            raw = path.read_text(encoding=c.Cli.Encoding.DEFAULT)
+            raw = path.read_text(encoding=c.Cli.ENCODING_DEFAULT)
         except OSError as exc:
             return r[t.Cli.YamlDict].fail(f"YAML read error: {exc}")
         return FlextCliUtilitiesYaml.yaml_parse(raw)
@@ -94,7 +94,7 @@ class FlextCliUtilitiesYaml:
         if not path.is_file():
             return []
         try:
-            raw = path.read_text(encoding=c.Cli.Encoding.DEFAULT)
+            raw = path.read_text(encoding=c.Cli.ENCODING_DEFAULT)
             parsed = safe_load(raw)
         except (OSError, t.Cli.YAMLError):
             return []
@@ -127,7 +127,7 @@ class FlextCliUtilitiesYaml:
         """
         try:
             path.parent.mkdir(parents=True, exist_ok=True)
-            with path.open("w", encoding=c.Cli.Encoding.DEFAULT) as fh:
+            with path.open("w", encoding=c.Cli.ENCODING_DEFAULT) as fh:
                 safe_dump(
                     data,
                     fh,

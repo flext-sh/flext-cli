@@ -107,6 +107,30 @@ class FlextCliModelsBase:
     class SuccessSummaryDetails(RootModel[Mapping[str, str]]):
         """Key-value success summary details. Use m.Cli.SuccessSummaryDetails."""
 
+    class PromptRuntimeState(m.FlexibleInternalModel):
+        """Centralized runtime state for CLI prompt behavior."""
+
+        model_config: ClassVar[ConfigDict] = ConfigDict(
+            extra="forbid",
+            validate_assignment=True,
+        )
+
+        interactive: Annotated[
+            bool,
+            Field(default=True, description="Whether prompt interaction is enabled"),
+        ] = True
+        quiet: Annotated[
+            bool,
+            Field(default=False, description="Whether prompt output is suppressed"),
+        ] = False
+        default_timeout: Annotated[
+            int,
+            Field(
+                default=c.Cli.PROMPT_DEFAULT_TIMEOUT,
+                description="Default prompt timeout in seconds",
+            ),
+        ] = c.Cli.PROMPT_DEFAULT_TIMEOUT
+
     class CommandEntryModel(BaseModel):
         """Single command entry: name + handler. Use m.Cli.CommandEntryModel."""
 
@@ -151,9 +175,12 @@ class FlextCliModelsBase:
             Field(default=None, description="Dynamic success formatter"),
         ] = None
         success_type: Annotated[
-            str,
-            Field(default="success", description="CLI output style on success"),
-        ] = "success"
+            c.Cli.MessageTypes | t.Cli.MessageTypeLiteral,
+            Field(
+                default=c.Cli.MESSAGE_TYPE_SUCCESS,
+                description="CLI output style on success",
+            ),
+        ] = c.Cli.MESSAGE_TYPE_SUCCESS
 
     class TableConfig(m.Value):
         """Table display configuration for tabulate extending Value via inheritance.
@@ -401,11 +428,11 @@ class FlextCliModelsBase:
                 description="Help text for option",
             ),
         ]
-        is_flag: Annotated[
+        flag: Annotated[
             bool,
             Field(
                 default=False,
-                description="Whether this is a boolean flag",
+                description="Boolean flag option",
             ),
         ]
         flag_value: Annotated[
@@ -446,7 +473,7 @@ class FlextCliModelsBase:
         prompt_suffix: Annotated[
             str,
             Field(
-                default=c.Cli.UIDefaults.DEFAULT_PROMPT_SUFFIX,
+                default=c.Cli.UI_DEFAULT_PROMPT_SUFFIX,
                 description="Suffix after prompt",
             ),
         ]
@@ -495,7 +522,7 @@ class FlextCliModelsBase:
         prompt_suffix: Annotated[
             str,
             Field(
-                default=c.Cli.UIDefaults.DEFAULT_PROMPT_SUFFIX,
+                default=c.Cli.UI_DEFAULT_PROMPT_SUFFIX,
                 description="Suffix after prompt",
             ),
         ]
@@ -563,7 +590,10 @@ class FlextCliModelsBase:
         ]
         default: Annotated[
             str,
-            Field(default="INFO", description="Default log level when raw is absent"),
+            Field(
+                default=c.Cli.LOG_LEVEL_INFO.value,
+                description="Default log level when raw is absent",
+            ),
         ]
 
         @computed_field
@@ -604,12 +634,12 @@ class FlextCliModelsBase:
             """Type-safe accessor (bypasses pyrefly computed_field limitation)."""
             if self.value is None:
                 return self._default_for_kind()
-            if self.type_kind == "str":
+            if self.type_kind == c.Cli.TypeKind.STR:
                 s = str(self.value).strip() if self.value else ""
                 return s or (self.default if isinstance(self.default, str) else None)
-            if self.type_kind == "bool":
+            if self.type_kind == c.Cli.TypeKind.BOOL:
                 return bool(self.value)
-            if self.type_kind == "dict":
+            if self.type_kind == c.Cli.TypeKind.DICT:
                 if isinstance(self.value, Mapping):
                     return {
                         str(k): t.Cli.JSON_VALUE_ADAPTER.validate_python(vv)
@@ -625,9 +655,9 @@ class FlextCliModelsBase:
 
         def _default_for_kind(self) -> t.Cli.TypedExtractValue:
             """Return default typed value for the requested kind."""
-            if self.type_kind == "str":
+            if self.type_kind == c.Cli.TypeKind.STR:
                 return self.default if isinstance(self.default, str) else None
-            if self.type_kind == "bool":
+            if self.type_kind == c.Cli.TypeKind.BOOL:
                 return self.default if isinstance(self.default, bool) else False
             if isinstance(self.default, Mapping):
                 return {

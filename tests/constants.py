@@ -70,10 +70,19 @@ class TestsFlextCliConstants(FlextTestsConstants, c):
             class VersionExamples:
                 """Version string examples for parametrized tests."""
 
+                SEMVER_PATTERN: Final[str] = (
+                    "^\\d+\\.\\d+\\.\\d+(?:-[\\w\\.]+)?(?:\\+[\\w\\.]+)?$"
+                )
                 VALID_SEMVER: Final[str] = "1.2.3"
                 VALID_SEMVER_COMPLEX: Final[str] = "1.2.3-alpha.1+build.123"
                 INVALID_NO_DOTS: Final[str] = "version"
                 INVALID_NON_NUMERIC: Final[str] = "a.b.c"
+
+            class VersionErrors:
+                """Error message constants for version validation helpers."""
+
+                EMPTY_STRING: Final[str] = "Version must be non-empty string"
+                INFO_TOO_SHORT: Final[str] = "Version info must have at least 3 parts"
 
             class VersionInfoTuples:
                 """Version info tuple examples for parametrized tests."""
@@ -118,7 +127,7 @@ class TestsFlextCliConstants(FlextTestsConstants, c):
                 ]
 
                 @classmethod
-                def get_logging_scenarios(cls) -> Sequence[tuple[str, str]]:
+                def logging_scenarios(cls) -> Sequence[tuple[str, str]]:
                     """Generate logging level scenarios."""
                     return [(level, level) for level in cls.VALID_LOGGING_LEVELS]
 

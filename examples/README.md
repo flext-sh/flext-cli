@@ -141,6 +141,7 @@ flext-cli is a production-ready Python library that provides:
 pip install flext-cli
 
 # Import and use
+from examples import c
 from flext_cli import cli
 
 # Initialize
@@ -154,7 +155,7 @@ cli.display_rich_table(data, title="Users")
 
 # Interactive prompt
 name = cli.prompt("Enter your name:")
-cli.print("Hello!", style="bold green")
+cli.print("Hello!", style=c.Cli.MessageStyles.BOLD_GREEN)
 ```
 
 ## 📦 Available Modules
@@ -164,7 +165,7 @@ Access all modules through the `cli` facade:
 ```python
 # All services available directly via MRO inheritance:
 cli.print_success("msg")  # FlextCliOutput
-cli.print("msg", style="bold")  # FlextCliFormatters
+cli.print("msg", style=c.Cli.MessageStyles.BOLD)  # FlextCliFormatters
 cli.display_rich_table(data)  # FlextCliTables
 cli.prompt("Enter name:")  # FlextCliPrompts
 cli.read_json_file("f.json")  # FlextCliFileTools
@@ -286,7 +287,7 @@ All operations return `r` for type-safe error handling:
 ```python
 result = cli.read_json_file("config.json")
 
-if result.is_success:
+if result.success:
     data = result.value
 else:
     error = result.error
@@ -398,7 +399,7 @@ def process_pipeline(input_file: str) -> r[dict]:
     
     # Read input
     data_result = cli.read_json_file(input_file)
-    if data_result.is_failure:
+    if data_result.failure:
         return r[dict].fail(f"Read failed: {data_result.error}")
 
     # Process
@@ -407,7 +408,7 @@ def process_pipeline(input_file: str) -> r[dict]:
 
     # Write output
     write_result = cli.write_json_file("output.json", processed)
-    if write_result.is_failure:
+    if write_result.failure:
         return r[dict].fail(f"Write failed: {write_result.error}")
 
     cli.print_success("Pipeline complete!")

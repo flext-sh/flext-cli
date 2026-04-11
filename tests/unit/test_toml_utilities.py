@@ -43,10 +43,10 @@ class TestCliTomlRead:
         doc = u.Cli.toml_read(toml_file)
 
         assert doc is not None
-        section = u.Cli.toml_get_table(doc, "section")
+        section = u.Cli.toml_table_child(doc, "section")
         assert section is not None
-        tm.that(u.Cli.toml_get(section, "key"), eq="value")
-        tm.that(u.Cli.toml_get(section, "number"), eq=42)
+        tm.that(u.Cli.toml_value(section, "key"), eq="value")
+        tm.that(u.Cli.toml_value(section, "number"), eq=42)
 
     def test_read_nonexistent_file(self, tmp_path: Path) -> None:
         tm.that(u.Cli.toml_read(tmp_path / "missing.toml"), none=True)
@@ -67,9 +67,9 @@ class TestCliTomlDocument:
         result = u.Cli.toml_read_document(toml_file)
 
         tm.ok(result)
-        section = u.Cli.toml_get_table(result.value, "section")
+        section = u.Cli.toml_table_child(result.value, "section")
         assert section is not None
-        tm.that(u.Cli.toml_get(section, "key"), eq="value")
+        tm.that(u.Cli.toml_value(section, "key"), eq="value")
 
     def test_read_document_nonexistent_file(self, tmp_path: Path) -> None:
         tm.fail(
@@ -157,7 +157,7 @@ class TestCliTomlHelpers:
 
         table = u.Cli.toml_ensure_table(parent, "section")
 
-        tm.that(u.Cli.toml_get(table, "key"), eq="value")
+        tm.that(u.Cli.toml_value(table, "key"), eq="value")
 
     def test_path_helpers_navigate_and_lookup_tables(self) -> None:
         doc = u.Cli.toml_document()
@@ -165,14 +165,14 @@ class TestCliTomlHelpers:
         created = u.Cli.toml_ensure_path(doc, ("tool", "ruff", "lint"))
         created["select"] = u.Cli.toml_array(["E", "F"])
 
-        resolved = u.Cli.toml_get_table_path(doc, ("tool", "ruff", "lint"))
+        resolved = u.Cli.toml_table_path(doc, ("tool", "ruff", "lint"))
 
         assert resolved is not None
         tm.that(
-            u.Cli.toml_as_string_list(u.Cli.toml_get_item(resolved, "select")),
+            u.Cli.toml_as_string_list(u.Cli.toml_item_child(resolved, "select")),
             eq=["E", "F"],
         )
-        tm.that(u.Cli.toml_get_table_path(doc, ("tool", "mypy")), none=True)
+        tm.that(u.Cli.toml_table_path(doc, ("tool", "mypy")), none=True)
 
     def test_dot_path_and_navigate_path_keep_tool_prefix_stable(self) -> None:
         doc = u.Cli.toml_document()
@@ -185,19 +185,19 @@ class TestCliTomlHelpers:
             eq="tool.pytest.ini_options",
         )
         tm.that(
-            u.Cli.toml_get(
+            u.Cli.toml_value(
                 u.Cli.toml_navigate_path(doc, ["pytest", "ini_options"]), "addopts"
             ),
             eq="-q",
         )
 
-    def test_as_mapping_and_get_helpers(self) -> None:
+    def test_as_mapping_and_lookup_helpers(self) -> None:
         mapping: Mapping[str, t.RecursiveContainer] = {"key": "value"}
         tm.that(u.Cli.toml_as_mapping(mapping), eq=mapping)
         tm.that(u.Cli.toml_as_mapping("bad"), none=True)
         doc = u.Cli.toml_document()
         doc["a"] = 1
         doc["b"] = [1, 2]
-        tm.that(u.Cli.toml_get(doc, "a"), eq=1)
-        tm.that(u.Cli.toml_get(doc, "b"), eq=[1, 2])
-        tm.that(u.Cli.toml_get(doc, "missing"), none=True)
+        tm.that(u.Cli.toml_value(doc, "a"), eq=1)
+        tm.that(u.Cli.toml_value(doc, "b"), eq=[1, 2])
+        tm.that(u.Cli.toml_value(doc, "missing"), none=True)

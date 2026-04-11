@@ -104,7 +104,7 @@ class TestsFlextCliModels(FlextTestsModels, m):
                 """Factory methods for version test scenarios."""
 
                 @classmethod
-                def get_string_cases(
+                def string_cases(
                     cls,
                 ) -> Sequence[TestsFlextCliModels.Cli.Tests.VersionTestScenario]:
                     """Get parametrized test cases for version string validation."""
@@ -139,7 +139,7 @@ class TestsFlextCliModels(FlextTestsModels, m):
                     ]
 
                 @classmethod
-                def get_info_cases(
+                def info_cases(
                     cls,
                 ) -> Sequence[TestsFlextCliModels.Cli.Tests.VersionTestScenario]:
                     """Get parametrized test cases for version info validation."""
@@ -171,7 +171,7 @@ class TestsFlextCliModels(FlextTestsModels, m):
                     ]
 
                 @classmethod
-                def get_consistency_cases(
+                def consistency_cases(
                     cls,
                 ) -> Sequence[TestsFlextCliModels.Cli.Tests.VersionTestScenario]:
                     """Get parametrized test cases for version consistency validation."""

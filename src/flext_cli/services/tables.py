@@ -23,7 +23,7 @@ class FlextCliTables(s):
     @staticmethod
     def _normalize_table_format(table_format: str) -> str:
         """Map public table aliases to concrete tabulate backends."""
-        if table_format == c.Cli.OutputFormats.TABLE.value:
+        if table_format == c.Cli.OUTPUT_FORMAT_TABLE.value:
             return "simple"
         return table_format
 
@@ -35,7 +35,7 @@ class FlextCliTables(s):
         """Build a concrete table config from an explicit model plus kwargs."""
         base_config = config or m.Cli.TableConfig()
         if not config_kwargs:
-            if base_config.table_format == c.Cli.OutputFormats.TABLE.value:
+            if base_config.table_format == c.Cli.OUTPUT_FORMAT_TABLE.value:
                 normalized_config: m.Cli.TableConfig = base_config.model_copy(
                     update={"table_format": "simple"},
                 )
@@ -78,12 +78,12 @@ class FlextCliTables(s):
         """
         if not data:
             return r[bool].fail(
-                c.Cli.TablesErrorMessages.TABLE_DATA_EMPTY,
+                c.Cli.ERR_TABLE_DATA_EMPTY,
             )
         if table_format not in c.Cli.TABLE_FORMATS:
             available_formats_list = list(c.Cli.TABLE_FORMATS.keys())
             return r[bool].fail(
-                c.Cli.TablesErrorMessages.INVALID_TABLE_FORMAT.format(
+                c.Cli.ERR_INVALID_TABLE_FORMAT.format(
                     table_format=table_format,
                     available_formats=", ".join(available_formats_list),
                 ),
@@ -210,16 +210,16 @@ class FlextCliTables(s):
     ) -> r[str]:
         """Format table data to a string using the public CLI API."""
         config_result = FlextCliTables._build_config(config, **config_kwargs)
-        if config_result.is_failure:
+        if config_result.failure:
             return r[str].fail(config_result.error or "Invalid table configuration")
         config_final: m.Cli.TableConfig = config_result.value
         validation_result = FlextCliTables._validate_table_data_wide(
             data, config_final.table_format
         )
-        if validation_result.is_failure:
+        if validation_result.failure:
             return r[str].fail(validation_result.error or "Table validation failed")
         normalized_result = FlextCliTables._normalize_data(data)
-        if normalized_result.is_failure:
+        if normalized_result.failure:
             return r[str].fail(normalized_result.error or "Table normalization failed")
         normalized_rows: Sequence[t.Cli.TableRow] = normalized_result.value
         return FlextCliTables._render_table(normalized_rows, config_final)
@@ -241,20 +241,22 @@ class FlextCliTables(s):
     ) -> None:
         """Gera e exibe tabela formatada no console. Não retorna string, apenas exibe."""
         config_result = FlextCliTables._build_config(config, **config_kwargs)
-        if config_result.is_failure:
+        if config_result.failure:
             FlextCliFormatters.print(
                 f"[table error] {config_result.error}",
-                style=c.Cli.Styles.BOLD_RED,
+                style=c.Cli.MessageStyles.BOLD_RED,
             )
             return
         config_final: m.Cli.TableConfig = config_result.value
         result = FlextCliTables._create_table(data, config_final)
-        if result.is_success:
+        if result.success:
             if config_final.title:
-                FlextCliFormatters.print(config_final.title, style="bold")
+                FlextCliFormatters.print(
+                    config_final.title, style=c.Cli.MessageStyles.BOLD
+                )
             table_output: str = result.value
             FlextCliFormatters.print(table_output)
         else:
             FlextCliFormatters.print(
-                f"[table error] {result.error}", style=c.Cli.Styles.BOLD_RED
+                f"[table error] {result.error}", style=c.Cli.MessageStyles.BOLD_RED
             )

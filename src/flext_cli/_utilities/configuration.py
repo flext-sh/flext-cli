@@ -30,9 +30,9 @@ class FlextCliUtilitiesConfiguration:
         return names or None
 
     @staticmethod
-    def get_config_info() -> m.Cli.ConfigSnapshot:
-        """Get canonical CLI configuration information."""
-        path = Path.home() / c.Cli.Paths.FLEXT_DIR_NAME
+    def config_snapshot() -> m.Cli.ConfigSnapshot:
+        """Return the canonical CLI configuration snapshot."""
+        path = Path.home() / c.Cli.PATH_FLEXT_DIR_NAME
         exists = path.exists()
         return m.Cli.ConfigSnapshot(
             config_dir=str(path),
@@ -45,20 +45,20 @@ class FlextCliUtilitiesConfiguration:
     @staticmethod
     def validate_config_structure() -> t.StrSequence:
         """Validate the canonical CLI configuration directory structure."""
-        base = Path.home() / c.Cli.Paths.FLEXT_DIR_NAME
-        ok = c.Cli.Symbols.SUCCESS_MARK
-        fail = c.Cli.Symbols.FAILURE_MARK
+        base = Path.home() / c.Cli.PATH_FLEXT_DIR_NAME
+        ok = c.Cli.SYMBOL_SUCCESS_MARK
+        fail = c.Cli.SYMBOL_FAILURE_MARK
         lines = [
             f"{ok} Configuration directory exists"
             if base.exists()
             else f"{fail} Configuration directory missing",
         ]
-        for subdir in c.Cli.Subdirectories.STANDARD_SUBDIRS:
+        for subdir in c.Cli.STANDARD_SUBDIRS:
             path = base / subdir
             lines.append(
-                c.Cli.CmdMessages.SUBDIR_EXISTS.format(symbol=ok, subdir=subdir)
+                c.Cli.MSG_SUBDIR_EXISTS.format(symbol=ok, subdir=subdir)
                 if path.exists()
-                else c.Cli.CmdMessages.SUBDIR_MISSING.format(
+                else c.Cli.MSG_SUBDIR_MISSING.format(
                     symbol=fail,
                     subdir=subdir,
                 ),

@@ -7,7 +7,7 @@ from typing import ClassVar
 
 from pydantic import BaseModel, TypeAdapter, ValidationError
 
-from flext_cli import FlextCliUtilitiesJson, r, t
+from flext_cli import FlextCliUtilitiesJson, c, r, t
 from flext_core import FlextLogger
 
 
@@ -65,9 +65,9 @@ class FlextCliUtilitiesConversion:
         default: t.Cli.JsonValue | None,
     ) -> t.Cli.TypedExtractValue:
         """Return a canonical default for one type kind."""
-        if type_kind == "str":
+        if type_kind == c.Cli.TypeKind.STR:
             return default if isinstance(default, str) else None
-        if type_kind == "bool":
+        if type_kind == c.Cli.TypeKind.BOOL:
             return default if isinstance(default, bool) else False
         if isinstance(default, Mapping):
             return {

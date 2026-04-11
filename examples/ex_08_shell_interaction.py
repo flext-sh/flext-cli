@@ -46,34 +46,34 @@ def handle_status_command() -> r[t.ContainerMapping]:
         "user": os.getenv("USER", "unknown"),
         "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
     }
-    cli.print(f"✅ Status: {status['status']}", style="green")
-    cli.print(f"   User: {status['user']}", style="cyan")
+    cli.print(f"✅ Status: {status['status']}", style=c.Cli.MessageStyles.GREEN)
+    cli.print(f"   User: {status['user']}", style=c.Cli.MessageStyles.CYAN)
     return r[t.ContainerMapping].ok(dict(status))
 
 
 def handle_list_command(filter_text: str = "") -> r[t.StrSequence]:
     """List command with filtering in YOUR CLI."""
-    items = list(c.Examples.Defaults.DEFAULT_SHELL_ITEMS)
+    items = list(c.EXAMPLE_DEFAULT_SHELL_ITEMS)
     if filter_text:
         filtered = [item for item in items if filter_text in item]
         cli.print(
             f"📋 Found {len(filtered)} items matching '{filter_text}'",
-            style="cyan",
+            style=c.Cli.MessageStyles.CYAN,
         )
         return r[t.StrSequence].ok(filtered)
-    cli.print(f"📋 Total items: {len(items)}", style="cyan")
+    cli.print(f"📋 Total items: {len(items)}", style=c.Cli.MessageStyles.CYAN)
     return r[t.StrSequence].ok(items)
 
 
 def handle_config_command(key: str = "", value: str = "") -> r[str]:
     """Config management in YOUR interactive CLI."""
     if key and value:
-        cli.print(f"✅ Set {key}={value}", style="green")
+        cli.print(f"✅ Set {key}={value}", style=c.Cli.MessageStyles.GREEN)
         return r[str].ok(f"Set {key}={value}")
     if key:
-        cli.print(f"📖 Reading {key}...", style="cyan")
+        cli.print(f"📖 Reading {key}...", style=c.Cli.MessageStyles.CYAN)
         return r[str].ok("value")
-    cli.print("⚠️  Usage: config <key> [value]", style="yellow")
+    cli.print("⚠️  Usage: config <key> [value]", style=c.Cli.MessageStyles.YELLOW)
     return r[str].fail("Missing key")
 
 
@@ -105,8 +105,8 @@ class InteractiveShell:
         try:
             if callable(handler):
                 result = handler(*args) if args else handler()
-                if hasattr(result, "is_failure") and hasattr(result, "value"):
-                    if result.is_failure:
+                if hasattr(result, "failure") and hasattr(result, "value"):
+                    if result.failure:
                         return r[str].fail(result.error or "Unknown command error")
                     payload = result.value
                 else:
@@ -118,23 +118,23 @@ class InteractiveShell:
 
     def exit_shell(self) -> r[bool]:
         """Exit interactive shell."""
-        cli.print("👋 Goodbye!", style="cyan")
+        cli.print("👋 Goodbye!", style=c.Cli.MessageStyles.CYAN)
         self.running = False
         return r[bool].ok(value=True)
 
     def show_help(self) -> r[bool]:
         """Show available commands."""
-        cli.print("\n📚 Available Commands:", style="bold cyan")
+        cli.print("\n📚 Available Commands:", style=c.Cli.MessageStyles.BOLD_CYAN)
         for cmd in self.commands:
-            cli.print(f"   • {cmd}", style="white")
+            cli.print(f"   • {cmd}", style=c.Cli.MessageStyles.WHITE)
         return r[bool].ok(value=True)
 
 
 def handle_multiline_input(lines: t.StrSequence) -> str:
     """Process multi-line input in YOUR interactive CLI."""
     combined = "\n".join(lines)
-    cli.print(f"📝 Processing {len(lines)} lines...", style="cyan")
-    cli.print(f"   Total chars: {len(combined)}", style="white")
+    cli.print(f"📝 Processing {len(lines)} lines...", style=c.Cli.MessageStyles.CYAN)
+    cli.print(f"   Total chars: {len(combined)}", style=c.Cli.MessageStyles.WHITE)
     return combined
 
 
@@ -156,51 +156,72 @@ class CommandHistory:
     def display_history(self) -> None:
         """Display command history."""
         if not self.history:
-            cli.print("📜 No command history", style="yellow")
+            cli.print("📜 No command history", style=c.Cli.MessageStyles.YELLOW)
             return
-        cli.print("\n📜 Recent Commands (last 10):", style="bold cyan")
-        for i, cmd in enumerate(self.get_recent(), 1):
-            cli.print(f"   {i}. {cmd}", style="white")
+        cli.print(
+            "\n📜 Recent Commands (last 10):", style=c.Cli.MessageStyles.BOLD_CYAN
+        )
+        for i, cmd in enumerate(self.recent(), 1):
+            cli.print(f"   {i}. {cmd}", style=c.Cli.MessageStyles.WHITE)
 
-    def get_recent(self, count: int = 10) -> t.StrSequence:
+    def recent(self, count: int = 10) -> t.StrSequence:
         """Get recent commands."""
         return self.history[-count:]
 
 
 def main() -> None:
     """Examples of shell interaction in YOUR code."""
-    cli.print("=" * 70, style="bold blue")
-    cli.print("  Interactive Shell Library Usage", style="bold white")
-    cli.print("=" * 70, style="bold blue")
-    cli.print("\n1. Command Handlers (status, list, config):", style="bold cyan")
+    cli.print("=" * 70, style=c.Cli.MessageStyles.BOLD_BLUE)
+    cli.print("  Interactive Shell Library Usage", style=c.Cli.MessageStyles.BOLD_WHITE)
+    cli.print("=" * 70, style=c.Cli.MessageStyles.BOLD_BLUE)
+    cli.print(
+        "\n1. Command Handlers (status, list, config):",
+        style=c.Cli.MessageStyles.BOLD_CYAN,
+    )
     handle_status_command()
     handle_list_command(filter_text="test")
     handle_config_command(key="theme", value="dark")
-    cli.print("\n2. Interactive Shell (command dispatcher):", style="bold cyan")
+    cli.print(
+        "\n2. Interactive Shell (command dispatcher):",
+        style=c.Cli.MessageStyles.BOLD_CYAN,
+    )
     shell = InteractiveShell()
     shell.show_help()
-    cli.print("\n   Simulating: status", style="yellow")
+    cli.print("\n   Simulating: status", style=c.Cli.MessageStyles.YELLOW)
     shell.execute_command("status")
-    cli.print("\n   Simulating: list test", style="yellow")
+    cli.print("\n   Simulating: list test", style=c.Cli.MessageStyles.YELLOW)
     shell.execute_command("list test")
-    cli.print("\n3. Multi-Line Input (combined processing):", style="bold cyan")
+    cli.print(
+        "\n3. Multi-Line Input (combined processing):",
+        style=c.Cli.MessageStyles.BOLD_CYAN,
+    )
     lines = ["SELECT * FROM users", "WHERE active = true", "ORDER BY created_at DESC"]
     combined = handle_multiline_input(lines)
-    cli.print(f"   First 50 chars: {combined[:50]}...", style="white")
-    cli.print("\n4. Command History (tracking):", style="bold cyan")
+    cli.print(f"   First 50 chars: {combined[:50]}...", style=c.Cli.MessageStyles.WHITE)
+    cli.print("\n4. Command History (tracking):", style=c.Cli.MessageStyles.BOLD_CYAN)
     history = CommandHistory()
     history.add("status")
     history.add("list test")
     history.add("config theme dark")
     history.display_history()
-    cli.print("\n" + "=" * 70, style="bold blue")
-    cli.print("  ✅ Shell Interaction Examples Complete", style="bold green")
-    cli.print("=" * 70, style="bold blue")
-    cli.print("\n💡 Integration Tips:", style="bold cyan")
-    cli.print("  • Create command handlers with r returns", style="white")
-    cli.print("  • Build command dispatcher to route user input", style="white")
-    cli.print("  • Add command history for better UX", style="white")
-    cli.print("  • Support multi-line input for complex commands", style="white")
+    cli.print("\n" + "=" * 70, style=c.Cli.MessageStyles.BOLD_BLUE)
+    cli.print(
+        "  ✅ Shell Interaction Examples Complete", style=c.Cli.MessageStyles.BOLD_GREEN
+    )
+    cli.print("=" * 70, style=c.Cli.MessageStyles.BOLD_BLUE)
+    cli.print("\n💡 Integration Tips:", style=c.Cli.MessageStyles.BOLD_CYAN)
+    cli.print(
+        "  • Create command handlers with r returns", style=c.Cli.MessageStyles.WHITE
+    )
+    cli.print(
+        "  • Build command dispatcher to route user input",
+        style=c.Cli.MessageStyles.WHITE,
+    )
+    cli.print("  • Add command history for better UX", style=c.Cli.MessageStyles.WHITE)
+    cli.print(
+        "  • Support multi-line input for complex commands",
+        style=c.Cli.MessageStyles.WHITE,
+    )
 
 
 if __name__ == "__main__":

@@ -6,30 +6,87 @@ from collections.abc import Mapping
 from types import MappingProxyType
 from typing import ClassVar, Final
 
-from flext_core import t
+from flext_cli._constants.enums import FlextCliConstantsEnums
+from flext_core import c, t
 
 
 class FlextCliConstantsSettings:
     """CLI defaults, messages, registries, and output configuration."""
 
-    class ValidationLists:
-        """Validation lists."""
+    OUTPUT_FORMATS: ClassVar[tuple[str, ...]] = tuple(
+        item.value for item in FlextCliConstantsEnums.OutputFormats
+    )
+    OUTPUT_FORMATS_SET: ClassVar[frozenset[str]] = frozenset(OUTPUT_FORMATS)
+    LOG_LEVELS: ClassVar[tuple[str, ...]] = tuple(item.value for item in c.LogLevel)
+    LOG_LEVELS_SET: ClassVar[frozenset[str]] = frozenset(LOG_LEVELS)
+    MESSAGE_TYPES: ClassVar[tuple[str, ...]] = tuple(
+        item.value for item in FlextCliConstantsEnums.MessageTypes
+    )
+    MESSAGE_TYPES_SET: ClassVar[frozenset[str]] = frozenset(MESSAGE_TYPES)
 
-        OUTPUT_FORMATS: ClassVar[t.StrSequence] = (
-            "json",
-            "yaml",
-            "csv",
-            "table",
-            "plain",
-        )
+    OUTPUT_FORMAT_JSON: Final[FlextCliConstantsEnums.OutputFormats] = (
+        FlextCliConstantsEnums.OutputFormats.JSON
+    )
+    OUTPUT_FORMAT_YAML: Final[FlextCliConstantsEnums.OutputFormats] = (
+        FlextCliConstantsEnums.OutputFormats.YAML
+    )
+    OUTPUT_FORMAT_CSV: Final[FlextCliConstantsEnums.OutputFormats] = (
+        FlextCliConstantsEnums.OutputFormats.CSV
+    )
+    OUTPUT_FORMAT_TABLE: Final[FlextCliConstantsEnums.OutputFormats] = (
+        FlextCliConstantsEnums.OutputFormats.TABLE
+    )
+    OUTPUT_FORMAT_PLAIN: Final[FlextCliConstantsEnums.OutputFormats] = (
+        FlextCliConstantsEnums.OutputFormats.PLAIN
+    )
 
-    class CliDefaults:
-        """Default CLI constants."""
+    MESSAGE_TYPE_INFO: Final[FlextCliConstantsEnums.MessageTypes] = (
+        FlextCliConstantsEnums.MessageTypes.INFO
+    )
+    MESSAGE_TYPE_ERROR: Final[FlextCliConstantsEnums.MessageTypes] = (
+        FlextCliConstantsEnums.MessageTypes.ERROR
+    )
+    MESSAGE_TYPE_WARNING: Final[FlextCliConstantsEnums.MessageTypes] = (
+        FlextCliConstantsEnums.MessageTypes.WARNING
+    )
+    MESSAGE_TYPE_SUCCESS: Final[FlextCliConstantsEnums.MessageTypes] = (
+        FlextCliConstantsEnums.MessageTypes.SUCCESS
+    )
+    MESSAGE_TYPE_DEBUG: Final[FlextCliConstantsEnums.MessageTypes] = (
+        FlextCliConstantsEnums.MessageTypes.DEBUG
+    )
 
-        DEFAULT_APP_NAME: Final[str] = "flext-cli"
-        DEFAULT_NO_COLOR: Final[bool] = False
-        DEFAULT_VERBOSE: Final[bool] = False
-        DEFAULT_QUIET: Final[bool] = False
+    LOG_VERBOSITY_COMPACT: Final[FlextCliConstantsEnums.LogVerbosity] = (
+        FlextCliConstantsEnums.LogVerbosity.COMPACT
+    )
+    LOG_VERBOSITY_DETAILED: Final[FlextCliConstantsEnums.LogVerbosity] = (
+        FlextCliConstantsEnums.LogVerbosity.DETAILED
+    )
+    LOG_VERBOSITY_FULL: Final[FlextCliConstantsEnums.LogVerbosity] = (
+        FlextCliConstantsEnums.LogVerbosity.FULL
+    )
+
+    LOG_LEVEL_DEBUG: Final[c.LogLevel] = c.LogLevel.DEBUG
+    LOG_LEVEL_INFO: Final[c.LogLevel] = c.LogLevel.INFO
+    LOG_LEVEL_WARNING: Final[c.LogLevel] = c.LogLevel.WARNING
+    LOG_LEVEL_ERROR: Final[c.LogLevel] = c.LogLevel.ERROR
+    LOG_LEVEL_CRITICAL: Final[c.LogLevel] = c.LogLevel.CRITICAL
+
+    COMMAND_STATUS_COMPLETED: Final[FlextCliConstantsEnums.CommandStatus] = (
+        FlextCliConstantsEnums.CommandStatus.COMPLETED
+    )
+    SERVICE_STATUS_OPERATIONAL: Final[FlextCliConstantsEnums.ServiceStatus] = (
+        FlextCliConstantsEnums.ServiceStatus.OPERATIONAL
+    )
+
+    VALIDATION_OUTPUT_FORMATS: ClassVar[t.StrSequence] = tuple(
+        item.value for item in FlextCliConstantsEnums.OutputFormats
+    )
+
+    CLI_DEFAULT_APP_NAME: Final[str] = "flext-cli"
+    CLI_DEFAULT_NO_COLOR: Final[bool] = False
+    CLI_DEFAULT_VERBOSE: Final[bool] = False
+    CLI_DEFAULT_QUIET: Final[bool] = False
 
     FLEXT_CLI: Final[str] = "flext-cli"
     CLI_VERSION: Final[str] = "2.0.0"
@@ -38,239 +95,81 @@ class FlextCliConstantsSettings:
         tuple[type[str], type[int], type[float], type[bool]]
     ] = (str, int, float, bool)
 
-    class CmdMessages:
-        """Command messages."""
+    CLI_PARAM_SHORT_FLAG_VERBOSE: Final[str] = "v"
+    CLI_PARAM_SHORT_FLAG_QUIET: Final[str] = "q"
+    CLI_PARAM_SHORT_FLAG_DEBUG: Final[str] = "d"
+    CLI_PARAM_SHORT_FLAG_TRACE: Final[str] = "t"
+    CLI_PARAM_SHORT_FLAG_LOG_LEVEL: Final[str] = "L"
+    CLI_PARAM_SHORT_FLAG_OUTPUT_FORMAT: Final[str] = "o"
+    CLI_PARAM_SHORT_FLAG_CONFIG_FILE: Final[str] = "c"
+    CLI_PARAM_PRIORITY_VERBOSE: Final[int] = 1
+    CLI_PARAM_PRIORITY_QUIET: Final[int] = 2
+    CLI_PARAM_PRIORITY_DEBUG: Final[int] = 3
+    CLI_PARAM_PRIORITY_TRACE: Final[int] = 4
+    CLI_PARAM_PRIORITY_LOG_LEVEL: Final[int] = 5
+    CLI_PARAM_PRIORITY_LOG_FORMAT: Final[int] = 6
+    CLI_PARAM_PRIORITY_OUTPUT_FORMAT: Final[int] = 7
+    CLI_PARAM_PRIORITY_NO_COLOR: Final[int] = 8
+    CLI_PARAM_PRIORITY_CONFIG_FILE: Final[int] = 9
+    CLI_PARAM_KEY_SHORT: Final[str] = "short"
+    CLI_PARAM_KEY_PRIORITY: Final[str] = "priority"
+    CLI_PARAM_KEY_CHOICES: Final[str] = "choices"
+    CLI_PARAM_KEY_CASE_SENSITIVE: Final[str] = "case_sensitive"
+    CLI_PARAM_KEY_FIELD_NAME_OVERRIDE: Final[str] = "field_name_override"
+    CLI_PARAM_LOG_FORMAT_OVERRIDE: Final[str] = "log-format"
+    CLI_PARAM_CASE_INSENSITIVE: Final[bool] = False
+    CLI_VALID_LOG_FORMATS: ClassVar[t.StrSequence] = tuple(
+        item.value for item in FlextCliConstantsEnums.LogVerbosity
+    )
 
-        SUBDIR_EXISTS: Final[str] = "{symbol} {subdir} directory exists"
-        SUBDIR_MISSING: Final[str] = "{symbol} {subdir} directory missing"
+    COMMANDS_DEFAULT_NAME: Final[str] = "flext"
+    COMMANDS_DEFAULT_DESCRIPTION: Final[str] = "FLEXT CLI"
 
-    class LogMessages:
-        """Log messages."""
-
-        CONFIG_DISPLAYED: Final[str] = "Configuration displayed"
-        CONFIG_VALIDATION_RESULTS: Final[str] = "Config validation results: {results}"
-
-    class ErrorMessages:
-        """Error messages."""
-
-        INVALID_CREDENTIALS: Final[str] = (
-            "Invalid credentials: missing token or username/password"
-        )
-        CONFIG_VALIDATION_FAILED: Final[str] = "Config validation failed: {error}"
-        JSON_WRITE_FAILED: Final[str] = "JSON write failed: {error}"
-        AUTH_SAVE_FAILED: Final[str] = "Failed to save token: {error}"
-        AUTH_LOAD_FAILED: Final[str] = "Failed to load token: {error}"
-        AUTH_FILE_NOT_FOUND: Final[str] = "Token file does not exist"
-        AUTH_FILE_EMPTY: Final[str] = "Token file is empty"
-        INVALID_OUTPUT_FORMAT: Final[str] = "Invalid output format: {format}"
-        CONFIG_INFO_FAILED: Final[str] = "Config info failed: {error}"
-        FAILED_CLEAR_CREDENTIALS: Final[str] = "Failed to clear credentials: {error}"
-
-    class CliParamsRegistry:
-        """CLI parameters registry."""
-
-        SHORT_FLAG_VERBOSE: Final[str] = "v"
-        SHORT_FLAG_QUIET: Final[str] = "q"
-        SHORT_FLAG_DEBUG: Final[str] = "d"
-        SHORT_FLAG_TRACE: Final[str] = "t"
-        SHORT_FLAG_LOG_LEVEL: Final[str] = "L"
-        SHORT_FLAG_OUTPUT_FORMAT: Final[str] = "o"
-        SHORT_FLAG_CONFIG_FILE: Final[str] = "c"
-        PRIORITY_VERBOSE: Final[int] = 1
-        PRIORITY_QUIET: Final[int] = 2
-        PRIORITY_DEBUG: Final[int] = 3
-        PRIORITY_TRACE: Final[int] = 4
-        PRIORITY_LOG_LEVEL: Final[int] = 5
-        PRIORITY_LOG_FORMAT: Final[int] = 6
-        PRIORITY_OUTPUT_FORMAT: Final[int] = 7
-        PRIORITY_NO_COLOR: Final[int] = 8
-        PRIORITY_CONFIG_FILE: Final[int] = 9
-        KEY_SHORT: Final[str] = "short"
-        KEY_PRIORITY: Final[str] = "priority"
-        KEY_CHOICES: Final[str] = "choices"
-        KEY_CASE_SENSITIVE: Final[str] = "case_sensitive"
-        KEY_FIELD_NAME_OVERRIDE: Final[str] = "field_name_override"
-        LOG_FORMAT_OVERRIDE: Final[str] = "log-format"
-        CASE_INSENSITIVE: Final[bool] = False
-
-    class CliParamsDefaults:
-        """CLI parameters defaults."""
-
-        VALID_LOG_FORMATS: ClassVar[t.StrSequence] = (
-            "compact",
-            "detailed",
-            "full",
-        )
-
-    class CmdErrorMessages:
-        """Command error messages."""
-
-        SHOW_CONFIG_FAILED: Final[str] = "Show config failed: {error}"
-
-    class MixinsValidationMessages:
-        """Mixin validation messages."""
-
-        FIELD_CANNOT_BE_EMPTY: Final[str] = "{field_name} cannot be empty"
-        INVALID_ENUM_VALUE: Final[str] = (
-            "Invalid {field_name}. Valid values: {valid_values}"
-        )
-        COMMAND_STATE_INVALID: Final[str] = (
-            "Cannot {operation}: command is in '{current_status}' state, requires '{required_status}'"
-        )
-        SESSION_STATUS_INVALID: Final[str] = (
-            "Invalid session status '{current_status}'. Valid states: {valid_states}"
-        )
-        CONFIG_MISSING_FIELDS: Final[str] = (
-            "Missing required configuration fields: {missing_fields}"
-        )
-
-    class Prompts:
-        """Prompt display constants."""
-
-        DEFAULT_TIMEOUT: Final[int] = 30
-        MIN_PASSWORD_LENGTH: Final[int] = 1
-        CONFIRM_YES: Final[str] = " [Y/n]: "
-        CONFIRM_NO: Final[str] = " [y/N]: "
-        ERROR_FMT: Final[str] = "[bold red]Error:[/bold red] {message}"
-        SUCCESS_FMT: Final[str] = "[bold green]Success:[/bold green] {message}"
-        WARNING_FMT: Final[str] = "[bold yellow]Warning:[/bold yellow] {message}"
-        PROMPT_DEFAULT_FMT: Final[str] = " [{default}]"
-        PROMPT_SEP: Final[str] = ": "
-        PROMPT_LOG_FMT: Final[str] = "User input for '{message}': {input}"
-        PROMPT_SPACE: Final[str] = " "
-        YES_VALUES: ClassVar[frozenset[str]] = frozenset({"y", "yes"})
-        NO_VALUES: ClassVar[frozenset[str]] = frozenset({"n", "no"})
-
-    class CommandsDefaults:
-        """Commands service defaults."""
-
-        DEFAULT_NAME: Final[str] = "flext"
-        DEFAULT_DESCRIPTION: Final[str] = "FLEXT CLI"
-
-    class CommandsErrorMessages:
-        """Commands service error messages."""
-
-        INVALID_COMMAND_NAME: Final[str] = "Invalid command name"
-        COMMAND_NOT_FOUND: Final[str] = "Command not found: {name}"
-        HANDLER_NOT_CALLABLE: Final[str] = "Handler not callable for: {name}"
-        COMMAND_EXECUTION_FAILED: Final[str] = "Command execution failed: {error}"
-        COMMAND_NAME_EMPTY: Final[str] = "Command name must be non-empty string"
-
-    class FormattersErrorMessages:
-        """Formatter error messages."""
-
-        TREE_CREATION_FAILED: Final[str] = "Tree creation failed: {error}"
-
-    class TablesErrorMessages:
-        """Table error messages."""
-
-        TABLE_DATA_EMPTY: Final[str] = "Table data cannot be empty"
-        INVALID_TABLE_FORMAT: Final[str] = (
-            "Invalid table format: {table_format}. Available: {available_formats}"
-        )
-
-    class OutputDefaults:
-        """Output defaults."""
-
-        EMPTY_STYLE: Final[str] = ""
-        DEFAULT_MESSAGE_TYPE: Final[str] = "info"
-        DEFAULT_FORMAT_TYPE: Final[str] = "table"
-
-    class Lists:
-        """Lists constants."""
-
-        LOG_LEVELS_LIST: ClassVar[t.StrSequence] = (
-            "DEBUG",
-            "INFO",
-            "WARNING",
-            "ERROR",
-            "CRITICAL",
-        )
-
-    TABLE_FORMATS: ClassVar[t.StrMapping] = MappingProxyType({
-        "plain": "Minimal formatting, no borders",
-        "simple": "Simple ASCII borders",
-        "grid": "Grid-style ASCII table",
-        "fancy_grid": "Fancy grid with double lines",
-        "pipe": "Markdown pipe table",
-        "orgtbl": "Emacs org-mode table",
-        "jira": "Jira markup table",
-        "presto": "Presto SQL output",
-        "pretty": "Pretty ASCII table",
-        "psql": "PostgreSQL psql output",
-        "rst": "reStructuredText grid",
-        "mediawiki": "MediaWiki markup",
-        "moinmoin": "MoinMoin markup",
-        "youtrack": "YouTrack markup",
-        "html": "HTML table",
-        "unsafehtml": "Unsafe HTML table",
-        "latex": "LaTeX table",
-        "latex_raw": "Raw LaTeX table",
-        "latex_booktabs": "LaTeX booktabs table",
-        "latex_longtable": "LaTeX longtable",
-        "textile": "Textile markup",
-        "tsv": "Tab-separated values",
-    })
-
-    MESSAGE_STYLE_MAP: ClassVar[Mapping[str, str]] = MappingProxyType({
-        "info": "blue",
-        "success": "bold green",
-        "error": "bold red",
-        "warning": "bold yellow",
-        "debug": "dim",
-    })
-
-    MESSAGE_EMOJI_MAP: ClassVar[Mapping[str, str]] = MappingProxyType({
-        "info": "i",
-        "success": "\u2705",
-        "error": "\u274c",
-        "warning": "\u26a0\ufe0f",
-        "debug": "D",
-    })
+    LOG_LEVELS_LIST: ClassVar[t.StrSequence] = tuple(item.value for item in c.LogLevel)
 
     CLI_PARAM_REGISTRY: ClassVar[
         Mapping[str, Mapping[str, t.Scalar | t.StrSequence]]
     ] = MappingProxyType({
         "verbose": {
-            CliParamsRegistry.KEY_SHORT: CliParamsRegistry.SHORT_FLAG_VERBOSE,
-            CliParamsRegistry.KEY_PRIORITY: CliParamsRegistry.PRIORITY_VERBOSE,
+            CLI_PARAM_KEY_SHORT: CLI_PARAM_SHORT_FLAG_VERBOSE,
+            CLI_PARAM_KEY_PRIORITY: CLI_PARAM_PRIORITY_VERBOSE,
         },
         "quiet": {
-            CliParamsRegistry.KEY_SHORT: CliParamsRegistry.SHORT_FLAG_QUIET,
-            CliParamsRegistry.KEY_PRIORITY: CliParamsRegistry.PRIORITY_QUIET,
+            CLI_PARAM_KEY_SHORT: CLI_PARAM_SHORT_FLAG_QUIET,
+            CLI_PARAM_KEY_PRIORITY: CLI_PARAM_PRIORITY_QUIET,
         },
         "debug": {
-            CliParamsRegistry.KEY_SHORT: CliParamsRegistry.SHORT_FLAG_DEBUG,
-            CliParamsRegistry.KEY_PRIORITY: CliParamsRegistry.PRIORITY_DEBUG,
+            CLI_PARAM_KEY_SHORT: CLI_PARAM_SHORT_FLAG_DEBUG,
+            CLI_PARAM_KEY_PRIORITY: CLI_PARAM_PRIORITY_DEBUG,
         },
         "trace": {
-            CliParamsRegistry.KEY_SHORT: CliParamsRegistry.SHORT_FLAG_TRACE,
-            CliParamsRegistry.KEY_PRIORITY: CliParamsRegistry.PRIORITY_TRACE,
+            CLI_PARAM_KEY_SHORT: CLI_PARAM_SHORT_FLAG_TRACE,
+            CLI_PARAM_KEY_PRIORITY: CLI_PARAM_PRIORITY_TRACE,
         },
         "cli_log_level": {
-            CliParamsRegistry.KEY_SHORT: CliParamsRegistry.SHORT_FLAG_LOG_LEVEL,
-            CliParamsRegistry.KEY_PRIORITY: CliParamsRegistry.PRIORITY_LOG_LEVEL,
-            CliParamsRegistry.KEY_CHOICES: Lists.LOG_LEVELS_LIST,
-            CliParamsRegistry.KEY_CASE_SENSITIVE: CliParamsRegistry.CASE_INSENSITIVE,
-            CliParamsRegistry.KEY_FIELD_NAME_OVERRIDE: "log_level",
+            CLI_PARAM_KEY_SHORT: CLI_PARAM_SHORT_FLAG_LOG_LEVEL,
+            CLI_PARAM_KEY_PRIORITY: CLI_PARAM_PRIORITY_LOG_LEVEL,
+            CLI_PARAM_KEY_CHOICES: LOG_LEVELS_LIST,
+            CLI_PARAM_KEY_CASE_SENSITIVE: CLI_PARAM_CASE_INSENSITIVE,
+            CLI_PARAM_KEY_FIELD_NAME_OVERRIDE: "log_level",
         },
         "log_verbosity": {
-            CliParamsRegistry.KEY_PRIORITY: CliParamsRegistry.PRIORITY_LOG_FORMAT,
-            CliParamsRegistry.KEY_CHOICES: Lists.LOG_LEVELS_LIST,
-            CliParamsRegistry.KEY_CASE_SENSITIVE: CliParamsRegistry.CASE_INSENSITIVE,
-            CliParamsRegistry.KEY_FIELD_NAME_OVERRIDE: CliParamsRegistry.LOG_FORMAT_OVERRIDE,
+            CLI_PARAM_KEY_PRIORITY: CLI_PARAM_PRIORITY_LOG_FORMAT,
+            CLI_PARAM_KEY_CHOICES: LOG_LEVELS_LIST,
+            CLI_PARAM_KEY_CASE_SENSITIVE: CLI_PARAM_CASE_INSENSITIVE,
+            CLI_PARAM_KEY_FIELD_NAME_OVERRIDE: CLI_PARAM_LOG_FORMAT_OVERRIDE,
         },
         "output_format": {
-            CliParamsRegistry.KEY_SHORT: CliParamsRegistry.SHORT_FLAG_OUTPUT_FORMAT,
-            CliParamsRegistry.KEY_PRIORITY: CliParamsRegistry.PRIORITY_OUTPUT_FORMAT,
-            CliParamsRegistry.KEY_CHOICES: list(ValidationLists.OUTPUT_FORMATS),
-            CliParamsRegistry.KEY_CASE_SENSITIVE: CliParamsRegistry.CASE_INSENSITIVE,
+            CLI_PARAM_KEY_SHORT: CLI_PARAM_SHORT_FLAG_OUTPUT_FORMAT,
+            CLI_PARAM_KEY_PRIORITY: CLI_PARAM_PRIORITY_OUTPUT_FORMAT,
+            CLI_PARAM_KEY_CHOICES: list(VALIDATION_OUTPUT_FORMATS),
+            CLI_PARAM_KEY_CASE_SENSITIVE: CLI_PARAM_CASE_INSENSITIVE,
         },
         "no_color": {
-            CliParamsRegistry.KEY_PRIORITY: CliParamsRegistry.PRIORITY_NO_COLOR,
+            CLI_PARAM_KEY_PRIORITY: CLI_PARAM_PRIORITY_NO_COLOR,
         },
         "config_file": {
-            CliParamsRegistry.KEY_SHORT: CliParamsRegistry.SHORT_FLAG_CONFIG_FILE,
-            CliParamsRegistry.KEY_PRIORITY: CliParamsRegistry.PRIORITY_CONFIG_FILE,
+            CLI_PARAM_KEY_SHORT: CLI_PARAM_SHORT_FLAG_CONFIG_FILE,
+            CLI_PARAM_KEY_PRIORITY: CLI_PARAM_PRIORITY_CONFIG_FILE,
         },
     })

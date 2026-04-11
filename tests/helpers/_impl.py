@@ -10,6 +10,8 @@ import logging
 import re
 from collections.abc import MutableSequence
 
+from tests import c
+
 from flext_core import r
 
 
@@ -23,8 +25,8 @@ class FlextCliTestHelpers:
         def validate_version_string(version: str) -> r[str]:
             """Validate version string against semver pattern."""
             if not version:
-                return r[str].fail("Version must be non-empty string")
-            pattern: str = "^\\d+\\.\\d+\\.\\d+(?:-[\\w\\.]+)?(?:\\+[\\w\\.]+)?$"
+                return r[str].fail(c.Cli.Tests.VersionErrors.EMPTY_STRING)
+            pattern: str = c.Cli.Tests.VersionExamples.SEMVER_PATTERN
             if not re.match(pattern, version):
                 return r[str].fail(f"Version '{version}' does not match semver pattern")
             return r[str].ok(version)
@@ -36,7 +38,7 @@ class FlextCliTestHelpers:
             """Validate version info tuple structure."""
             if len(version_info) < 3:
                 return r[tuple[int | str, ...]].fail(
-                    "Version info must have at least 3 parts",
+                    c.Cli.Tests.VersionErrors.INFO_TOO_SHORT,
                 )
             for i, part in enumerate(version_info):
                 if isinstance(part, int) and part < 0:
@@ -60,14 +62,14 @@ class FlextCliTestHelpers:
                     version_string,
                 )
             )
-            if string_result.is_failure:
+            if string_result.failure:
                 return r[tuple[str, tuple[int | str, ...]]].fail(
                     f"Invalid version string: {string_result.error}",
                 )
             info_result = FlextCliTestHelpers.VersionTestFactory.validate_version_info(
                 version_info,
             )
-            if info_result.is_failure:
+            if info_result.failure:
                 return r[tuple[str, tuple[int | str, ...]]].fail(
                     f"Invalid version info: {info_result.error}",
                 )

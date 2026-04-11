@@ -21,7 +21,7 @@ class FlextCliUtilitiesPipeline:
         stages: Sequence[m.Cli.PipelineStageSpec],
         context: m.Cli.PipelineStageContext,
         *,
-        fail_fast: bool = c.Cli.Pipeline.DEFAULT_FAIL_FAST,
+        fail_fast: bool = c.Cli.PIPELINE_DEFAULT_FAIL_FAST,
         logger: FlextLogger | None = None,
     ) -> r[m.Cli.PipelineResult]:
         """Execute pipeline stages in topological order.
@@ -65,7 +65,7 @@ class FlextCliUtilitiesPipeline:
                 results.append(
                     m.Cli.PipelineStageResult(
                         stage_id=stage_id,
-                        status=c.Cli.Pipeline.STATUS_SKIPPED,
+                        status=c.Cli.PIPELINE_STATUS_SKIPPED,
                         error="skipped due to prior failure (fail_fast)",
                     ),
                 )
@@ -78,7 +78,7 @@ class FlextCliUtilitiesPipeline:
             )
             results.append(stage_result)
 
-            if stage_result.status == c.Cli.Pipeline.STATUS_FAILED:
+            if stage_result.status == c.Cli.PIPELINE_STATUS_FAILED:
                 failed = True
 
         total_ms = (time.monotonic() - pipeline_start) * 1000
@@ -108,10 +108,10 @@ class FlextCliUtilitiesPipeline:
             log.debug("stage_skipped", stage_id=spec.stage_id, reason="skip_if")
             return m.Cli.PipelineStageResult(
                 stage_id=spec.stage_id,
-                status=c.Cli.Pipeline.STATUS_SKIPPED,
+                status=c.Cli.PIPELINE_STATUS_SKIPPED,
             )
 
-        max_attempts = 1 + min(spec.retry, c.Cli.Pipeline.MAX_RETRY)
+        max_attempts = 1 + min(spec.retry, c.Cli.PIPELINE_MAX_RETRY)
         last_error: str | None = None
 
         for attempt in range(1, max_attempts + 1):
@@ -130,7 +130,7 @@ class FlextCliUtilitiesPipeline:
 
             duration_ms = (time.monotonic() - stage_start) * 1000
 
-            if result.is_success:
+            if result.success:
                 stage_result = result.value
                 return m.Cli.PipelineStageResult(
                     stage_id=stage_result.stage_id,
@@ -156,7 +156,7 @@ class FlextCliUtilitiesPipeline:
         )
         return m.Cli.PipelineStageResult(
             stage_id=spec.stage_id,
-            status=c.Cli.Pipeline.STATUS_FAILED,
+            status=c.Cli.PIPELINE_STATUS_FAILED,
             error=last_error,
         )
 

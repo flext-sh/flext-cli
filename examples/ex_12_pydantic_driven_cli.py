@@ -37,7 +37,7 @@ from flext_core import r
 
 def _report_step_success[T](value: T, message: str) -> T:
     """Emit a success message while preserving the pipeline value."""
-    cli.print(message, style="green")
+    cli.print(message, style=c.Cli.MessageStyles.GREEN)
     return value
 
 
@@ -51,11 +51,13 @@ def _finish_database_config(
 
 def demonstrate_auto_cli_generation() -> None:
     """Show auto-generated CLI parameters from Pydantic model."""
-    cli.print("\n🔧 Auto-Generated CLI Parameters:", style="bold cyan")
+    cli.print(
+        "\n🔧 Auto-Generated CLI Parameters:", style=c.Cli.MessageStyles.BOLD_CYAN
+    )
     fields = m.Examples.DeployConfig.model_fields
     cli.print(
         f"✅ Generated {len(fields)} CLI parameters from DeployConfig:",
-        style="green",
+        style=c.Cli.MessageStyles.GREEN,
     )
     for name, field_info in fields.items():
         field_type = field_info.annotation.__name__ if field_info.annotation else "str"
@@ -63,29 +65,29 @@ def demonstrate_auto_cli_generation() -> None:
         default = field_info.default
         cli.print(
             f"   --{name:<20} {description:<50} (type: {field_type}, default: {default})",
-            style="cyan",
+            style=c.Cli.MessageStyles.CYAN,
         )
-    cli.print("\n📝 Example CLI usage:", style="bold cyan")
+    cli.print("\n📝 Example CLI usage:", style=c.Cli.MessageStyles.BOLD_CYAN)
     cli.print(
         "   python app.py deploy --environment production --workers 8 --enable-cache",
-        style="white",
+        style=c.Cli.MessageStyles.WHITE,
     )
 
 
 def execute_deploy_from_cli(config: m.Examples.DeployConfig) -> None:
     """Convert validated Pydantic config to deployment. Accepts DeployConfig only."""
-    cli.print("\n🚀 Deploying with CLI Arguments:", style="bold cyan")
-    cli.print("✅ Valid configuration:", style="green")
+    cli.print("\n🚀 Deploying with CLI Arguments:", style=c.Cli.MessageStyles.BOLD_CYAN)
+    cli.print("✅ Valid configuration:", style=c.Cli.MessageStyles.GREEN)
     cli.show_table(
         config.model_dump(),
         headers=["Parameter", "Value"],
         title="Validated Deploy Config",
     )
     deploy_result = deploy_application(config)
-    if deploy_result.is_success:
+    if deploy_result.success:
         cli.print(
             f"✅ Deployment successful to {config.environment}!",
-            style="bold green",
+            style=c.Cli.MessageStyles.BOLD_GREEN,
         )
 
 
@@ -96,10 +98,13 @@ def deploy_application(config: m.Examples.DeployConfig) -> r[str]:
 
 def show_common_cli_params() -> None:
     """Show auto-generated common CLI parameters."""
-    cli.print("\n⚙️  Auto-Generated Common CLI Parameters:", style="bold cyan")
+    cli.print(
+        "\n⚙️  Auto-Generated Common CLI Parameters:",
+        style=c.Cli.MessageStyles.BOLD_CYAN,
+    )
     cli.print(
         "These are AUTOMATICALLY available in ALL flext-cli commands:\n",
-        style="yellow",
+        style=c.Cli.MessageStyles.YELLOW,
     )
     common_params: t.ContainerMapping = {
         "verbose": "Enable verbose output (-v)",
@@ -113,26 +118,34 @@ def show_common_cli_params() -> None:
         "config_file": "Path to configuration file (-c)",
     }
     for param, description in common_params.items():
-        cli.print(f"   --{param.replace('_', '-'):<20} {description}", style="cyan")
+        cli.print(
+            f"   --{param.replace('_', '-'):<20} {description}",
+            style=c.Cli.MessageStyles.CYAN,
+        )
 
 
 def demonstrate_nested_models() -> None:
     """Show CLI generation from nested Pydantic models."""
-    cli.print("\n🏗️  Nested Model CLI Generation:", style="bold cyan")
+    cli.print("\n🏗️  Nested Model CLI Generation:", style=c.Cli.MessageStyles.BOLD_CYAN)
     db_fields = m.Examples.DatabaseConfig.model_fields
-    cli.print("Database config parameters:", style="green")
+    cli.print("Database config parameters:", style=c.Cli.MessageStyles.GREEN)
     for name, field_info in db_fields.items():
         description = field_info.description or ""
-        cli.print(f"   --db-{name}: {description}", style="cyan")
-    cli.print("\n💡 Tip: Use prefixes for nested models:", style="yellow")
-    cli.print("   --database-host localhost", style="white")
-    cli.print("   --database-port 5432", style="white")
-    cli.print("   --database-name myapp", style="white")
+        cli.print(f"   --db-{name}: {description}", style=c.Cli.MessageStyles.CYAN)
+    cli.print(
+        "\n💡 Tip: Use prefixes for nested models:", style=c.Cli.MessageStyles.YELLOW
+    )
+    cli.print("   --database-host localhost", style=c.Cli.MessageStyles.WHITE)
+    cli.print("   --database-port 5432", style=c.Cli.MessageStyles.WHITE)
+    cli.print("   --database-name myapp", style=c.Cli.MessageStyles.WHITE)
 
 
 def create_database_config_from_cli() -> r[m.Examples.AdvancedDatabaseConfig]:
     """Create validated DatabaseConfig using Railway Pattern with Pydantic."""
-    cli.print("\n🗄️  Database Configuration with Railway Pattern:", style="bold cyan")
+    cli.print(
+        "\n🗄️  Database Configuration with Railway Pattern:",
+        style=c.Cli.MessageStyles.BOLD_CYAN,
+    )
     cli_args: t.ContainerMapping = {
         "host": "db.example.com",
         "port": 5432,
@@ -187,7 +200,7 @@ def validate_required_fields(
     data: t.ContainerMapping,
 ) -> r[t.ContainerMapping]:
     """Validate that all required fields are present."""
-    required = list(c.Examples.Defaults.DATABASE_REQUIRED_FIELDS)
+    required = list(c.EXAMPLE_DATABASE_REQUIRED_FIELDS)
     missing = [field for field in required if field not in data or not data[field]]
     if missing:
         return r[t.ContainerMapping].fail(
@@ -237,11 +250,13 @@ def perform_connection_test(
 
 def main() -> None:
     """Examples of Pydantic-driven CLI in YOUR code."""
-    cli.print("=" * 70, style="bold blue")
-    cli.print("  Pydantic-Driven CLI Library Usage", style="bold white")
-    cli.print("=" * 70, style="bold blue")
+    cli.print("=" * 70, style=c.Cli.MessageStyles.BOLD_BLUE)
+    cli.print(
+        "  Pydantic-Driven CLI Library Usage", style=c.Cli.MessageStyles.BOLD_WHITE
+    )
+    cli.print("=" * 70, style=c.Cli.MessageStyles.BOLD_BLUE)
     demonstrate_auto_cli_generation()
-    cli.print("\n" + "=" * 70, style="bold blue")
+    cli.print("\n" + "=" * 70, style=c.Cli.MessageStyles.BOLD_BLUE)
     deploy_config = m.Examples.DeployConfig(
         environment="production",
         workers=8,
@@ -249,12 +264,15 @@ def main() -> None:
         timeout=60,
     )
     execute_deploy_from_cli(deploy_config)
-    cli.print("\n" + "=" * 70, style="bold blue")
+    cli.print("\n" + "=" * 70, style=c.Cli.MessageStyles.BOLD_BLUE)
     show_common_cli_params()
-    cli.print("\n" + "=" * 70, style="bold blue")
+    cli.print("\n" + "=" * 70, style=c.Cli.MessageStyles.BOLD_BLUE)
     demonstrate_nested_models()
-    cli.print("\n" + "=" * 70, style="bold blue")
-    cli.print("\n❌ Validation Demo - Invalid Environment:", style="bold cyan")
+    cli.print("\n" + "=" * 70, style=c.Cli.MessageStyles.BOLD_BLUE)
+    cli.print(
+        "\n❌ Validation Demo - Invalid Environment:",
+        style=c.Cli.MessageStyles.BOLD_CYAN,
+    )
     try:
         _ = m.Examples.DeployConfig(
             environment="invalid_env",
@@ -263,33 +281,43 @@ def main() -> None:
             timeout=30,
         )
     except ValidationError as error:
-        cli.print(f"   Caught validation error: {error}", style="yellow")
+        cli.print(
+            f"   Caught validation error: {error}", style=c.Cli.MessageStyles.YELLOW
+        )
     cli.print(
         "\n6. Railway Pattern with Pydantic (complete workflow):",
-        style="bold cyan",
+        style=c.Cli.MessageStyles.BOLD_CYAN,
     )
     db_config_result = create_database_config_from_cli()
-    if db_config_result.is_success:
+    if db_config_result.success:
         final_config = db_config_result.value
         payload = final_config.model_dump(mode="json")
         u.display_config_table(config_data=m.Cli.DisplayData(data=payload))
-    cli.print("\n" + "=" * 70, style="bold blue")
-    cli.print("  ✅ Pydantic CLI Examples Complete", style="bold green")
-    cli.print("=" * 70, style="bold blue")
-    cli.print("\n💡 Integration Tips:", style="bold cyan")
-    cli.print("  • Define Pydantic models with Field() descriptions", style="white")
+    cli.print("\n" + "=" * 70, style=c.Cli.MessageStyles.BOLD_BLUE)
+    cli.print(
+        "  ✅ Pydantic CLI Examples Complete", style=c.Cli.MessageStyles.BOLD_GREEN
+    )
+    cli.print("=" * 70, style=c.Cli.MessageStyles.BOLD_BLUE)
+    cli.print("\n💡 Integration Tips:", style=c.Cli.MessageStyles.BOLD_CYAN)
+    cli.print(
+        "  • Define Pydantic models with Field() descriptions",
+        style=c.Cli.MessageStyles.WHITE,
+    )
     cli.print(
         "  • Use CliModelConverter.model_to_cli_params() to extract params",
-        style="white",
+        style=c.Cli.MessageStyles.WHITE,
     )
-    cli.print("  • Add field_validator() for custom validation", style="white")
+    cli.print(
+        "  • Add field_validator() for custom validation",
+        style=c.Cli.MessageStyles.WHITE,
+    )
     cli.print(
         "  • Constraints (ge, le) become CLI validation automatically",
-        style="white",
+        style=c.Cli.MessageStyles.WHITE,
     )
     cli.print(
         "  • Model → CLI → validated instance = type-safe workflow!",
-        style="white",
+        style=c.Cli.MessageStyles.WHITE,
     )
 
 

@@ -175,7 +175,7 @@ class FlextCliProtocolsBase:
         """Type-erased result surface consumed by declarative CLI routes."""
 
         @property
-        def is_failure(self) -> bool:
+        def failure(self) -> bool:
             """Indicate whether the command failed."""
             ...
 

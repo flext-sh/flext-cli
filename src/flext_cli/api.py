@@ -48,7 +48,7 @@ class FlextCli(
     _instance: ClassVar[Self | None] = None
 
     @classmethod
-    def get_instance(cls) -> Self:
+    def instance(cls) -> Self:
         """Return the shared CLI facade instance."""
         if cls._instance is None:
             cls._instance = cls()
@@ -58,8 +58,8 @@ class FlextCli(
     def execute(self) -> r[t.Cli.JsonMapping]:
         """Execute CLI service with railway pattern."""
         result_dict: t.Cli.JsonMapping = {
-            c.Cli.DictKeys.STATUS: c.Cli.ServiceStatus.OPERATIONAL.value,
-            c.Cli.DictKeys.SERVICE: c.Cli.FLEXT_CLI,
+            c.Cli.DICT_KEY_STATUS: c.Cli.SERVICE_STATUS_OPERATIONAL.value,
+            c.Cli.DICT_KEY_SERVICE: c.Cli.FLEXT_CLI,
             "timestamp": u.generate("timestamp"),
             "version": c.Cli.CLI_VERSION,
             "components": {
@@ -71,7 +71,7 @@ class FlextCli(
         return r[t.Cli.JsonMapping].ok(result_dict)
 
 
-cli = FlextCli.get_instance()
+cli = FlextCli.instance()
 
 
 __all__ = ["FlextCli", "cli"]

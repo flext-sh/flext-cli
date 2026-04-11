@@ -21,8 +21,8 @@ from flext_cli import c, m, p, r, s, t, u
 class FlextCliCommands(s):
     """CLI commands service for command registration and execution."""
 
-    _name: str = PrivateAttr(default=c.Cli.CommandsDefaults.DEFAULT_NAME)
-    _description: str = PrivateAttr(default=c.Cli.CommandsDefaults.DEFAULT_DESCRIPTION)
+    _name: str = PrivateAttr(default=c.Cli.COMMANDS_DEFAULT_NAME)
+    _description: str = PrivateAttr(default=c.Cli.COMMANDS_DEFAULT_DESCRIPTION)
     _commands: MutableMapping[str, p.Cli.CommandEntry] = PrivateAttr(
         default_factory=lambda: dict[str, p.Cli.CommandEntry](),
     )
@@ -51,7 +51,7 @@ class FlextCliCommands(s):
                 "command": command_name,
             }
             return r[t.Cli.JsonValue].ok(payload)
-        if result.is_success:
+        if result.success:
             result_value: t.Cli.JsonValue = u.Cli.normalize_json_value(result.value)
             return r[t.Cli.JsonValue].ok(result_value)
         error_value = result.error
@@ -69,7 +69,7 @@ class FlextCliCommands(s):
         """
         status: t.Cli.JsonMapping = {
             "app_name": c.Cli.FLEXT_CLI,
-            "is_initialized": True,
+            "initialized": True,
             "commands_count": len(self._commands),
         }
         return r[t.Cli.JsonMapping].ok(status)
@@ -92,18 +92,16 @@ class FlextCliCommands(s):
 
         """
         if not name.strip():
-            return r[t.Cli.JsonValue].fail(
-                c.Cli.CommandsErrorMessages.INVALID_COMMAND_NAME
-            )
+            return r[t.Cli.JsonValue].fail(c.Cli.ERR_INVALID_COMMAND_NAME)
         if name not in self._commands:
             return r[t.Cli.JsonValue].fail(
-                c.Cli.CommandsErrorMessages.COMMAND_NOT_FOUND.format(name=name),
+                c.Cli.ERR_COMMAND_NOT_FOUND.format(name=name),
             )
         cmd_info = self._commands[name]
         handler: t.Cli.JsonCommandFn = cmd_info.handler
         if not callable(handler):
             return r[t.Cli.JsonValue].fail(
-                c.Cli.CommandsErrorMessages.HANDLER_NOT_CALLABLE.format(name=name),
+                c.Cli.ERR_HANDLER_NOT_CALLABLE.format(name=name),
             )
         try:
             result: r[t.RecursiveValue] | None = None
@@ -123,7 +121,7 @@ class FlextCliCommands(s):
             return self._normalize_handler_result(result, name)
         except c.Cli.CLI_SAFE_EXCEPTIONS as e:
             return r[t.Cli.JsonValue].fail(
-                c.Cli.CommandsErrorMessages.COMMAND_EXECUTION_FAILED.format(error=e),
+                c.Cli.ERR_COMMAND_EXECUTION_FAILED.format(error=e),
             )
 
     def list_commands(self) -> r[t.StrSequence]:
@@ -152,7 +150,7 @@ class FlextCliCommands(s):
 
         """
         if not name.strip():
-            return r[bool].fail(c.Cli.CommandsErrorMessages.COMMAND_NAME_EMPTY)
+            return r[bool].fail(c.Cli.ERR_COMMAND_NAME_EMPTY)
         self._commands[name] = m.Cli.CommandEntryModel(name=name, handler=handler)
         return r[bool].ok(True)
 
@@ -188,7 +186,7 @@ class FlextCliCommands(s):
             return r[t.Cli.JsonValue].ok(version_payload)
         if cmd_name not in self._commands:
             return r[t.Cli.JsonValue].fail(
-                c.Cli.CommandsErrorMessages.COMMAND_NOT_FOUND.format(name=cmd_name),
+                c.Cli.ERR_COMMAND_NOT_FOUND.format(name=cmd_name),
             )
         return self.execute_command(cmd_name, args=cmd_args)
 

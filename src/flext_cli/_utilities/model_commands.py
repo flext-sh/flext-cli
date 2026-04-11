@@ -63,10 +63,13 @@ class FlextCliUtilitiesModelCommandBuilder[M: BaseModel]:
             model = self.model_class.model_validate(kwargs)
             return self.handler(model)
 
-        setattr(command, "__signature__", signature)
-        command.__annotations__ = {
-            parameter.name: parameter.annotation for parameter in parameters
-        }
+        command_obj: object = command
+        setattr(command_obj, "__signature__", signature)
+        setattr(
+            command_obj,
+            "__annotations__",
+            {parameter.name: parameter.annotation for parameter in parameters},
+        )
         command.__annotations__["return"] = t.Cli.RuntimeValue
         return command
 

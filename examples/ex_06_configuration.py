@@ -29,18 +29,23 @@ import time
 from collections.abc import Mapping
 from pathlib import Path
 
-from examples import m, t, u
+from examples import c, m, t, u
 from flext_cli import FlextCliSettings, cli
 from flext_core import r
 
 
-def get_cli_settings() -> FlextCliSettings:
+def show_cli_settings() -> FlextCliSettings:
     """Access flext-cli config settings in YOUR application."""
-    cli.print("📋 Current Configuration:", style="bold cyan")
-    cli.print(f"   Debug Mode: {cli.settings.debug}", style="cyan")
-    cli.print(f"   Log Level: {cli.settings.cli_log_level}", style="cyan")
-    cli.print(f"   Output Format: {cli.settings.output_format}", style="cyan")
-    cli.print(f"   App Name: {cli.settings.app_name}", style="cyan")
+    cli.print("📋 Current Configuration:", style=c.Cli.MessageStyles.BOLD_CYAN)
+    cli.print(f"   Debug Mode: {cli.settings.debug}", style=c.Cli.MessageStyles.CYAN)
+    cli.print(
+        f"   Log Level: {cli.settings.cli_log_level}", style=c.Cli.MessageStyles.CYAN
+    )
+    cli.print(
+        f"   Output Format: {cli.settings.output_format}",
+        style=c.Cli.MessageStyles.CYAN,
+    )
+    cli.print(f"   App Name: {cli.settings.app_name}", style=c.Cli.MessageStyles.CYAN)
     return cli.settings
 
 
@@ -49,11 +54,17 @@ def load_environment_config() -> m.Cli.DisplayData:
     cli_settings = cli.settings
     debug_mode = cli_settings.debug
     if debug_mode:
-        cli.print("🔧 Debug mode - using development settings", style="bold yellow")
+        cli.print(
+            "🔧 Debug mode - using development settings",
+            style=c.Cli.MessageStyles.BOLD_YELLOW,
+        )
         api_url = "https://api.staging.example.com"
         max_retries = 3
     else:
-        cli.print("💻 Normal mode - using production settings", style="bold cyan")
+        cli.print(
+            "💻 Normal mode - using production settings",
+            style=c.Cli.MessageStyles.BOLD_CYAN,
+        )
         api_url = "http://localhost:8000"
         max_retries = 1
     settings = m.Cli.DisplayData(
@@ -63,7 +74,9 @@ def load_environment_config() -> m.Cli.DisplayData:
             "Debug": str(debug_mode),
         },
     )
-    cli.print(f"🌍 {cli_settings.app_name} Configuration", style="bold cyan")
+    cli.print(
+        f"🌍 {cli_settings.app_name} Configuration", style=c.Cli.MessageStyles.BOLD_CYAN
+    )
     u.display_config_table(config_data=settings)
     return settings
 
@@ -90,7 +103,9 @@ def show_config_locations() -> m.Cli.DisplayData:
 
 def load_profile_config(profile_name: str = "default") -> r[FlextCliSettings]:
     """Load profile-specific config in YOUR tool. Returns r[FlextCliSettings]."""
-    cli.print(f"📋 Loading profile: {profile_name}", style="bold cyan")
+    cli.print(
+        f"📋 Loading profile: {profile_name}", style=c.Cli.MessageStyles.BOLD_CYAN
+    )
     profile_config = cli.settings.model_copy(
         update={
             "debug": profile_name == "development",
@@ -99,15 +114,18 @@ def load_profile_config(profile_name: str = "default") -> r[FlextCliSettings]:
         deep=True,
     )
     validate_result = u.Cli.validate_format(profile_config.output_format)
-    if validate_result.is_failure:
+    if validate_result.failure:
         cli.print(
             f"❌ Profile validation failed: {validate_result.error}",
-            style="bold red",
+            style=c.Cli.MessageStyles.BOLD_RED,
         )
         return r[FlextCliSettings].fail(
             validate_result.error or "Profile validation failed",
         )
-    cli.print(f"✅ Profile '{profile_name}' loaded successfully", style="green")
+    cli.print(
+        f"✅ Profile '{profile_name}' loaded successfully",
+        style=c.Cli.MessageStyles.GREEN,
+    )
     profile_data = {
         "Profile": profile_name,
         "Debug": str(profile_config.debug),
@@ -120,7 +138,7 @@ def load_profile_config(profile_name: str = "default") -> r[FlextCliSettings]:
 
 def show_environment_variables() -> None:
     """Display available environment variables for YOUR CLI."""
-    cli.print("🌍 Environment Variables", style="bold cyan")
+    cli.print("🌍 Environment Variables", style=c.Cli.MessageStyles.BOLD_CYAN)
     env_vars = {
         "FLEXT_DEBUG": os.getenv("FLEXT_DEBUG", "false"),
         "FLEXT_LOG_LEVEL": os.getenv("FLEXT_LOG_LEVEL", "INFO"),
@@ -128,63 +146,76 @@ def show_environment_variables() -> None:
         "FLEXT_PROFILE": os.getenv("FLEXT_PROFILE", "default"),
         "FLEXT_OUTPUT_FORMAT": os.getenv("FLEXT_OUTPUT_FORMAT", "table"),
     }
-    cli.print("\n📊 Current Environment Variables:", style="yellow")
+    cli.print("\n📊 Current Environment Variables:", style=c.Cli.MessageStyles.YELLOW)
 
     def print_env(k: str, v: str) -> None:
         """Print single environment variable."""
-        cli.print(f"   {k}={v}", style="cyan")
+        cli.print(f"   {k}={v}", style=c.Cli.MessageStyles.CYAN)
 
     _ = u.Cli.process_mapping(env_vars, processor=print_env)
-    cli.print("\n💡 How to set environment variables:", style="bold cyan")
-    cli.print("   export FLEXT_DEBUG=true", style="white")
-    cli.print("   export FLEXT_ENVIRONMENT=production", style="white")
-    cli.print("   export FLEXT_LOG_LEVEL=DEBUG", style="white")
+    cli.print(
+        "\n💡 How to set environment variables:", style=c.Cli.MessageStyles.BOLD_CYAN
+    )
+    cli.print("   export FLEXT_DEBUG=true", style=c.Cli.MessageStyles.WHITE)
+    cli.print("   export FLEXT_ENVIRONMENT=production", style=c.Cli.MessageStyles.WHITE)
+    cli.print("   export FLEXT_LOG_LEVEL=DEBUG", style=c.Cli.MessageStyles.WHITE)
 
 
 def validate_app_config() -> bool:
     """Validate configuration in YOUR application startup."""
     settings = cli.settings
-    cli.print("🔍 Validating Configuration...", style="bold cyan")
-    cli.print("\n1. Validating base configuration...", style="cyan")
+    cli.print("🔍 Validating Configuration...", style=c.Cli.MessageStyles.BOLD_CYAN)
+    cli.print("\n1. Validating base configuration...", style=c.Cli.MessageStyles.CYAN)
     validate_result = u.Cli.validate_format(settings.output_format)
-    if validate_result.is_failure:
+    if validate_result.failure:
         cli.print(
             f"   ❌ Base config invalid: {validate_result.error}",
-            style="bold red",
+            style=c.Cli.MessageStyles.BOLD_RED,
         )
         return False
-    cli.print("   ✅ Base config valid", style="green")
-    cli.print("\n2. Validating custom settings...", style="cyan")
+    cli.print("   ✅ Base config valid", style=c.Cli.MessageStyles.GREEN)
+    cli.print("\n2. Validating custom settings...", style=c.Cli.MessageStyles.CYAN)
     app_config = m.Examples.MyAppConfig()
     if not app_config.validate_config(cli):
-        cli.print("   ❌ Custom config invalid", style="bold red")
+        cli.print("   ❌ Custom config invalid", style=c.Cli.MessageStyles.BOLD_RED)
         return False
-    cli.print("   ✅ Custom config valid", style="green")
-    cli.print("\n3. Configuration summary:", style="cyan")
+    cli.print("   ✅ Custom config valid", style=c.Cli.MessageStyles.GREEN)
+    cli.print("\n3. Configuration summary:", style=c.Cli.MessageStyles.CYAN)
     app_config.display(cli)
-    cli.print("\n✅ All configuration validated successfully!", style="bold green")
+    cli.print(
+        "\n✅ All configuration validated successfully!",
+        style=c.Cli.MessageStyles.BOLD_GREEN,
+    )
     return True
 
 
 def load_application_config() -> r[Mapping[str, t.Cli.JsonValue]]:
     """Load and validate application configuration from environment."""
-    cli.print("\n⚙️  Loading Application Configuration:", style="bold cyan")
+    cli.print(
+        "\n⚙️  Loading Application Configuration:", style=c.Cli.MessageStyles.BOLD_CYAN
+    )
     config_obj = m.Examples.AppConfigAdvanced()
-    cli.print("✅ Configuration model created", style="green")
+    cli.print("✅ Configuration model created", style=c.Cli.MessageStyles.GREEN)
     validate_result = config_obj.validate_to_mapping()
-    if validate_result.is_failure:
+    if validate_result.failure:
         return validate_result
-    cli.print("✅ Configuration validated", style="green")
+    cli.print("✅ Configuration validated", style=c.Cli.MessageStyles.GREEN)
     config_data = validate_result.value
     overridden_data = apply_environment_overrides(config_data)
-    cli.print("✅ Environment overrides applied", style="green")
+    cli.print("✅ Environment overrides applied", style=c.Cli.MessageStyles.GREEN)
     final_data = initialize_services(overridden_data)
-    cli.print("✅ Services initialized", style="green")
+    cli.print("✅ Services initialized", style=c.Cli.MessageStyles.GREEN)
     result = r[Mapping[str, t.Cli.JsonValue]].ok(final_data)
-    if result.is_failure:
-        cli.print(f"❌ Configuration failed: {result.error}", style="bold red")
+    if result.failure:
+        cli.print(
+            f"❌ Configuration failed: {result.error}",
+            style=c.Cli.MessageStyles.BOLD_RED,
+        )
         return result
-    cli.print("🎉 Application configuration loaded successfully!", style="bold green")
+    cli.print(
+        "🎉 Application configuration loaded successfully!",
+        style=c.Cli.MessageStyles.BOLD_GREEN,
+    )
     return result
 
 
@@ -196,13 +227,13 @@ def apply_environment_overrides(
         str(key): value for key, value in config.items()
     }
     env = os.getenv("ENVIRONMENT", "development")
-    if env == "production":
+    if env == c.EXAMPLE_ENV_VALUE_PRODUCTION:
         max_workers_value = result.get("max_workers", 4)
         if isinstance(max_workers_value, bool) or not isinstance(
             max_workers_value,
             int,
         ):
-            msg = "max_workers must be an integer"
+            msg = c.EXAMPLE_ERR_MAX_WORKERS_MUST_BE_INTEGER
             raise ValueError(msg)
         result["max_workers"] = min(max_workers_value, 20)
         result["enable_metrics"] = True
@@ -227,44 +258,80 @@ def initialize_services(
 
 def main() -> None:
     """Examples of using configuration in YOUR code."""
-    cli.print("=" * 70, style="bold blue")
-    cli.print("  Configuration Management Library Usage", style="bold white")
-    cli.print("=" * 70, style="bold blue")
-    cli.print("\n1. Built-in Configuration (access settings):", style="bold cyan")
-    _ = get_cli_settings()
-    cli.print("\n2. Environment Config (deployment settings):", style="bold cyan")
+    cli.print("=" * 70, style=c.Cli.MessageStyles.BOLD_BLUE)
+    cli.print(
+        "  Configuration Management Library Usage", style=c.Cli.MessageStyles.BOLD_WHITE
+    )
+    cli.print("=" * 70, style=c.Cli.MessageStyles.BOLD_BLUE)
+    cli.print(
+        "\n1. Built-in Configuration (access settings):",
+        style=c.Cli.MessageStyles.BOLD_CYAN,
+    )
+    _ = show_cli_settings()
+    cli.print(
+        "\n2. Environment Config (deployment settings):",
+        style=c.Cli.MessageStyles.BOLD_CYAN,
+    )
     _ = load_environment_config()
-    cli.print("\n3. Custom Config Class (app-specific):", style="bold cyan")
+    cli.print(
+        "\n3. Custom Config Class (app-specific):", style=c.Cli.MessageStyles.BOLD_CYAN
+    )
     app_config = m.Examples.MyAppConfig()
     _ = app_config.validate_config(cli)
     app_config.display(cli)
-    cli.print("\n4. Config Locations (file paths):", style="bold cyan")
+    cli.print(
+        "\n4. Config Locations (file paths):", style=c.Cli.MessageStyles.BOLD_CYAN
+    )
     _ = show_config_locations()
-    cli.print("\n5. Profile-Based Config (multi-environment):", style="bold cyan")
+    cli.print(
+        "\n5. Profile-Based Config (multi-environment):",
+        style=c.Cli.MessageStyles.BOLD_CYAN,
+    )
     _ = load_profile_config("production")
-    cli.print("\n6. Environment Variables (configuration guide):", style="bold cyan")
+    cli.print(
+        "\n6. Environment Variables (configuration guide):",
+        style=c.Cli.MessageStyles.BOLD_CYAN,
+    )
     show_environment_variables()
-    cli.print("\n7. Config Validation (startup check):", style="bold cyan")
+    cli.print(
+        "\n7. Config Validation (startup check):", style=c.Cli.MessageStyles.BOLD_CYAN
+    )
     _ = validate_app_config()
-    cli.print("\n8. Advanced Config with Environment Variables:", style="bold cyan")
+    cli.print(
+        "\n8. Advanced Config with Environment Variables:",
+        style=c.Cli.MessageStyles.BOLD_CYAN,
+    )
     config_result = load_application_config()
-    if config_result.is_success:
+    if config_result.success:
         final_config = config_result.value
         final_config_data = {k: str(v) for k, v in final_config.items()}
-        cli.print("Final Application Configuration", style="bold cyan")
+        cli.print(
+            "Final Application Configuration", style=c.Cli.MessageStyles.BOLD_CYAN
+        )
         u.display_config_table(
             config_data=m.Cli.DisplayData(data=final_config_data),
         )
-    cli.print("\n" + "=" * 70, style="bold blue")
-    cli.print("  ✅ Configuration Examples Complete", style="bold green")
-    cli.print("=" * 70, style="bold blue")
-    cli.print("\n💡 Integration Tips:", style="bold cyan")
+    cli.print("\n" + "=" * 70, style=c.Cli.MessageStyles.BOLD_BLUE)
     cli.print(
-        "  • Access config: Use cli.settings for built-in settings", style="white"
+        "  ✅ Configuration Examples Complete", style=c.Cli.MessageStyles.BOLD_GREEN
     )
-    cli.print("  • Custom config: Extend cli for your app", style="white")
-    cli.print("  • Validation: Use config.validate_business_rules()", style="white")
-    cli.print("  • Environment: Use FLEXT_* env vars for configuration", style="white")
+    cli.print("=" * 70, style=c.Cli.MessageStyles.BOLD_BLUE)
+    cli.print("\n💡 Integration Tips:", style=c.Cli.MessageStyles.BOLD_CYAN)
+    cli.print(
+        "  • Access config: Use cli.settings for built-in settings",
+        style=c.Cli.MessageStyles.WHITE,
+    )
+    cli.print(
+        "  • Custom config: Extend cli for your app", style=c.Cli.MessageStyles.WHITE
+    )
+    cli.print(
+        "  • Validation: Use config.validate_business_rules()",
+        style=c.Cli.MessageStyles.WHITE,
+    )
+    cli.print(
+        "  • Environment: Use FLEXT_* env vars for configuration",
+        style=c.Cli.MessageStyles.WHITE,
+    )
 
 
 if __name__ == "__main__":

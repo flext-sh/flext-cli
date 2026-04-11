@@ -92,7 +92,7 @@ class FlextCliCommonParams(s):
         if params.trace is not None and params.trace:
             will_be_debug = params.debug if params.debug is not None else config.debug
             if not will_be_debug:
-                return r[bool].fail("Trace mode requires debug mode to be enabled")
+                return r[bool].fail(c.Cli.CLI_PARAM_ERR_TRACE_REQUIRES_DEBUG)
         update_data: t.MutableBoolMapping = {}
         for field in ("verbose", "quiet", "debug", "trace", "no_color"):
             val = getattr(params, field, None)
@@ -112,18 +112,26 @@ class FlextCliCommonParams(s):
     ) -> r[FlextCliSettings]:
         """Set log_format and output_format with validation."""
         if params.log_format is not None:
-            if params.log_format not in c.Cli.CliParamsDefaults.VALID_LOG_FORMATS:
-                valid = ", ".join(c.Cli.CliParamsDefaults.VALID_LOG_FORMATS)
+            if params.log_format not in c.Cli.CLI_VALID_LOG_FORMATS:
+                valid = ", ".join(c.Cli.CLI_VALID_LOG_FORMATS)
                 return r[FlextCliSettings].fail(
-                    f"invalid log format: {params.log_format}. valid: {valid}",
+                    c.Cli.CLI_PARAM_ERR_INVALID_WITH_VALID_FMT.format(
+                        field_label="log format",
+                        field_value=params.log_format,
+                        valid_values=valid,
+                    ),
                 )
             config.log_verbosity = params.log_format
         if params.output_format is not None:
             validated_result = u.Cli.validate_format(params.output_format)
-            if validated_result.is_failure:
-                valid = ", ".join(c.Cli.ValidationLists.OUTPUT_FORMATS)
+            if validated_result.failure:
+                valid = ", ".join(c.Cli.VALIDATION_OUTPUT_FORMATS)
                 return r[FlextCliSettings].fail(
-                    f"invalid output format: {params.output_format}. valid: {valid}",
+                    c.Cli.CLI_PARAM_ERR_INVALID_WITH_VALID_FMT.format(
+                        field_label="output format",
+                        field_value=params.output_format,
+                        valid_values=valid,
+                    ),
                 )
             config = config.model_copy(update={"output_format": validated_result.value})
         return r[FlextCliSettings].ok(config)
@@ -138,12 +146,18 @@ class FlextCliCommonParams(s):
         if params.log_level is None:
             return r[FlextCliSettings].ok(config)
         try:
-            config.cli_log_level = c.Cli.Settings.LogLevel(params.log_level.upper())
+            config.cli_log_level = type(c.Cli.LOG_LEVEL_INFO)(
+                params.log_level.upper(),
+            )
             return r[FlextCliSettings].ok(config)
         except ValueError:
-            valid = ", ".join(c.Cli.Lists.LOG_LEVELS_LIST)
+            valid = ", ".join(c.Cli.LOG_LEVELS_LIST)
             return r[FlextCliSettings].fail(
-                f"invalid log level: {params.log_level}. valid options: {valid}",
+                c.Cli.CLI_PARAM_ERR_INVALID_WITH_OPTIONS_FMT.format(
+                    field_label="log level",
+                    field_value=params.log_level,
+                    valid_values=valid,
+                ),
             )
 
     @classmethod
@@ -162,13 +176,17 @@ class FlextCliCommonParams(s):
             params_to_use = cls._resolve_params(params, kwargs)
             return cls._apply_param_setters(config, params_to_use)
         except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
-            return r[FlextCliSettings].fail(f"Failed to apply CLI parameters: {exc}")
+            return r[FlextCliSettings].fail(
+                c.Cli.CLI_PARAM_ERR_APPLY_FAILED_FMT.format(error=exc),
+            )
 
     @classmethod
     def create_option(cls, field_name: str) -> t.Cli.CliOptionInfo:
         """Create typer.Option() from FlextCliSettings field metadata."""
         if field_name not in c.Cli.CLI_PARAM_REGISTRY:
-            msg = f"Field '{field_name}' not found in CLI parameter registry"
+            msg = c.Cli.CLI_PARAM_ERR_FIELD_NOT_FOUND_FMT.format(
+                field_name=field_name,
+            )
             raise ValueError(msg)
         return u.Cli.build_option(field_name, c.Cli.CLI_PARAM_REGISTRY)
 

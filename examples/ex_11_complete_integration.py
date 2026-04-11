@@ -28,7 +28,7 @@ import tempfile
 from collections.abc import Mapping
 from pathlib import Path
 
-from examples import t
+from examples import c, m, t
 from flext_cli import cli
 from flext_core import r
 
@@ -44,82 +44,90 @@ class DataManagerCLI:
     def add_entry(self) -> r[t.ContainerMapping]:
         """Add new entry with user prompts."""
         prompts = cli
-        prompts.interactive_mode = False
+        prompts.configure(m.Cli.PromptRuntimeState(interactive=False))
         key_result = prompts.prompt("Enter key:", default="sample_key")
-        if key_result.is_failure:
+        if key_result.failure:
             return r[t.ContainerMapping].fail(f"Prompt failed: {key_result.error}")
         key = key_result.value
         value_result = prompts.prompt("Enter value:", default="sample_value")
-        if value_result.is_failure:
+        if value_result.failure:
             return r[t.ContainerMapping].fail(f"Prompt failed: {value_result.error}")
         value = value_result.value
-        cli.print(f"✅ Created entry: {key} = {value}", style="green")
+        cli.print(f"✅ Created entry: {key} = {value}", style=c.Cli.MessageStyles.GREEN)
         converted_entry: t.ContainerMapping = {key: value}
         return r[t.ContainerMapping].ok(converted_entry)
 
     def display_data(self, data: t.ContainerMapping) -> None:
         """Display data as formatted table."""
         if not data:
-            cli.print("⚠️  No data to display", style="yellow")
+            cli.print("⚠️  No data to display", style=c.Cli.MessageStyles.YELLOW)
             return
         safe_data: t.Cli.TableMappingRow = {str(k): str(v) for k, v in data.items()}
         cli.show_table(safe_data, show_header=True, title="📋 Current Data")
 
     def display_welcome(self) -> None:
         """Show welcome message with styled output."""
-        cli.print("=" * 70, style="bold blue")
+        cli.print("=" * 70, style=c.Cli.MessageStyles.BOLD_BLUE)
         cli.print("  📊 Data Manager CLI", style="bold white on blue")
-        cli.print("=" * 70, style="bold blue")
+        cli.print("=" * 70, style=c.Cli.MessageStyles.BOLD_BLUE)
 
     def load_data(self) -> r[t.ContainerMapping]:
         """Load data with error handling. Uses read_json_file for dict-only result."""
         if not self.data_file.exists():
-            return r[t.ContainerMapping].fail("No data file found")
+            return r[t.ContainerMapping].fail(c.EXAMPLE_ERR_NO_DATA_FILE_FOUND)
         read_result = cli.read_json_file(str(self.data_file))
-        if read_result.is_failure:
+        if read_result.failure:
             error_msg = read_result.error or "Unknown error"
-            cli.print(f"❌ Load failed: {error_msg}", style="bold red")
+            cli.print(
+                f"❌ Load failed: {error_msg}", style=c.Cli.MessageStyles.BOLD_RED
+            )
             return r[t.ContainerMapping].fail(error_msg)
         if not isinstance(read_result.value, Mapping):
-            return r[t.ContainerMapping].fail("Data file must contain a mapping")
-        cli.print("✅ Data loaded successfully", style="green")
+            return r[t.ContainerMapping].fail(
+                c.EXAMPLE_ERR_DATA_FILE_MUST_BE_MAPPING,
+            )
+        cli.print("✅ Data loaded successfully", style=c.Cli.MessageStyles.GREEN)
         return r[t.ContainerMapping].ok(read_result.value)
 
     def run_workflow(self) -> r[bool]:
         """Complete workflow integrating all features."""
         self.display_welcome()
-        cli.print("\n📂 Loading existing data...", style="cyan")
+        cli.print("\n📂 Loading existing data...", style=c.Cli.MessageStyles.CYAN)
         load_result = self.load_data()
         current_data: t.MutableContainerMapping = {}
-        if load_result.is_success:
+        if load_result.success:
             loaded_data = load_result.value
             current_data = dict(loaded_data) if isinstance(loaded_data, dict) else {}
         else:
-            cli.print("   Creating new dataset", style="yellow")
-        cli.print("\n📊 Current Data:", style="bold cyan")
+            cli.print("   Creating new dataset", style=c.Cli.MessageStyles.YELLOW)
+        cli.print("\n📊 Current Data:", style=c.Cli.MessageStyles.BOLD_CYAN)
         self.display_data(current_data)
-        cli.print("\n➕ Adding New Entry:", style="bold cyan")
+        cli.print("\n➕ Adding New Entry:", style=c.Cli.MessageStyles.BOLD_CYAN)
         entry_result = self.add_entry()
-        if entry_result.is_failure:
+        if entry_result.failure:
             return r[bool].fail(f"Add entry failed: {entry_result.error}")
         new_entry = entry_result.value
         current_data.update(new_entry)
-        cli.print("\n💾 Saving Data:", style="bold cyan")
+        cli.print("\n💾 Saving Data:", style=c.Cli.MessageStyles.BOLD_CYAN)
         save_result = self.save_data(current_data)
-        if save_result.is_failure:
+        if save_result.failure:
             return r[bool].fail(f"Save failed: {save_result.error}")
-        cli.print("\n✨ Final Result:", style="bold cyan")
+        cli.print("\n✨ Final Result:", style=c.Cli.MessageStyles.BOLD_CYAN)
         self.display_data(current_data)
         return r[bool].ok(value=True)
 
     def save_data(self, data: t.ContainerMapping) -> r[bool]:
         """Save data with proper error handling."""
         write_result = cli.write_json_file(self.data_file, data)
-        if write_result.is_failure:
+        if write_result.failure:
             error_msg = write_result.error or "Unknown error"
-            cli.print(f"❌ Save failed: {error_msg}", style="bold red")
+            cli.print(
+                f"❌ Save failed: {error_msg}", style=c.Cli.MessageStyles.BOLD_RED
+            )
             return r[bool].fail(error_msg)
-        cli.print(f"✅ Data saved to {self.data_file.name}", style="green")
+        cli.print(
+            f"✅ Data saved to {self.data_file.name}", style=c.Cli.MessageStyles.GREEN
+        )
         return r[bool].ok(value=True)
 
 
@@ -131,64 +139,93 @@ def process_with_railway_pattern(
     step2_data: t.ContainerMapping = {**step1_data, "processed": True}
     final_data: t.ContainerMapping = {**step2_data, "enriched": True}
     result: r[t.ContainerMapping] = r[t.ContainerMapping].ok(final_data)
-    if result.is_failure:
-        cli.print(f"❌ Pipeline failed: {result.error}", style="bold red")
+    if result.failure:
+        cli.print(
+            f"❌ Pipeline failed: {result.error}", style=c.Cli.MessageStyles.BOLD_RED
+        )
         return result
-    cli.print("✅ Pipeline completed successfully", style="green")
+    cli.print("✅ Pipeline completed successfully", style=c.Cli.MessageStyles.GREEN)
     return result
 
 
 def main() -> None:
     """Complete CLI integration example."""
-    cli.print("=" * 70, style="bold blue")
-    cli.print("  Complete CLI Integration Example", style="bold white")
-    cli.print("=" * 70, style="bold blue")
-    cli.print("\n1. Complete CLI Application:", style="bold cyan")
+    cli.print("=" * 70, style=c.Cli.MessageStyles.BOLD_BLUE)
+    cli.print(
+        "  Complete CLI Integration Example", style=c.Cli.MessageStyles.BOLD_WHITE
+    )
+    cli.print("=" * 70, style=c.Cli.MessageStyles.BOLD_BLUE)
+    cli.print("\n1. Complete CLI Application:", style=c.Cli.MessageStyles.BOLD_CYAN)
     app = DataManagerCLI()
     workflow_result = app.run_workflow()
-    if workflow_result.is_failure:
-        cli.print(f"   ❌ Workflow failed: {workflow_result.error}", style="bold red")
+    if workflow_result.failure:
+        cli.print(
+            f"   ❌ Workflow failed: {workflow_result.error}",
+            style=c.Cli.MessageStyles.BOLD_RED,
+        )
     else:
-        cli.print("   ✅ Workflow completed successfully!", style="bold green")
-    cli.print("\n2. Railway Pattern (chained operations):", style="bold cyan")
+        cli.print(
+            "   ✅ Workflow completed successfully!",
+            style=c.Cli.MessageStyles.BOLD_GREEN,
+        )
+    cli.print(
+        "\n2. Railway Pattern (chained operations):",
+        style=c.Cli.MessageStyles.BOLD_CYAN,
+    )
     test_data: t.ContainerMapping = {"id": 1, "name": "test"}
     pipeline_result = process_with_railway_pattern(test_data)
-    if pipeline_result.is_success:
+    if pipeline_result.success:
         final_data = pipeline_result.value
-        cli.print(f"   Result: {final_data}", style="green")
-    cli.print("\n3. Error Handling Showcase:", style="bold cyan")
+        cli.print(f"   Result: {final_data}", style=c.Cli.MessageStyles.GREEN)
+    cli.print("\n3. Error Handling Showcase:", style=c.Cli.MessageStyles.BOLD_CYAN)
 
     def safe_operation(value: int) -> r[int]:
         if value < 0:
-            return r[int].fail("Negative values not allowed")
+            return r[int].fail(c.EXAMPLE_ERR_NEGATIVE_VALUES_NOT_ALLOWED)
         return r[int].ok(value * 2)
 
     result = safe_operation(10)
-    if result.is_success:
-        cli.print(f"   ✅ Operation succeeded: {result.value}", style="green")
+    if result.success:
+        cli.print(
+            f"   ✅ Operation succeeded: {result.value}",
+            style=c.Cli.MessageStyles.GREEN,
+        )
     result = safe_operation(-5)
-    if result.is_failure:
-        cli.print(f"   ℹ️  Operation failed gracefully: {result.error}", style="cyan")
+    if result.failure:
+        cli.print(
+            f"   ℹ️  Operation failed gracefully: {result.error}",
+            style=c.Cli.MessageStyles.CYAN,
+        )
     app.data_file.unlink(missing_ok=True)
-    cli.print("\n" + "=" * 70, style="bold blue")
-    cli.print("  ✅ Complete Integration Examples Done!", style="bold green")
-    cli.print("=" * 70, style="bold blue")
-    cli.print("\n💡 Integration Summary:", style="bold cyan")
-    cli.print("  • Use the shared cli singleton directly", style="white")
-    cli.print("  • Chain operations with r.map()", style="white")
-    cli.print("  • Handle errors gracefully with is_success/is_failure", style="white")
-    cli.print("  • Combine all features for complete CLI apps", style="white")
-    cli.print("\n🏗️  Complete CLI Architecture:", style="bold cyan")
+    cli.print("\n" + "=" * 70, style=c.Cli.MessageStyles.BOLD_BLUE)
+    cli.print(
+        "  ✅ Complete Integration Examples Done!", style=c.Cli.MessageStyles.BOLD_GREEN
+    )
+    cli.print("=" * 70, style=c.Cli.MessageStyles.BOLD_BLUE)
+    cli.print("\n💡 Integration Summary:", style=c.Cli.MessageStyles.BOLD_CYAN)
+    cli.print(
+        "  • Use the shared cli singleton directly", style=c.Cli.MessageStyles.WHITE
+    )
+    cli.print("  • Chain operations with r.map()", style=c.Cli.MessageStyles.WHITE)
+    cli.print(
+        "  • Handle errors gracefully with success/failure",
+        style=c.Cli.MessageStyles.WHITE,
+    )
+    cli.print(
+        "  • Combine all features for complete CLI apps",
+        style=c.Cli.MessageStyles.WHITE,
+    )
+    cli.print("\n🏗️  Complete CLI Architecture:", style=c.Cli.MessageStyles.BOLD_CYAN)
     architecture = {
         "Output": "cli.print() + cli.show_table()",
         "File I/O": "cli.read_json_file/write_json_file",
         "User Input": "cli",
         "Config": "cli.settings",
-        "Auth": "cli.save/get_auth_token()",
+        "Auth": "cli.save/fetch_auth_token()",
         "Error Handling": "r pattern",
     }
     for component, usage in architecture.items():
-        cli.print(f"   • {component}: {usage}", style="cyan")
+        cli.print(f"   • {component}: {usage}", style=c.Cli.MessageStyles.CYAN)
 
 
 if __name__ == "__main__":

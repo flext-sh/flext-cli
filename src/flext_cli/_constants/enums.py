@@ -47,20 +47,49 @@ class FlextCliConstantsEnums:
         FULL = "full"
 
     @unique
+    class PipelineStageStatus(StrEnum):
+        """Pipeline stage execution status enum."""
+
+        OK = "ok"
+        SKIPPED = "skipped"
+        FAILED = "failed"
+
+    @unique
+    class TypeKind(StrEnum):
+        """Typed extraction kind enum."""
+
+        STR = "str"
+        BOOL = "bool"
+        DICT = "dict"
+
+    @unique
     class ServiceStatus(StrEnum):
         """Service status enum."""
 
         OPERATIONAL = "operational"
 
-    class Settings:
-        """Settings constants."""
+    @unique
+    class MessageStyles(StrEnum):
+        """Rich style string authority — single source of truth for all style values."""
 
-        @unique
-        class LogLevel(StrEnum):
-            """Log level enum."""
+        BLUE = "blue"
+        GREEN = "green"
+        RED = "red"
+        YELLOW = "yellow"
+        CYAN = "cyan"
+        WHITE = "white"
+        DIM = "dim"
+        BOLD = "bold"
+        BOLD_BLUE = "bold blue"
+        BOLD_GREEN = "bold green"
+        BOLD_RED = "bold red"
+        BOLD_YELLOW = "bold yellow"
+        BOLD_CYAN = "bold cyan"
+        BOLD_WHITE = "bold white"
+        BOLD_MAGENTA = "bold magenta"
+        BOLD_WHITE_ON_BLUE = "bold white on blue"
 
-            DEBUG = "DEBUG"
-            INFO = "INFO"
-            WARNING = "WARNING"
-            ERROR = "ERROR"
-            CRITICAL = "CRITICAL"
+
+__all__ = [
+    "FlextCliConstantsEnums",
+]

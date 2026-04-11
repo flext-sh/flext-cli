@@ -124,22 +124,22 @@ class FlextCliUtilitiesToml:
         return isinstance(value, AoT)
 
     @staticmethod
-    def toml_get_table(
+    def toml_table_child(
         container: t.Cli.TomlParent,
         key: str,
     ) -> t.Cli.TomlTable | None:
-        """Get a table child from a TOML container."""
+        """Return a table child from a TOML container."""
         if key not in container:
             return None
         value = container[key]
         return value if FlextCliUtilitiesToml.toml_is_table(value) else None
 
     @staticmethod
-    def toml_get_item(
+    def toml_item_child(
         container: t.Cli.TomlParent,
         key: str,
     ) -> t.Cli.TomlItem | None:
-        """Get a raw TOML item from a container."""
+        """Return a raw TOML item from a container."""
         if key not in container:
             return None
         value = container[key]
@@ -182,14 +182,14 @@ class FlextCliUtilitiesToml:
         raise TypeError(msg)
 
     @staticmethod
-    def toml_get_table_path(
+    def toml_table_path(
         parent: t.Cli.TomlParent,
         path: t.StrSequence,
     ) -> t.Cli.TomlTable | None:
         """Return a nested table path without creating missing tables."""
         current: t.Cli.TomlParent = parent
         for segment in path:
-            table = FlextCliUtilitiesToml.toml_get_table(current, segment)
+            table = FlextCliUtilitiesToml.toml_table_child(current, segment)
             if table is None:
                 return None
             current = table
@@ -201,11 +201,11 @@ class FlextCliUtilitiesToml:
         return FlextCliUtilitiesToml.toml_ensure_table(doc, "tool")
 
     @staticmethod
-    def toml_get(
+    def toml_value(
         container: t.Cli.TomlParent,
         key: str,
     ) -> t.Cli.JsonValue | None:
-        """Get a normalized TOML value from a container."""
+        """Return a normalized TOML value from a container."""
         if key not in container:
             return None
         raw_value = FlextCliUtilitiesToml.toml_unwrap_item(container[key])
@@ -241,7 +241,7 @@ class FlextCliUtilitiesToml:
         change_message: str,
     ) -> bool:
         """Synchronize a scalar TOML value."""
-        current = FlextCliUtilitiesToml.toml_get(container, key)
+        current = FlextCliUtilitiesToml.toml_value(container, key)
         if current == expected:
             return False
         container[key] = expected
@@ -260,7 +260,7 @@ class FlextCliUtilitiesToml:
     ) -> bool:
         """Synchronize a TOML string-array value."""
         current = FlextCliUtilitiesToml.toml_as_string_list(
-            FlextCliUtilitiesToml.toml_get(container, key),
+            FlextCliUtilitiesToml.toml_value(container, key),
         )
         normalized_expected = sorted(expected) if sort_values else [*expected]
         normalized_current = sorted(current) if sort_values else [*current]
@@ -280,7 +280,7 @@ class FlextCliUtilitiesToml:
     ) -> bool:
         """Merge required values into a TOML string-array field."""
         current = FlextCliUtilitiesToml.toml_as_string_list(
-            FlextCliUtilitiesToml.toml_get(container, key),
+            FlextCliUtilitiesToml.toml_value(container, key),
         )
         merged = sorted({*current, *required})
         if current == merged:
@@ -323,7 +323,7 @@ class FlextCliUtilitiesToml:
         if not path.exists():
             return None
         try:
-            return tomlkit.parse(path.read_text(encoding=c.Cli.Encoding.DEFAULT))
+            return tomlkit.parse(path.read_text(encoding=c.Cli.ENCODING_DEFAULT))
         except (OSError, ValueError) as exc:
             FlextCliUtilitiesToml._module_logger.warning(
                 "Failed to read or parse TOML document",
@@ -347,7 +347,7 @@ class FlextCliUtilitiesToml:
     def toml_read_json(path: Path) -> r[t.Cli.JsonMapping]:
         """Read TOML and return the unwrapped root table as ``JsonMapping``."""
         document_result = FlextCliUtilitiesToml.toml_read_document(path)
-        if document_result.is_failure:
+        if document_result.failure:
             return r[t.Cli.JsonMapping].fail(
                 document_result.error or f"TOML parse failed: {path}",
             )
@@ -377,7 +377,7 @@ class FlextCliUtilitiesToml:
             command.extend(["--config", str(config_path)])
         command.append(str(path))
         result = FlextCliUtilitiesBase.run_raw(command, cwd=path.parent)
-        if result.is_failure:
+        if result.failure:
             return r[bool].fail(result.error or f"taplo format failed: {path}")
         output = result.value
         if output.exit_code != 0:
@@ -393,12 +393,12 @@ class FlextCliUtilitiesToml:
             u.write_file(
                 path,
                 doc.as_string(),
-                encoding=c.Cli.Encoding.DEFAULT,
+                encoding=c.Cli.ENCODING_DEFAULT,
             )
         except OSError as exc:
             return r[bool].fail(f"TOML write error: {exc}")
         format_result = FlextCliUtilitiesToml._format_pyproject(path)
-        if format_result.is_failure:
+        if format_result.failure:
             return r[bool].fail(format_result.error or f"taplo format failed: {path}")
         return r[bool].ok(True)
 

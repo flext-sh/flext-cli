@@ -25,6 +25,10 @@ class CaptureLogPrompts(FlextCliPrompts):
         self._input_reader = lambda _prompt: next(values_iter)
         return self
 
+    def force_non_test_env(self) -> Self:
+        self._test_env_override = False
+        return self
+
     @override
     def _log(
         self,
@@ -39,8 +43,7 @@ class TestsCliPromptsCov:
     """Extra prompt coverage without monkeypatch or mock."""
 
     def test_prompt_logs_input_when_not_in_test_env(self) -> None:
-        prompts = CaptureLogPrompts().use_input_values(["typed"])
-        prompts._test_env_override = False
+        prompts = CaptureLogPrompts().use_input_values(["typed"]).force_non_test_env()
         result = prompts.prompt("message", default="default")
         tm.ok(result)
         tm.that(result.value, eq="typed")
@@ -49,9 +52,9 @@ class TestsCliPromptsCov:
             has=[("info", "User input for 'message': typed")],
         )
 
-    def test_read_confirmation_input_records_warning_before_retrying(self) -> None:
+    def test_confirm_records_warning_before_retrying(self) -> None:
         prompts = CaptureLogPrompts().use_input_values(["maybe", "y"])
-        result = prompts._read_confirmation_input("m", "p", default=False)
+        result = prompts.confirm("m", default=False)
         tm.ok(result)
         tm.that(result.value, eq=True)
         tm.that(

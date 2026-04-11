@@ -59,7 +59,7 @@ class FlextCliFileTools(FlextCliServiceBase):
         path = Path(file_path)
 
         def _write() -> bool:
-            with path.open(mode="w", encoding=c.Cli.Encoding.DEFAULT) as f:
+            with path.open(mode="w", encoding=c.Cli.ENCODING_DEFAULT) as f:
                 writer(f)
             return True
 
@@ -70,13 +70,13 @@ class FlextCliFileTools(FlextCliServiceBase):
         path = Path(file_path)
         return FlextCliFileTools._run_bool_operation(
             path.unlink,
-            c.Cli.FileErrorMessages.FILE_DELETION_FAILED,
+            c.Cli.ERR_FILE_DELETION_FAILED,
         )
 
     @staticmethod
     def read_text_file(file_path: t.Cli.TextPath) -> r[str]:
         return FlextCliFileTools._execute_file_operation(
-            lambda: Path(file_path).read_text(encoding=c.Cli.Encoding.DEFAULT),
+            lambda: Path(file_path).read_text(encoding=c.Cli.ENCODING_DEFAULT),
             "Text read failed: {error}",
         )
 
@@ -84,7 +84,7 @@ class FlextCliFileTools(FlextCliServiceBase):
     def write_text_file(file_path: t.Cli.TextPath, content: str) -> r[bool]:
 
         def _write() -> bool:
-            Path(file_path).write_text(content, encoding=c.Cli.Encoding.DEFAULT)
+            Path(file_path).write_text(content, encoding=c.Cli.ENCODING_DEFAULT)
             return True
 
         return FlextCliFileTools._execute_file_operation(
@@ -96,7 +96,7 @@ class FlextCliFileTools(FlextCliServiceBase):
     def atomic_write_text_file(file_path: t.Cli.TextPath, content: str) -> r[bool]:
         """Write text file atomically via the canonical ``u.Cli`` utility surface."""
         result = u.Cli.atomic_write_text_file(file_path, content)
-        if result.is_failure:
+        if result.failure:
             return r[bool].fail(
                 result.error or "Text write failed",
             )
@@ -106,12 +106,12 @@ class FlextCliFileTools(FlextCliServiceBase):
     def read_json_file(file_path: t.Cli.TextPath) -> r[t.Cli.JsonValue]:
 
         def _load() -> t.Cli.JsonValue:
-            raw = Path(file_path).read_text(encoding=c.Cli.Encoding.DEFAULT)
+            raw = Path(file_path).read_text(encoding=c.Cli.ENCODING_DEFAULT)
             return t.Cli.JSON_VALUE_ADAPTER.validate_json(raw)
 
         return FlextCliFileTools._execute_file_operation(
             _load,
-            c.Cli.FileErrorMessages.JSON_LOAD_FAILED,
+            c.Cli.ERR_JSON_LOAD_FAILED,
         )
 
     @staticmethod
@@ -131,7 +131,7 @@ class FlextCliFileTools(FlextCliServiceBase):
 
         return FlextCliFileTools._execute_file_operation(
             _load,
-            c.Cli.FileErrorMessages.JSON_LOAD_FAILED,
+            c.Cli.ERR_JSON_LOAD_FAILED,
         )
 
     @staticmethod
@@ -154,18 +154,18 @@ class FlextCliFileTools(FlextCliServiceBase):
                 by_alias=by_alias,
                 exclude_none=exclude_none,
             )
-            Path(file_path).write_text(json_str, encoding=c.Cli.Encoding.DEFAULT)
+            Path(file_path).write_text(json_str, encoding=c.Cli.ENCODING_DEFAULT)
             return True
 
         return FlextCliFileTools._execute_file_operation(
             _write,
-            c.Cli.ErrorMessages.JSON_WRITE_FAILED,
+            c.Cli.ERR_JSON_WRITE_FAILED,
         )
 
     @staticmethod
     def read_yaml_file(file_path: t.Cli.TextPath) -> r[t.Cli.JsonValue]:
         result = u.Cli.yaml_safe_load(Path(file_path))
-        if result.is_failure:
+        if result.failure:
             return r[t.Cli.JsonValue].fail(result.error or "YAML load failed")
         validated: t.Cli.JsonValue = t.Cli.JSON_VALUE_ADAPTER.validate_python(
             result.value,
@@ -212,7 +212,7 @@ class FlextCliFileTools(FlextCliServiceBase):
         def _write() -> bool:
             with Path(file_path).open(
                 mode="w",
-                encoding=c.Cli.Encoding.DEFAULT,
+                encoding=c.Cli.ENCODING_DEFAULT,
                 newline="",
             ) as f:
                 writer = csv.writer(f)
@@ -232,7 +232,7 @@ class FlextCliFileTools(FlextCliServiceBase):
 
         def _load() -> Sequence[t.StrMapping]:
             with Path(file_path).open(
-                encoding=c.Cli.Encoding.DEFAULT,
+                encoding=c.Cli.ENCODING_DEFAULT,
                 newline="",
             ) as f:
                 return [dict(row) for row in csv.DictReader(f)]
@@ -302,7 +302,7 @@ class FlextCliFileTools(FlextCliServiceBase):
             return r[t.Cli.JsonMapping].fail(
                 f"Unsupported format: {path.suffix or '<none>'}",
             )
-        if result.is_failure:
+        if result.failure:
             return r[t.Cli.JsonMapping].fail(
                 result.error or "Auto load failed",
             )

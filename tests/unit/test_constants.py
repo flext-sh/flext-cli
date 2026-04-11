@@ -39,18 +39,18 @@ class TestsCliConstants:
 
     def test_paths_flext_dir_name(self) -> None:
         """Test Paths.FLEXT_DIR_NAME constant."""
-        tm.that(c.Cli.Paths.FLEXT_DIR_NAME, is_=str)
-        tm.that(c.Cli.Paths.FLEXT_DIR_NAME, eq=".flext")
-        tm.that(c.Cli.Paths.FLEXT_DIR_NAME.startswith("."), eq=True)
+        tm.that(c.Cli.PATH_FLEXT_DIR_NAME, is_=str)
+        tm.that(c.Cli.PATH_FLEXT_DIR_NAME, eq=".flext")
+        tm.that(c.Cli.PATH_FLEXT_DIR_NAME.startswith("."), eq=True)
 
     def test_service_status_enum(self) -> None:
         """Test ServiceStatus enum values."""
-        tm.that(c.Cli.ServiceStatus.OPERATIONAL, is_=str)
-        tm.that(c.Cli.ServiceStatus.OPERATIONAL, eq="operational")
+        tm.that(c.Cli.SERVICE_STATUS_OPERATIONAL, is_=str)
+        tm.that(c.Cli.SERVICE_STATUS_OPERATIONAL, eq="operational")
 
     def test_get_enum_values(self) -> None:
         """Test get_enum_values extracts values from StrEnum."""
-        values = u.enum_values(c.Cli.ServiceStatus)
+        values = u.enum_values(type(c.Cli.SERVICE_STATUS_OPERATIONAL))
         tm.that(values, is_=frozenset)
         tm.that(values, empty=False)
         for v in values:
@@ -58,43 +58,43 @@ class TestsCliConstants:
 
     def test_cli_defaults(self) -> None:
         """Test CliDefaults constants."""
-        tm.that(c.Cli.CliDefaults.DEFAULT_APP_NAME, is_=str)
-        tm.that(c.Cli.CliDefaults.DEFAULT_APP_NAME, empty=False)
-        tm.that(c.Cli.CliDefaults.DEFAULT_VERBOSE, is_=bool)
-        tm.that(c.Cli.CliDefaults.DEFAULT_QUIET, is_=bool)
-        tm.that(c.Cli.CliDefaults.DEFAULT_NO_COLOR, is_=bool)
+        tm.that(c.Cli.CLI_DEFAULT_APP_NAME, is_=str)
+        tm.that(c.Cli.CLI_DEFAULT_APP_NAME, empty=False)
+        tm.that(c.Cli.CLI_DEFAULT_VERBOSE, is_=bool)
+        tm.that(c.Cli.CLI_DEFAULT_QUIET, is_=bool)
+        tm.that(c.Cli.CLI_DEFAULT_NO_COLOR, is_=bool)
 
     def test_error_messages(self) -> None:
         """Test ErrorMessages constants."""
-        tm.that(c.Cli.ErrorMessages.AUTH_FILE_NOT_FOUND, is_=str)
-        tm.that(c.Cli.ErrorMessages.AUTH_FILE_NOT_FOUND, empty=False)
-        tm.that(c.Cli.ErrorMessages.INVALID_OUTPUT_FORMAT, is_=str)
+        tm.that(c.Cli.ERR_AUTH_FILE_NOT_FOUND, is_=str)
+        tm.that(c.Cli.ERR_AUTH_FILE_NOT_FOUND, empty=False)
+        tm.that(c.Cli.ERR_INVALID_OUTPUT_FORMAT, is_=str)
 
     def test_emojis(self) -> None:
         """Test Emojis constants."""
-        tm.that(c.Cli.Emojis.SUCCESS, is_=str)
-        tm.that(c.Cli.Emojis.ERROR, is_=str)
-        tm.that(c.Cli.Emojis.WARNING, is_=str)
-        tm.that(c.Cli.Emojis.INFO, is_=str)
+        tm.that(c.Cli.EMOJI_SUCCESS, is_=str)
+        tm.that(c.Cli.EMOJI_ERROR, is_=str)
+        tm.that(c.Cli.EMOJI_WARNING, is_=str)
+        tm.that(c.Cli.EMOJI_INFO, is_=str)
 
     def test_symbols(self) -> None:
         """Test Symbols constants."""
-        tm.that(c.Cli.Symbols.SUCCESS_MARK, is_=str)
-        tm.that(c.Cli.Symbols.FAILURE_MARK, is_=str)
+        tm.that(c.Cli.SYMBOL_SUCCESS_MARK, is_=str)
+        tm.that(c.Cli.SYMBOL_FAILURE_MARK, is_=str)
 
     def test_message_types(self) -> None:
         """Test MessageTypes enum."""
-        tm.that(c.Cli.MessageTypes.SUCCESS, is_=str)
-        tm.that(c.Cli.MessageTypes.ERROR, is_=str)
-        tm.that(c.Cli.MessageTypes.WARNING, is_=str)
-        tm.that(c.Cli.MessageTypes.INFO, is_=str)
+        tm.that(c.Cli.MESSAGE_TYPE_SUCCESS, is_=str)
+        tm.that(c.Cli.MESSAGE_TYPE_ERROR, is_=str)
+        tm.that(c.Cli.MESSAGE_TYPE_WARNING, is_=str)
+        tm.that(c.Cli.MESSAGE_TYPE_INFO, is_=str)
 
     def test_subdirectories(self) -> None:
         """Test Subdirectories constants."""
-        tm.that(c.Cli.Subdirectories.CACHE, is_=str)
-        tm.that(c.Cli.Subdirectories.LOGS, is_=str)
-        tm.that(c.Cli.Subdirectories.STANDARD_SUBDIRS, is_=tuple)
-        tm.that(c.Cli.Subdirectories.STANDARD_SUBDIRS, empty=False)
+        tm.that(c.Cli.SUBDIR_CACHE, is_=str)
+        tm.that(c.Cli.SUBDIR_LOGS, is_=str)
+        tm.that(c.Cli.STANDARD_SUBDIRS, is_=tuple)
+        tm.that(c.Cli.STANDARD_SUBDIRS, empty=False)
 
     def test_table_formats(self) -> None:
         """Test TABLE_FORMATS constant."""
@@ -103,26 +103,60 @@ class TestsCliConstants:
 
     def test_output_defaults(self) -> None:
         """Test OutputDefaults constants."""
-        tm.that(c.Cli.OutputDefaults.DEFAULT_FORMAT_TYPE, is_=str)
-        tm.that(c.Cli.OutputDefaults.DEFAULT_MESSAGE_TYPE, is_=str)
+        tm.that(c.Cli.OUTPUT_DEFAULT_FORMAT_TYPE, is_=str)
+        tm.that(c.Cli.OUTPUT_DEFAULT_MESSAGE_TYPE, is_=str)
+
+    def test_flat_authority_sets(self) -> None:
+        """Test flat authority collections are centralized and frozen."""
+        tm.that(c.Cli.OUTPUT_FORMATS, is_=tuple)
+        tm.that(c.Cli.OUTPUT_FORMATS_SET, is_=frozenset)
+        tm.that(c.Cli.LOG_LEVELS, is_=tuple)
+        tm.that(c.Cli.LOG_LEVELS_SET, is_=frozenset)
+        tm.that(c.Cli.MESSAGE_TYPES, is_=tuple)
+        tm.that(c.Cli.MESSAGE_TYPES_SET, is_=frozenset)
+        tm.that(
+            sorted(c.Cli.OUTPUT_FORMATS),
+            eq=sorted(c.Cli.OUTPUT_FORMATS_SET),
+        )
+        tm.that(
+            sorted(c.Cli.LOG_LEVELS),
+            eq=sorted(c.Cli.LOG_LEVELS_SET),
+        )
+        tm.that(
+            sorted(c.Cli.MESSAGE_TYPES),
+            eq=sorted(c.Cli.MESSAGE_TYPES_SET),
+        )
+
+    def test_matching_regex_authorities(self) -> None:
+        """Test regex authorities classify representative CLI messages."""
+        tm.that(
+            c.Cli.FILE_NOT_FOUND_REGEXES[0].search("No such file or directory")
+            is not None,
+            eq=True,
+        )
+        tm.that(
+            c.Cli.CLI_USAGE_ERROR_REGEXES[0].search("No such option: --bad")
+            is not None,
+            eq=True,
+        )
 
     def test_cmd_defaults(self) -> None:
         """Test CmdDefaults constants."""
-        tm.that(c.Cli.CmdDefaults.SERVICE_NAME, is_=str)
-        tm.that(c.Cli.CmdDefaults.SERVICE_NAME, empty=False)
+        tm.that(c.Cli.CMD_SERVICE_NAME, is_=str)
+        tm.that(c.Cli.CMD_SERVICE_NAME, empty=False)
 
     def test_log_verbosity(self) -> None:
         """Test LogVerbosity enum."""
-        tm.that(c.Cli.LogVerbosity.COMPACT, is_=str)
-        tm.that(c.Cli.LogVerbosity.DETAILED, is_=str)
-        tm.that(c.Cli.LogVerbosity.FULL, is_=str)
+        tm.that(c.Cli.LOG_VERBOSITY_COMPACT, is_=str)
+        tm.that(c.Cli.LOG_VERBOSITY_DETAILED, is_=str)
+        tm.that(c.Cli.LOG_VERBOSITY_FULL, is_=str)
 
     def test_constants_uniqueness(self) -> None:
         """Test that key constants have unique values."""
         unique_values = {
-            c.Cli.Emojis.SUCCESS,
-            c.Cli.Emojis.ERROR,
-            c.Cli.Emojis.WARNING,
-            c.Cli.Emojis.INFO,
+            c.Cli.EMOJI_SUCCESS,
+            c.Cli.EMOJI_ERROR,
+            c.Cli.EMOJI_WARNING,
+            c.Cli.EMOJI_INFO,
         }
         tm.that(len(unique_values), eq=4)

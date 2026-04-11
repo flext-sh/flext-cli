@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from typing import ClassVar, Final
 
 from rich.errors import ConsoleError, LiveError, StyleError
@@ -12,10 +13,7 @@ from flext_core import t
 class FlextCliConstantsBase:
     """Base CLI constants for metadata, paths, symbols, and static values."""
 
-    class Encoding:
-        """Encoding constants."""
-
-        DEFAULT: Final[str] = "utf-8"
+    ENCODING_DEFAULT: Final[str] = "utf-8"
 
     CLI_SAFE_EXCEPTIONS: ClassVar[tuple[type[Exception], ...]] = (
         ValueError,
@@ -26,71 +24,57 @@ class FlextCliConstantsBase:
         LiveError,
     )
 
-    class Paths:
-        """Path constants."""
+    PATH_FLEXT_DIR_NAME: Final[str] = ".flext"
 
-        FLEXT_DIR_NAME: Final[str] = ".flext"
+    DICT_KEY_STATUS: Final[str] = "status"
+    DICT_KEY_SERVICE: Final[str] = "service"
+    DICT_KEY_AUTH_TOKEN: Final[str] = "token"
+    DICT_KEY_USERNAME: Final[str] = "username"
+    DICT_KEY_USER_SECRET: Final[str] = "password"
 
-    class DictKeys:
-        """Dictionary keys."""
+    SUBDIR_CACHE: Final[str] = "cache"
+    SUBDIR_LOGS: Final[str] = "logs"
+    STANDARD_SUBDIRS: ClassVar[t.StrSequence] = (SUBDIR_CACHE, SUBDIR_LOGS)
 
-        STATUS: Final[str] = "status"
-        SERVICE: Final[str] = "service"
-        AUTH_TOKEN: Final[str] = "token"
-        USERNAME: Final[str] = "username"
-        USER_SECRET: Final[str] = "password"
+    SYMBOL_SUCCESS_MARK: Final[str] = "\u2713"
+    SYMBOL_FAILURE_MARK: Final[str] = "\u2717"
+    SYMBOL_WARN: Final[str] = "\u26a0"
+    SYMBOL_SKIP: Final[str] = "\u25cb"
 
-    class Subdirectories:
-        """Subdirectory constants."""
+    FILE_NOT_FOUND_PATTERN_ORDER: ClassVar[tuple[str, ...]] = (
+        "no such file",
+        "not found",
+        "does not exist",
+        "errno 2",
+        "cannot open",
+    )
+    FILE_NOT_FOUND_PATTERNS: ClassVar[frozenset[str]] = frozenset(
+        FILE_NOT_FOUND_PATTERN_ORDER,
+    )
+    CLI_USAGE_ERROR_PATTERN_ORDER: ClassVar[tuple[str, ...]] = (
+        "no such option",
+        "no such command",
+        "missing option",
+        "missing argument",
+        "got unexpected extra argument",
+        "unrecognized arguments",
+        "cli exited with code 2",
+    )
+    CLI_USAGE_ERROR_PATTERNS: ClassVar[frozenset[str]] = frozenset(
+        CLI_USAGE_ERROR_PATTERN_ORDER,
+    )
+    FILE_NOT_FOUND_REGEXES: ClassVar[tuple[re.Pattern[str], ...]] = tuple(
+        re.compile(pattern, flags=re.IGNORECASE)
+        for pattern in FILE_NOT_FOUND_PATTERN_ORDER
+    )
+    CLI_USAGE_ERROR_REGEXES: ClassVar[tuple[re.Pattern[str], ...]] = tuple(
+        re.compile(pattern, flags=re.IGNORECASE)
+        for pattern in CLI_USAGE_ERROR_PATTERN_ORDER
+    )
 
-        CACHE: Final[str] = "cache"
-        LOGS: Final[str] = "logs"
-        STANDARD_SUBDIRS: ClassVar[t.StrSequence] = (CACHE, LOGS)
+    CMD_SERVICE_NAME: Final[str] = "FlextCliCmd"
 
-    class Symbols:
-        """Symbol constants."""
+    API_APP_DESCRIPTION_SUFFIX: Final[str] = " CLI"
+    API_CONTAINER_REGISTRATION_KEY: Final[str] = "flext_cli"
 
-        SUCCESS_MARK: Final[str] = "\u2713"
-        FAILURE_MARK: Final[str] = "\u2717"
-        WARN: Final[str] = "\u26a0"
-        SKIP: Final[str] = "\u25cb"
-
-    class Styles:
-        """Style constants."""
-
-        BLUE: Final[str] = "blue"
-        BOLD_GREEN: Final[str] = "bold green"
-        BOLD_RED: Final[str] = "bold red"
-        BOLD_YELLOW: Final[str] = "bold yellow"
-        DIM: Final[str] = "dim"
-
-    class Emojis:
-        """Emoji constants."""
-
-        INFO: Final[str] = "i"
-        SUCCESS: Final[str] = "\u2705"
-        ERROR: Final[str] = "\u274c"
-        WARNING: Final[str] = "\u26a0\ufe0f"
-        DEBUG: Final[str] = "D"
-
-    class FileErrorMessages:
-        """File error messages."""
-
-        FILE_DELETION_FAILED: Final[str] = "File deletion failed: {error}"
-        JSON_LOAD_FAILED: Final[str] = "JSON load failed: {error}"
-
-    class CmdDefaults:
-        """Command defaults."""
-
-        SERVICE_NAME: Final[str] = "FlextCliCmd"
-
-    class APIDefaults:
-        """API defaults."""
-
-        APP_DESCRIPTION_SUFFIX: Final[str] = " CLI"
-        CONTAINER_REGISTRATION_KEY: Final[str] = "flext_cli"
-
-    class UIDefaults:
-        """UI defaults."""
-
-        DEFAULT_PROMPT_SUFFIX: Final[str] = ": "
+    UI_DEFAULT_PROMPT_SUFFIX: Final[str] = ": "

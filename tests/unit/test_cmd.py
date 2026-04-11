@@ -1,7 +1,7 @@
 """FLEXT CLI CMD Tests - Comprehensive Command Functionality Testing.
 
 Tests for FlextCliCmd covering command initialization, execution, configuration operations
-(show, validate, get_config_info), error handling, performance, integration,
+(show, validate, config_snapshot), error handling, performance, integration,
 and edge cases.
 
 Modules tested: flext_cli.cmd.FlextCliCmd, direct u.Cli config helpers, FlextCliServiceBase
@@ -52,10 +52,10 @@ class TestsCliCmd:
         result = cmd.validate_config()
         tm.ok(result)
 
-    def test_cmd_get_config_info(self) -> None:
-        """Test get_config_info method."""
+    def test_cmd_config_snapshot(self) -> None:
+        """Test config_snapshot method."""
         cmd = u.Cli.Tests.create_cmd_instance()
-        result = cmd.get_config_info()
+        result = cmd.config_snapshot()
         tm.ok(result)
         tm.that(result.value, is_=m.Cli.ConfigSnapshot)
         tm.that(result.value.config_dir, none=False)
@@ -72,9 +72,9 @@ class TestsCliCmd:
         tm.that(results, is_=list)
         tm.that(results, empty=False)
 
-    def test_cmd_config_helper_get_config_info(self) -> None:
-        """Test u.Cli.get_config_info() directly."""
-        info = u.Cli.get_config_info()
+    def test_cmd_config_helper_snapshot(self) -> None:
+        """Test u.Cli.config_snapshot() directly."""
+        info = u.Cli.config_snapshot()
         tm.that(info, is_=m.Cli.ConfigSnapshot)
         tm.that(info.config_dir, is_=str)
         tm.that(info.config_exists, is_=bool)

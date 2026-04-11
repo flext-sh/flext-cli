@@ -23,7 +23,7 @@ class FlextCliUtilitiesJson:
     _module_logger: ClassVar[FlextLogger] = FlextLogger(__name__)
 
     @staticmethod
-    def is_mapping_like(
+    def mapping_like(
         value: t.Cli.RecursiveMappingSource,
     ) -> TypeIs[t.Cli.RecursiveMapping]:
         """Narrow values to mapping-like recursive containers."""
@@ -52,7 +52,7 @@ class FlextCliUtilitiesJson:
         if item is None:
             return ""
         source = FlextCliUtilitiesJson.unwrap_root_value(item)
-        if FlextCliUtilitiesJson.is_mapping_like(source):
+        if FlextCliUtilitiesJson.mapping_like(source):
             return {
                 str(key): FlextCliUtilitiesJson.normalize_json_value(value)
                 for key, value in source.items()
@@ -72,7 +72,7 @@ class FlextCliUtilitiesJson:
         if not path.exists():
             return r[t.Cli.JsonMapping].ok({})
         try:
-            raw = path.read_text(encoding=c.Cli.Encoding.DEFAULT)
+            raw = path.read_text(encoding=c.Cli.ENCODING_DEFAULT)
             loaded: t.Cli.JsonValue = t.Cli.JSON_VALUE_ADAPTER.validate_json(raw)
         except (ValidationError, OSError) as exc:
             return r[t.Cli.JsonMapping].fail(f"json_read: {exc}")
@@ -128,11 +128,11 @@ class FlextCliUtilitiesJson:
                     indent=indent,
                     ensure_ascii=ensure_ascii,
                 ).decode(
-                    c.Cli.Encoding.DEFAULT,
+                    c.Cli.ENCODING_DEFAULT,
                 )
                 + "\n"
             )
-            _ = path.write_text(content, encoding=c.Cli.Encoding.DEFAULT)
+            _ = path.write_text(content, encoding=c.Cli.ENCODING_DEFAULT)
         except (TypeError, ValueError, ValidationError, OSError) as exc:
             FlextCliUtilitiesJson._module_logger.debug(
                 "json_write failed",

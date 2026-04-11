@@ -20,7 +20,9 @@ class FlextCliUtilitiesFiles:
         try:
             target.mkdir(parents=True, exist_ok=True)
         except OSError as exc:
-            return r[Path].fail(f"ensure_dir: {exc}")
+            return r[Path].fail(
+                c.Cli.ERR_ENSURE_DIR_FAILED.format(error=exc),
+            )
         return r[Path].ok(target)
 
     @staticmethod
@@ -28,25 +30,31 @@ class FlextCliUtilitiesFiles:
         """Write a text file atomically via tempfile + replace in the same directory."""
         path = Path(file_path)
         ensure_result = FlextCliUtilitiesFiles.ensure_dir(path.parent)
-        if ensure_result.is_failure:
-            return r[bool].fail(ensure_result.error or "ensure_dir failed")
+        if ensure_result.failure:
+            return r[bool].fail(
+                ensure_result.error or c.Cli.ERR_ENSURE_DIR_GENERIC_FAILED,
+            )
         try:
             fd, tmp_path = tempfile.mkstemp(dir=path.parent, suffix=".tmp")
             try:
-                with os.fdopen(fd, "w", encoding=c.Cli.Encoding.DEFAULT) as handle:
+                with os.fdopen(fd, "w", encoding=c.Cli.ENCODING_DEFAULT) as handle:
                     handle.write(content)
                 Path(tmp_path).replace(path)
             except BaseException:
                 Path(tmp_path).unlink(missing_ok=True)
                 raise
         except OSError as exc:
-            return r[bool].fail(f"atomic_write_text_file: {exc}")
+            return r[bool].fail(
+                c.Cli.ERR_ATOMIC_WRITE_TEXT_FILE_FAILED.format(
+                    error=exc,
+                ),
+            )
         return r[bool].ok(True)
 
     @staticmethod
     def sha256_content(content: str) -> str:
         """Return the SHA-256 hex digest for text content."""
-        return hashlib.sha256(content.encode(c.Cli.Encoding.DEFAULT)).hexdigest()
+        return hashlib.sha256(content.encode(c.Cli.ENCODING_DEFAULT)).hexdigest()
 
     @staticmethod
     def sha256_file(file_path: t.Cli.TextPath) -> str:
