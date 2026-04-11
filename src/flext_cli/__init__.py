@@ -49,7 +49,7 @@ if _t.TYPE_CHECKING:
     from flext_cli._utilities.toml import FlextCliUtilitiesToml
     from flext_cli._utilities.validation import FlextCliUtilitiesValidation
     from flext_cli._utilities.yaml import FlextCliUtilitiesYaml
-    from flext_cli.api import FlextCli
+    from flext_cli.api import FlextCli, cli
     from flext_cli.base import FlextCliServiceBase, s
     from flext_cli.constants import FlextCliConstants, c
     from flext_cli.models import FlextCliModels, m
@@ -89,7 +89,10 @@ _LAZY_IMPORTS = merge_lazy_imports(
                 "__version__",
                 "__version_info__",
             ),
-            ".api": ("FlextCli",),
+            ".api": (
+                "FlextCli",
+                "cli",
+            ),
             ".base": (
                 "FlextCliServiceBase",
                 "s",
@@ -197,6 +200,7 @@ __all__ = [
     "__version__",
     "__version_info__",
     "c",
+    "cli",
     "d",
     "e",
     "h",

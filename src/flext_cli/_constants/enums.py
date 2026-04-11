@@ -17,6 +17,7 @@ class FlextCliConstantsEnums:
         CSV = "csv"
         TABLE = "table"
         PLAIN = "plain"
+        XML = "xml"
 
     @unique
     class CommandStatus(StrEnum):
@@ -67,6 +68,24 @@ class FlextCliConstantsEnums:
         """Service status enum."""
 
         OPERATIONAL = "operational"
+
+    @unique
+    class TabularFormat(StrEnum):
+        """Tabulate library format string authority — for table rendering."""
+
+        PLAIN = "plain"
+        SIMPLE = "simple"
+        GRID = "grid"
+        FANCY_GRID = "fancy_grid"
+        PIPE = "pipe"
+        ORGTBL = "orgtbl"
+        RST = "rst"
+        MEDIAWIKI = "mediawiki"
+        HTML = "html"
+        LATEX = "latex"
+        PSQL = "psql"
+        PRETTY = "pretty"
+        TABLE = "table"
 
     @unique
     class MessageStyles(StrEnum):

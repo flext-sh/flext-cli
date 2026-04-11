@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
-from examples import p, t
+from examples import c, p, t
 from flext_core import r
 
 
@@ -148,9 +148,9 @@ class DataProcessorPlugin:
         """
         try:
             self._processors = {
-                "csv": lambda data: f"CSV: {data}",
-                "json": lambda data: f"JSON: {data}",
-                "xml": lambda data: f"XML: {data}",
+                c.Cli.OutputFormats.CSV: lambda data: f"CSV: {data}",
+                c.Cli.OutputFormats.JSON: lambda data: f"JSON: {data}",
+                c.Cli.OutputFormats.XML: lambda data: f"XML: {data}",
             }
             return r[bool].ok(value=True)
         except Exception as e:
@@ -178,7 +178,10 @@ class DataProcessorPlugin:
                     "data group does not implement GroupWithCommands protocol",
                 )
 
-            def process_data(input_data: str, format_type: str = "json") -> str:
+            def process_data(
+                input_data: str,
+                format_type: c.Cli.OutputFormats = c.Cli.OutputFormats.JSON,
+            ) -> str:
                 """Process data in specified format.
 
                 Args:
@@ -206,7 +209,10 @@ class DataProcessorPlugin:
             data_group = data
 
             @data_group.command()
-            def process_cmd(input_data: str, format_type: str = "json") -> None:
+            def process_cmd(
+                input_data: str,
+                format_type: c.Cli.OutputFormats = c.Cli.OutputFormats.JSON,
+            ) -> None:
                 """Process data in specified format."""
                 result = process_data(input_data, format_type)
                 print(f"Processed: {result}")

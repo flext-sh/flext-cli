@@ -37,13 +37,13 @@ class FlextCliSettings(FlextSettings):
     log_verbosity: Annotated[
         str,
         Field(
-            default=c.Cli.LOG_VERBOSITY_COMPACT.value,
+            default=c.Cli.LogVerbosity.COMPACT,
             description="Log format (compact, detailed, full)",
         ),
     ]
     cli_log_level: Annotated[
         c.LogLevel,
-        Field(default=c.Cli.LOG_LEVEL_INFO, description="CLI log level"),
+        Field(default=c.LogLevel.INFO, description="CLI log level"),
     ]
     no_color: Annotated[
         bool,

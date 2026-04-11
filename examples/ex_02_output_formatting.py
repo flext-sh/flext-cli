@@ -65,7 +65,7 @@ def display_database_results(records: Sequence[t.Cli.TableMappingRow]) -> None:
 
 def export_report(
     data: Sequence[t.Cli.TableMappingRow],
-    format_type: str = "table",
+    format_type: c.Cli.OutputFormats = c.Cli.OutputFormats.TABLE,
 ) -> r[str]:
     """Create ASCII tables for logs/reports in your app."""
     return cli.format_table(list(data) if data else [], table_format=format_type)
@@ -184,7 +184,7 @@ def main() -> None:
     cli.print(
         "\n3. ASCII Tables (for logs/reports):", style=c.Cli.MessageStyles.BOLD_CYAN
     )
-    ascii_result = export_report(sample_data, "table")
+    ascii_result = export_report(sample_data, c.Cli.OutputFormats.TABLE)
     if ascii_result.success:
         cli.print(ascii_result.value, style=c.Cli.MessageStyles.WHITE)
     cli.print(
@@ -262,7 +262,7 @@ def advanced_output_example() -> None:
     cli.print(
         "\n=== Advanced Output Formatting ===", style=c.Cli.MessageStyles.BOLD_BLUE
     )
-    output_format = "table"
+    output_format: c.Cli.OutputFormats = c.Cli.OutputFormats.TABLE
     cli.print(f"Using format: {output_format}", style=c.Cli.MessageStyles.CYAN)
     sample_data: t.Cli.TableRows = (
         {"name": "Alice", "age": 30, "role": "developer"},

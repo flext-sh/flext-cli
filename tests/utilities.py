@@ -167,11 +167,11 @@ class TestsFlextCliUtilities(FlextTestsUtilities, u):
                     log_level: Annotated[
                         str,
                         FlextCliCommonParams.create_option("cli_log_level"),
-                    ] = "INFO",
+                    ] = c.LogLevel.INFO,
                     output_format: Annotated[
                         str,
                         FlextCliCommonParams.create_option("output_format"),
-                    ] = "table",
+                    ] = c.Cli.OutputFormats.TABLE,
                 ) -> None:
                     """Test command with Railway-oriented parameter handling."""
                     typer.echo(f"Command: {command_name}")

@@ -122,7 +122,7 @@ class FlextCliUtilitiesValidation:
             fmt,
             name="format",
             empty=False,
-            in_list=c.Cli.VALIDATION_OUTPUT_FORMATS,
+            in_list=c.Cli.OUTPUT_FORMATS,
         )
         if valid.success:
             return r[str].ok(fmt)

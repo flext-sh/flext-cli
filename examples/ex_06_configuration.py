@@ -109,7 +109,9 @@ def load_profile_config(profile_name: str = "default") -> r[FlextCliSettings]:
     profile_config = cli.settings.model_copy(
         update={
             "debug": profile_name == "development",
-            "output_format": "json" if profile_name == "production" else "table",
+            "output_format": c.Cli.OutputFormats.JSON
+            if profile_name == "production"
+            else c.Cli.OutputFormats.TABLE,
         },
         deep=True,
     )
@@ -144,7 +146,9 @@ def show_environment_variables() -> None:
         "FLEXT_LOG_LEVEL": os.getenv("FLEXT_LOG_LEVEL", "INFO"),
         "FLEXT_ENVIRONMENT": os.getenv("FLEXT_ENVIRONMENT", "development"),
         "FLEXT_PROFILE": os.getenv("FLEXT_PROFILE", "default"),
-        "FLEXT_OUTPUT_FORMAT": os.getenv("FLEXT_OUTPUT_FORMAT", "table"),
+        "FLEXT_OUTPUT_FORMAT": os.getenv(
+            "FLEXT_OUTPUT_FORMAT", c.Cli.OutputFormats.TABLE
+        ),
     }
     cli.print("\n📊 Current Environment Variables:", style=c.Cli.MessageStyles.YELLOW)
 

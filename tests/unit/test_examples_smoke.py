@@ -18,7 +18,7 @@ import examples.ex_12_pydantic_driven_cli as pydantic_driven
 from flext_tests import tm
 
 from flext_cli import FlextCliSettings, cli
-from tests import t
+from tests import c, t
 
 
 @contextmanager
@@ -139,7 +139,7 @@ class TestFlextCliExamplesSmoke:
         profile_result = configuration.load_profile_config("development")
         tm.ok(profile_result)
         tm.that(profile_result.value.debug, eq=True)
-        tm.that(profile_result.value.output_format, eq="table")
+        tm.that(profile_result.value.output_format, eq=c.Cli.OutputFormats.TABLE)
 
         authentication.logout()
         cleared_result = cli.fetch_auth_token()

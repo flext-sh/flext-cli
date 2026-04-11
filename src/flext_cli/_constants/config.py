@@ -24,65 +24,6 @@ class FlextCliConstantsSettings:
     )
     MESSAGE_TYPES_SET: ClassVar[frozenset[str]] = frozenset(MESSAGE_TYPES)
 
-    OUTPUT_FORMAT_JSON: Final[FlextCliConstantsEnums.OutputFormats] = (
-        FlextCliConstantsEnums.OutputFormats.JSON
-    )
-    OUTPUT_FORMAT_YAML: Final[FlextCliConstantsEnums.OutputFormats] = (
-        FlextCliConstantsEnums.OutputFormats.YAML
-    )
-    OUTPUT_FORMAT_CSV: Final[FlextCliConstantsEnums.OutputFormats] = (
-        FlextCliConstantsEnums.OutputFormats.CSV
-    )
-    OUTPUT_FORMAT_TABLE: Final[FlextCliConstantsEnums.OutputFormats] = (
-        FlextCliConstantsEnums.OutputFormats.TABLE
-    )
-    OUTPUT_FORMAT_PLAIN: Final[FlextCliConstantsEnums.OutputFormats] = (
-        FlextCliConstantsEnums.OutputFormats.PLAIN
-    )
-
-    MESSAGE_TYPE_INFO: Final[FlextCliConstantsEnums.MessageTypes] = (
-        FlextCliConstantsEnums.MessageTypes.INFO
-    )
-    MESSAGE_TYPE_ERROR: Final[FlextCliConstantsEnums.MessageTypes] = (
-        FlextCliConstantsEnums.MessageTypes.ERROR
-    )
-    MESSAGE_TYPE_WARNING: Final[FlextCliConstantsEnums.MessageTypes] = (
-        FlextCliConstantsEnums.MessageTypes.WARNING
-    )
-    MESSAGE_TYPE_SUCCESS: Final[FlextCliConstantsEnums.MessageTypes] = (
-        FlextCliConstantsEnums.MessageTypes.SUCCESS
-    )
-    MESSAGE_TYPE_DEBUG: Final[FlextCliConstantsEnums.MessageTypes] = (
-        FlextCliConstantsEnums.MessageTypes.DEBUG
-    )
-
-    LOG_VERBOSITY_COMPACT: Final[FlextCliConstantsEnums.LogVerbosity] = (
-        FlextCliConstantsEnums.LogVerbosity.COMPACT
-    )
-    LOG_VERBOSITY_DETAILED: Final[FlextCliConstantsEnums.LogVerbosity] = (
-        FlextCliConstantsEnums.LogVerbosity.DETAILED
-    )
-    LOG_VERBOSITY_FULL: Final[FlextCliConstantsEnums.LogVerbosity] = (
-        FlextCliConstantsEnums.LogVerbosity.FULL
-    )
-
-    LOG_LEVEL_DEBUG: Final[c.LogLevel] = c.LogLevel.DEBUG
-    LOG_LEVEL_INFO: Final[c.LogLevel] = c.LogLevel.INFO
-    LOG_LEVEL_WARNING: Final[c.LogLevel] = c.LogLevel.WARNING
-    LOG_LEVEL_ERROR: Final[c.LogLevel] = c.LogLevel.ERROR
-    LOG_LEVEL_CRITICAL: Final[c.LogLevel] = c.LogLevel.CRITICAL
-
-    COMMAND_STATUS_COMPLETED: Final[FlextCliConstantsEnums.CommandStatus] = (
-        FlextCliConstantsEnums.CommandStatus.COMPLETED
-    )
-    SERVICE_STATUS_OPERATIONAL: Final[FlextCliConstantsEnums.ServiceStatus] = (
-        FlextCliConstantsEnums.ServiceStatus.OPERATIONAL
-    )
-
-    VALIDATION_OUTPUT_FORMATS: ClassVar[t.StrSequence] = tuple(
-        item.value for item in FlextCliConstantsEnums.OutputFormats
-    )
-
     CLI_DEFAULT_APP_NAME: Final[str] = "flext-cli"
     CLI_DEFAULT_NO_COLOR: Final[bool] = False
     CLI_DEFAULT_VERBOSE: Final[bool] = False
@@ -162,7 +103,7 @@ class FlextCliConstantsSettings:
         "output_format": {
             CLI_PARAM_KEY_SHORT: CLI_PARAM_SHORT_FLAG_OUTPUT_FORMAT,
             CLI_PARAM_KEY_PRIORITY: CLI_PARAM_PRIORITY_OUTPUT_FORMAT,
-            CLI_PARAM_KEY_CHOICES: list(VALIDATION_OUTPUT_FORMATS),
+            CLI_PARAM_KEY_CHOICES: list(OUTPUT_FORMATS),
             CLI_PARAM_KEY_CASE_SENSITIVE: CLI_PARAM_CASE_INSENSITIVE,
         },
         "no_color": {

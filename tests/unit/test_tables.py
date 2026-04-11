@@ -6,6 +6,7 @@ import pytest
 from flext_tests import tm
 
 from flext_cli import FlextCliTables
+from tests import c
 
 
 class TestsCliTables:
@@ -17,7 +18,7 @@ class TestsCliTables:
             {"status": "ok", "count": 2},
             headers=["Field", "Value"],
             colalign=["left", "right"],
-            table_format="grid",
+            table_format=c.Cli.TabularFormat.GRID,
         )
         tm.that(result.success, eq=True)
         table = result.value or ""
@@ -30,7 +31,7 @@ class TestsCliTables:
         result = FlextCliTables.format_table(
             [{"identifier": "row-1", "display_name": "Alpha"}],
             show_header=False,
-            table_format="plain",
+            table_format=c.Cli.TabularFormat.PLAIN,
         )
         tm.that(result.success, eq=True)
         table = result.value or ""
@@ -42,7 +43,7 @@ class TestsCliTables:
         """The public 'table' format alias must resolve to the default backend."""
         result = FlextCliTables.format_table(
             [{"name": "Alice", "status": "active"}],
-            table_format="table",
+            table_format=c.Cli.TabularFormat.TABLE,
         )
         tm.that(result.success, eq=True)
         table = result.value or ""

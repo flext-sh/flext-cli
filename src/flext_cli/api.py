@@ -58,7 +58,7 @@ class FlextCli(
     def execute(self) -> r[t.Cli.JsonMapping]:
         """Execute CLI service with railway pattern."""
         result_dict: t.Cli.JsonMapping = {
-            c.Cli.DICT_KEY_STATUS: c.Cli.SERVICE_STATUS_OPERATIONAL.value,
+            c.Cli.DICT_KEY_STATUS: c.Cli.ServiceStatus.OPERATIONAL,
             c.Cli.DICT_KEY_SERVICE: c.Cli.FLEXT_CLI,
             "timestamp": u.generate("timestamp"),
             "version": c.Cli.CLI_VERSION,

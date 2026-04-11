@@ -16,7 +16,7 @@ from typer.models import OptionInfo
 from typer.testing import CliRunner
 
 from flext_cli import FlextCliCommonParams
-from tests import u
+from tests import c, u
 
 
 class TestsCliCommonParams:
@@ -43,14 +43,14 @@ class TestsCliCommonParams:
             config,
             verbose=True,
             debug=True,
-            log_level="DEBUG",
+            log_level=c.LogLevel.DEBUG,
         )
 
         tm.ok(result)
         updated_config = result.value
         tm.that(updated_config.verbose is True, eq=True)
         tm.that(updated_config.debug is True, eq=True)
-        tm.that(updated_config.cli_log_level, eq="DEBUG")
+        tm.that(updated_config.cli_log_level, eq=c.LogLevel.DEBUG)
 
     def test_apply_to_config_trace_requires_debug(self) -> None:
         """Test trace requires debug - Railway pattern validation."""
@@ -135,7 +135,12 @@ class TestsCliCommonParams:
         runner = CliRunner()
         result = runner.invoke(
             app,
-            ["--log-level", "WARNING", "--output-format", "json"],
+            [
+                "--log-level",
+                c.LogLevel.WARNING,
+                "--output-format",
+                c.Cli.OutputFormats.JSON,
+            ],
         )
 
         tm.that(result.exit_code, eq=0)

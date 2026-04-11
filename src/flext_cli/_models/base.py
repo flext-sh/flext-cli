@@ -177,10 +177,10 @@ class FlextCliModelsBase:
         success_type: Annotated[
             c.Cli.MessageTypes | t.Cli.MessageTypeLiteral,
             Field(
-                default=c.Cli.MESSAGE_TYPE_SUCCESS,
+                default=c.Cli.MessageTypes.SUCCESS,
                 description="CLI output style on success",
             ),
-        ] = c.Cli.MESSAGE_TYPE_SUCCESS
+        ] = c.Cli.MessageTypes.SUCCESS
 
     class TableConfig(m.Value):
         """Table display configuration for tabulate extending Value via inheritance.
@@ -591,7 +591,7 @@ class FlextCliModelsBase:
         default: Annotated[
             str,
             Field(
-                default=c.Cli.LOG_LEVEL_INFO.value,
+                default=c.LogLevel.INFO,
                 description="Default log level when raw is absent",
             ),
         ]

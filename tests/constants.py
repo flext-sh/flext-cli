@@ -102,10 +102,10 @@ class TestsFlextCliConstants(FlextTestsConstants, c):
                 """Factory constants for config test scenarios."""
 
                 VALID_OUTPUT_FORMATS: Final[t.StrSequence] = [
-                    "json",
-                    "yaml",
-                    "csv",
-                    "table",
+                    c.Cli.OutputFormats.JSON,
+                    c.Cli.OutputFormats.YAML,
+                    c.Cli.OutputFormats.CSV,
+                    c.Cli.OutputFormats.TABLE,
                 ]
                 VALID_ENVIRONMENTS: Final[t.StrSequence] = [
                     "development",
@@ -114,16 +114,16 @@ class TestsFlextCliConstants(FlextTestsConstants, c):
                     "test",
                 ]
                 VALID_VERBOSITIES: Final[t.StrSequence] = [
-                    "compact",
-                    "detailed",
-                    "full",
+                    c.Cli.LogVerbosity.COMPACT,
+                    c.Cli.LogVerbosity.DETAILED,
+                    c.Cli.LogVerbosity.FULL,
                 ]
                 VALID_LOGGING_LEVELS: Final[t.StrSequence] = [
-                    "DEBUG",
-                    "INFO",
-                    "WARNING",
-                    "ERROR",
-                    "CRITICAL",
+                    c.LogLevel.DEBUG,
+                    c.LogLevel.INFO,
+                    c.LogLevel.WARNING,
+                    c.LogLevel.ERROR,
+                    c.LogLevel.CRITICAL,
                 ]
 
                 @classmethod

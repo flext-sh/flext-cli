@@ -486,7 +486,7 @@ class FlextCliCli(s):
         success_formatter: p.Cli.SuccessMessageFormatter[TResult] | None = None,
         success_message: str | None = None,
         success_type: c.Cli.MessageTypes | t.Cli.MessageTypeLiteral = (
-            c.Cli.MESSAGE_TYPE_SUCCESS
+            c.Cli.MessageTypes.SUCCESS
         ),
     ) -> None:
         """Register a model command that normalizes `r[...]` CLI handling."""
@@ -515,7 +515,7 @@ class FlextCliCli(s):
         success_formatter: p.Cli.SuccessMessageFormatter[TResult] | None = None,
         success_message: str | None = None,
         success_type: c.Cli.MessageTypes | t.Cli.MessageTypeLiteral = (
-            c.Cli.MESSAGE_TYPE_SUCCESS
+            c.Cli.MessageTypes.SUCCESS
         ),
     ) -> p.Cli.ModelCommandHandler[M]:
         """Build the shared executor used by single and batched route registration."""
@@ -525,7 +525,7 @@ class FlextCliCli(s):
                 remember_failure(error, failure_message)
             FlextCliOutput.display_message(
                 error or failure_message,
-                c.Cli.MESSAGE_TYPE_ERROR,
+                c.Cli.MessageTypes.ERROR,
             )
             cls.exit(code=1)
 
@@ -559,7 +559,7 @@ class FlextCliCli(s):
         | None = None,
         success_message: str | None = None,
         success_type: c.Cli.MessageTypes | t.Cli.MessageTypeLiteral = (
-            c.Cli.MESSAGE_TYPE_SUCCESS
+            c.Cli.MessageTypes.SUCCESS
         ),
     ) -> p.Cli.ModelCommandHandler[BaseModel]:
         """Build a batch executor for type-erased route registration."""
@@ -569,7 +569,7 @@ class FlextCliCli(s):
                 remember_failure(error, failure_message)
             FlextCliOutput.display_message(
                 error or failure_message,
-                c.Cli.MESSAGE_TYPE_ERROR,
+                c.Cli.MessageTypes.ERROR,
             )
             cls.exit(code=1)
 

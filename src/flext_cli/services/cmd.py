@@ -45,7 +45,7 @@ class FlextCliCmd(s):
     def execute(self) -> r[t.Cli.JsonMapping]:
         """Report operational status required by `s`."""
         status: t.Cli.JsonMapping = {
-            c.Cli.DICT_KEY_STATUS: c.Cli.SERVICE_STATUS_OPERATIONAL.value,
+            c.Cli.DICT_KEY_STATUS: c.Cli.ServiceStatus.OPERATIONAL,
             c.Cli.DICT_KEY_SERVICE: c.Cli.CMD_SERVICE_NAME,
         }
         return r[t.Cli.JsonMapping].ok(status)

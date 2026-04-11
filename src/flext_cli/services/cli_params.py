@@ -125,7 +125,7 @@ class FlextCliCommonParams(s):
         if params.output_format is not None:
             validated_result = u.Cli.validate_format(params.output_format)
             if validated_result.failure:
-                valid = ", ".join(c.Cli.VALIDATION_OUTPUT_FORMATS)
+                valid = ", ".join(c.Cli.OUTPUT_FORMATS)
                 return r[FlextCliSettings].fail(
                     c.Cli.CLI_PARAM_ERR_INVALID_WITH_VALID_FMT.format(
                         field_label="output format",
@@ -146,7 +146,7 @@ class FlextCliCommonParams(s):
         if params.log_level is None:
             return r[FlextCliSettings].ok(config)
         try:
-            config.cli_log_level = type(c.Cli.LOG_LEVEL_INFO)(
+            config.cli_log_level = type(c.LogLevel.INFO)(
                 params.log_level.upper(),
             )
             return r[FlextCliSettings].ok(config)

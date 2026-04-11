@@ -11,13 +11,13 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Mapping, MutableMapping, Sequence
-from typing import Annotated, ClassVar, Literal
+from typing import Annotated, ClassVar
 
 from flext_tests import FlextTestsModels
 from pydantic import BaseModel, ConfigDict, Field
 
 from flext_cli import m
-from tests import t
+from tests import c, t
 
 
 class TestsFlextCliModels(FlextTestsModels, m):
@@ -234,8 +234,10 @@ class TestsFlextCliModels(FlextTestsModels, m):
                     bool, Field(default=False, description="Dry-run mode")
                 ]
                 output_format: Annotated[
-                    Literal["json", "table"],
-                    Field(default="table", description="Output format"),
+                    c.Cli.OutputFormats,
+                    Field(
+                        default=c.Cli.OutputFormats.TABLE, description="Output format"
+                    ),
                 ]
 
             class SampleOutput(BaseModel):

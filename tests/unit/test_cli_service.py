@@ -8,7 +8,7 @@ from flext_tests import tm
 
 from flext_cli import cli
 from flext_core import r
-from tests import m, t
+from tests import c, m, t
 
 
 class TestsCliService:
@@ -68,7 +68,7 @@ class TestsCliService:
                 "3",
                 "--dry-run",
                 "--output-format",
-                "json",
+                c.Cli.OutputFormats.JSON,
             ],
         )
 
@@ -80,7 +80,7 @@ class TestsCliService:
         tm.that(captured[0].name, eq="alice")
         tm.that(captured[0].count, eq=3)
         tm.that(captured[0].dry_run, eq=True)
-        tm.that(captured[0].output_format, eq="json")
+        tm.that(captured[0].output_format, eq=c.Cli.OutputFormats.JSON)
 
     def test_model_command_accepts_repeatable_list_options(self) -> None:
         captured: MutableSequence[m.Cli.Tests.RepeatableInput] = []
@@ -134,7 +134,7 @@ class TestsCliService:
             name="alice",
             count=3,
             dry_run=True,
-            output_format="json",
+            output_format=c.Cli.OutputFormats.JSON,
         )
 
         tm.that(
@@ -143,7 +143,7 @@ class TestsCliService:
                 "name": "alice",
                 "count": 3,
                 "dry_run": True,
-                "output_format": "json",
+                "output_format": c.Cli.OutputFormats.JSON,
             },
         )
 

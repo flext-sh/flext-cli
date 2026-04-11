@@ -68,7 +68,7 @@ class DataManagerCLI:
     def display_welcome(self) -> None:
         """Show welcome message with styled output."""
         cli.print("=" * 70, style=c.Cli.MessageStyles.BOLD_BLUE)
-        cli.print("  📊 Data Manager CLI", style="bold white on blue")
+        cli.print("  📊 Data Manager CLI", style=c.Cli.MessageStyles.BOLD_WHITE_ON_BLUE)
         cli.print("=" * 70, style=c.Cli.MessageStyles.BOLD_BLUE)
 
     def load_data(self) -> r[t.ContainerMapping]:
