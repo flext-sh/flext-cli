@@ -13,56 +13,57 @@ from flext_core.lazy import (
 )
 
 if _t.TYPE_CHECKING:
-    from flext_cli._constants.base import FlextCliConstantsBase
-    from flext_cli._constants.config import FlextCliConstantsSettings
-    from flext_cli._constants.enums import FlextCliConstantsEnums
-    from flext_cli._constants.pipeline import FlextCliConstantsPipeline
-    from flext_cli._models.base import FlextCliModelsBase
-    from flext_cli._models.pipeline import FlextCliModelsPipeline
-    from flext_cli._protocols.base import FlextCliProtocolsBase
-    from flext_cli._protocols.domain import FlextCliProtocolsDomain
-    from flext_cli._protocols.pipeline import FlextCliProtocolsPipeline
-    from flext_cli._typings.base import FlextCliTypesBase
-    from flext_cli._typings.domain import FlextCliTypesDomain
-    from flext_cli._typings.pipeline import FlextCliTypesPipeline
-    from flext_cli._utilities.base import FlextCliUtilitiesBase
-    from flext_cli._utilities.configuration import FlextCliUtilitiesConfiguration
-    from flext_cli._utilities.conversion import (
+    from _constants.base import FlextCliConstantsBase
+    from _constants.config import FlextCliConstantsSettings
+    from _constants.enums import FlextCliConstantsEnums
+    from _constants.pipeline import FlextCliConstantsPipeline
+    from _models.base import FlextCliModelsBase
+    from _models.pipeline import FlextCliModelsPipeline
+    from _protocols.base import FlextCliProtocolsBase
+    from _protocols.domain import FlextCliProtocolsDomain
+    from _protocols.pipeline import FlextCliProtocolsPipeline
+    from _typings.base import FlextCliTypesBase
+    from _typings.domain import FlextCliTypesDomain
+    from _typings.pipeline import FlextCliTypesPipeline
+    from _utilities.base import FlextCliUtilitiesBase
+    from _utilities.configuration import FlextCliUtilitiesConfiguration
+    from _utilities.conversion import (
         FlextCliUtilitiesCliModelConverter,
         FlextCliUtilitiesConversion,
     )
-    from flext_cli._utilities.files import FlextCliUtilitiesFiles
-    from flext_cli._utilities.json import FlextCliUtilitiesJson
-    from flext_cli._utilities.matching import FlextCliUtilitiesMatching
-    from flext_cli._utilities.model_commands import (
+    from _utilities.files import FlextCliUtilitiesFiles
+    from _utilities.json import FlextCliUtilitiesJson
+    from _utilities.matching import FlextCliUtilitiesMatching
+    from _utilities.model_commands import (
         FlextCliUtilitiesModelCommandBuilder,
         FlextCliUtilitiesModelCommands,
     )
-    from flext_cli._utilities.options import (
+    from _utilities.options import (
         FlextCliUtilitiesOptionBuilder,
         FlextCliUtilitiesOptions,
     )
-    from flext_cli._utilities.pipeline import FlextCliUtilitiesPipeline
-    from flext_cli._utilities.runtime import FlextCliUtilitiesRuntime
-    from flext_cli._utilities.toml import FlextCliUtilitiesToml
-    from flext_cli._utilities.validation import FlextCliUtilitiesValidation
-    from flext_cli._utilities.yaml import FlextCliUtilitiesYaml
+    from _utilities.pipeline import FlextCliUtilitiesPipeline
+    from _utilities.runtime import FlextCliUtilitiesRuntime
+    from _utilities.toml import FlextCliUtilitiesToml
+    from _utilities.validation import FlextCliUtilitiesValidation
+    from _utilities.yaml import FlextCliUtilitiesYaml
+
     from flext_cli.api import FlextCli, cli
+    from flext_cli.auth import FlextCliAuth
     from flext_cli.base import FlextCliServiceBase, s
+    from flext_cli.cli import FlextCliCli
+    from flext_cli.cli_params import FlextCliCommonParams
+    from flext_cli.cmd import FlextCliCmd
+    from flext_cli.commands import FlextCliCommands
     from flext_cli.constants import FlextCliConstants, c
+    from flext_cli.file_tools import FlextCliFileTools
+    from flext_cli.formatters import FlextCliFormatters
     from flext_cli.models import FlextCliModels, m
+    from flext_cli.output import FlextCliOutput
+    from flext_cli.prompts import FlextCliPrompts
     from flext_cli.protocols import FlextCliProtocols, p
-    from flext_cli.services.auth import FlextCliAuth
-    from flext_cli.services.cli import FlextCliCli
-    from flext_cli.services.cli_params import FlextCliCommonParams
-    from flext_cli.services.cmd import FlextCliCmd
-    from flext_cli.services.commands import FlextCliCommands
-    from flext_cli.services.file_tools import FlextCliFileTools
-    from flext_cli.services.formatters import FlextCliFormatters
-    from flext_cli.services.output import FlextCliOutput
-    from flext_cli.services.prompts import FlextCliPrompts
-    from flext_cli.services.tables import FlextCliTables
     from flext_cli.settings import FlextCliSettings
+    from flext_cli.tables import FlextCliTables
     from flext_cli.typings import FlextCliTypes, t
     from flext_cli.utilities import FlextCliUtilities, u
     from flext_core.decorators import d
@@ -95,23 +96,33 @@ _LAZY_IMPORTS = merge_lazy_imports(
                 "FlextCli",
                 "cli",
             ),
+            ".auth": ("FlextCliAuth",),
             ".base": (
                 "FlextCliServiceBase",
                 "s",
             ),
+            ".cli": ("FlextCliCli",),
+            ".cli_params": ("FlextCliCommonParams",),
+            ".cmd": ("FlextCliCmd",),
+            ".commands": ("FlextCliCommands",),
             ".constants": (
                 "FlextCliConstants",
                 "c",
             ),
+            ".file_tools": ("FlextCliFileTools",),
+            ".formatters": ("FlextCliFormatters",),
             ".models": (
                 "FlextCliModels",
                 "m",
             ),
+            ".output": ("FlextCliOutput",),
+            ".prompts": ("FlextCliPrompts",),
             ".protocols": (
                 "FlextCliProtocols",
                 "p",
             ),
             ".settings": ("FlextCliSettings",),
+            ".tables": ("FlextCliTables",),
             ".typings": (
                 "FlextCliTypes",
                 "t",
@@ -120,6 +131,40 @@ _LAZY_IMPORTS = merge_lazy_imports(
                 "FlextCliUtilities",
                 "u",
             ),
+            "_constants.base": ("FlextCliConstantsBase",),
+            "_constants.config": ("FlextCliConstantsSettings",),
+            "_constants.enums": ("FlextCliConstantsEnums",),
+            "_constants.pipeline": ("FlextCliConstantsPipeline",),
+            "_models.base": ("FlextCliModelsBase",),
+            "_models.pipeline": ("FlextCliModelsPipeline",),
+            "_protocols.base": ("FlextCliProtocolsBase",),
+            "_protocols.domain": ("FlextCliProtocolsDomain",),
+            "_protocols.pipeline": ("FlextCliProtocolsPipeline",),
+            "_typings.base": ("FlextCliTypesBase",),
+            "_typings.domain": ("FlextCliTypesDomain",),
+            "_typings.pipeline": ("FlextCliTypesPipeline",),
+            "_utilities.base": ("FlextCliUtilitiesBase",),
+            "_utilities.configuration": ("FlextCliUtilitiesConfiguration",),
+            "_utilities.conversion": (
+                "FlextCliUtilitiesCliModelConverter",
+                "FlextCliUtilitiesConversion",
+            ),
+            "_utilities.files": ("FlextCliUtilitiesFiles",),
+            "_utilities.json": ("FlextCliUtilitiesJson",),
+            "_utilities.matching": ("FlextCliUtilitiesMatching",),
+            "_utilities.model_commands": (
+                "FlextCliUtilitiesModelCommandBuilder",
+                "FlextCliUtilitiesModelCommands",
+            ),
+            "_utilities.options": (
+                "FlextCliUtilitiesOptionBuilder",
+                "FlextCliUtilitiesOptions",
+            ),
+            "_utilities.pipeline": ("FlextCliUtilitiesPipeline",),
+            "_utilities.runtime": ("FlextCliUtilitiesRuntime",),
+            "_utilities.toml": ("FlextCliUtilitiesToml",),
+            "_utilities.validation": ("FlextCliUtilitiesValidation",),
+            "_utilities.yaml": ("FlextCliUtilitiesYaml",),
             "flext_core.decorators": ("d",),
             "flext_core.exceptions": ("e",),
             "flext_core.handlers": ("h",),
