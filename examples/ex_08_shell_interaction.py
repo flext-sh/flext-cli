@@ -73,7 +73,7 @@ def handle_config_command(key: str = "", value: str = "") -> r[str]:
     if key:
         cli.print(f"📖 Reading {key}...", style=c.Cli.MessageStyles.CYAN)
         return r[str].ok("value")
-    cli.print("⚠️  Usage: config <key> [value]", style=c.Cli.MessageStyles.YELLOW)
+    cli.print("⚠️  Usage: settings <key> [value]", style=c.Cli.MessageStyles.YELLOW)
     return r[str].fail("Missing key")
 
 
@@ -86,7 +86,7 @@ class InteractiveShell:
         self.commands = {
             "status": handle_status_command,
             "list": handle_list_command,
-            "config": handle_config_command,
+            "settings": handle_config_command,
             "help": self.show_help,
             "exit": self.exit_shell,
         }
@@ -175,7 +175,7 @@ def main() -> None:
     cli.print("  Interactive Shell Library Usage", style=c.Cli.MessageStyles.BOLD_WHITE)
     cli.print("=" * 70, style=c.Cli.MessageStyles.BOLD_BLUE)
     cli.print(
-        "\n1. Command Handlers (status, list, config):",
+        "\n1. Command Handlers (status, list, settings):",
         style=c.Cli.MessageStyles.BOLD_CYAN,
     )
     handle_status_command()
@@ -202,7 +202,7 @@ def main() -> None:
     history = CommandHistory()
     history.add("status")
     history.add("list test")
-    history.add("config theme dark")
+    history.add("settings theme dark")
     history.display_history()
     cli.print("\n" + "=" * 70, style=c.Cli.MessageStyles.BOLD_BLUE)
     cli.print(

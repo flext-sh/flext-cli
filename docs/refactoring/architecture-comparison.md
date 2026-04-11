@@ -83,7 +83,7 @@ Services (Unnecessary):
 ✅ SIMPLIFIED: 3-4 Services + Simple Classes + Data Models
 
 Services (Stateful - ONLY 3-4):
-✅ FlextCliCore - Commands, sessions, config
+✅ FlextCliCore - Commands, sessions, settings
 ✅ cli - Main facade (singleton)
 ✅ FlextCliCmd - Command execution (evaluate)
 
@@ -128,7 +128,7 @@ cli.formatters.print("Hello")
 
 # Always direct access - clear ownership
 cli.formatters.print("Hello")
-cli.file_tools.read_json_file("config.json")
+cli.file_tools.read_json_file("settings.json")
 cli.prompts.confirm("Continue?")
 ```
 
@@ -147,10 +147,10 @@ from flext_cli import cli
 
 
 # Wrapper method (will be removed)
-config = cli.read_json_file("config.json").unwrap()
+settings = cli.read_json_file("settings.json").unwrap()
 
 # Also works (direct access)
-config = cli.file_tools.read_json_file("config.json").unwrap()
+settings = cli.file_tools.read_json_file("settings.json").unwrap()
 
 # Two ways! Which is correct?
 ```
@@ -162,7 +162,7 @@ from flext_cli import cli
 
 
 # Only one way - direct access
-config = cli.file_tools.read_json_file("config.json").unwrap()
+settings = cli.file_tools.read_json_file("settings.json").unwrap()
 
 # Clear, explicit, no ambiguity
 ```

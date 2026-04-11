@@ -13,7 +13,7 @@ class TestsCliTables:
     """Regression coverage for public table helpers."""
 
     def test_format_table_accepts_single_mapping_and_sequence_kwargs(self) -> None:
-        """Single mappings and list-based config kwargs must be accepted."""
+        """Single mappings and list-based settings kwargs must be accepted."""
         result = FlextCliTables.format_table(
             {"status": "ok", "count": 2},
             headers=["Field", "Value"],

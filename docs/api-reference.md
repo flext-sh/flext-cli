@@ -40,7 +40,7 @@ from flext_core import r
 
 ## Facade `cli`
 
-Acesso direto aos serviços `core`, `cmd`, `output`, `prompts`, `tables`, às utilidades `formatters`, `file_tools`, `utilities` e ao `config` compartilhado.
+Acesso direto aos serviços `core`, `cmd`, `output`, `prompts`, `tables`, às utilidades `formatters`, `file_tools`, `utilities` e ao `settings` compartilhado.
 
 ### Métodos principais
 
@@ -67,7 +67,7 @@ Classe abstrata para CLIs completos com Typer. Defina `app_name`, `app_help` e `
 Registro de comandos, configuração, sessões e plugins.
 
 - **Comandos**: `register_command(command)`, `get_command(name)`, `list_commands()`, `execute_command(name)`, `execute_cli_command_with_context(command, context)`.
-- **Configuração**: `update_configuration(data)`, `get_configuration()`, `load_configuration(path)`, `save_configuration(path)`, `validate_configuration(config)`, `get_config()`.
+- **Configuração**: `update_configuration(data)`, `get_configuration()`, `load_configuration(path)`, `save_configuration(path)`, `validate_configuration(settings)`, `get_config()`.
 - **Sessões/Perfis**: `create_profile(profile_name, data=None)`, `start_session(session_id, profile=None)`, `end_session()`, `is_session_active()`, `get_session_statistics()`.
 - **Diagnóstico e caches**: `health_check()`, `get_service_info()`, `get_command_statistics()`, `create_ttl_cache(cache_name, ttl_seconds, maxsize)`, `memoize(cache_name)`, `get_cache_stats(cache_name)`.
 - **Plugins**: `register_plugin(name, plugin)`, `discover_plugins()`, `call_plugin_hook(hook_name)` e utilitários de inspeção (`get_handlers()`, `get_plugins()`, `get_sessions()`, `get_commands()`, `get_formatters()`).

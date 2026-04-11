@@ -59,7 +59,7 @@ class FlextCliGettingStarted:
         )
 
     def load_config(self, filepath: str) -> r[m.Cli.LoadedConfig]:
-        """Load YOUR config from JSON. Returns r[LoadedConfig]; no None."""
+        """Load YOUR settings from JSON. Returns r[LoadedConfig]; no None."""
         read_result = cli.read_json_file(filepath)
         if read_result.failure:
             cli.print(
@@ -97,9 +97,9 @@ class FlextCliGettingStarted:
         self.advanced_types_example()
         cli.print("\n✅ All examples completed!", style=c.Cli.MessageStyles.BOLD_GREEN)
 
-    def save_config(self, config: m.Cli.LoadedConfig, filepath: str) -> bool:
-        """Save YOUR config to JSON with proper error handling."""
-        write_result = cli.write_json_file(filepath, config.content)
+    def save_config(self, settings: m.Cli.LoadedConfig, filepath: str) -> bool:
+        """Save YOUR settings to JSON with proper error handling."""
+        write_result = cli.write_json_file(filepath, settings.content)
         if write_result.failure:
             cli.print(
                 f"Failed to save: {write_result.error}", style=c.Cli.MessageStyles.RED

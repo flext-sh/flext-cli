@@ -127,14 +127,14 @@ class TestsFlextCliUtilities(FlextTestsUtilities, u):
                     ))
 
             @staticmethod
-            def create_test_config() -> r[FlextCliSettings]:
-                """Create test config using Railway pattern."""
+            def create_test_settings() -> r[FlextCliSettings]:
+                """Create test settings using Railway pattern."""
                 try:
-                    config = FlextCliSettings()
-                    return r[FlextCliSettings].ok(config)
+                    settings = FlextCliSettings()
+                    return r[FlextCliSettings].ok(settings)
                 except Exception as e:
                     return r[FlextCliSettings].fail(
-                        f"Failed to create test config: {e}"
+                        f"Failed to create test settings: {e}"
                     )
 
             @staticmethod

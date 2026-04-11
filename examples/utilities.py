@@ -26,7 +26,7 @@ class ExamplesFlextCliUtilities(u):
         cls,
         data: t.ContainerMapping,
     ) -> m.Cli.DisplayData:
-        """Normalize config/mapping to DisplayData for create_table/display_config_table."""
+        """Normalize settings/mapping to DisplayData for create_table/display_config_table."""
         json_value: t.Cli.JsonValue = t.Cli.JSON_VALUE_ADAPTER.validate_python(
             cls.Cli.normalize_json_value(data),
         )

@@ -236,13 +236,13 @@ ______________________________________________________________________
 ```python
 # ❌ OLD (if you did this)
 file_tools = FlextCliFileTools()  # Was a service
-result = file_tools.read_json_file("config.json")
+result = file_tools.read_json_file("settings.json")
 
 # ✅ NEW - Static methods
-result = FlextCliFileTools.read_json_file("config.json")
+result = FlextCliFileTools.read_json_file("settings.json")
 
 # ✅ OR - Through main CLI (recommended)
-result = cli.file_tools.read_json_file("config.json")
+result = cli.file_tools.read_json_file("settings.json")
 ```
 
 **Note**: Most users access through `cli` instance, so no changes needed
@@ -295,7 +295,7 @@ tests/unit/core/test_*.py
 tests/unit/io/test_*.py
 tests/unit/formatting/test_*.py
 tests/unit/cli/test_*.py
-tests/unit/config/test_*.py
+tests/unit/settings/test_*.py
 tests/unit/auth/test_*.py
 tests/unit/models/test_*.py
 tests/integration/test_*.py

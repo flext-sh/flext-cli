@@ -26,7 +26,7 @@ class FlextCliCmd(s):
     """Execute registered CLI commands and expose execution metadata.
 
     Extends s for consistent logging and container access.
-    Delegates config operations to direct ``u.Cli`` helpers.
+    Delegates settings operations to direct ``u.Cli`` helpers.
     Railway-Oriented Programming via r for composable error handling.
     """
 

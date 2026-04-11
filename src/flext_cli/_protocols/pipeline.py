@@ -30,7 +30,7 @@ class FlextCliProtocolsPipeline:
             ...
 
         @property
-        def config(self) -> t.ContainerMapping:
+        def settings(self) -> t.ContainerMapping:
             """Immutable configuration for the pipeline run."""
             ...
 

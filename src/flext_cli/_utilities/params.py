@@ -35,12 +35,12 @@ class FlextCliUtilitiesParams:
 
     @staticmethod
     def params_set_bool(
-        config: FlextCliSettings,
+        settings: FlextCliSettings,
         params: p.Cli.CliParamsConfig,
     ) -> r[FlextCliSettings]:
         """Set boolean parameters through validated model_copy updates."""
         if params.trace is not None and params.trace:
-            will_be_debug = params.debug if params.debug is not None else config.debug
+            will_be_debug = params.debug if params.debug is not None else settings.debug
             if not will_be_debug:
                 return r[FlextCliSettings].fail(
                     c.Cli.CLI_PARAM_ERR_TRACE_REQUIRES_DEBUG
@@ -51,17 +51,17 @@ class FlextCliUtilitiesParams:
             if value is not None:
                 update_data[field] = value
         if not update_data:
-            return r[FlextCliSettings].ok(config)
-        return r[FlextCliSettings].ok(config.model_copy(update=update_data))
+            return r[FlextCliSettings].ok(settings)
+        return r[FlextCliSettings].ok(settings.model_copy(update=update_data))
 
     @staticmethod
     def params_set_log_level(
-        config: FlextCliSettings,
+        settings: FlextCliSettings,
         params: p.Cli.CliParamsConfig,
     ) -> r[FlextCliSettings]:
         """Set CLI log level with enum conversion/validation."""
         if params.log_level is None:
-            return r[FlextCliSettings].ok(config)
+            return r[FlextCliSettings].ok(settings)
         try:
             resolved_level = m.Cli.LogLevelResolved(
                 raw=params.log_level,
@@ -69,7 +69,7 @@ class FlextCliUtilitiesParams:
             ).resolved
             next_level = type(c.LogLevel.INFO)(resolved_level)
             return r[FlextCliSettings].ok(
-                config.model_copy(update={"cli_log_level": next_level}),
+                settings.model_copy(update={"cli_log_level": next_level}),
             )
         except ValueError:
             valid = ", ".join(c.Cli.LOG_LEVELS_LIST)
@@ -83,11 +83,11 @@ class FlextCliUtilitiesParams:
 
     @staticmethod
     def params_set_format(
-        config: FlextCliSettings,
+        settings: FlextCliSettings,
         params: p.Cli.CliParamsConfig,
     ) -> r[FlextCliSettings]:
         """Set output/log format values with canonical validation helpers."""
-        next_config = config
+        next_config = settings
         if params.log_format is not None:
             try:
                 log_verbosity = c.Cli.LogVerbosity(params.log_format.lower())
@@ -123,13 +123,13 @@ class FlextCliUtilitiesParams:
 
     @staticmethod
     def params_apply(
-        config: FlextCliSettings,
+        settings: FlextCliSettings,
         params: p.Cli.CliParamsConfig,
     ) -> r[FlextCliSettings]:
         """Apply all parameter-setting stages to one settings model."""
         return (
             FlextCliUtilitiesParams
-            .params_set_bool(config, params)
+            .params_set_bool(settings, params)
             .map_error(lambda error: error or "Boolean parameter setting failed")
             .flat_map(
                 lambda updated_config: FlextCliUtilitiesParams.params_set_log_level(

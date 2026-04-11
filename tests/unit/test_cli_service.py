@@ -18,7 +18,7 @@ class TestsCliService:
         app = cli.create_app_with_common_params(
             name="sample",
             help_text="Sample application",
-            config=cli.settings,
+            settings=cli.settings,
         )
         cli.register_command(
             app,
@@ -39,7 +39,7 @@ class TestsCliService:
         app = cli.create_app_with_common_params(
             name="root",
             help_text="Root application",
-            config=cli.settings,
+            settings=cli.settings,
         )
         group = cli.create_group(help_text="Sample group", name="sample")
 
@@ -87,7 +87,7 @@ class TestsCliService:
         app = cli.create_app_with_common_params(
             name="root",
             help_text="Root application",
-            config=cli.settings,
+            settings=cli.settings,
         )
         group = cli.create_group(help_text="Sample group", name="sample")
 
@@ -173,7 +173,7 @@ class TestsCliService:
         app = cli.create_app_with_common_params(
             name="result-app",
             help_text="Result application",
-            config=cli.settings,
+            settings=cli.settings,
         )
         group = cli.create_group(help_text="Grouped commands", name="group")
         remembered: MutableSequence[tuple[str | None, str]] = []
@@ -239,7 +239,7 @@ class TestsCliService:
         app = cli.create_app_with_common_params(
             name="result-app",
             help_text="Result application",
-            config=cli.settings,
+            settings=cli.settings,
         )
         remembered: MutableSequence[tuple[str | None, str]] = []
 

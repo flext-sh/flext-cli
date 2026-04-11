@@ -61,7 +61,7 @@ class FlextCliSettings(FlextSettings):
     ]
     config_file: Annotated[
         str | None,
-        Field(default=None, description="Path to config file"),
+        Field(default=None, description="Path to settings file"),
     ]
     token_file: Annotated[
         str | None,

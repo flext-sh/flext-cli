@@ -124,13 +124,13 @@ cli.formatters.print(result.unwrap())
 
 ```python
 # ❌ v0.9.0 (OLD)
-config_result = cli.read_json_file("config.json")
+config_result = cli.read_json_file("settings.json")
 cli.write_json_file("output.json", data)
 cli.read_yaml_file("settings.yaml")
 cli.read_csv_file("data.csv")
 
 # ✅ v0.10.0 (NEW)
-config_result = cli.file_tools.read_json_file("config.json")
+config_result = cli.file_tools.read_json_file("settings.json")
 cli.file_tools.write_json_file("output.json", data)
 cli.file_tools.read_yaml_file("settings.yaml")
 cli.file_tools.read_csv_file("data.csv")
@@ -175,12 +175,12 @@ Most utility classes are now simple classes (no service inheritance).
 ```python
 # ❌ v0.9.0 (OLD - Some classes were services)
 file_tools = FlextCliFileTools()  # Was s
-result = file_tools.read_json_file("config.json")
+result = file_tools.read_json_file("settings.json")
 
 # ✅ v0.10.0 (NEW - Static methods)
-result = FlextCliFileTools.read_json_file("config.json")
+result = FlextCliFileTools.read_json_file("settings.json")
 # Or through main CLI:
-result = cli.file_tools.read_json_file("config.json")
+result = cli.file_tools.read_json_file("settings.json")
 ```
 
 ### 4. Test Utilities Moved
@@ -420,8 +420,8 @@ from flext_cli import cli
 def main():
         cli.print("Welcome!", style="success")
 
-    config = cli.read_json_file("config.json").unwrap()
-    cli.print(f"Loaded config: {config['name']}")
+    settings = cli.read_json_file("settings.json").unwrap()
+    cli.print(f"Loaded settings: {settings['name']}")
 
     if cli.confirm("Continue?").unwrap():
         cli.print("Processing...")
@@ -436,8 +436,8 @@ from flext_cli import cli
 def main():
         cli.formatters.print("Welcome!", style="success")
 
-    config = cli.file_tools.read_json_file("config.json").unwrap()
-    cli.formatters.print(f"Loaded config: {config['name']}")
+    settings = cli.file_tools.read_json_file("settings.json").unwrap()
+    cli.formatters.print(f"Loaded settings: {settings['name']}")
 
     if cli.prompts.confirm("Continue?").unwrap():
         cli.formatters.print("Processing...")

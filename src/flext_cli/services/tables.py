@@ -21,11 +21,11 @@ class FlextCliTables(s):
     @staticmethod
     def format_table(
         data: t.Cli.TableDataSource,
-        config: m.Cli.TableConfig | None = None,
+        settings: m.Cli.TableConfig | None = None,
         **config_kwargs: t.Cli.TableConfigValue,
     ) -> r[str]:
         """Format table data to a string using the public CLI API."""
-        config_result = u.Cli.tables_resolve_config(config, **config_kwargs)
+        config_result = u.Cli.tables_resolve_config(settings, **config_kwargs)
         if config_result.failure:
             return r[str].fail(config_result.error or "Invalid table configuration")
         config_final = config_result.value
@@ -39,12 +39,12 @@ class FlextCliTables(s):
     @staticmethod
     def show_table(
         data: t.Cli.TableDataSource,
-        config: m.Cli.TableConfig | None = None,
+        settings: m.Cli.TableConfig | None = None,
         **config_kwargs: t.Cli.TableConfigValue,
     ) -> None:
         """Gera e exibe tabela formatada no console. Não retorna string, apenas exibe."""
         config_result: p.Result[m.Cli.TableConfig] = u.Cli.tables_resolve_config(
-            config, **config_kwargs
+            settings, **config_kwargs
         )
         if config_result.failure:
             error_line, error_style = u.Cli.output_table_error(config_result.error)

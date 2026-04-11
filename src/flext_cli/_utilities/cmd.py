@@ -12,7 +12,7 @@ class FlextCliUtilitiesCmd:
 
     @staticmethod
     def cmd_config_snapshot() -> r[m.Cli.ConfigSnapshot]:
-        """Return config snapshot with canonical error mapping."""
+        """Return settings snapshot with canonical error mapping."""
         try:
             return r[m.Cli.ConfigSnapshot].ok(
                 FlextCliUtilitiesConfiguration.config_snapshot(),
@@ -24,7 +24,7 @@ class FlextCliUtilitiesCmd:
 
     @staticmethod
     def cmd_show_config(logger: p.Logger) -> r[bool]:
-        """Resolve and log current config snapshot."""
+        """Resolve and log current settings snapshot."""
         info_result = FlextCliUtilitiesCmd.cmd_config_snapshot()
         if info_result.failure:
             return r[bool].fail(
@@ -32,13 +32,13 @@ class FlextCliUtilitiesCmd:
             )
         logger.info(
             c.Cli.LOG_MSG_CONFIG_DISPLAYED,
-            config=info_result.value,
+            settings=info_result.value,
         )
         return r[bool].ok(True)
 
     @staticmethod
     def cmd_validate_config(logger: p.Logger) -> r[bool]:
-        """Validate canonical config structure and log normalized results."""
+        """Validate canonical settings structure and log normalized results."""
         try:
             results = FlextCliUtilitiesConfiguration.validate_config_structure()
             if results:

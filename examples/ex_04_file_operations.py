@@ -20,7 +20,7 @@ from examples import c, m, t
 from flext_cli import cli, r, u
 
 # ============================================================================
-# PATTERN 1: JSON config files in YOUR application
+# PATTERN 1: JSON settings files in YOUR application
 # ============================================================================
 
 
@@ -84,18 +84,18 @@ def load_user_preferences(config_dir: Path) -> r[m.Cli.LoadedConfig]:
 
 
 def save_deployment_config(
-    config: t.ContainerMapping,
+    settings: t.ContainerMapping,
     config_file: Path,
 ) -> bool:
-    """Save deployment config to YAML in YOUR tool."""
+    """Save deployment settings to YAML in YOUR tool."""
     # Instead of:
     # with open(config_file, 'w') as f:
-    #     yaml.dump(config, f)
+    #     yaml.dump(settings, f)
 
     # Normalize the mapping into the CLI JSON contract before writing YAML.
     write_result = cli.write_yaml_file(
         config_file,
-        u.Cli.normalize_json_value(config),
+        u.Cli.normalize_json_value(settings),
     )
 
     if write_result.failure:
@@ -105,12 +105,12 @@ def save_deployment_config(
         )
         return False
 
-    cli.print("✅ Saved deployment config", style=c.Cli.MessageStyles.GREEN)
+    cli.print("✅ Saved deployment settings", style=c.Cli.MessageStyles.GREEN)
     return True
 
 
 def load_deployment_config(config_file: Path) -> r[m.Cli.LoadedConfig]:
-    """Load deployment config from YAML in YOUR tool. Returns r[LoadedConfig]; no None."""
+    """Load deployment settings from YAML in YOUR tool. Returns r[LoadedConfig]; no None."""
     load_result = cli.load_file_auto_dict(config_file)
 
     if load_result.failure:
@@ -120,7 +120,7 @@ def load_deployment_config(config_file: Path) -> r[m.Cli.LoadedConfig]:
         )
         return r[m.Cli.LoadedConfig].fail(load_result.error or "Config load failed")
 
-    cli.print("✅ Loaded deployment config", style=c.Cli.MessageStyles.GREEN)
+    cli.print("✅ Loaded deployment settings", style=c.Cli.MessageStyles.GREEN)
     return r[m.Cli.LoadedConfig].ok(
         m.Cli.LoadedConfig(content=load_result.value),
     )
@@ -420,12 +420,12 @@ def process_binary_file(input_file: Path, output_file: Path) -> bool:
 
 
 # ============================================================================
-# PATTERN 9: Auto-format detection in YOUR config loader
+# PATTERN 9: Auto-format detection in YOUR settings loader
 # ============================================================================
 
 
 def load_config_auto_detect(config_file: Path) -> r[m.Cli.LoadedConfig]:
-    """Load config from ANY format with auto-detection. Returns r[LoadedConfig]; no None."""
+    """Load settings from ANY format with auto-detection. Returns r[LoadedConfig]; no None."""
     cli.print(
         f"🔍 Auto-detecting format: {config_file.name}", style=c.Cli.MessageStyles.CYAN
     )
@@ -442,7 +442,7 @@ def load_config_auto_detect(config_file: Path) -> r[m.Cli.LoadedConfig]:
     cli.print("✅ Config loaded successfully", style=c.Cli.MessageStyles.GREEN)
 
     display_rows = [{"Key": k, "Value": str(v)} for k, v in data.items()]
-    cli.show_table(display_rows, headers=["Key", "Value"], title="Loaded config")
+    cli.show_table(display_rows, headers=["Key", "Value"], title="Loaded settings")
     return r[m.Cli.LoadedConfig].ok(
         m.Cli.LoadedConfig(content=data),
     )
@@ -724,7 +724,7 @@ def main() -> None:
             f"   Load result: {prefs_result.error}", style=c.Cli.MessageStyles.YELLOW
         )
 
-    # Example 2: YAML deployment config
+    # Example 2: YAML deployment settings
     cli.print(
         "\n2. YAML Configuration (deployment):", style=c.Cli.MessageStyles.BOLD_CYAN
     )

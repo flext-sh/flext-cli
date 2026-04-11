@@ -57,7 +57,7 @@ class TestsCliCmdCov:
         self,
         tmp_path: Path,
     ) -> None:
-        """config_snapshot must expose the resolved canonical config directory."""
+        """config_snapshot must expose the resolved canonical settings directory."""
         config_dir = tmp_path / c.Cli.PATH_FLEXT_DIR_NAME
         config_dir.mkdir()
         with _temporary_home(tmp_path):
@@ -70,7 +70,7 @@ class TestsCliCmdCov:
         self,
         tmp_path: Path,
     ) -> None:
-        """show_config must succeed when the canonical config snapshot is readable."""
+        """show_config must succeed when the canonical settings snapshot is readable."""
         (tmp_path / c.Cli.PATH_FLEXT_DIR_NAME).mkdir()
         cmd = FlextCliCmd()
         with _temporary_home(tmp_path):

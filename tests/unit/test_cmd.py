@@ -4,7 +4,7 @@ Tests for FlextCliCmd covering command initialization, execution, configuration 
 (show, validate, config_snapshot), error handling, performance, integration,
 and edge cases.
 
-Modules tested: flext_cli.cmd.FlextCliCmd, direct u.Cli config helpers, FlextCliServiceBase
+Modules tested: flext_cli.cmd.FlextCliCmd, direct u.Cli settings helpers, FlextCliServiceBase
 Scope: All kept command operations, error handling, edge cases
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
@@ -83,7 +83,7 @@ class TestsCliCmd:
         tm.that(info.timestamp, is_=str)
 
     def test_cmd_validate_config_structure_missing_dir(self) -> None:
-        """Test validate_config_structure when main config directory is missing."""
+        """Test validate_config_structure when main settings directory is missing."""
         results = u.Cli.validate_config_structure()
         tm.that(results, is_=list)
         for item in results:

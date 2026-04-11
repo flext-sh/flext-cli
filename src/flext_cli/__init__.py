@@ -14,11 +14,11 @@ from flext_core.lazy import (
 
 if _t.TYPE_CHECKING:
     from flext_cli._constants.base import FlextCliConstantsBase
-    from flext_cli._constants.config import FlextCliConstantsSettings
     from flext_cli._constants.enums import FlextCliConstantsEnums
     from flext_cli._constants.errors import FlextCliConstantsErrors
     from flext_cli._constants.output import FlextCliConstantsOutput
     from flext_cli._constants.pipeline import FlextCliConstantsPipeline
+    from flext_cli._constants.settings import FlextCliConstantsSettings
     from flext_cli._models.base import FlextCliModelsBase
     from flext_cli._models.pipeline import FlextCliModelsPipeline
     from flext_cli._protocols.base import FlextCliProtocolsBase

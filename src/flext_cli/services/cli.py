@@ -60,14 +60,14 @@ class FlextCliCli(s):
         def __init__(
             self,
             *,
-            config: t.Cli.ConfigModel,
+            settings: t.Cli.ConfigModel,
             handler: p.Cli.ModelCommandHandler[M],
             model_cls: type[M],
             parameters: Sequence[Parameter],
         ) -> None:
             self.__name__ = getattr(handler, "__name__", model_cls.__name__)
             self.__signature__ = Signature(parameters)
-            self._config = config
+            self._config = settings
             self._handler = handler
             self._model_cls = model_cls
 
@@ -177,11 +177,11 @@ class FlextCliCli(s):
     def _field_default(
         field_name: str,
         field_info: FieldInfo,
-        config: t.Cli.ConfigModel,
+        settings: t.Cli.ConfigModel,
     ) -> t.Cli.CliValue:
-        """Resolve CLI default from config first, then from model field metadata."""
-        if config is not None and hasattr(config, field_name):
-            configured = getattr(config, field_name)
+        """Resolve CLI default from settings first, then from model field metadata."""
+        if settings is not None and hasattr(settings, field_name):
+            configured = getattr(settings, field_name)
             return FlextCliCli._normalize_cli_default(configured)
         default_factory = getattr(field_info, "default_factory", None)
         if callable(default_factory):
@@ -221,7 +221,7 @@ class FlextCliCli(s):
         cls,
         field_name: str,
         field_info: FieldInfo,
-        config: t.Cli.ConfigModel,
+        settings: t.Cli.ConfigModel,
     ) -> tuple[Parameter, type | GenericAlias]:
         """Build a keyword-only Typer option from a Pydantic field."""
         alias = field_info.alias
@@ -232,7 +232,7 @@ class FlextCliCli(s):
         )
         is_required = bool(field_info.is_required())
         default_value = (
-            ... if is_required else cls._field_default(field_name, field_info, config)
+            ... if is_required else cls._field_default(field_name, field_info, settings)
         )
         option_decls = [option_name]
         extra = getattr(field_info, "json_schema_extra", None)
@@ -263,7 +263,7 @@ class FlextCliCli(s):
 
     def _apply_common_params_to_config(
         self,
-        config: FlextCliSettings,
+        settings: FlextCliSettings,
         *,
         debug: bool,
         log_level: str | None,
@@ -273,7 +273,7 @@ class FlextCliCli(s):
     ) -> None:
         """Apply global CLI flags to the shared settings model."""
         result = FlextCliCommonParams.apply_to_config(
-            config,
+            settings,
             debug=debug,
             log_level=log_level,
             quiet=quiet,
@@ -288,7 +288,7 @@ class FlextCliCli(s):
         *,
         name: str,
         help_text: str,
-        config: FlextCliSettings | None = None,
+        settings: FlextCliSettings | None = None,
         add_completion: bool = True,
     ) -> t.Cli.CliApp:
         """Create a Typer app with the shared global FLEXT CLI parameters."""
@@ -308,9 +308,9 @@ class FlextCliCli(s):
                 FlextCliCommonParams.create_option("cli_log_level"),
             ] = None,
         ) -> None:
-            if config is not None:
+            if settings is not None:
                 self._apply_common_params_to_config(
-                    config,
+                    settings,
                     debug=debug,
                     log_level=log_level,
                     quiet=quiet,
@@ -345,7 +345,7 @@ class FlextCliCli(s):
         cls,
         model_cls: type[M],
         handler: p.Cli.ModelCommandHandler[M],
-        config: t.Cli.ConfigModel = None,
+        settings: t.Cli.ConfigModel = None,
     ) -> t.Cli.CliCommand:
         """Build a Typer command directly from a Pydantic request model."""
         parameters: MutableSequence[Parameter] = []
@@ -357,12 +357,12 @@ class FlextCliCli(s):
             parameter, annotation = cls._build_model_parameter(
                 field_name,
                 field_info,
-                config,
+                settings,
             )
             parameters.append(parameter)
             annotations[field_name] = annotation
         command = cls._ModelCommand(
-            config=config,
+            settings=settings,
             handler=handler,
             model_cls=model_cls,
             parameters=parameters,
@@ -481,7 +481,7 @@ class FlextCliCli(s):
         help_text: str,
         model_cls: type[M],
         name: str,
-        config: t.Cli.ConfigModel = None,
+        settings: t.Cli.ConfigModel = None,
         remember_failure: p.Cli.FailureMessageRecorder | None = None,
         success_formatter: p.Cli.SuccessMessageFormatter[TResult] | None = None,
         success_message: str | None = None,
@@ -502,7 +502,7 @@ class FlextCliCli(s):
             app,
             name=name,
             help_text=help_text,
-            command=cls.model_command(model_cls, execute, config=config),
+            command=cls.model_command(model_cls, execute, settings=settings),
         )
 
     @classmethod

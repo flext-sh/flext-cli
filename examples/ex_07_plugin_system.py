@@ -179,19 +179,21 @@ def load_plugins_from_directory(plugin_dir: Path) -> MyAppPluginManager:
 class ConfigurablePlugin:
     """Example of configurable plugin for YOUR CLI."""
 
-    def __init__(self, config: t.ContainerMapping) -> None:
+    def __init__(self, settings: t.ContainerMapping) -> None:
         """Initialize configurable plugin with configuration dictionary."""
         super().__init__()
         self.name = "configurable-plugin"
-        self.config: t.ContainerMapping = config
+        self.settings: t.ContainerMapping = settings
 
     def execute(self) -> r[t.ContainerMapping]:
         """Execute with configuration in YOUR CLI."""
-        cli.print(f"🔧 Plugin config: {self.config}", style=c.Cli.MessageStyles.CYAN)
+        cli.print(
+            f"🔧 Plugin settings: {self.settings}", style=c.Cli.MessageStyles.CYAN
+        )
         result_data: t.ContainerMapping = {
             "plugin": self.name,
             "config_applied": True,
-            **self.config,
+            **self.settings,
         }
         return r[t.ContainerMapping].ok(result_data)
 
@@ -269,8 +271,8 @@ def main() -> None:
             style=c.Cli.MessageStyles.GREEN,
         )
     cli.print("\n5. Configurable Plugin:", style=c.Cli.MessageStyles.BOLD_CYAN)
-    config: t.ContainerMapping = {"theme": "dark", "verbose": True}
-    config_plugin = ConfigurablePlugin(config)
+    settings: t.ContainerMapping = {"theme": "dark", "verbose": True}
+    config_plugin = ConfigurablePlugin(settings)
     config_result = config_plugin.execute()
     if config_result.success:
         cli.print(f"   Result: {config_result.value}", style=c.Cli.MessageStyles.GREEN)

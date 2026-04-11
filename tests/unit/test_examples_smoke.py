@@ -42,18 +42,18 @@ class TestFlextCliExamplesSmoke:
     """Verify examples exercise the real public API paths."""
 
     def test_getting_started_and_output_examples(self, tmp_path: Path) -> None:
-        """Examples must round-trip config data and format tables via cli."""
+        """Examples must round-trip settings data and format tables via cli."""
         example = getting_started.FlextCliGettingStarted()
-        config_path = tmp_path / "config.json"
-        config = getting_started.m.Cli.LoadedConfig(
+        config_path = tmp_path / "settings.json"
+        settings = getting_started.m.Cli.LoadedConfig(
             content={"theme": "dark", "retries": 3},
         )
 
-        tm.that(example.save_config(config, str(config_path)), eq=True)
+        tm.that(example.save_config(settings, str(config_path)), eq=True)
 
         load_result = example.load_config(str(config_path))
         tm.ok(load_result)
-        tm.that(load_result.value.content, eq=config.content)
+        tm.that(load_result.value.content, eq=settings.content)
 
         example.display_user_data(
             getting_started.m.Cli.DisplayData(
@@ -73,7 +73,7 @@ class TestFlextCliExamplesSmoke:
 
     def test_file_operation_examples(self, tmp_path: Path) -> None:
         """File-oriented examples must use cli file APIs successfully."""
-        config_dir = tmp_path / "config"
+        config_dir = tmp_path / "settings"
         config_dir.mkdir()
         preferences: t.ContainerMapping = {
             "theme": "dark",
@@ -118,7 +118,7 @@ class TestFlextCliExamplesSmoke:
         tm.that(validation_result.value.content["name"], eq="Alice")
 
     def test_authentication_and_configuration_examples(self, tmp_path: Path) -> None:
-        """Auth and config examples must work through cli.settings and cli auth APIs."""
+        """Auth and settings examples must work through cli.settings and cli auth APIs."""
         cli.settings.token_file = str(tmp_path / "auth_token.json")
 
         settings = configuration.show_cli_settings()

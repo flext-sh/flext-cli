@@ -353,7 +353,7 @@ class FlextCliContext(m.Value):
 ```python
 cli.print("Hello")  # Wrapper method
 cli.create_table(data)  # Wrapper method
-cli.read_json_file("config.json")  # Wrapper method
+cli.read_json_file("settings.json")  # Wrapper method
 ```
 
 **New (v0.10.0)**: Direct access
@@ -361,7 +361,7 @@ cli.read_json_file("config.json")  # Wrapper method
 ```python
 cli.formatters.print("Hello")  # Direct
 cli.output.format_data(data, format_type="table")  # Direct
-cli.file_tools.read_json_file("config.json")  # Direct
+cli.file_tools.read_json_file("settings.json")  # Direct
 ```
 
 **Benefits**:
@@ -666,7 +666,7 @@ tests/
 │   │   ├── test_commands.py
 │   │   ├── test_params.py
 │   │   └── test_execution.py (from test_cmd.py)
-│   ├── config/
+│   ├── settings/
 │   │   ├── test_config_loading.py (from test_config.py, split)
 │   │   ├── test_config_validation.py (from test_config.py, split)
 │   │   └── test_profiles.py (from test_config.py, split)
@@ -692,9 +692,9 @@ tests/
 
 **test_config.py** (1,821 lines) → Split into:
 
-- `config/test_config_loading.py` (~600 lines)
-- `config/test_config_validation.py` (~600 lines)
-- `config/test_profiles.py` (~400 lines)
+- `settings/test_config_loading.py` (~600 lines)
+- `settings/test_config_validation.py` (~600 lines)
+- `settings/test_profiles.py` (~400 lines)
 
 **test_core.py** (1,670 lines) → Split into:
 

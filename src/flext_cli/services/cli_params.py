@@ -28,7 +28,7 @@ class FlextCliCommonParams(s):
     @classmethod
     def apply_to_config(
         cls,
-        config: FlextCliSettings,
+        settings: FlextCliSettings,
         params: p.Cli.CliParamsConfig | None = None,
         **kwargs: t.Cli.CliParamValue,
     ) -> r[FlextCliSettings]:
@@ -39,7 +39,7 @@ class FlextCliCommonParams(s):
         """
         try:
             params_to_use = u.Cli.params_resolve(params, kwargs)
-            return u.Cli.params_apply(config, params_to_use)
+            return u.Cli.params_apply(settings, params_to_use)
         except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
             return r[FlextCliSettings].fail(
                 c.Cli.CLI_PARAM_ERR_APPLY_FAILED_FMT.format(error=exc),

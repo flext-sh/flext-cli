@@ -3,7 +3,7 @@
 Tests for FlextCliSettings covering initialization, serialization,
 validation, integration workflows, and edge cases.
 
-Modules tested: flext_cli.config.FlextCliSettings
+Modules tested: flext_cli.settings.FlextCliSettings
 Scope: All kept configuration operations, validation, integration
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
@@ -22,18 +22,18 @@ from tests import c
 
 
 class TestsCliConfigBasics:
-    """Core config functionality - initialization, serialization, deserialization."""
+    """Core settings functionality - initialization, serialization, deserialization."""
 
     def test_initialization(self) -> None:
         """Test basic initialization."""
-        config = FlextCliSettings()
-        tm.that(config, none=False)
-        tm.that(config, is_=FlextCliSettings)
+        settings = FlextCliSettings()
+        tm.that(settings, none=False)
+        tm.that(settings, is_=FlextCliSettings)
 
     def test_serialization_deserialization(self) -> None:
         """Test model_dump and model_validate."""
-        config = FlextCliSettings()
-        dumped = config.model_dump()
+        settings = FlextCliSettings()
+        dumped = settings.model_dump()
         tm.that(dumped, is_=dict)
         tm.that(dumped, has="verbose")
 
@@ -72,11 +72,11 @@ class TestsCliConfigIntegration:
     """Integration with cli."""
 
     def test_flext_cli_integration(self) -> None:
-        """Test cli uses config."""
+        """Test cli uses settings."""
         instance = cli
-        config = instance.settings
-        tm.that(config, none=False)
-        tm.that(config, is_=FlextCliSettings)
+        settings = instance.settings
+        tm.that(settings, none=False)
+        tm.that(settings, is_=FlextCliSettings)
 
     def test_flext_cli_settings_namespace(self) -> None:
         """Test cli exposes direct namespaced settings access."""
@@ -86,8 +86,8 @@ class TestsCliConfigIntegration:
 
     def test_config_inheritance(self) -> None:
         """Test inheritance from BaseSettings (Pydantic v2)."""
-        config = FlextCliSettings()
-        tm.that(config, is_=BaseSettings)
+        settings = FlextCliSettings()
+        tm.that(settings, is_=BaseSettings)
 
 
 class TestsCliConfigValidation:
@@ -100,8 +100,8 @@ class TestsCliConfigValidation:
 
     def test_model_dump(self) -> None:
         """Test model_dump returns complete dict."""
-        config: FlextCliSettings = FlextCliSettings()
-        dumped = config.model_dump()
+        settings: FlextCliSettings = FlextCliSettings()
+        dumped = settings.model_dump()
         tm.that(dumped, is_=dict)
         tm.that(dumped, empty=False)
 
@@ -110,9 +110,9 @@ class TestsCliConfigEdgeCases:
     """Edge cases and boundary conditions."""
 
     def test_basic_fields_exist(self) -> None:
-        """Test config has expected fields."""
-        config: FlextCliSettings = FlextCliSettings()
-        tm.that(config.verbose, is_=bool)
-        tm.that(config.debug, is_=bool)
-        tm.that(config.no_color, is_=bool)
-        tm.that(config.quiet, is_=bool)
+        """Test settings has expected fields."""
+        settings: FlextCliSettings = FlextCliSettings()
+        tm.that(settings.verbose, is_=bool)
+        tm.that(settings.debug, is_=bool)
+        tm.that(settings.no_color, is_=bool)
+        tm.that(settings.quiet, is_=bool)

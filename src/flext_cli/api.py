@@ -20,6 +20,7 @@ from flext_cli import (
     FlextCliPrompts,
     FlextCliTables,
     c,
+    p,
     r,
     t,
     u,
@@ -46,6 +47,7 @@ class FlextCli(
     """
 
     _instance: ClassVar[Self | None] = None
+    __pydantic_parent_namespace__: ClassVar[dict[str, type]] = {"p": p}
 
     @classmethod
     def instance(cls) -> Self:
@@ -63,7 +65,7 @@ class FlextCli(
             "timestamp": u.generate("timestamp"),
             "version": c.Cli.CLI_VERSION,
             "components": {
-                "config": "available",
+                "settings": "available",
                 "formatters": "available",
                 "prompts": "available",
             },

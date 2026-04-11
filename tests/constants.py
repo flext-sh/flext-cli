@@ -99,7 +99,7 @@ class TestsFlextCliConstants(FlextTestsConstants, c):
                 EMPTY_TUPLE: Final[tuple[()]] = ()
 
             class ConfigFactory:
-                """Factory constants for config test scenarios."""
+                """Factory constants for settings test scenarios."""
 
                 VALID_OUTPUT_FORMATS: Final[t.StrSequence] = [
                     c.Cli.OutputFormats.JSON,

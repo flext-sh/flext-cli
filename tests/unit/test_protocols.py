@@ -33,5 +33,5 @@ class TestsCliProtocols:
 
     def test_cli_params_config_protocol(self) -> None:
         """Test CliParamsConfig protocol exists and is a class."""
-        config = p.Cli.CliParamsConfig
-        tm.that(config, none=False)
+        settings = p.Cli.CliParamsConfig
+        tm.that(settings, none=False)

@@ -179,14 +179,14 @@ class ExamplesFlextCliModels(m):
 
             def display(self, cli: t.CliApi) -> None:
                 """Display app configuration; uses cli for base settings."""
-                config = cli.settings
+                settings = cli.settings
                 payload_data: t.Cli.JsonMapping = {
                     "App Name": self.app_name,
                     "API Key": f"{self.api_key[:10]}..." if self.api_key else "Not set",
                     "Max Workers": str(self.max_workers),
                     "Timeout": f"{self.timeout}s",
-                    "Debug": str(config.debug),
-                    "App": str(config.app_name),
+                    "Debug": str(settings.debug),
+                    "App": str(settings.app_name),
                 }
                 payload = ExamplesFlextCliModels.Cli.DisplayData(
                     data=payload_data,

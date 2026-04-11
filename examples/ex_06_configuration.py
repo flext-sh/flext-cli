@@ -9,13 +9,13 @@ WHEN TO USE THIS:
 
 FLEXT-CLI PROVIDES:
 - cli - Configuration management class
-- cli.settings - Direct access to current config settings
+- cli.settings - Direct access to current settings settings
 - Environment variable loading (FLEXT_*)
 - Built-in validation with r
 - Profile-based configuration
 
 HOW TO USE IN YOUR CLI:
-Access config settings through cli.settings and customize for YOUR application
+Access settings settings through cli.settings and customize for YOUR application
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -35,7 +35,7 @@ from flext_core import r
 
 
 def show_cli_settings() -> FlextCliSettings:
-    """Access flext-cli config settings in YOUR application."""
+    """Access flext-cli settings settings in YOUR application."""
     cli.print("📋 Current Configuration:", style=c.Cli.MessageStyles.BOLD_CYAN)
     cli.print(f"   Debug Mode: {cli.settings.debug}", style=c.Cli.MessageStyles.CYAN)
     cli.print(
@@ -50,7 +50,7 @@ def show_cli_settings() -> FlextCliSettings:
 
 
 def load_environment_config() -> m.Cli.DisplayData:
-    """Load environment-specific config in YOUR tool. Returns DisplayData model."""
+    """Load environment-specific settings in YOUR tool. Returns DisplayData model."""
     cli_settings = cli.settings
     debug_mode = cli_settings.debug
     if debug_mode:
@@ -82,7 +82,7 @@ def load_environment_config() -> m.Cli.DisplayData:
 
 
 def show_config_locations() -> m.Cli.DisplayData:
-    """Display config file locations for YOUR application. Returns DisplayData model."""
+    """Display settings file locations for YOUR application. Returns DisplayData model."""
     home_dir = Path.home()
     config_dir = home_dir / ".flext"
     token_file_str = cli.settings.token_file or ""
@@ -102,7 +102,7 @@ def show_config_locations() -> m.Cli.DisplayData:
 
 
 def load_profile_config(profile_name: str = "default") -> r[FlextCliSettings]:
-    """Load profile-specific config in YOUR tool. Returns r[FlextCliSettings]."""
+    """Load profile-specific settings in YOUR tool. Returns r[FlextCliSettings]."""
     cli.print(
         f"📋 Loading profile: {profile_name}", style=c.Cli.MessageStyles.BOLD_CYAN
     )
@@ -173,17 +173,17 @@ def validate_app_config() -> bool:
     validate_result = u.Cli.validate_format(settings.output_format)
     if validate_result.failure:
         cli.print(
-            f"   ❌ Base config invalid: {validate_result.error}",
+            f"   ❌ Base settings invalid: {validate_result.error}",
             style=c.Cli.MessageStyles.BOLD_RED,
         )
         return False
-    cli.print("   ✅ Base config valid", style=c.Cli.MessageStyles.GREEN)
+    cli.print("   ✅ Base settings valid", style=c.Cli.MessageStyles.GREEN)
     cli.print("\n2. Validating custom settings...", style=c.Cli.MessageStyles.CYAN)
     app_config = m.Examples.MyAppConfig()
     if not app_config.validate_config(cli):
-        cli.print("   ❌ Custom config invalid", style=c.Cli.MessageStyles.BOLD_RED)
+        cli.print("   ❌ Custom settings invalid", style=c.Cli.MessageStyles.BOLD_RED)
         return False
-    cli.print("   ✅ Custom config valid", style=c.Cli.MessageStyles.GREEN)
+    cli.print("   ✅ Custom settings valid", style=c.Cli.MessageStyles.GREEN)
     cli.print("\n3. Configuration summary:", style=c.Cli.MessageStyles.CYAN)
     app_config.display(cli)
     cli.print(
@@ -224,11 +224,11 @@ def load_application_config() -> r[Mapping[str, t.Cli.JsonValue]]:
 
 
 def apply_environment_overrides(
-    config: Mapping[str, t.Cli.JsonValue],
+    settings: Mapping[str, t.Cli.JsonValue],
 ) -> Mapping[str, t.Cli.JsonValue]:
     """Apply environment-specific configuration overrides."""
     result: dict[str, t.Cli.JsonValue] = {
-        str(key): value for key, value in config.items()
+        str(key): value for key, value in settings.items()
     }
     env = os.getenv("ENVIRONMENT", "development")
     if env == c.EXAMPLE_ENV_VALUE_PRODUCTION:
@@ -248,12 +248,12 @@ def apply_environment_overrides(
 
 
 def initialize_services(
-    config: Mapping[str, t.Cli.JsonValue],
+    settings: Mapping[str, t.Cli.JsonValue],
 ) -> Mapping[str, t.Cli.JsonValue]:
     """Initialize services based on configuration."""
     time.sleep(0.05)
     result: dict[str, t.Cli.JsonValue] = {
-        str(key): value for key, value in config.items()
+        str(key): value for key, value in settings.items()
     }
     result["services_initialized"] = True
     result["initialized_at"] = "2025-11-23T10:00:00Z"
@@ -322,14 +322,14 @@ def main() -> None:
     cli.print("=" * 70, style=c.Cli.MessageStyles.BOLD_BLUE)
     cli.print("\n💡 Integration Tips:", style=c.Cli.MessageStyles.BOLD_CYAN)
     cli.print(
-        "  • Access config: Use cli.settings for built-in settings",
+        "  • Access settings: Use cli.settings for built-in settings",
         style=c.Cli.MessageStyles.WHITE,
     )
     cli.print(
-        "  • Custom config: Extend cli for your app", style=c.Cli.MessageStyles.WHITE
+        "  • Custom settings: Extend cli for your app", style=c.Cli.MessageStyles.WHITE
     )
     cli.print(
-        "  • Validation: Use config.validate_business_rules()",
+        "  • Validation: Use settings.validate_business_rules()",
         style=c.Cli.MessageStyles.WHITE,
     )
     cli.print(

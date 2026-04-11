@@ -139,11 +139,11 @@ from flext_core import r
 cli.print("Welcome to FLEXT CLI!", style="green bold")
 
 # Read configuration file
-config_result = cli.read_json_file("config.json")
+config_result = cli.read_json_file("settings.json")
 
 if config_result.is_success:
-    config = config_result.unwrap()
-    cli.print(f"Loaded config: {config}", style="cyan")
+    settings = config_result.unwrap()
+    cli.print(f"Loaded settings: {settings}", style="cyan")
 else:
     cli.print(f"Error: {config_result.error}", style="red")
 
@@ -180,13 +180,13 @@ from flext_cli import cli
 data = {"setting": "value", "enabled": True}
 
 # Write
-write_result = cli.write_json_file("config.json", data)
+write_result = cli.write_json_file("settings.json", data)
 
 if write_result.is_success:
     cli.print("Config saved!", style="green")
 
 # Read
-read_result = cli.read_json_file("config.json")
+read_result = cli.read_json_file("settings.json")
 
 if read_result.is_success:
     loaded_data = read_result.unwrap()
@@ -202,25 +202,25 @@ from flext_cli import cli
 from flext_core import r
 
 
-def validate_config(config: dict) -> r[dict]:
+def validate_config(settings: dict) -> r[dict]:
     """Validate configuration."""
-    if "required_field" not in config:
+    if "required_field" not in settings:
         return r[dict].fail("Missing required_field")
-    return r[dict].ok(config)
+    return r[dict].ok(settings)
 
 
-def apply_defaults(config: dict) -> dict:
+def apply_defaults(settings: dict) -> dict:
     """Apply default values."""
-    return {**{"timeout": 30}, **config}
+    return {**{"timeout": 30}, **settings}
 
 
 # Chain operations
 result = (
     cli.file_tools
-    .read_json_file("config.json")
+    .read_json_file("settings.json")
     .flat_map(validate_config)  # Validate
     .map(apply_defaults)  # Transform
-    .map(lambda cfg: cli.print(f"Final config: {cfg}"))
+    .map(lambda cfg: cli.print(f"Final settings: {cfg}"))
 )
 
 # Handle result
@@ -262,7 +262,7 @@ def my_cli_application() -> r[bool]:
     cli.print("Starting...", style="cyan")
 
     # File operations
-    config_result = cli.read_json_file("config.json")
+    config_result = cli.read_json_file("settings.json")
 
     if not config_result.is_success:
         cli.print(f"Error: {config_result.error}", style="red")
@@ -290,8 +290,8 @@ def test_my_cli_operation():
     result = cli.read_json_file("test_config.json")
 
     assert result.is_success
-    config = result.unwrap()
-    assert "required_field" in config
+    settings = result.unwrap()
+    assert "required_field" in settings
 ```
 
 ______________________________________________________________________
@@ -386,7 +386,7 @@ methods = [m for m in dir(auth) if not m.startswith("_")]
 print(f"Available auth methods: {len(methods)}")  # 35+ methods
 
 # Configuration management
-config = FlextCliSettings(profile="development", debug=True, output_format="table")
+settings = FlextCliSettings(profile="development", debug=True, output_format="table")
 ```
 
 ______________________________________________________________________

@@ -17,13 +17,13 @@ class FlextCliUtilitiesModelCommandBuilder[M: BaseModel]:
         self,
         model_class: type[M],
         handler: p.Cli.ModelCommandHandler[M],
-        config: t.Cli.ConfigModel = None,
+        settings: t.Cli.ConfigModel = None,
     ) -> None:
         """Store the canonical inputs for deferred command construction."""
         super().__init__()
         self.model_class = model_class
         self.handler = handler
-        self.config = config
+        self.settings = settings
 
     def _resolve_default(
         self,
@@ -32,8 +32,8 @@ class FlextCliUtilitiesModelCommandBuilder[M: BaseModel]:
     ) -> t.Cli.CliValue | type:
         if field_info.is_required():
             return inspect.Parameter.empty
-        if self.config is not None and hasattr(self.config, field_name):
-            return getattr(self.config, field_name)
+        if self.settings is not None and hasattr(self.settings, field_name):
+            return getattr(self.settings, field_name)
         return field_info.get_default(call_default_factory=True)
 
     def build(self) -> t.Cli.CliCommand:
@@ -56,10 +56,10 @@ class FlextCliUtilitiesModelCommandBuilder[M: BaseModel]:
         signature = inspect.Signature(parameters)
 
         def command(**kwargs: t.Cli.CliValue) -> t.Cli.RuntimeValue:
-            if self.config is not None:
+            if self.settings is not None:
                 for field_name, field_value in kwargs.items():
-                    if hasattr(self.config, field_name):
-                        setattr(self.config, field_name, field_value)
+                    if hasattr(self.settings, field_name):
+                        setattr(self.settings, field_name, field_value)
             model = self.model_class.model_validate(kwargs)
             return self.handler(model)
 
@@ -81,13 +81,13 @@ class FlextCliUtilitiesModelCommands:
     def build_model_command[M: BaseModel](
         model_class: type[M],
         handler: p.Cli.ModelCommandHandler[M],
-        config: t.Cli.ConfigModel = None,
+        settings: t.Cli.ConfigModel = None,
     ) -> t.Cli.CliCommand:
         """Build a model command through the canonical CLI service."""
         return FlextCliUtilitiesModelCommandBuilder(
             model_class=model_class,
             handler=handler,
-            config=config,
+            settings=settings,
         ).build()
 
 

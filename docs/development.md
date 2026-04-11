@@ -206,7 +206,7 @@ src/flext_cli/
 │
 └── Data Models (value objects)
     ├── models.py            # All Pydantic models
-    └── config.py            # FlextCliSettings
+    └── settings.py            # FlextCliSettings
 ```
 
 ### Direct Access Pattern
@@ -216,12 +216,12 @@ src/flext_cli/
 ```python
 # ✅ CORRECT - Direct access
 cli.formatters.print("Hello", style="green")
-cli.file_tools.read_json_file("config.json")
+cli.file_tools.read_json_file("settings.json")
 cli.prompts.confirm("Continue?")
 
 # ❌ WRONG - Wrapper methods (v0.9.0 pattern)
 # cli.print("Hello")              # REMOVED
-# cli.read_json_file("config.json")  # REMOVED
+# cli.read_json_file("settings.json")  # REMOVED
 # cli.confirm("Continue?")           # REMOVED
 ```
 
@@ -498,7 +498,7 @@ Follow conventional commit format:
 feat: add new CLI command for data export
 fix: resolve authentication timeout issue
 docs: update API documentation
-test: add integration tests for config module
+test: add integration tests for settings module
 ```
 
 ______________________________________________________________________

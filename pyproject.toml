@@ -717,11 +717,6 @@ split-on-trailing-comma = true
 "**/alert_manager*.py" = [
   "S310",
 ]
-"**/config.py" = [
-  "ANN401",
-  "FBT001",
-  "SLF001",
-]
 "**/constants.py" = [
   "S105",
 ]
@@ -772,11 +767,6 @@ split-on-trailing-comma = true
   "D102",
   "D107",
 ]
-"**/settings.py" = [
-  "ANN401",
-  "PLC0415",
-  "S105",
-]
 "**/singer/*.py" = [
   "S404",
   "S603",
@@ -808,6 +798,8 @@ split-on-trailing-comma = true
   "S603",
   "S607",
 ]
+
+"**/settings.py" = [ "ANN401", "PLC0415", "S105" ]
 
 # [MANAGED] tomlsort
 [tool.tomlsort]

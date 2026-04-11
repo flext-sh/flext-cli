@@ -36,7 +36,7 @@ class FlextCliModelsPipeline:
                 default_factory=dict, description="Mutable shared state between stages"
             ),
         ]
-        config: Annotated[
+        settings: Annotated[
             t.ContainerMapping,
             Field(default_factory=dict, description="Immutable pipeline configuration"),
         ]

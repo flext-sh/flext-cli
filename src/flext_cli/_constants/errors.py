@@ -43,7 +43,7 @@ class FlextCliConstantsErrors:
         "invalid {field_label}: {field_value}. valid options: {valid_values}"
     )
 
-    ERR_SHOW_CONFIG_FAILED: Final[str] = "Show config failed: {error}"
+    ERR_SHOW_CONFIG_FAILED: Final[str] = "Show settings failed: {error}"
 
     VALIDATION_MSG_FIELD_CANNOT_BE_EMPTY: Final[str] = "{field_name} cannot be empty"
     VALIDATION_MSG_INVALID_ENUM_VALUE: Final[str] = (

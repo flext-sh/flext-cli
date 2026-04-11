@@ -32,7 +32,7 @@
 !.tool-versions
 !.gitignore
 !.gitattributes
-!.pre-commit-config.yaml
+!.pre-commit-settings.yaml
 
 # Environment templates (NOT .env - keep secrets out!)
 !.env.example
@@ -120,7 +120,7 @@ backup/
 *_SUMMARY*.md
 *.csv
 *.json
-!config/*.json
+!settings/*.json
 !test_*.json
 .cursor/
 .cursorrules
@@ -166,7 +166,7 @@ state.json
 *.state
 *.state.json
 catalog.json
-target_config.json
+target_settings.json
 dbt.log
 dbt_packages/
 target/

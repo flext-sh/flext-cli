@@ -374,7 +374,7 @@ class FlextCliUtilitiesToml:
         command = ["taplo", "format"]
         config_path = FlextCliUtilitiesToml._resolve_taplo_config(path)
         if config_path is not None:
-            command.extend(["--config", str(config_path)])
+            command.extend(["--settings", str(config_path)])
         command.append(str(path))
         result = FlextCliUtilitiesBase.run_raw(command, cwd=path.parent)
         if result.failure:

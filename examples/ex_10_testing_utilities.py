@@ -77,15 +77,15 @@ def test_cli_command() -> None:
 
 
 def save_config_command(
-    config: t.ContainerMapping,
+    settings: t.ContainerMapping,
     *,
     base_dir: Path | None = None,
 ) -> r[bool]:
-    """CLI command that saves config."""
+    """CLI command that saves settings."""
     temp_file = _temp_file_path("test_config.json", base_dir=base_dir)
     return (
         cli
-        .write_json_file(temp_file, config)
+        .write_json_file(temp_file, settings)
         .map_error(
             lambda error: f"Save failed: {error}",
         )
@@ -99,8 +99,8 @@ def test_file_operations() -> None:
     """Test file operations in YOUR test suite."""
     cli.print("\n📄 Testing File Operations:", style=c.Cli.MessageStyles.BOLD_CYAN)
     config_data = {"test": True, "value": 123}
-    config: t.ContainerMapping = dict(config_data)
-    result = save_config_command(config)
+    settings: t.ContainerMapping = dict(config_data)
+    result = save_config_command(settings)
     if not result.success:
         cli.print(
             f"   ❌ Config save should succeed: {result.error}",

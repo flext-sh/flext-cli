@@ -4,7 +4,7 @@ WHEN TO USE THIS:
 - Building interactive CLI applications
 - Need user confirmation before actions
 - Collecting configuration data from users
-- Building setup wizards or config tools
+- Building setup wizards or settings tools
 - Need password/secret input (masked)
 - Want type-validated numeric input
 - Need choice cli with validation

@@ -4,7 +4,7 @@ Tests for FlextCliServiceBase covering initialization, configuration access,
 singleton pattern, and inheritance from s with 100% coverage.
 
 Modules tested: flext_cli.base.FlextCliServiceBase
-Scope: All base service functionality, config access, inheritance patterns
+Scope: All base service functionality, settings access, inheritance patterns
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -47,11 +47,11 @@ class TestsCliServiceBase:
     def test_settings_property(self) -> None:
         """Test settings property returns FlextCliSettings singleton."""
         service = self._ConcreteService()
-        config = service.settings
-        tm.that(config, none=False)
-        tm.that(config, is_=FlextCliSettings)
+        settings = service.settings
+        tm.that(settings, none=False)
+        tm.that(settings, is_=FlextCliSettings)
         config2 = service.settings
-        tm.that(config is config2, eq=True)
+        tm.that(settings is config2, eq=True)
 
     def test_config_singleton_consistency(self) -> None:
         """Test that settings returns same singleton across instances."""

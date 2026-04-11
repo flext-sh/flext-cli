@@ -157,7 +157,7 @@ src/flext_cli/
 ├── cli.py               # FlextCliCli - Click abstraction (ONE class, ONLY Click import)
 ├── cli_params.py        # FlextCliCommonParams - reusable CLI parameters (ONE class)
 ├── commands.py          # FlextCliCommands - command registration (ONE class)
-├── config.py            # FlextCliSettings - singleton configuration (ONE class)
+├── settings.py            # FlextCliSettings - singleton configuration (ONE class)
 ├── constants.py         # FlextCliConstants - all constants (ONE class, extends FlextConstants, alias: c)
 ├── debug.py             # FlextCliDebug - debug utilities (ONE class)
 ├── file_tools.py        # FlextCliFileTools - JSON/YAML/CSV operations (ONE class)
@@ -252,12 +252,12 @@ Configuration uses global singleton with environment variable support:
 from flext_cli import FlextCliSettings
 
 # Get singleton instance (creates if needed)
-config = FlextCliSettings.get_global_instance()
+settings = FlextCliSettings.get_global_instance()
 
 # All configuration is read-only properties
-debug = config.debug  # FLEXT_DEBUG env var
-output_format = config.output_format  # FLEXT_OUTPUT_FORMAT
-token_file = config.token_file  # ~/.flext/auth/token.json
+debug = settings.debug  # FLEXT_DEBUG env var
+output_format = settings.output_format  # FLEXT_OUTPUT_FORMAT
+token_file = settings.token_file  # ~/.flext/auth/token.json
 ```
 
 **Click/Rich Abstraction Pattern**:
@@ -308,7 +308,7 @@ make coverage-html            # Generate HTML coverage report
 
 # Specific test execution
 PYTHONPATH=src poetry run pytest tests/unit/test_api.py -v
-PYTHONPATH=src poetry run pytest tests/unit/test_config.py::TestFlextCliConfig -v
+PYTHONPATH=src poetry run pytest tests/unit/test_settings.py::TestFlextCliConfig -v
 PYTHONPATH=src poetry run pytest -m unit -v
 
 # Build and maintenance
@@ -354,7 +354,7 @@ from flext_core import mx  # x
 
 # Usage with full namespace (MANDATORY)
 result: r[str] = r[str].ok("value")
-config: t.Types.ConfigurationDict = {}
+settings: t.Types.ConfigurationDict = {}
 status: c.Cli.OutputFormat = c.Cli.OutputFormat.TABLE
 session: m.Cli.Session = m.Cli.Session()
 service: p.Cli.Service[str] = my_service
@@ -572,7 +572,7 @@ tests/
 ├── utilities.py          # TestsCliUtilities - extends TestsFlextUtilities and FlextCliUtilities (alias: u)
 ├── base.py               # TestsCliServiceBase - extends TestsFlextServiceBase and FlextCliServiceBase
 ├── __init__.py           # Exports all TestsCli classes and short aliases (t, c, p, m, u)
-├── conftest.py           # Centralized pytest configuration and fixtures (ONLY pytest config, no test helpers)
+├── conftest.py           # Centralized pytest configuration and fixtures (ONLY pytest settings, no test helpers)
 ├── helpers/              # Domain-specific helpers ONLY (uses conftest, flext_tests, base classes)
 │   └── __init__.py       # Only flext-cli specific helpers (NO duplicates from conftest or flext_tests)
 ├── fixtures/             # Data fixtures ONLY (NO Python modules, only data files - JSON, YAML, CSV, etc.)
@@ -659,7 +659,7 @@ class TestsCliOutput:
 Common fixtures available in all tests (from `conftest.py`):
 
 - Service fixtures (all modules have fixtures)
-- Utility fixtures (temp_dir, temp_file, sample_config_data, etc.)
+- Utility fixtures (temp_dir, temp_file, sample_settings_data, etc.)
 - Model factories (cli_command_factory, cli_session_factory, etc.)
 - Docker support (flext_test_docker)
 
@@ -695,7 +695,7 @@ from pydantic import BaseModel, ConfigDict
 
 
 class CommandExecutionConfig(BaseModel):
-    model_config = ConfigDict(frozen=False, validate_assignment=True)
+    model_settings = ConfigDict(frozen=False, validate_assignment=True)
 ```
 
 **Field Validators**:
@@ -729,7 +729,7 @@ CommandModel.model_validate_json(json)  # From JSON (FAST)
 
 ### Forbidden Patterns
 
-- ❌ `class Config:` → Use `model_config = ConfigDict()`
+- ❌ `class Config:` → Use `model_settings = ConfigDict()`
 - ❌ `.dict()`, `.json()`, `parse_obj()` → Use `.model_dump()`, `.model_dump_json()`, `()`
 - ❌ `@validator`, `@root_validator` → Use `@field_validator`, `@model_validator`
 
@@ -864,7 +864,7 @@ Based on unified FLEXT ecosystem patterns:
 - **Constants**: Namespace hierarchical pattern (`c.Cli.*`), inheritance from `FlextConstants`, PEP 695 type aliases
 - **Protocols**: Inheritance from `FlextProtocols`, namespace organization (`p.Cli.*`), @runtime_checkable usage
 - **Utilities**: Inheritance from `FlextUtilities`, namespace organization (`u.Cli.*`), facade pattern
-- **Models**: Inheritance from `FlextModels`, Pydantic v2 patterns (`model_config = ConfigDict(...)`), Self type usage
+- **Models**: Inheritance from `FlextModels`, Pydantic v2 patterns (`model_settings = ConfigDict(...)`), Self type usage
 - **Types**: Inheritance from `FlextTypes`, PEP 695 type aliases, namespace organization (`t.Cli.*`)
 - **Testing**: TestsCli structure, 100% coverage requirement, no mocks policy
 - **DI**: s patterns, Container usage, Config auto-registration
@@ -909,19 +909,19 @@ When passing Mapping[str, SpecificType] to a parameter expecting Mapping[str, Ba
 
 ```python
 # ❌ FAILS - dict is invariant
-def _process_config(config: t.ContainerMapping) -> None: ...
+def _process_settings(settings: t.ContainerMapping) -> None: ...
 
 
-_process_config({"key": True, "value": "string"})  # Type error
+_process_settings({"key": True, "value": "string"})  # Type error
 
 # ✅ CORRECT - Mapping is covariant
 from collections.abc import Mapping
 
 
-def _process_config(config: t.ContainerMapping) -> None: ...
+def _process_settings(settings: t.ContainerMapping) -> None: ...
 
 
-_process_config({"key": True, "value": "string"})  # OK
+_process_settings({"key": True, "value": "string"})  # OK
 ```
 
 **Specific Type Code Comments**:

@@ -42,11 +42,11 @@ def _report_step_success[T](value: T, message: str) -> T:
 
 
 def _finish_database_config(
-    config: m.Examples.AdvancedDatabaseConfig,
+    settings: m.Examples.AdvancedDatabaseConfig,
 ) -> m.Examples.AdvancedDatabaseConfig:
-    """Emit the final success summary and preserve the validated config."""
+    """Emit the final success summary and preserve the validated settings."""
     u.display_success_summary("Database configuration")
-    return config
+    return settings
 
 
 def demonstrate_auto_cli_generation() -> None:
@@ -74,26 +74,26 @@ def demonstrate_auto_cli_generation() -> None:
     )
 
 
-def execute_deploy_from_cli(config: m.Examples.DeployConfig) -> None:
-    """Convert validated Pydantic config to deployment. Accepts DeployConfig only."""
+def execute_deploy_from_cli(settings: m.Examples.DeployConfig) -> None:
+    """Convert validated Pydantic settings to deployment. Accepts DeployConfig only."""
     cli.print("\n🚀 Deploying with CLI Arguments:", style=c.Cli.MessageStyles.BOLD_CYAN)
     cli.print("✅ Valid configuration:", style=c.Cli.MessageStyles.GREEN)
     cli.show_table(
-        config.model_dump(),
+        settings.model_dump(),
         headers=["Parameter", "Value"],
         title="Validated Deploy Config",
     )
-    deploy_result = deploy_application(config)
+    deploy_result = deploy_application(settings)
     if deploy_result.success:
         cli.print(
-            f"✅ Deployment successful to {config.environment}!",
+            f"✅ Deployment successful to {settings.environment}!",
             style=c.Cli.MessageStyles.BOLD_GREEN,
         )
 
 
-def deploy_application(config: m.Examples.DeployConfig) -> r[str]:
-    """Deploy application with validated config."""
-    return r[str].ok(f"Deployed to {config.environment}")
+def deploy_application(settings: m.Examples.DeployConfig) -> r[str]:
+    """Deploy application with validated settings."""
+    return r[str].ok(f"Deployed to {settings.environment}")
 
 
 def show_common_cli_params() -> None:
@@ -128,7 +128,7 @@ def demonstrate_nested_models() -> None:
     """Show CLI generation from nested Pydantic models."""
     cli.print("\n🏗️  Nested Model CLI Generation:", style=c.Cli.MessageStyles.BOLD_CYAN)
     db_fields = m.Examples.DatabaseConfig.model_fields
-    cli.print("Database config parameters:", style=c.Cli.MessageStyles.GREEN)
+    cli.print("Database settings parameters:", style=c.Cli.MessageStyles.GREEN)
     for name, field_info in db_fields.items():
         description = field_info.description or ""
         cli.print(f"   --db-{name}: {description}", style=c.Cli.MessageStyles.CYAN)
@@ -167,8 +167,8 @@ def create_database_config_from_cli() -> r[m.Examples.AdvancedDatabaseConfig]:
             convert_and_validate_with_pydantic,
         )
         .map(
-            lambda config: _report_step_success(
-                config,
+            lambda settings: _report_step_success(
+                settings,
                 "✅ Pydantic validation passed",
             ),
         )
@@ -176,8 +176,8 @@ def create_database_config_from_cli() -> r[m.Examples.AdvancedDatabaseConfig]:
             validate_business_rules,
         )
         .map(
-            lambda config: _report_step_success(
-                config,
+            lambda settings: _report_step_success(
+                settings,
                 "✅ Business rules validated",
             ),
         )
@@ -185,8 +185,8 @@ def create_database_config_from_cli() -> r[m.Examples.AdvancedDatabaseConfig]:
             perform_connection_test,
         )
         .map(
-            lambda config: _report_step_success(
-                config,
+            lambda settings: _report_step_success(
+                settings,
                 "✅ Connection test passed",
             ),
         )
@@ -226,26 +226,26 @@ def convert_and_validate_with_pydantic(
 
 
 def validate_business_rules(
-    config: m.Examples.AdvancedDatabaseConfig,
+    settings: m.Examples.AdvancedDatabaseConfig,
 ) -> r[m.Examples.AdvancedDatabaseConfig]:
     """Apply custom business rules to validated database configuration."""
-    if config.ssl_enabled and config.port == 5432:
-        config = config.model_copy(update={"port": 5433})
-    if config.connection_pool > 50 and config.host == "localhost":
+    if settings.ssl_enabled and settings.port == 5432:
+        settings = settings.model_copy(update={"port": 5433})
+    if settings.connection_pool > 50 and settings.host == "localhost":
         return r[m.Examples.AdvancedDatabaseConfig].fail(
             "Localhost cannot handle large connection pools",
         )
-    return r[m.Examples.AdvancedDatabaseConfig].ok(config)
+    return r[m.Examples.AdvancedDatabaseConfig].ok(settings)
 
 
 def perform_connection_test(
-    config: m.Examples.AdvancedDatabaseConfig,
+    settings: m.Examples.AdvancedDatabaseConfig,
 ) -> r[m.Examples.AdvancedDatabaseConfig]:
     """Simulate database connection test."""
     time.sleep(0.1)
-    if "fail" in config.host:
+    if "fail" in settings.host:
         return r[m.Examples.AdvancedDatabaseConfig].fail("Connection test failed")
-    return r[m.Examples.AdvancedDatabaseConfig].ok(config)
+    return r[m.Examples.AdvancedDatabaseConfig].ok(settings)
 
 
 def main() -> None:

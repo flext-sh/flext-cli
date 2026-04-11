@@ -138,7 +138,7 @@ class ExamplesFlextCliConstants(c):
     EXAMPLE_ERR_FAILED_COLLECT_PORT: Final[str] = "Failed to collect port"
     EXAMPLE_ERR_FAILED_GET_DATABASE_NAME: Final[str] = "Failed to get database name"
     EXAMPLE_ERR_FAILED_GET_PASSWORD: Final[str] = "Failed to get password"
-    EXAMPLE_ERR_FAILED_LOAD_CONFIG: Final[str] = "Failed to load config"
+    EXAMPLE_ERR_FAILED_LOAD_CONFIG: Final[str] = "Failed to load settings"
     EXAMPLE_ERR_CONFIG_CONTENT_MAPPING: Final[str] = "Config content must be a mapping"
     EXAMPLE_ERR_NAME_PROMPT_FAILED: Final[str] = "Name prompt failed"
     EXAMPLE_ERR_ENVIRONMENT_CHOICE_FAILED: Final[str] = "Environment choice failed"

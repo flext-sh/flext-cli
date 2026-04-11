@@ -35,12 +35,12 @@ class TestsCliCommonParams:
 
     def test_apply_to_config_with_valid_params(self) -> None:
         """Test apply_to_config with Railway pattern - no state manipulation."""
-        config_result = u.Cli.Tests.create_test_config()
+        config_result = u.Cli.Tests.create_test_settings()
         tm.ok(config_result)
 
-        config = config_result.value
+        settings = config_result.value
         result = FlextCliCommonParams.apply_to_config(
-            config,
+            settings,
             verbose=True,
             debug=True,
             log_level=c.LogLevel.DEBUG,
@@ -54,11 +54,11 @@ class TestsCliCommonParams:
 
     def test_apply_to_config_trace_requires_debug(self) -> None:
         """Test trace requires debug - Railway pattern validation."""
-        config_result = u.Cli.Tests.create_test_config()
+        config_result = u.Cli.Tests.create_test_settings()
         tm.ok(config_result)
 
-        config = config_result.value
-        result = FlextCliCommonParams.apply_to_config(config, trace=True)
+        settings = config_result.value
+        result = FlextCliCommonParams.apply_to_config(settings, trace=True)
 
         tm.fail(result)
         error_msg = str(result.error).lower() if result.error else ""
@@ -66,11 +66,11 @@ class TestsCliCommonParams:
 
     def test_apply_to_config_trace_with_debug(self) -> None:
         """Test trace works with debug enabled - Railway pattern."""
-        config_result = u.Cli.Tests.create_test_config()
+        config_result = u.Cli.Tests.create_test_settings()
         tm.ok(config_result)
 
-        config = config_result.value
-        result = FlextCliCommonParams.apply_to_config(config, debug=True, trace=True)
+        settings = config_result.value
+        result = FlextCliCommonParams.apply_to_config(settings, debug=True, trace=True)
 
         tm.ok(result)
         updated_config = result.value
@@ -79,11 +79,11 @@ class TestsCliCommonParams:
 
     def test_apply_to_config_invalid_log_level(self) -> None:
         """Test invalid log level validation - Railway pattern."""
-        config_result = u.Cli.Tests.create_test_config()
+        config_result = u.Cli.Tests.create_test_settings()
         tm.ok(config_result)
 
-        config = config_result.value
-        result = FlextCliCommonParams.apply_to_config(config, log_level="INVALID")
+        settings = config_result.value
+        result = FlextCliCommonParams.apply_to_config(settings, log_level="INVALID")
 
         tm.fail(result)
         error_msg = str(result.error).lower() if result.error else ""
@@ -158,11 +158,11 @@ class TestsCliCommonParams:
 
     def test_apply_to_config_invalid_log_format(self) -> None:
         """Test invalid log format - Railway pattern."""
-        config_result = u.Cli.Tests.create_test_config()
+        config_result = u.Cli.Tests.create_test_settings()
         tm.ok(config_result)
 
-        config = config_result.value
-        result = FlextCliCommonParams.apply_to_config(config, log_format="invalid")
+        settings = config_result.value
+        result = FlextCliCommonParams.apply_to_config(settings, log_format="invalid")
 
         tm.fail(result)
         error_msg = str(result.error).lower() if result.error else ""
@@ -170,11 +170,11 @@ class TestsCliCommonParams:
 
     def test_apply_to_config_invalid_output_format(self) -> None:
         """Test invalid output format - Railway pattern."""
-        config_result = u.Cli.Tests.create_test_config()
+        config_result = u.Cli.Tests.create_test_settings()
         tm.ok(config_result)
 
-        config = config_result.value
-        result = FlextCliCommonParams.apply_to_config(config, output_format="invalid")
+        settings = config_result.value
+        result = FlextCliCommonParams.apply_to_config(settings, output_format="invalid")
 
         tm.fail(result)
         error_msg = str(result.error).lower() if result.error else ""

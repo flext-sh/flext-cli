@@ -292,7 +292,7 @@ class FlextCliModelsBase:
             bool,
             Field(
                 default=False,
-                description="Whether config directory exists",
+                description="Whether settings directory exists",
             ),
         ]
 
@@ -300,7 +300,7 @@ class FlextCliModelsBase:
             bool,
             Field(
                 default=False,
-                description="Whether config directory is readable",
+                description="Whether settings directory is readable",
             ),
         ]
 
@@ -308,7 +308,7 @@ class FlextCliModelsBase:
             bool,
             Field(
                 default=False,
-                description="Whether config directory is writable",
+                description="Whether settings directory is writable",
             ),
         ]
 

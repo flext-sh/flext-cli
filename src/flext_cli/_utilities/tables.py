@@ -39,20 +39,20 @@ class FlextCliUtilitiesTables:
 
     @staticmethod
     def tables_resolve_config(
-        config: m.Cli.TableConfig | None = None,
-        **config_kwargs: t.Cli.TableConfigValue,
+        settings: m.Cli.TableConfig | None = None,
+        **settings_kwargs: t.Cli.TableConfigValue,
     ) -> r[m.Cli.TableConfig]:
         """Resolve table config via canonical Pydantic model contract."""
         try:
-            if config is not None and not config_kwargs:
-                return r[m.Cli.TableConfig].ok(config)
+            if settings is not None and not settings_kwargs:
+                return r[m.Cli.TableConfig].ok(settings)
             base_data = (
-                config.model_dump(exclude_computed_fields=True)
-                if config is not None
+                settings.model_dump(exclude_computed_fields=True)
+                if settings is not None
                 else {}
             )
-            config_data = {**base_data, **config_kwargs}
-            resolved = m.Cli.TableConfig.model_validate(config_data)
+            settings_data = {**base_data, **settings_kwargs}
+            resolved = m.Cli.TableConfig.model_validate(settings_data)
             return r[m.Cli.TableConfig].ok(resolved)
         except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
             return r[m.Cli.TableConfig].fail(f"Invalid table configuration: {exc}")
@@ -100,18 +100,18 @@ class FlextCliUtilitiesTables:
     @staticmethod
     def tables_render(
         rows: Sequence[t.Cli.TableRow],
-        config: m.Cli.TableConfig,
+        settings: m.Cli.TableConfig,
     ) -> r[str]:
         """Render normalized rows to a tabulated string."""
         headers: str | t.StrSequence
-        if not config.show_header or config.headers is None:
+        if not settings.show_header or settings.headers is None:
             headers = []
-        elif isinstance(config.headers, str):
-            headers = config.headers
+        elif isinstance(settings.headers, str):
+            headers = settings.headers
         else:
-            headers = list(config.headers)
+            headers = list(settings.headers)
 
-        colalign = config.colalign
+        colalign = settings.colalign
         if isinstance(headers, str):
             if not rows:
                 column_count = 0
@@ -146,13 +146,13 @@ class FlextCliUtilitiesTables:
             rendered_table = tabulate(
                 table_data,
                 headers=table_headers,
-                tablefmt=config.table_backend_format,
-                floatfmt=config.floatfmt,
-                numalign=config.numalign,
-                stralign=config.stralign,
-                missingval=config.missingval,
-                showindex=config.showindex,
-                disable_numparse=config.disable_numparse,
+                tablefmt=settings.table_backend_format,
+                floatfmt=settings.floatfmt,
+                numalign=settings.numalign,
+                stralign=settings.stralign,
+                missingval=settings.missingval,
+                showindex=settings.showindex,
+                disable_numparse=settings.disable_numparse,
                 colalign=colalign,
             )
             return r[str].ok(rendered_table)

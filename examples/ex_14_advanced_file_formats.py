@@ -118,7 +118,7 @@ def process_binary_file(input_file: Path, output_file: Path) -> None:
 
 
 def load_any_format_file(file_path: Path) -> t.ContainerMapping | None:
-    """Load config from ANY format - automatically detected."""
+    """Load settings from ANY format - automatically detected."""
     cli.print(
         f"\n🔍 Auto-Detecting Format: {file_path.name}",
         style=c.Cli.MessageStyles.BOLD_CYAN,
@@ -305,8 +305,8 @@ def main() -> None:
         "version": "1.0",
         "debug": True,
     }
-    json_file = temp_dir / "config.json"
-    yaml_file = temp_dir / "config.yaml"
+    json_file = temp_dir / "settings.json"
+    yaml_file = temp_dir / "settings.yaml"
     cli.write_json_file(json_file, test_config)
     cli.write_yaml_file(yaml_file, test_config)
     load_any_format_file(json_file)

@@ -169,7 +169,7 @@ cli.print("msg", style=c.Cli.MessageStyles.BOLD)  # FlextCliFormatters
 cli.display_rich_table(data)  # FlextCliTables
 cli.prompt("Enter name:")  # FlextCliPrompts
 cli.read_json_file("f.json")  # FlextCliFileTools
-cli.config  # FlextCliSettings
+cli.settings  # FlextCliSettings
 ```
 
 Or import modules directly:
@@ -256,12 +256,12 @@ def process_data(data: dict) -> r[dict]:
 ```python
 from flext_cli import cli, FlextCliSettings
 
-config = FlextCliSettings(
+settings = FlextCliSettings(
     debug=True,
     log_level="DEBUG",
 )
 
-cli.print(f"Debug mode: {config.debug}")
+cli.print(f"Debug mode: {settings.debug}")
 ```
 
 ## 🎓 Learning Path
@@ -285,7 +285,7 @@ cli.print(f"Debug mode: {config.debug}")
 All operations return `r` for type-safe error handling:
 
 ```python
-result = cli.read_json_file("config.json")
+result = cli.read_json_file("settings.json")
 
 if result.success:
     data = result.value
@@ -307,7 +307,7 @@ cli.display_rich_table(data)  # Direct MRO method
 Use FlextCliSettings for settings:
 
 ```python
-config = FlextCliSettings(
+settings = FlextCliSettings(
     debug=True,
     environment="development",
 )

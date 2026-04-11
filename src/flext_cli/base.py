@@ -11,10 +11,10 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from abc import ABC
-from typing import override
+from typing import ClassVar, override
 
 from flext_cli import FlextCliSettings, FlextCliTypesBase
-from flext_core import FlextService, FlextSettings
+from flext_core import FlextService, FlextSettings, p
 
 
 class FlextCliServiceBase(FlextService[FlextCliTypesBase.JsonMapping], ABC):
@@ -23,6 +23,8 @@ class FlextCliServiceBase(FlextService[FlextCliTypesBase.JsonMapping], ABC):
     Note: This is an abstract base class. Subclasses must implement the
     `execute` method from s.
     """
+
+    __pydantic_parent_namespace__: ClassVar[dict[str, type]] = {"p": p}
 
     @property
     @override
