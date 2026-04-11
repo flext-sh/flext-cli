@@ -10,35 +10,15 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import sys
 from collections.abc import Sequence
-from typing import ClassVar, Self, overload, override
+from typing import Self, overload, override
 
-from rich.console import Console
-from rich.errors import ConsoleError, StyleError
-from rich.panel import Panel
-from rich.table import Table as RichTable
-from rich.tree import Tree as RichTree
-
-from flext_cli import FlextCliServiceBase, c, t
+from flext_cli import FlextCliServiceBase, t, u
 from flext_core import r
 
 
 class FlextCliFormatters(FlextCliServiceBase):
-    """Thin Rich formatters facade - delegates to Rich library directly.
-
-    Business Rules:
-    ───────────────
-    1. This is ONE OF TWO files allowed to import Rich directly
-    2. All formatting operations MUST delegate to Rich library (no reimplementation)
-    3. Console output MUST respect no_color configuration flag
-    4. All operations MUST return r[T] for error handling
-    5. Rich Console MUST be initialized once per instance (singleton pattern)
-    6. Formatting operations MUST not modify input data (immutable)
-    7. Error handling MUST catch Rich exceptions and return r failures
-
-    ZERO TOLERANCE: Use Rich directly, minimal wrapper only for CLI abstraction.
-    """
+    """Thin Rich formatters facade - delegates to Rich library directly."""
 
     class Tree:
         """Wrapper around Rich Tree; add() returns None by default (optional return via overload).
@@ -77,8 +57,6 @@ class FlextCliFormatters(FlextCliServiceBase):
             """Expose inner Rich Tree for rendering or advanced use."""
             return self._tree
 
-    console: ClassVar[t.Cli.RichConsoleType] = Console()
-
     @classmethod
     def create_tree(cls, label: str) -> r[FlextCliFormatters.Tree]:
         """Create Rich tree wrapped for optional return use (add() returns None by default).
@@ -93,18 +71,15 @@ class FlextCliFormatters(FlextCliServiceBase):
             Use tree.add(label) for side-effect; tree.add(label, return_child=True) to chain.
 
         """
-        try:
-            tree = RichTree(label)
-            return r[FlextCliFormatters.Tree].ok(FlextCliFormatters.Tree(tree))
-        except ConsoleError as exc:
-            cls._get_or_create_logger().warning(
-                "rich_tree_creation_failed",
-                error=str(exc),
-                label=label,
-            )
+        tree_result = u.Cli.formatters_create_tree(
+            label,
+            cls._get_or_create_logger(),
+        )
+        if tree_result.failure:
             return r[FlextCliFormatters.Tree].fail(
-                c.Cli.ERR_TREE_CREATION_FAILED.format(error=exc),
+                tree_result.error or "Tree creation failed",
             )
+        return r[FlextCliFormatters.Tree].ok(FlextCliFormatters.Tree(tree_result.value))
 
     @classmethod
     def print(cls, message: str, style: str | None = None) -> None:
@@ -118,43 +93,25 @@ class FlextCliFormatters(FlextCliServiceBase):
             For advanced Rich features, access self.console directly.
 
         """
-        try:
-            cls.console.print(message, style=style)
-        except (ConsoleError, StyleError) as exc:
-            cls._get_or_create_logger().warning(
-                "rich_print_fallback",
-                error=str(exc),
-                message_length=len(message),
-            )
-            _ = sys.stdout.write(f"{message}\n")
-            _ = sys.stdout.flush()
+        u.Cli.formatters_print(
+            message,
+            cls._get_or_create_logger(),
+            style=style,
+        )
 
     @classmethod
     def render_rule(cls, text: str) -> None:
         """Render a horizontal rule with centered text via Rich."""
-        try:
-            cls.console.rule(text)
-        except (ConsoleError, StyleError) as exc:
-            cls._get_or_create_logger().warning(
-                "rich_rule_fallback",
-                error=str(exc),
-            )
-            _ = sys.stdout.write(f"{'=' * 60}\n  {text}\n{'=' * 60}\n")
-            _ = sys.stdout.flush()
+        u.Cli.formatters_render_rule(text, cls._get_or_create_logger())
 
     @classmethod
     def render_panel(cls, content: str, *, title: str = "") -> None:
         """Render a Rich Panel with optional title."""
-        try:
-            cls.console.print(Panel(content, title=title or None))
-        except (ConsoleError, StyleError) as exc:
-            cls._get_or_create_logger().warning(
-                "rich_panel_fallback",
-                error=str(exc),
-            )
-            header = f"── {title} ──\n" if title else ""
-            _ = sys.stdout.write(f"{header}{content}\n")
-            _ = sys.stdout.flush()
+        u.Cli.formatters_render_panel(
+            content,
+            cls._get_or_create_logger(),
+            title=title,
+        )
 
     @classmethod
     def render_table(
@@ -165,23 +122,12 @@ class FlextCliFormatters(FlextCliServiceBase):
         title: str = "",
     ) -> None:
         """Render a Rich Table with columns and rows."""
-        try:
-            table = RichTable(title=title or None)
-            for col in columns:
-                table.add_column(col)
-            for row in rows:
-                table.add_row(*row)
-            cls.console.print(table)
-        except (ConsoleError, StyleError) as exc:
-            cls._get_or_create_logger().warning(
-                "rich_table_fallback",
-                error=str(exc),
-            )
-            header = "  ".join(columns)
-            _ = sys.stdout.write(f"{header}\n")
-            for row in rows:
-                _ = sys.stdout.write(f"{'  '.join(row)}\n")
-            _ = sys.stdout.flush()
+        u.Cli.formatters_render_table(
+            columns,
+            rows,
+            cls._get_or_create_logger(),
+            title=title,
+        )
 
 
 __all__ = ["FlextCliFormatters"]

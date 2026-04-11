@@ -2,13 +2,11 @@
 
 from __future__ import annotations
 
-from flext_cli import (
-    FlextCliUtilitiesBase,
-    FlextCliUtilitiesJson,
-    FlextCliUtilitiesPipeline,
-    FlextCliUtilitiesToml,
-    FlextCliUtilitiesYaml,
-)
+from flext_cli._utilities.base import FlextCliUtilitiesBase
+from flext_cli._utilities.json import FlextCliUtilitiesJson
+from flext_cli._utilities.pipeline import FlextCliUtilitiesPipeline
+from flext_cli._utilities.toml import FlextCliUtilitiesToml
+from flext_cli._utilities.yaml import FlextCliUtilitiesYaml
 from flext_core import FlextUtilities
 
 

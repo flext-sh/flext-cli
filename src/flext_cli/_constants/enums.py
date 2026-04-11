@@ -83,13 +83,23 @@ class FlextCliConstantsEnums:
         FANCY_GRID = "fancy_grid"
         PIPE = "pipe"
         ORGTBL = "orgtbl"
+        JIRA = "jira"
         RST = "rst"
         MEDIAWIKI = "mediawiki"
+        MOINMOIN = "moinmoin"
+        YOUTRACK = "youtrack"
         HTML = "html"
+        UNSAFEHTML = "unsafehtml"
         LATEX = "latex"
+        LATEX_RAW = "latex_raw"
+        LATEX_BOOKTABS = "latex_booktabs"
+        LATEX_LONGTABLE = "latex_longtable"
+        TEXTILE = "textile"
+        TSV = "tsv"
         PSQL = "psql"
         PRETTY = "pretty"
         TABLE = "table"
+        PRESTO = "presto"
 
     @unique
     class MessageStyles(StrEnum):

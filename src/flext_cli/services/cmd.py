@@ -33,13 +33,7 @@ class FlextCliCmd(s):
     @staticmethod
     def config_snapshot() -> r[m.Cli.ConfigSnapshot]:
         """Return the current configuration snapshot using ``u.Cli``."""
-        return u.try_(
-            u.Cli.config_snapshot,
-        ).map_error(
-            lambda e: c.Cli.ERR_CONFIG_INFO_FAILED.format(
-                error=e,
-            ),
-        )
+        return u.Cli.cmd_config_snapshot()
 
     @override
     def execute(self) -> r[t.Cli.JsonMapping]:
@@ -57,25 +51,7 @@ class FlextCliCmd(s):
             r[bool]: True if displayed successfully, or error
 
         """
-        try:
-            info_result = self.config_snapshot()
-            if info_result.failure:
-                return r[bool].fail(
-                    c.Cli.ERR_SHOW_CONFIG_FAILED.format(
-                        error=info_result.error,
-                    ),
-                )
-            self.logger.info(
-                c.Cli.LOG_MSG_CONFIG_DISPLAYED,
-                config=info_result.value,
-            )
-            return r[bool].ok(True)
-        except c.Cli.CLI_SAFE_EXCEPTIONS as e:
-            return r[bool].fail(
-                c.Cli.ERR_SHOW_CONFIG_FAILED.format(
-                    error=e,
-                ),
-            )
+        return u.Cli.cmd_show_config(self.logger)
 
     def validate_config(self) -> r[bool]:
         """Validate configuration structure using u directly.
@@ -84,21 +60,7 @@ class FlextCliCmd(s):
             r[bool]: True if validation passed, or error
 
         """
-        try:
-            results = u.Cli.validate_config_structure()
-            if results:
-                self.logger.info(
-                    c.Cli.LOG_MSG_CONFIG_VALIDATION_RESULTS.format(
-                        results=results,
-                    ),
-                )
-            return r[bool].ok(True)
-        except (OSError, ValueError, TypeError, RuntimeError) as e:
-            return r[bool].fail(
-                c.Cli.ERR_CONFIG_VALIDATION_FAILED.format(
-                    error=e,
-                ),
-            )
+        return u.Cli.cmd_validate_config(self.logger)
 
 
 __all__ = ["FlextCliCmd"]

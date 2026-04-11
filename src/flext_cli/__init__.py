@@ -27,13 +27,17 @@ if _t.TYPE_CHECKING:
     from flext_cli._typings.base import FlextCliTypesBase
     from flext_cli._typings.domain import FlextCliTypesDomain
     from flext_cli._typings.pipeline import FlextCliTypesPipeline
+    from flext_cli._utilities.auth import FlextCliUtilitiesAuth
     from flext_cli._utilities.base import FlextCliUtilitiesBase
+    from flext_cli._utilities.cmd import FlextCliUtilitiesCmd
+    from flext_cli._utilities.commands import FlextCliUtilitiesCommands
     from flext_cli._utilities.configuration import FlextCliUtilitiesConfiguration
     from flext_cli._utilities.conversion import (
         FlextCliUtilitiesCliModelConverter,
         FlextCliUtilitiesConversion,
     )
     from flext_cli._utilities.files import FlextCliUtilitiesFiles
+    from flext_cli._utilities.formatters import FlextCliUtilitiesFormatters
     from flext_cli._utilities.json import FlextCliUtilitiesJson
     from flext_cli._utilities.matching import FlextCliUtilitiesMatching
     from flext_cli._utilities.model_commands import (
@@ -44,8 +48,12 @@ if _t.TYPE_CHECKING:
         FlextCliUtilitiesOptionBuilder,
         FlextCliUtilitiesOptions,
     )
+    from flext_cli._utilities.output import FlextCliUtilitiesOutput
+    from flext_cli._utilities.params import FlextCliUtilitiesParams
     from flext_cli._utilities.pipeline import FlextCliUtilitiesPipeline
+    from flext_cli._utilities.prompts import FlextCliUtilitiesPrompts
     from flext_cli._utilities.runtime import FlextCliUtilitiesRuntime
+    from flext_cli._utilities.tables import FlextCliUtilitiesTables
     from flext_cli._utilities.toml import FlextCliUtilitiesToml
     from flext_cli._utilities.validation import FlextCliUtilitiesValidation
     from flext_cli._utilities.yaml import FlextCliUtilitiesYaml
@@ -175,19 +183,27 @@ __all__ = [
     "FlextCliTypesDomain",
     "FlextCliTypesPipeline",
     "FlextCliUtilities",
+    "FlextCliUtilitiesAuth",
     "FlextCliUtilitiesBase",
     "FlextCliUtilitiesCliModelConverter",
+    "FlextCliUtilitiesCmd",
+    "FlextCliUtilitiesCommands",
     "FlextCliUtilitiesConfiguration",
     "FlextCliUtilitiesConversion",
     "FlextCliUtilitiesFiles",
+    "FlextCliUtilitiesFormatters",
     "FlextCliUtilitiesJson",
     "FlextCliUtilitiesMatching",
     "FlextCliUtilitiesModelCommandBuilder",
     "FlextCliUtilitiesModelCommands",
     "FlextCliUtilitiesOptionBuilder",
     "FlextCliUtilitiesOptions",
+    "FlextCliUtilitiesOutput",
+    "FlextCliUtilitiesParams",
     "FlextCliUtilitiesPipeline",
+    "FlextCliUtilitiesPrompts",
     "FlextCliUtilitiesRuntime",
+    "FlextCliUtilitiesTables",
     "FlextCliUtilitiesToml",
     "FlextCliUtilitiesValidation",
     "FlextCliUtilitiesYaml",

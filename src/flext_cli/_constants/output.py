@@ -42,53 +42,60 @@ class FlextCliConstantsOutput:
     PROMPT_NO_VALUES: ClassVar[frozenset[str]] = frozenset({"n", "no"})
 
     OUTPUT_EMPTY_STYLE: Final[str] = ""
-    OUTPUT_DEFAULT_MESSAGE_TYPE: Final[str] = (
-        FlextCliConstantsEnums.MessageTypes.INFO.value
+    OUTPUT_DEFAULT_MESSAGE_TYPE: Final[FlextCliConstantsEnums.MessageTypes] = (
+        FlextCliConstantsEnums.MessageTypes.INFO
     )
-    OUTPUT_DEFAULT_FORMAT_TYPE: Final[str] = (
-        FlextCliConstantsEnums.OutputFormats.TABLE.value
+    OUTPUT_DEFAULT_FORMAT_TYPE: Final[FlextCliConstantsEnums.OutputFormats] = (
+        FlextCliConstantsEnums.OutputFormats.TABLE
     )
 
     TABLE_FORMATS: ClassVar[t.StrMapping] = MappingProxyType({
-        "plain": "Minimal formatting, no borders",
-        "simple": "Simple ASCII borders",
-        "grid": "Grid-style ASCII table",
-        "fancy_grid": "Fancy grid with double lines",
-        "pipe": "Markdown pipe table",
-        "orgtbl": "Emacs org-mode table",
-        "jira": "Jira markup table",
-        "presto": "Presto SQL output",
-        "pretty": "Pretty ASCII table",
-        "psql": "PostgreSQL psql output",
-        "rst": "reStructuredText grid",
-        "mediawiki": "MediaWiki markup",
-        "moinmoin": "MoinMoin markup",
-        "youtrack": "YouTrack markup",
-        "html": "HTML table",
-        "unsafehtml": "Unsafe HTML table",
-        "latex": "LaTeX table",
-        "latex_raw": "Raw LaTeX table",
-        "latex_booktabs": "LaTeX booktabs table",
-        "latex_longtable": "LaTeX longtable",
-        "textile": "Textile markup",
-        "tsv": "Tab-separated values",
+        FlextCliConstantsEnums.TabularFormat.PLAIN: "Minimal formatting, no borders",
+        FlextCliConstantsEnums.TabularFormat.SIMPLE: "Simple ASCII borders",
+        FlextCliConstantsEnums.TabularFormat.GRID: "Grid-style ASCII table",
+        FlextCliConstantsEnums.TabularFormat.FANCY_GRID: "Fancy grid with double lines",
+        FlextCliConstantsEnums.TabularFormat.PIPE: "Markdown pipe table",
+        FlextCliConstantsEnums.TabularFormat.ORGTBL: "Emacs org-mode table",
+        FlextCliConstantsEnums.TabularFormat.JIRA: "Jira markup table",
+        FlextCliConstantsEnums.TabularFormat.PRESTO: "Presto SQL output",
+        FlextCliConstantsEnums.TabularFormat.PRETTY: "Pretty ASCII table",
+        FlextCliConstantsEnums.TabularFormat.PSQL: "PostgreSQL psql output",
+        FlextCliConstantsEnums.TabularFormat.RST: "reStructuredText grid",
+        FlextCliConstantsEnums.TabularFormat.MEDIAWIKI: "MediaWiki markup",
+        FlextCliConstantsEnums.TabularFormat.MOINMOIN: "MoinMoin markup",
+        FlextCliConstantsEnums.TabularFormat.YOUTRACK: "YouTrack markup",
+        FlextCliConstantsEnums.TabularFormat.HTML: "HTML table",
+        FlextCliConstantsEnums.TabularFormat.UNSAFEHTML: "Unsafe HTML table",
+        FlextCliConstantsEnums.TabularFormat.LATEX: "LaTeX table",
+        FlextCliConstantsEnums.TabularFormat.LATEX_RAW: "Raw LaTeX table",
+        FlextCliConstantsEnums.TabularFormat.LATEX_BOOKTABS: "LaTeX booktabs table",
+        FlextCliConstantsEnums.TabularFormat.LATEX_LONGTABLE: "LaTeX longtable",
+        FlextCliConstantsEnums.TabularFormat.TEXTILE: "Textile markup",
+        FlextCliConstantsEnums.TabularFormat.TSV: "Tab-separated values",
     })
 
-    MESSAGE_STYLE_MAP: ClassVar[Mapping[str, str]] = MappingProxyType({
-        FlextCliConstantsEnums.MessageTypes.INFO.value: FlextCliConstantsEnums.MessageStyles.BLUE,
-        FlextCliConstantsEnums.MessageTypes.SUCCESS.value: FlextCliConstantsEnums.MessageStyles.BOLD_GREEN,
-        FlextCliConstantsEnums.MessageTypes.ERROR.value: FlextCliConstantsEnums.MessageStyles.BOLD_RED,
-        FlextCliConstantsEnums.MessageTypes.WARNING.value: FlextCliConstantsEnums.MessageStyles.BOLD_YELLOW,
-        FlextCliConstantsEnums.MessageTypes.DEBUG.value: FlextCliConstantsEnums.MessageStyles.DIM,
+    MESSAGE_STYLE_MAP: ClassVar[
+        Mapping[
+            FlextCliConstantsEnums.MessageTypes,
+            FlextCliConstantsEnums.MessageStyles,
+        ]
+    ] = MappingProxyType({
+        FlextCliConstantsEnums.MessageTypes.INFO: FlextCliConstantsEnums.MessageStyles.BLUE,
+        FlextCliConstantsEnums.MessageTypes.SUCCESS: FlextCliConstantsEnums.MessageStyles.BOLD_GREEN,
+        FlextCliConstantsEnums.MessageTypes.ERROR: FlextCliConstantsEnums.MessageStyles.BOLD_RED,
+        FlextCliConstantsEnums.MessageTypes.WARNING: FlextCliConstantsEnums.MessageStyles.BOLD_YELLOW,
+        FlextCliConstantsEnums.MessageTypes.DEBUG: FlextCliConstantsEnums.MessageStyles.DIM,
     })
 
-    MESSAGE_EMOJI_MAP: ClassVar[Mapping[str, str]] = MappingProxyType({
-        FlextCliConstantsEnums.MessageTypes.INFO.value: EMOJI_INFO,
-        FlextCliConstantsEnums.MessageTypes.SUCCESS.value: EMOJI_SUCCESS,
-        FlextCliConstantsEnums.MessageTypes.ERROR.value: EMOJI_ERROR,
-        FlextCliConstantsEnums.MessageTypes.WARNING.value: EMOJI_WARNING,
-        FlextCliConstantsEnums.MessageTypes.DEBUG.value: EMOJI_DEBUG,
-    })
+    MESSAGE_EMOJI_MAP: ClassVar[Mapping[FlextCliConstantsEnums.MessageTypes, str]] = (
+        MappingProxyType({
+            FlextCliConstantsEnums.MessageTypes.INFO: EMOJI_INFO,
+            FlextCliConstantsEnums.MessageTypes.SUCCESS: EMOJI_SUCCESS,
+            FlextCliConstantsEnums.MessageTypes.ERROR: EMOJI_ERROR,
+            FlextCliConstantsEnums.MessageTypes.WARNING: EMOJI_WARNING,
+            FlextCliConstantsEnums.MessageTypes.DEBUG: EMOJI_DEBUG,
+        })
+    )
 
 
 __all__ = ["FlextCliConstantsOutput"]

@@ -112,7 +112,7 @@ class TestsCliPrompts:
     def test_execute_failure_when_debug_logging_crashes(self) -> None:
         prompts = self.Fixtures.create(FailingLogPrompts, interactive_mode=False)
         assert isinstance(prompts, FailingLogPrompts)
-        prompts._failure_level = "debug"
+        prompts._failure_level = c.LogLevel.DEBUG
         prompts._failure_message = "Execute error"
         result = prompts.execute()
         tm.fail(result, has="Execute error")
@@ -161,9 +161,10 @@ class TestsCliPrompts:
         retry_result = prompts.confirm("Continue?", default=False)
         tm.ok(retry_result)
         tm.that(retry_result.value, eq=True)
+        messages: list[str] = [message for _, message in prompts.records]
         tm.that(
-            prompts.records,
-            has=[("warning", "Invalid confirmation input - please enter yes or no")],
+            messages,
+            has=["Invalid confirmation input - please enter yes or no"],
         )
 
     @pytest.mark.parametrize(
@@ -247,7 +248,7 @@ class TestsCliPrompts:
     def test_print_helper_failure_when_logging_crashes(self) -> None:
         prompts = self.Fixtures.create(FailingLogPrompts)
         assert isinstance(prompts, FailingLogPrompts)
-        prompts._failure_level = "info"
+        prompts._failure_level = c.LogLevel.INFO
         prompts._failure_message = "Logger error"
         result = prompts.print_success("Test")
         tm.fail(result, has="Logger error")

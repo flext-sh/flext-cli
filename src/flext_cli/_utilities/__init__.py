@@ -7,13 +7,17 @@ from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 _LAZY_IMPORTS = build_lazy_import_map(
     {
+        ".auth": ("FlextCliUtilitiesAuth",),
         ".base": ("FlextCliUtilitiesBase",),
+        ".cmd": ("FlextCliUtilitiesCmd",),
+        ".commands": ("FlextCliUtilitiesCommands",),
         ".configuration": ("FlextCliUtilitiesConfiguration",),
         ".conversion": (
             "FlextCliUtilitiesCliModelConverter",
             "FlextCliUtilitiesConversion",
         ),
         ".files": ("FlextCliUtilitiesFiles",),
+        ".formatters": ("FlextCliUtilitiesFormatters",),
         ".json": ("FlextCliUtilitiesJson",),
         ".matching": ("FlextCliUtilitiesMatching",),
         ".model_commands": (
@@ -24,8 +28,12 @@ _LAZY_IMPORTS = build_lazy_import_map(
             "FlextCliUtilitiesOptionBuilder",
             "FlextCliUtilitiesOptions",
         ),
+        ".output": ("FlextCliUtilitiesOutput",),
+        ".params": ("FlextCliUtilitiesParams",),
         ".pipeline": ("FlextCliUtilitiesPipeline",),
+        ".prompts": ("FlextCliUtilitiesPrompts",),
         ".runtime": ("FlextCliUtilitiesRuntime",),
+        ".tables": ("FlextCliUtilitiesTables",),
         ".toml": ("FlextCliUtilitiesToml",),
         ".validation": ("FlextCliUtilitiesValidation",),
         ".yaml": ("FlextCliUtilitiesYaml",),

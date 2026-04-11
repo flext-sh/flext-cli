@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import getpass
-import os
 from typing import Self, override
 
 from pydantic import PrivateAttr
@@ -14,6 +13,7 @@ from flext_cli import (
     r,
     s,
     t,
+    u,
 )
 
 
@@ -38,10 +38,9 @@ class FlextCliPrompts(s):
         try:
             if self._state.quiet or not self._state.interactive:
                 return r[bool].ok(default)
-            prompt_text = (
-                f"{message}{c.Cli.PROMPT_CONFIRM_YES}"
-                if default
-                else f"{message}{c.Cli.PROMPT_CONFIRM_NO}"
+            prompt_text = u.Cli.prompts_confirmation_text(
+                message,
+                default=default,
             )
             return self._read_confirmation_input(message, prompt_text, default=default)
         except KeyboardInterrupt:
@@ -103,13 +102,9 @@ class FlextCliPrompts(s):
         try:
             if self._state.quiet or not self._state.interactive:
                 return r[str].ok(default)
-            display_message = (
-                f"{message}{c.Cli.PROMPT_DEFAULT_FMT.format(default=default)}"
-                if default
-                else message
-            )
-            raw = self._input_reader(f"{display_message}{c.Cli.PROMPT_SEP}").strip()
-            value = raw or default
+            display_message = u.Cli.prompts_display_message(message, default)
+            raw = self._input_reader(f"{display_message}{c.Cli.PROMPT_SEP}")
+            value = u.Cli.prompts_effective_text(raw, default)
             if not self._is_test_env():
                 self._log(
                     c.LogLevel.INFO,
@@ -126,24 +121,12 @@ class FlextCliPrompts(s):
         choices: t.StrSequence,
         default: str | None = None,
     ) -> r[str]:
-        if not choices:
-            return r[str].fail(c.Cli.ERR_NO_CHOICES)
-        if not self._state.interactive:
-            if default and default in choices:
-                return r[str].ok(default)
-            return r[str].fail(c.Cli.ERR_INTERACTIVE_CHOICE_DISABLED)
         try:
-            if default is None:
-                return r[str].fail(
-                    c.Cli.ERR_CHOICE_REQUIRED_FMT.format(
-                        choices=", ".join(choices),
-                    ),
-                )
-            if default not in choices:
-                return r[str].fail(
-                    c.Cli.ERR_INVALID_CHOICE_FMT.format(choice=default),
-                )
-            return r[str].ok(default)
+            return u.Cli.prompts_choice_result(
+                interactive=self._state.interactive,
+                choices=choices,
+                default=default,
+            )
         except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
             self._fatal(
                 "prompt_choice",
@@ -164,13 +147,7 @@ class FlextCliPrompts(s):
             return r[str].fail(c.Cli.ERR_INTERACTIVE_PASSWORD_DISABLED)
         try:
             password = self._password_reader(f"{message}{c.Cli.PROMPT_SPACE}")
-            if len(password) < min_length:
-                return r[str].fail(
-                    c.Cli.ERR_PASSWORD_TOO_SHORT_FMT.format(
-                        min_length=min_length,
-                    ),
-                )
-            return r[str].ok(password)
+            return u.Cli.prompts_password_result(password, min_length=min_length)
         except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
             self._fatal(
                 "prompt_password",
@@ -201,14 +178,7 @@ class FlextCliPrompts(s):
         )
 
     def _is_test_env(self) -> bool:
-        if self._test_env_override is not None:
-            return self._test_env_override
-        env_underscore = os.environ.get("_", "")
-        return (
-            os.environ.get("PYTEST_CURRENT_TEST") is not None
-            or "pytest" in env_underscore.lower()
-            or os.environ.get("CI") == "true"
-        )
+        return u.Cli.prompts_is_test_env(test_override=self._test_env_override)
 
     def _log(
         self,
@@ -256,22 +226,20 @@ class FlextCliPrompts(s):
         *,
         default: bool,
     ) -> r[bool]:
-        yes_values = c.Cli.PROMPT_YES_VALUES
-        no_values = c.Cli.PROMPT_NO_VALUES
         while True:
-            text = self._input_reader(prompt_text).strip().lower()
-            if not text:
-                return r[bool].ok(default)
-            if text in yes_values:
-                return r[bool].ok(True)
-            if text in no_values:
-                return r[bool].ok(False)
+            input_text = self._input_reader(prompt_text)
+            parsed = u.Cli.prompts_parse_confirmation(
+                input_text,
+                default=default,
+            )
+            if parsed is not None:
+                return r[bool].ok(parsed)
             self._log(
                 c.LogLevel.WARNING,
                 c.Cli.ERR_INVALID_CONFIRM_INPUT,
                 operation="confirm",
                 prompt_message=message,
-                user_input=text,
+                user_input=input_text,
                 consequence="Prompting again",
             )
 

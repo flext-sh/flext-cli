@@ -210,11 +210,21 @@ class FlextCliModelsBase:
 
         # Format configuration
         table_format: Annotated[
-            str,
+            t.Cli.TabularFormatLiteral,
             Field(
-                description="Table format (simple, grid, fancy_grid, pipe, orgtbl, etc.)",
+                description="Table format enum-derived literal authority",
             ),
         ] = c.Cli.TabularFormat.SIMPLE
+
+        @computed_field
+        @property
+        def table_backend_format(self) -> t.Cli.TabularFormatLiteral:
+            """Canonical backend format used by tabulate rendering."""
+            return (
+                c.Cli.TabularFormat.SIMPLE
+                if self.table_format == c.Cli.TabularFormat.TABLE
+                else self.table_format
+            )
 
         # Number formatting
         floatfmt: Annotated[

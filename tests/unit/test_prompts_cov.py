@@ -47,9 +47,10 @@ class TestsCliPromptsCov:
         result = prompts.prompt("message", default="default")
         tm.ok(result)
         tm.that(result.value, eq="typed")
+        messages: list[str] = [message for _, message in prompts.records]
         tm.that(
-            prompts.records,
-            has=[("info", "User input for 'message': typed")],
+            messages,
+            has=["User input for 'message': typed"],
         )
 
     def test_confirm_records_warning_before_retrying(self) -> None:
@@ -57,7 +58,8 @@ class TestsCliPromptsCov:
         result = prompts.confirm("m", default=False)
         tm.ok(result)
         tm.that(result.value, eq=True)
+        messages: list[str] = [message for _, message in prompts.records]
         tm.that(
-            prompts.records,
-            has=[("warning", "Invalid confirmation input - please enter yes or no")],
+            messages,
+            has=["Invalid confirmation input - please enter yes or no"],
         )

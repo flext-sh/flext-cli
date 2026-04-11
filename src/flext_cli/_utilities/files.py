@@ -2,16 +2,233 @@
 
 from __future__ import annotations
 
+import csv
 import hashlib
 import os
+import shutil
 import tempfile
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 
+from pydantic import BaseModel
+
 from flext_cli import c, r, t
+from flext_cli._utilities.json import FlextCliUtilitiesJson
+from flext_cli._utilities.yaml import FlextCliUtilitiesYaml
 
 
 class FlextCliUtilitiesFiles:
     """Generic filesystem operations for utility consumers."""
+
+    @staticmethod
+    def files_delete(file_path: t.Cli.TextPath) -> r[bool]:
+        """Delete one file path using canonical error handling."""
+        path = Path(file_path)
+        return FlextCliUtilitiesFiles.files_execute_bool(
+            path.unlink,
+            c.Cli.ERR_FILE_DELETION_FAILED,
+        )
+
+    @staticmethod
+    def files_read_text(file_path: t.Cli.TextPath) -> r[str]:
+        """Read one UTF-8 text file."""
+        return FlextCliUtilitiesFiles.files_execute(
+            lambda: Path(file_path).read_text(encoding=c.Cli.ENCODING_DEFAULT),
+            "Text read failed: {error}",
+        )
+
+    @staticmethod
+    def files_write_text(file_path: t.Cli.TextPath, content: str) -> r[bool]:
+        """Write one UTF-8 text file."""
+
+        def _write() -> bool:
+            Path(file_path).write_text(content, encoding=c.Cli.ENCODING_DEFAULT)
+            return True
+
+        return FlextCliUtilitiesFiles.files_execute(
+            _write,
+            "Text write failed: {error}",
+        )
+
+    @staticmethod
+    def files_read_json(file_path: t.Cli.TextPath) -> r[t.Cli.JsonValue]:
+        """Read one JSON file and validate to canonical JSON value."""
+
+        def _load() -> t.Cli.JsonValue:
+            raw = Path(file_path).read_text(encoding=c.Cli.ENCODING_DEFAULT)
+            return t.Cli.JSON_VALUE_ADAPTER.validate_json(raw)
+
+        return FlextCliUtilitiesFiles.files_execute(
+            _load,
+            c.Cli.ERR_JSON_LOAD_FAILED,
+        )
+
+    @staticmethod
+    def files_read_json_model[M: BaseModel](
+        file_path: t.Cli.TextPath,
+        model_type: type[M],
+    ) -> r[M]:
+        """Read one JSON file directly into one Pydantic model."""
+
+        def _load() -> M:
+            raw = Path(file_path).read_bytes()
+            return model_type.model_validate_json(raw, strict=False)
+
+        return FlextCliUtilitiesFiles.files_execute(
+            _load,
+            c.Cli.ERR_JSON_LOAD_FAILED,
+        )
+
+    @staticmethod
+    def files_write_json_model(
+        file_path: t.Cli.TextPath,
+        model: BaseModel,
+        *,
+        indent: int,
+        by_alias: bool,
+        exclude_none: bool,
+    ) -> r[bool]:
+        """Write one Pydantic model to JSON text."""
+
+        def _write() -> bool:
+            json_str = model.model_dump_json(
+                indent=indent,
+                by_alias=by_alias,
+                exclude_none=exclude_none,
+            )
+            Path(file_path).write_text(json_str, encoding=c.Cli.ENCODING_DEFAULT)
+            return True
+
+        return FlextCliUtilitiesFiles.files_execute(
+            _write,
+            c.Cli.ERR_JSON_WRITE_FAILED,
+        )
+
+    @staticmethod
+    def files_read_yaml(file_path: t.Cli.TextPath) -> r[t.Cli.JsonValue]:
+        """Read one YAML file and validate to canonical JSON value."""
+        result = FlextCliUtilitiesYaml.yaml_safe_load(Path(file_path))
+        if result.failure:
+            return r[t.Cli.JsonValue].fail(result.error or "YAML load failed")
+        validated: t.Cli.JsonValue = t.Cli.JSON_VALUE_ADAPTER.validate_python(
+            result.value,
+        )
+        return r[t.Cli.JsonValue].ok(validated)
+
+    @staticmethod
+    def files_write_csv(
+        file_path: t.Cli.TextPath,
+        rows: Sequence[t.StrSequence],
+    ) -> r[bool]:
+        """Write one CSV file from row sequence."""
+
+        def _write() -> bool:
+            with Path(file_path).open(
+                mode="w",
+                encoding=c.Cli.ENCODING_DEFAULT,
+                newline="",
+            ) as handle:
+                writer = csv.writer(handle)
+                for row in rows:
+                    writer.writerow(list(row))
+            return True
+
+        return FlextCliUtilitiesFiles.files_execute(
+            _write,
+            "CSV write failed: {error}",
+        )
+
+    @staticmethod
+    def files_read_csv_with_headers(
+        file_path: t.Cli.TextPath,
+    ) -> r[Sequence[t.StrMapping]]:
+        """Read one CSV file into mapping rows using header row."""
+
+        def _load() -> Sequence[t.StrMapping]:
+            with Path(file_path).open(
+                encoding=c.Cli.ENCODING_DEFAULT,
+                newline="",
+            ) as handle:
+                return [dict(row) for row in csv.DictReader(handle)]
+
+        return FlextCliUtilitiesFiles.files_execute(
+            _load,
+            "CSV read failed: {error}",
+        )
+
+    @staticmethod
+    def files_read_binary(file_path: t.Cli.TextPath) -> r[bytes]:
+        """Read one binary file."""
+        return FlextCliUtilitiesFiles.files_execute(
+            lambda: Path(file_path).read_bytes(),
+            "Binary read failed: {error}",
+        )
+
+    @staticmethod
+    def files_write_binary(file_path: t.Cli.TextPath, data: bytes) -> r[bool]:
+        """Write one binary file."""
+
+        def _write() -> bool:
+            Path(file_path).write_bytes(data)
+            return True
+
+        return FlextCliUtilitiesFiles.files_execute(
+            _write,
+            "Binary write failed: {error}",
+        )
+
+    @staticmethod
+    def files_copy(
+        source_path: t.Cli.TextPath,
+        destination_path: t.Cli.TextPath,
+    ) -> r[bool]:
+        """Copy one file preserving metadata."""
+
+        def _copy() -> bool:
+            shutil.copy2(source_path, destination_path)
+            return True
+
+        return FlextCliUtilitiesFiles.files_execute(
+            _copy,
+            "File copy failed: {error}",
+        )
+
+    @staticmethod
+    def files_execute[T](
+        operation_func: t.Cli.NullaryOperation[T],
+        error_template: str,
+        **format_kwargs: t.Scalar,
+    ) -> r[T]:
+        """Execute one operation and map common runtime errors to ``r``."""
+        try:
+            return r[T].ok(operation_func())
+        except (
+            OSError,
+            ValueError,
+            TypeError,
+            KeyError,
+            AttributeError,
+            RuntimeError,
+        ) as exc:
+            return r[T].fail(error_template.format(error=exc, **format_kwargs))
+
+    @staticmethod
+    def files_execute_bool[T](
+        operation_func: t.Cli.NullaryOperation[T],
+        error_template: str,
+        **format_kwargs: t.Scalar,
+    ) -> r[bool]:
+        """Execute one operation that should return a success boolean."""
+
+        def _run() -> bool:
+            _ = operation_func()
+            return True
+
+        return FlextCliUtilitiesFiles.files_execute(
+            _run,
+            error_template,
+            **format_kwargs,
+        )
 
     @staticmethod
     def ensure_dir(path: t.Cli.TextPath) -> r[Path]:
@@ -65,6 +282,47 @@ class FlextCliUtilitiesFiles:
             for chunk in iter(lambda: handle.read(1024 * 1024), b""):
                 hasher.update(chunk)
         return hasher.hexdigest()
+
+    @staticmethod
+    def files_detect_format(file_path: t.Cli.TextPath) -> r[str]:
+        """Detect one file format from extension using canonical output enums."""
+        suffix = Path(file_path).suffix.lower()
+        if suffix == ".json":
+            return r[str].ok(c.Cli.OutputFormats.JSON)
+        if suffix in {".yaml", ".yml"}:
+            return r[str].ok(c.Cli.OutputFormats.YAML)
+        if suffix == ".csv":
+            return r[str].ok(c.Cli.OutputFormats.CSV)
+        if suffix in {".txt", ".log"}:
+            return r[str].ok(c.Cli.OutputFormats.TEXT)
+        if suffix:
+            return r[str].fail(f"Unsupported format: {suffix}")
+        return r[str].fail("Unable to detect file format without an extension")
+
+    @staticmethod
+    def files_load_auto_mapping(file_path: t.Cli.TextPath) -> t.Cli.JsonMappingResult:
+        """Load JSON/YAML file and normalize to one mapping payload."""
+        path = Path(file_path)
+        if path.suffix.lower() == ".json":
+            read_result = FlextCliUtilitiesJson.json_read(path)
+        elif path.suffix.lower() in {".yaml", ".yml"}:
+            read_result = FlextCliUtilitiesYaml.yaml_safe_load(path)
+        else:
+            return r[t.Cli.JsonMapping].fail(
+                f"Unsupported format: {path.suffix or '<none>'}",
+            )
+        if read_result.failure:
+            return r[t.Cli.JsonMapping].fail(read_result.error or "Auto load failed")
+        payload = read_result.value
+        if not isinstance(payload, Mapping):
+            return r[t.Cli.JsonMapping].fail(
+                "Auto-detected file must contain a mapping",
+            )
+        normalized_payload: t.Cli.JsonMapping = {
+            str(key): FlextCliUtilitiesJson.normalize_json_value(value)
+            for key, value in payload.items()
+        }
+        return r[t.Cli.JsonMapping].ok(normalized_payload)
 
 
 __all__ = ["FlextCliUtilitiesFiles"]

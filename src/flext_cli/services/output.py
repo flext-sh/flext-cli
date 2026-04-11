@@ -7,8 +7,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
-
 from flext_cli import FlextCliFormatters, c, s, t, u
 
 
@@ -22,83 +20,6 @@ class FlextCliOutput(s):
     - Built-in: JSON, YAML, CSV formatting
 
     """
-
-    # ── Static helpers ──────────────────────────────────────────────
-
-    @staticmethod
-    def cast_if(
-        v: t.Cli.JsonValue,
-        target_type: type,
-        default: t.Cli.JsonValue,
-    ) -> t.Cli.JsonValue:
-        """Cast value if isinstance else return default."""
-        matched = isinstance(v, target_type)
-        if matched:
-            return v
-        default_matched = isinstance(default, target_type)
-        if default_matched:
-            return default
-        type_name = (
-            target_type.__name__
-            if hasattr(target_type, "__name__")
-            else str(target_type)
-        )
-        default_type_name = (
-            type(default).__name__
-            if hasattr(type(default), "__name__")
-            else str(type(default))
-        )
-        msg = f"default must be instance of {type_name}, got {default_type_name}"
-        raise TypeError(msg)
-
-    @staticmethod
-    def ensure_str(value: t.RecursiveContainer, default: str = "") -> str:
-        """Ensure value is str with default."""
-        if value is None:
-            return default
-        try:
-            return str(value)
-        except (TypeError, ValueError):
-            return default
-
-    @staticmethod
-    def resolve_map_value(
-        mapping: t.Cli.JsonMapping,
-        k: str,
-        default: t.Cli.JsonValue,
-    ) -> t.Cli.JsonValue:
-        """Resolve a mapping value with a normalized default."""
-        value = mapping.get(k, default)
-        compatible_value: t.Cli.JsonValue
-        if u.is_primitive(value) or (
-            isinstance(value, Sequence) and not isinstance(value, str)
-        ):
-            compatible_value = value
-        elif isinstance(value, Mapping):
-            compatible_value = {
-                str(kk): u.Cli.normalize_json_value(vv) for kk, vv in value.items()
-            }
-        else:
-            compatible_value = str(value)
-        return compatible_value
-
-    @staticmethod
-    def to_dict_json(v: t.Cli.JsonValue) -> t.Cli.JsonMapping:
-        """Convert value to dict natively instead of using build DSL."""
-        built: t.Cli.JsonMapping = v if isinstance(v, Mapping) else {}
-        result: dict[str, t.Cli.JsonValue] = {}
-        for k, val in built.items():
-            compatible_value: t.Cli.JsonValue
-            if isinstance(val, (bool, float, int, str)):
-                compatible_value = val
-            elif isinstance(val, Mapping):
-                compatible_value = {
-                    str(kk): u.Cli.normalize_json_value(vv) for kk, vv in val.items()
-                }
-            else:
-                compatible_value = u.Cli.normalize_json_value(val)
-            result[str(k)] = compatible_value
-        return result
 
     # ── Static methods (public API) ─────────────────────────────────
 
@@ -114,15 +35,8 @@ class FlextCliOutput(s):
             message_type: Type of message (info, success, error, warning)
 
         """
-        if message_type is None:
-            final_type = c.Cli.OUTPUT_DEFAULT_MESSAGE_TYPE
-        elif isinstance(message_type, str):
-            final_type = message_type
-        else:
-            final_type = message_type.value
-        style = c.Cli.MESSAGE_STYLE_MAP.get(final_type, c.Cli.MessageStyles.BLUE)
-        emoji = c.Cli.MESSAGE_EMOJI_MAP.get(final_type, c.Cli.EMOJI_INFO)
-        FlextCliOutput.print_message(f"{emoji} {message}", style=style)
+        payload, style = u.Cli.output_message_payload(message, message_type)
+        FlextCliOutput.print_message(payload, style=style)
 
     @staticmethod
     def display_text(text: str, *, style: str | None = None) -> None:
@@ -132,7 +46,7 @@ class FlextCliOutput(s):
     @staticmethod
     def print_message(message: str, style: str | None = None) -> None:
         """Print a message using FlextCliFormatters."""
-        validated_style = FlextCliOutput.ensure_str(style, c.Cli.OUTPUT_EMPTY_STYLE)
+        validated_style = u.Cli.output_resolve_style(style)
         FlextCliFormatters.print(message, style=validated_style)
 
     @staticmethod
@@ -149,9 +63,9 @@ class FlextCliOutput(s):
         detail: str = "",
     ) -> None:
         """Display progress indicator [current/total] label detail."""
-        w = len(str(total))
-        suffix = f" {detail}" if detail else ""
-        FlextCliFormatters.print(f"[{current:0{w}d}/{total}] {label}{suffix}")
+        FlextCliFormatters.print(
+            u.Cli.output_progress_line(current, total, label, detail=detail)
+        )
 
     @staticmethod
     def display_status(
@@ -162,14 +76,13 @@ class FlextCliOutput(s):
         elapsed: float | None = None,
     ) -> None:
         """Display a pass/fail status line."""
-        sym = c.Cli.SYMBOL_SUCCESS_MARK if success else c.Cli.SYMBOL_FAILURE_MARK
-        style = (
-            c.Cli.MessageStyles.BOLD_GREEN if success else c.Cli.MessageStyles.BOLD_RED
+        line, style = u.Cli.output_status_line(
+            success,
+            label,
+            detail,
+            elapsed=elapsed,
         )
-        timing = f"  ({elapsed:.2f}s)" if elapsed is not None else ""
-        FlextCliFormatters.print(
-            f"  {sym} {label:<8} {detail:<24}{timing}", style=style
-        )
+        FlextCliFormatters.print(line, style=style)
 
     @staticmethod
     def display_summary(
@@ -181,20 +94,19 @@ class FlextCliOutput(s):
         skipped: int = 0,
     ) -> None:
         """Display a summary panel."""
-        content = (
-            f"Total: {total}  Success: {success}  Failed: {failed}  Skipped: {skipped}"
+        content = u.Cli.output_summary_content(
+            total=total,
+            success=success,
+            failed=failed,
+            skipped=skipped,
         )
         FlextCliFormatters.render_panel(content, title=title)
 
     @staticmethod
     def display_gate(name: str, passed: bool, *, message: str = "") -> None:
         """Display a quality gate result."""
-        sym = c.Cli.SYMBOL_SUCCESS_MARK if passed else c.Cli.SYMBOL_FAILURE_MARK
-        style = (
-            c.Cli.MessageStyles.BOLD_GREEN if passed else c.Cli.MessageStyles.BOLD_RED
-        )
-        suffix = f"  {message}" if message else ""
-        FlextCliFormatters.print(f"    {sym} {name:<10}{suffix}", style=style)
+        line, style = u.Cli.output_gate_line(name, passed, message=message)
+        FlextCliFormatters.print(line, style=style)
 
     @staticmethod
     def display_metrics(
@@ -209,7 +121,8 @@ class FlextCliOutput(s):
         """Display debug message (no-op unless verbose)."""
         if not verbose:
             return
-        FlextCliFormatters.print(f"[DEBUG] {message}", style=c.Cli.MessageStyles.DIM)
+        line, style = u.Cli.output_debug_line(message)
+        FlextCliFormatters.print(line, style=style)
 
 
 __all__ = ["FlextCliOutput"]

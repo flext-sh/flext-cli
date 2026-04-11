@@ -13,8 +13,8 @@ from typing import ClassVar, TypeIs
 
 from pydantic import BaseModel, ValidationError
 
-from flext_cli import c, r, t
-from flext_core import p, u
+from flext_cli import c, p, r, t
+from flext_core import u
 
 
 class FlextCliUtilitiesJson:

@@ -27,11 +27,6 @@ class FlextCliCommands(s):
         default_factory=lambda: dict[str, p.Cli.CommandEntry](),
     )
 
-    @staticmethod
-    def _empty_command_registry() -> MutableMapping[str, p.Cli.CommandEntry]:
-        """Create an empty typed command registry for PrivateAttr initialization."""
-        return {}
-
     @classmethod
     def create(cls, *, name: str, description: str = "") -> Self:
         """Create a named FlextCliCommands instance."""
@@ -39,25 +34,6 @@ class FlextCliCommands(s):
         instance._name = name
         instance._description = description or name
         return instance
-
-    @staticmethod
-    def _normalize_handler_result(
-        result: r[t.RecursiveValue] | None,
-        command_name: str,
-    ) -> r[t.Cli.JsonValue]:
-        if result is None:
-            payload: t.Cli.JsonValue = {
-                "status": c.Cli.CommandStatus.SUCCESS,
-                "command": command_name,
-            }
-            return r[t.Cli.JsonValue].ok(payload)
-        if result.success:
-            result_value: t.Cli.JsonValue = u.Cli.normalize_json_value(result.value)
-            return r[t.Cli.JsonValue].ok(result_value)
-        error_value = result.error
-        return r[t.Cli.JsonValue].fail(
-            str(error_value) if error_value else "Command failed",
-        )
 
     @override
     def execute(self) -> r[t.Cli.JsonMapping]:
@@ -103,26 +79,21 @@ class FlextCliCommands(s):
             return r[t.Cli.JsonValue].fail(
                 c.Cli.ERR_HANDLER_NOT_CALLABLE.format(name=name),
             )
-        try:
-            result: r[t.RecursiveValue] | None = None
-            execution_attempted = False
-            if args or kwargs:
-                try:
-                    result = handler(*args, **kwargs) if args else handler(**kwargs)
-                    execution_attempted = True
-                except TypeError as exc:
-                    self.logger.debug(
-                        "Handler signature mismatch; retrying without args",
-                        command_name=name,
-                        error=str(exc),
-                    )
-            if not execution_attempted:
-                result = handler()
-            return self._normalize_handler_result(result, name)
-        except c.Cli.CLI_SAFE_EXCEPTIONS as e:
-            return r[t.Cli.JsonValue].fail(
-                c.Cli.ERR_COMMAND_EXECUTION_FAILED.format(error=e),
+
+        def _on_signature_mismatch(error: str) -> None:
+            self.logger.debug(
+                "Handler signature mismatch; retrying without args",
+                command_name=name,
+                error=error,
             )
+
+        return u.Cli.commands_execute_handler(
+            command_name=name,
+            handler=handler,
+            args=args,
+            kwargs=kwargs,
+            on_signature_mismatch=_on_signature_mismatch,
+        )
 
     def list_commands(self) -> r[t.StrSequence]:
         """List all registered command names.
