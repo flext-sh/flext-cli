@@ -30,16 +30,16 @@ class FlextCliGettingStarted:
 
     def advanced_types_example(self) -> None:
         """Demonstrate advanced Python 3.13+ typing patterns with flext-cli."""
-        output_format = c.Cli.OUTPUT_FORMAT_JSON
+        output_format = c.Cli.OutputFormats.JSON
         cli.print(
             f"Selected format: {output_format.value}", style=c.Cli.MessageStyles.BLUE
         )
         valid_formats: tuple[str, ...] = tuple(
-            sorted(c.Cli.VALIDATION_OUTPUT_FORMATS),
+            sorted(c.Cli.OUTPUT_FORMATS),
         )
         cli.print(f"Available formats: {', '.join(valid_formats)}")
         sample_data: t.Cli.JsonMapping = {
-            "status": c.Cli.COMMAND_STATUS_COMPLETED.value,
+            "status": c.Cli.CommandStatus.COMPLETED,
             "data": [1, 2, 3],
             "metadata": {"version": "1.0"},
         }

@@ -23,8 +23,8 @@ class FlextCliTables(s):
     @staticmethod
     def _normalize_table_format(table_format: str) -> str:
         """Map public table aliases to concrete tabulate backends."""
-        if table_format == c.Cli.OUTPUT_FORMAT_TABLE.value:
-            return "simple"
+        if table_format == c.Cli.TabularFormat.TABLE:
+            return c.Cli.TabularFormat.SIMPLE
         return table_format
 
     @staticmethod
@@ -35,9 +35,9 @@ class FlextCliTables(s):
         """Build a concrete table config from an explicit model plus kwargs."""
         base_config = config or m.Cli.TableConfig()
         if not config_kwargs:
-            if base_config.table_format == c.Cli.OUTPUT_FORMAT_TABLE.value:
+            if base_config.table_format == c.Cli.TabularFormat.TABLE:
                 normalized_config: m.Cli.TableConfig = base_config.model_copy(
-                    update={"table_format": "simple"},
+                    update={"table_format": c.Cli.TabularFormat.SIMPLE},
                 )
                 return r[m.Cli.TableConfig].ok(normalized_config)
             return r[m.Cli.TableConfig].ok(base_config)

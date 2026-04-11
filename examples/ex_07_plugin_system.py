@@ -72,7 +72,7 @@ class ReportGeneratorPlugin:
     @staticmethod
     def execute(data: Sequence[t.ContainerMapping]) -> r[str]:
         """Generate report from data in YOUR CLI."""
-        table_result = cli.format_table(data, table_format="grid")
+        table_result = cli.format_table(data, table_format=c.Cli.TabularFormat.GRID)
         if table_result.failure:
             return r[str].fail(f"Report generation failed: {table_result.error}")
         report = table_result.value

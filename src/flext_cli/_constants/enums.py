@@ -18,6 +18,7 @@ class FlextCliConstantsEnums:
         TABLE = "table"
         PLAIN = "plain"
         XML = "xml"
+        TEXT = "text"
 
     @unique
     class CommandStatus(StrEnum):
@@ -28,6 +29,9 @@ class FlextCliConstantsEnums:
         COMPLETED = "completed"
         FAILED = "failed"
         CANCELLED = "cancelled"
+        SUCCESS = "success"
+        HELP = "help"
+        VERSION = "version"
 
     @unique
     class MessageTypes(StrEnum):

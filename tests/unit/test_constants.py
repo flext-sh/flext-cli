@@ -45,12 +45,12 @@ class TestsCliConstants:
 
     def test_service_status_enum(self) -> None:
         """Test ServiceStatus enum values."""
-        tm.that(c.Cli.SERVICE_STATUS_OPERATIONAL, is_=str)
-        tm.that(c.Cli.SERVICE_STATUS_OPERATIONAL, eq="operational")
+        tm.that(c.Cli.ServiceStatus.OPERATIONAL, is_=str)
+        tm.that(c.Cli.ServiceStatus.OPERATIONAL, eq="operational")
 
     def test_get_enum_values(self) -> None:
         """Test get_enum_values extracts values from StrEnum."""
-        values = u.enum_values(type(c.Cli.SERVICE_STATUS_OPERATIONAL))
+        values = u.enum_values(c.Cli.ServiceStatus)
         tm.that(values, is_=frozenset)
         tm.that(values, empty=False)
         for v in values:
@@ -84,10 +84,10 @@ class TestsCliConstants:
 
     def test_message_types(self) -> None:
         """Test MessageTypes enum."""
-        tm.that(c.Cli.MESSAGE_TYPE_SUCCESS, is_=str)
-        tm.that(c.Cli.MESSAGE_TYPE_ERROR, is_=str)
-        tm.that(c.Cli.MESSAGE_TYPE_WARNING, is_=str)
-        tm.that(c.Cli.MESSAGE_TYPE_INFO, is_=str)
+        tm.that(c.Cli.MessageTypes.SUCCESS, is_=str)
+        tm.that(c.Cli.MessageTypes.ERROR, is_=str)
+        tm.that(c.Cli.MessageTypes.WARNING, is_=str)
+        tm.that(c.Cli.MessageTypes.INFO, is_=str)
 
     def test_subdirectories(self) -> None:
         """Test Subdirectories constants."""
@@ -147,9 +147,9 @@ class TestsCliConstants:
 
     def test_log_verbosity(self) -> None:
         """Test LogVerbosity enum."""
-        tm.that(c.Cli.LOG_VERBOSITY_COMPACT, is_=str)
-        tm.that(c.Cli.LOG_VERBOSITY_DETAILED, is_=str)
-        tm.that(c.Cli.LOG_VERBOSITY_FULL, is_=str)
+        tm.that(c.Cli.LogVerbosity.COMPACT, is_=str)
+        tm.that(c.Cli.LogVerbosity.DETAILED, is_=str)
+        tm.that(c.Cli.LogVerbosity.FULL, is_=str)
 
     def test_constants_uniqueness(self) -> None:
         """Test that key constants have unique values."""

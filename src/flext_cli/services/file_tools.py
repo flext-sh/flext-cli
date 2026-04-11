@@ -280,13 +280,13 @@ class FlextCliFileTools(FlextCliServiceBase):
     def detect_file_format(file_path: t.Cli.TextPath) -> r[str]:
         suffix = Path(file_path).suffix.lower()
         if suffix == ".json":
-            return r[str].ok("json")
+            return r[str].ok(c.Cli.OutputFormats.JSON)
         if suffix in {".yaml", ".yml"}:
-            return r[str].ok("yaml")
+            return r[str].ok(c.Cli.OutputFormats.YAML)
         if suffix == ".csv":
-            return r[str].ok("csv")
+            return r[str].ok(c.Cli.OutputFormats.CSV)
         if suffix in {".txt", ".log"}:
-            return r[str].ok("text")
+            return r[str].ok(c.Cli.OutputFormats.TEXT)
         if suffix:
             return r[str].fail(f"Unsupported format: {suffix}")
         return r[str].fail("Unable to detect file format without an extension")

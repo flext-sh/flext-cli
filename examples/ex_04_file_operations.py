@@ -134,7 +134,7 @@ def load_deployment_config(config_file: Path) -> r[m.Cli.LoadedConfig]:
 def export_database_report(
     records: Sequence[t.ContainerMapping],
     output_file: Path,
-    format_type: str = "grid",
+    format_type: c.Cli.TabularFormat = c.Cli.TabularFormat.GRID,
 ) -> bool | None:
     """Export database query results in YOUR reporting tool."""
     table_rows: Sequence[t.Cli.TableMappingRow] = [
@@ -748,7 +748,7 @@ def main() -> None:
         {"id": 2, "name": "Bob", "status": "inactive"},
     ]
     report_file = temp_dir / "report.txt"
-    export_database_report(sample_data, report_file, format_type="grid")
+    export_database_report(sample_data, report_file, format_type=c.Cli.TabularFormat.GRID)
 
     # Example 4: Directory listing
     cli.print(

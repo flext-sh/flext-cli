@@ -58,7 +58,7 @@ class FlextCliPrompts(s):
     def execute(self) -> r[t.Cli.JsonMapping]:
         try:
             self._log(
-                "debug", "Prompt service execution completed", operation="execute"
+                c.LogLevel.DEBUG, "Prompt service execution completed", operation="execute"
             )
             empty_result: t.Cli.JsonMapping = {}
             return r[t.Cli.JsonMapping].ok(empty_result)
@@ -75,18 +75,18 @@ class FlextCliPrompts(s):
 
     def print_error(self, message: str) -> r[bool]:
         return self._print_message(
-            message, "error", c.Cli.PROMPT_ERROR_FMT, "Print error failed: {error}"
+            message, c.LogLevel.ERROR, c.Cli.PROMPT_ERROR_FMT, "Print error failed: {error}"
         )
 
     def print_success(self, message: str) -> r[bool]:
         return self._print_message(
-            message, "info", c.Cli.PROMPT_SUCCESS_FMT, "Print success failed: {error}"
+            message, c.LogLevel.INFO, c.Cli.PROMPT_SUCCESS_FMT, "Print success failed: {error}"
         )
 
     def print_warning(self, message: str) -> r[bool]:
         return self._print_message(
             message,
-            "warning",
+            c.LogLevel.WARNING,
             c.Cli.PROMPT_WARNING_FMT,
             "Print warning failed: {error}",
         )
@@ -104,7 +104,7 @@ class FlextCliPrompts(s):
             value = raw or default
             if not self._is_test_env():
                 self._log(
-                    "info",
+                    c.LogLevel.INFO,
                     c.Cli.PROMPT_LOG_FMT.format(message=message, input=value),
                 )
             return r[str].ok(value)
@@ -182,7 +182,7 @@ class FlextCliPrompts(s):
         consequence: str,
     ) -> None:
         self._log(
-            "error",
+            c.LogLevel.ERROR,
             f"FATAL ERROR during {operation} - operation aborted",
             operation=operation,
             prompt_message=message,
@@ -209,11 +209,11 @@ class FlextCliPrompts(s):
         **context: t.RuntimeData | Exception,
     ) -> None:
         match log_level:
-            case "debug":
+            case c.LogLevel.DEBUG:
                 self.logger.debug(message, **context)
-            case "error":
+            case c.LogLevel.ERROR:
                 self.logger.error(message, **context)
-            case "warning":
+            case c.LogLevel.WARNING:
                 self.logger.warning(message, **context)
             case _:
                 self.logger.info(message, **context)
@@ -259,7 +259,7 @@ class FlextCliPrompts(s):
             if text in no_values:
                 return r[bool].ok(False)
             self._log(
-                "warning",
+                c.LogLevel.WARNING,
                 c.Cli.ERR_INVALID_CONFIRM_INPUT,
                 operation="confirm",
                 prompt_message=message,

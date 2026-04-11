@@ -47,7 +47,7 @@ class FlextCliCommands(s):
     ) -> r[t.Cli.JsonValue]:
         if result is None:
             payload: t.Cli.JsonValue = {
-                "status": "success",
+                "status": c.Cli.CommandStatus.SUCCESS,
                 "command": command_name,
             }
             return r[t.Cli.JsonValue].ok(payload)
@@ -166,7 +166,7 @@ class FlextCliCommands(s):
         """
         if not args:
             empty_args_payload: t.Cli.JsonValue = {
-                "status": "success",
+                "status": c.Cli.CommandStatus.SUCCESS,
                 "message": "No args",
             }
             return r[t.Cli.JsonValue].ok(empty_args_payload)
@@ -174,13 +174,13 @@ class FlextCliCommands(s):
         cmd_args = list(args[1:]) if len(args) > 1 else []
         if cmd_name in {"--help", "-h"}:
             help_payload: t.Cli.JsonValue = {
-                "status": "help",
+                "status": c.Cli.CommandStatus.HELP,
                 "commands": list(self._commands.keys()),
             }
             return r[t.Cli.JsonValue].ok(help_payload)
         if cmd_name in {"--version", "-v"}:
             version_payload: t.Cli.JsonValue = {
-                "status": "version",
+                "status": c.Cli.CommandStatus.VERSION,
                 "name": self._name,
             }
             return r[t.Cli.JsonValue].ok(version_payload)

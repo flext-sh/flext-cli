@@ -214,7 +214,7 @@ class FlextCliModelsBase:
             Field(
                 description="Table format (simple, grid, fancy_grid, pipe, orgtbl, etc.)",
             ),
-        ] = "simple"
+        ] = c.Cli.TabularFormat.SIMPLE
 
         # Number formatting
         floatfmt: Annotated[
