@@ -12,13 +12,13 @@ from tomlkit import TOMLDocument
 from tomlkit.items import AoT, Item as TomlItem, Table as TomlTable
 
 from flext_cli import FlextCliUtilitiesBase, FlextCliUtilitiesJson, c, r, t
-from flext_core import FlextLogger, u
+from flext_core import p, u
 
 
 class FlextCliUtilitiesToml:
     """Generic TOML read/write and table-manipulation helpers."""
 
-    _module_logger: ClassVar[FlextLogger] = FlextLogger(__name__)
+    _module_logger: ClassVar[p.Logger] = u.fetch_logger(__name__)
     _STR_SEQUENCE_ADAPTER: TypeAdapter[Sequence[str]] = TypeAdapter(Sequence[str])
 
     @staticmethod

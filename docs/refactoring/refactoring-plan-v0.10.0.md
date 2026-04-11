@@ -128,7 +128,7 @@ class FlextCliFileTools(s[t.ContainerMapping]):
     """File operations as a service - OVERKILL"""
     def __init__(self):
         super().__init__()  # Unnecessary overhead
-        self.logger = FlextLogger(__name__)
+        self.logger = u.fetch_logger(__name__)
 
     def read_json_file(self, path: str) -> r[dict]:
         # Just reading a file - doesn't need service infrastructure
@@ -452,7 +452,7 @@ ______________________________________________________________________
 class FlextCliFileTools(s[t.ContainerMapping]):
     def __init__(self):
         super().__init__()
-        self.logger = FlextLogger(__name__)
+        self.logger = u.fetch_logger(__name__)
 
     def read_json_file(self, path: str) -> r[dict]:
         # Implementation

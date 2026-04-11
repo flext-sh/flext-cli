@@ -38,9 +38,9 @@ class TestsCliConfigBasics:
         tm.that(dumped, has="verbose")
 
     def test_singleton_pattern(self) -> None:
-        """Test singleton behavior via get_global."""
-        config1 = FlextCliSettings.get_global()
-        config2 = FlextCliSettings.get_global()
+        """Test singleton behavior via fetch_global."""
+        config1 = FlextCliSettings.fetch_global()
+        config2 = FlextCliSettings.fetch_global()
         tm.that(config1.verbose, eq=config2.verbose)
 
 

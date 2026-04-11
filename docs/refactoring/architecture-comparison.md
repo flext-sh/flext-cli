@@ -207,7 +207,7 @@ cli.formatters.print(table.unwrap())
 class FlextCliFileTools(s[t.ContainerMapping]):
     def __init__(self):
         super().__init__()  # Service overhead
-        self.logger = FlextLogger(__name__)
+        self.logger = u.fetch_logger(__name__)
         self._state = {}  # No state actually needed!
 
     def read_json_file(self, path: str) -> r[dict]:

@@ -748,7 +748,9 @@ def main() -> None:
         {"id": 2, "name": "Bob", "status": "inactive"},
     ]
     report_file = temp_dir / "report.txt"
-    export_database_report(sample_data, report_file, format_type=c.Cli.TabularFormat.GRID)
+    export_database_report(
+        sample_data, report_file, format_type=c.Cli.TabularFormat.GRID
+    )
 
     # Example 4: Directory listing
     cli.print(

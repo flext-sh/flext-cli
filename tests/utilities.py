@@ -20,7 +20,6 @@ from flext_cli import (
     FlextCliSettings,
     u,
 )
-from flext_core import FlextLogger
 from tests import c, r, t
 
 
@@ -101,7 +100,7 @@ class TestsFlextCliUtilities(FlextTestsUtilities, u):
                         try:
                             version_parts.append(int(part))
                         except ValueError:
-                            FlextLogger(__name__).debug(
+                            u.fetch_logger(__name__).debug(
                                 f"version part non-int, keep as str: {part}"
                             )
                             version_parts.append(part)

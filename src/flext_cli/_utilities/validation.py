@@ -6,13 +6,13 @@ from collections.abc import Mapping, MutableMapping, MutableSequence
 from typing import ClassVar
 
 from flext_cli import c, r, t
-from flext_core import FlextLogger, FlextUtilities
+from flext_core import FlextUtilities, p, u
 
 
 class FlextCliUtilitiesValidation:
     """Validation methods exposed directly on ``u.Cli``."""
 
-    _module_logger: ClassVar[FlextLogger] = FlextLogger(__name__)
+    _module_logger: ClassVar[p.Logger] = u.fetch_logger(__name__)
 
     @staticmethod
     def process_mapping[T, U](

@@ -17,7 +17,7 @@ def _ok_handler(stage_id: str, output_key: str = "done") -> t.Cli.PipelineHandle
         return r[m.Cli.PipelineStageResult].ok(
             m.Cli.PipelineStageResult(
                 stage_id=stage_id,
-                status=c.Cli.PIPELINE_STATUS_OK,
+                status=c.Cli.PipelineStageStatus.OK,
                 output={output_key: stage_id},
                 duration_ms=1.0,
             ),
@@ -63,7 +63,7 @@ class TestPipelineExecute:
         assert pipeline.success
         assert len(pipeline.stages) == 1
         assert pipeline.stages[0].stage_id == "alpha"
-        assert pipeline.stages[0].status == c.Cli.PIPELINE_STATUS_OK
+        assert pipeline.stages[0].status == c.Cli.PipelineStageStatus.OK
 
     def test_dependency_order(self, tmp_path: Path) -> None:
         """Stages execute in topological order — B depends on A."""
@@ -76,7 +76,7 @@ class TestPipelineExecute:
                 execution_order.append(stage_id)
                 return r[m.Cli.PipelineStageResult].ok(
                     m.Cli.PipelineStageResult(
-                        stage_id=stage_id, status=c.Cli.PIPELINE_STATUS_OK
+                        stage_id=stage_id, status=c.Cli.PipelineStageStatus.OK
                     ),
                 )
 
@@ -105,7 +105,7 @@ class TestPipelineExecute:
             received["from_a"] = ctx.shared.get("a_output")
             return r[m.Cli.PipelineStageResult].ok(
                 m.Cli.PipelineStageResult(
-                    stage_id="b", status=c.Cli.PIPELINE_STATUS_OK
+                    stage_id="b", status=c.Cli.PipelineStageStatus.OK
                 ),
             )
 
@@ -113,7 +113,7 @@ class TestPipelineExecute:
             ctx.shared["a_output"] = "hello"
             return r[m.Cli.PipelineStageResult].ok(
                 m.Cli.PipelineStageResult(
-                    stage_id="a", status=c.Cli.PIPELINE_STATUS_OK
+                    stage_id="a", status=c.Cli.PipelineStageStatus.OK
                 ),
             )
 
@@ -163,7 +163,7 @@ class TestPipelineExecute:
         assert result.success
         pipeline = result.value
         assert pipeline.success
-        assert pipeline.stages[0].status == c.Cli.PIPELINE_STATUS_SKIPPED
+        assert pipeline.stages[0].status == c.Cli.PipelineStageStatus.SKIPPED
 
     def test_cycle_detection(self, tmp_path: Path) -> None:
         """Circular dependencies produce a failure result."""
@@ -193,7 +193,7 @@ class TestPipelineExecute:
                 return r[m.Cli.PipelineStageResult].fail("transient")
             return r[m.Cli.PipelineStageResult].ok(
                 m.Cli.PipelineStageResult(
-                    stage_id="flaky", status=c.Cli.PIPELINE_STATUS_OK
+                    stage_id="flaky", status=c.Cli.PipelineStageStatus.OK
                 ),
             )
 
@@ -234,7 +234,7 @@ class TestPipelineExecute:
                 order.append(sid)
                 return r[m.Cli.PipelineStageResult].ok(
                     m.Cli.PipelineStageResult(
-                        stage_id=sid, status=c.Cli.PIPELINE_STATUS_OK
+                        stage_id=sid, status=c.Cli.PipelineStageStatus.OK
                     ),
                 )
 

@@ -58,7 +58,9 @@ class FlextCliPrompts(s):
     def execute(self) -> r[t.Cli.JsonMapping]:
         try:
             self._log(
-                c.LogLevel.DEBUG, "Prompt service execution completed", operation="execute"
+                c.LogLevel.DEBUG,
+                "Prompt service execution completed",
+                operation="execute",
             )
             empty_result: t.Cli.JsonMapping = {}
             return r[t.Cli.JsonMapping].ok(empty_result)
@@ -75,12 +77,18 @@ class FlextCliPrompts(s):
 
     def print_error(self, message: str) -> r[bool]:
         return self._print_message(
-            message, c.LogLevel.ERROR, c.Cli.PROMPT_ERROR_FMT, "Print error failed: {error}"
+            message,
+            c.LogLevel.ERROR,
+            c.Cli.PROMPT_ERROR_FMT,
+            "Print error failed: {error}",
         )
 
     def print_success(self, message: str) -> r[bool]:
         return self._print_message(
-            message, c.LogLevel.INFO, c.Cli.PROMPT_SUCCESS_FMT, "Print success failed: {error}"
+            message,
+            c.LogLevel.INFO,
+            c.Cli.PROMPT_SUCCESS_FMT,
+            "Print success failed: {error}",
         )
 
     def print_warning(self, message: str) -> r[bool]:

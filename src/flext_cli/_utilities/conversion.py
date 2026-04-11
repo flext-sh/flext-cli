@@ -7,14 +7,15 @@ from typing import ClassVar
 
 from pydantic import BaseModel, TypeAdapter, ValidationError
 
-from flext_cli import FlextCliUtilitiesJson, c, r, t
-from flext_core import FlextLogger
+from flext_cli import c, r, t
+from flext_cli._utilities.json import FlextCliUtilitiesJson
+from flext_core import p, u
 
 
 class FlextCliUtilitiesCliModelConverter:
     """Convert CLI payloads into canonical Pydantic or JSON values."""
 
-    _module_logger: ClassVar[FlextLogger] = FlextLogger(__name__)
+    _module_logger: ClassVar[p.Logger] = u.fetch_logger(__name__)
     JSON_VALUE_ADAPTER: ClassVar[TypeAdapter[t.Cli.JsonValue]] = TypeAdapter(
         t.Cli.JsonValue,
     )

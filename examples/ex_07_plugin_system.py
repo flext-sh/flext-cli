@@ -48,9 +48,12 @@ class DataExportPlugin:
         self.version = "1.0.0"
 
     @staticmethod
-    def execute(data: t.ContainerMapping, output_format: str = "json") -> r[str]:
+    def execute(
+        data: t.ContainerMapping,
+        output_format: c.Cli.OutputFormats = c.Cli.OutputFormats.JSON,
+    ) -> r[str]:
         """Execute plugin logic in YOUR application."""
-        if output_format == "json":
+        if output_format == c.Cli.OutputFormats.JSON:
             output = json.dumps(data, indent=2)
             cli.print(
                 f"✅ Exported data as JSON ({len(output)} chars)",
@@ -103,10 +106,15 @@ class MyAppPluginManager:
         try:
             if isinstance(plugin, DataExportPlugin):
                 data_val = kwargs.get("data", "")
-                fmt_val = kwargs.get("format", "json")
+                fmt_val = kwargs.get("format", c.Cli.OutputFormats.JSON)
+                plugin_format = (
+                    fmt_val
+                    if isinstance(fmt_val, c.Cli.OutputFormats)
+                    else c.Cli.OutputFormats(str(fmt_val))
+                )
                 raw = plugin.execute(
                     data={"raw": str(data_val)},
-                    output_format=str(fmt_val),
+                    output_format=plugin_format,
                 )
             else:
                 data_val = kwargs.get("data", "")
@@ -238,7 +246,7 @@ def main() -> None:
     export_result = manager.execute_plugin(
         "data-export",
         data=json.dumps(test_data),
-        format="json",
+        format=c.Cli.OutputFormats.JSON,
     )
     if export_result.success:
         result_value = export_result.value

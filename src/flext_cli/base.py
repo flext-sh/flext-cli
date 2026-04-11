@@ -28,7 +28,7 @@ class FlextCliServiceBase(FlextService[FlextCliTypesBase.JsonMapping], ABC):
     @override
     def settings(self) -> FlextCliSettings:
         """Return the typed CLI settings namespace."""
-        return FlextSettings.get_global().get_namespace("cli", FlextCliSettings)
+        return FlextSettings.fetch_global().fetch_namespace("cli", FlextCliSettings)
 
 
 s = FlextCliServiceBase

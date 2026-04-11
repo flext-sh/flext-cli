@@ -129,13 +129,17 @@ class FlextCliModelsPipeline:
         @property
         def success(self) -> bool:
             """True if no stage failed."""
-            return all(s.status != c.Cli.PIPELINE_STATUS_FAILED for s in self.stages)
+            return all(
+                s.status != c.Cli.PipelineStageStatus.FAILED for s in self.stages
+            )
 
         @computed_field
         @property
         def failed_stages(self) -> Sequence[FlextCliModelsPipeline.PipelineStageResult]:
             """Return only failed stage results."""
-            return [s for s in self.stages if s.status == c.Cli.PIPELINE_STATUS_FAILED]
+            return [
+                s for s in self.stages if s.status == c.Cli.PipelineStageStatus.FAILED
+            ]
 
         @computed_field
         @property
@@ -143,7 +147,9 @@ class FlextCliModelsPipeline:
             self,
         ) -> Sequence[FlextCliModelsPipeline.PipelineStageResult]:
             """Return only skipped stage results."""
-            return [s for s in self.stages if s.status == c.Cli.PIPELINE_STATUS_SKIPPED]
+            return [
+                s for s in self.stages if s.status == c.Cli.PipelineStageStatus.SKIPPED
+            ]
 
 
 __all__ = ["FlextCliModelsPipeline"]

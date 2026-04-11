@@ -17,7 +17,7 @@ from pydantic import ValidationError
 from yaml import safe_dump, safe_load
 
 from flext_cli import c, r, t
-from flext_core import FlextLogger, u
+from flext_core import p, u
 
 
 class FlextCliUtilitiesYaml:
@@ -27,7 +27,7 @@ class FlextCliUtilitiesYaml:
     Projects needing domain-specific normalization wrap these methods.
     """
 
-    _module_logger: ClassVar[FlextLogger] = FlextLogger(__name__)
+    _module_logger: ClassVar[p.Logger] = u.fetch_logger(__name__)
 
     # ------------------------------------------------------------------
     # Reading
