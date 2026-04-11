@@ -1,16 +1,13 @@
-# AUTO-GENERATED FILE — DO NOT EDIT MANUALLY.
-# Regenerate with: make gen
-#
+# AUTO-GENERATED FILE — Regenerate with: make gen
 """Integration package."""
 
 from __future__ import annotations
 
-from flext_core.lazy import install_lazy_exports
-from tests import t
+from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
-_LAZY_IMPORTS: t.StrSequenceMapping = {}
+_LAZY_IMPORTS = build_lazy_import_map(
+    {},
+)
 
-__all__: list[str] = []
 
-
-install_lazy_exports(__name__, globals(), _LAZY_IMPORTS)
+install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, publish_all=False)

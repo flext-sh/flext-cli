@@ -49,9 +49,9 @@ if _t.TYPE_CHECKING:
     from flext_cli._utilities.yaml import FlextCliUtilitiesYaml
     from flext_cli.api import FlextCli, cli
     from flext_cli.base import FlextCliServiceBase, s
-    from flext_cli.constants import FlextCliConstants, FlextCliConstants as c
-    from flext_cli.models import FlextCliModels, FlextCliModels as m
-    from flext_cli.protocols import FlextCliProtocols, FlextCliProtocols as p
+    from flext_cli.constants import FlextCliConstants, c
+    from flext_cli.models import FlextCliModels, m
+    from flext_cli.protocols import FlextCliProtocols, p
     from flext_cli.services.auth import FlextCliAuth
     from flext_cli.services.cli import FlextCliCli
     from flext_cli.services.cli_params import FlextCliCommonParams
@@ -63,8 +63,8 @@ if _t.TYPE_CHECKING:
     from flext_cli.services.prompts import FlextCliPrompts
     from flext_cli.services.tables import FlextCliTables
     from flext_cli.settings import FlextCliSettings
-    from flext_cli.typings import FlextCliTypes, FlextCliTypes as t
-    from flext_cli.utilities import FlextCliUtilities, FlextCliUtilities as u
+    from flext_cli.typings import FlextCliTypes, t
+    from flext_cli.utilities import FlextCliUtilities, u
     from flext_core.decorators import d
     from flext_core.exceptions import e
     from flext_core.handlers import h
@@ -99,24 +99,32 @@ _LAZY_IMPORTS = merge_lazy_imports(
                 "FlextCliServiceBase",
                 "s",
             ),
-            ".constants": ("FlextCliConstants",),
-            ".models": ("FlextCliModels",),
-            ".protocols": ("FlextCliProtocols",),
+            ".constants": (
+                "FlextCliConstants",
+                "c",
+            ),
+            ".models": (
+                "FlextCliModels",
+                "m",
+            ),
+            ".protocols": (
+                "FlextCliProtocols",
+                "p",
+            ),
             ".settings": ("FlextCliSettings",),
-            ".typings": ("FlextCliTypes",),
-            ".utilities": ("FlextCliUtilities",),
+            ".typings": (
+                "FlextCliTypes",
+                "t",
+            ),
+            ".utilities": (
+                "FlextCliUtilities",
+                "u",
+            ),
             "flext_core.decorators": ("d",),
             "flext_core.exceptions": ("e",),
             "flext_core.handlers": ("h",),
             "flext_core.mixins": ("x",),
             "flext_core.result": ("r",),
-        },
-        alias_groups={
-            ".constants": (("c", "FlextCliConstants"),),
-            ".models": (("m", "FlextCliModels"),),
-            ".protocols": (("p", "FlextCliProtocols"),),
-            ".typings": (("t", "FlextCliTypes"),),
-            ".utilities": (("u", "FlextCliUtilities"),),
         },
     ),
     exclude_names=(
@@ -130,6 +138,9 @@ _LAZY_IMPORTS = merge_lazy_imports(
     ),
     module_name=__name__,
 )
+
+
+install_lazy_exports(__name__, globals(), _LAZY_IMPORTS)
 
 __all__ = [
     "FlextCli",
@@ -199,6 +210,3 @@ __all__ = [
     "u",
     "x",
 ]
-
-
-install_lazy_exports(__name__, globals(), _LAZY_IMPORTS)
