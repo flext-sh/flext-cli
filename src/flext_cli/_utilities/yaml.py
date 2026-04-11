@@ -64,7 +64,7 @@ class FlextCliUtilitiesYaml:
             return r[t.Cli.YamlDict].fail(f"YAML parse error: {exc}")
         if parsed is None:
             return r[t.Cli.YamlDict].ok({})
-        if not u.is_mapping(parsed):
+        if not u.mapping(parsed):
             return r[t.Cli.YamlDict].fail(
                 f"YAML content is not a mapping: {type(parsed).__name__}",
             )

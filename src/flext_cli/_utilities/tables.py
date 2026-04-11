@@ -69,7 +69,7 @@ class FlextCliUtilitiesTables:
         except ValidationError as exc:
             return r[Sequence[t.Cli.TableRow]].fail(f"Table data invalid: {exc}")
 
-        if FlextUtilities.is_mapping(validated_data):
+        if FlextUtilities.mapping(validated_data):
             validated_mapping = validated_data
             return r[Sequence[t.Cli.TableRow]].ok([
                 {
@@ -81,12 +81,12 @@ class FlextCliUtilitiesTables:
 
         normalized_rows: MutableSequence[t.Cli.TableRow] = []
         for row in validated_data:
-            if FlextUtilities.is_mapping(row):
+            if FlextUtilities.mapping(row):
                 normalized_rows.append(
                     FlextCliUtilitiesTables.tables_normalize_mapping_row(row),
                 )
                 continue
-            if FlextUtilities.is_list_like(row):
+            if FlextUtilities.list_like(row):
                 normalized_rows.append(
                     FlextCliUtilitiesTables.tables_normalize_sequence_row(row),
                 )
@@ -115,7 +115,7 @@ class FlextCliUtilitiesTables:
         if isinstance(headers, str):
             if not rows:
                 column_count = 0
-            elif FlextUtilities.is_mapping(rows[0]):
+            elif FlextUtilities.mapping(rows[0]):
                 column_count = len(rows[0])
             else:
                 column_count = len(rows[0])
@@ -132,14 +132,14 @@ class FlextCliUtilitiesTables:
             table_headers: str | t.StrSequence = headers
             if (
                 rows
-                and FlextUtilities.is_mapping(rows[0])
+                and FlextUtilities.mapping(rows[0])
                 and not isinstance(
                     headers,
                     str,
                 )
             ):
                 table_data = [
-                    list(row.values()) for row in rows if FlextUtilities.is_mapping(row)
+                    list(row.values()) for row in rows if FlextUtilities.mapping(row)
                 ]
                 table_headers = list(headers)
 

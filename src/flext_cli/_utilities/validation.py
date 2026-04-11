@@ -106,7 +106,7 @@ class FlextCliUtilitiesValidation:
                     field_name=name,
                 ),
             )
-        if isinstance(val, str) and not FlextUtilities.is_string_non_empty(val):
+        if isinstance(val, str) and not FlextUtilities.string_non_empty(val):
             return r[bool].fail(
                 c.Cli.VALIDATION_MSG_FIELD_CANNOT_BE_EMPTY.format(
                     field_name=name,

@@ -27,7 +27,7 @@ class FlextCliUtilitiesToml:
     ) -> t.Cli.JsonMapping | None:
         """Normalize a TOML mapping into a typed plain mapping."""
         normalized = FlextCliUtilitiesToml.toml_unwrap_item(value)
-        if normalized is None or not u.is_mapping(normalized):
+        if normalized is None or not u.mapping(normalized):
             return None
         try:
             return t.Cli.JSON_MAPPING_ADAPTER.validate_python(normalized)
