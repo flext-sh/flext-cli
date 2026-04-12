@@ -1,6 +1,6 @@
-"""Command execution and configuration bridge for flext-.
+"""Command execution and settings bridge for flext-.
 
-Encapsulates the bridge between registered commands, file utilities, and configuration
+Encapsulates the bridge between registered commands, file utilities, and settings
 helpers using `r` for predictable success/failure handling.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
@@ -31,9 +31,9 @@ class FlextCliCmd(s):
     """
 
     @staticmethod
-    def config_snapshot() -> r[m.Cli.ConfigSnapshot]:
-        """Return the current configuration snapshot using ``u.Cli``."""
-        return u.Cli.cmd_config_snapshot()
+    def settings_snapshot() -> r[m.Cli.SettingsSnapshot]:
+        """Return the current settings snapshot using ``u.Cli``."""
+        return u.Cli.cmd_settings_snapshot()
 
     @override
     def execute(self) -> r[t.Cli.JsonMapping]:
@@ -44,23 +44,23 @@ class FlextCliCmd(s):
         }
         return r[t.Cli.JsonMapping].ok(status)
 
-    def show_config(self) -> r[bool]:
-        """Show current configuration.
+    def show_settings(self) -> r[bool]:
+        """Show current settings.
 
         Returns:
             r[bool]: True if displayed successfully, or error
 
         """
-        return u.Cli.cmd_show_config(self.logger)
+        return u.Cli.cmd_show_settings(self.logger)
 
-    def validate_config(self) -> r[bool]:
-        """Validate configuration structure using u directly.
+    def validate_settings(self) -> r[bool]:
+        """Validate settings structure using u directly.
 
         Returns:
             r[bool]: True if validation passed, or error
 
         """
-        return u.Cli.cmd_validate_config(self.logger)
+        return u.Cli.cmd_validate_settings(self.logger)
 
 
 __all__ = ["FlextCliCmd"]

@@ -1,7 +1,7 @@
 """FLEXT CLI CMD Tests - Comprehensive Command Functionality Testing.
 
-Tests for FlextCliCmd covering command initialization, execution, configuration operations
-(show, validate, config_snapshot), error handling, performance, integration,
+Tests for FlextCliCmd covering command initialization, execution, settings operations
+(show, validate, settings_snapshot), error handling, performance, integration,
 and edge cases.
 
 Modules tested: flext_cli.cmd.FlextCliCmd, direct u.Cli settings helpers, FlextCliServiceBase
@@ -46,45 +46,45 @@ class TestsCliCmd:
         tm.that(data["status"], eq="operational")
         tm.that(data["service"], eq="FlextCliCmd")
 
-    def test_cmd_validate_config(self) -> None:
-        """Test validate_config method."""
+    def test_cmd_validate_settings(self) -> None:
+        """Test validate_settings method."""
         cmd = u.Cli.Tests.create_cmd_instance()
-        result = cmd.validate_config()
+        result = cmd.validate_settings()
         tm.ok(result)
 
-    def test_cmd_config_snapshot(self) -> None:
-        """Test config_snapshot method."""
+    def test_cmd_settings_snapshot(self) -> None:
+        """Test settings_snapshot method."""
         cmd = u.Cli.Tests.create_cmd_instance()
-        result = cmd.config_snapshot()
+        result = cmd.settings_snapshot()
         tm.ok(result)
-        tm.that(result.value, is_=m.Cli.ConfigSnapshot)
-        tm.that(result.value.config_dir, none=False)
+        tm.that(result.value, is_=m.Cli.SettingsSnapshot)
+        tm.that(result.value.settings_dir, none=False)
 
-    def test_cmd_show_config(self) -> None:
-        """Test show_config method."""
+    def test_cmd_show_settings(self) -> None:
+        """Test show_settings method."""
         cmd = u.Cli.Tests.create_cmd_instance()
-        result = cmd.show_config()
+        result = cmd.show_settings()
         tm.ok(result)
 
-    def test_cmd_config_helper_validate_config_structure(self) -> None:
-        """Test u.Cli.validate_config_structure() directly."""
-        results = u.Cli.validate_config_structure()
+    def test_cmd_settings_helper_validate_settings_structure(self) -> None:
+        """Test u.Cli.validate_settings_structure() directly."""
+        results = u.Cli.validate_settings_structure()
         tm.that(results, is_=list)
         tm.that(results, empty=False)
 
-    def test_cmd_config_helper_snapshot(self) -> None:
-        """Test u.Cli.config_snapshot() directly."""
-        info = u.Cli.config_snapshot()
-        tm.that(info, is_=m.Cli.ConfigSnapshot)
-        tm.that(info.config_dir, is_=str)
-        tm.that(info.config_exists, is_=bool)
-        tm.that(info.config_readable, is_=bool)
-        tm.that(info.config_writable, is_=bool)
+    def test_cmd_settings_helper_snapshot(self) -> None:
+        """Test u.Cli.settings_snapshot() directly."""
+        info = u.Cli.settings_snapshot()
+        tm.that(info, is_=m.Cli.SettingsSnapshot)
+        tm.that(info.settings_dir, is_=str)
+        tm.that(info.settings_exists, is_=bool)
+        tm.that(info.settings_readable, is_=bool)
+        tm.that(info.settings_writable, is_=bool)
         tm.that(info.timestamp, is_=str)
 
-    def test_cmd_validate_config_structure_missing_dir(self) -> None:
-        """Test validate_config_structure when main settings directory is missing."""
-        results = u.Cli.validate_config_structure()
+    def test_cmd_validate_settings_structure_missing_dir(self) -> None:
+        """Test validate_settings_structure when main settings directory is missing."""
+        results = u.Cli.validate_settings_structure()
         tm.that(results, is_=list)
         for item in results:
             tm.that(item, is_=str)

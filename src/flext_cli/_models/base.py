@@ -272,23 +272,23 @@ class FlextCliModelsBase:
             description="Disable number parsing (bool or list of column indices)",
         )
 
-    class ConfigSnapshot(m.Value):
-        """Snapshot of current CLI configuration information."""
+    class SettingsSnapshot(m.Value):
+        """Snapshot of current CLI settings information."""
 
         model_config: ClassVar[ConfigDict] = ConfigDict(
             frozen=True,
             extra="forbid",
         )
 
-        config_dir: Annotated[
+        settings_dir: Annotated[
             str,
             Field(
                 default="",
-                description="Configuration directory path",
+                description="Settings directory path",
             ),
         ]
 
-        config_exists: Annotated[
+        settings_exists: Annotated[
             bool,
             Field(
                 default=False,
@@ -296,7 +296,7 @@ class FlextCliModelsBase:
             ),
         ]
 
-        config_readable: Annotated[
+        settings_readable: Annotated[
             bool,
             Field(
                 default=False,
@@ -304,7 +304,7 @@ class FlextCliModelsBase:
             ),
         ]
 
-        config_writable: Annotated[
+        settings_writable: Annotated[
             bool,
             Field(
                 default=False,

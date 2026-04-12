@@ -11,7 +11,9 @@ from pydantic import TypeAdapter, ValidationError
 from tomlkit import TOMLDocument
 from tomlkit.items import AoT, Item as TomlItem, Table as TomlTable
 
-from flext_cli import FlextCliUtilitiesBase, FlextCliUtilitiesJson, c, r, t
+from flext_cli import c, r, t
+from flext_cli._utilities.json import FlextCliUtilitiesJson
+from flext_cli._utilities.runtime import FlextCliUtilitiesRuntime
 from flext_core import p, u
 
 
@@ -374,9 +376,9 @@ class FlextCliUtilitiesToml:
         command = ["taplo", "format"]
         config_path = FlextCliUtilitiesToml._resolve_taplo_config(path)
         if config_path is not None:
-            command.extend(["--settings", str(config_path)])
+            command.extend(["--config", str(config_path)])
         command.append(str(path))
-        result = FlextCliUtilitiesBase.run_raw(command, cwd=path.parent)
+        result = FlextCliUtilitiesRuntime.run_raw(command, cwd=path.parent)
         if result.failure:
             return r[bool].fail(result.error or f"taplo format failed: {path}")
         output = result.value

@@ -11,7 +11,7 @@ import examples.ex_01_getting_started as getting_started
 import examples.ex_02_output_formatting as output_formatting
 import examples.ex_04_file_operations as file_operations
 import examples.ex_05_authentication as authentication
-import examples.ex_06_configuration as configuration
+import examples.ex_06_settings as settings_example
 import examples.ex_10_testing_utilities as testing_utilities
 import examples.ex_11_complete_integration as complete_integration
 import examples.ex_12_pydantic_driven_cli as pydantic_driven
@@ -117,11 +117,11 @@ class TestFlextCliExamplesSmoke:
         assert isinstance(validation_result.value.content, Mapping)
         tm.that(validation_result.value.content["name"], eq="Alice")
 
-    def test_authentication_and_configuration_examples(self, tmp_path: Path) -> None:
+    def test_authentication_and_settings_examples(self, tmp_path: Path) -> None:
         """Auth and settings examples must work through cli.settings and cli auth APIs."""
         cli.settings.token_file = str(tmp_path / "auth_token.json")
 
-        settings = configuration.show_cli_settings()
+        settings = settings_example.show_cli_settings()
         tm.that(settings, is_=FlextCliSettings)
         tm.that(settings.token_file, eq=cli.settings.token_file)
 
@@ -132,11 +132,11 @@ class TestFlextCliExamplesSmoke:
         tm.that(len(token_result.value) >= 20, eq=True)
         tm.that(authentication.validate_current_token(), eq=True)
 
-        locations = configuration.show_config_locations()
+        locations = settings_example.show_settings_locations()
         assert isinstance(locations.data, Mapping)
         tm.that(locations.data["Token Exists"], eq="Yes")
 
-        profile_result = configuration.load_profile_config("development")
+        profile_result = settings_example.load_profile_settings("development")
         tm.ok(profile_result)
         tm.that(profile_result.value.debug, eq=True)
         tm.that(profile_result.value.output_format, eq=c.Cli.OutputFormats.TABLE)
@@ -188,11 +188,11 @@ class TestFlextCliExamplesSmoke:
         tm.ok(load_result)
         tm.that(load_result.value["sample_key"], eq="sample_value")
 
-    def test_configuration_and_pydantic_examples_validate_production_flow(
+    def test_settings_and_pydantic_examples_validate_production_flow(
         self,
         tmp_path: Path,
     ) -> None:
-        """Configuration examples must honor env overrides and typed workflow rules."""
+        """Settings examples must honor env overrides and typed workflow rules."""
         cache_dir = tmp_path / "cache"
         with _temporary_environment({
             "ENVIRONMENT": "production",
@@ -200,12 +200,12 @@ class TestFlextCliExamplesSmoke:
             "MAX_WORKERS": "25",
             "TEMP_DIR": str(cache_dir),
         }):
-            config_result = configuration.load_application_config()
-            tm.ok(config_result)
-            tm.that(config_result.value["max_workers"], eq=20)
-            tm.that(config_result.value["enable_metrics"], eq=True)
-            tm.that(config_result.value["services_initialized"], eq=True)
-            tm.that(Path(str(config_result.value["temp_dir"])).exists(), eq=True)
+            settings_result = settings_example.load_application_settings()
+            tm.ok(settings_result)
+            tm.that(settings_result.value["max_workers"], eq=20)
+            tm.that(settings_result.value["enable_metrics"], eq=True)
+            tm.that(settings_result.value["services_initialized"], eq=True)
+            tm.that(Path(str(settings_result.value["temp_dir"])).exists(), eq=True)
 
             database_result = pydantic_driven.create_database_config_from_cli()
             tm.ok(database_result)

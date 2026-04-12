@@ -202,8 +202,8 @@ from flext_cli import cli
 from flext_core import r
 
 
-def validate_config(settings: dict) -> r[dict]:
-    """Validate configuration."""
+def validate_settings(settings: dict) -> r[dict]:
+    """Validate settings."""
     if "required_field" not in settings:
         return r[dict].fail("Missing required_field")
     return r[dict].ok(settings)
@@ -218,7 +218,7 @@ def apply_defaults(settings: dict) -> dict:
 result = (
     cli.file_tools
     .read_json_file("settings.json")
-    .flat_map(validate_config)  # Validate
+    .flat_map(validate_settings)  # Validate
     .map(apply_defaults)  # Transform
     .map(lambda cfg: cli.print(f"Final settings: {cfg}"))
 )

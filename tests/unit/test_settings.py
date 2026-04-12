@@ -1,10 +1,10 @@
-"""FLEXT CLI Config Tests - Comprehensive Configuration Validation Testing.
+"""FLEXT CLI Settings Tests - Comprehensive Settings Validation Testing.
 
 Tests for FlextCliSettings covering initialization, serialization,
 validation, integration workflows, and edge cases.
 
 Modules tested: flext_cli.settings.FlextCliSettings
-Scope: All kept configuration operations, validation, integration
+Scope: All kept settings operations, validation, integration
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -21,7 +21,7 @@ from flext_cli import FlextCliSettings, cli
 from tests import c
 
 
-class TestsCliConfigBasics:
+class TestsCliSettingsBasics:
     """Core settings functionality - initialization, serialization, deserialization."""
 
     def test_initialization(self) -> None:
@@ -39,24 +39,24 @@ class TestsCliConfigBasics:
 
     def test_singleton_pattern(self) -> None:
         """Test singleton behavior via fetch_global."""
-        config1 = FlextCliSettings.fetch_global()
-        config2 = FlextCliSettings.fetch_global()
-        tm.that(config1.verbose, eq=config2.verbose)
+        settings_1 = FlextCliSettings.fetch_global()
+        settings_2 = FlextCliSettings.fetch_global()
+        tm.that(settings_1.verbose, eq=settings_2.verbose)
 
 
-class TestsCliConfigService:
+class TestsCliSettingsService:
     """Service and execution methods."""
 
     def test_reset_instance(self) -> None:
         """Test reset_for_testing resets global state."""
         FlextCliSettings()
         FlextCliSettings.reset_for_testing()
-        new_config = FlextCliSettings()
-        tm.that(new_config, none=False)
+        new_settings = FlextCliSettings()
+        tm.that(new_settings, none=False)
 
 
-class TestsCliLoggingConfig:
-    """Logging configuration tests."""
+class TestsCliLoggingSettings:
+    """Logging settings tests."""
 
     @pytest.mark.parametrize(
         ("level", "expected"),
@@ -68,7 +68,7 @@ class TestsCliLoggingConfig:
         tm.that(level, eq=expected)
 
 
-class TestsCliConfigIntegration:
+class TestsCliSettingsIntegration:
     """Integration with cli."""
 
     def test_flext_cli_integration(self) -> None:
@@ -84,13 +84,13 @@ class TestsCliConfigIntegration:
         tm.that(settings, none=False)
         tm.that(settings, is_=FlextCliSettings)
 
-    def test_config_inheritance(self) -> None:
+    def test_settings_inheritance(self) -> None:
         """Test inheritance from BaseSettings (Pydantic v2)."""
         settings = FlextCliSettings()
         tm.that(settings, is_=BaseSettings)
 
 
-class TestsCliConfigValidation:
+class TestsCliSettingsValidation:
     """Validation tests."""
 
     @pytest.mark.parametrize("env", c.Cli.Tests.ConfigFactory.VALID_ENVIRONMENTS)
@@ -106,7 +106,7 @@ class TestsCliConfigValidation:
         tm.that(dumped, empty=False)
 
 
-class TestsCliConfigEdgeCases:
+class TestsCliSettingsEdgeCases:
     """Edge cases and boundary conditions."""
 
     def test_basic_fields_exist(self) -> None:

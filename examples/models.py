@@ -139,8 +139,8 @@ class ExamplesFlextCliModels(m):
         # Example 06 - Configuration
         # -------------------------------------------------------------------
 
-        class MyAppConfig(m.Value):
-            """Custom configuration for YOUR CLI application — Pydantic v2 only."""
+        class MyAppSettings(m.Value):
+            """Custom settings for YOUR CLI application — Pydantic v2 only."""
 
             model_config: ClassVar[ConfigDict] = ConfigDict(
                 extra="forbid",
@@ -178,7 +178,7 @@ class ExamplesFlextCliModels(m):
                 )
 
             def display(self, cli: t.CliApi) -> None:
-                """Display app configuration; uses cli for base settings."""
+                """Display app settings; uses cli for base settings."""
                 settings = cli.settings
                 payload_data: t.Cli.JsonMapping = {
                     "App Name": self.app_name,
@@ -198,10 +198,10 @@ class ExamplesFlextCliModels(m):
                     cli.show_table(
                         safe_data,
                         show_header=True,
-                        title="⚙️  Application Configuration",
+                        title="⚙️  Application Settings",
                     )
 
-            def validate_config(self, cli: t.CliApi) -> bool:
+            def validate_settings(self, cli: t.CliApi) -> bool:
                 """Run validation; uses cli for output."""
                 if not self.api_key:
                     cli.print(
@@ -214,11 +214,11 @@ class ExamplesFlextCliModels(m):
                         style=c.Cli.MessageStyles.BOLD_RED,
                     )
                     return False
-                cli.print("✅ Configuration valid", style=c.Cli.MessageStyles.GREEN)
+                cli.print("✅ Settings valid", style=c.Cli.MessageStyles.GREEN)
                 return True
 
-        class AppConfigAdvanced(m.Value):
-            """Advanced application configuration — Pydantic v2 only."""
+        class AppSettingsAdvanced(m.Value):
+            """Advanced application settings — Pydantic v2 only."""
 
             model_config: ClassVar[ConfigDict] = ConfigDict(
                 extra="forbid",

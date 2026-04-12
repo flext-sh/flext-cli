@@ -22,9 +22,9 @@ class FlextCliConstantsOutput:
     MSG_SUBDIR_EXISTS: Final[str] = "{symbol} {subdir} directory exists"
     MSG_SUBDIR_MISSING: Final[str] = "{symbol} {subdir} directory missing"
 
-    LOG_MSG_CONFIG_DISPLAYED: Final[str] = "Configuration displayed"
-    LOG_MSG_CONFIG_VALIDATION_RESULTS: Final[str] = (
-        "Config validation results: {results}"
+    LOG_MSG_SETTINGS_DISPLAYED: Final[str] = "Settings displayed"
+    LOG_MSG_SETTINGS_VALIDATION_RESULTS: Final[str] = (
+        "Settings validation results: {results}"
     )
 
     PROMPT_DEFAULT_TIMEOUT: Final[int] = 30

@@ -1,4 +1,4 @@
-<!-- Generated from docs/guides/configuration.md for flext-cli. -->
+<!-- Generated from docs/guides/settings.md for flext-cli. -->
 
 <!-- Source of truth: workspace docs/guides/. -->
 
@@ -368,7 +368,7 @@ from flext_core import t
 from flext_core import u
 
 
-class MyAppConfig(FlextSettings):
+class MyAppSettings(FlextSettings):
     custom_setting: str = "default_value"
     another_setting: int = 42
 

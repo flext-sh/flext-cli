@@ -695,7 +695,7 @@ from pydantic import BaseModel, ConfigDict
 
 
 class CommandExecutionConfig(BaseModel):
-    model_settings = ConfigDict(frozen=False, validate_assignment=True)
+    model_config = ConfigDict(frozen=False, validate_assignment=True)
 ```
 
 **Field Validators**:
@@ -729,7 +729,7 @@ CommandModel.model_validate_json(json)  # From JSON (FAST)
 
 ### Forbidden Patterns
 
-- ❌ `class Config:` → Use `model_settings = ConfigDict()`
+- ❌ `class Config:` → Use `model_config = ConfigDict()`
 - ❌ `.dict()`, `.json()`, `parse_obj()` → Use `.model_dump()`, `.model_dump_json()`, `()`
 - ❌ `@validator`, `@root_validator` → Use `@field_validator`, `@model_validator`
 
@@ -864,7 +864,7 @@ Based on unified FLEXT ecosystem patterns:
 - **Constants**: Namespace hierarchical pattern (`c.Cli.*`), inheritance from `FlextConstants`, PEP 695 type aliases
 - **Protocols**: Inheritance from `FlextProtocols`, namespace organization (`p.Cli.*`), @runtime_checkable usage
 - **Utilities**: Inheritance from `FlextUtilities`, namespace organization (`u.Cli.*`), facade pattern
-- **Models**: Inheritance from `FlextModels`, Pydantic v2 patterns (`model_settings = ConfigDict(...)`), Self type usage
+- **Models**: Inheritance from `FlextModels`, Pydantic v2 patterns (`model_config = ConfigDict(...)`), Self type usage
 - **Types**: Inheritance from `FlextTypes`, PEP 695 type aliases, namespace organization (`t.Cli.*`)
 - **Testing**: TestsCli structure, 100% coverage requirement, no mocks policy
 - **DI**: s patterns, Container usage, Config auto-registration

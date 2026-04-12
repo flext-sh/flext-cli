@@ -17,14 +17,14 @@ class FlextCliConstantsErrors:
     ERR_INVALID_CREDENTIALS: Final[str] = (
         "Invalid credentials: missing token or username/password"
     )
-    ERR_CONFIG_VALIDATION_FAILED: Final[str] = "Config validation failed: {error}"
+    ERR_SETTINGS_VALIDATION_FAILED: Final[str] = "Settings validation failed: {error}"
     ERR_JSON_WRITE_FAILED: Final[str] = "JSON write failed: {error}"
     ERR_AUTH_SAVE_FAILED: Final[str] = "Failed to save token: {error}"
     ERR_AUTH_LOAD_FAILED: Final[str] = "Failed to load token: {error}"
     ERR_AUTH_FILE_NOT_FOUND: Final[str] = "Token file does not exist"
     ERR_AUTH_FILE_EMPTY: Final[str] = "Token file is empty"
     ERR_INVALID_OUTPUT_FORMAT: Final[str] = "Invalid output format: {format}"
-    ERR_CONFIG_INFO_FAILED: Final[str] = "Config info failed: {error}"
+    ERR_SETTINGS_INFO_FAILED: Final[str] = "Settings info failed: {error}"
     ERR_FAILED_CLEAR_CREDENTIALS: Final[str] = "Failed to clear credentials: {error}"
 
     CLI_PARAM_ERR_TRACE_REQUIRES_DEBUG: Final[str] = (
@@ -43,7 +43,7 @@ class FlextCliConstantsErrors:
         "invalid {field_label}: {field_value}. valid options: {valid_values}"
     )
 
-    ERR_SHOW_CONFIG_FAILED: Final[str] = "Show settings failed: {error}"
+    ERR_SHOW_SETTINGS_FAILED: Final[str] = "Show settings failed: {error}"
 
     VALIDATION_MSG_FIELD_CANNOT_BE_EMPTY: Final[str] = "{field_name} cannot be empty"
     VALIDATION_MSG_INVALID_ENUM_VALUE: Final[str] = (

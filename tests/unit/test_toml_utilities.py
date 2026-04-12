@@ -120,8 +120,8 @@ class TestCliTomlDocument:
             tm.ok(u.Cli.toml_write_document(pyproject, doc))
         logged_command = command_log.read_text(encoding="utf-8").splitlines()
         tm.that(logged_command[0], eq=str(tmp_path))
-        tm.that(logged_command[1:3], eq=["format", "--settings"])
-        tm.that(logged_command, contains="--settings")
+        tm.that(logged_command[1:3], eq=["format", "--config"])
+        tm.that(logged_command, contains="--config")
         tm.that(logged_command, contains=str(taplo_config))
         tm.that(logged_command, contains=str(pyproject))
 

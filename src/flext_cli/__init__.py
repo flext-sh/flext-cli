@@ -31,7 +31,6 @@ if _t.TYPE_CHECKING:
     from flext_cli._utilities.base import FlextCliUtilitiesBase
     from flext_cli._utilities.cmd import FlextCliUtilitiesCmd
     from flext_cli._utilities.commands import FlextCliUtilitiesCommands
-    from flext_cli._utilities.configuration import FlextCliUtilitiesConfiguration
     from flext_cli._utilities.conversion import (
         FlextCliUtilitiesCliModelConverter,
         FlextCliUtilitiesConversion,
@@ -53,6 +52,7 @@ if _t.TYPE_CHECKING:
     from flext_cli._utilities.pipeline import FlextCliUtilitiesPipeline
     from flext_cli._utilities.prompts import FlextCliUtilitiesPrompts
     from flext_cli._utilities.runtime import FlextCliUtilitiesRuntime
+    from flext_cli._utilities.settings import FlextCliUtilitiesSettings
     from flext_cli._utilities.tables import FlextCliUtilitiesTables
     from flext_cli._utilities.toml import FlextCliUtilitiesToml
     from flext_cli._utilities.validation import FlextCliUtilitiesValidation
@@ -188,7 +188,6 @@ __all__ = [
     "FlextCliUtilitiesCliModelConverter",
     "FlextCliUtilitiesCmd",
     "FlextCliUtilitiesCommands",
-    "FlextCliUtilitiesConfiguration",
     "FlextCliUtilitiesConversion",
     "FlextCliUtilitiesFiles",
     "FlextCliUtilitiesFormatters",
@@ -203,6 +202,7 @@ __all__ = [
     "FlextCliUtilitiesPipeline",
     "FlextCliUtilitiesPrompts",
     "FlextCliUtilitiesRuntime",
+    "FlextCliUtilitiesSettings",
     "FlextCliUtilitiesTables",
     "FlextCliUtilitiesToml",
     "FlextCliUtilitiesValidation",

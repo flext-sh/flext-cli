@@ -94,7 +94,7 @@ flext-cli is a production-ready Python library that provides:
    - Session management
    - Protected operations
 
-1. **[ex_06_configuration.py](ex_06_configuration.py)** - Config management
+1. **[ex_06_settings.py](ex_06_settings.py)** - Settings management
 
    - FlextCliSettings usage
    - Environment variables
@@ -272,7 +272,7 @@ cli.print(f"Debug mode: {settings.debug}")
 1. ex_02_output_formatting.py
 1. ex_03_interactive_prompts.py
 
-**Intermediate**: 4. ex_04_file_operations.py 5. ex_05_authentication.py 6. ex_06_configuration.py
+**Intermediate**: 4. ex_04_file_operations.py 5. ex_05_authentication.py 6. ex_06_settings.py
 
 **Advanced**: 7. ex_07_plugin_system.py 8. ex_08_shell_interaction.py 9. ex_09_performance_optimization.py 10. ex_10_testing_utilities.py
 

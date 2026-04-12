@@ -77,11 +77,11 @@ Registro de comandos, configuração, sessões e plugins.
 Ponte para operações de configuração persistida.
 
 - `show_config_paths()`
-- `validate_config()`
+- `validate_settings()`
 - `get_config_info()`
 - `set_config_value(key, value)`
 - `get_config_value(key)`
-- `show_config()`
+- `show_settings()`
 - `execute(**kwargs)` retorna o status do serviço.
 
 ## Saída e exibição

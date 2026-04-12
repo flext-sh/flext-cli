@@ -1,4 +1,4 @@
-"""CLI configuration helpers shared through ``u.Cli``."""
+"""CLI settings helpers shared through ``u.Cli``."""
 
 from __future__ import annotations
 
@@ -9,8 +9,8 @@ from pathlib import Path
 from flext_cli import c, m, t
 
 
-class FlextCliUtilitiesConfiguration:
-    """Configuration and selector methods exposed directly on ``u.Cli``."""
+class FlextCliUtilitiesSettings:
+    """Settings and selector methods exposed directly on ``u.Cli``."""
 
     @staticmethod
     def project_names_from_values(
@@ -30,28 +30,28 @@ class FlextCliUtilitiesConfiguration:
         return names or None
 
     @staticmethod
-    def config_snapshot() -> m.Cli.ConfigSnapshot:
-        """Return the canonical CLI configuration snapshot."""
+    def settings_snapshot() -> m.Cli.SettingsSnapshot:
+        """Return the canonical CLI settings snapshot."""
         path = Path.home() / c.Cli.PATH_FLEXT_DIR_NAME
         exists = path.exists()
-        return m.Cli.ConfigSnapshot(
-            config_dir=str(path),
-            config_exists=exists,
-            config_readable=exists and os.access(path, os.R_OK),
-            config_writable=exists and os.access(path, os.W_OK),
+        return m.Cli.SettingsSnapshot(
+            settings_dir=str(path),
+            settings_exists=exists,
+            settings_readable=exists and os.access(path, os.R_OK),
+            settings_writable=exists and os.access(path, os.W_OK),
             timestamp=datetime.now(UTC).isoformat(),
         )
 
     @staticmethod
-    def validate_config_structure() -> t.StrSequence:
-        """Validate the canonical CLI configuration directory structure."""
+    def validate_settings_structure() -> t.StrSequence:
+        """Validate the canonical CLI settings directory structure."""
         base = Path.home() / c.Cli.PATH_FLEXT_DIR_NAME
         ok = c.Cli.SYMBOL_SUCCESS_MARK
         fail = c.Cli.SYMBOL_FAILURE_MARK
         lines = [
-            f"{ok} Configuration directory exists"
+            f"{ok} Settings directory exists"
             if base.exists()
-            else f"{fail} Configuration directory missing",
+            else f"{fail} Settings directory missing",
         ]
         for subdir in c.Cli.STANDARD_SUBDIRS:
             path = base / subdir
@@ -67,5 +67,5 @@ class FlextCliUtilitiesConfiguration:
 
 
 __all__ = [
-    "FlextCliUtilitiesConfiguration",
+    "FlextCliUtilitiesSettings",
 ]
