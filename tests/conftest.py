@@ -8,8 +8,6 @@ import pytest
 
 from flext_cli import FlextCliSettings
 
-pytest_plugins = ["flext_tests.conftest_plugin"]
-
 
 @pytest.fixture
 def cli_settings(

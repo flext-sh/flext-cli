@@ -20,10 +20,7 @@ if _t.TYPE_CHECKING:
     from tests.typings import TestsFlextCliTypes, t
     from tests.utilities import TestsFlextCliUtilities, u
 _LAZY_IMPORTS = merge_lazy_imports(
-    (
-        ".helpers",
-        ".unit",
-    ),
+    (".unit",),
     build_lazy_import_map(
         {
             ".constants": (
