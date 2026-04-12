@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import re
-from collections.abc import Mapping
 from types import MappingProxyType
 from typing import Final
 
@@ -93,13 +92,13 @@ class ExamplesFlextCliConstants(c):
     EXAMPLE_ENV_KEY_ENVIRONMENT: Final[str] = "ENVIRONMENT"
     EXAMPLE_ENV_VALUE_PRODUCTION: Final[str] = "production"
 
-    EXAMPLE_ENV_MAP_MY_APP: Final[Mapping[str, str]] = MappingProxyType({
+    EXAMPLE_ENV_MAP_MY_APP: Final[t.StrMapping] = MappingProxyType({
         "app_name": EXAMPLE_ENV_KEY_APP_NAME,
         "api_key": EXAMPLE_ENV_KEY_API_KEY,
         "max_workers": EXAMPLE_ENV_KEY_MAX_WORKERS,
         "timeout": EXAMPLE_ENV_KEY_TIMEOUT,
     })
-    EXAMPLE_ENV_MAP_ADVANCED_APP: Final[Mapping[str, str]] = MappingProxyType({
+    EXAMPLE_ENV_MAP_ADVANCED_APP: Final[t.StrMapping] = MappingProxyType({
         "database_url": EXAMPLE_ENV_KEY_DATABASE_URL,
         "redis_url": EXAMPLE_ENV_KEY_REDIS_URL,
         "api_key": EXAMPLE_ENV_KEY_API_KEY,

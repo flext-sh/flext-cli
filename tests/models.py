@@ -1,6 +1,6 @@
 """Pydantic models for flext-cli tests only.
 
-All test-domain models live here; tests MUST NOT use dict/Any/t.NormalizedValue as data contracts.
+All test-domain models live here; tests MUST NOT use dict/Any/t.RecursiveContainer as data contracts.
 Reuse TestsFlextModels types where possible; add test-specific input models only when needed.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
@@ -61,7 +61,7 @@ class TestsFlextCliModels(FlextTestsModels, m):
                 model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
                 status: Annotated[str, Field(description="Status")]
                 data: Annotated[
-                    t.NormalizedValue,
+                    t.RecursiveContainer,
                     Field(default=None, description="Payload"),
                 ]
                 message: Annotated[str, Field(description="Message")]
@@ -213,7 +213,7 @@ class TestsFlextCliModels(FlextTestsModels, m):
                     t.Cli.Tests.ConfigTestType, Field(description="Scenario test type")
                 ]
                 data: Annotated[
-                    t.ContainerMapping | None,
+                    t.RecursiveContainerMapping | None,
                     Field(default=None, description="Scenario input data"),
                 ]
                 should_pass: Annotated[

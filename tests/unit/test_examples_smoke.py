@@ -23,7 +23,7 @@ from tests import c, t
 
 @contextmanager
 def _temporary_environment(
-    overrides: Mapping[str, str],
+    overrides: t.StrMapping,
 ) -> Generator[None]:
     original_values = {key: os.environ.get(key) for key in overrides}
     try:
@@ -75,7 +75,7 @@ class TestFlextCliExamplesSmoke:
         """File-oriented examples must use cli file APIs successfully."""
         config_dir = tmp_path / "settings"
         config_dir.mkdir()
-        preferences: t.ContainerMapping = {
+        preferences: t.RecursiveContainerMapping = {
             "theme": "dark",
             "notifications": True,
         }
@@ -90,7 +90,7 @@ class TestFlextCliExamplesSmoke:
         assert preferences_result.value.content == preferences
 
         deployment_file = tmp_path / "deployment.yaml"
-        deployment_config: t.ContainerMapping = {
+        deployment_config: t.RecursiveContainerMapping = {
             "environment": "dev",
             "replicas": 2,
         }

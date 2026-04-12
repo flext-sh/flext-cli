@@ -85,7 +85,7 @@ class FlextCliFileTools(FlextCliServiceBase):
         sort_keys: bool = False,
         ensure_ascii: bool = False,
     ) -> r[bool]:
-        payload_raw: t.RecursiveContainer | Sequence[t.ContainerMapping] = (
+        payload_raw: t.RecursiveContainer | Sequence[t.RecursiveContainerMapping] = (
             data.data if isinstance(data, p.Cli.DisplayData) else data
         )
         return u.Cli.json_write(
@@ -101,7 +101,7 @@ class FlextCliFileTools(FlextCliServiceBase):
         file_path: t.Cli.TextPath,
         data: t.Cli.JsonWriteData,
     ) -> r[bool]:
-        payload_raw: t.RecursiveContainer | Sequence[t.ContainerMapping] = (
+        payload_raw: t.RecursiveContainer | Sequence[t.RecursiveContainerMapping] = (
             data.data if isinstance(data, p.Cli.DisplayData) else data
         )
         payload: t.Cli.JsonValue = u.Cli.normalize_json_value(payload_raw)

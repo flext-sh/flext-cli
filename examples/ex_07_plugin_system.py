@@ -49,7 +49,7 @@ class DataExportPlugin:
 
     @staticmethod
     def execute(
-        data: t.ContainerMapping,
+        data: t.RecursiveContainerMapping,
         output_format: c.Cli.OutputFormats = c.Cli.OutputFormats.JSON,
     ) -> r[str]:
         """Execute plugin logic in YOUR application."""
@@ -73,7 +73,7 @@ class ReportGeneratorPlugin:
         self.version = "1.0.0"
 
     @staticmethod
-    def execute(data: Sequence[t.ContainerMapping]) -> r[str]:
+    def execute(data: Sequence[t.RecursiveContainerMapping]) -> r[str]:
         """Generate report from data in YOUR CLI."""
         table_result = cli.format_table(data, table_format=c.Cli.TabularFormat.GRID)
         if table_result.failure:
@@ -142,7 +142,7 @@ class MyAppPluginManager:
             name: resolve_plugin_version(plugin)
             for name, plugin in self.plugins.items()
         }
-        rows: Sequence[t.ContainerMapping] = [
+        rows: Sequence[t.RecursiveContainerMapping] = [
             {"Plugin": name, "Version": ver} for name, ver in plugin_items.items()
         ]
         cli.show_table(rows, headers=["Plugin", "Version"])
@@ -179,23 +179,23 @@ def load_plugins_from_directory(plugin_dir: Path) -> MyAppPluginManager:
 class ConfigurablePlugin:
     """Example of configurable plugin for YOUR CLI."""
 
-    def __init__(self, settings: t.ContainerMapping) -> None:
+    def __init__(self, settings: t.RecursiveContainerMapping) -> None:
         """Initialize configurable plugin with configuration dictionary."""
         super().__init__()
         self.name = "configurable-plugin"
-        self.settings: t.ContainerMapping = settings
+        self.settings: t.RecursiveContainerMapping = settings
 
-    def execute(self) -> r[t.ContainerMapping]:
+    def execute(self) -> r[t.RecursiveContainerMapping]:
         """Execute with configuration in YOUR CLI."""
         cli.print(
             f"🔧 Plugin settings: {self.settings}", style=c.Cli.MessageStyles.CYAN
         )
-        result_data: t.ContainerMapping = {
+        result_data: t.RecursiveContainerMapping = {
             "plugin": self.name,
             "config_applied": True,
             **self.settings,
         }
-        return r[t.ContainerMapping].ok(result_data)
+        return r[t.RecursiveContainerMapping].ok(result_data)
 
 
 class LifecyclePlugin:
@@ -240,7 +240,7 @@ def main() -> None:
     cli.print("\n2. List Plugins (inventory):", style=c.Cli.MessageStyles.BOLD_CYAN)
     manager.list_plugins()
     cli.print("\n3. Execute Plugin (data export):", style=c.Cli.MessageStyles.BOLD_CYAN)
-    test_data: t.ContainerMapping = {
+    test_data: t.RecursiveContainerMapping = {
         "id": 1,
         "name": "Test",
         "status": "active",
@@ -257,7 +257,7 @@ def main() -> None:
     cli.print(
         "\n4. Report Plugin (table generation):", style=c.Cli.MessageStyles.BOLD_CYAN
     )
-    report_data: Sequence[t.ContainerMapping] = [
+    report_data: Sequence[t.RecursiveContainerMapping] = [
         {"metric": "Users", "value": "1,234"},
         {"metric": "Orders", "value": "567"},
     ]
@@ -271,7 +271,7 @@ def main() -> None:
             style=c.Cli.MessageStyles.GREEN,
         )
     cli.print("\n5. Configurable Plugin:", style=c.Cli.MessageStyles.BOLD_CYAN)
-    settings: t.ContainerMapping = {"theme": "dark", "verbose": True}
+    settings: t.RecursiveContainerMapping = {"theme": "dark", "verbose": True}
     config_plugin = ConfigurablePlugin(settings)
     config_result = config_plugin.execute()
     if config_result.success:

@@ -20,7 +20,7 @@ class FlextCliProtocolsDomain:
         """Display payload contract backed by a data mapping."""
 
         @property
-        def data(self) -> t.ContainerMapping:
+        def data(self) -> t.RecursiveContainerMapping:
             """Expose the display payload."""
             ...
 
@@ -29,7 +29,7 @@ class FlextCliProtocolsDomain:
         """Loaded configuration payload contract."""
 
         @property
-        def content(self) -> t.ContainerMapping:
+        def content(self) -> t.RecursiveContainerMapping:
             """Expose loaded configuration content."""
             ...
 

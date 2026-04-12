@@ -30,7 +30,7 @@ from __future__ import annotations
 import hashlib
 import shutil
 import tempfile
-from collections.abc import MutableMapping, Sequence
+from collections.abc import Sequence
 from pathlib import Path
 
 from pydantic import TypeAdapter, ValidationError
@@ -39,7 +39,9 @@ from examples import c, t
 from flext_cli import cli
 
 
-def export_to_csv(data: Sequence[t.ContainerMapping], output_file: Path) -> None:
+def export_to_csv(
+    data: Sequence[t.RecursiveContainerMapping], output_file: Path
+) -> None:
     """Export data to CSV with proper headers."""
     if not data:
         cli.print("⚠️  No data to export", style=c.Cli.MessageStyles.YELLOW)
@@ -67,7 +69,7 @@ def export_to_csv(data: Sequence[t.ContainerMapping], output_file: Path) -> None
 
 def import_from_csv(
     input_file: Path,
-) -> Sequence[t.ContainerMapping] | None:
+) -> Sequence[t.RecursiveContainerMapping] | None:
     """Import data from CSV with headers."""
     cli.print(
         f"\n📥 Importing from CSV: {input_file.name}",
@@ -117,7 +119,7 @@ def process_binary_file(input_file: Path, output_file: Path) -> None:
         )
 
 
-def load_any_format_file(file_path: Path) -> t.ContainerMapping | None:
+def load_any_format_file(file_path: Path) -> t.RecursiveContainerMapping | None:
     """Load settings from ANY format - automatically detected."""
     cli.print(
         f"\n🔍 Auto-Detecting Format: {file_path.name}",
@@ -153,7 +155,7 @@ def load_any_format_file(file_path: Path) -> t.ContainerMapping | None:
 
 
 def export_data_multi_format(
-    data: t.ContainerMapping | Sequence[t.ContainerMapping],
+    data: t.RecursiveContainerMapping | Sequence[t.RecursiveContainerMapping],
     base_path: Path,
 ) -> t.StrMapping:
     """Export same data to multiple formats (JSON, YAML, CSV)."""
@@ -162,7 +164,7 @@ def export_data_multi_format(
         style=c.Cli.MessageStyles.BOLD_CYAN,
     )
 
-    export_results: MutableMapping[str, str] = {}
+    export_results: t.MutableStrMapping = {}
     json_path = base_path.with_suffix(".json")
     json_payload = data
     json_result = cli.write_json_file(json_path, json_payload, indent=2)
@@ -183,10 +185,10 @@ def export_data_multi_format(
             f"✅ YAML: {yaml_path.name} ({size} bytes)", style=c.Cli.MessageStyles.GREEN
         )
 
-    rows_adapter: TypeAdapter[Sequence[t.ContainerMapping]] = TypeAdapter(
-        Sequence[t.ContainerMapping]
+    rows_adapter: TypeAdapter[Sequence[t.RecursiveContainerMapping]] = TypeAdapter(
+        Sequence[t.RecursiveContainerMapping]
     )
-    csv_rows_data: Sequence[t.ContainerMapping]
+    csv_rows_data: Sequence[t.RecursiveContainerMapping]
     try:
         csv_rows_data = rows_adapter.validate_python(data)
     except ValidationError:
@@ -283,13 +285,15 @@ def main() -> None:
     temp_dir.mkdir(exist_ok=True)
     cli.print("\n" + "=" * 70, style=c.Cli.MessageStyles.BOLD_BLUE)
     cli.print("1. CSV Export/Import:", style=c.Cli.MessageStyles.BOLD_CYAN)
-    sample_data: Sequence[t.ContainerMapping] = [
+    sample_data: Sequence[t.RecursiveContainerMapping] = [
         {"id": 1, "name": "Alice", "department": "Engineering", "salary": "100000"},
         {"id": 2, "name": "Bob", "department": "Sales", "salary": "80000"},
         {"id": 3, "name": "Charlie", "department": "Marketing", "salary": "90000"},
     ]
     csv_file = temp_dir / "employees.csv"
-    typed_sample_data: Sequence[t.ContainerMapping] = [dict(row) for row in sample_data]
+    typed_sample_data: Sequence[t.RecursiveContainerMapping] = [
+        dict(row) for row in sample_data
+    ]
     export_to_csv(typed_sample_data, csv_file)
     import_from_csv(csv_file)
     cli.print("\n" + "=" * 70, style=c.Cli.MessageStyles.BOLD_BLUE)
@@ -300,7 +304,7 @@ def main() -> None:
     process_binary_file(binary_input, binary_output)
     cli.print("\n" + "=" * 70, style=c.Cli.MessageStyles.BOLD_BLUE)
     cli.print("3. Auto-Format Detection:", style=c.Cli.MessageStyles.BOLD_CYAN)
-    test_config: t.ContainerMapping = {
+    test_config: t.RecursiveContainerMapping = {
         "app": "test",
         "version": "1.0",
         "debug": True,
@@ -313,7 +317,7 @@ def main() -> None:
     load_any_format_file(yaml_file)
     cli.print("\n" + "=" * 70, style=c.Cli.MessageStyles.BOLD_BLUE)
     cli.print("4. Multi-Format Export:", style=c.Cli.MessageStyles.BOLD_CYAN)
-    multi_data: Sequence[t.ContainerMapping] = [
+    multi_data: Sequence[t.RecursiveContainerMapping] = [
         {"metric": "CPU", "value": "75%", "status": "OK"},
         {"metric": "Memory", "value": "82%", "status": "Warning"},
         {"metric": "Disk", "value": "45%", "status": "OK"},
@@ -327,7 +331,7 @@ def main() -> None:
     process_text_file(text_input, text_output)
     cli.print("\n" + "=" * 70, style=c.Cli.MessageStyles.BOLD_BLUE)
     cli.print("6. File Copy with Verification:", style=c.Cli.MessageStyles.BOLD_CYAN)
-    demo_config: t.ContainerMapping = {
+    demo_config: t.RecursiveContainerMapping = {
         "app": "demo",
         "version": "2.0",
         "enabled": True,

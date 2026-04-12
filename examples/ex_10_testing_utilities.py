@@ -77,7 +77,7 @@ def test_cli_command() -> None:
 
 
 def save_config_command(
-    settings: t.ContainerMapping,
+    settings: t.RecursiveContainerMapping,
     *,
     base_dir: Path | None = None,
 ) -> r[bool]:
@@ -99,7 +99,7 @@ def test_file_operations() -> None:
     """Test file operations in YOUR test suite."""
     cli.print("\n📄 Testing File Operations:", style=c.Cli.MessageStyles.BOLD_CYAN)
     config_data = {"test": True, "value": 123}
-    settings: t.ContainerMapping = dict(config_data)
+    settings: t.RecursiveContainerMapping = dict(config_data)
     result = save_config_command(settings)
     if not result.success:
         cli.print(
@@ -221,7 +221,7 @@ def full_workflow_command(
     base_dir: Path | None = None,
 ) -> r[Mapping[str, t.Cli.JsonValue]]:
     """Complete workflow to test."""
-    data: t.ContainerMapping = {"status": "processing", "items": [1, 2, 3]}
+    data: t.RecursiveContainerMapping = {"status": "processing", "items": [1, 2, 3]}
     temp_file = _temp_file_path("workflow_test.json", base_dir=base_dir)
     result = (
         cli

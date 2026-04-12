@@ -124,7 +124,7 @@ ______________________________________________________________________
 
 ```python
 # ❌ CURRENT: Too many services
-class FlextCliFileTools(s[t.ContainerMapping]):
+class FlextCliFileTools(s[t.RecursiveContainerMapping]):
     """File operations as a service - OVERKILL"""
     def __init__(self):
         super().__init__()  # Unnecessary overhead
@@ -211,7 +211,7 @@ class FlextCliContext(s[CliDataDict]):
 
 - Mutable state where immutability is better
 - Service overhead for simple data
-- Violates value t.NormalizedValue pattern
+- Violates value t.RecursiveContainer pattern
 
 #### 5. Duplicate Modules
 
@@ -335,7 +335,7 @@ class FlextCliContext(m.Value):
 
     command: str | None = None
     arguments: t.StrSequence = Field(default_factory=list)
-    environment_variables: t.ContainerMapping = Field(default_factory=dict)
+    environment_variables: t.RecursiveContainerMapping = Field(default_factory=dict)
     working_directory: str | None = None
 
     # No methods - just validated data
@@ -449,7 +449,7 @@ ______________________________________________________________________
 **Before**:
 
 ```python
-class FlextCliFileTools(s[t.ContainerMapping]):
+class FlextCliFileTools(s[t.RecursiveContainerMapping]):
     def __init__(self):
         super().__init__()
         self.logger = u.fetch_logger(__name__)
@@ -511,11 +511,11 @@ from flext_core import FlextModels
 
 
 class FlextCliContext(m.Value):
-    """Immutable context value t.NormalizedValue."""
+    """Immutable context value t.RecursiveContainer."""
 
     command: str | None = None
     arguments: t.StrSequence = Field(default_factory=list)
-    environment_variables: t.ContainerMapping = Field(default_factory=dict)
+    environment_variables: t.RecursiveContainerMapping = Field(default_factory=dict)
     working_directory: str | None = None
     created_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
 
@@ -527,7 +527,7 @@ class FlextCliContext(m.Value):
 - Immutable by default
 - Simpler mental model
 - No lifecycle management needed
-- Follows value t.NormalizedValue pattern
+- Follows value t.RecursiveContainer pattern
 
 ### Phase 4: Remove API Wrappers
 
@@ -779,7 +779,7 @@ Commit after each: "refactor: convert FlextCliFileTools to simple class"
 1. Update all usage sites
 1. Update tests
 1. Run: `make validate`
-1. Commit: "refactor: convert context to value t.NormalizedValue"
+1. Commit: "refactor: convert context to value t.RecursiveContainer"
 
 #### Phase 5: Remove API Wrappers
 
@@ -879,7 +879,7 @@ ______________________________________________________________________
 
 ### High Risk (Careful Attention Required)
 
-**1. Change FlextCliContext from service to value t.NormalizedValue**
+**1. Change FlextCliContext from service to value t.RecursiveContainer**
 
 - Architectural pattern change
 - Affects all context usage

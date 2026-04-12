@@ -140,7 +140,7 @@ If fail you need to use .venv of flext.
 
 ```python
 # Error
-error: Argument 1 to "process" has incompatible type "str"; expected "t.ContainerMapping"
+error: Argument 1 to "process" has incompatible type "str"; expected "t.RecursiveContainerMapping"
 ```
 
 #### Solutions
@@ -154,7 +154,7 @@ def process(data):
 
 
 # ✅ CORRECT
-def process(data: t.ContainerMapping) -> r[ProcessedData]:
+def process(data: t.RecursiveContainerMapping) -> r[ProcessedData]:
     return r.ok(ProcessedData(**data))
 ```
 

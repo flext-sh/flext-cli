@@ -31,13 +31,13 @@ class FlextCliModelsPipeline:
             Field(description="Workspace root directory"),
         ]
         shared: Annotated[
-            MutableMapping[str, t.NormalizedValue],
+            MutableMapping[str, t.RecursiveContainer],
             Field(
                 default_factory=dict, description="Mutable shared state between stages"
             ),
         ]
         settings: Annotated[
-            t.ContainerMapping,
+            t.RecursiveContainerMapping,
             Field(default_factory=dict, description="Immutable pipeline configuration"),
         ]
 
@@ -99,7 +99,7 @@ class FlextCliModelsPipeline:
             Field(description="Execution outcome"),
         ]
         output: Annotated[
-            t.ContainerMapping,
+            t.RecursiveContainerMapping,
             Field(default_factory=dict, description="Stage output payload"),
         ]
         duration_ms: Annotated[

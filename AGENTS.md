@@ -785,7 +785,7 @@ ______________________________________________________________________
 ### Replacement Rules
 
 9. **cast()**: ❌ REPLACE ALL - Replace with Models/Protocols/TypeGuards
-1. **Any**: ❌ REPLACE ALL - Replace with specific types (Models, Protocols, TypeVars, t.NormalizedValue)
+1. **Any**: ❌ REPLACE ALL - Replace with specific types (Models, Protocols, TypeVars, t.RecursiveContainer)
 
 ### Examples
 
@@ -909,7 +909,7 @@ When passing Mapping[str, SpecificType] to a parameter expecting Mapping[str, Ba
 
 ```python
 # ❌ FAILS - dict is invariant
-def _process_settings(settings: t.ContainerMapping) -> None: ...
+def _process_settings(settings: t.RecursiveContainerMapping) -> None: ...
 
 
 _process_settings({"key": True, "value": "string"})  # Type error
@@ -918,7 +918,7 @@ _process_settings({"key": True, "value": "string"})  # Type error
 from collections.abc import Mapping
 
 
-def _process_settings(settings: t.ContainerMapping) -> None: ...
+def _process_settings(settings: t.RecursiveContainerMapping) -> None: ...
 
 
 _process_settings({"key": True, "value": "string"})  # OK

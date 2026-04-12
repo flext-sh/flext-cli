@@ -24,7 +24,7 @@ class ExamplesFlextCliUtilities(u):
     @classmethod
     def to_json_dict(
         cls,
-        data: t.ContainerMapping,
+        data: t.RecursiveContainerMapping,
     ) -> m.Cli.DisplayData:
         """Normalize settings/mapping to DisplayData for create_table/display_config_table."""
         json_value: t.Cli.JsonValue = t.Cli.JSON_VALUE_ADAPTER.validate_python(

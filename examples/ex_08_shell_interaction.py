@@ -39,7 +39,7 @@ from flext_cli import cli
 from flext_core import r
 
 
-def handle_status_command() -> r[t.ContainerMapping]:
+def handle_status_command() -> r[t.RecursiveContainerMapping]:
     """Status command in YOUR interactive CLI."""
     status = {
         "status": "running",
@@ -48,7 +48,7 @@ def handle_status_command() -> r[t.ContainerMapping]:
     }
     cli.print(f"✅ Status: {status['status']}", style=c.Cli.MessageStyles.GREEN)
     cli.print(f"   User: {status['user']}", style=c.Cli.MessageStyles.CYAN)
-    return r[t.ContainerMapping].ok(dict(status))
+    return r[t.RecursiveContainerMapping].ok(dict(status))
 
 
 def handle_list_command(filter_text: str = "") -> r[t.StrSequence]:

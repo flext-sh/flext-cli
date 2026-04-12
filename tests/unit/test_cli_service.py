@@ -121,7 +121,7 @@ class TestsCliService:
         tm.that(captured[0].make_arg, eq=["FILES=a b c.py", "VERBOSE=1"])
 
     def test_model_command_returns_handler_value(self) -> None:
-        def handle(params: m.Cli.Tests.SampleInput) -> t.ContainerMapping:
+        def handle(params: m.Cli.Tests.SampleInput) -> t.RecursiveContainerMapping:
             return {
                 "name": params.name,
                 "count": params.count,

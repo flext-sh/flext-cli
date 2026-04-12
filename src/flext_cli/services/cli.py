@@ -424,7 +424,7 @@ class FlextCliCli(s):
         app: t.Cli.CliApp,
         *,
         prog_name: str,
-        args: Sequence[str] | None = None,
+        args: t.StrSequence | None = None,
         error_message: p.Cli.ErrorMessageProvider | None = None,
     ) -> r[bool]:
         """Execute a Typer app and normalize exit behavior into `r[bool]`."""

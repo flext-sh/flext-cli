@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 import stat
 import tomllib
-from collections.abc import Generator, Mapping
+from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -16,7 +16,7 @@ from tests import t, u
 
 @contextmanager
 def _temporary_environment(
-    overrides: Mapping[str, str],
+    overrides: t.StrMapping,
 ) -> Generator[None]:
     original_values = {key: os.environ.get(key) for key in overrides}
     try:
@@ -193,7 +193,7 @@ class TestCliTomlHelpers:
         )
 
     def test_as_mapping_and_lookup_helpers(self) -> None:
-        mapping: Mapping[str, t.RecursiveContainer] = {"key": "value"}
+        mapping: t.RecursiveContainerMapping = {"key": "value"}
         tm.that(u.Cli.toml_as_mapping(mapping), eq=mapping)
         tm.that(u.Cli.toml_as_mapping("bad"), none=True)
         doc = u.Cli.toml_document()

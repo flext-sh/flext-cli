@@ -106,7 +106,7 @@ def show_common_cli_params() -> None:
         "These are AUTOMATICALLY available in ALL flext-cli commands:\n",
         style=c.Cli.MessageStyles.YELLOW,
     )
-    common_params: t.ContainerMapping = {
+    common_params: t.RecursiveContainerMapping = {
         "verbose": "Enable verbose output (-v)",
         "quiet": "Suppress non-error output (-q)",
         "debug": "Enable debug mode (-d)",
@@ -146,7 +146,7 @@ def create_database_config_from_cli() -> r[m.Examples.AdvancedDatabaseConfig]:
         "\n🗄️  Database Configuration with Railway Pattern:",
         style=c.Cli.MessageStyles.BOLD_CYAN,
     )
-    cli_args: t.ContainerMapping = {
+    cli_args: t.RecursiveContainerMapping = {
         "host": "db.example.com",
         "port": 5432,
         "name": "production_db",
@@ -197,20 +197,20 @@ def create_database_config_from_cli() -> r[m.Examples.AdvancedDatabaseConfig]:
 
 
 def validate_required_fields(
-    data: t.ContainerMapping,
-) -> r[t.ContainerMapping]:
+    data: t.RecursiveContainerMapping,
+) -> r[t.RecursiveContainerMapping]:
     """Validate that all required fields are present."""
     required = list(c.EXAMPLE_DATABASE_REQUIRED_FIELDS)
     missing = [field for field in required if field not in data or not data[field]]
     if missing:
-        return r[t.ContainerMapping].fail(
+        return r[t.RecursiveContainerMapping].fail(
             f"Missing required fields: {missing}",
         )
-    return r[t.ContainerMapping].ok(data)
+    return r[t.RecursiveContainerMapping].ok(data)
 
 
 def convert_and_validate_with_pydantic(
-    data: t.ContainerMapping,
+    data: t.RecursiveContainerMapping,
 ) -> r[m.Examples.AdvancedDatabaseConfig]:
     """Convert raw data to validated Pydantic model."""
     try:

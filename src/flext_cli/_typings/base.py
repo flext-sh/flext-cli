@@ -143,13 +143,16 @@ class FlextCliTypesBase:
     type RichConsoleType = RichConsole
 
     type RuntimeAnnotation = type | GenericAlias | UnionType | TypeAliasType | None
-    type RuntimeValue = t.NormalizedValue
+    type RuntimeValue = t.RecursiveContainer
 
     type YamlDict = t.JsonMapping
     type YamlValue = t.RecursiveValue
     type YamlList = t.JsonList
     type YamlDumpable = (
-        t.JsonMapping | Mapping[str, t.NormalizedValue] | t.JsonList | t.RecursiveValue
+        t.JsonMapping
+        | Mapping[str, t.RecursiveContainer]
+        | t.JsonList
+        | t.RecursiveValue
     )
 
     PRIMITIVE_TYPES: ClassVar[tuple[type[str], type[int], type[float], type[bool]]] = (

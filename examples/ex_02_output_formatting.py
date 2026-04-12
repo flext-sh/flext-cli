@@ -125,7 +125,7 @@ def monitor_live_metrics() -> None:
         cpu = 45 + i % 40
         memory = 55 + i % 35
         requests = 150 + i * 10
-        metrics_data: Sequence[t.ContainerMapping] = [
+        metrics_data: Sequence[t.RecursiveContainerMapping] = [
             {
                 "Metric": "CPU Usage",
                 "Value": f"{cpu}%",
@@ -143,7 +143,7 @@ def monitor_live_metrics() -> None:
     cli.print("✅ Monitoring session complete", style=c.Cli.MessageStyles.GREEN)
 
 
-def display_with_panels(data: t.ContainerMapping) -> None:
+def display_with_panels(data: t.RecursiveContainerMapping) -> None:
     """Display content in organized sections."""
     cli.print("\n📦 Organized Content Display:", style=c.Cli.MessageStyles.CYAN)
     cli.print("\n📊 Summary:", style=c.Cli.MessageStyles.BOLD_BLUE)
@@ -155,7 +155,7 @@ def display_with_panels(data: t.ContainerMapping) -> None:
     )
     cli.print(f"  Failed: {data.get('failed', 0)}", style=c.Cli.MessageStyles.RED)
     cli.print(f"  Pending: {data.get('pending', 0)}", style=c.Cli.MessageStyles.YELLOW)
-    details_data: MutableSequence[t.ContainerMapping] = []
+    details_data: MutableSequence[t.RecursiveContainerMapping] = []
     for key, value in data.items():
         if key not in {"total", "successful", "failed", "pending"}:
             details_data.append({"Property": key, "Value": str(value)})
@@ -203,7 +203,7 @@ def main() -> None:
     )
     monitor_live_metrics()
     cli.print("\n8. Panels (organized content):", style=c.Cli.MessageStyles.BOLD_CYAN)
-    panel_data: t.ContainerMapping = {
+    panel_data: t.RecursiveContainerMapping = {
         "total": 1250,
         "successful": 1100,
         "failed": 50,

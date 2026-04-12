@@ -5,7 +5,6 @@ from __future__ import annotations
 import shlex
 import subprocess
 import time
-from collections.abc import Sequence
 from pathlib import Path
 
 from flext_cli import c, m, r, t
@@ -116,7 +115,7 @@ class FlextCliUtilitiesRuntime:
 
     @staticmethod
     def run_to_file(
-        cmd: Sequence[str],
+        cmd: t.StrSequence,
         output_file: t.Cli.PathLike,
         cwd: t.Cli.PathLike | None = None,
         timeout: int | None = None,

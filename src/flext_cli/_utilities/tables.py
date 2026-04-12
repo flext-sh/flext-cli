@@ -22,7 +22,7 @@ class FlextCliUtilitiesTables:
 
     @staticmethod
     def tables_normalize_mapping_row(
-        row: t.ContainerMapping,
+        row: t.RecursiveContainerMapping,
     ) -> t.Cli.TableMappingRow:
         """Normalize one mapping row to JSON-compatible values."""
         return {
@@ -32,7 +32,7 @@ class FlextCliUtilitiesTables:
 
     @staticmethod
     def tables_normalize_sequence_row(
-        row: t.ContainerList,
+        row: t.RecursiveContainerList,
     ) -> t.Cli.TableSequenceRow:
         """Normalize one sequence row to JSON-compatible values."""
         return [FlextCliUtilitiesJson.normalize_json_value(value) for value in row]

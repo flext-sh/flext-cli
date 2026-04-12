@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import tomllib
-from collections.abc import Mapping, MutableMapping, MutableSequence, Sequence
+from collections.abc import Mapping, MutableMapping, MutableSequence
 from pathlib import Path
 from typing import ClassVar, TypeIs
 
@@ -22,7 +22,7 @@ class FlextCliUtilitiesToml:
     """Generic TOML read/write and table-manipulation helpers."""
 
     _module_logger: ClassVar[p.Logger] = u.fetch_logger(__name__)
-    _STR_SEQUENCE_ADAPTER: TypeAdapter[Sequence[str]] = TypeAdapter(Sequence[str])
+    _STR_SEQUENCE_ADAPTER: TypeAdapter[t.StrSequence] = TypeAdapter(t.StrSequence)
 
     @staticmethod
     def toml_as_mapping(

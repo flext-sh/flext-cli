@@ -25,12 +25,12 @@ class FlextCliProtocolsPipeline:
             ...
 
         @property
-        def shared(self) -> t.MutableContainerMapping:
+        def shared(self) -> t.MutableRecursiveContainerMapping:
             """Mutable shared state between stages — stages write outputs here."""
             ...
 
         @property
-        def settings(self) -> t.ContainerMapping:
+        def settings(self) -> t.RecursiveContainerMapping:
             """Immutable configuration for the pipeline run."""
             ...
 

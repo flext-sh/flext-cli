@@ -32,7 +32,7 @@ class FlextCliTypesDomain:
     type ProjectNamesValue = str | t.StrSequence | None
     type TableHeaders = str | t.StrSequence | None
     type IntTextValue = int | str | None
-    type StrEnvMapping = Mapping[str, str]
+    type StrEnvMapping = t.StrMapping
     type ConfigModel = BaseModel | None
     type ModelSource = BaseModel | ScalarMapping | None
     type OptionRegistry = Mapping[
@@ -52,14 +52,14 @@ class FlextCliTypesDomain:
     type ResultRouteHandler = Callable[..., p.Cli.ErasedCommandResult]
     type MappingProcessor[T, U] = Callable[[str, T], U]
     type JsonModelHandler[M: BaseModel] = Callable[[M], t.RecursiveValue]
-    type RecursiveMapping = Mapping[str, t.RecursiveContainer]
+    type RecursiveMapping = t.RecursiveContainerMapping
     type RecursiveMappingSource = t.RecursiveContainer | RecursiveMapping | None
     type JsonPayload = (
         FlextCliTypesBase.JsonValue
         | BaseModel
         | FlextCliTypesBase.JsonMapping
         | FlextCliTypesBase.JsonList
-        | Mapping[str, t.NormalizedValue]
+        | Mapping[str, t.RecursiveContainer]
     )
     type JsonValueOrModel = FlextCliTypesBase.JsonValue | BaseModel | None
     type TomlMappingSource = (
@@ -78,11 +78,13 @@ class FlextCliTypesDomain:
     type ReturnChildLiteral = Literal[True]
     type TypedExtractValue = str | bool | FlextCliTypesBase.JsonMapping | None
     type ResultCommandRoutes = Sequence[p.Cli.ResultCommandRoute]
-    type TableDataSource = FlextCliTypesBase.TabularData | Sequence[t.ContainerMapping]
+    type TableDataSource = (
+        FlextCliTypesBase.TabularData | Sequence[t.RecursiveContainerMapping]
+    )
     type TextPath = str | Path
     type PathLike = str | Path
     type JsonWriteData = (
-        t.RecursiveContainer | Sequence[t.ContainerMapping] | p.Cli.DisplayData
+        t.RecursiveContainer | Sequence[t.RecursiveContainerMapping] | p.Cli.DisplayData
     )
 
 

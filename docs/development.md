@@ -290,7 +290,7 @@ Key phases:
 1. Documentation (complete)
 1. Delete duplicates (validator.py, auth.py, testing.py)
 1. Convert services to simple classes
-1. Fix context (service → value t.NormalizedValue)
+1. Fix context (service → value t.RecursiveContainer)
 1. Remove API wrappers
 1. Remove unused infrastructure
 1. Reorganize tests

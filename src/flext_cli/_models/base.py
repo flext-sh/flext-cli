@@ -52,7 +52,7 @@ class FlextCliModelsBase:
             validate_assignment=True,
         )
         data: Annotated[
-            t.ContainerMapping,
+            t.RecursiveContainerMapping,
             Field(
                 description="Field-value pairs for display",
             ),
@@ -66,7 +66,7 @@ class FlextCliModelsBase:
             validate_assignment=True,
         )
         content: Annotated[
-            t.ContainerMapping,
+            t.RecursiveContainerMapping,
             Field(
                 description="Loaded configuration content (dict or other JSON value)",
             ),
@@ -104,7 +104,7 @@ class FlextCliModelsBase:
                 return self.value
             return self.default
 
-    class SuccessSummaryDetails(RootModel[Mapping[str, str]]):
+    class SuccessSummaryDetails(RootModel[t.StrMapping]):
         """Key-value success summary details. Use m.Cli.SuccessSummaryDetails."""
 
     class PromptRuntimeState(m.FlexibleInternalModel):

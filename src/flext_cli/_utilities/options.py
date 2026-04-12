@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import MutableSequence, Sequence
+from collections.abc import MutableSequence
 
 from typer.models import OptionInfo
 
@@ -67,10 +67,10 @@ class FlextCliUtilitiesOptions:
 
     @staticmethod
     def reorder_prefixed_options(
-        args: Sequence[str],
+        args: t.StrSequence,
         *,
-        bool_options: Sequence[str],
-        value_options: Sequence[str],
+        bool_options: t.StrSequence,
+        value_options: t.StrSequence,
     ) -> list[str]:
         """Move shared options before subcommand to right after the subcommand."""
         if not args:
