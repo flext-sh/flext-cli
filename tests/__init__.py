@@ -12,16 +12,18 @@ from flext_core.lazy import (
 )
 
 if _t.TYPE_CHECKING:
-    from flext_tests import td, tf, tk, tm, tv
+    from flext_tests import d, e, h, r, s, td, tf, tk, tm, tv, x
 
-    from flext_cli import d, e, h, r, s, x
     from tests.constants import TestsFlextCliConstants, c
     from tests.models import TestsFlextCliModels, m
     from tests.protocols import TestsFlextCliProtocols, p
     from tests.typings import TestsFlextCliTypes, t
     from tests.utilities import TestsFlextCliUtilities, u
 _LAZY_IMPORTS = merge_lazy_imports(
-    (".unit",),
+    (
+        ".helpers",
+        ".unit",
+    ),
     build_lazy_import_map(
         {
             ".constants": (
@@ -44,24 +46,26 @@ _LAZY_IMPORTS = merge_lazy_imports(
                 "TestsFlextCliUtilities",
                 "u",
             ),
-            "flext_cli": (
+            "flext_tests": (
                 "d",
                 "e",
                 "h",
                 "r",
                 "s",
-                "x",
-            ),
-            "flext_tests": (
                 "td",
                 "tf",
                 "tk",
                 "tm",
                 "tv",
+                "x",
             ),
         },
     ),
     exclude_names=(
+        "FlextDispatcher",
+        "FlextLogger",
+        "FlextRegistry",
+        "FlextRuntime",
         "cleanup_submodule_namespace",
         "install_lazy_exports",
         "lazy_getattr",
