@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from collections.abc import MutableSequence, Sequence
+import tomllib
+from collections.abc import Mapping, MutableMapping, MutableSequence, Sequence
 from pathlib import Path
 from typing import ClassVar, TypeIs
 
@@ -96,6 +97,40 @@ class FlextCliUtilitiesToml:
             return tomlkit.parse(text)
         except (ValueError, TypeError):
             return None
+
+    @staticmethod
+    def toml_mapping_from_text(text: str) -> t.Cli.JsonMapping | None:
+        """Parse TOML text into one validated plain mapping."""
+        try:
+            loaded = tomllib.loads(text)
+        except tomllib.TOMLDecodeError:
+            return None
+        try:
+            return t.Cli.JSON_MAPPING_ADAPTER.validate_python(loaded)
+        except ValidationError:
+            return None
+
+    @staticmethod
+    def toml_document_from_mapping(mapping: t.Cli.JsonMapping) -> t.Cli.TomlDocument:
+        """Build one TOML document from a validated plain mapping."""
+        document = FlextCliUtilitiesToml.toml_document()
+        for key, value in mapping.items():
+            document[key] = FlextCliUtilitiesToml._toml_item_from_json_value(value)
+        return document
+
+    @staticmethod
+    def _toml_item_from_json_value(
+        value: t.Cli.JsonValue,
+    ) -> t.Cli.TomlItem | t.RecursiveContainer:
+        """Convert one JSON-compatible value into one TOML runtime value."""
+        if value is None:
+            msg = "TOML does not support null values"
+            raise TypeError(msg)
+        if isinstance(value, bool | int | float | str):
+            return tomlkit.item(value)
+        if isinstance(value, list):
+            return tomlkit.item(value)
+        return tomlkit.item(value)
 
     @staticmethod
     def toml_is_document(
@@ -221,6 +256,68 @@ class FlextCliUtilitiesToml:
         return list(table)
 
     @staticmethod
+    def toml_mapping_child(
+        container: Mapping[str, t.Cli.JsonValue],
+        key: str,
+    ) -> t.Cli.JsonMapping | None:
+        """Return a plain mapping child from one normalized TOML mapping."""
+        value = container.get(key, None)
+        if not u.mapping(value):
+            return None
+        try:
+            return t.Cli.JSON_MAPPING_ADAPTER.validate_python(value)
+        except ValidationError:
+            return None
+
+    @staticmethod
+    def toml_mapping_ensure_table(
+        parent: MutableMapping[str, t.Cli.JsonValue],
+        key: str,
+    ) -> dict[str, t.Cli.JsonValue]:
+        """Return one mutable plain mapping child, creating it when missing."""
+        existing = parent.get(key, None)
+        if isinstance(existing, dict):
+            return existing
+        if u.mapping(existing):
+            try:
+                normalized = dict(t.Cli.JSON_MAPPING_ADAPTER.validate_python(existing))
+            except ValidationError:
+                normalized: dict[str, t.Cli.JsonValue] = {}
+            parent[key] = normalized
+            return normalized
+        table: dict[str, t.Cli.JsonValue] = {}
+        parent[key] = table
+        return table
+
+    @staticmethod
+    def toml_mapping_ensure_path(
+        parent: MutableMapping[str, t.Cli.JsonValue],
+        path: t.StrSequence,
+    ) -> MutableMapping[str, t.Cli.JsonValue]:
+        """Return one nested mutable mapping path, creating tables as needed."""
+        current = parent
+        for segment in path:
+            current = FlextCliUtilitiesToml.toml_mapping_ensure_table(
+                current,
+                segment,
+            )
+        return current
+
+    @staticmethod
+    def toml_mapping_path(
+        parent: Mapping[str, t.Cli.JsonValue],
+        path: t.StrSequence,
+    ) -> MutableMapping[str, t.Cli.JsonValue] | None:
+        """Return one nested mutable mapping path without creating missing tables."""
+        current: Mapping[str, t.Cli.JsonValue] = parent
+        for segment in path:
+            value = current.get(segment, None)
+            if not isinstance(value, dict):
+                return None
+            current = value
+        return current if isinstance(current, dict) else None
+
+    @staticmethod
     def toml_remove_key_if_present(
         container: t.Cli.TomlParent,
         key: str,
@@ -292,6 +389,135 @@ class FlextCliUtilitiesToml:
         return True
 
     @staticmethod
+    def toml_mapping_remove_key_if_present(
+        container: MutableMapping[str, t.Cli.JsonValue],
+        key: str,
+        changes: MutableSequence[str],
+        change_message: str,
+    ) -> bool:
+        """Remove one plain mapping key when it exists and record the change."""
+        if key not in container:
+            return False
+        del container[key]
+        changes.append(change_message)
+        return True
+
+    @staticmethod
+    def toml_mapping_sync_value(
+        container: MutableMapping[str, t.Cli.JsonValue],
+        key: str,
+        expected: t.Cli.JsonValue,
+        changes: MutableSequence[str],
+        change_message: str,
+    ) -> bool:
+        """Synchronize one scalar or structured plain TOML value."""
+        current = FlextCliUtilitiesJson.normalize_json_value(container.get(key, None))
+        normalized_expected = FlextCliUtilitiesJson.normalize_json_value(expected)
+        if current == normalized_expected:
+            return False
+        container[key] = normalized_expected
+        changes.append(change_message)
+        return True
+
+    @staticmethod
+    def toml_mapping_merge_string_list(
+        container: MutableMapping[str, t.Cli.JsonValue],
+        key: str,
+        required: t.StrSequence,
+        changes: MutableSequence[str],
+        change_message: str,
+    ) -> bool:
+        """Merge required values into one plain string-list field."""
+        current = FlextCliUtilitiesToml.toml_as_string_list(container.get(key, None))
+        merged = sorted({*current, *required})
+        if current == merged:
+            return False
+        normalized_list: list[t.Cli.JsonValue] = list(merged)
+        container[key] = normalized_list
+        changes.append(change_message)
+        return True
+
+    @staticmethod
+    def toml_sync_mapping_table(
+        container: t.Cli.TomlParent,
+        key: str,
+        expected: Mapping[str, t.Cli.JsonValue],
+        changes: MutableSequence[str],
+        change_message: str,
+        *,
+        sort_keys: bool = False,
+    ) -> bool:
+        """Synchronize a TOML table mapping in place."""
+        existing = container.get(key, None)
+        current = FlextCliUtilitiesToml.toml_as_mapping(existing)
+        normalized_expected = {
+            item_key: expected[item_key]
+            for item_key in (sorted(expected) if sort_keys else tuple(expected))
+        }
+        if current == normalized_expected:
+            return False
+        table = FlextCliUtilitiesToml.toml_ensure_table(container, key)
+        for existing_key in list(table):
+            if existing_key not in normalized_expected:
+                del table[existing_key]
+        for item_key, item_value in normalized_expected.items():
+            table[item_key] = item_value
+        changes.append(change_message)
+        return True
+
+    @staticmethod
+    def toml_mapping_sync_string_list(
+        container: MutableMapping[str, t.Cli.JsonValue],
+        key: str,
+        expected: t.StrSequence,
+        changes: MutableSequence[str],
+        change_message: str,
+        *,
+        sort_values: bool = False,
+    ) -> bool:
+        """Synchronize one plain string-list field in a normalized TOML mapping."""
+        current = FlextCliUtilitiesToml.toml_as_string_list(container.get(key, None))
+        normalized_expected = sorted(expected) if sort_values else [*expected]
+        normalized_current = sorted(current) if sort_values else [*current]
+        if normalized_current == normalized_expected:
+            return False
+        normalized_list: list[t.Cli.JsonValue] = list(normalized_expected)
+        container[key] = normalized_list
+        changes.append(change_message)
+        return True
+
+    @staticmethod
+    def toml_mapping_sync_mapping_table(
+        container: MutableMapping[str, t.Cli.JsonValue],
+        key: str,
+        expected: Mapping[str, t.Cli.JsonValue],
+        changes: MutableSequence[str],
+        change_message: str,
+        *,
+        sort_keys: bool = False,
+    ) -> bool:
+        """Synchronize one plain mapping-table field in a normalized TOML mapping."""
+        current = FlextCliUtilitiesToml.toml_as_mapping(container.get(key, None))
+        normalized_expected = {
+            item_key: expected[item_key]
+            for item_key in (sorted(expected) if sort_keys else tuple(expected))
+        }
+        if current == normalized_expected:
+            return False
+        table = FlextCliUtilitiesToml.toml_mapping_ensure_table(container, key)
+        stale_keys = [
+            existing_key
+            for existing_key in table
+            if existing_key not in normalized_expected
+        ]
+        for existing_key in stale_keys:
+            del table[existing_key]
+        for item_key, item_value in normalized_expected.items():
+            table[item_key] = item_value
+        changes.append(change_message)
+        return True
+
+    @staticmethod
     def toml_navigate_path(
         doc: t.Cli.TomlDocument,
         path: t.StrSequence,
@@ -348,14 +574,15 @@ class FlextCliUtilitiesToml:
     @staticmethod
     def toml_read_json(path: Path) -> r[t.Cli.JsonMapping]:
         """Read TOML and return the unwrapped root table as ``JsonMapping``."""
-        document_result = FlextCliUtilitiesToml.toml_read_document(path)
-        if document_result.failure:
-            return r[t.Cli.JsonMapping].fail(
-                document_result.error or f"TOML parse failed: {path}",
-            )
-        mapping = FlextCliUtilitiesToml.toml_as_mapping(document_result.value)
+        if not path.exists():
+            return r[t.Cli.JsonMapping].fail(f"failed to read TOML: {path}")
+        try:
+            original_rendered = path.read_text(encoding=c.Cli.ENCODING_DEFAULT)
+        except OSError as exc:
+            return r[t.Cli.JsonMapping].fail(f"failed to read TOML: {exc}")
+        mapping = FlextCliUtilitiesToml.toml_mapping_from_text(original_rendered)
         if mapping is None:
-            return r[t.Cli.JsonMapping].fail(f"TOML root must be a table: {path}")
+            return r[t.Cli.JsonMapping].fail(f"TOML parse failed: {path}")
         return r[t.Cli.JsonMapping].ok(mapping)
 
     @staticmethod
@@ -403,6 +630,15 @@ class FlextCliUtilitiesToml:
         if format_result.failure:
             return r[bool].fail(format_result.error or f"taplo format failed: {path}")
         return r[bool].ok(True)
+
+    @staticmethod
+    def toml_write_mapping(path: Path, mapping: t.Cli.JsonMapping) -> r[bool]:
+        """Write one validated plain mapping as TOML through the canonical writer."""
+        try:
+            document = FlextCliUtilitiesToml.toml_document_from_mapping(mapping)
+        except (TypeError, ValueError) as exc:
+            return r[bool].fail(f"TOML build error: {exc}")
+        return FlextCliUtilitiesToml.toml_write_document(path, document)
 
 
 __all__ = ["FlextCliUtilitiesToml"]
