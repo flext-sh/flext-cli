@@ -4,9 +4,12 @@ from __future__ import annotations
 
 import re
 from types import MappingProxyType
-from typing import Final
+from typing import TYPE_CHECKING, Final
 
 from flext_cli import c
+
+if TYPE_CHECKING:
+    from examples import t
 
 
 class ExamplesFlextCliConstants(c):
