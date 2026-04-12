@@ -91,7 +91,7 @@ class FlextCliUtilitiesModelCommands:
         ).build()
 
 
-__all__ = [
+__all__: list[str] = [
     "FlextCliUtilitiesModelCommandBuilder",
     "FlextCliUtilitiesModelCommands",
 ]

@@ -98,4 +98,4 @@ class FlextCliConstantsOutput:
     )
 
 
-__all__ = ["FlextCliConstantsOutput"]
+__all__: list[str] = ["FlextCliConstantsOutput"]

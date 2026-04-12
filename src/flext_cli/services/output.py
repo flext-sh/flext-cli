@@ -125,4 +125,4 @@ class FlextCliOutput(s):
         FlextCliFormatters.print(line, style=style)
 
 
-__all__ = ["FlextCliOutput"]
+__all__: list[str] = ["FlextCliOutput"]

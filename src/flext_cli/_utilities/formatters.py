@@ -167,4 +167,4 @@ class FlextCliUtilitiesFormatters:
         return "\n".join(lines) + "\n"
 
 
-__all__ = ["FlextCliUtilitiesFormatters"]
+__all__: list[str] = ["FlextCliUtilitiesFormatters"]

@@ -325,4 +325,4 @@ class FlextCliUtilitiesFiles:
         return r[t.Cli.JsonMapping].ok(normalized_payload)
 
 
-__all__ = ["FlextCliUtilitiesFiles"]
+__all__: list[str] = ["FlextCliUtilitiesFiles"]

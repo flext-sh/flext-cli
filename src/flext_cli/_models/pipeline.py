@@ -152,4 +152,4 @@ class FlextCliModelsPipeline:
             ]
 
 
-__all__ = ["FlextCliModelsPipeline"]
+__all__: list[str] = ["FlextCliModelsPipeline"]

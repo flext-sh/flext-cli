@@ -227,4 +227,4 @@ class FlextCliProtocolsBase:
             ...
 
 
-__all__ = ["FlextCliProtocolsBase"]
+__all__: list[str] = ["FlextCliProtocolsBase"]

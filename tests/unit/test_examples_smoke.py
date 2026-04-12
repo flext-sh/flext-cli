@@ -1,4 +1,4 @@
-"""Smoke tests for flext-cli examples using the public cli singleton API."""
+"""Smoke tests for flext-cli examples using the public cli facade."""
 
 from __future__ import annotations
 

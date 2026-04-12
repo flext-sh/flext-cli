@@ -131,6 +131,6 @@ class FlextCliUtilitiesValidation:
         )
 
 
-__all__ = [
+__all__: list[str] = [
     "FlextCliUtilitiesValidation",
 ]

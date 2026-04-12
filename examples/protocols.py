@@ -68,7 +68,7 @@ class ExamplesFlextCliProtocols(p):
 
 p = ExamplesFlextCliProtocols
 
-__all__ = [
+__all__: list[str] = [
     "ExamplesFlextCliProtocols",
     "p",
 ]

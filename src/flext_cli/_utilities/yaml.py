@@ -167,4 +167,4 @@ class FlextCliUtilitiesYaml:
             return ""
 
 
-__all__ = ["FlextCliUtilitiesYaml"]
+__all__: list[str] = ["FlextCliUtilitiesYaml"]

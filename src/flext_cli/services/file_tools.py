@@ -144,4 +144,4 @@ class FlextCliFileTools(FlextCliServiceBase):
         return u.Cli.files_load_auto_mapping(file_path)
 
 
-__all__ = ["FlextCliFileTools"]
+__all__: list[str] = ["FlextCliFileTools"]

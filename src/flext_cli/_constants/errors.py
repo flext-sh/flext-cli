@@ -95,4 +95,4 @@ class FlextCliConstantsErrors:
     )
 
 
-__all__ = ["FlextCliConstantsErrors"]
+__all__: list[str] = ["FlextCliConstantsErrors"]

@@ -76,7 +76,8 @@ class FlextCliFormatters(FlextCliServiceBase):
             cls._get_or_create_logger(),
         )
         if tree_result.failure:
-            return r[FlextCliFormatters.Tree].fail(
+            return r[FlextCliFormatters.Tree].fail_op(
+                "create cli tree",
                 tree_result.error or "Tree creation failed",
             )
         return r[FlextCliFormatters.Tree].ok(FlextCliFormatters.Tree(tree_result.value))
@@ -130,4 +131,4 @@ class FlextCliFormatters(FlextCliServiceBase):
         )
 
 
-__all__ = ["FlextCliFormatters"]
+__all__: list[str] = ["FlextCliFormatters"]

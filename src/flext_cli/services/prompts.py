@@ -244,4 +244,4 @@ class FlextCliPrompts(s):
             )
 
 
-__all__ = ["FlextCliPrompts"]
+__all__: list[str] = ["FlextCliPrompts"]

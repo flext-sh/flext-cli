@@ -27,4 +27,4 @@ class FlextCliTypesPipeline:
     type PipelineSkipPredicate = Callable[[m.Cli.PipelineStageContext], bool]
 
 
-__all__ = ["FlextCliTypesPipeline"]
+__all__: list[str] = ["FlextCliTypesPipeline"]

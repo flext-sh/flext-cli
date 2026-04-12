@@ -65,4 +65,4 @@ class FlextCliUtilitiesCommands:
             )
 
 
-__all__ = ["FlextCliUtilitiesCommands"]
+__all__: list[str] = ["FlextCliUtilitiesCommands"]

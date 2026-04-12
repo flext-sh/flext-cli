@@ -96,7 +96,7 @@ class FlextCliUtilitiesConversion:
         return FlextCliUtilitiesCliModelConverter.convert_field_value(field_value)
 
 
-__all__ = [
+__all__: list[str] = [
     "FlextCliUtilitiesCliModelConverter",
     "FlextCliUtilitiesConversion",
 ]

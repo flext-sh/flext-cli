@@ -72,4 +72,4 @@ class FlextCliProtocolsDomain:
         success_type: str
 
 
-__all__ = ["FlextCliProtocolsDomain"]
+__all__: list[str] = ["FlextCliProtocolsDomain"]

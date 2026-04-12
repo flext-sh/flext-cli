@@ -123,6 +123,6 @@ class FlextCliConstantsEnums:
         BOLD_WHITE_ON_BLUE = "bold white on blue"
 
 
-__all__ = [
+__all__: list[str] = [
     "FlextCliConstantsEnums",
 ]

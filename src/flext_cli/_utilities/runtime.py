@@ -143,4 +143,4 @@ class FlextCliUtilitiesRuntime:
         return r[int].ok(result.returncode)
 
 
-__all__ = ["FlextCliUtilitiesRuntime"]
+__all__: list[str] = ["FlextCliUtilitiesRuntime"]

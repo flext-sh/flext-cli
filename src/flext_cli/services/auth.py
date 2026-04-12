@@ -79,4 +79,4 @@ class FlextCliAuth(FlextCliServiceBase):
         return FlextCliFileTools.delete_file(token_file)
 
 
-__all__ = ["FlextCliAuth"]
+__all__: list[str] = ["FlextCliAuth"]

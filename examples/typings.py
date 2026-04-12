@@ -29,7 +29,7 @@ class ExamplesFlextCliTypes(t):
 
 t = ExamplesFlextCliTypes
 
-__all__ = [
+__all__: list[str] = [
     "ExamplesFlextCliTypes",
     "t",
 ]

@@ -66,6 +66,6 @@ class FlextCliUtilitiesSettings:
         return lines
 
 
-__all__ = [
+__all__: list[str] = [
     "FlextCliUtilitiesSettings",
 ]

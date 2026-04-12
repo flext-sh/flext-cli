@@ -170,4 +170,4 @@ class FlextCliTypesBase:
     )
 
 
-__all__ = ["FlextCliTypesBase"]
+__all__: list[str] = ["FlextCliTypesBase"]

@@ -38,4 +38,4 @@ class FlextCliUtilitiesMatching:
         )
 
 
-__all__ = ["FlextCliUtilitiesMatching"]
+__all__: list[str] = ["FlextCliUtilitiesMatching"]

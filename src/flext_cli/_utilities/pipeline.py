@@ -161,4 +161,4 @@ class FlextCliUtilitiesPipeline:
         )
 
 
-__all__ = ["FlextCliUtilitiesPipeline"]
+__all__: list[str] = ["FlextCliUtilitiesPipeline"]

@@ -146,4 +146,4 @@ class FlextCliUtilitiesParams:
         )
 
 
-__all__ = ["FlextCliUtilitiesParams"]
+__all__: list[str] = ["FlextCliUtilitiesParams"]

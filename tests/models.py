@@ -263,7 +263,7 @@ class TestsFlextCliModels(FlextTestsModels, m):
 
 m = TestsFlextCliModels
 
-__all__ = [
+__all__: list[str] = [
     "TestsFlextCliModels",
     "m",
 ]

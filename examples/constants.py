@@ -166,7 +166,7 @@ class ExamplesFlextCliConstants(c):
 
 c = ExamplesFlextCliConstants
 
-__all__ = [
+__all__: list[str] = [
     "ExamplesFlextCliConstants",
     "c",
 ]

@@ -450,7 +450,7 @@ class ExamplesFlextCliModels(m):
 
 m = ExamplesFlextCliModels
 
-__all__ = [
+__all__: list[str] = [
     "ExamplesFlextCliModels",
     "m",
 ]

@@ -60,4 +60,4 @@ class FlextCliProtocolsPipeline:
             ...
 
 
-__all__ = ["FlextCliProtocolsPipeline"]
+__all__: list[str] = ["FlextCliProtocolsPipeline"]

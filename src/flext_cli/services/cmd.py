@@ -63,4 +63,4 @@ class FlextCliCmd(s):
         return u.Cli.cmd_validate_settings(self.logger)
 
 
-__all__ = ["FlextCliCmd"]
+__all__: list[str] = ["FlextCliCmd"]

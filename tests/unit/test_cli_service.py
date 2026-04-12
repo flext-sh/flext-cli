@@ -167,7 +167,7 @@ class TestsCliService:
         )
 
         tm.fail(result)
-        tm.that(result.error, eq="expected cli failure")
+        tm.that(result.error, has="expected cli failure")
 
     def test_register_result_command_renders_success_and_failure(self) -> None:
         app = cli.create_app_with_common_params(

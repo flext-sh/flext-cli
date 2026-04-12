@@ -41,4 +41,4 @@ class FlextCliUtilitiesBase(
     """Thin aggregate for the public direct ``u.Cli`` MRO surface."""
 
 
-__all__ = ["FlextCliUtilitiesBase"]
+__all__: list[str] = ["FlextCliUtilitiesBase"]

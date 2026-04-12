@@ -102,4 +102,4 @@ class FlextCliUtilitiesOptions:
         return list(args)
 
 
-__all__ = ["FlextCliUtilitiesOptionBuilder", "FlextCliUtilitiesOptions"]
+__all__: list[str] = ["FlextCliUtilitiesOptionBuilder", "FlextCliUtilitiesOptions"]

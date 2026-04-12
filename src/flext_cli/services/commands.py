@@ -162,4 +162,4 @@ class FlextCliCommands(s):
         return self.execute_command(cmd_name, args=cmd_args)
 
 
-__all__ = ["FlextCliCommands"]
+__all__: list[str] = ["FlextCliCommands"]

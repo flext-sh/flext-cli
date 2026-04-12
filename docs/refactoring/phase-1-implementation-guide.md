@@ -143,7 +143,7 @@ from flext_cli import FlextCliAuthService
 from flext_cli import FlextCliAuthService
 from flext_cli import FlextCliCli
 ...
-__all__ = [
+__all__: list[str] = [
     # Core API (alphabetically sorted per FLEXT standards)
     "cli",
     # "FlextCliAsync",  # Module not yet implemented
@@ -158,7 +158,7 @@ __all__ = [
 # from flext_cli import FlextCliAsync  # Module not yet implemented
 from flext_cli import FlextCliCli
 ...
-__all__ = [
+__all__: list[str] = [
     # Core API (alphabetically sorted per FLEXT standards)
     "cli",
     # "FlextCliAsync",  # Module not yet implemented
@@ -285,7 +285,7 @@ from flext_cli import FlextCliMockScenarios, FlextCliTesting, FlextCliTestRunner
 ```python
 from flext_cli import FlextCliMockScenarios, FlextCliTesting, FlextCliTestRunner
 ...
-__all__ = [
+__all__: list[str] = [
     ...
     "FlextCliMockScenarios",
     ...
@@ -300,7 +300,7 @@ __all__ = [
 ```python
 # Line removed entirely
 ...
-__all__ = [
+__all__: list[str] = [
     # Items removed from list
 ]
 ```

@@ -114,4 +114,4 @@ class FlextCliTestHelpers:
             ))
 
 
-__all__ = ["FlextCliTestHelpers"]
+__all__: list[str] = ["FlextCliTestHelpers"]

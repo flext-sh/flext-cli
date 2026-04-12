@@ -19,4 +19,4 @@ class FlextCliTypes(FlextTypes):
 
 t = FlextCliTypes
 
-__all__ = ["FlextCliTypes", "t"]
+__all__: list[str] = ["FlextCliTypes", "t"]

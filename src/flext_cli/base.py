@@ -35,4 +35,4 @@ class FlextCliServiceBase(FlextService[FlextCliTypesBase.JsonMapping], ABC):
 
 s = FlextCliServiceBase
 
-__all__ = ["FlextCliServiceBase", "s"]
+__all__: list[str] = ["FlextCliServiceBase", "s"]

@@ -641,4 +641,4 @@ class FlextCliUtilitiesToml:
         return FlextCliUtilitiesToml.toml_write_document(path, document)
 
 
-__all__ = ["FlextCliUtilitiesToml"]
+__all__: list[str] = ["FlextCliUtilitiesToml"]

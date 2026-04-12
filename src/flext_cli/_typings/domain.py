@@ -86,4 +86,4 @@ class FlextCliTypesDomain:
     )
 
 
-__all__ = ["FlextCliTypesDomain"]
+__all__: list[str] = ["FlextCliTypesDomain"]

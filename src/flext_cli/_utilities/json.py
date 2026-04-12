@@ -178,4 +178,4 @@ class FlextCliUtilitiesJson:
         return data
 
 
-__all__ = ["FlextCliUtilitiesJson"]
+__all__: list[str] = ["FlextCliUtilitiesJson"]

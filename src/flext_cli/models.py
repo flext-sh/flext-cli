@@ -15,7 +15,7 @@ class FlextCliModels(FlextModels):
 
 m = FlextCliModels
 
-__all__ = [
+__all__: list[str] = [
     "FlextCliModels",
     "m",
 ]

@@ -22,4 +22,4 @@ class FlextCliConstantsPipeline:
     })
 
 
-__all__ = ["FlextCliConstantsPipeline"]
+__all__: list[str] = ["FlextCliConstantsPipeline"]

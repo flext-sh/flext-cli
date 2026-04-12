@@ -439,20 +439,28 @@ class FlextCliCli(s):
                 standalone_mode=False,
             )
         except typer.Abort as exc:
-            return r[bool].fail(str(exc) or "CLI execution aborted")
+            return r[bool].fail_op(
+                "execute cli app", str(exc) or "CLI execution aborted"
+            )
         except typer.Exit as exc:
             if exc.exit_code == 0:
                 return r[bool].ok(True)
             message = error_message() if error_message is not None else None
-            return r[bool].fail(message or f"CLI exited with code {exc.exit_code}")
+            return r[bool].fail_op(
+                "execute cli app",
+                message or f"CLI exited with code {exc.exit_code}",
+            )
         except Exception as exc:
             message = error_message() if error_message is not None else None
-            return r[bool].fail(message or str(exc))
+            return r[bool].fail_op("execute cli app", message or str(exc))
         finally:
             sys.argv = original_argv
         if isinstance(result, int) and result != 0:
             message = error_message() if error_message is not None else None
-            return r[bool].fail(message or f"CLI exited with code {result}")
+            return r[bool].fail_op(
+                "execute cli app",
+                message or f"CLI exited with code {result}",
+            )
         return r[bool].ok(True)
 
     @staticmethod
@@ -645,4 +653,4 @@ class FlextCliCli(s):
             )
 
 
-__all__ = ["FlextCliCli"]
+__all__: list[str] = ["FlextCliCli"]

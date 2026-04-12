@@ -103,4 +103,4 @@ class FlextCliUtilitiesOutput:
         return f"[table error] {error}", c.Cli.MessageStyles.BOLD_RED
 
 
-__all__ = ["FlextCliUtilitiesOutput"]
+__all__: list[str] = ["FlextCliUtilitiesOutput"]

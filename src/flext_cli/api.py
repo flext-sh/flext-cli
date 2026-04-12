@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import ClassVar, Self, override
+from typing import ClassVar, override
 
 from flext_cli import (
     FlextCliAuth,
@@ -46,15 +46,7 @@ class FlextCli(
     All operations return r[T].
     """
 
-    _instance: ClassVar[Self | None] = None
     __pydantic_parent_namespace__: ClassVar[dict[str, type]] = {"p": p}
-
-    @classmethod
-    def instance(cls) -> Self:
-        """Return the shared CLI facade instance."""
-        if cls._instance is None:
-            cls._instance = cls()
-        return cls._instance
 
     @override
     def execute(self) -> r[t.Cli.JsonMapping]:
@@ -73,7 +65,7 @@ class FlextCli(
         return r[t.Cli.JsonMapping].ok(result_dict)
 
 
-cli = FlextCli.instance()
+cli = FlextCli()
 
 
-__all__ = ["FlextCli", "cli"]
+__all__: list[str] = ["FlextCli", "cli"]

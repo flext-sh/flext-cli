@@ -134,4 +134,4 @@ class TestsFlextCliConstants(FlextTestsConstants, c):
 
 c = TestsFlextCliConstants
 
-__all__ = ["TestsFlextCliConstants", "c"]
+__all__: list[str] = ["TestsFlextCliConstants", "c"]

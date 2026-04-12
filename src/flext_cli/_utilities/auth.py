@@ -38,4 +38,4 @@ class FlextCliUtilitiesAuth:
         return r[str].ok(token_value)
 
 
-__all__ = ["FlextCliUtilitiesAuth"]
+__all__: list[str] = ["FlextCliUtilitiesAuth"]

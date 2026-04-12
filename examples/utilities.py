@@ -144,7 +144,7 @@ class ExamplesFlextCliUtilities(u):
 
 u = ExamplesFlextCliUtilities
 
-__all__ = [
+__all__: list[str] = [
     "ExamplesFlextCliUtilities",
     "u",
 ]
