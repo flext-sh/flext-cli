@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-from flext_cli import c, m, r
+from flext_cli import c, m, p, r
 from flext_cli._utilities.settings import FlextCliUtilitiesSettings
-from flext_core import p
 
 
 class FlextCliUtilitiesCmd:
@@ -32,7 +31,7 @@ class FlextCliUtilitiesCmd:
             )
         logger.info(
             c.Cli.LOG_MSG_SETTINGS_DISPLAYED,
-            settings=info_result.value,
+            settings=info_result.value.model_dump(mode="json"),
         )
         return r[bool].ok(True)
 

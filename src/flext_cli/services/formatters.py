@@ -13,8 +13,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import Self, overload, override
 
-from flext_cli import FlextCliServiceBase, t, u
-from flext_core import p, r
+from flext_cli import FlextCliServiceBase, p, r, t, u
 
 
 class FlextCliFormatters(FlextCliServiceBase):
