@@ -13,8 +13,8 @@ from __future__ import annotations
 from abc import ABC
 from typing import ClassVar, override
 
-from flext_cli import FlextCliSettings, t, p, 
-from flext_core import s, FlextSettings
+from flext_cli import FlextCliSettings, p, t
+from flext_core import FlextSettings, s
 
 
 class FlextCliServiceBase(s[t.Cli.JsonMapping], ABC):
