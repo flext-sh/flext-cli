@@ -12,8 +12,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
-from examples import c, p, t
-from flext_core import p, r
+from examples import c, p, r, t
 
 
 class ExamplePlugin:
