@@ -38,7 +38,7 @@ import time
 from collections.abc import MutableSequence, Sequence
 from pathlib import Path
 
-from examples import c, t
+from examples import c, p, t
 from flext_cli import cli
 
 
