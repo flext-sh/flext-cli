@@ -8,14 +8,14 @@ from typing import Annotated, ClassVar
 
 from pydantic import ConfigDict, Field, computed_field
 
-from flext_cli import c, t
-from flext_core import FlextModels, r
+from flext_cli import c, r, t
+from flext_core import m
 
 
 class FlextCliModelsPipeline:
     """Pipeline models namespace — flat in m.Cli.*."""
 
-    class PipelineStageContext(FlextModels.ContractModel):
+    class PipelineStageContext(m.ContractModel):
         """Accumulated state passed between pipeline stages."""
 
         _flext_enforcement_exempt: ClassVar[bool] = True
@@ -41,7 +41,7 @@ class FlextCliModelsPipeline:
             Field(default_factory=dict, description="Immutable pipeline configuration"),
         ]
 
-    class PipelineStageSpec(FlextModels.ContractModel):
+    class PipelineStageSpec(m.ContractModel):
         """Declarative stage definition with dependency tracking."""
 
         _flext_enforcement_exempt: ClassVar[bool] = True
@@ -86,7 +86,7 @@ class FlextCliModelsPipeline:
             ),
         ]
 
-    class PipelineStageResult(FlextModels.ContractModel):
+    class PipelineStageResult(m.ContractModel):
         """What a stage produces after execution."""
 
         _flext_enforcement_exempt: ClassVar[bool] = True
@@ -111,7 +111,7 @@ class FlextCliModelsPipeline:
             Field(default=None, description="Error message if failed"),
         ]
 
-    class PipelineResult(FlextModels.ContractModel):
+    class PipelineResult(m.ContractModel):
         """Full pipeline execution result — aggregated from all stages."""
 
         model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
