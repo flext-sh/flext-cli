@@ -40,7 +40,6 @@ from pathlib import Path
 
 from examples import c, t
 from flext_cli import cli
-from flext_core import r
 
 
 def your_cli_function() -> None:
@@ -66,7 +65,7 @@ def display_database_results(records: Sequence[t.Cli.TableMappingRow]) -> None:
 def export_report(
     data: Sequence[t.Cli.TableMappingRow],
     format_type: c.Cli.OutputFormats = c.Cli.OutputFormats.TABLE,
-) -> r[str]:
+) -> p.Result[str]:
     """Create ASCII tables for logs/reports in your app."""
     return cli.format_table(list(data) if data else [], table_format=format_type)
 

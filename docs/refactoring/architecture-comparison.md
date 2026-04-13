@@ -210,7 +210,7 @@ class FlextCliFileTools(s[t.RecursiveContainerMapping]):
         self.logger = u.fetch_logger(__name__)
         self._state = {}  # No state actually needed!
 
-    def read_json_file(self, path: str) -> r[dict]:
+    def read_json_file(self, path: str) -> p.Result[dict]:
         self.logger.info(f"Reading {path}")  # Logging overhead
         # Just read a file - doesn't need service
 ```
@@ -223,7 +223,7 @@ class FlextCliFileTools:
     """Stateless file operations."""
 
     @staticmethod
-    def read_json_file(path: str) -> r[dict]:
+    def read_json_file(path: str) -> p.Result[dict]:
         """Read JSON file - no state, no overhead."""
         try:
             with open(path) as f:
@@ -313,7 +313,7 @@ from cachetools import LRUCache, TTLCache  # Evaluate usage
 # ✅ Only what's actually used
 import json
 from pathlib import Path
-from flext_core import r, s
+from flext_core import r, p, s
 ```
 
 **Benefit**: Clear dependencies, no confusion

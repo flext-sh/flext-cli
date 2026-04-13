@@ -13,7 +13,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 
 from examples import c, p, t
-from flext_core import r
+from flext_core import p, r
 
 
 class ExamplePlugin:
@@ -37,7 +37,7 @@ class ExamplePlugin:
         self._initialized = False
         self._config: Mapping[str, bool | int] = {}
 
-    def initialize(self, _cli: p.CliMainWithGroups) -> r[bool]:
+    def initialize(self, _cli: p.CliMainWithGroups) -> p.Result[bool]:
         """Initialize the plugin.
 
         Args:
@@ -54,7 +54,7 @@ class ExamplePlugin:
         except Exception as e:
             return r[bool].fail(f"Plugin initialization failed: {e}")
 
-    def register_commands(self, cli_main: p.CliMainWithGroups) -> r[bool]:
+    def register_commands(self, cli_main: p.CliMainWithGroups) -> p.Result[bool]:
         """Register plugin commands.
 
         Args:
@@ -136,7 +136,7 @@ class DataProcessorPlugin:
         super().__init__()
         self._processors: t.ProcessorRegistry = {}
 
-    def initialize(self, _cli: p.CliMainWithGroups) -> r[bool]:
+    def initialize(self, _cli: p.CliMainWithGroups) -> p.Result[bool]:
         """Initialize the plugin.
 
         Args:
@@ -156,7 +156,7 @@ class DataProcessorPlugin:
         except Exception as e:
             return r[bool].fail(f"Initialization failed: {e}")
 
-    def register_commands(self, cli_main: p.CliMainWithGroups) -> r[bool]:
+    def register_commands(self, cli_main: p.CliMainWithGroups) -> p.Result[bool]:
         """Register data processing commands.
 
         Args:

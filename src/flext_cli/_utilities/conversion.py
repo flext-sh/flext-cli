@@ -7,9 +7,9 @@ from typing import ClassVar
 
 from pydantic import BaseModel, TypeAdapter, ValidationError
 
-from flext_cli import c, r, t
+from flext_cli import c, p, r, t
 from flext_cli._utilities.json import FlextCliUtilitiesJson
-from flext_core import p, u
+from flext_core import u
 
 
 class FlextCliUtilitiesCliModelConverter:
@@ -24,7 +24,7 @@ class FlextCliUtilitiesCliModelConverter:
     def cli_args_to_model[M: BaseModel](
         model_class: type[M],
         cli_args: t.Cli.JsonMapping,
-    ) -> r[M]:
+    ) -> p.Result[M]:
         """Convert a CLI args mapping into a validated Pydantic model."""
         try:
             instance: M = model_class.model_validate(cli_args)
@@ -35,7 +35,7 @@ class FlextCliUtilitiesCliModelConverter:
     @staticmethod
     def convert_field_value(
         field_value: t.Cli.JsonValue | None,
-    ) -> r[t.Cli.JsonValue]:
+    ) -> p.Result[t.Cli.JsonValue]:
         """Convert one field value to a JSON-compatible value."""
         if field_value is None:
             empty_value: t.Cli.JsonValue = ""
@@ -81,7 +81,7 @@ class FlextCliUtilitiesConversion:
     def cli_args_to_model[M: BaseModel](
         model_class: type[M],
         cli_args: t.Cli.JsonMapping,
-    ) -> r[M]:
+    ) -> p.Result[M]:
         """Convert a CLI args mapping into a validated Pydantic model."""
         return FlextCliUtilitiesCliModelConverter.cli_args_to_model(
             model_class,
@@ -91,7 +91,7 @@ class FlextCliUtilitiesConversion:
     @staticmethod
     def convert_field_value(
         field_value: t.Cli.JsonValue | None,
-    ) -> r[t.Cli.JsonValue]:
+    ) -> p.Result[t.Cli.JsonValue]:
         """Convert one field value to a JSON-compatible value."""
         return FlextCliUtilitiesCliModelConverter.convert_field_value(field_value)
 

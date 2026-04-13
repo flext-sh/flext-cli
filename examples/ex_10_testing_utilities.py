@@ -28,9 +28,8 @@ import tempfile
 from collections.abc import Mapping, MutableMapping
 from pathlib import Path
 
-from examples import c, t
-from flext_cli import cli, m
-from flext_core import r
+from examples import c, m, p, r, t
+from flext_cli import cli
 
 
 def _temp_file_path(filename: str, *, base_dir: Path | None = None) -> Path:
@@ -40,7 +39,7 @@ def _temp_file_path(filename: str, *, base_dir: Path | None = None) -> Path:
     ) / filename
 
 
-def my_cli_command(name: str) -> r[str]:
+def my_cli_command(name: str) -> p.Result[str]:
     """Example CLI command to test."""
     if not name:
         return r[str].fail("Name cannot be empty")
@@ -80,7 +79,7 @@ def save_config_command(
     settings: t.RecursiveContainerMapping,
     *,
     base_dir: Path | None = None,
-) -> r[bool]:
+) -> p.Result[bool]:
     """CLI command that saves settings."""
     temp_file = _temp_file_path("test_config.json", base_dir=base_dir)
     return (
@@ -126,7 +125,7 @@ def test_file_operations() -> None:
     temp_file.unlink(missing_ok=True)
 
 
-def interactive_command() -> r[str]:
+def interactive_command() -> p.Result[str]:
     """Command with user prompts to test."""
     prompts = cli
     prompts.configure(m.Cli.PromptRuntimeState(interactive=False))
@@ -153,7 +152,7 @@ def test_interactive_command() -> None:
     cli.print("   ✅ Interactive command test passed", style=c.Cli.MessageStyles.GREEN)
 
 
-def risky_operation(value: int) -> r[int]:
+def risky_operation(value: int) -> p.Result[int]:
     """Operation that might fail."""
     if value < 0:
         return r[int].fail("Value must be positive")
@@ -201,7 +200,7 @@ def test_error_scenarios() -> None:
 def _finalize_workflow_data(
     temp_file: Path,
     read_data: t.Cli.JsonValue,
-) -> r[Mapping[str, t.Cli.JsonValue]]:
+) -> p.Result[Mapping[str, t.Cli.JsonValue]]:
     """Validate workflow payload, mark it processed, and clean up the temp file."""
     temp_file.unlink(missing_ok=True)
     if not isinstance(read_data, Mapping):
@@ -219,7 +218,7 @@ def _finalize_workflow_data(
 def full_workflow_command(
     *,
     base_dir: Path | None = None,
-) -> r[Mapping[str, t.Cli.JsonValue]]:
+) -> p.Result[Mapping[str, t.Cli.JsonValue]]:
     """Complete workflow to test."""
     data: t.RecursiveContainerMapping = {"status": "processing", "items": [1, 2, 3]}
     temp_file = _temp_file_path("workflow_test.json", base_dir=base_dir)

@@ -15,6 +15,7 @@ from typing import override
 from flext_cli import (
     c,
     m,
+    p,
     r,
     s,
     t,
@@ -31,12 +32,12 @@ class FlextCliCmd(s):
     """
 
     @staticmethod
-    def settings_snapshot() -> r[m.Cli.SettingsSnapshot]:
+    def settings_snapshot() -> p.Result[m.Cli.SettingsSnapshot]:
         """Return the current settings snapshot using ``u.Cli``."""
         return u.Cli.cmd_settings_snapshot()
 
     @override
-    def execute(self) -> r[t.Cli.JsonMapping]:
+    def execute(self) -> p.Result[t.Cli.JsonMapping]:
         """Report operational status required by `s`."""
         status: t.Cli.JsonMapping = {
             c.Cli.DICT_KEY_STATUS: c.Cli.ServiceStatus.OPERATIONAL,
@@ -44,7 +45,7 @@ class FlextCliCmd(s):
         }
         return r[t.Cli.JsonMapping].ok(status)
 
-    def show_settings(self) -> r[bool]:
+    def show_settings(self) -> p.Result[bool]:
         """Show current settings.
 
         Returns:
@@ -53,7 +54,7 @@ class FlextCliCmd(s):
         """
         return u.Cli.cmd_show_settings(self.logger)
 
-    def validate_settings(self) -> r[bool]:
+    def validate_settings(self) -> p.Result[bool]:
         """Validate settings structure using u directly.
 
         Returns:

@@ -31,7 +31,7 @@ from pathlib import Path
 
 from examples import c, m, t
 from flext_cli import cli
-from flext_core import r
+from flext_core import p, r
 
 
 def login_to_service(username: str, password: str) -> bool:
@@ -54,7 +54,7 @@ def login_to_service(username: str, password: str) -> bool:
     return True
 
 
-def fetch_saved_token() -> r[str]:
+def fetch_saved_token() -> p.Result[str]:
     """Retrieve saved auth token in YOUR CLI. Returns r[str]; no None."""
     token_result = cli.fetch_auth_token()
     if token_result.failure:
@@ -66,7 +66,7 @@ def fetch_saved_token() -> r[str]:
     return r[str].ok(token_result.value)
 
 
-def call_authenticated_api(endpoint: str) -> r[t.StrMapping]:
+def call_authenticated_api(endpoint: str) -> p.Result[t.StrMapping]:
     """Make authenticated API call in YOUR tool. Returns r[dict]; no None."""
     token_result = cli.fetch_auth_token()
     if token_result.failure:

@@ -232,14 +232,14 @@ from flext_core import FlextModels
 from flext_core import FlextProcessors
 from flext_core import p
 from flext_core import FlextRegistry
-from flext_core import r
+from flext_core import r, p
 from flext_core import u
 from flext_core import s
 from flext_core import t
 from flext_core import u
 
 
-def process_data(data: dict) -> r[dict]:
+def process_data(data: dict) -> p.Result[dict]:
     
     if not data:
         return r[dict].fail("Data is empty")
@@ -332,14 +332,14 @@ from flext_core import FlextModels
 from flext_core import FlextProcessors
 from flext_core import p
 from flext_core import FlextRegistry
-from flext_core import r
+from flext_core import r, p
 from flext_core import u
 from flext_core import s
 from flext_core import t
 from flext_core import u
 
 
-def typed_operation(data: dict) -> r[dict]:
+def typed_operation(data: dict) -> p.Result[dict]:
     return cli.write_json_file("output.json", data)
 ```
 
@@ -385,14 +385,14 @@ from flext_core import FlextModels
 from flext_core import FlextProcessors
 from flext_core import p
 from flext_core import FlextRegistry
-from flext_core import r
+from flext_core import r, p
 from flext_core import u
 from flext_core import s
 from flext_core import t
 from flext_core import u
 
 
-def process_pipeline(input_file: str) -> r[dict]:
+def process_pipeline(input_file: str) -> p.Result[dict]:
     
     # Read input
     data_result = cli.read_json_file(input_file)

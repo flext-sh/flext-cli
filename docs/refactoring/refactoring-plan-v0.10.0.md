@@ -130,7 +130,7 @@ class FlextCliFileTools(s[t.RecursiveContainerMapping]):
         super().__init__()  # Unnecessary overhead
         self.logger = u.fetch_logger(__name__)
 
-    def read_json_file(self, path: str) -> r[dict]:
+    def read_json_file(self, path: str) -> p.Result[dict]:
         # Just reading a file - doesn't need service infrastructure
 ```
 
@@ -177,13 +177,13 @@ import pluggy  # Plugin system never used
 ```python
 # ❌ CURRENT: Unnecessary indirection
 class cli:
-    def print(self, message: str, style: str | None = None) -> r[bool]:
+    def print(self, message: str, style: str | None = None) -> p.Result[bool]:
         return self.formatters.print(message, style)
 
-    def create_table(self, data) -> r[str]:
+    def create_table(self, data) -> p.Result[str]:
         return self.output.format_data(data, format_type="table")
 
-    def read_json_file(self, path: str) -> r[dict]:
+    def read_json_file(self, path: str) -> p.Result[dict]:
         return self.file_tools.read_json_file(path)
 
     # ... 12 more similar wrappers
@@ -203,8 +203,8 @@ class cli:
 ```python
 # ❌ CURRENT: Context with service methods
 class FlextCliContext(s[CliDataDict]):
-    def activate(self) -> r[bool]: ...
-    def deactivate(self) -> r[bool]: ...
+    def activate(self) -> p.Result[bool]: ...
+    def deactivate(self) -> p.Result[bool]: ...
 ```
 
 **Impact**:
@@ -297,7 +297,7 @@ class FlextCliFileTools:
     """Stateless file operations."""
 
     @staticmethod
-    def read_json_file(path: str) -> r[dict]:
+    def read_json_file(path: str) -> p.Result[dict]:
         """Read JSON file - no state needed."""
         try:
             with open(path) as f:
@@ -454,7 +454,7 @@ class FlextCliFileTools(s[t.RecursiveContainerMapping]):
         super().__init__()
         self.logger = u.fetch_logger(__name__)
 
-    def read_json_file(self, path: str) -> r[dict]:
+    def read_json_file(self, path: str) -> p.Result[dict]:
         # Implementation
 ```
 
@@ -465,7 +465,7 @@ class FlextCliFileTools:
     """Stateless file operations utility."""
 
     @staticmethod
-    def read_json_file(path: str) -> r[dict]:
+    def read_json_file(path: str) -> p.Result[dict]:
         """Read JSON file."""
         # Same implementation, now static
 ```
@@ -500,8 +500,8 @@ class FlextCliFileTools:
 class FlextCliContext(s[CliDataDict]):
     """Context as service with methods."""
 
-    def activate(self) -> r[bool]: ...
-    def deactivate(self) -> r[bool]: ...
+    def activate(self) -> p.Result[bool]: ...
+    def deactivate(self) -> p.Result[bool]: ...
 ```
 
 **After**:
@@ -535,59 +535,59 @@ class FlextCliContext(m.Value):
 
 ```python
 # ❌ Remove these wrappers:
-def print(self, message, style) -> r[bool]:
+def print(self, message, style) -> p.Result[bool]:
     return self.formatters.print(message, style)
 
 
-def create_table(self, data, headers, title) -> r[str]:
+def create_table(self, data, headers, title) -> p.Result[str]:
     return self.output.format_data(...)
 
 
-def print_table(self, table) -> r[bool]:
+def print_table(self, table) -> p.Result[bool]:
     return self.formatters.print(table)
 
 
-def create_tree(self, label) -> r[Any]:
+def create_tree(self, label) -> p.Result[Any]:
     return self.formatters.create_tree(label)
 
 
-def format_output(self, data, format_type) -> r[str]:
+def format_output(self, data, format_type) -> p.Result[str]:
     return self.output.format_data(data, format_type)
 
 
-def read_json_file(self, path) -> r[dict]:
+def read_json_file(self, path) -> p.Result[dict]:
     return self.file_tools.read_json_file(path)
 
 
-def write_json_file(self, path, data) -> r[bool]:
+def write_json_file(self, path, data) -> p.Result[bool]:
     return self.file_tools.write_json_file(path, data)
 
 
-def read_yaml_file(self, path) -> r[dict]:
+def read_yaml_file(self, path) -> p.Result[dict]:
     return self.file_tools.read_yaml_file(path)
 
 
-def write_yaml_file(self, path, data) -> r[bool]:
+def write_yaml_file(self, path, data) -> p.Result[bool]:
     return self.file_tools.write_yaml_file(path, data)
 
 
-def read_csv_file(self, path) -> r[list]:
+def read_csv_file(self, path) -> p.Result[list]:
     return self.file_tools.read_csv_file(path)
 
 
-def write_csv_file(self, path, data) -> r[bool]:
+def write_csv_file(self, path, data) -> p.Result[bool]:
     return self.file_tools.write_csv_file(path, data)
 
 
-def prompt_user(self, message) -> r[str]:
+def prompt_user(self, message) -> p.Result[str]:
     return self.prompts.prompt(message)
 
 
-def confirm(self, message) -> r[bool]:
+def confirm(self, message) -> p.Result[bool]:
     return self.prompts.confirm(message)
 
 
-def select(self, message, choices) -> r[str]:
+def select(self, message, choices) -> p.Result[str]:
     return self.prompts.select(message, choices)
 ```
 
@@ -604,7 +604,7 @@ def get_instance(cls) -> cli:
     """Singleton pattern."""
 
 
-def authenticate(self, credentials) -> r[str]:
+def authenticate(self, credentials) -> p.Result[str]:
     """Orchestrates authentication (business logic)."""
 
 
@@ -616,11 +616,11 @@ def group(self, name, **kwargs):
     """CLI group decorator."""
 
 
-def execute_cli(self) -> r[bool]:
+def execute_cli(self) -> p.Result[bool]:
     """Execute CLI application."""
 
 
-def execute(self) -> r[dict]:
+def execute(self) -> p.Result[dict]:
     """Execute command."""
 ```
 

@@ -12,7 +12,7 @@ from pathlib import Path
 
 from pydantic import BaseModel
 
-from flext_cli import c, r, t
+from flext_cli import c, p, r, t
 from flext_cli._utilities.json import FlextCliUtilitiesJson
 from flext_cli._utilities.yaml import FlextCliUtilitiesYaml
 
@@ -21,7 +21,7 @@ class FlextCliUtilitiesFiles:
     """Generic filesystem operations for utility consumers."""
 
     @staticmethod
-    def files_delete(file_path: t.Cli.TextPath) -> r[bool]:
+    def files_delete(file_path: t.Cli.TextPath) -> p.Result[bool]:
         """Delete one file path using canonical error handling."""
         path = Path(file_path)
         return FlextCliUtilitiesFiles.files_execute_bool(
@@ -30,7 +30,7 @@ class FlextCliUtilitiesFiles:
         )
 
     @staticmethod
-    def files_read_text(file_path: t.Cli.TextPath) -> r[str]:
+    def files_read_text(file_path: t.Cli.TextPath) -> p.Result[str]:
         """Read one UTF-8 text file."""
         return FlextCliUtilitiesFiles.files_execute(
             lambda: Path(file_path).read_text(encoding=c.Cli.ENCODING_DEFAULT),
@@ -38,7 +38,7 @@ class FlextCliUtilitiesFiles:
         )
 
     @staticmethod
-    def files_write_text(file_path: t.Cli.TextPath, content: str) -> r[bool]:
+    def files_write_text(file_path: t.Cli.TextPath, content: str) -> p.Result[bool]:
         """Write one UTF-8 text file."""
 
         def _write() -> bool:
@@ -51,7 +51,7 @@ class FlextCliUtilitiesFiles:
         )
 
     @staticmethod
-    def files_read_json(file_path: t.Cli.TextPath) -> r[t.Cli.JsonValue]:
+    def files_read_json(file_path: t.Cli.TextPath) -> p.Result[t.Cli.JsonValue]:
         """Read one JSON file and validate to canonical JSON value."""
 
         def _load() -> t.Cli.JsonValue:
@@ -67,7 +67,7 @@ class FlextCliUtilitiesFiles:
     def files_read_json_model[M: BaseModel](
         file_path: t.Cli.TextPath,
         model_type: type[M],
-    ) -> r[M]:
+    ) -> p.Result[M]:
         """Read one JSON file directly into one Pydantic model."""
 
         def _load() -> M:
@@ -87,7 +87,7 @@ class FlextCliUtilitiesFiles:
         indent: int,
         by_alias: bool,
         exclude_none: bool,
-    ) -> r[bool]:
+    ) -> p.Result[bool]:
         """Write one Pydantic model to JSON text."""
 
         def _write() -> bool:
@@ -105,7 +105,7 @@ class FlextCliUtilitiesFiles:
         )
 
     @staticmethod
-    def files_read_yaml(file_path: t.Cli.TextPath) -> r[t.Cli.JsonValue]:
+    def files_read_yaml(file_path: t.Cli.TextPath) -> p.Result[t.Cli.JsonValue]:
         """Read one YAML file and validate to canonical JSON value."""
         result = FlextCliUtilitiesYaml.yaml_safe_load(Path(file_path))
         if result.failure:
@@ -119,7 +119,7 @@ class FlextCliUtilitiesFiles:
     def files_write_csv(
         file_path: t.Cli.TextPath,
         rows: Sequence[t.StrSequence],
-    ) -> r[bool]:
+    ) -> p.Result[bool]:
         """Write one CSV file from row sequence."""
 
         def _write() -> bool:
@@ -141,7 +141,7 @@ class FlextCliUtilitiesFiles:
     @staticmethod
     def files_read_csv_with_headers(
         file_path: t.Cli.TextPath,
-    ) -> r[Sequence[t.StrMapping]]:
+    ) -> p.Result[Sequence[t.StrMapping]]:
         """Read one CSV file into mapping rows using header row."""
 
         def _load() -> Sequence[t.StrMapping]:
@@ -157,7 +157,7 @@ class FlextCliUtilitiesFiles:
         )
 
     @staticmethod
-    def files_read_binary(file_path: t.Cli.TextPath) -> r[bytes]:
+    def files_read_binary(file_path: t.Cli.TextPath) -> p.Result[bytes]:
         """Read one binary file."""
         return FlextCliUtilitiesFiles.files_execute(
             lambda: Path(file_path).read_bytes(),
@@ -165,7 +165,7 @@ class FlextCliUtilitiesFiles:
         )
 
     @staticmethod
-    def files_write_binary(file_path: t.Cli.TextPath, data: bytes) -> r[bool]:
+    def files_write_binary(file_path: t.Cli.TextPath, data: bytes) -> p.Result[bool]:
         """Write one binary file."""
 
         def _write() -> bool:
@@ -181,7 +181,7 @@ class FlextCliUtilitiesFiles:
     def files_copy(
         source_path: t.Cli.TextPath,
         destination_path: t.Cli.TextPath,
-    ) -> r[bool]:
+    ) -> p.Result[bool]:
         """Copy one file preserving metadata."""
 
         def _copy() -> bool:
@@ -198,7 +198,7 @@ class FlextCliUtilitiesFiles:
         operation_func: t.Cli.NullaryOperation[T],
         error_template: str,
         **format_kwargs: t.Scalar,
-    ) -> r[T]:
+    ) -> p.Result[T]:
         """Execute one operation and map common runtime errors to ``r``."""
         try:
             return r[T].ok(operation_func())
@@ -217,7 +217,7 @@ class FlextCliUtilitiesFiles:
         operation_func: t.Cli.NullaryOperation[T],
         error_template: str,
         **format_kwargs: t.Scalar,
-    ) -> r[bool]:
+    ) -> p.Result[bool]:
         """Execute one operation that should return a success boolean."""
 
         def _run() -> bool:
@@ -231,7 +231,7 @@ class FlextCliUtilitiesFiles:
         )
 
     @staticmethod
-    def ensure_dir(path: t.Cli.TextPath) -> r[Path]:
+    def ensure_dir(path: t.Cli.TextPath) -> p.Result[Path]:
         """Create a directory tree when missing and return the resolved path."""
         target = Path(path)
         try:
@@ -243,7 +243,9 @@ class FlextCliUtilitiesFiles:
         return r[Path].ok(target)
 
     @staticmethod
-    def atomic_write_text_file(file_path: t.Cli.TextPath, content: str) -> r[bool]:
+    def atomic_write_text_file(
+        file_path: t.Cli.TextPath, content: str
+    ) -> p.Result[bool]:
         """Write a text file atomically via tempfile + replace in the same directory."""
         path = Path(file_path)
         ensure_result = FlextCliUtilitiesFiles.ensure_dir(path.parent)
@@ -284,7 +286,7 @@ class FlextCliUtilitiesFiles:
         return hasher.hexdigest()
 
     @staticmethod
-    def files_detect_format(file_path: t.Cli.TextPath) -> r[str]:
+    def files_detect_format(file_path: t.Cli.TextPath) -> p.Result[str]:
         """Detect one file format from extension using canonical output enums."""
         suffix = Path(file_path).suffix.lower()
         if suffix == ".json":

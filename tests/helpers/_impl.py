@@ -12,7 +12,7 @@ from collections.abc import MutableSequence
 
 from tests import c
 
-from flext_core import r
+from flext_core import p, r
 
 
 class FlextCliTestHelpers:
@@ -22,7 +22,7 @@ class FlextCliTestHelpers:
         """Factory for version validation tests."""
 
         @staticmethod
-        def validate_version_string(version: str) -> r[str]:
+        def validate_version_string(version: str) -> p.Result[str]:
             """Validate version string against semver pattern."""
             if not version:
                 return r[str].fail(c.Cli.Tests.VersionErrors.EMPTY_STRING)
@@ -34,7 +34,7 @@ class FlextCliTestHelpers:
         @staticmethod
         def validate_version_info(
             version_info: tuple[int | str, ...],
-        ) -> r[tuple[int | str, ...]]:
+        ) -> p.Result[tuple[int | str, ...]]:
             """Validate version info tuple structure."""
             if len(version_info) < 3:
                 return r[tuple[int | str, ...]].fail(
@@ -55,7 +55,7 @@ class FlextCliTestHelpers:
         def validate_consistency(
             version_string: str,
             version_info: tuple[int | str, ...],
-        ) -> r[tuple[str, tuple[int | str, ...]]]:
+        ) -> p.Result[tuple[str, tuple[int | str, ...]]]:
             """Validate consistency between version string and info tuple."""
             string_result = (
                 FlextCliTestHelpers.VersionTestFactory.validate_version_string(

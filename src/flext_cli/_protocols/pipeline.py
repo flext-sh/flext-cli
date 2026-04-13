@@ -6,10 +6,8 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from flext_core import r
-
 if TYPE_CHECKING:
-    from flext_cli import m, t
+    from flext_cli import m, p, t
 
 
 class FlextCliProtocolsPipeline:
@@ -41,7 +39,7 @@ class FlextCliProtocolsPipeline:
         def __call__(
             self,
             ctx: FlextCliProtocolsPipeline.PipelineStageContext,
-        ) -> r[m.Cli.PipelineStageResult]:
+        ) -> p.Result[m.Cli.PipelineStageResult]:
             """Execute stage and return typed result."""
             ...
 
@@ -55,7 +53,7 @@ class FlextCliProtocolsPipeline:
             context: FlextCliProtocolsPipeline.PipelineStageContext,
             *,
             fail_fast: bool = True,
-        ) -> r[m.Cli.PipelineResult]:
+        ) -> p.Result[m.Cli.PipelineResult]:
             """Execute stages in dependency order."""
             ...
 

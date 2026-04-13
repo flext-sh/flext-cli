@@ -7,8 +7,8 @@ from collections.abc import Mapping, Sequence
 from graphlib import CycleError, TopologicalSorter
 from typing import ClassVar
 
-from flext_cli import c, m, r
-from flext_core import p, u
+from flext_cli import c, m, p, r
+from flext_core import u
 
 
 class FlextCliUtilitiesPipeline:
@@ -23,7 +23,7 @@ class FlextCliUtilitiesPipeline:
         *,
         fail_fast: bool = c.Cli.PIPELINE_DEFAULT_FAIL_FAST,
         logger: p.Logger | None = None,
-    ) -> r[m.Cli.PipelineResult]:
+    ) -> p.Result[m.Cli.PipelineResult]:
         """Execute pipeline stages in topological order.
 
         Uses graphlib.TopologicalSorter for dependency resolution.

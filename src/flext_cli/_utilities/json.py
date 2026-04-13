@@ -64,7 +64,7 @@ class FlextCliUtilitiesJson:
         return str(item)
 
     @staticmethod
-    def json_read(path: Path) -> r[t.Cli.JsonMapping]:
+    def json_read(path: Path) -> p.Result[t.Cli.JsonMapping]:
         """Read and parse a JSON file.
 
         Returns empty mapping if file does not exist.
@@ -93,7 +93,7 @@ class FlextCliUtilitiesJson:
         sort_keys: bool = False,
         ensure_ascii: bool = False,
         indent: int = 2,
-    ) -> r[bool]:
+    ) -> p.Result[bool]:
         """Write a JSON payload to a file. Creates parent dirs as needed."""
         try:
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -143,7 +143,7 @@ class FlextCliUtilitiesJson:
         return r[bool].ok(True)
 
     @staticmethod
-    def json_parse(text: str) -> r[t.Cli.JsonValue]:
+    def json_parse(text: str) -> p.Result[t.Cli.JsonValue]:
         """Parse a JSON string into a validated JsonValue."""
         try:
             return r[t.Cli.JsonValue].ok(

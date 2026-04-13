@@ -12,8 +12,7 @@ from rich.panel import Panel
 from rich.table import Table as RichTable
 from rich.tree import Tree as RichTree
 
-from flext_cli import c, r, t
-from flext_core import p
+from flext_cli import c, p, r, t
 
 
 class FlextCliUtilitiesFormatters:
@@ -26,7 +25,7 @@ class FlextCliUtilitiesFormatters:
         cls,
         label: str,
         logger: p.Logger,
-    ) -> r[t.Cli.RichTreeType]:
+    ) -> p.Result[t.Cli.RichTreeType]:
         """Create one Rich tree using centralized error handling."""
         try:
             return r[t.Cli.RichTreeType].ok(RichTree(label))
@@ -139,10 +138,13 @@ class FlextCliUtilitiesFormatters:
         **context: t.RuntimeData,
     ) -> None:
         """Emit one normalized fallback warning event."""
+        if not context:
+            logger.warning(event, error=str(exc))
+            return
         logger.warning(
             event,
             error=str(exc),
-            **dict(context),
+            context=str(dict(context)),
         )
 
     @staticmethod

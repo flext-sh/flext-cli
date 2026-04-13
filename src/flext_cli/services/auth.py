@@ -18,10 +18,11 @@ from flext_cli import (
     FlextCliFileTools,
     FlextCliServiceBase,
     c,
+    p,
+    r,
     t,
     u,
 )
-from flext_core import r
 
 
 class FlextCliAuth(FlextCliServiceBase):
@@ -30,11 +31,11 @@ class FlextCliAuth(FlextCliServiceBase):
     Container and logger are provided by x via MRO.
     """
 
-    def validate_credentials(self, username: str, password: str) -> r[bool]:
+    def validate_credentials(self, username: str, password: str) -> p.Result[bool]:
         """Validate direct username/password credentials."""
         return u.Cli.auth_validate_credentials(username, password)
 
-    def save_auth_token(self, token: str) -> r[bool]:
+    def save_auth_token(self, token: str) -> p.Result[bool]:
         """Persist an authentication token using the public file facade."""
         if not token.strip():
             return r[bool].fail("Token cannot be empty")
@@ -44,7 +45,7 @@ class FlextCliAuth(FlextCliServiceBase):
             {c.Cli.DICT_KEY_AUTH_TOKEN: token},
         )
 
-    def fetch_auth_token(self) -> r[str]:
+    def fetch_auth_token(self) -> p.Result[str]:
         """Load the persisted authentication token from the configured token file."""
         token_file_path = u.Cli.auth_token_file_path(self.settings.token_file)
         read_result = FlextCliFileTools.read_json_file(token_file_path)
@@ -52,7 +53,7 @@ class FlextCliAuth(FlextCliServiceBase):
             return r[str].fail(read_result.error or "Failed to load auth token")
         return u.Cli.auth_extract_token(read_result.value)
 
-    def authenticate(self, credentials: t.StrMapping) -> r[str]:
+    def authenticate(self, credentials: t.StrMapping) -> p.Result[str]:
         """Authenticate with a token or username/password and persist the token."""
         token_value = credentials.get(c.Cli.DICT_KEY_AUTH_TOKEN)
         if isinstance(token_value, str) and token_value:
@@ -71,7 +72,7 @@ class FlextCliAuth(FlextCliServiceBase):
             return r[str].fail(save_result.error or "Failed to save token")
         return r[str].ok(generated_token)
 
-    def clear_auth_tokens(self) -> r[bool]:
+    def clear_auth_tokens(self) -> p.Result[bool]:
         """Delete the configured authentication token file if present."""
         token_file = u.Cli.auth_token_file_path(self.settings.token_file)
         if not token_file.exists():

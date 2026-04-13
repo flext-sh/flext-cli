@@ -7,7 +7,7 @@ from collections.abc import MutableSequence
 from flext_tests import tm
 
 from flext_cli import cli
-from flext_core import r
+from flext_core import p, r
 from tests import c, m, t
 
 
@@ -181,14 +181,16 @@ class TestsCliService:
         def remember_failure(error: str | None, fallback: str) -> None:
             remembered.append((error, fallback))
 
-        def ok_handler(params: m.Cli.Tests.SampleInput) -> r[m.Cli.Tests.SampleOutput]:
+        def ok_handler(
+            params: m.Cli.Tests.SampleInput,
+        ) -> p.Result[m.Cli.Tests.SampleOutput]:
             return r[m.Cli.Tests.SampleOutput].ok(
                 m.Cli.Tests.SampleOutput(message=f"processed {params.name}")
             )
 
         def fail_handler(
             params: m.Cli.Tests.SampleInput,
-        ) -> r[m.Cli.Tests.SampleOutput]:
+        ) -> p.Result[m.Cli.Tests.SampleOutput]:
             _ = params
             return r[m.Cli.Tests.SampleOutput].fail("boom")
 
@@ -248,7 +250,7 @@ class TestsCliService:
 
         def fail_handler(
             params: m.Cli.Tests.SampleInput,
-        ) -> r[m.Cli.Tests.SampleOutput]:
+        ) -> p.Result[m.Cli.Tests.SampleOutput]:
             _ = params
             return r[m.Cli.Tests.SampleOutput].fail("batched boom")
 

@@ -16,8 +16,8 @@ from typing import ClassVar
 from pydantic import ValidationError
 from yaml import safe_dump, safe_load
 
-from flext_cli import c, r, t
-from flext_core import p, u
+from flext_cli import c, p, r, t
+from flext_core import u
 
 
 class FlextCliUtilitiesYaml:
@@ -34,7 +34,7 @@ class FlextCliUtilitiesYaml:
     # ------------------------------------------------------------------
 
     @staticmethod
-    def yaml_safe_load(path: Path) -> r[t.Cli.YamlDict]:
+    def yaml_safe_load(path: Path) -> p.Result[t.Cli.YamlDict]:
         """Load a YAML file → ``r[JsonMapping]``.
 
         Returns ``r.ok(mapping)`` on success, ``r.fail(msg)`` on missing,
@@ -53,7 +53,7 @@ class FlextCliUtilitiesYaml:
         return FlextCliUtilitiesYaml.yaml_parse(raw)
 
     @staticmethod
-    def yaml_parse(text: str) -> r[t.Cli.YamlDict]:
+    def yaml_parse(text: str) -> p.Result[t.Cli.YamlDict]:
         """Parse a YAML string → ``r[JsonMapping]``.
 
         Returns a validated mapping or failure.
@@ -116,7 +116,7 @@ class FlextCliUtilitiesYaml:
         *,
         sort_keys: bool = False,
         indent: int = 2,
-    ) -> r[bool]:
+    ) -> p.Result[bool]:
         """Write *data* to a YAML file → ``r[bool]``.
 
         Creates parent directories if needed.

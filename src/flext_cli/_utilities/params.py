@@ -37,7 +37,7 @@ class FlextCliUtilitiesParams:
     def params_set_bool(
         settings: FlextCliSettings,
         params: p.Cli.CliParamsConfig,
-    ) -> r[FlextCliSettings]:
+    ) -> p.Result[FlextCliSettings]:
         """Set boolean parameters through validated model_copy updates."""
         if params.trace is not None and params.trace:
             will_be_debug = params.debug if params.debug is not None else settings.debug
@@ -58,7 +58,7 @@ class FlextCliUtilitiesParams:
     def params_set_log_level(
         settings: FlextCliSettings,
         params: p.Cli.CliParamsConfig,
-    ) -> r[FlextCliSettings]:
+    ) -> p.Result[FlextCliSettings]:
         """Set CLI log level with enum conversion/validation."""
         if params.log_level is None:
             return r[FlextCliSettings].ok(settings)
@@ -85,7 +85,7 @@ class FlextCliUtilitiesParams:
     def params_set_format(
         settings: FlextCliSettings,
         params: p.Cli.CliParamsConfig,
-    ) -> r[FlextCliSettings]:
+    ) -> p.Result[FlextCliSettings]:
         """Set output/log format values with canonical validation helpers."""
         next_config = settings
         if params.log_format is not None:
@@ -125,7 +125,7 @@ class FlextCliUtilitiesParams:
     def params_apply(
         settings: FlextCliSettings,
         params: p.Cli.CliParamsConfig,
-    ) -> r[FlextCliSettings]:
+    ) -> p.Result[FlextCliSettings]:
         """Apply all parameter-setting stages to one settings model."""
         return (
             FlextCliUtilitiesParams

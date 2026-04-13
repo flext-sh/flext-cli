@@ -31,7 +31,7 @@ class FlextCliCommonParams(s):
         settings: FlextCliSettings,
         params: p.Cli.CliParamsConfig | None = None,
         **kwargs: t.Cli.CliParamValue,
-    ) -> r[FlextCliSettings]:
+    ) -> p.Result[FlextCliSettings]:
         """Apply CLI parameter values to FlextSettings using Pydantic validation.
 
         Business Rule: Applies CLI parameter values with Pydantic validation.

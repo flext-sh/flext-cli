@@ -36,7 +36,7 @@ class FlextCliCommands(s):
         return instance
 
     @override
-    def execute(self) -> r[t.Cli.JsonMapping]:
+    def execute(self) -> p.Result[t.Cli.JsonMapping]:
         """Execute commands service - returns service status.
 
         Returns:
@@ -55,7 +55,7 @@ class FlextCliCommands(s):
         name: str,
         args: t.StrSequence | None = None,
         **kwargs: t.Scalar,
-    ) -> r[t.Cli.JsonValue]:
+    ) -> p.Result[t.Cli.JsonValue]:
         """Execute a registered CLI command.
 
         Args:
@@ -95,7 +95,7 @@ class FlextCliCommands(s):
             on_signature_mismatch=_on_signature_mismatch,
         )
 
-    def list_commands(self) -> r[t.StrSequence]:
+    def list_commands(self) -> p.Result[t.StrSequence]:
         """List all registered command names.
 
         Returns:
@@ -109,7 +109,7 @@ class FlextCliCommands(s):
         self,
         name: str,
         handler: t.Cli.JsonCommandFn,
-    ) -> r[bool]:
+    ) -> p.Result[bool]:
         """Register a handler in the lightweight command registry.
 
         Args:
@@ -125,7 +125,7 @@ class FlextCliCommands(s):
         self._commands[name] = m.Cli.CommandEntryModel(name=name, handler=handler)
         return r[bool].ok(True)
 
-    def run_cli(self, args: t.StrSequence | None = None) -> r[t.Cli.JsonValue]:
+    def run_cli(self, args: t.StrSequence | None = None) -> p.Result[t.Cli.JsonValue]:
         """Run CLI with given arguments.
 
         Args:

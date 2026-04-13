@@ -54,10 +54,10 @@ class TestsCliUtilitiesCov:
         tm.fail(collect_result)
         tm.that((collect_result.error or ""), has="bad")
 
-    def test_validation_v_uses_custom_message_on_empty_failure(self) -> None:
-        result = u.Cli.validate_value(None, name="x", empty=False, msg="custom")
+    def test_validate_not_empty_fails_for_none(self) -> None:
+        result = u.Cli.validate_not_empty(None, name="x")
         tm.fail(result)
-        tm.that(result.error, eq="custom")
+        tm.that(result.error, has="x")
 
     def test_project_names_from_values_normalizes_repeated_cli_selectors(self) -> None:
         result = u.Cli.project_names_from_values("a,b", [" c ", "", "d,e"], None)

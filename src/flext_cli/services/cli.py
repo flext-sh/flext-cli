@@ -34,10 +34,10 @@ from flext_cli import (
     c,
     m,
     p,
+    r,
     s,
     t,
 )
-from flext_core import r
 
 
 class FlextCliCli(s):
@@ -410,7 +410,7 @@ class FlextCliCli(s):
         charset: str = c.Cli.ENCODING_DEFAULT,
         env: t.Cli.StrEnvMapping | None = None,
         echo_stdin: bool = False,
-    ) -> r[t.Cli.TyperRunner]:
+    ) -> p.Result[t.Cli.TyperRunner]:
         """Create a Typer/Click test runner for real CLI execution tests."""
         runner = CliRunner(
             charset=charset,
@@ -426,7 +426,7 @@ class FlextCliCli(s):
         prog_name: str,
         args: t.StrSequence | None = None,
         error_message: p.Cli.ErrorMessageProvider | None = None,
-    ) -> r[bool]:
+    ) -> p.Result[bool]:
         """Execute a Typer app and normalize exit behavior into `r[bool]`."""
         cli_args = list(args) if args is not None else sys.argv[1:]
         command = typer.main.get_command(app)

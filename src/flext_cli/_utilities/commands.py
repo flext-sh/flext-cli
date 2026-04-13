@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
-from flext_cli import c, r, t
+from flext_cli import c, p, r, t
 from flext_cli._utilities.json import FlextCliUtilitiesJson
 
 
@@ -15,7 +15,7 @@ class FlextCliUtilitiesCommands:
     def commands_normalize_handler_result(
         result: r[t.RecursiveValue] | None,
         command_name: str,
-    ) -> r[t.Cli.JsonValue]:
+    ) -> p.Result[t.Cli.JsonValue]:
         """Normalize command execution output into canonical JSON result."""
         if result is None:
             payload: t.Cli.JsonValue = {
@@ -41,7 +41,7 @@ class FlextCliUtilitiesCommands:
         args: t.StrSequence | None,
         kwargs: t.ScalarMapping,
         on_signature_mismatch: Callable[[str], None] | None = None,
-    ) -> r[t.Cli.JsonValue]:
+    ) -> p.Result[t.Cli.JsonValue]:
         """Execute one command handler with optional args fallback and normalize output."""
         try:
             result: r[t.RecursiveValue] | None = None

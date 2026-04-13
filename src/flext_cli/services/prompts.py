@@ -10,6 +10,7 @@ from pydantic import PrivateAttr
 from flext_cli import (
     c,
     m,
+    p,
     r,
     s,
     t,
@@ -34,7 +35,7 @@ class FlextCliPrompts(s):
         self._state = state
         return self
 
-    def confirm(self, message: str, *, default: bool = False) -> r[bool]:
+    def confirm(self, message: str, *, default: bool = False) -> p.Result[bool]:
         try:
             if self._state.quiet or not self._state.interactive:
                 return r[bool].ok(default)
@@ -54,7 +55,7 @@ class FlextCliPrompts(s):
             )
 
     @override
-    def execute(self) -> r[t.Cli.JsonMapping]:
+    def execute(self) -> p.Result[t.Cli.JsonMapping]:
         try:
             self._log(
                 c.LogLevel.DEBUG,
@@ -74,7 +75,7 @@ class FlextCliPrompts(s):
                 f"Prompt service execution failed: {exc}",
             )
 
-    def print_error(self, message: str) -> r[bool]:
+    def print_error(self, message: str) -> p.Result[bool]:
         return self._print_message(
             message,
             c.LogLevel.ERROR,
@@ -82,7 +83,7 @@ class FlextCliPrompts(s):
             "Print error failed: {error}",
         )
 
-    def print_success(self, message: str) -> r[bool]:
+    def print_success(self, message: str) -> p.Result[bool]:
         return self._print_message(
             message,
             c.LogLevel.INFO,
@@ -90,7 +91,7 @@ class FlextCliPrompts(s):
             "Print success failed: {error}",
         )
 
-    def print_warning(self, message: str) -> r[bool]:
+    def print_warning(self, message: str) -> p.Result[bool]:
         return self._print_message(
             message,
             c.LogLevel.WARNING,
@@ -98,7 +99,7 @@ class FlextCliPrompts(s):
             "Print warning failed: {error}",
         )
 
-    def prompt(self, message: str, default: str = "") -> r[str]:
+    def prompt(self, message: str, default: str = "") -> p.Result[str]:
         try:
             if self._state.quiet or not self._state.interactive:
                 return r[str].ok(default)
@@ -120,7 +121,7 @@ class FlextCliPrompts(s):
         message: str,
         choices: t.StrSequence,
         default: str | None = None,
-    ) -> r[str]:
+    ) -> p.Result[str]:
         try:
             return u.Cli.prompts_choice_result(
                 interactive=self._state.interactive,
@@ -142,7 +143,7 @@ class FlextCliPrompts(s):
         self,
         message: str = "Password:",
         min_length: int = c.Cli.PROMPT_MIN_PASSWORD_LENGTH,
-    ) -> r[str]:
+    ) -> p.Result[str]:
         if not self._state.interactive:
             return r[str].fail(c.Cli.ERR_INTERACTIVE_PASSWORD_DISABLED)
         try:
@@ -202,7 +203,7 @@ class FlextCliPrompts(s):
         log_level: str,
         message_format: str,
         error_message_template: str,
-    ) -> r[bool]:
+    ) -> p.Result[bool]:
         try:
             formatted_message = message_format.format(message=message)
             self._log(log_level, formatted_message)
@@ -225,7 +226,7 @@ class FlextCliPrompts(s):
         prompt_text: str,
         *,
         default: bool,
-    ) -> r[bool]:
+    ) -> p.Result[bool]:
         while True:
             input_text = self._input_reader(prompt_text)
             parsed = u.Cli.prompts_parse_confirmation(

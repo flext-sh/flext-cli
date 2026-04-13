@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from flext_cli import FlextCliCommands
-from flext_core import r
+from flext_core import p, r
 from tests import t
 
 
@@ -20,13 +20,13 @@ class CommandsFactory:
         commands: FlextCliCommands,
         command_name: str,
         result_value: str = "success",
-    ) -> r[bool]:
+    ) -> p.Result[bool]:
         """Register a simple test command that returns a fixed value."""
 
         def handler(
             *args: t.ContainerValue,
             **kwargs: t.ContainerValue,
-        ) -> r[t.RecursiveValue]:
+        ) -> p.Result[t.RecursiveValue]:
             return r[t.RecursiveValue].ok(result_value)
 
         return commands.register_handler(command_name, handler)
@@ -35,13 +35,13 @@ class CommandsFactory:
     def register_command_with_args(
         commands: FlextCliCommands,
         command_name: str,
-    ) -> r[bool]:
+    ) -> p.Result[bool]:
         """Register a command that accepts arguments."""
 
         def handler(
             *args: t.ContainerValue,
             **kwargs: t.ContainerValue,
-        ) -> r[t.RecursiveValue]:
+        ) -> p.Result[t.RecursiveValue]:
             return r[t.RecursiveValue].ok(f"args: {len(args)}")
 
         return commands.register_handler(command_name, handler)
@@ -51,13 +51,13 @@ class CommandsFactory:
         commands: FlextCliCommands,
         command_name: str,
         error_message: str = "Test error",
-    ) -> r[bool]:
+    ) -> p.Result[bool]:
         """Register a command that fails with a specific error."""
 
         def handler(
             *args: t.ContainerValue,
             **kwargs: t.ContainerValue,
-        ) -> r[t.RecursiveValue]:
+        ) -> p.Result[t.RecursiveValue]:
             return r[t.RecursiveValue].fail(error_message)
 
         return commands.register_handler(command_name, handler)

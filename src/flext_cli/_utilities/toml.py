@@ -12,10 +12,10 @@ from pydantic import TypeAdapter, ValidationError
 from tomlkit import TOMLDocument
 from tomlkit.items import AoT, Item as TomlItem, Table as TomlTable
 
-from flext_cli import c, r, t
+from flext_cli import c, p, r, t
 from flext_cli._utilities.json import FlextCliUtilitiesJson
 from flext_cli._utilities.runtime import FlextCliUtilitiesRuntime
-from flext_core import p, u
+from flext_core import u
 
 
 class FlextCliUtilitiesToml:
@@ -562,7 +562,7 @@ class FlextCliUtilitiesToml:
             return None
 
     @staticmethod
-    def toml_read_document(path: Path) -> r[t.Cli.TomlDocument]:
+    def toml_read_document(path: Path) -> p.Result[t.Cli.TomlDocument]:
         """Read a TOML document with ``r`` semantics."""
         if not path.exists():
             return r[t.Cli.TomlDocument].fail(f"failed to read TOML: {path}")
@@ -572,7 +572,7 @@ class FlextCliUtilitiesToml:
         return r[t.Cli.TomlDocument].ok(doc)
 
     @staticmethod
-    def toml_read_json(path: Path) -> r[t.Cli.JsonMapping]:
+    def toml_read_json(path: Path) -> p.Result[t.Cli.JsonMapping]:
         """Read TOML and return the unwrapped root table as ``JsonMapping``."""
         if not path.exists():
             return r[t.Cli.JsonMapping].fail(f"failed to read TOML: {path}")
@@ -596,7 +596,7 @@ class FlextCliUtilitiesToml:
         return None
 
     @staticmethod
-    def _format_pyproject(path: Path) -> r[bool]:
+    def _format_pyproject(path: Path) -> p.Result[bool]:
         """Format managed ``pyproject.toml`` files with taplo when available."""
         if path.name != "pyproject.toml":
             return r[bool].ok(False)
@@ -615,7 +615,7 @@ class FlextCliUtilitiesToml:
         return r[bool].ok(True)
 
     @staticmethod
-    def toml_write_document(path: Path, doc: t.Cli.TomlDocument) -> r[bool]:
+    def toml_write_document(path: Path, doc: t.Cli.TomlDocument) -> p.Result[bool]:
         """Write a TOML document and format managed pyproject files."""
         try:
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -632,7 +632,7 @@ class FlextCliUtilitiesToml:
         return r[bool].ok(True)
 
     @staticmethod
-    def toml_write_mapping(path: Path, mapping: t.Cli.JsonMapping) -> r[bool]:
+    def toml_write_mapping(path: Path, mapping: t.Cli.JsonMapping) -> p.Result[bool]:
         """Write one validated plain mapping as TOML through the canonical writer."""
         try:
             document = FlextCliUtilitiesToml.toml_document_from_mapping(mapping)

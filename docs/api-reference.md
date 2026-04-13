@@ -35,7 +35,7 @@ from flext_cli import (
     FlextCliModels,  # Modelos Pydantic
     FlextCliConstants,  # Constantes compartilhadas
 )
-from flext_core import r
+from flext_core import r, p
 ```
 
 ## Facade `cli`

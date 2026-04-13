@@ -14,19 +14,21 @@ class FlextCliFileTools(FlextCliServiceBase):
     """File operations with r."""
 
     @staticmethod
-    def delete_file(file_path: t.Cli.TextPath) -> r[bool]:
+    def delete_file(file_path: t.Cli.TextPath) -> p.Result[bool]:
         return u.Cli.files_delete(file_path)
 
     @staticmethod
-    def read_text_file(file_path: t.Cli.TextPath) -> r[str]:
+    def read_text_file(file_path: t.Cli.TextPath) -> p.Result[str]:
         return u.Cli.files_read_text(file_path)
 
     @staticmethod
-    def write_text_file(file_path: t.Cli.TextPath, content: str) -> r[bool]:
+    def write_text_file(file_path: t.Cli.TextPath, content: str) -> p.Result[bool]:
         return u.Cli.files_write_text(file_path, content)
 
     @staticmethod
-    def atomic_write_text_file(file_path: t.Cli.TextPath, content: str) -> r[bool]:
+    def atomic_write_text_file(
+        file_path: t.Cli.TextPath, content: str
+    ) -> p.Result[bool]:
         """Write text file atomically via the canonical ``u.Cli`` utility surface."""
         result = u.Cli.atomic_write_text_file(file_path, content)
         if result.failure:
@@ -36,14 +38,14 @@ class FlextCliFileTools(FlextCliServiceBase):
         return result
 
     @staticmethod
-    def read_json_file(file_path: t.Cli.TextPath) -> r[t.Cli.JsonValue]:
+    def read_json_file(file_path: t.Cli.TextPath) -> p.Result[t.Cli.JsonValue]:
         return u.Cli.files_read_json(file_path)
 
     @staticmethod
     def read_json_model[M: BaseModel](
         file_path: t.Cli.TextPath,
         model_type: type[M],
-    ) -> r[M]:
+    ) -> p.Result[M]:
         """Read JSON file directly into a Pydantic model via model_validate_json.
 
         Uses pydantic-core Rust path (no intermediate dict) — ~3x faster than
@@ -59,7 +61,7 @@ class FlextCliFileTools(FlextCliServiceBase):
         *,
         by_alias: bool = False,
         exclude_none: bool = False,
-    ) -> r[bool]:
+    ) -> p.Result[bool]:
         """Write a Pydantic model directly to JSON via model_dump_json.
 
         Type-safe: accepts only BaseModel, serializes via Rust path.
@@ -73,7 +75,7 @@ class FlextCliFileTools(FlextCliServiceBase):
         )
 
     @staticmethod
-    def read_yaml_file(file_path: t.Cli.TextPath) -> r[t.Cli.JsonValue]:
+    def read_yaml_file(file_path: t.Cli.TextPath) -> p.Result[t.Cli.JsonValue]:
         return u.Cli.files_read_yaml(file_path)
 
     @staticmethod
@@ -84,7 +86,7 @@ class FlextCliFileTools(FlextCliServiceBase):
         *,
         sort_keys: bool = False,
         ensure_ascii: bool = False,
-    ) -> r[bool]:
+    ) -> p.Result[bool]:
         payload_raw: t.RecursiveContainer | Sequence[t.RecursiveContainerMapping] = (
             data.data if isinstance(data, p.Cli.DisplayData) else data
         )
@@ -100,7 +102,7 @@ class FlextCliFileTools(FlextCliServiceBase):
     def write_yaml_file(
         file_path: t.Cli.TextPath,
         data: t.Cli.JsonWriteData,
-    ) -> r[bool]:
+    ) -> p.Result[bool]:
         payload_raw: t.RecursiveContainer | Sequence[t.RecursiveContainerMapping] = (
             data.data if isinstance(data, p.Cli.DisplayData) else data
         )
@@ -111,32 +113,32 @@ class FlextCliFileTools(FlextCliServiceBase):
     def write_csv_file(
         file_path: t.Cli.TextPath,
         rows: Sequence[t.StrSequence],
-    ) -> r[bool]:
+    ) -> p.Result[bool]:
         return u.Cli.files_write_csv(file_path, rows)
 
     @staticmethod
     def read_csv_file_with_headers(
         file_path: t.Cli.TextPath,
-    ) -> r[Sequence[t.StrMapping]]:
+    ) -> p.Result[Sequence[t.StrMapping]]:
         return u.Cli.files_read_csv_with_headers(file_path)
 
     @staticmethod
-    def read_binary_file(file_path: t.Cli.TextPath) -> r[bytes]:
+    def read_binary_file(file_path: t.Cli.TextPath) -> p.Result[bytes]:
         return u.Cli.files_read_binary(file_path)
 
     @staticmethod
-    def write_binary_file(file_path: t.Cli.TextPath, data: bytes) -> r[bool]:
+    def write_binary_file(file_path: t.Cli.TextPath, data: bytes) -> p.Result[bool]:
         return u.Cli.files_write_binary(file_path, data)
 
     @staticmethod
     def copy_file(
         source_path: t.Cli.TextPath,
         destination_path: t.Cli.TextPath,
-    ) -> r[bool]:
+    ) -> p.Result[bool]:
         return u.Cli.files_copy(source_path, destination_path)
 
     @staticmethod
-    def detect_file_format(file_path: t.Cli.TextPath) -> r[str]:
+    def detect_file_format(file_path: t.Cli.TextPath) -> p.Result[str]:
         return u.Cli.files_detect_format(file_path)
 
     @staticmethod

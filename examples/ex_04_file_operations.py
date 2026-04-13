@@ -16,8 +16,8 @@ from pathlib import Path
 
 from pydantic import TypeAdapter, ValidationError
 
-from examples import c, m, t
-from flext_cli import cli, r, u
+from examples import c, m, p, r, t, u
+from flext_cli import cli
 
 # ============================================================================
 # PATTERN 1: JSON settings files in YOUR application
@@ -53,7 +53,7 @@ def save_user_preferences(
     return True
 
 
-def load_user_preferences(config_dir: Path) -> r[m.Cli.LoadedConfig]:
+def load_user_preferences(config_dir: Path) -> p.Result[m.Cli.LoadedConfig]:
     """Load user preferences from JSON in YOUR app. Returns r[LoadedConfig]; no None."""
     config_file = config_dir / "preferences.json"
 
@@ -109,7 +109,7 @@ def save_deployment_config(
     return True
 
 
-def load_deployment_config(config_file: Path) -> r[m.Cli.LoadedConfig]:
+def load_deployment_config(config_file: Path) -> p.Result[m.Cli.LoadedConfig]:
     """Load deployment settings from YAML in YOUR tool. Returns r[LoadedConfig]; no None."""
     load_result = cli.load_file_auto_dict(config_file)
 
@@ -229,7 +229,7 @@ def show_directory_tree(root_path: Path, max_items: int = 15) -> None:
 # ============================================================================
 
 
-def validate_and_import_data(input_file: Path) -> r[m.Cli.LoadedConfig]:
+def validate_and_import_data(input_file: Path) -> p.Result[m.Cli.LoadedConfig]:
     """Validate and import data in YOUR ETL pipeline. Returns r[LoadedConfig]; no None."""
     read_result = cli.read_json_file(input_file)
 
@@ -424,7 +424,7 @@ def process_binary_file(input_file: Path, output_file: Path) -> bool:
 # ============================================================================
 
 
-def load_config_auto_detect(config_file: Path) -> r[m.Cli.LoadedConfig]:
+def load_config_auto_detect(config_file: Path) -> p.Result[m.Cli.LoadedConfig]:
     """Load settings from ANY format with auto-detection. Returns r[LoadedConfig]; no None."""
     cli.print(
         f"🔍 Auto-detecting format: {config_file.name}", style=c.Cli.MessageStyles.CYAN
@@ -535,7 +535,7 @@ def export_multi_format(
 def process_file_pipeline(
     input_file: Path,
     output_dir: Path,
-) -> r[Mapping[str, t.RecursiveValue]]:
+) -> p.Result[Mapping[str, t.RecursiveValue]]:
     """Complete file processing pipeline using Railway Pattern.
 
     Demonstrates chaining multiple file operations with proper error handling.
@@ -625,7 +625,7 @@ def validate_and_transform_data(
 def generate_output_files(
     data: m.Cli.LoadedConfig,
     output_dir: Path,
-) -> r[Mapping[str, Path]]:
+) -> p.Result[Mapping[str, Path]]:
     """Generate multiple output file formats."""
     output_dir.mkdir(exist_ok=True)
     base_name = "processed_data"

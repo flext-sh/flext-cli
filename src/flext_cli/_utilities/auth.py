@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from pathlib import Path
 
-from flext_cli import c, r, t
+from flext_cli import c, p, r, t
 
 
 class FlextCliUtilitiesAuth:
@@ -19,7 +19,7 @@ class FlextCliUtilitiesAuth:
         return Path.home() / ".flext" / "auth_token.json"
 
     @staticmethod
-    def auth_validate_credentials(username: str, password: str) -> r[bool]:
+    def auth_validate_credentials(username: str, password: str) -> p.Result[bool]:
         """Validate direct username/password credentials."""
         if not username.strip():
             return r[bool].fail("Username cannot be empty")
@@ -28,7 +28,7 @@ class FlextCliUtilitiesAuth:
         return r[bool].ok(True)
 
     @staticmethod
-    def auth_extract_token(payload: t.Cli.JsonValue) -> r[str]:
+    def auth_extract_token(payload: t.Cli.JsonValue) -> p.Result[str]:
         """Extract auth token from JSON payload mapping."""
         if not isinstance(payload, Mapping):
             return r[str].fail("Token file must contain a mapping")

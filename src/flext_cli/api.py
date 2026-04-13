@@ -49,7 +49,7 @@ class FlextCli(
     __pydantic_parent_namespace__: ClassVar[dict[str, type]] = {"p": p}
 
     @override
-    def execute(self) -> r[t.Cli.JsonMapping]:
+    def execute(self) -> p.Result[t.Cli.JsonMapping]:
         """Execute CLI service with railway pattern."""
         result_dict: t.Cli.JsonMapping = {
             c.Cli.DICT_KEY_STATUS: c.Cli.ServiceStatus.OPERATIONAL,

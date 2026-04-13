@@ -31,7 +31,7 @@ from pathlib import Path
 
 from examples import c, m, t, u
 from flext_cli import FlextCliSettings, cli
-from flext_core import r
+from flext_core import p, r
 
 
 def show_cli_settings() -> FlextCliSettings:
@@ -101,7 +101,7 @@ def show_settings_locations() -> m.Cli.DisplayData:
     return display_payload
 
 
-def load_profile_settings(profile_name: str = "default") -> r[FlextCliSettings]:
+def load_profile_settings(profile_name: str = "default") -> p.Result[FlextCliSettings]:
     """Load profile-specific settings in YOUR tool. Returns r[FlextCliSettings]."""
     cli.print(
         f"📋 Loading profile: {profile_name}", style=c.Cli.MessageStyles.BOLD_CYAN
@@ -193,7 +193,7 @@ def validate_app_settings() -> bool:
     return True
 
 
-def load_application_settings() -> r[Mapping[str, t.Cli.JsonValue]]:
+def load_application_settings() -> p.Result[Mapping[str, t.Cli.JsonValue]]:
     """Load and validate application settings from environment."""
     cli.print("\n⚙️  Loading Application Settings:", style=c.Cli.MessageStyles.BOLD_CYAN)
     settings_obj = m.Examples.AppSettingsAdvanced()

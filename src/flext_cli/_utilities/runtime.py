@@ -7,7 +7,7 @@ import subprocess
 import time
 from pathlib import Path
 
-from flext_cli import c, m, r, t
+from flext_cli import c, m, p, r, t
 
 
 class FlextCliUtilitiesRuntime:
@@ -20,7 +20,7 @@ class FlextCliUtilitiesRuntime:
         timeout: int | None = None,
         env: t.Cli.StrEnvMapping | None = None,
         input_data: bytes | None = None,
-    ) -> r[m.Cli.CommandOutput]:
+    ) -> p.Result[m.Cli.CommandOutput]:
         """Run a command without enforcing a zero exit code."""
         start = time.monotonic()
         try:
@@ -62,12 +62,12 @@ class FlextCliUtilitiesRuntime:
         cwd: t.Cli.PathLike | None = None,
         timeout: int | None = None,
         env: t.Cli.StrEnvMapping | None = None,
-    ) -> r[m.Cli.CommandOutput]:
+    ) -> p.Result[m.Cli.CommandOutput]:
         """Run a command and fail on non-zero exit status."""
 
         def require_zero_exit(
             output: m.Cli.CommandOutput,
-        ) -> r[m.Cli.CommandOutput]:
+        ) -> p.Result[m.Cli.CommandOutput]:
             if output.exit_code != 0:
                 return r[m.Cli.CommandOutput].fail(
                     f"failed ({output.exit_code}): {shlex.join(list(cmd))}: {(output.stderr or output.stdout).strip()}",
@@ -89,7 +89,7 @@ class FlextCliUtilitiesRuntime:
         cwd: t.Cli.PathLike | None = None,
         timeout: int | None = None,
         env: t.Cli.StrEnvMapping | None = None,
-    ) -> r[bool]:
+    ) -> p.Result[bool]:
         """Run a command and return a success flag."""
         return FlextCliUtilitiesRuntime.run(
             cmd,
@@ -104,7 +104,7 @@ class FlextCliUtilitiesRuntime:
         cwd: t.Cli.PathLike | None = None,
         timeout: int | None = None,
         env: t.Cli.StrEnvMapping | None = None,
-    ) -> r[str]:
+    ) -> p.Result[str]:
         """Run a command and return stripped stdout."""
         return FlextCliUtilitiesRuntime.run(
             cmd,
@@ -120,7 +120,7 @@ class FlextCliUtilitiesRuntime:
         cwd: t.Cli.PathLike | None = None,
         timeout: int | None = None,
         env: t.Cli.StrEnvMapping | None = None,
-    ) -> r[int]:
+    ) -> p.Result[int]:
         """Run a command and write combined output to ``output_file``."""
         try:
             output_path = Path(output_file)

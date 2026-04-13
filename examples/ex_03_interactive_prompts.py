@@ -30,17 +30,14 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from examples import c, m
+from examples import c, m, p, r
 from flext_cli import cli
-from flext_core import r
-
-prompts = cli
 
 
-def collect_user_configuration() -> r[str]:
+def collect_user_configuration() -> p.Result[str]:
     """Collect configuration from user in YOUR app."""
     cli.print("Setting up your application...", style=c.Cli.MessageStyles.CYAN)
-    name_result = prompts.prompt("Project name:", default="my-project")
+    name_result = cli.prompt("Project name:", default="my-project")
     if name_result.success:
         project_name = name_result.value
         cli.print(f"✅ Project: {project_name}", style=c.Cli.MessageStyles.GREEN)
@@ -53,7 +50,7 @@ def collect_user_configuration() -> r[str]:
 
 def authenticate_user() -> bool:
     """Secure password collection in YOUR app."""
-    password_result = prompts.prompt_password("Enter password:")
+    password_result = cli.prompt_password("Enter password:")
     if password_result.failure:
         cli.print(f"Error: {password_result.error}", style=c.Cli.MessageStyles.BOLD_RED)
         return False
@@ -70,7 +67,7 @@ def authenticate_user() -> bool:
 
 def delete_database(database_name: str) -> None:
     """Confirm before destructive operations in YOUR app."""
-    confirm_result = prompts.confirm(
+    confirm_result = cli.confirm(
         f"⚠️  Delete database '{database_name}'? This cannot be undone!",
         default=False,
     )
@@ -84,10 +81,10 @@ def delete_database(database_name: str) -> None:
         cli.print("❌ Operation cancelled", style=c.Cli.MessageStyles.CYAN)
 
 
-def select_environment() -> r[str]:
+def select_environment() -> p.Result[str]:
     """Environment selection in YOUR deployment tool."""
     environments = list(c.EXAMPLE_DEPLOYMENT_ENVIRONMENTS)
-    choice_result = prompts.prompt_choice(
+    choice_result = cli.prompt_choice(
         "Select deployment environment:",
         choices=environments,
     )
@@ -99,23 +96,23 @@ def select_environment() -> r[str]:
     selected = choice_result.value
     cli.print(f"🚀 Deploying to: {selected}", style=c.Cli.MessageStyles.GREEN)
     if selected == c.EXAMPLE_ENV_VALUE_PRODUCTION:
-        confirm = prompts.confirm("⚠️  Deploy to production?", default=False)
+        confirm = cli.confirm("⚠️  Deploy to production?", default=False)
         if confirm.success and confirm.value:
             return r[str].ok(selected)
         return r[str].fail(c.EXAMPLE_ERR_SETUP_CANCELLED)
     return r[str].ok(selected)
 
 
-def database_setup_wizard() -> r[m.Examples.DatabaseWizardConfig]:
+def database_setup_wizard() -> p.Result[m.Examples.DatabaseWizardConfig]:
     """Multi-step configuration wizard for YOUR application."""
     cli.print("📝 Database Setup Wizard", style=c.Cli.MessageStyles.BOLD_CYAN)
-    host_result = prompts.prompt("Database host:", default=c.EXAMPLE_DEFAULT_HOST)
+    host_result = cli.prompt("Database host:", default=c.EXAMPLE_DEFAULT_HOST)
     if host_result.failure:
         return r[m.Examples.DatabaseWizardConfig].fail(
             host_result.error or c.EXAMPLE_ERR_FAILED_COLLECT_HOST,
         )
     host = host_result.value
-    port_result = prompts.prompt("Port:", default=str(c.EXAMPLE_DEFAULT_DB_PORT))
+    port_result = cli.prompt("Port:", default=str(c.EXAMPLE_DEFAULT_DB_PORT))
     if port_result.failure:
         return r[m.Examples.DatabaseWizardConfig].fail(
             port_result.error or c.EXAMPLE_ERR_FAILED_COLLECT_PORT,
@@ -124,13 +121,13 @@ def database_setup_wizard() -> r[m.Examples.DatabaseWizardConfig]:
         port = int(port_result.value)
     except ValueError:
         return r[m.Examples.DatabaseWizardConfig].fail(c.EXAMPLE_ERR_PORT_NUMBER)
-    db_result = prompts.prompt("Database name:")
+    db_result = cli.prompt("Database name:")
     if db_result.failure:
         return r[m.Examples.DatabaseWizardConfig].fail(
             db_result.error or c.EXAMPLE_ERR_FAILED_GET_DATABASE_NAME,
         )
     database = db_result.value
-    pwd_result = prompts.prompt_password("Database password:")
+    pwd_result = cli.prompt_password("Database password:")
     if pwd_result.failure:
         return r[m.Examples.DatabaseWizardConfig].fail(
             pwd_result.error or c.EXAMPLE_ERR_FAILED_GET_PASSWORD,
@@ -148,7 +145,7 @@ def database_setup_wizard() -> r[m.Examples.DatabaseWizardConfig]:
         headers=list(c.EXAMPLE_TABLE_HEADERS_SETTING_VALUE),
         title="Database Configuration",
     )
-    confirm = prompts.confirm("Save this configuration?", default=True)
+    confirm = cli.confirm("Save this configuration?", default=True)
     if confirm.success and confirm.value:
         cli.print("✅ Configuration saved!", style=c.Cli.MessageStyles.GREEN)
         return r[m.Examples.DatabaseWizardConfig].ok(
@@ -163,16 +160,16 @@ def database_setup_wizard() -> r[m.Examples.DatabaseWizardConfig]:
     return r[m.Examples.DatabaseWizardConfig].fail(c.EXAMPLE_ERR_SETUP_CANCELLED)
 
 
-def validate_email_input() -> r[str]:
+def validate_email_input() -> p.Result[str]:
     """Email validation pattern for YOUR user input."""
 
-    def validate_email(email: str) -> r[str]:
+    def validate_email(email: str) -> p.Result[str]:
         """Your validation function."""
         if not c.EXAMPLE_REGEX_EMAIL.fullmatch(email):
             return r[str].fail(c.EXAMPLE_ERR_INVALID_EMAIL_FORMAT)
         return r[str].ok(email)
 
-    email_result = prompts.prompt("Enter email address:")
+    email_result = cli.prompt("Enter email address:")
     if email_result.failure:
         cli.print(
             f"❌ Prompt failed: {email_result.error}",
@@ -188,17 +185,17 @@ def validate_email_input() -> r[str]:
     return validated
 
 
-def flext_prompt_with_validation() -> r[int]:
+def flext_prompt_with_validation() -> p.Result[int]:
     """Use cli cli with custom validation logic."""
     cli.print("\n📝 cli Prompts with Custom Validation", style=c.Cli.MessageStyles.CYAN)
-    name_result = prompts.prompt("Enter your name", default="Anonymous")
+    name_result = cli.prompt("Enter your name", default="Anonymous")
     if name_result.success:
         name = name_result.value
         cli.print(f"✅ Name: {name}", style=c.Cli.MessageStyles.GREEN)
     else:
         cli.print(f"❌ Error: {name_result.error}", style=c.Cli.MessageStyles.RED)
         return r[int].fail(name_result.error or c.EXAMPLE_ERR_NAME_PROMPT_FAILED)
-    env_result = prompts.prompt_choice(
+    env_result = cli.prompt_choice(
         "Select environment",
         choices=list(c.EXAMPLE_DEPLOYMENT_ENVIRONMENTS_SHORT),
         default="dev",
@@ -212,7 +209,7 @@ def flext_prompt_with_validation() -> r[int]:
             env_result.error or c.EXAMPLE_ERR_ENVIRONMENT_CHOICE_FAILED,
         )
 
-    def validate_port(value: str) -> r[int]:
+    def validate_port(value: str) -> p.Result[int]:
         """Validate port number using r pattern."""
         try:
             port = int(value)
@@ -227,7 +224,7 @@ def flext_prompt_with_validation() -> r[int]:
         except ValueError:
             return r[int].fail(c.EXAMPLE_ERR_PORT_VALID_NUMBER)
 
-    port_result = prompts.prompt(
+    port_result = cli.prompt(
         "Enter port number",
         default=str(c.EXAMPLE_DEFAULT_APP_PORT),
     )
@@ -247,12 +244,12 @@ def flext_prompt_with_validation() -> r[int]:
 def flext_confirm_prompts() -> bool:
     """Use cli confirm() for boolean confirmations."""
     cli.print("\n🔘 Boolean Confirmations", style=c.Cli.MessageStyles.CYAN)
-    proceed_result = prompts.confirm("Would you like to proceed?", default=True)
+    proceed_result = cli.confirm("Would you like to proceed?", default=True)
     if proceed_result.success and proceed_result.value:
         cli.print("✅ Proceeding with operation", style=c.Cli.MessageStyles.GREEN)
     else:
         cli.print("❌ Operation cancelled", style=c.Cli.MessageStyles.YELLOW)
-    delete_result = prompts.confirm(
+    delete_result = cli.confirm(
         "⚠️  Delete all data? This cannot be undone!",
         default=False,
     )
@@ -263,7 +260,7 @@ def flext_confirm_prompts() -> bool:
     return False
 
 
-def flext_numeric_prompts() -> r[m.Examples.NumericPromptResult]:
+def flext_numeric_prompts() -> p.Result[m.Examples.NumericPromptResult]:
     """Use cli cli with numeric validation."""
     cli.print("\n🔢 Type-Safe Numeric Input", style=c.Cli.MessageStyles.CYAN)
 
@@ -271,7 +268,7 @@ def flext_numeric_prompts() -> r[m.Examples.NumericPromptResult]:
         value: str,
         min_val: int | None = None,
         max_val: int | None = None,
-    ) -> r[int]:
+    ) -> p.Result[int]:
         try:
             num = int(value)
             if min_val is not None and num < min_val:
@@ -282,7 +279,7 @@ def flext_numeric_prompts() -> r[m.Examples.NumericPromptResult]:
         except ValueError:
             return r[int].fail("Value must be a valid integer")
 
-    def validate_float(value: str) -> r[float]:
+    def validate_float(value: str) -> p.Result[float]:
         try:
             return r[float].ok(float(value))
         except ValueError:
@@ -291,7 +288,7 @@ def flext_numeric_prompts() -> r[m.Examples.NumericPromptResult]:
     workers = c.EXAMPLE_DEFAULT_MAX_WORKERS
     cpu_limit = c.EXAMPLE_DEFAULT_CPU_LIMIT_PROMPTS
     percentage = c.EXAMPLE_DEFAULT_PERCENTAGE
-    workers_result = prompts.prompt(
+    workers_result = cli.prompt(
         "Number of worker processes",
         default=str(c.EXAMPLE_DEFAULT_MAX_WORKERS),
     )
@@ -307,7 +304,7 @@ def flext_numeric_prompts() -> r[m.Examples.NumericPromptResult]:
                 f"✅ Workers: {workers} (type: {type(workers).__name__})",
                 style=c.Cli.MessageStyles.GREEN,
             )
-    cpu_result = prompts.prompt(
+    cpu_result = cli.prompt(
         "CPU limit (cores)",
         default=str(c.EXAMPLE_DEFAULT_CPU_LIMIT_PROMPTS),
     )
@@ -319,7 +316,7 @@ def flext_numeric_prompts() -> r[m.Examples.NumericPromptResult]:
                 f"✅ CPU Limit: {cpu_limit} (type: {type(cpu_limit).__name__})",
                 style=c.Cli.MessageStyles.GREEN,
             )
-    percentage_result = prompts.prompt(
+    percentage_result = cli.prompt(
         "Enter percentage (0-100)",
         default=str(c.EXAMPLE_DEFAULT_PERCENTAGE),
     )
@@ -337,12 +334,12 @@ def flext_numeric_prompts() -> r[m.Examples.NumericPromptResult]:
     )
 
 
-def flext_configuration_wizard() -> r[m.Examples.AppWizardConfig]:
+def flext_configuration_wizard() -> p.Result[m.Examples.AppWizardConfig]:
     """Complete configuration wizard using cli cli."""
     cli.print(
         "\n⚙️  Application Configuration Wizard", style=c.Cli.MessageStyles.BOLD_CYAN
     )
-    name_result = prompts.prompt(
+    name_result = cli.prompt(
         "Application name",
         default=c.EXAMPLE_DEFAULT_APP_NAME,
     )
@@ -351,7 +348,7 @@ def flext_configuration_wizard() -> r[m.Examples.AppWizardConfig]:
             name_result.error or "Failed to get application name",
         )
     app_name = name_result.value
-    env_result = prompts.prompt_choice(
+    env_result = cli.prompt_choice(
         "Environment",
         choices=list(c.EXAMPLE_DEPLOYMENT_ENVIRONMENTS),
         default=c.EXAMPLE_DEFAULT_ENVIRONMENT,
@@ -362,7 +359,7 @@ def flext_configuration_wizard() -> r[m.Examples.AppWizardConfig]:
         )
     environment = env_result.value
 
-    def validate_port(value: str) -> r[int]:
+    def validate_port(value: str) -> p.Result[int]:
         try:
             port = int(value)
             if not c.EXAMPLE_MIN_PORT <= port <= c.EXAMPLE_MAX_PORT:
@@ -377,13 +374,13 @@ def flext_configuration_wizard() -> r[m.Examples.AppWizardConfig]:
             return r[int].fail(c.EXAMPLE_ERR_PORT_NUMBER)
 
     port = c.EXAMPLE_DEFAULT_APP_PORT
-    port_result = prompts.prompt("Port number", default=str(c.EXAMPLE_DEFAULT_APP_PORT))
+    port_result = cli.prompt("Port number", default=str(c.EXAMPLE_DEFAULT_APP_PORT))
     if port_result.success:
         port_validation = validate_port(port_result.value)
         if port_validation.success:
             port = port_validation.value
     cpu_limit = c.EXAMPLE_DEFAULT_CPU_LIMIT
-    cpu_result = prompts.prompt(
+    cpu_result = cli.prompt(
         "CPU limit (cores)",
         default=str(c.EXAMPLE_DEFAULT_CPU_LIMIT),
     )
@@ -396,11 +393,11 @@ def flext_configuration_wizard() -> r[m.Examples.AppWizardConfig]:
                 style=c.Cli.MessageStyles.YELLOW,
             )
     enable_cache = True
-    cache_result = prompts.confirm("Enable caching?", default=True)
+    cache_result = cli.confirm("Enable caching?", default=True)
     if cache_result.success:
         enable_cache = cache_result.value
     enable_auth = True
-    auth_result = prompts.confirm("Enable authentication?", default=True)
+    auth_result = cli.confirm("Enable authentication?", default=True)
     if auth_result.success:
         enable_auth = auth_result.value
     cli.print("\n📋 Configuration Summary:", style=c.Cli.MessageStyles.YELLOW)
@@ -420,7 +417,7 @@ def flext_configuration_wizard() -> r[m.Examples.AppWizardConfig]:
         headers=list(c.EXAMPLE_TABLE_HEADERS_SETTING_VALUE),
         title="Application Configuration",
     )
-    save_result = prompts.confirm("Save this configuration?", default=True)
+    save_result = cli.confirm("Save this configuration?", default=True)
     if save_result.success and save_result.value:
         cli.print("✅ Configuration saved!", style=c.Cli.MessageStyles.BOLD_GREEN)
         return r[m.Examples.AppWizardConfig].ok(summary)

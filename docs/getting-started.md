@@ -131,7 +131,7 @@ ______________________________________________________________________
 
 ```python
 from flext_cli import cli
-from flext_core import r
+from flext_core import r, p
 
 # Initialize CLI (singleton pattern)
 
@@ -199,10 +199,10 @@ Chain operations with `r[T]`:
 
 ```python
 from flext_cli import cli
-from flext_core import r
+from flext_core import r, p
 
 
-def validate_settings(settings: dict) -> r[dict]:
+def validate_settings(settings: dict) -> p.Result[dict]:
     """Validate settings."""
     if "required_field" not in settings:
         return r[dict].fail("Missing required_field")
@@ -252,10 +252,10 @@ make format                 # Auto-format with Ruff
 
 ```python
 from flext_cli import cli
-from flext_core import r
+from flext_core import r, p
 
 
-def my_cli_application() -> r[bool]:
+def my_cli_application() -> p.Result[bool]:
     """Application using v0.10.0 patterns."""
     
     # Direct access to all services
@@ -368,7 +368,7 @@ from flext_core import FlextModels
 from flext_core import FlextProcessors
 from flext_core import p
 from flext_core import FlextRegistry
-from flext_core import r
+from flext_core import r, p
 from flext_core import u
 from flext_core import s
 from flext_core import t

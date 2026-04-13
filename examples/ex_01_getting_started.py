@@ -16,9 +16,8 @@ import tempfile
 from collections.abc import Mapping
 from pathlib import Path
 
-from examples import c, m, t
-from flext_cli import cli
-from flext_core import r
+from examples import c, p, r, t
+from flext_cli import cli, m
 
 
 class FlextCliGettingStarted:
@@ -58,7 +57,7 @@ class FlextCliGettingStarted:
             title="User Information",
         )
 
-    def load_config(self, filepath: str) -> r[m.Cli.LoadedConfig]:
+    def load_config(self, filepath: str) -> p.Result[m.Cli.LoadedConfig]:
         """Load YOUR settings from JSON. Returns r[LoadedConfig]; no None."""
         read_result = cli.read_json_file(filepath)
         if read_result.failure:

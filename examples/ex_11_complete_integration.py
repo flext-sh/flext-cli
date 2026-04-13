@@ -28,9 +28,8 @@ import tempfile
 from collections.abc import Mapping
 from pathlib import Path
 
-from examples import c, m, t
+from examples import c, m, p, r, t
 from flext_cli import cli
-from flext_core import r
 
 
 class DataManagerCLI:
@@ -41,7 +40,7 @@ class DataManagerCLI:
         super().__init__()
         self.data_file = Path(tempfile.gettempdir()) / "app_data.json"
 
-    def add_entry(self) -> r[t.RecursiveContainerMapping]:
+    def add_entry(self) -> p.Result[t.RecursiveContainerMapping]:
         """Add new entry with user prompts."""
         prompts = cli
         prompts.configure(m.Cli.PromptRuntimeState(interactive=False))
@@ -75,7 +74,7 @@ class DataManagerCLI:
         cli.print("  📊 Data Manager CLI", style=c.Cli.MessageStyles.BOLD_WHITE_ON_BLUE)
         cli.print("=" * 70, style=c.Cli.MessageStyles.BOLD_BLUE)
 
-    def load_data(self) -> r[t.RecursiveContainerMapping]:
+    def load_data(self) -> p.Result[t.RecursiveContainerMapping]:
         """Load data with error handling. Uses read_json_file for dict-only result."""
         if not self.data_file.exists():
             return r[t.RecursiveContainerMapping].fail(c.EXAMPLE_ERR_NO_DATA_FILE_FOUND)
@@ -93,7 +92,7 @@ class DataManagerCLI:
         cli.print("✅ Data loaded successfully", style=c.Cli.MessageStyles.GREEN)
         return r[t.RecursiveContainerMapping].ok(read_result.value)
 
-    def run_workflow(self) -> r[bool]:
+    def run_workflow(self) -> p.Result[bool]:
         """Complete workflow integrating all features."""
         self.display_welcome()
         cli.print("\n📂 Loading existing data...", style=c.Cli.MessageStyles.CYAN)
@@ -120,7 +119,7 @@ class DataManagerCLI:
         self.display_data(current_data)
         return r[bool].ok(value=True)
 
-    def save_data(self, data: t.RecursiveContainerMapping) -> r[bool]:
+    def save_data(self, data: t.RecursiveContainerMapping) -> p.Result[bool]:
         """Save data with proper error handling."""
         write_result = cli.write_json_file(self.data_file, data)
         if write_result.failure:
@@ -137,7 +136,7 @@ class DataManagerCLI:
 
 def process_with_railway_pattern(
     input_data: t.RecursiveContainerMapping,
-) -> r[t.RecursiveContainerMapping]:
+) -> p.Result[t.RecursiveContainerMapping]:
     """Show railway pattern chaining operations."""
     step1_data: t.RecursiveContainerMapping = {**input_data, "validated": True}
     step2_data: t.RecursiveContainerMapping = {**step1_data, "processed": True}
@@ -185,7 +184,7 @@ def main() -> None:
         cli.print(f"   Result: {final_data}", style=c.Cli.MessageStyles.GREEN)
     cli.print("\n3. Error Handling Showcase:", style=c.Cli.MessageStyles.BOLD_CYAN)
 
-    def safe_operation(value: int) -> r[int]:
+    def safe_operation(value: int) -> p.Result[int]:
         if value < 0:
             return r[int].fail(c.EXAMPLE_ERR_NEGATIVE_VALUES_NOT_ALLOWED)
         return r[int].ok(value * 2)

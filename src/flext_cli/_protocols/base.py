@@ -10,10 +10,10 @@ from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from pydantic import BaseModel
 
-from flext_core import r
+from flext_core import p, t
 
 if TYPE_CHECKING:
-    from flext_cli import m, t
+    from flext_cli import m
 
 
 class FlextCliProtocolsBase:
@@ -53,7 +53,7 @@ class FlextCliProtocolsBase:
             cwd: t.Cli.PathLike | None = None,
             timeout: int | None = None,
             env: t.Cli.StrEnvMapping | None = None,
-        ) -> r[m.Cli.CommandOutput]:
+        ) -> p.Result[m.Cli.CommandOutput]:
             """Execute a command and require zero exit status."""
             ...
 
@@ -63,7 +63,7 @@ class FlextCliProtocolsBase:
             cwd: t.Cli.PathLike | None = None,
             timeout: int | None = None,
             env: t.Cli.StrEnvMapping | None = None,
-        ) -> r[str]:
+        ) -> p.Result[str]:
             """Execute a command and return stripped stdout."""
             ...
 
@@ -74,7 +74,7 @@ class FlextCliProtocolsBase:
             timeout: int | None = None,
             env: t.Cli.StrEnvMapping | None = None,
             input_data: bytes | None = None,
-        ) -> r[m.Cli.CommandOutput]:
+        ) -> p.Result[m.Cli.CommandOutput]:
             """Execute a command without enforcing zero exit status."""
             ...
 
@@ -84,7 +84,7 @@ class FlextCliProtocolsBase:
             cwd: t.Cli.PathLike | None = None,
             timeout: int | None = None,
             env: t.Cli.StrEnvMapping | None = None,
-        ) -> r[bool]:
+        ) -> p.Result[bool]:
             """Execute a command and return a success flag."""
             ...
 
@@ -95,7 +95,7 @@ class FlextCliProtocolsBase:
             cwd: t.Cli.PathLike | None = None,
             timeout: int | None = None,
             env: t.Cli.StrEnvMapping | None = None,
-        ) -> r[int]:
+        ) -> p.Result[int]:
             """Execute a command and write combined output to a file."""
             ...
 
@@ -166,7 +166,7 @@ class FlextCliProtocolsBase:
     ):
         """Protocol for model-driven CLI handlers returning `r[...]`."""
 
-        def __call__(self, params: TParams, /) -> r[TResult]:
+        def __call__(self, params: TParams, /) -> p.Result[TResult]:
             """Execute the handler and return a railway result."""
             ...
 

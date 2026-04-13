@@ -24,9 +24,8 @@ from pydantic import (
     model_validator,
 )
 
-from examples import c, t
+from examples import c, p, r, t
 from flext_cli import m
-from flext_core import r
 
 
 class ExamplesFlextCliModels(m):
@@ -293,7 +292,7 @@ class ExamplesFlextCliModels(m):
                     raise ValueError(msg)
                 return v.upper()
 
-            def validate_to_mapping(self) -> r[Mapping[str, t.Cli.JsonValue]]:
+            def validate_to_mapping(self) -> p.Result[Mapping[str, t.Cli.JsonValue]]:
                 """Validate configuration and return as mapping or failure."""
                 errors: MutableSequence[str] = []
                 if (

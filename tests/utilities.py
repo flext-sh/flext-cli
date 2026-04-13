@@ -20,7 +20,7 @@ from flext_cli import (
     FlextCliSettings,
     u,
 )
-from tests import c, r, t
+from tests import c, p, r, t
 
 
 class TestsFlextCliUtilities(FlextTestsUtilities, u):
@@ -36,7 +36,7 @@ class TestsFlextCliUtilities(FlextTestsUtilities, u):
                 """Version validation helpers exposed through the canonical `u` namespace."""
 
                 @staticmethod
-                def validate_version_string(version: str) -> r[str]:
+                def validate_version_string(version: str) -> p.Result[str]:
                     """Validate version string against semver pattern."""
                     if not version:
                         return r[str].fail(c.Cli.Tests.VersionErrors.EMPTY_STRING)
@@ -50,7 +50,7 @@ class TestsFlextCliUtilities(FlextTestsUtilities, u):
                 @staticmethod
                 def validate_version_info(
                     version_info: tuple[int | str, ...],
-                ) -> r[tuple[int | str, ...]]:
+                ) -> p.Result[tuple[int | str, ...]]:
                     """Validate version info tuple structure."""
                     if len(version_info) < 3:
                         return r[tuple[int | str, ...]].fail(
@@ -71,7 +71,7 @@ class TestsFlextCliUtilities(FlextTestsUtilities, u):
                 def validate_consistency(
                     version_string: str,
                     version_info: tuple[int | str, ...],
-                ) -> r[tuple[str, tuple[int | str, ...]]]:
+                ) -> p.Result[tuple[str, tuple[int | str, ...]]]:
                     """Validate consistency between version string and version info."""
                     string_result = TestsFlextCliUtilities.Cli.Tests.VersionTestFactory.validate_version_string(
                         version_string,
@@ -127,7 +127,7 @@ class TestsFlextCliUtilities(FlextTestsUtilities, u):
                     ))
 
             @staticmethod
-            def create_test_settings() -> r[FlextCliSettings]:
+            def create_test_settings() -> p.Result[FlextCliSettings]:
                 """Create test settings using Railway pattern."""
                 try:
                     settings = FlextCliSettings()
@@ -138,7 +138,7 @@ class TestsFlextCliUtilities(FlextTestsUtilities, u):
                     )
 
             @staticmethod
-            def create_cli_app() -> r[typer.Typer]:
+            def create_cli_app() -> p.Result[typer.Typer]:
                 """Create CLI app using Railway pattern."""
                 try:
                     app = typer.Typer()
@@ -150,7 +150,7 @@ class TestsFlextCliUtilities(FlextTestsUtilities, u):
             def create_decorated_command(
                 app: typer.Typer,
                 command_name: str = "test",
-            ) -> r[Callable[..., None]]:
+            ) -> p.Result[Callable[..., None]]:
                 """Create decorated command using Railway pattern."""
 
                 @app.command(name=command_name)
@@ -201,13 +201,13 @@ class TestsFlextCliUtilities(FlextTestsUtilities, u):
                     commands: FlextCliCommands,
                     command_name: str,
                     result_value: str = "success",
-                ) -> r[bool]:
+                ) -> p.Result[bool]:
                     """Register a simple test command that returns a fixed value."""
 
                     def handler(
                         *args: t.ContainerValue,
                         **kwargs: t.ContainerValue,
-                    ) -> r[t.RecursiveValue]:
+                    ) -> p.Result[t.RecursiveValue]:
                         return r[t.RecursiveValue].ok(result_value)
 
                     return commands.register_handler(command_name, handler)
@@ -216,13 +216,13 @@ class TestsFlextCliUtilities(FlextTestsUtilities, u):
                 def register_command_with_args(
                     commands: FlextCliCommands,
                     command_name: str,
-                ) -> r[bool]:
+                ) -> p.Result[bool]:
                     """Register a command that accepts arguments."""
 
                     def handler(
                         *args: t.ContainerValue,
                         **kwargs: t.ContainerValue,
-                    ) -> r[t.RecursiveValue]:
+                    ) -> p.Result[t.RecursiveValue]:
                         return r[t.RecursiveValue].ok(f"args: {len(args)}")
 
                     return commands.register_handler(command_name, handler)
@@ -232,13 +232,13 @@ class TestsFlextCliUtilities(FlextTestsUtilities, u):
                     commands: FlextCliCommands,
                     command_name: str,
                     error_message: str = "Test error",
-                ) -> r[bool]:
+                ) -> p.Result[bool]:
                     """Register a command that fails with a specific error."""
 
                     def handler(
                         *args: t.ContainerValue,
                         **kwargs: t.ContainerValue,
-                    ) -> r[t.RecursiveValue]:
+                    ) -> p.Result[t.RecursiveValue]:
                         return r[t.RecursiveValue].fail(error_message)
 
                     return commands.register_handler(command_name, handler)

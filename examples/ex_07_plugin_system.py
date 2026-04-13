@@ -35,7 +35,7 @@ from pathlib import Path
 
 from examples import c, m, t
 from flext_cli import cli
-from flext_core import r
+from flext_core import p, r
 
 
 class DataExportPlugin:
@@ -51,7 +51,7 @@ class DataExportPlugin:
     def execute(
         data: t.RecursiveContainerMapping,
         output_format: c.Cli.OutputFormats = c.Cli.OutputFormats.JSON,
-    ) -> r[str]:
+    ) -> p.Result[str]:
         """Execute plugin logic in YOUR application."""
         if output_format == c.Cli.OutputFormats.JSON:
             output = json.dumps(data, indent=2)
@@ -73,7 +73,7 @@ class ReportGeneratorPlugin:
         self.version = "1.0.0"
 
     @staticmethod
-    def execute(data: Sequence[t.RecursiveContainerMapping]) -> r[str]:
+    def execute(data: Sequence[t.RecursiveContainerMapping]) -> p.Result[str]:
         """Generate report from data in YOUR CLI."""
         table_result = cli.format_table(data, table_format=c.Cli.TabularFormat.GRID)
         if table_result.failure:
@@ -98,7 +98,7 @@ class MyAppPluginManager:
         self,
         plugin_name: str,
         **kwargs: t.Container,
-    ) -> r[t.Cli.JsonValue]:
+    ) -> p.Result[t.Cli.JsonValue]:
         """Execute plugin by name in YOUR CLI."""
         if plugin_name not in self.plugins:
             return r[t.Cli.JsonValue].fail(f"Plugin not found: {plugin_name}")
@@ -185,7 +185,7 @@ class ConfigurablePlugin:
         self.name = "configurable-plugin"
         self.settings: t.RecursiveContainerMapping = settings
 
-    def execute(self) -> r[t.RecursiveContainerMapping]:
+    def execute(self) -> p.Result[t.RecursiveContainerMapping]:
         """Execute with configuration in YOUR CLI."""
         cli.print(
             f"🔧 Plugin settings: {self.settings}", style=c.Cli.MessageStyles.CYAN
@@ -207,13 +207,13 @@ class LifecyclePlugin:
         self.name = "lifecycle-plugin"
         self.initialized = False
 
-    def cleanup(self) -> r[bool]:
+    def cleanup(self) -> p.Result[bool]:
         """Cleanup plugin resources."""
         cli.print(f"🧹 Cleaning up {self.name}...", style=c.Cli.MessageStyles.CYAN)
         self.initialized = False
         return r[bool].ok(value=True)
 
-    def execute(self, data: str) -> r[str]:
+    def execute(self, data: str) -> p.Result[str]:
         """Execute plugin logic."""
         if not self.initialized:
             return r[str].fail("Plugin not initialized")
@@ -221,7 +221,7 @@ class LifecyclePlugin:
         cli.print(f"✅ Processed: {processed}", style=c.Cli.MessageStyles.GREEN)
         return r[str].ok(processed)
 
-    def initialize(self) -> r[bool]:
+    def initialize(self) -> p.Result[bool]:
         """Initialize plugin resources."""
         cli.print(f"🚀 Initializing {self.name}...", style=c.Cli.MessageStyles.CYAN)
         self.initialized = True

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 
-from flext_cli import c, r, t
+from flext_cli import c, p, r, t
 
 
 class FlextCliUtilitiesPrompts:
@@ -66,7 +66,7 @@ class FlextCliUtilitiesPrompts:
         interactive: bool,
         choices: t.StrSequence,
         default: str | None,
-    ) -> r[str]:
+    ) -> p.Result[str]:
         """Validate one choice prompt contract and return one canonical result."""
         if not choices:
             return r[str].fail(c.Cli.ERR_NO_CHOICES)
@@ -87,7 +87,7 @@ class FlextCliUtilitiesPrompts:
         return r[str].ok(default)
 
     @staticmethod
-    def prompts_password_result(password: str, *, min_length: int) -> r[str]:
+    def prompts_password_result(password: str, *, min_length: int) -> p.Result[str]:
         """Validate one password length contract."""
         if len(password) < min_length:
             return r[str].fail(

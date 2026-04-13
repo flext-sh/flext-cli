@@ -150,7 +150,7 @@ ______________________________________________________________________
 
 ```
 src/flext_cli/
-├── __init__.py          # Public API exports with short aliases (t, c, p, m, u, r, e, d, x)
+├── __init__.py          # Public API exports with short aliases (t, c, p, m, u, r, p, e, d, x)
 ├── api.py               # cli - main facade API (ONE class)
 ├── app_base.py          # FlextCliAppBase - base class for CLI apps (ONE class)
 ├── base.py              # FlextCliServiceBase - service base (ONE class)
@@ -224,7 +224,7 @@ All operations return `r[T]` for composable error handling:
 
 ```python
 from flext_cli import cli
-from flext_core import r
+from flext_core import r, p
 
 
 # All operations return r
@@ -437,7 +437,7 @@ from flext_cli import p
 
 
 class FlextCliCmd:
-    def process(self, service: p.Cli.Service) -> r[str]:
+    def process(self, service: p.Cli.Service) -> p.Result[str]:
         """Use protocol types to avoid importing concrete classes."""
         pass
 ```
@@ -642,7 +642,7 @@ tests/
 
 ```python
 from tests import c, m, t, u, p  # TestsCli structure
-from flext_cli import r, e, d, x  # Direct from flext-core
+from flext_cli import r, p, e, d, x  # Direct from flext-core
 
 
 class TestsCliOutput:

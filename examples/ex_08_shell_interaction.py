@@ -34,12 +34,11 @@ import os
 import time
 from collections.abc import MutableSequence
 
-from examples import c, t
+from examples import c, p, r, t
 from flext_cli import cli
-from flext_core import r
 
 
-def handle_status_command() -> r[t.RecursiveContainerMapping]:
+def handle_status_command() -> p.Result[t.RecursiveContainerMapping]:
     """Status command in YOUR interactive CLI."""
     status = {
         "status": "running",
@@ -51,7 +50,7 @@ def handle_status_command() -> r[t.RecursiveContainerMapping]:
     return r[t.RecursiveContainerMapping].ok(dict(status))
 
 
-def handle_list_command(filter_text: str = "") -> r[t.StrSequence]:
+def handle_list_command(filter_text: str = "") -> p.Result[t.StrSequence]:
     """List command with filtering in YOUR CLI."""
     items = list(c.EXAMPLE_DEFAULT_SHELL_ITEMS)
     if filter_text:
@@ -65,7 +64,7 @@ def handle_list_command(filter_text: str = "") -> r[t.StrSequence]:
     return r[t.StrSequence].ok(items)
 
 
-def handle_config_command(key: str = "", value: str = "") -> r[str]:
+def handle_config_command(key: str = "", value: str = "") -> p.Result[str]:
     """Config management in YOUR interactive CLI."""
     if key and value:
         cli.print(f"✅ Set {key}={value}", style=c.Cli.MessageStyles.GREEN)
@@ -92,7 +91,7 @@ class InteractiveShell:
         }
         self.running = False
 
-    def execute_command(self, command_line: str) -> r[str]:
+    def execute_command(self, command_line: str) -> p.Result[str]:
         """Execute command from user input."""
         parts = command_line.strip().split()
         if not parts:
@@ -116,13 +115,13 @@ class InteractiveShell:
         except Exception as e:
             return r[str].fail(f"Command error: {e}")
 
-    def exit_shell(self) -> r[bool]:
+    def exit_shell(self) -> p.Result[bool]:
         """Exit interactive shell."""
         cli.print("👋 Goodbye!", style=c.Cli.MessageStyles.CYAN)
         self.running = False
         return r[bool].ok(value=True)
 
-    def show_help(self) -> r[bool]:
+    def show_help(self) -> p.Result[bool]:
         """Show available commands."""
         cli.print("\n📚 Available Commands:", style=c.Cli.MessageStyles.BOLD_CYAN)
         for cmd in self.commands:

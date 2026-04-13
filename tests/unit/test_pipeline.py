@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from flext_cli import c, m, r, t, u
+from flext_cli import c, m, p, r, t, u
 
 # ── Fixtures ────────────────────────────────────────────────────────
 
@@ -12,7 +12,7 @@ from flext_cli import c, m, r, t, u
 def _ok_handler(stage_id: str, output_key: str = "done") -> t.Cli.PipelineHandler:
     """Factory for a handler that succeeds and writes to shared."""
 
-    def handler(ctx: m.Cli.PipelineStageContext) -> r[m.Cli.PipelineStageResult]:
+    def handler(ctx: m.Cli.PipelineStageContext) -> p.Result[m.Cli.PipelineStageResult]:
         ctx.shared[output_key] = stage_id
         return r[m.Cli.PipelineStageResult].ok(
             m.Cli.PipelineStageResult(
@@ -29,7 +29,7 @@ def _ok_handler(stage_id: str, output_key: str = "done") -> t.Cli.PipelineHandle
 def _fail_handler(stage_id: str) -> t.Cli.PipelineHandler:
     """Factory for a handler that fails."""
 
-    def handler(ctx: m.Cli.PipelineStageContext) -> r[m.Cli.PipelineStageResult]:
+    def handler(ctx: m.Cli.PipelineStageContext) -> p.Result[m.Cli.PipelineStageResult]:
         return r[m.Cli.PipelineStageResult].fail(f"{stage_id} failed")
 
     return handler
@@ -72,7 +72,7 @@ class TestPipelineExecute:
         def tracking_handler(stage_id: str) -> t.Cli.PipelineHandler:
             def handler(
                 ctx: m.Cli.PipelineStageContext,
-            ) -> r[m.Cli.PipelineStageResult]:
+            ) -> p.Result[m.Cli.PipelineStageResult]:
                 execution_order.append(stage_id)
                 return r[m.Cli.PipelineStageResult].ok(
                     m.Cli.PipelineStageResult(
@@ -101,7 +101,9 @@ class TestPipelineExecute:
         """Stage B can read what stage A wrote to shared."""
         received: dict[str, t.RecursiveContainer] = {}
 
-        def reader(ctx: m.Cli.PipelineStageContext) -> r[m.Cli.PipelineStageResult]:
+        def reader(
+            ctx: m.Cli.PipelineStageContext,
+        ) -> p.Result[m.Cli.PipelineStageResult]:
             received["from_a"] = ctx.shared.get("a_output")
             return r[m.Cli.PipelineStageResult].ok(
                 m.Cli.PipelineStageResult(
@@ -109,7 +111,9 @@ class TestPipelineExecute:
                 ),
             )
 
-        def writer(ctx: m.Cli.PipelineStageContext) -> r[m.Cli.PipelineStageResult]:
+        def writer(
+            ctx: m.Cli.PipelineStageContext,
+        ) -> p.Result[m.Cli.PipelineStageResult]:
             ctx.shared["a_output"] = "hello"
             return r[m.Cli.PipelineStageResult].ok(
                 m.Cli.PipelineStageResult(
@@ -186,7 +190,9 @@ class TestPipelineExecute:
         """Stage retries up to retry count before succeeding."""
         call_count = 0
 
-        def flaky(ctx: m.Cli.PipelineStageContext) -> r[m.Cli.PipelineStageResult]:
+        def flaky(
+            ctx: m.Cli.PipelineStageContext,
+        ) -> p.Result[m.Cli.PipelineStageResult]:
             nonlocal call_count
             call_count += 1
             if call_count < 3:
@@ -230,7 +236,9 @@ class TestPipelineExecute:
         order: list[str] = []
 
         def track(sid: str) -> t.Cli.PipelineHandler:
-            def h(ctx: m.Cli.PipelineStageContext) -> r[m.Cli.PipelineStageResult]:
+            def h(
+                ctx: m.Cli.PipelineStageContext,
+            ) -> p.Result[m.Cli.PipelineStageResult]:
                 order.append(sid)
                 return r[m.Cli.PipelineStageResult].ok(
                     m.Cli.PipelineStageResult(

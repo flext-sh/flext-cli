@@ -23,7 +23,7 @@ class FlextCliTables(s):
         data: t.Cli.TableDataSource,
         settings: m.Cli.TableConfig | None = None,
         **config_kwargs: t.Cli.TableConfigValue,
-    ) -> r[str]:
+    ) -> p.Result[str]:
         """Format table data to a string using the public CLI API."""
         config_result = u.Cli.tables_resolve_config(settings, **config_kwargs)
         if config_result.failure:

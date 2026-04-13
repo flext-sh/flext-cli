@@ -5,8 +5,8 @@ from __future__ import annotations
 from collections.abc import Mapping, MutableMapping, MutableSequence
 from typing import ClassVar
 
-from flext_cli import c, r, t
-from flext_core import FlextUtilities, p, u
+from flext_cli import c, p, r, t
+from flext_core import u
 
 
 class FlextCliUtilitiesValidation:
@@ -19,7 +19,7 @@ class FlextCliUtilitiesValidation:
         items: Mapping[str, T],
         processor: t.Cli.MappingProcessor[T, U],
         on_error: str = "fail",
-    ) -> r[Mapping[str, U]]:
+    ) -> p.Result[Mapping[str, U]]:
         """Process a mapping of items with canonical error handling."""
         errors: MutableSequence[str] = []
         values: MutableMapping[str, U] = {}
@@ -52,7 +52,7 @@ class FlextCliUtilitiesValidation:
         return str(value)
 
     @staticmethod
-    def validate_value(
+    def _validate_cli_value(
         val: t.Cli.CliValue,
         *,
         name: str = "field",
@@ -60,7 +60,7 @@ class FlextCliUtilitiesValidation:
         in_list: t.StrSequence | None = None,
         eq: str | None = None,
         msg: str = "",
-    ) -> r[bool]:
+    ) -> p.Result[bool]:
         """Validate a value against emptiness, enumerations, or equality constraints."""
         if not empty:
             check = FlextCliUtilitiesValidation.validate_not_empty(val, name=name)
@@ -98,7 +98,7 @@ class FlextCliUtilitiesValidation:
         val: t.Cli.CliValue,
         *,
         name: str = "field",
-    ) -> r[bool]:
+    ) -> p.Result[bool]:
         """Validate that a value is not empty."""
         if val is None:
             return r[bool].fail(
@@ -106,7 +106,7 @@ class FlextCliUtilitiesValidation:
                     field_name=name,
                 ),
             )
-        if isinstance(val, str) and not FlextUtilities.string_non_empty(val):
+        if isinstance(val, str) and not u.string_non_empty(val):
             return r[bool].fail(
                 c.Cli.VALIDATION_MSG_FIELD_CANNOT_BE_EMPTY.format(
                     field_name=name,
@@ -115,10 +115,10 @@ class FlextCliUtilitiesValidation:
         return r[bool].ok(True)
 
     @staticmethod
-    def validate_format(format_type: str) -> r[str]:
+    def validate_format(format_type: str) -> p.Result[str]:
         """Validate one CLI output format."""
         fmt = str(format_type).lower()
-        valid = FlextCliUtilitiesValidation.validate_value(
+        valid = FlextCliUtilitiesValidation._validate_cli_value(
             fmt,
             name="format",
             empty=False,

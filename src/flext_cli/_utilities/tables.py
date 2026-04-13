@@ -8,9 +8,8 @@ from typing import ClassVar
 from pydantic import TypeAdapter, ValidationError
 from tabulate import tabulate
 
-from flext_cli import c, m, r, t
-from flext_cli._utilities.json import FlextCliUtilitiesJson
-from flext_core import FlextUtilities
+from flext_cli import FlextCliUtilitiesJson, c, m, p, r, t
+from flext_core import u
 
 
 class FlextCliUtilitiesTables:
@@ -41,7 +40,7 @@ class FlextCliUtilitiesTables:
     def tables_resolve_config(
         settings: m.Cli.TableConfig | None = None,
         **settings_kwargs: t.Cli.TableConfigValue,
-    ) -> r[m.Cli.TableConfig]:
+    ) -> p.Result[m.Cli.TableConfig]:
         """Resolve table config via canonical Pydantic model contract."""
         try:
             if settings is not None and not settings_kwargs:
@@ -60,7 +59,7 @@ class FlextCliUtilitiesTables:
     @staticmethod
     def tables_normalize_data(
         data: t.Cli.TableDataSource,
-    ) -> r[Sequence[t.Cli.TableRow]]:
+    ) -> p.Result[Sequence[t.Cli.TableRow]]:
         """Validate and normalize mapping/sequence inputs to tabulate rows."""
         try:
             validated_data = FlextCliUtilitiesTables.TABLE_DATA_ADAPTER.validate_python(
@@ -69,7 +68,7 @@ class FlextCliUtilitiesTables:
         except ValidationError as exc:
             return r[Sequence[t.Cli.TableRow]].fail(f"Table data invalid: {exc}")
 
-        if FlextUtilities.mapping(validated_data):
+        if u.mapping(validated_data):
             validated_mapping = validated_data
             return r[Sequence[t.Cli.TableRow]].ok([
                 {
@@ -81,12 +80,12 @@ class FlextCliUtilitiesTables:
 
         normalized_rows: MutableSequence[t.Cli.TableRow] = []
         for row in validated_data:
-            if FlextUtilities.mapping(row):
+            if u.mapping(row):
                 normalized_rows.append(
                     FlextCliUtilitiesTables.tables_normalize_mapping_row(row),
                 )
                 continue
-            if FlextUtilities.list_like(row):
+            if u.list_like(row):
                 normalized_rows.append(
                     FlextCliUtilitiesTables.tables_normalize_sequence_row(row),
                 )
@@ -101,7 +100,7 @@ class FlextCliUtilitiesTables:
     def tables_render(
         rows: Sequence[t.Cli.TableRow],
         settings: m.Cli.TableConfig,
-    ) -> r[str]:
+    ) -> p.Result[str]:
         """Render normalized rows to a tabulated string."""
         headers: str | t.StrSequence
         if not settings.show_header or settings.headers is None:
@@ -115,7 +114,7 @@ class FlextCliUtilitiesTables:
         if isinstance(headers, str):
             if not rows:
                 column_count = 0
-            elif FlextUtilities.mapping(rows[0]):
+            elif u.mapping(rows[0]):
                 column_count = len(rows[0])
             else:
                 column_count = len(rows[0])
@@ -132,15 +131,13 @@ class FlextCliUtilitiesTables:
             table_headers: str | t.StrSequence = headers
             if (
                 rows
-                and FlextUtilities.mapping(rows[0])
+                and u.mapping(rows[0])
                 and not isinstance(
                     headers,
                     str,
                 )
             ):
-                table_data = [
-                    list(row.values()) for row in rows if FlextUtilities.mapping(row)
-                ]
+                table_data = [list(row.values()) for row in rows if u.mapping(row)]
                 table_headers = list(headers)
 
             rendered_table = tabulate(

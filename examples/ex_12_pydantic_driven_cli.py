@@ -32,7 +32,7 @@ from pydantic import ValidationError
 
 from examples import c, m, t, u
 from flext_cli import cli
-from flext_core import r
+from flext_core import p, r
 
 
 def _report_step_success[T](value: T, message: str) -> T:
@@ -91,7 +91,7 @@ def execute_deploy_from_cli(settings: m.Examples.DeployConfig) -> None:
         )
 
 
-def deploy_application(settings: m.Examples.DeployConfig) -> r[str]:
+def deploy_application(settings: m.Examples.DeployConfig) -> p.Result[str]:
     """Deploy application with validated settings."""
     return r[str].ok(f"Deployed to {settings.environment}")
 
@@ -140,7 +140,7 @@ def demonstrate_nested_models() -> None:
     cli.print("   --database-name myapp", style=c.Cli.MessageStyles.WHITE)
 
 
-def create_database_config_from_cli() -> r[m.Examples.AdvancedDatabaseConfig]:
+def create_database_config_from_cli() -> p.Result[m.Examples.AdvancedDatabaseConfig]:
     """Create validated DatabaseConfig using Railway Pattern with Pydantic."""
     cli.print(
         "\n🗄️  Database Configuration with Railway Pattern:",
@@ -198,7 +198,7 @@ def create_database_config_from_cli() -> r[m.Examples.AdvancedDatabaseConfig]:
 
 def validate_required_fields(
     data: t.RecursiveContainerMapping,
-) -> r[t.RecursiveContainerMapping]:
+) -> p.Result[t.RecursiveContainerMapping]:
     """Validate that all required fields are present."""
     required = list(c.EXAMPLE_DATABASE_REQUIRED_FIELDS)
     missing = [field for field in required if field not in data or not data[field]]
@@ -211,7 +211,7 @@ def validate_required_fields(
 
 def convert_and_validate_with_pydantic(
     data: t.RecursiveContainerMapping,
-) -> r[m.Examples.AdvancedDatabaseConfig]:
+) -> p.Result[m.Examples.AdvancedDatabaseConfig]:
     """Convert raw data to validated Pydantic model."""
     try:
         return r[m.Examples.AdvancedDatabaseConfig].ok(
@@ -227,7 +227,7 @@ def convert_and_validate_with_pydantic(
 
 def validate_business_rules(
     settings: m.Examples.AdvancedDatabaseConfig,
-) -> r[m.Examples.AdvancedDatabaseConfig]:
+) -> p.Result[m.Examples.AdvancedDatabaseConfig]:
     """Apply custom business rules to validated database configuration."""
     if settings.ssl_enabled and settings.port == 5432:
         settings = settings.model_copy(update={"port": 5433})
@@ -240,7 +240,7 @@ def validate_business_rules(
 
 def perform_connection_test(
     settings: m.Examples.AdvancedDatabaseConfig,
-) -> r[m.Examples.AdvancedDatabaseConfig]:
+) -> p.Result[m.Examples.AdvancedDatabaseConfig]:
     """Simulate database connection test."""
     time.sleep(0.1)
     if "fail" in settings.host:

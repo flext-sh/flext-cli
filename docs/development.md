@@ -92,7 +92,7 @@ class FlextCliCore(s[CliDataDict]):
         self._sessions: Mapping[str, Session] = {}  # MUTABLE STATE
         self._config: FlextCliSettings = ...       # MANAGED STATE
 
-    def register_command(self, name: str, command: Command) -> r[bool]:
+    def register_command(self, name: str, command: Command) -> p.Result[bool]:
         """Register command - modifies internal state."""
         self._commands[name] = command
         return r[bool].| ok(value=True)
@@ -118,14 +118,14 @@ class FlextCliCore(s[CliDataDict]):
 **Example - FlextCliFileTools (Simple Utility Class)**:
 
 ```python
-from flext_core import r
+from flext_core import r, p
 import json
 
 class FlextCliFileTools:
     """Stateless file operations."""
 
     @staticmethod
-    def read_json_file(path: str) -> r[dict]:
+    def read_json_file(path: str) -> p.Result[dict]:
         """Read JSON file - no state needed."""
         try:
             with open(path) as f:
@@ -134,7 +134,7 @@ class FlextCliFileTools:
             return r[dict].fail(str(e))
 
     @staticmethod
-    def write_json_file(path: str, data: dict) -> r[bool]:
+    def write_json_file(path: str, data: dict) -> p.Result[bool]:
         """Write JSON file - no state needed."""
         try:
             with open(path, 'w') as f:
@@ -524,7 +524,7 @@ from flext_core import FlextModels
 from flext_core import FlextProcessors
 from flext_core import p
 from flext_core import FlextRegistry
-from flext_core import r
+from flext_core import r, p
 from flext_core import u
 from flext_core import s
 from flext_core import t
@@ -534,7 +534,7 @@ from flext_cli import cli
 class DataCommands(s):
     """Data management commands."""
 
-    def handle_export(self, **kwargs) -> r[bool]:
+    def handle_export(self, **kwargs) -> p.Result[bool]:
         """Handle data export command."""
         # Implementation
         return r[bool].| ok(value=True)
@@ -572,7 +572,7 @@ from flext_cli import FlextCliOutput
 class ProjectFormatters(FlextCliOutput):
     """Project-specific output formatters."""
 
-    def format_project_data(self, data: dict) -> r[str]:
+    def format_project_data(self, data: dict) -> p.Result[str]:
         """Format project-specific data."""
         # Custom formatting logic
         return r[str].ok("formatted_output")

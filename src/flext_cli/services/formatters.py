@@ -14,7 +14,7 @@ from collections.abc import Sequence
 from typing import Self, overload, override
 
 from flext_cli import FlextCliServiceBase, t, u
-from flext_core import r
+from flext_core import p, r
 
 
 class FlextCliFormatters(FlextCliServiceBase):
@@ -58,7 +58,7 @@ class FlextCliFormatters(FlextCliServiceBase):
             return self._tree
 
     @classmethod
-    def create_tree(cls, label: str) -> r[FlextCliFormatters.Tree]:
+    def create_tree(cls, label: str) -> p.Result[FlextCliFormatters.Tree]:
         """Create Rich tree wrapped for optional return use (add() returns None by default).
 
         Args:
