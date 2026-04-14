@@ -37,6 +37,7 @@ from flext_cli import (
     r,
     s,
     t,
+    u,
 )
 
 
@@ -129,41 +130,19 @@ class FlextCliCli(s):
         return str
 
     @staticmethod
-    def _is_obj_sequence(
-        value: object,
-    ) -> TypeIs[Sequence[object]]:
-        """Safely narrow runtime values to sequence for iteration."""
-        return isinstance(value, (list, tuple))
-
-    @staticmethod
-    def _is_obj_mapping(
-        value: object,
-    ) -> TypeIs[Mapping[object, object]]:
-        """Safely narrow runtime values to mapping for iteration."""
-        return isinstance(value, Mapping)
-
-    @staticmethod
-    def _is_string_sequence(value: object) -> TypeIs[t.Cli.StrSequence]:
+    def _is_string_sequence(
+        value: t.Cli.CliDefaultSource,
+    ) -> TypeIs[t.Cli.StrSequence]:
         """Return True for concrete string sequences accepted by repeated CLI options."""
-        if not FlextCliCli._is_obj_sequence(value):
+        if not u.list_like(value):
             return False
         return all(isinstance(item, str) for item in value)
 
     @classmethod
-    def _is_cli_default_mapping(
+    def _normalize_cli_atom(
         cls,
-        value: Mapping[str, object],
-    ) -> TypeIs[t.Cli.DefaultMapping]:
-        """Return True when a mapping is a valid Typer default."""
-        return all(
-            item_value is None
-            or isinstance(item_value, c.Cli.CLI_SCALAR_TYPES_TUPLE)
-            or cls._is_string_sequence(item_value)
-            for item_value in value.values()
-        )
-
-    @classmethod
-    def _normalize_cli_atom(cls, value: object) -> t.Cli.DefaultAtom:
+        value: t.Cli.CliDefaultSource,
+    ) -> t.Cli.DefaultAtom:
         """Normalize one runtime value into an allowed Typer scalar or string sequence."""
         if isinstance(value, c.Cli.CLI_SCALAR_TYPES_TUPLE):
             return value
@@ -182,17 +161,35 @@ class FlextCliCli(s):
         """Resolve CLI default from settings first, then from model field metadata."""
         if settings is not None and hasattr(settings, field_name):
             configured = getattr(settings, field_name)
-            return FlextCliCli._normalize_cli_default(configured)
+            try:
+                normalized_source = t.Cli.CLI_DEFAULT_SOURCE_ADAPTER.validate_python(
+                    configured,
+                )
+            except (TypeError, ValueError, c.ValidationError):
+                return None
+            return FlextCliCli._normalize_cli_default(normalized_source)
         default_factory = getattr(field_info, "default_factory", None)
         if callable(default_factory):
-            return FlextCliCli._normalize_cli_default(default_factory())
+            try:
+                normalized_source = t.Cli.CLI_DEFAULT_SOURCE_ADAPTER.validate_python(
+                    default_factory(),
+                )
+            except (TypeError, ValueError, c.ValidationError):
+                return None
+            return FlextCliCli._normalize_cli_default(normalized_source)
         default_value = getattr(field_info, "default", None)
-        return FlextCliCli._normalize_cli_default(default_value)
+        try:
+            normalized_source = t.Cli.CLI_DEFAULT_SOURCE_ADAPTER.validate_python(
+                default_value,
+            )
+        except (TypeError, ValueError, c.ValidationError):
+            return None
+        return FlextCliCli._normalize_cli_default(normalized_source)
 
     @classmethod
     def _normalize_cli_default(
         cls,
-        value: object,
+        value: t.Cli.CliDefaultSource,
     ) -> t.Cli.CliValue:
         """Normalize field defaults into Typer-compatible scalar/mapping/list values."""
         if value is None:
@@ -200,7 +197,7 @@ class FlextCliCli(s):
         normalized_atom = cls._normalize_cli_atom(value)
         if normalized_atom is not None:
             return normalized_atom
-        if cls._is_obj_mapping(value):
+        if isinstance(value, Mapping):
             normalized_mapping: t.Cli.MutableDefaultMapping = {}
             for key, item_value in value.items():
                 if not isinstance(key, str):
@@ -237,9 +234,9 @@ class FlextCliCli(s):
         option_decls = [option_name]
         extra = getattr(field_info, "json_schema_extra", None)
         custom_param_decls: list[str] | None = None
-        if cls._is_obj_mapping(extra):
+        if isinstance(extra, Mapping):
             declared = extra.get("typer_param_decls")
-            if cls._is_obj_sequence(declared):
+            if u.list_like(declared):
                 custom_param_decls = [str(item) for item in declared]
         if annotation is bool and isinstance(default_value, bool):
             dashed_name = cli_name.replace("_", "-")
@@ -538,7 +535,7 @@ class FlextCliCli(s):
             cls.exit(code=1)
 
         def execute(params: M) -> None:
-            result: r[TResult] = handler(params)
+            result: p.Result[TResult] = handler(params)
             if result.failure:
                 _exit_with_failure(result.error)
             message = success_message

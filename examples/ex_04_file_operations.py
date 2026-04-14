@@ -547,7 +547,7 @@ def process_file_pipeline(
     )
 
     # Initialize result
-    result: r[Mapping[str, t.RecursiveValue]]
+    result: p.Result[Mapping[str, t.RecursiveValue]]
 
     # Railway pattern: Chain operations with automatic error propagation
 

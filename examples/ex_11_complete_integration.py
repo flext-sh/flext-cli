@@ -141,7 +141,7 @@ def process_with_railway_pattern(
     step1_data: t.RecursiveContainerMapping = {**input_data, "validated": True}
     step2_data: t.RecursiveContainerMapping = {**step1_data, "processed": True}
     final_data: t.RecursiveContainerMapping = {**step2_data, "enriched": True}
-    result: r[t.RecursiveContainerMapping] = r[t.RecursiveContainerMapping].ok(
+    result: p.Result[t.RecursiveContainerMapping] = r[t.RecursiveContainerMapping].ok(
         final_data
     )
     if result.failure:

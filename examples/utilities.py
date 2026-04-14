@@ -13,9 +13,8 @@ from __future__ import annotations
 
 from collections.abc import MutableSequence
 
-from examples import c, m, t
-from flext_cli import cli, u
-from flext_core import r
+from examples import c, m, p, t, u
+from flext_cli import cli
 
 
 class ExamplesFlextCliUtilities(u):
@@ -56,7 +55,7 @@ class ExamplesFlextCliUtilities(u):
 
     @staticmethod
     def handle_command_result(
-        result: r[m.Value],
+        result: p.Result[m.Value],
         action: str,
         success_fields: t.StrSequence | None = None,
     ) -> None:

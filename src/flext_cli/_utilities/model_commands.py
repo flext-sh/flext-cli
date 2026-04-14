@@ -63,7 +63,7 @@ class FlextCliUtilitiesModelCommandBuilder[M: BaseModel]:
             model = self.model_class.model_validate(kwargs)
             return self.handler(model)
 
-        command_obj: object = command
+        command_obj = command
         setattr(command_obj, "__signature__", signature)
         setattr(
             command_obj,

@@ -353,7 +353,7 @@ from flext_core import d  # d
 from flext_core import mx  # x
 
 # Usage with full namespace (MANDATORY)
-result: r[str] = r[str].ok("value")
+result: p.Result[str] = r[str].ok("value")
 settings: t.Types.ConfigurationDict = {}
 status: c.Cli.OutputFormat = c.Cli.OutputFormat.TABLE
 session: m.Cli.Session = m.Cli.Session()

@@ -85,7 +85,7 @@ v0.10.0 simplifies FLEXT-CLI by:
 
 - ✅ **Python 3.13+**: Still required
 - ✅ **flext-core**: Compatible with current version
-- ✅ **Railway Pattern**: r[T] still used throughout
+- ✅ **Railway Pattern**: p.Result[T] still used throughout
 - ✅ **Type Safety**: Still 100% type-safe
 
 ______________________________________________________________________

@@ -13,7 +13,7 @@ class FlextCliUtilitiesCommands:
 
     @staticmethod
     def commands_normalize_handler_result(
-        result: r[t.RecursiveValue] | None,
+        result: p.Result[t.RecursiveValue] | None,
         command_name: str,
     ) -> p.Result[t.Cli.JsonValue]:
         """Normalize command execution output into canonical JSON result."""
@@ -44,7 +44,7 @@ class FlextCliUtilitiesCommands:
     ) -> p.Result[t.Cli.JsonValue]:
         """Execute one command handler with optional args fallback and normalize output."""
         try:
-            result: r[t.RecursiveValue] | None = None
+            result: p.Result[t.RecursiveValue] | None = None
             execution_attempted = False
             if args or kwargs:
                 try:

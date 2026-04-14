@@ -9,7 +9,7 @@ from typing import Literal, TextIO
 from pydantic import BaseModel
 from pydantic.fields import FieldInfo
 
-from flext_cli import FlextCliTypesBase, p, r
+from flext_cli import FlextCliTypesBase, p
 from flext_cli._constants.enums import FlextCliConstantsEnums
 from flext_core import t
 
@@ -48,7 +48,7 @@ class FlextCliTypesDomain:
     type PromptTextReader = Callable[[str], str]
     type TextStreamWriter = Callable[[TextIO], None]
     type CliCommand = Callable[..., FlextCliTypesBase.RuntimeValue]
-    type JsonCommandFn = Callable[..., r[t.RecursiveValue] | None]
+    type JsonCommandFn = Callable[..., p.Result[t.RecursiveValue] | None]
     type ResultRouteHandler = Callable[..., p.Cli.ErasedCommandResult]
     type MappingProcessor[T, U] = Callable[[str, T], U]
     type JsonModelHandler[M: BaseModel] = Callable[[M], t.RecursiveValue]

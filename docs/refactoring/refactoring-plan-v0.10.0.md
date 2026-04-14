@@ -112,7 +112,7 @@ ______________________________________________________________________
 
 1. **Core Abstraction**: Click/Rich abstraction is solid
 1. **Type Safety**: Comprehensive type annotations
-1. **Railway Pattern**: r[T] used throughout
+1. **Railway Pattern**: p.Result[T] used throughout
 1. **Test Coverage**: 95%+ test pass rate
 1. **FLEXT Integration**: Good flext-core patterns
 

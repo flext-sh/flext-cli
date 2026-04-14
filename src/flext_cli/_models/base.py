@@ -9,11 +9,8 @@ from typing import (
 )
 
 from pydantic import (
-    BaseModel,
     ConfigDict,
     Field,
-    JsonValue as PydanticJsonValue,
-    RootModel,
     computed_field,
 )
 
@@ -44,7 +41,7 @@ class FlextCliModelsBase:
             Field(default=0.0, description="Duration in seconds"),
         ] = 0.0
 
-    class DisplayData(BaseModel):
+    class DisplayData(m.BaseModel):
         """Key-value data for table/display — Pydantic v2 contract. Use m.Cli.DisplayData."""
 
         model_config: ClassVar[ConfigDict] = ConfigDict(
@@ -58,7 +55,7 @@ class FlextCliModelsBase:
             ),
         ] = Field(default_factory=dict, description="Field-value pairs for display")
 
-    class LoadedConfig(BaseModel):
+    class LoadedConfig(m.BaseModel):
         """Loaded configuration content wrapper — Pydantic v2 contract. Use m.Cli.LoadedConfig."""
 
         model_config: ClassVar[ConfigDict] = ConfigDict(
@@ -75,10 +72,10 @@ class FlextCliModelsBase:
             description="Loaded configuration content (dict or other JSON value)",
         )
 
-    class CliNormalizedJson(RootModel[PydanticJsonValue]):
+    class CliNormalizedJson(m.RootModel[t.Cli.JsonValue]):
         """Normalize raw JSON value. Use m.Cli.CliNormalizedJson(value).root."""
 
-    class NormalizedJsonDict(BaseModel):
+    class NormalizedJsonDict(m.BaseModel):
         """Resolve normalized JSON to a dict with defaults. Use m.Cli.NormalizedJsonDict."""
 
         model_config: ClassVar[ConfigDict] = ConfigDict(
@@ -104,7 +101,7 @@ class FlextCliModelsBase:
                 return self.value
             return self.default
 
-    class SuccessSummaryDetails(RootModel[t.StrMapping]):
+    class SuccessSummaryDetails(m.RootModel[Mapping[str, str]]):
         """Key-value success summary details. Use m.Cli.SuccessSummaryDetails."""
 
     class PromptRuntimeState(m.FlexibleInternalModel):
@@ -131,7 +128,7 @@ class FlextCliModelsBase:
             ),
         ] = c.Cli.PROMPT_DEFAULT_TIMEOUT
 
-    class CommandEntryModel(BaseModel):
+    class CommandEntryModel(m.BaseModel):
         """Single command entry: name + handler. Use m.Cli.CommandEntryModel."""
 
         model_config: ClassVar[ConfigDict] = ConfigDict(
@@ -144,7 +141,7 @@ class FlextCliModelsBase:
             Field(..., description="Command handler callable"),
         ]
 
-    class ResultCommandRoute(BaseModel):
+    class ResultCommandRoute(m.BaseModel):
         """Type-erased route contract for heterogeneous batch registration."""
 
         model_config: ClassVar[ConfigDict] = ConfigDict(
@@ -155,7 +152,7 @@ class FlextCliModelsBase:
         name: Annotated[t.NonEmptyStr, Field(..., description="Command name")]
         help_text: Annotated[str, Field(..., description="User-facing help text")]
         model_cls: Annotated[
-            type[BaseModel],
+            type[m.BaseModel],
             Field(..., description="Pydantic input model class"),
         ]
         handler: Annotated[
@@ -563,7 +560,7 @@ class FlextCliModelsBase:
             ),
         ]
 
-    class PromptTimeoutResolved(BaseModel):
+    class PromptTimeoutResolved(m.BaseModel):
         """Single contract: raw (int | str | None) + default -> int."""
 
         model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
@@ -590,7 +587,7 @@ class FlextCliModelsBase:
                 return int(self.raw) if self.raw.isdigit() else self.default
             return self.raw
 
-    class LogLevelResolved(BaseModel):
+    class LogLevelResolved(m.BaseModel):
         """Single contract for log level string."""
 
         model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
@@ -617,7 +614,7 @@ class FlextCliModelsBase:
             s = (self.raw or self.default).strip().upper()
             return s or self.default
 
-    class TypedExtract(BaseModel):
+    class TypedExtract(m.BaseModel):
         """Single contract for typed value extraction (str | bool | dict)."""
 
         model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")

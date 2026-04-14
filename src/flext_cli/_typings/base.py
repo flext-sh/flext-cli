@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, MutableMapping, Sequence
+from pathlib import Path
 from types import GenericAlias, UnionType
 from typing import ClassVar, Literal, TypeAliasType
 
@@ -43,6 +44,7 @@ class FlextCliTypesBase:
     type TableDisableNumparse = bool | Sequence[int]
     type TableColAlign = Sequence[str | None] | None
     type CliValue = Scalar | StrSequence | DefaultMapping | None
+    type CliDefaultSource = CliValue | Path
     type FieldInfoMapping = Mapping[str, FieldInfo]
     type CliAnnotations = MutableMapping[str, type | GenericAlias]
     type CliApp = Typer
@@ -170,6 +172,9 @@ class FlextCliTypesBase:
     )
     CONTAINER_NORMALIZE_ADAPTER: ClassVar[TypeAdapter[t.ContainerValue]] = TypeAdapter(
         t.ContainerValue
+    )
+    CLI_DEFAULT_SOURCE_ADAPTER: ClassVar[TypeAdapter[CliDefaultSource]] = TypeAdapter(
+        CliDefaultSource,
     )
 
 

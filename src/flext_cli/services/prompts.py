@@ -185,7 +185,7 @@ class FlextCliPrompts(s):
         self,
         log_level: str,
         message: str,
-        **context: t.RuntimeData | Exception,
+        **context: t.LogValue,
     ) -> None:
         match log_level:
             case c.LogLevel.DEBUG:
