@@ -13,8 +13,8 @@ from __future__ import annotations
 
 from collections.abc import MutableSequence
 
-from examples import c, m, p, t, u
-from flext_cli import cli
+from examples import c, m, p, t
+from flext_cli import cli, u
 
 
 class ExamplesFlextCliUtilities(u):
