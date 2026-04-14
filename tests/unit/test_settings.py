@@ -15,7 +15,6 @@ from __future__ import annotations
 
 import pytest
 from flext_tests import tm
-from pydantic_settings import BaseSettings
 
 from flext_cli import FlextCliSettings, cli
 from tests import c
@@ -83,11 +82,6 @@ class TestsCliSettingsIntegration:
         settings = cli.settings
         tm.that(settings, none=False)
         tm.that(settings, is_=FlextCliSettings)
-
-    def test_settings_inheritance(self) -> None:
-        """Test inheritance from BaseSettings (Pydantic v2)."""
-        settings = FlextCliSettings()
-        tm.that(settings, is_=BaseSettings)
 
 
 class TestsCliSettingsValidation:

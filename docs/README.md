@@ -3,12 +3,12 @@
 <!-- TOC START -->
 - [Visão geral](#viso-geral)
 - [Navegação rápida](#navegao-rpida)
-- [O que observar na 0.10.0](#o-que-observar-na-0100)
+- [O que observar na 0.12.0-dev](#o-que-observar-na-0100)
 - [Status](#status)
 - [Links úteis](#links-teis)
 <!-- TOC END -->
 
-Documentação alinhada ao **flext-cli** 0.10.0 conforme o código-fonte atual.
+Documentação alinhada ao **flext-cli** 0.12.0-dev conforme o código-fonte atual.
 
 ## Visão geral
 
@@ -25,7 +25,7 @@ Documentação alinhada ao **flext-cli** 0.10.0 conforme o código-fonte atual.
 - **APIs**: [API Reference](api-reference.md)
 - **Contribuição**: [Development Guide](development.md)
 
-## O que observar na 0.10.0
+## O que observar na 0.12.0-dev
 
 - Compatibilidade mantida pelos wrappers principais (`print`, `create_table`, `create_tree`).
 - Serviços com estado em `services/` separados de utilidades stateless em `formatters.py`, `file_tools.py` e `utilities.py`.
@@ -34,7 +34,7 @@ Documentação alinhada ao **flext-cli** 0.10.0 conforme o código-fonte atual.
 
 ## Status
 
-- **Versão**: 0.10.0 (ver `src/flext_cli/__version__.py`).
+- **Versão**: 0.12.0-dev (ver `src/flext_cli/__version__.py`).
 - **Compatibilidade**: Python 3.13+.
 - **QA**: Ruff, Pyright e Pytest conforme configurado no projeto.
 

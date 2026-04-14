@@ -2,7 +2,7 @@
 
 <!-- TOC START -->
 - [📌 Quick Navigation](#quick-navigation)
-- [v0.10.0 Development Guidelines (Current)](#v0100-development-guidelines-current)
+- [v0.12.0-dev Development Guidelines (Current)](#v0100-development-guidelines-current)
   - [Overview](#overview)
 - [When to Use Each Pattern](#when-to-use-each-pattern)
   - [Use s When](#use-flextservice-when)
@@ -12,10 +12,10 @@
 - [Code Organization Guidelines](#code-organization-guidelines)
   - [Module Structure](#module-structure)
   - [Direct Access Pattern](#direct-access-pattern)
-- [Testing Guidelines (v0.10.0)](#testing-guidelines-v0100)
+- [Testing Guidelines (v0.12.0-dev)](#testing-guidelines-v0100)
   - [Test Organization](#test-organization)
   - [Testing Simple Classes](#testing-simple-classes)
-- [Contributing to v0.10.0](#contributing-to-v0100)
+- [Contributing to v0.12.0-dev](#contributing-to-v0100)
   - [Implementation Checklist](#implementation-checklist)
   - [Pull Request Guidelines](#pull-request-guidelines)
 - [v0.9.0 Development Guidelines (Historical Reference)](#v090-development-guidelines-historical-reference)
@@ -52,18 +52,18 @@ ______________________________________________________________________
 
 ## 📌 Quick Navigation
 
-- [v0.10.0 Development Guidelines (Current)](#v0100-development-guidelines-current) ← **Start Here**
+- [v0.12.0-dev Development Guidelines (Current)](#v0100-development-guidelines-current) ← **Start Here**
 - [v0.9.0 Development Guidelines (Historical Reference)](#v090-development-guidelines-historical-reference)
 
 ______________________________________________________________________
 
-## v0.10.0 Development Guidelines (Current)
+## v0.12.0-dev Development Guidelines (Current)
 
 **Status**: 📝 Planned | **Release**: Q1 2025 | **Breaking Changes**: Yes
 
 ### Overview
 
-FLEXT-CLI v0.10.0 follows a simplified architecture with clear guidelines for when to use services vs simple classes. This guide helps you make the right architectural decisions.
+FLEXT-CLI v0.12.0-dev follows a simplified architecture with clear guidelines for when to use services vs simple classes. This guide helps you make the right architectural decisions.
 
 ______________________________________________________________________
 
@@ -187,7 +187,7 @@ ______________________________________________________________________
 
 ### Module Structure
 
-Follow the v0.10.0 module organization:
+Follow the v0.12.0-dev module organization:
 
 ```
 src/flext_cli/
@@ -227,7 +227,7 @@ cli.prompts.confirm("Continue?")
 
 ______________________________________________________________________
 
-## Testing Guidelines (v0.10.0)
+## Testing Guidelines (v0.12.0-dev)
 
 ### Test Organization
 
@@ -269,7 +269,7 @@ def test_read_json_file():
     # Simple classes use static methods
     result = FlextCliFileTools.read_json_file("test.json")
 
-    assert result.is_success
+    assert result.success
     data = result.unwrap()
     assert isinstance(data, dict)
 
@@ -279,7 +279,7 @@ def test_read_json_file():
 
 ______________________________________________________________________
 
-## Contributing to v0.10.0
+## Contributing to v0.12.0-dev
 
 ### Implementation Checklist
 
@@ -560,7 +560,7 @@ def test_data_export_command():
     """Test data export functionality."""
     handler = DataCommands()
     result = handler.handle_export(format="json")
-    assert result.is_success
+    assert result.success
 ```
 
 ### Custom Formatters

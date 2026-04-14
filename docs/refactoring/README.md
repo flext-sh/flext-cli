@@ -1,4 +1,4 @@
-# FLEXT-CLI v0.10.0 Refactoring Documentation
+# FLEXT-CLI v0.12.0-dev Refactoring Documentation
 
 <!-- TOC START -->
 - [📚 Documentation Index](#documentation-index)
@@ -6,7 +6,7 @@
   - [Implementation Guides](#implementation-guides)
   - [User Resources](#user-resources)
 - [🎯 Overview](#overview)
-  - [What Changed in v0.10.0](#what-changed-in-v0100)
+  - [What Changed in v0.12.0-dev](#what-changed-in-v0100)
   - [Migration Timeline](#migration-timeline)
   - [Support](#support)
 - [📖 Reading Order](#reading-order)
@@ -16,14 +16,14 @@
 - [🚀 Quick Links](#quick-links)
 <!-- TOC END -->
 
-This directory contains comprehensive documentation for the v0.10.0 refactoring, which simplifies the architecture and removes over-engineering.
+This directory contains comprehensive documentation for the v0.12.0-dev refactoring, which simplifies the architecture and removes over-engineering.
 
 ## 📚 Documentation Index
 
 ### Planning & Strategy
 
-- **[refactoring-plan-v0.10.0.md](refactoring-plan-v0.10.0.md)** - Complete refactoring plan with rationale, changes, and timeline
-- **[architecture-comparison.md](architecture-comparison.md)** - Side-by-side comparison of v0.9.0 vs v0.10.0 architecture
+- **[refactoring-plan-v0.12.0-dev.md](refactoring-plan-v0.12.0-dev.md)** - Complete refactoring plan with rationale, changes, and timeline
+- **[architecture-comparison.md](architecture-comparison.md)** - Side-by-side comparison of v0.9.0 vs v0.12.0-dev architecture
 
 ### Implementation Guides
 
@@ -36,7 +36,7 @@ This directory contains comprehensive documentation for the v0.10.0 refactoring,
 
 ## 🎯 Overview
 
-### What Changed in v0.10.0
+### What Changed in v0.12.0-dev
 
 **Key Improvements**:
 
@@ -79,14 +79,14 @@ This directory contains comprehensive documentation for the v0.10.0 refactoring,
 
 ### For Contributors
 
-1. Read [refactoring-plan-v0.10.0.md](refactoring-plan-v0.10.0.md)
+1. Read [refactoring-plan-v0.12.0-dev.md](refactoring-plan-v0.12.0-dev.md)
 1. Use [IMPLEMENTATION_CHECKLIST.md](IMPLEMENTATION_CHECKLIST.md)
 1. Reference [architecture-comparison.md](architecture-comparison.md)
 
 ### For Maintainers
 
 1. Review all documents
-1. Understand rationale in [refactoring-plan-v0.10.0.md](refactoring-plan-v0.10.0.md)
+1. Understand rationale in [refactoring-plan-v0.12.0-dev.md](refactoring-plan-v0.12.0-dev.md)
 1. Follow [IMPLEMENTATION_CHECKLIST.md](IMPLEMENTATION_CHECKLIST.md) strictly
 
 ## 🚀 Quick Links
@@ -101,5 +101,5 @@ This directory contains comprehensive documentation for the v0.10.0 refactoring,
 ______________________________________________________________________
 
 **Last Updated**: 2025-01-24
-**Version**: 0.10.0
+**Version**: 0.12.0-dev
 **Status**: 📝 Documentation Phase (Implementation Pending)
