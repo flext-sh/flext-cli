@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from flext_cli import FlextCliCommands
-from flext_core import p, r
-from tests import t
+from flext_core import r
+from tests import p, t
 
 
 class CommandsFactory:

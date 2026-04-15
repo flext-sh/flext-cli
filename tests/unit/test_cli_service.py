@@ -7,8 +7,8 @@ from collections.abc import MutableSequence
 from flext_tests import tm
 
 from flext_cli import cli
-from flext_core import p, r
-from tests import c, m, t
+from flext_core import r
+from tests import c, m, p, t
 
 
 class TestsCliService:

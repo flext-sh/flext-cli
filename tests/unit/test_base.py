@@ -19,8 +19,8 @@ from typing import override
 from flext_tests import tm
 
 from flext_cli import FlextCliServiceBase, FlextCliSettings
-from flext_core import p, r
-from tests import t
+from flext_core import r
+from tests import p, t
 
 
 class TestsCliServiceBase:
