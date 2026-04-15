@@ -12,9 +12,7 @@ from pathlib import Path
 
 from pydantic import BaseModel
 
-from flext_cli import c, p, r, t
-from flext_cli._utilities.json import FlextCliUtilitiesJson
-from flext_cli._utilities.yaml import FlextCliUtilitiesYaml
+from flext_cli import FlextCliUtilitiesJson, FlextCliUtilitiesYaml, c, p, r, t
 
 
 class FlextCliUtilitiesFiles:

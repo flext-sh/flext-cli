@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import typing as _t
 
-from flext_core.lazy import (
+from flext_core import (
     build_lazy_import_map,
     install_lazy_exports,
     merge_lazy_imports,
@@ -20,7 +20,10 @@ if _t.TYPE_CHECKING:
     from tests.typings import TestsFlextCliTypes, t
     from tests.utilities import TestsFlextCliUtilities, u
 _LAZY_IMPORTS = merge_lazy_imports(
-    (".unit",),
+    (
+        ".helpers",
+        ".unit",
+    ),
     build_lazy_import_map(
         {
             ".constants": (
@@ -59,10 +62,6 @@ _LAZY_IMPORTS = merge_lazy_imports(
         },
     ),
     exclude_names=(
-        "FlextDispatcher",
-        "FlextLogger",
-        "FlextRegistry",
-        "FlextRuntime",
         "cleanup_submodule_namespace",
         "install_lazy_exports",
         "lazy_getattr",

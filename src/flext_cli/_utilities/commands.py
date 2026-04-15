@@ -4,8 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
-from flext_cli import c, p, r, t
-from flext_cli._utilities.json import FlextCliUtilitiesJson
+from flext_cli import FlextCliUtilitiesJson, c, p, r, t
 
 
 class FlextCliUtilitiesCommands:

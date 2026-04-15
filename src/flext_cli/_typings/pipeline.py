@@ -5,8 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Literal
 
-from flext_cli import r
-from flext_cli._constants.enums import FlextCliConstantsEnums
+from flext_cli import FlextCliConstantsEnums, r
 
 if TYPE_CHECKING:
     from flext_cli import m

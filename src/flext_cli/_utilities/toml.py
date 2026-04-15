@@ -12,9 +12,7 @@ from pydantic import TypeAdapter, ValidationError
 from tomlkit import TOMLDocument
 from tomlkit.items import AoT, Item as TomlItem, Table as TomlTable
 
-from flext_cli import c, p, r, t
-from flext_cli._utilities.json import FlextCliUtilitiesJson
-from flext_cli._utilities.runtime import FlextCliUtilitiesRuntime
+from flext_cli import FlextCliUtilitiesJson, FlextCliUtilitiesRuntime, c, p, r, t
 from flext_core import u
 
 

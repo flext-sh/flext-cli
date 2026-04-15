@@ -7,8 +7,7 @@ from typing import ClassVar
 
 from pydantic import BaseModel, TypeAdapter, ValidationError
 
-from flext_cli import c, p, r, t
-from flext_cli._utilities.json import FlextCliUtilitiesJson
+from flext_cli import FlextCliUtilitiesJson, c, p, r, t
 from flext_core import u
 
 

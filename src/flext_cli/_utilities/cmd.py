@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-from flext_cli import c, m, p, r
-from flext_cli._utilities.settings import FlextCliUtilitiesSettings
+from flext_cli import FlextCliUtilitiesSettings, c, m, p, r
 
 
 class FlextCliUtilitiesCmd:

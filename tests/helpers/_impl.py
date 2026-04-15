@@ -10,9 +10,8 @@ import logging
 import re
 from collections.abc import MutableSequence
 
-from tests import c
-
 from flext_core import p, r
+from tests import c
 
 
 class FlextCliTestHelpers:

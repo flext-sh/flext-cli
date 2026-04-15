@@ -9,8 +9,7 @@ from typing import Literal, TextIO
 from pydantic import BaseModel
 from pydantic.fields import FieldInfo
 
-from flext_cli import FlextCliTypesBase, p
-from flext_cli._constants.enums import FlextCliConstantsEnums
+from flext_cli import FlextCliConstantsEnums, FlextCliTypesBase, p
 from flext_core import t
 
 

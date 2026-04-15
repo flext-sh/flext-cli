@@ -73,3 +73,6 @@ class FlextCliTables(s):
         else:
             error_line, error_style = u.Cli.output_table_error(result.error)
             FlextCliFormatters.print(error_line, style=error_style)
+
+
+__all__: list[str] = ["FlextCliTables"]
