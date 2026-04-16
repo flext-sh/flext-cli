@@ -8,19 +8,19 @@ from pathlib import Path
 from typing import ClassVar, TypeIs
 
 import tomlkit
-from pydantic import TypeAdapter, ValidationError
+from pydantic import TypeAdapter
 from tomlkit import TOMLDocument
 from tomlkit.items import AoT, Item as TomlItem, Table as TomlTable
 
 from flext_cli import FlextCliUtilitiesJson, FlextCliUtilitiesRuntime, c, p, r, t
-from flext_core import u
+from flext_core import m, u
 
 
 class FlextCliUtilitiesToml:
     """Generic TOML read/write and table-manipulation helpers."""
 
     _module_logger: ClassVar[p.Logger] = u.fetch_logger(__name__)
-    _STR_SEQUENCE_ADAPTER: TypeAdapter[t.StrSequence] = TypeAdapter(t.StrSequence)
+    _STR_SEQUENCE_ADAPTER: m.TypeAdapter[t.StrSequence] = TypeAdapter(t.StrSequence)
 
     @staticmethod
     def toml_as_mapping(
@@ -32,7 +32,7 @@ class FlextCliUtilitiesToml:
             return None
         try:
             return t.Cli.JSON_MAPPING_ADAPTER.validate_python(normalized)
-        except ValidationError:
+        except c.ValidationError:
             return None
 
     @staticmethod
@@ -61,7 +61,7 @@ class FlextCliUtilitiesToml:
             items = FlextCliUtilitiesToml._STR_SEQUENCE_ADAPTER.validate_python(
                 normalized,
             )
-        except ValidationError:
+        except c.ValidationError:
             return []
         return [str(item) for item in items]
 
@@ -105,7 +105,7 @@ class FlextCliUtilitiesToml:
             return None
         try:
             return t.Cli.JSON_MAPPING_ADAPTER.validate_python(loaded)
-        except ValidationError:
+        except c.ValidationError:
             return None
 
     @staticmethod
@@ -264,7 +264,7 @@ class FlextCliUtilitiesToml:
             return None
         try:
             return t.Cli.JSON_MAPPING_ADAPTER.validate_python(value)
-        except ValidationError:
+        except c.ValidationError:
             return None
 
     @staticmethod
@@ -279,7 +279,7 @@ class FlextCliUtilitiesToml:
         if u.mapping(existing):
             try:
                 normalized = dict(t.Cli.JSON_MAPPING_ADAPTER.validate_python(existing))
-            except ValidationError:
+            except c.ValidationError:
                 normalized: dict[str, t.Cli.JsonValue] = {}
             parent[key] = normalized
             return normalized

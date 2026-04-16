@@ -5,17 +5,17 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import ClassVar
 
-from pydantic import BaseModel, TypeAdapter, ValidationError
+from pydantic import BaseModel, TypeAdapter
 
 from flext_cli import FlextCliUtilitiesJson, c, p, r, t
-from flext_core import u
+from flext_core import m, u
 
 
 class FlextCliUtilitiesCliModelConverter:
     """Convert CLI payloads into canonical Pydantic or JSON values."""
 
     _module_logger: ClassVar[p.Logger] = u.fetch_logger(__name__)
-    JSON_VALUE_ADAPTER: ClassVar[TypeAdapter[t.Cli.JsonValue]] = TypeAdapter(
+    JSON_VALUE_ADAPTER: ClassVar[m.TypeAdapter[t.Cli.JsonValue]] = TypeAdapter(
         t.Cli.JsonValue,
     )
 
@@ -28,7 +28,7 @@ class FlextCliUtilitiesCliModelConverter:
         try:
             instance: M = model_class.model_validate(cli_args)
             return r[M].ok(instance)
-        except ValidationError as exc:
+        except c.ValidationError as exc:
             return r[M].fail(f"Validation error for {model_class.__name__}: {exc}")
 
     @staticmethod
@@ -46,7 +46,7 @@ class FlextCliUtilitiesCliModelConverter:
                 )
             )
             return r[t.Cli.JsonValue].ok(json_value)
-        except ValidationError as exc:
+        except c.ValidationError as exc:
             FlextCliUtilitiesCliModelConverter._module_logger.debug(
                 "convert_field_value validation fallback",
                 error=str(exc),

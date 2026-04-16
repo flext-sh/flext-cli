@@ -334,8 +334,8 @@ class FlextCliContext(m.Value):
     """Immutable execution context."""
 
     command: str | None = None
-    arguments: t.StrSequence = Field(default_factory=list)
-    environment_variables: t.RecursiveContainerMapping = Field(default_factory=dict)
+    arguments: t.StrSequence = m.Field(default_factory=list)
+    environment_variables: t.RecursiveContainerMapping = m.Field(default_factory=dict)
     working_directory: str | None = None
 
     # No methods - just validated data
@@ -514,10 +514,10 @@ class FlextCliContext(m.Value):
     """Immutable context value object."""
 
     command: str | None = None
-    arguments: t.StrSequence = Field(default_factory=list)
-    environment_variables: t.RecursiveContainerMapping = Field(default_factory=dict)
+    arguments: t.StrSequence = m.Field(default_factory=list)
+    environment_variables: t.RecursiveContainerMapping = m.Field(default_factory=dict)
     working_directory: str | None = None
-    created_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
+    created_at: str = m.Field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     # No methods - just validated, immutable data
 ```

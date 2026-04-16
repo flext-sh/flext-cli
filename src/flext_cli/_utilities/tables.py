@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import MutableSequence, Sequence
 from typing import ClassVar
 
-from pydantic import TypeAdapter, ValidationError
+from pydantic import TypeAdapter
 from tabulate import tabulate
 
 from flext_cli import FlextCliUtilitiesJson, c, m, p, r, t
@@ -15,7 +15,7 @@ from flext_core import u
 class FlextCliUtilitiesTables:
     """Table helpers exposed through ``u.Cli.tables_*``."""
 
-    TABLE_DATA_ADAPTER: ClassVar[TypeAdapter[t.Cli.TableDataSource]] = TypeAdapter(
+    TABLE_DATA_ADAPTER: ClassVar[m.TypeAdapter[t.Cli.TableDataSource]] = TypeAdapter(
         t.Cli.TableDataSource,
     )
 
@@ -65,7 +65,7 @@ class FlextCliUtilitiesTables:
             validated_data = FlextCliUtilitiesTables.TABLE_DATA_ADAPTER.validate_python(
                 data,
             )
-        except ValidationError as exc:
+        except c.ValidationError as exc:
             return r[Sequence[t.Cli.TableRow]].fail(f"Table data invalid: {exc}")
 
         if u.mapping(validated_data):

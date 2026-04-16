@@ -14,7 +14,7 @@ import tempfile
 from collections.abc import Mapping, MutableMapping, MutableSequence, Sequence
 from pathlib import Path
 
-from pydantic import TypeAdapter, ValidationError
+from pydantic import TypeAdapter
 
 from examples import c, m, p, r, t, u
 from flext_cli import cli
@@ -494,13 +494,13 @@ def export_multi_format(
             f"✅ YAML: {yaml_path.name} ({size} bytes)", style=c.Cli.MessageStyles.GREEN
         )
 
-    rows_adapter: TypeAdapter[Sequence[t.RecursiveContainerMapping]] = TypeAdapter(
+    rows_adapter: m.TypeAdapter[Sequence[t.RecursiveContainerMapping]] = TypeAdapter(
         Sequence[t.RecursiveContainerMapping]
     )
     csv_rows_data: Sequence[t.RecursiveContainerMapping]
     try:
         csv_rows_data = rows_adapter.validate_python(data)
-    except ValidationError:
+    except c.ValidationError:
         csv_rows_data = []
 
     if csv_rows_data:
@@ -652,7 +652,7 @@ def generate_output_files(
         return r[Mapping[str, Path]].fail(f"YAML export failed: {yaml_result.error}")
     results["yaml"] = yaml_file
 
-    rows_adapter: TypeAdapter[Sequence[t.RecursiveContainerMapping]] = TypeAdapter(
+    rows_adapter: m.TypeAdapter[Sequence[t.RecursiveContainerMapping]] = TypeAdapter(
         Sequence[t.RecursiveContainerMapping]
     )
     csv_rows_data: Sequence[t.RecursiveContainerMapping]
@@ -663,7 +663,7 @@ def generate_output_files(
         content_items = []
     try:
         csv_rows_data = rows_adapter.validate_python(content_items)
-    except ValidationError:
+    except c.ValidationError:
         csv_rows_data = []
 
     if csv_rows_data:

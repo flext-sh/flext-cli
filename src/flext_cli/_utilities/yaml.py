@@ -13,7 +13,6 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import ClassVar
 
-from pydantic import ValidationError
 from yaml import safe_dump, safe_load
 
 from flext_cli import c, p, r, t
@@ -70,7 +69,7 @@ class FlextCliUtilitiesYaml:
             )
         try:
             validated = t.Cli.YAML_DICT_ADAPTER.validate_python(parsed)
-        except ValidationError as exc:
+        except c.ValidationError as exc:
             return r[t.Cli.YamlDict].fail(f"YAML validation error: {exc}")
         return r[t.Cli.YamlDict].ok(validated)
 
@@ -102,7 +101,7 @@ class FlextCliUtilitiesYaml:
             return []
         try:
             return t.Cli.YAML_SEQ_ADAPTER.validate_python(parsed)
-        except ValidationError:
+        except c.ValidationError:
             return []
 
     # ------------------------------------------------------------------

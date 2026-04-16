@@ -47,7 +47,7 @@ ______________________________________________________________________
 - **Done**: test_typings.py — replaced match/case on types in `process_value`, `process_union`, `handle_edge_cases` with `isinstance` checks.
 - **Done**: conftest.py — `flext_test_docker` startup cleanup: `except Exception` → `except OSError`.
 - **Done**: settings.py — \_propagate_to_context / \_register_in_container: `except Exception` → `except (AttributeError, TypeError)`; auto_output_format isatty and \_try_terminal_width: `except Exception` → `except OSError`.
-- **Done**: models.py — system_info/config_info TypeAdapter validate_python: `except Exception` → `except ValidationError`; exec-generated builder_config setattr: `except Exception` → `except (AttributeError, TypeError)`.
+- **Done**: models.py — system_info/config_info TypeAdapter validate_python: `except Exception` → `except c.ValidationError`; exec-generated builder_config setattr: `except Exception` → `except (AttributeError, TypeError)`.
 - **Done**: tests/helpers/\_impl.py — all test-double `except Exception` → `except (ValueError, TypeError, ValidationError)` (ProtocolHelpers, TypingHelpers, CliHelpers).
 - **Done**: integration_test_complete_workflow.py — recovery loop: `except Exception` → `except (ValueError, TypeError, KeyError, ValidationError)`.
 - **Done**: tests/base.py — DynamicTestHandler.handle and create_transform_handler transform: `except Exception` → `except (ValueError, TypeError, ValidationError)`.

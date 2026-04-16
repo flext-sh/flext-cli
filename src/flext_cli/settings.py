@@ -10,60 +10,51 @@ from __future__ import annotations
 
 from typing import Annotated, ClassVar
 
-from pydantic import Field
 from pydantic_settings import SettingsConfigDict
 
 from flext_cli import c
-from flext_core import FlextSettings
+from flext_core import FlextSettings, m
 
 
 @FlextSettings.auto_register("cli")
 class FlextCliSettings(FlextSettings):
     """CLI-specific configuration; extends FlextSettings with profile and CLI fields."""
 
-    model_config: ClassVar[SettingsConfigDict] = SettingsConfigDict(
+    model_config: ClassVar[SettingsConfigDict] = m.SettingsConfigDict(
         env_prefix="FLEXT_CLI_",
         extra="ignore",
     )
 
-    verbose: Annotated[
-        bool,
-        Field(default=c.Cli.CLI_DEFAULT_VERBOSE, description="Verbose output"),
-    ]
-    quiet: Annotated[
-        bool,
-        Field(default=c.Cli.CLI_DEFAULT_QUIET, description="Quiet output"),
-    ]
+    verbose: Annotated[bool, m.Field(description="Verbose output")] = (
+        c.Cli.CLI_DEFAULT_VERBOSE
+    )
+    quiet: Annotated[bool, m.Field(description="Quiet output")] = (
+        c.Cli.CLI_DEFAULT_QUIET
+    )
     log_verbosity: Annotated[
         str,
-        Field(
-            default=c.Cli.LogVerbosity.COMPACT,
+        m.Field(
             description="Log format (compact, detailed, full)",
         ),
-    ]
-    cli_log_level: Annotated[
-        c.LogLevel,
-        Field(default=c.LogLevel.INFO, description="CLI log level"),
-    ]
+    ] = c.Cli.LogVerbosity.COMPACT
+    cli_log_level: Annotated[c.LogLevel, m.Field(description="CLI log level")] = (
+        c.LogLevel.INFO
+    )
     no_color: Annotated[
         bool,
-        Field(
-            default=c.Cli.CLI_DEFAULT_NO_COLOR,
+        m.Field(
             description="Disable colored output",
         ),
-    ]
+    ] = c.Cli.CLI_DEFAULT_NO_COLOR
     output_format: Annotated[
         str,
-        Field(
-            default=c.Cli.OUTPUT_DEFAULT_FORMAT_TYPE,
+        m.Field(
             description="Output format (table, json, yaml, csv, plain)",
         ),
-    ]
-    config_file: Annotated[
-        str | None,
-        Field(default=None, description="Path to settings file"),
-    ]
+    ] = c.Cli.OUTPUT_DEFAULT_FORMAT_TYPE
+    config_file: Annotated[str | None, m.Field(description="Path to settings file")] = (
+        None
+    )
     token_file: Annotated[
-        str | None,
-        Field(default=None, description="Path to auth token file"),
-    ]
+        str | None, m.Field(description="Path to auth token file")
+    ] = None

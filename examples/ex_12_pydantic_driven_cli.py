@@ -28,8 +28,6 @@ from __future__ import annotations
 
 import time
 
-from pydantic import ValidationError
-
 from examples import c, m, t, u
 from flext_cli import cli
 from flext_core import p, r
@@ -219,7 +217,7 @@ def convert_and_validate_with_pydantic(
                 data,
             ),
         )
-    except ValidationError as error:
+    except c.ValidationError as error:
         return r[m.Examples.AdvancedDatabaseConfig].fail(
             f"Pydantic validation failed: {error}",
         )
@@ -280,7 +278,7 @@ def main() -> None:
             enable_cache=True,
             timeout=30,
         )
-    except ValidationError as error:
+    except c.ValidationError as error:
         cli.print(
             f"   Caught validation error: {error}", style=c.Cli.MessageStyles.YELLOW
         )
@@ -300,7 +298,7 @@ def main() -> None:
     cli.print("=" * 70, style=c.Cli.MessageStyles.BOLD_BLUE)
     cli.print("\n💡 Integration Tips:", style=c.Cli.MessageStyles.BOLD_CYAN)
     cli.print(
-        "  • Define Pydantic models with Field() descriptions",
+        "  • Define Pydantic models with m.Field() descriptions",
         style=c.Cli.MessageStyles.WHITE,
     )
     cli.print(

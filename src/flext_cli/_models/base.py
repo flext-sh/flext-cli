@@ -26,19 +26,19 @@ class FlextCliModelsBase:
 
         stdout: Annotated[
             str,
-            Field(default="", description="Captured standard output"),
+            Field("", description="Captured standard output"),
         ] = ""
         stderr: Annotated[
             str,
-            Field(default="", description="Captured standard error"),
+            Field("", description="Captured standard error"),
         ] = ""
         exit_code: Annotated[
             int,
-            Field(description="Command exit code"),
+            m.Field(description="Command exit code"),
         ] = 0
         duration: Annotated[
             t.NonNegativeFloat,
-            Field(default=0.0, description="Duration in seconds"),
+            Field(0.0, description="Duration in seconds"),
         ] = 0.0
 
     class DisplayData(m.BaseModel):
@@ -50,10 +50,10 @@ class FlextCliModelsBase:
         )
         data: Annotated[
             t.RecursiveContainerMapping,
-            Field(
+            m.Field(
                 description="Field-value pairs for display",
             ),
-        ] = Field(default_factory=dict, description="Field-value pairs for display")
+        ] = m.Field(default_factory=dict, description="Field-value pairs for display")
 
     class LoadedConfig(m.BaseModel):
         """Loaded configuration content wrapper — Pydantic v2 contract. Use m.Cli.LoadedConfig."""
@@ -64,10 +64,10 @@ class FlextCliModelsBase:
         )
         content: Annotated[
             t.RecursiveContainerMapping,
-            Field(
+            m.Field(
                 description="Loaded configuration content (dict or other JSON value)",
             ),
-        ] = Field(
+        ] = m.Field(
             default_factory=dict,
             description="Loaded configuration content (dict or other JSON value)",
         )
@@ -84,12 +84,12 @@ class FlextCliModelsBase:
         )
         value: Annotated[
             t.Cli.JsonValue,
-            Field(description="The normalized JSON value"),
-        ] = Field(default_factory=dict, description="The normalized JSON value")
+            m.Field(description="The normalized JSON value"),
+        ] = m.Field(default_factory=dict, description="The normalized JSON value")
         default: Annotated[
             t.Cli.JsonMapping,
-            Field(description="Default mapping if value is not a dict"),
-        ] = Field(
+            m.Field(description="Default mapping if value is not a dict"),
+        ] = m.Field(
             default_factory=dict,
             description="Default mapping if value is not a dict",
         )
@@ -114,16 +114,15 @@ class FlextCliModelsBase:
 
         interactive: Annotated[
             bool,
-            Field(default=True, description="Whether prompt interaction is enabled"),
+            Field(True, description="Whether prompt interaction is enabled"),
         ] = True
         quiet: Annotated[
             bool,
-            Field(default=False, description="Whether prompt output is suppressed"),
+            Field(False, description="Whether prompt output is suppressed"),
         ] = False
         default_timeout: Annotated[
             int,
-            Field(
-                default=c.Cli.PROMPT_DEFAULT_TIMEOUT,
+            m.Field(
                 description="Default prompt timeout in seconds",
             ),
         ] = c.Cli.PROMPT_DEFAULT_TIMEOUT
@@ -135,10 +134,10 @@ class FlextCliModelsBase:
             arbitrary_types_allowed=True,
             extra="forbid",
         )
-        name: Annotated[t.NonEmptyStr, Field(..., description="Command name")]
+        name: Annotated[t.NonEmptyStr, m.Field(..., description="Command name")]
         handler: Annotated[
             t.Cli.JsonCommandFn,
-            Field(..., description="Command handler callable"),
+            m.Field(..., description="Command handler callable"),
         ]
 
     class ResultCommandRoute(m.BaseModel):
@@ -149,32 +148,31 @@ class FlextCliModelsBase:
             extra="forbid",
             frozen=True,
         )
-        name: Annotated[t.NonEmptyStr, Field(..., description="Command name")]
-        help_text: Annotated[str, Field(..., description="User-facing help text")]
+        name: Annotated[t.NonEmptyStr, m.Field(..., description="Command name")]
+        help_text: Annotated[str, m.Field(..., description="User-facing help text")]
         model_cls: Annotated[
             type[m.BaseModel],
-            Field(..., description="Pydantic input model class"),
+            m.Field(..., description="Pydantic input model class"),
         ]
         handler: Annotated[
             t.Cli.ResultRouteHandler,
-            Field(..., description="Command handler returning r[...]"),
+            m.Field(..., description="Command handler returning r[...]"),
         ]
         failure_message: Annotated[
             str,
-            Field(..., description="Fallback error message on handler failure"),
+            m.Field(..., description="Fallback error message on handler failure"),
         ]
         success_message: Annotated[
             str | None,
-            Field(default=None, description="Static success message"),
+            Field(None, description="Static success message"),
         ] = None
         success_formatter: Annotated[
             p.Cli.SuccessMessageFormatter[t.Cli.ResultValue] | None,
-            Field(default=None, description="Dynamic success formatter"),
+            Field(None, description="Dynamic success formatter"),
         ] = None
         success_type: Annotated[
             c.Cli.MessageTypes | t.Cli.MessageTypeLiteral,
-            Field(
-                default=c.Cli.MessageTypes.SUCCESS,
+            m.Field(
                 description="CLI output style on success",
             ),
         ] = c.Cli.MessageTypes.SUCCESS
@@ -189,7 +187,7 @@ class FlextCliModelsBase:
         # Headers configuration
         headers: Annotated[
             t.Cli.TableHeaders,
-            Field(
+            m.Field(
                 description=(
                     "Table headers (string like 'keys', 'firstrow' "
                     "or sequence of header names)"
@@ -198,17 +196,17 @@ class FlextCliModelsBase:
         ] = "keys"
         title: Annotated[
             str | None,
-            Field(description="Optional title printed before the rendered table"),
+            m.Field(description="Optional title printed before the rendered table"),
         ] = None
         show_header: Annotated[
             bool,
-            Field(description="Whether to show table header"),
+            m.Field(description="Whether to show table header"),
         ] = True
 
         # Format configuration
         table_format: Annotated[
             t.Cli.TabularFormatLiteral,
-            Field(
+            m.Field(
                 description="Table format enum-derived literal authority",
             ),
         ] = c.Cli.TabularFormat.SIMPLE
@@ -226,46 +224,46 @@ class FlextCliModelsBase:
         # Number formatting
         floatfmt: Annotated[
             str,
-            Field(description="Float format string"),
+            m.Field(description="Float format string"),
         ] = ".4g"
         numalign: Annotated[
             str,
-            Field(description="Number alignment (right, center, left, decimal)"),
+            m.Field(description="Number alignment (right, center, left, decimal)"),
         ] = "decimal"
 
         # String formatting
         stralign: Annotated[
             str,
-            Field(description="String alignment (left, center, right)"),
+            m.Field(description="String alignment (left, center, right)"),
         ] = "left"
 
         align: Annotated[
             str,
-            Field(description="General alignment (left, center, right, decimal)"),
+            m.Field(description="General alignment (left, center, right, decimal)"),
         ] = "left"
 
         # Missing values
         missingval: Annotated[
             str,
-            Field(description="String to use for missing values"),
+            m.Field(description="String to use for missing values"),
         ] = ""
 
         # Index display
         showindex: t.Cli.TableShowIndex = Field(
-            default=False, description="Whether to show row indices"
+            False, description="Whether to show row indices"
         )
 
         # Column alignment
         colalign: Annotated[
             t.Cli.TableColAlign,
-            Field(
+            m.Field(
                 description="Per-column alignment (left, center, right, decimal)",
             ),
         ] = None
 
         # Number parsing
         disable_numparse: t.Cli.TableDisableNumparse = Field(
-            default=False,
+            False,
             description="Disable number parsing (bool or list of column indices)",
         )
 
@@ -279,43 +277,38 @@ class FlextCliModelsBase:
 
         settings_dir: Annotated[
             str,
-            Field(
-                default="",
+            m.Field(
                 description="Settings directory path",
             ),
-        ]
+        ] = ""
 
         settings_exists: Annotated[
             bool,
-            Field(
-                default=False,
+            m.Field(
                 description="Whether settings directory exists",
             ),
-        ]
+        ] = False
 
         settings_readable: Annotated[
             bool,
-            Field(
-                default=False,
+            m.Field(
                 description="Whether settings directory is readable",
             ),
-        ]
+        ] = False
 
         settings_writable: Annotated[
             bool,
-            Field(
-                default=False,
+            m.Field(
                 description="Whether settings directory is writable",
             ),
-        ]
+        ] = False
 
         timestamp: Annotated[
             str,
-            Field(
-                default="",
+            m.Field(
                 description="Timestamp of snapshot",
             ),
-        ]
+        ] = ""
 
     class CliParamsConfig(m.Value):
         """CLI parameters configuration for command-line parsing.
@@ -327,57 +320,50 @@ class FlextCliModelsBase:
 
         verbose: Annotated[
             bool | None,
-            Field(
-                default=None,
+            m.Field(
                 description="Enable verbose output",
             ),
-        ]
+        ] = None
         quiet: Annotated[
             bool | None,
-            Field(
-                default=None,
+            m.Field(
                 description="Suppress non-essential output",
             ),
-        ]
+        ] = None
         debug: Annotated[
             bool | None,
-            Field(default=None, description="Enable debug mode"),
+            Field(None, description="Enable debug mode"),
         ]
         trace: Annotated[
             bool | None,
-            Field(
-                default=None,
+            m.Field(
                 description="Enable trace logging (requires debug)",
             ),
-        ]
+        ] = None
         log_level: Annotated[
             str | None,
-            Field(
-                default=None,
+            m.Field(
                 description="Log level (DEBUG, INFO, WARNING, ERROR)",
             ),
-        ]
+        ] = None
         log_format: Annotated[
             str | None,
-            Field(
-                default=None,
+            m.Field(
                 description="Log format (compact, detailed, full)",
             ),
-        ]
+        ] = None
         output_format: Annotated[
             str | None,
-            Field(
-                default=None,
+            m.Field(
                 description="Output format (table, json, yaml, csv)",
             ),
-        ]
+        ] = None
         no_color: Annotated[
             bool | None,
-            Field(
-                default=None,
+            m.Field(
                 description="Disable colored output",
             ),
-        ]
+        ] = None
 
         @property
         def params(self) -> t.Cli.JsonMapping:
@@ -410,57 +396,57 @@ class FlextCliModelsBase:
         default: Annotated[
             t.Cli.JsonValue | None,
             Field(
-                default=None,
+                None,
                 description="Default value",
             ),
         ]
         type_hint: Annotated[
             t.Cli.JsonValue | None,
             Field(
-                default=None,
+                None,
                 description="Parameter type (Click type or Python type)",
             ),
         ]
         required: Annotated[
             bool,
             Field(
-                default=False,
+                False,
                 description="Whether option is required",
             ),
         ]
         help_text: Annotated[
             str | None,
             Field(
-                default=None,
+                None,
                 description="Help text for option",
             ),
         ]
         flag: Annotated[
             bool,
             Field(
-                default=False,
+                False,
                 description="Boolean flag option",
             ),
         ]
         flag_value: Annotated[
             t.Cli.JsonValue | None,
             Field(
-                default=None,
+                None,
                 description="Value when flag is set",
             ),
         ]
         multiple: Annotated[
             bool,
-            Field(default=False, description="Allow multiple values"),
+            Field(False, description="Allow multiple values"),
         ]
         count: Annotated[
             bool,
-            Field(default=False, description="Count occurrences"),
+            Field(False, description="Count occurrences"),
         ]
         show_default: Annotated[
             bool,
             Field(
-                default=False,
+                False,
                 description="Show default in help",
             ),
         ]
@@ -472,26 +458,24 @@ class FlextCliModelsBase:
         Inherits frozen=True and extra="forbid" from m.Value.
         """
 
-        default: Annotated[bool, Field(default=False, description="Default value")]
+        default: Annotated[bool, Field(False, description="Default value")]
         abort: Annotated[
             bool,
-            Field(default=False, description="Abort if not confirmed"),
+            Field(False, description="Abort if not confirmed"),
         ]
         prompt_suffix: Annotated[
             str,
-            Field(
-                default=c.Cli.UI_DEFAULT_PROMPT_SUFFIX,
+            m.Field(
                 description="Suffix after prompt",
             ),
-        ]
+        ] = c.Cli.UI_DEFAULT_PROMPT_SUFFIX
         show_default: Annotated[
             bool,
-            Field(
-                default=True,
+            m.Field(
                 description="Show default in prompt",
             ),
-        ]
-        err: Annotated[bool, Field(default=False, description="Write to stderr")]
+        ] = True
+        err: Annotated[bool, Field(False, description="Write to stderr")]
 
     class PromptConfig(m.Value):
         """Configuration for input prompts.
@@ -508,57 +492,54 @@ class FlextCliModelsBase:
         default: Annotated[
             t.Cli.JsonValue | None,
             Field(
-                default=None,
+                None,
                 description="Default value",
             ),
         ]
         type_hint: Annotated[
             t.Cli.JsonValue | None,
             Field(
-                default=None,
+                None,
                 description="Value type",
             ),
         ]
         value_proc: Annotated[
             p.Cli.JsonValueProcessor | None,
             Field(
-                default=None,
+                None,
                 description="Value processor function",
             ),
         ]
         prompt_suffix: Annotated[
             str,
-            Field(
-                default=c.Cli.UI_DEFAULT_PROMPT_SUFFIX,
+            m.Field(
                 description="Suffix after prompt",
             ),
-        ]
+        ] = c.Cli.UI_DEFAULT_PROMPT_SUFFIX
         hide_input: Annotated[
             bool,
-            Field(default=False, description="Hide user input"),
+            Field(False, description="Hide user input"),
         ]
         confirmation_prompt: Annotated[
             bool,
             Field(
-                default=False,
+                False,
                 description="Ask for confirmation",
             ),
         ]
         show_default: Annotated[
             bool,
-            Field(
-                default=True,
+            m.Field(
                 description="Show default in prompt",
             ),
-        ]
-        err: Annotated[bool, Field(default=False, description="Write to stderr")]
+        ] = True
+        err: Annotated[bool, Field(False, description="Write to stderr")]
         show_choices: Annotated[
             bool,
-            Field(
-                default=True,
+            m.Field(
                 description="Show available choices",
             ),
-        ]
+        ] = True
 
     class PromptTimeoutResolved(m.BaseModel):
         """Single contract: raw (int | str | None) + default -> int."""
@@ -566,11 +547,11 @@ class FlextCliModelsBase:
         model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
         raw: Annotated[
             t.Cli.IntTextValue,
-            Field(default=None, description="Raw timeout input (int, str, or None)"),
+            Field(None, description="Raw timeout input (int, str, or None)"),
         ]
         default: Annotated[
             int,
-            Field(default=30, description="Default timeout in seconds"),
+            Field(30, description="Default timeout in seconds"),
         ]
 
         @computed_field
@@ -593,12 +574,12 @@ class FlextCliModelsBase:
         model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
         raw: Annotated[
             str | None,
-            Field(default=None, description="Raw log level input string"),
+            Field(None, description="Raw log level input string"),
         ]
         default: Annotated[
             str,
             Field(
-                default=c.LogLevel.INFO,
+                c.LogLevel.INFO,
                 description="Default log level when raw is absent",
             ),
         ]
@@ -620,15 +601,15 @@ class FlextCliModelsBase:
         model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
         type_kind: Annotated[
             t.Cli.TypeKind,
-            Field(description="Requested type"),
+            m.Field(description="Requested type"),
         ]
         value: Annotated[
             t.Cli.JsonValue | None,
-            Field(default=None, description="Value to extract and coerce"),
+            Field(None, description="Value to extract and coerce"),
         ]
         default: Annotated[
             t.Cli.JsonValue | None,
-            Field(default=None, description="Fallback value when extraction fails"),
+            Field(None, description="Fallback value when extraction fails"),
         ]
 
         @computed_field

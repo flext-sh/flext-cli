@@ -33,9 +33,9 @@ import tempfile
 from collections.abc import Sequence
 from pathlib import Path
 
-from pydantic import TypeAdapter, ValidationError
+from pydantic import TypeAdapter
 
-from examples import c, t
+from examples import c, m, t
 from flext_cli import cli
 
 
@@ -185,13 +185,13 @@ def export_data_multi_format(
             f"✅ YAML: {yaml_path.name} ({size} bytes)", style=c.Cli.MessageStyles.GREEN
         )
 
-    rows_adapter: TypeAdapter[Sequence[t.RecursiveContainerMapping]] = TypeAdapter(
+    rows_adapter: m.TypeAdapter[Sequence[t.RecursiveContainerMapping]] = TypeAdapter(
         Sequence[t.RecursiveContainerMapping]
     )
     csv_rows_data: Sequence[t.RecursiveContainerMapping]
     try:
         csv_rows_data = rows_adapter.validate_python(data)
-    except ValidationError:
+    except c.ValidationError:
         csv_rows_data = []
 
     if csv_rows_data:

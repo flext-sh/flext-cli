@@ -14,7 +14,7 @@ from collections.abc import Mapping, MutableMapping, Sequence
 from typing import Annotated, ClassVar
 
 from flext_tests import FlextTestsModels
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import ConfigDict
 
 from flext_cli import m
 from tests import c, t
@@ -29,7 +29,7 @@ class TestsFlextCliModels(FlextTestsModels, m):
         class Tests:
             """Test-specific model definitions for flext-cli."""
 
-            class PositionalModel(BaseModel):
+            class PositionalModel(m.BaseModel):
                 """Model accepting positional data for test scenarios."""
 
                 model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
@@ -50,43 +50,40 @@ class TestsFlextCliModels(FlextTestsModels, m):
                 """User data for type scenario tests -- Pydantic v2."""
 
                 model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
-                id: Annotated[int, Field(description="User id")]
-                name: Annotated[str, Field(description="User name")]
-                email: Annotated[str, Field(description="Email")]
-                active: Annotated[bool, Field(description="Active flag")]
+                id: Annotated[int, m.Field(description="User id")]
+                name: Annotated[str, m.Field(description="User name")]
+                email: Annotated[str, m.Field(description="Email")]
+                active: Annotated[bool, m.Field(description="Active flag")]
 
             class ApiResponse(PositionalModel):
                 """API response for type scenario tests -- Pydantic v2."""
 
                 model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
-                status: Annotated[str, Field(description="Status")]
+                status: Annotated[str, m.Field(description="Status")]
                 data: Annotated[
-                    t.RecursiveContainer,
-                    Field(default=None, description="Payload"),
-                ]
-                message: Annotated[str, Field(description="Message")]
-                error: Annotated[str | None, Field(default=None, description="Error")]
+                    t.RecursiveContainer, m.Field(description="Payload")
+                ] = None
+                message: Annotated[str, m.Field(description="Message")]
+                error: Annotated[str | None, m.Field(description="Error")] = None
 
             # --- Version test models ---
 
-            class VersionTestScenario(BaseModel):
+            class VersionTestScenario(m.BaseModel):
                 """Version test scenario data."""
 
                 model_config: ClassVar[ConfigDict] = ConfigDict(frozen=True)
 
-                name: Annotated[str, Field(description="Scenario name")]
+                name: Annotated[str, m.Field(description="Scenario name")]
                 version_string: Annotated[
-                    str | None,
-                    Field(default=None, description="Version string under test"),
+                    str | None, m.Field(description="Version string under test")
                 ] = None
                 version_info: Annotated[
                     tuple[int | str, ...] | None,
-                    Field(default=None, description="Version info tuple under test"),
+                    m.Field(description="Version info tuple under test"),
                 ] = None
                 should_pass: Annotated[
                     bool,
-                    Field(
-                        default=True,
+                    m.Field(
                         description="Whether scenario should pass validation",
                     ),
                 ] = True
@@ -203,59 +200,52 @@ class TestsFlextCliModels(FlextTestsModels, m):
 
             # --- Config test models ---
 
-            class ConfigTestScenario(BaseModel):
+            class ConfigTestScenario(m.BaseModel):
                 """Test scenario with data."""
 
                 model_config: ClassVar[ConfigDict] = ConfigDict(frozen=True)
 
-                name: Annotated[str, Field(description="Scenario name")]
+                name: Annotated[str, m.Field(description="Scenario name")]
                 test_type: Annotated[
-                    t.Cli.Tests.ConfigTestType, Field(description="Scenario test type")
+                    t.Cli.Tests.ConfigTestType,
+                    m.Field(description="Scenario test type"),
                 ]
                 data: Annotated[
                     t.RecursiveContainerMapping | None,
-                    Field(default=None, description="Scenario input data"),
-                ]
+                    m.Field(description="Scenario input data"),
+                ] = None
                 should_pass: Annotated[
-                    bool,
-                    Field(
-                        default=True, description="Whether scenario is expected to pass"
-                    ),
-                ]
+                    bool, m.Field(description="Whether scenario is expected to pass")
+                ] = True
 
             # --- CLI Service test models ---
 
-            class SampleInput(BaseModel):
+            class SampleInput(m.BaseModel):
                 """Small request model for exercising model-driven CLI generation."""
 
-                name: Annotated[str, Field(description="Target name")]
-                count: Annotated[int, Field(default=1, description="How many times")]
-                dry_run: Annotated[
-                    bool, Field(default=False, description="Dry-run mode")
-                ]
+                name: Annotated[str, m.Field(description="Target name")]
+                count: Annotated[int, m.Field(description="How many times")] = 1
+                dry_run: Annotated[bool, m.Field(description="Dry-run mode")] = False
                 output_format: Annotated[
-                    c.Cli.OutputFormats,
-                    Field(
-                        default=c.Cli.OutputFormats.TABLE, description="Output format"
-                    ),
-                ]
+                    c.Cli.OutputFormats, m.Field(description="Output format")
+                ] = c.Cli.OutputFormats.TABLE
 
-            class SampleOutput(BaseModel):
+            class SampleOutput(m.BaseModel):
                 """Concrete output model for result-route tests."""
 
                 message: Annotated[
-                    str, Field(description="User-facing success message")
+                    str, m.Field(description="User-facing success message")
                 ]
 
-            class RepeatableInput(BaseModel):
+            class RepeatableInput(m.BaseModel):
                 """Exercise repeatable CLI options derived from list-typed fields."""
 
                 make_arg: Annotated[
                     list[str],
-                    Field(
+                    m.Field(
                         default_factory=list, description="Repeatable make-style arg"
                     ),
-                ] = Field(default_factory=list)
+                ] = m.Field(default_factory=list)
 
             class SampleRoute(m.Cli.ResultCommandRoute):
                 """Concrete route model for test-time generic stability."""

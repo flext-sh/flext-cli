@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Literal
 
-from flext_cli import FlextCliConstantsEnums, r
+from flext_cli import FlextCliConstantsEnums, p
 
 if TYPE_CHECKING:
     from flext_cli import m
@@ -21,7 +21,7 @@ class FlextCliTypesPipeline:
     ]
     type PipelineHandler = Callable[
         [m.Cli.PipelineStageContext],
-        r[m.Cli.PipelineStageResult],
+        p.Result[m.Cli.PipelineStageResult],
     ]
     type PipelineSkipPredicate = Callable[[m.Cli.PipelineStageContext], bool]
 

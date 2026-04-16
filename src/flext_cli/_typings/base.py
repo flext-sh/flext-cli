@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Mapping, MutableMapping, Sequence
 from pathlib import Path
 from types import GenericAlias, UnionType
-from typing import ClassVar, Literal, TypeAliasType
+from typing import TYPE_CHECKING, ClassVar, Literal, TypeAliasType
 
 from pydantic import JsonValue as PydanticJsonValue, TypeAdapter
 from pydantic.fields import FieldInfo
@@ -20,6 +20,9 @@ from typer.testing import CliRunner
 
 from flext_cli import c
 from flext_core import t
+
+if TYPE_CHECKING:
+    from flext_cli import m
 
 
 class FlextCliTypesBase:
@@ -162,18 +165,22 @@ class FlextCliTypesBase:
     )
     SCALAR_TYPES: ClassVar[tuple[type, ...]] = t.SCALAR_TYPES
 
-    JSON_VALUE_ADAPTER: ClassVar[TypeAdapter[JsonValue]] = TypeAdapter(JsonValue)
-    JSON_MAPPING_ADAPTER: ClassVar[TypeAdapter[JsonMapping]] = TypeAdapter(JsonMapping)
-    JSON_LIST_ADAPTER: ClassVar[TypeAdapter[JsonList]] = TypeAdapter(JsonList)
-    YAML_DICT_ADAPTER: ClassVar[TypeAdapter[t.JsonMapping]] = TypeAdapter(t.JsonMapping)
-    YAML_SEQ_ADAPTER: ClassVar[TypeAdapter[t.JsonList]] = TypeAdapter(t.JsonList)
-    CONTAINER_VALUE_ADAPTER: TypeAdapter[t.ContainerValue] = TypeAdapter(
+    JSON_VALUE_ADAPTER: ClassVar[m.TypeAdapter[JsonValue]] = TypeAdapter(JsonValue)
+    JSON_MAPPING_ADAPTER: ClassVar[m.TypeAdapter[JsonMapping]] = TypeAdapter(
+        JsonMapping
+    )
+    JSON_LIST_ADAPTER: ClassVar[m.TypeAdapter[JsonList]] = TypeAdapter(JsonList)
+    YAML_DICT_ADAPTER: ClassVar[m.TypeAdapter[t.JsonMapping]] = TypeAdapter(
+        t.JsonMapping
+    )
+    YAML_SEQ_ADAPTER: ClassVar[m.TypeAdapter[t.JsonList]] = TypeAdapter(t.JsonList)
+    CONTAINER_VALUE_ADAPTER: m.TypeAdapter[t.ContainerValue] = TypeAdapter(
         t.ContainerValue
     )
-    CONTAINER_NORMALIZE_ADAPTER: ClassVar[TypeAdapter[t.ContainerValue]] = TypeAdapter(
-        t.ContainerValue
+    CONTAINER_NORMALIZE_ADAPTER: ClassVar[m.TypeAdapter[t.ContainerValue]] = (
+        TypeAdapter(t.ContainerValue)
     )
-    CLI_DEFAULT_SOURCE_ADAPTER: ClassVar[TypeAdapter[CliDefaultSource]] = TypeAdapter(
+    CLI_DEFAULT_SOURCE_ADAPTER: ClassVar[m.TypeAdapter[CliDefaultSource]] = TypeAdapter(
         CliDefaultSource,
     )
 

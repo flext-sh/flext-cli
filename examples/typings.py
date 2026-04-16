@@ -10,6 +10,7 @@ from pydantic import (
 )
 
 from flext_cli import FlextCli, t
+from flext_core import m
 
 
 class ExamplesFlextCliTypes(t):
@@ -22,8 +23,10 @@ class ExamplesFlextCliTypes(t):
 
     type DataProcessor = Callable[[str], str]
     type ProcessorRegistry = Mapping[str, DataProcessor]
-    JSON_DICT_ADAPTER: ClassVar[TypeAdapter[t.RecursiveContainerMapping]] = TypeAdapter(
-        t.RecursiveContainerMapping,
+    JSON_DICT_ADAPTER: ClassVar[m.TypeAdapter[t.RecursiveContainerMapping]] = (
+        TypeAdapter(
+            t.RecursiveContainerMapping,
+        )
     )
 
 

@@ -82,7 +82,7 @@ class FlextCliUtilitiesJson:
             return r[t.Cli.JsonMapping].ok(
                 t.Cli.JSON_MAPPING_ADAPTER.validate_python(loaded),
             )
-        except ValidationError as exc:
+        except c.ValidationError as exc:
             return r[t.Cli.JsonMapping].fail(f"json_read validation: {exc}")
 
     @staticmethod

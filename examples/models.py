@@ -14,11 +14,10 @@ import os
 from collections.abc import Mapping, MutableSequence
 from ipaddress import ip_address
 from pathlib import Path
-from typing import ClassVar
+from typing import Annotated, ClassVar
 
 from pydantic import (
     ConfigDict,
-    Field,
     TypeAdapter,
     field_validator,
     model_validator,
@@ -70,15 +69,17 @@ class ExamplesFlextCliModels(m):
                 extra="forbid",
                 validate_assignment=True,
             )
-            host: str = Field(default="localhost", description="Database host")
-            port: int = Field(
-                default=c.EXAMPLE_DEFAULT_DB_PORT,
-                ge=1,
-                le=c.EXAMPLE_MAX_PORT,
-                description="Port",
-            )
-            database: str = Field(default="", description="Database name")
-            password: str = Field(default="", description="Password")
+            host: Annotated[str, m.Field(description="Database host")] = "localhost"
+            port: Annotated[
+                int,
+                m.Field(
+                    ge=1,
+                    le=c.EXAMPLE_MAX_PORT,
+                    description="Port",
+                ),
+            ] = c.EXAMPLE_DEFAULT_DB_PORT
+            database: Annotated[str, m.Field(description="Database name")] = ""
+            password: Annotated[str, m.Field(description="Password")] = ""
 
         class AppWizardConfig(m.Value):
             """App configuration wizard result — Pydantic v2 only."""
@@ -87,27 +88,35 @@ class ExamplesFlextCliModels(m):
                 extra="forbid",
                 validate_assignment=True,
             )
-            app_name: str = Field(
-                default=c.EXAMPLE_DEFAULT_APP_NAME,
-                description="Application name",
-            )
-            environment: str = Field(
-                default=c.EXAMPLE_DEFAULT_ENVIRONMENT,
-                description="Environment",
-            )
-            port: int = Field(
-                default=c.EXAMPLE_DEFAULT_APP_PORT,
-                ge=c.EXAMPLE_MIN_PORT,
-                le=c.EXAMPLE_MAX_PORT,
-                description="Port",
-            )
-            cpu_limit: float = Field(
-                default=c.EXAMPLE_DEFAULT_CPU_LIMIT,
-                ge=0.0,
-                description="CPU limit",
-            )
-            enable_cache: bool = Field(default=True, description="Enable cache")
-            enable_auth: bool = Field(default=True, description="Enable auth")
+            app_name: Annotated[
+                str,
+                m.Field(
+                    description="Application name",
+                ),
+            ] = c.EXAMPLE_DEFAULT_APP_NAME
+            environment: Annotated[
+                str,
+                m.Field(
+                    description="Environment",
+                ),
+            ] = c.EXAMPLE_DEFAULT_ENVIRONMENT
+            port: Annotated[
+                int,
+                m.Field(
+                    ge=c.EXAMPLE_MIN_PORT,
+                    le=c.EXAMPLE_MAX_PORT,
+                    description="Port",
+                ),
+            ] = c.EXAMPLE_DEFAULT_APP_PORT
+            cpu_limit: Annotated[
+                float,
+                m.Field(
+                    ge=0.0,
+                    description="CPU limit",
+                ),
+            ] = c.EXAMPLE_DEFAULT_CPU_LIMIT
+            enable_cache: Annotated[bool, m.Field(description="Enable cache")] = True
+            enable_auth: Annotated[bool, m.Field(description="Enable auth")] = True
 
         class NumericPromptResult(m.Value):
             """Numeric prompts result — Pydantic v2 only."""
@@ -116,23 +125,29 @@ class ExamplesFlextCliModels(m):
                 extra="forbid",
                 validate_assignment=True,
             )
-            workers: int = Field(
-                default=c.EXAMPLE_DEFAULT_MAX_WORKERS,
-                ge=1,
-                le=c.EXAMPLE_MAX_WORKERS,
-                description="Workers",
-            )
-            cpu_limit: float = Field(
-                default=c.EXAMPLE_DEFAULT_CPU_LIMIT_PROMPTS,
-                ge=0.0,
-                description="CPU limit",
-            )
-            percentage: int = Field(
-                default=c.EXAMPLE_DEFAULT_PERCENTAGE,
-                ge=0,
-                le=100,
-                description="Percentage",
-            )
+            workers: Annotated[
+                int,
+                m.Field(
+                    ge=1,
+                    le=c.EXAMPLE_MAX_WORKERS,
+                    description="Workers",
+                ),
+            ] = c.EXAMPLE_DEFAULT_MAX_WORKERS
+            cpu_limit: Annotated[
+                float,
+                m.Field(
+                    ge=0.0,
+                    description="CPU limit",
+                ),
+            ] = c.EXAMPLE_DEFAULT_CPU_LIMIT_PROMPTS
+            percentage: Annotated[
+                int,
+                m.Field(
+                    ge=0,
+                    le=100,
+                    description="Percentage",
+                ),
+            ] = c.EXAMPLE_DEFAULT_PERCENTAGE
 
         # -------------------------------------------------------------------
         # Example 06 - Configuration
@@ -145,21 +160,27 @@ class ExamplesFlextCliModels(m):
                 extra="forbid",
                 validate_assignment=True,
             )
-            app_name: str = Field(
-                default=c.EXAMPLE_DEFAULT_TOOL_NAME,
-                description="Application name",
-            )
-            api_key: str = Field(default="", description="API key")
-            max_workers: int = Field(
-                default=c.EXAMPLE_DEFAULT_MAX_WORKERS,
-                ge=1,
-                description="Max workers",
-            )
-            timeout: int = Field(
-                default=c.EXAMPLE_DEFAULT_TIMEOUT_SECONDS,
-                ge=1,
-                description="Timeout in seconds",
-            )
+            app_name: Annotated[
+                str,
+                m.Field(
+                    description="Application name",
+                ),
+            ] = c.EXAMPLE_DEFAULT_TOOL_NAME
+            api_key: Annotated[str, m.Field(description="API key")] = ""
+            max_workers: Annotated[
+                int,
+                m.Field(
+                    ge=1,
+                    description="Max workers",
+                ),
+            ] = c.EXAMPLE_DEFAULT_MAX_WORKERS
+            timeout: Annotated[
+                int,
+                m.Field(
+                    ge=1,
+                    description="Timeout in seconds",
+                ),
+            ] = c.EXAMPLE_DEFAULT_TIMEOUT_SECONDS
 
             @model_validator(mode="before")
             @classmethod
@@ -223,27 +244,37 @@ class ExamplesFlextCliModels(m):
                 extra="forbid",
                 validate_assignment=True,
             )
-            database_url: str = Field(
-                default=c.EXAMPLE_DEFAULT_DB_URL,
-                description="Database URL",
+            database_url: Annotated[
+                str,
+                m.Field(
+                    description="Database URL",
+                ),
+            ] = c.EXAMPLE_DEFAULT_DB_URL
+            redis_url: Annotated[
+                str,
+                m.Field(
+                    description="Redis URL",
+                ),
+            ] = c.EXAMPLE_DEFAULT_REDIS_URL
+            api_key: Annotated[str, m.Field(description="API key")] = ""
+            max_workers: Annotated[
+                int,
+                m.Field(
+                    ge=1,
+                    le=c.EXAMPLE_MAX_CONNECTION_POOL,
+                    description="Max workers",
+                ),
+            ] = c.EXAMPLE_DEFAULT_MAX_WORKERS
+            enable_metrics: Annotated[bool, m.Field(description="Enable metrics")] = (
+                True
             )
-            redis_url: str = Field(
-                default=c.EXAMPLE_DEFAULT_REDIS_URL,
-                description="Redis URL",
-            )
-            api_key: str = Field(default="", description="API key")
-            max_workers: int = Field(
-                default=c.EXAMPLE_DEFAULT_MAX_WORKERS,
-                ge=1,
-                le=c.EXAMPLE_MAX_CONNECTION_POOL,
-                description="Max workers",
-            )
-            enable_metrics: bool = Field(default=True, description="Enable metrics")
-            log_level: str = Field(
-                default=c.EXAMPLE_DEFAULT_LOG_LEVEL,
-                description="Log level",
-            )
-            temp_dir: Path = Field(
+            log_level: Annotated[
+                str,
+                m.Field(
+                    description="Log level",
+                ),
+            ] = c.EXAMPLE_DEFAULT_LOG_LEVEL
+            temp_dir: Path = m.Field(
                 default_factory=lambda: (
                     Path.home()
                     / c.Cli.PATH_FLEXT_DIR_NAME
@@ -331,25 +362,31 @@ class ExamplesFlextCliModels(m):
                 extra="forbid",
                 validate_assignment=True,
             )
-            environment: str = Field(
-                default=c.EXAMPLE_DEFAULT_ENVIRONMENT,
-                description="Deployment environment (dev/staging/prod)",
-            )
-            workers: int = Field(
-                default=c.EXAMPLE_DEFAULT_MAX_WORKERS,
-                ge=1,
-                le=c.EXAMPLE_MAX_WORKERS,
-                description="Number of worker processes",
-            )
-            enable_cache: bool = Field(
-                default=True, description="Enable application cache"
-            )
-            timeout: int = Field(
-                default=c.EXAMPLE_DEFAULT_TIMEOUT_SECONDS,
-                ge=1,
-                le=300,
-                description="Request timeout in seconds",
-            )
+            environment: Annotated[
+                str,
+                m.Field(
+                    description="Deployment environment (dev/staging/prod)",
+                ),
+            ] = c.EXAMPLE_DEFAULT_ENVIRONMENT
+            workers: Annotated[
+                int,
+                m.Field(
+                    ge=1,
+                    le=c.EXAMPLE_MAX_WORKERS,
+                    description="Number of worker processes",
+                ),
+            ] = c.EXAMPLE_DEFAULT_MAX_WORKERS
+            enable_cache: Annotated[
+                bool, m.Field(description="Enable application cache")
+            ] = True
+            timeout: Annotated[
+                int,
+                m.Field(
+                    ge=1,
+                    le=300,
+                    description="Request timeout in seconds",
+                ),
+            ] = c.EXAMPLE_DEFAULT_TIMEOUT_SECONDS
 
             @field_validator("environment")
             @classmethod
@@ -367,17 +404,21 @@ class ExamplesFlextCliModels(m):
                 extra="forbid",
                 validate_assignment=True,
             )
-            host: str = Field(
-                default=c.EXAMPLE_DEFAULT_HOST,
-                description="Database host",
-            )
-            port: int = Field(
-                default=c.EXAMPLE_DEFAULT_DB_PORT,
-                ge=c.EXAMPLE_MIN_PORT,
-                le=c.EXAMPLE_MAX_PORT,
-                description="Database port",
-            )
-            name: str = Field(description="Database name")
+            host: Annotated[
+                str,
+                m.Field(
+                    description="Database host",
+                ),
+            ] = c.EXAMPLE_DEFAULT_HOST
+            port: Annotated[
+                int,
+                m.Field(
+                    ge=c.EXAMPLE_MIN_PORT,
+                    le=c.EXAMPLE_MAX_PORT,
+                    description="Database port",
+                ),
+            ] = c.EXAMPLE_DEFAULT_DB_PORT
+            name: str = m.Field(description="Database name")
 
         class AppConfigNested(m.Value):
             """Application configuration with nested database model."""
@@ -386,15 +427,17 @@ class ExamplesFlextCliModels(m):
                 extra="forbid",
                 validate_assignment=True,
             )
-            app_name: str = Field(description="Application name")
-            version: str = Field(
-                default=c.EXAMPLE_DEFAULT_APP_VERSION,
-                description="Application version",
-            )
-            database: ExamplesFlextCliModels.Examples.DatabaseConfig = Field(
+            app_name: str = m.Field(description="Application name")
+            version: Annotated[
+                str,
+                m.Field(
+                    description="Application version",
+                ),
+            ] = c.EXAMPLE_DEFAULT_APP_VERSION
+            database: ExamplesFlextCliModels.Examples.DatabaseConfig = m.Field(
                 description="Database configuration"
             )
-            debug: bool = Field(default=False, description="Enable debug mode")
+            debug: Annotated[bool, m.Field(description="Enable debug mode")] = False
 
         class AdvancedDatabaseConfig(m.Value):
             """Database configuration with advanced validation."""
@@ -403,28 +446,28 @@ class ExamplesFlextCliModels(m):
                 extra="forbid",
                 validate_assignment=True,
             )
-            host: str = Field(
+            host: str = m.Field(
                 description="Database host",
-                default=c.EXAMPLE_DEFAULT_HOST,
             )
-            port: int = Field(
+            port: int = m.Field(
                 description="Database port",
                 ge=c.EXAMPLE_MIN_PORT,
                 le=c.EXAMPLE_MAX_PORT,
                 default=c.EXAMPLE_DEFAULT_DB_PORT,
             )
-            name: str = Field(description="Database name", min_length=1)
-            username: str = Field(description="Database username", min_length=1)
-            password: str = Field(
+            name: str = m.Field(description="Database name", min_length=1)
+            username: str = m.Field(description="Database username", min_length=1)
+            password: str = m.Field(
                 description="Database password",
                 min_length=c.EXAMPLE_MIN_PASSWORD_LENGTH,
             )
-            ssl_enabled: bool = Field(description="Enable SSL", default=True)
-            connection_pool: int = Field(
+            ssl_enabled: bool = m.Field(description="Enable SSL", default=True)
+            connection_pool: int = m.Field(
+                c.EXAMPLE_DEFAULT_CONNECTION_POOL,
                 description="Connection pool size",
                 ge=1,
                 le=c.EXAMPLE_MAX_CONNECTION_POOL,
-                default=c.EXAMPLE_DEFAULT_CONNECTION_POOL,
+                validate_default=True,
             )
 
             @field_validator("host")

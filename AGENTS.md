@@ -694,7 +694,7 @@ ______________________________________________________________________
 from pydantic import BaseModel, ConfigDict
 
 
-class CommandExecutionConfig(BaseModel):
+class CommandExecutionConfig(m.BaseModel):
     model_config = ConfigDict(frozen=False, validate_assignment=True)
 ```
 
@@ -704,7 +704,7 @@ class CommandExecutionConfig(BaseModel):
 from pydantic import field_validator
 
 
-class CommandModel(BaseModel):
+class CommandModel(m.BaseModel):
     command_name: str
 
     @field_validator("command_name")

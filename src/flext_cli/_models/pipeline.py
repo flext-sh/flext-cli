@@ -6,9 +6,9 @@ from collections.abc import Callable, MutableMapping, Sequence
 from pathlib import Path
 from typing import Annotated, ClassVar
 
-from pydantic import ConfigDict, Field, computed_field
+from pydantic import ConfigDict, computed_field
 
-from flext_cli import c, r, t
+from flext_cli import c, p, t
 from flext_core import m
 
 
@@ -18,8 +18,6 @@ class FlextCliModelsPipeline:
     class PipelineStageContext(m.ContractModel):
         """Accumulated state passed between pipeline stages."""
 
-        _flext_enforcement_exempt: ClassVar[bool] = True
-
         model_config: ClassVar[ConfigDict] = ConfigDict(
             extra="forbid",
             validate_assignment=True,
@@ -28,23 +26,23 @@ class FlextCliModelsPipeline:
 
         workspace_root: Annotated[
             Path,
-            Field(description="Workspace root directory"),
+            m.Field(description="Workspace root directory"),
         ]
         shared: Annotated[
             MutableMapping[str, t.RecursiveContainer],
-            Field(
+            m.Field(
                 default_factory=dict, description="Mutable shared state between stages"
             ),
         ]
         settings: Annotated[
             t.RecursiveContainerMapping,
-            Field(default_factory=dict, description="Immutable pipeline configuration"),
+            m.Field(
+                default_factory=dict, description="Immutable pipeline configuration"
+            ),
         ]
 
     class PipelineStageSpec(m.ContractModel):
         """Declarative stage definition with dependency tracking."""
-
-        _flext_enforcement_exempt: ClassVar[bool] = True
 
         model_config: ClassVar[ConfigDict] = ConfigDict(
             extra="forbid",
@@ -53,11 +51,11 @@ class FlextCliModelsPipeline:
 
         stage_id: Annotated[
             str,
-            Field(description="Unique stage identifier"),
+            m.Field(description="Unique stage identifier"),
         ]
         depends_on: Annotated[
             frozenset[str],
-            Field(
+            m.Field(
                 default_factory=frozenset, description="Stage IDs this stage depends on"
             ),
         ]
@@ -68,48 +66,43 @@ class FlextCliModelsPipeline:
         handler: Annotated[
             Callable[
                 [FlextCliModelsPipeline.PipelineStageContext],
-                r[FlextCliModelsPipeline.PipelineStageResult],
+                p.Result[FlextCliModelsPipeline.PipelineStageResult],
             ],
-            Field(description="Callable that executes the stage"),
+            m.Field(description="Callable that executes the stage"),
         ]
         skip_if: Annotated[
             Callable[[FlextCliModelsPipeline.PipelineStageContext], bool] | None,
-            Field(default=None, description="Predicate — skip stage if returns True"),
-        ]
+            m.Field(description="Predicate — skip stage if returns True"),
+        ] = None
         retry: Annotated[
             int,
-            Field(
-                default=c.Cli.PIPELINE_DEFAULT_RETRY,
+            m.Field(
                 ge=0,
                 le=c.Cli.PIPELINE_MAX_RETRY,
                 description="Number of retries on failure",
             ),
-        ]
+        ] = c.Cli.PIPELINE_DEFAULT_RETRY
 
     class PipelineStageResult(m.ContractModel):
         """What a stage produces after execution."""
 
-        _flext_enforcement_exempt: ClassVar[bool] = True
-
         model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
 
-        stage_id: Annotated[str, Field(description="Stage that produced this result")]
+        stage_id: Annotated[str, m.Field(description="Stage that produced this result")]
         status: Annotated[
             t.Cli.PipelineStageStatus,
-            Field(description="Execution outcome"),
+            m.Field(description="Execution outcome"),
         ]
         output: Annotated[
             t.RecursiveContainerMapping,
-            Field(default_factory=dict, description="Stage output payload"),
+            m.Field(default_factory=dict, description="Stage output payload"),
         ]
         duration_ms: Annotated[
-            float,
-            Field(default=0.0, description="Execution duration in milliseconds"),
-        ]
-        error: Annotated[
-            str | None,
-            Field(default=None, description="Error message if failed"),
-        ]
+            float, m.Field(description="Execution duration in milliseconds")
+        ] = 0.0
+        error: Annotated[str | None, m.Field(description="Error message if failed")] = (
+            None
+        )
 
     class PipelineResult(m.ContractModel):
         """Full pipeline execution result — aggregated from all stages."""
@@ -118,12 +111,13 @@ class FlextCliModelsPipeline:
 
         stages: Annotated[
             Sequence[FlextCliModelsPipeline.PipelineStageResult],
-            Field(default_factory=list, description="Results from all executed stages"),
+            m.Field(
+                default_factory=list, description="Results from all executed stages"
+            ),
         ]
         total_duration_ms: Annotated[
-            float,
-            Field(default=0.0, description="Total pipeline execution time"),
-        ]
+            float, m.Field(description="Total pipeline execution time")
+        ] = 0.0
 
         @computed_field
         @property
