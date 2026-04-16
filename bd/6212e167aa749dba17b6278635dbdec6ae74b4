@@ -1,0 +1,52 @@
+src/flext_cli/_typings/pipeline.py
+  h_9db9d35f50cf33 8,24
+src/flext_cli/_typings/base.py
+  h_9db9d35f50cf33 8,24-25,168-169,172-173,176-177,180-181,183
+examples/typings.py
+  h_9db9d35f50cf33 13,26,29
+src/flext_cli/_utilities/conversion.py
+  h_9db9d35f50cf33 8,11,18,31,49
+src/flext_cli/settings.py
+  h_9db9d35f50cf33 16,23,30,45,56
+src/flext_cli/_models/pipeline.py
+  h_9db9d35f50cf33 11,40,71,98,102,120
+src/flext_cli/_utilities/json.py
+  h_9db9d35f50cf33 85
+src/flext_cli/_utilities/tables.py
+  h_9db9d35f50cf33 18,68
+AGENTS.md
+  h_9db9d35f50cf33 697,707
+docs/refactoring/direct-typing-refactor-plan.md
+  h_9db9d35f50cf33 50
+docs/guides/development.md
+  h_9db9d35f50cf33 192,195,201,205,349,352,355
+src/flext_cli/_models/base.py
+  h_9db9d35f50cf33 29,33,37,41,53,56,67,70,87-88,91-92,117,121,125,152,290,348,440,478,542,554
+docs/refactoring/refactoring-plan-v0.10.0.md
+  h_9db9d35f50cf33 337-338,517-518,520
+examples/models.py
+  h_9db9d35f50cf33 17,72-75,79-82,91-105,109-113,116-119,128-145,149-150,163-165,167-172,175-179,182-183,247-249,251-255,257-262,266-273,275-277,365-389,407-421,430-433,435-437,440,449,452,458-460,464-466,470
+docs/guides/troubleshooting.md
+  h_9db9d35f50cf33 251,519
+examples/ex_14_advanced_file_formats.py
+  h_9db9d35f50cf33 36,38,188,194
+src/flext_cli/_utilities/toml.py
+  h_9db9d35f50cf33 11,16,23,35,64,108,267,282
+tests/models.py
+  h_9db9d35f50cf33 32,53-56,62,65,67,211,228,231
+docs/guides/settings.md
+  h_9db9d35f50cf33 256,381,384,388
+examples/ex_04_file_operations.py
+  h_9db9d35f50cf33 497,503,655,666
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.0",
+  "base_commit_sha": "bd6212e167aa749dba17b6278635dbdec6ae74b4",
+  "prompts": {},
+  "humans": {
+    "h_9db9d35f50cf33": {
+      "author": "FLEXT Bot"
+    }
+  }
+}
