@@ -211,7 +211,7 @@ class FlextCliContext(s[CliDataDict]):
 
 - Mutable state where immutability is better
 - Service overhead for simple data
-- Violates value t.RecursiveContainer pattern
+- Violates value object pattern
 
 #### 5. Duplicate Modules
 
@@ -511,7 +511,7 @@ from flext_core import FlextModels
 
 
 class FlextCliContext(m.Value):
-    """Immutable context value t.RecursiveContainer."""
+    """Immutable context value object."""
 
     command: str | None = None
     arguments: t.StrSequence = Field(default_factory=list)
@@ -527,7 +527,7 @@ class FlextCliContext(m.Value):
 - Immutable by default
 - Simpler mental model
 - No lifecycle management needed
-- Follows value t.RecursiveContainer pattern
+- Follows value object pattern
 
 ### Phase 4: Remove API Wrappers
 
@@ -779,7 +779,7 @@ Commit after each: "refactor: convert FlextCliFileTools to simple class"
 1. Update all usage sites
 1. Update tests
 1. Run: `make validate`
-1. Commit: "refactor: convert context to value t.RecursiveContainer"
+1. Commit: "refactor: convert context to value object"
 
 #### Phase 5: Remove API Wrappers
 
@@ -879,7 +879,7 @@ ______________________________________________________________________
 
 ### High Risk (Careful Attention Required)
 
-**1. Change FlextCliContext from service to value t.RecursiveContainer**
+**1. Change FlextCliContext from service to value object**
 
 - Architectural pattern change
 - Affects all context usage

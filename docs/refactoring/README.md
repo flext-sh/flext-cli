@@ -44,7 +44,7 @@ This directory contains comprehensive documentation for the v0.12.0-dev refactor
 - Services reduced from 18 → 3-4 (only for stateful logic)
 - Direct access pattern (removed thin wrappers)
 - Removed unused infrastructure (async, threading, plugins)
-- Context changed from service to value t.RecursiveContainer
+- Context changed from service to value object
 
 **Benefits**:
 
