@@ -108,7 +108,7 @@ ______________________________________________________________________
 
 ## Rule 0 — Cross-Project Alignment
 
-- This file mirrors the root `../AGENTS.md` standards. Any rule change must be made in the root first and then propagated to this file and to `flext-core/`, `flext-ldap/`, `flext-ldif/`, and `flext-oud-mig/` `AGENTS.md` files.
+- This file mirrors the root `../AGENTS.md` standards. Any rule change must be made in the root first and then propagated to this file and to `flext-core/`, `flext-ldap/`, `flext-ldif/`, and `algar-oud-mig/` `AGENTS.md` files.
 - All agents accept cross-project changes and resolve conflicts in the root `AGENTS.md` before coding.
 
 ## Critical Rules — Zero Tolerance
@@ -877,10 +877,10 @@ ______________________________________________________________________
 This project is part of the FLEXT monorepo workspace. Key integration points:
 
 - **Depends on**: flext-core (foundation library)
-- **Used by**: flext-oud-mig, flext-meltano-native, flext-api, flext-observability, flext-meltano
+- **Used by**: algar-oud-mig, gruponos-meltano-native, flext-api, flext-observability, flext-meltano
 - **Architecture**: Follows workspace-level patterns defined in `../AGENTS.md`
 - **Quality Gates**: Must pass workspace-level validation before commits
-- **Unified Rules**: Follows same rules as flext-core, flext-ldif, flext-ldap, flext-oud-mig
+- **Unified Rules**: Follows same rules as flext-core, flext-ldif, flext-ldap, algar-oud-mig
 
 See `../AGENTS.md` for workspace-level standards and `README.md` for project overview.
 
