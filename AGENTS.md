@@ -774,7 +774,7 @@ ______________________________________________________________________
 ### Zero Tolerance Rules (Completely Prohibited)
 
 1. **Hacks**: ❌ PROHIBITED - `model_rebuild()`, `eval()`, `exec()`, and architectural `getattr()`.
-1. **Inline/Lazy Imports**: ❌ PROHIBITED - No imports inside functions or `.try / except ImportError:`.
+1. **Inline/Lazy Imports**: ❌ PROHIBITED - No imports inside functions or `try/except ImportError:`.
 1. **# type: ignore**: ❌ PROHIBITED COMPLETELY - Zero tolerance, no exceptions
 1. **Metaclasses**: ❌ PROHIBITED COMPLETELY - Except for `__getattr__` in `__init__.py` for lazy loading
 1. **Root Aliases**: ❌ PROHIBITED COMPLETELY - Always use complete namespace (c.Cli.OutputFormats, not c.OutputFormats)
