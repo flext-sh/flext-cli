@@ -540,7 +540,7 @@ class DataCommands(s):
         return r[bool].| ok(value=True)
 ```
 
-2. Register with CLI:
+1. Register with CLI:
 
 ```python
 from flext_cli import FlextCliCommands
@@ -553,7 +553,7 @@ cli.register_command_group(
 )
 ```
 
-3. Add tests:
+1. Add tests:
 
 ```python
 def test_data_export_command():

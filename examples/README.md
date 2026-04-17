@@ -80,7 +80,7 @@ flext-cli is a production-ready Python library that provides:
 
 ### Core Features
 
-4. **[ex_04_file_operations.py](ex_04_file_operations.py)** - File handling
+1. **[ex_04_file_operations.py](ex_04_file_operations.py)** - File handling
 
    - File reading/writing
    - Path validation
@@ -103,7 +103,7 @@ flext-cli is a production-ready Python library that provides:
 
 ### Advanced Features
 
-7. **[ex_07_plugin_system.py](ex_07_plugin_system.py)** - Plugins
+1. **[ex_07_plugin_system.py](ex_07_plugin_system.py)** - Plugins
 
    - Plugin loading
    - Custom plugin development
@@ -129,7 +129,7 @@ flext-cli is a production-ready Python library that provides:
 
 ### Integration
 
-11. **[ex_11_complete_integration.py](ex_11_complete_integration.py)** - Everything together
+1. **[ex_11_complete_integration.py](ex_11_complete_integration.py)** - Everything together
     - Complete workflow example
     - Module integration
     - Best practices

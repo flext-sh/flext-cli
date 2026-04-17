@@ -784,7 +784,7 @@ ______________________________________________________________________
 
 ### Replacement Rules
 
-9. **cast()**: ❌ REPLACE ALL - Replace with Models/Protocols/TypeGuards
+1. **cast()**: ❌ REPLACE ALL - Replace with Models/Protocols/TypeGuards
 1. **Any**: ❌ REPLACE ALL - Replace with specific types (Models, Protocols, TypeVars, t.RecursiveContainer)
 
 ### Examples

@@ -450,10 +450,11 @@ class ExamplesFlextCliModels(m):
                 description="Database host",
             )
             port: int = m.Field(
+                c.EXAMPLE_DEFAULT_DB_PORT,
                 description="Database port",
                 ge=c.EXAMPLE_MIN_PORT,
                 le=c.EXAMPLE_MAX_PORT,
-                default=c.EXAMPLE_DEFAULT_DB_PORT,
+                validate_default=True,
             )
             name: str = m.Field(description="Database name", min_length=1)
             username: str = m.Field(description="Database username", min_length=1)
@@ -461,7 +462,9 @@ class ExamplesFlextCliModels(m):
                 description="Database password",
                 min_length=c.EXAMPLE_MIN_PASSWORD_LENGTH,
             )
-            ssl_enabled: bool = m.Field(description="Enable SSL", default=True)
+            ssl_enabled: bool = m.Field(
+                True, description="Enable SSL", validate_default=True
+            )
             connection_pool: int = m.Field(
                 c.EXAMPLE_DEFAULT_CONNECTION_POOL,
                 description="Connection pool size",
