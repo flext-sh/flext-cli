@@ -8,8 +8,6 @@ from typing import (
     ClassVar,
 )
 
-
-
 from flext_cli import c, p, t
 from flext_core import m, u
 
@@ -246,7 +244,9 @@ class FlextCliModelsBase:
 
         # Index display
         showindex: t.Cli.TableShowIndex = m.Field(
-            False, description="Whether to show row indices"
+            False,
+            validate_default=True,
+            description="Whether to show row indices",
         )
 
         # Column alignment
@@ -260,6 +260,7 @@ class FlextCliModelsBase:
         # Number parsing
         disable_numparse: t.Cli.TableDisableNumparse = m.Field(
             False,
+            validate_default=True,
             description="Disable number parsing (bool or list of column indices)",
         )
 

@@ -5,16 +5,15 @@ from __future__ import annotations
 from typing import Self, override
 
 from flext_tests import tm
-from pydantic import PrivateAttr
 
-from flext_cli import FlextCliPrompts
+from flext_cli import FlextCliPrompts, m
 from tests import t
 
 
 class CaptureLogPromptsCov(FlextCliPrompts):
     """Prompt service that records log calls locally."""
 
-    _records: list[tuple[str, str]] = PrivateAttr(default_factory=list)
+    _records: list[tuple[str, str]] = m.PrivateAttr(default_factory=list)
 
     @property
     def records(self) -> list[tuple[str, str]]:

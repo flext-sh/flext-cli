@@ -7,7 +7,6 @@ from typing import Self, override
 
 import pytest
 from flext_tests import tm
-from pydantic import PrivateAttr
 
 from flext_cli import FlextCliPrompts, m
 from tests import c, t
@@ -56,7 +55,7 @@ class _TestsFlextCliScriptedPrompts(FlextCliPrompts):
 class _TestsFlextCliCaptureLogPrompts(_TestsFlextCliScriptedPrompts):
     """Prompt service that captures log calls without writing to the real logger."""
 
-    _records: list[tuple[str, str]] = PrivateAttr(default_factory=list)
+    _records: list[tuple[str, str]] = m.PrivateAttr(default_factory=list)
 
     @property
     def records(self) -> list[tuple[str, str]]:
@@ -75,8 +74,8 @@ class _TestsFlextCliCaptureLogPrompts(_TestsFlextCliScriptedPrompts):
 class _TestsFlextCliFailingLogPrompts(_TestsFlextCliScriptedPrompts):
     """Prompt service that fails on one selected log level."""
 
-    _failure_level: str = PrivateAttr(default="")
-    _failure_message: str = PrivateAttr(default="logger failure")
+    _failure_level: str = m.PrivateAttr(default_factory=lambda: "")
+    _failure_message: str = m.PrivateAttr(default_factory=lambda: "logger failure")
 
     def fail_on_log(self, *, level: str, message: str) -> Self:
         self._failure_level = level

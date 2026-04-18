@@ -11,10 +11,8 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import ClassVar, TypeIs
 
-from pydantic import BaseModel, ValidationError
-
 from flext_cli import c, p, r, t
-from flext_core import u
+from flext_core import m, u
 
 
 class FlextCliUtilitiesJson:
@@ -74,7 +72,7 @@ class FlextCliUtilitiesJson:
         try:
             raw = path.read_text(encoding=c.Cli.ENCODING_DEFAULT)
             loaded: t.Cli.JsonValue = t.Cli.JSON_VALUE_ADAPTER.validate_json(raw)
-        except (ValidationError, OSError) as exc:
+        except (c.ValidationError, OSError) as exc:
             return r[t.Cli.JsonMapping].fail(f"json_read: {exc}")
         if not isinstance(loaded, Mapping):
             return r[t.Cli.JsonMapping].fail("json_read: root must be an object")
@@ -98,7 +96,7 @@ class FlextCliUtilitiesJson:
         try:
             path.parent.mkdir(parents=True, exist_ok=True)
             materialized: t.Cli.JsonValue
-            if isinstance(payload, BaseModel):
+            if isinstance(payload, m.BaseModel):
                 materialized = payload.model_dump(mode="json")
             elif isinstance(payload, Mapping):
                 materialized = {
@@ -133,7 +131,7 @@ class FlextCliUtilitiesJson:
                 + "\n"
             )
             _ = path.write_text(content, encoding=c.Cli.ENCODING_DEFAULT)
-        except (TypeError, ValueError, ValidationError, OSError) as exc:
+        except (TypeError, ValueError, c.ValidationError, OSError) as exc:
             FlextCliUtilitiesJson._module_logger.debug(
                 "json_write failed",
                 error=str(exc),
@@ -149,7 +147,7 @@ class FlextCliUtilitiesJson:
             return r[t.Cli.JsonValue].ok(
                 t.Cli.JSON_VALUE_ADAPTER.validate_json(text),
             )
-        except (ValidationError, ValueError) as exc:
+        except (c.ValidationError, ValueError) as exc:
             return r[t.Cli.JsonValue].fail(f"json_parse: {exc}")
 
     @staticmethod
@@ -159,7 +157,7 @@ class FlextCliUtilitiesJson:
         """Normalize a value to a JSON-serializable form."""
         if value is None:
             return None
-        if isinstance(value, BaseModel):
+        if isinstance(value, m.BaseModel):
             return value.model_dump(mode="json")
         return value
 
