@@ -1,0 +1,34 @@
+src/flext_cli/_utilities/json.py
+  h_9db9d35f50cf33 15,75,99,134,150,160
+tests/unit/test_prompts.py
+  h_9db9d35f50cf33 58,77-78
+tests/unit/test_prompts_cov.py
+  h_9db9d35f50cf33 9,16
+tests/models.py
+  h_9db9d35f50cf33 34,51,60,73,205
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.0",
+  "base_commit_sha": "c50c28efae9a2bf5f3097cf7840e48e7689d1def",
+  "prompts": {
+    "042872ef4e0005dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5bfd9f1e-a74b-4952-b429-f2c6cb088948",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "FLEXT Bot",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 70,
+      "overriden_lines": 5
+    }
+  },
+  "humans": {
+    "h_9db9d35f50cf33": {
+      "author": "FLEXT Bot"
+    }
+  }
+}
