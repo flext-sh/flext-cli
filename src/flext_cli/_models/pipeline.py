@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, MutableMapping, Sequence
 from pathlib import Path
+from types import MappingProxyType
 from typing import Annotated, ClassVar
 
 from flext_cli import c, p, t
@@ -26,6 +27,8 @@ class FlextCliModelsPipeline:
             Path,
             m.Field(description="Workspace root directory"),
         ]
+        _flext_enforcement_exempt: ClassVar[bool] = True
+
         shared: Annotated[
             MutableMapping[str, t.RecursiveContainer],
             m.Field(
@@ -35,7 +38,8 @@ class FlextCliModelsPipeline:
         settings: Annotated[
             t.RecursiveContainerMapping,
             m.Field(
-                default_factory=dict, description="Immutable pipeline configuration"
+                default_factory=lambda: MappingProxyType({}),
+                description="Immutable pipeline configuration",
             ),
         ]
 
@@ -93,7 +97,10 @@ class FlextCliModelsPipeline:
         ]
         output: Annotated[
             t.RecursiveContainerMapping,
-            m.Field(default_factory=dict, description="Stage output payload"),
+            m.Field(
+                default_factory=lambda: MappingProxyType({}),
+                description="Stage output payload",
+            ),
         ]
         duration_ms: Annotated[
             float, m.Field(description="Execution duration in milliseconds")
@@ -110,7 +117,7 @@ class FlextCliModelsPipeline:
         stages: Annotated[
             Sequence[FlextCliModelsPipeline.PipelineStageResult],
             m.Field(
-                default_factory=list, description="Results from all executed stages"
+                default_factory=tuple, description="Results from all executed stages"
             ),
         ]
         total_duration_ms: Annotated[
