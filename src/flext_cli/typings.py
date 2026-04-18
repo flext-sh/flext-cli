@@ -5,11 +5,11 @@ from __future__ import annotations
 from yaml import YAMLError as _YamlError
 
 from flext_cli import FlextCliTypesBase, FlextCliTypesDomain, FlextCliTypesPipeline
-from flext_core import FlextTypes
+from flext_core import t
 
 
-class FlextCliTypes(FlextTypes):
-    """CLI type definitions extending FlextTypes via inheritance."""
+class FlextCliTypes(t):
+    """CLI type definitions extending flext-core FlextTypes via inheritance."""
 
     class Cli(FlextCliTypesPipeline, FlextCliTypesDomain, FlextCliTypesBase):
         """CLI types namespace for cross-project access."""

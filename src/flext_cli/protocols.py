@@ -7,10 +7,10 @@ from flext_cli import (
     FlextCliProtocolsDomain,
     FlextCliProtocolsPipeline,
 )
-from flext_core import FlextProtocols
+from flext_core import p
 
 
-class FlextCliProtocols(FlextProtocols):
+class FlextCliProtocols(p):
     """CLI protocol definitions extending FlextProtocols."""
 
     class Cli(

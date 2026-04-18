@@ -9,10 +9,10 @@ from flext_cli import (
     FlextCliUtilitiesToml,
     FlextCliUtilitiesYaml,
 )
-from flext_core import FlextUtilities
+from flext_core import u
 
 
-class FlextCliUtilities(FlextUtilities):
+class FlextCliUtilities(u):
     """CLI utility facade composed from internal utility mixins."""
 
     class Cli(

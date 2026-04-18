@@ -10,10 +10,10 @@ from flext_cli import (
     FlextCliConstantsPipeline,
     FlextCliConstantsSettings,
 )
-from flext_core import FlextConstants
+from flext_core import c
 
 
-class FlextCliConstants(FlextConstants):
+class FlextCliConstants(c):
     """Constants for Flext CLI."""
 
     class Cli(

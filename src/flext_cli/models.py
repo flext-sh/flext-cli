@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 from flext_cli import FlextCliModelsBase, FlextCliModelsPipeline
-from flext_core import FlextModels
+from flext_core import m
 
 
-class FlextCliModels(FlextModels):
+class FlextCliModels(m):
     """FlextCli models extending FlextModels."""
 
     class Cli(FlextCliModelsPipeline, FlextCliModelsBase):
