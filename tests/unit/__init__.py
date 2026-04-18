@@ -23,7 +23,10 @@ _LAZY_IMPORTS = build_lazy_import_map(
             "ScriptedPrompts",
             "TestsCliPrompts",
         ),
-        ".test_prompts_cov": ("TestsCliPromptsCov",),
+        ".test_prompts_cov": (
+            "CaptureLogPromptsCov",
+            "TestsCliPromptsCov",
+        ),
         ".test_protocols": ("TestsCliProtocols",),
         ".test_runtime_utilities_core": ("test_runtime_utilities_core",),
         ".test_runtime_utilities_extra": ("TestCliRuntimeUtilitiesExtra",),

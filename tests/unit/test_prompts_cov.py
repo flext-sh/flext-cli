@@ -11,7 +11,7 @@ from flext_cli import FlextCliPrompts
 from tests import t
 
 
-class CaptureLogPrompts(FlextCliPrompts):
+class CaptureLogPromptsCov(FlextCliPrompts):
     """Prompt service that records log calls locally."""
 
     _records: list[tuple[str, str]] = PrivateAttr(default_factory=list)
@@ -43,7 +43,9 @@ class TestsCliPromptsCov:
     """Extra prompt coverage without monkeypatch or mock."""
 
     def test_prompt_logs_input_when_not_in_test_env(self) -> None:
-        prompts = CaptureLogPrompts().use_input_values(["typed"]).force_non_test_env()
+        prompts = (
+            CaptureLogPromptsCov().use_input_values(["typed"]).force_non_test_env()
+        )
         result = prompts.prompt("message", default="default")
         tm.ok(result)
         tm.that(result.value, eq="typed")
@@ -54,7 +56,7 @@ class TestsCliPromptsCov:
         )
 
     def test_confirm_records_warning_before_retrying(self) -> None:
-        prompts = CaptureLogPrompts().use_input_values(["maybe", "y"])
+        prompts = CaptureLogPromptsCov().use_input_values(["maybe", "y"])
         result = prompts.confirm("m", default=False)
         tm.ok(result)
         tm.that(result.value, eq=True)

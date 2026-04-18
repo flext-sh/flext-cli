@@ -33,7 +33,7 @@ if _t.TYPE_CHECKING:
         ScriptedPrompts,
         TestsCliPrompts,
     )
-    from tests.unit.test_prompts_cov import TestsCliPromptsCov
+    from tests.unit.test_prompts_cov import CaptureLogPromptsCov, TestsCliPromptsCov
     from tests.unit.test_protocols import TestsCliProtocols
     from tests.unit.test_runtime_utilities_extra import TestCliRuntimeUtilitiesExtra
     from tests.unit.test_settings import (
@@ -89,7 +89,10 @@ _LAZY_IMPORTS = merge_lazy_imports(
                 "ScriptedPrompts",
                 "TestsCliPrompts",
             ),
-            ".unit.test_prompts_cov": ("TestsCliPromptsCov",),
+            ".unit.test_prompts_cov": (
+                "CaptureLogPromptsCov",
+                "TestsCliPromptsCov",
+            ),
             ".unit.test_protocols": ("TestsCliProtocols",),
             ".unit.test_runtime_utilities_extra": ("TestCliRuntimeUtilitiesExtra",),
             ".unit.test_settings": (
@@ -145,6 +148,7 @@ install_lazy_exports(__name__, globals(), _LAZY_IMPORTS)
 
 __all__: list[str] = [
     "CaptureLogPrompts",
+    "CaptureLogPromptsCov",
     "FailingLogPrompts",
     "ScriptedPrompts",
     "TestCliRuntimeUtilitiesExtra",
