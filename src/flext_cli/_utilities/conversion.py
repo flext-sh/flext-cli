@@ -5,8 +5,6 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import ClassVar
 
-from pydantic import BaseModel, TypeAdapter
-
 from flext_cli import FlextCliUtilitiesJson, c, p, r, t
 from flext_core import m, u
 
@@ -15,12 +13,12 @@ class FlextCliUtilitiesCliModelConverter:
     """Convert CLI payloads into canonical Pydantic or JSON values."""
 
     _module_logger: ClassVar[p.Logger] = u.fetch_logger(__name__)
-    JSON_VALUE_ADAPTER: ClassVar[m.TypeAdapter[t.Cli.JsonValue]] = TypeAdapter(
+    JSON_VALUE_ADAPTER: ClassVar[m.TypeAdapter[t.Cli.JsonValue]] = m.TypeAdapter(
         t.Cli.JsonValue,
     )
 
     @staticmethod
-    def cli_args_to_model[M: BaseModel](
+    def cli_args_to_model[M: m.BaseModel](
         model_class: type[M],
         cli_args: t.Cli.JsonMapping,
     ) -> p.Result[M]:
@@ -77,7 +75,7 @@ class FlextCliUtilitiesConversion:
         return {}
 
     @staticmethod
-    def cli_args_to_model[M: BaseModel](
+    def cli_args_to_model[M: m.BaseModel](
         model_class: type[M],
         cli_args: t.Cli.JsonMapping,
     ) -> p.Result[M]:

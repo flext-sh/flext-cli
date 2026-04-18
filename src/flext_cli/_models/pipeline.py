@@ -6,10 +6,8 @@ from collections.abc import Callable, MutableMapping, Sequence
 from pathlib import Path
 from typing import Annotated, ClassVar
 
-from pydantic import ConfigDict, computed_field
-
 from flext_cli import c, p, t
-from flext_core import m
+from flext_core import m, u
 
 
 class FlextCliModelsPipeline:
@@ -18,7 +16,7 @@ class FlextCliModelsPipeline:
     class PipelineStageContext(m.ContractModel):
         """Accumulated state passed between pipeline stages."""
 
-        model_config: ClassVar[ConfigDict] = ConfigDict(
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
             extra="forbid",
             validate_assignment=True,
             arbitrary_types_allowed=True,
@@ -44,7 +42,7 @@ class FlextCliModelsPipeline:
     class PipelineStageSpec(m.ContractModel):
         """Declarative stage definition with dependency tracking."""
 
-        model_config: ClassVar[ConfigDict] = ConfigDict(
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
             extra="forbid",
             arbitrary_types_allowed=True,
         )
@@ -86,7 +84,7 @@ class FlextCliModelsPipeline:
     class PipelineStageResult(m.ContractModel):
         """What a stage produces after execution."""
 
-        model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid")
 
         stage_id: Annotated[str, m.Field(description="Stage that produced this result")]
         status: Annotated[
@@ -107,7 +105,7 @@ class FlextCliModelsPipeline:
     class PipelineResult(m.ContractModel):
         """Full pipeline execution result — aggregated from all stages."""
 
-        model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid")
 
         stages: Annotated[
             Sequence[FlextCliModelsPipeline.PipelineStageResult],
@@ -119,7 +117,7 @@ class FlextCliModelsPipeline:
             float, m.Field(description="Total pipeline execution time")
         ] = 0.0
 
-        @computed_field
+        @u.computed_field()
         @property
         def success(self) -> bool:
             """True if no stage failed."""
@@ -127,7 +125,7 @@ class FlextCliModelsPipeline:
                 s.status != c.Cli.PipelineStageStatus.FAILED for s in self.stages
             )
 
-        @computed_field
+        @u.computed_field()
         @property
         def failed_stages(self) -> Sequence[FlextCliModelsPipeline.PipelineStageResult]:
             """Return only failed stage results."""
@@ -135,7 +133,7 @@ class FlextCliModelsPipeline:
                 s for s in self.stages if s.status == c.Cli.PipelineStageStatus.FAILED
             ]
 
-        @computed_field
+        @u.computed_field()
         @property
         def skipped_stages(
             self,

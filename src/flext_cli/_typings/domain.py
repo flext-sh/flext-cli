@@ -6,11 +6,10 @@ from collections.abc import Callable, Mapping, MutableMapping, Sequence
 from pathlib import Path
 from typing import Literal, TextIO
 
-from pydantic import BaseModel
 from pydantic.fields import FieldInfo
 
 from flext_cli import FlextCliConstantsEnums, FlextCliTypesBase, p
-from flext_core import t
+from flext_core import m, t
 
 
 class FlextCliTypesDomain:
@@ -32,8 +31,8 @@ class FlextCliTypesDomain:
     type TableHeaders = str | t.StrSequence | None
     type IntTextValue = int | str | None
     type StrEnvMapping = t.StrMapping
-    type ConfigModel = BaseModel | None
-    type ModelSource = BaseModel | ScalarMapping | None
+    type ConfigModel = m.BaseModel | None
+    type ModelSource = m.BaseModel | ScalarMapping | None
     type OptionRegistry = Mapping[
         str,
         Mapping[str, t.Scalar | t.StrSequence],
@@ -50,17 +49,17 @@ class FlextCliTypesDomain:
     type JsonCommandFn = Callable[..., p.Result[t.RecursiveValue] | None]
     type ResultRouteHandler = Callable[..., p.Cli.ErasedCommandResult]
     type MappingProcessor[T, U] = Callable[[str, T], U]
-    type JsonModelHandler[M: BaseModel] = Callable[[M], t.RecursiveValue]
+    type JsonModelHandler[M: m.BaseModel] = Callable[[M], t.RecursiveValue]
     type RecursiveMapping = t.RecursiveContainerMapping
     type RecursiveMappingSource = t.RecursiveContainer | RecursiveMapping | None
     type JsonPayload = (
         FlextCliTypesBase.JsonValue
-        | BaseModel
+        | m.BaseModel
         | FlextCliTypesBase.JsonMapping
         | FlextCliTypesBase.JsonList
         | Mapping[str, t.RecursiveContainer]
     )
-    type JsonValueOrModel = FlextCliTypesBase.JsonValue | BaseModel | None
+    type JsonValueOrModel = FlextCliTypesBase.JsonValue | m.BaseModel | None
     type TomlMappingSource = (
         t.RecursiveContainer
         | FlextCliTypesBase.TomlItem

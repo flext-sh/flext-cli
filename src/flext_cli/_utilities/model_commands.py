@@ -4,13 +4,13 @@ from __future__ import annotations
 
 import inspect
 
-from pydantic import BaseModel
 from pydantic.fields import FieldInfo
 
 from flext_cli import p, t
+from flext_core import m
 
 
-class FlextCliUtilitiesModelCommandBuilder[M: BaseModel]:
+class FlextCliUtilitiesModelCommandBuilder[M: m.BaseModel]:
     """Thin builder for direct model-backed command callables."""
 
     def __init__(
@@ -78,7 +78,7 @@ class FlextCliUtilitiesModelCommands:
     """Model command methods exposed directly on ``u.Cli``."""
 
     @staticmethod
-    def build_model_command[M: BaseModel](
+    def build_model_command[M: m.BaseModel](
         model_class: type[M],
         handler: p.Cli.ModelCommandHandler[M],
         settings: t.Cli.ConfigModel = None,

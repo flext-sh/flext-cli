@@ -22,7 +22,6 @@ from typing import (
 )
 
 import typer
-from pydantic import BaseModel
 from pydantic.fields import FieldInfo
 from typer.models import OptionInfo
 from typer.testing import CliRunner
@@ -44,7 +43,7 @@ from flext_cli import (
 class FlextCliCli(s):
     """Unified Typer abstraction for model-driven CLI applications."""
 
-    class _ModelCommand[M: BaseModel]:
+    class _ModelCommand[M: m.BaseModel]:
         """Callable wrapper with explicit signature for Typer introspection.
 
         Note: __annotations__ uses MutableMapping[str, type] because Typer reads
@@ -338,7 +337,7 @@ class FlextCliCli(s):
         return typer.Typer(name=name, help=help_text)
 
     @classmethod
-    def model_command[M: BaseModel](
+    def model_command[M: m.BaseModel](
         cls,
         model_cls: type[M],
         handler: p.Cli.ModelCommandHandler[M],
@@ -368,7 +367,7 @@ class FlextCliCli(s):
         return command
 
     @classmethod
-    def derive_model[M: BaseModel](
+    def derive_model[M: m.BaseModel](
         cls,
         model_cls: type[M],
         *sources: t.Cli.ModelSource,
@@ -384,14 +383,14 @@ class FlextCliCli(s):
 
     @staticmethod
     def _model_source_data(
-        model_cls: type[BaseModel],
+        model_cls: type[m.BaseModel],
         source: t.Cli.ModelSource,
     ) -> t.Cli.ScalarMapping:
         """Extract only target-compatible fields from a model or mapping source."""
         if source is None:
             return {}
         raw_source: t.Cli.ScalarMapping
-        if isinstance(source, BaseModel):
+        if isinstance(source, m.BaseModel):
             raw_source = source.model_dump(exclude_none=True)
         else:
             raw_source = source
@@ -477,7 +476,7 @@ class FlextCliCli(s):
         _ = app.command(name, help=help_text)(command)
 
     @classmethod
-    def register_result_command[M: BaseModel, TResult: t.Cli.ResultValue](
+    def register_result_command[M: m.BaseModel, TResult: t.Cli.ResultValue](
         cls,
         app: t.Cli.CliApp,
         *,
@@ -511,7 +510,7 @@ class FlextCliCli(s):
         )
 
     @classmethod
-    def _build_result_executor[M: BaseModel, TResult: t.Cli.ResultValue](
+    def _build_result_executor[M: m.BaseModel, TResult: t.Cli.ResultValue](
         cls,
         *,
         failure_message: str,
@@ -566,7 +565,7 @@ class FlextCliCli(s):
         success_type: c.Cli.MessageTypes | t.Cli.MessageTypeLiteral = (
             c.Cli.MessageTypes.SUCCESS
         ),
-    ) -> p.Cli.ModelCommandHandler[BaseModel]:
+    ) -> p.Cli.ModelCommandHandler[m.BaseModel]:
         """Build a batch executor for type-erased route registration."""
 
         def _exit_with_failure(error: str | None) -> None:
@@ -578,7 +577,7 @@ class FlextCliCli(s):
             )
             cls.exit(code=1)
 
-        def execute(params: BaseModel) -> None:
+        def execute(params: m.BaseModel) -> None:
             result_model = handler(params)
             failure = getattr(result_model, "failure", False)
             if failure:

@@ -4,9 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from pydantic import BaseModel
-
 from flext_cli import FlextCliProtocolsBase
+from flext_core import m
 
 if TYPE_CHECKING:
     from flext_cli import t
@@ -42,7 +41,7 @@ class FlextCliProtocolsDomain:
             ...
 
     @runtime_checkable
-    class ModelCommandHandler[TParams: BaseModel](Protocol):
+    class ModelCommandHandler[TParams: m.BaseModel](Protocol):
         """Protocol for model-driven CLI command execution."""
 
         def __call__(self, params: TParams, /) -> t.Cli.RuntimeValue:
@@ -62,7 +61,7 @@ class FlextCliProtocolsDomain:
 
         name: str
         help_text: str
-        model_cls: type[BaseModel]
+        model_cls: type[m.BaseModel]
         handler: t.Cli.ResultRouteHandler
         failure_message: str
         success_message: str | None

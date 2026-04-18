@@ -5,9 +5,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from pathlib import Path
 
-from pydantic import BaseModel
-
-from flext_cli import FlextCliServiceBase, p, r, t, u
+from flext_cli import FlextCliServiceBase, m, p, r, t, u
 
 
 class FlextCliFileTools(FlextCliServiceBase):
@@ -42,7 +40,7 @@ class FlextCliFileTools(FlextCliServiceBase):
         return u.Cli.files_read_json(file_path)
 
     @staticmethod
-    def read_json_model[M: BaseModel](
+    def read_json_model[M: m.BaseModel](
         file_path: t.Cli.TextPath,
         model_type: type[M],
     ) -> p.Result[M]:
@@ -56,7 +54,7 @@ class FlextCliFileTools(FlextCliServiceBase):
     @staticmethod
     def write_json_model(
         file_path: t.Cli.TextPath,
-        model: BaseModel,
+        model: m.BaseModel,
         indent: int = 2,
         *,
         by_alias: bool = False,

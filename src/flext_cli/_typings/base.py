@@ -5,9 +5,8 @@ from __future__ import annotations
 from collections.abc import Mapping, MutableMapping, Sequence
 from pathlib import Path
 from types import GenericAlias, UnionType
-from typing import TYPE_CHECKING, ClassVar, Literal, TypeAliasType
+from typing import ClassVar, Literal, TypeAliasType
 
-from pydantic import JsonValue as PydanticJsonValue, TypeAdapter
 from pydantic.fields import FieldInfo
 from rich.console import Console as RichConsole
 from rich.tree import Tree as RichTree
@@ -19,10 +18,7 @@ from typer.models import OptionInfo
 from typer.testing import CliRunner
 
 from flext_cli import c
-from flext_core import t
-
-if TYPE_CHECKING:
-    from flext_cli import m
+from flext_core import m, t
 
 
 class FlextCliTypesBase:
@@ -33,7 +29,7 @@ class FlextCliTypesBase:
     type RecursiveContainer = t.RecursiveContainer
     type DefaultMapping = Mapping[str, Scalar | StrSequence | None]
     type ValueOrModel = t.ValueOrModel
-    type JsonValue = PydanticJsonValue
+    type JsonValue = t.JsonValue
     type JsonMapping = Mapping[str, JsonValue]
     type JsonList = Sequence[JsonValue]
     type JsonDict = JsonMapping
@@ -165,23 +161,23 @@ class FlextCliTypesBase:
     )
     SCALAR_TYPES: ClassVar[tuple[type, ...]] = t.SCALAR_TYPES
 
-    JSON_VALUE_ADAPTER: ClassVar[m.TypeAdapter[JsonValue]] = TypeAdapter(JsonValue)
-    JSON_MAPPING_ADAPTER: ClassVar[m.TypeAdapter[JsonMapping]] = TypeAdapter(
+    JSON_VALUE_ADAPTER: ClassVar[m.TypeAdapter[JsonValue]] = m.TypeAdapter(JsonValue)
+    JSON_MAPPING_ADAPTER: ClassVar[m.TypeAdapter[JsonMapping]] = m.TypeAdapter(
         JsonMapping
     )
-    JSON_LIST_ADAPTER: ClassVar[m.TypeAdapter[JsonList]] = TypeAdapter(JsonList)
-    YAML_DICT_ADAPTER: ClassVar[m.TypeAdapter[t.JsonMapping]] = TypeAdapter(
+    JSON_LIST_ADAPTER: ClassVar[m.TypeAdapter[JsonList]] = m.TypeAdapter(JsonList)
+    YAML_DICT_ADAPTER: ClassVar[m.TypeAdapter[t.JsonMapping]] = m.TypeAdapter(
         t.JsonMapping
     )
-    YAML_SEQ_ADAPTER: ClassVar[m.TypeAdapter[t.JsonList]] = TypeAdapter(t.JsonList)
-    CONTAINER_VALUE_ADAPTER: m.TypeAdapter[t.ContainerValue] = TypeAdapter(
+    YAML_SEQ_ADAPTER: ClassVar[m.TypeAdapter[t.JsonList]] = m.TypeAdapter(t.JsonList)
+    CONTAINER_VALUE_ADAPTER: m.TypeAdapter[t.ContainerValue] = m.TypeAdapter(
         t.ContainerValue
     )
     CONTAINER_NORMALIZE_ADAPTER: ClassVar[m.TypeAdapter[t.ContainerValue]] = (
-        TypeAdapter(t.ContainerValue)
+        m.TypeAdapter(t.ContainerValue)
     )
-    CLI_DEFAULT_SOURCE_ADAPTER: ClassVar[m.TypeAdapter[CliDefaultSource]] = TypeAdapter(
-        CliDefaultSource,
+    CLI_DEFAULT_SOURCE_ADAPTER: ClassVar[m.TypeAdapter[CliDefaultSource]] = (
+        m.TypeAdapter(CliDefaultSource)
     )
 
 

@@ -5,8 +5,6 @@ from __future__ import annotations
 import getpass
 from typing import Self, override
 
-from pydantic import PrivateAttr
-
 from flext_cli import (
     c,
     m,
@@ -21,14 +19,14 @@ from flext_cli import (
 class FlextCliPrompts(s):
     """CLI prompts service with validation, history, and non-interactive fallbacks."""
 
-    _state: m.Cli.PromptRuntimeState = PrivateAttr(
+    _state: m.Cli.PromptRuntimeState = m.PrivateAttr(
         default_factory=m.Cli.PromptRuntimeState,
     )
-    _input_reader: t.Cli.PromptTextReader = PrivateAttr(default_factory=lambda: input)
-    _password_reader: t.Cli.PromptTextReader = PrivateAttr(
+    _input_reader: t.Cli.PromptTextReader = m.PrivateAttr(default_factory=lambda: input)
+    _password_reader: t.Cli.PromptTextReader = m.PrivateAttr(
         default_factory=lambda: getpass.getpass
     )
-    _test_env_override: bool | None = PrivateAttr(default=None)
+    _test_env_override: bool | None = m.PrivateAttr(default_factory=lambda: None)
 
     def configure(self, state: m.Cli.PromptRuntimeState) -> Self:
         """Replace prompt runtime state using the canonical CLI model."""

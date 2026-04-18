@@ -8,9 +8,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from pydantic import BaseModel
-
-from flext_core import p
+from flext_core import m, p
 
 if TYPE_CHECKING:
     from flext_cli import m, t
@@ -161,7 +159,7 @@ class FlextCliProtocolsBase:
             ...
 
     @runtime_checkable
-    class ResultCommandHandler[TParams: BaseModel, TResult: t.Cli.ResultValue](
+    class ResultCommandHandler[TParams: m.BaseModel, TResult: t.Cli.ResultValue](
         Protocol
     ):
         """Protocol for model-driven CLI handlers returning `r[...]`."""

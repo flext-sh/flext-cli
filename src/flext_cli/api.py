@@ -8,8 +8,6 @@ from __future__ import annotations
 
 from typing import Annotated, ClassVar, override
 
-from pydantic import Field
-
 from flext_cli import (
     FlextCliAuth,
     FlextCliCli,
@@ -22,6 +20,7 @@ from flext_cli import (
     FlextCliPrompts,
     FlextCliTables,
     c,
+    m,
     p,
     r,
     t,
@@ -50,7 +49,7 @@ class FlextCli(
 
     __pydantic_parent_namespace__: ClassVar[dict[str, object]] = {
         "Annotated": Annotated,
-        "Field": Field,
+        "Field": m.Field,
         "TDomainResult": t.ValueOrModel,
         "p": p,
         "t": t,

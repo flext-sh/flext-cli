@@ -10,9 +10,8 @@ import tempfile
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 
-from pydantic import BaseModel
-
 from flext_cli import FlextCliUtilitiesJson, FlextCliUtilitiesYaml, c, p, r, t
+from flext_core import m
 
 
 class FlextCliUtilitiesFiles:
@@ -62,7 +61,7 @@ class FlextCliUtilitiesFiles:
         )
 
     @staticmethod
-    def files_read_json_model[M: BaseModel](
+    def files_read_json_model[M: m.BaseModel](
         file_path: t.Cli.TextPath,
         model_type: type[M],
     ) -> p.Result[M]:
@@ -80,7 +79,7 @@ class FlextCliUtilitiesFiles:
     @staticmethod
     def files_write_json_model(
         file_path: t.Cli.TextPath,
-        model: BaseModel,
+        model: m.BaseModel,
         *,
         indent: int,
         by_alias: bool,

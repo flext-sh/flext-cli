@@ -13,17 +13,17 @@ from __future__ import annotations
 from collections.abc import MutableMapping
 from typing import Self, override
 
-from pydantic import PrivateAttr
-
 from flext_cli import c, m, p, r, s, t, u
 
 
 class FlextCliCommands(s):
     """CLI commands service for command registration and execution."""
 
-    _name: str = PrivateAttr(default=c.Cli.COMMANDS_DEFAULT_NAME)
-    _description: str = PrivateAttr(default=c.Cli.COMMANDS_DEFAULT_DESCRIPTION)
-    _commands: MutableMapping[str, p.Cli.CommandEntry] = PrivateAttr(
+    _name: str = m.PrivateAttr(default_factory=lambda: c.Cli.COMMANDS_DEFAULT_NAME)
+    _description: str = m.PrivateAttr(
+        default_factory=lambda: c.Cli.COMMANDS_DEFAULT_DESCRIPTION
+    )
+    _commands: MutableMapping[str, p.Cli.CommandEntry] = m.PrivateAttr(
         default_factory=lambda: dict[str, p.Cli.CommandEntry](),
     )
 

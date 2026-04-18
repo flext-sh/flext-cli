@@ -8,7 +8,6 @@ from pathlib import Path
 from typing import ClassVar, TypeIs
 
 import tomlkit
-from pydantic import TypeAdapter
 from tomlkit import TOMLDocument
 from tomlkit.items import AoT, Item as TomlItem, Table as TomlTable
 
@@ -20,7 +19,7 @@ class FlextCliUtilitiesToml:
     """Generic TOML read/write and table-manipulation helpers."""
 
     _module_logger: ClassVar[p.Logger] = u.fetch_logger(__name__)
-    _STR_SEQUENCE_ADAPTER: m.TypeAdapter[t.StrSequence] = TypeAdapter(t.StrSequence)
+    _STR_SEQUENCE_ADAPTER: m.TypeAdapter[t.StrSequence] = m.TypeAdapter(t.StrSequence)
 
     @staticmethod
     def toml_as_mapping(

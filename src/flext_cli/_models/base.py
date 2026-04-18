@@ -8,14 +8,10 @@ from typing import (
     ClassVar,
 )
 
-from pydantic import (
-    ConfigDict,
-    Field,
-    computed_field,
-)
+
 
 from flext_cli import c, p, t
-from flext_core import m
+from flext_core import m, u
 
 
 class FlextCliModelsBase:
@@ -26,11 +22,11 @@ class FlextCliModelsBase:
 
         stdout: Annotated[
             str,
-            Field("", description="Captured standard output"),
+            m.Field("", description="Captured standard output"),
         ] = ""
         stderr: Annotated[
             str,
-            Field("", description="Captured standard error"),
+            m.Field("", description="Captured standard error"),
         ] = ""
         exit_code: Annotated[
             int,
@@ -38,13 +34,13 @@ class FlextCliModelsBase:
         ] = 0
         duration: Annotated[
             t.NonNegativeFloat,
-            Field(0.0, description="Duration in seconds"),
+            m.Field(0.0, description="Duration in seconds"),
         ] = 0.0
 
     class DisplayData(m.BaseModel):
         """Key-value data for table/display — Pydantic v2 contract. Use m.Cli.DisplayData."""
 
-        model_config: ClassVar[ConfigDict] = ConfigDict(
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
             extra="forbid",
             validate_assignment=True,
         )
@@ -58,7 +54,7 @@ class FlextCliModelsBase:
     class LoadedConfig(m.BaseModel):
         """Loaded configuration content wrapper — Pydantic v2 contract. Use m.Cli.LoadedConfig."""
 
-        model_config: ClassVar[ConfigDict] = ConfigDict(
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
             extra="forbid",
             validate_assignment=True,
         )
@@ -78,7 +74,7 @@ class FlextCliModelsBase:
     class NormalizedJsonDict(m.BaseModel):
         """Resolve normalized JSON to a dict with defaults. Use m.Cli.NormalizedJsonDict."""
 
-        model_config: ClassVar[ConfigDict] = ConfigDict(
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
             extra="forbid",
             validate_assignment=True,
         )
@@ -107,18 +103,18 @@ class FlextCliModelsBase:
     class PromptRuntimeState(m.FlexibleInternalModel):
         """Centralized runtime state for CLI prompt behavior."""
 
-        model_config: ClassVar[ConfigDict] = ConfigDict(
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
             extra="forbid",
             validate_assignment=True,
         )
 
         interactive: Annotated[
             bool,
-            Field(True, description="Whether prompt interaction is enabled"),
+            m.Field(True, description="Whether prompt interaction is enabled"),
         ] = True
         quiet: Annotated[
             bool,
-            Field(False, description="Whether prompt output is suppressed"),
+            m.Field(False, description="Whether prompt output is suppressed"),
         ] = False
         default_timeout: Annotated[
             int,
@@ -130,7 +126,7 @@ class FlextCliModelsBase:
     class CommandEntryModel(m.BaseModel):
         """Single command entry: name + handler. Use m.Cli.CommandEntryModel."""
 
-        model_config: ClassVar[ConfigDict] = ConfigDict(
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
             arbitrary_types_allowed=True,
             extra="forbid",
         )
@@ -143,7 +139,7 @@ class FlextCliModelsBase:
     class ResultCommandRoute(m.BaseModel):
         """Type-erased route contract for heterogeneous batch registration."""
 
-        model_config: ClassVar[ConfigDict] = ConfigDict(
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
             arbitrary_types_allowed=True,
             extra="forbid",
             frozen=True,
@@ -164,11 +160,11 @@ class FlextCliModelsBase:
         ]
         success_message: Annotated[
             str | None,
-            Field(None, description="Static success message"),
+            m.Field(None, description="Static success message"),
         ] = None
         success_formatter: Annotated[
             p.Cli.SuccessMessageFormatter[t.Cli.ResultValue] | None,
-            Field(None, description="Dynamic success formatter"),
+            m.Field(None, description="Dynamic success formatter"),
         ] = None
         success_type: Annotated[
             c.Cli.MessageTypes | t.Cli.MessageTypeLiteral,
@@ -211,7 +207,7 @@ class FlextCliModelsBase:
             ),
         ] = c.Cli.TabularFormat.SIMPLE
 
-        @computed_field
+        @u.computed_field()
         @property
         def table_backend_format(self) -> t.Cli.TabularFormatLiteral:
             """Canonical backend format used by tabulate rendering."""
@@ -249,7 +245,7 @@ class FlextCliModelsBase:
         ] = ""
 
         # Index display
-        showindex: t.Cli.TableShowIndex = Field(
+        showindex: t.Cli.TableShowIndex = m.Field(
             False, description="Whether to show row indices"
         )
 
@@ -262,7 +258,7 @@ class FlextCliModelsBase:
         ] = None
 
         # Number parsing
-        disable_numparse: t.Cli.TableDisableNumparse = Field(
+        disable_numparse: t.Cli.TableDisableNumparse = m.Field(
             False,
             description="Disable number parsing (bool or list of column indices)",
         )
@@ -270,7 +266,7 @@ class FlextCliModelsBase:
     class SettingsSnapshot(m.Value):
         """Snapshot of current CLI settings information."""
 
-        model_config: ClassVar[ConfigDict] = ConfigDict(
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
             frozen=True,
             extra="forbid",
         )
@@ -332,7 +328,7 @@ class FlextCliModelsBase:
         ] = None
         debug: Annotated[
             bool | None,
-            Field(None, description="Enable debug mode"),
+            m.Field(None, description="Enable debug mode"),
         ]
         trace: Annotated[
             bool | None,
@@ -387,7 +383,7 @@ class FlextCliModelsBase:
         Used with create_option_decorator to reduce argument counts.
         """
 
-        model_config: ClassVar[ConfigDict] = ConfigDict(
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
             frozen=True,
             extra="forbid",
             arbitrary_types_allowed=True,
@@ -395,57 +391,57 @@ class FlextCliModelsBase:
 
         default: Annotated[
             t.Cli.JsonValue | None,
-            Field(
+            m.Field(
                 None,
                 description="Default value",
             ),
         ]
         type_hint: Annotated[
             t.Cli.JsonValue | None,
-            Field(
+            m.Field(
                 None,
                 description="Parameter type (Click type or Python type)",
             ),
         ]
         required: Annotated[
             bool,
-            Field(
+            m.Field(
                 False,
                 description="Whether option is required",
             ),
         ]
         help_text: Annotated[
             str | None,
-            Field(
+            m.Field(
                 None,
                 description="Help text for option",
             ),
         ]
         flag: Annotated[
             bool,
-            Field(
+            m.Field(
                 False,
                 description="Boolean flag option",
             ),
         ]
         flag_value: Annotated[
             t.Cli.JsonValue | None,
-            Field(
+            m.Field(
                 None,
                 description="Value when flag is set",
             ),
         ]
         multiple: Annotated[
             bool,
-            Field(False, description="Allow multiple values"),
+            m.Field(False, description="Allow multiple values"),
         ]
         count: Annotated[
             bool,
-            Field(False, description="Count occurrences"),
+            m.Field(False, description="Count occurrences"),
         ]
         show_default: Annotated[
             bool,
-            Field(
+            m.Field(
                 False,
                 description="Show default in help",
             ),
@@ -458,10 +454,10 @@ class FlextCliModelsBase:
         Inherits frozen=True and extra="forbid" from m.Value.
         """
 
-        default: Annotated[bool, Field(False, description="Default value")]
+        default: Annotated[bool, m.Field(False, description="Default value")]
         abort: Annotated[
             bool,
-            Field(False, description="Abort if not confirmed"),
+            m.Field(False, description="Abort if not confirmed"),
         ]
         prompt_suffix: Annotated[
             str,
@@ -475,7 +471,7 @@ class FlextCliModelsBase:
                 description="Show default in prompt",
             ),
         ] = True
-        err: Annotated[bool, Field(False, description="Write to stderr")]
+        err: Annotated[bool, m.Field(False, description="Write to stderr")]
 
     class PromptConfig(m.Value):
         """Configuration for input prompts.
@@ -483,7 +479,7 @@ class FlextCliModelsBase:
         Used with prompt() method to reduce argument counts.
         """
 
-        model_config: ClassVar[ConfigDict] = ConfigDict(
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
             frozen=True,
             extra="forbid",
             arbitrary_types_allowed=True,
@@ -491,21 +487,21 @@ class FlextCliModelsBase:
 
         default: Annotated[
             t.Cli.JsonValue | None,
-            Field(
+            m.Field(
                 None,
                 description="Default value",
             ),
         ]
         type_hint: Annotated[
             t.Cli.JsonValue | None,
-            Field(
+            m.Field(
                 None,
                 description="Value type",
             ),
         ]
         value_proc: Annotated[
             p.Cli.JsonValueProcessor | None,
-            Field(
+            m.Field(
                 None,
                 description="Value processor function",
             ),
@@ -518,11 +514,11 @@ class FlextCliModelsBase:
         ] = c.Cli.UI_DEFAULT_PROMPT_SUFFIX
         hide_input: Annotated[
             bool,
-            Field(False, description="Hide user input"),
+            m.Field(False, description="Hide user input"),
         ]
         confirmation_prompt: Annotated[
             bool,
-            Field(
+            m.Field(
                 False,
                 description="Ask for confirmation",
             ),
@@ -533,7 +529,7 @@ class FlextCliModelsBase:
                 description="Show default in prompt",
             ),
         ] = True
-        err: Annotated[bool, Field(False, description="Write to stderr")]
+        err: Annotated[bool, m.Field(False, description="Write to stderr")]
         show_choices: Annotated[
             bool,
             m.Field(
@@ -544,17 +540,17 @@ class FlextCliModelsBase:
     class PromptTimeoutResolved(m.BaseModel):
         """Single contract: raw (int | str | None) + default -> int."""
 
-        model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid")
         raw: Annotated[
             t.Cli.IntTextValue,
-            Field(None, description="Raw timeout input (int, str, or None)"),
+            m.Field(None, description="Raw timeout input (int, str, or None)"),
         ]
         default: Annotated[
             int,
-            Field(30, description="Default timeout in seconds"),
+            m.Field(30, description="Default timeout in seconds"),
         ]
 
-        @computed_field
+        @u.computed_field()
         @property
         def resolved(self) -> int:
             """Resolved timeout value."""
@@ -571,20 +567,20 @@ class FlextCliModelsBase:
     class LogLevelResolved(m.BaseModel):
         """Single contract for log level string."""
 
-        model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid")
         raw: Annotated[
             str | None,
-            Field(None, description="Raw log level input string"),
+            m.Field(None, description="Raw log level input string"),
         ]
         default: Annotated[
             str,
-            Field(
+            m.Field(
                 c.LogLevel.INFO,
                 description="Default log level when raw is absent",
             ),
         ]
 
-        @computed_field
+        @u.computed_field()
         @property
         def resolved(self) -> str:
             """Resolved log level value."""
@@ -598,21 +594,21 @@ class FlextCliModelsBase:
     class TypedExtract(m.BaseModel):
         """Single contract for typed value extraction (str | bool | dict)."""
 
-        model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid")
         type_kind: Annotated[
             t.Cli.TypeKind,
             m.Field(description="Requested type"),
         ]
         value: Annotated[
             t.Cli.JsonValue | None,
-            Field(None, description="Value to extract and coerce"),
+            m.Field(None, description="Value to extract and coerce"),
         ]
         default: Annotated[
             t.Cli.JsonValue | None,
-            Field(None, description="Fallback value when extraction fails"),
+            m.Field(None, description="Fallback value when extraction fails"),
         ]
 
-        @computed_field
+        @u.computed_field()
         @property
         def resolved(self) -> t.Cli.TypedExtractValue:
             """Value coerced to type_kind, or default."""
