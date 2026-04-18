@@ -17,12 +17,7 @@ _LAZY_IMPORTS = build_lazy_import_map(
         ".test_constants": ("TestsCliConstants",),
         ".test_examples_smoke": ("TestFlextCliExamplesSmoke",),
         ".test_pipeline": ("TestPipelineExecute",),
-        ".test_prompts": (
-            "CaptureLogPrompts",
-            "FailingLogPrompts",
-            "ScriptedPrompts",
-            "TestsCliPrompts",
-        ),
+        ".test_prompts": ("TestsCliPrompts",),
         ".test_prompts_cov": (
             "CaptureLogPromptsCov",
             "TestsCliPromptsCov",

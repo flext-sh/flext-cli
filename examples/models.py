@@ -16,15 +16,8 @@ from ipaddress import ip_address
 from pathlib import Path
 from typing import Annotated, ClassVar
 
-from pydantic import (
-    ConfigDict,
-    TypeAdapter,
-    field_validator,
-    model_validator,
-)
-
 from examples import c, p, r, t
-from flext_cli import m
+from flext_cli import m, u
 
 
 class ExamplesFlextCliModels(m):
@@ -47,7 +40,9 @@ class ExamplesFlextCliModels(m):
             for field_name, env_name in env_fields.items():
                 if env_name not in os.environ or field_name not in field_types:
                     continue
-                validated_value = TypeAdapter(field_types[field_name]).validate_python(
+                validated_value = m.TypeAdapter(
+                    field_types[field_name]
+                ).validate_python(
                     os.environ[env_name],
                 )
                 if isinstance(validated_value, Mapping):
@@ -65,7 +60,7 @@ class ExamplesFlextCliModels(m):
         class DatabaseWizardConfig(m.Value):
             """Database setup wizard result — Pydantic v2 only."""
 
-            model_config: ClassVar[ConfigDict] = ConfigDict(
+            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
                 extra="forbid",
                 validate_assignment=True,
             )
@@ -84,7 +79,7 @@ class ExamplesFlextCliModels(m):
         class AppWizardConfig(m.Value):
             """App configuration wizard result — Pydantic v2 only."""
 
-            model_config: ClassVar[ConfigDict] = ConfigDict(
+            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
                 extra="forbid",
                 validate_assignment=True,
             )
@@ -121,7 +116,7 @@ class ExamplesFlextCliModels(m):
         class NumericPromptResult(m.Value):
             """Numeric prompts result — Pydantic v2 only."""
 
-            model_config: ClassVar[ConfigDict] = ConfigDict(
+            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
                 extra="forbid",
                 validate_assignment=True,
             )
@@ -156,7 +151,7 @@ class ExamplesFlextCliModels(m):
         class MyAppSettings(m.Value):
             """Custom settings for YOUR CLI application — Pydantic v2 only."""
 
-            model_config: ClassVar[ConfigDict] = ConfigDict(
+            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
                 extra="forbid",
                 validate_assignment=True,
             )
@@ -182,7 +177,7 @@ class ExamplesFlextCliModels(m):
                 ),
             ] = c.EXAMPLE_DEFAULT_TIMEOUT_SECONDS
 
-            @model_validator(mode="before")
+            @u.model_validator(mode="before")
             @classmethod
             def _inject_env(
                 cls,
@@ -240,7 +235,7 @@ class ExamplesFlextCliModels(m):
         class AppSettingsAdvanced(m.Value):
             """Advanced application settings — Pydantic v2 only."""
 
-            model_config: ClassVar[ConfigDict] = ConfigDict(
+            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
                 extra="forbid",
                 validate_assignment=True,
             )
@@ -283,7 +278,7 @@ class ExamplesFlextCliModels(m):
                 description="Temp directory",
             )
 
-            @model_validator(mode="before")
+            @u.model_validator(mode="before")
             @classmethod
             def _inject_env(
                 cls,
@@ -298,7 +293,7 @@ class ExamplesFlextCliModels(m):
                     },
                 )
 
-            @field_validator("database_url")
+            @u.field_validator("database_url")
             @classmethod
             def _validate_database_url(cls, v: str) -> str:
                 if not v.startswith(c.EXAMPLE_DB_URL_PREFIXES):
@@ -306,7 +301,7 @@ class ExamplesFlextCliModels(m):
                     raise ValueError(msg)
                 return v
 
-            @field_validator("redis_url")
+            @u.field_validator("redis_url")
             @classmethod
             def _validate_redis_url(cls, v: str) -> str:
                 if not v.startswith(c.EXAMPLE_REDIS_URL_PREFIX):
@@ -314,7 +309,7 @@ class ExamplesFlextCliModels(m):
                     raise ValueError(msg)
                 return v
 
-            @field_validator("log_level")
+            @u.field_validator("log_level")
             @classmethod
             def _validate_log_level(cls, v: str) -> str:
                 valid: tuple[str, ...] = c.Cli.LOG_LEVELS
@@ -358,7 +353,7 @@ class ExamplesFlextCliModels(m):
         class DeployConfig(m.Value):
             """Deployment configuration - auto-generates CLI parameters."""
 
-            model_config: ClassVar[ConfigDict] = ConfigDict(
+            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
                 extra="forbid",
                 validate_assignment=True,
             )
@@ -388,7 +383,7 @@ class ExamplesFlextCliModels(m):
                 ),
             ] = c.EXAMPLE_DEFAULT_TIMEOUT_SECONDS
 
-            @field_validator("environment")
+            @u.field_validator("environment")
             @classmethod
             def validate_environment(cls, v: str) -> str:
                 """Restrict environment to development, staging, production."""
@@ -400,7 +395,7 @@ class ExamplesFlextCliModels(m):
         class DatabaseConfig(m.Value):
             """Database configuration."""
 
-            model_config: ClassVar[ConfigDict] = ConfigDict(
+            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
                 extra="forbid",
                 validate_assignment=True,
             )
@@ -423,7 +418,7 @@ class ExamplesFlextCliModels(m):
         class AppConfigNested(m.Value):
             """Application configuration with nested database model."""
 
-            model_config: ClassVar[ConfigDict] = ConfigDict(
+            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
                 extra="forbid",
                 validate_assignment=True,
             )
@@ -442,7 +437,7 @@ class ExamplesFlextCliModels(m):
         class AdvancedDatabaseConfig(m.Value):
             """Database configuration with advanced validation."""
 
-            model_config: ClassVar[ConfigDict] = ConfigDict(
+            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
                 extra="forbid",
                 validate_assignment=True,
             )
@@ -473,7 +468,7 @@ class ExamplesFlextCliModels(m):
                 validate_default=True,
             )
 
-            @field_validator("host")
+            @u.field_validator("host")
             @classmethod
             def validate_host(cls, v: str) -> str:
                 """Ensure host looks like a hostname or IP."""

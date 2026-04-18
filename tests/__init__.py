@@ -27,12 +27,7 @@ if _t.TYPE_CHECKING:
     from tests.unit.test_constants import TestsCliConstants
     from tests.unit.test_examples_smoke import TestFlextCliExamplesSmoke
     from tests.unit.test_pipeline import TestPipelineExecute
-    from tests.unit.test_prompts import (
-        CaptureLogPrompts,
-        FailingLogPrompts,
-        ScriptedPrompts,
-        TestsCliPrompts,
-    )
+    from tests.unit.test_prompts import TestsCliPrompts
     from tests.unit.test_prompts_cov import CaptureLogPromptsCov, TestsCliPromptsCov
     from tests.unit.test_protocols import TestsCliProtocols
     from tests.unit.test_runtime_utilities_extra import TestCliRuntimeUtilitiesExtra
@@ -83,12 +78,7 @@ _LAZY_IMPORTS = merge_lazy_imports(
             ".unit.test_constants": ("TestsCliConstants",),
             ".unit.test_examples_smoke": ("TestFlextCliExamplesSmoke",),
             ".unit.test_pipeline": ("TestPipelineExecute",),
-            ".unit.test_prompts": (
-                "CaptureLogPrompts",
-                "FailingLogPrompts",
-                "ScriptedPrompts",
-                "TestsCliPrompts",
-            ),
+            ".unit.test_prompts": ("TestsCliPrompts",),
             ".unit.test_prompts_cov": (
                 "CaptureLogPromptsCov",
                 "TestsCliPromptsCov",
@@ -147,10 +137,7 @@ _LAZY_IMPORTS = merge_lazy_imports(
 install_lazy_exports(__name__, globals(), _LAZY_IMPORTS)
 
 __all__: list[str] = [
-    "CaptureLogPrompts",
     "CaptureLogPromptsCov",
-    "FailingLogPrompts",
-    "ScriptedPrompts",
     "TestCliRuntimeUtilitiesExtra",
     "TestCliTomlDocument",
     "TestCliTomlHelpers",

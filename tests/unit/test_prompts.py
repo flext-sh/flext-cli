@@ -13,7 +13,7 @@ from flext_cli import FlextCliPrompts, m
 from tests import c, t
 
 
-class ScriptedPrompts(FlextCliPrompts):
+class _TestsFlextCliScriptedPrompts(FlextCliPrompts):
     """Prompt service with typed scripting helpers."""
 
     def use_input_values(self, values: t.StrSequence) -> Self:
@@ -39,7 +39,12 @@ class ScriptedPrompts(FlextCliPrompts):
         self._password_reader = raise_password
         return self
 
-    def configure_state(self, *, interactive: bool = True, quiet: bool = False) -> Self:
+    def configure_state(
+        self,
+        *,
+        interactive: bool = True,
+        quiet: bool = False,
+    ) -> Self:
         return self.configure(
             m.Cli.PromptRuntimeState(
                 interactive=interactive,
@@ -48,7 +53,7 @@ class ScriptedPrompts(FlextCliPrompts):
         )
 
 
-class CaptureLogPrompts(ScriptedPrompts):
+class _TestsFlextCliCaptureLogPrompts(_TestsFlextCliScriptedPrompts):
     """Prompt service that captures log calls without writing to the real logger."""
 
     _records: list[tuple[str, str]] = PrivateAttr(default_factory=list)
@@ -67,11 +72,16 @@ class CaptureLogPrompts(ScriptedPrompts):
         self._records.append((log_level, message))
 
 
-class FailingLogPrompts(ScriptedPrompts):
+class _TestsFlextCliFailingLogPrompts(_TestsFlextCliScriptedPrompts):
     """Prompt service that fails on one selected log level."""
 
     _failure_level: str = PrivateAttr(default="")
     _failure_message: str = PrivateAttr(default="logger failure")
+
+    def fail_on_log(self, *, level: str, message: str) -> Self:
+        self._failure_level = level
+        self._failure_message = message
+        return self
 
     @override
     def _log(
@@ -93,11 +103,13 @@ class TestsCliPrompts:
 
         @staticmethod
         def create(
-            prompt_type: type[ScriptedPrompts] = ScriptedPrompts,
+            prompt_type: type[
+                _TestsFlextCliScriptedPrompts
+            ] = _TestsFlextCliScriptedPrompts,
             *,
             interactive_mode: bool = True,
             quiet: bool = False,
-        ) -> ScriptedPrompts:
+        ) -> _TestsFlextCliScriptedPrompts:
             return prompt_type().configure_state(
                 interactive=interactive_mode,
                 quiet=quiet,
@@ -110,17 +122,20 @@ class TestsCliPrompts:
         tm.that(result.value, eq={})
 
     def test_execute_failure_when_debug_logging_crashes(self) -> None:
-        prompts = self.Fixtures.create(FailingLogPrompts, interactive_mode=False)
-        assert isinstance(prompts, FailingLogPrompts)
-        prompts._failure_level = c.LogLevel.DEBUG
-        prompts._failure_message = "Execute error"
+        prompts = self.Fixtures.create(
+            _TestsFlextCliFailingLogPrompts,
+            interactive_mode=False,
+        )
+        assert isinstance(prompts, _TestsFlextCliFailingLogPrompts)
+        prompts.fail_on_log(level=c.LogLevel.DEBUG, message="Execute error")
         result = prompts.execute()
         tm.fail(result, has="Execute error")
 
     def test_prompt_returns_default_in_quiet_and_non_interactive_modes(self) -> None:
         quiet_prompts = self.Fixtures.create(quiet=True)
         tm.that(
-            quiet_prompts.prompt("Enter value", default="default").value, eq="default"
+            quiet_prompts.prompt("Enter value", default="default").value,
+            eq="default",
         )
         non_interactive_prompts = self.Fixtures.create(interactive_mode=False)
         tm.that(
@@ -152,8 +167,8 @@ class TestsCliPrompts:
         )
 
     def test_confirm_accepts_yes_no_default_and_invalid_retry(self) -> None:
-        prompts = self.Fixtures.create(CaptureLogPrompts)
-        assert isinstance(prompts, CaptureLogPrompts)
+        prompts = self.Fixtures.create(_TestsFlextCliCaptureLogPrompts)
+        assert isinstance(prompts, _TestsFlextCliCaptureLogPrompts)
         prompts.use_input_values(["", "y", "n", "maybe", "yes"])
         tm.that(prompts.confirm("Continue?", default=True).value, eq=True)
         tm.that(prompts.confirm("Continue?", default=False).value, eq=True)
@@ -226,7 +241,8 @@ class TestsCliPrompts:
         )
         short_prompts = self.Fixtures.create().use_password("short")
         tm.fail(
-            short_prompts.prompt_password("Password:", min_length=8), has="too short"
+            short_prompts.prompt_password("Password:", min_length=8),
+            has="too short",
         )
         valid_prompts = self.Fixtures.create().use_password("validpassword123")
         valid_result = valid_prompts.prompt_password("Password:", min_length=8)
@@ -236,7 +252,8 @@ class TestsCliPrompts:
             ValueError("Password input error"),
         )
         tm.fail(
-            failing_prompts.prompt_password("Password:"), has="Password input error"
+            failing_prompts.prompt_password("Password:"),
+            has="Password input error",
         )
 
     def test_print_helpers_paths(self) -> None:
@@ -246,10 +263,9 @@ class TestsCliPrompts:
         tm.ok(prompts.print_warning("simple"))
 
     def test_print_helper_failure_when_logging_crashes(self) -> None:
-        prompts = self.Fixtures.create(FailingLogPrompts)
-        assert isinstance(prompts, FailingLogPrompts)
-        prompts._failure_level = c.LogLevel.INFO
-        prompts._failure_message = "Logger error"
+        prompts = self.Fixtures.create(_TestsFlextCliFailingLogPrompts)
+        assert isinstance(prompts, _TestsFlextCliFailingLogPrompts)
+        prompts.fail_on_log(level=c.LogLevel.INFO, message="Logger error")
         result = prompts.print_success("Test")
         tm.fail(result, has="Logger error")
 
