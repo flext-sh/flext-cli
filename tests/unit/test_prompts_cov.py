@@ -6,8 +6,8 @@ from typing import Self, override
 
 from flext_tests import tm
 
-from flext_cli import FlextCliPrompts, m
-from tests import t
+from flext_cli import FlextCliPrompts
+from tests import m, t
 
 
 class CaptureLogPromptsCov(FlextCliPrompts):

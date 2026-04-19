@@ -8,8 +8,8 @@ from typing import Self, override
 import pytest
 from flext_tests import tm
 
-from flext_cli import FlextCliPrompts, m
-from tests import c, t
+from flext_cli import FlextCliPrompts
+from tests import c, m, t
 
 
 class _TestsFlextCliScriptedPrompts(FlextCliPrompts):
