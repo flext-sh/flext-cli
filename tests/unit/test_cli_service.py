@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import MutableSequence
+from collections.abc import Mapping, MutableSequence
 
 from flext_tests import tm
 
@@ -120,7 +120,7 @@ class TestsCliService:
         tm.that(captured[0].make_arg, eq=["FILES=a b c.py", "VERBOSE=1"])
 
     def test_model_command_returns_handler_value(self) -> None:
-        def handle(params: m.Cli.Tests.SampleInput) -> t.RecursiveContainerMapping:
+        def handle(params: m.Cli.Tests.SampleInput) -> Mapping[str, t.Container]:
             return {
                 "name": params.name,
                 "count": params.count,

@@ -30,13 +30,13 @@ class FlextCliModelsPipeline:
         _flext_enforcement_exempt: ClassVar[bool] = True
 
         shared: Annotated[
-            MutableMapping[str, t.RecursiveContainer],
+            MutableMapping[str, t.Container],
             m.Field(
                 default_factory=dict, description="Mutable shared state between stages"
             ),
         ]
         settings: Annotated[
-            t.RecursiveContainerMapping,
+            Mapping[str, t.Container],
             m.Field(
                 default_factory=lambda: MappingProxyType({}),
                 description="Immutable pipeline configuration",
@@ -96,7 +96,7 @@ class FlextCliModelsPipeline:
             m.Field(description="Execution outcome"),
         ]
         output: Annotated[
-            t.RecursiveContainerMapping,
+            Mapping[str, t.Container],
             m.Field(
                 default_factory=lambda: MappingProxyType({}),
                 description="Stage output payload",

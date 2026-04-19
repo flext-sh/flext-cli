@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
@@ -28,7 +28,7 @@ class FlextCliProtocolsPipeline:
             ...
 
         @property
-        def settings(self) -> t.RecursiveContainerMapping:
+        def settings(self) -> Mapping[str, t.Container]:
             """Immutable configuration for the pipeline run."""
             ...
 

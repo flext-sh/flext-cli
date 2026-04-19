@@ -12,16 +12,16 @@ from flext_core import m
 class ExamplesFlextCliTypes(t):
     """Public examples type facade extending flext-cli types."""
 
-    type EnvValue = t.RecursiveContainer
-    type EnvInput = t.RecursiveContainerMapping | t.Container | None
-    type ModelInput = t.RecursiveContainerMapping | t.Container | None
+    type EnvValue = t.Container
+    type EnvInput = Mapping[str, t.Container] | t.Container | None
+    type ModelInput = Mapping[str, t.Container] | t.Container | None
     type CliApi = FlextCli
 
     type DataProcessor = Callable[[str], str]
     type ProcessorRegistry = Mapping[str, DataProcessor]
-    JSON_DICT_ADAPTER: ClassVar[m.TypeAdapter[t.RecursiveContainerMapping]] = (
+    JSON_DICT_ADAPTER: ClassVar[m.TypeAdapter[Mapping[str, t.Container]]] = (
         m.TypeAdapter(
-            t.RecursiveContainerMapping,
+            Mapping[str, t.Container],
         )
     )
 

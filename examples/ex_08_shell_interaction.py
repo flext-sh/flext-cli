@@ -32,13 +32,13 @@ from __future__ import annotations
 
 import os
 import time
-from collections.abc import MutableSequence
+from collections.abc import Mapping, MutableSequence
 
 from examples import c, p, r, t
 from flext_cli import cli
 
 
-def handle_status_command() -> p.Result[t.RecursiveContainerMapping]:
+def handle_status_command() -> p.Result[Mapping[str, t.Container]]:
     """Status command in YOUR interactive CLI."""
     status = {
         "status": "running",
@@ -47,7 +47,7 @@ def handle_status_command() -> p.Result[t.RecursiveContainerMapping]:
     }
     cli.print(f"✅ Status: {status['status']}", style=c.Cli.MessageStyles.GREEN)
     cli.print(f"   User: {status['user']}", style=c.Cli.MessageStyles.CYAN)
-    return r[t.RecursiveContainerMapping].ok(dict(status))
+    return r[Mapping[str, t.Container]].ok(dict(status))
 
 
 def handle_list_command(filter_text: str = "") -> p.Result[t.StrSequence]:

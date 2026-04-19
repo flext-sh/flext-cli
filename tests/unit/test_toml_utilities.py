@@ -5,7 +5,10 @@ from __future__ import annotations
 import os
 import stat
 import tomllib
-from collections.abc import Generator
+from collections.abc import (
+    Generator,
+    Mapping,
+)
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -193,7 +196,7 @@ class TestCliTomlHelpers:
         )
 
     def test_as_mapping_and_lookup_helpers(self) -> None:
-        mapping: t.RecursiveContainerMapping = {"key": "value"}
+        mapping: Mapping[str, t.Container] = {"key": "value"}
         tm.that(u.Cli.toml_as_mapping(mapping), eq=mapping)
         tm.that(u.Cli.toml_as_mapping("bad"), none=True)
         doc = u.Cli.toml_document()

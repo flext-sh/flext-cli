@@ -43,7 +43,7 @@ class FlextCliModelsBase:
             validate_assignment=True,
         )
         data: Annotated[
-            t.RecursiveContainerMapping,
+            Mapping[str, t.Container],
             m.Field(
                 description="Field-value pairs for display",
             ),
@@ -57,7 +57,7 @@ class FlextCliModelsBase:
             validate_assignment=True,
         )
         content: Annotated[
-            t.RecursiveContainerMapping,
+            Mapping[str, t.Container],
             m.Field(
                 description="Loaded configuration content (dict or other JSON value)",
             ),

@@ -36,7 +36,7 @@ from flext_core import p, r
 
 def login_to_service(username: str, password: str) -> bool:
     """Login and save token in YOUR CLI application."""
-    credentials: t.RecursiveContainerMapping = {
+    credentials: Mapping[str, t.Container] = {
         "username": username,
         "password": password,
     }

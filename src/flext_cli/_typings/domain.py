@@ -50,24 +50,21 @@ class FlextCliTypesDomain:
     type ResultRouteHandler = Callable[..., p.Cli.ErasedCommandResult]
     type MappingProcessor[T, U] = Callable[[str, T], U]
     type JsonModelHandler[M: m.BaseModel] = Callable[[M], t.RecursiveValue]
-    type RecursiveMapping = t.RecursiveContainerMapping
-    type RecursiveMappingSource = t.RecursiveContainer | RecursiveMapping | None
+    type RecursiveMapping = Mapping[str, t.Container]
+    type RecursiveMappingSource = t.Container | RecursiveMapping | None
     type JsonPayload = (
         FlextCliTypesBase.JsonValue
         | m.BaseModel
         | FlextCliTypesBase.JsonMapping
         | FlextCliTypesBase.JsonList
-        | Mapping[str, t.RecursiveContainer]
+        | Mapping[str, t.Container]
     )
     type JsonValueOrModel = FlextCliTypesBase.JsonValue | m.BaseModel | None
     type TomlMappingSource = (
-        t.RecursiveContainer
-        | FlextCliTypesBase.TomlItem
-        | FlextCliTypesBase.TomlDocument
-        | None
+        t.Container | FlextCliTypesBase.TomlItem | FlextCliTypesBase.TomlDocument | None
     )
-    type TomlUnwrappedSource = t.RecursiveContainer | FlextCliTypesBase.TomlItem | None
-    type TomlRuntimeSource = FlextCliTypesBase.TomlValue | t.RecursiveContainer | None
+    type TomlUnwrappedSource = t.Container | FlextCliTypesBase.TomlItem | None
+    type TomlRuntimeSource = FlextCliTypesBase.TomlValue | t.Container | None
     type TypeKind = Literal[
         FlextCliConstantsEnums.TypeKind.STR,
         FlextCliConstantsEnums.TypeKind.BOOL,
@@ -77,12 +74,12 @@ class FlextCliTypesDomain:
     type TypedExtractValue = str | bool | FlextCliTypesBase.JsonMapping | None
     type ResultCommandRoutes = Sequence[p.Cli.ResultCommandRoute]
     type TableDataSource = (
-        FlextCliTypesBase.TabularData | Sequence[t.RecursiveContainerMapping]
+        FlextCliTypesBase.TabularData | Sequence[Mapping[str, t.Container]]
     )
     type TextPath = str | Path
     type PathLike = str | Path
     type JsonWriteData = (
-        t.RecursiveContainer | Sequence[t.RecursiveContainerMapping] | p.Cli.DisplayData
+        t.Container | Sequence[Mapping[str, t.Container]] | p.Cli.DisplayData
     )
 
 

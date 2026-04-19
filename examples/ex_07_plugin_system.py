@@ -30,7 +30,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import json
-from collections.abc import MutableMapping, Sequence
+from collections.abc import Mapping, MutableMapping, Sequence
 from pathlib import Path
 
 from examples import c, m, t
@@ -49,7 +49,7 @@ class DataExportPlugin:
 
     @staticmethod
     def execute(
-        data: t.RecursiveContainerMapping,
+        data: Mapping[str, t.Container],
         output_format: c.Cli.OutputFormats = c.Cli.OutputFormats.JSON,
     ) -> p.Result[str]:
         """Execute plugin logic in YOUR application."""
@@ -73,7 +73,7 @@ class ReportGeneratorPlugin:
         self.version = "1.0.0"
 
     @staticmethod
-    def execute(data: Sequence[t.RecursiveContainerMapping]) -> p.Result[str]:
+    def execute(data: Sequence[Mapping[str, t.Container]]) -> p.Result[str]:
         """Generate report from data in YOUR CLI."""
         table_result = cli.format_table(data, table_format=c.Cli.TabularFormat.GRID)
         if table_result.failure:
@@ -142,7 +142,7 @@ class MyAppPluginManager:
             name: resolve_plugin_version(plugin)
             for name, plugin in self.plugins.items()
         }
-        rows: Sequence[t.RecursiveContainerMapping] = [
+        rows: Sequence[Mapping[str, t.Container]] = [
             {"Plugin": name, "Version": ver} for name, ver in plugin_items.items()
         ]
         cli.show_table(rows, headers=["Plugin", "Version"])
@@ -179,23 +179,23 @@ def load_plugins_from_directory(plugin_dir: Path) -> MyAppPluginManager:
 class ConfigurablePlugin:
     """Example of configurable plugin for YOUR CLI."""
 
-    def __init__(self, settings: t.RecursiveContainerMapping) -> None:
+    def __init__(self, settings: Mapping[str, t.Container]) -> None:
         """Initialize configurable plugin with configuration dictionary."""
         super().__init__()
         self.name = "configurable-plugin"
-        self.settings: t.RecursiveContainerMapping = settings
+        self.settings: Mapping[str, t.Container] = settings
 
-    def execute(self) -> p.Result[t.RecursiveContainerMapping]:
+    def execute(self) -> p.Result[Mapping[str, t.Container]]:
         """Execute with configuration in YOUR CLI."""
         cli.print(
             f"🔧 Plugin settings: {self.settings}", style=c.Cli.MessageStyles.CYAN
         )
-        result_data: t.RecursiveContainerMapping = {
+        result_data: Mapping[str, t.Container] = {
             "plugin": self.name,
             "config_applied": True,
             **self.settings,
         }
-        return r[t.RecursiveContainerMapping].ok(result_data)
+        return r[Mapping[str, t.Container]].ok(result_data)
 
 
 class LifecyclePlugin:
@@ -240,7 +240,7 @@ def main() -> None:
     cli.print("\n2. List Plugins (inventory):", style=c.Cli.MessageStyles.BOLD_CYAN)
     manager.list_plugins()
     cli.print("\n3. Execute Plugin (data export):", style=c.Cli.MessageStyles.BOLD_CYAN)
-    test_data: t.RecursiveContainerMapping = {
+    test_data: Mapping[str, t.Container] = {
         "id": 1,
         "name": "Test",
         "status": "active",
@@ -257,7 +257,7 @@ def main() -> None:
     cli.print(
         "\n4. Report Plugin (table generation):", style=c.Cli.MessageStyles.BOLD_CYAN
     )
-    report_data: Sequence[t.RecursiveContainerMapping] = [
+    report_data: Sequence[Mapping[str, t.Container]] = [
         {"metric": "Users", "value": "1,234"},
         {"metric": "Orders", "value": "567"},
     ]
@@ -271,7 +271,7 @@ def main() -> None:
             style=c.Cli.MessageStyles.GREEN,
         )
     cli.print("\n5. Configurable Plugin:", style=c.Cli.MessageStyles.BOLD_CYAN)
-    settings: t.RecursiveContainerMapping = {"theme": "dark", "verbose": True}
+    settings: Mapping[str, t.Container] = {"theme": "dark", "verbose": True}
     config_plugin = ConfigurablePlugin(settings)
     config_result = config_plugin.execute()
     if config_result.success:

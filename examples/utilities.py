@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import MutableSequence
+from collections.abc import Mapping, MutableSequence
 
 from examples import c, m, p, t
 from flext_cli import cli, u
@@ -23,7 +23,7 @@ class ExamplesFlextCliUtilities(u):
     @classmethod
     def to_json_dict(
         cls,
-        data: t.RecursiveContainerMapping,
+        data: Mapping[str, t.Container],
     ) -> m.Cli.DisplayData:
         """Normalize settings/mapping to DisplayData for create_table/display_config_table."""
         json_value: t.Cli.JsonValue = t.Cli.JSON_VALUE_ADAPTER.validate_python(

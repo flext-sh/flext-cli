@@ -40,27 +40,27 @@ class DataManagerCLI:
         super().__init__()
         self.data_file = Path(tempfile.gettempdir()) / "app_data.json"
 
-    def add_entry(self) -> p.Result[t.RecursiveContainerMapping]:
+    def add_entry(self) -> p.Result[Mapping[str, t.Container]]:
         """Add new entry with user prompts."""
         prompts = cli
         prompts.configure(m.Cli.PromptRuntimeState(interactive=False))
         key_result = prompts.prompt("Enter key:", default="sample_key")
         if key_result.failure:
-            return r[t.RecursiveContainerMapping].fail(
+            return r[Mapping[str, t.Container]].fail(
                 f"Prompt failed: {key_result.error}"
             )
         key = key_result.value
         value_result = prompts.prompt("Enter value:", default="sample_value")
         if value_result.failure:
-            return r[t.RecursiveContainerMapping].fail(
+            return r[Mapping[str, t.Container]].fail(
                 f"Prompt failed: {value_result.error}"
             )
         value = value_result.value
         cli.print(f"✅ Created entry: {key} = {value}", style=c.Cli.MessageStyles.GREEN)
-        converted_entry: t.RecursiveContainerMapping = {key: value}
-        return r[t.RecursiveContainerMapping].ok(converted_entry)
+        converted_entry: Mapping[str, t.Container] = {key: value}
+        return r[Mapping[str, t.Container]].ok(converted_entry)
 
-    def display_data(self, data: t.RecursiveContainerMapping) -> None:
+    def display_data(self, data: Mapping[str, t.Container]) -> None:
         """Display data as formatted table."""
         if not data:
             cli.print("⚠️  No data to display", style=c.Cli.MessageStyles.YELLOW)
@@ -74,23 +74,23 @@ class DataManagerCLI:
         cli.print("  📊 Data Manager CLI", style=c.Cli.MessageStyles.BOLD_WHITE_ON_BLUE)
         cli.print("=" * 70, style=c.Cli.MessageStyles.BOLD_BLUE)
 
-    def load_data(self) -> p.Result[t.RecursiveContainerMapping]:
+    def load_data(self) -> p.Result[Mapping[str, t.Container]]:
         """Load data with error handling. Uses read_json_file for dict-only result."""
         if not self.data_file.exists():
-            return r[t.RecursiveContainerMapping].fail(c.EXAMPLE_ERR_NO_DATA_FILE_FOUND)
+            return r[Mapping[str, t.Container]].fail(c.EXAMPLE_ERR_NO_DATA_FILE_FOUND)
         read_result = cli.read_json_file(str(self.data_file))
         if read_result.failure:
             error_msg = read_result.error or "Unknown error"
             cli.print(
                 f"❌ Load failed: {error_msg}", style=c.Cli.MessageStyles.BOLD_RED
             )
-            return r[t.RecursiveContainerMapping].fail(error_msg)
+            return r[Mapping[str, t.Container]].fail(error_msg)
         if not isinstance(read_result.value, Mapping):
-            return r[t.RecursiveContainerMapping].fail(
+            return r[Mapping[str, t.Container]].fail(
                 c.EXAMPLE_ERR_DATA_FILE_MUST_BE_MAPPING,
             )
         cli.print("✅ Data loaded successfully", style=c.Cli.MessageStyles.GREEN)
-        return r[t.RecursiveContainerMapping].ok(read_result.value)
+        return r[Mapping[str, t.Container]].ok(read_result.value)
 
     def run_workflow(self) -> p.Result[bool]:
         """Complete workflow integrating all features."""
@@ -119,7 +119,7 @@ class DataManagerCLI:
         self.display_data(current_data)
         return r[bool].ok(value=True)
 
-    def save_data(self, data: t.RecursiveContainerMapping) -> p.Result[bool]:
+    def save_data(self, data: Mapping[str, t.Container]) -> p.Result[bool]:
         """Save data with proper error handling."""
         write_result = cli.write_json_file(self.data_file, data)
         if write_result.failure:
@@ -135,13 +135,13 @@ class DataManagerCLI:
 
 
 def process_with_railway_pattern(
-    input_data: t.RecursiveContainerMapping,
-) -> p.Result[t.RecursiveContainerMapping]:
+    input_data: Mapping[str, t.Container],
+) -> p.Result[Mapping[str, t.Container]]:
     """Show railway pattern chaining operations."""
-    step1_data: t.RecursiveContainerMapping = {**input_data, "validated": True}
-    step2_data: t.RecursiveContainerMapping = {**step1_data, "processed": True}
-    final_data: t.RecursiveContainerMapping = {**step2_data, "enriched": True}
-    result: p.Result[t.RecursiveContainerMapping] = r[t.RecursiveContainerMapping].ok(
+    step1_data: Mapping[str, t.Container] = {**input_data, "validated": True}
+    step2_data: Mapping[str, t.Container] = {**step1_data, "processed": True}
+    final_data: Mapping[str, t.Container] = {**step2_data, "enriched": True}
+    result: p.Result[Mapping[str, t.Container]] = r[Mapping[str, t.Container]].ok(
         final_data
     )
     if result.failure:
@@ -177,7 +177,7 @@ def main() -> None:
         "\n2. Railway Pattern (chained operations):",
         style=c.Cli.MessageStyles.BOLD_CYAN,
     )
-    test_data: t.RecursiveContainerMapping = {"id": 1, "name": "test"}
+    test_data: Mapping[str, t.Container] = {"id": 1, "name": "test"}
     pipeline_result = process_with_railway_pattern(test_data)
     if pipeline_result.success:
         final_data = pipeline_result.value

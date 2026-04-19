@@ -124,7 +124,7 @@ ______________________________________________________________________
 
 ```python
 # ❌ CURRENT: Too many services
-class FlextCliFileTools(s[t.RecursiveContainerMapping]):
+class FlextCliFileTools(s[Mapping[str, t.Container]]):
     """File operations as a service - OVERKILL"""
     def __init__(self):
         super().__init__()  # Unnecessary overhead
@@ -335,7 +335,7 @@ class FlextCliContext(m.Value):
 
     command: str | None = None
     arguments: t.StrSequence = m.Field(default_factory=list)
-    environment_variables: t.RecursiveContainerMapping = m.Field(default_factory=dict)
+    environment_variables: Mapping[str, t.Container] = m.Field(default_factory=dict)
     working_directory: str | None = None
 
     # No methods - just validated data
@@ -449,7 +449,7 @@ ______________________________________________________________________
 **Before**:
 
 ```python
-class FlextCliFileTools(s[t.RecursiveContainerMapping]):
+class FlextCliFileTools(s[Mapping[str, t.Container]]):
     def __init__(self):
         super().__init__()
         self.logger = u.fetch_logger(__name__)
@@ -515,7 +515,7 @@ class FlextCliContext(m.Value):
 
     command: str | None = None
     arguments: t.StrSequence = m.Field(default_factory=list)
-    environment_variables: t.RecursiveContainerMapping = m.Field(default_factory=dict)
+    environment_variables: Mapping[str, t.Container] = m.Field(default_factory=dict)
     working_directory: str | None = None
     created_at: str = m.Field(default_factory=lambda: datetime.now(UTC).isoformat())
 

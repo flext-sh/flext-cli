@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from flext_cli import FlextCliProtocolsBase
@@ -19,7 +20,7 @@ class FlextCliProtocolsDomain:
         """Display payload contract backed by a data mapping."""
 
         @property
-        def data(self) -> t.RecursiveContainerMapping:
+        def data(self) -> Mapping[str, t.Container]:
             """Expose the display payload."""
             ...
 
@@ -28,7 +29,7 @@ class FlextCliProtocolsDomain:
         """Loaded configuration payload contract."""
 
         @property
-        def content(self) -> t.RecursiveContainerMapping:
+        def content(self) -> Mapping[str, t.Container]:
             """Expose loaded configuration content."""
             ...
 

@@ -37,7 +37,7 @@ class FlextCliUtilitiesToml:
     @staticmethod
     def toml_unwrap_item(
         value: t.Cli.TomlMappingSource,
-    ) -> t.RecursiveContainer | None:
+    ) -> t.Container | None:
         """Unwrap TOML items and documents to plain Python values."""
         normalized: t.Cli.TomlUnwrappedSource = value
         if FlextCliUtilitiesToml.toml_is_document(
@@ -118,7 +118,7 @@ class FlextCliUtilitiesToml:
     @staticmethod
     def _toml_item_from_json_value(
         value: t.Cli.JsonValue,
-    ) -> t.Cli.TomlItem | t.RecursiveContainer:
+    ) -> t.Cli.TomlItem | t.Container:
         """Convert one JSON-compatible value into one TOML runtime value."""
         if value is None:
             msg = "TOML does not support null values"
@@ -185,7 +185,7 @@ class FlextCliUtilitiesToml:
         key: str,
     ) -> t.Cli.TomlTable:
         """Return an explicit table child, promoting implicit super-tables when needed."""
-        existing: t.Cli.TomlItem | t.RecursiveContainer | None = None
+        existing: t.Cli.TomlItem | t.Container | None = None
         if key in parent:
             existing = parent[key]
         if FlextCliUtilitiesToml.toml_is_table(existing):

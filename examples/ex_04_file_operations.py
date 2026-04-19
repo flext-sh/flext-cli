@@ -23,7 +23,7 @@ from flext_cli import cli
 
 
 def save_user_preferences(
-    preferences: t.RecursiveContainerMapping,
+    preferences: Mapping[str, t.Container],
     config_dir: Path,
 ) -> bool:
     """Save user preferences to JSON in YOUR app."""
@@ -82,7 +82,7 @@ def load_user_preferences(config_dir: Path) -> p.Result[m.Cli.LoadedConfig]:
 
 
 def save_deployment_config(
-    settings: t.RecursiveContainerMapping,
+    settings: Mapping[str, t.Container],
     config_file: Path,
 ) -> bool:
     """Save deployment settings to YAML in YOUR tool."""
@@ -130,7 +130,7 @@ def load_deployment_config(config_file: Path) -> p.Result[m.Cli.LoadedConfig]:
 
 
 def export_database_report(
-    records: Sequence[t.RecursiveContainerMapping],
+    records: Sequence[Mapping[str, t.Container]],
     output_file: Path,
     format_type: c.Cli.TabularFormat = c.Cli.TabularFormat.GRID,
 ) -> bool | None:
@@ -307,7 +307,7 @@ def backup_config_files(source_dir: Path, backup_dir: Path) -> t.StrSequence:
 
 
 def export_to_csv(
-    data: Sequence[t.RecursiveContainerMapping],
+    data: Sequence[Mapping[str, t.Container]],
     output_file: Path,
 ) -> bool:
     """Export data to CSV with proper headers in YOUR reporting tool."""
@@ -452,7 +452,7 @@ def load_config_auto_detect(config_file: Path) -> p.Result[m.Cli.LoadedConfig]:
 
 
 def export_multi_format(
-    data: t.RecursiveContainerMapping | Sequence[t.RecursiveContainerMapping],
+    data: Mapping[str, t.Container] | Sequence[Mapping[str, t.Container]],
     base_path: Path,
 ) -> t.StrMapping:
     """Export same data to multiple formats (JSON, YAML, CSV)."""
@@ -492,10 +492,10 @@ def export_multi_format(
             f"✅ YAML: {yaml_path.name} ({size} bytes)", style=c.Cli.MessageStyles.GREEN
         )
 
-    rows_adapter: m.TypeAdapter[Sequence[t.RecursiveContainerMapping]] = m.TypeAdapter(
-        Sequence[t.RecursiveContainerMapping]
+    rows_adapter: m.TypeAdapter[Sequence[Mapping[str, t.Container]]] = m.TypeAdapter(
+        Sequence[Mapping[str, t.Container]]
     )
-    csv_rows_data: Sequence[t.RecursiveContainerMapping]
+    csv_rows_data: Sequence[Mapping[str, t.Container]]
     try:
         csv_rows_data = rows_adapter.validate_python(data)
     except c.ValidationError:
@@ -607,7 +607,7 @@ def process_file_pipeline(
 
 
 def validate_and_transform_data(
-    data: t.RecursiveContainerMapping,
+    data: Mapping[str, t.Container],
 ) -> m.Cli.LoadedConfig:
     """Validate and transform input data."""
     transformed = {
@@ -650,10 +650,10 @@ def generate_output_files(
         return r[Mapping[str, Path]].fail(f"YAML export failed: {yaml_result.error}")
     results["yaml"] = yaml_file
 
-    rows_adapter: m.TypeAdapter[Sequence[t.RecursiveContainerMapping]] = m.TypeAdapter(
-        Sequence[t.RecursiveContainerMapping]
+    rows_adapter: m.TypeAdapter[Sequence[Mapping[str, t.Container]]] = m.TypeAdapter(
+        Sequence[Mapping[str, t.Container]]
     )
-    csv_rows_data: Sequence[t.RecursiveContainerMapping]
+    csv_rows_data: Sequence[Mapping[str, t.Container]]
     content_items: t.ValueOrModel = ""
     if isinstance(data.content, dict):
         content_items = data.content.get("items", [])
@@ -710,7 +710,7 @@ def main() -> None:
         "\n1. JSON Config Files (user preferences):",
         style=c.Cli.MessageStyles.BOLD_CYAN,
     )
-    prefs: t.RecursiveContainerMapping = {
+    prefs: Mapping[str, t.Container] = {
         "theme": "dark",
         "font_size": 14,
         "auto_save": True,
@@ -726,7 +726,7 @@ def main() -> None:
     cli.print(
         "\n2. YAML Configuration (deployment):", style=c.Cli.MessageStyles.BOLD_CYAN
     )
-    deploy_config: t.RecursiveContainerMapping = {
+    deploy_config: Mapping[str, t.Container] = {
         "environment": "staging",
         "host": "staging.example.com",
         "platform": platform.system(),
@@ -741,7 +741,7 @@ def main() -> None:
 
     # Example 3: Table export
     cli.print("\n3. Data Export (table format):", style=c.Cli.MessageStyles.BOLD_CYAN)
-    sample_data: Sequence[t.RecursiveContainerMapping] = [
+    sample_data: Sequence[Mapping[str, t.Container]] = [
         {"id": 1, "name": "Alice", "status": "active"},
         {"id": 2, "name": "Bob", "status": "inactive"},
     ]
@@ -766,7 +766,7 @@ def main() -> None:
     cli.print(
         "\n6. Data Validation (ETL pipeline):", style=c.Cli.MessageStyles.BOLD_CYAN
     )
-    test_data: t.RecursiveContainerMapping = {"id": 1, "name": "test", "value": 100}
+    test_data: Mapping[str, t.Container] = {"id": 1, "name": "test", "value": 100}
     test_file = temp_dir / "test_data.json"
     cli.write_json_file(test_file, u.Cli.normalize_json_value(test_data))
     valid_result = validate_and_import_data(test_file)
@@ -779,7 +779,7 @@ def main() -> None:
     cli.print(
         "\n7. CSV Export/Import (with headers):", style=c.Cli.MessageStyles.BOLD_CYAN
     )
-    csv_data: Sequence[t.RecursiveContainerMapping] = [
+    csv_data: Sequence[Mapping[str, t.Container]] = [
         {"employee_id": 101, "name": "Alice Smith", "department": "Engineering"},
         {"employee_id": 102, "name": "Bob Jones", "department": "Sales"},
         {"employee_id": 103, "name": "Carol White", "department": "Marketing"},
@@ -797,7 +797,7 @@ def main() -> None:
 
     # Example 9: Auto-format detection
     cli.print("\n9. Auto-Format Detection:", style=c.Cli.MessageStyles.BOLD_CYAN)
-    auto_config: t.RecursiveContainerMapping = {
+    auto_config: Mapping[str, t.Container] = {
         "app": "demo",
         "version": "1.0",
         "enabled": True,
@@ -819,7 +819,7 @@ def main() -> None:
 
     # Example 10: Multi-format export
     cli.print("\n10. Multi-Format Export:", style=c.Cli.MessageStyles.BOLD_CYAN)
-    multi_data: Sequence[t.RecursiveContainerMapping] = [
+    multi_data: Sequence[Mapping[str, t.Container]] = [
         {"metric": "CPU", "value": "75%", "status": "OK"},
         {"metric": "Memory", "value": "82%", "status": "Warning"},
     ]
@@ -830,7 +830,7 @@ def main() -> None:
         "\n11. Railway Pattern Pipeline (complete workflow):",
         style=c.Cli.MessageStyles.BOLD_CYAN,
     )
-    pipeline_input: t.RecursiveContainerMapping = {
+    pipeline_input: Mapping[str, t.Container] = {
         "name": "pipeline_demo",
         "version": "1.0",
         "items": [

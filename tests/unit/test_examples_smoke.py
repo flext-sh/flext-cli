@@ -75,7 +75,7 @@ class TestFlextCliExamplesSmoke:
         """File-oriented examples must use cli file APIs successfully."""
         config_dir = tmp_path / "settings"
         config_dir.mkdir()
-        preferences: t.RecursiveContainerMapping = {
+        preferences: Mapping[str, t.Container] = {
             "theme": "dark",
             "notifications": True,
         }
@@ -90,7 +90,7 @@ class TestFlextCliExamplesSmoke:
         assert preferences_result.value.content == preferences
 
         deployment_file = tmp_path / "deployment.yaml"
-        deployment_config: t.RecursiveContainerMapping = {
+        deployment_config: Mapping[str, t.Container] = {
             "environment": "dev",
             "replicas": 2,
         }

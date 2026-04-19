@@ -25,7 +25,7 @@ class TestsCliTypings:
 
     def test_full_type_workflow_integration(self) -> None:
         """Test complete type workflow integration."""
-        typed_data: t.RecursiveContainerMapping = {"key": "value", "number": 42}
+        typed_data: Mapping[str, t.Container] = {"key": "value", "number": 42}
         tm.that(typed_data, is_=dict)
         api_data = m.Cli.Tests.ApiResponse(
             status="success",
@@ -57,10 +57,10 @@ class TestsCliTypings:
 
         @runtime_checkable
         class Test(Protocol):
-            def operation(self, data: t.StrSequence) -> t.RecursiveContainerMapping: ...
+            def operation(self, data: t.StrSequence) -> Mapping[str, t.Container]: ...
 
         class Implementation:
-            def operation(self, data: t.StrSequence) -> t.RecursiveContainerMapping:
+            def operation(self, data: t.StrSequence) -> Mapping[str, t.Container]:
                 time.sleep(0.001)
                 return {
                     "processed": [item.upper() for item in data],
@@ -71,9 +71,9 @@ class TestsCliTypings:
         impl: Test = Implementation()
         test_data = ["str1", "str2"]
         result = impl.operation(test_data)
-        processed: t.RecursiveContainer | None = result.get("processed")
+        processed: t.Container | None = result.get("processed")
         tm.that(processed, eq=["STR1", "STR2"])
-        count: t.RecursiveContainer | None = result.get("count")
+        count: t.Container | None = result.get("count")
         tm.that(count, eq=2)
         tm.that(result, has="timestamp")
         tm.that(t, none=False)

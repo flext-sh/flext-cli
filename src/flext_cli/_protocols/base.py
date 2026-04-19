@@ -152,8 +152,8 @@ class FlextCliProtocolsBase:
 
         def __call__(
             self,
-            *args: t.RecursiveContainer,
-            **kwargs: t.RecursiveContainer,
+            *args: t.Container,
+            **kwargs: t.Container,
         ) -> t.RecursiveValue:
             """Execute the wrapper."""
             ...

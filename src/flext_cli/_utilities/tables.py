@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import MutableSequence, Sequence
+from collections.abc import Mapping, MutableSequence, Sequence
 from typing import ClassVar
 
 from tabulate import tabulate
@@ -20,7 +20,7 @@ class FlextCliUtilitiesTables:
 
     @staticmethod
     def tables_normalize_mapping_row(
-        row: t.RecursiveContainerMapping,
+        row: Mapping[str, t.Container],
     ) -> t.Cli.TableMappingRow:
         """Normalize one mapping row to JSON-compatible values."""
         return {

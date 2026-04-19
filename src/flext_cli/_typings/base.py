@@ -26,7 +26,7 @@ class FlextCliTypesBase:
 
     type Scalar = t.Scalar
     type StrSequence = t.StrSequence
-    type RecursiveContainer = t.RecursiveContainer
+    type RecursiveContainer = t.Container
     type DefaultMapping = Mapping[str, Scalar | StrSequence | None]
     type ValueOrModel = t.ValueOrModel
     type JsonValue = t.JsonValue
@@ -144,16 +144,13 @@ class FlextCliTypesBase:
     type RichConsoleType = RichConsole
 
     type RuntimeAnnotation = type | GenericAlias | UnionType | TypeAliasType | None
-    type RuntimeValue = t.RecursiveContainer
+    type RuntimeValue = t.Container
 
     type YamlDict = t.JsonMapping
     type YamlValue = t.RecursiveValue
     type YamlList = t.JsonList
     type YamlDumpable = (
-        t.JsonMapping
-        | Mapping[str, t.RecursiveContainer]
-        | t.JsonList
-        | t.RecursiveValue
+        t.JsonMapping | Mapping[str, t.Container] | t.JsonList | t.RecursiveValue
     )
 
     PRIMITIVE_TYPES: ClassVar[tuple[type[str], type[int], type[float], type[bool]]] = (
