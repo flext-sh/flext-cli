@@ -112,6 +112,8 @@ class FlextCliModelsPipeline:
     class PipelineResult(m.ContractModel):
         """Full pipeline execution result — aggregated from all stages."""
 
+        _flext_enforcement_exempt: ClassVar[bool] = True
+
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid")
 
         stages: Annotated[
