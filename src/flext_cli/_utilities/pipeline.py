@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 import time
-from collections.abc import Mapping, Sequence
+from collections.abc import (
+    Mapping,
+    Sequence,
+)
 from graphlib import CycleError, TopologicalSorter
 from typing import ClassVar
 

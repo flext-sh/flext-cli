@@ -8,7 +8,9 @@ from __future__ import annotations
 
 import logging
 import re
-from collections.abc import MutableSequence
+from collections.abc import (
+    MutableSequence,
+)
 
 from tests import c, p, r
 

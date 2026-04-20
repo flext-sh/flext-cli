@@ -13,7 +13,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import (
+    Sequence,
+)
 from typing import Final
 
 from flext_tests import FlextTestsConstants
@@ -71,7 +73,7 @@ class TestsFlextCliConstants(FlextTestsConstants, c):
                 """Version string examples for parametrized tests."""
 
                 SEMVER_PATTERN: Final[str] = (
-                    "^\\d+\\.\\d+\\.\\d+(?:-[\\w\\.]+)?(?:\\+[\\w\\.]+)?$"
+                    "^\\d+\\.\\d+\\.\\d+(?:[-.][\\w\\.]+)?(?:\\+[\\w\\.]+)?$"
                 )
                 VALID_SEMVER: Final[str] = "1.2.3"
                 VALID_SEMVER_COMPLEX: Final[str] = "1.2.3-alpha.1+build.123"

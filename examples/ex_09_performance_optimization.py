@@ -33,7 +33,10 @@ from __future__ import annotations
 import pathlib
 import tempfile
 import time
-from collections.abc import Mapping, Sequence
+from collections.abc import (
+    Mapping,
+    Sequence,
+)
 from functools import lru_cache
 
 from examples import c, t

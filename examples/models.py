@@ -11,7 +11,10 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
-from collections.abc import Mapping, MutableSequence
+from collections.abc import (
+    Mapping,
+    MutableSequence,
+)
 from ipaddress import ip_address
 from pathlib import Path
 from typing import Annotated, ClassVar

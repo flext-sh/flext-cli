@@ -2,7 +2,12 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, MutableMapping, Sequence
+from collections.abc import (
+    Callable,
+    Mapping,
+    MutableMapping,
+    Sequence,
+)
 from pathlib import Path
 from types import MappingProxyType
 from typing import Annotated, ClassVar

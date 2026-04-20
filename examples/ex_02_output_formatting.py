@@ -35,7 +35,11 @@ from __future__ import annotations
 
 import pathlib
 import time
-from collections.abc import Mapping, MutableSequence, Sequence
+from collections.abc import (
+    Mapping,
+    MutableSequence,
+    Sequence,
+)
 from pathlib import Path
 
 from examples import c, p, t

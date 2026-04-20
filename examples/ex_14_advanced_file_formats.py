@@ -30,7 +30,10 @@ from __future__ import annotations
 import hashlib
 import shutil
 import tempfile
-from collections.abc import Mapping, Sequence
+from collections.abc import (
+    Mapping,
+    Sequence,
+)
 from pathlib import Path
 
 from examples import c, m, t

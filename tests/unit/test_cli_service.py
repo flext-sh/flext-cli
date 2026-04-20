@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping, MutableSequence
+from collections.abc import (
+    MutableSequence,
+)
 
 from flext_tests import tm
 
@@ -120,7 +122,7 @@ class TestsCliService:
         tm.that(captured[0].make_arg, eq=["FILES=a b c.py", "VERBOSE=1"])
 
     def test_model_command_returns_handler_value(self) -> None:
-        def handle(params: m.Cli.Tests.SampleInput) -> Mapping[str, t.Container]:
+        def handle(params: m.Cli.Tests.SampleInput) -> t.Cli.JsonValue:
             return {
                 "name": params.name,
                 "count": params.count,
@@ -175,10 +177,10 @@ class TestsCliService:
             settings=cli.settings,
         )
         group = cli.create_group(help_text="Grouped commands", name="group")
-        remembered: MutableSequence[tuple[str | None, str]] = []
+        remembered: MutableSequence[list[str | None]] = []
 
         def remember_failure(error: str | None, fallback: str) -> None:
-            remembered.append((error, fallback))
+            remembered.append([error, fallback])
 
         def ok_handler(
             params: m.Cli.Tests.SampleInput,
@@ -234,7 +236,7 @@ class TestsCliService:
         tm.that(ok_result.stdout, has="processed alice")
         tm.that(fail_result.exit_code, eq=1)
         tm.that(fail_result.stdout, has="boom")
-        tm.that(remembered, eq=[("boom", "failure fallback")])
+        tm.that(remembered, eq=[["boom", "failure fallback"]])
 
     def test_register_result_routes_preserves_failure_metadata(self) -> None:
         app = cli.create_app_with_common_params(
@@ -242,10 +244,10 @@ class TestsCliService:
             help_text="Result application",
             settings=cli.settings,
         )
-        remembered: MutableSequence[tuple[str | None, str]] = []
+        remembered: MutableSequence[list[str | None]] = []
 
         def remember_failure(error: str | None, fallback: str) -> None:
-            remembered.append((error, fallback))
+            remembered.append([error, fallback])
 
         def fail_handler(
             params: m.Cli.Tests.SampleInput,
@@ -272,4 +274,4 @@ class TestsCliService:
 
         tm.that(fail_result.exit_code, eq=1)
         tm.that(fail_result.stdout, has="batched boom")
-        tm.that(remembered, eq=[("batched boom", "batched failure fallback")])
+        tm.that(remembered, eq=[["batched boom", "batched failure fallback"]])

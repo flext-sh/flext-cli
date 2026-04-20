@@ -7,7 +7,10 @@ import hashlib
 import os
 import shutil
 import tempfile
-from collections.abc import Mapping, Sequence
+from collections.abc import (
+    Mapping,
+    Sequence,
+)
 from pathlib import Path
 
 from flext_cli import FlextCliUtilitiesJson, FlextCliUtilitiesYaml, c, p, r, t
@@ -240,6 +243,31 @@ class FlextCliUtilitiesFiles:
         return r[Path].ok(target)
 
     @staticmethod
+    def ensure_symlink(
+        target: t.Cli.TextPath, source: t.Cli.TextPath
+    ) -> p.Result[bool]:
+        """Ensure target points to source via directory symlink."""
+        target_path = Path(target)
+        source_path = Path(source).resolve()
+        ensure_result = FlextCliUtilitiesFiles.ensure_dir(target_path.parent)
+        if ensure_result.failure:
+            return r[bool].fail(
+                ensure_result.error or f"failed to create parent dir for {target_path}",
+            )
+        try:
+            if target_path.is_symlink() and target_path.resolve() == source_path:
+                return r[bool].ok(True)
+            if target_path.exists() or target_path.is_symlink():
+                if target_path.is_dir() and (not target_path.is_symlink()):
+                    shutil.rmtree(target_path)
+                else:
+                    target_path.unlink()
+            target_path.symlink_to(source_path, target_is_directory=True)
+        except OSError as exc:
+            return r[bool].fail(f"failed to ensure symlink for {target_path}: {exc}")
+        return r[bool].ok(True)
+
+    @staticmethod
     def atomic_write_text_file(
         file_path: t.Cli.TextPath, content: str
     ) -> p.Result[bool]:
@@ -299,7 +327,9 @@ class FlextCliUtilitiesFiles:
         return r[str].fail("Unable to detect file format without an extension")
 
     @staticmethod
-    def files_load_auto_mapping(file_path: t.Cli.TextPath) -> t.Cli.JsonMappingResult:
+    def files_load_auto_mapping(
+        file_path: t.Cli.TextPath,
+    ) -> p.Result[t.Cli.JsonMapping]:
         """Load JSON/YAML file and normalize to one mapping payload."""
         path = Path(file_path)
         if path.suffix.lower() == ".json":

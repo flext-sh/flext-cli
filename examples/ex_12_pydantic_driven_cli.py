@@ -27,7 +27,9 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import time
-from collections.abc import Mapping
+from collections.abc import (
+    Mapping,
+)
 
 from examples import c, m, t, u
 from flext_cli import cli

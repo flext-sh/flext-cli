@@ -27,6 +27,9 @@ from __future__ import annotations
 import os
 import secrets
 import time
+from collections.abc import (
+    Mapping,
+)
 from pathlib import Path
 
 from examples import c, m, t

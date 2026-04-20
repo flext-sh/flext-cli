@@ -7,7 +7,9 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import re
-from collections.abc import Callable
+from collections.abc import (
+    Callable,
+)
 from typing import Annotated
 
 import typer
@@ -205,10 +207,10 @@ class TestsFlextCliUtilities(FlextTestsUtilities, u):
                     """Register a simple test command that returns a fixed value."""
 
                     def handler(
-                        *args: t.ContainerValue,
-                        **kwargs: t.ContainerValue,
-                    ) -> p.Result[t.RecursiveValue]:
-                        return r[t.RecursiveValue].ok(result_value)
+                        *args: t.Cli.JsonValue,
+                        **kwargs: t.Cli.JsonValue,
+                    ) -> p.Result[t.Cli.JsonValue]:
+                        return r[t.Cli.JsonValue].ok(result_value)
 
                     return commands.register_handler(command_name, handler)
 
@@ -220,10 +222,10 @@ class TestsFlextCliUtilities(FlextTestsUtilities, u):
                     """Register a command that accepts arguments."""
 
                     def handler(
-                        *args: t.ContainerValue,
-                        **kwargs: t.ContainerValue,
-                    ) -> p.Result[t.RecursiveValue]:
-                        return r[t.RecursiveValue].ok(f"args: {len(args)}")
+                        *args: t.Cli.JsonValue,
+                        **kwargs: t.Cli.JsonValue,
+                    ) -> p.Result[t.Cli.JsonValue]:
+                        return r[t.Cli.JsonValue].ok(f"args: {len(args)}")
 
                     return commands.register_handler(command_name, handler)
 
@@ -236,10 +238,10 @@ class TestsFlextCliUtilities(FlextTestsUtilities, u):
                     """Register a command that fails with a specific error."""
 
                     def handler(
-                        *args: t.ContainerValue,
-                        **kwargs: t.ContainerValue,
-                    ) -> p.Result[t.RecursiveValue]:
-                        return r[t.RecursiveValue].fail(error_message)
+                        *args: t.Cli.JsonValue,
+                        **kwargs: t.Cli.JsonValue,
+                    ) -> p.Result[t.Cli.JsonValue]:
+                        return r[t.Cli.JsonValue].fail(error_message)
 
                     return commands.register_handler(command_name, handler)
 

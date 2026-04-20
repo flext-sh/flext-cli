@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import (
+    Mapping,
+)
+from types import MappingProxyType
 from typing import (
     Annotated,
     ClassVar,
@@ -47,7 +50,10 @@ class FlextCliModelsBase:
             m.Field(
                 description="Field-value pairs for display",
             ),
-        ] = m.Field(default_factory=dict, description="Field-value pairs for display")
+        ] = m.Field(
+            default_factory=lambda: MappingProxyType({}),
+            description="Field-value pairs for display",
+        )
 
     class LoadedConfig(m.BaseModel):
         """Loaded configuration content wrapper — Pydantic v2 contract. Use m.Cli.LoadedConfig."""
@@ -62,7 +68,7 @@ class FlextCliModelsBase:
                 description="Loaded configuration content (dict or other JSON value)",
             ),
         ] = m.Field(
-            default_factory=dict,
+            default_factory=lambda: MappingProxyType({}),
             description="Loaded configuration content (dict or other JSON value)",
         )
 
@@ -79,7 +85,10 @@ class FlextCliModelsBase:
         value: Annotated[
             t.Cli.JsonValue,
             m.Field(description="The normalized JSON value"),
-        ] = m.Field(default_factory=dict, description="The normalized JSON value")
+        ] = m.Field(
+            default_factory=dict,
+            description="The normalized JSON value",
+        )
         default: Annotated[
             t.Cli.JsonMapping,
             m.Field(description="Default mapping if value is not a dict"),
@@ -91,7 +100,7 @@ class FlextCliModelsBase:
         @property
         def resolved(self) -> t.Cli.JsonMapping:
             """Resolve value to dict or return default."""
-            if isinstance(self.value, dict):
+            if isinstance(self.value, Mapping):
                 return self.value
             return self.default
 
@@ -621,7 +630,7 @@ class FlextCliModelsBase:
                 return self._default_for_kind()
             if self.type_kind == c.Cli.TypeKind.STR:
                 s = str(self.value).strip() if self.value else ""
-                return s or (self.default if isinstance(self.default, str) else None)
+                return s or (self.default if isinstance(self.default, str) else "")
             if self.type_kind == c.Cli.TypeKind.BOOL:
                 return bool(self.value)
             if self.type_kind == c.Cli.TypeKind.DICT:
@@ -641,7 +650,7 @@ class FlextCliModelsBase:
         def _default_for_kind(self) -> t.Cli.TypedExtractValue:
             """Return default typed value for the requested kind."""
             if self.type_kind == c.Cli.TypeKind.STR:
-                return self.default if isinstance(self.default, str) else None
+                return self.default if isinstance(self.default, str) else ""
             if self.type_kind == c.Cli.TypeKind.BOOL:
                 return self.default if isinstance(self.default, bool) else False
             if isinstance(self.default, Mapping):

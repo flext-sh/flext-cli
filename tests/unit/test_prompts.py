@@ -66,7 +66,7 @@ class _TestsFlextCliCaptureLogPrompts(_TestsFlextCliScriptedPrompts):
         self,
         log_level: str,
         message: str,
-        **_context: t.ContainerValue,
+        **_context: t.LogValue,
     ) -> None:
         self._records.append((log_level, message))
 
@@ -87,7 +87,7 @@ class _TestsFlextCliFailingLogPrompts(_TestsFlextCliScriptedPrompts):
         self,
         log_level: str,
         message: str,
-        **context: t.ContainerValue,
+        **context: t.LogValue,
     ) -> None:
         if log_level == self._failure_level:
             raise ValueError(self._failure_message)

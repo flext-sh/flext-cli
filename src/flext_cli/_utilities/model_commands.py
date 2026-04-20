@@ -17,7 +17,7 @@ class FlextCliUtilitiesModelCommandBuilder[M: m.BaseModel]:
         self,
         model_class: type[M],
         handler: p.Cli.ModelCommandHandler[M],
-        settings: t.Cli.ConfigModel = None,
+        settings: m.BaseModel | None = None,
     ) -> None:
         """Store the canonical inputs for deferred command construction."""
         super().__init__()
@@ -81,7 +81,7 @@ class FlextCliUtilitiesModelCommands:
     def build_model_command[M: m.BaseModel](
         model_class: type[M],
         handler: p.Cli.ModelCommandHandler[M],
-        settings: t.Cli.ConfigModel = None,
+        settings: m.BaseModel | None = None,
     ) -> t.Cli.CliCommand:
         """Build a model command through the canonical CLI service."""
         return FlextCliUtilitiesModelCommandBuilder(

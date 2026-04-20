@@ -10,7 +10,11 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping, MutableMapping, Sequence
+from collections.abc import (
+    Mapping,
+    MutableMapping,
+    Sequence,
+)
 from typing import Annotated, ClassVar
 
 from flext_tests import FlextTestsModels
@@ -35,11 +39,11 @@ class TestsFlextCliModels(FlextTestsModels, m):
 
                 def __init__(
                     self,
-                    data: Mapping[str, t.ContainerValue] | None = None,
+                    data: Mapping[str, t.Cli.JsonValue] | None = None,
                     /,
-                    **kwargs: t.ContainerValue,
+                    **kwargs: t.Cli.JsonValue,
                 ) -> None:
-                    payload: MutableMapping[str, t.ContainerValue] = {}
+                    payload: MutableMapping[str, t.Cli.JsonValue] = {}
                     if data is not None:
                         payload.update(data)
                     payload.update(kwargs)

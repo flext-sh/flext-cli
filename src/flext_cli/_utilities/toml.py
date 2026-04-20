@@ -3,7 +3,11 @@
 from __future__ import annotations
 
 import tomllib
-from collections.abc import Mapping, MutableMapping, MutableSequence
+from collections.abc import (
+    Mapping,
+    MutableMapping,
+    MutableSequence,
+)
 from pathlib import Path
 from typing import ClassVar, TypeIs
 

@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping, MutableMapping, MutableSequence
+from collections.abc import (
+    Mapping,
+    MutableMapping,
+    MutableSequence,
+)
 from typing import ClassVar
 
 from flext_cli import c, p, r, t
@@ -95,7 +99,7 @@ class FlextCliUtilitiesValidation:
 
     @staticmethod
     def validate_not_empty(
-        val: t.Cli.CliValue,
+        val: t.Cli.CliValue | None,
         *,
         name: str = "field",
     ) -> p.Result[bool]:

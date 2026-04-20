@@ -50,7 +50,7 @@ class FlextCliProtocolsBase:
             cmd: t.StrSequence,
             cwd: t.Cli.PathLike | None = None,
             timeout: int | None = None,
-            env: t.Cli.StrEnvMapping | None = None,
+            env: t.StrMapping | None = None,
         ) -> p.Result[m.Cli.CommandOutput]:
             """Execute a command and require zero exit status."""
             ...
@@ -60,7 +60,7 @@ class FlextCliProtocolsBase:
             cmd: t.StrSequence,
             cwd: t.Cli.PathLike | None = None,
             timeout: int | None = None,
-            env: t.Cli.StrEnvMapping | None = None,
+            env: t.StrMapping | None = None,
         ) -> p.Result[str]:
             """Execute a command and return stripped stdout."""
             ...
@@ -70,7 +70,7 @@ class FlextCliProtocolsBase:
             cmd: t.StrSequence,
             cwd: t.Cli.PathLike | None = None,
             timeout: int | None = None,
-            env: t.Cli.StrEnvMapping | None = None,
+            env: t.StrMapping | None = None,
             input_data: bytes | None = None,
         ) -> p.Result[m.Cli.CommandOutput]:
             """Execute a command without enforcing zero exit status."""
@@ -81,7 +81,7 @@ class FlextCliProtocolsBase:
             cmd: t.StrSequence,
             cwd: t.Cli.PathLike | None = None,
             timeout: int | None = None,
-            env: t.Cli.StrEnvMapping | None = None,
+            env: t.StrMapping | None = None,
         ) -> p.Result[bool]:
             """Execute a command and return a success flag."""
             ...
@@ -92,7 +92,7 @@ class FlextCliProtocolsBase:
             output_file: t.Cli.PathLike,
             cwd: t.Cli.PathLike | None = None,
             timeout: int | None = None,
-            env: t.Cli.StrEnvMapping | None = None,
+            env: t.StrMapping | None = None,
         ) -> p.Result[int]:
             """Execute a command and write combined output to a file."""
             ...
@@ -127,7 +127,7 @@ class FlextCliProtocolsBase:
             ...
 
         @property
-        def params(self) -> t.JsonMapping:
+        def params(self) -> t.Cli.JsonMapping:
             """Get configuration parameters."""
             ...
 
@@ -154,7 +154,7 @@ class FlextCliProtocolsBase:
             self,
             *args: t.Container,
             **kwargs: t.Container,
-        ) -> t.RecursiveValue:
+        ) -> t.Cli.JsonValue:
             """Execute the wrapper."""
             ...
 

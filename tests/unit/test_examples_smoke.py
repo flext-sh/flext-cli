@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 import os
-from collections.abc import Generator, Mapping
+from collections.abc import (
+    Generator,
+    Mapping,
+)
 from contextlib import contextmanager
 from pathlib import Path
 

@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping, MutableMapping, Sequence
+from collections.abc import (
+    Mapping,
+    MutableMapping,
+    Sequence,
+)
 from pathlib import Path
 from types import GenericAlias, UnionType
 from typing import ClassVar, Literal, TypeAliasType
@@ -26,23 +30,31 @@ class FlextCliTypesBase:
 
     type Scalar = t.Scalar
     type StrSequence = t.StrSequence
-    type RecursiveContainer = t.Container
-    type DefaultMapping = Mapping[str, Scalar | StrSequence | None]
-    type ValueOrModel = t.ValueOrModel
+    type JsonScalar = (
+        t.Container
+        | Mapping[str, t.Container]
+        | Sequence[t.Container]
+        | Sequence[Mapping[str, t.Container]]
+    )
     type JsonValue = t.JsonValue
+    type JsonLikeValue = t.JsonLikeValue
     type JsonMapping = Mapping[str, JsonValue]
+    type JsonLikeMapping = Mapping[str, JsonLikeValue]
     type JsonList = Sequence[JsonValue]
+    type JsonContainer = JsonValue
+    type DefaultMapping = Mapping[str, Scalar | StrSequence]
+    type ValueOrModel = t.ValueOrModel
     type JsonDict = JsonMapping
     type TableMappingRow = JsonMapping
     type TableSequenceRow = JsonList
     type TableRow = TableMappingRow | TableSequenceRow
-    type TableConfigValue = t.ContainerValue
+    type TableConfigValue = t.Container
     type TabularData = TableMappingRow | Sequence[TableRow]
     type TableRows = Sequence[TableRow]
     type TableShowIndex = bool | str | Sequence[str | int]
     type TableDisableNumparse = bool | Sequence[int]
-    type TableColAlign = Sequence[str | None] | None
-    type CliValue = Scalar | StrSequence | DefaultMapping | None
+    type TableColAlign = Sequence[str] | None
+    type CliValue = Scalar | StrSequence | DefaultMapping
     type CliDefaultSource = CliValue | Path
     type FieldInfoMapping = Mapping[str, FieldInfo]
     type CliAnnotations = MutableMapping[str, type | GenericAlias]
@@ -143,15 +155,13 @@ class FlextCliTypesBase:
     type RichTreeType = RichTree
     type RichConsoleType = RichConsole
 
-    type RuntimeAnnotation = type | GenericAlias | UnionType | TypeAliasType | None
+    type RuntimeAnnotation = type | GenericAlias | UnionType | TypeAliasType
     type RuntimeValue = t.Container
 
-    type YamlDict = t.JsonMapping
-    type YamlValue = t.RecursiveValue
-    type YamlList = t.JsonList
-    type YamlDumpable = (
-        t.JsonMapping | Mapping[str, t.Container] | t.JsonList | t.RecursiveValue
-    )
+    type YamlDict = JsonMapping
+    type YamlValue = JsonValue
+    type YamlList = JsonList
+    type YamlDumpable = JsonValue | JsonMapping | JsonList
 
     PRIMITIVE_TYPES: ClassVar[tuple[type[str], type[int], type[float], type[bool]]] = (
         t.PRIMITIVES_TYPES
@@ -163,15 +173,11 @@ class FlextCliTypesBase:
         JsonMapping
     )
     JSON_LIST_ADAPTER: ClassVar[m.TypeAdapter[JsonList]] = m.TypeAdapter(JsonList)
-    YAML_DICT_ADAPTER: ClassVar[m.TypeAdapter[t.JsonMapping]] = m.TypeAdapter(
-        t.JsonMapping
-    )
-    YAML_SEQ_ADAPTER: ClassVar[m.TypeAdapter[t.JsonList]] = m.TypeAdapter(t.JsonList)
-    CONTAINER_VALUE_ADAPTER: m.TypeAdapter[t.ContainerValue] = m.TypeAdapter(
-        t.ContainerValue
-    )
-    CONTAINER_NORMALIZE_ADAPTER: ClassVar[m.TypeAdapter[t.ContainerValue]] = (
-        m.TypeAdapter(t.ContainerValue)
+    YAML_DICT_ADAPTER: ClassVar[m.TypeAdapter[JsonMapping]] = m.TypeAdapter(JsonMapping)
+    YAML_SEQ_ADAPTER: ClassVar[m.TypeAdapter[JsonList]] = m.TypeAdapter(JsonList)
+    CONTAINER_VALUE_ADAPTER: m.TypeAdapter[t.Container] = m.TypeAdapter(t.Container)
+    CONTAINER_NORMALIZE_ADAPTER: ClassVar[m.TypeAdapter[t.Container]] = m.TypeAdapter(
+        t.Container
     )
     CLI_DEFAULT_SOURCE_ADAPTER: ClassVar[m.TypeAdapter[CliDefaultSource]] = (
         m.TypeAdapter(CliDefaultSource)

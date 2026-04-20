@@ -2,13 +2,19 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping, MutableMapping, Sequence
+from collections.abc import (
+    Callable,
+    Mapping,
+    MutableMapping,
+    Sequence,
+)
 from pathlib import Path
 from typing import Literal, TextIO
 
 from pydantic.fields import FieldInfo
 
-from flext_cli import FlextCliConstantsEnums, FlextCliTypesBase, p
+from flext_cli import FlextCliConstantsEnums, p
+from flext_cli._typings.base import FlextCliTypesBase
 from flext_core import m, t
 
 
@@ -16,23 +22,19 @@ class FlextCliTypesDomain:
     """Composite CLI aliases built from canonical protocols and core types."""
 
     type ResultValue = t.ValueOrModel | Sequence[t.ValueOrModel]
-    type JsonValueResult = p.Result[FlextCliTypesBase.JsonValue]
-    type JsonMappingResult = p.Result[FlextCliTypesBase.JsonMapping]
     type ScalarMapping = Mapping[str, t.Scalar]
     type MutableScalarMapping = MutableMapping[str, t.Scalar]
     type MutableDefaultMapping = MutableMapping[
         str,
         t.Scalar | t.StrSequence,
     ]
-    type CliParamValue = bool | str | None
+    type CliParamValue = bool | str
     type CliParamKwargs = Mapping[str, CliParamValue]
-    type DefaultAtom = t.Scalar | t.StrSequence | None
-    type ProjectNamesValue = str | t.StrSequence | None
-    type TableHeaders = str | t.StrSequence | None
-    type IntTextValue = int | str | None
-    type StrEnvMapping = t.StrMapping
-    type ConfigModel = m.BaseModel | None
-    type ModelSource = m.BaseModel | ScalarMapping | None
+    type DefaultAtom = t.Scalar | t.StrSequence
+    type ProjectNamesValue = str | t.StrSequence
+    type TableHeaders = str | t.StrSequence
+    type IntTextValue = int | str
+    type ModelSource = m.BaseModel | ScalarMapping
     type OptionRegistry = Mapping[
         str,
         Mapping[str, t.Scalar | t.StrSequence],
@@ -46,32 +48,29 @@ class FlextCliTypesDomain:
     type PromptTextReader = Callable[[str], str]
     type TextStreamWriter = Callable[[TextIO], None]
     type CliCommand = Callable[..., FlextCliTypesBase.RuntimeValue]
-    type JsonCommandFn = Callable[..., p.Result[t.RecursiveValue] | None]
+    type JsonCommandFn = Callable[..., p.Result[FlextCliTypesBase.JsonValue]]
     type ResultRouteHandler = Callable[..., p.Cli.ErasedCommandResult]
     type MappingProcessor[T, U] = Callable[[str, T], U]
-    type JsonModelHandler[M: m.BaseModel] = Callable[[M], t.RecursiveValue]
-    type RecursiveMapping = Mapping[str, t.Container]
-    type RecursiveMappingSource = t.Container | RecursiveMapping | None
+    type JsonModelHandler[M: m.BaseModel] = Callable[[M], FlextCliTypesBase.JsonValue]
+    type MappingSource = t.Container | Mapping[str, t.Container]
     type JsonPayload = (
         FlextCliTypesBase.JsonValue
+        | FlextCliTypesBase.JsonLikeMapping
+        | Sequence[FlextCliTypesBase.JsonLikeValue]
         | m.BaseModel
-        | FlextCliTypesBase.JsonMapping
-        | FlextCliTypesBase.JsonList
-        | Mapping[str, t.Container]
     )
-    type JsonValueOrModel = FlextCliTypesBase.JsonValue | m.BaseModel | None
+    type JsonValueOrModel = FlextCliTypesBase.JsonValue | m.BaseModel
     type TomlMappingSource = (
-        t.Container | FlextCliTypesBase.TomlItem | FlextCliTypesBase.TomlDocument | None
+        t.Container | FlextCliTypesBase.TomlItem | FlextCliTypesBase.TomlDocument
     )
-    type TomlUnwrappedSource = t.Container | FlextCliTypesBase.TomlItem | None
-    type TomlRuntimeSource = FlextCliTypesBase.TomlValue | t.Container | None
+    type TomlUnwrappedSource = t.Container | FlextCliTypesBase.TomlItem
+    type TomlRuntimeSource = FlextCliTypesBase.TomlValue | t.Container
     type TypeKind = Literal[
         FlextCliConstantsEnums.TypeKind.STR,
         FlextCliConstantsEnums.TypeKind.BOOL,
         FlextCliConstantsEnums.TypeKind.DICT,
     ]
-    type ReturnChildLiteral = Literal[True]
-    type TypedExtractValue = str | bool | FlextCliTypesBase.JsonMapping | None
+    type TypedExtractValue = str | bool | FlextCliTypesBase.JsonMapping
     type ResultCommandRoutes = Sequence[p.Cli.ResultCommandRoute]
     type TableDataSource = (
         FlextCliTypesBase.TabularData | Sequence[Mapping[str, t.Container]]

@@ -33,7 +33,7 @@ class CaptureLogPromptsCov(FlextCliPrompts):
         self,
         log_level: str,
         message: str,
-        **_context: t.ContainerValue,
+        **_context: t.LogValue,
     ) -> None:
         self._records.append((log_level, message))
 

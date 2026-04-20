@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
 from flext_cli import c, t
 
 
@@ -101,6 +104,113 @@ class FlextCliUtilitiesOutput:
         """Build one canonical table error line and style."""
         error = error_message or "unknown error"
         return f"[table error] {error}", c.Cli.MessageStyles.BOLD_RED
+
+    @staticmethod
+    def emit_raw(text: str) -> None:
+        """Write raw text to stdout."""
+        _ = sys.stdout.write(text)
+        _ = sys.stdout.flush()
+
+    @classmethod
+    def info(cls, msg: str) -> None:
+        cls.emit_raw(f"INFO: {msg}\n")
+
+    @classmethod
+    def error(cls, msg: str, detail: str | None = None) -> None:
+        cls.emit_raw(f"ERROR: {msg}\n")
+        if detail:
+            cls.emit_raw(f"  {detail}\n")
+
+    @classmethod
+    def warning(cls, msg: str) -> None:
+        cls.emit_raw(f"WARN: {msg}\n")
+
+    @classmethod
+    def debug(cls, msg: str) -> None:
+        cls.emit_raw(f"DEBUG: {msg}\n")
+
+    @classmethod
+    def header(cls, title: str) -> None:
+        line = "=" * 60
+        cls.emit_raw(f"\n{line}\n  {title}\n{line}\n")
+
+    @classmethod
+    def progress(cls, idx: int, total: int, proj: str, verb: str) -> None:
+        width = len(str(total))
+        cls.emit_raw(f"[{idx:0{width}d}/{total:0{width}d}] {proj} {verb} ...\n")
+
+    @classmethod
+    def status(cls, verb: str, proj: str, *, result: bool, elapsed: float) -> None:
+        symbol = "[OK]" if result else "[FAIL]"
+        cls.emit_raw(f"  {symbol} {verb:<8} {proj:<24} {elapsed:.2f}s\n")
+
+    @classmethod
+    def summary(cls, stats: object) -> None:
+        verb = str(getattr(stats, "verb", "summary"))
+        total = int(getattr(stats, "total", 0))
+        success = int(getattr(stats, "success", 0))
+        failed = int(getattr(stats, "failed", 0))
+        skipped = int(getattr(stats, "skipped", 0))
+        elapsed = float(getattr(stats, "elapsed", 0.0))
+        cls.emit_raw(
+            f"\n-- {verb} summary --\n"
+            f"Total: {total}  Success: {success}  Failed: {failed}  "
+            f"Skipped: {skipped}  ({elapsed:.2f}s)\n"
+        )
+
+    @classmethod
+    def gate_result(
+        cls,
+        gate: str,
+        count: int,
+        *,
+        passed: bool,
+        elapsed: float,
+    ) -> None:
+        symbol = "[OK]" if passed else "[FAIL]"
+        cls.emit_raw(f"    {symbol} {gate:<10} {count:>5} errors  ({elapsed:.2f}s)\n")
+
+    @classmethod
+    def project_failure(cls, info: object) -> None:
+        project = str(getattr(info, "project", "unknown"))
+        elapsed = int(getattr(info, "elapsed", 0))
+        error_count = int(getattr(info, "error_count", 0))
+        log_path = str(getattr(info, "log_path", ""))
+        max_show = int(getattr(info, "max_show", 0))
+        errors = tuple(getattr(info, "errors", ()))
+        count_label = f"  [{error_count} errors]" if error_count > 0 else ""
+        cls.emit_raw(
+            f"  [FAIL] {project} completed in {elapsed}s{count_label}  ({log_path})\n"
+        )
+        for line in errors[:max_show]:
+            cls.emit_raw(f"      {line}\n")
+        remaining = error_count - max_show
+        if remaining > 0:
+            cls.emit_raw(f"      ... and {remaining} more (see log)\n")
+
+    @staticmethod
+    def get_report_dir(workspace_root: Path | str, scope: str, verb: str) -> Path:
+        """Build standardized report directory path."""
+        root_path = (
+            Path(workspace_root) if isinstance(workspace_root, str) else workspace_root
+        )
+        base = root_path / ".reports"
+        if scope == "workspace":
+            return (base / "workspace" / verb).resolve()
+        return (base / verb).resolve()
+
+    @staticmethod
+    def get_report_path(
+        workspace_root: Path | str,
+        scope: str,
+        verb: str,
+        filename: str,
+    ) -> Path:
+        """Build standardized report file path."""
+        return (
+            FlextCliUtilitiesOutput.get_report_dir(workspace_root, scope, verb)
+            / filename
+        )
 
 
 __all__: list[str] = ["FlextCliUtilitiesOutput"]

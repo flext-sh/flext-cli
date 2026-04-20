@@ -11,7 +11,12 @@ import hashlib
 import platform
 import shutil
 import tempfile
-from collections.abc import Mapping, MutableMapping, MutableSequence, Sequence
+from collections.abc import (
+    Mapping,
+    MutableMapping,
+    MutableSequence,
+    Sequence,
+)
 from pathlib import Path
 
 from examples import c, m, p, r, t, u

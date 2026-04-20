@@ -7,7 +7,10 @@ from __future__ import annotations
 
 import collections.abc
 import time
-from collections.abc import Mapping, Sequence
+from collections.abc import (
+    Mapping,
+    Sequence,
+)
 from typing import (
     Protocol,
     get_args,

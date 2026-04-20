@@ -32,7 +32,10 @@ from __future__ import annotations
 
 import os
 import time
-from collections.abc import Mapping, MutableSequence
+from collections.abc import (
+    Mapping,
+    MutableSequence,
+)
 
 from examples import c, p, r, t
 from flext_cli import cli

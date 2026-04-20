@@ -10,8 +10,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Sequence
-from typing import Self, overload, override
+from collections.abc import (
+    Sequence,
+)
+from typing import Literal, Self, overload, override
 
 from flext_cli import FlextCliServiceBase, p, r, t, u
 
@@ -33,9 +35,7 @@ class FlextCliFormatters(FlextCliServiceBase):
         def add(self, label: str) -> None: ...
 
         @overload
-        def add(
-            self, label: str, *, return_child: t.Cli.ReturnChildLiteral
-        ) -> Self: ...
+        def add(self, label: str, *, return_child: Literal[True]) -> Self: ...
 
         def add(
             self,

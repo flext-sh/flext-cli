@@ -7,7 +7,11 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import sys
-from collections.abc import Mapping, MutableSequence, Sequence
+from collections.abc import (
+    Mapping,
+    MutableSequence,
+    Sequence,
+)
 from inspect import Parameter, Signature
 from pathlib import Path
 from types import GenericAlias, NoneType, UnionType
@@ -53,14 +57,14 @@ class FlextCliCli(s):
 
         __name__: str
         __signature__: Signature
-        _config: t.Cli.ConfigModel
+        _config: m.BaseModel | None
         _handler: p.Cli.ModelCommandHandler[M]
         _model_cls: type[M]
 
         def __init__(
             self,
             *,
-            settings: t.Cli.ConfigModel,
+            settings: m.BaseModel | None,
             handler: p.Cli.ModelCommandHandler[M],
             model_cls: type[M],
             parameters: Sequence[Parameter],
@@ -141,7 +145,7 @@ class FlextCliCli(s):
     def _normalize_cli_atom(
         cls,
         value: t.Cli.CliDefaultSource,
-    ) -> t.Cli.DefaultAtom:
+    ) -> t.Cli.DefaultAtom | None:
         """Normalize one runtime value into an allowed Typer scalar or string sequence."""
         if isinstance(value, c.Cli.CLI_SCALAR_TYPES_TUPLE):
             return value
@@ -155,8 +159,8 @@ class FlextCliCli(s):
     def _field_default(
         field_name: str,
         field_info: FieldInfo,
-        settings: t.Cli.ConfigModel,
-    ) -> t.Cli.CliValue:
+        settings: m.BaseModel | None,
+    ) -> t.Cli.CliValue | None:
         """Resolve CLI default from settings first, then from model field metadata."""
         if settings is not None and hasattr(settings, field_name):
             configured = getattr(settings, field_name)
@@ -189,7 +193,7 @@ class FlextCliCli(s):
     def _normalize_cli_default(
         cls,
         value: t.Cli.CliDefaultSource,
-    ) -> t.Cli.CliValue:
+    ) -> t.Cli.CliValue | None:
         """Normalize field defaults into Typer-compatible scalar/mapping/list values."""
         if value is None:
             return None
@@ -217,7 +221,7 @@ class FlextCliCli(s):
         cls,
         field_name: str,
         field_info: FieldInfo,
-        settings: t.Cli.ConfigModel,
+        settings: m.BaseModel | None,
     ) -> tuple[Parameter, type | GenericAlias]:
         """Build a keyword-only Typer option from a Pydantic field."""
         alias = field_info.alias
@@ -235,7 +239,7 @@ class FlextCliCli(s):
         custom_param_decls: list[str] | None = None
         if isinstance(extra, Mapping):
             declared = extra.get("typer_param_decls")
-            if u.list_like(declared):
+            if isinstance(declared, Sequence) and not isinstance(declared, str):
                 custom_param_decls = [str(item) for item in declared]
         if annotation is bool and isinstance(default_value, bool):
             dashed_name = cli_name.replace("_", "-")
@@ -268,10 +272,13 @@ class FlextCliCli(s):
         verbose: bool,
     ) -> None:
         """Apply global CLI flags to the shared settings model."""
+        resolved_log_level: str = (
+            log_level if log_level is not None else settings.cli_log_level
+        )
         result = FlextCliCommonParams.apply_to_config(
             settings,
             debug=debug,
-            log_level=log_level,
+            log_level=resolved_log_level,
             quiet=quiet,
             trace=trace,
             verbose=verbose,
@@ -341,7 +348,7 @@ class FlextCliCli(s):
         cls,
         model_cls: type[M],
         handler: p.Cli.ModelCommandHandler[M],
-        settings: t.Cli.ConfigModel = None,
+        settings: m.BaseModel | None = None,
     ) -> t.Cli.CliCommand:
         """Build a Typer command directly from a Pydantic request model."""
         parameters: MutableSequence[Parameter] = []
@@ -387,8 +394,6 @@ class FlextCliCli(s):
         source: t.Cli.ModelSource,
     ) -> t.Cli.ScalarMapping:
         """Extract only target-compatible fields from a model or mapping source."""
-        if source is None:
-            return {}
         raw_source: t.Cli.ScalarMapping
         if isinstance(source, m.BaseModel):
             raw_source = source.model_dump(exclude_none=True)
@@ -404,7 +409,7 @@ class FlextCliCli(s):
     def create_cli_runner(
         *,
         charset: str = c.Cli.ENCODING_DEFAULT,
-        env: t.Cli.StrEnvMapping | None = None,
+        env: t.StrMapping | None = None,
         echo_stdin: bool = False,
     ) -> p.Result[t.Cli.TyperRunner]:
         """Create a Typer/Click test runner for real CLI execution tests."""
@@ -451,7 +456,7 @@ class FlextCliCli(s):
             return r[bool].fail_op("execute cli app", message or str(exc))
         finally:
             sys.argv = original_argv
-        if isinstance(result, int) and result != 0:
+        if isinstance(result, int) and not isinstance(result, bool) and result != 0:
             message = error_message() if error_message is not None else None
             return r[bool].fail_op(
                 "execute cli app",
@@ -485,7 +490,7 @@ class FlextCliCli(s):
         help_text: str,
         model_cls: type[M],
         name: str,
-        settings: t.Cli.ConfigModel = None,
+        settings: m.BaseModel | None = None,
         remember_failure: p.Cli.FailureMessageRecorder | None = None,
         success_formatter: p.Cli.SuccessMessageFormatter[TResult] | None = None,
         success_message: str | None = None,
@@ -533,7 +538,7 @@ class FlextCliCli(s):
             )
             cls.exit(code=1)
 
-        def execute(params: M) -> None:
+        def execute(params: M) -> t.Cli.RuntimeValue:
             result: p.Result[TResult] = handler(params)
             if result.failure:
                 _exit_with_failure(result.error)
@@ -549,6 +554,7 @@ class FlextCliCli(s):
                 message = result_value
             if message:
                 FlextCliOutput.display_message(message, success_type)
+            return True
 
         return execute
 
@@ -577,7 +583,7 @@ class FlextCliCli(s):
             )
             cls.exit(code=1)
 
-        def execute(params: m.BaseModel) -> None:
+        def execute(params: m.BaseModel) -> t.Cli.RuntimeValue:
             result_model = handler(params)
             failure = getattr(result_model, "failure", False)
             if failure:
@@ -595,6 +601,7 @@ class FlextCliCli(s):
                 message = result_value
             if message:
                 FlextCliOutput.display_message(message, success_type)
+            return True
 
         return execute
 

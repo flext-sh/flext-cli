@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import (
+    Mapping,
+)
 from typing import ClassVar
 
 from flext_cli import FlextCliUtilitiesJson, c, p, r, t
@@ -64,7 +66,7 @@ class FlextCliUtilitiesConversion:
     ) -> t.Cli.TypedExtractValue:
         """Return a canonical default for one type kind."""
         if type_kind == c.Cli.TypeKind.STR:
-            return default if isinstance(default, str) else None
+            return default if isinstance(default, str) else ""
         if type_kind == c.Cli.TypeKind.BOOL:
             return default if isinstance(default, bool) else False
         if isinstance(default, Mapping):

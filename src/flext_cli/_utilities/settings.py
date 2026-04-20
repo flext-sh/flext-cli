@@ -14,7 +14,7 @@ class FlextCliUtilitiesSettings:
 
     @staticmethod
     def project_names_from_values(
-        *values: t.Cli.ProjectNamesValue,
+        *values: t.Cli.ProjectNamesValue | None,
     ) -> list[str] | None:
         """Normalize repeated or comma-separated CLI selector values."""
         names: list[str] = []

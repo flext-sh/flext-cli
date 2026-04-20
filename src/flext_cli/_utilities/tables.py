@@ -2,13 +2,16 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping, MutableSequence, Sequence
+from collections.abc import (
+    Mapping,
+    MutableSequence,
+    Sequence,
+)
 from typing import ClassVar
 
 from tabulate import tabulate
 
 from flext_cli import FlextCliUtilitiesJson, c, m, p, r, t
-from flext_core import u
 
 
 class FlextCliUtilitiesTables:
@@ -30,7 +33,7 @@ class FlextCliUtilitiesTables:
 
     @staticmethod
     def tables_normalize_sequence_row(
-        row: t.RecursiveContainerList,
+        row: t.FlatContainerList,
     ) -> t.Cli.TableSequenceRow:
         """Normalize one sequence row to JSON-compatible values."""
         return [FlextCliUtilitiesJson.normalize_json_value(value) for value in row]
@@ -67,7 +70,7 @@ class FlextCliUtilitiesTables:
         except c.ValidationError as exc:
             return r[Sequence[t.Cli.TableRow]].fail(f"Table data invalid: {exc}")
 
-        if u.mapping(validated_data):
+        if isinstance(validated_data, Mapping):
             validated_mapping = validated_data
             return r[Sequence[t.Cli.TableRow]].ok([
                 {
@@ -79,12 +82,12 @@ class FlextCliUtilitiesTables:
 
         normalized_rows: MutableSequence[t.Cli.TableRow] = []
         for row in validated_data:
-            if u.mapping(row):
+            if isinstance(row, Mapping):
                 normalized_rows.append(
                     FlextCliUtilitiesTables.tables_normalize_mapping_row(row),
                 )
                 continue
-            if u.list_like(row):
+            if isinstance(row, Sequence) and not isinstance(row, str):
                 normalized_rows.append(
                     FlextCliUtilitiesTables.tables_normalize_sequence_row(row),
                 )
@@ -113,7 +116,7 @@ class FlextCliUtilitiesTables:
         if isinstance(headers, str):
             if not rows:
                 column_count = 0
-            elif u.mapping(rows[0]):
+            elif isinstance(rows[0], Mapping):
                 column_count = len(rows[0])
             else:
                 column_count = len(rows[0])
@@ -130,13 +133,15 @@ class FlextCliUtilitiesTables:
             table_headers: str | t.StrSequence = headers
             if (
                 rows
-                and u.mapping(rows[0])
+                and isinstance(rows[0], Mapping)
                 and not isinstance(
                     headers,
                     str,
                 )
             ):
-                table_data = [list(row.values()) for row in rows if u.mapping(row)]
+                table_data = [
+                    list(row.values()) for row in rows if isinstance(row, Mapping)
+                ]
                 table_headers = list(headers)
 
             rendered_table = tabulate(

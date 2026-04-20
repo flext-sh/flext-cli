@@ -18,7 +18,7 @@ class FlextCliUtilitiesRuntime:
         cmd: t.StrSequence,
         cwd: t.Cli.PathLike | None = None,
         timeout: int | None = None,
-        env: t.Cli.StrEnvMapping | None = None,
+        env: t.StrMapping | None = None,
         input_data: bytes | None = None,
     ) -> p.Result[m.Cli.CommandOutput]:
         """Run a command without enforcing a zero exit code."""
@@ -61,7 +61,7 @@ class FlextCliUtilitiesRuntime:
         cmd: t.StrSequence,
         cwd: t.Cli.PathLike | None = None,
         timeout: int | None = None,
-        env: t.Cli.StrEnvMapping | None = None,
+        env: t.StrMapping | None = None,
     ) -> p.Result[m.Cli.CommandOutput]:
         """Run a command and fail on non-zero exit status."""
 
@@ -88,7 +88,7 @@ class FlextCliUtilitiesRuntime:
         cmd: t.StrSequence,
         cwd: t.Cli.PathLike | None = None,
         timeout: int | None = None,
-        env: t.Cli.StrEnvMapping | None = None,
+        env: t.StrMapping | None = None,
     ) -> p.Result[bool]:
         """Run a command and return a success flag."""
         return FlextCliUtilitiesRuntime.run(
@@ -103,7 +103,7 @@ class FlextCliUtilitiesRuntime:
         cmd: t.StrSequence,
         cwd: t.Cli.PathLike | None = None,
         timeout: int | None = None,
-        env: t.Cli.StrEnvMapping | None = None,
+        env: t.StrMapping | None = None,
     ) -> p.Result[str]:
         """Run a command and return stripped stdout."""
         return FlextCliUtilitiesRuntime.run(
@@ -119,7 +119,7 @@ class FlextCliUtilitiesRuntime:
         output_file: t.Cli.PathLike,
         cwd: t.Cli.PathLike | None = None,
         timeout: int | None = None,
-        env: t.Cli.StrEnvMapping | None = None,
+        env: t.StrMapping | None = None,
     ) -> p.Result[int]:
         """Run a command and write combined output to ``output_file``."""
         try:
