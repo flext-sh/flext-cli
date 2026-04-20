@@ -11,18 +11,18 @@ from pathlib import Path
 from types import GenericAlias, UnionType
 from typing import ClassVar, Literal, TypeAliasType
 
-from pydantic.fields import FieldInfo
-from rich.console import Console as RichConsole
-from rich.tree import Tree as RichTree
+from flext_core import m, t
 from tomlkit.container import Container
 from tomlkit.items import AoT, Array, Item, Table
 from tomlkit.toml_document import TOMLDocument
+
+from flext_cli import c
+from pydantic.fields import FieldInfo
+from rich.console import Console as RichConsole
+from rich.tree import Tree as RichTree
 from typer import Typer
 from typer.models import OptionInfo
 from typer.testing import CliRunner
-
-from flext_cli import c
-from flext_core import m, t
 
 
 class FlextCliTypesBase:

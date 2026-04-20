@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from flext_core import c
+
 from flext_cli import (
     FlextCliConstantsBase,
     FlextCliConstantsEnums,
@@ -10,7 +12,6 @@ from flext_cli import (
     FlextCliConstantsPipeline,
     FlextCliConstantsSettings,
 )
-from flext_core import c
 
 
 class FlextCliConstants(c):

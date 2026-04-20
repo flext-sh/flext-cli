@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
-from flext_cli import FlextCliSettings, FlextCliUtilitiesValidation, c, m, p, t
 from flext_core import r
+
+from flext_cli import FlextCliSettings, c, m, p, t
+from flext_cli._utilities.validation import FlextCliUtilitiesValidation as uv
 
 
 class FlextCliUtilitiesParams:
@@ -104,9 +106,7 @@ class FlextCliUtilitiesParams:
                 update={"log_verbosity": str(log_verbosity)},
             )
         if params.output_format is not None:
-            validated_result = FlextCliUtilitiesValidation.validate_format(
-                params.output_format
-            )
+            validated_result = uv.validate_format(params.output_format)
             if validated_result.failure or validated_result.value is None:
                 valid = ", ".join(c.Cli.OUTPUT_FORMATS)
                 return r[FlextCliSettings].fail(

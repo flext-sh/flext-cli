@@ -8,8 +8,9 @@ from collections.abc import (
 )
 from typing import ClassVar
 
-from flext_cli import FlextCli, t
 from flext_core import m
+
+from flext_cli import FlextCli, t
 
 
 class ExamplesFlextCliTypes(t):

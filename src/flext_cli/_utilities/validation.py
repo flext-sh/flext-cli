@@ -9,8 +9,9 @@ from collections.abc import (
 )
 from typing import ClassVar
 
-from flext_cli import c, p, r, t
 from flext_core import u
+
+from flext_cli import c, p, r, t
 
 
 class FlextCliUtilitiesValidation:

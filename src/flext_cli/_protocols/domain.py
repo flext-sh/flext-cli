@@ -7,8 +7,9 @@ from collections.abc import (
 )
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from flext_cli import FlextCliProtocolsBase
 from flext_core import m
+
+from flext_cli import FlextCliProtocolsBase
 
 if TYPE_CHECKING:
     from flext_cli import t
@@ -66,7 +67,6 @@ class FlextCliProtocolsDomain:
         help_text: str
         model_cls: type[m.BaseModel]
         handler: t.Cli.ResultRouteHandler
-        failure_message: str
         success_message: str | None
         success_formatter: (
             FlextCliProtocolsBase.SuccessMessageFormatter[t.Cli.ResultValue] | None

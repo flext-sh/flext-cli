@@ -170,12 +170,10 @@ class TestsCliService:
             app,
             prog_name="sample",
             args=["group", "fail", "--name", "alice"],
-            error_message=lambda: "expected cli failure",
         )
 
         tm.fail(result)
         tm.that(result.error, has="CLI exited with code 1")
-        tm.that(result.error, lacks="expected cli failure")
 
     def test_execute_app_preserves_click_usage_errors(self) -> None:
         app = cli.create_app_with_common_params(
@@ -209,10 +207,6 @@ class TestsCliService:
             settings=cli.settings,
         )
         group = cli.create_group(help_text="Grouped commands", name="group")
-        remembered: MutableSequence[list[str | None]] = []
-
-        def remember_failure(error: str | None, fallback: str) -> None:
-            remembered.append([error, fallback])
 
         def ok_handler(
             params: m.Cli.Tests.SampleInput,
@@ -233,7 +227,6 @@ class TestsCliService:
                 help_text="Successful command",
                 model_cls=m.Cli.Tests.SampleInput,
                 handler=ok_handler,
-                failure_message="ok failed",
             )
 
         def build_fail_route() -> m.Cli.Tests.SampleRoute:
@@ -242,19 +235,10 @@ class TestsCliService:
                 help_text="Failing command",
                 model_cls=m.Cli.Tests.SampleInput,
                 handler=fail_handler,
-                failure_message="failure fallback",
             )
 
-        cli.register_result_route(
-            app,
-            route=build_ok_route(),
-            remember_failure=remember_failure,
-        )
-        cli.register_result_route(
-            group,
-            route=build_fail_route(),
-            remember_failure=remember_failure,
-        )
+        cli.register_result_route(app, route=build_ok_route())
+        cli.register_result_route(group, route=build_fail_route())
         cli.add_group(app, name="group", group=group)
         runner_result = cli.create_cli_runner()
         tm.ok(runner_result)
@@ -268,18 +252,13 @@ class TestsCliService:
         tm.that(ok_result.stdout, has="processed alice")
         tm.that(fail_result.exit_code, eq=1)
         tm.that(fail_result.stdout, has="boom")
-        tm.that(remembered, eq=[["boom", "failure fallback"]])
 
-    def test_register_result_routes_preserves_failure_metadata(self) -> None:
+    def test_register_result_routes_propagates_real_failure(self) -> None:
         app = cli.create_app_with_common_params(
             name="result-app",
             help_text="Result application",
             settings=cli.settings,
         )
-        remembered: MutableSequence[list[str | None]] = []
-
-        def remember_failure(error: str | None, fallback: str) -> None:
-            remembered.append([error, fallback])
 
         def fail_handler(
             params: m.Cli.Tests.SampleInput,
@@ -295,10 +274,8 @@ class TestsCliService:
                     help_text="Failing command",
                     model_cls=m.Cli.Tests.SampleInput,
                     handler=fail_handler,
-                    failure_message="batched failure fallback",
                 )
             ],
-            remember_failure=remember_failure,
         )
         runner_result = cli.create_cli_runner()
         tm.ok(runner_result)
@@ -306,4 +283,3 @@ class TestsCliService:
 
         tm.that(fail_result.exit_code, eq=1)
         tm.that(fail_result.stdout, has="batched boom")
-        tm.that(remembered, eq=[["batched boom", "batched failure fallback"]])

@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
+from flext_core import t
 from yaml import YAMLError as _YamlError
 
 from flext_cli._typings.base import FlextCliTypesBase
 from flext_cli._typings.domain import FlextCliTypesDomain
 from flext_cli._typings.pipeline import FlextCliTypesPipeline
-from flext_core import t
 
 
 class FlextCliTypes(t):

@@ -37,9 +37,10 @@ from collections.abc import (
 )
 from pathlib import Path
 
+from flext_core import p, r
+
 from examples import c, m, t
 from flext_cli import cli
-from flext_core import p, r
 
 
 class DataExportPlugin:

@@ -11,11 +11,11 @@ from collections.abc import (
 from pathlib import Path
 from typing import Literal, TextIO
 
-from pydantic.fields import FieldInfo
+from flext_core import m, t
 
 from flext_cli import FlextCliConstantsEnums, p
 from flext_cli._typings.base import FlextCliTypesBase
-from flext_core import m, t
+from pydantic.fields import FieldInfo
 
 
 class FlextCliTypesDomain:

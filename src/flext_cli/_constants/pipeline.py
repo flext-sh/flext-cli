@@ -4,8 +4,9 @@ from __future__ import annotations
 
 from typing import ClassVar, Final
 
-from flext_cli import FlextCliConstantsEnums
 from flext_core import t
+
+from flext_cli import FlextCliConstantsEnums
 
 
 class FlextCliConstantsPipeline:

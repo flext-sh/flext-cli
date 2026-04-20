@@ -6,7 +6,8 @@ from collections.abc import (
     Callable,
 )
 
-from flext_cli import FlextCliUtilitiesJson, c, p, r, t
+from flext_cli import c, p, r, t
+from flext_cli._utilities.json import FlextCliUtilitiesJson as uj
 
 
 class FlextCliUtilitiesCommands:
@@ -25,7 +26,7 @@ class FlextCliUtilitiesCommands:
             }
             return r[t.Cli.JsonValue].ok(payload)
         if result.success:
-            result_value: t.Cli.JsonValue = FlextCliUtilitiesJson.normalize_json_value(
+            result_value: t.Cli.JsonValue = uj.normalize_json_value(
                 result.value,
             )
             return r[t.Cli.JsonValue].ok(result_value)

@@ -12,11 +12,13 @@ from pathlib import Path
 from typing import ClassVar, TypeIs
 
 import tomlkit
+from flext_core import m, u
 from tomlkit import TOMLDocument
 from tomlkit.items import AoT, Item as TomlItem, Table as TomlTable
 
-from flext_cli import FlextCliUtilitiesJson, FlextCliUtilitiesRuntime, c, p, r, t
-from flext_core import m, u
+from flext_cli import c, p, r, t
+from flext_cli._utilities.json import FlextCliUtilitiesJson as uj
+from flext_cli._utilities.runtime import FlextCliUtilitiesRuntime as ur
 
 
 class FlextCliUtilitiesToml:
@@ -249,7 +251,7 @@ class FlextCliUtilitiesToml:
         raw_value = FlextCliUtilitiesToml.toml_unwrap_item(container[key])
         if raw_value is None:
             return None
-        return FlextCliUtilitiesJson.normalize_json_value(raw_value)
+        return uj.normalize_json_value(raw_value)
 
     @staticmethod
     def toml_table_string_keys(table: t.Cli.TomlTable) -> t.StrSequence:
@@ -412,8 +414,8 @@ class FlextCliUtilitiesToml:
         change_message: str,
     ) -> bool:
         """Synchronize one scalar or structured plain TOML value."""
-        current = FlextCliUtilitiesJson.normalize_json_value(container.get(key, None))
-        normalized_expected = FlextCliUtilitiesJson.normalize_json_value(expected)
+        current = uj.normalize_json_value(container.get(key, None))
+        normalized_expected = uj.normalize_json_value(expected)
         if current == normalized_expected:
             return False
         container[key] = normalized_expected
@@ -606,7 +608,7 @@ class FlextCliUtilitiesToml:
         if config_path is not None:
             command.extend(["--config", str(config_path)])
         command.append(str(path))
-        result = FlextCliUtilitiesRuntime.run_raw(command, cwd=path.parent)
+        result = ur.run_raw(command, cwd=path.parent)
         if result.failure:
             return r[bool].fail(result.error or f"taplo format failed: {path}")
         output = result.value

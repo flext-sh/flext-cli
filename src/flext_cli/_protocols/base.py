@@ -188,22 +188,6 @@ class FlextCliProtocolsBase:
             ...
 
     @runtime_checkable
-    class ErrorMessageProvider(Protocol):
-        """Protocol for deferred CLI error message resolution."""
-
-        def __call__(self) -> str | None:
-            """Return the current normalized error message, if any."""
-            ...
-
-    @runtime_checkable
-    class FailureMessageRecorder(Protocol):
-        """Protocol for persisting normalized CLI failure state."""
-
-        def __call__(self, error: str | None, fallback: str) -> None:
-            """Remember a CLI failure using the original and fallback messages."""
-            ...
-
-    @runtime_checkable
     class SuccessMessageFormatter[TResult: t.Cli.ResultValue](Protocol):
         """Protocol for rendering a success result into a CLI message."""
 

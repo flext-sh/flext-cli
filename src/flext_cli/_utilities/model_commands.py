@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import inspect
 
-from pydantic.fields import FieldInfo
+from flext_core import m
 
 from flext_cli import p, t
-from flext_core import m
+from pydantic.fields import FieldInfo
 
 
 class FlextCliUtilitiesModelCommandBuilder[M: m.BaseModel]:

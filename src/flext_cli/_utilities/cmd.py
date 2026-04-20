@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from flext_cli import FlextCliUtilitiesSettings, c, m, p, r
+from flext_cli import c, m, p, r
+from flext_cli._utilities.settings import FlextCliUtilitiesSettings as us
 
 
 class FlextCliUtilitiesCmd:
@@ -13,7 +14,7 @@ class FlextCliUtilitiesCmd:
         """Return settings snapshot with canonical error mapping."""
         try:
             return r[m.Cli.SettingsSnapshot].ok(
-                FlextCliUtilitiesSettings.settings_snapshot(),
+                us.settings_snapshot(),
             )
         except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
             return r[m.Cli.SettingsSnapshot].fail(
@@ -38,7 +39,7 @@ class FlextCliUtilitiesCmd:
     def cmd_validate_settings(logger: p.Logger) -> p.Result[bool]:
         """Validate canonical settings structure and log normalized results."""
         try:
-            results = FlextCliUtilitiesSettings.validate_settings_structure()
+            results = us.validate_settings_structure()
             if results:
                 logger.info(
                     c.Cli.LOG_MSG_SETTINGS_VALIDATION_RESULTS.format(results=results),

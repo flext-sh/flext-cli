@@ -27,10 +27,6 @@ from typing import (
 
 import click
 import typer
-from pydantic.fields import FieldInfo
-from typer.models import OptionInfo
-from typer.testing import CliRunner
-
 from flext_cli import (
     FlextCliCommonParams,
     FlextCliOutput,
@@ -43,6 +39,9 @@ from flext_cli import (
     t,
     u,
 )
+from pydantic.fields import FieldInfo
+from typer.models import OptionInfo
+from typer.testing import CliRunner
 
 
 class FlextCliCli(s):
@@ -427,25 +426,11 @@ class FlextCliCli(s):
         *,
         prog_name: str,
         args: t.StrSequence | None = None,
-        error_message: p.Cli.ErrorMessageProvider | None = None,
     ) -> p.Result[bool]:
         """Execute a Typer app and normalize exit behavior into `r[bool]`."""
         cli_args = list(args) if args is not None else sys.argv[1:]
         command = typer.main.get_command(app)
         original_argv = sys.argv.copy()
-
-        def resolve_error_message(raw_message: str | None = None) -> str:
-            if isinstance(raw_message, str):
-                normalized = raw_message.strip()
-                if normalized:
-                    return normalized
-            if error_message is not None:
-                fallback_message = error_message()
-                if isinstance(fallback_message, str):
-                    normalized_fallback = fallback_message.strip()
-                    if normalized_fallback:
-                        return normalized_fallback
-            return "CLI execution failed"
 
         try:
             sys.argv = [prog_name, *cli_args]
@@ -455,33 +440,36 @@ class FlextCliCli(s):
                 standalone_mode=False,
             )
         except click.ClickException as exc:
+            message = exc.format_message().strip()
             return r[bool].fail_op(
                 "execute cli app",
-                resolve_error_message(exc.format_message()),
+                message,
             )
         except typer.Abort as exc:
+            message = str(exc).strip() or exc.__class__.__name__
             return r[bool].fail_op(
                 "execute cli app",
-                resolve_error_message(str(exc) or "CLI execution aborted"),
+                message,
             )
         except typer.Exit as exc:
             if exc.exit_code == 0:
                 return r[bool].ok(True)
             return r[bool].fail_op(
                 "execute cli app",
-                resolve_error_message(f"CLI exited with code {exc.exit_code}"),
+                f"CLI exited with code {exc.exit_code}",
             )
         except Exception as exc:
+            message = str(exc).strip() or exc.__class__.__name__
             return r[bool].fail_op(
                 "execute cli app",
-                resolve_error_message(str(exc)),
+                message,
             )
         finally:
             sys.argv = original_argv
         if isinstance(result, int) and not isinstance(result, bool) and result != 0:
             return r[bool].fail_op(
                 "execute cli app",
-                resolve_error_message(f"CLI exited with code {result}"),
+                f"CLI exited with code {result}",
             )
         return r[bool].ok(True)
 
@@ -506,13 +494,11 @@ class FlextCliCli(s):
         cls,
         app: t.Cli.CliApp,
         *,
-        failure_message: str,
         handler: p.Cli.ResultCommandHandler[M, TResult],
         help_text: str,
         model_cls: type[M],
         name: str,
         settings: m.BaseModel | None = None,
-        remember_failure: p.Cli.FailureMessageRecorder | None = None,
         success_formatter: p.Cli.SuccessMessageFormatter[TResult] | None = None,
         success_message: str | None = None,
         success_type: c.Cli.MessageTypes | t.Cli.MessageTypeLiteral = (
@@ -521,9 +507,7 @@ class FlextCliCli(s):
     ) -> None:
         """Register a model command that normalizes `r[...]` CLI handling."""
         execute = cls._build_result_executor(
-            failure_message=failure_message,
             handler=handler,
-            remember_failure=remember_failure,
             success_formatter=success_formatter,
             success_message=success_message,
             success_type=success_type,
@@ -539,9 +523,7 @@ class FlextCliCli(s):
     def _build_result_executor[M: m.BaseModel, TResult: t.Cli.ResultValue](
         cls,
         *,
-        failure_message: str,
         handler: p.Cli.ResultCommandHandler[M, TResult],
-        remember_failure: p.Cli.FailureMessageRecorder | None = None,
         success_formatter: p.Cli.SuccessMessageFormatter[TResult] | None = None,
         success_message: str | None = None,
         success_type: c.Cli.MessageTypes | t.Cli.MessageTypeLiteral = (
@@ -551,12 +533,8 @@ class FlextCliCli(s):
         """Build the shared executor used by single and batched route registration."""
 
         def _exit_with_failure(error: str | None) -> None:
-            if remember_failure is not None:
-                remember_failure(error, failure_message)
-            FlextCliOutput.display_message(
-                error or failure_message,
-                c.Cli.MessageTypes.ERROR,
-            )
+            if error:
+                FlextCliOutput.display_message(error, c.Cli.MessageTypes.ERROR)
             cls.exit(code=1)
 
         def execute(params: M) -> t.Cli.RuntimeValue:
@@ -580,67 +558,17 @@ class FlextCliCli(s):
         return execute
 
     @classmethod
-    def _build_result_executor_erased(
-        cls,
-        *,
-        handler: t.Cli.ResultRouteHandler,
-        failure_message: str = "",
-        remember_failure: p.Cli.FailureMessageRecorder | None = None,
-        success_formatter: p.Cli.SuccessMessageFormatter[t.Cli.ResultValue]
-        | None = None,
-        success_message: str | None = None,
-        success_type: c.Cli.MessageTypes | t.Cli.MessageTypeLiteral = (
-            c.Cli.MessageTypes.SUCCESS
-        ),
-    ) -> p.Cli.ModelCommandHandler[m.BaseModel]:
-        """Build a batch executor for type-erased route registration."""
-
-        def _exit_with_failure(error: str | None) -> None:
-            if remember_failure is not None:
-                remember_failure(error, failure_message)
-            FlextCliOutput.display_message(
-                error or failure_message,
-                c.Cli.MessageTypes.ERROR,
-            )
-            cls.exit(code=1)
-
-        def execute(params: m.BaseModel) -> t.Cli.RuntimeValue:
-            result_model = handler(params)
-            failure = getattr(result_model, "failure", False)
-            if failure:
-                error_msg = getattr(result_model, "error", None)
-                _exit_with_failure(error_msg if isinstance(error_msg, str) else None)
-            message = success_message
-            result_value = getattr(result_model, "value", None)
-            if success_formatter is not None and result_value is not None:
-                message = success_formatter(result_value)
-            elif isinstance(result_value, str) and result_value:
-                message = result_value
-            else:
-                candidate = getattr(result_value, "message", None)
-                if isinstance(candidate, str) and candidate:
-                    message = candidate
-            if message:
-                FlextCliOutput.display_message(message, success_type)
-            return True
-
-        return execute
-
-    @classmethod
     def register_result_route(
         cls,
         app: t.Cli.CliApp,
         *,
         route: m.Cli.ResultCommandRoute,
-        remember_failure: p.Cli.FailureMessageRecorder | None = None,
     ) -> None:
         """Register a declarative result route on a Typer app."""
         command = cls.model_command(
             route.model_cls,
-            cls._build_result_executor_erased(
+            cls._build_result_executor(
                 handler=route.handler,
-                remember_failure=remember_failure,
-                failure_message=route.failure_message,
                 success_formatter=route.success_formatter,
                 success_message=route.success_message,
                 success_type=route.success_type,
@@ -658,27 +586,10 @@ class FlextCliCli(s):
         cls,
         app: t.Cli.CliApp,
         routes: Sequence[m.Cli.ResultCommandRoute],
-        remember_failure: p.Cli.FailureMessageRecorder | None = None,
     ) -> None:
         """Register multiple heterogeneous result routes in one call."""
         for route in routes:
-            command = cls.model_command(
-                route.model_cls,
-                cls._build_result_executor_erased(
-                    handler=route.handler,
-                    failure_message=route.failure_message,
-                    remember_failure=remember_failure,
-                    success_formatter=route.success_formatter,
-                    success_message=route.success_message,
-                    success_type=route.success_type,
-                ),
-            )
-            cls.register_command(
-                app,
-                name=route.name,
-                help_text=route.help_text,
-                command=command,
-            )
+            cls.register_result_route(app, route=route)
 
 
 __all__: list[str] = ["FlextCliCli"]

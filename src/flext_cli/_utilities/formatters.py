@@ -8,13 +8,12 @@ from collections.abc import (
 )
 from typing import ClassVar
 
+from flext_cli import c, p, r, t
 from rich.console import Console
 from rich.errors import ConsoleError, StyleError
 from rich.panel import Panel
 from rich.table import Table as RichTable
 from rich.tree import Tree as RichTree
-
-from flext_cli import c, p, r, t
 
 
 class FlextCliUtilitiesFormatters:

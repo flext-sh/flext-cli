@@ -11,8 +11,9 @@ from typing import (
     ClassVar,
 )
 
-from flext_cli import c, p, t
 from flext_core import m, u
+
+from flext_cli import c, p, t
 
 
 class FlextCliModelsBase:
@@ -160,10 +161,6 @@ class FlextCliModelsBase:
         handler: Annotated[
             t.Cli.ResultRouteHandler,
             m.Field(..., description="Command handler returning r[...]"),
-        ]
-        failure_message: Annotated[
-            str,
-            m.Field(..., description="Fallback error message on handler failure"),
         ]
         success_message: Annotated[
             str | None,

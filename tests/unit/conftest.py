@@ -7,9 +7,9 @@ from collections.abc import (
 )
 
 import pytest
+from flext_core import FlextSettings
 
 from flext_cli import FlextCliSettings
-from flext_core import FlextSettings
 
 
 @pytest.fixture(autouse=True)

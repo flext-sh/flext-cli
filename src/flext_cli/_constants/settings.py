@@ -8,8 +8,9 @@ from collections.abc import (
 from types import MappingProxyType
 from typing import ClassVar, Final
 
-from flext_cli import FlextCliConstantsEnums
 from flext_core import c, t
+
+from flext_cli import FlextCliConstantsEnums
 
 
 class FlextCliConstantsSettings:

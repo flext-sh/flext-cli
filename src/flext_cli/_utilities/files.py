@@ -13,8 +13,11 @@ from collections.abc import (
 )
 from pathlib import Path
 
-from flext_cli import FlextCliUtilitiesJson, FlextCliUtilitiesYaml, c, p, r, t
 from flext_core import m
+
+from flext_cli import c, p, r, t
+from flext_cli._utilities.json import FlextCliUtilitiesJson as uj
+from flext_cli._utilities.yaml import FlextCliUtilitiesYaml as uy
 
 
 class FlextCliUtilitiesFiles:
@@ -107,7 +110,7 @@ class FlextCliUtilitiesFiles:
     @staticmethod
     def files_read_yaml(file_path: t.Cli.TextPath) -> p.Result[t.Cli.JsonValue]:
         """Read one YAML file and validate to canonical JSON value."""
-        result = FlextCliUtilitiesYaml.yaml_safe_load(Path(file_path))
+        result = uy.yaml_safe_load(Path(file_path))
         if result.failure:
             return r[t.Cli.JsonValue].fail(result.error or "YAML load failed")
         validated: t.Cli.JsonValue = t.Cli.JSON_VALUE_ADAPTER.validate_python(
@@ -333,9 +336,9 @@ class FlextCliUtilitiesFiles:
         """Load JSON/YAML file and normalize to one mapping payload."""
         path = Path(file_path)
         if path.suffix.lower() == ".json":
-            read_result = FlextCliUtilitiesJson.json_read(path)
+            read_result = uj.json_read(path)
         elif path.suffix.lower() in {".yaml", ".yml"}:
-            read_result = FlextCliUtilitiesYaml.yaml_safe_load(path)
+            read_result = uy.yaml_safe_load(path)
         else:
             return r[t.Cli.JsonMapping].fail(
                 f"Unsupported format: {path.suffix or '<none>'}",
@@ -348,8 +351,7 @@ class FlextCliUtilitiesFiles:
                 "Auto-detected file must contain a mapping",
             )
         normalized_payload: t.Cli.JsonMapping = {
-            str(key): FlextCliUtilitiesJson.normalize_json_value(value)
-            for key, value in payload.items()
+            str(key): uj.normalize_json_value(value) for key, value in payload.items()
         }
         return r[t.Cli.JsonMapping].ok(normalized_payload)
 

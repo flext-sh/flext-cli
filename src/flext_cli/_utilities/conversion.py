@@ -7,8 +7,10 @@ from collections.abc import (
 )
 from typing import ClassVar
 
-from flext_cli import FlextCliUtilitiesJson, c, p, r, t
 from flext_core import m, u
+
+from flext_cli import c, p, r, t
+from flext_cli._utilities.json import FlextCliUtilitiesJson as uj
 
 
 class FlextCliUtilitiesCliModelConverter:
@@ -71,7 +73,7 @@ class FlextCliUtilitiesConversion:
             return default if isinstance(default, bool) else False
         if isinstance(default, Mapping):
             return {
-                str(key): FlextCliUtilitiesJson.normalize_json_value(value)
+                str(key): uj.normalize_json_value(value)
                 for key, value in default.items()
             }
         return {}

@@ -12,9 +12,9 @@ from collections.abc import (
 )
 from typing import Annotated
 
-import typer
 from flext_tests import FlextTestsUtilities
 
+import typer
 from flext_cli import (
     FlextCliCmd,
     FlextCliCommands,

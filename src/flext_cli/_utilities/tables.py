@@ -9,9 +9,9 @@ from collections.abc import (
 )
 from typing import ClassVar
 
+from flext_cli import c, m, p, r, t
+from flext_cli._utilities.json import FlextCliUtilitiesJson as uj
 from tabulate import tabulate
-
-from flext_cli import FlextCliUtilitiesJson, c, m, p, r, t
 
 
 class FlextCliUtilitiesTables:
@@ -26,17 +26,14 @@ class FlextCliUtilitiesTables:
         row: Mapping[str, t.Container],
     ) -> t.Cli.TableMappingRow:
         """Normalize one mapping row to JSON-compatible values."""
-        return {
-            str(key): FlextCliUtilitiesJson.normalize_json_value(value)
-            for key, value in row.items()
-        }
+        return {str(key): uj.normalize_json_value(value) for key, value in row.items()}
 
     @staticmethod
     def tables_normalize_sequence_row(
         row: t.FlatContainerList,
     ) -> t.Cli.TableSequenceRow:
         """Normalize one sequence row to JSON-compatible values."""
-        return [FlextCliUtilitiesJson.normalize_json_value(value) for value in row]
+        return [uj.normalize_json_value(value) for value in row]
 
     @staticmethod
     def tables_resolve_config(
@@ -75,7 +72,7 @@ class FlextCliUtilitiesTables:
             return r[Sequence[t.Cli.TableRow]].ok([
                 {
                     "Key": str(key),
-                    "Value": FlextCliUtilitiesJson.normalize_json_value(value),
+                    "Value": uj.normalize_json_value(value),
                 }
                 for key, value in validated_mapping.items()
             ])

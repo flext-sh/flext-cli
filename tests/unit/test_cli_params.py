@@ -12,11 +12,11 @@ from __future__ import annotations
 
 import pytest
 from flext_tests import tm
-from typer.models import OptionInfo
-from typer.testing import CliRunner
 
 from flext_cli import FlextCliCommonParams
 from tests import c, u
+from typer.models import OptionInfo
+from typer.testing import CliRunner
 
 
 class TestsCliCommonParams:

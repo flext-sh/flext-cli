@@ -5,9 +5,9 @@ from __future__ import annotations
 import re
 from typing import ClassVar, Final
 
-from rich.errors import ConsoleError, LiveError, StyleError
-
 from flext_core import t
+
+from rich.errors import ConsoleError, LiveError, StyleError
 
 
 class FlextCliConstantsBase:
