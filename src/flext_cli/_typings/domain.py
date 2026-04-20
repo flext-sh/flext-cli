@@ -57,6 +57,9 @@ class FlextCliTypesDomain:
         FlextCliTypesBase.JsonValue
         | FlextCliTypesBase.JsonLikeMapping
         | Sequence[FlextCliTypesBase.JsonLikeValue]
+        | t.Container
+        | t.FlatContainerMapping
+        | t.FlatContainerList
         | m.BaseModel
     )
     type JsonValueOrModel = FlextCliTypesBase.JsonValue | m.BaseModel

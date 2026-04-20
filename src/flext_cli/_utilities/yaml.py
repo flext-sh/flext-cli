@@ -111,9 +111,9 @@ class FlextCliUtilitiesYaml:
     # ------------------------------------------------------------------
 
     @staticmethod
-    def yaml_dump(
+    def yaml_dump[TData](
         path: Path,
-        data: t.Cli.YamlDumpable,
+        data: TData,
         *,
         sort_keys: bool = False,
         indent: int = 2,
@@ -142,8 +142,8 @@ class FlextCliUtilitiesYaml:
             return r[bool].fail(f"YAML write error: {exc}")
 
     @staticmethod
-    def yaml_dump_str(
-        data: t.Cli.YamlDumpable,
+    def yaml_dump_str[TData](
+        data: TData,
         *,
         sort_keys: bool = False,
         indent: int = 2,

@@ -25,6 +25,7 @@ from typing import (
     get_origin,
 )
 
+import click
 import typer
 from pydantic.fields import FieldInfo
 from typer.models import OptionInfo
@@ -97,11 +98,11 @@ class FlextCliCli(s):
             )
             if len(args) == c.Cli.OPTIONAL_UNION_ARG_COUNT and NoneType in args:
                 return args[0] if args[1] is NoneType else args[1]
-        origin = get_origin(annotation)
-        if origin is Annotated:
+        origin: object = get_origin(annotation)
+        if origin == Annotated:
             value, *_ = get_args(annotation)
             return FlextCliCli._resolve_typer_annotation(value)
-        if origin is Literal:
+        if origin == Literal:
             return str
         if origin in {Union, UnionType}:
             args = tuple(
@@ -110,7 +111,7 @@ class FlextCliCli(s):
             )
             if len(args) == c.Cli.OPTIONAL_UNION_ARG_COUNT and NoneType in args:
                 return args[0] if args[1] is NoneType else args[1]
-        if origin is Sequence:
+        if origin == Sequence:
             args = get_args(annotation)
             if args:
                 value = FlextCliCli._resolve_typer_annotation(args[0])
@@ -432,6 +433,20 @@ class FlextCliCli(s):
         cli_args = list(args) if args is not None else sys.argv[1:]
         command = typer.main.get_command(app)
         original_argv = sys.argv.copy()
+
+        def resolve_error_message(raw_message: str | None = None) -> str:
+            if isinstance(raw_message, str):
+                normalized = raw_message.strip()
+                if normalized:
+                    return normalized
+            if error_message is not None:
+                fallback_message = error_message()
+                if isinstance(fallback_message, str):
+                    normalized_fallback = fallback_message.strip()
+                    if normalized_fallback:
+                        return normalized_fallback
+            return "CLI execution failed"
+
         try:
             sys.argv = [prog_name, *cli_args]
             result = command.main(
@@ -439,28 +454,34 @@ class FlextCliCli(s):
                 prog_name=prog_name,
                 standalone_mode=False,
             )
+        except click.ClickException as exc:
+            return r[bool].fail_op(
+                "execute cli app",
+                resolve_error_message(exc.format_message()),
+            )
         except typer.Abort as exc:
             return r[bool].fail_op(
-                "execute cli app", str(exc) or "CLI execution aborted"
+                "execute cli app",
+                resolve_error_message(str(exc) or "CLI execution aborted"),
             )
         except typer.Exit as exc:
             if exc.exit_code == 0:
                 return r[bool].ok(True)
-            message = error_message() if error_message is not None else None
             return r[bool].fail_op(
                 "execute cli app",
-                message or f"CLI exited with code {exc.exit_code}",
+                resolve_error_message(f"CLI exited with code {exc.exit_code}"),
             )
         except Exception as exc:
-            message = error_message() if error_message is not None else None
-            return r[bool].fail_op("execute cli app", message or str(exc))
+            return r[bool].fail_op(
+                "execute cli app",
+                resolve_error_message(str(exc)),
+            )
         finally:
             sys.argv = original_argv
         if isinstance(result, int) and not isinstance(result, bool) and result != 0:
-            message = error_message() if error_message is not None else None
             return r[bool].fail_op(
                 "execute cli app",
-                message or f"CLI exited with code {result}",
+                resolve_error_message(f"CLI exited with code {result}"),
             )
         return r[bool].ok(True)
 
@@ -593,12 +614,12 @@ class FlextCliCli(s):
             result_value = getattr(result_model, "value", None)
             if success_formatter is not None and result_value is not None:
                 message = success_formatter(result_value)
-            elif hasattr(result_value, "message"):
-                candidate = result_value.message
-                if isinstance(candidate, str) and candidate:
-                    message = candidate
             elif isinstance(result_value, str) and result_value:
                 message = result_value
+            else:
+                candidate = getattr(result_value, "message", None)
+                if isinstance(candidate, str) and candidate:
+                    message = candidate
             if message:
                 FlextCliOutput.display_message(message, success_type)
             return True
@@ -614,19 +635,22 @@ class FlextCliCli(s):
         remember_failure: p.Cli.FailureMessageRecorder | None = None,
     ) -> None:
         """Register a declarative result route on a Typer app."""
-        execute = cls._build_result_executor_erased(
-            handler=route.handler,
-            remember_failure=remember_failure,
-            failure_message=route.failure_message,
-            success_formatter=route.success_formatter,
-            success_message=route.success_message,
-            success_type=route.success_type,
+        command = cls.model_command(
+            route.model_cls,
+            cls._build_result_executor_erased(
+                handler=route.handler,
+                remember_failure=remember_failure,
+                failure_message=route.failure_message,
+                success_formatter=route.success_formatter,
+                success_message=route.success_message,
+                success_type=route.success_type,
+            ),
         )
         cls.register_command(
             app,
             name=route.name,
             help_text=route.help_text,
-            command=cls.model_command(route.model_cls, execute),
+            command=command,
         )
 
     @classmethod
@@ -638,21 +662,22 @@ class FlextCliCli(s):
     ) -> None:
         """Register multiple heterogeneous result routes in one call."""
         for route in routes:
+            command = cls.model_command(
+                route.model_cls,
+                cls._build_result_executor_erased(
+                    handler=route.handler,
+                    failure_message=route.failure_message,
+                    remember_failure=remember_failure,
+                    success_formatter=route.success_formatter,
+                    success_message=route.success_message,
+                    success_type=route.success_type,
+                ),
+            )
             cls.register_command(
                 app,
                 name=route.name,
                 help_text=route.help_text,
-                command=cls.model_command(
-                    route.model_cls,
-                    cls._build_result_executor_erased(
-                        handler=route.handler,
-                        failure_message=route.failure_message,
-                        remember_failure=remember_failure,
-                        success_formatter=route.success_formatter,
-                        success_message=route.success_message,
-                        success_type=route.success_type,
-                    ),
-                ),
+                command=command,
             )
 
 

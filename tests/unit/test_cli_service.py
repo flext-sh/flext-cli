@@ -148,27 +148,59 @@ class TestsCliService:
             },
         )
 
-    def test_execute_app_returns_user_facing_failure_message(self) -> None:
-        app = cli.create_group(help_text="Failure group")
+    def test_execute_app_prefers_real_failure_message(self) -> None:
+        app = cli.create_app_with_common_params(
+            name="sample",
+            help_text="Failure group",
+            settings=cli.settings,
+        )
+        group = cli.create_group(help_text="Grouped failure commands", name="group")
 
         def fail_handler(_params: m.Cli.Tests.SampleInput) -> None:
             cli.exit(code=1)
 
         cli.register_command(
-            app,
+            group,
             name="fail",
             help_text="Fail intentionally",
             command=cli.model_command(m.Cli.Tests.SampleInput, fail_handler),
         )
+        cli.add_group(app, name="group", group=group)
         result = cli.execute_app(
             app,
             prog_name="sample",
-            args=["fail", "--name", "alice"],
+            args=["group", "fail", "--name", "alice"],
             error_message=lambda: "expected cli failure",
         )
 
         tm.fail(result)
-        tm.that(result.error, has="expected cli failure")
+        tm.that(result.error, has="CLI exited with code 1")
+        tm.that(result.error, lacks="expected cli failure")
+
+    def test_execute_app_preserves_click_usage_errors(self) -> None:
+        app = cli.create_app_with_common_params(
+            name="sample",
+            help_text="Failure group",
+            settings=cli.settings,
+        )
+        group = cli.create_group(help_text="Grouped failure commands", name="group")
+
+        cli.register_command(
+            group,
+            name="ok",
+            help_text="Successful command",
+            command=lambda: None,
+        )
+        cli.add_group(app, name="group", group=group)
+
+        result = cli.execute_app(
+            app,
+            prog_name="sample",
+            args=["group", "missing-command"],
+        )
+
+        tm.fail(result)
+        tm.that(result.error, has="No such command 'missing-command'")
 
     def test_register_result_command_renders_success_and_failure(self) -> None:
         app = cli.create_app_with_common_params(

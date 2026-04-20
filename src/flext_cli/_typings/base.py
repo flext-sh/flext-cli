@@ -161,7 +161,14 @@ class FlextCliTypesBase:
     type YamlDict = JsonMapping
     type YamlValue = JsonValue
     type YamlList = JsonList
-    type YamlDumpable = JsonValue | JsonMapping | JsonList
+    type YamlDumpable = (
+        JsonValue
+        | JsonMapping
+        | JsonList
+        | t.Container
+        | t.FlatContainerMapping
+        | t.FlatContainerList
+    )
 
     PRIMITIVE_TYPES: ClassVar[tuple[type[str], type[int], type[float], type[bool]]] = (
         t.PRIMITIVES_TYPES

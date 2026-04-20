@@ -31,19 +31,8 @@ class FlextCliUtilitiesJson:
         return isinstance(value, Mapping)
 
     @staticmethod
-    def normalize_json_value(
-        item: (
-            t.Cli.JsonLikeValue
-            | t.Cli.JsonLikeMapping
-            | Sequence[t.Cli.JsonLikeValue]
-            | Mapping[str, t.Container]
-            | t.Container
-            | Sequence[Mapping[str, t.Container]]
-            | m.BaseModel
-            | None
-        ),
-    ) -> t.Cli.JsonValue:
-        """Normalize any value to JSON-compatible output via Pydantic v2 validation."""
+    def normalize_json_value[TItem](item: TItem) -> t.Cli.JsonValue:
+        """Normalize any runtime value to JSON-compatible output (Pydantic-native)."""
         if isinstance(item, m.BaseModel):
             return item.model_dump(mode="json")
         return t.Cli.JSON_VALUE_ADAPTER.validate_python(u.to_jsonable_python(item))
@@ -71,18 +60,18 @@ class FlextCliUtilitiesJson:
             return r[t.Cli.JsonMapping].fail(f"json_read validation: {exc}")
 
     @staticmethod
-    def json_write(
+    def json_write[TPayload](
         path: Path,
-        payload: t.Cli.JsonPayload,
+        payload: TPayload,
         *,
         sort_keys: bool = False,
         ensure_ascii: bool = False,
         indent: int = 2,
     ) -> p.Result[bool]:
-        """Write a JSON payload to a file. Creates parent dirs as needed."""
+        """Write any Pydantic-serializable payload to a JSON file."""
         try:
             path.parent.mkdir(parents=True, exist_ok=True)
-            raw: t.Cli.JsonPayload = (
+            raw = (
                 payload.model_dump(mode="json")
                 if isinstance(payload, m.BaseModel)
                 else payload
