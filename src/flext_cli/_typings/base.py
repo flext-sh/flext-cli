@@ -40,7 +40,7 @@ class FlextCliTypesBase:
     type JsonList = Sequence[JsonValue]
     type JsonContainer = JsonValue
     type DefaultMapping = Mapping[str, Scalar | StrSequence]
-    type ValueOrModel = t.ValueOrModel
+    type RuntimeData = t.RuntimeData
     type JsonDict = JsonMapping
     type TableMappingRow = JsonMapping
     type TableSequenceRow = JsonList

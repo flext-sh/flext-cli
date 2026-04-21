@@ -648,7 +648,7 @@ def generate_output_files(
         return r[Mapping[str, Path]].fail(f"YAML export failed: {yaml_result.error}")
     results["yaml"] = yaml_file
 
-    content_items: t.ValueOrModel = ""
+    content_items: t.RuntimeData = ""
     if isinstance(data.content, dict):
         content_items = data.content.get("items", [])
     else:
