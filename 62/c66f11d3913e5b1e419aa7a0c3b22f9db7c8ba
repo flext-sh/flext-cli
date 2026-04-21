@@ -1,0 +1,32 @@
+examples/ex_04_file_operations.py
+  h_9db9d35f50cf33 500,534,546,552,554,561,568,580,597,656,673,824
+examples/utilities.py
+  h_9db9d35f50cf33 66-68,76
+examples/models.py
+  h_9db9d35f50cf33 34,37,46,52,54-55,189-190,290-291
+examples/ex_14_advanced_file_formats.py
+  h_9db9d35f50cf33 39,187
+tests/models.py
+  h_9db9d35f50cf33 18,38,55,64,75,207
+src/flext_cli/typings.py
+  h_9db9d35f50cf33 6,17
+src/flext_cli/_typings/domain.py
+  h_9db9d35f50cf33 84-85,99
+examples/ex_10_testing_utilities.py
+  h_9db9d35f50cf33 226
+src/flext_cli/_typings/base.py
+  h_9db9d35f50cf33 49,51
+examples/typings.py
+  h_9db9d35f50cf33 19-21,26-27
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.2",
+  "base_commit_sha": "62c66f11d3913e5b1e419aa7a0c3b22f9db7c8ba",
+  "prompts": {},
+  "humans": {
+    "h_9db9d35f50cf33": {
+      "author": "FLEXT Bot"
+    }
+  }
+}
