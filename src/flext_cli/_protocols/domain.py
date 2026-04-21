@@ -73,5 +73,25 @@ class FlextCliProtocolsDomain:
         )
         success_type: str
 
+    @runtime_checkable
+    class DeclarativeRuleType[TRule](Protocol):
+        """Class contract for one settings-backed declarative rule implementation."""
+
+        RULE_MATCHERS: t.Cli.RuleMatchers
+
+        def __call__(self, settings: t.Cli.RuleDefinition, /) -> TRule:
+            """Instantiate one runtime rule from one validated rule definition."""
+            ...
+
+    @runtime_checkable
+    class DeclarativeFileRuleType[TRule](Protocol):
+        """Class contract for one no-arg declarative file-rule implementation."""
+
+        RULE_MATCHERS: t.Cli.RuleMatchers
+
+        def __call__(self) -> TRule:
+            """Instantiate one file rule without extra runtime settings."""
+            ...
+
 
 __all__: list[str] = ["FlextCliProtocolsDomain"]

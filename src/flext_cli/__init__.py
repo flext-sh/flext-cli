@@ -51,6 +51,7 @@ if _t.TYPE_CHECKING:
     from flext_cli._utilities.params import FlextCliUtilitiesParams
     from flext_cli._utilities.pipeline import FlextCliUtilitiesPipeline
     from flext_cli._utilities.prompts import FlextCliUtilitiesPrompts
+    from flext_cli._utilities.rules import FlextCliUtilitiesRules
     from flext_cli._utilities.runtime import FlextCliUtilitiesRuntime
     from flext_cli._utilities.settings import FlextCliUtilitiesSettings
     from flext_cli._utilities.tables import FlextCliUtilitiesTables
@@ -71,6 +72,7 @@ if _t.TYPE_CHECKING:
     from flext_cli.services.formatters import FlextCliFormatters
     from flext_cli.services.output import FlextCliOutput
     from flext_cli.services.prompts import FlextCliPrompts
+    from flext_cli.services.rules import FlextCliRules
     from flext_cli.services.tables import FlextCliTables
     from flext_cli.settings import FlextCliSettings
     from flext_cli.typings import FlextCliTypes, t
@@ -131,6 +133,7 @@ _LAZY_IMPORTS = merge_lazy_imports(
             "._utilities.params": ("FlextCliUtilitiesParams",),
             "._utilities.pipeline": ("FlextCliUtilitiesPipeline",),
             "._utilities.prompts": ("FlextCliUtilitiesPrompts",),
+            "._utilities.rules": ("FlextCliUtilitiesRules",),
             "._utilities.runtime": ("FlextCliUtilitiesRuntime",),
             "._utilities.settings": ("FlextCliUtilitiesSettings",),
             "._utilities.tables": ("FlextCliUtilitiesTables",),
@@ -166,6 +169,7 @@ _LAZY_IMPORTS = merge_lazy_imports(
             ".services.formatters": ("FlextCliFormatters",),
             ".services.output": ("FlextCliOutput",),
             ".services.prompts": ("FlextCliPrompts",),
+            ".services.rules": ("FlextCliRules",),
             ".services.tables": ("FlextCliTables",),
             ".settings": ("FlextCliSettings",),
             ".typings": (
@@ -225,6 +229,7 @@ __all__: list[str] = [
     "FlextCliProtocolsBase",
     "FlextCliProtocolsDomain",
     "FlextCliProtocolsPipeline",
+    "FlextCliRules",
     "FlextCliServiceBase",
     "FlextCliSettings",
     "FlextCliTables",
@@ -250,6 +255,7 @@ __all__: list[str] = [
     "FlextCliUtilitiesParams",
     "FlextCliUtilitiesPipeline",
     "FlextCliUtilitiesPrompts",
+    "FlextCliUtilitiesRules",
     "FlextCliUtilitiesRuntime",
     "FlextCliUtilitiesSettings",
     "FlextCliUtilitiesTables",

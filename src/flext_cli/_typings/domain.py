@@ -20,6 +20,22 @@ class FlextCliTypesDomain:
     """Composite CLI aliases built from canonical protocols and core types."""
 
     type ResultValue = t.ValueOrModel | Sequence[t.ValueOrModel]
+    type RuleDefinition = FlextCliTypesBase.JsonMapping
+    type RuleDefinitions = Sequence[RuleDefinition]
+    type RuleMatcher = tuple[
+        frozenset[str],
+        frozenset[str],
+        frozenset[str],
+        frozenset[str],
+    ]
+    type RuleMatchers = Sequence[RuleMatcher]
+    type RuleCatalog[TKind] = Mapping[TKind, RuleMatchers]
+    type MatchedRuleDefinition[TKind] = tuple[TKind, RuleDefinition]
+    type MatchedRuleDefinitions[TKind] = Sequence[MatchedRuleDefinition[TKind]]
+    type RuleLoadResult[TRuleKind, TFileRuleKind] = tuple[
+        MatchedRuleDefinitions[TRuleKind],
+        MatchedRuleDefinitions[TFileRuleKind],
+    ]
     type ScalarMapping = Mapping[str, t.Scalar]
     type MutableScalarMapping = MutableMapping[str, t.Scalar]
     type MutableDefaultMapping = MutableMapping[

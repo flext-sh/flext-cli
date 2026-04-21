@@ -18,6 +18,7 @@ from flext_cli import (
     FlextCliFormatters,
     FlextCliOutput,
     FlextCliPrompts,
+    FlextCliRules,
     FlextCliTables,
     c,
     p,
@@ -37,12 +38,13 @@ class FlextCli(
     FlextCliFormatters,
     FlextCliOutput,
     FlextCliPrompts,
+    FlextCliRules,
     FlextCliTables,
 ):
     """Coordinate CLI operations and expose domain services.
 
     MRO facade over CLI services (cli, cmd, commands, params, file_tools,
-    formatters, output, prompts, settings, tables).
+    formatters, output, prompts, rules, settings, tables).
     All operations return r[T].
     """
 
@@ -58,6 +60,7 @@ class FlextCli(
                 "settings": "available",
                 "formatters": "available",
                 "prompts": "available",
+                "rules": "available",
             },
         }
         return r[t.Cli.JsonMapping].ok(result_dict)
