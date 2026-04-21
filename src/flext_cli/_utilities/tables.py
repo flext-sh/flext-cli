@@ -16,7 +16,7 @@ from tabulate import tabulate
 class FlextCliUtilitiesTables:
     """Table helpers exposed through ``u.Cli.tables_*``."""
 
-    TABLE_DATA_ADAPTER: ClassVar[m.TypeAdapter[t.Cli.TableDataSource]] = m.TypeAdapter(
+    TABLE_DATA_ADAPTER: ClassVar[t.ValueAdapter[t.Cli.TableDataSource]] = m.TypeAdapter(
         t.Cli.TableDataSource,
     )
 

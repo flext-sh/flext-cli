@@ -27,13 +27,13 @@ class FlextCliUtilitiesModelCommandBuilder[M: m.BaseModel]:
     def _resolve_default(
         self,
         field_name: str,
-        field_info: m.FieldInfo,
+        field_info: object,
     ) -> t.Cli.CliValue | type:
-        if field_info.is_required():
+        if getattr(field_info, "is_required")():
             return inspect.Parameter.empty
         if self.settings is not None and hasattr(self.settings, field_name):
             return getattr(self.settings, field_name)
-        return field_info.get_default(call_default_factory=True)
+        return getattr(field_info, "get_default")(call_default_factory=True)
 
     def build(self) -> t.Cli.CliCommand:
         """Build a direct callable with a real runtime signature."""
@@ -43,10 +43,10 @@ class FlextCliUtilitiesModelCommandBuilder[M: m.BaseModel]:
                 name=field_name,
                 kind=inspect.Parameter.KEYWORD_ONLY,
                 default=self._resolve_default(field_name, field_info),
-                annotation=field_info.annotation or str,
+                annotation=getattr(field_info, "annotation", None) or str,
             )
             for field_name, field_info in model_fields.items()
-            if field_info.exclude is not True
+            if getattr(field_info, "exclude", None) is not True
         ]
         signature = inspect.Signature(parameters)
 

@@ -68,7 +68,7 @@ def display_database_results(records: Sequence[t.Cli.TableMappingRow]) -> None:
 
 def export_report(
     data: Sequence[t.Cli.TableMappingRow],
-    format_type: c.Cli.OutputFormats = c.Cli.OutputFormats.TABLE,
+    format_type: c.Cli.TabularFormat = c.Cli.TabularFormat.TABLE,
 ) -> p.Result[str]:
     """Create ASCII tables for logs/reports in your app."""
     return cli.format_table(list(data) if data else [], table_format=format_type)
@@ -148,20 +148,34 @@ def monitor_live_metrics() -> None:
 
 def display_with_panels(data: Mapping[str, t.Container]) -> None:
     """Display content in organized sections."""
+
+    def panel_text(value: t.Container) -> str:
+        if isinstance(value, bytes):
+            return value.decode(c.Cli.ENCODING_DEFAULT, errors="replace")
+        return str(value)
+
     cli.print("\n📦 Organized Content Display:", style=c.Cli.MessageStyles.CYAN)
     cli.print("\n📊 Summary:", style=c.Cli.MessageStyles.BOLD_BLUE)
     cli.print(
-        f"  Total Records: {data.get('total', 0)}", style=c.Cli.MessageStyles.CYAN
+        f"  Total Records: {panel_text(data.get('total', 0))}",
+        style=c.Cli.MessageStyles.CYAN,
     )
     cli.print(
-        f"  Successful: {data.get('successful', 0)}", style=c.Cli.MessageStyles.GREEN
+        f"  Successful: {panel_text(data.get('successful', 0))}",
+        style=c.Cli.MessageStyles.GREEN,
     )
-    cli.print(f"  Failed: {data.get('failed', 0)}", style=c.Cli.MessageStyles.RED)
-    cli.print(f"  Pending: {data.get('pending', 0)}", style=c.Cli.MessageStyles.YELLOW)
+    cli.print(
+        f"  Failed: {panel_text(data.get('failed', 0))}",
+        style=c.Cli.MessageStyles.RED,
+    )
+    cli.print(
+        f"  Pending: {panel_text(data.get('pending', 0))}",
+        style=c.Cli.MessageStyles.YELLOW,
+    )
     details_data: MutableSequence[Mapping[str, t.Container]] = []
     for key, value in data.items():
         if key not in {"total", "successful", "failed", "pending"}:
-            details_data.append({"Property": key, "Value": str(value)})
+            details_data.append({"Property": key, "Value": panel_text(value)})
     if details_data:
         cli.print("\n📋 Details:", style=c.Cli.MessageStyles.BOLD_GREEN)
         cli.show_table(details_data, headers=["Property", "Value"])
@@ -187,7 +201,7 @@ def main() -> None:
     cli.print(
         "\n3. ASCII Tables (for logs/reports):", style=c.Cli.MessageStyles.BOLD_CYAN
     )
-    ascii_result = export_report(sample_data, c.Cli.OutputFormats.TABLE)
+    ascii_result = export_report(sample_data, c.Cli.TabularFormat.TABLE)
     if ascii_result.success:
         cli.print(ascii_result.value, style=c.Cli.MessageStyles.WHITE)
     cli.print(

@@ -65,21 +65,15 @@ class FlextCliUtilitiesToml:
     ) -> t.StrSequence:
         """Normalize a TOML array into a string sequence."""
         normalized: t.Cli.TomlUnwrappedSource | Sequence[t.Primitives] | None
-        if FlextCliUtilitiesToml.toml_is_document(
-            value,
-        ) or FlextCliUtilitiesToml.toml_is_item(value):
-            normalized = FlextCliUtilitiesToml.toml_unwrap_item(value)
+        if isinstance(value, TOMLDocument | TomlItem):
+            normalized = value.unwrap()
         else:
             normalized = value
         if normalized is None or isinstance(normalized, str | bytes):
             return []
         if not isinstance(normalized, Sequence):
             return []
-        if isinstance(value, TOMLDocument | TomlItem):
-            normalized = value.unwrap()
-        else:
-            normalized = value
-        return [str(item) for item in items]
+        return [str(item) for item in normalized]
 
     @staticmethod
     def toml_array(items: t.StrSequence) -> t.Cli.TomlArray:
@@ -293,12 +287,15 @@ class FlextCliUtilitiesToml:
         if isinstance(existing, dict):
             return existing
         if u.mapping(existing):
+            normalized_table: dict[str, t.Cli.JsonValue]
             try:
-                normalized = dict(t.Cli.JSON_MAPPING_ADAPTER.validate_python(existing))
+                normalized_table = dict(
+                    t.Cli.JSON_MAPPING_ADAPTER.validate_python(existing)
+                )
             except c.ValidationError:
-                normalized: dict[str, t.Cli.JsonValue] = {}
-            parent[key] = normalized
-            return normalized
+                normalized_table = {}
+            parent[key] = normalized_table
+            return normalized_table
         table: dict[str, t.Cli.JsonValue] = {}
         parent[key] = table
         return table

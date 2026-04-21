@@ -16,11 +16,9 @@ class FlextCliConstantsPipeline:
     PIPELINE_DEFAULT_RETRY: Final[t.RetryCount] = 0
     PIPELINE_MAX_RETRY: Final[t.RetryCount] = 3
 
-    PIPELINE_STATUS_VALUES: ClassVar[frozenset[str]] = frozenset({
-        FlextCliConstantsEnums.PipelineStageStatus.OK.value,
-        FlextCliConstantsEnums.PipelineStageStatus.SKIPPED.value,
-        FlextCliConstantsEnums.PipelineStageStatus.FAILED.value,
-    })
+    PIPELINE_STATUS_VALUES: ClassVar[frozenset[str]] = frozenset(
+        status.value for status in FlextCliConstantsEnums.PipelineStageStatus
+    )
 
 
 __all__: list[str] = ["FlextCliConstantsPipeline"]

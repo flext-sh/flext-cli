@@ -150,10 +150,12 @@ class FlextCliUtilitiesRules:
                 )
                 if not action_name and not check_name:
                     continue
-                file_match = cls._rules_match_catalog_entry(
-                    action_name,
-                    check_name,
-                    file_catalog,
+                file_match: tuple[TFileRuleKind, t.Cli.RuleMatcher] | None = (
+                    cls._rules_match_catalog_entry(
+                        action_name,
+                        check_name,
+                        file_catalog,
+                    )
                 )
                 if file_match is not None:
                     file_kind, file_matcher = file_match
@@ -170,10 +172,12 @@ class FlextCliUtilitiesRules:
                         loaded_file_rules.append((file_kind, typed_rule_def))
                         loaded_file_rule_kinds.add(file_kind_key)
                     continue
-                rule_match = cls._rules_match_catalog_entry(
-                    action_name,
-                    check_name,
-                    rule_catalog,
+                rule_match: tuple[TRuleKind, t.Cli.RuleMatcher] | None = (
+                    cls._rules_match_catalog_entry(
+                        action_name,
+                        check_name,
+                        rule_catalog,
+                    )
                 )
                 if rule_match is None:
                     unknown_rules.append(rule_id)

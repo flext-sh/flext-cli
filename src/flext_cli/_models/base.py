@@ -6,14 +6,12 @@ from collections.abc import (
     Mapping,
 )
 from types import MappingProxyType
-from typing import (
-    Annotated,
-    ClassVar,
-)
+from typing import Annotated
 
 from flext_core import m, u
 
 from flext_cli import c, p, t
+from flext_cli._typings.base import FlextCliTypesBase
 
 
 class FlextCliModelsBase:
@@ -42,7 +40,7 @@ class FlextCliModelsBase:
     class DisplayData(m.BaseModel):
         """Key-value data for table/display — Pydantic v2 contract. Use m.Cli.DisplayData."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config = m.ConfigDict(
             extra="forbid",
             validate_assignment=True,
         )
@@ -59,7 +57,7 @@ class FlextCliModelsBase:
     class LoadedConfig(m.BaseModel):
         """Loaded configuration content wrapper — Pydantic v2 contract. Use m.Cli.LoadedConfig."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config = m.ConfigDict(
             extra="forbid",
             validate_assignment=True,
         )
@@ -73,25 +71,43 @@ class FlextCliModelsBase:
             description="Loaded configuration content (dict or other JSON value)",
         )
 
-    class CliNormalizedJson(m.RootModel[t.Cli.JsonValue]):
-        """Normalize raw JSON value. Use m.Cli.CliNormalizedJson(value).root."""
+    class CliNormalizedJson(m.BaseModel):
+        """Normalize raw JSON value with flat JSON serialization semantics."""
+
+        model_config = m.ConfigDict(
+            extra="forbid",
+            frozen=True,
+        )
+        root: Annotated[
+            FlextCliTypesBase.JsonValue,
+            m.Field(description="Normalized JSON-compatible value"),
+        ]
+
+        def __init__(self, root: FlextCliTypesBase.JsonValue) -> None:
+            """Preserve the positional root-value constructor used by callers."""
+            super().__init__(root=root)
+
+        @u.model_serializer(mode="plain")
+        def serialize_model(self) -> FlextCliTypesBase.JsonValue:
+            """Serialize as the wrapped JSON value rather than an object envelope."""
+            return self.root
 
     class NormalizedJsonDict(m.BaseModel):
         """Resolve normalized JSON to a dict with defaults. Use m.Cli.NormalizedJsonDict."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config = m.ConfigDict(
             extra="forbid",
             validate_assignment=True,
         )
         value: Annotated[
-            t.Cli.JsonValue,
+            FlextCliTypesBase.JsonValue,
             m.Field(description="The normalized JSON value"),
         ] = m.Field(
             default_factory=dict,
             description="The normalized JSON value",
         )
         default: Annotated[
-            t.Cli.JsonMapping,
+            FlextCliTypesBase.JsonMapping,
             m.Field(description="Default mapping if value is not a dict"),
         ] = m.Field(
             default_factory=dict,
@@ -99,7 +115,7 @@ class FlextCliModelsBase:
         )
 
         @property
-        def resolved(self) -> t.Cli.JsonMapping:
+        def resolved(self) -> FlextCliTypesBase.JsonMapping:
             """Resolve value to dict or return default."""
             if isinstance(self.value, Mapping):
                 return self.value
@@ -111,7 +127,7 @@ class FlextCliModelsBase:
     class PromptRuntimeState(m.FlexibleInternalModel):
         """Centralized runtime state for CLI prompt behavior."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config = m.ConfigDict(
             extra="forbid",
             validate_assignment=True,
         )
@@ -134,7 +150,7 @@ class FlextCliModelsBase:
     class CommandEntryModel(m.BaseModel):
         """Single command entry: name + handler. Use m.Cli.CommandEntryModel."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config = m.ConfigDict(
             arbitrary_types_allowed=True,
             extra="forbid",
         )
@@ -147,7 +163,7 @@ class FlextCliModelsBase:
     class ResultCommandRoute(m.BaseModel):
         """Type-erased route contract for heterogeneous batch registration."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config = m.ConfigDict(
             arbitrary_types_allowed=True,
             extra="forbid",
             frozen=True,
@@ -273,7 +289,7 @@ class FlextCliModelsBase:
     class SettingsSnapshot(m.Value):
         """Snapshot of current CLI settings information."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config = m.ConfigDict(
             frozen=True,
             extra="forbid",
         )
@@ -390,7 +406,7 @@ class FlextCliModelsBase:
         Used with create_option_decorator to reduce argument counts.
         """
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config = m.ConfigDict(
             frozen=True,
             extra="forbid",
             arbitrary_types_allowed=True,
@@ -486,7 +502,7 @@ class FlextCliModelsBase:
         Used with prompt() method to reduce argument counts.
         """
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config = m.ConfigDict(
             frozen=True,
             extra="forbid",
             arbitrary_types_allowed=True,
@@ -547,7 +563,7 @@ class FlextCliModelsBase:
     class PromptTimeoutResolved(m.BaseModel):
         """Single contract: raw (int | str | None) + default -> int."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid")
+        model_config = m.ConfigDict(extra="forbid")
         raw: Annotated[
             t.Cli.IntTextValue,
             m.Field(None, description="Raw timeout input (int, str, or None)"),
@@ -574,7 +590,7 @@ class FlextCliModelsBase:
     class LogLevelResolved(m.BaseModel):
         """Single contract for log level string."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid")
+        model_config = m.ConfigDict(extra="forbid")
         raw: Annotated[
             str | None,
             m.Field(None, description="Raw log level input string"),
@@ -601,7 +617,7 @@ class FlextCliModelsBase:
     class TypedExtract(m.BaseModel):
         """Single contract for typed value extraction (str | bool | dict)."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid")
+        model_config = m.ConfigDict(extra="forbid")
         type_kind: Annotated[
             t.Cli.TypeKind,
             m.Field(description="Requested type"),

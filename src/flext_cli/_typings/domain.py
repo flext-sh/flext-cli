@@ -29,12 +29,17 @@ class FlextCliTypesDomain:
         frozenset[str],
     ]
     type RuleMatchers = Sequence[RuleMatcher]
-    type RuleCatalog[TKind] = Mapping[TKind, RuleMatchers]
-    type MatchedRuleDefinition[TKind] = tuple[TKind, RuleDefinition]
-    type MatchedRuleDefinitions[TKind] = Sequence[MatchedRuleDefinition[TKind]]
+    type RuleCatalog[TKind] = Mapping[
+        TKind,
+        Sequence[tuple[frozenset[str], frozenset[str], frozenset[str], frozenset[str]]],
+    ]
+    type MatchedRuleDefinition[TKind] = tuple[TKind, FlextCliTypesBase.JsonMapping]
+    type MatchedRuleDefinitions[TKind] = Sequence[
+        tuple[TKind, FlextCliTypesBase.JsonMapping]
+    ]
     type RuleLoadResult[TRuleKind, TFileRuleKind] = tuple[
-        MatchedRuleDefinitions[TRuleKind],
-        MatchedRuleDefinitions[TFileRuleKind],
+        Sequence[tuple[TRuleKind, FlextCliTypesBase.JsonMapping]],
+        Sequence[tuple[TFileRuleKind, FlextCliTypesBase.JsonMapping]],
     ]
     type ScalarMapping = Mapping[str, t.Scalar]
     type MutableScalarMapping = MutableMapping[str, t.Scalar]
@@ -53,9 +58,6 @@ class FlextCliTypesDomain:
         str,
         Mapping[str, t.Scalar | t.StrSequence],
     ]
-    type FieldMetadataSource = (
-        m.FieldInfo | FlextCliTypesBase.JsonMapping | FlextCliTypesBase.JsonValue
-    )
     type JsonDefaults = Mapping[str, FlextCliTypesBase.JsonValue]
     type MutableJsonDefaults = MutableMapping[str, FlextCliTypesBase.JsonValue]
     type NullaryOperation[T] = Callable[[], T]

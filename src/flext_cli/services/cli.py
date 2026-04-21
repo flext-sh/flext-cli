@@ -95,11 +95,11 @@ class FlextCliCli(s):
             if len(args) == c.Cli.OPTIONAL_UNION_ARG_COUNT and NoneType in args:
                 return args[0] if args[1] is NoneType else args[1]
             return str
-        origin: object = get_origin(annotation)
+        origin = get_origin(annotation)
         if origin is Annotated:
             value, *_ = get_args(annotation)
             return FlextCliCli._resolve_typer_annotation(value)
-        if origin in {Union, UnionType}:
+        if origin is Union or origin is UnionType:
             args = tuple(
                 FlextCliCli._resolve_typer_annotation(arg)
                 for arg in get_args(annotation)
@@ -114,15 +114,19 @@ class FlextCliCli(s):
                 if isinstance(value, type):
                     return GenericAlias(list, (value,))
             return list[str]
-        if origin in {list, tuple}:
+        if origin is list or origin is tuple:
             args = get_args(annotation)
             if args:
                 value = FlextCliCli._resolve_typer_annotation(args[0])
                 if isinstance(value, type):
                     return GenericAlias(list, (value,))
             return list[str]
-        if origin in {dict, frozenset, set}:
-            return origin
+        if origin is dict:
+            return dict
+        if origin is frozenset:
+            return frozenset
+        if origin is set:
+            return set
         if isinstance(annotation, GenericAlias):
             return annotation
         if isinstance(annotation, type):
@@ -157,7 +161,7 @@ class FlextCliCli(s):
     @staticmethod
     def _field_default(
         field_name: str,
-        field_info: m.FieldInfo,
+        field_info: object,
         settings: m.BaseModel | None,
     ) -> t.Cli.CliValue | None:
         """Resolve CLI default from settings first, then from model field metadata."""
@@ -219,17 +223,17 @@ class FlextCliCli(s):
     def _build_model_parameter(
         cls,
         field_name: str,
-        field_info: m.FieldInfo,
+        field_info: object,
         settings: m.BaseModel | None,
     ) -> tuple[Parameter, type | GenericAlias]:
         """Build a keyword-only Typer option from a Pydantic field."""
-        alias = field_info.alias
+        alias = getattr(field_info, "alias", None)
         cli_name = alias or field_name
         option_name = f"--{cli_name.replace('_', '-')}"
         annotation = cls._resolve_typer_annotation(
-            field_info.annotation or str,
+            getattr(field_info, "annotation", None) or str,
         )
-        is_required = bool(field_info.is_required())
+        is_required = bool(getattr(field_info, "is_required")())
         default_value = (
             ... if is_required else cls._field_default(field_name, field_info, settings)
         )
@@ -248,7 +252,7 @@ class FlextCliCli(s):
         option = OptionInfo(
             default=default_value,
             param_decls=option_decls,
-            help=field_info.description,
+            help=getattr(field_info, "description", None),
         )
         return (
             Parameter(
@@ -354,7 +358,7 @@ class FlextCliCli(s):
         annotations: t.Cli.CliAnnotations = {"return": type(None)}
         fields = getattr(model_cls, "model_fields", {})
         for field_name, field_info in fields.items():
-            if field_info.exclude is True:
+            if getattr(field_info, "exclude", None) is True:
                 continue
             parameter, annotation = cls._build_model_parameter(
                 field_name,
