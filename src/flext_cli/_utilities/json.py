@@ -26,7 +26,7 @@ class FlextCliUtilitiesJson:
 
     @staticmethod
     def mapping_like(
-        value: t.Cli.JsonLikeValue,
+        value: t.Cli.JsonValue,
     ) -> TypeIs[t.Cli.JsonLikeMapping]:
         """Narrow values to mapping-like recursive containers."""
         return isinstance(value, Mapping)

@@ -35,9 +35,8 @@ class FlextCliTypesBase:
         | Sequence[Mapping[str, t.Container]]
     )
     type JsonValue = t.JsonValue
-    type JsonLikeValue = t.JsonLikeValue
     type JsonMapping = Mapping[str, JsonValue]
-    type JsonLikeMapping = Mapping[str, JsonLikeValue]
+    type JsonLikeMapping = Mapping[str, JsonValue]
     type JsonList = Sequence[JsonValue]
     type JsonContainer = JsonValue
     type DefaultMapping = Mapping[str, Scalar | StrSequence]

@@ -10,7 +10,7 @@ from collections.abc import (
 )
 from pathlib import Path
 from types import MappingProxyType
-from typing import Annotated, ClassVar
+from typing import Annotated
 
 from flext_core import m, u
 
@@ -33,7 +33,6 @@ class FlextCliModelsPipeline:
             Path,
             m.Field(description="Workspace root directory"),
         ]
-        _flext_enforcement_exempt: ClassVar[bool] = True
 
         shared: Annotated[
             MutableMapping[str, t.Container],
@@ -117,8 +116,6 @@ class FlextCliModelsPipeline:
 
     class PipelineResult(m.ContractModel):
         """Full pipeline execution result — aggregated from all stages."""
-
-        _flext_enforcement_exempt: ClassVar[bool] = True
 
         model_config = m.ConfigDict(extra="forbid")
 

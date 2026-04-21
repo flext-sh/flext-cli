@@ -72,7 +72,7 @@ class FlextCliTypesDomain:
     type JsonPayload = (
         FlextCliTypesBase.JsonValue
         | FlextCliTypesBase.JsonLikeMapping
-        | Sequence[FlextCliTypesBase.JsonLikeValue]
+        | Sequence[FlextCliTypesBase.JsonValue]
         | t.Container
         | t.FlatContainerMapping
         | t.FlatContainerList
