@@ -11,11 +11,11 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from abc import ABC
-from typing import ClassVar, override
+from typing import override
 
 from flext_core import FlextSettings, s
 
-from flext_cli import FlextCliSettings, p, t
+from flext_cli import FlextCliSettings, p, r, t
 
 
 class FlextCliServiceBase(s[t.Cli.JsonMapping], ABC):
@@ -25,7 +25,10 @@ class FlextCliServiceBase(s[t.Cli.JsonMapping], ABC):
     `execute` method from s.
     """
 
-    __pydantic_parent_namespace__: ClassVar[dict[str, type]] = {"p": p}
+    def execute(self) -> p.Result[t.Cli.JsonMapping]:
+        """Default service execution surface for mixins without an active command."""
+        empty_payload: t.Cli.JsonMapping = {}
+        return r[t.Cli.JsonMapping].ok(empty_payload)
 
     @property
     @override

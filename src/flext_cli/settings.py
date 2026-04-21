@@ -8,7 +8,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import Annotated, ClassVar
+from typing import Annotated
 
 from flext_core import FlextSettings, m
 
@@ -19,7 +19,7 @@ from flext_cli import c
 class FlextCliSettings(FlextSettings):
     """CLI-specific configuration; extends FlextSettings with profile and CLI fields."""
 
-    model_config: ClassVar[m.SettingsConfigDict] = m.SettingsConfigDict(
+    model_config = m.SettingsConfigDict(
         env_prefix="FLEXT_CLI_",
         extra="ignore",
     )

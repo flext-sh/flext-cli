@@ -34,10 +34,7 @@ if _t.TYPE_CHECKING:
     from flext_cli._utilities.base import FlextCliUtilitiesBase
     from flext_cli._utilities.cmd import FlextCliUtilitiesCmd
     from flext_cli._utilities.commands import FlextCliUtilitiesCommands
-    from flext_cli._utilities.conversion import (
-        FlextCliUtilitiesCliModelConverter,
-        FlextCliUtilitiesConversion,
-    )
+    from flext_cli._utilities.conversion import FlextCliUtilitiesConversion
     from flext_cli._utilities.files import FlextCliUtilitiesFiles
     from flext_cli._utilities.formatters import FlextCliUtilitiesFormatters
     from flext_cli._utilities.json import FlextCliUtilitiesJson
@@ -117,10 +114,7 @@ _LAZY_IMPORTS = merge_lazy_imports(
             "._utilities.base": ("FlextCliUtilitiesBase",),
             "._utilities.cmd": ("FlextCliUtilitiesCmd",),
             "._utilities.commands": ("FlextCliUtilitiesCommands",),
-            "._utilities.conversion": (
-                "FlextCliUtilitiesCliModelConverter",
-                "FlextCliUtilitiesConversion",
-            ),
+            "._utilities.conversion": ("FlextCliUtilitiesConversion",),
             "._utilities.files": ("FlextCliUtilitiesFiles",),
             "._utilities.formatters": ("FlextCliUtilitiesFormatters",),
             "._utilities.json": ("FlextCliUtilitiesJson",),
@@ -241,7 +235,6 @@ __all__: list[str] = [
     "FlextCliUtilities",
     "FlextCliUtilitiesAuth",
     "FlextCliUtilitiesBase",
-    "FlextCliUtilitiesCliModelConverter",
     "FlextCliUtilitiesCmd",
     "FlextCliUtilitiesCommands",
     "FlextCliUtilitiesConversion",

@@ -9,15 +9,13 @@ from collections.abc import (
 )
 from pathlib import Path
 from types import GenericAlias, UnionType
-from typing import ClassVar, Literal, TypeAliasType
+from typing import ClassVar, TypeAliasType
 
 from flext_core import m, t
 from tomlkit.container import Container
 from tomlkit.items import AoT, Array, Item, Table
 from tomlkit.toml_document import TOMLDocument
 
-from flext_cli import c
-from pydantic.fields import FieldInfo
 from rich.console import Console as RichConsole
 from rich.tree import Tree as RichTree
 from typer import Typer
@@ -56,92 +54,9 @@ class FlextCliTypesBase:
     type TableColAlign = Sequence[str] | None
     type CliValue = Scalar | StrSequence | DefaultMapping
     type CliDefaultSource = CliValue | Path
-    type FieldInfoMapping = Mapping[str, FieldInfo]
     type CliAnnotations = MutableMapping[str, type | GenericAlias]
     type CliApp = Typer
     type CliOptionInfo = OptionInfo
-
-    # Literal types derived from nested StrEnum authorities
-    type OutputFormatLiteral = Literal[
-        c.Cli.OutputFormats.JSON,
-        c.Cli.OutputFormats.YAML,
-        c.Cli.OutputFormats.CSV,
-        c.Cli.OutputFormats.TABLE,
-        c.Cli.OutputFormats.PLAIN,
-    ]
-    type MessageTypeLiteral = Literal[
-        c.Cli.MessageTypes.INFO,
-        c.Cli.MessageTypes.ERROR,
-        c.Cli.MessageTypes.WARNING,
-        c.Cli.MessageTypes.SUCCESS,
-        c.Cli.MessageTypes.DEBUG,
-    ]
-    type CommandStatusLiteral = Literal[
-        c.Cli.CommandStatus.PENDING,
-        c.Cli.CommandStatus.RUNNING,
-        c.Cli.CommandStatus.COMPLETED,
-        c.Cli.CommandStatus.FAILED,
-        c.Cli.CommandStatus.CANCELLED,
-    ]
-    type LogLevelLiteral = Literal[
-        c.LogLevel.DEBUG,
-        c.LogLevel.INFO,
-        c.LogLevel.WARNING,
-        c.LogLevel.ERROR,
-        c.LogLevel.CRITICAL,
-    ]
-    type LogVerbosityLiteral = Literal[
-        c.Cli.LogVerbosity.COMPACT,
-        c.Cli.LogVerbosity.DETAILED,
-        c.Cli.LogVerbosity.FULL,
-    ]
-    type PipelineStageStatusLiteral = Literal[
-        c.Cli.PipelineStageStatus.OK,
-        c.Cli.PipelineStageStatus.SKIPPED,
-        c.Cli.PipelineStageStatus.FAILED,
-    ]
-    type TabularFormatLiteral = Literal[
-        c.Cli.TabularFormat.PLAIN,
-        c.Cli.TabularFormat.SIMPLE,
-        c.Cli.TabularFormat.GRID,
-        c.Cli.TabularFormat.FANCY_GRID,
-        c.Cli.TabularFormat.PIPE,
-        c.Cli.TabularFormat.ORGTBL,
-        c.Cli.TabularFormat.JIRA,
-        c.Cli.TabularFormat.PRESTO,
-        c.Cli.TabularFormat.PRETTY,
-        c.Cli.TabularFormat.PSQL,
-        c.Cli.TabularFormat.RST,
-        c.Cli.TabularFormat.MEDIAWIKI,
-        c.Cli.TabularFormat.MOINMOIN,
-        c.Cli.TabularFormat.YOUTRACK,
-        c.Cli.TabularFormat.HTML,
-        c.Cli.TabularFormat.UNSAFEHTML,
-        c.Cli.TabularFormat.LATEX,
-        c.Cli.TabularFormat.LATEX_RAW,
-        c.Cli.TabularFormat.LATEX_BOOKTABS,
-        c.Cli.TabularFormat.LATEX_LONGTABLE,
-        c.Cli.TabularFormat.TEXTILE,
-        c.Cli.TabularFormat.TSV,
-        c.Cli.TabularFormat.TABLE,
-    ]
-    type StyleLiteral = Literal[
-        c.Cli.MessageStyles.BLUE,
-        c.Cli.MessageStyles.GREEN,
-        c.Cli.MessageStyles.RED,
-        c.Cli.MessageStyles.YELLOW,
-        c.Cli.MessageStyles.CYAN,
-        c.Cli.MessageStyles.WHITE,
-        c.Cli.MessageStyles.DIM,
-        c.Cli.MessageStyles.BOLD,
-        c.Cli.MessageStyles.BOLD_BLUE,
-        c.Cli.MessageStyles.BOLD_GREEN,
-        c.Cli.MessageStyles.BOLD_RED,
-        c.Cli.MessageStyles.BOLD_YELLOW,
-        c.Cli.MessageStyles.BOLD_CYAN,
-        c.Cli.MessageStyles.BOLD_WHITE,
-        c.Cli.MessageStyles.BOLD_MAGENTA,
-    ]
 
     type TyperRunner = CliRunner
     type TomlDocument = TOMLDocument
@@ -175,18 +90,17 @@ class FlextCliTypesBase:
     )
     SCALAR_TYPES: ClassVar[tuple[type, ...]] = t.SCALAR_TYPES
 
-    JSON_VALUE_ADAPTER: ClassVar[m.TypeAdapter[JsonValue]] = m.TypeAdapter(JsonValue)
-    JSON_MAPPING_ADAPTER: ClassVar[m.TypeAdapter[JsonMapping]] = m.TypeAdapter(
-        JsonMapping
+    STR_SEQUENCE_ADAPTER: ClassVar[t.ValueAdapter[StrSequence]] = (
+        t.str_sequence_adapter()
     )
-    JSON_LIST_ADAPTER: ClassVar[m.TypeAdapter[JsonList]] = m.TypeAdapter(JsonList)
-    YAML_DICT_ADAPTER: ClassVar[m.TypeAdapter[JsonMapping]] = m.TypeAdapter(JsonMapping)
-    YAML_SEQ_ADAPTER: ClassVar[m.TypeAdapter[JsonList]] = m.TypeAdapter(JsonList)
-    CONTAINER_VALUE_ADAPTER: m.TypeAdapter[t.Container] = m.TypeAdapter(t.Container)
-    CONTAINER_NORMALIZE_ADAPTER: ClassVar[m.TypeAdapter[t.Container]] = m.TypeAdapter(
-        t.Container
+    JSON_VALUE_ADAPTER: ClassVar[t.ValueAdapter[JsonValue]] = t.json_value_adapter()
+    JSON_MAPPING_ADAPTER: ClassVar[t.ValueAdapter[JsonMapping]] = (
+        t.json_mapping_adapter()
     )
-    CLI_DEFAULT_SOURCE_ADAPTER: ClassVar[m.TypeAdapter[CliDefaultSource]] = (
+    JSON_LIST_ADAPTER: ClassVar[t.ValueAdapter[JsonList]] = t.json_list_adapter()
+    YAML_DICT_ADAPTER: ClassVar[t.ValueAdapter[JsonMapping]] = t.json_mapping_adapter()
+    YAML_SEQ_ADAPTER: ClassVar[t.ValueAdapter[JsonList]] = t.json_list_adapter()
+    CLI_DEFAULT_SOURCE_ADAPTER: ClassVar[t.ValueAdapter[CliDefaultSource]] = (
         m.TypeAdapter(CliDefaultSource)
     )
 

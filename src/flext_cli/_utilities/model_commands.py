@@ -7,7 +7,6 @@ import inspect
 from flext_core import m
 
 from flext_cli import p, t
-from pydantic.fields import FieldInfo
 
 
 class FlextCliUtilitiesModelCommandBuilder[M: m.BaseModel]:
@@ -28,7 +27,7 @@ class FlextCliUtilitiesModelCommandBuilder[M: m.BaseModel]:
     def _resolve_default(
         self,
         field_name: str,
-        field_info: FieldInfo,
+        field_info: m.FieldInfo,
     ) -> t.Cli.CliValue | type:
         if field_info.is_required():
             return inspect.Parameter.empty
@@ -38,11 +37,7 @@ class FlextCliUtilitiesModelCommandBuilder[M: m.BaseModel]:
 
     def build(self) -> t.Cli.CliCommand:
         """Build a direct callable with a real runtime signature."""
-        model_fields: t.Cli.FieldInfoMapping = getattr(
-            self.model_class,
-            "model_fields",
-            {},
-        )
+        model_fields = getattr(self.model_class, "model_fields", {})
         parameters = [
             inspect.Parameter(
                 name=field_name,

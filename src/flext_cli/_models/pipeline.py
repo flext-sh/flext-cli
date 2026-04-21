@@ -23,7 +23,7 @@ class FlextCliModelsPipeline:
     class PipelineStageContext(m.ContractModel):
         """Accumulated state passed between pipeline stages."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config = m.ConfigDict(
             extra="forbid",
             validate_assignment=True,
             arbitrary_types_allowed=True,
@@ -52,7 +52,7 @@ class FlextCliModelsPipeline:
     class PipelineStageSpec(m.ContractModel):
         """Declarative stage definition with dependency tracking."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config = m.ConfigDict(
             extra="forbid",
             arbitrary_types_allowed=True,
         )
@@ -94,7 +94,7 @@ class FlextCliModelsPipeline:
     class PipelineStageResult(m.ContractModel):
         """What a stage produces after execution."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid")
+        model_config = m.ConfigDict(extra="forbid")
 
         stage_id: Annotated[str, m.Field(description="Stage that produced this result")]
         status: Annotated[
@@ -120,7 +120,7 @@ class FlextCliModelsPipeline:
 
         _flext_enforcement_exempt: ClassVar[bool] = True
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid")
+        model_config = m.ConfigDict(extra="forbid")
 
         stages: Annotated[
             Sequence[FlextCliModelsPipeline.PipelineStageResult],

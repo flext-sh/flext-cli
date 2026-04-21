@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import Annotated, ClassVar, override
+from typing import override
 
 from flext_cli import (
     FlextCliAuth,
@@ -20,7 +20,6 @@ from flext_cli import (
     FlextCliPrompts,
     FlextCliTables,
     c,
-    m,
     p,
     r,
     t,
@@ -46,14 +45,6 @@ class FlextCli(
     formatters, output, prompts, settings, tables).
     All operations return r[T].
     """
-
-    __pydantic_parent_namespace__: ClassVar[dict[str, object]] = {
-        "Annotated": Annotated,
-        "Field": m.Field,
-        "TDomainResult": t.ValueOrModel,
-        "p": p,
-        "t": t,
-    }
 
     @override
     def execute(self) -> p.Result[t.Cli.JsonMapping]:

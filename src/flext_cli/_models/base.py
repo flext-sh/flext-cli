@@ -171,7 +171,7 @@ class FlextCliModelsBase:
             m.Field(None, description="Dynamic success formatter"),
         ] = None
         success_type: Annotated[
-            c.Cli.MessageTypes | t.Cli.MessageTypeLiteral,
+            c.Cli.MessageTypes,
             m.Field(
                 description="CLI output style on success",
             ),
@@ -205,7 +205,7 @@ class FlextCliModelsBase:
 
         # Format configuration
         table_format: Annotated[
-            t.Cli.TabularFormatLiteral,
+            c.Cli.TabularFormat,
             m.Field(
                 description="Table format enum-derived literal authority",
             ),
@@ -213,7 +213,7 @@ class FlextCliModelsBase:
 
         @u.computed_field()
         @property
-        def table_backend_format(self) -> t.Cli.TabularFormatLiteral:
+        def table_backend_format(self) -> c.Cli.TabularFormat:
             """Canonical backend format used by tabulate rendering."""
             return (
                 c.Cli.TabularFormat.SIMPLE

@@ -7,25 +7,30 @@ from collections.abc import (
     Mapping,
     MutableMapping,
     MutableSequence,
+    Sequence,
 )
 from pathlib import Path
 from typing import ClassVar, TypeIs
 
 import tomlkit
-from flext_core import m, u
+from flext_core import u
 from tomlkit import TOMLDocument
 from tomlkit.items import AoT, Item as TomlItem, Table as TomlTable
 
-from flext_cli import c, p, r, t
-from flext_cli._utilities.json import FlextCliUtilitiesJson as uj
-from flext_cli._utilities.runtime import FlextCliUtilitiesRuntime as ur
+from flext_cli import (
+    FlextCliUtilitiesJson as uj,
+    FlextCliUtilitiesRuntime as ur,
+    c,
+    p,
+    r,
+    t,
+)
 
 
 class FlextCliUtilitiesToml:
     """Generic TOML read/write and table-manipulation helpers."""
 
     _module_logger: ClassVar[p.Logger] = u.fetch_logger(__name__)
-    _STR_SEQUENCE_ADAPTER: m.TypeAdapter[t.StrSequence] = m.TypeAdapter(t.StrSequence)
 
     @staticmethod
     def toml_as_mapping(
@@ -56,18 +61,24 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_as_string_list(
-        value: t.Cli.TomlUnwrappedSource,
+        value: t.Cli.TomlStringListSource,
     ) -> t.StrSequence:
         """Normalize a TOML array into a string sequence."""
-        normalized = FlextCliUtilitiesToml.toml_unwrap_item(value)
-        if normalized is None or isinstance(normalized, str):
+        normalized: t.Cli.TomlUnwrappedSource | Sequence[t.Primitives] | None
+        if FlextCliUtilitiesToml.toml_is_document(
+            value,
+        ) or FlextCliUtilitiesToml.toml_is_item(value):
+            normalized = FlextCliUtilitiesToml.toml_unwrap_item(value)
+        else:
+            normalized = value
+        if normalized is None or isinstance(normalized, str | bytes):
             return []
-        try:
-            items = FlextCliUtilitiesToml._STR_SEQUENCE_ADAPTER.validate_python(
-                normalized,
-            )
-        except c.ValidationError:
+        if not isinstance(normalized, Sequence):
             return []
+        if isinstance(value, TOMLDocument | TomlItem):
+            normalized = value.unwrap()
+        else:
+            normalized = value
         return [str(item) for item in items]
 
     @staticmethod

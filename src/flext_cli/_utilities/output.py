@@ -5,7 +5,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-from flext_cli import c, t
+from flext_cli import c
 
 
 class FlextCliUtilitiesOutput:
@@ -13,7 +13,7 @@ class FlextCliUtilitiesOutput:
 
     @staticmethod
     def output_resolve_message_type(
-        message_type: t.Cli.MessageTypeLiteral | c.Cli.MessageTypes | None,
+        message_type: c.Cli.MessageTypes | None,
     ) -> c.Cli.MessageTypes:
         """Resolve one message type to canonical enum value."""
         if message_type is None:
@@ -33,7 +33,7 @@ class FlextCliUtilitiesOutput:
     @staticmethod
     def output_message_payload(
         message: str,
-        message_type: t.Cli.MessageTypeLiteral | c.Cli.MessageTypes | None,
+        message_type: c.Cli.MessageTypes | None,
     ) -> tuple[str, str]:
         """Build one canonical display payload and style from message type."""
         final_type = FlextCliUtilitiesOutput.output_resolve_message_type(message_type)

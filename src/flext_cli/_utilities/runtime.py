@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import shlex
 import subprocess
 import time
@@ -12,6 +13,27 @@ from flext_cli import c, m, p, r, t
 
 class FlextCliUtilitiesRuntime:
     """Runtime helpers for external command execution."""
+
+    @staticmethod
+    def process_env(
+        *,
+        overrides: t.StrMapping | None = None,
+        remove_keys: t.StrSequence = (),
+    ) -> dict[str, str]:
+        """Return one inherited process environment with optional overrides."""
+        env = dict(os.environ)
+        for key in remove_keys:
+            _ = env.pop(key, None)
+        if overrides is not None:
+            env.update(dict(overrides))
+        return env
+
+    @staticmethod
+    def _merged_env(env: t.StrMapping | None) -> dict[str, str] | None:
+        """Merge explicit overrides onto the inherited process environment."""
+        if env is None:
+            return None
+        return FlextCliUtilitiesRuntime.process_env(overrides=env)
 
     @staticmethod
     def run_raw(
@@ -31,7 +53,7 @@ class FlextCliUtilitiesRuntime:
                 text=input_data is None,
                 check=False,
                 timeout=timeout,
-                env=dict(env) if env is not None else None,
+                env=FlextCliUtilitiesRuntime._merged_env(env),
                 input=input_data,
             )
         except subprocess.TimeoutExpired as exc:
@@ -133,7 +155,7 @@ class FlextCliUtilitiesRuntime:
                     stderr=subprocess.STDOUT,
                     check=False,
                     timeout=timeout,
-                    env=dict(env) if env is not None else None,
+                    env=FlextCliUtilitiesRuntime._merged_env(env),
                 )
         except subprocess.TimeoutExpired as exc:
             return r[int].fail(f"timeout {exc.timeout}s: {shlex.join(list(cmd))}")

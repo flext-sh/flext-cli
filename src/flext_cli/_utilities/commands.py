@@ -6,8 +6,7 @@ from collections.abc import (
     Callable,
 )
 
-from flext_cli import c, p, r, t
-from flext_cli._utilities.json import FlextCliUtilitiesJson as uj
+from flext_cli import FlextCliUtilitiesJson as uj, c, p, r, t
 
 
 class FlextCliUtilitiesCommands:

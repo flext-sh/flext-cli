@@ -12,7 +12,7 @@ from collections.abc import (
     Sequence,
 )
 from pathlib import Path
-from typing import ClassVar
+from typing import ClassVar, TypeIs
 
 from flext_core import m, u
 
@@ -27,12 +27,12 @@ class FlextCliUtilitiesJson:
     @staticmethod
     def mapping_like(
         value: t.Cli.JsonLikeValue,
-    ) -> bool:
+    ) -> TypeIs[t.Cli.JsonLikeMapping]:
         """Narrow values to mapping-like recursive containers."""
         return isinstance(value, Mapping)
 
     @staticmethod
-    def normalize_json_value[TItem](item: TItem) -> t.Cli.JsonValue:
+    def normalize_json_value(item: t.Cli.JsonPayload) -> t.Cli.JsonValue:
         """Normalize any runtime value to JSON-compatible output (Pydantic-native)."""
         if isinstance(item, m.BaseModel):
             return item.model_dump(mode="json")
@@ -61,9 +61,9 @@ class FlextCliUtilitiesJson:
             return r[t.Cli.JsonMapping].fail(f"json_read validation: {exc}")
 
     @staticmethod
-    def json_write[TPayload](
+    def json_write(
         path: Path,
-        payload: TPayload,
+        payload: t.Cli.JsonPayload,
         *,
         sort_keys: bool = False,
         ensure_ascii: bool = False,
@@ -129,6 +129,21 @@ class FlextCliUtilitiesJson:
             return t.Cli.JSON_MAPPING_ADAPTER.validate_python(normalized)
         except c.ValidationError:
             return {}
+
+    @staticmethod
+    def json_as_sequence(
+        value: t.Cli.JsonPayload | None,
+    ) -> Sequence[t.Cli.JsonValue]:
+        """Normalize any JSON-compatible value into a JSON sequence."""
+        if value is None:
+            return []
+        normalized = FlextCliUtilitiesJson.normalize_json_value(value)
+        if not isinstance(normalized, Sequence) or isinstance(normalized, str | bytes):
+            return []
+        try:
+            return t.Cli.JSON_LIST_ADAPTER.validate_python(normalized)
+        except c.ValidationError:
+            return []
 
     @staticmethod
     def json_as_mapping_list(
@@ -259,15 +274,6 @@ class FlextCliUtilitiesJson:
         """Extract and normalize a string key from a mapping."""
         raw = FlextCliUtilitiesJson.json_pick_str(mapping, key, default)
         return u.normalize(raw, case=case)
-
-    @staticmethod
-    def json_normalize(
-        value: t.Cli.JsonPayload,
-    ) -> t.Cli.JsonValue:
-        """Normalize a value to a JSON-serializable form."""
-        if isinstance(value, m.BaseModel):
-            return value.model_dump(mode="json")
-        return t.Cli.JSON_VALUE_ADAPTER.validate_python(u.to_jsonable_python(value))
 
     @staticmethod
     def _json_sort_keys(data: t.Cli.JsonValue) -> t.Cli.JsonValue:

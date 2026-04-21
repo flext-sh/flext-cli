@@ -26,7 +26,7 @@ class FlextCliOutput(s):
     @staticmethod
     def display_message(
         message: str,
-        message_type: t.Cli.MessageTypeLiteral | c.Cli.MessageTypes | None = None,
+        message_type: c.Cli.MessageTypes | None = None,
     ) -> None:
         """Display message with specified type and styling.
 

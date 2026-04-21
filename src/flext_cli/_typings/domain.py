@@ -9,13 +9,11 @@ from collections.abc import (
     Sequence,
 )
 from pathlib import Path
-from typing import Literal, TextIO
+from typing import TextIO
 
 from flext_core import m, t
 
-from flext_cli import FlextCliConstantsEnums, p
-from flext_cli._typings.base import FlextCliTypesBase
-from pydantic.fields import FieldInfo
+from flext_cli import FlextCliConstantsEnums, FlextCliTypesBase, p
 
 
 class FlextCliTypesDomain:
@@ -40,7 +38,7 @@ class FlextCliTypesDomain:
         Mapping[str, t.Scalar | t.StrSequence],
     ]
     type FieldMetadataSource = (
-        FieldInfo | FlextCliTypesBase.JsonMapping | FlextCliTypesBase.JsonValue
+        m.FieldInfo | FlextCliTypesBase.JsonMapping | FlextCliTypesBase.JsonValue
     )
     type JsonDefaults = Mapping[str, FlextCliTypesBase.JsonValue]
     type MutableJsonDefaults = MutableMapping[str, FlextCliTypesBase.JsonValue]
@@ -67,12 +65,9 @@ class FlextCliTypesDomain:
         t.Container | FlextCliTypesBase.TomlItem | FlextCliTypesBase.TomlDocument
     )
     type TomlUnwrappedSource = t.Container | FlextCliTypesBase.TomlItem
+    type TomlStringListSource = TomlUnwrappedSource | Sequence[t.Primitives]
     type TomlRuntimeSource = FlextCliTypesBase.TomlValue | t.Container
-    type TypeKind = Literal[
-        FlextCliConstantsEnums.TypeKind.STR,
-        FlextCliConstantsEnums.TypeKind.BOOL,
-        FlextCliConstantsEnums.TypeKind.DICT,
-    ]
+    type TypeKind = FlextCliConstantsEnums.TypeKind
     type TypedExtractValue = str | bool | FlextCliTypesBase.JsonMapping
     type ResultCommandRoutes = Sequence[p.Cli.ResultCommandRoute]
     type TableDataSource = (

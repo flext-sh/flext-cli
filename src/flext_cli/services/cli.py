@@ -17,7 +17,6 @@ from pathlib import Path
 from types import GenericAlias, NoneType, UnionType
 from typing import (
     Annotated,
-    Literal,
     TypeAliasType,
     TypeIs,
     Union,
@@ -37,9 +36,7 @@ from flext_cli import (
     r,
     s,
     t,
-    u,
 )
-from pydantic.fields import FieldInfo
 from typer.models import OptionInfo
 from typer.testing import CliRunner
 
@@ -97,12 +94,11 @@ class FlextCliCli(s):
             )
             if len(args) == c.Cli.OPTIONAL_UNION_ARG_COUNT and NoneType in args:
                 return args[0] if args[1] is NoneType else args[1]
+            return str
         origin: object = get_origin(annotation)
-        if origin == Annotated:
+        if origin is Annotated:
             value, *_ = get_args(annotation)
             return FlextCliCli._resolve_typer_annotation(value)
-        if origin == Literal:
-            return str
         if origin in {Union, UnionType}:
             args = tuple(
                 FlextCliCli._resolve_typer_annotation(arg)
@@ -110,7 +106,8 @@ class FlextCliCli(s):
             )
             if len(args) == c.Cli.OPTIONAL_UNION_ARG_COUNT and NoneType in args:
                 return args[0] if args[1] is NoneType else args[1]
-        if origin == Sequence:
+            return str
+        if origin is Sequence:
             args = get_args(annotation)
             if args:
                 value = FlextCliCli._resolve_typer_annotation(args[0])
@@ -137,7 +134,9 @@ class FlextCliCli(s):
         value: t.Cli.CliDefaultSource,
     ) -> TypeIs[t.Cli.StrSequence]:
         """Return True for concrete string sequences accepted by repeated CLI options."""
-        if not u.list_like(value):
+        if isinstance(value, Path) or not isinstance(value, Sequence):
+            return False
+        if isinstance(value, str | bytes):
             return False
         return all(isinstance(item, str) for item in value)
 
@@ -158,7 +157,7 @@ class FlextCliCli(s):
     @staticmethod
     def _field_default(
         field_name: str,
-        field_info: FieldInfo,
+        field_info: m.FieldInfo,
         settings: m.BaseModel | None,
     ) -> t.Cli.CliValue | None:
         """Resolve CLI default from settings first, then from model field metadata."""
@@ -220,7 +219,7 @@ class FlextCliCli(s):
     def _build_model_parameter(
         cls,
         field_name: str,
-        field_info: FieldInfo,
+        field_info: m.FieldInfo,
         settings: m.BaseModel | None,
     ) -> tuple[Parameter, type | GenericAlias]:
         """Build a keyword-only Typer option from a Pydantic field."""
@@ -353,7 +352,7 @@ class FlextCliCli(s):
         """Build a Typer command directly from a Pydantic request model."""
         parameters: MutableSequence[Parameter] = []
         annotations: t.Cli.CliAnnotations = {"return": type(None)}
-        fields: t.Cli.FieldInfoMapping = getattr(model_cls, "model_fields", {})
+        fields = getattr(model_cls, "model_fields", {})
         for field_name, field_info in fields.items():
             if field_info.exclude is True:
                 continue
@@ -501,9 +500,7 @@ class FlextCliCli(s):
         settings: m.BaseModel | None = None,
         success_formatter: p.Cli.SuccessMessageFormatter[TResult] | None = None,
         success_message: str | None = None,
-        success_type: c.Cli.MessageTypes | t.Cli.MessageTypeLiteral = (
-            c.Cli.MessageTypes.SUCCESS
-        ),
+        success_type: c.Cli.MessageTypes = c.Cli.MessageTypes.SUCCESS,
     ) -> None:
         """Register a model command that normalizes `r[...]` CLI handling."""
         execute = cls._build_result_executor(
@@ -526,9 +523,7 @@ class FlextCliCli(s):
         handler: p.Cli.ResultCommandHandler[M, TResult],
         success_formatter: p.Cli.SuccessMessageFormatter[TResult] | None = None,
         success_message: str | None = None,
-        success_type: c.Cli.MessageTypes | t.Cli.MessageTypeLiteral = (
-            c.Cli.MessageTypes.SUCCESS
-        ),
+        success_type: c.Cli.MessageTypes = c.Cli.MessageTypes.SUCCESS,
     ) -> p.Cli.ModelCommandHandler[M]:
         """Build the shared executor used by single and batched route registration."""
 
@@ -565,14 +560,33 @@ class FlextCliCli(s):
         route: m.Cli.ResultCommandRoute,
     ) -> None:
         """Register a declarative result route on a Typer app."""
+
+        def execute(params: m.BaseModel) -> t.Cli.RuntimeValue:
+            result = route.handler(params)
+            if result.failure:
+                if result.error:
+                    FlextCliOutput.display_message(
+                        result.error,
+                        c.Cli.MessageTypes.ERROR,
+                    )
+                cls.exit(code=1)
+            message = route.success_message
+            result_value = result.value
+            if route.success_formatter is not None:
+                message = route.success_formatter(result_value)
+            elif hasattr(result_value, "message"):
+                candidate = result_value.message
+                if isinstance(candidate, str) and candidate:
+                    message = candidate
+            elif isinstance(result_value, str) and result_value:
+                message = result_value
+            if message:
+                FlextCliOutput.display_message(message, route.success_type)
+            return True
+
         command = cls.model_command(
             route.model_cls,
-            cls._build_result_executor(
-                handler=route.handler,
-                success_formatter=route.success_formatter,
-                success_message=route.success_message,
-                success_type=route.success_type,
-            ),
+            execute,
         )
         cls.register_command(
             app,
