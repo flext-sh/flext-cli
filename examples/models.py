@@ -17,7 +17,7 @@ from collections.abc import (
 )
 from ipaddress import ip_address
 from pathlib import Path
-from typing import Annotated, ClassVar
+from typing import Annotated
 
 from examples import c, p, r, t
 from flext_cli import m, u
@@ -31,10 +31,10 @@ class ExamplesFlextCliModels(m):
 
         @staticmethod
         def merge_env_overrides(
-            data: t.ModelInput,
+            data: t.ExampleModelInput,
             env_fields: t.StrMapping,
             field_types: Mapping[str, t.TypeHintSpecifier],
-        ) -> t.ModelInput:
+        ) -> t.ExampleModelInput:
             """Merge explicit input with environment overrides using Pydantic coercion."""
             if not isinstance(data, Mapping):
                 return data
@@ -43,14 +43,16 @@ class ExamplesFlextCliModels(m):
             for field_name, env_name in env_fields.items():
                 if env_name not in os.environ or field_name not in field_types:
                     continue
-                validated_value = m.TypeAdapter(
+                validated_value: t.EnvValue = m.TypeAdapter(
                     field_types[field_name]
                 ).validate_python(
                     os.environ[env_name],
                 )
                 if isinstance(validated_value, Mapping):
-                    env_overrides[field_name] = t.JSON_DICT_ADAPTER.validate_python(
-                        validated_value,
+                    env_overrides[field_name] = dict(
+                        t.JSON_DICT_ADAPTER.validate_python(
+                            validated_value,
+                        ),
                     )
                     continue
                 if isinstance(validated_value, Path | str | int | float | bool):
@@ -63,7 +65,7 @@ class ExamplesFlextCliModels(m):
         class DatabaseWizardConfig(m.Value):
             """Database setup wizard result — Pydantic v2 only."""
 
-            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+            model_config = m.ConfigDict(
                 extra="forbid",
                 validate_assignment=True,
             )
@@ -82,7 +84,7 @@ class ExamplesFlextCliModels(m):
         class AppWizardConfig(m.Value):
             """App configuration wizard result — Pydantic v2 only."""
 
-            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+            model_config = m.ConfigDict(
                 extra="forbid",
                 validate_assignment=True,
             )
@@ -119,7 +121,7 @@ class ExamplesFlextCliModels(m):
         class NumericPromptResult(m.Value):
             """Numeric prompts result — Pydantic v2 only."""
 
-            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+            model_config = m.ConfigDict(
                 extra="forbid",
                 validate_assignment=True,
             )
@@ -154,7 +156,7 @@ class ExamplesFlextCliModels(m):
         class MyAppSettings(m.Value):
             """Custom settings for YOUR CLI application — Pydantic v2 only."""
 
-            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+            model_config = m.ConfigDict(
                 extra="forbid",
                 validate_assignment=True,
             )
@@ -184,8 +186,8 @@ class ExamplesFlextCliModels(m):
             @classmethod
             def _inject_env(
                 cls,
-                data: t.ModelInput,
-            ) -> t.ModelInput:
+                data: t.ExampleModelInput,
+            ) -> t.ExampleModelInput:
                 return ExamplesFlextCliModels.Examples.merge_env_overrides(
                     data,
                     c.EXAMPLE_ENV_MAP_MY_APP,
@@ -238,7 +240,7 @@ class ExamplesFlextCliModels(m):
         class AppSettingsAdvanced(m.Value):
             """Advanced application settings — Pydantic v2 only."""
 
-            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+            model_config = m.ConfigDict(
                 extra="forbid",
                 validate_assignment=True,
             )
@@ -285,8 +287,8 @@ class ExamplesFlextCliModels(m):
             @classmethod
             def _inject_env(
                 cls,
-                data: t.ModelInput,
-            ) -> t.ModelInput:
+                data: t.ExampleModelInput,
+            ) -> t.ExampleModelInput:
                 return ExamplesFlextCliModels.Examples.merge_env_overrides(
                     data,
                     c.EXAMPLE_ENV_MAP_ADVANCED_APP,
@@ -356,7 +358,7 @@ class ExamplesFlextCliModels(m):
         class DeployConfig(m.Value):
             """Deployment configuration - auto-generates CLI parameters."""
 
-            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+            model_config = m.ConfigDict(
                 extra="forbid",
                 validate_assignment=True,
             )
@@ -398,7 +400,7 @@ class ExamplesFlextCliModels(m):
         class DatabaseConfig(m.Value):
             """Database configuration."""
 
-            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+            model_config = m.ConfigDict(
                 extra="forbid",
                 validate_assignment=True,
             )
@@ -421,7 +423,7 @@ class ExamplesFlextCliModels(m):
         class AppConfigNested(m.Value):
             """Application configuration with nested database model."""
 
-            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+            model_config = m.ConfigDict(
                 extra="forbid",
                 validate_assignment=True,
             )
@@ -440,7 +442,7 @@ class ExamplesFlextCliModels(m):
         class AdvancedDatabaseConfig(m.Value):
             """Database configuration with advanced validation."""
 
-            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+            model_config = m.ConfigDict(
                 extra="forbid",
                 validate_assignment=True,
             )

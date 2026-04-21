@@ -223,7 +223,7 @@ def full_workflow_command(
     base_dir: Path | None = None,
 ) -> p.Result[Mapping[str, t.Cli.JsonValue]]:
     """Complete workflow to test."""
-    data: Mapping[str, t.Container] = {"status": "processing", "items": [1, 2, 3]}
+    data: t.Cli.JsonMapping = {"status": "processing", "items": [1, 2, 3]}
     temp_file = _temp_file_path("workflow_test.json", base_dir=base_dir)
     result = (
         cli

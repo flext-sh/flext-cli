@@ -46,7 +46,9 @@ class FlextCliTypesBase:
     type TableMappingRow = JsonMapping
     type TableSequenceRow = JsonList
     type TableRow = TableMappingRow | TableSequenceRow
-    type TableConfigValue = t.Container
+    type TableConfigValue = (
+        t.Container | Sequence[str] | Sequence[int] | Sequence[str | int] | None
+    )
     type TabularData = TableMappingRow | Sequence[TableRow]
     type TableRows = Sequence[TableRow]
     type TableShowIndex = bool | str | Sequence[str | int]

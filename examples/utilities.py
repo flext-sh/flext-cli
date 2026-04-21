@@ -63,7 +63,9 @@ class ExamplesFlextCliUtilities(u):
         success_fields: t.StrSequence | None = None,
     ) -> None:
         """Generic handler for CQRS command results."""
-        success_fields = success_fields or ["id", "status"]
+        fields: t.StrSequence = (
+            success_fields if success_fields is not None else ["id", "status"]
+        )
 
         if result.success:
             raw = result.value
@@ -71,7 +73,7 @@ class ExamplesFlextCliUtilities(u):
             cli.print(
                 f"✅ {action.title()} successful", style=c.Cli.MessageStyles.GREEN
             )
-            for field in success_fields:
+            for field in fields:
                 if field in data:
                     display_name = field.replace("_", " ").title()
                     cli.print(f"{display_name}: {data[field]}")

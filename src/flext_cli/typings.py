@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from flext_core import t
-from yaml import YAMLError as _YamlError
+from yaml import YAMLError
 
 from flext_cli import FlextCliTypesBase, FlextCliTypesDomain, FlextCliTypesPipeline
 
@@ -14,7 +14,7 @@ class FlextCliTypes(t):
     class Cli(FlextCliTypesPipeline, FlextCliTypesDomain, FlextCliTypesBase):
         """CLI types namespace for cross-project access."""
 
-        YAMLError: type[Exception] = _YamlError
+        YAMLError: type[Exception] = YAMLError
 
 
 t = FlextCliTypes

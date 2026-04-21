@@ -36,7 +36,7 @@ from collections.abc import (
 )
 from pathlib import Path
 
-from examples import c, m, t
+from examples import c, t, u
 from flext_cli import cli
 
 
@@ -184,14 +184,7 @@ def export_data_multi_format(
             f"✅ YAML: {yaml_path.name} ({size} bytes)", style=c.Cli.MessageStyles.GREEN
         )
 
-    rows_adapter: m.TypeAdapter[Sequence[Mapping[str, t.Container]]] = m.TypeAdapter(
-        Sequence[Mapping[str, t.Container]]
-    )
-    csv_rows_data: Sequence[Mapping[str, t.Container]]
-    try:
-        csv_rows_data = rows_adapter.validate_python(data)
-    except c.ValidationError:
-        csv_rows_data = []
+    csv_rows_data = u.Cli.json_as_mapping_list(data)
 
     if csv_rows_data:
         csv_path = base_path.with_suffix(".csv")

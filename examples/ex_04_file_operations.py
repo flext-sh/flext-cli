@@ -497,14 +497,7 @@ def export_multi_format(
             f"✅ YAML: {yaml_path.name} ({size} bytes)", style=c.Cli.MessageStyles.GREEN
         )
 
-    rows_adapter: m.TypeAdapter[Sequence[Mapping[str, t.Container]]] = m.TypeAdapter(
-        Sequence[Mapping[str, t.Container]]
-    )
-    csv_rows_data: Sequence[Mapping[str, t.Container]]
-    try:
-        csv_rows_data = rows_adapter.validate_python(data)
-    except c.ValidationError:
-        csv_rows_data = []
+    csv_rows_data = u.Cli.json_as_mapping_list(data)
 
     if csv_rows_data:
         csv_path = base_path.with_suffix(".csv")
@@ -538,7 +531,7 @@ def export_multi_format(
 def process_file_pipeline(
     input_file: Path,
     output_dir: Path,
-) -> p.Result[Mapping[str, t.RecursiveValue]]:
+) -> p.Result[t.Cli.JsonMapping]:
     """Complete file processing pipeline using Railway Pattern.
 
     Demonstrates chaining multiple file operations with proper error handling.
@@ -550,29 +543,29 @@ def process_file_pipeline(
     )
 
     # Initialize result
-    result: p.Result[Mapping[str, t.RecursiveValue]]
+    result: p.Result[t.Cli.JsonMapping]
 
     # Railway pattern: Chain operations with automatic error propagation
 
     # Step 1: Validate input file exists and is readable
     if not input_file.exists():
-        result = r[Mapping[str, t.RecursiveValue]].fail(f"File not found: {input_file}")
+        result = r[t.Cli.JsonMapping].fail(f"File not found: {input_file}")
     elif not input_file.is_file():
-        result = r[Mapping[str, t.RecursiveValue]].fail(f"Not a file: {input_file}")
+        result = r[t.Cli.JsonMapping].fail(f"Not a file: {input_file}")
     else:
         cli.print("✅ Input validation passed", style=c.Cli.MessageStyles.GREEN)
 
         # Step 2: Read file content (dict-only, no narrowing)
         read_result = cli.read_json_file(input_file)
         if read_result.failure:
-            result = r[Mapping[str, t.RecursiveValue]].fail(
+            result = r[t.Cli.JsonMapping].fail(
                 f"File read failed: {read_result.error}",
             )
         else:
             data = read_result.value
             cli.print("✅ File read successfully", style=c.Cli.MessageStyles.GREEN)
             if not isinstance(data, Mapping):
-                result = r[Mapping[str, t.RecursiveValue]].fail(
+                result = r[t.Cli.JsonMapping].fail(
                     "File content must be a mapping",
                 )
             else:
@@ -584,7 +577,7 @@ def process_file_pipeline(
 
                 output_result = generate_output_files(transformed_data, output_dir)
                 if output_result.failure:
-                    result = r[Mapping[str, t.RecursiveValue]].fail(
+                    result = r[t.Cli.JsonMapping].fail(
                         output_result.error or "Unknown error",
                     )
                 else:
@@ -601,7 +594,7 @@ def process_file_pipeline(
                         "🎉 File processing pipeline completed successfully!",
                         style=c.Cli.MessageStyles.BOLD_GREEN,
                     )
-                    result = r[Mapping[str, t.RecursiveValue]].ok(summary)
+                    result = r[t.Cli.JsonMapping].ok(summary)
 
     if result.failure:
         cli.print(
@@ -655,19 +648,12 @@ def generate_output_files(
         return r[Mapping[str, Path]].fail(f"YAML export failed: {yaml_result.error}")
     results["yaml"] = yaml_file
 
-    rows_adapter: m.TypeAdapter[Sequence[Mapping[str, t.Container]]] = m.TypeAdapter(
-        Sequence[Mapping[str, t.Container]]
-    )
-    csv_rows_data: Sequence[Mapping[str, t.Container]]
     content_items: t.ValueOrModel = ""
     if isinstance(data.content, dict):
         content_items = data.content.get("items", [])
     else:
         content_items = []
-    try:
-        csv_rows_data = rows_adapter.validate_python(content_items)
-    except c.ValidationError:
-        csv_rows_data = []
+    csv_rows_data = u.Cli.json_as_mapping_list(content_items)
 
     if csv_rows_data:
         csv_file = output_dir / f"{base_name}.csv"
@@ -684,7 +670,7 @@ def generate_output_files(
 
 def create_processing_summary(
     results: Mapping[str, Path],
-) -> Mapping[str, bool | int | t.StrSequence | str]:
+) -> t.Cli.JsonMapping:
     """Create a summary of the processing pipeline."""
     return {
         "pipeline_completed": True,
@@ -835,7 +821,7 @@ def main() -> None:
         "\n11. Railway Pattern Pipeline (complete workflow):",
         style=c.Cli.MessageStyles.BOLD_CYAN,
     )
-    pipeline_input: Mapping[str, t.Container] = {
+    pipeline_input: t.Cli.JsonMapping = {
         "name": "pipeline_demo",
         "version": "1.0",
         "items": [

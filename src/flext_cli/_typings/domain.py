@@ -80,7 +80,10 @@ class FlextCliTypesDomain:
     )
     type JsonValueOrModel = FlextCliTypesBase.JsonValue | m.BaseModel
     type TomlMappingSource = (
-        t.Container | FlextCliTypesBase.TomlItem | FlextCliTypesBase.TomlDocument
+        t.Container
+        | FlextCliTypesBase.JsonLikeMapping
+        | FlextCliTypesBase.TomlItem
+        | FlextCliTypesBase.TomlDocument
     )
     type TomlUnwrappedSource = t.Container | FlextCliTypesBase.TomlItem
     type TomlStringListSource = TomlUnwrappedSource | Sequence[t.Primitives]
@@ -93,9 +96,7 @@ class FlextCliTypesDomain:
     )
     type TextPath = str | Path
     type PathLike = str | Path
-    type JsonWriteData = (
-        t.Container | Sequence[Mapping[str, t.Container]] | p.Cli.DisplayData
-    )
+    type JsonWriteData = JsonPayload | p.Cli.DisplayData
 
 
 __all__: list[str] = ["FlextCliTypesDomain"]
