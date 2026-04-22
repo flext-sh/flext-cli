@@ -30,7 +30,7 @@ class FlextCliUtilitiesCmd:
             )
         logger.info(
             c.Cli.LOG_MSG_SETTINGS_DISPLAYED,
-            settings=info_result.value.model_dump(mode="json"),
+            settings=info_result.value.model_dump_json(),
         )
         return r[bool].ok(True)
 

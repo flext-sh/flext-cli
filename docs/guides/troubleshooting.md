@@ -85,7 +85,7 @@ git status
 
 #### Problem: ModuleNotFoundError
 
-```python
+```text
 # Error
 ModuleNotFoundError: No module named 'flext_core'
 ```
@@ -138,7 +138,7 @@ If fail you need to use .venv of flext.
 
 #### Problem: MyPy errors
 
-```python
+```text
 # Error
 error: Argument 1 to "process" has incompatible type "str"; expected "Mapping[str, t.Container]"
 ```
@@ -147,7 +147,7 @@ error: Argument 1 to "process" has incompatible type "str"; expected "Mapping[st
 
 **Fix type annotations:**
 
-```python
+```text
 # ❌ WRONG
 def process(data):
     return data
@@ -174,7 +174,7 @@ mypy src/ --show-error-codes | grep "error-code"
 
 #### Problem: Tests failing
 
-```python
+```text
 # Error
 AssertionError: Expected success but got failure
 ```
@@ -209,7 +209,7 @@ def test_with_debug():
 
 #### Problem: Configuration not loading
 
-```python
+```text
 # Error
 ValidationError: field required
 ```
@@ -290,7 +290,7 @@ print(f"Config: {settings.dict()}")
 
 #### Problem: LDIF parsing fails
 
-```python
+```text
 # Error
 LdifParsingException: Invalid LDIF format
 ```
@@ -356,7 +356,7 @@ LdifMigrationException: Server compatibility error
 
 **Check server configuration:**
 
-```python
+```text
 from flext_ldif import FlextLdifSettings
 
 settings = FlextLdifSettings(
@@ -371,7 +371,7 @@ print(f"Config: {settings.dict()}")
 
 **Enable server quirks:**
 
-```python
+```text
 settings = FlextLdifSettings(
     servers_enabled=True, source_server="oid", target_server="oud"
 )

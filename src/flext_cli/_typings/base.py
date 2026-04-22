@@ -71,7 +71,7 @@ class FlextCliTypesBase:
     type RichConsoleType = RichConsole
 
     type RuntimeAnnotation = type | GenericAlias | UnionType | TypeAliasType
-    type RuntimeValue = t.Container
+    type RuntimeValue = JsonValue | t.Container
 
     type YamlDict = JsonMapping
     type YamlValue = JsonValue

@@ -63,7 +63,10 @@ class TestsFlextCliModels(FlextTestsModels, m):
 
                 model_config = m.ConfigDict(extra="forbid")
                 status: Annotated[str, m.Field(description="Status")]
-                data: Annotated[t.Container, m.Field(description="Payload")] = None
+                data: Annotated[
+                    t.Cli.JsonMapping | None,
+                    m.Field(description="Payload"),
+                ] = None
                 message: Annotated[str, m.Field(description="Message")]
                 error: Annotated[str | None, m.Field(description="Error")] = None
 

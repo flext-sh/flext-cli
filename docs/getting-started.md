@@ -129,7 +129,7 @@ ______________________________________________________________________
 
 ### 🚀 Your First CLI Application
 
-```python
+```text
 from flext_cli import cli
 from flext_core import r, p
 
@@ -156,7 +156,7 @@ if confirm_result.success and confirm_result.unwrap():
 
 ### 📊 Working with Tables
 
-```python
+```text
 from flext_cli import cli
 
 
@@ -172,7 +172,7 @@ cli.display_rich_table(users, title="Users")
 
 ### 📁 File Operations
 
-```python
+```text
 from flext_cli import cli
 
 
@@ -197,7 +197,7 @@ if read_result.success:
 
 Chain operations with `r[T]`:
 
-```python
+```text
 from flext_cli import cli
 from flext_core import r, p
 
@@ -250,7 +250,7 @@ make format                 # Auto-format with Ruff
 
 ### Development Pattern (v0.12.0-dev)
 
-```python
+```text
 from flext_cli import cli
 from flext_core import r, p
 
@@ -278,7 +278,7 @@ def my_cli_application() -> p.Result[bool]:
 
 ### Testing Your CLI Code
 
-```python
+```text
 import pytest
 from flext_cli import cli
 
@@ -351,7 +351,7 @@ ______________________________________________________________________
 
 ### Working Development Pattern
 
-```python
+```text
 # This development pattern demonstrates working functionality
 from Flext_cli import FlextCliService, FlextCliAuth, FlextCliSettings
 from flext_core import FlextBus

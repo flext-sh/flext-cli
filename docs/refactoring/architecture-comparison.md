@@ -107,7 +107,7 @@ ______________________________________________________________________
 
 ### v0.9.0: Wrapper Methods (Confusing)
 
-```python
+```text
 # ❌ Multiple ways to do the same thing
 
 # Way 1: Through wrapper
@@ -123,7 +123,7 @@ cli.formatters.print("Hello")
 
 ### v0.10.0: Direct Access (Clear)
 
-```python
+```text
 # ✅ One clear way
 
 # Always direct access - clear ownership
@@ -142,7 +142,7 @@ ______________________________________________________________________
 
 #### v0.9.0 (Old)
 
-```python
+```text
 from flext_cli import cli
 
 
@@ -157,7 +157,7 @@ settings = cli.file_tools.read_json_file("settings.json").unwrap()
 
 #### v0.10.0 (New)
 
-```python
+```text
 from flext_cli import cli
 
 
@@ -171,7 +171,7 @@ settings = cli.file_tools.read_json_file("settings.json").unwrap()
 
 #### v0.9.0 (Old)
 
-```python
+```text
 # Multiple ways:
 cli.print("Message")  # Wrapper
 cli.formatters.print("Message")  # Direct
@@ -187,7 +187,7 @@ cli.formatters.print(table)  # Direct
 
 #### v0.10.0 (New)
 
-```python
+```text
 # One clear way:
 cli.formatters.print("Message")
 
@@ -202,7 +202,7 @@ cli.formatters.print(table.unwrap())
 
 ### v0.9.0: Everything Extends s
 
-```python
+```text
 # ❌ Unnecessary service infrastructure
 class FlextCliFileTools(s[Mapping[str, t.Container]]):
     def __init__(self):
@@ -217,7 +217,7 @@ class FlextCliFileTools(s[Mapping[str, t.Container]]):
 
 ### v0.10.0: Simple Classes for Utilities
 
-```python
+```text
 # ✅ Simple, no overhead
 class FlextCliFileTools:
     """Stateless file operations."""
@@ -297,7 +297,7 @@ ______________________________________________________________________
 
 ### v0.9.0: Unused Infrastructure
 
-```python
+```text
 # ❌ Imported but never used
 import asyncio  # 0 async functions
 from concurrent.futures import ThreadPoolExecutor  # Never instantiated
@@ -309,7 +309,7 @@ from cachetools import LRUCache, TTLCache  # Evaluate usage
 
 ### v0.10.0: Clean Imports
 
-```python
+```text
 # ✅ Only what's actually used
 import json
 from pathlib import Path
@@ -326,7 +326,7 @@ ______________________________________________________________________
 
 #### v0.9.0: Double Indirection
 
-```python
+```text
 cli.print("msg")
     → cli.print()  # Wrapper
         → self.formatters.print("msg")  # Actual method
@@ -337,7 +337,7 @@ cli.print("msg")
 
 #### v0.10.0: Single Indirection
 
-```python
+```text
 cli.formatters.print("msg")
     → FlextCliFormatters.print()  # Direct
         → Rich library
@@ -349,7 +349,7 @@ cli.formatters.print("msg")
 
 #### v0.9.0: Every Class is Service
 
-```python
+```text
 # Every instantiation has service overhead
 file_tools = FlextCliFileTools()
 # Calls __init__, super().__init__(), logger setup, etc.
@@ -357,7 +357,7 @@ file_tools = FlextCliFileTools()
 
 #### v0.10.0: Static Methods
 
-```python
+```text
 # No instantiation needed for utilities
 FlextCliFileTools.read_json_file(path)
 # Direct static method call - zero overhead

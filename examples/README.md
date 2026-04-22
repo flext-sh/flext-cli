@@ -136,7 +136,7 @@ flext-cli is a production-ready Python library that provides:
 
 ## 🚀 Quick Start
 
-```python
+```text
 # Install flext-cli
 pip install flext-cli
 
@@ -162,7 +162,7 @@ cli.print("Hello!", style=c.Cli.MessageStyles.BOLD_GREEN)
 
 Access all modules through the `cli` facade:
 
-```python
+```text
 # All services available directly via MRO inheritance:
 cli.print_success("msg")  # FlextCliOutput
 cli.print("msg", style=c.Cli.MessageStyles.BOLD)  # FlextCliFormatters
@@ -174,7 +174,7 @@ cli.settings  # FlextCliSettings
 
 Or import modules directly:
 
-```python
+```text
 from flext_cli import (
     cli,
     FlextCliSettings,
@@ -199,7 +199,7 @@ flext-cli follows the FLEXT ecosystem architecture:
 
 ### Pattern 1: Direct cli Usage
 
-```python
+```text
 from flext_cli import cli
 
 cli.print_success("Operation successful")
@@ -207,7 +207,7 @@ cli.print_success("Operation successful")
 
 ### Pattern 2: Service-Specific Import
 
-```python
+```text
 from flext_cli import FlextCliOutput
 
 output = FlextCliOutput()
@@ -216,7 +216,7 @@ output.error("Something went wrong")
 
 ### Pattern 3: With r
 
-```python
+```text
 from flext_cli import cli
 from flext_core import FlextBus
 from flext_core import FlextSettings
@@ -252,7 +252,7 @@ def process_data(data: dict) -> p.Result[dict]:
 
 ### Pattern 4: With Configuration
 
-```python
+```text
 from flext_cli import cli, FlextCliSettings
 
 settings = FlextCliSettings(
@@ -283,7 +283,7 @@ cli.print(f"Debug mode: {settings.debug}")
 
 All operations return `r` for type-safe error handling:
 
-```python
+```text
 result = cli.read_json_file("settings.json")
 
 if result.success:
@@ -296,7 +296,7 @@ else:
 
 Access all services directly on the cli instance:
 
-```python
+```text
 cli.print_success("Message")  # Direct MRO method
 cli.display_rich_table(data)  # Direct MRO method
 ```
@@ -305,7 +305,7 @@ cli.display_rich_table(data)  # Direct MRO method
 
 Use FlextCliSettings for settings:
 
-```python
+```text
 settings = FlextCliSettings(
     debug=True,
     environment="development",
@@ -316,7 +316,7 @@ settings = FlextCliSettings(
 
 Complete type hints for IDE support:
 
-```python
+```text
 from flext_cli import cli
 from flext_core import FlextBus
 from flext_core import FlextSettings
@@ -347,7 +347,7 @@ def typed_operation(data: dict) -> p.Result[dict]:
 
 ### CLI Application Development
 
-```python
+```text
 from flext_cli import cli
 
 
@@ -369,7 +369,7 @@ if __name__ == "__main__":
 
 ### Data Processing Pipeline
 
-```python
+```text
 from flext_cli import cli
 from flext_core import FlextBus
 from flext_core import FlextSettings
@@ -414,7 +414,7 @@ def process_pipeline(input_file: str) -> p.Result[dict]:
 
 ### Interactive Tool
 
-```python
+```text
 from flext_cli import cli
 
 

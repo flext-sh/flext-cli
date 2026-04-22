@@ -25,7 +25,7 @@ class TestsCliService:
             app,
             name="inspect",
             help_text="Inspect settings",
-            command=lambda: None,
+            command=lambda: True,
         )
 
         runner_result = cli.create_cli_runner()
@@ -44,8 +44,9 @@ class TestsCliService:
         )
         group = cli.create_group(help_text="Sample group", name="sample")
 
-        def handle(params: m.Cli.Tests.SampleInput) -> None:
+        def handle(params: m.Cli.Tests.SampleInput) -> t.Cli.RuntimeValue:
             captured.append(params)
+            return True
 
         command = cli.model_command(m.Cli.Tests.SampleInput, handle)
         cli.register_command(
@@ -92,8 +93,9 @@ class TestsCliService:
         )
         group = cli.create_group(help_text="Sample group", name="sample")
 
-        def handle(params: m.Cli.Tests.RepeatableInput) -> None:
+        def handle(params: m.Cli.Tests.RepeatableInput) -> t.Cli.RuntimeValue:
             captured.append(params)
+            return True
 
         command = cli.model_command(m.Cli.Tests.RepeatableInput, handle)
         cli.register_command(
@@ -156,8 +158,9 @@ class TestsCliService:
         )
         group = cli.create_group(help_text="Grouped failure commands", name="group")
 
-        def fail_handler(_params: m.Cli.Tests.SampleInput) -> None:
+        def fail_handler(_params: m.Cli.Tests.SampleInput) -> t.Cli.RuntimeValue:
             cli.exit(code=1)
+            return True
 
         cli.register_command(
             group,
@@ -187,7 +190,7 @@ class TestsCliService:
             group,
             name="ok",
             help_text="Successful command",
-            command=lambda: None,
+            command=lambda: True,
         )
         cli.add_group(app, name="group", group=group)
 

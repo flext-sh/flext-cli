@@ -98,7 +98,7 @@ API wrapper methods have been removed. Use direct access instead.
 
 #### Output Methods
 
-```python
+```text
 # ❌ v0.9.0 (OLD - No longer works)
 cli.print("Hello, World!")
 cli.print("Success!", style="success")
@@ -108,7 +108,7 @@ cli.formatters.print("Hello, World!")
 cli.formatters.print("Success!", style="success")
 ```
 
-```python
+```text
 # ❌ v0.9.0 (OLD)
 table = cli.create_table(data=users, headers=["Name", "Age"])
 cli.print_table(table)
@@ -122,7 +122,7 @@ cli.formatters.print(result.unwrap())
 
 #### File Operations
 
-```python
+```text
 # ❌ v0.9.0 (OLD)
 config_result = cli.read_json_file("settings.json")
 cli.write_json_file("output.json", data)
@@ -138,7 +138,7 @@ cli.file_tools.read_csv_file("data.csv")
 
 #### Interactive Prompts
 
-```python
+```text
 # ❌ v0.9.0 (OLD)
 name = cli.prompt_user("Enter your name:")
 confirmed = cli.confirm("Continue?")
@@ -152,7 +152,7 @@ choice = cli.prompts.select("Select option:", ["A", "B", "C"])
 
 #### Output Formatting
 
-```python
+```text
 # ❌ v0.9.0 (OLD)
 json_str = cli.format_output(data, format_type="json")
 yaml_str = cli.format_output(data, format_type="yaml")
@@ -172,7 +172,7 @@ table_str = cli.output.format_data(data, format_type="table")
 
 Most utility classes are now simple classes (no service inheritance).
 
-```python
+```text
 # ❌ v0.9.0 (OLD - Some classes were services)
 file_tools = FlextCliFileTools()  # Was s
 result = file_tools.read_json_file("settings.json")
@@ -185,7 +185,7 @@ result = cli.file_tools.read_json_file("settings.json")
 
 ### 4. Test Utilities Moved
 
-```python
+```text
 # ❌ v0.9.0 (OLD)
 from flext_cli import FlextCliTesting, FlextCliTestRunner
 
@@ -201,7 +201,7 @@ These modules no longer exist:
 - ❌ `flext_cli.auth` (functionality in `api.py`)
 - ❌ `flext_cli.testing` (moved to tests/)
 
-```python
+```text
 # ❌ v0.9.0 (OLD - Will fail)
 from flext_cli import FlextCliAuthService
 
@@ -277,7 +277,7 @@ grep -r "context\.deactivate()" .
 
 **Fix**: Remove these calls. `FlextCliContext` was removed; use `m.Cli.CliContext` or pass command/arguments directly.
 
-```python
+```text
 # ✅ Use simple context data if needed
 from flext_cli import m
 
@@ -305,7 +305,7 @@ Common test failures:
 
 ### Step 5: Update Type Hints (If Needed)
 
-```python
+```text
 # ❌ OLD (if you had type hints)
 def process_cli(cli: cli) -> None:
     cli.print("Processing...")
@@ -412,7 +412,7 @@ ______________________________________________________________________
 
 ### Example 1: Simple CLI Application
 
-```python
+```text
 # ❌ v0.9.0
 from flext_cli import cli
 
@@ -447,7 +447,7 @@ def main():
 
 ### Example 2: Data Processing Script
 
-```python
+```text
 # ❌ v0.9.0
 from flext_cli import cli
 

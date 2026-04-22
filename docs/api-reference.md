@@ -21,7 +21,7 @@ Referência alinhada ao código-fonte do **flext-cli** 0.10.0. Última revisão:
 
 ## Imports essenciais
 
-```python
+```text
 from flext_cli import (
     cli,  # Facade principal
     FlextCliCore,  # Serviço de registro/execução de comandos
@@ -49,7 +49,7 @@ Acesso direto aos serviços `core`, `cmd`, `output`, `prompts`, `tables`, às ut
 - **Execução**: `execute()` retorna o status consolidado dos componentes, e `execute_cli()` confirma a disponibilidade do framework.
 - **Wrappers de compatibilidade**: `print(message, style=None)`, `create_table(data, headers=None, title=None)`, `print_table(table)`, `create_tree(label)`.
 
-```python
+```text
 cli.authenticate({"username": "user", "password": "pass"})
 cli.core.register_command(cli.Models.CliCommand(name="hello", handler="handlers:hello"))
 cli.print("ready", style="bold green")

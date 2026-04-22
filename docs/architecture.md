@@ -62,7 +62,7 @@ src/flext_cli/
 
 ## Exemplo mínimo
 
-```python
+```text
 from flext_cli import cli
 
 command = cli.Models.CliCommand(name="hello", handler="handlers:hello")

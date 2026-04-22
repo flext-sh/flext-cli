@@ -156,7 +156,7 @@ class FlextCliUtilitiesPipeline:
             "stage_failed",
             stage_id=spec.stage_id,
             attempts=max_attempts,
-            error=last_error,
+            error=last_error or "",
         )
         return m.Cli.PipelineStageResult(
             stage_id=spec.stage_id,

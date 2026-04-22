@@ -65,7 +65,7 @@ ______________________________________________________________________
 
 All these methods have been removed from `cli`:
 
-```python
+```text
 # ❌ REMOVED - No longer available
 cli.print(message, style)
 cli.create_table(data, headers, title)
@@ -88,7 +88,7 @@ cli.create_live_display()
 
 Replace with direct access:
 
-```python
+```text
 # Print operations
 cli.print("msg")                 → cli.formatters.print("msg")
 cli.print("msg", style="success") → cli.formatters.print("msg", style="success")
@@ -162,7 +162,7 @@ ______________________________________________________________________
 
 ### 2.1 `flext_cli.validator` - Deleted
 
-```python
+```text
 # ❌ REMOVED
 from flext_cli import FlextCliValidator
 from flext_cli import *
@@ -176,7 +176,7 @@ from pydantic import Field, field_validator
 
 ### 2.2 `flext_cli.auth` - Deleted
 
-```python
+```text
 # ❌ REMOVED
 from flext_cli import FlextCliAuthService
 from flext_cli import FlextCliAuthService
@@ -191,7 +191,7 @@ result = cli.authenticate({"token": "abc123"})
 
 ### 2.3 `flext_cli.testing` - Moved to tests/
 
-```python
+```text
 # ❌ REMOVED from production code
 from flext_cli import FlextCliTesting, FlextCliTestRunner, FlextCliMockScenarios
 
@@ -233,7 +233,7 @@ ______________________________________________________________________
 
 ### If You Instantiated Directly
 
-```python
+```text
 # ❌ OLD (if you did this)
 file_tools = FlextCliFileTools()  # Was a service
 result = file_tools.read_json_file("settings.json")
@@ -255,7 +255,7 @@ ______________________________________________________________________
 
 ### What Changed
 
-```python
+```text
 # ❌ REMOVED - Never actually worked
 import asyncio  # No longer imported in core.py
 from concurrent.futures import ThreadPoolExecutor  # Removed
@@ -268,7 +268,7 @@ import pluggy  # Plugin system removed
 
 If you wrote code expecting async:
 
-```python
+```text
 # ❌ This never worked anyway
 await cli.some_async_method()  # Never existed
 
@@ -305,7 +305,7 @@ tests/integration/test_*.py
 
 If you import from test modules:
 
-```python
+```text
 # ❌ OLD
 from tests import SomeTestHelper
 
@@ -321,7 +321,7 @@ ______________________________________________________________________
 
 ### Removed from `__init__.py`
 
-```python
+```text
 # ❌ REMOVED from flext_cli
 FlextCliAuthService  # Use cli.authenticate()
 FlextCliTesting  # Move to tests/fixtures/testing_utilities
@@ -333,7 +333,7 @@ FlextCliMockScenarios  # Move to tests/fixtures/testing_utilities
 
 All other exports remain:
 
-```python
+```text
 # ✅ Still available
 from flext_cli import (
     cli,  # Main API

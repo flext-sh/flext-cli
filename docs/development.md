@@ -80,7 +80,7 @@ ______________________________________________________________________
 
 **Example - FlextCliCore (Stateful Service)**:
 
-```python
+```text
 from flext_core import s
 
 class FlextCliCore(s[CliDataDict]):
@@ -117,7 +117,7 @@ class FlextCliCore(s[CliDataDict]):
 
 **Example - FlextCliFileTools (Simple Utility Class)**:
 
-```python
+```text
 from flext_core import r, p
 import json
 
@@ -213,7 +213,7 @@ src/flext_cli/
 
 **Always use direct access** (no wrapper methods):
 
-```python
+```text
 # ✅ CORRECT - Direct access
 cli.formatters.print("Hello", style="green")
 cli.file_tools.read_json_file("settings.json")
@@ -259,7 +259,7 @@ tests/
 
 ### Testing Simple Classes
 
-```python
+```text
 import pytest
 from flext_cli import FlextCliFileTools
 
@@ -388,7 +388,7 @@ Follow these patterns when extending flext-cli:
 
 ### Code Organization
 
-```python
+```text
 # ✅ Correct - Use flext-cli patterns
 from flext_cli import cli
 
@@ -429,7 +429,7 @@ tests/
 
 ### Testing Patterns
 
-```python
+```text
 import pytest
 from flext_cli import cli
 
@@ -509,7 +509,7 @@ ______________________________________________________________________
 
 1. Create command handler:
 
-```python
+```text
 from flext_core import FlextBus
 from flext_core import FlextSettings
 from flext_core import FlextConstants
@@ -542,7 +542,7 @@ class DataCommands(s):
 
 1. Register with CLI:
 
-```python
+```text
 from flext_cli import FlextCliCommands
 
 cli = FlextCliCommands()
@@ -555,7 +555,7 @@ cli.register_command_group(
 
 1. Add tests:
 
-```python
+```text
 def test_data_export_command():
     """Test data export functionality."""
     handler = DataCommands()
@@ -565,7 +565,7 @@ def test_data_export_command():
 
 ### Custom Formatters
 
-```python
+```text
 from flext_cli import FlextCliOutput
 
 

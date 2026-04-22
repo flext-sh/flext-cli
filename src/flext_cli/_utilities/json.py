@@ -12,7 +12,7 @@ from collections.abc import (
     Sequence,
 )
 from pathlib import Path
-from typing import ClassVar, TypeIs
+from typing import ClassVar
 
 from flext_core import m, u
 
@@ -23,13 +23,6 @@ class FlextCliUtilitiesJson:
     """Generic JSON read/write and manipulation helpers."""
 
     _module_logger: ClassVar[p.Logger] = u.fetch_logger(__name__)
-
-    @staticmethod
-    def mapping_like(
-        value: t.Cli.JsonValue,
-    ) -> TypeIs[t.Cli.JsonLikeMapping]:
-        """Narrow values to mapping-like recursive containers."""
-        return isinstance(value, Mapping)
 
     @staticmethod
     def normalize_json_value(item: t.Cli.JsonPayload) -> t.Cli.JsonValue:
@@ -123,7 +116,7 @@ class FlextCliUtilitiesJson:
         if value is None:
             return {}
         normalized = FlextCliUtilitiesJson.normalize_json_value(value)
-        if not FlextCliUtilitiesJson.mapping_like(normalized):
+        if not isinstance(normalized, Mapping):
             return {}
         try:
             return t.Cli.JSON_MAPPING_ADAPTER.validate_python(normalized)

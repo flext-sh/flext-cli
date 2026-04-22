@@ -81,13 +81,22 @@ class FlextCliTypesDomain:
     type JsonRuntimeData = FlextCliTypesBase.JsonValue | m.BaseModel
     type TomlMappingSource = (
         t.Container
+        | Mapping[str, t.Container]
         | FlextCliTypesBase.JsonLikeMapping
         | FlextCliTypesBase.TomlItem
         | FlextCliTypesBase.TomlDocument
     )
-    type TomlUnwrappedSource = t.Container | FlextCliTypesBase.TomlItem
-    type TomlStringListSource = TomlUnwrappedSource | Sequence[t.Primitives]
-    type TomlRuntimeSource = FlextCliTypesBase.TomlValue | t.Container
+    type TomlUnwrappedSource = (
+        t.Container | FlextCliTypesBase.JsonLikeMapping | FlextCliTypesBase.TomlItem
+    )
+    type TomlStringListSource = (
+        TomlUnwrappedSource
+        | Sequence[FlextCliTypesBase.JsonValue]
+        | Sequence[t.Primitives]
+    )
+    type TomlRuntimeSource = (
+        FlextCliTypesBase.TomlValue | FlextCliTypesBase.JsonLikeMapping | t.Container
+    )
     type TypeKind = FlextCliConstantsEnums.TypeKind
     type TypedExtractValue = str | bool | FlextCliTypesBase.JsonMapping
     type ResultCommandRoutes = Sequence[p.Cli.ResultCommandRoute]

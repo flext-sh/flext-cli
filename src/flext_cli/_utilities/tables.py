@@ -23,14 +23,14 @@ class FlextCliUtilitiesTables:
 
     @staticmethod
     def tables_normalize_mapping_row(
-        row: Mapping[str, t.Container],
+        row: Mapping[str, t.Container | t.Cli.JsonValue],
     ) -> t.Cli.TableMappingRow:
         """Normalize one mapping row to JSON-compatible values."""
         return {str(key): uj.normalize_json_value(value) for key, value in row.items()}
 
     @staticmethod
     def tables_normalize_sequence_row(
-        row: t.FlatContainerList,
+        row: Sequence[t.Container | t.Cli.JsonValue],
     ) -> t.Cli.TableSequenceRow:
         """Normalize one sequence row to JSON-compatible values."""
         return [uj.normalize_json_value(value) for value in row]

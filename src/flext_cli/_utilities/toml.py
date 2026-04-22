@@ -34,7 +34,7 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_as_mapping(
-        value: t.Cli.TomlMappingSource,
+        value: t.Cli.TomlMappingSource | None,
     ) -> t.Cli.JsonMapping | None:
         """Normalize a TOML mapping into a typed plain mapping."""
         normalized = FlextCliUtilitiesToml.toml_unwrap_item(value)
@@ -47,24 +47,28 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_unwrap_item(
-        value: t.Cli.TomlMappingSource,
-    ) -> t.Container | None:
+        value: t.Cli.TomlMappingSource | t.Cli.JsonValue | None,
+    ) -> t.Cli.JsonValue | None:
         """Unwrap TOML items and documents to plain Python values."""
-        normalized: t.Cli.TomlUnwrappedSource = value
-        if FlextCliUtilitiesToml.toml_is_document(
-            value,
-        ) or FlextCliUtilitiesToml.toml_is_item(value):
-            normalized = value.unwrap()
-        if FlextCliUtilitiesToml.toml_is_item(normalized):
+        if value is None:
             return None
-        return normalized
+        if isinstance(value, Mapping) and not isinstance(
+            value, TOMLDocument | TomlItem
+        ):
+            return uj.normalize_json_value(value)
+        normalized = (
+            value.unwrap() if isinstance(value, TOMLDocument | TomlItem) else value
+        )
+        if isinstance(normalized, TomlItem):
+            return None
+        return uj.normalize_json_value(normalized)
 
     @staticmethod
     def toml_as_string_list(
-        value: t.Cli.TomlStringListSource,
+        value: t.Cli.TomlStringListSource | None,
     ) -> t.StrSequence:
         """Normalize a TOML array into a string sequence."""
-        normalized: t.Cli.TomlUnwrappedSource | Sequence[t.Primitives] | None
+        normalized: t.Cli.TomlStringListSource | None
         if isinstance(value, TOMLDocument | TomlItem):
             normalized = value.unwrap()
         else:
@@ -196,10 +200,10 @@ class FlextCliUtilitiesToml:
         key: str,
     ) -> t.Cli.TomlTable:
         """Return an explicit table child, promoting implicit super-tables when needed."""
-        existing: t.Cli.TomlItem | t.Container | None = None
+        existing: t.Cli.TomlRuntimeSource | None = None
         if key in parent:
             existing = parent[key]
-        if FlextCliUtilitiesToml.toml_is_table(existing):
+        if existing is not None and FlextCliUtilitiesToml.toml_is_table(existing):
             if not existing.is_super_table():
                 return existing
             del parent[key]
@@ -256,7 +260,7 @@ class FlextCliUtilitiesToml:
         raw_value = FlextCliUtilitiesToml.toml_unwrap_item(container[key])
         if raw_value is None:
             return None
-        return uj.normalize_json_value(raw_value)
+        return raw_value
 
     @staticmethod
     def toml_table_string_keys(table: t.Cli.TomlTable) -> t.StrSequence:
@@ -460,7 +464,12 @@ class FlextCliUtilitiesToml:
     ) -> bool:
         """Synchronize a TOML table mapping in place."""
         existing = container.get(key, None)
-        current = FlextCliUtilitiesToml.toml_as_mapping(existing)
+        current = FlextCliUtilitiesToml.toml_as_mapping(
+            existing
+            if existing is not None
+            and (u.mapping(existing) or isinstance(existing, TOMLDocument | TomlItem))
+            else None,
+        )
         normalized_expected = {
             item_key: expected[item_key]
             for item_key in (sorted(expected) if sort_keys else tuple(expected))
@@ -508,7 +517,10 @@ class FlextCliUtilitiesToml:
         sort_keys: bool = False,
     ) -> bool:
         """Synchronize one plain mapping-table field in a normalized TOML mapping."""
-        current = FlextCliUtilitiesToml.toml_as_mapping(container.get(key, None))
+        existing = container.get(key, None)
+        current = FlextCliUtilitiesToml.toml_as_mapping(
+            existing if isinstance(existing, Mapping) else None,
+        )
         normalized_expected = {
             item_key: expected[item_key]
             for item_key in (sorted(expected) if sort_keys else tuple(expected))
