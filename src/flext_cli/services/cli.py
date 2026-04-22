@@ -26,6 +26,9 @@ from typing import (
 
 import click
 import typer
+from typer.models import OptionInfo
+from typer.testing import CliRunner
+
 from flext_cli import (
     FlextCliCommonParams,
     FlextCliOutput,
@@ -37,8 +40,6 @@ from flext_cli import (
     s,
     t,
 )
-from typer.models import OptionInfo
-from typer.testing import CliRunner
 
 
 class FlextCliCli(s):

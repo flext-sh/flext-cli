@@ -10,8 +10,7 @@ from typing import Annotated
 
 from flext_core import m, u
 
-from flext_cli import c, p, t
-from flext_cli._typings.base import FlextCliTypesBase
+from flext_cli import FlextCliTypesBase, c, p, t
 
 
 class FlextCliModelsBase:

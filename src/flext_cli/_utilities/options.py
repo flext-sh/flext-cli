@@ -6,8 +6,9 @@ from collections.abc import (
     MutableSequence,
 )
 
-from flext_cli import c, t
 from typer.models import OptionInfo
+
+from flext_cli import c, t
 
 
 class FlextCliUtilitiesOptionBuilder:

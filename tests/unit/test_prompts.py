@@ -118,7 +118,7 @@ class TestsCliPrompts:
         prompts = self.Fixtures.create(interactive_mode=False)
         result = prompts.execute()
         tm.ok(result)
-        tm.that(result.value, eq={})
+        tm.that(result.value, empty=True)
 
     def test_execute_failure_when_debug_logging_crashes(self) -> None:
         prompts = self.Fixtures.create(

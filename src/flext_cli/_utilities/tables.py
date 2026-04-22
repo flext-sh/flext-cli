@@ -9,8 +9,9 @@ from collections.abc import (
 )
 from typing import ClassVar
 
-from flext_cli import FlextCliUtilitiesJson as uj, c, m, p, r, t
 from tabulate import tabulate
+
+from flext_cli import FlextCliUtilitiesJson as uj, c, m, p, r, t
 
 
 class FlextCliUtilitiesTables:
