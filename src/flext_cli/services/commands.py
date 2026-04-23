@@ -13,7 +13,7 @@ from __future__ import annotations
 from collections.abc import (
     MutableMapping,
 )
-from typing import Self, override
+from typing import Annotated, Self, override
 
 from flext_cli import c, m, p, r, s, t, u
 
@@ -21,7 +21,10 @@ from flext_cli import c, m, p, r, s, t, u
 class FlextCliCommands(s):
     """CLI commands service for command registration and execution."""
 
-    _name: str = m.PrivateAttr(default_factory=lambda: c.Cli.COMMANDS_DEFAULT_NAME)
+    name: Annotated[
+        str,
+        m.Field(description="CLI command registry name"),
+    ] = c.Cli.COMMANDS_DEFAULT_NAME
     _description: str = m.PrivateAttr(
         default_factory=lambda: c.Cli.COMMANDS_DEFAULT_DESCRIPTION
     )
@@ -33,7 +36,7 @@ class FlextCliCommands(s):
     def create(cls, *, name: str, description: str = "") -> Self:
         """Create a named FlextCliCommands instance."""
         instance = cls()
-        instance._name = name
+        instance.name = name
         instance._description = description or name
         return instance
 
@@ -154,7 +157,7 @@ class FlextCliCommands(s):
         if cmd_name in {"--version", "-v"}:
             version_payload: t.JsonValue = {
                 "status": c.Cli.CommandStatus.VERSION,
-                "name": self._name,
+                "name": self.name,
             }
             return r[t.JsonValue].ok(version_payload)
         if cmd_name not in self._commands:

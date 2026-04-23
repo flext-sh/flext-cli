@@ -10,7 +10,7 @@ from collections.abc import (
 )
 from pathlib import Path
 
-from flext_cli import FlextCliUtilitiesJson, FlextCliUtilitiesYaml, c, p, r, t
+from flext_cli import FlextCliUtilitiesJson, FlextCliUtilitiesYaml, p, r, t
 
 
 class FlextCliUtilitiesRules:
@@ -40,7 +40,7 @@ class FlextCliUtilitiesRules:
     ) -> p.Result[t.JsonMapping]:
         """Load one YAML config file and normalize a scoped rule section."""
         normalized = t.Cli.JSON_MAPPING_ADAPTER.validate_python(
-            dict(FlextCliUtilitiesYaml.yaml_load_mapping(config_path)),
+            FlextCliUtilitiesYaml.yaml_load_mapping(config_path),
         )
         normalized_scope = FlextCliUtilitiesRules.rules_resolve_scope(
             dict(normalized),
@@ -78,7 +78,7 @@ class FlextCliUtilitiesRules:
             if not registry_path.is_file():
                 continue
             normalized = t.Cli.JSON_MAPPING_ADAPTER.validate_python(
-                dict(FlextCliUtilitiesYaml.yaml_load_mapping(registry_path)),
+                FlextCliUtilitiesYaml.yaml_load_mapping(registry_path),
             )
             return r[t.JsonMapping].ok(normalized)
         return r[t.JsonMapping].fail(
@@ -102,12 +102,7 @@ class FlextCliUtilitiesRules:
         fallback_action_key: str = "action",
         check_key: str = "check",
         rules_dir_name: str = "rules",
-    ) -> p.Result[
-        tuple[
-            Sequence[tuple[TRuleKind, t.JsonMapping]],
-            Sequence[tuple[TFileRuleKind, t.JsonMapping]],
-        ]
-    ]:
+    ) -> p.Result[t.Cli.RuleLoadResult[TRuleKind, TFileRuleKind]]:
         """Load local YAML rule definitions using declarative matcher catalogs."""
         rules_dir = cls._rules_resolve_directory(
             config_path,
@@ -115,12 +110,7 @@ class FlextCliUtilitiesRules:
             rules_dir_name=rules_dir_name,
         )
         if not rules_dir.is_dir():
-            return r[
-                tuple[
-                    Sequence[tuple[TRuleKind, t.JsonMapping]],
-                    Sequence[tuple[TFileRuleKind, t.JsonMapping]],
-                ]
-            ].fail(
+            return r[t.Cli.RuleLoadResult[TRuleKind, TFileRuleKind]].fail(
                 f"Rules directory not found: {rules_dir}",
             )
         file_catalog = file_rule_catalog or {}
@@ -132,7 +122,7 @@ class FlextCliUtilitiesRules:
             if rule_file.name == registry_filename:
                 continue
             rule_config = t.Cli.JSON_MAPPING_ADAPTER.validate_python(
-                dict(FlextCliUtilitiesYaml.yaml_load_mapping(rule_file)),
+                FlextCliUtilitiesYaml.yaml_load_mapping(rule_file),
             )
             typed_rules = cls._rules_coerce_definitions(rule_config.get(rules_key))
             for typed_rule_def in typed_rules:
@@ -203,20 +193,10 @@ class FlextCliUtilitiesRules:
                 loaded_rules.append((rule_kind, typed_rule_def))
         if unknown_rules:
             unknown = ", ".join(sorted(unknown_rules))
-            return r[
-                tuple[
-                    Sequence[tuple[TRuleKind, t.JsonMapping]],
-                    Sequence[tuple[TFileRuleKind, t.JsonMapping]],
-                ]
-            ].fail(
+            return r[t.Cli.RuleLoadResult[TRuleKind, TFileRuleKind]].fail(
                 f"Unknown rule mapping for: {unknown}",
             )
-        return r[
-            tuple[
-                Sequence[tuple[TRuleKind, t.JsonMapping]],
-                Sequence[tuple[TFileRuleKind, t.JsonMapping]],
-            ]
-        ].ok(
+        return r[t.Cli.RuleLoadResult[TRuleKind, TFileRuleKind]].ok(
             (loaded_rules, loaded_file_rules),
         )
 
@@ -247,17 +227,7 @@ class FlextCliUtilitiesRules:
     def _rules_coerce_definitions(
         value: t.JsonValue | None,
     ) -> Sequence[t.JsonMapping]:
-        definitions: MutableSequence[t.JsonMapping] = []
-        try:
-            entries: t.JsonList = t.Cli.JSON_LIST_ADAPTER.validate_python(value)
-        except c.ValidationError:
-            return definitions
-        for item in entries:
-            normalized = FlextCliUtilitiesJson.json_as_mapping(item)
-            if not normalized:
-                continue
-            definitions.append(normalized)
-        return definitions
+        return FlextCliUtilitiesJson.json_as_mapping_list(value)
 
     @staticmethod
     def _rules_match_catalog_entry[TKind](

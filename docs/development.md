@@ -90,7 +90,7 @@ class FlextCliCore(s[CliDataDict]):
         super().__init__()
         self._commands: Mapping[str, Command] = {}  # MUTABLE STATE
         self._sessions: Mapping[str, Session] = {}  # MUTABLE STATE
-        self._config: FlextCliSettings = ...       # MANAGED STATE
+        self.config: FlextCliSettings = ...       # MANAGED STATE
 
     def register_command(self, name: str, command: Command) -> p.Result[bool]:
         """Register command - modifies internal state."""

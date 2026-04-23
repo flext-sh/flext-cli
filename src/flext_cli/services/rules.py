@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
 from pathlib import Path
 
 from flext_cli import FlextCliServiceBase, p, t, u
@@ -71,12 +70,7 @@ class FlextCliRules(FlextCliServiceBase):
         fallback_action_key: str = "action",
         check_key: str = "check",
         rules_dir_name: str = "rules",
-    ) -> p.Result[
-        tuple[
-            Sequence[tuple[TRuleKind, t.JsonMapping]],
-            Sequence[tuple[TFileRuleKind, t.JsonMapping]],
-        ]
-    ]:
+    ) -> p.Result[t.Cli.RuleLoadResult[TRuleKind, TFileRuleKind]]:
         """Load one declarative local ruleset using direct matcher catalogs."""
         return u.Cli.rules_load_local_definitions(
             config_path,

@@ -66,7 +66,7 @@ class _TestsFlextCliCaptureLogPrompts(_TestsFlextCliScriptedPrompts):
         self,
         log_level: str,
         message: str,
-        **_context: t.LogValue,
+        **context: t.LogValue,
     ) -> None:
         self._records.append((log_level, message))
 

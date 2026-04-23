@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import getpass
-from typing import Self, override
+from typing import Annotated, Self, override
 
 from flext_cli import (
     c,
@@ -19,9 +19,10 @@ from flext_cli import (
 class FlextCliPrompts(s):
     """CLI prompts service with validation, history, and non-interactive fallbacks."""
 
-    _state: m.Cli.PromptRuntimeState = m.PrivateAttr(
-        default_factory=m.Cli.PromptRuntimeState,
-    )
+    state: Annotated[
+        m.Cli.PromptRuntimeState,
+        m.Field(description="Prompt runtime state for interaction behavior."),
+    ] = m.Field(default_factory=m.Cli.PromptRuntimeState)
     _input_reader: t.Cli.PromptTextReader = m.PrivateAttr(default_factory=lambda: input)
     _password_reader: t.Cli.PromptTextReader = m.PrivateAttr(
         default_factory=lambda: getpass.getpass
@@ -30,12 +31,12 @@ class FlextCliPrompts(s):
 
     def configure(self, state: m.Cli.PromptRuntimeState) -> Self:
         """Replace prompt runtime state using the canonical CLI model."""
-        self._state = state
+        self.state = state
         return self
 
     def confirm(self, message: str, *, default: bool = False) -> p.Result[bool]:
         try:
-            if self._state.quiet or not self._state.interactive:
+            if self.state.quiet or not self.state.interactive:
                 return r[bool].ok(default)
             prompt_text = u.Cli.prompts_confirmation_text(
                 message,
@@ -99,7 +100,7 @@ class FlextCliPrompts(s):
 
     def prompt(self, message: str, default: str = "") -> p.Result[str]:
         try:
-            if self._state.quiet or not self._state.interactive:
+            if self.state.quiet or not self.state.interactive:
                 return r[str].ok(default)
             display_message = u.Cli.prompts_display_message(message, default)
             raw = self._input_reader(f"{display_message}{c.Cli.PROMPT_SEP}")
@@ -122,7 +123,7 @@ class FlextCliPrompts(s):
     ) -> p.Result[str]:
         try:
             return u.Cli.prompts_choice_result(
-                interactive=self._state.interactive,
+                interactive=self.state.interactive,
                 choices=choices,
                 default=default,
             )
@@ -142,7 +143,7 @@ class FlextCliPrompts(s):
         message: str = "Password:",
         min_length: int = c.Cli.PROMPT_MIN_PASSWORD_LENGTH,
     ) -> p.Result[str]:
-        if not self._state.interactive:
+        if not self.state.interactive:
             return r[str].fail(c.Cli.ERR_INTERACTIVE_PASSWORD_DISABLED)
         try:
             password = self._password_reader(f"{message}{c.Cli.PROMPT_SPACE}")

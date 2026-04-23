@@ -36,7 +36,7 @@ class ExamplePlugin:
         """Initialize plugin."""
         super().__init__()
         self._initialized = False
-        self._config: Mapping[str, bool | int] = {}
+        self.config: Mapping[str, bool | int] = {}
 
     def initialize(self, _cli: p.CliMainWithGroups) -> p.Result[bool]:
         """Initialize the plugin.
@@ -49,7 +49,7 @@ class ExamplePlugin:
 
         """
         try:
-            self._config = {"enabled": True, "debug": False, "max_items": 100}
+            self.config = {"enabled": True, "debug": False, "max_items": 100}
             self._initialized = True
             return r[bool].ok(value=True)
         except Exception as e:
@@ -97,7 +97,7 @@ class ExamplePlugin:
                 print(
                     f"Plugin status: {('Active' if self._initialized else 'Inactive')}",
                 )
-                print(f"Configuration: {self._config}")
+                print(f"Configuration: {self.config}")
 
             example_group = example
 

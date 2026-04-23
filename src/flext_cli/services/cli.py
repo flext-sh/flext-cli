@@ -55,7 +55,7 @@ class FlextCliCli(s):
 
         __name__: str
         __signature__: Signature
-        _config: m.BaseModel | None
+        config: m.BaseModel | None
         _handler: p.Cli.ModelCommandHandler[M]
         _model_cls: type[M]
 
@@ -69,15 +69,15 @@ class FlextCliCli(s):
         ) -> None:
             self.__name__ = getattr(handler, "__name__", model_cls.__name__)
             self.__signature__ = Signature(parameters)
-            self._config = settings
+            self.config = settings
             self._handler = handler
             self._model_cls = model_cls
 
         def __call__(self, **kwargs: t.Cli.CliValue) -> t.JsonValue:
-            if self._config is not None:
+            if self.config is not None:
                 for field_name, field_value in kwargs.items():
-                    if hasattr(self._config, field_name):
-                        setattr(self._config, field_name, field_value)
+                    if hasattr(self.config, field_name):
+                        setattr(self.config, field_name, field_value)
             model = self._model_cls.model_validate(kwargs)
             return self._handler(model)
 

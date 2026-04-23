@@ -208,7 +208,7 @@ class FlextCliFileTools(s[t.JsonMapping]):
     def __init__(self):
         super().__init__()  # Service overhead
         self.logger = u.fetch_logger(__name__)
-        self._state = {}  # No state actually needed!
+        self.state = {}  # No state actually needed!
 
     def read_json_file(self, path: str) -> p.Result[dict]:
         self.logger.info(f"Reading {path}")  # Logging overhead
