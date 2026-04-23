@@ -1,0 +1,92 @@
+examples/ex_12_pydantic_driven_cli.py
+  h_9db9d35f50cf33 208
+tests/unit/test_toml_utilities.py
+  h_9db9d35f50cf33 237,292
+docs/guides/development.md
+  h_9db9d35f50cf33 84,137,154,193,196,202,295,353,356,405
+examples/utilities.py
+  h_9db9d35f50cf33 28,31
+examples/ex_02_output_formatting.py
+  h_9db9d35f50cf33 130,148,151,174
+tests/unit/test_commands.py
+  h_9db9d35f50cf33 19,127,148
+examples/ex_10_testing_utilities.py
+  h_9db9d35f50cf33 82,104,226
+docs/refactoring/architecture-comparison.md
+  h_9db9d35f50cf33 207
+tests/unit/test_pipeline.py
+  h_9db9d35f50cf33 102
+src/flext_cli/_typings/domain.py
+  h_9db9d35f50cf33 23,35-36,38-39,51,59-60,63-64,66-67
+tests/models.py
+  h_9db9d35f50cf33 3,67,218
+docs/guides/testing.md
+  h_9db9d35f50cf33 528
+src/flext_cli/_utilities/toml.py
+  h_9db9d35f50cf33 136
+docs/guides/troubleshooting.md
+  h_9db9d35f50cf33 52,61-63,143,157,677,680
+tests/unit/_helpers.py
+  h_9db9d35f50cf33 26-29,41-44,57-60
+examples/ex_06_settings.py
+  h_9db9d35f50cf33 199,213,228-229,231,252-253,256
+examples/ex_01_getting_started.py
+  h_9db9d35f50cf33 42
+examples/ex_04_file_operations.py
+  h_9db9d35f50cf33 31,90,138,315,460,608,735,773,813,818-819
+tests/unit/test_examples_smoke.py
+  h_9db9d35f50cf33 81,96
+src/flext_cli/_typings/base.py
+  h_9db9d35f50cf33 28-29,31,33,37-38,63,66-70
+examples/models.py
+  h_9db9d35f50cf33 203
+examples/ex_07_plugin_system.py
+  h_9db9d35f50cf33 56,80,104-105,108,127,129,131,149,186,190,192,202,264
+tests/unit/test_base.py
+  h_9db9d35f50cf33 38,40
+examples/ex_11_complete_integration.py
+  h_9db9d35f50cf33 45,51,55,59,61,75,78,85,87,91,98,101,120,136-137,142
+src/flext_cli/_protocols/domain.py
+  h_9db9d35f50cf33 23,32,40,48,79
+src/flext_cli/_utilities/model_commands.py
+  h_9db9d35f50cf33 30,53,68
+tests/unit/test_cli_service.py
+  h_9db9d35f50cf33 127
+docs/refactoring/direct-typing-refactor-plan.md
+  h_9db9d35f50cf33 30,36,79
+examples/typings.py
+  h_9db9d35f50cf33 19,26-27
+src/flext_cli/services/cli.py
+  h_9db9d35f50cf33 76,140,165,227,385,388,399,401,540,569
+docs/refactoring/refactoring-plan-v0.10.0.md
+  h_9db9d35f50cf33 127,338,452,518,748,761,781,789,799,813,938
+examples/ex_14_advanced_file_formats.py
+  h_9db9d35f50cf33 42,70,120,156,167-170,180,189,282,288,312
+src/flext_cli/_utilities/tables.py
+  h_9db9d35f50cf33 26,33
+tests/unit/test_typings.py
+  h_9db9d35f50cf33 58,61
+src/flext_cli/_utilities/json.py
+  h_9db9d35f50cf33 160,164,182,193,202,212,228,249,261
+src/flext_cli/services/rules.py
+  h_9db9d35f50cf33 5,20,34,49,75-77
+tests/utilities.py
+  h_9db9d35f50cf33 210-213,225-228,241-244
+src/flext_cli/_protocols/base.py
+  h_9db9d35f50cf33 155-156
+src/flext_cli/_utilities/yaml.py
+  h_9db9d35f50cf33 18,38,49,65,67,69,75-76,82-83,93,116,131,163
+src/flext_cli/_utilities/rules.py
+  h_9db9d35f50cf33 9,25,40,52,64,83-84,106-108,119-121,127-128,207-209,215-217,249-250,254,279,291
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.2",
+  "base_commit_sha": "38dc54eb7a9e2c26fd40f321d21350cbc33e0697",
+  "prompts": {},
+  "humans": {
+    "h_9db9d35f50cf33": {
+      "author": "FLEXT Bot"
+    }
+  }
+}
