@@ -2,15 +2,12 @@
 
 from __future__ import annotations
 
-from typing import override
-
 from flext_cli import c, p, r, t, u
 
 
 class FlextCliApiRuntime:
     """Runtime behavior composed by the public API facade."""
 
-    @override
     def execute(self) -> p.Result[t.JsonMapping]:
         """Execute CLI service with railway pattern."""
         result_dict: t.JsonMapping = {
