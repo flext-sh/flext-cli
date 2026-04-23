@@ -6,11 +6,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Sequence
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from flext_core import m, p
-from flext_core._typings.services import FlextTypesServices as ts
+from flext_core import p
 
 if TYPE_CHECKING:
     from flext_cli import m, t
@@ -154,9 +152,9 @@ class FlextCliProtocolsBase:
 
         def __call__(
             self,
-            *args: ts.JsonPayload,
-            **kwargs: ts.JsonPayload,
-        ) -> ts.JsonPayload:
+            *args: t.JsonPayload,
+            **kwargs: t.JsonPayload,
+        ) -> t.JsonPayload:
             """Execute the wrapper."""
             ...
 
@@ -185,7 +183,7 @@ class FlextCliProtocolsBase:
             ...
 
         @property
-        def value(self) -> ts.JsonPayload | Sequence[ts.JsonPayload]:
+        def value(self) -> t.Cli.ResultValue:
             """Expose the successful payload for message formatting."""
             ...
 
@@ -203,7 +201,7 @@ class FlextCliProtocolsBase:
 
         def dump(
             self,
-            data: ts.JsonPayload,
+            data: t.JsonPayload,
             *,
             default_flow_style: bool = True,
         ) -> str:
