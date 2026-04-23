@@ -672,13 +672,16 @@ def create_processing_summary(
     results: Mapping[str, Path],
 ) -> t.JsonMapping:
     """Create a summary of the processing pipeline."""
-    return {
+    output_files: list[t.JsonValue] = [str(p) for p in results.values()]
+    formats: list[t.JsonValue] = list(results.keys())
+    summary: dict[str, t.JsonValue] = {
         "pipeline_completed": True,
         "timestamp": "2025-11-23T10:00:00Z",
-        "output_files": [str(p) for p in results.values()],
+        "output_files": output_files,
         "file_count": len(results),
-        "formats": list(results.keys()),
+        "formats": formats,
     }
+    return summary
 
 
 # ============================================================================

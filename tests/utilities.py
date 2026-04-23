@@ -209,8 +209,8 @@ class TestsFlextCliUtilities(FlextTestsUtilities, u):
                     def handler(
                         *args: t.JsonValue,
                         **kwargs: t.JsonValue,
-                    ) -> p.Result[t.JsonValue]:
-                        return r[t.JsonValue].ok(result_value)
+                    ) -> p.Result[t.JsonPayload]:
+                        return r[t.JsonPayload].ok(result_value)
 
                     return commands.register_handler(command_name, handler)
 
@@ -224,8 +224,8 @@ class TestsFlextCliUtilities(FlextTestsUtilities, u):
                     def handler(
                         *args: t.JsonValue,
                         **kwargs: t.JsonValue,
-                    ) -> p.Result[t.JsonValue]:
-                        return r[t.JsonValue].ok(f"args: {len(args)}")
+                    ) -> p.Result[t.JsonPayload]:
+                        return r[t.JsonPayload].ok(f"args: {len(args)}")
 
                     return commands.register_handler(command_name, handler)
 
@@ -240,8 +240,8 @@ class TestsFlextCliUtilities(FlextTestsUtilities, u):
                     def handler(
                         *args: t.JsonValue,
                         **kwargs: t.JsonValue,
-                    ) -> p.Result[t.JsonValue]:
-                        return r[t.JsonValue].fail(error_message)
+                    ) -> p.Result[t.JsonPayload]:
+                        return r[t.JsonPayload].fail(error_message)
 
                     return commands.register_handler(command_name, handler)
 
