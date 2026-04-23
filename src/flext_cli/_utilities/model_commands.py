@@ -27,7 +27,7 @@ class FlextCliUtilitiesModelCommandBuilder[M: m.BaseModel]:
     def _resolve_default(
         self,
         field_name: str,
-        field_info: object,
+        field_info: m.FieldInfo,
     ) -> t.Cli.CliValue | type:
         if getattr(field_info, "is_required")():
             return inspect.Parameter.empty
@@ -50,7 +50,7 @@ class FlextCliUtilitiesModelCommandBuilder[M: m.BaseModel]:
         ]
         signature = inspect.Signature(parameters)
 
-        def command(**kwargs: t.Cli.CliValue) -> t.Cli.RuntimeValue:
+        def command(**kwargs: t.Cli.CliValue) -> t.JsonValue:
             if self.settings is not None:
                 for field_name, field_value in kwargs.items():
                     if hasattr(self.settings, field_name):
@@ -65,7 +65,7 @@ class FlextCliUtilitiesModelCommandBuilder[M: m.BaseModel]:
             "__annotations__",
             {parameter.name: parameter.annotation for parameter in parameters},
         )
-        command.__annotations__["return"] = t.Cli.RuntimeValue
+        command.__annotations__["return"] = t.JsonValue
         return command
 
 

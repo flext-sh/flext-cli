@@ -204,7 +204,7 @@ cli.formatters.print(table.unwrap())
 
 ```text
 # ❌ Unnecessary service infrastructure
-class FlextCliFileTools(s[Mapping[str, t.Container]]):
+class FlextCliFileTools(s[t.JsonMapping]):
     def __init__(self):
         super().__init__()  # Service overhead
         self.logger = u.fetch_logger(__name__)

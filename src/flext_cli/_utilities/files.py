@@ -59,10 +59,10 @@ class FlextCliUtilitiesFiles:
         )
 
     @staticmethod
-    def files_read_json(file_path: t.Cli.TextPath) -> p.Result[t.Cli.JsonValue]:
+    def files_read_json(file_path: t.Cli.TextPath) -> p.Result[t.JsonValue]:
         """Read one JSON file and validate to canonical JSON value."""
 
-        def _load() -> t.Cli.JsonValue:
+        def _load() -> t.JsonValue:
             raw = Path(file_path).read_text(encoding=c.Cli.ENCODING_DEFAULT)
             return t.Cli.JSON_VALUE_ADAPTER.validate_json(raw)
 
@@ -113,15 +113,15 @@ class FlextCliUtilitiesFiles:
         )
 
     @staticmethod
-    def files_read_yaml(file_path: t.Cli.TextPath) -> p.Result[t.Cli.JsonValue]:
+    def files_read_yaml(file_path: t.Cli.TextPath) -> p.Result[t.JsonValue]:
         """Read one YAML file and validate to canonical JSON value."""
         result = uy.yaml_safe_load(Path(file_path))
         if result.failure:
-            return r[t.Cli.JsonValue].fail(result.error or "YAML load failed")
-        validated: t.Cli.JsonValue = t.Cli.JSON_VALUE_ADAPTER.validate_python(
+            return r[t.JsonValue].fail(result.error or "YAML load failed")
+        validated: t.JsonValue = t.Cli.JSON_VALUE_ADAPTER.validate_python(
             result.value,
         )
-        return r[t.Cli.JsonValue].ok(validated)
+        return r[t.JsonValue].ok(validated)
 
     @staticmethod
     def files_write_csv(
@@ -337,7 +337,7 @@ class FlextCliUtilitiesFiles:
     @staticmethod
     def files_load_auto_mapping(
         file_path: t.Cli.TextPath,
-    ) -> p.Result[t.Cli.JsonMapping]:
+    ) -> p.Result[t.JsonMapping]:
         """Load JSON/YAML file and normalize to one mapping payload."""
         path = Path(file_path)
         if path.suffix.lower() == ".json":
@@ -345,20 +345,20 @@ class FlextCliUtilitiesFiles:
         elif path.suffix.lower() in {".yaml", ".yml"}:
             read_result = uy.yaml_safe_load(path)
         else:
-            return r[t.Cli.JsonMapping].fail(
+            return r[t.JsonMapping].fail(
                 f"Unsupported format: {path.suffix or '<none>'}",
             )
         if read_result.failure:
-            return r[t.Cli.JsonMapping].fail(read_result.error or "Auto load failed")
+            return r[t.JsonMapping].fail(read_result.error or "Auto load failed")
         payload = read_result.value
         if not isinstance(payload, Mapping):
-            return r[t.Cli.JsonMapping].fail(
+            return r[t.JsonMapping].fail(
                 "Auto-detected file must contain a mapping",
             )
-        normalized_payload: t.Cli.JsonMapping = {
+        normalized_payload: t.JsonMapping = {
             str(key): uj.normalize_json_value(value) for key, value in payload.items()
         }
-        return r[t.Cli.JsonMapping].ok(normalized_payload)
+        return r[t.JsonMapping].ok(normalized_payload)
 
 
 __all__: list[str] = ["FlextCliUtilitiesFiles"]

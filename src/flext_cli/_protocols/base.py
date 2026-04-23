@@ -127,7 +127,7 @@ class FlextCliProtocolsBase:
             ...
 
         @property
-        def params(self) -> t.Cli.JsonMapping:
+        def params(self) -> t.JsonMapping:
             """Get configuration parameters."""
             ...
 
@@ -152,9 +152,9 @@ class FlextCliProtocolsBase:
 
         def __call__(
             self,
-            *args: t.Container,
-            **kwargs: t.Container,
-        ) -> t.Cli.JsonValue:
+            *args: t.JsonValue,
+            **kwargs: t.JsonValue,
+        ) -> t.JsonValue:
             """Execute the wrapper."""
             ...
 
@@ -201,7 +201,7 @@ class FlextCliProtocolsBase:
 
         def dump(
             self,
-            data: t.Cli.YamlDumpable,
+            data: t.JsonValue,
             *,
             default_flow_style: bool = True,
         ) -> str:

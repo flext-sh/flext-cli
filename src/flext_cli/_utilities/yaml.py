@@ -15,7 +15,7 @@ from collections.abc import (
 from pathlib import Path
 from typing import ClassVar
 
-from flext_core import u
+from flext_core import m, u
 from yaml import safe_dump, safe_load
 
 from flext_cli import c, p, r, t
@@ -35,7 +35,7 @@ class FlextCliUtilitiesYaml:
     # ------------------------------------------------------------------
 
     @staticmethod
-    def yaml_safe_load(path: Path) -> p.Result[t.Cli.YamlDict]:
+    def yaml_safe_load(path: Path) -> p.Result[t.JsonMapping]:
         """Load a YAML file → ``r[JsonMapping]``.
 
         Returns ``r.ok(mapping)`` on success, ``r.fail(msg)`` on missing,
@@ -46,7 +46,7 @@ class FlextCliUtilitiesYaml:
             data = u.Cli.yaml_safe_load(path).unwrap_or({})
         """
         if not path.is_file():
-            return r[t.Cli.YamlDict].fail(f"YAML file not found: {path}")
+            return r[t.JsonMapping].fail(f"YAML file not found: {path}")
         try:
             raw = path.read_text(encoding=c.Cli.ENCODING_DEFAULT)
         except OSError as exc:
@@ -62,25 +62,25 @@ class FlextCliUtilitiesYaml:
         try:
             parsed = safe_load(text)
         except t.Cli.YAMLError as exc:
-            return r[t.Cli.YamlDict].fail(f"YAML parse error: {exc}")
+            return r[t.JsonMapping].fail(f"YAML parse error: {exc}")
         if parsed is None:
-            return r[t.Cli.YamlDict].ok({})
+            return r[t.JsonMapping].ok({})
         if not u.mapping(parsed):
-            return r[t.Cli.YamlDict].fail(
+            return r[t.JsonMapping].fail(
                 f"YAML content is not a mapping: {type(parsed).__name__}",
             )
         try:
             validated = t.Cli.YAML_DICT_ADAPTER.validate_python(parsed)
         except c.ValidationError as exc:
-            return r[t.Cli.YamlDict].fail(f"YAML validation error: {exc}")
-        return r[t.Cli.YamlDict].ok(validated)
+            return r[t.JsonMapping].fail(f"YAML validation error: {exc}")
+        return r[t.JsonMapping].ok(validated)
 
     @staticmethod
     def yaml_load_mapping(
         path: Path,
         *,
-        default: t.Cli.YamlDict | None = None,
-    ) -> t.Cli.YamlDict:
+        default: t.JsonMapping | None = None,
+    ) -> t.JsonMapping:
         """Load YAML file returning a mapping, or *default* (empty dict) on any error.
 
         Ergonomic shorthand — use ``yaml_safe_load`` when you need ``r[T]`` semantics.
@@ -90,7 +90,7 @@ class FlextCliUtilitiesYaml:
         )
 
     @staticmethod
-    def yaml_load_list(path: Path) -> Sequence[t.Cli.YamlValue]:
+    def yaml_load_list(path: Path) -> Sequence[t.JsonValue]:
         """Load YAML file expecting a list at top level."""
         if not path.is_file():
             return []
@@ -113,7 +113,7 @@ class FlextCliUtilitiesYaml:
     @staticmethod
     def yaml_dump(
         path: Path,
-        data: t.Cli.YamlDumpable,
+        data: t.JsonPayload,
         *,
         sort_keys: bool = False,
         indent: int = 2,
@@ -128,9 +128,12 @@ class FlextCliUtilitiesYaml:
         """
         try:
             path.parent.mkdir(parents=True, exist_ok=True)
+            raw = (
+                data.model_dump(mode="json") if isinstance(data, m.BaseModel) else data
+            )
             with path.open("w", encoding=c.Cli.ENCODING_DEFAULT) as fh:
                 safe_dump(
-                    data,
+                    u.to_jsonable_python(raw),
                     fh,
                     default_flow_style=False,
                     sort_keys=sort_keys,
@@ -143,7 +146,7 @@ class FlextCliUtilitiesYaml:
 
     @staticmethod
     def yaml_dump_str(
-        data: t.Cli.YamlDumpable,
+        data: t.JsonPayload,
         *,
         sort_keys: bool = False,
         indent: int = 2,
@@ -157,8 +160,11 @@ class FlextCliUtilitiesYaml:
             text = u.Cli.yaml_dump_str(payload)
         """
         try:
+            raw = (
+                data.model_dump(mode="json") if isinstance(data, m.BaseModel) else data
+            )
             return safe_dump(
-                data,
+                u.to_jsonable_python(raw),
                 default_flow_style=False,
                 sort_keys=sort_keys,
                 allow_unicode=True,

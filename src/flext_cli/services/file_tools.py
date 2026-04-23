@@ -38,7 +38,7 @@ class FlextCliFileTools(FlextCliServiceBase):
         return result
 
     @staticmethod
-    def read_json_file(file_path: t.Cli.TextPath) -> p.Result[t.Cli.JsonValue]:
+    def read_json_file(file_path: t.Cli.TextPath) -> p.Result[t.JsonValue]:
         return u.Cli.files_read_json(file_path)
 
     @staticmethod
@@ -75,7 +75,7 @@ class FlextCliFileTools(FlextCliServiceBase):
         )
 
     @staticmethod
-    def read_yaml_file(file_path: t.Cli.TextPath) -> p.Result[t.Cli.JsonValue]:
+    def read_yaml_file(file_path: t.Cli.TextPath) -> p.Result[t.JsonValue]:
         return u.Cli.files_read_yaml(file_path)
 
     @staticmethod
@@ -102,7 +102,7 @@ class FlextCliFileTools(FlextCliServiceBase):
         data: t.Cli.JsonWriteData,
     ) -> p.Result[bool]:
         payload_raw = data.data if isinstance(data, p.Cli.DisplayData) else data
-        payload: t.Cli.JsonValue = u.Cli.normalize_json_value(payload_raw)
+        payload: t.JsonValue = u.Cli.normalize_json_value(payload_raw)
         return u.Cli.yaml_dump(Path(file_path), payload)
 
     @staticmethod
@@ -138,7 +138,7 @@ class FlextCliFileTools(FlextCliServiceBase):
         return u.Cli.files_detect_format(file_path)
 
     @staticmethod
-    def load_file_auto_dict(file_path: t.Cli.TextPath) -> p.Result[t.Cli.JsonMapping]:
+    def load_file_auto_dict(file_path: t.Cli.TextPath) -> p.Result[t.JsonMapping]:
         return u.Cli.files_load_auto_mapping(file_path)
 
 

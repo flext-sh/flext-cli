@@ -34,7 +34,6 @@ import pathlib
 import tempfile
 import time
 from collections.abc import (
-    Mapping,
     Sequence,
 )
 from functools import lru_cache
@@ -120,7 +119,7 @@ def demonstrate_lazy_loading() -> None:
 
 
 def efficient_table_display(
-    large_dataset: Sequence[Mapping[str, t.Container]],
+    large_dataset: Sequence[t.JsonMapping],
 ) -> None:
     """Display large tables efficiently in YOUR CLI."""
     preview_size = c.PERF_TABLE_PREVIEW_SIZE
@@ -192,7 +191,7 @@ def main() -> None:
     demonstrate_caching()
     demonstrate_lazy_loading()
     cli.print("\n4. Efficient Table Display:", style=c.Cli.MessageStyles.BOLD_CYAN)
-    large_data: Sequence[Mapping[str, t.Container]] = [
+    large_data: Sequence[t.JsonMapping] = [
         {"id": i, "name": f"Item {i}"} for i in range(c.PERF_DATASET_SIZE)
     ]
     efficient_table_display(large_data)

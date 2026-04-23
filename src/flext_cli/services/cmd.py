@@ -37,13 +37,13 @@ class FlextCliCmd(s):
         return u.Cli.cmd_settings_snapshot()
 
     @override
-    def execute(self) -> p.Result[t.Cli.JsonMapping]:
+    def execute(self) -> p.Result[t.JsonMapping]:
         """Report operational status required by `s`."""
-        status: t.Cli.JsonMapping = {
+        status: t.JsonMapping = {
             c.Cli.DICT_KEY_STATUS: c.Cli.ServiceStatus.OPERATIONAL,
             c.Cli.DICT_KEY_SERVICE: c.Cli.CMD_SERVICE_NAME,
         }
-        return r[t.Cli.JsonMapping].ok(status)
+        return r[t.JsonMapping].ok(status)
 
     def show_settings(self) -> p.Result[bool]:
         """Show current settings.

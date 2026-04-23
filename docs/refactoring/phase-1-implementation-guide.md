@@ -373,14 +373,14 @@ After completing all steps, verify:
 - [ ] **init**.py updated (3 imports removed, 4 exports removed)
 - [ ] Test imports updated to use tests.fixtures
 - [ ] Unused imports removed from core.py
-- [ ] `make validate` passes completely
+- [ ] `make val` passes completely
 - [ ] All tests passing
 
 ### Final Validation
 
 ```bash
 # Full validation suite
-make validate
+make val
 
 # Verify file counts
 ls src/flext_cli/*.py | wc -l  # Should be 2 fewer (validator, auth deleted)

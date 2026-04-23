@@ -44,7 +44,7 @@ class TestsCliService:
         )
         group = cli.create_group(help_text="Sample group", name="sample")
 
-        def handle(params: m.Cli.Tests.SampleInput) -> t.Cli.RuntimeValue:
+        def handle(params: m.Cli.Tests.SampleInput) -> t.RuntimeValue:
             captured.append(params)
             return True
 
@@ -93,7 +93,7 @@ class TestsCliService:
         )
         group = cli.create_group(help_text="Sample group", name="sample")
 
-        def handle(params: m.Cli.Tests.RepeatableInput) -> t.Cli.RuntimeValue:
+        def handle(params: m.Cli.Tests.RepeatableInput) -> t.RuntimeValue:
             captured.append(params)
             return True
 
@@ -124,7 +124,7 @@ class TestsCliService:
         tm.that(captured[0].make_arg, eq=["FILES=a b c.py", "VERBOSE=1"])
 
     def test_model_command_returns_handler_value(self) -> None:
-        def handle(params: m.Cli.Tests.SampleInput) -> t.Cli.JsonValue:
+        def handle(params: m.Cli.Tests.SampleInput) -> t.JsonValue:
             return {
                 "name": params.name,
                 "count": params.count,
@@ -158,7 +158,7 @@ class TestsCliService:
         )
         group = cli.create_group(help_text="Grouped failure commands", name="group")
 
-        def fail_handler(_params: m.Cli.Tests.SampleInput) -> t.Cli.RuntimeValue:
+        def fail_handler(_params: m.Cli.Tests.SampleInput) -> t.RuntimeValue:
             cli.exit(code=1)
             return True
 

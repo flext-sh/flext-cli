@@ -30,7 +30,7 @@ class FlextCliUtilitiesAuth:
         return r[bool].ok(True)
 
     @staticmethod
-    def auth_extract_token(payload: t.Cli.JsonValue) -> p.Result[str]:
+    def auth_extract_token(payload: t.JsonValue) -> p.Result[str]:
         """Extract auth token from JSON payload mapping."""
         if not isinstance(payload, Mapping):
             return r[str].fail("Token file must contain a mapping")

@@ -6,6 +6,7 @@ import fnmatch
 from collections.abc import (
     Mapping,
     MutableSequence,
+    Sequence,
 )
 from pathlib import Path
 
@@ -17,11 +18,11 @@ class FlextCliUtilitiesRules:
 
     @staticmethod
     def rules_resolve_scope(
-        settings: t.Cli.JsonValue,
+        settings: t.JsonValue,
         *,
         scope_key: str,
         allowed_keys: t.StrSequence,
-    ) -> t.Cli.RuleDefinition:
+    ) -> t.JsonMapping:
         """Extract and normalize one declarative rules scope from settings."""
         normalized = FlextCliUtilitiesJson.json_as_mapping(settings)
         scope_raw = normalized.get(scope_key)
@@ -36,7 +37,7 @@ class FlextCliUtilitiesRules:
         *,
         scope_key: str,
         allowed_keys: t.StrSequence,
-    ) -> p.Result[t.Cli.RuleDefinition]:
+    ) -> p.Result[t.JsonMapping]:
         """Load one YAML config file and normalize a scoped rule section."""
         normalized = t.Cli.JSON_MAPPING_ADAPTER.validate_python(
             dict(FlextCliUtilitiesYaml.yaml_load_mapping(config_path)),
@@ -48,7 +49,7 @@ class FlextCliUtilitiesRules:
         )
         payload = dict(normalized)
         payload[scope_key] = dict(normalized_scope)
-        return r[t.Cli.RuleDefinition].ok(
+        return r[t.JsonMapping].ok(
             t.Cli.JSON_MAPPING_ADAPTER.validate_python(payload),
         )
 
@@ -60,7 +61,7 @@ class FlextCliUtilitiesRules:
         package_rules_dir: Path,
         registry_filename: str,
         rules_dir_name: str = "rules",
-    ) -> p.Result[t.Cli.RuleDefinition]:
+    ) -> p.Result[t.JsonMapping]:
         """Load one rules registry mapping from local or packaged rules dirs."""
         package_registry = package_rules_dir / registry_filename
         candidates = [
@@ -79,8 +80,8 @@ class FlextCliUtilitiesRules:
             normalized = t.Cli.JSON_MAPPING_ADAPTER.validate_python(
                 dict(FlextCliUtilitiesYaml.yaml_load_mapping(registry_path)),
             )
-            return r[t.Cli.RuleDefinition].ok(normalized)
-        return r[t.Cli.RuleDefinition].fail(
+            return r[t.JsonMapping].ok(normalized)
+        return r[t.JsonMapping].fail(
             f"Failed to load rules registry: no {registry_filename} found",
         )
 
@@ -101,7 +102,12 @@ class FlextCliUtilitiesRules:
         fallback_action_key: str = "action",
         check_key: str = "check",
         rules_dir_name: str = "rules",
-    ) -> p.Result[t.Cli.RuleLoadResult[TRuleKind, TFileRuleKind]]:
+    ) -> p.Result[
+        tuple[
+            Sequence[tuple[TRuleKind, t.JsonMapping]],
+            Sequence[tuple[TFileRuleKind, t.JsonMapping]],
+        ]
+    ]:
         """Load local YAML rule definitions using declarative matcher catalogs."""
         rules_dir = cls._rules_resolve_directory(
             config_path,
@@ -109,14 +115,17 @@ class FlextCliUtilitiesRules:
             rules_dir_name=rules_dir_name,
         )
         if not rules_dir.is_dir():
-            return r[t.Cli.RuleLoadResult[TRuleKind, TFileRuleKind]].fail(
+            return r[
+                tuple[
+                    Sequence[tuple[TRuleKind, t.JsonMapping]],
+                    Sequence[tuple[TFileRuleKind, t.JsonMapping]],
+                ]
+            ].fail(
                 f"Rules directory not found: {rules_dir}",
             )
         file_catalog = file_rule_catalog or {}
-        loaded_rules: MutableSequence[t.Cli.MatchedRuleDefinition[TRuleKind]] = []
-        loaded_file_rules: MutableSequence[
-            t.Cli.MatchedRuleDefinition[TFileRuleKind]
-        ] = []
+        loaded_rules: MutableSequence[tuple[TRuleKind, t.JsonMapping]] = []
+        loaded_file_rules: MutableSequence[tuple[TFileRuleKind, t.JsonMapping]] = []
         loaded_file_rule_kinds: set[str] = set()
         unknown_rules: MutableSequence[str] = []
         for rule_file in sorted(rules_dir.glob("*.yml")):
@@ -194,10 +203,20 @@ class FlextCliUtilitiesRules:
                 loaded_rules.append((rule_kind, typed_rule_def))
         if unknown_rules:
             unknown = ", ".join(sorted(unknown_rules))
-            return r[t.Cli.RuleLoadResult[TRuleKind, TFileRuleKind]].fail(
+            return r[
+                tuple[
+                    Sequence[tuple[TRuleKind, t.JsonMapping]],
+                    Sequence[tuple[TFileRuleKind, t.JsonMapping]],
+                ]
+            ].fail(
                 f"Unknown rule mapping for: {unknown}",
             )
-        return r[t.Cli.RuleLoadResult[TRuleKind, TFileRuleKind]].ok(
+        return r[
+            tuple[
+                Sequence[tuple[TRuleKind, t.JsonMapping]],
+                Sequence[tuple[TFileRuleKind, t.JsonMapping]],
+            ]
+        ].ok(
             (loaded_rules, loaded_file_rules),
         )
 
@@ -226,13 +245,13 @@ class FlextCliUtilitiesRules:
 
     @staticmethod
     def _rules_coerce_definitions(
-        value: t.Cli.JsonValue | None,
-    ) -> t.Cli.RuleDefinitions:
+        value: t.JsonValue | None,
+    ) -> Sequence[t.JsonMapping]:
+        definitions: MutableSequence[t.JsonMapping] = []
         try:
-            entries: t.Cli.JsonList = t.Cli.JSON_LIST_ADAPTER.validate_python(value)
+            entries: t.JsonList = t.Cli.JSON_LIST_ADAPTER.validate_python(value)
         except c.ValidationError:
-            return []
-        definitions: MutableSequence[t.Cli.RuleDefinition] = []
+            return definitions
         for item in entries:
             normalized = FlextCliUtilitiesJson.json_as_mapping(item)
             if not normalized:
@@ -257,7 +276,7 @@ class FlextCliUtilitiesRules:
 
     @staticmethod
     def _rules_validate_matcher(
-        rule_def: t.Cli.RuleDefinition,
+        rule_def: t.JsonMapping,
         matcher: t.Cli.RuleMatcher,
         *,
         rule_id_key: str,
@@ -269,7 +288,7 @@ class FlextCliUtilitiesRules:
                 return f"{rule_id}: {key} must be a mapping"
         for key in required_non_empty_list_keys:
             raw_value = rule_def.get(key)
-            if not isinstance(raw_value, list) or not raw_value:
+            if not isinstance(raw_value, MutableSequence) or not raw_value:
                 return f"{rule_id}: {key} must be a non-empty list"
         return None
 

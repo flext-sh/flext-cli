@@ -200,7 +200,7 @@ class ExamplesFlextCliModels(m):
             def display(self, cli: t.CliApi) -> None:
                 """Display app settings; uses cli for base settings."""
                 settings = cli.settings
-                payload_data: t.Cli.JsonMapping = {
+                payload_data: t.JsonMapping = {
                     "App Name": self.app_name,
                     "API Key": f"{self.api_key[:10]}..." if self.api_key else "Not set",
                     "Max Workers": str(self.max_workers),
@@ -323,7 +323,7 @@ class ExamplesFlextCliModels(m):
                     raise ValueError(msg)
                 return v.upper()
 
-            def validate_to_mapping(self) -> p.Result[Mapping[str, t.Cli.JsonValue]]:
+            def validate_to_mapping(self) -> p.Result[Mapping[str, t.JsonValue]]:
                 """Validate configuration and return as mapping or failure."""
                 errors: MutableSequence[str] = []
                 if (
@@ -340,8 +340,8 @@ class ExamplesFlextCliModels(m):
                 elif not self.temp_dir.is_dir():
                     errors.append("TEMP_DIR must be a directory")
                 if errors:
-                    return r[Mapping[str, t.Cli.JsonValue]].fail("; ".join(errors))
-                return r[Mapping[str, t.Cli.JsonValue]].ok({
+                    return r[Mapping[str, t.JsonValue]].fail("; ".join(errors))
+                return r[Mapping[str, t.JsonValue]].ok({
                     "database_url": self.database_url,
                     "redis_url": self.redis_url,
                     "api_key": "***" if self.api_key else "",

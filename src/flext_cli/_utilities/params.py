@@ -28,7 +28,7 @@ class FlextCliUtilitiesParams:
             return kwargs_model
         if not isinstance(params, m.Cli.CliParamsConfig):
             return kwargs_model
-        merged_data: t.Cli.JsonMapping = {
+        merged_data: t.JsonMapping = {
             **params.model_dump(exclude_none=True),
             **kwargs_model.model_dump(exclude_none=True),
         }

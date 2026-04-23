@@ -25,38 +25,38 @@ class FlextCliUtilitiesJson:
     _module_logger: ClassVar[p.Logger] = u.fetch_logger(__name__)
 
     @staticmethod
-    def normalize_json_value(item: t.Cli.JsonPayload) -> t.Cli.JsonValue:
+    def normalize_json_value(item: t.JsonPayload) -> t.JsonValue:
         """Normalize any runtime value to JSON-compatible output (Pydantic-native)."""
         if isinstance(item, m.BaseModel):
             return item.model_dump(mode="json")
         return t.Cli.JSON_VALUE_ADAPTER.validate_python(u.to_jsonable_python(item))
 
     @staticmethod
-    def json_read(path: Path) -> p.Result[t.Cli.JsonMapping]:
+    def json_read(path: Path) -> p.Result[t.JsonMapping]:
         """Read and parse a JSON file.
 
         Returns empty mapping if file does not exist.
         """
         if not path.exists():
-            return r[t.Cli.JsonMapping].ok({})
+            return r[t.JsonMapping].ok({})
         try:
             raw = path.read_text(encoding=c.Cli.ENCODING_DEFAULT)
-            loaded: t.Cli.JsonValue = t.Cli.JSON_VALUE_ADAPTER.validate_json(raw)
+            loaded: t.JsonValue = t.Cli.JSON_VALUE_ADAPTER.validate_json(raw)
         except (c.ValidationError, OSError) as exc:
-            return r[t.Cli.JsonMapping].fail(f"json_read: {exc}")
+            return r[t.JsonMapping].fail(f"json_read: {exc}")
         if not isinstance(loaded, Mapping):
-            return r[t.Cli.JsonMapping].fail("json_read: root must be an object")
+            return r[t.JsonMapping].fail("json_read: root must be an object")
         try:
-            return r[t.Cli.JsonMapping].ok(
+            return r[t.JsonMapping].ok(
                 t.Cli.JSON_MAPPING_ADAPTER.validate_python(loaded),
             )
         except c.ValidationError as exc:
-            return r[t.Cli.JsonMapping].fail(f"json_read validation: {exc}")
+            return r[t.JsonMapping].fail(f"json_read validation: {exc}")
 
     @staticmethod
     def json_write(
         path: Path,
-        payload: t.Cli.JsonPayload,
+        payload: t.JsonPayload,
         *,
         sort_keys: bool = False,
         ensure_ascii: bool = False,
@@ -70,7 +70,7 @@ class FlextCliUtilitiesJson:
                 if isinstance(payload, m.BaseModel)
                 else payload
             )
-            validated: t.Cli.JsonValue = t.Cli.JSON_VALUE_ADAPTER.validate_python(
+            validated: t.JsonValue = t.Cli.JSON_VALUE_ADAPTER.validate_python(
                 u.to_jsonable_python(raw),
             )
             normalized = (
@@ -99,19 +99,19 @@ class FlextCliUtilitiesJson:
         return r[bool].ok(True)
 
     @staticmethod
-    def json_parse(text: str) -> p.Result[t.Cli.JsonValue]:
+    def json_parse(text: str) -> p.Result[t.JsonValue]:
         """Parse a JSON string into a validated JsonValue."""
         try:
-            return r[t.Cli.JsonValue].ok(
+            return r[t.JsonValue].ok(
                 t.Cli.JSON_VALUE_ADAPTER.validate_json(text),
             )
         except (c.ValidationError, ValueError) as exc:
-            return r[t.Cli.JsonValue].fail(f"json_parse: {exc}")
+            return r[t.JsonValue].fail(f"json_parse: {exc}")
 
     @staticmethod
     def json_as_mapping(
-        value: t.Cli.JsonPayload | None,
-    ) -> t.Cli.JsonMapping:
+        value: t.JsonPayload | None,
+    ) -> t.JsonMapping:
         """Normalize any JSON-compatible value into a mapping."""
         if value is None:
             return {}
@@ -125,8 +125,8 @@ class FlextCliUtilitiesJson:
 
     @staticmethod
     def json_as_sequence(
-        value: t.Cli.JsonPayload | None,
-    ) -> Sequence[t.Cli.JsonValue]:
+        value: t.JsonPayload | None,
+    ) -> Sequence[t.JsonValue]:
         """Normalize any JSON-compatible value into a JSON sequence."""
         if value is None:
             return []
@@ -140,15 +140,15 @@ class FlextCliUtilitiesJson:
 
     @staticmethod
     def json_as_mapping_list(
-        value: t.Cli.JsonPayload | None,
-    ) -> Sequence[t.Cli.JsonMapping]:
+        value: t.JsonPayload | None,
+    ) -> Sequence[t.JsonMapping]:
         """Normalize any JSON-compatible value into a list of mappings."""
         if value is None:
             return []
         normalized = FlextCliUtilitiesJson.normalize_json_value(value)
         if not isinstance(normalized, Sequence) or isinstance(normalized, str | bytes):
             return []
-        mappings: list[t.Cli.JsonMapping] = []
+        mappings: list[t.JsonMapping] = []
         for item in normalized:
             validated = FlextCliUtilitiesJson.json_as_mapping(item)
             if validated:
@@ -157,11 +157,11 @@ class FlextCliUtilitiesJson:
 
     @staticmethod
     def json_walk_path(
-        data: t.Cli.JsonLikeMapping,
+        data: t.JsonMapping,
         keys: tuple[str, ...],
-    ) -> t.Cli.JsonValue | None:
+    ) -> t.JsonValue | None:
         """Walk a path over nested mappings and return the leaf value."""
-        current: t.Cli.JsonLikeMapping = data
+        current: t.JsonMapping = data
         for key in keys[:-1]:
             raw = current.get(key, None)
             if raw is None:
@@ -179,9 +179,9 @@ class FlextCliUtilitiesJson:
 
     @staticmethod
     def json_deep_mapping(
-        data: t.Cli.JsonLikeMapping,
+        data: t.JsonMapping,
         *keys: str,
-    ) -> t.Cli.JsonMapping:
+    ) -> t.JsonMapping:
         """Navigate nested mappings and normalize the final node as mapping."""
         if not keys:
             return FlextCliUtilitiesJson.json_as_mapping(data)
@@ -190,16 +190,16 @@ class FlextCliUtilitiesJson:
 
     @staticmethod
     def json_deep_mapping_list(
-        data: t.Cli.JsonLikeMapping,
+        data: t.JsonMapping,
         *keys: str,
-    ) -> Sequence[t.Cli.JsonMapping]:
+    ) -> Sequence[t.JsonMapping]:
         """Navigate nested mappings and normalize the final node as mapping list."""
         raw = FlextCliUtilitiesJson.json_walk_path(data, keys)
         return FlextCliUtilitiesJson.json_as_mapping_list(raw)
 
     @staticmethod
     def json_pick_str(
-        data: t.Cli.JsonLikeMapping,
+        data: t.JsonMapping,
         key: str,
         default: str = "",
     ) -> str:
@@ -209,7 +209,7 @@ class FlextCliUtilitiesJson:
 
     @staticmethod
     def json_pick_int(
-        data: t.Cli.JsonLikeMapping,
+        data: t.JsonMapping,
         key: str,
         default: int = 0,
     ) -> int:
@@ -225,7 +225,7 @@ class FlextCliUtilitiesJson:
 
     @staticmethod
     def json_pick_bool(
-        data: t.Cli.JsonLikeMapping,
+        data: t.JsonMapping,
         key: str,
         *,
         default: bool = False,
@@ -246,7 +246,7 @@ class FlextCliUtilitiesJson:
 
     @staticmethod
     def json_nested_int(
-        data: t.Cli.JsonLikeMapping,
+        data: t.JsonMapping,
         *keys: str,
         default: int = 0,
     ) -> int:
@@ -258,7 +258,7 @@ class FlextCliUtilitiesJson:
 
     @staticmethod
     def json_get_str_key(
-        mapping: t.Cli.JsonLikeMapping,
+        mapping: t.JsonMapping,
         key: str,
         *,
         default: str = "",
@@ -269,7 +269,7 @@ class FlextCliUtilitiesJson:
         return u.normalize(raw, case=case)
 
     @staticmethod
-    def _json_sort_keys(data: t.Cli.JsonValue) -> t.Cli.JsonValue:
+    def _json_sort_keys(data: t.JsonValue) -> t.JsonValue:
         """Recursively sort dictionary keys in a JSON structure."""
         if isinstance(data, Mapping):
             validated = t.Cli.JSON_MAPPING_ADAPTER.validate_python(data)

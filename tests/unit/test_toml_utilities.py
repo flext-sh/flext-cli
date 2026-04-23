@@ -234,7 +234,7 @@ class TestCliTomlHelpers:
         tm.that(u.Cli.toml_mapping_from_text("[project"), none=True)
 
     def test_mapping_helpers_sync_nested_tables(self) -> None:
-        payload: dict[str, t.Cli.JsonValue] = {
+        payload: dict[str, t.JsonValue] = {
             "tool": {
                 "uv": {
                     "sources": {
@@ -289,7 +289,7 @@ class TestCliTomlHelpers:
         tm.that(project, none=False)
         assert project is not None
         tm.that(project.get("name"), eq="demo")
-        updated_payload: dict[str, t.Cli.JsonValue] = {
+        updated_payload: dict[str, t.JsonValue] = {
             key: result.value[key] for key in result.value
         }
         updated_payload["tool"] = {

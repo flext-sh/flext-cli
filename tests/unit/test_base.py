@@ -35,9 +35,9 @@ class TestsCliServiceBase:
         """Concrete implementation for testing abstract base class."""
 
         @override
-        def execute(self) -> p.Result[Mapping[str, t.Cli.JsonValue]]:
+        def execute(self) -> p.Result[Mapping[str, t.JsonValue]]:
             """Implement abstract method for testing."""
-            return r[Mapping[str, t.Cli.JsonValue]].ok({})
+            return r[Mapping[str, t.JsonValue]].ok({})
 
     def test_service_base_initialization(self) -> None:
         """Test FlextCliServiceBase can be instantiated via concrete class."""

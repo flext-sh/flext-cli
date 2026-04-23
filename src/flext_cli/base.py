@@ -18,17 +18,17 @@ from flext_core import FlextSettings, s
 from flext_cli import FlextCliSettings, p, r, t
 
 
-class FlextCliServiceBase(s[t.Cli.JsonMapping], ABC):
+class FlextCliServiceBase(s[t.JsonMapping], ABC):
     """Base class for flext-cli services with typed configuration access.
 
     Note: This is an abstract base class. Subclasses must implement the
     `execute` method from s.
     """
 
-    def execute(self) -> p.Result[t.Cli.JsonMapping]:
+    def execute(self) -> p.Result[t.JsonMapping]:
         """Default service execution surface for mixins without an active command."""
-        empty_payload: t.Cli.JsonMapping = {}
-        return r[t.Cli.JsonMapping].ok(empty_payload)
+        empty_payload: t.JsonMapping = {}
+        return r[t.JsonMapping].ok(empty_payload)
 
     @property
     @override

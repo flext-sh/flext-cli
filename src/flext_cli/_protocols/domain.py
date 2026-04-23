@@ -2,9 +2,6 @@
 
 from __future__ import annotations
 
-from collections.abc import (
-    Mapping,
-)
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from flext_core import m
@@ -23,7 +20,7 @@ class FlextCliProtocolsDomain:
         """Display payload contract backed by a data mapping."""
 
         @property
-        def data(self) -> Mapping[str, t.Container]:
+        def data(self) -> t.JsonMapping:
             """Expose the display payload."""
             ...
 
@@ -32,7 +29,7 @@ class FlextCliProtocolsDomain:
         """Loaded configuration payload contract."""
 
         @property
-        def content(self) -> Mapping[str, t.Container]:
+        def content(self) -> t.JsonMapping:
             """Expose loaded configuration content."""
             ...
 
@@ -40,7 +37,7 @@ class FlextCliProtocolsDomain:
     class JsonValueProcessor(Protocol):
         """Protocol for JSON-compatible value processors."""
 
-        def __call__(self, value: t.Cli.JsonValue) -> t.Cli.JsonValue:
+        def __call__(self, value: t.JsonValue) -> t.JsonValue:
             """Transform one JSON-compatible value."""
             ...
 
@@ -48,7 +45,7 @@ class FlextCliProtocolsDomain:
     class ModelCommandHandler[TParams: m.BaseModel](Protocol):
         """Protocol for model-driven CLI command execution."""
 
-        def __call__(self, params: TParams, /) -> t.Cli.RuntimeValue:
+        def __call__(self, params: TParams, /) -> t.JsonValue:
             """Execute one model-backed CLI command and return its normalized value."""
             ...
 
@@ -79,7 +76,7 @@ class FlextCliProtocolsDomain:
 
         RULE_MATCHERS: t.Cli.RuleMatchers
 
-        def __call__(self, settings: t.Cli.RuleDefinition, /) -> TRule:
+        def __call__(self, settings: t.JsonMapping, /) -> TRule:
             """Instantiate one runtime rule from one validated rule definition."""
             ...
 

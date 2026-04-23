@@ -36,7 +36,6 @@ from __future__ import annotations
 import pathlib
 import time
 from collections.abc import (
-    Mapping,
     MutableSequence,
     Sequence,
 )
@@ -128,7 +127,7 @@ def monitor_live_metrics() -> None:
         cpu = 45 + i % 40
         memory = 55 + i % 35
         requests = 150 + i * 10
-        metrics_data: Sequence[Mapping[str, t.Container]] = [
+        metrics_data: Sequence[t.JsonMapping] = [
             {
                 "Metric": "CPU Usage",
                 "Value": f"{cpu}%",
@@ -146,10 +145,10 @@ def monitor_live_metrics() -> None:
     cli.print("✅ Monitoring session complete", style=c.Cli.MessageStyles.GREEN)
 
 
-def display_with_panels(data: Mapping[str, t.Container]) -> None:
+def display_with_panels(data: t.JsonMapping) -> None:
     """Display content in organized sections."""
 
-    def panel_text(value: t.Container) -> str:
+    def panel_text(value: t.JsonValue) -> str:
         if isinstance(value, bytes):
             return value.decode(c.Cli.ENCODING_DEFAULT, errors="replace")
         return str(value)
@@ -172,7 +171,7 @@ def display_with_panels(data: Mapping[str, t.Container]) -> None:
         f"  Pending: {panel_text(data.get('pending', 0))}",
         style=c.Cli.MessageStyles.YELLOW,
     )
-    details_data: MutableSequence[Mapping[str, t.Container]] = []
+    details_data: MutableSequence[t.JsonMapping] = []
     for key, value in data.items():
         if key not in {"total", "successful", "failed", "pending"}:
             details_data.append({"Property": key, "Value": panel_text(value)})
@@ -220,7 +219,7 @@ def main() -> None:
     )
     monitor_live_metrics()
     cli.print("\n8. Panels (organized content):", style=c.Cli.MessageStyles.BOLD_CYAN)
-    panel_data: Mapping[str, t.Container] = {
+    panel_data = {
         "total": 1250,
         "successful": 1100,
         "failed": 50,

@@ -99,7 +99,7 @@ class TestPipelineExecute:
 
     def test_shared_state_propagation(self, tmp_path: Path) -> None:
         """Stage B can read what stage A wrote to shared."""
-        received: dict[str, t.Container | None] = {}
+        received: dict[str, t.JsonValue | None] = {}
 
         def reader(
             ctx: m.Cli.PipelineStageContext,

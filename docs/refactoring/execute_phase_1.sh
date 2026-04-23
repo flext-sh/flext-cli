@@ -105,7 +105,7 @@ echo ""
 
 # Run validation
 echo "Running validation suite..."
-if make validate 2>&1 | tail -20; then
+if make val 2>&1 | tail -20; then
 	echo ""
 	echo "✅ Validation passed"
 else

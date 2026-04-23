@@ -17,7 +17,7 @@ class FlextCliUtilitiesConversion:
     @staticmethod
     def default_for_type_kind(
         type_kind: t.Cli.TypeKind,
-        default: t.Cli.JsonValue | None,
+        default: t.JsonValue | None,
     ) -> t.Cli.TypedExtractValue:
         """Return a canonical default for one type kind."""
         if type_kind == c.Cli.TypeKind.STR:
@@ -34,7 +34,7 @@ class FlextCliUtilitiesConversion:
     @staticmethod
     def cli_args_to_model[M: m.BaseModel](
         model_class: type[M],
-        cli_args: t.Cli.JsonMapping,
+        cli_args: t.JsonMapping,
     ) -> p.Result[M]:
         """Convert a CLI args mapping into a validated Pydantic model."""
         try:
@@ -45,13 +45,13 @@ class FlextCliUtilitiesConversion:
 
     @staticmethod
     def convert_field_value(
-        field_value: t.Cli.JsonValue | None,
-    ) -> p.Result[t.Cli.JsonValue]:
+        field_value: t.JsonValue | None,
+    ) -> p.Result[t.JsonValue]:
         """Convert one field value to a JSON-compatible value."""
         if field_value is None:
-            empty_value: t.Cli.JsonValue = ""
-            return r[t.Cli.JsonValue].ok(empty_value)
-        return r[t.Cli.JsonValue].ok(field_value)
+            empty_value: t.JsonValue = ""
+            return r[t.JsonValue].ok(empty_value)
+        return r[t.JsonValue].ok(field_value)
 
 
 __all__: list[str] = ["FlextCliUtilitiesConversion"]

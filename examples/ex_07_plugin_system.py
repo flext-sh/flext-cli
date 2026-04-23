@@ -31,7 +31,6 @@ from __future__ import annotations
 
 import json
 from collections.abc import (
-    Mapping,
     MutableMapping,
     Sequence,
 )
@@ -54,7 +53,7 @@ class DataExportPlugin:
 
     @staticmethod
     def execute(
-        data: Mapping[str, t.Container],
+        data: t.JsonMapping,
         output_format: c.Cli.OutputFormats = c.Cli.OutputFormats.JSON,
     ) -> p.Result[str]:
         """Execute plugin logic in YOUR application."""
@@ -78,7 +77,7 @@ class ReportGeneratorPlugin:
         self.version = "1.0.0"
 
     @staticmethod
-    def execute(data: Sequence[Mapping[str, t.Container]]) -> p.Result[str]:
+    def execute(data: Sequence[t.JsonMapping]) -> p.Result[str]:
         """Generate report from data in YOUR CLI."""
         table_result = cli.format_table(data, table_format=c.Cli.TabularFormat.GRID)
         if table_result.failure:
@@ -102,11 +101,11 @@ class MyAppPluginManager:
     def execute_plugin(
         self,
         plugin_name: str,
-        **kwargs: t.Container,
-    ) -> p.Result[t.Cli.JsonValue]:
+        **kwargs: t.JsonValue,
+    ) -> p.Result[t.JsonValue]:
         """Execute plugin by name in YOUR CLI."""
         if plugin_name not in self.plugins:
-            return r[t.Cli.JsonValue].fail(f"Plugin not found: {plugin_name}")
+            return r[t.JsonValue].fail(f"Plugin not found: {plugin_name}")
         plugin = self.plugins[plugin_name]
         try:
             if isinstance(plugin, DataExportPlugin):
@@ -125,11 +124,11 @@ class MyAppPluginManager:
                 data_val = kwargs.get("data", "")
                 raw = plugin.execute(data=[{"raw": str(data_val)}])
             if raw.failure:
-                return r[t.Cli.JsonValue].fail(raw.error or "Unknown error")
+                return r[t.JsonValue].fail(raw.error or "Unknown error")
             normalized = m.Cli.CliNormalizedJson(raw.value).root
-            return r[t.Cli.JsonValue].ok(normalized)
+            return r[t.JsonValue].ok(normalized)
         except Exception as e:
-            return r[t.Cli.JsonValue].fail(f"Plugin execution failed: {e}")
+            return r[t.JsonValue].fail(f"Plugin execution failed: {e}")
 
     def list_plugins(self) -> None:
         """List all registered plugins in YOUR CLI."""
@@ -147,7 +146,7 @@ class MyAppPluginManager:
             name: resolve_plugin_version(plugin)
             for name, plugin in self.plugins.items()
         }
-        rows: Sequence[Mapping[str, t.Container]] = [
+        rows: Sequence[t.JsonMapping] = [
             {"Plugin": name, "Version": ver} for name, ver in plugin_items.items()
         ]
         cli.show_table(rows, headers=["Plugin", "Version"])
@@ -184,23 +183,23 @@ def load_plugins_from_directory(plugin_dir: Path) -> MyAppPluginManager:
 class ConfigurablePlugin:
     """Example of configurable plugin for YOUR CLI."""
 
-    def __init__(self, settings: Mapping[str, t.Container]) -> None:
+    def __init__(self, settings: t.JsonMapping) -> None:
         """Initialize configurable plugin with configuration dictionary."""
         super().__init__()
         self.name = "configurable-plugin"
-        self.settings: Mapping[str, t.Container] = settings
+        self.settings: t.JsonMapping = settings
 
-    def execute(self) -> p.Result[Mapping[str, t.Container]]:
+    def execute(self) -> p.Result[t.JsonMapping]:
         """Execute with configuration in YOUR CLI."""
         cli.print(
             f"🔧 Plugin settings: {self.settings}", style=c.Cli.MessageStyles.CYAN
         )
-        result_data: Mapping[str, t.Container] = {
+        result_data = {
             "plugin": self.name,
             "config_applied": True,
             **self.settings,
         }
-        return r[Mapping[str, t.Container]].ok(result_data)
+        return r[t.JsonMapping].ok(result_data)
 
 
 class LifecyclePlugin:
@@ -245,7 +244,7 @@ def main() -> None:
     cli.print("\n2. List Plugins (inventory):", style=c.Cli.MessageStyles.BOLD_CYAN)
     manager.list_plugins()
     cli.print("\n3. Execute Plugin (data export):", style=c.Cli.MessageStyles.BOLD_CYAN)
-    test_data: Mapping[str, t.Container] = {
+    test_data = {
         "id": 1,
         "name": "Test",
         "status": "active",
@@ -262,7 +261,7 @@ def main() -> None:
     cli.print(
         "\n4. Report Plugin (table generation):", style=c.Cli.MessageStyles.BOLD_CYAN
     )
-    report_data: Sequence[Mapping[str, t.Container]] = [
+    report_data: Sequence[t.JsonMapping] = [
         {"metric": "Users", "value": "1,234"},
         {"metric": "Orders", "value": "567"},
     ]
@@ -276,7 +275,7 @@ def main() -> None:
             style=c.Cli.MessageStyles.GREEN,
         )
     cli.print("\n5. Configurable Plugin:", style=c.Cli.MessageStyles.BOLD_CYAN)
-    settings: Mapping[str, t.Container] = {"theme": "dark", "verbose": True}
+    settings = {"theme": "dark", "verbose": True}
     config_plugin = ConfigurablePlugin(settings)
     config_result = config_plugin.execute()
     if config_result.success:

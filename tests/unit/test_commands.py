@@ -16,7 +16,7 @@ from __future__ import annotations
 from flext_tests import tm
 
 from flext_cli import FlextCliCommands
-from tests import c, m, p, r, t, u
+from tests import c, m, r, t, u
 
 
 class TestsCliCommands:
@@ -124,7 +124,7 @@ class TestsCliCommands:
         commands = u.Cli.Tests.CommandsFactory.create_commands()
         bad_entry = m.Cli.CommandEntryModel(
             name="bad_cmd",
-            handler=lambda: p.Result[t.Cli.JsonValue].ok("ok"),
+            handler=lambda: r[t.JsonValue].ok("ok"),
         )
         object.__setattr__(bad_entry, "handler", "not_callable")
         commands._commands["bad_cmd"] = bad_entry
@@ -145,7 +145,7 @@ class TestsCliCommands:
         commands = u.Cli.Tests.CommandsFactory.create_commands()
         invalid_entry = m.Cli.CommandEntryModel(
             name="bad_cmd",
-            handler=lambda: p.Result[t.Cli.JsonValue].ok("ok"),
+            handler=lambda: r[t.JsonValue].ok("ok"),
         )
         object.__setattr__(invalid_entry, "handler", None)
         commands._commands["bad_cmd"] = invalid_entry

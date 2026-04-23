@@ -28,7 +28,7 @@ from flext_cli import cli
 
 
 def save_user_preferences(
-    preferences: Mapping[str, t.Container],
+    preferences: t.JsonMapping,
     config_dir: Path,
 ) -> bool:
     """Save user preferences to JSON in YOUR app."""
@@ -87,7 +87,7 @@ def load_user_preferences(config_dir: Path) -> p.Result[m.Cli.LoadedConfig]:
 
 
 def save_deployment_config(
-    settings: Mapping[str, t.Container],
+    settings: t.JsonMapping,
     config_file: Path,
 ) -> bool:
     """Save deployment settings to YAML in YOUR tool."""
@@ -135,7 +135,7 @@ def load_deployment_config(config_file: Path) -> p.Result[m.Cli.LoadedConfig]:
 
 
 def export_database_report(
-    records: Sequence[Mapping[str, t.Container]],
+    records: Sequence[t.JsonMapping],
     output_file: Path,
     format_type: c.Cli.TabularFormat = c.Cli.TabularFormat.GRID,
 ) -> bool | None:
@@ -312,7 +312,7 @@ def backup_config_files(source_dir: Path, backup_dir: Path) -> t.StrSequence:
 
 
 def export_to_csv(
-    data: Sequence[Mapping[str, t.Container]],
+    data: Sequence[t.JsonMapping],
     output_file: Path,
 ) -> bool:
     """Export data to CSV with proper headers in YOUR reporting tool."""
@@ -457,7 +457,7 @@ def load_config_auto_detect(config_file: Path) -> p.Result[m.Cli.LoadedConfig]:
 
 
 def export_multi_format(
-    data: Mapping[str, t.Container] | Sequence[Mapping[str, t.Container]],
+    data: t.JsonPayload,
     base_path: Path,
 ) -> t.StrMapping:
     """Export same data to multiple formats (JSON, YAML, CSV)."""
@@ -531,7 +531,7 @@ def export_multi_format(
 def process_file_pipeline(
     input_file: Path,
     output_dir: Path,
-) -> p.Result[t.Cli.JsonMapping]:
+) -> p.Result[t.JsonMapping]:
     """Complete file processing pipeline using Railway Pattern.
 
     Demonstrates chaining multiple file operations with proper error handling.
@@ -543,29 +543,29 @@ def process_file_pipeline(
     )
 
     # Initialize result
-    result: p.Result[t.Cli.JsonMapping]
+    result: p.Result[t.JsonMapping]
 
     # Railway pattern: Chain operations with automatic error propagation
 
     # Step 1: Validate input file exists and is readable
     if not input_file.exists():
-        result = r[t.Cli.JsonMapping].fail(f"File not found: {input_file}")
+        result = r[t.JsonMapping].fail(f"File not found: {input_file}")
     elif not input_file.is_file():
-        result = r[t.Cli.JsonMapping].fail(f"Not a file: {input_file}")
+        result = r[t.JsonMapping].fail(f"Not a file: {input_file}")
     else:
         cli.print("✅ Input validation passed", style=c.Cli.MessageStyles.GREEN)
 
         # Step 2: Read file content (dict-only, no narrowing)
         read_result = cli.read_json_file(input_file)
         if read_result.failure:
-            result = r[t.Cli.JsonMapping].fail(
+            result = r[t.JsonMapping].fail(
                 f"File read failed: {read_result.error}",
             )
         else:
             data = read_result.value
             cli.print("✅ File read successfully", style=c.Cli.MessageStyles.GREEN)
             if not isinstance(data, Mapping):
-                result = r[t.Cli.JsonMapping].fail(
+                result = r[t.JsonMapping].fail(
                     "File content must be a mapping",
                 )
             else:
@@ -577,7 +577,7 @@ def process_file_pipeline(
 
                 output_result = generate_output_files(transformed_data, output_dir)
                 if output_result.failure:
-                    result = r[t.Cli.JsonMapping].fail(
+                    result = r[t.JsonMapping].fail(
                         output_result.error or "Unknown error",
                     )
                 else:
@@ -594,7 +594,7 @@ def process_file_pipeline(
                         "🎉 File processing pipeline completed successfully!",
                         style=c.Cli.MessageStyles.BOLD_GREEN,
                     )
-                    result = r[t.Cli.JsonMapping].ok(summary)
+                    result = r[t.JsonMapping].ok(summary)
 
     if result.failure:
         cli.print(
@@ -605,7 +605,7 @@ def process_file_pipeline(
 
 
 def validate_and_transform_data(
-    data: Mapping[str, t.Container],
+    data: t.JsonMapping,
 ) -> m.Cli.LoadedConfig:
     """Validate and transform input data."""
     transformed = {
@@ -670,7 +670,7 @@ def generate_output_files(
 
 def create_processing_summary(
     results: Mapping[str, Path],
-) -> t.Cli.JsonMapping:
+) -> t.JsonMapping:
     """Create a summary of the processing pipeline."""
     return {
         "pipeline_completed": True,
@@ -701,7 +701,7 @@ def main() -> None:
         "\n1. JSON Config Files (user preferences):",
         style=c.Cli.MessageStyles.BOLD_CYAN,
     )
-    prefs: Mapping[str, t.Container] = {
+    prefs = {
         "theme": "dark",
         "font_size": 14,
         "auto_save": True,
@@ -717,7 +717,7 @@ def main() -> None:
     cli.print(
         "\n2. YAML Configuration (deployment):", style=c.Cli.MessageStyles.BOLD_CYAN
     )
-    deploy_config: Mapping[str, t.Container] = {
+    deploy_config = {
         "environment": "staging",
         "host": "staging.example.com",
         "platform": platform.system(),
@@ -732,7 +732,7 @@ def main() -> None:
 
     # Example 3: Table export
     cli.print("\n3. Data Export (table format):", style=c.Cli.MessageStyles.BOLD_CYAN)
-    sample_data: Sequence[Mapping[str, t.Container]] = [
+    sample_data: Sequence[t.JsonMapping] = [
         {"id": 1, "name": "Alice", "status": "active"},
         {"id": 2, "name": "Bob", "status": "inactive"},
     ]
@@ -757,7 +757,7 @@ def main() -> None:
     cli.print(
         "\n6. Data Validation (ETL pipeline):", style=c.Cli.MessageStyles.BOLD_CYAN
     )
-    test_data: Mapping[str, t.Container] = {"id": 1, "name": "test", "value": 100}
+    test_data = {"id": 1, "name": "test", "value": 100}
     test_file = temp_dir / "test_data.json"
     cli.write_json_file(test_file, u.Cli.normalize_json_value(test_data))
     valid_result = validate_and_import_data(test_file)
@@ -770,7 +770,7 @@ def main() -> None:
     cli.print(
         "\n7. CSV Export/Import (with headers):", style=c.Cli.MessageStyles.BOLD_CYAN
     )
-    csv_data: Sequence[Mapping[str, t.Container]] = [
+    csv_data: Sequence[t.JsonMapping] = [
         {"employee_id": 101, "name": "Alice Smith", "department": "Engineering"},
         {"employee_id": 102, "name": "Bob Jones", "department": "Sales"},
         {"employee_id": 103, "name": "Carol White", "department": "Marketing"},
@@ -788,7 +788,7 @@ def main() -> None:
 
     # Example 9: Auto-format detection
     cli.print("\n9. Auto-Format Detection:", style=c.Cli.MessageStyles.BOLD_CYAN)
-    auto_config: Mapping[str, t.Container] = {
+    auto_config = {
         "app": "demo",
         "version": "1.0",
         "enabled": True,
@@ -810,18 +810,21 @@ def main() -> None:
 
     # Example 10: Multi-format export
     cli.print("\n10. Multi-Format Export:", style=c.Cli.MessageStyles.BOLD_CYAN)
-    multi_data: Sequence[Mapping[str, t.Container]] = [
+    multi_data: Sequence[t.JsonMapping] = [
         {"metric": "CPU", "value": "75%", "status": "OK"},
         {"metric": "Memory", "value": "82%", "status": "Warning"},
     ]
-    export_multi_format(multi_data, temp_dir / "metrics")
+    export_multi_format(
+        t.json_list_adapter().validate_python(multi_data),
+        temp_dir / "metrics",
+    )
 
     # Example 11: Railway Pattern Pipeline
     cli.print(
         "\n11. Railway Pattern Pipeline (complete workflow):",
         style=c.Cli.MessageStyles.BOLD_CYAN,
     )
-    pipeline_input: t.Cli.JsonMapping = {
+    pipeline_input: t.JsonMapping = {
         "name": "pipeline_demo",
         "version": "1.0",
         "items": [

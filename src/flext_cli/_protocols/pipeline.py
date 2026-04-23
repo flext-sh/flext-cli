@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from collections.abc import (
-    Mapping,
     Sequence,
 )
 from pathlib import Path
@@ -26,12 +25,12 @@ class FlextCliProtocolsPipeline:
             ...
 
         @property
-        def shared(self) -> t.MutableFlatContainerMapping:
+        def shared(self) -> t.MutableJsonMapping:
             """Mutable shared state between stages — stages write outputs here."""
             ...
 
         @property
-        def settings(self) -> Mapping[str, t.Container]:
+        def settings(self) -> t.JsonMapping:
             """Immutable configuration for the pipeline run."""
             ...
 

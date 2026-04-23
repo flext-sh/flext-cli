@@ -14,23 +14,23 @@ class FlextCliUtilitiesCommands:
 
     @staticmethod
     def commands_normalize_handler_result(
-        result: p.Result[t.Cli.JsonValue] | None,
+        result: p.Result[t.JsonValue] | None,
         command_name: str,
-    ) -> p.Result[t.Cli.JsonValue]:
+    ) -> p.Result[t.JsonValue]:
         """Normalize command execution output into canonical JSON result."""
         if result is None:
-            payload: t.Cli.JsonValue = {
+            payload: t.JsonValue = {
                 "status": c.Cli.CommandStatus.SUCCESS,
                 "command": command_name,
             }
-            return r[t.Cli.JsonValue].ok(payload)
+            return r[t.JsonValue].ok(payload)
         if result.success:
-            result_value: t.Cli.JsonValue = uj.normalize_json_value(
+            result_value: t.JsonValue = uj.normalize_json_value(
                 result.value,
             )
-            return r[t.Cli.JsonValue].ok(result_value)
+            return r[t.JsonValue].ok(result_value)
         error_value = result.error
-        return r[t.Cli.JsonValue].fail(
+        return r[t.JsonValue].fail(
             str(error_value) if error_value else "Command failed",
         )
 
@@ -42,10 +42,10 @@ class FlextCliUtilitiesCommands:
         args: t.StrSequence | None,
         kwargs: t.ScalarMapping,
         on_signature_mismatch: Callable[[str], None] | None = None,
-    ) -> p.Result[t.Cli.JsonValue]:
+    ) -> p.Result[t.JsonValue]:
         """Execute one command handler with optional args fallback and normalize output."""
         try:
-            result: p.Result[t.Cli.JsonValue] | None = None
+            result: p.Result[t.JsonValue] | None = None
             execution_attempted = False
             if args or kwargs:
                 try:
@@ -61,7 +61,7 @@ class FlextCliUtilitiesCommands:
                 command_name,
             )
         except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
-            return r[t.Cli.JsonValue].fail(
+            return r[t.JsonValue].fail(
                 c.Cli.ERR_COMMAND_EXECUTION_FAILED.format(error=exc),
             )
 

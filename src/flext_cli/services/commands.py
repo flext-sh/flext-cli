@@ -38,26 +38,26 @@ class FlextCliCommands(s):
         return instance
 
     @override
-    def execute(self) -> p.Result[t.Cli.JsonMapping]:
+    def execute(self) -> p.Result[t.JsonMapping]:
         """Execute commands service - returns service status.
 
         Returns:
             r[dict]: Service status with commands count.
 
         """
-        status: t.Cli.JsonMapping = {
+        status: t.JsonMapping = {
             "app_name": c.Cli.FLEXT_CLI,
             "initialized": True,
             "commands_count": len(self._commands),
         }
-        return r[t.Cli.JsonMapping].ok(status)
+        return r[t.JsonMapping].ok(status)
 
     def execute_command(
         self,
         name: str,
         args: t.StrSequence | None = None,
         **kwargs: t.Scalar,
-    ) -> p.Result[t.Cli.JsonValue]:
+    ) -> p.Result[t.JsonValue]:
         """Execute a registered CLI command.
 
         Args:
@@ -70,15 +70,15 @@ class FlextCliCommands(s):
 
         """
         if not name.strip():
-            return r[t.Cli.JsonValue].fail(c.Cli.ERR_INVALID_COMMAND_NAME)
+            return r[t.JsonValue].fail(c.Cli.ERR_INVALID_COMMAND_NAME)
         if name not in self._commands:
-            return r[t.Cli.JsonValue].fail(
+            return r[t.JsonValue].fail(
                 c.Cli.ERR_COMMAND_NOT_FOUND.format(name=name),
             )
         cmd_info = self._commands[name]
         handler: t.Cli.JsonCommandFn = cmd_info.handler
         if not callable(handler):
-            return r[t.Cli.JsonValue].fail(
+            return r[t.JsonValue].fail(
                 c.Cli.ERR_HANDLER_NOT_CALLABLE.format(name=name),
             )
 
@@ -127,7 +127,7 @@ class FlextCliCommands(s):
         self._commands[name] = m.Cli.CommandEntryModel(name=name, handler=handler)
         return r[bool].ok(True)
 
-    def run_cli(self, args: t.StrSequence | None = None) -> p.Result[t.Cli.JsonValue]:
+    def run_cli(self, args: t.StrSequence | None = None) -> p.Result[t.JsonValue]:
         """Run CLI with given arguments.
 
         Args:
@@ -138,27 +138,27 @@ class FlextCliCommands(s):
 
         """
         if not args:
-            empty_args_payload: t.Cli.JsonValue = {
+            empty_args_payload: t.JsonValue = {
                 "status": c.Cli.CommandStatus.SUCCESS,
                 "message": "No args",
             }
-            return r[t.Cli.JsonValue].ok(empty_args_payload)
+            return r[t.JsonValue].ok(empty_args_payload)
         cmd_name = args[0] if args else ""
         cmd_args = list(args[1:]) if len(args) > 1 else []
         if cmd_name in {"--help", "-h"}:
-            help_payload: t.Cli.JsonValue = {
+            help_payload: t.JsonValue = {
                 "status": c.Cli.CommandStatus.HELP,
                 "commands": list(self._commands.keys()),
             }
-            return r[t.Cli.JsonValue].ok(help_payload)
+            return r[t.JsonValue].ok(help_payload)
         if cmd_name in {"--version", "-v"}:
-            version_payload: t.Cli.JsonValue = {
+            version_payload: t.JsonValue = {
                 "status": c.Cli.CommandStatus.VERSION,
                 "name": self._name,
             }
-            return r[t.Cli.JsonValue].ok(version_payload)
+            return r[t.JsonValue].ok(version_payload)
         if cmd_name not in self._commands:
-            return r[t.Cli.JsonValue].fail(
+            return r[t.JsonValue].fail(
                 c.Cli.ERR_COMMAND_NOT_FOUND.format(name=cmd_name),
             )
         return self.execute_command(cmd_name, args=cmd_args)

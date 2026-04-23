@@ -49,9 +49,9 @@ class FlextCli(
     """
 
     @override
-    def execute(self) -> p.Result[t.Cli.JsonMapping]:
+    def execute(self) -> p.Result[t.JsonMapping]:
         """Execute CLI service with railway pattern."""
-        result_dict: t.Cli.JsonMapping = {
+        result_dict: t.JsonMapping = {
             c.Cli.DICT_KEY_STATUS: c.Cli.ServiceStatus.OPERATIONAL,
             c.Cli.DICT_KEY_SERVICE: c.Cli.FLEXT_CLI,
             "timestamp": u.generate("timestamp"),
@@ -63,7 +63,7 @@ class FlextCli(
                 "rules": "available",
             },
         }
-        return r[t.Cli.JsonMapping].ok(result_dict)
+        return r[t.JsonMapping].ok(result_dict)
 
 
 cli = FlextCli()

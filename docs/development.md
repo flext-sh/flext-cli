@@ -312,7 +312,7 @@ Key phases:
 1. **Quality Gates (MANDATORY)**:
 
    ```bash
-   make validate  # Must pass 100%
+   make val  # Must pass 100%
    ```
 
 1. **Test Organization**:
@@ -358,7 +358,7 @@ ______________________________________________________________________
 
 ```bash
 make setup          # Complete development environment setup
-make validate       # All quality checks (lint + type + test)
+make val       # All quality checks (lint + type + test)
 make test          # Run test suite
 make lint          # Code linting with Ruff
 make type-check    # MyPy type checking
@@ -485,7 +485,7 @@ ______________________________________________________________________
 
 1. Create feature branch from main
 1. Implement changes with tests
-1. Run `make validate` to ensure quality
+1. Run `make val` to ensure quality
 1. Submit pull request with description
 1. Address review feedback
 1. Merge after approval

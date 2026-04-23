@@ -53,15 +53,15 @@ class FlextCliPrompts(s):
             )
 
     @override
-    def execute(self) -> p.Result[t.Cli.JsonMapping]:
+    def execute(self) -> p.Result[t.JsonMapping]:
         try:
             self._log(
                 c.LogLevel.DEBUG,
                 "Prompt service execution completed",
                 operation="execute",
             )
-            empty_result: t.Cli.JsonMapping = {}
-            return r[t.Cli.JsonMapping].ok(empty_result)
+            empty_result: t.JsonMapping = {}
+            return r[t.JsonMapping].ok(empty_result)
         except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
             self._fatal(
                 "execute",
@@ -69,7 +69,7 @@ class FlextCliPrompts(s):
                 exc,
                 "Prompt service execution failed completely",
             )
-            return r[t.Cli.JsonMapping].fail(
+            return r[t.JsonMapping].fail(
                 f"Prompt service execution failed: {exc}",
             )
 

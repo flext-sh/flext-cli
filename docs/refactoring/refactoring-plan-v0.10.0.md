@@ -124,7 +124,7 @@ ______________________________________________________________________
 
 ```python
 # ❌ CURRENT: Too many services
-class FlextCliFileTools(s[Mapping[str, t.Container]]):
+class FlextCliFileTools(s[t.JsonMapping]):
     """File operations as a service - OVERKILL"""
     def __init__(self):
         super().__init__()  # Unnecessary overhead
@@ -335,7 +335,7 @@ class FlextCliContext(m.Value):
 
     command: str | None = None
     arguments: t.StrSequence = m.Field(default_factory=list)
-    environment_variables: Mapping[str, t.Container] = m.Field(default_factory=dict)
+    environment_variables: t.JsonMapping = m.Field(default_factory=dict)
     working_directory: str | None = None
 
     # No methods - just validated data
@@ -449,7 +449,7 @@ ______________________________________________________________________
 **Before**:
 
 ```python
-class FlextCliFileTools(s[Mapping[str, t.Container]]):
+class FlextCliFileTools(s[t.JsonMapping]):
     def __init__(self):
         super().__init__()
         self.logger = u.fetch_logger(__name__)
@@ -515,7 +515,7 @@ class FlextCliContext(m.Value):
 
     command: str | None = None
     arguments: t.StrSequence = m.Field(default_factory=list)
-    environment_variables: Mapping[str, t.Container] = m.Field(default_factory=dict)
+    environment_variables: t.JsonMapping = m.Field(default_factory=dict)
     working_directory: str | None = None
     created_at: str = m.Field(default_factory=lambda: datetime.now(UTC).isoformat())
 
@@ -745,7 +745,7 @@ See: [IMPLEMENTATION_CHECKLIST.md](IMPLEMENTATION_CHECKLIST.md)
 1. Move `testing.py` to `tests/fixtures/testing_utilities.py`
 1. Update `__init__.py` exports
 1. Update imports in tests
-1. Run: `make validate`
+1. Run: `make val`
 1. Commit: "refactor: remove duplicate and empty modules"
 
 #### Phase 3: Convert Services to Simple Classes
@@ -758,7 +758,7 @@ For each utility class:
 1. Remove `self` parameter
 1. Update all calls (no `.` needed before method)
 1. Update tests
-1. Run: `make validate` after each conversion
+1. Run: `make val` after each conversion
 
 Order:
 
@@ -778,7 +778,7 @@ Commit after each: "refactor: convert FlextCliFileTools to simple class"
 1. Add `model_config = ConfigDict(frozen=True)`
 1. Update all usage sites
 1. Update tests
-1. Run: `make validate`
+1. Run: `make val`
 1. Commit: "refactor: convert context to value object"
 
 #### Phase 5: Remove API Wrappers
@@ -786,7 +786,7 @@ Commit after each: "refactor: convert FlextCliFileTools to simple class"
 1. Remove ~15 wrapper methods from `api.py`
 1. Update examples in docs/
 1. Update tests
-1. Run: `make validate`
+1. Run: `make val`
 1. Commit: "refactor: remove API wrapper methods"
 
 #### Phase 6: Remove Unused Infrastructure
@@ -796,7 +796,7 @@ Commit after each: "refactor: convert FlextCliFileTools to simple class"
 1. Remove pluggy imports
 1. Check cachetools usage
 1. Remove any unused code
-1. Run: `make validate`
+1. Run: `make val`
 1. Commit: "refactor: remove unused infrastructure"
 
 #### Phase 7: Reorganize Tests
@@ -810,7 +810,7 @@ Commit after each: "refactor: convert FlextCliFileTools to simple class"
 
 #### Phase 8: Quality Gates
 
-1. Run: `make validate` (must pass 100%)
+1. Run: `make val` (must pass 100%)
 1. Run: `make test` (must maintain 95%+ pass rate)
 1. Update `__version__.py` → `0.10.0`
 1. Update `CHANGELOG.md`
@@ -935,7 +935,7 @@ ______________________________________________________________________
 - ✅ 30-40% code reduction achieved
 - ✅ Service classes reduced to 3-4
 - ✅ Zero unused imports remain
-- ✅ `make validate` passes 100%
+- ✅ `make val` passes 100%
 - ✅ Test coverage maintained (95%+)
 
 ### Architecture

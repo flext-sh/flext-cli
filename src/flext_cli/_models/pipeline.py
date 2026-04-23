@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from collections.abc import (
     Callable,
-    Mapping,
-    MutableMapping,
     Sequence,
 )
 from pathlib import Path
@@ -35,13 +33,13 @@ class FlextCliModelsPipeline:
         ]
 
         shared: Annotated[
-            MutableMapping[str, t.Container],
+            t.MutableJsonMapping,
             m.Field(
                 default_factory=dict, description="Mutable shared state between stages"
             ),
         ]
         settings: Annotated[
-            Mapping[str, t.Container],
+            t.JsonMapping,
             m.Field(
                 default_factory=lambda: MappingProxyType({}),
                 description="Immutable pipeline configuration",
@@ -101,7 +99,7 @@ class FlextCliModelsPipeline:
             m.Field(description="Execution outcome"),
         ]
         output: Annotated[
-            Mapping[str, t.Container],
+            t.JsonMapping,
             m.Field(
                 default_factory=lambda: MappingProxyType({}),
                 description="Stage output payload",

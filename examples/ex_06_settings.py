@@ -196,7 +196,7 @@ def validate_app_settings() -> bool:
     return True
 
 
-def load_application_settings() -> p.Result[Mapping[str, t.Cli.JsonValue]]:
+def load_application_settings() -> p.Result[Mapping[str, t.JsonValue]]:
     """Load and validate application settings from environment."""
     cli.print("\n⚙️  Loading Application Settings:", style=c.Cli.MessageStyles.BOLD_CYAN)
     settings_obj = m.Examples.AppSettingsAdvanced()
@@ -210,7 +210,7 @@ def load_application_settings() -> p.Result[Mapping[str, t.Cli.JsonValue]]:
     cli.print("✅ Environment overrides applied", style=c.Cli.MessageStyles.GREEN)
     final_data = initialize_services(overridden_data)
     cli.print("✅ Services initialized", style=c.Cli.MessageStyles.GREEN)
-    result = r[Mapping[str, t.Cli.JsonValue]].ok(final_data)
+    result = r[Mapping[str, t.JsonValue]].ok(final_data)
     if result.failure:
         cli.print(
             f"❌ Settings failed: {result.error}",
@@ -225,10 +225,10 @@ def load_application_settings() -> p.Result[Mapping[str, t.Cli.JsonValue]]:
 
 
 def apply_environment_overrides(
-    settings: Mapping[str, t.Cli.JsonValue],
-) -> Mapping[str, t.Cli.JsonValue]:
+    settings: Mapping[str, t.JsonValue],
+) -> Mapping[str, t.JsonValue]:
     """Apply environment-specific settings overrides."""
-    result: dict[str, t.Cli.JsonValue] = {
+    result: dict[str, t.JsonValue] = {
         str(key): value for key, value in settings.items()
     }
     env = os.getenv("ENVIRONMENT", "development")
@@ -249,11 +249,11 @@ def apply_environment_overrides(
 
 
 def initialize_services(
-    settings: Mapping[str, t.Cli.JsonValue],
-) -> Mapping[str, t.Cli.JsonValue]:
+    settings: Mapping[str, t.JsonValue],
+) -> Mapping[str, t.JsonValue]:
     """Initialize services based on settings."""
     time.sleep(0.05)
-    result: dict[str, t.Cli.JsonValue] = {
+    result: dict[str, t.JsonValue] = {
         str(key): value for key, value in settings.items()
     }
     result["services_initialized"] = True

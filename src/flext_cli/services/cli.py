@@ -73,7 +73,7 @@ class FlextCliCli(s):
             self._handler = handler
             self._model_cls = model_cls
 
-        def __call__(self, **kwargs: t.Cli.CliValue) -> t.Cli.RuntimeValue:
+        def __call__(self, **kwargs: t.Cli.CliValue) -> t.JsonValue:
             if self._config is not None:
                 for field_name, field_value in kwargs.items():
                     if hasattr(self._config, field_name):
@@ -137,7 +137,7 @@ class FlextCliCli(s):
     @staticmethod
     def _is_string_sequence(
         value: t.Cli.CliDefaultSource,
-    ) -> TypeIs[t.Cli.StrSequence]:
+    ) -> TypeIs[t.StrSequence]:
         """Return True for concrete string sequences accepted by repeated CLI options."""
         if isinstance(value, Path) or not isinstance(value, Sequence):
             return False
@@ -162,7 +162,7 @@ class FlextCliCli(s):
     @staticmethod
     def _field_default(
         field_name: str,
-        field_info: object,
+        field_info: m.FieldInfo,
         settings: m.BaseModel | None,
     ) -> t.Cli.CliValue | None:
         """Resolve CLI default from settings first, then from model field metadata."""
@@ -224,7 +224,7 @@ class FlextCliCli(s):
     def _build_model_parameter(
         cls,
         field_name: str,
-        field_info: object,
+        field_info: m.FieldInfo,
         settings: m.BaseModel | None,
     ) -> tuple[Parameter, type | GenericAlias]:
         """Build a keyword-only Typer option from a Pydantic field."""
@@ -382,10 +382,10 @@ class FlextCliCli(s):
         cls,
         model_cls: type[M],
         *sources: t.Cli.ModelSource,
-        overrides: t.Cli.ScalarMapping | None = None,
+        overrides: t.ScalarMapping | None = None,
     ) -> M:
         """Derive a target Pydantic model from ordered model/mapping sources."""
-        merged: t.Cli.MutableScalarMapping = {}
+        merged: t.MutableScalarMapping = {}
         for source in sources:
             merged.update(cls._model_source_data(model_cls, source))
         if overrides is not None:
@@ -396,9 +396,9 @@ class FlextCliCli(s):
     def _model_source_data(
         model_cls: type[m.BaseModel],
         source: t.Cli.ModelSource,
-    ) -> t.Cli.ScalarMapping:
+    ) -> t.ScalarMapping:
         """Extract only target-compatible fields from a model or mapping source."""
-        raw_source: t.Cli.ScalarMapping
+        raw_source: t.ScalarMapping
         if isinstance(source, m.BaseModel):
             raw_source = source.model_dump(exclude_none=True)
         else:
@@ -537,7 +537,7 @@ class FlextCliCli(s):
                 FlextCliOutput.display_message(error, c.Cli.MessageTypes.ERROR)
             cls.exit(code=1)
 
-        def execute(params: M) -> t.Cli.RuntimeValue:
+        def execute(params: M) -> t.JsonValue:
             result: p.Result[TResult] = handler(params)
             if result.failure:
                 _exit_with_failure(result.error)
@@ -566,7 +566,7 @@ class FlextCliCli(s):
     ) -> None:
         """Register a declarative result route on a Typer app."""
 
-        def execute(params: m.BaseModel) -> t.Cli.RuntimeValue:
+        def execute(params: m.BaseModel) -> t.JsonValue:
             result = route.handler(params)
             if result.failure:
                 if result.error:

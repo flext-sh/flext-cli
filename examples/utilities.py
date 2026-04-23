@@ -12,7 +12,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import (
-    Mapping,
     MutableSequence,
 )
 
@@ -26,10 +25,10 @@ class ExamplesFlextCliUtilities(u):
     @classmethod
     def to_json_dict(
         cls,
-        data: Mapping[str, t.Container],
+        data: t.JsonMapping,
     ) -> m.Cli.DisplayData:
         """Normalize settings/mapping to DisplayData for create_table/display_config_table."""
-        json_value: t.Cli.JsonValue = t.Cli.JSON_VALUE_ADAPTER.validate_python(
+        json_value: t.JsonValue = t.Cli.JSON_VALUE_ADAPTER.validate_python(
             cls.Cli.normalize_json_value(data),
         )
         normalized = m.Cli.CliNormalizedJson(json_value).root

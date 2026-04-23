@@ -31,7 +31,6 @@ import hashlib
 import shutil
 import tempfile
 from collections.abc import (
-    Mapping,
     Sequence,
 )
 from pathlib import Path
@@ -40,7 +39,7 @@ from examples import c, t, u
 from flext_cli import cli
 
 
-def export_to_csv(data: Sequence[Mapping[str, t.Container]], output_file: Path) -> None:
+def export_to_csv(data: Sequence[t.JsonMapping], output_file: Path) -> None:
     """Export data to CSV with proper headers."""
     if not data:
         cli.print("⚠️  No data to export", style=c.Cli.MessageStyles.YELLOW)
@@ -68,7 +67,7 @@ def export_to_csv(data: Sequence[Mapping[str, t.Container]], output_file: Path) 
 
 def import_from_csv(
     input_file: Path,
-) -> Sequence[Mapping[str, t.Container]] | None:
+) -> Sequence[t.JsonMapping] | None:
     """Import data from CSV with headers."""
     cli.print(
         f"\n📥 Importing from CSV: {input_file.name}",
@@ -118,7 +117,7 @@ def process_binary_file(input_file: Path, output_file: Path) -> None:
         )
 
 
-def load_any_format_file(file_path: Path) -> Mapping[str, t.Container] | None:
+def load_any_format_file(file_path: Path) -> t.JsonMapping | None:
     """Load settings from ANY format - automatically detected."""
     cli.print(
         f"\n🔍 Auto-Detecting Format: {file_path.name}",
@@ -154,7 +153,7 @@ def load_any_format_file(file_path: Path) -> Mapping[str, t.Container] | None:
 
 
 def export_data_multi_format(
-    data: Mapping[str, t.Container] | Sequence[Mapping[str, t.Container]],
+    data: t.JsonMapping | Sequence[t.JsonMapping],
     base_path: Path,
 ) -> t.StrMapping:
     """Export same data to multiple formats (JSON, YAML, CSV)."""
@@ -165,7 +164,10 @@ def export_data_multi_format(
 
     export_results: t.MutableStrMapping = {}
     json_path = base_path.with_suffix(".json")
-    json_payload = data
+    if isinstance(data, Sequence):
+        json_payload = t.json_list_adapter().validate_python(data)
+    else:
+        json_payload = t.json_mapping_adapter().validate_python(data)
     json_result = cli.write_json_file(json_path, json_payload, indent=2)
     if json_result.success:
         size = json_path.stat().st_size
@@ -175,7 +177,7 @@ def export_data_multi_format(
         )
 
     yaml_path = base_path.with_suffix(".yaml")
-    yaml_payload = data
+    yaml_payload = json_payload
     yaml_result = cli.write_yaml_file(yaml_path, yaml_payload)
     if yaml_result.success:
         size = yaml_path.stat().st_size
@@ -184,7 +186,7 @@ def export_data_multi_format(
             f"✅ YAML: {yaml_path.name} ({size} bytes)", style=c.Cli.MessageStyles.GREEN
         )
 
-    csv_rows_data = u.Cli.json_as_mapping_list(data)
+    csv_rows_data = u.Cli.json_as_mapping_list(json_payload)
 
     if csv_rows_data:
         csv_path = base_path.with_suffix(".csv")
@@ -277,15 +279,13 @@ def main() -> None:
     temp_dir.mkdir(exist_ok=True)
     cli.print("\n" + "=" * 70, style=c.Cli.MessageStyles.BOLD_BLUE)
     cli.print("1. CSV Export/Import:", style=c.Cli.MessageStyles.BOLD_CYAN)
-    sample_data: Sequence[Mapping[str, t.Container]] = [
+    sample_data: Sequence[t.JsonMapping] = [
         {"id": 1, "name": "Alice", "department": "Engineering", "salary": "100000"},
         {"id": 2, "name": "Bob", "department": "Sales", "salary": "80000"},
         {"id": 3, "name": "Charlie", "department": "Marketing", "salary": "90000"},
     ]
     csv_file = temp_dir / "employees.csv"
-    typed_sample_data: Sequence[Mapping[str, t.Container]] = [
-        dict(row) for row in sample_data
-    ]
+    typed_sample_data: Sequence[t.JsonMapping] = [dict(row) for row in sample_data]
     export_to_csv(typed_sample_data, csv_file)
     import_from_csv(csv_file)
     cli.print("\n" + "=" * 70, style=c.Cli.MessageStyles.BOLD_BLUE)
@@ -296,7 +296,7 @@ def main() -> None:
     process_binary_file(binary_input, binary_output)
     cli.print("\n" + "=" * 70, style=c.Cli.MessageStyles.BOLD_BLUE)
     cli.print("3. Auto-Format Detection:", style=c.Cli.MessageStyles.BOLD_CYAN)
-    test_config: Mapping[str, t.Container] = {
+    test_config = {
         "app": "test",
         "version": "1.0",
         "debug": True,
@@ -309,7 +309,7 @@ def main() -> None:
     load_any_format_file(yaml_file)
     cli.print("\n" + "=" * 70, style=c.Cli.MessageStyles.BOLD_BLUE)
     cli.print("4. Multi-Format Export:", style=c.Cli.MessageStyles.BOLD_CYAN)
-    multi_data: Sequence[Mapping[str, t.Container]] = [
+    multi_data: Sequence[t.JsonMapping] = [
         {"metric": "CPU", "value": "75%", "status": "OK"},
         {"metric": "Memory", "value": "82%", "status": "Warning"},
         {"metric": "Disk", "value": "45%", "status": "OK"},
@@ -323,7 +323,7 @@ def main() -> None:
     process_text_file(text_input, text_output)
     cli.print("\n" + "=" * 70, style=c.Cli.MessageStyles.BOLD_BLUE)
     cli.print("6. File Copy with Verification:", style=c.Cli.MessageStyles.BOLD_CYAN)
-    demo_config: Mapping[str, t.Container] = {
+    demo_config = {
         "app": "demo",
         "version": "2.0",
         "enabled": True,

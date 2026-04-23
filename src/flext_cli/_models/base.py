@@ -5,12 +5,11 @@ from __future__ import annotations
 from collections.abc import (
     Mapping,
 )
-from types import MappingProxyType
 from typing import Annotated
 
 from flext_core import m, u
 
-from flext_cli import FlextCliTypesBase, c, p, t
+from flext_cli import c, p, t
 
 
 class FlextCliModelsBase:
@@ -44,12 +43,12 @@ class FlextCliModelsBase:
             validate_assignment=True,
         )
         data: Annotated[
-            Mapping[str, t.Container],
+            t.JsonMapping,
             m.Field(
                 description="Field-value pairs for display",
             ),
         ] = m.Field(
-            default_factory=lambda: MappingProxyType({}),
+            default_factory=dict,
             description="Field-value pairs for display",
         )
 
@@ -61,12 +60,12 @@ class FlextCliModelsBase:
             validate_assignment=True,
         )
         content: Annotated[
-            Mapping[str, t.Container],
+            t.JsonMapping,
             m.Field(
                 description="Loaded configuration content (dict or other JSON value)",
             ),
         ] = m.Field(
-            default_factory=lambda: MappingProxyType({}),
+            default_factory=dict,
             description="Loaded configuration content (dict or other JSON value)",
         )
 
@@ -78,16 +77,16 @@ class FlextCliModelsBase:
             frozen=True,
         )
         root: Annotated[
-            FlextCliTypesBase.JsonValue,
+            t.JsonValue,
             m.Field(description="Normalized JSON-compatible value"),
         ]
 
-        def __init__(self, root: FlextCliTypesBase.JsonValue) -> None:
+        def __init__(self, root: t.JsonValue) -> None:
             """Preserve the positional root-value constructor used by callers."""
             super().__init__(root=root)
 
         @u.model_serializer(mode="plain")
-        def serialize_model(self) -> FlextCliTypesBase.JsonValue:
+        def serialize_model(self) -> t.JsonValue:
             """Serialize as the wrapped JSON value rather than an object envelope."""
             return self.root
 
@@ -99,14 +98,14 @@ class FlextCliModelsBase:
             validate_assignment=True,
         )
         value: Annotated[
-            FlextCliTypesBase.JsonValue,
+            t.JsonValue,
             m.Field(description="The normalized JSON value"),
         ] = m.Field(
             default_factory=dict,
             description="The normalized JSON value",
         )
         default: Annotated[
-            FlextCliTypesBase.JsonMapping,
+            t.JsonMapping,
             m.Field(description="Default mapping if value is not a dict"),
         ] = m.Field(
             default_factory=dict,
@@ -114,13 +113,13 @@ class FlextCliModelsBase:
         )
 
         @property
-        def resolved(self) -> FlextCliTypesBase.JsonMapping:
+        def resolved(self) -> t.JsonMapping:
             """Resolve value to dict or return default."""
             if isinstance(self.value, Mapping):
                 return self.value
             return self.default
 
-    class SuccessSummaryDetails(m.RootModel[Mapping[str, str]]):
+    class SuccessSummaryDetails(m.RootModel[t.StrMapping]):
         """Key-value success summary details. Use m.Cli.SuccessSummaryDetails."""
 
     class PromptRuntimeState(m.FlexibleInternalModel):
@@ -384,7 +383,7 @@ class FlextCliModelsBase:
         ] = None
 
         @property
-        def params(self) -> t.Cli.JsonMapping:
+        def params(self) -> t.JsonMapping:
             """Parameters mapping - required by CliParamsConfig."""
             return {
                 "verbose": bool(self.verbose) if self.verbose is not None else False,
@@ -412,14 +411,14 @@ class FlextCliModelsBase:
         )
 
         default: Annotated[
-            t.Cli.JsonValue | None,
+            t.JsonValue | None,
             m.Field(
                 None,
                 description="Default value",
             ),
         ]
         type_hint: Annotated[
-            t.Cli.JsonValue | None,
+            t.JsonValue | None,
             m.Field(
                 None,
                 description="Parameter type (Click type or Python type)",
@@ -447,7 +446,7 @@ class FlextCliModelsBase:
             ),
         ]
         flag_value: Annotated[
-            t.Cli.JsonValue | None,
+            t.JsonValue | None,
             m.Field(
                 None,
                 description="Value when flag is set",
@@ -508,14 +507,14 @@ class FlextCliModelsBase:
         )
 
         default: Annotated[
-            t.Cli.JsonValue | None,
+            t.JsonValue | None,
             m.Field(
                 None,
                 description="Default value",
             ),
         ]
         type_hint: Annotated[
-            t.Cli.JsonValue | None,
+            t.JsonValue | None,
             m.Field(
                 None,
                 description="Value type",
@@ -622,11 +621,11 @@ class FlextCliModelsBase:
             m.Field(description="Requested type"),
         ]
         value: Annotated[
-            t.Cli.JsonValue | None,
+            t.JsonValue | None,
             m.Field(None, description="Value to extract and coerce"),
         ]
         default: Annotated[
-            t.Cli.JsonValue | None,
+            t.JsonValue | None,
             m.Field(None, description="Fallback value when extraction fails"),
         ]
 

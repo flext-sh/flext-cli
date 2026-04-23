@@ -27,9 +27,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import time
-from collections.abc import (
-    Mapping,
-)
 
 from flext_core import p, r
 
@@ -108,7 +105,7 @@ def show_common_cli_params() -> None:
         "These are AUTOMATICALLY available in ALL flext-cli commands:\n",
         style=c.Cli.MessageStyles.YELLOW,
     )
-    common_params: Mapping[str, t.Container] = {
+    common_params = {
         "verbose": "Enable verbose output (-v)",
         "quiet": "Suppress non-error output (-q)",
         "debug": "Enable debug mode (-d)",
@@ -148,7 +145,7 @@ def create_database_config_from_cli() -> p.Result[m.Examples.AdvancedDatabaseCon
         "\n🗄️  Database Configuration with Railway Pattern:",
         style=c.Cli.MessageStyles.BOLD_CYAN,
     )
-    cli_args: Mapping[str, t.Container] = {
+    cli_args = {
         "host": "db.example.com",
         "port": 5432,
         "name": "production_db",
@@ -199,20 +196,20 @@ def create_database_config_from_cli() -> p.Result[m.Examples.AdvancedDatabaseCon
 
 
 def validate_required_fields(
-    data: Mapping[str, t.Container],
-) -> p.Result[Mapping[str, t.Container]]:
+    data: t.JsonMapping,
+) -> p.Result[t.JsonMapping]:
     """Validate that all required fields are present."""
     required = list(c.EXAMPLE_DATABASE_REQUIRED_FIELDS)
     missing = [field for field in required if field not in data or not data[field]]
     if missing:
-        return r[Mapping[str, t.Container]].fail(
+        return r[t.JsonMapping].fail(
             f"Missing required fields: {missing}",
         )
-    return r[Mapping[str, t.Container]].ok(data)
+    return r[t.JsonMapping].ok(data)
 
 
 def convert_and_validate_with_pydantic(
-    data: Mapping[str, t.Container],
+    data: t.JsonMapping,
 ) -> p.Result[m.Examples.AdvancedDatabaseConfig]:
     """Convert raw data to validated Pydantic model."""
     try:

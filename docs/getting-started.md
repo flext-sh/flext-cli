@@ -236,7 +236,7 @@ ______________________________________________________________________
 
 ```bash
 # Before committing (MANDATORY)
-make validate               # Complete validation: lint + type + security + test
+make val               # Complete validation: lint + type + security + test
 
 # Individual checks
 make lint                   # Ruff linting (ZERO tolerance)

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from pathlib import Path
 
 from flext_cli import FlextCliServiceBase, p, t, u
@@ -12,11 +13,11 @@ class FlextCliRules(FlextCliServiceBase):
 
     @staticmethod
     def rules_resolve_scope(
-        settings: t.Cli.JsonValue,
+        settings: t.JsonValue,
         *,
         scope_key: str,
         allowed_keys: t.StrSequence,
-    ) -> t.Cli.RuleDefinition:
+    ) -> t.JsonMapping:
         """Extract one normalized declarative rules scope from loaded settings."""
         return u.Cli.rules_resolve_scope(
             settings,
@@ -30,7 +31,7 @@ class FlextCliRules(FlextCliServiceBase):
         *,
         scope_key: str,
         allowed_keys: t.StrSequence,
-    ) -> p.Result[t.Cli.RuleDefinition]:
+    ) -> p.Result[t.JsonMapping]:
         """Load one config file and normalize its rule scope."""
         return u.Cli.rules_load_scoped_config(
             config_path,
@@ -45,7 +46,7 @@ class FlextCliRules(FlextCliServiceBase):
         package_rules_dir: Path,
         registry_filename: str,
         rules_dir_name: str = "rules",
-    ) -> p.Result[t.Cli.RuleDefinition]:
+    ) -> p.Result[t.JsonMapping]:
         """Load one local or packaged rules registry."""
         return u.Cli.rules_load_registry(
             config_path,
@@ -70,7 +71,12 @@ class FlextCliRules(FlextCliServiceBase):
         fallback_action_key: str = "action",
         check_key: str = "check",
         rules_dir_name: str = "rules",
-    ) -> p.Result[t.Cli.RuleLoadResult[TRuleKind, TFileRuleKind]]:
+    ) -> p.Result[
+        tuple[
+            Sequence[tuple[TRuleKind, t.JsonMapping]],
+            Sequence[tuple[TFileRuleKind, t.JsonMapping]],
+        ]
+    ]:
         """Load one declarative local ruleset using direct matcher catalogs."""
         return u.Cli.rules_load_local_definitions(
             config_path,

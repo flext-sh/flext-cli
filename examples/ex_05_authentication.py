@@ -27,9 +27,6 @@ from __future__ import annotations
 import os
 import secrets
 import time
-from collections.abc import (
-    Mapping,
-)
 from pathlib import Path
 
 from flext_core import p, r
@@ -40,7 +37,7 @@ from flext_cli import cli
 
 def login_to_service(username: str, password: str) -> bool:
     """Login and save token in YOUR CLI application."""
-    credentials: Mapping[str, t.Container] = {
+    credentials = {
         "username": username,
         "password": password,
     }

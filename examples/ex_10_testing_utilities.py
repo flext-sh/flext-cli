@@ -79,7 +79,7 @@ def test_cli_command() -> None:
 
 
 def save_config_command(
-    settings: Mapping[str, t.Container],
+    settings: t.JsonMapping,
     *,
     base_dir: Path | None = None,
 ) -> p.Result[bool]:
@@ -101,7 +101,7 @@ def test_file_operations() -> None:
     """Test file operations in YOUR test suite."""
     cli.print("\n📄 Testing File Operations:", style=c.Cli.MessageStyles.BOLD_CYAN)
     config_data = {"test": True, "value": 123}
-    settings: Mapping[str, t.Container] = dict(config_data)
+    settings: t.JsonMapping = dict(config_data)
     result = save_config_command(settings)
     if not result.success:
         cli.print(
@@ -202,28 +202,28 @@ def test_error_scenarios() -> None:
 
 def _finalize_workflow_data(
     temp_file: Path,
-    read_data: t.Cli.JsonValue,
-) -> p.Result[Mapping[str, t.Cli.JsonValue]]:
+    read_data: t.JsonValue,
+) -> p.Result[Mapping[str, t.JsonValue]]:
     """Validate workflow payload, mark it processed, and clean up the temp file."""
     temp_file.unlink(missing_ok=True)
     if not isinstance(read_data, Mapping):
-        return r[Mapping[str, t.Cli.JsonValue]].fail(
+        return r[Mapping[str, t.JsonValue]].fail(
             "Workflow payload must be a mapping",
         )
-    loaded: MutableMapping[str, t.Cli.JsonValue] = {
+    loaded: MutableMapping[str, t.JsonValue] = {
         str(key): value for key, value in read_data.items()
     }
     loaded["status"] = "completed"
     loaded["processed"] = True
-    return r[Mapping[str, t.Cli.JsonValue]].ok(loaded)
+    return r[Mapping[str, t.JsonValue]].ok(loaded)
 
 
 def full_workflow_command(
     *,
     base_dir: Path | None = None,
-) -> p.Result[Mapping[str, t.Cli.JsonValue]]:
+) -> p.Result[Mapping[str, t.JsonValue]]:
     """Complete workflow to test."""
-    data: t.Cli.JsonMapping = {"status": "processing", "items": [1, 2, 3]}
+    data: t.JsonMapping = {"status": "processing", "items": [1, 2, 3]}
     temp_file = _temp_file_path("workflow_test.json", base_dir=base_dir)
     result = (
         cli
