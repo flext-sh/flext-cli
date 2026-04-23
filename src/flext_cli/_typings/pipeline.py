@@ -13,6 +13,7 @@ from flext_cli import FlextCliConstantsEnums
 
 if TYPE_CHECKING:
     from flext_cli._models.pipeline import FlextCliModelsPipeline
+    from flext_cli._protocols.pipeline import FlextCliProtocolsPipeline
 
 
 class FlextCliTypesPipeline:
@@ -24,11 +25,11 @@ class FlextCliTypesPipeline:
         FlextCliConstantsEnums.PipelineStageStatus.FAILED,
     ]
     type PipelineHandler = Callable[
-        [FlextCliModelsPipeline.PipelineStageContext],
+        [FlextCliProtocolsPipeline.PipelineStageContext],
         FlextProtocols.Result[FlextCliModelsPipeline.PipelineStageResult],
     ]
     type PipelineSkipPredicate = Callable[
-        [FlextCliModelsPipeline.PipelineStageContext],
+        [FlextCliProtocolsPipeline.PipelineStageContext],
         bool,
     ]
 
