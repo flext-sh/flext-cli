@@ -3,9 +3,29 @@
 from __future__ import annotations
 
 import sys
+from collections.abc import Sequence
 from pathlib import Path
+from typing import Protocol
 
 from flext_cli import c
+
+
+class _SummaryStats(Protocol):
+    verb: str
+    total: int
+    success: int
+    failed: int
+    skipped: int
+    elapsed: float
+
+
+class _ProjectFailureInfo(Protocol):
+    project: str
+    elapsed: float
+    error_count: int
+    log_path: Path
+    max_show: int
+    errors: Sequence[str]
 
 
 class FlextCliUtilitiesOutput:
@@ -145,7 +165,7 @@ class FlextCliUtilitiesOutput:
         cls.emit_raw(f"  {symbol} {verb:<8} {proj:<24} {elapsed:.2f}s\n")
 
     @classmethod
-    def summary(cls, stats: object) -> None:
+    def summary(cls, stats: _SummaryStats) -> None:
         verb = str(getattr(stats, "verb", "summary"))
         total = int(getattr(stats, "total", 0))
         success = int(getattr(stats, "success", 0))
@@ -171,7 +191,7 @@ class FlextCliUtilitiesOutput:
         cls.emit_raw(f"    {symbol} {gate:<10} {count:>5} errors  ({elapsed:.2f}s)\n")
 
     @classmethod
-    def project_failure(cls, info: object) -> None:
+    def project_failure(cls, info: _ProjectFailureInfo) -> None:
         project = str(getattr(info, "project", "unknown"))
         elapsed = int(getattr(info, "elapsed", 0))
         error_count = int(getattr(info, "error_count", 0))

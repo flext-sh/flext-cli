@@ -28,7 +28,7 @@ from flext_cli import cli
 
 
 def save_user_preferences(
-    preferences: t.JsonMapping,
+    preferences: Mapping[str, t.JsonPayloadCollectionValue],
     config_dir: Path,
 ) -> bool:
     """Save user preferences to JSON in YOUR app."""
@@ -87,7 +87,7 @@ def load_user_preferences(config_dir: Path) -> p.Result[m.Cli.LoadedConfig]:
 
 
 def save_deployment_config(
-    settings: t.JsonMapping,
+    settings: Mapping[str, t.JsonPayloadCollectionValue],
     config_file: Path,
 ) -> bool:
     """Save deployment settings to YAML in YOUR tool."""
@@ -648,7 +648,7 @@ def generate_output_files(
         return r[Mapping[str, Path]].fail(f"YAML export failed: {yaml_result.error}")
     results["yaml"] = yaml_file
 
-    content_items: t.RuntimeData = ""
+    content_items: t.JsonPayload = ""
     if isinstance(data.content, dict):
         content_items = data.content.get("items", [])
     else:

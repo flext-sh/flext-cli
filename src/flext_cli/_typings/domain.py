@@ -19,7 +19,7 @@ from flext_cli import FlextCliConstantsEnums, FlextCliTypesBase, p
 class FlextCliTypesDomain:
     """Composite CLI aliases built from canonical protocols and core types."""
 
-    type ResultValue = t.RuntimeData | Sequence[t.RuntimeData]
+    type ResultValue = t.JsonPayload | Sequence[t.JsonPayload]
     type RuleDefinitions = Sequence[t.JsonMapping]
     type RuleMatcher = tuple[
         frozenset[str],
@@ -65,6 +65,7 @@ class FlextCliTypesDomain:
     type TomlMappingSource = (
         t.JsonValue
         | t.JsonMapping
+        | t.ScalarMapping
         | FlextCliTypesBase.TomlItem
         | FlextCliTypesBase.TomlDocument
     )

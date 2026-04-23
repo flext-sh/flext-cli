@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import (
     Mapping,
 )
+from types import MappingProxyType
 from typing import Annotated
 
 from flext_core import m, u
@@ -48,7 +49,7 @@ class FlextCliModelsBase:
                 description="Field-value pairs for display",
             ),
         ] = m.Field(
-            default_factory=dict,
+            default_factory=lambda: MappingProxyType({}),
             description="Field-value pairs for display",
         )
 
@@ -65,7 +66,7 @@ class FlextCliModelsBase:
                 description="Loaded configuration content (dict or other JSON value)",
             ),
         ] = m.Field(
-            default_factory=dict,
+            default_factory=lambda: MappingProxyType({}),
             description="Loaded configuration content (dict or other JSON value)",
         )
 
@@ -90,8 +91,8 @@ class FlextCliModelsBase:
             """Serialize as the wrapped JSON value rather than an object envelope."""
             return self.root
 
-    class NormalizedJsonDict(m.BaseModel):
-        """Resolve normalized JSON to a dict with defaults. Use m.Cli.NormalizedJsonDict."""
+    class NormalizedJsonList(m.BaseModel):
+        """Resolve normalized JSON to a dict with defaults. Use m.Cli.NormalizedJsonList."""
 
         model_config = m.ConfigDict(
             extra="forbid",
@@ -108,7 +109,7 @@ class FlextCliModelsBase:
             t.JsonMapping,
             m.Field(description="Default mapping if value is not a dict"),
         ] = m.Field(
-            default_factory=dict,
+            default_factory=lambda: MappingProxyType({}),
             description="Default mapping if value is not a dict",
         )
 
@@ -119,7 +120,7 @@ class FlextCliModelsBase:
                 return self.value
             return self.default
 
-    class SuccessSummaryDetails(m.RootModel[t.StrMapping]):
+    class SuccessSummaryDetails(m.RootModel[dict[str, str]]):
         """Key-value success summary details. Use m.Cli.SuccessSummaryDetails."""
 
     class PromptRuntimeState(m.FlexibleInternalModel):
@@ -263,11 +264,14 @@ class FlextCliModelsBase:
         ] = ""
 
         # Index display
-        showindex: t.Cli.TableShowIndex = m.Field(
-            False,
-            validate_default=True,
-            description="Whether to show row indices",
-        )
+        showindex: Annotated[
+            t.Cli.TableShowIndex,
+            m.Field(
+                default=False,
+                validate_default=True,
+                description="Whether to show row indices",
+            ),
+        ] = False
 
         # Column alignment
         colalign: Annotated[

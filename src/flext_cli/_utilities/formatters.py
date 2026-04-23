@@ -137,7 +137,7 @@ class FlextCliUtilitiesFormatters:
         logger: p.Logger,
         event: str,
         exc: Exception,
-        **context: t.RuntimeData,
+        **context: t.JsonPayload,
     ) -> None:
         """Emit one normalized fallback warning event."""
         if not context:

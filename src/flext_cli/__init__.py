@@ -63,6 +63,7 @@ if _t.TYPE_CHECKING:
     from flext_cli.constants import FlextCliConstants, c
     from flext_cli.models import FlextCliModels, m
     from flext_cli.protocols import FlextCliProtocols, p
+    from flext_cli.services.api_runtime import FlextCliApiRuntime
     from flext_cli.services.auth import FlextCliAuth
     from flext_cli.services.cli import FlextCliCli
     from flext_cli.services.cli_params import FlextCliCommonParams
@@ -160,6 +161,7 @@ _LAZY_IMPORTS = merge_lazy_imports(
                 "FlextCliProtocols",
                 "p",
             ),
+            ".services.api_runtime": ("FlextCliApiRuntime",),
             ".services.auth": ("FlextCliAuth",),
             ".services.cli": ("FlextCliCli",),
             ".services.cli_params": ("FlextCliCommonParams",),
@@ -206,6 +208,7 @@ install_lazy_exports(__name__, globals(), _LAZY_IMPORTS)
 
 __all__: list[str] = [
     "FlextCli",
+    "FlextCliApiRuntime",
     "FlextCliAuth",
     "FlextCliCli",
     "FlextCliCmd",

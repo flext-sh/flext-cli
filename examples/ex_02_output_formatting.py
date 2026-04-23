@@ -36,6 +36,7 @@ from __future__ import annotations
 import pathlib
 import time
 from collections.abc import (
+    Mapping,
     MutableSequence,
     Sequence,
 )
@@ -145,10 +146,10 @@ def monitor_live_metrics() -> None:
     cli.print("✅ Monitoring session complete", style=c.Cli.MessageStyles.GREEN)
 
 
-def display_with_panels(data: t.JsonMapping) -> None:
+def display_with_panels(data: Mapping[str, t.JsonPayloadCollectionValue]) -> None:
     """Display content in organized sections."""
 
-    def panel_text(value: t.JsonValue) -> str:
+    def panel_text(value: t.JsonPayloadCollectionValue) -> str:
         if isinstance(value, bytes):
             return value.decode(c.Cli.ENCODING_DEFAULT, errors="replace")
         return str(value)

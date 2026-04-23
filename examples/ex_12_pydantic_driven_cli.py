@@ -27,6 +27,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import time
+from collections.abc import Mapping
 
 from flext_core import p, r
 
@@ -196,7 +197,7 @@ def create_database_config_from_cli() -> p.Result[m.Examples.AdvancedDatabaseCon
 
 
 def validate_required_fields(
-    data: t.JsonMapping,
+    data: Mapping[str, t.JsonPayloadCollectionValue],
 ) -> p.Result[t.JsonMapping]:
     """Validate that all required fields are present."""
     required = list(c.EXAMPLE_DATABASE_REQUIRED_FIELDS)
@@ -205,7 +206,10 @@ def validate_required_fields(
         return r[t.JsonMapping].fail(
             f"Missing required fields: {missing}",
         )
-    return r[t.JsonMapping].ok(data)
+    normalized_data = t.Cli.JSON_MAPPING_ADAPTER.validate_python(
+        u.Cli.normalize_json_value(data)
+    )
+    return r[t.JsonMapping].ok(normalized_data)
 
 
 def convert_and_validate_with_pydantic(

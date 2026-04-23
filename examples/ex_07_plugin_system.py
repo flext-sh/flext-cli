@@ -31,6 +31,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import (
+    Mapping,
     MutableMapping,
     Sequence,
 )
@@ -38,7 +39,7 @@ from pathlib import Path
 
 from flext_core import p, r
 
-from examples import c, m, t
+from examples import c, m, t, u
 from flext_cli import cli
 
 
@@ -183,22 +184,24 @@ def load_plugins_from_directory(plugin_dir: Path) -> MyAppPluginManager:
 class ConfigurablePlugin:
     """Example of configurable plugin for YOUR CLI."""
 
-    def __init__(self, settings: t.JsonMapping) -> None:
+    def __init__(self, settings: Mapping[str, t.JsonPayloadCollectionValue]) -> None:
         """Initialize configurable plugin with configuration dictionary."""
         super().__init__()
         self.name = "configurable-plugin"
-        self.settings: t.JsonMapping = settings
+        self.settings: Mapping[str, t.JsonPayloadCollectionValue] = settings
 
     def execute(self) -> p.Result[t.JsonMapping]:
         """Execute with configuration in YOUR CLI."""
         cli.print(
             f"🔧 Plugin settings: {self.settings}", style=c.Cli.MessageStyles.CYAN
         )
-        result_data = {
-            "plugin": self.name,
-            "config_applied": True,
-            **self.settings,
-        }
+        result_data = t.Cli.JSON_MAPPING_ADAPTER.validate_python(
+            u.Cli.normalize_json_value({
+                "plugin": self.name,
+                "config_applied": True,
+                **self.settings,
+            })
+        )
         return r[t.JsonMapping].ok(result_data)
 
 

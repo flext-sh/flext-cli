@@ -25,14 +25,18 @@ from typer.testing import CliRunner
 class FlextCliTypesBase:
     """Base CLI aliases shared across services and models."""
 
+    type TableMappingRow = Mapping[str, t.JsonPayload]
+    type TableSequenceRow = Sequence[t.JsonPayload]
     type DefaultMapping = Mapping[str, t.Scalar | t.StrSequence]
-    type TableRow = t.JsonMapping | t.JsonList
+    type TableRow = TableMappingRow | TableSequenceRow
     type TableConfigValue = (
         t.JsonValue | t.StrSequence | Sequence[int] | Sequence[str | int] | None
     )
-    type TabularData = t.JsonMapping | Sequence[TableRow]
+    type TabularData = TableMappingRow | Sequence[TableRow]
     type TableRows = Sequence[TableRow]
-    type TableShowIndex = bool | str | Sequence[str | int]
+    type TableIndexValue = str | int
+    type TableIndexSelection = Sequence[TableIndexValue]
+    type TableShowIndex = bool | TableIndexSelection
     type TableDisableNumparse = bool | Sequence[int]
     type TableColAlign = t.StrSequence | None
     type CliValue = t.Scalar | t.StrSequence | DefaultMapping
@@ -68,6 +72,7 @@ class FlextCliTypesBase:
         t.json_mapping_adapter()
     )
     JSON_LIST_ADAPTER: ClassVar[t.ValueAdapter[t.JsonList]] = t.json_list_adapter()
+    type YamlDict = t.JsonMapping
     YAML_DICT_ADAPTER: ClassVar[t.ValueAdapter[t.JsonMapping]] = (
         t.json_mapping_adapter()
     )

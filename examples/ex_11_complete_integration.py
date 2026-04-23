@@ -30,7 +30,7 @@ from collections.abc import (
 )
 from pathlib import Path
 
-from examples import c, m, p, r, t
+from examples import c, m, p, r, t, u
 from flext_cli import cli
 
 
@@ -55,10 +55,12 @@ class DataManagerCLI:
             return r[t.JsonMapping].fail(f"Prompt failed: {value_result.error}")
         value = value_result.value
         cli.print(f"✅ Created entry: {key} = {value}", style=c.Cli.MessageStyles.GREEN)
-        converted_entry = {key: value}
+        converted_entry = t.Cli.JSON_MAPPING_ADAPTER.validate_python(
+            u.Cli.normalize_json_value({key: value})
+        )
         return r[t.JsonMapping].ok(converted_entry)
 
-    def display_data(self, data: t.JsonMapping) -> None:
+    def display_data(self, data: Mapping[str, t.JsonPayloadCollectionValue]) -> None:
         """Display data as formatted table."""
         if not data:
             cli.print("⚠️  No data to display", style=c.Cli.MessageStyles.YELLOW)
@@ -133,13 +135,16 @@ class DataManagerCLI:
 
 
 def process_with_railway_pattern(
-    input_data: t.JsonMapping,
+    input_data: Mapping[str, t.JsonPayloadCollectionValue],
 ) -> p.Result[t.JsonMapping]:
     """Show railway pattern chaining operations."""
     step1_data = {**input_data, "validated": True}
     step2_data = {**step1_data, "processed": True}
     final_data = {**step2_data, "enriched": True}
-    result: p.Result[t.JsonMapping] = r[t.JsonMapping].ok(final_data)
+    normalized_final_data = t.Cli.JSON_MAPPING_ADAPTER.validate_python(
+        u.Cli.normalize_json_value(final_data)
+    )
+    result: p.Result[t.JsonMapping] = r[t.JsonMapping].ok(normalized_final_data)
     if result.failure:
         cli.print(
             f"❌ Pipeline failed: {result.error}", style=c.Cli.MessageStyles.BOLD_RED
