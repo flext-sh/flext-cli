@@ -1,0 +1,37 @@
+examples/ex_04_file_operations.py
+  829bd02b9844440d 675-677,680,682,684
+tests/unit/_helpers.py
+  829bd02b9844440d 28-29,43-44,59-60
+tests/unit/test_pipeline.py
+  829bd02b9844440d 15,32,38,74,105,115,194,240
+src/flext_cli/_utilities/commands.py
+  829bd02b9844440d 17,48
+tests/utilities.py
+  829bd02b9844440d 212-213,227-228,243-244
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.2",
+  "base_commit_sha": "29847f3579e980c2422046b624f8cfbbe1663ee8",
+  "prompts": {
+    "829bd02b9844440d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c7999663-f020-473e-b97a-736d5ebfd970",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "FLEXT Bot",
+      "messages": [],
+      "total_additions": 28,
+      "total_deletions": 25,
+      "accepted_lines": 28,
+      "overriden_lines": 0,
+      "messages_url": "https://usegitai.com/cas/76bde10d20228e1d9ce2c8b93f0ac4e0d4a3fac56fe1c23d4332fe49be04e296"
+    }
+  },
+  "humans": {
+    "h_9db9d35f50cf33": {
+      "author": "FLEXT Bot"
+    }
+  }
+}
