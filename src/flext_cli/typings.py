@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from flext_core import t
+from flext_core import FlextTypes
 from yaml import YAMLError
 
 from flext_cli import FlextCliTypesBase, FlextCliTypesDomain, FlextCliTypesPipeline
 
 
-class FlextCliTypes(t):
+class FlextCliTypes(FlextTypes):
     """CLI type definitions extending flext-core FlextTypes via inheritance."""
 
     class Cli(FlextCliTypesPipeline, FlextCliTypesDomain, FlextCliTypesBase):
@@ -17,6 +17,6 @@ class FlextCliTypes(t):
         YAMLError: type[Exception] = YAMLError
 
 
-t = FlextCliTypes
+t: type[FlextCliTypes] = FlextCliTypes
 
 __all__: list[str] = ["FlextCliTypes", "t"]

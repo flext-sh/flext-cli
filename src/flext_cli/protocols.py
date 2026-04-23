@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from flext_core import p
+from flext_core import FlextProtocols
 
 from flext_cli import (
     FlextCliProtocolsBase,
@@ -11,7 +11,7 @@ from flext_cli import (
 )
 
 
-class FlextCliProtocols(p):
+class FlextCliProtocols(FlextProtocols):
     """CLI protocol definitions extending FlextProtocols."""
 
     class Cli(
@@ -20,6 +20,6 @@ class FlextCliProtocols(p):
         """Unified CLI protocol namespace."""
 
 
-p = FlextCliProtocols
+p: type[FlextCliProtocols] = FlextCliProtocols
 
 __all__: list[str] = ["FlextCliProtocols", "p"]

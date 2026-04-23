@@ -38,7 +38,7 @@ class FlextCliUtilitiesRuntime:
     @staticmethod
     def run_raw(
         cmd: t.StrSequence,
-        cwd: t.Cli.PathLike | None = None,
+        cwd: t.Cli.TextPath | None = None,
         timeout: int | None = None,
         env: t.StrMapping | None = None,
         input_data: bytes | None = None,
@@ -81,7 +81,7 @@ class FlextCliUtilitiesRuntime:
     @staticmethod
     def run(
         cmd: t.StrSequence,
-        cwd: t.Cli.PathLike | None = None,
+        cwd: t.Cli.TextPath | None = None,
         timeout: int | None = None,
         env: t.StrMapping | None = None,
     ) -> p.Result[m.Cli.CommandOutput]:
@@ -108,7 +108,7 @@ class FlextCliUtilitiesRuntime:
     @staticmethod
     def run_checked(
         cmd: t.StrSequence,
-        cwd: t.Cli.PathLike | None = None,
+        cwd: t.Cli.TextPath | None = None,
         timeout: int | None = None,
         env: t.StrMapping | None = None,
     ) -> p.Result[bool]:
@@ -123,7 +123,7 @@ class FlextCliUtilitiesRuntime:
     @staticmethod
     def capture(
         cmd: t.StrSequence,
-        cwd: t.Cli.PathLike | None = None,
+        cwd: t.Cli.TextPath | None = None,
         timeout: int | None = None,
         env: t.StrMapping | None = None,
     ) -> p.Result[str]:
@@ -138,8 +138,8 @@ class FlextCliUtilitiesRuntime:
     @staticmethod
     def run_to_file(
         cmd: t.StrSequence,
-        output_file: t.Cli.PathLike,
-        cwd: t.Cli.PathLike | None = None,
+        output_file: t.Cli.TextPath,
+        cwd: t.Cli.TextPath | None = None,
         timeout: int | None = None,
         env: t.StrMapping | None = None,
     ) -> p.Result[int]:

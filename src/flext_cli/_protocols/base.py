@@ -6,9 +6,11 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from flext_core import m, p
+from flext_core._typings.services import FlextTypesServices as ts
 
 if TYPE_CHECKING:
     from flext_cli import m, t
@@ -48,7 +50,7 @@ class FlextCliProtocolsBase:
         def run(
             self,
             cmd: t.StrSequence,
-            cwd: t.Cli.PathLike | None = None,
+            cwd: t.Cli.TextPath | None = None,
             timeout: int | None = None,
             env: t.StrMapping | None = None,
         ) -> p.Result[m.Cli.CommandOutput]:
@@ -58,7 +60,7 @@ class FlextCliProtocolsBase:
         def capture(
             self,
             cmd: t.StrSequence,
-            cwd: t.Cli.PathLike | None = None,
+            cwd: t.Cli.TextPath | None = None,
             timeout: int | None = None,
             env: t.StrMapping | None = None,
         ) -> p.Result[str]:
@@ -68,7 +70,7 @@ class FlextCliProtocolsBase:
         def run_raw(
             self,
             cmd: t.StrSequence,
-            cwd: t.Cli.PathLike | None = None,
+            cwd: t.Cli.TextPath | None = None,
             timeout: int | None = None,
             env: t.StrMapping | None = None,
             input_data: bytes | None = None,
@@ -79,7 +81,7 @@ class FlextCliProtocolsBase:
         def run_checked(
             self,
             cmd: t.StrSequence,
-            cwd: t.Cli.PathLike | None = None,
+            cwd: t.Cli.TextPath | None = None,
             timeout: int | None = None,
             env: t.StrMapping | None = None,
         ) -> p.Result[bool]:
@@ -89,8 +91,8 @@ class FlextCliProtocolsBase:
         def run_to_file(
             self,
             cmd: t.StrSequence,
-            output_file: t.Cli.PathLike,
-            cwd: t.Cli.PathLike | None = None,
+            output_file: t.Cli.TextPath,
+            cwd: t.Cli.TextPath | None = None,
             timeout: int | None = None,
             env: t.StrMapping | None = None,
         ) -> p.Result[int]:
@@ -152,9 +154,9 @@ class FlextCliProtocolsBase:
 
         def __call__(
             self,
-            *args: t.JsonValue,
-            **kwargs: t.JsonValue,
-        ) -> t.JsonValue:
+            *args: ts.JsonPayload,
+            **kwargs: ts.JsonPayload,
+        ) -> ts.JsonPayload:
             """Execute the wrapper."""
             ...
 
@@ -183,7 +185,7 @@ class FlextCliProtocolsBase:
             ...
 
         @property
-        def value(self) -> t.Cli.ResultValue:
+        def value(self) -> ts.JsonPayload | Sequence[ts.JsonPayload]:
             """Expose the successful payload for message formatting."""
             ...
 
@@ -201,7 +203,7 @@ class FlextCliProtocolsBase:
 
         def dump(
             self,
-            data: t.JsonValue,
+            data: ts.JsonPayload,
             *,
             default_flow_style: bool = True,
         ) -> str:
