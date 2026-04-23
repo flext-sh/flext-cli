@@ -1,0 +1,16 @@
+src/flext_cli/_protocols/base.py
+  h_9db9d35f50cf33 156-157
+src/flext_cli/_typings/domain.py
+  h_9db9d35f50cf33 58-59,63,70,73,75,80
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.2",
+  "base_commit_sha": "68fc3cda0d857f1337245ab6b1fe8924002bcf41",
+  "prompts": {},
+  "humans": {
+    "h_9db9d35f50cf33": {
+      "author": "FLEXT Bot"
+    }
+  }
+}
