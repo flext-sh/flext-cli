@@ -39,7 +39,7 @@ class TestsCliVersion:
     def test_actual_version_string_semver_compliant(self) -> None:
         """Test __version__ matches semver pattern."""
         tm.that(
-            re.match(c.Cli.Tests.VersionExamples.SEMVER_PATTERN, __version__),
+            re.match(c.Cli.Tests.SEMVER_PATTERN, __version__),
             none=False,
         )
 

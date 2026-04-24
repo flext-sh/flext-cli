@@ -272,9 +272,9 @@ class TestsCliPrompts:
         "message",
         [
             "",
-            c.Cli.Tests.TestData.LONG,
-            c.Cli.Tests.TestData.SPECIAL,
-            c.Cli.Tests.TestData.UNICODE,
+            c.Cli.Tests.LONG,
+            c.Cli.Tests.SPECIAL,
+            c.Cli.Tests.UNICODE,
         ],
     )
     def test_prompt_accepts_edge_case_messages(self, message: str) -> None:

@@ -59,11 +59,11 @@ class TestsCliLoggingSettings:
 
     @pytest.mark.parametrize(
         ("level", "expected"),
-        c.Cli.Tests.ConfigFactory.logging_scenarios(),
+        c.Cli.Tests.logging_scenarios(),
     )
     def test_logging_levels(self, level: str, expected: str) -> None:
         """Test all logging levels with single parametrized test."""
-        tm.that(level in c.Cli.Tests.ConfigFactory.VALID_LOGGING_LEVELS, eq=True)
+        tm.that(level in c.Cli.Tests.VALID_LOGGING_LEVELS, eq=True)
         tm.that(level, eq=expected)
 
 
@@ -87,10 +87,10 @@ class TestsCliSettingsIntegration:
 class TestsCliSettingsValidation:
     """Validation tests."""
 
-    @pytest.mark.parametrize("env", c.Cli.Tests.ConfigFactory.VALID_ENVIRONMENTS)
+    @pytest.mark.parametrize("env", c.Cli.Tests.VALID_ENVIRONMENTS)
     def test_valid_environments(self, env: str) -> None:
         """Test all valid environments."""
-        tm.that(c.Cli.Tests.ConfigFactory.VALID_ENVIRONMENTS, has=env)
+        tm.that(c.Cli.Tests.VALID_ENVIRONMENTS, has=env)
 
     def test_model_dump(self) -> None:
         """Test model_dump returns complete dict."""

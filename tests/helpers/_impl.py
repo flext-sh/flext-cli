@@ -25,8 +25,8 @@ class FlextCliTestHelpers:
         def validate_version_string(version: str) -> p.Result[str]:
             """Validate version string against semver pattern."""
             if not version:
-                return r[str].fail(c.Cli.Tests.VersionErrors.EMPTY_STRING)
-            pattern: str = c.Cli.Tests.VersionExamples.SEMVER_PATTERN
+                return r[str].fail(c.Cli.Tests.EMPTY_STRING)
+            pattern: str = c.Cli.Tests.SEMVER_PATTERN
             if not re.match(pattern, version):
                 return r[str].fail(f"Version '{version}' does not match semver pattern")
             return r[str].ok(version)
@@ -38,7 +38,7 @@ class FlextCliTestHelpers:
             """Validate version info tuple structure."""
             if len(version_info) < 3:
                 return r[tuple[int | str, ...]].fail(
-                    c.Cli.Tests.VersionErrors.INFO_TOO_SHORT,
+                    c.Cli.Tests.INFO_TOO_SHORT,
                 )
             for i, part in enumerate(version_info):
                 if isinstance(part, int) and part < 0:

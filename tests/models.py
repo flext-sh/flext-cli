@@ -112,7 +112,7 @@ class TestsFlextCliModels(FlextTestsModels, m):
                     from tests import c
 
                     data_class = TestsFlextCliModels.Cli.Tests.VersionTestScenario
-                    ex = c.Cli.Tests.VersionExamples
+                    ex = c.Cli.Tests
                     return [
                         data_class(
                             name="valid_semver",
@@ -147,7 +147,7 @@ class TestsFlextCliModels(FlextTestsModels, m):
                     from tests import c
 
                     data_class = TestsFlextCliModels.Cli.Tests.VersionTestScenario
-                    info = c.Cli.Tests.VersionInfoTuples
+                    info = c.Cli.Tests
                     return [
                         data_class(
                             name="valid_tuple",
@@ -179,8 +179,8 @@ class TestsFlextCliModels(FlextTestsModels, m):
                     from tests import c
 
                     data_class = TestsFlextCliModels.Cli.Tests.VersionTestScenario
-                    ex = c.Cli.Tests.VersionExamples
-                    info = c.Cli.Tests.VersionInfoTuples
+                    ex = c.Cli.Tests
+                    info = c.Cli.Tests
                     return [
                         data_class(
                             name="valid_match",
