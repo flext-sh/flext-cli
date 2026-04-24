@@ -34,28 +34,14 @@ if _t.TYPE_CHECKING:
     from tests.unit.test_examples_smoke import TestsFlextCliExamplesSmoke
     from tests.unit.test_pipeline import TestsFlextCliPipeline
     from tests.unit.test_prompts import TestsFlextCliPrompts
-    from tests.unit.test_prompts_cov import (
-        TestsCliPromptsCov,
-        TestsFlextCliCaptureLogPromptsCov,
-    )
+    from tests.unit.test_prompts_cov import TestsFlextCliPromptsCov
     from tests.unit.test_protocols import TestsFlextCliProtocolsUnit
     from tests.unit.test_runtime_utilities_extra import (
         TestsFlextCliRuntimeUtilitiesExtra,
     )
-    from tests.unit.test_settings import (
-        TestsCliLoggingSettings,
-        TestsCliSettingsBasics,
-        TestsCliSettingsEdgeCases,
-        TestsCliSettingsIntegration,
-        TestsCliSettingsService,
-        TestsCliSettingsValidation,
-    )
+    from tests.unit.test_settings import TestsFlextCliSettings
     from tests.unit.test_tables import TestsFlextCliTables
-    from tests.unit.test_toml_utilities import (
-        TestCliTomlDocument,
-        TestCliTomlHelpers,
-        TestCliTomlRead,
-    )
+    from tests.unit.test_toml_utilities import TestsFlextCliTomlUtilities
     from tests.unit.test_typings import TestsFlextCliTypesUnit
     from tests.unit.test_utilities_cov import TestsFlextCliUtilitiesCov
     from tests.unit.test_version import TestsFlextCliVersion
@@ -96,28 +82,14 @@ _LAZY_IMPORTS = merge_lazy_imports(
             ".unit.test_examples_smoke": ("TestsFlextCliExamplesSmoke",),
             ".unit.test_pipeline": ("TestsFlextCliPipeline",),
             ".unit.test_prompts": ("TestsFlextCliPrompts",),
-            ".unit.test_prompts_cov": (
-                "TestsCliPromptsCov",
-                "TestsFlextCliCaptureLogPromptsCov",
-            ),
+            ".unit.test_prompts_cov": ("TestsFlextCliPromptsCov",),
             ".unit.test_protocols": ("TestsFlextCliProtocolsUnit",),
             ".unit.test_runtime_utilities_extra": (
                 "TestsFlextCliRuntimeUtilitiesExtra",
             ),
-            ".unit.test_settings": (
-                "TestsCliLoggingSettings",
-                "TestsCliSettingsBasics",
-                "TestsCliSettingsEdgeCases",
-                "TestsCliSettingsIntegration",
-                "TestsCliSettingsService",
-                "TestsCliSettingsValidation",
-            ),
+            ".unit.test_settings": ("TestsFlextCliSettings",),
             ".unit.test_tables": ("TestsFlextCliTables",),
-            ".unit.test_toml_utilities": (
-                "TestCliTomlDocument",
-                "TestCliTomlHelpers",
-                "TestCliTomlRead",
-            ),
+            ".unit.test_toml_utilities": ("TestsFlextCliTomlUtilities",),
             ".unit.test_typings": ("TestsFlextCliTypesUnit",),
             ".unit.test_utilities_cov": ("TestsFlextCliUtilitiesCov",),
             ".unit.test_version": ("TestsFlextCliVersion",),
@@ -159,17 +131,6 @@ __all__: list[str] = [
     "FlextCliCaptureLogPrompts",
     "FlextCliFailingLogPrompts",
     "FlextCliScriptedPrompts",
-    "TestCliTomlDocument",
-    "TestCliTomlHelpers",
-    "TestCliTomlRead",
-    "TestsCliLoggingSettings",
-    "TestsCliPromptsCov",
-    "TestsCliSettingsBasics",
-    "TestsCliSettingsEdgeCases",
-    "TestsCliSettingsIntegration",
-    "TestsCliSettingsService",
-    "TestsCliSettingsValidation",
-    "TestsFlextCliCaptureLogPromptsCov",
     "TestsFlextCliCmd",
     "TestsFlextCliCmdCov",
     "TestsFlextCliCommands",

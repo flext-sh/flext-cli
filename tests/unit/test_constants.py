@@ -22,7 +22,7 @@ from flext_tests import tm
 from tests import c, u
 
 
-class TestsFlextCliConstants:
+class TestsFlextCliConstantsUnit:
     """Comprehensive test suite for FlextCliConstants functionality."""
 
     def test_cli_version_is_semver(self) -> None:
