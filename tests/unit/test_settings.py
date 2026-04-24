@@ -20,7 +20,7 @@ from flext_cli import FlextCliSettings, cli
 from tests import c
 
 
-class TestsCliSettingsBasics:
+class TestsFlextCliSettings:
     """Core settings functionality - initialization, serialization, deserialization."""
 
     def test_initialization(self) -> None:
@@ -42,20 +42,12 @@ class TestsCliSettingsBasics:
         settings_2 = FlextCliSettings.fetch_global()
         tm.that(settings_1.verbose, eq=settings_2.verbose)
 
-
-class TestsCliSettingsService:
-    """Service and execution methods."""
-
     def test_reset_instance(self) -> None:
         """Test reset_for_testing resets global state."""
         FlextCliSettings()
         FlextCliSettings.reset_for_testing()
         new_settings = FlextCliSettings()
         tm.that(new_settings, none=False)
-
-
-class TestsCliLoggingSettings:
-    """Logging settings tests."""
 
     @pytest.mark.parametrize(
         ("level", "expected"),
@@ -65,10 +57,6 @@ class TestsCliLoggingSettings:
         """Test all logging levels with single parametrized test."""
         tm.that(level in c.Cli.Tests.VALID_LOGGING_LEVELS, eq=True)
         tm.that(level, eq=expected)
-
-
-class TestsCliSettingsIntegration:
-    """Integration with cli."""
 
     def test_flext_cli_integration(self) -> None:
         """Test cli uses settings."""
@@ -83,10 +71,6 @@ class TestsCliSettingsIntegration:
         tm.that(settings, none=False)
         tm.that(settings, is_=FlextCliSettings)
 
-
-class TestsCliSettingsValidation:
-    """Validation tests."""
-
     @pytest.mark.parametrize("env", c.Cli.Tests.VALID_ENVIRONMENTS)
     def test_valid_environments(self, env: str) -> None:
         """Test all valid environments."""
@@ -98,10 +82,6 @@ class TestsCliSettingsValidation:
         dumped = settings.model_dump()
         tm.that(dumped, is_=dict)
         tm.that(dumped, empty=False)
-
-
-class TestsCliSettingsEdgeCases:
-    """Edge cases and boundary conditions."""
 
     def test_basic_fields_exist(self) -> None:
         """Test settings has expected fields."""

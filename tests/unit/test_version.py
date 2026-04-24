@@ -22,7 +22,7 @@ from flext_cli import __version__, __version_info__
 from tests import c, m, t, u
 
 
-class TestsCliVersion:
+class TestsFlextCliVersion:
     """Comprehensive version validation test suite.
 
     Single class with nested helper classes and methods organized by functionality.

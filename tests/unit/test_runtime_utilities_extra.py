@@ -9,7 +9,7 @@ from flext_tests import tm
 from tests import m, u
 
 
-class TestCliRuntimeUtilitiesExtra:
+class TestsFlextCliRuntimeUtilitiesExtra:
     """Extra runtime behavior tests for ``u.Cli``."""
 
     def test_command_output_model(self) -> None:

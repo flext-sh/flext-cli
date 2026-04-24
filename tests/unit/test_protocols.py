@@ -17,7 +17,7 @@ from flext_tests import tm
 from tests import p
 
 
-class TestsCliProtocols:
+class TestsFlextCliProtocolsUnit:
     """Test suite for flext_cli.protocols.FlextCliProtocols module."""
 
     def test_protocol_class_has_required_attributes(self) -> None:

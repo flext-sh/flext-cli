@@ -6,10 +6,8 @@ from typing import Self
 
 from flext_tests import tm
 
-from tests.helpers._impl import FlextCliCaptureLogPrompts
 
-
-class TestsFlextCliCaptureLogPromptsCov(FlextCliCaptureLogPrompts):
+class TestsFlextCliPromptsCov:
     """Prompt service that records log calls and supports test-env override."""
 
     __test__ = False
@@ -18,13 +16,9 @@ class TestsFlextCliCaptureLogPromptsCov(FlextCliCaptureLogPrompts):
         self._test_env_override = False
         return self
 
-
-class TestsCliPromptsCov:
-    """Extra prompt coverage without monkeypatch or mock."""
-
     def test_prompt_logs_input_when_not_in_test_env(self) -> None:
         prompts = (
-            TestsFlextCliCaptureLogPromptsCov()
+            TestsFlextCliPromptsCov()
             .configure_state(interactive=True)
             .use_input_values(["typed"])
             .force_non_test_env()
@@ -40,7 +34,7 @@ class TestsCliPromptsCov:
 
     def test_confirm_records_warning_before_retrying(self) -> None:
         prompts = (
-            TestsFlextCliCaptureLogPromptsCov()
+            TestsFlextCliPromptsCov()
             .configure_state(interactive=True)
             .use_input_values(["maybe", "y"])
         )

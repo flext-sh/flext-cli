@@ -20,7 +20,7 @@ from flext_cli import FlextCliCmd
 from tests import m, u
 
 
-class TestsCliCmd:
+class TestsFlextCliCmd:
     """Comprehensive tests for FlextCliCmd class.
 
     Single class with nested test groups organized by functionality.

@@ -19,7 +19,7 @@ from flext_cli import FlextCliCommands
 from tests import c, m, r, t, u
 
 
-class TestsCliCommands:
+class TestsFlextCliCommands:
     """Comprehensive tests for FlextCliCommands class."""
 
     def test_commands_initialization(self) -> None:

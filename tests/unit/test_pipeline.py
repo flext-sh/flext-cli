@@ -46,7 +46,7 @@ def _make_ctx(tmp_path: Path) -> m.Cli.PipelineStageContext:
 # ── Tests ───────────────────────────────────────────────────────────
 
 
-class TestPipelineExecute:
+class TestsFlextCliPipeline:
     """Test u.Cli.execute_pipeline()."""
 
     def test_single_stage_ok(self, tmp_path: Path) -> None:

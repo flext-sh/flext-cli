@@ -9,7 +9,7 @@ from flext_cli import FlextCliTables
 from tests import c
 
 
-class TestsCliTables:
+class TestsFlextCliTables:
     """Regression coverage for public table helpers."""
 
     def test_format_table_accepts_single_mapping_and_sequence_kwargs(self) -> None:

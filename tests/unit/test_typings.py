@@ -17,7 +17,7 @@ from flext_tests import tm
 from tests import m, t
 
 
-class TestsCliTypings:
+class TestsFlextCliTypesUnit:
     """Tests for flext_cli.typings.FlextCliTypes module."""
 
     def test_full_type_workflow_integration(self) -> None:

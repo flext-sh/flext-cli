@@ -19,7 +19,7 @@ from flext_cli import FlextCliCommonParams
 from tests import c, u
 
 
-class TestsCliCommonParams:
+class TestsFlextCliCommonParams:
     """Railway-oriented tests for FlextCliCommonParams - zero fallbacks or state manipulation."""
 
     def test_create_option_returns_option_info_for_known_fields(self) -> None:

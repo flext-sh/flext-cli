@@ -12,7 +12,7 @@ from flext_cli import cli
 from tests import c, m, p, r, t
 
 
-class TestsCliService:
+class TestsFlextCliService:
     """Covers the restored Typer-facing public API."""
 
     def test_create_app_with_common_params_applies_settings(self) -> None:

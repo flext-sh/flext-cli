@@ -16,7 +16,7 @@ from tests.helpers._impl import (
 )
 
 
-class TestsCliPrompts:
+class TestsFlextCliPrompts:
     """Behavior-only tests for FlextCliPrompts."""
 
     def test_execute_success(

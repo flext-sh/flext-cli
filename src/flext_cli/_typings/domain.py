@@ -11,6 +11,9 @@ from collections.abc import (
 from pathlib import Path
 
 from flext_core import m, t
+from tomlkit.container import Container
+from tomlkit.items import AoT, Array, Item, Table
+from tomlkit.toml_document import TOMLDocument
 
 from flext_cli import p
 from flext_cli._constants.enums import FlextCliConstantsEnums
@@ -62,19 +65,22 @@ class FlextCliTypesDomain:
     type ResultRouteHandler = Callable[..., FlextCliProtocolsBase.ErasedCommandResult]
     type MappingProcessor[T, U] = Callable[[str, T], U]
     type TomlMappingSource = (
-        t.JsonPayload
-        | t.JsonMapping
-        | t.ScalarMapping
-        | FlextCliTypesBase.TomlItem
-        | FlextCliTypesBase.TomlDocument
+        t.JsonPayload | t.JsonMapping | t.ScalarMapping | Item | TOMLDocument
     )
-    type TomlUnwrappedSource = (
-        t.JsonPayload | t.JsonMapping | FlextCliTypesBase.TomlItem
-    )
+    type TomlUnwrappedSource = t.JsonPayload | t.JsonMapping | Item
     type TomlStringListSource = (
         TomlUnwrappedSource | Sequence[t.JsonPayload] | Sequence[t.Primitives]
     )
-    type TomlRuntimeSource = FlextCliTypesBase.TomlValue | t.JsonMapping | t.JsonPayload
+    type TomlRuntimeSource = (
+        TOMLDocument
+        | Table
+        | Item
+        | Array
+        | AoT
+        | Container
+        | t.JsonMapping
+        | t.JsonPayload
+    )
     type TypeKind = FlextCliConstantsEnums.TypeKind
     type TypedExtractValue = str | bool | t.JsonMapping
     type TableDataSource = FlextCliTypesBase.TabularData | Sequence[t.JsonMapping]

@@ -24,7 +24,7 @@ from flext_cli import FlextCliServiceBase, FlextCliSettings
 from tests import p, r, t
 
 
-class TestsCliServiceBase:
+class TestsFlextCliServiceBase:
     """Comprehensive test suite for FlextCliServiceBase functionality.
 
     Single class with nested helper classes and methods organized by functionality.

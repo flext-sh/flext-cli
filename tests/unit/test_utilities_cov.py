@@ -7,7 +7,7 @@ from flext_tests import tm
 from tests import u
 
 
-class TestsCliUtilitiesCov:
+class TestsFlextCliUtilitiesCov:
     """Coverage tests for CLI utilities."""
 
     def test_process_fail_and_collect_paths(self) -> None:

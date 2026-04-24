@@ -28,7 +28,7 @@ def _temporary_home(path: Path) -> Generator[None]:
             os.environ["HOME"] = original_home
 
 
-class TestsCliCmdCov:
+class TestsFlextCliCmdCov:
     """Coverage tests for FlextCliCmd."""
 
     def test_validate_settings_succeeds_when_structure_is_missing(

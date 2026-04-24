@@ -14,8 +14,8 @@ from typing import ClassVar, TypeIs
 
 import tomlkit
 from flext_core import u
-from tomlkit import TOMLDocument
-from tomlkit.items import AoT, Item as TomlItem, Table as TomlTable
+from tomlkit.items import AoT, Array, Item, Table
+from tomlkit.toml_document import TOMLDocument
 
 from flext_cli import (
     FlextCliUtilitiesJson as uj,
@@ -52,14 +52,10 @@ class FlextCliUtilitiesToml:
         """Unwrap TOML items and documents to plain Python values."""
         if value is None:
             return None
-        if isinstance(value, Mapping) and not isinstance(
-            value, TOMLDocument | TomlItem
-        ):
+        if isinstance(value, Mapping) and not isinstance(value, TOMLDocument | Item):
             return uj.normalize_json_value(value)
-        normalized = (
-            value.unwrap() if isinstance(value, TOMLDocument | TomlItem) else value
-        )
-        if isinstance(normalized, TomlItem):
+        normalized = value.unwrap() if isinstance(value, TOMLDocument | Item) else value
+        if isinstance(normalized, Item):
             return None
         return uj.normalize_json_value(normalized)
 
@@ -68,11 +64,9 @@ class FlextCliUtilitiesToml:
         value: t.Cli.TomlStringListSource | None,
     ) -> t.StrSequence:
         """Normalize a TOML array into a string sequence."""
-        normalized: t.Cli.TomlStringListSource | None
-        if isinstance(value, TOMLDocument | TomlItem):
-            normalized = value.unwrap()
-        else:
-            normalized = value
+        normalized: t.Cli.TomlStringListSource | None = (
+            value.unwrap() if isinstance(value, TOMLDocument | Item) else value
+        )
         if normalized is None or isinstance(normalized, str | bytes):
             return []
         if not isinstance(normalized, Sequence):
@@ -80,7 +74,7 @@ class FlextCliUtilitiesToml:
         return [str(item) for item in normalized]
 
     @staticmethod
-    def toml_array(items: t.StrSequence) -> t.Cli.TomlArray:
+    def toml_array(items: t.StrSequence) -> Array:
         """Create a multiline TOML array."""
         array = tomlkit.array()
         for item in items:
@@ -88,22 +82,22 @@ class FlextCliUtilitiesToml:
         return array.multiline(True)
 
     @staticmethod
-    def toml_document() -> t.Cli.TomlDocument:
+    def toml_document() -> TOMLDocument:
         """Create a new TOML document."""
         return tomlkit.document()
 
     @staticmethod
-    def toml_table() -> t.Cli.TomlTable:
+    def toml_table() -> Table:
         """Create a new explicit TOML table."""
         return tomlkit.table()
 
     @staticmethod
-    def toml_aot() -> t.Cli.TomlAoT:
+    def toml_aot() -> AoT:
         """Create a new TOML array-of-tables."""
         return tomlkit.aot()
 
     @staticmethod
-    def toml_parse_text(text: str) -> t.Cli.TomlDocument | None:
+    def toml_parse_text(text: str) -> TOMLDocument | None:
         """Parse TOML text, returning ``None`` on invalid input."""
         try:
             return tomlkit.parse(text)
@@ -123,7 +117,7 @@ class FlextCliUtilitiesToml:
             return None
 
     @staticmethod
-    def toml_document_from_mapping(mapping: t.JsonMapping) -> t.Cli.TomlDocument:
+    def toml_document_from_mapping(mapping: t.JsonMapping) -> TOMLDocument:
         """Build one TOML document from a validated plain mapping."""
         document = FlextCliUtilitiesToml.toml_document()
         for key, value in mapping.items():
@@ -133,7 +127,7 @@ class FlextCliUtilitiesToml:
     @staticmethod
     def _toml_item_from_json_value(
         value: t.JsonValue,
-    ) -> t.Cli.TomlItem | t.JsonValue:
+    ) -> Item | t.JsonValue:
         """Convert one JSON-compatible value into one TOML runtime value."""
         if value is None:
             msg = "TOML does not support null values"
@@ -147,36 +141,36 @@ class FlextCliUtilitiesToml:
     @staticmethod
     def toml_is_document(
         value: t.Cli.TomlRuntimeSource,
-    ) -> TypeIs[t.Cli.TomlDocument]:
+    ) -> TypeIs[TOMLDocument]:
         """Return True when the value is a TOML document."""
         return isinstance(value, TOMLDocument)
 
     @staticmethod
     def toml_is_table(
         value: t.Cli.TomlRuntimeSource,
-    ) -> TypeIs[t.Cli.TomlTable]:
+    ) -> TypeIs[Table]:
         """Return True when the value is a TOML table."""
-        return isinstance(value, TomlTable)
+        return isinstance(value, Table)
 
     @staticmethod
     def toml_is_item(
         value: t.Cli.TomlRuntimeSource,
-    ) -> TypeIs[t.Cli.TomlItem]:
+    ) -> TypeIs[Item]:
         """Return True when the value is a TOML item."""
-        return isinstance(value, TomlItem)
+        return isinstance(value, Item)
 
     @staticmethod
     def toml_is_aot(
         value: t.Cli.TomlRuntimeSource,
-    ) -> TypeIs[t.Cli.TomlAoT]:
+    ) -> TypeIs[AoT]:
         """Return True when the value is a TOML array-of-tables."""
         return isinstance(value, AoT)
 
     @staticmethod
     def toml_table_child(
-        container: t.Cli.TomlParent,
+        container: TOMLDocument | Table,
         key: str,
-    ) -> t.Cli.TomlTable | None:
+    ) -> Table | None:
         """Return a table child from a TOML container."""
         if key not in container:
             return None
@@ -185,9 +179,9 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_item_child(
-        container: t.Cli.TomlParent,
+        container: TOMLDocument | Table,
         key: str,
-    ) -> t.Cli.TomlItem | None:
+    ) -> Item | None:
         """Return a raw TOML item from a container."""
         if key not in container:
             return None
@@ -196,9 +190,9 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_ensure_table(
-        parent: t.Cli.TomlParent,
+        parent: TOMLDocument | Table,
         key: str,
-    ) -> t.Cli.TomlTable:
+    ) -> Table:
         """Return an explicit table child, promoting implicit super-tables when needed."""
         existing: t.Cli.TomlRuntimeSource | None = None
         if key in parent:
@@ -218,11 +212,11 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_ensure_path(
-        parent: t.Cli.TomlParent,
+        parent: TOMLDocument | Table,
         path: t.StrSequence,
-    ) -> t.Cli.TomlTable:
+    ) -> Table:
         """Return a nested table path, creating intermediate tables as needed."""
-        current: t.Cli.TomlParent = parent
+        current: TOMLDocument | Table = parent
         for segment in path:
             current = FlextCliUtilitiesToml.toml_ensure_table(current, segment)
         if FlextCliUtilitiesToml.toml_is_table(current):
@@ -232,11 +226,11 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_table_path(
-        parent: t.Cli.TomlParent,
+        parent: TOMLDocument | Table,
         path: t.StrSequence,
-    ) -> t.Cli.TomlTable | None:
+    ) -> Table | None:
         """Return a nested table path without creating missing tables."""
-        current: t.Cli.TomlParent = parent
+        current: TOMLDocument | Table = parent
         for segment in path:
             table = FlextCliUtilitiesToml.toml_table_child(current, segment)
             if table is None:
@@ -245,13 +239,13 @@ class FlextCliUtilitiesToml:
         return current if FlextCliUtilitiesToml.toml_is_table(current) else None
 
     @staticmethod
-    def toml_ensure_tool_table(doc: t.Cli.TomlDocument) -> t.Cli.TomlTable:
+    def toml_ensure_tool_table(doc: TOMLDocument) -> Table:
         """Return the top-level ``[tool]`` table."""
         return FlextCliUtilitiesToml.toml_ensure_table(doc, "tool")
 
     @staticmethod
     def toml_value(
-        container: t.Cli.TomlParent,
+        container: TOMLDocument | Table,
         key: str,
     ) -> t.JsonValue | None:
         """Return a normalized TOML value from a container."""
@@ -263,7 +257,7 @@ class FlextCliUtilitiesToml:
         return raw_value
 
     @staticmethod
-    def toml_table_string_keys(table: t.Cli.TomlTable) -> t.StrSequence:
+    def toml_table_string_keys(table: Table) -> t.StrSequence:
         """Return string keys for a TOML table."""
         return list(table)
 
@@ -334,7 +328,7 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_remove_key_if_present(
-        container: t.Cli.TomlParent,
+        container: TOMLDocument | Table,
         key: str,
         changes: MutableSequence[str],
         change_message: str,
@@ -348,7 +342,7 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_sync_value(
-        container: t.Cli.TomlParent,
+        container: TOMLDocument | Table,
         key: str,
         expected: t.JsonValue,
         changes: MutableSequence[str],
@@ -364,7 +358,7 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_sync_string_list(
-        container: t.Cli.TomlParent,
+        container: TOMLDocument | Table,
         key: str,
         expected: t.StrSequence,
         changes: MutableSequence[str],
@@ -386,7 +380,7 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_merge_string_list(
-        container: t.Cli.TomlParent,
+        container: TOMLDocument | Table,
         key: str,
         required: t.StrSequence,
         changes: MutableSequence[str],
@@ -454,7 +448,7 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_sync_mapping_table(
-        container: t.Cli.TomlParent,
+        container: TOMLDocument | Table,
         key: str,
         expected: Mapping[str, t.JsonValue],
         changes: MutableSequence[str],
@@ -467,7 +461,7 @@ class FlextCliUtilitiesToml:
         current = FlextCliUtilitiesToml.toml_as_mapping(
             existing
             if existing is not None
-            and (u.mapping(existing) or isinstance(existing, TOMLDocument | TomlItem))
+            and (u.mapping(existing) or isinstance(existing, TOMLDocument | Item))
             else None,
         )
         normalized_expected = {
@@ -542,9 +536,9 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_navigate_path(
-        doc: t.Cli.TomlDocument,
+        doc: TOMLDocument,
         path: t.StrSequence,
-    ) -> t.Cli.TomlTable:
+    ) -> Table:
         """Navigate to a nested TOML table by path segments.
 
         Always roots at [tool]. Skips "tool" in path if present.
@@ -569,7 +563,7 @@ class FlextCliUtilitiesToml:
         )
 
     @staticmethod
-    def toml_read(path: Path) -> t.Cli.TomlDocument | None:
+    def toml_read(path: Path) -> TOMLDocument | None:
         """Read a TOML document, returning ``None`` on missing or invalid files."""
         if not path.exists():
             return None
@@ -585,14 +579,14 @@ class FlextCliUtilitiesToml:
             return None
 
     @staticmethod
-    def toml_read_document(path: Path) -> p.Result[t.Cli.TomlDocument]:
+    def toml_read_document(path: Path) -> p.Result[TOMLDocument]:
         """Read a TOML document with ``r`` semantics."""
         if not path.exists():
-            return r[t.Cli.TomlDocument].fail(f"failed to read TOML: {path}")
+            return r[TOMLDocument].fail(f"failed to read TOML: {path}")
         doc = FlextCliUtilitiesToml.toml_read(path)
         if doc is None:
-            return r[t.Cli.TomlDocument].fail(f"TOML parse failed: {path}")
-        return r[t.Cli.TomlDocument].ok(doc)
+            return r[TOMLDocument].fail(f"TOML parse failed: {path}")
+        return r[TOMLDocument].ok(doc)
 
     @staticmethod
     def toml_read_json(path: Path) -> p.Result[t.JsonMapping]:
@@ -638,7 +632,7 @@ class FlextCliUtilitiesToml:
         return r[bool].ok(True)
 
     @staticmethod
-    def toml_write_document(path: Path, doc: t.Cli.TomlDocument) -> p.Result[bool]:
+    def toml_write_document(path: Path, doc: TOMLDocument) -> p.Result[bool]:
         """Write a TOML document and format managed pyproject files."""
         try:
             path.parent.mkdir(parents=True, exist_ok=True)

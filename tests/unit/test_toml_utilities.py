@@ -34,7 +34,7 @@ def _temporary_environment(
                 os.environ[key] = value
 
 
-class TestCliTomlRead:
+class TestsFlextCliTomlUtilities:
     """Tests for TOML read operations."""
 
     def test_read_existing_file(self, tmp_path: Path) -> None:
@@ -59,10 +59,6 @@ class TestCliTomlRead:
         toml_file = tmp_path / "invalid.toml"
         toml_file.write_text("[invalid\nkey = value", encoding="utf-8")
         tm.that(u.Cli.toml_read(toml_file), none=True)
-
-
-class TestCliTomlDocument:
-    """Tests for TOML document read/write operations."""
 
     def test_read_document_existing_file(self, tmp_path: Path) -> None:
         toml_file = tmp_path / "test.toml"
@@ -141,10 +137,6 @@ class TestCliTomlDocument:
             tm.fail(result, has="TOML write error")
         finally:
             Path(readonly_dir).chmod(stat.S_IRWXU)
-
-
-class TestCliTomlHelpers:
-    """Tests for generic TOML helper methods."""
 
     def test_array_creates_multiline(self) -> None:
         arr = u.Cli.toml_array(["a", "b", "c"])

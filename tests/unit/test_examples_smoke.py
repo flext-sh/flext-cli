@@ -41,7 +41,7 @@ def _temporary_environment(
                 os.environ[key] = value
 
 
-class TestFlextCliExamplesSmoke:
+class TestsFlextCliExamplesSmoke:
     """Verify examples exercise the real public API paths."""
 
     def test_getting_started_and_output_examples(self, tmp_path: Path) -> None:
