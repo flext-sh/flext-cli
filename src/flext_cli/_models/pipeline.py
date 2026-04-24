@@ -154,4 +154,4 @@ class FlextCliModelsPipeline:
             ]
 
 
-__all__: list[str] = ["FlextCliModelsPipeline"]
+__all__: t.MutableSequenceOf[str] = ["FlextCliModelsPipeline"]

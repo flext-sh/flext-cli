@@ -35,7 +35,7 @@ class FlextCliGettingStarted:
         cli.print(
             f"Selected format: {output_format.value}", style=c.Cli.MessageStyles.BLUE
         )
-        valid_formats: tuple[str, ...] = tuple(
+        valid_formats: t.VariadicTuple[str] = tuple(
             sorted(c.Cli.OUTPUT_FORMATS),
         )
         cli.print(f"Available formats: {', '.join(valid_formats)}")

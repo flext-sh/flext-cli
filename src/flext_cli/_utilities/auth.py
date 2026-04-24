@@ -43,4 +43,4 @@ class FlextCliUtilitiesAuth:
         return r[str].ok(token_value)
 
 
-__all__: list[str] = ["FlextCliUtilitiesAuth"]
+__all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesAuth"]

@@ -14,7 +14,7 @@ class FlextCliConstantsBase:
 
     ENCODING_DEFAULT: Final[str] = "utf-8"
 
-    CLI_SAFE_EXCEPTIONS: ClassVar[tuple[type[Exception], ...]] = (
+    CLI_SAFE_EXCEPTIONS: ClassVar[t.VariadicTuple[type[Exception]]] = (
         ValueError,
         TypeError,
         KeyError,
@@ -40,7 +40,7 @@ class FlextCliConstantsBase:
     SYMBOL_WARN: Final[str] = "\u26a0"
     SYMBOL_SKIP: Final[str] = "\u25cb"
 
-    FILE_NOT_FOUND_PATTERN_ORDER: ClassVar[tuple[str, ...]] = (
+    FILE_NOT_FOUND_PATTERN_ORDER: ClassVar[t.VariadicTuple[str]] = (
         "no such file",
         "not found",
         "does not exist",
@@ -50,7 +50,7 @@ class FlextCliConstantsBase:
     FILE_NOT_FOUND_PATTERNS: ClassVar[frozenset[str]] = frozenset(
         FILE_NOT_FOUND_PATTERN_ORDER,
     )
-    CLI_USAGE_ERROR_PATTERN_ORDER: ClassVar[tuple[str, ...]] = (
+    CLI_USAGE_ERROR_PATTERN_ORDER: ClassVar[t.VariadicTuple[str]] = (
         "no such option",
         "no such command",
         "missing option",
@@ -62,11 +62,11 @@ class FlextCliConstantsBase:
     CLI_USAGE_ERROR_PATTERNS: ClassVar[frozenset[str]] = frozenset(
         CLI_USAGE_ERROR_PATTERN_ORDER,
     )
-    FILE_NOT_FOUND_REGEXES: ClassVar[tuple[re.Pattern[str], ...]] = tuple(
+    FILE_NOT_FOUND_REGEXES: ClassVar[t.VariadicTuple[re.Pattern[str]]] = tuple(
         re.compile(pattern, flags=re.IGNORECASE)
         for pattern in FILE_NOT_FOUND_PATTERN_ORDER
     )
-    CLI_USAGE_ERROR_REGEXES: ClassVar[tuple[re.Pattern[str], ...]] = tuple(
+    CLI_USAGE_ERROR_REGEXES: ClassVar[t.VariadicTuple[re.Pattern[str]]] = tuple(
         re.compile(pattern, flags=re.IGNORECASE)
         for pattern in CLI_USAGE_ERROR_PATTERN_ORDER
     )

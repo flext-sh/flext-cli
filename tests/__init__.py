@@ -18,6 +18,12 @@ if _t.TYPE_CHECKING:
     from tests.models import TestsFlextCliModels, m
     from tests.protocols import TestsFlextCliProtocols, p
     from tests.typings import TestsFlextCliTypes, t
+    from tests.unit.conftest import (
+        FlextCliCaptureLogPrompts,
+        FlextCliFailingLogPrompts,
+        FlextCliScriptedPrompts,
+        make_prompts,
+    )
     from tests.unit.test_base import TestsCliServiceBase
     from tests.unit.test_cli_params import TestsCliCommonParams
     from tests.unit.test_cli_service import TestsCliService
@@ -71,6 +77,12 @@ _LAZY_IMPORTS = merge_lazy_imports(
             ".typings": (
                 "TestsFlextCliTypes",
                 "t",
+            ),
+            ".unit.conftest": (
+                "FlextCliCaptureLogPrompts",
+                "FlextCliFailingLogPrompts",
+                "FlextCliScriptedPrompts",
+                "make_prompts",
             ),
             ".unit.test_base": ("TestsCliServiceBase",),
             ".unit.test_cli_params": ("TestsCliCommonParams",),
@@ -140,6 +152,9 @@ _LAZY_IMPORTS = merge_lazy_imports(
 install_lazy_exports(__name__, globals(), _LAZY_IMPORTS)
 
 __all__: list[str] = [
+    "FlextCliCaptureLogPrompts",
+    "FlextCliFailingLogPrompts",
+    "FlextCliScriptedPrompts",
     "TestCliRuntimeUtilitiesExtra",
     "TestCliTomlDocument",
     "TestCliTomlHelpers",
@@ -177,6 +192,7 @@ __all__: list[str] = [
     "e",
     "h",
     "m",
+    "make_prompts",
     "p",
     "r",
     "s",

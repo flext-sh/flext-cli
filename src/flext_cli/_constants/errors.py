@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import Final
 
+from flext_cli import t
+
 
 class FlextCliConstantsErrors:
     """Flat error-message constants authority."""
@@ -95,4 +97,4 @@ class FlextCliConstantsErrors:
     )
 
 
-__all__: list[str] = ["FlextCliConstantsErrors"]
+__all__: t.MutableSequenceOf[str] = ["FlextCliConstantsErrors"]

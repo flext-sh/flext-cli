@@ -177,4 +177,4 @@ class FlextCliUtilitiesYaml:
             return ""
 
 
-__all__: list[str] = ["FlextCliUtilitiesYaml"]
+__all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesYaml"]

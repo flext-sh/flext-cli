@@ -12,7 +12,7 @@ from typing import ClassVar
 
 from flext_core import u
 
-from flext_cli import c, m, p, r
+from flext_cli import c, m, p, r, t
 
 
 class FlextCliUtilitiesPipeline:
@@ -35,7 +35,7 @@ class FlextCliUtilitiesPipeline:
         """
         log = logger or FlextCliUtilitiesPipeline._pipeline_logger
         pipeline_start = time.monotonic()
-        results: list[m.Cli.PipelineStageResult] = []
+        results: t.MutableSequenceOf[m.Cli.PipelineStageResult] = []
 
         if not stages:
             return r[m.Cli.PipelineResult].ok(
@@ -165,4 +165,4 @@ class FlextCliUtilitiesPipeline:
         )
 
 
-__all__: list[str] = ["FlextCliUtilitiesPipeline"]
+__all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesPipeline"]

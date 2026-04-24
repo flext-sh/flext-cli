@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from flext_core import c as core_c
+from flext_core import FlextConstants as Constants
 
 from flext_cli import (
     FlextCliConstantsBase,
@@ -14,7 +14,15 @@ from flext_cli import (
 )
 
 
-class FlextCliConstants(core_c):
+class FlextCliConstants(
+    Constants,
+    FlextCliConstantsBase,
+    FlextCliConstantsEnums,
+    FlextCliConstantsErrors,
+    FlextCliConstantsOutput,
+    FlextCliConstantsPipeline,
+    FlextCliConstantsSettings,
+):
     """Constants for Flext CLI."""
 
     class Cli(
@@ -28,5 +36,6 @@ class FlextCliConstants(core_c):
         """CLI related constants."""
 
 
-c = FlextCliConstants
 __all__: list[str] = ["FlextCliConstants", "c"]
+
+c = FlextCliConstants

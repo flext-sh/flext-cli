@@ -678,6 +678,6 @@ class FlextCliModelsBase:
             return {}
 
 
-__all__: list[str] = [
+__all__: t.MutableSequenceOf[str] = [
     "FlextCliModelsBase",
 ]

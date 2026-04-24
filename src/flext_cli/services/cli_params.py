@@ -56,4 +56,4 @@ class FlextCliCommonParams(s):
         return u.Cli.build_option(field_name, c.Cli.CLI_PARAM_REGISTRY)
 
 
-__all__: list[str] = ["FlextCliCommonParams"]
+__all__: t.MutableSequenceOf[str] = ["FlextCliCommonParams"]

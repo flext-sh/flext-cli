@@ -7,7 +7,12 @@ from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 _LAZY_IMPORTS = build_lazy_import_map(
     {
-        ".conftest": ("conftest",),
+        ".conftest": (
+            "FlextCliCaptureLogPrompts",
+            "FlextCliFailingLogPrompts",
+            "FlextCliScriptedPrompts",
+            "make_prompts",
+        ),
         ".test_base": ("TestsCliServiceBase",),
         ".test_cli_params": ("TestsCliCommonParams",),
         ".test_cli_service": ("TestsCliService",),

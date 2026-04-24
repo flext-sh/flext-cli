@@ -554,7 +554,10 @@ class FlextCliCli(s):
             elif isinstance(result_value, str) and result_value:
                 message = result_value
             if message:
-                FlextCliOutput.display_message(message, success_type)
+                if message.lstrip().startswith(("{", "[")):
+                    click.echo(message)
+                else:
+                    FlextCliOutput.display_message(message, success_type)
             return True
 
         return execute
@@ -588,7 +591,10 @@ class FlextCliCli(s):
             elif isinstance(result_value, str) and result_value:
                 message = result_value
             if message:
-                FlextCliOutput.display_message(message, route.success_type)
+                if message.lstrip().startswith(("{", "[")):
+                    click.echo(message)
+                else:
+                    FlextCliOutput.display_message(message, route.success_type)
             return True
 
         command = cls.model_command(

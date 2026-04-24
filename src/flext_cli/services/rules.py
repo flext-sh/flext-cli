@@ -89,4 +89,4 @@ class FlextCliRules(FlextCliServiceBase):
         )
 
 
-__all__: list[str] = ["FlextCliRules"]
+__all__: t.MutableSequenceOf[str] = ["FlextCliRules"]

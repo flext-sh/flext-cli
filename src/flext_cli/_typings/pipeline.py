@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Literal
 
 from flext_core import FlextProtocols
 
-from flext_cli import FlextCliConstantsEnums
+from flext_cli._constants.enums import FlextCliConstantsEnums
 
 if TYPE_CHECKING:
     from flext_cli._models.pipeline import FlextCliModelsPipeline

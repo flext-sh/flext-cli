@@ -39,4 +39,4 @@ class FlextCliServiceBase(s[t.JsonMapping], ABC):
 
 s = FlextCliServiceBase
 
-__all__: list[str] = ["FlextCliServiceBase", "s"]
+__all__: t.MutableSequenceOf[str] = ["FlextCliServiceBase", "s"]

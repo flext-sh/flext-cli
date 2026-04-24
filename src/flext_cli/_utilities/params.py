@@ -145,4 +145,4 @@ class FlextCliUtilitiesParams:
         )
 
 
-__all__: list[str] = ["FlextCliUtilitiesParams"]
+__all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesParams"]

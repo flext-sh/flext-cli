@@ -6,6 +6,7 @@ import re
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Final
 
+from examples import t
 from flext_cli import c
 
 if TYPE_CHECKING:
@@ -15,7 +16,7 @@ if TYPE_CHECKING:
 class ExamplesFlextCliConstants(c):
     """Public examples constants facade extending flext-cli constants."""
 
-    EXAMPLE_DEPLOYMENT_ENVIRONMENTS: Final[tuple[str, ...]] = (
+    EXAMPLE_DEPLOYMENT_ENVIRONMENTS: Final[t.VariadicTuple[str]] = (
         "development",
         "staging",
         "production",
@@ -23,32 +24,32 @@ class ExamplesFlextCliConstants(c):
     EXAMPLE_DEPLOYMENT_ENVIRONMENTS_SET: Final[frozenset[str]] = frozenset(
         EXAMPLE_DEPLOYMENT_ENVIRONMENTS,
     )
-    EXAMPLE_DEPLOYMENT_ENVIRONMENTS_SHORT: Final[tuple[str, ...]] = (
+    EXAMPLE_DEPLOYMENT_ENVIRONMENTS_SHORT: Final[t.VariadicTuple[str]] = (
         "dev",
         "staging",
         "prod",
     )
-    EXAMPLE_REQUIRED_DATA_FIELDS: Final[tuple[str, ...]] = ("id", "name", "value")
-    EXAMPLE_DATABASE_REQUIRED_FIELDS: Final[tuple[str, ...]] = (
+    EXAMPLE_REQUIRED_DATA_FIELDS: Final[t.VariadicTuple[str]] = ("id", "name", "value")
+    EXAMPLE_DATABASE_REQUIRED_FIELDS: Final[t.VariadicTuple[str]] = (
         "host",
         "name",
         "username",
         "password",
     )
-    EXAMPLE_DEFAULT_SHELL_ITEMS: Final[tuple[str, ...]] = (
+    EXAMPLE_DEFAULT_SHELL_ITEMS: Final[t.VariadicTuple[str]] = (
         "item1",
         "item2",
         "item3",
         "test_item",
     )
-    EXAMPLE_SAMPLE_FILES: Final[tuple[str, ...]] = (
+    EXAMPLE_SAMPLE_FILES: Final[t.VariadicTuple[str]] = (
         "file1",
         "file2",
         "file3",
         "file4",
     )
-    EXAMPLE_TABLE_HEADERS_FIELD_VALUE: Final[tuple[str, str]] = ("Field", "Value")
-    EXAMPLE_TABLE_HEADERS_SETTING_VALUE: Final[tuple[str, str]] = (
+    EXAMPLE_TABLE_HEADERS_FIELD_VALUE: Final[t.Pair[str, str]] = ("Field", "Value")
+    EXAMPLE_TABLE_HEADERS_SETTING_VALUE: Final[t.Pair[str, str]] = (
         "Setting",
         "Value",
     )
@@ -111,7 +112,7 @@ class ExamplesFlextCliConstants(c):
         "temp_dir": EXAMPLE_ENV_KEY_TEMP_DIR,
     })
 
-    EXAMPLE_DB_URL_PREFIXES: Final[tuple[str, str]] = (
+    EXAMPLE_DB_URL_PREFIXES: Final[t.Pair[str, str]] = (
         "postgresql://",
         "mysql://",
     )
@@ -168,7 +169,7 @@ class ExamplesFlextCliConstants(c):
 
 c = ExamplesFlextCliConstants
 
-__all__: list[str] = [
+__all__: t.MutableSequenceOf[str] = [
     "ExamplesFlextCliConstants",
     "c",
 ]

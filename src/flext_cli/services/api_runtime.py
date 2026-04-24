@@ -25,4 +25,4 @@ class FlextCliApiRuntime:
         return r[t.JsonMapping].ok(result_dict)
 
 
-__all__: list[str] = ["FlextCliApiRuntime"]
+__all__: t.MutableSequenceOf[str] = ["FlextCliApiRuntime"]

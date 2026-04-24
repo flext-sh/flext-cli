@@ -64,4 +64,4 @@ class FlextCliCmd(s):
         return u.Cli.cmd_validate_settings(self.logger)
 
 
-__all__: list[str] = ["FlextCliCmd"]
+__all__: t.MutableSequenceOf[str] = ["FlextCliCmd"]

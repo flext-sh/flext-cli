@@ -166,9 +166,9 @@ class FlextCliUtilitiesFormatters:
         rows: Sequence[t.StrSequence],
     ) -> str:
         """Build fallback text for table rendering."""
-        lines: list[str] = ["  ".join(columns)]
+        lines: t.MutableSequenceOf[str] = ["  ".join(columns)]
         lines.extend("  ".join(row) for row in rows)
         return "\n".join(lines) + "\n"
 
 
-__all__: list[str] = ["FlextCliUtilitiesFormatters"]
+__all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesFormatters"]

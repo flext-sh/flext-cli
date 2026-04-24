@@ -158,4 +158,4 @@ class FlextCliUtilitiesTables:
             return r[str].fail(f"Table formatting failed: {exc}")
 
 
-__all__: list[str] = ["FlextCliUtilitiesTables"]
+__all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesTables"]

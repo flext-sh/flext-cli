@@ -10,7 +10,7 @@ from typing import ClassVar, Final
 
 from flext_core import t
 
-from flext_cli import FlextCliConstantsEnums
+from flext_cli._constants.enums import FlextCliConstantsEnums
 
 
 class FlextCliConstantsOutput:
@@ -101,4 +101,4 @@ class FlextCliConstantsOutput:
     )
 
 
-__all__: list[str] = ["FlextCliConstantsOutput"]
+__all__: t.MutableSequenceOf[str] = ["FlextCliConstantsOutput"]

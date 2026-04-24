@@ -6,7 +6,7 @@ from typing import ClassVar, Final
 
 from flext_core import t
 
-from flext_cli import FlextCliConstantsEnums
+from flext_cli._constants.enums import FlextCliConstantsEnums
 
 
 class FlextCliConstantsPipeline:
@@ -21,4 +21,4 @@ class FlextCliConstantsPipeline:
     )
 
 
-__all__: list[str] = ["FlextCliConstantsPipeline"]
+__all__: t.MutableSequenceOf[str] = ["FlextCliConstantsPipeline"]

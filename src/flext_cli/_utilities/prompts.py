@@ -98,4 +98,4 @@ class FlextCliUtilitiesPrompts:
         return r[str].ok(password)
 
 
-__all__: list[str] = ["FlextCliUtilitiesPrompts"]
+__all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesPrompts"]

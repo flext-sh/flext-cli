@@ -12,8 +12,10 @@ from pathlib import Path
 
 from flext_core import m, t
 
-from flext_cli import FlextCliConstantsEnums, FlextCliTypesBase, p
+from flext_cli import p
+from flext_cli._constants.enums import FlextCliConstantsEnums
 from flext_cli._protocols.base import FlextCliProtocolsBase
+from flext_cli._typings.base import FlextCliTypesBase
 
 
 class FlextCliTypesDomain:

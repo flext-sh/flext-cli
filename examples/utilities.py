@@ -147,7 +147,7 @@ class ExamplesFlextCliUtilities(u):
 
 u = ExamplesFlextCliUtilities
 
-__all__: list[str] = [
+__all__: t.MutableSequenceOf[str] = [
     "ExamplesFlextCliUtilities",
     "u",
 ]

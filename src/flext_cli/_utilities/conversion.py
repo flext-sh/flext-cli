@@ -54,4 +54,4 @@ class FlextCliUtilitiesConversion:
         return r[t.JsonValue].ok(field_value)
 
 
-__all__: list[str] = ["FlextCliUtilitiesConversion"]
+__all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesConversion"]

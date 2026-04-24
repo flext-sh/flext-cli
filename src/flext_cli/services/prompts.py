@@ -246,4 +246,4 @@ class FlextCliPrompts(s):
             )
 
 
-__all__: list[str] = ["FlextCliPrompts"]
+__all__: t.MutableSequenceOf[str] = ["FlextCliPrompts"]

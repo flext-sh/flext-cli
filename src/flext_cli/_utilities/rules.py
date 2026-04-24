@@ -114,8 +114,8 @@ class FlextCliUtilitiesRules:
                 f"Rules directory not found: {rules_dir}",
             )
         file_catalog = file_rule_catalog or {}
-        loaded_rules: MutableSequence[tuple[TRuleKind, t.JsonMapping]] = []
-        loaded_file_rules: MutableSequence[tuple[TFileRuleKind, t.JsonMapping]] = []
+        loaded_rules: MutableSequence[t.Pair[TRuleKind, t.JsonMapping]] = []
+        loaded_file_rules: MutableSequence[t.Pair[TFileRuleKind, t.JsonMapping]] = []
         loaded_file_rule_kinds: set[str] = set()
         unknown_rules: MutableSequence[str] = []
         for rule_file in sorted(rules_dir.glob("*.yml")):
@@ -149,7 +149,7 @@ class FlextCliUtilitiesRules:
                 )
                 if not action_name and not check_name:
                     continue
-                file_match: tuple[TFileRuleKind, t.Cli.RuleMatcher] | None = (
+                file_match: t.Pair[TFileRuleKind, t.Cli.RuleMatcher] | None = (
                     cls._rules_match_catalog_entry(
                         action_name,
                         check_name,
@@ -171,7 +171,7 @@ class FlextCliUtilitiesRules:
                         loaded_file_rules.append((file_kind, typed_rule_def))
                         loaded_file_rule_kinds.add(file_kind_key)
                     continue
-                rule_match: tuple[TRuleKind, t.Cli.RuleMatcher] | None = (
+                rule_match: t.Pair[TRuleKind, t.Cli.RuleMatcher] | None = (
                     cls._rules_match_catalog_entry(
                         action_name,
                         check_name,
@@ -234,7 +234,7 @@ class FlextCliUtilitiesRules:
         action_name: str,
         check_name: str,
         rule_catalog: t.Cli.RuleCatalog[TKind],
-    ) -> tuple[TKind, t.Cli.RuleMatcher] | None:
+    ) -> t.Pair[TKind, t.Cli.RuleMatcher] | None:
         for rule_kind, matchers in rule_catalog.items():
             for matcher in matchers:
                 actions, checks, _, _ = matcher
@@ -263,4 +263,4 @@ class FlextCliUtilitiesRules:
         return None
 
 
-__all__: list[str] = ["FlextCliUtilitiesRules"]
+__all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesRules"]

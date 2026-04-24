@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 
-from flext_cli import c
+from flext_cli import c, t
 
 
 class FlextCliUtilitiesMatching:
@@ -38,4 +38,4 @@ class FlextCliUtilitiesMatching:
         )
 
 
-__all__: list[str] = ["FlextCliUtilitiesMatching"]
+__all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesMatching"]

@@ -77,4 +77,4 @@ class FlextCliTables(s):
             FlextCliFormatters.print(error_line, style=error_style)
 
 
-__all__: list[str] = ["FlextCliTables"]
+__all__: t.MutableSequenceOf[str] = ["FlextCliTables"]

@@ -130,4 +130,4 @@ class FlextCliFormatters(FlextCliServiceBase):
         )
 
 
-__all__: list[str] = ["FlextCliFormatters"]
+__all__: t.MutableSequenceOf[str] = ["FlextCliFormatters"]

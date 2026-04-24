@@ -18,6 +18,7 @@ from flext_cli import (
     FlextCliPrompts,
     FlextCliRules,
     FlextCliTables,
+    t,
 )
 from flext_cli.services.api_runtime import FlextCliApiRuntime
 
@@ -49,4 +50,4 @@ class FlextCli(
 cli = FlextCli()
 
 
-__all__: list[str] = ["FlextCli", "cli"]
+__all__: t.MutableSequenceOf[str] = ["FlextCli", "cli"]

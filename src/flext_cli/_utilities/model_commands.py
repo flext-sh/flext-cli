@@ -86,7 +86,7 @@ class FlextCliUtilitiesModelCommands:
         ).build()
 
 
-__all__: list[str] = [
+__all__: t.MutableSequenceOf[str] = [
     "FlextCliUtilitiesModelCommandBuilder",
     "FlextCliUtilitiesModelCommands",
 ]

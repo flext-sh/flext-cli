@@ -7,7 +7,7 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Protocol
 
-from flext_cli import c
+from flext_cli import c, t
 
 
 class _SummaryStats(Protocol):
@@ -54,7 +54,7 @@ class FlextCliUtilitiesOutput:
     def output_message_payload(
         message: str,
         message_type: c.Cli.MessageTypes | None,
-    ) -> tuple[str, str]:
+    ) -> t.Pair[str, str]:
         """Build one canonical display payload and style from message type."""
         final_type = FlextCliUtilitiesOutput.output_resolve_message_type(message_type)
         style = c.Cli.MESSAGE_STYLE_MAP.get(final_type, c.Cli.MessageStyles.BLUE)
@@ -81,7 +81,7 @@ class FlextCliUtilitiesOutput:
         detail: str,
         *,
         elapsed: float | None,
-    ) -> tuple[str, str]:
+    ) -> t.Pair[str, str]:
         """Build one canonical status line and style."""
         symbol = c.Cli.SYMBOL_SUCCESS_MARK if success else c.Cli.SYMBOL_FAILURE_MARK
         style = (
@@ -92,7 +92,7 @@ class FlextCliUtilitiesOutput:
         return line, style
 
     @staticmethod
-    def output_gate_line(name: str, passed: bool, *, message: str) -> tuple[str, str]:
+    def output_gate_line(name: str, passed: bool, *, message: str) -> t.Pair[str, str]:
         """Build one canonical gate line and style."""
         symbol = c.Cli.SYMBOL_SUCCESS_MARK if passed else c.Cli.SYMBOL_FAILURE_MARK
         style = (
@@ -115,12 +115,12 @@ class FlextCliUtilitiesOutput:
         )
 
     @staticmethod
-    def output_debug_line(message: str) -> tuple[str, str]:
+    def output_debug_line(message: str) -> t.Pair[str, str]:
         """Build one canonical debug line and style."""
         return f"[DEBUG] {message}", c.Cli.MessageStyles.DIM
 
     @staticmethod
-    def output_table_error(error_message: str | None) -> tuple[str, str]:
+    def output_table_error(error_message: str | None) -> t.Pair[str, str]:
         """Build one canonical table error line and style."""
         error = error_message or "unknown error"
         return f"[table error] {error}", c.Cli.MessageStyles.BOLD_RED
@@ -233,4 +233,4 @@ class FlextCliUtilitiesOutput:
         )
 
 
-__all__: list[str] = ["FlextCliUtilitiesOutput"]
+__all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesOutput"]

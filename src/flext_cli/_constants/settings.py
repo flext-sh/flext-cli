@@ -10,7 +10,7 @@ from typing import ClassVar, Final
 
 from flext_core import c, t
 
-from flext_cli import FlextCliConstantsEnums
+from flext_cli._constants.enums import FlextCliConstantsEnums
 
 
 class FlextCliConstantsSettings:

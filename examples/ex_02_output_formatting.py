@@ -286,7 +286,7 @@ def advanced_output_example() -> None:
         {"name": "Bob", "age": 25, "role": "designer"},
         {"name": "Charlie", "age": 35, "role": "manager"},
     )
-    valid_formats: tuple[str, ...] = tuple(sorted(c.Cli.OUTPUT_FORMATS))
+    valid_formats: t.VariadicTuple[str] = tuple(sorted(c.Cli.OUTPUT_FORMATS))
     cli.print(
         f"Supported formats: {', '.join(valid_formats)}",
         style=c.Cli.MessageStyles.GREEN,

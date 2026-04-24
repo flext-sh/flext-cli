@@ -361,4 +361,4 @@ class FlextCliUtilitiesFiles:
         return r[t.JsonMapping].ok(normalized_payload)
 
 
-__all__: list[str] = ["FlextCliUtilitiesFiles"]
+__all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesFiles"]
