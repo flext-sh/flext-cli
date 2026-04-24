@@ -1,0 +1,20 @@
+tests/unit/test_prompts_cov.py
+  h_9db9d35f50cf33 5,13,43-46
+tests/unit/conftest.py
+  h_9db9d35f50cf33 6,9,15-46
+tests/unit/test_prompts.py
+  h_9db9d35f50cf33 6,12-16,22-26,32-33,35-36,42-43,45,50,57-58,60,69-70,72,77-78,80,82,89-90,92-93,117,121,126-127,129,142,164-165,168,171,176,180,189-190,192,198-199,201-202,218-219,221,227-228,230
+tests/helpers/_impl.py
+  h_9db9d35f50cf33 14,16-17,120-200,202-205
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "c1423dd5940d68405867d6135b8d620b2a24f414",
+  "prompts": {},
+  "humans": {
+    "h_9db9d35f50cf33": {
+      "author": "FLEXT Bot"
+    }
+  }
+}
