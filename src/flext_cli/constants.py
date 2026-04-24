@@ -1,8 +1,8 @@
-"""FLEXT CLI constants."""
+"""Flext CLI constants — flat MRO facade."""
 
 from __future__ import annotations
 
-from flext_core import c
+from flext_core import c as core_c
 
 from flext_cli import (
     FlextCliConstantsBase,
@@ -14,7 +14,7 @@ from flext_cli import (
 )
 
 
-class FlextCliConstants(c):
+class FlextCliConstants(core_c):
     """Constants for Flext CLI."""
 
     class Cli(
@@ -29,5 +29,4 @@ class FlextCliConstants(c):
 
 
 c = FlextCliConstants
-
 __all__: list[str] = ["FlextCliConstants", "c"]
