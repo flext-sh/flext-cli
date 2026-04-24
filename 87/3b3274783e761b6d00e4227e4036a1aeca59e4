@@ -1,0 +1,126 @@
+src/flext_cli/services/output.py
+  b49ddca26ad86d52 128
+src/flext_cli/_utilities/output.py
+  b49ddca26ad86d52 10,57,84,95,118,123,236
+src/flext_cli/_constants/errors.py
+  b49ddca26ad86d52 7-8,100
+src/flext_cli/_utilities/prompts.py
+  b49ddca26ad86d52 101
+src/flext_cli/_utilities/files.py
+  b49ddca26ad86d52 364
+examples/ex_02_output_formatting.py
+  b49ddca26ad86d52 289
+src/flext_cli/services/rules.py
+  b49ddca26ad86d52 92
+src/flext_cli/constants.py
+  b49ddca26ad86d52 5,17-25,40-41
+examples/ex_01_getting_started.py
+  b49ddca26ad86d52 38
+src/flext_cli/_constants/base.py
+  b49ddca26ad86d52 17,43,53,65,69
+tests/unit/__init__.py
+  b49ddca26ad86d52 10-15
+src/flext_cli/_utilities/pipeline.py
+  b49ddca26ad86d52 15,38,168
+src/flext_cli/protocols.py
+  b49ddca26ad86d52 14-19,31-32
+examples/utilities.py
+  b49ddca26ad86d52 150
+src/flext_cli/_utilities/model_commands.py
+  b49ddca26ad86d52 89
+src/flext_cli/services/prompts.py
+  b49ddca26ad86d52 249
+src/flext_cli/_utilities/auth.py
+  b49ddca26ad86d52 46
+src/flext_cli/_utilities/tables.py
+  b49ddca26ad86d52 161
+src/flext_cli/services/auth.py
+  b49ddca26ad86d52 83
+src/flext_cli/services/api_runtime.py
+  b49ddca26ad86d52 28
+src/flext_cli/_typings/domain.py
+  b49ddca26ad86d52 15-16,18
+src/flext_cli/_models/pipeline.py
+  b49ddca26ad86d52 157
+src/flext_cli/_constants/pipeline.py
+  b49ddca26ad86d52 9,24
+src/flext_cli/services/file_tools.py
+  b49ddca26ad86d52 145
+src/flext_cli/_constants/output.py
+  b49ddca26ad86d52 13,104
+src/flext_cli/services/cmd.py
+  b49ddca26ad86d52 67
+src/flext_cli/_utilities/commands.py
+  b49ddca26ad86d52 69
+src/flext_cli/_utilities/yaml.py
+  b49ddca26ad86d52 180
+src/flext_cli/_utilities/conversion.py
+  b49ddca26ad86d52 57
+examples/constants.py
+  b49ddca26ad86d52 9,19,27,32-33,39,45,51-52,115,172
+src/flext_cli/_typings/pipeline.py
+  b49ddca26ad86d52 12
+src/flext_cli/_utilities/validation.py
+  b49ddca26ad86d52 141
+src/flext_cli/services/cli.py
+  b49ddca26ad86d52 557,594
+  h_9db9d35f50cf33 558-559,595-596
+src/flext_cli/_utilities/matching.py
+  b49ddca26ad86d52 7,41
+src/flext_cli/services/tables.py
+  b49ddca26ad86d52 80
+tests/__init__.py
+  b49ddca26ad86d52 21-26,81-86,155-157,195
+src/flext_cli/typings.py
+  b49ddca26ad86d52 5,8-9,12
+src/flext_cli/api.py
+  b49ddca26ad86d52 21,53
+src/flext_cli/_utilities/cmd.py
+  b49ddca26ad86d52 7,58
+src/flext_cli/_models/base.py
+  b49ddca26ad86d52 681
+src/flext_cli/_utilities/params.py
+  b49ddca26ad86d52 148
+src/flext_cli/base.py
+  b49ddca26ad86d52 42
+src/flext_cli/services/formatters.py
+  b49ddca26ad86d52 133
+src/flext_cli/_constants/settings.py
+  b49ddca26ad86d52 13
+src/flext_cli/_utilities/rules.py
+  b49ddca26ad86d52 117-118,152,174,237,266
+src/flext_cli/services/cli_params.py
+  b49ddca26ad86d52 59
+src/flext_cli/_utilities/formatters.py
+  b49ddca26ad86d52 169,174
+src/flext_cli/_utilities/settings.py
+  b49ddca26ad86d52 18,20,69
+src/flext_cli/models.py
+  b49ddca26ad86d52 7,21,25-26
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "873b3274783e761b6d00e4227e4036a1aeca59e4",
+  "prompts": {
+    "b49ddca26ad86d52": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "395c39dc-b71e-4968-98e3-7424c4b3af1c",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "FLEXT Bot",
+      "messages": [],
+      "total_additions": 248,
+      "total_deletions": 85,
+      "accepted_lines": 248,
+      "overriden_lines": 0,
+      "messages_url": "https://usegitai.com/cas/14643b8ec31a89739f62103d123f527fcea84826d8ba6869142815d337f1cbd2"
+    }
+  },
+  "humans": {
+    "h_9db9d35f50cf33": {
+      "author": "FLEXT Bot"
+    }
+  }
+}
