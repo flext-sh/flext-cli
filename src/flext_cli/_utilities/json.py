@@ -134,8 +134,8 @@ class FlextCliUtilitiesJson:
         if not isinstance(normalized, Sequence) or isinstance(normalized, str | bytes):
             return []
         try:
-            validated: Sequence[t.JsonValue] = (
-                t.Cli.JSON_LIST_ADAPTER.validate_python(normalized)
+            validated: Sequence[t.JsonValue] = t.Cli.JSON_LIST_ADAPTER.validate_python(
+                normalized
             )
         except c.ValidationError:
             return []
