@@ -104,16 +104,14 @@ class InteractiveShell:
             return r[str].fail(f"Unknown command: {cmd_name}")
         handler = self.commands[cmd_name]
         try:
-            if callable(handler):
-                result = handler(*args) if args else handler()
-                if hasattr(result, "failure") and hasattr(result, "value"):
-                    if result.failure:
-                        return r[str].fail(result.error or "Unknown command error")
-                    payload = result.value
-                else:
-                    payload = result
-                return r[str].ok(str(payload))
-            return r[str].fail("Handler is not callable")
+            result = handler(*args) if args else handler()
+            if hasattr(result, "failure") and hasattr(result, "value"):
+                if result.failure:
+                    return r[str].fail(result.error or "Unknown command error")
+                payload = result.value
+            else:
+                payload = result
+            return r[str].ok(str(payload))
         except Exception as e:
             return r[str].fail(f"Command error: {e}")
 

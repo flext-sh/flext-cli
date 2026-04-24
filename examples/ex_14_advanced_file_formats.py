@@ -35,7 +35,7 @@ from collections.abc import (
 )
 from pathlib import Path
 
-from examples import c, t, u
+from examples import c, p, t, u
 from flext_cli import cli
 
 
@@ -135,13 +135,13 @@ def load_any_format_file(file_path: Path) -> t.JsonMapping | None:
         f"✅ Detected format: {detected_format.upper()}",
         style=c.Cli.MessageStyles.GREEN,
     )
-    load_result = cli.load_file_auto_dict(file_path)
+    load_result: p.Result[t.JsonMapping] = cli.load_file_auto_dict(file_path)
     if load_result.failure:
         cli.print(
             f"❌ Load failed: {load_result.error}", style=c.Cli.MessageStyles.BOLD_RED
         )
         return None
-    data = load_result.value
+    data: t.JsonMapping = load_result.value
     cli.print("✅ Loaded data successfully", style=c.Cli.MessageStyles.GREEN)
     display_rows = [{"Key": k, "Value": str(v)} for k, v in data.items()]
     cli.show_table(
@@ -223,7 +223,7 @@ def process_text_file(input_file: Path, output_file: Path) -> None:
             f"❌ Read failed: {read_result.error}", style=c.Cli.MessageStyles.BOLD_RED
         )
         return
-    content = read_result.value
+    content: str = read_result.value
     cli.print(f"✅ Read {len(content)} characters", style=c.Cli.MessageStyles.GREEN)
     cli.print(f"   Lines: {content.count(chr(10)) + 1}", style=c.Cli.MessageStyles.CYAN)
     cli.print(f"   Words: {len(content.split())}", style=c.Cli.MessageStyles.CYAN)

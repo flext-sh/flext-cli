@@ -2,42 +2,21 @@
 
 from __future__ import annotations
 
-from typing import Self, override
+from typing import Self
 
 from flext_tests import tm
 
-from flext_cli import FlextCliPrompts
-from tests import m, t
+from tests.helpers._impl import FlextCliCaptureLogPrompts
 
 
-class TestsFlextCliCaptureLogPromptsCov(FlextCliPrompts):
-    """Prompt service that records log calls locally."""
+class TestsFlextCliCaptureLogPromptsCov(FlextCliCaptureLogPrompts):
+    """Prompt service that records log calls and supports test-env override."""
 
     __test__ = False
-
-    _records: list[tuple[str, str]] = m.PrivateAttr(default_factory=list)
-
-    @property
-    def records(self) -> list[tuple[str, str]]:
-        return self._records
-
-    def use_input_values(self, values: t.StrSequence) -> Self:
-        values_iter = iter(values)
-        self._input_reader = lambda _prompt: next(values_iter)
-        return self
 
     def force_non_test_env(self) -> Self:
         self._test_env_override = False
         return self
-
-    @override
-    def _log(
-        self,
-        log_level: str,
-        message: str,
-        **context: t.LogValue,
-    ) -> None:
-        self._records.append((log_level, message))
 
 
 class TestsCliPromptsCov:
@@ -46,6 +25,7 @@ class TestsCliPromptsCov:
     def test_prompt_logs_input_when_not_in_test_env(self) -> None:
         prompts = (
             TestsFlextCliCaptureLogPromptsCov()
+            .configure_state(interactive=True)
             .use_input_values(["typed"])
             .force_non_test_env()
         )
@@ -59,7 +39,11 @@ class TestsCliPromptsCov:
         )
 
     def test_confirm_records_warning_before_retrying(self) -> None:
-        prompts = TestsFlextCliCaptureLogPromptsCov().use_input_values(["maybe", "y"])
+        prompts = (
+            TestsFlextCliCaptureLogPromptsCov()
+            .configure_state(interactive=True)
+            .use_input_values(["maybe", "y"])
+        )
         result = prompts.confirm("m", default=False)
         tm.ok(result)
         tm.that(result.value, eq=True)

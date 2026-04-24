@@ -3,13 +3,47 @@
 from __future__ import annotations
 
 from collections.abc import (
+    Callable,
     Generator,
 )
+from typing import Any
 
 import pytest
 from flext_core import FlextSettings
 
 from flext_cli import FlextCliSettings
+from tests.helpers._impl import (
+    FlextCliCaptureLogPrompts,
+    FlextCliFailingLogPrompts,
+    FlextCliScriptedPrompts,
+)
+
+
+@pytest.fixture
+def make_prompts() -> Callable[..., FlextCliScriptedPrompts]:
+    """Factory fixture for scripted prompt test doubles."""
+
+    def _make(
+        prompt_type: type[FlextCliScriptedPrompts] = FlextCliScriptedPrompts,
+        *,
+        interactive_mode: bool = True,
+        quiet: bool = False,
+        **_kwargs: Any,
+    ) -> FlextCliScriptedPrompts:
+        return prompt_type().configure_state(
+            interactive=interactive_mode,
+            quiet=quiet,
+        )
+
+    return _make
+
+
+__all__: list[str] = [
+    "FlextCliCaptureLogPrompts",
+    "FlextCliFailingLogPrompts",
+    "FlextCliScriptedPrompts",
+    "make_prompts",
+]
 
 
 @pytest.fixture(autouse=True)

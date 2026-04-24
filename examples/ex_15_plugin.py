@@ -195,7 +195,8 @@ class DataProcessorPlugin:
                 """
                 if format_type in self._processors:
                     processor: t.DataProcessor = self._processors[format_type]
-                    return processor(input_data)
+                    result: str = processor(input_data)
+                    return result
                 return f"Unsupported format: {format_type}"
 
             def list_formats() -> t.StrSequence:
