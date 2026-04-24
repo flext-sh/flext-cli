@@ -20,6 +20,7 @@ from typing import (
     TypeAliasType,
     TypeIs,
     Union,
+    cast,
     get_args,
     get_origin,
 )
@@ -96,7 +97,7 @@ class FlextCliCli(s):
             if len(args) == c.Cli.OPTIONAL_UNION_ARG_COUNT and NoneType in args:
                 return args[0] if args[1] is NoneType else args[1]
             return str
-        origin = get_origin(annotation)
+        origin = cast("t.Cli.RuntimeAnnotation | None", get_origin(annotation))
         if origin is Annotated:
             value, *_ = get_args(annotation)
             return FlextCliCli._resolve_typer_annotation(value)
@@ -390,7 +391,8 @@ class FlextCliCli(s):
             merged.update(cls._model_source_data(model_cls, source))
         if overrides is not None:
             merged.update(cls._model_source_data(model_cls, overrides))
-        return model_cls.model_validate(merged)
+        validated: M = model_cls.model_validate(merged)
+        return validated
 
     @staticmethod
     def _model_source_data(

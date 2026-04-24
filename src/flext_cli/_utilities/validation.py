@@ -111,12 +111,14 @@ class FlextCliUtilitiesValidation:
                     field_name=name,
                 ),
             )
-        if isinstance(val, str) and not u.string_non_empty(val):
-            return r[bool].fail(
-                c.Cli.VALIDATION_MSG_FIELD_CANNOT_BE_EMPTY.format(
-                    field_name=name,
-                ),
-            )
+        if isinstance(val, str):
+            stripped = val.strip()
+            if not stripped:
+                return r[bool].fail(
+                    c.Cli.VALIDATION_MSG_FIELD_CANNOT_BE_EMPTY.format(
+                        field_name=name,
+                    ),
+                )
         return r[bool].ok(True)
 
     @staticmethod

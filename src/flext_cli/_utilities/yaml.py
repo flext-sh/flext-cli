@@ -102,9 +102,12 @@ class FlextCliUtilitiesYaml:
         if not isinstance(parsed, list):
             return []
         try:
-            return t.Cli.YAML_SEQ_ADAPTER.validate_python(parsed)
+            validated: Sequence[t.JsonValue] = t.Cli.YAML_SEQ_ADAPTER.validate_python(
+                parsed,
+            )
         except c.ValidationError:
             return []
+        return validated
 
     # ------------------------------------------------------------------
     # Writing

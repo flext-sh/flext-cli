@@ -589,7 +589,7 @@ class FlextCliModelsBase:
                 return self.default
             if isinstance(self.raw, str):
                 return int(self.raw) if self.raw.isdigit() else self.default
-            return self.raw
+            return int(self.raw)
 
     class LogLevelResolved(m.BaseModel):
         """Single contract for log level string."""

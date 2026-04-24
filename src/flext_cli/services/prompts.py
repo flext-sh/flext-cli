@@ -178,7 +178,9 @@ class FlextCliPrompts(s):
         )
 
     def _is_test_env(self) -> bool:
-        return u.Cli.prompts_is_test_env(test_override=self._test_env_override)
+        return bool(
+            u.Cli.prompts_is_test_env(test_override=self._test_env_override),
+        )
 
     def _log(
         self,
