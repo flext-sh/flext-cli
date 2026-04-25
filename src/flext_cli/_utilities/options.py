@@ -4,7 +4,10 @@ from __future__ import annotations
 
 from collections.abc import (
     MutableSequence,
+    Sequence,
 )
+from types import GenericAlias, NoneType, UnionType
+from typing import Annotated, TypeAliasType, Union, get_args, get_origin
 
 from typer.models import OptionInfo
 
@@ -58,6 +61,84 @@ class FlextCliUtilitiesOptionBuilder:
 
 class FlextCliUtilitiesOptions:
     """Option methods exposed directly on ``u.Cli``."""
+
+    @staticmethod
+    def _is_union_origin(
+        origin: object | None,
+        *,
+        typing_union_origin: object,
+        runtime_union_origin: object | None,
+    ) -> bool:
+        """Return True when runtime origin represents a union annotation."""
+        return origin is typing_union_origin or origin is runtime_union_origin
+
+    @staticmethod
+    def resolve_typer_annotation(
+        annotation: t.Cli.RuntimeAnnotation,
+    ) -> type | GenericAlias:
+        """Resolve runtime annotations to concrete types accepted by Typer."""
+        annotated_origin: object | None = get_origin(Annotated[str, "meta"])
+        typing_union_origin: object = Union
+        runtime_union_origin: object | None = get_origin(str | int)
+        sequence_origin: object | None = get_origin(Sequence[str])
+        list_origin: object | None = get_origin(list[str])
+        tuple_origin: object | None = get_origin(tuple[str, ...])
+        dict_origin: object | None = get_origin(dict[str, t.Scalar])
+        frozenset_origin: object | None = get_origin(frozenset[str])
+        set_origin: object | None = get_origin(set[str])
+        if isinstance(annotation, TypeAliasType):
+            return FlextCliUtilitiesOptions.resolve_typer_annotation(
+                annotation.__value__
+            )
+        if isinstance(annotation, UnionType):
+            args = tuple(
+                FlextCliUtilitiesOptions.resolve_typer_annotation(arg)
+                for arg in get_args(annotation)
+            )
+            if len(args) == c.Cli.OPTIONAL_UNION_ARG_COUNT and NoneType in args:
+                return args[0] if args[1] is NoneType else args[1]
+            return str
+        origin: object | None = get_origin(annotation)
+        if origin == annotated_origin:
+            value, *_ = get_args(annotation)
+            return FlextCliUtilitiesOptions.resolve_typer_annotation(value)
+        if FlextCliUtilitiesOptions._is_union_origin(
+            origin,
+            typing_union_origin=typing_union_origin,
+            runtime_union_origin=runtime_union_origin,
+        ):
+            args = tuple(
+                FlextCliUtilitiesOptions.resolve_typer_annotation(arg)
+                for arg in get_args(annotation)
+            )
+            if len(args) == c.Cli.OPTIONAL_UNION_ARG_COUNT and NoneType in args:
+                return args[0] if args[1] is NoneType else args[1]
+            return str
+        if origin == sequence_origin:
+            args = get_args(annotation)
+            if args:
+                value = FlextCliUtilitiesOptions.resolve_typer_annotation(args[0])
+                if isinstance(value, type):
+                    return GenericAlias(list, (value,))
+            return list[str]
+        if origin in {list_origin, tuple_origin}:
+            args = get_args(annotation)
+            if args:
+                value = FlextCliUtilitiesOptions.resolve_typer_annotation(args[0])
+                if isinstance(value, type):
+                    return GenericAlias(list, (value,))
+            return list[str]
+        if origin == dict_origin:
+            return dict
+        if origin == frozenset_origin:
+            return frozenset
+        if origin == set_origin:
+            return set
+        if isinstance(annotation, GenericAlias):
+            return annotation
+        if isinstance(annotation, type):
+            return annotation
+        return str
 
     @staticmethod
     def build_option(

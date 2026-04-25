@@ -14,14 +14,10 @@ from collections.abc import (
 )
 from inspect import Parameter, Signature
 from pathlib import Path
-from types import GenericAlias, NoneType, UnionType
+from types import GenericAlias
 from typing import (
     Annotated,
-    TypeAliasType,
     TypeIs,
-    Union,
-    get_args,
-    get_origin,
 )
 
 import click
@@ -39,6 +35,7 @@ from flext_cli import (
     r,
     s,
     t,
+    u,
 )
 
 
@@ -86,53 +83,7 @@ class FlextCliCli(s):
         annotation: t.Cli.RuntimeAnnotation,
     ) -> type | GenericAlias:
         """Resolve runtime annotations to concrete types accepted by Typer."""
-        if isinstance(annotation, TypeAliasType):
-            return FlextCliCli._resolve_typer_annotation(annotation.__value__)
-        if isinstance(annotation, UnionType):
-            args = tuple(
-                FlextCliCli._resolve_typer_annotation(arg)
-                for arg in get_args(annotation)
-            )
-            if len(args) == c.Cli.OPTIONAL_UNION_ARG_COUNT and NoneType in args:
-                return args[0] if args[1] is NoneType else args[1]
-            return str
-        origin = get_origin(annotation)
-        if origin is Annotated:
-            value, *_ = get_args(annotation)
-            return FlextCliCli._resolve_typer_annotation(value)
-        if origin is Union or origin is UnionType:
-            args = tuple(
-                FlextCliCli._resolve_typer_annotation(arg)
-                for arg in get_args(annotation)
-            )
-            if len(args) == c.Cli.OPTIONAL_UNION_ARG_COUNT and NoneType in args:
-                return args[0] if args[1] is NoneType else args[1]
-            return str
-        if origin is Sequence:
-            args = get_args(annotation)
-            if args:
-                value = FlextCliCli._resolve_typer_annotation(args[0])
-                if isinstance(value, type):
-                    return GenericAlias(list, (value,))
-            return list[str]
-        if origin is list or origin is tuple:
-            args = get_args(annotation)
-            if args:
-                value = FlextCliCli._resolve_typer_annotation(args[0])
-                if isinstance(value, type):
-                    return GenericAlias(list, (value,))
-            return list[str]
-        if origin is dict:
-            return dict
-        if origin is frozenset:
-            return frozenset
-        if origin is set:
-            return set
-        if isinstance(annotation, GenericAlias):
-            return annotation
-        if isinstance(annotation, type):
-            return annotation
-        return str
+        return u.Cli.resolve_typer_annotation(annotation)
 
     @staticmethod
     def _is_string_sequence(
