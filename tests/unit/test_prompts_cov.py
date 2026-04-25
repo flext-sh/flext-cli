@@ -12,7 +12,7 @@ from tests.helpers._impl import FlextCliCaptureLogPrompts
 class _CaptureLogPrompts(FlextCliCaptureLogPrompts):
     """Prompt service that records log calls and supports test-env override."""
 
-    _test_env_override: bool = True
+    _test_env_override: bool | None = True  # pyright: ignore[reportIncompatibleVariableOverride]
 
     def force_non_test_env(self) -> Self:
         self._test_env_override = False
