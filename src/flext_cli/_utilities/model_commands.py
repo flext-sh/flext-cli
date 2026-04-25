@@ -73,6 +73,39 @@ class FlextCliUtilitiesModelCommands:
     """Model command methods exposed directly on ``u.Cli``."""
 
     @staticmethod
+    def model_source_data(
+        model_cls: type[m.BaseModel],
+        source: t.Cli.ModelSource,
+    ) -> t.ScalarMapping:
+        """Extract only target-compatible fields from a model or mapping source."""
+        raw_source: t.ScalarMapping
+        if isinstance(source, m.BaseModel):
+            raw_source = source.model_dump(exclude_none=True)
+        else:
+            raw_source = source
+        return {
+            field_name: raw_source[field_name]
+            for field_name in model_cls.model_fields
+            if field_name in raw_source and raw_source[field_name] is not None
+        }
+
+    @classmethod
+    def derive_model[M: m.BaseModel](
+        cls,
+        model_cls: type[M],
+        *sources: t.Cli.ModelSource,
+        overrides: t.ScalarMapping | None = None,
+    ) -> M:
+        """Derive a target model from ordered model/mapping sources."""
+        merged: t.MutableScalarMapping = {}
+        for source in sources:
+            merged.update(cls.model_source_data(model_cls, source))
+        if overrides is not None:
+            merged.update(cls.model_source_data(model_cls, overrides))
+        validated: M = model_cls.model_validate(merged)
+        return validated
+
+    @staticmethod
     def build_model_command[M: m.BaseModel](
         model_class: type[M],
         handler: p.Cli.ModelCommandHandler[M],

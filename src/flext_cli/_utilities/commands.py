@@ -6,7 +6,10 @@ from collections.abc import (
     Callable,
 )
 
+import click
+
 from flext_cli import FlextCliUtilitiesJson as uj, c, p, r, t
+from flext_cli._utilities.output import FlextCliUtilitiesOutput
 
 
 class FlextCliUtilitiesCommands:
@@ -64,6 +67,49 @@ class FlextCliUtilitiesCommands:
             return r[t.JsonValue].fail(
                 c.Cli.ERR_COMMAND_EXECUTION_FAILED.format(error=exc),
             )
+
+    @staticmethod
+    def commands_resolve_success_message[TResult: t.Cli.ResultValue](
+        *,
+        result_value: TResult,
+        success_message: str | None,
+        success_formatter: p.Cli.SuccessMessageFormatter[TResult] | None,
+    ) -> str | None:
+        """Resolve success message using formatter/value fallback order."""
+        if success_formatter is not None:
+            formatted: object = success_formatter(result_value)
+            return formatted if isinstance(formatted, str) else str(formatted)
+        if hasattr(result_value, "message"):
+            candidate = getattr(result_value, "message", None)
+            if isinstance(candidate, str) and candidate:
+                return candidate
+        if isinstance(result_value, str) and result_value:
+            return result_value
+        return success_message
+
+    @staticmethod
+    def commands_emit_success_message(
+        message: str,
+        success_type: c.Cli.MessageTypes,
+    ) -> None:
+        """Emit success output as raw payload or styled CLI message."""
+        if message.lstrip().startswith(("{", "[")):
+            click.echo(message)
+            return
+        payload, _ = FlextCliUtilitiesOutput.output_message_payload(
+            message,
+            success_type,
+        )
+        FlextCliUtilitiesOutput.emit_raw(f"{payload}\n")
+
+    @staticmethod
+    def commands_emit_error_message(error: str) -> None:
+        """Emit standardized CLI error output."""
+        payload, _ = FlextCliUtilitiesOutput.output_message_payload(
+            error,
+            c.Cli.MessageTypes.ERROR,
+        )
+        FlextCliUtilitiesOutput.emit_raw(f"{payload}\n")
 
 
 __all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesCommands"]

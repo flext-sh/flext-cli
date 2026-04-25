@@ -13,11 +13,9 @@ from collections.abc import (
     Sequence,
 )
 from inspect import Parameter, Signature
-from pathlib import Path
 from types import GenericAlias
 from typing import (
     Annotated,
-    TypeIs,
 )
 
 import click
@@ -27,7 +25,6 @@ from typer.testing import CliRunner
 
 from flext_cli import (
     FlextCliCommonParams,
-    FlextCliOutput,
     FlextCliSettings,
     c,
     m,
@@ -41,6 +38,13 @@ from flext_cli import (
 
 class FlextCliCli(s):
     """Unified Typer abstraction for model-driven CLI applications."""
+
+    @staticmethod
+    def _ensure_typer_annotation(value: object) -> type | GenericAlias:
+        """Normalize dynamic helper output to Typer-compatible annotation types."""
+        if isinstance(value, type | GenericAlias):
+            return value
+        return str
 
     class _ModelCommand[M: m.BaseModel]:
         """Callable wrapper with explicit signature for Typer introspection.
@@ -83,93 +87,9 @@ class FlextCliCli(s):
         annotation: t.Cli.RuntimeAnnotation,
     ) -> type | GenericAlias:
         """Resolve runtime annotations to concrete types accepted by Typer."""
-        return u.Cli.resolve_typer_annotation(annotation)
-
-    @staticmethod
-    def _is_string_sequence(
-        value: t.Cli.CliDefaultSource,
-    ) -> TypeIs[t.StrSequence]:
-        """Return True for concrete string sequences accepted by repeated CLI options."""
-        if isinstance(value, Path) or not isinstance(value, Sequence):
-            return False
-        if isinstance(value, str | bytes):
-            return False
-        return all(isinstance(item, str) for item in value)
-
-    @classmethod
-    def _normalize_cli_atom(
-        cls,
-        value: t.Cli.CliDefaultSource,
-    ) -> t.Cli.DefaultAtom | None:
-        """Normalize one runtime value into an allowed Typer scalar or string sequence."""
-        if isinstance(value, c.Cli.CLI_SCALAR_TYPES_TUPLE):
-            return value
-        if isinstance(value, Path):
-            return str(value)
-        if cls._is_string_sequence(value):
-            return tuple(value)
-        return None
-
-    @staticmethod
-    def _field_default(
-        field_name: str,
-        field_info: m.FieldInfo,
-        settings: m.BaseModel | None,
-    ) -> t.Cli.CliValue | None:
-        """Resolve CLI default from settings first, then from model field metadata."""
-        if settings is not None and hasattr(settings, field_name):
-            configured = getattr(settings, field_name)
-            try:
-                normalized_source = t.Cli.CLI_DEFAULT_SOURCE_ADAPTER.validate_python(
-                    configured,
-                )
-            except (TypeError, ValueError, c.ValidationError):
-                return None
-            return FlextCliCli._normalize_cli_default(normalized_source)
-        default_factory = getattr(field_info, "default_factory", None)
-        if callable(default_factory):
-            try:
-                normalized_source = t.Cli.CLI_DEFAULT_SOURCE_ADAPTER.validate_python(
-                    default_factory(),
-                )
-            except (TypeError, ValueError, c.ValidationError):
-                return None
-            return FlextCliCli._normalize_cli_default(normalized_source)
-        default_value = getattr(field_info, "default", None)
-        try:
-            normalized_source = t.Cli.CLI_DEFAULT_SOURCE_ADAPTER.validate_python(
-                default_value,
-            )
-        except (TypeError, ValueError, c.ValidationError):
-            return None
-        return FlextCliCli._normalize_cli_default(normalized_source)
-
-    @classmethod
-    def _normalize_cli_default(
-        cls,
-        value: t.Cli.CliDefaultSource,
-    ) -> t.Cli.CliValue | None:
-        """Normalize field defaults into Typer-compatible scalar/mapping/list values."""
-        if value is None:
-            return None
-        normalized_atom = cls._normalize_cli_atom(value)
-        if normalized_atom is not None:
-            return normalized_atom
-        if isinstance(value, Mapping):
-            normalized_mapping: t.Cli.MutableDefaultMapping = {}
-            for key, item_value in value.items():
-                if not isinstance(key, str):
-                    continue
-                normalized_item = cls._normalize_cli_atom(item_value)
-                if normalized_item is not None:
-                    normalized_mapping[key] = normalized_item
-            if normalized_mapping:
-                return normalized_mapping
-            return None
-        if cls._is_string_sequence(value):
-            normalized_sequence: tuple[str, ...] = tuple(value)
-            return normalized_sequence
-        return None
+        return FlextCliCli._ensure_typer_annotation(
+            u.Cli.resolve_typer_annotation(annotation)
+        )
 
     @classmethod
     def _build_model_parameter(
@@ -187,7 +107,13 @@ class FlextCliCli(s):
         )
         is_required = bool(getattr(field_info, "is_required")())
         default_value = (
-            ... if is_required else cls._field_default(field_name, field_info, settings)
+            ...
+            if is_required
+            else u.Cli.field_default(
+                field_name,
+                field_info,
+                settings,
+            )
         )
         option_decls = [option_name]
         extra = getattr(field_info, "json_schema_extra", None)
@@ -338,28 +264,11 @@ class FlextCliCli(s):
         """Derive a target Pydantic model from ordered model/mapping sources."""
         merged: t.MutableScalarMapping = {}
         for source in sources:
-            merged.update(cls._model_source_data(model_cls, source))
+            merged.update(u.Cli.model_source_data(model_cls, source))
         if overrides is not None:
-            merged.update(cls._model_source_data(model_cls, overrides))
+            merged.update(u.Cli.model_source_data(model_cls, overrides))
         validated: M = model_cls.model_validate(merged)
         return validated
-
-    @staticmethod
-    def _model_source_data(
-        model_cls: type[m.BaseModel],
-        source: t.Cli.ModelSource,
-    ) -> t.ScalarMapping:
-        """Extract only target-compatible fields from a model or mapping source."""
-        raw_source: t.ScalarMapping
-        if isinstance(source, m.BaseModel):
-            raw_source = source.model_dump(exclude_none=True)
-        else:
-            raw_source = source
-        return {
-            field_name: raw_source[field_name]
-            for field_name in model_cls.model_fields
-            if field_name in raw_source and raw_source[field_name] is not None
-        }
 
     @staticmethod
     def create_cli_runner(
@@ -486,28 +395,21 @@ class FlextCliCli(s):
 
         def _exit_with_failure(error: str | None) -> None:
             if error:
-                FlextCliOutput.display_message(error, c.Cli.MessageTypes.ERROR)
+                u.Cli.commands_emit_error_message(error)
             cls.exit(code=1)
 
         def execute(params: M) -> t.JsonValue:
             result: p.Result[TResult] = handler(params)
             if result.failure:
                 _exit_with_failure(result.error)
-            message = success_message
             result_value: TResult = result.value
-            if success_formatter is not None:
-                message = success_formatter(result_value)
-            elif hasattr(result_value, "message"):
-                candidate = result_value.message
-                if isinstance(candidate, str) and candidate:
-                    message = candidate
-            elif isinstance(result_value, str) and result_value:
-                message = result_value
+            message = u.Cli.commands_resolve_success_message(
+                result_value=result_value,
+                success_message=success_message,
+                success_formatter=success_formatter,
+            )
             if message:
-                if message.lstrip().startswith(("{", "[")):
-                    click.echo(message)
-                else:
-                    FlextCliOutput.display_message(message, success_type)
+                u.Cli.commands_emit_success_message(message, success_type)
             return True
 
         return execute
@@ -521,41 +423,21 @@ class FlextCliCli(s):
     ) -> None:
         """Register a declarative result route on a Typer app."""
 
-        def execute(params: m.BaseModel) -> t.JsonValue:
+        def route_execute(params: m.BaseModel) -> p.Result[t.Cli.ResultValue]:
             result = route.handler(params)
             if result.failure:
-                if result.error:
-                    FlextCliOutput.display_message(
-                        result.error,
-                        c.Cli.MessageTypes.ERROR,
-                    )
-                cls.exit(code=1)
-            message = route.success_message
-            result_value = result.value
-            if route.success_formatter is not None:
-                message = route.success_formatter(result_value)
-            elif hasattr(result_value, "message"):
-                candidate = result_value.message
-                if isinstance(candidate, str) and candidate:
-                    message = candidate
-            elif isinstance(result_value, str) and result_value:
-                message = result_value
-            if message:
-                if message.lstrip().startswith(("{", "[")):
-                    click.echo(message)
-                else:
-                    FlextCliOutput.display_message(message, route.success_type)
-            return True
+                return r[t.Cli.ResultValue].fail(result.error or "")
+            return r[t.Cli.ResultValue].ok(result.value)
 
-        command = cls.model_command(
-            route.model_cls,
-            execute,
-        )
-        cls.register_command(
+        cls.register_result_command(
             app,
             name=route.name,
             help_text=route.help_text,
-            command=command,
+            model_cls=route.model_cls,
+            handler=route_execute,
+            success_message=route.success_message,
+            success_formatter=route.success_formatter,
+            success_type=route.success_type,
         )
 
     @classmethod

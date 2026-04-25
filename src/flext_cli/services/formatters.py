@@ -16,6 +16,7 @@ from collections.abc import (
 from typing import Literal, Self, overload, override
 
 from flext_cli import FlextCliServiceBase, p, r, t, u
+from flext_cli._utilities.formatters import FlextCliUtilitiesFormatters
 
 
 class FlextCliFormatters(FlextCliServiceBase):
@@ -70,10 +71,16 @@ class FlextCliFormatters(FlextCliServiceBase):
             Use tree.add(label) for side-effect; tree.add(label, return_child=True) to chain.
 
         """
-        tree_result = u.Cli.formatters_create_tree(
-            label,
-            cls._get_or_create_logger(),
-        )
+        if hasattr(u, "Cli"):
+            tree_result = u.Cli.formatters_create_tree(
+                label,
+                cls._get_or_create_logger(),
+            )
+        else:
+            tree_result = FlextCliUtilitiesFormatters.formatters_create_tree(
+                label,
+                cls._get_or_create_logger(),
+            )
         if tree_result.failure:
             return r[FlextCliFormatters.Tree].fail_op(
                 "create cli tree",
@@ -93,7 +100,14 @@ class FlextCliFormatters(FlextCliServiceBase):
             For advanced Rich features, access self.console directly.
 
         """
-        u.Cli.formatters_print(
+        if hasattr(u, "Cli"):
+            u.Cli.formatters_print(
+                message,
+                cls._get_or_create_logger(),
+                style=style,
+            )
+            return
+        FlextCliUtilitiesFormatters.formatters_print(
             message,
             cls._get_or_create_logger(),
             style=style,
@@ -102,12 +116,24 @@ class FlextCliFormatters(FlextCliServiceBase):
     @classmethod
     def render_rule(cls, text: str) -> None:
         """Render a horizontal rule with centered text via Rich."""
-        u.Cli.formatters_render_rule(text, cls._get_or_create_logger())
+        if hasattr(u, "Cli"):
+            u.Cli.formatters_render_rule(text, cls._get_or_create_logger())
+            return
+        FlextCliUtilitiesFormatters.formatters_render_rule(
+            text, cls._get_or_create_logger()
+        )
 
     @classmethod
     def render_panel(cls, content: str, *, title: str = "") -> None:
         """Render a Rich Panel with optional title."""
-        u.Cli.formatters_render_panel(
+        if hasattr(u, "Cli"):
+            u.Cli.formatters_render_panel(
+                content,
+                cls._get_or_create_logger(),
+                title=title,
+            )
+            return
+        FlextCliUtilitiesFormatters.formatters_render_panel(
             content,
             cls._get_or_create_logger(),
             title=title,
@@ -122,7 +148,15 @@ class FlextCliFormatters(FlextCliServiceBase):
         title: str = "",
     ) -> None:
         """Render a Rich Table with columns and rows."""
-        u.Cli.formatters_render_table(
+        if hasattr(u, "Cli"):
+            u.Cli.formatters_render_table(
+                columns,
+                rows,
+                cls._get_or_create_logger(),
+                title=title,
+            )
+            return
+        FlextCliUtilitiesFormatters.formatters_render_table(
             columns,
             rows,
             cls._get_or_create_logger(),

@@ -3,15 +3,17 @@
 from __future__ import annotations
 
 from collections.abc import (
+    Mapping,
     MutableSequence,
     Sequence,
 )
+from pathlib import Path
 from types import GenericAlias, NoneType, UnionType
 from typing import Annotated, TypeAliasType, Union, get_args, get_origin
 
 from typer.models import OptionInfo
 
-from flext_cli import c, t
+from flext_cli import c, m, t
 
 
 class FlextCliUtilitiesOptionBuilder:
@@ -139,6 +141,93 @@ class FlextCliUtilitiesOptions:
         if isinstance(annotation, type):
             return annotation
         return str
+
+    @staticmethod
+    def is_string_sequence(
+        value: t.Cli.CliDefaultSource,
+    ) -> bool:
+        """Return True for concrete string sequences accepted by repeated CLI options."""
+        if isinstance(value, Path) or not isinstance(value, Sequence):
+            return False
+        if isinstance(value, str | bytes):
+            return False
+        return all(isinstance(item, str) for item in value)
+
+    @classmethod
+    def normalize_cli_atom(
+        cls,
+        value: t.Cli.CliDefaultSource,
+    ) -> t.Cli.DefaultAtom | None:
+        """Normalize one runtime value into an allowed Typer scalar or string sequence."""
+        if isinstance(value, c.Cli.CLI_SCALAR_TYPES_TUPLE):
+            return value
+        if isinstance(value, Path):
+            return str(value)
+        if cls.is_string_sequence(value):
+            normalized_sequence = t.Cli.STR_SEQUENCE_ADAPTER.validate_python(value)
+            return tuple(normalized_sequence)
+        return None
+
+    @classmethod
+    def normalize_cli_default(
+        cls,
+        value: t.Cli.CliDefaultSource,
+    ) -> t.Cli.CliValue | None:
+        """Normalize field defaults into Typer-compatible scalar/mapping/list values."""
+        if value is None:
+            return None
+        normalized_atom = cls.normalize_cli_atom(value)
+        if normalized_atom is not None:
+            return normalized_atom
+        if isinstance(value, Mapping):
+            normalized_mapping: t.Cli.MutableDefaultMapping = {}
+            for key, item_value in value.items():
+                if not isinstance(key, str):
+                    continue
+                normalized_item = cls.normalize_cli_atom(item_value)
+                if normalized_item is not None:
+                    normalized_mapping[key] = normalized_item
+            if normalized_mapping:
+                return normalized_mapping
+            return None
+        if cls.is_string_sequence(value):
+            return t.Cli.STR_SEQUENCE_ADAPTER.validate_python(value)
+        return None
+
+    @classmethod
+    def field_default(
+        cls,
+        field_name: str,
+        field_info: m.FieldInfo,
+        settings: m.BaseModel | None,
+    ) -> t.Cli.CliValue | None:
+        """Resolve CLI default from settings first, then from model field metadata."""
+        if settings is not None and hasattr(settings, field_name):
+            configured = getattr(settings, field_name)
+            try:
+                normalized_source = t.Cli.CLI_DEFAULT_SOURCE_ADAPTER.validate_python(
+                    configured,
+                )
+            except (TypeError, ValueError, c.ValidationError):
+                return None
+            return cls.normalize_cli_default(normalized_source)
+        default_factory = getattr(field_info, "default_factory", None)
+        if callable(default_factory):
+            try:
+                normalized_source = t.Cli.CLI_DEFAULT_SOURCE_ADAPTER.validate_python(
+                    default_factory(),
+                )
+            except (TypeError, ValueError, c.ValidationError):
+                return None
+            return cls.normalize_cli_default(normalized_source)
+        default_value = getattr(field_info, "default", None)
+        try:
+            normalized_source = t.Cli.CLI_DEFAULT_SOURCE_ADAPTER.validate_python(
+                default_value,
+            )
+        except (TypeError, ValueError, c.ValidationError):
+            return None
+        return cls.normalize_cli_default(normalized_source)
 
     @staticmethod
     def build_option(
