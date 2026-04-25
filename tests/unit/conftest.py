@@ -6,12 +6,12 @@ from collections.abc import (
     Callable,
     Generator,
 )
-from typing import Any
 
 import pytest
 from flext_core import FlextSettings
 
 from flext_cli import FlextCliSettings
+from tests import t
 from tests.helpers._impl import (
     FlextCliCaptureLogPrompts,
     FlextCliFailingLogPrompts,
@@ -28,7 +28,7 @@ def make_prompts() -> Callable[..., FlextCliScriptedPrompts]:
         *,
         interactive_mode: bool = True,
         quiet: bool = False,
-        **_kwargs: Any,
+        **_kwargs: t.JsonValue,
     ) -> FlextCliScriptedPrompts:
         return prompt_type().configure_state(
             interactive=interactive_mode,
