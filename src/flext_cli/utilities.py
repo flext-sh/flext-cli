@@ -23,7 +23,7 @@ class FlextCliUtilities(u):
         FlextCliUtilitiesToml,
         FlextCliUtilitiesYaml,
     ):
-        """Command line interface specific utilities."""
+        """Command line interface specific utilities — all concerns composed via MRO."""
 
 
 u = FlextCliUtilities
