@@ -3,7 +3,7 @@
 <!-- TOC START -->
 - [Visão geral](#viso-geral)
 - [Navegação rápida](#navegao-rpida)
-- [O que observar na 0.12.0-dev](#o-que-observar-na-0100)
+- [O que observar na 0.12.0-dev](#o-que-observar-na-0120-dev)
 - [Status](#status)
 - [Links úteis](#links-teis)
 <!-- TOC END -->

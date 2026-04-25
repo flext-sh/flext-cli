@@ -2,7 +2,7 @@
 
 <!-- TOC START -->
 - [Imports essenciais](#imports-essenciais)
-- [Facade `cli`](#facade-flextcli)
+- [Facade `cli`](#facade-cli)
   - [Métodos principais](#mtodos-principais)
 - [Base para aplicativos Typer (`FlextCliAppBase`)](#base-para-aplicativos-typer-flextcliappbase)
 - [Serviço `FlextCliCore`](#servio-flextclicore)

@@ -12,7 +12,7 @@
   - [Example 1: File Operations](#example-1-file-operations)
   - [Example 2: Output Formatting](#example-2-output-formatting)
 - [Service Class Patterns](#service-class-patterns)
-  - [v0.9.0: Everything Extends s](#v090-everything-extends-flextservice)
+  - [v0.9.0: Everything Extends s](#v090-everything-extends-s)
   - [v0.10.0: Simple Classes for Utilities](#v0100-simple-classes-for-utilities)
 - [Test Organization](#test-organization)
   - [v0.9.0: Flat Structure](#v090-flat-structure)

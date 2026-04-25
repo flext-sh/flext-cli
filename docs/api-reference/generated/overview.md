@@ -3,15 +3,15 @@
 # flext-cli API Overview
 
 - Package: `flext_cli`
-- Version: `0.12.0-dev`
+- Version: ``
 - Description: FLEXT CLI - Developer Command Line Interface
 - Project class: `platform`
 - Keywords: `cli`, `command-line`, `enterprise`, `flext`, `tools`, `typed`
-- Main facades: `FlextCli`, `FlextCliConstants`, `FlextCliModels`, `FlextCliProtocols`, `FlextCliServiceBase`, `FlextCliSettings`, `FlextCliTypes`, `FlextCliUtilities`
+- Main facades: `FlextCliUtilitiesJson`, `FlextCliUtilitiesOutput`, `FlextCliUtilities`, `FlextCliPrompts`, `FlextCliTypesBase`, `FlextCliUtilitiesRules`, `FlextCliCommands`, `FlextCliUtilitiesParams` (+50 more)
 - Alias exports: `c`, `d`, `e`, `h`, `m`, `p`, `r`, `s`, `t`, `u`, `x`
-- Public symbol exports: `FlextCli`, `FlextCliConstants`, `FlextCliModels`, `FlextCliProtocols`, `FlextCliServiceBase`, `FlextCliSettings`, `FlextCliTypes`, `FlextCliUtilities`, `cli`, `logger`
-- Exported module shortcuts: `api`, `base`, `constants`, `models`, `protocols`, `services`, `settings`, `typings` (+1 more)
-- Generated module pages: `9`
+- Public symbol exports: `FlextCliUtilitiesJson`, `FlextCliUtilitiesOutput`, `FlextCliUtilities`, `FlextCliPrompts`, `FlextCliTypesBase`, `FlextCliUtilitiesRules`, `FlextCliCommands`, `FlextCliUtilitiesParams`, `FlextCliUtilitiesOptionBuilder`, `FlextCliProtocolsDomain` (+49 more)
+- Exported module shortcuts: _none_
+- Generated module pages: `21`
 
 ## Next Pages
 
