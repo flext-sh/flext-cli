@@ -20,7 +20,6 @@ from typing import (
     TypeAliasType,
     TypeIs,
     Union,
-    cast,
     get_args,
     get_origin,
 )
@@ -97,7 +96,7 @@ class FlextCliCli(s):
             if len(args) == c.Cli.OPTIONAL_UNION_ARG_COUNT and NoneType in args:
                 return args[0] if args[1] is NoneType else args[1]
             return str
-        origin = cast("t.Cli.RuntimeAnnotation | None", get_origin(annotation))
+        origin = get_origin(annotation)
         if origin is Annotated:
             value, *_ = get_args(annotation)
             return FlextCliCli._resolve_typer_annotation(value)

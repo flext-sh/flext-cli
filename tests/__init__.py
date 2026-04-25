@@ -36,6 +36,7 @@ if _t.TYPE_CHECKING:
     from tests.unit.test_prompts import TestsFlextCliPrompts
     from tests.unit.test_prompts_cov import TestsFlextCliPromptsCov
     from tests.unit.test_protocols import TestsFlextCliProtocolsUnit
+    from tests.unit.test_runtime_utilities_core import TestsFlextCliRuntimeUtilitiesCore
     from tests.unit.test_runtime_utilities_extra import (
         TestsFlextCliRuntimeUtilitiesExtra,
     )
@@ -84,6 +85,7 @@ _LAZY_IMPORTS = merge_lazy_imports(
             ".unit.test_prompts": ("TestsFlextCliPrompts",),
             ".unit.test_prompts_cov": ("TestsFlextCliPromptsCov",),
             ".unit.test_protocols": ("TestsFlextCliProtocolsUnit",),
+            ".unit.test_runtime_utilities_core": ("TestsFlextCliRuntimeUtilitiesCore",),
             ".unit.test_runtime_utilities_extra": (
                 "TestsFlextCliRuntimeUtilitiesExtra",
             ),
@@ -154,6 +156,7 @@ __all__: list[str] = [
     "TestsFlextCliPromptsCov",
     "TestsFlextCliProtocols",
     "TestsFlextCliProtocolsUnit",
+    "TestsFlextCliRuntimeUtilitiesCore",
     "TestsFlextCliRuntimeUtilitiesExtra",
     "TestsFlextCliService",
     "TestsFlextCliServiceBase",

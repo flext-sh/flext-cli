@@ -25,7 +25,7 @@ _LAZY_IMPORTS = build_lazy_import_map(
         ".test_prompts": ("TestsFlextCliPrompts",),
         ".test_prompts_cov": ("TestsFlextCliPromptsCov",),
         ".test_protocols": ("TestsFlextCliProtocolsUnit",),
-        ".test_runtime_utilities_core": ("test_runtime_utilities_core",),
+        ".test_runtime_utilities_core": ("TestsFlextCliRuntimeUtilitiesCore",),
         ".test_runtime_utilities_extra": ("TestsFlextCliRuntimeUtilitiesExtra",),
         ".test_settings": ("TestsFlextCliSettings",),
         ".test_tables": ("TestsFlextCliTables",),
