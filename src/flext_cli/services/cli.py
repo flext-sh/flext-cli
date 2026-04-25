@@ -39,13 +39,6 @@ from flext_cli import (
 class FlextCliCli(s):
     """Unified Typer abstraction for model-driven CLI applications."""
 
-    @staticmethod
-    def _ensure_typer_annotation(value: object) -> type | GenericAlias:
-        """Normalize dynamic helper output to Typer-compatible annotation types."""
-        if isinstance(value, type | GenericAlias):
-            return value
-        return str
-
     class _ModelCommand[M: m.BaseModel]:
         """Callable wrapper with explicit signature for Typer introspection.
 
@@ -82,15 +75,6 @@ class FlextCliCli(s):
             model = self._model_cls.model_validate(kwargs)
             return self._handler(model)
 
-    @staticmethod
-    def _resolve_typer_annotation(
-        annotation: t.Cli.RuntimeAnnotation,
-    ) -> type | GenericAlias:
-        """Resolve runtime annotations to concrete types accepted by Typer."""
-        return FlextCliCli._ensure_typer_annotation(
-            u.Cli.resolve_typer_annotation(annotation)
-        )
-
     @classmethod
     def _build_model_parameter(
         cls,
@@ -102,7 +86,7 @@ class FlextCliCli(s):
         alias = getattr(field_info, "alias", None)
         cli_name = alias or field_name
         option_name = f"--{cli_name.replace('_', '-')}"
-        annotation = cls._resolve_typer_annotation(
+        annotation = u.Cli.resolve_typer_annotation(
             getattr(field_info, "annotation", None) or str,
         )
         is_required = bool(getattr(field_info, "is_required")())
@@ -311,7 +295,10 @@ class FlextCliCli(s):
                 message,
             )
         except typer.Abort as exc:
-            message = str(exc).strip() or exc.__class__.__name__
+            message = u.Cli.normalize_required_text(
+                str(exc),
+                default=exc.__class__.__name__,
+            )
             return r[bool].fail_op(
                 "execute cli app",
                 message,
@@ -324,7 +311,10 @@ class FlextCliCli(s):
                 f"CLI exited with code {exc.exit_code}",
             )
         except Exception as exc:
-            message = str(exc).strip() or exc.__class__.__name__
+            message = u.Cli.normalize_required_text(
+                str(exc),
+                default=exc.__class__.__name__,
+            )
             return r[bool].fail_op(
                 "execute cli app",
                 message,

@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import os
+from collections.abc import Sequence
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import overload
 
 from flext_cli import c, m, t
 
@@ -28,6 +30,31 @@ class FlextCliUtilitiesSettings:
                         item.strip() for item in comma_group.split() if item.strip()
                     )
         return names or None
+
+    @overload
+    @staticmethod
+    def project_numbers_from_values(
+        *values: t.Cli.ProjectNamesValue | None,
+        default: Sequence[int],
+    ) -> t.MutableSequenceOf[int]: ...
+
+    @overload
+    @staticmethod
+    def project_numbers_from_values(
+        *values: t.Cli.ProjectNamesValue | None,
+        default: None = None,
+    ) -> t.MutableSequenceOf[int] | None: ...
+
+    @staticmethod
+    def project_numbers_from_values(
+        *values: t.Cli.ProjectNamesValue | None,
+        default: Sequence[int] | None = None,
+    ) -> t.MutableSequenceOf[int] | None:
+        """Normalize selector values into integers with optional default fallback."""
+        names = FlextCliUtilitiesSettings.project_names_from_values(*values)
+        if names is None:
+            return list(default) if default is not None else None
+        return [int(name) for name in names]
 
     @staticmethod
     def settings_snapshot() -> m.Cli.SettingsSnapshot:

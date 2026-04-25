@@ -203,7 +203,9 @@ def load_application_settings() -> p.Result[Mapping[str, t.JsonValue]]:
     cli.print("✅ Settings model created", style=c.Cli.MessageStyles.GREEN)
     validate_result = settings_obj.validate_to_mapping()
     if validate_result.failure:
-        return validate_result
+        return r[Mapping[str, t.JsonValue]].fail(
+            validate_result.error or "Settings validation failed",
+        )
     cli.print("✅ Settings validated", style=c.Cli.MessageStyles.GREEN)
     settings_data = validate_result.value
     overridden_data = apply_environment_overrides(settings_data)

@@ -6,10 +6,10 @@ from typing import Self
 
 from flext_tests import tm
 
-from tests.helpers._impl import FlextCliCaptureLogPrompts
+from tests.helpers._impl import TestsFlextCliCaptureLogPrompts
 
 
-class _CaptureLogPrompts(FlextCliCaptureLogPrompts):
+class _CaptureLogPrompts(TestsFlextCliCaptureLogPrompts):
     """Prompt service that records log calls and supports test-env override."""
 
     _test_env_override: bool | None = True  # pyright: ignore[reportIncompatibleVariableOverride]

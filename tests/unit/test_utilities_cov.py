@@ -62,3 +62,11 @@ class TestsFlextCliUtilitiesCov:
     def test_project_names_from_values_normalizes_repeated_cli_selectors(self) -> None:
         result = u.Cli.project_names_from_values("a,b", [" c ", "", "d,e"], None)
         tm.that(result, eq=["a", "b", "c", "d", "e"])
+
+    def test_project_numbers_from_values_normalizes_numeric_selectors(self) -> None:
+        result = u.Cli.project_numbers_from_values("1,2", [" 3 ", "", "4,5"], None)
+        tm.that(result, eq=[1, 2, 3, 4, 5])
+
+    def test_project_numbers_from_values_uses_default_when_empty(self) -> None:
+        result = u.Cli.project_numbers_from_values(None, default=(7, 8))
+        tm.that(result, eq=[7, 8])

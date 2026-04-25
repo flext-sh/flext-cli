@@ -13,23 +13,23 @@ from flext_core import FlextSettings
 from flext_cli import FlextCliSettings
 from tests import t
 from tests.helpers._impl import (
-    FlextCliCaptureLogPrompts,
-    FlextCliFailingLogPrompts,
-    FlextCliScriptedPrompts,
+    TestsFlextCliCaptureLogPrompts,
+    TestsFlextCliFailingLogPrompts,
+    TestsFlextCliScriptedPrompts,
 )
 
 
 @pytest.fixture
-def make_prompts() -> Callable[..., FlextCliScriptedPrompts]:
+def make_prompts() -> Callable[..., TestsFlextCliScriptedPrompts]:
     """Factory fixture for scripted prompt test doubles."""
 
     def _make(
-        prompt_type: type[FlextCliScriptedPrompts] = FlextCliScriptedPrompts,
+        prompt_type: type[TestsFlextCliScriptedPrompts] = TestsFlextCliScriptedPrompts,
         *,
         interactive_mode: bool = True,
         quiet: bool = False,
         **_kwargs: t.JsonValue,
-    ) -> FlextCliScriptedPrompts:
+    ) -> TestsFlextCliScriptedPrompts:
         return prompt_type().configure_state(
             interactive=interactive_mode,
             quiet=quiet,
@@ -39,9 +39,9 @@ def make_prompts() -> Callable[..., FlextCliScriptedPrompts]:
 
 
 __all__: list[str] = [
-    "FlextCliCaptureLogPrompts",
-    "FlextCliFailingLogPrompts",
-    "FlextCliScriptedPrompts",
+    "TestsFlextCliCaptureLogPrompts",
+    "TestsFlextCliFailingLogPrompts",
+    "TestsFlextCliScriptedPrompts",
     "make_prompts",
 ]
 

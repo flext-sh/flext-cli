@@ -33,20 +33,24 @@ class TestsFlextCliTypesUnit:
         tm.that(api_data, is_=m.Cli.Tests.ApiResponse)
         tm.that(api_data.data, eq={"id": 1})
 
-        complex_type_adapter = m.TypeAdapter(Sequence[Mapping[str, str | int]])
+        complex_type_adapter: m.TypeAdapter[Sequence[Mapping[str, str | int]]] = (
+            m.TypeAdapter(Sequence[Mapping[str, str | int]])
+        )
         complex_value = complex_type_adapter.validate_python([
             {"name": "entry", "count": 1},
         ])
         tm.that(complex_value, eq=[{"name": "entry", "count": 1}])
 
-        optional_type_adapter = m.TypeAdapter(t.StrSequence | None)
+        optional_type_adapter: m.TypeAdapter[t.StrSequence | None] = m.TypeAdapter(
+            t.StrSequence | None
+        )
         tm.that(
             optional_type_adapter.validate_python(["alpha", "beta"]),
             eq=["alpha", "beta"],
         )
         tm.that(optional_type_adapter.validate_python(None), none=True)
 
-        scalar_type_adapter = m.TypeAdapter(t.Scalar)
+        scalar_type_adapter: m.TypeAdapter[t.Scalar] = m.TypeAdapter(t.Scalar)
         tm.that(scalar_type_adapter.validate_python("value"), eq="value")
         tm.that(scalar_type_adapter.validate_python(True), eq=True)
 

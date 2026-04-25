@@ -217,18 +217,16 @@ def process_text_file(input_file: Path, output_file: Path) -> None:
         f"\n📝 Processing Text File: {input_file.name}",
         style=c.Cli.MessageStyles.BOLD_CYAN,
     )
-    read_result = cli.read_text_file(input_file)
-    if read_result.failure:
-        cli.print(
-            f"❌ Read failed: {read_result.error}", style=c.Cli.MessageStyles.BOLD_RED
-        )
+    try:
+        content = input_file.read_text(encoding=c.Cli.ENCODING_DEFAULT)
+    except OSError as exc:
+        cli.print(f"❌ Read failed: {exc}", style=c.Cli.MessageStyles.BOLD_RED)
         return
-    content: str = read_result.value
     cli.print(f"✅ Read {len(content)} characters", style=c.Cli.MessageStyles.GREEN)
     cli.print(f"   Lines: {content.count(chr(10)) + 1}", style=c.Cli.MessageStyles.CYAN)
     cli.print(f"   Words: {len(content.split())}", style=c.Cli.MessageStyles.CYAN)
     processed = content.upper()
-    write_result = cli.write_text_file(output_file, processed)
+    write_result = cli.atomic_write_text_file(output_file, processed)
     if write_result.success:
         cli.print(
             f"✅ Wrote {len(processed)} characters to {output_file.name}",

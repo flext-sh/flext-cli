@@ -10,83 +10,21 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import (
-    Sequence,
-)
-from typing import Literal, Self, overload, override
+from collections.abc import Sequence
 
-from flext_cli import FlextCliServiceBase, p, r, t, u
-from flext_cli._utilities.formatters import FlextCliUtilitiesFormatters
+from flext_cli import FlextCliServiceBase, p, t, u
 
 
 class FlextCliFormatters(FlextCliServiceBase):
     """Thin Rich formatters facade - delegates to Rich library directly."""
 
-    class Tree:
-        """Wrapper around Rich Tree; add() returns None by default (optional return via overload).
-
-        Use add(label) for side-effect only; add(label, return_child=True) to chain.
-        """
-
-        def __init__(self, tree: t.Cli.RichTreeType) -> None:
-            """Wrap a Rich Tree instance for side-effect-safe usage."""
-            self._tree: t.Cli.RichTreeType = tree
-
-        @overload
-        def add(self, label: str) -> None: ...
-
-        @overload
-        def add(self, label: str, *, return_child: Literal[True]) -> Self: ...
-
-        def add(
-            self,
-            label: str,
-            *,
-            return_child: bool = False,
-        ) -> Self | None:
-            """Add a child node; return the wrapped child only when *return_child* is set."""
-            child = self._tree.add(label)
-            return self.__class__(child) if return_child else None
-
-        @override
-        def __str__(self) -> str:
-            return str(self._tree)
-
-        @property
-        def tree(self) -> t.Cli.RichTreeType:
-            """Expose inner Rich Tree for rendering or advanced use."""
-            return self._tree
-
     @classmethod
-    def create_tree(cls, label: str) -> p.Result[FlextCliFormatters.Tree]:
-        """Create Rich tree wrapped for optional return use (add() returns None by default).
-
-        Args:
-            label: Tree root label
-
-        Returns:
-            r[FlextCliFormatters.Tree]: Wrapper instance or error
-
-        Note:
-            Use tree.add(label) for side-effect; tree.add(label, return_child=True) to chain.
-
-        """
-        if hasattr(u, "Cli"):
-            tree_result = u.Cli.formatters_create_tree(
-                label,
-                cls._get_or_create_logger(),
-            )
-        else:
-            tree_result = FlextCliUtilitiesFormatters.formatters_create_tree(
-                label,
-                cls._get_or_create_logger(),
-            )
-        if tree_result.failure:
-            return r[FlextCliFormatters.Tree].fail_op(
-                "create cli tree",
-                tree_result.error or "Tree creation failed",
-            )
-        return r[FlextCliFormatters.Tree].ok(FlextCliFormatters.Tree(tree_result.value))
+    def create_tree(cls, label: str) -> p.Result[t.Cli.RichTreeType]:
+        """Create one Rich tree via the canonical CLI utility."""
+        return u.Cli.formatters_create_tree(
+            label,
+            cls._get_or_create_logger(),
+        )
 
     @classmethod
     def print(cls, message: str, style: str | None = None) -> None:
@@ -100,14 +38,7 @@ class FlextCliFormatters(FlextCliServiceBase):
             For advanced Rich features, access self.console directly.
 
         """
-        if hasattr(u, "Cli"):
-            u.Cli.formatters_print(
-                message,
-                cls._get_or_create_logger(),
-                style=style,
-            )
-            return
-        FlextCliUtilitiesFormatters.formatters_print(
+        u.Cli.formatters_print(
             message,
             cls._get_or_create_logger(),
             style=style,
@@ -116,24 +47,12 @@ class FlextCliFormatters(FlextCliServiceBase):
     @classmethod
     def render_rule(cls, text: str) -> None:
         """Render a horizontal rule with centered text via Rich."""
-        if hasattr(u, "Cli"):
-            u.Cli.formatters_render_rule(text, cls._get_or_create_logger())
-            return
-        FlextCliUtilitiesFormatters.formatters_render_rule(
-            text, cls._get_or_create_logger()
-        )
+        u.Cli.formatters_render_rule(text, cls._get_or_create_logger())
 
     @classmethod
     def render_panel(cls, content: str, *, title: str = "") -> None:
         """Render a Rich Panel with optional title."""
-        if hasattr(u, "Cli"):
-            u.Cli.formatters_render_panel(
-                content,
-                cls._get_or_create_logger(),
-                title=title,
-            )
-            return
-        FlextCliUtilitiesFormatters.formatters_render_panel(
+        u.Cli.formatters_render_panel(
             content,
             cls._get_or_create_logger(),
             title=title,
@@ -148,15 +67,7 @@ class FlextCliFormatters(FlextCliServiceBase):
         title: str = "",
     ) -> None:
         """Render a Rich Table with columns and rows."""
-        if hasattr(u, "Cli"):
-            u.Cli.formatters_render_table(
-                columns,
-                rows,
-                cls._get_or_create_logger(),
-                title=title,
-            )
-            return
-        FlextCliUtilitiesFormatters.formatters_render_table(
+        u.Cli.formatters_render_table(
             columns,
             rows,
             cls._get_or_create_logger(),

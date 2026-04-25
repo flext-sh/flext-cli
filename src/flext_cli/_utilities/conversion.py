@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import (
     Mapping,
 )
+from pathlib import Path
 
 from flext_core import m
 
@@ -52,6 +53,41 @@ class FlextCliUtilitiesConversion:
             empty_value: t.JsonValue = ""
             return r[t.JsonValue].ok(empty_value)
         return r[t.JsonValue].ok(field_value)
+
+    @staticmethod
+    def resolve_optional_path(
+        value: t.Cli.TextPath | None,
+        *,
+        default: Path,
+    ) -> Path:
+        """Resolve an optional text/path value while preserving a default path."""
+        if isinstance(value, Path):
+            return value
+        if isinstance(value, str):
+            normalized = value.strip()
+            if normalized:
+                return Path(normalized)
+        return default
+
+    @staticmethod
+    def normalize_optional_text(value: t.JsonValue | Path) -> str | None:
+        """Normalize optional text-like values, preserving ``None`` for empties."""
+        if isinstance(value, Path):
+            return str(value)
+        if isinstance(value, str):
+            normalized = value.strip()
+            return normalized or None
+        return value if value is None else str(value)
+
+    @staticmethod
+    def normalize_required_text(
+        value: t.JsonValue | Path,
+        *,
+        default: str,
+    ) -> str:
+        """Normalize required text-like values, falling back to ``default``."""
+        normalized = FlextCliUtilitiesConversion.normalize_optional_text(value)
+        return normalized if normalized is not None else default
 
 
 __all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesConversion"]

@@ -19,9 +19,9 @@ if _t.TYPE_CHECKING:
     from tests.protocols import TestsFlextCliProtocols, p
     from tests.typings import TestsFlextCliTypes, t
     from tests.unit.conftest import (
-        FlextCliCaptureLogPrompts,
-        FlextCliFailingLogPrompts,
-        FlextCliScriptedPrompts,
+        TestsFlextCliCaptureLogPrompts,
+        TestsFlextCliFailingLogPrompts,
+        TestsFlextCliScriptedPrompts,
         make_prompts,
     )
     from tests.unit.test_base import TestsFlextCliServiceBase
@@ -68,9 +68,9 @@ _LAZY_IMPORTS = merge_lazy_imports(
                 "t",
             ),
             ".unit.conftest": (
-                "FlextCliCaptureLogPrompts",
-                "FlextCliFailingLogPrompts",
-                "FlextCliScriptedPrompts",
+                "TestsFlextCliCaptureLogPrompts",
+                "TestsFlextCliFailingLogPrompts",
+                "TestsFlextCliScriptedPrompts",
                 "make_prompts",
             ),
             ".unit.test_base": ("TestsFlextCliServiceBase",),
@@ -140,9 +140,7 @@ _LAZY_IMPORTS = merge_lazy_imports(
 install_lazy_exports(__name__, globals(), _LAZY_IMPORTS)
 
 __all__: list[str] = [
-    "FlextCliCaptureLogPrompts",
-    "FlextCliFailingLogPrompts",
-    "FlextCliScriptedPrompts",
+    "TestsFlextCliCaptureLogPrompts",
     "TestsFlextCliCmd",
     "TestsFlextCliCmdCov",
     "TestsFlextCliCommands",
@@ -150,6 +148,7 @@ __all__: list[str] = [
     "TestsFlextCliConstants",
     "TestsFlextCliConstantsUnit",
     "TestsFlextCliExamplesSmoke",
+    "TestsFlextCliFailingLogPrompts",
     "TestsFlextCliModels",
     "TestsFlextCliPipeline",
     "TestsFlextCliPrompts",
@@ -158,6 +157,7 @@ __all__: list[str] = [
     "TestsFlextCliProtocolsUnit",
     "TestsFlextCliRuntimeUtilitiesCore",
     "TestsFlextCliRuntimeUtilitiesExtra",
+    "TestsFlextCliScriptedPrompts",
     "TestsFlextCliService",
     "TestsFlextCliServiceBase",
     "TestsFlextCliSettings",

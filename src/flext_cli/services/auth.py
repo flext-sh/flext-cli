@@ -77,7 +77,7 @@ class FlextCliAuth(FlextCliServiceBase):
         token_file = u.Cli.auth_token_file_path(self.settings.token_file)
         if not token_file.exists():
             return r[bool].ok(True)
-        return FlextCliFileTools.delete_file(token_file)
+        return u.Cli.files_delete(token_file)
 
 
 __all__: t.MutableSequenceOf[str] = ["FlextCliAuth"]

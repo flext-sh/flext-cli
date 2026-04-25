@@ -14,18 +14,6 @@ class FlextCliFileTools(FlextCliServiceBase):
     """File operations with r."""
 
     @staticmethod
-    def delete_file(file_path: t.Cli.TextPath) -> p.Result[bool]:
-        return u.Cli.files_delete(file_path)
-
-    @staticmethod
-    def read_text_file(file_path: t.Cli.TextPath) -> p.Result[str]:
-        return u.Cli.files_read_text(file_path)
-
-    @staticmethod
-    def write_text_file(file_path: t.Cli.TextPath, content: str) -> p.Result[bool]:
-        return u.Cli.files_write_text(file_path, content)
-
-    @staticmethod
     def atomic_write_text_file(
         file_path: t.Cli.TextPath, content: str
     ) -> p.Result[bool]:
@@ -39,19 +27,10 @@ class FlextCliFileTools(FlextCliServiceBase):
 
     @staticmethod
     def read_json_file(file_path: t.Cli.TextPath) -> p.Result[t.JsonValue]:
-        return u.Cli.files_read_json(file_path)
-
-    @staticmethod
-    def read_json_model[M: m.BaseModel](
-        file_path: t.Cli.TextPath,
-        model_type: type[M],
-    ) -> p.Result[M]:
-        """Read JSON file directly into a Pydantic model via model_validate_json.
-
-        Uses pydantic-core Rust path (no intermediate dict) — ~3x faster than
-        json.loads + model_validate.
-        """
-        return u.Cli.files_read_json_model(file_path, model_type)
+        normalized_path = u.Cli.normalize_optional_text(file_path)
+        if normalized_path is None:
+            return r[t.JsonValue].fail("File path must be non-empty")
+        return u.Cli.files_read_json(Path(normalized_path))
 
     @staticmethod
     def write_json_model(
@@ -66,8 +45,11 @@ class FlextCliFileTools(FlextCliServiceBase):
 
         Type-safe: accepts only BaseModel, serializes via Rust path.
         """
+        normalized_path = u.Cli.normalize_optional_text(file_path)
+        if normalized_path is None:
+            return r[bool].fail("File path must be non-empty")
         return u.Cli.files_write_json_model(
-            file_path,
+            Path(normalized_path),
             model,
             indent=indent,
             by_alias=by_alias,
@@ -76,7 +58,10 @@ class FlextCliFileTools(FlextCliServiceBase):
 
     @staticmethod
     def read_yaml_file(file_path: t.Cli.TextPath) -> p.Result[t.JsonValue]:
-        return u.Cli.files_read_yaml(file_path)
+        normalized_path = u.Cli.normalize_optional_text(file_path)
+        if normalized_path is None:
+            return r[t.JsonValue].fail("File path must be non-empty")
+        return u.Cli.files_read_yaml(Path(normalized_path))
 
     @staticmethod
     def write_json_file(
@@ -110,36 +95,61 @@ class FlextCliFileTools(FlextCliServiceBase):
         file_path: t.Cli.TextPath,
         rows: Sequence[t.StrSequence],
     ) -> p.Result[bool]:
-        return u.Cli.files_write_csv(file_path, rows)
+        normalized_path = u.Cli.normalize_optional_text(file_path)
+        if normalized_path is None:
+            return r[bool].fail("File path must be non-empty")
+        return u.Cli.files_write_csv(Path(normalized_path), rows)
 
     @staticmethod
     def read_csv_file_with_headers(
         file_path: t.Cli.TextPath,
     ) -> p.Result[Sequence[t.StrMapping]]:
-        return u.Cli.files_read_csv_with_headers(file_path)
+        normalized_path = u.Cli.normalize_optional_text(file_path)
+        if normalized_path is None:
+            return r[Sequence[t.StrMapping]].fail("File path must be non-empty")
+        return u.Cli.files_read_csv_with_headers(Path(normalized_path))
 
     @staticmethod
     def read_binary_file(file_path: t.Cli.TextPath) -> p.Result[bytes]:
-        return u.Cli.files_read_binary(file_path)
+        normalized_path = u.Cli.normalize_optional_text(file_path)
+        if normalized_path is None:
+            return r[bytes].fail("File path must be non-empty")
+        return u.Cli.files_read_binary(Path(normalized_path))
 
     @staticmethod
     def write_binary_file(file_path: t.Cli.TextPath, data: bytes) -> p.Result[bool]:
-        return u.Cli.files_write_binary(file_path, data)
+        normalized_path = u.Cli.normalize_optional_text(file_path)
+        if normalized_path is None:
+            return r[bool].fail("File path must be non-empty")
+        return u.Cli.files_write_binary(Path(normalized_path), data)
 
     @staticmethod
     def copy_file(
         source_path: t.Cli.TextPath,
         destination_path: t.Cli.TextPath,
     ) -> p.Result[bool]:
-        return u.Cli.files_copy(source_path, destination_path)
+        normalized_source = u.Cli.normalize_optional_text(source_path)
+        normalized_destination = u.Cli.normalize_optional_text(destination_path)
+        if normalized_source is None or normalized_destination is None:
+            return r[bool].fail("Source and destination paths must be non-empty")
+        return u.Cli.files_copy(
+            Path(normalized_source),
+            Path(normalized_destination),
+        )
 
     @staticmethod
     def detect_file_format(file_path: t.Cli.TextPath) -> p.Result[str]:
-        return u.Cli.files_detect_format(file_path)
+        normalized_path = u.Cli.normalize_optional_text(file_path)
+        if normalized_path is None:
+            return r[str].fail("File path must be non-empty")
+        return u.Cli.files_detect_format(Path(normalized_path))
 
     @staticmethod
     def load_file_auto_dict(file_path: t.Cli.TextPath) -> p.Result[t.JsonMapping]:
-        return u.Cli.files_load_auto_mapping(file_path)
+        normalized_path = u.Cli.normalize_optional_text(file_path)
+        if normalized_path is None:
+            return r[t.JsonMapping].fail("File path must be non-empty")
+        return u.Cli.files_load_auto_mapping(Path(normalized_path))
 
 
 __all__: t.MutableSequenceOf[str] = ["FlextCliFileTools"]
