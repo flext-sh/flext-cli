@@ -1,9 +1,3 @@
-<!-- TOC START -->
-- [Source of Truth](#source-of-truth)
-- [Generated Pages](#generated-pages)
-- [Surface Summary](#surface-summary)
-<!-- TOC END -->
-
 <!-- AUTO-GENERATED — DO NOT EDIT MANUALLY -->
 
 # flext-cli API Reference
@@ -25,7 +19,7 @@ This section is generated from public exports and real docstrings.
 
 ## Surface Summary
 
-- Primary facades: `FlextCliCmd`, `FlextCliUtilities`, `FlextCliUtilitiesBase`, `FlextCliConstantsSettings`, `FlextCliUtilitiesSettings`, `FlextCliTypesBase` (+52 more)
+- Primary facades: `FlextCliUtilitiesPipeline`, `FlextCliUtilitiesParams`, `FlextCliConstants`, `FlextCliUtilitiesFormatters`, `FlextCliUtilitiesTables`, `FlextCliUtilitiesCmd` (+52 more)
 - Generated module pages: `21`
 
 - [Back to project docs](../index.md)

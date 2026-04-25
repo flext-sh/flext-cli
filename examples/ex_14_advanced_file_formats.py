@@ -217,11 +217,13 @@ def process_text_file(input_file: Path, output_file: Path) -> None:
         f"\n📝 Processing Text File: {input_file.name}",
         style=c.Cli.MessageStyles.BOLD_CYAN,
     )
-    try:
-        content = input_file.read_text(encoding=c.Cli.ENCODING_DEFAULT)
-    except OSError as exc:
-        cli.print(f"❌ Read failed: {exc}", style=c.Cli.MessageStyles.BOLD_RED)
+    read_result = u.Cli.files_read_text(input_file)
+    if read_result.failure:
+        cli.print(
+            f"❌ Read failed: {read_result.error}", style=c.Cli.MessageStyles.BOLD_RED
+        )
         return
+    content = read_result.value
     cli.print(f"✅ Read {len(content)} characters", style=c.Cli.MessageStyles.GREEN)
     cli.print(f"   Lines: {content.count(chr(10)) + 1}", style=c.Cli.MessageStyles.CYAN)
     cli.print(f"   Words: {len(content.split())}", style=c.Cli.MessageStyles.CYAN)
