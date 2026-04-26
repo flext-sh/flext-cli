@@ -50,12 +50,14 @@ class FlextCliFileTools(FlextCliServiceBase):
 
         Type-safe: accepts only BaseModel, serializes via Rust path.
         """
-        return u.Cli.files_write_json_model(
-            Path(file_path),
-            model,
+        json_str = model.model_dump_json(
             indent=indent,
             by_alias=by_alias,
             exclude_none=exclude_none,
+        )
+        return u.Cli.files_write_text(
+            Path(file_path),
+            json_str,
         )
 
     @staticmethod

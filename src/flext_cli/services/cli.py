@@ -14,9 +14,6 @@ from collections.abc import (
 )
 from inspect import Parameter, Signature
 from types import GenericAlias
-from typing import (
-    Annotated,
-)
 
 import click
 import typer
@@ -157,33 +154,30 @@ class FlextCliCli(s):
         """Create a Typer app with the shared global FLEXT CLI parameters."""
         app = typer.Typer(name=name, help=help_text, add_completion=add_completion)
 
-        @app.callback()
-        def global_callback(
-            *,
-            debug: Annotated[bool, FlextCliCommonParams.create_option("debug")] = False,
-            trace: Annotated[bool, FlextCliCommonParams.create_option("trace")] = False,
-            verbose: Annotated[
-                bool, FlextCliCommonParams.create_option("verbose")
-            ] = False,
-            quiet: Annotated[bool, FlextCliCommonParams.create_option("quiet")] = False,
-            log_level: Annotated[
-                str | None,
-                FlextCliCommonParams.create_option("cli_log_level"),
-            ] = None,
-        ) -> None:
+        def apply_common_params(params: m.Cli.CliParamsConfig) -> bool:
             if settings is not None:
-                self._apply_common_params_to_config(
-                    settings,
-                    params=m.Cli.CliParamsConfig.model_validate({
-                        "debug": debug,
-                        "log_level": log_level,
-                        "quiet": quiet,
-                        "trace": trace,
-                        "verbose": verbose,
-                    }),
-                )
+                self._apply_common_params_to_config(settings, params=params)
+            return True
 
-        _ = global_callback
+        field_names = ("debug", "trace", "verbose", "quiet", "log_level")
+        parameters: MutableSequence[Parameter] = []
+        annotations: t.Cli.CliAnnotations = {"return": bool}
+        for field_name in field_names:
+            parameter, annotation = self._build_model_parameter(
+                field_name,
+                m.Cli.CliParamsConfig.model_fields[field_name],
+                None,
+            )
+            parameters.append(parameter)
+            annotations[field_name] = annotation
+        global_callback = self._ModelCommand(
+            settings=None,
+            handler=apply_common_params,
+            model_cls=m.Cli.CliParamsConfig,
+            parameters=parameters,
+        )
+        global_callback.__annotations__ = dict(annotations)
+        app.callback()(global_callback)
         return app
 
     @staticmethod

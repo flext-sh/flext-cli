@@ -14,11 +14,18 @@ from rich.panel import Panel
 from rich.table import Table as RichTable
 from rich.tree import Tree as RichTree
 
-from flext_cli import c, p, r, t
+from flext_cli import c, m, p, r, t
 
 
 class FlextCliUtilitiesFormatters:
     """Fallback logging/output helpers for formatter services."""
+
+    class TableRenderRequest(m.BaseModel):
+        """Typed table render input envelope."""
+
+        columns: t.StrSequence
+        rows: Sequence[t.StrSequence]
+        title: str = ""
 
     _console: ClassVar[t.Cli.RichConsoleType] = Console()
 
@@ -102,18 +109,15 @@ class FlextCliUtilitiesFormatters:
     @classmethod
     def formatters_render_table(
         cls,
-        columns: t.StrSequence,
-        rows: Sequence[t.StrSequence],
+        request: TableRenderRequest,
         logger: p.Logger,
-        *,
-        title: str = "",
     ) -> None:
         """Render one table via Rich with fallback output."""
         try:
-            table = RichTable(title=title or None)
-            for col in columns:
+            table = RichTable(title=request.title or None)
+            for col in request.columns:
                 table.add_column(col)
-            for row in rows:
+            for row in request.rows:
                 table.add_row(*row)
             cls._console.print(table)
         except (ConsoleError, StyleError) as exc:
@@ -123,7 +127,7 @@ class FlextCliUtilitiesFormatters:
                 exc,
             )
             cls.formatters_write_stdout(
-                cls.formatters_table_fallback_text(columns, rows),
+                cls.formatters_table_fallback_text(request.columns, request.rows),
             )
 
     @staticmethod

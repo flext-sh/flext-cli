@@ -68,10 +68,12 @@ class FlextCliFormatters(FlextCliServiceBase):
     ) -> None:
         """Render a Rich Table with columns and rows."""
         u.Cli.formatters_render_table(
-            columns,
-            rows,
+            u.Cli.TableRenderRequest(
+                columns=columns,
+                rows=rows,
+                title=title,
+            ),
             cls._get_or_create_logger(),
-            title=title,
         )
 
 

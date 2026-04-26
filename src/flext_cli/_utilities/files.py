@@ -12,6 +12,8 @@ from collections.abc import (
     Sequence,
 )
 from pathlib import Path
+from types import MappingProxyType
+from typing import ClassVar
 
 from flext_cli import (
     FlextCliUtilitiesJson as uj,
@@ -26,6 +28,15 @@ from flext_core import m
 
 class FlextCliUtilitiesFiles:
     """Generic filesystem operations for utility consumers."""
+
+    _FORMAT_BY_SUFFIX: ClassVar[Mapping[str, str]] = MappingProxyType({
+        ".json": c.Cli.OutputFormats.JSON,
+        ".yaml": c.Cli.OutputFormats.YAML,
+        ".yml": c.Cli.OutputFormats.YAML,
+        ".csv": c.Cli.OutputFormats.CSV,
+        ".txt": c.Cli.OutputFormats.TEXT,
+        ".log": c.Cli.OutputFormats.TEXT,
+    })
 
     @staticmethod
     def files_delete(file_path: t.Cli.TextPath) -> p.Result[bool]:
@@ -87,40 +98,11 @@ class FlextCliUtilitiesFiles:
         )
 
     @staticmethod
-    def files_write_json_model(
-        file_path: t.Cli.TextPath,
-        model: m.BaseModel,
-        *,
-        indent: int,
-        by_alias: bool,
-        exclude_none: bool,
-    ) -> p.Result[bool]:
-        """Write one Pydantic model to JSON text."""
-
-        def _write() -> bool:
-            json_str = model.model_dump_json(
-                indent=indent,
-                by_alias=by_alias,
-                exclude_none=exclude_none,
-            )
-            Path(file_path).write_text(json_str, encoding=c.Cli.ENCODING_DEFAULT)
-            return True
-
-        return FlextCliUtilitiesFiles.files_execute(
-            _write,
-            c.Cli.ERR_JSON_WRITE_FAILED,
-        )
-
-    @staticmethod
     def files_read_yaml(file_path: t.Cli.TextPath) -> p.Result[t.JsonValue]:
         """Read one YAML file and validate to canonical JSON value."""
-        result = uy.yaml_safe_load(Path(file_path))
-        if result.failure:
-            return r[t.JsonValue].fail(result.error or "YAML load failed")
-        validated: t.JsonValue = t.Cli.JSON_VALUE_ADAPTER.validate_python(
-            result.value,
+        return uy.yaml_safe_load(Path(file_path)).map(
+            t.Cli.JSON_VALUE_ADAPTER.validate_python,
         )
-        return r[t.JsonValue].ok(validated)
 
     @staticmethod
     def files_write_csv(
@@ -320,19 +302,13 @@ class FlextCliUtilitiesFiles:
     @staticmethod
     def files_detect_format(file_path: t.Cli.TextPath) -> p.Result[str]:
         """Detect one file format from extension using canonical output enums."""
-        match Path(file_path).suffix.lower():
-            case ".json":
-                return r[str].ok(c.Cli.OutputFormats.JSON)
-            case ".yaml" | ".yml":
-                return r[str].ok(c.Cli.OutputFormats.YAML)
-            case ".csv":
-                return r[str].ok(c.Cli.OutputFormats.CSV)
-            case ".txt" | ".log":
-                return r[str].ok(c.Cli.OutputFormats.TEXT)
-            case "":
-                return r[str].fail("Unable to detect file format without an extension")
-            case unknown:
-                return r[str].fail(f"Unsupported format: {unknown}")
+        suffix = Path(file_path).suffix.lower()
+        detected_format = FlextCliUtilitiesFiles._FORMAT_BY_SUFFIX.get(suffix)
+        if detected_format is not None:
+            return r[str].ok(detected_format)
+        if not suffix:
+            return r[str].fail("Unable to detect file format without an extension")
+        return r[str].fail(f"Unsupported format: {suffix}")
 
     @staticmethod
     def files_load_auto_mapping(

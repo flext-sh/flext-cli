@@ -59,26 +59,19 @@ class FlextCliModelsBase:
             ),
         ]
 
-    class CliNormalizedJson(m.BaseModel):
-        """Normalize raw JSON value with flat JSON serialization semantics."""
+    class CliNormalizedJson(m.RootModel[t.JsonValue]):
+        """Normalize raw JSON value with flat JSON serialization semantics.
 
-        model_config = m.ConfigDict(
-            extra="forbid",
-            frozen=True,
-        )
+        ``RootModel`` provides positional construction (``CliNormalizedJson(value)``)
+        and root-level serialization natively — no custom ``__init__`` or
+        ``model_serializer`` required.
+        """
+
+        model_config = m.ConfigDict(frozen=True)
         root: Annotated[
             t.JsonValue,
             m.Field(description="Normalized JSON-compatible value"),
         ]
-
-        def __init__(self, root: t.JsonValue) -> None:
-            """Preserve the positional root-value constructor used by callers."""
-            super().__init__(root=root)
-
-        @u.model_serializer(mode="plain")
-        def serialize_model(self) -> t.JsonValue:
-            """Serialize as the wrapped JSON value rather than an object envelope."""
-            return self.root
 
     class NormalizedJsonList(m.BaseModel):
         """Resolve normalized JSON to a dict with defaults. Use m.Cli.NormalizedJsonList."""
@@ -89,18 +82,15 @@ class FlextCliModelsBase:
         )
         value: Annotated[
             t.JsonValue,
-            m.Field(description="The normalized JSON value"),
-        ] = m.Field(
-            default_factory=dict,
-            description="The normalized JSON value",
-        )
+            m.Field(default_factory=dict, description="The normalized JSON value"),
+        ]
         default: Annotated[
             t.JsonMapping,
-            m.Field(description="Default mapping if value is not a dict"),
-        ] = m.Field(
-            default_factory=lambda: MappingProxyType({}),
-            description="Default mapping if value is not a dict",
-        )
+            m.Field(
+                default_factory=lambda: MappingProxyType({}),
+                description="Default mapping if value is not a dict",
+            ),
+        ]
 
         @property
         def resolved(self) -> t.JsonMapping:
