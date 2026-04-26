@@ -8,12 +8,65 @@ from collections.abc import (
     MutableSequence,
 )
 from pathlib import Path
+from typing import Annotated
 
-from flext_cli import FlextCliUtilitiesJson, FlextCliUtilitiesYaml, p, r, t
+from flext_cli import FlextCliUtilitiesJson, FlextCliUtilitiesYaml, m, p, r, t
 
 
 class FlextCliUtilitiesRules:
     """Generic helpers for reading project-local rules directories."""
+
+    class LocalDefinitionsOptions[TRuleKind, TFileRuleKind](m.ArbitraryTypesModel):
+        """Validated options envelope for loading local rule definitions."""
+
+        package_rules_dir: Annotated[
+            Path,
+            m.Field(description="Directory containing packaged default rule YAMLs"),
+        ]
+        rule_filters: Annotated[
+            t.StrSequence,
+            m.Field(description="Glob/substring filters limiting loaded rules"),
+        ]
+        rule_catalog: Annotated[
+            t.Cli.RuleCatalog[TRuleKind],
+            m.Field(description="Catalog mapping rule kinds to their matchers"),
+        ]
+        file_rule_catalog: Annotated[
+            t.Cli.RuleCatalog[TFileRuleKind] | None,
+            m.Field(description="Optional catalog of file-rule kinds and matchers"),
+        ] = None
+        registry_filename: Annotated[
+            str,
+            m.Field(description="Name of the YAML registry file inside the rules dir"),
+        ] = "engine-registry.yml"
+        rules_key: Annotated[
+            str,
+            m.Field(description="Top-level key under which rules are nested in YAMLs"),
+        ] = "rules"
+        rule_id_key: Annotated[
+            str,
+            m.Field(description="Per-rule key holding the unique rule identifier"),
+        ] = "id"
+        enabled_key: Annotated[
+            str,
+            m.Field(description="Per-rule key controlling whether the rule is active"),
+        ] = "enabled"
+        action_key: Annotated[
+            str,
+            m.Field(description="Per-rule key naming the fix action to dispatch"),
+        ] = "fix_action"
+        fallback_action_key: Annotated[
+            str,
+            m.Field(description="Per-rule fallback key when ``action_key`` is absent"),
+        ] = "action"
+        check_key: Annotated[
+            str,
+            m.Field(description="Per-rule key naming the check predicate to dispatch"),
+        ] = "check"
+        rules_dir_name: Annotated[
+            str,
+            m.Field(description="Name of the rules subdirectory inside config_path"),
+        ] = "rules"
 
     @staticmethod
     def rules_resolve_scope(
@@ -88,64 +141,55 @@ class FlextCliUtilitiesRules:
     def rules_load_local_definitions[TRuleKind, TFileRuleKind](
         cls,
         config_path: Path,
-        *,
-        package_rules_dir: Path,
-        rule_filters: t.StrSequence,
-        rule_catalog: t.Cli.RuleCatalog[TRuleKind],
-        file_rule_catalog: t.Cli.RuleCatalog[TFileRuleKind] | None = None,
-        registry_filename: str = "engine-registry.yml",
-        rules_key: str = "rules",
-        rule_id_key: str = "id",
-        enabled_key: str = "enabled",
-        action_key: str = "fix_action",
-        fallback_action_key: str = "action",
-        check_key: str = "check",
-        rules_dir_name: str = "rules",
+        **kwargs: t.Cli.CliValue | Path | t.Cli.RuleCatalog[TRuleKind] | t.Cli.RuleCatalog[TFileRuleKind] | None,
     ) -> p.Result[t.Cli.RuleLoadResult[TRuleKind, TFileRuleKind]]:
         """Load local YAML rule definitions using declarative matcher catalogs."""
+        options = cls.LocalDefinitionsOptions[TRuleKind, TFileRuleKind].model_validate(
+            kwargs,
+        )
         rules_dir = cls._rules_resolve_directory(
             config_path,
-            package_rules_dir=package_rules_dir,
-            rules_dir_name=rules_dir_name,
+            package_rules_dir=options.package_rules_dir,
+            rules_dir_name=options.rules_dir_name,
         )
         if not rules_dir.is_dir():
             return r[t.Cli.RuleLoadResult[TRuleKind, TFileRuleKind]].fail(
                 f"Rules directory not found: {rules_dir}",
             )
-        file_catalog = file_rule_catalog or {}
+        file_catalog = options.file_rule_catalog or {}
         loaded_rules: MutableSequence[t.Pair[TRuleKind, t.JsonMapping]] = []
         loaded_file_rules: MutableSequence[t.Pair[TFileRuleKind, t.JsonMapping]] = []
         loaded_file_rule_kinds: set[str] = set()
         unknown_rules: MutableSequence[str] = []
         for rule_file in sorted(rules_dir.glob("*.yml")):
-            if rule_file.name == registry_filename:
+            if rule_file.name == options.registry_filename:
                 continue
             rule_config = t.Cli.JSON_MAPPING_ADAPTER.validate_python(
                 FlextCliUtilitiesYaml.yaml_load_mapping(rule_file),
             )
             typed_rules = FlextCliUtilitiesJson.json_as_mapping_list(
-                rule_config.get(rules_key)
+                rule_config.get(options.rules_key)
             )
             for typed_rule_def in typed_rules:
-                if rule_id_key not in typed_rule_def:
+                if options.rule_id_key not in typed_rule_def:
                     continue
-                if not typed_rule_def.get(enabled_key, True):
+                if not typed_rule_def.get(options.enabled_key, True):
                     continue
-                rule_id = str(typed_rule_def[rule_id_key]).strip()
-                if not cls._rules_matches_filters(rule_id, rule_filters):
+                rule_id = str(typed_rule_def[options.rule_id_key]).strip()
+                if not cls._rules_matches_filters(rule_id, options.rule_filters):
                     continue
                 action_name = FlextCliUtilitiesJson.json_get_str_key(
                     typed_rule_def,
-                    action_key,
+                    options.action_key,
                     default=FlextCliUtilitiesJson.json_get_str_key(
                         typed_rule_def,
-                        fallback_action_key,
+                        options.fallback_action_key,
                     ),
                     case="lower",
                 )
                 check_name = FlextCliUtilitiesJson.json_get_str_key(
                     typed_rule_def,
-                    check_key,
+                    options.check_key,
                     case="lower",
                 )
                 if not action_name and not check_name:
@@ -162,7 +206,7 @@ class FlextCliUtilitiesRules:
                     rule_validation = cls._rules_validate_matcher(
                         typed_rule_def,
                         file_matcher,
-                        rule_id_key=rule_id_key,
+                        rule_id_key=options.rule_id_key,
                     )
                     if rule_validation is not None:
                         unknown_rules.append(rule_validation)
@@ -176,7 +220,7 @@ class FlextCliUtilitiesRules:
                     cls._rules_match_catalog_entry(
                         action_name,
                         check_name,
-                        rule_catalog,
+                        options.rule_catalog,
                     )
                 )
                 if rule_match is None:
@@ -186,7 +230,7 @@ class FlextCliUtilitiesRules:
                 rule_validation = cls._rules_validate_matcher(
                     typed_rule_def,
                     rule_matcher,
-                    rule_id_key=rule_id_key,
+                    rule_id_key=options.rule_id_key,
                 )
                 if rule_validation is not None:
                     unknown_rules.append(rule_validation)

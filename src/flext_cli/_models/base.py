@@ -622,26 +622,37 @@ class FlextCliModelsBase:
 
         def resolve(self) -> t.Cli.TypedExtractValue:
             """Type-safe accessor (bypasses pyrefly computed_field limitation)."""
+            default_value = self._default_for_kind()
             if self.value is None:
-                return self._default_for_kind()
-            if self.type_kind == c.Cli.TypeKind.STR:
-                s = str(self.value).strip() if self.value else ""
-                return s or (self.default if isinstance(self.default, str) else "")
-            if self.type_kind == c.Cli.TypeKind.BOOL:
-                return bool(self.value)
-            if self.type_kind == c.Cli.TypeKind.DICT:
-                if isinstance(self.value, Mapping):
-                    return {
-                        str(k): t.Cli.JSON_VALUE_ADAPTER.validate_python(vv)
-                        for k, vv in self.value.items()
-                    }
-                if isinstance(self.default, Mapping):
-                    return {
-                        str(k): t.Cli.JSON_VALUE_ADAPTER.validate_python(vv)
-                        for k, vv in self.default.items()
-                    }
-                return {}
-            return self._default_for_kind()
+                return default_value
+            resolved_value: t.Cli.TypedExtractValue = default_value
+            match self.type_kind:
+                case c.Cli.TypeKind.STR:
+                    resolved_str = str(self.value).strip() if self.value else ""
+                    resolved_value = resolved_str or (
+                        self.default if isinstance(self.default, str) else ""
+                    )
+                case c.Cli.TypeKind.BOOL:
+                    resolved_value = bool(self.value)
+                case c.Cli.TypeKind.DICT:
+                    source_mapping = (
+                        self.value
+                        if isinstance(self.value, Mapping)
+                        else self.default
+                        if isinstance(self.default, Mapping)
+                        else None
+                    )
+                    resolved_value = (
+                        {
+                            str(k): t.Cli.JSON_VALUE_ADAPTER.validate_python(vv)
+                            for k, vv in source_mapping.items()
+                        }
+                        if source_mapping is not None
+                        else {}
+                    )
+                case _:
+                    resolved_value = default_value
+            return resolved_value
 
         def _default_for_kind(self) -> t.Cli.TypedExtractValue:
             """Return default typed value for the requested kind."""

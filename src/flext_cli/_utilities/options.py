@@ -65,82 +65,72 @@ class FlextCliUtilitiesOptions:
     """Option methods exposed directly on ``u.Cli``."""
 
     @staticmethod
-    def _is_union_origin(
-        origin: object | None,
-        *,
-        typing_union_origin: object,
-        runtime_union_origin: object | None,
-    ) -> bool:
-        """Return True when runtime origin represents a union annotation."""
-        return origin is typing_union_origin or origin is runtime_union_origin
-
-    @staticmethod
     def resolve_typer_annotation(
         annotation: t.Cli.RuntimeAnnotation,
     ) -> type | GenericAlias:
         """Resolve runtime annotations to concrete types accepted by Typer."""
-        annotated_origin: object | None = get_origin(Annotated[str, "meta"])
-        typing_union_origin: object = Union
-        runtime_union_origin: object | None = get_origin(str | int)
-        sequence_origin: object | None = get_origin(Sequence[str])
-        list_origin: object | None = get_origin(list[str])
-        tuple_origin: object | None = get_origin(tuple[str, ...])
-        dict_origin: object | None = get_origin(dict[str, t.Scalar])
-        frozenset_origin: object | None = get_origin(frozenset[str])
-        set_origin: object | None = get_origin(set[str])
+        resolve = FlextCliUtilitiesOptions.resolve_typer_annotation
+        annotated_origin = get_origin(Annotated[str, "meta"])
+        union_origins: frozenset[object] = frozenset(
+            filter(None, [Union, get_origin(str | int)])
+        )
+        sequence_origins: frozenset[object] = frozenset(
+            filter(
+                None,
+                [
+                    get_origin(Sequence[str]),
+                    get_origin(list[str]),
+                    get_origin(tuple[str, ...]),
+                ],
+            )
+        )
+        set_origins: dict[object, type] = {
+            o: t_
+            for o, t_ in [
+                (get_origin(dict[str, t.Scalar]), dict),
+                (get_origin(frozenset[str]), frozenset),
+                (get_origin(set[str]), set),
+            ]
+            if o is not None
+        }
+        resolved_annotation: type | GenericAlias = str
         if isinstance(annotation, TypeAliasType):
-            return FlextCliUtilitiesOptions.resolve_typer_annotation(
-                annotation.__value__
+            resolved_annotation = resolve(annotation.__value__)
+        elif isinstance(annotation, UnionType):
+            args = tuple(resolve(arg) for arg in get_args(annotation))
+            resolved_annotation = (
+                args[0]
+                if args[1] is NoneType
+                else args[1]
+                if len(args) == c.Cli.OPTIONAL_UNION_ARG_COUNT and NoneType in args
+                else str
             )
-        if isinstance(annotation, UnionType):
-            args = tuple(
-                FlextCliUtilitiesOptions.resolve_typer_annotation(arg)
-                for arg in get_args(annotation)
-            )
-            if len(args) == c.Cli.OPTIONAL_UNION_ARG_COUNT and NoneType in args:
-                return args[0] if args[1] is NoneType else args[1]
-            return str
-        origin: object | None = get_origin(annotation)
-        if origin == annotated_origin:
-            value, *_ = get_args(annotation)
-            return FlextCliUtilitiesOptions.resolve_typer_annotation(value)
-        if FlextCliUtilitiesOptions._is_union_origin(
-            origin,
-            typing_union_origin=typing_union_origin,
-            runtime_union_origin=runtime_union_origin,
-        ):
-            args = tuple(
-                FlextCliUtilitiesOptions.resolve_typer_annotation(arg)
-                for arg in get_args(annotation)
-            )
-            if len(args) == c.Cli.OPTIONAL_UNION_ARG_COUNT and NoneType in args:
-                return args[0] if args[1] is NoneType else args[1]
-            return str
-        if origin == sequence_origin:
-            args = get_args(annotation)
-            if args:
-                value = FlextCliUtilitiesOptions.resolve_typer_annotation(args[0])
-                if isinstance(value, type):
-                    return GenericAlias(list, (value,))
-            return list[str]
-        if origin in {list_origin, tuple_origin}:
-            args = get_args(annotation)
-            if args:
-                value = FlextCliUtilitiesOptions.resolve_typer_annotation(args[0])
-                if isinstance(value, type):
-                    return GenericAlias(list, (value,))
-            return list[str]
-        if origin == dict_origin:
-            return dict
-        if origin == frozenset_origin:
-            return frozenset
-        if origin == set_origin:
-            return set
-        if isinstance(annotation, GenericAlias):
-            return annotation
-        if isinstance(annotation, type):
-            return annotation
-        return str
+        else:
+            origin = get_origin(annotation)
+            if origin == annotated_origin:
+                first, *_ = get_args(annotation)
+                resolved_annotation = resolve(first)
+            elif origin in union_origins:
+                args = tuple(resolve(arg) for arg in get_args(annotation))
+                resolved_annotation = (
+                    args[0]
+                    if args[1] is NoneType
+                    else args[1]
+                    if len(args) == c.Cli.OPTIONAL_UNION_ARG_COUNT and NoneType in args
+                    else str
+                )
+            elif origin in sequence_origins:
+                resolved_annotation = GenericAlias(list, (str,))
+                inner_args = get_args(annotation)
+                if inner_args:
+                    resolved = resolve(inner_args[0])
+                    if isinstance(resolved, type):
+                        resolved_annotation = GenericAlias(list, (resolved,))
+            elif origin in set_origins:
+                resolved_annotation = set_origins[origin]
+            elif isinstance(annotation, GenericAlias | type):
+                resolved_annotation = annotation
+        return resolved_annotation
 
     @staticmethod
     def is_string_sequence(
@@ -202,32 +192,25 @@ class FlextCliUtilitiesOptions:
         settings: m.BaseModel | None,
     ) -> t.Cli.CliValue | None:
         """Resolve CLI default from settings first, then from model field metadata."""
-        if settings is not None and hasattr(settings, field_name):
-            configured = getattr(settings, field_name)
-            try:
-                normalized_source = t.Cli.CLI_DEFAULT_SOURCE_ADAPTER.validate_python(
-                    configured,
-                )
-            except (TypeError, ValueError, c.ValidationError):
-                return None
-            return cls.normalize_cli_default(normalized_source)
         default_factory = getattr(field_info, "default_factory", None)
-        if callable(default_factory):
-            try:
-                normalized_source = t.Cli.CLI_DEFAULT_SOURCE_ADAPTER.validate_python(
-                    default_factory(),
-                )
-            except (TypeError, ValueError, c.ValidationError):
-                return None
-            return cls.normalize_cli_default(normalized_source)
-        default_value = getattr(field_info, "default", None)
+        source_value = (
+            getattr(settings, field_name)
+            if settings is not None and hasattr(settings, field_name)
+            else default_factory()
+            if callable(default_factory)
+            else getattr(field_info, "default", None)
+        )
         try:
             normalized_source = t.Cli.CLI_DEFAULT_SOURCE_ADAPTER.validate_python(
-                default_value,
+                source_value,
             )
         except (TypeError, ValueError, c.ValidationError):
-            return None
-        return cls.normalize_cli_default(normalized_source)
+            normalized_source = None
+        return (
+            cls.normalize_cli_default(normalized_source)
+            if normalized_source is not None
+            else None
+        )
 
     @staticmethod
     def build_option(
