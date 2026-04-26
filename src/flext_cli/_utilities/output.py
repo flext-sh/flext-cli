@@ -20,19 +20,16 @@ class FlextCliUtilitiesOutput:
         message_type: c.Cli.MessageTypes | None,
     ) -> c.Cli.MessageTypes:
         """Resolve one message type to canonical enum value."""
-        if message_type is None:
-            return c.Cli.OUTPUT_DEFAULT_MESSAGE_TYPE
-        if isinstance(message_type, str):
-            try:
-                return c.Cli.MessageTypes(message_type)
-            except ValueError:
-                return c.Cli.OUTPUT_DEFAULT_MESSAGE_TYPE
-        return message_type
+        return (
+            message_type
+            if message_type is not None
+            else c.Cli.OUTPUT_DEFAULT_MESSAGE_TYPE
+        )
 
     @staticmethod
     def output_resolve_style(style: str | None) -> str:
         """Resolve print style with canonical empty-style fallback."""
-        return style if isinstance(style, str) else c.Cli.OUTPUT_EMPTY_STYLE
+        return style if style is not None else c.Cli.OUTPUT_EMPTY_STYLE
 
     @staticmethod
     def output_message_payload(
