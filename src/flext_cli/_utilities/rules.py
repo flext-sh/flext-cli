@@ -6,7 +6,6 @@ import fnmatch
 from collections.abc import (
     Mapping,
     MutableSequence,
-    Sequence,
 )
 from pathlib import Path
 
@@ -124,7 +123,9 @@ class FlextCliUtilitiesRules:
             rule_config = t.Cli.JSON_MAPPING_ADAPTER.validate_python(
                 FlextCliUtilitiesYaml.yaml_load_mapping(rule_file),
             )
-            typed_rules = cls._rules_coerce_definitions(rule_config.get(rules_key))
+            typed_rules = FlextCliUtilitiesJson.json_as_mapping_list(
+                rule_config.get(rules_key)
+            )
             for typed_rule_def in typed_rules:
                 if rule_id_key not in typed_rule_def:
                     continue
@@ -222,12 +223,6 @@ class FlextCliUtilitiesRules:
         if local_rules_dir.is_dir():
             return local_rules_dir
         return package_rules_dir
-
-    @staticmethod
-    def _rules_coerce_definitions(
-        value: t.JsonValue | None,
-    ) -> Sequence[t.JsonMapping]:
-        return FlextCliUtilitiesJson.json_as_mapping_list(value)
 
     @staticmethod
     def _rules_match_catalog_entry[TKind](

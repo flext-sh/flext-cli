@@ -11,19 +11,12 @@ class FlextCliUtilitiesParams:
     """Parameter resolution and application helpers for CLI settings."""
 
     @staticmethod
-    def params_build_from_kwargs(
-        kwargs: t.Cli.CliParamKwargs,
-    ) -> m.Cli.CliParamsConfig:
-        """Build CLI params model from kwargs via canonical Pydantic validation."""
-        return m.Cli.CliParamsConfig.model_validate(kwargs)
-
-    @staticmethod
     def params_resolve(
         params: p.Cli.CliParamsConfig | None,
         kwargs: t.Cli.CliParamKwargs,
     ) -> m.Cli.CliParamsConfig:
         """Resolve explicit params and kwargs into one validated model."""
-        kwargs_model = FlextCliUtilitiesParams.params_build_from_kwargs(kwargs)
+        kwargs_model = m.Cli.CliParamsConfig.model_validate(kwargs)
         if params is None:
             return kwargs_model
         if not isinstance(params, m.Cli.CliParamsConfig):

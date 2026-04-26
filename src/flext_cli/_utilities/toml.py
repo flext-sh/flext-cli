@@ -202,7 +202,7 @@ class FlextCliUtilitiesToml:
                 return existing
             del parent[key]
             table = FlextCliUtilitiesToml.toml_table()
-            for entry_key in FlextCliUtilitiesToml.toml_table_string_keys(existing):
+            for entry_key in list(existing):
                 table[entry_key] = existing[entry_key]
             parent[key] = table
             return table
@@ -255,11 +255,6 @@ class FlextCliUtilitiesToml:
         if raw_value is None:
             return None
         return raw_value
-
-    @staticmethod
-    def toml_table_string_keys(table: Table) -> t.StrSequence:
-        """Return string keys for a TOML table."""
-        return list(table)
 
     @staticmethod
     def toml_mapping_child(

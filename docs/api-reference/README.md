@@ -19,7 +19,7 @@ This section is generated from public exports and real docstrings.
 
 ## Surface Summary
 
-- Primary facades: `FlextCliUtilitiesPipeline`, `FlextCliUtilitiesParams`, `FlextCliConstants`, `FlextCliUtilitiesFormatters`, `FlextCliUtilitiesTables`, `FlextCliUtilitiesCmd` (+52 more)
+- Primary facades: `FlextCliProtocolsPipeline`, `FlextCliConstantsBase`, `FlextCliUtilitiesAuth`, `FlextCliUtilitiesOptionBuilder`, `FlextCliUtilitiesFormatters`, `FlextCliConstantsSettings` (+52 more)
 - Generated module pages: `21`
 
 - [Back to project docs](../index.md)
