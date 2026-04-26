@@ -3,29 +3,13 @@
 from __future__ import annotations
 
 import sys
-from collections.abc import Sequence
 from pathlib import Path
-from typing import Protocol
+from typing import TYPE_CHECKING
 
 from flext_cli import c, t
 
-
-class _SummaryStats(Protocol):
-    verb: str
-    total: int
-    success: int
-    failed: int
-    skipped: int
-    elapsed: float
-
-
-class _ProjectFailureInfo(Protocol):
-    project: str
-    elapsed: float
-    error_count: int
-    log_path: Path
-    max_show: int
-    errors: Sequence[str]
+if TYPE_CHECKING:
+    from flext_cli import p
 
 
 class FlextCliUtilitiesOutput:
@@ -165,7 +149,7 @@ class FlextCliUtilitiesOutput:
         cls.emit_raw(f"  {symbol} {verb:<8} {proj:<24} {elapsed:.2f}s\n")
 
     @classmethod
-    def summary(cls, stats: _SummaryStats) -> None:
+    def summary(cls, stats: p.Cli.SummaryStats) -> None:
         verb = str(getattr(stats, "verb", "summary"))
         total = int(getattr(stats, "total", 0))
         success = int(getattr(stats, "success", 0))
@@ -191,7 +175,7 @@ class FlextCliUtilitiesOutput:
         cls.emit_raw(f"    {symbol} {gate:<10} {count:>5} errors  ({elapsed:.2f}s)\n")
 
     @classmethod
-    def project_failure(cls, info: _ProjectFailureInfo) -> None:
+    def project_failure(cls, info: p.Cli.ProjectFailureInfo) -> None:
         project = str(getattr(info, "project", "unknown"))
         elapsed = int(getattr(info, "elapsed", 0))
         error_count = int(getattr(info, "error_count", 0))
@@ -209,8 +193,8 @@ class FlextCliUtilitiesOutput:
             cls.emit_raw(f"      ... and {remaining} more (see log)\n")
 
     @staticmethod
-    def get_report_dir(workspace_root: Path | str, scope: str, verb: str) -> Path:
-        """Build standardized report directory path."""
+    def resolve_report_dir(workspace_root: Path | str, scope: str, verb: str) -> Path:
+        """Resolve standardized report directory path."""
         root_path = (
             Path(workspace_root) if isinstance(workspace_root, str) else workspace_root
         )
@@ -220,15 +204,15 @@ class FlextCliUtilitiesOutput:
         return (base / verb).resolve()
 
     @staticmethod
-    def get_report_path(
+    def resolve_report_path(
         workspace_root: Path | str,
         scope: str,
         verb: str,
         filename: str,
     ) -> Path:
-        """Build standardized report file path."""
+        """Resolve standardized report file path."""
         return (
-            FlextCliUtilitiesOutput.get_report_dir(workspace_root, scope, verb)
+            FlextCliUtilitiesOutput.resolve_report_dir(workspace_root, scope, verb)
             / filename
         )
 

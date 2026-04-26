@@ -8,9 +8,8 @@ from collections.abc import (
 from types import MappingProxyType
 from typing import Annotated
 
-from flext_core import m, u
-
 from flext_cli import c, p, t
+from flext_core import m, u
 
 
 class FlextCliModelsBase:
@@ -39,36 +38,26 @@ class FlextCliModelsBase:
     class DisplayData(m.BaseModel):
         """Key-value data for table/display — Pydantic v2 contract. Use m.Cli.DisplayData."""
 
-        model_config = m.ConfigDict(
-            extra="forbid",
-            validate_assignment=True,
-        )
+        model_config = m.ConfigDict(extra="forbid", validate_assignment=True)
         data: Annotated[
             t.JsonMapping,
             m.Field(
+                default_factory=lambda: MappingProxyType({}),
                 description="Field-value pairs for display",
             ),
-        ] = m.Field(
-            default_factory=lambda: MappingProxyType({}),
-            description="Field-value pairs for display",
-        )
+        ]
 
     class LoadedConfig(m.BaseModel):
         """Loaded configuration content wrapper — Pydantic v2 contract. Use m.Cli.LoadedConfig."""
 
-        model_config = m.ConfigDict(
-            extra="forbid",
-            validate_assignment=True,
-        )
+        model_config = m.ConfigDict(extra="forbid", validate_assignment=True)
         content: Annotated[
             t.JsonMapping,
             m.Field(
+                default_factory=lambda: MappingProxyType({}),
                 description="Loaded configuration content (dict or other JSON value)",
             ),
-        ] = m.Field(
-            default_factory=lambda: MappingProxyType({}),
-            description="Loaded configuration content (dict or other JSON value)",
-        )
+        ]
 
     class CliNormalizedJson(m.BaseModel):
         """Normalize raw JSON value with flat JSON serialization semantics."""

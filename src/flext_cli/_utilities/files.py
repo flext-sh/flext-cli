@@ -13,8 +13,6 @@ from collections.abc import (
 )
 from pathlib import Path
 
-from flext_core import m
-
 from flext_cli import (
     FlextCliUtilitiesJson as uj,
     FlextCliUtilitiesYaml as uy,
@@ -23,6 +21,7 @@ from flext_cli import (
     r,
     t,
 )
+from flext_core import m
 
 
 class FlextCliUtilitiesFiles:
@@ -321,18 +320,19 @@ class FlextCliUtilitiesFiles:
     @staticmethod
     def files_detect_format(file_path: t.Cli.TextPath) -> p.Result[str]:
         """Detect one file format from extension using canonical output enums."""
-        suffix = Path(file_path).suffix.lower()
-        if suffix == ".json":
-            return r[str].ok(c.Cli.OutputFormats.JSON)
-        if suffix in {".yaml", ".yml"}:
-            return r[str].ok(c.Cli.OutputFormats.YAML)
-        if suffix == ".csv":
-            return r[str].ok(c.Cli.OutputFormats.CSV)
-        if suffix in {".txt", ".log"}:
-            return r[str].ok(c.Cli.OutputFormats.TEXT)
-        if suffix:
-            return r[str].fail(f"Unsupported format: {suffix}")
-        return r[str].fail("Unable to detect file format without an extension")
+        match Path(file_path).suffix.lower():
+            case ".json":
+                return r[str].ok(c.Cli.OutputFormats.JSON)
+            case ".yaml" | ".yml":
+                return r[str].ok(c.Cli.OutputFormats.YAML)
+            case ".csv":
+                return r[str].ok(c.Cli.OutputFormats.CSV)
+            case ".txt" | ".log":
+                return r[str].ok(c.Cli.OutputFormats.TEXT)
+            case "":
+                return r[str].fail("Unable to detect file format without an extension")
+            case unknown:
+                return r[str].fail(f"Unsupported format: {unknown}")
 
     @staticmethod
     def files_load_auto_mapping(

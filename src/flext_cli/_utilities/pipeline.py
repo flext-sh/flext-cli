@@ -10,9 +10,8 @@ from collections.abc import (
 from graphlib import CycleError, TopologicalSorter
 from typing import ClassVar
 
-from flext_core import u
-
 from flext_cli import c, m, p, r, t
+from flext_core import u
 
 
 class FlextCliUtilitiesPipeline:

@@ -29,10 +29,9 @@ from __future__ import annotations
 import time
 from collections.abc import Mapping
 
-from flext_core import p, r
-
 from examples import c, m, t, u
 from flext_cli import cli
+from flext_core import p, r
 
 
 def _report_step_success[T](value: T, message: str) -> T:

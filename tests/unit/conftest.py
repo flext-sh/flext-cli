@@ -8,9 +8,9 @@ from collections.abc import (
 )
 
 import pytest
-from flext_core import FlextSettings
 
 from flext_cli import FlextCliSettings
+from flext_core import FlextSettings
 from tests import t
 from tests.helpers._impl import (
     TestsFlextCliCaptureLogPrompts,

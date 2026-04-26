@@ -7,9 +7,8 @@ from collections.abc import (
 )
 from typing import TYPE_CHECKING, Literal
 
-from flext_core import FlextProtocols
-
 from flext_cli._constants.enums import FlextCliConstantsEnums
+from flext_core import FlextProtocols
 
 if TYPE_CHECKING:
     from flext_cli._models.pipeline import FlextCliModelsPipeline

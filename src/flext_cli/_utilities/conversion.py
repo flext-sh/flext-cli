@@ -7,9 +7,8 @@ from collections.abc import (
 )
 from pathlib import Path
 
-from flext_core import m
-
 from flext_cli import FlextCliUtilitiesJson as uj, c, p, r, t
+from flext_core import m
 
 
 class FlextCliUtilitiesConversion:

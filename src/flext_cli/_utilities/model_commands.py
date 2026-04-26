@@ -4,9 +4,8 @@ from __future__ import annotations
 
 import inspect
 
-from flext_core import m
-
 from flext_cli import p, t
+from flext_core import m
 
 
 class FlextCliUtilitiesModelCommandBuilder[M: m.BaseModel]:

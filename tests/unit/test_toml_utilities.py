@@ -238,22 +238,20 @@ class TestsFlextCliTomlUtilities:
         changes: list[str] = []
 
         sources = u.Cli.toml_mapping_ensure_path(payload, ("tool", "uv", "sources"))
-        _ = u.Cli.toml_mapping_sync_mapping_table(
+        if u.Cli.toml_mapping_sync_mapping_table(
             sources,
             "flext-core",
             {"workspace": True},
-            changes,
-            "synced flext-core",
             sort_keys=True,
-        )
-        _ = u.Cli.toml_mapping_sync_string_list(
+        ):
+            changes.append("synced flext-core")
+        if u.Cli.toml_mapping_sync_string_list(
             u.Cli.toml_mapping_ensure_path(payload, ("tool", "uv", "workspace")),
             "members",
             ("flext-cli", "flext-core"),
-            changes,
-            "synced members",
             sort_values=True,
-        )
+        ):
+            changes.append("synced members")
 
         tm.that(changes, eq=["synced flext-core", "synced members"])
         tool = u.Cli.toml_mapping_child(payload, "tool")

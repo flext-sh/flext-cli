@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from flext_core import FlextTypes
 from yaml import YAMLError
 
 from flext_cli import FlextCliTypesDomain, FlextCliTypesPipeline
 from flext_cli._typings.base import FlextCliTypesBase
+from flext_core import FlextTypes
 
 
 class FlextCliTypes(FlextTypes):

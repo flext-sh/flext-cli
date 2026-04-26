@@ -7,10 +7,9 @@ from collections.abc import (
 )
 from pathlib import Path
 
-from flext_core import p, r
-
 from flext_cli.constants import c
 from flext_cli.typings import t
+from flext_core import p, r
 
 
 class FlextCliUtilitiesAuth:

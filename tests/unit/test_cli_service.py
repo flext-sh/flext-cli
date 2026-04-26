@@ -35,6 +35,29 @@ class TestsFlextCliService:
         tm.that(result.exit_code, eq=0)
         tm.that(cli.settings.debug, eq=True)
 
+    def test_create_app_with_common_params_applies_log_level(self) -> None:
+        app = cli.create_app_with_common_params(
+            name="sample",
+            help_text="Sample application",
+            settings=cli.settings,
+        )
+        cli.register_command(
+            app,
+            name="inspect",
+            help_text="Inspect settings",
+            command=lambda: True,
+        )
+
+        runner_result = cli.create_cli_runner()
+        tm.ok(runner_result)
+        result = runner_result.value.invoke(
+            app,
+            ["--log-level", c.LogLevel.DEBUG, "inspect"],
+        )
+
+        tm.that(result.exit_code, eq=0)
+        tm.that(cli.settings.cli_log_level, eq=c.LogLevel.DEBUG)
+
     def test_model_command_generates_real_typer_options(self) -> None:
         captured: MutableSequence[m.Cli.Tests.SampleInput] = []
         app = cli.create_app_with_common_params(

@@ -29,10 +29,9 @@ import secrets
 import time
 from pathlib import Path
 
-from flext_core import p, r
-
 from examples import c, m, t
 from flext_cli import cli
+from flext_core import p, r
 
 
 def login_to_service(username: str, password: str) -> bool:

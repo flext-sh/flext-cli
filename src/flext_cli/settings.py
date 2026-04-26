@@ -10,9 +10,8 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from flext_core import FlextSettings, m
-
 from flext_cli import c
+from flext_core import FlextSettings, m
 
 
 @FlextSettings.auto_register("cli")

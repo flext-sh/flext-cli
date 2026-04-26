@@ -6,14 +6,12 @@ import tomllib
 from collections.abc import (
     Mapping,
     MutableMapping,
-    MutableSequence,
     Sequence,
 )
 from pathlib import Path
 from typing import ClassVar, TypeIs
 
 import tomlkit
-from flext_core import u
 from tomlkit.items import AoT, Array, Item, Table
 from tomlkit.toml_document import TOMLDocument
 
@@ -25,6 +23,7 @@ from flext_cli import (
     r,
     t,
 )
+from flext_core import u
 
 
 class FlextCliUtilitiesToml:
@@ -325,14 +324,11 @@ class FlextCliUtilitiesToml:
     def toml_remove_key_if_present(
         container: TOMLDocument | Table,
         key: str,
-        changes: MutableSequence[str],
-        change_message: str,
     ) -> bool:
-        """Remove a TOML key when it exists and record the change."""
+        """Remove a TOML key when it exists; return True if removed."""
         if key not in container:
             return False
         del container[key]
-        changes.append(change_message)
         return True
 
     @staticmethod
@@ -340,15 +336,12 @@ class FlextCliUtilitiesToml:
         container: TOMLDocument | Table,
         key: str,
         expected: t.JsonValue,
-        changes: MutableSequence[str],
-        change_message: str,
     ) -> bool:
-        """Synchronize a scalar TOML value."""
+        """Synchronize a scalar TOML value; return True if mutated."""
         current = FlextCliUtilitiesToml.toml_value(container, key)
         if current == expected:
             return False
         container[key] = expected
-        changes.append(change_message)
         return True
 
     @staticmethod
@@ -356,12 +349,10 @@ class FlextCliUtilitiesToml:
         container: TOMLDocument | Table,
         key: str,
         expected: t.StrSequence,
-        changes: MutableSequence[str],
-        change_message: str,
         *,
         sort_values: bool = False,
     ) -> bool:
-        """Synchronize a TOML string-array value."""
+        """Synchronize a TOML string-array value; return True if mutated."""
         current = FlextCliUtilitiesToml.toml_as_string_list(
             FlextCliUtilitiesToml.toml_value(container, key),
         )
@@ -370,7 +361,6 @@ class FlextCliUtilitiesToml:
         if normalized_current == normalized_expected:
             return False
         container[key] = FlextCliUtilitiesToml.toml_array(normalized_expected)
-        changes.append(change_message)
         return True
 
     @staticmethod
@@ -378,10 +368,8 @@ class FlextCliUtilitiesToml:
         container: TOMLDocument | Table,
         key: str,
         required: t.StrSequence,
-        changes: MutableSequence[str],
-        change_message: str,
     ) -> bool:
-        """Merge required values into a TOML string-array field."""
+        """Merge required values into a TOML string-array; return True if mutated."""
         current = FlextCliUtilitiesToml.toml_as_string_list(
             FlextCliUtilitiesToml.toml_value(container, key),
         )
@@ -389,21 +377,17 @@ class FlextCliUtilitiesToml:
         if current == merged:
             return False
         container[key] = FlextCliUtilitiesToml.toml_array(merged)
-        changes.append(change_message)
         return True
 
     @staticmethod
     def toml_mapping_remove_key_if_present(
         container: MutableMapping[str, t.JsonValue],
         key: str,
-        changes: MutableSequence[str],
-        change_message: str,
     ) -> bool:
-        """Remove one plain mapping key when it exists and record the change."""
+        """Remove one plain mapping key when it exists; return True if removed."""
         if key not in container:
             return False
         del container[key]
-        changes.append(change_message)
         return True
 
     @staticmethod
@@ -411,16 +395,13 @@ class FlextCliUtilitiesToml:
         container: MutableMapping[str, t.JsonValue],
         key: str,
         expected: t.JsonValue,
-        changes: MutableSequence[str],
-        change_message: str,
     ) -> bool:
-        """Synchronize one scalar or structured plain TOML value."""
+        """Synchronize a scalar/structured plain TOML value; return True if mutated."""
         current = uj.normalize_json_value(container.get(key, None))
         normalized_expected = uj.normalize_json_value(expected)
         if current == normalized_expected:
             return False
         container[key] = normalized_expected
-        changes.append(change_message)
         return True
 
     @staticmethod
@@ -428,17 +409,14 @@ class FlextCliUtilitiesToml:
         container: MutableMapping[str, t.JsonValue],
         key: str,
         required: t.StrSequence,
-        changes: MutableSequence[str],
-        change_message: str,
     ) -> bool:
-        """Merge required values into one plain string-list field."""
+        """Merge required values into a plain string-list; return True if mutated."""
         current = FlextCliUtilitiesToml.toml_as_string_list(container.get(key, None))
         merged = sorted({*current, *required})
         if current == merged:
             return False
         normalized_list: list[t.JsonValue] = list(merged)
         container[key] = normalized_list
-        changes.append(change_message)
         return True
 
     @staticmethod
@@ -446,12 +424,10 @@ class FlextCliUtilitiesToml:
         container: TOMLDocument | Table,
         key: str,
         expected: Mapping[str, t.JsonValue],
-        changes: MutableSequence[str],
-        change_message: str,
         *,
         sort_keys: bool = False,
     ) -> bool:
-        """Synchronize a TOML table mapping in place."""
+        """Synchronize a TOML table mapping in place; return True if mutated."""
         existing = container.get(key, None)
         current = FlextCliUtilitiesToml.toml_as_mapping(
             existing
@@ -471,7 +447,6 @@ class FlextCliUtilitiesToml:
                 del table[existing_key]
         for item_key, item_value in normalized_expected.items():
             table[item_key] = item_value
-        changes.append(change_message)
         return True
 
     @staticmethod
@@ -479,12 +454,10 @@ class FlextCliUtilitiesToml:
         container: MutableMapping[str, t.JsonValue],
         key: str,
         expected: t.StrSequence,
-        changes: MutableSequence[str],
-        change_message: str,
         *,
         sort_values: bool = False,
     ) -> bool:
-        """Synchronize one plain string-list field in a normalized TOML mapping."""
+        """Synchronize a plain string-list field; return True if mutated."""
         current = FlextCliUtilitiesToml.toml_as_string_list(container.get(key, None))
         normalized_expected = sorted(expected) if sort_values else [*expected]
         normalized_current = sorted(current) if sort_values else [*current]
@@ -492,7 +465,6 @@ class FlextCliUtilitiesToml:
             return False
         normalized_list: list[t.JsonValue] = list(normalized_expected)
         container[key] = normalized_list
-        changes.append(change_message)
         return True
 
     @staticmethod
@@ -500,12 +472,10 @@ class FlextCliUtilitiesToml:
         container: MutableMapping[str, t.JsonValue],
         key: str,
         expected: Mapping[str, t.JsonValue],
-        changes: MutableSequence[str],
-        change_message: str,
         *,
         sort_keys: bool = False,
     ) -> bool:
-        """Synchronize one plain mapping-table field in a normalized TOML mapping."""
+        """Synchronize a plain mapping-table field; return True if mutated."""
         existing = container.get(key, None)
         current = FlextCliUtilitiesToml.toml_as_mapping(
             existing if isinstance(existing, Mapping) else None,
@@ -526,7 +496,6 @@ class FlextCliUtilitiesToml:
             del table[existing_key]
         for item_key, item_value in normalized_expected.items():
             table[item_key] = item_value
-        changes.append(change_message)
         return True
 
     @staticmethod

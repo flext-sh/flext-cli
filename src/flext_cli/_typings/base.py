@@ -11,7 +11,6 @@ from pathlib import Path
 from types import GenericAlias, UnionType
 from typing import ClassVar, TypeAliasType
 
-from flext_core import m, t
 from rich.console import Console as RichConsole
 from rich.tree import Tree as RichTree
 from tomlkit.container import Container
@@ -20,6 +19,8 @@ from tomlkit.toml_document import TOMLDocument
 from typer import Typer
 from typer.models import OptionInfo
 from typer.testing import CliRunner
+
+from flext_core import m, t
 
 
 class FlextCliTypesBase:

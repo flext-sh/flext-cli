@@ -130,23 +130,18 @@ class FlextCliCli(s):
         self,
         settings: FlextCliSettings,
         *,
-        debug: bool,
-        log_level: str | None,
-        quiet: bool,
-        trace: bool,
-        verbose: bool,
+        params: m.Cli.CliParamsConfig,
     ) -> None:
         """Apply global CLI flags to the shared settings model."""
         resolved_log_level: str = (
-            log_level if log_level is not None else settings.cli_log_level
+            params.log_level if params.log_level is not None else settings.cli_log_level
+        )
+        next_params = m.Cli.CliParamsConfig.model_validate(
+            params.model_copy(update={"log_level": resolved_log_level}).model_dump()
         )
         result = FlextCliCommonParams.apply_to_config(
             settings,
-            debug=debug,
-            log_level=resolved_log_level,
-            quiet=quiet,
-            trace=trace,
-            verbose=verbose,
+            params=next_params,
         )
         if result.failure:
             self.logger.warning("failed to apply cli params", error=result.error or "")
@@ -179,11 +174,13 @@ class FlextCliCli(s):
             if settings is not None:
                 self._apply_common_params_to_config(
                     settings,
-                    debug=debug,
-                    log_level=log_level,
-                    quiet=quiet,
-                    trace=trace,
-                    verbose=verbose,
+                    params=m.Cli.CliParamsConfig.model_validate({
+                        "debug": debug,
+                        "log_level": log_level,
+                        "quiet": quiet,
+                        "trace": trace,
+                        "verbose": verbose,
+                    }),
                 )
 
         _ = global_callback

@@ -5,17 +5,14 @@ from __future__ import annotations
 
 import typing as _t
 
+from flext_cli.__version__ import *
 from flext_core.lazy import (
     build_lazy_import_map,
     install_lazy_exports,
     merge_lazy_imports,
 )
 
-from flext_cli.__version__ import *
-
 if _t.TYPE_CHECKING:
-    from flext_core import d, e, h, r, x
-
     from flext_cli._constants.base import FlextCliConstantsBase
     from flext_cli._constants.enums import FlextCliConstantsEnums
     from flext_cli._constants.errors import FlextCliConstantsErrors
@@ -78,6 +75,7 @@ if _t.TYPE_CHECKING:
     from flext_cli.settings import FlextCliSettings
     from flext_cli.typings import FlextCliTypes, t
     from flext_cli.utilities import FlextCliUtilities, u
+    from flext_core import d, e, h, r, x
 _LAZY_IMPORTS = merge_lazy_imports(
     (
         "._constants",

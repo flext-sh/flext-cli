@@ -31,10 +31,9 @@ from collections.abc import (
 )
 from pathlib import Path
 
-from flext_core import p, r
-
 from examples import c, m, t, u
 from flext_cli import FlextCliSettings, cli
+from flext_core import p, r
 
 
 def show_cli_settings() -> FlextCliSettings:

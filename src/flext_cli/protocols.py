@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-from flext_core import FlextProtocols
-
 from flext_cli import (
     FlextCliProtocolsBase,
     FlextCliProtocolsDomain,
     FlextCliProtocolsPipeline,
 )
+from flext_core import FlextProtocols
 
 
 class FlextCliProtocols(

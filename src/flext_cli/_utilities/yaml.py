@@ -15,10 +15,10 @@ from collections.abc import (
 from pathlib import Path
 from typing import ClassVar
 
-from flext_core import m, u
 from yaml import safe_dump, safe_load
 
 from flext_cli import c, p, r, t
+from flext_core import m, u
 
 
 class FlextCliUtilitiesYaml:

@@ -4,11 +4,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
+from flext_cli import FlextCliProtocolsBase
 from flext_core import m
 
-from flext_cli import FlextCliProtocolsBase
-
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+    from pathlib import Path
+
     from flext_cli import t
 
 
@@ -89,6 +91,28 @@ class FlextCliProtocolsDomain:
         def __call__(self) -> TRule:
             """Instantiate one file rule without extra runtime settings."""
             ...
+
+    @runtime_checkable
+    class SummaryStats(Protocol):
+        """Workspace orchestration summary payload contract."""
+
+        verb: str
+        total: int
+        success: int
+        failed: int
+        skipped: int
+        elapsed: float
+
+    @runtime_checkable
+    class ProjectFailureInfo(Protocol):
+        """Per-project failure descriptor for verbose diagnostics."""
+
+        project: str
+        elapsed: float
+        error_count: int
+        log_path: Path
+        max_show: int
+        errors: Sequence[str]
 
 
 __all__: list[str] = ["FlextCliProtocolsDomain"]

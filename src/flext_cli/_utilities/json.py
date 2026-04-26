@@ -14,9 +14,8 @@ from collections.abc import (
 from pathlib import Path
 from typing import ClassVar
 
-from flext_core import m, u
-
 from flext_cli import c, p, r, t
+from flext_core import m, u
 
 
 class FlextCliUtilitiesJson:
