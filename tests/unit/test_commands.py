@@ -160,12 +160,8 @@ class TestsFlextCliCommands:
     def test_commands_concurrent_execution(self) -> None:
         """Test commands concurrent execution."""
         commands = u.Tests.CommandsFactory.create_commands()
-        _ = u.Tests.CommandsFactory.register_simple_command(
-            commands, "cmd1", "result1"
-        )
-        _ = u.Tests.CommandsFactory.register_simple_command(
-            commands, "cmd2", "result2"
-        )
+        _ = u.Tests.CommandsFactory.register_simple_command(commands, "cmd1", "result1")
+        _ = u.Tests.CommandsFactory.register_simple_command(commands, "cmd2", "result2")
         result1 = commands.execute_command("cmd1")
         result2 = commands.execute_command("cmd2")
         tm.ok(result1)
@@ -200,9 +196,7 @@ class TestsFlextCliCommands:
     def test_run_cli_success(self) -> None:
         """Test run_cli successful execution."""
         commands = u.Tests.CommandsFactory.create_commands()
-        _ = u.Tests.CommandsFactory.register_simple_command(
-            commands, "test_command"
-        )
+        _ = u.Tests.CommandsFactory.register_simple_command(commands, "test_command")
         result = commands.run_cli(["test_command"])
         tm.ok(result)
 
@@ -224,9 +218,7 @@ class TestsFlextCliCommands:
     def test_run_cli_success_with_empty_args(self) -> None:
         """Test run_cli with successful execution and empty args."""
         commands = u.Tests.CommandsFactory.create_commands()
-        _ = u.Tests.CommandsFactory.register_simple_command(
-            commands, "test_command"
-        )
+        _ = u.Tests.CommandsFactory.register_simple_command(commands, "test_command")
         result = commands.run_cli()
         tm.that(result, is_=r)
 

@@ -17,7 +17,7 @@ from collections.abc import (
 )
 from ipaddress import ip_address
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, ClassVar
 
 from examples import c, p, r, t
 from flext_cli import m, u
@@ -65,7 +65,7 @@ class ExamplesFlextCliModels(m):
         class DatabaseWizardConfig(m.Value):
             """Database setup wizard result — Pydantic v2 only."""
 
-            model_config = m.ConfigDict(
+            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
                 extra="forbid",
                 validate_assignment=True,
             )
@@ -84,7 +84,7 @@ class ExamplesFlextCliModels(m):
         class AppWizardConfig(m.Value):
             """App configuration wizard result — Pydantic v2 only."""
 
-            model_config = m.ConfigDict(
+            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
                 extra="forbid",
                 validate_assignment=True,
             )
@@ -121,7 +121,7 @@ class ExamplesFlextCliModels(m):
         class NumericPromptResult(m.Value):
             """Numeric prompts result — Pydantic v2 only."""
 
-            model_config = m.ConfigDict(
+            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
                 extra="forbid",
                 validate_assignment=True,
             )
@@ -156,7 +156,7 @@ class ExamplesFlextCliModels(m):
         class MyAppSettings(m.Value):
             """Custom settings for YOUR CLI application — Pydantic v2 only."""
 
-            model_config = m.ConfigDict(
+            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
                 extra="forbid",
                 validate_assignment=True,
             )
@@ -240,7 +240,7 @@ class ExamplesFlextCliModels(m):
         class AppSettingsAdvanced(m.Value):
             """Advanced application settings — Pydantic v2 only."""
 
-            model_config = m.ConfigDict(
+            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
                 extra="forbid",
                 validate_assignment=True,
             )
@@ -358,7 +358,7 @@ class ExamplesFlextCliModels(m):
         class DeployConfig(m.Value):
             """Deployment configuration - auto-generates CLI parameters."""
 
-            model_config = m.ConfigDict(
+            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
                 extra="forbid",
                 validate_assignment=True,
             )
@@ -400,7 +400,7 @@ class ExamplesFlextCliModels(m):
         class DatabaseConfig(m.Value):
             """Database configuration."""
 
-            model_config = m.ConfigDict(
+            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
                 extra="forbid",
                 validate_assignment=True,
             )
@@ -423,7 +423,7 @@ class ExamplesFlextCliModels(m):
         class AppConfigNested(m.Value):
             """Application configuration with nested database model."""
 
-            model_config = m.ConfigDict(
+            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
                 extra="forbid",
                 validate_assignment=True,
             )
@@ -442,7 +442,7 @@ class ExamplesFlextCliModels(m):
         class AdvancedDatabaseConfig(m.Value):
             """Database configuration with advanced validation."""
 
-            model_config = m.ConfigDict(
+            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
                 extra="forbid",
                 validate_assignment=True,
             )

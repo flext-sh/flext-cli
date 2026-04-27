@@ -15,7 +15,7 @@ from collections.abc import (
     MutableMapping,
     Sequence,
 )
-from typing import Annotated
+from typing import Annotated, ClassVar
 
 from flext_tests import FlextTestsModels
 
@@ -32,7 +32,7 @@ class TestsFlextCliModels(FlextTestsModels, m):
         class PositionalModel(m.BaseModel):
             """Model accepting positional data for test scenarios."""
 
-            model_config = m.ConfigDict(extra="forbid")
+            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid")
 
             def __init__(
                 self,
@@ -49,7 +49,7 @@ class TestsFlextCliModels(FlextTestsModels, m):
         class UserData(PositionalModel):
             """User data for type scenario tests -- Pydantic v2."""
 
-            model_config = m.ConfigDict(extra="forbid")
+            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid")
             id: Annotated[int, m.Field(description="User id")]
             name: Annotated[str, m.Field(description="User name")]
             email: Annotated[str, m.Field(description="Email")]
@@ -58,7 +58,7 @@ class TestsFlextCliModels(FlextTestsModels, m):
         class ApiResponse(PositionalModel):
             """API response for type scenario tests -- Pydantic v2."""
 
-            model_config = m.ConfigDict(extra="forbid")
+            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid")
             status: Annotated[str, m.Field(description="Status")]
             data: Annotated[
                 t.JsonMapping | None,
@@ -72,7 +72,7 @@ class TestsFlextCliModels(FlextTestsModels, m):
         class VersionTestScenario(m.BaseModel):
             """Version test scenario data."""
 
-            model_config = m.ConfigDict(frozen=True)
+            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=True)
 
             name: Annotated[str, m.Field(description="Scenario name")]
             version_string: Annotated[
@@ -204,7 +204,7 @@ class TestsFlextCliModels(FlextTestsModels, m):
         class ConfigTestScenario(m.BaseModel):
             """Test scenario with data."""
 
-            model_config = m.ConfigDict(frozen=True)
+            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=True)
 
             name: Annotated[str, m.Field(description="Scenario name")]
             test_type: Annotated[

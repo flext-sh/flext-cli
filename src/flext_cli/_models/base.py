@@ -6,7 +6,7 @@ from collections.abc import (
     Mapping,
 )
 from types import MappingProxyType
-from typing import Annotated
+from typing import Annotated, ClassVar
 
 from flext_cli import c, p, t
 from flext_core import m, u
@@ -38,7 +38,9 @@ class FlextCliModelsBase:
     class DisplayData(m.BaseModel):
         """Key-value data for table/display — Pydantic v2 contract. Use m.Cli.DisplayData."""
 
-        model_config = m.ConfigDict(extra="forbid", validate_assignment=True)
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+            extra="forbid", validate_assignment=True
+        )
         data: Annotated[
             t.JsonMapping,
             m.Field(
@@ -50,7 +52,9 @@ class FlextCliModelsBase:
     class LoadedConfig(m.BaseModel):
         """Loaded configuration content wrapper — Pydantic v2 contract. Use m.Cli.LoadedConfig."""
 
-        model_config = m.ConfigDict(extra="forbid", validate_assignment=True)
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+            extra="forbid", validate_assignment=True
+        )
         content: Annotated[
             t.JsonMapping,
             m.Field(
@@ -67,7 +71,7 @@ class FlextCliModelsBase:
         ``model_serializer`` required.
         """
 
-        model_config = m.ConfigDict(frozen=True)
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=True)
         root: Annotated[
             t.JsonValue,
             m.Field(description="Normalized JSON-compatible value"),
@@ -76,7 +80,7 @@ class FlextCliModelsBase:
     class NormalizedJsonList(m.BaseModel):
         """Resolve normalized JSON to a dict with defaults. Use m.Cli.NormalizedJsonList."""
 
-        model_config = m.ConfigDict(
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
             extra="forbid",
             validate_assignment=True,
         )
@@ -107,7 +111,7 @@ class FlextCliModelsBase:
     class PromptRuntimeState(m.FlexibleInternalModel):
         """Centralized runtime state for CLI prompt behavior."""
 
-        model_config = m.ConfigDict(
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
             extra="forbid",
             validate_assignment=True,
         )
@@ -130,7 +134,7 @@ class FlextCliModelsBase:
     class CommandEntryModel(m.BaseModel):
         """Single command entry: name + handler. Use m.Cli.CommandEntryModel."""
 
-        model_config = m.ConfigDict(
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
             arbitrary_types_allowed=True,
             extra="forbid",
         )
@@ -143,7 +147,7 @@ class FlextCliModelsBase:
     class ResultCommandRoute(m.BaseModel):
         """Type-erased route contract for heterogeneous batch registration."""
 
-        model_config = m.ConfigDict(
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
             arbitrary_types_allowed=True,
             extra="forbid",
             frozen=True,
@@ -272,7 +276,7 @@ class FlextCliModelsBase:
     class SettingsSnapshot(m.Value):
         """Snapshot of current CLI settings information."""
 
-        model_config = m.ConfigDict(
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
             frozen=True,
             extra="forbid",
         )
@@ -389,7 +393,7 @@ class FlextCliModelsBase:
         Used with create_option_decorator to reduce argument counts.
         """
 
-        model_config = m.ConfigDict(
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
             frozen=True,
             extra="forbid",
             arbitrary_types_allowed=True,
@@ -485,7 +489,7 @@ class FlextCliModelsBase:
         Used with prompt() method to reduce argument counts.
         """
 
-        model_config = m.ConfigDict(
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
             frozen=True,
             extra="forbid",
             arbitrary_types_allowed=True,
@@ -546,7 +550,7 @@ class FlextCliModelsBase:
     class PromptTimeoutResolved(m.BaseModel):
         """Single contract: raw (int | str | None) + default -> int."""
 
-        model_config = m.ConfigDict(extra="forbid")
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid")
         raw: Annotated[
             t.Cli.IntTextValue,
             m.Field(None, description="Raw timeout input (int, str, or None)"),
@@ -575,7 +579,7 @@ class FlextCliModelsBase:
     class LogLevelResolved(m.BaseModel):
         """Single contract for log level string."""
 
-        model_config = m.ConfigDict(extra="forbid")
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid")
         raw: Annotated[
             str | None,
             m.Field(None, description="Raw log level input string"),
@@ -602,7 +606,7 @@ class FlextCliModelsBase:
     class TypedExtract(m.BaseModel):
         """Single contract for typed value extraction (str | bool | dict)."""
 
-        model_config = m.ConfigDict(extra="forbid")
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid")
         type_kind: Annotated[
             t.Cli.TypeKind,
             m.Field(description="Requested type"),
