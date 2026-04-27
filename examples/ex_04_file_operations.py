@@ -474,7 +474,7 @@ def export_multi_format(
     json_result = cli.write_json_file(
         json_path,
         json_payload,
-        indent=2,
+        options=m.Cli.JsonWriteOptions(indent=2),
     )
     if json_result.success:
         size = json_path.stat().st_size

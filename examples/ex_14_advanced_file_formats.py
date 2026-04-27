@@ -35,7 +35,7 @@ from collections.abc import (
 )
 from pathlib import Path
 
-from examples import c, p, t, u
+from examples import c, m, p, t, u
 from flext_cli import cli
 
 
@@ -168,7 +168,11 @@ def export_data_multi_format(
         json_payload = t.json_list_adapter().validate_python(data)
     else:
         json_payload = t.json_mapping_adapter().validate_python(data)
-    json_result = cli.write_json_file(json_path, json_payload, indent=2)
+    json_result = cli.write_json_file(
+        json_path,
+        json_payload,
+        options=m.Cli.JsonWriteOptions(indent=2),
+    )
     if json_result.success:
         size = json_path.stat().st_size
         export_results["JSON"] = f"{size} bytes"
@@ -186,21 +190,23 @@ def export_data_multi_format(
             f"✅ YAML: {yaml_path.name} ({size} bytes)", style=c.Cli.MessageStyles.GREEN
         )
 
-    csv_rows_data = u.Cli.json_as_mapping_list(json_payload)
+    csv_rows_data = [
+        u.Cli.tables_normalize_mapping_row(row)
+        for row in u.Cli.json_as_mapping_list(json_payload)
+    ]
 
     if csv_rows_data:
         csv_path = base_path.with_suffix(".csv")
         headers = list(csv_rows_data[0].keys())
-        rows = [headers]
-        rows.extend([
+        csv_rows = [
             [str(row.get(header, "")) for header in headers] for row in csv_rows_data
-        ])
-        csv_result = cli.write_csv_file(csv_path, rows)
+        ]
+        csv_result = cli.write_csv_file(csv_path, [headers, *csv_rows])
         if csv_result.success:
             size = csv_path.stat().st_size
             export_results["CSV"] = f"{size} bytes"
             cli.print(
-                f"✅ CSV: {csv_path.name} ({size} bytes)",
+                f"✅ CSV: {csv_path.name} ({export_results['CSV']})",
                 style=c.Cli.MessageStyles.GREEN,
             )
     cli.print(
