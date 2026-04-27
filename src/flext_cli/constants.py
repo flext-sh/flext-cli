@@ -35,6 +35,6 @@ class FlextCliConstants(
         """CLI related constants."""
 
 
-__all__: list[str] = ["FlextCliConstants", "c"]
+__all__: tuple[str, ...] = ("FlextCliConstants", "c")
 
 c = FlextCliConstants
