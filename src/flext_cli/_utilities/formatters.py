@@ -1,24 +1,22 @@
-"""CLI formatter fallback helpers shared through ``u.Cli``."""
+"""CLI formatter helpers shared through ``u.Cli``."""
 
 from __future__ import annotations
 
-import sys
 from collections.abc import (
     Sequence,
 )
 from typing import ClassVar
 
 from rich.console import Console
-from rich.errors import ConsoleError, StyleError
 from rich.panel import Panel
 from rich.table import Table as RichTable
 from rich.tree import Tree as RichTree
 
-from flext_cli import c, m, p, r, t
+from flext_cli import m, r, t
 
 
 class FlextCliUtilitiesFormatters:
-    """Fallback logging/output helpers for formatter services."""
+    """Rich-backed formatter helpers for CLI services."""
 
     class TableRenderRequest(m.BaseModel):
         """Typed table render input envelope."""
@@ -30,149 +28,34 @@ class FlextCliUtilitiesFormatters:
     _console: ClassVar[t.Cli.RichConsoleType] = Console()
 
     @classmethod
-    def formatters_create_tree(
-        cls,
-        label: str,
-        logger: p.Logger,
-    ) -> p.Result[t.Cli.RichTreeType]:
-        """Create one Rich tree using centralized error handling."""
-        try:
-            return r[t.Cli.RichTreeType].ok(RichTree(label))
-        except ConsoleError as exc:
-            cls.formatters_log_fallback(
-                logger,
-                "rich_tree_creation_failed",
-                exc,
-                label=label,
-            )
-            return r[t.Cli.RichTreeType].fail(
-                c.Cli.ERR_TREE_CREATION_FAILED.format(error=exc),
-            )
+    def formatters_create_tree(cls, label: str) -> r[t.Cli.RichTreeType]:
+        """Create one Rich tree."""
+        return r[t.Cli.RichTreeType].ok(RichTree(label))
 
     @classmethod
-    def formatters_print(
-        cls,
-        message: str,
-        logger: p.Logger,
-        style: str | None = None,
-    ) -> None:
-        """Print one message via Rich with centralized fallback path."""
-        try:
-            cls._console.print(message, style=style)
-        except (ConsoleError, StyleError) as exc:
-            cls.formatters_log_fallback(
-                logger,
-                "rich_print_fallback",
-                exc,
-                message_length=len(message),
-            )
-            cls.formatters_write_stdout(f"{message}\n")
+    def formatters_print(cls, message: str, style: str | None = None) -> None:
+        """Print one message via Rich."""
+        cls._console.print(message, style=style)
 
     @classmethod
-    def formatters_render_rule(
-        cls,
-        text: str,
-        logger: p.Logger,
-    ) -> None:
-        """Render one horizontal rule via Rich with fallback output."""
-        try:
-            cls._console.rule(text)
-        except (ConsoleError, StyleError) as exc:
-            cls.formatters_log_fallback(
-                logger,
-                "rich_rule_fallback",
-                exc,
-            )
-            cls.formatters_write_stdout(cls.formatters_rule_fallback_text(text))
+    def formatters_render_rule(cls, text: str) -> None:
+        """Render one horizontal rule via Rich."""
+        cls._console.rule(text)
 
     @classmethod
-    def formatters_render_panel(
-        cls,
-        content: str,
-        logger: p.Logger,
-        *,
-        title: str = "",
-    ) -> None:
-        """Render one panel via Rich with fallback output."""
-        try:
-            cls._console.print(Panel(content, title=title or None))
-        except (ConsoleError, StyleError) as exc:
-            cls.formatters_log_fallback(
-                logger,
-                "rich_panel_fallback",
-                exc,
-            )
-            cls.formatters_write_stdout(
-                cls.formatters_panel_fallback_text(content, title=title),
-            )
+    def formatters_render_panel(cls, content: str, *, title: str = "") -> None:
+        """Render one panel via Rich."""
+        cls._console.print(Panel(content, title=title or None))
 
     @classmethod
-    def formatters_render_table(
-        cls,
-        request: TableRenderRequest,
-        logger: p.Logger,
-    ) -> None:
-        """Render one table via Rich with fallback output."""
-        try:
-            table = RichTable(title=request.title or None)
-            for col in request.columns:
-                table.add_column(col)
-            for row in request.rows:
-                table.add_row(*row)
-            cls._console.print(table)
-        except (ConsoleError, StyleError) as exc:
-            cls.formatters_log_fallback(
-                logger,
-                "rich_table_fallback",
-                exc,
-            )
-            cls.formatters_write_stdout(
-                cls.formatters_table_fallback_text(request.columns, request.rows),
-            )
-
-    @staticmethod
-    def formatters_write_stdout(text: str) -> None:
-        """Write one text block directly to stdout."""
-        _ = sys.stdout.write(text)
-        _ = sys.stdout.flush()
-
-    @staticmethod
-    def formatters_log_fallback(
-        logger: p.Logger,
-        event: str,
-        exc: Exception,
-        **context: t.JsonPayload,
-    ) -> None:
-        """Emit one normalized fallback warning event."""
-        if not context:
-            logger.warning(event, error=str(exc))
-            return
-        logger.warning(
-            event,
-            error=str(exc),
-            context=str(dict(context)),
-        )
-
-    @staticmethod
-    def formatters_rule_fallback_text(text: str) -> str:
-        """Build fallback text for horizontal rule rendering."""
-        return f"{'=' * 60}\n  {text}\n{'=' * 60}\n"
-
-    @staticmethod
-    def formatters_panel_fallback_text(content: str, title: str = "") -> str:
-        """Build fallback text for panel rendering."""
-        header = f"── {title} ──\n" if title else ""
-        return f"{header}{content}\n"
-
-    @staticmethod
-    def formatters_table_fallback_text(
-        columns: t.StrSequence,
-        rows: Sequence[t.StrSequence],
-    ) -> str:
-        """Build fallback text for table rendering."""
-        lines: t.MutableSequenceOf[str] = ["  ".join(columns)]
-        lines.extend("  ".join(row) for row in rows)
-        return "\n".join(lines) + "\n"
+    def formatters_render_table(cls, request: TableRenderRequest) -> None:
+        """Render one table via Rich."""
+        table = RichTable(title=request.title or None)
+        for col in request.columns:
+            table.add_column(col)
+        for row in request.rows:
+            table.add_row(*row)
+        cls._console.print(table)
 
 
 __all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesFormatters"]

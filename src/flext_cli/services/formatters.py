@@ -21,42 +21,22 @@ class FlextCliFormatters(FlextCliServiceBase):
     @classmethod
     def create_tree(cls, label: str) -> p.Result[t.Cli.RichTreeType]:
         """Create one Rich tree via the canonical CLI utility."""
-        return u.Cli.formatters_create_tree(
-            label,
-            cls._get_or_create_logger(),
-        )
+        return u.Cli.formatters_create_tree(label)
 
     @classmethod
     def print(cls, message: str, style: str | None = None) -> None:
-        """Print formatted message using Rich.
-
-        Args:
-            message: Message to print
-            style: Rich style string (e.g., "bold red")
-
-        Note:
-            For advanced Rich features, access self.console directly.
-
-        """
-        u.Cli.formatters_print(
-            message,
-            cls._get_or_create_logger(),
-            style=style,
-        )
+        """Print formatted message using Rich."""
+        u.Cli.formatters_print(message, style=style)
 
     @classmethod
     def render_rule(cls, text: str) -> None:
         """Render a horizontal rule with centered text via Rich."""
-        u.Cli.formatters_render_rule(text, cls._get_or_create_logger())
+        u.Cli.formatters_render_rule(text)
 
     @classmethod
     def render_panel(cls, content: str, *, title: str = "") -> None:
         """Render a Rich Panel with optional title."""
-        u.Cli.formatters_render_panel(
-            content,
-            cls._get_or_create_logger(),
-            title=title,
-        )
+        u.Cli.formatters_render_panel(content, title=title)
 
     @classmethod
     def render_table(
@@ -68,12 +48,7 @@ class FlextCliFormatters(FlextCliServiceBase):
     ) -> None:
         """Render a Rich Table with columns and rows."""
         u.Cli.formatters_render_table(
-            u.Cli.TableRenderRequest(
-                columns=columns,
-                rows=rows,
-                title=title,
-            ),
-            cls._get_or_create_logger(),
+            u.Cli.TableRenderRequest(columns=columns, rows=rows, title=title),
         )
 
 
