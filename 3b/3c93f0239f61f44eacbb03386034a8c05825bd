@@ -1,0 +1,31 @@
+examples/ex_14_advanced_file_formats.py
+  h_9db9d35f50cf33 38,174,193-196,201
+examples/ex_04_file_operations.py
+  22632355ef1e26ce 477
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "3b3c93f0239f61f44eacbb03386034a8c05825bd",
+  "prompts": {
+    "22632355ef1e26ce": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c6ac7df6-1398-4096-87d8-e634aca30e02",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "FLEXT Bot",
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 1,
+      "accepted_lines": 1,
+      "overriden_lines": 0,
+      "messages_url": "https://usegitai.com/cas/971ba586e973ef99898434de4bfdd22a7f8d2fd5baaf7dc8475f66f0b4d6b5a3"
+    }
+  },
+  "humans": {
+    "h_9db9d35f50cf33": {
+      "author": "FLEXT Bot"
+    }
+  }
+}
