@@ -1,0 +1,42 @@
+docs/guides/troubleshooting.md
+  32e53aadeab901d8 118,121,123-124,127-130,197-208,232,234-236,239-240,242,250-256,258-260,277,280,287-291,294,300-302,304-307,345,348,353-357,363,366,368,374,377,384,386,407,409,412-422,431,434,439-443,449,452,455,462-464,469-472,478,490,494,496-498,505,507,509-513,519,523-530,533,538,541,547,549,585,587,589,591-604,615-617,620-628,696,698,701-703,710,712-714
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "79edfc7b08ef19da9e62be6cfe5658b011ab99d7",
+  "prompts": {
+    "32e53aadeab901d8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6f27bad8-6ba1-4e78-9c42-68298683eae0",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "FLEXT Bot",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 165,
+      "overriden_lines": 0
+    },
+    "c8a4efa99583d305": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "064e59bc-4db0-43f3-84df-745838365e34",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "FLEXT Bot",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 45,
+      "overriden_lines": 0,
+      "messages_url": "https://usegitai.com/cas/29bf1898b7c765207545aec92f4da0791c35be0ad5b479b9281536ee8d1131bb"
+    }
+  },
+  "humans": {
+    "h_9db9d35f50cf33": {
+      "author": "FLEXT Bot"
+    }
+  }
+}
