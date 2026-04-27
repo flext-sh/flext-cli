@@ -57,7 +57,11 @@ class FlextCliRules(FlextCliServiceBase):
     @staticmethod
     def rules_load_local_definitions[TRuleKind, TFileRuleKind](
         config_path: Path,
-        **kwargs: t.Cli.CliValue | Path | t.Cli.RuleCatalog[TRuleKind] | t.Cli.RuleCatalog[TFileRuleKind] | None,
+        **kwargs: t.Cli.CliValue
+        | Path
+        | t.Cli.RuleCatalog[TRuleKind]
+        | t.Cli.RuleCatalog[TFileRuleKind]
+        | None,
     ) -> p.Result[t.Cli.RuleLoadResult[TRuleKind, TFileRuleKind]]:
         """Load one declarative local ruleset using direct matcher catalogs."""
         return u.Cli.rules_load_local_definitions(

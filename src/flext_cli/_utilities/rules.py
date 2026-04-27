@@ -141,7 +141,11 @@ class FlextCliUtilitiesRules:
     def rules_load_local_definitions[TRuleKind, TFileRuleKind](
         cls,
         config_path: Path,
-        **kwargs: t.Cli.CliValue | Path | t.Cli.RuleCatalog[TRuleKind] | t.Cli.RuleCatalog[TFileRuleKind] | None,
+        **kwargs: t.Cli.CliValue
+        | Path
+        | t.Cli.RuleCatalog[TRuleKind]
+        | t.Cli.RuleCatalog[TFileRuleKind]
+        | None,
     ) -> p.Result[t.Cli.RuleLoadResult[TRuleKind, TFileRuleKind]]:
         """Load local YAML rule definitions using declarative matcher catalogs."""
         options = cls.LocalDefinitionsOptions[TRuleKind, TFileRuleKind].model_validate(
