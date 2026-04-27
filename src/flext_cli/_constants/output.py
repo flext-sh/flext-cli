@@ -9,7 +9,7 @@ from types import MappingProxyType
 from typing import ClassVar, Final
 
 from flext_cli._constants.enums import FlextCliConstantsEnums
-from flext_core import t
+from flext_core import c, t
 
 
 class FlextCliConstantsOutput:
@@ -29,7 +29,7 @@ class FlextCliConstantsOutput:
         "Settings validation results: {results}"
     )
 
-    PROMPT_DEFAULT_TIMEOUT: Final[int] = 30
+    PROMPT_DEFAULT_TIMEOUT: Final[int] = c.DEFAULT_TIMEOUT_SECONDS
     PROMPT_MIN_PASSWORD_LENGTH: Final[int] = 1
     PROMPT_CONFIRM_YES: Final[str] = " [Y/n]: "
     PROMPT_CONFIRM_NO: Final[str] = " [y/N]: "

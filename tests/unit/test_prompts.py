@@ -208,9 +208,9 @@ class TestsFlextCliPrompts:
         "message",
         [
             "",
-            c.Cli.Tests.LONG,
-            c.Cli.Tests.SPECIAL,
-            c.Cli.Tests.UNICODE,
+            c.Tests.LONG,
+            c.Tests.SPECIAL,
+            c.Tests.UNICODE,
         ],
     )
     def test_prompt_accepts_edge_case_messages(

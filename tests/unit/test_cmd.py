@@ -28,17 +28,17 @@ class TestsFlextCliCmd:
 
     def test_cmd_initialization(self) -> None:
         """Test CMD initialization with proper configuration."""
-        cmd = u.Cli.Tests.create_cmd_instance()
+        cmd = u.Tests.create_cmd_instance()
         tm.that(cmd, none=False)
         tm.that(cmd, is_=FlextCliCmd)
 
     def test_cmd_service_properties(self) -> None:
         """Test CMD service properties."""
-        u.Cli.Tests.create_cmd_instance()
+        u.Tests.create_cmd_instance()
 
     def test_cmd_execute_sync(self) -> None:
         """Test synchronous CMD execution."""
-        cmd = u.Cli.Tests.create_cmd_instance()
+        cmd = u.Tests.create_cmd_instance()
         result = cmd.execute()
         tm.ok(result)
         data = result.value
@@ -48,13 +48,13 @@ class TestsFlextCliCmd:
 
     def test_cmd_validate_settings(self) -> None:
         """Test validate_settings method."""
-        cmd = u.Cli.Tests.create_cmd_instance()
+        cmd = u.Tests.create_cmd_instance()
         result = cmd.validate_settings()
         tm.ok(result)
 
     def test_cmd_settings_snapshot(self) -> None:
         """Test settings_snapshot method."""
-        cmd = u.Cli.Tests.create_cmd_instance()
+        cmd = u.Tests.create_cmd_instance()
         result = cmd.settings_snapshot()
         tm.ok(result)
         tm.that(result.value, is_=m.Cli.SettingsSnapshot)
@@ -62,7 +62,7 @@ class TestsFlextCliCmd:
 
     def test_cmd_show_settings(self) -> None:
         """Test show_settings method."""
-        cmd = u.Cli.Tests.create_cmd_instance()
+        cmd = u.Tests.create_cmd_instance()
         result = cmd.show_settings()
         tm.ok(result)
 

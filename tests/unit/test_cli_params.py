@@ -35,7 +35,7 @@ class TestsFlextCliCommonParams:
 
     def test_apply_to_config_with_valid_params(self) -> None:
         """Test apply_to_config with Railway pattern - no state manipulation."""
-        config_result = u.Cli.Tests.create_test_settings()
+        config_result = u.Tests.create_test_settings()
         tm.ok(config_result)
 
         settings = config_result.value
@@ -54,7 +54,7 @@ class TestsFlextCliCommonParams:
 
     def test_apply_to_config_trace_requires_debug(self) -> None:
         """Test trace requires debug - Railway pattern validation."""
-        config_result = u.Cli.Tests.create_test_settings()
+        config_result = u.Tests.create_test_settings()
         tm.ok(config_result)
 
         settings = config_result.value
@@ -66,7 +66,7 @@ class TestsFlextCliCommonParams:
 
     def test_apply_to_config_trace_with_debug(self) -> None:
         """Test trace works with debug enabled - Railway pattern."""
-        config_result = u.Cli.Tests.create_test_settings()
+        config_result = u.Tests.create_test_settings()
         tm.ok(config_result)
 
         settings = config_result.value
@@ -79,7 +79,7 @@ class TestsFlextCliCommonParams:
 
     def test_apply_to_config_invalid_log_level(self) -> None:
         """Test invalid log level validation - Railway pattern."""
-        config_result = u.Cli.Tests.create_test_settings()
+        config_result = u.Tests.create_test_settings()
         tm.ok(config_result)
 
         settings = config_result.value
@@ -91,11 +91,11 @@ class TestsFlextCliCommonParams:
 
     def test_decorator_adds_parameters(self) -> None:
         """Test decorator adds CLI parameters - Railway pattern."""
-        app_result = u.Cli.Tests.create_cli_app()
+        app_result = u.Tests.create_cli_app()
         tm.ok(app_result)
 
         app = app_result.value
-        command_result = u.Cli.Tests.create_decorated_command(app, "test")
+        command_result = u.Tests.create_decorated_command(app, "test")
         tm.ok(command_result)
 
         runner = CliRunner()
@@ -109,11 +109,11 @@ class TestsFlextCliCommonParams:
 
     def test_decorator_flags_work(self) -> None:
         """Test decorator flags work - Railway pattern."""
-        app_result = u.Cli.Tests.create_cli_app()
+        app_result = u.Tests.create_cli_app()
         tm.ok(app_result)
 
         app = app_result.value
-        command_result = u.Cli.Tests.create_decorated_command(app, "test")
+        command_result = u.Tests.create_decorated_command(app, "test")
         tm.ok(command_result)
 
         runner = CliRunner()
@@ -125,11 +125,11 @@ class TestsFlextCliCommonParams:
 
     def test_decorator_parameters_work(self) -> None:
         """Test decorator parameters work - Railway pattern."""
-        app_result = u.Cli.Tests.create_cli_app()
+        app_result = u.Tests.create_cli_app()
         tm.ok(app_result)
 
         app = app_result.value
-        command_result = u.Cli.Tests.create_decorated_command(app, "test")
+        command_result = u.Tests.create_decorated_command(app, "test")
         tm.ok(command_result)
 
         runner = CliRunner()
@@ -158,7 +158,7 @@ class TestsFlextCliCommonParams:
 
     def test_apply_to_config_invalid_log_format(self) -> None:
         """Test invalid log format - Railway pattern."""
-        config_result = u.Cli.Tests.create_test_settings()
+        config_result = u.Tests.create_test_settings()
         tm.ok(config_result)
 
         settings = config_result.value
@@ -170,7 +170,7 @@ class TestsFlextCliCommonParams:
 
     def test_apply_to_config_invalid_output_format(self) -> None:
         """Test invalid output format - Railway pattern."""
-        config_result = u.Cli.Tests.create_test_settings()
+        config_result = u.Tests.create_test_settings()
         tm.ok(config_result)
 
         settings = config_result.value

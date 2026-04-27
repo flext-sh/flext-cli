@@ -24,13 +24,13 @@ class TestsFlextCliTypesUnit:
         """Test complete type workflow integration."""
         typed_data = {"key": "value", "number": 42}
         tm.that(typed_data, is_=dict)
-        api_data = m.Cli.Tests.ApiResponse(
+        api_data = m.Tests.ApiResponse(
             status="success",
             data={"id": 1},
             message="ok",
             error=None,
         )
-        tm.that(api_data, is_=m.Cli.Tests.ApiResponse)
+        tm.that(api_data, is_=m.Tests.ApiResponse)
         tm.that(api_data.data, eq={"id": 1})
 
         complex_type_adapter: m.TypeAdapter[Sequence[Mapping[str, str | int]]] = (

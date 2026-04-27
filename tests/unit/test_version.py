@@ -39,7 +39,7 @@ class TestsFlextCliVersion:
     def test_actual_version_string_semver_compliant(self) -> None:
         """Test __version__ matches semver pattern."""
         tm.that(
-            re.match(c.Cli.Tests.SEMVER_PATTERN, __version__),
+            re.match(c.Tests.SEMVER_PATTERN, __version__),
             none=False,
         )
 
@@ -70,7 +70,7 @@ class TestsFlextCliVersion:
 
     def test_actual_version_consistency(self) -> None:
         """Test __version__ and __version_info__ are consistent."""
-        result = u.Cli.Tests.VersionTestFactory.validate_consistency(
+        result = u.Tests.VersionTestFactory.validate_consistency(
             __version__,
             __version_info__,
         )
@@ -86,16 +86,16 @@ class TestsFlextCliVersion:
 
     @pytest.mark.parametrize(
         "scenario",
-        m.Cli.Tests.VersionScenarios.string_cases(),
-        ids=[s.name for s in m.Cli.Tests.VersionScenarios.string_cases()],
+        m.Tests.VersionScenarios.string_cases(),
+        ids=[s.name for s in m.Tests.VersionScenarios.string_cases()],
     )
     def test_version_string_validation(
-        self, scenario: m.Cli.Tests.VersionTestScenario
+        self, scenario: m.Tests.VersionTestScenario
     ) -> None:
         """Test version string validation with parametrized cases."""
         tm.that(scenario.version_string, none=False)
         version_str = scenario.version_string or ""
-        result = u.Cli.Tests.VersionTestFactory.validate_version_string(
+        result = u.Tests.VersionTestFactory.validate_version_string(
             version_str,
         )
         if scenario.should_pass:
@@ -105,16 +105,16 @@ class TestsFlextCliVersion:
 
     @pytest.mark.parametrize(
         "scenario",
-        m.Cli.Tests.VersionScenarios.info_cases(),
-        ids=[s.name for s in m.Cli.Tests.VersionScenarios.info_cases()],
+        m.Tests.VersionScenarios.info_cases(),
+        ids=[s.name for s in m.Tests.VersionScenarios.info_cases()],
     )
     def test_version_info_validation(
-        self, scenario: m.Cli.Tests.VersionTestScenario
+        self, scenario: m.Tests.VersionTestScenario
     ) -> None:
         """Test version info tuple validation with parametrized cases."""
         tm.that(scenario.version_info, none=False)
         version_info = scenario.version_info or ()
-        result = u.Cli.Tests.VersionTestFactory.validate_version_info(
+        result = u.Tests.VersionTestFactory.validate_version_info(
             version_info,
         )
         if scenario.should_pass:
@@ -124,18 +124,18 @@ class TestsFlextCliVersion:
 
     @pytest.mark.parametrize(
         "scenario",
-        m.Cli.Tests.VersionScenarios.consistency_cases(),
-        ids=[s.name for s in m.Cli.Tests.VersionScenarios.consistency_cases()],
+        m.Tests.VersionScenarios.consistency_cases(),
+        ids=[s.name for s in m.Tests.VersionScenarios.consistency_cases()],
     )
     def test_version_consistency_validation(
-        self, scenario: m.Cli.Tests.VersionTestScenario
+        self, scenario: m.Tests.VersionTestScenario
     ) -> None:
         """Test consistency between version string and info with parametrized cases."""
         tm.that(scenario.version_string, none=False)
         tm.that(scenario.version_info, none=False)
         version_str = scenario.version_string or ""
         version_info = scenario.version_info or ()
-        result = u.Cli.Tests.VersionTestFactory.validate_consistency(
+        result = u.Tests.VersionTestFactory.validate_consistency(
             version_str,
             version_info,
         )

@@ -553,7 +553,9 @@ class FlextCliModelsBase:
         ]
         default: Annotated[
             int,
-            m.Field(30, description="Default timeout in seconds"),
+            m.Field(
+                c.DEFAULT_TIMEOUT_SECONDS, description="Default timeout in seconds"
+            ),
         ]
 
         @u.computed_field()

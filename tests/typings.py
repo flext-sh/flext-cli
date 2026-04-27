@@ -37,41 +37,38 @@ class TestsFlextCliTypes(FlextTestsTypes, t):
     - CLI types come from t via inheritance
     """
 
-    class Cli(t.Cli):
-        """Flext-cli-specific type definitions for testing."""
+    class Tests(FlextTestsTypes.Tests):
+        """Test-specific type definitions for flext-cli."""
 
-        class Tests:
-            """Test-specific type definitions for flext-cli."""
+        @unique
+        class ValidationType(StrEnum):
+            """Types of version validation."""
 
-            @unique
-            class ValidationType(StrEnum):
-                """Types of version validation."""
+            STRING = "string_validation"
+            INFO = "info_validation"
+            CONSISTENCY = "consistency"
 
-                STRING = "string_validation"
-                INFO = "info_validation"
-                CONSISTENCY = "consistency"
+        @unique
+        class ConfigTestType(StrEnum):
+            """Config test types."""
 
-            @unique
-            class ConfigTestType(StrEnum):
-                """Config test types."""
+            INITIALIZATION = "initialization"
+            SERIALIZATION = "serialization"
+            VALIDATION = "validation"
+            INTEGRATION = "integration"
+            EDGE_CASES = "edge_cases"
 
-                INITIALIZATION = "initialization"
-                SERIALIZATION = "serialization"
-                VALIDATION = "validation"
-                INTEGRATION = "integration"
-                EDGE_CASES = "edge_cases"
+        @unique
+        class ConfigParam(StrEnum):
+            """Test configuration parameters for parametrized tests."""
 
-            @unique
-            class ConfigParam(StrEnum):
-                """Test configuration parameters for parametrized tests."""
-
-                VERBOSE = "verbose"
-                QUIET = "quiet"
-                DEBUG = "debug"
-                NO_COLOR = "no_color"
-                LOG_LEVEL = "log_level"
-                LOG_FORMAT = "log_format"
-                OUTPUT_FORMAT = "output_format"
+            VERBOSE = "verbose"
+            QUIET = "quiet"
+            DEBUG = "debug"
+            NO_COLOR = "no_color"
+            LOG_LEVEL = "log_level"
+            LOG_FORMAT = "log_format"
+            OUTPUT_FORMAT = "output_format"
 
 
 t = TestsFlextCliTypes

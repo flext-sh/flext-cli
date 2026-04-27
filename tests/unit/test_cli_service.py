@@ -59,7 +59,7 @@ class TestsFlextCliService:
         tm.that(cli.settings.cli_log_level, eq=c.LogLevel.DEBUG)
 
     def test_model_command_generates_real_typer_options(self) -> None:
-        captured: MutableSequence[m.Cli.Tests.SampleInput] = []
+        captured: MutableSequence[m.Tests.SampleInput] = []
         app = cli.create_app_with_common_params(
             name="root",
             help_text="Root application",
@@ -67,11 +67,11 @@ class TestsFlextCliService:
         )
         group = cli.create_group(help_text="Sample group", name="sample")
 
-        def handle(params: m.Cli.Tests.SampleInput) -> t.JsonValue:
+        def handle(params: m.Tests.SampleInput) -> t.JsonValue:
             captured.append(params)
             return True
 
-        command = cli.model_command(m.Cli.Tests.SampleInput, handle)
+        command = cli.model_command(m.Tests.SampleInput, handle)
         cli.register_command(
             group,
             name="run",
@@ -108,7 +108,7 @@ class TestsFlextCliService:
         tm.that(captured[0].output_format, eq=c.Cli.OutputFormats.JSON)
 
     def test_model_command_accepts_repeatable_list_options(self) -> None:
-        captured: MutableSequence[m.Cli.Tests.RepeatableInput] = []
+        captured: MutableSequence[m.Tests.RepeatableInput] = []
         app = cli.create_app_with_common_params(
             name="root",
             help_text="Root application",
@@ -116,11 +116,11 @@ class TestsFlextCliService:
         )
         group = cli.create_group(help_text="Sample group", name="sample")
 
-        def handle(params: m.Cli.Tests.RepeatableInput) -> t.JsonValue:
+        def handle(params: m.Tests.RepeatableInput) -> t.JsonValue:
             captured.append(params)
             return True
 
-        command = cli.model_command(m.Cli.Tests.RepeatableInput, handle)
+        command = cli.model_command(m.Tests.RepeatableInput, handle)
         cli.register_command(
             group,
             name="repeat",
@@ -147,7 +147,7 @@ class TestsFlextCliService:
         tm.that(captured[0].make_arg, eq=["FILES=a b c.py", "VERBOSE=1"])
 
     def test_model_command_returns_handler_value(self) -> None:
-        def handle(params: m.Cli.Tests.SampleInput) -> t.JsonValue:
+        def handle(params: m.Tests.SampleInput) -> t.JsonValue:
             return {
                 "name": params.name,
                 "count": params.count,
@@ -155,7 +155,7 @@ class TestsFlextCliService:
                 "output_format": params.output_format,
             }
 
-        command = cli.model_command(m.Cli.Tests.SampleInput, handle)
+        command = cli.model_command(m.Tests.SampleInput, handle)
         result = command(
             name="alice",
             count=3,
@@ -181,7 +181,7 @@ class TestsFlextCliService:
         )
         group = cli.create_group(help_text="Grouped failure commands", name="group")
 
-        def fail_handler(_params: m.Cli.Tests.SampleInput) -> t.JsonValue:
+        def fail_handler(_params: m.Tests.SampleInput) -> t.JsonValue:
             cli.exit(code=1)
             return True
 
@@ -189,7 +189,7 @@ class TestsFlextCliService:
             group,
             name="fail",
             help_text="Fail intentionally",
-            command=cli.model_command(m.Cli.Tests.SampleInput, fail_handler),
+            command=cli.model_command(m.Tests.SampleInput, fail_handler),
         )
         cli.add_group(app, name="group", group=group)
         result = cli.execute_app(
@@ -235,31 +235,31 @@ class TestsFlextCliService:
         group = cli.create_group(help_text="Grouped commands", name="group")
 
         def ok_handler(
-            params: m.Cli.Tests.SampleInput,
-        ) -> p.Result[m.Cli.Tests.SampleOutput]:
-            return r[m.Cli.Tests.SampleOutput].ok(
-                m.Cli.Tests.SampleOutput(message=f"processed {params.name}")
+            params: m.Tests.SampleInput,
+        ) -> p.Result[m.Tests.SampleOutput]:
+            return r[m.Tests.SampleOutput].ok(
+                m.Tests.SampleOutput(message=f"processed {params.name}")
             )
 
         def fail_handler(
-            params: m.Cli.Tests.SampleInput,
-        ) -> p.Result[m.Cli.Tests.SampleOutput]:
+            params: m.Tests.SampleInput,
+        ) -> p.Result[m.Tests.SampleOutput]:
             _ = params
-            return r[m.Cli.Tests.SampleOutput].fail("boom")
+            return r[m.Tests.SampleOutput].fail("boom")
 
-        def build_ok_route() -> m.Cli.Tests.SampleRoute:
-            return m.Cli.Tests.SampleRoute(
+        def build_ok_route() -> m.Tests.SampleRoute:
+            return m.Tests.SampleRoute(
                 name="ok",
                 help_text="Successful command",
-                model_cls=m.Cli.Tests.SampleInput,
+                model_cls=m.Tests.SampleInput,
                 handler=ok_handler,
             )
 
-        def build_fail_route() -> m.Cli.Tests.SampleRoute:
-            return m.Cli.Tests.SampleRoute(
+        def build_fail_route() -> m.Tests.SampleRoute:
+            return m.Tests.SampleRoute(
                 name="fail",
                 help_text="Failing command",
-                model_cls=m.Cli.Tests.SampleInput,
+                model_cls=m.Tests.SampleInput,
                 handler=fail_handler,
             )
 
@@ -287,18 +287,18 @@ class TestsFlextCliService:
         )
 
         def fail_handler(
-            params: m.Cli.Tests.SampleInput,
-        ) -> p.Result[m.Cli.Tests.SampleOutput]:
+            params: m.Tests.SampleInput,
+        ) -> p.Result[m.Tests.SampleOutput]:
             _ = params
-            return r[m.Cli.Tests.SampleOutput].fail("batched boom")
+            return r[m.Tests.SampleOutput].fail("batched boom")
 
         cli.register_result_routes(
             app,
             [
-                m.Cli.Tests.SampleRoute(
+                m.Tests.SampleRoute(
                     name="fail",
                     help_text="Failing command",
-                    model_cls=m.Cli.Tests.SampleInput,
+                    model_cls=m.Tests.SampleInput,
                     handler=fail_handler,
                 )
             ],

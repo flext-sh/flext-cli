@@ -14,11 +14,8 @@ from flext_cli import p
 class TestsFlextCliProtocols(FlextTestsProtocols, p):
     """Test protocols for flext-cli."""
 
-    class Cli(p.Cli):
-        """Cli domain test protocols."""
-
-        class Tests:
-            """Test-specific protocols."""
+    class Tests(FlextTestsProtocols.Tests):
+        """Test-specific protocols."""
 
 
 p = TestsFlextCliProtocols
