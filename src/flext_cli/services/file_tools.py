@@ -71,18 +71,16 @@ class FlextCliFileTools(FlextCliServiceBase):
     def write_json_file(
         file_path: t.Cli.TextPath,
         data: t.Cli.JsonWriteData,
-        indent: int = 2,
-        *,
-        sort_keys: bool = False,
-        ensure_ascii: bool = False,
+        options: m.Cli.JsonWriteOptions | None = None,
     ) -> p.Result[bool]:
+        opts = options or m.Cli.JsonWriteOptions()
         payload_raw = data.data if isinstance(data, p.Cli.DisplayData) else data
         return u.Cli.json_write(
             Path(file_path),
             u.Cli.normalize_json_value(payload_raw),
-            sort_keys=sort_keys,
-            ensure_ascii=ensure_ascii,
-            indent=indent,
+            sort_keys=opts.sort_keys,
+            ensure_ascii=opts.ensure_ascii,
+            indent=opts.indent,
         )
 
     @staticmethod
