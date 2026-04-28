@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import typing as _t
 
-from flext_cli.__version__ import *
 from flext_core.lazy import (
     build_lazy_import_map,
     install_lazy_exports,
@@ -13,6 +12,16 @@ from flext_core.lazy import (
 )
 
 if _t.TYPE_CHECKING:
+    from flext_cli.__version__ import (
+        __author__,
+        __author_email__,
+        __description__,
+        __license__,
+        __title__,
+        __url__,
+        __version__,
+        __version_info__,
+    )
     from flext_cli._constants.base import FlextCliConstantsBase
     from flext_cli._constants.enums import FlextCliConstantsEnums
     from flext_cli._constants.errors import FlextCliConstantsErrors

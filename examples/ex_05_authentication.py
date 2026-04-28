@@ -39,7 +39,7 @@ def login_to_service(username: str, password: str) -> bool:
         "username": username,
         "password": password,
     }
-    auth_result = cli.authenticate({k: str(v) for k, v in credentials.items()})
+    auth_result = cli.authenticate(dict(credentials))
     if auth_result.failure:
         cli.print(
             f"❌ Login failed: {auth_result.error}", style=c.Cli.MessageStyles.BOLD_RED
@@ -151,7 +151,7 @@ def show_session_info() -> None:
     )
     table_data: t.StrMapping
     if isinstance(session_data.data, dict):
-        table_data = {str(key): str(value) for key, value in session_data.data.items()}
+        table_data = {key: str(value) for key, value in session_data.data.items()}
     else:
         table_data = {"Session": "Unavailable"}
     cli.show_table(

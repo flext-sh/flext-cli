@@ -10,7 +10,9 @@ from collections.abc import (
 from pathlib import Path
 from typing import Annotated
 
-from flext_cli import FlextCliUtilitiesJson, FlextCliUtilitiesYaml, m, p, r, t
+from flext_cli import m, p, r, t
+from flext_cli._utilities.json import FlextCliUtilitiesJson
+from flext_cli._utilities.yaml import FlextCliUtilitiesYaml
 
 
 class FlextCliUtilitiesRules:

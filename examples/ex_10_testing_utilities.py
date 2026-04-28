@@ -209,9 +209,7 @@ def _finalize_workflow_data(
         return r[Mapping[str, t.JsonValue]].fail(
             "Workflow payload must be a mapping",
         )
-    loaded: MutableMapping[str, t.JsonValue] = {
-        str(key): value for key, value in read_data.items()
-    }
+    loaded: MutableMapping[str, t.JsonValue] = dict(read_data)
     loaded["status"] = "completed"
     loaded["processed"] = True
     return r[Mapping[str, t.JsonValue]].ok(loaded)

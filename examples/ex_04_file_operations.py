@@ -41,7 +41,7 @@ def save_user_preferences(
 
     write_result = cli.write_json_file(
         config_file,
-        u.Cli.normalize_json_value(preferences),
+        u.normalize_to_json_value(preferences),
     )
 
     if write_result.failure:
@@ -99,7 +99,7 @@ def save_deployment_config(
     # Normalize the mapping into the CLI JSON contract before writing YAML.
     write_result = cli.write_yaml_file(
         config_file,
-        u.Cli.normalize_json_value(settings),
+        u.normalize_to_json_value(settings),
     )
 
     if write_result.failure:
@@ -142,7 +142,7 @@ def export_database_report(
 ) -> bool | None:
     """Export database query results in YOUR reporting tool."""
     table_rows: Sequence[t.Cli.TableMappingRow] = [
-        {str(key): u.Cli.normalize_json_value(value) for key, value in record.items()}
+        {key: u.normalize_to_json_value(value) for key, value in record.items()}
         for record in records
     ]
     table_result = cli.format_table(table_rows, table_format=format_type)
@@ -471,7 +471,7 @@ def export_multi_format(
     # Export to JSON
     json_path = base_path.with_suffix(".json")
     # Handle both single dict and list of dicts
-    json_payload = u.Cli.normalize_json_value(data)
+    json_payload = u.normalize_to_json_value(data)
     json_result = cli.write_json_file(
         json_path,
         json_payload,
@@ -486,7 +486,7 @@ def export_multi_format(
 
     # Export to YAML
     yaml_path = base_path.with_suffix(".yaml")
-    yaml_payload = u.Cli.normalize_json_value(data)
+    yaml_payload = u.normalize_to_json_value(data)
     yaml_result = cli.write_yaml_file(
         yaml_path,
         yaml_payload,
@@ -763,7 +763,7 @@ def main() -> None:
     )
     test_data = {"id": 1, "name": "test", "value": 100}
     test_file = temp_dir / "test_data.json"
-    cli.write_json_file(test_file, u.Cli.normalize_json_value(test_data))
+    cli.write_json_file(test_file, u.normalize_to_json_value(test_data))
     valid_result = validate_and_import_data(test_file)
     if valid_result.failure:
         cli.print(
@@ -799,8 +799,8 @@ def main() -> None:
     }
     auto_json = temp_dir / "auto_config.json"
     auto_yaml = temp_dir / "auto_config.yaml"
-    cli.write_json_file(auto_json, u.Cli.normalize_json_value(auto_config))
-    cli.write_yaml_file(auto_yaml, u.Cli.normalize_json_value(auto_config))
+    cli.write_json_file(auto_json, u.normalize_to_json_value(auto_config))
+    cli.write_yaml_file(auto_yaml, u.normalize_to_json_value(auto_config))
     auto1_result = load_config_auto_detect(auto_json)
     auto2_result = load_config_auto_detect(auto_yaml)
     if auto1_result.failure:
@@ -837,7 +837,7 @@ def main() -> None:
         ],
     }
     pipeline_file = temp_dir / "pipeline_input.json"
-    cli.write_json_file(pipeline_file, u.Cli.normalize_json_value(pipeline_input))
+    cli.write_json_file(pipeline_file, u.normalize_to_json_value(pipeline_input))
     pipeline_result = process_file_pipeline(pipeline_file, temp_dir / "pipeline_output")
 
     if pipeline_result.success:

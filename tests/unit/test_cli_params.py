@@ -61,7 +61,7 @@ class TestsFlextCliCommonParams:
         result = FlextCliCommonParams.apply_to_config(settings, trace=True)
 
         tm.fail(result)
-        error_msg = str(result.error).lower() if result.error else ""
+        error_msg = result.error.lower() if result.error else ""
         tm.that(error_msg, has="trace mode requires debug mode")
 
     def test_apply_to_config_trace_with_debug(self) -> None:
@@ -86,7 +86,7 @@ class TestsFlextCliCommonParams:
         result = FlextCliCommonParams.apply_to_config(settings, log_level="INVALID")
 
         tm.fail(result)
-        error_msg = str(result.error).lower() if result.error else ""
+        error_msg = result.error.lower() if result.error else ""
         tm.that("invalid" in error_msg and "log level" in error_msg, eq=True)
 
     def test_decorator_adds_parameters(self) -> None:
@@ -165,7 +165,7 @@ class TestsFlextCliCommonParams:
         result = FlextCliCommonParams.apply_to_config(settings, log_format="invalid")
 
         tm.fail(result)
-        error_msg = str(result.error).lower() if result.error else ""
+        error_msg = result.error.lower() if result.error else ""
         tm.that("invalid" in error_msg and "log format" in error_msg, eq=True)
 
     def test_apply_to_config_invalid_output_format(self) -> None:
@@ -177,5 +177,5 @@ class TestsFlextCliCommonParams:
         result = FlextCliCommonParams.apply_to_config(settings, output_format="invalid")
 
         tm.fail(result)
-        error_msg = str(result.error).lower() if result.error else ""
+        error_msg = result.error.lower() if result.error else ""
         tm.that("invalid" in error_msg and "output format" in error_msg, eq=True)

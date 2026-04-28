@@ -59,7 +59,7 @@ class TestsFlextCliVersion:
             if isinstance(part, int):
                 tm.that(part, gte=0)
             else:
-                tm.that(len(str(part)), gt=0)
+                tm.that(len(part), gt=0)
 
     def test_actual_version_parts_extraction(self) -> None:
         """Test major.minor.patch can be extracted from version."""

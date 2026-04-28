@@ -47,15 +47,6 @@ class FlextCliUtilitiesValidation:
         )
 
     @staticmethod
-    def to_str(value: t.Cli.CliValue) -> str:
-        """Convert a value to a safe string representation."""
-        if value is None:
-            return ""
-        if isinstance(value, str):
-            return value
-        return str(value)
-
-    @staticmethod
     def validate_not_empty(
         val: t.Cli.CliValue | None,
         *,
@@ -81,7 +72,7 @@ class FlextCliUtilitiesValidation:
     @staticmethod
     def validate_format(format_type: str) -> p.Result[str]:
         """Validate one CLI output format."""
-        fmt = str(format_type).lower()
+        fmt = format_type.lower()
         valid = FlextCliUtilitiesValidation.validate_not_empty(fmt, name="format")
         if valid.failure or fmt not in set(c.Cli.OUTPUT_FORMATS):
             return r[str].fail(

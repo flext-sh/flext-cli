@@ -15,14 +15,8 @@ import tomlkit
 from tomlkit.items import AoT, Array, Item, Table
 from tomlkit.toml_document import TOMLDocument
 
-from flext_cli import (
-    FlextCliUtilitiesJson as uj,
-    FlextCliUtilitiesRuntime as ur,
-    c,
-    p,
-    r,
-    t,
-)
+from flext_cli import c, p, r, t
+from flext_cli._utilities.runtime import FlextCliUtilitiesRuntime as ur
 from flext_core import u
 
 
@@ -52,11 +46,11 @@ class FlextCliUtilitiesToml:
         if value is None:
             return None
         if isinstance(value, Mapping) and not isinstance(value, TOMLDocument | Item):
-            return uj.normalize_json_value(value)
+            return u.normalize_to_json_value(value)
         normalized = value.unwrap() if isinstance(value, TOMLDocument | Item) else value
         if isinstance(normalized, Item):
             return None
-        return uj.normalize_json_value(normalized)
+        return u.normalize_to_json_value(normalized)
 
     @staticmethod
     def toml_as_string_list(
@@ -196,9 +190,10 @@ class FlextCliUtilitiesToml:
         existing: t.Cli.TomlRuntimeSource | None = None
         if key in parent:
             existing = parent[key]
-        if existing is not None and FlextCliUtilitiesToml.toml_is_table(existing):
-            if not existing.is_super_table():
-                return existing
+        if existing is not None and isinstance(existing, Table):
+            table: Table = existing
+            if not table.is_super_table():
+                return table
             del parent[key]
             table = FlextCliUtilitiesToml.toml_table()
             for entry_key in list(existing):
@@ -397,8 +392,8 @@ class FlextCliUtilitiesToml:
         expected: t.JsonValue,
     ) -> bool:
         """Synchronize a scalar/structured plain TOML value; return True if mutated."""
-        current = uj.normalize_json_value(container.get(key, None))
-        normalized_expected = uj.normalize_json_value(expected)
+        current: t.JsonValue = u.normalize_to_json_value(container.get(key, None))
+        normalized_expected: t.JsonValue = u.normalize_to_json_value(expected)
         if current == normalized_expected:
             return False
         container[key] = normalized_expected

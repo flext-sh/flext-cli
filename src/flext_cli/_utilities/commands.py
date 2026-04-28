@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import click
 
-from flext_cli import FlextCliUtilitiesJson as uj, c, p, r, t
+from flext_cli import c, p, r, t
 from flext_cli._utilities.output import FlextCliUtilitiesOutput
+from flext_core import u
 
 
 class FlextCliUtilitiesCommands:
@@ -24,13 +25,13 @@ class FlextCliUtilitiesCommands:
             }
             return r[t.JsonValue].ok(payload)
         if result.success:
-            result_value: t.JsonValue = uj.normalize_json_value(
+            result_value: t.JsonValue = u.normalize_to_json_value(
                 result.value,
             )
             return r[t.JsonValue].ok(result_value)
         error_value = result.error
         return r[t.JsonValue].fail(
-            str(error_value) if error_value else "Command failed",
+            error_value or "Command failed",
         )
 
     @staticmethod

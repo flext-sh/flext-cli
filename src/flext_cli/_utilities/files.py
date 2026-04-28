@@ -15,15 +15,10 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import ClassVar
 
-from flext_cli import (
-    FlextCliUtilitiesJson as uj,
-    FlextCliUtilitiesYaml as uy,
-    c,
-    p,
-    r,
-    t,
-)
-from flext_core import m
+from flext_cli import c, p, r, t
+from flext_cli._utilities.json import FlextCliUtilitiesJson as uj
+from flext_cli._utilities.yaml import FlextCliUtilitiesYaml as uy
+from flext_core import m, u
 
 
 class FlextCliUtilitiesFiles:
@@ -332,7 +327,7 @@ class FlextCliUtilitiesFiles:
                 "Auto-detected file must contain a mapping",
             )
         normalized_payload: t.JsonMapping = {
-            str(key): uj.normalize_json_value(value) for key, value in payload.items()
+            key: u.normalize_to_json_value(value) for key, value in payload.items()
         }
         return r[t.JsonMapping].ok(normalized_payload)
 

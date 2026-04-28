@@ -229,9 +229,7 @@ def apply_environment_overrides(
     settings: Mapping[str, t.JsonValue],
 ) -> Mapping[str, t.JsonValue]:
     """Apply environment-specific settings overrides."""
-    result: dict[str, t.JsonValue] = {
-        str(key): value for key, value in settings.items()
-    }
+    result: dict[str, t.JsonValue] = dict(settings)
     env = os.getenv("ENVIRONMENT", "development")
     if env == c.EXAMPLE_ENV_VALUE_PRODUCTION:
         max_workers_value = result.get("max_workers", 4)
@@ -254,9 +252,7 @@ def initialize_services(
 ) -> Mapping[str, t.JsonValue]:
     """Initialize services based on settings."""
     time.sleep(0.05)
-    result: dict[str, t.JsonValue] = {
-        str(key): value for key, value in settings.items()
-    }
+    result: dict[str, t.JsonValue] = dict(settings)
     result["services_initialized"] = True
     result["initialized_at"] = "2025-11-23T10:00:00Z"
     return result

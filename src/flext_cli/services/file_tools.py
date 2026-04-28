@@ -53,7 +53,7 @@ class FlextCliFileTools(FlextCliServiceBase):
         payload_raw = data.data if isinstance(data, p.Cli.DisplayData) else data
         return u.Cli.json_write(
             Path(file_path),
-            u.Cli.normalize_json_value(payload_raw),
+            u.normalize_to_json_value(payload_raw),
             options=options,
         )
 
@@ -63,7 +63,7 @@ class FlextCliFileTools(FlextCliServiceBase):
         data: t.Cli.JsonWriteData,
     ) -> p.Result[bool]:
         payload_raw = data.data if isinstance(data, p.Cli.DisplayData) else data
-        payload: t.JsonValue = u.Cli.normalize_json_value(payload_raw)
+        payload: t.JsonValue = u.normalize_to_json_value(payload_raw)
         return u.Cli.yaml_dump(Path(file_path), payload)
 
     @staticmethod

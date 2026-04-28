@@ -55,7 +55,7 @@ class FlextCliGettingStarted:
         """Show how to display YOUR data as a table."""
         table_data: t.StrMapping
         if isinstance(user.data, dict):
-            table_data = {str(key): str(value) for key, value in user.data.items()}
+            table_data = {key: str(value) for key, value in user.data.items()}
         else:
             table_data = {"value": str(user.data)}
         cli.show_table(

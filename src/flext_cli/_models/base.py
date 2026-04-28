@@ -375,16 +375,14 @@ class FlextCliModelsBase:
         def params(self) -> t.JsonMapping:
             """Parameters mapping - required by CliParamsConfig."""
             return {
-                "verbose": bool(self.verbose) if self.verbose is not None else False,
-                "quiet": bool(self.quiet) if self.quiet is not None else False,
-                "debug": bool(self.debug) if self.debug is not None else False,
-                "trace": bool(self.trace) if self.trace is not None else False,
+                "verbose": self.verbose or False,
+                "quiet": self.quiet or False,
+                "debug": self.debug or False,
+                "trace": self.trace or False,
                 "log_level": self.log_level or "",
                 "log_format": self.log_format or "",
                 "output_format": self.output_format or "",
-                "no_color": (
-                    bool(self.no_color) if self.no_color is not None else False
-                ),
+                "no_color": self.no_color or False,
             }
 
     class OptionConfig(m.Value):
@@ -574,7 +572,9 @@ class FlextCliModelsBase:
                 return self.default
             if isinstance(self.raw, str):
                 return int(self.raw) if self.raw.isdigit() else self.default
-            return int(self.raw)
+            if isinstance(self.raw, int):
+                return self.raw
+            return self.default
 
     class LogLevelResolved(m.BaseModel):
         """Single contract for log level string."""
@@ -650,7 +650,7 @@ class FlextCliModelsBase:
                     )
                     resolved_value = (
                         {
-                            str(k): t.Cli.JSON_VALUE_ADAPTER.validate_python(vv)
+                            k: t.Cli.JSON_VALUE_ADAPTER.validate_python(vv)
                             for k, vv in source_mapping.items()
                         }
                         if source_mapping is not None
@@ -668,7 +668,7 @@ class FlextCliModelsBase:
                 return self.default if isinstance(self.default, bool) else False
             if isinstance(self.default, Mapping):
                 return {
-                    str(k): t.Cli.JSON_VALUE_ADAPTER.validate_python(vv)
+                    k: t.Cli.JSON_VALUE_ADAPTER.validate_python(vv)
                     for k, vv in self.default.items()
                 }
             return {}

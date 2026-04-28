@@ -206,7 +206,7 @@ def validate_required_fields(
             f"Missing required fields: {missing}",
         )
     normalized_data = t.Cli.JSON_MAPPING_ADAPTER.validate_python(
-        u.Cli.normalize_json_value(data)
+        u.normalize_to_json_value(data)
     )
     return r[t.JsonMapping].ok(normalized_data)
 

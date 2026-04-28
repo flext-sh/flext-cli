@@ -206,14 +206,14 @@ class ExamplesFlextCliModels(m):
                     "Max Workers": str(self.max_workers),
                     "Timeout": f"{self.timeout}s",
                     "Debug": str(settings.debug),
-                    "App": str(settings.app_name),
+                    "App": settings.app_name,
                 }
                 payload = ExamplesFlextCliModels.Cli.DisplayData(
                     data=payload_data,
                 )
                 if isinstance(payload.data, dict):
                     safe_data: t.Cli.TableMappingRow = {
-                        str(k): str(v) for k, v in payload.data.items()
+                        k: str(v) for k, v in payload.data.items()
                     }
                     cli.show_table(
                         safe_data,

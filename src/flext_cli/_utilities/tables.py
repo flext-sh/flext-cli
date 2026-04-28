@@ -11,7 +11,8 @@ from typing import ClassVar
 
 from tabulate import tabulate
 
-from flext_cli import FlextCliUtilitiesJson as uj, c, m, p, r, t
+from flext_cli import c, m, p, r, t
+from flext_core import u
 
 
 class FlextCliUtilitiesTables:
@@ -26,14 +27,14 @@ class FlextCliUtilitiesTables:
         row: t.Cli.TableMappingRow,
     ) -> t.Cli.TableMappingRow:
         """Normalize one mapping row to JSON-compatible values."""
-        return {str(key): uj.normalize_json_value(value) for key, value in row.items()}
+        return {key: u.normalize_to_json_value(value) for key, value in row.items()}
 
     @staticmethod
     def tables_normalize_sequence_row(
         row: t.Cli.TableSequenceRow,
     ) -> t.Cli.TableSequenceRow:
         """Normalize one sequence row to JSON-compatible values."""
-        return [uj.normalize_json_value(value) for value in row]
+        return [u.normalize_to_json_value(value) for value in row]
 
     @staticmethod
     def tables_resolve_config(
@@ -71,8 +72,8 @@ class FlextCliUtilitiesTables:
             validated_mapping = validated_data
             return r[Sequence[t.Cli.TableRow]].ok([
                 {
-                    "Key": str(key),
-                    "Value": uj.normalize_json_value(value),
+                    "Key": key,
+                    "Value": u.normalize_to_json_value(value),
                 }
                 for key, value in validated_mapping.items()
             ])

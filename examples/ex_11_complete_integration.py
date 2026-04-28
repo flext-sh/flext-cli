@@ -60,7 +60,7 @@ class DataManagerCLI:
         value = value_result.value
         cli.print(f"✅ Created entry: {key} = {value}", style=c.Cli.MessageStyles.GREEN)
         converted_entry = t.Cli.JSON_MAPPING_ADAPTER.validate_python(
-            u.Cli.normalize_json_value({key: value})
+            u.normalize_to_json_value({key: value})
         )
         return r[t.JsonMapping].ok(converted_entry)
 
@@ -69,7 +69,7 @@ class DataManagerCLI:
         if not data:
             cli.print("⚠️  No data to display", style=c.Cli.MessageStyles.YELLOW)
             return
-        safe_data: t.Cli.TableMappingRow = {str(k): str(v) for k, v in data.items()}
+        safe_data: t.Cli.TableMappingRow = {k: str(v) for k, v in data.items()}
         cli.show_table(safe_data, show_header=True, title="📋 Current Data")
 
     def display_welcome(self) -> None:
@@ -146,7 +146,7 @@ def process_with_railway_pattern(
     step2_data = {**step1_data, "processed": True}
     final_data = {**step2_data, "enriched": True}
     normalized_final_data = t.Cli.JSON_MAPPING_ADAPTER.validate_python(
-        u.Cli.normalize_json_value(final_data)
+        u.normalize_to_json_value(final_data)
     )
     result: p.Result[t.JsonMapping] = r[t.JsonMapping].ok(normalized_final_data)
     if result.failure:

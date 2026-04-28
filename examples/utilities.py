@@ -29,7 +29,7 @@ class ExamplesFlextCliUtilities(u):
     ) -> m.Cli.DisplayData:
         """Normalize settings/mapping to DisplayData for create_table/display_config_table."""
         json_value: t.JsonValue = t.Cli.JSON_VALUE_ADAPTER.validate_python(
-            cls.Cli.normalize_json_value(data),
+            cls.normalize_to_json_value(data),
         )
         normalized = m.Cli.CliNormalizedJson(json_value).root
         resolved = m.Cli.NormalizedJsonList(value=normalized, default={}).resolved
@@ -110,11 +110,11 @@ class ExamplesFlextCliUtilities(u):
         rows: MutableSequence[t.StrMapping] = []
         if isinstance(config_data, m.Cli.DisplayData):
             for key, value in config_data.data.items():
-                rows.append({"Setting": str(key), "Value": str(value)})
+                rows.append({"Setting": key, "Value": str(value)})
         else:
             dumped = config_data.model_dump(mode="json")
             for key, value in dumped.items():
-                rows.append({"Setting": str(key), "Value": str(value)})
+                rows.append({"Setting": key, "Value": str(value)})
         cli.show_table(rows, headers=headers)
 
     @staticmethod

@@ -26,9 +26,7 @@ class FlextCliUtilitiesJson:
     @staticmethod
     def normalize_json_value(item: t.JsonPayload) -> t.JsonValue:
         """Normalize any runtime value to JSON-compatible output (Pydantic-native)."""
-        if isinstance(item, m.BaseModel):
-            return item.model_dump(mode="json")
-        return t.Cli.JSON_VALUE_ADAPTER.validate_python(u.to_jsonable_python(item))
+        return u.normalize_to_json_value(item)
 
     @staticmethod
     def json_read(path: Path) -> p.Result[t.JsonMapping]:
@@ -112,7 +110,7 @@ class FlextCliUtilitiesJson:
         """Normalize any JSON-compatible value into a mapping."""
         if value is None:
             return {}
-        normalized = FlextCliUtilitiesJson.normalize_json_value(value)
+        normalized: t.JsonValue = u.normalize_to_json_value(value)
         if not isinstance(normalized, Mapping):
             return {}
         try:
@@ -127,7 +125,7 @@ class FlextCliUtilitiesJson:
         """Normalize any JSON-compatible value into a JSON sequence."""
         if value is None:
             return []
-        normalized = FlextCliUtilitiesJson.normalize_json_value(value)
+        normalized: t.JsonValue = u.normalize_to_json_value(value)
         if not isinstance(normalized, Sequence) or isinstance(normalized, str | bytes):
             return []
         try:
@@ -145,7 +143,7 @@ class FlextCliUtilitiesJson:
         """Normalize any JSON-compatible value into a list of mappings."""
         if value is None:
             return []
-        normalized = FlextCliUtilitiesJson.normalize_json_value(value)
+        normalized: t.JsonValue = u.normalize_to_json_value(value)
         if not isinstance(normalized, Sequence) or isinstance(normalized, str | bytes):
             return []
         mappings: list[t.JsonMapping] = []
@@ -175,7 +173,7 @@ class FlextCliUtilitiesJson:
         leaf = current.get(keys[-1], None)
         if leaf is None:
             return None
-        return FlextCliUtilitiesJson.normalize_json_value(leaf)
+        return u.normalize_to_json_value(leaf)
 
     @staticmethod
     def json_deep_mapping(
@@ -220,7 +218,7 @@ class FlextCliUtilitiesJson:
         if isinstance(raw, int):
             return raw
         if isinstance(raw, str | float | bool):
-            return int(u.to_int(raw, default=default))
+            return u.to_int(raw, default=default)
         return default
 
     @staticmethod
@@ -253,7 +251,7 @@ class FlextCliUtilitiesJson:
         """Extract an integer from a nested mapping path."""
         raw = FlextCliUtilitiesJson.json_walk_path(data, keys)
         if isinstance(raw, int | str | float | bool):
-            return int(u.to_int(raw, default=default))
+            return u.to_int(raw, default=default)
         return default
 
     @staticmethod
@@ -266,7 +264,7 @@ class FlextCliUtilitiesJson:
     ) -> str:
         """Extract and normalize a string key from a mapping."""
         raw = FlextCliUtilitiesJson.json_pick_str(mapping, key, default)
-        return str(u.normalize(raw, case=case))
+        return u.normalize(raw, case=case)
 
     @staticmethod
     def _json_sort_keys(data: t.JsonValue) -> t.JsonValue:

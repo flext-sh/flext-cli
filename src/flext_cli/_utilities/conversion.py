@@ -7,8 +7,8 @@ from collections.abc import (
 )
 from pathlib import Path
 
-from flext_cli import FlextCliUtilitiesJson as uj, c, p, r, t
-from flext_core import m
+from flext_cli import c, p, r, t
+from flext_core import m, u
 
 
 class FlextCliUtilitiesConversion:
@@ -26,8 +26,7 @@ class FlextCliUtilitiesConversion:
             return default if isinstance(default, bool) else False
         if isinstance(default, Mapping):
             return {
-                str(key): uj.normalize_json_value(value)
-                for key, value in default.items()
+                key: u.normalize_to_json_value(value) for key, value in default.items()
             }
         return {}
 

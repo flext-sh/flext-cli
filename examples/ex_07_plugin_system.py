@@ -194,7 +194,7 @@ class ConfigurablePlugin:
             f"🔧 Plugin settings: {self.settings}", style=c.Cli.MessageStyles.CYAN
         )
         result_data = t.Cli.JSON_MAPPING_ADAPTER.validate_python(
-            u.Cli.normalize_json_value({
+            u.normalize_to_json_value({
                 "plugin": self.name,
                 "config_applied": True,
                 **self.settings,
