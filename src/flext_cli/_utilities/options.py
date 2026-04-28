@@ -69,7 +69,6 @@ class FlextCliUtilitiesOptions:
         annotation: t.Cli.RuntimeAnnotation,
     ) -> type | GenericAlias:
         """Resolve runtime annotations to concrete types accepted by Typer."""
-        resolve = FlextCliUtilitiesOptions.resolve_typer_annotation
         annotated_origin = get_origin(Annotated[str, "meta"])
         union_origins: frozenset[object] = frozenset(
             filter(None, [Union, get_origin(str | int)])
@@ -93,44 +92,49 @@ class FlextCliUtilitiesOptions:
             ]
             if o is not None
         }
-        resolved_annotation: type | GenericAlias = str
-        if isinstance(annotation, TypeAliasType):
-            resolved_annotation = resolve(annotation.__value__)
-        elif isinstance(annotation, UnionType):
-            args = tuple(resolve(arg) for arg in get_args(annotation))
-            resolved_annotation = (
-                args[0]
-                if args[1] is NoneType
-                else args[1]
-                if len(args) == c.Cli.OPTIONAL_UNION_ARG_COUNT and NoneType in args
-                else str
+        resolved_annotation_input = annotation
+        origin = get_origin(resolved_annotation_input)
+        while (
+            isinstance(resolved_annotation_input, TypeAliasType)
+            or origin == annotated_origin
+        ):
+            resolved_annotation_input = (
+                resolved_annotation_input.__value__
+                if isinstance(resolved_annotation_input, TypeAliasType)
+                else get_args(resolved_annotation_input)[0]
             )
-        else:
-            origin = get_origin(annotation)
-            if origin == annotated_origin:
-                first, *_ = get_args(annotation)
-                resolved_annotation = resolve(first)
-            elif origin in union_origins:
-                args = tuple(resolve(arg) for arg in get_args(annotation))
-                resolved_annotation = (
-                    args[0]
-                    if args[1] is NoneType
-                    else args[1]
-                    if len(args) == c.Cli.OPTIONAL_UNION_ARG_COUNT and NoneType in args
-                    else str
-                )
-            elif origin in sequence_origins:
-                resolved_annotation = GenericAlias(list, (str,))
-                inner_args = get_args(annotation)
-                if inner_args:
-                    resolved = resolve(inner_args[0])
-                    if isinstance(resolved, type):
-                        resolved_annotation = GenericAlias(list, (resolved,))
-            elif origin in set_origins:
-                resolved_annotation = set_origins[origin]
-            elif isinstance(annotation, GenericAlias | type):
-                resolved_annotation = annotation
-        return resolved_annotation
+            origin = get_origin(resolved_annotation_input)
+
+        if isinstance(resolved_annotation_input, UnionType) or origin in union_origins:
+            resolved_args = tuple(
+                FlextCliUtilitiesOptions.resolve_typer_annotation(arg)
+                for arg in get_args(resolved_annotation_input)
+            )
+            non_none_args = tuple(arg for arg in resolved_args if arg is not NoneType)
+            if (
+                len(resolved_args) == c.Cli.OPTIONAL_UNION_ARG_COUNT
+                and len(non_none_args) == 1
+            ):
+                return non_none_args[0]
+            return str
+
+        if origin in sequence_origins:
+            inner_annotation = next(iter(get_args(resolved_annotation_input)), str)
+            resolved_inner = FlextCliUtilitiesOptions.resolve_typer_annotation(
+                inner_annotation
+            )
+            sequence_item = resolved_inner if isinstance(resolved_inner, type) else str
+            return GenericAlias(list, (sequence_item,))
+
+        set_annotation = set_origins.get(origin)
+        if set_annotation is not None:
+            return set_annotation
+
+        return (
+            resolved_annotation_input
+            if isinstance(resolved_annotation_input, GenericAlias | type)
+            else str
+        )
 
     @staticmethod
     def is_string_sequence(
@@ -159,32 +163,6 @@ class FlextCliUtilitiesOptions:
         return None
 
     @classmethod
-    def normalize_cli_default(
-        cls,
-        value: t.Cli.CliDefaultSource,
-    ) -> t.Cli.CliValue | None:
-        """Normalize field defaults into Typer-compatible scalar/mapping/list values."""
-        if value is None:
-            return None
-        normalized_atom = cls.normalize_cli_atom(value)
-        if normalized_atom is not None:
-            return normalized_atom
-        if isinstance(value, Mapping):
-            normalized_mapping: t.Cli.MutableDefaultMapping = {}
-            for key, item_value in value.items():
-                if not isinstance(key, str):
-                    continue
-                normalized_item = cls.normalize_cli_atom(item_value)
-                if normalized_item is not None:
-                    normalized_mapping[key] = normalized_item
-            if normalized_mapping:
-                return normalized_mapping
-            return None
-        if cls.is_string_sequence(value):
-            return t.Cli.STR_SEQUENCE_ADAPTER.validate_python(value)
-        return None
-
-    @classmethod
     def field_default(
         cls,
         field_name: str,
@@ -206,11 +184,27 @@ class FlextCliUtilitiesOptions:
             )
         except (TypeError, ValueError, c.ValidationError):
             normalized_source = None
-        return (
-            cls.normalize_cli_default(normalized_source)
-            if normalized_source is not None
-            else None
-        )
+        if normalized_source is None:
+            return None
+        match normalized_source:
+            case _ if (
+                normalized_atom := cls.normalize_cli_atom(normalized_source)
+            ) is not None:
+                normalized_default: t.Cli.CliValue | None = normalized_atom
+            case Mapping() as normalized_source_mapping:
+                normalized_mapping: t.Cli.MutableDefaultMapping = {}
+                for key, item_value in normalized_source_mapping.items():
+                    normalized_item = cls.normalize_cli_atom(item_value)
+                    if normalized_item is not None:
+                        normalized_mapping[key] = normalized_item
+                normalized_default = normalized_mapping or None
+            case _ if cls.is_string_sequence(normalized_source):
+                normalized_default = t.Cli.STR_SEQUENCE_ADAPTER.validate_python(
+                    normalized_source
+                )
+            case _:
+                normalized_default = None
+        return normalized_default
 
     @staticmethod
     def build_option(

@@ -30,8 +30,12 @@ from collections.abc import (
 )
 from pathlib import Path
 
-from examples import c, m, p, r, t, u
-from flext_cli import cli
+from flext_cli import c, cli, m, t, u
+from flext_core import p, r
+
+_EXAMPLE_ERR_NO_DATA_FILE_FOUND = "No data file found"
+_EXAMPLE_ERR_DATA_FILE_MUST_BE_MAPPING = "Data file must contain a mapping"
+_EXAMPLE_ERR_NEGATIVE_VALUES_NOT_ALLOWED = "Negative values not allowed"
 
 
 class DataManagerCLI:
@@ -77,7 +81,7 @@ class DataManagerCLI:
     def load_data(self) -> p.Result[t.JsonMapping]:
         """Load data with error handling. Uses read_json_file for dict-only result."""
         if not self.data_file.exists():
-            return r[t.JsonMapping].fail(c.EXAMPLE_ERR_NO_DATA_FILE_FOUND)
+            return r[t.JsonMapping].fail(_EXAMPLE_ERR_NO_DATA_FILE_FOUND)
         read_result = cli.read_json_file(str(self.data_file))
         if read_result.failure:
             error_msg = read_result.error or "Unknown error"
@@ -87,7 +91,7 @@ class DataManagerCLI:
             return r[t.JsonMapping].fail(error_msg)
         if not isinstance(read_result.value, Mapping):
             return r[t.JsonMapping].fail(
-                c.EXAMPLE_ERR_DATA_FILE_MUST_BE_MAPPING,
+                _EXAMPLE_ERR_DATA_FILE_MUST_BE_MAPPING,
             )
         cli.print("✅ Data loaded successfully", style=c.Cli.MessageStyles.GREEN)
         return r[t.JsonMapping].ok(read_result.value)
@@ -187,7 +191,7 @@ def main() -> None:
 
     def safe_operation(value: int) -> p.Result[int]:
         if value < 0:
-            return r[int].fail(c.EXAMPLE_ERR_NEGATIVE_VALUES_NOT_ALLOWED)
+            return r[int].fail(_EXAMPLE_ERR_NEGATIVE_VALUES_NOT_ALLOWED)
         return r[int].ok(value * 2)
 
     result = safe_operation(10)

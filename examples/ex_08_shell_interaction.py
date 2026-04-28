@@ -36,8 +36,15 @@ from collections.abc import (
     MutableSequence,
 )
 
-from examples import c, p, r, t
-from flext_cli import cli
+from flext_cli import c, cli, t
+from flext_core import p, r
+
+_EXAMPLE_DEFAULT_SHELL_ITEMS: t.VariadicTuple[str] = (
+    "item1",
+    "item2",
+    "item3",
+    "test_item",
+)
 
 
 def handle_status_command() -> p.Result[t.JsonMapping]:
@@ -54,7 +61,7 @@ def handle_status_command() -> p.Result[t.JsonMapping]:
 
 def handle_list_command(filter_text: str = "") -> p.Result[t.StrSequence]:
     """List command with filtering in YOUR CLI."""
-    items = list(c.EXAMPLE_DEFAULT_SHELL_ITEMS)
+    items = list(_EXAMPLE_DEFAULT_SHELL_ITEMS)
     if filter_text:
         filtered = [item for item in items if filter_text in item]
         cli.print(

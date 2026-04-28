@@ -21,6 +21,8 @@ from flext_tests import FlextTestsModels
 
 from flext_cli import m
 from tests import c, t
+from tests.constants import TestsFlextCliConstants
+from tests.typings import TestsFlextCliTypes
 
 
 class TestsFlextCliModels(FlextTestsModels, m):
@@ -90,13 +92,13 @@ class TestsFlextCliModels(FlextTestsModels, m):
             ] = True
 
             @property
-            def validation_type(self) -> t.Tests.ValidationType:
+            def validation_type(self) -> TestsFlextCliTypes.Tests.ValidationType:
                 """Determine validation type based on data provided."""
                 if self.version_string and self.version_info:
-                    return t.Tests.ValidationType.CONSISTENCY
+                    return TestsFlextCliTypes.Tests.ValidationType.CONSISTENCY
                 if self.version_info:
-                    return t.Tests.ValidationType.INFO
-                return t.Tests.ValidationType.STRING
+                    return TestsFlextCliTypes.Tests.ValidationType.INFO
+                return TestsFlextCliTypes.Tests.ValidationType.STRING
 
         class VersionScenarios:
             """Factory methods for version test scenarios."""
@@ -106,10 +108,8 @@ class TestsFlextCliModels(FlextTestsModels, m):
                 cls,
             ) -> Sequence[TestsFlextCliModels.Tests.VersionTestScenario]:
                 """Get parametrized test cases for version string validation."""
-                from tests import c
-
                 data_class = TestsFlextCliModels.Tests.VersionTestScenario
-                ex = c.Tests
+                ex = TestsFlextCliConstants.Tests
                 return [
                     data_class(
                         name="valid_semver",
@@ -141,10 +141,8 @@ class TestsFlextCliModels(FlextTestsModels, m):
                 cls,
             ) -> Sequence[TestsFlextCliModels.Tests.VersionTestScenario]:
                 """Get parametrized test cases for version info validation."""
-                from tests import c
-
                 data_class = TestsFlextCliModels.Tests.VersionTestScenario
-                info = c.Tests
+                info = TestsFlextCliConstants.Tests
                 return [
                     data_class(
                         name="valid_tuple",
@@ -173,11 +171,9 @@ class TestsFlextCliModels(FlextTestsModels, m):
                 cls,
             ) -> Sequence[TestsFlextCliModels.Tests.VersionTestScenario]:
                 """Get parametrized test cases for version consistency validation."""
-                from tests import c
-
                 data_class = TestsFlextCliModels.Tests.VersionTestScenario
-                ex = c.Tests
-                info = c.Tests
+                ex = TestsFlextCliConstants.Tests
+                info = TestsFlextCliConstants.Tests
                 return [
                     data_class(
                         name="valid_match",
@@ -208,7 +204,7 @@ class TestsFlextCliModels(FlextTestsModels, m):
 
             name: Annotated[str, m.Field(description="Scenario name")]
             test_type: Annotated[
-                t.Tests.ConfigTestType,
+                TestsFlextCliTypes.Tests.ConfigTestType,
                 m.Field(description="Scenario test type"),
             ]
             data: Annotated[

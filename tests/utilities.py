@@ -23,6 +23,7 @@ from flext_cli import (
     u,
 )
 from tests import c, p, r, t
+from tests.constants import TestsFlextCliConstants
 
 
 class TestsFlextCliUtilities(FlextTestsUtilities, u):
@@ -38,8 +39,8 @@ class TestsFlextCliUtilities(FlextTestsUtilities, u):
             def validate_version_string(version: str) -> p.Result[str]:
                 """Validate version string against semver pattern."""
                 if not version:
-                    return r[str].fail(c.Tests.EMPTY_STRING)
-                pattern = c.Tests.SEMVER_PATTERN
+                    return r[str].fail(TestsFlextCliConstants.Tests.EMPTY_STRING)
+                pattern = TestsFlextCliConstants.Tests.SEMVER_PATTERN
                 if not re.match(pattern, version):
                     return r[str].fail(
                         f"Version '{version}' does not match semver pattern"
@@ -53,7 +54,7 @@ class TestsFlextCliUtilities(FlextTestsUtilities, u):
                 """Validate version info tuple structure."""
                 if len(version_info) < 3:
                     return r[tuple[int | str, ...]].fail(
-                        c.Tests.INFO_TOO_SHORT,
+                        TestsFlextCliConstants.Tests.INFO_TOO_SHORT,
                     )
                 for index, part in enumerate(version_info):
                     if isinstance(part, int) and part < 0:

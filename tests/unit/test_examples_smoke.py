@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import importlib
 import os
+import sys
 from collections.abc import (
     Generator,
     Mapping,
@@ -10,18 +12,17 @@ from collections.abc import (
 from contextlib import contextmanager
 from pathlib import Path
 
-import examples.ex_01_getting_started as getting_started
-import examples.ex_02_output_formatting as output_formatting
-import examples.ex_04_file_operations as file_operations
-import examples.ex_05_authentication as authentication
-import examples.ex_06_settings as settings_example
-import examples.ex_10_testing_utilities as testing_utilities
-import examples.ex_11_complete_integration as complete_integration
-import examples.ex_12_pydantic_driven_cli as pydantic_driven
 from flext_tests import tm
 
 from flext_cli import FlextCliSettings, cli
-from tests import c, t
+
+_PROJECT_ROOT = Path(__file__).resolve().parents[2]
+if str(_PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PROJECT_ROOT))
+
+tests_pkg = importlib.import_module("tests")
+c = tests_pkg.c
+t = tests_pkg.t
 
 
 @contextmanager
@@ -46,6 +47,8 @@ class TestsFlextCliExamplesSmoke:
 
     def test_getting_started_and_output_examples(self, tmp_path: Path) -> None:
         """Examples must round-trip settings data and format tables via cli."""
+        getting_started = importlib.import_module("examples.ex_01_getting_started")
+        output_formatting = importlib.import_module("examples.ex_02_output_formatting")
         example = getting_started.FlextCliGettingStarted()
         config_path = tmp_path / "settings.json"
         settings = getting_started.m.Cli.LoadedConfig(
@@ -76,6 +79,7 @@ class TestsFlextCliExamplesSmoke:
 
     def test_file_operation_examples(self, tmp_path: Path) -> None:
         """File-oriented examples must use cli file APIs successfully."""
+        file_operations = importlib.import_module("examples.ex_04_file_operations")
         config_dir = tmp_path / "settings"
         config_dir.mkdir()
         preferences = {
@@ -122,6 +126,8 @@ class TestsFlextCliExamplesSmoke:
 
     def test_authentication_and_settings_examples(self, tmp_path: Path) -> None:
         """Auth and settings examples must work through cli.settings and cli auth APIs."""
+        authentication = importlib.import_module("examples.ex_05_authentication")
+        settings_example = importlib.import_module("examples.ex_06_settings")
         cli.settings.token_file = str(tmp_path / "auth_token.json")
 
         settings = settings_example.show_cli_settings()
@@ -153,6 +159,7 @@ class TestsFlextCliExamplesSmoke:
         tmp_path: Path,
     ) -> None:
         """Testing examples must validate real CLI file and workflow behavior."""
+        testing_utilities = importlib.import_module("examples.ex_10_testing_utilities")
         command_result = testing_utilities.my_cli_command("World")
         tm.ok(command_result)
         tm.that(command_result.value, eq="Hello, World!")
@@ -180,6 +187,9 @@ class TestsFlextCliExamplesSmoke:
         tmp_path: Path,
     ) -> None:
         """Complete integration example must persist and reload real workflow data."""
+        complete_integration = importlib.import_module(
+            "examples.ex_11_complete_integration"
+        )
         app = complete_integration.DataManagerCLI()
         app.data_file = tmp_path / "app_data.json"
 
@@ -196,6 +206,8 @@ class TestsFlextCliExamplesSmoke:
         tmp_path: Path,
     ) -> None:
         """Settings examples must honor env overrides and typed workflow rules."""
+        settings_example = importlib.import_module("examples.ex_06_settings")
+        pydantic_driven = importlib.import_module("examples.ex_12_pydantic_driven_cli")
         cache_dir = tmp_path / "cache"
         with _temporary_environment({
             "ENVIRONMENT": "production",

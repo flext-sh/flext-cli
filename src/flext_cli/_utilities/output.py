@@ -140,10 +140,12 @@ class FlextCliUtilitiesOutput:
         width = len(str(total))
         cls.emit_raw(f"[{idx:0{width}d}/{total:0{width}d}] {proj} {verb} ...\n")
 
-    @classmethod
-    def status(cls, verb: str, proj: str, *, result: bool, elapsed: float) -> None:
+    @staticmethod
+    def status(verb: str, proj: str, *, result: bool, elapsed: float) -> None:
         symbol = "[OK]" if result else "[FAIL]"
-        cls.emit_raw(f"  {symbol} {verb:<8} {proj:<24} {elapsed:.2f}s\n")
+        FlextCliUtilitiesOutput.emit_raw(
+            f"  {symbol} {verb:<8} {proj:<24} {elapsed:.2f}s\n"
+        )
 
     @classmethod
     def summary(cls, stats: p.Cli.SummaryStats) -> None:
@@ -159,9 +161,8 @@ class FlextCliUtilitiesOutput:
             f"Skipped: {skipped}  ({elapsed:.2f}s)\n"
         )
 
-    @classmethod
+    @staticmethod
     def gate_result(
-        cls,
         gate: str,
         count: int,
         *,
@@ -169,7 +170,9 @@ class FlextCliUtilitiesOutput:
         elapsed: float,
     ) -> None:
         symbol = "[OK]" if passed else "[FAIL]"
-        cls.emit_raw(f"    {symbol} {gate:<10} {count:>5} errors  ({elapsed:.2f}s)\n")
+        FlextCliUtilitiesOutput.emit_raw(
+            f"    {symbol} {gate:<10} {count:>5} errors  ({elapsed:.2f}s)\n"
+        )
 
     @classmethod
     def project_failure(cls, info: p.Cli.ProjectFailureInfo) -> None:

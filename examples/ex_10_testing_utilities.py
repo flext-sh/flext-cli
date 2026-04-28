@@ -31,8 +31,7 @@ from collections.abc import (
 )
 from pathlib import Path
 
-from examples import c, m, p, r, t
-from flext_cli import cli
+from flext_cli import c, cli, m, p, r, t
 
 
 def _temp_file_path(filename: str, *, base_dir: Path | None = None) -> Path:

@@ -56,48 +56,6 @@ class FlextCliUtilitiesValidation:
         return str(value)
 
     @staticmethod
-    def _validate_cli_value(
-        val: t.Cli.CliValue,
-        *,
-        name: str = "field",
-        empty: bool = True,
-        in_list: t.StrSequence | None = None,
-        eq: str | None = None,
-        msg: str = "",
-    ) -> p.Result[bool]:
-        """Validate a value against emptiness, enumerations, or equality constraints."""
-        if not empty:
-            check = FlextCliUtilitiesValidation.validate_not_empty(val, name=name)
-            if check.failure:
-                return r[bool].fail(msg or check.error or "")
-        if in_list is not None:
-            val_str = FlextCliUtilitiesValidation.to_str(val)
-            if val_str not in set(in_list):
-                err = (
-                    c.Cli.VALIDATION_MSG_SESSION_STATUS_INVALID.format(
-                        current_status=val_str,
-                        valid_states=in_list,
-                    )
-                    if name == "session_status"
-                    else c.Cli.VALIDATION_MSG_INVALID_ENUM_VALUE.format(
-                        field_name=name,
-                        valid_values=in_list,
-                    )
-                )
-                return r[bool].fail(msg or err)
-        if eq is not None:
-            val_str = FlextCliUtilitiesValidation.to_str(val)
-            if val_str != eq:
-                err = c.Cli.VALIDATION_MSG_COMMAND_STATE_INVALID.format(
-                    operation=name,
-                    current_status=val_str,
-                    required_status=eq,
-                )
-                return r[bool].fail(msg or err)
-            return r[bool].ok(True)
-        return r[bool].ok(True)
-
-    @staticmethod
     def validate_not_empty(
         val: t.Cli.CliValue | None,
         *,
@@ -124,17 +82,12 @@ class FlextCliUtilitiesValidation:
     def validate_format(format_type: str) -> p.Result[str]:
         """Validate one CLI output format."""
         fmt = str(format_type).lower()
-        valid = FlextCliUtilitiesValidation._validate_cli_value(
-            fmt,
-            name="format",
-            empty=False,
-            in_list=c.Cli.OUTPUT_FORMATS,
-        )
-        if valid.success:
-            return r[str].ok(fmt)
-        return r[str].fail(
-            c.Cli.ERR_INVALID_OUTPUT_FORMAT.format(format=format_type),
-        )
+        valid = FlextCliUtilitiesValidation.validate_not_empty(fmt, name="format")
+        if valid.failure or fmt not in set(c.Cli.OUTPUT_FORMATS):
+            return r[str].fail(
+                c.Cli.ERR_INVALID_OUTPUT_FORMAT.format(format=format_type),
+            )
+        return r[str].ok(fmt)
 
 
 __all__: t.MutableSequenceOf[str] = [

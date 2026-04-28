@@ -42,8 +42,7 @@ from collections.abc import (
 )
 from pathlib import Path
 
-from examples import c, p, t
-from flext_cli import cli
+from flext_cli import c, cli, p, t
 
 
 def your_cli_function() -> None:

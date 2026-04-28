@@ -68,23 +68,27 @@ class FlextCliUtilitiesPrompts:
         default: str | None,
     ) -> p.Result[str]:
         """Validate one choice prompt contract and return one canonical result."""
+        result: p.Result[str]
         if not choices:
-            return r[str].fail(c.Cli.ERR_NO_CHOICES)
-        if not interactive:
+            result = r[str].fail(c.Cli.ERR_NO_CHOICES)
+        elif not interactive:
             if default and default in choices:
-                return r[str].ok(default)
-            return r[str].fail(c.Cli.ERR_INTERACTIVE_CHOICE_DISABLED)
-        if default is None:
-            return r[str].fail(
+                result = r[str].ok(default)
+            else:
+                result = r[str].fail(c.Cli.ERR_INTERACTIVE_CHOICE_DISABLED)
+        elif default is None:
+            result = r[str].fail(
                 c.Cli.ERR_CHOICE_REQUIRED_FMT.format(
                     choices=", ".join(choices),
                 ),
             )
-        if default not in choices:
-            return r[str].fail(
+        elif default not in choices:
+            result = r[str].fail(
                 c.Cli.ERR_INVALID_CHOICE_FMT.format(choice=default),
             )
-        return r[str].ok(default)
+        else:
+            result = r[str].ok(default)
+        return result
 
     @staticmethod
     def prompts_password_result(password: str, *, min_length: int) -> p.Result[str]:

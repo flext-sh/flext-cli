@@ -35,8 +35,7 @@ from collections.abc import (
 )
 from pathlib import Path
 
-from examples import c, m, p, t, u
-from flext_cli import cli
+from flext_cli import c, cli, m, p, t, u
 
 
 def export_to_csv(data: Sequence[t.JsonMapping], output_file: Path) -> None:

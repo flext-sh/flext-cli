@@ -18,8 +18,13 @@ from collections.abc import (
 )
 from pathlib import Path
 
-from examples import c, p, r, t
-from flext_cli import cli, m
+from flext_cli import c, cli, m, t
+from flext_core import p, r
+
+_EXAMPLE_ERR_FAILED_LOAD_CONFIG = "Failed to load settings"
+_EXAMPLE_ERR_CONFIG_CONTENT_MAPPING = "Config content must be a mapping"
+_EXAMPLE_MSG_OPERATION_COMPLETED = "Operation completed"
+_EXAMPLE_MSG_ERROR_SOMETHING_FAILED = "ERROR: Something failed"
 
 
 class FlextCliGettingStarted:
@@ -67,10 +72,10 @@ class FlextCliGettingStarted:
                 f"Failed to load: {read_result.error}", style=c.Cli.MessageStyles.RED
             )
             return r[m.Cli.LoadedConfig].fail(
-                read_result.error or c.EXAMPLE_ERR_FAILED_LOAD_CONFIG,
+                read_result.error or _EXAMPLE_ERR_FAILED_LOAD_CONFIG,
             )
         if not isinstance(read_result.value, Mapping):
-            return r[m.Cli.LoadedConfig].fail(c.EXAMPLE_ERR_CONFIG_CONTENT_MAPPING)
+            return r[m.Cli.LoadedConfig].fail(_EXAMPLE_ERR_CONFIG_CONTENT_MAPPING)
         return r[m.Cli.LoadedConfig].ok(
             m.Cli.LoadedConfig(content=dict(read_result.value)),
         )
@@ -111,9 +116,9 @@ class FlextCliGettingStarted:
 
     def your_function_after(self) -> None:
         """Your new code using flext-cli."""
-        cli.print(c.EXAMPLE_MSG_OPERATION_COMPLETED, style=c.Cli.MessageStyles.GREEN)
+        cli.print(_EXAMPLE_MSG_OPERATION_COMPLETED, style=c.Cli.MessageStyles.GREEN)
         cli.print(
-            c.EXAMPLE_MSG_ERROR_SOMETHING_FAILED,
+            _EXAMPLE_MSG_ERROR_SOMETHING_FAILED,
             style=c.Cli.MessageStyles.BOLD_RED,
         )
 

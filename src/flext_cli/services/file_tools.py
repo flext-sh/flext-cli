@@ -38,29 +38,6 @@ class FlextCliFileTools(FlextCliServiceBase):
         return u.Cli.files_read_json_model(Path(file_path), model_type)
 
     @staticmethod
-    def write_json_model(
-        file_path: t.Cli.TextPath,
-        model: m.BaseModel,
-        indent: int = 2,
-        *,
-        by_alias: bool = False,
-        exclude_none: bool = False,
-    ) -> p.Result[bool]:
-        """Write a Pydantic model directly to JSON via model_dump_json.
-
-        Type-safe: accepts only BaseModel, serializes via Rust path.
-        """
-        json_str = model.model_dump_json(
-            indent=indent,
-            by_alias=by_alias,
-            exclude_none=exclude_none,
-        )
-        return u.Cli.files_write_text(
-            Path(file_path),
-            json_str,
-        )
-
-    @staticmethod
     def read_yaml_file(file_path: t.Cli.TextPath) -> p.Result[t.JsonValue]:
         normalized_path = u.Cli.normalize_optional_text(file_path)
         if normalized_path is None:
@@ -73,14 +50,11 @@ class FlextCliFileTools(FlextCliServiceBase):
         data: t.Cli.JsonWriteData,
         options: m.Cli.JsonWriteOptions | None = None,
     ) -> p.Result[bool]:
-        opts = options or m.Cli.JsonWriteOptions()
         payload_raw = data.data if isinstance(data, p.Cli.DisplayData) else data
         return u.Cli.json_write(
             Path(file_path),
             u.Cli.normalize_json_value(payload_raw),
-            sort_keys=opts.sort_keys,
-            ensure_ascii=opts.ensure_ascii,
-            indent=opts.indent,
+            options=options,
         )
 
     @staticmethod

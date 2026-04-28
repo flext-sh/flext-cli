@@ -14,8 +14,8 @@ from collections.abc import (
 from pathlib import Path
 from typing import ClassVar
 
-from flext_cli import c, p, r, t
-from flext_core import m, u
+from flext_cli import c, m, p, r, t
+from flext_core import u
 
 
 class FlextCliUtilitiesJson:
@@ -56,14 +56,12 @@ class FlextCliUtilitiesJson:
     def json_write(
         path: Path,
         payload: t.JsonPayload,
-        *,
-        sort_keys: bool = False,
-        ensure_ascii: bool = False,
-        indent: int = 2,
+        options: m.Cli.JsonWriteOptions | None = None,
     ) -> p.Result[bool]:
         """Write any Pydantic-serializable payload to a JSON file."""
         try:
             path.parent.mkdir(parents=True, exist_ok=True)
+            opts = options or m.Cli.JsonWriteOptions()
             raw = (
                 payload.model_dump(mode="json")
                 if isinstance(payload, m.BaseModel)
@@ -74,14 +72,14 @@ class FlextCliUtilitiesJson:
             )
             normalized = (
                 FlextCliUtilitiesJson._json_sort_keys(validated)
-                if sort_keys
+                if opts.sort_keys
                 else validated
             )
             content = (
                 t.Cli.JSON_VALUE_ADAPTER.dump_json(
                     normalized,
-                    indent=indent,
-                    ensure_ascii=ensure_ascii,
+                    indent=opts.indent,
+                    ensure_ascii=opts.ensure_ascii,
                 ).decode(
                     c.Cli.ENCODING_DEFAULT,
                 )
@@ -222,7 +220,7 @@ class FlextCliUtilitiesJson:
         if isinstance(raw, int):
             return raw
         if isinstance(raw, str | float | bool):
-            return u.to_int(raw, default=default)
+            return int(u.to_int(raw, default=default))
         return default
 
     @staticmethod
@@ -255,7 +253,7 @@ class FlextCliUtilitiesJson:
         """Extract an integer from a nested mapping path."""
         raw = FlextCliUtilitiesJson.json_walk_path(data, keys)
         if isinstance(raw, int | str | float | bool):
-            return u.to_int(raw, default=default)
+            return int(u.to_int(raw, default=default))
         return default
 
     @staticmethod
@@ -268,7 +266,7 @@ class FlextCliUtilitiesJson:
     ) -> str:
         """Extract and normalize a string key from a mapping."""
         raw = FlextCliUtilitiesJson.json_pick_str(mapping, key, default)
-        return u.normalize(raw, case=case)
+        return str(u.normalize(raw, case=case))
 
     @staticmethod
     def _json_sort_keys(data: t.JsonValue) -> t.JsonValue:

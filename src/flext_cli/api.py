@@ -7,6 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_cli import (
+    FlextCliApiRuntime,
     FlextCliAuth,
     FlextCliCli,
     FlextCliCmd,
@@ -20,11 +21,9 @@ from flext_cli import (
     FlextCliTables,
     t,
 )
-from flext_cli.services.api_runtime import FlextCliApiRuntime
 
 
 class FlextCli(
-    FlextCliApiRuntime,
     FlextCliAuth,
     FlextCliCli,
     FlextCliCmd,
@@ -36,6 +35,7 @@ class FlextCli(
     FlextCliPrompts,
     FlextCliRules,
     FlextCliTables,
+    FlextCliApiRuntime,
 ):
     """Coordinate CLI operations and expose domain services.
 

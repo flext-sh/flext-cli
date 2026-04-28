@@ -2,10 +2,6 @@
 
 from __future__ import annotations
 
-from collections.abc import (
-    Callable,
-)
-
 import click
 
 from flext_cli import FlextCliUtilitiesJson as uj, c, p, r, t
@@ -36,37 +32,6 @@ class FlextCliUtilitiesCommands:
         return r[t.JsonValue].fail(
             str(error_value) if error_value else "Command failed",
         )
-
-    @staticmethod
-    def commands_execute_handler(
-        *,
-        command_name: str,
-        handler: t.Cli.JsonCommandFn,
-        args: t.StrSequence | None,
-        kwargs: t.ScalarMapping,
-        on_signature_mismatch: Callable[[str], None] | None = None,
-    ) -> p.Result[t.JsonValue]:
-        """Execute one command handler with optional args fallback and normalize output."""
-        try:
-            result: p.Result[t.JsonPayload] | None = None
-            execution_attempted = False
-            if args or kwargs:
-                try:
-                    result = handler(*args, **kwargs) if args else handler(**kwargs)
-                    execution_attempted = True
-                except TypeError as exc:
-                    if on_signature_mismatch is not None:
-                        on_signature_mismatch(str(exc))
-            if not execution_attempted:
-                result = handler()
-            return FlextCliUtilitiesCommands.commands_normalize_handler_result(
-                result,
-                command_name,
-            )
-        except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
-            return r[t.JsonValue].fail(
-                c.Cli.ERR_COMMAND_EXECUTION_FAILED.format(error=exc),
-            )
 
     @staticmethod
     def commands_resolve_success_message[TResult: t.Cli.ResultValue](

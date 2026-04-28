@@ -19,8 +19,9 @@ from collections.abc import (
 )
 from pathlib import Path
 
-from examples import c, m, p, r, t, u
-from flext_cli import cli
+from flext_cli import c, cli, m, p, r, t, u
+
+_EXAMPLE_REQUIRED_DATA_FIELDS: t.VariadicTuple[str] = ("id", "name", "value")
 
 # ============================================================================
 # PATTERN 1: JSON settings files in YOUR application
@@ -246,7 +247,7 @@ def validate_and_import_data(input_file: Path) -> p.Result[m.Cli.LoadedConfig]:
     if not isinstance(data, Mapping):
         return r[m.Cli.LoadedConfig].fail("Input data must be a mapping")
 
-    required_fields = list(c.EXAMPLE_REQUIRED_DATA_FIELDS)
+    required_fields = list(_EXAMPLE_REQUIRED_DATA_FIELDS)
     for field in required_fields:
         if field not in data:
             return r[m.Cli.LoadedConfig].fail(f"Missing required field: {field}")

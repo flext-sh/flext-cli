@@ -105,9 +105,8 @@ class FlextCliUtilitiesRules:
             t.Cli.JSON_MAPPING_ADAPTER.validate_python(payload),
         )
 
-    @classmethod
+    @staticmethod
     def rules_load_registry(
-        cls,
         config_path: Path,
         *,
         package_rules_dir: Path,
@@ -117,7 +116,7 @@ class FlextCliUtilitiesRules:
         """Load one rules registry mapping from local or packaged rules dirs."""
         package_registry = package_rules_dir / registry_filename
         candidates = [
-            cls._rules_resolve_directory(
+            FlextCliUtilitiesRules._rules_resolve_directory(
                 config_path,
                 package_rules_dir=package_rules_dir,
                 rules_dir_name=rules_dir_name,

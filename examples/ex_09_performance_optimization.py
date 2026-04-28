@@ -38,8 +38,15 @@ from collections.abc import (
 )
 from functools import lru_cache
 
-from examples import c, t
-from flext_cli import cli
+from flext_cli import c, cli, t
+
+_PERF_LRU_CACHE_SIZE = 128
+_PERF_CALC_INPUT_SIZE = 1_000_000
+_PERF_LAZY_DATA_SIZE = 10_000
+_PERF_TABLE_PREVIEW_SIZE = 10
+_PERF_DEFAULT_BATCH_SIZE = 100
+_PERF_DATASET_SIZE = 1_000
+_PERF_ITEMS_SIZE = 500
 
 
 def efficientusage() -> None:
@@ -50,7 +57,7 @@ def efficientusage() -> None:
     )
 
 
-@lru_cache(maxsize=c.PERF_LRU_CACHE_SIZE)
+@lru_cache(maxsize=_PERF_LRU_CACHE_SIZE)
 def expensive_calculation(n: int) -> int:
     """Cache expensive results in YOUR CLI."""
     return sum(range(n))
@@ -60,10 +67,10 @@ def demonstrate_caching() -> None:
     """Show caching pattern for performance."""
     cli.print("\n⚡ Caching Performance:", style=c.Cli.MessageStyles.BOLD_CYAN)
     start = time.time()
-    result1 = expensive_calculation(c.PERF_CALC_INPUT_SIZE)
+    result1 = expensive_calculation(_PERF_CALC_INPUT_SIZE)
     time1 = time.time() - start
     start = time.time()
-    result2 = expensive_calculation(c.PERF_CALC_INPUT_SIZE)
+    result2 = expensive_calculation(_PERF_CALC_INPUT_SIZE)
     time2 = time.time() - start
     cli.print(
         f"   First call: {time1 * 1000:.2f}ms (result: {result1})",
@@ -94,7 +101,7 @@ class LazyDataLoader:
                 "   📦 Loading data (first access only)...",
                 style=c.Cli.MessageStyles.CYAN,
             )
-            self._data = list(range(c.PERF_LAZY_DATA_SIZE))
+            self._data = list(range(_PERF_LAZY_DATA_SIZE))
         return self._data
 
 
@@ -122,7 +129,7 @@ def efficient_table_display(
     large_dataset: Sequence[t.JsonMapping],
 ) -> None:
     """Display large tables efficiently in YOUR CLI."""
-    preview_size = c.PERF_TABLE_PREVIEW_SIZE
+    preview_size = _PERF_TABLE_PREVIEW_SIZE
     total = len(large_dataset)
     cli.print(
         f"\n📊 Efficient Table (showing {preview_size}/{total} rows):",
@@ -139,7 +146,7 @@ def efficient_table_display(
 
 def process_large_dataset(
     items: Sequence[int],
-    batch_size: int = c.PERF_DEFAULT_BATCH_SIZE,
+    batch_size: int = _PERF_DEFAULT_BATCH_SIZE,
 ) -> None:
     """Process large datasets in batches in YOUR CLI."""
     cli.print(
@@ -192,12 +199,12 @@ def main() -> None:
     demonstrate_lazy_loading()
     cli.print("\n4. Efficient Table Display:", style=c.Cli.MessageStyles.BOLD_CYAN)
     large_data: Sequence[t.JsonMapping] = [
-        {"id": i, "name": f"Item {i}"} for i in range(c.PERF_DATASET_SIZE)
+        {"id": i, "name": f"Item {i}"} for i in range(_PERF_DATASET_SIZE)
     ]
     efficient_table_display(large_data)
     cli.print("\n5. Batch Processing:", style=c.Cli.MessageStyles.BOLD_CYAN)
-    items: Sequence[int] = list(range(c.PERF_ITEMS_SIZE))
-    process_large_dataset(items, batch_size=c.PERF_DEFAULT_BATCH_SIZE)
+    items: Sequence[int] = list(range(_PERF_ITEMS_SIZE))
+    process_large_dataset(items, batch_size=_PERF_DEFAULT_BATCH_SIZE)
     cli.print(
         "\n6. Memory-Efficient File Streaming:", style=c.Cli.MessageStyles.BOLD_CYAN
     )

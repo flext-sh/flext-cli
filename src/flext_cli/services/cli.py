@@ -281,42 +281,27 @@ class FlextCliCli(s):
             )
         except click.ClickException as exc:
             message = exc.format_message().strip()
-            return r[bool].fail_op(
-                "execute cli app",
-                message,
-            )
+            return r[bool].fail(message)
         except typer.Abort as exc:
             message = u.Cli.normalize_required_text(
                 str(exc),
                 default=exc.__class__.__name__,
             )
-            return r[bool].fail_op(
-                "execute cli app",
-                message,
-            )
+            return r[bool].fail(message)
         except typer.Exit as exc:
             if exc.exit_code == 0:
                 return r[bool].ok(True)
-            return r[bool].fail_op(
-                "execute cli app",
-                f"CLI exited with code {exc.exit_code}",
-            )
+            return r[bool].fail(f"CLI exited with code {exc.exit_code}")
         except Exception as exc:
             message = u.Cli.normalize_required_text(
                 str(exc),
                 default=exc.__class__.__name__,
             )
-            return r[bool].fail_op(
-                "execute cli app",
-                message,
-            )
+            return r[bool].fail(message)
         finally:
             sys.argv = original_argv
         if isinstance(result, int) and not isinstance(result, bool) and result != 0:
-            return r[bool].fail_op(
-                "execute cli app",
-                f"CLI exited with code {result}",
-            )
+            return r[bool].fail(f"CLI exited with code {result}")
         return r[bool].ok(True)
 
     @staticmethod

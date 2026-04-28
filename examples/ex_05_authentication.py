@@ -29,8 +29,7 @@ import secrets
 import time
 from pathlib import Path
 
-from examples import c, m, t
-from flext_cli import cli
+from flext_cli import c, cli, m, t
 from flext_core import p, r
 
 

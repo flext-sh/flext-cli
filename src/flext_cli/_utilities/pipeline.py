@@ -164,4 +164,4 @@ class FlextCliUtilitiesPipeline:
         )
 
 
-__all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesPipeline"]
+__all__ = ("FlextCliUtilitiesPipeline",)

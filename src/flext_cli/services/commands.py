@@ -84,21 +84,26 @@ class FlextCliCommands(s):
             return r[t.JsonValue].fail(
                 c.Cli.ERR_HANDLER_NOT_CALLABLE.format(name=name),
             )
-
-        def _on_signature_mismatch(error: str) -> None:
-            self.logger.debug(
-                "Handler signature mismatch; retrying without args",
-                command_name=name,
-                error=error,
+        try:
+            result: p.Result[t.JsonPayload] | None = None
+            execution_attempted = False
+            if args or kwargs:
+                try:
+                    result = handler(*args, **kwargs) if args else handler(**kwargs)
+                    execution_attempted = True
+                except TypeError as exc:
+                    self.logger.debug(
+                        "Handler signature mismatch; retrying without args",
+                        command_name=name,
+                        error=str(exc),
+                    )
+            if not execution_attempted:
+                result = handler()
+            return u.Cli.commands_normalize_handler_result(result, name)
+        except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
+            return r[t.JsonValue].fail(
+                c.Cli.ERR_COMMAND_EXECUTION_FAILED.format(error=exc),
             )
-
-        return u.Cli.commands_execute_handler(
-            command_name=name,
-            handler=handler,
-            args=args,
-            kwargs=kwargs,
-            on_signature_mismatch=_on_signature_mismatch,
-        )
 
     def list_commands(self) -> p.Result[t.StrSequence]:
         """List all registered command names.
