@@ -108,14 +108,11 @@ def load_profile_settings(profile_name: str = "default") -> p.Result[FlextCliSet
     cli.print(
         f"📋 Loading profile: {profile_name}", style=c.Cli.MessageStyles.BOLD_CYAN
     )
-    profile_config = cli.settings.model_copy(
-        update={
-            "debug": profile_name == "development",
-            "output_format": c.Cli.OutputFormats.JSON
-            if profile_name == "production"
-            else c.Cli.OutputFormats.TABLE,
-        },
-        deep=True,
+    profile_config = cli.settings.clone(
+        debug=profile_name == "development",
+        output_format=c.Cli.OutputFormats.JSON
+        if profile_name == "production"
+        else c.Cli.OutputFormats.TABLE,
     )
     validate_result = u.Cli.validate_format(profile_config.output_format)
     if validate_result.failure:

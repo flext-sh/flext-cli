@@ -47,7 +47,7 @@ class FlextCliUtilitiesParams:
                 update_data[field] = value
         if not update_data:
             return r[FlextCliSettings].ok(settings)
-        return r[FlextCliSettings].ok(settings.model_copy(update=update_data))
+        return r[FlextCliSettings].ok(settings.clone(**update_data))
 
     @staticmethod
     def params_set_log_level(
@@ -64,7 +64,7 @@ class FlextCliUtilitiesParams:
             ).resolved
             next_level = type(c.LogLevel.INFO)(resolved_level)
             return r[FlextCliSettings].ok(
-                settings.model_copy(update={"cli_log_level": next_level}),
+                settings.clone(cli_log_level=next_level),
             )
         except ValueError:
             valid = ", ".join(c.Cli.LOG_LEVELS_LIST)
@@ -95,8 +95,8 @@ class FlextCliUtilitiesParams:
                         valid_values=valid,
                     ),
                 )
-            next_config = next_config.model_copy(
-                update={"log_verbosity": str(log_verbosity)},
+            next_config = next_config.clone(
+                log_verbosity=str(log_verbosity),
             )
         if params.output_format is not None:
             validated_result = uv.validate_format(params.output_format)
@@ -109,8 +109,8 @@ class FlextCliUtilitiesParams:
                         valid_values=valid,
                     ),
                 )
-            next_config = next_config.model_copy(
-                update={"output_format": validated_result.value},
+            next_config = next_config.clone(
+                output_format=validated_result.value,
             )
         return r[FlextCliSettings].ok(next_config)
 
