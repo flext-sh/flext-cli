@@ -24,6 +24,7 @@ class FlextCliServiceBase(s[t.JsonMapping], ABC):
     `execute` method from s.
     """
 
+    @override
     def execute(self) -> p.Result[t.JsonMapping]:
         """Default service execution surface for mixins without an active command."""
         empty_payload: t.JsonMapping = {}
