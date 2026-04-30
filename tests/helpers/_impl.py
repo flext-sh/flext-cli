@@ -16,8 +16,6 @@ from flext_cli import FlextCliPrompts
 class TestsFlextCliScriptedPrompts(FlextCliPrompts):
     """Prompt service with typed scripting helpers for tests."""
 
-    __test__ = False
-
     def use_input_values(self, values: t.StrSequence) -> Self:
         values_iter = iter(values)
         self._input_reader = lambda _prompt: next(values_iter)
@@ -58,8 +56,6 @@ class TestsFlextCliScriptedPrompts(FlextCliPrompts):
 class TestsFlextCliCaptureLogPrompts(TestsFlextCliScriptedPrompts):
     """Prompt service that captures log calls without writing to the real logger."""
 
-    __test__ = False
-
     _records: list[tuple[str, str]] = m.PrivateAttr(default_factory=list)
 
     @property
@@ -78,8 +74,6 @@ class TestsFlextCliCaptureLogPrompts(TestsFlextCliScriptedPrompts):
 
 class TestsFlextCliFailingLogPrompts(TestsFlextCliScriptedPrompts):
     """Prompt service that fails on one selected log level."""
-
-    __test__ = False
 
     _failure_level: str = m.PrivateAttr(default_factory=lambda: "")
     _failure_message: str = m.PrivateAttr(default_factory=lambda: "logger failure")

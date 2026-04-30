@@ -9,7 +9,6 @@ import pytest
 from flext_tests import tm
 
 from tests import c
-from tests.constants import TestsFlextCliConstants
 from tests.helpers._impl import (
     TestsFlextCliCaptureLogPrompts,
     TestsFlextCliFailingLogPrompts,
@@ -207,12 +206,7 @@ class TestsFlextCliPrompts:
 
     @pytest.mark.parametrize(
         "message",
-        [
-            "",
-            TestsFlextCliConstants.Tests.LONG,
-            TestsFlextCliConstants.Tests.SPECIAL,
-            TestsFlextCliConstants.Tests.UNICODE,
-        ],
+        c.Tests.PROMPT_EDGE_MESSAGES,
     )
     def test_prompt_accepts_edge_case_messages(
         self,

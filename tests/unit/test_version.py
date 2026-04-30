@@ -13,14 +13,11 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import re
-
 import pytest
 from flext_tests import tm
 
 from flext_cli import __version__, __version_info__
-from tests import t, u
-from tests.constants import TestsFlextCliConstants
+from tests import c, t, u
 from tests.models import TestsFlextCliModels
 
 
@@ -41,7 +38,7 @@ class TestsFlextCliVersion:
     def test_actual_version_string_semver_compliant(self) -> None:
         """Test __version__ matches semver pattern."""
         tm.that(
-            re.match(TestsFlextCliConstants.Tests.SEMVER_PATTERN, __version__),
+            c.Tests.SEMVER_RE.match(__version__),
             none=False,
         )
 

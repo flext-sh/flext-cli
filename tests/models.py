@@ -21,7 +21,6 @@ from flext_tests import FlextTestsModels
 
 from flext_cli import m
 from tests import c, t
-from tests.constants import TestsFlextCliConstants
 from tests.typings import TestsFlextCliTypes
 
 
@@ -109,7 +108,7 @@ class TestsFlextCliModels(FlextTestsModels, m):
             ) -> Sequence[TestsFlextCliModels.Tests.VersionTestScenario]:
                 """Get parametrized test cases for version string validation."""
                 data_class = TestsFlextCliModels.Tests.VersionTestScenario
-                ex = TestsFlextCliConstants.Tests
+                ex = c.Tests.VersionStringCase
                 return [
                     data_class(
                         name="valid_semver",
@@ -142,26 +141,25 @@ class TestsFlextCliModels(FlextTestsModels, m):
             ) -> Sequence[TestsFlextCliModels.Tests.VersionTestScenario]:
                 """Get parametrized test cases for version info validation."""
                 data_class = TestsFlextCliModels.Tests.VersionTestScenario
-                info = TestsFlextCliConstants.Tests
                 return [
                     data_class(
                         name="valid_tuple",
-                        version_info=info.VALID_TUPLE,
+                        version_info=c.Tests.VERSION_INFO_VALID_TUPLE,
                         should_pass=True,
                     ),
                     data_class(
                         name="valid_complex_tuple",
-                        version_info=info.VALID_COMPLEX_TUPLE,
+                        version_info=c.Tests.VERSION_INFO_VALID_COMPLEX_TUPLE,
                         should_pass=True,
                     ),
                     data_class(
                         name="short_tuple",
-                        version_info=info.SHORT_TUPLE,
+                        version_info=c.Tests.VERSION_INFO_SHORT_TUPLE,
                         should_pass=False,
                     ),
                     data_class(
                         name="empty_tuple",
-                        version_info=info.EMPTY_TUPLE,
+                        version_info=c.Tests.VERSION_INFO_EMPTY_TUPLE,
                         should_pass=False,
                     ),
                 ]
@@ -172,25 +170,24 @@ class TestsFlextCliModels(FlextTestsModels, m):
             ) -> Sequence[TestsFlextCliModels.Tests.VersionTestScenario]:
                 """Get parametrized test cases for version consistency validation."""
                 data_class = TestsFlextCliModels.Tests.VersionTestScenario
-                ex = TestsFlextCliConstants.Tests
-                info = TestsFlextCliConstants.Tests
+                ex = c.Tests.VersionStringCase
                 return [
                     data_class(
                         name="valid_match",
                         version_string=ex.VALID_SEMVER,
-                        version_info=info.VALID_TUPLE,
+                        version_info=c.Tests.VERSION_INFO_VALID_TUPLE,
                         should_pass=True,
                     ),
                     data_class(
                         name="valid_complex_match",
                         version_string=ex.VALID_SEMVER_COMPLEX,
-                        version_info=info.VALID_COMPLEX_TUPLE,
+                        version_info=c.Tests.VERSION_INFO_VALID_COMPLEX_TUPLE,
                         should_pass=True,
                     ),
                     data_class(
                         name="invalid_mismatch",
                         version_string=ex.INVALID_NO_DOTS,
-                        version_info=info.SHORT_TUPLE,
+                        version_info=c.Tests.VERSION_INFO_SHORT_TUPLE,
                         should_pass=False,
                     ),
                 ]

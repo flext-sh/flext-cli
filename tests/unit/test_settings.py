@@ -17,7 +17,7 @@ import pytest
 from flext_tests import tm
 
 from flext_cli import FlextCliSettings, cli
-from tests.constants import TestsFlextCliConstants
+from tests import c
 
 
 class TestsFlextCliSettings:
@@ -51,11 +51,15 @@ class TestsFlextCliSettings:
 
     @pytest.mark.parametrize(
         ("level", "expected"),
-        TestsFlextCliConstants.Tests.logging_scenarios(),
+        c.Tests.LOG_LEVEL_SCENARIOS,
     )
     def test_logging_levels(self, level: str, expected: str) -> None:
         """Test all logging levels with single parametrized test."""
-        tm.that(level in TestsFlextCliConstants.Tests.VALID_LOGGING_LEVELS, eq=True)
+        tm.that(level in c.Tests.LOG_LEVEL_SET, eq=True)
+        tm.that(
+            c.Tests.LOG_LEVEL_TO_EXPECTED[level],
+            eq=expected,
+        )
         tm.that(level, eq=expected)
 
     def test_flext_cli_integration(self) -> None:
@@ -71,10 +75,11 @@ class TestsFlextCliSettings:
         tm.that(settings, none=False)
         tm.that(settings, is_=FlextCliSettings)
 
-    @pytest.mark.parametrize("env", TestsFlextCliConstants.Tests.VALID_ENVIRONMENTS)
+    @pytest.mark.parametrize("env", c.Tests.ENVIRONMENTS)
     def test_valid_environments(self, env: str) -> None:
         """Test all valid environments."""
-        tm.that(TestsFlextCliConstants.Tests.VALID_ENVIRONMENTS, has=env)
+        tm.that(c.Tests.ENVIRONMENTS, has=env)
+        tm.that(env in c.Tests.ENVIRONMENT_SET, eq=True)
 
     def test_model_dump(self) -> None:
         """Test model_dump returns complete dict."""
