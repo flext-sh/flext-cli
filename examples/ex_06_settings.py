@@ -87,8 +87,7 @@ def show_settings_locations() -> m.Cli.DisplayData:
     """Display settings file locations for YOUR application. Returns DisplayData model."""
     home_dir = Path.home()
     settings_dir = home_dir / ".flext"
-    token_file_str = cli.settings.token_file or ""
-    token_file_path = Path(token_file_str)
+    token_file_path = u.Cli.auth_token_file_path(cli.settings.token_file)
     locations = {
         "Home Directory": str(home_dir),
         "Settings Directory": str(settings_dir),

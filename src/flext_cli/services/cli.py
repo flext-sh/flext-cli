@@ -142,6 +142,15 @@ class FlextCliCli(s):
         )
         if result.failure:
             self.logger.warning("failed to apply cli params", error=result.error or "")
+            return
+
+        updated_settings = result.value
+        if updated_settings is settings:
+            return
+        for field_name in type(updated_settings).model_fields:
+            value = getattr(updated_settings, field_name)
+            if getattr(settings, field_name) != value:
+                settings.apply_override(field_name, value)
 
     def create_app_with_common_params(
         self,

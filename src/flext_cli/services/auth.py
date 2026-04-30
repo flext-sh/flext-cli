@@ -39,7 +39,8 @@ class FlextCliAuth(FlextCliServiceBase):
         """Persist an authentication token using the public file facade."""
         if not token.strip():
             return r[bool].fail("Token cannot be empty")
-        token_file_path = u.Cli.auth_token_file_path(self.settings.token_file)
+        settings = self.settings
+        token_file_path = u.Cli.auth_token_file_path(settings.token_file)
         return FlextCliFileTools.write_json_file(
             token_file_path,
             {c.Cli.DICT_KEY_AUTH_TOKEN: token},

@@ -12,6 +12,16 @@ from flext_core.lazy import (
 )
 
 if _t.TYPE_CHECKING:
+    from flext_cli.__version__ import (
+        __author__,
+        __author_email__,
+        __description__,
+        __license__,
+        __title__,
+        __url__,
+        __version__,
+        __version_info__,
+    )
     from flext_cli._constants.base import FlextCliConstantsBase
     from flext_cli._constants.enums import FlextCliConstantsEnums
     from flext_cli._constants.errors import FlextCliConstantsErrors
@@ -86,6 +96,16 @@ _LAZY_IMPORTS = merge_lazy_imports(
     ),
     build_lazy_import_map(
         {
+            ".__version__": (
+                "__author__",
+                "__author_email__",
+                "__description__",
+                "__license__",
+                "__title__",
+                "__url__",
+                "__version__",
+                "__version_info__",
+            ),
             "._constants.base": ("FlextCliConstantsBase",),
             "._constants.enums": ("FlextCliConstantsEnums",),
             "._constants.errors": ("FlextCliConstantsErrors",),
@@ -262,6 +282,14 @@ __all__: list[str] = [
     "FlextCliUtilitiesToml",
     "FlextCliUtilitiesValidation",
     "FlextCliUtilitiesYaml",
+    "__author__",
+    "__author_email__",
+    "__description__",
+    "__license__",
+    "__title__",
+    "__url__",
+    "__version__",
+    "__version_info__",
     "c",
     "cli",
     "d",

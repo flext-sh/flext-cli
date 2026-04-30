@@ -10,19 +10,20 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from abc import ABC
 from typing import override
 
 from flext_cli import FlextCliSettings, p, r, t
 from flext_core import FlextSettings, s
 
 
-class FlextCliServiceBase(s[t.JsonMapping], ABC):
+class FlextCliServiceBase(s):
     """Base class for flext-cli services with typed configuration access.
 
     Note: This is an abstract base class. Subclasses must implement the
     `execute` method from s.
     """
+
+    _cached_settings: FlextCliSettings | None = None
 
     @override
     def execute(self) -> p.Result[t.JsonMapping]:
@@ -34,7 +35,12 @@ class FlextCliServiceBase(s[t.JsonMapping], ABC):
     @override
     def settings(self) -> FlextCliSettings:
         """Return the typed CLI settings namespace."""
-        return FlextSettings.fetch_global().fetch_namespace("cli", FlextCliSettings)
+        if self._cached_settings is None:
+            self._cached_settings = FlextSettings.fetch_global().fetch_namespace(
+                "cli",
+                FlextCliSettings,
+            )
+        return self._cached_settings
 
 
 s = FlextCliServiceBase

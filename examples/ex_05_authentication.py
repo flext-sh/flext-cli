@@ -27,9 +27,8 @@ from __future__ import annotations
 import os
 import secrets
 import time
-from pathlib import Path
 
-from flext_cli import c, cli, m, t
+from flext_cli import c, cli, m, t, u
 from flext_core import p, r
 
 
@@ -46,10 +45,9 @@ def login_to_service(username: str, password: str) -> bool:
         )
         return False
     settings = cli.settings
+    token_file_path = u.Cli.auth_token_file_path(settings.token_file)
     cli.print("✅ Login successful!", style=c.Cli.MessageStyles.GREEN)
-    cli.print(
-        f"   Token saved to: {settings.token_file}", style=c.Cli.MessageStyles.CYAN
-    )
+    cli.print(f"   Token saved to: {token_file_path}", style=c.Cli.MessageStyles.CYAN)
     return True
 
 
@@ -95,8 +93,10 @@ def validate_current_token() -> bool:
     if len(token) < 20:
         cli.print("❌ Invalid token format", style=c.Cli.MessageStyles.BOLD_RED)
         return False
+    token_file_path = u.Cli.auth_token_file_path(cli.settings.token_file)
     cli.print("✅ Token is valid", style=c.Cli.MessageStyles.GREEN)
     cli.print(f"   Token: {token[:30]}...", style=c.Cli.MessageStyles.CYAN)
+    cli.print(f"   Token file: {token_file_path}", style=c.Cli.MessageStyles.CYAN)
     return True
 
 
@@ -131,8 +131,7 @@ def show_session_info() -> None:
         cli.print("❌ Not authenticated", style=c.Cli.MessageStyles.BOLD_RED)
         return
     token = token_result.value
-    token_file_str = cli.settings.token_file or ""
-    token_file_path = Path(token_file_str)
+    token_file_path = u.Cli.auth_token_file_path(cli.settings.token_file)
     session_data = m.Cli.DisplayData(
         data={
             "User": os.getenv("USER", "unknown"),
@@ -163,8 +162,7 @@ def show_session_info() -> None:
 
 def logout() -> None:
     """Logout and clear token in YOUR CLI."""
-    token_file_str = cli.settings.token_file or ""
-    token_file_path = Path(token_file_str)
+    token_file_path = u.Cli.auth_token_file_path(cli.settings.token_file)
     if not token_file_path.exists():
         cli.print("⚠️  No active session", style=c.Cli.MessageStyles.YELLOW)
         return
