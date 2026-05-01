@@ -200,7 +200,7 @@ from flext_core import FlextLogger
 def test_with_debug() -> None:
     """Use the structured FLEXT logger for in-test diagnostics."""
     logger = FlextLogger.fetch_logger("troubleshoot.test_with_debug")
-    result = my_function()  # noqa: F821 - illustrative call
+    result = my_function()
     logger.info(
         "test_result",
         success=bool(result.success),

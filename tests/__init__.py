@@ -31,7 +31,9 @@ if _t.TYPE_CHECKING:
     from tests.unit.test_cmd_cov import TestsFlextCliCmdCov
     from tests.unit.test_commands import TestsFlextCliCommands
     from tests.unit.test_constants import TestsFlextCliConstantsUnit
+    from tests.unit.test_conversion_cov import TestsFlextCliConversionCov
     from tests.unit.test_examples_smoke import TestsFlextCliExamplesSmoke
+    from tests.unit.test_files_cov import TestsFlextCliFilesCov
     from tests.unit.test_pipeline import TestsFlextCliPipeline
     from tests.unit.test_prompts import TestsFlextCliPrompts
     from tests.unit.test_prompts_cov import TestsFlextCliPromptsCov
@@ -80,7 +82,9 @@ _LAZY_IMPORTS = merge_lazy_imports(
             ".unit.test_cmd_cov": ("TestsFlextCliCmdCov",),
             ".unit.test_commands": ("TestsFlextCliCommands",),
             ".unit.test_constants": ("TestsFlextCliConstantsUnit",),
+            ".unit.test_conversion_cov": ("TestsFlextCliConversionCov",),
             ".unit.test_examples_smoke": ("TestsFlextCliExamplesSmoke",),
+            ".unit.test_files_cov": ("TestsFlextCliFilesCov",),
             ".unit.test_pipeline": ("TestsFlextCliPipeline",),
             ".unit.test_prompts": ("TestsFlextCliPrompts",),
             ".unit.test_prompts_cov": ("TestsFlextCliPromptsCov",),
@@ -147,8 +151,10 @@ __all__: list[str] = [
     "TestsFlextCliCommonParams",
     "TestsFlextCliConstants",
     "TestsFlextCliConstantsUnit",
+    "TestsFlextCliConversionCov",
     "TestsFlextCliExamplesSmoke",
     "TestsFlextCliFailingLogPrompts",
+    "TestsFlextCliFilesCov",
     "TestsFlextCliModels",
     "TestsFlextCliPipeline",
     "TestsFlextCliPrompts",
