@@ -44,25 +44,25 @@ class TestsFlextCliServicesCommandsCov:
     def test_register_handler_valid(self) -> None:
         svc = FlextCliCommands.create(name="app")
         result = svc.register_handler(
-            "run", lambda: r[t.JsonValue].ok({"status": "ok"})
+            "run", lambda: r[t.JsonPayload].ok({"status": "ok"})
         )
         assert result.success
 
     def test_register_handler_empty_name(self) -> None:
         svc = FlextCliCommands.create(name="app")
-        result = svc.register_handler("", lambda: None)
+        result = svc.register_handler("", lambda: r[t.JsonPayload].fail(""))
         assert result.failure
 
     def test_register_handler_whitespace_name(self) -> None:
         svc = FlextCliCommands.create(name="app")
-        result = svc.register_handler("   ", lambda: None)
+        result = svc.register_handler("   ", lambda: r[t.JsonPayload].fail(""))
         assert result.failure
 
     # ── execute_command ───────────────────────────────────────────────
 
     def test_execute_command_registered(self) -> None:
         svc = FlextCliCommands.create(name="app")
-        svc.register_handler("do-thing", lambda: r[t.JsonValue].ok({"done": True}))
+        svc.register_handler("do-thing", lambda: r[t.JsonPayload].ok({"done": True}))
         result = svc.execute_command("do-thing")
         assert result.success
 
@@ -85,7 +85,7 @@ class TestsFlextCliServicesCommandsCov:
         svc = FlextCliCommands.create(name="app")
         svc.register_handler(
             "greet",
-            lambda greet_name="world": r[t.JsonValue].ok({
+            lambda greet_name="world": r[t.JsonPayload].ok({
                 "msg": f"hello {greet_name}"
             }),
         )
@@ -94,7 +94,7 @@ class TestsFlextCliServicesCommandsCov:
 
     def test_execute_command_with_args(self) -> None:
         svc = FlextCliCommands.create(name="app")
-        svc.register_handler("echo", lambda x: r[t.JsonValue].ok({"echo": x}))
+        svc.register_handler("echo", lambda x: r[t.JsonPayload].ok({"echo": x}))
         result = svc.execute_command("echo", args=["hello"])
         assert result.success
 
@@ -108,8 +108,8 @@ class TestsFlextCliServicesCommandsCov:
 
     def test_list_commands_populated(self) -> None:
         svc = FlextCliCommands.create(name="app")
-        svc.register_handler("cmd1", lambda: r[t.JsonValue].ok({"cmd": 1}))
-        svc.register_handler("cmd2", lambda: r[t.JsonValue].ok({"cmd": 2}))
+        svc.register_handler("cmd1", lambda: r[t.JsonPayload].ok({"cmd": 1}))
+        svc.register_handler("cmd2", lambda: r[t.JsonPayload].ok({"cmd": 2}))
         result = svc.list_commands()
         assert result.success
         assert set(result.value) == {"cmd1", "cmd2"}
@@ -138,7 +138,7 @@ class TestsFlextCliServicesCommandsCov:
 
     def test_run_cli_registered_command(self) -> None:
         svc = FlextCliCommands.create(name="app")
-        svc.register_handler("deploy", lambda: r[t.JsonValue].ok({"deployed": True}))
+        svc.register_handler("deploy", lambda: r[t.JsonPayload].ok({"deployed": True}))
         result = svc.run_cli(["deploy"])
         assert result.success
 

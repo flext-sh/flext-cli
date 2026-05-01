@@ -107,8 +107,13 @@ class TestsFlextCliRulesUtilsCov:
                 registry_filename="engine-registry.yml",
             )
             assert result.success
-            assert isinstance(result.value, dict)
-            assert result.value["rules"][0]["id"] == "rule-a"
+            value = result.value
+            assert isinstance(value, dict)
+            rules = value["rules"]
+            assert isinstance(rules, list)
+            rule = rules[0]
+            assert isinstance(rule, dict)
+            assert rule["id"] == "rule-a"
 
     def test_rules_load_registry_not_found(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:

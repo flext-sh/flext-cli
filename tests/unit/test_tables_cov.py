@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from flext_cli import c as c_cli
 from flext_cli._utilities.tables import FlextCliUtilitiesTables
+from flext_core import t
 from tests import m
 
 
@@ -67,7 +68,7 @@ class TestsFlextCliTableUtilsCov:
     # ── tables_normalize_data ─────────────────────────────────────────
 
     def test_tables_normalize_data_mapping(self) -> None:
-        data: dict[str, object] = {"key": "val", "num": 42}
+        data: dict[str, t.JsonPayload] = {"key": "val", "num": 42}
         result = FlextCliUtilitiesTables.tables_normalize_data(data)
         assert result.success
         rows = list(result.value)
@@ -92,14 +93,17 @@ class TestsFlextCliTableUtilsCov:
 
     def test_tables_render_mapping_rows(self) -> None:
         config = m.Cli.TableConfig()
-        rows: list[object] = [{"Key": "a", "Value": 1}, {"Key": "b", "Value": 2}]
+        rows: list[dict[str, t.JsonPayload]] = [
+            {"Key": "a", "Value": 1},
+            {"Key": "b", "Value": 2},
+        ]
         result = FlextCliUtilitiesTables.tables_render(rows, config)
         assert result.success
         assert isinstance(result.value, str)
 
     def test_tables_render_sequence_rows(self) -> None:
         config = m.Cli.TableConfig(table_format=c_cli.Cli.TabularFormat.PLAIN)
-        rows: list[object] = [["a", 1], ["b", 2]]
+        rows: list[list[t.JsonPayload]] = [["a", 1], ["b", 2]]
         result = FlextCliUtilitiesTables.tables_render(rows, config)
         assert result.success
 

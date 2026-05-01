@@ -2,19 +2,10 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-
 from flext_cli import c, t
 from flext_cli._utilities.commands import FlextCliUtilitiesCommands
 from flext_core import r
 from tests import c as test_c
-
-
-@dataclass
-class MessageCarrier:
-    """Simple carrier exposing a message attribute."""
-
-    message: str
 
 
 class TestsFlextCliCommandsUtilsCov:
@@ -57,17 +48,9 @@ class TestsFlextCliCommandsUtilsCov:
         result = FlextCliUtilitiesCommands.commands_resolve_success_message(
             result_value=7,
             success_message="fallback",
-            success_formatter=lambda value: value * 2,
+            success_formatter=lambda value: str(value * 2),
         )
         assert result == "14"
-
-    def test_commands_resolve_success_message_from_attribute(self) -> None:
-        result = FlextCliUtilitiesCommands.commands_resolve_success_message(
-            result_value=MessageCarrier(message="done"),
-            success_message="fallback",
-            success_formatter=None,
-        )
-        assert result == "done"
 
     def test_commands_resolve_success_message_from_string(self) -> None:
         result = FlextCliUtilitiesCommands.commands_resolve_success_message(

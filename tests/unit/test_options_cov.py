@@ -92,10 +92,10 @@ class TestsFlextCliOptionsUtilsCov:
     @pytest.mark.parametrize(("annotation", "expected"), ANNOTATION_CASES)
     def test_resolve_typer_annotation_cases(
         self,
-        annotation: object,
+        annotation: t.Cli.RuntimeAnnotation,
         expected: object,
     ) -> None:
-        result = FlextCliUtilitiesOptions.resolve_typer_annotation(annotation)  # pyright: ignore[reportArgumentType]
+        result = FlextCliUtilitiesOptions.resolve_typer_annotation(annotation)
         assert result == expected
 
     @pytest.mark.parametrize(
@@ -112,8 +112,8 @@ class TestsFlextCliOptionsUtilsCov:
     def test_is_string_sequence_false_for_path(self) -> None:
         assert FlextCliUtilitiesOptions.is_string_sequence(Path("/tmp/demo")) is False
 
-    def test_is_string_sequence_false_for_non_string_items(self) -> None:
-        assert FlextCliUtilitiesOptions.is_string_sequence([1, 2]) is False
+    def test_is_string_sequence_false_for_mapping(self) -> None:
+        assert FlextCliUtilitiesOptions.is_string_sequence({"count": 1}) is False
 
     @pytest.mark.parametrize(
         ("value", "expected"),
