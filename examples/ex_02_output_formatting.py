@@ -36,9 +36,7 @@ from __future__ import annotations
 import pathlib
 import time
 from collections.abc import (
-    Mapping,
     MutableSequence,
-    Sequence,
 )
 from pathlib import Path
 
@@ -53,7 +51,7 @@ def your_cli_function() -> None:
     cli.print("ℹ️  Processing 100 records...", style=c.Cli.MessageStyles.CYAN)
 
 
-def display_database_results(records: Sequence[t.Cli.TableMappingRow]) -> None:
+def display_database_results(records: t.SequenceOf[t.Cli.TableMappingRow]) -> None:
     """Display database query results as a table."""
     if not records:
         cli.print("No results found", style=c.Cli.MessageStyles.YELLOW)
@@ -66,7 +64,7 @@ def display_database_results(records: Sequence[t.Cli.TableMappingRow]) -> None:
 
 
 def export_report(
-    data: Sequence[t.Cli.TableMappingRow],
+    data: t.SequenceOf[t.Cli.TableMappingRow],
     format_type: c.Cli.TabularFormat = c.Cli.TabularFormat.TABLE,
 ) -> p.Result[str]:
     """Create ASCII tables for logs/reports in your app."""
@@ -127,7 +125,7 @@ def monitor_live_metrics() -> None:
         cpu = 45 + i % 40
         memory = 55 + i % 35
         requests = 150 + i * 10
-        metrics_data: Sequence[t.JsonMapping] = [
+        metrics_data: t.SequenceOf[t.JsonMapping] = [
             {
                 "Metric": "CPU Usage",
                 "Value": f"{cpu}%",
@@ -145,7 +143,7 @@ def monitor_live_metrics() -> None:
     cli.print("✅ Monitoring session complete", style=c.Cli.MessageStyles.GREEN)
 
 
-def display_with_panels(data: Mapping[str, t.JsonPayloadCollectionValue]) -> None:
+def display_with_panels(data: t.MappingKV[str, t.JsonPayloadCollectionValue]) -> None:
     """Display content in organized sections."""
 
     def panel_text(value: t.JsonPayloadCollectionValue) -> str:
@@ -192,7 +190,7 @@ def main() -> None:
     )
     your_cli_function()
     cli.print("\n2. Rich Tables (display data):", style=c.Cli.MessageStyles.BOLD_CYAN)
-    sample_data: Sequence[t.Cli.TableMappingRow] = [
+    sample_data: t.SequenceOf[t.Cli.TableMappingRow] = [
         {"id": 1, "name": "Alice", "status": "active"},
         {"id": 2, "name": "Bob", "status": "inactive"},
     ]

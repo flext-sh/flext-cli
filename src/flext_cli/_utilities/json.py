@@ -121,7 +121,7 @@ class FlextCliUtilitiesJson:
     @staticmethod
     def json_as_sequence(
         value: t.JsonPayload | None,
-    ) -> Sequence[t.JsonValue]:
+    ) -> t.SequenceOf[t.JsonValue]:
         """Normalize any JSON-compatible value into a JSON sequence."""
         if value is None:
             return []
@@ -129,8 +129,8 @@ class FlextCliUtilitiesJson:
         if not isinstance(normalized, Sequence) or isinstance(normalized, str | bytes):
             return []
         try:
-            validated: Sequence[t.JsonValue] = t.Cli.JSON_LIST_ADAPTER.validate_python(
-                normalized
+            validated: t.SequenceOf[t.JsonValue] = (
+                t.Cli.JSON_LIST_ADAPTER.validate_python(normalized)
             )
         except c.ValidationError:
             return []
@@ -139,7 +139,7 @@ class FlextCliUtilitiesJson:
     @staticmethod
     def json_as_mapping_list(
         value: t.JsonPayload | None,
-    ) -> Sequence[t.JsonMapping]:
+    ) -> t.SequenceOf[t.JsonMapping]:
         """Normalize any JSON-compatible value into a list of mappings."""
         if value is None:
             return []
@@ -190,7 +190,7 @@ class FlextCliUtilitiesJson:
     def json_deep_mapping_list(
         data: t.JsonMapping,
         *keys: str,
-    ) -> Sequence[t.JsonMapping]:
+    ) -> t.SequenceOf[t.JsonMapping]:
         """Navigate nested mappings and normalize the final node as mapping list."""
         raw = FlextCliUtilitiesJson.json_walk_path(data, keys)
         return FlextCliUtilitiesJson.json_as_mapping_list(raw)

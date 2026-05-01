@@ -9,9 +9,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import (
-    Sequence,
-)
 from pathlib import Path
 from typing import ClassVar
 
@@ -90,7 +87,7 @@ class FlextCliUtilitiesYaml:
         )
 
     @staticmethod
-    def yaml_load_list(path: Path) -> Sequence[t.JsonValue]:
+    def yaml_load_list(path: Path) -> t.SequenceOf[t.JsonValue]:
         """Load YAML file expecting a list at top level."""
         if not path.is_file():
             return []
@@ -102,8 +99,10 @@ class FlextCliUtilitiesYaml:
         if not isinstance(parsed, list):
             return []
         try:
-            validated: Sequence[t.JsonValue] = t.Cli.YAML_SEQ_ADAPTER.validate_python(
-                parsed,
+            validated: t.SequenceOf[t.JsonValue] = (
+                t.Cli.YAML_SEQ_ADAPTER.validate_python(
+                    parsed,
+                )
             )
         except c.ValidationError:
             return []

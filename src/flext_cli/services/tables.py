@@ -35,7 +35,7 @@ class FlextCliTables(s):
         normalized_result = u.Cli.tables_normalize_data(data)
         if normalized_result.failure:
             return r[str].fail(normalized_result.error or "Table normalization failed")
-        normalized_rows: Sequence[t.Cli.TableRow] = normalized_result.value
+        normalized_rows: t.SequenceOf[t.Cli.TableRow] = normalized_result.value
         return u.Cli.tables_render(normalized_rows, config_final)
 
     @staticmethod

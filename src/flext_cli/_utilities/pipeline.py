@@ -3,10 +3,6 @@
 from __future__ import annotations
 
 import time
-from collections.abc import (
-    Mapping,
-    Sequence,
-)
 from graphlib import CycleError, TopologicalSorter
 from typing import ClassVar
 
@@ -21,7 +17,7 @@ class FlextCliUtilitiesPipeline:
 
     @staticmethod
     def execute_pipeline(
-        stages: Sequence[m.Cli.PipelineStageSpec],
+        stages: t.SequenceOf[m.Cli.PipelineStageSpec],
         context: m.Cli.PipelineStageContext,
         *,
         fail_fast: bool = c.Cli.PIPELINE_DEFAULT_FAIL_FAST,
@@ -42,7 +38,7 @@ class FlextCliUtilitiesPipeline:
             )
 
         # Build stage lookup and dependency graph.
-        stage_map: Mapping[str, m.Cli.PipelineStageSpec] = {
+        stage_map: t.MappingKV[str, m.Cli.PipelineStageSpec] = {
             s.stage_id: s for s in stages
         }
 

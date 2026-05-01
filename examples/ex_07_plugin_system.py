@@ -31,9 +31,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import (
-    Mapping,
     MutableMapping,
-    Sequence,
 )
 from pathlib import Path
 
@@ -76,7 +74,7 @@ class ReportGeneratorPlugin:
         self.version = "1.0.0"
 
     @staticmethod
-    def execute(data: Sequence[t.JsonMapping]) -> p.Result[str]:
+    def execute(data: t.SequenceOf[t.JsonMapping]) -> p.Result[str]:
         """Generate report from data in YOUR CLI."""
         table_result = cli.format_table(data, table_format=c.Cli.TabularFormat.GRID)
         if table_result.failure:
@@ -145,7 +143,7 @@ class MyAppPluginManager:
             name: resolve_plugin_version(plugin)
             for name, plugin in self.plugins.items()
         }
-        rows: Sequence[t.JsonMapping] = [
+        rows: t.SequenceOf[t.JsonMapping] = [
             {"Plugin": name, "Version": ver} for name, ver in plugin_items.items()
         ]
         cli.show_table(rows, headers=["Plugin", "Version"])
@@ -182,11 +180,13 @@ def load_plugins_from_directory(plugin_dir: Path) -> MyAppPluginManager:
 class ConfigurablePlugin:
     """Example of configurable plugin for YOUR CLI."""
 
-    def __init__(self, settings: Mapping[str, t.JsonPayloadCollectionValue]) -> None:
+    def __init__(
+        self, settings: t.MappingKV[str, t.JsonPayloadCollectionValue]
+    ) -> None:
         """Initialize configurable plugin with configuration dictionary."""
         super().__init__()
         self.name = "configurable-plugin"
-        self.settings: Mapping[str, t.JsonPayloadCollectionValue] = settings
+        self.settings: t.MappingKV[str, t.JsonPayloadCollectionValue] = settings
 
     def execute(self) -> p.Result[t.JsonMapping]:
         """Execute with configuration in YOUR CLI."""
@@ -262,7 +262,7 @@ def main() -> None:
     cli.print(
         "\n4. Report Plugin (table generation):", style=c.Cli.MessageStyles.BOLD_CYAN
     )
-    report_data: Sequence[t.JsonMapping] = [
+    report_data: t.SequenceOf[t.JsonMapping] = [
         {"metric": "Users", "value": "1,234"},
         {"metric": "Orders", "value": "567"},
     ]

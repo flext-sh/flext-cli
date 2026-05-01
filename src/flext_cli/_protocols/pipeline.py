@@ -2,9 +2,6 @@
 
 from __future__ import annotations
 
-from collections.abc import (
-    Sequence,
-)
 from pathlib import Path
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
@@ -53,7 +50,7 @@ class FlextCliProtocolsPipeline:
 
         def execute(
             self,
-            stages: Sequence[FlextCliModelsPipeline.PipelineStageSpec],
+            stages: t.SequenceOf[FlextCliModelsPipeline.PipelineStageSpec],
             context: FlextCliProtocolsPipeline.PipelineStageContext,
             *,
             fail_fast: bool = True,

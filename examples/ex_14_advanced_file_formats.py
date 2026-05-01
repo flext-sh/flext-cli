@@ -38,7 +38,7 @@ from pathlib import Path
 from flext_cli import c, cli, m, p, t, u
 
 
-def export_to_csv(data: Sequence[t.JsonMapping], output_file: Path) -> None:
+def export_to_csv(data: t.SequenceOf[t.JsonMapping], output_file: Path) -> None:
     """Export data to CSV with proper headers."""
     if not data:
         cli.print("⚠️  No data to export", style=c.Cli.MessageStyles.YELLOW)
@@ -66,7 +66,7 @@ def export_to_csv(data: Sequence[t.JsonMapping], output_file: Path) -> None:
 
 def import_from_csv(
     input_file: Path,
-) -> Sequence[t.JsonMapping] | None:
+) -> t.SequenceOf[t.JsonMapping] | None:
     """Import data from CSV with headers."""
     cli.print(
         f"\n📥 Importing from CSV: {input_file.name}",
@@ -152,7 +152,7 @@ def load_any_format_file(file_path: Path) -> t.JsonMapping | None:
 
 
 def export_data_multi_format(
-    data: t.JsonMapping | Sequence[t.JsonMapping],
+    data: t.JsonMapping | t.SequenceOf[t.JsonMapping],
     base_path: Path,
 ) -> t.StrMapping:
     """Export same data to multiple formats (JSON, YAML, CSV)."""
@@ -284,13 +284,13 @@ def main() -> None:
     temp_dir.mkdir(exist_ok=True)
     cli.print("\n" + "=" * 70, style=c.Cli.MessageStyles.BOLD_BLUE)
     cli.print("1. CSV Export/Import:", style=c.Cli.MessageStyles.BOLD_CYAN)
-    sample_data: Sequence[t.JsonMapping] = [
+    sample_data: t.SequenceOf[t.JsonMapping] = [
         {"id": 1, "name": "Alice", "department": "Engineering", "salary": "100000"},
         {"id": 2, "name": "Bob", "department": "Sales", "salary": "80000"},
         {"id": 3, "name": "Charlie", "department": "Marketing", "salary": "90000"},
     ]
     csv_file = temp_dir / "employees.csv"
-    typed_sample_data: Sequence[t.JsonMapping] = [dict(row) for row in sample_data]
+    typed_sample_data: t.SequenceOf[t.JsonMapping] = [dict(row) for row in sample_data]
     export_to_csv(typed_sample_data, csv_file)
     import_from_csv(csv_file)
     cli.print("\n" + "=" * 70, style=c.Cli.MessageStyles.BOLD_BLUE)
@@ -314,7 +314,7 @@ def main() -> None:
     load_any_format_file(yaml_file)
     cli.print("\n" + "=" * 70, style=c.Cli.MessageStyles.BOLD_BLUE)
     cli.print("4. Multi-Format Export:", style=c.Cli.MessageStyles.BOLD_CYAN)
-    multi_data: Sequence[t.JsonMapping] = [
+    multi_data: t.SequenceOf[t.JsonMapping] = [
         {"metric": "CPU", "value": "75%", "status": "OK"},
         {"metric": "Memory", "value": "82%", "status": "Warning"},
         {"metric": "Disk", "value": "45%", "status": "OK"},

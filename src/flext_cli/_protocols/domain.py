@@ -8,7 +8,6 @@ from flext_cli import FlextCliProtocolsBase
 from flext_core import m
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
     from pathlib import Path
 
     from flext_cli import t
@@ -112,7 +111,7 @@ class FlextCliProtocolsDomain:
         error_count: int
         log_path: Path
         max_show: int
-        errors: Sequence[str]
+        errors: t.SequenceOf[str]
 
 
 __all__: list[str] = ["FlextCliProtocolsDomain"]

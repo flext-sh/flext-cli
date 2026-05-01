@@ -33,7 +33,7 @@ class ExamplesFlextCliModels(m):
         def merge_env_overrides(
             data: t.ExampleModelInput,
             env_fields: t.StrMapping,
-            field_types: Mapping[str, t.TypeHintSpecifier],
+            field_types: t.MappingKV[str, t.TypeHintSpecifier],
         ) -> t.ExampleModelInput:
             """Merge explicit input with environment overrides using Pydantic coercion."""
             if not isinstance(data, Mapping):

@@ -2,9 +2,6 @@
 
 from __future__ import annotations
 
-from collections.abc import (
-    Sequence,
-)
 from typing import ClassVar
 
 from rich.console import Console
@@ -22,7 +19,7 @@ class FlextCliUtilitiesFormatters:
         """Typed table render input envelope."""
 
         columns: t.StrSequence
-        rows: Sequence[t.StrSequence]
+        rows: t.SequenceOf[t.StrSequence]
         title: str = ""
 
     _console: ClassVar[t.Cli.RichConsoleType] = Console()

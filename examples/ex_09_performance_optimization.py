@@ -33,9 +33,6 @@ from __future__ import annotations
 import pathlib
 import tempfile
 import time
-from collections.abc import (
-    Sequence,
-)
 from functools import lru_cache
 
 from flext_cli import c, cli, t
@@ -91,10 +88,10 @@ class LazyDataLoader:
     def __init__(self) -> None:
         """Initialize lazy data loader with deferred data loading."""
         super().__init__()
-        self._data: Sequence[int] | None = None
+        self._data: t.SequenceOf[int] | None = None
 
     @property
-    def data(self) -> Sequence[int]:
+    def data(self) -> t.SequenceOf[int]:
         """Load data only when needed."""
         if self._data is None:
             cli.print(
@@ -126,7 +123,7 @@ def demonstrate_lazy_loading() -> None:
 
 
 def efficient_table_display(
-    large_dataset: Sequence[t.JsonMapping],
+    large_dataset: t.SequenceOf[t.JsonMapping],
 ) -> None:
     """Display large tables efficiently in YOUR CLI."""
     preview_size = _PERF_TABLE_PREVIEW_SIZE
@@ -145,7 +142,7 @@ def efficient_table_display(
 
 
 def process_large_dataset(
-    items: Sequence[int],
+    items: t.SequenceOf[int],
     batch_size: int = _PERF_DEFAULT_BATCH_SIZE,
 ) -> None:
     """Process large datasets in batches in YOUR CLI."""
@@ -198,12 +195,12 @@ def main() -> None:
     demonstrate_caching()
     demonstrate_lazy_loading()
     cli.print("\n4. Efficient Table Display:", style=c.Cli.MessageStyles.BOLD_CYAN)
-    large_data: Sequence[t.JsonMapping] = [
+    large_data: t.SequenceOf[t.JsonMapping] = [
         {"id": i, "name": f"Item {i}"} for i in range(_PERF_DATASET_SIZE)
     ]
     efficient_table_display(large_data)
     cli.print("\n5. Batch Processing:", style=c.Cli.MessageStyles.BOLD_CYAN)
-    items: Sequence[int] = list(range(_PERF_ITEMS_SIZE))
+    items: t.SequenceOf[int] = list(range(_PERF_ITEMS_SIZE))
     process_large_dataset(items, batch_size=_PERF_DEFAULT_BATCH_SIZE)
     cli.print(
         "\n6. Memory-Efficient File Streaming:", style=c.Cli.MessageStyles.BOLD_CYAN

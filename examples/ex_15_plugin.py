@@ -10,10 +10,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import (
-    Mapping,
-)
-
 from examples import c, p, r, t
 
 
@@ -36,7 +32,7 @@ class ExamplePlugin:
         """Initialize plugin."""
         super().__init__()
         self._initialized = False
-        self.config: Mapping[str, bool | int] = {}
+        self.config: t.MappingKV[str, bool | int] = {}
 
     def initialize(self, _cli: p.CliMainWithGroups) -> p.Result[bool]:
         """Initialize the plugin.

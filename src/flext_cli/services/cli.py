@@ -9,7 +9,6 @@ from __future__ import annotations
 import sys
 from collections.abc import (
     Mapping,
-    MutableSequence,
     Sequence,
 )
 from inspect import Parameter, Signature
@@ -56,7 +55,7 @@ class FlextCliCli(s):
             settings: m.BaseModel | None,
             handler: p.Cli.ModelCommandHandler[M],
             model_cls: type[M],
-            parameters: Sequence[Parameter],
+            parameters: t.SequenceOf[Parameter],
         ) -> None:
             self.__name__ = getattr(handler, "__name__", model_cls.__name__)
             self.__signature__ = Signature(parameters)
@@ -169,7 +168,7 @@ class FlextCliCli(s):
             return True
 
         field_names = ("debug", "trace", "verbose", "quiet", "log_level")
-        parameters: MutableSequence[Parameter] = []
+        parameters: t.MutableSequenceOf[Parameter] = []
         annotations: t.Cli.CliAnnotations = {"return": bool}
         for field_name in field_names:
             parameter, annotation = self._build_model_parameter(
@@ -216,7 +215,7 @@ class FlextCliCli(s):
         settings: m.BaseModel | None = None,
     ) -> t.Cli.CliCommand:
         """Build a Typer command directly from a Pydantic request model."""
-        parameters: MutableSequence[Parameter] = []
+        parameters: t.MutableSequenceOf[Parameter] = []
         annotations: t.Cli.CliAnnotations = {"return": type(None)}
         fields = getattr(model_cls, "model_fields", {})
         for field_name, field_info in fields.items():
@@ -419,7 +418,7 @@ class FlextCliCli(s):
     def register_result_routes(
         cls,
         app: t.Cli.CliApp,
-        routes: Sequence[m.Cli.ResultCommandRoute],
+        routes: t.SequenceOf[m.Cli.ResultCommandRoute],
     ) -> None:
         """Register multiple heterogeneous result routes in one call."""
         for route in routes:

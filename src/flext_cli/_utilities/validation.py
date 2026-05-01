@@ -3,9 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import (
-    Mapping,
     MutableMapping,
-    MutableSequence,
 )
 from typing import ClassVar
 
@@ -20,19 +18,19 @@ class FlextCliUtilitiesValidation:
 
     @staticmethod
     def process_mapping[T, U](
-        items: Mapping[str, T],
+        items: t.MappingKV[str, T],
         processor: t.Cli.MappingProcessor[T, U],
         on_error: str = "fail",
-    ) -> p.Result[Mapping[str, U]]:
+    ) -> p.Result[t.MappingKV[str, U]]:
         """Process a mapping of items with canonical error handling."""
-        errors: MutableSequence[str] = []
+        errors: t.MutableSequenceOf[str] = []
         values: MutableMapping[str, U] = {}
         for key, value in items.items():
             try:
                 values[key] = processor(key, value)
             except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
                 if on_error == "fail":
-                    return r[Mapping[str, U]].fail(f"Error processing {key}: {exc}")
+                    return r[t.MappingKV[str, U]].fail(f"Error processing {key}: {exc}")
                 if on_error == "collect":
                     errors.append(f"{key}: {exc}")
                 else:
@@ -41,9 +39,9 @@ class FlextCliUtilitiesValidation:
                         exc_info=False,
                     )
         return (
-            r[Mapping[str, U]].fail("; ".join(errors))
+            r[t.MappingKV[str, U]].fail("; ".join(errors))
             if errors
-            else r[Mapping[str, U]].ok(values)
+            else r[t.MappingKV[str, U]].ok(values)
         )
 
     @staticmethod

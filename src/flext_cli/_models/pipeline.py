@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from collections.abc import (
     Callable,
-    Sequence,
 )
 from pathlib import Path
 from types import MappingProxyType
@@ -118,7 +117,7 @@ class FlextCliModelsPipeline:
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid")
 
         stages: Annotated[
-            Sequence[FlextCliModelsPipeline.PipelineStageResult],
+            t.SequenceOf[FlextCliModelsPipeline.PipelineStageResult],
             m.Field(
                 default_factory=tuple, description="Results from all executed stages"
             ),
@@ -137,7 +136,9 @@ class FlextCliModelsPipeline:
 
         @u.computed_field()
         @property
-        def failed_stages(self) -> Sequence[FlextCliModelsPipeline.PipelineStageResult]:
+        def failed_stages(
+            self,
+        ) -> t.SequenceOf[FlextCliModelsPipeline.PipelineStageResult]:
             """Return only failed stage results."""
             return [
                 s for s in self.stages if s.status == c.Cli.PipelineStageStatus.FAILED
@@ -147,7 +148,7 @@ class FlextCliModelsPipeline:
         @property
         def skipped_stages(
             self,
-        ) -> Sequence[FlextCliModelsPipeline.PipelineStageResult]:
+        ) -> t.SequenceOf[FlextCliModelsPipeline.PipelineStageResult]:
             """Return only skipped stage results."""
             return [
                 s for s in self.stages if s.status == c.Cli.PipelineStageStatus.SKIPPED

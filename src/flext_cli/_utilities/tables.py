@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from collections.abc import (
     Mapping,
-    MutableSequence,
     Sequence,
 )
 from typing import ClassVar
@@ -78,7 +77,7 @@ class FlextCliUtilitiesTables:
                 for key, value in validated_mapping.items()
             ])
 
-        normalized_rows: MutableSequence[t.Cli.TableRow] = []
+        normalized_rows: t.MutableSequenceOf[t.Cli.TableRow] = []
         for row in validated_data:
             if isinstance(row, Mapping):
                 normalized_rows.append(
@@ -98,7 +97,7 @@ class FlextCliUtilitiesTables:
 
     @staticmethod
     def tables_render(
-        rows: Sequence[t.Cli.TableRow],
+        rows: t.SequenceOf[t.Cli.TableRow],
         settings: m.Cli.TableConfig,
     ) -> p.Result[str]:
         """Render normalized rows to a tabulated string."""
@@ -125,9 +124,9 @@ class FlextCliUtilitiesTables:
             colalign = colalign[:column_count]
 
         try:
-            table_data: Sequence[t.Cli.TableRow] | Sequence[t.Cli.TableSequenceRow] = (
-                rows
-            )
+            table_data: (
+                t.SequenceOf[t.Cli.TableRow] | t.SequenceOf[t.Cli.TableSequenceRow]
+            ) = rows
             table_headers: str | t.StrSequence = headers
             if (
                 rows

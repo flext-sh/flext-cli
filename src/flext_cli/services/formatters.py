@@ -10,8 +10,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Sequence
-
 from flext_cli import FlextCliServiceBase, p, t, u
 
 
@@ -42,7 +40,7 @@ class FlextCliFormatters(FlextCliServiceBase):
     def render_table(
         cls,
         columns: t.StrSequence,
-        rows: Sequence[t.StrSequence],
+        rows: t.SequenceOf[t.StrSequence],
         *,
         title: str = "",
     ) -> None:

@@ -4,9 +4,7 @@ from __future__ import annotations
 
 from collections.abc import (
     Callable,
-    Mapping,
     MutableMapping,
-    Sequence,
 )
 from pathlib import Path
 
@@ -24,39 +22,41 @@ from flext_core import m, t
 class FlextCliTypesDomain:
     """Composite CLI aliases built from canonical protocols and core types."""
 
-    type ResultValue = t.JsonPayload | Sequence[t.JsonPayload]
-    type RuleDefinitions = Sequence[t.JsonMapping]
+    type ResultValue = t.JsonPayload | t.SequenceOf[t.JsonPayload]
+    type RuleDefinitions = t.SequenceOf[t.JsonMapping]
     type RuleMatcher = tuple[
         frozenset[str],
         frozenset[str],
         frozenset[str],
         frozenset[str],
     ]
-    type RuleMatchers = Sequence[RuleMatcher]
-    type RuleCatalog[TKind] = Mapping[
+    type RuleMatchers = t.SequenceOf[RuleMatcher]
+    type RuleCatalog[TKind] = t.MappingKV[
         TKind,
-        Sequence[tuple[frozenset[str], frozenset[str], frozenset[str], frozenset[str]]],
+        t.SequenceOf[
+            tuple[frozenset[str], frozenset[str], frozenset[str], frozenset[str]]
+        ],
     ]
     type MatchedRuleDefinition[TKind] = tuple[TKind, t.JsonMapping]
-    type MatchedRuleDefinitions[TKind] = Sequence[tuple[TKind, t.JsonMapping]]
+    type MatchedRuleDefinitions[TKind] = t.SequenceOf[tuple[TKind, t.JsonMapping]]
     type RuleLoadResult[TRuleKind, TFileRuleKind] = tuple[
-        Sequence[tuple[TRuleKind, t.JsonMapping]],
-        Sequence[tuple[TFileRuleKind, t.JsonMapping]],
+        t.SequenceOf[tuple[TRuleKind, t.JsonMapping]],
+        t.SequenceOf[tuple[TFileRuleKind, t.JsonMapping]],
     ]
     type MutableDefaultMapping = MutableMapping[
         str,
         t.Scalar | t.StrSequence,
     ]
     type CliParamValue = bool | str
-    type CliParamKwargs = Mapping[str, CliParamValue]
+    type CliParamKwargs = t.MappingKV[str, CliParamValue]
     type DefaultAtom = t.Scalar | t.StrSequence
     type ProjectNamesValue = str | t.StrSequence
     type TableHeaders = str | t.StrSequence
     type IntTextValue = int | str
     type ModelSource = m.BaseModel | t.ScalarMapping
-    type OptionRegistry = Mapping[
+    type OptionRegistry = t.MappingKV[
         str,
-        Mapping[str, t.Scalar | t.StrSequence],
+        t.MappingKV[str, t.Scalar | t.StrSequence],
     ]
     type NullaryOperation[T] = Callable[[], T]
     type PromptTextReader = Callable[[str], str]
@@ -69,7 +69,7 @@ class FlextCliTypesDomain:
     )
     type TomlUnwrappedSource = t.JsonPayload | t.JsonMapping | Item
     type TomlStringListSource = (
-        TomlUnwrappedSource | Sequence[t.JsonPayload] | Sequence[t.Primitives]
+        TomlUnwrappedSource | t.SequenceOf[t.JsonPayload] | t.SequenceOf[t.Primitives]
     )
     type TomlRuntimeSource = (
         TOMLDocument
@@ -83,7 +83,7 @@ class FlextCliTypesDomain:
     )
     type TypeKind = FlextCliConstantsEnums.TypeKind
     type TypedExtractValue = str | bool | t.JsonMapping
-    type TableDataSource = FlextCliTypesBase.TabularData | Sequence[t.JsonMapping]
+    type TableDataSource = FlextCliTypesBase.TabularData | t.SequenceOf[t.JsonMapping]
     type TextPath = str | Path
     type JsonWriteData = t.JsonPayload | p.Cli.DisplayData
 

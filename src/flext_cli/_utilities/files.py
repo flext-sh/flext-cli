@@ -24,7 +24,7 @@ from flext_core import m, u
 class FlextCliUtilitiesFiles:
     """Generic filesystem operations for utility consumers."""
 
-    _FORMAT_BY_SUFFIX: ClassVar[Mapping[str, str]] = MappingProxyType({
+    _FORMAT_BY_SUFFIX: ClassVar[t.MappingKV[str, str]] = MappingProxyType({
         ".json": c.Cli.OutputFormats.JSON,
         ".yaml": c.Cli.OutputFormats.YAML,
         ".yml": c.Cli.OutputFormats.YAML,
@@ -102,7 +102,7 @@ class FlextCliUtilitiesFiles:
     @staticmethod
     def files_write_csv(
         file_path: t.Cli.TextPath,
-        rows: Sequence[t.StrSequence],
+        rows: t.SequenceOf[t.StrSequence],
     ) -> p.Result[bool]:
         """Write one CSV file from row sequence."""
 
@@ -128,7 +128,7 @@ class FlextCliUtilitiesFiles:
     ) -> p.Result[Sequence[t.StrMapping]]:
         """Read one CSV file into mapping rows using header row."""
 
-        def _load() -> Sequence[t.StrMapping]:
+        def _load() -> t.SequenceOf[t.StrMapping]:
             with Path(file_path).open(
                 encoding=c.Cli.ENCODING_DEFAULT,
                 newline="",

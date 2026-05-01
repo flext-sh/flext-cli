@@ -222,8 +222,8 @@ def load_application_settings() -> p.Result[Mapping[str, t.JsonValue]]:
 
 
 def apply_environment_overrides(
-    settings: Mapping[str, t.JsonValue],
-) -> Mapping[str, t.JsonValue]:
+    settings: t.MappingKV[str, t.JsonValue],
+) -> t.MappingKV[str, t.JsonValue]:
     """Apply environment-specific settings overrides."""
     result: dict[str, t.JsonValue] = dict(settings)
     env = os.getenv("ENVIRONMENT", "development")
@@ -244,8 +244,8 @@ def apply_environment_overrides(
 
 
 def initialize_services(
-    settings: Mapping[str, t.JsonValue],
-) -> Mapping[str, t.JsonValue]:
+    settings: t.MappingKV[str, t.JsonValue],
+) -> t.MappingKV[str, t.JsonValue]:
     """Initialize services based on settings."""
     time.sleep(0.05)
     result: dict[str, t.JsonValue] = dict(settings)

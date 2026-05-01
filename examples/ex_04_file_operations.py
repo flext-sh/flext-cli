@@ -15,7 +15,6 @@ from collections.abc import (
     Mapping,
     MutableMapping,
     MutableSequence,
-    Sequence,
 )
 from pathlib import Path
 
@@ -29,7 +28,7 @@ _EXAMPLE_REQUIRED_DATA_FIELDS: t.VariadicTuple[str] = ("id", "name", "value")
 
 
 def save_user_preferences(
-    preferences: Mapping[str, t.JsonPayloadCollectionValue],
+    preferences: t.MappingKV[str, t.JsonPayloadCollectionValue],
     config_dir: Path,
 ) -> bool:
     """Save user preferences to JSON in YOUR app."""
@@ -88,7 +87,7 @@ def load_user_preferences(config_dir: Path) -> p.Result[m.Cli.LoadedConfig]:
 
 
 def save_deployment_config(
-    settings: Mapping[str, t.JsonPayloadCollectionValue],
+    settings: t.MappingKV[str, t.JsonPayloadCollectionValue],
     config_file: Path,
 ) -> bool:
     """Save deployment settings to YAML in YOUR tool."""
@@ -136,12 +135,12 @@ def load_deployment_config(config_file: Path) -> p.Result[m.Cli.LoadedConfig]:
 
 
 def export_database_report(
-    records: Sequence[t.JsonMapping],
+    records: t.SequenceOf[t.JsonMapping],
     output_file: Path,
     format_type: c.Cli.TabularFormat = c.Cli.TabularFormat.GRID,
 ) -> bool | None:
     """Export database query results in YOUR reporting tool."""
-    table_rows: Sequence[t.Cli.TableMappingRow] = [
+    table_rows: t.SequenceOf[t.Cli.TableMappingRow] = [
         {key: u.normalize_to_json_value(value) for key, value in record.items()}
         for record in records
     ]
@@ -181,7 +180,7 @@ def list_project_files(project_dir: Path) -> None:
         return
 
     # Collect file metadata
-    files_data: Sequence[t.Cli.TableMappingRow] = [
+    files_data: t.SequenceOf[t.Cli.TableMappingRow] = [
         {
             "Name": item.name[:40],
             "Type": "📂 dir" if item.is_dir() else "📄 file",
@@ -313,7 +312,7 @@ def backup_config_files(source_dir: Path, backup_dir: Path) -> t.StrSequence:
 
 
 def export_to_csv(
-    data: Sequence[t.JsonMapping],
+    data: t.SequenceOf[t.JsonMapping],
     output_file: Path,
 ) -> bool:
     """Export data to CSV with proper headers in YOUR reporting tool."""
@@ -350,7 +349,7 @@ def export_to_csv(
     return True
 
 
-def import_from_csv(input_file: Path) -> Sequence[t.StrMapping] | None:
+def import_from_csv(input_file: Path) -> t.SequenceOf[t.StrMapping] | None:
     """Import data from CSV with headers in YOUR data tool."""
     cli.print(f"📥 Importing from {input_file.name}...", style=c.Cli.MessageStyles.CYAN)
 
@@ -370,7 +369,7 @@ def import_from_csv(input_file: Path) -> Sequence[t.StrMapping] | None:
     # Display sample
     if rows:
         sample_rows = [dict(r) for r in rows[:5]]
-        tabular_data: Sequence[t.Cli.TableMappingRow] = [
+        tabular_data: t.SequenceOf[t.Cli.TableMappingRow] = [
             dict(row) for row in sample_rows
         ]
         cli.show_table(tabular_data, title="📋 Sample Data")
@@ -658,7 +657,7 @@ def generate_output_files(
 
     if csv_rows_data:
         csv_file = output_dir / f"{base_name}.csv"
-        csv_rows: Sequence[t.StrSequence] = [
+        csv_rows: t.SequenceOf[t.StrSequence] = [
             [str(value) for value in item.values()] for item in csv_rows_data
         ]
         csv_result = cli.write_csv_file(csv_file, csv_rows)
@@ -670,7 +669,7 @@ def generate_output_files(
 
 
 def create_processing_summary(
-    results: Mapping[str, Path],
+    results: t.MappingKV[str, Path],
 ) -> t.JsonMapping:
     """Create a summary of the processing pipeline."""
     output_files: list[t.JsonValue] = [str(p) for p in results.values()]
@@ -736,7 +735,7 @@ def main() -> None:
 
     # Example 3: Table export
     cli.print("\n3. Data Export (table format):", style=c.Cli.MessageStyles.BOLD_CYAN)
-    sample_data: Sequence[t.JsonMapping] = [
+    sample_data: t.SequenceOf[t.JsonMapping] = [
         {"id": 1, "name": "Alice", "status": "active"},
         {"id": 2, "name": "Bob", "status": "inactive"},
     ]
@@ -774,7 +773,7 @@ def main() -> None:
     cli.print(
         "\n7. CSV Export/Import (with headers):", style=c.Cli.MessageStyles.BOLD_CYAN
     )
-    csv_data: Sequence[t.JsonMapping] = [
+    csv_data: t.SequenceOf[t.JsonMapping] = [
         {"employee_id": 101, "name": "Alice Smith", "department": "Engineering"},
         {"employee_id": 102, "name": "Bob Jones", "department": "Sales"},
         {"employee_id": 103, "name": "Carol White", "department": "Marketing"},
@@ -814,7 +813,7 @@ def main() -> None:
 
     # Example 10: Multi-format export
     cli.print("\n10. Multi-Format Export:", style=c.Cli.MessageStyles.BOLD_CYAN)
-    multi_data: Sequence[t.JsonMapping] = [
+    multi_data: t.SequenceOf[t.JsonMapping] = [
         {"metric": "CPU", "value": "75%", "status": "OK"},
         {"metric": "Memory", "value": "82%", "status": "Warning"},
     ]

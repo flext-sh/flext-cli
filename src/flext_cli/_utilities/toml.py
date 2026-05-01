@@ -252,7 +252,7 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_mapping_child(
-        container: Mapping[str, t.JsonValue],
+        container: t.MappingKV[str, t.JsonValue],
         key: str,
     ) -> t.JsonMapping | None:
         """Return a plain mapping child from one normalized TOML mapping."""
@@ -303,11 +303,11 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_mapping_path(
-        parent: Mapping[str, t.JsonValue],
+        parent: t.MappingKV[str, t.JsonValue],
         path: t.StrSequence,
     ) -> MutableMapping[str, t.JsonValue] | None:
         """Return one nested mutable mapping path without creating missing tables."""
-        current: Mapping[str, t.JsonValue] = parent
+        current: t.MappingKV[str, t.JsonValue] = parent
         for segment in path:
             value = current.get(segment, None)
             if not isinstance(value, dict):
@@ -418,7 +418,7 @@ class FlextCliUtilitiesToml:
     def toml_sync_mapping_table(
         container: TOMLDocument | Table,
         key: str,
-        expected: Mapping[str, t.JsonValue],
+        expected: t.MappingKV[str, t.JsonValue],
         *,
         sort_keys: bool = False,
     ) -> bool:
@@ -466,7 +466,7 @@ class FlextCliUtilitiesToml:
     def toml_mapping_sync_mapping_table(
         container: MutableMapping[str, t.JsonValue],
         key: str,
-        expected: Mapping[str, t.JsonValue],
+        expected: t.MappingKV[str, t.JsonValue],
         *,
         sort_keys: bool = False,
     ) -> bool:

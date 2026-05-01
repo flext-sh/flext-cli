@@ -7,7 +7,6 @@ import stat
 import tomllib
 from collections.abc import (
     Generator,
-    Mapping,
 )
 from contextlib import contextmanager
 from pathlib import Path
@@ -188,7 +187,7 @@ class TestsFlextCliTomlUtilities:
         )
 
     def test_as_mapping_and_lookup_helpers(self) -> None:
-        mapping: Mapping[str, t.Scalar] = {"key": "value"}
+        mapping: t.MappingKV[str, t.Scalar] = {"key": "value"}
         tm.that(u.Cli.toml_as_mapping(mapping), eq=mapping)
         tm.that(u.Cli.toml_as_mapping("bad"), none=True)
         doc = u.Cli.toml_document()

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from collections.abc import (
     Callable,
-    Mapping,
 )
 from typing import ClassVar
 
@@ -16,12 +15,12 @@ class ExamplesFlextCliTypes(t):
     """Public examples type facade extending flext-cli types."""
 
     type EnvValue = t.JsonValue
-    type EnvInput = Mapping[str, EnvValue] | EnvValue | None
-    type ExampleModelInput = Mapping[str, EnvValue] | EnvValue | None
+    type EnvInput = t.MappingKV[str, EnvValue] | EnvValue | None
+    type ExampleModelInput = t.MappingKV[str, EnvValue] | EnvValue | None
     type CliApi = FlextCli
 
     type DataProcessor = Callable[[str], str]
-    type ProcessorRegistry = Mapping[str, DataProcessor]
+    type ProcessorRegistry = t.MappingKV[str, DataProcessor]
     JSON_DICT_ADAPTER: ClassVar[t.ValueAdapter[t.JsonMapping]] = m.TypeAdapter(
         t.JsonMapping,
     )

@@ -4,12 +4,12 @@ from __future__ import annotations
 
 from collections.abc import (
     Callable,
-    Sequence,
 )
 
 import pytest
 
 from flext_cli import FlextCliSettings
+from tests import t
 
 
 @pytest.fixture
@@ -34,7 +34,7 @@ def pytest_configure(config: pytest.Config) -> None:
 
 def pytest_collection_modifyitems(
     config: pytest.Config,
-    items: Sequence[pytest.Item],
+    items: t.SequenceOf[pytest.Item],
 ) -> None:
     """Modify test collection to add markers based on test names."""
     _ = config

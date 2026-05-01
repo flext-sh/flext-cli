@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import os
-from collections.abc import Sequence
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import overload
@@ -35,7 +34,7 @@ class FlextCliUtilitiesSettings:
     @staticmethod
     def project_numbers_from_values(
         *values: t.Cli.ProjectNamesValue | None,
-        default: Sequence[int],
+        default: t.SequenceOf[int],
     ) -> t.MutableSequenceOf[int]: ...
 
     @overload
@@ -48,7 +47,7 @@ class FlextCliUtilitiesSettings:
     @staticmethod
     def project_numbers_from_values(
         *values: t.Cli.ProjectNamesValue | None,
-        default: Sequence[int] | None = None,
+        default: t.SequenceOf[int] | None = None,
     ) -> t.MutableSequenceOf[int] | None:
         """Normalize selector values into integers with optional default fallback."""
         names = FlextCliUtilitiesSettings.project_names_from_values(*values)

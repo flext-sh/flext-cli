@@ -763,7 +763,7 @@ def process_without_result(data: dict[str, str]) -> dict[str, str]:
 
 
    # ✅ GOOD
-   def process(items: Sequence[str]) -> p.Result[list[str]]:
+   def process(items: t.SequenceOf[str]) -> p.Result[list[str]]:
        return r[list[str]].ok([item.upper() for item in items])
 
 

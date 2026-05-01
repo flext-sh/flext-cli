@@ -103,10 +103,10 @@ class FlextCliModelsBase:
                 return self.value
             return self.default
 
-    class SuccessSummaryDetails(m.RootModel[Mapping[str, str]]):
+    class SuccessSummaryDetails(m.RootModel[t.MappingKV[str, str]]):
         """Key-value success summary details. Use m.Cli.SuccessSummaryDetails."""
 
-        root: Mapping[str, str]
+        root: t.MappingKV[str, str]
 
     class PromptRuntimeState(m.FlexibleInternalModel):
         """Centralized runtime state for CLI prompt behavior."""

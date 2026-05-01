@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from collections.abc import (
     Mapping,
-    MutableSequence,
     Sequence,
 )
 from pathlib import Path
@@ -48,7 +47,9 @@ class FlextCliUtilitiesOptionBuilder:
             else self.field_name
         )
 
-        option_args: MutableSequence[str] = [f"--{cli_param_name.replace('_', '-')}"]
+        option_args: t.MutableSequenceOf[str] = [
+            f"--{cli_param_name.replace('_', '-')}"
+        ]
         if cli_param_name == "project":
             option_args.append("--projects")
         if short_flag:

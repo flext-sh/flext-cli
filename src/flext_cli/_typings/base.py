@@ -3,9 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import (
-    Mapping,
     MutableMapping,
-    Sequence,
 )
 from pathlib import Path
 from types import GenericAlias, UnionType
@@ -26,19 +24,19 @@ from flext_core import m, t
 class FlextCliTypesBase:
     """Base CLI aliases shared across services and models."""
 
-    type TableMappingRow = Mapping[str, t.JsonPayload]
-    type TableSequenceRow = Sequence[t.JsonPayload]
-    type DefaultMapping = Mapping[str, t.Scalar | t.StrSequence]
+    type TableMappingRow = t.MappingKV[str, t.JsonPayload]
+    type TableSequenceRow = t.SequenceOf[t.JsonPayload]
+    type DefaultMapping = t.MappingKV[str, t.Scalar | t.StrSequence]
     type TableRow = TableMappingRow | TableSequenceRow
     type TableConfigValue = (
-        t.JsonValue | t.StrSequence | Sequence[int] | Sequence[str | int] | None
+        t.JsonValue | t.StrSequence | t.SequenceOf[int] | t.SequenceOf[str | int] | None
     )
-    type TabularData = TableMappingRow | Sequence[TableRow]
-    type TableRows = Sequence[TableRow]
+    type TabularData = TableMappingRow | t.SequenceOf[TableRow]
+    type TableRows = t.SequenceOf[TableRow]
     type TableIndexValue = str | int
-    type TableIndexSelection = Sequence[TableIndexValue]
+    type TableIndexSelection = t.SequenceOf[TableIndexValue]
     type TableShowIndex = bool | TableIndexSelection
-    type TableDisableNumparse = bool | Sequence[int]
+    type TableDisableNumparse = bool | t.SequenceOf[int]
     type TableColAlign = t.StrSequence | None
     type CliValue = t.Scalar | t.StrSequence | DefaultMapping
     type CliDefaultSource = CliValue | Path

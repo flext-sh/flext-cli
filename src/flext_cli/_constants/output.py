@@ -2,9 +2,6 @@
 
 from __future__ import annotations
 
-from collections.abc import (
-    Mapping,
-)
 from types import MappingProxyType
 from typing import ClassVar, Final
 
@@ -77,7 +74,7 @@ class FlextCliConstantsOutput:
     })
 
     MESSAGE_STYLE_MAP: ClassVar[
-        Mapping[
+        t.MappingKV[
             FlextCliConstantsEnums.MessageTypes,
             FlextCliConstantsEnums.MessageStyles,
         ]
@@ -89,15 +86,15 @@ class FlextCliConstantsOutput:
         FlextCliConstantsEnums.MessageTypes.DEBUG: FlextCliConstantsEnums.MessageStyles.DIM,
     })
 
-    MESSAGE_EMOJI_MAP: ClassVar[Mapping[FlextCliConstantsEnums.MessageTypes, str]] = (
-        MappingProxyType({
-            FlextCliConstantsEnums.MessageTypes.INFO: EMOJI_INFO,
-            FlextCliConstantsEnums.MessageTypes.SUCCESS: EMOJI_SUCCESS,
-            FlextCliConstantsEnums.MessageTypes.ERROR: EMOJI_ERROR,
-            FlextCliConstantsEnums.MessageTypes.WARNING: EMOJI_WARNING,
-            FlextCliConstantsEnums.MessageTypes.DEBUG: EMOJI_DEBUG,
-        })
-    )
+    MESSAGE_EMOJI_MAP: ClassVar[
+        t.MappingKV[FlextCliConstantsEnums.MessageTypes, str]
+    ] = MappingProxyType({
+        FlextCliConstantsEnums.MessageTypes.INFO: EMOJI_INFO,
+        FlextCliConstantsEnums.MessageTypes.SUCCESS: EMOJI_SUCCESS,
+        FlextCliConstantsEnums.MessageTypes.ERROR: EMOJI_ERROR,
+        FlextCliConstantsEnums.MessageTypes.WARNING: EMOJI_WARNING,
+        FlextCliConstantsEnums.MessageTypes.DEBUG: EMOJI_DEBUG,
+    })
 
 
 __all__: t.MutableSequenceOf[str] = ["FlextCliConstantsOutput"]

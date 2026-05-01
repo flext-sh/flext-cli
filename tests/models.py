@@ -12,9 +12,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import (
-    Mapping,
     MutableMapping,
-    Sequence,
 )
 from typing import Annotated, ClassVar
 
@@ -41,7 +39,7 @@ class TestsFlextCliModels(FlextTestsModels, m):
 
             def __init__(
                 self,
-                data: Mapping[str, t.JsonValue] | None = None,
+                data: t.MappingKV[str, t.JsonValue] | None = None,
                 /,
                 **kwargs: t.JsonValue,
             ) -> None:
@@ -109,7 +107,7 @@ class TestsFlextCliModels(FlextTestsModels, m):
             @classmethod
             def string_cases(
                 cls,
-            ) -> Sequence[TestsFlextCliModels.Tests.VersionTestScenario]:
+            ) -> t.SequenceOf[TestsFlextCliModels.Tests.VersionTestScenario]:
                 """Get parametrized test cases for version string validation."""
                 data_class = TestsFlextCliModels.Tests.VersionTestScenario
                 cases = c.Tests.VERSION_STR_CASES
@@ -142,7 +140,7 @@ class TestsFlextCliModels(FlextTestsModels, m):
             @classmethod
             def info_cases(
                 cls,
-            ) -> Sequence[TestsFlextCliModels.Tests.VersionTestScenario]:
+            ) -> t.SequenceOf[TestsFlextCliModels.Tests.VersionTestScenario]:
                 """Get parametrized test cases for version info validation."""
                 data_class = TestsFlextCliModels.Tests.VersionTestScenario
                 return [
@@ -171,7 +169,7 @@ class TestsFlextCliModels(FlextTestsModels, m):
             @classmethod
             def consistency_cases(
                 cls,
-            ) -> Sequence[TestsFlextCliModels.Tests.VersionTestScenario]:
+            ) -> t.SequenceOf[TestsFlextCliModels.Tests.VersionTestScenario]:
                 """Get parametrized test cases for version consistency validation."""
                 data_class = TestsFlextCliModels.Tests.VersionTestScenario
                 cases = c.Tests.VERSION_STR_CASES

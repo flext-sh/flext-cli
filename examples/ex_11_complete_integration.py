@@ -64,7 +64,9 @@ class DataManagerCLI:
         )
         return r[t.JsonMapping].ok(converted_entry)
 
-    def display_data(self, data: Mapping[str, t.JsonPayloadCollectionValue]) -> None:
+    def display_data(
+        self, data: t.MappingKV[str, t.JsonPayloadCollectionValue]
+    ) -> None:
         """Display data as formatted table."""
         if not data:
             cli.print("⚠️  No data to display", style=c.Cli.MessageStyles.YELLOW)
@@ -139,7 +141,7 @@ class DataManagerCLI:
 
 
 def process_with_railway_pattern(
-    input_data: Mapping[str, t.JsonPayloadCollectionValue],
+    input_data: t.MappingKV[str, t.JsonPayloadCollectionValue],
 ) -> p.Result[t.JsonMapping]:
     """Show railway pattern chaining operations."""
     step1_data = {**input_data, "validated": True}

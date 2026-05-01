@@ -69,7 +69,7 @@ class FlextCliFileTools(FlextCliServiceBase):
     @staticmethod
     def write_csv_file(
         file_path: t.Cli.TextPath,
-        rows: Sequence[t.StrSequence],
+        rows: t.SequenceOf[t.StrSequence],
     ) -> p.Result[bool]:
         return u.Cli.files_write_csv(Path(file_path), rows)
 

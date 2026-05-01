@@ -2,9 +2,6 @@
 
 from __future__ import annotations
 
-from collections.abc import (
-    Mapping,
-)
 from types import MappingProxyType
 from typing import ClassVar, Final
 
@@ -71,7 +68,7 @@ class FlextCliConstantsSettings:
     LOG_LEVELS_LIST: ClassVar[t.StrSequence] = tuple(item.value for item in c.LogLevel)
 
     CLI_PARAM_REGISTRY: ClassVar[
-        Mapping[str, Mapping[str, t.Scalar | t.StrSequence]]
+        t.MappingKV[str, t.MappingKV[str, t.Scalar | t.StrSequence]]
     ] = MappingProxyType({
         "verbose": {
             CLI_PARAM_KEY_SHORT: CLI_PARAM_SHORT_FLAG_VERBOSE,

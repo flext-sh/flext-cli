@@ -27,7 +27,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import time
-from collections.abc import Mapping
 
 from examples import c, m, t, u
 from flext_cli import cli
@@ -196,7 +195,7 @@ def create_database_config_from_cli() -> p.Result[m.Examples.AdvancedDatabaseCon
 
 
 def validate_required_fields(
-    data: Mapping[str, t.JsonPayloadCollectionValue],
+    data: t.MappingKV[str, t.JsonPayloadCollectionValue],
 ) -> p.Result[t.JsonMapping]:
     """Validate that all required fields are present."""
     required = list(c.EXAMPLE_DATABASE_REQUIRED_FIELDS)

@@ -162,10 +162,12 @@ class FlextCliUtilitiesRules:
                 f"Rules directory not found: {rules_dir}",
             )
         file_catalog = options.file_rule_catalog or {}
-        loaded_rules: MutableSequence[t.Pair[TRuleKind, t.JsonMapping]] = []
-        loaded_file_rules: MutableSequence[t.Pair[TFileRuleKind, t.JsonMapping]] = []
+        loaded_rules: t.MutableSequenceOf[t.Pair[TRuleKind, t.JsonMapping]] = []
+        loaded_file_rules: t.MutableSequenceOf[
+            t.Pair[TFileRuleKind, t.JsonMapping]
+        ] = []
         loaded_file_rule_kinds: set[str] = set()
-        unknown_rules: MutableSequence[str] = []
+        unknown_rules: t.MutableSequenceOf[str] = []
         for rule_file in sorted(rules_dir.glob("*.yml")):
             if rule_file.name == options.registry_filename:
                 continue
