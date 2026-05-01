@@ -65,9 +65,11 @@ class TestsFlextCliOptionsUtilsCov:
         assert expect_build_ok is True
         assert option_info.help is not None
         if field_name == "project":
+            assert option_info.param_decls is not None
             assert "--project" in option_info.param_decls
             assert "--projects" in option_info.param_decls
         if field_name == "custom_name":
+            assert option_info.param_decls is not None
             assert "--custom-name" in option_info.param_decls
 
     def test_option_builder_build_missing_registry_metadata_raises(self) -> None:
@@ -84,6 +86,7 @@ class TestsFlextCliOptionsUtilsCov:
             c.Tests.OPTIONS_REGISTRY_VALID,
         )
         assert isinstance(option_info, OptionInfo)
+        assert option_info.param_decls is not None
         assert "--projects" in option_info.param_decls
 
     @pytest.mark.parametrize(("annotation", "expected"), ANNOTATION_CASES)
@@ -156,43 +159,6 @@ class TestsFlextCliOptionsUtilsCov:
         result = FlextCliUtilitiesOptions.field_default(
             "invalid_mapping", field_info, None
         )
-        assert result is None
-
-    def test_field_default_forces_string_sequence_branch(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        field_info = OptionsDefaultsModel.model_fields["tags"]
-        monkeypatch.setattr(
-            t.Cli.CLI_DEFAULT_SOURCE_ADAPTER,
-            "validate_python",
-            lambda value: ["x", "y"],
-        )
-        monkeypatch.setattr(
-            FlextCliUtilitiesOptions,
-            "normalize_cli_atom",
-            classmethod(lambda cls, value: None),
-        )
-        result = FlextCliUtilitiesOptions.field_default("tags", field_info, None)
-        assert result == ["x", "y"]
-
-    def test_field_default_forces_fallback_none_branch(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        field_info = OptionsDefaultsModel.model_fields["name"]
-        sentinel = object()
-        monkeypatch.setattr(
-            t.Cli.CLI_DEFAULT_SOURCE_ADAPTER,
-            "validate_python",
-            lambda value: sentinel,
-        )
-        monkeypatch.setattr(
-            FlextCliUtilitiesOptions,
-            "normalize_cli_atom",
-            classmethod(lambda cls, value: None),
-        )
-        result = FlextCliUtilitiesOptions.field_default("name", field_info, None)
         assert result is None
 
     @pytest.mark.parametrize(

@@ -11,6 +11,9 @@ from __future__ import annotations
 
 import pytest
 
+from flext_cli import u
+from flext_cli._utilities.formatters import FlextCliUtilitiesFormatters
+from flext_cli.services.formatters import FlextCliFormatters
 from tests import c
 
 
@@ -21,14 +24,10 @@ class TestsFlextCliFormattersCov:
 
     @pytest.mark.parametrize("label", c.Tests.FORMATTER_TREE_LABELS)
     def test_create_tree_parametrized(self, label: str) -> None:
-        from flext_cli import u
-
         result = u.Cli.formatters_create_tree(label)
         assert result.success
 
     def test_create_tree_returns_rich_tree(self) -> None:
-        from flext_cli import u
-
         result = u.Cli.formatters_create_tree("Root")
         assert result.success
         # The value is a Rich Tree object
@@ -44,8 +43,6 @@ class TestsFlextCliFormattersCov:
     def test_formatters_print_parametrized(
         self, capsys: pytest.CaptureFixture[str], msg: str, style: str | None
     ) -> None:
-        from flext_cli import u
-
         if style is not None:
             u.Cli.formatters_print(msg, style)
         else:
@@ -55,8 +52,6 @@ class TestsFlextCliFormattersCov:
 
     @pytest.mark.parametrize("label", c.Tests.FORMATTER_RULE_LABELS)
     def test_render_rule_parametrized(self, label: str) -> None:
-        from flext_cli import u
-
         # Should not raise
         u.Cli.formatters_render_rule(label)
 
@@ -67,8 +62,6 @@ class TestsFlextCliFormattersCov:
         c.Tests.FORMATTER_PANEL_CASES,
     )
     def test_render_panel_parametrized(self, content: str, title: str) -> None:
-        from flext_cli import u
-
         u.Cli.formatters_render_panel(content, title=title)
 
     # ── formatters_render_table ───────────────────────────────────────
@@ -83,9 +76,6 @@ class TestsFlextCliFormattersCov:
         rows: tuple[tuple[str, ...], ...],
         title: str,
     ) -> None:
-        from flext_cli import u
-        from flext_cli._utilities.formatters import FlextCliUtilitiesFormatters
-
         request = FlextCliUtilitiesFormatters.TableRenderRequest(
             columns=list(columns),
             rows=[list(row) for row in rows],
@@ -98,33 +88,23 @@ class TestsFlextCliServicesFormattersCov:
     """Coverage tests for services/formatters.py (thin facade)."""
 
     def test_create_tree_via_service(self) -> None:
-        from flext_cli.services.formatters import FlextCliFormatters
-
         svc = FlextCliFormatters()
         result = svc.create_tree("ServiceRoot")
         assert result.success
 
     def test_print_via_service(self) -> None:
-        from flext_cli.services.formatters import FlextCliFormatters
-
         svc = FlextCliFormatters()
         svc.print("service print test")
 
     def test_render_rule_via_service(self) -> None:
-        from flext_cli.services.formatters import FlextCliFormatters
-
         svc = FlextCliFormatters()
         svc.render_rule("Rule label")
 
     def test_render_panel_via_service(self) -> None:
-        from flext_cli.services.formatters import FlextCliFormatters
-
         svc = FlextCliFormatters()
         svc.render_panel("panel content", title="My Title")
 
     def test_render_table_via_service(self) -> None:
-        from flext_cli.services.formatters import FlextCliFormatters
-
         svc = FlextCliFormatters()
         svc.render_table(
             columns=["Name", "Value"],

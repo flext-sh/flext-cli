@@ -2,9 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
-import flext_cli._utilities.params as params_module
 from flext_cli._utilities.params import FlextCliUtilitiesParams
 from flext_cli.settings import FlextCliSettings
 from tests import c, m
@@ -13,23 +10,12 @@ from tests import c, m
 class TestsFlextCliParamsBranchCov:
     """Exercise remaining low-cost branches in params utilities."""
 
-    def test_params_resolve_ignores_params_when_instance_check_fails(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        original_params = m.Cli.CliParamsConfig(debug=True)
-
-        class FakeCliParamsConfig(m.Cli.CliParamsConfig):
-            pass
-
-        monkeypatch.setattr(params_module.m.Cli, "CliParamsConfig", FakeCliParamsConfig)
-        resolved = FlextCliUtilitiesParams.params_resolve(
-            original_params,
-            {"verbose": True},
-        )
+    def test_params_resolve_merges_model_and_kwargs(self) -> None:
+        params = m.Cli.CliParamsConfig(debug=True)
+        resolved = FlextCliUtilitiesParams.params_resolve(params, {"verbose": True})
         assert isinstance(resolved, m.Cli.CliParamsConfig)
         assert resolved.verbose is True
-        assert resolved.debug is None
+        assert resolved.debug is True
 
     def test_params_set_format_applies_valid_log_format(self) -> None:
         settings = FlextCliSettings()

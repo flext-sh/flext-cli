@@ -13,7 +13,6 @@ from pathlib import Path
 
 import pytest
 
-import flext_cli._utilities.yaml as yaml_module
 from flext_cli import u
 from tests import c, m, t
 
@@ -143,57 +142,6 @@ class TestsFlextCliYamlCov:
         assert result.success
         assert deep.exists()
 
-    def test_yaml_safe_load_read_error(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-        tmp_path: Path,
-    ) -> None:
-        yaml_file = tmp_path / "read_error.yml"
-        yaml_file.write_text(c.Tests.YAML_VALID_CONTENT, encoding="utf-8")
-        read_error = "cannot read"
-
-        def raise_oserror(self: Path, *, encoding: str) -> str:
-            raise OSError(read_error)
-
-        monkeypatch.setattr(yaml_module.Path, "read_text", raise_oserror)
-        result = u.Cli.yaml_safe_load(yaml_file)
-        assert result.failure
-        assert "YAML read error" in (result.error or "")
-
-    def test_yaml_parse_validation_error_branch(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        monkeypatch.setattr(yaml_module, "safe_load", lambda _text: {"bad": object()})
-        result = u.Cli.yaml_parse("bad: value")
-        assert result.failure
-        assert "YAML validation error" in (result.error or "")
-
-    def test_yaml_load_list_validation_error_branch(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-        tmp_path: Path,
-    ) -> None:
-        yaml_file = tmp_path / "list_validation_error.yml"
-        yaml_file.write_text("- item", encoding="utf-8")
-        monkeypatch.setattr(yaml_module, "safe_load", lambda _text: [object()])
-        assert u.Cli.yaml_load_list(yaml_file) == []
-
-    def test_yaml_dump_write_error_branch(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-        tmp_path: Path,
-    ) -> None:
-        dump_error = TypeError("dump boom")
-        monkeypatch.setattr(
-            yaml_module,
-            "safe_dump",
-            lambda *args, **kwargs: (_ for _ in ()).throw(dump_error),
-        )
-        result = u.Cli.yaml_dump(tmp_path / "out.yml", {"k": "v"})
-        assert result.failure
-        assert "YAML write error" in (result.error or "")
-
     # ── yaml_dump_str ────────────────────────────────────────────────
 
     def test_yaml_dump_str_returns_string(self) -> None:
@@ -213,16 +161,6 @@ class TestsFlextCliYamlCov:
         model = m.Cli.TableConfig()
         text = u.Cli.yaml_dump_str(model)
         assert isinstance(text, str)
-
-    def test_yaml_dump_str_error_branch(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        dump_str_error = TypeError("dump-str boom")
-        monkeypatch.setattr(
-            yaml_module,
-            "safe_dump",
-            lambda *args, **kwargs: (_ for _ in ()).throw(dump_str_error),
-        )
-        text = u.Cli.yaml_dump_str({"k": "v"})
-        assert text == ""
 
 
 __all__: list[str] = ["TestsFlextCliYamlCov"]

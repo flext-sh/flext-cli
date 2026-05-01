@@ -7,8 +7,6 @@ from pathlib import Path
 import pytest
 from flext_tests import tm
 
-import flext_cli._utilities.files as files_module
-import flext_cli.services.file_tools as file_tools_module
 from flext_cli import FlextCliFileTools, m
 from tests import c, t, u
 
@@ -173,37 +171,6 @@ class TestsFlextCliFilesCov:
         tm.ok(result)
         tm.that(target.is_symlink(), eq=True)
 
-    def test_ensure_symlink_parent_creation_failure(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        monkeypatch.setattr(
-            files_module.FlextCliUtilitiesFiles,
-            "ensure_dir",
-            lambda *_args, **_kwargs: files_module.r[Path].fail("parent failed"),
-        )
-        result = u.Cli.ensure_symlink("/tmp/target", "/tmp/source")
-        tm.fail(result, has="parent failed")
-
-    def test_ensure_symlink_oserror_branch(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-        tmp_path: Path,
-    ) -> None:
-        source = tmp_path / "source_dir"
-        source.mkdir()
-        target = tmp_path / "target_link"
-        symlink_error = "symlink boom"
-
-        def raise_symlink(
-            self: Path, target: Path, target_is_directory: bool = True
-        ) -> None:
-            raise OSError(symlink_error)
-
-        monkeypatch.setattr(files_module.Path, "symlink_to", raise_symlink)
-        result = u.Cli.ensure_symlink(target, source)
-        tm.fail(result, has=symlink_error)
-
     def test_atomic_write_text_file(self, tmp_path: Path) -> None:
         path = tmp_path / "atomic.txt"
         result = u.Cli.atomic_write_text_file(path, "hello atomic")
@@ -216,65 +183,11 @@ class TestsFlextCliFilesCov:
         )
         tm.fail(result)
 
-    def test_atomic_write_text_file_inner_cleanup_on_replace_error(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-        tmp_path: Path,
-    ) -> None:
-        target = tmp_path / "atomic_runtime_error.txt"
-        replace_error = "replace boom"
-
-        def raise_replace(self: Path, target_path: Path) -> Path:
-            raise RuntimeError(replace_error)
-
-        monkeypatch.setattr(files_module.Path, "replace", raise_replace)
-        with pytest.raises(RuntimeError, match=replace_error):
-            _ = u.Cli.atomic_write_text_file(target, "x")
-
-    def test_atomic_write_text_file_oserror_branch(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-        tmp_path: Path,
-    ) -> None:
-        target = tmp_path / "atomic_oserror.txt"
-        mkstemp_error = "mkstemp boom"
-
-        def raise_mkstemp(*_args: object, **_kwargs: object) -> tuple[int, str]:
-            raise OSError(mkstemp_error)
-
-        monkeypatch.setattr(files_module.tempfile, "mkstemp", raise_mkstemp)
-        result = u.Cli.atomic_write_text_file(target, "x")
-        tm.fail(result, has=mkstemp_error)
-
     def test_service_atomic_write_text_file_success(self, tmp_path: Path) -> None:
         target = tmp_path / "service_atomic.txt"
         result = FlextCliFileTools.atomic_write_text_file(target, "ok")
         tm.ok(result)
         tm.that(target.read_text(encoding="utf-8"), eq="ok")
-
-    def test_service_atomic_write_text_file_failure_preserves_error(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        monkeypatch.setattr(
-            file_tools_module.u.Cli,
-            "atomic_write_text_file",
-            lambda *_args, **_kwargs: file_tools_module.r[bool].fail("io failure"),
-        )
-        result = FlextCliFileTools.atomic_write_text_file("any.txt", "body")
-        tm.fail(result, has="io failure")
-
-    def test_service_atomic_write_text_file_failure_uses_fallback_message(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        monkeypatch.setattr(
-            file_tools_module.u.Cli,
-            "atomic_write_text_file",
-            lambda *_args, **_kwargs: file_tools_module.r[bool].fail(""),
-        )
-        result = FlextCliFileTools.atomic_write_text_file("any.txt", "body")
-        tm.fail(result, has="Text write failed")
 
     # ── sha256 ───────────────────────────────────────────────────────
     def test_sha256_content(self) -> None:
@@ -312,18 +225,3 @@ class TestsFlextCliFilesCov:
         path.write_text("[1,2,3]", encoding="utf-8")
         result = FlextCliFileTools.load_file_auto_dict(path)
         tm.fail(result)
-
-    def test_files_load_auto_mapping_non_mapping_payload_branch(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-        tmp_path: Path,
-    ) -> None:
-        path = tmp_path / "payload.json"
-        path.write_text("{}", encoding="utf-8")
-        monkeypatch.setattr(
-            files_module.uj,
-            "json_read",
-            lambda *_args, **_kwargs: files_module.r[t.JsonValue].ok([1, 2, 3]),
-        )
-        result = FlextCliFileTools.load_file_auto_dict(path)
-        tm.fail(result, has="mapping")

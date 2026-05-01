@@ -23,8 +23,9 @@ from flext_cli import t
 class TestsFlextCliTypes(FlextTestsTypes, t):
     """Type system foundation for flext-cli tests - extends TestsFlextTypes and t.
 
-    Architecture: Multiple inheritance provides both generic test types AND CLI-specific types.
-    All types from both TestsFlextTypes and t are available through inheritance.
+    Architecture: Multiple inheritance provides both generic test types AND
+    CLI-specific types. All types from both TestsFlextTypes and t are
+    available through inheritance.
 
     Hierarchy:
     - TestsFlextTypes.Tests.* (generic test types from flext_tests)

@@ -24,22 +24,6 @@ from flext_tests import FlextTestsConstants
 from flext_cli import c
 from tests import t
 
-# ---------------------------------------------------------------------------
-# Module-level content strings (not class-level to avoid ClassVar confusion)
-# ---------------------------------------------------------------------------
-
-_YAML_VALID_CONTENT: Final[str] = "key: value\nnested:\n  foo: bar\n"
-_YAML_INVALID_CONTENT: Final[str] = "key: [unterminated"
-_YAML_NON_MAPPING_CONTENT: Final[str] = "- item1\n- item2\n"
-_YAML_EMPTY_CONTENT: Final[str] = ""
-_YAML_NULL_CONTENT: Final[str] = "null\n"
-
-_TOML_VALID_CONTENT: Final[str] = (
-    '[tool.flext]\nproject = "my-project"\nversion = "1.0.0"\n'
-)
-_TOML_INVALID_CONTENT: Final[str] = "[invalid toml\nmissing = "
-_TOML_SECTION_CONTENT: Final[str] = "[section]\nkey = true\ncount = 42\n"
-
 
 class TestsFlextCliConstants(FlextTestsConstants, c):
     """Constants for flext-cli tests using COMPOSITION INHERITANCE.
@@ -73,7 +57,8 @@ class TestsFlextCliConstants(FlextTestsConstants, c):
         )
 
         PROMPT_LONG: Final[str] = (
-            "This is a very long message that tests how the system handles extended text input"
+            "This is a very long message that tests how the system "
+            "handles extended text input"
         )
         PROMPT_SPECIAL: Final[str] = "!@#$%^&*()"
         PROMPT_UNICODE: Final[str] = "你好世界🌍"
@@ -179,19 +164,19 @@ class TestsFlextCliConstants(FlextTestsConstants, c):
         )
 
         # ── YAML ────────────────────────────────────────────────────────
-        YAML_VALID_CONTENT: Final[str] = _YAML_VALID_CONTENT
-        YAML_INVALID_CONTENT: Final[str] = _YAML_INVALID_CONTENT
-        YAML_NON_MAPPING_CONTENT: Final[str] = _YAML_NON_MAPPING_CONTENT
-        YAML_EMPTY_CONTENT: Final[str] = _YAML_EMPTY_CONTENT
-        YAML_NULL_CONTENT: Final[str] = _YAML_NULL_CONTENT
+        YAML_VALID_CONTENT: Final[str] = "key: value\nnested:\n  foo: bar\n"
+        YAML_INVALID_CONTENT: Final[str] = "key: [unterminated"
+        YAML_NON_MAPPING_CONTENT: Final[str] = "- item1\n- item2\n"
+        YAML_EMPTY_CONTENT: Final[str] = ""
+        YAML_NULL_CONTENT: Final[str] = "null\n"
 
         # parse(text) → (text, expect_ok, expect_empty_dict)
         YAML_PARSE_CASES: Final[tuple[tuple[str, bool, bool], ...]] = (
-            (_YAML_VALID_CONTENT, True, False),
-            (_YAML_EMPTY_CONTENT, True, True),
-            (_YAML_NULL_CONTENT, True, True),
-            (_YAML_INVALID_CONTENT, False, False),
-            (_YAML_NON_MAPPING_CONTENT, False, False),
+            (YAML_VALID_CONTENT, True, False),
+            (YAML_EMPTY_CONTENT, True, True),
+            (YAML_NULL_CONTENT, True, True),
+            (YAML_INVALID_CONTENT, False, False),
+            (YAML_NON_MAPPING_CONTENT, False, False),
         )
 
         # dump: (data, sort_keys, expect_ok)
@@ -204,8 +189,8 @@ class TestsFlextCliConstants(FlextTestsConstants, c):
         # yaml_load_list: content yields non-list when invalid
         YAML_LIST_CASES: Final[tuple[tuple[str, bool], ...]] = (
             ("- a\n- b\n- c\n", True),
-            (_YAML_EMPTY_CONTENT, False),
-            (_YAML_VALID_CONTENT, False),  # mapping not a list
+            (YAML_EMPTY_CONTENT, False),
+            (YAML_VALID_CONTENT, False),  # mapping not a list
         )
 
         # ── MATCHING ───────────────────────────────────────────────────
@@ -548,15 +533,17 @@ class TestsFlextCliConstants(FlextTestsConstants, c):
         }
 
         # ── TOML ───────────────────────────────────────────────────────
-        TOML_VALID_CONTENT: Final[str] = _TOML_VALID_CONTENT
-        TOML_INVALID_CONTENT: Final[str] = _TOML_INVALID_CONTENT
-        TOML_SECTION_CONTENT: Final[str] = _TOML_SECTION_CONTENT
+        TOML_VALID_CONTENT: Final[str] = (
+            '[tool.flext]\nproject = "my-project"\nversion = "1.0.0"\n'
+        )
+        TOML_INVALID_CONTENT: Final[str] = "[invalid toml\nmissing = "
+        TOML_SECTION_CONTENT: Final[str] = "[section]\nkey = true\ncount = 42\n"
 
         # (content, expect_ok)
         TOML_READ_CASES: Final[tuple[tuple[str, bool], ...]] = (
-            (_TOML_VALID_CONTENT, True),
-            (_TOML_SECTION_CONTENT, True),
-            (_TOML_INVALID_CONTENT, False),
+            (TOML_VALID_CONTENT, True),
+            (TOML_SECTION_CONTENT, True),
+            (TOML_INVALID_CONTENT, False),
         )
 
         TOML_NESTED_PATH_CASES: Final[

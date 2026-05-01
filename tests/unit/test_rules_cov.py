@@ -107,6 +107,7 @@ class TestsFlextCliRulesUtilsCov:
                 registry_filename="engine-registry.yml",
             )
             assert result.success
+            assert isinstance(result.value, dict)
             assert result.value["rules"][0]["id"] == "rule-a"
 
     def test_rules_load_registry_not_found(self) -> None:
@@ -259,6 +260,7 @@ class TestsFlextCliRulesUtilsCov:
                 file_rule_catalog=c.Tests.RULES_FILE_CATALOG_BASIC,
             )
             assert result.success
+            assert isinstance(result.value, (list, tuple))
             assert result.value[1][0][0] == "file-lint"
 
     def test_rules_load_local_definitions_file_catalog_validation_fails(self) -> None:

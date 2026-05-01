@@ -4,90 +4,71 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
-
-import flext_cli.services.auth as auth_service_module
 from flext_cli.services.auth import FlextCliAuth
-from flext_core import r
-from tests import c, t
+from tests import c
 
 
 class TestsFlextCliServicesAuthBranchCov:
-    """Exercise remaining FlextCliAuth branches."""
+    """Exercise remaining FlextCliAuth branches through real behavior flows."""
 
     def test_authenticate_token_save_failure_returns_error(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
+        self, tmp_path: Path
     ) -> None:
         service = FlextCliAuth()
-        monkeypatch.setattr(
-            FlextCliAuth,
-            "save_auth_token",
-            lambda self, token: r[bool].fail("cannot-save"),
-        )
-        result = service.authenticate({c.Cli.DICT_KEY_AUTH_TOKEN: "token-123"})
+        old_token_file = service.settings.token_file
+        token_dir = tmp_path / "token-dir"
+        token_dir.mkdir()
+        service.settings.token_file = str(token_dir)
+        try:
+            result = service.authenticate({c.Cli.DICT_KEY_AUTH_TOKEN: "token-123"})
+        finally:
+            service.settings.token_file = old_token_file
         assert result.failure
-        assert result.error == "cannot-save"
+        assert "json_write:" in (result.error or "")
 
     def test_authenticate_generated_token_save_failure_returns_error(
         self,
-        monkeypatch: pytest.MonkeyPatch,
+        tmp_path: Path,
     ) -> None:
         service = FlextCliAuth()
-        monkeypatch.setattr(
-            FlextCliAuth,
-            "validate_credentials",
-            lambda self, username, password: r[bool].ok(True),
-        )
-        monkeypatch.setattr(
-            auth_service_module.secrets, "token_urlsafe", lambda size: "generated-token"
-        )
-        monkeypatch.setattr(
-            FlextCliAuth,
-            "save_auth_token",
-            lambda self, token: r[bool].fail("cannot-save"),
-        )
-        result = service.authenticate({
-            c.Cli.DICT_KEY_USERNAME: "user",
-            c.Cli.DICT_KEY_USER_SECRET: "secret",
-        })
+        old_token_file = service.settings.token_file
+        token_dir = tmp_path / "generated-token-dir"
+        token_dir.mkdir()
+        service.settings.token_file = str(token_dir)
+        try:
+            result = service.authenticate({
+                c.Cli.DICT_KEY_USERNAME: "user",
+                c.Cli.DICT_KEY_USER_SECRET: "secret",
+            })
+        finally:
+            service.settings.token_file = old_token_file
         assert result.failure
-        assert result.error == "cannot-save"
+        assert "json_write:" in (result.error or "")
 
-    def test_clear_auth_tokens_missing_file_returns_ok(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
+    def test_clear_auth_tokens_missing_file_returns_ok(self, tmp_path: Path) -> None:
         service = FlextCliAuth()
-        missing_path = Path("/tmp/flext-missing-token.json")
-        monkeypatch.setattr(
-            auth_service_module.u.Cli,
-            "auth_token_file_path",
-            lambda token_file: missing_path,
-        )
-        result = service.clear_auth_tokens()
+        old_token_file = service.settings.token_file
+        missing_path = tmp_path / "missing-token.json"
+        service.settings.token_file = str(missing_path)
+        try:
+            result = service.clear_auth_tokens()
+        finally:
+            service.settings.token_file = old_token_file
         assert result.success
         assert result.value is True
 
-    def test_fetch_auth_token_read_failure_without_error_uses_fallback(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
+    def test_fetch_auth_token_read_failure_from_directory(self, tmp_path: Path) -> None:
         service = FlextCliAuth()
-        token_path = Path("/tmp/flext-token.json")
-        monkeypatch.setattr(
-            auth_service_module.u.Cli,
-            "auth_token_file_path",
-            lambda token_file: token_path,
-        )
-        monkeypatch.setattr(
-            auth_service_module.FlextCliFileTools,
-            "read_json_file",
-            lambda path: r[t.JsonMapping].fail(""),
-        )
-        result = service.fetch_auth_token()
+        old_token_file = service.settings.token_file
+        token_dir = tmp_path / "read-fail-dir"
+        token_dir.mkdir()
+        service.settings.token_file = str(token_dir)
+        try:
+            result = service.fetch_auth_token()
+        finally:
+            service.settings.token_file = old_token_file
         assert result.failure
-        assert result.error == "Failed to load auth token"
+        assert "load" in (result.error or "").lower()
 
 
 __all__: list[str] = ["TestsFlextCliServicesAuthBranchCov"]

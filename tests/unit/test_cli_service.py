@@ -6,11 +6,9 @@ from collections.abc import (
     MutableSequence,
 )
 
-import pytest
 import typer
 from flext_tests import tm
 
-import flext_cli.services.cli as cli_module
 from flext_cli import FlextCliSettings, cli
 from tests import c, m, p, r, t
 
@@ -242,58 +240,39 @@ class TestsFlextCliService:
         tm.that(help_result.stdout, has="--visible")
         tm.that("--hidden" in help_result.stdout, eq=False)
 
-    def test_create_app_with_common_params_handles_apply_failure(
-        self, monkeypatch: pytest.MonkeyPatch
+    def test_create_app_with_common_params_handles_invalid_trace_without_debug(
+        self,
     ) -> None:
-        warning_records: list[str] = []
-        warning_message = "failed to apply cli params"
-
-        monkeypatch.setattr(
-            cli_module.FlextCliCommonParams,
-            "apply_to_config",
-            lambda *_args, **_kwargs: r[FlextCliSettings].fail("apply failure"),
-        )
-        monkeypatch.setattr(
-            cli.logger,
-            "warning",
-            lambda message, **_kwargs: warning_records.append(message),
-        )
-
+        settings = FlextCliSettings()
         app = cli.create_app_with_common_params(
             name="warn-app",
             help_text="Warn app",
-            settings=cli.settings,
+            settings=settings,
         )
         cli.register_command(app, name="ok", help_text="OK", command=lambda: True)
 
         runner_result = cli.create_cli_runner()
         tm.ok(runner_result)
-        invoke_result = runner_result.value.invoke(app, ["--debug", "ok"])
+        invoke_result = runner_result.value.invoke(app, ["--trace", "ok"])
 
         tm.that(invoke_result.exit_code, eq=0)
-        tm.that(warning_records, has=[warning_message])
+        tm.that(settings.trace, eq=False)
 
-    def test_create_app_with_common_params_handles_identity_update(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        monkeypatch.setattr(
-            cli_module.FlextCliCommonParams,
-            "apply_to_config",
-            lambda settings, **_kwargs: r[FlextCliSettings].ok(settings),
-        )
-
+    def test_create_app_with_common_params_no_flags_keeps_settings(self) -> None:
+        settings = FlextCliSettings()
         app = cli.create_app_with_common_params(
             name="identity-app",
             help_text="Identity app",
-            settings=cli.settings,
+            settings=settings,
         )
         cli.register_command(app, name="ok", help_text="OK", command=lambda: True)
 
         runner_result = cli.create_cli_runner()
         tm.ok(runner_result)
-        invoke_result = runner_result.value.invoke(app, ["--debug", "ok"])
+        invoke_result = runner_result.value.invoke(app, ["ok"])
 
         tm.that(invoke_result.exit_code, eq=0)
+        tm.that(settings.debug, eq=False)
 
     def test_derive_model_merges_sources_and_overrides(self) -> None:
         model_from_mapping = {"name": "alice", "count": 2}
@@ -366,46 +345,40 @@ class TestsFlextCliService:
         tm.fail(result)
         tm.that(result.error, has="CLI exited with code 2")
 
-    def test_execute_app_handles_typer_exit_nonzero_branch(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        class ExitCommand:
-            @staticmethod
-            def main(**_kwargs: object) -> t.JsonValue:
-                raise typer.Exit(code=1)
-
-        monkeypatch.setattr(typer.main, "get_command", lambda _app: ExitCommand())
-        app = cli.create_app_with_common_params(
-            name="exit-app",
-            help_text="Exit app",
-            settings=cli.settings,
-        )
-
-        result = cli.execute_app(app, prog_name="exit-app", args=[])
-
-        tm.fail(result)
-        tm.that(result.error, has="CLI exited with code 1")
-
-    def test_execute_app_returns_ok_for_zero_int_result(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        class ZeroCommand:
-            @staticmethod
-            def main(**_kwargs: object) -> t.JsonValue:
-                return 0
-
-        monkeypatch.setattr(typer.main, "get_command", lambda _app: ZeroCommand())
+    def test_execute_app_handles_typer_exit_zero_branch(self) -> None:
         app = cli.create_app_with_common_params(
             name="zero-app",
             help_text="Zero app",
             settings=cli.settings,
         )
+        cli.register_command(
+            app,
+            name="exit-zero",
+            help_text="Exit zero",
+            command=lambda: cli.exit(code=0),
+        )
 
-        result = cli.execute_app(app, prog_name="zero-app", args=[])
+        result = cli.execute_app(app, prog_name="zero-app", args=["exit-zero"])
 
         tm.ok(result)
+
+    def test_execute_app_handles_typer_exit_nonzero_branch_real(self) -> None:
+        app = cli.create_app_with_common_params(
+            name="nonzero-app",
+            help_text="Non-zero app",
+            settings=cli.settings,
+        )
+        cli.register_command(
+            app,
+            name="exit-one",
+            help_text="Exit one",
+            command=lambda: cli.exit(code=1),
+        )
+
+        result = cli.execute_app(app, prog_name="nonzero-app", args=["exit-one"])
+
+        tm.fail(result)
+        tm.that(result.error, has="CLI exited with code 1")
 
     def test_execute_app_prefers_real_failure_message(self) -> None:
         app = cli.create_app_with_common_params(

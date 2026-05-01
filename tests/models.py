@@ -1,7 +1,8 @@
 """Pydantic models for flext-cli tests only.
 
-All test-domain models live here; tests MUST NOT use dict/Any/t.JsonValue as data contracts.
-Reuse TestsFlextModels types where possible; add test-specific input models only when needed.
+All test-domain models live here; tests MUST NOT use dict/Any/t.JsonValue
+as data contracts. Reuse TestsFlextModels types where possible; add
+test-specific input models only when needed.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -25,7 +26,10 @@ from tests.typings import TestsFlextCliTypes
 
 
 class TestsFlextCliModels(FlextTestsModels, m):
-    """Test namespace facade for flext-cli models. Use m alias; preserves all test model types."""
+    """Test namespace facade for flext-cli models.
+
+    Use m alias; preserves all test model types.
+    """
 
     class Tests(FlextTestsModels.Tests):
         """Test-specific model definitions for flext-cli."""
