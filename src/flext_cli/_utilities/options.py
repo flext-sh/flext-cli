@@ -74,6 +74,7 @@ class FlextCliUtilitiesOptions:
         union_origins: frozenset[object] = frozenset(
             filter(None, [Union, get_origin(str | int)])
         )
+
         sequence_origins: frozenset[object] = frozenset(
             filter(
                 None,
@@ -81,6 +82,8 @@ class FlextCliUtilitiesOptions:
                     get_origin(Sequence[str]),
                     get_origin(list[str]),
                     get_origin(tuple[str, ...]),
+                    t.SequenceOf,
+                    t.MutableSequenceOf,
                 ],
             )
         )

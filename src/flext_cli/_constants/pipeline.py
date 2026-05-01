@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import ClassVar, Final
 
-from flext_cli._constants.enums import FlextCliConstantsEnums
+from flext_cli._constants.enums import FlextCliConstantsEnums as ce
 from flext_core import t
 
 
@@ -16,7 +16,7 @@ class FlextCliConstantsPipeline:
     PIPELINE_MAX_RETRY: Final[t.RetryCount] = 3
 
     PIPELINE_STATUS_VALUES: ClassVar[frozenset[str]] = frozenset(
-        status.value for status in FlextCliConstantsEnums.PipelineStageStatus
+        status.value for status in ce.PipelineStageStatus
     )
 
 

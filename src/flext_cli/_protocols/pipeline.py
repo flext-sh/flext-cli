@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Protocol, runtime_checkable
 from flext_core import p, t
 
 if TYPE_CHECKING:
-    from flext_cli._models.pipeline import FlextCliModelsPipeline
+    from flext_cli import m
 
 
 class FlextCliProtocolsPipeline:
@@ -40,7 +40,7 @@ class FlextCliProtocolsPipeline:
         def __call__(
             self,
             ctx: FlextCliProtocolsPipeline.PipelineStageContext,
-        ) -> p.Result[FlextCliModelsPipeline.PipelineStageResult]:
+        ) -> p.Result[m.Cli.PipelineStageResult]:
             """Execute stage and return typed result."""
             ...
 
@@ -50,11 +50,11 @@ class FlextCliProtocolsPipeline:
 
         def execute(
             self,
-            stages: t.SequenceOf[FlextCliModelsPipeline.PipelineStageSpec],
+            stages: t.SequenceOf[m.Cli.PipelineStageSpec],
             context: FlextCliProtocolsPipeline.PipelineStageContext,
             *,
             fail_fast: bool = True,
-        ) -> p.Result[FlextCliModelsPipeline.PipelineResult]:
+        ) -> p.Result[m.Cli.PipelineResult]:
             """Execute stages in dependency order."""
             ...
 

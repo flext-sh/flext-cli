@@ -10,9 +10,14 @@ from collections.abc import (
 from pathlib import Path
 from typing import Annotated
 
-from flext_cli import m, p, r, t
-from flext_cli._utilities.json import FlextCliUtilitiesJson
-from flext_cli._utilities.yaml import FlextCliUtilitiesYaml
+from flext_cli import (
+    FlextCliUtilitiesJson as uj,
+    FlextCliUtilitiesYaml as uy,
+    m,
+    p,
+    r,
+    t,
+)
 
 
 class FlextCliUtilitiesRules:
@@ -78,9 +83,9 @@ class FlextCliUtilitiesRules:
         allowed_keys: t.StrSequence,
     ) -> t.JsonMapping:
         """Extract and normalize one declarative rules scope from settings."""
-        normalized = FlextCliUtilitiesJson.json_as_mapping(settings)
+        normalized = uj.json_as_mapping(settings)
         scope_raw = normalized.get(scope_key)
-        scope_map = FlextCliUtilitiesJson.json_as_mapping(scope_raw)
+        scope_map = uj.json_as_mapping(scope_raw)
         return t.Cli.JSON_MAPPING_ADAPTER.validate_python({
             key: value for key, value in scope_map.items() if key in allowed_keys
         })
@@ -94,7 +99,7 @@ class FlextCliUtilitiesRules:
     ) -> p.Result[t.JsonMapping]:
         """Load one YAML config file and normalize a scoped rule section."""
         normalized = t.Cli.JSON_MAPPING_ADAPTER.validate_python(
-            FlextCliUtilitiesYaml.yaml_load_mapping(config_path),
+            uy.yaml_load_mapping(config_path),
         )
         normalized_scope = FlextCliUtilitiesRules.rules_resolve_scope(
             dict(normalized),
@@ -131,7 +136,7 @@ class FlextCliUtilitiesRules:
             if not registry_path.is_file():
                 continue
             normalized = t.Cli.JSON_MAPPING_ADAPTER.validate_python(
-                FlextCliUtilitiesYaml.yaml_load_mapping(registry_path),
+                uy.yaml_load_mapping(registry_path),
             )
             return r[t.JsonMapping].ok(normalized)
         return r[t.JsonMapping].fail(
@@ -172,11 +177,9 @@ class FlextCliUtilitiesRules:
             if rule_file.name == options.registry_filename:
                 continue
             rule_config = t.Cli.JSON_MAPPING_ADAPTER.validate_python(
-                FlextCliUtilitiesYaml.yaml_load_mapping(rule_file),
+                uy.yaml_load_mapping(rule_file),
             )
-            typed_rules = FlextCliUtilitiesJson.json_as_mapping_list(
-                rule_config.get(options.rules_key)
-            )
+            typed_rules = uj.json_as_mapping_list(rule_config.get(options.rules_key))
             for typed_rule_def in typed_rules:
                 if options.rule_id_key not in typed_rule_def:
                     continue
@@ -185,16 +188,16 @@ class FlextCliUtilitiesRules:
                 rule_id = str(typed_rule_def[options.rule_id_key]).strip()
                 if not cls._rules_matches_filters(rule_id, options.rule_filters):
                     continue
-                action_name = FlextCliUtilitiesJson.json_get_str_key(
+                action_name = uj.json_get_str_key(
                     typed_rule_def,
                     options.action_key,
-                    default=FlextCliUtilitiesJson.json_get_str_key(
+                    default=uj.json_get_str_key(
                         typed_rule_def,
                         options.fallback_action_key,
                     ),
                     case="lower",
                 )
-                check_name = FlextCliUtilitiesJson.json_get_str_key(
+                check_name = uj.json_get_str_key(
                     typed_rule_def,
                     options.check_key,
                     case="lower",

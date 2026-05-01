@@ -26,9 +26,6 @@ from __future__ import annotations
 
 import os
 import time
-from collections.abc import (
-    Mapping,
-)
 from pathlib import Path
 
 from examples import c, m, t, u
@@ -191,14 +188,14 @@ def validate_app_settings() -> bool:
     return True
 
 
-def load_application_settings() -> p.Result[Mapping[str, t.JsonValue]]:
+def load_application_settings() -> p.Result[t.MappingKV[str, t.JsonValue]]:
     """Load and validate application settings from environment."""
     cli.print("\n⚙️  Loading Application Settings:", style=c.Cli.MessageStyles.BOLD_CYAN)
     settings_obj = m.Examples.AppSettingsAdvanced()
     cli.print("✅ Settings model created", style=c.Cli.MessageStyles.GREEN)
     validate_result = settings_obj.validate_to_mapping()
     if validate_result.failure:
-        return r[Mapping[str, t.JsonValue]].fail(
+        return r[t.MappingKV[str, t.JsonValue]].fail(
             validate_result.error or "Settings validation failed",
         )
     cli.print("✅ Settings validated", style=c.Cli.MessageStyles.GREEN)
@@ -207,7 +204,7 @@ def load_application_settings() -> p.Result[Mapping[str, t.JsonValue]]:
     cli.print("✅ Environment overrides applied", style=c.Cli.MessageStyles.GREEN)
     final_data = initialize_services(overridden_data)
     cli.print("✅ Services initialized", style=c.Cli.MessageStyles.GREEN)
-    result = r[Mapping[str, t.JsonValue]].ok(final_data)
+    result = r[t.MappingKV[str, t.JsonValue]].ok(final_data)
     if result.failure:
         cli.print(
             f"❌ Settings failed: {result.error}",

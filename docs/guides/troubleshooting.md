@@ -564,7 +564,7 @@ def debug_ldif_processing(content: str) -> None:
 | Error Code | Description                | Solution                                  |
 | ---------- | -------------------------- | ----------------------------------------- |
 | `LDIF_001` | Invalid LDIF format        | Check LDIF syntax and structure           |
-| `LDIF_002` | Server compatibility error | Enable server quirks or check server type |
+| `LDIF_002` | Server compatibility error | Enable server servers or check server type |
 | `LDIF_003` | Schema validation failed   | Verify schema definitions and attributes  |
 
 ### API Errors

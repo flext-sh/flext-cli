@@ -14,7 +14,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import re
-from collections.abc import Mapping
 from re import Pattern
 from types import MappingProxyType
 from typing import Final
@@ -73,7 +72,7 @@ class TestsFlextCliConstants(FlextTestsConstants, c):
         VERSION_STR_VALID_SEMVER_COMPLEX: Final[str] = "1.2.3-alpha.1+build.123"
         VERSION_STR_INVALID_NO_DOTS: Final[str] = "version"
         VERSION_STR_INVALID_NON_NUMERIC: Final[str] = "a.b.c"
-        VERSION_STR_CASES: Final[Mapping[str, str]] = MappingProxyType({
+        VERSION_STR_CASES: Final[t.MappingKV[str, str]] = MappingProxyType({
             "valid_semver": VERSION_STR_VALID_SEMVER,
             "valid_semver_complex": VERSION_STR_VALID_SEMVER_COMPLEX,
             "invalid_no_dots": VERSION_STR_INVALID_NO_DOTS,
@@ -111,7 +110,7 @@ class TestsFlextCliConstants(FlextTestsConstants, c):
             c.LogLevel.ERROR,
             c.LogLevel.CRITICAL,
         })
-        LOG_LEVEL_TO_EXPECTED: Final[Mapping[str, str]] = MappingProxyType({
+        LOG_LEVEL_TO_EXPECTED: Final[t.MappingKV[str, str]] = MappingProxyType({
             c.LogLevel.DEBUG: c.LogLevel.DEBUG,
             c.LogLevel.INFO: c.LogLevel.INFO,
             c.LogLevel.WARNING: c.LogLevel.WARNING,

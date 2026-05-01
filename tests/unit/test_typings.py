@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import time
 from collections.abc import (
-    Mapping,
     Sequence,
 )
 from typing import Protocol, runtime_checkable
@@ -33,8 +32,8 @@ class TestsFlextCliTypesUnit:
         tm.that(api_data, is_=m.Tests.ApiResponse)
         tm.that(api_data.data, eq={"id": 1})
 
-        complex_type_adapter: m.TypeAdapter[Sequence[Mapping[str, str | int]]] = (
-            m.TypeAdapter(Sequence[Mapping[str, str | int]])
+        complex_type_adapter: m.TypeAdapter[Sequence[t.MappingKV[str, str | int]]] = (
+            m.TypeAdapter(Sequence[t.MappingKV[str, str | int]])
         )
         complex_value = complex_type_adapter.validate_python([
             {"name": "entry", "count": 1},

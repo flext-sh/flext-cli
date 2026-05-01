@@ -323,7 +323,7 @@ class ExamplesFlextCliModels(m):
                     raise ValueError(msg)
                 return v.upper()
 
-            def validate_to_mapping(self) -> p.Result[Mapping[str, t.JsonValue]]:
+            def validate_to_mapping(self) -> p.Result[t.MappingKV[str, t.JsonValue]]:
                 """Validate configuration and return as mapping or failure."""
                 errors: MutableSequence[str] = []
                 if (
@@ -340,8 +340,8 @@ class ExamplesFlextCliModels(m):
                 elif not self.temp_dir.is_dir():
                     errors.append("TEMP_DIR must be a directory")
                 if errors:
-                    return r[Mapping[str, t.JsonValue]].fail("; ".join(errors))
-                return r[Mapping[str, t.JsonValue]].ok({
+                    return r[t.MappingKV[str, t.JsonValue]].fail("; ".join(errors))
+                return r[t.MappingKV[str, t.JsonValue]].ok({
                     "database_url": self.database_url,
                     "redis_url": self.redis_url,
                     "api_key": "***" if self.api_key else "",

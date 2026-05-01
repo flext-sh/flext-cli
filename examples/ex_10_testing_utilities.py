@@ -202,23 +202,23 @@ def test_error_scenarios() -> None:
 def _finalize_workflow_data(
     temp_file: Path,
     read_data: t.JsonValue,
-) -> p.Result[Mapping[str, t.JsonValue]]:
+) -> p.Result[t.MappingKV[str, t.JsonValue]]:
     """Validate workflow payload, mark it processed, and clean up the temp file."""
     temp_file.unlink(missing_ok=True)
     if not isinstance(read_data, Mapping):
-        return r[Mapping[str, t.JsonValue]].fail(
+        return r[t.MappingKV[str, t.JsonValue]].fail(
             "Workflow payload must be a mapping",
         )
     loaded: MutableMapping[str, t.JsonValue] = dict(read_data)
     loaded["status"] = "completed"
     loaded["processed"] = True
-    return r[Mapping[str, t.JsonValue]].ok(loaded)
+    return r[t.MappingKV[str, t.JsonValue]].ok(loaded)
 
 
 def full_workflow_command(
     *,
     base_dir: Path | None = None,
-) -> p.Result[Mapping[str, t.JsonValue]]:
+) -> p.Result[t.MappingKV[str, t.JsonValue]]:
     """Complete workflow to test."""
     data: t.JsonMapping = {"status": "processing", "items": [1, 2, 3]}
     temp_file = _temp_file_path("workflow_test.json", base_dir=base_dir)

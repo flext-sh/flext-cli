@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 from types import MappingProxyType
-from typing import ClassVar, Final
+from typing import TYPE_CHECKING, ClassVar, Final
 
-from flext_cli._constants.enums import FlextCliConstantsEnums
+from flext_cli._constants.enums import FlextCliConstantsEnums as ce
 from flext_core import c, t
+
+if TYPE_CHECKING:
+    from flext_cli import t
 
 
 class FlextCliConstantsOutput:
@@ -41,59 +44,53 @@ class FlextCliConstantsOutput:
     PROMPT_NO_VALUES: ClassVar[frozenset[str]] = frozenset({"n", "no"})
 
     OUTPUT_EMPTY_STYLE: Final[str] = ""
-    OUTPUT_DEFAULT_MESSAGE_TYPE: Final[FlextCliConstantsEnums.MessageTypes] = (
-        FlextCliConstantsEnums.MessageTypes.INFO
-    )
-    OUTPUT_DEFAULT_FORMAT_TYPE: Final[FlextCliConstantsEnums.OutputFormats] = (
-        FlextCliConstantsEnums.OutputFormats.TABLE
-    )
+    OUTPUT_DEFAULT_MESSAGE_TYPE: Final[ce.MessageTypes] = ce.MessageTypes.INFO
+    OUTPUT_DEFAULT_FORMAT_TYPE: Final[ce.OutputFormats] = ce.OutputFormats.TABLE
 
     TABLE_FORMATS: ClassVar[t.StrMapping] = MappingProxyType({
-        FlextCliConstantsEnums.TabularFormat.PLAIN: "Minimal formatting, no borders",
-        FlextCliConstantsEnums.TabularFormat.SIMPLE: "Simple ASCII borders",
-        FlextCliConstantsEnums.TabularFormat.GRID: "Grid-style ASCII table",
-        FlextCliConstantsEnums.TabularFormat.FANCY_GRID: "Fancy grid with double lines",
-        FlextCliConstantsEnums.TabularFormat.PIPE: "Markdown pipe table",
-        FlextCliConstantsEnums.TabularFormat.ORGTBL: "Emacs org-mode table",
-        FlextCliConstantsEnums.TabularFormat.JIRA: "Jira markup table",
-        FlextCliConstantsEnums.TabularFormat.PRESTO: "Presto SQL output",
-        FlextCliConstantsEnums.TabularFormat.PRETTY: "Pretty ASCII table",
-        FlextCliConstantsEnums.TabularFormat.PSQL: "PostgreSQL psql output",
-        FlextCliConstantsEnums.TabularFormat.RST: "reStructuredText grid",
-        FlextCliConstantsEnums.TabularFormat.MEDIAWIKI: "MediaWiki markup",
-        FlextCliConstantsEnums.TabularFormat.MOINMOIN: "MoinMoin markup",
-        FlextCliConstantsEnums.TabularFormat.YOUTRACK: "YouTrack markup",
-        FlextCliConstantsEnums.TabularFormat.HTML: "HTML table",
-        FlextCliConstantsEnums.TabularFormat.UNSAFEHTML: "Unsafe HTML table",
-        FlextCliConstantsEnums.TabularFormat.LATEX: "LaTeX table",
-        FlextCliConstantsEnums.TabularFormat.LATEX_RAW: "Raw LaTeX table",
-        FlextCliConstantsEnums.TabularFormat.LATEX_BOOKTABS: "LaTeX booktabs table",
-        FlextCliConstantsEnums.TabularFormat.LATEX_LONGTABLE: "LaTeX longtable",
-        FlextCliConstantsEnums.TabularFormat.TEXTILE: "Textile markup",
-        FlextCliConstantsEnums.TabularFormat.TSV: "Tab-separated values",
+        ce.TabularFormat.PLAIN: "Minimal formatting, no borders",
+        ce.TabularFormat.SIMPLE: "Simple ASCII borders",
+        ce.TabularFormat.GRID: "Grid-style ASCII table",
+        ce.TabularFormat.FANCY_GRID: "Fancy grid with double lines",
+        ce.TabularFormat.PIPE: "Markdown pipe table",
+        ce.TabularFormat.ORGTBL: "Emacs org-mode table",
+        ce.TabularFormat.JIRA: "Jira markup table",
+        ce.TabularFormat.PRESTO: "Presto SQL output",
+        ce.TabularFormat.PRETTY: "Pretty ASCII table",
+        ce.TabularFormat.PSQL: "PostgreSQL psql output",
+        ce.TabularFormat.RST: "reStructuredText grid",
+        ce.TabularFormat.MEDIAWIKI: "MediaWiki markup",
+        ce.TabularFormat.MOINMOIN: "MoinMoin markup",
+        ce.TabularFormat.YOUTRACK: "YouTrack markup",
+        ce.TabularFormat.HTML: "HTML table",
+        ce.TabularFormat.UNSAFEHTML: "Unsafe HTML table",
+        ce.TabularFormat.LATEX: "LaTeX table",
+        ce.TabularFormat.LATEX_RAW: "Raw LaTeX table",
+        ce.TabularFormat.LATEX_BOOKTABS: "LaTeX booktabs table",
+        ce.TabularFormat.LATEX_LONGTABLE: "LaTeX longtable",
+        ce.TabularFormat.TEXTILE: "Textile markup",
+        ce.TabularFormat.TSV: "Tab-separated values",
     })
 
     MESSAGE_STYLE_MAP: ClassVar[
         t.MappingKV[
-            FlextCliConstantsEnums.MessageTypes,
-            FlextCliConstantsEnums.MessageStyles,
+            ce.MessageTypes,
+            ce.MessageStyles,
         ]
     ] = MappingProxyType({
-        FlextCliConstantsEnums.MessageTypes.INFO: FlextCliConstantsEnums.MessageStyles.BLUE,
-        FlextCliConstantsEnums.MessageTypes.SUCCESS: FlextCliConstantsEnums.MessageStyles.BOLD_GREEN,
-        FlextCliConstantsEnums.MessageTypes.ERROR: FlextCliConstantsEnums.MessageStyles.BOLD_RED,
-        FlextCliConstantsEnums.MessageTypes.WARNING: FlextCliConstantsEnums.MessageStyles.BOLD_YELLOW,
-        FlextCliConstantsEnums.MessageTypes.DEBUG: FlextCliConstantsEnums.MessageStyles.DIM,
+        ce.MessageTypes.INFO: ce.MessageStyles.BLUE,
+        ce.MessageTypes.SUCCESS: ce.MessageStyles.BOLD_GREEN,
+        ce.MessageTypes.ERROR: ce.MessageStyles.BOLD_RED,
+        ce.MessageTypes.WARNING: ce.MessageStyles.BOLD_YELLOW,
+        ce.MessageTypes.DEBUG: ce.MessageStyles.DIM,
     })
 
-    MESSAGE_EMOJI_MAP: ClassVar[
-        t.MappingKV[FlextCliConstantsEnums.MessageTypes, str]
-    ] = MappingProxyType({
-        FlextCliConstantsEnums.MessageTypes.INFO: EMOJI_INFO,
-        FlextCliConstantsEnums.MessageTypes.SUCCESS: EMOJI_SUCCESS,
-        FlextCliConstantsEnums.MessageTypes.ERROR: EMOJI_ERROR,
-        FlextCliConstantsEnums.MessageTypes.WARNING: EMOJI_WARNING,
-        FlextCliConstantsEnums.MessageTypes.DEBUG: EMOJI_DEBUG,
+    MESSAGE_EMOJI_MAP: ClassVar[t.MappingKV[ce.MessageTypes, str]] = MappingProxyType({
+        ce.MessageTypes.INFO: EMOJI_INFO,
+        ce.MessageTypes.SUCCESS: EMOJI_SUCCESS,
+        ce.MessageTypes.ERROR: EMOJI_ERROR,
+        ce.MessageTypes.WARNING: EMOJI_WARNING,
+        ce.MessageTypes.DEBUG: EMOJI_DEBUG,
     })
 
 

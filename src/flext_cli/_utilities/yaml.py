@@ -14,8 +14,8 @@ from typing import ClassVar
 
 from yaml import safe_dump, safe_load
 
-from flext_cli import c, p, r, t
-from flext_core import m, u
+from flext_cli import c, m, p, r, t
+from flext_core import u
 
 
 class FlextCliUtilitiesYaml:

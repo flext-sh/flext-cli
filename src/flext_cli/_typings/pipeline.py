@@ -8,11 +8,10 @@ from collections.abc import (
 from typing import TYPE_CHECKING, Literal
 
 from flext_cli._constants.enums import FlextCliConstantsEnums
-from flext_core import FlextProtocols
+from flext_core import p
 
 if TYPE_CHECKING:
-    from flext_cli._models.pipeline import FlextCliModelsPipeline
-    from flext_cli._protocols.pipeline import FlextCliProtocolsPipeline
+    from flext_cli import FlextCliModelsPipeline as mp, FlextCliProtocolsPipeline as pp
 
 
 class FlextCliTypesPipeline:
@@ -24,11 +23,11 @@ class FlextCliTypesPipeline:
         FlextCliConstantsEnums.PipelineStageStatus.FAILED,
     ]
     type PipelineHandler = Callable[
-        [FlextCliProtocolsPipeline.PipelineStageContext],
-        FlextProtocols.Result[FlextCliModelsPipeline.PipelineStageResult],
+        [pp.PipelineStageContext],
+        p.Result[mp.PipelineStageResult],
     ]
     type PipelineSkipPredicate = Callable[
-        [FlextCliProtocolsPipeline.PipelineStageContext],
+        [pp.PipelineStageContext],
         bool,
     ]
 

@@ -13,9 +13,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import (
-    Mapping,
-)
 from typing import override
 
 from flext_tests import tm
@@ -35,9 +32,9 @@ class TestsFlextCliServiceBase:
         """Concrete implementation for testing abstract base class."""
 
         @override
-        def execute(self) -> p.Result[Mapping[str, t.JsonValue]]:
+        def execute(self) -> p.Result[t.MappingKV[str, t.JsonValue]]:
             """Implement abstract method for testing."""
-            return r[Mapping[str, t.JsonValue]].ok({})
+            return r[t.MappingKV[str, t.JsonValue]].ok({})
 
     def test_service_base_initialization(self) -> None:
         """Test FlextCliServiceBase can be instantiated via concrete class."""

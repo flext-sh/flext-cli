@@ -5,7 +5,7 @@ from __future__ import annotations
 from types import MappingProxyType
 from typing import ClassVar, Final
 
-from flext_cli._constants.enums import FlextCliConstantsEnums
+from flext_cli._constants.enums import FlextCliConstantsEnums as ce
 from flext_core import c, t
 
 
@@ -13,13 +13,13 @@ class FlextCliConstantsSettings:
     """CLI defaults, messages, registries, and output configuration."""
 
     OUTPUT_FORMATS: ClassVar[tuple[str, ...]] = tuple(
-        item.value for item in FlextCliConstantsEnums.OutputFormats
+        item.value for item in ce.OutputFormats
     )
     OUTPUT_FORMATS_SET: ClassVar[frozenset[str]] = frozenset(OUTPUT_FORMATS)
     LOG_LEVELS: ClassVar[tuple[str, ...]] = tuple(item.value for item in c.LogLevel)
     LOG_LEVELS_SET: ClassVar[frozenset[str]] = frozenset(LOG_LEVELS)
     MESSAGE_TYPES: ClassVar[tuple[str, ...]] = tuple(
-        item.value for item in FlextCliConstantsEnums.MessageTypes
+        item.value for item in ce.MessageTypes
     )
     MESSAGE_TYPES_SET: ClassVar[frozenset[str]] = frozenset(MESSAGE_TYPES)
 
@@ -59,7 +59,7 @@ class FlextCliConstantsSettings:
     CLI_PARAM_LOG_FORMAT_OVERRIDE: Final[str] = "log-format"
     CLI_PARAM_CASE_INSENSITIVE: Final[bool] = False
     CLI_VALID_LOG_FORMATS: ClassVar[t.StrSequence] = tuple(
-        item.value for item in FlextCliConstantsEnums.LogVerbosity
+        item.value for item in ce.LogVerbosity
     )
 
     COMMANDS_DEFAULT_NAME: Final[str] = "flext"

@@ -4,8 +4,7 @@ from __future__ import annotations
 
 import click
 
-from flext_cli import c, p, r, t
-from flext_cli._utilities.output import FlextCliUtilitiesOutput
+from flext_cli import FlextCliUtilitiesOutput as uo, c, p, r, t
 from flext_core import u
 
 
@@ -62,20 +61,20 @@ class FlextCliUtilitiesCommands:
         if message.lstrip().startswith(("{", "[")):
             click.echo(message)
             return
-        payload, _ = FlextCliUtilitiesOutput.output_message_payload(
+        payload, _ = uo.output_message_payload(
             message,
             success_type,
         )
-        FlextCliUtilitiesOutput.emit_raw(f"{payload}\n")
+        uo.emit_raw(f"{payload}\n")
 
     @staticmethod
     def commands_emit_error_message(error: str) -> None:
         """Emit standardized CLI error output."""
-        payload, _ = FlextCliUtilitiesOutput.output_message_payload(
+        payload, _ = uo.output_message_payload(
             error,
             c.Cli.MessageTypes.ERROR,
         )
-        FlextCliUtilitiesOutput.emit_raw(f"{payload}\n")
+        uo.emit_raw(f"{payload}\n")
 
 
 __all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesCommands"]

@@ -12,11 +12,10 @@ from tomlkit.container import Container
 from tomlkit.items import AoT, Array, Item, Table
 from tomlkit.toml_document import TOMLDocument
 
-from flext_cli import p
+from flext_cli import FlextCliProtocolsBase as pb, FlextCliTypesBase as tb
 from flext_cli._constants.enums import FlextCliConstantsEnums
-from flext_cli._protocols.base import FlextCliProtocolsBase
-from flext_cli._typings.base import FlextCliTypesBase
-from flext_core import m, t
+from flext_cli._protocols.domain import FlextCliProtocolsDomain
+from flext_core import m, p, t
 
 
 class FlextCliTypesDomain:
@@ -62,7 +61,7 @@ class FlextCliTypesDomain:
     type PromptTextReader = Callable[[str], str]
     type CliCommand = Callable[..., t.JsonPayload]
     type JsonCommandFn = Callable[..., p.Result[t.JsonPayload]]
-    type ResultRouteHandler = Callable[..., FlextCliProtocolsBase.ErasedCommandResult]
+    type ResultRouteHandler = Callable[..., pb.ErasedCommandResult]
     type MappingProcessor[T, U] = Callable[[str, T], U]
     type TomlMappingSource = (
         t.JsonPayload | t.JsonMapping | t.ScalarMapping | Item | TOMLDocument
@@ -83,9 +82,9 @@ class FlextCliTypesDomain:
     )
     type TypeKind = FlextCliConstantsEnums.TypeKind
     type TypedExtractValue = str | bool | t.JsonMapping
-    type TableDataSource = FlextCliTypesBase.TabularData | t.SequenceOf[t.JsonMapping]
+    type TableDataSource = tb.TabularData | t.SequenceOf[t.JsonMapping]
     type TextPath = str | Path
-    type JsonWriteData = t.JsonPayload | p.Cli.DisplayData
+    type JsonWriteData = t.JsonPayload | FlextCliProtocolsDomain.DisplayData
 
 
 __all__: list[str] = ["FlextCliTypesDomain"]

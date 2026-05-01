@@ -621,7 +621,7 @@ def validate_and_transform_data(
 def generate_output_files(
     data: m.Cli.LoadedConfig,
     output_dir: Path,
-) -> p.Result[Mapping[str, Path]]:
+) -> p.Result[t.MappingKV[str, Path]]:
     """Generate multiple output file formats."""
     output_dir.mkdir(exist_ok=True)
     base_name = "processed_data"
@@ -635,7 +635,9 @@ def generate_output_files(
         data.content,
     )
     if json_result.failure:
-        return r[Mapping[str, Path]].fail(f"JSON export failed: {json_result.error}")
+        return r[t.MappingKV[str, Path]].fail(
+            f"JSON export failed: {json_result.error}"
+        )
     results["json"] = json_file
 
     # YAML output
@@ -645,7 +647,9 @@ def generate_output_files(
         data.content,
     )
     if yaml_result.failure:
-        return r[Mapping[str, Path]].fail(f"YAML export failed: {yaml_result.error}")
+        return r[t.MappingKV[str, Path]].fail(
+            f"YAML export failed: {yaml_result.error}"
+        )
     results["yaml"] = yaml_file
 
     content_items: t.JsonPayload = ""
@@ -662,10 +666,12 @@ def generate_output_files(
         ]
         csv_result = cli.write_csv_file(csv_file, csv_rows)
         if csv_result.failure:
-            return r[Mapping[str, Path]].fail(f"CSV export failed: {csv_result.error}")
+            return r[t.MappingKV[str, Path]].fail(
+                f"CSV export failed: {csv_result.error}"
+            )
         results["csv"] = csv_file
 
-    return r[Mapping[str, Path]].ok(results)
+    return r[t.MappingKV[str, Path]].ok(results)
 
 
 def create_processing_summary(
