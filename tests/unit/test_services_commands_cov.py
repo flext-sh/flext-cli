@@ -10,8 +10,40 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_cli.services.commands import FlextCliCommands
-from flext_core import r
+from flext_core import p, r
 from tests import t
+
+
+def _ok_status() -> p.Result[t.JsonPayload]:
+    return r[t.JsonPayload].ok({"status": "ok"})
+
+
+def _fail_empty() -> p.Result[t.JsonPayload]:
+    return r[t.JsonPayload].fail("")
+
+
+def _ok_done() -> p.Result[t.JsonPayload]:
+    return r[t.JsonPayload].ok({"done": True})
+
+
+def _ok_greet(greet_name: str = "world") -> p.Result[t.JsonPayload]:
+    return r[t.JsonPayload].ok({"msg": f"hello {greet_name}"})
+
+
+def _ok_echo(x: t.JsonValue) -> p.Result[t.JsonPayload]:
+    return r[t.JsonPayload].ok({"echo": x})
+
+
+def _ok_cmd1() -> p.Result[t.JsonPayload]:
+    return r[t.JsonPayload].ok({"cmd": 1})
+
+
+def _ok_cmd2() -> p.Result[t.JsonPayload]:
+    return r[t.JsonPayload].ok({"cmd": 2})
+
+
+def _ok_deployed() -> p.Result[t.JsonPayload]:
+    return r[t.JsonPayload].ok({"deployed": True})
 
 
 class TestsFlextCliServicesCommandsCov:
@@ -43,26 +75,24 @@ class TestsFlextCliServicesCommandsCov:
 
     def test_register_handler_valid(self) -> None:
         svc = FlextCliCommands.create(name="app")
-        result = svc.register_handler(
-            "run", lambda: r[t.JsonPayload].ok({"status": "ok"})
-        )
+        result = svc.register_handler("run", _ok_status)
         assert result.success
 
     def test_register_handler_empty_name(self) -> None:
         svc = FlextCliCommands.create(name="app")
-        result = svc.register_handler("", lambda: r[t.JsonPayload].fail(""))
+        result = svc.register_handler("", _fail_empty)
         assert result.failure
 
     def test_register_handler_whitespace_name(self) -> None:
         svc = FlextCliCommands.create(name="app")
-        result = svc.register_handler("   ", lambda: r[t.JsonPayload].fail(""))
+        result = svc.register_handler("   ", _fail_empty)
         assert result.failure
 
     # ── execute_command ───────────────────────────────────────────────
 
     def test_execute_command_registered(self) -> None:
         svc = FlextCliCommands.create(name="app")
-        svc.register_handler("do-thing", lambda: r[t.JsonPayload].ok({"done": True}))
+        svc.register_handler("do-thing", _ok_done)
         result = svc.execute_command("do-thing")
         assert result.success
 
@@ -83,18 +113,13 @@ class TestsFlextCliServicesCommandsCov:
 
     def test_execute_command_with_kwargs(self) -> None:
         svc = FlextCliCommands.create(name="app")
-        svc.register_handler(
-            "greet",
-            lambda greet_name="world": r[t.JsonPayload].ok({
-                "msg": f"hello {greet_name}"
-            }),
-        )
+        svc.register_handler("greet", _ok_greet)
         result = svc.execute_command("greet", greet_name="test")
         assert result.success
 
     def test_execute_command_with_args(self) -> None:
         svc = FlextCliCommands.create(name="app")
-        svc.register_handler("echo", lambda x: r[t.JsonPayload].ok({"echo": x}))
+        svc.register_handler("echo", _ok_echo)
         result = svc.execute_command("echo", args=["hello"])
         assert result.success
 
@@ -108,8 +133,8 @@ class TestsFlextCliServicesCommandsCov:
 
     def test_list_commands_populated(self) -> None:
         svc = FlextCliCommands.create(name="app")
-        svc.register_handler("cmd1", lambda: r[t.JsonPayload].ok({"cmd": 1}))
-        svc.register_handler("cmd2", lambda: r[t.JsonPayload].ok({"cmd": 2}))
+        svc.register_handler("cmd1", _ok_cmd1)
+        svc.register_handler("cmd2", _ok_cmd2)
         result = svc.list_commands()
         assert result.success
         assert set(result.value) == {"cmd1", "cmd2"}
@@ -138,7 +163,7 @@ class TestsFlextCliServicesCommandsCov:
 
     def test_run_cli_registered_command(self) -> None:
         svc = FlextCliCommands.create(name="app")
-        svc.register_handler("deploy", lambda: r[t.JsonPayload].ok({"deployed": True}))
+        svc.register_handler("deploy", _ok_deployed)
         result = svc.run_cli(["deploy"])
         assert result.success
 
