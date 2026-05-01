@@ -1,0 +1,58 @@
+src/flext_cli/_utilities/settings.py
+  h_9db9d35f50cf33 37,50
+src/flext_cli/_utilities/yaml.py
+  h_9db9d35f50cf33 105
+src/flext_cli/_utilities/json.py
+  h_9db9d35f50cf33 124,132,142,193
+src/flext_cli/_utilities/tables.py
+  h_9db9d35f50cf33 128
+examples/ex_09_performance_optimization.py
+  h_9db9d35f50cf33 94
+examples/typings.py
+  h_9db9d35f50cf33 19
+examples/ex_07_plugin_system.py
+  h_9db9d35f50cf33 185,189,265
+src/flext_cli/_utilities/toml.py
+  h_9db9d35f50cf33 255,306,310,421,469
+src/flext_cli/_utilities/files.py
+  h_9db9d35f50cf33 105,131
+docs/guides/troubleshooting.md
+  h_9db9d35f50cf33 766
+src/flext_cli/_models/pipeline.py
+  h_9db9d35f50cf33 140
+examples/ex_06_settings.py
+  h_9db9d35f50cf33 225-226,247-248
+src/flext_cli/_protocols/pipeline.py
+  h_9db9d35f50cf33 53
+src/flext_cli/services/file_tools.py
+  h_9db9d35f50cf33 72
+tests/conftest.py
+  h_9db9d35f50cf33 37
+src/flext_cli/_typings/domain.py
+  h_9db9d35f50cf33 36,38,41,43-44,51,57,59,72,86
+src/flext_cli/_typings/base.py
+  h_9db9d35f50cf33 29,34,37,39
+docs/development.md
+  h_9db9d35f50cf33 91-92
+examples/models.py
+  h_9db9d35f50cf33 36
+examples/ex_11_complete_integration.py
+  h_9db9d35f50cf33 67
+src/flext_cli/services/tables.py
+  h_9db9d35f50cf33 38
+examples/ex_14_advanced_file_formats.py
+  h_9db9d35f50cf33 41,69,155,287,293,317
+src/flext_cli/_models/base.py
+  h_9db9d35f50cf33 109
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "19fcbea1305c858c63da90a293d4912411a138d7",
+  "prompts": {},
+  "humans": {
+    "h_9db9d35f50cf33": {
+      "author": "FLEXT Bot"
+    }
+  }
+}
