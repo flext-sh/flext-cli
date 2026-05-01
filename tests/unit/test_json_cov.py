@@ -108,12 +108,15 @@ class TestsFlextCliJsonCov:
         assert result == []
 
     def test_json_walk_path_existing(self) -> None:
-        data: dict[str, t.JsonValue] = {"a": {"b": {"c": 42}}}
+        inner: t.JsonMapping = {"c": 42}
+        mid: t.JsonMapping = {"b": inner}
+        data: t.JsonMapping = {"a": mid}
         result = FlextCliUtilitiesJson.json_walk_path(data, ("a", "b", "c"))
         assert result == 42
 
     def test_json_walk_path_missing_intermediate(self) -> None:
-        data: dict[str, t.JsonValue] = {"a": {}}
+        inner: t.JsonMapping = {}
+        data: t.JsonMapping = {"a": inner}
         result = FlextCliUtilitiesJson.json_walk_path(data, ("a", "missing", "c"))
         assert result is None
 
@@ -123,7 +126,9 @@ class TestsFlextCliJsonCov:
         assert result is None
 
     def test_json_deep_mapping_valid(self) -> None:
-        data: dict[str, t.JsonValue] = {"outer": {"inner": {"x": 1}}}
+        x_map: t.JsonMapping = {"x": 1}
+        inner: t.JsonMapping = {"inner": x_map}
+        data: t.JsonMapping = {"outer": inner}
         result = FlextCliUtilitiesJson.json_deep_mapping(data, "outer", "inner")
         assert result == {"x": 1}
 
@@ -133,7 +138,8 @@ class TestsFlextCliJsonCov:
         assert result == {"a": 1}
 
     def test_json_deep_mapping_list(self) -> None:
-        data: dict[str, t.JsonValue] = {"items": [{"a": 1}, {"b": 2}]}
+        items: list[t.JsonValue] = [{"a": 1}, {"b": 2}]
+        data: t.JsonMapping = {"items": items}
         result = FlextCliUtilitiesJson.json_deep_mapping_list(data, "items")
         assert len(result) == 2
 
@@ -149,13 +155,14 @@ class TestsFlextCliJsonCov:
         )
 
     def test_json_pick_int_variants(self) -> None:
-        data: dict[str, t.JsonValue] = {
+        empty_list: list[t.JsonValue] = []
+        data: t.JsonMapping = {
             "n": 5,
             "s": "7",
             "f": 3.9,
             "b": True,
             "none": None,
-            "bad": [],
+            "bad": empty_list,
         }
         assert FlextCliUtilitiesJson.json_pick_int(data, "n") == 5
         assert FlextCliUtilitiesJson.json_pick_int(data, "s") == 7
@@ -165,7 +172,8 @@ class TestsFlextCliJsonCov:
         assert FlextCliUtilitiesJson.json_pick_int(data, "bad") == 0
 
     def test_json_pick_bool_variants(self) -> None:
-        data: dict[str, t.JsonValue] = {
+        missing_val: t.JsonValue = None
+        data: t.JsonMapping = {
             "t": True,
             "f": False,
             "s_true": "true",
@@ -178,7 +186,7 @@ class TestsFlextCliJsonCov:
             "s_off": "off",
             "n": 1,
             "n0": 0,
-            "missing": None,
+            "missing": missing_val,
         }
         assert FlextCliUtilitiesJson.json_pick_bool(data, "t") is True
         assert FlextCliUtilitiesJson.json_pick_bool(data, "f") is False
@@ -197,7 +205,8 @@ class TestsFlextCliJsonCov:
         )
 
     def test_json_nested_int(self) -> None:
-        data: dict[str, t.JsonValue] = {"a": {"b": 42}}
+        inner: t.JsonMapping = {"b": 42}
+        data: t.JsonMapping = {"a": inner}
         assert FlextCliUtilitiesJson.json_nested_int(data, "a", "b") == 42
         assert (
             FlextCliUtilitiesJson.json_nested_int(data, "a", "missing", default=99)
@@ -209,7 +218,9 @@ class TestsFlextCliJsonCov:
         assert FlextCliUtilitiesJson.json_get_str_key(data, "name") == "Hello"
 
     def test_json_sort_keys_recursive(self) -> None:
-        data: dict[str, t.JsonValue] = {"z": {"b": 2, "a": 1}, "a": [{"y": 1, "x": 0}]}
+        z_inner: t.JsonMapping = {"b": 2, "a": 1}
+        a_inner: list[t.JsonValue] = [{"y": 1, "x": 0}]
+        data: t.JsonMapping = {"z": z_inner, "a": a_inner}
         result = FlextCliUtilitiesJson._json_sort_keys(data)
         assert isinstance(result, dict)
         assert list(result.keys()) == ["a", "z"]

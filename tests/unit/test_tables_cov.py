@@ -68,7 +68,7 @@ class TestsFlextCliTableUtilsCov:
     # ── tables_normalize_data ─────────────────────────────────────────
 
     def test_tables_normalize_data_mapping(self) -> None:
-        data: dict[str, t.JsonPayload] = {"key": "val", "num": 42}
+        data: t.JsonMapping = {"key": "val", "num": 42}
         result = FlextCliUtilitiesTables.tables_normalize_data(data)
         assert result.success
         rows = list(result.value)
@@ -93,7 +93,7 @@ class TestsFlextCliTableUtilsCov:
 
     def test_tables_render_mapping_rows(self) -> None:
         config = m.Cli.TableConfig()
-        rows: list[dict[str, t.JsonPayload]] = [
+        rows: list[t.JsonMapping] = [
             {"Key": "a", "Value": 1},
             {"Key": "b", "Value": 2},
         ]
@@ -103,7 +103,7 @@ class TestsFlextCliTableUtilsCov:
 
     def test_tables_render_sequence_rows(self) -> None:
         config = m.Cli.TableConfig(table_format=c_cli.Cli.TabularFormat.PLAIN)
-        rows: list[list[t.JsonPayload]] = [["a", 1], ["b", 2]]
+        rows: list[list[t.JsonValue]] = [["a", 1], ["b", 2]]
         result = FlextCliUtilitiesTables.tables_render(rows, config)
         assert result.success
 

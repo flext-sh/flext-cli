@@ -109,11 +109,11 @@ class TestsFlextCliRulesUtilsCov:
             assert result.success
             value = result.value
             assert isinstance(value, dict)
-            rules = value["rules"]
-            assert isinstance(rules, list)
-            rule = rules[0]
+            rules_val = value.get("rules")
+            assert isinstance(rules_val, list)
+            rule = rules_val[0]
             assert isinstance(rule, dict)
-            assert rule["id"] == "rule-a"
+            assert rule.get("id") == "rule-a"
 
     def test_rules_load_registry_not_found(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
