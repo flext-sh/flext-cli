@@ -15,7 +15,6 @@ from __future__ import annotations
 
 import re
 from collections.abc import Mapping
-from enum import StrEnum
 from re import Pattern
 from types import MappingProxyType
 from typing import Final
@@ -85,13 +84,16 @@ class TestsFlextCliConstants(FlextTestsConstants, c):
             PROMPT_UNICODE,
         )
 
-        class VersionStringCase(StrEnum):
-            """Named version-string fixtures for scenario builders."""
-
-            VALID_SEMVER = "1.2.3"
-            VALID_SEMVER_COMPLEX = "1.2.3-alpha.1+build.123"
-            INVALID_NO_DOTS = "version"
-            INVALID_NON_NUMERIC = "a.b.c"
+        VERSION_STR_VALID_SEMVER: Final[str] = "1.2.3"
+        VERSION_STR_VALID_SEMVER_COMPLEX: Final[str] = "1.2.3-alpha.1+build.123"
+        VERSION_STR_INVALID_NO_DOTS: Final[str] = "version"
+        VERSION_STR_INVALID_NON_NUMERIC: Final[str] = "a.b.c"
+        VERSION_STR_CASES: Final[Mapping[str, str]] = MappingProxyType({
+            "valid_semver": VERSION_STR_VALID_SEMVER,
+            "valid_semver_complex": VERSION_STR_VALID_SEMVER_COMPLEX,
+            "invalid_no_dots": VERSION_STR_INVALID_NO_DOTS,
+            "invalid_non_numeric": VERSION_STR_INVALID_NON_NUMERIC,
+        })
 
         VERSION_INFO_VALID_TUPLE: Final[tuple[int, int, int]] = (1, 2, 3)
         VERSION_INFO_VALID_COMPLEX_TUPLE: Final[tuple[int | str, ...]] = (
@@ -104,19 +106,16 @@ class TestsFlextCliConstants(FlextTestsConstants, c):
         VERSION_INFO_SHORT_TUPLE: Final[tuple[int, int]] = (1, 2)
         VERSION_INFO_EMPTY_TUPLE: Final[tuple[()]] = ()
 
-        class Environment(StrEnum):
-            """Canonical environment names used by CLI settings tests."""
-
-            DEVELOPMENT = "development"
-            STAGING = "staging"
-            PRODUCTION = "production"
-            TEST = "test"
+        ENVIRONMENT_DEVELOPMENT: Final[str] = "development"
+        ENVIRONMENT_STAGING: Final[str] = "staging"
+        ENVIRONMENT_PRODUCTION: Final[str] = "production"
+        ENVIRONMENT_TEST: Final[str] = "test"
 
         ENVIRONMENTS: Final[t.StrSequence] = (
-            Environment.DEVELOPMENT,
-            Environment.STAGING,
-            Environment.PRODUCTION,
-            Environment.TEST,
+            ENVIRONMENT_DEVELOPMENT,
+            ENVIRONMENT_STAGING,
+            ENVIRONMENT_PRODUCTION,
+            ENVIRONMENT_TEST,
         )
         ENVIRONMENT_SET: Final[frozenset[str]] = frozenset(ENVIRONMENTS)
 
@@ -544,9 +543,9 @@ class TestsFlextCliConstants(FlextTestsConstants, c):
                 "tags": ("x", "y"),
             })
         )
-        OPTIONS_FIELD_DEFAULT_INVALID_MAPPING: Final[t.JsonMapping] = MappingProxyType({
-            "nested": MappingProxyType({"ignore": True}),
-        })
+        OPTIONS_FIELD_DEFAULT_INVALID_MAPPING: Final[t.JsonMapping] = {
+            "nested": {"ignore": True},
+        }
 
         # ── TOML ───────────────────────────────────────────────────────
         TOML_VALID_CONTENT: Final[str] = _TOML_VALID_CONTENT

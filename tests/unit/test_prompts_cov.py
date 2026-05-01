@@ -4,8 +4,10 @@ from __future__ import annotations
 
 from typing import Self
 
+import pytest
 from flext_tests import tm
 
+import flext_cli.services.prompts as prompts_service_module
 from tests.helpers._impl import TestsFlextCliCaptureLogPrompts
 
 
@@ -48,4 +50,22 @@ class TestsFlextCliPromptsCov:
         tm.that(
             messages,
             has=["Invalid confirmation input - please enter yes or no"],
+        )
+
+    def test_prompt_choice_handles_internal_exception(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        prompts = _CaptureLogPrompts().configure_state(interactive=True)
+        monkeypatch.setattr(
+            prompts_service_module.u.Cli,
+            "prompts_choice_result",
+            lambda **_kwargs: (_ for _ in ()).throw(ValueError("choice boom")),
+        )
+        result = prompts.prompt_choice("Choose one", choices=("a", "b"), default="a")
+        tm.fail(result, has="choice boom")
+        messages: list[str] = [message for _, message in prompts.records]
+        tm.that(
+            messages,
+            has=["FATAL ERROR during prompt_choice - operation aborted"],
         )

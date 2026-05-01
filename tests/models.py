@@ -108,26 +108,26 @@ class TestsFlextCliModels(FlextTestsModels, m):
             ) -> Sequence[TestsFlextCliModels.Tests.VersionTestScenario]:
                 """Get parametrized test cases for version string validation."""
                 data_class = TestsFlextCliModels.Tests.VersionTestScenario
-                ex = c.Tests.VersionStringCase
+                cases = c.Tests.VERSION_STR_CASES
                 return [
                     data_class(
                         name="valid_semver",
-                        version_string=ex.VALID_SEMVER,
+                        version_string=cases["valid_semver"],
                         should_pass=True,
                     ),
                     data_class(
                         name="valid_complex",
-                        version_string=ex.VALID_SEMVER_COMPLEX,
+                        version_string=cases["valid_semver_complex"],
                         should_pass=True,
                     ),
                     data_class(
                         name="invalid_no_dots",
-                        version_string=ex.INVALID_NO_DOTS,
+                        version_string=cases["invalid_no_dots"],
                         should_pass=False,
                     ),
                     data_class(
                         name="invalid_non_numeric",
-                        version_string=ex.INVALID_NON_NUMERIC,
+                        version_string=cases["invalid_non_numeric"],
                         should_pass=False,
                     ),
                     data_class(
@@ -170,23 +170,23 @@ class TestsFlextCliModels(FlextTestsModels, m):
             ) -> Sequence[TestsFlextCliModels.Tests.VersionTestScenario]:
                 """Get parametrized test cases for version consistency validation."""
                 data_class = TestsFlextCliModels.Tests.VersionTestScenario
-                ex = c.Tests.VersionStringCase
+                cases = c.Tests.VERSION_STR_CASES
                 return [
                     data_class(
                         name="valid_match",
-                        version_string=ex.VALID_SEMVER,
+                        version_string=cases["valid_semver"],
                         version_info=c.Tests.VERSION_INFO_VALID_TUPLE,
                         should_pass=True,
                     ),
                     data_class(
                         name="valid_complex_match",
-                        version_string=ex.VALID_SEMVER_COMPLEX,
+                        version_string=cases["valid_semver_complex"],
                         version_info=c.Tests.VERSION_INFO_VALID_COMPLEX_TUPLE,
                         should_pass=True,
                     ),
                     data_class(
                         name="invalid_mismatch",
-                        version_string=ex.INVALID_NO_DOTS,
+                        version_string=cases["invalid_no_dots"],
                         version_info=c.Tests.VERSION_INFO_SHORT_TUPLE,
                         should_pass=False,
                     ),
