@@ -1,0 +1,16 @@
+tests/unit/test_services_commands_cov.py
+  h_9db9d35f50cf33 13,17-18,20-48,78,83,88,95,116,122,136-137,166
+tests/unit/test_json_cov.py
+  h_9db9d35f50cf33 110-111,116-117,127-128,138-139,155-156,167-170,203
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "ba14eeeb4e6dfcadbb494e7b094c229aa2163e9b",
+  "prompts": {},
+  "humans": {
+    "h_9db9d35f50cf33": {
+      "author": "FLEXT Bot"
+    }
+  }
+}
