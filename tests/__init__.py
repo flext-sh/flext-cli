@@ -30,6 +30,9 @@ if _t.TYPE_CHECKING:
     from tests.unit.test_cli_service import TestsFlextCliService
     from tests.unit.test_cmd import TestsFlextCliCmd
     from tests.unit.test_cmd_cov import TestsFlextCliCmdCov
+    from tests.unit.test_cmd_runtime_validation_branch_cov import (
+        TestsFlextCliCmdRuntimeValidationBranchCov,
+    )
     from tests.unit.test_commands import TestsFlextCliCommands
     from tests.unit.test_commands_utils_cov import TestsFlextCliCommandsUtilsCov
     from tests.unit.test_constants import TestsFlextCliConstantsUnit
@@ -45,6 +48,7 @@ if _t.TYPE_CHECKING:
     from tests.unit.test_model_commands_cov import TestsFlextCliModelCommandsCov
     from tests.unit.test_options_cov import TestsFlextCliOptionsUtilsCov
     from tests.unit.test_output_cov import TestsFlextCliOutputCov
+    from tests.unit.test_params_branch_cov import TestsFlextCliParamsBranchCov
     from tests.unit.test_pipeline import TestsFlextCliPipeline
     from tests.unit.test_prompts import TestsFlextCliPrompts
     from tests.unit.test_prompts_cov import TestsFlextCliPromptsCov
@@ -113,6 +117,9 @@ _LAZY_IMPORTS = merge_lazy_imports(
             ".unit.test_cli_service": ("TestsFlextCliService",),
             ".unit.test_cmd": ("TestsFlextCliCmd",),
             ".unit.test_cmd_cov": ("TestsFlextCliCmdCov",),
+            ".unit.test_cmd_runtime_validation_branch_cov": (
+                "TestsFlextCliCmdRuntimeValidationBranchCov",
+            ),
             ".unit.test_commands": ("TestsFlextCliCommands",),
             ".unit.test_commands_utils_cov": ("TestsFlextCliCommandsUtilsCov",),
             ".unit.test_constants": ("TestsFlextCliConstantsUnit",),
@@ -128,6 +135,7 @@ _LAZY_IMPORTS = merge_lazy_imports(
             ".unit.test_model_commands_cov": ("TestsFlextCliModelCommandsCov",),
             ".unit.test_options_cov": ("TestsFlextCliOptionsUtilsCov",),
             ".unit.test_output_cov": ("TestsFlextCliOutputCov",),
+            ".unit.test_params_branch_cov": ("TestsFlextCliParamsBranchCov",),
             ".unit.test_pipeline": ("TestsFlextCliPipeline",),
             ".unit.test_prompts": ("TestsFlextCliPrompts",),
             ".unit.test_prompts_cov": ("TestsFlextCliPromptsCov",),
@@ -212,6 +220,7 @@ __all__: list[str] = [
     "TestsFlextCliCaptureLogPrompts",
     "TestsFlextCliCmd",
     "TestsFlextCliCmdCov",
+    "TestsFlextCliCmdRuntimeValidationBranchCov",
     "TestsFlextCliCommands",
     "TestsFlextCliCommandsUtilsCov",
     "TestsFlextCliCommonParams",
@@ -228,6 +237,7 @@ __all__: list[str] = [
     "TestsFlextCliModels",
     "TestsFlextCliOptionsUtilsCov",
     "TestsFlextCliOutputCov",
+    "TestsFlextCliParamsBranchCov",
     "TestsFlextCliPipeline",
     "TestsFlextCliPrompts",
     "TestsFlextCliPromptsCov",
