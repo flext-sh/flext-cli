@@ -20,7 +20,6 @@ class FlextCliConstantsSettings:
         item.value for item in ce.MessageTypes
     )
 
-    CLI_DEFAULT_APP_NAME: Final[str] = "flext-cli"
     CLI_DEFAULT_NO_COLOR: Final[bool] = False
     CLI_DEFAULT_VERBOSE: Final[bool] = False
     CLI_DEFAULT_QUIET: Final[bool] = False

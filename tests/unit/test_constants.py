@@ -60,8 +60,6 @@ class TestsFlextCliConstantsUnit:
 
     def test_cli_defaults(self) -> None:
         """Test CliDefaults constants."""
-        tm.that(c.Cli.CLI_DEFAULT_APP_NAME, is_=str)
-        tm.that(c.Cli.CLI_DEFAULT_APP_NAME, empty=False)
         tm.that(c.Cli.CLI_DEFAULT_VERBOSE, is_=bool)
         tm.that(c.Cli.CLI_DEFAULT_QUIET, is_=bool)
         tm.that(c.Cli.CLI_DEFAULT_NO_COLOR, is_=bool)
