@@ -68,7 +68,4 @@ class FlextCliConstantsBase:
 
     CMD_SERVICE_NAME: Final[str] = "FlextCliCmd"
 
-    API_APP_DESCRIPTION_SUFFIX: Final[str] = " CLI"
-    API_CONTAINER_REGISTRATION_KEY: Final[str] = "flext_cli"
-
     UI_DEFAULT_PROMPT_SUFFIX: Final[str] = ": "
