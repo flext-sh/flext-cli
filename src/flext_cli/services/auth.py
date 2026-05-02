@@ -18,6 +18,7 @@ from flext_cli import (
     FlextCliFileTools,
     FlextCliServiceBase,
     c,
+    m,
     p,
     r,
     t,
@@ -38,7 +39,11 @@ class FlextCliAuth(FlextCliServiceBase):
     def save_auth_token(self, token: str) -> p.Result[bool]:
         """Persist an authentication token using the public file facade."""
         if not token.strip():
-            return r[bool].fail("Token cannot be empty")
+            return r[bool].fail(
+                c.Cli.VALIDATION_MSG_FIELD_CANNOT_BE_EMPTY.format(
+                    field_name="token",
+                ),
+            )
         settings = self.settings
         token_file_path = u.Cli.auth_token_file_path(settings.token_file)
         return FlextCliFileTools.write_json_file(
@@ -51,26 +56,45 @@ class FlextCliAuth(FlextCliServiceBase):
         token_file_path = u.Cli.auth_token_file_path(self.settings.token_file)
         read_result = FlextCliFileTools.read_json_file(token_file_path)
         if read_result.failure:
-            return r[str].fail(read_result.error or "Failed to load auth token")
+            return r[str].fail(
+                read_result.error
+                or c.Cli.ERR_AUTH_LOAD_FAILED.format(error="unknown error"),
+            )
         return u.Cli.auth_extract_token(read_result.value)
 
     def authenticate(self, credentials: t.StrMapping) -> p.Result[str]:
         """Authenticate with a token or username/password and persist the token."""
-        token_value = credentials.get(c.Cli.DICT_KEY_AUTH_TOKEN)
-        if isinstance(token_value, str) and token_value:
-            save_result = self.save_auth_token(token_value)
+        try:
+            credentials_payload = m.Cli.AuthCredentialsPayload.model_validate(
+                credentials,
+            )
+        except c.ValidationError:
+            return r[str].fail(c.Cli.ERR_INVALID_CREDENTIALS)
+
+        if credentials_payload.token:
+            save_result = self.save_auth_token(credentials_payload.token)
             if save_result.failure:
-                return r[str].fail(save_result.error or "Failed to save token")
-            return r[str].ok(token_value)
-        username = credentials.get(c.Cli.DICT_KEY_USERNAME, "")
-        password = credentials.get(c.Cli.DICT_KEY_USER_SECRET, "")
-        validation_result = self.validate_credentials(username, password)
+                return r[str].fail(
+                    save_result.error
+                    or c.Cli.ERR_AUTH_SAVE_FAILED.format(error="unknown error"),
+                )
+            return r[str].ok(credentials_payload.token)
+
+        validation_result = self.validate_credentials(
+            credentials_payload.username,
+            credentials_payload.password,
+        )
         if validation_result.failure:
-            return r[str].fail(validation_result.error or "Invalid credentials")
+            return r[str].fail(
+                validation_result.error or c.Cli.ERR_INVALID_CREDENTIALS,
+            )
         generated_token = secrets.token_urlsafe(32)
         save_result = self.save_auth_token(generated_token)
         if save_result.failure:
-            return r[str].fail(save_result.error or "Failed to save token")
+            return r[str].fail(
+                save_result.error
+                or c.Cli.ERR_AUTH_SAVE_FAILED.format(error="unknown error"),
+            )
         return r[str].ok(generated_token)
 
     def clear_auth_tokens(self) -> p.Result[bool]:

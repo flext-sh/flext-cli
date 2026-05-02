@@ -9,7 +9,7 @@ from rich.panel import Panel
 from rich.table import Table as RichTable
 from rich.tree import Tree as RichTree
 
-from flext_cli import m, r, t
+from flext_cli import m, p, r, t
 
 
 class FlextCliUtilitiesFormatters:
@@ -25,7 +25,7 @@ class FlextCliUtilitiesFormatters:
     _console: ClassVar[t.Cli.RichConsoleType] = Console()
 
     @classmethod
-    def formatters_create_tree(cls, label: str) -> r[t.Cli.RichTreeType]:
+    def formatters_create_tree(cls, label: str) -> p.Result[t.Cli.RichTreeType]:
         """Create one Rich tree."""
         return r[t.Cli.RichTreeType].ok(RichTree(label))
 

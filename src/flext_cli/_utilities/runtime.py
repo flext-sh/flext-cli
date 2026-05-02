@@ -21,12 +21,13 @@ class FlextCliUtilitiesRuntime:
         remove_keys: t.StrSequence = (),
     ) -> dict[str, str]:
         """Return one inherited process environment with optional overrides."""
-        env = dict(os.environ)
-        for key in remove_keys:
-            _ = env.pop(key, None)
-        if overrides is not None:
-            env.update(dict(overrides))
-        return env
+        return m.Cli.ProcessEnvironmentSpec.model_validate(
+            {
+                "base_env": dict(os.environ),
+                "overrides": overrides if overrides is not None else {},
+                "remove_keys": tuple(remove_keys),
+            },
+        ).resolve()
 
     @staticmethod
     def _merged_env(env: t.StrMapping | None) -> dict[str, str] | None:

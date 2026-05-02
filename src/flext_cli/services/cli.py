@@ -64,11 +64,14 @@ class FlextCliCli(s):
             self._model_cls = model_cls
 
         def __call__(self, **kwargs: t.Cli.CliValue) -> t.JsonValue:
-            if self.config is not None:
-                for field_name, field_value in kwargs.items():
-                    if hasattr(self.config, field_name):
-                        setattr(self.config, field_name, field_value)
             model = self._model_cls.model_validate(kwargs)
+            if self.config is not None:
+                config_field_names = frozenset(type(self.config).model_fields)
+                for field_name, field_value in model.model_dump(
+                    exclude_none=True,
+                ).items():
+                    if field_name in config_field_names:
+                        setattr(self.config, field_name, field_value)
             return self._handler(model)
 
     @classmethod
@@ -132,8 +135,8 @@ class FlextCliCli(s):
         resolved_log_level: str = (
             params.log_level if params.log_level is not None else settings.cli_log_level
         )
-        next_params = m.Cli.CliParamsConfig.model_validate(
-            params.model_copy(update={"log_level": resolved_log_level}).model_dump()
+        next_params = params.model_copy(
+            update={"log_level": resolved_log_level},
         )
         result = FlextCliCommonParams.apply_to_config(
             settings,

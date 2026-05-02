@@ -7,9 +7,7 @@ from collections.abc import (
 )
 from pathlib import Path
 
-from flext_cli.constants import c
-from flext_cli.typings import t
-from flext_core import p, r
+from flext_cli import c, m, p, r, t
 
 
 class FlextCliUtilitiesAuth:
@@ -36,10 +34,13 @@ class FlextCliUtilitiesAuth:
         """Extract auth token from JSON payload mapping."""
         if not isinstance(payload, Mapping):
             return r[str].fail("Token file must contain a mapping")
-        token_value = payload.get(c.Cli.DICT_KEY_AUTH_TOKEN)
-        if not isinstance(token_value, str) or not token_value:
+        try:
+            token_payload = m.Cli.AuthCredentialsPayload.model_validate(payload)
+        except c.ValidationError:
             return r[str].fail("Token file does not contain a valid token")
-        return r[str].ok(token_value)
+        if not token_payload.token:
+            return r[str].fail("Token file does not contain a valid token")
+        return r[str].ok(token_payload.token)
 
 
 __all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesAuth"]
