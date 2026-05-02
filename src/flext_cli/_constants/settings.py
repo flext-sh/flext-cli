@@ -15,13 +15,10 @@ class FlextCliConstantsSettings:
     OUTPUT_FORMATS: ClassVar[tuple[str, ...]] = tuple(
         item.value for item in ce.OutputFormats
     )
-    OUTPUT_FORMATS_SET: ClassVar[frozenset[str]] = frozenset(OUTPUT_FORMATS)
     LOG_LEVELS: ClassVar[tuple[str, ...]] = tuple(item.value for item in c.LogLevel)
-    LOG_LEVELS_SET: ClassVar[frozenset[str]] = frozenset(LOG_LEVELS)
     MESSAGE_TYPES: ClassVar[tuple[str, ...]] = tuple(
         item.value for item in ce.MessageTypes
     )
-    MESSAGE_TYPES_SET: ClassVar[frozenset[str]] = frozenset(MESSAGE_TYPES)
 
     CLI_DEFAULT_APP_NAME: Final[str] = "flext-cli"
     CLI_DEFAULT_NO_COLOR: Final[bool] = False

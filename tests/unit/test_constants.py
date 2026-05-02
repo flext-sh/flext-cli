@@ -108,26 +108,11 @@ class TestsFlextCliConstantsUnit:
         tm.that(c.Cli.OUTPUT_DEFAULT_FORMAT_TYPE, is_=str)
         tm.that(c.Cli.OUTPUT_DEFAULT_MESSAGE_TYPE, is_=str)
 
-    def test_flat_authority_sets(self) -> None:
-        """Test flat authority collections are centralized and frozen."""
+    def test_flat_authority_tuples(self) -> None:
+        """Test flat authority collections are centralized as tuples."""
         tm.that(c.Cli.OUTPUT_FORMATS, is_=tuple)
-        tm.that(c.Cli.OUTPUT_FORMATS_SET, is_=frozenset)
         tm.that(c.Cli.LOG_LEVELS, is_=tuple)
-        tm.that(c.Cli.LOG_LEVELS_SET, is_=frozenset)
         tm.that(c.Cli.MESSAGE_TYPES, is_=tuple)
-        tm.that(c.Cli.MESSAGE_TYPES_SET, is_=frozenset)
-        tm.that(
-            sorted(c.Cli.OUTPUT_FORMATS),
-            eq=sorted(c.Cli.OUTPUT_FORMATS_SET),
-        )
-        tm.that(
-            sorted(c.Cli.LOG_LEVELS),
-            eq=sorted(c.Cli.LOG_LEVELS_SET),
-        )
-        tm.that(
-            sorted(c.Cli.MESSAGE_TYPES),
-            eq=sorted(c.Cli.MESSAGE_TYPES_SET),
-        )
 
     def test_matching_regex_authorities(self) -> None:
         """Test regex authorities classify representative CLI messages."""
