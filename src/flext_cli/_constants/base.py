@@ -48,9 +48,6 @@ class FlextCliConstantsBase:
         "errno 2",
         "cannot open",
     )
-    FILE_NOT_FOUND_PATTERNS: ClassVar[frozenset[str]] = frozenset(
-        FILE_NOT_FOUND_PATTERN_ORDER,
-    )
     CLI_USAGE_ERROR_PATTERN_ORDER: ClassVar[t.VariadicTuple[str]] = (
         "no such option",
         "no such command",
@@ -59,9 +56,6 @@ class FlextCliConstantsBase:
         "got unexpected extra argument",
         "unrecognized arguments",
         "cli exited with code 2",
-    )
-    CLI_USAGE_ERROR_PATTERNS: ClassVar[frozenset[str]] = frozenset(
-        CLI_USAGE_ERROR_PATTERN_ORDER,
     )
     FILE_NOT_FOUND_REGEXES: ClassVar[t.VariadicTuple[re.Pattern[str]]] = tuple(
         re.compile(pattern, flags=re.IGNORECASE)
