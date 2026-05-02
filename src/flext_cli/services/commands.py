@@ -85,20 +85,16 @@ class FlextCliCommands(s):
                 c.Cli.ERR_HANDLER_NOT_CALLABLE.format(name=name),
             )
         try:
-            result: p.Result[t.JsonPayload] | None = None
-            execution_attempted = False
-            if args or kwargs:
-                try:
-                    result = handler(*args, **kwargs) if args else handler(**kwargs)
-                    execution_attempted = True
-                except TypeError as exc:
-                    self.logger.debug(
-                        "Handler signature mismatch; retrying without args",
-                        command_name=name,
-                        error=str(exc),
-                    )
-            if not execution_attempted:
+            command_args = tuple(args) if args is not None else ()
+            has_kwargs = bool(kwargs)
+            if not command_args and not has_kwargs:
                 result = handler()
+            elif not has_kwargs:
+                result = handler(*command_args)
+            elif not command_args:
+                result = handler(**kwargs)
+            else:
+                result = handler(*command_args, **kwargs)
             return u.Cli.commands_normalize_handler_result(result, name)
         except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
             return r[t.JsonValue].fail(
