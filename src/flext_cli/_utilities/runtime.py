@@ -159,7 +159,7 @@ class FlextCliUtilitiesRuntime:
                 )
         except subprocess.TimeoutExpired as exc:
             return r[int].fail(f"timeout {exc.timeout}s: {shlex.join(list(cmd))}")
-        except (OSError, ValueError) as exc:
+        except c.EXC_OS_VALUE as exc:
             return r[int].fail(f"execution error: {exc}")
         return r[int].ok(result.returncode)
 
