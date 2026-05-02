@@ -155,7 +155,7 @@ class FlextCliUtilitiesTables:
             )
             return r[str].ok(rendered_table)
         except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
-            return r[str].fail(f"Table formatting failed: {exc}")
+            return r[str].fail_op("Table formatting", exc)
 
 
 __all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesTables"]

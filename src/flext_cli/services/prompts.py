@@ -70,9 +70,7 @@ class FlextCliPrompts(s):
                 exc,
                 "Prompt service execution failed completely",
             )
-            return r[t.JsonMapping].fail(
-                f"Prompt service execution failed: {exc}",
-            )
+            return r[t.JsonMapping].fail_op("Prompt service execution", exc)
 
     def print_error(self, message: str) -> p.Result[bool]:
         return self._print_message(
