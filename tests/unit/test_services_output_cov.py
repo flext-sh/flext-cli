@@ -111,10 +111,10 @@ class TestsFlextCliServicesOutputCov:
     # ── display_metrics ───────────────────────────────────────────────
 
     def test_display_metrics(self) -> None:
-        FlextCliOutput.display_metrics({"total": 100, "passed": 95, "failed": 5})  # type: ignore[arg-type]
+        FlextCliOutput.display_metrics({"total": 100, "passed": 95, "failed": 5})
 
     def test_display_metrics_empty(self) -> None:
-        FlextCliOutput.display_metrics({})  # type: ignore[arg-type]
+        FlextCliOutput.display_metrics({})
 
     # ── display_debug ─────────────────────────────────────────────────
 

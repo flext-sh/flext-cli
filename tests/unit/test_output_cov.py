@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from flext_cli._utilities.output import FlextCliUtilitiesOutput
-from tests import c
+from tests import c, p
 
 
 class TestsFlextCliOutputCov:
@@ -187,7 +187,7 @@ class TestsFlextCliOutputCov:
         assert result.name == "report.json"
 
     def test_summary(self, capsys: pytest.CaptureFixture[str]) -> None:
-        class _FakeSummaryStats:
+        class _FakeSummaryStats(p.Cli.SummaryStats):
             verb = "check"
             total = 5
             success = 4
@@ -195,20 +195,20 @@ class TestsFlextCliOutputCov:
             skipped = 0
             elapsed = 2.5
 
-        FlextCliUtilitiesOutput.summary(_FakeSummaryStats())  # type: ignore[arg-type]
+        FlextCliUtilitiesOutput.summary(_FakeSummaryStats())
         out = capsys.readouterr().out
         assert "check" in out
 
     def test_project_failure(self, capsys: pytest.CaptureFixture[str]) -> None:
-        class _FakeProjectFailureInfo:
+        class _FakeProjectFailureInfo(p.Cli.ProjectFailureInfo):
             project = "flext-cli"
-            elapsed = 3
+            elapsed = 3.0
             error_count = 2
-            log_path = "/tmp/log.txt"
+            log_path = Path("/tmp/log.txt")
             max_show = 1
             errors = ("error line 1", "error line 2")
 
-        FlextCliUtilitiesOutput.project_failure(_FakeProjectFailureInfo())  # type: ignore[arg-type]
+        FlextCliUtilitiesOutput.project_failure(_FakeProjectFailureInfo())
         out = capsys.readouterr().out
         assert "flext-cli" in out
         assert "error line 1" in out

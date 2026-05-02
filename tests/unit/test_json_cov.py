@@ -59,6 +59,8 @@ class TestsFlextCliJsonCov:
 
     def test_json_write_invalid_type(self, tmp_path: Path) -> None:
         path = tmp_path / "fail.json"
+        # Intentional: test runtime defense against non-serializable inputs
+        # (the type checker correctly rejects bare `object()` — that's the point).
         result = FlextCliUtilitiesJson.json_write(path, object())  # type: ignore[arg-type]
         assert result.failure
 

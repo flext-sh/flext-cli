@@ -15,7 +15,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
 from tomlkit import TOMLDocument
 
 from flext_cli._utilities.toml import FlextCliUtilitiesToml
@@ -101,38 +100,38 @@ class TestsFlextCliTomlUtilsCov:
 
     # ── toml_read & write ─────────────────────────────────────────────
 
-    def test_toml_read_missing_file(self, tmp_path: pytest.TempPathFactory) -> None:
-        doc = FlextCliUtilitiesToml.toml_read(Path(tmp_path) / "nonexistent.toml")  # type: ignore[arg-type]
+    def test_toml_read_missing_file(self, tmp_path: Path) -> None:
+        doc = FlextCliUtilitiesToml.toml_read(tmp_path / "nonexistent.toml")
         assert doc is None
 
-    def test_toml_read_document_valid(self, tmp_path: pytest.TempPathFactory) -> None:
-        path = Path(tmp_path) / "test.toml"  # type: ignore[arg-type]
+    def test_toml_read_document_valid(self, tmp_path: Path) -> None:
+        path = tmp_path / "test.toml"
         path.write_text(self._VALID_TOML)
         result = FlextCliUtilitiesToml.toml_read_document(path)
         assert result.success
 
-    def test_toml_read_document_missing(self, tmp_path: pytest.TempPathFactory) -> None:
-        path = Path(tmp_path) / "missing.toml"  # type: ignore[arg-type]
+    def test_toml_read_document_missing(self, tmp_path: Path) -> None:
+        path = tmp_path / "missing.toml"
         result = FlextCliUtilitiesToml.toml_read_document(path)
         assert result.failure
 
-    def test_toml_read_json_valid(self, tmp_path: pytest.TempPathFactory) -> None:
-        path = Path(tmp_path) / "test.toml"  # type: ignore[arg-type]
+    def test_toml_read_json_valid(self, tmp_path: Path) -> None:
+        path = tmp_path / "test.toml"
         path.write_text(self._VALID_TOML)
         result = FlextCliUtilitiesToml.toml_read_json(path)
         assert result.success
         assert isinstance(result.value, dict)
 
-    def test_toml_write_document_valid(self, tmp_path: pytest.TempPathFactory) -> None:
+    def test_toml_write_document_valid(self, tmp_path: Path) -> None:
         doc = FlextCliUtilitiesToml.toml_parse_text(self._VALID_TOML)
         assert doc is not None
-        path = Path(tmp_path) / "out.toml"  # type: ignore[arg-type]
+        path = tmp_path / "out.toml"
         result = FlextCliUtilitiesToml.toml_write_document(path, doc)
         assert result.success
         assert path.exists()
 
-    def test_toml_write_mapping_valid(self, tmp_path: pytest.TempPathFactory) -> None:
-        path = Path(tmp_path) / "out.toml"  # type: ignore[arg-type]
+    def test_toml_write_mapping_valid(self, tmp_path: Path) -> None:
+        path = tmp_path / "out.toml"
         result = FlextCliUtilitiesToml.toml_write_mapping(path, {"key": "value"})
         assert result.success
 
