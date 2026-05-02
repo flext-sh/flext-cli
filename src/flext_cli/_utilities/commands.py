@@ -42,7 +42,7 @@ class FlextCliUtilitiesCommands:
     ) -> str | None:
         """Resolve success message using formatter/value fallback order."""
         if success_formatter is not None:
-            formatted: object = success_formatter(result_value)
+            formatted: str = success_formatter(result_value)
             return formatted if isinstance(formatted, str) else str(formatted)
         if hasattr(result_value, "message"):
             candidate = getattr(result_value, "message", None)

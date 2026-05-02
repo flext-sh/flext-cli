@@ -93,7 +93,7 @@ class FlextCliUtilitiesToml:
         """Parse TOML text, returning ``None`` on invalid input."""
         try:
             return tomlkit.parse(text)
-        except (ValueError, TypeError):
+        except c.EXC_TYPE_VALIDATION:
             return None
 
     @staticmethod
@@ -611,7 +611,7 @@ class FlextCliUtilitiesToml:
         """Write one validated plain mapping as TOML through the canonical writer."""
         try:
             document = FlextCliUtilitiesToml.toml_document_from_mapping(mapping)
-        except (TypeError, ValueError) as exc:
+        except c.EXC_TYPE_VALIDATION as exc:
             return r[bool].fail(f"TOML build error: {exc}")
         return FlextCliUtilitiesToml.toml_write_document(path, document)
 
