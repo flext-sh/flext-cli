@@ -543,7 +543,7 @@ class FlextCliUtilitiesToml:
             return r[TOMLDocument].fail(f"failed to read TOML: {path}")
         doc = FlextCliUtilitiesToml.toml_read(path)
         if doc is None:
-            return r[TOMLDocument].fail(f"TOML parse failed: {path}")
+            return r[TOMLDocument].fail(f"TOML parse failed for: {path}")
         return r[TOMLDocument].ok(doc)
 
     @staticmethod
@@ -557,7 +557,7 @@ class FlextCliUtilitiesToml:
             return r[t.JsonMapping].fail(f"failed to read TOML: {exc}")
         mapping = FlextCliUtilitiesToml.toml_mapping_from_text(original_rendered)
         if mapping is None:
-            return r[t.JsonMapping].fail(f"TOML parse failed: {path}")
+            return r[t.JsonMapping].fail(f"TOML parse failed for: {path}")
         return r[t.JsonMapping].ok(mapping)
 
     @staticmethod
