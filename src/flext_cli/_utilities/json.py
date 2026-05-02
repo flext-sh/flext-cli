@@ -84,7 +84,7 @@ class FlextCliUtilitiesJson:
                 + "\n"
             )
             _ = path.write_text(content, encoding=c.Cli.ENCODING_DEFAULT)
-        except (TypeError, ValueError, c.ValidationError, OSError) as exc:
+        except c.EXC_OS_VALIDATION as exc:
             FlextCliUtilitiesJson._module_logger.debug(
                 "json_write failed",
                 error=str(exc),
