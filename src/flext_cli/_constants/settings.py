@@ -65,8 +65,6 @@ class FlextCliConstantsSettings:
     COMMANDS_DEFAULT_NAME: Final[str] = "flext"
     COMMANDS_DEFAULT_DESCRIPTION: Final[str] = "FLEXT CLI"
 
-    LOG_LEVELS_LIST: ClassVar[t.StrSequence] = tuple(item.value for item in c.LogLevel)
-
     CLI_PARAM_REGISTRY: ClassVar[
         t.MappingKV[str, t.MappingKV[str, t.Scalar | t.StrSequence]]
     ] = MappingProxyType({
@@ -89,13 +87,13 @@ class FlextCliConstantsSettings:
         "cli_log_level": {
             CLI_PARAM_KEY_SHORT: CLI_PARAM_SHORT_FLAG_LOG_LEVEL,
             CLI_PARAM_KEY_PRIORITY: CLI_PARAM_PRIORITY_LOG_LEVEL,
-            CLI_PARAM_KEY_CHOICES: LOG_LEVELS_LIST,
+            CLI_PARAM_KEY_CHOICES: LOG_LEVELS,
             CLI_PARAM_KEY_CASE_SENSITIVE: CLI_PARAM_CASE_INSENSITIVE,
             CLI_PARAM_KEY_FIELD_NAME_OVERRIDE: "log_level",
         },
         "log_verbosity": {
             CLI_PARAM_KEY_PRIORITY: CLI_PARAM_PRIORITY_LOG_FORMAT,
-            CLI_PARAM_KEY_CHOICES: LOG_LEVELS_LIST,
+            CLI_PARAM_KEY_CHOICES: LOG_LEVELS,
             CLI_PARAM_KEY_CASE_SENSITIVE: CLI_PARAM_CASE_INSENSITIVE,
             CLI_PARAM_KEY_FIELD_NAME_OVERRIDE: CLI_PARAM_LOG_FORMAT_OVERRIDE,
         },

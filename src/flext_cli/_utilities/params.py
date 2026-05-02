@@ -65,7 +65,7 @@ class FlextCliUtilitiesParams:
                 settings.clone(cli_log_level=next_level),
             )
         except ValueError:
-            valid = ", ".join(c.Cli.LOG_LEVELS_LIST)
+            valid = ", ".join(c.Cli.LOG_LEVELS)
             return r[FlextCliSettings].fail(
                 c.Cli.CLI_PARAM_ERR_INVALID_WITH_OPTIONS_FMT.format(
                     field_label="log level",
