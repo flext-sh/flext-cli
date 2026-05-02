@@ -527,7 +527,7 @@ class FlextCliUtilitiesToml:
             return None
         try:
             return tomlkit.parse(path.read_text(encoding=c.Cli.ENCODING_DEFAULT))
-        except (OSError, ValueError) as exc:
+        except c.EXC_OS_VALUE as exc:
             FlextCliUtilitiesToml._module_logger.warning(
                 "Failed to read or parse TOML document",
                 path=str(path),

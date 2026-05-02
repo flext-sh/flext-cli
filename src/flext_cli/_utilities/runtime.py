@@ -60,7 +60,7 @@ class FlextCliUtilitiesRuntime:
             return r[m.Cli.CommandOutput].fail(
                 f"timeout {exc.timeout}s: {shlex.join(list(cmd))}",
             )
-        except (OSError, ValueError) as exc:
+        except c.EXC_OS_VALUE as exc:
             return r[m.Cli.CommandOutput].fail(f"execution error: {exc}")
         stdout_raw = result.stdout or (b"" if input_data is not None else "")
         stderr_raw = result.stderr or (b"" if input_data is not None else "")
