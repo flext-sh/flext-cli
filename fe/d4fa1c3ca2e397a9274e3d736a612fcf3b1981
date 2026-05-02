@@ -1,0 +1,35 @@
+tests/unit/test_toml_cov.py
+  473c59be621cc5d5 103-104,107-108,113-114,118-119,125,128,133-134
+tests/unit/test_json_cov.py
+  473c59be621cc5d5 62-63
+tests/unit/test_services_output_cov.py
+  473c59be621cc5d5 114,117
+tests/unit/test_output_cov.py
+  473c59be621cc5d5 10,190,198,203,205,207,211
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "fed4fa1c3ca2e397a9274e3d736a612fcf3b1981",
+  "prompts": {
+    "473c59be621cc5d5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f6001f8b-afdd-4757-8812-9bff0bfd46d9",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "FLEXT Bot",
+      "messages": [],
+      "total_additions": 25,
+      "total_deletions": 24,
+      "accepted_lines": 24,
+      "overriden_lines": 0,
+      "messages_url": "https://usegitai.com/cas/d999c7bfaefa25cc8db078977d3690ea10371488e36d196d042f5a33e0421169"
+    }
+  },
+  "humans": {
+    "h_9db9d35f50cf33": {
+      "author": "FLEXT Bot"
+    }
+  }
+}
