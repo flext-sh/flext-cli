@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from flext_cli import FlextCliSettings, FlextCliUtilitiesValidation as uv, c, m, p, t
+from flext_cli import FlextCliSettings, c, m, p, t
+from flext_cli._utilities.validation import FlextCliUtilitiesValidation as uv
 from flext_core import r
 
 
