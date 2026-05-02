@@ -463,6 +463,46 @@ class FlextCliModelsBase:
                 "no_color": self.no_color or False,
             }
 
+    class OptionMetadata(m.BaseModel):
+        """Validated option-registry metadata for Typer option generation."""
+
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+            extra="ignore",
+            frozen=True,
+        )
+
+        help: Annotated[
+            str,
+            m.Field(
+                "",
+                description="Option help text",
+                strict=True,
+            ),
+        ] = ""
+        short: Annotated[
+            str,
+            m.Field(
+                "",
+                description="Single-letter short flag without leading dash",
+                strict=True,
+            ),
+        ] = ""
+        default: Annotated[
+            t.Cli.CliValue | None,
+            m.Field(
+                None,
+                description="Option default value when explicitly provided",
+            ),
+        ] = None
+        field_name_override: Annotated[
+            str | None,
+            m.Field(
+                None,
+                description="Override for the CLI-facing option name",
+                strict=True,
+            ),
+        ] = None
+
     class OptionConfig(m.Value):
         """Configuration for CLI option decorators.
 
