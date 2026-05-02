@@ -100,7 +100,7 @@ class FlextCliUtilitiesJson:
             return r[t.JsonValue].ok(
                 t.Cli.JSON_VALUE_ADAPTER.validate_json(text),
             )
-        except (c.ValidationError, ValueError) as exc:
+        except c.EXC_VALIDATION_VALUE as exc:
             return r[t.JsonValue].fail(f"json_parse: {exc}")
 
     @staticmethod

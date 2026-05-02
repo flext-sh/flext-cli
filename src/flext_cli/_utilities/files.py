@@ -191,14 +191,7 @@ class FlextCliUtilitiesFiles:
         """Execute one operation and map common runtime errors to ``r``."""
         try:
             return r[T].ok(operation_func())
-        except (
-            OSError,
-            ValueError,
-            TypeError,
-            KeyError,
-            AttributeError,
-            RuntimeError,
-        ) as exc:
+        except c.EXC_BROAD_RUNTIME_OS as exc:
             return r[T].fail(error_template.format(error=exc, **format_kwargs))
 
     @staticmethod

@@ -186,7 +186,7 @@ class FlextCliUtilitiesOptions:
             normalized_source = t.Cli.CLI_DEFAULT_SOURCE_ADAPTER.validate_python(
                 source_value,
             )
-        except (TypeError, ValueError, c.ValidationError):
+        except c.EXC_VALIDATION_TYPE_VALUE:
             normalized_source = None
         if normalized_source is None:
             return None
