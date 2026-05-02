@@ -1,0 +1,29 @@
+tests/unit/test_constants.py
+  81bd344b75a4c5f1 111-112
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "c625e1160d63002e295685ffb8b2aa5e0ccff3bb",
+  "prompts": {
+    "81bd344b75a4c5f1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "288f9aad-a0e4-4b23-a3ad-bc9b7b265cbd",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "FLEXT Bot",
+      "messages": [],
+      "total_additions": 2,
+      "total_deletions": 20,
+      "accepted_lines": 2,
+      "overriden_lines": 0,
+      "messages_url": "https://usegitai.com/cas/7027bc53b3bc26e71d47fe56b8dd73ac4731780694e02096c24179cbc1c5807c"
+    }
+  },
+  "humans": {
+    "h_9db9d35f50cf33": {
+      "author": "FLEXT Bot"
+    }
+  }
+}
