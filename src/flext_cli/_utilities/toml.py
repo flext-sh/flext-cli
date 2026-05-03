@@ -302,15 +302,15 @@ class FlextCliUtilitiesToml:
         path: t.StrSequence,
     ) -> MutableMapping[str, t.JsonValue] | None:
         """Return one nested mutable mapping path without creating missing tables."""
-        current: t.MappingKV[str, t.JsonValue] = parent
+        if not isinstance(parent, MutableMapping):
+            return None
+        current: MutableMapping[str, t.JsonValue] = parent
         for segment in path:
-            normalized_mapping = FlextCliUtilitiesToml.toml_as_mapping(
-                current.get(segment, None)
-            )
-            if normalized_mapping is None:
+            value = current.get(segment, None)
+            if not isinstance(value, MutableMapping):
                 return None
-            current = normalized_mapping
-        return dict(current)
+            current = value
+        return current
 
     @staticmethod
     def toml_remove_key_if_present(
