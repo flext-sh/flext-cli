@@ -197,6 +197,23 @@ class TestsFlextCliTomlUtilities:
         tm.that(u.Cli.toml_value(doc, "b"), eq=[1, 2])
         tm.that(u.Cli.toml_value(doc, "missing"), none=True)
 
+    def test_mapping_path_normalizes_toml_document_children(self) -> None:
+        doc = u.Cli.toml_document()
+        project = u.Cli.toml_table()
+        tool = u.Cli.toml_table()
+        pytest_config = u.Cli.toml_table()
+        pytest_config["addopts"] = "-q"
+        tool["pytest"] = pytest_config
+        project["name"] = "demo"
+        doc["project"] = project
+        doc["tool"] = tool
+
+        resolved = u.Cli.toml_mapping_path(doc, ["tool", "pytest"])
+
+        tm.that(resolved, none=False)
+        assert resolved is not None
+        tm.that(resolved["addopts"], eq="-q")
+
     def test_mapping_from_text_and_document_builder_round_trip(self) -> None:
         text = (
             "[project]\n"
