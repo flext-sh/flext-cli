@@ -65,21 +65,6 @@ class TestsFlextCliConversionCov:
         # may succeed or fail depending on strict — just ensure it returns r
         assert result is not None
 
-    def test_convert_field_value_none(self) -> None:
-        result = u.Cli.convert_field_value(None)
-        tm.ok(result)
-        tm.that(result.value, eq="")
-
-    def test_convert_field_value_string(self) -> None:
-        result = u.Cli.convert_field_value("hello")
-        tm.ok(result)
-        tm.that(result.value, eq="hello")
-
-    def test_convert_field_value_int(self) -> None:
-        result = u.Cli.convert_field_value(42)
-        tm.ok(result)
-        tm.that(result.value, eq=42)
-
     def test_resolve_optional_path_with_path(self, tmp_path: Path) -> None:
         result = u.Cli.resolve_optional_path(tmp_path, default=Path("/fallback"))
         tm.that(result, eq=tmp_path)

@@ -282,38 +282,49 @@ class FlextCliCli(s):
         cli_args = list(args) if args is not None else sys.argv[1:]
         command = typer.main.get_command(app)
         original_argv = sys.argv.copy()
+        result: p.Result[bool]
 
         try:
             sys.argv = [prog_name, *cli_args]
-            result = command.main(
+            exit_result = command.main(
                 args=cli_args,
                 prog_name=prog_name,
                 standalone_mode=False,
             )
         except click.ClickException as exc:
-            message = exc.format_message().strip()
-            return r[bool].fail(message)
+            result = r[bool].fail(exc.format_message().strip())
         except typer.Abort as exc:
-            message = u.Cli.normalize_required_text(
-                str(exc),
-                default=exc.__class__.__name__,
+            result = r[bool].fail(
+                u.Cli.normalize_required_text(
+                    str(exc),
+                    default=exc.__class__.__name__,
+                ),
             )
-            return r[bool].fail(message)
         except typer.Exit as exc:
-            if exc.exit_code == 0:
-                return r[bool].ok(True)
-            return r[bool].fail(f"CLI exited with code {exc.exit_code}")
-        except Exception as exc:
-            message = u.Cli.normalize_required_text(
-                str(exc),
-                default=exc.__class__.__name__,
+            result = (
+                r[bool].ok(True)
+                if exc.exit_code == 0
+                else r[bool].fail(f"CLI exited with code {exc.exit_code}")
             )
-            return r[bool].fail(message)
+        except Exception as exc:
+            result = r[bool].fail(
+                u.Cli.normalize_required_text(
+                    str(exc),
+                    default=exc.__class__.__name__,
+                ),
+            )
+        else:
+            if (
+                isinstance(exit_result, int)
+                and not isinstance(exit_result, bool)
+                and exit_result != 0
+            ):
+                result = r[bool].fail(f"CLI exited with code {exit_result}")
+            else:
+                result = r[bool].ok(True)
         finally:
             sys.argv = original_argv
-        if isinstance(result, int) and not isinstance(result, bool) and result != 0:
-            return r[bool].fail(f"CLI exited with code {result}")
-        return r[bool].ok(True)
+        return result
 
     @staticmethod
     def exit(*, code: int = 0) -> None:

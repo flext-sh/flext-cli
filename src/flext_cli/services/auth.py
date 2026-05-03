@@ -64,38 +64,39 @@ class FlextCliAuth(FlextCliServiceBase):
 
     def authenticate(self, credentials: t.StrMapping) -> p.Result[str]:
         """Authenticate with a token or username/password and persist the token."""
+        result: p.Result[str] | None = None
         try:
             credentials_payload = m.Cli.AuthCredentialsPayload.model_validate(
                 credentials,
             )
         except c.ValidationError:
-            return r[str].fail(c.Cli.ERR_INVALID_CREDENTIALS)
-
-        if credentials_payload.token:
-            save_result = self.save_auth_token(credentials_payload.token)
-            if save_result.failure:
-                return r[str].fail(
-                    save_result.error
-                    or c.Cli.ERR_AUTH_SAVE_FAILED.format(error="unknown error"),
+            result = r[str].fail(c.Cli.ERR_INVALID_CREDENTIALS)
+        else:
+            token_to_save = credentials_payload.token
+            if not token_to_save:
+                validation_result = self.validate_credentials(
+                    credentials_payload.username,
+                    credentials_payload.password,
                 )
-            return r[str].ok(credentials_payload.token)
-
-        validation_result = self.validate_credentials(
-            credentials_payload.username,
-            credentials_payload.password,
-        )
-        if validation_result.failure:
-            return r[str].fail(
-                validation_result.error or c.Cli.ERR_INVALID_CREDENTIALS,
-            )
-        generated_token = secrets.token_urlsafe(32)
-        save_result = self.save_auth_token(generated_token)
-        if save_result.failure:
-            return r[str].fail(
-                save_result.error
-                or c.Cli.ERR_AUTH_SAVE_FAILED.format(error="unknown error"),
-            )
-        return r[str].ok(generated_token)
+                if validation_result.failure:
+                    result = r[str].fail(
+                        validation_result.error or c.Cli.ERR_INVALID_CREDENTIALS,
+                    )
+                else:
+                    token_to_save = secrets.token_urlsafe(32)
+            if result is None:
+                assert token_to_save
+                save_result = self.save_auth_token(token_to_save)
+                result = (
+                    r[str].fail(
+                        save_result.error
+                        or c.Cli.ERR_AUTH_SAVE_FAILED.format(error="unknown error"),
+                    )
+                    if save_result.failure
+                    else r[str].ok(token_to_save)
+                )
+        assert result is not None
+        return result
 
     def clear_auth_tokens(self) -> p.Result[bool]:
         """Delete the configured authentication token file if present."""
