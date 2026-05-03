@@ -1,10 +1,4 @@
-"""FlextCliGettingStarted - Complete getting started example with flext-.
-
-This module demonstrates how to use flext-cli as a library in your Python projects.
-Provides comprehensive examples of all major flext-cli features including styled output,
-table formatting, file I/O, error handling, and configuration management.
-
-SCOPE: Getting started guide, integration examples, best practices.
+"""Public-facade getting-started example for flext-cli.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -12,121 +6,152 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import tempfile
-from collections.abc import (
-    Mapping,
-)
 from pathlib import Path
+from tempfile import TemporaryDirectory
+from typing import override
 
-from flext_cli import c, cli, m, t
-from flext_core import p, r
-
-_EXAMPLE_ERR_FAILED_LOAD_CONFIG = "Failed to load settings"
-_EXAMPLE_ERR_CONFIG_CONTENT_MAPPING = "Config content must be a mapping"
-_EXAMPLE_MSG_OPERATION_COMPLETED = "Operation completed"
-_EXAMPLE_MSG_ERROR_SOMETHING_FAILED = "ERROR: Something failed"
+from examples import c, m, p, r, s, t, u
+from flext_cli import cli
 
 
-class FlextCliGettingStarted:
-    """Complete getting started examples for flext-cli library usage."""
+class FlextCliGettingStarted(s):
+    """Minimal guided tour of flext-cli through public aliases and facades."""
 
-    def __init__(self) -> None:
-        """Initialize with flext-cli instance."""
-        super().__init__()
-
-    def advanced_types_example(self) -> None:
-        """Demonstrate advanced Python 3.13+ typing patterns with flext-cli."""
-        output_format = c.Cli.OutputFormats.JSON
-        cli.print(
-            f"Selected format: {output_format.value}", style=c.Cli.MessageStyles.BLUE
-        )
-        valid_formats: t.VariadicTuple[str] = tuple(
-            sorted(c.Cli.OUTPUT_FORMATS),
-        )
-        cli.print(f"Available formats: {', '.join(valid_formats)}")
-        sample_data: t.JsonMapping = {
-            "status": c.Cli.CommandStatus.COMPLETED,
-            "data": [1, 2, 3],
-            "metadata": {"version": "1.0"},
+    def build_example_settings(self) -> p.Result[m.Examples.MyAppSettings]:
+        """Build a validated application settings model through the examples facade."""
+        settings_payload: t.JsonMapping = {
+            "app_name": c.EXAMPLE_DEFAULT_TOOL_NAME,
+            "api_key": "example-api-key",
+            "max_workers": c.EXAMPLE_DEFAULT_MAX_WORKERS,
+            "timeout": c.EXAMPLE_DEFAULT_TIMEOUT_SECONDS,
         }
-        cli.print(f"Sample data: {sample_data}", style=c.Cli.MessageStyles.GREEN)
-
-    def display_user_data(self, user: m.Cli.DisplayData) -> None:
-        """Show how to display YOUR data as a table."""
-        table_data: t.StrMapping
-        if isinstance(user.data, dict):
-            table_data = {key: str(value) for key, value in user.data.items()}
-        else:
-            table_data = {"value": str(user.data)}
-        cli.show_table(
-            table_data,
-            headers=["Field", "Value"],
-            title="User Information",
+        return r[m.Examples.MyAppSettings].ok(
+            m.Examples.MyAppSettings.model_validate(settings_payload)
         )
 
-    def load_config(self, filepath: str) -> p.Result[m.Cli.LoadedConfig]:
-        """Load YOUR settings from JSON. Returns r[LoadedConfig]; no None."""
-        read_result = cli.read_json_file(filepath)
-        if read_result.failure:
-            cli.print(
-                f"Failed to load: {read_result.error}", style=c.Cli.MessageStyles.RED
+    @staticmethod
+    def persist_example_settings(
+        settings: m.Examples.MyAppSettings,
+    ) -> p.Result[m.Cli.LoadedConfig]:
+        """Round-trip settings through the public JSON file facade."""
+        wrapped_config = m.Cli.LoadedConfig(content=settings.model_dump(mode="json"))
+        with TemporaryDirectory(prefix=f"{c.EXAMPLE_DEFAULT_TEMP_SUBDIR}-") as temp_dir:
+            config_path = Path(temp_dir) / "settings.json"
+            return cli.write_json_file(
+                str(config_path),
+                wrapped_config.model_dump(mode="json"),
+            ).flat_map(
+                lambda _: cli.read_json_model(str(config_path), m.Cli.LoadedConfig)
             )
-            return r[m.Cli.LoadedConfig].fail(
-                read_result.error or _EXAMPLE_ERR_FAILED_LOAD_CONFIG,
-            )
-        if not isinstance(read_result.value, Mapping):
-            return r[m.Cli.LoadedConfig].fail(_EXAMPLE_ERR_CONFIG_CONTENT_MAPPING)
-        return r[m.Cli.LoadedConfig].ok(
-            m.Cli.LoadedConfig(content=dict(read_result.value)),
-        )
 
-    def process_data_with_flext_result(self) -> None:
-        """Use r pattern in YOUR code - no try/except needed."""
-        nonexistent_file = str(Path(tempfile.gettempdir()) / "nonexistent.json")
-        result = cli.read_json_file(nonexistent_file)
-        if result.success:
-            cli.print("Data loaded successfully", style=c.Cli.MessageStyles.GREEN)
-        else:
-            cli.print(f"Error: {result.error}", style=c.Cli.MessageStyles.YELLOW)
-
-    def run_examples(self) -> None:
-        """Run all getting started examples."""
+    @override
+    def execute(self) -> p.Result[t.JsonMapping]:
+        """Run the public getting-started flow through typed examples aliases."""
         cli.print(
-            "=== Flext CLI Getting Started Examples ===",
+            "FLEXT CLI - Getting Started",
             style=c.Cli.MessageStyles.BOLD_BLUE,
         )
-        cli.print("\n1. Styled Output Examples:", style=c.Cli.MessageStyles.BOLD)
-        self.your_function_after()
-        cli.print("\n2. File I/O Examples:", style=c.Cli.MessageStyles.BOLD)
-        self.process_data_with_flext_result()
-        cli.print("\n3. Advanced Types Examples:", style=c.Cli.MessageStyles.BOLD)
-        self.advanced_types_example()
-        cli.print("\n✅ All examples completed!", style=c.Cli.MessageStyles.BOLD_GREEN)
-
-    def save_config(self, settings: m.Cli.LoadedConfig, filepath: str) -> bool:
-        """Save YOUR settings to JSON with proper error handling."""
-        write_result = cli.write_json_file(filepath, settings.content)
-        if write_result.failure:
-            cli.print(
-                f"Failed to save: {write_result.error}", style=c.Cli.MessageStyles.RED
-            )
-            return False
-        cli.print(f"✅ Saved to {filepath}", style=c.Cli.MessageStyles.GREEN)
-        return True
-
-    def your_function_after(self) -> None:
-        """Your new code using flext-cli."""
-        cli.print(_EXAMPLE_MSG_OPERATION_COMPLETED, style=c.Cli.MessageStyles.GREEN)
         cli.print(
-            _EXAMPLE_MSG_ERROR_SOMETHING_FAILED,
-            style=c.Cli.MessageStyles.BOLD_RED,
+            "===========================",
+            style=c.Cli.MessageStyles.BOLD_BLUE,
+        )
+
+        cli.print("\n1. Setup via s/base.py", style=c.Cli.MessageStyles.BOLD_CYAN)
+        runtime_snapshot: t.JsonMapping = {
+            "output_format": self.settings.output_format,
+            "cli_log_level": str(self.settings.cli_log_level),
+            "verbose": self.settings.verbose,
+            "quiet": self.settings.quiet,
+        }
+        u.display_config_table(
+            u.to_json_dict(runtime_snapshot),
+            headers=c.EXAMPLE_TABLE_HEADERS_SETTING_VALUE,
+        )
+
+        settings_result = self.build_example_settings()
+        if settings_result.failure:
+            return r[t.JsonMapping].fail(
+                settings_result.error or c.EXAMPLE_ERR_FAILED_LOAD_CONFIG
+            )
+
+        cli.print(
+            "\n2. Pydantic 2 models via m.Examples",
+            style=c.Cli.MessageStyles.BOLD_CYAN,
+        )
+        app_settings = settings_result.value
+        app_settings.display(cli)
+
+        loaded_result = self.persist_example_settings(app_settings)
+        if loaded_result.failure:
+            return r[t.JsonMapping].fail(
+                loaded_result.error or c.EXAMPLE_ERR_FAILED_LOAD_CONFIG
+            )
+
+        cli.print(
+            "\n3. Public cli facade round-trip",
+            style=c.Cli.MessageStyles.BOLD_CYAN,
+        )
+        loaded_config = loaded_result.value
+        roundtrip_summary = m.Cli.DisplayData(
+            data={
+                "loaded_keys": ", ".join(loaded_config.content.keys()),
+                "api_key_present": str(bool(loaded_config.content.get("api_key"))),
+                "max_workers": str(loaded_config.content.get("max_workers")),
+                "timeout": str(loaded_config.content.get("timeout")),
+            }
+        )
+        u.display_config_table(
+            roundtrip_summary,
+            headers=c.EXAMPLE_TABLE_HEADERS_SETTING_VALUE,
+        )
+
+        cli.print(
+            "\n4. Railway result ergonomics",
+            style=c.Cli.MessageStyles.BOLD_CYAN,
+        )
+        result_summary: t.JsonMapping = {
+            "ok.success": r[str].ok(c.EXAMPLE_MSG_OPERATION_COMPLETED).success,
+            "fail.failure": r[str].fail(c.EXAMPLE_MSG_ERROR_SOMETHING_FAILED).failure,
+            "settings_model": type(app_settings).__name__,
+            "loaded_model": type(loaded_config).__name__,
+        }
+        u.display_config_table(
+            u.to_json_dict(result_summary),
+            headers=c.EXAMPLE_TABLE_HEADERS_SETTING_VALUE,
+        )
+
+        summary: t.JsonMapping = {
+            "app_name": app_settings.app_name,
+            "output_format": self.settings.output_format,
+            "loaded_field_count": len(loaded_config.content),
+            "result_contract": "public-r",
+        }
+        u.print_demo_completion(
+            "Getting started",
+            (
+                "setup through s/base.py",
+                "Pydantic 2 validation via m.Examples",
+                "typed JSON round-trip through cli",
+                "runtime aliases through examples",
+            ),
+        )
+        return r[t.JsonMapping].ok(summary)
+
+    @classmethod
+    def main(cls) -> None:
+        """Run the example and render failures through the public utility facade."""
+        result = cls().execute()
+        if result.success:
+            return
+        u.print_demo_error(
+            "Getting started",
+            result.error or c.EXAMPLE_ERR_FAILED_LOAD_CONFIG,
         )
 
 
 def main() -> None:
     """Main entry point for the getting started examples."""
-    example = FlextCliGettingStarted()
-    example.run_examples()
+    FlextCliGettingStarted.main()
 
 
 if __name__ == "__main__":
