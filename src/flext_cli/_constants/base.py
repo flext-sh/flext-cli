@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import re
 from typing import ClassVar, Final
 
 from rich.errors import ConsoleError, LiveError, StyleError
@@ -55,13 +54,4 @@ class FlextCliConstantsBase:
         "unrecognized arguments",
         "cli exited with code 2",
     )
-    FILE_NOT_FOUND_REGEXES: ClassVar[t.VariadicTuple[re.Pattern[str]]] = tuple(
-        re.compile(pattern, flags=re.IGNORECASE)
-        for pattern in FILE_NOT_FOUND_PATTERN_ORDER
-    )
-    CLI_USAGE_ERROR_REGEXES: ClassVar[t.VariadicTuple[re.Pattern[str]]] = tuple(
-        re.compile(pattern, flags=re.IGNORECASE)
-        for pattern in CLI_USAGE_ERROR_PATTERN_ORDER
-    )
-
     CMD_SERVICE_NAME: Final[str] = "FlextCliCmd"

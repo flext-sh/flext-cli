@@ -112,18 +112,10 @@ class TestsFlextCliConstantsUnit:
         tm.that(c.Cli.LOG_LEVELS, is_=tuple)
         tm.that(c.Cli.MESSAGE_TYPES, is_=tuple)
 
-    def test_matching_regex_authorities(self) -> None:
-        """Test regex authorities classify representative CLI messages."""
-        tm.that(
-            c.Cli.FILE_NOT_FOUND_REGEXES[0].search("No such file or directory")
-            is not None,
-            eq=True,
-        )
-        tm.that(
-            c.Cli.CLI_USAGE_ERROR_REGEXES[0].search("No such option: --bad")
-            is not None,
-            eq=True,
-        )
+    def test_matching_pattern_authorities(self) -> None:
+        """Test pattern authorities classify representative CLI messages."""
+        tm.that(u.Cli.file_not_found_error("No such file or directory"), eq=True)
+        tm.that(u.Cli.cli_usage_error("No such option: --bad"), eq=True)
 
     def test_cmd_defaults(self) -> None:
         """Test CmdDefaults constants."""
