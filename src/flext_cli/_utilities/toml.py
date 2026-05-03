@@ -15,7 +15,7 @@ import tomlkit
 from tomlkit.items import AoT, Array, Item, Table
 from tomlkit.toml_document import TOMLDocument
 
-from flext_cli import c, p, r, t
+from flext_cli import c, e, p, r, t
 from flext_cli._utilities.runtime import FlextCliUtilitiesRuntime as ur
 from flext_core import u
 
@@ -538,24 +538,28 @@ class FlextCliUtilitiesToml:
     def toml_read_document(path: Path) -> p.Result[TOMLDocument]:
         """Read a TOML document with ``r`` semantics."""
         if not path.exists():
-            return r[TOMLDocument].fail(f"failed to read TOML: {path}")
+            return e.fail_not_found("TOML file", str(path), result_type=r[TOMLDocument])
         doc = FlextCliUtilitiesToml.toml_read(path)
         if doc is None:
-            return r[TOMLDocument].fail(f"TOML parse failed for: {path}")
+            return e.fail_validation(
+                f"TOML parse failed for: {path}", result_type=r[TOMLDocument]
+            )
         return r[TOMLDocument].ok(doc)
 
     @staticmethod
     def toml_read_json(path: Path) -> p.Result[t.JsonMapping]:
         """Read TOML and return the unwrapped root table as ``JsonMapping``."""
         if not path.exists():
-            return r[t.JsonMapping].fail(f"failed to read TOML: {path}")
+            return e.fail_not_found("TOML file", str(path), result_type=r[t.JsonMapping])
         try:
             original_rendered = path.read_text(encoding=c.Cli.ENCODING_DEFAULT)
         except OSError as exc:
-            return r[t.JsonMapping].fail(f"failed to read TOML: {exc}")
+            return e.fail_operation("read TOML", exc, result_type=r[t.JsonMapping])
         mapping = FlextCliUtilitiesToml.toml_mapping_from_text(original_rendered)
         if mapping is None:
-            return r[t.JsonMapping].fail(f"TOML parse failed for: {path}")
+            return e.fail_validation(
+                f"TOML parse failed for: {path}", result_type=r[t.JsonMapping]
+            )
         return r[t.JsonMapping].ok(mapping)
 
     @staticmethod
@@ -598,7 +602,7 @@ class FlextCliUtilitiesToml:
                 encoding=c.Cli.ENCODING_DEFAULT,
             )
         except OSError as exc:
-            return r[bool].fail(f"TOML write error: {exc}")
+            return e.fail_operation("TOML write", exc, result_type=r[bool])
         format_result = FlextCliUtilitiesToml._format_pyproject(path)
         if format_result.failure:
             return r[bool].fail(format_result.error or f"taplo format failed: {path}")
@@ -610,7 +614,7 @@ class FlextCliUtilitiesToml:
         try:
             document = FlextCliUtilitiesToml.toml_document_from_mapping(mapping)
         except c.EXC_TYPE_VALIDATION as exc:
-            return r[bool].fail(f"TOML build error: {exc}")
+            return e.fail_validation("TOML build", error=exc, result_type=r[bool])
         return FlextCliUtilitiesToml.toml_write_document(path, document)
 
 
