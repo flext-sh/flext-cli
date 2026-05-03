@@ -287,10 +287,6 @@ class TestsFlextCliConstants(FlextTestsConstants, c):
         )
 
         # show_table: just data (no return value to assert)
-        TABLE_SHOW_CASES: Final[tuple[t.JsonMapping | list[t.JsonValue], ...]] = (
-            {"key": "val"},
-            [["col1", "col2"], ["a", "b"]],
-        )
 
         # ── AUTH (services/auth.py) ────────────────────────────────────
         # validate_credentials: (username, password, expect_ok)
@@ -302,36 +298,11 @@ class TestsFlextCliConstants(FlextTestsConstants, c):
         )
 
         # save_auth_token: (token, expect_ok)
-        AUTH_TOKEN_SAVE_CASES: Final[tuple[tuple[str, bool], ...]] = (
-            ("valid-token-abc123", True),
-            ("", False),
-            ("   ", False),
-        )
 
         # auth_extract_token: (payload, expect_ok)
-        AUTH_EXTRACT_CASES: Final[tuple[tuple[t.JsonValue, bool], ...]] = (
-            ({c.Cli.DICT_KEY_AUTH_TOKEN: "mytoken"}, True),
-            ({c.Cli.DICT_KEY_AUTH_TOKEN: ""}, False),
-            ({}, False),
-            ([], False),
-            ("string", False),
-        )
 
         # ── COMMANDS (services/commands.py) ────────────────────────────
         # execute_command: (name, registered, expect_ok)
-        COMMANDS_EXEC_CASES: Final[tuple[tuple[str, bool, bool], ...]] = (
-            ("run", True, True),
-            ("missing", False, False),
-            ("", False, False),
-            ("   ", False, False),
-        )
-
-        COMMANDS_NAMES: Final[frozenset[str]] = frozenset({
-            "init",
-            "run",
-            "status",
-            "deploy",
-        })
 
         # ── FORMATTERS (services/formatters.py) ───────────────────────
         FORMATTERS_PRINT_CASES: Final[tuple[tuple[str, str | None], ...]] = (
@@ -362,12 +333,6 @@ class TestsFlextCliConstants(FlextTestsConstants, c):
             ({"lint": {"extra": 1}}, "lint", ("rule_a",), 0),
             ({"lint": {"rule_a": 99, "unrelated": "x"}}, "lint", ("rule_a",), 1),
         )
-
-        RULES_ALLOWED_KEYS: Final[frozenset[str]] = frozenset({
-            "rule_a",
-            "rule_b",
-            "rule_c",
-        })
 
         RULES_MATCH_FILTER_CASES: Final[
             tuple[tuple[str, tuple[str, ...], bool], ...]
@@ -539,11 +504,6 @@ class TestsFlextCliConstants(FlextTestsConstants, c):
         TOML_SECTION_CONTENT: Final[str] = "[section]\nkey = true\ncount = 42\n"
 
         # (content, expect_ok)
-        TOML_READ_CASES: Final[tuple[tuple[str, bool], ...]] = (
-            (TOML_VALID_CONTENT, True),
-            (TOML_SECTION_CONTENT, True),
-            (TOML_INVALID_CONTENT, False),
-        )
 
         TOML_NESTED_PATH_CASES: Final[
             tuple[tuple[tuple[str, ...], t.JsonValue | None], ...]
@@ -564,30 +524,11 @@ class TestsFlextCliConstants(FlextTestsConstants, c):
         )
 
         # tables_resolve_config: (kwargs, expect_ok)
-        TABLE_CONFIG_CASES: Final[tuple[tuple[t.JsonMapping, bool], ...]] = (
-            ({}, True),
-            ({"table_format": c.Cli.TabularFormat.GRID}, True),
-            ({"table_format": c.Cli.TabularFormat.PLAIN}, True),
-        )
 
         # ── COMMANDS (_utilities/commands.py) ──────────────────────────
         CMD_NAMES_VALID: Final[tuple[str, ...]] = ("build", "test", "deploy")
-        CMD_NAMES_INVALID: Final[tuple[str, ...]] = ("", "  ")
 
         # ── AUTH (_utilities/auth.py) ──────────────────────────────────
-        AUTH_TOKEN_FILE_CASES: Final[tuple[tuple[str | None, bool], ...]] = (
-            ("custom_path.json", True),
-            (None, True),
-            ("", True),
-            ("  ", True),
-        )
-
-        AUTH_EXTRACT_PAYLOAD_CASES: Final[tuple[tuple[t.JsonValue, bool], ...]] = (
-            ({c.Cli.DICT_KEY_AUTH_TOKEN: "token123"}, True),
-            ({c.Cli.DICT_KEY_AUTH_TOKEN: ""}, False),
-            ({}, False),
-            ("not-a-mapping", False),
-        )
 
 
 c = TestsFlextCliConstants
