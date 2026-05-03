@@ -6,6 +6,7 @@ import getpass
 from typing import Annotated, Self, override
 
 from flext_cli import (
+    FlextCliSettings,
     c,
     m,
     p,
@@ -176,7 +177,9 @@ class FlextCliPrompts(s):
         )
 
     def _is_test_env(self) -> bool:
-        return u.Cli.prompts_is_test_env(test_override=self._test_env_override) is True
+        if self._test_env_override is not None:
+            return self._test_env_override
+        return FlextCliSettings.fetch_global().test_env
 
     def _log(
         self,

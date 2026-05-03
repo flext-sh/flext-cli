@@ -181,11 +181,11 @@ class FlextCliUtilitiesRules:
             )
             typed_rules = uj.json_as_mapping_list(rule_config.get(options.rules_key))
             for typed_rule_def in typed_rules:
-                if options.rule_id_key not in typed_rule_def:
+                rule_id = uj.json_get_str_key(typed_rule_def, options.rule_id_key)
+                if not rule_id:
                     continue
                 if not typed_rule_def.get(options.enabled_key, True):
                     continue
-                rule_id = str(typed_rule_def[options.rule_id_key]).strip()
                 if not cls._rules_matches_filters(rule_id, options.rule_filters):
                     continue
                 action_name = uj.json_get_str_key(
@@ -300,7 +300,7 @@ class FlextCliUtilitiesRules:
         *,
         rule_id_key: str,
     ) -> str | None:
-        rule_id = str(rule_def.get(rule_id_key, ""))
+        rule_id = uj.json_get_str_key(rule_def, rule_id_key)
         _, _, required_mapping_keys, required_non_empty_list_keys = matcher
         for key in required_mapping_keys:
             if not isinstance(rule_def.get(key), Mapping):

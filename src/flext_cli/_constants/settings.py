@@ -23,6 +23,10 @@ class FlextCliConstantsSettings:
     CLI_DEFAULT_NO_COLOR: Final[bool] = False
     CLI_DEFAULT_VERBOSE: Final[bool] = False
     CLI_DEFAULT_QUIET: Final[bool] = False
+    ENV_DEFAULT_CI: Final[bool] = False
+    ENV_VAR_CI: Final[str] = "CI"
+    ENV_VAR_PYTEST_CURRENT_TEST: Final[str] = "PYTEST_CURRENT_TEST"
+    ENV_VAR_SHELL_COMMAND: Final[str] = "_"
 
     FLEXT_CLI: Final[str] = "flext-cli"
     CLI_VERSION: Final[str] = "2.0.0"

@@ -133,9 +133,12 @@ class FlextCliUtilitiesYaml:
             raw = (
                 data.model_dump(mode="json") if isinstance(data, m.BaseModel) else data
             )
+            validated: t.JsonValue = t.Cli.JSON_VALUE_ADAPTER.validate_python(
+                u.to_jsonable_python(raw),
+            )
             with path.open("w", encoding=c.Cli.ENCODING_DEFAULT) as fh:
                 safe_dump(
-                    u.to_jsonable_python(raw),
+                    validated,
                     fh,
                     default_flow_style=False,
                     sort_keys=sort_keys,
@@ -165,8 +168,11 @@ class FlextCliUtilitiesYaml:
             raw = (
                 data.model_dump(mode="json") if isinstance(data, m.BaseModel) else data
             )
-            return safe_dump(
+            validated: t.JsonValue = t.Cli.JSON_VALUE_ADAPTER.validate_python(
                 u.to_jsonable_python(raw),
+            )
+            return safe_dump(
+                validated,
                 default_flow_style=False,
                 sort_keys=sort_keys,
                 allow_unicode=True,

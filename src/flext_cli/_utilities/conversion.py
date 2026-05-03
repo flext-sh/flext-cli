@@ -2,13 +2,9 @@
 
 from __future__ import annotations
 
-from collections.abc import (
-    Mapping,
-)
 from pathlib import Path
 
-from flext_cli import c, p, r, t
-from flext_core import m, u
+from flext_cli import c, m, p, r, t
 
 
 class FlextCliUtilitiesConversion:
@@ -20,15 +16,7 @@ class FlextCliUtilitiesConversion:
         default: t.JsonValue | None,
     ) -> t.Cli.TypedExtractValue:
         """Return a canonical default for one type kind."""
-        if type_kind == c.Cli.TypeKind.STR:
-            return default if isinstance(default, str) else ""
-        if type_kind == c.Cli.TypeKind.BOOL:
-            return default if isinstance(default, bool) else False
-        if isinstance(default, Mapping):
-            return {
-                key: u.normalize_to_json_value(value) for key, value in default.items()
-            }
-        return {}
+        return m.Cli.TypedExtract(type_kind=type_kind, default=default).resolved
 
     @staticmethod
     def cli_args_to_model[M: m.BaseModel](

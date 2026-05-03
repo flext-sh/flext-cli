@@ -84,9 +84,9 @@ class FlextCliCommands(s):
             return r[t.JsonValue].fail(
                 c.Cli.ERR_HANDLER_NOT_CALLABLE.format(name=name),
             )
+        command_args: tuple[str, ...] = tuple(args) if args is not None else ()
+        has_kwargs = bool(kwargs)
         try:
-            command_args = tuple(args) if args is not None else ()
-            has_kwargs = bool(kwargs)
             if not command_args and not has_kwargs:
                 result = handler()
             elif not has_kwargs:

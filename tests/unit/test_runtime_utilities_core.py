@@ -120,8 +120,9 @@ class TestsFlextCliRuntimeUtilitiesCore:
             input_data=input_data,
         )
         if expect_success:
-            output: m.Cli.CommandOutput = tm.ok(result)
-            assert isinstance(output, m.Cli.CommandOutput)
+            output_raw: t.JsonPayload | None = tm.ok(result)
+            assert isinstance(output_raw, m.Cli.CommandOutput)
+            output: m.Cli.CommandOutput = output_raw
             if stdout_has:
                 tm.that(output.stdout, has=stdout_has)
             if stderr_has:
@@ -175,7 +176,9 @@ class TestsFlextCliRuntimeUtilitiesCore:
         cwd = tmp_path if use_tmp_path else None
         result = runner.run(command, cwd=cwd, timeout=timeout, env=env)
         if expect_success:
-            output: m.Cli.CommandOutput = tm.ok(result)
+            output_raw: t.JsonPayload | None = tm.ok(result)
+            assert isinstance(output_raw, m.Cli.CommandOutput)
+            output: m.Cli.CommandOutput = output_raw
             if stdout_has:
                 tm.that(output.stdout, has=stdout_has)
             if use_tmp_path:
@@ -225,7 +228,9 @@ class TestsFlextCliRuntimeUtilitiesCore:
         cwd = tmp_path if use_tmp_path else None
         result = runner.capture(command, cwd=cwd, timeout=timeout, env=env)
         if expect_success:
-            output: str = tm.ok(result)
+            output_raw: t.JsonPayload | None = tm.ok(result)
+            assert isinstance(output_raw, str)
+            output: str = output_raw
             if use_tmp_path:
                 tm.that(output, eq=str(tmp_path))
                 return

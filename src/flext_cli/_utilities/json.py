@@ -202,8 +202,7 @@ class FlextCliUtilitiesJson:
         default: str = "",
     ) -> str:
         """Extract a string value from mapping with safe coercion."""
-        raw = data.get(key, default)
-        return str(raw).strip() if raw is not None else default
+        return u.norm_str(data.get(key, default), default=default).strip()
 
     @staticmethod
     def json_pick_int(
@@ -212,14 +211,10 @@ class FlextCliUtilitiesJson:
         default: int = 0,
     ) -> int:
         """Extract an integer value from mapping with safe coercion."""
-        raw = data.get(key, default)
-        if raw is None:
-            return default
-        if isinstance(raw, int):
-            return raw
-        if isinstance(raw, str | float | bool):
-            return u.to_int(raw, default=default)
-        return default
+        parsed = u.parse(data.get(key, default), int, default=default).unwrap_or(
+            default,
+        )
+        return int(parsed) if isinstance(parsed, bool) else parsed
 
     @staticmethod
     def json_pick_bool(
@@ -229,18 +224,7 @@ class FlextCliUtilitiesJson:
         default: bool = False,
     ) -> bool:
         """Extract a boolean value from mapping with string/int coercion."""
-        raw = data.get(key, None)
-        if isinstance(raw, bool):
-            return raw
-        if isinstance(raw, str):
-            normalized = raw.strip().lower()
-            if normalized in {"1", "true", "yes", "on"}:
-                return True
-            if normalized in {"0", "false", "no", "off"}:
-                return False
-        if isinstance(raw, int | float):
-            return raw != 0
-        return default
+        return u.parse(data.get(key, None), bool, default=default).unwrap_or(default)
 
     @staticmethod
     def json_nested_int(
@@ -249,10 +233,12 @@ class FlextCliUtilitiesJson:
         default: int = 0,
     ) -> int:
         """Extract an integer from a nested mapping path."""
-        raw = FlextCliUtilitiesJson.json_walk_path(data, keys)
-        if isinstance(raw, int | str | float | bool):
-            return u.to_int(raw, default=default)
-        return default
+        parsed = u.parse(
+            FlextCliUtilitiesJson.json_walk_path(data, keys),
+            int,
+            default=default,
+        ).unwrap_or(default)
+        return int(parsed) if isinstance(parsed, bool) else parsed
 
     @staticmethod
     def json_get_str_key(

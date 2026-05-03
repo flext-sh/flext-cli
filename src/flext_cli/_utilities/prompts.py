@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import os
-
 from flext_cli import c, p, r, t
 
 
@@ -31,18 +29,6 @@ class FlextCliUtilitiesPrompts:
         """Normalize one raw input text to one effective prompt value."""
         trimmed = raw_input.strip()
         return trimmed or default
-
-    @staticmethod
-    def prompts_is_test_env(*, test_override: bool | None) -> bool:
-        """Detect test/CI runtime mode with one optional override."""
-        if test_override is not None:
-            return test_override
-        env_underscore = os.environ.get("_", "")
-        return (
-            os.environ.get("PYTEST_CURRENT_TEST") is not None
-            or "pytest" in env_underscore.lower()
-            or os.environ.get("CI") == "true"
-        )
 
     @staticmethod
     def prompts_parse_confirmation(

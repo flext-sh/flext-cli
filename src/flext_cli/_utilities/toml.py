@@ -274,13 +274,8 @@ class FlextCliUtilitiesToml:
         if isinstance(existing, dict):
             return existing
         if u.mapping(existing):
-            normalized_table: dict[str, t.JsonValue]
-            try:
-                normalized_table = dict(
-                    t.Cli.JSON_MAPPING_ADAPTER.validate_python(existing)
-                )
-            except c.ValidationError:
-                normalized_table = {}
+            normalized_mapping = FlextCliUtilitiesToml.toml_as_mapping(existing)
+            normalized_table = dict(normalized_mapping) if normalized_mapping else {}
             parent[key] = normalized_table
             return normalized_table
         table: dict[str, t.JsonValue] = {}
