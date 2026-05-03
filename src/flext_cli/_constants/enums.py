@@ -119,7 +119,6 @@ class FlextCliConstantsEnums:
         BOLD_YELLOW = "bold yellow"
         BOLD_CYAN = "bold cyan"
         BOLD_WHITE = "bold white"
-        BOLD_MAGENTA = "bold magenta"
         BOLD_WHITE_ON_BLUE = "bold white on blue"
 
 
