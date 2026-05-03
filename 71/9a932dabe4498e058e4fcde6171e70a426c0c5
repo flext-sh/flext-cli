@@ -1,0 +1,35 @@
+src/flext_cli/_models/base.py
+  h_9db9d35f50cf33 466-505
+tests/unit/test_services_commands_branch_cov.py
+  h_9db9d35f50cf33 23,31-32
+src/flext_cli/_constants/settings.py
+  h_9db9d35f50cf33 51-52
+src/flext_cli/_utilities/options.py
+  h_9db9d35f50cf33 33-34,37-41,43,45-46
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "719a932dabe4498e058e4fcde6171e70a426c0c5",
+  "prompts": {
+    "81bd344b75a4c5f1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "288f9aad-a0e4-4b23-a3ad-bc9b7b265cbd",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "FLEXT Bot",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 42,
+      "overriden_lines": 0,
+      "messages_url": "https://usegitai.com/cas/235770245344017183bf1b77e91fa23ec1efef088076b2a645e905b0b64aaa00"
+    }
+  },
+  "humans": {
+    "h_9db9d35f50cf33": {
+      "author": "FLEXT Bot"
+    }
+  }
+}
