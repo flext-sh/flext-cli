@@ -20,7 +20,7 @@ class TestsFlextCliServicesCommandsBranchCov:
         assert result.failure
         assert c.Cli.ERR_HANDLER_NOT_CALLABLE.format(name="bad") in (result.error or "")
 
-    def test_execute_command_signature_mismatch_retries_without_args(self) -> None:
+    def test_execute_command_signature_mismatch_fails(self) -> None:
         service = FlextCliCommands.create(name="app")
 
         def handler() -> p.Result[t.JsonPayload]:
@@ -28,8 +28,8 @@ class TestsFlextCliServicesCommandsBranchCov:
 
         service.register_handler("retry", handler)
         result = service.execute_command("retry", args=("arg",))
-        assert result.success
-        assert result.value == {"retried": True}
+        assert result.failure
+        assert "takes 0 positional arguments but 1 was given" in (result.error or "")
 
     def test_execute_command_safe_exception_returns_failure(self) -> None:
         service = FlextCliCommands.create(name="app")

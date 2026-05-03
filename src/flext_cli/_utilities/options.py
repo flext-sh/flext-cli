@@ -30,20 +30,20 @@ class FlextCliUtilitiesOptionBuilder:
 
     def build(self) -> OptionInfo:
         """Build ``OptionInfo`` from field metadata."""
-        field_meta = self.registry.get(self.field_name, {})
-        if not field_meta:
+        field_meta_raw = self.registry.get(self.field_name, {})
+        if not isinstance(field_meta_raw, Mapping) or not field_meta_raw:
             msg = "Option registry metadata must support key lookup"
             raise TypeError(msg)
-        help_text = str(field_meta.get("help", ""))
-        short_flag = str(field_meta.get("short", ""))
-        default_value = field_meta.get("default", ...)
-
-        field_name_override = field_meta.get(
-            c.Cli.CLI_PARAM_KEY_FIELD_NAME_OVERRIDE,
+        field_meta = m.Cli.OptionMetadata.model_validate(field_meta_raw)
+        help_text = field_meta.help
+        short_flag = field_meta.short
+        default_value = (
+            field_meta.default if c.Cli.CLI_PARAM_KEY_DEFAULT in field_meta_raw else ...
         )
+
         cli_param_name: str = (
-            field_name_override
-            if isinstance(field_name_override, str)
+            field_meta.field_name_override
+            if field_meta.field_name_override is not None
             else self.field_name
         )
 
