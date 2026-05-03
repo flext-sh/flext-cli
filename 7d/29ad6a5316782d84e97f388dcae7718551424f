@@ -1,0 +1,22 @@
+tests/unit/test_services_commands_branch_cov.py
+  h_9db9d35f50cf33 23,31-32
+src/flext_cli/_utilities/options.py
+  h_9db9d35f50cf33 33-34,37-41,43,45-46
+src/flext_cli/services/commands.py
+  h_9db9d35f50cf33 89-97
+src/flext_cli/_constants/settings.py
+  h_9db9d35f50cf33 51-52
+src/flext_cli/_models/base.py
+  h_9db9d35f50cf33 466-505
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "7d29ad6a5316782d84e97f388dcae7718551424f",
+  "prompts": {},
+  "humans": {
+    "h_9db9d35f50cf33": {
+      "author": "FLEXT Bot"
+    }
+  }
+}
