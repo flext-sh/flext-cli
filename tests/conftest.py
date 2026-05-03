@@ -2,34 +2,9 @@
 
 from __future__ import annotations
 
-from collections.abc import (
-    Callable,
-)
-
 import pytest
 
-from flext_cli import FlextCliSettings
 from tests import t
-
-
-@pytest.fixture
-def cli_settings(
-    settings_factory: Callable[..., FlextCliSettings],
-) -> FlextCliSettings:
-    """Provide clean FlextCliSettings for tests."""
-    return settings_factory(FlextCliSettings)
-
-
-def pytest_configure(config: pytest.Config) -> None:
-    """Configure pytest markers for the test suite."""
-    config.addinivalue_line("markers", "integration: marks tests as integration tests")
-    config.addinivalue_line("markers", "unit: marks tests as unit tests")
-    config.addinivalue_line("markers", "slow: marks tests as slow running")
-    config.addinivalue_line("markers", "docker: marks tests that require Docker")
-    config.addinivalue_line(
-        "markers",
-        "real_functionality: marks tests that test real functionality",
-    )
 
 
 def pytest_collection_modifyitems(
