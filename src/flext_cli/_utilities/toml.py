@@ -550,7 +550,9 @@ class FlextCliUtilitiesToml:
     def toml_read_json(path: Path) -> p.Result[t.JsonMapping]:
         """Read TOML and return the unwrapped root table as ``JsonMapping``."""
         if not path.exists():
-            return e.fail_not_found("TOML file", str(path), result_type=r[t.JsonMapping])
+            return e.fail_not_found(
+                "TOML file", str(path), result_type=r[t.JsonMapping]
+            )
         try:
             original_rendered = path.read_text(encoding=c.Cli.ENCODING_DEFAULT)
         except OSError as exc:
