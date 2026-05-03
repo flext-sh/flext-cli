@@ -84,8 +84,7 @@ class FlextCliAuth(FlextCliServiceBase):
                     )
                 else:
                     token_to_save = secrets.token_urlsafe(32)
-            if result is None:
-                assert token_to_save
+            if result is None and token_to_save:
                 save_result = self.save_auth_token(token_to_save)
                 result = (
                     r[str].fail(
@@ -95,7 +94,8 @@ class FlextCliAuth(FlextCliServiceBase):
                     if save_result.failure
                     else r[str].ok(token_to_save)
                 )
-        assert result is not None
+        if result is None:
+            result = r[str].fail(c.Cli.ERR_INVALID_CREDENTIALS)
         return result
 
     def clear_auth_tokens(self) -> p.Result[bool]:
