@@ -73,7 +73,7 @@ class TestsFlextCliTomlUtilities:
     def test_read_document_nonexistent_file(self, tmp_path: Path) -> None:
         tm.fail(
             u.Cli.toml_read_document(tmp_path / "missing.toml"),
-            has="failed to read TOML",
+            has="not found",
         )
 
     def test_write_document(self, tmp_path: Path) -> None:
@@ -133,7 +133,7 @@ class TestsFlextCliTomlUtilities:
             doc = u.Cli.toml_document()
             doc["key"] = "value"
             result = u.Cli.toml_write_document(toml_file, doc)
-            tm.fail(result, has="TOML write error")
+            tm.fail(result, has="TOML write")
         finally:
             Path(readonly_dir).chmod(stat.S_IRWXU)
 

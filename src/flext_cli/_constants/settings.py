@@ -52,7 +52,6 @@ class FlextCliConstantsSettings:
     CLI_PARAM_PRIORITY_NO_COLOR: Final[int] = 8
     CLI_PARAM_PRIORITY_CONFIG_FILE: Final[int] = 9
     CLI_PARAM_KEY_SHORT: Final[str] = "short"
-    CLI_PARAM_KEY_HELP: Final[str] = "help"
     CLI_PARAM_KEY_DEFAULT: Final[str] = "default"
     CLI_PARAM_KEY_PRIORITY: Final[str] = "priority"
     CLI_PARAM_KEY_CHOICES: Final[str] = "choices"

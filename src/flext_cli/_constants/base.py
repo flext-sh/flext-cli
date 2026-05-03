@@ -38,8 +38,6 @@ class FlextCliConstantsBase:
 
     SYMBOL_SUCCESS_MARK: Final[str] = "\u2713"
     SYMBOL_FAILURE_MARK: Final[str] = "\u2717"
-    SYMBOL_WARN: Final[str] = "\u26a0"
-    SYMBOL_SKIP: Final[str] = "\u25cb"
 
     FILE_NOT_FOUND_PATTERN_ORDER: ClassVar[t.VariadicTuple[str]] = (
         "no such file",
@@ -67,5 +65,3 @@ class FlextCliConstantsBase:
     )
 
     CMD_SERVICE_NAME: Final[str] = "FlextCliCmd"
-
-    UI_DEFAULT_PROMPT_SUFFIX: Final[str] = ": "
