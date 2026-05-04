@@ -6,7 +6,6 @@ import re
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Final
 
-from examples import t
 from flext_cli import c
 
 if TYPE_CHECKING:

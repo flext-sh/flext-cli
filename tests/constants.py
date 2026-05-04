@@ -14,7 +14,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import re
-from re import Pattern
 from types import MappingProxyType
 from typing import Final
 
@@ -46,9 +45,12 @@ class TestsFlextCliConstants(FlextTestsConstants, c):
     class Tests(FlextTestsConstants.Tests):
         """Test-specific constant values for flext-cli."""
 
-        SEMVER_RE: Final[Pattern[str]] = re.compile(
+        SEMVER_RE: Final[re.Pattern[str]] = re.compile(
             r"^\d+\.\d+\.\d+(?:[-.][\w\.]+)?(?:\+[\w\.]+)?$"
         )
+        MATCH_REGEX_PHONE_RE: Final[re.Pattern[str]] = re.compile(r"\d{3}-\d{4}")
+        MATCH_REGEX_ALPHA_RE: Final[re.Pattern[str]] = re.compile(r"alpha")
+        MATCH_REGEX_BETA_RE: Final[re.Pattern[str]] = re.compile(r"beta")
 
         VERSION_EMPTY_MSG: Final[str] = "Version must be non-empty string"
         VERSION_INFO_TOO_SHORT_MSG: Final[str] = (

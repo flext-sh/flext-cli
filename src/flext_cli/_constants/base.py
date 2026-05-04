@@ -1,9 +1,8 @@
 """FLEXT CLI base constants.
 
-Owns every compiled ``re.Pattern`` for the CLI domain. Consumer modules
-import the pre-compiled ``*_REGEXES`` constants directly; ``import re``
-outside this module is forbidden by AGENTS.md §3.1
-``regex-from-constants`` rule.
+Owns every fixed compiled ``re.Pattern`` for the CLI domain. Consumer modules
+import the pre-compiled ``*_REGEXES`` constants directly; runtime-supplied
+regex construction must not live on this constants surface.
 """
 
 from __future__ import annotations
@@ -69,16 +68,5 @@ class FlextCliConstantsBase:
         re.compile(pattern, flags=re.IGNORECASE)
         for pattern in CLI_USAGE_ERROR_PATTERN_ORDER
     )
-
-    @staticmethod
-    def compile_pattern(pattern: str, *, ignorecase: bool = False) -> re.Pattern[str]:
-        """Compile a runtime-supplied regex pattern.
-
-        Sole sanctioned ``re.compile`` entry-point for non-constant CLI
-        patterns. Consumer modules MUST call this instead of importing
-        ``re`` directly.
-        """
-        flags = re.IGNORECASE if ignorecase else 0
-        return re.compile(pattern, flags=flags)
 
     CMD_SERVICE_NAME: Final[str] = "FlextCliCmd"
