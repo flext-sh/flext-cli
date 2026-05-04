@@ -8,8 +8,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import re
-
 import pytest
 
 from flext_cli import u
@@ -40,21 +38,21 @@ class TestsFlextCliMatchingCov:
     # ── matches_regex ────────────────────────────────────────────────
 
     def test_matches_regex_positive(self) -> None:
-        pattern = re.compile(r"\d{3}-\d{4}")
+        pattern = c.compile_pattern(r"\d{3}-\d{4}")
         assert u.Cli.matches_regex("call 555-1234 now", pattern) is True
 
     def test_matches_regex_negative(self) -> None:
-        pattern = re.compile(r"\d{3}-\d{4}")
+        pattern = c.compile_pattern(r"\d{3}-\d{4}")
         assert u.Cli.matches_regex("no phone here", pattern) is False
 
     def test_matches_regex_multiple_patterns(self) -> None:
-        p1 = re.compile(r"alpha")
-        p2 = re.compile(r"beta")
+        p1 = c.compile_pattern(r"alpha")
+        p2 = c.compile_pattern(r"beta")
         assert u.Cli.matches_regex("this is beta test", p1, p2) is True
 
     def test_matches_regex_no_match_multiple(self) -> None:
-        p1 = re.compile(r"alpha")
-        p2 = re.compile(r"beta")
+        p1 = c.compile_pattern(r"alpha")
+        p2 = c.compile_pattern(r"beta")
         assert u.Cli.matches_regex("nothing relevant", p1, p2) is False
 
     # ── file_not_found_error ─────────────────────────────────────────

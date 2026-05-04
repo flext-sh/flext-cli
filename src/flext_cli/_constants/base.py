@@ -1,7 +1,14 @@
-"""FLEXT CLI base constants."""
+"""FLEXT CLI base constants.
+
+Owns every compiled ``re.Pattern`` for the CLI domain. Consumer modules
+import the pre-compiled ``*_REGEXES`` constants directly; ``import re``
+outside this module is forbidden by AGENTS.md §3.1
+``regex-from-constants`` rule.
+"""
 
 from __future__ import annotations
 
+import re
 from typing import ClassVar, Final
 
 from rich.errors import ConsoleError, LiveError, StyleError
@@ -35,8 +42,8 @@ class FlextCliConstantsBase:
     SUBDIR_LOGS: Final[str] = "logs"
     STANDARD_SUBDIRS: ClassVar[t.StrSequence] = (SUBDIR_CACHE, SUBDIR_LOGS)
 
-    SYMBOL_SUCCESS_MARK: Final[str] = "\u2713"
-    SYMBOL_FAILURE_MARK: Final[str] = "\u2717"
+    SYMBOL_SUCCESS_MARK: Final[str] = "✓"
+    SYMBOL_FAILURE_MARK: Final[str] = "✗"
 
     FILE_NOT_FOUND_PATTERN_ORDER: ClassVar[t.VariadicTuple[str]] = (
         "no such file",
@@ -54,4 +61,24 @@ class FlextCliConstantsBase:
         "unrecognized arguments",
         "cli exited with code 2",
     )
+    FILE_NOT_FOUND_REGEXES: ClassVar[t.VariadicTuple[re.Pattern[str]]] = tuple(
+        re.compile(pattern, flags=re.IGNORECASE)
+        for pattern in FILE_NOT_FOUND_PATTERN_ORDER
+    )
+    CLI_USAGE_ERROR_REGEXES: ClassVar[t.VariadicTuple[re.Pattern[str]]] = tuple(
+        re.compile(pattern, flags=re.IGNORECASE)
+        for pattern in CLI_USAGE_ERROR_PATTERN_ORDER
+    )
+
+    @staticmethod
+    def compile_pattern(pattern: str, *, ignorecase: bool = False) -> re.Pattern[str]:
+        """Compile a runtime-supplied regex pattern.
+
+        Sole sanctioned ``re.compile`` entry-point for non-constant CLI
+        patterns. Consumer modules MUST call this instead of importing
+        ``re`` directly.
+        """
+        flags = re.IGNORECASE if ignorecase else 0
+        return re.compile(pattern, flags=flags)
+
     CMD_SERVICE_NAME: Final[str] = "FlextCliCmd"
