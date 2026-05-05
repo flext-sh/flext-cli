@@ -12,7 +12,7 @@ from collections.abc import (
     Sequence,
 )
 from inspect import Parameter, Signature
-from types import GenericAlias
+from types import EllipsisType, GenericAlias
 
 import click
 import typer
@@ -21,7 +21,6 @@ from typer.testing import CliRunner
 
 from flext_cli import (
     FlextCliCommonParams,
-    FlextCliSettings,
     c,
     m,
     p,
@@ -35,7 +34,7 @@ from flext_cli import (
 class FlextCliCli(s):
     """Unified Typer abstraction for model-driven CLI applications."""
 
-    class _ModelCommand[M: m.BaseModel]:
+    class _ModelCommand[M: t.Cli.ModelLike]:
         """Callable wrapper with explicit signature for Typer introspection.
 
         Note: __annotations__ uses MutableMapping[str, type] because Typer reads
@@ -45,16 +44,16 @@ class FlextCliCli(s):
 
         __name__: str
         __signature__: Signature
-        config: m.BaseModel | None
+        config: t.Cli.ModelLike | None
         _handler: p.Cli.ModelCommandHandler[M]
-        _model_cls: type[M]
+        _model_cls: t.Cli.ModelType[M]
 
         def __init__(
             self,
             *,
-            settings: m.BaseModel | None,
+            settings: t.Cli.ModelLike | None,
             handler: p.Cli.ModelCommandHandler[M],
-            model_cls: type[M],
+            model_cls: t.Cli.ModelType[M],
             parameters: t.SequenceOf[Parameter],
         ) -> None:
             self.__name__ = getattr(handler, "__name__", model_cls.__name__)
@@ -79,7 +78,7 @@ class FlextCliCli(s):
         cls,
         field_name: str,
         field_info: m.FieldInfo,
-        settings: m.BaseModel | None,
+        settings: t.Cli.ModelLike | None,
     ) -> tuple[Parameter, type | GenericAlias]:
         """Build a keyword-only Typer option from a Pydantic field."""
         alias = getattr(field_info, "alias", None)
@@ -89,7 +88,7 @@ class FlextCliCli(s):
             getattr(field_info, "annotation", None) or str,
         )
         is_required = bool(getattr(field_info, "is_required")())
-        default_value = (
+        default_value: t.Cli.CliValue | EllipsisType | None = (
             ...
             if is_required
             else u.Cli.field_default(
@@ -127,7 +126,7 @@ class FlextCliCli(s):
 
     def _apply_common_params_to_config(
         self,
-        settings: FlextCliSettings,
+        settings: p.Cli.Settings,
         *,
         params: m.Cli.CliParamsConfig,
     ) -> None:
@@ -149,8 +148,9 @@ class FlextCliCli(s):
         updated_settings = result.value
         if updated_settings is settings:
             return
-        for field_name in type(updated_settings).model_fields:
-            value = getattr(updated_settings, field_name)
+        for field_name, value in updated_settings.model_dump().items():
+            if value is None or not isinstance(value, bool | str):
+                continue
             if getattr(settings, field_name) != value:
                 settings.apply_override(field_name, value)
 
@@ -159,7 +159,7 @@ class FlextCliCli(s):
         *,
         name: str,
         help_text: str,
-        settings: FlextCliSettings | None = None,
+        settings: p.Cli.Settings | None = None,
         add_completion: bool = True,
     ) -> t.Cli.CliApp:
         """Create a Typer app with the shared global FLEXT CLI parameters."""
@@ -181,11 +181,13 @@ class FlextCliCli(s):
             )
             parameters.append(parameter)
             annotations[field_name] = annotation
-        global_callback = self._ModelCommand(
-            settings=None,
-            handler=apply_common_params,
-            model_cls=m.Cli.CliParamsConfig,
-            parameters=parameters,
+        global_callback: FlextCliCli._ModelCommand[m.Cli.CliParamsConfig] = (
+            self._ModelCommand(
+                settings=None,
+                handler=apply_common_params,
+                model_cls=m.Cli.CliParamsConfig,
+                parameters=parameters,
+            )
         )
         global_callback.__annotations__ = dict(annotations)
         app.callback()(global_callback)
@@ -211,11 +213,11 @@ class FlextCliCli(s):
         return typer.Typer(name=name, help=help_text)
 
     @classmethod
-    def model_command[M: m.BaseModel](
+    def model_command[M: t.Cli.ModelLike](
         cls,
-        model_cls: type[M],
+        model_cls: t.Cli.ModelType[M],
         handler: p.Cli.ModelCommandHandler[M],
-        settings: m.BaseModel | None = None,
+        settings: t.Cli.ModelLike | None = None,
     ) -> t.Cli.CliCommand:
         """Build a Typer command directly from a Pydantic request model."""
         parameters: t.MutableSequenceOf[Parameter] = []
@@ -231,7 +233,7 @@ class FlextCliCli(s):
             )
             parameters.append(parameter)
             annotations[field_name] = annotation
-        command = cls._ModelCommand(
+        command: FlextCliCli._ModelCommand[M] = cls._ModelCommand(
             settings=settings,
             handler=handler,
             model_cls=model_cls,
@@ -241,7 +243,7 @@ class FlextCliCli(s):
         return command
 
     @classmethod
-    def derive_model[M: m.BaseModel](
+    def derive_model[M: t.Cli.ModelLike](
         cls,
         model_cls: type[M],
         *sources: t.Cli.ModelSource,
@@ -343,15 +345,15 @@ class FlextCliCli(s):
         _ = app.command(name, help=help_text)(command)
 
     @classmethod
-    def register_result_command[M: m.BaseModel, TResult: t.Cli.ResultValue](
+    def register_result_command[M: t.Cli.ModelLike, TResult: t.Cli.ResultValue](
         cls,
         app: t.Cli.CliApp,
         *,
         handler: p.Cli.ResultCommandHandler[M, TResult],
         help_text: str,
-        model_cls: type[M],
+        model_cls: t.Cli.ModelType[M],
         name: str,
-        settings: m.BaseModel | None = None,
+        settings: t.Cli.ModelLike | None = None,
         success_formatter: p.Cli.SuccessMessageFormatter[TResult] | None = None,
         success_message: str | None = None,
         success_type: c.Cli.MessageTypes = c.Cli.MessageTypes.SUCCESS,
@@ -371,7 +373,7 @@ class FlextCliCli(s):
         )
 
     @classmethod
-    def _build_result_executor[M: m.BaseModel, TResult: t.Cli.ResultValue](
+    def _build_result_executor[M: t.Cli.ModelLike, TResult: t.Cli.ResultValue](
         cls,
         *,
         handler: p.Cli.ResultCommandHandler[M, TResult],
@@ -407,11 +409,11 @@ class FlextCliCli(s):
         cls,
         app: t.Cli.CliApp,
         *,
-        route: m.Cli.ResultCommandRoute,
+        route: p.Cli.ResultCommandRoute,
     ) -> None:
         """Register a declarative result route on a Typer app."""
 
-        def route_execute(params: m.BaseModel) -> p.Result[t.Cli.ResultValue]:
+        def route_execute(params: t.Cli.ModelLike) -> p.Result[t.Cli.ResultValue]:
             result = route.handler(params)
             if result.failure:
                 return r[t.Cli.ResultValue].fail(result.error or "")
@@ -432,7 +434,7 @@ class FlextCliCli(s):
     def register_result_routes(
         cls,
         app: t.Cli.CliApp,
-        routes: t.SequenceOf[m.Cli.ResultCommandRoute],
+        routes: t.SequenceOf[p.Cli.ResultCommandRoute],
     ) -> None:
         """Register multiple heterogeneous result routes in one call."""
         for route in routes:

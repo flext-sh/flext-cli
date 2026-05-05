@@ -32,10 +32,28 @@ class FlextCliConstantsBase:
     PATH_FLEXT_DIR_NAME: Final[str] = ".flext"
 
     DICT_KEY_STATUS: Final[str] = "status"
+    DICT_KEY_COMMAND: Final[str] = "command"
+    DICT_KEY_MESSAGE: Final[str] = "message"
+    DICT_KEY_APP_NAME: Final[str] = "app_name"
+    DICT_KEY_INITIALIZED: Final[str] = "initialized"
+    DICT_KEY_COMMANDS_COUNT: Final[str] = "commands_count"
+    DICT_KEY_COMMANDS: Final[str] = "commands"
+    DICT_KEY_NAME: Final[str] = "name"
     DICT_KEY_SERVICE: Final[str] = "service"
     DICT_KEY_AUTH_TOKEN: Final[str] = "token"
     DICT_KEY_USERNAME: Final[str] = "username"
     DICT_KEY_USER_SECRET: Final[str] = "password"
+    DICT_KEY_RULES: Final[str] = "rules"
+    DICT_KEY_RULE_ID: Final[str] = "id"
+    DICT_KEY_ENABLED: Final[str] = "enabled"
+    DICT_KEY_ACTION: Final[str] = "action"
+    DICT_KEY_CHECK: Final[str] = "check"
+
+    MSG_NO_ARGS: Final[str] = "No args"
+
+    RULES_REGISTRY_FILENAME: Final[str] = "engine-registry.yml"
+    RULES_DIR_NAME: Final[str] = "rules"
+    RULES_ACTION_KEY: Final[str] = "fix_action"
 
     SUBDIR_CACHE: Final[str] = "cache"
     SUBDIR_LOGS: Final[str] = "logs"
@@ -60,11 +78,11 @@ class FlextCliConstantsBase:
         "unrecognized arguments",
         "cli exited with code 2",
     )
-    FILE_NOT_FOUND_REGEXES: ClassVar[t.VariadicTuple[re.Pattern[str]]] = tuple(
+    FILE_NOT_FOUND_REGEXES: ClassVar[t.VariadicTuple[t.RegexPattern]] = tuple(
         re.compile(pattern, flags=re.IGNORECASE)
         for pattern in FILE_NOT_FOUND_PATTERN_ORDER
     )
-    CLI_USAGE_ERROR_REGEXES: ClassVar[t.VariadicTuple[re.Pattern[str]]] = tuple(
+    CLI_USAGE_ERROR_REGEXES: ClassVar[t.VariadicTuple[t.RegexPattern]] = tuple(
         re.compile(pattern, flags=re.IGNORECASE)
         for pattern in CLI_USAGE_ERROR_PATTERN_ORDER
     )

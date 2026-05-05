@@ -6,9 +6,7 @@ Modules tested: flext_cli.typings.FlextCliTypes
 from __future__ import annotations
 
 import time
-from collections.abc import (
-    Sequence,
-)
+from collections.abc import Sequence
 from typing import Protocol, runtime_checkable
 
 from flext_tests import tm

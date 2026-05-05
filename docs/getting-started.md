@@ -300,7 +300,7 @@ ______________________________________________________________________
 
 ### Learn More
 
-- **[API Reference](api-reference.md)** - Complete API documentation
+- **[API Reference](api-reference/README.md)** - Complete API documentation
 - **[Architecture](architecture.md)** - Architecture and design patterns
 - **[Development Guide](development.md)** - Contributing and extending
 
@@ -316,7 +316,7 @@ If you're upgrading from v0.9.0, see:
 
 **Within Project**:
 
-- [API Reference](api-reference.md) - Complete API documentation
+- [API Reference](api-reference/README.md) - Complete API documentation
 - [Architecture](architecture.md) - Architecture and design patterns
 - [Development Guide](development.md) - Contributing and extending
 - [Migration Guide](refactoring/migration-guide-v0.9-to-v0.10.md) - v0.9.0 to v0.12.0-dev migration
@@ -367,7 +367,6 @@ from flext_core import x
 from flext_core import FlextModels
 from flext_core import FlextProcessors
 from flext_core import p
-from flext_core import FlextRegistry
 from flext_core import r, p
 from flext_core import u
 from flext_core import s

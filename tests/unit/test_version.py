@@ -17,8 +17,7 @@ import pytest
 from flext_tests import tm
 
 from flext_cli import __version__, __version_info__
-from tests import c, t, u
-from tests.models import TestsFlextCliModels
+from tests import c, m, t, u
 
 
 class TestsFlextCliVersion:
@@ -38,7 +37,7 @@ class TestsFlextCliVersion:
     def test_actual_version_string_semver_compliant(self) -> None:
         """Test __version__ matches semver pattern."""
         tm.that(
-            c.Tests.SEMVER_RE.match(__version__),
+            c.PATTERN_SEMVER_RE.match(__version__),
             none=False,
         )
 
@@ -85,11 +84,11 @@ class TestsFlextCliVersion:
 
     @pytest.mark.parametrize(
         "scenario",
-        TestsFlextCliModels.Tests.VersionScenarios.string_cases(),
-        ids=[s.name for s in TestsFlextCliModels.Tests.VersionScenarios.string_cases()],
+        m.Tests.VersionTestScenario.string_cases(),
+        ids=lambda scenario: scenario.name,
     )
     def test_version_string_validation(
-        self, scenario: TestsFlextCliModels.Tests.VersionTestScenario
+        self, scenario: m.Tests.VersionTestScenario
     ) -> None:
         """Test version string validation with parametrized cases."""
         tm.that(scenario.version_string, none=False)
@@ -104,11 +103,11 @@ class TestsFlextCliVersion:
 
     @pytest.mark.parametrize(
         "scenario",
-        TestsFlextCliModels.Tests.VersionScenarios.info_cases(),
-        ids=[s.name for s in TestsFlextCliModels.Tests.VersionScenarios.info_cases()],
+        m.Tests.VersionTestScenario.info_cases(),
+        ids=lambda scenario: scenario.name,
     )
     def test_version_info_validation(
-        self, scenario: TestsFlextCliModels.Tests.VersionTestScenario
+        self, scenario: m.Tests.VersionTestScenario
     ) -> None:
         """Test version info tuple validation with parametrized cases."""
         tm.that(scenario.version_info, none=False)
@@ -123,14 +122,11 @@ class TestsFlextCliVersion:
 
     @pytest.mark.parametrize(
         "scenario",
-        TestsFlextCliModels.Tests.VersionScenarios.consistency_cases(),
-        ids=[
-            s.name
-            for s in TestsFlextCliModels.Tests.VersionScenarios.consistency_cases()
-        ],
+        m.Tests.VersionTestScenario.consistency_cases(),
+        ids=lambda scenario: scenario.name,
     )
     def test_version_consistency_validation(
-        self, scenario: TestsFlextCliModels.Tests.VersionTestScenario
+        self, scenario: m.Tests.VersionTestScenario
     ) -> None:
         """Test consistency between version string and info with parametrized cases."""
         tm.that(scenario.version_string, none=False)

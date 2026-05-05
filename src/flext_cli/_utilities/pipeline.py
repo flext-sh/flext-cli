@@ -117,7 +117,7 @@ class FlextCliUtilitiesPipeline:
             stage_start = time.monotonic()
             try:
                 result = spec.handler(context)
-            except Exception as exc:
+            except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
                 last_error = f"stage {spec.stage_id} raised: {exc}"
                 log.warning(
                     "stage_exception",
@@ -131,13 +131,7 @@ class FlextCliUtilitiesPipeline:
 
             if result.success:
                 stage_result = result.value
-                return m.Cli.PipelineStageResult(
-                    stage_id=stage_result.stage_id,
-                    status=stage_result.status,
-                    output=stage_result.output,
-                    duration_ms=duration_ms,
-                    error=stage_result.error,
-                )
+                return stage_result.model_copy(update={"duration_ms": duration_ms})
 
             last_error = result.error or f"stage {spec.stage_id} failed"
             log.debug(

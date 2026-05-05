@@ -14,6 +14,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import re
+from enum import StrEnum, unique
 from types import MappingProxyType
 from typing import Final
 
@@ -45,12 +46,18 @@ class TestsFlextCliConstants(FlextTestsConstants, c):
     class Tests(FlextTestsConstants.Tests):
         """Test-specific constant values for flext-cli."""
 
-        SEMVER_RE: Final[re.Pattern[str]] = re.compile(
-            r"^\d+\.\d+\.\d+(?:[-.][\w\.]+)?(?:\+[\w\.]+)?$"
-        )
-        MATCH_REGEX_PHONE_RE: Final[re.Pattern[str]] = re.compile(r"\d{3}-\d{4}")
-        MATCH_REGEX_ALPHA_RE: Final[re.Pattern[str]] = re.compile(r"alpha")
-        MATCH_REGEX_BETA_RE: Final[re.Pattern[str]] = re.compile(r"beta")
+        @unique
+        class Environment(StrEnum):
+            """Canonical environments used in flext-cli tests."""
+
+            DEVELOPMENT = "development"
+            STAGING = "staging"
+            PRODUCTION = "production"
+            TEST = "test"
+
+        MATCH_REGEX_PHONE_RE: Final[t.RegexPattern] = re.compile(r"\d{3}-\d{4}")
+        MATCH_REGEX_ALPHA_RE: Final[t.RegexPattern] = re.compile(r"alpha")
+        MATCH_REGEX_BETA_RE: Final[t.RegexPattern] = re.compile(r"beta")
 
         VERSION_EMPTY_MSG: Final[str] = "Version must be non-empty string"
         VERSION_INFO_TOO_SHORT_MSG: Final[str] = (
@@ -92,34 +99,36 @@ class TestsFlextCliConstants(FlextTestsConstants, c):
         VERSION_INFO_SHORT_TUPLE: Final[tuple[int, int]] = (1, 2)
         VERSION_INFO_EMPTY_TUPLE: Final[tuple[()]] = ()
 
-        ENVIRONMENT_DEVELOPMENT: Final[str] = "development"
-        ENVIRONMENT_STAGING: Final[str] = "staging"
-        ENVIRONMENT_PRODUCTION: Final[str] = "production"
-        ENVIRONMENT_TEST: Final[str] = "test"
+        ENVIRONMENT_DEVELOPMENT: Final[Environment] = Environment.DEVELOPMENT
+        ENVIRONMENT_STAGING: Final[Environment] = Environment.STAGING
+        ENVIRONMENT_PRODUCTION: Final[Environment] = Environment.PRODUCTION
+        ENVIRONMENT_TEST: Final[Environment] = Environment.TEST
 
-        ENVIRONMENTS: Final[t.StrSequence] = (
+        ENVIRONMENTS: Final[t.VariadicTuple[Environment]] = (
             ENVIRONMENT_DEVELOPMENT,
             ENVIRONMENT_STAGING,
             ENVIRONMENT_PRODUCTION,
             ENVIRONMENT_TEST,
         )
-        ENVIRONMENT_SET: Final[frozenset[str]] = frozenset(ENVIRONMENTS)
+        ENVIRONMENT_SET: Final[frozenset[Environment]] = frozenset(ENVIRONMENTS)
 
-        LOG_LEVEL_SET: Final[frozenset[str]] = frozenset({
+        LOG_LEVEL_SET: Final[frozenset[c.LogLevel]] = frozenset({
             c.LogLevel.DEBUG,
             c.LogLevel.INFO,
             c.LogLevel.WARNING,
             c.LogLevel.ERROR,
             c.LogLevel.CRITICAL,
         })
-        LOG_LEVEL_TO_EXPECTED: Final[t.MappingKV[str, str]] = MappingProxyType({
-            c.LogLevel.DEBUG: c.LogLevel.DEBUG,
-            c.LogLevel.INFO: c.LogLevel.INFO,
-            c.LogLevel.WARNING: c.LogLevel.WARNING,
-            c.LogLevel.ERROR: c.LogLevel.ERROR,
-            c.LogLevel.CRITICAL: c.LogLevel.CRITICAL,
-        })
-        LOG_LEVEL_SCENARIOS: Final[tuple[tuple[str, str], ...]] = (
+        LOG_LEVEL_TO_EXPECTED: Final[t.MappingKV[c.LogLevel, c.LogLevel]] = (
+            MappingProxyType({
+                c.LogLevel.DEBUG: c.LogLevel.DEBUG,
+                c.LogLevel.INFO: c.LogLevel.INFO,
+                c.LogLevel.WARNING: c.LogLevel.WARNING,
+                c.LogLevel.ERROR: c.LogLevel.ERROR,
+                c.LogLevel.CRITICAL: c.LogLevel.CRITICAL,
+            })
+        )
+        LOG_LEVEL_SCENARIOS: Final[tuple[tuple[c.LogLevel, c.LogLevel], ...]] = (
             (c.LogLevel.DEBUG, c.LogLevel.DEBUG),
             (c.LogLevel.INFO, c.LogLevel.INFO),
             (c.LogLevel.WARNING, c.LogLevel.WARNING),

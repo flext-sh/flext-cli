@@ -10,11 +10,15 @@ from typing import Self, override
 
 from tests import m, t
 
-from flext_cli import FlextCliPrompts
+from flext_cli import FlextCli
 
 
-class TestsFlextCliScriptedPrompts(FlextCliPrompts):
+class TestsFlextCliScriptedPrompts(FlextCli):
     """Prompt service with typed scripting helpers for tests."""
+
+    def override_test_env(self, enabled: bool | None = True) -> Self:
+        self._test_env_override = enabled
+        return self
 
     def use_input_values(self, values: t.StrSequence) -> Self:
         values_iter = iter(values)

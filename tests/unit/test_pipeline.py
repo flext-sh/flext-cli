@@ -215,6 +215,37 @@ class TestsFlextCliPipeline:
         assert result.value.success
         assert call_count == 3
 
+    def test_retry_on_safe_exception_marks_stage_failed(self, tmp_path: Path) -> None:
+        """Safe stage exceptions are retried and end as failed stage results."""
+        call_count = 0
+        error_message = "boom"
+
+        def exploding(
+            ctx: p.Cli.PipelineStageContext,
+        ) -> p.Result[m.Cli.PipelineStageResult]:
+            nonlocal call_count
+            _ = ctx
+            call_count += 1
+            raise ValueError(error_message)
+
+        result = u.Cli.execute_pipeline(
+            [
+                m.Cli.PipelineStageSpec(
+                    stage_id="boom",
+                    handler=exploding,
+                    retry=1,
+                ),
+            ],
+            _make_ctx(tmp_path),
+        )
+
+        assert result.success
+        assert not result.value.success
+        assert call_count == 2
+        assert (
+            result.value.failed_stages[0].error == f"stage boom raised: {error_message}"
+        )
+
     def test_empty_pipeline(self, tmp_path: Path) -> None:
         """Empty pipeline returns ok with no stages."""
         result = u.Cli.execute_pipeline([], _make_ctx(tmp_path))

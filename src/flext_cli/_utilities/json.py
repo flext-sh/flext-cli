@@ -6,7 +6,6 @@ All methods use the ``json_`` prefix for namespace consistency.
 
 from __future__ import annotations
 
-import operator
 from collections.abc import (
     Mapping,
     Sequence,
@@ -43,12 +42,7 @@ class FlextCliUtilitiesJson:
             return r[t.JsonMapping].fail(f"json_read: {exc}")
         if not isinstance(loaded, Mapping):
             return r[t.JsonMapping].fail("json_read: root must be an object")
-        try:
-            return r[t.JsonMapping].ok(
-                t.Cli.JSON_MAPPING_ADAPTER.validate_python(loaded),
-            )
-        except c.ValidationError as exc:
-            return r[t.JsonMapping].fail(f"json_read validation: {exc}")
+        return r[t.JsonMapping].ok(t.Cli.JSON_MAPPING_ADAPTER.validate_python(loaded))
 
     @staticmethod
     def json_write(
@@ -60,14 +54,7 @@ class FlextCliUtilitiesJson:
         try:
             path.parent.mkdir(parents=True, exist_ok=True)
             opts = options or m.Cli.JsonWriteOptions()
-            raw = (
-                payload.model_dump(mode="json")
-                if isinstance(payload, m.BaseModel)
-                else payload
-            )
-            validated: t.JsonValue = t.Cli.JSON_VALUE_ADAPTER.validate_python(
-                u.to_jsonable_python(raw),
-            )
+            validated = FlextCliUtilitiesJson.normalize_json_value(payload)
             normalized = (
                 FlextCliUtilitiesJson._json_sort_keys(validated)
                 if opts.sort_keys
@@ -141,17 +128,11 @@ class FlextCliUtilitiesJson:
         value: t.JsonPayload | None,
     ) -> t.SequenceOf[t.JsonMapping]:
         """Normalize any JSON-compatible value into a list of mappings."""
-        if value is None:
-            return []
-        normalized: t.JsonValue = u.normalize_to_json_value(value)
-        if not isinstance(normalized, Sequence) or isinstance(normalized, str | bytes):
-            return []
-        mappings: list[t.JsonMapping] = []
-        for item in normalized:
-            validated = FlextCliUtilitiesJson.json_as_mapping(item)
-            if validated:
-                mappings.append(validated)
-        return mappings
+        return [
+            mapping
+            for item in FlextCliUtilitiesJson.json_as_sequence(value)
+            if (mapping := FlextCliUtilitiesJson.json_as_mapping(item))
+        ]
 
     @staticmethod
     def json_walk_path(
@@ -212,7 +193,7 @@ class FlextCliUtilitiesJson:
     ) -> int:
         """Extract an integer value from mapping with safe coercion."""
         parsed = u.parse(data.get(key, default), int, default=default).unwrap_or(
-            default,
+            default
         )
         return int(parsed) if isinstance(parsed, bool) else parsed
 
@@ -261,7 +242,7 @@ class FlextCliUtilitiesJson:
                 key: FlextCliUtilitiesJson._json_sort_keys(
                     t.Cli.JSON_VALUE_ADAPTER.validate_python(value)
                 )
-                for key, value in sorted(validated.items(), key=operator.itemgetter(0))
+                for key, value in sorted(validated.items())
             }
         if isinstance(data, list):
             items = t.Cli.JSON_LIST_ADAPTER.validate_python(data)

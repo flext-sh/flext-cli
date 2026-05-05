@@ -15,8 +15,7 @@ import tomlkit
 from tomlkit.items import AoT, Array, Item, Table
 from tomlkit.toml_document import TOMLDocument
 
-from flext_cli import c, e, p, r, t
-from flext_cli._utilities.runtime import FlextCliUtilitiesRuntime as ur
+from flext_cli import FlextCliUtilitiesRuntime as ur, c, e, p, r, t
 from flext_core import u
 
 

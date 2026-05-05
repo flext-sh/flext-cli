@@ -1,9 +1,9 @@
 """FLEXT CLI Base Tests - Comprehensive Base Service Validation Testing.
 
-Tests for FlextCliServiceBase covering initialization, configuration access,
+Tests for s covering initialization, configuration access,
 singleton pattern, and inheritance from s with 100% coverage.
 
-Modules tested: flext_cli.base.FlextCliServiceBase
+Modules tested: flext_cli.base.s
 Scope: All base service functionality, settings access, inheritance patterns
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
@@ -17,18 +17,18 @@ from typing import override
 
 from flext_tests import tm
 
-from flext_cli import FlextCliServiceBase, FlextCliSettings
+from flext_cli import s
 from tests import p, r, t
 
 
 class TestsFlextCliServiceBase:
-    """Comprehensive test suite for FlextCliServiceBase functionality.
+    """Comprehensive test suite for s functionality.
 
     Single class with nested helper classes and methods organized by functionality.
     Tests cover all base service methods and properties with 100% coverage.
     """
 
-    class _ConcreteService(FlextCliServiceBase):
+    class _ConcreteService(s):
         """Concrete implementation for testing abstract base class."""
 
         @override
@@ -37,17 +37,17 @@ class TestsFlextCliServiceBase:
             return r[t.MappingKV[str, t.JsonValue]].ok({})
 
     def test_service_base_initialization(self) -> None:
-        """Test FlextCliServiceBase can be instantiated via concrete class."""
+        """Test s can be instantiated via concrete class."""
         service = self._ConcreteService()
         tm.that(service, none=False)
-        tm.that(service, is_=FlextCliServiceBase)
+        tm.that(service, is_=s)
 
     def test_settings_property(self) -> None:
-        """Test settings property returns FlextCliSettings singleton."""
+        """Test settings property returns the public CLI settings singleton."""
         service = self._ConcreteService()
         settings = service.settings
         tm.that(settings, none=False)
-        tm.that(settings, is_=FlextCliSettings)
+        tm.that(settings, is_=p.Cli.Settings)
         config2 = service.settings
         tm.that(settings is config2, eq=True)
 

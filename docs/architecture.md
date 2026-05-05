@@ -80,7 +80,7 @@ cli.print(table, style="green")
 
 ## Referências rápidas
 
-- **API**: `docs/api-reference.md`
+- **API**: `docs/api-reference/README.md`
 - **Guia de desenvolvimento**: `docs/development.md`
 
 ## Related Documentation
@@ -88,7 +88,7 @@ cli.print(table, style="green")
 **Within Project**:
 
 - [Getting Started](getting-started.md) - Installation and basic usage
-- [API Reference](api-reference.md) - Complete API documentation
+- [API Reference](api-reference/README.md) - Complete API documentation
 - [Development Guide](development.md) - Contributing and extending
 
 **Across Projects**:

@@ -3,10 +3,26 @@
 from __future__ import annotations
 
 from flext_cli import (
-    FlextCliUtilitiesBase,
+    FlextCliUtilitiesAuth,
+    FlextCliUtilitiesCmd,
+    FlextCliUtilitiesCommands,
+    FlextCliUtilitiesConversion,
+    FlextCliUtilitiesFiles,
+    FlextCliUtilitiesFormatters,
     FlextCliUtilitiesJson,
+    FlextCliUtilitiesMatching,
+    FlextCliUtilitiesModelCommands,
+    FlextCliUtilitiesOptions,
+    FlextCliUtilitiesOutput,
+    FlextCliUtilitiesParams,
     FlextCliUtilitiesPipeline,
+    FlextCliUtilitiesPrompts,
+    FlextCliUtilitiesRules,
+    FlextCliUtilitiesRuntime,
+    FlextCliUtilitiesSettings,
+    FlextCliUtilitiesTables,
     FlextCliUtilitiesToml,
+    FlextCliUtilitiesValidation,
     FlextCliUtilitiesYaml,
 )
 from flext_core import u
@@ -16,10 +32,26 @@ class FlextCliUtilities(u):
     """CLI utility facade composed from internal utility mixins."""
 
     class Cli(
-        FlextCliUtilitiesPipeline,
-        FlextCliUtilitiesBase,
+        FlextCliUtilitiesAuth,
+        FlextCliUtilitiesCmd,
+        FlextCliUtilitiesCommands,
+        FlextCliUtilitiesConversion,
+        FlextCliUtilitiesFiles,
+        FlextCliUtilitiesFormatters,
         FlextCliUtilitiesJson,
+        FlextCliUtilitiesMatching,
+        FlextCliUtilitiesModelCommands,
+        FlextCliUtilitiesOptions,
+        FlextCliUtilitiesOutput,
+        FlextCliUtilitiesParams,
+        FlextCliUtilitiesPipeline,
+        FlextCliUtilitiesPrompts,
+        FlextCliUtilitiesRules,
+        FlextCliUtilitiesRuntime,
+        FlextCliUtilitiesSettings,
+        FlextCliUtilitiesTables,
         FlextCliUtilitiesToml,
+        FlextCliUtilitiesValidation,
         FlextCliUtilitiesYaml,
     ):
         """Command line interface specific utilities — all concerns composed via MRO."""

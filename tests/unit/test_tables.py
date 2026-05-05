@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 from flext_tests import tm
 
-from flext_cli import FlextCliTables
+from flext_cli import cli
 from tests import c
 
 
@@ -14,7 +14,7 @@ class TestsFlextCliTables:
 
     def test_format_table_accepts_single_mapping_and_sequence_kwargs(self) -> None:
         """Single mappings and list-based settings kwargs must be accepted."""
-        result = FlextCliTables.format_table(
+        result = cli.format_table(
             {"status": "ok", "count": 2},
             headers=["Field", "Value"],
             colalign=["left", "right"],
@@ -28,7 +28,7 @@ class TestsFlextCliTables:
 
     def test_format_table_supports_headerless_mapping_rows(self) -> None:
         """Headerless rendering must work for row sequences from examples."""
-        result = FlextCliTables.format_table(
+        result = cli.format_table(
             [{"identifier": "row-1", "display_name": "Alpha"}],
             show_header=False,
             table_format=c.Cli.TabularFormat.PLAIN,
@@ -41,7 +41,7 @@ class TestsFlextCliTables:
 
     def test_format_table_accepts_public_table_alias(self) -> None:
         """The public 'table' format alias must resolve to the default backend."""
-        result = FlextCliTables.format_table(
+        result = cli.format_table(
             [{"name": "Alice", "status": "active"}],
             table_format=c.Cli.TabularFormat.TABLE,
         )
@@ -55,7 +55,7 @@ class TestsFlextCliTables:
         capsys: pytest.CaptureFixture[str],
     ) -> None:
         """show_table must print the title before the rendered table body."""
-        FlextCliTables.show_table(
+        cli.show_table(
             {"service": "cli", "state": "ready"},
             headers=["Field", "Value"],
             title="Current State",

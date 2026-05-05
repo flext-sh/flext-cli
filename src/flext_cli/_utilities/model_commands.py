@@ -8,14 +8,14 @@ from flext_cli import p, t
 from flext_core import m
 
 
-class FlextCliUtilitiesModelCommandBuilder[M: m.BaseModel]:
+class FlextCliUtilitiesModelCommandBuilder[M: t.Cli.ModelLike]:
     """Thin builder for direct model-backed command callables."""
 
     def __init__(
         self,
-        model_class: type[M],
+        model_class: t.Cli.ModelType[M],
         handler: p.Cli.ModelCommandHandler[M],
-        settings: m.BaseModel | None = None,
+        settings: t.Cli.ModelLike | None = None,
     ) -> None:
         """Store the canonical inputs for deferred command construction."""
         super().__init__()
@@ -73,7 +73,7 @@ class FlextCliUtilitiesModelCommands:
 
     @staticmethod
     def model_source_data(
-        model_cls: type[m.BaseModel],
+        model_cls: t.Cli.ModelType[t.Cli.ModelLike],
         source: t.Cli.ModelSource,
     ) -> t.ScalarMapping:
         """Extract only target-compatible fields from a model or mapping source."""
@@ -89,7 +89,7 @@ class FlextCliUtilitiesModelCommands:
         }
 
     @classmethod
-    def derive_model[M: m.BaseModel](
+    def derive_model[M: t.Cli.ModelLike](
         cls,
         model_cls: type[M],
         *sources: t.Cli.ModelSource,
@@ -105,10 +105,10 @@ class FlextCliUtilitiesModelCommands:
         return validated
 
     @staticmethod
-    def build_model_command[M: m.BaseModel](
-        model_class: type[M],
+    def build_model_command[M: t.Cli.ModelLike](
+        model_class: t.Cli.ModelType[M],
         handler: p.Cli.ModelCommandHandler[M],
-        settings: m.BaseModel | None = None,
+        settings: t.Cli.ModelLike | None = None,
     ) -> t.Cli.CliCommand:
         """Build a model command through the canonical CLI service."""
         return FlextCliUtilitiesModelCommandBuilder(

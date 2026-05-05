@@ -2,21 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Protocol
-
 from flext_cli import c, t
-
-
-class _Searchable(Protocol):
-    """Minimal search-only protocol satisfied by ``re.Pattern`` instances.
-
-    Consumers receive ``c.Cli.FILE_NOT_FOUND_REGEXES`` /
-    ``CLI_USAGE_ERROR_REGEXES`` (or any ``re.Pattern[str]`` built through
-    ``c.Cli.compile_pattern``); the protocol keeps this module free of
-    ``import re``.
-    """
-
-    def search(self, string: str) -> object: ...
 
 
 class FlextCliUtilitiesMatching:
@@ -29,7 +15,7 @@ class FlextCliUtilitiesMatching:
         return any(pattern in text for pattern in patterns)
 
     @staticmethod
-    def matches_regex(msg: str, *patterns: _Searchable) -> bool:
+    def matches_regex(msg: str, *patterns: t.RegexPattern) -> bool:
         """Check whether a message matches any compiled regex pattern."""
         return any(pattern.search(msg) is not None for pattern in patterns)
 

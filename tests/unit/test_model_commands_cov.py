@@ -1,14 +1,11 @@
-"""Coverage tests for FlextCliUtilitiesModelCommands and FlextCliUtilitiesModelCommandBuilder."""
+"""Coverage tests for the public model-command DSL on ``cli``."""
 
 from __future__ import annotations
 
 import inspect
 
-from flext_cli._utilities.model_commands import (
-    FlextCliUtilitiesModelCommandBuilder,
-    FlextCliUtilitiesModelCommands,
-)
-from flext_core import m
+from flext_cli import cli
+from tests import m, p
 
 
 class _SampleModel(m.BaseModel):
@@ -26,40 +23,25 @@ class _SampleModelNoDefaults(m.BaseModel):
 
 
 class TestsFlextCliModelCommandsCov:
-    """Coverage tests for model command utilities."""
+    """Coverage tests for public model-command helpers."""
 
-    def test_model_source_data_from_mapping(self) -> None:
-        result = FlextCliUtilitiesModelCommands.model_source_data(
-            _SampleModel, {"name": "hello", "value": 7, "extra": "ignored"}
-        )
-        assert result == {"name": "hello", "value": 7}
+    def test_derive_model_from_mapping(self) -> None:
+        result = cli.derive_model(_SampleModel, {"name": "hello", "value": 7})
+        assert result.name == "hello"
+        assert result.value == 7
 
-    def test_model_source_data_from_model(self) -> None:
-        source = _SampleModel(name="world", value=99)
-        result = FlextCliUtilitiesModelCommands.model_source_data(_SampleModel, source)
-        assert result["name"] == "world"
-        assert result["value"] == 99
-
-    def test_model_source_data_excludes_none(self) -> None:
+    def test_derive_model_from_model_excludes_none(self) -> None:
         class _NullableModel(m.BaseModel):
             name: str
             optional: str | None = None
 
         source = _NullableModel(name="test", optional=None)
-        result = FlextCliUtilitiesModelCommands.model_source_data(
-            _NullableModel, source
-        )
-        assert "optional" not in result
-
-    def test_derive_model_from_mapping(self) -> None:
-        result = FlextCliUtilitiesModelCommands.derive_model(
-            _SampleModel, {"name": "a", "value": 1}
-        )
-        assert result.name == "a"
-        assert result.value == 1
+        result = cli.derive_model(_NullableModel, source)
+        assert result.name == "test"
+        assert result.optional is None
 
     def test_derive_model_with_overrides(self) -> None:
-        result = FlextCliUtilitiesModelCommands.derive_model(
+        result = cli.derive_model(
             _SampleModel,
             {"name": "base", "value": 1},
             overrides={"value": 99},
@@ -67,7 +49,7 @@ class TestsFlextCliModelCommandsCov:
         assert result.value == 99
 
     def test_derive_model_multiple_sources(self) -> None:
-        result = FlextCliUtilitiesModelCommands.derive_model(
+        result = cli.derive_model(
             _SampleModel,
             {"name": "first"},
             {"name": "second", "value": 5},
@@ -80,55 +62,42 @@ class TestsFlextCliModelCommandsCov:
         def handler(model: _SampleModel) -> str:
             return f"{model.name}-{model.value}"
 
-        cmd = FlextCliUtilitiesModelCommands.build_model_command(_SampleModel, handler)
-        # should be callable
+        cmd = cli.model_command(_SampleModel, handler)
         assert callable(cmd)
 
-    def test_build_model_command_with_settings(self) -> None:
-        class _Settings(m.BaseModel):
-            name: str = "from_settings"
-            value: int = 0
-
-        settings = _Settings()
+    def test_model_command_with_settings_updates_runtime_values(self) -> None:
+        settings = _SampleModel(name="from_settings", value=0)
 
         def handler(model: _SampleModel) -> str:
             return model.name
 
-        cmd = FlextCliUtilitiesModelCommands.build_model_command(
-            _SampleModel, handler, settings=settings
-        )
-        assert callable(cmd)
+        cmd = cli.model_command(_SampleModel, handler, settings=settings)
+        result = cmd(name="override", value=1)
+        assert result == "override"
+        assert settings.name == "override"
+        assert settings.value == 1
 
-    def test_model_command_builder_required_fields(self) -> None:
+    def test_model_command_required_fields_use_required_option_defaults(self) -> None:
         def handler(model: _SampleModelNoDefaults) -> str:
             return model.key
 
-        builder = FlextCliUtilitiesModelCommandBuilder(
-            model_class=_SampleModelNoDefaults,
-            handler=handler,
-        )
-        cmd = builder.build()
+        cmd = cli.model_command(_SampleModelNoDefaults, handler)
         sig = inspect.signature(cmd)
         for param in sig.parameters.values():
-            # Required fields should have no default (empty)
             if param.name == "key":
-                assert param.default is inspect.Parameter.empty
+                assert isinstance(param.default, p.Cli.CliOptionSpec)
+                assert param.default.default is ...
                 break
 
-    def test_model_command_builder_with_settings_default(self) -> None:
-        class _S(m.BaseModel):
-            name: str = "default_name"
-
-        settings = _S()
+    def test_model_command_signature_keeps_model_default_for_optional_fields(
+        self,
+    ) -> None:
+        settings = _SampleModel(name="default_name")
 
         def handler(model: _SampleModel) -> str:
             return model.name
 
-        builder = FlextCliUtilitiesModelCommandBuilder(
-            model_class=_SampleModel,
-            handler=handler,
-            settings=settings,
-        )
-        cmd = builder.build()
-        result = cmd(name="override", value=1)
-        assert result is not None
+        cmd = cli.model_command(_SampleModel, handler, settings=settings)
+        option = inspect.signature(cmd).parameters["value"].default
+        assert isinstance(option, p.Cli.CliOptionSpec)
+        assert option.default == 42

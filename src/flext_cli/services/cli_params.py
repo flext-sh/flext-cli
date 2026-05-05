@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from flext_cli import (
-    FlextCliSettings,
     c,
     p,
     r,
@@ -28,10 +27,10 @@ class FlextCliCommonParams(s):
     @classmethod
     def apply_to_config(
         cls,
-        settings: FlextCliSettings,
+        settings: p.Cli.Settings,
         params: p.Cli.CliParamsConfig | None = None,
         **kwargs: t.Cli.CliParamValue,
-    ) -> p.Result[FlextCliSettings]:
+    ) -> p.Result[p.Cli.Settings]:
         """Apply CLI parameter values to FlextSettings using Pydantic validation.
 
         Business Rule: Applies CLI parameter values with Pydantic validation.
@@ -41,12 +40,12 @@ class FlextCliCommonParams(s):
             params_to_use = u.Cli.params_resolve(params, kwargs)
             return u.Cli.params_apply(settings, params_to_use)
         except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
-            return r[FlextCliSettings].fail(
+            return r[p.Cli.Settings].fail(
                 c.Cli.CLI_PARAM_ERR_APPLY_FAILED_FMT.format(error=exc),
             )
 
     @classmethod
-    def create_option(cls, field_name: str) -> t.Cli.CliOptionInfo:
+    def create_option(cls, field_name: str) -> p.Cli.CliOptionSpec:
         """Create typer.Option() from FlextCliSettings field metadata."""
         if field_name not in c.Cli.CLI_PARAM_REGISTRY:
             msg = c.Cli.CLI_PARAM_ERR_FIELD_NOT_FOUND_FMT.format(

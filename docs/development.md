@@ -523,7 +523,6 @@ from flext_core import x
 from flext_core import FlextModels
 from flext_core import FlextProcessors
 from flext_core import p
-from flext_core import FlextRegistry
 from flext_core import r, p
 from flext_core import u
 from flext_core import s
@@ -608,4 +607,4 @@ flext debug info
 ______________________________________________________________________
 
 For architectural details, see [architecture.md](architecture.md).
-For API usage, see [api-reference.md](api-reference.md).
+For API usage, see [API Reference](api-reference/README.md).

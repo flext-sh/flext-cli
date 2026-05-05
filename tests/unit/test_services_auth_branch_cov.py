@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from flext_cli.services.auth import FlextCliAuth
+from flext_cli import FlextCli
 from tests import c
 
 
@@ -14,7 +14,7 @@ class TestsFlextCliServicesAuthBranchCov:
     def test_authenticate_token_save_failure_returns_error(
         self, tmp_path: Path
     ) -> None:
-        service = FlextCliAuth()
+        service = FlextCli()
         old_token_file = service.settings.token_file
         token_dir = tmp_path / "token-dir"
         token_dir.mkdir()
@@ -30,7 +30,7 @@ class TestsFlextCliServicesAuthBranchCov:
         self,
         tmp_path: Path,
     ) -> None:
-        service = FlextCliAuth()
+        service = FlextCli()
         old_token_file = service.settings.token_file
         token_dir = tmp_path / "generated-token-dir"
         token_dir.mkdir()
@@ -46,7 +46,7 @@ class TestsFlextCliServicesAuthBranchCov:
         assert "json_write:" in (result.error or "")
 
     def test_clear_auth_tokens_missing_file_returns_ok(self, tmp_path: Path) -> None:
-        service = FlextCliAuth()
+        service = FlextCli()
         old_token_file = service.settings.token_file
         missing_path = tmp_path / "missing-token.json"
         service.settings.token_file = str(missing_path)
@@ -58,7 +58,7 @@ class TestsFlextCliServicesAuthBranchCov:
         assert result.value is True
 
     def test_fetch_auth_token_read_failure_from_directory(self, tmp_path: Path) -> None:
-        service = FlextCliAuth()
+        service = FlextCli()
         old_token_file = service.settings.token_file
         token_dir = tmp_path / "read-fail-dir"
         token_dir.mkdir()

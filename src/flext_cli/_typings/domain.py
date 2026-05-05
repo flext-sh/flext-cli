@@ -14,14 +14,15 @@ from tomlkit.toml_document import TOMLDocument
 
 from flext_cli import FlextCliProtocolsBase as pb, FlextCliTypesBase as tb
 from flext_cli._constants.enums import FlextCliConstantsEnums
-from flext_cli._protocols.domain import FlextCliProtocolsDomain
-from flext_core import m, p, t
+from flext_core.models import m
+from flext_core.protocols import p
+from flext_core.typings import t
 
 
 class FlextCliTypesDomain:
     """Composite CLI aliases built from canonical protocols and core types."""
 
-    type ResultValue = t.JsonPayload | t.SequenceOf[t.JsonPayload]
+    type ResultValue = t.JsonPayload
     type RuleDefinitions = t.SequenceOf[t.JsonMapping]
     type RuleMatcher = tuple[
         frozenset[str],
@@ -42,6 +43,13 @@ class FlextCliTypesDomain:
         t.SequenceOf[tuple[TRuleKind, t.JsonMapping]],
         t.SequenceOf[tuple[TFileRuleKind, t.JsonMapping]],
     ]
+    type RuleLoadOption[TRuleKind, TFileRuleKind] = (
+        tb.CliValue
+        | Path
+        | FlextCliTypesDomain.RuleCatalog[TRuleKind]
+        | FlextCliTypesDomain.RuleCatalog[TFileRuleKind]
+        | None
+    )
     type MutableDefaultMapping = MutableMapping[
         str,
         t.Scalar | t.StrSequence,
@@ -52,7 +60,10 @@ class FlextCliTypesDomain:
     type ProjectNamesValue = str | t.StrSequence
     type TableHeaders = str | t.StrSequence
     type IntTextValue = int | str
-    type ModelSource = m.BaseModel | t.ScalarMapping
+    type MessageType = FlextCliConstantsEnums.MessageTypes
+    type ModelLike = m.BaseModel
+    type ModelType[TModel: ModelLike] = type[TModel]
+    type ModelSource = ModelLike | t.ScalarMapping
     type OptionRegistry = t.MappingKV[
         str,
         t.MappingKV[str, t.Scalar | t.StrSequence],
@@ -84,7 +95,7 @@ class FlextCliTypesDomain:
     type TypedExtractValue = str | bool | t.JsonMapping
     type TableDataSource = tb.TabularData | t.SequenceOf[t.JsonMapping]
     type TextPath = str | Path
-    type JsonWriteData = t.JsonPayload | FlextCliProtocolsDomain.DisplayData
+    type JsonWriteData = t.JsonPayload
 
 
 __all__: list[str] = ["FlextCliTypesDomain"]

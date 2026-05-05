@@ -11,15 +11,15 @@ from __future__ import annotations
 
 import pytest
 
-from flext_cli.services.auth import FlextCliAuth
-from tests import c
+from flext_cli import cli
+from tests import c, p
 
 
 class TestsFlextCliServicesAuthCov:
     """Data-driven coverage tests for FlextCliAuth service."""
 
-    def _make_auth(self, tmp_path: pytest.TempPathFactory | None = None) -> object:
-        return FlextCliAuth()
+    def _make_auth(self) -> p.Cli.AuthService:
+        return cli
 
     # ── validate_credentials ──────────────────────────────────────────
 
@@ -33,31 +33,31 @@ class TestsFlextCliServicesAuthCov:
         password: str,
         expect_ok: bool,
     ) -> None:
-        auth = FlextCliAuth()
+        auth = self._make_auth()
         result = auth.validate_credentials(username, password)
         assert result.success == expect_ok
 
     # ── save_auth_token ───────────────────────────────────────────────
 
     def test_save_auth_token_valid(self, tmp_path: object) -> None:
-        auth = FlextCliAuth()
+        auth = self._make_auth()
         result = auth.save_auth_token("valid-token-abc123")
         assert result.success
 
     def test_save_auth_token_empty(self) -> None:
-        auth = FlextCliAuth()
+        auth = self._make_auth()
         result = auth.save_auth_token("")
         assert result.failure
 
     def test_save_auth_token_whitespace(self) -> None:
-        auth = FlextCliAuth()
+        auth = self._make_auth()
         result = auth.save_auth_token("   ")
         assert result.failure
 
     # ── fetch_auth_token ──────────────────────────────────────────────
 
     def test_fetch_auth_token_after_save(self) -> None:
-        auth = FlextCliAuth()
+        auth = self._make_auth()
         save_result = auth.save_auth_token("test-token-xyz")
         if save_result.success:
             fetch_result = auth.fetch_auth_token()
@@ -65,8 +65,7 @@ class TestsFlextCliServicesAuthCov:
             assert fetch_result.value == "test-token-xyz"
 
     def test_fetch_auth_token_missing_file_fails(self, tmp_path: object) -> None:
-
-        auth = FlextCliAuth()
+        auth = self._make_auth()
         # This will try to fetch from default token file; might succeed or fail
         result = auth.fetch_auth_token()
         assert result.success or result.failure  # Should not raise
@@ -74,14 +73,14 @@ class TestsFlextCliServicesAuthCov:
     # ── authenticate ──────────────────────────────────────────────────
 
     def test_authenticate_with_token(self) -> None:
-        auth = FlextCliAuth()
+        auth = self._make_auth()
         credentials = {c.Cli.DICT_KEY_AUTH_TOKEN: "direct-token-abc"}
         result = auth.authenticate(credentials)
         assert result.success
         assert result.value == "direct-token-abc"
 
     def test_authenticate_with_credentials(self) -> None:
-        auth = FlextCliAuth()
+        auth = self._make_auth()
         credentials = {
             c.Cli.DICT_KEY_USERNAME: "admin",
             c.Cli.DICT_KEY_USER_SECRET: "password123",
@@ -93,7 +92,7 @@ class TestsFlextCliServicesAuthCov:
         assert len(result.value) > 0
 
     def test_authenticate_invalid_credentials(self) -> None:
-        auth = FlextCliAuth()
+        auth = self._make_auth()
         credentials = {
             c.Cli.DICT_KEY_USERNAME: "",
             c.Cli.DICT_KEY_USER_SECRET: "",
@@ -102,20 +101,20 @@ class TestsFlextCliServicesAuthCov:
         assert result.failure
 
     def test_authenticate_empty_credentials(self) -> None:
-        auth = FlextCliAuth()
+        auth = self._make_auth()
         result = auth.authenticate({})
         assert result.failure
 
     # ── clear_auth_tokens ─────────────────────────────────────────────
 
     def test_clear_auth_tokens_no_file(self) -> None:
-        auth = FlextCliAuth()
+        auth = self._make_auth()
         # If no token file exists, should succeed (no-op)
         result = auth.clear_auth_tokens()
         assert result.success or result.failure  # Should not raise
 
     def test_clear_auth_tokens_after_save(self) -> None:
-        auth = FlextCliAuth()
+        auth = self._make_auth()
         save_result = auth.save_auth_token("clear-me-token")
         if save_result.success:
             clear_result = auth.clear_auth_tokens()

@@ -14,7 +14,7 @@ from examples import c, m, p, r, s, t, u
 from flext_cli import cli
 
 
-class FlextCliGettingStarted(s):
+class ExamplesFlextCliGettingStarted(s):
     """Minimal guided tour of flext-cli through public aliases and facades."""
 
     def build_example_settings(self) -> p.Result[m.Examples.MyAppSettings]:
@@ -59,7 +59,7 @@ class FlextCliGettingStarted(s):
         cli.print("\n1. Setup via s/base.py", style=c.Cli.MessageStyles.BOLD_CYAN)
         runtime_snapshot: t.JsonMapping = {
             "output_format": self.settings.output_format,
-            "cli_log_level": str(self.settings.cli_log_level),
+            "cli_log_level": self.settings.cli_log_level,
             "verbose": self.settings.verbose,
             "quiet": self.settings.quiet,
         }
@@ -151,7 +151,7 @@ class FlextCliGettingStarted(s):
 
 def main() -> None:
     """Main entry point for the getting started examples."""
-    FlextCliGettingStarted.main()
+    ExamplesFlextCliGettingStarted.main()
 
 
 if __name__ == "__main__":

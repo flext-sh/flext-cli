@@ -10,9 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import (
-    Sequence,
-)
+from collections.abc import Sequence
 
 from flext_cli import FlextCliFormatters, c, m, p, r, s, t, u
 
@@ -29,12 +27,16 @@ class FlextCliTables(s):
         """Format table data to a string using the public CLI API."""
         config_result = u.Cli.tables_resolve_config(settings, **config_kwargs)
         if config_result.failure:
-            return r[str].fail(config_result.error or "Invalid table configuration")
+            return r[str].fail(
+                config_result.error or c.Cli.OUTPUT_TABLE_CONFIG_INVALID,
+            )
         config_final = config_result.value
 
         normalized_result = u.Cli.tables_normalize_data(data)
         if normalized_result.failure:
-            return r[str].fail(normalized_result.error or "Table normalization failed")
+            return r[str].fail(
+                normalized_result.error or c.Cli.OUTPUT_TABLE_NORMALIZATION_FAILED,
+            )
         normalized_rows: t.SequenceOf[t.Cli.TableRow] = normalized_result.value
         return u.Cli.tables_render(normalized_rows, config_final)
 

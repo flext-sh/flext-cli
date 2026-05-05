@@ -49,6 +49,11 @@ class FlextCliModelsBase:
             ),
         ]
 
+        @u.model_serializer(mode="plain")
+        def _serialize(self) -> t.JsonMapping:
+            """Serialize the wrapper as its display payload."""
+            return dict(self.data)
+
     class LoadedConfig(m.BaseModel):
         """Loaded configuration content wrapper — Pydantic v2 contract. Use m.Cli.LoadedConfig."""
 
@@ -233,7 +238,7 @@ class FlextCliModelsBase:
         name: Annotated[t.NonEmptyStr, m.Field(..., description="Command name")]
         help_text: Annotated[str, m.Field(..., description="User-facing help text")]
         model_cls: Annotated[
-            type[m.BaseModel],
+            t.Cli.ModelType[t.Cli.ModelLike],
             m.Field(..., description="Pydantic input model class"),
         ]
         handler: Annotated[

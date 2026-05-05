@@ -14,7 +14,7 @@ from typing import ClassVar
 
 from yaml import safe_dump, safe_load
 
-from flext_cli import c, m, p, r, t
+from flext_cli import FlextCliUtilitiesJson, c, p, r, t
 from flext_core import u
 
 
@@ -130,12 +130,7 @@ class FlextCliUtilitiesYaml:
         """
         try:
             path.parent.mkdir(parents=True, exist_ok=True)
-            raw = (
-                data.model_dump(mode="json") if isinstance(data, m.BaseModel) else data
-            )
-            validated: t.JsonValue = t.Cli.JSON_VALUE_ADAPTER.validate_python(
-                u.to_jsonable_python(raw),
-            )
+            validated = FlextCliUtilitiesJson.normalize_json_value(data)
             with path.open("w", encoding=c.Cli.ENCODING_DEFAULT) as fh:
                 safe_dump(
                     validated,
@@ -165,12 +160,7 @@ class FlextCliUtilitiesYaml:
             text = u.Cli.yaml_dump_str(payload)
         """
         try:
-            raw = (
-                data.model_dump(mode="json") if isinstance(data, m.BaseModel) else data
-            )
-            validated: t.JsonValue = t.Cli.JSON_VALUE_ADAPTER.validate_python(
-                u.to_jsonable_python(raw),
-            )
+            validated = FlextCliUtilitiesJson.normalize_json_value(data)
             return safe_dump(
                 validated,
                 default_flow_style=False,

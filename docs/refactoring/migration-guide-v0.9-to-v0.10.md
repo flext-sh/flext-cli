@@ -404,7 +404,7 @@ ______________________________________________________________________
 
 ### Q: Where's the full changelog
 
-**A**: See [CHANGELOG.md](../../CHANGELOG.md) for complete details.
+**A**: See [CHANGELOG.md](../CHANGELOG.md) for complete details.
 
 ______________________________________________________________________
 
@@ -504,9 +504,9 @@ ______________________________________________________________________
 
 ### Documentation
 
-- **[Refactoring Plan](refactoring-plan-v0.10.0.md)** - Technical details
+- **[Refactoring Plan](direct-typing-refactor-plan.md)** - Technical details
 - **[Architecture](../architecture.md)** - New architecture explained
-- **[API Reference](../api-reference.md)** - Complete API documentation
+- **[API Reference](../api-reference/README.md)** - Complete API documentation
 - **[Breaking Changes](breaking-changes.md)** - Detailed breaking change list
 
 ### Support Channels

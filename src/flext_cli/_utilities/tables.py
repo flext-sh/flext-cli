@@ -53,7 +53,9 @@ class FlextCliUtilitiesTables:
             resolved = m.Cli.TableConfig.model_validate(settings_data)
             return r[m.Cli.TableConfig].ok(resolved)
         except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
-            return r[m.Cli.TableConfig].fail(f"Invalid table configuration: {exc}")
+            return r[m.Cli.TableConfig].fail(
+                c.Cli.OUTPUT_TABLE_CONFIG_INVALID_FMT.format(error=exc),
+            )
 
     @staticmethod
     def tables_normalize_data(
@@ -65,7 +67,9 @@ class FlextCliUtilitiesTables:
                 data,
             )
         except c.ValidationError as exc:
-            return r[Sequence[t.Cli.TableRow]].fail(f"Table data invalid: {exc}")
+            return r[Sequence[t.Cli.TableRow]].fail(
+                c.Cli.OUTPUT_TABLE_DATA_INVALID_FMT.format(error=exc),
+            )
 
         if isinstance(validated_data, Mapping):
             validated_mapping = validated_data
@@ -90,7 +94,7 @@ class FlextCliUtilitiesTables:
                 )
                 continue
             return r[Sequence[t.Cli.TableRow]].fail(
-                "Table row invalid after validation",
+                c.Cli.OUTPUT_TABLE_ROW_INVALID,
             )
 
         return r[Sequence[t.Cli.TableRow]].ok(normalized_rows)
@@ -155,7 +159,7 @@ class FlextCliUtilitiesTables:
             )
             return r[str].ok(rendered_table)
         except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
-            return r[str].fail_op("Table formatting", exc)
+            return r[str].fail_op(c.Cli.OUTPUT_TABLE_FORMATTING_OPERATION, exc)
 
 
 __all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesTables"]

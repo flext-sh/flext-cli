@@ -88,7 +88,6 @@ from flext_core import x
 from flext_core import FlextModels
 from flext_core import FlextProcessors
 from flext_core import p
-from flext_core import FlextRegistry
 from flext_core import r, p
 from flext_core import u
 from flext_core import s
@@ -140,7 +139,6 @@ from flext_core import x
 from flext_core import FlextModels
 from flext_core import FlextProcessors
 from flext_core import p
-from flext_core import FlextRegistry
 from flext_core import r, p
 from flext_core import u
 from flext_core import s
@@ -152,7 +150,7 @@ from flext_ldif import ldif, FlextLdifSettings
 class TestLdifIntegration:
     def test_ldif_with_container(self):
         """Test LDIF processing with dependency injection."""
-        container = FlextContainer.get_global()
+        container = FlextContainer.shared()
 
         # Register LDIF service
         settings = FlextLdifSettings(batch_size=100)
@@ -369,7 +367,6 @@ from flext_core import x
 from flext_core import FlextModels
 from flext_core import FlextProcessors
 from flext_core import p
-from flext_core import FlextRegistry
 from flext_core import r, p
 from flext_core import u
 from flext_core import s
@@ -408,7 +405,6 @@ from flext_core import x
 from flext_core import FlextModels
 from flext_core import FlextProcessors
 from flext_core import p
-from flext_core import FlextRegistry
 from flext_core import r, p
 from flext_core import u
 from flext_core import s
@@ -418,7 +414,7 @@ from flext_core import u
 
 def test_with_stubbed_service():
     """Test with stubbed service in container."""
-    container = FlextContainer.get_global()
+    container = FlextContainer.shared()
 
     # Create stub service
     stub_service = Mock()

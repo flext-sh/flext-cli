@@ -58,7 +58,7 @@ class FlextCliAuth(FlextCliServiceBase):
         if read_result.failure:
             return r[str].fail(
                 read_result.error
-                or c.Cli.ERR_AUTH_LOAD_FAILED.format(error="unknown error"),
+                or c.Cli.ERR_AUTH_LOAD_FAILED.format(error=c.Cli.ERR_UNKNOWN_ERROR),
             )
         return u.Cli.auth_extract_token(read_result.value)
 
@@ -89,7 +89,9 @@ class FlextCliAuth(FlextCliServiceBase):
                 result = (
                     r[str].fail(
                         save_result.error
-                        or c.Cli.ERR_AUTH_SAVE_FAILED.format(error="unknown error"),
+                        or c.Cli.ERR_AUTH_SAVE_FAILED.format(
+                            error=c.Cli.ERR_UNKNOWN_ERROR,
+                        ),
                     )
                     if save_result.failure
                     else r[str].ok(token_to_save)

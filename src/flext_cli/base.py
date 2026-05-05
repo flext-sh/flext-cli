@@ -23,7 +23,7 @@ class FlextCliServiceBase(s):
     `execute` method from s.
     """
 
-    _cached_settings: FlextCliSettings | None = None
+    _cached_settings: p.Cli.Settings | None = None
 
     @override
     def execute(self) -> p.Result[t.JsonMapping]:
@@ -33,14 +33,16 @@ class FlextCliServiceBase(s):
 
     @property
     @override
-    def settings(self) -> FlextCliSettings:
+    def settings(self) -> p.Cli.Settings:
         """Return the typed CLI settings namespace."""
-        if self._cached_settings is None:
-            self._cached_settings = FlextSettings.fetch_global().fetch_namespace(
+        cached_settings = self._cached_settings
+        if cached_settings is None:
+            cached_settings = FlextSettings.fetch_global().fetch_namespace(
                 "cli",
                 FlextCliSettings,
             )
-        return self._cached_settings
+            self._cached_settings = cached_settings
+        return cached_settings
 
 
 s = FlextCliServiceBase

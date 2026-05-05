@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from flext_cli import FlextCliProtocolsBase
-from flext_core import m
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -17,24 +16,6 @@ class FlextCliProtocolsDomain:
     """CLI domain protocols layered on top of base callable contracts."""
 
     @runtime_checkable
-    class DisplayData(Protocol):
-        """Display payload contract backed by a data mapping."""
-
-        @property
-        def data(self) -> t.JsonMapping:
-            """Expose the display payload."""
-            ...
-
-    @runtime_checkable
-    class LoadedConfig(Protocol):
-        """Loaded configuration payload contract."""
-
-        @property
-        def content(self) -> t.JsonMapping:
-            """Expose loaded configuration content."""
-            ...
-
-    @runtime_checkable
     class JsonValueProcessor(Protocol):
         """Protocol for JSON-compatible value processors."""
 
@@ -43,7 +24,7 @@ class FlextCliProtocolsDomain:
             ...
 
     @runtime_checkable
-    class ModelCommandHandler[TParams: m.BaseModel](Protocol):
+    class ModelCommandHandler[TParams: t.Cli.ModelLike](Protocol):
         """Protocol for model-driven CLI command execution."""
 
         def __call__(self, params: TParams, /) -> t.JsonValue:
@@ -63,13 +44,13 @@ class FlextCliProtocolsDomain:
 
         name: str
         help_text: str
-        model_cls: type[m.BaseModel]
+        model_cls: t.Cli.ModelType[t.Cli.ModelLike]
         handler: t.Cli.ResultRouteHandler
         success_message: str | None
         success_formatter: (
             FlextCliProtocolsBase.SuccessMessageFormatter[t.Cli.ResultValue] | None
         )
-        success_type: str
+        success_type: t.Cli.MessageType
 
     @runtime_checkable
     class DeclarativeRuleType[TRule](Protocol):

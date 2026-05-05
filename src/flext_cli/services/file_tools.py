@@ -7,7 +7,7 @@ from collections.abc import (
 )
 from pathlib import Path
 
-from flext_cli import FlextCliServiceBase, m, p, r, t, u
+from flext_cli import FlextCliServiceBase, c, m, p, r, t, u
 
 
 class FlextCliFileTools(FlextCliServiceBase):
@@ -18,21 +18,16 @@ class FlextCliFileTools(FlextCliServiceBase):
         file_path: t.Cli.TextPath, content: str
     ) -> p.Result[bool]:
         """Write text file atomically via the canonical ``u.Cli`` utility surface."""
-        result = u.Cli.atomic_write_text_file(file_path, content)
-        if result.failure:
-            return r[bool].fail(
-                result.error or "Text write failed",
-            )
-        return result
+        return u.Cli.atomic_write_text_file(file_path, content)
 
     @staticmethod
     def read_json_file(file_path: t.Cli.TextPath) -> p.Result[t.JsonValue]:
         return u.Cli.files_read_json(Path(file_path))
 
     @staticmethod
-    def read_json_model[M: m.BaseModel](
+    def read_json_model[M: t.Cli.ModelLike](
         file_path: t.Cli.TextPath,
-        model_type: type[M],
+        model_type: t.Cli.ModelType[M],
     ) -> p.Result[M]:
         """Read JSON file directly into a Pydantic model via model_validate_json."""
         return u.Cli.files_read_json_model(Path(file_path), model_type)
@@ -41,7 +36,7 @@ class FlextCliFileTools(FlextCliServiceBase):
     def read_yaml_file(file_path: t.Cli.TextPath) -> p.Result[t.JsonValue]:
         normalized_path = u.Cli.normalize_optional_text(file_path)
         if normalized_path is None:
-            return r[t.JsonValue].fail("File path must be non-empty")
+            return r[t.JsonValue].fail(c.Cli.ERR_FILE_PATH_EMPTY)
         return u.Cli.files_read_yaml(Path(normalized_path))
 
     @staticmethod
@@ -50,10 +45,9 @@ class FlextCliFileTools(FlextCliServiceBase):
         data: t.Cli.JsonWriteData,
         options: m.Cli.JsonWriteOptions | None = None,
     ) -> p.Result[bool]:
-        payload_raw = data.data if isinstance(data, p.Cli.DisplayData) else data
         return u.Cli.json_write(
             Path(file_path),
-            u.normalize_to_json_value(payload_raw),
+            data,
             options=options,
         )
 
@@ -62,9 +56,7 @@ class FlextCliFileTools(FlextCliServiceBase):
         file_path: t.Cli.TextPath,
         data: t.Cli.JsonWriteData,
     ) -> p.Result[bool]:
-        payload_raw = data.data if isinstance(data, p.Cli.DisplayData) else data
-        payload: t.JsonValue = u.normalize_to_json_value(payload_raw)
-        return u.Cli.yaml_dump(Path(file_path), payload)
+        return u.Cli.yaml_dump(Path(file_path), data)
 
     @staticmethod
     def write_csv_file(

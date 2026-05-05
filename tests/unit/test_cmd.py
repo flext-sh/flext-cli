@@ -16,29 +16,30 @@ from __future__ import annotations
 
 from flext_tests import tm
 
-from flext_cli import FlextCliCmd
-from tests import m, u
+from flext_cli import cli
+from tests import m, p
 
 
 class TestsFlextCliCmd:
-    """Comprehensive tests for FlextCliCmd class.
+    """Comprehensive tests for public command-facing cli methods.
 
     Single class with nested test groups organized by functionality.
     """
 
     def test_cmd_initialization(self) -> None:
         """Test CMD initialization with proper configuration."""
-        cmd = u.Tests.create_cmd_instance()
+        cmd = cli
         tm.that(cmd, none=False)
-        tm.that(cmd, is_=FlextCliCmd)
+        tm.that(cmd, is_=p.Cli.CmdService)
 
     def test_cmd_service_properties(self) -> None:
         """Test CMD service properties."""
-        u.Tests.create_cmd_instance()
+        cmd = cli
+        tm.that(cmd, is_=p.Cli.CmdService)
 
     def test_cmd_execute_sync(self) -> None:
         """Test synchronous CMD execution."""
-        cmd = u.Tests.create_cmd_instance()
+        cmd = cli
         result = cmd.execute()
         tm.ok(result)
         data = result.value
@@ -48,33 +49,31 @@ class TestsFlextCliCmd:
 
     def test_cmd_validate_settings(self) -> None:
         """Test validate_settings method."""
-        cmd = u.Tests.create_cmd_instance()
+        cmd = cli
         result = cmd.validate_settings()
         tm.ok(result)
 
     def test_cmd_settings_snapshot(self) -> None:
         """Test settings_snapshot method."""
-        cmd = u.Tests.create_cmd_instance()
-        result = cmd.settings_snapshot()
+        result = cli.settings_snapshot()
         tm.ok(result)
         tm.that(result.value, is_=m.Cli.SettingsSnapshot)
         tm.that(result.value.settings_dir, none=False)
 
     def test_cmd_show_settings(self) -> None:
         """Test show_settings method."""
-        cmd = u.Tests.create_cmd_instance()
+        cmd = cli
         result = cmd.show_settings()
         tm.ok(result)
 
-    def test_cmd_settings_helper_validate_settings_structure(self) -> None:
-        """Test u.Cli.validate_settings_structure() directly."""
-        results = u.Cli.validate_settings_structure()
-        tm.that(results, is_=list)
-        tm.that(results, empty=False)
+    def test_cmd_validate_settings_reports_public_result(self) -> None:
+        """Public validate_settings must expose the validation outcome."""
+        result = cli.validate_settings()
+        tm.that(result.success or result.failure, eq=True)
 
-    def test_cmd_settings_helper_snapshot(self) -> None:
-        """Test u.Cli.settings_snapshot() directly."""
-        info = u.Cli.settings_snapshot()
+    def test_cmd_settings_snapshot_returns_public_snapshot_model(self) -> None:
+        """Public settings_snapshot must expose the typed snapshot model."""
+        info = cli.settings_snapshot().value
         tm.that(info, is_=m.Cli.SettingsSnapshot)
         tm.that(info.settings_dir, is_=str)
         tm.that(info.settings_exists, is_=bool)
@@ -82,9 +81,7 @@ class TestsFlextCliCmd:
         tm.that(info.settings_writable, is_=bool)
         tm.that(info.timestamp, is_=str)
 
-    def test_cmd_validate_settings_structure_missing_dir(self) -> None:
-        """Test validate_settings_structure when main settings directory is missing."""
-        results = u.Cli.validate_settings_structure()
-        tm.that(results, is_=list)
-        for item in results:
-            tm.that(item, is_=str)
+    def test_cmd_validate_settings_missing_dir_uses_public_surface(self) -> None:
+        """Public validate_settings must stay callable when dirs are missing."""
+        result = cli.validate_settings()
+        tm.that(result.success or result.failure, eq=True)

@@ -13,8 +13,7 @@ from pathlib import Path
 
 import pytest
 
-from flext_cli import u
-from tests import c, m, t
+from tests import c, m, t, u
 
 
 class TestsFlextCliYamlCov:

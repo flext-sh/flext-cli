@@ -22,7 +22,7 @@ Documentação alinhada ao **flext-cli** 0.12.0-dev conforme o código-fonte atu
 
 - **Primeiros passos**: [Getting Started](getting-started.md)
 - **Arquitetura**: [Architecture](architecture.md)
-- **APIs**: [API Reference](api-reference.md)
+- **APIs**: [API Reference](api-reference/README.md)
 - **Contribuição**: [Development Guide](development.md)
 
 ## O que observar na 0.12.0-dev

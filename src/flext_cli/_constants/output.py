@@ -46,6 +46,28 @@ class FlextCliConstantsOutput:
     OUTPUT_EMPTY_STYLE: Final[str] = ""
     OUTPUT_DEFAULT_MESSAGE_TYPE: Final[ce.MessageTypes] = ce.MessageTypes.INFO
     OUTPUT_DEFAULT_FORMAT_TYPE: Final[ce.OutputFormats] = ce.OutputFormats.TABLE
+    OUTPUT_HEADER_RULE_WIDTH: Final[int] = 60
+    OUTPUT_LOG_LEVEL_DEBUG: Final[str] = "DEBUG"
+    OUTPUT_LOG_LEVEL_ERROR: Final[str] = "ERROR"
+    OUTPUT_LOG_LEVEL_INFO: Final[str] = "INFO"
+    OUTPUT_LOG_LEVEL_WARNING: Final[str] = "WARN"
+    OUTPUT_REPORTS_DIR_NAME: Final[str] = ".reports"
+    OUTPUT_SCOPE_WORKSPACE: Final[str] = "workspace"
+    OUTPUT_STATUS_FAIL: Final[str] = "[FAIL]"
+    OUTPUT_STATUS_OK: Final[str] = "[OK]"
+    OUTPUT_SUMMARY_DEFAULT_VERB: Final[str] = "summary"
+    OUTPUT_TABLE_ERROR_LABEL: Final[str] = "[table error]"
+    OUTPUT_TABLE_CONFIG_INVALID: Final[str] = "Invalid table configuration"
+    OUTPUT_TABLE_CONFIG_INVALID_FMT: Final[str] = (
+        f"{OUTPUT_TABLE_CONFIG_INVALID}: {{error}}"
+    )
+    OUTPUT_TABLE_DATA_INVALID: Final[str] = "Table data invalid"
+    OUTPUT_TABLE_DATA_INVALID_FMT: Final[str] = (
+        f"{OUTPUT_TABLE_DATA_INVALID}: {{error}}"
+    )
+    OUTPUT_TABLE_NORMALIZATION_FAILED: Final[str] = "Table normalization failed"
+    OUTPUT_TABLE_ROW_INVALID: Final[str] = "Table row invalid after validation"
+    OUTPUT_TABLE_FORMATTING_OPERATION: Final[str] = "Table formatting"
 
     TABLE_FORMATS: ClassVar[t.StrMapping] = MappingProxyType({
         ce.TabularFormat.PLAIN: "Minimal formatting, no borders",

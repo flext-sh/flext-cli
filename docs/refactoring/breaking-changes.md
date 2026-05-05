@@ -439,7 +439,7 @@ ______________________________________________________________________
 
 - **[Migration Guide](migration-guide-v0.9-to-v0.10.md)** - Step-by-step migration
 - **[Architecture Comparison](architecture-comparison.md)** - Before/after comparison
-- **[API Reference](../api-reference.md)** - Complete v0.10.0 API
+- **[API Reference](../api-reference/README.md)** - Complete v0.10.0 API
 - **[Examples](../../examples/)** - Updated code examples
 
 ______________________________________________________________________

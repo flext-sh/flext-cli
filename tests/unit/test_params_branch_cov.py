@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-from flext_cli._utilities.params import FlextCliUtilitiesParams
-from flext_cli.settings import FlextCliSettings
-from tests import c, m
+from flext_cli import FlextCliSettings
+from tests import c, m, u
 
 
 class TestsFlextCliParamsBranchCov:
@@ -12,7 +11,7 @@ class TestsFlextCliParamsBranchCov:
 
     def test_params_resolve_merges_model_and_kwargs(self) -> None:
         params = m.Cli.CliParamsConfig(debug=True)
-        resolved = FlextCliUtilitiesParams.params_resolve(params, {"verbose": True})
+        resolved = u.Cli.params_resolve(params, {"verbose": True})
         assert isinstance(resolved, m.Cli.CliParamsConfig)
         assert resolved.verbose is True
         assert resolved.debug is True
@@ -21,7 +20,7 @@ class TestsFlextCliParamsBranchCov:
         settings = FlextCliSettings()
         valid_log_format = c.Cli.CLI_VALID_LOG_FORMATS[0]
         params = m.Cli.CliParamsConfig(log_format=valid_log_format)
-        result = FlextCliUtilitiesParams.params_set_format(settings, params)
+        result = u.Cli.params_set_format(settings, params)
         assert result.success
         assert result.value.log_verbosity == valid_log_format
 
@@ -29,7 +28,7 @@ class TestsFlextCliParamsBranchCov:
         settings = FlextCliSettings()
         valid_output_format = c.Cli.OUTPUT_FORMATS[0]
         params = m.Cli.CliParamsConfig(output_format=valid_output_format)
-        result = FlextCliUtilitiesParams.params_set_format(settings, params)
+        result = u.Cli.params_set_format(settings, params)
         assert result.success
         assert result.value.output_format == valid_output_format
 

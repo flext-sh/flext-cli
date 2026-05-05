@@ -20,8 +20,8 @@ class FlextCliUtilitiesConversion:
         return m.Cli.TypedExtract(type_kind=type_kind, default=default).resolved
 
     @staticmethod
-    def cli_args_to_model[M: m.BaseModel](
-        model_class: type[M],
+    def cli_args_to_model[M: t.Cli.ModelLike](
+        model_class: t.Cli.ModelType[M],
         cli_args: t.JsonMapping,
     ) -> p.Result[M]:
         """Convert a CLI args mapping into a validated Pydantic model."""

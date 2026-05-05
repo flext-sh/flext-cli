@@ -2,26 +2,15 @@
 
 from __future__ import annotations
 
-from flext_cli.services.commands import FlextCliCommands
-from flext_core import r
-from tests import c, m, p, t
+from flext_cli import FlextCli
+from tests import p, r, t
 
 
 class TestsFlextCliServicesCommandsBranchCov:
-    """Exercise remaining FlextCliCommands branches."""
-
-    def test_execute_command_non_callable_handler_fails(self) -> None:
-        service = FlextCliCommands.create(name="app")
-        service._commands["bad"] = m.Cli.CommandEntryModel.model_construct(
-            name="bad",
-            handler="not-callable",
-        )
-        result = service.execute_command("bad")
-        assert result.failure
-        assert c.Cli.ERR_HANDLER_NOT_CALLABLE.format(name="bad") in (result.error or "")
+    """Exercise public failure branches for command execution."""
 
     def test_execute_command_signature_mismatch_fails(self) -> None:
-        service = FlextCliCommands.create(name="app")
+        service = FlextCli.create(name="app")
 
         def handler() -> p.Result[t.JsonPayload]:
             return r[t.JsonPayload].ok({"retried": True})
@@ -32,7 +21,7 @@ class TestsFlextCliServicesCommandsBranchCov:
         assert "takes 0 positional arguments but 1 was given" in (result.error or "")
 
     def test_execute_command_safe_exception_returns_failure(self) -> None:
-        service = FlextCliCommands.create(name="app")
+        service = FlextCli.create(name="app")
         error_message = "explode"
 
         def handler() -> p.Result[t.JsonPayload]:

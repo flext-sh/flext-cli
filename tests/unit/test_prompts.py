@@ -8,11 +8,11 @@ from collections.abc import Callable
 import pytest
 from flext_tests import tm
 
-from tests import c
-from tests.helpers._impl import (
+from tests import (
     TestsFlextCliCaptureLogPrompts,
     TestsFlextCliFailingLogPrompts,
     TestsFlextCliScriptedPrompts,
+    c,
 )
 
 
@@ -26,9 +26,10 @@ class TestsFlextCliPrompts:
         prompts = make_prompts(interactive_mode=False)
         result = prompts.execute()
         tm.ok(result)
-        tm.that(result.value, empty=True)
+        tm.that(result.value[c.Cli.DICT_KEY_STATUS], eq=c.Cli.ServiceStatus.OPERATIONAL)
+        tm.that(result.value[c.Cli.DICT_KEY_SERVICE], eq=c.Cli.CMD_SERVICE_NAME)
 
-    def test_execute_failure_when_debug_logging_crashes(
+    def test_execute_uses_public_cmd_status_even_when_prompt_logger_would_fail(
         self,
         make_prompts: Callable[..., TestsFlextCliScriptedPrompts],
     ) -> None:
@@ -36,7 +37,9 @@ class TestsFlextCliPrompts:
         assert isinstance(prompts, TestsFlextCliFailingLogPrompts)
         prompts.fail_on_log(level=c.LogLevel.DEBUG, message="Execute error")
         result = prompts.execute()
-        tm.fail(result, has="Execute error")
+        tm.ok(result)
+        tm.that(result.value[c.Cli.DICT_KEY_STATUS], eq=c.Cli.ServiceStatus.OPERATIONAL)
+        tm.that(result.value[c.Cli.DICT_KEY_SERVICE], eq=c.Cli.CMD_SERVICE_NAME)
 
     def test_prompt_returns_default_in_quiet_and_non_interactive_modes(
         self,

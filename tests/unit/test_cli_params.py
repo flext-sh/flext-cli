@@ -12,25 +12,23 @@ from __future__ import annotations
 
 import pytest
 from flext_tests import tm
-from typer.models import OptionInfo
-from typer.testing import CliRunner
 
-from flext_cli import FlextCliCommonParams
-from tests import c, u
+from flext_cli import cli
+from tests import c, p, u
 
 
 class TestsFlextCliCommonParams:
     """Railway-oriented tests for FlextCliCommonParams - zero fallbacks or state manipulation."""
 
     def test_create_option_returns_option_info_for_known_fields(self) -> None:
-        """Test create_option returns OptionInfo for each registered CLI param."""
+        """Test create_option returns one public option descriptor per CLI param."""
         for field_name in ("verbose", "quiet", "debug"):
-            option = FlextCliCommonParams.create_option(field_name)
-            assert isinstance(option, OptionInfo)
+            option = cli.create_option(field_name)
+            assert isinstance(option, p.Cli.CliOptionSpec)
 
     def test_create_option_success(self) -> None:
         """Test create_option returns valid option using Railway pattern."""
-        option = FlextCliCommonParams.create_option("verbose")
+        option = cli.create_option("verbose")
         assert option is not None
 
     def test_apply_to_config_with_valid_params(self) -> None:
@@ -39,7 +37,7 @@ class TestsFlextCliCommonParams:
         tm.ok(config_result)
 
         settings = config_result.value
-        result = FlextCliCommonParams.apply_to_config(
+        result = cli.apply_to_config(
             settings,
             verbose=True,
             debug=True,
@@ -58,7 +56,7 @@ class TestsFlextCliCommonParams:
         tm.ok(config_result)
 
         settings = config_result.value
-        result = FlextCliCommonParams.apply_to_config(settings, trace=True)
+        result = cli.apply_to_config(settings, trace=True)
 
         tm.fail(result)
         error_msg = result.error.lower() if result.error else ""
@@ -70,7 +68,7 @@ class TestsFlextCliCommonParams:
         tm.ok(config_result)
 
         settings = config_result.value
-        result = FlextCliCommonParams.apply_to_config(settings, debug=True, trace=True)
+        result = cli.apply_to_config(settings, debug=True, trace=True)
 
         tm.ok(result)
         updated_config = result.value
@@ -83,7 +81,7 @@ class TestsFlextCliCommonParams:
         tm.ok(config_result)
 
         settings = config_result.value
-        result = FlextCliCommonParams.apply_to_config(settings, log_level="INVALID")
+        result = cli.apply_to_config(settings, log_level="INVALID")
 
         tm.fail(result)
         error_msg = result.error.lower() if result.error else ""
@@ -98,7 +96,9 @@ class TestsFlextCliCommonParams:
         command_result = u.Tests.create_decorated_command(app, "test")
         tm.ok(command_result)
 
-        runner = CliRunner()
+        runner_result = cli.create_cli_runner()
+        tm.ok(runner_result)
+        runner = runner_result.value
         result = runner.invoke(app, ["--help"])
 
         tm.that(result.exit_code, eq=0)
@@ -116,7 +116,9 @@ class TestsFlextCliCommonParams:
         command_result = u.Tests.create_decorated_command(app, "test")
         tm.ok(command_result)
 
-        runner = CliRunner()
+        runner_result = cli.create_cli_runner()
+        tm.ok(runner_result)
+        runner = runner_result.value
         result = runner.invoke(app, ["--verbose", "--debug"])
 
         tm.that(result.exit_code, eq=0)
@@ -132,7 +134,9 @@ class TestsFlextCliCommonParams:
         command_result = u.Tests.create_decorated_command(app, "test")
         tm.ok(command_result)
 
-        runner = CliRunner()
+        runner_result = cli.create_cli_runner()
+        tm.ok(runner_result)
+        runner = runner_result.value
         result = runner.invoke(
             app,
             [
@@ -150,7 +154,7 @@ class TestsFlextCliCommonParams:
     def test_create_option_invalid_field(self) -> None:
         """Test create_option with invalid field - Railway pattern."""
         try:
-            FlextCliCommonParams.create_option("nonexistent_field")
+            cli.create_option("nonexistent_field")
             pytest.fail("Expected ValueError to be raised")
         except ValueError as e:
             error_msg = str(e).lower()
@@ -162,7 +166,7 @@ class TestsFlextCliCommonParams:
         tm.ok(config_result)
 
         settings = config_result.value
-        result = FlextCliCommonParams.apply_to_config(settings, log_format="invalid")
+        result = cli.apply_to_config(settings, log_format="invalid")
 
         tm.fail(result)
         error_msg = result.error.lower() if result.error else ""
@@ -174,7 +178,7 @@ class TestsFlextCliCommonParams:
         tm.ok(config_result)
 
         settings = config_result.value
-        result = FlextCliCommonParams.apply_to_config(settings, output_format="invalid")
+        result = cli.apply_to_config(settings, output_format="invalid")
 
         tm.fail(result)
         error_msg = result.error.lower() if result.error else ""

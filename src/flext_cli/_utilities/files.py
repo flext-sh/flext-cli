@@ -15,10 +15,15 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import ClassVar
 
-from flext_cli import c, p, r, t
-from flext_cli._utilities.json import FlextCliUtilitiesJson as uj
-from flext_cli._utilities.yaml import FlextCliUtilitiesYaml as uy
-from flext_core import m, u
+from flext_cli import (
+    FlextCliUtilitiesJson as uj,
+    FlextCliUtilitiesYaml as uy,
+    c,
+    p,
+    r,
+    t,
+)
+from flext_core import u
 
 
 class FlextCliUtilitiesFiles:
@@ -47,7 +52,7 @@ class FlextCliUtilitiesFiles:
         """Read one UTF-8 text file."""
         return FlextCliUtilitiesFiles.files_execute(
             lambda: Path(file_path).read_text(encoding=c.Cli.ENCODING_DEFAULT),
-            "Text read failed: {error}",
+            c.Cli.ERR_TEXT_READ_FAILED,
         )
 
     @staticmethod
@@ -60,7 +65,7 @@ class FlextCliUtilitiesFiles:
 
         return FlextCliUtilitiesFiles.files_execute(
             _write,
-            "Text write failed: {error}",
+            c.Cli.ERR_TEXT_WRITE_FAILED,
         )
 
     @staticmethod
@@ -77,7 +82,7 @@ class FlextCliUtilitiesFiles:
         )
 
     @staticmethod
-    def files_read_json_model[M: m.BaseModel](
+    def files_read_json_model[M: t.Cli.ModelLike](
         file_path: t.Cli.TextPath,
         model_type: type[M],
     ) -> p.Result[M]:
@@ -85,7 +90,8 @@ class FlextCliUtilitiesFiles:
 
         def _load() -> M:
             raw = Path(file_path).read_bytes()
-            return model_type.model_validate_json(raw, strict=False)
+            loaded: M = model_type.model_validate_json(raw, strict=False)
+            return loaded
 
         return FlextCliUtilitiesFiles.files_execute(
             _load,
@@ -119,7 +125,7 @@ class FlextCliUtilitiesFiles:
 
         return FlextCliUtilitiesFiles.files_execute(
             _write,
-            "CSV write failed: {error}",
+            c.Cli.ERR_CSV_WRITE_FAILED,
         )
 
     @staticmethod
@@ -137,7 +143,7 @@ class FlextCliUtilitiesFiles:
 
         return FlextCliUtilitiesFiles.files_execute(
             _load,
-            "CSV read failed: {error}",
+            c.Cli.ERR_CSV_READ_FAILED,
         )
 
     @staticmethod
@@ -145,7 +151,7 @@ class FlextCliUtilitiesFiles:
         """Read one binary file."""
         return FlextCliUtilitiesFiles.files_execute(
             lambda: Path(file_path).read_bytes(),
-            "Binary read failed: {error}",
+            c.Cli.ERR_BINARY_READ_FAILED,
         )
 
     @staticmethod
@@ -158,7 +164,7 @@ class FlextCliUtilitiesFiles:
 
         return FlextCliUtilitiesFiles.files_execute(
             _write,
-            "Binary write failed: {error}",
+            c.Cli.ERR_BINARY_WRITE_FAILED,
         )
 
     @staticmethod
@@ -174,7 +180,7 @@ class FlextCliUtilitiesFiles:
 
         return FlextCliUtilitiesFiles.files_execute(
             _copy,
-            "File copy failed: {error}",
+            c.Cli.ERR_FILE_COPY_FAILED,
         )
 
     @staticmethod
@@ -229,7 +235,10 @@ class FlextCliUtilitiesFiles:
         ensure_result = FlextCliUtilitiesFiles.ensure_dir(target_path.parent)
         if ensure_result.failure:
             return r[bool].fail(
-                ensure_result.error or f"failed to create parent dir for {target_path}",
+                ensure_result.error
+                or c.Cli.ERR_CREATE_PARENT_DIR_FAILED.format(
+                    target_path=target_path,
+                ),
             )
         try:
             if target_path.is_symlink() and target_path.resolve() == source_path:
@@ -241,7 +250,12 @@ class FlextCliUtilitiesFiles:
                     target_path.unlink()
             target_path.symlink_to(source_path, target_is_directory=True)
         except OSError as exc:
-            return r[bool].fail(f"failed to ensure symlink for {target_path}: {exc}")
+            return r[bool].fail(
+                c.Cli.ERR_ENSURE_SYMLINK_FAILED.format(
+                    target_path=target_path,
+                    error=exc,
+                )
+            )
         return r[bool].ok(True)
 
     @staticmethod
@@ -313,7 +327,9 @@ class FlextCliUtilitiesFiles:
                 f"Unsupported format: {path.suffix or '<none>'}",
             )
         if read_result.failure:
-            return r[t.JsonMapping].fail(read_result.error or "Auto load failed")
+            return r[t.JsonMapping].fail(
+                read_result.error or c.Cli.ERR_AUTO_LOAD_FAILED
+            )
         payload = read_result.value
         if not isinstance(payload, Mapping):
             return r[t.JsonMapping].fail(

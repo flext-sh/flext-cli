@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from enum import StrEnum, unique
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Final
 
@@ -15,13 +16,23 @@ if TYPE_CHECKING:
 class ExamplesFlextCliConstants(c):
     """Public examples constants facade extending flext-cli constants."""
 
-    EXAMPLE_DEPLOYMENT_ENVIRONMENTS: Final[t.VariadicTuple[str]] = (
-        "development",
-        "staging",
-        "production",
+    @unique
+    class DeploymentEnvironment(StrEnum):
+        """Canonical deployment environments used by CLI examples."""
+
+        DEVELOPMENT = "development"
+        STAGING = "staging"
+        PRODUCTION = "production"
+
+    EXAMPLE_DEPLOYMENT_ENVIRONMENTS: Final[t.VariadicTuple[DeploymentEnvironment]] = (
+        DeploymentEnvironment.DEVELOPMENT,
+        DeploymentEnvironment.STAGING,
+        DeploymentEnvironment.PRODUCTION,
     )
-    EXAMPLE_DEPLOYMENT_ENVIRONMENTS_SET: Final[frozenset[str]] = frozenset(
-        EXAMPLE_DEPLOYMENT_ENVIRONMENTS,
+    EXAMPLE_DEPLOYMENT_ENVIRONMENTS_SET: Final[frozenset[DeploymentEnvironment]] = (
+        frozenset(
+            EXAMPLE_DEPLOYMENT_ENVIRONMENTS,
+        )
     )
     EXAMPLE_DEPLOYMENT_ENVIRONMENTS_SHORT: Final[t.VariadicTuple[str]] = (
         "dev",
@@ -53,10 +64,10 @@ class ExamplesFlextCliConstants(c):
         "Value",
     )
 
-    EXAMPLE_REGEX_EMAIL: Final[re.Pattern[str]] = re.compile(
+    EXAMPLE_REGEX_EMAIL: Final[t.RegexPattern] = re.compile(
         r"^[^@\s]+@[^@\s]+\.[^@\s]+$",
     )
-    EXAMPLE_REGEX_DOT: Final[re.Pattern[str]] = re.compile(r"\.")
+    EXAMPLE_REGEX_DOT: Final[t.RegexPattern] = re.compile(r"\.")
 
     EXAMPLE_DEFAULT_HOST: Final[str] = "localhost"
     EXAMPLE_DEFAULT_DB_PORT: Final[int] = 5432
@@ -76,7 +87,9 @@ class ExamplesFlextCliConstants(c):
 
     EXAMPLE_DEFAULT_APP_NAME: Final[str] = "my-app"
     EXAMPLE_DEFAULT_TOOL_NAME: Final[str] = "my-cli-tool"
-    EXAMPLE_DEFAULT_ENVIRONMENT: Final[str] = "development"
+    EXAMPLE_DEFAULT_ENVIRONMENT: Final[DeploymentEnvironment] = (
+        DeploymentEnvironment.DEVELOPMENT
+    )
     EXAMPLE_DEFAULT_APP_VERSION: Final[str] = "1.0.0"
     EXAMPLE_DEFAULT_LOG_LEVEL: Final[str] = "INFO"
     EXAMPLE_DEFAULT_DB_URL: Final[str] = "postgresql://localhost:5432/myapp"

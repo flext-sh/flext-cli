@@ -7,16 +7,14 @@ from pathlib import Path
 
 import pytest
 
-from flext_cli._utilities.rules import FlextCliUtilitiesRules
-from flext_cli.services.rules import FlextCliRules
-from tests import c, t
+from tests import c, t, u
 
 
-class TestsFlextCliRulesUtilsCov:
-    """Coverage for FlextCliUtilitiesRules."""
+class TestsFlextCliRulesCov:
+    """Coverage for the public rules helpers exposed via u.Cli."""
 
     def test_rules_resolve_scope_with_data(self) -> None:
-        result = FlextCliUtilitiesRules.rules_resolve_scope(
+        result = u.Cli.rules_resolve_scope(
             {"lint": {"rule_a": True, "rule_b": False}},
             scope_key="lint",
             allowed_keys=("rule_a", "rule_b"),
@@ -35,7 +33,7 @@ class TestsFlextCliRulesUtilsCov:
         allowed_keys: tuple[str, ...],
         expected_len: int,
     ) -> None:
-        result = FlextCliUtilitiesRules.rules_resolve_scope(
+        result = u.Cli.rules_resolve_scope(
             settings,
             scope_key=scope_key,
             allowed_keys=allowed_keys,
@@ -49,7 +47,7 @@ class TestsFlextCliRulesUtilsCov:
         ) as f:
             f.write(yaml_content)
             config_path = Path(f.name)
-        result = FlextCliUtilitiesRules.rules_load_scoped_config(
+        result = u.Cli.rules_load_scoped_config(
             config_path,
             scope_key="lint",
             allowed_keys=("rule_a", "rule_b"),
@@ -64,7 +62,7 @@ class TestsFlextCliRulesUtilsCov:
             registry_file.write_text(c.Tests.RULES_REGISTRY_YAML)
             config_path = Path(tmpdir) / "config.yml"
             config_path.write_text("project: test\n")
-            result = FlextCliUtilitiesRules.rules_load_registry(
+            result = u.Cli.rules_load_registry(
                 config_path,
                 package_rules_dir=rules_dir,
                 registry_filename="engine-registry.yml",
@@ -80,7 +78,7 @@ class TestsFlextCliRulesUtilsCov:
             registry_file.write_text(c.Tests.RULES_REGISTRY_YAML)
             config_path = Path(tmpdir) / "config.yml"
             config_path.write_text("project: test\n")
-            result = FlextCliUtilitiesRules.rules_load_registry(
+            result = u.Cli.rules_load_registry(
                 config_path,
                 package_rules_dir=pkg_rules_dir,
                 registry_filename="engine-registry.yml",
@@ -101,7 +99,7 @@ class TestsFlextCliRulesUtilsCov:
             )
             config_path = Path(tmpdir) / "config.yml"
             config_path.write_text("project: test\n")
-            result = FlextCliUtilitiesRules.rules_load_registry(
+            result = u.Cli.rules_load_registry(
                 config_path,
                 package_rules_dir=package_rules_dir,
                 registry_filename="engine-registry.yml",
@@ -121,7 +119,7 @@ class TestsFlextCliRulesUtilsCov:
             pkg_rules_dir.mkdir()
             config_path = Path(tmpdir) / "config.yml"
             config_path.write_text("project: test\n")
-            result = FlextCliUtilitiesRules.rules_load_registry(
+            result = u.Cli.rules_load_registry(
                 config_path,
                 package_rules_dir=pkg_rules_dir,
                 registry_filename="engine-registry.yml",
@@ -134,7 +132,7 @@ class TestsFlextCliRulesUtilsCov:
             pkg_rules_dir = Path(tmpdir) / "pkg_rules"
             config_path = Path(tmpdir) / "config.yml"
             config_path.write_text("project: test\n")
-            result = FlextCliUtilitiesRules.rules_load_local_definitions(
+            result = u.Cli.rules_load_local_definitions(
                 config_path,
                 package_rules_dir=pkg_rules_dir,
                 rule_filters=(),
@@ -151,7 +149,7 @@ class TestsFlextCliRulesUtilsCov:
             config_path = Path(tmpdir) / "config.yml"
             config_path.write_text("project: test\n")
             catalog = c.Tests.RULES_CATALOG_BASIC
-            result = FlextCliUtilitiesRules.rules_load_local_definitions(
+            result = u.Cli.rules_load_local_definitions(
                 config_path,
                 package_rules_dir=rules_dir,
                 rule_filters=(),
@@ -168,7 +166,7 @@ class TestsFlextCliRulesUtilsCov:
             config_path = Path(tmpdir) / "config.yml"
             config_path.write_text("project: test\n")
             catalog = c.Tests.RULES_CATALOG_BASIC
-            result = FlextCliUtilitiesRules.rules_load_local_definitions(
+            result = u.Cli.rules_load_local_definitions(
                 config_path,
                 package_rules_dir=rules_dir,
                 rule_filters=("rule-*",),
@@ -185,7 +183,7 @@ class TestsFlextCliRulesUtilsCov:
             config_path = Path(tmpdir) / "config.yml"
             config_path.write_text("project: test\n")
             catalog = c.Tests.RULES_CATALOG_BASIC
-            result = FlextCliUtilitiesRules.rules_load_local_definitions(
+            result = u.Cli.rules_load_local_definitions(
                 config_path,
                 package_rules_dir=rules_dir,
                 rule_filters=("nonmatch-*",),
@@ -207,7 +205,7 @@ class TestsFlextCliRulesUtilsCov:
             )
             config_path = Path(tmpdir) / "config.yml"
             config_path.write_text("project: test\n")
-            result = FlextCliUtilitiesRules.rules_load_local_definitions(
+            result = u.Cli.rules_load_local_definitions(
                 config_path,
                 package_rules_dir=rules_dir,
                 rule_filters=(),
@@ -223,7 +221,7 @@ class TestsFlextCliRulesUtilsCov:
             (rules_dir / "unknown.yml").write_text(c.Tests.RULES_FILE_UNKNOWN_YAML)
             config_path = Path(tmpdir) / "config.yml"
             config_path.write_text("project: test\n")
-            result = FlextCliUtilitiesRules.rules_load_local_definitions(
+            result = u.Cli.rules_load_local_definitions(
                 config_path,
                 package_rules_dir=rules_dir,
                 rule_filters=(),
@@ -241,7 +239,7 @@ class TestsFlextCliRulesUtilsCov:
             )
             config_path = Path(tmpdir) / "config.yml"
             config_path.write_text("project: test\n")
-            result = FlextCliUtilitiesRules.rules_load_local_definitions(
+            result = u.Cli.rules_load_local_definitions(
                 config_path,
                 package_rules_dir=rules_dir,
                 rule_filters=(),
@@ -257,7 +255,7 @@ class TestsFlextCliRulesUtilsCov:
             (rules_dir / "file.yml").write_text(c.Tests.RULES_FILE_YAML)
             config_path = Path(tmpdir) / "config.yml"
             config_path.write_text("project: test\n")
-            result = FlextCliUtilitiesRules.rules_load_local_definitions(
+            result = u.Cli.rules_load_local_definitions(
                 config_path,
                 package_rules_dir=rules_dir,
                 rule_filters=(),
@@ -277,7 +275,7 @@ class TestsFlextCliRulesUtilsCov:
             )
             config_path = Path(tmpdir) / "config.yml"
             config_path.write_text("project: test\n")
-            result = FlextCliUtilitiesRules.rules_load_local_definitions(
+            result = u.Cli.rules_load_local_definitions(
                 config_path,
                 package_rules_dir=rules_dir,
                 rule_filters=(),
@@ -288,7 +286,7 @@ class TestsFlextCliRulesUtilsCov:
             assert "config must be a mapping" in (result.error or "")
 
     def test_rules_matches_filters_empty(self) -> None:
-        assert FlextCliUtilitiesRules._rules_matches_filters("rule-a", ()) is True
+        assert u.Cli.rules_matches_filters("rule-a", ()) is True
 
     @pytest.mark.parametrize(
         ("rule_id", "rule_filters", "expected"),
@@ -300,7 +298,7 @@ class TestsFlextCliRulesUtilsCov:
         rule_filters: tuple[str, ...],
         expected: bool,
     ) -> None:
-        result = FlextCliUtilitiesRules._rules_matches_filters(rule_id, rule_filters)
+        result = u.Cli.rules_matches_filters(rule_id, rule_filters)
         assert result is expected
 
     def test_rules_resolve_directory_local(self) -> None:
@@ -309,7 +307,7 @@ class TestsFlextCliRulesUtilsCov:
             rules_dir.mkdir()
             config_path = Path(tmpdir) / "config.yml"
             config_path.write_text("project: test\n")
-            result = FlextCliUtilitiesRules._rules_resolve_directory(
+            result = u.Cli.rules_resolve_directory(
                 config_path,
                 package_rules_dir=Path(tmpdir) / "pkg_rules",
                 rules_dir_name="rules",
@@ -322,7 +320,7 @@ class TestsFlextCliRulesUtilsCov:
             pkg_rules.mkdir()
             config_path = Path(tmpdir) / "config.yml"
             config_path.write_text("project: test\n")
-            result = FlextCliUtilitiesRules._rules_resolve_directory(
+            result = u.Cli.rules_resolve_directory(
                 config_path,
                 package_rules_dir=pkg_rules,
                 rules_dir_name="rules",
@@ -331,102 +329,36 @@ class TestsFlextCliRulesUtilsCov:
 
     def test_rules_match_catalog_entry_by_action(self) -> None:
         catalog = c.Tests.RULES_CATALOG_BASIC
-        result = FlextCliUtilitiesRules._rules_match_catalog_entry("check", "", catalog)
+        result = u.Cli.rules_match_catalog_entry("check", "", catalog)
         assert result is not None
         assert result[0] == "lint"
 
     def test_rules_match_catalog_entry_by_check(self) -> None:
         catalog = c.Tests.RULES_CATALOG_BASIC
-        result = FlextCliUtilitiesRules._rules_match_catalog_entry("", "lint", catalog)
+        result = u.Cli.rules_match_catalog_entry("", "lint", catalog)
         assert result is not None
 
     def test_rules_match_catalog_entry_no_match(self) -> None:
         catalog = c.Tests.RULES_CATALOG_BASIC
-        result = FlextCliUtilitiesRules._rules_match_catalog_entry(
-            "unknown", "unknown", catalog
-        )
+        result = u.Cli.rules_match_catalog_entry("unknown", "unknown", catalog)
         assert result is None
 
     def test_rules_validate_matcher_valid(self) -> None:
         matcher = c.Tests.RULES_BASIC_MATCHER
         rule_def: t.JsonMapping = {"id": "rule-a", "actions": ["check"]}
-        result = FlextCliUtilitiesRules._rules_validate_matcher(
-            rule_def, matcher, rule_id_key="id"
-        )
+        result = u.Cli.rules_validate_matcher(rule_def, matcher, rule_id_key="id")
         assert result is None
 
     def test_rules_validate_matcher_invalid_mapping(self) -> None:
         matcher = c.Tests.RULES_MAPPING_MATCHER
         rule_def: t.JsonMapping = {"id": "rule-a", "config": "not-a-mapping"}
-        result = FlextCliUtilitiesRules._rules_validate_matcher(
-            rule_def, matcher, rule_id_key="id"
-        )
+        result = u.Cli.rules_validate_matcher(rule_def, matcher, rule_id_key="id")
         assert result is not None
         assert "config" in result
 
     def test_rules_validate_matcher_invalid_list(self) -> None:
         matcher = c.Tests.RULES_LIST_MATCHER
         rule_def: t.JsonMapping = {"id": "rule-a", "actions": []}
-        result = FlextCliUtilitiesRules._rules_validate_matcher(
-            rule_def, matcher, rule_id_key="id"
-        )
+        result = u.Cli.rules_validate_matcher(rule_def, matcher, rule_id_key="id")
         assert result is not None
         assert "actions" in result
-
-
-class TestsFlextCliServiceRulesCov:
-    """Coverage for FlextCliRules service."""
-
-    def test_service_rules_resolve_scope(self) -> None:
-        result = FlextCliRules.rules_resolve_scope(
-            {"lint": {"rule_a": True}},
-            scope_key="lint",
-            allowed_keys=("rule_a",),
-        )
-        assert "rule_a" in result
-
-    def test_service_rules_load_scoped_config(self) -> None:
-        yaml_content = "lint:\n  rule_a: true\n"
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".yml", delete=False, encoding="utf-8"
-        ) as f:
-            f.write(yaml_content)
-            config_path = Path(f.name)
-        result = FlextCliRules.rules_load_scoped_config(
-            config_path,
-            scope_key="lint",
-            allowed_keys=("rule_a",),
-        )
-        assert result.success
-
-    def test_service_rules_load_registry(self) -> None:
-        with tempfile.TemporaryDirectory() as tmpdir:
-            rules_dir = Path(tmpdir) / "rules"
-            rules_dir.mkdir()
-            registry_file = rules_dir / "engine-registry.yml"
-            registry_file.write_text(c.Tests.RULES_REGISTRY_YAML)
-            config_path = Path(tmpdir) / "config.yml"
-            config_path.write_text("project: test\n")
-            result = FlextCliRules.rules_load_registry(
-                config_path,
-                package_rules_dir=rules_dir,
-                registry_filename="engine-registry.yml",
-            )
-            assert result.success
-
-    def test_service_rules_load_local_definitions(self) -> None:
-        with tempfile.TemporaryDirectory() as tmpdir:
-            rules_dir = Path(tmpdir) / "rules"
-            rules_dir.mkdir()
-            rule_file = rules_dir / "test-rule.yml"
-            rule_file.write_text(c.Tests.RULES_FILE_YAML)
-            config_path = Path(tmpdir) / "config.yml"
-            config_path.write_text("project: test\n")
-            catalog = c.Tests.RULES_CATALOG_BASIC
-            result = FlextCliRules.rules_load_local_definitions(
-                config_path,
-                package_rules_dir=rules_dir,
-                rule_filters=(),
-                rule_catalog=catalog,
-            )
-            assert result.success

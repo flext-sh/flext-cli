@@ -112,7 +112,6 @@ from flext_core import x
 from flext_core import FlextModels
 from flext_core import FlextProcessors
 from flext_core import p
-from flext_core import FlextRegistry
 from flext_core import r, p
 from flext_core import u
 from flext_core import s
@@ -165,7 +164,6 @@ from flext_core import x
 from flext_core import FlextModels
 from flext_core import FlextProcessors
 from flext_core import p
-from flext_core import FlextRegistry
 from flext_core import r, p
 from flext_core import u
 from flext_core import s
@@ -218,7 +216,6 @@ from flext_core import x
 from flext_core import FlextModels
 from flext_core import FlextProcessors
 from flext_core import p
-from flext_core import FlextRegistry
 from flext_core import r, p
 from flext_core import u
 from flext_core import s
@@ -248,12 +245,13 @@ class UserService:
         return r.success(f"User {query.user_id} data")
 
 
-# Setup dispatcher
+# Setup dispatcher (handlers are wired via the FlextDispatcher facade)
 dispatcher = FlextDispatcher()
 user_service = UserService()
 
-dispatcher.register_handler(CreateUserCommand, user_service.create_user)
-dispatcher.register_handler(GetUserQuery, user_service.get_user)
+# Wire handlers (see FlextDispatcher reference for the supported registration API)
+dispatcher.subscribe(CreateUserCommand, user_service.create_user)
+dispatcher.subscribe(GetUserQuery, user_service.get_user)
 
 # Use the dispatcher
 create_result = dispatcher.dispatch(CreateUserCommand("john", "john@example.com"))

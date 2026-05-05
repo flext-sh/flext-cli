@@ -29,11 +29,11 @@ import time
 from pathlib import Path
 
 from examples import c, m, t, u
-from flext_cli import FlextCliSettings, cli
-from flext_core import p, r
+from flext_cli import cli, p
+from flext_core import r
 
 
-def show_cli_settings() -> FlextCliSettings:
+def show_cli_settings() -> p.Cli.Settings:
     """Access flext-cli settings in YOUR application."""
     cli.print("📋 Current Settings:", style=c.Cli.MessageStyles.BOLD_CYAN)
     cli.print(f"   Debug Mode: {cli.settings.debug}", style=c.Cli.MessageStyles.CYAN)
@@ -99,8 +99,8 @@ def show_settings_locations() -> m.Cli.DisplayData:
     return display_payload
 
 
-def load_profile_settings(profile_name: str = "default") -> p.Result[FlextCliSettings]:
-    """Load profile-specific settings in YOUR tool. Returns r[FlextCliSettings]."""
+def load_profile_settings(profile_name: str = "default") -> p.Result[p.Cli.Settings]:
+    """Load profile-specific settings in YOUR tool. Returns r[p.Cli.Settings]."""
     cli.print(
         f"📋 Loading profile: {profile_name}", style=c.Cli.MessageStyles.BOLD_CYAN
     )
@@ -116,7 +116,7 @@ def load_profile_settings(profile_name: str = "default") -> p.Result[FlextCliSet
             f"❌ Profile validation failed: {validate_result.error}",
             style=c.Cli.MessageStyles.BOLD_RED,
         )
-        return r[FlextCliSettings].fail(
+        return r[p.Cli.Settings].fail(
             validate_result.error or "Profile validation failed",
         )
     cli.print(
@@ -130,7 +130,7 @@ def load_profile_settings(profile_name: str = "default") -> p.Result[FlextCliSet
         "App Name": profile_config.app_name,
     }
     u.display_config_table(config_data=m.Cli.DisplayData(data=profile_data))
-    return r[FlextCliSettings].ok(profile_config)
+    return r[p.Cli.Settings].ok(profile_config)
 
 
 def show_environment_variables() -> None:

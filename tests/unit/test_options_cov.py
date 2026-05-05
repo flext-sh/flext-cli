@@ -1,34 +1,95 @@
-"""Coverage tests for flext_cli._utilities.options."""
+"""Coverage tests for public option behavior on ``cli.model_command``."""
 
 from __future__ import annotations
 
-from pathlib import Path
+import inspect
 from typing import Annotated
 
 import pytest
-from typer.models import OptionInfo
 
-from flext_cli._utilities.options import (
-    FlextCliUtilitiesOptionBuilder,
-    FlextCliUtilitiesOptions,
-)
-from tests import c, m, t
+from flext_cli import cli
+from tests import c, m, p, t
 
 type OptionalStringAlias = str | None
 type StringListAlias = list[str]
 
-ANNOTATION_CASES: tuple[tuple[object, object], ...] = (
-    (str, str),
-    (OptionalStringAlias, str),
-    (str | int, str),
-    (list[str], list[str]),
-    (tuple[str, ...], list[str]),
-    (set[str], set),
-    (frozenset[str], frozenset),
-    (dict[str, int], dict),
-    (Annotated[str, "meta"], str),
-    (StringListAlias, list[str]),
+
+class StringAnnotationModel(m.BaseModel):
+    value: str
+
+
+class OptionalStringAnnotationModel(m.BaseModel):
+    value: OptionalStringAlias
+
+
+class UnionAnnotationModel(m.BaseModel):
+    value: str | int
+
+
+class ListAnnotationModel(m.BaseModel):
+    value: list[str]
+
+
+class TupleAnnotationModel(m.BaseModel):
+    value: tuple[str, ...]
+
+
+class SetAnnotationModel(m.BaseModel):
+    value: set[str]
+
+
+class FrozenSetAnnotationModel(m.BaseModel):
+    value: frozenset[str]
+
+
+class DictAnnotationModel(m.BaseModel):
+    value: dict[str, int]
+
+
+class AnnotatedStringModel(m.BaseModel):
+    value: Annotated[str, "meta"]
+
+
+class StringListAliasModel(m.BaseModel):
+    value: StringListAlias
+
+
+ANNOTATION_CASES: tuple[tuple[t.Cli.ModelType[m.BaseModel], object], ...] = (
+    (StringAnnotationModel, str),
+    (OptionalStringAnnotationModel, str),
+    (UnionAnnotationModel, str),
+    (ListAnnotationModel, list[str]),
+    (TupleAnnotationModel, list[str]),
+    (SetAnnotationModel, set),
+    (FrozenSetAnnotationModel, frozenset),
+    (DictAnnotationModel, dict),
+    (AnnotatedStringModel, str),
+    (StringListAliasModel, list[str]),
 )
+
+
+class AliasOptionsModel(m.BaseModel):
+    project_name: str = m.Field(
+        ...,
+        alias="project",
+        validate_default=True,
+    )
+
+
+class CustomDeclModel(m.BaseModel):
+    custom_name: str = m.Field(
+        ...,
+        json_schema_extra={"typer_param_decls": ["--custom-name", "--projects"]},
+        validate_default=True,
+    )
+
+
+class BoolToggleModel(m.BaseModel):
+    debug: bool = False
+
+
+def _noop_handler(_params: t.Cli.ModelLike) -> bool:
+    return True
 
 
 class OptionsDefaultsModel(m.BaseModel):
@@ -46,146 +107,67 @@ class OptionsDefaultsModel(m.BaseModel):
 
 
 class TestsFlextCliOptionsUtilsCov:
-    """Data-driven coverage for FlextCliUtilitiesOptions."""
+    """Data-driven coverage for public option generation behavior."""
 
-    @pytest.mark.parametrize(
-        ("field_name", "expect_build_ok"), c.Tests.OPTIONS_BUILD_CASES
-    )
-    def test_option_builder_build_cases(
-        self,
-        field_name: str,
-        expect_build_ok: bool,
-    ) -> None:
-        builder = FlextCliUtilitiesOptionBuilder(
-            field_name,
-            c.Tests.OPTIONS_REGISTRY_VALID,
-        )
-        option_info = builder.build()
-        assert isinstance(option_info, OptionInfo)
-        assert expect_build_ok is True
-        assert option_info.help is not None
-        if field_name == "project":
-            assert option_info.param_decls is not None
-            assert "--project" in option_info.param_decls
-            assert "--projects" in option_info.param_decls
-        if field_name == "custom_name":
-            assert option_info.param_decls is not None
-            assert "--custom-name" in option_info.param_decls
-
-    def test_option_builder_build_missing_registry_metadata_raises(self) -> None:
-        builder = FlextCliUtilitiesOptionBuilder(
-            "missing",
-            c.Tests.OPTIONS_REGISTRY_EMPTY,
-        )
-        with pytest.raises(TypeError):
-            builder.build()
-
-    def test_build_option_proxy(self) -> None:
-        option_info = FlextCliUtilitiesOptions.build_option(
-            "project",
-            c.Tests.OPTIONS_REGISTRY_VALID,
-        )
-        assert isinstance(option_info, OptionInfo)
+    def test_model_command_uses_alias_for_option_name(self) -> None:
+        command = cli.model_command(AliasOptionsModel, _noop_handler)
+        option_info = inspect.signature(command).parameters["project_name"].default
+        assert isinstance(option_info, p.Cli.CliOptionSpec)
         assert option_info.param_decls is not None
+        assert "--project" in option_info.param_decls
+
+    def test_model_command_supports_custom_param_decls(self) -> None:
+        command = cli.model_command(CustomDeclModel, _noop_handler)
+        option_info = inspect.signature(command).parameters["custom_name"].default
+        assert isinstance(option_info, p.Cli.CliOptionSpec)
+        assert option_info.param_decls is not None
+        assert "--custom-name" in option_info.param_decls
         assert "--projects" in option_info.param_decls
 
-    @pytest.mark.parametrize(("annotation", "expected"), ANNOTATION_CASES)
-    def test_resolve_typer_annotation_cases(
+    def test_model_command_bool_uses_toggle_decl(self) -> None:
+        command = cli.model_command(BoolToggleModel, _noop_handler)
+        option_info = inspect.signature(command).parameters["debug"].default
+        assert isinstance(option_info, p.Cli.CliOptionSpec)
+        assert option_info.param_decls == ["--debug/--no-debug"]
+
+    @pytest.mark.parametrize(("model_cls", "expected"), ANNOTATION_CASES)
+    def test_model_command_normalizes_runtime_annotations(
         self,
-        annotation: t.Cli.RuntimeAnnotation,
+        model_cls: t.Cli.ModelType[t.Cli.ModelLike],
         expected: object,
     ) -> None:
-        result = FlextCliUtilitiesOptions.resolve_typer_annotation(annotation)
-        assert result == expected
-
-    @pytest.mark.parametrize(
-        ("value", "expected"),
-        c.Tests.OPTIONS_IS_STRING_SEQUENCE_CASES,
-    )
-    def test_is_string_sequence_cases(
-        self,
-        value: t.Cli.CliDefaultSource,
-        expected: bool,
-    ) -> None:
-        assert FlextCliUtilitiesOptions.is_string_sequence(value) is expected
-
-    def test_is_string_sequence_false_for_path(self) -> None:
-        assert FlextCliUtilitiesOptions.is_string_sequence(Path("/tmp/demo")) is False
-
-    def test_is_string_sequence_false_for_mapping(self) -> None:
-        assert FlextCliUtilitiesOptions.is_string_sequence({"count": 1}) is False
-
-    @pytest.mark.parametrize(
-        ("value", "expected"),
-        c.Tests.OPTIONS_NORMALIZE_ATOM_CASES,
-    )
-    def test_normalize_cli_atom_cases(
-        self,
-        value: t.Cli.CliDefaultSource,
-        expected: t.Cli.DefaultAtom | None,
-    ) -> None:
-        assert FlextCliUtilitiesOptions.normalize_cli_atom(value) == expected
-
-    def test_normalize_cli_atom_path(self) -> None:
-        result = FlextCliUtilitiesOptions.normalize_cli_atom(Path("/tmp/demo"))
-        assert result == "/tmp/demo"
-
-    def test_normalize_cli_atom_invalid_returns_none(self) -> None:
-        result = FlextCliUtilitiesOptions.normalize_cli_atom(
-            dict(c.Tests.OPTIONS_FIELD_DEFAULT_VALID_MAPPING),
-        )
-        assert result is None
+        command = cli.model_command(model_cls, _noop_handler)
+        resolved = inspect.signature(command).parameters["value"].annotation
+        assert resolved == expected
 
     def test_field_default_prefers_settings_value(self) -> None:
         settings = OptionsDefaultsModel(name="override-name")
-        field_info = OptionsDefaultsModel.model_fields["name"]
-        result = FlextCliUtilitiesOptions.field_default("name", field_info, settings)
-        assert result == "override-name"
+        command = cli.model_command(
+            OptionsDefaultsModel,
+            _noop_handler,
+            settings=settings,
+        )
+        option_info = inspect.signature(command).parameters["name"].default
+        assert isinstance(option_info, p.Cli.CliOptionSpec)
+        assert option_info.default == "override-name"
 
     def test_field_default_uses_default_factory_sequence(self) -> None:
-        field_info = OptionsDefaultsModel.model_fields["generated"]
-        result = FlextCliUtilitiesOptions.field_default("generated", field_info, None)
-        assert result == ("gen", "value")
+        command = cli.model_command(OptionsDefaultsModel, _noop_handler)
+        option_info = inspect.signature(command).parameters["generated"].default
+        assert isinstance(option_info, p.Cli.CliOptionSpec)
+        assert option_info.default == ("gen", "value")
 
     def test_field_default_returns_valid_mapping(self) -> None:
-        field_info = OptionsDefaultsModel.model_fields["valid_mapping"]
-        result = FlextCliUtilitiesOptions.field_default(
-            "valid_mapping", field_info, None
-        )
-        assert result == dict(c.Tests.OPTIONS_FIELD_DEFAULT_VALID_MAPPING)
+        command = cli.model_command(OptionsDefaultsModel, _noop_handler)
+        option_info = inspect.signature(command).parameters["valid_mapping"].default
+        assert isinstance(option_info, p.Cli.CliOptionSpec)
+        assert option_info.default == dict(c.Tests.OPTIONS_FIELD_DEFAULT_VALID_MAPPING)
 
     def test_field_default_invalid_mapping_returns_none(self) -> None:
-        field_info = OptionsDefaultsModel.model_fields["invalid_mapping"]
-        result = FlextCliUtilitiesOptions.field_default(
-            "invalid_mapping", field_info, None
-        )
-        assert result is None
-
-    @pytest.mark.parametrize(
-        ("args", "bool_options", "value_options", "expected"),
-        c.Tests.OPTIONS_REORDER_CASES,
-    )
-    def test_reorder_prefixed_options_cases(
-        self,
-        args: tuple[str, ...],
-        bool_options: tuple[str, ...],
-        value_options: tuple[str, ...],
-        expected: tuple[str, ...],
-    ) -> None:
-        result = FlextCliUtilitiesOptions.reorder_prefixed_options(
-            args,
-            bool_options=bool_options,
-            value_options=value_options,
-        )
-        assert result == list(expected)
-
-    def test_reorder_prefixed_options_empty_args(self) -> None:
-        result = FlextCliUtilitiesOptions.reorder_prefixed_options(
-            (),
-            bool_options=("--verbose",),
-            value_options=("--project",),
-        )
-        assert result == []
+        command = cli.model_command(OptionsDefaultsModel, _noop_handler)
+        option_info = inspect.signature(command).parameters["invalid_mapping"].default
+        assert isinstance(option_info, p.Cli.CliOptionSpec)
+        assert option_info.default is None
 
 
 __all__: list[str] = ["TestsFlextCliOptionsUtilsCov"]

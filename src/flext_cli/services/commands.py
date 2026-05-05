@@ -10,9 +10,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import (
-    MutableMapping,
-)
 from typing import Annotated, Self, override
 
 from flext_cli import c, m, p, r, s, t, u
@@ -28,15 +25,12 @@ class FlextCliCommands(s):
     _description: str = m.PrivateAttr(
         default_factory=lambda: c.Cli.COMMANDS_DEFAULT_DESCRIPTION
     )
-    _commands: MutableMapping[str, p.Cli.CommandEntry] = m.PrivateAttr(
-        default_factory=lambda: dict[str, p.Cli.CommandEntry](),
-    )
+    _commands: dict[str, p.Cli.CommandEntry] = m.PrivateAttr(default_factory=dict)
 
     @classmethod
     def create(cls, *, name: str, description: str = "") -> Self:
         """Create a named FlextCliCommands instance."""
-        instance = cls()
-        instance.name = name
+        instance = cls(name=name)
         instance._description = description or name
         return instance
 
@@ -48,12 +42,11 @@ class FlextCliCommands(s):
             r[dict]: Service status with commands count.
 
         """
-        status: t.JsonMapping = {
-            "app_name": c.Cli.FLEXT_CLI,
-            "initialized": True,
-            "commands_count": len(self._commands),
-        }
-        return r[t.JsonMapping].ok(status)
+        return r[t.JsonMapping].ok({
+            c.Cli.DICT_KEY_APP_NAME: c.Cli.FLEXT_CLI,
+            c.Cli.DICT_KEY_INITIALIZED: True,
+            c.Cli.DICT_KEY_COMMANDS_COUNT: len(self._commands),
+        })
 
     def execute_command(
         self,
@@ -84,18 +77,12 @@ class FlextCliCommands(s):
             return r[t.JsonValue].fail(
                 c.Cli.ERR_HANDLER_NOT_CALLABLE.format(name=name),
             )
-        command_args: tuple[str, ...] = tuple(args) if args is not None else ()
-        has_kwargs = bool(kwargs)
+        command_args: tuple[str, ...] = tuple(args or ())
         try:
-            if not command_args and not has_kwargs:
-                result = handler()
-            elif not has_kwargs:
-                result = handler(*command_args)
-            elif not command_args:
-                result = handler(**kwargs)
-            else:
-                result = handler(*command_args, **kwargs)
-            return u.Cli.commands_normalize_handler_result(result, name)
+            return u.Cli.commands_normalize_handler_result(
+                handler(*command_args, **kwargs),
+                name,
+            )
         except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
             return r[t.JsonValue].fail(
                 c.Cli.ERR_COMMAND_EXECUTION_FAILED.format(error=exc),
@@ -108,8 +95,7 @@ class FlextCliCommands(s):
             r[t.StrSequence]: List of command names.
 
         """
-        command_names: t.StrSequence = list(self._commands.keys())
-        return r[t.StrSequence].ok(command_names)
+        return r[t.StrSequence].ok(list(self._commands))
 
     def register_handler(
         self,
@@ -142,30 +128,28 @@ class FlextCliCommands(s):
 
         """
         if not args:
-            empty_args_payload: t.JsonValue = {
-                "status": c.Cli.CommandStatus.SUCCESS,
-                "message": "No args",
-            }
-            return r[t.JsonValue].ok(empty_args_payload)
-        cmd_name = args[0] if args else ""
-        cmd_args = list(args[1:]) if len(args) > 1 else []
-        if cmd_name in {"--help", "-h"}:
-            help_payload: t.JsonValue = {
-                "status": c.Cli.CommandStatus.HELP,
-                "commands": list(self._commands.keys()),
-            }
-            return r[t.JsonValue].ok(help_payload)
-        if cmd_name in {"--version", "-v"}:
-            version_payload: t.JsonValue = {
-                "status": c.Cli.CommandStatus.VERSION,
-                "name": self.name,
-            }
-            return r[t.JsonValue].ok(version_payload)
-        if cmd_name not in self._commands:
-            return r[t.JsonValue].fail(
-                c.Cli.ERR_COMMAND_NOT_FOUND.format(name=cmd_name),
-            )
-        return self.execute_command(cmd_name, args=cmd_args)
+            return r[t.JsonValue].ok({
+                c.Cli.DICT_KEY_STATUS: c.Cli.CommandStatus.SUCCESS,
+                c.Cli.DICT_KEY_MESSAGE: c.Cli.MSG_NO_ARGS,
+            })
+        cmd_name, *cmd_args = args
+        match cmd_name:
+            case "--help" | "-h":
+                return r[t.JsonValue].ok({
+                    c.Cli.DICT_KEY_STATUS: c.Cli.CommandStatus.HELP,
+                    c.Cli.DICT_KEY_COMMANDS: list(self._commands),
+                })
+            case "--version" | "-v":
+                return r[t.JsonValue].ok({
+                    c.Cli.DICT_KEY_STATUS: c.Cli.CommandStatus.VERSION,
+                    c.Cli.DICT_KEY_NAME: self.name,
+                })
+            case _ if cmd_name not in self._commands:
+                return r[t.JsonValue].fail(
+                    c.Cli.ERR_COMMAND_NOT_FOUND.format(name=cmd_name),
+                )
+            case _:
+                return self.execute_command(cmd_name, args=cmd_args)
 
 
 __all__: list[str] = ["FlextCliCommands"]

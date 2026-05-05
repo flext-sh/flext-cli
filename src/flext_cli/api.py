@@ -21,6 +21,8 @@ from flext_cli import (
     FlextCliTables,
     t,
 )
+from flext_cli.services.pipeline import FlextCliPipeline
+from flext_cli.services.runtime import FlextCliRuntime
 
 
 class FlextCli(
@@ -32,15 +34,17 @@ class FlextCli(
     FlextCliFileTools,
     FlextCliFormatters,
     FlextCliOutput,
+    FlextCliPipeline,
     FlextCliPrompts,
     FlextCliRules,
+    FlextCliRuntime,
     FlextCliTables,
     FlextCliApiRuntime,
 ):
     """Coordinate CLI operations and expose domain services.
 
     MRO facade over CLI services (cli, cmd, commands, params, file_tools,
-    formatters, output, prompts, rules, settings, tables).
+    formatters, output, pipeline, prompts, rules, runtime, settings, tables).
     All operations return r[T].
     """
 
@@ -48,6 +52,7 @@ class FlextCli(
 
 
 cli = FlextCli()
+"""Process-wide ``FlextCli`` facade singleton exposing every CLI service via MRO."""
 
 
 __all__: t.MutableSequenceOf[str] = ["FlextCli", "cli"]

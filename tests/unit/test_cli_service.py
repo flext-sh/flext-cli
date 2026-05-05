@@ -454,16 +454,16 @@ class TestsFlextCliService:
             _ = params
             return r[m.Tests.SampleOutput].fail("boom")
 
-        def build_ok_route() -> m.Tests.SampleRoute:
-            return m.Tests.SampleRoute(
+        def build_ok_route() -> m.Cli.ResultCommandRoute:
+            return m.Cli.ResultCommandRoute(
                 name="ok",
                 help_text="Successful command",
                 model_cls=m.Tests.SampleInput,
                 handler=ok_handler,
             )
 
-        def build_fail_route() -> m.Tests.SampleRoute:
-            return m.Tests.SampleRoute(
+        def build_fail_route() -> m.Cli.ResultCommandRoute:
+            return m.Cli.ResultCommandRoute(
                 name="fail",
                 help_text="Failing command",
                 model_cls=m.Tests.SampleInput,
@@ -502,7 +502,7 @@ class TestsFlextCliService:
         cli.register_result_routes(
             app,
             [
-                m.Tests.SampleRoute(
+                m.Cli.ResultCommandRoute(
                     name="fail",
                     help_text="Failing command",
                     model_cls=m.Tests.SampleInput,

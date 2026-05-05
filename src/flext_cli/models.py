@@ -2,16 +2,14 @@
 
 from __future__ import annotations
 
-from flext_cli import t
-from flext_cli._models.base import FlextCliModelsBase
-from flext_cli._models.pipeline import FlextCliModelsPipeline
+from flext_cli import FlextCliModelsBase, FlextCliModelsPipeline, FlextCliModelsRules, t
 from flext_core import FlextModels
 
 
 class FlextCliModels(FlextModels):
     """FlextCli models extending FlextModels."""
 
-    class Cli(FlextCliModelsPipeline, FlextCliModelsBase):
+    class Cli(FlextCliModelsPipeline, FlextCliModelsRules, FlextCliModelsBase):
         """CLI project namespace."""
 
 

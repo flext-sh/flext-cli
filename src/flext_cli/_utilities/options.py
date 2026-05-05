@@ -12,7 +12,7 @@ from typing import Annotated, TypeAliasType, Union, get_args, get_origin
 
 from typer.models import OptionInfo
 
-from flext_cli import c, m, t
+from flext_cli import c, m, p, t
 
 
 class FlextCliUtilitiesOptionBuilder:
@@ -28,8 +28,8 @@ class FlextCliUtilitiesOptionBuilder:
         self.field_name = field_name
         self.registry = registry
 
-    def build(self) -> OptionInfo:
-        """Build ``OptionInfo`` from field metadata."""
+    def build(self) -> p.Cli.CliOptionSpec:
+        """Build one CLI option spec from field metadata."""
         field_meta_raw = self.registry.get(self.field_name, {})
         if not isinstance(field_meta_raw, Mapping) or not field_meta_raw:
             msg = "Option registry metadata must support key lookup"
@@ -171,7 +171,7 @@ class FlextCliUtilitiesOptions:
         cls,
         field_name: str,
         field_info: m.FieldInfo,
-        settings: m.BaseModel | None,
+        settings: t.Cli.ModelLike | None,
     ) -> t.Cli.CliValue | None:
         """Resolve CLI default from settings first, then from model field metadata."""
         default_factory = getattr(field_info, "default_factory", None)
@@ -214,8 +214,8 @@ class FlextCliUtilitiesOptions:
     def build_option(
         field_name: str,
         registry: t.Cli.OptionRegistry,
-    ) -> OptionInfo:
-        """Build one Typer option from the canonical registry."""
+    ) -> p.Cli.CliOptionSpec:
+        """Build one CLI option spec from the canonical registry."""
         return FlextCliUtilitiesOptionBuilder(field_name, registry).build()
 
     @staticmethod

@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-from flext_cli import FlextCliSettings, c, m, p, t
-from flext_cli._utilities.validation import FlextCliUtilitiesValidation as uv
+from flext_cli import FlextCliUtilitiesValidation as uv, c, m, p, t
 from flext_core import r
 
 
@@ -27,45 +26,43 @@ class FlextCliUtilitiesParams:
 
     @staticmethod
     def params_set_bool(
-        settings: FlextCliSettings,
+        settings: p.Cli.Settings,
         params: p.Cli.CliParamsConfig,
-    ) -> p.Result[FlextCliSettings]:
+    ) -> p.Result[p.Cli.Settings]:
         """Set boolean parameters through validated model_copy updates."""
         if params.trace is not None and params.trace:
             will_be_debug = params.debug if params.debug is not None else settings.debug
             if not will_be_debug:
-                return r[FlextCliSettings].fail(
-                    c.Cli.CLI_PARAM_ERR_TRACE_REQUIRES_DEBUG
-                )
+                return r[p.Cli.Settings].fail(c.Cli.CLI_PARAM_ERR_TRACE_REQUIRES_DEBUG)
         update_data: t.MutableBoolMapping = {}
         for field in ("verbose", "quiet", "debug", "trace", "no_color"):
             value = getattr(params, field, None)
             if value is not None:
                 update_data[field] = value
         if not update_data:
-            return r[FlextCliSettings].ok(settings)
-        return r[FlextCliSettings].ok(settings.clone(**update_data))
+            return r[p.Cli.Settings].ok(settings)
+        return r[p.Cli.Settings].ok(settings.clone(**update_data))
 
     @staticmethod
     def params_set_log_level(
-        settings: FlextCliSettings,
+        settings: p.Cli.Settings,
         params: p.Cli.CliParamsConfig,
-    ) -> p.Result[FlextCliSettings]:
+    ) -> p.Result[p.Cli.Settings]:
         """Set CLI log level with enum conversion/validation."""
         if params.log_level is None:
-            return r[FlextCliSettings].ok(settings)
+            return r[p.Cli.Settings].ok(settings)
         try:
             resolved_level = m.Cli.LogLevelResolved(
                 raw=params.log_level,
                 default=c.LogLevel.INFO,
             ).resolved
             next_level = type(c.LogLevel.INFO)(resolved_level)
-            return r[FlextCliSettings].ok(
+            return r[p.Cli.Settings].ok(
                 settings.clone(cli_log_level=next_level),
             )
         except ValueError:
             valid = ", ".join(c.Cli.LOG_LEVELS)
-            return r[FlextCliSettings].fail(
+            return r[p.Cli.Settings].fail(
                 c.Cli.CLI_PARAM_ERR_INVALID_WITH_OPTIONS_FMT.format(
                     field_label="log level",
                     field_value=params.log_level,
@@ -75,9 +72,9 @@ class FlextCliUtilitiesParams:
 
     @staticmethod
     def params_set_format(
-        settings: FlextCliSettings,
+        settings: p.Cli.Settings,
         params: p.Cli.CliParamsConfig,
-    ) -> p.Result[FlextCliSettings]:
+    ) -> p.Result[p.Cli.Settings]:
         """Set output/log format values with canonical validation helpers."""
         next_config = settings
         if params.log_format is not None:
@@ -85,7 +82,7 @@ class FlextCliUtilitiesParams:
                 log_verbosity = c.Cli.LogVerbosity(params.log_format.lower())
             except ValueError:
                 valid = ", ".join(c.Cli.CLI_VALID_LOG_FORMATS)
-                return r[FlextCliSettings].fail(
+                return r[p.Cli.Settings].fail(
                     c.Cli.CLI_PARAM_ERR_INVALID_WITH_VALID_FMT.format(
                         field_label="log format",
                         field_value=params.log_format,
@@ -99,7 +96,7 @@ class FlextCliUtilitiesParams:
             validated_result = uv.validate_format(params.output_format)
             if validated_result.failure or validated_result.value is None:
                 valid = ", ".join(c.Cli.OUTPUT_FORMATS)
-                return r[FlextCliSettings].fail(
+                return r[p.Cli.Settings].fail(
                     c.Cli.CLI_PARAM_ERR_INVALID_WITH_VALID_FMT.format(
                         field_label="output format",
                         field_value=params.output_format,
@@ -109,13 +106,13 @@ class FlextCliUtilitiesParams:
             next_config = next_config.clone(
                 output_format=validated_result.value,
             )
-        return r[FlextCliSettings].ok(next_config)
+        return r[p.Cli.Settings].ok(next_config)
 
     @staticmethod
     def params_apply(
-        settings: FlextCliSettings,
+        settings: p.Cli.Settings,
         params: p.Cli.CliParamsConfig,
-    ) -> p.Result[FlextCliSettings]:
+    ) -> p.Result[p.Cli.Settings]:
         """Apply all parameter-setting stages to one settings model."""
         return (
             FlextCliUtilitiesParams

@@ -2,21 +2,9 @@
 
 from __future__ import annotations
 
-from typing import Self
-
 from flext_tests import tm
 
-from tests.helpers._impl import TestsFlextCliCaptureLogPrompts
-
-
-class _CaptureLogPrompts(TestsFlextCliCaptureLogPrompts):
-    """Prompt service that records log calls and supports test-env override."""
-
-    _test_env_override: bool | None = True
-
-    def force_non_test_env(self) -> Self:
-        self._test_env_override = False
-        return self
+from tests import TestsFlextCliCaptureLogPrompts
 
 
 class TestsFlextCliPromptsCov:
@@ -24,10 +12,10 @@ class TestsFlextCliPromptsCov:
 
     def test_prompt_logs_input_when_not_in_test_env(self) -> None:
         prompts = (
-            _CaptureLogPrompts()
+            TestsFlextCliCaptureLogPrompts()
             .configure_state(interactive=True)
             .use_input_values(["typed"])
-            .force_non_test_env()
+            .override_test_env(enabled=False)
         )
         result = prompts.prompt("message", default="default")
         tm.ok(result)
@@ -37,9 +25,10 @@ class TestsFlextCliPromptsCov:
 
     def test_confirm_records_warning_before_retrying(self) -> None:
         prompts = (
-            _CaptureLogPrompts()
+            TestsFlextCliCaptureLogPrompts()
             .configure_state(interactive=True)
             .use_input_values(["maybe", "y"])
+            .override_test_env()
         )
         result = prompts.confirm("m", default=False)
         tm.ok(result)
@@ -52,7 +41,11 @@ class TestsFlextCliPromptsCov:
 
     def test_prompt_choice_fails_with_empty_choices(self) -> None:
         """Test that prompt_choice handles empty choices (real API failure)."""
-        prompts = _CaptureLogPrompts().configure_state(interactive=True)
+        prompts = (
+            TestsFlextCliCaptureLogPrompts()
+            .configure_state(interactive=True)
+            .override_test_env()
+        )
         result = prompts.prompt_choice(
             "Choose one",
             choices=(),
@@ -62,7 +55,11 @@ class TestsFlextCliPromptsCov:
 
     def test_prompt_choice_fails_with_default_not_in_choices(self) -> None:
         """Test that prompt_choice handles invalid default (real API failure)."""
-        prompts = _CaptureLogPrompts().configure_state(interactive=True)
+        prompts = (
+            TestsFlextCliCaptureLogPrompts()
+            .configure_state(interactive=True)
+            .override_test_env()
+        )
         result = prompts.prompt_choice(
             "Choose one",
             choices=("a", "b"),

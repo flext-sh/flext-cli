@@ -2,10 +2,7 @@
 
 from __future__ import annotations
 
-import click
-
-from flext_cli import c, p, r, t
-from flext_cli._utilities.output import FlextCliUtilitiesOutput as uo
+from flext_cli import FlextCliUtilitiesOutput as uo, c, p, r, t
 from flext_core import u
 
 
@@ -18,21 +15,16 @@ class FlextCliUtilitiesCommands:
         command_name: str,
     ) -> p.Result[t.JsonValue]:
         """Normalize command execution output into canonical JSON result."""
-        if result is None:
-            payload: t.JsonValue = {
-                "status": c.Cli.CommandStatus.SUCCESS,
-                "command": command_name,
-            }
-            return r[t.JsonValue].ok(payload)
-        if result.success:
-            result_value: t.JsonValue = u.normalize_to_json_value(
-                result.value,
-            )
-            return r[t.JsonValue].ok(result_value)
-        error_value = result.error
-        return r[t.JsonValue].fail(
-            error_value or "Command failed",
-        )
+        match result:
+            case None:
+                return r[t.JsonValue].ok({
+                    c.Cli.DICT_KEY_STATUS: c.Cli.CommandStatus.SUCCESS,
+                    c.Cli.DICT_KEY_COMMAND: command_name,
+                })
+            case _ if result.success:
+                return r[t.JsonValue].ok(u.normalize_to_json_value(result.value))
+            case _:
+                return r[t.JsonValue].fail(result.error or c.Cli.ERR_COMMAND_FAILED)
 
     @staticmethod
     def commands_resolve_success_message[TResult: t.Cli.ResultValue](
@@ -45,13 +37,14 @@ class FlextCliUtilitiesCommands:
         if success_formatter is not None:
             formatted: str = success_formatter(result_value)
             return formatted if isinstance(formatted, str) else str(formatted)
-        if hasattr(result_value, "message"):
-            candidate = getattr(result_value, "message", None)
-            if isinstance(candidate, str) and candidate:
+        normalized_value: t.JsonValue = u.normalize_to_json_value(result_value)
+        match normalized_value:
+            case {c.Cli.DICT_KEY_MESSAGE: str() as candidate} if candidate:
                 return candidate
-        if isinstance(result_value, str) and result_value:
-            return result_value
-        return success_message
+            case str() as candidate if candidate:
+                return candidate
+            case _:
+                return success_message
 
     @staticmethod
     def commands_emit_success_message(
@@ -59,23 +52,19 @@ class FlextCliUtilitiesCommands:
         success_type: c.Cli.MessageTypes,
     ) -> None:
         """Emit success output as raw payload or styled CLI message."""
-        if message.lstrip().startswith(("{", "[")):
-            click.echo(message)
-            return
-        payload, _ = uo.output_message_payload(
-            message,
-            success_type,
+        rendered = (
+            message
+            if message.lstrip().startswith(("{", "["))
+            else uo.output_message_payload(message, success_type)[0]
         )
-        uo.emit_raw(f"{payload}\n")
+        uo.emit_raw(f"{rendered}\n")
 
     @staticmethod
     def commands_emit_error_message(error: str) -> None:
         """Emit standardized CLI error output."""
-        payload, _ = uo.output_message_payload(
-            error,
-            c.Cli.MessageTypes.ERROR,
+        uo.emit_raw(
+            f"{uo.output_message_payload(error, c.Cli.MessageTypes.ERROR)[0]}\n"
         )
-        uo.emit_raw(f"{payload}\n")
 
 
 __all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesCommands"]

@@ -18,7 +18,8 @@ from typer import Typer
 from typer.models import OptionInfo
 from typer.testing import CliRunner
 
-from flext_core import m, t
+from flext_core.models import m
+from flext_core.typings import t
 
 
 class FlextCliTypesBase:

@@ -14,7 +14,7 @@ from pathlib import Path
 
 from flext_tests import tm
 
-from flext_cli import FlextCliSettings, cli
+from flext_cli import cli
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(_PROJECT_ROOT) not in sys.path:
@@ -23,6 +23,7 @@ if str(_PROJECT_ROOT) not in sys.path:
 tests_pkg = importlib.import_module("tests")
 c = tests_pkg.c
 t = tests_pkg.t
+p = tests_pkg.p
 
 
 @contextmanager
@@ -45,27 +46,24 @@ def _temporary_environment(
 class TestsFlextCliExamplesSmoke:
     """Verify examples exercise the real public API paths."""
 
-    def test_getting_started_and_output_examples(self, tmp_path: Path) -> None:
+    def test_getting_started_and_output_examples(self) -> None:
         """Examples must round-trip settings data and format tables via cli."""
         getting_started = importlib.import_module("examples.ex_01_getting_started")
         output_formatting = importlib.import_module("examples.ex_02_output_formatting")
-        example = getting_started.FlextCliGettingStarted()
-        config_path = tmp_path / "settings.json"
-        settings = getting_started.m.Cli.LoadedConfig(
-            content={"theme": "dark", "retries": 3},
+        example = getting_started.ExamplesFlextCliGettingStarted()
+        settings_result = example.build_example_settings()
+        tm.ok(settings_result)
+
+        roundtrip_result = example.persist_example_settings(settings_result.value)
+        tm.ok(roundtrip_result)
+        tm.that(
+            roundtrip_result.value.content["app_name"],
+            eq=settings_result.value.app_name,
         )
 
-        tm.that(example.save_config(settings, str(config_path)), eq=True)
-
-        load_result = example.load_config(str(config_path))
-        tm.ok(load_result)
-        tm.that(load_result.value.content, eq=settings.content)
-
-        example.display_user_data(
-            getting_started.m.Cli.DisplayData(
-                data={"name": "Alice", "role": "admin"},
-            ),
-        )
+        execute_result = example.execute()
+        tm.ok(execute_result)
+        tm.that(execute_result.value["app_name"], eq=settings_result.value.app_name)
 
         report_result = output_formatting.export_report(
             [
@@ -128,10 +126,10 @@ class TestsFlextCliExamplesSmoke:
         """Auth and settings examples must work through cli.settings and cli auth APIs."""
         authentication = importlib.import_module("examples.ex_05_authentication")
         settings_example = importlib.import_module("examples.ex_06_settings")
-        cli.settings.token_file = str(tmp_path / "auth_token.json")
+        cli.settings.apply_override("token_file", str(tmp_path / "auth_token.json"))
 
         settings = settings_example.show_cli_settings()
-        tm.that(settings, is_=FlextCliSettings)
+        tm.that(settings, is_=p.Cli.Settings)
         tm.that(settings.token_file, eq=cli.settings.token_file)
 
         tm.that(authentication.login_to_service("demo", "secret"), eq=True)

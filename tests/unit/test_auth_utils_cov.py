@@ -12,32 +12,31 @@ from pathlib import Path
 
 import pytest
 
-from flext_cli._utilities.auth import FlextCliUtilitiesAuth
-from tests import c, t
+from tests import c, t, u
 
 
 class TestsFlextCliAuthUtilsCov:
-    """Coverage tests for FlextCliUtilitiesAuth."""
+    """Coverage tests for u.Cli."""
 
     # ── auth_token_file_path ──────────────────────────────────────────
 
     def test_auth_token_file_path_none(self) -> None:
-        path = FlextCliUtilitiesAuth.auth_token_file_path(None)
+        path = u.Cli.auth_token_file_path(None)
         assert isinstance(path, Path)
         assert ".flext" in str(path)
 
     def test_auth_token_file_path_empty(self) -> None:
-        path = FlextCliUtilitiesAuth.auth_token_file_path("")
+        path = u.Cli.auth_token_file_path("")
         assert isinstance(path, Path)
         assert ".flext" in str(path)
 
     def test_auth_token_file_path_whitespace(self) -> None:
-        path = FlextCliUtilitiesAuth.auth_token_file_path("   ")
+        path = u.Cli.auth_token_file_path("   ")
         assert isinstance(path, Path)
         assert ".flext" in str(path)
 
     def test_auth_token_file_path_custom(self) -> None:
-        path = FlextCliUtilitiesAuth.auth_token_file_path("/tmp/my_token.json")
+        path = u.Cli.auth_token_file_path("/tmp/my_token.json")
         assert isinstance(path, Path)
         assert str(path) == "/tmp/my_token.json"
 
@@ -53,33 +52,31 @@ class TestsFlextCliAuthUtilsCov:
         password: str,
         expect_ok: bool,
     ) -> None:
-        result = FlextCliUtilitiesAuth.auth_validate_credentials(username, password)
+        result = u.Cli.auth_validate_credentials(username, password)
         assert result.success == expect_ok
 
     # ── auth_extract_token ────────────────────────────────────────────
 
     def test_auth_extract_token_valid(self) -> None:
         payload: dict[str, t.JsonValue] = {c.Cli.DICT_KEY_AUTH_TOKEN: "my-secret-token"}
-        result = FlextCliUtilitiesAuth.auth_extract_token(payload)
+        result = u.Cli.auth_extract_token(payload)
         assert result.success
         assert result.value == "my-secret-token"
 
     def test_auth_extract_token_missing_key(self) -> None:
-        result = FlextCliUtilitiesAuth.auth_extract_token({"user": "admin"})
+        result = u.Cli.auth_extract_token({"user": "admin"})
         assert result.failure
 
     def test_auth_extract_token_empty_token(self) -> None:
-        result = FlextCliUtilitiesAuth.auth_extract_token({
-            c.Cli.DICT_KEY_AUTH_TOKEN: ""
-        })
+        result = u.Cli.auth_extract_token({c.Cli.DICT_KEY_AUTH_TOKEN: ""})
         assert result.failure
 
     def test_auth_extract_token_not_mapping(self) -> None:
-        result = FlextCliUtilitiesAuth.auth_extract_token("not-a-mapping")
+        result = u.Cli.auth_extract_token("not-a-mapping")
         assert result.failure
 
     def test_auth_extract_token_list(self) -> None:
-        result = FlextCliUtilitiesAuth.auth_extract_token(["token", "value"])
+        result = u.Cli.auth_extract_token(["token", "value"])
         assert result.failure
 
 

@@ -17,7 +17,7 @@ import pytest
 from flext_tests import tm
 
 from flext_cli import FlextCliSettings, cli
-from tests import c
+from tests import c, p
 
 
 class TestsFlextCliSettings:
@@ -27,7 +27,7 @@ class TestsFlextCliSettings:
         """Test basic initialization."""
         settings = FlextCliSettings()
         tm.that(settings, none=False)
-        tm.that(settings, is_=FlextCliSettings)
+        tm.that(settings, is_=p.Cli.Settings)
 
     def test_serialization_deserialization(self) -> None:
         """Test model_dump and model_validate."""
@@ -53,7 +53,11 @@ class TestsFlextCliSettings:
         ("level", "expected"),
         c.Tests.LOG_LEVEL_SCENARIOS,
     )
-    def test_logging_levels(self, level: str, expected: str) -> None:
+    def test_logging_levels(
+        self,
+        level: c.LogLevel,
+        expected: c.LogLevel,
+    ) -> None:
         """Test all logging levels with single parametrized test."""
         tm.that(level in c.Tests.LOG_LEVEL_SET, eq=True)
         tm.that(
@@ -67,13 +71,13 @@ class TestsFlextCliSettings:
         instance = cli
         settings = instance.settings
         tm.that(settings, none=False)
-        tm.that(settings, is_=FlextCliSettings)
+        tm.that(settings, is_=p.Cli.Settings)
 
     def test_flext_cli_settings_namespace(self) -> None:
         """Test cli exposes direct namespaced settings access."""
         settings = cli.settings
         tm.that(settings, none=False)
-        tm.that(settings, is_=FlextCliSettings)
+        tm.that(settings, is_=p.Cli.Settings)
 
     @pytest.mark.parametrize("env", c.Tests.ENVIRONMENTS)
     def test_valid_environments(self, env: str) -> None:
@@ -83,14 +87,14 @@ class TestsFlextCliSettings:
 
     def test_model_dump(self) -> None:
         """Test model_dump returns complete dict."""
-        settings: FlextCliSettings = FlextCliSettings()
+        settings: p.Cli.Settings = FlextCliSettings()
         dumped = settings.model_dump()
         tm.that(dumped, is_=dict)
         tm.that(dumped, empty=False)
 
     def test_basic_fields_exist(self) -> None:
         """Test settings has expected fields."""
-        settings: FlextCliSettings = FlextCliSettings()
+        settings: p.Cli.Settings = FlextCliSettings()
         tm.that(settings.verbose, is_=bool)
         tm.that(settings.debug, is_=bool)
         tm.that(settings.no_color, is_=bool)
