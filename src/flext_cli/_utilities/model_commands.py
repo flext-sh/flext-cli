@@ -55,7 +55,7 @@ class FlextCliUtilitiesModelCommandBuilder[M: t.Cli.ModelLike]:
                 applicable_overrides = {
                     field_name: field_value
                     for field_name, field_value in kwargs.items()
-                    if field_name in current_settings.model_fields
+                    if field_name in current_settings.__class__.model_fields
                 }
                 if applicable_overrides:
                     current_settings.update_global(**applicable_overrides)
