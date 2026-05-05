@@ -9,7 +9,7 @@ from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if _t.TYPE_CHECKING:
     from examples.constants import ExamplesFlextCliConstants, c
-    from examples.ex_01_getting_started import FlextCliGettingStarted
+    from examples.ex_01_getting_started import ExamplesFlextCliGettingStarted
     from examples.ex_07_plugin_system import (
         ConfigurablePlugin,
         DataExportPlugin,
@@ -32,7 +32,7 @@ _LAZY_IMPORTS = build_lazy_import_map(
             "ExamplesFlextCliConstants",
             "c",
         ),
-        ".ex_01_getting_started": ("FlextCliGettingStarted",),
+        ".ex_01_getting_started": ("ExamplesFlextCliGettingStarted",),
         ".ex_07_plugin_system": (
             "ConfigurablePlugin",
             "DataExportPlugin",
@@ -88,11 +88,11 @@ __all__: list[str] = [
     "DataProcessorPlugin",
     "ExamplePlugin",
     "ExamplesFlextCliConstants",
+    "ExamplesFlextCliGettingStarted",
     "ExamplesFlextCliModels",
     "ExamplesFlextCliProtocols",
     "ExamplesFlextCliTypes",
     "ExamplesFlextCliUtilities",
-    "FlextCliGettingStarted",
     "InteractiveShell",
     "LazyDataLoader",
     "LifecyclePlugin",

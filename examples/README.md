@@ -60,6 +60,7 @@ Use these for example-owned constants, models, utilities, and service setup.
 ### Public CLI Facade
 
 ```python
+from examples import c
 from flext_cli import cli
 
 cli.print("hello", style=c.Cli.MessageStyles.GREEN)
@@ -71,6 +72,9 @@ Keep interaction with flext-cli on the public facade unless the example is expli
 ### Service Base Via `s`
 
 ```python
+from examples import p, r, s, t
+
+
 class Demo(s):
     def execute(self) -> p.Result[t.JsonMapping]:
         return r[t.JsonMapping].ok({"output_format": self.settings.output_format})

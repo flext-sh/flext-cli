@@ -194,10 +194,12 @@ pytest tests/unit/test_module.py::TestClass::test_method -v --pdb
 **Check test data:**
 
 ```python
-from flext_core import FlextLogger
+from collections.abc import Callable
+
+from flext_core import FlextLogger, p
 
 
-def test_with_debug() -> None:
+def test_with_debug(my_function: Callable[[], p.Result[object]]) -> None:
     """Use the structured FLEXT logger for in-test diagnostics."""
     logger = FlextLogger.fetch_logger("troubleshoot.test_with_debug")
     result = my_function()
@@ -274,8 +276,9 @@ LdifParsingException: Invalid LDIF format
 **Check LDIF content:**
 
 ```python
-from flext_core import FlextLogger
 from flext_ldif import ldif
+
+from flext_core import FlextLogger
 
 logger = FlextLogger.fetch_logger("troubleshoot.ldif_parse")
 content = """dn: cn=test,dc=example,dc=com
@@ -342,8 +345,9 @@ LdifMigrationException: Server compatibility error
 **Check server configuration:**
 
 ```python
-from flext_core import FlextLogger
 from flext_ldif import FlextLdifSettings, c
+
+from flext_core import FlextLogger
 
 logger = FlextLogger.fetch_logger("troubleshoot.ldif_settings")
 settings = FlextLdifSettings(
@@ -360,19 +364,21 @@ logger.info(
 **Build a migration pipeline:**
 
 ```python
-from flext_core import FlextLogger
 from flext_ldif import ldif
 
+from flext_core import FlextLogger
+
 logger = FlextLogger.fetch_logger("troubleshoot.ldif_pipeline")
-pipeline = ldif.migration_pipeline(source_server="oid", target_server="oud")
+pipeline = ldif.migration_pipeline()
 logger.info("migration_pipeline_built", pipeline_type=type(pipeline).__name__)
 ```
 
 **Test with sample data:**
 
 ```python
-from flext_core import FlextLogger
 from flext_ldif import ldif
+
+from flext_core import FlextLogger
 
 logger = FlextLogger.fetch_logger("troubleshoot.ldif_sample")
 sample_ldif = """dn: cn=test,dc=example,dc=com
@@ -428,8 +434,9 @@ profile_memory()
 **Inspect active LDIF settings:**
 
 ```python
-from flext_core import FlextLogger
 from flext_ldif import FlextLdifSettings, c
+
+from flext_core import FlextLogger
 
 logger = FlextLogger.fetch_logger("troubleshoot.ldif_settings_inspect")
 settings = FlextLdifSettings(
@@ -446,8 +453,9 @@ logger.info(
 **Reuse explicit settings in the facade:**
 
 ```python
-from flext_core import FlextLogger
 from flext_ldif import FlextLdifSettings, ldif
+
+from flext_core import FlextLogger
 
 logger = FlextLogger.fetch_logger("troubleshoot.ldif_facade")
 settings = FlextLdifSettings(ldif_strict_validation=True)
@@ -516,8 +524,9 @@ logger.info(
 ### 4. Step-by-Step Debugging
 
 ```python
-from flext_core import FlextLogger
 from flext_ldif import ldif
+
+from flext_core import FlextLogger
 
 
 def debug_ldif_processing(content: str) -> None:
@@ -757,9 +766,7 @@ def process_without_result(data: dict[str, str]) -> dict[str, str]:
 1. **Use Type Hints**
 
    ```python
-   from collections.abc import Sequence
-
-   from flext_core import p, r
+   from flext_cli import p, r, t
 
 
    # ✅ GOOD

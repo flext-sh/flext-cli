@@ -9,6 +9,7 @@ _LAZY_IMPORTS = build_lazy_import_map(
     {
         ".base": ("FlextCliModelsBase",),
         ".pipeline": ("FlextCliModelsPipeline",),
+        ".rules": ("FlextCliModelsRules",),
     },
 )
 

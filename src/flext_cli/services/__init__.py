@@ -16,8 +16,10 @@ _LAZY_IMPORTS = build_lazy_import_map(
         ".file_tools": ("FlextCliFileTools",),
         ".formatters": ("FlextCliFormatters",),
         ".output": ("FlextCliOutput",),
+        ".pipeline": ("FlextCliPipeline",),
         ".prompts": ("FlextCliPrompts",),
         ".rules": ("FlextCliRules",),
+        ".runtime": ("FlextCliRuntime",),
         ".tables": ("FlextCliTables",),
     },
 )

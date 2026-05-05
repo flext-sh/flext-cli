@@ -12,8 +12,9 @@ from flext_core.lazy import (
 )
 
 if _t.TYPE_CHECKING:
-    from flext_tests import d, e, h, r, s, td, tf, tk, tm, tv, x
+    from flext_tests import td, tf, tk, tm, tv
 
+    from flext_cli import d, e, h, r, s, x
     from tests.constants import TestsFlextCliConstants, c
     from tests.models import TestsFlextCliModels, m
     from tests.protocols import TestsFlextCliProtocols, p
@@ -23,6 +24,7 @@ if _t.TYPE_CHECKING:
         TestsFlextCliFailingLogPrompts,
         TestsFlextCliScriptedPrompts,
         make_prompts,
+        reset_settings,
     )
     from tests.unit.test_auth_utils_cov import TestsFlextCliAuthUtilsCov
     from tests.unit.test_base import TestsFlextCliServiceBase
@@ -53,10 +55,7 @@ if _t.TYPE_CHECKING:
     from tests.unit.test_prompts import TestsFlextCliPrompts
     from tests.unit.test_prompts_cov import TestsFlextCliPromptsCov
     from tests.unit.test_protocols import TestsFlextCliProtocolsUnit
-    from tests.unit.test_rules_cov import (
-        TestsFlextCliRulesUtilsCov,
-        TestsFlextCliServiceRulesCov,
-    )
+    from tests.unit.test_rules_cov import TestsFlextCliRulesCov
     from tests.unit.test_runtime_utilities_core import TestsFlextCliRuntimeUtilitiesCore
     from tests.unit.test_runtime_utilities_extra import (
         TestsFlextCliRuntimeUtilitiesExtra,
@@ -110,6 +109,7 @@ _LAZY_IMPORTS = merge_lazy_imports(
                 "TestsFlextCliFailingLogPrompts",
                 "TestsFlextCliScriptedPrompts",
                 "make_prompts",
+                "reset_settings",
             ),
             ".unit.test_auth_utils_cov": ("TestsFlextCliAuthUtilsCov",),
             ".unit.test_base": ("TestsFlextCliServiceBase",),
@@ -140,10 +140,7 @@ _LAZY_IMPORTS = merge_lazy_imports(
             ".unit.test_prompts": ("TestsFlextCliPrompts",),
             ".unit.test_prompts_cov": ("TestsFlextCliPromptsCov",),
             ".unit.test_protocols": ("TestsFlextCliProtocolsUnit",),
-            ".unit.test_rules_cov": (
-                "TestsFlextCliRulesUtilsCov",
-                "TestsFlextCliServiceRulesCov",
-            ),
+            ".unit.test_rules_cov": ("TestsFlextCliRulesCov",),
             ".unit.test_runtime_utilities_core": ("TestsFlextCliRuntimeUtilitiesCore",),
             ".unit.test_runtime_utilities_extra": (
                 "TestsFlextCliRuntimeUtilitiesExtra",
@@ -175,18 +172,20 @@ _LAZY_IMPORTS = merge_lazy_imports(
                 "TestsFlextCliUtilities",
                 "u",
             ),
-            "flext_tests": (
+            "flext_cli": (
                 "d",
                 "e",
                 "h",
                 "r",
                 "s",
+                "x",
+            ),
+            "flext_tests": (
                 "td",
                 "tf",
                 "tk",
                 "tm",
                 "tv",
-                "x",
             ),
         },
     ),
@@ -243,13 +242,12 @@ __all__: list[str] = [
     "TestsFlextCliPromptsCov",
     "TestsFlextCliProtocols",
     "TestsFlextCliProtocolsUnit",
-    "TestsFlextCliRulesUtilsCov",
+    "TestsFlextCliRulesCov",
     "TestsFlextCliRuntimeUtilitiesCore",
     "TestsFlextCliRuntimeUtilitiesExtra",
     "TestsFlextCliScriptedPrompts",
     "TestsFlextCliService",
     "TestsFlextCliServiceBase",
-    "TestsFlextCliServiceRulesCov",
     "TestsFlextCliServicesAuthBranchCov",
     "TestsFlextCliServicesAuthCov",
     "TestsFlextCliServicesCommandsBranchCov",
@@ -278,6 +276,7 @@ __all__: list[str] = [
     "make_prompts",
     "p",
     "r",
+    "reset_settings",
     "s",
     "t",
     "td",

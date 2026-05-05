@@ -5,6 +5,16 @@ from __future__ import annotations
 
 import typing as _t
 
+from flext_cli.__version__ import (
+    __author__,
+    __author_email__,
+    __description__,
+    __license__,
+    __title__,
+    __url__,
+    __version__,
+    __version_info__,
+)
 from flext_core.lazy import (
     build_lazy_import_map,
     install_lazy_exports,
@@ -12,16 +22,6 @@ from flext_core.lazy import (
 )
 
 if _t.TYPE_CHECKING:
-    from flext_cli.__version__ import (
-        __author__,
-        __author_email__,
-        __description__,
-        __license__,
-        __title__,
-        __url__,
-        __version__,
-        __version_info__,
-    )
     from flext_cli._constants.base import FlextCliConstantsBase
     from flext_cli._constants.enums import FlextCliConstantsEnums
     from flext_cli._constants.errors import FlextCliConstantsErrors
@@ -30,6 +30,7 @@ if _t.TYPE_CHECKING:
     from flext_cli._constants.settings import FlextCliConstantsSettings
     from flext_cli._models.base import FlextCliModelsBase
     from flext_cli._models.pipeline import FlextCliModelsPipeline
+    from flext_cli._models.rules import FlextCliModelsRules
     from flext_cli._protocols.base import FlextCliProtocolsBase
     from flext_cli._protocols.domain import FlextCliProtocolsDomain
     from flext_cli._protocols.pipeline import FlextCliProtocolsPipeline
@@ -37,7 +38,6 @@ if _t.TYPE_CHECKING:
     from flext_cli._typings.domain import FlextCliTypesDomain
     from flext_cli._typings.pipeline import FlextCliTypesPipeline
     from flext_cli._utilities.auth import FlextCliUtilitiesAuth
-    from flext_cli._utilities.base import FlextCliUtilitiesBase
     from flext_cli._utilities.cmd import FlextCliUtilitiesCmd
     from flext_cli._utilities.commands import FlextCliUtilitiesCommands
     from flext_cli._utilities.conversion import FlextCliUtilitiesConversion
@@ -78,8 +78,10 @@ if _t.TYPE_CHECKING:
     from flext_cli.services.file_tools import FlextCliFileTools
     from flext_cli.services.formatters import FlextCliFormatters
     from flext_cli.services.output import FlextCliOutput
+    from flext_cli.services.pipeline import FlextCliPipeline
     from flext_cli.services.prompts import FlextCliPrompts
     from flext_cli.services.rules import FlextCliRules
+    from flext_cli.services.runtime import FlextCliRuntime
     from flext_cli.services.tables import FlextCliTables
     from flext_cli.settings import FlextCliSettings
     from flext_cli.typings import FlextCliTypes, t
@@ -96,16 +98,6 @@ _LAZY_IMPORTS = merge_lazy_imports(
     ),
     build_lazy_import_map(
         {
-            ".__version__": (
-                "__author__",
-                "__author_email__",
-                "__description__",
-                "__license__",
-                "__title__",
-                "__url__",
-                "__version__",
-                "__version_info__",
-            ),
             "._constants.base": ("FlextCliConstantsBase",),
             "._constants.enums": ("FlextCliConstantsEnums",),
             "._constants.errors": ("FlextCliConstantsErrors",),
@@ -114,6 +106,7 @@ _LAZY_IMPORTS = merge_lazy_imports(
             "._constants.settings": ("FlextCliConstantsSettings",),
             "._models.base": ("FlextCliModelsBase",),
             "._models.pipeline": ("FlextCliModelsPipeline",),
+            "._models.rules": ("FlextCliModelsRules",),
             "._protocols.base": ("FlextCliProtocolsBase",),
             "._protocols.domain": ("FlextCliProtocolsDomain",),
             "._protocols.pipeline": ("FlextCliProtocolsPipeline",),
@@ -121,7 +114,6 @@ _LAZY_IMPORTS = merge_lazy_imports(
             "._typings.domain": ("FlextCliTypesDomain",),
             "._typings.pipeline": ("FlextCliTypesPipeline",),
             "._utilities.auth": ("FlextCliUtilitiesAuth",),
-            "._utilities.base": ("FlextCliUtilitiesBase",),
             "._utilities.cmd": ("FlextCliUtilitiesCmd",),
             "._utilities.commands": ("FlextCliUtilitiesCommands",),
             "._utilities.conversion": ("FlextCliUtilitiesConversion",),
@@ -177,8 +169,10 @@ _LAZY_IMPORTS = merge_lazy_imports(
             ".services.file_tools": ("FlextCliFileTools",),
             ".services.formatters": ("FlextCliFormatters",),
             ".services.output": ("FlextCliOutput",),
+            ".services.pipeline": ("FlextCliPipeline",),
             ".services.prompts": ("FlextCliPrompts",),
             ".services.rules": ("FlextCliRules",),
+            ".services.runtime": ("FlextCliRuntime",),
             ".services.tables": ("FlextCliTables",),
             ".settings": ("FlextCliSettings",),
             ".typings": (
@@ -221,7 +215,21 @@ _LAZY_IMPORTS = merge_lazy_imports(
 )
 
 
-install_lazy_exports(__name__, globals(), _LAZY_IMPORTS)
+install_lazy_exports(
+    __name__,
+    globals(),
+    _LAZY_IMPORTS,
+    [
+        "__author__",
+        "__author_email__",
+        "__description__",
+        "__license__",
+        "__title__",
+        "__url__",
+        "__version__",
+        "__version_info__",
+    ],
+)
 
 __all__: list[str] = [
     "FlextCli",
@@ -243,13 +251,16 @@ __all__: list[str] = [
     "FlextCliModels",
     "FlextCliModelsBase",
     "FlextCliModelsPipeline",
+    "FlextCliModelsRules",
     "FlextCliOutput",
+    "FlextCliPipeline",
     "FlextCliPrompts",
     "FlextCliProtocols",
     "FlextCliProtocolsBase",
     "FlextCliProtocolsDomain",
     "FlextCliProtocolsPipeline",
     "FlextCliRules",
+    "FlextCliRuntime",
     "FlextCliServiceBase",
     "FlextCliSettings",
     "FlextCliTables",
@@ -259,7 +270,6 @@ __all__: list[str] = [
     "FlextCliTypesPipeline",
     "FlextCliUtilities",
     "FlextCliUtilitiesAuth",
-    "FlextCliUtilitiesBase",
     "FlextCliUtilitiesCmd",
     "FlextCliUtilitiesCommands",
     "FlextCliUtilitiesConversion",
