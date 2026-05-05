@@ -10,7 +10,7 @@ from collections.abc import (
 import pytest
 from flext_tests import reset_settings
 
-from flext_cli import FlextCliSettings
+from flext_cli import cli
 from tests.helpers._impl import (
     TestsFlextCliCaptureLogPrompts,
     TestsFlextCliFailingLogPrompts,
@@ -38,14 +38,14 @@ def make_prompts() -> Callable[..., TestsFlextCliScriptedPrompts]:
 
 @pytest.fixture(autouse=True)
 def reset_config_singleton() -> Generator[None]:
-    """Reset FlextCliSettings singleton before and after each test.
+    """Reset cli.settings singleton before and after each test.
 
-    This ensures test isolation and prevents one test from contaminating
-    the state for other tests.
+    Settings are now resolved via ``FlextCliSettings.fetch_global()`` per
+    access (no cache), so a single ``reset_for_testing`` is sufficient.
     """
-    FlextCliSettings.reset_for_testing()
+    cli.settings.reset_for_testing()
     yield
-    FlextCliSettings.reset_for_testing()
+    cli.settings.reset_for_testing()
 
 
 __all__: list[str] = [

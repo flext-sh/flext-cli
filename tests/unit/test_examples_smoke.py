@@ -126,7 +126,7 @@ class TestsFlextCliExamplesSmoke:
         """Auth and settings examples must work through cli.settings and cli auth APIs."""
         authentication = importlib.import_module("examples.ex_05_authentication")
         settings_example = importlib.import_module("examples.ex_06_settings")
-        cli.settings.apply_override("token_file", str(tmp_path / "auth_token.json"))
+        cli.settings.update_global(token_file=str(tmp_path / "auth_token.json"))
 
         settings = settings_example.show_cli_settings()
         tm.that(settings, is_=p.Cli.Settings)

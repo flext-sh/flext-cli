@@ -78,12 +78,19 @@ class FlextCliProtocolsBase:
             """Return a cloned settings instance with overrides applied."""
             ...
 
-        def apply_override(
-            self,
-            key: str,
-            value: t.Scalar | t.ScalarList | t.ScalarMapping,
-        ) -> bool:
-            """Apply one runtime override to the live settings object."""
+        @classmethod
+        def fetch_global(cls) -> Self:
+            """Return the process-wide singleton settings instance."""
+            ...
+
+        @classmethod
+        def update_global(cls, **overrides: t.JsonPayload | None) -> Self:
+            """Replace the singleton via Pydantic-2 ``model_copy(update=…)``."""
+            ...
+
+        @classmethod
+        def reset_for_testing(cls) -> None:
+            """Reset the process-wide singleton (test isolation only)."""
             ...
 
     @runtime_checkable

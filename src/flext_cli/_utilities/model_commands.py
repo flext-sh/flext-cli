@@ -5,7 +5,7 @@ from __future__ import annotations
 import inspect
 
 from flext_cli import p, t
-from flext_core import m
+from flext_core import FlextSettingsBase, m
 
 
 class FlextCliUtilitiesModelCommandBuilder[M: t.Cli.ModelLike]:
@@ -50,10 +50,15 @@ class FlextCliUtilitiesModelCommandBuilder[M: t.Cli.ModelLike]:
         signature = inspect.Signature(parameters)
 
         def command(**kwargs: t.Cli.CliValue) -> t.JsonValue:
-            if self.settings is not None:
-                for field_name, field_value in kwargs.items():
-                    if hasattr(self.settings, field_name):
-                        setattr(self.settings, field_name, field_value)
+            current_settings = self.settings
+            if isinstance(current_settings, FlextSettingsBase):
+                applicable_overrides = {
+                    field_name: field_value
+                    for field_name, field_value in kwargs.items()
+                    if field_name in current_settings.model_fields
+                }
+                if applicable_overrides:
+                    current_settings.update_global(**applicable_overrides)
             model = self.model_class.model_validate(kwargs)
             return self.handler(model)
 

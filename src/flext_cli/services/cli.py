@@ -29,6 +29,7 @@ from flext_cli import (
     t,
     u,
 )
+from flext_core import FlextSettingsBase
 
 
 class FlextCliCli(s):
@@ -146,13 +147,19 @@ class FlextCliCli(s):
             return
 
         updated_settings = result.value
-        if updated_settings is settings:
+        if updated_settings is settings or not isinstance(settings, FlextSettingsBase):
             return
-        for field_name, value in updated_settings.model_dump().items():
-            if value is None or not isinstance(value, bool | str):
-                continue
-            if getattr(settings, field_name) != value:
-                settings.apply_override(field_name, value)
+        declared_fields = settings.__class__.model_fields
+        overrides: dict[str, bool | str] = {
+            field_name: value
+            for field_name, value in updated_settings.model_dump().items()
+            if value is not None
+            and isinstance(value, bool | str)
+            and field_name in declared_fields
+            and getattr(settings, field_name) != value
+        }
+        if overrides:
+            settings.update_global(**overrides)
 
     def create_app_with_common_params(
         self,

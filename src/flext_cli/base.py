@@ -1,8 +1,7 @@
 """Shared service foundation for flext-cli components.
 
-Centralizes access to configuration singleton while maintaining inheritance
-aligned with `s` from flext-core, avoiding duplication of initialization
-across library services.
+Reads settings via ``FlextCliSettings.fetch_global()`` per access so runtime
+mutations propagate (rule 1, no caching of references).
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -13,7 +12,7 @@ from __future__ import annotations
 from typing import override
 
 from flext_cli import FlextCliSettings, p, r, t
-from flext_core import FlextSettings, s
+from flext_core import s
 
 
 class FlextCliServiceBase(s):
@@ -22,8 +21,6 @@ class FlextCliServiceBase(s):
     Note: This is an abstract base class. Subclasses must implement the
     `execute` method from s.
     """
-
-    _cached_settings: p.Cli.Settings | None = None
 
     @override
     def execute(self) -> p.Result[t.JsonMapping]:
@@ -34,15 +31,12 @@ class FlextCliServiceBase(s):
     @property
     @override
     def settings(self) -> p.Cli.Settings:
-        """Return the typed CLI settings namespace."""
-        cached_settings = self._cached_settings
-        if cached_settings is None:
-            cached_settings = FlextSettings.fetch_global().fetch_namespace(
-                "cli",
-                FlextCliSettings,
-            )
-            self._cached_settings = cached_settings
-        return cached_settings
+        """Return the global CLI settings singleton (rule 1, propagating)."""
+        return FlextCliSettings.fetch_global()
+
+    def new_settings(self) -> p.Cli.Settings:
+        """Construct a fresh settings instance with default values (test isolation)."""
+        return FlextCliSettings()
 
 
 s = FlextCliServiceBase
