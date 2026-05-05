@@ -25,6 +25,7 @@ if _t.TYPE_CHECKING:
     from flext_cli._constants.base import FlextCliConstantsBase
     from flext_cli._constants.enums import FlextCliConstantsEnums
     from flext_cli._constants.errors import FlextCliConstantsErrors
+    from flext_cli._constants.exceptions import FlextCliConstantsExceptions
     from flext_cli._constants.output import FlextCliConstantsOutput
     from flext_cli._constants.pipeline import FlextCliConstantsPipeline
     from flext_cli._constants.settings import FlextCliConstantsSettings
@@ -101,6 +102,7 @@ _LAZY_IMPORTS = merge_lazy_imports(
             "._constants.base": ("FlextCliConstantsBase",),
             "._constants.enums": ("FlextCliConstantsEnums",),
             "._constants.errors": ("FlextCliConstantsErrors",),
+            "._constants.exceptions": ("FlextCliConstantsExceptions",),
             "._constants.output": ("FlextCliConstantsOutput",),
             "._constants.pipeline": ("FlextCliConstantsPipeline",),
             "._constants.settings": ("FlextCliConstantsSettings",),
@@ -243,6 +245,7 @@ __all__: list[str] = [
     "FlextCliConstantsBase",
     "FlextCliConstantsEnums",
     "FlextCliConstantsErrors",
+    "FlextCliConstantsExceptions",
     "FlextCliConstantsOutput",
     "FlextCliConstantsPipeline",
     "FlextCliConstantsSettings",

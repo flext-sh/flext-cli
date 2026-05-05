@@ -336,9 +336,16 @@ class FlextCliCli(s):
         return result
 
     @staticmethod
-    def exit(*, code: int = 0) -> None:
-        """Raise a Typer exit through the public CLI facade."""
-        raise typer.Exit(code=code)
+    def exit(code: int = 0) -> None:
+        """Terminate the process with the given exit code.
+
+        Canonical CLI shutdown for ``__main__.py`` entry points: delegates
+        to ``sys.exit(code)`` so the call ``cli.exit(main())`` produces a
+        clean process exit without a ``typer.Exit`` traceback. Inside an
+        active Typer/Click command callback, prefer
+        ``raise typer.Exit(code=...)`` directly so the framework catches it.
+        """
+        sys.exit(code)
 
     @staticmethod
     def register_command(
