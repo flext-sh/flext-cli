@@ -1,0 +1,278 @@
+src/flext_cli/_utilities/files.py
+  819ad84429cc6478 18-26,55,68,85,93-94,128,146,154,167,183,238-241,253-258,330-332
+src/flext_cli/_utilities/matching.py
+  819ad84429cc6478 18
+docs/api-reference/generated/modules/flext_cli.md
+  819ad84429cc6478 1-4
+tests/unit/test_typings.py
+  819ad84429cc6478 9
+src/flext_cli/services/auth.py
+  819ad84429cc6478 61,92-94
+tests/unit/test_auth_utils_cov.py
+  819ad84429cc6478 15,19,24,29,34,39,55,62,67,71,75,79
+tests/models.py
+  819ad84429cc6478 14,31,66,69-70,75,80,85,90-91,94,96-97,102,107,112,117,120,123-124,130,136,142,153
+src/flext_cli/_protocols/domain.py
+  819ad84429cc6478 27,47,53
+docs/guides/testing.md
+  819ad84429cc6478 153,417
+docs/api-reference/README.md
+  819ad84429cc6478 1-6
+docs/api-reference/generated/modules/services/commands.md
+  819ad84429cc6478 1-4
+docs/api-reference/generated/modules/services/rules.md
+  819ad84429cc6478 1-4
+src/flext_cli/utilities.py
+  819ad84429cc6478 6-11,13-17,19-23,25,35-40,42-52,54
+src/flext_cli/_constants/errors.py
+  819ad84429cc6478 14,18-32,89
+tests/unit/test_prompts_cov.py
+  819ad84429cc6478 7,15,18,28,31,44-48,58-62
+docs/api-reference/generated/modules/services/file_tools.md
+  819ad84429cc6478 1-4
+docs/api-reference/generated/modules/services/cmd.md
+  819ad84429cc6478 1-4
+docs/api-reference/generated/modules/services/cli_params.md
+  819ad84429cc6478 1-4
+docs/api-reference/generated/modules/typings.md
+  819ad84429cc6478 1-4
+docs/api-reference/generated/modules/services/api_runtime.md
+  819ad84429cc6478 1-4
+docs/api-reference/generated/modules/utilities.md
+  819ad84429cc6478 1-4
+src/flext_cli/_utilities/cmd.py
+  819ad84429cc6478 5
+src/flext_cli/_typings/domain.py
+  819ad84429cc6478 17-19,25,46-52,63-66,98
+tests/unit/test_services_tables_cov.py
+  819ad84429cc6478 11,21,26,32,37,41,47,53,56,60,64
+docs/guides/getting-started.md
+  819ad84429cc6478 248,252-254
+src/flext_cli/_utilities/rules.py
+  819ad84429cc6478 15,69,74,105-108,137,156,164,178,188,207,218,230,245
+docs/development.md
+  819ad84429cc6478 610
+tests/unit/test_output_cov.py
+  819ad84429cc6478 9,13,16,20,24,28,44,49,56,61,67,74,79,83,89,94,98-99,102,107,112,118,123,128,133,138,143,148,153,158-159,161,165,169-170,183,196
+tests/unit/test_commands.py
+  819ad84429cc6478 18-19,23,29,32,38-39,42,44,46-47,50,52,54-56,61,64,73-74,85,88,97-98,119-121,129-134,145-146,156-157,169,182,191,198-199
+docs/guides/README.md
+  819ad84429cc6478 1-4
+src/flext_cli/_constants/output.py
+  819ad84429cc6478 49-70
+tests/unit/test_version.py
+  819ad84429cc6478 20,40,87-88,91,106-107,110,125-126,129
+docs/api-reference/generated/modules/base.md
+  819ad84429cc6478 1-4
+src/flext_cli/services/tables.py
+  819ad84429cc6478 13,30-32,37-39
+tests/unit/test_cmd.py
+  h_9db9d35f50cf33 37-38
+  819ad84429cc6478 19-20,24,31,33,42,52,58,65,69-72,74-76,84-87
+docs/api-reference/generated/modules/constants.md
+  819ad84429cc6478 1-4
+docs/api-reference/generated/modules/services/prompts.md
+  819ad84429cc6478 1-4
+src/flext_cli/_models/rules.py
+  819ad84429cc6478 1-68
+src/flext_cli/services/runtime.py
+  819ad84429cc6478 1-14
+examples/constants.py
+  819ad84429cc6478 6,19-30,32-35,67,70,90-92
+src/flext_cli/services/cli.py
+  819ad84429cc6478 15,37,47,49,54,56,81,91,129,151,162,184-190,216,218,220,236,246,348,354,356,376,412,416,437
+  h_9db9d35f50cf33 152-153
+docs/api-reference/generated/modules/services/cli.md
+  819ad84429cc6478 1-4
+src/flext_cli/_utilities/pipeline.py
+  819ad84429cc6478 120,134
+tests/unit/test_services_auth_branch_cov.py
+  819ad84429cc6478 7,17,33,49,61
+docs/api-reference/generated/modules/services/tables.md
+  819ad84429cc6478 1-4
+src/flext_cli/_utilities/tables.py
+  819ad84429cc6478 56-58,70-72,97,162
+tests/unit/test_services_commands_cov.py
+  819ad84429cc6478 12-13,17,19-25,30,34,40,43-44,49-50,54-55,59-60,66-67,72,77,82,87-92,97-102,109,115-117,125,130,135,140,145-146
+docs/api-reference/generated/modules/services/auth.md
+  819ad84429cc6478 1-4
+docs/api-reference/generated/modules/settings.md
+  819ad84429cc6478 1-4
+src/flext_cli/_utilities/yaml.py
+  819ad84429cc6478 17,133,163
+src/flext_cli/services/pipeline.py
+  819ad84429cc6478 1,5,8-9,11,13-14
+src/flext_cli/_utilities/output.py
+  819ad84429cc6478 41-49,108,113-114,124,128,134,138,142,150-153,157,163-167,169,171,173,180-181,185,188,191-193,195,209-211,214,216,223
+tests/constants.py
+  819ad84429cc6478 17,49-60,102-105,107,113,115,122-131
+src/flext_cli/_protocols/base.py
+  h_9db9d35f50cf33 15,31-32
+  819ad84429cc6478 9-10,22-30,33-88,218-309,323
+docs/api-reference/generated/modules/protocols.md
+  819ad84429cc6478 1-4
+tests/unit/test_services_output_cov.py
+  819ad84429cc6478 15,33,43,45,50,53,59,68,71,76,79,82,87,95,106,109,114,117,123,126
+tests/unit/test_commands_utils_cov.py
+  819ad84429cc6478 5,9,12,14,18,21,23,29,31,37,39,42,45,53,60-67,69,78,85
+tests/unit/test_prompts.py
+  819ad84429cc6478 11,15,29-30,32,40-42
+tests/unit/test_matching_cov.py
+  819ad84429cc6478 13
+src/flext_cli/_typings/base.py
+  819ad84429cc6478 21-22
+src/flext_cli/_constants/base.py
+  819ad84429cc6478 35-41,46-56,81,85
+src/flext_cli/_utilities/params.py
+  819ad84429cc6478 5,29,31,36,43-44,48,50,53,60,65,75,77,85,99,109,113,115
+src/flext_cli/services/file_tools.py
+  819ad84429cc6478 10,21,28,30,39,50,59
+src/flext_cli/_utilities/json.py
+  819ad84429cc6478 45,57,131-135,196,245
+tests/unit/test_formatters_cov.py
+  819ad84429cc6478 14,25,29,45,47,54,63,77,88,92,95,98,101
+src/flext_cli/_utilities/model_commands.py
+  819ad84429cc6478 11,16,18,76,92,108-109,111
+docs/api-reference/generated/modules/services/output.md
+  819ad84429cc6478 1-4
+tests/unit/test_cli_params.py
+  819ad84429cc6478 16-17,24,26-27,31,40,59,71,84,99-101,119-121,137-139,157,169,181
+src/flext_cli/_utilities/conversion.py
+  819ad84429cc6478 23-24
+src/flext_cli/services/commands.py
+  819ad84429cc6478 28,33,45-49,80,82-85,98,131-152
+docs/index.md
+  819ad84429cc6478 1-8
+docs/architecture.md
+  819ad84429cc6478 83,91
+src/flext_cli/_utilities/toml.py
+  819ad84429cc6478 18
+docs/api-reference/generated/modules/models.md
+  819ad84429cc6478 1-4
+src/flext_cli/base.py
+  819ad84429cc6478 26,36,38-40,44-45
+tests/unit/test_options_cov.py
+  819ad84429cc6478 1,5,10-11,16-67,71-94,110,112-117,119-122,124,127-131,133-134,136-137,139-141,145-152,155-158,161-164,167-170
+examples/ex_06_settings.py
+  819ad84429cc6478 32-33,36,102-103,119,133
+docs/api-reference/generated/public-api.md
+  819ad84429cc6478 1-4
+docs/api-reference/generated/modules/services/formatters.md
+  819ad84429cc6478 1-4
+tests/unit/test_services_auth_cov.py
+  819ad84429cc6478 14-15,21-22,36,43,48,53,60,68,76,83,95,104,111,117
+src/flext_cli/_models/base.py
+  819ad84429cc6478 52-56,241
+tests/unit/test_toml_cov.py
+  819ad84429cc6478 18,22,30,34,38,44,49,55-56,60,64,68,74,76,83-84,91,95,101,107,112,118,123,126,132,138,142,147,149,153,155,162-164,167-169,172-174,177-179
+tests/unit/test_cmd_runtime_validation_branch_cov.py
+  819ad84429cc6478 5,12,17,21,30,35
+docs/refactoring/migration-guide-v0.9-to-v0.10.md
+  819ad84429cc6478 407,507,509
+tests/unit/test_tables_branch_cov.py
+  819ad84429cc6478 5,9,12,14,22,27
+tests/unit/test_examples_smoke.py
+  819ad84429cc6478 17,26,49,53-55,57-61,64-67,129,132
+tests/unit/test_tables.py
+  819ad84429cc6478 8,17,31,44,58
+tests/unit/test_model_commands_cov.py
+  819ad84429cc6478 1,7-8,26,28-31,33,39-41,44,52,65,68-69,74-78,80,84,88-89,92-95,100-103
+tests/unit/test_base.py
+  819ad84429cc6478 3,6,20,25,31,40,43,46,50
+src/flext_cli/services/cli_params.py
+  819ad84429cc6478 30,33,43,48
+tests/unit/test_params_branch_cov.py
+  819ad84429cc6478 5-6,14,23,31
+tests/unit/conftest.py
+  819ad84429cc6478 11,40,46,48-57
+src/flext_cli/models.py
+  819ad84429cc6478 5,12
+tests/unit/test_services_commands_branch_cov.py
+  819ad84429cc6478 5-6,10,13,24
+src/flext_cli/services/rules.py
+  819ad84429cc6478 5,8,11
+docs/getting-started.md
+  819ad84429cc6478 303,319
+src/flext_cli/api.py
+  819ad84429cc6478 24-25,37,40,47,55
+docs/api-reference/generated/overview.md
+  819ad84429cc6478 1-4
+docs/api-reference/generated/modules/api.md
+  819ad84429cc6478 1-4
+tests/unit/test_cmd_cov.py
+  819ad84429cc6478 14,32,39,53,66,77
+tests/helpers/_impl.py
+  819ad84429cc6478 13,16,19-21
+docs/README.md
+  819ad84429cc6478 25
+docs/refactoring/breaking-changes.md
+  819ad84429cc6478 442
+examples/ex_01_getting_started.py
+  819ad84429cc6478 17,62,154
+tests/unit/test_rules_cov.py
+  819ad84429cc6478 10,13-14,17,36,50,65,81,102,122,135,152,169,186,208,224,242,258,278,289,301,310,323,332,338,343,349,355,362
+src/flext_cli/_utilities/commands.py
+  819ad84429cc6478 5,18-27,40-44,46-47,55-58,60,65-66
+src/flext_cli/_utilities/options.py
+  819ad84429cc6478 15,31-32,174,217-218
+tests/unit/test_cli_service.py
+  819ad84429cc6478 457-458,465-466,505
+docs/refactoring/README.md
+  819ad84429cc6478 25,30,82-83,89-90,96,99
+docs/api-reference/generated/modules/index.md
+  819ad84429cc6478 1-4
+tests/unit/test_tables_cov.py
+  819ad84429cc6478 12,16,22,28,35,39,45,51,56,60,67,74,79,83,95,100,102,107
+tests/unit/test_settings.py
+  819ad84429cc6478 20,30,56-60,74,80,90,97
+tests/unit/test_pipeline.py
+  819ad84429cc6478 218-248
+tests/unit/test_services_tables_branch_cov.py
+  819ad84429cc6478 7-8,15,17,23,25,31,41
+tests/unit/test_yaml_cov.py
+  819ad84429cc6478 16
+tests/unit/test_json_cov.py
+  819ad84429cc6478 8,15,19,26,33,39,44,46,53-61,66-74,77,81,85,89,93,97,101,105,109,113,117,122-123,128-129,134,139-140,145,150-151,155-156,159,165-171,179-192,196-198,202
+tests/utilities.py
+  819ad84429cc6478 9,17,37,54-64,67,69,74,81,88-98,112,114,117,119,123,132,136,140,144,162-164,167-168,170,172-173,175,181-185
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "563bfa82d7923f173662fca263c3f1deba6621a2",
+  "prompts": {
+    "31ee9137f8909d3e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "cbeb61c6-cd2e-4000-9bed-dcd82a916aec",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "FLEXT Bot",
+      "messages": [],
+      "total_additions": 1698,
+      "total_deletions": 1869,
+      "accepted_lines": 0,
+      "overriden_lines": 0,
+      "messages_url": "https://usegitai.com/cas/38e90ccf18450fdc9964ca0b0f889e5d33d4a9c12e2d7c88e137170b91e2776a"
+    },
+    "819ad84429cc6478": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "858c46ee-0ec8-403d-97ba-07a681ccf32b",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "FLEXT Bot",
+      "messages": [],
+      "total_additions": 1767,
+      "total_deletions": 1937,
+      "accepted_lines": 1706,
+      "overriden_lines": 3,
+      "messages_url": "https://usegitai.com/cas/1d597d248c0b4a394796bf2cae96685ea5789f9ab93ff9da5ea1b8e6db8bf934"
+    }
+  },
+  "humans": {
+    "h_9db9d35f50cf33": {
+      "author": "FLEXT Bot"
+    }
+  }
+}
