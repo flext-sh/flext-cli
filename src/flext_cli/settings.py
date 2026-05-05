@@ -11,17 +11,22 @@ from __future__ import annotations
 from typing import Annotated
 
 from flext_cli import c
-from flext_core import FlextSettings, m, u
+from flext_core import FlextSettingsBase, m, u
 
 
-@FlextSettings.auto_register("cli")
-class FlextCliSettings(FlextSettings):
+class FlextCliSettings(FlextSettingsBase):
     """CLI-specific configuration; extends FlextSettings with profile and CLI fields."""
 
     model_config = m.SettingsConfigDict(
         env_prefix="FLEXT_CLI_",
         extra="ignore",
     )
+
+    # Common application identification (post-rule-3 isolation: project owns
+    # its own copies of root-style fields).
+    app_name: Annotated[str, m.Field(description="Application name")] = "flext-cli"
+    debug: Annotated[bool, m.Field(description="Enable debug mode")] = False
+    trace: Annotated[bool, m.Field(description="Enable trace mode")] = False
 
     verbose: Annotated[bool, m.Field(description="Verbose output")] = (
         c.Cli.CLI_DEFAULT_VERBOSE
