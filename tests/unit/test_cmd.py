@@ -14,10 +14,17 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import io
+import time
+from contextlib import redirect_stdout
+from datetime import datetime
+from pathlib import Path
+
+import pytest
 from flext_tests import tm
 
 from flext_cli import cli
-from tests import m, p
+from tests import c, p, u
 
 
 class TestsFlextCliCmd:
@@ -37,50 +44,97 @@ class TestsFlextCliCmd:
         tm.that(cli, is_=p.Cli.CmdService)
 
     def test_cmd_execute_sync(self) -> None:
-        """Test synchronous CMD execution."""
+        """Public cli.execute must report facade-level runtime status."""
         cmd = cli
         result = cmd.execute()
         tm.ok(result)
         data = result.value
         tm.that(data, is_=dict)
-        tm.that(data["status"], eq="operational")
-        tm.that(data["service"], eq="FlextCliCmd")
+        tm.that(data["status"], eq=c.Cli.ServiceStatus.OPERATIONAL)
+        tm.that(data["service"], eq=c.Cli.FLEXT_CLI)
 
-    def test_cmd_validate_settings(self) -> None:
-        """Test validate_settings method."""
-        cmd = cli
-        result = cmd.validate_settings()
-        tm.ok(result)
+    def test_cmd_settings_snapshot_reflects_real_home_state(
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """settings_snapshot must expose the canonical HOME-based state."""
+        monkeypatch.setenv("HOME", str(tmp_path))
 
-    def test_cmd_settings_snapshot(self) -> None:
-        """Test settings_snapshot method."""
         result = cli.settings_snapshot()
+
         tm.ok(result)
-        tm.that(result.value, is_=m.Cli.SettingsSnapshot)
-        tm.that(result.value.settings_dir, none=False)
+        info = result.value
+        tm.that(info.settings_dir, eq=str(tmp_path / c.Cli.PATH_FLEXT_DIR_NAME))
+        tm.that(info.settings_exists, eq=False)
+        tm.that(info.settings_readable, eq=False)
+        tm.that(info.settings_writable, eq=False)
+        _ = datetime.fromisoformat(info.timestamp)
 
-    def test_cmd_show_settings(self) -> None:
-        """Test show_settings method."""
-        cmd = cli
-        result = cmd.show_settings()
+    def test_cmd_show_settings_logs_real_snapshot_payload(
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """show_settings must log the serialized public snapshot payload."""
+        settings_dir = tmp_path / c.Cli.PATH_FLEXT_DIR_NAME
+        settings_dir.mkdir()
+        monkeypatch.setenv("HOME", str(tmp_path))
+        logger = u.create_module_logger("tests.cmd")
+        stream = io.StringIO()
+
+        with redirect_stdout(stream):
+            result = u.Cli.cmd_show_settings(logger)
+            deadline = time.monotonic() + 0.25
+            while time.monotonic() < deadline:
+                output = stream.getvalue()
+                if c.Cli.LOG_MSG_SETTINGS_DISPLAYED in output:
+                    break
+                time.sleep(0.01)
+
         tm.ok(result)
+        tm.that(result.value, eq=True)
+        output = stream.getvalue()
+        tm.that(c.Cli.LOG_MSG_SETTINGS_DISPLAYED in output, eq=True)
+        tm.that(f'"settings_dir":"{settings_dir}"' in output, eq=True)
+        tm.that('"settings_exists":true' in output, eq=True)
+        tm.that('"settings_readable":true' in output, eq=True)
+        tm.that('"settings_writable":true' in output, eq=True)
 
-    def test_cmd_validate_settings_reports_public_result(self) -> None:
-        """Public validate_settings must expose the validation outcome."""
-        result = cli.validate_settings()
-        tm.that(result.success or result.failure, eq=True)
+    def test_cmd_validate_settings_logs_real_structure_results(
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """validate_settings must log the exact canonical structure results."""
+        settings_dir = tmp_path / c.Cli.PATH_FLEXT_DIR_NAME
+        settings_dir.mkdir()
+        (settings_dir / c.Cli.STANDARD_SUBDIRS[0]).mkdir()
+        monkeypatch.setenv("HOME", str(tmp_path))
+        logger = u.create_module_logger("tests.cmd")
+        stream = io.StringIO()
+        expected_results = list(u.Cli.validate_settings_structure())
 
-    def test_cmd_settings_snapshot_returns_public_snapshot_model(self) -> None:
-        """Public settings_snapshot must expose the typed snapshot model."""
-        info = cli.settings_snapshot().value
-        tm.that(info, is_=m.Cli.SettingsSnapshot)
-        tm.that(info.settings_dir, is_=str)
-        tm.that(info.settings_exists, is_=bool)
-        tm.that(info.settings_readable, is_=bool)
-        tm.that(info.settings_writable, is_=bool)
-        tm.that(info.timestamp, is_=str)
+        with redirect_stdout(stream):
+            result = u.Cli.cmd_validate_settings(logger)
+            deadline = time.monotonic() + 0.25
+            expected_message = c.Cli.LOG_MSG_SETTINGS_VALIDATION_RESULTS.format(
+                results=expected_results,
+            )
+            while time.monotonic() < deadline:
+                output = stream.getvalue()
+                if expected_message in output:
+                    break
+                time.sleep(0.01)
 
-    def test_cmd_validate_settings_missing_dir_uses_public_surface(self) -> None:
-        """Public validate_settings must stay callable when dirs are missing."""
-        result = cli.validate_settings()
-        tm.that(result.success or result.failure, eq=True)
+        tm.ok(result)
+        tm.that(result.value, eq=True)
+        output = stream.getvalue()
+        tm.that(expected_message in output, eq=True)
+        tm.that("settings='" in output, eq=False)
+        tm.that(
+            expected_results[0],
+            eq=f"{c.Cli.SYMBOL_SUCCESS_MARK} Settings directory exists",
+        )
+        tm.that(expected_results[1], has=c.Cli.STANDARD_SUBDIRS[0])
+        tm.that(expected_results[2], has=c.Cli.STANDARD_SUBDIRS[1])

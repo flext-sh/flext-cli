@@ -21,11 +21,13 @@ class ExamplesFlextCliConstants(c):
         """Canonical deployment environments used by CLI examples."""
 
         DEVELOPMENT = "development"
+        TESTING = "testing"
         STAGING = "staging"
         PRODUCTION = "production"
 
     EXAMPLE_DEPLOYMENT_ENVIRONMENTS: Final[t.VariadicTuple[DeploymentEnvironment]] = (
         DeploymentEnvironment.DEVELOPMENT,
+        DeploymentEnvironment.TESTING,
         DeploymentEnvironment.STAGING,
         DeploymentEnvironment.PRODUCTION,
     )
@@ -36,6 +38,7 @@ class ExamplesFlextCliConstants(c):
     )
     EXAMPLE_DEPLOYMENT_ENVIRONMENTS_SHORT: Final[t.VariadicTuple[str]] = (
         "dev",
+        "test",
         "staging",
         "prod",
     )
@@ -78,6 +81,8 @@ class ExamplesFlextCliConstants(c):
     EXAMPLE_DEFAULT_CPU_LIMIT_PROMPTS: Final[float] = 2.5
     EXAMPLE_DEFAULT_PERCENTAGE: Final[int] = 50
     EXAMPLE_DEFAULT_CONNECTION_POOL: Final[int] = 10
+    EXAMPLE_PRODUCTION_MAX_WORKERS_CAP: Final[int] = 20
+    EXAMPLE_TESTING_MAX_WORKERS: Final[int] = 1
 
     EXAMPLE_MIN_PORT: Final[int] = 1024
     EXAMPLE_MAX_PORT: Final[int] = 65535
@@ -95,6 +100,7 @@ class ExamplesFlextCliConstants(c):
     EXAMPLE_DEFAULT_DB_URL: Final[str] = "postgresql://localhost:5432/myapp"
     EXAMPLE_DEFAULT_REDIS_URL: Final[str] = "redis://localhost:6379"
     EXAMPLE_DEFAULT_TEMP_SUBDIR: Final[str] = "myapp"
+    EXAMPLE_DEFAULT_INITIALIZED_AT: Final[str] = "2025-11-23T10:00:00Z"
 
     EXAMPLE_ENV_KEY_APP_NAME: Final[str] = "APP_NAME"
     EXAMPLE_ENV_KEY_API_KEY: Final[str] = "API_KEY"
@@ -122,6 +128,7 @@ class ExamplesFlextCliConstants(c):
         "enable_metrics": EXAMPLE_ENV_KEY_ENABLE_METRICS,
         "log_level": EXAMPLE_ENV_KEY_LOG_LEVEL,
         "temp_dir": EXAMPLE_ENV_KEY_TEMP_DIR,
+        "environment": EXAMPLE_ENV_KEY_ENVIRONMENT,
     })
 
     EXAMPLE_DB_URL_PREFIXES: Final[t.Pair[str, str]] = (

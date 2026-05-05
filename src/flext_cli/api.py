@@ -6,49 +6,66 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import override
+
 from flext_cli import (
-    FlextCliApiRuntime,
     FlextCliAuth,
     FlextCliCli,
     FlextCliCmd,
-    FlextCliCommands,
     FlextCliCommonParams,
     FlextCliFileTools,
     FlextCliFormatters,
     FlextCliOutput,
     FlextCliPrompts,
-    FlextCliRules,
     FlextCliTables,
+    FlextCliUtilitiesPipeline,
+    FlextCliUtilitiesRules,
+    FlextCliUtilitiesRuntime,
+    c,
+    p,
+    r,
     t,
+    u,
 )
-from flext_cli.services.pipeline import FlextCliPipeline
-from flext_cli.services.runtime import FlextCliRuntime
 
 
 class FlextCli(
     FlextCliAuth,
     FlextCliCli,
     FlextCliCmd,
-    FlextCliCommands,
     FlextCliCommonParams,
     FlextCliFileTools,
     FlextCliFormatters,
     FlextCliOutput,
-    FlextCliPipeline,
+    FlextCliUtilitiesPipeline,
     FlextCliPrompts,
-    FlextCliRules,
-    FlextCliRuntime,
+    FlextCliUtilitiesRules,
+    FlextCliUtilitiesRuntime,
     FlextCliTables,
-    FlextCliApiRuntime,
 ):
     """Coordinate CLI operations and expose domain services.
 
-    MRO facade over CLI services (cli, cmd, commands, params, file_tools,
+    MRO facade over CLI services (cli, cmd, params, file_tools,
     formatters, output, pipeline, prompts, rules, runtime, settings, tables).
     All operations return r[T].
     """
 
-    pass
+    @override
+    def execute(self) -> p.Result[t.JsonMapping]:
+        """Report the public CLI runtime surface state."""
+        result_dict: t.JsonMapping = {
+            c.Cli.DICT_KEY_STATUS: c.Cli.ServiceStatus.OPERATIONAL,
+            c.Cli.DICT_KEY_SERVICE: c.Cli.FLEXT_CLI,
+            "timestamp": u.generate("timestamp"),
+            "version": c.Cli.CLI_VERSION,
+            "components": {
+                "settings": "available",
+                "formatters": "available",
+                "prompts": "available",
+                "rules": "available",
+            },
+        }
+        return r[t.JsonMapping].ok(result_dict)
 
 
 cli = FlextCli.fetch_global()

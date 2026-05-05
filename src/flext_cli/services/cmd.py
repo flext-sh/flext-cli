@@ -10,13 +10,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import override
-
 from flext_cli import (
-    c,
     m,
     p,
-    r,
     s,
     t,
     u,
@@ -35,15 +31,6 @@ class FlextCliCmd(s):
     def settings_snapshot() -> p.Result[m.Cli.SettingsSnapshot]:
         """Return the current settings snapshot using ``u.Cli``."""
         return u.Cli.cmd_settings_snapshot()
-
-    @override
-    def execute(self) -> p.Result[t.JsonMapping]:
-        """Report operational status required by `s`."""
-        status: t.JsonMapping = {
-            c.Cli.DICT_KEY_STATUS: c.Cli.ServiceStatus.OPERATIONAL,
-            c.Cli.DICT_KEY_SERVICE: c.Cli.CMD_SERVICE_NAME,
-        }
-        return r[t.JsonMapping].ok(status)
 
     def show_settings(self) -> p.Result[bool]:
         """Show current settings.

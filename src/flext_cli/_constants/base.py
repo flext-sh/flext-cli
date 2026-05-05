@@ -86,5 +86,3 @@ class FlextCliConstantsBase:
         re.compile(pattern, flags=re.IGNORECASE)
         for pattern in CLI_USAGE_ERROR_PATTERN_ORDER
     )
-
-    CMD_SERVICE_NAME: Final[str] = "FlextCliCmd"

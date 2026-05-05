@@ -2,29 +2,12 @@
 
 from __future__ import annotations
 
-from flext_cli import FlextCliUtilitiesOutput as uo, c, p, r, t
+from flext_cli import FlextCliUtilitiesOutput as uo, c, p, t
 from flext_core import u
 
 
 class FlextCliUtilitiesCommands:
-    """Helpers for normalizing command-handler outputs."""
-
-    @staticmethod
-    def commands_normalize_handler_result(
-        result: p.Result[t.JsonPayload] | None,
-        command_name: str,
-    ) -> p.Result[t.JsonValue]:
-        """Normalize command execution output into canonical JSON result."""
-        match result:
-            case None:
-                return r[t.JsonValue].ok({
-                    c.Cli.DICT_KEY_STATUS: c.Cli.CommandStatus.SUCCESS,
-                    c.Cli.DICT_KEY_COMMAND: command_name,
-                })
-            case _ if result.success:
-                return r[t.JsonValue].ok(u.normalize_to_json_value(result.value))
-            case _:
-                return r[t.JsonValue].fail(result.error or c.Cli.ERR_COMMAND_FAILED)
+    """Helpers for result-command messaging in the public Typer DSL."""
 
     @staticmethod
     def commands_resolve_success_message[TResult: t.Cli.ResultValue](

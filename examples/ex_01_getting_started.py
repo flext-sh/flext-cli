@@ -136,23 +136,3 @@ class ExamplesFlextCliGettingStarted(s):
             ),
         )
         return r[t.JsonMapping].ok(summary)
-
-    @classmethod
-    def main(cls) -> None:
-        """Run the example and render failures through the public utility facade."""
-        result = cls().execute()
-        if result.success:
-            return
-        u.print_demo_error(
-            "Getting started",
-            result.error or c.EXAMPLE_ERR_FAILED_LOAD_CONFIG,
-        )
-
-
-def main() -> None:
-    """Main entry point for the getting started examples."""
-    ExamplesFlextCliGettingStarted.main()
-
-
-if __name__ == "__main__":
-    main()

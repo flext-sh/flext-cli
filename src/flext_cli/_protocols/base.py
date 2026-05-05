@@ -237,44 +237,6 @@ class FlextCliProtocolsBase:
             ...
 
     @runtime_checkable
-    class CommandRegistry(Protocol):
-        """Protocol for the lightweight CLI command registry service."""
-
-        @property
-        def name(self) -> str:
-            """Get the registry name."""
-            ...
-
-        def execute(self) -> p.Result[t.JsonMapping]:
-            """Return the public service status payload."""
-            ...
-
-        def execute_command(
-            self,
-            name: str,
-            args: t.StrSequence | None = None,
-            **kwargs: t.Scalar,
-        ) -> p.Result[t.JsonValue]:
-            """Execute one registered command."""
-            ...
-
-        def list_commands(self) -> p.Result[t.StrSequence]:
-            """Return the registered command names."""
-            ...
-
-        def register_handler(
-            self,
-            name: str,
-            handler: t.Cli.JsonCommandFn,
-        ) -> p.Result[bool]:
-            """Register one command handler."""
-            ...
-
-        def run_cli(self, args: t.StrSequence | None = None) -> p.Result[t.JsonValue]:
-            """Execute the registry through the public CLI runner surface."""
-            ...
-
-    @runtime_checkable
     class CmdService(Protocol):
         """Protocol for the public command/settings service surface on ``cli``."""
 

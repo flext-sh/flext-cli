@@ -99,7 +99,7 @@ class TestsFlextCliCommonParams:
         runner_result = cli.create_cli_runner()
         tm.ok(runner_result)
         runner = runner_result.value
-        result = runner.invoke(app, ["--help"])
+        result = runner.invoke(app, ["test", "--help"])
 
         tm.that(result.exit_code, eq=0)
         tm.that(result.stdout, has="--verbose")
@@ -119,7 +119,7 @@ class TestsFlextCliCommonParams:
         runner_result = cli.create_cli_runner()
         tm.ok(runner_result)
         runner = runner_result.value
-        result = runner.invoke(app, ["--verbose", "--debug"])
+        result = runner.invoke(app, ["test", "--verbose", "--debug"])
 
         tm.that(result.exit_code, eq=0)
         tm.that(result.stdout, has="Verbose: enabled")
@@ -140,6 +140,7 @@ class TestsFlextCliCommonParams:
         result = runner.invoke(
             app,
             [
+                "test",
                 "--log-level",
                 c.LogLevel.WARNING,
                 "--output-format",

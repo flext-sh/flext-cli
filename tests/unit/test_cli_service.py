@@ -6,7 +6,6 @@ from collections.abc import (
     MutableSequence,
 )
 
-import typer
 from flext_tests import tm
 
 from flext_cli import cli
@@ -304,7 +303,7 @@ class TestsFlextCliService:
             app,
             name="abort",
             help_text="Abort command",
-            command=lambda: (_ for _ in ()).throw(typer.Abort()),
+            command=lambda: (_ for _ in ()).throw(c.Cli.CliAbortError()),
         )
 
         result = cli.execute_app(app, prog_name="abort-app", args=["abort"])

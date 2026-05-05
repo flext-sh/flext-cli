@@ -16,15 +16,13 @@ These examples show how to use flext-cli as a library through the public facade 
 1. `ex_01_getting_started.py`
    Minimal tour of `s`, `m.Examples`, the public `cli` facade, and the `r` result contract.
 2. `ex_02_output_formatting.py`
-   Styled output and table rendering through public CLI methods.
-3. `ex_03_interactive_prompts.py`
-   Prompt flows and validation patterns.
-4. `ex_04_file_operations.py`
+   Table-string export through `cli.format_table()`.
+3. `ex_04_file_operations.py`
    Typed file reads and writes.
-5. `ex_11_complete_integration.py`
-   Larger orchestration example combining multiple features.
-6. `ex_12_pydantic_driven_cli.py`
-   Advanced Pydantic-2-driven CLI composition.
+4. `ex_11_complete_integration.py`
+   A minimal end-to-end workflow using prompts plus JSON persistence.
+5. `ex_12_pydantic_driven_cli.py`
+   Railway-style Pydantic validation for a typed CLI payload.
 
 ## Quick Start
 
@@ -88,7 +86,6 @@ This is the shortest path to typed settings access and a consistent result contr
 
 1. `ex_01_getting_started.py`
 2. `ex_02_output_formatting.py`
-3. `ex_03_interactive_prompts.py`
 
 ### Intermediate
 
@@ -98,12 +95,8 @@ This is the shortest path to typed settings access and a consistent result contr
 
 ### Advanced
 
-1. `ex_07_plugin_system.py`
-2. `ex_08_shell_interaction.py`
-3. `ex_09_performance_optimization.py`
-4. `ex_10_testing_utilities.py`
-5. `ex_11_complete_integration.py`
-6. `ex_12_pydantic_driven_cli.py`
+1. `ex_11_complete_integration.py`
+2. `ex_12_pydantic_driven_cli.py`
 
 ## Best Practices
 

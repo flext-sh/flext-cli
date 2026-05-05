@@ -62,93 +62,6 @@ class ExamplesFlextCliModels(m):
                 raise TypeError(msg)
             return {**env_overrides, **typed_data}
 
-        class DatabaseWizardConfig(m.Value):
-            """Database setup wizard result — Pydantic v2 only."""
-
-            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-                extra="forbid",
-                validate_assignment=True,
-            )
-            host: Annotated[str, m.Field(description="Database host")] = "localhost"
-            port: Annotated[
-                int,
-                m.Field(
-                    ge=1,
-                    le=c.EXAMPLE_MAX_PORT,
-                    description="Port",
-                ),
-            ] = c.EXAMPLE_DEFAULT_DB_PORT
-            database: Annotated[str, m.Field(description="Database name")] = ""
-            password: Annotated[str, m.Field(description="Password")] = ""
-
-        class AppWizardConfig(m.Value):
-            """App configuration wizard result — Pydantic v2 only."""
-
-            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-                extra="forbid",
-                validate_assignment=True,
-            )
-            app_name: Annotated[
-                str,
-                m.Field(
-                    description="Application name",
-                ),
-            ] = c.EXAMPLE_DEFAULT_APP_NAME
-            environment: Annotated[
-                str,
-                m.Field(
-                    description="Environment",
-                ),
-            ] = c.EXAMPLE_DEFAULT_ENVIRONMENT
-            port: Annotated[
-                int,
-                m.Field(
-                    ge=c.EXAMPLE_MIN_PORT,
-                    le=c.EXAMPLE_MAX_PORT,
-                    description="Port",
-                ),
-            ] = c.EXAMPLE_DEFAULT_APP_PORT
-            cpu_limit: Annotated[
-                float,
-                m.Field(
-                    ge=0.0,
-                    description="CPU limit",
-                ),
-            ] = c.EXAMPLE_DEFAULT_CPU_LIMIT
-            enable_cache: Annotated[bool, m.Field(description="Enable cache")] = True
-            enable_auth: Annotated[bool, m.Field(description="Enable auth")] = True
-
-        class NumericPromptResult(m.Value):
-            """Numeric prompts result — Pydantic v2 only."""
-
-            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-                extra="forbid",
-                validate_assignment=True,
-            )
-            workers: Annotated[
-                int,
-                m.Field(
-                    ge=1,
-                    le=c.EXAMPLE_MAX_WORKERS,
-                    description="Workers",
-                ),
-            ] = c.EXAMPLE_DEFAULT_MAX_WORKERS
-            cpu_limit: Annotated[
-                float,
-                m.Field(
-                    ge=0.0,
-                    description="CPU limit",
-                ),
-            ] = c.EXAMPLE_DEFAULT_CPU_LIMIT_PROMPTS
-            percentage: Annotated[
-                int,
-                m.Field(
-                    ge=0,
-                    le=100,
-                    description="Percentage",
-                ),
-            ] = c.EXAMPLE_DEFAULT_PERCENTAGE
-
         # -------------------------------------------------------------------
         # Example 06 - Configuration
         # -------------------------------------------------------------------
@@ -221,22 +134,6 @@ class ExamplesFlextCliModels(m):
                         title="⚙️  Application Settings",
                     )
 
-            def validate_settings(self, cli: t.CliApi) -> bool:
-                """Run validation; uses cli for output."""
-                if not self.api_key:
-                    cli.print(
-                        "❌ API_KEY not configured", style=c.Cli.MessageStyles.BOLD_RED
-                    )
-                    return False
-                if self.max_workers < 1:
-                    cli.print(
-                        "❌ MAX_WORKERS must be >= 1",
-                        style=c.Cli.MessageStyles.BOLD_RED,
-                    )
-                    return False
-                cli.print("✅ Settings valid", style=c.Cli.MessageStyles.GREEN)
-                return True
-
         class AppSettingsAdvanced(m.Value):
             """Advanced application settings — Pydantic v2 only."""
 
@@ -257,6 +154,10 @@ class ExamplesFlextCliModels(m):
                 ),
             ] = c.EXAMPLE_DEFAULT_REDIS_URL
             api_key: Annotated[str, m.Field(description="API key")] = ""
+            environment: Annotated[
+                c.DeploymentEnvironment,
+                m.Field(description="Deployment environment"),
+            ] = c.EXAMPLE_DEFAULT_ENVIRONMENT
             max_workers: Annotated[
                 int,
                 m.Field(
@@ -328,8 +229,7 @@ class ExamplesFlextCliModels(m):
                 errors: MutableSequence[str] = []
                 if (
                     not self.api_key
-                    and os.getenv(c.EXAMPLE_ENV_KEY_ENVIRONMENT)
-                    == c.EXAMPLE_ENV_VALUE_PRODUCTION
+                    and self.environment == c.DeploymentEnvironment.PRODUCTION
                 ):
                     errors.append("API_KEY is required in production")
                 if not self.temp_dir.exists():
@@ -354,90 +254,6 @@ class ExamplesFlextCliModels(m):
         # -------------------------------------------------------------------
         # Example 12 - Pydantic-driven CLI
         # -------------------------------------------------------------------
-
-        class DeployConfig(m.Value):
-            """Deployment configuration - auto-generates CLI parameters."""
-
-            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-                extra="forbid",
-                validate_assignment=True,
-            )
-            environment: Annotated[
-                str,
-                m.Field(
-                    description="Deployment environment (dev/staging/prod)",
-                ),
-            ] = c.EXAMPLE_DEFAULT_ENVIRONMENT
-            workers: Annotated[
-                int,
-                m.Field(
-                    ge=1,
-                    le=c.EXAMPLE_MAX_WORKERS,
-                    description="Number of worker processes",
-                ),
-            ] = c.EXAMPLE_DEFAULT_MAX_WORKERS
-            enable_cache: Annotated[
-                bool, m.Field(description="Enable application cache")
-            ] = True
-            timeout: Annotated[
-                int,
-                m.Field(
-                    ge=1,
-                    le=300,
-                    description="Request timeout in seconds",
-                ),
-            ] = c.EXAMPLE_DEFAULT_TIMEOUT_SECONDS
-
-            @u.field_validator("environment")
-            @classmethod
-            def validate_environment(cls, v: str) -> str:
-                """Restrict environment to development, staging, production."""
-                if v not in c.EXAMPLE_DEPLOYMENT_ENVIRONMENTS_SET:
-                    msg = f"Must be one of: {', '.join(c.EXAMPLE_DEPLOYMENT_ENVIRONMENTS)}"
-                    raise ValueError(msg)
-                return v
-
-        class DatabaseConfig(m.Value):
-            """Database configuration."""
-
-            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-                extra="forbid",
-                validate_assignment=True,
-            )
-            host: Annotated[
-                str,
-                m.Field(
-                    description="Database host",
-                ),
-            ] = c.EXAMPLE_DEFAULT_HOST
-            port: Annotated[
-                int,
-                m.Field(
-                    ge=c.EXAMPLE_MIN_PORT,
-                    le=c.EXAMPLE_MAX_PORT,
-                    description="Database port",
-                ),
-            ] = c.EXAMPLE_DEFAULT_DB_PORT
-            name: str = m.Field(description="Database name")
-
-        class AppConfigNested(m.Value):
-            """Application configuration with nested database model."""
-
-            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-                extra="forbid",
-                validate_assignment=True,
-            )
-            app_name: str = m.Field(description="Application name")
-            version: Annotated[
-                str,
-                m.Field(
-                    description="Application version",
-                ),
-            ] = c.EXAMPLE_DEFAULT_APP_VERSION
-            database: ExamplesFlextCliModels.Examples.DatabaseConfig = m.Field(
-                description="Database configuration"
-            )
-            debug: Annotated[bool, m.Field(description="Enable debug mode")] = False
 
         class AdvancedDatabaseConfig(m.Value):
             """Database configuration with advanced validation."""

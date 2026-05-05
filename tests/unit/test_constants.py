@@ -127,11 +127,6 @@ class TestsFlextCliConstantsUnit:
         tm.that(u.Cli.file_not_found_error("No such file or directory"), eq=True)
         tm.that(u.Cli.cli_usage_error("No such option: --bad"), eq=True)
 
-    def test_cmd_defaults(self) -> None:
-        """Test CmdDefaults constants."""
-        tm.that(c.Cli.CMD_SERVICE_NAME, is_=str)
-        tm.that(c.Cli.CMD_SERVICE_NAME, empty=False)
-
     def test_log_verbosity(self) -> None:
         """Test LogVerbosity enum."""
         tm.that(c.Cli.LogVerbosity.COMPACT, is_=str)

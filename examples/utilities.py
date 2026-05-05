@@ -15,7 +15,7 @@ from collections.abc import (
     MutableSequence,
 )
 
-from examples import c, m, p, t
+from examples import c, m, t
 from flext_cli import cli, u
 
 
@@ -56,50 +56,6 @@ class ExamplesFlextCliUtilities(u):
         )
 
     @staticmethod
-    def handle_command_result(
-        result: p.Result[m.Value],
-        action: str,
-        success_fields: t.StrSequence | None = None,
-    ) -> None:
-        """Generic handler for CQRS command results."""
-        fields: t.StrSequence = (
-            success_fields if success_fields is not None else ["id", "status"]
-        )
-
-        if result.success:
-            raw = result.value
-            data = raw.model_dump()
-            cli.print(
-                f"✅ {action.title()} successful", style=c.Cli.MessageStyles.GREEN
-            )
-            for field in fields:
-                if field in data:
-                    display_name = field.replace("_", " ").title()
-                    cli.print(f"{display_name}: {data[field]}")
-        else:
-            cli.print(
-                f"❌ Failed to {action}: {result.error}", style=c.Cli.MessageStyles.RED
-            )
-
-    @staticmethod
-    def print_demo_error(
-        demo_name: str,
-        error: str,
-        *,
-        bold_style: c.Cli.MessageStyles = c.Cli.MessageStyles.BOLD_RED,
-    ) -> None:
-        """Print standardized demo error message."""
-        cli.print(f"❌ {demo_name} failed: {error}", style=bold_style)
-        cli.print(
-            "This failure demonstrates r error handling!",
-            style=c.Cli.MessageStyles.YELLOW,
-        )
-        cli.print(
-            "The error was caught and wrapped in a r for clean handling.",
-            style=c.Cli.MessageStyles.WHITE,
-        )
-
-    @staticmethod
     def display_config_table(
         config_data: m.Cli.DisplayData | m.Value,
         headers: t.StrSequence | None = None,
@@ -130,19 +86,6 @@ class ExamplesFlextCliUtilities(u):
         if details is not None:
             for key, value in details.root.items():
                 cli.print(f"   {key}: {value}", style=c.Cli.MessageStyles.CYAN)
-
-    @staticmethod
-    def display_validation_errors(
-        errors: t.StrSequence,
-        context: str = "validation",
-    ) -> None:
-        """Display validation errors in a consistent format using cli."""
-        cli.print(
-            f"❌ {context.title()} failed with {len(errors)} error(s):",
-            style=c.Cli.MessageStyles.BOLD_RED,
-        )
-        for i, error in enumerate(errors, 1):
-            cli.print(f"   {i}. {error}", style=c.Cli.MessageStyles.RED)
 
 
 u = ExamplesFlextCliUtilities

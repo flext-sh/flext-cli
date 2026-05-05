@@ -23,7 +23,6 @@ _LAZY_IMPORTS = build_lazy_import_map(
         ".test_cmd_runtime_validation_branch_cov": (
             "TestsFlextCliCmdRuntimeValidationBranchCov",
         ),
-        ".test_commands": ("TestsFlextCliCommands",),
         ".test_commands_utils_cov": ("TestsFlextCliCommandsUtilsCov",),
         ".test_constants": ("TestsFlextCliConstantsUnit",),
         ".test_conversion_cov": ("TestsFlextCliConversionCov",),
@@ -48,10 +47,6 @@ _LAZY_IMPORTS = build_lazy_import_map(
         ".test_runtime_utilities_extra": ("TestsFlextCliRuntimeUtilitiesExtra",),
         ".test_services_auth_branch_cov": ("TestsFlextCliServicesAuthBranchCov",),
         ".test_services_auth_cov": ("TestsFlextCliServicesAuthCov",),
-        ".test_services_commands_branch_cov": (
-            "TestsFlextCliServicesCommandsBranchCov",
-        ),
-        ".test_services_commands_cov": ("TestsFlextCliServicesCommandsCov",),
         ".test_services_output_cov": ("TestsFlextCliServicesOutputCov",),
         ".test_services_tables_branch_cov": ("TestsFlextCliServicesTablesBranchCov",),
         ".test_services_tables_cov": ("TestsFlextCliServicesTablesCov",),

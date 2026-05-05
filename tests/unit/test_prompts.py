@@ -27,7 +27,7 @@ class TestsFlextCliPrompts:
         result = prompts.execute()
         tm.ok(result)
         tm.that(result.value[c.Cli.DICT_KEY_STATUS], eq=c.Cli.ServiceStatus.OPERATIONAL)
-        tm.that(result.value[c.Cli.DICT_KEY_SERVICE], eq=c.Cli.CMD_SERVICE_NAME)
+        tm.that(result.value[c.Cli.DICT_KEY_SERVICE], eq=c.Cli.FLEXT_CLI)
 
     def test_execute_uses_public_cmd_status_even_when_prompt_logger_would_fail(
         self,
@@ -39,7 +39,7 @@ class TestsFlextCliPrompts:
         result = prompts.execute()
         tm.ok(result)
         tm.that(result.value[c.Cli.DICT_KEY_STATUS], eq=c.Cli.ServiceStatus.OPERATIONAL)
-        tm.that(result.value[c.Cli.DICT_KEY_SERVICE], eq=c.Cli.CMD_SERVICE_NAME)
+        tm.that(result.value[c.Cli.DICT_KEY_SERVICE], eq=c.Cli.FLEXT_CLI)
 
     def test_prompt_returns_default_in_quiet_and_non_interactive_modes(
         self,

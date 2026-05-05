@@ -9,7 +9,6 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Annotated
 
-import typer
 from flext_tests import FlextTestsUtilities
 
 from flext_cli import (
@@ -94,9 +93,11 @@ class TestsFlextCliUtilities(FlextTestsUtilities, u):
                 for index, (version_part, info_part) in enumerate(
                     zip(version_parts, version_info, strict=False)
                 ):
-                    if type(version_part) is not type(info_part):
+                    if isinstance(version_part, int) != isinstance(info_part, int):
                         return r[tuple[str, tuple[int | str, ...]]].fail(
-                            f"Type mismatch at position {index}: {type(version_part).__name__} != {type(info_part).__name__}",
+                            "Type mismatch at position "
+                            f"{index}: {version_part.__class__.__name__} != "
+                            f"{info_part.__class__.__name__}",
                         )
                     if version_part != info_part:
                         return r[tuple[str, tuple[int | str, ...]]].fail(
@@ -115,17 +116,22 @@ class TestsFlextCliUtilities(FlextTestsUtilities, u):
         @staticmethod
         def create_cli_app() -> p.Result[t.Cli.CliApp]:
             """Create CLI app using Railway pattern."""
-            return r[t.Cli.CliApp].create_from_callable(typer.Typer)
+            return r[t.Cli.CliApp].ok(
+                cli.create_app_with_common_params(
+                    name="tests-cli",
+                    help_text="Test CLI app",
+                    settings=cli.settings,
+                )
+            )
 
         @staticmethod
         def create_decorated_command(
             app: t.Cli.CliApp,
             command_name: str = "test",
         ) -> p.Result[Callable[..., None]]:
-            """Create decorated command using Railway pattern."""
+            """Create registered command using only the public CLI facade."""
 
-            @app.command(name=command_name)
-            def typer_command(
+            def command(
                 verbose: Annotated[
                     bool,
                     cli.create_option("verbose"),
@@ -144,47 +150,21 @@ class TestsFlextCliUtilities(FlextTestsUtilities, u):
                 ] = c.Cli.OutputFormats.TABLE,
             ) -> None:
                 """Test command with Railway-oriented parameter handling."""
-                typer.echo(f"Command: {command_name}")
+                cli.print(f"Command: {command_name}")
                 if verbose:
-                    typer.echo("Verbose: enabled")
+                    cli.print("Verbose: enabled")
                 if debug:
-                    typer.echo("Debug: enabled")
-                typer.echo(f"Log level: {log_level}")
-                typer.echo(f"Output format: {output_format}")
+                    cli.print("Debug: enabled")
+                cli.print(f"Log level: {log_level}")
+                cli.print(f"Output format: {output_format}")
 
-            return r[Callable[..., None]].ok(typer_command)
-
-        class CommandsFactory:
-            """Factory for creating test commands with high automation."""
-
-            @staticmethod
-            def create_commands() -> p.Cli.CommandRegistry:
-                """Create an isolated public cli facade for command testing."""
-                return cli.create(name=c.Cli.COMMANDS_DEFAULT_NAME)
-
-            @staticmethod
-            def register_command(
-                commands: p.Cli.CommandRegistry,
-                command_name: str,
-                *,
-                result_value: str = "success",
-                error_message: str | None = None,
-                reflect_args: bool = False,
-            ) -> p.Result[bool]:
-                """Register a test command with fixed success, arg reflection, or failure."""
-
-                def handler(
-                    *args: t.JsonValue,
-                    **kwargs: t.JsonValue,
-                ) -> p.Result[t.JsonPayload]:
-                    _ = kwargs
-                    if error_message is not None:
-                        return r[t.JsonPayload].fail(error_message)
-                    if reflect_args:
-                        return r[t.JsonPayload].ok(f"args: {len(args)}")
-                    return r[t.JsonPayload].ok(result_value)
-
-                return commands.register_handler(command_name, handler)
+            cli.register_command(
+                app,
+                name=command_name,
+                help_text=f"Run {command_name}",
+                command=command,
+            )
+            return r[Callable[..., None]].ok(command)
 
 
 u = TestsFlextCliUtilities

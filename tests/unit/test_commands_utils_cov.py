@@ -2,44 +2,11 @@
 
 from __future__ import annotations
 
-from tests import c, r, t, u
+from tests import c, u
 
 
 class TestsFlextCliCommandsUtilsCov:
     """Data-driven coverage for u.Cli."""
-
-    def test_commands_normalize_handler_result_none(self) -> None:
-        result = u.Cli.commands_normalize_handler_result(
-            None,
-            c.Tests.CMD_NAMES_VALID[0],
-        )
-        assert result.success
-        assert isinstance(result.value, dict)
-        assert result.value[c.Cli.DICT_KEY_COMMAND] == c.Tests.CMD_NAMES_VALID[0]
-
-    def test_commands_normalize_handler_result_success(self) -> None:
-        result = u.Cli.commands_normalize_handler_result(
-            r[t.JsonPayload].ok({"items": ["a", "b"]}),
-            c.Tests.CMD_NAMES_VALID[1],
-        )
-        assert result.success
-        assert result.value == {"items": ["a", "b"]}
-
-    def test_commands_normalize_handler_result_failure_with_error(self) -> None:
-        result = u.Cli.commands_normalize_handler_result(
-            r[t.JsonPayload].fail("boom"),
-            c.Tests.CMD_NAMES_VALID[2],
-        )
-        assert result.failure
-        assert result.error == "boom"
-
-    def test_commands_normalize_handler_result_failure_without_error(self) -> None:
-        result = u.Cli.commands_normalize_handler_result(
-            r[t.JsonPayload].fail(""),
-            c.Tests.CMD_NAMES_VALID[0],
-        )
-        assert result.failure
-        assert result.error == c.Cli.ERR_COMMAND_FAILED
 
     def test_commands_resolve_success_message_with_formatter(self) -> None:
         result = u.Cli.commands_resolve_success_message(

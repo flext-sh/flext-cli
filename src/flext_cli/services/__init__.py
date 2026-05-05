@@ -7,19 +7,14 @@ from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 _LAZY_IMPORTS = build_lazy_import_map(
     {
-        ".api_runtime": ("FlextCliApiRuntime",),
         ".auth": ("FlextCliAuth",),
         ".cli": ("FlextCliCli",),
         ".cli_params": ("FlextCliCommonParams",),
         ".cmd": ("FlextCliCmd",),
-        ".commands": ("FlextCliCommands",),
         ".file_tools": ("FlextCliFileTools",),
         ".formatters": ("FlextCliFormatters",),
         ".output": ("FlextCliOutput",),
-        ".pipeline": ("FlextCliPipeline",),
         ".prompts": ("FlextCliPrompts",),
-        ".rules": ("FlextCliRules",),
-        ".runtime": ("FlextCliRuntime",),
         ".tables": ("FlextCliTables",),
     },
 )
