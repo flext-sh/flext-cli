@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from flext_cli import FlextCliSettings
+from flext_cli import cli
 from tests import c, m, u
 
 
@@ -17,7 +17,7 @@ class TestsFlextCliParamsBranchCov:
         assert resolved.debug is True
 
     def test_params_set_format_applies_valid_log_format(self) -> None:
-        settings = FlextCliSettings()
+        settings = cli.new_settings()
         valid_log_format = c.Cli.CLI_VALID_LOG_FORMATS[0]
         params = m.Cli.CliParamsConfig(log_format=valid_log_format)
         result = u.Cli.params_set_format(settings, params)
@@ -25,7 +25,7 @@ class TestsFlextCliParamsBranchCov:
         assert result.value.log_verbosity == valid_log_format
 
     def test_params_set_format_applies_valid_output_format(self) -> None:
-        settings = FlextCliSettings()
+        settings = cli.new_settings()
         valid_output_format = c.Cli.OUTPUT_FORMATS[0]
         params = m.Cli.CliParamsConfig(output_format=valid_output_format)
         result = u.Cli.params_set_format(settings, params)

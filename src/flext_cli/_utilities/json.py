@@ -234,6 +234,35 @@ class FlextCliUtilitiesJson:
         return u.normalize(raw, case=case)
 
     @staticmethod
+    def json_dumps(
+        value: t.JsonValue,
+        *,
+        sort_keys: bool = False,
+        indent: int | None = None,
+    ) -> p.Result[str]:
+        """Serialize a JSON-compatible value to a string via canonical adapters."""
+        try:
+            normalized = (
+                FlextCliUtilitiesJson._json_sort_keys(value) if sort_keys else value
+            )
+            payload = t.Cli.JSON_VALUE_ADAPTER.dump_json(
+                normalized,
+                indent=indent,
+            )
+        except (c.ValidationError, ValueError, TypeError) as exc:
+            return r[str].fail(f"json_dumps: {exc}")
+        return r[str].ok(payload.decode(c.Cli.ENCODING_DEFAULT))
+
+    @staticmethod
+    def json_loads(raw: str | bytes) -> p.Result[t.JsonValue]:
+        """Parse a JSON-encoded string/bytes into a JSON-compatible value."""
+        try:
+            data: t.JsonValue = t.Cli.JSON_VALUE_ADAPTER.validate_json(raw)
+        except (c.ValidationError, ValueError) as exc:
+            return r[t.JsonValue].fail(f"json_loads: {exc}")
+        return r[t.JsonValue].ok(data)
+
+    @staticmethod
     def _json_sort_keys(data: t.JsonValue) -> t.JsonValue:
         """Recursively sort dictionary keys in a JSON structure."""
         if isinstance(data, Mapping):

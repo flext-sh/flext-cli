@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from flext_cli import FlextCli
+from flext_cli import cli
 from tests import p, r, t
 
 
@@ -10,7 +10,7 @@ class TestsFlextCliServicesCommandsBranchCov:
     """Exercise public failure branches for command execution."""
 
     def test_execute_command_signature_mismatch_fails(self) -> None:
-        service = FlextCli.create(name="app")
+        service = cli.create(name="app")
 
         def handler() -> p.Result[t.JsonPayload]:
             return r[t.JsonPayload].ok({"retried": True})
@@ -21,7 +21,7 @@ class TestsFlextCliServicesCommandsBranchCov:
         assert "takes 0 positional arguments but 1 was given" in (result.error or "")
 
     def test_execute_command_safe_exception_returns_failure(self) -> None:
-        service = FlextCli.create(name="app")
+        service = cli.create(name="app")
         error_message = "explode"
 
         def handler() -> p.Result[t.JsonPayload]:

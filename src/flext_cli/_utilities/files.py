@@ -326,19 +326,27 @@ class FlextCliUtilitiesFiles:
             return r[t.JsonMapping].fail(
                 f"Unsupported format: {path.suffix or '<none>'}",
             )
-        if read_result.failure:
-            return r[t.JsonMapping].fail(
-                read_result.error or c.Cli.ERR_AUTO_LOAD_FAILED
-            )
-        payload = read_result.value
-        if not isinstance(payload, Mapping):
-            return r[t.JsonMapping].fail(
-                "Auto-detected file must contain a mapping",
-            )
-        normalized_payload: t.JsonMapping = {
-            key: u.normalize_to_json_value(value) for key, value in payload.items()
-        }
-        return r[t.JsonMapping].ok(normalized_payload)
+        return read_result.map_error(
+            lambda err: err or c.Cli.ERR_AUTO_LOAD_FAILED,
+        ).flat_map(
+            lambda payload: (
+                r[t.JsonMapping].ok({
+                    key: u.normalize_to_json_value(value)
+                    for key, value in payload.items()
+                })
+                if isinstance(payload, Mapping)
+                else r[t.JsonMapping].fail("Auto-detected file must contain a mapping")
+            ),
+        )
+
+    @staticmethod
+    def csv_loads(text: str, *, delimiter: str = ",") -> p.Result[list[list[str]]]:
+        """Parse a CSV-encoded string into a list of rows."""
+        try:
+            rows = list(csv.reader(text.splitlines(), delimiter=delimiter))
+        except csv.Error as exc:
+            return r[list[list[str]]].fail(f"csv_loads: {exc}")
+        return r[list[list[str]]].ok(rows)
 
 
 __all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesFiles"]

@@ -6,14 +6,21 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import Self, override
+from typing import TYPE_CHECKING, Self, override
 
 from tests import m, t
 
-from flext_cli import FlextCli
+from flext_cli import cli
+
+if TYPE_CHECKING:
+    from flext_cli import FlextCli
+
+    _FlextCliFacade = FlextCli
+else:
+    _FlextCliFacade = type(cli)
 
 
-class TestsFlextCliScriptedPrompts(FlextCli):
+class TestsFlextCliScriptedPrompts(_FlextCliFacade):
     """Prompt service with typed scripting helpers for tests."""
 
     def override_test_env(self, enabled: bool | None = True) -> Self:

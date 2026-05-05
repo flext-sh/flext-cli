@@ -7,12 +7,12 @@ from pathlib import Path
 import pytest
 from flext_tests import tm
 
-from flext_cli import FlextCliFileTools, m
+from flext_cli import cli, m
 from tests import c, t, u
 
 
 class TestsFlextCliFilesCov:
-    """100% coverage for _utilities/files.py via FlextCliFileTools and u.Cli."""
+    """100% coverage for _utilities/files.py via cli (FlextCliFileTools facade) and u.Cli."""
 
     # ── detect format ────────────────────────────────────────────────
     @pytest.mark.parametrize(
@@ -22,13 +22,13 @@ class TestsFlextCliFilesCov:
     def test_files_detect_format_known(
         self, filename: str, expected_format: str
     ) -> None:
-        result = FlextCliFileTools.detect_file_format(filename)
+        result = cli.detect_file_format(filename)
         tm.ok(result)
         tm.that(result.value, eq=expected_format)
 
     @pytest.mark.parametrize("filename", c.Tests.FILES_DETECT_FORMAT_FAIL_CASES)
     def test_files_detect_format_unknown(self, filename: str) -> None:
-        result = FlextCliFileTools.detect_file_format(filename)
+        result = cli.detect_file_format(filename)
         tm.fail(result)
 
     # ── text read/write ──────────────────────────────────────────────
@@ -51,63 +51,63 @@ class TestsFlextCliFilesCov:
     # ── json read/write ──────────────────────────────────────────────
     def test_files_read_write_json(self, tmp_path: Path) -> None:
         path = tmp_path / "data.json"
-        write_result = FlextCliFileTools.write_json_file(path, {"key": "value"})
+        write_result = cli.write_json_file(path, {"key": "value"})
         tm.ok(write_result)
-        read_result = FlextCliFileTools.read_json_file(path)
+        read_result = cli.read_json_file(path)
         tm.ok(read_result)
 
     def test_files_read_json_missing(self, tmp_path: Path) -> None:
-        result = FlextCliFileTools.read_json_file(tmp_path / "missing.json")
+        result = cli.read_json_file(tmp_path / "missing.json")
         tm.fail(result)
 
     def test_files_read_json_model(self, tmp_path: Path) -> None:
         path = tmp_path / "opts.json"
         path.write_text('{"indent": 4, "sort_keys": true}', encoding="utf-8")
-        result = FlextCliFileTools.read_json_model(path, m.Cli.JsonWriteOptions)
+        result = cli.read_json_model(path, m.Cli.JsonWriteOptions)
         tm.ok(result)
         tm.that(result.value.indent, eq=4)
 
     # ── yaml read/write ──────────────────────────────────────────────
     def test_files_read_write_yaml(self, tmp_path: Path) -> None:
         path = tmp_path / "data.yaml"
-        write_result = FlextCliFileTools.write_yaml_file(path, {"key": "val"})
+        write_result = cli.write_yaml_file(path, {"key": "val"})
         tm.ok(write_result)
-        read_result = FlextCliFileTools.read_yaml_file(path)
+        read_result = cli.read_yaml_file(path)
         tm.ok(read_result)
 
     def test_files_read_yaml_missing(self, tmp_path: Path) -> None:
-        result = FlextCliFileTools.read_yaml_file(tmp_path / "missing.yaml")
+        result = cli.read_yaml_file(tmp_path / "missing.yaml")
         tm.fail(result)
 
     def test_files_read_yaml_empty_path(self) -> None:
-        result = FlextCliFileTools.read_yaml_file("   ")
+        result = cli.read_yaml_file("   ")
         tm.fail(result)
 
     # ── csv read/write ───────────────────────────────────────────────
     def test_files_write_read_csv(self, tmp_path: Path) -> None:
         path = tmp_path / "data.csv"
         rows: list[t.StrSequence] = [["name", "age"], ["alice", "30"], ["bob", "25"]]
-        write_result = FlextCliFileTools.write_csv_file(path, rows)
+        write_result = cli.write_csv_file(path, rows)
         tm.ok(write_result)
-        read_result = FlextCliFileTools.read_csv_file_with_headers(path)
+        read_result = cli.read_csv_file_with_headers(path)
         tm.ok(read_result)
         tm.that(len(read_result.value), eq=2)
 
     def test_files_read_csv_missing(self, tmp_path: Path) -> None:
-        result = FlextCliFileTools.read_csv_file_with_headers(tmp_path / "missing.csv")
+        result = cli.read_csv_file_with_headers(tmp_path / "missing.csv")
         tm.fail(result)
 
     # ── binary read/write ────────────────────────────────────────────
     def test_files_write_read_binary(self, tmp_path: Path) -> None:
         path = tmp_path / "data.bin"
-        write_result = FlextCliFileTools.write_binary_file(path, b"\x00\x01\x02")
+        write_result = cli.write_binary_file(path, b"\x00\x01\x02")
         tm.ok(write_result)
-        read_result = FlextCliFileTools.read_binary_file(path)
+        read_result = cli.read_binary_file(path)
         tm.ok(read_result)
         tm.that(read_result.value, eq=b"\x00\x01\x02")
 
     def test_files_read_binary_missing(self, tmp_path: Path) -> None:
-        result = FlextCliFileTools.read_binary_file(tmp_path / "missing.bin")
+        result = cli.read_binary_file(tmp_path / "missing.bin")
         tm.fail(result)
 
     # ── copy / delete ────────────────────────────────────────────────
@@ -115,7 +115,7 @@ class TestsFlextCliFilesCov:
         src = tmp_path / "src.txt"
         dst = tmp_path / "dst.txt"
         src.write_text("content", encoding="utf-8")
-        result = FlextCliFileTools.copy_file(src, dst)
+        result = cli.copy_file(src, dst)
         tm.ok(result)
         tm.that(dst.read_text(encoding="utf-8"), eq="content")
 
@@ -185,7 +185,7 @@ class TestsFlextCliFilesCov:
 
     def test_service_atomic_write_text_file_success(self, tmp_path: Path) -> None:
         target = tmp_path / "service_atomic.txt"
-        result = FlextCliFileTools.atomic_write_text_file(target, "ok")
+        result = cli.atomic_write_text_file(target, "ok")
         tm.ok(result)
         tm.that(target.read_text(encoding="utf-8"), eq="ok")
 
@@ -205,23 +205,23 @@ class TestsFlextCliFilesCov:
     def test_files_load_auto_mapping_json(self, tmp_path: Path) -> None:
         path = tmp_path / "data.json"
         path.write_text('{"a": 1}', encoding="utf-8")
-        result = FlextCliFileTools.load_file_auto_dict(path)
+        result = cli.load_file_auto_dict(path)
         tm.ok(result)
 
     def test_files_load_auto_mapping_yaml(self, tmp_path: Path) -> None:
         path = tmp_path / "data.yaml"
         path.write_text("a: 1\n", encoding="utf-8")
-        result = FlextCliFileTools.load_file_auto_dict(path)
+        result = cli.load_file_auto_dict(path)
         tm.ok(result)
 
     def test_files_load_auto_mapping_unsupported(self, tmp_path: Path) -> None:
         path = tmp_path / "data.xml"
         path.write_text("<root/>", encoding="utf-8")
-        result = FlextCliFileTools.load_file_auto_dict(path)
+        result = cli.load_file_auto_dict(path)
         tm.fail(result)
 
     def test_files_load_auto_mapping_non_mapping_json(self, tmp_path: Path) -> None:
         path = tmp_path / "list.json"
         path.write_text("[1,2,3]", encoding="utf-8")
-        result = FlextCliFileTools.load_file_auto_dict(path)
+        result = cli.load_file_auto_dict(path)
         tm.fail(result)

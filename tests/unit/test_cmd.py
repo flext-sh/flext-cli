@@ -34,8 +34,7 @@ class TestsFlextCliCmd:
 
     def test_cmd_service_properties(self) -> None:
         """Test CMD service properties."""
-        cmd = cli
-        tm.that(cmd, is_=p.Cli.CmdService)
+        tm.that(cli, is_=p.Cli.CmdService)
 
     def test_cmd_execute_sync(self) -> None:
         """Test synchronous CMD execution."""

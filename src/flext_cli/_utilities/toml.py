@@ -583,14 +583,23 @@ class FlextCliUtilitiesToml:
         if config_path is not None:
             command.extend(["--config", str(config_path)])
         command.append(str(path))
-        result = ur.run_raw(command, cwd=path.parent)
-        if result.failure:
-            return r[bool].fail(result.error or f"taplo format failed: {path}")
-        output = result.value
-        if output.exit_code != 0:
-            message = (output.stderr or output.stdout).strip()
-            return r[bool].fail(message or f"taplo format failed: {path}")
-        return r[bool].ok(True)
+        return (
+            ur
+            .run_raw(command, cwd=path.parent)
+            .map_error(
+                lambda err: err or f"taplo format failed: {path}",
+            )
+            .flat_map(
+                lambda output: (
+                    r[bool].ok(True)
+                    if output.exit_code == 0
+                    else r[bool].fail(
+                        (output.stderr or output.stdout).strip()
+                        or f"taplo format failed: {path}",
+                    )
+                ),
+            )
+        )
 
     @staticmethod
     def toml_write_document(path: Path, doc: TOMLDocument) -> p.Result[bool]:
@@ -604,10 +613,14 @@ class FlextCliUtilitiesToml:
             )
         except OSError as exc:
             return e.fail_operation("TOML write", exc, result_type=r[bool])
-        format_result = FlextCliUtilitiesToml._format_pyproject(path)
-        if format_result.failure:
-            return r[bool].fail(format_result.error or f"taplo format failed: {path}")
-        return r[bool].ok(True)
+        return (
+            FlextCliUtilitiesToml
+            ._format_pyproject(path)
+            .map_error(
+                lambda err: err or f"taplo format failed: {path}",
+            )
+            .map(lambda _ok: True)
+        )
 
     @staticmethod
     def toml_write_mapping(path: Path, mapping: t.JsonMapping) -> p.Result[bool]:

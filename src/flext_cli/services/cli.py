@@ -337,14 +337,18 @@ class FlextCliCli(s):
 
     @staticmethod
     def exit(code: int = 0) -> None:
-        """Terminate the process with the given exit code.
+        """Terminate the CLI flow with the given exit code.
 
-        Canonical CLI shutdown for ``__main__.py`` entry points: delegates
-        to ``sys.exit(code)`` so the call ``cli.exit(main())`` produces a
-        clean process exit without a ``typer.Exit`` traceback. Inside an
-        active Typer/Click command callback, prefer
-        ``raise typer.Exit(code=...)`` directly so the framework catches it.
+        Context-aware shutdown: inside an active Typer/Click context (a CLI
+        callback or subcommand running through ``cli.execute_app``), raises
+        ``typer.Exit(code)`` so ``execute_app`` catches it and returns the
+        canonical ``r[bool]`` result. Outside any active context (typically
+        ``__main__.py`` entry points after ``execute_app`` has returned),
+        delegates to ``sys.exit(code)`` for a clean process exit without a
+        ``typer.Exit`` traceback.
         """
+        if click.get_current_context(silent=True) is not None:
+            raise typer.Exit(code=code)
         sys.exit(code)
 
     @staticmethod

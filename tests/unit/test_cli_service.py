@@ -9,7 +9,7 @@ from collections.abc import (
 import typer
 from flext_tests import tm
 
-from flext_cli import FlextCliSettings, cli
+from flext_cli import cli
 from tests import c, m, p, r, t
 
 
@@ -243,7 +243,7 @@ class TestsFlextCliService:
     def test_create_app_with_common_params_handles_invalid_trace_without_debug(
         self,
     ) -> None:
-        settings = FlextCliSettings()
+        settings = cli.new_settings()
         app = cli.create_app_with_common_params(
             name="warn-app",
             help_text="Warn app",
@@ -259,7 +259,7 @@ class TestsFlextCliService:
         tm.that(settings.trace, eq=False)
 
     def test_create_app_with_common_params_no_flags_keeps_settings(self) -> None:
-        settings = FlextCliSettings()
+        settings = cli.new_settings()
         app = cli.create_app_with_common_params(
             name="identity-app",
             help_text="Identity app",

@@ -10,6 +10,7 @@ _LAZY_IMPORTS = build_lazy_import_map(
         ".base": ("FlextCliConstantsBase",),
         ".enums": ("FlextCliConstantsEnums",),
         ".errors": ("FlextCliConstantsErrors",),
+        ".exceptions": ("FlextCliConstantsExceptions",),
         ".output": ("FlextCliConstantsOutput",),
         ".pipeline": ("FlextCliConstantsPipeline",),
         ".settings": ("FlextCliConstantsSettings",),

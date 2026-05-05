@@ -13,7 +13,6 @@ import typer
 from flext_tests import FlextTestsUtilities
 
 from flext_cli import (
-    FlextCliSettings,
     cli,
     u,
 )
@@ -111,7 +110,7 @@ class TestsFlextCliUtilities(FlextTestsUtilities, u):
         @staticmethod
         def create_test_settings() -> p.Result[p.Cli.Settings]:
             """Create test settings using Railway pattern."""
-            return r[p.Cli.Settings].create_from_callable(FlextCliSettings)
+            return r[p.Cli.Settings].create_from_callable(cli.new_settings)
 
         @staticmethod
         def create_cli_app() -> p.Result[t.Cli.CliApp]:

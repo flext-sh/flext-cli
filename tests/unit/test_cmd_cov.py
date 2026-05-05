@@ -11,7 +11,7 @@ from pathlib import Path
 
 from flext_tests import tm
 
-from flext_cli import FlextCli
+from flext_cli import cli
 from tests import c
 
 
@@ -36,7 +36,7 @@ class TestsFlextCliCmdCov:
         tmp_path: Path,
     ) -> None:
         """validate_settings must report the canonical structure without failing."""
-        cmd = FlextCli()
+        cmd = type(cli)()
         with _temporary_home(tmp_path):
             result = cmd.validate_settings()
         tm.ok(result)
@@ -50,7 +50,7 @@ class TestsFlextCliCmdCov:
         base_dir.mkdir()
         for subdir in c.Cli.STANDARD_SUBDIRS:
             (base_dir / subdir).mkdir()
-        cmd = FlextCli()
+        cmd = type(cli)()
         with _temporary_home(tmp_path):
             result = cmd.validate_settings()
         tm.ok(result)
@@ -63,7 +63,7 @@ class TestsFlextCliCmdCov:
         settings_dir = tmp_path / c.Cli.PATH_FLEXT_DIR_NAME
         settings_dir.mkdir()
         with _temporary_home(tmp_path):
-            result = FlextCli.settings_snapshot()
+            result = cli.settings_snapshot()
         tm.ok(result)
         tm.that(result.value.settings_dir, eq=str(settings_dir))
         tm.that(result.value.settings_exists, eq=True)
@@ -74,7 +74,7 @@ class TestsFlextCliCmdCov:
     ) -> None:
         """show_settings must succeed when the canonical settings snapshot is readable."""
         (tmp_path / c.Cli.PATH_FLEXT_DIR_NAME).mkdir()
-        cmd = FlextCli()
+        cmd = type(cli)()
         with _temporary_home(tmp_path):
             result = cmd.show_settings()
         tm.ok(result)

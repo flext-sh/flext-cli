@@ -6,6 +6,7 @@ from flext_cli import (
     FlextCliConstantsBase,
     FlextCliConstantsEnums,
     FlextCliConstantsErrors,
+    FlextCliConstantsExceptions,
     FlextCliConstantsOutput,
     FlextCliConstantsPipeline,
     FlextCliConstantsSettings,
@@ -18,6 +19,7 @@ class FlextCliConstants(
     FlextCliConstantsBase,
     FlextCliConstantsEnums,
     FlextCliConstantsErrors,
+    FlextCliConstantsExceptions,
     FlextCliConstantsOutput,
     FlextCliConstantsPipeline,
     FlextCliConstantsSettings,
@@ -29,6 +31,7 @@ class FlextCliConstants(
         FlextCliConstantsBase,
         FlextCliConstantsEnums,
         FlextCliConstantsErrors,
+        FlextCliConstantsExceptions,
         FlextCliConstantsOutput,
         FlextCliConstantsSettings,
     ):
