@@ -78,7 +78,7 @@ class FlextCliFileTools(FlextCliServiceBase):
     @staticmethod
     def read_csv_file_with_headers(
         file_path: t.Cli.TextPath,
-    ) -> p.Result[Sequence[t.StrMapping]]:
+    ) -> p.Result[t.SequenceOf[t.StrMapping]]:
         return u.Cli.files_read_csv_with_headers(Path(file_path))
 
     @staticmethod

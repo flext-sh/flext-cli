@@ -11,7 +11,7 @@ from flext_cli import (
     FlextCliConstantsPipeline,
     FlextCliConstantsSettings,
 )
-from flext_core import FlextConstants
+from flext_core import FlextConstants, t
 
 
 class FlextCliConstants(
@@ -38,6 +38,6 @@ class FlextCliConstants(
         """CLI related constants."""
 
 
-__all__: tuple[str, ...] = ("FlextCliConstants", "c")
+__all__: t.StrSequence = ("FlextCliConstants", "c")
 
 c = FlextCliConstants

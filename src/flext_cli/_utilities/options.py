@@ -81,7 +81,7 @@ class FlextCliUtilitiesOptions:
                 [
                     get_origin(Sequence[str]),
                     get_origin(list[str]),
-                    get_origin(tuple[str, ...]),
+                    get_origin(t.StrSequence),
                     t.SequenceOf,
                     t.MutableSequenceOf,
                 ],

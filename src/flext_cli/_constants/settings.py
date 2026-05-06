@@ -12,11 +12,11 @@ from flext_core import c, t
 class FlextCliConstantsSettings:
     """CLI defaults, messages, registries, and output configuration."""
 
-    OUTPUT_FORMATS: ClassVar[tuple[str, ...]] = tuple(
-        item.value for item in ce.OutputFormats
+    OUTPUT_FORMATS: ClassVar[t.StrSequence] = tuple(
+        output_format.value for output_format in ce.OutputFormats
     )
-    LOG_LEVELS: ClassVar[tuple[str, ...]] = tuple(item.value for item in c.LogLevel)
-    MESSAGE_TYPES: ClassVar[tuple[str, ...]] = tuple(
+    LOG_LEVELS: ClassVar[t.StrSequence] = tuple(item.value for item in c.LogLevel)
+    MESSAGE_TYPES: ClassVar[t.StrSequence] = tuple(
         item.value for item in ce.MessageTypes
     )
 

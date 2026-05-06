@@ -70,7 +70,7 @@ class TestsFlextCliConstants(FlextTestsConstants, c):
         )
         PROMPT_SPECIAL: Final[str] = "!@#$%^&*()"
         PROMPT_UNICODE: Final[str] = "你好世界🌍"
-        PROMPT_EDGE_MESSAGES: Final[tuple[str, ...]] = (
+        PROMPT_EDGE_MESSAGES: Final[t.StrSequence] = (
             "",
             PROMPT_LONG,
             PROMPT_SPECIAL,
@@ -167,7 +167,7 @@ class TestsFlextCliConstants(FlextTestsConstants, c):
             ("data.txt", c.Cli.OutputFormats.TEXT),
             ("data.log", c.Cli.OutputFormats.TEXT),
         )
-        FILES_DETECT_FORMAT_FAIL_CASES: Final[tuple[str, ...]] = (
+        FILES_DETECT_FORMAT_FAIL_CASES: Final[t.StrSequence] = (
             "data.xml",
             "data.parquet",
             "data",
@@ -205,7 +205,7 @@ class TestsFlextCliConstants(FlextTestsConstants, c):
 
         # ── MATCHING ───────────────────────────────────────────────────
         # matches(msg, *patterns) → (msg, patterns, expected)
-        MATCH_SIMPLE_CASES: Final[tuple[tuple[str, tuple[str, ...], bool], ...]] = (
+        MATCH_SIMPLE_CASES: Final[tuple[tuple[str, t.StrSequence, bool], ...]] = (
             ("file not found: foo.py", ("not found",), True),
             ("error occurred", ("not found",), False),
             ("warning: deprecated api", ("deprecated", "obsolete"), True),
@@ -228,7 +228,7 @@ class TestsFlextCliConstants(FlextTestsConstants, c):
         )
 
         # ── FORMATTERS ─────────────────────────────────────────────────
-        FORMATTER_TREE_LABELS: Final[tuple[str, ...]] = (
+        FORMATTER_TREE_LABELS: Final[t.StrSequence] = (
             "Root",
             "Branch",
             "",
@@ -236,7 +236,7 @@ class TestsFlextCliConstants(FlextTestsConstants, c):
 
         # (columns, rows, title)
         FORMATTER_TABLE_CASES: Final[
-            tuple[tuple[tuple[str, ...], tuple[tuple[str, ...], ...], str], ...]
+            tuple[tuple[t.StrSequence, tuple[t.StrSequence, ...], str], ...]
         ] = (
             (("Name", "Value"), (("foo", "bar"), ("baz", "qux")), "My Table"),
             (("A",), (("1",),), ""),
@@ -248,7 +248,7 @@ class TestsFlextCliConstants(FlextTestsConstants, c):
             ("No title content", ""),
         )
 
-        FORMATTER_RULE_LABELS: Final[tuple[str, ...]] = (
+        FORMATTER_RULE_LABELS: Final[t.StrSequence] = (
             "Section Header",
             "Done",
             "",
@@ -275,7 +275,7 @@ class TestsFlextCliConstants(FlextTestsConstants, c):
         )
 
         # header / text display
-        OUTPUT_HEADER_LABELS: Final[tuple[str, ...]] = (
+        OUTPUT_HEADER_LABELS: Final[t.StrSequence] = (
             "Section Start",
             "Processing",
             "",
@@ -324,7 +324,7 @@ class TestsFlextCliConstants(FlextTestsConstants, c):
 
         # ── RULES (services/rules.py) ──────────────────────────────────
         RULES_SCOPE_SETTINGS: Final[
-            tuple[tuple[t.JsonValue, str, tuple[str, ...]], ...]
+            tuple[tuple[t.JsonValue, str, t.StrSequence], ...]
         ] = (
             ({"lint": {"rule_a": True, "rule_b": False}}, "lint", ("rule_a", "rule_b")),
             ({}, "lint", ("rule_a",)),
@@ -332,7 +332,7 @@ class TestsFlextCliConstants(FlextTestsConstants, c):
         )
 
         RULES_SCOPE_CASES: Final[
-            tuple[tuple[t.JsonValue, str, tuple[str, ...], int], ...]
+            tuple[tuple[t.JsonValue, str, t.StrSequence, int], ...]
         ] = (
             (
                 {"lint": {"rule_a": True, "rule_b": False}},
@@ -345,9 +345,7 @@ class TestsFlextCliConstants(FlextTestsConstants, c):
             ({"lint": {"rule_a": 99, "unrelated": "x"}}, "lint", ("rule_a",), 1),
         )
 
-        RULES_MATCH_FILTER_CASES: Final[
-            tuple[tuple[str, tuple[str, ...], bool], ...]
-        ] = (
+        RULES_MATCH_FILTER_CASES: Final[tuple[tuple[str, t.StrSequence, bool], ...]] = (
             ("my-rule", (), True),
             ("my-rule", ("my-*",), True),
             ("my-rule", ("other-*",), False),
@@ -464,9 +462,7 @@ class TestsFlextCliConstants(FlextTestsConstants, c):
         )
         OPTIONS_REORDER_CASES: Final[
             tuple[
-                tuple[
-                    tuple[str, ...], tuple[str, ...], tuple[str, ...], tuple[str, ...]
-                ],
+                tuple[t.StrSequence, t.StrSequence, t.StrSequence, t.StrSequence],
                 ...,
             ]
         ] = (
@@ -517,7 +513,7 @@ class TestsFlextCliConstants(FlextTestsConstants, c):
         # (content, expect_ok)
 
         TOML_NESTED_PATH_CASES: Final[
-            tuple[tuple[tuple[str, ...], t.JsonValue | None], ...]
+            tuple[tuple[t.StrSequence, t.JsonValue | None], ...]
         ] = (
             (("tool", "flext", "project"), "my-project"),
             (("tool", "missing", "key"), None),
@@ -537,7 +533,7 @@ class TestsFlextCliConstants(FlextTestsConstants, c):
         # tables_resolve_config: (kwargs, expect_ok)
 
         # ── COMMANDS (_utilities/commands.py) ──────────────────────────
-        CMD_NAMES_VALID: Final[tuple[str, ...]] = ("build", "test", "deploy")
+        CMD_NAMES_VALID: Final[t.StrSequence] = ("build", "test", "deploy")
 
         # ── AUTH (_utilities/auth.py) ──────────────────────────────────
 

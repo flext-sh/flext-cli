@@ -4,14 +4,14 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from tests import c, m, u
+from tests import c, m, t, u
 
 
 class _OptionSettings(m.BaseModel):
     """Settings model used to exercise public default normalization."""
 
     output_path: Path = Path("reports/output.json")
-    tags: tuple[str, ...] = ("lint", "typecheck")
+    tags: t.StrSequence = ("lint", "typecheck")
     flags: dict[str, bool] = {"debug": True}
 
 
@@ -22,7 +22,7 @@ class TestsFlextCliOptionsPublicCoverage:
         self,
     ) -> None:
         optional_string = u.Cli.resolve_typer_annotation(str | None)
-        repeated_strings = u.Cli.resolve_typer_annotation(tuple[str, ...])
+        repeated_strings = u.Cli.resolve_typer_annotation(t.StrSequence)
         plain_mapping = u.Cli.resolve_typer_annotation(dict[str, int])
         frozen_values = u.Cli.resolve_typer_annotation(frozenset[str])
         multi_union = u.Cli.resolve_typer_annotation(str | int)

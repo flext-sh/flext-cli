@@ -218,7 +218,7 @@ class ExamplesFlextCliModels(m):
             @u.field_validator("log_level")
             @classmethod
             def _validate_log_level(cls, v: str) -> str:
-                valid: tuple[str, ...] = c.Cli.LOG_LEVELS
+                valid: t.StrSequence = c.Cli.LOG_LEVELS
                 if v.upper() not in valid:
                     msg = f"LOG_LEVEL must be one of: {', '.join(valid)}"
                     raise ValueError(msg)

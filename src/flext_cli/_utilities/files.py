@@ -9,7 +9,6 @@ import shutil
 import tempfile
 from collections.abc import (
     Mapping,
-    Sequence,
 )
 from pathlib import Path
 from types import MappingProxyType
@@ -141,7 +140,7 @@ class FlextCliUtilitiesFiles:
     @staticmethod
     def files_read_csv_with_headers(
         file_path: t.Cli.TextPath,
-    ) -> p.Result[Sequence[t.StrMapping]]:
+    ) -> p.Result[t.SequenceOf[t.StrMapping]]:
         """Read one CSV file into mapping rows using header row."""
 
         def _load() -> t.SequenceOf[t.StrMapping]:

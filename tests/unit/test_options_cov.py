@@ -31,7 +31,7 @@ class ListAnnotationModel(m.BaseModel):
 
 
 class TupleAnnotationModel(m.BaseModel):
-    value: tuple[str, ...]
+    value: t.StrSequence
 
 
 class SetAnnotationModel(m.BaseModel):
@@ -96,8 +96,8 @@ class OptionsDefaultsModel(m.BaseModel):
     """Model used to exercise field-default normalization paths."""
 
     name: str = "default-name"
-    tags: tuple[str, ...] = ("a", "b")
-    generated: tuple[str, ...] = m.Field(default_factory=lambda: ("gen", "value"))
+    tags: t.StrSequence = ("a", "b")
+    generated: t.StrSequence = m.Field(default_factory=lambda: ("gen", "value"))
     valid_mapping: t.Cli.DefaultMapping = m.Field(
         default_factory=lambda: dict(c.Tests.OPTIONS_FIELD_DEFAULT_VALID_MAPPING),
     )

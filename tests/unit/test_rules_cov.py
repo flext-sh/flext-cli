@@ -30,7 +30,7 @@ class TestsFlextCliRulesCov:
         self,
         settings: t.JsonValue,
         scope_key: str,
-        allowed_keys: tuple[str, ...],
+        allowed_keys: t.StrSequence,
         expected_len: int,
     ) -> None:
         result = u.Cli.rules_resolve_scope(
@@ -295,7 +295,7 @@ class TestsFlextCliRulesCov:
     def test_rules_matches_filters_parametrized(
         self,
         rule_id: str,
-        rule_filters: tuple[str, ...],
+        rule_filters: t.StrSequence,
         expected: bool,
     ) -> None:
         result = u.Cli.rules_matches_filters(rule_id, rule_filters)

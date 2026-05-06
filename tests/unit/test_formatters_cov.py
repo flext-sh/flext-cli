@@ -12,7 +12,7 @@ from __future__ import annotations
 import pytest
 
 from flext_cli import cli
-from tests import c
+from tests import c, t
 
 
 class TestsFlextCliFormattersCov:
@@ -70,8 +70,8 @@ class TestsFlextCliFormattersCov:
     )
     def test_render_table_parametrized(
         self,
-        columns: tuple[str, ...],
-        rows: tuple[tuple[str, ...], ...],
+        columns: t.StrSequence,
+        rows: tuple[t.StrSequence, ...],
         title: str,
     ) -> None:
         cli.render_table(

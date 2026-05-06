@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import pytest
 
-from tests import c, u
+from tests import c, t, u
 
 
 class TestsFlextCliMatchingCov:
@@ -23,7 +23,7 @@ class TestsFlextCliMatchingCov:
         c.Tests.MATCH_SIMPLE_CASES,
     )
     def test_matches_parametrized(
-        self, msg: str, patterns: tuple[str, ...], expected: bool
+        self, msg: str, patterns: t.StrSequence, expected: bool
     ) -> None:
         result = u.Cli.matches(msg, *patterns)
         assert result == expected
