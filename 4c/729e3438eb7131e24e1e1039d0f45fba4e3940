@@ -1,0 +1,117 @@
+tests/protocols.py
+  h_9db9d35f50cf33 9-10,15-16,25-88
+src/flext_cli/services/cli.py
+  h_5cf852cc46bf92 149,151,157-158
+src/flext_cli/services/pipeline.py
+  h_5cf852cc46bf92 7
+  h_9db9d35f50cf33 1-6,8-133
+tests/unit/test_prompts_cov.py
+  h_9db9d35f50cf33 5-6,9,16-17,20,31-32,35,49-50,62-63
+  ee53baefb7cad0fc 53,66
+src/flext_cli/_constants/exceptions.py
+  ee53baefb7cad0fc 17,34
+tests/unit/test_pipeline.py
+  h_9db9d35f50cf33 18,40,45,50,66,68,72,74-79,91,97,100-101,107,114-115,121,123,135,141,150,155,161,176,178,183,189,207,209,215,227,235,237,249,251,256-257,262,267,273
+  ee53baefb7cad0fc 7-8
+src/flext_cli/services/__init__.py
+  h_9db9d35f50cf33 19-20
+  ee53baefb7cad0fc 17
+tests/unit/test_prompts.py
+  h_9db9d35f50cf33 11,19,29,31,40,55,67,75,87,89,113,123,161,186,195,197,208,218
+src/flext_cli/base.py
+  s_0290f35b98ef0c::t_d3b1ef90511ca0 12,25-26,37,41
+src/flext_cli/_utilities/json.py
+  h_5cf852cc46bf92 140
+src/flext_cli/_utilities/toml.py
+  s_552d8e4891a938::t_17410bbcddc79d 254,300,417,465
+  h_5cf852cc46bf92 268,270,280,286,288,302,306,375,386,400,445,463
+tests/unit/test_examples_smoke.py
+  h_9db9d35f50cf33 8,20-36,60,71-73,75-76,115,128,191,204,213,221-222,265,276,288,293,317,319-320,324,348,355,395,402,408,412,418,427,432,441,451-452,458-459,465,469,473,480,483-485,487-489,491-493,529,537
+  ee53baefb7cad0fc 11-19,37,45,58,70,74,113,126,185-189,202,211,217,220,224-227,229,242,244,247,250,255,261,263,291,302,307,310,316,318,322,333,341,346,353,398,404,406-407,410,421,435,463,467,471,475,482,486,490,503,515-516
+tests/helpers/_impl.py
+  h_9db9d35f50cf33 60
+src/flext_cli/_utilities/model_commands.py
+  h_5cf852cc46bf92 8,54-55,59
+src/flext_cli/_models/pipeline.py
+  h_9db9d35f50cf33 36
+tests/utilities.py
+  h_9db9d35f50cf33 19-23,32-34
+src/flext_cli/__init__.py
+  h_9db9d35f50cf33 82-83,172-173,259-260
+  ee53baefb7cad0fc 80,170,253
+src/flext_cli/services/file_tools.py
+  h_9db9d35f50cf33 17-20,32-35,106-116
+tests/unit/test_files_cov.py
+  ee53baefb7cad0fc 130,132
+src/flext_cli/_protocols/base.py
+  s_0290f35b98ef0c::t_d3b1ef90511ca0 109-126
+  h_5cf852cc46bf92 10,22,73,75-77,82,88,90-92,98
+src/flext_cli/_utilities/files.py
+  h_9db9d35f50cf33 43,45-54,56,238-254
+src/flext_cli/api.py
+  h_9db9d35f50cf33 1,19,21-22,40,42-43
+tests/unit/conftest.py
+  ee53baefb7cad0fc 40,47,57,64
+  h_9db9d35f50cf33 39,41-46,48-56,58-63,65-72,89-90
+tests/unit/test_public_contracts_cov.py
+  h_9db9d35f50cf33 8,30,32-34,36-39,41-46,48,50-53,55,57,120-121,129,196,201,205,208,213,217,222,230-234,236,244-245
+  ee53baefb7cad0fc 9,122-123
+src/flext_cli/_typings/pipeline.py
+  h_9db9d35f50cf33 11,14,26,30,33-35
+tests/unit/test_options_public_cov.py
+  h_9db9d35f50cf33 7
+tests/unit/test_base.py
+  ee53baefb7cad0fc 1,3-4,6-7,18-19,23,26-27,29,33,42-43
+src/flext_cli/_protocols/pipeline.py
+  h_9db9d35f50cf33 5,12,62-135
+src/flext_cli/_utilities/yaml.py
+  h_5cf852cc46bf92 50,54
+  ee53baefb7cad0fc 61,97,144,171
+tests/unit/test_runtime_utilities_core.py
+  h_9db9d35f50cf33 21-35
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.1",
+  "base_commit_sha": "4c729e3438eb7131e24e1e1039d0f45fba4e3940",
+  "prompts": {
+    "ee53baefb7cad0fc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6f1f4a05-4b57-4b6c-b7d8-374c863c4493",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "FLEXT Bot <team@flext.sh>",
+      "total_additions": 143,
+      "total_deletions": 157,
+      "accepted_lines": 143,
+      "overriden_lines": 0
+    }
+  },
+  "humans": {
+    "h_5cf852cc46bf92": {
+      "author": "FLEXT Bot <team@flext.sh>"
+    },
+    "h_9db9d35f50cf33": {
+      "author": "FLEXT Bot"
+    }
+  },
+  "sessions": {
+    "s_0290f35b98ef0c": {
+      "agent_id": {
+        "tool": "github-copilot",
+        "id": "0c4cc853-563f-48ad-a39a-f49b587090b8",
+        "model": "unknown"
+      },
+      "human_author": "FLEXT Bot <team@flext.sh>"
+    },
+    "s_552d8e4891a938": {
+      "agent_id": {
+        "tool": "github-copilot",
+        "id": "35c0040b-2ae9-466e-90aa-7721509e1e19",
+        "model": "unknown"
+      },
+      "human_author": "FLEXT Bot <team@flext.sh>"
+    }
+  }
+}
