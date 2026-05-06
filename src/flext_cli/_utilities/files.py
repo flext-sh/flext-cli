@@ -40,10 +40,20 @@ class FlextCliUtilitiesFiles:
 
     @staticmethod
     def files_delete(file_path: t.Cli.TextPath) -> p.Result[bool]:
-        """Delete one file path using canonical error handling."""
+        """Delete one file-system path using canonical error handling."""
         path = Path(file_path)
+
+        def _delete() -> bool:
+            if not path.exists() and not path.is_symlink():
+                return True
+            if path.is_dir() and not path.is_symlink():
+                shutil.rmtree(path)
+            else:
+                path.unlink()
+            return True
+
         return FlextCliUtilitiesFiles.files_execute_bool(
-            path.unlink,
+            _delete,
             c.Cli.ERR_FILE_DELETION_FAILED,
         )
 
@@ -224,6 +234,24 @@ class FlextCliUtilitiesFiles:
                 c.Cli.ERR_ENSURE_DIR_FAILED.format(error=exc),
             )
         return r[Path].ok(target)
+
+    @staticmethod
+    def files_list_directory_names(
+        file_path: t.Cli.TextPath,
+    ) -> p.Result[t.SequenceOf[str]]:
+        """Return sorted child directory names for one path."""
+        path = Path(file_path)
+        if not path.exists():
+            return r[t.SequenceOf[str]].ok(())
+
+        def _list() -> t.SequenceOf[str]:
+            names = sorted(entry.name for entry in path.iterdir() if entry.is_dir())
+            return tuple(names)
+
+        return FlextCliUtilitiesFiles.files_execute(
+            _list,
+            c.Cli.ERR_TEXT_READ_FAILED,
+        )
 
     @staticmethod
     def ensure_symlink(

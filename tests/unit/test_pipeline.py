@@ -4,7 +4,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from tests import c, m, p, r, t, u
+from flext_cli import cli
+from tests import c, m, p, r, t
 
 # ── Fixtures ────────────────────────────────────────────────────────
 
@@ -14,14 +15,7 @@ def _ok_handler(stage_id: str, output_key: str = "done") -> t.Cli.PipelineHandle
 
     def handler(ctx: p.Cli.PipelineStageContext) -> p.Result[m.Cli.PipelineStageResult]:
         ctx.shared[output_key] = stage_id
-        return r[m.Cli.PipelineStageResult].ok(
-            m.Cli.PipelineStageResult(
-                stage_id=stage_id,
-                status=c.Cli.PipelineStageStatus.OK,
-                output={output_key: stage_id},
-                duration_ms=1.0,
-            ),
-        )
+        return cli.ok_stage(stage_id, output={output_key: stage_id}, duration_ms=1.0)
 
     return handler
 
@@ -39,25 +33,21 @@ def _skip_always(_ctx: p.Cli.PipelineStageContext) -> bool:
     return True
 
 
-def _make_ctx(tmp_path: Path) -> m.Cli.PipelineStageContext:
-    return m.Cli.PipelineStageContext(workspace_root=tmp_path)
-
-
 # ── Tests ───────────────────────────────────────────────────────────
 
 
 class TestsFlextCliPipeline:
-    """Test u.Cli.execute_pipeline()."""
+    """Test the public ``cli`` pipeline DSL."""
 
     def test_single_stage_ok(self, tmp_path: Path) -> None:
         """Single stage executes and returns ok."""
         stages = [
-            m.Cli.PipelineStageSpec(
-                stage_id="alpha",
+            cli.stage(
+                "alpha",
                 handler=_ok_handler("alpha"),
             ),
         ]
-        result = u.Cli.execute_pipeline(stages, _make_ctx(tmp_path))
+        result = cli.pipeline(stages, workspace_root=tmp_path)
         assert result.success
         pipeline = result.value
         assert pipeline.success
@@ -73,27 +63,20 @@ class TestsFlextCliPipeline:
             def handler(
                 ctx: p.Cli.PipelineStageContext,
             ) -> p.Result[m.Cli.PipelineStageResult]:
+                _ = ctx
                 execution_order.append(stage_id)
-                return r[m.Cli.PipelineStageResult].ok(
-                    m.Cli.PipelineStageResult(
-                        stage_id=stage_id, status=c.Cli.PipelineStageStatus.OK
-                    ),
-                )
+                return cli.ok_stage(stage_id)
 
             return handler
 
-        stages = [
-            m.Cli.PipelineStageSpec(
-                stage_id="b",
-                depends_on=frozenset({"a"}),
-                handler=tracking_handler("b"),
-            ),
-            m.Cli.PipelineStageSpec(
-                stage_id="a",
-                handler=tracking_handler("a"),
-            ),
-        ]
-        result = u.Cli.execute_pipeline(stages, _make_ctx(tmp_path))
+        stages = cli.linear_pipeline(
+            ("a", "b"),
+            {
+                "a": tracking_handler("a"),
+                "b": tracking_handler("b"),
+            },
+        )
+        result = cli.pipeline(stages, workspace_root=tmp_path)
         assert result.success
         assert execution_order == ["a", "b"]
 
@@ -105,47 +88,39 @@ class TestsFlextCliPipeline:
             ctx: p.Cli.PipelineStageContext,
         ) -> p.Result[m.Cli.PipelineStageResult]:
             received["from_a"] = ctx.shared.get("a_output")
-            return r[m.Cli.PipelineStageResult].ok(
-                m.Cli.PipelineStageResult(
-                    stage_id="b", status=c.Cli.PipelineStageStatus.OK
-                ),
-            )
+            return cli.ok_stage("b")
 
         def writer(
             ctx: p.Cli.PipelineStageContext,
         ) -> p.Result[m.Cli.PipelineStageResult]:
             ctx.shared["a_output"] = "hello"
-            return r[m.Cli.PipelineStageResult].ok(
-                m.Cli.PipelineStageResult(
-                    stage_id="a", status=c.Cli.PipelineStageStatus.OK
-                ),
-            )
+            return cli.ok_stage("a")
 
         stages = [
-            m.Cli.PipelineStageSpec(stage_id="a", handler=writer),
-            m.Cli.PipelineStageSpec(
-                stage_id="b",
+            cli.stage("a", handler=writer),
+            cli.stage(
+                "b",
                 depends_on=frozenset({"a"}),
                 handler=reader,
             ),
         ]
-        result = u.Cli.execute_pipeline(stages, _make_ctx(tmp_path))
+        result = cli.pipeline(stages, workspace_root=tmp_path)
         assert result.success
         assert received["from_a"] == "hello"
 
     def test_fail_fast_stops_on_failure(self, tmp_path: Path) -> None:
         """With fail_fast=True, pipeline stops after first failure."""
         stages = [
-            m.Cli.PipelineStageSpec(stage_id="a", handler=_fail_handler("a")),
-            m.Cli.PipelineStageSpec(
-                stage_id="b",
+            cli.stage("a", handler=_fail_handler("a")),
+            cli.stage(
+                "b",
                 depends_on=frozenset({"a"}),
                 handler=_ok_handler("b"),
             ),
         ]
-        result = u.Cli.execute_pipeline(
+        result = cli.pipeline(
             stages,
-            _make_ctx(tmp_path),
+            workspace_root=tmp_path,
             fail_fast=True,
         )
         assert result.success
@@ -157,13 +132,13 @@ class TestsFlextCliPipeline:
     def test_skip_predicate(self, tmp_path: Path) -> None:
         """Stage with skip_if returning True is skipped."""
         stages = [
-            m.Cli.PipelineStageSpec(
-                stage_id="skippable",
+            cli.stage(
+                "skippable",
                 handler=_ok_handler("skippable"),
                 skip_if=_skip_always,
             ),
         ]
-        result = u.Cli.execute_pipeline(stages, _make_ctx(tmp_path))
+        result = cli.pipeline(stages, workspace_root=tmp_path)
         assert result.success
         pipeline = result.value
         assert pipeline.success
@@ -172,18 +147,18 @@ class TestsFlextCliPipeline:
     def test_cycle_detection(self, tmp_path: Path) -> None:
         """Circular dependencies produce a failure result."""
         stages = [
-            m.Cli.PipelineStageSpec(
-                stage_id="a",
+            cli.stage(
+                "a",
                 depends_on=frozenset({"b"}),
                 handler=_ok_handler("a"),
             ),
-            m.Cli.PipelineStageSpec(
-                stage_id="b",
+            cli.stage(
+                "b",
                 depends_on=frozenset({"a"}),
                 handler=_ok_handler("b"),
             ),
         ]
-        result = u.Cli.execute_pipeline(stages, _make_ctx(tmp_path))
+        result = cli.pipeline(stages, workspace_root=tmp_path)
         assert result.failure
 
     def test_retry_on_failure(self, tmp_path: Path) -> None:
@@ -198,19 +173,20 @@ class TestsFlextCliPipeline:
             if call_count < 3:
                 return r[m.Cli.PipelineStageResult].fail("transient")
             return r[m.Cli.PipelineStageResult].ok(
-                m.Cli.PipelineStageResult(
-                    stage_id="flaky", status=c.Cli.PipelineStageStatus.OK
+                cli.stage_result(
+                    "flaky",
+                    status=c.Cli.PipelineStageStatus.OK,
                 ),
             )
 
         stages = [
-            m.Cli.PipelineStageSpec(
-                stage_id="flaky",
+            cli.stage(
+                "flaky",
                 handler=flaky,
                 retry=3,
             ),
         ]
-        result = u.Cli.execute_pipeline(stages, _make_ctx(tmp_path))
+        result = cli.pipeline(stages, workspace_root=tmp_path)
         assert result.success
         assert result.value.success
         assert call_count == 3
@@ -228,15 +204,15 @@ class TestsFlextCliPipeline:
             call_count += 1
             raise ValueError(error_message)
 
-        result = u.Cli.execute_pipeline(
+        result = cli.pipeline(
             [
-                m.Cli.PipelineStageSpec(
-                    stage_id="boom",
+                cli.stage(
+                    "boom",
                     handler=exploding,
                     retry=1,
                 ),
             ],
-            _make_ctx(tmp_path),
+            workspace_root=tmp_path,
         )
 
         assert result.success
@@ -248,7 +224,7 @@ class TestsFlextCliPipeline:
 
     def test_empty_pipeline(self, tmp_path: Path) -> None:
         """Empty pipeline returns ok with no stages."""
-        result = u.Cli.execute_pipeline([], _make_ctx(tmp_path))
+        result = cli.pipeline([], workspace_root=tmp_path)
         assert result.success
         assert result.value.success
         assert len(result.value.stages) == 0
@@ -256,9 +232,9 @@ class TestsFlextCliPipeline:
     def test_total_duration_tracked(self, tmp_path: Path) -> None:
         """Pipeline tracks total duration."""
         stages = [
-            m.Cli.PipelineStageSpec(stage_id="a", handler=_ok_handler("a")),
+            cli.stage("a", handler=_ok_handler("a")),
         ]
-        result = u.Cli.execute_pipeline(stages, _make_ctx(tmp_path))
+        result = cli.pipeline(stages, workspace_root=tmp_path)
         assert result.success
         assert result.value.total_duration_ms >= 0.0
 
@@ -270,34 +246,31 @@ class TestsFlextCliPipeline:
             def h(
                 ctx: p.Cli.PipelineStageContext,
             ) -> p.Result[m.Cli.PipelineStageResult]:
+                _ = ctx
                 order.append(sid)
-                return r[m.Cli.PipelineStageResult].ok(
-                    m.Cli.PipelineStageResult(
-                        stage_id=sid, status=c.Cli.PipelineStageStatus.OK
-                    ),
-                )
+                return cli.ok_stage(sid)
 
             return h
 
         stages = [
-            m.Cli.PipelineStageSpec(stage_id="a", handler=track("a")),
-            m.Cli.PipelineStageSpec(
-                stage_id="b",
+            cli.stage("a", handler=track("a")),
+            cli.stage(
+                "b",
                 depends_on=frozenset({"a"}),
                 handler=track("b"),
             ),
-            m.Cli.PipelineStageSpec(
-                stage_id="c",
+            cli.stage(
+                "c",
                 depends_on=frozenset({"a"}),
                 handler=track("c"),
             ),
-            m.Cli.PipelineStageSpec(
-                stage_id="d",
+            cli.stage(
+                "d",
                 depends_on=frozenset({"b", "c"}),
                 handler=track("d"),
             ),
         ]
-        result = u.Cli.execute_pipeline(stages, _make_ctx(tmp_path))
+        result = cli.pipeline(stages, workspace_root=tmp_path)
         assert result.success
         assert order[0] == "a"
         assert order[-1] == "d"

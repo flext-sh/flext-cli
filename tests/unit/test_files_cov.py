@@ -7,8 +7,8 @@ from pathlib import Path
 import pytest
 from flext_tests import tm
 
-from flext_cli import cli, m
-from tests import c, t, u
+from flext_cli import cli
+from tests import c, m, t, u
 
 
 class TestsFlextCliFilesCov:
@@ -127,8 +127,9 @@ class TestsFlextCliFilesCov:
         tm.that(path.exists(), eq=False)
 
     def test_files_delete_missing(self, tmp_path: Path) -> None:
+        """files_delete is idempotent — missing path returns success (rm -f)."""
         result = u.Cli.files_delete(tmp_path / "missing.txt")
-        tm.fail(result)
+        tm.ok(result)
 
     # ── ensure_dir / symlink / atomic write ─────────────────────────
     def test_ensure_dir_creates(self, tmp_path: Path) -> None:

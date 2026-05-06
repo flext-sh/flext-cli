@@ -4,8 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from flext_cli import c, m
-from tests import u
+from tests import c, m, u
 
 
 class _OptionSettings(m.BaseModel):

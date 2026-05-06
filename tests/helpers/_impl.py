@@ -6,18 +6,13 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Self, override
+from typing import Self, override
 
 from tests import m, t
 
 from flext_cli import cli
 
-if TYPE_CHECKING:
-    from flext_cli import FlextCli
-
-    _FlextCliFacade = FlextCli
-else:
-    _FlextCliFacade = type(cli)
+_FlextCliFacade = type(cli)
 
 
 class TestsFlextCliScriptedPrompts(_FlextCliFacade):
@@ -56,12 +51,13 @@ class TestsFlextCliScriptedPrompts(_FlextCliFacade):
         interactive: bool = True,
         quiet: bool = False,
     ) -> Self:
-        return self.configure(
+        self.configure(
             m.Cli.PromptRuntimeState(
                 interactive=interactive,
                 quiet=quiet,
             ),
         )
+        return self
 
 
 class TestsFlextCliCaptureLogPrompts(TestsFlextCliScriptedPrompts):

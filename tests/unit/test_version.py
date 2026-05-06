@@ -1,56 +1,51 @@
-"""FLEXT CLI Version Tests - Comprehensive Version Validation Testing.
-
-Tests for flext_cli.__version__ and __version_info__ covering semver compliance,
-immutability, consistency, and edge cases with 100% coverage.
-
-Modules tested: flext_cli.__version__, flext_cli.__version_info__
-Scope: Version string validation, version info validation, consistency checks
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-
-"""
+"""Public version-contract tests for the flext-cli facade."""
 
 from __future__ import annotations
 
 import pytest
 from flext_tests import tm
 
-from flext_cli import __version__, __version_info__
+from flext_cli import cli
 from tests import c, m, t, u
 
 
 class TestsFlextCliVersion:
-    """Comprehensive version validation test suite.
-
-    Single class with nested helper classes and methods organized by functionality.
-    Uses factories, constants, dynamic tests, and helpers to reduce code while
-    maintaining and expanding coverage.
-    """
+    """Validate the public CLI version contract through canonical surfaces."""
 
     def test_actual_version_string_type(self) -> None:
-        """Test __version__ is a non-empty string."""
-        tm.that(__version__, is_=str)
-        tm.that(bool(__version__), eq=True)
-        tm.that(__version__, eq=__version__.strip())
+        """The public CLI version string must be non-empty and trimmed."""
+        facade_result = cli.execute()
+        tm.ok(facade_result)
+        version = str(facade_result.value["version"])
+        tm.that(version, is_=str)
+        tm.that(bool(version), eq=True)
+        tm.that(version, eq=version.strip())
+        tm.that(version, eq=c.Cli.CLI_VERSION)
 
     def test_actual_version_string_semver_compliant(self) -> None:
-        """Test __version__ matches semver pattern."""
+        """The public CLI version string must match the semver pattern."""
         tm.that(
-            c.PATTERN_SEMVER_RE.match(__version__),
+            c.PATTERN_SEMVER_RE.match(c.Cli.CLI_VERSION),
             none=False,
         )
 
     def test_actual_version_string_length_bounds(self) -> None:
-        """Test version string length is within acceptable bounds."""
-        tm.that(len(__version__), gte=5)
-        tm.that(len(__version__), lte=50)
+        """The public CLI version string must stay within expected bounds."""
+        tm.that(len(c.Cli.CLI_VERSION), gte=5)
+        tm.that(len(c.Cli.CLI_VERSION), lte=50)
 
     def test_actual_version_info_structure(self) -> None:
-        """Test __version_info__ is a valid tuple."""
-        tm.that(__version_info__, is_=tuple)
-        tm.that(len(__version_info__), gte=3)
-        for part in __version_info__:
+        """Derived version info from the public version string must be well-formed."""
+        version_info = tuple(
+            int(part) if part.isdigit() else part
+            for part in c.Cli.CLI_VERSION
+            .split("+", maxsplit=1)[0]
+            .replace("-", ".")
+            .split(".")
+        )
+        tm.that(version_info, is_=tuple)
+        tm.that(len(version_info), gte=3)
+        for part in version_info:
             tm.that(part, is_=(int, str))
             if isinstance(part, int):
                 tm.that(part, gte=0)
@@ -58,8 +53,8 @@ class TestsFlextCliVersion:
                 tm.that(len(part), gt=0)
 
     def test_actual_version_parts_extraction(self) -> None:
-        """Test major.minor.patch can be extracted from version."""
-        parts: t.StrSequence = __version__.split(".")
+        """major.minor.patch can be extracted from the public version string."""
+        parts: t.StrSequence = c.Cli.CLI_VERSION.split(".")
         tm.that(len(parts), gte=3)
         major_str, minor_str, patch_str = (parts[0], parts[1], parts[2])
         tm.that(major_str.isdigit(), eq=True)
@@ -67,20 +62,42 @@ class TestsFlextCliVersion:
         tm.that(patch_str[0].isdigit(), eq=True)
 
     def test_actual_version_consistency(self) -> None:
-        """Test __version__ and __version_info__ are consistent."""
+        """The public CLI version string and its derived tuple must stay consistent."""
+        version_info = tuple(
+            int(part) if part.isdigit() else part
+            for part in c.Cli.CLI_VERSION
+            .split("+", maxsplit=1)[0]
+            .replace("-", ".")
+            .split(".")
+        )
         result = u.Tests.VersionTestFactory.validate_consistency(
-            __version__,
-            __version_info__,
+            c.Cli.CLI_VERSION,
+            version_info,
         )
         tm.ok(result)
 
     def test_actual_version_immutability(self) -> None:
-        """Test version values are immutable."""
-        original_version = __version__
-        original_info = __version_info__
-        tm.that(__version__, eq=original_version)
-        tm.that(__version_info__, eq=original_info)
-        tm.that(__version_info__, is_=tuple)
+        """The public version contract must be deterministic across reads."""
+        original_version = c.Cli.CLI_VERSION
+        original_info = tuple(
+            int(part) if part.isdigit() else part
+            for part in c.Cli.CLI_VERSION
+            .split("+", maxsplit=1)[0]
+            .replace("-", ".")
+            .split(".")
+        )
+        tm.that(c.Cli.CLI_VERSION, eq=original_version)
+        tm.that(
+            tuple(
+                int(part) if part.isdigit() else part
+                for part in c.Cli.CLI_VERSION
+                .split("+", maxsplit=1)[0]
+                .replace("-", ".")
+                .split(".")
+            ),
+            eq=original_info,
+        )
+        tm.that(original_info, is_=tuple)
 
     @pytest.mark.parametrize(
         "scenario",

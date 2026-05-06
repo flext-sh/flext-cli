@@ -18,6 +18,22 @@ def runner() -> u.Cli:
 class TestsFlextCliRuntimeUtilitiesCore:
     """Behavior contract for test_runtime_utilities_core."""
 
+    def test_run_raw_remove_env_keys_strips_inherited_values(
+        self,
+        runner: u.Cli,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        monkeypatch.setenv("TEST_RUNTIME_INHERITED", "should-not-leak")
+
+        result = runner.run_raw(
+            ["sh", "-c", 'printf %s "${TEST_RUNTIME_INHERITED:-missing}"'],
+            remove_env_keys=("TEST_RUNTIME_INHERITED",),
+        )
+
+        output_raw: t.JsonPayload | None = tm.ok(result)
+        assert isinstance(output_raw, m.Cli.CommandOutput)
+        tm.that(output_raw.stdout, eq="missing")
+
     @pytest.mark.parametrize(
         (
             "command",

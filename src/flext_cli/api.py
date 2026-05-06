@@ -1,4 +1,4 @@
-"""Public API facade for flext-.
+"""Public API facade for flext-cli.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -16,11 +16,11 @@ from flext_cli import (
     FlextCliFileTools,
     FlextCliFormatters,
     FlextCliOutput,
+    FlextCliPipeline,
     FlextCliPrompts,
+    FlextCliRules,
+    FlextCliRuntime,
     FlextCliTables,
-    FlextCliUtilitiesPipeline,
-    FlextCliUtilitiesRules,
-    FlextCliUtilitiesRuntime,
     c,
     p,
     r,
@@ -37,10 +37,10 @@ class FlextCli(
     FlextCliFileTools,
     FlextCliFormatters,
     FlextCliOutput,
-    FlextCliUtilitiesPipeline,
+    FlextCliPipeline,
     FlextCliPrompts,
-    FlextCliUtilitiesRules,
-    FlextCliUtilitiesRuntime,
+    FlextCliRules,
+    FlextCliRuntime,
     FlextCliTables,
 ):
     """Coordinate CLI operations and expose domain services.

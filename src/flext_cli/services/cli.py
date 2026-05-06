@@ -29,7 +29,6 @@ from flext_cli import (
     t,
     u,
 )
-from flext_core import FlextSettingsBase
 
 
 class FlextCliCli(s):
@@ -147,16 +146,16 @@ class FlextCliCli(s):
             return
 
         updated_settings = result.value
-        if updated_settings is settings or not isinstance(settings, FlextSettingsBase):
+        if updated_settings is settings or not isinstance(settings, p.Settings):
             return
-        declared_fields = settings.__class__.model_fields
+        current_settings = settings.model_dump()
         overrides: dict[str, bool | str] = {
             field_name: value
             for field_name, value in updated_settings.model_dump().items()
             if value is not None
             and isinstance(value, bool | str)
-            and field_name in declared_fields
-            and getattr(settings, field_name) != value
+            and field_name in current_settings
+            and current_settings[field_name] != value
         }
         if overrides:
             settings.update_global(**overrides)
@@ -347,9 +346,11 @@ class FlextCliCli(s):
         delegates to ``sys.exit(code)`` for a clean process exit without a
         ``typer.Exit`` traceback.
         """
-        if click.get_current_context(silent=True) is not None:
-            raise typer.Exit(code=code)
-        sys.exit(code)
+        try:
+            click.get_current_context(silent=False)
+        except RuntimeError:
+            sys.exit(code)
+        raise typer.Exit(code=code)
 
     @staticmethod
     def register_command(

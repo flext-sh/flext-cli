@@ -30,11 +30,17 @@ class FlextCliUtilitiesRuntime:
         ).resolve()
 
     @staticmethod
-    def _merged_env(env: t.StrMapping | None) -> dict[str, str] | None:
-        """Merge explicit overrides onto the inherited process environment."""
-        if env is None:
+    def _resolved_env(
+        env: t.StrMapping | None,
+        remove_env_keys: t.StrSequence = (),
+    ) -> dict[str, str] | None:
+        """Resolve the child environment with overrides and optional removals."""
+        if env is None and not remove_env_keys:
             return None
-        return FlextCliUtilitiesRuntime.process_env(overrides=env)
+        return FlextCliUtilitiesRuntime.process_env(
+            overrides=env,
+            remove_keys=remove_env_keys,
+        )
 
     @staticmethod
     def run_raw(
@@ -42,6 +48,7 @@ class FlextCliUtilitiesRuntime:
         cwd: t.Cli.TextPath | None = None,
         timeout: int | None = None,
         env: t.StrMapping | None = None,
+        remove_env_keys: t.StrSequence = (),
         input_data: bytes | None = None,
     ) -> p.Result[m.Cli.CommandOutput]:
         """Run a command without enforcing a zero exit code."""
@@ -54,7 +61,7 @@ class FlextCliUtilitiesRuntime:
                 text=input_data is None,
                 check=False,
                 timeout=timeout,
-                env=FlextCliUtilitiesRuntime._merged_env(env),
+                env=FlextCliUtilitiesRuntime._resolved_env(env, remove_env_keys),
                 input=input_data,
             )
         except subprocess.TimeoutExpired as exc:
@@ -85,6 +92,7 @@ class FlextCliUtilitiesRuntime:
         cwd: t.Cli.TextPath | None = None,
         timeout: int | None = None,
         env: t.StrMapping | None = None,
+        remove_env_keys: t.StrSequence = (),
     ) -> p.Result[m.Cli.CommandOutput]:
         """Run a command and fail on non-zero exit status."""
 
@@ -102,6 +110,7 @@ class FlextCliUtilitiesRuntime:
             cwd=cwd,
             timeout=timeout,
             env=env,
+            remove_env_keys=remove_env_keys,
         ).flat_map(
             require_zero_exit,
         )
@@ -112,6 +121,7 @@ class FlextCliUtilitiesRuntime:
         cwd: t.Cli.TextPath | None = None,
         timeout: int | None = None,
         env: t.StrMapping | None = None,
+        remove_env_keys: t.StrSequence = (),
     ) -> p.Result[bool]:
         """Run a command and return a success flag."""
         return FlextCliUtilitiesRuntime.run(
@@ -119,6 +129,7 @@ class FlextCliUtilitiesRuntime:
             cwd=cwd,
             timeout=timeout,
             env=env,
+            remove_env_keys=remove_env_keys,
         ).map(lambda _: True)
 
     @staticmethod
@@ -127,6 +138,7 @@ class FlextCliUtilitiesRuntime:
         cwd: t.Cli.TextPath | None = None,
         timeout: int | None = None,
         env: t.StrMapping | None = None,
+        remove_env_keys: t.StrSequence = (),
     ) -> p.Result[str]:
         """Run a command and return stripped stdout."""
         return FlextCliUtilitiesRuntime.run(
@@ -134,6 +146,7 @@ class FlextCliUtilitiesRuntime:
             cwd=cwd,
             timeout=timeout,
             env=env,
+            remove_env_keys=remove_env_keys,
         ).map(lambda output: output.stdout.strip())
 
     @staticmethod
@@ -143,6 +156,7 @@ class FlextCliUtilitiesRuntime:
         cwd: t.Cli.TextPath | None = None,
         timeout: int | None = None,
         env: t.StrMapping | None = None,
+        remove_env_keys: t.StrSequence = (),
     ) -> p.Result[int]:
         """Run a command and write combined output to ``output_file``."""
         try:
@@ -156,7 +170,7 @@ class FlextCliUtilitiesRuntime:
                     stderr=subprocess.STDOUT,
                     check=False,
                     timeout=timeout,
-                    env=FlextCliUtilitiesRuntime._merged_env(env),
+                    env=FlextCliUtilitiesRuntime._resolved_env(env, remove_env_keys),
                 )
         except subprocess.TimeoutExpired as exc:
             return r[int].fail(f"timeout {exc.timeout}s: {shlex.join(list(cmd))}")

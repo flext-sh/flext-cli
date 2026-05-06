@@ -77,7 +77,10 @@ if _t.TYPE_CHECKING:
     from flext_cli.services.file_tools import FlextCliFileTools
     from flext_cli.services.formatters import FlextCliFormatters
     from flext_cli.services.output import FlextCliOutput
+    from flext_cli.services.pipeline import FlextCliPipeline
     from flext_cli.services.prompts import FlextCliPrompts
+    from flext_cli.services.rules import FlextCliRules
+    from flext_cli.services.runtime import FlextCliRuntime
     from flext_cli.services.tables import FlextCliTables
     from flext_cli.settings import FlextCliSettings
     from flext_cli.typings import FlextCliTypes, t
@@ -164,7 +167,10 @@ _LAZY_IMPORTS = merge_lazy_imports(
             ".services.file_tools": ("FlextCliFileTools",),
             ".services.formatters": ("FlextCliFormatters",),
             ".services.output": ("FlextCliOutput",),
+            ".services.pipeline": ("FlextCliPipeline",),
             ".services.prompts": ("FlextCliPrompts",),
+            ".services.rules": ("FlextCliRules",),
+            ".services.runtime": ("FlextCliRuntime",),
             ".services.tables": ("FlextCliTables",),
             ".settings": ("FlextCliSettings",),
             ".typings": (
@@ -244,11 +250,14 @@ __all__: list[str] = [
     "FlextCliModelsPipeline",
     "FlextCliModelsRules",
     "FlextCliOutput",
+    "FlextCliPipeline",
     "FlextCliPrompts",
     "FlextCliProtocols",
     "FlextCliProtocolsBase",
     "FlextCliProtocolsDomain",
     "FlextCliProtocolsPipeline",
+    "FlextCliRules",
+    "FlextCliRuntime",
     "FlextCliServiceBase",
     "FlextCliSettings",
     "FlextCliTables",

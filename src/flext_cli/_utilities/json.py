@@ -137,7 +137,7 @@ class FlextCliUtilitiesJson:
     @staticmethod
     def json_walk_path(
         data: t.JsonMapping,
-        keys: tuple[str, ...],
+        keys: t.StrSequence,
     ) -> t.JsonValue | None:
         """Walk a path over nested mappings and return the leaf value."""
         current: t.JsonMapping = data

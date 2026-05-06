@@ -16,6 +16,11 @@ from flext_cli import (
     u,
 )
 from tests import c, p, r, t
+from tests.helpers._impl import (
+    TestsFlextCliCaptureLogPrompts,
+    TestsFlextCliFailingLogPrompts,
+    TestsFlextCliScriptedPrompts,
+)
 
 
 class TestsFlextCliUtilities(FlextTestsUtilities, u):
@@ -23,6 +28,10 @@ class TestsFlextCliUtilities(FlextTestsUtilities, u):
 
     class Tests(FlextTestsUtilities.Tests):
         """Test-specific utilities for flext-cli."""
+
+        ScriptedPrompts = TestsFlextCliScriptedPrompts
+        CaptureLogPrompts = TestsFlextCliCaptureLogPrompts
+        FailingLogPrompts = TestsFlextCliFailingLogPrompts
 
         class VersionTestFactory:
             """Version validation helpers exposed through the canonical `u` namespace."""

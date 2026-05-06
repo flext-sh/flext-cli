@@ -10,6 +10,8 @@ from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 if _t.TYPE_CHECKING:
     from examples.constants import ExamplesFlextCliConstants, c
     from examples.ex_01_getting_started import ExamplesFlextCliGettingStarted
+    from examples.ex_05_authentication import Ex05Authentication
+    from examples.ex_06_settings import Ex06Settings
     from examples.ex_11_complete_integration import DataManagerCLI
     from examples.models import ExamplesFlextCliModels, m
     from examples.protocols import ExamplesFlextCliProtocols, p
@@ -23,6 +25,8 @@ _LAZY_IMPORTS = build_lazy_import_map(
             "c",
         ),
         ".ex_01_getting_started": ("ExamplesFlextCliGettingStarted",),
+        ".ex_05_authentication": ("Ex05Authentication",),
+        ".ex_06_settings": ("Ex06Settings",),
         ".ex_11_complete_integration": ("DataManagerCLI",),
         ".models": (
             "ExamplesFlextCliModels",
@@ -56,6 +60,8 @@ install_lazy_exports(__name__, globals(), _LAZY_IMPORTS)
 
 __all__: list[str] = [
     "DataManagerCLI",
+    "Ex05Authentication",
+    "Ex06Settings",
     "ExamplesFlextCliConstants",
     "ExamplesFlextCliGettingStarted",
     "ExamplesFlextCliModels",

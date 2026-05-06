@@ -14,6 +14,11 @@ class FlextCliFileTools(FlextCliServiceBase):
     """File operations with r."""
 
     @staticmethod
+    def ensure_dir(file_path: t.Cli.TextPath) -> p.Result[Path]:
+        """Create a directory tree when missing and return the path."""
+        return u.Cli.ensure_dir(Path(file_path))
+
+    @staticmethod
     def atomic_write_text_file(
         file_path: t.Cli.TextPath, content: str
     ) -> p.Result[bool]:
@@ -23,6 +28,11 @@ class FlextCliFileTools(FlextCliServiceBase):
     @staticmethod
     def read_json_file(file_path: t.Cli.TextPath) -> p.Result[t.JsonValue]:
         return u.Cli.files_read_json(Path(file_path))
+
+    @staticmethod
+    def read_text_file(file_path: t.Cli.TextPath) -> p.Result[str]:
+        """Read a UTF-8 text file via the public CLI file surface."""
+        return u.Cli.files_read_text(Path(file_path))
 
     @staticmethod
     def read_json_model[M: t.Cli.ModelLike](
@@ -92,6 +102,18 @@ class FlextCliFileTools(FlextCliServiceBase):
     @staticmethod
     def detect_file_format(file_path: t.Cli.TextPath) -> p.Result[str]:
         return u.Cli.files_detect_format(Path(file_path))
+
+    @staticmethod
+    def delete_path(file_path: t.Cli.TextPath) -> p.Result[bool]:
+        """Delete a file or directory via the public CLI file surface."""
+        return u.Cli.files_delete(Path(file_path))
+
+    @staticmethod
+    def list_directory_names(
+        file_path: t.Cli.TextPath,
+    ) -> p.Result[Sequence[str]]:
+        """Return sorted child directory names for one path."""
+        return u.Cli.files_list_directory_names(Path(file_path))
 
     @staticmethod
     def load_file_auto_dict(file_path: t.Cli.TextPath) -> p.Result[t.JsonMapping]:

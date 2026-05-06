@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from types import EllipsisType
-from typing import TYPE_CHECKING, Protocol, Self, runtime_checkable
+from typing import TYPE_CHECKING, Protocol, Self, override, runtime_checkable
 
 from flext_core import p
 
@@ -19,7 +19,7 @@ class FlextCliProtocolsBase:
     """CLI protocol namespace for all CLI-specific protocols."""
 
     @runtime_checkable
-    class Settings(Protocol):
+    class Settings(p.Settings, Protocol):
         """Protocol for CLI runtime settings consumed by the public services."""
 
         @property
@@ -70,22 +70,53 @@ class FlextCliProtocolsBase:
             """Check if verbose mode is enabled."""
             ...
 
-        def model_dump(self) -> t.JsonMapping:
+        @override
+        def model_dump(
+            self,
+            *,
+            mode: str = "python",
+        ) -> t.JsonMapping:
             """Dump the settings model into a JSON-compatible mapping."""
             ...
 
+        @override
         def clone(self, **overrides: t.JsonPayload | None) -> Self:
             """Return a cloned settings instance with overrides applied."""
             ...
 
         @classmethod
-        def fetch_global(cls) -> Self:
+        @override
+        def fetch_global(
+            cls,
+            *,
+            overrides: t.ScalarMapping | None = None,
+        ) -> Self:
             """Return the process-wide singleton settings instance."""
             ...
 
         @classmethod
+        @override
         def update_global(cls, **overrides: t.JsonPayload | None) -> Self:
             """Replace the singleton via Pydantic-2 ``model_copy(update=…)``."""
+            ...
+
+        @classmethod
+        def reset_for_testing(cls) -> None:
+            """Reset the process-wide singleton (test isolation only)."""
+            ...
+
+    @runtime_checkable
+    class SettingsType(p.SettingsType, Protocol):
+        """Concrete CLI settings classes with singleton/test hooks."""
+
+        @classmethod
+        @override
+        def fetch_global(
+            cls,
+            *,
+            overrides: t.ScalarMapping | None = None,
+        ) -> FlextCliProtocolsBase.Settings:
+            """Return the process-wide singleton settings instance."""
             ...
 
         @classmethod
@@ -127,6 +158,7 @@ class FlextCliProtocolsBase:
             cwd: t.Cli.TextPath | None = None,
             timeout: int | None = None,
             env: t.StrMapping | None = None,
+            remove_env_keys: t.StrSequence = (),
         ) -> p.Result[m.Cli.CommandOutput]:
             """Execute a command and require zero exit status."""
             ...
@@ -137,6 +169,7 @@ class FlextCliProtocolsBase:
             cwd: t.Cli.TextPath | None = None,
             timeout: int | None = None,
             env: t.StrMapping | None = None,
+            remove_env_keys: t.StrSequence = (),
         ) -> p.Result[str]:
             """Execute a command and return stripped stdout."""
             ...
@@ -147,6 +180,7 @@ class FlextCliProtocolsBase:
             cwd: t.Cli.TextPath | None = None,
             timeout: int | None = None,
             env: t.StrMapping | None = None,
+            remove_env_keys: t.StrSequence = (),
             input_data: bytes | None = None,
         ) -> p.Result[m.Cli.CommandOutput]:
             """Execute a command without enforcing zero exit status."""
@@ -158,6 +192,7 @@ class FlextCliProtocolsBase:
             cwd: t.Cli.TextPath | None = None,
             timeout: int | None = None,
             env: t.StrMapping | None = None,
+            remove_env_keys: t.StrSequence = (),
         ) -> p.Result[bool]:
             """Execute a command and return a success flag."""
             ...
@@ -169,6 +204,7 @@ class FlextCliProtocolsBase:
             cwd: t.Cli.TextPath | None = None,
             timeout: int | None = None,
             env: t.StrMapping | None = None,
+            remove_env_keys: t.StrSequence = (),
         ) -> p.Result[int]:
             """Execute a command and write combined output to a file."""
             ...

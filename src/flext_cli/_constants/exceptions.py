@@ -14,6 +14,7 @@ from typing import ClassVar
 
 from click import Abort as _ClickAbort, ClickException as _ClickException
 from typer import Exit as _TyperExit
+from yaml import YAMLError as _YamlError
 
 
 class FlextCliConstantsExceptions:
@@ -30,6 +31,7 @@ class FlextCliConstantsExceptions:
     CliAbortError: ClassVar[type[BaseException]] = _ClickAbort
     CliCommandError: ClassVar[type[BaseException]] = _ClickException
     CliExit: ClassVar[type[BaseException]] = _TyperExit
+    YamlParseError: ClassVar[type[Exception]] = _YamlError
 
 
 __all__: list[str] = ["FlextCliConstantsExceptions"]

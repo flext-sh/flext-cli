@@ -9,7 +9,7 @@ from collections.abc import (
 from flext_tests import tm
 
 from flext_cli import cli
-from tests import c, m, p, r, t
+from tests import c, m, p, t
 
 
 class TestsFlextCliService:
@@ -443,15 +443,18 @@ class TestsFlextCliService:
         def ok_handler(
             params: m.Tests.SampleInput,
         ) -> p.Result[m.Tests.SampleOutput]:
-            return r[m.Tests.SampleOutput].ok(
-                m.Tests.SampleOutput(message=f"processed {params.name}")
+            return cli.execute().map(
+                lambda _payload: m.Tests.SampleOutput(
+                    message=f"processed {params.name}"
+                )
             )
 
         def fail_handler(
             params: m.Tests.SampleInput,
         ) -> p.Result[m.Tests.SampleOutput]:
-            _ = params
-            return r[m.Tests.SampleOutput].fail("boom")
+            return cli.validate_credentials("", "password").map(
+                lambda _value: m.Tests.SampleOutput(message=params.name)
+            )
 
         def build_ok_route() -> m.Cli.ResultCommandRoute:
             return m.Cli.ResultCommandRoute(
@@ -483,7 +486,7 @@ class TestsFlextCliService:
         tm.that(ok_result.exit_code, eq=0)
         tm.that(ok_result.stdout, has="processed alice")
         tm.that(fail_result.exit_code, eq=1)
-        tm.that(fail_result.stdout, has="boom")
+        tm.that(fail_result.stdout, has="Username cannot be empty")
 
     def test_register_result_routes_propagates_real_failure(self) -> None:
         app = cli.create_app_with_common_params(
@@ -495,8 +498,9 @@ class TestsFlextCliService:
         def fail_handler(
             params: m.Tests.SampleInput,
         ) -> p.Result[m.Tests.SampleOutput]:
-            _ = params
-            return r[m.Tests.SampleOutput].fail("batched boom")
+            return cli.validate_credentials(params.name, "").map(
+                lambda _value: m.Tests.SampleOutput(message=params.name)
+            )
 
         cli.register_result_routes(
             app,
@@ -514,4 +518,4 @@ class TestsFlextCliService:
         fail_result = runner_result.value.invoke(app, ["fail", "--name", "alice"])
 
         tm.that(fail_result.exit_code, eq=1)
-        tm.that(fail_result.stdout, has="batched boom")
+        tm.that(fail_result.stdout, has="Password cannot be empty")

@@ -47,18 +47,18 @@ class FlextCliUtilitiesYaml:
         try:
             raw = path.read_text(encoding=c.Cli.ENCODING_DEFAULT)
         except OSError as exc:
-            return r[t.Cli.YamlDict].fail(f"YAML read error: {exc}")
+            return r[t.JsonMapping].fail(f"YAML read error: {exc}")
         return FlextCliUtilitiesYaml.yaml_parse(raw)
 
     @staticmethod
-    def yaml_parse(text: str) -> p.Result[t.Cli.YamlDict]:
+    def yaml_parse(text: str) -> p.Result[t.JsonMapping]:
         """Parse a YAML string → ``r[JsonMapping]``.
 
         Returns a validated mapping or failure.
         """
         try:
             parsed = safe_load(text)
-        except t.Cli.YAMLError as exc:
+        except c.Cli.YamlParseError as exc:
             return r[t.JsonMapping].fail(f"YAML parse error: {exc}")
         if parsed is None:
             return r[t.JsonMapping].ok({})
@@ -94,7 +94,7 @@ class FlextCliUtilitiesYaml:
         try:
             raw = path.read_text(encoding=c.Cli.ENCODING_DEFAULT)
             parsed = safe_load(raw)
-        except (OSError, t.Cli.YAMLError):
+        except (OSError, c.Cli.YamlParseError):
             return []
         if not isinstance(parsed, list):
             return []
@@ -141,7 +141,7 @@ class FlextCliUtilitiesYaml:
                     indent=indent,
                 )
             return r[bool].ok(True)
-        except (OSError, t.Cli.YAMLError, ValueError, TypeError) as exc:
+        except (OSError, c.Cli.YamlParseError, ValueError, TypeError) as exc:
             return r[bool].fail(f"YAML write error: {exc}")
 
     @staticmethod
@@ -168,7 +168,7 @@ class FlextCliUtilitiesYaml:
                 allow_unicode=True,
                 indent=indent,
             )
-        except (t.Cli.YAMLError, ValueError, TypeError):
+        except (c.Cli.YamlParseError, ValueError, TypeError):
             return ""
 
 

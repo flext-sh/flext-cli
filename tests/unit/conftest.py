@@ -36,6 +36,40 @@ def make_prompts() -> Callable[..., TestsFlextCliScriptedPrompts]:
     return _make
 
 
+@pytest.fixture
+def make_capture_prompts() -> Callable[..., TestsFlextCliCaptureLogPrompts]:
+    """Factory fixture for prompt doubles that capture log output."""
+
+    def _make(
+        *,
+        interactive_mode: bool = True,
+        quiet: bool = False,
+    ) -> TestsFlextCliCaptureLogPrompts:
+        return TestsFlextCliCaptureLogPrompts().configure_state(
+            interactive=interactive_mode,
+            quiet=quiet,
+        )
+
+    return _make
+
+
+@pytest.fixture
+def make_failing_prompts() -> Callable[..., TestsFlextCliFailingLogPrompts]:
+    """Factory fixture for prompt doubles that fail selected log calls."""
+
+    def _make(
+        *,
+        interactive_mode: bool = True,
+        quiet: bool = False,
+    ) -> TestsFlextCliFailingLogPrompts:
+        return TestsFlextCliFailingLogPrompts().configure_state(
+            interactive=interactive_mode,
+            quiet=quiet,
+        )
+
+    return _make
+
+
 @pytest.fixture(autouse=True)
 def reset_config_singleton() -> Generator[None]:
     """Reset cli.settings singleton before and after each test.
@@ -52,6 +86,8 @@ __all__: list[str] = [
     "TestsFlextCliCaptureLogPrompts",
     "TestsFlextCliFailingLogPrompts",
     "TestsFlextCliScriptedPrompts",
+    "make_capture_prompts",
+    "make_failing_prompts",
     "make_prompts",
     "reset_settings",
 ]

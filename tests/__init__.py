@@ -12,9 +12,8 @@ from flext_core.lazy import (
 )
 
 if _t.TYPE_CHECKING:
-    from flext_tests import td, tf, tk, tm, tv
+    from flext_tests import d, e, h, r, s, td, tf, tk, tm, tv, x
 
-    from flext_cli import d, e, h, r, s, x
     from tests.constants import TestsFlextCliConstants, c
     from tests.models import TestsFlextCliModels, m
     from tests.protocols import TestsFlextCliProtocols, p
@@ -23,6 +22,8 @@ if _t.TYPE_CHECKING:
         TestsFlextCliCaptureLogPrompts,
         TestsFlextCliFailingLogPrompts,
         TestsFlextCliScriptedPrompts,
+        make_capture_prompts,
+        make_failing_prompts,
         make_prompts,
         reset_settings,
     )
@@ -38,6 +39,9 @@ if _t.TYPE_CHECKING:
     from tests.unit.test_commands_utils_cov import TestsFlextCliCommandsUtilsCov
     from tests.unit.test_constants import TestsFlextCliConstantsUnit
     from tests.unit.test_conversion_cov import TestsFlextCliConversionCov
+    from tests.unit.test_examples_models_utilities_cov import (
+        TestsFlextCliExampleModelsUtilitiesCov,
+    )
     from tests.unit.test_examples_smoke import TestsFlextCliExamplesSmoke
     from tests.unit.test_files_cov import TestsFlextCliFilesCov
     from tests.unit.test_formatters_cov import (
@@ -48,12 +52,16 @@ if _t.TYPE_CHECKING:
     from tests.unit.test_matching_cov import TestsFlextCliMatchingCov
     from tests.unit.test_model_commands_cov import TestsFlextCliModelCommandsCov
     from tests.unit.test_options_cov import TestsFlextCliOptionsUtilsCov
+    from tests.unit.test_options_public_cov import TestsFlextCliOptionsPublicCoverage
     from tests.unit.test_output_cov import TestsFlextCliOutputCov
     from tests.unit.test_params_branch_cov import TestsFlextCliParamsBranchCov
     from tests.unit.test_pipeline import TestsFlextCliPipeline
     from tests.unit.test_prompts import TestsFlextCliPrompts
     from tests.unit.test_prompts_cov import TestsFlextCliPromptsCov
     from tests.unit.test_protocols import TestsFlextCliProtocolsUnit
+    from tests.unit.test_public_contracts_cov import (
+        TestsFlextCliPublicContractsCoverage,
+    )
     from tests.unit.test_rules_cov import TestsFlextCliRulesCov
     from tests.unit.test_runtime_utilities_core import TestsFlextCliRuntimeUtilitiesCore
     from tests.unit.test_runtime_utilities_extra import (
@@ -73,6 +81,7 @@ if _t.TYPE_CHECKING:
     from tests.unit.test_tables_branch_cov import TestsFlextCliTablesBranchCov
     from tests.unit.test_tables_cov import TestsFlextCliTableUtilsCov
     from tests.unit.test_toml_cov import TestsFlextCliTomlUtilsCov
+    from tests.unit.test_toml_sync_cov import TestsFlextCliTomlSyncCoverage
     from tests.unit.test_toml_utilities import TestsFlextCliTomlUtilities
     from tests.unit.test_typings import TestsFlextCliTypesUnit
     from tests.unit.test_utilities_cov import TestsFlextCliUtilitiesCov
@@ -103,6 +112,8 @@ _LAZY_IMPORTS = merge_lazy_imports(
                 "TestsFlextCliCaptureLogPrompts",
                 "TestsFlextCliFailingLogPrompts",
                 "TestsFlextCliScriptedPrompts",
+                "make_capture_prompts",
+                "make_failing_prompts",
                 "make_prompts",
                 "reset_settings",
             ),
@@ -118,6 +129,9 @@ _LAZY_IMPORTS = merge_lazy_imports(
             ".unit.test_commands_utils_cov": ("TestsFlextCliCommandsUtilsCov",),
             ".unit.test_constants": ("TestsFlextCliConstantsUnit",),
             ".unit.test_conversion_cov": ("TestsFlextCliConversionCov",),
+            ".unit.test_examples_models_utilities_cov": (
+                "TestsFlextCliExampleModelsUtilitiesCov",
+            ),
             ".unit.test_examples_smoke": ("TestsFlextCliExamplesSmoke",),
             ".unit.test_files_cov": ("TestsFlextCliFilesCov",),
             ".unit.test_formatters_cov": (
@@ -128,12 +142,16 @@ _LAZY_IMPORTS = merge_lazy_imports(
             ".unit.test_matching_cov": ("TestsFlextCliMatchingCov",),
             ".unit.test_model_commands_cov": ("TestsFlextCliModelCommandsCov",),
             ".unit.test_options_cov": ("TestsFlextCliOptionsUtilsCov",),
+            ".unit.test_options_public_cov": ("TestsFlextCliOptionsPublicCoverage",),
             ".unit.test_output_cov": ("TestsFlextCliOutputCov",),
             ".unit.test_params_branch_cov": ("TestsFlextCliParamsBranchCov",),
             ".unit.test_pipeline": ("TestsFlextCliPipeline",),
             ".unit.test_prompts": ("TestsFlextCliPrompts",),
             ".unit.test_prompts_cov": ("TestsFlextCliPromptsCov",),
             ".unit.test_protocols": ("TestsFlextCliProtocolsUnit",),
+            ".unit.test_public_contracts_cov": (
+                "TestsFlextCliPublicContractsCoverage",
+            ),
             ".unit.test_rules_cov": ("TestsFlextCliRulesCov",),
             ".unit.test_runtime_utilities_core": ("TestsFlextCliRuntimeUtilitiesCore",),
             ".unit.test_runtime_utilities_extra": (
@@ -153,6 +171,7 @@ _LAZY_IMPORTS = merge_lazy_imports(
             ".unit.test_tables_branch_cov": ("TestsFlextCliTablesBranchCov",),
             ".unit.test_tables_cov": ("TestsFlextCliTableUtilsCov",),
             ".unit.test_toml_cov": ("TestsFlextCliTomlUtilsCov",),
+            ".unit.test_toml_sync_cov": ("TestsFlextCliTomlSyncCoverage",),
             ".unit.test_toml_utilities": ("TestsFlextCliTomlUtilities",),
             ".unit.test_typings": ("TestsFlextCliTypesUnit",),
             ".unit.test_utilities_cov": ("TestsFlextCliUtilitiesCov",),
@@ -162,20 +181,18 @@ _LAZY_IMPORTS = merge_lazy_imports(
                 "TestsFlextCliUtilities",
                 "u",
             ),
-            "flext_cli": (
+            "flext_tests": (
                 "d",
                 "e",
                 "h",
                 "r",
                 "s",
-                "x",
-            ),
-            "flext_tests": (
                 "td",
                 "tf",
                 "tk",
                 "tm",
                 "tv",
+                "x",
             ),
         },
     ),
@@ -215,6 +232,7 @@ __all__: list[str] = [
     "TestsFlextCliConstants",
     "TestsFlextCliConstantsUnit",
     "TestsFlextCliConversionCov",
+    "TestsFlextCliExampleModelsUtilitiesCov",
     "TestsFlextCliExamplesSmoke",
     "TestsFlextCliFailingLogPrompts",
     "TestsFlextCliFilesCov",
@@ -223,6 +241,7 @@ __all__: list[str] = [
     "TestsFlextCliMatchingCov",
     "TestsFlextCliModelCommandsCov",
     "TestsFlextCliModels",
+    "TestsFlextCliOptionsPublicCoverage",
     "TestsFlextCliOptionsUtilsCov",
     "TestsFlextCliOutputCov",
     "TestsFlextCliParamsBranchCov",
@@ -231,6 +250,7 @@ __all__: list[str] = [
     "TestsFlextCliPromptsCov",
     "TestsFlextCliProtocols",
     "TestsFlextCliProtocolsUnit",
+    "TestsFlextCliPublicContractsCoverage",
     "TestsFlextCliRulesCov",
     "TestsFlextCliRuntimeUtilitiesCore",
     "TestsFlextCliRuntimeUtilitiesExtra",
@@ -247,6 +267,7 @@ __all__: list[str] = [
     "TestsFlextCliTableUtilsCov",
     "TestsFlextCliTables",
     "TestsFlextCliTablesBranchCov",
+    "TestsFlextCliTomlSyncCoverage",
     "TestsFlextCliTomlUtilities",
     "TestsFlextCliTomlUtilsCov",
     "TestsFlextCliTypes",
@@ -260,6 +281,8 @@ __all__: list[str] = [
     "e",
     "h",
     "m",
+    "make_capture_prompts",
+    "make_failing_prompts",
     "make_prompts",
     "p",
     "r",

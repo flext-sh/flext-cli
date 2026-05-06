@@ -33,7 +33,7 @@ class FlextCliModelsPipeline:
         shared: Annotated[
             t.MutableJsonMapping,
             m.Field(
-                default_factory=lambda: MappingProxyType({}),
+                default_factory=dict,
                 description="Mutable shared state between stages",
             ),
         ]

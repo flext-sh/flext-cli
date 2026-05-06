@@ -5,7 +5,7 @@ from __future__ import annotations
 import inspect
 
 from flext_cli import p, t
-from flext_core import FlextSettingsBase, m
+from flext_core import m
 
 
 class FlextCliUtilitiesModelCommandBuilder[M: t.Cli.ModelLike]:
@@ -51,11 +51,12 @@ class FlextCliUtilitiesModelCommandBuilder[M: t.Cli.ModelLike]:
 
         def command(**kwargs: t.Cli.CliValue) -> t.JsonValue:
             current_settings = self.settings
-            if isinstance(current_settings, FlextSettingsBase):
+            if isinstance(current_settings, p.Settings):
+                current_settings_fields = current_settings.model_dump()
                 applicable_overrides = {
                     field_name: field_value
                     for field_name, field_value in kwargs.items()
-                    if field_name in current_settings.__class__.model_fields
+                    if field_name in current_settings_fields
                 }
                 if applicable_overrides:
                     current_settings.update_global(**applicable_overrides)

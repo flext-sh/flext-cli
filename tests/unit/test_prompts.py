@@ -8,12 +8,7 @@ from collections.abc import Callable
 import pytest
 from flext_tests import tm
 
-from tests import (
-    TestsFlextCliCaptureLogPrompts,
-    TestsFlextCliFailingLogPrompts,
-    TestsFlextCliScriptedPrompts,
-    c,
-)
+from tests import c, p
 
 
 class TestsFlextCliPrompts:
@@ -21,7 +16,7 @@ class TestsFlextCliPrompts:
 
     def test_execute_success(
         self,
-        make_prompts: Callable[..., TestsFlextCliScriptedPrompts],
+        make_prompts: Callable[..., p.Tests.ScriptedPrompts],
     ) -> None:
         prompts = make_prompts(interactive_mode=False)
         result = prompts.execute()
@@ -31,10 +26,9 @@ class TestsFlextCliPrompts:
 
     def test_execute_uses_public_cmd_status_even_when_prompt_logger_would_fail(
         self,
-        make_prompts: Callable[..., TestsFlextCliScriptedPrompts],
+        make_failing_prompts: Callable[..., p.Tests.FailingLogPrompts],
     ) -> None:
-        prompts = make_prompts(TestsFlextCliFailingLogPrompts, interactive_mode=False)
-        assert isinstance(prompts, TestsFlextCliFailingLogPrompts)
+        prompts = make_failing_prompts(interactive_mode=False)
         prompts.fail_on_log(level=c.LogLevel.DEBUG, message="Execute error")
         result = prompts.execute()
         tm.ok(result)
@@ -43,7 +37,7 @@ class TestsFlextCliPrompts:
 
     def test_prompt_returns_default_in_quiet_and_non_interactive_modes(
         self,
-        make_prompts: Callable[..., TestsFlextCliScriptedPrompts],
+        make_prompts: Callable[..., p.Tests.ScriptedPrompts],
     ) -> None:
         quiet_prompts = make_prompts(quiet=True)
         tm.that(
@@ -58,7 +52,7 @@ class TestsFlextCliPrompts:
 
     def test_prompt_reads_input_and_uses_default_for_empty_text(
         self,
-        make_prompts: Callable[..., TestsFlextCliScriptedPrompts],
+        make_prompts: Callable[..., p.Tests.ScriptedPrompts],
     ) -> None:
         prompts = make_prompts().use_input_values([" typed ", ""])
         typed_result = prompts.prompt("Enter value")
@@ -70,7 +64,7 @@ class TestsFlextCliPrompts:
 
     def test_prompt_handles_input_failure(
         self,
-        make_prompts: Callable[..., TestsFlextCliScriptedPrompts],
+        make_prompts: Callable[..., p.Tests.ScriptedPrompts],
     ) -> None:
         prompts = make_prompts().use_input_error(ValueError("Input error"))
         result = prompts.prompt("Enter value")
@@ -78,7 +72,7 @@ class TestsFlextCliPrompts:
 
     def test_confirm_returns_defaults_when_not_interactive(
         self,
-        make_prompts: Callable[..., TestsFlextCliScriptedPrompts],
+        make_prompts: Callable[..., p.Tests.ScriptedPrompts],
     ) -> None:
         quiet_prompts = make_prompts(quiet=True)
         tm.that(quiet_prompts.confirm("Continue?", default=True).value, eq=True)
@@ -90,10 +84,9 @@ class TestsFlextCliPrompts:
 
     def test_confirm_accepts_yes_no_default_and_invalid_retry(
         self,
-        make_prompts: Callable[..., TestsFlextCliScriptedPrompts],
+        make_capture_prompts: Callable[..., p.Tests.CaptureLogPrompts],
     ) -> None:
-        prompts = make_prompts(TestsFlextCliCaptureLogPrompts)
-        assert isinstance(prompts, TestsFlextCliCaptureLogPrompts)
+        prompts = make_capture_prompts()
         prompts.use_input_values(["", "y", "n", "maybe", "yes"])
         tm.that(prompts.confirm("Continue?", default=True).value, eq=True)
         tm.that(prompts.confirm("Continue?", default=False).value, eq=True)
@@ -117,7 +110,7 @@ class TestsFlextCliPrompts:
     )
     def test_confirm_handles_failures(
         self,
-        make_prompts: Callable[..., TestsFlextCliScriptedPrompts],
+        make_prompts: Callable[..., p.Tests.ScriptedPrompts],
         error: Exception,
         expected: str,
     ) -> None:
@@ -127,7 +120,7 @@ class TestsFlextCliPrompts:
 
     def test_prompt_choice_paths(
         self,
-        make_prompts: Callable[..., TestsFlextCliScriptedPrompts],
+        make_prompts: Callable[..., p.Tests.ScriptedPrompts],
     ) -> None:
         quiet_prompts = make_prompts(interactive_mode=False)
         tm.fail(quiet_prompts.prompt_choice("Select:", choices=[], default=None))
@@ -165,7 +158,7 @@ class TestsFlextCliPrompts:
 
     def test_prompt_password_paths(
         self,
-        make_prompts: Callable[..., TestsFlextCliScriptedPrompts],
+        make_prompts: Callable[..., p.Tests.ScriptedPrompts],
     ) -> None:
         tm.fail(
             make_prompts(interactive_mode=False).prompt_password("Password:"),
@@ -190,7 +183,7 @@ class TestsFlextCliPrompts:
 
     def test_print_helpers_paths(
         self,
-        make_prompts: Callable[..., TestsFlextCliScriptedPrompts],
+        make_prompts: Callable[..., p.Tests.ScriptedPrompts],
     ) -> None:
         prompts = make_prompts()
         tm.ok(prompts.print_success("simple"))
@@ -199,10 +192,9 @@ class TestsFlextCliPrompts:
 
     def test_print_helper_failure_when_logging_crashes(
         self,
-        make_prompts: Callable[..., TestsFlextCliScriptedPrompts],
+        make_failing_prompts: Callable[..., p.Tests.FailingLogPrompts],
     ) -> None:
-        prompts = make_prompts(TestsFlextCliFailingLogPrompts)
-        assert isinstance(prompts, TestsFlextCliFailingLogPrompts)
+        prompts = make_failing_prompts()
         prompts.fail_on_log(level=c.LogLevel.INFO, message="Logger error")
         result = prompts.print_success("Test")
         tm.fail(result, has="Logger error")
@@ -213,7 +205,7 @@ class TestsFlextCliPrompts:
     )
     def test_prompt_accepts_edge_case_messages(
         self,
-        make_prompts: Callable[..., TestsFlextCliScriptedPrompts],
+        make_prompts: Callable[..., p.Tests.ScriptedPrompts],
         message: str,
     ) -> None:
         prompts = make_prompts(interactive_mode=False)
@@ -223,7 +215,7 @@ class TestsFlextCliPrompts:
 
     def test_repeated_prompt_operations_remain_fast(
         self,
-        make_prompts: Callable[..., TestsFlextCliScriptedPrompts],
+        make_prompts: Callable[..., p.Tests.ScriptedPrompts],
     ) -> None:
         prompts = make_prompts(interactive_mode=False)
         started_at = time.time()

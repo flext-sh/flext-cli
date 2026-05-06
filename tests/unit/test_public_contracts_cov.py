@@ -5,13 +5,8 @@ from __future__ import annotations
 import inspect
 from pathlib import Path
 
-import pytest
-
-from flext_cli import c, m, p, r, u
-from flext_cli.api import FlextCli
-from flext_cli.base import FlextCliServiceBase
-from flext_cli.settings import FlextCliSettings
-from tests import m as test_m
+from flext_cli import cli
+from tests import c, m, p, u
 
 
 class _CommandModel(m.BaseModel):
@@ -31,40 +26,35 @@ class _CommandSource(m.BaseModel):
 class TestsFlextCliPublicContractsCoverage:
     """Exercise public CLI contracts through facade, settings, models, and utilities."""
 
-    def test_public_facade_and_settings_contract(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        monkeypatch.delenv(c.Cli.ENV_VAR_PYTEST_CURRENT_TEST, raising=False)
-        monkeypatch.delenv(c.Cli.ENV_VAR_SHELL_COMMAND, raising=False)
-        monkeypatch.delenv(c.Cli.ENV_VAR_CI, raising=False)
+    def test_public_facade_and_settings_contract(self) -> None:
+        cli.settings.reset_for_testing()
 
-        base_service = FlextCliServiceBase()
-        base_result = base_service.execute()
+        fresh_settings = cli.new_settings()
+        assert isinstance(fresh_settings, p.Cli.Settings)
+        assert fresh_settings.model_dump()["test_env"] is False
 
-        assert base_result.success
-        assert base_result.value == {}
+        cli.settings.reset_for_testing()
+        shell_settings = cli.new_settings()
+        setattr(shell_settings, "shell_command", "pytest -k smoke")
+        assert shell_settings.model_dump()["test_env"] is True
 
-        fresh_settings = base_service.new_settings()
-        assert isinstance(fresh_settings, FlextCliSettings)
-        assert fresh_settings.test_env is False
-
-        shell_settings = FlextCliSettings()
-        shell_settings.shell_command = "pytest -k smoke"
-        assert shell_settings.test_env is True
-
-        pytest_settings = FlextCliSettings()
-        pytest_settings.pytest_current_test = (
-            "tests/unit/test_public_contracts_cov.py::test_public_facade"
+        cli.settings.reset_for_testing()
+        pytest_settings = cli.new_settings()
+        setattr(
+            pytest_settings,
+            "pytest_current_test",
+            "tests/unit/test_public_contracts_cov.py::test_public_facade",
         )
-        assert pytest_settings.test_env is True
+        assert pytest_settings.model_dump()["test_env"] is True
 
-        ci_settings = FlextCliSettings()
-        ci_settings.ci = True
-        assert ci_settings.test_env is True
+        cli.settings.reset_for_testing()
+        ci_settings = cli.new_settings()
+        setattr(ci_settings, "ci", True)
+        assert ci_settings.model_dump()["test_env"] is True
 
-        facade = FlextCli()
-        facade_result = facade.execute()
+        cli.settings.reset_for_testing()
+
+        facade_result = cli.execute()
 
         assert facade_result.success
         assert facade_result.value[c.Cli.DICT_KEY_STATUS] == (
@@ -127,16 +117,16 @@ class TestsFlextCliPublicContractsCoverage:
         entry = m.Cli.CommandEntryModel(name="inspect", handler=lambda: True)
 
         def route_handler(
-            _params: test_m.Tests.SampleInput,
-        ) -> p.Result[test_m.Tests.SampleOutput]:
-            return r[test_m.Tests.SampleOutput].ok(
-                test_m.Tests.SampleOutput(message="ok")
+            _params: m.Tests.SampleInput,
+        ) -> p.Result[m.Tests.SampleOutput]:
+            return cli.execute().map(
+                lambda _payload: m.Tests.SampleOutput(message="ok")
             )
 
         route = m.Cli.ResultCommandRoute(
             name="inspect",
             help_text="Inspect data",
-            model_cls=test_m.Tests.SampleInput,
+            model_cls=m.Tests.SampleInput,
             handler=route_handler,
         )
         table = m.Cli.TableConfig(table_format=c.Cli.TabularFormat.TABLE)
@@ -203,49 +193,47 @@ class TestsFlextCliPublicContractsCoverage:
         assert write_options.ensure_ascii is True
 
     def test_public_pipeline_model_contracts(self, tmp_path: Path) -> None:
-        context = m.Cli.PipelineStageContext(
-            workspace_root=tmp_path,
-            shared={},
-            settings={"mode": "test"},
-        )
+        context = cli.stage_context(tmp_path, settings={"mode": "test"})
 
         def stage_handler(
             current: m.Cli.PipelineStageContext,
         ) -> p.Result[m.Cli.PipelineStageResult]:
-            return r[m.Cli.PipelineStageResult].ok(
-                m.Cli.PipelineStageResult(
-                    stage_id="build",
-                    status=c.Cli.PipelineStageStatus.OK,
-                    output={"workspace": str(current.workspace_root)},
-                )
+            return cli.ok_stage(
+                "build", output={"workspace": str(current.workspace_root)}
             )
 
-        spec = m.Cli.PipelineStageSpec(
-            stage_id="build",
-            depends_on=frozenset({"fetch"}),
+        spec = cli.stage(
+            "build",
             handler=stage_handler,
+            depends_on=("fetch",),
             retry=1,
         )
         pipeline = m.Cli.PipelineResult(
             stages=[
-                m.Cli.PipelineStageResult(
-                    stage_id="ok",
+                cli.stage_result(
+                    "ok",
                     status=c.Cli.PipelineStageStatus.OK,
                 ),
-                m.Cli.PipelineStageResult(
-                    stage_id="fail",
+                cli.stage_result(
+                    "fail",
                     status=c.Cli.PipelineStageStatus.FAILED,
                     error="boom",
                 ),
-                m.Cli.PipelineStageResult(
-                    stage_id="skip",
+                cli.stage_result(
+                    "skip",
                     status=c.Cli.PipelineStageStatus.SKIPPED,
                 ),
             ],
             total_duration_ms=10.5,
         )
         stage_result = spec.handler(context)
+        pipeline_run = cli.pipeline(
+            (spec,),
+            workspace_root=tmp_path,
+            settings={"mode": "test"},
+        )
 
+        assert isinstance(cli, p.Cli.PipelineService)
         assert context.settings == {"mode": "test"}
         assert spec.retry == 1
         assert pipeline.success is False
@@ -253,3 +241,5 @@ class TestsFlextCliPublicContractsCoverage:
         assert [stage.stage_id for stage in pipeline.skipped_stages] == ["skip"]
         assert stage_result.success
         assert stage_result.value.output == {"workspace": str(tmp_path)}
+        assert pipeline_run.success
+        assert pipeline_run.value.success

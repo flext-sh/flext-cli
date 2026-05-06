@@ -1,10 +1,10 @@
-"""FLEXT CLI Base Tests - Comprehensive Base Service Validation Testing.
+"""FLEXT CLI base-behavior tests through the public facade.
 
-Tests for s covering initialization, configuration access,
-singleton pattern, and inheritance from s with 100% coverage.
+Tests the shared service-base guarantees via the public ``cli`` facade:
+instantiation, configuration access, and singleton settings behavior.
 
-Modules tested: flext_cli.base.s
-Scope: All base service functionality, settings access, inheritance patterns
+Modules tested: flext_cli.api.cli
+Scope: Shared base-service functionality exposed by the public facade
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -13,38 +13,24 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import override
-
 from flext_tests import tm
 
-from flext_cli import s
-from tests import p, r, t
+from flext_cli import cli
+from tests import p
 
 
 class TestsFlextCliServiceBase:
-    """Comprehensive test suite for s functionality.
-
-    Single class with nested helper classes and methods organized by functionality.
-    Tests cover all base service methods and properties with 100% coverage.
-    """
-
-    class _ConcreteService(s):
-        """Concrete implementation for testing abstract base class."""
-
-        @override
-        def execute(self) -> p.Result[t.MappingKV[str, t.JsonValue]]:
-            """Implement abstract method for testing."""
-            return r[t.MappingKV[str, t.JsonValue]].ok({})
+    """Verify base-service guarantees through the public CLI facade."""
 
     def test_service_base_initialization(self) -> None:
-        """Test s can be instantiated via concrete class."""
-        service = self._ConcreteService()
+        """Test the public CLI facade can be instantiated cleanly."""
+        service = type(cli)()
         tm.that(service, none=False)
-        tm.that(service, is_=s)
+        tm.that(service, is_=type(cli))
 
     def test_settings_property(self) -> None:
         """Test settings property returns the public CLI settings singleton."""
-        service = self._ConcreteService()
+        service = type(cli)()
         settings = service.settings
         tm.that(settings, none=False)
         tm.that(settings, is_=p.Cli.Settings)
@@ -53,6 +39,6 @@ class TestsFlextCliServiceBase:
 
     def test_config_singleton_consistency(self) -> None:
         """Test that settings returns same singleton across instances."""
-        service1 = self._ConcreteService()
-        service2 = self._ConcreteService()
+        service1 = type(cli)()
+        service2 = type(cli)()
         tm.that(service1.settings is service2.settings, eq=True)

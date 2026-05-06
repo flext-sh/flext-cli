@@ -78,7 +78,6 @@ class FlextCliTypesBase:
         t.json_mapping_adapter()
     )
     JSON_LIST_ADAPTER: ClassVar[t.ValueAdapter[t.JsonList]] = t.json_list_adapter()
-    type YamlDict = t.JsonMapping
     YAML_DICT_ADAPTER: ClassVar[t.ValueAdapter[t.JsonMapping]] = (
         t.json_mapping_adapter()
     )
