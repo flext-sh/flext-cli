@@ -33,7 +33,7 @@ class FlextCliConstantsSettings:
     OPTIONAL_UNION_ARG_COUNT: Final[int] = 2
     CLI_SCALAR_TYPES_TUPLE: ClassVar[
         tuple[type[str], type[int], type[float], type[bool]]
-    ] = (str, int, float, bool)
+    ] = t.PRIMITIVES_TYPES
 
     CLI_PARAM_SHORT_FLAG_VERBOSE: Final[str] = "v"
     CLI_PARAM_SHORT_FLAG_QUIET: Final[str] = "q"

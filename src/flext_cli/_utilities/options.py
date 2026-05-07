@@ -8,7 +8,7 @@ from collections.abc import (
 )
 from pathlib import Path
 from types import GenericAlias, NoneType, UnionType
-from typing import Annotated, TypeAliasType, Union, get_args, get_origin
+from typing import Annotated, TypeAliasType, get_args, get_origin
 
 from typer.models import OptionInfo
 
@@ -71,10 +71,6 @@ class FlextCliUtilitiesOptions:
     ) -> type | GenericAlias:
         """Resolve runtime annotations to concrete types accepted by Typer."""
         annotated_origin = get_origin(Annotated[str, "meta"])
-        union_origins: frozenset[object] = frozenset(
-            filter(None, [Union, get_origin(str | int)])
-        )
-
         sequence_origins: frozenset[object] = frozenset(
             filter(
                 None,
@@ -109,7 +105,7 @@ class FlextCliUtilitiesOptions:
             )
             origin = get_origin(resolved_annotation_input)
 
-        if isinstance(resolved_annotation_input, UnionType) or origin in union_origins:
+        if isinstance(resolved_annotation_input, UnionType):
             resolved_args = tuple(
                 FlextCliUtilitiesOptions.resolve_typer_annotation(arg)
                 for arg in get_args(resolved_annotation_input)

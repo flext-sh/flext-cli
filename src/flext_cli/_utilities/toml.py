@@ -189,7 +189,7 @@ class FlextCliUtilitiesToml:
         existing: t.Cli.TomlRuntimeSource | None = None
         if key in parent:
             existing = parent[key]
-        if existing is not None and isinstance(existing, Table):
+        if isinstance(existing, Table):
             table: Table = existing
             if not table.is_super_table():
                 return table
@@ -406,7 +406,7 @@ class FlextCliUtilitiesToml:
         merged = sorted({*current, *required})
         if current == merged:
             return False
-        normalized_list: list[t.JsonValue] = list(merged)
+        normalized_list: t.JsonValueList = list(merged)
         container[key] = normalized_list
         return True
 
@@ -454,7 +454,7 @@ class FlextCliUtilitiesToml:
         normalized_current = sorted(current) if sort_values else [*current]
         if normalized_current == normalized_expected:
             return False
-        normalized_list: list[t.JsonValue] = list(normalized_expected)
+        normalized_list: t.JsonValueList = list(normalized_expected)
         container[key] = normalized_list
         return True
 
