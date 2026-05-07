@@ -51,7 +51,7 @@ class FlextCliUtilitiesModelCommandBuilder[M: t.Cli.ModelLike]:
 
         def command(**kwargs: t.Cli.CliValue) -> t.JsonValue:
             current_settings = self.settings
-            if isinstance(current_settings, p.Settings):
+            if isinstance(current_settings, p.Cli.Settings):
                 current_settings_fields = current_settings.model_dump()
                 applicable_overrides = {
                     field_name: field_value
@@ -81,18 +81,19 @@ class FlextCliUtilitiesModelCommands:
     def model_source_data(
         model_cls: t.Cli.ModelType[t.Cli.ModelLike],
         source: t.Cli.ModelSource,
-    ) -> t.ScalarMapping:
+    ) -> t.JsonMapping:
         """Extract only target-compatible fields from a model or mapping source."""
-        raw_source: t.ScalarMapping
+        raw_source: t.JsonMapping | t.ScalarMapping
         if isinstance(source, m.BaseModel):
             raw_source = source.model_dump(exclude_none=True)
         else:
             raw_source = source
-        return {
+        filtered_payload = {
             field_name: raw_source[field_name]
             for field_name in model_cls.model_fields
             if field_name in raw_source and raw_source[field_name] is not None
         }
+        return t.Cli.JSON_MAPPING_ADAPTER.validate_python(filtered_payload)
 
     @classmethod
     def derive_model[M: t.Cli.ModelLike](
@@ -102,7 +103,7 @@ class FlextCliUtilitiesModelCommands:
         overrides: t.ScalarMapping | None = None,
     ) -> M:
         """Derive a target model from ordered model/mapping sources."""
-        merged: t.MutableScalarMapping = {}
+        merged: t.MutableJsonMapping = {}
         for source in sources:
             merged.update(cls.model_source_data(model_cls, source))
         if overrides is not None:

@@ -187,8 +187,8 @@ class TestsFlextCliExamplesSmoke:
             is_=ep.Cli.Settings,
         )
         tm.that(
-            settings.token_file,
-            eq=cli.settings.token_file,
+            settings.Cli.token_file,
+            eq=cli.settings.Cli.token_file,
         )
 
         login_result = Ex05Authentication.login_to_service(

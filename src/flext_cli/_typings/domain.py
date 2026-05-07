@@ -63,7 +63,7 @@ class FlextCliTypesDomain:
     type MessageType = FlextCliConstantsEnums.MessageTypes
     type ModelLike = m.BaseModel
     type ModelType[TModel: ModelLike] = type[TModel]
-    type ModelSource = ModelLike | t.ScalarMapping
+    type ModelSource = ModelLike | t.JsonMapping | t.ScalarMapping
     type OptionRegistry = t.MappingKV[
         str,
         t.MappingKV[str, t.Scalar | t.StrSequence],

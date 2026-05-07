@@ -45,7 +45,7 @@ class FlextCliAuth(FlextCliServiceBase):
                 ),
             )
         settings = self.settings
-        token_file_path = u.Cli.auth_token_file_path(settings.token_file)
+        token_file_path = u.Cli.auth_token_file_path(settings.Cli.token_file)
         return FlextCliFileTools.write_json_file(
             token_file_path,
             {c.Cli.DICT_KEY_AUTH_TOKEN: token},
@@ -53,7 +53,7 @@ class FlextCliAuth(FlextCliServiceBase):
 
     def fetch_auth_token(self) -> p.Result[str]:
         """Load the persisted authentication token from the configured token file."""
-        token_file_path = u.Cli.auth_token_file_path(self.settings.token_file)
+        token_file_path = u.Cli.auth_token_file_path(self.settings.Cli.token_file)
         return FlextCliFileTools.read_json_file(token_file_path).flat_map(
             u.Cli.auth_extract_token,
         )
@@ -93,7 +93,7 @@ class FlextCliAuth(FlextCliServiceBase):
 
     def clear_auth_tokens(self) -> p.Result[bool]:
         """Delete the configured authentication token file if present."""
-        token_file = u.Cli.auth_token_file_path(self.settings.token_file)
+        token_file = u.Cli.auth_token_file_path(self.settings.Cli.token_file)
         if not token_file.exists():
             return r[bool].ok(True)
         return u.Cli.files_delete(token_file)

@@ -132,7 +132,9 @@ class FlextCliCli(s):
     ) -> None:
         """Apply global CLI flags to the shared settings model."""
         resolved_log_level: str = (
-            params.log_level if params.log_level is not None else settings.cli_log_level
+            params.log_level
+            if params.log_level is not None
+            else str(settings.Cli.cli_log_level)
         )
         next_params = params.model_copy(
             update={"log_level": resolved_log_level},
@@ -146,17 +148,15 @@ class FlextCliCli(s):
             return
 
         updated_settings = result.value
-        if updated_settings is settings or not isinstance(settings, p.Settings):
+        if updated_settings is settings or not isinstance(settings, p.Cli.Settings):
             return
-        current_settings = settings.model_dump()
-        overrides: dict[str, bool | str] = {
-            field_name: value
-            for field_name, value in updated_settings.model_dump().items()
-            if value is not None
-            and isinstance(value, bool | str)
-            and field_name in current_settings
-            and current_settings[field_name] != value
-        }
+        overrides: dict[str, t.JsonPayload | None] = {}
+        if updated_settings.debug != settings.debug:
+            overrides["debug"] = updated_settings.debug
+        if updated_settings.trace != settings.trace:
+            overrides["trace"] = updated_settings.trace
+        if updated_settings.Cli != settings.Cli:
+            overrides["Cli"] = updated_settings.Cli.model_dump()
         if overrides:
             settings.update_global(**overrides)
 
@@ -256,7 +256,7 @@ class FlextCliCli(s):
         overrides: t.ScalarMapping | None = None,
     ) -> M:
         """Derive a target Pydantic model from ordered model/mapping sources."""
-        merged: t.MutableScalarMapping = {}
+        merged: t.MutableJsonMapping = {}
         for source in sources:
             merged.update(u.Cli.model_source_data(model_cls, source))
         if overrides is not None:

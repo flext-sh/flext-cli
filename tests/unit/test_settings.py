@@ -40,7 +40,7 @@ class TestsFlextCliSettings:
         """Test singleton behavior via fetch_global."""
         settings_1 = cli.settings.fetch_global()
         settings_2 = cli.settings.fetch_global()
-        tm.that(settings_1.verbose, eq=settings_2.verbose)
+        tm.that(settings_1.Cli.verbose, eq=settings_2.Cli.verbose)
 
     def test_reset_instance(self) -> None:
         """Test reset_for_testing resets global state."""
@@ -95,7 +95,7 @@ class TestsFlextCliSettings:
     def test_basic_fields_exist(self) -> None:
         """Test settings has expected fields."""
         settings: p.Cli.Settings = cli.new_settings()
-        tm.that(settings.verbose, is_=bool)
+        tm.that(settings.Cli.verbose, is_=bool)
         tm.that(settings.debug, is_=bool)
-        tm.that(settings.no_color, is_=bool)
-        tm.that(settings.quiet, is_=bool)
+        tm.that(settings.Cli.no_color, is_=bool)
+        tm.that(settings.Cli.quiet, is_=bool)

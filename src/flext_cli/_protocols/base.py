@@ -19,22 +19,17 @@ class FlextCliProtocolsBase:
     """CLI protocol namespace for all CLI-specific protocols."""
 
     @runtime_checkable
-    class Settings(p.Settings, Protocol):
-        """Protocol for CLI runtime settings consumed by the public services."""
+    class CliSettings(p.Model, Protocol):
+        """Namespaced CLI runtime settings branch."""
 
         @property
         def app_name(self) -> str:
-            """Application name."""
+            """CLI application name."""
             ...
 
         @property
-        def cli_log_level(self) -> c.LogLevel:
+        def cli_log_level(self) -> c.LogLevel | str:
             """Get CLI log level."""
-            ...
-
-        @property
-        def debug(self) -> bool:
-            """Check if debug mode is enabled."""
             ...
 
         @property
@@ -57,17 +52,46 @@ class FlextCliProtocolsBase:
             """Check if quiet mode is enabled."""
             ...
 
+        @property
+        def verbose(self) -> bool:
+            """Check if verbose mode is enabled."""
+            ...
+
+        config_file: str | None
+        """Mutable path to the configured settings file."""
+
         token_file: str | None
         """Mutable path to the configured authentication token file."""
+
+        ci: bool
+        """Whether the current runtime is a CI environment."""
+
+        pytest_current_test: str | None
+        """Current pytest test identifier, when present."""
+
+        shell_command: str | None
+        """Current shell command propagated by the runtime environment."""
+
+        @property
+        def test_env(self) -> bool:
+            """Whether prompt services should use test-safe behavior."""
+            ...
+
+    @runtime_checkable
+    class Settings(p.Settings, Protocol):
+        """Protocol for CLI runtime settings consumed by the public services."""
+
+        Cli: FlextCliProtocolsBase.CliSettings
+        """Namespaced CLI settings branch."""
+
+        @property
+        def debug(self) -> bool:
+            """Check if debug mode is enabled."""
+            ...
 
         @property
         def trace(self) -> bool:
             """Check if trace mode is enabled."""
-            ...
-
-        @property
-        def verbose(self) -> bool:
-            """Check if verbose mode is enabled."""
             ...
 
         @override
@@ -75,6 +99,7 @@ class FlextCliProtocolsBase:
             self,
             *,
             mode: str = "python",
+            exclude_none: bool = False,
         ) -> t.JsonMapping:
             """Dump the settings model into a JSON-compatible mapping."""
             ...

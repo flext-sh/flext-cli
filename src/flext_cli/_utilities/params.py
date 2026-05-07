@@ -34,14 +34,25 @@ class FlextCliUtilitiesParams:
             will_be_debug = params.debug if params.debug is not None else settings.debug
             if not will_be_debug:
                 return r[p.Cli.Settings].fail(c.Cli.CLI_PARAM_ERR_TRACE_REQUIRES_DEBUG)
-        update_data: t.MutableBoolMapping = {}
-        for field in ("verbose", "quiet", "debug", "trace", "no_color"):
+        root_update: t.MutableBoolMapping = {}
+        for field in ("debug", "trace"):
             value = getattr(params, field, None)
             if value is not None:
-                update_data[field] = value
-        if not update_data:
+                root_update[field] = value
+        cli_update: t.MutableBoolMapping = {}
+        for field in ("verbose", "quiet", "no_color"):
+            value = getattr(params, field, None)
+            if value is not None:
+                cli_update[field] = value
+        if not root_update and not cli_update:
             return r[p.Cli.Settings].ok(settings)
-        return r[p.Cli.Settings].ok(settings.clone(**update_data))
+        next_settings = settings.clone(**root_update) if root_update else settings
+        if not cli_update:
+            return r[p.Cli.Settings].ok(next_settings)
+        next_cli = next_settings.Cli.model_copy(update=cli_update)
+        return r[p.Cli.Settings].ok(
+            next_settings.clone(Cli=next_cli.model_dump()),
+        )
 
     @staticmethod
     def params_set_log_level(
@@ -57,8 +68,11 @@ class FlextCliUtilitiesParams:
                 default=c.LogLevel.INFO,
             ).resolved
             next_level = type(c.LogLevel.INFO)(resolved_level)
+            next_cli = settings.Cli.model_copy(
+                update={"cli_log_level": str(next_level)},
+            )
             return r[p.Cli.Settings].ok(
-                settings.clone(cli_log_level=next_level),
+                settings.clone(Cli=next_cli.model_dump()),
             )
         except ValueError:
             valid = ", ".join(c.Cli.LOG_LEVELS)
@@ -89,9 +103,10 @@ class FlextCliUtilitiesParams:
                         valid_values=valid,
                     ),
                 )
-            next_config = next_config.clone(
-                log_verbosity=str(log_verbosity),
+            next_cli = next_config.Cli.model_copy(
+                update={"log_verbosity": str(log_verbosity)},
             )
+            next_config = next_config.clone(Cli=next_cli.model_dump())
         if params.output_format is not None:
             validated_result = uv.validate_format(params.output_format)
             if validated_result.failure or validated_result.value is None:
@@ -103,9 +118,10 @@ class FlextCliUtilitiesParams:
                         valid_values=valid,
                     ),
                 )
-            next_config = next_config.clone(
-                output_format=validated_result.value,
+            next_cli = next_config.Cli.model_copy(
+                update={"output_format": validated_result.value},
             )
+            next_config = next_config.clone(Cli=next_cli.model_dump())
         return r[p.Cli.Settings].ok(next_config)
 
     @staticmethod
