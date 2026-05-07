@@ -1,0 +1,54 @@
+src/flext_cli/_protocols/base.py
+  s_2914457c55fb6e::t_19f29f85b06df3 22,55-62,66-73
+  h_5cf852cc46bf92 23,27,31,76-77,80-86,93-94,102
+src/flext_cli/_utilities/model_commands.py
+  h_5cf852cc46bf92 54,84,86,91,96,106
+tests/unit/test_services_auth_branch_cov.py
+  h_5cf852cc46bf92 18,21,25,34,37,44,50,52,56,62,65,69
+src/flext_cli/services/cli.py
+  s_2914457c55fb6e::t_66a1f5fb521bca 135-137
+  h_5cf852cc46bf92 151,259
+  s_2914457c55fb6e::t_19f29f85b06df3 153-159
+src/flext_cli/_utilities/params.py
+  s_2914457c55fb6e::t_19f29f85b06df3 37-38,41-47,49-55,71-73,75,106-107,109,121-122,124
+src/flext_cli/base.py
+  s_2914457c55fb6e::t_ce79531d2663e6 3-4,12,14,31-35,39-44,48
+examples/ex_05_authentication.py
+  h_5cf852cc46bf92 47,78,90
+src/flext_cli/settings.py
+  h_5cf852cc46bf92 11,14,16-17,19-20,28-29,31-75,78,80,87-92
+src/flext_cli/services/auth.py
+  s_2914457c55fb6e::t_a9442546b1383b 48,56,96
+tests/unit/test_examples_smoke.py
+  h_5cf852cc46bf92 190-191
+tests/unit/test_settings.py
+  h_5cf852cc46bf92 43,98,100-101
+src/flext_cli/services/prompts.py
+  s_2914457c55fb6e::t_ce79531d2663e6 181
+src/flext_cli/_typings/domain.py
+  h_5cf852cc46bf92 66
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.1",
+  "base_commit_sha": "3c31177a3dd84d86c4647eb9766a6d9f9496f240",
+  "prompts": {},
+  "humans": {
+    "h_5cf852cc46bf92": {
+      "author": "FLEXT Bot <team@flext.sh>"
+    },
+    "h_9db9d35f50cf33": {
+      "author": "FLEXT Bot"
+    }
+  },
+  "sessions": {
+    "s_2914457c55fb6e": {
+      "agent_id": {
+        "tool": "github-copilot",
+        "id": "028a9615-de04-439a-812a-011714b27791",
+        "model": "unknown"
+      },
+      "human_author": "FLEXT Bot <team@flext.sh>"
+    }
+  }
+}
