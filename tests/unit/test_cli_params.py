@@ -46,9 +46,9 @@ class TestsFlextCliCommonParams:
 
         tm.ok(result)
         updated_config = result.value
-        tm.that(updated_config.verbose is True, eq=True)
+        tm.that(updated_config.Cli.verbose is True, eq=True)
         tm.that(updated_config.debug is True, eq=True)
-        tm.that(updated_config.cli_log_level, eq=c.LogLevel.DEBUG)
+        tm.that(updated_config.Cli.cli_log_level, eq=c.LogLevel.DEBUG)
 
     def test_apply_to_config_trace_requires_debug(self) -> None:
         """Test trace requires debug - Railway pattern validation."""

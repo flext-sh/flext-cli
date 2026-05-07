@@ -71,7 +71,7 @@ class TestsFlextCliService:
         )
 
         tm.that(result.exit_code, eq=0)
-        tm.that(cli.settings.cli_log_level, eq=c.LogLevel.DEBUG)
+        tm.that(cli.settings.Cli.cli_log_level, eq=c.LogLevel.DEBUG)
 
     def test_model_command_generates_real_typer_options(self) -> None:
         captured: MutableSequence[m.Tests.SampleInput] = []

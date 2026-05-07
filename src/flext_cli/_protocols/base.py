@@ -105,7 +105,7 @@ class FlextCliProtocolsBase:
             ...
 
         @override
-        def clone(self, **overrides: t.JsonPayload | None) -> Self:
+        def clone(self, **overrides: t.SettingsOverride | None) -> Self:
             """Return a cloned settings instance with overrides applied."""
             ...
 
@@ -121,7 +121,7 @@ class FlextCliProtocolsBase:
 
         @classmethod
         @override
-        def update_global(cls, **overrides: t.JsonPayload | None) -> Self:
+        def update_global(cls, **overrides: t.SettingsOverride | None) -> Self:
             """Replace the singleton via Pydantic-2 ``model_copy(update=…)``."""
             ...
 

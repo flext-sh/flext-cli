@@ -22,7 +22,7 @@ class TestsFlextCliParamsBranchCov:
         params = m.Cli.CliParamsConfig(log_format=valid_log_format)
         result = u.Cli.params_set_format(settings, params)
         assert result.success
-        assert result.value.log_verbosity == valid_log_format
+        assert result.value.Cli.log_verbosity == valid_log_format
 
     def test_params_set_format_applies_valid_output_format(self) -> None:
         settings = cli.new_settings()
@@ -30,7 +30,7 @@ class TestsFlextCliParamsBranchCov:
         params = m.Cli.CliParamsConfig(output_format=valid_output_format)
         result = u.Cli.params_set_format(settings, params)
         assert result.success
-        assert result.value.output_format == valid_output_format
+        assert result.value.Cli.output_format == valid_output_format
 
 
 __all__: list[str] = ["TestsFlextCliParamsBranchCov"]

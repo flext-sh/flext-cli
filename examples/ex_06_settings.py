@@ -42,15 +42,15 @@ class Ex06Settings:
             f"   Debug Mode: {cli.settings.debug}", style=c.Cli.MessageStyles.CYAN
         )
         cli.print(
-            f"   Log Level: {cli.settings.cli_log_level}",
+            f"   Log Level: {cli.settings.Cli.cli_log_level}",
             style=c.Cli.MessageStyles.CYAN,
         )
         cli.print(
-            f"   Output Format: {cli.settings.output_format}",
+            f"   Output Format: {cli.settings.Cli.output_format}",
             style=c.Cli.MessageStyles.CYAN,
         )
         cli.print(
-            f"   App Name: {cli.settings.app_name}",
+            f"   App Name: {cli.settings.Cli.app_name}",
             style=c.Cli.MessageStyles.CYAN,
         )
         return cli.settings
@@ -59,7 +59,7 @@ class Ex06Settings:
     def show_settings_locations() -> m.Cli.DisplayData:
         """Display settings file locations for YOUR application."""
         home_dir = Path.home()
-        token_file_path = u.Cli.auth_token_file_path(cli.settings.token_file)
+        token_file_path = u.Cli.auth_token_file_path(cli.settings.Cli.token_file)
         display_payload = u.to_json_dict({
             "Home Directory": str(home_dir),
             "Settings Directory": str(home_dir / c.Cli.PATH_FLEXT_DIR_NAME),
@@ -103,8 +103,8 @@ class Ex06Settings:
             config_data=u.to_json_dict({
                 "Profile": profile_name.value,
                 "Debug": str(profile_config.debug),
-                "Output": profile_config.output_format,
-                "App Name": profile_config.app_name,
+                "Output": profile_config.Cli.output_format,
+                "App Name": profile_config.Cli.app_name,
             })
         )
         return r[p.Cli.Settings].ok(profile_config)

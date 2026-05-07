@@ -6,6 +6,7 @@ import getpass
 from typing import Annotated, Self, override
 
 from flext_cli import (
+    FlextCliProtocolsBase,
     c,
     m,
     p,
@@ -178,7 +179,8 @@ class FlextCliPrompts(s):
     def _is_test_env(self) -> bool:
         if self._test_env_override is not None:
             return self._test_env_override
-        return self.settings.Cli.test_env
+        cli_settings: FlextCliProtocolsBase.CliSettings = self.settings.Cli
+        return cli_settings.test_env
 
     def _log(
         self,

@@ -222,7 +222,7 @@ class TestsFlextCliExamplesSmoke:
             eq=True,
         )
         tm.that(
-            profile_result.value.output_format,
+            profile_result.value.Cli.output_format,
             eq=ec.Cli.OutputFormats.TABLE,
         )
 
@@ -303,7 +303,7 @@ class TestsFlextCliExamplesSmoke:
         )
         tm.ok(production_profile)
         tm.that(
-            production_profile.value.output_format,
+            production_profile.value.Cli.output_format,
             eq=ec.Cli.OutputFormats.JSON,
         )
 

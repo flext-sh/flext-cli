@@ -25,7 +25,7 @@ class FlextCliSettings(FlextSettings):
         extra="ignore",
     )
 
-    class CliSettings(m.Value):
+    class CliSettings(m.SettingsValue):
         """Namespaced CLI runtime settings."""
 
         verbose: Annotated[bool, m.Field(description="Verbose output")] = (

@@ -119,7 +119,7 @@ class ExamplesFlextCliModels(m):
                     "Max Workers": str(self.max_workers),
                     "Timeout": f"{self.timeout}s",
                     "Debug": str(settings.debug),
-                    "App": settings.app_name,
+                    "App": settings.Cli.app_name,
                 }
                 payload = ExamplesFlextCliModels.Cli.DisplayData(
                     data=payload_data,
