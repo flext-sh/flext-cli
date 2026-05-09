@@ -93,7 +93,7 @@ class Ex06Settings:
                 output_format = c.Cli.OutputFormats.TABLE
         profile_config = cli.settings.clone(
             debug=debug,
-            output_format=output_format,
+            Cli={"output_format": output_format},
         )
         cli.print(
             f"✅ Profile '{profile_name.value}' loaded successfully",

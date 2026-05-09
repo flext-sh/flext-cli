@@ -18,64 +18,47 @@ from tests.helpers._impl import (
 )
 
 
-@pytest.fixture
-def make_prompts() -> Callable[..., TestsFlextCliScriptedPrompts]:
-    """Factory fixture for scripted prompt test doubles."""
+def _prompt_factory[TPrompt: TestsFlextCliScriptedPrompts](
+    prompt_cls: type[TPrompt],
+) -> Callable[..., TPrompt]:
+    """Build a prompt-double factory that configures interactive/quiet flags."""
 
     def _make(
-        prompt_type: type[TestsFlextCliScriptedPrompts] = TestsFlextCliScriptedPrompts,
         *,
         interactive_mode: bool = True,
         quiet: bool = False,
-    ) -> TestsFlextCliScriptedPrompts:
-        return prompt_type().configure_state(
-            interactive=interactive_mode,
-            quiet=quiet,
-        )
+    ) -> TPrompt:
+        instance = prompt_cls()
+        instance.configure_state(interactive=interactive_mode, quiet=quiet)
+        return instance
 
     return _make
+
+
+@pytest.fixture
+def make_prompts() -> Callable[..., TestsFlextCliScriptedPrompts]:
+    """Factory fixture for scripted prompt test doubles."""
+    return _prompt_factory(TestsFlextCliScriptedPrompts)
 
 
 @pytest.fixture
 def make_capture_prompts() -> Callable[..., TestsFlextCliCaptureLogPrompts]:
     """Factory fixture for prompt doubles that capture log output."""
-
-    def _make(
-        *,
-        interactive_mode: bool = True,
-        quiet: bool = False,
-    ) -> TestsFlextCliCaptureLogPrompts:
-        return TestsFlextCliCaptureLogPrompts().configure_state(
-            interactive=interactive_mode,
-            quiet=quiet,
-        )
-
-    return _make
+    return _prompt_factory(TestsFlextCliCaptureLogPrompts)
 
 
 @pytest.fixture
 def make_failing_prompts() -> Callable[..., TestsFlextCliFailingLogPrompts]:
-    """Factory fixture for prompt doubles that fail selected log calls."""
-
-    def _make(
-        *,
-        interactive_mode: bool = True,
-        quiet: bool = False,
-    ) -> TestsFlextCliFailingLogPrompts:
-        return TestsFlextCliFailingLogPrompts().configure_state(
-            interactive=interactive_mode,
-            quiet=quiet,
-        )
-
-    return _make
+    """Factory fixture for prompt doubles that can fail selected log calls."""
+    return _prompt_factory(TestsFlextCliFailingLogPrompts)
 
 
 @pytest.fixture(autouse=True)
 def reset_config_singleton() -> Generator[None]:
     """Reset cli.settings singleton before and after each test.
 
-    Settings are now resolved via ``FlextCliSettings.fetch_global()`` per
-    access (no cache), so a single ``reset_for_testing`` is sufficient.
+    Settings are resolved via ``FlextCliSettings.fetch_global()`` per access
+    (no cache), so a single ``reset_for_testing`` is sufficient.
     """
     cli.settings.reset_for_testing()
     yield

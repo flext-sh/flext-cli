@@ -179,7 +179,9 @@ class TestsFlextCliExamplesSmoke:
 
     def test_authentication_and_settings_examples(self, tmp_path: Path) -> None:
         """Auth and settings examples must work through cli.settings and cli auth APIs."""
-        cli.settings.update_global(token_file=str(tmp_path / "auth_token.json"))
+        cli.settings.update_global(
+            Cli={"token_file": str(tmp_path / "auth_token.json")},
+        )
 
         settings = Ex06Settings.show_cli_settings()
         tm.that(
@@ -237,7 +239,7 @@ class TestsFlextCliExamplesSmoke:
     ) -> None:
         """Authentication example must handle no-session, invalid-token, and bad-login cases."""
         token_path = tmp_path / "auth_token.json"
-        cli.settings.update_global(token_file=str(token_path))
+        cli.settings.update_global(Cli={"token_file": str(token_path)})
 
         missing_token = Ex05Authentication.fetch_saved_token()
         tm.fail(missing_token)
@@ -257,7 +259,7 @@ class TestsFlextCliExamplesSmoke:
 
         broken_token_path = tmp_path / "token-dir"
         broken_token_path.mkdir()
-        cli.settings.update_global(token_file=str(broken_token_path))
+        cli.settings.update_global(Cli={"token_file": str(broken_token_path)})
         directory_logout = Ex05Authentication.logout()
         tm.fail(directory_logout)
         tm.that(
@@ -275,7 +277,7 @@ class TestsFlextCliExamplesSmoke:
             '{"auth_token": "token-value-1234567890"}',
             encoding="utf-8",
         )
-        cli.settings.update_global(token_file=str(token_path))
+        cli.settings.update_global(Cli={"token_file": str(token_path)})
 
         def fail_unlink(self: Path, missing_ok: bool = False) -> None:
             _ = missing_ok

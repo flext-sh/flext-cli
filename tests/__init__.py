@@ -12,11 +12,13 @@ from flext_core.lazy import (
 )
 
 if _t.TYPE_CHECKING:
-    from flext_tests import d, e, h, r, s, td, tf, tk, tm, tv, x
+    from flext_tests import d, e, h, r, td, tf, tk, tm, tv, x
 
+    from tests.base import TestsFlextCliServiceBase, s
     from tests.constants import TestsFlextCliConstants, c
     from tests.models import TestsFlextCliModels, m
     from tests.protocols import TestsFlextCliProtocols, p
+    from tests.settings import TestsFlextCliSettings
     from tests.typings import TestsFlextCliTypes, t
     from tests.unit.conftest import (
         TestsFlextCliCaptureLogPrompts,
@@ -28,7 +30,6 @@ if _t.TYPE_CHECKING:
         reset_settings,
     )
     from tests.unit.test_auth_utils_cov import TestsFlextCliAuthUtilsCov
-    from tests.unit.test_base import TestsFlextCliServiceBase
     from tests.unit.test_cli_params import TestsFlextCliCommonParams
     from tests.unit.test_cli_service import TestsFlextCliService
     from tests.unit.test_cmd import TestsFlextCliCmd
@@ -76,7 +77,7 @@ if _t.TYPE_CHECKING:
         TestsFlextCliServicesTablesBranchCov,
     )
     from tests.unit.test_services_tables_cov import TestsFlextCliServicesTablesCov
-    from tests.unit.test_settings import TestsFlextCliSettings
+    from tests.unit.test_settings import TestsFlextCliSettingsUnit
     from tests.unit.test_tables import TestsFlextCliTables
     from tests.unit.test_tables_branch_cov import TestsFlextCliTablesBranchCov
     from tests.unit.test_tables_cov import TestsFlextCliTableUtilsCov
@@ -92,6 +93,10 @@ _LAZY_IMPORTS = merge_lazy_imports(
     (".unit",),
     build_lazy_import_map(
         {
+            ".base": (
+                "TestsFlextCliServiceBase",
+                "s",
+            ),
             ".constants": (
                 "TestsFlextCliConstants",
                 "c",
@@ -104,6 +109,7 @@ _LAZY_IMPORTS = merge_lazy_imports(
                 "TestsFlextCliProtocols",
                 "p",
             ),
+            ".settings": ("TestsFlextCliSettings",),
             ".typings": (
                 "TestsFlextCliTypes",
                 "t",
@@ -118,7 +124,6 @@ _LAZY_IMPORTS = merge_lazy_imports(
                 "reset_settings",
             ),
             ".unit.test_auth_utils_cov": ("TestsFlextCliAuthUtilsCov",),
-            ".unit.test_base": ("TestsFlextCliServiceBase",),
             ".unit.test_cli_params": ("TestsFlextCliCommonParams",),
             ".unit.test_cli_service": ("TestsFlextCliService",),
             ".unit.test_cmd": ("TestsFlextCliCmd",),
@@ -166,7 +171,7 @@ _LAZY_IMPORTS = merge_lazy_imports(
                 "TestsFlextCliServicesTablesBranchCov",
             ),
             ".unit.test_services_tables_cov": ("TestsFlextCliServicesTablesCov",),
-            ".unit.test_settings": ("TestsFlextCliSettings",),
+            ".unit.test_settings": ("TestsFlextCliSettingsUnit",),
             ".unit.test_tables": ("TestsFlextCliTables",),
             ".unit.test_tables_branch_cov": ("TestsFlextCliTablesBranchCov",),
             ".unit.test_tables_cov": ("TestsFlextCliTableUtilsCov",),
@@ -186,7 +191,6 @@ _LAZY_IMPORTS = merge_lazy_imports(
                 "e",
                 "h",
                 "r",
-                "s",
                 "td",
                 "tf",
                 "tk",
@@ -264,6 +268,7 @@ __all__: list[str] = [
     "TestsFlextCliServicesTablesBranchCov",
     "TestsFlextCliServicesTablesCov",
     "TestsFlextCliSettings",
+    "TestsFlextCliSettingsUnit",
     "TestsFlextCliTableUtilsCov",
     "TestsFlextCliTables",
     "TestsFlextCliTablesBranchCov",

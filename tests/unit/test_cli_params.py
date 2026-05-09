@@ -14,7 +14,8 @@ import pytest
 from flext_tests import tm
 
 from flext_cli import cli
-from tests import c, p, u
+from tests import c, m, p, u
+from tests.base import s
 
 
 class TestsFlextCliCommonParams:
@@ -37,6 +38,8 @@ class TestsFlextCliCommonParams:
         tm.ok(config_result)
 
         settings = config_result.value
+        tm.that(settings, is_=p.Cli.Settings)
+        assert isinstance(s.fetch_settings().Tests, m.SettingsValue)
         result = cli.apply_to_config(
             settings,
             verbose=True,

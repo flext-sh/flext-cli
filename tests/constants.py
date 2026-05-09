@@ -64,28 +64,21 @@ class TestsFlextCliConstants(FlextTestsConstants, c):
             "Version info must have at least 3 parts"
         )
 
-        PROMPT_LONG: Final[str] = (
-            "This is a very long message that tests how the system "
-            "handles extended text input"
-        )
-        PROMPT_SPECIAL: Final[str] = "!@#$%^&*()"
-        PROMPT_UNICODE: Final[str] = "你好世界🌍"
         PROMPT_EDGE_MESSAGES: Final[t.StrSequence] = (
             "",
-            PROMPT_LONG,
-            PROMPT_SPECIAL,
-            PROMPT_UNICODE,
+            (
+                "This is a very long message that tests how the system "
+                "handles extended text input"
+            ),
+            "!@#$%^&*()",
+            "你好世界🌍",
         )
 
-        VERSION_STR_VALID_SEMVER: Final[str] = "1.2.3"
-        VERSION_STR_VALID_SEMVER_COMPLEX: Final[str] = "1.2.3-alpha.1+build.123"
-        VERSION_STR_INVALID_NO_DOTS: Final[str] = "version"
-        VERSION_STR_INVALID_NON_NUMERIC: Final[str] = "a.b.c"
         VERSION_STR_CASES: Final[t.MappingKV[str, str]] = MappingProxyType({
-            "valid_semver": VERSION_STR_VALID_SEMVER,
-            "valid_semver_complex": VERSION_STR_VALID_SEMVER_COMPLEX,
-            "invalid_no_dots": VERSION_STR_INVALID_NO_DOTS,
-            "invalid_non_numeric": VERSION_STR_INVALID_NON_NUMERIC,
+            "valid_semver": "1.2.3",
+            "valid_semver_complex": "1.2.3-alpha.1+build.123",
+            "invalid_no_dots": "version",
+            "invalid_non_numeric": "a.b.c",
         })
 
         VERSION_INFO_VALID_TUPLE: Final[tuple[int, int, int]] = (1, 2, 3)
@@ -98,43 +91,6 @@ class TestsFlextCliConstants(FlextTestsConstants, c):
         )
         VERSION_INFO_SHORT_TUPLE: Final[tuple[int, int]] = (1, 2)
         VERSION_INFO_EMPTY_TUPLE: Final[tuple[()]] = ()
-
-        ENVIRONMENT_DEVELOPMENT: Final[Environment] = Environment.DEVELOPMENT
-        ENVIRONMENT_STAGING: Final[Environment] = Environment.STAGING
-        ENVIRONMENT_PRODUCTION: Final[Environment] = Environment.PRODUCTION
-        ENVIRONMENT_TEST: Final[Environment] = Environment.TEST
-
-        ENVIRONMENTS: Final[t.VariadicTuple[Environment]] = (
-            ENVIRONMENT_DEVELOPMENT,
-            ENVIRONMENT_STAGING,
-            ENVIRONMENT_PRODUCTION,
-            ENVIRONMENT_TEST,
-        )
-        ENVIRONMENT_SET: Final[frozenset[Environment]] = frozenset(ENVIRONMENTS)
-
-        LOG_LEVEL_SET: Final[frozenset[c.LogLevel]] = frozenset({
-            c.LogLevel.DEBUG,
-            c.LogLevel.INFO,
-            c.LogLevel.WARNING,
-            c.LogLevel.ERROR,
-            c.LogLevel.CRITICAL,
-        })
-        LOG_LEVEL_TO_EXPECTED: Final[t.MappingKV[c.LogLevel, c.LogLevel]] = (
-            MappingProxyType({
-                c.LogLevel.DEBUG: c.LogLevel.DEBUG,
-                c.LogLevel.INFO: c.LogLevel.INFO,
-                c.LogLevel.WARNING: c.LogLevel.WARNING,
-                c.LogLevel.ERROR: c.LogLevel.ERROR,
-                c.LogLevel.CRITICAL: c.LogLevel.CRITICAL,
-            })
-        )
-        LOG_LEVEL_SCENARIOS: Final[tuple[tuple[c.LogLevel, c.LogLevel], ...]] = (
-            (c.LogLevel.DEBUG, c.LogLevel.DEBUG),
-            (c.LogLevel.INFO, c.LogLevel.INFO),
-            (c.LogLevel.WARNING, c.LogLevel.WARNING),
-            (c.LogLevel.ERROR, c.LogLevel.ERROR),
-            (c.LogLevel.CRITICAL, c.LogLevel.CRITICAL),
-        )
 
         CONVERSION_STR_CASES: Final[
             tuple[tuple[t.Cli.TypeKind, t.JsonValue | None, t.JsonValue], ...]
@@ -177,14 +133,12 @@ class TestsFlextCliConstants(FlextTestsConstants, c):
         YAML_VALID_CONTENT: Final[str] = "key: value\nnested:\n  foo: bar\n"
         YAML_INVALID_CONTENT: Final[str] = "key: [unterminated"
         YAML_NON_MAPPING_CONTENT: Final[str] = "- item1\n- item2\n"
-        YAML_EMPTY_CONTENT: Final[str] = ""
-        YAML_NULL_CONTENT: Final[str] = "null\n"
 
         # parse(text) → (text, expect_ok, expect_empty_dict)
         YAML_PARSE_CASES: Final[tuple[tuple[str, bool, bool], ...]] = (
             (YAML_VALID_CONTENT, True, False),
-            (YAML_EMPTY_CONTENT, True, True),
-            (YAML_NULL_CONTENT, True, True),
+            ("", True, True),
+            ("null\n", True, True),
             (YAML_INVALID_CONTENT, False, False),
             (YAML_NON_MAPPING_CONTENT, False, False),
         )
@@ -199,7 +153,7 @@ class TestsFlextCliConstants(FlextTestsConstants, c):
         # yaml_load_list: content yields non-list when invalid
         YAML_LIST_CASES: Final[tuple[tuple[str, bool], ...]] = (
             ("- a\n- b\n- c\n", True),
-            (YAML_EMPTY_CONTENT, False),
+            ("", False),
             (YAML_VALID_CONTENT, False),  # mapping not a list
         )
 
@@ -287,18 +241,6 @@ class TestsFlextCliConstants(FlextTestsConstants, c):
             ("", None),
         )
 
-        # ── TABLES (services/tables.py) ────────────────────────────────
-        # format_table: (data, config_kwargs, expect_ok)
-        TABLE_FORMAT_CASES: Final[
-            tuple[tuple[t.JsonMapping | list[t.JsonValue], dict[str, str], bool], ...]
-        ] = (
-            ({"a": 1, "b": 2}, {}, True),
-            ([["x", "y"], ["1", "2"]], {}, True),
-            ([{"col": "val"}], {"tablefmt": "grid"}, True),
-        )
-
-        # show_table: just data (no return value to assert)
-
         # ── AUTH (services/auth.py) ────────────────────────────────────
         # validate_credentials: (username, password, expect_ok)
         AUTH_CRED_CASES: Final[tuple[tuple[str, str, bool], ...]] = (
@@ -308,13 +250,6 @@ class TestsFlextCliConstants(FlextTestsConstants, c):
             ("   ", "secret123", False),
         )
 
-        # save_auth_token: (token, expect_ok)
-
-        # auth_extract_token: (payload, expect_ok)
-
-        # ── COMMANDS (services/commands.py) ────────────────────────────
-        # execute_command: (name, registered, expect_ok)
-
         # ── FORMATTERS (services/formatters.py) ───────────────────────
         FORMATTERS_PRINT_CASES: Final[tuple[tuple[str, str | None], ...]] = (
             ("Hello formatters", None),
@@ -323,14 +258,6 @@ class TestsFlextCliConstants(FlextTestsConstants, c):
         )
 
         # ── RULES (services/rules.py) ──────────────────────────────────
-        RULES_SCOPE_SETTINGS: Final[
-            tuple[tuple[t.JsonValue, str, t.StrSequence], ...]
-        ] = (
-            ({"lint": {"rule_a": True, "rule_b": False}}, "lint", ("rule_a", "rule_b")),
-            ({}, "lint", ("rule_a",)),
-            ({"lint": {"extra": 1}}, "lint", ("rule_a",)),
-        )
-
         RULES_SCOPE_CASES: Final[
             tuple[tuple[t.JsonValue, str, t.StrSequence, int], ...]
         ] = (
@@ -417,81 +344,6 @@ class TestsFlextCliConstants(FlextTestsConstants, c):
         })
 
         # ── OPTIONS (utilities/options.py) ─────────────────────────────
-        # Option registry for building Typer options
-        OPTIONS_REGISTRY_VALID: Final[t.Cli.OptionRegistry] = MappingProxyType({
-            "project": {
-                "help": "Project name",
-                "short": "p",
-                "default": "",
-            },
-            "verbose": {
-                "help": "Enable verbose output",
-                "short": "v",
-                "default": False,
-            },
-            "custom_name": {
-                "help": "Custom option name",
-                "short": "c",
-                "default": "",
-                c.Cli.CLI_PARAM_KEY_FIELD_NAME_OVERRIDE: "custom-name",
-            },
-        })
-        OPTIONS_REGISTRY_EMPTY: Final[t.Cli.OptionRegistry] = MappingProxyType({})
-
-        # (field_name, registry, expect_build_ok)
-        OPTIONS_BUILD_CASES: Final[tuple[tuple[str, bool], ...]] = (
-            ("project", True),
-            ("verbose", True),
-            ("custom_name", True),
-        )
-        OPTIONS_IS_STRING_SEQUENCE_CASES: Final[
-            tuple[tuple[t.Cli.CliDefaultSource, bool], ...]
-        ] = (
-            (("alpha", "beta"), True),
-            (["alpha", "beta"], True),
-            ("alpha", False),
-            (b"alpha", False),
-        )
-        OPTIONS_NORMALIZE_ATOM_CASES: Final[
-            tuple[tuple[t.Cli.CliDefaultSource, t.Cli.DefaultAtom | None], ...]
-        ] = (
-            (True, True),
-            ("value", "value"),
-            (("alpha", "beta"), ("alpha", "beta")),
-            (["alpha", "beta"], ("alpha", "beta")),
-        )
-        OPTIONS_REORDER_CASES: Final[
-            tuple[
-                tuple[t.StrSequence, t.StrSequence, t.StrSequence, t.StrSequence],
-                ...,
-            ]
-        ] = (
-            (
-                ("--verbose", "build", "target"),
-                ("--verbose",),
-                (),
-                ("build", "--verbose", "target"),
-            ),
-            (
-                ("--project", "alpha", "deploy", "now"),
-                (),
-                ("--project",),
-                ("deploy", "--project", "alpha", "now"),
-            ),
-            (
-                ("--project=alpha", "deploy", "now"),
-                (),
-                ("--project",),
-                ("deploy", "--project=alpha", "now"),
-            ),
-            (("build", "target"), ("--verbose",), ("--project",), ("build", "target")),
-            (
-                ("--unknown", "build"),
-                ("--verbose",),
-                ("--project",),
-                ("--unknown", "build"),
-            ),
-        )
         OPTIONS_FIELD_DEFAULT_VALID_MAPPING: Final[t.Cli.DefaultMapping] = (
             MappingProxyType({
                 "name": "alpha",
@@ -509,33 +361,6 @@ class TestsFlextCliConstants(FlextTestsConstants, c):
         )
         TOML_INVALID_CONTENT: Final[str] = "[invalid toml\nmissing = "
         TOML_SECTION_CONTENT: Final[str] = "[section]\nkey = true\ncount = 42\n"
-
-        # (content, expect_ok)
-
-        TOML_NESTED_PATH_CASES: Final[
-            tuple[tuple[t.StrSequence, t.JsonValue | None], ...]
-        ] = (
-            (("tool", "flext", "project"), "my-project"),
-            (("tool", "missing", "key"), None),
-            (("nonexistent",), None),
-        )
-
-        # ── TABLES (_utilities/tables.py) ─────────────────────────────
-        # tables_normalize_data: (data, expect_ok)
-        TABLE_NORMALIZE_CASES: Final[
-            tuple[tuple[t.JsonMapping | list[t.JsonValue], bool], ...]
-        ] = (
-            ({"key": "val"}, True),
-            ([["a", "b"], ["c", "d"]], True),
-            ([{"col": "val"}], True),
-        )
-
-        # tables_resolve_config: (kwargs, expect_ok)
-
-        # ── COMMANDS (_utilities/commands.py) ──────────────────────────
-        CMD_NAMES_VALID: Final[t.StrSequence] = ("build", "test", "deploy")
-
-        # ── AUTH (_utilities/auth.py) ──────────────────────────────────
 
 
 c = TestsFlextCliConstants

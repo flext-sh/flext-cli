@@ -57,7 +57,7 @@ _LAZY_IMPORTS = build_lazy_import_map(
         ".test_services_output_cov": ("TestsFlextCliServicesOutputCov",),
         ".test_services_tables_branch_cov": ("TestsFlextCliServicesTablesBranchCov",),
         ".test_services_tables_cov": ("TestsFlextCliServicesTablesCov",),
-        ".test_settings": ("TestsFlextCliSettings",),
+        ".test_settings": ("TestsFlextCliSettingsUnit",),
         ".test_tables": ("TestsFlextCliTables",),
         ".test_tables_branch_cov": ("TestsFlextCliTablesBranchCov",),
         ".test_tables_cov": ("TestsFlextCliTableUtilsCov",),

@@ -6,7 +6,7 @@ import inspect
 from pathlib import Path
 
 from flext_cli import cli
-from tests import c, m, p, u
+from tests import c, m, p, r, u
 
 
 class _CommandModel(m.BaseModel):
@@ -31,26 +31,40 @@ class TestsFlextCliPublicContractsCoverage:
 
         fresh_settings = cli.new_settings()
         assert isinstance(fresh_settings, p.Cli.Settings)
-        assert fresh_settings.model_dump()["test_env"] is False
+        assert fresh_settings.Cli.test_env is False
 
         cli.settings.reset_for_testing()
         shell_settings = cli.new_settings()
-        setattr(shell_settings, "shell_command", "pytest -k smoke")
-        assert shell_settings.model_dump()["test_env"] is True
+        shell_settings = shell_settings.model_copy(
+            update={
+                "Cli": shell_settings.Cli.model_copy(
+                    update={"shell_command": "pytest -k smoke"}
+                )
+            }
+        )
+        assert shell_settings.Cli.test_env is True
 
         cli.settings.reset_for_testing()
         pytest_settings = cli.new_settings()
-        setattr(
-            pytest_settings,
-            "pytest_current_test",
-            "tests/unit/test_public_contracts_cov.py::test_public_facade",
+        pytest_settings = pytest_settings.model_copy(
+            update={
+                "Cli": pytest_settings.Cli.model_copy(
+                    update={
+                        "pytest_current_test": (
+                            "tests/unit/test_public_contracts_cov.py::test_public_facade"
+                        )
+                    }
+                )
+            }
         )
-        assert pytest_settings.model_dump()["test_env"] is True
+        assert pytest_settings.Cli.test_env is True
 
         cli.settings.reset_for_testing()
         ci_settings = cli.new_settings()
-        setattr(ci_settings, "ci", True)
-        assert ci_settings.model_dump()["test_env"] is True
+        ci_settings = ci_settings.model_copy(
+            update={"Cli": ci_settings.Cli.model_copy(update={"ci": True})}
+        )
+        assert ci_settings.Cli.test_env is True
 
         cli.settings.reset_for_testing()
 
@@ -119,9 +133,7 @@ class TestsFlextCliPublicContractsCoverage:
         def route_handler(
             _params: m.Tests.SampleInput,
         ) -> p.Result[m.Tests.SampleOutput]:
-            return cli.execute().map(
-                lambda _payload: m.Tests.SampleOutput(message="ok")
-            )
+            return r[m.Tests.SampleOutput].ok(m.Tests.SampleOutput(message="ok"))
 
         route = m.Cli.ResultCommandRoute(
             name="inspect",
@@ -198,8 +210,12 @@ class TestsFlextCliPublicContractsCoverage:
         def stage_handler(
             current: m.Cli.PipelineStageContext,
         ) -> p.Result[m.Cli.PipelineStageResult]:
-            return cli.ok_stage(
-                "build", output={"workspace": str(current.workspace_root)}
+            return r[m.Cli.PipelineStageResult].ok(
+                m.Cli.PipelineStageResult.model_validate({
+                    "stage_id": "build",
+                    "status": c.Cli.PipelineStageStatus.OK,
+                    "output": {"workspace": str(current.workspace_root)},
+                })
             )
 
         spec = cli.stage(

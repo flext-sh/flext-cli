@@ -1,5 +1,8 @@
 """Test utilities for flext-cli.
 
+Composes ``FlextTestsUtilities + u`` via MRO. Hosts only flext-cli-specific
+helpers; everything generic comes from the parent namespaces.
+
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
@@ -16,35 +19,25 @@ from flext_cli import (
     u,
 )
 from tests import c, p, r, t
-from tests.helpers._impl import (
-    TestsFlextCliCaptureLogPrompts,
-    TestsFlextCliFailingLogPrompts,
-    TestsFlextCliScriptedPrompts,
-)
+from tests.base import s
 
 
 class TestsFlextCliUtilities(FlextTestsUtilities, u):
     """Test utilities for flext-cli."""
 
     class Tests(FlextTestsUtilities.Tests):
-        """Test-specific utilities for flext-cli."""
-
-        ScriptedPrompts = TestsFlextCliScriptedPrompts
-        CaptureLogPrompts = TestsFlextCliCaptureLogPrompts
-        FailingLogPrompts = TestsFlextCliFailingLogPrompts
+        """flext-cli-specific test utilities."""
 
         class VersionTestFactory:
-            """Version validation helpers exposed through the canonical `u` namespace."""
+            """Version validation helpers exposed through ``u``."""
 
             @staticmethod
             def validate_version_string(version: str) -> p.Result[str]:
-                """Validate version string against semver pattern."""
                 if not version:
                     return r[str].fail(c.Tests.VERSION_EMPTY_MSG)
-                pattern = c.PATTERN_SEMVER_RE
-                if not pattern.match(version):
+                if not c.PATTERN_SEMVER_RE.match(version):
                     return r[str].fail(
-                        f"Version '{version}' does not match semver pattern"
+                        f"Version '{version}' does not match semver pattern",
                     )
                 return r[str].ok(version)
 
@@ -52,23 +45,23 @@ class TestsFlextCliUtilities(FlextTestsUtilities, u):
             def validate_version_info(
                 version_info: tuple[int | str, ...],
             ) -> p.Result[tuple[int | str, ...]]:
-                """Validate version info tuple structure."""
                 if len(version_info) < 3:
                     return r[tuple[int | str, ...]].fail(
                         c.Tests.VERSION_INFO_TOO_SHORT_MSG,
                     )
                 for index, part in enumerate(version_info):
-                    match part:
-                        case int() if part < 0:
-                            return r[tuple[int | str, ...]].fail(
-                                f"Version part {index} must be non-negative int",
-                            )
-                        case str() if not part:
-                            return r[tuple[int | str, ...]].fail(
-                                f"Version part {index} must be non-empty string",
-                            )
-                        case int() | str():
-                            pass
+                    if isinstance(part, bool):
+                        return r[tuple[int | str, ...]].fail(
+                            f"Version part {index} must not be bool",
+                        )
+                    if isinstance(part, int) and part < 0:
+                        return r[tuple[int | str, ...]].fail(
+                            f"Version part {index} must be non-negative int",
+                        )
+                    if isinstance(part, str) and not part:
+                        return r[tuple[int | str, ...]].fail(
+                            f"Version part {index} must be non-empty string",
+                        )
                 return r[tuple[int | str, ...]].ok(version_info)
 
             @classmethod
@@ -77,20 +70,16 @@ class TestsFlextCliUtilities(FlextTestsUtilities, u):
                 version_string: str,
                 version_info: tuple[int | str, ...],
             ) -> p.Result[tuple[str, tuple[int | str, ...]]]:
-                """Validate consistency between version string and version info."""
-                string_result = cls.validate_version_string(
-                    version_string,
-                )
-                if string_result.failure:
-                    return r[tuple[str, tuple[int | str, ...]]].fail(
-                        f"Invalid version string: {string_result.error}",
+                pair_t = tuple[str, tuple[int | str, ...]]
+                string_check = cls.validate_version_string(version_string)
+                if string_check.failure:
+                    return r[pair_t].fail(
+                        f"Invalid version string: {string_check.error}",
                     )
-                info_result = cls.validate_version_info(
-                    version_info,
-                )
-                if info_result.failure:
-                    return r[tuple[str, tuple[int | str, ...]]].fail(
-                        f"Invalid version info: {info_result.error}",
+                info_check = cls.validate_version_info(version_info)
+                if info_check.failure:
+                    return r[pair_t].fail(
+                        f"Invalid version info: {info_check.error}",
                     )
                 version_parts = [
                     int(part) if part.isdigit() else part
@@ -99,32 +88,28 @@ class TestsFlextCliUtilities(FlextTestsUtilities, u):
                     .replace("-", ".")
                     .split(".")
                 ]
-                for index, (version_part, info_part) in enumerate(
+                for index, (vs_part, vi_part) in enumerate(
                     zip(version_parts, version_info, strict=False)
                 ):
-                    if isinstance(version_part, int) != isinstance(info_part, int):
-                        return r[tuple[str, tuple[int | str, ...]]].fail(
-                            "Type mismatch at position "
-                            f"{index}: {version_part.__class__.__name__} != "
-                            f"{info_part.__class__.__name__}",
+                    if isinstance(vs_part, int) != isinstance(vi_part, int):
+                        return r[pair_t].fail(
+                            f"Type mismatch at position {index}: "
+                            f"{vs_part.__class__.__name__} != {vi_part.__class__.__name__}",
                         )
-                    if version_part != info_part:
-                        return r[tuple[str, tuple[int | str, ...]]].fail(
-                            f"Mismatch at position {index}: {version_part} != {info_part}",
+                    if vs_part != vi_part:
+                        return r[pair_t].fail(
+                            f"Mismatch at position {index}: {vs_part} != {vi_part}",
                         )
-                return r[tuple[str, tuple[int | str, ...]]].ok((
-                    version_string,
-                    version_info,
-                ))
+                return r[pair_t].ok((version_string, version_info))
 
         @staticmethod
         def create_test_settings() -> p.Result[p.Cli.Settings]:
-            """Create test settings using Railway pattern."""
-            return r[p.Cli.Settings].create_from_callable(cli.new_settings)
+            """Create test settings via Railway pattern."""
+            return r[p.Cli.Settings].create_from_callable(s.fetch_settings)
 
         @staticmethod
         def create_cli_app() -> p.Result[t.Cli.CliApp]:
-            """Create CLI app using Railway pattern."""
+            """Create CLI app via Railway pattern."""
             return r[t.Cli.CliApp].ok(
                 cli.create_app_with_common_params(
                     name="tests-cli",
@@ -138,17 +123,11 @@ class TestsFlextCliUtilities(FlextTestsUtilities, u):
             app: t.Cli.CliApp,
             command_name: str = "test",
         ) -> p.Result[Callable[..., None]]:
-            """Create registered command using only the public CLI facade."""
+            """Register a real flag-driven command on ``app`` for tests."""
 
             def command(
-                verbose: Annotated[
-                    bool,
-                    cli.create_option("verbose"),
-                ] = False,
-                debug: Annotated[
-                    bool,
-                    cli.create_option("debug"),
-                ] = False,
+                verbose: Annotated[bool, cli.create_option("verbose")] = False,
+                debug: Annotated[bool, cli.create_option("debug")] = False,
                 log_level: Annotated[
                     str,
                     cli.create_option("cli_log_level"),
@@ -158,7 +137,6 @@ class TestsFlextCliUtilities(FlextTestsUtilities, u):
                     cli.create_option("output_format"),
                 ] = c.Cli.OutputFormats.TABLE,
             ) -> None:
-                """Test command with Railway-oriented parameter handling."""
                 cli.print(f"Command: {command_name}")
                 if verbose:
                     cli.print("Verbose: enabled")

@@ -156,7 +156,11 @@ class FlextCliCli(s):
         if updated_settings.trace != settings.trace:
             overrides["trace"] = updated_settings.trace
         if updated_settings.Cli != settings.Cli:
-            overrides["Cli"] = updated_settings.Cli.model_dump()
+            overrides["Cli"] = updated_settings.Cli.model_dump(
+                exclude=set(
+                    updated_settings.Cli.__class__.model_computed_fields.keys()
+                ),
+            )
         if overrides:
             settings.update_global(**overrides)
 

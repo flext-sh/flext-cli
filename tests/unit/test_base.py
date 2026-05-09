@@ -16,7 +16,8 @@ from __future__ import annotations
 from flext_tests import tm
 
 from flext_cli import cli
-from tests import p
+from tests import m, p
+from tests.base import s
 
 
 class TestsFlextCliServiceBase:
@@ -42,3 +43,10 @@ class TestsFlextCliServiceBase:
         service1 = type(cli)()
         service2 = type(cli)()
         tm.that(service1.settings is service2.settings, eq=True)
+
+    def test_test_service_settings_tree(self) -> None:
+        """Test base helper should expose the CLI+Tests namespaced settings tree."""
+        settings = s.fetch_settings()
+        tm.that(settings, is_=p.Cli.Settings)
+        assert isinstance(settings.Cli, m.SettingsValue)
+        assert isinstance(settings.Tests, m.SettingsValue)

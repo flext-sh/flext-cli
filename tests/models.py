@@ -57,109 +57,72 @@ class TestsFlextCliModels(FlextTestsModels, m):
             ] = None
             should_pass: Annotated[
                 bool,
-                m.Field(
-                    description="Whether scenario should pass validation",
-                ),
+                m.Field(description="Whether scenario should pass validation"),
             ] = True
+
+            @classmethod
+            def _build(
+                cls,
+                rows: t.SequenceOf[
+                    tuple[str, str | None, tuple[int | str, ...] | None, bool]
+                ],
+            ) -> tuple[Self, ...]:
+                return tuple(
+                    cls(name=name, version_string=vs, version_info=vi, should_pass=ok)
+                    for name, vs, vi, ok in rows
+                )
 
             @classmethod
             def string_cases(cls) -> tuple[Self, ...]:
-                """Get parametrized test cases for version string validation."""
-                cases = c.Tests.VERSION_STR_CASES
-                return (
-                    cls(
-                        name="valid_semver",
-                        version_string=cases["valid_semver"],
-                        should_pass=True,
-                    ),
-                    cls(
-                        name="valid_complex",
-                        version_string=cases["valid_semver_complex"],
-                        should_pass=True,
-                    ),
-                    cls(
-                        name="invalid_no_dots",
-                        version_string=cases["invalid_no_dots"],
-                        should_pass=False,
-                    ),
-                    cls(
-                        name="invalid_non_numeric",
-                        version_string=cases["invalid_non_numeric"],
-                        should_pass=False,
-                    ),
-                    cls(name="invalid_empty", version_string="", should_pass=False),
-                )
+                """Parametrized cases for version string validation."""
+                strs = c.Tests.VERSION_STR_CASES
+                return cls._build([
+                    ("valid_semver", strs["valid_semver"], None, True),
+                    ("valid_complex", strs["valid_semver_complex"], None, True),
+                    ("invalid_no_dots", strs["invalid_no_dots"], None, False),
+                    ("invalid_non_numeric", strs["invalid_non_numeric"], None, False),
+                    ("invalid_empty", "", None, False),
+                ])
 
             @classmethod
             def info_cases(cls) -> tuple[Self, ...]:
-                """Get parametrized test cases for version info validation."""
-                return (
-                    cls(
-                        name="valid_tuple",
-                        version_info=c.Tests.VERSION_INFO_VALID_TUPLE,
-                        should_pass=True,
+                """Parametrized cases for version info tuple validation."""
+                return cls._build([
+                    ("valid_tuple", None, c.Tests.VERSION_INFO_VALID_TUPLE, True),
+                    (
+                        "valid_complex_tuple",
+                        None,
+                        c.Tests.VERSION_INFO_VALID_COMPLEX_TUPLE,
+                        True,
                     ),
-                    cls(
-                        name="valid_complex_tuple",
-                        version_info=c.Tests.VERSION_INFO_VALID_COMPLEX_TUPLE,
-                        should_pass=True,
-                    ),
-                    cls(
-                        name="short_tuple",
-                        version_info=c.Tests.VERSION_INFO_SHORT_TUPLE,
-                        should_pass=False,
-                    ),
-                    cls(
-                        name="empty_tuple",
-                        version_info=c.Tests.VERSION_INFO_EMPTY_TUPLE,
-                        should_pass=False,
-                    ),
-                )
+                    ("short_tuple", None, c.Tests.VERSION_INFO_SHORT_TUPLE, False),
+                    ("empty_tuple", None, c.Tests.VERSION_INFO_EMPTY_TUPLE, False),
+                ])
 
             @classmethod
             def consistency_cases(cls) -> tuple[Self, ...]:
-                """Get parametrized test cases for version consistency validation."""
-                cases = c.Tests.VERSION_STR_CASES
-                return (
-                    cls(
-                        name="valid_match",
-                        version_string=cases["valid_semver"],
-                        version_info=c.Tests.VERSION_INFO_VALID_TUPLE,
-                        should_pass=True,
+                """Parametrized cases for version consistency validation."""
+                strs = c.Tests.VERSION_STR_CASES
+                return cls._build([
+                    (
+                        "valid_match",
+                        strs["valid_semver"],
+                        c.Tests.VERSION_INFO_VALID_TUPLE,
+                        True,
                     ),
-                    cls(
-                        name="valid_complex_match",
-                        version_string=cases["valid_semver_complex"],
-                        version_info=c.Tests.VERSION_INFO_VALID_COMPLEX_TUPLE,
-                        should_pass=True,
+                    (
+                        "valid_complex_match",
+                        strs["valid_semver_complex"],
+                        c.Tests.VERSION_INFO_VALID_COMPLEX_TUPLE,
+                        True,
                     ),
-                    cls(
-                        name="invalid_mismatch",
-                        version_string=cases["invalid_no_dots"],
-                        version_info=c.Tests.VERSION_INFO_SHORT_TUPLE,
-                        should_pass=False,
+                    (
+                        "invalid_mismatch",
+                        strs["invalid_no_dots"],
+                        c.Tests.VERSION_INFO_SHORT_TUPLE,
+                        False,
                     ),
-                )
-
-        # --- Config test models ---
-
-        class ConfigTestScenario(m.BaseModel):
-            """Test scenario with data."""
-
-            model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=True)
-
-            name: Annotated[str, m.Field(description="Scenario name")]
-            test_type: Annotated[
-                t.Tests.ConfigTestType,
-                m.Field(description="Scenario test type"),
-            ]
-            data: Annotated[
-                t.JsonMapping | None,
-                m.Field(description="Scenario input data"),
-            ] = None
-            should_pass: Annotated[
-                bool, m.Field(description="Whether scenario is expected to pass")
-            ] = True
+                ])
 
         # --- CLI Service test models ---
 

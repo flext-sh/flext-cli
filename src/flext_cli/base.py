@@ -36,12 +36,14 @@ class FlextCliServiceBase(s):
     @property
     @override
     def settings(self) -> p.Cli.Settings:
-        """Return the runtime CLI settings snapshot for this service."""
-        resolved = super().settings
-        if not isinstance(resolved, p.Cli.Settings):
-            msg = "Runtime settings do not satisfy the CLI settings contract"
-            raise TypeError(msg)
-        return resolved
+        """Return the live CLI settings singleton.
+
+        Reads ``FlextCliSettings.fetch_global()`` on each access so mutations
+        performed via ``update_global`` propagate immediately to consumers
+        (services, callbacks, tests) without resorting to the runtime's
+        cached snapshot.
+        """
+        return FlextCliSettings.fetch_global()
 
     def new_settings(self) -> p.Cli.Settings:
         """Construct a fresh settings instance with default values (test isolation)."""

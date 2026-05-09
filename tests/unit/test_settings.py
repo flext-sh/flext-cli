@@ -20,7 +20,7 @@ from flext_cli import cli
 from tests import c, p
 
 
-class TestsFlextCliSettings:
+class TestsFlextCliSettingsUnit:
     """Core settings functionality - initialization, serialization, deserialization."""
 
     def test_initialization(self) -> None:
@@ -34,7 +34,8 @@ class TestsFlextCliSettings:
         settings = cli.new_settings()
         dumped = settings.model_dump()
         tm.that(dumped, is_=dict)
-        tm.that(dumped, has="verbose")
+        tm.that(dumped, has="Cli")
+        tm.that(dumped["Cli"], has="verbose")
 
     def test_singleton_pattern(self) -> None:
         """Test singleton behavior via fetch_global."""
@@ -49,22 +50,11 @@ class TestsFlextCliSettings:
         new_settings = cli.new_settings()
         tm.that(new_settings, none=False)
 
-    @pytest.mark.parametrize(
-        ("level", "expected"),
-        c.Tests.LOG_LEVEL_SCENARIOS,
-    )
-    def test_logging_levels(
-        self,
-        level: c.LogLevel,
-        expected: c.LogLevel,
-    ) -> None:
-        """Test all logging levels with single parametrized test."""
-        tm.that(level in c.Tests.LOG_LEVEL_SET, eq=True)
-        tm.that(
-            c.Tests.LOG_LEVEL_TO_EXPECTED[level],
-            eq=expected,
-        )
-        tm.that(level, eq=expected)
+    @pytest.mark.parametrize("level", list(c.LogLevel))
+    def test_logging_levels(self, level: c.LogLevel) -> None:
+        """Every declared log level round-trips through the enum."""
+        tm.that(level, is_=c.LogLevel)
+        tm.that(c.LogLevel(level.value), eq=level)
 
     def test_flext_cli_integration(self) -> None:
         """Test cli uses settings."""
@@ -79,11 +69,10 @@ class TestsFlextCliSettings:
         tm.that(settings, none=False)
         tm.that(settings, is_=p.Cli.Settings)
 
-    @pytest.mark.parametrize("env", c.Tests.ENVIRONMENTS)
-    def test_valid_environments(self, env: str) -> None:
-        """Test all valid environments."""
-        tm.that(c.Tests.ENVIRONMENTS, has=env)
-        tm.that(env in c.Tests.ENVIRONMENT_SET, eq=True)
+    @pytest.mark.parametrize("env", list(c.Tests.Environment))
+    def test_valid_environments(self, env: c.Tests.Environment) -> None:
+        """Each declared deployment environment round-trips through the enum."""
+        tm.that(c.Tests.Environment(env.value), eq=env)
 
     def test_model_dump(self) -> None:
         """Test model_dump returns complete dict."""
