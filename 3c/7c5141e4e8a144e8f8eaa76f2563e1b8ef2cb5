@@ -1,0 +1,19 @@
+src/flext_cli/services/cli.py
+  s_ec83492d4209e5::t_9132f4615cb219 160
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "3c7c5141e4e8a144e8f8eaa76f2563e1b8ef2cb5",
+  "prompts": {},
+  "sessions": {
+    "s_ec83492d4209e5": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e97b7-d073-7711-a0a1-e7daf811f073",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Zed <hi@zed.dev>"
+    }
+  }
+}
