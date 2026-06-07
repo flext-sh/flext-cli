@@ -79,9 +79,9 @@ class FlextCliUtilitiesToml:
         return tomlkit.document()
 
     @staticmethod
-    def toml_table() -> Table:
-        """Create a new explicit TOML table."""
-        return tomlkit.table()
+    def toml_table(*, super_table: bool = False) -> Table:
+        """Create a new TOML table (``super_table`` for a dotted parent table)."""
+        return tomlkit.table(is_super_table=True) if super_table else tomlkit.table()
 
     @staticmethod
     def toml_aot() -> AoT:
@@ -95,6 +95,11 @@ class FlextCliUtilitiesToml:
             return tomlkit.parse(text)
         except c.EXC_TYPE_VALIDATION:
             return None
+
+    @staticmethod
+    def toml_dumps(doc: TOMLDocument) -> str:
+        """Serialize a TOML document to text (round-trip preserving)."""
+        return tomlkit.dumps(doc)
 
     @staticmethod
     def toml_mapping_from_text(text: str) -> t.JsonMapping | None:
