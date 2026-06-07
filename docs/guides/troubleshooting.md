@@ -194,6 +194,8 @@ pytest tests/unit/test_module.py::TestClass::test_method -v --pdb
 **Check test data:**
 
 ```python
+from __future__ import annotations
+
 from collections.abc import Callable
 
 from flext_core import FlextLogger, p
@@ -313,6 +315,9 @@ logger.debug("ldif_processing_done")
 **Validate LDIF format:**
 
 ```python
+from __future__ import annotations
+
+
 # Check for common LDIF issues
 def validate_ldif_content(content: str) -> list[str]:
     issues: list[str] = []
@@ -410,6 +415,8 @@ else:
 **Profile memory usage:**
 
 ```python
+from __future__ import annotations
+
 import os
 
 import psutil
@@ -487,6 +494,8 @@ logger.error("error_event")
 ### 2. Exception Handling
 
 ```python
+from __future__ import annotations
+
 from flext_core import FlextLogger, p, r
 
 logger = FlextLogger.fetch_logger(__name__)
@@ -528,6 +537,8 @@ logger.info(
 ### 4. Step-by-Step Debugging
 
 ```python
+from __future__ import annotations
+
 from flext_ldif import ldif
 
 from flext_core import FlextLogger
@@ -593,6 +604,8 @@ def debug_ldif_processing(content: str) -> None:
 ### Memory Issues
 
 ```python
+from __future__ import annotations
+
 import os
 
 import psutil
@@ -623,6 +636,8 @@ monitor_memory()
 ### CPU Issues
 
 ```python
+from __future__ import annotations
+
 import os
 
 import psutil
@@ -740,6 +755,8 @@ logger.info("flext_log_level", value=str(settings.log_level))
 1. **Always Use r**
 
 ```python
+from __future__ import annotations
+
 from flext_core import p, r
 
 

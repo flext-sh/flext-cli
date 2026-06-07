@@ -70,6 +70,8 @@ Keep interaction with flext-cli on the public facade unless the example is expli
 ### Service Base Via `s`
 
 ```python
+from __future__ import annotations
+
 from examples import p, r, s, t
 
 
