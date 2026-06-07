@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 import os
-from datetime import UTC, datetime
 from pathlib import Path
 from typing import overload
 
 from flext_cli import c, m, t
+from flext_core import FlextUtilities
 
 
 class FlextCliUtilitiesSettings:
@@ -65,7 +65,7 @@ class FlextCliUtilitiesSettings:
             settings_exists=exists,
             settings_readable=exists and os.access(path, os.R_OK),
             settings_writable=exists and os.access(path, os.W_OK),
-            timestamp=datetime.now(UTC).isoformat(),
+            timestamp=FlextUtilities.now().isoformat(),
         )
 
     @staticmethod
