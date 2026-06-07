@@ -1,0 +1,43 @@
+tests/models.py
+  s_ec83492d4209e5::t_70a9ae82a2f074 43-47,49-89,188
+  s_ec83492d4209e5::t_5a79498209be78 92
+  s_ec83492d4209e5::t_0fc1e987ca6646 48,90-91,93-187
+docs/guides/troubleshooting.md
+  s_73cbfc60e45e37::t_b0182cc45f822a 497-498
+  s_73cbfc60e45e37::t_e0fd6070625ab2 607-608
+  s_73cbfc60e45e37::t_beee355f94ab89 197-198
+  s_73cbfc60e45e37::t_d36f0c91621011 758-759
+  s_73cbfc60e45e37::t_53f6a4454ebda3 318-320
+  s_73cbfc60e45e37::t_66b7e6817c2672 540-541
+  s_73cbfc60e45e37::t_429f5e946468a4 418-419
+  s_73cbfc60e45e37::t_f041ee8733197d 639-640
+tests/unit/test_runtime_utilities_core.py
+  s_ec83492d4209e5::t_052d94372cb4ff 38,46,48,50,52-54,56,60-64,66-67,69,72,80,82-84,88-90,93,96,104,106-113,117,120,122
+  s_ec83492d4209e5::t_1ab62f349722cb 39-40,73-74,97-98
+examples/README.md
+  s_73cbfc60e45e37::t_4181c7f36d3aaf 73-74
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "5c18e42e7797f8f25d6e8451252798ed0f3a2494",
+  "prompts": {},
+  "sessions": {
+    "s_73cbfc60e45e37": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "80f2c44c-f1f2-49a0-8035-ccac60ac602b",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Zed <hi@zed.dev>"
+    },
+    "s_ec83492d4209e5": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e97b7-d073-7711-a0a1-e7daf811f073",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Zed <hi@zed.dev>"
+    }
+  }
+}
