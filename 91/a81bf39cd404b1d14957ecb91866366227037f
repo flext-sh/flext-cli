@@ -1,0 +1,21 @@
+src/flext_cli/_utilities/toml.py
+  s_9942ef7a89ba9a::t_787a77b8f0ec35 100-103
+  s_9942ef7a89ba9a::t_5d44cf58dc7d6e 84
+  s_9942ef7a89ba9a::t_61e0f9f06403c6 82-83
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "91a81bf39cd404b1d14957ecb91866366227037f",
+  "prompts": {},
+  "sessions": {
+    "s_9942ef7a89ba9a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "84fb5cb9-a1bd-4654-9339-7a49b63e96d1",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Zed <hi@zed.dev>"
+    }
+  }
+}
