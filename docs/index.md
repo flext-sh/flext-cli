@@ -1,16 +1,8 @@
-<!-- TOC START -->
-- [Start Here](#start-here)
-- [Public Surface Summary](#public-surface-summary)
-- [Collection Rules](#collection-rules)
-- [Quality Gates](#quality-gates)
-- [Governance Pointer](#governance-pointer)
-<!-- TOC END -->
-
 <!-- AUTO-GENERATED — DO NOT EDIT MANUALLY -->
 
 # flext-cli Documentation
 
-- Version: `unknown`
+- Version: `0.12.0-dev`
 - Project class: `platform`
 - Package: `flext_cli`
 - Description: FLEXT CLI - Developer Command Line Interface
