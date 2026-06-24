@@ -1,38 +1,5 @@
 # Getting Started with flext-cli
 
-<!-- TOC START -->
-- [📌 Quick Navigation](#quick-navigation)
-- [v0.12.0-dev Getting Started (Current)](#v0120-dev-getting-started-current)
-  - [Overview](#overview)
-- [Prerequisites](#prerequisites)
-  - [System Requirements](#system-requirements)
-  - [FLEXT Ecosystem Integration](#flext-ecosystem-integration)
-- [Installation](#installation)
-  - [Development Setup](#development-setup)
-  - [As a Dependency](#as-a-dependency)
-- [Quick Start (v0.12.0-dev)](#quick-start-v0120-dev)
-  - [🚀 Your First CLI Application](#your-first-cli-application)
-  - [📊 Working with Tables](#working-with-tables)
-  - [📁 File Operations](#file-operations)
-  - [🔄 Railway-Oriented Programming](#railway-oriented-programming)
-- [Development Workflow (v0.12.0-dev)](#development-workflow-v0120-dev)
-  - [Quality Gates](#quality-gates)
-  - [Development Pattern (v0.12.0-dev)](#development-pattern-v0120-dev)
-  - [Testing Your CLI Code](#testing-your-cli-code)
-- [Next Steps](#next-steps)
-  - [Learn More](#learn-more)
-  - [Migration from v0.9.0](#migration-from-v090)
-- [Related Documentation](#related-documentation)
-  - [Examples](#examples)
-- [v0.9.0 Getting Started (Historical Reference)](#v090-getting-started-historical-reference)
-- [Development Patterns (v0.9.0)](#development-patterns-v090)
-  - [Working Development Pattern](#working-development-pattern)
-- [Quality Validation](#quality-validation)
-  - [Validation Commands](#validation-commands)
-  - [Implementation Verification](#implementation-verification)
-- [Next Steps](#next-steps)
-<!-- TOC END -->
-
 **Installation and setup guide for the FLEXT ecosystem CLI foundation library.**
 
 **Last Updated**: 2025-01-24 | **Version**: 0.10.0

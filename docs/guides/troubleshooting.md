@@ -6,40 +6,6 @@
 
 > Project profile: `flext-cli`
 
-<!-- TOC START -->
-- [Quick Diagnosis](#quick-diagnosis)
-  - [Health Check Commands](#health-check-commands)
-  - [System Status](#system-status)
-- [Common Issues](#common-issues)
-  - [1. Import Errors](#1-import-errors)
-  - [Import Diagnostics](#import-diagnostics)
-  - [2. Type Checking Errors](#2-type-checking-errors)
-  - [3. Test Failures](#3-test-failures)
-  - [4. Configuration Issues](#4-configuration-issues)
-  - [5. LDIF Processing Issues](#5-ldif-processing-issues)
-  - [6. Migration Issues](#6-migration-issues)
-  - [7. Performance Issues](#7-performance-issues)
-- [Debugging Techniques](#debugging-techniques)
-  - [1. Logging Configuration](#1-logging-configuration)
-  - [2. Exception Handling](#2-exception-handling)
-  - [3. Debug Mode](#3-debug-mode)
-  - [4. Step-by-Step Debugging](#4-step-by-step-debugging)
-- [Error Codes Reference](#error-codes-reference)
-  - [FLEXT Core Errors](#flext-core-errors)
-  - [LDIF Processing Errors](#ldif-processing-errors)
-  - [API Errors](#api-errors)
-- [Performance Troubleshooting](#performance-troubleshooting)
-  - [Memory Issues](#memory-issues)
-  - [CPU Issues](#cpu-issues)
-- [Getting Help](#getting-help)
-  - [Self-Service Resources](#self-service-resources)
-  - [Community Support](#community-support)
-  - [Reporting Issues](#reporting-issues)
-- [Prevention](#prevention)
-  - [Best Practices](#best-practices)
-- [Resources](#resources)
-<!-- TOC END -->
-
 This guide covers common issues, their solutions, and debugging techniques for FLEXT applications and libraries.
 
 ## Quick Diagnosis
