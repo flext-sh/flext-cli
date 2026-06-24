@@ -9,7 +9,7 @@
 - Keywords: `cli`, `command-line`, `enterprise`, `flext`, `tools`, `typed`
 - Main facades: _none_
 - Alias exports: `c`, `d`, `e`, `h`, `m`, `p`, `r`, `s`, `t`, `u`, `x`
-- Public symbol exports: `FlextCliFormatters`, `FlextCliTables`, `FlextCliUtilities`, `FlextCliPrompts`, `FlextCliConstantsEnums`, `FlextCliProtocolsBase`, `FlextCliConstantsBase`, `FlextCliProtocols`, `FlextCliTypesDomain`, `FlextCliTypes` (+50 more)
+- Public symbol exports: `FlextCliUtilitiesRuntime`, `FlextCliPipeline`, `FlextCliRuntime`, `FlextCliCmd`, `FlextCliFormatters`, `FlextCliProtocolsBase`, `FlextCliAuth`, `FlextCliModels`, `FlextCliUtilitiesTables`, `FlextCliConstantsBase` (+50 more)
 - Exported module shortcuts: _none_
 - Generated module pages: `20`
 
