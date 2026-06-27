@@ -12,6 +12,7 @@ _LAZY_IMPORTS = build_lazy_import_map(
         ".commands": ("FlextCliUtilitiesCommands",),
         ".conversion": ("FlextCliUtilitiesConversion",),
         ".files": ("FlextCliUtilitiesFiles",),
+        ".file_test_helpers": ("FlextCliUtilitiesFileTestHelpersMixin",),
         ".formatters": ("FlextCliUtilitiesFormatters",),
         ".json": ("FlextCliUtilitiesJson",),
         ".matching": ("FlextCliUtilitiesMatching",),

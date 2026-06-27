@@ -8,16 +8,27 @@ import typing as _t
 from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if _t.TYPE_CHECKING:
-    from examples.constants import ExamplesFlextCliConstants, c
-    from examples.ex_01_getting_started import ExamplesFlextCliGettingStarted
-    from examples.ex_05_authentication import Ex05Authentication
-    from examples.ex_06_settings import Ex06Settings
-    from examples.ex_11_complete_integration import DataManagerCLI
-    from examples.models import ExamplesFlextCliModels, m
-    from examples.protocols import ExamplesFlextCliProtocols, p
-    from examples.typings import ExamplesFlextCliTypes, t
-    from examples.utilities import ExamplesFlextCliUtilities, u
-    from flext_cli import d, e, h, r, s, x
+    from examples.constants import (
+        ExamplesFlextCliConstants as ExamplesFlextCliConstants,
+        c as c,
+    )
+    from examples.ex_01_getting_started import (
+        ExamplesFlextCliGettingStarted as ExamplesFlextCliGettingStarted,
+    )
+    from examples.ex_05_authentication import Ex05Authentication as Ex05Authentication
+    from examples.ex_06_settings import Ex06Settings as Ex06Settings
+    from examples.ex_11_complete_integration import DataManagerCLI as DataManagerCLI
+    from examples.models import ExamplesFlextCliModels as ExamplesFlextCliModels, m as m
+    from examples.protocols import (
+        ExamplesFlextCliProtocols as ExamplesFlextCliProtocols,
+        p as p,
+    )
+    from examples.typings import ExamplesFlextCliTypes as ExamplesFlextCliTypes, t as t
+    from examples.utilities import (
+        ExamplesFlextCliUtilities as ExamplesFlextCliUtilities,
+        u as u,
+    )
+    from flext_cli import d as d, e as e, h as h, r as r, s as s, x as x
 _LAZY_IMPORTS = build_lazy_import_map(
     {
         ".constants": (
