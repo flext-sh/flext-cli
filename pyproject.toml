@@ -669,6 +669,7 @@ split-on-trailing-comma = true
   "INP001",
   "N999",
   "PLC2701",
+  "RUF067",
   "TC004",
 ]
 "**/_constants/*.py" = [ "S105" ]
