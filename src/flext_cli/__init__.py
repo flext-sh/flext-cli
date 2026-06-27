@@ -22,71 +22,123 @@ from flext_core.lazy import (
 )
 
 if _t.TYPE_CHECKING:
-    from flext_cli._constants.base import FlextCliConstantsBase
-    from flext_cli._constants.enums import FlextCliConstantsEnums
-    from flext_cli._constants.errors import FlextCliConstantsErrors
-    from flext_cli._constants.exceptions import FlextCliConstantsExceptions
-    from flext_cli._constants.files import FlextCliConstantsFiles
-    from flext_cli._constants.output import FlextCliConstantsOutput
-    from flext_cli._constants.pipeline import FlextCliConstantsPipeline
-    from flext_cli._constants.settings import FlextCliConstantsSettings
-    from flext_cli._models.base import FlextCliModelsBase
-    from flext_cli._models.pipeline import FlextCliModelsPipeline
-    from flext_cli._models.rules import FlextCliModelsRules
-    from flext_cli._protocols.base import FlextCliProtocolsBase
-    from flext_cli._protocols.domain import FlextCliProtocolsDomain
-    from flext_cli._protocols.pipeline import FlextCliProtocolsPipeline
-    from flext_cli._typings.base import FlextCliTypesBase
-    from flext_cli._typings.domain import FlextCliTypesDomain
-    from flext_cli._typings.pipeline import FlextCliTypesPipeline
-    from flext_cli._utilities.auth import FlextCliUtilitiesAuth
-    from flext_cli._utilities.cmd import FlextCliUtilitiesCmd
-    from flext_cli._utilities.commands import FlextCliUtilitiesCommands
-    from flext_cli._utilities.conversion import FlextCliUtilitiesConversion
-    from flext_cli._utilities.files import FlextCliUtilitiesFiles
-    from flext_cli._utilities.formatters import FlextCliUtilitiesFormatters
-    from flext_cli._utilities.json import FlextCliUtilitiesJson
-    from flext_cli._utilities.matching import FlextCliUtilitiesMatching
+    from flext_cli._constants.base import FlextCliConstantsBase as FlextCliConstantsBase
+    from flext_cli._constants.enums import (
+        FlextCliConstantsEnums as FlextCliConstantsEnums,
+    )
+    from flext_cli._constants.errors import (
+        FlextCliConstantsErrors as FlextCliConstantsErrors,
+    )
+    from flext_cli._constants.exceptions import (
+        FlextCliConstantsExceptions as FlextCliConstantsExceptions,
+    )
+    from flext_cli._constants.files import (
+        FlextCliConstantsFiles as FlextCliConstantsFiles,
+    )
+    from flext_cli._constants.output import (
+        FlextCliConstantsOutput as FlextCliConstantsOutput,
+    )
+    from flext_cli._constants.pipeline import (
+        FlextCliConstantsPipeline as FlextCliConstantsPipeline,
+    )
+    from flext_cli._constants.settings import (
+        FlextCliConstantsSettings as FlextCliConstantsSettings,
+    )
+    from flext_cli._models.base import FlextCliModelsBase as FlextCliModelsBase
+    from flext_cli._models.pipeline import (
+        FlextCliModelsPipeline as FlextCliModelsPipeline,
+    )
+    from flext_cli._models.rules import FlextCliModelsRules as FlextCliModelsRules
+    from flext_cli._protocols.base import FlextCliProtocolsBase as FlextCliProtocolsBase
+    from flext_cli._protocols.domain import (
+        FlextCliProtocolsDomain as FlextCliProtocolsDomain,
+    )
+    from flext_cli._protocols.pipeline import (
+        FlextCliProtocolsPipeline as FlextCliProtocolsPipeline,
+    )
+    from flext_cli._typings.base import FlextCliTypesBase as FlextCliTypesBase
+    from flext_cli._typings.domain import FlextCliTypesDomain as FlextCliTypesDomain
+    from flext_cli._typings.pipeline import (
+        FlextCliTypesPipeline as FlextCliTypesPipeline,
+    )
+    from flext_cli._utilities.auth import FlextCliUtilitiesAuth as FlextCliUtilitiesAuth
+    from flext_cli._utilities.cmd import FlextCliUtilitiesCmd as FlextCliUtilitiesCmd
+    from flext_cli._utilities.commands import (
+        FlextCliUtilitiesCommands as FlextCliUtilitiesCommands,
+    )
+    from flext_cli._utilities.conversion import (
+        FlextCliUtilitiesConversion as FlextCliUtilitiesConversion,
+    )
+    from flext_cli._utilities.files import (
+        FlextCliUtilitiesFiles as FlextCliUtilitiesFiles,
+    )
+    from flext_cli._utilities.formatters import (
+        FlextCliUtilitiesFormatters as FlextCliUtilitiesFormatters,
+    )
+    from flext_cli._utilities.json import FlextCliUtilitiesJson as FlextCliUtilitiesJson
+    from flext_cli._utilities.matching import (
+        FlextCliUtilitiesMatching as FlextCliUtilitiesMatching,
+    )
     from flext_cli._utilities.model_commands import (
-        FlextCliUtilitiesModelCommandBuilder,
-        FlextCliUtilitiesModelCommands,
+        FlextCliUtilitiesModelCommandBuilder as FlextCliUtilitiesModelCommandBuilder,
+        FlextCliUtilitiesModelCommands as FlextCliUtilitiesModelCommands,
     )
     from flext_cli._utilities.options import (
-        FlextCliUtilitiesOptionBuilder,
-        FlextCliUtilitiesOptions,
+        FlextCliUtilitiesOptionBuilder as FlextCliUtilitiesOptionBuilder,
+        FlextCliUtilitiesOptions as FlextCliUtilitiesOptions,
     )
-    from flext_cli._utilities.output import FlextCliUtilitiesOutput
-    from flext_cli._utilities.params import FlextCliUtilitiesParams
-    from flext_cli._utilities.pipeline import FlextCliUtilitiesPipeline
-    from flext_cli._utilities.prompts import FlextCliUtilitiesPrompts
-    from flext_cli._utilities.rules import FlextCliUtilitiesRules
-    from flext_cli._utilities.runtime import FlextCliUtilitiesRuntime
-    from flext_cli._utilities.settings import FlextCliUtilitiesSettings
-    from flext_cli._utilities.tables import FlextCliUtilitiesTables
-    from flext_cli._utilities.toml import FlextCliUtilitiesToml
-    from flext_cli._utilities.validation import FlextCliUtilitiesValidation
-    from flext_cli._utilities.yaml import FlextCliUtilitiesYaml
-    from flext_cli.api import FlextCli, cli
-    from flext_cli.base import FlextCliServiceBase, s
-    from flext_cli.constants import FlextCliConstants, c
-    from flext_cli.models import FlextCliModels, m
-    from flext_cli.protocols import FlextCliProtocols, p
-    from flext_cli.services.auth import FlextCliAuth
-    from flext_cli.services.cli import FlextCliCli
-    from flext_cli.services.cli_params import FlextCliCommonParams
-    from flext_cli.services.cmd import FlextCliCmd
-    from flext_cli.services.file_tools import FlextCliFileTools
-    from flext_cli.services.formatters import FlextCliFormatters
-    from flext_cli.services.output import FlextCliOutput
-    from flext_cli.services.pipeline import FlextCliPipeline
-    from flext_cli.services.prompts import FlextCliPrompts
-    from flext_cli.services.rules import FlextCliRules
-    from flext_cli.services.runtime import FlextCliRuntime
-    from flext_cli.services.tables import FlextCliTables
-    from flext_cli.settings import FlextCliSettings
-    from flext_cli.typings import FlextCliTypes, t
-    from flext_cli.utilities import FlextCliUtilities, u
-    from flext_core import d, e, h, r, x
+    from flext_cli._utilities.output import (
+        FlextCliUtilitiesOutput as FlextCliUtilitiesOutput,
+    )
+    from flext_cli._utilities.params import (
+        FlextCliUtilitiesParams as FlextCliUtilitiesParams,
+    )
+    from flext_cli._utilities.pipeline import (
+        FlextCliUtilitiesPipeline as FlextCliUtilitiesPipeline,
+    )
+    from flext_cli._utilities.prompts import (
+        FlextCliUtilitiesPrompts as FlextCliUtilitiesPrompts,
+    )
+    from flext_cli._utilities.rules import (
+        FlextCliUtilitiesRules as FlextCliUtilitiesRules,
+    )
+    from flext_cli._utilities.runtime import (
+        FlextCliUtilitiesRuntime as FlextCliUtilitiesRuntime,
+    )
+    from flext_cli._utilities.settings import (
+        FlextCliUtilitiesSettings as FlextCliUtilitiesSettings,
+    )
+    from flext_cli._utilities.tables import (
+        FlextCliUtilitiesTables as FlextCliUtilitiesTables,
+    )
+    from flext_cli._utilities.toml import FlextCliUtilitiesToml as FlextCliUtilitiesToml
+    from flext_cli._utilities.validation import (
+        FlextCliUtilitiesValidation as FlextCliUtilitiesValidation,
+    )
+    from flext_cli._utilities.yaml import FlextCliUtilitiesYaml as FlextCliUtilitiesYaml
+    from flext_cli.api import FlextCli as FlextCli, cli as cli
+    from flext_cli.base import FlextCliServiceBase as FlextCliServiceBase, s as s
+    from flext_cli.constants import FlextCliConstants as FlextCliConstants, c as c
+    from flext_cli.models import FlextCliModels as FlextCliModels, m as m
+    from flext_cli.protocols import FlextCliProtocols as FlextCliProtocols, p as p
+    from flext_cli.services.auth import FlextCliAuth as FlextCliAuth
+    from flext_cli.services.cli import FlextCliCli as FlextCliCli
+    from flext_cli.services.cli_params import (
+        FlextCliCommonParams as FlextCliCommonParams,
+    )
+    from flext_cli.services.cmd import FlextCliCmd as FlextCliCmd
+    from flext_cli.services.file_tools import FlextCliFileTools as FlextCliFileTools
+    from flext_cli.services.formatters import FlextCliFormatters as FlextCliFormatters
+    from flext_cli.services.output import FlextCliOutput as FlextCliOutput
+    from flext_cli.services.pipeline import FlextCliPipeline as FlextCliPipeline
+    from flext_cli.services.prompts import FlextCliPrompts as FlextCliPrompts
+    from flext_cli.services.rules import FlextCliRules as FlextCliRules
+    from flext_cli.services.runtime import FlextCliRuntime as FlextCliRuntime
+    from flext_cli.services.tables import FlextCliTables as FlextCliTables
+    from flext_cli.settings import FlextCliSettings as FlextCliSettings
+    from flext_cli.typings import FlextCliTypes as FlextCliTypes, t as t
+    from flext_cli.utilities import FlextCliUtilities as FlextCliUtilities, u as u
+    from flext_core import d as d, e as e, h as h, r as r, x as x
 _LAZY_IMPORTS = merge_lazy_imports(
     (
         "._constants",

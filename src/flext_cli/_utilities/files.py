@@ -18,6 +18,7 @@ from flext_cli import (
     FlextCliUtilitiesJson as uj,
     FlextCliUtilitiesYaml as uy,
     c,
+    m,
     p,
     r,
     t,
@@ -267,14 +268,10 @@ class FlextCliUtilitiesFiles:
                     target_path=target_path,
                 ),
             )
+        if target_path.is_symlink() and target_path.resolve() == source_path:
+            return r[bool].ok(True)
+        FlextCliUtilitiesFiles._remove_symlink_target(target_path)
         try:
-            if target_path.is_symlink() and target_path.resolve() == source_path:
-                return r[bool].ok(True)
-            if target_path.exists() or target_path.is_symlink():
-                if target_path.is_dir() and (not target_path.is_symlink()):
-                    shutil.rmtree(target_path)
-                else:
-                    target_path.unlink()
             target_path.symlink_to(source_path, target_is_directory=True)
         except OSError as exc:
             return r[bool].fail(
@@ -284,6 +281,16 @@ class FlextCliUtilitiesFiles:
                 )
             )
         return r[bool].ok(True)
+
+    @staticmethod
+    def _remove_symlink_target(target_path: Path) -> None:
+        """Remove an existing file, directory, or symlink at ``target_path``."""
+        if not target_path.exists() and not target_path.is_symlink():
+            return
+        if target_path.is_dir() and not target_path.is_symlink():
+            shutil.rmtree(target_path)
+        else:
+            target_path.unlink()
 
     @staticmethod
     def atomic_write_text_file(
@@ -297,14 +304,7 @@ class FlextCliUtilitiesFiles:
                 ensure_result.error or c.Cli.ERR_ENSURE_DIR_GENERIC_FAILED,
             )
         try:
-            fd, tmp_path = tempfile.mkstemp(dir=path.parent, suffix=".tmp")
-            try:
-                with os.fdopen(fd, "w", encoding=c.Cli.ENCODING_DEFAULT) as handle:
-                    handle.write(content)
-                Path(tmp_path).replace(path)
-            except BaseException:
-                Path(tmp_path).unlink(missing_ok=True)
-                raise
+            FlextCliUtilitiesFiles._write_temp_and_replace(path, content)
         except OSError as exc:
             return r[bool].fail(
                 c.Cli.ERR_ATOMIC_WRITE_TEXT_FILE_FAILED.format(
@@ -312,6 +312,18 @@ class FlextCliUtilitiesFiles:
                 ),
             )
         return r[bool].ok(True)
+
+    @staticmethod
+    def _write_temp_and_replace(path: Path, content: str) -> None:
+        """Write content to a temp file next to ``path`` and atomically replace it."""
+        fd, tmp_path = tempfile.mkstemp(dir=path.parent, suffix=".tmp")
+        try:
+            with os.fdopen(fd, "w", encoding=c.Cli.ENCODING_DEFAULT) as handle:
+                handle.write(content)
+            Path(tmp_path).replace(path)
+        except BaseException:
+            Path(tmp_path).unlink(missing_ok=True)
+            raise
 
     @staticmethod
     def sha256_content(content: str) -> str:
@@ -338,6 +350,50 @@ class FlextCliUtilitiesFiles:
         if not suffix:
             return r[str].fail("Unable to detect file format without an extension")
         return r[str].fail(f"Unsupported format: {suffix}")
+
+    @staticmethod
+    def files_detect_format_from_content(
+        content: str
+        | bytes
+        | m.ConfigMap
+        | m.Dict
+        | Mapping[str, object]
+        | t.SequenceOf[t.StrSequence],
+        name: str,
+        fmt: str = c.Cli.FILE_FORMAT_AUTO,
+    ) -> str:
+        """Detect file format from explicit hint, content shape, or extension.
+
+        Uses the test-domain convention (``text`` as the default fallback) so
+        callers from ``flext-tests`` keep their existing contract.
+        """
+        if fmt != c.Cli.FILE_FORMAT_AUTO:
+            return fmt
+        if isinstance(content, bytes):
+            return str(c.Cli.FILE_FORMAT_BIN)
+        if isinstance(content, (m.ConfigMap, m.Dict, Mapping)):
+            ext = Path(name).suffix.lower()
+            return (
+                str(c.Cli.FILE_FORMAT_YAML)
+                if ext in {".yaml", ".yml"}
+                else str(c.Cli.FILE_FORMAT_JSON)
+            )
+        if isinstance(content, list):
+            return str(c.Cli.FILE_FORMAT_CSV)
+        return c.Cli.format_for_extension(Path(name).suffix)
+
+    @staticmethod
+    def files_detect_format_from_path(
+        path: t.Cli.TextPath,
+        fmt: str = c.Cli.FILE_FORMAT_AUTO,
+    ) -> str:
+        """Detect file format from a path extension.
+
+        Uses the test-domain convention (``text`` as the default fallback).
+        """
+        if fmt != c.Cli.FILE_FORMAT_AUTO:
+            return fmt
+        return c.Cli.format_for_extension(Path(path).suffix)
 
     @staticmethod
     def files_load_auto_mapping(
