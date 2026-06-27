@@ -17,7 +17,7 @@ _LAZY_IMPORTS = build_lazy_import_map(
             "reset_settings",
         ),
         ".test_auth_utils_cov": ("TestsFlextCliAuthUtilsCov",),
-        ".test_base": ("TestsFlextCliServiceBase",),
+        ".test_base": ("TestsFlextCliServiceBaseBehavior",),
         ".test_cli_params": ("TestsFlextCliCommonParams",),
         ".test_cli_service": ("TestsFlextCliService",),
         ".test_cmd": ("TestsFlextCliCmd",),

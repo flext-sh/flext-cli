@@ -20,7 +20,7 @@ from tests import m, p
 from tests.base import s
 
 
-class TestsFlextCliServiceBase:
+class TestsFlextCliServiceBaseBehavior:
     """Verify base-service guarantees through the public CLI facade."""
 
     def test_service_base_initialization(self) -> None:
