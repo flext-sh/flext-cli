@@ -14,7 +14,8 @@ from typing import ClassVar
 
 from yaml import safe_dump, safe_load
 
-from flext_cli import FlextCliUtilitiesJson, c, p, r, t
+from flext_cli import c, p, r, t
+from flext_cli._utilities.json import FlextCliUtilitiesJson
 from flext_core import u
 
 
