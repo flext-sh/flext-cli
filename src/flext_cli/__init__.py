@@ -69,6 +69,9 @@ if _t.TYPE_CHECKING:
     from flext_cli._utilities.conversion import (
         FlextCliUtilitiesConversion as FlextCliUtilitiesConversion,
     )
+    from flext_cli._utilities.file_test_helpers import (
+        FlextCliUtilitiesFileTestHelpersMixin as FlextCliUtilitiesFileTestHelpersMixin,
+    )
     from flext_cli._utilities.files import (
         FlextCliUtilitiesFiles as FlextCliUtilitiesFiles,
     )
@@ -150,6 +153,51 @@ _LAZY_IMPORTS = merge_lazy_imports(
     ),
     build_lazy_import_map(
         {
+            "._constants.base": ("FlextCliConstantsBase",),
+            "._constants.enums": ("FlextCliConstantsEnums",),
+            "._constants.errors": ("FlextCliConstantsErrors",),
+            "._constants.exceptions": ("FlextCliConstantsExceptions",),
+            "._constants.files": ("FlextCliConstantsFiles",),
+            "._constants.output": ("FlextCliConstantsOutput",),
+            "._constants.pipeline": ("FlextCliConstantsPipeline",),
+            "._constants.settings": ("FlextCliConstantsSettings",),
+            "._models.base": ("FlextCliModelsBase",),
+            "._models.pipeline": ("FlextCliModelsPipeline",),
+            "._models.rules": ("FlextCliModelsRules",),
+            "._protocols.base": ("FlextCliProtocolsBase",),
+            "._protocols.domain": ("FlextCliProtocolsDomain",),
+            "._protocols.pipeline": ("FlextCliProtocolsPipeline",),
+            "._typings.base": ("FlextCliTypesBase",),
+            "._typings.domain": ("FlextCliTypesDomain",),
+            "._typings.pipeline": ("FlextCliTypesPipeline",),
+            "._utilities.auth": ("FlextCliUtilitiesAuth",),
+            "._utilities.cmd": ("FlextCliUtilitiesCmd",),
+            "._utilities.commands": ("FlextCliUtilitiesCommands",),
+            "._utilities.conversion": ("FlextCliUtilitiesConversion",),
+            "._utilities.file_test_helpers": ("FlextCliUtilitiesFileTestHelpersMixin",),
+            "._utilities.files": ("FlextCliUtilitiesFiles",),
+            "._utilities.formatters": ("FlextCliUtilitiesFormatters",),
+            "._utilities.json": ("FlextCliUtilitiesJson",),
+            "._utilities.matching": ("FlextCliUtilitiesMatching",),
+            "._utilities.model_commands": (
+                "FlextCliUtilitiesModelCommandBuilder",
+                "FlextCliUtilitiesModelCommands",
+            ),
+            "._utilities.options": (
+                "FlextCliUtilitiesOptionBuilder",
+                "FlextCliUtilitiesOptions",
+            ),
+            "._utilities.output": ("FlextCliUtilitiesOutput",),
+            "._utilities.params": ("FlextCliUtilitiesParams",),
+            "._utilities.pipeline": ("FlextCliUtilitiesPipeline",),
+            "._utilities.prompts": ("FlextCliUtilitiesPrompts",),
+            "._utilities.rules": ("FlextCliUtilitiesRules",),
+            "._utilities.runtime": ("FlextCliUtilitiesRuntime",),
+            "._utilities.settings": ("FlextCliUtilitiesSettings",),
+            "._utilities.tables": ("FlextCliUtilitiesTables",),
+            "._utilities.toml": ("FlextCliUtilitiesToml",),
+            "._utilities.validation": ("FlextCliUtilitiesValidation",),
+            "._utilities.yaml": ("FlextCliUtilitiesYaml",),
             ".api": (
                 "FlextCli",
                 "cli",

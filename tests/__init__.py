@@ -12,9 +12,18 @@ from flext_core.lazy import (
 )
 
 if _t.TYPE_CHECKING:
-    from flext_tests import td as td, tf as tf, tk as tk, tm as tm, tv as tv
+    from flext_tests import (
+        d as d,
+        e as e,
+        h as h,
+        r as r,
+        td as td,
+        tf as tf,
+        tk as tk,
+        tv as tv,
+        x as x,
+    )
 
-    from flext_cli import d as d, e as e, h as h, r as r, x as x
     from tests.base import TestsFlextCliServiceBase as TestsFlextCliServiceBase, s as s
     from tests.constants import TestsFlextCliConstants as TestsFlextCliConstants, c as c
     from tests.models import TestsFlextCliModels as TestsFlextCliModels, m as m
@@ -241,19 +250,16 @@ _LAZY_IMPORTS = merge_lazy_imports(
                 "TestsFlextCliUtilities",
                 "u",
             ),
-            "flext_cli": (
+            "flext_tests": (
                 "d",
                 "e",
                 "h",
                 "r",
-                "x",
-            ),
-            "flext_tests": (
                 "td",
                 "tf",
                 "tk",
-                "tm",
                 "tv",
+                "x",
             ),
         },
     ),
@@ -355,7 +361,6 @@ __all__: list[str] = [
     "td",
     "tf",
     "tk",
-    "tm",
     "tv",
     "u",
     "x",
