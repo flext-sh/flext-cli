@@ -3,22 +3,12 @@
 
 from __future__ import annotations
 
-import typing as _t
-
 from flext_core.lazy import (
     build_lazy_import_map,
     install_lazy_exports,
     merge_lazy_imports,
 )
 
-if _t.TYPE_CHECKING:
-    from flext_cli._models._base_parts.flextclimodelsbase_part_07 import (
-        FlextCliModelsBase as FlextCliModelsBase,
-    )
-    from flext_cli._models.pipeline import (
-        FlextCliModelsPipeline as FlextCliModelsPipeline,
-    )
-    from flext_cli._models.rules import FlextCliModelsRules as FlextCliModelsRules
 _LAZY_IMPORTS = merge_lazy_imports(
     ("._base_parts",),
     build_lazy_import_map(
@@ -52,4 +42,9 @@ _LAZY_IMPORTS = merge_lazy_imports(
 )
 
 
-install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, publish_all=False)
+install_lazy_exports(
+    __name__,
+    globals(),
+    _LAZY_IMPORTS,
+    publish_all=False,
+)

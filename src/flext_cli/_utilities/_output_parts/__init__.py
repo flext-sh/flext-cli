@@ -3,14 +3,8 @@
 
 from __future__ import annotations
 
-import typing as _t
-
 from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
-if _t.TYPE_CHECKING:
-    from flext_cli._utilities._output_parts.flextcliutilitiesoutput_part_02 import (
-        FlextCliUtilitiesOutput as FlextCliUtilitiesOutput,
-    )
 _LAZY_IMPORTS = build_lazy_import_map(
     {
         ".flextcliutilitiesoutput_part_02": ("FlextCliUtilitiesOutput",),
@@ -18,4 +12,9 @@ _LAZY_IMPORTS = build_lazy_import_map(
 )
 
 
-install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, publish_all=False)
+install_lazy_exports(
+    __name__,
+    globals(),
+    _LAZY_IMPORTS,
+    publish_all=False,
+)
