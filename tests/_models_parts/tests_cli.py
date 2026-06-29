@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Annotated
 
 from flext_cli import m
-from tests import c
+from tests.constants import c
 
 
 class TestsFlextCliModelsCli:

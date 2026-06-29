@@ -8,7 +8,8 @@ from unittest.mock import patch
 from examples import (
     DataManagerCLI,
 )
-from tests import p, r, tm
+from flext_tests import r, tm
+from tests.protocols import p
 
 from flext_cli import cli
 

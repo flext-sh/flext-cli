@@ -5,7 +5,8 @@ from __future__ import annotations
 import tempfile
 from pathlib import Path
 
-from tests import c, u
+from tests.constants import c
+from tests.utilities import u
 
 
 class TestsFlextCliRulesCov:

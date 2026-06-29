@@ -14,8 +14,11 @@ import pytest
 from flext_tests import tm
 
 from flext_cli import cli
-from tests import c, m, p, u
 from tests.base import s
+from tests.constants import c
+from tests.models import m
+from tests.protocols import p
+from tests.utilities import u
 
 
 class TestsFlextCliCommonParams:

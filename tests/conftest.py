@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from tests import t
+from tests.typings import t
 
 
 def pytest_collection_modifyitems(

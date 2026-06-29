@@ -6,7 +6,8 @@ from pathlib import Path
 
 from flext_tests import tm
 
-from tests import m, u
+from tests.models import m
+from tests.utilities import u
 
 
 class TestsFlextCliRuntimeUtilitiesExtra:

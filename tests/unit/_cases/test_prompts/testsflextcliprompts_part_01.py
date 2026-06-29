@@ -6,7 +6,8 @@ from collections.abc import Callable
 
 import pytest
 from flext_tests import tm
-from tests import c, p
+from tests.constants import c
+from tests.protocols import p
 
 
 class TestsFlextCliPrompts:

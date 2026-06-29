@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from flext_cli import cli
-from tests import c
+from tests.constants import c
 
 
 class TestsFlextCliServicesTablesBranchCov:

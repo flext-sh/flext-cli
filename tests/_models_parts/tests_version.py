@@ -5,7 +5,8 @@ from __future__ import annotations
 from typing import Annotated, ClassVar, Self
 
 from flext_cli import m
-from tests import c, t
+from tests.constants import c
+from tests.typings import t
 
 
 class TestsFlextCliModelsVersion:

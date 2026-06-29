@@ -17,7 +17,8 @@ import pytest
 from flext_tests import tm
 
 from flext_cli import cli
-from tests import c, p
+from tests.constants import c
+from tests.protocols import p
 
 
 class TestsFlextCliSettingsUnit:

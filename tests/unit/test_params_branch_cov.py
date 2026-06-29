@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from flext_cli import cli
-from tests import c, m, u
+from tests.constants import c
+from tests.models import m
+from tests.utilities import u
 
 
 class TestsFlextCliParamsBranchCov:

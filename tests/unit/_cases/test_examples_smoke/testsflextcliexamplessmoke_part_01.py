@@ -16,7 +16,7 @@ from examples.ex_04_file_operations import (
     save_user_preferences,
     validate_and_import_data,
 )
-from tests import tm
+from flext_tests import tm
 
 
 class TestsFlextCliExamplesSmoke:

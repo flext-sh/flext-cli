@@ -5,7 +5,7 @@ from __future__ import annotations
 from types import MappingProxyType
 from typing import Final
 
-from tests import t
+from tests.typings import t
 
 
 class TestsFlextCliConstantsRulesOptions:

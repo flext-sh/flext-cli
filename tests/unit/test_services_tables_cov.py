@@ -9,7 +9,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_cli import cli
-from tests import m
+from tests.models import m
 
 
 class TestsFlextCliServicesTablesCov:

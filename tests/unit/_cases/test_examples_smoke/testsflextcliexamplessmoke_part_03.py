@@ -11,7 +11,7 @@ from examples import (
     Ex06Settings,
     c as ec,
 )
-from tests import tm
+from flext_tests import tm
 
 from flext_cli import cli
 

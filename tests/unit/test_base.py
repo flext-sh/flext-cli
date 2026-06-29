@@ -16,8 +16,9 @@ from __future__ import annotations
 from flext_tests import tm
 
 from flext_cli import cli
-from tests import m, p
 from tests.base import s
+from tests.models import m
+from tests.protocols import p
 
 
 class TestsFlextCliServiceBaseBehavior:

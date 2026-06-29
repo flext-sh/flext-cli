@@ -24,7 +24,9 @@ import pytest
 from flext_tests import tm
 
 from flext_cli import cli
-from tests import c, p, u
+from tests.constants import c
+from tests.protocols import p
+from tests.utilities import u
 
 
 class TestsFlextCliCmd:

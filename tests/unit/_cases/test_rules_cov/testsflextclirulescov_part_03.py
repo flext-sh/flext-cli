@@ -6,7 +6,9 @@ import tempfile
 from pathlib import Path
 
 import pytest
-from tests import c, t, u
+from tests.constants import c
+from tests.typings import t
+from tests.utilities import u
 
 
 class TestsFlextCliRulesCov:

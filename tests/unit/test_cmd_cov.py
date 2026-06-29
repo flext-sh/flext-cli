@@ -12,7 +12,7 @@ from pathlib import Path
 from flext_tests import tm
 
 from flext_cli import cli
-from tests import c
+from tests.constants import c
 
 
 @contextmanager

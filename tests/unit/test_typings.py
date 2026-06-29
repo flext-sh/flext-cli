@@ -11,7 +11,8 @@ from typing import Protocol, runtime_checkable
 
 from flext_tests import tm
 
-from tests import m, t
+from tests.models import m
+from tests.typings import t
 
 
 class TestsFlextCliTypesUnit:
