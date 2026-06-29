@@ -89,18 +89,18 @@ class FlextCliUtilitiesFiles:
             return r[t.JsonMapping].fail(
                 f"Unsupported format: {path.suffix or '<none>'}",
             )
-        return read_result.map_error(
+        loaded = read_result.map_error(
             lambda err: err or c.Cli.ERR_AUTO_LOAD_FAILED,
-        ).flat_map(
-            lambda payload: (
-                r[t.JsonMapping].ok({
-                    key: u.normalize_to_json_value(value)
-                    for key, value in payload.items()
-                })
-                if isinstance(payload, Mapping)
-                else r[t.JsonMapping].fail("Auto-detected file must contain a mapping")
-            ),
         )
+        if loaded.failure:
+            return r[t.JsonMapping].fail(loaded.error or c.Cli.ERR_AUTO_LOAD_FAILED)
+        payload = loaded.value
+        if not isinstance(payload, Mapping):
+            return r[t.JsonMapping].fail("Auto-detected file must contain a mapping")
+        normalized_payload: t.JsonMapping = {
+            key: u.normalize_to_json_value(value) for key, value in payload.items()
+        }
+        return r[t.JsonMapping].ok(normalized_payload)
 
     @staticmethod
     def csv_loads(text: str, *, delimiter: str = ",") -> p.Result[list[list[str]]]:

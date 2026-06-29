@@ -8,7 +8,7 @@ from unittest.mock import patch
 from examples import (
     DataManagerCLI,
 )
-from tests import r, tm
+from tests import p, r, tm
 
 from flext_cli import cli
 
@@ -78,7 +78,7 @@ class TestsFlextCliExamplesSmoke:
             _self: object,
             _message: str,
             default: str | None = None,
-        ) -> r[str]:
+        ) -> p.Result[str]:
             _ = default
             return r[str].fail("prompt failed")
 
@@ -101,7 +101,7 @@ class TestsFlextCliExamplesSmoke:
             _self: object,
             _message: str,
             default: str | None = None,
-        ) -> r[str]:
+        ) -> p.Result[str]:
             if not prompt_calls:
                 prompt_calls.append("first")
                 return r[str].ok(default or "sample")
@@ -115,7 +115,7 @@ class TestsFlextCliExamplesSmoke:
             _self: object,
             _message: str,
             default: str | None = None,
-        ) -> r[str]:
+        ) -> p.Result[str]:
             return r[str].ok(default or "sample")
 
         broken_parent = tmp_path / "workflow-parent"
