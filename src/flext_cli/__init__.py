@@ -143,6 +143,8 @@ if _t.TYPE_CHECKING:
     from flext_cli.utilities import FlextCliUtilities as FlextCliUtilities, u as u
     from flext_core import d as d, e as e, h as h, r as r, x as x
 
+_LAZY_IMPORTS = FLEXT_CLI_LAZY_IMPORTS
+
 install_lazy_exports(
     __name__,
     globals(),
