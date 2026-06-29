@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import inspect
 
-from flext_cli import cli
-from tests import m, p
+from flext_cli import cli, m
+from tests.protocols import p
 
 
 class _SampleModel(m.BaseModel):

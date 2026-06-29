@@ -100,6 +100,33 @@ class FlextCliUtilitiesTables:
         return r[Sequence[t.Cli.TableRow]].ok(normalized_rows)
 
     @staticmethod
+    def tables_tabulate_payload(
+        rows: t.SequenceOf[t.Cli.TableRow],
+        headers: str | t.StrSequence,
+    ) -> tuple[
+        t.SequenceOf[t.Cli.TableRow] | t.SequenceOf[t.Cli.TableSequenceRow],
+        str | t.StrSequence,
+    ]:
+        """Build table data/header values accepted by tabulate."""
+        table_data: (
+            t.SequenceOf[t.Cli.TableRow] | t.SequenceOf[t.Cli.TableSequenceRow]
+        ) = rows
+        table_headers: str | t.StrSequence = headers
+        if (
+            rows
+            and isinstance(rows[0], Mapping)
+            and not isinstance(
+                headers,
+                str,
+            )
+        ):
+            table_data = [
+                list(row.values()) for row in rows if isinstance(row, Mapping)
+            ]
+            table_headers = list(headers)
+        return table_data, table_headers
+
+    @staticmethod
     def tables_render(
         rows: t.SequenceOf[t.Cli.TableRow],
         settings: m.Cli.TableConfig,
@@ -127,24 +154,11 @@ class FlextCliUtilitiesTables:
         if colalign is not None and column_count > 0 and len(colalign) > column_count:
             colalign = colalign[:column_count]
 
+        table_data, table_headers = FlextCliUtilitiesTables.tables_tabulate_payload(
+            rows,
+            headers,
+        )
         try:
-            table_data: (
-                t.SequenceOf[t.Cli.TableRow] | t.SequenceOf[t.Cli.TableSequenceRow]
-            ) = rows
-            table_headers: str | t.StrSequence = headers
-            if (
-                rows
-                and isinstance(rows[0], Mapping)
-                and not isinstance(
-                    headers,
-                    str,
-                )
-            ):
-                table_data = [
-                    list(row.values()) for row in rows if isinstance(row, Mapping)
-                ]
-                table_headers = list(headers)
-
             rendered_table = tabulate(
                 table_data,
                 headers=table_headers,

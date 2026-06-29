@@ -8,14 +8,13 @@ from __future__ import annotations
 
 from typing import Self, override
 
-from tests import m, t
+from tests.models import m
+from tests.typings import t
 
-from flext_cli import cli
-
-_FlextCliFacade = type(cli)
+from flext_cli.services.prompts import FlextCliPrompts
 
 
-class TestsFlextCliScriptedPrompts(_FlextCliFacade):
+class TestsFlextCliScriptedPrompts(FlextCliPrompts):
     """Prompt service with typed scripting helpers for tests."""
 
     def override_test_env(self, enabled: bool | None = True) -> Self:

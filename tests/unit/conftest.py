@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from collections.abc import (
     Callable,
-    Generator,
 )
 
 import pytest
@@ -53,15 +52,15 @@ def make_failing_prompts() -> Callable[..., TestsFlextCliFailingLogPrompts]:
     return _prompt_factory(TestsFlextCliFailingLogPrompts)
 
 
-@pytest.fixture(autouse=True)
-def reset_config_singleton() -> Generator[None]:
-    """Reset cli.settings singleton before and after each test.
-
-    Settings are resolved via ``FlextCliSettings.fetch_global()`` per access
-    (no cache), so a single ``reset_for_testing`` is sufficient.
-    """
+def pytest_runtest_setup(item: pytest.Item) -> None:
+    """Reset CLI settings before each test item."""
+    _ = item
     cli.settings.reset_for_testing()
-    yield
+
+
+def pytest_runtest_teardown(item: pytest.Item, nextitem: pytest.Item | None) -> None:
+    """Reset CLI settings after each test item."""
+    _ = item, nextitem
     cli.settings.reset_for_testing()
 
 

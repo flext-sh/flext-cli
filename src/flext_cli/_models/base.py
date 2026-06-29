@@ -2,623 +2,93 @@
 
 from __future__ import annotations
 
-from collections.abc import (
-    Mapping,
+import importlib as _importlib
+
+from flext_cli._models._base_parts.flextclimodelsbase_part_01 import (
+    FlextCliModelsBase as FlextCliModelsBasePart01,
 )
-from types import MappingProxyType
-from typing import Annotated, ClassVar
-
-from flext_cli import c, p, t
-from flext_core import m, u
-
-
-class FlextCliModelsBase:
-    """CLI project namespace."""
-
-    class CommandOutput(m.Value):
-        """Standardized external command execution payload. Use m.Cli.CommandOutput."""
-
-        stdout: Annotated[
-            str,
-            m.Field("", description="Captured standard output"),
-        ] = ""
-        stderr: Annotated[
-            str,
-            m.Field("", description="Captured standard error"),
-        ] = ""
-        exit_code: Annotated[
-            int,
-            m.Field(description="Command exit code"),
-        ] = 0
-        duration: Annotated[
-            t.NonNegativeFloat,
-            m.Field(0.0, description="Duration in seconds"),
-        ] = 0.0
-
-    class DisplayData(m.BaseModel):
-        """Key-value data for table/display — Pydantic v2 contract. Use m.Cli.DisplayData."""
-
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            extra="forbid", validate_assignment=True
-        )
-        data: Annotated[
-            t.JsonMapping,
-            m.Field(
-                default_factory=lambda: MappingProxyType({}),
-                description="Field-value pairs for display",
-            ),
-        ]
-
-        @u.model_serializer(mode="plain")
-        def _serialize(self) -> t.JsonMapping:
-            """Serialize the wrapper as its display payload."""
-            return dict(self.data)
-
-    class LoadedConfig(m.BaseModel):
-        """Loaded configuration content wrapper — Pydantic v2 contract. Use m.Cli.LoadedConfig."""
-
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            extra="forbid", validate_assignment=True
-        )
-        content: Annotated[
-            t.JsonMapping,
-            m.Field(
-                default_factory=lambda: MappingProxyType({}),
-                description="Loaded configuration content (dict or other JSON value)",
-            ),
-        ]
-
-    class CliNormalizedJson(m.RootModel[t.JsonValue]):
-        """Normalize raw JSON value with flat JSON serialization semantics.
-
-        ``RootModel`` provides positional construction (``CliNormalizedJson(value)``)
-        and root-level serialization natively — no custom ``__init__`` or
-        ``model_serializer`` required.
-        """
-
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=True)
-        root: Annotated[
-            t.JsonValue,
-            m.Field(description="Normalized JSON-compatible value"),
-        ]
-
-    class NormalizedJsonList(m.BaseModel):
-        """Resolve normalized JSON to a dict with defaults. Use m.Cli.NormalizedJsonList."""
-
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            extra="forbid",
-            validate_assignment=True,
-        )
-        value: Annotated[
-            t.JsonValue,
-            m.Field(default_factory=dict, description="The normalized JSON value"),
-        ]
-        default: Annotated[
-            t.JsonMapping,
-            m.Field(
-                default_factory=lambda: MappingProxyType({}),
-                description="Default mapping if value is not a dict",
-            ),
-        ]
-
-        @property
-        def resolved(self) -> t.JsonMapping:
-            """Resolve value to dict or return default."""
-            if isinstance(self.value, Mapping):
-                return self.value
-            return self.default
-
-    class SuccessSummaryDetails(m.RootModel[t.MappingKV[str, str]]):
-        """Key-value success summary details. Use m.Cli.SuccessSummaryDetails."""
-
-        root: t.MappingKV[str, str]
-
-    class PromptRuntimeState(m.FlexibleInternalModel):
-        """Centralized runtime state for CLI prompt behavior."""
-
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            extra="forbid",
-            validate_assignment=True,
-        )
-
-        interactive: Annotated[
-            bool,
-            m.Field(True, description="Whether prompt interaction is enabled"),
-        ] = True
-        quiet: Annotated[
-            bool,
-            m.Field(False, description="Whether prompt output is suppressed"),
-        ] = False
-        default_timeout: Annotated[
-            int,
-            m.Field(
-                description="Default prompt timeout in seconds",
-            ),
-        ] = c.Cli.PROMPT_DEFAULT_TIMEOUT
-
-    class AuthCredentialsPayload(m.BaseModel):
-        """Validated auth payload for token or username/password flows."""
-
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            extra="forbid",
-            validate_assignment=True,
-        )
-        token: Annotated[
-            str | None,
-            m.Field(
-                None,
-                description="Direct authentication token",
-                strict=True,
-            ),
-        ] = None
-        username: Annotated[
-            str,
-            m.Field(
-                "",
-                description="Authentication username",
-                strict=True,
-            ),
-        ] = ""
-        password: Annotated[
-            str,
-            m.Field(
-                "",
-                description="Authentication password",
-                strict=True,
-            ),
-        ] = ""
-
-    class ProcessEnvironmentSpec(m.BaseModel):
-        """Validated process environment contract for runtime command execution."""
-
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            extra="forbid",
-            frozen=True,
-        )
-        base_env: Annotated[
-            t.StrMapping,
-            m.Field(
-                default_factory=lambda: MappingProxyType({}),
-                description="Base environment inherited from the current process",
-            ),
-        ]
-        overrides: Annotated[
-            t.StrMapping,
-            m.Field(
-                default_factory=lambda: MappingProxyType({}),
-                description="Explicit environment overrides for the child process",
-            ),
-        ]
-        remove_keys: Annotated[
-            t.StrSequence,
-            m.Field(
-                default_factory=tuple,
-                description="Environment keys removed before applying overrides",
-            ),
-        ]
-
-        @u.computed_field()
-        @property
-        def resolved(self) -> dict[str, str]:
-            """Resolved environment mapping after removals and overrides."""
-            return self.resolve()
-
-        def resolve(self) -> dict[str, str]:
-            """Type-safe accessor for the computed environment mapping."""
-            remove_keys = frozenset(self.remove_keys)
-            resolved = {
-                key: value
-                for key, value in self.base_env.items()
-                if key not in remove_keys
-            }
-            resolved.update(dict(self.overrides))
-            return resolved
-
-    class CommandEntryModel(m.BaseModel):
-        """Single command entry: name + handler. Use m.Cli.CommandEntryModel."""
-
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            arbitrary_types_allowed=True,
-            extra="forbid",
-        )
-        name: Annotated[t.NonEmptyStr, m.Field(..., description="Command name")]
-        handler: Annotated[
-            t.Cli.JsonCommandFn,
-            m.Field(..., description="Command handler callable"),
-        ]
-
-    class ResultCommandRoute(m.BaseModel):
-        """Type-erased route contract for heterogeneous batch registration."""
-
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            arbitrary_types_allowed=True,
-            extra="forbid",
-            frozen=True,
-        )
-        name: Annotated[t.NonEmptyStr, m.Field(..., description="Command name")]
-        help_text: Annotated[str, m.Field(..., description="User-facing help text")]
-        model_cls: Annotated[
-            t.Cli.ModelType[t.Cli.ModelLike],
-            m.Field(..., description="Pydantic input model class"),
-        ]
-        handler: Annotated[
-            t.Cli.ResultRouteHandler,
-            m.Field(..., description="Command handler returning r[...]"),
-        ]
-        success_message: Annotated[
-            str | None,
-            m.Field(None, description="Static success message"),
-        ] = None
-        success_formatter: Annotated[
-            p.Cli.SuccessMessageFormatter[t.Cli.ResultValue] | None,
-            m.Field(None, description="Dynamic success formatter"),
-        ] = None
-        success_type: Annotated[
-            c.Cli.MessageTypes,
-            m.Field(
-                description="CLI output style on success",
-            ),
-        ] = c.Cli.MessageTypes.SUCCESS
-
-    class TableConfig(m.Value):
-        """Table display configuration for tabulate extending Value via inheritance.
-
-        Fields map directly to tabulate() parameters.
-        Inherits frozen=True and extra="forbid" from m.Value.
-        """
-
-        # Headers configuration
-        headers: Annotated[
-            t.Cli.TableHeaders,
-            m.Field(
-                description=(
-                    "Table headers (string like 'keys', 'firstrow' "
-                    "or sequence of header names)"
-                ),
-            ),
-        ] = "keys"
-        title: Annotated[
-            str | None,
-            m.Field(description="Optional title printed before the rendered table"),
-        ] = None
-        show_header: Annotated[
-            bool,
-            m.Field(description="Whether to show table header"),
-        ] = True
-
-        # Format configuration
-        table_format: Annotated[
-            c.Cli.TabularFormat,
-            m.Field(
-                description="Table format enum-derived literal authority",
-            ),
-        ] = c.Cli.TabularFormat.SIMPLE
-
-        @u.computed_field()
-        @property
-        def table_backend_format(self) -> c.Cli.TabularFormat:
-            """Canonical backend format used by tabulate rendering."""
-            return (
-                c.Cli.TabularFormat.SIMPLE
-                if self.table_format == c.Cli.TabularFormat.TABLE
-                else self.table_format
-            )
-
-        # Number formatting
-        floatfmt: Annotated[
-            str,
-            m.Field(description="Float format string"),
-        ] = ".4g"
-        numalign: Annotated[
-            str,
-            m.Field(description="Number alignment (right, center, left, decimal)"),
-        ] = "decimal"
-
-        # String formatting
-        stralign: Annotated[
-            str,
-            m.Field(description="String alignment (left, center, right)"),
-        ] = "left"
-
-        align: Annotated[
-            str,
-            m.Field(description="General alignment (left, center, right, decimal)"),
-        ] = "left"
-
-        # Missing values
-        missingval: Annotated[
-            str,
-            m.Field(description="String to use for missing values"),
-        ] = ""
-
-        # Index display
-        showindex: Annotated[
-            t.Cli.TableShowIndex,
-            m.Field(
-                default=False,
-                validate_default=True,
-                description="Whether to show row indices",
-            ),
-        ] = False
-
-        # Column alignment
-        colalign: Annotated[
-            t.Cli.TableColAlign,
-            m.Field(
-                description="Per-column alignment (left, center, right, decimal)",
-            ),
-        ] = None
-
-        # Number parsing
-        disable_numparse: t.Cli.TableDisableNumparse = m.Field(
-            False,
-            validate_default=True,
-            description="Disable number parsing (bool or list of column indices)",
-        )
-
-    class SettingsSnapshot(m.Value):
-        """Snapshot of current CLI settings information."""
-
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            frozen=True,
-            extra="forbid",
-        )
-
-        settings_dir: Annotated[
-            str,
-            m.Field(
-                description="Settings directory path",
-            ),
-        ] = ""
-
-        settings_exists: Annotated[
-            bool,
-            m.Field(
-                description="Whether settings directory exists",
-            ),
-        ] = False
-
-        settings_readable: Annotated[
-            bool,
-            m.Field(
-                description="Whether settings directory is readable",
-            ),
-        ] = False
-
-        settings_writable: Annotated[
-            bool,
-            m.Field(
-                description="Whether settings directory is writable",
-            ),
-        ] = False
-
-        timestamp: Annotated[
-            str,
-            m.Field(
-                description="Timestamp of snapshot",
-            ),
-        ] = ""
-
-    class CliParamsConfig(m.Value):
-        """CLI parameters configuration for command-line parsing.
-
-        Maps directly to CLI flags: --verbose, --quiet, --debug, --trace, etc.
-        All fields are optional (None) to allow partial updates.
-        Inherits frozen=True and extra="forbid" from m.Value.
-        """
-
-        verbose: Annotated[
-            bool | None,
-            m.Field(
-                description="Enable verbose output",
-            ),
-        ] = None
-        quiet: Annotated[
-            bool | None,
-            m.Field(
-                description="Suppress non-essential output",
-            ),
-        ] = None
-        debug: Annotated[
-            bool | None,
-            m.Field(None, description="Enable debug mode"),
-        ]
-        trace: Annotated[
-            bool | None,
-            m.Field(
-                description="Enable trace logging (requires debug)",
-            ),
-        ] = None
-        log_level: Annotated[
-            str | None,
-            m.Field(
-                description="Log level (DEBUG, INFO, WARNING, ERROR)",
-            ),
-        ] = None
-        log_format: Annotated[
-            str | None,
-            m.Field(
-                description="Log format (compact, detailed, full)",
-            ),
-        ] = None
-        output_format: Annotated[
-            str | None,
-            m.Field(
-                description="Output format (table, json, yaml, csv)",
-            ),
-        ] = None
-        no_color: Annotated[
-            bool | None,
-            m.Field(
-                description="Disable colored output",
-            ),
-        ] = None
-
-        @property
-        def params(self) -> t.JsonMapping:
-            """Parameters mapping - required by CliParamsConfig."""
-            return {
-                "verbose": self.verbose or False,
-                "quiet": self.quiet or False,
-                "debug": self.debug or False,
-                "trace": self.trace or False,
-                "log_level": self.log_level or "",
-                "log_format": self.log_format or "",
-                "output_format": self.output_format or "",
-                "no_color": self.no_color or False,
-            }
-
-    class OptionMetadata(m.BaseModel):
-        """Validated option-registry metadata for Typer option generation."""
-
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            extra="ignore",
-            frozen=True,
-        )
-
-        help: Annotated[
-            str,
-            m.Field(
-                "",
-                description="Option help text",
-                strict=True,
-            ),
-        ] = ""
-        short: Annotated[
-            str,
-            m.Field(
-                "",
-                description="Single-letter short flag without leading dash",
-                strict=True,
-            ),
-        ] = ""
-        default: Annotated[
-            t.Cli.CliValue | None,
-            m.Field(
-                None,
-                description="Option default value when explicitly provided",
-            ),
-        ] = None
-        field_name_override: Annotated[
-            str | None,
-            m.Field(
-                None,
-                description="Override for the CLI-facing option name",
-                strict=True,
-            ),
-        ] = None
-
-    class LogLevelResolved(m.BaseModel):
-        """Single contract for log level string."""
-
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid")
-        raw: Annotated[
-            str | None,
-            m.Field(None, description="Raw log level input string"),
-        ]
-        default: Annotated[
-            str,
-            m.Field(
-                c.LogLevel.INFO,
-                description="Default log level when raw is absent",
-            ),
-        ]
-
-        @u.computed_field()
-        @property
-        def resolved(self) -> str:
-            """Resolved log level value."""
-            return self.resolve()
-
-        def resolve(self) -> str:
-            """Type-safe accessor (bypasses pyrefly computed_field limitation)."""
-            s = (self.raw or self.default).strip().upper()
-            return s or self.default
-
-    class TypedExtract(m.BaseModel):
-        """Single contract for typed value extraction (str | bool | dict)."""
-
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid")
-        type_kind: Annotated[
-            t.Cli.TypeKind,
-            m.Field(description="Requested type"),
-        ]
-        value: Annotated[
-            t.JsonValue | None,
-            m.Field(None, description="Value to extract and coerce"),
-        ]
-        default: Annotated[
-            t.JsonValue | None,
-            m.Field(None, description="Fallback value when extraction fails"),
-        ]
-
-        @u.computed_field()
-        @property
-        def resolved(self) -> t.Cli.TypedExtractValue:
-            """Value coerced to type_kind, or default."""
-            return self.resolve()
-
-        def resolve(self) -> t.Cli.TypedExtractValue:
-            """Type-safe accessor (bypasses pyrefly computed_field limitation)."""
-            default_value = self._default_for_kind()
-            if self.value is None:
-                return default_value
-            resolved_value: t.Cli.TypedExtractValue = default_value
-            match self.type_kind:
-                case c.Cli.TypeKind.STR:
-                    resolved_str = str(self.value).strip() if self.value else ""
-                    resolved_value = resolved_str or (
-                        self.default if isinstance(self.default, str) else ""
-                    )
-                case c.Cli.TypeKind.BOOL:
-                    resolved_value = bool(self.value)
-                case c.Cli.TypeKind.DICT:
-                    source_mapping = (
-                        self.value
-                        if isinstance(self.value, Mapping)
-                        else self.default
-                        if isinstance(self.default, Mapping)
-                        else None
-                    )
-                    resolved_value = (
-                        {
-                            k: t.Cli.JSON_VALUE_ADAPTER.validate_python(vv)
-                            for k, vv in source_mapping.items()
-                        }
-                        if source_mapping is not None
-                        else {}
-                    )
-                case _:
-                    resolved_value = default_value
-            return resolved_value
-
-        def _default_for_kind(self) -> t.Cli.TypedExtractValue:
-            """Return default typed value for the requested kind."""
-            if self.type_kind == c.Cli.TypeKind.STR:
-                return self.default if isinstance(self.default, str) else ""
-            if self.type_kind == c.Cli.TypeKind.BOOL:
-                return self.default if isinstance(self.default, bool) else False
-            if isinstance(self.default, Mapping):
-                return {
-                    k: t.Cli.JSON_VALUE_ADAPTER.validate_python(vv)
-                    for k, vv in self.default.items()
-                }
-            return {}
-
-    class JsonWriteOptions(m.BaseModel):
-        """Options for JSON file write operations."""
-
-        indent: int = u.Field(
-            2, description="JSON indentation level", validate_default=True
-        )
-        sort_keys: bool = u.Field(
-            False, description="Sort JSON keys", validate_default=True
-        )
-        ensure_ascii: bool = u.Field(
-            False, description="Escape non-ASCII chars", validate_default=True
-        )
-
-
-__all__: t.MutableSequenceOf[str] = [
+from flext_cli._models._base_parts.flextclimodelsbase_part_02 import (
+    FlextCliModelsBase as FlextCliModelsBasePart02,
+)
+from flext_cli._models._base_parts.flextclimodelsbase_part_03 import (
+    FlextCliModelsBase as FlextCliModelsBasePart03,
+)
+from flext_cli._models._base_parts.flextclimodelsbase_part_04 import (
+    FlextCliModelsBase as FlextCliModelsBasePart04,
+)
+from flext_cli._models._base_parts.flextclimodelsbase_part_05 import (
+    FlextCliModelsBase as FlextCliModelsBasePart05,
+)
+from flext_cli._models._base_parts.flextclimodelsbase_part_06 import (
+    FlextCliModelsBase as FlextCliModelsBasePart06,
+)
+from flext_cli._models._base_parts.flextclimodelsbase_part_07 import (
+    FlextCliModelsBase as FlextCliModelsBasePart07,
+)
+
+
+class FlextCliModelsBase(
+    FlextCliModelsBasePart01,
+    FlextCliModelsBasePart02,
+    FlextCliModelsBasePart03,
+    FlextCliModelsBasePart04,
+    FlextCliModelsBasePart05,
+    FlextCliModelsBasePart06,
+    FlextCliModelsBasePart07,
+):
+    """Public facade for FlextCliModelsBase."""
+
+
+__all__: list[str] = ["FlextCliModelsBase"]
+
+
+# Bind part-module facade names for runtime class-level lookups.
+setattr(
+    _importlib.import_module(
+        "flext_cli._models._base_parts.flextclimodelsbase_part_01"
+    ),
     "FlextCliModelsBase",
-]
+    FlextCliModelsBase,
+)
+setattr(
+    _importlib.import_module(
+        "flext_cli._models._base_parts.flextclimodelsbase_part_02"
+    ),
+    "FlextCliModelsBase",
+    FlextCliModelsBase,
+)
+setattr(
+    _importlib.import_module(
+        "flext_cli._models._base_parts.flextclimodelsbase_part_03"
+    ),
+    "FlextCliModelsBase",
+    FlextCliModelsBase,
+)
+setattr(
+    _importlib.import_module(
+        "flext_cli._models._base_parts.flextclimodelsbase_part_04"
+    ),
+    "FlextCliModelsBase",
+    FlextCliModelsBase,
+)
+setattr(
+    _importlib.import_module(
+        "flext_cli._models._base_parts.flextclimodelsbase_part_05"
+    ),
+    "FlextCliModelsBase",
+    FlextCliModelsBase,
+)
+setattr(
+    _importlib.import_module(
+        "flext_cli._models._base_parts.flextclimodelsbase_part_06"
+    ),
+    "FlextCliModelsBase",
+    FlextCliModelsBase,
+)
+setattr(
+    _importlib.import_module(
+        "flext_cli._models._base_parts.flextclimodelsbase_part_07"
+    ),
+    "FlextCliModelsBase",
+    FlextCliModelsBase,
+)

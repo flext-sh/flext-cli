@@ -7,8 +7,10 @@ from typing import Annotated
 
 import pytest
 
-from flext_cli import cli
-from tests import c, m, p, t
+from flext_cli import cli, m
+from tests.constants import c
+from tests.protocols import p
+from tests.typings import t
 
 type OptionalStringAlias = str | None
 type StringListAlias = list[str]

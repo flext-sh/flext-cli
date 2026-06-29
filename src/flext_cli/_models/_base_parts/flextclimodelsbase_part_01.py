@@ -1,0 +1,117 @@
+"""CLI Pydantic domain models."""
+
+from __future__ import annotations
+
+from collections.abc import (
+    Mapping,
+)
+from types import MappingProxyType
+from typing import Annotated, ClassVar
+
+from flext_cli import t
+from flext_core import m, u
+
+
+class FlextCliModelsBase:
+    """Implementation part for FlextCliModelsBase."""
+
+    class CommandOutput(m.Value):
+        """Standardized external command execution payload. Use m.Cli.CommandOutput."""
+
+        stdout: Annotated[
+            str,
+            m.Field("", description="Captured standard output"),
+        ] = ""
+        stderr: Annotated[
+            str,
+            m.Field("", description="Captured standard error"),
+        ] = ""
+        exit_code: Annotated[
+            int,
+            m.Field(description="Command exit code"),
+        ] = 0
+        duration: Annotated[
+            t.NonNegativeFloat,
+            m.Field(0.0, description="Duration in seconds"),
+        ] = 0.0
+
+    class DisplayData(m.BaseModel):
+        """Key-value data for table/display — Pydantic v2 contract. Use m.Cli.DisplayData."""
+
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+            extra="forbid", validate_assignment=True
+        )
+        data: Annotated[
+            t.JsonMapping,
+            m.Field(
+                default_factory=lambda: MappingProxyType({}),
+                description="Field-value pairs for display",
+            ),
+        ]
+
+        @u.model_serializer(mode="plain")
+        def _serialize(self) -> t.JsonMapping:
+            """Serialize the wrapper as its display payload."""
+            return dict(self.data)
+
+    class LoadedConfig(m.BaseModel):
+        """Loaded configuration content wrapper — Pydantic v2 contract. Use m.Cli.LoadedConfig."""
+
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+            extra="forbid", validate_assignment=True
+        )
+        content: Annotated[
+            t.JsonMapping,
+            m.Field(
+                default_factory=lambda: MappingProxyType({}),
+                description="Loaded configuration content (dict or other JSON value)",
+            ),
+        ]
+
+    class CliNormalizedJson(m.RootModel[t.JsonValue]):
+        """Normalize raw JSON value with flat JSON serialization semantics.
+
+        ``RootModel`` provides positional construction (``CliNormalizedJson(value)``)
+        and root-level serialization natively — no custom ``__init__`` or
+        ``model_serializer`` required.
+        """
+
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=True)
+        root: Annotated[
+            t.JsonValue,
+            m.Field(description="Normalized JSON-compatible value"),
+        ]
+
+    class NormalizedJsonList(m.BaseModel):
+        """Resolve normalized JSON to a dict with defaults. Use m.Cli.NormalizedJsonList."""
+
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+            extra="forbid",
+            validate_assignment=True,
+        )
+        value: Annotated[
+            t.JsonValue,
+            m.Field(default_factory=dict, description="The normalized JSON value"),
+        ]
+        default: Annotated[
+            t.JsonMapping,
+            m.Field(
+                default_factory=lambda: MappingProxyType({}),
+                description="Default mapping if value is not a dict",
+            ),
+        ]
+
+        @property
+        def resolved(self) -> t.JsonMapping:
+            """Resolve value to dict or return default."""
+            if isinstance(self.value, Mapping):
+                return self.value
+            return self.default
+
+    class SuccessSummaryDetails(m.RootModel[t.MappingKV[str, str]]):
+        """Key-value success summary details. Use m.Cli.SuccessSummaryDetails."""
+
+        root: t.MappingKV[str, str]
+
+
+__all__: list[str] = ["FlextCliModelsBase"]

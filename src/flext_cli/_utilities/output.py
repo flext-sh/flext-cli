@@ -2,65 +2,22 @@
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-from typing import TYPE_CHECKING
+import importlib as _importlib
 
 from flext_cli import c, t
+from flext_cli._utilities._output_parts.flextcliutilitiesoutput_part_01 import (
+    FlextCliUtilitiesOutput as FlextCliUtilitiesOutputPart01,
+)
+from flext_cli._utilities._output_parts.flextcliutilitiesoutput_part_02 import (
+    FlextCliUtilitiesOutput as FlextCliUtilitiesOutputPart02,
+)
 
-if TYPE_CHECKING:
-    from flext_cli import p
 
-
-class FlextCliUtilitiesOutput:
-    """Output normalization helpers for message formatting."""
-
-    @staticmethod
-    def output_resolve_message_type(
-        message_type: c.Cli.MessageTypes | None,
-    ) -> c.Cli.MessageTypes:
-        """Resolve one message type to canonical enum value."""
-        return (
-            message_type
-            if message_type is not None
-            else c.Cli.OUTPUT_DEFAULT_MESSAGE_TYPE
-        )
-
-    @staticmethod
-    def output_resolve_style(style: str | None) -> str:
-        """Resolve print style with canonical empty-style fallback."""
-        return style if style is not None else c.Cli.OUTPUT_EMPTY_STYLE
-
-    @staticmethod
-    def output_message_payload(
-        message: str,
-        message_type: c.Cli.MessageTypes | None,
-    ) -> t.Pair[str, str]:
-        """Build one canonical display payload and style from message type."""
-        final_type = FlextCliUtilitiesOutput.output_resolve_message_type(message_type)
-        default_type = c.Cli.OUTPUT_DEFAULT_MESSAGE_TYPE
-        style = c.Cli.MESSAGE_STYLE_MAP.get(
-            final_type,
-            c.Cli.MESSAGE_STYLE_MAP[default_type],
-        )
-        emoji = c.Cli.MESSAGE_EMOJI_MAP.get(
-            final_type,
-            c.Cli.MESSAGE_EMOJI_MAP[default_type],
-        )
-        return f"{emoji} {message}", style
-
-    @staticmethod
-    def output_progress_line(
-        current: int,
-        total: int,
-        label: str,
-        *,
-        detail: str,
-    ) -> str:
-        """Build one canonical progress line text."""
-        width = len(str(total))
-        suffix = f" {detail}" if detail else ""
-        return f"[{current:0{width}d}/{total}] {label}{suffix}"
+class FlextCliUtilitiesOutput(
+    FlextCliUtilitiesOutputPart01,
+    FlextCliUtilitiesOutputPart02,
+):
+    """Public facade for FlextCliUtilitiesOutput."""
 
     @staticmethod
     def output_status_line(
@@ -89,138 +46,22 @@ class FlextCliUtilitiesOutput:
         suffix = f"  {message}" if message else ""
         return f"    {symbol} {name:<10}{suffix}", style
 
-    @staticmethod
-    def output_summary_content(
-        *,
-        total: int,
-        success: int,
-        failed: int,
-        skipped: int,
-    ) -> str:
-        """Build one canonical summary content string."""
-        return (
-            f"Total: {total}  Success: {success}  Failed: {failed}  Skipped: {skipped}"
-        )
 
-    @staticmethod
-    def output_debug_line(message: str) -> t.Pair[str, str]:
-        """Build one canonical debug line and style."""
-        return f"[{c.Cli.OUTPUT_LOG_LEVEL_DEBUG}] {message}", c.Cli.MessageStyles.DIM
-
-    @staticmethod
-    def output_table_error(error_message: str | None) -> t.Pair[str, str]:
-        """Build one canonical table error line and style."""
-        error = error_message or c.Cli.ERR_UNKNOWN_ERROR
-        return f"{c.Cli.OUTPUT_TABLE_ERROR_LABEL} {error}", c.Cli.MessageStyles.BOLD_RED
-
-    @staticmethod
-    def emit_raw(text: str) -> None:
-        """Write raw text to stdout."""
-        _ = sys.stdout.write(text)
-        _ = sys.stdout.flush()
-
-    @classmethod
-    def info(cls, msg: str) -> None:
-        cls.emit_raw(f"{c.Cli.OUTPUT_LOG_LEVEL_INFO}: {msg}\n")
-
-    @classmethod
-    def error(cls, msg: str, detail: str | None = None) -> None:
-        cls.emit_raw(f"{c.Cli.OUTPUT_LOG_LEVEL_ERROR}: {msg}\n")
-        if detail:
-            cls.emit_raw(f"  {detail}\n")
-
-    @classmethod
-    def warning(cls, msg: str) -> None:
-        cls.emit_raw(f"{c.Cli.OUTPUT_LOG_LEVEL_WARNING}: {msg}\n")
-
-    @classmethod
-    def debug(cls, msg: str) -> None:
-        cls.emit_raw(f"{c.Cli.OUTPUT_LOG_LEVEL_DEBUG}: {msg}\n")
-
-    @classmethod
-    def header(cls, title: str) -> None:
-        line = "=" * c.Cli.OUTPUT_HEADER_RULE_WIDTH
-        cls.emit_raw(f"\n{line}\n  {title}\n{line}\n")
-
-    @classmethod
-    def progress(cls, idx: int, total: int, proj: str, verb: str) -> None:
-        width = len(str(total))
-        cls.emit_raw(f"[{idx:0{width}d}/{total:0{width}d}] {proj} {verb} ...\n")
-
-    @classmethod
-    def status(cls, verb: str, proj: str, *, result: bool, elapsed: float) -> None:
-        symbol = c.Cli.OUTPUT_STATUS_OK if result else c.Cli.OUTPUT_STATUS_FAIL
-        cls.emit_raw(f"  {symbol} {verb:<8} {proj:<24} {elapsed:.2f}s\n")
-
-    @classmethod
-    def summary(cls, stats: p.Cli.SummaryStats) -> None:
-        verb = str(getattr(stats, "verb", c.Cli.OUTPUT_SUMMARY_DEFAULT_VERB))
-        total = int(getattr(stats, "total", 0))
-        success = int(getattr(stats, "success", 0))
-        failed = int(getattr(stats, "failed", 0))
-        skipped = int(getattr(stats, "skipped", 0))
-        elapsed = float(getattr(stats, "elapsed", 0.0))
-        content = cls.output_summary_content(
-            total=total,
-            success=success,
-            failed=failed,
-            skipped=skipped,
-        )
-        cls.emit_raw(f"\n-- {verb} summary --\n{content}  ({elapsed:.2f}s)\n")
-
-    @classmethod
-    def gate_result(
-        cls,
-        gate: str,
-        count: int,
-        *,
-        passed: bool,
-        elapsed: float,
-    ) -> None:
-        symbol = c.Cli.OUTPUT_STATUS_OK if passed else c.Cli.OUTPUT_STATUS_FAIL
-        cls.emit_raw(f"    {symbol} {gate:<10} {count:>5} errors  ({elapsed:.2f}s)\n")
-
-    @classmethod
-    def project_failure(cls, info: p.Cli.ProjectFailureInfo) -> None:
-        project = str(getattr(info, "project", c.IDENTIFIER_UNKNOWN))
-        elapsed = int(getattr(info, "elapsed", 0))
-        error_count = int(getattr(info, "error_count", 0))
-        log_path = str(getattr(info, "log_path", c.DEFAULT_EMPTY_STRING))
-        max_show = int(getattr(info, "max_show", 0))
-        errors = tuple(getattr(info, "errors", ()))
-        count_label = (
-            f"  [{error_count} errors]" if error_count > 0 else c.DEFAULT_EMPTY_STRING
-        )
-        cls.emit_raw(
-            f"  {c.Cli.OUTPUT_STATUS_FAIL} {project} completed in {elapsed}s{count_label}  ({log_path})\n"
-        )
-        for line in errors[:max_show]:
-            cls.emit_raw(f"      {line}\n")
-        remaining = error_count - max_show
-        if remaining > 0:
-            cls.emit_raw(f"      ... and {remaining} more (see log)\n")
-
-    @staticmethod
-    def resolve_report_dir(workspace_root: Path | str, scope: str, verb: str) -> Path:
-        """Resolve standardized report directory path."""
-        root_path = (
-            Path(workspace_root) if isinstance(workspace_root, str) else workspace_root
-        )
-        base = root_path / c.Cli.OUTPUT_REPORTS_DIR_NAME
-        if scope == c.Cli.OUTPUT_SCOPE_WORKSPACE:
-            return (base / c.Cli.OUTPUT_SCOPE_WORKSPACE / verb).resolve()
-        return (base / verb).resolve()
-
-    @classmethod
-    def resolve_report_path(
-        cls,
-        workspace_root: Path | str,
-        scope: str,
-        verb: str,
-        filename: str,
-    ) -> Path:
-        """Resolve standardized report file path."""
-        return cls.resolve_report_dir(workspace_root, scope, verb) / filename
+__all__: list[str] = ["FlextCliUtilitiesOutput"]
 
 
-__all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesOutput"]
+# Bind part-module facade names for runtime class-level lookups.
+setattr(
+    _importlib.import_module(
+        "flext_cli._utilities._output_parts.flextcliutilitiesoutput_part_01"
+    ),
+    "FlextCliUtilitiesOutput",
+    FlextCliUtilitiesOutput,
+)
+setattr(
+    _importlib.import_module(
+        "flext_cli._utilities._output_parts.flextcliutilitiesoutput_part_02"
+    ),
+    "FlextCliUtilitiesOutput",
+    FlextCliUtilitiesOutput,
+)

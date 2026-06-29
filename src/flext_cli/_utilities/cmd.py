@@ -3,10 +3,27 @@
 from __future__ import annotations
 
 from flext_cli import FlextCliUtilitiesSettings as us, c, m, p, r, t
+from flext_core import u
 
 
 class FlextCliUtilitiesCmd:
     """Utility helpers for FlextCliCmd service orchestration."""
+
+    @staticmethod
+    def cmd_status_payload() -> t.JsonMapping:
+        """Return the canonical public CLI runtime status payload."""
+        return {
+            c.Cli.DICT_KEY_STATUS: c.Cli.ServiceStatus.OPERATIONAL,
+            c.Cli.DICT_KEY_SERVICE: c.Cli.FLEXT_CLI,
+            "timestamp": u.generate("timestamp"),
+            "version": c.Cli.CLI_VERSION,
+            "components": {
+                "settings": "available",
+                "formatters": "available",
+                "prompts": "available",
+                "rules": "available",
+            },
+        }
 
     @staticmethod
     def cmd_settings_snapshot() -> p.Result[m.Cli.SettingsSnapshot]:

@@ -2,428 +2,60 @@
 
 from __future__ import annotations
 
-import csv
-import hashlib
-import os
-import shutil
-import tempfile
-from collections.abc import (
-    Mapping,
+import importlib as _importlib
+
+from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_01 import (
+    FlextCliUtilitiesFiles as FlextCliUtilitiesFilesPart01,
 )
-from pathlib import Path
-from types import MappingProxyType
-from typing import ClassVar
-
-from flext_cli import c, m, p, r, t
-from flext_cli._utilities.json import FlextCliUtilitiesJson as uj
-from flext_cli._utilities.yaml import FlextCliUtilitiesYaml as uy
-from flext_core import u
-
-
-class FlextCliUtilitiesFiles:
-    """Generic filesystem operations for utility consumers."""
-
-    _FORMAT_BY_SUFFIX: ClassVar[t.MappingKV[str, str]] = MappingProxyType({
-        ".json": c.Cli.OutputFormats.JSON,
-        ".yaml": c.Cli.OutputFormats.YAML,
-        ".yml": c.Cli.OutputFormats.YAML,
-        ".csv": c.Cli.OutputFormats.CSV,
-        ".txt": c.Cli.OutputFormats.TEXT,
-        ".log": c.Cli.OutputFormats.TEXT,
-    })
-
-    @staticmethod
-    def files_delete(file_path: t.Cli.TextPath) -> p.Result[bool]:
-        """Delete one file-system path using canonical error handling."""
-        path = Path(file_path)
-
-        def _delete() -> bool:
-            if not path.exists() and not path.is_symlink():
-                return True
-            if path.is_dir() and not path.is_symlink():
-                shutil.rmtree(path)
-            else:
-                path.unlink()
-            return True
-
-        return FlextCliUtilitiesFiles.files_execute_bool(
-            _delete,
-            c.Cli.ERR_FILE_DELETION_FAILED,
-        )
-
-    @staticmethod
-    def files_read_text(file_path: t.Cli.TextPath) -> p.Result[str]:
-        """Read one UTF-8 text file."""
-        return FlextCliUtilitiesFiles.files_execute(
-            lambda: Path(file_path).read_text(encoding=c.Cli.ENCODING_DEFAULT),
-            c.Cli.ERR_TEXT_READ_FAILED,
-        )
-
-    @staticmethod
-    def files_write_text(file_path: t.Cli.TextPath, content: str) -> p.Result[bool]:
-        """Write one UTF-8 text file."""
-
-        def _write() -> bool:
-            Path(file_path).write_text(content, encoding=c.Cli.ENCODING_DEFAULT)
-            return True
-
-        return FlextCliUtilitiesFiles.files_execute(
-            _write,
-            c.Cli.ERR_TEXT_WRITE_FAILED,
-        )
-
-    @staticmethod
-    def files_read_json(file_path: t.Cli.TextPath) -> p.Result[t.JsonValue]:
-        """Read one JSON file and validate to canonical JSON value."""
-
-        def _load() -> t.JsonValue:
-            raw = Path(file_path).read_text(encoding=c.Cli.ENCODING_DEFAULT)
-            return t.Cli.JSON_VALUE_ADAPTER.validate_json(raw)
-
-        return FlextCliUtilitiesFiles.files_execute(
-            _load,
-            c.Cli.ERR_JSON_LOAD_FAILED,
-        )
-
-    @staticmethod
-    def files_read_json_model[M: t.Cli.ModelLike](
-        file_path: t.Cli.TextPath,
-        model_type: type[M],
-    ) -> p.Result[M]:
-        """Read one JSON file directly into one Pydantic model."""
-
-        def _load() -> M:
-            raw = Path(file_path).read_bytes()
-            loaded: M = model_type.model_validate_json(raw, strict=False)
-            return loaded
-
-        return FlextCliUtilitiesFiles.files_execute(
-            _load,
-            c.Cli.ERR_JSON_LOAD_FAILED,
-        )
-
-    @staticmethod
-    def files_read_yaml(file_path: t.Cli.TextPath) -> p.Result[t.JsonValue]:
-        """Read one YAML file and validate to canonical JSON value."""
-        return uy.yaml_safe_load(Path(file_path)).map(
-            t.Cli.JSON_VALUE_ADAPTER.validate_python,
-        )
-
-    @staticmethod
-    def files_write_csv(
-        file_path: t.Cli.TextPath,
-        rows: t.SequenceOf[t.StrSequence],
-    ) -> p.Result[bool]:
-        """Write one CSV file from row sequence."""
-
-        def _write() -> bool:
-            with Path(file_path).open(
-                mode="w",
-                encoding=c.Cli.ENCODING_DEFAULT,
-                newline="",
-            ) as handle:
-                writer = csv.writer(handle)
-                for row in rows:
-                    writer.writerow(list(row))
-            return True
-
-        return FlextCliUtilitiesFiles.files_execute(
-            _write,
-            c.Cli.ERR_CSV_WRITE_FAILED,
-        )
-
-    @staticmethod
-    def files_read_csv_with_headers(
-        file_path: t.Cli.TextPath,
-    ) -> p.Result[t.SequenceOf[t.StrMapping]]:
-        """Read one CSV file into mapping rows using header row."""
-
-        def _load() -> t.SequenceOf[t.StrMapping]:
-            with Path(file_path).open(
-                encoding=c.Cli.ENCODING_DEFAULT,
-                newline="",
-            ) as handle:
-                return [dict(row) for row in csv.DictReader(handle)]
-
-        return FlextCliUtilitiesFiles.files_execute(
-            _load,
-            c.Cli.ERR_CSV_READ_FAILED,
-        )
-
-    @staticmethod
-    def files_read_binary(file_path: t.Cli.TextPath) -> p.Result[bytes]:
-        """Read one binary file."""
-        return FlextCliUtilitiesFiles.files_execute(
-            lambda: Path(file_path).read_bytes(),
-            c.Cli.ERR_BINARY_READ_FAILED,
-        )
-
-    @staticmethod
-    def files_write_binary(file_path: t.Cli.TextPath, data: bytes) -> p.Result[bool]:
-        """Write one binary file."""
-
-        def _write() -> bool:
-            Path(file_path).write_bytes(data)
-            return True
-
-        return FlextCliUtilitiesFiles.files_execute(
-            _write,
-            c.Cli.ERR_BINARY_WRITE_FAILED,
-        )
-
-    @staticmethod
-    def files_copy(
-        source_path: t.Cli.TextPath,
-        destination_path: t.Cli.TextPath,
-    ) -> p.Result[bool]:
-        """Copy one file preserving metadata."""
-
-        def _copy() -> bool:
-            shutil.copy2(source_path, destination_path)
-            return True
-
-        return FlextCliUtilitiesFiles.files_execute(
-            _copy,
-            c.Cli.ERR_FILE_COPY_FAILED,
-        )
-
-    @staticmethod
-    def files_execute[T](
-        operation_func: t.Cli.NullaryOperation[T],
-        error_template: str,
-        **format_kwargs: t.Scalar,
-    ) -> p.Result[T]:
-        """Execute one operation and map common runtime errors to ``r``."""
-        try:
-            return r[T].ok(operation_func())
-        except c.EXC_BROAD_RUNTIME_OS as exc:
-            return r[T].fail(error_template.format(error=exc, **format_kwargs))
-
-    @staticmethod
-    def files_execute_bool[T](
-        operation_func: t.Cli.NullaryOperation[T],
-        error_template: str,
-        **format_kwargs: t.Scalar,
-    ) -> p.Result[bool]:
-        """Execute one operation that should return a success boolean."""
-
-        def _run() -> bool:
-            _ = operation_func()
-            return True
-
-        return FlextCliUtilitiesFiles.files_execute(
-            _run,
-            error_template,
-            **format_kwargs,
-        )
-
-    @staticmethod
-    def ensure_dir(path: t.Cli.TextPath) -> p.Result[Path]:
-        """Create a directory tree when missing and return the resolved path."""
-        target = Path(path)
-        try:
-            target.mkdir(parents=True, exist_ok=True)
-        except OSError as exc:
-            return r[Path].fail(
-                c.Cli.ERR_ENSURE_DIR_FAILED.format(error=exc),
-            )
-        return r[Path].ok(target)
-
-    @staticmethod
-    def files_list_directory_names(
-        file_path: t.Cli.TextPath,
-    ) -> p.Result[t.SequenceOf[str]]:
-        """Return sorted child directory names for one path."""
-        path = Path(file_path)
-        if not path.exists():
-            return r[t.SequenceOf[str]].ok(())
-
-        def _list() -> t.SequenceOf[str]:
-            names = sorted(entry.name for entry in path.iterdir() if entry.is_dir())
-            return tuple(names)
-
-        return FlextCliUtilitiesFiles.files_execute(
-            _list,
-            c.Cli.ERR_TEXT_READ_FAILED,
-        )
-
-    @staticmethod
-    def ensure_symlink(
-        target: t.Cli.TextPath, source: t.Cli.TextPath
-    ) -> p.Result[bool]:
-        """Ensure target points to source via directory symlink."""
-        target_path = Path(target)
-        source_path = Path(source).resolve()
-        ensure_result = FlextCliUtilitiesFiles.ensure_dir(target_path.parent)
-        if ensure_result.failure:
-            return r[bool].fail(
-                ensure_result.error
-                or c.Cli.ERR_CREATE_PARENT_DIR_FAILED.format(
-                    target_path=target_path,
-                ),
-            )
-        if target_path.is_symlink() and target_path.resolve() == source_path:
-            return r[bool].ok(True)
-        FlextCliUtilitiesFiles._remove_symlink_target(target_path)
-        try:
-            target_path.symlink_to(source_path, target_is_directory=True)
-        except OSError as exc:
-            return r[bool].fail(
-                c.Cli.ERR_ENSURE_SYMLINK_FAILED.format(
-                    target_path=target_path,
-                    error=exc,
-                )
-            )
-        return r[bool].ok(True)
-
-    @staticmethod
-    def _remove_symlink_target(target_path: Path) -> None:
-        """Remove an existing file, directory, or symlink at ``target_path``."""
-        if not target_path.exists() and not target_path.is_symlink():
-            return
-        if target_path.is_dir() and not target_path.is_symlink():
-            shutil.rmtree(target_path)
-        else:
-            target_path.unlink()
-
-    @staticmethod
-    def atomic_write_text_file(
-        file_path: t.Cli.TextPath, content: str
-    ) -> p.Result[bool]:
-        """Write a text file atomically via tempfile + replace in the same directory."""
-        path = Path(file_path)
-        ensure_result = FlextCliUtilitiesFiles.ensure_dir(path.parent)
-        if ensure_result.failure:
-            return r[bool].fail(
-                ensure_result.error or c.Cli.ERR_ENSURE_DIR_GENERIC_FAILED,
-            )
-        try:
-            FlextCliUtilitiesFiles._write_temp_and_replace(path, content)
-        except OSError as exc:
-            return r[bool].fail(
-                c.Cli.ERR_ATOMIC_WRITE_TEXT_FILE_FAILED.format(
-                    error=exc,
-                ),
-            )
-        return r[bool].ok(True)
-
-    @staticmethod
-    def _write_temp_and_replace(path: Path, content: str) -> None:
-        """Write content to a temp file next to ``path`` and atomically replace it."""
-        fd, tmp_path = tempfile.mkstemp(dir=path.parent, suffix=".tmp")
-        try:
-            with os.fdopen(fd, "w", encoding=c.Cli.ENCODING_DEFAULT) as handle:
-                handle.write(content)
-            Path(tmp_path).replace(path)
-        except BaseException:
-            Path(tmp_path).unlink(missing_ok=True)
-            raise
-
-    @staticmethod
-    def sha256_content(content: str) -> str:
-        """Return the SHA-256 hex digest for text content."""
-        return hashlib.sha256(content.encode(c.Cli.ENCODING_DEFAULT)).hexdigest()
-
-    @staticmethod
-    def sha256_file(file_path: t.Cli.TextPath) -> str:
-        """Return the SHA-256 hex digest for a file on disk."""
-        path = Path(file_path)
-        hasher = hashlib.sha256()
-        with path.open("rb") as handle:
-            for chunk in iter(lambda: handle.read(1024 * 1024), b""):
-                hasher.update(chunk)
-        return hasher.hexdigest()
-
-    @staticmethod
-    def files_detect_format(file_path: t.Cli.TextPath) -> p.Result[str]:
-        """Detect one file format from extension using canonical output enums."""
-        suffix = Path(file_path).suffix.lower()
-        detected_format = FlextCliUtilitiesFiles._FORMAT_BY_SUFFIX.get(suffix)
-        if detected_format is not None:
-            return r[str].ok(detected_format)
-        if not suffix:
-            return r[str].fail("Unable to detect file format without an extension")
-        return r[str].fail(f"Unsupported format: {suffix}")
-
-    @staticmethod
-    def files_detect_format_from_content(
-        content: str
-        | bytes
-        | m.ConfigMap
-        | m.Dict
-        | Mapping[str, object]
-        | t.SequenceOf[t.StrSequence],
-        name: str,
-        fmt: str = c.Cli.FILE_FORMAT_AUTO,
-    ) -> str:
-        """Detect file format from explicit hint, content shape, or extension.
-
-        Uses the test-domain convention (``text`` as the default fallback) so
-        callers from ``flext-tests`` keep their existing contract.
-        """
-        if fmt != c.Cli.FILE_FORMAT_AUTO:
-            return fmt
-        if isinstance(content, bytes):
-            return str(c.Cli.FILE_FORMAT_BIN)
-        if isinstance(content, (m.ConfigMap, m.Dict, Mapping)):
-            ext = Path(name).suffix.lower()
-            return (
-                str(c.Cli.FILE_FORMAT_YAML)
-                if ext in {".yaml", ".yml"}
-                else str(c.Cli.FILE_FORMAT_JSON)
-            )
-        if isinstance(content, list):
-            return str(c.Cli.FILE_FORMAT_CSV)
-        return c.Cli.format_for_extension(Path(name).suffix)
-
-    @staticmethod
-    def files_detect_format_from_path(
-        path: t.Cli.TextPath,
-        fmt: str = c.Cli.FILE_FORMAT_AUTO,
-    ) -> str:
-        """Detect file format from a path extension.
-
-        Uses the test-domain convention (``text`` as the default fallback).
-        """
-        if fmt != c.Cli.FILE_FORMAT_AUTO:
-            return fmt
-        return c.Cli.format_for_extension(Path(path).suffix)
-
-    @staticmethod
-    def files_load_auto_mapping(
-        file_path: t.Cli.TextPath,
-    ) -> p.Result[t.JsonMapping]:
-        """Load JSON/YAML file and normalize to one mapping payload."""
-        path = Path(file_path)
-        if path.suffix.lower() == ".json":
-            read_result = uj.json_read(path)
-        elif path.suffix.lower() in {".yaml", ".yml"}:
-            read_result = uy.yaml_safe_load(path)
-        else:
-            return r[t.JsonMapping].fail(
-                f"Unsupported format: {path.suffix or '<none>'}",
-            )
-        return read_result.map_error(
-            lambda err: err or c.Cli.ERR_AUTO_LOAD_FAILED,
-        ).flat_map(
-            lambda payload: (
-                r[t.JsonMapping].ok({
-                    key: u.normalize_to_json_value(value)
-                    for key, value in payload.items()
-                })
-                if isinstance(payload, Mapping)
-                else r[t.JsonMapping].fail("Auto-detected file must contain a mapping")
-            ),
-        )
-
-    @staticmethod
-    def csv_loads(text: str, *, delimiter: str = ",") -> p.Result[list[list[str]]]:
-        """Parse a CSV-encoded string into a list of rows."""
-        try:
-            rows = list(csv.reader(text.splitlines(), delimiter=delimiter))
-        except csv.Error as exc:
-            return r[list[list[str]]].fail(f"csv_loads: {exc}")
-        return r[list[list[str]]].ok(rows)
+from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_02 import (
+    FlextCliUtilitiesFiles as FlextCliUtilitiesFilesPart02,
+)
+from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_03 import (
+    FlextCliUtilitiesFiles as FlextCliUtilitiesFilesPart03,
+)
+from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_04 import (
+    FlextCliUtilitiesFiles as FlextCliUtilitiesFilesPart04,
+)
 
 
-__all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesFiles"]
+class FlextCliUtilitiesFiles(
+    FlextCliUtilitiesFilesPart01,
+    FlextCliUtilitiesFilesPart02,
+    FlextCliUtilitiesFilesPart03,
+    FlextCliUtilitiesFilesPart04,
+):
+    """Public facade for FlextCliUtilitiesFiles."""
+
+
+__all__: list[str] = ["FlextCliUtilitiesFiles"]
+
+
+# Bind part-module facade names for runtime class-level lookups.
+setattr(
+    _importlib.import_module(
+        "flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_01"
+    ),
+    "FlextCliUtilitiesFiles",
+    FlextCliUtilitiesFiles,
+)
+setattr(
+    _importlib.import_module(
+        "flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_02"
+    ),
+    "FlextCliUtilitiesFiles",
+    FlextCliUtilitiesFiles,
+)
+setattr(
+    _importlib.import_module(
+        "flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_03"
+    ),
+    "FlextCliUtilitiesFiles",
+    FlextCliUtilitiesFiles,
+)
+setattr(
+    _importlib.import_module(
+        "flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_04"
+    ),
+    "FlextCliUtilitiesFiles",
+    FlextCliUtilitiesFiles,
+)
