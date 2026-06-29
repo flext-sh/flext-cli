@@ -10,16 +10,11 @@ from inspect import Parameter
 
 import typer
 
-from flext_cli import (
-    FlextCliCommonParams,
-    m,
-    p,
-    t,
-    u,
-)
+from flext_cli import m, p, t, u
 from flext_cli.services._cli_parts.flextclicli_part_01 import (
     FlextCliCli as FlextCliCliPart01,
 )
+from flext_cli.services.cli_params import FlextCliCommonParams
 
 
 class FlextCliCli(FlextCliCliPart01):

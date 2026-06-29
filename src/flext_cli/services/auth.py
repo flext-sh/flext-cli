@@ -15,8 +15,6 @@ from __future__ import annotations
 import secrets
 
 from flext_cli import (
-    FlextCliFileTools,
-    FlextCliServiceBase,
     c,
     m,
     p,
@@ -24,6 +22,8 @@ from flext_cli import (
     t,
     u,
 )
+from flext_cli.base import FlextCliServiceBase
+from flext_cli.services.file_tools import FlextCliFileTools
 
 
 class FlextCliAuth(FlextCliServiceBase):

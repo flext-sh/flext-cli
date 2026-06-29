@@ -4,7 +4,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from flext_cli import FlextCliServiceBase, FlextCliUtilitiesPipeline, c, m, p, r, t
+from flext_cli import c, m, p, r, t
+from flext_cli._utilities.pipeline import FlextCliUtilitiesPipeline
+from flext_cli.base import FlextCliServiceBase
 
 
 class FlextCliPipeline(FlextCliServiceBase, FlextCliUtilitiesPipeline):

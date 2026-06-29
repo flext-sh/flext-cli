@@ -5,16 +5,8 @@ from __future__ import annotations
 import getpass
 from typing import Annotated, Self
 
-from flext_cli import (
-    FlextCliProtocolsBase,
-    c,
-    m,
-    p,
-    r,
-    s,
-    t,
-    u,
-)
+from flext_cli import c, m, p, r, s, t, u
+from flext_cli._protocols.base import FlextCliProtocolsBase
 
 
 class FlextCliPromptsSupport(s):

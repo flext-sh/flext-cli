@@ -11,7 +11,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Annotated
 
 from flext_cli import c
-from flext_core import FlextSettings, m, u
+from flext_core.models import m
+from flext_core.settings import FlextSettings
+from flext_core.utilities import u
 
 if TYPE_CHECKING:
     from flext_cli import p

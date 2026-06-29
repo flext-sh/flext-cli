@@ -9,10 +9,8 @@ from collections.abc import (
 )
 from pathlib import Path
 
-from flext_cli import (
-    FlextCliUtilitiesJson as uj,
-    t,
-)
+from flext_cli import t
+from flext_cli._utilities.json import FlextCliUtilitiesJson as uj
 
 
 class FlextCliUtilitiesRules:

@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from flext_cli import FlextCliServiceBase, FlextCliUtilitiesRules, t
+from flext_cli import t
+from flext_cli._utilities.rules import FlextCliUtilitiesRules
+from flext_cli.base import FlextCliServiceBase
 
 
 class FlextCliRules(FlextCliServiceBase, FlextCliUtilitiesRules):

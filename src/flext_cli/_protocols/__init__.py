@@ -3,24 +3,12 @@
 
 from __future__ import annotations
 
-import typing as _t
-
 from flext_core.lazy import (
     build_lazy_import_map,
     install_lazy_exports,
     merge_lazy_imports,
 )
 
-if _t.TYPE_CHECKING:
-    from flext_cli._protocols._base_parts import (
-        FlextCliProtocolsBase as FlextCliProtocolsBase,
-    )
-    from flext_cli._protocols.domain import (
-        FlextCliProtocolsDomain as FlextCliProtocolsDomain,
-    )
-    from flext_cli._protocols.pipeline import (
-        FlextCliProtocolsPipeline as FlextCliProtocolsPipeline,
-    )
 _LAZY_IMPORTS = merge_lazy_imports(
     ("._base_parts",),
     build_lazy_import_map(

@@ -20,7 +20,6 @@ from typer import Typer
 from typer.models import OptionInfo
 from typer.testing import CliRunner
 
-from flext_core.models import m
 from flext_core.typings import t
 
 
@@ -83,7 +82,7 @@ class FlextCliTypesBase:
     )
     YAML_SEQ_ADAPTER: ClassVar[t.ValueAdapter[t.JsonList]] = t.json_list_adapter()
     CLI_DEFAULT_SOURCE_ADAPTER: ClassVar[t.ValueAdapter[CliDefaultSource]] = (
-        m.TypeAdapter(CliDefaultSource)
+        t.TypeAdapter(CliDefaultSource)
     )
 
 

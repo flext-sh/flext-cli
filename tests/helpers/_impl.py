@@ -8,10 +8,9 @@ from __future__ import annotations
 
 from typing import Self, override
 
+from flext_cli.services.prompts import FlextCliPrompts
 from tests.models import m
 from tests.typings import t
-
-from flext_cli.services.prompts import FlextCliPrompts
 
 
 class TestsFlextCliScriptedPrompts(FlextCliPrompts):

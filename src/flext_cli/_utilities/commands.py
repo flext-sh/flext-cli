@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from flext_cli import FlextCliUtilitiesOutput as uo, c, p, t
+from flext_cli import c, p, t
+from flext_cli._utilities.output import FlextCliUtilitiesOutput as uo
 from flext_core import u
 
 

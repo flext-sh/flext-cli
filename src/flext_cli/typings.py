@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-from flext_cli import FlextCliTypesDomain, FlextCliTypesPipeline
 from flext_cli._typings.base import FlextCliTypesBase
+from flext_cli._typings.domain import FlextCliTypesDomain
+from flext_cli._typings.pipeline import FlextCliTypesPipeline
 from flext_core import FlextTypes
 
 
