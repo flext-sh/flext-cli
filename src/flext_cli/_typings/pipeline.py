@@ -11,7 +11,7 @@ from flext_cli._constants.enums import FlextCliConstantsEnums
 from flext_core import p, t
 
 if TYPE_CHECKING:
-    from flext_cli import FlextCliModelsPipeline as mp
+    from flext_cli._models.pipeline import FlextCliModelsPipeline as mp
 
 
 class FlextCliTypesPipeline:

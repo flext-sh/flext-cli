@@ -6,10 +6,10 @@ from flext_cli import (
     c,
     p,
     r,
-    s,
     t,
     u,
 )
+from flext_cli.base import s
 
 
 class FlextCliCommonParams(s):

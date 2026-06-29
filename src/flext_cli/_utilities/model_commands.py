@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import inspect
+from collections.abc import Mapping
 
 from flext_cli import p, t
 from flext_core import m
@@ -84,10 +85,10 @@ class FlextCliUtilitiesModelCommands:
     ) -> t.JsonMapping:
         """Extract only target-compatible fields from a model or mapping source."""
         raw_source: t.JsonMapping | t.ScalarMapping
-        if isinstance(source, m.BaseModel):
-            raw_source = source.model_dump(exclude_none=True)
-        else:
+        if isinstance(source, Mapping):
             raw_source = source
+        else:
+            raw_source = source.model_dump(exclude_none=True)
         filtered_payload = {
             field_name: raw_source[field_name]
             for field_name in model_cls.model_fields

@@ -3,8 +3,14 @@
 
 from __future__ import annotations
 
+import typing as _t
+
 from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
+if _t.TYPE_CHECKING:
+    from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_07 import (
+        FlextCliUtilitiesToml as FlextCliUtilitiesToml,
+    )
 _LAZY_IMPORTS = build_lazy_import_map(
     {
         ".flextcliutilitiestoml_part_07": ("FlextCliUtilitiesToml",),
