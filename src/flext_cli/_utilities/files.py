@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import importlib as _importlib
-
 from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_01 import (
     FlextCliUtilitiesFiles as FlextCliUtilitiesFilesPart01,
 )
@@ -28,34 +26,3 @@ class FlextCliUtilitiesFiles(
 
 
 __all__: list[str] = ["FlextCliUtilitiesFiles"]
-
-
-# Bind part-module facade names for runtime class-level lookups.
-setattr(
-    _importlib.import_module(
-        "flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_01"
-    ),
-    "FlextCliUtilitiesFiles",
-    FlextCliUtilitiesFiles,
-)
-setattr(
-    _importlib.import_module(
-        "flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_02"
-    ),
-    "FlextCliUtilitiesFiles",
-    FlextCliUtilitiesFiles,
-)
-setattr(
-    _importlib.import_module(
-        "flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_03"
-    ),
-    "FlextCliUtilitiesFiles",
-    FlextCliUtilitiesFiles,
-)
-setattr(
-    _importlib.import_module(
-        "flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_04"
-    ),
-    "FlextCliUtilitiesFiles",
-    FlextCliUtilitiesFiles,
-)

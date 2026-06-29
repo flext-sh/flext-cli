@@ -11,8 +11,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import importlib as _importlib
-
 from flext_tests import FlextTestsModels
 
 from flext_cli import m as flext_cli_m
@@ -35,11 +33,3 @@ class TestsFlextCliModels(
 m: type[TestsFlextCliModels] = TestsFlextCliModels
 
 __all__: list[str] = ["TestsFlextCliModels", "m"]
-
-
-# Bind part-module facade names for runtime class-level lookups.
-setattr(
-    _importlib.import_module("tests._models_parts.testsflextclimodels_part_01"),
-    "TestsFlextCliModels",
-    TestsFlextCliModels,
-)

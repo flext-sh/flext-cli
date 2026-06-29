@@ -10,8 +10,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import importlib as _importlib
-
 from examples._models_parts.examplesflextclimodels_part_01 import (
     ExamplesFlextCliModels as ExamplesFlextCliModelsPart01,
 )
@@ -28,11 +26,3 @@ class ExamplesFlextCliModels(
 m: type[ExamplesFlextCliModels] = ExamplesFlextCliModels
 
 __all__: list[str] = ["ExamplesFlextCliModels", "m"]
-
-
-# Bind part-module facade names for runtime class-level lookups.
-setattr(
-    _importlib.import_module("examples._models_parts.examplesflextclimodels_part_01"),
-    "ExamplesFlextCliModels",
-    ExamplesFlextCliModels,
-)

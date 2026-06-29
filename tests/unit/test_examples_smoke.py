@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import importlib as _importlib
-
 from ._cases.test_examples_smoke.testsflextcliexamplessmoke_part_01 import (
     TestsFlextCliExamplesSmoke as TestsFlextCliExamplesSmokePart01,
 )
@@ -32,41 +30,3 @@ class TestsFlextCliExamplesSmoke(
 
 
 __all__: list[str] = ["TestsFlextCliExamplesSmoke"]
-
-
-# Bind part-module facade names for runtime class-level lookups.
-setattr(
-    _importlib.import_module(
-        "tests.unit._cases.test_examples_smoke.testsflextcliexamplessmoke_part_01"
-    ),
-    "TestsFlextCliExamplesSmoke",
-    TestsFlextCliExamplesSmoke,
-)
-setattr(
-    _importlib.import_module(
-        "tests.unit._cases.test_examples_smoke.testsflextcliexamplessmoke_part_02"
-    ),
-    "TestsFlextCliExamplesSmoke",
-    TestsFlextCliExamplesSmoke,
-)
-setattr(
-    _importlib.import_module(
-        "tests.unit._cases.test_examples_smoke.testsflextcliexamplessmoke_part_03"
-    ),
-    "TestsFlextCliExamplesSmoke",
-    TestsFlextCliExamplesSmoke,
-)
-setattr(
-    _importlib.import_module(
-        "tests.unit._cases.test_examples_smoke.testsflextcliexamplessmoke_part_04"
-    ),
-    "TestsFlextCliExamplesSmoke",
-    TestsFlextCliExamplesSmoke,
-)
-setattr(
-    _importlib.import_module(
-        "tests.unit._cases.test_examples_smoke.testsflextcliexamplessmoke_part_05"
-    ),
-    "TestsFlextCliExamplesSmoke",
-    TestsFlextCliExamplesSmoke,
-)

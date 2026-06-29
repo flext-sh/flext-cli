@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import importlib as _importlib
-
 from flext_cli import c, t
 from flext_cli._utilities._output_parts.flextcliutilitiesoutput_part_01 import (
     FlextCliUtilitiesOutput as FlextCliUtilitiesOutputPart01,
@@ -48,20 +46,3 @@ class FlextCliUtilitiesOutput(
 
 
 __all__: list[str] = ["FlextCliUtilitiesOutput"]
-
-
-# Bind part-module facade names for runtime class-level lookups.
-setattr(
-    _importlib.import_module(
-        "flext_cli._utilities._output_parts.flextcliutilitiesoutput_part_01"
-    ),
-    "FlextCliUtilitiesOutput",
-    FlextCliUtilitiesOutput,
-)
-setattr(
-    _importlib.import_module(
-        "flext_cli._utilities._output_parts.flextcliutilitiesoutput_part_02"
-    ),
-    "FlextCliUtilitiesOutput",
-    FlextCliUtilitiesOutput,
-)

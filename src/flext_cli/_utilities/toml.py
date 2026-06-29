@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import importlib as _importlib
-
 from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_01 import (
     FlextCliUtilitiesToml as FlextCliUtilitiesTomlPart01,
 )
@@ -40,55 +38,3 @@ class FlextCliUtilitiesToml(
 
 
 __all__: list[str] = ["FlextCliUtilitiesToml"]
-
-
-# Bind part-module facade names for runtime class-level lookups.
-setattr(
-    _importlib.import_module(
-        "flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_01"
-    ),
-    "FlextCliUtilitiesToml",
-    FlextCliUtilitiesToml,
-)
-setattr(
-    _importlib.import_module(
-        "flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_02"
-    ),
-    "FlextCliUtilitiesToml",
-    FlextCliUtilitiesToml,
-)
-setattr(
-    _importlib.import_module(
-        "flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_03"
-    ),
-    "FlextCliUtilitiesToml",
-    FlextCliUtilitiesToml,
-)
-setattr(
-    _importlib.import_module(
-        "flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_04"
-    ),
-    "FlextCliUtilitiesToml",
-    FlextCliUtilitiesToml,
-)
-setattr(
-    _importlib.import_module(
-        "flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_05"
-    ),
-    "FlextCliUtilitiesToml",
-    FlextCliUtilitiesToml,
-)
-setattr(
-    _importlib.import_module(
-        "flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_06"
-    ),
-    "FlextCliUtilitiesToml",
-    FlextCliUtilitiesToml,
-)
-setattr(
-    _importlib.import_module(
-        "flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_07"
-    ),
-    "FlextCliUtilitiesToml",
-    FlextCliUtilitiesToml,
-)

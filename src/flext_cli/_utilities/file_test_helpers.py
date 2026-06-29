@@ -8,8 +8,6 @@ reimplementing them.
 
 from __future__ import annotations
 
-import importlib as _importlib
-
 from flext_cli._utilities._file_test_helper_parts.flextcliutilitiesfiletesthelpersmixin_part_01 import (
     FlextCliUtilitiesFileTestHelpersMixin as FlextCliUtilitiesFileTestHelpersMixinPart01,
 )
@@ -34,34 +32,3 @@ class FlextCliUtilitiesFileTestHelpersMixin(
 
 
 __all__: list[str] = ["FlextCliUtilitiesFileTestHelpersMixin"]
-
-
-# Bind part-module facade names for runtime class-level lookups.
-setattr(
-    _importlib.import_module(
-        "flext_cli._utilities._file_test_helper_parts.flextcliutilitiesfiletesthelpersmixin_part_01"
-    ),
-    "FlextCliUtilitiesFileTestHelpersMixin",
-    FlextCliUtilitiesFileTestHelpersMixin,
-)
-setattr(
-    _importlib.import_module(
-        "flext_cli._utilities._file_test_helper_parts.flextcliutilitiesfiletesthelpersmixin_part_02"
-    ),
-    "FlextCliUtilitiesFileTestHelpersMixin",
-    FlextCliUtilitiesFileTestHelpersMixin,
-)
-setattr(
-    _importlib.import_module(
-        "flext_cli._utilities._file_test_helper_parts.flextcliutilitiesfiletesthelpersmixin_part_03"
-    ),
-    "FlextCliUtilitiesFileTestHelpersMixin",
-    FlextCliUtilitiesFileTestHelpersMixin,
-)
-setattr(
-    _importlib.import_module(
-        "flext_cli._utilities._file_test_helper_parts.flextcliutilitiesfiletesthelpersmixin_part_04"
-    ),
-    "FlextCliUtilitiesFileTestHelpersMixin",
-    FlextCliUtilitiesFileTestHelpersMixin,
-)

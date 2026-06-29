@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import importlib as _importlib
-
 from ._cases.test_public_contracts_cov.testsflextclipubliccontractscoverage_part_01 import (
     TestsFlextCliPublicContractsCoverage as TestsFlextCliPublicContractsCoveragePart01,
 )
@@ -24,27 +22,3 @@ class TestsFlextCliPublicContractsCoverage(
 
 
 __all__: list[str] = ["TestsFlextCliPublicContractsCoverage"]
-
-
-# Bind part-module facade names for runtime class-level lookups.
-setattr(
-    _importlib.import_module(
-        "tests.unit._cases.test_public_contracts_cov.testsflextclipubliccontractscoverage_part_01"
-    ),
-    "TestsFlextCliPublicContractsCoverage",
-    TestsFlextCliPublicContractsCoverage,
-)
-setattr(
-    _importlib.import_module(
-        "tests.unit._cases.test_public_contracts_cov.testsflextclipubliccontractscoverage_part_02"
-    ),
-    "TestsFlextCliPublicContractsCoverage",
-    TestsFlextCliPublicContractsCoverage,
-)
-setattr(
-    _importlib.import_module(
-        "tests.unit._cases.test_public_contracts_cov.testsflextclipubliccontractscoverage_part_03"
-    ),
-    "TestsFlextCliPublicContractsCoverage",
-    TestsFlextCliPublicContractsCoverage,
-)

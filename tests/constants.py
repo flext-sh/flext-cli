@@ -13,8 +13,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import importlib as _importlib
-
 from flext_tests import FlextTestsConstants
 
 from flext_cli import c as flext_cli_c
@@ -34,11 +32,3 @@ class TestsFlextCliConstants(
 c: type[TestsFlextCliConstants] = TestsFlextCliConstants
 
 __all__: list[str] = ["TestsFlextCliConstants", "c"]
-
-
-# Bind part-module facade names for runtime class-level lookups.
-setattr(
-    _importlib.import_module("tests._constants_parts.testsflextcliconstants_part_01"),
-    "TestsFlextCliConstants",
-    TestsFlextCliConstants,
-)

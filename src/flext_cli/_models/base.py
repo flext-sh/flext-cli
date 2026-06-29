@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import importlib as _importlib
-
 from flext_cli._models._base_parts.flextclimodelsbase_part_01 import (
     FlextCliModelsBase as FlextCliModelsBasePart01,
 )
@@ -40,55 +38,3 @@ class FlextCliModelsBase(
 
 
 __all__: list[str] = ["FlextCliModelsBase"]
-
-
-# Bind part-module facade names for runtime class-level lookups.
-setattr(
-    _importlib.import_module(
-        "flext_cli._models._base_parts.flextclimodelsbase_part_01"
-    ),
-    "FlextCliModelsBase",
-    FlextCliModelsBase,
-)
-setattr(
-    _importlib.import_module(
-        "flext_cli._models._base_parts.flextclimodelsbase_part_02"
-    ),
-    "FlextCliModelsBase",
-    FlextCliModelsBase,
-)
-setattr(
-    _importlib.import_module(
-        "flext_cli._models._base_parts.flextclimodelsbase_part_03"
-    ),
-    "FlextCliModelsBase",
-    FlextCliModelsBase,
-)
-setattr(
-    _importlib.import_module(
-        "flext_cli._models._base_parts.flextclimodelsbase_part_04"
-    ),
-    "FlextCliModelsBase",
-    FlextCliModelsBase,
-)
-setattr(
-    _importlib.import_module(
-        "flext_cli._models._base_parts.flextclimodelsbase_part_05"
-    ),
-    "FlextCliModelsBase",
-    FlextCliModelsBase,
-)
-setattr(
-    _importlib.import_module(
-        "flext_cli._models._base_parts.flextclimodelsbase_part_06"
-    ),
-    "FlextCliModelsBase",
-    FlextCliModelsBase,
-)
-setattr(
-    _importlib.import_module(
-        "flext_cli._models._base_parts.flextclimodelsbase_part_07"
-    ),
-    "FlextCliModelsBase",
-    FlextCliModelsBase,
-)
