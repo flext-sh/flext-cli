@@ -94,7 +94,7 @@ _LAZY_IMPORTS = build_lazy_import_map(
 )
 
 
-_PUBLIC_EXPORTS: tuple[str, ...] = (
+__all__: tuple[str, ...] = (
     "FlextCli",
     "FlextCliAuth",
     "FlextCliCli",
@@ -114,7 +114,6 @@ _PUBLIC_EXPORTS: tuple[str, ...] = (
     "FlextCliTables",
     "FlextCliTypes",
     "FlextCliUtilities",
-    "cli",
     "__author__",
     "__author_email__",
     "__description__",
@@ -124,6 +123,7 @@ _PUBLIC_EXPORTS: tuple[str, ...] = (
     "__version__",
     "__version_info__",
     "c",
+    "cli",
     "d",
     "e",
     "h",
@@ -135,52 +135,11 @@ _PUBLIC_EXPORTS: tuple[str, ...] = (
     "u",
     "x",
 )
-__all__: list[str] = [
-    "FlextCli",
-    "FlextCliAuth",
-    "FlextCliCli",
-    "FlextCliCmd",
-    "FlextCliCommonParams",
-    "FlextCliConstants",
-    "FlextCliFileTools",
-    "FlextCliFormatters",
-    "FlextCliModels",
-    "FlextCliOutput",
-    "FlextCliPipeline",
-    "FlextCliProtocols",
-    "FlextCliRules",
-    "FlextCliRuntime",
-    "FlextCliServiceBase",
-    "FlextCliSettings",
-    "FlextCliTables",
-    "FlextCliTypes",
-    "FlextCliUtilities",
-    "__author__",
-    "__author_email__",
-    "__description__",
-    "__license__",
-    "__title__",
-    "__url__",
-    "__version__",
-    "__version_info__",
-    "c",
-    "cli",
-    "d",
-    "e",
-    "h",
-    "m",
-    "p",
-    "r",
-    "s",
-    "t",
-    "u",
-    "x",
-]
 
 
 install_lazy_exports(
     __name__,
     globals(),
     _LAZY_IMPORTS,
-    public_exports=_PUBLIC_EXPORTS,
+    public_exports=__all__,
 )
