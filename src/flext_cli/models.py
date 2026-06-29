@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
-from flext_cli import FlextCliModelsBase, FlextCliModelsPipeline, FlextCliModelsRules, t
+from flext_cli._models.base import FlextCliModelsBase
+from flext_cli._models.pipeline import FlextCliModelsPipeline
+from flext_cli._models.rules import FlextCliModelsRules
+from flext_cli.typings import t
 from flext_core import FlextModels
 
 

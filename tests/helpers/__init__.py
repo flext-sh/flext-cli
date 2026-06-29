@@ -1,5 +1,5 @@
 # AUTO-GENERATED FILE — Regenerate with: make gen
-"""Test Prompts package."""
+"""Helpers package."""
 
 from __future__ import annotations
 
@@ -26,12 +26,8 @@ if _t.TYPE_CHECKING:
         u as u,
         x as x,
     )
-    from tests.unit._cases.test_prompts.testsflextcliprompts_part_02 import (
-        TestsFlextCliPrompts as TestsFlextCliPrompts,
-    )
 _LAZY_IMPORTS = build_lazy_import_map(
     {
-        ".testsflextcliprompts_part_02": ("TestsFlextCliPrompts",),
         "flext_tests": (
             "c",
             "d",
