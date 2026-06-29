@@ -3,34 +3,12 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from flext_core.lazy import (
     build_lazy_import_map,
     install_lazy_exports,
     merge_lazy_imports,
 )
 
-if TYPE_CHECKING:
-    from flext_cli.services._prompts_parts.flextcliprompts_part_03 import (
-        FlextCliPrompts as FlextCliPrompts,
-    )
-    from flext_cli.services._prompts_parts.flextcliprompts_support import (
-        FlextCliPromptsSupport as FlextCliPromptsSupport,
-    )
-    from flext_cli.services.auth import FlextCliAuth as FlextCliAuth
-    from flext_cli.services.cli import FlextCliCli as FlextCliCli
-    from flext_cli.services.cli_params import (
-        FlextCliCommonParams as FlextCliCommonParams,
-    )
-    from flext_cli.services.cmd import FlextCliCmd as FlextCliCmd
-    from flext_cli.services.file_tools import FlextCliFileTools as FlextCliFileTools
-    from flext_cli.services.formatters import FlextCliFormatters as FlextCliFormatters
-    from flext_cli.services.output import FlextCliOutput as FlextCliOutput
-    from flext_cli.services.pipeline import FlextCliPipeline as FlextCliPipeline
-    from flext_cli.services.rules import FlextCliRules as FlextCliRules
-    from flext_cli.services.runtime import FlextCliRuntime as FlextCliRuntime
-    from flext_cli.services.tables import FlextCliTables as FlextCliTables
 _LAZY_IMPORTS = merge_lazy_imports(
     (
         "._cli_parts",
