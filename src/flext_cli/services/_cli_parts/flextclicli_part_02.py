@@ -48,15 +48,13 @@ class FlextCliCli(FlextCliCliPart01):
         updated_settings = result.value
         if updated_settings is settings or not isinstance(settings, p.Cli.Settings):
             return
-        overrides: dict[str, t.JsonPayload | None] = {}
+        overrides: dict[str, t.SettingsOverride | None] = {}
         if updated_settings.debug != settings.debug:
             overrides["debug"] = updated_settings.debug
         if updated_settings.trace != settings.trace:
             overrides["trace"] = updated_settings.trace
         if updated_settings.Cli != settings.Cli:
-            overrides["Cli"] = updated_settings.Cli.model_dump(
-                exclude_computed_fields=True,
-            )
+            overrides["Cli"] = updated_settings.Cli
         if overrides:
             settings.update_global(**overrides)
 
