@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import csv
+import shutil
+import tempfile
 from collections.abc import (
     Mapping,
 )
@@ -11,6 +13,9 @@ from pathlib import Path
 from flext_cli import c, m, p, r, t
 from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_01 import (
     FlextCliUtilitiesFiles as FlextCliUtilitiesFilesPart01,
+)
+from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_02 import (
+    FlextCliUtilitiesFiles as FlextCliUtilitiesFilesPart02,
 )
 from flext_cli._utilities.json import FlextCliUtilitiesJson as uj
 from flext_cli._utilities.yaml import FlextCliUtilitiesYaml as uy
@@ -110,6 +115,71 @@ class FlextCliUtilitiesFiles:
         except csv.Error as exc:
             return r[list[list[str]]].fail(f"csv_loads: {exc}")
         return r[list[list[str]]].ok(rows)
+
+    @staticmethod
+    def files_copy_directory(
+        source_path: t.Cli.TextPath,
+        dest_path: t.Cli.TextPath,
+        *,
+        dirs_exist_ok: bool = False,
+    ) -> p.Result[Path]:
+        """Recursively copy *source_path* to *dest_path*, returning the destination."""
+        destination = Path(dest_path)
+
+        def _copy() -> Path:
+            return Path(
+                shutil.copytree(
+                    Path(source_path),
+                    destination,
+                    dirs_exist_ok=dirs_exist_ok,
+                )
+            )
+
+        return FlextCliUtilitiesFilesPart02.files_execute(
+            _copy,
+            "copy_directory: {error}",
+        )
+
+    @staticmethod
+    def files_create_temporary_directory(
+        *,
+        prefix: str = "flext-cli-",
+        suffix: str = "",
+        parent_path: t.Cli.TextPath | None = None,
+    ) -> p.Result[Path]:
+        """Create one temporary directory and return its path for caller cleanup."""
+
+        def _create() -> Path:
+            return Path(
+                tempfile.mkdtemp(
+                    prefix=prefix,
+                    suffix=suffix,
+                    dir=parent_path,
+                )
+            )
+
+        return FlextCliUtilitiesFilesPart02.files_execute(
+            _create,
+            "create_temporary_directory: {error}",
+        )
+
+    @staticmethod
+    def files_remove_directory(directory_path: t.Cli.TextPath) -> p.Result[bool]:
+        """Remove one directory tree while rejecting non-directory paths."""
+        path = Path(directory_path)
+        if not path.exists() and not path.is_symlink():
+            return r[bool].ok(True)
+        if not path.is_dir() or path.is_symlink():
+            return r[bool].fail(f"remove_directory: not a directory: {path}")
+
+        def _remove() -> bool:
+            shutil.rmtree(path)
+            return True
+
+        return FlextCliUtilitiesFilesPart02.files_execute(
+            _remove,
+            "remove_directory: {error}",
+        )
 
 
 __all__: list[str] = ["FlextCliUtilitiesFiles"]

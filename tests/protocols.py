@@ -13,7 +13,7 @@ from flext_tests import FlextTestsProtocols
 from flext_cli import p
 
 if TYPE_CHECKING:
-    from tests import t
+    from tests.typings import t
 
 
 class TestsFlextCliProtocols(FlextTestsProtocols, p):
