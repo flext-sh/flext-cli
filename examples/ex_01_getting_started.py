@@ -58,10 +58,10 @@ class ExamplesFlextCliGettingStarted(s):
 
         cli.print("\n1. Setup via s/base.py", style=c.Cli.MessageStyles.BOLD_CYAN)
         runtime_snapshot: t.JsonMapping = {
-            "output_format": self.settings.Cli.output_format,
-            "cli_log_level": self.settings.Cli.cli_log_level,
-            "verbose": self.settings.Cli.verbose,
-            "quiet": self.settings.Cli.quiet,
+            "output_format": cli.settings.Cli.output_format,
+            "cli_log_level": cli.settings.Cli.cli_log_level,
+            "verbose": cli.settings.Cli.verbose,
+            "quiet": cli.settings.Cli.quiet,
         }
         u.display_config_table(
             u.to_json_dict(runtime_snapshot),
@@ -122,7 +122,7 @@ class ExamplesFlextCliGettingStarted(s):
 
         summary: t.JsonMapping = {
             "app_name": app_settings.app_name,
-            "output_format": self.settings.Cli.output_format,
+            "output_format": cli.settings.Cli.output_format,
             "loaded_field_count": len(loaded_config.content),
             "result_contract": "public-r",
         }

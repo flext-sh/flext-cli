@@ -13,58 +13,43 @@ from flext_cli.__version__ import (
     __version__,
     __version_info__,
 )
-from flext_cli._exports import FLEXT_CLI_LAZY_IMPORTS
+from flext_cli._exports import (
+    FLEXT_CLI_LAZY_IMPORTS,
+    FLEXT_CLI_PUBLIC_EXPORTS,
+)
+from flext_core import d, e, h, r, x
 from flext_core.lazy import install_lazy_exports
 
-_LAZY_IMPORTS = FLEXT_CLI_LAZY_IMPORTS
+_LAZY_IMPORTS = {
+    name: target
+    for name, target in FLEXT_CLI_LAZY_IMPORTS.items()
+    if name in FLEXT_CLI_PUBLIC_EXPORTS
+}
 
-__all__: tuple[str, ...] = (
-    "FlextCli",
-    "FlextCliAuth",
-    "FlextCliCli",
-    "FlextCliCmd",
-    "FlextCliCommonParams",
-    "FlextCliConstants",
-    "FlextCliFileTools",
-    "FlextCliFormatters",
-    "FlextCliModels",
-    "FlextCliOutput",
-    "FlextCliPipeline",
-    "FlextCliPrompts",
-    "FlextCliProtocols",
-    "FlextCliRules",
-    "FlextCliRuntime",
-    "FlextCliServiceBase",
-    "FlextCliSettings",
-    "FlextCliTables",
-    "FlextCliTypes",
-    "FlextCliUtilities",
-    "__author__",
-    "__author_email__",
-    "__description__",
-    "__license__",
-    "__title__",
-    "__url__",
-    "__version__",
-    "__version_info__",
-    "c",
-    "cli",
-    "d",
-    "e",
-    "h",
-    "m",
-    "p",
-    "r",
-    "s",
-    "t",
-    "u",
-    "x",
+
+_EAGER_EXPORTS = (
+    __author__,
+    __author_email__,
+    __description__,
+    __license__,
+    __title__,
+    __url__,
+    __version__,
+    __version_info__,
+    d,
+    e,
+    h,
+    r,
+    x,
 )
+
+
+_PUBLIC_EXPORTS: tuple[str, ...] = FLEXT_CLI_PUBLIC_EXPORTS
 
 
 install_lazy_exports(
     __name__,
     globals(),
     _LAZY_IMPORTS,
-    public_exports=__all__,
+    public_exports=_PUBLIC_EXPORTS,
 )
