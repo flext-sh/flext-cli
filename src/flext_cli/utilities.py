@@ -16,6 +16,7 @@ from flext_cli._utilities.options import FlextCliUtilitiesOptions
 from flext_cli._utilities.output import FlextCliUtilitiesOutput
 from flext_cli._utilities.params import FlextCliUtilitiesParams
 from flext_cli._utilities.pipeline import FlextCliUtilitiesPipeline
+from flext_cli._utilities.processes import FlextCliUtilitiesProcesses
 from flext_cli._utilities.prompts import FlextCliUtilitiesPrompts
 from flext_cli._utilities.rules import FlextCliUtilitiesRules
 from flext_cli._utilities.runtime import FlextCliUtilitiesRuntime
@@ -46,6 +47,7 @@ class FlextCliUtilities(u):
         FlextCliUtilitiesParams,
         FlextCliUtilitiesPipeline,
         FlextCliUtilitiesPrompts,
+        FlextCliUtilitiesProcesses,
         FlextCliUtilitiesRules,
         FlextCliUtilitiesRuntime,
         FlextCliUtilitiesSettings,

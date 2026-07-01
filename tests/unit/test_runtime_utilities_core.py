@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
 import pytest
@@ -122,3 +123,74 @@ class TestsFlextCliRuntimeUtilitiesCore:
             tm.that(output, eq=case.expected)
             return
         tm.fail(result, has=case.error_has)
+
+    def test_process_start_wait_captures_stdout(self, runner: u.Cli) -> None:
+        result = runner.process_start(
+            [sys.executable, "-c", "print('managed-ok')"],
+        )
+        tm.ok(result)
+        process = result.value
+
+        tm.that(process.pid > 0, eq=True)
+        tm.that(process.poll(), eq=None)
+        wait_result = process.wait(timeout=5)
+        tm.ok(wait_result)
+        tm.that(wait_result.value, eq=0)
+        tm.that(process.returncode, eq=0)
+        tm.that(process.stdout.strip(), eq="managed-ok")
+        tm.that(process.stderr, eq="")
+
+    def test_process_start_honors_cwd_env_and_stderr(
+        self, runner: u.Cli, tmp_path: Path
+    ) -> None:
+        script = (
+            "import os, pathlib, sys; "
+            "print(pathlib.Path.cwd()); "
+            "print(os.environ['FLEXT_CLI_PROCESS_TEST']); "
+            "print('err-marker', file=sys.stderr)"
+        )
+        result = runner.process_start(
+            [sys.executable, "-c", script],
+            cwd=tmp_path,
+            env={"FLEXT_CLI_PROCESS_TEST": "env-ok"},
+        )
+        tm.ok(result)
+        process = result.value
+
+        tm.that(process.cwd, eq=tmp_path)
+        process_env = process.env
+        assert process_env is not None
+        tm.that(process_env["FLEXT_CLI_PROCESS_TEST"], eq="env-ok")
+        wait_result = process.wait(timeout=5)
+        tm.ok(wait_result)
+        stdout_lines = process.stdout.splitlines()
+        tm.that(stdout_lines[0], eq=str(tmp_path))
+        tm.that(stdout_lines[1], eq="env-ok")
+        tm.that(process.stderr.strip(), eq="err-marker")
+
+    def test_process_start_timeout_then_terminate(self, runner: u.Cli) -> None:
+        result = runner.process_start(
+            [sys.executable, "-c", "import time; time.sleep(10)"],
+        )
+        tm.ok(result)
+        process = result.value
+
+        timeout_result = process.wait(timeout=0.01)
+        tm.fail(timeout_result, has="timeout")
+        tm.that(process.poll(), eq=None)
+        tm.ok(process.terminate())
+        wait_result = process.wait(timeout=5)
+        tm.ok(wait_result)
+        tm.that(process.returncode is not None, eq=True)
+
+    def test_process_start_kill_lifecycle(self, runner: u.Cli) -> None:
+        result = runner.process_start(
+            [sys.executable, "-c", "import time; time.sleep(10)"],
+        )
+        tm.ok(result)
+        process = result.value
+
+        tm.ok(process.kill())
+        wait_result = process.wait(timeout=5)
+        tm.ok(wait_result)
+        tm.that(process.returncode is not None, eq=True)
