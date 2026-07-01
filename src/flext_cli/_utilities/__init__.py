@@ -60,6 +60,10 @@ if TYPE_CHECKING:
     from flext_cli._utilities.pipeline import (
         FlextCliUtilitiesPipeline as FlextCliUtilitiesPipeline,
     )
+    from flext_cli._utilities.processes import (
+        FlextCliManagedProcess as FlextCliManagedProcess,
+        FlextCliUtilitiesProcesses as FlextCliUtilitiesProcesses,
+    )
     from flext_cli._utilities.prompts import (
         FlextCliUtilitiesPrompts as FlextCliUtilitiesPrompts,
     )
@@ -123,6 +127,10 @@ _LAZY_IMPORTS = merge_lazy_imports(
             ),
             ".params": ("FlextCliUtilitiesParams",),
             ".pipeline": ("FlextCliUtilitiesPipeline",),
+            ".processes": (
+                "FlextCliManagedProcess",
+                "FlextCliUtilitiesProcesses",
+            ),
             ".prompts": ("FlextCliUtilitiesPrompts",),
             ".runtime": ("FlextCliUtilitiesRuntime",),
             ".settings": ("FlextCliUtilitiesSettings",),
