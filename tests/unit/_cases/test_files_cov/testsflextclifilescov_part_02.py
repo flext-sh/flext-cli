@@ -97,9 +97,7 @@ class TestsFlextCliFilesCov:
         tm.ok(cleanup_result)
         tm.that(result.value.exists(), eq=False)
 
-    def test_files_copy_directory_respects_dirs_exist_ok(
-        self, tmp_path: Path
-    ) -> None:
+    def test_files_copy_directory_respects_dirs_exist_ok(self, tmp_path: Path) -> None:
         source = tmp_path / "source"
         source.mkdir()
         (source / "payload.txt").write_text("new", encoding="utf-8")
