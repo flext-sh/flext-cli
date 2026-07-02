@@ -15,21 +15,21 @@ from flext_cli import cli
 from tests.constants import c
 
 
-@contextmanager
-def _temporary_home(path: Path) -> Generator[None]:
-    original_home = os.environ.get("HOME")
-    try:
-        os.environ["HOME"] = str(path)
-        yield
-    finally:
-        if original_home is None:
-            os.environ.pop("HOME", None)
-        else:
-            os.environ["HOME"] = original_home
-
-
 class TestsFlextCliCmdCov:
     """Coverage tests for the public command-facing cli surface."""
+
+    @staticmethod
+    @contextmanager
+    def _temporary_home(path: Path) -> Generator[None]:
+        original_home = os.environ.get("HOME")
+        try:
+            os.environ["HOME"] = str(path)
+            yield
+        finally:
+            if original_home is None:
+                os.environ.pop("HOME", None)
+            else:
+                os.environ["HOME"] = original_home
 
     def test_validate_settings_succeeds_when_structure_is_missing(
         self,
@@ -37,7 +37,7 @@ class TestsFlextCliCmdCov:
     ) -> None:
         """validate_settings must report the canonical structure without failing."""
         cmd = type(cli)()
-        with _temporary_home(tmp_path):
+        with self._temporary_home(tmp_path):
             result = cmd.validate_settings()
         tm.ok(result)
 
@@ -51,7 +51,7 @@ class TestsFlextCliCmdCov:
         for subdir in c.Cli.STANDARD_SUBDIRS:
             (base_dir / subdir).mkdir()
         cmd = type(cli)()
-        with _temporary_home(tmp_path):
+        with self._temporary_home(tmp_path):
             result = cmd.validate_settings()
         tm.ok(result)
 
@@ -62,7 +62,7 @@ class TestsFlextCliCmdCov:
         """settings_snapshot must expose the resolved canonical settings directory."""
         settings_dir = tmp_path / c.Cli.PATH_FLEXT_DIR_NAME
         settings_dir.mkdir()
-        with _temporary_home(tmp_path):
+        with self._temporary_home(tmp_path):
             result = cli.settings_snapshot()
         tm.ok(result)
         tm.that(result.value.settings_dir, eq=str(settings_dir))
@@ -75,7 +75,7 @@ class TestsFlextCliCmdCov:
         """show_settings must succeed when the canonical settings snapshot is readable."""
         (tmp_path / c.Cli.PATH_FLEXT_DIR_NAME).mkdir()
         cmd = type(cli)()
-        with _temporary_home(tmp_path):
+        with self._temporary_home(tmp_path):
             result = cmd.show_settings()
         tm.ok(result)
         tm.that(result.value, eq=True)

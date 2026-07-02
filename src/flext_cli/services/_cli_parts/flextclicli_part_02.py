@@ -41,7 +41,8 @@ class FlextCliCli(FlextCliCliPart01):
         )
         if result.failure:
             u.fetch_logger(__name__).warning(
-                "failed to apply cli params", error=result.error or "",
+                "failed to apply cli params",
+                error=result.error or "",
             )
             return
 

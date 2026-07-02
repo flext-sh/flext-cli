@@ -115,13 +115,19 @@ class FlextCliModelsBase:
         """Options for JSON file write operations."""
 
         indent: int = u.Field(
-            2, description="JSON indentation level", validate_default=True,
+            2,
+            description="JSON indentation level",
+            validate_default=True,
         )
         sort_keys: bool = u.Field(
-            False, description="Sort JSON keys", validate_default=True,
+            False,
+            description="Sort JSON keys",
+            validate_default=True,
         )
         ensure_ascii: bool = u.Field(
-            False, description="Escape non-ASCII chars", validate_default=True,
+            False,
+            description="Escape non-ASCII chars",
+            validate_default=True,
         )
 
 

@@ -65,7 +65,9 @@ class FlextCliUtilitiesModelCommandBuilder[M: t.Cli.ModelLike]:
             return self.handler(model)
 
         setattr(command, "__signature__", signature)
-        command.__annotations__ = {parameter.name: parameter.annotation for parameter in parameters}
+        command.__annotations__ = {
+            parameter.name: parameter.annotation for parameter in parameters
+        }
         command.__annotations__["return"] = t.JsonValue
         return command
 

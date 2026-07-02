@@ -15,25 +15,25 @@ from tests.typings import t
 from tests.utilities import u
 
 
-@contextmanager
-def _temporary_environment(
-    overrides: t.StrMapping,
-) -> Generator[None]:
-    original_values = {key: os.environ.get(key) for key in overrides}
-    try:
-        for key, value in overrides.items():
-            os.environ[key] = value
-        yield
-    finally:
-        for key, value in original_values.items():
-            if value is None:
-                os.environ.pop(key, None)
-            else:
-                os.environ[key] = value
-
-
 class TestsFlextCliTomlUtilities:
     """Implementation part for TestsFlextCliTomlUtilities."""
+
+    @staticmethod
+    @contextmanager
+    def _temporary_environment(
+        overrides: t.StrMapping,
+    ) -> Generator[None]:
+        original_values = {key: os.environ.get(key) for key in overrides}
+        try:
+            for key, value in overrides.items():
+                os.environ[key] = value
+            yield
+        finally:
+            for key, value in original_values.items():
+                if value is None:
+                    os.environ.pop(key, None)
+                else:
+                    os.environ[key] = value
 
     def test_read_existing_file(self, tmp_path: Path) -> None:
         toml_file = tmp_path / "test.toml"
@@ -112,7 +112,7 @@ class TestsFlextCliTomlUtilities:
         taplo.chmod(stat.S_IRWXU)
         doc = u.Cli.toml_document()
         doc["project"] = {"name": "demo"}
-        with _temporary_environment({
+        with self._temporary_environment({
             "PATH": f"{bin_dir}:{os.environ.get('PATH', '')}",
         }):
             tm.ok(u.Cli.toml_write_document(pyproject, doc))

@@ -11,21 +11,23 @@ from tests.typings import t
 
 from flext_cli import cli, r
 
-# ── Fixtures ────────────────────────────────────────────────────────
-
-
-def _ok_handler(stage_id: str, output_key: str = "done") -> t.Cli.PipelineHandler:
-    """Factory for a handler that succeeds and writes to shared."""
-
-    def handler(ctx: p.Cli.PipelineStageContext) -> p.Result[m.Cli.PipelineStageResult]:
-        ctx.shared[output_key] = stage_id
-        return cli.ok_stage(stage_id, output={output_key: stage_id}, duration_ms=1.0)
-
-    return handler
-
 
 class TestsFlextCliPipeline:
     """Implementation part for TestsFlextCliPipeline."""
+
+    @staticmethod
+    def _ok_handler(stage_id: str, output_key: str = "done") -> t.Cli.PipelineHandler:
+        """Factory for a handler that succeeds and writes to shared."""
+
+        def handler(
+            ctx: p.Cli.PipelineStageContext,
+        ) -> p.Result[m.Cli.PipelineStageResult]:
+            ctx.shared[output_key] = stage_id
+            return cli.ok_stage(
+                stage_id, output={output_key: stage_id}, duration_ms=1.0
+            )
+
+        return handler
 
     def test_cycle_detection(self, tmp_path: Path) -> None:
         """Circular dependencies produce a failure result."""
@@ -33,12 +35,12 @@ class TestsFlextCliPipeline:
             cli.stage(
                 "a",
                 depends_on=frozenset({"b"}),
-                handler=_ok_handler("a"),
+                handler=self._ok_handler("a"),
             ),
             cli.stage(
                 "b",
                 depends_on=frozenset({"a"}),
-                handler=_ok_handler("b"),
+                handler=self._ok_handler("b"),
             ),
         ]
         result = cli.pipeline(stages, workspace_root=tmp_path)
@@ -115,7 +117,7 @@ class TestsFlextCliPipeline:
     def test_total_duration_tracked(self, tmp_path: Path) -> None:
         """Pipeline tracks total duration."""
         stages = [
-            cli.stage("a", handler=_ok_handler("a")),
+            cli.stage("a", handler=self._ok_handler("a")),
         ]
         result = cli.pipeline(stages, workspace_root=tmp_path)
         assert result.success

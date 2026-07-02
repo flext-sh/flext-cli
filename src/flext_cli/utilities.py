@@ -28,7 +28,32 @@ from flext_cli._utilities.yaml import FlextCliUtilitiesYaml
 from flext_core import u
 
 
-class FlextCliUtilities(u):
+class FlextCliUtilities(
+    u,
+    FlextCliUtilitiesAuth,
+    FlextCliUtilitiesCmd,
+    FlextCliUtilitiesCommands,
+    FlextCliUtilitiesConversion,
+    FlextCliUtilitiesFileTestHelpersMixin,
+    FlextCliUtilitiesFiles,
+    FlextCliUtilitiesFormatters,
+    FlextCliUtilitiesJson,
+    FlextCliUtilitiesMatching,
+    FlextCliUtilitiesModelCommands,
+    FlextCliUtilitiesOptions,
+    FlextCliUtilitiesOutput,
+    FlextCliUtilitiesParams,
+    FlextCliUtilitiesPipeline,
+    FlextCliUtilitiesPrompts,
+    FlextCliUtilitiesProcesses,
+    FlextCliUtilitiesRules,
+    FlextCliUtilitiesRuntime,
+    FlextCliUtilitiesSettings,
+    FlextCliUtilitiesTables,
+    FlextCliUtilitiesToml,
+    FlextCliUtilitiesValidation,
+    FlextCliUtilitiesYaml,
+):
     """CLI utility facade composed from internal utility mixins."""
 
     class Cli(

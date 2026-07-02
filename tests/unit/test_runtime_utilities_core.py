@@ -13,13 +13,13 @@ from tests.typings import t
 from tests.utilities import u
 
 
-@pytest.fixture
-def runner() -> u.Cli:
-    return u.Cli()
-
-
 class TestsFlextCliRuntimeUtilitiesCore:
     """Behavior contract for test_runtime_utilities_core."""
+
+    @pytest.fixture
+    @staticmethod
+    def runner() -> u.Cli:
+        return u.Cli()
 
     def test_run_raw_remove_env_keys_strips_inherited_values(
         self,

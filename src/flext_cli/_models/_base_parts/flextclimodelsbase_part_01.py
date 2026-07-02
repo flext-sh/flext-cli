@@ -39,7 +39,8 @@ class FlextCliModelsBase:
         """Key-value data for table/display — Pydantic v2 contract. Use m.Cli.DisplayData."""
 
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            extra="forbid", validate_assignment=True,
+            extra="forbid",
+            validate_assignment=True,
         )
         data: Annotated[
             t.JsonMapping,
@@ -58,7 +59,8 @@ class FlextCliModelsBase:
         """Loaded configuration content wrapper — Pydantic v2 contract. Use m.Cli.LoadedConfig."""
 
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            extra="forbid", validate_assignment=True,
+            extra="forbid",
+            validate_assignment=True,
         )
         content: Annotated[
             t.JsonMapping,

@@ -12,16 +12,13 @@ from tests.constants import c
 from tests.protocols import p
 from tests.typings import t
 
-type OptionalStringAlias = str | None
-type StringListAlias = list[str]
-
 
 class StringAnnotationModel(m.BaseModel):
     value: str
 
 
 class OptionalStringAnnotationModel(m.BaseModel):
-    value: OptionalStringAlias
+    value: t.Tests.OptionalStringAlias
 
 
 class UnionAnnotationModel(m.BaseModel):
@@ -53,10 +50,10 @@ class AnnotatedStringModel(m.BaseModel):
 
 
 class StringListAliasModel(m.BaseModel):
-    value: StringListAlias
+    value: t.Tests.StringListAlias
 
 
-ANNOTATION_CASES: tuple[tuple[t.Cli.ModelType[m.BaseModel], object], ...] = (
+_ANNOTATION_CASES: tuple[tuple[t.Cli.ModelType[m.BaseModel], object], ...] = (
     (StringAnnotationModel, str),
     (OptionalStringAnnotationModel, str),
     (UnionAnnotationModel, str),
@@ -90,10 +87,6 @@ class BoolToggleModel(m.BaseModel):
     debug: bool = False
 
 
-def _noop_handler(_params: t.Cli.ModelLike) -> bool:
-    return True
-
-
 class OptionsDefaultsModel(m.BaseModel):
     """Model used to exercise field-default normalization paths."""
 
@@ -111,15 +104,19 @@ class OptionsDefaultsModel(m.BaseModel):
 class TestsFlextCliOptionsUtilsCov:
     """Data-driven coverage for public option generation behavior."""
 
+    @staticmethod
+    def _noop_handler(_params: t.Cli.ModelLike) -> bool:
+        return True
+
     def test_model_command_uses_alias_for_option_name(self) -> None:
-        command = cli.model_command(AliasOptionsModel, _noop_handler)
+        command = cli.model_command(AliasOptionsModel, self._noop_handler)
         option_info = inspect.signature(command).parameters["project_name"].default
         assert isinstance(option_info, p.Cli.CliOptionSpec)
         assert option_info.param_decls is not None
         assert "--project" in option_info.param_decls
 
     def test_model_command_supports_custom_param_decls(self) -> None:
-        command = cli.model_command(CustomDeclModel, _noop_handler)
+        command = cli.model_command(CustomDeclModel, self._noop_handler)
         option_info = inspect.signature(command).parameters["custom_name"].default
         assert isinstance(option_info, p.Cli.CliOptionSpec)
         assert option_info.param_decls is not None
@@ -127,18 +124,18 @@ class TestsFlextCliOptionsUtilsCov:
         assert "--projects" in option_info.param_decls
 
     def test_model_command_bool_uses_toggle_decl(self) -> None:
-        command = cli.model_command(BoolToggleModel, _noop_handler)
+        command = cli.model_command(BoolToggleModel, self._noop_handler)
         option_info = inspect.signature(command).parameters["debug"].default
         assert isinstance(option_info, p.Cli.CliOptionSpec)
         assert option_info.param_decls == ["--debug/--no-debug"]
 
-    @pytest.mark.parametrize(("model_cls", "expected"), ANNOTATION_CASES)
+    @pytest.mark.parametrize(("model_cls", "expected"), _ANNOTATION_CASES)
     def test_model_command_normalizes_runtime_annotations(
         self,
         model_cls: t.Cli.ModelType[t.Cli.ModelLike],
         expected: object,
     ) -> None:
-        command = cli.model_command(model_cls, _noop_handler)
+        command = cli.model_command(model_cls, self._noop_handler)
         resolved = inspect.signature(command).parameters["value"].annotation
         assert resolved == expected
 
@@ -146,7 +143,7 @@ class TestsFlextCliOptionsUtilsCov:
         settings = OptionsDefaultsModel(name="override-name")
         command = cli.model_command(
             OptionsDefaultsModel,
-            _noop_handler,
+            self._noop_handler,
             settings=settings,
         )
         option_info = inspect.signature(command).parameters["name"].default
@@ -154,19 +151,19 @@ class TestsFlextCliOptionsUtilsCov:
         assert option_info.default == "override-name"
 
     def test_field_default_uses_default_factory_sequence(self) -> None:
-        command = cli.model_command(OptionsDefaultsModel, _noop_handler)
+        command = cli.model_command(OptionsDefaultsModel, self._noop_handler)
         option_info = inspect.signature(command).parameters["generated"].default
         assert isinstance(option_info, p.Cli.CliOptionSpec)
         assert option_info.default == ("gen", "value")
 
     def test_field_default_returns_valid_mapping(self) -> None:
-        command = cli.model_command(OptionsDefaultsModel, _noop_handler)
+        command = cli.model_command(OptionsDefaultsModel, self._noop_handler)
         option_info = inspect.signature(command).parameters["valid_mapping"].default
         assert isinstance(option_info, p.Cli.CliOptionSpec)
         assert option_info.default == dict(c.Tests.OPTIONS_FIELD_DEFAULT_VALID_MAPPING)
 
     def test_field_default_invalid_mapping_returns_none(self) -> None:
-        command = cli.model_command(OptionsDefaultsModel, _noop_handler)
+        command = cli.model_command(OptionsDefaultsModel, self._noop_handler)
         option_info = inspect.signature(command).parameters["invalid_mapping"].default
         assert isinstance(option_info, p.Cli.CliOptionSpec)
         assert option_info.default is None

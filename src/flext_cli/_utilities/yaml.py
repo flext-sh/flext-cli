@@ -88,26 +88,33 @@ class FlextCliUtilitiesYaml:
         )
 
     @staticmethod
+    def _yaml_parse_list(path: Path) -> t.SequenceOf[t.JsonValue]:
+        """Parse *path* as a top-level YAML list; raises on any failure."""
+        raw = path.read_text(encoding=c.Cli.ENCODING_DEFAULT)
+        parsed = safe_load(raw)
+        if not isinstance(parsed, list):
+            msg = f"YAML content is not a list: {type(parsed).__name__}"
+            raise TypeError(msg)
+        validated: t.SequenceOf[t.JsonValue] = t.Cli.YAML_SEQ_ADAPTER.validate_python(
+            parsed,
+        )
+        return validated
+
+    @staticmethod
     def yaml_load_list(path: Path) -> t.SequenceOf[t.JsonValue]:
-        """Load YAML file expecting a list at top level."""
+        """Load YAML file expecting a list at top level.
+
+        Returns an empty list on missing file, parse error, non-list content,
+        or validation failure — the failure itself is propagated through
+        ``u.try_`` at the boundary rather than swallowed inline.
+        """
         if not path.is_file():
             return []
-        try:
-            raw = path.read_text(encoding=c.Cli.ENCODING_DEFAULT)
-            parsed = safe_load(raw)
-        except (OSError, c.Cli.YamlParseError):
-            return []
-        if not isinstance(parsed, list):
-            return []
-        try:
-            validated: t.SequenceOf[t.JsonValue] = (
-                t.Cli.YAML_SEQ_ADAPTER.validate_python(
-                    parsed,
-                )
-            )
-        except c.ValidationError:
-            return []
-        return validated
+        return u.try_(
+            lambda: FlextCliUtilitiesYaml._yaml_parse_list(path),
+            catch=(OSError, c.Cli.YamlParseError, TypeError, c.ValidationError),
+            op_name="yaml_load_list",
+        ).unwrap_or([])
 
     # ------------------------------------------------------------------
     # Writing

@@ -1,9 +1,8 @@
 """Type facade for flext-cli tests.
 
 `TestsFlextCliTypes` composes `FlextTestsTypes + t` via MRO.
-No flext-cli-specific test types currently — `t.Tests.*` resolves to
-`FlextTestsTypes.Tests.*` automatically. Add nested classes here only
-when a flext-cli-only test type appears.
+`t.Tests.*` extends `FlextTestsTypes.Tests.*` with flext-cli-only test
+type aliases.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -18,6 +17,12 @@ from flext_cli import t
 
 class TestsFlextCliTypes(FlextTestsTypes, t):
     """MRO facade exposing both flext-tests and flext-cli type namespaces."""
+
+    class Tests(FlextTestsTypes.Tests):
+        """Test-specific type aliases for flext-cli."""
+
+        type OptionalStringAlias = str | None
+        type StringListAlias = list[str]
 
 
 t = TestsFlextCliTypes

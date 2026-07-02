@@ -11,44 +11,45 @@ from tests.typings import t
 
 from flext_cli import cli, r
 
-# ── Fixtures ────────────────────────────────────────────────────────
-
-
-def _ok_handler(stage_id: str, output_key: str = "done") -> t.Cli.PipelineHandler:
-    """Factory for a handler that succeeds and writes to shared."""
-
-    def handler(ctx: p.Cli.PipelineStageContext) -> p.Result[m.Cli.PipelineStageResult]:
-        ctx.shared[output_key] = stage_id
-        return cli.ok_stage(stage_id, output={output_key: stage_id}, duration_ms=1.0)
-
-    return handler
-
-
-def _fail_handler(stage_id: str) -> t.Cli.PipelineHandler:
-    """Factory for a handler that fails."""
-
-    def handler(ctx: p.Cli.PipelineStageContext) -> p.Result[m.Cli.PipelineStageResult]:
-        return r[m.Cli.PipelineStageResult].fail(f"{stage_id} failed")
-
-    return handler
-
-
-def _skip_always(_ctx: p.Cli.PipelineStageContext) -> bool:
-    return True
-
-
-# ── Tests ───────────────────────────────────────────────────────────
-
 
 class TestsFlextCliPipeline:
     """Implementation part for TestsFlextCliPipeline."""
+
+    @staticmethod
+    def _ok_handler(stage_id: str, output_key: str = "done") -> t.Cli.PipelineHandler:
+        """Factory for a handler that succeeds and writes to shared."""
+
+        def handler(
+            ctx: p.Cli.PipelineStageContext,
+        ) -> p.Result[m.Cli.PipelineStageResult]:
+            ctx.shared[output_key] = stage_id
+            return cli.ok_stage(
+                stage_id, output={output_key: stage_id}, duration_ms=1.0
+            )
+
+        return handler
+
+    @staticmethod
+    def _fail_handler(stage_id: str) -> t.Cli.PipelineHandler:
+        """Factory for a handler that fails."""
+
+        def handler(
+            ctx: p.Cli.PipelineStageContext,
+        ) -> p.Result[m.Cli.PipelineStageResult]:
+            return r[m.Cli.PipelineStageResult].fail(f"{stage_id} failed")
+
+        return handler
+
+    @staticmethod
+    def _skip_always(_ctx: p.Cli.PipelineStageContext) -> bool:
+        return True
 
     def test_single_stage_ok(self, tmp_path: Path) -> None:
         """Single stage executes and returns ok."""
         stages = [
             cli.stage(
                 "alpha",
-                handler=_ok_handler("alpha"),
+                handler=self._ok_handler("alpha"),
             ),
         ]
         result = cli.pipeline(stages, workspace_root=tmp_path)
@@ -115,11 +116,11 @@ class TestsFlextCliPipeline:
     def test_fail_fast_stops_on_failure(self, tmp_path: Path) -> None:
         """With fail_fast=True, pipeline stops after first failure."""
         stages = [
-            cli.stage("a", handler=_fail_handler("a")),
+            cli.stage("a", handler=self._fail_handler("a")),
             cli.stage(
                 "b",
                 depends_on=frozenset({"a"}),
-                handler=_ok_handler("b"),
+                handler=self._ok_handler("b"),
             ),
         ]
         result = cli.pipeline(
@@ -138,8 +139,8 @@ class TestsFlextCliPipeline:
         stages = [
             cli.stage(
                 "skippable",
-                handler=_ok_handler("skippable"),
-                skip_if=_skip_always,
+                handler=self._ok_handler("skippable"),
+                skip_if=self._skip_always,
             ),
         ]
         result = cli.pipeline(stages, workspace_root=tmp_path)
