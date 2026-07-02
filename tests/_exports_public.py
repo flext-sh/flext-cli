@@ -41,7 +41,6 @@ TESTS_FLEXT_CLI_PUBLIC_EXPORTS: tuple[str, ...] = (
     "TestsFlextCliServiceBaseBehavior",
     "TestsFlextCliServicesAuthBranchCov",
     "TestsFlextCliServicesAuthCov",
-    "TestsFlextCliServicesFormattersCov",
     "TestsFlextCliServicesOutputCov",
     "TestsFlextCliServicesTablesBranchCov",
     "TestsFlextCliServicesTablesCov",

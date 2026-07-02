@@ -11,22 +11,20 @@ from tests.utilities import u
 from flext_cli import cli, m
 
 
-class _CommandModel(m.BaseModel):
-    """Minimal public model for utility command construction."""
-
-    label: str
-    debug: bool = False
-
-
-class _CommandSource(m.BaseModel):
-    """Source model used to exercise `u.Cli.model_source_data()`."""
-
-    label: str
-    debug: bool | None = None
-
-
 class TestsFlextCliPublicContractsCoverage:
     """Implementation part for TestsFlextCliPublicContractsCoverage."""
+
+    class _CommandModel(m.BaseModel):
+        """Minimal public model for utility command construction."""
+
+        label: str
+        debug: bool = False
+
+    class _CommandSource(m.BaseModel):
+        """Source model used to exercise `u.Cli.model_source_data()`."""
+
+        label: str
+        debug: bool | None = None
 
     def test_public_facade_and_settings_contract(self) -> None:
         cli.settings.reset_for_testing()
@@ -82,13 +80,15 @@ class TestsFlextCliPublicContractsCoverage:
         assert components["prompts"] == "available"
 
     def test_public_model_command_utility_contract(self) -> None:
-        settings = _CommandModel(label="configured", debug=True)
+        settings = self._CommandModel(label="configured", debug=True)
 
-        def handler(model: _CommandModel) -> str:
+        def handler(
+            model: TestsFlextCliPublicContractsCoverage._CommandModel,
+        ) -> str:
             return f"{model.label}:{model.debug}"
 
         command = u.Cli.build_model_command(
-            _CommandModel,
+            self._CommandModel,
             handler,
             settings=settings,
         )
@@ -97,12 +97,12 @@ class TestsFlextCliPublicContractsCoverage:
         assert signature.parameters["label"].default is inspect.Parameter.empty
         assert signature.parameters["debug"].default is True
         assert u.Cli.model_source_data(
-            _CommandModel,
-            _CommandSource(label="mapped", debug=None),
+            self._CommandModel,
+            self._CommandSource(label="mapped", debug=None),
         ) == {"label": "mapped"}
 
         derived = u.Cli.derive_model(
-            _CommandModel,
+            self._CommandModel,
             {"label": "base"},
             {"debug": True},
             overrides={"label": "override"},

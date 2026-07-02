@@ -33,10 +33,7 @@ _LAZY_IMPORTS = build_lazy_import_map(
         ),
         ".test_examples_smoke": ("TestsFlextCliExamplesSmoke",),
         ".test_files_cov": ("TestsFlextCliFilesCov",),
-        ".test_formatters_cov": (
-            "TestsFlextCliFormattersCov",
-            "TestsFlextCliServicesFormattersCov",
-        ),
+        ".test_formatters_cov": ("TestsFlextCliFormattersCov",),
         ".test_json_cov": ("TestsFlextCliJsonCov",),
         ".test_matching_cov": ("TestsFlextCliMatchingCov",),
         ".test_model_commands_cov": ("TestsFlextCliModelCommandsCov",),

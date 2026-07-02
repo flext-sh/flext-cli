@@ -9,7 +9,7 @@ from collections.abc import (
 from tomlkit.items import Table
 from tomlkit.toml_document import TOMLDocument
 
-from flext_cli import c, t
+from flext_cli import t
 from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_01 import (
     FlextCliUtilitiesToml as FlextCliUtilitiesTomlPart01,
 )
@@ -63,10 +63,7 @@ class FlextCliUtilitiesToml:
         value = container.get(key, None)
         if not u.mapping(value):
             return None
-        try:
-            return t.Cli.JSON_MAPPING_ADAPTER.validate_python(value)
-        except c.ValidationError:
-            return None
+        return t.Cli.JSON_MAPPING_ADAPTER.validate_python(value)
 
     @staticmethod
     def toml_mapping_ensure_table(

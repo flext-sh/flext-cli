@@ -9,8 +9,8 @@ from pathlib import Path
 from types import GenericAlias, UnionType
 from typing import ClassVar, TypeAliasType
 
-from click.core import Command as _ClickCommand
-from click.testing import CliRunner as _ClickCliRunner
+from click.core import Command as ClickCommand
+from click.testing import CliRunner as ClickCliRunner
 from rich.console import Console as RichConsole
 from rich.tree import Tree as RichTree
 from tomlkit.container import Container
@@ -47,9 +47,9 @@ class FlextCliTypesBase:
     type CliOptionInfo = OptionInfo
 
     type TyperRunner = CliRunner
-    ExternalCli: ClassVar[type] = _ClickCommand
+    ExternalCli: ClassVar[type] = ClickCommand
     """Class alias for click.Command — external CLI integrations (Singer SDK)."""
-    ExternalCliRunner: ClassVar[type] = _ClickCliRunner
+    ExternalCliRunner: ClassVar[type] = ClickCliRunner
     """Class alias for click.testing.CliRunner — boundary tests."""
     type TomlDocument = TOMLDocument
     type TomlTable = Table

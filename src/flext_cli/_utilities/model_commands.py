@@ -9,71 +9,70 @@ from flext_cli import p, t
 from flext_core import m
 
 
-class FlextCliUtilitiesModelCommandBuilder[M: t.Cli.ModelLike]:
-    """Thin builder for direct model-backed command callables."""
-
-    def __init__(
-        self,
-        model_class: t.Cli.ModelType[M],
-        handler: p.Cli.ModelCommandHandler[M],
-        settings: t.Cli.ModelLike | None = None,
-    ) -> None:
-        """Store the canonical inputs for deferred command construction."""
-        super().__init__()
-        self.model_class = model_class
-        self.handler = handler
-        self.settings = settings
-
-    def _resolve_default(
-        self,
-        field_name: str,
-        field_info: m.FieldInfo,
-    ) -> t.Cli.CliValue | type:
-        if field_info.is_required():
-            return inspect.Parameter.empty
-        if self.settings is not None and hasattr(self.settings, field_name):
-            return getattr(self.settings, field_name)
-        return field_info.get_default(call_default_factory=True)
-
-    def build(self) -> t.Cli.CliCommand:
-        """Build a direct callable with a real runtime signature."""
-        model_fields = getattr(self.model_class, "model_fields", {})
-        parameters = [
-            inspect.Parameter(
-                name=field_name,
-                kind=inspect.Parameter.KEYWORD_ONLY,
-                default=self._resolve_default(field_name, field_info),
-                annotation=getattr(field_info, "annotation", None) or str,
-            )
-            for field_name, field_info in model_fields.items()
-            if getattr(field_info, "exclude", None) is not True
-        ]
-        signature = inspect.Signature(parameters)
-
-        def command(**kwargs: t.Cli.CliValue) -> t.JsonValue:
-            current_settings = self.settings
-            if isinstance(current_settings, p.Cli.Settings):
-                current_settings_fields = current_settings.model_dump()
-                applicable_overrides = {
-                    field_name: field_value
-                    for field_name, field_value in kwargs.items()
-                    if field_name in current_settings_fields
-                }
-                if applicable_overrides:
-                    current_settings.update_global(**applicable_overrides)
-            model = self.model_class.model_validate(kwargs)
-            return self.handler(model)
-
-        setattr(command, "__signature__", signature)
-        command.__annotations__ = {
-            parameter.name: parameter.annotation for parameter in parameters
-        }
-        command.__annotations__["return"] = t.JsonValue
-        return command
-
-
 class FlextCliUtilitiesModelCommands:
     """Model command methods exposed directly on ``u.Cli``."""
+
+    class Builder[M: t.Cli.ModelLike]:
+        """Thin builder for direct model-backed command callables."""
+
+        def __init__(
+            self,
+            model_class: t.Cli.ModelType[M],
+            handler: p.Cli.ModelCommandHandler[M],
+            settings: t.Cli.ModelLike | None = None,
+        ) -> None:
+            """Store the canonical inputs for deferred command construction."""
+            super().__init__()
+            self.model_class = model_class
+            self.handler = handler
+            self.settings = settings
+
+        def _resolve_default(
+            self,
+            field_name: str,
+            field_info: m.FieldInfo,
+        ) -> t.Cli.CliValue | type:
+            if field_info.is_required():
+                return inspect.Parameter.empty
+            if self.settings is not None and hasattr(self.settings, field_name):
+                return getattr(self.settings, field_name)
+            return field_info.get_default(call_default_factory=True)
+
+        def build(self) -> t.Cli.CliCommand:
+            """Build a direct callable with a real runtime signature."""
+            model_fields = getattr(self.model_class, "model_fields", {})
+            parameters = [
+                inspect.Parameter(
+                    name=field_name,
+                    kind=inspect.Parameter.KEYWORD_ONLY,
+                    default=self._resolve_default(field_name, field_info),
+                    annotation=getattr(field_info, "annotation", None) or str,
+                )
+                for field_name, field_info in model_fields.items()
+                if getattr(field_info, "exclude", None) is not True
+            ]
+            signature = inspect.Signature(parameters)
+
+            def command(**kwargs: t.Cli.CliValue) -> t.JsonValue:
+                current_settings = self.settings
+                if isinstance(current_settings, p.Cli.Settings):
+                    current_settings_fields = current_settings.model_dump()
+                    applicable_overrides = {
+                        field_name: field_value
+                        for field_name, field_value in kwargs.items()
+                        if field_name in current_settings_fields
+                    }
+                    if applicable_overrides:
+                        current_settings.update_global(**applicable_overrides)
+                model = self.model_class.model_validate(kwargs)
+                return self.handler(model)
+
+            setattr(command, "__signature__", signature)
+            command.__annotations__ = {
+                parameter.name: parameter.annotation for parameter in parameters
+            }
+            command.__annotations__["return"] = t.JsonValue
+            return command
 
     @staticmethod
     def model_source_data(
@@ -116,7 +115,7 @@ class FlextCliUtilitiesModelCommands:
         settings: t.Cli.ModelLike | None = None,
     ) -> t.Cli.CliCommand:
         """Build a model command through the canonical CLI service."""
-        return FlextCliUtilitiesModelCommandBuilder(
+        return FlextCliUtilitiesModelCommands.Builder(
             model_class=model_class,
             handler=handler,
             settings=settings,
@@ -124,6 +123,5 @@ class FlextCliUtilitiesModelCommands:
 
 
 __all__: t.MutableSequenceOf[str] = [
-    "FlextCliUtilitiesModelCommandBuilder",
     "FlextCliUtilitiesModelCommands",
 ]

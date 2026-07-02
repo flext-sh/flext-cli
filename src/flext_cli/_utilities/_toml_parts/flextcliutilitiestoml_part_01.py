@@ -33,10 +33,7 @@ class FlextCliUtilitiesToml:
         normalized = FlextCliUtilitiesToml.toml_unwrap_item(value)
         if normalized is None or not u.mapping(normalized):
             return None
-        try:
-            return t.Cli.JSON_MAPPING_ADAPTER.validate_python(normalized)
-        except c.ValidationError:
-            return None
+        return t.Cli.JSON_MAPPING_ADAPTER.validate_python(normalized)
 
     @staticmethod
     def toml_unwrap_item(

@@ -51,7 +51,6 @@ if TYPE_CHECKING:
         FlextCliUtilitiesMatching as FlextCliUtilitiesMatching,
     )
     from flext_cli._utilities.model_commands import (
-        FlextCliUtilitiesModelCommandBuilder as FlextCliUtilitiesModelCommandBuilder,
         FlextCliUtilitiesModelCommands as FlextCliUtilitiesModelCommands,
     )
     from flext_cli._utilities.params import (
@@ -61,7 +60,6 @@ if TYPE_CHECKING:
         FlextCliUtilitiesPipeline as FlextCliUtilitiesPipeline,
     )
     from flext_cli._utilities.processes import (
-        FlextCliManagedProcess as FlextCliManagedProcess,
         FlextCliUtilitiesProcesses as FlextCliUtilitiesProcesses,
     )
     from flext_cli._utilities.prompts import (
@@ -121,16 +119,10 @@ _LAZY_IMPORTS = merge_lazy_imports(
             ".conversion": ("FlextCliUtilitiesConversion",),
             ".formatters": ("FlextCliUtilitiesFormatters",),
             ".matching": ("FlextCliUtilitiesMatching",),
-            ".model_commands": (
-                "FlextCliUtilitiesModelCommandBuilder",
-                "FlextCliUtilitiesModelCommands",
-            ),
+            ".model_commands": ("FlextCliUtilitiesModelCommands",),
             ".params": ("FlextCliUtilitiesParams",),
             ".pipeline": ("FlextCliUtilitiesPipeline",),
-            ".processes": (
-                "FlextCliManagedProcess",
-                "FlextCliUtilitiesProcesses",
-            ),
+            ".processes": ("FlextCliUtilitiesProcesses",),
             ".prompts": ("FlextCliUtilitiesPrompts",),
             ".runtime": ("FlextCliUtilitiesRuntime",),
             ".settings": ("FlextCliUtilitiesSettings",),

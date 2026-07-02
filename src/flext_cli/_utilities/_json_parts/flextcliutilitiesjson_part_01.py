@@ -107,10 +107,7 @@ class FlextCliUtilitiesJson(FlextCliUtilitiesJsonPart03):
         normalized: t.JsonValue = u.normalize_to_json_value(value)
         if not isinstance(normalized, Mapping):
             return {}
-        try:
-            return t.Cli.JSON_MAPPING_ADAPTER.validate_python(normalized)
-        except c.ValidationError:
-            return {}
+        return t.Cli.JSON_MAPPING_ADAPTER.validate_python(normalized)
 
     @staticmethod
     def json_as_sequence(
@@ -122,13 +119,7 @@ class FlextCliUtilitiesJson(FlextCliUtilitiesJsonPart03):
         normalized: t.JsonValue = u.normalize_to_json_value(value)
         if not isinstance(normalized, Sequence) or isinstance(normalized, str | bytes):
             return []
-        try:
-            validated: t.SequenceOf[t.JsonValue] = (
-                t.Cli.JSON_LIST_ADAPTER.validate_python(normalized)
-            )
-        except c.ValidationError:
-            return []
-        return validated
+        return t.Cli.JSON_LIST_ADAPTER.validate_python(normalized)
 
 
 __all__: list[str] = ["FlextCliUtilitiesJson"]

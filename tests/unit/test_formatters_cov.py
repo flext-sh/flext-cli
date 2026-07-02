@@ -81,9 +81,7 @@ class TestsFlextCliFormattersCov:
             title=title,
         )
 
-
-class TestsFlextCliServicesFormattersCov:
-    """Coverage tests for services/formatters.py (thin facade)."""
+    # ── services/formatters.py (thin facade) ─────────────────────────
 
     def test_create_tree_via_service(self) -> None:
         result = cli.create_tree("ServiceRoot")
@@ -108,5 +106,4 @@ class TestsFlextCliServicesFormattersCov:
 
 __all__: list[str] = [
     "TestsFlextCliFormattersCov",
-    "TestsFlextCliServicesFormattersCov",
 ]

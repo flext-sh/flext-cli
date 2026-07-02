@@ -10,16 +10,15 @@ from tests.typings import t
 from tests.utilities import u
 
 
-class _OptionSettings(m.BaseModel):
-    """Settings model used to exercise public default normalization."""
-
-    output_path: Path = Path("reports/output.json")
-    tags: t.StrSequence = ("lint", "typecheck")
-    flags: dict[str, bool] = {"debug": True}
-
-
 class TestsFlextCliOptionsPublicCoverage:
     """Exercise public option helpers through `u.Cli` only."""
+
+    class _OptionSettings(m.BaseModel):
+        """Settings model used to exercise public default normalization."""
+
+        output_path: Path = Path("reports/output.json")
+        tags: t.StrSequence = ("lint", "typecheck")
+        flags: dict[str, bool] = {"debug": True}
 
     def test_resolve_typer_annotation_covers_union_sequence_and_collections(
         self,
@@ -37,8 +36,8 @@ class TestsFlextCliOptionsPublicCoverage:
         assert multi_union is str
 
     def test_option_defaults_and_atoms_normalize_public_values(self) -> None:
-        settings = _OptionSettings()
-        fields = _OptionSettings.model_fields
+        settings = self._OptionSettings()
+        fields = self._OptionSettings.model_fields
 
         assert u.Cli.normalize_cli_atom(Path("reports/out.json")) == "reports/out.json"
         assert u.Cli.normalize_cli_atom(["lint", "test"]) == ("lint", "test")

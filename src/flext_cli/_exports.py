@@ -52,14 +52,10 @@ FLEXT_CLI_LAZY_IMPORTS = merge_lazy_imports(
             "._utilities.formatters": ("FlextCliUtilitiesFormatters",),
             "._utilities.json": ("FlextCliUtilitiesJson",),
             "._utilities.matching": ("FlextCliUtilitiesMatching",),
-            "._utilities.model_commands": (
-                "FlextCliUtilitiesModelCommandBuilder",
-                "FlextCliUtilitiesModelCommands",
-            ),
-            "._utilities.options": (
-                "FlextCliUtilitiesOptionBuilder",
+            "._utilities._options_parts.flextcliutilitiesoptions_part_02": (
                 "FlextCliUtilitiesOptions",
             ),
+            "._utilities.model_commands": ("FlextCliUtilitiesModelCommands",),
             "._utilities.output": ("FlextCliUtilitiesOutput",),
             "._utilities.params": ("FlextCliUtilitiesParams",),
             "._utilities.pipeline": ("FlextCliUtilitiesPipeline",),

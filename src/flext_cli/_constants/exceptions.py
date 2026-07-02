@@ -12,9 +12,9 @@ from __future__ import annotations
 
 from typing import ClassVar
 
-from click import Abort as _ClickAbort, ClickException as _ClickException
-from typer import Exit as _TyperExit
-from yaml import YAMLError as _YamlError
+from click import Abort, ClickException
+from typer import Exit
+from yaml import YAMLError
 
 
 class FlextCliConstantsExceptions:
@@ -28,10 +28,10 @@ class FlextCliConstantsExceptions:
             ...
     """
 
-    CliAbortError: ClassVar[type[BaseException]] = _ClickAbort
-    CliCommandError: ClassVar[type[BaseException]] = _ClickException
-    CliExit: ClassVar[type[BaseException]] = _TyperExit
-    YamlParseError: ClassVar[type[Exception]] = _YamlError
+    CliAbortError: ClassVar[type[BaseException]] = Abort
+    CliCommandError: ClassVar[type[BaseException]] = ClickException
+    CliExit: ClassVar[type[BaseException]] = Exit
+    YamlParseError: ClassVar[type[Exception]] = YAMLError
 
 
 __all__: list[str] = ["FlextCliConstantsExceptions"]

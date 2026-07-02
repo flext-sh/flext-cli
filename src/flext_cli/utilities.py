@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from flext_cli._utilities._options_parts.flextcliutilitiesoptions_part_02 import (
+    FlextCliUtilitiesOptions,
+)
 from flext_cli._utilities.auth import FlextCliUtilitiesAuth
 from flext_cli._utilities.cmd import FlextCliUtilitiesCmd
 from flext_cli._utilities.commands import FlextCliUtilitiesCommands
@@ -12,7 +15,6 @@ from flext_cli._utilities.formatters import FlextCliUtilitiesFormatters
 from flext_cli._utilities.json import FlextCliUtilitiesJson
 from flext_cli._utilities.matching import FlextCliUtilitiesMatching
 from flext_cli._utilities.model_commands import FlextCliUtilitiesModelCommands
-from flext_cli._utilities.options import FlextCliUtilitiesOptions
 from flext_cli._utilities.output import FlextCliUtilitiesOutput
 from flext_cli._utilities.params import FlextCliUtilitiesParams
 from flext_cli._utilities.pipeline import FlextCliUtilitiesPipeline

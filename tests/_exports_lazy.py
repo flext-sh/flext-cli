@@ -55,10 +55,7 @@ TESTS_FLEXT_CLI_LAZY_IMPORTS = merge_lazy_imports(
             ),
             ".unit.test_examples_smoke": ("TestsFlextCliExamplesSmoke",),
             ".unit.test_files_cov": ("TestsFlextCliFilesCov",),
-            ".unit.test_formatters_cov": (
-                "TestsFlextCliFormattersCov",
-                "TestsFlextCliServicesFormattersCov",
-            ),
+            ".unit.test_formatters_cov": ("TestsFlextCliFormattersCov",),
             ".unit.test_json_cov": ("TestsFlextCliJsonCov",),
             ".unit.test_matching_cov": ("TestsFlextCliMatchingCov",),
             ".unit.test_model_commands_cov": ("TestsFlextCliModelCommandsCov",),
