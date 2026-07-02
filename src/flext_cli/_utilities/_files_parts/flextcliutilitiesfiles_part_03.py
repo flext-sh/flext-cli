@@ -37,7 +37,7 @@ class FlextCliUtilitiesFiles:
 
     @staticmethod
     def ensure_symlink(
-        target: t.Cli.TextPath, source: t.Cli.TextPath
+        target: t.Cli.TextPath, source: t.Cli.TextPath,
     ) -> p.Result[bool]:
         """Ensure target points to source via directory symlink."""
         target_path = Path(target)
@@ -60,7 +60,7 @@ class FlextCliUtilitiesFiles:
                 c.Cli.ERR_ENSURE_SYMLINK_FAILED.format(
                     target_path=target_path,
                     error=exc,
-                )
+                ),
             )
         return r[bool].ok(True)
 
@@ -76,7 +76,7 @@ class FlextCliUtilitiesFiles:
 
     @staticmethod
     def atomic_write_text_file(
-        file_path: t.Cli.TextPath, content: str
+        file_path: t.Cli.TextPath, content: str,
     ) -> p.Result[bool]:
         """Write a text file atomically via tempfile + replace in the same directory."""
         path = Path(file_path)

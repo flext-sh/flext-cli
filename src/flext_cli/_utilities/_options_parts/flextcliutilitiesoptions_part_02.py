@@ -56,7 +56,7 @@ class FlextCliUtilitiesOptions(FlextCliUtilitiesOptionsPart01):
                 normalized_default = normalized_mapping or None
             case _ if cls.is_string_sequence(normalized_source):
                 normalized_default = t.Cli.STR_SEQUENCE_ADAPTER.validate_python(
-                    normalized_source
+                    normalized_source,
                 )
             case _:
                 normalized_default = None

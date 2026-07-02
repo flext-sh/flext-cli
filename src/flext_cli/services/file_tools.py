@@ -20,7 +20,7 @@ class FlextCliFileTools(FlextCliServiceBase):
 
     @staticmethod
     def atomic_write_text_file(
-        file_path: t.Cli.TextPath, content: str
+        file_path: t.Cli.TextPath, content: str,
     ) -> p.Result[bool]:
         """Write text file atomically via the canonical ``u.Cli`` utility surface."""
         return u.Cli.atomic_write_text_file(file_path, content)

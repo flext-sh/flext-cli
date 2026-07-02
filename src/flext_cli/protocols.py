@@ -17,7 +17,7 @@ class FlextCliProtocols(
     """CLI protocol definitions extending FlextProtocols."""
 
     class Cli(
-        FlextCliProtocolsPipeline, FlextCliProtocolsDomain, FlextCliProtocolsBase
+        FlextCliProtocolsPipeline, FlextCliProtocolsDomain, FlextCliProtocolsBase,
     ):
         """Unified CLI protocol namespace."""
 

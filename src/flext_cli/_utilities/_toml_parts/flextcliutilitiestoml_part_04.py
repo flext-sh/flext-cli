@@ -99,7 +99,7 @@ class FlextCliUtilitiesToml:
     ) -> bool:
         """Merge required values into a plain string-list; return True if mutated."""
         current = FlextCliUtilitiesTomlPart01.toml_as_string_list(
-            container.get(key, None)
+            container.get(key, None),
         )
         merged = sorted({*current, *required})
         if current == merged:

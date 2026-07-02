@@ -20,7 +20,7 @@ class FlextCliPromptsSupport(s):
     _input_reader: t.Cli.PromptTextReader = m.PrivateAttr(default_factory=lambda: input)
 
     _password_reader: t.Cli.PromptTextReader = m.PrivateAttr(
-        default_factory=lambda: getpass.getpass
+        default_factory=lambda: getpass.getpass,
     )
 
     _test_env_override: bool | None = m.PrivateAttr(default_factory=lambda: None)

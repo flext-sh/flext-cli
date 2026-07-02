@@ -47,7 +47,7 @@ class FlextCliUtilitiesCommands:
     def commands_emit_error_message(error: str) -> None:
         """Emit standardized CLI error output."""
         uo.emit_raw(
-            f"{uo.output_message_payload(error, c.Cli.MessageTypes.ERROR)[0]}\n"
+            f"{uo.output_message_payload(error, c.Cli.MessageTypes.ERROR)[0]}\n",
         )
 
 

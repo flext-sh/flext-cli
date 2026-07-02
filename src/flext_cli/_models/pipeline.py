@@ -60,7 +60,7 @@ class FlextCliModelsPipeline:
         depends_on: Annotated[
             frozenset[str],
             m.Field(
-                default_factory=frozenset, description="Stage IDs this stage depends on"
+                default_factory=frozenset, description="Stage IDs this stage depends on",
             ),
         ]
         # NOTE: handler/skip_if use inline Callable, not t.Cli.PipelineHandler /
@@ -105,7 +105,7 @@ class FlextCliModelsPipeline:
             ),
         ]
         duration_ms: Annotated[
-            float, m.Field(description="Execution duration in milliseconds")
+            float, m.Field(description="Execution duration in milliseconds"),
         ] = 0.0
         error: Annotated[str | None, m.Field(description="Error message if failed")] = (
             None
@@ -119,11 +119,11 @@ class FlextCliModelsPipeline:
         stages: Annotated[
             t.SequenceOf[FlextCliModelsPipeline.PipelineStageResult],
             m.Field(
-                default_factory=tuple, description="Results from all executed stages"
+                default_factory=tuple, description="Results from all executed stages",
             ),
         ]
         total_duration_ms: Annotated[
-            float, m.Field(description="Total pipeline execution time")
+            float, m.Field(description="Total pipeline execution time"),
         ] = 0.0
 
         @u.computed_field()

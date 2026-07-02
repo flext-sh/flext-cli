@@ -77,7 +77,7 @@ class FlextCliPipeline(FlextCliServiceBase, FlextCliUtilitiesPipeline):
                 status=c.Cli.PipelineStageStatus.OK,
                 output=output,
                 duration_ms=duration_ms,
-            )
+            ),
         )
 
     @classmethod
@@ -104,7 +104,7 @@ class FlextCliPipeline(FlextCliServiceBase, FlextCliUtilitiesPipeline):
                     else (previous_stage_id,),
                     skip_if=skips.get(stage_id),
                     retry=retries.get(stage_id, c.Cli.PIPELINE_DEFAULT_RETRY),
-                )
+                ),
             )
             previous_stage_id = stage_id
         return tuple(stage_list)

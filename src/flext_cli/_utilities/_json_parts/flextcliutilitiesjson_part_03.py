@@ -52,7 +52,7 @@ class FlextCliUtilitiesJson:
             validated = t.Cli.JSON_MAPPING_ADAPTER.validate_python(data)
             return {
                 key: FlextCliUtilitiesJson.json_sort_keys(
-                    t.Cli.JSON_VALUE_ADAPTER.validate_python(value)
+                    t.Cli.JSON_VALUE_ADAPTER.validate_python(value),
                 )
                 for key, value in sorted(validated.items())
             }
@@ -60,7 +60,7 @@ class FlextCliUtilitiesJson:
             items = t.Cli.JSON_LIST_ADAPTER.validate_python(data)
             return [
                 FlextCliUtilitiesJson.json_sort_keys(
-                    t.Cli.JSON_VALUE_ADAPTER.validate_python(item)
+                    t.Cli.JSON_VALUE_ADAPTER.validate_python(item),
                 )
                 for item in items
             ]

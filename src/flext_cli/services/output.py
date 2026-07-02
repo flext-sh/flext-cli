@@ -65,7 +65,7 @@ class FlextCliOutput(s):
     ) -> None:
         """Display progress indicator [current/total] label detail."""
         FlextCliFormatters.print(
-            u.Cli.output_progress_line(current, total, label, detail=detail)
+            u.Cli.output_progress_line(current, total, label, detail=detail),
         )
 
     @staticmethod

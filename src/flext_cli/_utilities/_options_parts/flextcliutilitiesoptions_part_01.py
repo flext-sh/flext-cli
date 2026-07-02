@@ -31,7 +31,7 @@ class FlextCliUtilitiesOptions:
                     t.SequenceOf,
                     t.MutableSequenceOf,
                 ],
-            )
+            ),
         )
         set_origins: dict[object, type] = {
             o: t_
@@ -71,7 +71,7 @@ class FlextCliUtilitiesOptions:
         if origin in sequence_origins:
             inner_annotation = next(iter(get_args(resolved_annotation_input)), str)
             resolved_inner = FlextCliUtilitiesOptions.resolve_typer_annotation(
-                inner_annotation
+                inner_annotation,
             )
             sequence_item = resolved_inner if isinstance(resolved_inner, type) else str
             return GenericAlias(list, (sequence_item,))

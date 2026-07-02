@@ -132,7 +132,7 @@ class FlextCliUtilitiesFiles:
                     Path(source_path),
                     destination,
                     dirs_exist_ok=dirs_exist_ok,
-                )
+                ),
             )
 
         return FlextCliUtilitiesFilesPart02.files_execute(
@@ -155,7 +155,7 @@ class FlextCliUtilitiesFiles:
                     prefix=prefix,
                     suffix=suffix,
                     dir=parent_path,
-                )
+                ),
             )
 
         return FlextCliUtilitiesFilesPart02.files_execute(

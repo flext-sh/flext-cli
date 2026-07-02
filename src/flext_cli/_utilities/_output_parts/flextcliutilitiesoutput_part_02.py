@@ -21,7 +21,7 @@ class FlextCliUtilitiesOutput:
     def status(cls, verb: str, proj: str, *, result: bool, elapsed: float) -> None:
         symbol = c.Cli.OUTPUT_STATUS_OK if result else c.Cli.OUTPUT_STATUS_FAIL
         FlextCliUtilitiesOutputPart01.emit_raw(
-            f"  {symbol} {verb:<8} {proj:<24} {elapsed:.2f}s\n"
+            f"  {symbol} {verb:<8} {proj:<24} {elapsed:.2f}s\n",
         )
 
     @classmethod
@@ -39,7 +39,7 @@ class FlextCliUtilitiesOutput:
             skipped=skipped,
         )
         FlextCliUtilitiesOutputPart01.emit_raw(
-            f"\n-- {verb} summary --\n{content}  ({elapsed:.2f}s)\n"
+            f"\n-- {verb} summary --\n{content}  ({elapsed:.2f}s)\n",
         )
 
     @classmethod
@@ -53,7 +53,7 @@ class FlextCliUtilitiesOutput:
     ) -> None:
         symbol = c.Cli.OUTPUT_STATUS_OK if passed else c.Cli.OUTPUT_STATUS_FAIL
         FlextCliUtilitiesOutputPart01.emit_raw(
-            f"    {symbol} {gate:<10} {count:>5} errors  ({elapsed:.2f}s)\n"
+            f"    {symbol} {gate:<10} {count:>5} errors  ({elapsed:.2f}s)\n",
         )
 
     @classmethod
@@ -68,14 +68,14 @@ class FlextCliUtilitiesOutput:
             f"  [{error_count} errors]" if error_count > 0 else c.DEFAULT_EMPTY_STRING
         )
         FlextCliUtilitiesOutputPart01.emit_raw(
-            f"  {c.Cli.OUTPUT_STATUS_FAIL} {project} completed in {elapsed}s{count_label}  ({log_path})\n"
+            f"  {c.Cli.OUTPUT_STATUS_FAIL} {project} completed in {elapsed}s{count_label}  ({log_path})\n",
         )
         for line in errors[:max_show]:
             FlextCliUtilitiesOutputPart01.emit_raw(f"      {line}\n")
         remaining = error_count - max_show
         if remaining > 0:
             FlextCliUtilitiesOutputPart01.emit_raw(
-                f"      ... and {remaining} more (see log)\n"
+                f"      ... and {remaining} more (see log)\n",
             )
 
     @staticmethod

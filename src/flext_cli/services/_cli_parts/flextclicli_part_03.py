@@ -84,7 +84,7 @@ class FlextCliCli(FlextCliCliPart02):
         """Create a Typer/Click test runner for real CLI execution tests."""
         if echo_stdin:
             return r[t.Cli.TyperRunner].fail(
-                c.Cli.ERR_CLI_RUNNER_ECHO_STDIN_UNSUPPORTED
+                c.Cli.ERR_CLI_RUNNER_ECHO_STDIN_UNSUPPORTED,
             )
         runner = CliRunner(
             charset=charset,

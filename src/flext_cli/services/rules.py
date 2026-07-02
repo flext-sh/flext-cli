@@ -10,7 +10,5 @@ from flext_cli.base import FlextCliServiceBase
 class FlextCliRules(FlextCliServiceBase, FlextCliUtilitiesRules):
     """Expose the generic rule-loading DSL through ``cli`` and ``u.Cli``."""
 
-    pass
-
 
 __all__: t.MutableSequenceOf[str] = ["FlextCliRules"]

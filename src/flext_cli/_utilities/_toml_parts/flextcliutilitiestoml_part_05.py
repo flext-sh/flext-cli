@@ -65,7 +65,7 @@ class FlextCliUtilitiesToml:
     ) -> bool:
         """Synchronize a plain string-list field; return True if mutated."""
         current = FlextCliUtilitiesTomlPart01.toml_as_string_list(
-            container.get(key, None)
+            container.get(key, None),
         )
         normalized_expected = sorted(expected) if sort_values else [*expected]
         normalized_current = sorted(current) if sort_values else [*current]

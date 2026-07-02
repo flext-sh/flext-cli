@@ -86,7 +86,7 @@ class FlextCliUtilitiesJson(FlextCliUtilitiesJsonPart01):
     ) -> int:
         """Extract an integer value from mapping with safe coercion."""
         parsed = u.parse(data.get(key, default), int, default=default).unwrap_or(
-            default
+            default,
         )
         return int(parsed) if isinstance(parsed, bool) else parsed
 

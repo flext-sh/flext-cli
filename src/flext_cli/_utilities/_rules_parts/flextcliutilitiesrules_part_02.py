@@ -27,7 +27,7 @@ class FlextCliUtilitiesRules:
     ) -> p.Result[t.Cli.RuleLoadResult[TRuleKind, TFileRuleKind]]:
         """Load local YAML rule definitions using declarative matcher catalogs."""
         options = m.Cli.LocalDefinitionsOptions[
-            TRuleKind, TFileRuleKind
+            TRuleKind, TFileRuleKind,
         ].model_validate(kwargs)
         rules_dir = FlextCliUtilitiesRulesPart03.rules_resolve_directory(
             config_path,
@@ -59,7 +59,7 @@ class FlextCliUtilitiesRules:
                 if not typed_rule_def.get(options.enabled_key, True):
                     continue
                 if not FlextCliUtilitiesRulesPart03.rules_matches_filters(
-                    rule_id, options.rule_filters
+                    rule_id, options.rule_filters,
                 ):
                     continue
                 action_name = uj.json_get_str_key(
