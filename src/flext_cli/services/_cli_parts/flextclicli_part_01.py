@@ -79,7 +79,7 @@ class FlextCliCli:
         annotation = u.Cli.resolve_typer_annotation(
             getattr(field_info, "annotation", None) or str,
         )
-        is_required = bool(getattr(field_info, "is_required")())
+        is_required = field_info.is_required()
         default_value: t.Cli.CliValue | EllipsisType | None = (
             ...
             if is_required

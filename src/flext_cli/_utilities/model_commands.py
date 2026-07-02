@@ -29,11 +29,11 @@ class FlextCliUtilitiesModelCommandBuilder[M: t.Cli.ModelLike]:
         field_name: str,
         field_info: m.FieldInfo,
     ) -> t.Cli.CliValue | type:
-        if getattr(field_info, "is_required")():
+        if field_info.is_required():
             return inspect.Parameter.empty
         if self.settings is not None and hasattr(self.settings, field_name):
             return getattr(self.settings, field_name)
-        return getattr(field_info, "get_default")(call_default_factory=True)
+        return field_info.get_default(call_default_factory=True)
 
     def build(self) -> t.Cli.CliCommand:
         """Build a direct callable with a real runtime signature."""
@@ -64,13 +64,8 @@ class FlextCliUtilitiesModelCommandBuilder[M: t.Cli.ModelLike]:
             model = self.model_class.model_validate(kwargs)
             return self.handler(model)
 
-        command_obj = command
-        setattr(command_obj, "__signature__", signature)
-        setattr(
-            command_obj,
-            "__annotations__",
-            {parameter.name: parameter.annotation for parameter in parameters},
-        )
+        setattr(command, "__signature__", signature)
+        command.__annotations__ = {parameter.name: parameter.annotation for parameter in parameters}
         command.__annotations__["return"] = t.JsonValue
         return command
 
