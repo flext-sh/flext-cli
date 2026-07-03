@@ -11,8 +11,8 @@ from __future__ import annotations
 
 from typing import override
 
-from flext_cli import FlextCliSettings, m, p, r, t
-from flext_core import s
+from flext_cli import FlextCliSettings, m, p, t
+from flext_core import r, s
 
 
 class FlextCliServiceBase(s):
