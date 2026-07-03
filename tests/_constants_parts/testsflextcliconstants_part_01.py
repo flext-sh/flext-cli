@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from flext_tests import FlextTestsConstants
+from flext_tests import c
 
 from tests._constants_parts.tests_core import TestsFlextCliConstantsCore
 from tests._constants_parts.tests_rules_options import (
@@ -18,7 +18,7 @@ class TestsFlextCliConstants:
         TestsFlextCliConstantsCore,
         TestsFlextCliConstantsYamlOutput,
         TestsFlextCliConstantsRulesOptions,
-        FlextTestsConstants.Tests,
+        c.Tests,
     ):
         """Test-specific constant values for flext-cli."""
 

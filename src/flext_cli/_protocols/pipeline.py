@@ -115,9 +115,7 @@ class FlextCliProtocolsPipeline:
             self,
             stages: t.SequenceOf[m.Cli.PipelineStageSpec],
             *,
-            workspace_root: Path,
-            shared: t.MutableJsonMapping | None = None,
-            settings: t.JsonMapping | None = None,
+            context: m.Cli.PipelineStageContext,
             fail_fast: bool = True,
             logger: p.Logger | None = None,
         ) -> p.Result[m.Cli.PipelineResult]:

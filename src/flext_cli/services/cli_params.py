@@ -2,14 +2,7 @@
 
 from __future__ import annotations
 
-from flext_cli import (
-    c,
-    p,
-    r,
-    t,
-    u,
-)
-from flext_cli.base import s
+from flext_cli import c, p, r, s, t, u
 
 
 class FlextCliCommonParams(s):

@@ -22,5 +22,3 @@ __all__: t.MutableSequenceOf[str] = [
     "FlextCliModels",
     "m",
 ]
-
-m = FlextCliModels

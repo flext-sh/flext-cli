@@ -27,11 +27,31 @@ from flext_cli._utilities.tables import FlextCliUtilitiesTables
 from flext_cli._utilities.toml import FlextCliUtilitiesToml
 from flext_cli._utilities.validation import FlextCliUtilitiesValidation
 from flext_cli._utilities.yaml import FlextCliUtilitiesYaml
-from flext_core import u
+from flext_core import (
+    FlextLogger,
+    FlextRuntime,
+    FlextUtilitiesChecker,
+    FlextUtilitiesCollection,
+    FlextUtilitiesContext,
+    FlextUtilitiesConversion,
+    FlextUtilitiesDiscovery,
+    FlextUtilitiesDomain,
+    FlextUtilitiesEnforcement,
+    FlextUtilitiesEnum,
+    FlextUtilitiesGenerators,
+    FlextUtilitiesGuards,
+    FlextUtilitiesMapper,
+    FlextUtilitiesModelRuntime,
+    FlextUtilitiesParser,
+    FlextUtilitiesProjectMetadata,
+    FlextUtilitiesPydantic,
+    FlextUtilitiesReliability,
+    FlextUtilitiesSettings,
+    FlextUtilitiesText,
+)
 
 
 class FlextCliUtilities(
-    u,
     FlextCliUtilitiesAuth,
     FlextCliUtilitiesCmd,
     FlextCliUtilitiesCommands,
@@ -55,8 +75,38 @@ class FlextCliUtilities(
     FlextCliUtilitiesToml,
     FlextCliUtilitiesValidation,
     FlextCliUtilitiesYaml,
+    FlextRuntime,
+    FlextUtilitiesChecker,
+    FlextUtilitiesCollection,
+    FlextUtilitiesContext,
+    FlextUtilitiesConversion,
+    FlextUtilitiesDiscovery,
+    FlextUtilitiesDomain,
+    FlextUtilitiesEnum,
+    FlextUtilitiesGenerators,
+    FlextUtilitiesGuards,
+    FlextUtilitiesMapper,
+    FlextUtilitiesModelRuntime,
+    FlextUtilitiesParser,
+    FlextUtilitiesPydantic,
+    FlextUtilitiesProjectMetadata,
+    FlextUtilitiesReliability,
+    FlextUtilitiesSettings,
+    FlextUtilitiesText,
 ):
     """CLI utility facade composed from internal utility mixins."""
+
+    check = staticmethod(FlextUtilitiesEnforcement.check)
+    class_name_to_module = staticmethod(FlextUtilitiesEnforcement.class_name_to_module)
+    build_canonical_catalog = staticmethod(
+        FlextUtilitiesEnforcement.build_canonical_catalog
+    )
+    bind_context = staticmethod(FlextLogger.bind_context)
+    clear_scope = staticmethod(FlextLogger.clear_scope)
+    create_module_logger = staticmethod(FlextLogger.create_module_logger)
+    ensure_structlog_configured = staticmethod(FlextLogger.ensure_structlog_configured)
+    fetch_logger = staticmethod(FlextLogger.fetch_logger)
+    PerformanceTracker = FlextLogger.PerformanceTracker
 
     class Cli(
         FlextCliUtilitiesAuth,
@@ -82,8 +132,16 @@ class FlextCliUtilities(
         FlextCliUtilitiesToml,
         FlextCliUtilitiesValidation,
         FlextCliUtilitiesYaml,
+        FlextUtilitiesGenerators,
+        FlextUtilitiesPydantic,
     ):
         """Command line interface specific utilities — all concerns composed via MRO."""
+
+        create_module_logger = staticmethod(FlextLogger.create_module_logger)
+        ensure_structlog_configured = staticmethod(
+            FlextLogger.ensure_structlog_configured
+        )
+        fetch_logger = staticmethod(FlextLogger.fetch_logger)
 
 
 u = FlextCliUtilities

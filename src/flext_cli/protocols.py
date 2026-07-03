@@ -27,5 +27,3 @@ class FlextCliProtocols(
 p: type[FlextCliProtocols] = FlextCliProtocols
 
 __all__: list[str] = ["FlextCliProtocols", "p"]
-
-p = FlextCliProtocols

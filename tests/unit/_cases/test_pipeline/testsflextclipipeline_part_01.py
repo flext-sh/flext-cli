@@ -52,7 +52,7 @@ class TestsFlextCliPipeline:
                 handler=self._ok_handler("alpha"),
             ),
         ]
-        result = cli.pipeline(stages, workspace_root=tmp_path)
+        result = cli.pipeline(stages, context=cli.stage_context(tmp_path))
         assert result.success
         pipeline = result.value
         assert pipeline.success
@@ -81,7 +81,7 @@ class TestsFlextCliPipeline:
                 "b": tracking_handler("b"),
             },
         )
-        result = cli.pipeline(stages, workspace_root=tmp_path)
+        result = cli.pipeline(stages, context=cli.stage_context(tmp_path))
         assert result.success
         assert execution_order == ["a", "b"]
 
@@ -109,7 +109,7 @@ class TestsFlextCliPipeline:
                 handler=reader,
             ),
         ]
-        result = cli.pipeline(stages, workspace_root=tmp_path)
+        result = cli.pipeline(stages, context=cli.stage_context(tmp_path))
         assert result.success
         assert received["from_a"] == "hello"
 
@@ -125,7 +125,7 @@ class TestsFlextCliPipeline:
         ]
         result = cli.pipeline(
             stages,
-            workspace_root=tmp_path,
+            context=cli.stage_context(tmp_path),
             fail_fast=True,
         )
         assert result.success
@@ -143,7 +143,7 @@ class TestsFlextCliPipeline:
                 skip_if=self._skip_always,
             ),
         ]
-        result = cli.pipeline(stages, workspace_root=tmp_path)
+        result = cli.pipeline(stages, context=cli.stage_context(tmp_path))
         assert result.success
         pipeline = result.value
         assert pipeline.success

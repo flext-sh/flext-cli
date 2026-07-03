@@ -54,8 +54,7 @@ class TestsFlextCliPublicContractsCoverage:
         stage_result = spec.handler(context)
         pipeline_run = cli.pipeline(
             (spec,),
-            workspace_root=tmp_path,
-            settings={"mode": "test"},
+            context=cli.stage_context(tmp_path, settings={"mode": "test"}),
         )
 
         assert isinstance(cli, p.Cli.PipelineService)

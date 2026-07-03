@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     from flext_cli._models._base_parts.flextclimodelsbase_part_07 import (
         FlextCliModelsBase as FlextCliModelsBase,
     )
+    from flext_cli._models._test_tmp import X as X
     from flext_cli._models.pipeline import (
         FlextCliModelsPipeline as FlextCliModelsPipeline,
     )
@@ -25,6 +26,7 @@ _LAZY_IMPORTS = merge_lazy_imports(
         {
             "._base_parts": ("_base_parts",),
             "._base_parts.flextclimodelsbase_part_07": ("FlextCliModelsBase",),
+            "._test_tmp": ("X",),
             ".pipeline": ("FlextCliModelsPipeline",),
             ".rules": ("FlextCliModelsRules",),
         },

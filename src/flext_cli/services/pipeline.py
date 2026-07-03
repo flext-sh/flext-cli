@@ -113,20 +113,14 @@ class FlextCliPipeline(FlextCliServiceBase, FlextCliUtilitiesPipeline):
         self,
         stages: t.SequenceOf[m.Cli.PipelineStageSpec],
         *,
-        workspace_root: Path,
-        shared: t.MutableJsonMapping | None = None,
-        settings: t.JsonMapping | None = None,
+        context: m.Cli.PipelineStageContext,
         fail_fast: bool = c.Cli.PIPELINE_DEFAULT_FAIL_FAST,
         logger: p.Logger | None = None,
     ) -> p.Result[m.Cli.PipelineResult]:
         """Execute a pipeline through the public CLI DSL surface."""
         return self.execute_pipeline(
             stages,
-            self.stage_context(
-                workspace_root,
-                shared=shared,
-                settings=settings,
-            ),
+            context,
             fail_fast=fail_fast,
             logger=logger or self.logger,
         )

@@ -48,7 +48,7 @@ class TestsFlextCliPipeline:
                 handler=track("d"),
             ),
         ]
-        result = cli.pipeline(stages, workspace_root=tmp_path)
+        result = cli.pipeline(stages, context=cli.stage_context(tmp_path))
         assert result.success
         assert order[0] == "a"
         assert order[-1] == "d"

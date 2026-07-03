@@ -43,7 +43,7 @@ class TestsFlextCliPipeline:
                 handler=self._ok_handler("b"),
             ),
         ]
-        result = cli.pipeline(stages, workspace_root=tmp_path)
+        result = cli.pipeline(stages, context=cli.stage_context(tmp_path))
         assert result.failure
 
     def test_retry_on_failure(self, tmp_path: Path) -> None:
@@ -71,7 +71,7 @@ class TestsFlextCliPipeline:
                 retry=3,
             ),
         ]
-        result = cli.pipeline(stages, workspace_root=tmp_path)
+        result = cli.pipeline(stages, context=cli.stage_context(tmp_path))
         assert result.success
         assert result.value.success
         assert call_count == 3
@@ -97,7 +97,7 @@ class TestsFlextCliPipeline:
                     retry=1,
                 ),
             ],
-            workspace_root=tmp_path,
+            context=cli.stage_context(tmp_path),
         )
 
         assert result.success
@@ -109,7 +109,7 @@ class TestsFlextCliPipeline:
 
     def test_empty_pipeline(self, tmp_path: Path) -> None:
         """Empty pipeline returns ok with no stages."""
-        result = cli.pipeline([], workspace_root=tmp_path)
+        result = cli.pipeline([], context=cli.stage_context(tmp_path))
         assert result.success
         assert result.value.success
         assert len(result.value.stages) == 0
@@ -119,7 +119,7 @@ class TestsFlextCliPipeline:
         stages = [
             cli.stage("a", handler=self._ok_handler("a")),
         ]
-        result = cli.pipeline(stages, workspace_root=tmp_path)
+        result = cli.pipeline(stages, context=cli.stage_context(tmp_path))
         assert result.success
         assert result.value.total_duration_ms >= 0.0
 
