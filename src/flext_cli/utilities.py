@@ -1,592 +1,76 @@
-"""FLEXT CLI utility facade and CLI-specific helpers."""
+"""FLEXT CLI utility facade."""
 
 from __future__ import annotations
 
-import logging
-import os
-import types
-from collections.abc import Callable, Mapping, Sequence
-from datetime import UTC, datetime
-from enum import StrEnum
-from functools import wraps
-from pathlib import Path
-from typing import get_args, get_origin, override
+from importlib import import_module
+from typing import TYPE_CHECKING, cast
 
-from flext_core import FlextUtilities, r
-from pydantic import BaseModel, ConfigDict, ValidationError, validate_call
-from rich.errors import ConsoleError, LiveError, StyleError
+if TYPE_CHECKING:
+    from flext_cli._utilities._cli_namespace import (
+        FlextCliUtilitiesCli,
+    )
+    from flext_core.utilities import FlextUtilities as _FlextCoreUtilitiesBase
+else:
 
-from flext_cli import c, m, t
-from flext_cli.typings import FlextCliTypes
+    class FlextCoreUtilitiesBaseProxyMeta(type):
+        """Proxy metaclass that materializes the core utility base on demand."""
+
+        _target_cls: type | None = None
+
+        def _target(cls) -> type:
+            if cls._target_cls is None:
+                module = import_module("flext_core.utilities")
+                cls._target_cls = cast("type", getattr(module, "u"))
+            return cls._target_cls
+
+        def __getattr__(cls, name: str) -> object:
+            return getattr(cls._target(), name)
+
+    class _FlextCoreUtilitiesBase(metaclass=FlextCoreUtilitiesBaseProxyMeta):
+        """Lazy proxy for inherited ``flext_core.u`` utilities."""
+
+        def __getattr__(self, name: str) -> object:
+            return getattr(type(self), name)
+
+    class FlextCliUtilitiesCliProxyMeta(type):
+        """Proxy metaclass that materializes the CLI namespace on demand."""
+
+        _target_cls: type | None = None
+
+        def _target(cls) -> type:
+            if cls._target_cls is None:
+                module = import_module("flext_cli._utilities._cli_namespace")
+                cls._target_cls = cast("type", getattr(module, "FlextCliUtilitiesCli"))
+            return cls._target_cls
+
+        def __getattr__(cls, name: str) -> object:
+            return getattr(cls._target(), name)
+
+        def __setattr__(cls, name: str, value: object) -> None:
+            if name.startswith("_"):
+                super().__setattr__(name, value)
+                return
+            setattr(cls._target(), name, value)
+
+        def __delattr__(cls, name: str) -> None:
+            if name.startswith("_"):
+                super().__delattr__(name)
+                return
+            delattr(cls._target(), name)
+
+        def __call__(cls) -> object:
+            return cls._target()()
+
+    class FlextCliUtilitiesCli(metaclass=FlextCliUtilitiesCliProxyMeta):
+        """Lazy proxy for the heavy ``u.Cli`` utility namespace."""
 
 
-class FlextCliUtilities(FlextUtilities):
-    """Main utilities class for the Flext CLI."""
+class FlextCliUtilities(_FlextCoreUtilitiesBase):
+    """CLI utility facade composed from internal utility mixins."""
 
-    class Cli(FlextUtilities):
-        """Command line interface specific utilities."""
-
-        @staticmethod
-        @override
-        def process[T, U](
-            items: Sequence[T],
-            processor: Callable[[T], U],
-            *,
-            predicate: Callable[[T], bool] | None = None,
-            on_error: str = "fail",
-            filter_keys: set[str] | None = None,
-            exclude_keys: set[str] | None = None,
-        ) -> r[list[U]]:
-            """Process a sequence of items with error handling."""
-            _ = (filter_keys, exclude_keys)
-            errors: list[str] = []
-            values: list[U] = []
-            for idx, item in enumerate(items):
-                if predicate is not None and (not predicate(item)):
-                    continue
-                try:
-                    values.append(processor(item))
-                except (
-                    ValueError,
-                    TypeError,
-                    KeyError,
-                    ConsoleError,
-                    StyleError,
-                    LiveError,
-                ) as exc:
-                    if on_error == "fail":
-                        return r[list[U]].fail(f"Error at index {idx}: {exc}")
-                    if on_error == "collect":
-                        errors.append(f"[{idx}]: {exc}")
-                    else:
-                        logging.getLogger(__name__).debug(
-                            "process skip index %s: %s", idx, exc, exc_info=False
-                        )
-            return (
-                r[list[U]].fail("; ".join(errors)) if errors else r[list[U]].ok(values)
-            )
-
-        @staticmethod
-        def process_mapping[T, U](
-            items: Mapping[str, T],
-            processor: Callable[[str, T], U],
-            on_error: str = "fail",
-        ) -> r[Mapping[str, U]]:
-            """Process a mapping of items with error handling."""
-            errors: list[str] = []
-            values: dict[str, U] = {}
-            for key, value in items.items():
-                try:
-                    values[key] = processor(key, value)
-                except (
-                    ValueError,
-                    TypeError,
-                    KeyError,
-                    ConsoleError,
-                    StyleError,
-                    LiveError,
-                ) as exc:
-                    if on_error == "fail":
-                        return r[Mapping[str, U]].fail(f"Error processing {key}: {exc}")
-                    if on_error == "collect":
-                        errors.append(f"{key}: {exc}")
-                    else:
-                        logging.getLogger(__name__).debug(
-                            "process_mapping skip key %s: %s", key, exc, exc_info=False
-                        )
-            return (
-                r[Mapping[str, U]].fail("; ".join(errors))
-                if errors
-                else r[Mapping[str, U]].ok(values)
-            )
-
-        @staticmethod
-        def validate_required_string(value: str, *, context: str = "Value") -> None:
-            """Validate that a string is not empty."""
-            checked = FlextCliUtilities.Cli.CliValidation.v_empty(value, name=context)
-            if checked.is_failure:
-                raise ValueError(checked.error or f"{context} cannot be empty")
-
-        class CliValidation:
-            """CLI-specific validation utilities."""
-
-            @staticmethod
-            def get_valid_command_statuses() -> tuple[str, ...]:
-                """Get valid command statuses."""
-                return tuple(sorted(c.Cli.ValidationMappings.COMMAND_STATUS_SET))
-
-            @staticmethod
-            def get_valid_output_formats() -> tuple[str, ...]:
-                """Get valid output formats."""
-                return tuple(sorted(c.Cli.ValidationMappings.OUTPUT_FORMAT_SET))
-
-            @staticmethod
-            def to_str(value: t.Cli.CliValue) -> str:
-                """Convert a value to a string safely."""
-                if value is None:
-                    return ""
-                if isinstance(value, str):
-                    return value
-                return str(value)
-
-            @staticmethod
-            def v(
-                val: t.Cli.CliValue,
-                *,
-                name: str = "field",
-                empty: bool = True,
-                in_list: list[str] | None = None,
-                eq: str | None = None,
-                msg: str = "",
-            ) -> r[bool]:
-                """Validate a value against various criteria."""
-                if not empty:
-                    check = FlextCliUtilities.Cli.CliValidation.v_empty(val, name=name)
-                    if check.is_failure:
-                        return r[bool].fail(msg or check.error or "")
-                if in_list is not None:
-                    val_str = FlextCliUtilities.Cli.CliValidation.to_str(val)
-                    if val_str not in set(in_list):
-                        err = (
-                            c.Cli.MixinsValidationMessages.SESSION_STATUS_INVALID.format(
-                                current_status=val_str, valid_states=in_list
-                            )
-                            if name == "session_status"
-                            else c.Cli.MixinsValidationMessages.INVALID_ENUM_VALUE.format(
-                                field_name=name, valid_values=in_list
-                            )
-                        )
-                        return r[bool].fail(msg or err)
-                if eq is not None:
-                    val_str = FlextCliUtilities.Cli.CliValidation.to_str(val)
-                    if val_str != eq:
-                        err = (
-                            c.Cli.MixinsValidationMessages.COMMAND_STATE_INVALID.format(
-                                operation=name,
-                                current_status=val_str,
-                                required_status=eq,
-                            )
-                        )
-                        return r[bool].fail(msg or err)
-                return r[bool].ok(value=True)
-
-            @staticmethod
-            def v_config(
-                config: Mapping[str, t.Cli.CliValue]
-                | Mapping[str, FlextCliTypes.Cli.JsonValue]
-                | None,
-                *,
-                fields: list[str],
-            ) -> r[bool]:
-                """Validate configuration fields."""
-                return FlextCliUtilities.Cli.CliValidation.v_req(config, fields=fields)
-
-            @staticmethod
-            def v_empty(val: t.Cli.CliValue, *, name: str = "field") -> r[bool]:
-                """Validate that a value is not empty."""
-                if val is None:
-                    return r[bool].fail(
-                        c.Cli.MixinsValidationMessages.FIELD_CANNOT_BE_EMPTY.format(
-                            field_name=name
-                        )
-                    )
-                if isinstance(val, str) and (
-                    not FlextUtilities.is_string_non_empty(val)
-                ):
-                    return r[bool].fail(
-                        c.Cli.MixinsValidationMessages.FIELD_CANNOT_BE_EMPTY.format(
-                            field_name=name
-                        )
-                    )
-                return r[bool].ok(value=True)
-
-            @staticmethod
-            def v_format(format_type: str) -> r[str]:
-                """Validate an output format."""
-                fmt = str(format_type).lower()
-                valid = FlextCliUtilities.Cli.CliValidation.v(
-                    fmt,
-                    name="format",
-                    empty=False,
-                    in_list=c.Cli.ValidationLists.OUTPUT_FORMATS,
-                )
-                if valid.is_success:
-                    return r[str].ok(fmt)
-                return r[str].fail(
-                    c.Cli.ErrorMessages.INVALID_OUTPUT_FORMAT.format(format=format_type)
-                )
-
-            @staticmethod
-            def v_level(level: str) -> r[bool]:
-                """Validate a debug level."""
-                return FlextCliUtilities.Cli.CliValidation.v(
-                    level,
-                    name="level",
-                    empty=False,
-                    in_list=c.Cli.ValidationLists.DEBUG_LEVELS,
-                )
-
-            @staticmethod
-            def v_req(
-                data: Mapping[str, t.Cli.CliValue]
-                | Mapping[str, FlextCliTypes.Cli.JsonValue]
-                | None,
-                *,
-                fields: list[str],
-            ) -> r[bool]:
-                """Validate that required fields are present in a dictionary."""
-                if data is None:
-                    return r[bool].fail(
-                        c.Cli.MixinsValidationMessages.CONFIG_MISSING_FIELDS.format(
-                            missing_fields=fields
-                        )
-                    )
-                missing = [name for name in fields if name not in data]
-                if not missing:
-                    return r[bool].ok(True)
-                return r[bool].fail(
-                    c.Cli.MixinsValidationMessages.CONFIG_MISSING_FIELDS.format(
-                        missing_fields=missing
-                    )
-                )
-
-            @staticmethod
-            def v_session(current: str, *, valid: list[str]) -> r[bool]:
-                """Validate a session status."""
-                return FlextCliUtilities.Cli.CliValidation.v_state(
-                    current, valid=valid, name="session_status"
-                )
-
-            @staticmethod
-            def v_state(
-                current: str,
-                *,
-                required: str | None = None,
-                valid: list[str] | None = None,
-                name: str = "state",
-            ) -> r[bool]:
-                """Validate a state value."""
-                if required is not None:
-                    return FlextCliUtilities.Cli.CliValidation.v(
-                        current, name=name, eq=required
-                    )
-                if valid is not None:
-                    return FlextCliUtilities.Cli.CliValidation.v(
-                        current, name=name, in_list=valid, empty=False
-                    )
-                return r[bool].fail(f"{name}: no validation criteria provided")
-
-            @staticmethod
-            def v_status(status: str) -> r[bool]:
-                """Validate a command status."""
-                return FlextCliUtilities.Cli.CliValidation.v(
-                    status,
-                    name="status",
-                    empty=False,
-                    in_list=c.Cli.ValidationLists.COMMAND_STATUSES,
-                )
-
-            @staticmethod
-            def v_step(
-                step: Mapping[str, t.Cli.CliValue]
-                | Mapping[str, FlextCliTypes.Cli.JsonValue]
-                | None,
-            ) -> r[bool]:
-                """Validate a pipeline step."""
-                if step is None:
-                    return r[bool].fail(
-                        c.Cli.MixinsValidationMessages.PIPELINE_STEP_EMPTY
-                    )
-                key = c.Cli.MixinsFieldNames.PIPELINE_STEP_NAME
-                if key not in step:
-                    return r[bool].fail(
-                        c.Cli.MixinsValidationMessages.PIPELINE_STEP_NO_NAME
-                    )
-                value = step[key]
-                if value is None:
-                    return r[bool].fail(
-                        c.Cli.MixinsValidationMessages.PIPELINE_STEP_NAME_EMPTY
-                    )
-                if isinstance(value, str) and (not value.strip()):
-                    return r[bool].fail(
-                        c.Cli.MixinsValidationMessages.PIPELINE_STEP_NAME_EMPTY
-                    )
-                return r[bool].ok(value=True)
-
-            @staticmethod
-            def validate_field_in_list(
-                field_value: str | float | None,
-                *,
-                valid_values: list[str],
-                field_name: str,
-            ) -> r[bool]:
-                """Validate that a field value is in a list of valid values."""
-                return FlextCliUtilities.Cli.CliValidation.v(
-                    field_value, name=field_name, empty=False, in_list=valid_values
-                )
-
-        class Environment:
-            """CLI environment utilities."""
-
-            @staticmethod
-            def is_test_environment() -> bool:
-                """Check if running in a test environment."""
-                pytest_test = FlextUtilities.get(
-                    os.environ, c.Cli.EnvironmentConstants.PYTEST_CURRENT_TEST
-                )
-                underscore = os.environ.get(c.Cli.EnvironmentConstants.UNDERSCORE, "")
-                ci = os.environ.get(c.Cli.EnvironmentConstants.CI)
-                return (
-                    pytest_test is not None
-                    or c.Cli.EnvironmentConstants.PYTEST in underscore.lower()
-                    or ci == c.Cli.EnvironmentConstants.CI_TRUE_VALUE
-                )
-
-        class ConfigOps:
-            """Configuration operations."""
-
-            @staticmethod
-            def get_config_info() -> m.Cli.ConfigSnapshot:
-                """Get configuration information."""
-                path = Path.home() / c.Cli.Paths.FLEXT_DIR_NAME
-                exists = path.exists()
-                return m.Cli.ConfigSnapshot(
-                    config_dir=str(path),
-                    config_exists=exists,
-                    config_readable=exists and os.access(path, os.R_OK),
-                    config_writable=exists and os.access(path, os.W_OK),
-                    timestamp=datetime.now(UTC).isoformat(),
-                )
-
-            @staticmethod
-            def get_config_paths() -> list[str]:
-                """Get standard configuration paths."""
-                base = Path.home() / c.Cli.Paths.FLEXT_DIR_NAME
-                return [
-                    str(base),
-                    str(base / c.Cli.DictKeys.CONFIG),
-                    str(base / c.Cli.Subdirectories.CACHE),
-                    str(base / c.Cli.Subdirectories.LOGS),
-                    str(base / c.Cli.DictKeys.TOKEN),
-                    str(base / c.Cli.Subdirectories.REFRESH_TOKEN),
-                ]
-
-            @staticmethod
-            def validate_config_structure() -> list[str]:
-                """Validate configuration directory structure."""
-                base = Path.home() / c.Cli.Paths.FLEXT_DIR_NAME
-                ok = c.Cli.Symbols.SUCCESS_MARK
-                fail = c.Cli.Symbols.FAILURE_MARK
-                lines = [
-                    f"{ok} Configuration directory exists"
-                    if base.exists()
-                    else f"{fail} Configuration directory missing"
-                ]
-                for subdir in c.Cli.Subdirectories.STANDARD_SUBDIRS:
-                    path = base / subdir
-                    lines.append(
-                        c.Cli.CmdMessages.SUBDIR_EXISTS.format(symbol=ok, subdir=subdir)
-                        if path.exists()
-                        else c.Cli.CmdMessages.SUBDIR_MISSING.format(
-                            symbol=fail, subdir=subdir
-                        )
-                    )
-                return lines
-
-        FILE_NOT_FOUND_PATTERNS: tuple[str, ...] = (
-            "not found",
-            "no such file",
-            "does not exist",
-            "errno 2",
-            "cannot open",
-        )
-
-        @staticmethod
-        def is_file_not_found_error(error_msg: str) -> bool:
-            """Check if error message indicates file not found."""
-            return FlextCliUtilities.Cli.matches(
-                error_msg,
-                *FlextCliUtilities.Cli.FILE_NOT_FOUND_PATTERNS,
-            )
-
-        @staticmethod
-        def matches(msg: str, *patterns: str) -> bool:
-            """Check if message matches any pattern."""
-            text = msg.lower()
-            return any(pattern.lower() in text for pattern in patterns)
-
-        class TypeNormalizer:
-            """Type normalization utilities."""
-
-            @staticmethod
-            def combine_types_with_union(
-                types_list: list[type | types.UnionType], *, include_none: bool = False
-            ) -> type | types.UnionType:
-                """Combine types using union."""
-                result: type | types.UnionType = types_list[0]
-                for item in types_list[1:]:
-                    result |= item
-                if include_none:
-                    result |= types.NoneType
-                return result
-
-            @staticmethod
-            def normalize_annotation(
-                annotation: type | types.UnionType | None,
-            ) -> type | types.UnionType | None:
-                """Normalize type annotation."""
-                if annotation is None:
-                    return None
-                origin_obj = get_origin(annotation)
-                if origin_obj is types.UnionType or str(origin_obj) == "typing.Union":
-                    return FlextCliUtilities.Cli.TypeNormalizer.normalize_union_type(
-                        annotation
-                    )
-                return annotation
-
-            @staticmethod
-            def normalize_union_type(
-                annotation: type | types.UnionType,
-            ) -> type | types.UnionType | None:
-                """Normalize union type."""
-                raw_args = get_args(annotation)
-                if not raw_args:
-                    return annotation
-                args_list: list[type | types.UnionType] = []
-                for arg in raw_args:
-                    if isinstance(arg, (type, types.UnionType)):
-                        args_list.append(arg)
-                    else:
-                        return annotation
-                args: tuple[type | types.UnionType, ...] = tuple(args_list)
-                has_none = types.NoneType in args
-                non_none = [arg for arg in args if arg is not types.NoneType]
-                if len(non_none) == 1:
-                    inner = FlextCliUtilities.Cli.TypeNormalizer.normalize_annotation(
-                        non_none[0]
-                    )
-                    if inner is None:
-                        return None
-                    return inner | types.NoneType if has_none else inner
-                if len(non_none) > 1:
-                    normalized = [
-                        item
-                        for item in (
-                            FlextCliUtilities.Cli.TypeNormalizer.normalize_annotation(
-                                arg
-                            )
-                            for arg in non_none
-                        )
-                        if item is not None
-                    ]
-                    if not normalized:
-                        return None
-                    return (
-                        FlextCliUtilities.Cli.TypeNormalizer.combine_types_with_union(
-                            normalized, include_none=has_none
-                        )
-                    )
-                return annotation
-
-            class Args:
-                """Function arguments normalization."""
-
-                @staticmethod
-                def parse_kwargs[E: StrEnum](
-                    kwargs: Mapping[str, t.Cli.CliValue],
-                    enum_fields: Mapping[str, type[E]],
-                ) -> r[Mapping[str, t.Cli.CliValue]]:
-                    """Parse keyword arguments."""
-                    parsed = dict(kwargs)
-                    errors: list[str] = []
-                    for key, enum_cls in enum_fields.items():
-                        if key not in parsed:
-                            continue
-                        value = parsed[key]
-                        if isinstance(value, str):
-                            try:
-                                parsed_enum = enum_cls(value)
-                                parsed[key] = parsed_enum.value
-                            except ValueError:
-                                errors.append(f"{key}: '{value}'")
-                        else:
-                            continue
-                    return (
-                        r[Mapping[str, t.Cli.CliValue]].fail(f"Invalid: {errors}")
-                        if errors
-                        else r[Mapping[str, t.Cli.CliValue]].ok(parsed)
-                    )
-
-                @staticmethod
-                def validated_with_result[**P, U](
-                    func: Callable[P, r[U]],
-                ) -> Callable[P, r[U]]:
-                    """Validate arguments and return result."""
-                    wrapped = validate_call(
-                        config=ConfigDict(arbitrary_types_allowed=True),
-                        validate_return=False,
-                    )(func)
-
-                    @wraps(func)
-                    def call(*args: P.args, **kwargs: P.kwargs) -> r[U]:
-                        try:
-                            return wrapped(*args, **kwargs)
-                        except ValidationError as exc:
-                            return r[U].fail(str(exc))
-
-                    return call
-
-            class Model:
-                """Pydantic model normalization."""
-
-                @staticmethod
-                def from_dict[M: BaseModel](
-                    model_cls: type[M],
-                    data: Mapping[str, t.Cli.CliValue],
-                    *,
-                    strict: bool = False,
-                ) -> r[M]:
-                    """Create model instance from dictionary."""
-                    try:
-                        instance = model_cls.model_validate(data, strict=strict)
-                        return r[M].ok(instance)
-                    except ValidationError as exc:
-                        return r[M].fail(f"Model validation failed: {exc}")
-
-                @staticmethod
-                def merge_defaults[M: BaseModel](
-                    model_cls: type[M],
-                    defaults: Mapping[str, FlextCliTypes.Cli.JsonValue],
-                    overrides: Mapping[str, FlextCliTypes.Cli.JsonValue],
-                ) -> r[M]:
-                    """Merge default values with overrides."""
-                    result = FlextUtilities.merge_defaults(
-                        model_cls, defaults, overrides
-                    )
-                    return (
-                        r[M].ok(result.value)
-                        if result.is_success
-                        else r[M].fail(result.error or "")
-                    )
-
-                @staticmethod
-                def update[M: BaseModel](instance: M, **updates: t.Scalar) -> r[M]:
-                    """Update model instance."""
-                    result = FlextUtilities.update(instance, **updates)
-                    return (
-                        r[M].ok(result.value)
-                        if result.is_success
-                        else r[M].fail(result.error or "")
-                    )
-
-            class Pydantic:
-                """Pydantic utilities."""
-
-                @staticmethod
-                def coerced_enum[E: StrEnum](enum_cls: type[E]) -> type[E]:
-                    """Create a forced enum with validation."""
-                    return enum_cls
+    Cli = FlextCliUtilitiesCli
 
 
 u = FlextCliUtilities
-__all__ = ["FlextCliUtilities", "u"]
+
+__all__: list[str] = ["FlextCliUtilities", "u"]

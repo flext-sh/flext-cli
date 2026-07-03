@@ -1,223 +1,120 @@
-"""FLEXT CLI Version Tests - Comprehensive Version Validation Testing.
-
-Tests for flext_cli.__version__ and __version_info__ covering semver compliance,
-immutability, consistency, and edge cases with 100% coverage.
-
-Modules tested: flext_cli.__version__, flext_cli.__version_info__
-Scope: Version string validation, version info validation, consistency checks
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-
-"""
+"""Public version-contract tests for the flext-cli facade."""
 
 from __future__ import annotations
 
-import re
-import sys
-from enum import StrEnum
-from typing import Final, TypeVar
-
 import pytest
 from flext_tests import tm
-from pydantic import BaseModel, ConfigDict, Field
 
-from flext_cli import __version__, __version_info__
-
-from ..conftest import Examples, InfoTuples
-from ..helpers import FlextCliTestHelpers
-
-T = TypeVar("T")
+from flext_cli import cli
+from tests.constants import c
+from tests.models import m
+from tests.typings import t
+from tests.utilities import u
 
 
-class TestsCliVersion:
-    """Comprehensive version validation test suite.
-
-    Single class with nested helper classes and methods organized by functionality.
-    Uses factories, constants, dynamic tests, and helpers to reduce code while
-    maintaining and expanding coverage.
-    """
-
-    class ValidationType(StrEnum):
-        """Types of version validation."""
-
-        STRING = "string_validation"
-        INFO = "info_validation"
-        CONSISTENCY = "consistency"
-
-    class TestScenario:
-        """Version test scenario data class."""
-
-        class Data(BaseModel):
-            """Version test scenario data."""
-
-            model_config = ConfigDict(frozen=True)
-
-            name: str = Field(description="Scenario name")
-            version_string: str | None = Field(
-                default=None, description="Version string under test"
-            )
-            version_info: tuple[int | str, ...] | None = Field(
-                default=None, description="Version info tuple under test"
-            )
-            should_pass: bool = Field(
-                default=True, description="Whether scenario should pass validation"
-            )
-
-            @property
-            def validation_type(self) -> TestsCliVersion.ValidationType:
-                """Determine validation type based on data provided."""
-                current_module = sys.modules[__name__]
-                test_class: type[TestsCliVersion] = current_module.TestsCliVersion
-                validation_enum = test_class.ValidationType
-                if self.version_string and self.version_info:
-                    return validation_enum.CONSISTENCY
-                if self.version_info:
-                    return validation_enum.INFO
-                return validation_enum.STRING
-
-        @classmethod
-        def get_string_cases(cls) -> list[TestsCliVersion.TestScenario.Data]:
-            """Get parametrized test cases for version string validation."""
-            data_class = cls.Data
-            return [
-                data_class(
-                    name="valid_semver",
-                    version_string=Examples.VALID_SEMVER,
-                    should_pass=True,
-                ),
-                data_class(
-                    name="valid_complex",
-                    version_string=Examples.VALID_SEMVER_COMPLEX,
-                    should_pass=True,
-                ),
-                data_class(
-                    name="invalid_no_dots",
-                    version_string=Examples.INVALID_NO_DOTS,
-                    should_pass=False,
-                ),
-                data_class(
-                    name="invalid_non_numeric",
-                    version_string=Examples.INVALID_NON_NUMERIC,
-                    should_pass=False,
-                ),
-                data_class(name="invalid_empty", version_string="", should_pass=False),
-            ]
-
-        @classmethod
-        def get_info_cases(cls) -> list[TestsCliVersion.TestScenario.Data]:
-            """Get parametrized test cases for version info validation."""
-            data_class = cls.Data
-            return [
-                data_class(
-                    name="valid_tuple",
-                    version_info=InfoTuples.VALID_TUPLE,
-                    should_pass=True,
-                ),
-                data_class(
-                    name="valid_complex_tuple",
-                    version_info=InfoTuples.VALID_COMPLEX_TUPLE,
-                    should_pass=True,
-                ),
-                data_class(
-                    name="short_tuple",
-                    version_info=InfoTuples.SHORT_TUPLE,
-                    should_pass=False,
-                ),
-                data_class(
-                    name="empty_tuple",
-                    version_info=InfoTuples.EMPTY_TUPLE,
-                    should_pass=False,
-                ),
-            ]
-
-        @classmethod
-        def get_consistency_cases(cls) -> list[TestsCliVersion.TestScenario.Data]:
-            """Get parametrized test cases for version consistency validation."""
-            data_class = cls.Data
-            return [
-                data_class(
-                    name="valid_match",
-                    version_string=Examples.VALID_SEMVER,
-                    version_info=InfoTuples.VALID_TUPLE,
-                    should_pass=True,
-                ),
-                data_class(
-                    name="valid_complex_match",
-                    version_string=Examples.VALID_SEMVER_COMPLEX,
-                    version_info=InfoTuples.VALID_COMPLEX_TUPLE,
-                    should_pass=True,
-                ),
-                data_class(
-                    name="invalid_mismatch",
-                    version_string=Examples.INVALID_NO_DOTS,
-                    version_info=InfoTuples.SHORT_TUPLE,
-                    should_pass=False,
-                ),
-            ]
+class TestsFlextCliVersion:
+    """Validate the public CLI version contract through canonical surfaces."""
 
     def test_actual_version_string_type(self) -> None:
-        """Test __version__ is a non-empty string."""
-        assert isinstance(__version__, str)
-        assert len(__version__) > 0
-        assert __version__ == __version__.strip()
+        """The public CLI version string must be non-empty and trimmed."""
+        facade_result = cli.execute()
+        tm.ok(facade_result)
+        version = str(facade_result.value["version"])
+        tm.that(version, is_=str)
+        tm.that(bool(version), eq=True)
+        tm.that(version, eq=version.strip())
+        tm.that(version, eq=c.Cli.CLI_VERSION)
 
     def test_actual_version_string_semver_compliant(self) -> None:
-        """Test __version__ matches semver pattern."""
-        pattern: Final[str] = "^\\d+\\.\\d+\\.\\d+(?:-[\\w\\.]+)?(?:\\+[\\w\\.]+)?$"
-        assert re.match(pattern, __version__) is not None
+        """The public CLI version string must match the semver pattern."""
+        tm.that(
+            c.PATTERN_SEMVER_RE.match(c.Cli.CLI_VERSION),
+            none=False,
+        )
 
     def test_actual_version_string_length_bounds(self) -> None:
-        """Test version string length is within acceptable bounds."""
-        min_len: Final[int] = 5
-        max_len: Final[int] = 50
-        assert min_len <= len(__version__) <= max_len
+        """The public CLI version string must stay within expected bounds."""
+        tm.that(len(c.Cli.CLI_VERSION), gte=5)
+        tm.that(len(c.Cli.CLI_VERSION), lte=50)
 
     def test_actual_version_info_structure(self) -> None:
-        """Test __version_info__ is a valid tuple."""
-        assert isinstance(__version_info__, tuple)
-        assert len(__version_info__) >= 3
-        for i, part in enumerate(__version_info__):
-            assert isinstance(part, (int, str)), f"Part {i} invalid type: {type(part)}"
+        """Derived version info from the public version string must be well-formed."""
+        version_info = tuple(
+            int(part) if part.isdigit() else part
+            for part in c.Cli.CLI_VERSION
+            .split("+", maxsplit=1)[0]
+            .replace("-", ".")
+            .split(".")
+        )
+        tm.that(version_info, is_=tuple)
+        tm.that(len(version_info), gte=3)
+        for part in version_info:
+            tm.that(part, is_=(int, str))
             if isinstance(part, int):
-                assert part >= 0, f"Part {i} negative: {part}"
+                tm.that(part, gte=0)
             else:
-                assert len(part) > 0, f"Part {i} empty string"
+                tm.that(len(part), gt=0)
 
     def test_actual_version_parts_extraction(self) -> None:
-        """Test major.minor.patch can be extracted from version."""
-        parts: list[str] = __version__.split(".")
-        assert len(parts) >= 3
+        """major.minor.patch can be extracted from the public version string."""
+        parts: t.StrSequence = c.Cli.CLI_VERSION.split(".")
+        tm.that(len(parts), gte=3)
         major_str, minor_str, patch_str = (parts[0], parts[1], parts[2])
-        assert major_str.isdigit()
-        assert minor_str.isdigit()
-        assert patch_str[0].isdigit()
+        tm.that(major_str.isdigit(), eq=True)
+        tm.that(minor_str.isdigit(), eq=True)
+        tm.that(patch_str[0].isdigit(), eq=True)
 
     def test_actual_version_consistency(self) -> None:
-        """Test __version__ and __version_info__ are consistent."""
-        result = FlextCliTestHelpers.VersionTestFactory.validate_consistency(
-            __version__, __version_info__
+        """The public CLI version string and its derived tuple must stay consistent."""
+        version_info = tuple(
+            int(part) if part.isdigit() else part
+            for part in c.Cli.CLI_VERSION
+            .split("+", maxsplit=1)[0]
+            .replace("-", ".")
+            .split(".")
+        )
+        result = u.Tests.VersionTestFactory.validate_consistency(
+            c.Cli.CLI_VERSION,
+            version_info,
         )
         tm.ok(result)
 
     def test_actual_version_immutability(self) -> None:
-        """Test version values are immutable."""
-        original_version = __version__
-        original_info = __version_info__
-        assert __version__ == original_version
-        assert __version_info__ == original_info
-        assert isinstance(__version_info__, tuple)
+        """The public version contract must be deterministic across reads."""
+        original_version = c.Cli.CLI_VERSION
+        original_info = tuple(
+            int(part) if part.isdigit() else part
+            for part in c.Cli.CLI_VERSION
+            .split("+", maxsplit=1)[0]
+            .replace("-", ".")
+            .split(".")
+        )
+        tm.that(c.Cli.CLI_VERSION, eq=original_version)
+        tm.that(
+            tuple(
+                int(part) if part.isdigit() else part
+                for part in c.Cli.CLI_VERSION
+                .split("+", maxsplit=1)[0]
+                .replace("-", ".")
+                .split(".")
+            ),
+            eq=original_info,
+        )
+        tm.that(original_info, is_=tuple)
 
     @pytest.mark.parametrize(
         "scenario",
-        TestScenario.get_string_cases(),
-        ids=[s.name for s in TestScenario.get_string_cases()],
+        m.Tests.VersionTestScenario.string_cases(),
+        ids=lambda scenario: scenario.name,
     )
-    def test_version_string_validation(self, scenario: TestScenario.Data) -> None:
+    def test_version_string_validation(
+        self, scenario: m.Tests.VersionTestScenario
+    ) -> None:
         """Test version string validation with parametrized cases."""
-        assert scenario.version_string is not None
-        result = FlextCliTestHelpers.VersionTestFactory.validate_version_string(
-            scenario.version_string
+        tm.that(scenario.version_string, none=False)
+        version_str = scenario.version_string or ""
+        result = u.Tests.VersionTestFactory.validate_version_string(
+            version_str,
         )
         if scenario.should_pass:
             tm.ok(result)
@@ -226,14 +123,17 @@ class TestsCliVersion:
 
     @pytest.mark.parametrize(
         "scenario",
-        TestScenario.get_info_cases(),
-        ids=[s.name for s in TestScenario.get_info_cases()],
+        m.Tests.VersionTestScenario.info_cases(),
+        ids=lambda scenario: scenario.name,
     )
-    def test_version_info_validation(self, scenario: TestScenario.Data) -> None:
+    def test_version_info_validation(
+        self, scenario: m.Tests.VersionTestScenario
+    ) -> None:
         """Test version info tuple validation with parametrized cases."""
-        assert scenario.version_info is not None
-        result = FlextCliTestHelpers.VersionTestFactory.validate_version_info(
-            scenario.version_info
+        tm.that(scenario.version_info, none=False)
+        version_info = scenario.version_info or ()
+        result = u.Tests.VersionTestFactory.validate_version_info(
+            version_info,
         )
         if scenario.should_pass:
             tm.ok(result)
@@ -242,15 +142,20 @@ class TestsCliVersion:
 
     @pytest.mark.parametrize(
         "scenario",
-        TestScenario.get_consistency_cases(),
-        ids=[s.name for s in TestScenario.get_consistency_cases()],
+        m.Tests.VersionTestScenario.consistency_cases(),
+        ids=lambda scenario: scenario.name,
     )
-    def test_version_consistency_validation(self, scenario: TestScenario.Data) -> None:
+    def test_version_consistency_validation(
+        self, scenario: m.Tests.VersionTestScenario
+    ) -> None:
         """Test consistency between version string and info with parametrized cases."""
-        assert scenario.version_string is not None
-        assert scenario.version_info is not None
-        result = FlextCliTestHelpers.VersionTestFactory.validate_consistency(
-            scenario.version_string, scenario.version_info
+        tm.that(scenario.version_string, none=False)
+        tm.that(scenario.version_info, none=False)
+        version_str = scenario.version_string or ""
+        version_info = scenario.version_info or ()
+        result = u.Tests.VersionTestFactory.validate_consistency(
+            version_str,
+            version_info,
         )
         if scenario.should_pass:
             tm.ok(result)

@@ -1,8 +1,7 @@
 """Shared service foundation for flext-cli components.
 
-Centralizes access to configuration singleton while maintaining inheritance
-aligned with `FlextService` from flext-core, avoiding duplication of initialization
-across library services.
+Reads settings through the service runtime so every consumer uses
+``self.settings`` as the single settings access point.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -10,69 +9,47 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from abc import ABC
-from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
-from types import ModuleType
 from typing import override
 
-from flext_core import p, s, t
-from pydantic_settings import BaseSettings
-
-from flext_cli import FlextCliSettings
-from flext_cli.typings import FlextCliTypes
+from flext_cli import FlextCliSettings, m, p, t
+from flext_core import r, s
 
 
-@dataclass
-class _CliRuntimeBootstrapOptions:
-    config_type: type[BaseSettings] | None = FlextCliSettings
-    config_overrides: Mapping[str, t.Scalar] | None = None
-    context: p.Context | None = None
-    subproject: str | None = None
-    services: Mapping[str, t.RegisterableService] | None = None
-    factories: Mapping[str, t.FactoryCallable] | None = None
-    resources: Mapping[str, t.ResourceCallable] | None = None
-    container_overrides: Mapping[str, t.Scalar] | None = None
-    wire_modules: Sequence[ModuleType] | None = None
-    wire_packages: Sequence[str] | None = None
-    wire_classes: Sequence[type] | None = None
-
-
-class FlextCliServiceBase(s[Mapping[str, FlextCliTypes.Cli.JsonValue]], ABC):
+class FlextCliServiceBase(s):
     """Base class for flext-cli services with typed configuration access.
 
     Note: This is an abstract base class. Subclasses must implement the
-    `execute` method from FlextService.
+    `execute` method from s.
     """
 
-    @property
-    def cli_config(self) -> FlextCliSettings:
-        """Return the shared `FlextCliSettings` singleton with full type support."""
-        return FlextCliSettings.get_global()
-
     @override
+    def execute(self) -> p.Result[t.JsonMapping]:
+        """Default service execution surface for mixins without an active command."""
+        empty_payload: t.JsonMapping = {}
+        return r[t.JsonMapping].ok(empty_payload)
+
     @classmethod
-    def _runtime_bootstrap_options(cls) -> p.RuntimeBootstrapOptions | None:
-        """Return runtime bootstrap options for CLI services.
+    def _runtime_bootstrap_options(cls) -> m.RuntimeBootstrapOptions:
+        """Return runtime bootstrap options for CLI services."""
+        return m.RuntimeBootstrapOptions(settings_type=FlextCliSettings)
 
-        Business Rule: This method provides runtime bootstrap configuration for
-        all CLI services, ensuring they use FlextCliSettings as the configuration
-        type. This enables proper DI integration and namespace access.
+    @property
+    @override
+    def settings(self) -> p.Cli.Settings:
+        """Return the live CLI settings singleton.
 
-        Implication: All services extending FlextCliServiceBase automatically
-        use FlextCliSettings for their runtime configuration, ensuring consistent
-        configuration handling across all CLI services.
-
-        Returns:
-            Runtime bootstrap options with config_type set to FlextCliSettings
-
+        Reads ``FlextCliSettings.fetch_global()`` on each access so mutations
+        performed via ``update_global`` propagate immediately to consumers
+        (services, callbacks, tests) without resorting to the runtime's
+        cached snapshot.
         """
-        return _CliRuntimeBootstrapOptions()
+        return FlextCliSettings.fetch_global()
 
-    @staticmethod
-    def get_cli_config() -> FlextCliSettings:
-        """Return shared `FlextCliSettings` singleton without instantiating service."""
-        return FlextCliSettings.get_global()
+    def new_settings(self) -> p.Cli.Settings:
+        """Construct a fresh settings instance with default values (test isolation)."""
+        return self.settings.clone()
 
 
-__all__ = ["FlextCliServiceBase", "s"]
+s = FlextCliServiceBase
+
+__all__: t.MutableSequenceOf[str] = ["FlextCliServiceBase", "s"]

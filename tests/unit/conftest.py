@@ -1,24 +1,161 @@
-"""Pytest configuration and fixtures for unit tests."""
+"""Pytest configuration, prompt test doubles, and fixtures for unit tests."""
 
 from __future__ import annotations
 
-from collections.abc import Generator
+from collections.abc import (
+    Callable,
+)
+from typing import Self, override
 
 import pytest
-from flext_core import FlextSettings
+from flext_tests import reset_settings
 
-from flext_cli import FlextCliSettings
+from flext_cli import cli
+from flext_cli.services.prompts import FlextCliPrompts
+from tests.models import m
+from tests.typings import t
 
 
-@pytest.fixture(autouse=True)
-def reset_config_singleton(request: pytest.FixtureRequest) -> Generator[None]:
-    """Reset FlextCliSettings singleton before and after each test.
+class TestsFlextCliScriptedPrompts(FlextCliPrompts):
+    """Prompt service with typed scripting helpers for tests."""
 
-    This ensures test isolation and prevents one test from contaminating
-    the state for other tests.
-    """
-    FlextCliSettings._reset_instance()
-    FlextSettings.reset_for_testing()
-    yield
-    FlextCliSettings._reset_instance()
-    FlextSettings.reset_for_testing()
+    def override_test_env(self, enabled: bool | None = True) -> Self:
+        self._test_env_override = enabled
+        return self
+
+    def use_input_values(self, values: t.StrSequence) -> Self:
+        values_iter = iter(values)
+        self._input_reader = lambda _prompt: next(values_iter)
+        return self
+
+    def use_input_error(self, error: Exception) -> Self:
+        def raise_input(_prompt: str) -> str:
+            raise error
+
+        self._input_reader = raise_input
+        return self
+
+    def use_password(self, password: str) -> Self:
+        self._password_reader = lambda _prompt: password
+        return self
+
+    def use_password_error(self, error: Exception) -> Self:
+        def raise_password(_prompt: str) -> str:
+            raise error
+
+        self._password_reader = raise_password
+        return self
+
+    def configure_state(
+        self,
+        *,
+        interactive: bool = True,
+        quiet: bool = False,
+    ) -> Self:
+        self.configure(
+            m.Cli.PromptRuntimeState(
+                interactive=interactive,
+                quiet=quiet,
+            ),
+        )
+        return self
+
+
+class TestsFlextCliCaptureLogPrompts(TestsFlextCliScriptedPrompts):
+    """Prompt service that captures log calls without writing to the real logger."""
+
+    _records: list[tuple[str, str]] = m.PrivateAttr(default_factory=list)
+
+    @property
+    def records(self) -> list[tuple[str, str]]:
+        return self._records
+
+    @override
+    def _log(
+        self,
+        log_level: str,
+        message: str,
+        **context: t.LogValue,
+    ) -> None:
+        self._records.append((log_level, message))
+
+
+class TestsFlextCliFailingLogPrompts(TestsFlextCliScriptedPrompts):
+    """Prompt service that fails on one selected log level."""
+
+    _failure_level: str = m.PrivateAttr(default_factory=lambda: "")
+    _failure_message: str = m.PrivateAttr(default_factory=lambda: "logger failure")
+
+    def fail_on_log(self, *, level: str, message: str) -> Self:
+        self._failure_level = level
+        self._failure_message = message
+        return self
+
+    @override
+    def _log(
+        self,
+        log_level: str,
+        message: str,
+        **context: t.LogValue,
+    ) -> None:
+        if log_level == self._failure_level:
+            raise ValueError(self._failure_message)
+        super()._log(log_level, message, **context)
+
+
+def _prompt_factory[TPrompt: TestsFlextCliScriptedPrompts](
+    prompt_cls: type[TPrompt],
+) -> Callable[..., TPrompt]:
+    """Build a prompt-double factory that configures interactive/quiet flags."""
+
+    def _make(
+        *,
+        interactive_mode: bool = True,
+        quiet: bool = False,
+    ) -> TPrompt:
+        instance = prompt_cls()
+        instance.configure_state(interactive=interactive_mode, quiet=quiet)
+        return instance
+
+    return _make
+
+
+@pytest.fixture
+def make_prompts() -> Callable[..., TestsFlextCliScriptedPrompts]:
+    """Factory fixture for scripted prompt test doubles."""
+    return _prompt_factory(TestsFlextCliScriptedPrompts)
+
+
+@pytest.fixture
+def make_capture_prompts() -> Callable[..., TestsFlextCliCaptureLogPrompts]:
+    """Factory fixture for prompt doubles that capture log output."""
+    return _prompt_factory(TestsFlextCliCaptureLogPrompts)
+
+
+@pytest.fixture
+def make_failing_prompts() -> Callable[..., TestsFlextCliFailingLogPrompts]:
+    """Factory fixture for prompt doubles that can fail selected log calls."""
+    return _prompt_factory(TestsFlextCliFailingLogPrompts)
+
+
+def pytest_runtest_setup(item: pytest.Item) -> None:
+    """Reset CLI settings before each test item."""
+    _ = item
+    cli.settings.reset_for_testing()
+
+
+def pytest_runtest_teardown(item: pytest.Item, nextitem: pytest.Item | None) -> None:
+    """Reset CLI settings after each test item."""
+    _ = item, nextitem
+    cli.settings.reset_for_testing()
+
+
+__all__: list[str] = [
+    "TestsFlextCliCaptureLogPrompts",
+    "TestsFlextCliFailingLogPrompts",
+    "TestsFlextCliScriptedPrompts",
+    "make_capture_prompts",
+    "make_failing_prompts",
+    "make_prompts",
+    "reset_settings",
+]

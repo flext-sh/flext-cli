@@ -1,11 +1,4 @@
-"""Protocol definitions for flext-cli tests.
-
-Provides TestsCliProtocols, extending FlextTestsProtocols with flext-cli-specific
-protocols. All generic test protocols come from flext_tests.
-
-Architecture:
-- FlextTestsProtocols (flext_tests) = Generic protocols for all FLEXT projects
-- TestsCliProtocols (tests/) = flext-cli-specific protocols extending FlextTestsProtocols
+"""Test protocols for flext-cli.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -13,27 +6,87 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, Protocol, Self
+
 from flext_tests import FlextTestsProtocols
 
-from flext_cli import FlextCliProtocols
+from flext_cli import p
+
+if TYPE_CHECKING:
+    from tests.typings import t
 
 
-class TestsCliProtocols(FlextTestsProtocols, FlextCliProtocols):
-    """Protocol definitions for flext-cli tests.
+class TestsFlextCliProtocols(FlextTestsProtocols, p):
+    """Test protocols for flext-cli."""
 
-    Extends both FlextTestsProtocols and FlextCliProtocols with flext-cli-specific
-    protocol definitions.
+    class Tests(FlextTestsProtocols.Tests):
+        """Test-specific protocols."""
 
-    Provides access to:
-    - p.Tests.Docker.* (from FlextTestsProtocols)
-    - p.Tests.Factory.* (from FlextTestsProtocols)
-    - p.Cli.* (from FlextCliProtocols)
+        class ScriptedPrompts(Protocol):
+            """Prompt test double contract exposed through the canonical `p`."""
 
-    Rules:
-    - NEVER redeclare protocols from parent classes
-    - Only flext-cli-specific test protocols allowed
-    """
+            def override_test_env(self, enabled: bool | None = True) -> Self: ...
+
+            def use_input_values(self, values: t.StrSequence) -> Self: ...
+
+            def use_input_error(self, error: Exception) -> Self: ...
+
+            def use_password(self, password: str) -> Self: ...
+
+            def use_password_error(self, error: Exception) -> Self: ...
+
+            def configure_state(
+                self,
+                *,
+                interactive: bool = True,
+                quiet: bool = False,
+            ) -> Self: ...
+
+            def execute(self) -> p.Result[t.MappingKV[str, t.JsonValue]]: ...
+
+            def prompt(
+                self,
+                message: str,
+                default: str = "",
+            ) -> p.Result[str]: ...
+
+            def confirm(
+                self,
+                message: str,
+                *,
+                default: bool = False,
+            ) -> p.Result[bool]: ...
+
+            def prompt_choice(
+                self,
+                message: str,
+                choices: t.StrSequence,
+                default: str | None = None,
+            ) -> p.Result[str]: ...
+
+            def prompt_password(
+                self,
+                message: str,
+                min_length: int = 8,
+            ) -> p.Result[str]: ...
+
+            def print_success(self, message: str) -> p.Result[None]: ...
+
+            def print_error(self, message: str) -> p.Result[None]: ...
+
+            def print_warning(self, message: str) -> p.Result[None]: ...
+
+        class CaptureLogPrompts(ScriptedPrompts, Protocol):
+            """Prompt test double that exposes captured log records."""
+
+            @property
+            def records(self) -> list[tuple[str, str]]: ...
+
+        class FailingLogPrompts(ScriptedPrompts, Protocol):
+            """Prompt test double that can fail a selected log call."""
+
+            def fail_on_log(self, *, level: str, message: str) -> Self: ...
 
 
-p = TestsCliProtocols
-__all__ = ["TestsCliProtocols", "p"]
+p = TestsFlextCliProtocols
+__all__: list[str] = ["TestsFlextCliProtocols", "p"]
