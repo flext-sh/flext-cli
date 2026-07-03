@@ -12,6 +12,9 @@ from flext_core.lazy import (
 )
 
 if TYPE_CHECKING:
+    from flext_cli._utilities._cli_namespace import (
+        FlextCliUtilitiesCli as FlextCliUtilitiesCli,
+    )
     from flext_cli._utilities._file_test_helper_parts.flextcliutilitiesfiletesthelpersmixin_part_04 import (
         FlextCliUtilitiesFileTestHelpersMixin as FlextCliUtilitiesFileTestHelpersMixin,
     )
@@ -90,6 +93,7 @@ _LAZY_IMPORTS = merge_lazy_imports(
     ),
     build_lazy_import_map(
         {
+            "._cli_namespace": ("FlextCliUtilitiesCli",),
             "._file_test_helper_parts": ("_file_test_helper_parts",),
             "._file_test_helper_parts.flextcliutilitiesfiletesthelpersmixin_part_04": (
                 "FlextCliUtilitiesFileTestHelpersMixin",

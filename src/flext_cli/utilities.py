@@ -11,6 +11,7 @@ if TYPE_CHECKING:
     )
     from flext_core.utilities import FlextUtilities as _FlextCoreUtilitiesBase
 else:
+
     class FlextCoreUtilitiesBaseProxyMeta(type):
         """Proxy metaclass that materializes the core utility base on demand."""
 
