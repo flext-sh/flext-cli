@@ -2,63 +2,72 @@
 
 from __future__ import annotations
 
-from flext_cli._utilities._options_parts.flextcliutilitiesoptions_part_02 import (
-    FlextCliUtilitiesOptions,
-)
-from flext_cli._utilities.auth import FlextCliUtilitiesAuth
-from flext_cli._utilities.cmd import FlextCliUtilitiesCmd
-from flext_cli._utilities.commands import FlextCliUtilitiesCommands
-from flext_cli._utilities.conversion import FlextCliUtilitiesConversion
-from flext_cli._utilities.file_test_helpers import FlextCliUtilitiesFileTestHelpersMixin
-from flext_cli._utilities.files import FlextCliUtilitiesFiles
-from flext_cli._utilities.formatters import FlextCliUtilitiesFormatters
-from flext_cli._utilities.json import FlextCliUtilitiesJson
-from flext_cli._utilities.matching import FlextCliUtilitiesMatching
-from flext_cli._utilities.model_commands import FlextCliUtilitiesModelCommands
-from flext_cli._utilities.output import FlextCliUtilitiesOutput
-from flext_cli._utilities.params import FlextCliUtilitiesParams
-from flext_cli._utilities.pipeline import FlextCliUtilitiesPipeline
-from flext_cli._utilities.processes import FlextCliUtilitiesProcesses
-from flext_cli._utilities.prompts import FlextCliUtilitiesPrompts
-from flext_cli._utilities.rules import FlextCliUtilitiesRules
-from flext_cli._utilities.runtime import FlextCliUtilitiesRuntime
-from flext_cli._utilities.settings import FlextCliUtilitiesSettings
-from flext_cli._utilities.tables import FlextCliUtilitiesTables
-from flext_cli._utilities.toml import FlextCliUtilitiesToml
-from flext_cli._utilities.validation import FlextCliUtilitiesValidation
-from flext_cli._utilities.yaml import FlextCliUtilitiesYaml
-from flext_core import u
+from importlib import import_module
+from typing import TYPE_CHECKING, cast
+
+if TYPE_CHECKING:
+    from flext_cli._utilities._cli_namespace import (
+        FlextCliUtilitiesCli,
+    )
+    from flext_core.utilities import FlextUtilities as _FlextCoreUtilitiesBase
+else:
+    class FlextCoreUtilitiesBaseProxyMeta(type):
+        """Proxy metaclass that materializes the core utility base on demand."""
+
+        _target_cls: type | None = None
+
+        def _target(cls) -> type:
+            if cls._target_cls is None:
+                module = import_module("flext_core.utilities")
+                cls._target_cls = cast("type", getattr(module, "u"))
+            return cls._target_cls
+
+        def __getattr__(cls, name: str) -> object:
+            return getattr(cls._target(), name)
+
+    class _FlextCoreUtilitiesBase(metaclass=FlextCoreUtilitiesBaseProxyMeta):
+        """Lazy proxy for inherited ``flext_core.u`` utilities."""
+
+        def __getattr__(self, name: str) -> object:
+            return getattr(type(self), name)
+
+    class FlextCliUtilitiesCliProxyMeta(type):
+        """Proxy metaclass that materializes the CLI namespace on demand."""
+
+        _target_cls: type | None = None
+
+        def _target(cls) -> type:
+            if cls._target_cls is None:
+                module = import_module("flext_cli._utilities._cli_namespace")
+                cls._target_cls = cast("type", getattr(module, "FlextCliUtilitiesCli"))
+            return cls._target_cls
+
+        def __getattr__(cls, name: str) -> object:
+            return getattr(cls._target(), name)
+
+        def __setattr__(cls, name: str, value: object) -> None:
+            if name.startswith("_"):
+                super().__setattr__(name, value)
+                return
+            setattr(cls._target(), name, value)
+
+        def __delattr__(cls, name: str) -> None:
+            if name.startswith("_"):
+                super().__delattr__(name)
+                return
+            delattr(cls._target(), name)
+
+        def __call__(cls) -> object:
+            return cls._target()()
+
+    class FlextCliUtilitiesCli(metaclass=FlextCliUtilitiesCliProxyMeta):
+        """Lazy proxy for the heavy ``u.Cli`` utility namespace."""
 
 
-class FlextCliUtilities(u):
+class FlextCliUtilities(_FlextCoreUtilitiesBase):
     """CLI utility facade composed from internal utility mixins."""
 
-    class Cli(
-        FlextCliUtilitiesAuth,
-        FlextCliUtilitiesCmd,
-        FlextCliUtilitiesCommands,
-        FlextCliUtilitiesConversion,
-        FlextCliUtilitiesFileTestHelpersMixin,
-        FlextCliUtilitiesFiles,
-        FlextCliUtilitiesFormatters,
-        FlextCliUtilitiesJson,
-        FlextCliUtilitiesMatching,
-        FlextCliUtilitiesModelCommands,
-        FlextCliUtilitiesOptions,
-        FlextCliUtilitiesOutput,
-        FlextCliUtilitiesParams,
-        FlextCliUtilitiesPipeline,
-        FlextCliUtilitiesPrompts,
-        FlextCliUtilitiesProcesses,
-        FlextCliUtilitiesRules,
-        FlextCliUtilitiesRuntime,
-        FlextCliUtilitiesSettings,
-        FlextCliUtilitiesTables,
-        FlextCliUtilitiesToml,
-        FlextCliUtilitiesValidation,
-        FlextCliUtilitiesYaml,
-    ):
-        """Command line interface specific utilities — all concerns composed via MRO."""
+    Cli = FlextCliUtilitiesCli
 
 
 u = FlextCliUtilities

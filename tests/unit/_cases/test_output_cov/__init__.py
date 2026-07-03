@@ -3,17 +3,29 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
-if TYPE_CHECKING:
-    from flext_cli.tests.unit._cases.test_output_cov.testsflextclioutputcov_part_02 import (
-        TestsFlextCliOutputCov as TestsFlextCliOutputCov,
-    )
 _LAZY_IMPORTS = build_lazy_import_map(
     {
         ".testsflextclioutputcov_part_02": ("TestsFlextCliOutputCov",),
+        "flext_tests": (
+            "c",
+            "d",
+            "e",
+            "h",
+            "m",
+            "p",
+            "r",
+            "s",
+            "t",
+            "td",
+            "tf",
+            "tk",
+            "tm",
+            "tv",
+            "u",
+            "x",
+        ),
     },
 )
 

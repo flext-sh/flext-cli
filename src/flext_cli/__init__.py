@@ -17,7 +17,6 @@ from flext_cli._exports import (
     FLEXT_CLI_LAZY_IMPORTS,
     FLEXT_CLI_PUBLIC_EXPORTS,
 )
-from flext_core import d, e, h, r, x
 from flext_core.lazy import install_lazy_exports
 
 _LAZY_IMPORTS = {
@@ -36,11 +35,6 @@ _EAGER_EXPORTS = (
     __url__,
     __version__,
     __version_info__,
-    d,
-    e,
-    h,
-    r,
-    x,
 )
 
 
