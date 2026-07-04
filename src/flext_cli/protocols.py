@@ -16,7 +16,7 @@ class FlextCliProtocols(
 ):
     """CLI protocol definitions extending FlextProtocols."""
 
-    type Result[T] = FlextProtocols.Result[T]
+    Result = FlextProtocols.Result
 
     class Cli(
         FlextCliProtocolsPipeline,
