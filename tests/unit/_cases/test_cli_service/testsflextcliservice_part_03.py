@@ -14,7 +14,7 @@ class TestsFlextCliService:
 
     def test_model_command_skips_excluded_fields(self) -> None:
         class ExcludedFieldModel(m.BaseModel):
-            visible: str = m.Field(description="Visible")
+            visible: str = m.Field(..., description="Visible", validate_default=True)
             hidden: str = m.Field("secret", exclude=True, validate_default=True)
 
         app = cli.create_app_with_common_params(

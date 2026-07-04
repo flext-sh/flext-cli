@@ -68,12 +68,14 @@ class TestsFlextCliOptionsUtilsCov:
 
         name: str = "default-name"
         tags: t.StrSequence = ("a", "b")
-        generated: t.StrSequence = m.Field(default_factory=lambda: ("gen", "value"))
+        generated: t.StrSequence = m.Field(("gen", "value"), validate_default=True)
         valid_mapping: t.Cli.DefaultMapping = m.Field(
-            default_factory=lambda: dict(c.Tests.OPTIONS_FIELD_DEFAULT_VALID_MAPPING),
+            dict(c.Tests.OPTIONS_FIELD_DEFAULT_VALID_MAPPING),
+            validate_default=True,
         )
         invalid_mapping: object = m.Field(
-            default_factory=lambda: dict(c.Tests.OPTIONS_FIELD_DEFAULT_INVALID_MAPPING),
+            dict(c.Tests.OPTIONS_FIELD_DEFAULT_INVALID_MAPPING),
+            validate_default=True,
         )
 
     _ANNOTATION_CASES: ClassVar[

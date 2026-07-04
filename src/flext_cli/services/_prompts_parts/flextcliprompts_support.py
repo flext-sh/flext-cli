@@ -15,7 +15,7 @@ class FlextCliPromptsSupport(s):
     state: Annotated[
         m.Cli.PromptRuntimeState,
         m.Field(description="Prompt runtime state for interaction behavior."),
-    ] = m.Field(default_factory=m.Cli.PromptRuntimeState)
+    ] = m.Field(m.Cli.PromptRuntimeState(), validate_default=True)
 
     _input_reader: t.Cli.PromptTextReader = m.PrivateAttr(default_factory=lambda: input)
 

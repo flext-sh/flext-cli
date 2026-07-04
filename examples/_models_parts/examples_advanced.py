@@ -54,10 +54,9 @@ class ExamplesFlextCliModelsExamplesAdvanced:
             ),
         ] = c.EXAMPLE_DEFAULT_LOG_LEVEL
         temp_dir: Path = m.Field(
-            default_factory=lambda: (
-                Path.home() / c.Cli.PATH_FLEXT_DIR_NAME / c.EXAMPLE_DEFAULT_TEMP_SUBDIR
-            ),
+            Path.home() / c.Cli.PATH_FLEXT_DIR_NAME / c.EXAMPLE_DEFAULT_TEMP_SUBDIR,
             description="Temp directory",
+            validate_default=True,
         )
 
         @u.model_validator(mode="before")

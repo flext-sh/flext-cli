@@ -31,8 +31,8 @@ class TestsFlextCliModelsCli:
 
         make_arg: Annotated[
             list[str],
-            m.Field(default_factory=list, description="Repeatable make-style arg"),
-        ] = m.Field(default_factory=list)
+            m.Field(description="Repeatable make-style arg"),
+        ] = m.Field([], validate_default=True)
 
 
 __all__: list[str] = ["TestsFlextCliModelsCli"]

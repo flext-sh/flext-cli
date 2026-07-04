@@ -15,7 +15,7 @@ from flext_cli import FlextCliSettings, m, p, t
 from flext_core import r, s
 
 
-class FlextCliServiceBase(s):
+class FlextCliServiceBase(s[t.JsonMapping]):
     """Base class for flext-cli services with typed configuration access.
 
     Note: This is an abstract base class. Subclasses must implement the
