@@ -2,13 +2,16 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-
-from tests.models import m
-from tests.protocols import p
-from tests.typings import t
+from typing import TYPE_CHECKING
 
 from flext_cli import cli
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from tests.models import m
+    from tests.protocols import p
+    from tests.typings import t
 
 # ── Fixtures ────────────────────────────────────────────────────────
 

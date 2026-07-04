@@ -4,12 +4,15 @@ from __future__ import annotations
 
 import shlex
 import subprocess
-from collections.abc import Mapping
 from pathlib import Path
 from types import MappingProxyType
+from typing import TYPE_CHECKING
 
 from flext_cli import c, p, r, t
 from flext_cli._utilities.runtime import FlextCliUtilitiesRuntime
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
 
 
 class FlextCliUtilitiesProcesses:

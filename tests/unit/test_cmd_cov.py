@@ -3,16 +3,19 @@
 from __future__ import annotations
 
 import os
-from collections.abc import (
-    Generator,
-)
 from contextlib import contextmanager
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 from flext_tests import tm
 
 from flext_cli import cli
 from tests.constants import c
+
+if TYPE_CHECKING:
+    from collections.abc import (
+        Generator,
+    )
+    from pathlib import Path
 
 
 class TestsFlextCliCmdCov:

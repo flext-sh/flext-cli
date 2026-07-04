@@ -38,9 +38,9 @@ class TestsFlextCliPublicContractsCoverage:
         shell_settings = shell_settings.model_copy(
             update={
                 "Cli": shell_settings.Cli.model_copy(
-                    update={"shell_command": "pytest -k smoke"}
-                )
-            }
+                    update={"shell_command": "pytest -k smoke"},
+                ),
+            },
         )
         assert shell_settings.Cli.test_env is True
 
@@ -52,17 +52,17 @@ class TestsFlextCliPublicContractsCoverage:
                     update={
                         "pytest_current_test": (
                             "tests/unit/test_public_contracts_cov.py::test_public_facade"
-                        )
-                    }
-                )
-            }
+                        ),
+                    },
+                ),
+            },
         )
         assert pytest_settings.Cli.test_env is True
 
         cli.settings.reset_for_testing()
         ci_settings = cli.new_settings()
         ci_settings = ci_settings.model_copy(
-            update={"Cli": ci_settings.Cli.model_copy(update={"ci": True})}
+            update={"Cli": ci_settings.Cli.model_copy(update={"ci": True})},
         )
         assert ci_settings.Cli.test_env is True
 

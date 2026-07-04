@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-from typing import TypeIs
+from typing import TYPE_CHECKING, TypeIs
 
 import tomlkit
 from tomlkit.items import AoT, Item, Table
 from tomlkit.toml_document import TOMLDocument
 
-from flext_cli import t
+if TYPE_CHECKING:
+    from flext_cli import t
 
 
 class FlextCliUtilitiesToml:

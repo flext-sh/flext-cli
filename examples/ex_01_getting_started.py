@@ -26,7 +26,7 @@ class ExamplesFlextCliGettingStarted(s):
             "timeout": c.EXAMPLE_DEFAULT_TIMEOUT_SECONDS,
         }
         return r[m.Examples.MyAppSettings].ok(
-            m.Examples.MyAppSettings.model_validate(settings_payload)
+            m.Examples.MyAppSettings.model_validate(settings_payload),
         )
 
     @staticmethod
@@ -41,7 +41,7 @@ class ExamplesFlextCliGettingStarted(s):
                 str(config_path),
                 wrapped_config.model_dump(mode="json"),
             ).flat_map(
-                lambda _: cli.read_json_model(str(config_path), m.Cli.LoadedConfig)
+                lambda _: cli.read_json_model(str(config_path), m.Cli.LoadedConfig),
             )
 
     @override
@@ -71,7 +71,7 @@ class ExamplesFlextCliGettingStarted(s):
         settings_result = self.build_example_settings()
         if settings_result.failure:
             return r[t.JsonMapping].fail(
-                settings_result.error or c.EXAMPLE_ERR_FAILED_LOAD_CONFIG
+                settings_result.error or c.EXAMPLE_ERR_FAILED_LOAD_CONFIG,
             )
 
         cli.print(
@@ -84,7 +84,7 @@ class ExamplesFlextCliGettingStarted(s):
         loaded_result = self.persist_example_settings(app_settings)
         if loaded_result.failure:
             return r[t.JsonMapping].fail(
-                loaded_result.error or c.EXAMPLE_ERR_FAILED_LOAD_CONFIG
+                loaded_result.error or c.EXAMPLE_ERR_FAILED_LOAD_CONFIG,
             )
 
         cli.print(
@@ -98,7 +98,7 @@ class ExamplesFlextCliGettingStarted(s):
                 "api_key_present": str(bool(loaded_config.content.get("api_key"))),
                 "max_workers": str(loaded_config.content.get("max_workers")),
                 "timeout": str(loaded_config.content.get("timeout")),
-            }
+            },
         )
         u.display_config_table(
             roundtrip_summary,

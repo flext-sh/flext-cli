@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
-import pytest
+from typing import TYPE_CHECKING
 
 from flext_cli import cli
 from tests.constants import c
+
+if TYPE_CHECKING:
+    import pytest
 
 
 class TestsFlextCliServicesTablesBranchCov:

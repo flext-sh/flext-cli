@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from flext_tests import tm
 from tests.models import m
-from tests.typings import t
 
 from flext_cli import cli
+
+if TYPE_CHECKING:
+    from tests.typings import t
 
 
 class TestsFlextCliService:
@@ -19,7 +23,10 @@ class TestsFlextCliService:
             settings=cli.settings,
         )
         cli.register_command(
-            app, name="return-two", help_text="Return int", command=lambda: 2
+            app,
+            name="return-two",
+            help_text="Return int",
+            command=lambda: 2,
         )
 
         result = cli.execute_app(app, prog_name="int-app", args=["return-two"])

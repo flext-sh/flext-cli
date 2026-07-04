@@ -89,7 +89,7 @@ class TestsFlextCliExamplesSmoke:
                 "password": "secret",
                 "ssl_enabled": True,
                 "connection_pool": 10,
-            })
+            }),
         )
         tm.fail(invalid_model)
 
@@ -102,7 +102,7 @@ class TestsFlextCliExamplesSmoke:
                 "password": "secret-pass",
                 "ssl_enabled": False,
                 "connection_pool": 10,
-            })
+            }),
         )
         tm.ok(base_config)
 

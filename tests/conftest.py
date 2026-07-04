@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pytest
 
-from tests.typings import t
+if TYPE_CHECKING:
+    from tests.typings import t
 
 
 def pytest_collection_modifyitems(

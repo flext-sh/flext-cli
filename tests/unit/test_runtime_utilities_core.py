@@ -3,14 +3,18 @@
 from __future__ import annotations
 
 import sys
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 from flext_tests import tm
 
 from tests.models import m
-from tests.typings import t
 from tests.utilities import u
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from tests.typings import t
 
 
 class TestsFlextCliRuntimeUtilitiesCore:
@@ -141,7 +145,9 @@ class TestsFlextCliRuntimeUtilitiesCore:
         tm.that(process.stderr, eq="")
 
     def test_process_start_honors_cwd_env_and_stderr(
-        self, runner: u.Cli, tmp_path: Path
+        self,
+        runner: u.Cli,
+        tmp_path: Path,
     ) -> None:
         script = (
             "import os, pathlib, sys; "

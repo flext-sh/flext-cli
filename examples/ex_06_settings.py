@@ -39,7 +39,8 @@ class Ex06Settings:
         """Access flext-cli settings in YOUR application."""
         cli.print("📋 Current Settings:", style=c.Cli.MessageStyles.BOLD_CYAN)
         cli.print(
-            f"   Debug Mode: {cli.settings.debug}", style=c.Cli.MessageStyles.CYAN
+            f"   Debug Mode: {cli.settings.debug}",
+            style=c.Cli.MessageStyles.CYAN,
         )
         cli.print(
             f"   Log Level: {cli.settings.Cli.cli_log_level}",
@@ -105,7 +106,7 @@ class Ex06Settings:
                 "Debug": str(profile_config.debug),
                 "Output": profile_config.Cli.output_format,
                 "App Name": profile_config.Cli.app_name,
-            })
+            }),
         )
         return r[p.Cli.Settings].ok(profile_config)
 

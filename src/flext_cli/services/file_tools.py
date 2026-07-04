@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
-from collections.abc import (
-    Sequence,
-)
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from flext_cli import FlextCliServiceBase, c, m, p, r, t, u
+
+if TYPE_CHECKING:
+    from collections.abc import (
+        Sequence,
+    )
 
 
 class FlextCliFileTools(FlextCliServiceBase):

@@ -71,7 +71,8 @@ class TestsFlextCliExampleModelsUtilitiesCov:
         tmp_path: Path,
     ) -> None:
         monkeypatch.setenv(
-            c.EXAMPLE_ENV_KEY_ENVIRONMENT, c.EXAMPLE_ENV_VALUE_PRODUCTION
+            c.EXAMPLE_ENV_KEY_ENVIRONMENT,
+            c.EXAMPLE_ENV_VALUE_PRODUCTION,
         )
         monkeypatch.setenv(
             c.EXAMPLE_ENV_KEY_TEMP_DIR,
@@ -116,7 +117,7 @@ class TestsFlextCliExampleModelsUtilitiesCov:
                 api_key="demo-secret",
                 max_workers=4,
                 timeout=30,
-            )
+            ),
         )
         u.print_demo_completion("Demo", ("feature-a", "feature-b"))
         u.display_success_summary(

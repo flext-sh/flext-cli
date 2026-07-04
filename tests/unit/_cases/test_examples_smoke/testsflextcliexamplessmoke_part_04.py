@@ -2,16 +2,20 @@
 
 from __future__ import annotations
 
-from pathlib import Path
+from typing import TYPE_CHECKING
 from unittest.mock import patch
 
 from examples import (
     DataManagerCLI,
 )
 from flext_tests import r, tm
-from tests.protocols import p
 
 from flext_cli import cli
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from tests.protocols import p
 
 
 class TestsFlextCliExamplesSmoke:

@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
-from typing import Annotated, ClassVar, Self
+from typing import TYPE_CHECKING, Annotated, ClassVar, Self
 
 from flext_cli import m
 from tests.constants import c
-from tests.typings import t
+
+if TYPE_CHECKING:
+    from tests.typings import t
 
 
 class TestsFlextCliModelsVersion:
@@ -19,7 +21,8 @@ class TestsFlextCliModelsVersion:
 
         name: Annotated[str, m.Field(description="Scenario name")]
         version_string: Annotated[
-            str | None, m.Field(description="Version string under test")
+            str | None,
+            m.Field(description="Version string under test"),
         ] = None
         version_info: Annotated[
             tuple[int | str, ...] | None,

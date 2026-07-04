@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 from flext_cli import c, p, r, t
 from flext_cli._utilities._rules_parts.flextcliutilitiesrules_part_03 import (
@@ -10,6 +10,9 @@ from flext_cli._utilities._rules_parts.flextcliutilitiesrules_part_03 import (
 )
 from flext_cli._utilities.json import FlextCliUtilitiesJson as uj
 from flext_cli._utilities.yaml import FlextCliUtilitiesYaml as uy
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 class FlextCliUtilitiesRules:

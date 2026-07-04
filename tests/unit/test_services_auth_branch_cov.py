@@ -2,19 +2,23 @@
 
 from __future__ import annotations
 
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 from flext_tests import tm
 
 from flext_cli import cli
 from tests.constants import c
 
+if TYPE_CHECKING:
+    from pathlib import Path
+
 
 class TestsFlextCliServicesAuthBranchCov:
     """Exercise remaining FlextCliAuth branches through real behavior flows."""
 
     def test_authenticate_token_save_failure_returns_error(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         service = type(cli)()
         old_token_file = service.settings.Cli.token_file

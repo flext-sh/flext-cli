@@ -2,14 +2,18 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pytest
 from flext_tests import tm
 
 from flext_cli import cli
 from tests.constants import c
 from tests.models import m
-from tests.typings import t
 from tests.utilities import u
+
+if TYPE_CHECKING:
+    from tests.typings import t
 
 
 class TestsFlextCliVersion:
@@ -108,7 +112,8 @@ class TestsFlextCliVersion:
         ids=lambda scenario: scenario.name,
     )
     def test_version_string_validation(
-        self, scenario: m.Tests.VersionTestScenario
+        self,
+        scenario: m.Tests.VersionTestScenario,
     ) -> None:
         """Test version string validation with parametrized cases."""
         tm.that(scenario.version_string, none=False)
@@ -127,7 +132,8 @@ class TestsFlextCliVersion:
         ids=lambda scenario: scenario.name,
     )
     def test_version_info_validation(
-        self, scenario: m.Tests.VersionTestScenario
+        self,
+        scenario: m.Tests.VersionTestScenario,
     ) -> None:
         """Test version info tuple validation with parametrized cases."""
         tm.that(scenario.version_info, none=False)
@@ -146,7 +152,8 @@ class TestsFlextCliVersion:
         ids=lambda scenario: scenario.name,
     )
     def test_version_consistency_validation(
-        self, scenario: m.Tests.VersionTestScenario
+        self,
+        scenario: m.Tests.VersionTestScenario,
     ) -> None:
         """Test consistency between version string and info with parametrized cases."""
         tm.that(scenario.version_string, none=False)

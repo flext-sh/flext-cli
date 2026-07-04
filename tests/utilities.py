@@ -91,7 +91,7 @@ class TestsFlextCliUtilities(FlextTestsUtilities, u):
                     .split(".")
                 ]
                 for index, (vs_part, vi_part) in enumerate(
-                    zip(version_parts, version_info, strict=False)
+                    zip(version_parts, version_info, strict=False),
                 ):
                     if isinstance(vs_part, int) != isinstance(vi_part, int):
                         return r[pair_t].fail(
@@ -117,7 +117,7 @@ class TestsFlextCliUtilities(FlextTestsUtilities, u):
                     name="tests-cli",
                     help_text="Test CLI app",
                     settings=cli.settings,
-                )
+                ),
             )
 
         @staticmethod

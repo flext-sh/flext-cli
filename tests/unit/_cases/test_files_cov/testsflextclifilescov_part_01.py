@@ -2,16 +2,20 @@
 
 from __future__ import annotations
 
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 from flext_tests import tm
 from tests.constants import c
 from tests.models import m
-from tests.typings import t
 from tests.utilities import u
 
 from flext_cli import cli
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from tests.typings import t
 
 
 class TestsFlextCliFilesCov:
@@ -22,7 +26,9 @@ class TestsFlextCliFilesCov:
         c.Tests.FILES_DETECT_FORMAT_CASES,
     )
     def test_files_detect_format_known(
-        self, filename: str, expected_format: str
+        self,
+        filename: str,
+        expected_format: str,
     ) -> None:
         result = cli.detect_file_format(filename)
         tm.ok(result)

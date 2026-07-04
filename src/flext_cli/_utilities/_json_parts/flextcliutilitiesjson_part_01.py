@@ -10,14 +10,16 @@ from collections.abc import (
     Mapping,
     Sequence,
 )
-from pathlib import Path
-from typing import ClassVar
+from typing import TYPE_CHECKING, ClassVar
 
 from flext_cli import c, m, p, r, t
 from flext_cli._utilities._json_parts.flextcliutilitiesjson_part_03 import (
     FlextCliUtilitiesJson as FlextCliUtilitiesJsonPart03,
 )
 from flext_core import u
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 class FlextCliUtilitiesJson(FlextCliUtilitiesJsonPart03):

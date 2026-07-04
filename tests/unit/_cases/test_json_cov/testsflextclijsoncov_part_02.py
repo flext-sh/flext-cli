@@ -36,7 +36,7 @@ class TestsFlextCliJsonCov:
 
     def test_json_pick_int_variants(self) -> None:
         raw_result = u.Cli.json_loads(
-            '{"n": 5, "s": "7", "f": 3.9, "b": true, "none": null, "bad": []}'
+            '{"n": 5, "s": "7", "f": 3.9, "b": true, "none": null, "bad": []}',
         )
         assert raw_result.success
         data = u.Cli.json_as_mapping(raw_result.value)
@@ -51,7 +51,7 @@ class TestsFlextCliJsonCov:
         raw_result = u.Cli.json_loads(
             '{"t": true, "f": false, "s_true": "true", "s_false": "false",'
             ' "s_yes": "yes", "s_no": "no", "s_1": "1", "s_0": "0",'
-            ' "s_on": "on", "s_off": "off", "n": 1, "n0": 0, "missing": null}'
+            ' "s_on": "on", "s_off": "off", "n": 1, "n0": 0, "missing": null}',
         )
         assert raw_result.success
         data = u.Cli.json_as_mapping(raw_result.value)

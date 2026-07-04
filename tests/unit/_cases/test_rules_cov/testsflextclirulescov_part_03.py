@@ -4,11 +4,14 @@ from __future__ import annotations
 
 import tempfile
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 from tests.constants import c
-from tests.typings import t
 from tests.utilities import u
+
+if TYPE_CHECKING:
+    from tests.typings import t
 
 
 class TestsFlextCliRulesCov:
@@ -19,7 +22,7 @@ class TestsFlextCliRulesCov:
             rules_dir = Path(tmpdir) / "rules"
             rules_dir.mkdir()
             (rules_dir / "invalid.yml").write_text(
-                c.Tests.RULES_FILE_INVALID_MAPPING_YAML
+                c.Tests.RULES_FILE_INVALID_MAPPING_YAML,
             )
             config_path = Path(tmpdir) / "config.yml"
             config_path.write_text("project: test\n")
@@ -55,7 +58,7 @@ class TestsFlextCliRulesCov:
             rules_dir = Path(tmpdir) / "rules"
             rules_dir.mkdir()
             (rules_dir / "file-invalid.yml").write_text(
-                c.Tests.RULES_FILE_INVALID_MAPPING_YAML
+                c.Tests.RULES_FILE_INVALID_MAPPING_YAML,
             )
             config_path = Path(tmpdir) / "config.yml"
             config_path.write_text("project: test\n")

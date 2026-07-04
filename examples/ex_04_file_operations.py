@@ -10,9 +10,12 @@ from __future__ import annotations
 from collections.abc import (
     Mapping,
 )
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 from flext_cli import c, cli, m, p, r, t, u
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 _EXAMPLE_REQUIRED_DATA_FIELDS: t.VariadicTuple[str] = ("id", "name", "value")
 
@@ -45,7 +48,8 @@ def save_user_preferences(
         return False
 
     cli.print(
-        f"✅ Saved preferences to {config_file.name}", style=c.Cli.MessageStyles.GREEN
+        f"✅ Saved preferences to {config_file.name}",
+        style=c.Cli.MessageStyles.GREEN,
     )
     return True
 
@@ -58,7 +62,8 @@ def load_user_preferences(config_dir: Path) -> p.Result[m.Cli.LoadedConfig]:
 
     if read_result.failure:
         cli.print(
-            f"⚠️  Could not load: {read_result.error}", style=c.Cli.MessageStyles.YELLOW
+            f"⚠️  Could not load: {read_result.error}",
+            style=c.Cli.MessageStyles.YELLOW,
         )
         return r[m.Cli.LoadedConfig].fail(
             read_result.error or "Could not load preferences",
@@ -129,7 +134,8 @@ def validate_and_import_data(input_file: Path) -> p.Result[m.Cli.LoadedConfig]:
 
     if read_result.failure:
         cli.print(
-            f"❌ Read failed: {read_result.error}", style=c.Cli.MessageStyles.BOLD_RED
+            f"❌ Read failed: {read_result.error}",
+            style=c.Cli.MessageStyles.BOLD_RED,
         )
         return r[m.Cli.LoadedConfig].fail(read_result.error or "Read failed")
 

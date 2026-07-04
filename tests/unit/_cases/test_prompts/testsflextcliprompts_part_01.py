@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 import pytest
 from flext_tests import tm
 from tests.constants import c
-from tests.protocols import p
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from tests.protocols import p
 
 
 class TestsFlextCliPrompts:

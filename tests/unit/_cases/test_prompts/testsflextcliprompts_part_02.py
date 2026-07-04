@@ -3,12 +3,16 @@
 from __future__ import annotations
 
 import time
-from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 import pytest
 from flext_tests import tm
 from tests.constants import c
-from tests.protocols import p
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from tests.protocols import p
 
 
 class TestsFlextCliPrompts:
@@ -34,13 +38,17 @@ class TestsFlextCliPrompts:
         interactive_prompts = make_prompts()
         tm.fail(
             interactive_prompts.prompt_choice(
-                "Select:", choices=["a", "b"], default=None
+                "Select:",
+                choices=["a", "b"],
+                default=None,
             ),
             has="Choice required",
         )
         tm.fail(
             interactive_prompts.prompt_choice(
-                "Select:", choices=["a", "b"], default="c"
+                "Select:",
+                choices=["a", "b"],
+                default="c",
             ),
             has="Invalid choice",
         )

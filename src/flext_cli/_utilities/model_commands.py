@@ -4,9 +4,12 @@ from __future__ import annotations
 
 import inspect
 from collections.abc import Mapping
+from typing import TYPE_CHECKING
 
 from flext_cli import p, t
-from flext_core import m
+
+if TYPE_CHECKING:
+    from flext_core import m
 
 
 class FlextCliUtilitiesModelCommands:
@@ -67,7 +70,7 @@ class FlextCliUtilitiesModelCommands:
                 model = self.model_class.model_validate(kwargs)
                 return self.handler(model)
 
-            setattr(command, "__signature__", signature)
+            command.__signature__ = signature
             command.__annotations__ = {
                 parameter.name: parameter.annotation for parameter in parameters
             }

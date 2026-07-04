@@ -21,7 +21,7 @@ else:
         def _target(cls) -> type:
             if cls._target_cls is None:
                 module = import_module("flext_cli._utilities._cli_namespace")
-                cls._target_cls = cast("type", getattr(module, "FlextCliUtilitiesCli"))
+                cls._target_cls = cast("type", module.FlextCliUtilitiesCli)
             return cls._target_cls
 
         def __getattr__(cls, name: str) -> object:

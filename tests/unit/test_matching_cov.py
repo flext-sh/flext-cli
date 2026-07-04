@@ -8,11 +8,15 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pytest
 
 from tests.constants import c
-from tests.typings import t
 from tests.utilities import u
+
+if TYPE_CHECKING:
+    from tests.typings import t
 
 
 class TestsFlextCliMatchingCov:
@@ -25,7 +29,10 @@ class TestsFlextCliMatchingCov:
         c.Tests.MATCH_SIMPLE_CASES,
     )
     def test_matches_parametrized(
-        self, msg: str, patterns: t.StrSequence, expected: bool
+        self,
+        msg: str,
+        patterns: t.StrSequence,
+        expected: bool,
     ) -> None:
         result = u.Cli.matches(msg, *patterns)
         assert result == expected

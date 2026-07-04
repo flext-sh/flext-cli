@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 from types import MappingProxyType
-from typing import Final
+from typing import TYPE_CHECKING, Final
 
-from tests.typings import t
+if TYPE_CHECKING:
+    from tests.typings import t
 
 
 class TestsFlextCliConstantsRulesOptions:

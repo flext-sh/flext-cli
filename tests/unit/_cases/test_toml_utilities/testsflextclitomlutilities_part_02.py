@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from flext_tests import tm
-from tests.typings import t
 from tests.utilities import u
+
+if TYPE_CHECKING:
+    from tests.typings import t
 
 
 class TestsFlextCliTomlUtilities:
@@ -47,7 +51,8 @@ class TestsFlextCliTomlUtilities:
         )
         tm.that(
             u.Cli.toml_value(
-                u.Cli.toml_navigate_path(doc, ["pytest", "ini_options"]), "addopts"
+                u.Cli.toml_navigate_path(doc, ["pytest", "ini_options"]),
+                "addopts",
             ),
             eq="-q",
         )

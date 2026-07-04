@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 from flext_tests import tm
 from tests.utilities import u
 
 from flext_cli import cli
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 class TestsFlextCliFilesCov:
@@ -40,7 +43,8 @@ class TestsFlextCliFilesCov:
 
     def test_atomic_write_text_file_invalid_dir(self) -> None:
         result = u.Cli.atomic_write_text_file(
-            "/nonexistent_root_dir/x/y/z/file.txt", "x"
+            "/nonexistent_root_dir/x/y/z/file.txt",
+            "x",
         )
         tm.fail(result)
 

@@ -18,7 +18,8 @@ class TestsFlextCliModelsCli:
         count: Annotated[int, m.Field(description="How many times")] = 1
         dry_run: Annotated[bool, m.Field(description="Dry-run mode")] = False
         output_format: Annotated[
-            c.Cli.OutputFormats, m.Field(description="Output format")
+            c.Cli.OutputFormats,
+            m.Field(description="Output format"),
         ] = c.Cli.OutputFormats.TABLE
 
     class SampleOutput(m.BaseModel):

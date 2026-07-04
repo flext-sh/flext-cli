@@ -4,11 +4,14 @@ from __future__ import annotations
 
 import tempfile
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 from tests.constants import c
-from tests.typings import t
 from tests.utilities import u
+
+if TYPE_CHECKING:
+    from tests.typings import t
 
 
 class TestsFlextCliRulesCov:
@@ -44,7 +47,10 @@ class TestsFlextCliRulesCov:
     def test_rules_load_scoped_config_valid(self) -> None:
         yaml_content = "lint:\n  rule_a: true\n  rule_b: false\n"
         with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".yml", delete=False, encoding="utf-8"
+            mode="w",
+            suffix=".yml",
+            delete=False,
+            encoding="utf-8",
         ) as f:
             f.write(yaml_content)
             config_path = Path(f.name)
@@ -93,10 +99,10 @@ class TestsFlextCliRulesCov:
             local_rules_dir.mkdir()
             package_rules_dir.mkdir()
             (local_rules_dir / "engine-registry.yml").write_text(
-                c.Tests.RULES_REGISTRY_YAML
+                c.Tests.RULES_REGISTRY_YAML,
             )
             (package_rules_dir / "engine-registry.yml").write_text(
-                "rules:\n  - id: package-rule\n"
+                "rules:\n  - id: package-rule\n",
             )
             config_path = Path(tmpdir) / "config.yml"
             config_path.write_text("project: test\n")

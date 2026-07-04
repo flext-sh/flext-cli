@@ -9,14 +9,18 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 
 from tests.constants import c
 from tests.models import m
-from tests.typings import t
 from tests.utilities import u
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from tests.typings import t
 
 
 class TestsFlextCliYamlCov:
@@ -29,7 +33,10 @@ class TestsFlextCliYamlCov:
         c.Tests.YAML_PARSE_CASES,
     )
     def test_yaml_parse_parametrized(
-        self, text: str, expect_ok: bool, expect_empty: bool
+        self,
+        text: str,
+        expect_ok: bool,
+        expect_empty: bool,
     ) -> None:
         result = u.Cli.yaml_parse(text)
         assert result.success == expect_ok
@@ -95,7 +102,10 @@ class TestsFlextCliYamlCov:
         c.Tests.YAML_LIST_CASES,
     )
     def test_yaml_load_list_parametrized(
-        self, tmp_path: Path, content: str, expect_list: bool
+        self,
+        tmp_path: Path,
+        content: str,
+        expect_list: bool,
     ) -> None:
         f = tmp_path / "data.yml"
         if content:

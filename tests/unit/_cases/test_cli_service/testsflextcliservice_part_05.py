@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from flext_tests import tm
 from tests.models import m
-from tests.protocols import p
 
 from flext_cli import cli
+
+if TYPE_CHECKING:
+    from tests.protocols import p
 
 
 class TestsFlextCliService:
@@ -25,15 +29,15 @@ class TestsFlextCliService:
         ) -> p.Result[m.Tests.SampleOutput]:
             return cli.execute().map(
                 lambda _payload: m.Tests.SampleOutput(
-                    message=f"processed {params.name}"
-                )
+                    message=f"processed {params.name}",
+                ),
             )
 
         def fail_handler(
             params: m.Tests.SampleInput,
         ) -> p.Result[m.Tests.SampleOutput]:
             return cli.validate_credentials("", "password").map(
-                lambda _value: m.Tests.SampleOutput(message=params.name)
+                lambda _value: m.Tests.SampleOutput(message=params.name),
             )
 
         def build_ok_route() -> m.Cli.ResultCommandRoute:
@@ -79,7 +83,7 @@ class TestsFlextCliService:
             params: m.Tests.SampleInput,
         ) -> p.Result[m.Tests.SampleOutput]:
             return cli.validate_credentials(params.name, "").map(
-                lambda _value: m.Tests.SampleOutput(message=params.name)
+                lambda _value: m.Tests.SampleOutput(message=params.name),
             )
 
         cli.register_result_routes(
@@ -90,7 +94,7 @@ class TestsFlextCliService:
                     help_text="Failing command",
                     model_cls=m.Tests.SampleInput,
                     handler=fail_handler,
-                )
+                ),
             ],
         )
         runner_result = cli.create_cli_runner()

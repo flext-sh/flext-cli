@@ -9,11 +9,15 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pytest
 
 from flext_cli import cli
 from tests.constants import c
-from tests.protocols import p
+
+if TYPE_CHECKING:
+    from tests.protocols import p
 
 
 class TestsFlextCliServicesAuthCov:

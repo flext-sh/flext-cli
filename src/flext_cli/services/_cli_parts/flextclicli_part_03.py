@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from inspect import Parameter
+from typing import TYPE_CHECKING
 
 from typer.testing import CliRunner
 
@@ -17,12 +17,16 @@ from flext_cli import (
     t,
     u,
 )
-from flext_cli.services._cli_parts.flextclicli_part_01 import (
-    FlextCliCli as FlextCliCliPart01,
-)
 from flext_cli.services._cli_parts.flextclicli_part_02 import (
     FlextCliCli as FlextCliCliPart02,
 )
+
+if TYPE_CHECKING:
+    from inspect import Parameter
+
+    from flext_cli.services._cli_parts.flextclicli_part_01 import (
+        FlextCliCli as FlextCliCliPart01,
+    )
 
 
 class FlextCliCli(FlextCliCliPart02):

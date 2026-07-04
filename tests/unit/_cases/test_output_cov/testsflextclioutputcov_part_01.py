@@ -37,7 +37,8 @@ class TestsFlextCliOutputCov:
         ],
     )
     def test_output_message_payload_types(
-        self, msg_type: c.Cli.MessageTypes | None
+        self,
+        msg_type: c.Cli.MessageTypes | None,
     ) -> None:
         text, style = u.Cli.output_message_payload("test message", msg_type)
         assert "test message" in text
@@ -63,7 +64,10 @@ class TestsFlextCliOutputCov:
 
     def test_output_status_line_failure_no_elapsed(self) -> None:
         line, _style = u.Cli.output_status_line(
-            False, "test", "flext-core", elapsed=None
+            False,
+            "test",
+            "flext-core",
+            elapsed=None,
         )
         assert isinstance(line, str)
         assert "s)" not in line

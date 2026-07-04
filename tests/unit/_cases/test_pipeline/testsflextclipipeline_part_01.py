@@ -2,14 +2,18 @@
 
 from __future__ import annotations
 
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 from tests.constants import c
 from tests.models import m
-from tests.protocols import p
-from tests.typings import t
 
 from flext_cli import cli, r
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from tests.protocols import p
+    from tests.typings import t
 
 
 class TestsFlextCliPipeline:
@@ -24,7 +28,9 @@ class TestsFlextCliPipeline:
         ) -> p.Result[m.Cli.PipelineStageResult]:
             ctx.shared[output_key] = stage_id
             return cli.ok_stage(
-                stage_id, output={output_key: stage_id}, duration_ms=1.0
+                stage_id,
+                output={output_key: stage_id},
+                duration_ms=1.0,
             )
 
         return handler

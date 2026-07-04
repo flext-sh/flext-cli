@@ -2,10 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import (
-    Callable,
-)
-from typing import Self, override
+from typing import TYPE_CHECKING, Self, override
 
 import pytest
 from flext_tests import reset_settings
@@ -13,7 +10,13 @@ from flext_tests import reset_settings
 from flext_cli import cli
 from flext_cli.services.prompts import FlextCliPrompts
 from tests.models import m
-from tests.typings import t
+
+if TYPE_CHECKING:
+    from collections.abc import (
+        Callable,
+    )
+
+    from tests.typings import t
 
 
 class TestsFlextCliScriptedPrompts(FlextCliPrompts):

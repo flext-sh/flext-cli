@@ -29,7 +29,7 @@ class ExamplesFlextCliModelsExamplesCommon:
             if env_name not in os.environ or field_name not in field_types:
                 continue
             validated_value: t.EnvValue = m.TypeAdapter(
-                field_types[field_name]
+                field_types[field_name],
             ).validate_python(
                 os.environ[env_name],
             )

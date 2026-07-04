@@ -6,11 +6,15 @@ All methods use the ``json_`` prefix for namespace consistency.
 
 from __future__ import annotations
 
-from flext_cli import t
+from typing import TYPE_CHECKING
+
 from flext_cli._utilities._json_parts.flextcliutilitiesjson_part_01 import (
     FlextCliUtilitiesJson as FlextCliUtilitiesJsonPart01,
 )
 from flext_core import u
+
+if TYPE_CHECKING:
+    from flext_cli import t
 
 
 class FlextCliUtilitiesJson(FlextCliUtilitiesJsonPart01):

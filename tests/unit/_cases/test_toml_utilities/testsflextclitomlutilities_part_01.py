@@ -4,15 +4,19 @@ from __future__ import annotations
 
 import os
 import stat
-from collections.abc import (
-    Generator,
-)
 from contextlib import contextmanager
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from flext_tests import tm
-from tests.typings import t
 from tests.utilities import u
+
+if TYPE_CHECKING:
+    from collections.abc import (
+        Generator,
+    )
+
+    from tests.typings import t
 
 
 class TestsFlextCliTomlUtilities:

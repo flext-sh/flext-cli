@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 from examples import (
     ExamplesFlextCliGettingStarted,
@@ -17,6 +17,9 @@ from examples.ex_04_file_operations import (
     validate_and_import_data,
 )
 from flext_tests import tm
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 class TestsFlextCliExamplesSmoke:

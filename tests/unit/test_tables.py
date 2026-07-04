@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
-import pytest
+from typing import TYPE_CHECKING
+
 from flext_tests import tm
 
 from flext_cli import cli
 from tests.constants import c
+
+if TYPE_CHECKING:
+    import pytest
 
 
 class TestsFlextCliTables:
@@ -20,7 +24,7 @@ class TestsFlextCliTables:
                 headers=["Field", "Value"],
                 colalign=["left", "right"],
                 table_format=c.Cli.TabularFormat.GRID,
-            )
+            ),
         )
         tm.that(table, has=["Field", "status", "ok"])
 
@@ -31,7 +35,7 @@ class TestsFlextCliTables:
                 [{"identifier": "row-1", "display_name": "Alpha"}],
                 show_header=False,
                 table_format=c.Cli.TabularFormat.PLAIN,
-            )
+            ),
         )
         tm.that(table, has=["row-1", "Alpha"])
         tm.that("identifier" in table, eq=False)
@@ -42,7 +46,7 @@ class TestsFlextCliTables:
             cli.format_table(
                 [{"name": "Alice", "status": "active"}],
                 table_format=c.Cli.TabularFormat.TABLE,
-            )
+            ),
         )
         tm.that(table, has=["Alice", "active"])
 

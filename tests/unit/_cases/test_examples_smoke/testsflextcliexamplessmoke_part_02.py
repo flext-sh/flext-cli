@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 from examples import (
     Ex05Authentication,
@@ -20,6 +20,9 @@ from examples.ex_04_file_operations import (
 from flext_tests import tm
 
 from flext_cli import cli
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 class TestsFlextCliExamplesSmoke:

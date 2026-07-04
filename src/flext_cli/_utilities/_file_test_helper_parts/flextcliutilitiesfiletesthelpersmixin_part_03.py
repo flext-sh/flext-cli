@@ -9,13 +9,16 @@ reimplementing them.
 from __future__ import annotations
 
 from collections.abc import Mapping, MutableMapping
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 from flext_cli import c, p, r
 from flext_cli._utilities._file_test_helper_parts.flextcliutilitiesfiletesthelpersmixin_part_04 import (
     FlextCliUtilitiesFileTestHelpersMixin as FlextCliUtilitiesFileTestHelpersMixinPart04,
 )
 from flext_cli._utilities.files import FlextCliUtilitiesFiles
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 class FlextCliUtilitiesFileTestHelpersMixin:

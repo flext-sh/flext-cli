@@ -40,7 +40,7 @@ class TestsFlextCliTypesUnit:
         tm.that(complex_value, eq=[{"name": "entry", "count": 1}])
 
         optional_type_adapter: m.TypeAdapter[t.StrSequence | None] = m.TypeAdapter(
-            t.StrSequence | None
+            t.StrSequence | None,
         )
         tm.that(
             optional_type_adapter.validate_python(["alpha", "beta"]),

@@ -87,7 +87,7 @@ class TestsFlextCliRulesCov:
             (rules_dir / "no-id.yml").write_text(c.Tests.RULES_FILE_NO_ID_YAML)
             (rules_dir / "disabled.yml").write_text(c.Tests.RULES_FILE_DISABLED_YAML)
             (rules_dir / "empty.yml").write_text(
-                c.Tests.RULES_FILE_NO_MATCHER_KEYS_YAML
+                c.Tests.RULES_FILE_NO_MATCHER_KEYS_YAML,
             )
             config_path = Path(tmpdir) / "config.yml"
             config_path.write_text("project: test\n")

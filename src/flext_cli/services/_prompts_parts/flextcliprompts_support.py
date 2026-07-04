@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import getpass
-from typing import Annotated, Self
+from typing import TYPE_CHECKING, Annotated, Self
 
 from flext_cli import c, m, p, r, s, t, u
-from flext_cli._protocols.base import FlextCliProtocolsBase
+
+if TYPE_CHECKING:
+    from flext_cli._protocols.base import FlextCliProtocolsBase
 
 
 class FlextCliPromptsSupport(s):

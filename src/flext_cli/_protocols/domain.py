@@ -4,12 +4,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from flext_cli._protocols.base import FlextCliProtocolsBase
-
 if TYPE_CHECKING:
     from pathlib import Path
 
     from flext_cli import t
+    from flext_cli._protocols.base import FlextCliProtocolsBase
 
 
 class FlextCliProtocolsDomain:

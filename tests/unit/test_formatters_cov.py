@@ -9,11 +9,15 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pytest
 
 from flext_cli import cli
 from tests.constants import c
-from tests.typings import t
+
+if TYPE_CHECKING:
+    from tests.typings import t
 
 
 class TestsFlextCliFormattersCov:
@@ -40,7 +44,10 @@ class TestsFlextCliFormattersCov:
         c.Tests.FORMATTERS_PRINT_CASES,
     )
     def test_formatters_print_parametrized(
-        self, capsys: pytest.CaptureFixture[str], msg: str, style: str | None
+        self,
+        capsys: pytest.CaptureFixture[str],
+        msg: str,
+        style: str | None,
     ) -> None:
         if style is not None:
             cli.print(msg, style)

@@ -18,15 +18,19 @@ import io
 import time
 from contextlib import redirect_stdout
 from datetime import datetime
-from pathlib import Path
+from typing import TYPE_CHECKING
 
-import pytest
 from flext_tests import tm
 
 from flext_cli import cli
 from tests.constants import c
 from tests.protocols import p
 from tests.utilities import u
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    import pytest
 
 
 class TestsFlextCliCmd:

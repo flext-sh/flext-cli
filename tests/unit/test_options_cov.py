@@ -3,14 +3,16 @@
 from __future__ import annotations
 
 import inspect
-from typing import Annotated, ClassVar
+from typing import TYPE_CHECKING, Annotated, ClassVar
 
 import pytest
 
 from flext_cli import cli, m
 from tests.constants import c
 from tests.protocols import p
-from tests.typings import t
+
+if TYPE_CHECKING:
+    from tests.typings import t
 
 
 class TestsFlextCliOptionsUtilsCov:

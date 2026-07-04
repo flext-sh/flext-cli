@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-import pytest
 from tests.constants import c
 from tests.utilities import u
 
 from flext_cli import p
+
+if TYPE_CHECKING:
+    import pytest
 
 
 class TestsFlextCliOutputCov:
@@ -26,7 +29,9 @@ class TestsFlextCliOutputCov:
 
     def test_resolve_report_dir_workspace_scope(self, tmp_path: Path) -> None:
         result = u.Cli.resolve_report_dir(
-            tmp_path, c.Cli.OUTPUT_SCOPE_WORKSPACE, "check"
+            tmp_path,
+            c.Cli.OUTPUT_SCOPE_WORKSPACE,
+            "check",
         )
         assert c.Cli.OUTPUT_SCOPE_WORKSPACE in str(result)
         assert "check" in str(result)
@@ -37,7 +42,10 @@ class TestsFlextCliOutputCov:
 
     def test_resolve_report_path(self, tmp_path: Path) -> None:
         result = u.Cli.resolve_report_path(
-            str(tmp_path), c.Cli.OUTPUT_SCOPE_WORKSPACE, "check", "report.json"
+            str(tmp_path),
+            c.Cli.OUTPUT_SCOPE_WORKSPACE,
+            "check",
+            "report.json",
         )
         assert result.name == "report.json"
 

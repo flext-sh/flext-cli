@@ -2,16 +2,20 @@
 
 from __future__ import annotations
 
-from collections.abc import (
-    MutableSequence,
-)
+from typing import TYPE_CHECKING
 
 from flext_tests import tm
 from tests.constants import c
 from tests.models import m
-from tests.typings import t
 
 from flext_cli import cli
+
+if TYPE_CHECKING:
+    from collections.abc import (
+        MutableSequence,
+    )
+
+    from tests.typings import t
 
 
 class TestsFlextCliService:
