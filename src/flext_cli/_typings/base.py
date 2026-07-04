@@ -7,7 +7,7 @@ from collections.abc import (
 )
 from pathlib import Path
 from types import GenericAlias, UnionType
-from typing import ClassVar, TypeAliasType
+from typing import ClassVar, Protocol, TypeAliasType, runtime_checkable
 
 from click.core import Command as ClickCommand
 from click.testing import CliRunner as ClickCliRunner
@@ -18,9 +18,22 @@ from tomlkit.items import AoT, Array, Item, Table
 from tomlkit.toml_document import TOMLDocument
 from typer import Typer
 from typer.models import OptionInfo
-from typer.testing import CliRunner
+from typer.testing import Result as TyperCliResult
 
 from flext_core.typings import t
+
+
+@runtime_checkable
+class FlextCliTyperRunner(Protocol):
+    """Typed public protocol for Typer CLI runner invocations."""
+
+    def invoke(
+        self,
+        app: Typer,
+        args: t.StrSequence | None = None,
+    ) -> TyperCliResult:
+        """Invoke a Typer application and return its typed result."""
+        ...
 
 
 class FlextCliTypesBase:
@@ -46,7 +59,8 @@ class FlextCliTypesBase:
     type CliApp = Typer
     type CliOptionInfo = OptionInfo
 
-    type TyperRunner = CliRunner
+    type TyperRunner = FlextCliTyperRunner
+    type TyperResult = TyperCliResult
     ExternalCli: ClassVar[type] = ClickCommand
     """Class alias for click.Command — external CLI integrations (Singer SDK)."""
     ExternalCliRunner: ClassVar[type] = ClickCliRunner
