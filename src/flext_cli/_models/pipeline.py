@@ -104,7 +104,10 @@ class FlextCliModelsPipeline:
                 default_factory=lambda: MappingProxyType({}),
                 description="Stage output payload",
             ),
-        ]
+        ] = m.Field(
+            default_factory=lambda: MappingProxyType({}),
+            description="Stage output payload",
+        )
         duration_ms: Annotated[
             float,
             m.Field(description="Execution duration in milliseconds"),

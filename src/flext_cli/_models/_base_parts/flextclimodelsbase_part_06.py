@@ -34,7 +34,7 @@ class FlextCliModelsBase:
         debug: Annotated[
             bool | None,
             m.Field(None, description="Enable debug mode"),
-        ]
+        ] = None
         trace: Annotated[
             bool | None,
             m.Field(
