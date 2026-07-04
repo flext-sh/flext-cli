@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from flext_cli.__version__ import (
     __author__,
     __author_email__,
@@ -18,6 +20,31 @@ from flext_cli._exports import (
     FLEXT_CLI_PUBLIC_EXPORTS,
 )
 from flext_core.lazy import install_lazy_exports
+
+if TYPE_CHECKING:
+    from flext_cli.api import FlextCli as FlextCli, cli as cli
+    from flext_cli.base import FlextCliServiceBase as FlextCliServiceBase, s as s
+    from flext_cli.constants import FlextCliConstants as FlextCliConstants, c as c
+    from flext_cli.models import FlextCliModels as FlextCliModels, m as m
+    from flext_cli.protocols import FlextCliProtocols as FlextCliProtocols, p as p
+    from flext_cli.services.auth import FlextCliAuth as FlextCliAuth
+    from flext_cli.services.cli import FlextCliCli as FlextCliCli
+    from flext_cli.services.cli_params import (
+        FlextCliCommonParams as FlextCliCommonParams,
+    )
+    from flext_cli.services.cmd import FlextCliCmd as FlextCliCmd
+    from flext_cli.services.file_tools import FlextCliFileTools as FlextCliFileTools
+    from flext_cli.services.formatters import FlextCliFormatters as FlextCliFormatters
+    from flext_cli.services.output import FlextCliOutput as FlextCliOutput
+    from flext_cli.services.pipeline import FlextCliPipeline as FlextCliPipeline
+    from flext_cli.services.rules import FlextCliRules as FlextCliRules
+    from flext_cli.services.runtime import FlextCliRuntime as FlextCliRuntime
+    from flext_cli.services.tables import FlextCliTables as FlextCliTables
+    from flext_cli.settings import FlextCliSettings as FlextCliSettings
+    from flext_cli.typings import FlextCliTypes as FlextCliTypes, t as t
+    from flext_cli.utilities import FlextCliUtilities as FlextCliUtilities, u as u
+    from flext_core import d as d, e as e, h as h, r as r, x as x
+
 
 _LAZY_IMPORTS = {
     name: target

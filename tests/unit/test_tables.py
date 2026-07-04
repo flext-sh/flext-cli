@@ -14,44 +14,35 @@ class TestsFlextCliTables:
 
     def test_format_table_accepts_single_mapping_and_sequence_kwargs(self) -> None:
         """Single mappings and list-based settings kwargs must be accepted."""
-        table = (
-            tm.ok(
-                cli.format_table(
-                    {"status": "ok", "count": 2},
-                    headers=["Field", "Value"],
-                    colalign=["left", "right"],
-                    table_format=c.Cli.TabularFormat.GRID,
-                )
+        table: str = tm.ok(
+            cli.format_table(
+                {"status": "ok", "count": 2},
+                headers=["Field", "Value"],
+                colalign=["left", "right"],
+                table_format=c.Cli.TabularFormat.GRID,
             )
-            or ""
         )
         tm.that(table, has=["Field", "status", "ok"])
 
     def test_format_table_supports_headerless_mapping_rows(self) -> None:
         """Headerless rendering must work for row sequences from examples."""
-        table = (
-            tm.ok(
-                cli.format_table(
-                    [{"identifier": "row-1", "display_name": "Alpha"}],
-                    show_header=False,
-                    table_format=c.Cli.TabularFormat.PLAIN,
-                )
+        table: str = tm.ok(
+            cli.format_table(
+                [{"identifier": "row-1", "display_name": "Alpha"}],
+                show_header=False,
+                table_format=c.Cli.TabularFormat.PLAIN,
             )
-            or ""
         )
         tm.that(table, has=["row-1", "Alpha"])
         tm.that("identifier" in table, eq=False)
 
     def test_format_table_accepts_public_table_alias(self) -> None:
         """The public 'table' format alias must resolve to the default backend."""
-        table = (
-            tm.ok(
-                cli.format_table(
-                    [{"name": "Alice", "status": "active"}],
-                    table_format=c.Cli.TabularFormat.TABLE,
-                )
+        table: str = tm.ok(
+            cli.format_table(
+                [{"name": "Alice", "status": "active"}],
+                table_format=c.Cli.TabularFormat.TABLE,
             )
-            or ""
         )
         tm.that(table, has=["Alice", "active"])
 
