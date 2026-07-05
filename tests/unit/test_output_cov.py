@@ -6,7 +6,6 @@ from pathlib import Path
 
 import pytest
 
-from flext_cli import p
 from tests.constants import c
 from tests.utilities import u
 
@@ -242,7 +241,7 @@ class TestsFlextCliOutputCov:
         self,
         capsys: pytest.CaptureFixture[str],
     ) -> None:
-        class _FakeSummaryStats(p.Cli.SummaryStats):
+        class _FakeSummaryStats:
             verb = "check"
             total = 5
             success = 4
@@ -259,7 +258,7 @@ class TestsFlextCliOutputCov:
         self,
         capsys: pytest.CaptureFixture[str],
     ) -> None:
-        class _FakeProjectFailureInfo(p.Cli.ProjectFailureInfo):
+        class _FakeProjectFailureInfo:
             project = "flext-cli"
             elapsed = 3.0
             error_count = 2

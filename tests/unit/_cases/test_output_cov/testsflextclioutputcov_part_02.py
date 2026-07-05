@@ -8,8 +8,6 @@ from typing import TYPE_CHECKING
 from tests.constants import c
 from tests.utilities import u
 
-from flext_cli import p
-
 if TYPE_CHECKING:
     import pytest
 
@@ -50,7 +48,7 @@ class TestsFlextCliOutputCov:
         assert result.name == "report.json"
 
     def test_summary(self, capsys: pytest.CaptureFixture[str]) -> None:
-        class _FakeSummaryStats(p.Cli.SummaryStats):
+        class _FakeSummaryStats:
             verb = "check"
             total = 5
             success = 4
@@ -63,7 +61,7 @@ class TestsFlextCliOutputCov:
         assert "check" in out
 
     def test_project_failure(self, capsys: pytest.CaptureFixture[str]) -> None:
-        class _FakeProjectFailureInfo(p.Cli.ProjectFailureInfo):
+        class _FakeProjectFailureInfo:
             project = "flext-cli"
             elapsed = 3.0
             error_count = 2

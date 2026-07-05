@@ -75,23 +75,69 @@ class FlextCliProtocolsDomain:
     class SummaryStats(Protocol):
         """Workspace orchestration summary payload contract."""
 
-        verb: str
-        total: int
-        success: int
-        failed: int
-        skipped: int
-        elapsed: float
+        @property
+        def verb(self) -> str:
+            """Verb label for the summary block."""
+            ...
+
+        @property
+        def total(self) -> int:
+            """Total processed items."""
+            ...
+
+        @property
+        def success(self) -> int:
+            """Successful items."""
+            ...
+
+        @property
+        def failed(self) -> int:
+            """Failed items."""
+            ...
+
+        @property
+        def skipped(self) -> int:
+            """Skipped items."""
+            ...
+
+        @property
+        def elapsed(self) -> float:
+            """Elapsed time in seconds."""
+            ...
 
     @runtime_checkable
     class ProjectFailureInfo(Protocol):
         """Per-project failure descriptor for verbose diagnostics."""
 
-        project: str
-        elapsed: float
-        error_count: int
-        log_path: Path
-        max_show: int
-        errors: t.SequenceOf[str]
+        @property
+        def project(self) -> str:
+            """Project name."""
+            ...
+
+        @property
+        def elapsed(self) -> float:
+            """Elapsed time in seconds."""
+            ...
+
+        @property
+        def error_count(self) -> int:
+            """Total project errors."""
+            ...
+
+        @property
+        def log_path(self) -> Path:
+            """Path to the project log."""
+            ...
+
+        @property
+        def max_show(self) -> int:
+            """Maximum errors to render."""
+            ...
+
+        @property
+        def errors(self) -> t.SequenceOf[str]:
+            """Rendered error excerpt lines."""
+            ...
 
 
 __all__: list[str] = ["FlextCliProtocolsDomain"]

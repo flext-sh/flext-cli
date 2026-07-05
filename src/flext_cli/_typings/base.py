@@ -10,7 +10,7 @@ from types import GenericAlias, UnionType
 from typing import ClassVar, Protocol, TypeAliasType, runtime_checkable
 
 from click.core import Command as ClickCommand
-from click.testing import CliRunner as ClickCliRunner
+from click.testing import CliRunner as ClickCliRunner, Result as TyperCliResult
 from rich.console import Console as RichConsole
 from rich.tree import Tree as RichTree
 from tomlkit.container import Container
@@ -18,7 +18,6 @@ from tomlkit.items import AoT, Array, Item, Table
 from tomlkit.toml_document import TOMLDocument
 from typer import Typer
 from typer.models import OptionInfo
-from typer.testing import Result as TyperCliResult
 
 from flext_core.typings import t
 

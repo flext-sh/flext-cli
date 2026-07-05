@@ -203,7 +203,10 @@ class TestsFlextCliTomlCov:
         assert doc is not None
         table = u.Cli.toml_navigate_path(doc, ["tool", "flext"])
         assert u.Cli.toml_is_table(table)
-        assert dict(table) == {"project": "my-project", "version": "1.0.0"}
+        assert u.Cli.toml_as_mapping(table) == {
+            "project": "my-project",
+            "version": "1.0.0",
+        }
 
     def test_navigate_path_creates_and_wires_missing_intermediate_tables(
         self,

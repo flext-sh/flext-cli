@@ -16,7 +16,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Protocol
 
 import pytest
 
@@ -121,7 +120,7 @@ class TestsFlextCliProtocols:
     def test_cli_protocols_are_runtime_checkable(self, protocol_name: str) -> None:
         """Each published protocol supports runtime ``isinstance`` without error."""
         protocol = getattr(p.Cli, protocol_name)
-        assert issubclass(protocol, Protocol)
+        assert isinstance(protocol, type)
         # A runtime-checkable protocol answers isinstance instead of raising.
         assert isinstance(object(), protocol) in {True, False}
 

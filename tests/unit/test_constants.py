@@ -16,6 +16,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Mapping
+from enum import StrEnum
 
 import pytest
 from flext_tests import tm
@@ -99,13 +100,14 @@ class TestsFlextCliConstants:
             c.Cli.CommandStatus,
         ],
     )
-    def test_enum_values_matches_member_values(
-        self, enum_cls: type[c.Cli.MessageTypes]
-    ) -> None:
+    def test_enum_values_matches_member_values(self, enum_cls: type[StrEnum]) -> None:
         """u.enum_values returns exactly the frozenset of member .value strings."""
         values = u.enum_values(enum_cls)
         tm.that(values, is_=frozenset)
-        tm.that(values, eq=frozenset(m.value for m in enum_cls))
+        tm.that(
+            values,
+            eq=frozenset(member.value for member in enum_cls.__members__.values()),
+        )
 
     def test_enum_values_is_cached_idempotent(self) -> None:
         """Repeated u.enum_values calls yield an equal, stable frozenset."""
