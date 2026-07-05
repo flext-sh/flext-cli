@@ -67,6 +67,48 @@ _EAGER_EXPORTS = (
 
 _PUBLIC_EXPORTS: tuple[str, ...] = FLEXT_CLI_PUBLIC_EXPORTS
 
+__all__: tuple[str, ...] = (
+    "FlextCli",
+    "FlextCliAuth",
+    "FlextCliCli",
+    "FlextCliCmd",
+    "FlextCliCommonParams",
+    "FlextCliConstants",
+    "FlextCliFileTools",
+    "FlextCliFormatters",
+    "FlextCliModels",
+    "FlextCliOutput",
+    "FlextCliPipeline",
+    "FlextCliProtocols",
+    "FlextCliRules",
+    "FlextCliRuntime",
+    "FlextCliServiceBase",
+    "FlextCliSettings",
+    "FlextCliTables",
+    "FlextCliTypes",
+    "FlextCliUtilities",
+    "__author__",
+    "__author_email__",
+    "__description__",
+    "__license__",
+    "__title__",
+    "__url__",
+    "__version__",
+    "__version_info__",
+    "c",
+    "cli",
+    "d",
+    "e",
+    "h",
+    "m",
+    "p",
+    "r",
+    "s",
+    "t",
+    "u",
+    "x",
+)
+
 
 install_lazy_exports(
     __name__,
