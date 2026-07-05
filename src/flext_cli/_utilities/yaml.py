@@ -9,7 +9,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING, ClassVar, cast
 
 from yaml import safe_dump, safe_load
 
@@ -171,12 +171,15 @@ class FlextCliUtilitiesYaml:
         """
         try:
             validated = FlextCliUtilitiesJson.normalize_json_value(data)
-            return safe_dump(
-                validated,
-                default_flow_style=False,
-                sort_keys=sort_keys,
-                allow_unicode=True,
-                indent=indent,
+            return cast(
+                str,
+                safe_dump(
+                    validated,
+                    default_flow_style=False,
+                    sort_keys=sort_keys,
+                    allow_unicode=True,
+                    indent=indent,
+                ),
             )
         except (c.Cli.YamlParseError, ValueError, TypeError):
             return ""
