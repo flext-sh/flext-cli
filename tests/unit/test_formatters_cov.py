@@ -1,7 +1,12 @@
-"""Coverage tests for _utilities/formatters.py and services/formatters.py.
+"""Behavioral tests for the CLI formatters public contract.
 
-Targets: formatters_create_tree, formatters_print, formatters_render_rule,
-         formatters_render_panel, formatters_render_table (and services wrapper).
+Exercises the observable behavior promised by ``FlextCli`` formatter methods
+(``create_tree``/``print``/``render_rule``/``render_panel``/``render_table``),
+which delegate through ``FlextCliFormatters`` and ``FlextCliUtilitiesFormatters``:
+
+- ``create_tree`` returns ``r[RichTree]`` whose value carries the given label.
+- ``print``/``render_rule``/``render_panel``/``render_table`` render their
+  content to the console (observable on stdout).
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -12,6 +17,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import pytest
+from rich.tree import Tree as RichTree
 
 from flext_cli import cli
 from tests.constants import c
@@ -21,29 +27,47 @@ if TYPE_CHECKING:
 
 
 class TestsFlextCliFormattersCov:
-    """Data-driven coverage tests for FlextCliUtilitiesFormatters."""
+    """Behavioral tests for the public CLI formatter contract."""
 
-    # ── formatters_create_tree ───────────────────────────────────────
+    # ── create_tree: fallible contract (r[RichTree]) ─────────────────
 
     @pytest.mark.parametrize("label", c.Tests.FORMATTER_TREE_LABELS)
-    def test_create_tree_parametrized(self, label: str) -> None:
+    def test_create_tree_succeeds_and_preserves_label(self, label: str) -> None:
         result = cli.create_tree(label)
-        assert result.success
 
-    def test_create_tree_returns_rich_tree(self) -> None:
+        assert result.success
+        tree = result.unwrap()
+        assert isinstance(tree, RichTree)
+        assert tree.label == label
+
+    def test_create_tree_value_matches_unwrap(self) -> None:
         result = cli.create_tree("Root")
-        assert result.success
-        # The value is a Rich Tree object
-        tree = result.value
-        assert hasattr(tree, "label") or hasattr(tree, "add")
 
-    # ── formatters_print ─────────────────────────────────────────────
+        assert result.success
+        assert result.value is result.unwrap()
+
+    def test_create_tree_result_maps_to_label(self) -> None:
+        # r[T] monadic contract: map projects the success value.
+        mapped = cli.create_tree("Branch").map(lambda tree: tree.label)
+
+        assert mapped.success
+        assert mapped.unwrap() == "Branch"
+
+    def test_create_tree_children_can_be_attached(self) -> None:
+        # Public Rich Tree contract: the returned root accepts children.
+        root = cli.create_tree("Root").unwrap()
+        child = root.add("Leaf")
+
+        assert child.label == "Leaf"
+        assert root.children[0] is child
+
+    # ── print: message rendered to stdout ────────────────────────────
 
     @pytest.mark.parametrize(
         ("msg", "style"),
         c.Tests.FORMATTERS_PRINT_CASES,
     )
-    def test_formatters_print_parametrized(
+    def test_print_renders_message_to_stdout(
         self,
         capsys: pytest.CaptureFixture[str],
         msg: str,
@@ -54,30 +78,50 @@ class TestsFlextCliFormattersCov:
         else:
             cli.print(msg)
 
-    # ── formatters_render_rule ───────────────────────────────────────
+        out = capsys.readouterr().out
+        assert msg in out
+
+    # ── render_rule: label rendered to stdout ────────────────────────
 
     @pytest.mark.parametrize("label", c.Tests.FORMATTER_RULE_LABELS)
-    def test_render_rule_parametrized(self, label: str) -> None:
-        # Should not raise
+    def test_render_rule_renders_label_to_stdout(
+        self,
+        capsys: pytest.CaptureFixture[str],
+        label: str,
+    ) -> None:
         cli.render_rule(label)
 
-    # ── formatters_render_panel ──────────────────────────────────────
+        out = capsys.readouterr().out
+        # A rule always emits a horizontal line; its text appears when present.
+        assert out.strip() != ""
+        assert label in out
+
+    # ── render_panel: content rendered to stdout ─────────────────────
 
     @pytest.mark.parametrize(
         ("content", "title"),
         c.Tests.FORMATTER_PANEL_CASES,
     )
-    def test_render_panel_parametrized(self, content: str, title: str) -> None:
+    def test_render_panel_renders_content_to_stdout(
+        self,
+        capsys: pytest.CaptureFixture[str],
+        content: str,
+        title: str,
+    ) -> None:
         cli.render_panel(content, title=title)
 
-    # ── formatters_render_table ───────────────────────────────────────
+        out = capsys.readouterr().out
+        assert content in out
+
+    # ── render_table: columns and cells rendered to stdout ───────────
 
     @pytest.mark.parametrize(
         ("columns", "rows", "title"),
         c.Tests.FORMATTER_TABLE_CASES,
     )
-    def test_render_table_parametrized(
+    def test_render_table_renders_columns_and_cells(
         self,
+        capsys: pytest.CaptureFixture[str],
         columns: t.StrSequence,
         rows: tuple[t.StrSequence, ...],
         title: str,
@@ -88,27 +132,12 @@ class TestsFlextCliFormattersCov:
             title=title,
         )
 
-    # ── services/formatters.py (thin facade) ─────────────────────────
-
-    def test_create_tree_via_service(self) -> None:
-        result = cli.create_tree("ServiceRoot")
-        assert result.success
-
-    def test_print_via_service(self) -> None:
-        cli.print("service print test")
-
-    def test_render_rule_via_service(self) -> None:
-        cli.render_rule("Rule label")
-
-    def test_render_panel_via_service(self) -> None:
-        cli.render_panel("panel content", title="My Title")
-
-    def test_render_table_via_service(self) -> None:
-        cli.render_table(
-            columns=["Name", "Value"],
-            rows=[["foo", "bar"]],
-            title="Test",
-        )
+        out = capsys.readouterr().out
+        for column in columns:
+            assert column in out
+        for row in rows:
+            for cell in row:
+                assert cell in out
 
 
 __all__: list[str] = [

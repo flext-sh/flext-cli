@@ -1,138 +1,319 @@
-"""Coverage tests for the public TOML synchronization helpers on ``u.Cli``."""
+"""Behavioral contract tests for the public TOML sync helpers on ``u.Cli``.
+
+Each ``toml_*sync*`` / ``toml_*merge*`` / ``toml_*remove*`` helper is a pure,
+in-place synchronizer whose public contract is:
+
+* return ``True`` iff the container was mutated, ``False`` when already in sync;
+* leave the container holding exactly the expected value afterwards;
+* be idempotent -- a second identical call is a no-op returning ``False``.
+
+Assertions here exercise that observable contract through the public read
+helpers (``toml_value``, ``toml_as_string_list``, ``toml_as_mapping``) rather
+than poking internals. No filesystem or network I/O -- purely in-memory
+tomlkit documents and plain mappings.
+"""
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import pytest
+
 from tests.utilities import u
 
 if TYPE_CHECKING:
+    from tomlkit.items import Table
+
     from tests.typings import t
 
 
 class TestsFlextCliTomlSyncCoverage:
-    """Exercise public TOML sync helpers with real pyproject-style payloads."""
+    """Public-contract behavior of the ``u.Cli.toml_*`` synchronizers."""
 
-    def test_document_sync_helpers_manage_scalar_lists_and_tables(self) -> None:
+    @pytest.fixture
+    def project_table(self) -> Table:
+        """Fresh ``[project]`` table inside an empty document."""
+        return u.Cli.toml_ensure_table(u.Cli.toml_document(), "project")
+
+    # -- scalar sync -----------------------------------------------------
+
+    def test_sync_value_writes_expected_and_reports_mutation(
+        self,
+        project_table: Table,
+    ) -> None:
+        # Arrange
+        project_table["name"] = "old"
+
+        # Act
+        changed = u.Cli.toml_sync_value(project_table, "name", "flext-demo")
+
+        # Assert
+        assert changed is True
+        assert u.Cli.toml_value(project_table, "name") == "flext-demo"
+
+    def test_sync_value_is_idempotent_when_already_in_sync(
+        self,
+        project_table: Table,
+    ) -> None:
+        # Arrange
+        u.Cli.toml_sync_value(project_table, "name", "flext-demo")
+
+        # Act
+        second = u.Cli.toml_sync_value(project_table, "name", "flext-demo")
+
+        # Assert
+        assert second is False
+        assert u.Cli.toml_value(project_table, "name") == "flext-demo"
+
+    def test_sync_value_creates_missing_key(self, project_table: Table) -> None:
+        # Act
+        changed = u.Cli.toml_sync_value(project_table, "version", "1.2.3")
+
+        # Assert
+        assert changed is True
+        assert u.Cli.toml_value(project_table, "version") == "1.2.3"
+
+    # -- string-list sync ------------------------------------------------
+
+    def test_sync_string_list_stores_sorted_values(
+        self,
+        project_table: Table,
+    ) -> None:
+        # Act
+        changed = u.Cli.toml_sync_string_list(
+            project_table,
+            "authors",
+            ("zoe", "anna"),
+            sort_values=True,
+        )
+
+        # Assert
+        assert changed is True
+        assert list(u.Cli.toml_as_string_list(project_table["authors"])) == [
+            "anna",
+            "zoe",
+        ]
+
+    def test_sync_string_list_sorted_ignores_input_order(
+        self,
+        project_table: Table,
+    ) -> None:
+        # Arrange
+        u.Cli.toml_sync_string_list(
+            project_table,
+            "authors",
+            ("zoe", "anna"),
+            sort_values=True,
+        )
+
+        # Act -- same set, different order, sorted comparison -> no mutation
+        changed = u.Cli.toml_sync_string_list(
+            project_table,
+            "authors",
+            ("anna", "zoe"),
+            sort_values=True,
+        )
+
+        # Assert
+        assert changed is False
+
+    def test_merge_string_list_unions_and_sorts(
+        self,
+        project_table: Table,
+    ) -> None:
+        # Arrange
+        u.Cli.toml_sync_string_list(project_table, "authors", ("anna", "zoe"))
+
+        # Act
+        changed = u.Cli.toml_merge_string_list(project_table, "authors", ("marlon",))
+
+        # Assert
+        assert changed is True
+        assert list(u.Cli.toml_as_string_list(project_table["authors"])) == [
+            "anna",
+            "marlon",
+            "zoe",
+        ]
+
+    def test_merge_string_list_noop_when_subset_present(
+        self,
+        project_table: Table,
+    ) -> None:
+        # Arrange -- already the sorted union
+        u.Cli.toml_merge_string_list(
+            project_table,
+            "authors",
+            ("anna", "marlon", "zoe"),
+        )
+
+        # Act
+        changed = u.Cli.toml_merge_string_list(
+            project_table,
+            "authors",
+            ("anna", "marlon", "zoe"),
+        )
+
+        # Assert
+        assert changed is False
+
+    # -- mapping-table sync ---------------------------------------------
+
+    def test_sync_mapping_table_writes_expected_mapping(self) -> None:
+        # Arrange
         doc = u.Cli.toml_document()
-        project = u.Cli.toml_ensure_table(doc, "project")
-        project["name"] = "demo"
-        project["obsolete"] = "remove-me"
-
-        assert u.Cli.toml_sync_value(project, "name", "flext-demo") is True
-        assert u.Cli.toml_sync_value(project, "name", "flext-demo") is False
-
-        assert (
-            u.Cli.toml_sync_string_list(
-                project,
-                "authors",
-                ("zoe", "anna"),
-                sort_values=True,
-            )
-            is True
-        )
-        assert (
-            u.Cli.toml_sync_string_list(
-                project,
-                "authors",
-                ("anna", "zoe"),
-                sort_values=True,
-            )
-            is False
-        )
-
-        assert u.Cli.toml_merge_string_list(project, "authors", ("marlon",)) is True
-        assert (
-            u.Cli.toml_merge_string_list(
-                project,
-                "authors",
-                ("anna", "marlon", "zoe"),
-            )
-            is False
-        )
-
         tool = u.Cli.toml_ensure_path(doc, ("tool", "ruff"))
-        assert (
-            u.Cli.toml_sync_mapping_table(
-                tool,
-                "lint",
-                {"ignore": ["W291"], "select": ["E", "F"]},
-                sort_keys=True,
-            )
-            is True
-        )
-        assert (
-            u.Cli.toml_sync_mapping_table(
-                tool,
-                "lint",
-                {"ignore": ["W291"], "select": ["E", "F"]},
-                sort_keys=True,
-            )
-            is False
+        expected: t.JsonMapping = {"ignore": ["W291"], "select": ["E", "F"]}
+
+        # Act
+        changed = u.Cli.toml_sync_mapping_table(
+            tool,
+            "lint",
+            expected,
+            sort_keys=True,
         )
 
-        assert u.Cli.toml_remove_key_if_present(project, "obsolete") is True
-        assert u.Cli.toml_remove_key_if_present(project, "obsolete") is False
+        # Assert
+        assert changed is True
+        assert u.Cli.toml_as_mapping(tool["lint"]) == dict(expected)
 
-    def test_mapping_sync_helpers_manage_plain_payloads(self) -> None:
-        payload: dict[str, t.JsonValue] = {
-            "project": {"name": "demo"},
-            "obsolete": True,
-        }
+    def test_sync_mapping_table_idempotent(self) -> None:
+        # Arrange
+        doc = u.Cli.toml_document()
+        tool = u.Cli.toml_ensure_path(doc, ("tool", "ruff"))
+        expected: t.JsonMapping = {"ignore": ["W291"], "select": ["E", "F"]}
+        u.Cli.toml_sync_mapping_table(tool, "lint", expected, sort_keys=True)
 
-        assert u.Cli.toml_mapping_remove_key_if_present(payload, "obsolete") is True
-        assert u.Cli.toml_mapping_remove_key_if_present(payload, "obsolete") is False
+        # Act
+        second = u.Cli.toml_sync_mapping_table(tool, "lint", expected, sort_keys=True)
 
-        assert (
-            u.Cli.toml_mapping_sync_value(
-                payload,
-                "build-system",
-                {"requires": ["setuptools>=70"]},
-            )
-            is True
-        )
-        assert (
-            u.Cli.toml_mapping_sync_value(
-                payload,
-                "build-system",
-                {"requires": ["setuptools>=70"]},
-            )
-            is False
+        # Assert
+        assert second is False
+
+    def test_sync_mapping_table_drops_stale_keys(self) -> None:
+        # Arrange -- seed a table carrying a key not in the new expected mapping
+        doc = u.Cli.toml_document()
+        tool = u.Cli.toml_ensure_path(doc, ("tool", "ruff"))
+        u.Cli.toml_sync_mapping_table(tool, "lint", {"select": ["E"], "stale": ["X"]})
+
+        # Act
+        changed = u.Cli.toml_sync_mapping_table(tool, "lint", {"select": ["E", "F"]})
+
+        # Assert
+        assert changed is True
+        assert u.Cli.toml_as_mapping(tool["lint"]) == {"select": ["E", "F"]}
+
+    # -- key removal -----------------------------------------------------
+
+    def test_remove_key_if_present_reports_and_deletes(
+        self,
+        project_table: Table,
+    ) -> None:
+        # Arrange
+        project_table["obsolete"] = "remove-me"
+
+        # Act
+        removed = u.Cli.toml_remove_key_if_present(project_table, "obsolete")
+        again = u.Cli.toml_remove_key_if_present(project_table, "obsolete")
+
+        # Assert
+        assert removed is True
+        assert again is False
+        assert u.Cli.toml_value(project_table, "obsolete") is None
+
+    # -- plain-mapping helpers ------------------------------------------
+
+    @pytest.fixture
+    def payload(self) -> dict[str, t.JsonValue]:
+        """Fresh plain pyproject-style mapping."""
+        return {"project": {"name": "demo"}, "obsolete": True}
+
+    def test_mapping_remove_key_if_present_reports_and_deletes(
+        self,
+        payload: dict[str, t.JsonValue],
+    ) -> None:
+        # Act
+        removed = u.Cli.toml_mapping_remove_key_if_present(payload, "obsolete")
+        again = u.Cli.toml_mapping_remove_key_if_present(payload, "obsolete")
+
+        # Assert
+        assert removed is True
+        assert again is False
+        assert "obsolete" not in payload
+
+    def test_mapping_sync_value_writes_expected(
+        self,
+        payload: dict[str, t.JsonValue],
+    ) -> None:
+        # Arrange
+        build: t.JsonValue = {"requires": ["setuptools>=70"]}
+
+        # Act
+        changed = u.Cli.toml_mapping_sync_value(payload, "build-system", build)
+
+        # Assert
+        assert changed is True
+        assert payload["build-system"] == build
+
+    def test_mapping_sync_value_idempotent(
+        self,
+        payload: dict[str, t.JsonValue],
+    ) -> None:
+        # Arrange
+        build: t.JsonValue = {"requires": ["setuptools>=70"]}
+        u.Cli.toml_mapping_sync_value(payload, "build-system", build)
+
+        # Act
+        second = u.Cli.toml_mapping_sync_value(payload, "build-system", build)
+
+        # Assert
+        assert second is False
+
+    def test_mapping_merge_then_sorted_sync_is_noop(
+        self,
+        payload: dict[str, t.JsonValue],
+    ) -> None:
+        # Arrange
+        changed = u.Cli.toml_mapping_merge_string_list(
+            payload,
+            "plugins",
+            ("pytest", "ruff"),
         )
 
-        assert (
-            u.Cli.toml_mapping_merge_string_list(
-                payload,
-                "plugins",
-                ("pytest", "ruff"),
-            )
-            is True
-        )
-        assert (
-            u.Cli.toml_mapping_sync_string_list(
-                payload,
-                "plugins",
-                ("ruff", "pytest"),
-                sort_values=True,
-            )
-            is False
+        # Act -- same set in another order under sorted comparison
+        second = u.Cli.toml_mapping_sync_string_list(
+            payload,
+            "plugins",
+            ("ruff", "pytest"),
+            sort_values=True,
         )
 
-        assert (
-            u.Cli.toml_mapping_sync_mapping_table(
-                payload,
-                "tool",
-                {"ruff": {"fix": True}},
-                sort_keys=True,
-            )
-            is True
+        # Assert
+        assert changed is True
+        assert second is False
+        assert payload["plugins"] == ["pytest", "ruff"]
+
+    def test_mapping_sync_mapping_table_writes_and_is_idempotent(
+        self,
+        payload: dict[str, t.JsonValue],
+    ) -> None:
+        # Arrange
+        expected: t.JsonMapping = {"ruff": {"fix": True}}
+
+        # Act
+        changed = u.Cli.toml_mapping_sync_mapping_table(
+            payload,
+            "tool",
+            expected,
+            sort_keys=True,
         )
-        assert (
-            u.Cli.toml_mapping_sync_mapping_table(
-                payload,
-                "tool",
-                {"ruff": {"fix": True}},
-                sort_keys=True,
-            )
-            is False
+        second = u.Cli.toml_mapping_sync_mapping_table(
+            payload,
+            "tool",
+            expected,
+            sort_keys=True,
         )
+
+        # Assert
+        assert changed is True
+        assert second is False
+        assert payload["tool"] == dict(expected)

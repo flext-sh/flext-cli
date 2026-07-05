@@ -1,4 +1,4 @@
-"""Coverage tests for _utilities/conversion.py — 100% via public interfaces."""
+"""Behavioral tests for the public ``u.Cli`` conversion contract."""
 
 from __future__ import annotations
 
@@ -16,8 +16,8 @@ if TYPE_CHECKING:
     from tests.typings import t
 
 
-class TestsFlextCliConversionCov:
-    """100% coverage for FlextCliUtilitiesConversion via public u.Cli surface."""
+class TestsFlextCliConversion:
+    """Behavioral contract of ``u.Cli`` conversion helpers."""
 
     @pytest.mark.parametrize(
         ("kind", "default", "expected"),
@@ -58,18 +58,25 @@ class TestsFlextCliConversionCov:
         result = u.Cli.default_for_type_kind(kind, default)
         tm.that(result, eq=expected)
 
-    def test_cli_args_to_model_success(self) -> None:
+    def test_cli_args_to_model_success_binds_all_fields(self) -> None:
         result = u.Cli.cli_args_to_model(
             m.Tests.SampleInput,
             {"name": "alice", "count": 2, "dry_run": False, "output_format": "json"},
         )
-        tm.ok(result)
-        tm.that(result.value.name, eq="alice")
+        model = tm.ok(result)
+        tm.that(model.name, eq="alice")
+        tm.that(model.count, eq=2)
 
-    def test_cli_args_to_model_validation_failure(self) -> None:
+    def test_cli_args_to_model_applies_declared_defaults(self) -> None:
+        result = u.Cli.cli_args_to_model(m.Tests.SampleInput, {"name": "bob"})
+        model = tm.ok(result)
+        tm.that(model.count, eq=1)
+        tm.that(model.dry_run, eq=False)
+
+    def test_cli_args_to_model_validation_failure_reports_model(self) -> None:
         result = u.Cli.cli_args_to_model(m.Tests.SampleInput, {"name": 123})
-        # may succeed or fail depending on strict — just ensure it returns r
-        assert result is not None
+        error = tm.fail(result)
+        assert "SampleInput" in error
 
     def test_resolve_optional_path_with_path(self, tmp_path: Path) -> None:
         result = u.Cli.resolve_optional_path(tmp_path, default=Path("/fallback"))

@@ -1,6 +1,12 @@
-"""Coverage tests for _utilities/auth.py.
+"""Behavioral tests for the ``u.Cli`` auth helpers.
 
-Targets: auth_token_file_path, auth_validate_credentials, auth_extract_token.
+Contract under test (``flext_cli._utilities.auth.FlextCliUtilitiesAuth``):
+- ``auth_token_file_path`` — resolve a token file path, defaulting to the
+  canonical ``~/.flext/auth_token.json`` when no usable path is supplied.
+- ``auth_validate_credentials`` — return a successful ``r[bool]`` only when
+  both username and password carry non-blank content.
+- ``auth_extract_token`` — return the token string from a JSON mapping, failing
+  for non-mappings and for payloads without a usable token.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -21,29 +27,41 @@ if TYPE_CHECKING:
 
 
 class TestsFlextCliAuthUtilsCov:
-    """Coverage tests for u.Cli."""
+    """Behavioral contract for the ``u.Cli`` authentication helpers."""
 
     # ── auth_token_file_path ──────────────────────────────────────────
 
-    def test_auth_token_file_path_none(self) -> None:
-        path = u.Cli.auth_token_file_path(None)
-        assert isinstance(path, Path)
-        assert ".flext" in str(path)
+    @staticmethod
+    def _canonical_default() -> Path:
+        return Path.home() / ".flext" / "auth_token.json"
 
-    def test_auth_token_file_path_empty(self) -> None:
-        path = u.Cli.auth_token_file_path("")
-        assert isinstance(path, Path)
-        assert ".flext" in str(path)
+    @pytest.mark.parametrize("token_file", [None, "", "   ", "\t\n"])
+    def test_token_file_path_defaults_to_canonical_when_blank(
+        self,
+        token_file: str | None,
+    ) -> None:
+        # Arrange / Act
+        path = u.Cli.auth_token_file_path(token_file)
 
-    def test_auth_token_file_path_whitespace(self) -> None:
-        path = u.Cli.auth_token_file_path("   ")
-        assert isinstance(path, Path)
-        assert ".flext" in str(path)
+        # Assert — blank/absent input yields the documented default location
+        assert path == self._canonical_default()
 
-    def test_auth_token_file_path_custom(self) -> None:
-        path = u.Cli.auth_token_file_path("/tmp/my_token.json")
-        assert isinstance(path, Path)
-        assert str(path) == "/tmp/my_token.json"
+    @pytest.mark.parametrize(
+        "token_file",
+        ["/tmp/my_token.json", "relative/token.json", "/var/lib/flext/t.json"],
+    )
+    def test_token_file_path_honours_explicit_path(self, token_file: str) -> None:
+        # Act
+        path = u.Cli.auth_token_file_path(token_file)
+
+        # Assert — a non-blank path is returned verbatim as a Path
+        assert path == Path(token_file)
+
+    def test_token_file_path_is_deterministic(self) -> None:
+        # Invariant: same input always maps to the same path
+        first = u.Cli.auth_token_file_path(None)
+        second = u.Cli.auth_token_file_path(None)
+        assert first == second
 
     # ── auth_validate_credentials ─────────────────────────────────────
 
@@ -51,38 +69,89 @@ class TestsFlextCliAuthUtilsCov:
         ("username", "password", "expect_ok"),
         c.Tests.AUTH_CRED_CASES,
     )
-    def test_auth_validate_credentials_parametrized(
+    def test_validate_credentials_success_reflects_non_blank_fields(
         self,
         username: str,
         password: str,
         expect_ok: bool,
     ) -> None:
+        # Act
         result = u.Cli.auth_validate_credentials(username, password)
-        assert result.success == expect_ok
+
+        # Assert — success iff both fields are non-blank
+        assert result.success is expect_ok
+        assert result.failure is (not expect_ok)
+        if expect_ok:
+            assert result.unwrap() is True
+
+    def test_validate_credentials_reports_empty_username(self) -> None:
+        result = u.Cli.auth_validate_credentials("", "secret123")
+        assert result.failure
+        assert result.error is not None
+        assert "Username" in result.error
+
+    def test_validate_credentials_reports_empty_password(self) -> None:
+        result = u.Cli.auth_validate_credentials("admin", "   ")
+        assert result.failure
+        assert result.error is not None
+        assert "Password" in result.error
 
     # ── auth_extract_token ────────────────────────────────────────────
 
-    def test_auth_extract_token_valid(self) -> None:
-        payload: dict[str, t.JsonValue] = {c.Cli.DICT_KEY_AUTH_TOKEN: "my-secret-token"}
+    def test_extract_token_returns_token_from_mapping(self) -> None:
+        # Arrange
+        payload: dict[str, t.JsonValue] = {
+            c.Cli.DICT_KEY_AUTH_TOKEN: "my-secret-token",
+        }
+
+        # Act
         result = u.Cli.auth_extract_token(payload)
+
+        # Assert — the exact token value is delivered on success
         assert result.success
-        assert result.value == "my-secret-token"
+        assert result.unwrap() == "my-secret-token"
 
-    def test_auth_extract_token_missing_key(self) -> None:
-        result = u.Cli.auth_extract_token({"user": "admin"})
-        assert result.failure
+    @pytest.mark.parametrize(
+        "payload",
+        [
+            {"user": "admin"},
+            {c.Cli.DICT_KEY_AUTH_TOKEN: ""},
+        ],
+    )
+    def test_extract_token_fails_when_no_usable_token(
+        self,
+        payload: dict[str, t.JsonValue],
+    ) -> None:
+        # Act
+        result = u.Cli.auth_extract_token(payload)
 
-    def test_auth_extract_token_empty_token(self) -> None:
-        result = u.Cli.auth_extract_token({c.Cli.DICT_KEY_AUTH_TOKEN: ""})
+        # Assert — missing or empty token is a typed failure, not a value
         assert result.failure
+        assert result.error is not None
+        assert "token" in result.error.lower()
 
-    def test_auth_extract_token_not_mapping(self) -> None:
-        result = u.Cli.auth_extract_token("not-a-mapping")
-        assert result.failure
+    @pytest.mark.parametrize(
+        "payload",
+        ["not-a-mapping", ["token", "value"], 42, None],
+    )
+    def test_extract_token_rejects_non_mapping_payload(
+        self,
+        payload: t.JsonValue,
+    ) -> None:
+        # Act
+        result = u.Cli.auth_extract_token(payload)
 
-    def test_auth_extract_token_list(self) -> None:
-        result = u.Cli.auth_extract_token(["token", "value"])
+        # Assert — only mappings are accepted; anything else fails with mapping msg
         assert result.failure
+        assert result.error is not None
+        assert "mapping" in result.error.lower()
+
+    def test_extract_token_success_chains_through_map(self) -> None:
+        # Behavioral: a successful result composes with r[T] combinators
+        payload: dict[str, t.JsonValue] = {c.Cli.DICT_KEY_AUTH_TOKEN: "abc"}
+        length = u.Cli.auth_extract_token(payload).map(len)
+        assert length.success
+        assert length.unwrap() == 3
 
 
 __all__: list[str] = ["TestsFlextCliAuthUtilsCov"]

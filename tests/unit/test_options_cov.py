@@ -1,22 +1,33 @@
-"""Coverage tests for public option behavior on ``cli.model_command``."""
+"""Behavioral tests for the public ``cli.model_command`` builder.
+
+Every assertion targets an observable contract of the public API:
+
+* the generated Typer command exposes the option specs a Typer app consumes
+  (option names, aliases, custom declarations, bool toggles, resolved
+  annotations, and resolved defaults) -- this signature *is* the return
+  contract of the builder, not private state; and
+* invoking the built command drives the real end-to-end flow: the handler
+  receives a validated model, settings are mutated from parsed values, and
+  the handler return value flows back to the caller.
+
+No private attribute access, collaborator spying, or patching is used.
+"""
 
 from __future__ import annotations
 
 import inspect
-from typing import TYPE_CHECKING, Annotated, ClassVar
+from typing import Annotated, ClassVar
 
 import pytest
 
 from flext_cli import cli, m
 from tests.constants import c
 from tests.protocols import p
-
-if TYPE_CHECKING:
-    from tests.typings import t
+from tests.typings import t
 
 
 class TestsFlextCliOptionsUtilsCov:
-    """Data-driven coverage for public option generation behavior."""
+    """Behavioral coverage for ``cli.model_command`` public behavior."""
 
     class StringAnnotationModel(m.BaseModel):
         value: str
@@ -65,6 +76,12 @@ class TestsFlextCliOptionsUtilsCov:
     class BoolToggleModel(m.BaseModel):
         debug: bool = False
 
+    class GreetModel(m.BaseModel):
+        """Simple request model used to exercise command invocation."""
+
+        name: str
+        shout: bool = False
+
     class OptionsDefaultsModel(m.BaseModel):
         """Model used to exercise field-default normalization paths."""
 
@@ -75,7 +92,7 @@ class TestsFlextCliOptionsUtilsCov:
             dict(c.Tests.OPTIONS_FIELD_DEFAULT_VALID_MAPPING),
             validate_default=True,
         )
-        invalid_mapping: object = m.Field(
+        invalid_mapping: t.JsonValue = m.Field(
             dict(c.Tests.OPTIONS_FIELD_DEFAULT_INVALID_MAPPING),
             validate_default=True,
         )
@@ -99,26 +116,35 @@ class TestsFlextCliOptionsUtilsCov:
     def _noop_handler(_params: t.Cli.ModelLike) -> bool:
         return True
 
-    def test_model_command_uses_alias_for_option_name(self) -> None:
+    @staticmethod
+    def _option_spec(
+        command: t.Cli.CliCommand,
+        param_name: str,
+    ) -> p.Cli.CliOptionSpec:
+        """Return the public option spec the builder produced for a field."""
+        spec = inspect.signature(command).parameters[param_name].default
+        assert isinstance(spec, p.Cli.CliOptionSpec)
+        return spec
+
+    # ---- generated-command contract -------------------------------------
+
+    def test_model_command_uses_field_alias_as_option_name(self) -> None:
         command = cli.model_command(self.AliasOptionsModel, self._noop_handler)
-        option_info = inspect.signature(command).parameters["project_name"].default
-        assert isinstance(option_info, p.Cli.CliOptionSpec)
-        assert option_info.param_decls is not None
-        assert "--project" in option_info.param_decls
+        spec = self._option_spec(command, "project_name")
+        assert spec.param_decls is not None
+        assert "--project" in spec.param_decls
 
-    def test_model_command_supports_custom_param_decls(self) -> None:
+    def test_model_command_honors_custom_param_decls(self) -> None:
         command = cli.model_command(self.CustomDeclModel, self._noop_handler)
-        option_info = inspect.signature(command).parameters["custom_name"].default
-        assert isinstance(option_info, p.Cli.CliOptionSpec)
-        assert option_info.param_decls is not None
-        assert "--custom-name" in option_info.param_decls
-        assert "--projects" in option_info.param_decls
+        spec = self._option_spec(command, "custom_name")
+        assert spec.param_decls is not None
+        assert "--custom-name" in spec.param_decls
+        assert "--projects" in spec.param_decls
 
-    def test_model_command_bool_uses_toggle_decl(self) -> None:
+    def test_model_command_renders_bool_field_as_toggle_flag(self) -> None:
         command = cli.model_command(self.BoolToggleModel, self._noop_handler)
-        option_info = inspect.signature(command).parameters["debug"].default
-        assert isinstance(option_info, p.Cli.CliOptionSpec)
-        assert option_info.param_decls == ["--debug/--no-debug"]
+        spec = self._option_spec(command, "debug")
+        assert spec.param_decls == ["--debug/--no-debug"]
 
     @pytest.mark.parametrize(("model_cls", "expected"), _ANNOTATION_CASES)
     def test_model_command_normalizes_runtime_annotations(
@@ -130,34 +156,79 @@ class TestsFlextCliOptionsUtilsCov:
         resolved = inspect.signature(command).parameters["value"].annotation
         assert resolved == expected
 
-    def test_field_default_prefers_settings_value(self) -> None:
+    def test_model_command_marks_required_field_default_as_ellipsis(self) -> None:
+        command = cli.model_command(self.AliasOptionsModel, self._noop_handler)
+        spec = self._option_spec(command, "project_name")
+        assert spec.default is ...
+
+    def test_field_default_prefers_settings_value_over_model_default(self) -> None:
         settings = self.OptionsDefaultsModel(name="override-name")
         command = cli.model_command(
             self.OptionsDefaultsModel,
             self._noop_handler,
             settings=settings,
         )
-        option_info = inspect.signature(command).parameters["name"].default
-        assert isinstance(option_info, p.Cli.CliOptionSpec)
-        assert option_info.default == "override-name"
+        spec = self._option_spec(command, "name")
+        assert spec.default == "override-name"
 
-    def test_field_default_uses_default_factory_sequence(self) -> None:
+    def test_field_default_normalizes_sequence_default_to_tuple(self) -> None:
         command = cli.model_command(self.OptionsDefaultsModel, self._noop_handler)
-        option_info = inspect.signature(command).parameters["generated"].default
-        assert isinstance(option_info, p.Cli.CliOptionSpec)
-        assert option_info.default == ("gen", "value")
+        spec = self._option_spec(command, "generated")
+        assert spec.default == ("gen", "value")
 
-    def test_field_default_returns_valid_mapping(self) -> None:
+    def test_field_default_preserves_normalizable_mapping(self) -> None:
         command = cli.model_command(self.OptionsDefaultsModel, self._noop_handler)
-        option_info = inspect.signature(command).parameters["valid_mapping"].default
-        assert isinstance(option_info, p.Cli.CliOptionSpec)
-        assert option_info.default == dict(c.Tests.OPTIONS_FIELD_DEFAULT_VALID_MAPPING)
+        spec = self._option_spec(command, "valid_mapping")
+        assert spec.default == dict(c.Tests.OPTIONS_FIELD_DEFAULT_VALID_MAPPING)
 
-    def test_field_default_invalid_mapping_returns_none(self) -> None:
+    def test_field_default_drops_non_normalizable_mapping_to_none(self) -> None:
         command = cli.model_command(self.OptionsDefaultsModel, self._noop_handler)
-        option_info = inspect.signature(command).parameters["invalid_mapping"].default
-        assert isinstance(option_info, p.Cli.CliOptionSpec)
-        assert option_info.default is None
+        spec = self._option_spec(command, "invalid_mapping")
+        assert spec.default is None
+
+    # ---- end-to-end command invocation ----------------------------------
+
+    def test_invoking_command_passes_validated_model_to_handler(self) -> None:
+        received: dict[str, TestsFlextCliOptionsUtilsCov.GreetModel] = {}
+
+        def _capture(params: TestsFlextCliOptionsUtilsCov.GreetModel) -> str:
+            received["model"] = params
+            return f"handled:{params.name}"
+
+        command = cli.model_command(self.GreetModel, _capture)
+        result = command(name="ada", shout=True)
+
+        assert result == "handled:ada"
+        assert received["model"].name == "ada"
+        assert received["model"].shout is True
+
+    def test_invoking_command_coerces_raw_values_through_model_validation(
+        self,
+    ) -> None:
+        def _handler(params: TestsFlextCliOptionsUtilsCov.GreetModel) -> bool:
+            return params.shout
+
+        command = cli.model_command(self.GreetModel, _handler)
+        result = command(name="grace", shout="true")
+
+        assert result is True
+
+    def test_invoking_command_rejects_missing_required_field(self) -> None:
+        command = cli.model_command(self.GreetModel, self._noop_handler)
+        with pytest.raises(m.ValidationError):
+            command(shout=True)
+
+    def test_invoking_command_writes_parsed_values_back_into_settings(self) -> None:
+        settings = self.OptionsDefaultsModel(name="start-name")
+        command = cli.model_command(
+            self.OptionsDefaultsModel,
+            self._noop_handler,
+            settings=settings,
+        )
+
+        command(name="parsed-name")
+
+        assert settings.name == "parsed-name"
 
 
 __all__: list[str] = ["TestsFlextCliOptionsUtilsCov"]

@@ -1,56 +1,128 @@
-"""Coverage tests for flext_cli._utilities.commands."""
+"""Behavioral tests for ``u.Cli`` command messaging helpers.
+
+Public contract under test (``flext_cli._utilities.commands`` via ``u.Cli``):
+
+- ``commands_resolve_success_message`` returns the resolved success message
+  string following the order: formatter > string value > mapping ``message``
+  key > provided fallback.
+- ``commands_emit_success_message`` writes JSON/array payloads verbatim and
+  styles plain text with a success glyph, always terminated by a newline.
+- ``commands_emit_error_message`` writes the error styled with an error glyph
+  and a trailing newline.
+
+Assertions target observable return values and emitted stdout only.
+"""
 
 from __future__ import annotations
 
+import pytest
+
 from tests.constants import c
+from tests.typings import t
 from tests.utilities import u
 
 
-class TestsFlextCliCommandsUtilsCov:
-    """Data-driven coverage for u.Cli."""
+class TestsFlextCliCommands:
+    """Behavioral contract for the ``u.Cli`` command messaging helpers."""
 
-    def test_commands_resolve_success_message_with_formatter(self) -> None:
-        result = u.Cli.commands_resolve_success_message(
+    def test_formatter_result_wins_over_all_fallbacks(self) -> None:
+        # Arrange
+        def formatter(value: int) -> str:
+            return str(value * 2)
+
+        # Act
+        resolved = u.Cli.commands_resolve_success_message(
             result_value=7,
             success_message="fallback",
-            success_formatter=lambda value: str(value * 2),
+            success_formatter=formatter,
         )
-        assert result == "14"
 
-    def test_commands_resolve_success_message_from_string(self) -> None:
-        result = u.Cli.commands_resolve_success_message(
-            result_value="direct",
+        # Assert
+        assert resolved == "14"
+
+    @pytest.mark.parametrize(
+        ("result_value", "expected"),
+        [
+            pytest.param("direct", "direct", id="string-value-returned"),
+            pytest.param({c.Cli.DICT_KEY_MESSAGE: "mapped"}, "mapped", id="mapping-message-key"),
+            pytest.param(False, "fallback", id="bool-falls-back"),
+            pytest.param("", "fallback", id="empty-string-falls-back"),
+            pytest.param({c.Cli.DICT_KEY_MESSAGE: ""}, "fallback", id="empty-mapping-message-falls-back"),
+            pytest.param({"other": "x"}, "fallback", id="mapping-without-message-key-falls-back"),
+            pytest.param([1, 2, 3], "fallback", id="list-falls-back"),
+            pytest.param(0, "fallback", id="zero-falls-back"),
+        ],
+    )
+    def test_resolve_without_formatter_follows_value_then_fallback_order(
+        self,
+        result_value: t.Cli.ResultValue,
+        expected: str,
+    ) -> None:
+        # Act
+        resolved = u.Cli.commands_resolve_success_message(
+            result_value=result_value,
             success_message="fallback",
             success_formatter=None,
         )
-        assert result == "direct"
 
-    def test_commands_resolve_success_message_from_mapping_message_key(self) -> None:
-        result = u.Cli.commands_resolve_success_message(
-            result_value={c.Cli.DICT_KEY_MESSAGE: "mapped"},
-            success_message="fallback",
+        # Assert
+        assert resolved == expected
+
+    def test_resolve_returns_none_fallback_when_message_is_none(self) -> None:
+        # Act
+        resolved = u.Cli.commands_resolve_success_message(
+            result_value=0,
+            success_message=None,
             success_formatter=None,
         )
-        assert result == "mapped"
 
-    def test_commands_resolve_success_message_fallback(self) -> None:
-        result = u.Cli.commands_resolve_success_message(
-            result_value=False,
-            success_message="fallback",
-            success_formatter=None,
-        )
-        assert result == "fallback"
+        # Assert
+        assert resolved is None
 
-    def test_commands_emit_success_message_does_not_raise(self) -> None:
-        """Test that emit_success_message completes without exceptions."""
-        u.Cli.commands_emit_success_message(
-            '{"ok": true}',
-            c.Cli.MessageTypes.SUCCESS,
-        )
+    @pytest.mark.parametrize(
+        "payload",
+        [
+            pytest.param('{"ok": true}', id="json-object"),
+            pytest.param("[1, 2, 3]", id="json-array"),
+            pytest.param('   {"spaced": 1}', id="leading-whitespace-json"),
+        ],
+    )
+    def test_structured_payload_is_emitted_verbatim_with_newline(
+        self,
+        payload: str,
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
+        # Act
+        u.Cli.commands_emit_success_message(payload, c.Cli.MessageTypes.SUCCESS)
 
-    def test_commands_emit_error_message_does_not_raise(self) -> None:
-        """Test that emit_error_message completes without exceptions."""
-        u.Cli.commands_emit_error_message("bad")
+        # Assert
+        assert capsys.readouterr().out == f"{payload}\n"
+
+    def test_plain_success_text_is_styled_and_newline_terminated(
+        self,
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
+        # Act
+        u.Cli.commands_emit_success_message("all good", c.Cli.MessageTypes.SUCCESS)
+
+        # Assert
+        out = capsys.readouterr().out
+        assert "all good" in out
+        assert out != "all good\n"
+        assert out.endswith("\n")
+
+    def test_error_message_is_styled_and_newline_terminated(
+        self,
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
+        # Act
+        u.Cli.commands_emit_error_message("boom")
+
+        # Assert
+        out = capsys.readouterr().out
+        assert "boom" in out
+        assert out != "boom\n"
+        assert out.endswith("\n")
 
 
-__all__: list[str] = ["TestsFlextCliCommandsUtilsCov"]
+__all__: list[str] = ["TestsFlextCliCommands"]

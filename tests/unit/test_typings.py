@@ -1,79 +1,145 @@
-"""FLEXT CLI Typings Tests - Type System Validation.
+"""FLEXT CLI Typings Tests - public type-facade contract.
 
-Modules tested: flext_cli.typings.FlextCliTypes
+Modules tested: flext_cli.typings.FlextCliTypes (via the tests `t` facade).
+
+These tests assert the OBSERVABLE contract of the CLI type facade: the
+runtime-validatable behaviour of its published type aliases and the public
+``TypeAdapter`` / type-tuple ClassVars exposed on ``t.Cli``. No private
+attributes, internal collaborators, or implementation structure are touched.
 """
 
 from __future__ import annotations
 
-import time
 from collections.abc import Sequence
-from typing import Protocol, runtime_checkable
+from pathlib import Path
 
+import pytest
 from flext_tests import tm
 
 from tests.models import m
 from tests.typings import t
 
 
-class TestsFlextCliTypesUnit:
-    """Tests for flext_cli.typings.FlextCliTypes module."""
+class TestsFlextCliTypings:
+    """Behavioural contract of flext_cli.typings.FlextCliTypes."""
 
-    def test_full_type_workflow_integration(self) -> None:
-        """Test complete type workflow integration."""
-        typed_data = {"key": "value", "number": 42}
-        tm.that(typed_data, is_=dict)
-        api_data = m.Tests.ApiResponse(
-            status="success",
-            data={"id": 1},
-            message="ok",
-            error=None,
-        )
-        tm.that(api_data, is_=m.Tests.ApiResponse)
-        tm.that(api_data.data, eq={"id": 1})
+    # --- Published CLI adapters: accept valid payloads -------------------
 
-        complex_type_adapter: m.TypeAdapter[Sequence[t.MappingKV[str, str | int]]] = (
-            m.TypeAdapter(Sequence[t.MappingKV[str, str | int]])
-        )
-        complex_value = complex_type_adapter.validate_python([
-            {"name": "entry", "count": 1},
-        ])
-        tm.that(complex_value, eq=[{"name": "entry", "count": 1}])
+    @pytest.mark.parametrize(
+        ("payload", "expected"),
+        [
+            (["alpha", "beta"], ["alpha", "beta"]),
+            ([], []),
+            (("x", "y"), ["x", "y"]),
+        ],
+    )
+    def test_str_sequence_adapter_accepts_string_sequences(
+        self,
+        payload: Sequence[str],
+        expected: list[str],
+    ) -> None:
+        """STR_SEQUENCE_ADAPTER validates string sequences to a list."""
+        result = t.Cli.STR_SEQUENCE_ADAPTER.validate_python(payload)
+        tm.that(list(result), eq=expected)
 
-        optional_type_adapter: m.TypeAdapter[t.StrSequence | None] = m.TypeAdapter(
+    @pytest.mark.parametrize(
+        "payload",
+        [123, "not-a-sequence-of-str-only", [1, 2, 3], {"k": "v"}],
+    )
+    def test_str_sequence_adapter_rejects_non_string_sequences(
+        self,
+        payload: object,
+    ) -> None:
+        """STR_SEQUENCE_ADAPTER raises ValidationError on invalid input."""
+        with pytest.raises(m.ValidationError):
+            t.Cli.STR_SEQUENCE_ADAPTER.validate_python(payload)
+
+    @pytest.mark.parametrize(
+        "payload",
+        [{"id": 1}, {"nested": {"a": [1, 2]}}, {}, {"flag": True, "name": "x"}],
+    )
+    def test_json_mapping_adapter_accepts_json_objects(
+        self,
+        payload: dict[str, object],
+    ) -> None:
+        """JSON_MAPPING_ADAPTER validates JSON object mappings unchanged."""
+        result = t.Cli.JSON_MAPPING_ADAPTER.validate_python(payload)
+        tm.that(result, eq=payload)
+
+    @pytest.mark.parametrize("payload", [["a", "list"], "string", 42, True])
+    def test_json_mapping_adapter_rejects_non_mappings(
+        self,
+        payload: object,
+    ) -> None:
+        """JSON_MAPPING_ADAPTER raises ValidationError for non-object input."""
+        with pytest.raises(m.ValidationError):
+            t.Cli.JSON_MAPPING_ADAPTER.validate_python(payload)
+
+    @pytest.mark.parametrize(
+        "payload",
+        [[1, 2, 3], ["a", "b"], [], [{"k": "v"}, [1, 2]]],
+    )
+    def test_json_list_adapter_accepts_json_arrays(
+        self,
+        payload: list[object],
+    ) -> None:
+        """JSON_LIST_ADAPTER validates JSON arrays unchanged."""
+        result = t.Cli.JSON_LIST_ADAPTER.validate_python(payload)
+        tm.that(result, eq=payload)
+
+    @pytest.mark.parametrize(
+        ("payload", "expected"),
+        [
+            ("plain", "plain"),
+            (7, 7),
+            (True, True),
+            (Path("/tmp/x"), Path("/tmp/x")),
+            (["a", "b"], ["a", "b"]),
+        ],
+    )
+    def test_cli_default_source_adapter_accepts_cli_value_kinds(
+        self,
+        payload: object,
+        expected: object,
+    ) -> None:
+        """CLI_DEFAULT_SOURCE_ADAPTER accepts scalars, sequences, and paths."""
+        result = t.Cli.CLI_DEFAULT_SOURCE_ADAPTER.validate_python(payload)
+        tm.that(result, eq=expected)
+
+    # --- Published type-tuple ClassVars ---------------------------------
+
+    def test_primitive_types_expose_scalar_primitives(self) -> None:
+        """PRIMITIVE_TYPES publishes the four JSON scalar primitive types."""
+        tm.that(set(t.Cli.PRIMITIVE_TYPES), eq={str, int, float, bool})
+
+    def test_scalar_types_superset_primitive_types(self) -> None:
+        """SCALAR_TYPES includes every primitive plus richer scalar types."""
+        primitives = set(t.Cli.PRIMITIVE_TYPES)
+        scalars = set(t.Cli.SCALAR_TYPES)
+        tm.that(primitives.issubset(scalars), eq=True)
+        tm.that(len(scalars) > len(primitives), eq=True)
+
+    # --- Published alias round-trips via TypeAdapter --------------------
+
+    def test_scalar_alias_validates_each_primitive(self) -> None:
+        """The Scalar alias round-trips every primitive value."""
+        adapter: m.TypeAdapter[t.Scalar] = m.TypeAdapter(t.Scalar)
+        tm.that(adapter.validate_python("value"), eq="value")
+        tm.that(adapter.validate_python(True), eq=True)
+        tm.that(adapter.validate_python(3), eq=3)
+
+    def test_optional_str_sequence_alias_accepts_value_and_none(self) -> None:
+        """A ``StrSequence | None`` alias accepts both a sequence and None."""
+        adapter: m.TypeAdapter[t.StrSequence | None] = m.TypeAdapter(
             t.StrSequence | None,
         )
-        tm.that(
-            optional_type_adapter.validate_python(["alpha", "beta"]),
-            eq=["alpha", "beta"],
+        tm.that(adapter.validate_python(["alpha", "beta"]), eq=["alpha", "beta"])
+        tm.that(adapter.validate_python(None), none=True)
+
+    def test_mapping_alias_validates_sequence_of_typed_mappings(self) -> None:
+        """MappingKV composes into a validatable sequence-of-mappings alias."""
+        adapter: m.TypeAdapter[Sequence[t.MappingKV[str, str | int]]] = m.TypeAdapter(
+            Sequence[t.MappingKV[str, str | int]],
         )
-        tm.that(optional_type_adapter.validate_python(None), none=True)
-
-        scalar_type_adapter: m.TypeAdapter[t.Scalar] = m.TypeAdapter(t.Scalar)
-        tm.that(scalar_type_adapter.validate_python("value"), eq="value")
-        tm.that(scalar_type_adapter.validate_python(True), eq=True)
-
-    def test_type_workflow_integration(self) -> None:
-        """Test type workflow integration with helpers."""
-
-        @runtime_checkable
-        class Test(Protocol):
-            def operation(self, data: t.StrSequence) -> t.JsonMapping: ...
-
-        class Implementation:
-            def operation(self, data: t.StrSequence) -> t.JsonMapping:
-                time.sleep(0.001)
-                return {
-                    "processed": [item.upper() for item in data],
-                    "count": len(data),
-                    "timestamp": "2025-01-01T00:00:00Z",
-                }
-
-        impl: Test = Implementation()
-        test_data = ["str1", "str2"]
-        result = impl.operation(test_data)
-        processed: t.JsonValue | None = result.get("processed")
-        tm.that(processed, eq=["STR1", "STR2"])
-        count: t.JsonValue | None = result.get("count")
-        tm.that(count, eq=2)
-        tm.that(result, has="timestamp")
-        tm.that(t, none=False)
+        validated = adapter.validate_python([{"name": "entry", "count": 1}])
+        tm.that(validated, eq=[{"name": "entry", "count": 1}])
