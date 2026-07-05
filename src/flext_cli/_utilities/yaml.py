@@ -172,7 +172,7 @@ class FlextCliUtilitiesYaml:
         try:
             validated = FlextCliUtilitiesJson.normalize_json_value(data)
             return cast(
-                str,
+                "str",
                 safe_dump(
                     validated,
                     default_flow_style=False,
