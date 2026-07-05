@@ -16,8 +16,8 @@ if TYPE_CHECKING:
 class FlextCliModels(FlextModels):
     """FlextCli models extending FlextModels."""
 
-    ConfigDict = FlextModels.ConfigDict
-    SettingsConfigDict = FlextModels.SettingsConfigDict
+    ConfigDict: type[FlextModels.ConfigDict] = FlextModels.ConfigDict
+    SettingsConfigDict: type[FlextModels.SettingsConfigDict] = FlextModels.SettingsConfigDict
 
     class Cli(FlextCliModelsPipeline, FlextCliModelsRules, FlextCliModelsBase):
         """CLI project namespace."""
