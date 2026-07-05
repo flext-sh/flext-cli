@@ -9,16 +9,15 @@ from flext_core import FlextProtocols
 
 
 class FlextCliProtocols(
-    FlextProtocols,
     FlextCliProtocolsBase,
+    FlextProtocols,
     FlextCliProtocolsDomain,
     FlextCliProtocolsPipeline,
 ):
     """CLI protocol definitions extending FlextProtocols.
 
-    ``Result`` and the other protocol members are inherited from
-    ``FlextProtocols`` via MRO; re-binding them as class variables would
-    shadow the nested protocol classes and make them invalid as types.
+    CLI protocol refinements take precedence in MRO while ``Result`` and the
+    other core protocol members remain inherited from ``FlextProtocols``.
     """
 
     class Cli(
