@@ -44,11 +44,19 @@ class TestsFlextCliCommands:
         ("result_value", "expected"),
         [
             pytest.param("direct", "direct", id="string-value-returned"),
-            pytest.param({c.Cli.DICT_KEY_MESSAGE: "mapped"}, "mapped", id="mapping-message-key"),
+            pytest.param(
+                {c.Cli.DICT_KEY_MESSAGE: "mapped"}, "mapped", id="mapping-message-key"
+            ),
             pytest.param(False, "fallback", id="bool-falls-back"),
             pytest.param("", "fallback", id="empty-string-falls-back"),
-            pytest.param({c.Cli.DICT_KEY_MESSAGE: ""}, "fallback", id="empty-mapping-message-falls-back"),
-            pytest.param({"other": "x"}, "fallback", id="mapping-without-message-key-falls-back"),
+            pytest.param(
+                {c.Cli.DICT_KEY_MESSAGE: ""},
+                "fallback",
+                id="empty-mapping-message-falls-back",
+            ),
+            pytest.param(
+                {"other": "x"}, "fallback", id="mapping-without-message-key-falls-back"
+            ),
             pytest.param([1, 2, 3], "fallback", id="list-falls-back"),
             pytest.param(0, "fallback", id="zero-falls-back"),
         ],

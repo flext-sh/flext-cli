@@ -96,7 +96,9 @@ class TestsFlextCliTables:
     def test_format_table_is_idempotent_for_identical_input(self) -> None:
         """Rendering the same data twice yields byte-identical output."""
         rows = [{"name": "Alice", "status": "active"}]
-        first: str = tm.ok(cli.format_table(rows, table_format=c.Cli.TabularFormat.GRID))
+        first: str = tm.ok(
+            cli.format_table(rows, table_format=c.Cli.TabularFormat.GRID)
+        )
         second: str = tm.ok(
             cli.format_table(rows, table_format=c.Cli.TabularFormat.GRID),
         )

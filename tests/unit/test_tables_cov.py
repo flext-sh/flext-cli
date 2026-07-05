@@ -70,7 +70,9 @@ class TestsFlextCliTables:
 
     def test_resolve_config_merges_model_with_kwargs(self) -> None:
         base = m.Cli.TableConfig(title="orig")
-        result = u.Cli.tables_resolve_config(base, table_format=c.Cli.TabularFormat.PLAIN)
+        result = u.Cli.tables_resolve_config(
+            base, table_format=c.Cli.TabularFormat.PLAIN
+        )
         resolved = result.unwrap()
         assert resolved.title == "orig"
         assert resolved.table_format == c.Cli.TabularFormat.PLAIN

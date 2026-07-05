@@ -155,9 +155,7 @@ class TestsFlextCliJsonCov:
     # ----- json_walk_path --------------------------------------------------
 
     def test_json_walk_path_returns_leaf_for_existing_path(self) -> None:
-        data = u.Cli.json_as_mapping(
-            u.Cli.json_loads('{"a": {"b": {"c": 42}}}').value
-        )
+        data = u.Cli.json_as_mapping(u.Cli.json_loads('{"a": {"b": {"c": 42}}}').value)
         assert u.Cli.json_walk_path(data, ("a", "b", "c")) == 42
 
     @pytest.mark.parametrize(

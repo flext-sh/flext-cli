@@ -18,8 +18,7 @@ class TestsFlextCliOutputCov:
 
     def test_resolve_message_type_none_falls_back_to_default(self) -> None:
         assert (
-            u.Cli.output_resolve_message_type(None)
-            == c.Cli.OUTPUT_DEFAULT_MESSAGE_TYPE
+            u.Cli.output_resolve_message_type(None) == c.Cli.OUTPUT_DEFAULT_MESSAGE_TYPE
         )
 
     @pytest.mark.parametrize(

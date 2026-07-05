@@ -118,9 +118,7 @@ class TestsFlextCliProtocols:
             "PipelineService",
         ],
     )
-    def test_cli_protocols_are_runtime_checkable(
-        self, protocol_name: str
-    ) -> None:
+    def test_cli_protocols_are_runtime_checkable(self, protocol_name: str) -> None:
         """Each published protocol supports runtime ``isinstance`` without error."""
         protocol = getattr(p.Cli, protocol_name)
         assert issubclass(protocol, Protocol)

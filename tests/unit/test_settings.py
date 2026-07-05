@@ -120,7 +120,9 @@ class TestsFlextCliSettingsUnit:
 
     def test_model_validate_applies_cli_overrides(self) -> None:
         """Partial model_validate applies overrides and recomputes test_env."""
-        settings = FlextCliSettings.model_validate({"Cli": {"verbose": True, "ci": True}})
+        settings = FlextCliSettings.model_validate({
+            "Cli": {"verbose": True, "ci": True}
+        })
         tm.that(settings.Cli.verbose, eq=True)
         tm.that(settings.Cli.ci, eq=True)
         tm.that(settings.Cli.test_env, eq=True)

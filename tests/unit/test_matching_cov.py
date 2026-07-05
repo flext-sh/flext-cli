@@ -70,10 +70,15 @@ class TestsFlextCliMatchingCov:
     # ── matches_regex: contract ──────────────────────────────────────
 
     def test_matches_regex_true_when_single_pattern_hits(self) -> None:
-        assert u.Cli.matches_regex("call 555-1234 now", c.Tests.MATCH_REGEX_PHONE_RE) is True
+        assert (
+            u.Cli.matches_regex("call 555-1234 now", c.Tests.MATCH_REGEX_PHONE_RE)
+            is True
+        )
 
     def test_matches_regex_false_when_pattern_misses(self) -> None:
-        assert u.Cli.matches_regex("no phone here", c.Tests.MATCH_REGEX_PHONE_RE) is False
+        assert (
+            u.Cli.matches_regex("no phone here", c.Tests.MATCH_REGEX_PHONE_RE) is False
+        )
 
     def test_matches_regex_is_any_of_across_multiple_patterns(self) -> None:
         alpha = c.Tests.MATCH_REGEX_ALPHA_RE
@@ -96,7 +101,10 @@ class TestsFlextCliMatchingCov:
 
     def test_matches_regex_searches_substring_not_full_match(self) -> None:
         # `.search` semantics: the pattern may appear anywhere in the message.
-        assert u.Cli.matches_regex("prefix 999-0000 suffix", c.Tests.MATCH_REGEX_PHONE_RE) is True
+        assert (
+            u.Cli.matches_regex("prefix 999-0000 suffix", c.Tests.MATCH_REGEX_PHONE_RE)
+            is True
+        )
 
     # ── file_not_found_error: classifier contract ────────────────────
 
