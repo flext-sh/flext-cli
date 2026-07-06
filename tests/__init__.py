@@ -34,6 +34,10 @@ if TYPE_CHECKING:
         TestsFlextCliCaptureLogPrompts,
         TestsFlextCliFailingLogPrompts,
         TestsFlextCliScriptedPrompts,
+        make_capture_prompts,
+        make_failing_prompts,
+        make_prompts,
+        reset_settings,
     )
     from tests.unit.test_auth_utils_cov import TestsFlextCliAuthUtilsCov
     from tests.unit.test_base import TestsFlextCliBase
