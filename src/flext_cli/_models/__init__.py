@@ -13,13 +13,11 @@ from flext_core.lazy import (
 
 if TYPE_CHECKING:
     from flext_cli._models._base_parts.flextclimodelsbase_part_07 import (
-        FlextCliModelsBase as FlextCliModelsBase,
+        FlextCliModelsBase,
     )
-    from flext_cli._models._test_tmp import X as X
-    from flext_cli._models.pipeline import (
-        FlextCliModelsPipeline as FlextCliModelsPipeline,
-    )
-    from flext_cli._models.rules import FlextCliModelsRules as FlextCliModelsRules
+    from flext_cli._models._test_tmp import X
+    from flext_cli._models.pipeline import FlextCliModelsPipeline
+    from flext_cli._models.rules import FlextCliModelsRules
 _LAZY_IMPORTS = merge_lazy_imports(
     ("._base_parts",),
     build_lazy_import_map(
