@@ -41,14 +41,7 @@ if TYPE_CHECKING:
         ExamplesFlextCliUtilities as ExamplesFlextCliUtilities,
         u as u,
     )
-    from flext_core._root_typing_parts.facades import (
-        d as d,
-        e as e,
-        h as h,
-        r as r,
-        s as s,
-        x as x,
-    )
+    from flext_cli import d as d, e as e, h as h, r as r, s as s, x as x
 _LAZY_IMPORTS = merge_lazy_imports(
     ("._models_parts",),
     build_lazy_import_map(
@@ -88,7 +81,7 @@ _LAZY_IMPORTS = merge_lazy_imports(
                 "ExamplesFlextCliUtilities",
                 "u",
             ),
-            "flext_core._root_typing_parts.facades": (
+            "flext_cli": (
                 "d",
                 "e",
                 "h",

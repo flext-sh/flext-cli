@@ -43,13 +43,7 @@ if TYPE_CHECKING:
     from flext_cli.settings import FlextCliSettings as FlextCliSettings
     from flext_cli.typings import FlextCliTypes as FlextCliTypes, t as t
     from flext_cli.utilities import FlextCliUtilities as FlextCliUtilities, u as u
-    from flext_core._root_typing_parts.facades import (
-        d as d,
-        e as e,
-        h as h,
-        r as r,
-        x as x,
-    )
+    from flext_core import d as d, e as e, h as h, r as r, x as x
 
 
 _LAZY_IMPORTS = {
