@@ -12,47 +12,75 @@ from flext_core.lazy import (
 )
 
 if TYPE_CHECKING:
-    from flext_cli._utilities._cli_namespace import FlextCliUtilitiesCli
+    from flext_cli._utilities._cli_namespace import (
+        FlextCliUtilitiesCli as FlextCliUtilitiesCli,
+    )
     from flext_cli._utilities._file_test_helper_parts.flextcliutilitiesfiletesthelpersmixin_part_04 import (
-        FlextCliUtilitiesFileTestHelpersMixin,
+        FlextCliUtilitiesFileTestHelpersMixin as FlextCliUtilitiesFileTestHelpersMixin,
     )
     from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_04 import (
-        FlextCliUtilitiesFiles,
+        FlextCliUtilitiesFiles as FlextCliUtilitiesFiles,
     )
     from flext_cli._utilities._json_parts.flextcliutilitiesjson_part_03 import (
-        FlextCliUtilitiesJson,
+        FlextCliUtilitiesJson as FlextCliUtilitiesJson,
     )
     from flext_cli._utilities._options_parts.flextcliutilitiesoptionbuilder_part_01 import (
-        FlextCliUtilitiesOptionBuilder,
+        FlextCliUtilitiesOptionBuilder as FlextCliUtilitiesOptionBuilder,
     )
     from flext_cli._utilities._options_parts.flextcliutilitiesoptions_part_02 import (
-        FlextCliUtilitiesOptions,
+        FlextCliUtilitiesOptions as FlextCliUtilitiesOptions,
     )
     from flext_cli._utilities._output_parts.flextcliutilitiesoutput_part_02 import (
-        FlextCliUtilitiesOutput,
+        FlextCliUtilitiesOutput as FlextCliUtilitiesOutput,
     )
     from flext_cli._utilities._rules_parts.flextcliutilitiesrules_part_03 import (
-        FlextCliUtilitiesRules,
+        FlextCliUtilitiesRules as FlextCliUtilitiesRules,
     )
     from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_07 import (
-        FlextCliUtilitiesToml,
+        FlextCliUtilitiesToml as FlextCliUtilitiesToml,
     )
-    from flext_cli._utilities.auth import FlextCliUtilitiesAuth
-    from flext_cli._utilities.cmd import FlextCliUtilitiesCmd
-    from flext_cli._utilities.commands import FlextCliUtilitiesCommands
-    from flext_cli._utilities.conversion import FlextCliUtilitiesConversion
-    from flext_cli._utilities.formatters import FlextCliUtilitiesFormatters
-    from flext_cli._utilities.matching import FlextCliUtilitiesMatching
-    from flext_cli._utilities.model_commands import FlextCliUtilitiesModelCommands
-    from flext_cli._utilities.params import FlextCliUtilitiesParams
-    from flext_cli._utilities.pipeline import FlextCliUtilitiesPipeline
-    from flext_cli._utilities.processes import FlextCliUtilitiesProcesses
-    from flext_cli._utilities.prompts import FlextCliUtilitiesPrompts
-    from flext_cli._utilities.runtime import FlextCliUtilitiesRuntime
-    from flext_cli._utilities.settings import FlextCliUtilitiesSettings
-    from flext_cli._utilities.tables import FlextCliUtilitiesTables
-    from flext_cli._utilities.validation import FlextCliUtilitiesValidation
-    from flext_cli._utilities.yaml import FlextCliUtilitiesYaml
+    from flext_cli._utilities.auth import FlextCliUtilitiesAuth as FlextCliUtilitiesAuth
+    from flext_cli._utilities.cmd import FlextCliUtilitiesCmd as FlextCliUtilitiesCmd
+    from flext_cli._utilities.commands import (
+        FlextCliUtilitiesCommands as FlextCliUtilitiesCommands,
+    )
+    from flext_cli._utilities.conversion import (
+        FlextCliUtilitiesConversion as FlextCliUtilitiesConversion,
+    )
+    from flext_cli._utilities.formatters import (
+        FlextCliUtilitiesFormatters as FlextCliUtilitiesFormatters,
+    )
+    from flext_cli._utilities.matching import (
+        FlextCliUtilitiesMatching as FlextCliUtilitiesMatching,
+    )
+    from flext_cli._utilities.model_commands import (
+        FlextCliUtilitiesModelCommands as FlextCliUtilitiesModelCommands,
+    )
+    from flext_cli._utilities.params import (
+        FlextCliUtilitiesParams as FlextCliUtilitiesParams,
+    )
+    from flext_cli._utilities.pipeline import (
+        FlextCliUtilitiesPipeline as FlextCliUtilitiesPipeline,
+    )
+    from flext_cli._utilities.processes import (
+        FlextCliUtilitiesProcesses as FlextCliUtilitiesProcesses,
+    )
+    from flext_cli._utilities.prompts import (
+        FlextCliUtilitiesPrompts as FlextCliUtilitiesPrompts,
+    )
+    from flext_cli._utilities.runtime import (
+        FlextCliUtilitiesRuntime as FlextCliUtilitiesRuntime,
+    )
+    from flext_cli._utilities.settings import (
+        FlextCliUtilitiesSettings as FlextCliUtilitiesSettings,
+    )
+    from flext_cli._utilities.tables import (
+        FlextCliUtilitiesTables as FlextCliUtilitiesTables,
+    )
+    from flext_cli._utilities.validation import (
+        FlextCliUtilitiesValidation as FlextCliUtilitiesValidation,
+    )
+    from flext_cli._utilities.yaml import FlextCliUtilitiesYaml as FlextCliUtilitiesYaml
 _LAZY_IMPORTS = merge_lazy_imports(
     (
         "._file_test_helper_parts",

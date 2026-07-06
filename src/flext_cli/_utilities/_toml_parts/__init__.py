@@ -9,7 +9,7 @@ from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
     from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_07 import (
-        FlextCliUtilitiesToml,
+        FlextCliUtilitiesToml as FlextCliUtilitiesToml,
     )
 _LAZY_IMPORTS = build_lazy_import_map(
     {

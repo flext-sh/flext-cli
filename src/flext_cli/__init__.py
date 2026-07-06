@@ -22,26 +22,34 @@ from flext_core.lazy import (
 )
 
 if TYPE_CHECKING:
-    from flext_cli.api import FlextCli, cli
-    from flext_cli.base import FlextCliServiceBase, s
-    from flext_cli.constants import FlextCliConstants, c
-    from flext_cli.models import FlextCliModels, m
-    from flext_cli.protocols import FlextCliProtocols, p
-    from flext_cli.services.auth import FlextCliAuth
-    from flext_cli.services.cli import FlextCliCli
-    from flext_cli.services.cli_params import FlextCliCommonParams
-    from flext_cli.services.cmd import FlextCliCmd
-    from flext_cli.services.file_tools import FlextCliFileTools
-    from flext_cli.services.formatters import FlextCliFormatters
-    from flext_cli.services.output import FlextCliOutput
-    from flext_cli.services.pipeline import FlextCliPipeline
-    from flext_cli.services.rules import FlextCliRules
-    from flext_cli.services.runtime import FlextCliRuntime
-    from flext_cli.services.tables import FlextCliTables
-    from flext_cli.settings import FlextCliSettings
-    from flext_cli.typings import FlextCliTypes, t
-    from flext_cli.utilities import FlextCliUtilities, u
-    from flext_core._root_typing_parts.facades import d, e, h, r, x
+    from flext_cli.api import FlextCli as FlextCli, cli as cli
+    from flext_cli.base import FlextCliServiceBase as FlextCliServiceBase, s as s
+    from flext_cli.constants import FlextCliConstants as FlextCliConstants, c as c
+    from flext_cli.models import FlextCliModels as FlextCliModels, m as m
+    from flext_cli.protocols import FlextCliProtocols as FlextCliProtocols, p as p
+    from flext_cli.services.auth import FlextCliAuth as FlextCliAuth
+    from flext_cli.services.cli import FlextCliCli as FlextCliCli
+    from flext_cli.services.cli_params import (
+        FlextCliCommonParams as FlextCliCommonParams,
+    )
+    from flext_cli.services.cmd import FlextCliCmd as FlextCliCmd
+    from flext_cli.services.file_tools import FlextCliFileTools as FlextCliFileTools
+    from flext_cli.services.formatters import FlextCliFormatters as FlextCliFormatters
+    from flext_cli.services.output import FlextCliOutput as FlextCliOutput
+    from flext_cli.services.pipeline import FlextCliPipeline as FlextCliPipeline
+    from flext_cli.services.rules import FlextCliRules as FlextCliRules
+    from flext_cli.services.runtime import FlextCliRuntime as FlextCliRuntime
+    from flext_cli.services.tables import FlextCliTables as FlextCliTables
+    from flext_cli.settings import FlextCliSettings as FlextCliSettings
+    from flext_cli.typings import FlextCliTypes as FlextCliTypes, t as t
+    from flext_cli.utilities import FlextCliUtilities as FlextCliUtilities, u as u
+    from flext_core._root_typing_parts.facades import (
+        d as d,
+        e as e,
+        h as h,
+        r as r,
+        x as x,
+    )
 _LAZY_IMPORTS = merge_lazy_imports(
     (".services",),
     build_lazy_import_map(

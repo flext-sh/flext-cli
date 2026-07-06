@@ -9,7 +9,7 @@ from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
     from flext_cli._utilities._output_parts.flextcliutilitiesoutput_part_02 import (
-        FlextCliUtilitiesOutput,
+        FlextCliUtilitiesOutput as FlextCliUtilitiesOutput,
     )
 _LAZY_IMPORTS = build_lazy_import_map(
     {

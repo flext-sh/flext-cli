@@ -9,7 +9,7 @@ from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
     from flext_cli._protocols._base_parts.flextcliprotocolsbase_part_05 import (
-        FlextCliProtocolsBase,
+        FlextCliProtocolsBase as FlextCliProtocolsBase,
     )
 _LAZY_IMPORTS = build_lazy_import_map(
     {

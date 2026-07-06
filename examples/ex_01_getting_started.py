@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from typing import override
 
 from examples import c, m, p, r, s, t, u
 from flext_cli import cli
@@ -43,6 +44,7 @@ class ExamplesFlextCliGettingStarted(s):
                 lambda _: cli.read_json_model(str(config_path), m.Cli.LoadedConfig),
             )
 
+    @override
     def execute(self) -> p.Result[t.JsonMapping]:
         """Run the public getting-started flow through typed examples aliases."""
         cli.print(

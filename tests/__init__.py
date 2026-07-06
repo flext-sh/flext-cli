@@ -12,86 +12,151 @@ from flext_core.lazy import (
 )
 
 if TYPE_CHECKING:
-    from flext_tests import d, e, h, r, td, tf, tk, tm, tv, x
+    from flext_tests import (
+        d as d,
+        e as e,
+        h as h,
+        r as r,
+        td as td,
+        tf as tf,
+        tk as tk,
+        tm as tm,
+        tv as tv,
+        x as x,
+    )
 
-    from tests._constants_parts.tests_core import TestsFlextCliConstantsCore
+    from tests._constants_parts.tests_core import (
+        TestsFlextCliConstantsCore as TestsFlextCliConstantsCore,
+    )
     from tests._constants_parts.tests_rules_options import (
-        TestsFlextCliConstantsRulesOptions,
+        TestsFlextCliConstantsRulesOptions as TestsFlextCliConstantsRulesOptions,
     )
     from tests._constants_parts.tests_yaml_output import (
-        TestsFlextCliConstantsYamlOutput,
+        TestsFlextCliConstantsYamlOutput as TestsFlextCliConstantsYamlOutput,
     )
-    from tests._models_parts.tests_cli import TestsFlextCliModelsCli
-    from tests._models_parts.tests_runtime import TestsFlextCliModelsRuntime
-    from tests._models_parts.tests_version import TestsFlextCliModelsVersion
-    from tests.base import TestsFlextCliServiceBase, s
-    from tests.constants import TestsFlextCliConstants, c
-    from tests.models import TestsFlextCliModels, m
-    from tests.protocols import TestsFlextCliProtocols, p
-    from tests.settings import TestsFlextCliSettings
-    from tests.typings import TestsFlextCliTypes, t
+    from tests._models_parts.tests_cli import (
+        TestsFlextCliModelsCli as TestsFlextCliModelsCli,
+    )
+    from tests._models_parts.tests_runtime import (
+        TestsFlextCliModelsRuntime as TestsFlextCliModelsRuntime,
+    )
+    from tests._models_parts.tests_version import (
+        TestsFlextCliModelsVersion as TestsFlextCliModelsVersion,
+    )
+    from tests.base import TestsFlextCliServiceBase as TestsFlextCliServiceBase, s as s
+    from tests.constants import TestsFlextCliConstants as TestsFlextCliConstants, c as c
+    from tests.models import TestsFlextCliModels as TestsFlextCliModels, m as m
+    from tests.protocols import TestsFlextCliProtocols as TestsFlextCliProtocols, p as p
+    from tests.settings import TestsFlextCliSettings as TestsFlextCliSettings
+    from tests.typings import TestsFlextCliTypes as TestsFlextCliTypes, t as t
     from tests.unit.conftest import (
-        TestsFlextCliCaptureLogPrompts,
-        TestsFlextCliFailingLogPrompts,
-        TestsFlextCliScriptedPrompts,
-        make_capture_prompts,
-        make_failing_prompts,
-        make_prompts,
-        reset_settings,
+        TestsFlextCliCaptureLogPrompts as TestsFlextCliCaptureLogPrompts,
+        TestsFlextCliFailingLogPrompts as TestsFlextCliFailingLogPrompts,
+        TestsFlextCliScriptedPrompts as TestsFlextCliScriptedPrompts,
+        make_capture_prompts as make_capture_prompts,
+        make_failing_prompts as make_failing_prompts,
+        make_prompts as make_prompts,
+        reset_settings as reset_settings,
     )
-    from tests.unit.test_auth_utils_cov import TestsFlextCliAuthUtilsCov
-    from tests.unit.test_base import TestsFlextCliBase
-    from tests.unit.test_cli_params import TestsFlextCliCliParams
-    from tests.unit.test_cli_service import TestsFlextCliService
-    from tests.unit.test_cmd import TestsFlextCliCmd
-    from tests.unit.test_cmd_cov import TestsFlextCliCmdCov
+    from tests.unit.test_auth_utils_cov import (
+        TestsFlextCliAuthUtilsCov as TestsFlextCliAuthUtilsCov,
+    )
+    from tests.unit.test_base import TestsFlextCliBase as TestsFlextCliBase
+    from tests.unit.test_cli_params import (
+        TestsFlextCliCliParams as TestsFlextCliCliParams,
+    )
+    from tests.unit.test_cli_service import TestsFlextCliService as TestsFlextCliService
+    from tests.unit.test_cmd import TestsFlextCliCmd as TestsFlextCliCmd
+    from tests.unit.test_cmd_cov import TestsFlextCliCmdCov as TestsFlextCliCmdCov
     from tests.unit.test_cmd_runtime_validation_branch_cov import (
-        TestsFlextCliCmdRuntimeValidationBranchCov,
+        TestsFlextCliCmdRuntimeValidationBranchCov as TestsFlextCliCmdRuntimeValidationBranchCov,
     )
-    from tests.unit.test_commands_utils_cov import TestsFlextCliCommands
-    from tests.unit.test_conversion_cov import TestsFlextCliConversion
+    from tests.unit.test_commands_utils_cov import (
+        TestsFlextCliCommands as TestsFlextCliCommands,
+    )
+    from tests.unit.test_conversion_cov import (
+        TestsFlextCliConversion as TestsFlextCliConversion,
+    )
     from tests.unit.test_examples_models_utilities_cov import (
-        TestsFlextCliExampleModelsUtilitiesCov,
+        TestsFlextCliExampleModelsUtilitiesCov as TestsFlextCliExampleModelsUtilitiesCov,
     )
-    from tests.unit.test_examples_smoke import TestsFlextCliExamplesSmoke
-    from tests.unit.test_files_cov import TestsFlextCliFilesCov
-    from tests.unit.test_formatters_cov import TestsFlextCliFormattersCov
-    from tests.unit.test_json_cov import TestsFlextCliJsonCov
-    from tests.unit.test_matching_cov import TestsFlextCliMatchingCov
-    from tests.unit.test_model_commands_cov import TestsFlextCliModelCommandsCov
-    from tests.unit.test_options_cov import TestsFlextCliOptionsUtilsCov
-    from tests.unit.test_options_public_cov import TestsFlextCliOptions
-    from tests.unit.test_output_cov import TestsFlextCliOutputCov
-    from tests.unit.test_params_branch_cov import TestsFlextCliParams
-    from tests.unit.test_pipeline import TestsFlextCliPipeline
-    from tests.unit.test_prompts import TestsFlextCliPrompts
-    from tests.unit.test_prompts_cov import TestsFlextCliPromptsCov
+    from tests.unit.test_examples_smoke import (
+        TestsFlextCliExamplesSmoke as TestsFlextCliExamplesSmoke,
+    )
+    from tests.unit.test_files_cov import TestsFlextCliFilesCov as TestsFlextCliFilesCov
+    from tests.unit.test_formatters_cov import (
+        TestsFlextCliFormattersCov as TestsFlextCliFormattersCov,
+    )
+    from tests.unit.test_json_cov import TestsFlextCliJsonCov as TestsFlextCliJsonCov
+    from tests.unit.test_matching_cov import (
+        TestsFlextCliMatchingCov as TestsFlextCliMatchingCov,
+    )
+    from tests.unit.test_model_commands_cov import (
+        TestsFlextCliModelCommandsCov as TestsFlextCliModelCommandsCov,
+    )
+    from tests.unit.test_options_cov import (
+        TestsFlextCliOptionsUtilsCov as TestsFlextCliOptionsUtilsCov,
+    )
+    from tests.unit.test_options_public_cov import (
+        TestsFlextCliOptions as TestsFlextCliOptions,
+    )
+    from tests.unit.test_output_cov import (
+        TestsFlextCliOutputCov as TestsFlextCliOutputCov,
+    )
+    from tests.unit.test_params_branch_cov import (
+        TestsFlextCliParams as TestsFlextCliParams,
+    )
+    from tests.unit.test_pipeline import TestsFlextCliPipeline as TestsFlextCliPipeline
+    from tests.unit.test_prompts import TestsFlextCliPrompts as TestsFlextCliPrompts
+    from tests.unit.test_prompts_cov import (
+        TestsFlextCliPromptsCov as TestsFlextCliPromptsCov,
+    )
     from tests.unit.test_public_contracts_cov import (
-        TestsFlextCliPublicContractsCoverage,
+        TestsFlextCliPublicContractsCoverage as TestsFlextCliPublicContractsCoverage,
     )
-    from tests.unit.test_rules_cov import TestsFlextCliRulesCov
-    from tests.unit.test_runtime_utilities_core import TestsFlextCliRuntimeUtilitiesCore
+    from tests.unit.test_rules_cov import TestsFlextCliRulesCov as TestsFlextCliRulesCov
+    from tests.unit.test_runtime_utilities_core import (
+        TestsFlextCliRuntimeUtilitiesCore as TestsFlextCliRuntimeUtilitiesCore,
+    )
     from tests.unit.test_runtime_utilities_extra import (
-        TestsFlextCliRuntimeUtilitiesExtra,
+        TestsFlextCliRuntimeUtilitiesExtra as TestsFlextCliRuntimeUtilitiesExtra,
     )
-    from tests.unit.test_services_auth_branch_cov import TestsFlextCliServicesAuth
-    from tests.unit.test_services_auth_cov import TestsFlextCliServicesAuthCov
-    from tests.unit.test_services_output_cov import TestsFlextCliServicesOutputCov
+    from tests.unit.test_services_auth_branch_cov import (
+        TestsFlextCliServicesAuth as TestsFlextCliServicesAuth,
+    )
+    from tests.unit.test_services_auth_cov import (
+        TestsFlextCliServicesAuthCov as TestsFlextCliServicesAuthCov,
+    )
+    from tests.unit.test_services_output_cov import (
+        TestsFlextCliServicesOutputCov as TestsFlextCliServicesOutputCov,
+    )
     from tests.unit.test_services_tables_branch_cov import (
-        TestsFlextCliServicesTablesBranchCov,
+        TestsFlextCliServicesTablesBranchCov as TestsFlextCliServicesTablesBranchCov,
     )
-    from tests.unit.test_services_tables_cov import TestsFlextCliServicesTablesCov
-    from tests.unit.test_settings import TestsFlextCliSettingsUnit
-    from tests.unit.test_tables import TestsFlextCliTables
-    from tests.unit.test_tables_branch_cov import TestsFlextCliTablesBranchCov
-    from tests.unit.test_toml_cov import TestsFlextCliTomlCov
-    from tests.unit.test_toml_sync_cov import TestsFlextCliTomlSyncCoverage
-    from tests.unit.test_toml_utilities import TestsFlextCliTomlUtilities
-    from tests.unit.test_typings import TestsFlextCliTypings
-    from tests.unit.test_utilities_cov import TestsFlextCliUtilitiesCov
-    from tests.unit.test_version import TestsFlextCliVersion
-    from tests.unit.test_yaml_cov import TestsFlextCliYamlCov
-    from tests.utilities import TestsFlextCliUtilities, u
+    from tests.unit.test_services_tables_cov import (
+        TestsFlextCliServicesTablesCov as TestsFlextCliServicesTablesCov,
+    )
+    from tests.unit.test_settings import (
+        TestsFlextCliSettingsUnit as TestsFlextCliSettingsUnit,
+    )
+    from tests.unit.test_tables import TestsFlextCliTables as TestsFlextCliTables
+    from tests.unit.test_tables_branch_cov import (
+        TestsFlextCliTablesBranchCov as TestsFlextCliTablesBranchCov,
+    )
+    from tests.unit.test_toml_cov import TestsFlextCliTomlCov as TestsFlextCliTomlCov
+    from tests.unit.test_toml_sync_cov import (
+        TestsFlextCliTomlSyncCoverage as TestsFlextCliTomlSyncCoverage,
+    )
+    from tests.unit.test_toml_utilities import (
+        TestsFlextCliTomlUtilities as TestsFlextCliTomlUtilities,
+    )
+    from tests.unit.test_typings import TestsFlextCliTypings as TestsFlextCliTypings
+    from tests.unit.test_utilities_cov import (
+        TestsFlextCliUtilitiesCov as TestsFlextCliUtilitiesCov,
+    )
+    from tests.unit.test_version import TestsFlextCliVersion as TestsFlextCliVersion
+    from tests.unit.test_yaml_cov import TestsFlextCliYamlCov as TestsFlextCliYamlCov
+    from tests.utilities import TestsFlextCliUtilities as TestsFlextCliUtilities, u as u
 _LAZY_IMPORTS = merge_lazy_imports(
     (
         "._constants_parts",

@@ -13,10 +13,14 @@ from flext_core.lazy import (
 
 if TYPE_CHECKING:
     from flext_cli._protocols._base_parts.flextcliprotocolsbase_part_05 import (
-        FlextCliProtocolsBase,
+        FlextCliProtocolsBase as FlextCliProtocolsBase,
     )
-    from flext_cli._protocols.domain import FlextCliProtocolsDomain
-    from flext_cli._protocols.pipeline import FlextCliProtocolsPipeline
+    from flext_cli._protocols.domain import (
+        FlextCliProtocolsDomain as FlextCliProtocolsDomain,
+    )
+    from flext_cli._protocols.pipeline import (
+        FlextCliProtocolsPipeline as FlextCliProtocolsPipeline,
+    )
 _LAZY_IMPORTS = merge_lazy_imports(
     ("._base_parts",),
     build_lazy_import_map(
