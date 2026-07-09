@@ -9,6 +9,9 @@ from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
     from flext_cli._constants.base import FlextCliConstantsBase as FlextCliConstantsBase
+    from flext_cli._constants.config import (
+        FlextCliConstantsConfig as FlextCliConstantsConfig,
+    )
     from flext_cli._constants.enums import (
         FlextCliConstantsEnums as FlextCliConstantsEnums,
     )
@@ -33,6 +36,7 @@ if TYPE_CHECKING:
 _LAZY_IMPORTS = build_lazy_import_map(
     {
         ".base": ("FlextCliConstantsBase",),
+        ".config": ("FlextCliConstantsConfig",),
         ".enums": ("FlextCliConstantsEnums",),
         ".errors": ("FlextCliConstantsErrors",),
         ".exceptions": ("FlextCliConstantsExceptions",),

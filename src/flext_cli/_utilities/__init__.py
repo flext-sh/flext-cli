@@ -44,6 +44,9 @@ if TYPE_CHECKING:
     from flext_cli._utilities.commands import (
         FlextCliUtilitiesCommands as FlextCliUtilitiesCommands,
     )
+    from flext_cli._utilities.config import (
+        FlextCliUtilitiesConfig as FlextCliUtilitiesConfig,
+    )
     from flext_cli._utilities.conversion import (
         FlextCliUtilitiesConversion as FlextCliUtilitiesConversion,
     )
@@ -76,6 +79,9 @@ if TYPE_CHECKING:
     )
     from flext_cli._utilities.tables import (
         FlextCliUtilitiesTables as FlextCliUtilitiesTables,
+    )
+    from flext_cli._utilities.template import (
+        FlextCliUtilitiesTemplate as FlextCliUtilitiesTemplate,
     )
     from flext_cli._utilities.validation import (
         FlextCliUtilitiesValidation as FlextCliUtilitiesValidation,
@@ -120,6 +126,7 @@ _LAZY_IMPORTS = merge_lazy_imports(
             ".auth": ("FlextCliUtilitiesAuth",),
             ".cmd": ("FlextCliUtilitiesCmd",),
             ".commands": ("FlextCliUtilitiesCommands",),
+            ".config": ("FlextCliUtilitiesConfig",),
             ".conversion": ("FlextCliUtilitiesConversion",),
             ".formatters": ("FlextCliUtilitiesFormatters",),
             ".matching": ("FlextCliUtilitiesMatching",),
@@ -131,6 +138,7 @@ _LAZY_IMPORTS = merge_lazy_imports(
             ".runtime": ("FlextCliUtilitiesRuntime",),
             ".settings": ("FlextCliUtilitiesSettings",),
             ".tables": ("FlextCliUtilitiesTables",),
+            ".template": ("FlextCliUtilitiesTemplate",),
             ".validation": ("FlextCliUtilitiesValidation",),
             ".yaml": ("FlextCliUtilitiesYaml",),
         },

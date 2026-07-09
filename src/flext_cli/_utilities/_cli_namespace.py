@@ -8,6 +8,7 @@ from flext_cli._utilities._options_parts.flextcliutilitiesoptions_part_02 import
 from flext_cli._utilities.auth import FlextCliUtilitiesAuth
 from flext_cli._utilities.cmd import FlextCliUtilitiesCmd
 from flext_cli._utilities.commands import FlextCliUtilitiesCommands
+from flext_cli._utilities.config import FlextCliUtilitiesConfig
 from flext_cli._utilities.conversion import FlextCliUtilitiesConversion
 from flext_cli._utilities.file_test_helpers import FlextCliUtilitiesFileTestHelpersMixin
 from flext_cli._utilities.files import FlextCliUtilitiesFiles
@@ -24,6 +25,7 @@ from flext_cli._utilities.rules import FlextCliUtilitiesRules
 from flext_cli._utilities.runtime import FlextCliUtilitiesRuntime
 from flext_cli._utilities.settings import FlextCliUtilitiesSettings
 from flext_cli._utilities.tables import FlextCliUtilitiesTables
+from flext_cli._utilities.template import FlextCliUtilitiesTemplate
 from flext_cli._utilities.toml import FlextCliUtilitiesToml
 from flext_cli._utilities.validation import FlextCliUtilitiesValidation
 from flext_cli._utilities.yaml import FlextCliUtilitiesYaml
@@ -33,7 +35,9 @@ class FlextCliUtilitiesCli(
     FlextCliUtilitiesAuth,
     FlextCliUtilitiesCmd,
     FlextCliUtilitiesCommands,
+    FlextCliUtilitiesConfig,
     FlextCliUtilitiesConversion,
+    FlextCliUtilitiesTemplate,
     FlextCliUtilitiesFileTestHelpersMixin,
     FlextCliUtilitiesFiles,
     FlextCliUtilitiesFormatters,

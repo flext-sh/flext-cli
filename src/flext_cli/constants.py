@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from flext_cli._constants.base import FlextCliConstantsBase
+from flext_cli._constants.config import FlextCliConstantsConfig
 from flext_cli._constants.enums import FlextCliConstantsEnums
 from flext_cli._constants.errors import FlextCliConstantsErrors
 from flext_cli._constants.exceptions import FlextCliConstantsExceptions
@@ -16,6 +17,7 @@ from flext_core import FlextConstants, t
 class FlextCliConstants(
     FlextConstants,
     FlextCliConstantsBase,
+    FlextCliConstantsConfig,
     FlextCliConstantsEnums,
     FlextCliConstantsErrors,
     FlextCliConstantsExceptions,
@@ -29,6 +31,7 @@ class FlextCliConstants(
     class Cli(
         FlextCliConstantsPipeline,
         FlextCliConstantsBase,
+        FlextCliConstantsConfig,
         FlextCliConstantsEnums,
         FlextCliConstantsErrors,
         FlextCliConstantsExceptions,
