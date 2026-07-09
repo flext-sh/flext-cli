@@ -1,8 +1,8 @@
 """Behavior contract for the ADR-005 flext-cli universal engine.
 
-Covers ``u.Cli.render_template`` (Jinja2, StrictUndefined, sandboxed),
+Covers ``u.Cli.template_render`` (Jinja2, StrictUndefined, sandboxed),
 ``u.Cli.config_load`` / ``config_load_dir`` (multi-format, reuses core
-``u.config_env_override``), and ``u.Cli.yaml_validate_schema`` (JSON Schema).
+``u.config_env_override``), and ``u.Cli.schema_validate`` (JSON Schema).
 """
 
 from __future__ import annotations
@@ -19,29 +19,29 @@ if TYPE_CHECKING:
 
 
 class TestsFlextCliConfigEngine:
-    def test_render_template_ok(self, tmp_path: Path) -> None:
+    def test_template_render_ok(self, tmp_path: Path) -> None:
         tpl = tmp_path / "greeting.j2"
         tpl.write_text("port={{ server.port }}\n", encoding="utf-8")
-        result = u.Cli.render_template(tpl, {"server": {"port": 8080}})
+        result = u.Cli.template_render(tpl, {"server": {"port": 8080}})
         assert result.success
         assert result.unwrap() == "port=8080\n"
 
-    def test_render_template_strict_undefined_fails(self, tmp_path: Path) -> None:
+    def test_template_render_strict_undefined_fails(self, tmp_path: Path) -> None:
         tpl = tmp_path / "greeting.j2"
         tpl.write_text("{{ missing_var }}\n", encoding="utf-8")
-        result = u.Cli.render_template(tpl, {})
+        result = u.Cli.template_render(tpl, {})
         assert result.failure
 
-    def test_render_template_missing_source_fails(self, tmp_path: Path) -> None:
-        result = u.Cli.render_template(tmp_path / "absent.j2", {})
+    def test_template_render_missing_source_fails(self, tmp_path: Path) -> None:
+        result = u.Cli.template_render(tmp_path / "absent.j2", {})
         assert result.failure
         assert c.Cli.ERR_TEMPLATE_NOT_FOUND in (result.error or "")
 
-    def test_render_template_to_writes(self, tmp_path: Path) -> None:
+    def test_template_render_to_writes(self, tmp_path: Path) -> None:
         tpl = tmp_path / "t.j2"
         tpl.write_text("value={{ x }}", encoding="utf-8")
         dest = tmp_path / "out" / "rendered.txt"
-        result = u.Cli.render_template_to(tpl, dest, {"x": 42})
+        result = u.Cli.template_render_to(tpl, dest, {"x": 42})
         assert result.success
         assert dest.read_text(encoding="utf-8") == "value=42"
 
@@ -74,15 +74,15 @@ class TestsFlextCliConfigEngine:
         assert result.failure
         assert c.Cli.ERR_CONFIG_UNSUPPORTED_FORMAT in (result.error or "")
 
-    def test_yaml_validate_schema_valid_and_invalid(self, tmp_path: Path) -> None:
+    def test_schema_validate_valid_and_invalid(self, tmp_path: Path) -> None:
         schema = tmp_path / "s.schema.json"
         schema.write_text(
             '{"type":"object","required":["port"],'
             '"properties":{"port":{"type":"integer"}}}',
             encoding="utf-8",
         )
-        assert u.Cli.yaml_validate_schema({"port": 8080}, schema).success
-        assert u.Cli.yaml_validate_schema({"port": "x"}, schema).failure
+        assert u.Cli.schema_validate({"port": 8080}, schema).success
+        assert u.Cli.schema_validate({"port": "x"}, schema).failure
 
     def test_config_load_with_schema_pairs(self, tmp_path: Path) -> None:
         source = tmp_path / "app.yaml"

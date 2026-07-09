@@ -55,7 +55,7 @@ class FlextCliUtilitiesConfig:
         """Load a YAML/JSON/TOML config into a validated ``m.ConfigDocument``.
 
         Reuses core ``u.config_env_override`` for ``${VAR}`` expansion and
-        ``u.Cli.yaml_validate_schema`` for optional JSON-Schema validation.
+        ``u.Cli.schema_validate`` for optional JSON-Schema validation.
         """
         read = FlextCliUtilitiesConfig._read_by_suffix(path)
         if read.failure:
@@ -68,7 +68,7 @@ class FlextCliUtilitiesConfig:
         if not isinstance(data, dict):
             return r[m.ConfigDocument].fail(f"{c.ERR_CONFIG_NOT_MAPPING}: {path}")
         if schema_path is not None:
-            validated = FlextCliUtilitiesConfig.yaml_validate_schema(data, schema_path)
+            validated = FlextCliUtilitiesConfig.schema_validate(data, schema_path)
             if validated.failure:
                 return r[m.ConfigDocument].fail(
                     validated.error or c.Cli.ERR_SCHEMA_INVALID
@@ -110,7 +110,7 @@ class FlextCliUtilitiesConfig:
         return r[t.MappingKV[str, m.ConfigDocument]].ok(documents)
 
     @staticmethod
-    def yaml_validate_schema(
+    def schema_validate(
         data: t.JsonMapping,
         schema_path: Path,
     ) -> p.Result[bool]:
@@ -123,7 +123,7 @@ class FlextCliUtilitiesConfig:
         return u.try_(
             lambda: FlextCliUtilitiesConfig._run_validator(schema_read.value, data),
             catch=(ValidationError, SchemaError),
-            op_name="yaml_validate_schema",
+            op_name="schema_validate",
         )
 
     @staticmethod

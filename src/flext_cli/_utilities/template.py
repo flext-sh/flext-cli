@@ -1,4 +1,4 @@
-"""Generic Jinja2 template helpers shared through ``u.Cli.render_template``.
+"""Generic Jinja2 template helpers shared through ``u.Cli.template_render``.
 
 flext-cli owns the universal template engine (ADR-005). Any FLEXT project or the
 ``~/.ai-hub`` control plane renders ``templates/*.j2`` through here instead of
@@ -41,7 +41,7 @@ class FlextCliUtilitiesTemplate:
         )
 
     @staticmethod
-    def render_template(
+    def template_render(
         path: Path,
         context: t.JsonMapping,
     ) -> p.Result[str]:
@@ -56,7 +56,7 @@ class FlextCliUtilitiesTemplate:
         rendered = u.try_(
             lambda: env.get_template(path.name).render(dict(context)),
             catch=(TemplateError, OSError),
-            op_name="render_template",
+            op_name="template_render",
         )
         if rendered.failure:
             return r[str].fail(
@@ -65,19 +65,19 @@ class FlextCliUtilitiesTemplate:
         return r[str].ok(rendered.value)
 
     @staticmethod
-    def render_template_to(
+    def template_render_to(
         path: Path,
         dest: Path,
         context: t.JsonMapping,
     ) -> p.Result[bool]:
         """Render ``path`` with ``context`` and write it to ``dest`` → ``r[bool]``."""
-        rendered = FlextCliUtilitiesTemplate.render_template(path, context)
+        rendered = FlextCliUtilitiesTemplate.template_render(path, context)
         if rendered.failure:
             return r[bool].fail(rendered.error or c.Cli.ERR_TEMPLATE_RENDER_FAILED)
         return u.try_(
             lambda: FlextCliUtilitiesTemplate._write(dest, rendered.value),
             catch=OSError,
-            op_name="render_template_to",
+            op_name="template_render_to",
         )
 
     @staticmethod
