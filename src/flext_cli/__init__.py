@@ -22,6 +22,11 @@ from flext_core.lazy import (
 )
 
 if TYPE_CHECKING:
+    from flext_cli._config import FlextCliConfig as FlextCliConfig, config as config
+    from flext_cli._settings import (
+        FlextCliSettings as FlextCliSettings,
+        settings as settings,
+    )
     from flext_cli.api import FlextCli as FlextCli, cli as cli
     from flext_cli.base import FlextCliServiceBase as FlextCliServiceBase, s as s
     from flext_cli.constants import FlextCliConstants as FlextCliConstants, c as c
@@ -40,11 +45,6 @@ if TYPE_CHECKING:
     from flext_cli.services.rules import FlextCliRules as FlextCliRules
     from flext_cli.services.runtime import FlextCliRuntime as FlextCliRuntime
     from flext_cli.services.tables import FlextCliTables as FlextCliTables
-    from flext_cli._settings import (
-        FlextCliSettings as FlextCliSettings,
-        settings as settings,
-    )
-    from flext_cli._config import FlextCliConfig as FlextCliConfig, config as config
     from flext_cli.typings import FlextCliTypes as FlextCliTypes, t as t
     from flext_cli.utilities import FlextCliUtilities as FlextCliUtilities, u as u
     from flext_core._root_typing_parts.facades import (
@@ -142,8 +142,8 @@ __all__: tuple[str, ...] = (
     "FlextCliAuth",
     "FlextCliCli",
     "FlextCliCmd",
-    "FlextCliConfig",
     "FlextCliCommonParams",
+    "FlextCliConfig",
     "FlextCliConstants",
     "FlextCliFileTools",
     "FlextCliFormatters",
